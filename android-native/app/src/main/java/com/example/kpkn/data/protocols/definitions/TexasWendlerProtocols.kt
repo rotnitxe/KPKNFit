@@ -1,6 +1,7 @@
 package com.example.kpkn.data.protocols.definitions
 
 import com.example.kpkn.data.models.BlockGoal
+import com.example.kpkn.data.models.WeekExecutionKind
 import com.example.kpkn.data.protocols.AutoregulationHook
 import com.example.kpkn.data.protocols.AutoregulationHookKind
 import com.example.kpkn.data.protocols.CatalogIds
@@ -15,6 +16,7 @@ import com.example.kpkn.data.protocols.ProtocolKind
 import com.example.kpkn.data.protocols.ProtocolPublicationStatus
 import com.example.kpkn.data.protocols.RecipeCompositionExemption
 import com.example.kpkn.data.protocols.SetRecipe
+import com.example.kpkn.data.protocols.SlotRecipe
 import com.example.kpkn.data.protocols.SlotRole
 import com.example.kpkn.data.protocols.SlotSource
 import com.example.kpkn.data.protocols.TechniqueModifier
@@ -58,7 +60,9 @@ object TexasMethodProtocols {
         slots = listOf(
             slot("sq", SlotRole.T1_MAIN, CatalogIds.SQ_LOW, repeatPercentSets(2, 5, 80.0, 180, basis = LoadBasis.PERCENT_OF_TOP_SET), 180, LiftSlot.SQUAT, isCompetitionLift = true),
             slot("ohp", SlotRole.T2_SUPPLEMENTAL, CatalogIds.OHP, repeatPercentSets(3, 5, 60.0, 150), 150, LiftSlot.OVERHEAD),
-            slot("chin", SlotRole.T3_ACCESSORY, CatalogIds.CHIN, listOf(SetRecipe(reps = 8, amrap = true, rpe = 8.0, loadBasis = LoadBasis.RPE), SetRecipe(reps = 8, amrap = true, rpe = 8.0, loadBasis = LoadBasis.RPE), SetRecipe(reps = 8, amrap = true, rpe = 8.0, loadBasis = LoadBasis.RPE)), 120),
+            // L-16 (B.S6): las dominadas llevaban las 3 series como AMRAP y a RPE 8 a la vez (contradictorio), en un slot sin
+            // `liftSlot`; ahora son 3×8 a RPE 8 sin AMRAP (el TM de Texas sube con el top set del viernes, `TopSetPr`).
+            slot("chin", SlotRole.T3_ACCESSORY, CatalogIds.CHIN, rpeSets(3, 8, 8.0), 120),
             slot("ext", SlotRole.T3_ACCESSORY, CatalogIds.BACK_EXT, rpeSets(3, 12, 7.0), 90, source = SlotSource.KPKN_DEFAULT),
             kpknAssist("face", CatalogIds.FACE, 3, 15, 60),
         ),
@@ -88,7 +92,7 @@ object TexasMethodProtocols {
         // D7: el TM es el 87 % del 1RM (≈ 5RM): el top de viernes es un 1×5, no un 1RM.
         trainingMaxPercent = 0.87,
         liftSlots = sbdSlots(),
-        progression = ProgressionRule.TopSetPr(),
+        progression = ProgressionRule.TopSetPr(upperKg = 1.25, lowerKg = 2.5),
         claimedDaysPerWeek = 3,
         claimedLevel = "intermedio",
         autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.WEEKLY_REVIEW)),
@@ -126,7 +130,8 @@ object WendlerProtocols {
         amrapLast = weekInCycle < 3,
     )
 
-    private fun bbb(configurationId: String, lift: LiftSlot, firstPercent: Double) = slot(
+    /** L-12 (B.S6): BBB fijo 5×10 al 50 % del TM todas las semanas con suplementario (el parámetro `firstPercent` no se usaba). */
+    private fun bbb(configurationId: String, lift: LiftSlot) = slot(
         "bbb", SlotRole.T2_SUPPLEMENTAL, configurationId,
         repeatPercentSets(5, 10, 50.0, 120),
         120, lift, supplementalOf = "t1",
@@ -148,10 +153,20 @@ object WendlerProtocols {
             kpknAssist("face", CatalogIds.FACE, 3, 15, 60),
         )
         LiftSlot.OVERHEAD -> listOf(
-            slot("cg", SlotRole.T3_ACCESSORY, CatalogIds.BP, rpeSets(3, 8, 8.0), 90, LiftSlot.BENCH, technique = TechniqueModifier.CLOSE_GRIP, source = SlotSource.KPKN_DEFAULT),
+            // C-01 (M1, B.S6): el agarre cerrado es una configuración propia del catálogo, no `BP` + `CLOSE_GRIP`.
+            slot("cg", SlotRole.T3_ACCESSORY, CatalogIds.BP_CLOSE_GRIP, rpeSets(3, 8, 8.0), 90, LiftSlot.BENCH, source = SlotSource.KPKN_DEFAULT),
             kpknAssist("pull", CatalogIds.PULLUP, 3, 8, 90),
             kpknAssist("face", CatalogIds.FACE, 3, 15, 60),
         )
+    }
+
+    /** La semana de descarga (la cuarta del ciclo) deja solo las series principales: Wendler no programa el suplementario ahí (L-12). */
+    private const val DELOAD_WEEK_IN_CYCLE = 3
+
+    private fun supplementalFor(configurationId: String, lift: LiftSlot, weekInCycle: Int, variant: String): List<SlotRecipe> = when {
+        weekInCycle == DELOAD_WEEK_IN_CYCLE -> emptyList()
+        variant == "bbb" -> listOf(bbb(configurationId, lift))
+        else -> listOf(fsl(configurationId, lift, mainWeeks[weekInCycle].first().second))
     }
 
     private fun dayFor(label: String, configurationId: String, lift: LiftSlot, weekInCycle: Int, variant: String, weekday: Int) = day(
@@ -159,8 +174,7 @@ object WendlerProtocols {
         weekday = weekday,
         slots = listOf(
             slot("t1", SlotRole.T1_MAIN, configurationId, mainSets(weekInCycle), if (mainWeeks[weekInCycle].any { it.second >= 85.0 }) 240 else 180, lift, isCompetitionLift = lift != LiftSlot.OVERHEAD),
-            if (variant == "bbb") bbb(configurationId, lift, mainWeeks[weekInCycle].first().second) else fsl(configurationId, lift, mainWeeks[weekInCycle].first().second),
-        ) + assistanceFor(lift),
+        ) + supplementalFor(configurationId, lift, weekInCycle, variant) + assistanceFor(lift),
     )
 
     private fun recipe(id: String, variant: String): TrainingPlanRecipe {
@@ -183,8 +197,15 @@ object WendlerProtocols {
                 w, 0, "5/3/1", goal,
                 lifts.map { (triple, weekday) ->
                     val built = dayFor(triple.first, triple.second, triple.third, cycleWeek, variant, weekday)
-                    if (goal == BlockGoal.PEAK || goal == BlockGoal.DELOAD) built.dropT3(2) else built
+                    when (goal) {
+                        BlockGoal.PEAK -> built.dropT3(2)
+                        // L-12 (B.S6): sin suplementario, la descarga necesita 2 series por accesorio para llegar a las 6 series
+                        // efectivas del día (H6): 3 principales + 2 + 2 (con 1 por accesorio solo llegaba a 5).
+                        BlockGoal.DELOAD -> built.dropT3(1)
+                        else -> built
+                    }
                 },
+                kind = if (goal == BlockGoal.DELOAD) WeekExecutionKind.DELOAD else WeekExecutionKind.TRAINING,
                 weekName = labels[cycleWeek],
             )
         }
@@ -205,7 +226,7 @@ object WendlerProtocols {
         id = "wendler-531-bbb",
         name = "5/3/1 Boring But Big",
         emoji = "5️",
-        description = "4 días, 4 semanas: semanas 5s/3s/1s/descarga con AMRAP y BBB 5×10 @ 50 % TM. TM = 90 % 1RM.",
+        description = "4 días, 4 semanas: semanas 5s/3s/1s con AMRAP y BBB 5×10 @ 50 % TM; la cuarta es de descarga y no lleva suplementario. TM = 90 % 1RM.",
         author = "Jim Wendler",
         tags = listOf("powerlifting", "intermedio", "4 días", "4 semanas", "AMRAP", "%"),
         blocks = listOf(ProtocolBlock("5/3/1", 4, "Intensificación", 40, 95)),
@@ -220,7 +241,7 @@ object WendlerProtocols {
     val fsl = bbb.copy(
         id = "wendler-531-fsl",
         name = "5/3/1 First Set Last",
-        description = "4 días, 4 semanas: mismas olas 5/3/1 con FSL 5×5 al porcentaje del primer set.",
+        description = "4 días, 4 semanas: mismas olas 5/3/1 con FSL 5×5 al porcentaje del primer set; la cuarta es de descarga y no lleva suplementario.",
         tags = listOf("powerlifting", "intermedio", "4 días", "4 semanas", "AMRAP", "%"),
         source = attributed("5/3/1 Forever", "https://jimwendler.com/blogs/jimwendler-com/101077262-5-3-1-for-a-beginner", "Jim Wendler", variant = "FSL"),
         recipe = recipe("wendler-531-fsl", "fsl"),
@@ -232,8 +253,10 @@ object TexasMethodFourDay {
         label = id,
         weekday = weekday,
         slots = listOf(
-            slot("t1", SlotRole.T1_MAIN, configurationId, listOf(SetRecipe(reps = 5, percent = 85.0, isTopSet = true)), 240, lift, isCompetitionLift = lift != LiftSlot.OVERHEAD),
-            slot("t2", SlotRole.T2_SUPPLEMENTAL, volumeConfig, repeatPercentSets(if (volumeLift == LiftSlot.DEADLIFT) 3 else 5, 5, 70.0, 150), 150, volumeLift, isCompetitionLift = volumeLift != LiftSlot.OVERHEAD, supplementalOf = "t1"),
+            // L-02/L-18 (B.S6, D7): con el TM al 87 % del 1RM (≈ 5RM) el top set de 1×5 va al 100 % del TM y el volumen
+            // de 5×5 al 90 % (3×5 en peso muerto), igual que el Texas de 3 días; antes iban al 85 % y al 70 % de un TM del 100 %.
+            slot("t1", SlotRole.T1_MAIN, configurationId, listOf(SetRecipe(reps = 5, percent = 100.0, isTopSet = true)), 240, lift, isCompetitionLift = lift != LiftSlot.OVERHEAD),
+            slot("t2", SlotRole.T2_SUPPLEMENTAL, volumeConfig, repeatPercentSets(if (volumeLift == LiftSlot.DEADLIFT) 3 else 5, 5, 90.0, 150), 150, volumeLift, isCompetitionLift = volumeLift != LiftSlot.OVERHEAD, supplementalOf = "t1"),
             kpknAssist("row", CatalogIds.PENDLAY, 3, 8, 120),
             kpknAssist("ghr", CatalogIds.GHR, 3, 8, 90),
             kpknAssist("core", CatalogIds.PALLOF, 3, 10, 60),
@@ -254,10 +277,11 @@ object TexasMethodFourDay {
                 weekName = "Semana $w",
             )
         },
-        // D7 se aplica en B.S6 con el re-basado de T1/T2; con 1,0 el 4d cumple H11/H11b: 85 % → Epley admite 6.
-        trainingMaxPercent = 1.0,
+        // D7 (B.S6): el TM es el 87 % del 1RM (≈ 5RM) como en el Texas de 3 días. El top set 1×5 al 100 % del TM es el 87 %
+        // del 1RM (Epley admite 5 repeticiones) y el volumen 5×5 al 90 % del TM, el 78 % del 1RM.
+        trainingMaxPercent = 0.87,
         liftSlots = sbdSlots(),
-        progression = ProgressionRule.TopSetPr(),
+        progression = ProgressionRule.TopSetPr(upperKg = 1.25, lowerKg = 2.5),
         claimedDaysPerWeek = 4,
         claimedLevel = "intermedio",
         repeats = true,
@@ -267,7 +291,8 @@ object TexasMethodFourDay {
         id = "texas-method-4d",
         name = "Texas Method 4 días",
         emoji = "🤠",
-        description = "4 días PPST: lun banca int + OHP vol, mar sentadilla int + PM vol, jue OHP int + banca vol, vie PM int + sentadilla vol.",
+        description = "4 días PPST: lun banca int + OHP vol, mar sentadilla int + PM vol, jue OHP int + banca vol, vie PM int + sentadilla vol; " +
+            "int = 1×5 al 100 % del TM, vol = 5×5 al 90 % (3×5 en peso muerto), TM = 87 % del 1RM.",
         author = "Andy Baker y Mark Rippetoe",
         tags = listOf("powerlifting", "intermedio", "4 días", "4 semanas", "%"),
         blocks = listOf(ProtocolBlock("Texas 4d", 4, "Intensificación", 70, 90)),
@@ -276,6 +301,6 @@ object TexasMethodFourDay {
         kind = ProtocolKind.METHOD,
         source = attributed("Practical Programming 4-day Texas Method", "https://startingstrength.com/article/the_texas_method", "Andy Baker y Mark Rippetoe", variant = "4-day"),
         recipe = recipe(),
-        fidelitySpec = ProtocolFidelitySpec(4, 4, requiresPercent = true, claimedLevel = "intermedio", percentAnchors = mapOf("t1" to listOf(85.0))),
+        fidelitySpec = ProtocolFidelitySpec(4, 4, requiresPercent = true, claimedLevel = "intermedio", percentAnchors = mapOf("t1" to listOf(100.0), "t2" to listOf(90.0))),
     )
 }

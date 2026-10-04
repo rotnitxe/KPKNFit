@@ -201,9 +201,11 @@ class ProgramProtocolEngineTest {
         val mainIds = firstWeek.sessions.map { session ->
             session.allExercises().first().catalogConfigurationId
         }
+        // B.S6 parte 1 (L-06): el orden de los días cambia a sentadilla, banca de volumen, peso muerto y banca pesada. El peso muerto
+        // pesado pasa del segundo día (el día después de la sentadilla, W3) al tercero; el oráculo anterior era [SQ, DL, BP, BP].
         assertEquals("low_bar_back_squat__barbell", mainIds[0])
-        assertEquals("conventional_deadlift__bilateral__barbell", mainIds[1])
-        assertEquals("bench_press__barbell", mainIds[2])
+        assertEquals("bench_press__barbell", mainIds[1])
+        assertEquals("conventional_deadlift__bilateral__barbell", mainIds[2])
         assertEquals("bench_press__barbell", mainIds[3])
         firstWeek.sessions.forEach { session ->
             val main = session.allExercises().first()

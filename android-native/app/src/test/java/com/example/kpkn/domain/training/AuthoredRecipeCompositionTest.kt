@@ -81,9 +81,17 @@ class AuthoredRecipeCompositionTest {
         }
         // Exenciones nombradas por el plan (§14.3/§10).
         val phul = AuthoredPhulPhatRecipes.phulOriginal
+        // B.S6 parte 1: la H5a de «Inferior fuerza» (los dos axiales de la tabla) estaba muerta y se retiró: PHUL no publica
+        // porcentajes, así que ninguna serie cuenta como «pesada» en H5a y la tabla cabe sin exención. Siguen vivas la H1 de
+        // «Superior hipertrofia» (aperturas antes de remos) y la H3 de «Inferior hipertrofia» (tres movimientos de cuádriceps).
+        assertTrue("PHUL no declara la H5a muerta", phul.exemptions.none { it.rule == "H5a" })
         assertTrue(
-            "PHUL H5a dos axiales en el día inferior de fuerza",
-            phul.exemptions.any { it.rule == "H5a" && it.scope == "w*/Inferior fuerza" },
+            "PHUL H1 aperturas antes de remos en el día superior de hipertrofia",
+            phul.exemptions.any { it.rule == "H1" && it.scope == "w*/Superior hipertrofia" },
+        )
+        assertTrue(
+            "PHUL H3 cuádriceps seguidos en el día inferior de hipertrofia",
+            phul.exemptions.any { it.rule == "H3" && it.scope == "w*/Inferior hipertrofia" },
         )
         val phat = AuthoredPhulPhatRecipes.phatOriginal
         assertTrue(

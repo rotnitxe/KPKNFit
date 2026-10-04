@@ -100,8 +100,8 @@ object AuthoredExerciseBindings {
         )
         add(b(phul, "phul-upper-hypertrophy", "lat-raise", "Elevación lateral mancuernas 3–4×8–12", CatalogIds.LATERAL, "Elevación lateral de pie con mancuernas."))
         add(
-            b(phul, "phul-upper-hypertrophy", "curl-inc", "Curl inclinado sentado mancuernas 3–4×8–12", CatalogIds.CURL_SEATED_DB,
-                "Correspondencia canónica: curl SENTADO con mancuernas, la única configuración sentada de la definición; el ángulo inclinado del respaldo de la fuente no es un eje publicado y queda registrado en esta razón.",
+            b(phul, "phul-upper-hypertrophy", "curl-inc", "Curl inclinado sentado mancuernas 3–4×8–12", CatalogIds.CURL_INCLINE,
+                "Alta curada M5 (curaduría de programas, 2026-10-03): curl de bíceps inclinado con mancuernas, la configuración exacta de la tabla; antes se aproximaba con el curl sentado en banco plano. Exige el banco regulable.",
             variant = "respaldo inclinado",
             ),
         )
@@ -165,8 +165,8 @@ object AuthoredExerciseBindings {
             ),
         )
         add(
-            b(phat, "phat-back-shoulder-hypertrophy", "lat-close", "Jalón agarre cerrado 2×15–20", CatalogIds.LAT,
-            "La definición de jalón no publica eje de agarre: el agarre cerrado viaja en `TechniqueModifier.CLOSE_GRIP` sobre la configuración canónica de polea.",
+            b(phat, "phat-back-shoulder-hypertrophy", "lat-close", "Jalón agarre cerrado 2×15–20", CatalogIds.LAT_CLOSE_GRIP,
+            "Alta curada M4 (curaduría de programas, 2026-10-03): jalón al pecho con agarre cerrado en polea, la configuración exacta de la tabla; ya no viaja como `TechniqueModifier.CLOSE_GRIP` sobre la polea canónica.",
             variant = "agarre cerrado",
             ),
         )

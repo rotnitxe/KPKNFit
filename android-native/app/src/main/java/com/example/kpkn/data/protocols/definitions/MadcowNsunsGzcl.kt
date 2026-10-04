@@ -16,7 +16,6 @@ import com.example.kpkn.data.protocols.ProtocolPublicationStatus
 import com.example.kpkn.data.protocols.RecipeCompositionExemption
 import com.example.kpkn.data.protocols.SetRecipe
 import com.example.kpkn.data.protocols.SlotRole
-import com.example.kpkn.data.protocols.TechniqueModifier
 import com.example.kpkn.data.protocols.TrainingPlanRecipe
 import com.example.kpkn.data.protocols.attributed
 import com.example.kpkn.data.protocols.day
@@ -60,7 +59,7 @@ object MadcowProtocol {
                     )),
                     day("Recuperación", weekday = 3, slots = listOf(
                         slot("sq", SlotRole.T1_MAIN, CatalogIds.SQ_LOW, percentSets(180, 5 to top * 0.5, 5 to top * 0.625, 5 to top * 0.75, 5 to top * 0.75, basis = LoadBasis.PERCENT_TM), 180, LiftSlot.SQUAT, isCompetitionLift = true),
-                        slot("inc", SlotRole.T2_SUPPLEMENTAL, CatalogIds.BP_INC, repeatPercentSets(4, 5, top * 0.7, 150, basis = LoadBasis.PERCENT_TM), 150, LiftSlot.BENCH, supplementalOf = "sq"),
+                        slot("inc", SlotRole.T2_SUPPLEMENTAL, CatalogIds.BP_INC, repeatPercentSets(4, 5, top * 0.7, 150, basis = LoadBasis.PERCENT_TM), 150, LiftSlot.BENCH),
                         slot("dl", SlotRole.T2_SUPPLEMENTAL, CatalogIds.DL, percentSets(180, 5 to top * 0.5, 5 to top * 0.625, 5 to top * 0.75, 5 to top * 0.75, basis = LoadBasis.PERCENT_TM), 180, LiftSlot.DEADLIFT, isCompetitionLift = true),
                         kpknAssist("chin", CatalogIds.CHIN, 3, 8, 120),
                         kpknAssist("face", CatalogIds.FACE, 3, 15, 60),
@@ -69,7 +68,7 @@ object MadcowProtocol {
                         slot("sq", SlotRole.T1_MAIN, CatalogIds.SQ_LOW, percentSets(240, 5 to top * 0.5, 5 to top * 0.625, 5 to top * 0.75, 5 to top * 0.875, 3 to top * 1.025, basis = LoadBasis.PERCENT_TM).mapIndexed { index, set ->
                             if (index == 4) set.copy(isTopSet = true) else set
                         } + listOf(SetRecipe(reps = 8, percent = top * 0.75, loadBasis = LoadBasis.PERCENT_TM)), 240, LiftSlot.SQUAT, isCompetitionLift = true),
-                        slot("bp", SlotRole.T2_SUPPLEMENTAL, CatalogIds.BP, rampSets(top * 0.9, lastReps = 3), 180, LiftSlot.BENCH, isCompetitionLift = true, supplementalOf = "sq"),
+                        slot("bp", SlotRole.T2_SUPPLEMENTAL, CatalogIds.BP, rampSets(top * 0.9, lastReps = 3), 180, LiftSlot.BENCH, isCompetitionLift = true),
                         slot("row", SlotRole.T3_ACCESSORY, CatalogIds.ROW, rpeSets(5, 5, 8.0), 120),
                         kpknAssist("ghr", CatalogIds.GHR, 3, 8, 90),
                         kpknAssist("wheel", CatalogIds.WHEEL, 3, 8, 60),
@@ -84,7 +83,9 @@ object MadcowProtocol {
             // (top × pct ÷ 100, con el +2,5 %/semana incluido): se leen tal cual sobre el TM.
             trainingMaxPercent = 0.87,
             liftSlots = sbdSlots(),
-            progression = ProgressionRule.WeeklyPercent(2.5),
+            // L-03 (B.S6): el +2,5 %/semana ya va dentro de la rampa (`onRamp`), así que `WeeklyPercent(2.5)` lo aplicaría
+            // dos veces y además no tiene consumidor. La subida del método pasa a ser la del TM al cerrar el ciclo.
+            progression = ProgressionRule.CycleIncrement(2.5, 5.0),
             claimedDaysPerWeek = 3,
             claimedLevel = "intermedio",
             repeats = true,
@@ -95,10 +96,12 @@ object MadcowProtocol {
         id = "madcow-5x5",
         name = "Madcow 5×5",
         emoji = "🐮",
-        description = "3 días, 4 semanas: ramp 50/62,5/75/87,5/100 % del 5RM; viernes triple @ 102,5 % + 1×8 @ 75 %; +2,5 %/semana.",
+        description = "3 días, 4 semanas: rampa 50/62,5/75/87,5/100 % del 5RM (TM = 87 % del 1RM); viernes triple @ 102,5 % + 1×8 @ 75 %; " +
+            "+2,5 % por semana dentro de la rampa y +2,5 kg (banca) o +5 kg (sentadilla y peso muerto) de TM al cerrar cada ciclo.",
         author = "Madcow (a partir de Bill Starr)",
         tags = listOf("powerlifting", "intermedio", "3 días", "4 semanas", "%"),
-        blocks = listOf(ProtocolBlock("Madcow", 4, "Intensificación", 50, 110)),
+        // L-32 h (B.S6): el techo de intensidad es el 100 % del TM de la rampa; el triple del viernes (102,5 %) es el único salto.
+        blocks = listOf(ProtocolBlock("Madcow", 4, "Intensificación", 50, 100)),
         defaultSplit = "madcow_5x5",
         publicationStatus = ProtocolPublicationStatus.VERIFIED,
         kind = ProtocolKind.METHOD,
@@ -109,17 +112,25 @@ object MadcowProtocol {
 }
 
 object NSunsProtocol {
-    private fun t1Bench() = percentSets(
+    /**
+     * Banca de volumen del primer día (8-6-4-4-4-5-6-7-8 al 65-75-85-85-85-80-75-70-65 %). La hoja de nSuns marca la
+     * última serie como «8+», pero esa no es la serie que mueve el TM; como AMRAP, con la tabla de `AmrapDrivenTm`
+     * (solo sube desde el 85 % del TM y un AMRAP corto baja el TM) un 8+ corto al 65 % propondría bajarlo (B.S6, hallazgo de B.S4).
+     */
+    private fun t1BenchVolume() = percentSets(
         180,
         8 to 65.0, 6 to 75.0, 4 to 85.0, 4 to 85.0, 4 to 85.0, 5 to 80.0, 6 to 75.0, 7 to 70.0, 8 to 65.0,
-        amrapLast = true,
     )
 
-    private fun t1Lower() = percentSets(
+    /**
+     * Tabla pesada de nSuns: rampa 5/3/1+ y 6 series de respaldo (hoja nSuns LP de 4 días: squat, deadlift y el segundo día de
+     * banca). El AMRAP es la serie 1+ al 95 % (la tercera), la que mueve el TM con la tabla de `AmrapDrivenTm` (L-04); antes
+     * estaba en la última serie, al 65 %, donde nunca podía subir el TM. La última serie «5+» no lleva AMRAP por la misma razón.
+     */
+    private fun t1Heavy() = percentSets(
         180,
         5 to 75.0, 3 to 85.0, 1 to 95.0, 3 to 90.0, 3 to 85.0, 3 to 80.0, 5 to 75.0, 5 to 70.0, 5 to 65.0,
-        amrapLast = true,
-    )
+    ).mapIndexed { index, set -> if (index == 2) set.copy(amrap = true) else set }
 
     private fun t2() = percentSets(
         150,
@@ -130,28 +141,30 @@ object NSunsProtocol {
         val weeks = (1..4).map { w ->
             weekRecipe(w, 0, "LP", BlockGoal.INTENSIFICATION, listOf(
                 day("Banca/OHP", weekday = 1, slots = listOf(
-                    slot("t1", SlotRole.T1_MAIN, CatalogIds.BP, t1Bench(), 240, LiftSlot.BENCH, isCompetitionLift = true),
+                    slot("t1", SlotRole.T1_MAIN, CatalogIds.BP, t1BenchVolume(), 240, LiftSlot.BENCH, isCompetitionLift = true),
                     slot("t2", SlotRole.T2_SUPPLEMENTAL, CatalogIds.OHP, t2(), 150, LiftSlot.OVERHEAD, supplementalOf = "t1"),
                     kpknAssist("row", CatalogIds.PENDLAY, 3, 8, 120),
                     kpknAssist("face", CatalogIds.FACE, 3, 15, 60),
                     kpknAssist("jm", CatalogIds.JM, 3, 8, 90),
                 )),
                 day("Sentadilla/Sumo", weekday = 2, slots = listOf(
-                    slot("t1", SlotRole.T1_MAIN, CatalogIds.SQ_LOW, t1Lower(), 240, LiftSlot.SQUAT, isCompetitionLift = true),
+                    slot("t1", SlotRole.T1_MAIN, CatalogIds.SQ_LOW, t1Heavy(), 240, LiftSlot.SQUAT, isCompetitionLift = true),
                     slot("t2", SlotRole.T2_SUPPLEMENTAL, CatalogIds.DL_SUMO, t2(), 150, LiftSlot.DEADLIFT, supplementalOf = "t1"),
                     kpknAssist("ghr", CatalogIds.GHR, 3, 8, 90),
                     kpknAssist("pallof", CatalogIds.PALLOF, 3, 10, 60),
                     kpknAssist("calf", CatalogIds.CALF, 3, 12, 60),
                 )),
                 day("Banca/Cerrado", weekday = 4, slots = listOf(
-                    slot("t1", SlotRole.T1_MAIN, CatalogIds.BP, t1Bench(), 240, LiftSlot.BENCH, isCompetitionLift = true),
-                    slot("t2", SlotRole.T2_SUPPLEMENTAL, CatalogIds.BP, t2(), 150, LiftSlot.BENCH, technique = TechniqueModifier.CLOSE_GRIP, supplementalOf = "t1"),
+                    // L-08 (B.S6): el segundo día de banca es la tabla pesada con la serie 1+ al 95 % (hoja nSuns LP de 4 días), no
+                    // la de volumen del primer día; el agarre cerrado es una configuración propia (M1), no `BP` + `CLOSE_GRIP`.
+                    slot("t1", SlotRole.T1_MAIN, CatalogIds.BP, t1Heavy(), 240, LiftSlot.BENCH, isCompetitionLift = true),
+                    slot("t2", SlotRole.T2_SUPPLEMENTAL, CatalogIds.BP_CLOSE_GRIP, t2(), 150, LiftSlot.BENCH, supplementalOf = "t1"),
                     kpknAssist("pull", CatalogIds.PULLUP, 3, 6, 120),
                     kpknAssist("face", CatalogIds.FACE, 3, 15, 60),
                     kpknAssist("oh-tri", CatalogIds.OH_TRI, 3, 10, 60),
                 )),
                 day("Peso muerto/Frontal", weekday = 5, slots = listOf(
-                    slot("t1", SlotRole.T1_MAIN, CatalogIds.DL, t1Lower(), 240, LiftSlot.DEADLIFT, isCompetitionLift = true),
+                    slot("t1", SlotRole.T1_MAIN, CatalogIds.DL, t1Heavy(), 240, LiftSlot.DEADLIFT, isCompetitionLift = true),
                     slot("t2", SlotRole.T2_SUPPLEMENTAL, CatalogIds.SQ_FRONT, t2(), 150, LiftSlot.SQUAT, supplementalOf = "t1"),
                     kpknAssist("row", CatalogIds.ROW, 3, 8, 120),
                     kpknAssist("ghr", CatalogIds.GHR, 3, 8, 90),
@@ -165,9 +178,30 @@ object NSunsProtocol {
             trainingMaxPercent = 0.90,
             liftSlots = sbdSlots(),
             progression = ProgressionRule.AmrapDrivenTm(),
+            // B.S6: las exenciones H5b y H6 con ámbito `*` estaban muertas (con los T2 colgados del T1 el presupuesto espinal
+            // y las series del día caben) y se retiran. El T1 de 9 series sí rompe el rango C1 de 2 a 8 series, por diseño:
+            // se declara por slot (el `t1` de cada día), nunca con un comodín.
             exemptions = listOf(
-                RecipeCompositionExemption("H5b", "*", "nSuns T1 9 + T2 8 series axiales por diseño"),
-                RecipeCompositionExemption("H6", "*", "nSuns 17 series de dos levantamientos pesados"),
+                RecipeCompositionExemption(
+                    "C1_SET_RANGE", "w*/Banca/OHP/t1",
+                    "nSuns publica el T1 de banca de volumen con 9 series (8-6-4-4-4-5-6-7-8) por diseño",
+                    NSUNS_URL,
+                ),
+                RecipeCompositionExemption(
+                    "C1_SET_RANGE", "w*/Sentadilla/Sumo/t1",
+                    "nSuns publica el T1 de sentadilla con 9 series (rampa 5/3/1+ y 6 de respaldo) por diseño",
+                    NSUNS_URL,
+                ),
+                RecipeCompositionExemption(
+                    "C1_SET_RANGE", "w*/Banca/Cerrado/t1",
+                    "nSuns publica el T1 de banca pesada con 9 series (rampa 5/3/1+ y 6 de respaldo) por diseño",
+                    NSUNS_URL,
+                ),
+                RecipeCompositionExemption(
+                    "C1_SET_RANGE", "w*/Peso muerto/Frontal/t1",
+                    "nSuns publica el T1 de peso muerto con 9 series (rampa 5/3/1+ y 6 de respaldo) por diseño",
+                    NSUNS_URL,
+                ),
             ),
             claimedDaysPerWeek = 4,
             claimedLevel = "avanzado",
@@ -176,18 +210,21 @@ object NSunsProtocol {
         )
     }
 
+    private const val NSUNS_URL = "https://www.reddit.com/r/nSuns/"
+
     val definition = Protocol(
         id = "nsuns-531-lp-4d",
         name = "nSuns 5/3/1 LP 4 días",
         emoji = "📈",
-        description = "4 días, 4 semanas: T1 9 series y T2 8 series con la tabla nSuns; TM por AMRAP. Agarre cerrado = banca + CLOSE_GRIP.",
+        description = "4 días, 4 semanas: T1 de 9 series y T2 de 8 series con la tabla nSuns; el AMRAP de la serie 1+ al 95 % del TM " +
+            "(sentadilla, banca pesada y peso muerto) mueve el TM. El segundo día de banca lleva banca con agarre cerrado como T2.",
         author = "nSuns",
         tags = listOf("powerlifting", "avanzado", "4 días", "4 semanas", "AMRAP", "%"),
         blocks = listOf(ProtocolBlock("LP", 4, "Intensificación", 50, 95, 1.3)),
         defaultSplit = "nsuns_4day",
         publicationStatus = ProtocolPublicationStatus.VERIFIED,
         kind = ProtocolKind.METHOD,
-        source = attributed("nSuns 5/3/1 LP", "https://www.reddit.com/r/nSuns/", "nSuns"),
+        source = attributed("nSuns 5/3/1 LP", NSUNS_URL, "nSuns"),
         recipe = recipe(),
         fidelitySpec = ProtocolFidelitySpec(4, 4, requiresAmrap = true, requiresPercent = true, claimedLevel = "avanzado", percentAnchors = mapOf("t1" to listOf(65.0, 75.0, 85.0))),
         exemptions = recipe().exemptions,
@@ -224,7 +261,11 @@ object GzclProtocols {
                 day(label, weekday = listOf(1, 2, 4, 5)[index], slots = listOf(
                     slot("t1", SlotRole.T1_MAIN, id, t1Stage(w), 240, lift, isCompetitionLift = lift != LiftSlot.OVERHEAD),
                     slot("t2", SlotRole.T2_SUPPLEMENTAL, t2id, t2Stage(w), 120, lift.takeIf { t2id == id }, supplementalOf = "t1"),
-                    slot("t3a", SlotRole.T3_ACCESSORY, if (index % 2 == 0) CatalogIds.LAT else CatalogIds.PENDLAY, rpeSets(3, 15, 8.0, repsMax = 20), 90),
+                    // L-09 (B.S6): `rpeSets` solo copia `repsMax`; el rango 15-20 del T3 pierde el mínimo si no se fija `repsMin`.
+                    slot(
+                        "t3a", SlotRole.T3_ACCESSORY, if (index % 2 == 0) CatalogIds.LAT else CatalogIds.PENDLAY,
+                        rpeSets(3, 15, 8.0, repsMax = 20).map { it.copy(repsMin = 15) }, 90,
+                    ),
                     slot("t3b", SlotRole.T3_ACCESSORY, if (index < 2) CatalogIds.GHR else CatalogIds.JM, rpeSets(if (index < 2) 3 else 2, 15, 8.0), 60),
                     kpknAssist("core", CatalogIds.PALLOF, 3, 10, 60),
                 ))
@@ -235,7 +276,9 @@ object GzclProtocols {
             weeks = weeks,
             trainingMaxPercent = 0.90,
             liftSlots = sbdSlots(),
-            progression = ProgressionRule.AmrapDrivenTm(),
+            // L-09 (B.S6): la subida lineal por sesión de GZCLP no cabe en 4 semanas idénticas; se aproxima con la subida del
+            // TM al cerrar el ciclo (la propia del método por ciclo). El AMRAP corto de la última serie del T1 puede bajarlo.
+            progression = ProgressionRule.CycleIncrement(2.5, 5.0),
             claimedDaysPerWeek = 4,
             claimedLevel = "intermedio",
             autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.AMRAP_TM)),
@@ -247,7 +290,9 @@ object GzclProtocols {
         id = "gzclp",
         name = "GZCLP",
         emoji = "🏗️",
-        description = "4 días, 4 semanas: T1 5×3+ (etapa 1); T2 3×10; T3 3×15+. Stall a la siguiente etapa T1 queda fuera de este ciclo.",
+        description = "4 días, 4 semanas que se repiten: T1 5×3+ al 85 % del TM (la última serie al máximo), T2 3×10 al 65 % y T3 de 15 a 20 " +
+            "repeticiones; el TM sube 2,5 kg (banca y press) o 5 kg (sentadilla y peso muerto) al cerrar cada ciclo. " +
+            "Es solo la etapa 1 del método: sin cambio de etapa ni reinicio por fallo.",
         author = "Cody Lefever",
         tags = listOf("powerlifting", "intermedio", "4 días", "4 semanas", "AMRAP", "%"),
         blocks = listOf(ProtocolBlock("Etapa T1", 4, "Acumulación", 65, 85)),
@@ -346,12 +391,20 @@ object GzclProtocols {
         val weeks = (1..9).map { w ->
             val pct = 70.0 + w * 2
             val goal = if (w == 9) BlockGoal.PEAK else if (w >= 6) BlockGoal.INTENSIFICATION else BlockGoal.ACCUMULATION
-            weekRecipe(w, if (w <= 4) 0 else 1, if (w <= 4) "Volumen" else "Intensidad", goal, listOf(
+            // L-10 (B.S6): el sábado es solo sentadilla ligera. El arquetipo arrastraba el peso muerto con déficit y la banca con
+            // pausa, y con ellos el peso muerto con déficit caía 3 veces por semana. Sin esos dos slots el día necesita 4 series de
+            // sentadilla para llegar a las 10 series efectivas (6 en la semana de pico, con los T3 recortados).
+            val lightSquat = DayArchetypes.plSquat(
+                (pct - 10).coerceAtLeast(60.0), t1Sets = 4, t1Reps = 5, weekday = 6, label = "Sentadilla ligera",
+            ).let { day -> day.copy(slots = day.slots.filter { it.id != "dl-def" && it.id != "bp-pause" }) }
+            // L-10 (B.S6): el esquema de volumen dura hasta la semana 5 y el de intensidad empieza en la 6, así que la semana 5
+            // va en el bloque «Volumen» (antes estaba en «Intensidad» con el esquema de volumen).
+            weekRecipe(w, if (w <= 5) 0 else 1, if (w <= 5) "Volumen" else "Intensidad", goal, listOf(
                 DayArchetypes.plSquat(pct, t1Sets = if (w >= 6) 3 else 5, t1Reps = if (w >= 6) 3 else 6, weekday = 1),
                 DayArchetypes.plBenchHeavy(pct + 2, t1Sets = if (w >= 6) 4 else 3, t1Reps = if (w >= 6) 2 else 8, weekday = 2),
                 DayArchetypes.plDeadlift(pct - 4, t1Sets = 3, t1Reps = if (w >= 6) 2 else 5, weekday = 3),
                 DayArchetypes.plBenchVolume((pct - 8).coerceAtLeast(60.0), weekday = 5),
-                DayArchetypes.plSquat((pct - 10).coerceAtLeast(60.0), t1Sets = 3, t1Reps = 5, weekday = 6, label = "Sentadilla ligera"),
+                lightSquat,
             ).map { day -> if (goal == BlockGoal.PEAK) day.dropT3(2) else day })
         }
         return TrainingPlanRecipe("gzcl-uhf-9", weeks, 0.90, sbdSlots(), ProgressionRule.None, claimedDaysPerWeek = 5, claimedLevel = "avanzado")
@@ -364,7 +417,7 @@ object GzclProtocols {
         description = "9 semanas, 5 días DUP con ondulación diaria de sentadilla, banca y peso muerto.",
         author = "Cody Lefever",
         tags = listOf("powerlifting", "avanzado", "5 días", "9 semanas", "%"),
-        blocks = listOf(ProtocolBlock("Volumen", 4, "Acumulación", 70, 82), ProtocolBlock("Intensidad", 5, "Intensificación", 80, 95)),
+        blocks = listOf(ProtocolBlock("Volumen", 5, "Acumulación", 70, 82), ProtocolBlock("Intensidad", 4, "Intensificación", 80, 95)),
         defaultSplit = "pl_hf_bench",
         publicationStatus = ProtocolPublicationStatus.VERIFIED,
         source = attributed("UHF 9 Week", "https://gzclmethod.com/", "Cody Lefever", variant = "UHF 9"),

@@ -364,11 +364,12 @@ object RecipeContractPolicy {
     /**
      * C6: `progression` distinta de `None` sin consumidor registrado en ejecución, o una regla o
      * gancho que exige AMRAP o top set sin ninguna serie marcada en un slot con `liftSlot`.
-     * [ProgressionConsumers.executable] dice qué reglas tienen consumidor: tras B.S3,
-     * `CycleIncrement` y `WeeklyKg` las consume el motor de progresión de autor y `AmrapDrivenTm`
-     * y `RepTargetDrivenTm` `ProgramAutoregulationEngine` (con los defectos R-02 y L-04, que
-     * reescribe B.S4). Una regla con consumidor no da hallazgo; B.S4 añade `TopSetPr` y
-     * `RepMaxAutoregulated` al registro cuando existan sus consumidores.
+     * [ProgressionConsumers.executable] dice qué reglas tienen consumidor: `CycleIncrement` y
+     * `WeeklyKg` las consume el motor de progresión de autor (B.S3) y `AmrapDrivenTm`,
+     * `RepTargetDrivenTm`, `TopSetPr` y `RepMaxAutoregulated` `ProgramAutoregulationEngine` como
+     * propuestas `ADJUST_TM` (B.S4). Una regla con consumidor no da hallazgo; la única sin consumidor
+     * es `WeeklyPercent`, que B.S6 retiró de las recetas publicadas (la clase se conserva para
+     * decodificar el JSON de programas ya guardados).
      */
     private fun checkProgressionConsumer(recipe: TrainingPlanRecipe): List<CompositionFinding> {
         val findings = mutableListOf<CompositionFinding>()

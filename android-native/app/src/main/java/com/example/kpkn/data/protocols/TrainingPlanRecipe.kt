@@ -381,7 +381,8 @@ sealed class ProgressionRule {
     /**
      * Récord del top set: sube [upperKg] (banca, press militar) o [lowerKg] (sentadilla, peso
      * muerto) cuando el top set supera su objetivo. El JSON anterior `{"type":"top_set_pr"}`
-     * decodifica con los valores por defecto. Su consumidor llega con B.S4.
+     * decodifica con los valores por defecto. Lo consume `ProgramAutoregulationEngine` como propuesta
+     * `ADJUST_TM` de la semana (B.S4).
      */
     @Serializable
     @SerialName("top_set_pr")

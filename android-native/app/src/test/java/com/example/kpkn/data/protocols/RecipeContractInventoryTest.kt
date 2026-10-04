@@ -35,10 +35,14 @@ class RecipeContractInventoryTest {
          * C4 6 + C5 15 + C6 7 + C7 12 + C8 37 + C9 80 + C10 20. 2026-10-03, tras B.S4: TopSetPr y
          * RepMaxAutoregulated ya tienen consumidor (propuestas ADJUST_TM de ProgramAutoregulationEngine) y
          * C6 baja de 7 a 2 (WeeklyPercent de madcow-5x5 y la exigencia de AMRAP de kpkn-rts-style): 452 = C1 280 +
-         * C4 6 + C5 15 + C6 2 + C7 12 + C8 37 + C9 80 + C10 20. Cada corrección de datos de B.S6 lo baja;
-         * si una corrida da menos, la prueba imprime «techo bajable a N».
+         * C4 6 + C5 15 + C6 2 + C7 12 + C8 37 + C9 80 + C10 20. 2026-10-04, tras B.S6 parte 1 (correcciones de
+         * datos receta a receta, las configuraciones propias M1 a M5 en lugar de los parches de técnica y las
+         * descargas con kind DELOAD): 199 = C1 94 + C4 5 + C5 15 + C6 0 + C7 13 + C8 19 + C9 34 + C10 19
+         * (C2 y C3 en 0); el C7 de más frente a los 12 de antes es el taper de kpkn-native-sbd-4 al 85 % del TM de la
+         * tabla (bajarlo al 80 % lo quita y el techo sería 198). Cada corrección de datos posterior lo baja; si
+         * una corrida da menos, la prueba imprime «techo bajable a N».
          */
-        private const val CEILING = 452
+        private const val CEILING = 199
 
         /** Una justificación de exención debe tener al menos este largo (B.S6). */
         private const val MIN_JUSTIFICATION_LENGTH = 25

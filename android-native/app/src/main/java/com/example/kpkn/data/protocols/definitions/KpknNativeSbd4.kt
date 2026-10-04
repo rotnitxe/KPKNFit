@@ -19,19 +19,30 @@ import com.example.kpkn.data.protocols.weekRecipe
 
 object KpknNativeSbd4 {
     fun recipe(): TrainingPlanRecipe {
+        // L-05/L-06 (B.S6): el peso muerto se entrena pesado en todo el plan y el pico llega a ≥ 85 % del 1RM efectivo
+        // (95 y 100 % del TM al 90 % = 85,5 y 90 % del 1RM; antes 88-93 % del TM = 79-84 % del 1RM).
+        // Base: DL 3×4 al 72-75 %. Intensificación: DL 3×3 al 80-86 %. Peak: w9 DL 3×2@94 y w10 DL 2×1@98. Taper: w11 DL 2×2@80.
+        // Taper (tabla B.S6): sentadilla y banca pesada al 85 % del TM (76,5 % del 1RM; antes 80 y 78 %). Efecto conocido: con el % crudo el
+        // lunes de la semana 11 cuenta como «pesada» (85 % o más) y la última pesada queda a 4 días del test (hallazgo SOFT de BLOCK, objetivo
+        // 7-10 días; C7 del contrato lo inventaría porque con el %1RM efectivo no hay hallazgo). Bajar ese taper al 80 % lo elimina.
         val weeks = buildList {
             repeat(4) { i ->
                 val w = i + 1
                 val squat = 70.0 + i * 2.0
-                add(week(w, 0, "Base", BlockGoal.ACCUMULATION, squat, 68.0 + i, 70.0, 72.0))
+                add(week(w, 0, "Base", BlockGoal.ACCUMULATION, squat, 72.0 + i, 70.0, 72.0))
             }
             repeat(4) { i ->
                 val w = 5 + i
-                add(week(w, 1, "Intensificación", BlockGoal.INTENSIFICATION, 78.0 + i * 2, 72.0 + i, 75.0, 80.0 + i))
+                add(
+                    week(
+                        w, 1, "Intensificación", BlockGoal.INTENSIFICATION, 78.0 + i * 2, 80.0 + i * 2, 75.0, 80.0 + i,
+                        dlReps = 3,
+                    ),
+                )
             }
-            add(week(9, 2, "Peak", BlockGoal.PEAK, 88.0, 75.0, 78.0, 90.0, t1Sets = 3, t1Reps = 2, dropAccessories = true))
-            add(week(10, 2, "Peak", BlockGoal.PEAK, 92.0, 70.0, 75.0, 93.0, t1Sets = 2, t1Reps = 1, dropAccessories = true))
-            add(week(11, 3, "Taper", BlockGoal.TAPER, 80.0, 60.0, 65.0, 78.0, t1Sets = 2, t1Reps = 2, dropAccessories = true))
+            add(week(9, 2, "Peak", BlockGoal.PEAK, 95.0, 94.0, 78.0, 95.0, t1Sets = 3, t1Reps = 2, dlSets = 3, dlReps = 2, dropAccessories = true))
+            add(week(10, 2, "Peak", BlockGoal.PEAK, 100.0, 98.0, 75.0, 100.0, t1Sets = 2, t1Reps = 1, dlSets = 2, dlReps = 1, dropAccessories = true))
+            add(week(11, 3, "Taper", BlockGoal.TAPER, 85.0, 80.0, 65.0, 85.0, t1Sets = 2, t1Reps = 2, dlSets = 2, dlReps = 2, dropAccessories = true))
         }
         return TrainingPlanRecipe(
             id = "kpkn-native-sbd-4",
@@ -59,17 +70,21 @@ object KpknNativeSbd4 {
         benchHeavyPct: Double,
         t1Sets: Int = 4,
         t1Reps: Int = 4,
+        dlSets: Int = 3,
+        dlReps: Int = 4,
         dropAccessories: Boolean = false,
     ) = weekRecipe(
         weekNumber = number,
         blockIndex = block,
         blockName = name,
         blockGoal = goal,
+        // L-06 (B.S6): sentadilla el lunes, banca de volumen el martes, peso muerto el jueves y banca pesada el viernes.
+        // W3 (dos T1 axiales pesados en días seguidos) impedía el peso muerto pesado el martes, el día después de la sentadilla.
         days = listOf(
             DayArchetypes.plSquat(squatPct, t1Sets = t1Sets, t1Reps = t1Reps, weekday = 1, label = "Sentadilla/Banca"),
-            DayArchetypes.plDeadlift(dlPct, t1Sets = t1Sets.coerceAtMost(3), t1Reps = t1Reps.coerceAtLeast(2), weekday = 2, label = "Peso Muerto"),
-            DayArchetypes.plBenchHeavy(benchHeavyPct, t1Sets = t1Sets, t1Reps = t1Reps, weekday = 4, label = "Banca pesada"),
-            DayArchetypes.plBenchVolume(benchVolPct, weekday = 5, label = "Banca Volumen"),
+            DayArchetypes.plBenchVolume(benchVolPct, weekday = 2, label = "Banca Volumen"),
+            DayArchetypes.plDeadlift(dlPct, t1Sets = dlSets, t1Reps = dlReps, weekday = 4, label = "Peso Muerto"),
+            DayArchetypes.plBenchHeavy(benchHeavyPct, t1Sets = t1Sets, t1Reps = t1Reps, weekday = 5, label = "Banca pesada"),
         ).map { day -> if (dropAccessories) day.dropT3(2) else day },
     )
 
@@ -84,7 +99,7 @@ object KpknNativeSbd4 {
         blocks = listOf(
             ProtocolBlock("Base", 4, "Acumulación", 65, 75, 1.20),
             ProtocolBlock("Intensificación", 4, "Intensificación", 75, 87, 0.95),
-            ProtocolBlock("Peak", 2, "Peak", 85, 95, 0.65),
+            ProtocolBlock("Peak", 2, "Peak", 85, 100, 0.65),
             ProtocolBlock("Taper", 1, "Taper", 70, 90, 0.35),
         ),
         defaultSplit = "pl_classic_4",

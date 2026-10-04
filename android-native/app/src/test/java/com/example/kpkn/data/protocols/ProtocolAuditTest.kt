@@ -18,13 +18,23 @@ class ProtocolAuditTest {
     companion object {
         private lateinit var catalogIds: Set<String>
 
-        /** Protocolos históricos sin deload final explícito (lista blanca). */
+        /**
+         * Protocolos sin bloque final de descarga (lista blanca). B.S6 parte 1 retira los que ya no la necesitan: KPKN SBD-4
+         * termina en un bloque «Taper», PPL y estilo RP en un bloque «Descarga» (y sus semanas de descarga llevan `kind = DELOAD`
+         * y series recortadas) y Smolov Jr tiene un solo bloque, que esta comprobación no mira. Quedan:
+         * - los que se repiten (un ciclo que se repite no necesita descarga final): Texas ×2, 5/3/1 ×2, Madcow, nSuns, GZCLP,
+         *   Westside, PHUL y PHAT heredados;
+         * - los que no se repiten, duran 8 semanas o más y no traen ninguna semana de descarga ni de taper (hallazgo C5 del
+         *   contrato de receta): J&T, Rippler, UHF-9, Juggernaut, Sheiko, Coan, Korte, Cube, Calgary, RTS y SBS;
+         * - los que tienen su descarga o su taper DENTRO de un bloque que no se llama así (Candito, Lilliebridge y TSA 9): su
+         *   último `ProtocolBlock` no es de descarga, y renombrarlo rompería la estructura que fijan otras pruebas;
+         * - los tres índices históricos ocultos (`juggernaut-base`, `rts-base` y `coan-phillipi`).
+         */
         val NO_DELOAD_WHITELIST = setOf(
             "juggernaut-base",
             "rts-base",
             "coan-phillipi",
             "coan-phillipi-dl",
-            "smolov-jr",
             "texas-method-3d",
             "texas-method-4d",
             "wendler-531-bbb",
@@ -48,9 +58,6 @@ class ProtocolAuditTest {
             "kpkn-rts-style",
             "kpkn-sbs-rtf",
             "nsuns-531-lp-4d",
-            "kpkn-native-sbd-4",
-            "kpkn-ppl-6",
-            "kpkn-rp-style",
         )
 
         @BeforeClass

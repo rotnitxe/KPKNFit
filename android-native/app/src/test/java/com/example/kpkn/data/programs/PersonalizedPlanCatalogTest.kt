@@ -452,7 +452,14 @@ class PersonalizedPlanCatalogTest {
             val t1 = recipe.weeks.first().days.first().slots.first { it.role == SlotRole.T1_MAIN }
             assertEquals("ancla de %TM histórica preservada", 82.0, t1.sets.first().percent!!, 0.0001)
             assertEquals(LoadBasis.PERCENT_TM, t1.sets.first().loadBasis)
-            assertTrue(recipe.exemptions.isNotEmpty())
+            // B.S6 parte 1: la H5a `*` de PHUL heredado estaba muerta (sus series de potencia van al 80-82 % del TM, por debajo del 85 % que
+            // cuenta como «pesada») y se retiró, así que solo PHAT heredado conserva su exención (la H3, que sigue viva). El oráculo
+            // anterior pedía exenciones en las dos.
+            assertEquals(
+                "$legacyId: exenciones del histórico",
+                legacyId == "protocol:phat-verified",
+                recipe.exemptions.isNotEmpty(),
+            )
         }
         // La entrada nueva NO es histórica.
         val current = requireNotNull(PersonalizedPlanCatalog.lookup(AuthoredPhulPhatRecipes.PHUL_ORIGINAL_ID))

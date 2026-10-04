@@ -18,6 +18,13 @@ import org.junit.Test
  * Además deja como contrato permanente que ninguna receta publicada (protocolos
  * visibles, plantillas y las cuatro autoradas) incumple H11 ni H11b, que no se
  * pueden exentar.
+ *
+ * B.S6 parte 1: la tabla se ajusta a las exenciones que quedan. Se retiraron las 26
+ * exenciones muertas (las que no silenciaban ningún hallazgo) y las dos exenciones nuevas
+ * —el rango C1 por slot de nSuns y la C4 de las semanas 9 a 13 de Smolov— se anotan con su
+ * equivalente en la semántica antigua (`contains` / `==`). `scopeUniverse` conoce ahora los
+ * ámbitos de las reglas C (por slot, por semana, por día, `recipe`), para que la equivalencia
+ * estructural de un ámbito de slot o de semana no sea vacía.
  */
 class ExemptionScopeMigrationTest {
     companion object {
@@ -52,13 +59,14 @@ class ExemptionScopeMigrationTest {
 
     // ─── Tabla ANTIGUA congelada: recetaId → (regla, ámbito viejo) ─────────────────
 
+    /** Smolov: las H6 vivas (S1, S2, S3 y Test) y, nueva en B.S6, la C4 de las semanas 9 a 13 (`==` sobre el ámbito de semana). */
     private val smolovLegacy = listOf(
-        "H6" to "S1", "H6" to "S2", "H6" to "S3", "H6" to "S4", "H6" to "Test",
-        "W3" to "w", "W6" to "w",
+        "H6" to "S1", "H6" to "S2", "H6" to "S3", "H6" to "Test",
+        "C4_CLAIMED_DAYS" to "w9", "C4_CLAIMED_DAYS" to "w10", "C4_CLAIMED_DAYS" to "w11",
+        "C4_CLAIMED_DAYS" to "w12", "C4_CLAIMED_DAYS" to "w13",
     )
 
     private val phulAuthoredLegacy = listOf(
-        "H5a" to "Inferior fuerza",
         "H1" to "Superior hipertrofia",
         "H3" to "Inferior hipertrofia",
     )
@@ -68,7 +76,6 @@ class ExemptionScopeMigrationTest {
         "H1" to "Superior fuerza",
         "H1" to "Inferior fuerza",
         "H1" to "Inferior hipertrofia",
-        "H3" to "Superior fuerza",
         "H3" to "Inferior fuerza",
         "H3" to "Espalda/hombros hipertrofia",
         "H3" to "Inferior hipertrofia",
@@ -76,21 +83,16 @@ class ExemptionScopeMigrationTest {
     )
 
     private val legacyScopes: Map<String, List<Pair<String, String>>> = mapOf(
-        "nsuns-531-lp-4d" to listOf("H5b" to "*", "H6" to "*"),
-        "sheiko-29-32" to listOf(
-            "H2" to "Sentadilla/Banca",
-            "H3" to "Sentadilla/Banca",
-            "H4" to "Sentadilla/Banca",
-            "H5b" to "Peso muerto/Banca",
-            "H6" to "Sentadilla/Banca",
-            "H6" to "Peso muerto/Banca",
+        // B.S6: el T1 de 9 series de cada día, por slot (`contains` sobre «día/slot»); H5b y H6 `*` estaban muertas.
+        "nsuns-531-lp-4d" to listOf(
+            "C1_SET_RANGE" to "Banca/OHP/t1",
+            "C1_SET_RANGE" to "Sentadilla/Sumo/t1",
+            "C1_SET_RANGE" to "Banca/Cerrado/t1",
+            "C1_SET_RANGE" to "Peso muerto/Frontal/t1",
         ),
         "smolov" to smolovLegacy,
-        "smolov-jr" to smolovLegacy,
-        "coan-phillipi-dl" to listOf("H2" to "Peso muerto", "H3" to "Peso muerto"),
-        "korte-3x3" to listOf("H5b" to "*", "W3" to "*"),
-        "westside-conjugate" to listOf("W5" to "Conjugate"),
-        "phul-verified" to listOf("H5a" to "*"),
+        "coan-phillipi-dl" to listOf("H2" to "Peso muerto"),
+        "korte-3x3" to listOf("H5b" to "*"),
         "phat-verified" to listOf("H3" to "*"),
         AuthoredPhulPhatRecipes.PHUL_ORIGINAL_ID to phulAuthoredLegacy,
         AuthoredPhulPhatRecipes.PHUL_ADAPTED_ID to phulAuthoredLegacy,
@@ -115,11 +117,20 @@ class ExemptionScopeMigrationTest {
     private fun scopeUniverse(recipe: TrainingPlanRecipe, rule: String): List<String> {
         val weekScopes = recipe.weeks.map { "w${it.weekNumber}" }
         val dayScopes = recipe.weeks.flatMap { week -> week.days.map { day -> "w${week.weekNumber}/${day.label}" } }
+        val slotScopes = recipe.weeks.flatMap { week ->
+            week.days.flatMap { day -> day.slots.map { slot -> "w${week.weekNumber}/${day.label}/${slot.id}" } }
+        }
         val blockScopes = recipe.weeks.groupBy { it.blockIndex }.toSortedMap()
             .map { (index, weeks) -> "block$index/${weeks.first().blockName}" }
         return when {
             rule == "W5" -> blockScopes
             rule == "BLOCK" -> blockScopes + weekScopes + "native"
+            // Contrato de receta válida (B.S2): C1, C3, C8 y C9 por slot; C2 por día; C4 y C10 por semana; C5 y C6 `recipe`;
+            // C7 por día, semana o bloque (los ámbitos que emite `RecipeContractPolicy`).
+            rule in setOf("C1_SET_RANGE", "C3_EMPTY_SET", "C8_SUPPLEMENTAL_LINK", "C9_REDUNDANT_TECHNIQUE") -> slotScopes
+            rule in setOf("C4_CLAIMED_DAYS", "C10_IDENTICAL_WEEKS") -> weekScopes
+            rule in setOf("C5_DELOAD_REQUIRED", "C6_PROGRESSION_CONSUMER") -> listOf("recipe")
+            rule == "C7_PERCENT_BASIS" -> dayScopes + weekScopes + blockScopes
             rule.startsWith("W") || rule in setOf("S4", "S5", "S6") -> weekScopes
             else -> dayScopes
         }.distinct()

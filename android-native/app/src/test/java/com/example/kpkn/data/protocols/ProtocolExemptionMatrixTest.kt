@@ -4,19 +4,20 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Matriz 2.2: las únicas exenciones HARD permitidas en protocolos visibles.
+ * Matriz 2.2: las únicas exenciones permitidas en protocolos visibles.
  * Cualquier regla extra (p. ej. W2 de hipertrofia sobre un ciclo PL) es un desvío.
+ *
+ * B.S6 parte 1: se retiraron las 26 exenciones muertas (las que no silenciaban ningún hallazgo) y la matriz queda ajustada a lo
+ * vivo: nSuns declara el rango C1 por slot (T1 de 9 series), Smolov la C4 de las semanas 9 a 13 (la fase intensa son 3 sesiones por
+ * semana) además de sus H6, Coan solo la H2, Korte solo la H5b y PHAT heredado la H3. Sheiko, Smolov Jr, Westside y PHUL heredado
+ * ya no declaran ninguna.
  */
 class ProtocolExemptionMatrixTest {
     private val allowedByProtocol = mapOf(
-        "nsuns-531-lp-4d" to setOf("H5b", "H6"),
-        "sheiko-29-32" to setOf("H2", "H3", "H4", "H5b", "H6"),
-        "smolov" to setOf("H6", "W3", "W6"),
-        "smolov-jr" to setOf("H6", "W3", "W6"),
-        "coan-phillipi-dl" to setOf("H2", "H3"),
-        "korte-3x3" to setOf("H5b", "W3"),
-        "westside-conjugate" to setOf("W5"),
-        "phul-verified" to setOf("H5a"),
+        "nsuns-531-lp-4d" to setOf("C1_SET_RANGE"),
+        "smolov" to setOf("H6", "C4_CLAIMED_DAYS"),
+        "coan-phillipi-dl" to setOf("H2"),
+        "korte-3x3" to setOf("H5b"),
         "phat-verified" to setOf("H3"),
     )
 

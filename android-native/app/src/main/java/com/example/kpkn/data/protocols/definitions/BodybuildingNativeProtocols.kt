@@ -1,6 +1,7 @@
 package com.example.kpkn.data.protocols.definitions
 
 import com.example.kpkn.data.models.BlockGoal
+import com.example.kpkn.data.models.WeekExecutionKind
 import com.example.kpkn.data.protocols.AutoregulationHook
 import com.example.kpkn.data.protocols.AutoregulationHookKind
 import com.example.kpkn.data.protocols.CatalogIds
@@ -19,6 +20,7 @@ import com.example.kpkn.data.protocols.SlotPriority
 import com.example.kpkn.data.protocols.SlotRole
 import com.example.kpkn.data.protocols.TechniqueModifier
 import com.example.kpkn.data.protocols.TrainingPlanRecipe
+import com.example.kpkn.data.protocols.asDeload
 import com.example.kpkn.data.protocols.attributed
 import com.example.kpkn.data.protocols.day
 import com.example.kpkn.data.protocols.dropT3
@@ -30,9 +32,8 @@ import com.example.kpkn.data.protocols.slot
 import com.example.kpkn.data.protocols.weekRecipe
 
 object BodybuildingProtocols {
-    private val phulExemptions = listOf(
-        RecipeCompositionExemption("H5a", "*", "PHUL Lower Power programa sentadilla y peso muerto pesados el mismo día"),
-    )
+    // B.S6: la exención H5a (`*`) del PHUL heredado estaba muerta: sus series de potencia van al 80-82 % del TM, por debajo del 85 %
+    // que cuenta como «pesada», así que no hay dos axiales pesados el mismo día y se retira.
 
     private fun powerUpper() = day(
         "Upper Power",
@@ -104,13 +105,11 @@ object BodybuildingProtocols {
             },
             trainingMaxPercent = 0.90,
             liftSlots = sbdSlots(),
-            exemptions = phulExemptions,
             claimedDaysPerWeek = 4,
             claimedLevel = "intermedio",
             repeats = true,
         ),
         fidelitySpec = ProtocolFidelitySpec(4, 4, requiresPercent = true, claimedLevel = "intermedio", percentAnchors = mapOf("power" to listOf(82.0))),
-        exemptions = phulExemptions,
     )
 
     private val phatExemptions = listOf(
@@ -223,15 +222,23 @@ object KpknNativeHypertrophyProtocols {
                     w <= 10 -> BlockGoal.INTENSIFICATION
                     else -> BlockGoal.DELOAD
                 }
-                val secondRir = if (goal == BlockGoal.DELOAD) rir else (rir - 1).coerceAtLeast(0)
-                weekRecipe(w, when { w <= 5 -> 0; w <= 10 -> 1; else -> 2 }, if (w <= 5) "Volumen" else if (w <= 10) "Intensificación" else "Descarga", goal, listOf(
-                    DayArchetypes.bbPush(rir).copy(weekday = 1),
-                    DayArchetypes.bbPull(rir).copy(weekday = 2),
-                    DayArchetypes.bbLegs(rir).copy(weekday = 3),
-                    DayArchetypes.bbPush(secondRir).copy(weekday = 4, label = "Empuje 2"),
-                    DayArchetypes.bbPull(secondRir).copy(weekday = 5, label = "Tirón 2"),
-                    DayArchetypes.bbLegs(secondRir).copy(weekday = 6, label = "Pierna 2"),
-                ))
+                // L-24 (B.S6): la segunda sesión de cada grupo baja un RIR pero nunca a 0 en los compuestos (antes llegaba a RIR 0 en
+                // las semanas 5 a 10, contra el «RIR 3→1» de la descripción).
+                val secondRir = if (goal == BlockGoal.DELOAD) rir else (rir - 1).coerceAtLeast(1)
+                val deload = goal == BlockGoal.DELOAD
+                // L-24 (B.S6): la descarga (semanas 11 y 12) lleva `kind = DELOAD` y series recortadas (antes repetía las mismas series).
+                weekRecipe(
+                    w, when { w <= 5 -> 0; w <= 10 -> 1; else -> 2 }, if (w <= 5) "Volumen" else if (w <= 10) "Intensificación" else "Descarga", goal,
+                    listOf(
+                        DayArchetypes.bbPush(rir).copy(weekday = 1),
+                        DayArchetypes.bbPull(rir).copy(weekday = 2),
+                        DayArchetypes.bbLegs(rir).copy(weekday = 3),
+                        DayArchetypes.bbPush(secondRir).copy(weekday = 4, label = "Empuje 2"),
+                        DayArchetypes.bbPull(secondRir).copy(weekday = 5, label = "Tirón 2"),
+                        DayArchetypes.bbLegs(secondRir).copy(weekday = 6, label = "Pierna 2"),
+                    ).map { day -> if (deload) day.asDeload() else day },
+                    kind = if (deload) WeekExecutionKind.DELOAD else WeekExecutionKind.TRAINING,
+                )
             },
             claimedDaysPerWeek = 6,
             claimedLevel = "intermedio",
@@ -243,7 +250,7 @@ object KpknNativeHypertrophyProtocols {
         id = "kpkn-rp-style",
         name = "Mesociclo RP-style KPKN",
         emoji = "📈",
-        description = "6 semanas, 4 días UL: 5 sem MEV→MRV + descarga, RIR 3→0-1, landmarks por músculo.",
+        description = "6 semanas, 4 días torso/pierna: 5 semanas con RIR 3→1 y una de descarga con menos series. El volumen no sube semana a semana (sin rampa MEV→MRV).",
         author = "KPKN Fit",
         tags = listOf("culturismo", "hipertrofia", "avanzado", "4 días", "6 semanas", "RPE"),
         blocks = listOf(ProtocolBlock("Volumen", 5, "Acumulación", 60, 80), ProtocolBlock("Descarga", 1, "Descarga", 50, 65)),
@@ -254,15 +261,22 @@ object KpknNativeHypertrophyProtocols {
         recipe = TrainingPlanRecipe(
             id = "kpkn-rp-style",
             weeks = (1..6).map { w ->
-                val rir = if (w == 6) 4 else (3 - (w - 1) / 2).coerceAtLeast(0)
+                val rir = if (w == 6) 4 else (3 - (w - 1) / 2).coerceAtLeast(1)
                 val goal = if (w == 6) BlockGoal.DELOAD else BlockGoal.ACCUMULATION
-                val secondRir = if (w == 6) 4 else (rir - 1).coerceAtLeast(0)
-                weekRecipe(w, if (w == 6) 1 else 0, if (w == 6) "Descarga" else "Volumen", goal, listOf(
-                    DayArchetypes.bbTorso(rir).copy(weekday = 1, label = "Torso A"),
-                    DayArchetypes.bbLegs(rir).copy(weekday = 2, label = "Pierna A"),
-                    DayArchetypes.bbPush(rir).copy(weekday = 4, label = "Torso B"),
-                    DayArchetypes.bbLegs(secondRir).copy(weekday = 5, label = "Pierna B"),
-                ))
+                // L-25 (B.S6): la segunda pierna baja un RIR pero nunca a 0 en los compuestos (antes llegaba a RIR 0 en las semanas 3 a 5).
+                val secondRir = if (w == 6) 4 else (rir - 1).coerceAtLeast(1)
+                val deload = w == 6
+                // L-25 (B.S6): la descarga de la semana 6 lleva `kind = DELOAD` y series recortadas (antes repetía las mismas series).
+                weekRecipe(
+                    w, if (deload) 1 else 0, if (deload) "Descarga" else "Volumen", goal,
+                    listOf(
+                        DayArchetypes.bbTorso(rir).copy(weekday = 1, label = "Torso A"),
+                        DayArchetypes.bbLegs(rir).copy(weekday = 2, label = "Pierna A"),
+                        DayArchetypes.bbPush(rir).copy(weekday = 4, label = "Torso B"),
+                        DayArchetypes.bbLegs(secondRir).copy(weekday = 5, label = "Pierna B"),
+                    ).map { day -> if (deload) day.asDeload() else day },
+                    kind = if (deload) WeekExecutionKind.DELOAD else WeekExecutionKind.TRAINING,
+                )
             },
             claimedDaysPerWeek = 4,
             claimedLevel = "avanzado",
@@ -281,7 +295,8 @@ object KpknNativeAutoregFrameworks {
         id = "kpkn-rts-style",
         name = "RTS-style KPKN",
         emoji = "🎛️",
-        description = "8 semanas, 4 días, inspirado en RTS: top set @RPE 8 + fatiga 5 % (repeats). No es el producto de pago.",
+        description = "8 semanas, 4 días, inspirado en RTS: solo la sentadilla va por top set a RPE 8 (RPE 9 en el pivote) con 3 series de respaldo un punto por debajo; " +
+            "banca, peso muerto y banca de volumen siguen en porcentajes del TM. Sin regla de subida de TM. No es el producto de pago.",
         author = "KPKN Fit",
         tags = listOf("powerlifting", "avanzado", "4 días", "8 semanas", "RPE"),
         blocks = listOf(ProtocolBlock("Desarrollo", 5, "Intensificación", 70, 90), ProtocolBlock("Pivote", 3, "Peak", 80, 95)),
@@ -306,7 +321,10 @@ object KpknNativeAutoregFrameworks {
             },
             trainingMaxPercent = 0.90,
             liftSlots = sbdSlots(),
-            progression = ProgressionRule.RepTargetDrivenTm(),
+            // L-26 (B.S6, C6): `RepTargetDrivenTm` pide series AMRAP y esta receta no tiene ninguna (RTS no trabaja al fallo: el top set
+            // va a un RPE y las series de respaldo a un punto menos), así que la regla nunca actuaba. Sin regla de subida de TM hasta
+            // que la Fase 2 lleve el método a top sets por esfuerzo en los tres levantamientos.
+            progression = ProgressionRule.None,
             claimedDaysPerWeek = 4,
             claimedLevel = "avanzado",
             autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.RPE_CAP)),

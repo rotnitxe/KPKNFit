@@ -11,6 +11,7 @@ import com.example.kpkn.data.protocols.SetRecipe
 import com.example.kpkn.data.protocols.SlotRole
 import com.example.kpkn.data.protocols.TechniqueModifier
 import com.example.kpkn.data.protocols.TrainingPlanRecipe
+import com.example.kpkn.data.protocols.asDeload
 import com.example.kpkn.data.protocols.replaceT1Work
 import com.example.kpkn.data.protocols.topSetAndBackoff
 import com.example.kpkn.data.protocols.weekRecipe
@@ -102,7 +103,8 @@ object KpknAdvancedProgramRecipes {
             val (sqId, sqTech, bpId, bpTech, dlId, dlTech) = when (spec.block) {
                 0 -> Variant(CatalogIds.SQ_HIGH, null, CatalogIds.BP_SPOTO, null, CatalogIds.DL_DEF, TechniqueModifier.DEFICIT)
                 1 -> Variant(CatalogIds.SQ_BOX, TechniqueModifier.BOX, CatalogIds.BP_INC, null, CatalogIds.RDL, null)
-                2 -> Variant(CatalogIds.SQ_LOW, TechniqueModifier.PAUSE_2S, CatalogIds.BP_PAUSE, null, CatalogIds.DL, TechniqueModifier.DEFICIT)
+                // C-03 (M2, B.S6): la sentadilla con pausa es una configuración propia del catálogo, no `SQ_LOW` + `PAUSE_2S`.
+                2 -> Variant(CatalogIds.SQ_PAUSED, null, CatalogIds.BP_PAUSE, null, CatalogIds.DL, TechniqueModifier.DEFICIT)
                 else -> Variant(CatalogIds.SQ_LOW, null, CatalogIds.BP, null, CatalogIds.DL, null)
             }
             val drop = when (spec.goal) {
@@ -190,8 +192,9 @@ object KpknAdvancedProgramRecipes {
                 DayArchetypes.bbTorso(rir).copy(weekday = 1, label = "Torso A"),
                 DayArchetypes.bbLegs(rir).copy(weekday = 2, label = "Pierna A"),
                 DayArchetypes.bbPush(rir).copy(weekday = 4, label = "Torso B"),
-                DayArchetypes.bbLegs((rir - 1).coerceAtLeast(0), hipDominant = true, label = "Pierna B", weekday = 5),
-            ).map { day -> if (mapped.third == BlockGoal.DELOAD) day.deload() else day }
+                // L-25 (B.S6): la pierna B baja un RIR pero nunca a 0 en los compuestos (antes: RIR 0 en la semana 5 y de la 7 a la 11).
+                DayArchetypes.bbLegs((rir - 1).coerceAtLeast(1), hipDominant = true, label = "Pierna B", weekday = 5),
+            ).map { day -> if (mapped.third == BlockGoal.DELOAD) day.asDeload() else day }
             weekRecipe(
                 w, mapped.first, mapped.second, mapped.third, days,
                 kind = if (mapped.third == BlockGoal.DELOAD) WeekExecutionKind.DELOAD else WeekExecutionKind.TRAINING,
@@ -329,23 +332,6 @@ object KpknAdvancedProgramRecipes {
             },
         )
     }
-
-    private fun DayRecipe.deload(): DayRecipe = copy(
-        slots = slots.map { slot ->
-            val warmups = slot.sets.filter { it.isWarmup }
-            val work = slot.sets.filter { !it.isWarmup }
-            val keep = (work.size * 0.5).toInt().coerceAtLeast(1)
-            slot.copy(
-                sets = warmups + work.take(keep).map { set ->
-                    set.copy(
-                        rir = maxOf(set.rir ?: 4, 4),
-                        rpe = minOf(set.rpe ?: 6.0, 6.0),
-                        percent = set.percent?.coerceAtMost(70.0),
-                    )
-                },
-            )
-        },
-    )
 
     private data class Quad(
         val block: Int,

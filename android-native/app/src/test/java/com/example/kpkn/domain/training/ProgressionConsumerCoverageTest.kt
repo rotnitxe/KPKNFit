@@ -60,12 +60,11 @@ class ProgressionConsumerCoverageTest {
      * Recetas publicadas cuya regla todavía no tiene consumidor: nombre de la regla → ids de receta.
      * Cada entrada se cierra con un cambio de datos (B.S6) y se retira de aquí; la prueba
      * [the_pending_list_has_no_stale_entries] avisa si una ya no corresponde. B.S4 dio consumidor a
-     * `TopSetPr` y `RepMaxAutoregulated`, así que solo queda `WeeklyPercent`.
+     * `TopSetPr` y `RepMaxAutoregulated`, y B.S6 parte 1 pasó Madcow a `CycleIncrement`: ninguna receta
+     * publicada usa ya `WeeklyPercent` (la clase se conserva para decodificar el JSON de programas ya
+     * guardados), así que la lista queda vacía. Una receta nueva con una regla sin consumidor falla aquí.
      */
-    private val pending: Map<String, Set<String>> = mapOf(
-        // B.S6: Madcow pasa a CycleIncrement y WeeklyPercent sale de las recetas.
-        "WeeklyPercent" to setOf("madcow-5x5"),
-    )
+    private val pending: Map<String, Set<String>> = emptyMap()
 
     /**
      * Recetas publicadas cuyo alcance de `CycleIncrement` todavía no cuadra con su estructura.
@@ -142,6 +141,15 @@ class ProgressionConsumerCoverageTest {
                 )
             }
         }
+    }
+
+    @Test
+    fun no_published_recipe_uses_the_weekly_percent_rule_any_more() {
+        // B.S6 parte 1: Madcow, la única receta con `WeeklyPercent`, pasó a `CycleIncrement(2,5; 5)`. La regla no tiene consumidor.
+        val offenders = published().filter { it.recipe.progression is ProgressionRule.WeeklyPercent }.map { it.label }
+        assertTrue("Recetas publicadas con WeeklyPercent (sin consumidor): $offenders", offenders.isEmpty())
+        val madcow = published().single { it.recipe.id == "madcow-5x5" }.recipe
+        assertEquals(ProgressionRule.CycleIncrement(2.5, 5.0), madcow.progression)
     }
 
     @Test

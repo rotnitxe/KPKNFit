@@ -106,7 +106,8 @@ object DayArchetypes {
             ),
             slot("row", SlotRole.T3_ACCESSORY, Id.ROW, rpeSets(3, 6, 8.0), restSeconds = 120, source = kpkn),
             slot("ghr", SlotRole.T3_ACCESSORY, Id.GHR, rpeSets(3, 8, 8.0), restSeconds = 90, source = kpkn),
-            slot("shrug", SlotRole.T3_ACCESSORY, Id.SHRUG, rpeSets(1, 8, 7.0), restSeconds = 60, source = kpkn),
+            // L-33 (B.S6): el encogimiento pasa de 1 a 2 series; una serie suelta no es un slot (contrato C1).
+            slot("shrug", SlotRole.T3_ACCESSORY, Id.SHRUG, rpeSets(2, 8, 7.0), restSeconds = 60, source = kpkn),
             slot("wheel", SlotRole.T3_ACCESSORY, Id.WHEEL, rpeSets(3, 8, 7.0), restSeconds = 60, source = kpkn),
         ),
     )
@@ -150,7 +151,8 @@ object DayArchetypes {
             slot("lat", SlotRole.T3_ACCESSORY, Id.LATERAL, rangeRirSets(3, 12, 15, rir.coerceAtLeast(1)), restSeconds = 60, source = kpkn),
             slot("fly", SlotRole.T3_ACCESSORY, Id.FLY_INC, rangeRirSets(3, 10, 12, rir.coerceAtLeast(1)), restSeconds = 60, source = kpkn),
             slot("oh-tri", SlotRole.T3_ACCESSORY, Id.OH_TRI, rangeRirSets(3, 10, 12, rir.coerceAtLeast(1)), restSeconds = 60, source = kpkn),
-            slot("pushdown", SlotRole.T3_ACCESSORY, Id.PUSHDOWN, rangeRirSets(1, 12, 15, rir.coerceAtLeast(1)), restSeconds = 45, source = kpkn),
+            // L-33 (B.S6): el pushdown pasa de 1 a 2 series; una serie suelta no es un slot (contrato C1).
+            slot("pushdown", SlotRole.T3_ACCESSORY, Id.PUSHDOWN, rangeRirSets(2, 12, 15, rir.coerceAtLeast(1)), restSeconds = 45, source = kpkn),
         ),
     )
 
@@ -214,3 +216,28 @@ object DayArchetypes {
         ),
     )
 }
+
+/**
+ * Descarga de un día (B.S6 parte 1): cada slot conserva sus calentamientos y deja la mitad (hacia abajo)
+ * de sus series de trabajo, con un suelo de 2 series en T1, T2, SPEED y TECHNIQUE y de 1 en T3 (el contrato
+ * C1 solo admite una serie suelta en un T3 de una semana de descarga), con RIR 4 como mínimo, RPE 6 como
+ * máximo y los porcentajes recortados al 70 %. No cambia ejercicios, descansos ni el orden del día. Va con
+ * `kind = DELOAD` en la semana que lo usa: PPL, estilo RP y la plantilla de hipertrofia de 12 semanas.
+ */
+fun DayRecipe.asDeload(): DayRecipe = copy(
+    slots = slots.map { slot ->
+        val warmups = slot.sets.filter { it.isWarmup }
+        val work = slot.sets.filter { !it.isWarmup }
+        val floor = if (slot.role == SlotRole.T3_ACCESSORY) 1 else 2
+        val keep = (work.size / 2).coerceAtLeast(floor).coerceAtMost(work.size)
+        slot.copy(
+            sets = warmups + work.take(keep).map { set ->
+                set.copy(
+                    rir = maxOf(set.rir ?: 4, 4),
+                    rpe = minOf(set.rpe ?: 6.0, 6.0),
+                    percent = set.percent?.coerceAtMost(70.0),
+                )
+            },
+        )
+    },
+)

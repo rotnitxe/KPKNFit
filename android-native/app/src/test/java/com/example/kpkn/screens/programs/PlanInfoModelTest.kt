@@ -301,7 +301,10 @@ class PlanInfoModelTest {
         assertTrue("el miércoles lleva 2 × 5 al 80 %: $allLines", allLines.any { it.endsWith(" · 2 × 5 al 80 % de tu serie más pesada") })
         assertTrue("el viernes es la serie más pesada: $allLines", allLines.any { it.endsWith(" · 1 × 5 como tu serie más pesada") })
         assertTrue("el peso muerto del lunes va al 70 % de tu TM: $allLines", allLines.any { it.endsWith(" · 1 × 5 al 70 % de tu TM") })
-        assertTrue("las dominadas AMRAP: $allLines", allLines.any { it.endsWith(" · 3 × 8+ a esfuerzo 8 de 10") })
+        // B.S6 (L-16): las dominadas dejan de ser AMRAP (llevaban «AMRAP» y RPE 8 a la vez, y un AMRAP sin levantamiento de la
+        // receta no mueve ningún TM); ahora son 3 × 8 a esfuerzo 8 de 10, sin el «+».
+        assertTrue("las dominadas a esfuerzo 8: $allLines", allLines.any { it.endsWith(" · 3 × 8 a esfuerzo 8 de 10") })
+        assertFalse("las dominadas ya no son AMRAP: $allLines", allLines.any { it.contains("8+") })
         assertEquals("Texas repite su ciclo de 4 semanas", "Así es la semana 1 de 4.", (model.typicalWeek as TypicalWeek.Days).caption)
     }
 

@@ -264,6 +264,20 @@ private val CURATED_SUBSTITUTIONS: Map<String, List<CuratedCandidate>> = mapOf(
         c("tren_superior_fondos__default", 2, true, "Fondos en paralelas: mismo patrón de extensión de codo con otro apoyo."),
         c("push_up__flat", 3, false, "Empuve con peso corporal: cambio de patrón documentado; se prescriben reps y RIR (§13.4)."),
     ),
+    // Altas M1 a M5 (B.S6): una técnica que ya es una configuración propia (agarre cerrado, pausa, inclinado) conserva las alternativas
+    // curadas de la configuración base de la que antes era un parche (`técnica` + base), así que adaptar una receta sin el material
+    // exacto cambia el ejercicio igual que antes y no deja el slot sin sustituto.
+    "close_grip_bench_press" to listOf(
+        c("bench_press__dumbbells", 2, true, "Press de banca con mancuernas: mismo patrón de empuje horizontal sin barra ni rack (§13.4)."),
+        c("floor_press__dumbbells", 2, true, "Press en suelo con mancuernas: empuje horizontal sin banca ni barra."),
+        c("push_up__flat", 3, false, "Empuje con peso corporal: cambio de patrón documentado; se prescriben reps y RIR (§13.4)."),
+    ),
+    "paused_back_squat" to squatToGoblet(),
+    "close_grip_lat_pulldown" to latPulldownToPullUp(),
+    "incline_biceps_curl" to listOf(
+        c("biceps_curl_sentado_banco_plano__dumbbells", 2, true, "Curl sentado en banco plano con mancuernas: mismo patrón de flexión de codo sin el banco regulable."),
+        c("hammer_curl__dumbbells", 2, true, "Curl martillo con mancuernas: mismo patrón de flexión de codo sin banco."),
+    ),
 )
 
 /**

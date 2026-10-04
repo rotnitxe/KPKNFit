@@ -253,8 +253,10 @@ object AuthoredPhulPhatRecipes {
                     sets = rangeRirSets(3, 8, 12, INITIAL_RIR), restSeconds = 90,
                     intent = SlotIntent.I, authoredSetRange = AuthoredSetRange(3, 4),
                 ),
+                // C-10 (M5, B.S6): el curl inclinado de la tabla es una configuración propia del catálogo (antes se aproximaba con el
+                // curl sentado en banco plano, que no es el ángulo inclinado del respaldo).
                 authoredSlot(
-                    id = "curl-inc", role = SlotRole.T3_ACCESSORY, configurationId = CatalogIds.CURL_SEATED_DB,
+                    id = "curl-inc", role = SlotRole.T3_ACCESSORY, configurationId = CatalogIds.CURL_INCLINE,
                     sets = rangeRirSets(3, 8, 12, INITIAL_RIR), restSeconds = 90,
                     intent = SlotIntent.I, authoredSetRange = AuthoredSetRange(3, 4),
                 ),
@@ -309,14 +311,9 @@ object AuthoredPhulPhatRecipes {
 
     private fun phulExemptions(): List<RecipeCompositionExemption> {
         val url = AuthoredSources.PHUL_URL
+        // B.S6: la exención H5a de «Inferior fuerza» estaba muerta (PHUL no publica porcentajes, así que ninguna serie cuenta como
+        // «pesada» en H5a: los dos axiales de la tabla caben sin exención) y se retira.
         return listOf(
-            RecipeCompositionExemption(
-                rule = "H5a",
-                scope = "w*/Inferior fuerza",
-                justification = "§10.2: el día inferior de fuerza publica sentadilla y peso muerto pesados el mismo día; " +
-                    "AUTHORED_EXACT conserva los dos axiales de la tabla sin tocar H11.",
-                sourceUrl = url,
-            ),
             RecipeCompositionExemption(
                 rule = "H1",
                 scope = "w*/Superior hipertrofia",
@@ -476,11 +473,11 @@ object AuthoredPhulPhatRecipes {
                     intent = SlotIntent.H, authoredSetRange = AuthoredSetRange(2, 2),
                     supplementalOf = "row-cable",
                 ),
+                // C-02 (M4, B.S6): el jalón con agarre cerrado es una configuración propia del catálogo, no `LAT` + `CLOSE_GRIP`.
                 authoredSlot(
-                    id = "lat-close", role = SlotRole.T3_ACCESSORY, configurationId = CatalogIds.LAT,
+                    id = "lat-close", role = SlotRole.T3_ACCESSORY, configurationId = CatalogIds.LAT_CLOSE_GRIP,
                     sets = rangeRirSets(2, 15, 20, rir), restSeconds = 120,
                     intent = SlotIntent.H, authoredSetRange = AuthoredSetRange(2, 2),
-                    technique = TechniqueModifier.CLOSE_GRIP,
                     supplementalOf = "rack-chin",
                 ),
                 authoredSlot(
@@ -634,10 +631,8 @@ object AuthoredPhulPhatRecipes {
                 "H1", "w*/Inferior hipertrofia",
                 "§10.3: la tabla ordena la extensión de cuádriceps antes del peso muerto rumano.",
             ),
-            scoped(
-                "H3", "w*/Superior fuerza",
-                "§10.3: remo, dominada lastrada y rack chin seguidos por la misma dominante (dorsal).",
-            ),
+            // B.S6: la H3 de «Superior fuerza» estaba muerta (el rack chin cuelga de la dominada con `supplementalOf`, así que
+            // el par no cuenta como tres dorsales seguidos) y se retira.
             scoped(
                 "H3", "w*/Inferior fuerza",
                 "§10.3: sentadilla, hack y extensión de cuádriceps seguidos por la misma dominante.",

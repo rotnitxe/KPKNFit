@@ -300,6 +300,85 @@ class PlanMaterializerTest {
     }
 
     @Test
+    fun madcow_resolved_kg_never_exceed_tm_ceiling() {
+        // L-03 (B.S6): con `WeeklyPercent(2,5)` el +2,5 %/semana de la rampa se habría aplicado dos veces. El plan resuelve sobre un TM
+        // del 87 % del 1RM y ningún set de ninguna semana pasa del triple del viernes de la semana 4 (TM × 1,025).
+        val protocol = com.example.kpkn.data.protocols.PROTOCOL_LIBRARY.first { it.id == "madcow-5x5" }
+        val program = PlanMaterializer.materialize(
+            Program(id = "mc-ceiling", name = "Madcow"),
+            protocol.recipe!!,
+            CatalogCompositionTestSupport.metadata,
+            SeqIds(),
+            profile = PowerliftingProfile(squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 220.0),
+        )
+        val weeks = program.macrocycles.first().blocks.first().mesocycles.first().weeks
+        assertEquals(4, weeks.size)
+        val tmKg = mapOf(CatalogIds.SQ_LOW to 200.0 * 0.87, CatalogIds.BP to 120.0 * 0.87, CatalogIds.DL to 220.0 * 0.87)
+        weeks.forEachIndexed { index, week ->
+            week.sessions.flatMap { it.allExercises() }.forEach { exercise ->
+                val tm = tmKg[exercise.catalogConfigurationId] ?: return@forEach
+                val heaviest = exercise.sets.mapNotNull { it.weight }.maxOrNull() ?: return@forEach
+                assertTrue(
+                    "semana ${index + 1}: ${exercise.name} resuelve $heaviest kg, por encima de TM × 1,025 = ${tm * 1.025}",
+                    heaviest <= tm * 1.025 + 0.01,
+                )
+            }
+        }
+        // Lunes: la rampa termina en el 92,5 / 95 / 97,5 / 100 % del TM (174 kg en la semana 4).
+        val mondayTops = weeks.map { week ->
+            week.sessions.first { it.name == "Volumen" }.allExercises()
+                .first { it.catalogConfigurationId == CatalogIds.SQ_LOW }.sets.mapNotNull { it.weight }.maxOrNull()!!
+        }
+        assertEquals(listOf(160.95, 165.3, 169.65, 174.0), mondayTops.map { Math.round(it * 100) / 100.0 })
+        // Viernes: el triple de la semana 4 es el 102,5 % del TM (178,35 kg), el techo de sentadilla de todo el plan.
+        val fridayTriple = weeks[3].sessions.first { it.name == "Intensidad" }.allExercises()
+            .first { it.catalogConfigurationId == CatalogIds.SQ_LOW }.sets[4].weight!!
+        assertEquals(178.35, fridayTriple, 0.01)
+        val planCeiling = weeks.flatMap { week -> week.sessions.flatMap { it.allExercises() } }
+            .filter { it.catalogConfigurationId == CatalogIds.SQ_LOW }
+            .flatMap { it.sets }.mapNotNull { it.weight }.maxOrNull()!!
+        assertEquals("el techo de sentadilla de todo el plan es el triple de la semana 4", fridayTriple, planCeiling, 0.01)
+    }
+
+    @Test
+    fun texas_4d_resolves_the_top_five_at_the_tm_and_the_volume_at_90_percent_of_it() {
+        // L-02/L-18 (B.S6, D7): TM = 87 % del 1RM, top 1×5 al 100 % del TM y volumen al 90 %. Con un 1RM de 200 kg: 174 kg y 156,6 kg.
+        val recipe = com.example.kpkn.data.protocols.PROTOCOL_LIBRARY.first { it.id == "texas-method-4d" }.recipe!!
+        val program = PlanMaterializer.materialize(
+            Program(id = "tx4", name = "Texas 4d"),
+            recipe,
+            CatalogCompositionTestSupport.metadata,
+            SeqIds(),
+            profile = PowerliftingProfile(squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 220.0),
+        )
+        val week = program.macrocycles.first().blocks.first().mesocycles.first().weeks[1]
+        val byName = week.sessions.associateBy { it.name }
+        fun weightsOf(sessionName: String, configurationId: String): List<Double> =
+            byName.getValue(sessionName).allExercises()
+                .first { it.catalogConfigurationId == configurationId }.sets.map { it.weight ?: -1.0 }
+        val squatTm = 200.0 * 0.87
+        val deadliftTm = 220.0 * 0.87
+        val benchTm = 120.0 * 0.87
+        assertEquals(174.0, squatTm, 0.01)
+        // Martes: top de sentadilla (1×5 al 100 % del TM) y volumen de peso muerto (3×5 al 90 %).
+        val squatTop = weightsOf("Sentadilla/PM", CatalogIds.SQ_LOW)
+        assertEquals(1, squatTop.size)
+        assertEquals(174.0, squatTop.single(), 0.01)
+        val deadliftVolume = weightsOf("Sentadilla/PM", CatalogIds.DL)
+        assertEquals(3, deadliftVolume.size)
+        deadliftVolume.forEach { assertEquals(deadliftTm * 0.90, it, 0.01) }
+        // Viernes: top de peso muerto y volumen de sentadilla (5×5 al 90 % del TM de sentadilla: 156,6 kg).
+        val deadliftTop = weightsOf("PM/Sentadilla", CatalogIds.DL)
+        assertEquals(1, deadliftTop.size)
+        assertEquals(deadliftTm, deadliftTop.single(), 0.01)
+        val squatVolume = weightsOf("PM/Sentadilla", CatalogIds.SQ_HIGH)
+        assertEquals(5, squatVolume.size)
+        squatVolume.forEach { assertEquals(156.6, it, 0.01) }
+        // Lunes: top de banca al 100 % del TM.
+        assertEquals(benchTm, weightsOf("Banca/OHP", CatalogIds.BP).single(), 0.01)
+    }
+
+    @Test
     fun materialize_persists_optional_slot_role_top_set_and_load_basis() {
         val recipe = TrainingPlanRecipe(
             id = "opt-fields",

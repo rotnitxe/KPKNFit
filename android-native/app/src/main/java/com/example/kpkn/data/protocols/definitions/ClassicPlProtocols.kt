@@ -34,9 +34,10 @@ import com.example.kpkn.data.protocols.weekRecipe
 
 object ClassicPlProtocols {
     val korte = run {
+        // B.S6: la exención W3 (justificación de 18 caracteres) estaba muerta —los días con el T1 pesado de la fase II son lunes,
+        // miércoles y viernes, nunca seguidos— y se retira; la H5b sigue viva: SQ 8×5 + DL 8×5 en la fase I.
         val exemptions = listOf(
             RecipeCompositionExemption("H5b", "*", "Korte SQ 8×5 + DL 8×5 por diseño"),
-            RecipeCompositionExemption("W3", "*", "SBD las 3 sesiones"),
         )
         fun sbdDay(label: String, weekday: Int, sq: Double, bp: Double, dl: Double, heavy: LiftSlot?) = day(
             label, weekday = weekday, slots = listOf(
@@ -101,10 +102,12 @@ object ClassicPlProtocols {
             w <= 9 -> repeatPercentSets(5, 2, 70.0, 60)
             else -> repeatPercentSets(4, 2, 50.0, 60)
         }
+        // L-13 (B.S6): el día de repeticiones del Cube es UNA serie al máximo de repeticiones: antes era una serie suelta sin
+        // marcar (contrato C1); ahora es AMRAP. La semana 10 (1×1) no lo necesita: una sola repetición ya es válida.
         fun repsSets(w: Int) = when {
-            w <= 3 -> listOf(SetRecipe(reps = 8, percent = 70.0))
-            w <= 6 -> listOf(SetRecipe(reps = 6, percent = 80.0))
-            w <= 9 -> listOf(SetRecipe(reps = 2, percent = 85.0))
+            w <= 3 -> listOf(SetRecipe(reps = 8, percent = 70.0, amrap = true))
+            w <= 6 -> listOf(SetRecipe(reps = 6, percent = 80.0, amrap = true))
+            w <= 9 -> listOf(SetRecipe(reps = 2, percent = 85.0, amrap = true))
             else -> listOf(SetRecipe(reps = 1, percent = 60.0))
         }
         val weeks = (1..10).map { w ->
@@ -127,7 +130,8 @@ object ClassicPlProtocols {
                 ), priority = SlotPriority.SPEED).dropT3(drop),
                 day("Repeticiones", weekday = 4, slots = listOf(
                     slot("dl", SlotRole.T1_MAIN, CatalogIds.DL, repsSets(w), if ((repsSets(w).first().percent ?: 0.0) >= 85) 240 else 180, LiftSlot.DEADLIFT, isCompetitionLift = true),
-                    slot("bp", SlotRole.T2_SUPPLEMENTAL, CatalogIds.BP_INC, rpeSets(4, 8, 8.0), 120, LiftSlot.BENCH, supplementalOf = "dl"),
+                    // L-13/C8 (B.S6): la banca inclinada no es un suplementario del peso muerto (otro patrón): sin `supplementalOf`.
+                    slot("bp", SlotRole.T2_SUPPLEMENTAL, CatalogIds.BP_INC, rpeSets(4, 8, 8.0), 120, LiftSlot.BENCH),
                     kpknAssist("row", CatalogIds.CSR, 4, 10, 90),
                     kpknAssist("ghr", CatalogIds.GHR, 3, 8, 90),
                     kpknAssist("jm", CatalogIds.JM, 2, 10, 60),
@@ -137,7 +141,8 @@ object ClassicPlProtocols {
         }
         Protocol(
             id = "cube-method", name = "Cube Method", emoji = "🧊",
-            description = "10 semanas, 4 días: rotación pesado/explosivo/reps por levantamiento + día de culturismo. Semana 10 test.",
+            description = "10 semanas, 4 días: la sentadilla va siempre pesada, la banca explosiva y el peso muerto a repeticiones (una serie AMRAP), " +
+                "más un día de culturismo. La rotación semanal de los tres métodos del Cube no está implementada. La semana 10 es el test.",
             author = "Brandon Lilly", tags = listOf("powerlifting", "avanzado", "4 días", "10 semanas", "%"),
             blocks = listOf(ProtocolBlock("Cubo", 10, "Intensificación", 60, 100)),
             defaultSplit = "cube_method", publicationStatus = ProtocolPublicationStatus.VERIFIED,
@@ -156,56 +161,66 @@ object ClassicPlProtocols {
         )
         fun stabilize(day: com.example.kpkn.data.protocols.DayRecipe) =
             day.copy(slots = day.slots.filter { it.role != SlotRole.T3_ACCESSORY } + sharedT3)
+        // L-07 (B.S6): el lunes alterna una sentadilla pesada (semanas impares: 2×1 al 87-95 %, la última serie top set) y un
+        // peso muerto pesado (semanas pares: 2×1 al 85, 87, 90 y 92 %, la última serie top set); en la semana impar el peso
+        // muerto va ligero (el déficit del arquetipo de sentadilla). Antes el peso muerto par era 3×3 al 70 % y la lista de la
+        // sentadilla guardaba un 65 % por semana par que nadie leía.
+        val heavySq = mapOf(1 to 87.0, 3 to 90.0, 5 to 92.0, 7 to 95.0, 9 to 90.0)
+        val heavyDl = mapOf(2 to 85.0, 4 to 87.0, 6 to 90.0, 8 to 92.0)
         val weeks = (1..10).map { w ->
-            val heavySq = listOf(87.0, 65.0, 90.0, 65.0, 92.0, 65.0, 95.0, 65.0, 90.0, 0.0)[w - 1]
             val bp = listOf(75.0, 70.0, 80.0, 72.0, 87.0, 74.0, 90.0, 75.0, 92.0, 0.0)[w - 1]
             val goal = if (w == 10) BlockGoal.TAPER else if (w >= 8) BlockGoal.PEAK else BlockGoal.INTENSIFICATION
+            // La semana 10 va en lunes, miércoles y viernes como las demás (E-10: antes martes, jueves y sábado, 6 días distintos).
             weekRecipe(w, if (w <= 6) 0 else 1, if (w == 10) "Descanso" else "Lilliebridge", goal, if (w == 10) listOf(
-                stabilize(DayArchetypes.plBenchVolume(60.0, weekday = 2)).dropT3(2),
-                stabilize(DayArchetypes.plSquat(60.0, t1Sets = 2, t1Reps = 3, weekday = 4)).dropT3(2),
-                stabilize(DayArchetypes.plDeadlift(55.0, t1Sets = 2, t1Reps = 2, weekday = 6)).dropT3(2),
+                stabilize(DayArchetypes.plBenchVolume(60.0, weekday = 1)).dropT3(2),
+                stabilize(DayArchetypes.plSquat(60.0, t1Sets = 2, t1Reps = 3, weekday = 3)).dropT3(2),
+                stabilize(DayArchetypes.plDeadlift(55.0, t1Sets = 2, t1Reps = 2, weekday = 5)).dropT3(2),
             ) else listOf(
-                stabilize(if (w % 2 == 1) DayArchetypes.plSquat(heavySq, t1Sets = 2, t1Reps = 1, t1Top = true, weekday = 1)
-                else DayArchetypes.plDeadlift(70.0, t1Sets = 3, t1Reps = 3, weekday = 1)).dropT3(if (w >= 8) 2 else 0),
+                stabilize(
+                    if (w % 2 == 1) DayArchetypes.plSquat(heavySq.getValue(w), t1Sets = 2, t1Reps = 1, t1Top = true, weekday = 1)
+                    else DayArchetypes.plDeadlift(heavyDl.getValue(w), t1Sets = 2, t1Reps = 1, t1Top = true, weekday = 1),
+                ).dropT3(if (w >= 8) 2 else 0),
                 stabilize(DayArchetypes.plBenchHeavy(bp, t1Sets = if (w % 2 == 1) 3 else 4, t1Reps = if (w % 2 == 1) 1 else 5, t1Amrap = w % 2 == 0, weekday = 3)).dropT3(if (w >= 8) 2 else 0),
                 stabilize(DayArchetypes.plBenchVolume(bp - 8, weekday = 5)).dropT3(if (w >= 8) 2 else 0),
             ))
         }
         Protocol(
             id = "lilliebridge", name = "Lilliebridge Method", emoji = "🌉",
-            description = "10 semanas, 3 días: SQ/DL mismo día alternando pesado/ligero; banca singles y AMRAP alternos.",
+            description = "10 semanas, 3 días: el lunes alterna sentadilla pesada (semanas impares) y peso muerto pesado (pares); " +
+                "banca con singles y AMRAP alternos. Sin regla de subida de TM.",
             author = "Matt Lilliebridge", tags = listOf("powerlifting", "avanzado", "3 días", "10 semanas", "%", "AMRAP"),
             blocks = listOf(ProtocolBlock("Desarrollo", 6, "Intensificación", 65, 92), ProtocolBlock("Pico", 4, "Peak", 70, 96)),
             defaultSplit = "pl_sbd_x3", publicationStatus = ProtocolPublicationStatus.VERIFIED,
             source = attributed("Lilliebridge Method", "https://www.powerliftingtowin.com/the-lilliebridge-method/", "Matt Lilliebridge"),
-            recipe = TrainingPlanRecipe("lilliebridge", weeks, 1.0, sbdSlots(), ProgressionRule.TopSetPr(), claimedDaysPerWeek = 3, claimedLevel = "avanzado"),
+            // B.S4 (hallazgo): con `TopSetPr` el plan propondría +2,5 kg por cada semana pesada; Lilliebridge sube por semana según su
+            // tabla de porcentajes, no por récord del top set, así que no lleva regla de subida (`None`).
+            recipe = TrainingPlanRecipe("lilliebridge", weeks, 1.0, sbdSlots(), ProgressionRule.None, claimedDaysPerWeek = 3, claimedLevel = "avanzado"),
             fidelitySpec = ProtocolFidelitySpec(10, 3, requiresPercent = true, claimedLevel = "avanzado", percentAnchors = mapOf("w1_sq" to listOf(87.0))),
         )
     }
 
     val westside = run {
-        val exemptions = listOf(
-            RecipeCompositionExemption("W5", "block*/Conjugate", "Rotación de Max Effort cada 1-3 semanas por definición"),
-        )
-        val meLower = listOf(CatalogIds.SQ_BOX, CatalogIds.GM, CatalogIds.DL_DEF, CatalogIds.SQ_SSB)
-        val meUpper = listOf(CatalogIds.BP_FLOOR, CatalogIds.BP_CHAINS, CatalogIds.BP_INC, CatalogIds.JM)
+        // L-14 (B.S6): la exención W5 estaba muerta (los accesorios no cambian dentro del bloque) y se retira. Las variantes
+        // inalcanzables (`SQ_SSB` y `JM`: con 3 semanas solo se leen los índices 0 a 2) también: cada día ME rota 3 variantes.
+        val meLower = listOf(CatalogIds.SQ_BOX, CatalogIds.GM, CatalogIds.DL_DEF)
+        val meUpper = listOf(CatalogIds.BP_FLOOR, CatalogIds.BP_CHAINS, CatalogIds.BP_INC)
         val weeks = (1..3).map { w ->
             val wave = w - 1
             val deSq = listOf(12 to 50.0, 10 to 55.0, 8 to 60.0)[wave]
             val deBp = listOf(9 to 45.0, 9 to 50.0, 9 to 55.0)[wave]
             weekRecipe(w, 0, "Conjugate", BlockGoal.INTENSIFICATION, listOf(
                 day("ME Lower", weekday = 1, slots = listOf(
-                    slot("me", SlotRole.T1_MAIN, meLower[(w - 1) % 4], listOf(SetRecipe(reps = 2, percent = 90.0, isTopSet = true, loadBasis = com.example.kpkn.data.protocols.LoadBasis.REP_MAX)), 240, LiftSlot.SQUAT),
+                    slot("me", SlotRole.T1_MAIN, meLower[(w - 1) % meLower.size], listOf(SetRecipe(reps = 2, percent = 90.0, isTopSet = true, loadBasis = com.example.kpkn.data.protocols.LoadBasis.REP_MAX)), 240, LiftSlot.SQUAT),
                     kpknAssist("rev", CatalogIds.REV_HYPER, 3, 10, 90),
                     kpknAssist("ghr", CatalogIds.GHR, 4, 8, 90),
                     kpknAssist("thru", CatalogIds.PULL_THRU, 3, 12, 60),
                     kpknAssist("wheel", CatalogIds.WHEEL, 3, 8, 60),
                 )),
                 day("ME Upper", weekday = 2, slots = listOf(
-                    slot("me", SlotRole.T1_MAIN, meUpper[(w - 1) % 4], listOf(SetRecipe(reps = 2, percent = 90.0, isTopSet = true, loadBasis = com.example.kpkn.data.protocols.LoadBasis.REP_MAX)), 240, LiftSlot.BENCH),
+                    slot("me", SlotRole.T1_MAIN, meUpper[(w - 1) % meUpper.size], listOf(SetRecipe(reps = 2, percent = 90.0, isTopSet = true, loadBasis = com.example.kpkn.data.protocols.LoadBasis.REP_MAX)), 240, LiftSlot.BENCH),
                     kpknAssist("row", CatalogIds.PENDLAY, 4, 6, 120),
                     kpknAssist("pull", CatalogIds.PULLUP, 3, 6, 120),
-                    kpknAssist("tate", if (meUpper[(w - 1) % 4] == CatalogIds.JM) CatalogIds.FLY else CatalogIds.TATE, 4, 8, 60),
+                    kpknAssist("tate", CatalogIds.TATE, 4, 8, 60),
                     kpknAssist("face", CatalogIds.FACE, 4, 15, 60),
                 )),
                 day("DE Lower", weekday = 4, priority = SlotPriority.SPEED, slots = listOf(
@@ -232,9 +247,10 @@ object ClassicPlProtocols {
             defaultSplit = "westside_conjugate", publicationStatus = ProtocolPublicationStatus.VERIFIED,
             kind = ProtocolKind.METHOD,
             source = attributed("Westside Barbell conjugate method", "https://www.westside-barbell.com/blogs/the-blog/the-conjugate-method", "Louie Simmons"),
-            recipe = TrainingPlanRecipe("westside-conjugate", weeks, 0.90, sbdSlots(), ProgressionRule.RepMaxAutoregulated, exemptions, claimedDaysPerWeek = 4, claimedLevel = "avanzado", repeats = true),
+            // L-14 (B.S6): `RepMaxAutoregulated` solo lee la serie al máximo del levantamiento de competición y los máximos de
+            // Westside son variantes (cajón, buenos días, press con cadenas), que no cuentan: la regla nunca actuaba. Sin regla.
+            recipe = TrainingPlanRecipe("westside-conjugate", weeks, 0.90, sbdSlots(), ProgressionRule.None, claimedDaysPerWeek = 4, claimedLevel = "avanzado", repeats = true),
             fidelitySpec = ProtocolFidelitySpec(3, 4, requiresPercent = true, claimedLevel = "avanzado", percentAnchors = mapOf("de" to listOf(50.0))),
-            exemptions = exemptions,
         )
     }
 
@@ -272,10 +288,11 @@ object ClassicPlProtocols {
         fun withSquatTech(day: com.example.kpkn.data.protocols.DayRecipe, pct: Double): com.example.kpkn.data.protocols.DayRecipe {
             val t1 = day.slots.filter { it.role == SlotRole.T1_MAIN }
             val rest = day.slots.filter { it.role != SlotRole.T1_MAIN }
+            // C-03 (M2, B.S6): la sentadilla con pausa es una configuración propia del catálogo, no `SQ_HIGH` + `PAUSE_2S`.
             val tech = slot(
-                "sq-tech", SlotRole.T2_SUPPLEMENTAL, CatalogIds.SQ_HIGH,
+                "sq-tech", SlotRole.T2_SUPPLEMENTAL, CatalogIds.SQ_PAUSED,
                 repeatPercentSets(3, 5, pct, 150),
-                150, LiftSlot.SQUAT, technique = TechniqueModifier.PAUSE_2S,
+                150, LiftSlot.SQUAT,
                 source = SlotSource.KPKN_DEFAULT,
             )
             return day.copy(slots = t1 + tech + rest)
@@ -323,7 +340,9 @@ object ClassicPlProtocols {
                 else -> LiftScheme(2, 1, (sq.pct - 4).coerceAtLeast(80.0), 2, 3, (sq.backPct - 4).coerceAtLeast(70.0))
             }
             val drop = if (goal == BlockGoal.PEAK) 2 else if (goal == BlockGoal.INTENSIFICATION) 1 else 0
-            val volPct = (sq.pct - 8).coerceAtLeast(55.0)
+            // L-05 (B.S6): con el TM al 100 % del 1RM, el volumen de banca de la semana 16 (95 - 8 = 87 %) ya no cabe en 6 repeticiones por
+            // Epley (H11b, no exentable); la semana del test lleva ese día al 70 %. Las semanas 1 a 15 no cambian (el máximo es 84 %).
+            val volPct = if (w == 16) 70.0 else (sq.pct - 8).coerceAtLeast(55.0)
             weekRecipe(w, when { w <= 4 -> 0; w <= 8 -> 1; w <= 11 -> 2; else -> 3 }, "F${when { w <= 4 -> 1; w <= 8 -> 2; w <= 11 -> 3; else -> 4 }}", goal, listOf(
                 DayArchetypes.plSquat(sq.pct, t1Sets = sq.sets, t1Reps = sq.reps, weekday = 1)
                     .replaceT1Work(work(sq, rpe)).dropT3(drop),
@@ -345,7 +364,8 @@ object ClassicPlProtocols {
             blocks = listOf(ProtocolBlock("F1", 4, "Acumulación", 64, 71), ProtocolBlock("F2", 4, "Intensificación", 76, 82), ProtocolBlock("F3", 3, "Intensificación", 78, 81), ProtocolBlock("F4", 5, "Peak", 80, 100)),
             defaultSplit = "pl_classic_4", publicationStatus = ProtocolPublicationStatus.VERIFIED,
             source = attributed("Calgary Barbell 16 Week Program", "https://calgarybarbell.com/", "Bryce Krawczyk"),
-            recipe = TrainingPlanRecipe("calgary-16", weeks, 0.90, sbdSlots(), ProgressionRule.None, claimedDaysPerWeek = 4, claimedLevel = "intermedio", autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.RPE_CAP))),
+            // L-05 (B.S6): los porcentajes de Calgary son del 1RM, no de un TM del 90 %: TM = 100 % del 1RM.
+            recipe = TrainingPlanRecipe("calgary-16", weeks, 1.0, sbdSlots(), ProgressionRule.None, claimedDaysPerWeek = 4, claimedLevel = "intermedio", autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.RPE_CAP))),
             fidelitySpec = ProtocolFidelitySpec(
                 16, 4, requiresPercent = true, requiresRpe = true, claimedLevel = "intermedio",
                 percentAnchors = mapOf("w1_sq" to listOf(64.0), "w5_sq" to listOf(76.0, 66.0), "w16" to listOf(95.0)),
@@ -398,9 +418,10 @@ object ClassicPlProtocols {
             weekRecipe(
                 w, when { w <= 5 -> 0; else -> 1 }, if (w <= 5) "Volumen" else "Intensidad", goal,
                 listOf(
+                    // L-21 (B.S6): el RPE de la semana va en el T1 de sentadilla, banca y peso muerto (antes solo en la sentadilla).
                     applyRpe(DayArchetypes.plSquat(squat.pct, t1Sets = squat.sets, t1Reps = squat.reps, weekday = 1)).dropT3(drop),
-                    DayArchetypes.plBenchHeavy(bench.pct, t1Sets = bench.sets, t1Reps = bench.reps.coerceAtLeast(1), weekday = 2).dropT3(drop),
-                    DayArchetypes.plDeadlift(deadlift.pct, t1Sets = deadlift.sets, t1Reps = deadlift.reps.coerceAtLeast(1), weekday = 4).dropT3(drop),
+                    applyRpe(DayArchetypes.plBenchHeavy(bench.pct, t1Sets = bench.sets, t1Reps = bench.reps.coerceAtLeast(1), weekday = 2)).dropT3(drop),
+                    applyRpe(DayArchetypes.plDeadlift(deadlift.pct, t1Sets = deadlift.sets, t1Reps = deadlift.reps.coerceAtLeast(1), weekday = 4)).dropT3(drop),
                     DayArchetypes.plBenchVolume(volume.pct, weekday = 5).let { day ->
                         day.replaceT1Work(repeatPercentSets(volume.sets, volume.reps, volume.pct, 180)).dropT3(drop)
                     },
@@ -415,7 +436,8 @@ object ClassicPlProtocols {
             blocks = listOf(ProtocolBlock("Volumen", 5, "Acumulación", 50, 78), ProtocolBlock("Intensidad", 4, "Intensificación", 80, 95)),
             defaultSplit = "pl_classic_4", publicationStatus = ProtocolPublicationStatus.VERIFIED,
             source = attributed("TSA 9 Week Intermediate Program v2", "https://www.thestrengthathlete.com/", "The Strength Athlete"),
-            recipe = TrainingPlanRecipe("tsa-9", weeks, 0.90, sbdSlots(), ProgressionRule.None, claimedDaysPerWeek = 4, claimedLevel = "intermedio"),
+            // L-05 (B.S6): los porcentajes de TSA son del 1RM (el test de la semana 9 al 95 % era un 85,5 % con un TM del 90 %).
+            recipe = TrainingPlanRecipe("tsa-9", weeks, 1.0, sbdSlots(), ProgressionRule.None, claimedDaysPerWeek = 4, claimedLevel = "intermedio"),
             fidelitySpec = ProtocolFidelitySpec(
                 9, 4, requiresPercent = true, claimedLevel = "intermedio",
                 percentAnchors = mapOf("w1_sq" to listOf(71.0), "w1_bp" to listOf(69.0), "w5_deload" to listOf(60.0)),
