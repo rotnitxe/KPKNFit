@@ -9,8 +9,10 @@ import com.example.kpkn.data.protocols.DayArchetypes
 import com.example.kpkn.data.protocols.LiftSlot
 import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.data.protocols.PROTOCOL_LIBRARY
+import com.example.kpkn.data.protocols.ProgressionRule
 import com.example.kpkn.data.protocols.SlotRole
 import com.example.kpkn.data.protocols.TrainingPlanRecipe
+import com.example.kpkn.data.protocols.day
 import com.example.kpkn.data.protocols.isVisibleForApplication
 import com.example.kpkn.data.programs.PROGRAM_TEMPLATES
 import com.example.kpkn.data.protocols.percentSets
@@ -422,5 +424,158 @@ class PlanMaterializerTest {
                 !exercise.name.contains("__"),
             )
         }
+    }
+
+    // ─── B.S3: WeeklyKg (Smolov Jr) ───────────────────────────────────────────────
+
+    private fun smolovJrRecipe(): TrainingPlanRecipe = PROTOCOL_LIBRARY.first { it.id == "smolov-jr" }.recipe!!
+
+    private fun smolovJrProgram(recipe: TrainingPlanRecipe, profile: PowerliftingProfile?): Program =
+        PlanMaterializer.materialize(
+            Program(id = "sj", name = "Smolov Jr"),
+            recipe,
+            CatalogCompositionTestSupport.metadata,
+            SeqIds(),
+            profile = profile,
+            // Estas pruebas miden cargas, no la composición de la receta (la cubre ProtocolCompositionContractTest).
+            strict = false,
+        )
+
+    private fun squatWork(program: Program, weekIndex: Int, dayIndex: Int) =
+        program.macrocycles.first().blocks.first().mesocycles.first().weeks[weekIndex]
+            .sessions[dayIndex].allExercises().first { it.catalogConfigurationId == CatalogIds.SQ_LOW }
+
+    @Test
+    fun weekly_kg_offsets_squat_sets_by_week() {
+        // 1RM 200 con TM 1,0: S1 6×6 al 70 % (140 kg), S2 7×5 al 75 %, S3 8×4 al 80 %, S4 10×3 al 85 %.
+        val program = smolovJrProgram(
+            smolovJrRecipe(),
+            PowerliftingProfile(squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 220.0),
+        )
+        val baseKg = listOf(140.0, 150.0, 160.0, 170.0)
+        val sets = listOf(6, 7, 8, 10)
+        val basePercent = listOf(70.0, 75.0, 80.0, 85.0)
+        // Semana 1 sin kilo extra; semana 2 +5 kg y semana 3 +10 kg en cada serie de sentadilla.
+        listOf(0.0, 5.0, 10.0).forEachIndexed { weekIndex, offset ->
+            baseKg.indices.forEach { dayIndex ->
+                val squat = squatWork(program, weekIndex, dayIndex)
+                val label = "semana ${weekIndex + 1} día ${dayIndex + 1}"
+                assertEquals("$label series", sets[dayIndex], squat.sets.size)
+                squat.sets.forEach { set ->
+                    assertEquals("$label kg", baseKg[dayIndex] + offset, set.weight ?: -1.0, 0.001)
+                    // El % mostrado es coherente con el kg: pct + kg ÷ 1RM × 100 (70 → 72,5 → 75).
+                    assertEquals("$label %", basePercent[dayIndex] + offset / 200.0 * 100.0, set.targetPercentageRM ?: -1.0, 0.001)
+                    assertEquals("$label kg ÷ 1RM", set.weight!! / 200.0 * 100.0, set.targetPercentageRM!!, 0.001)
+                }
+            }
+        }
+        // El primer día de las tres semanas: 140, 145 y 150 kg.
+        assertEquals(
+            listOf(140.0, 145.0, 150.0),
+            (0..2).map { week -> squatWork(program, week, 0).sets.first().weight ?: -1.0 },
+        )
+    }
+
+    @Test
+    fun weekly_kg_never_touches_accessories_without_a_lift_slot() {
+        val program = smolovJrProgram(
+            smolovJrRecipe(),
+            PowerliftingProfile(squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 220.0),
+        )
+        val week3 = program.macrocycles.first().blocks.first().mesocycles.first().weeks[2]
+        week3.sessions.forEach { session ->
+            session.allExercises().filter { it.catalogConfigurationId != CatalogIds.SQ_LOW }.forEach { accessory ->
+                assertTrue(
+                    "${session.name}/${accessory.name}: los accesorios por RPE no llevan kg de WeeklyKg",
+                    accessory.sets.all { it.weight == null && it.targetPercentageRM == null },
+                )
+            }
+        }
+    }
+
+    @Test
+    fun weekly_kg_without_a_load_base_keeps_the_weight_null_and_the_recipe_percent() {
+        val program = smolovJrProgram(smolovJrRecipe(), profile = null)
+        val squat = squatWork(program, weekIndex = 1, dayIndex = 0)
+        assertTrue("sin 1RM no hay kg", squat.sets.all { it.weight == null })
+        assertTrue("el porcentaje es el de la receta", squat.sets.all { it.targetPercentageRM == 70.0 })
+    }
+
+    @Test
+    fun without_the_weekly_kg_rule_every_week_keeps_the_same_load() {
+        val recipe = smolovJrRecipe().copy(progression = ProgressionRule.None)
+        val program = smolovJrProgram(recipe, PowerliftingProfile(squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 220.0))
+        (0..2).forEach { week ->
+            assertEquals("semana ${week + 1}", 140.0, squatWork(program, week, 0).sets.first().weight ?: -1.0, 0.001)
+        }
+    }
+
+    // ─── B.S3 · R-23: reconstruir una semana no rota los días ─────────────────────
+
+    @Test
+    fun rematerializeWeek_keeps_the_weekdays_of_a_program_with_a_start_day() {
+        val recipe = sampleRecipe()
+        val program = PlanMaterializer.materialize(
+            Program(id = "p", name = "T", startDay = 3),
+            recipe,
+            CatalogCompositionTestSupport.metadata,
+            SeqIds(),
+            profile = PowerliftingProfile(squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 220.0),
+        )
+        val week = program.macrocycles.first().blocks.first().mesocycles.first().weeks.first()
+        // El lunes de la receta rota al miércoles cuando la semana empieza en miércoles.
+        assertEquals(listOf(3), week.sessions.map { it.dayOfWeek })
+
+        val rebuilt = PlanMaterializer.rematerializeWeek(
+            program,
+            week.id,
+            recipe,
+            CatalogCompositionTestSupport.metadata,
+            SeqIds(),
+        )
+        val rebuiltWeek = rebuilt.macrocycles.first().blocks.first().mesocycles.first().weeks.first()
+        assertEquals("los días no rotan al reconstruir", listOf(3), rebuiltWeek.sessions.map { it.dayOfWeek })
+    }
+
+    @Test
+    fun rematerializeWeek_keeps_the_split_training_days_when_the_recipe_declares_no_weekday() {
+        fun squatDay(label: String) = day(
+            label,
+            slots = listOf(
+                slot("t1", SlotRole.T1_MAIN, CatalogIds.SQ_LOW, percentSets(180, 5 to 70.0, 5 to 80.0), 180, LiftSlot.SQUAT),
+            ),
+        )
+        val recipe = TrainingPlanRecipe(
+            id = "split-days",
+            weeks = listOf(
+                weekRecipe(
+                    1, 0, "Base", BlockGoal.ACCUMULATION,
+                    listOf(squatDay("A"), squatDay("B"), squatDay("C"), squatDay("D")),
+                ),
+            ),
+            liftSlots = mapOf(LiftSlot.SQUAT to CatalogIds.SQ_LOW),
+            repeats = true,
+        )
+        val program = PlanMaterializer.materialize(
+            Program(id = "p", name = "T", startDay = 3, selectedSplitId = "ul_x4"),
+            recipe,
+            CatalogCompositionTestSupport.metadata,
+            SeqIds(),
+            profile = PowerliftingProfile(squat1RM = 200.0),
+            strict = false,
+        )
+        val week = program.macrocycles.first().blocks.first().mesocycles.first().weeks.first()
+        // «ul_x4» es Torso, Pierna, Descanso, Torso, Pierna…; con la semana empezando en miércoles: mié, jue, sáb, dom.
+        assertEquals(listOf(3, 4, 6, 7), week.sessions.map { it.dayOfWeek })
+
+        val rebuilt = PlanMaterializer.rematerializeWeek(
+            program,
+            week.id,
+            recipe,
+            CatalogCompositionTestSupport.metadata,
+            SeqIds(),
+        )
+        val rebuiltWeek = rebuilt.macrocycles.first().blocks.first().mesocycles.first().weeks.first()
+        assertEquals(listOf(3, 4, 6, 7), rebuiltWeek.sessions.map { it.dayOfWeek })
     }
 }

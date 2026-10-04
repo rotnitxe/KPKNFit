@@ -88,7 +88,7 @@ object TexasMethodProtocols {
         // D7: el TM es el 87 % del 1RM (≈ 5RM): el top de viernes es un 1×5, no un 1RM.
         trainingMaxPercent = 0.87,
         liftSlots = sbdSlots(),
-        progression = ProgressionRule.TopSetPr,
+        progression = ProgressionRule.TopSetPr(),
         claimedDaysPerWeek = 3,
         claimedLevel = "intermedio",
         autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.WEEKLY_REVIEW)),
@@ -257,7 +257,7 @@ object TexasMethodFourDay {
         // D7 se aplica en B.S6 con el re-basado de T1/T2; con 1,0 el 4d cumple H11/H11b: 85 % → Epley admite 6.
         trainingMaxPercent = 1.0,
         liftSlots = sbdSlots(),
-        progression = ProgressionRule.TopSetPr,
+        progression = ProgressionRule.TopSetPr(),
         claimedDaysPerWeek = 4,
         claimedLevel = "intermedio",
         repeats = true,

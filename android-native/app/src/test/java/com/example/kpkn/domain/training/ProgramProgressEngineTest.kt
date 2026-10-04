@@ -1,10 +1,13 @@
 package com.example.kpkn.domain.training
 
 import com.example.kpkn.data.models.Block
+import com.example.kpkn.data.models.EquipmentInventory
 import com.example.kpkn.data.models.Loop
 import com.example.kpkn.data.models.LoopType
 import com.example.kpkn.data.models.Macrocycle
 import com.example.kpkn.data.models.Mesocycle
+import com.example.kpkn.data.models.PlateStock
+import com.example.kpkn.data.models.PowerliftingProfile
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
@@ -13,6 +16,9 @@ import com.example.kpkn.data.models.SessionRequirement
 import com.example.kpkn.data.models.SimpleProgramKind
 import com.example.kpkn.data.models.WeekExecutionKind
 import com.example.kpkn.data.models.WorkoutLog
+import com.example.kpkn.data.protocols.CatalogIds
+import com.example.kpkn.data.protocols.PROTOCOL_LIBRARY
+import com.example.kpkn.data.protocols.SlotRole
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -367,5 +373,75 @@ class ProgramProgressEngineTest {
         val projections = LoopEngine.projectLoops(program, fromCycle = 12, lookAheadCycles = 1)
         assertEquals(12, projections.first().cycle)
         assertEquals(0, projections.first().daysUntil)
+    }
+
+    private class SeqIds : IdProvider {
+        private var n = 0
+        override fun newId(): String = "id_${++n}"
+    }
+
+    @Test
+    fun `closing the last week through advanceAfterSessionComplete raises the author TM with the inventory step`() {
+        // B.S3: el cierre de ciclo del camino normal de finalizar una sesión pasa los metadatos y el inventario.
+        val recipe = PROTOCOL_LIBRARY.first { it.id == "wendler-531-bbb" }.recipe!!
+        val materialized = PlanMaterializer.materialize(
+            Program(id = "w531", name = "5/3/1"),
+            recipe,
+            CatalogCompositionTestSupport.metadata,
+            SeqIds(),
+            profile = PowerliftingProfile(squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 220.0),
+        )
+        val weeks = materialized.macrocycles.first().blocks.single().mesocycles.single().weeks
+        val lastWeek = weeks.last()
+        val lastInstance = ProgramProgressEngine.instanceIdFor(1, lastWeek.id)
+        val program = materialized.copy(
+            runState = com.example.kpkn.data.models.ProgramRunState(
+                runId = "run_531",
+                cycleNumber = 1,
+                weekId = lastWeek.id,
+                weekInstanceId = lastInstance,
+            ),
+        )
+        val logs = weeks.flatMap { week ->
+            week.sessions.map { session ->
+                WorkoutLog(
+                    id = "log_${session.id}",
+                    programId = program.id,
+                    sessionId = session.id,
+                    sessionName = session.name,
+                    date = "2026-01-01T10:00:00.000Z",
+                    durationMinutes = 45,
+                    weekId = week.id,
+                    cycleNumber = 1,
+                    weekInstanceId = ProgramProgressEngine.instanceIdFor(1, week.id),
+                )
+            }
+        }
+
+        val result = ProgramProgressEngine.advanceAfterSessionComplete(
+            program = program,
+            activeState = null,
+            completedSession = lastWeek.sessions.last(),
+            weekInstanceId = lastInstance,
+            logs = logs,
+            compositionMetadata = CatalogCompositionTestSupport.metadata,
+            inventory = EquipmentInventory(plates = listOf(PlateStock(1.25, 2), PlateStock(5.0, 2), PlateStock(20.0, 2))),
+        )
+
+        assertTrue(result.advancedCycle)
+        assertEquals(2, result.program.runState?.cycleNumber)
+        // Discos de 1,25 kg: paso de 2,5 kg. TM de 180 / 108 / 198 → 185 / 110 / 202,5.
+        val tm = result.program.powerliftingProfile!!
+        assertEquals(185.0, tm.squatTM!!, 1e-9)
+        assertEquals(110.0, tm.benchTM!!, 1e-9)
+        assertEquals(202.5, tm.deadliftTM!!, 1e-9)
+        val squatT1 = result.program.macrocycles.first().blocks.single().mesocycles.single().weeks.first()
+            .sessions.flatMap { it.allExercises() }
+            .first { it.slotRole == SlotRole.T1_MAIN && it.catalogConfigurationId == CatalogIds.SQ_LOW }
+        assertEquals("el ciclo nuevo ya trae la carga del TM subido", 0.65 * 185.0, squatT1.sets.first().weight!!, 1e-6)
+        assertEquals(
+            "Nuevo ciclo: TM sentadilla 180 → 185 kg, banca 108 → 110 kg, peso muerto 198 → 202,5 kg.",
+            result.program.nativeProgressionAudit.single { it.userFacingNotice }.reason,
+        )
     }
 }

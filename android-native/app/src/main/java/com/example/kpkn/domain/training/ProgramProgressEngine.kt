@@ -1,6 +1,7 @@
 package com.example.kpkn.domain.training
 
 import com.example.kpkn.data.models.ActiveProgramState
+import com.example.kpkn.data.models.EquipmentInventory
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.LoopState
 import com.example.kpkn.data.models.LoopStatus
@@ -200,6 +201,8 @@ object ProgramProgressEngine {
         transitionContext: BlockTransitionEngine.TransitionContext? = null,
         weeklySignals: WeeklyAutoregulationSignals? = null,
         compositionMetadata: ExerciseCompositionMetadataProvider? = null,
+        /** Inventario del atleta: redondea el TM que sube la progresión de autor (B.S3). */
+        inventory: EquipmentInventory? = null,
     ): ProgressAdvanceResult {
         if (program.structure == ProgramStructure.COMPLEX || program.isSimpleLinearProgram) {
             return advanceComplexAfterSessionComplete(
@@ -211,6 +214,7 @@ object ProgramProgressEngine {
                 transitionContext = transitionContext ?: BlockTransitionEngine.TransitionContext(),
                 weeklySignals = weeklySignals,
                 compositionMetadata = compositionMetadata,
+                inventory = inventory,
             )
         }
         if (!program.isSimpleProgram) return ProgressAdvanceResult(program, activeState)
@@ -329,7 +333,14 @@ object ProgramProgressEngine {
             )
         }
 
-        return completeCycle(workingProgram, activeState, cycleNumber, logs)
+        return completeCycle(
+            program = workingProgram,
+            activeState = activeState,
+            cycleNumber = cycleNumber,
+            logs = logs,
+            compositionMetadata = compositionMetadata,
+            inventory = inventory,
+        )
     }
 
     /**
@@ -534,6 +545,7 @@ object ProgramProgressEngine {
         transitionContext: BlockTransitionEngine.TransitionContext,
         weeklySignals: WeeklyAutoregulationSignals? = null,
         compositionMetadata: ExerciseCompositionMetadataProvider? = null,
+        inventory: EquipmentInventory? = null,
     ): ProgressAdvanceResult {
         if (
             program.runState?.status == ProgramRunStatus.BREAK ||
@@ -677,7 +689,14 @@ object ProgramProgressEngine {
                 program,
                 reason = "Caducada al cerrar el ciclo $cycleNumber: la propuesta no se resolvió.",
             )
-            return completeCycle(progressed, activeState, cycleNumber, logs)
+            return completeCycle(
+                program = progressed,
+                activeState = activeState,
+                cycleNumber = cycleNumber,
+                logs = logs,
+                compositionMetadata = compositionMetadata,
+                inventory = inventory,
+            )
         }
 
         if (program.isSimpleLinearProgram) {
@@ -840,6 +859,23 @@ object ProgramProgressEngine {
             pendingAction = progressedBlock.runState?.pendingAction,
         )
         working = progressedBlock.copy(runState = updatedRun)
+        // B.S3: la progresión DEL MÉTODO por bloque u ola (CycleIncrement con scope BLOCK) sube el TM al
+        // entrar en el bloque siguiente, con el cursor ya movido. Va antes de la autorregulación semanal:
+        // sus propuestas de TM se aplican sobre el TM ya subido. Las sesiones con registros del run no se
+        // reconstruyen. Ojo: `resolvePendingDeload(reject)` y `advanceAfterPendingAction` entran al bloque sin
+        // pasar por aquí; cubrirlos antes de activar BLOCK en Juggernaut (B.S6).
+        if (nextBlockId != null && AuthoredProgressionEngine.appliesAtBlockClose(program.sourceRecipe?.progression)) {
+            val trainedSessionIds = logs
+                .filter { it.programId == program.id && (it.programRunId == null || it.programRunId == runId) }
+                .mapTo(mutableSetOf()) { it.sessionId }
+            working = AuthoredProgressionEngine.applyAtBlockClose(
+                program = working,
+                enteredBlockId = nextBlockId,
+                metadata = compositionMetadata ?: CompositionMetadataHolder.current,
+                inventory = inventory,
+                protectedSessionIds = trainedSessionIds,
+            )
+        }
         val regulated = applyWeeklyAutoregulation(
             program = working,
             completedWeek = location.week,
@@ -949,6 +985,14 @@ object ProgramProgressEngine {
         activeState: ActiveProgramState?,
         cycleNumber: Int,
         logs: List<WorkoutLog>,
+        /**
+         * Metadatos del catálogo con los que la progresión de autor rematerializa el ciclo nuevo.
+         * null = [CompositionMetadataHolder.current]; sin ninguno las semanas no se tocan y
+         * quedan `materializationPending`.
+         */
+        compositionMetadata: ExerciseCompositionMetadataProvider? = null,
+        /** Inventario del atleta: redondea el TM que sube la progresión de autor. */
+        inventory: EquipmentInventory? = null,
     ): ProgressAdvanceResult {
         val currentInstances = resolveCurrentWeekInstances(program, cycleNumber)
         val hierarchy = ProgramHierarchyIndex(program)
@@ -1000,8 +1044,19 @@ object ProgramProgressEngine {
             ),
         ).let { LoopEngine.syncOccurrences(it) }
 
-        return ProgressAdvanceResult(
+        // B.S3: la progresión DEL MÉTODO (CycleIncrement por ciclo) se aplica siempre, sin pasar por
+        // OFF/PROPOSE/AUTO. Va DESPUÉS de avanzar `cycleNumber`: `weekRecipeSourceFor` lee el ciclo del
+        // run y, antes del avance, arrastraría las semanas escaladas del ciclo cerrado.
+        val authored = AuthoredProgressionEngine.applyAtCycleClose(
             program = updatedProgram,
+            newCycle = newCycle,
+            firstWeekOccurrence = firstOccurrence,
+            metadata = compositionMetadata ?: CompositionMetadataHolder.current,
+            inventory = inventory,
+        )
+
+        return ProgressAdvanceResult(
+            program = authored,
             activeState = activeState?.copy(
                 currentWeekId = firstInstance?.instanceId ?: activeState.currentWeekId,
                 currentWeekInstanceId = firstInstance?.instanceId,

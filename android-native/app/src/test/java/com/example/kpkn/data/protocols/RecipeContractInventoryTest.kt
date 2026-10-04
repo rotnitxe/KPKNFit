@@ -29,10 +29,13 @@ class RecipeContractInventoryTest {
          * corrida de B.S2: 526 = C1 340 + C4 6 + C5 15 + C6 16 + C7 12 + C8 37 + C9 80 + C10 20
          * (C2 y C3 en 0). 2026-10-03, tras la revisión: REALIZATION cuenta como pico en C1 y los 60
          * T3 de 1 serie de powerbuild-16-4 (semanas 13-16) dejan de salir: 466 = C1 280 + C4 6 + C5 15 +
-         * C6 16 + C7 12 + C8 37 + C9 80 + C10 20. Cada corrección de datos de B.S6 lo baja; si una
-         * corrida da menos, la prueba imprime «techo bajable a N».
+         * C6 16 + C7 12 + C8 37 + C9 80 + C10 20. 2026-10-03, tras B.S3: C6 solo marca las reglas sin
+         * consumidor registrado (`ProgressionConsumers.executable`) y baja de 16 a 7 (TopSetPr ×3,
+         * WeeklyPercent, RepMaxAutoregulated ×2 y la exigencia de AMRAP de kpkn-rts-style): 457 = C1 280 +
+         * C4 6 + C5 15 + C6 7 + C7 12 + C8 37 + C9 80 + C10 20. Cada corrección de datos de B.S6 lo baja;
+         * si una corrida da menos, la prueba imprime «techo bajable a N».
          */
-        private const val CEILING = 466
+        private const val CEILING = 457
 
         /** Una justificación de exención debe tener al menos este largo (B.S6). */
         private const val MIN_JUSTIFICATION_LENGTH = 25

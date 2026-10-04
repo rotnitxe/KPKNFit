@@ -14,6 +14,7 @@ import com.example.kpkn.data.models.ManualSessionOverride
 import com.example.kpkn.data.models.PendingProgramAction
 import com.example.kpkn.data.models.PendingProgramActionType
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.db.dbJson
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.programs.CatalogSource
 import kotlinx.serialization.json.Json
@@ -100,6 +101,8 @@ class TrainingPlanRecipeJsonCompatTest {
         val cycle = recipe.progression as ProgressionRule.CycleIncrement
         assertEquals(5.0, cycle.upperKg, 0.0)
         assertEquals(2.5, cycle.lowerKg, 0.0)
+        // B.S3: el JSON anterior no trae `scope`: decodifica por ciclo, igual que antes.
+        assertEquals(IncrementScope.CYCLE, cycle.scope)
 
         val day = recipe.weeks.single().days.single()
         assertNull(day.id)
@@ -506,5 +509,97 @@ class TrainingPlanRecipeJsonCompatTest {
         assertEquals("day-a", exercise.recipeDayId)
         assertEquals("s-bench", exercise.recipeSlotId)
         assertEquals(LoadQuantityConvention.TOTAL_EXTERNAL, exercise.sets.single().loadQuantityConvention)
+    }
+
+    // ---------------------------------------------------------------------
+    // B.S3: CycleIncrement gana `scope`; TopSetPr pasa de objeto a data class
+    // ---------------------------------------------------------------------
+
+    @Test
+    fun cycle_increment_json_without_scope_decodes_by_cycle_and_the_block_scope_round_trips() {
+        val legacy = codec.decodeFromString(
+            ProgressionRule.serializer(),
+            """{"type":"cycle_increment","upperKg":2.5,"lowerKg":5.0}""",
+        )
+        assertEquals(ProgressionRule.CycleIncrement(2.5, 5.0, IncrementScope.CYCLE), legacy)
+
+        val block = ProgressionRule.CycleIncrement(2.5, 5.0, IncrementScope.BLOCK)
+        val encoded = codec.encodeToString(ProgressionRule.serializer(), block)
+        assertTrue(encoded, encoded.contains("\"scope\":\"BLOCK\""))
+        assertEquals(block, codec.decodeFromString(ProgressionRule.serializer(), encoded))
+
+        // Un valor de alcance desconocido (otra versión de la app) cae al alcance por defecto.
+        val unknown = codec.decodeFromString(
+            ProgressionRule.serializer(),
+            """{"type":"cycle_increment","upperKg":2.5,"lowerKg":5.0,"scope":"EPOCH"}""",
+        )
+        assertEquals(IncrementScope.CYCLE, (unknown as ProgressionRule.CycleIncrement).scope)
+    }
+
+    @Test
+    fun top_set_pr_old_object_json_decodes_with_default_increments_and_custom_values_round_trip() {
+        val legacy = codec.decodeFromString(ProgressionRule.serializer(), """{"type":"top_set_pr"}""")
+        assertEquals(ProgressionRule.TopSetPr(1.25, 2.5), legacy)
+        assertEquals(ProgressionRule.TopSetPr(), legacy)
+
+        val custom = ProgressionRule.TopSetPr(upperKg = 1.0, lowerKg = 2.0)
+        val roundTrip = codec.decodeFromString(
+            ProgressionRule.serializer(),
+            codec.encodeToString(ProgressionRule.serializer(), custom),
+        )
+        assertEquals(custom, roundTrip)
+    }
+
+    @Test
+    fun without_encode_defaults_the_default_rules_write_the_json_the_old_code_wrote() {
+        // Con un codec sin `encodeDefaults` los valores por defecto no se escriben: el JSON de una regla con
+        // los valores de siempre queda idéntico al que producía el código anterior. (El codec de Room sí
+        // los escribe: ver la prueba siguiente.)
+        val compact = Json { ignoreUnknownKeys = true }
+        assertEquals(
+            """{"type":"top_set_pr"}""",
+            compact.encodeToString(ProgressionRule.serializer(), ProgressionRule.TopSetPr()),
+        )
+        assertEquals(
+            """{"type":"cycle_increment","upperKg":2.5,"lowerKg":5.0}""",
+            compact.encodeToString(ProgressionRule.serializer(), ProgressionRule.CycleIncrement(2.5, 5.0)),
+        )
+    }
+
+    @Test
+    fun the_room_codec_writes_the_new_defaults_and_still_reads_what_was_stored_before() {
+        // `dbJson` (el codec real de Room) tiene `encodeDefaults` activo: escribe `scope` y los incrementos
+        // de TopSetPr. Lo guardado antes de B.S3, sin esos campos, se lee igual con los valores por defecto.
+        assertEquals(
+            """{"type":"cycle_increment","upperKg":2.5,"lowerKg":5.0,"scope":"CYCLE"}""",
+            dbJson.encodeToString(ProgressionRule.serializer(), ProgressionRule.CycleIncrement(2.5, 5.0)),
+        )
+        assertEquals(
+            """{"type":"top_set_pr","upperKg":1.25,"lowerKg":2.5}""",
+            dbJson.encodeToString(ProgressionRule.serializer(), ProgressionRule.TopSetPr()),
+        )
+        assertEquals(
+            ProgressionRule.CycleIncrement(2.5, 5.0),
+            dbJson.decodeFromString(
+                ProgressionRule.serializer(),
+                """{"type":"cycle_increment","upperKg":2.5,"lowerKg":5.0}""",
+            ),
+        )
+        assertEquals(
+            ProgressionRule.TopSetPr(),
+            dbJson.decodeFromString(ProgressionRule.serializer(), """{"type":"top_set_pr"}"""),
+        )
+    }
+
+    @Test
+    fun recipe_json_with_the_old_top_set_pr_object_decodes_and_round_trips() {
+        val payload = legacyRecipePayload.replace(
+            """"progression":{"type":"cycle_increment","upperKg":5.0,"lowerKg":2.5}""",
+            """"progression":{"type":"top_set_pr"}""",
+        )
+        val recipe = codec.decodeFromString(TrainingPlanRecipe.serializer(), payload)
+        assertEquals(ProgressionRule.TopSetPr(), recipe.progression)
+        val reencoded = codec.decodeFromString(TrainingPlanRecipe.serializer(), codec.encodeToString(TrainingPlanRecipe.serializer(), recipe))
+        assertEquals(recipe, reencoded)
     }
 }

@@ -966,6 +966,9 @@ class ProgramRepository private constructor(
                         logs = historyForProgress,
                         transitionContext = buildTransitionContext(program, historyForProgress),
                         weeklySignals = buildWeeklyAutoregulationSignals(program, historyForProgress),
+                        // B.S3: la progresión de autor redondea el TM que sube con los discos reales
+                        // del atleta (sin inventario, medio kilo).
+                        inventory = _settings.value.resolvedEquipmentInventory(),
                     )
                 } else {
                     null
@@ -1228,12 +1231,12 @@ class ProgramRepository private constructor(
      * trabajo requerido está logueado; el resto se reconstruye preservando las
      * sesiones entrenadas una a una.
      *
-     * Los planes nativos con instancias de ciclo ([requiresNativeWeekInstances])
-     * reutilizan las MISMAS sesiones (mismos ids) en cada ciclo: la evidencia solo
-     * cuenta los logs del ciclo en curso (`runState.cycleNumber`). Un log sin
-     * ciclo se sigue contando (nunca se arriesga perder una sesión entrenada) y
-     * la sesión en curso siempre protege su id. El resto de programas conserva la
-     * evidencia de todo el run.
+     * Los planes nativos con instancias de ciclo ([requiresNativeWeekInstances]) y los
+     * programas Simples cíclicos (un 5/3/1 de autor, por ejemplo) reutilizan las
+     * MISMAS sesiones (mismos ids) en cada ciclo: la evidencia solo cuenta los logs
+     * del ciclo en curso (`runState.cycleNumber`). Un log sin ciclo se sigue contando
+     * (nunca se arriesga perder una sesión entrenada) y la sesión en curso siempre
+     * protege su id. El resto de programas conserva la evidencia de todo el run.
      */
     data class ExecutedTrainingEvidence(
         val sessionIds: Set<String>,
@@ -1242,7 +1245,11 @@ class ProgramRepository private constructor(
 
     fun executedTrainingEvidence(program: Program): ExecutedTrainingEvidence {
         val runId = program.runState?.runId
-        val currentCycle = program.runState?.cycleNumber?.takeIf { program.requiresNativeWeekInstances() }
+        // Sin esto, tras cerrar el ciclo 1 de un programa cíclico sus semanas figuraban como
+        // entrenadas y la reconstrucción (RE-MATERIALIZAR, propuestas) no tocaba nada.
+        val cyclic = program.requiresNativeWeekInstances() ||
+            (program.isSimpleProgram && program.simpleProgramKind == SimpleProgramKind.CYCLIC)
+        val currentCycle = program.runState?.cycleNumber?.takeIf { cyclic }
         val logs = getLogsForProgram(program.id)
             .filter { it.calendarBreakId.isNullOrBlank() }
             .filter { log -> runId == null || log.programRunId == null || log.programRunId == runId }

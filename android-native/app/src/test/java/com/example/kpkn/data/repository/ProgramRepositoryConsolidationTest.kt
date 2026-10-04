@@ -9,6 +9,7 @@ import com.example.kpkn.data.db.toProgram
 import com.example.kpkn.data.db.toWorkoutLog
 import com.example.kpkn.data.models.ActiveProgramState
 import com.example.kpkn.data.models.Block
+import com.example.kpkn.data.models.EquipmentInventory
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.LoadModeV2
@@ -19,6 +20,8 @@ import com.example.kpkn.data.models.NativeProgressionProposal
 import com.example.kpkn.data.models.NativeProgressionProposalKind
 import com.example.kpkn.data.models.NativeProgressionResolutionStatus
 import com.example.kpkn.data.models.OngoingWorkoutState
+import com.example.kpkn.data.models.PlateStock
+import com.example.kpkn.data.models.PowerliftingProfile
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramRunState
 import com.example.kpkn.data.models.ProgramStatus
@@ -27,7 +30,14 @@ import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.WorkoutLog
+import com.example.kpkn.data.protocols.CatalogIds
+import com.example.kpkn.data.protocols.PROTOCOL_LIBRARY
+import com.example.kpkn.data.protocols.SlotRole
+import com.example.kpkn.domain.training.CatalogCompositionTestSupport
+import com.example.kpkn.domain.training.CompositionMetadataHolder
+import com.example.kpkn.domain.training.IdProvider
 import com.example.kpkn.domain.training.KPKN_NATIVE_CURATED_ORIGIN
+import com.example.kpkn.domain.training.PlanMaterializer
 import com.example.kpkn.domain.training.ProgramProgressEngine
 import com.example.kpkn.screens.workout.WorkoutPersistResult
 import java.util.concurrent.Callable
@@ -611,5 +621,228 @@ class ProgramRepositoryConsolidationTest {
             assertEquals("iteración $index", predicted, reported)
         }
         withTimeout(30_000) { flushing.await() }
+    }
+
+    // ─── (5) B.S3: plan cíclico de autor (5/3/1) — progresión de método y evidencia por ciclo ──────
+
+    private class SeqIds : IdProvider {
+        private var n = 0
+        override fun newId(): String = "id_${++n}"
+    }
+
+    private class AuthorCyclicFixture(
+        val program: Program,
+        val weeks: List<ProgramWeek>,
+        val runId: String,
+    ) {
+        val sessions: List<Pair<ProgramWeek, Session>> = weeks.flatMap { week -> week.sessions.map { week to it } }
+    }
+
+    /**
+     * 5/3/1 BBB de autor (Simple cíclico de 4 semanas) con el cursor del run en [cycle] y en la última
+     * semana (o en la primera con [atLastWeek] = false). Por defecto el TM ya está en la rejilla
+     * (180 / 110 / 200); con [profile] = solo 1RM el TM sale del 90 % (180 / 108 / 198).
+     */
+    private fun authorCyclicFixture(
+        id: String,
+        cycle: Int = 1,
+        atLastWeek: Boolean = true,
+        profile: PowerliftingProfile = PowerliftingProfile(
+            squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 220.0,
+            squatTM = 180.0, benchTM = 110.0, deadliftTM = 200.0,
+        ),
+    ): AuthorCyclicFixture {
+        val recipe = PROTOCOL_LIBRARY.first { it.id == "wendler-531-bbb" }.recipe!!
+        val materialized = PlanMaterializer.materialize(
+            Program(id = id, name = "5/3/1 $id"),
+            recipe,
+            CatalogCompositionTestSupport.metadata,
+            SeqIds(),
+            profile = profile,
+        )
+        val weeks = materialized.macrocycles.first().blocks.single().mesocycles.single().weeks
+        val cursor = if (atLastWeek) weeks.last() else weeks.first()
+        val runId = "$id-run"
+        val program = materialized.copy(
+            runState = ProgramRunState(
+                runId = runId,
+                cycleNumber = cycle,
+                weekInstanceId = ProgramProgressEngine.instanceIdFor(cycle, cursor.id),
+                weekId = cursor.id,
+            ),
+        )
+        return AuthorCyclicFixture(program, weeks, runId)
+    }
+
+    private fun authorLog(
+        id: String,
+        fixture: AuthorCyclicFixture,
+        week: ProgramWeek,
+        session: Session,
+        cycle: Int?,
+        runId: String? = fixture.runId,
+    ) = WorkoutLog(
+        id = id,
+        programId = fixture.program.id,
+        sessionId = session.id,
+        sessionName = session.name,
+        date = "2026-09-30T10:00:00Z",
+        durationMinutes = 30,
+        weekId = week.id,
+        weekInstanceId = cycle?.let { ProgramProgressEngine.instanceIdFor(it, week.id) },
+        cycleNumber = cycle,
+        programRunId = runId,
+    )
+
+    private suspend fun seedAuthorCyclic(
+        repository: ProgramRepository,
+        fixture: AuthorCyclicFixture,
+        cycle: Int,
+        cursorWeek: ProgramWeek,
+    ) {
+        repository.addProgram(fixture.program)
+        withTimeout(5_000) { repository.programs.first { list -> list.any { it.id == fixture.program.id } } }
+        val macro = fixture.program.macrocycles.first()
+        val block = macro.blocks.single()
+        val instance = ProgramProgressEngine.instanceIdFor(cycle, cursorWeek.id)
+        repository.updateActiveProgramState(
+            ActiveProgramState(
+                programId = fixture.program.id,
+                status = ProgramStatus.ACTIVE,
+                currentWeekId = instance,
+                currentWeekInstanceId = instance,
+                currentCycleNumber = cycle,
+                currentMacrocycleId = macro.id,
+                currentBlockId = block.id,
+                currentMesocycleId = block.mesocycles.single().id,
+                programRunId = fixture.runId,
+            ),
+        )
+        repository.updateProgramNow(fixture.program)
+    }
+
+    private fun squatT1Kg(program: Program): Double =
+        program.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }.first()
+            .sessions.flatMap { it.allExercises() }
+            .first { it.slotRole == SlotRole.T1_MAIN && it.catalogConfigurationId == CatalogIds.SQ_LOW }
+            .sets.first().weight!!
+
+    @Test
+    fun finalizeWorkout_closingAnAuthorCyclicPlanRaisesTheTmRoundedWithTheSettingsInventory() = runBlocking {
+        CatalogCompositionTestSupport.install()
+        val repository = newRepository()
+        // Discos de 1,25 kg: el paso es 2,5 kg. Con los TM del 90 % del 1RM (180 / 108 / 198) la subida de la
+        // banca (+2,5) da 110,5 y la del peso muerto (+5) da 203; solo con el inventario de los ajustes caen
+        // en la rejilla de 2,5 (110 y 202,5). Sin pasarlo, el paso sería medio kilo y saldría 110,5 y 203.
+        repository.updateSettings {
+            it.copy(
+                equipmentInventory = EquipmentInventory(
+                    plates = listOf(PlateStock(1.25, 2), PlateStock(2.5, 2), PlateStock(20.0, 2)),
+                ),
+            )
+        }
+        val fixture = authorCyclicFixture(
+            "author-close",
+            profile = PowerliftingProfile(squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 220.0),
+        )
+        seedAuthorCyclic(repository, fixture, cycle = 1, cursorWeek = fixture.weeks.last())
+        // Todo el ciclo 1 está entrenado salvo la última sesión de la última semana.
+        fixture.sessions.dropLast(1).forEachIndexed { index, (week, session) ->
+            repository.addWorkoutLog(authorLog("c1-$index", fixture, week, session, cycle = 1))
+        }
+        val (lastWeek, lastSession) = fixture.sessions.last()
+
+        // Igual que WorkoutFinishController: el log de la última sesión no trae ciclo ni instancia.
+        repository.finalizeWorkout(authorLog("c1-last", fixture, lastWeek, lastSession, cycle = null, runId = null))
+
+        val closed = repository.getProgramById(fixture.program.id)!!
+        assertEquals(2, closed.runState?.cycleNumber)
+        val tm = closed.powerliftingProfile!!
+        assertEquals(185.0, tm.squatTM!!, 1e-9)
+        assertEquals("110 y no 110,5: el cierre usa el inventario de los ajustes", 110.0, tm.benchTM!!, 1e-9)
+        assertEquals("202,5 y no 203", 202.5, tm.deadliftTM!!, 1e-9)
+        assertEquals("el ciclo nuevo ya trae la carga del TM subido", 0.65 * 185.0, squatT1Kg(closed), 1e-6)
+
+        // La evidencia de entrenamiento es del ciclo en curso: en el ciclo 2 todavía no hay nada entrenado.
+        val evidence = repository.executedTrainingEvidence(closed)
+        assertEquals(emptySet<String>(), evidence.sessionIds)
+        assertEquals(emptySet<String>(), evidence.weekIds)
+    }
+
+    @Test
+    fun executedTrainingEvidence_authorCyclicProgramCountsOnlyTheCurrentCycle() = runBlocking {
+        val repository = newRepository()
+        val fixture = authorCyclicFixture("author-evidence", cycle = 2, atLastWeek = false)
+        repository.addProgram(fixture.program)
+        withTimeout(5_000) { repository.programs.first { list -> list.any { it.id == fixture.program.id } } }
+        fun evidence() = repository.executedTrainingEvidence(repository.getProgramById(fixture.program.id)!!)
+        val week1 = fixture.weeks[0]
+        val week2 = fixture.weeks[1]
+
+        // Todo el ciclo 1 está entrenado: no protege las mismas sesiones del ciclo 2.
+        fixture.sessions.forEachIndexed { index, (week, session) ->
+            repository.addWorkoutLog(authorLog("c1-$index", fixture, week, session, cycle = 1))
+        }
+        assertEquals(emptySet<String>(), evidence().sessionIds)
+        assertEquals(emptySet<String>(), evidence().weekIds)
+
+        // Una sesión del ciclo 2 protege solo esa sesión; la semana necesita sus cuatro sesiones requeridas.
+        repository.addWorkoutLog(authorLog("c2-0", fixture, week1, week1.sessions[0], cycle = 2))
+        assertEquals(setOf(week1.sessions[0].id), evidence().sessionIds)
+        assertEquals(emptySet<String>(), evidence().weekIds)
+
+        week1.sessions.drop(1).forEachIndexed { index, session ->
+            repository.addWorkoutLog(authorLog("c2-${index + 1}", fixture, week1, session, cycle = 2))
+        }
+        assertEquals(week1.sessions.map { it.id }.toSet(), evidence().sessionIds)
+        assertEquals(setOf(week1.id), evidence().weekIds)
+
+        // Un log sin ciclo se sigue contando (nunca se arriesga perder una sesión entrenada).
+        repository.addWorkoutLog(authorLog("legacy", fixture, week2, week2.sessions[0], cycle = null))
+        assertEquals((week1.sessions.map { it.id } + week2.sessions[0].id).toSet(), evidence().sessionIds)
+    }
+
+    @Test
+    fun rematerializeAfterACycleCloseWithoutCatalogMetadataRecalculatesTheLoadsWithTheRealEvidence() = runBlocking {
+        val repository = newRepository()
+        val fixture = authorCyclicFixture("author-recover")
+        seedAuthorCyclic(repository, fixture, cycle = 1, cursorWeek = fixture.weeks.last())
+        fixture.sessions.dropLast(1).forEachIndexed { index, (week, session) ->
+            repository.addWorkoutLog(authorLog("c1-$index", fixture, week, session, cycle = 1))
+        }
+        val (lastWeek, lastSession) = fixture.sessions.last()
+        val saved = CompositionMetadataHolder.current
+        CompositionMetadataHolder.current = null
+        try {
+            repository.finalizeWorkout(authorLog("c1-last", fixture, lastWeek, lastSession, cycle = null, runId = null))
+
+            val closed = repository.getProgramById(fixture.program.id)!!
+            // Sin metadatos del catálogo el TM sube, las cargas no se tocan y los bloques quedan pendientes.
+            assertEquals(2, closed.runState?.cycleNumber)
+            assertEquals(185.0, closed.powerliftingProfile!!.squatTM!!, 1e-9)
+            assertTrue(closed.macrocycles.flatMap { it.blocks }.all { it.materializationPending })
+            assertEquals(0.65 * 180.0, squatT1Kg(closed), 1e-6)
+
+            // RE-MATERIALIZAR (ProgramDetailViewModel.rematerializePending) pasa la evidencia real del
+            // repositorio. Antes todo el ciclo 1 figuraba como entrenado y la reconstrucción no hacía nada.
+            val evidence = repository.executedTrainingEvidence(closed)
+            assertEquals("en el ciclo 2 nada está entrenado", emptySet<String>(), evidence.weekIds)
+            var working = closed
+            closed.macrocycles.flatMap { it.blocks }.filter { it.materializationPending }.forEach { block ->
+                block.mesocycles.flatMap { it.weeks }.forEach { week ->
+                    working = PlanMaterializer.rematerializeWeek(
+                        program = working,
+                        weekId = week.id,
+                        recipe = closed.sourceRecipe!!,
+                        metadata = CatalogCompositionTestSupport.metadata,
+                        executedWeekIds = evidence.weekIds,
+                        executedSessionIds = evidence.sessionIds,
+                    )
+                }
+            }
+            assertEquals("el botón sí recalcula las cargas", 0.65 * 185.0, squatT1Kg(working), 1e-6)
+        } finally {
+            CompositionMetadataHolder.current = saved
+        }
     }
 }

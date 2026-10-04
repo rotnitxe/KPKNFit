@@ -322,15 +322,32 @@ data class WeekRecipe(
     val weekName: String = "",
 )
 
+/**
+ * Cuándo sube el TM una [ProgressionRule.CycleIncrement]: al cerrar el ciclo del programa
+ * ([CYCLE], p. ej. 5/3/1 cada cuatro semanas) o al entrar en el bloque siguiente ([BLOCK],
+ * p. ej. Juggernaut tras cada ola).
+ */
+@Serializable
+enum class IncrementScope { CYCLE, BLOCK }
+
 @Serializable
 sealed class ProgressionRule {
     @Serializable
     @SerialName("none")
     data object None : ProgressionRule()
 
+    /**
+     * Subida de TM del método: [upperKg] para banca y press militar, [lowerKg] para sentadilla y
+     * peso muerto, aplicada al cerrar el ciclo o el bloque según [scope]. El JSON anterior sin
+     * `scope` decodifica con [IncrementScope.CYCLE].
+     */
     @Serializable
     @SerialName("cycle_increment")
-    data class CycleIncrement(val upperKg: Double, val lowerKg: Double) : ProgressionRule()
+    data class CycleIncrement(
+        val upperKg: Double,
+        val lowerKg: Double,
+        val scope: IncrementScope = IncrementScope.CYCLE,
+    ) : ProgressionRule()
 
     @Serializable
     @SerialName("amrap_driven_tm")
@@ -361,9 +378,17 @@ sealed class ProgressionRule {
     @SerialName("rep_max_autoregulated")
     data object RepMaxAutoregulated : ProgressionRule()
 
+    /**
+     * Récord del top set: sube [upperKg] (banca, press militar) o [lowerKg] (sentadilla, peso
+     * muerto) cuando el top set supera su objetivo. El JSON anterior `{"type":"top_set_pr"}`
+     * decodifica con los valores por defecto. Su consumidor llega con B.S4.
+     */
     @Serializable
     @SerialName("top_set_pr")
-    data object TopSetPr : ProgressionRule()
+    data class TopSetPr(
+        val upperKg: Double = 1.25,
+        val lowerKg: Double = 2.5,
+    ) : ProgressionRule()
 }
 
 @Serializable

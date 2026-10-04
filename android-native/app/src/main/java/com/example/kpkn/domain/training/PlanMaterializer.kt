@@ -42,6 +42,7 @@ import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.data.protocols.PlanLoadReference
 import com.example.kpkn.data.protocols.PlanLoadReferenceKind
 import com.example.kpkn.data.protocols.PlanLoadReferenceState
+import com.example.kpkn.data.protocols.ProgressionRule
 import com.example.kpkn.data.protocols.RecipeCardioPosition
 import com.example.kpkn.data.protocols.SetRecipe
 import com.example.kpkn.data.protocols.SlotLoadReferenceMetadata
@@ -152,17 +153,16 @@ object PlanMaterializer {
             if (strict) error("Receta '${recipe.id}' no pasa composición:\n$message")
         }
         val resolvedProfile = hydrateProfile(program, profile, recipe.trainingMaxPercent)
-        val startDay = program.resolvedSchedulePlan().weekStartDay ?: program.startDay ?: 1
+        // Inicio de semana y días del split: la misma resolución que usa `rematerializeWeek` (R-23).
+        val schedule = resolveWeekSchedule(program)
+        val startDay = schedule.startDay
+        val trainingDays = schedule.trainingDays
         // El plan es nativo SOLO si la receta que se va a materializar es la suya
         // (nunca una receta de autor aplicada encima): la base del autor se preserva.
         val nativeCurate = program.isNativeCuratedRecipe(recipe)
         // Manda la elección persistida por el usuario (Program.planWarmupConfig);
         // options solo aporta configuración cuando el programa todavía no guarda nada.
         val planWarmupSteps = effectivePlanWarmupSteps(program, options)
-        val splitId = program.selectedSplitId
-        val splitPattern = splitId?.let { id -> SPLIT_TEMPLATES.firstOrNull { it.id == id }?.pattern }
-        val trainingDays = splitPattern?.let { SplitApplicationEngine.patternToTrainingDays(it, startDay) }
-            ?.map { it.dayOfWeek }
         val byBlock = recipe.weeks.groupBy { it.blockIndex }.toSortedMap()
         val scope = scopeOf(program, recipe, weekOccurrence)
         val blocks = byBlock.map { (_, weeks) ->
@@ -271,6 +271,22 @@ object PlanMaterializer {
         return TrainingMaxResolver.hydrateProfile(merged, trainingMaxPercent)
     }
 
+    /** Inicio de semana y días de entrenamiento con los que se (re)materializa un programa. */
+    private data class WeekSchedule(val startDay: Int, val trainingDays: List<Int>?)
+
+    /**
+     * Calendario de una (re)materialización: el inicio de semana del programa y los días de su
+     * split. Lo comparten [materialize] y [rematerializeWeek] para que reconstruir una semana nunca
+     * rote los días (R-23).
+     */
+    private fun resolveWeekSchedule(program: Program): WeekSchedule {
+        val startDay = program.resolvedSchedulePlan().weekStartDay ?: program.startDay ?: 1
+        val splitPattern = program.selectedSplitId?.let { id -> SPLIT_TEMPLATES.firstOrNull { it.id == id }?.pattern }
+        val trainingDays = splitPattern?.let { SplitApplicationEngine.patternToTrainingDays(it, startDay) }
+            ?.map { it.dayOfWeek }
+        return WeekSchedule(startDay, trainingDays)
+    }
+
     fun rematerializeWeek(
         program: Program,
         weekId: String,
@@ -306,6 +322,9 @@ object PlanMaterializer {
         // Nunca se reintroduce el preset sobre la elección persistida del usuario:
         // vacío = sin aproximaciones, lista = pasos propios, null = preset.
         val planWarmupSteps = effectivePlanWarmupSteps(program, options)
+        // R-23: el calendario se resuelve igual que en `materialize` (inicio de semana del
+        // programa y días del split); con `startDay = 1` y sin días, reconstruir rotaba los días.
+        val schedule = resolveWeekSchedule(program)
         return program.copy(
             // La elección de calentamientos persiste en el JSON del programa (la
             // rematerialización no depende de la configuración del llamante).
@@ -328,7 +347,8 @@ object PlanMaterializer {
                                             val scaled = scaleWeekRecipe(source, intensityScale, volumeFactor)
                                             val scope = scopeOf(program, recipe, weekOccurrence)
                                             val rebuilt = materializeWeek(
-                                                scaled, recipe, metadata, idProvider, profile, null, 1,
+                                                scaled, recipe, metadata, idProvider, profile,
+                                                schedule.trainingDays, schedule.startDay,
                                                 planWarmupSteps, nativeCurate, scope,
                                             )
                                             rebuilt.copy(
@@ -1059,6 +1079,7 @@ object PlanMaterializer {
                 tm = baseLoadKg,
                 idProvider = idProvider,
                 stableSetId = stableExerciseId?.let { "$it#set:$index" },
+                progression = recipe.progression,
             )
             if (set.percent == null && directWorkingLoadKg != null) {
                 materialized.copy(weight = directWorkingLoadKg)
@@ -1227,11 +1248,24 @@ object PlanMaterializer {
         tm: Double?,
         idProvider: IdProvider,
         stableSetId: String? = null,
+        progression: ProgressionRule = ProgressionRule.None,
     ): ExerciseSet {
         // Porcentaje respecto del TM; la regla vive en PercentResolver para que la
         // política de composición (H11/H11b) mida exactamente lo mismo que se materializa.
-        val percent = PercentResolver.resolve(set, slot, week)
-        val weight = percent?.let { TrainingMaxResolver.loadKg(it, tm) }
+        val rawPercent = PercentResolver.resolve(set, slot, week)
+        val baseWeight = rawPercent?.let { TrainingMaxResolver.loadKg(it, tm) }
+        // WeeklyKg (B.S3): el kilo semanal del método se suma a la carga resuelta y el
+        // porcentaje mostrado se mantiene coherente con ese kg (pct + kg ÷ base × 100). Sin
+        // base de carga el peso queda null y el porcentaje, el de la receta.
+        val weeklyOffsetKg = baseWeight?.let {
+            AuthoredProgressionEngine.weeklyOffsetKg(progression, week.weekNumber, slot.lift.liftSlot, slot.role)
+        }
+        val weight = if (baseWeight != null && weeklyOffsetKg != null) baseWeight + weeklyOffsetKg else baseWeight
+        val percent = if (rawPercent != null && weeklyOffsetKg != null && tm != null) {
+            rawPercent + weeklyOffsetKg / tm * 100.0
+        } else {
+            rawPercent
+        }
         val range = if (set.repsMin != null && set.repsMax != null) RepRange(set.repsMin, set.repsMax) else null
         val mode = when {
             set.amrap -> IntensityMode.AMRAP

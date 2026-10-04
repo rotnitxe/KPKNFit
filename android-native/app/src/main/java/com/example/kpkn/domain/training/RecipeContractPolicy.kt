@@ -362,29 +362,29 @@ object RecipeContractPolicy {
     // ─── C6 · consumidor de la progresión ─────────────────────────────────────────
 
     /**
-     * C6: `progression` distinta de `None`, o una regla o gancho que exige AMRAP o top set sin
-     * ninguna serie marcada en un slot con `liftSlot`. Hoy solo `AmrapDrivenTm` y
-     * `RepTargetDrivenTm` tienen consumidor en ejecución (`ProgramAutoregulationEngine`, con los
-     * defectos R-02 y L-04); el resto no tiene ninguno. El aviso sale siempre y su texto dice cuál
-     * de los dos casos es, sin cambiar qué se emite; B.S3-S5 sustituye esta condición por el
-     * registro de consumidores.
+     * C6: `progression` distinta de `None` sin consumidor registrado en ejecución, o una regla o
+     * gancho que exige AMRAP o top set sin ninguna serie marcada en un slot con `liftSlot`.
+     * [ProgressionConsumers.executable] dice qué reglas tienen consumidor: tras B.S3,
+     * `CycleIncrement` y `WeeklyKg` las consume el motor de progresión de autor y `AmrapDrivenTm`
+     * y `RepTargetDrivenTm` `ProgramAutoregulationEngine` (con los defectos R-02 y L-04, que
+     * reescribe B.S4). Una regla con consumidor no da hallazgo; B.S4 añade `TopSetPr` y
+     * `RepMaxAutoregulated` al registro cuando existan sus consumidores.
      */
     private fun checkProgressionConsumer(recipe: TrainingPlanRecipe): List<CompositionFinding> {
         val findings = mutableListOf<CompositionFinding>()
         val rule = recipe.progression
         val ruleName = rule::class.simpleName ?: rule.toString()
-        if (rule != ProgressionRule.None) {
-            val consumer = when (rule) {
-                is ProgressionRule.AmrapDrivenTm, is ProgressionRule.RepTargetDrivenTm ->
-                    "consumida por ProgramAutoregulationEngine con los defectos R-02/L-04 (B.S3–S5 la reescribe)"
-                else -> "sin consumidor registrado en ejecución (B.S3–S5)"
-            }
-            findings += finding(C6_PROGRESSION_CONSUMER, RECIPE_SCOPE, "progression=$ruleName: $consumer")
+        if (rule != ProgressionRule.None && !ProgressionConsumers.isExecutable(rule)) {
+            findings += finding(
+                C6_PROGRESSION_CONSUMER,
+                RECIPE_SCOPE,
+                "progression=$ruleName: sin consumidor registrado en ejecución (ProgressionConsumers.executable)",
+            )
         }
         val needsAmrap = rule is ProgressionRule.AmrapDrivenTm ||
             rule is ProgressionRule.RepTargetDrivenTm ||
             recipe.autoregulationHooks.any { it.kind == AutoregulationHookKind.AMRAP_TM }
-        val needsTopSet = rule == ProgressionRule.TopSetPr
+        val needsTopSet = rule is ProgressionRule.TopSetPr
         if (needsAmrap && !hasMarkedSet(recipe) { set -> set.amrap }) {
             findings += finding(
                 C6_PROGRESSION_CONSUMER,

@@ -8,6 +8,7 @@ import com.example.kpkn.data.protocols.AutoregulationHookKind
 import com.example.kpkn.data.protocols.CatalogIds
 import com.example.kpkn.data.protocols.CompositionSeverity
 import com.example.kpkn.data.protocols.DayRecipe
+import com.example.kpkn.data.protocols.IncrementScope
 import com.example.kpkn.data.protocols.LiftSlot
 import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.data.protocols.NativeProgressionSpec
@@ -430,45 +431,47 @@ class RecipeContractPolicyTest {
     )
 
     @Test
-    fun c6_flags_every_progression_rule_and_says_whether_it_has_a_consumer() {
+    fun c6_flags_only_the_progression_rules_without_a_consumer() {
         val c6 = RecipeContractPolicy.C6_PROGRESSION_CONSUMER
-        val noConsumer = "sin consumidor registrado en ejecución (B.S3–S5)"
-        val consumed = "consumida por ProgramAutoregulationEngine con los defectos R-02/L-04 (B.S3–S5 la reescribe)"
+        val noConsumer = "sin consumidor registrado en ejecución (ProgressionConsumers.executable)"
         assertNone("progression None", contract(recipeWithT1(sets(3), LiftSlot.SQUAT, ProgressionRule.None), c6))
 
-        val increment = contract(recipeWithT1(sets(3), LiftSlot.SQUAT, ProgressionRule.CycleIncrement(2.5, 5.0)), c6)
-        assertEquals(1, increment.size)
-        assertEquals(RecipeContractPolicy.RECIPE_SCOPE, increment.single().scope)
-        assertTrue(increment.single().message, increment.single().message.contains("CycleIncrement"))
-        assertTrue(increment.single().message, increment.single().message.contains(noConsumer))
+        // B.S3: una regla con consumidor real en ejecución no da hallazgo (motor de progresión de autor o
+        // autorregulación). Las de autorregulación llevan serie AMRAP para no activar el segundo aviso.
+        val amrap = listOf(SetRecipe(reps = 5, percent = 85.0, amrap = true))
+        assertNone(
+            "CycleIncrement por ciclo",
+            contract(recipeWithT1(sets(3), LiftSlot.SQUAT, ProgressionRule.CycleIncrement(2.5, 5.0)), c6),
+        )
+        assertNone(
+            "CycleIncrement por bloque",
+            contract(
+                recipeWithT1(sets(3), LiftSlot.SQUAT, ProgressionRule.CycleIncrement(2.5, 5.0, IncrementScope.BLOCK)),
+                c6,
+            ),
+        )
+        assertNone(
+            "WeeklyKg",
+            contract(recipeWithT1(sets(3), LiftSlot.SQUAT, ProgressionRule.WeeklyKg(mapOf(2 to 5.0))), c6),
+        )
+        assertNone("AmrapDrivenTm", contract(recipeWithT1(amrap, LiftSlot.SQUAT, ProgressionRule.AmrapDrivenTm()), c6))
+        assertNone(
+            "RepTargetDrivenTm",
+            contract(recipeWithT1(amrap, LiftSlot.SQUAT, ProgressionRule.RepTargetDrivenTm()), c6),
+        )
 
-        // Sin consumidor en ejecución: todas las reglas salvo las dos que consume ProgramAutoregulationEngine.
+        // Sin consumidor en ejecución (B.S4/B.S6): un hallazgo por regla, con el ámbito de la receta.
         // El top set evita el segundo aviso de TopSetPr (sin top set en un slot con liftSlot).
         val topSet = listOf(SetRecipe(reps = 5, percent = 85.0, isTopSet = true))
         mapOf(
-            "WeeklyKg" to ProgressionRule.WeeklyKg(mapOf(2 to 5.0)),
             "WeeklyPercent" to ProgressionRule.WeeklyPercent(2.5),
             "RepMaxAutoregulated" to ProgressionRule.RepMaxAutoregulated,
-            "TopSetPr" to ProgressionRule.TopSetPr,
+            "TopSetPr" to ProgressionRule.TopSetPr(),
         ).forEach { (name, rule) ->
             val findings = contract(recipeWithT1(topSet, LiftSlot.SQUAT, rule), c6)
             assertEquals(name, 1, findings.size)
-            assertTrue(findings.single().message, findings.single().message.contains(name))
-            assertTrue(findings.single().message, findings.single().message.contains(noConsumer))
-            assertFalse(findings.single().message, findings.single().message.contains("consumida por"))
-        }
-
-        // AmrapDrivenTm y RepTargetDrivenTm sí tienen consumidor hoy: el aviso dice cuál y con qué defectos.
-        val amrap = listOf(SetRecipe(reps = 5, percent = 85.0, amrap = true))
-        mapOf(
-            "AmrapDrivenTm" to ProgressionRule.AmrapDrivenTm(),
-            "RepTargetDrivenTm" to ProgressionRule.RepTargetDrivenTm(),
-        ).forEach { (name, rule) ->
-            val findings = contract(recipeWithT1(amrap, LiftSlot.SQUAT, rule), c6)
-            assertEquals(name, 1, findings.size)
-            assertTrue(findings.single().message, findings.single().message.contains("progression=$name"))
-            assertTrue(findings.single().message, findings.single().message.contains(consumed))
-            assertFalse(findings.single().message, findings.single().message.contains("sin consumidor"))
+            assertEquals(name, RecipeContractPolicy.RECIPE_SCOPE, findings.single().scope)
+            assertEquals(name, "progression=$name: $noConsumer", findings.single().message)
         }
     }
 
@@ -478,17 +481,19 @@ class RecipeContractPolicyTest {
         val topSet = listOf(SetRecipe(reps = 5, percent = 85.0, isTopSet = true))
         val amrap = listOf(SetRecipe(reps = 5, percent = 85.0, amrap = true))
 
-        // TopSetPr: el aviso de siempre y, sin top set en un slot con liftSlot, el segundo.
-        assertEquals(2, contract(recipeWithT1(sets(3), LiftSlot.SQUAT, ProgressionRule.TopSetPr), c6).size)
-        assertEquals(2, contract(recipeWithT1(topSet, null, ProgressionRule.TopSetPr), c6).size)
-        assertEquals(1, contract(recipeWithT1(topSet, LiftSlot.SQUAT, ProgressionRule.TopSetPr), c6).size)
+        // TopSetPr (sin consumidor): el aviso de la regla y, sin top set en un slot con liftSlot, el segundo.
+        assertEquals(2, contract(recipeWithT1(sets(3), LiftSlot.SQUAT, ProgressionRule.TopSetPr()), c6).size)
+        assertEquals(2, contract(recipeWithT1(topSet, null, ProgressionRule.TopSetPr()), c6).size)
+        assertEquals(1, contract(recipeWithT1(topSet, LiftSlot.SQUAT, ProgressionRule.TopSetPr()), c6).size)
+        // Con valores propios la regla sigue siendo TopSetPr: la exigencia de top set no depende del default.
+        assertEquals(2, contract(recipeWithT1(sets(3), LiftSlot.SQUAT, ProgressionRule.TopSetPr(2.5, 5.0)), c6).size)
 
-        // AmrapDrivenTm y RepTargetDrivenTm exigen AMRAP.
+        // AmrapDrivenTm y RepTargetDrivenTm tienen consumidor, así que solo queda la exigencia de AMRAP.
         listOf(ProgressionRule.AmrapDrivenTm(), ProgressionRule.RepTargetDrivenTm()).forEach { rule ->
             val name = rule::class.simpleName
-            assertEquals(name, 2, contract(recipeWithT1(sets(3), LiftSlot.SQUAT, rule), c6).size)
-            assertEquals(name, 2, contract(recipeWithT1(amrap, null, rule), c6).size)
-            assertEquals(name, 1, contract(recipeWithT1(amrap, LiftSlot.SQUAT, rule), c6).size)
+            assertEquals(name, 1, contract(recipeWithT1(sets(3), LiftSlot.SQUAT, rule), c6).size)
+            assertEquals(name, 1, contract(recipeWithT1(amrap, null, rule), c6).size)
+            assertEquals(name, 0, contract(recipeWithT1(amrap, LiftSlot.SQUAT, rule), c6).size)
         }
 
         // El gancho AMRAP_TM también exige AMRAP, aunque la progresión sea None.
@@ -764,7 +769,7 @@ class RecipeContractPolicyTest {
         assertNone("CycleIncrement", contract(recipeOf(weeksOf(4), progression = ProgressionRule.CycleIncrement(2.5, 5.0)), c10))
         assertNone("nativeProgression", contract(recipeOf(weeksOf(4), nativeProgression = NativeProgressionSpec()), c10))
         // TopSetPr o ninguna regla no cambian las semanas: sí salen.
-        assertEquals(1, contract(recipeOf(weeksOf(4), progression = ProgressionRule.TopSetPr), c10).size)
+        assertEquals(1, contract(recipeOf(weeksOf(4), progression = ProgressionRule.TopSetPr()), c10).size)
     }
 
     // ─── Conjunto: receta sana, severidad, resumen y cableado ─────────────────────

@@ -178,7 +178,7 @@ object ClassicPlProtocols {
             blocks = listOf(ProtocolBlock("Desarrollo", 6, "Intensificación", 65, 92), ProtocolBlock("Pico", 4, "Peak", 70, 96)),
             defaultSplit = "pl_sbd_x3", publicationStatus = ProtocolPublicationStatus.VERIFIED,
             source = attributed("Lilliebridge Method", "https://www.powerliftingtowin.com/the-lilliebridge-method/", "Matt Lilliebridge"),
-            recipe = TrainingPlanRecipe("lilliebridge", weeks, 1.0, sbdSlots(), ProgressionRule.TopSetPr, claimedDaysPerWeek = 3, claimedLevel = "avanzado"),
+            recipe = TrainingPlanRecipe("lilliebridge", weeks, 1.0, sbdSlots(), ProgressionRule.TopSetPr(), claimedDaysPerWeek = 3, claimedLevel = "avanzado"),
             fidelitySpec = ProtocolFidelitySpec(10, 3, requiresPercent = true, claimedLevel = "avanzado", percentAnchors = mapOf("w1_sq" to listOf(87.0))),
         )
     }
