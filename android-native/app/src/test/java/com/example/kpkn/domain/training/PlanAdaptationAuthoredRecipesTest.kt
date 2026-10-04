@@ -97,13 +97,15 @@ class PlanAdaptationAuthoredRecipesTest {
         val result = adapted(adapt(catalogRecipe, AuthoredPlanFixtures.gymWithoutRack))
 
         assertEquals(12, result.recipe.weeks.size)
+        // Paquete A · B4: sin rack tampoco se puede hacer la sentadilla de barra. Las dos sentadillas de PHUL (`sq` y
+        // `sq-front`) pasan a la MISMA definición en Smith (tier 1) y las dos bancas a mancuernas.
         assertEquals(
-            "banca e inclinada de barra → mancuernas; una entrada por slot, no 12",
-            listOf("bp", "bp-inc"),
+            "banca e inclinada de barra → mancuernas y sentadillas de barra → Smith; una entrada por slot, no 12",
+            listOf("bp", "bp-inc", "sq", "sq-front"),
             result.changes.map { it.slotId }.sorted(),
         )
         assertEquals(
-            setOf(CatalogIds.BP_DB, CatalogIds.BP_INC_DB),
+            setOf(CatalogIds.BP_DB, CatalogIds.BP_INC_DB, "high_bar_back_squat__smith_machine", "front_squat__smith_machine"),
             result.changes.mapNotNull { it.toConfigurationId }.toSet(),
         )
 

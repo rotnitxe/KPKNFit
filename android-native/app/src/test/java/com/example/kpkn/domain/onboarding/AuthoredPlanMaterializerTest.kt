@@ -181,7 +181,7 @@ class AuthoredPlanMaterializerTest {
     }
 
     @Test
-    fun missingRackSubstitutesOnlyTheBarbellBenchSlotsAndLeavesTheOriginalUntouched() {
+    fun missingRackSubstitutesTheBarbellBenchAndSquatSlotsAndLeavesTheOriginalUntouched() {
         val originalBefore = recipeJson(AuthoredPhulPhatRecipes.phulOriginal)
         val adaptedBefore = recipeJson(AuthoredPhulPhatRecipes.phulAdapted)
 
@@ -195,12 +195,19 @@ class AuthoredPlanMaterializerTest {
         assertEquals(PlanProvenanceClass.ADAPTED, provenance.category)
         assertEquals("la cadena sigue citando al original M&S", PHUL_ORIGINAL, provenance.parentId)
         assertTrue(provenance.sourceEdition.orEmpty().contains("2021-05-26"))
+        // Paquete A · B4: el rack lo exigen la banca Y la sentadilla de barra, así que sin rack las dos bancas pasan a
+        // mancuernas y las dos sentadillas (`sq`, `sq-front`) a la misma definición en Smith (el gimnasio completo la trae).
         assertEquals(
-            "banca y banca inclinada de barra pasan a mancuernas; cada sustitución se registra UNA vez aunque la receta tenga 12 semanas",
-            setOf("bp" to (CatalogIds.BP to CatalogIds.BP_DB), "bp-inc" to (CatalogIds.BP_INC to CatalogIds.BP_INC_DB)),
+            "banca y banca inclinada de barra pasan a mancuernas y las sentadillas de barra a Smith; cada sustitución se registra UNA vez aunque la receta tenga 12 semanas",
+            setOf(
+                "bp" to (CatalogIds.BP to CatalogIds.BP_DB),
+                "bp-inc" to (CatalogIds.BP_INC to CatalogIds.BP_INC_DB),
+                "sq" to (CatalogIds.SQ_HIGH to "high_bar_back_squat__smith_machine"),
+                "sq-front" to (CatalogIds.SQ_FRONT to "front_squat__smith_machine"),
+            ),
             provenance.slotChanges.map { it.slotId to (it.fromConfigurationId to it.toConfigurationId) }.toSet(),
         )
-        assertEquals(2, provenance.slotChanges.size)
+        assertEquals(4, provenance.slotChanges.size)
         provenance.slotChanges.forEach { change ->
             assertTrue("cambio de la misma definición (mismo patrón): ${change.slotId}", change.samePattern)
             assertNull("PHUL no declara referencia de carga: nada que conservar ni descartar", change.loadReferenceKept)
@@ -214,6 +221,15 @@ class AuthoredPlanMaterializerTest {
         assertTrue(
             "no queda banca de barra en ninguna semana",
             exercises.none { it.catalogConfigurationId == CatalogIds.BP || it.catalogConfigurationId == CatalogIds.BP_INC },
+        )
+        assertTrue(
+            "sin rack tampoco queda sentadilla de barra en ninguna semana (B4)",
+            exercises.none { it.catalogConfigurationId == CatalogIds.SQ_HIGH || it.catalogConfigurationId == CatalogIds.SQ_FRONT },
+        )
+        assertEquals(
+            "la sentadilla del autor pasa a la misma definición en Smith en todas las semanas",
+            setOf("high_bar_back_squat__smith_machine"),
+            exercises.filter { it.recipeSlotId == "sq" }.mapNotNull { it.catalogConfigurationId }.toSet(),
         )
         val benchSlot = exercises.filter { it.recipeSlotId == "bp" }
         assertEquals("un ejercicio 'bp' por semana", 12, benchSlot.size)
@@ -244,7 +260,7 @@ class AuthoredPlanMaterializerTest {
         assertEquals("lo que se activa es exactamente lo que se previsualizó", program, reopened)
         val provenance = requireNotNull(reopened.planProvenance)
         assertEquals(PlanProvenanceClass.ADAPTED, provenance.category)
-        assertEquals(2, provenance.slotChanges.size)
+        assertEquals("banca, inclinada y las dos sentadillas de barra (B4)", 4, provenance.slotChanges.size)
         assertTrue(provenance.sourceEdition.orEmpty().contains("2021-05-26"))
         assertEquals(provenance, reopened.sourceRecipe?.provenance)
     }

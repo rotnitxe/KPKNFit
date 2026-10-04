@@ -138,6 +138,15 @@ const val GLUTE_BRIDGE_ONCE_NOTE: String =
     "Hacemos el puente de glúteo 1 vez por semana para no pasar de 16 series de glúteo; " +
         "los otros días lo cambiamos por flexión de isquiotibiales."
 
+/**
+ * Paquete A · B5: el tirón vertical y el horizontal de un plan propio resuelven al MISMO remo porque con
+ * el material y el nivel de la persona no hay jalón ni dominadas (kettlebell, Smith, banda sin barra de
+ * dominadas, mancuernas, barra baja…).
+ */
+const val SHARED_ROW_FOR_PULL_NOTE: String =
+    "Tus días de espalda usan el mismo remo para el tirón horizontal y el vertical " +
+        "porque con tu material y tu nivel no hay jalón ni dominadas."
+
 /** B-03: Atleta corporal de 6 días cambia el puente de glúteo por una segunda flexión de isquiotibiales. */
 const val ATHLETE_SIX_DAY_BRIDGE_NOTE: String =
     "Con 6 días hacemos una segunda flexión de isquiotibiales en lugar del puente de glúteo, " +
@@ -837,8 +846,9 @@ class SimpleCyclePersonalizer(
             }
         }
 
-        val pullAvailable = resolveConfiguration(NativeSlotKey.R, SlotIntent.H) != null ||
-            resolveConfiguration(NativeSlotKey.V, SlotIntent.H) != null
+        val horizontalPull = resolveConfiguration(NativeSlotKey.R, SlotIntent.H)
+        val verticalPull = resolveConfiguration(NativeSlotKey.V, SlotIntent.H)
+        val pullAvailable = horizontalPull != null || verticalPull != null
         // La bolsa de prioridades sigue siendo SOLO orden y sigue con su contrato.
         val exerciseOrderPoints = orderPoints(options.applyTo(input))
             ?: return unavailable(
@@ -1003,6 +1013,16 @@ class SimpleCyclePersonalizer(
         }
         if (!pullAvailable) {
             notes += "Sin banda o barra de apoyo, el trabajo de tirón es limitado: la serie de dorsales puede ser cero."
+        }
+        // Paquete A · B5: sin jalón ni dominadas utilizables (con tu material y tu nivel), el tirón vertical (V)
+        // cae a un remo; si es el MISMO que el del tirón horizontal (R) y el calendario lleva los dos slots,
+        // la semana repite ese remo y la persona debe saberlo (en el mismo día se fusionan, §13.3).
+        if (horizontalPull != null && horizontalPull.id == verticalPull?.id &&
+            archetypes.any { day -> day.slots.any { it.key == NativeSlotKey.R } } &&
+            archetypes.any { day -> day.slots.any { it.key == NativeSlotKey.V } }
+        ) {
+            notes += SHARED_ROW_FOR_PULL_NOTE
+            plainNotes += SHARED_ROW_FOR_PULL_NOTE
         }
         if (kind == NativeProfileKind.MUSCLE && !pullAvailable && selectedDays.size in 5..6) {
             notes += GLUTE_BRIDGE_ONCE_NOTE

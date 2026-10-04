@@ -431,3 +431,96 @@ Ninguna fila de `SetupExecutableAvailabilityMatrixTest` cambió: la clase comple
 - Un cambio de `rank`, nivel o clase en `PlanEditorialTable` reordena la lista del wizard sin tocar ningún programa ya activado: solo cambia qué se ofrece primero a quien configura un plan nuevo.
 
 **Qué lo confirma.** `SetupTrainingPlannerRankingTest`, `PlanGoalMatcherTest`, `SetupTrainingPlannerTest` (capacidades requeridas y plantillas con receta fija), `SetupExecutableAvailabilityMatrixTest` (grupos F y T001) y `PlanGenerationCoverageT006Test.Q1`.
+
+### DEC-w2-04 (parte 1) — Soportes reales de sentadillas y press, y tablas de candidatos para kettlebell, Smith y banda (A.B4/B5, 2026-10-03)
+
+**Estado:** implementada (pasos A.B4 y A.B5 del paquete A). La parte 2 de DEC-w2-04 (tabla split↔calendario, A.E2) sigue pendiente y el contrato de cobertura no está en 0: quedan `TIME_BUDGET_INEXACT` (A.C2) y las 120 filas de Atleta de 1 día con solo barra de dominadas. No contradice r2: implementa su §13.2 y su §13.3; sí corrige un test que fijaba lo contrario para la sentadilla (ver «Una lectura corregida»).
+
+**Qué dice r2.**
+- §13.2, tabla de claves: «`squat_rack` … S/B si también hay banco; no prueba cajón, soportes de Nordic o paralelas». Y en el párrafo de `supportDependencyFor`: «Banca barra exige barra+banco+rack; banca DB exige DB+banco; … Rumano/remo de pie no requieren rack por ser barra si se inician desde suelo. No imponer rack a todos los ejercicios con barra por coincidencia de implemento.»
+- §13.3, tabla de selección: la fila S lleva `high_bar_back_squat__barbell` con «(rack)»; la B, `bench_press__barbell` con «(banco+rack)» y «`floor_press__dumbbells` sin banco». «Las once categorías tienen tratamiento definido»: la kettlebell «se aprovecha en front squat/sumo squat, remo convencional, press militar, zancada y banca (si hay banco)», la Smith «usa sus variantes canónicas de sentadilla/banca/rumano, exigiendo banco en press», y «No ignorar equipo utilizable reduciendo todos esos casos a un plan corporal genérico».
+- §13.3, cierre: si V y R terminan en la misma configuración de remo se fusionan H con H hasta 4 series y se «registra ajuste».
+- Los huecos de soporte del rack chin, las dominadas escapulares, la suspensión, el jalón y el hip thrust con banda y el curl inclinado no están en r2: los añade el plan de curaduría (§6, B4) con el mismo criterio de §13.2 («fondos entre bancos exigen sus apoyos; dominadas barra; remo invertido barra baja»): cada configuración con SU apoyo.
+
+**Una lectura corregida.** `FixedRecipeEquipmentCompatibilityTest` fijaba `supportRequirementsFor("high_bar_back_squat__barbell") = ∅` con el comentario «§13.2: nada de rack por coincidencia de implemento». Era una lectura demasiado amplia de la última frase de §13.2: lo que r2 excluye es imponer rack al rumano y al remo (barra que parte del suelo), no a la sentadilla, cuya fila de §13.3 dice «(rack)» y que se descarga de un soporte. B4 corrige esa lectura; r2 queda como estaba y no hay desviación.
+
+**Qué se hizo.**
+- **B4, `supportRequirementsFor`** (`EffectiveEquipmentCatalog.kt`, antes → después):
+
+| Configuración | Antes | Después |
+|---|---|---|
+| `high_bar_back_squat__barbell`, `low_bar_back_squat__barbell`, `front_squat__barbell`, `paused_back_squat__barbell`, `high_bar_back_squat__safety_bar`, `quads_sentadilla_cajon__default`, `quads_sentadilla_anderson__default` | ∅ | {rack} |
+| `paused_bench_press__barbell`, `close_grip_bench_press__barbell`, `tren_superior_press_spoto_barra__default`, `tren_superior_press_banca_cadenas__default` | ∅ (el prefijo `bench_press__` no los cubría) | {bench, rack} |
+| `incline_biceps_curl__dumbbells` | ∅ | {bench, bench_incline} |
+| `rack_chin__default` | ∅ | {low_bar_support} |
+| `back_dominadas_escapulares__default`, `forearms_suspension_isometrica_barra_fija__default` | ∅ | {pull_up_bar} |
+| `lat_pulldown__bilateral__band`, `lat_pulldown__unilateral__band` | ∅ | {pull_up_bar} |
+| `hip_thrust__bilateral__band`, `hip_thrust__unilateral__band` | ∅ | {bench} |
+| `close_grip_lat_pulldown__cable` | fuera de la llave `cable_high_low` | entra en `CABLE_HIGH_LOW_CONFIGURATIONS` (sin esto PHAT dejaría de ser viable con polea al migrar `lat-close` a esta configuración, B.S6) |
+
+  Sin cambio a propósito: Smith, kettlebell, mancuerna y peso corporal; el peso muerto (también «hasta la rodilla»), el rumano, el press militar (Smith incluido), `floor_press__*` y las zancadas. El banco plano exigido por `bench_press__*` (también en Smith, kettlebell y cable) no cambia. La variante de banda del hip thrust y del jalón se cubre por ambas lateralidades (bilateral y unilateral).
+- **B5, `NativeCandidateTable`** (`NativeProfileSpec.kt`): 16 ids nuevos, todos APPROVED en los dos assets (verificados antes de escribirlos; ninguno faltaba):
+
+| Slot | Altas (equipmentId verificado) |
+|---|---|
+| S (F, Fv y H) | `high_bar_back_squat__smith_machine` (smith_machine), `front_squat__kettlebell` (kettlebell) |
+| B y PB | `floor_press__dumbbells` (dumbbells), `bench_press__smith_machine` (smith_machine) |
+| D | `romanian_deadlift__bilateral__smith_machine` (smith_machine), `hip_thrust__bilateral__band` (band) |
+| R | `conventional_row__smith_machine` (smith_machine), `conventional_row__kettlebell` (kettlebell) |
+| V | `lat_pulldown__bilateral__band` (band); como respaldo, los remos Smith y kettlebell |
+| O | `military_press__smith_machine` (smith_machine), `military_press__kettlebell` (kettlebell) |
+| U | `walking_lunge__kettlebell` (kettlebell) |
+| L | `standing_lateral_raise__kettlebell` (kettlebell) |
+| A | `hammer_curl__kettlebell` (kettlebell) |
+| T | `overhead_triceps__dumbbells` (dumbbells), `triceps_press_frances__kettlebell` (kettlebell) |
+
+  Orden (KDoc de `NativeCandidateTable`): cada alta va detrás de las variantes con barra, mancuerna, polea y máquina que su lista ya tenía y delante de la banda y de la reserva de peso corporal (§13.3), primero la mancuerna, luego la Smith y luego la kettlebell. Excepciones por lógica de prioridad: en T y A las variantes de banda ya iban delante de las de máquina y las altas van tras ellas; en V el jalón con banda (tirón vertical) va detrás de las dominadas y delante de los remos de respaldo; en D el hip thrust con banda va delante del puente corporal. Efecto: quien ya resolvía una variante con barra, mancuerna, polea o máquina conserva su elección (salvo el caso de V); cambian quienes solo tenían banda, kettlebell, Smith, mancuernas sin banco o peso corporal.
+- **Nota llana de remo compartido** (`SHARED_ROW_FOR_PULL_NOTE`, `SimpleCyclePersonalizer.kt`): si V y R resuelven a la MISMA configuración de remo y el calendario lleva los dos slots, el plan avisa «Tus días de espalda usan el mismo remo para el tirón horizontal y el vertical porque con tu material y tu nivel no hay jalón ni dominadas.» (en `planNotes`, que la revisión del wizard muestra, y en la descripción del programa). El texto dice «con tu material y tu nivel» y no solo «tu material» porque el principiante con barra de dominadas tampoco recibe dominadas por defecto (r2 §13.3). Se detecta con las mismas dos resoluciones que ya decidían `pullAvailable`; el aviso sale también con solo banda, mancuernas o barra, que ya fusionaban R y V sin decirlo.
+
+**Efecto por material (Músculo, kettlebell y Smith medidos en `NativeCandidateTableSlotsTest`; el resto por lectura de la tabla).**
+- **E10, solo kettlebell:** antes no tenía ningún remo ni jalón, así que Músculo y Atleta usaban el calendario «sin tirón» solo con peso corporal. Ahora resuelve S → `front_squat__kettlebell`, R y V → `conventional_row__kettlebell`, O → `military_press__kettlebell`, U → `walking_lunge__kettlebell`, L, A y T con kettlebell; B sigue en la flexión de rodillas y D en el puente. Con tirón disponible, el calendario pasa al general (UA/UB, FA/FB…).
+- **E11, Smith y banco:** S, B (con el banco plano confirmado), D, R, V y O en Smith; U, L, A y T siguen sin variante de Smith en la tabla. Sin banco, B vuelve a la flexión de rodillas (`bench_press__*` exige banco).
+- **E12, banda y barra de dominadas:** el principiante (sin dominadas por defecto) recibe `lat_pulldown__bilateral__band` como tirón vertical en lugar de repetir el remo con banda; intermedio y avanzado conservan las dominadas.
+- **E2 y E3 (mancuernas):** E2 sin banco hace `floor_press__dumbbells` en lugar de la flexión de rodillas; E2 y E3 hacen `overhead_triceps__dumbbells` en lugar de las flexiones esfinge.
+- **E8, E15, E16 y E17 (barra sin rack acreditado: gimnasio sin confirmar, rack negado, barra sola, barra con mancuernas y bancos):** la sentadilla de barra deja de prescribirse sin rack acreditado (un rack «sin responder» no cuenta como presente, igual que ya pasaba con la banca de barra): E16 cae a la sentadilla sin carga y E8, E15 y E17 (con mancuernas en el material) a la sentadilla copa; Fuerza y músculo con E8, E15 y E17 (ruta de mancuernas) usa la copa como principal en lugar de la de barra sin dónde cargarla. El recuento de filas `Ready` de Músculo no cambia en E8, E15 y E17; en E16 sí (−3, ver abajo). Quien tiene un gimnasio completo y se salta el panel de soportes recibe ahora la copa en lugar de la sentadilla de barra hasta que confirme el rack.
+- **Sin cambio:** E0, E1 (la banda sola no tiene dónde anclar el jalón ni banco para el hip thrust), E4, E5, E6 y E18 (rack confirmado), E7, E9, E13 y E14.
+
+**Cifras antes → después** (rejilla de 25 650 filas del contrato, corrida `full` del 2026-10-03; 4 hilos, 363 s).
+
+| Clase de violación | Antes | Después | Qué cambió |
+|---|---|---|---|
+| `NOT_HONEST` (`COMPOSITION`) | 120 | **120** | sin cambio: Atleta de 1 día con solo barra de dominadas (E13), intermedio y avanzado |
+| `DISHONEST_ABSENT`, `TIME_BUDGET_OUT_OF_RANGE`, `NO_REPAIR`, `EXCEPTION` | 0 | **0** | |
+| `TIME_BUDGET_INEXACT` | 1 578 | **1 584** | +6, con causa (abajo); sigue siendo A.C2 |
+| `MATERIAL_UNUSED` | 1 464 | **0** | −1 464: Músculo y Atleta con kettlebell (E10) o Smith y banco (E11) usan su material |
+| **Total** | **3 162** | **1 704** (−1 458) | |
+
+Techos nuevos (`VIOLATION_CEILING`): smoke 200 → 110; ci/0 790 → 432; ci/1 787 → 420; ci/2 797 → 426; ci/3 788 → 426; full 3 162 → 1 704. Detalle de la corrida: `Ready` 13 624 → 13 471 (−153); rechazos honestos antes de reparar 11 906 → 12 059 (`TIME_BUDGET` 9 656 → 9 809; `APPARATUS_ABSENT` 1 080, `APPARATUS_UNKNOWN` 360 y `PROFILE_MISMATCH` 810 sin cambio); primera reparación que logra `Ready`: `SetMinutes` 9 656 → 9 809, `SwitchGoal` 1 532 → 1 520, `SwitchGoal+SetMinutes` 358 → 370, `ConfirmApparatus` 315 y `ConfirmApparatus+SetMinutes` 45 sin cambio.
+
+**Por qué sube `TIME_BUDGET_INEXACT` en 6 y bajan 153 `Ready`.** Atleta con solo kettlebell (E10) o solo Smith (E11) tenía 657 filas `Ready` con el calendario «sin tirón» (corto, solo peso corporal). Con remo resoluble usa el calendario con tirón, más largo, y se comporta como el resto de fixtures con tirón (585 `Ready`, 495 rechazos y 84 filas de `TIME_BUDGET_INEXACT`): −72 `Ready` por fixture y 81 → 84 filas inexactas, +6 en total. Músculo con E10, E11 y E16 pierde 3 `Ready` cada uno (75 → 72). En E10 y E11 es el mismo cambio de calendario; en E16 la única diferencia con E8, E15 y E17 (que no pierden ninguna fila) es que la sentadilla cae a la variante sin carga, de 8 a 15 repeticiones, y no a la copa: es una inferencia, no una medición fila a fila. Las 153 filas son rechazos honestos `TIME_BUDGET` con reparación `SetMinutes` (`NO_REPAIR` sigue en 0); las 12 filas que pasan de `SwitchGoal` a `SwitchGoal+SetMinutes` son Fuerza y Fuerza y músculo con E10 y E11, cuyo destino «Músculo» ahora necesita además subir los minutos. El contrato no sube ninguna clase sin causa: A.C2 hace exactas las 1 584 filas inexactas. `PlanGenerationCoverageT006Test` queda idéntico: Q1 (62 208 filas), Q2 (2 304 filas, 1 224 viables, `{APPARATUS_ABSENT=360, TIME_BUDGET=504, PROFILE_MISMATCH=216}`), Q2 positivos obligatorios (58 de 58 `Ready`) y Q3 (328 filas, 310 viables, 18 `TIME_BUDGET`, tres bordes en `MUSCLE/E2/3d@28`, `POWERBUILDING/E2/3d@23` y `COMPLETE_ATHLETE/E0/3d@25`); E2 y E3 cambian de contenido (floor press, tríceps sobre la cabeza) pero no de viabilidad. `SetupExecutableAvailabilityMatrixTest` completa: 17 pruebas verdes sin tocar ninguna fila.
+
+**Re-baselines.**
+
+| Test | Aserción antes | Después | Por qué |
+|---|---|---|---|
+| `FixedRecipeEquipmentCompatibilityTest.support_requirements_are_a_set_of_dependencies_not_a_single_string` | `supportRequirementsFor("high_bar_back_squat__barbell") = ∅` | `{rack}`; el rumano con barra y las desconocidas siguen en ∅ | B4 (r2 §13.3 fila S) |
+| `PlanAdaptationAuthoredRecipesTest.aSubstitutionIsRecordedOncePerSlotAcrossTheTwelveWeeksAndKeepsTheOriginalAsParent` | PHUL adaptado sin rack: cambios `[bp, bp-inc]` a mancuernas | `[bp, bp-inc, sq, sq-front]`; `sq` → `high_bar_back_squat__smith_machine` y `sq-front` → `front_squat__smith_machine` (misma definición, tier 1; el gimnasio completo trae Smith) | sin rack tampoco hay sentadilla de barra |
+| `AuthoredPlanMaterializerTest.missingRackSubstitutesTheBarbellBenchAndSquatSlotsAndLeavesTheOriginalUntouched` (antes `…OnlyTheBarbellBenchSlots…`) | 2 cambios de procedencia | 4, más aserciones de que no queda sentadilla de barra y de que `sq` es la Smith en las 12 semanas | ídem |
+| `AuthoredPlanMaterializerTest.adaptedProgramSurvivesTheRoomJsonRoundTripWithItsProvenance` y `AuthoredPlansActivationParityTest.theReadyAdaptationKeepsItsSlotChangesThroughActivationAndReopen` | `slotChanges.size == 2` | 4 | ídem |
+| `PlanCoverageContractTest` | techos 200 / 790 / 787 / 797 / 788 / 3 162 | 110 / 432 / 420 / 426 / 426 / 1 704 | B4 y B5 |
+
+**Riesgos y compatibilidad.**
+- Recetas fijas visibles con sentadilla de barra: 28. Veintiséis ya pedían rack por la banca de barra; **Smolov y Smolov Jr** (sentadilla sin banca) lo piden ahora por primera vez (`FixedRecipeEquipmentCompatibilityTest.every_visible_fixed_recipe_with_a_rack_squat_reports_the_rack_when_it_is_missing`). Madcow, Texas y el resto no cambian de requisitos.
+- **PHAT** (original y adaptado) pide ahora `low_bar_support` por el rack chin, que antes no pedía ningún soporte. Con la llave sin responder, la adaptación devuelve `APPARATUS_UNKNOWN` con `low_bar_support` (confirmable, «Barra baja estable»); con la llave negada devuelve `NO_VALID_SUBSTITUTION` en el slot `rack-chin`, porque la tabla curada de `PlanAdaptationResolver` no cubre esa definición (`FixedRecipeEquipmentCompatibilityTest.phat_now_asks_for_the_low_bar_support_that_its_rack_chin_always_needed`). Decidir si se añade un sustituto es del paso A.B6.
+- PHUL adaptado sin rack: las dos sentadillas de barra pasan a la misma definición en Smith (o a la copa o la sentadilla sin carga si no hay Smith), como ya hacían las bancas.
+- La sección «Material» de la hoja «Cómo funciona» (`PlanInfoModel.material`) usa `supportRequirementsFor`: ahora lista «Rack de sentadilla» en cualquier plan con sentadilla de barra y «Barra baja estable» en PHAT (lectura de código; `PlanInfoModelTest` sigue verde).
+- Los programas ya activados no cambian: `supportRequirementsFor` y la tabla de candidatos solo gobiernan lo que se genera y se comprueba de ahora en adelante.
+
+**Qué lo confirma.** `NativeCandidateTableSlotsTest` (10 pruebas: ids reales y APPROVED, sufijo de material coherente con el catálogo, orden de las altas, y el generador real con E1, E2, E10, E11 y E12), `CatalogIdsExistInCatalogTest` (por reflexión: `CatalogIds`, `NativeCandidateTable` y `AuthoredExerciseBindings.all` en ambos assets), `FixedRecipeEquipmentCompatibilityTest` (reglas de B4, Smolov y PHAT), `EffectiveEquipmentResolverContractTest` (evidencia `UNKNOWN`/`ABSENT` de rack, banco, barra de dominadas y barra baja, y `cable_high_low` con el jalón cerrado), `EffectiveEquipmentContractTest.barbell_squats_need_the_rack_and_without_it_the_squat_falls_back_to_the_loadless_squat` y `PlanCoverageContractTest`.
+
+**Pendiente.**
+- B6 (evidencia unificada) y la tabla de sustitución de `rack_chin` en `PlanAdaptationResolver`.
+- Banca con kettlebell: r2 §13.3 la cita «si hay banco» y `bench_press__kettlebell` existe APPROVED, pero el plan de curaduría no la lista en B5; no se añadió. Decisión del dueño.
+- Otras sentadillas de barra del catálogo (Anderson frontal, Zercher, hack con barra, sumo, bazuca, somersault) y otros ejercicios que se descargan de un soporte (hip thrust con barra, Smith o máquina; JM press) no entran en B4: ninguna receta ni tabla los usa hoy.
+- Atleta de 1 día, intermedio o avanzado, con solo barra de dominadas (E13): las 120 filas de `COMPOSITION` siguen; B5 no añade remo ni jalón para ese material.
+- `TIME_BUDGET_INEXACT` (1 584 filas) es de A.C2.

@@ -272,4 +272,152 @@ class EffectiveEquipmentResolverContractTest {
             assertTrue("Id curada inexistente en el catálogo: $configurationId", configurationId in catalogIds)
         }
     }
+
+    // ─── Paquete A · B4 (DEC-w2-04 parte 1): los soportes nuevos llegan hasta la evidencia del resolver ───
+
+    /** Disponibilidad con las categorías dadas y el estado indicado de cada soporte (clave ausente = sin responder). */
+    private fun gear(
+        categories: Set<EquipmentCategory>,
+        supports: Map<String, ApparatusPresence> = emptyMap(),
+    ): Pair<EquipmentAvailability, EffectiveEquipmentResult> {
+        val availability = EquipmentAvailability(categories = categories, supports = supports)
+        return availability to TrainingOptions(availability = availability).resolveEffectiveEquipment(emptySet())
+    }
+
+    private fun verdictOf(configurationId: String, gear: Pair<EquipmentAvailability, EffectiveEquipmentResult>) =
+        configurationAvailability(configurationId, gear.second, gear.first, catalog)
+
+    @Test
+    fun a_barbell_squat_distinguishes_an_unanswered_rack_from_a_denied_one_and_a_confirmed_one() {
+        val squat = "high_bar_back_squat__barbell"
+        val barbellAndSupports = setOf(EquipmentCategory.BARBELL, EquipmentCategory.SUPPORT)
+
+        assertEquals(
+            "rack sin responder: falta confirmar (UNKNOWN), no ausente",
+            ConfigurationAvailability.Missing(RequirementEvidence.UNKNOWN, setOf("rack")),
+            verdictOf(squat, gear(barbellAndSupports)),
+        )
+        assertEquals(
+            "rack negado: ausente con evidencia explícita",
+            ConfigurationAvailability.Missing(RequirementEvidence.ABSENT, setOf("rack")),
+            verdictOf(squat, gear(barbellAndSupports, mapOf(EquipmentKeys.SQUAT_RACK to ApparatusPresence.ABSENT))),
+        )
+        assertEquals(
+            "rack confirmado: la sentadilla de barra es posible",
+            ConfigurationAvailability.Available,
+            verdictOf(squat, gear(barbellAndSupports, mapOf(EquipmentKeys.SQUAT_RACK to ApparatusPresence.PRESENT))),
+        )
+        // La Smith y la sentadilla frontal con kettlebell no piden rack.
+        assertEquals(
+            ConfigurationAvailability.Available,
+            verdictOf("high_bar_back_squat__smith_machine", gear(setOf(EquipmentCategory.SMITH_MACHINE))),
+        )
+        assertEquals(
+            ConfigurationAvailability.Available,
+            verdictOf("front_squat__kettlebell", gear(setOf(EquipmentCategory.KETTLEBELL))),
+        )
+    }
+
+    @Test
+    fun the_spoto_and_chains_press_need_the_bench_and_the_rack_like_the_barbell_bench() {
+        val barbellOnly = gear(setOf(EquipmentCategory.BARBELL))
+        listOf("tren_superior_press_spoto_barra__default", "tren_superior_press_banca_cadenas__default", "paused_bench_press__barbell")
+            .forEach { id ->
+                val verdict = verdictOf(id, barbellOnly)
+                assertTrue("$id sin soportes: $verdict", verdict is ConfigurationAvailability.Missing)
+                assertEquals("$id: banco y rack", setOf("bench", "rack"), (verdict as ConfigurationAvailability.Missing).missing)
+            }
+        val full = gear(
+            setOf(EquipmentCategory.BARBELL, EquipmentCategory.SUPPORT),
+            mapOf(EquipmentKeys.BENCH_FLAT to ApparatusPresence.PRESENT, EquipmentKeys.SQUAT_RACK to ApparatusPresence.PRESENT),
+        )
+        listOf("tren_superior_press_spoto_barra__default", "tren_superior_press_banca_cadenas__default", "paused_bench_press__barbell")
+            .forEach { id -> assertEquals(id, ConfigurationAvailability.Available, verdictOf(id, full)) }
+    }
+
+    @Test
+    fun the_band_pulldown_needs_the_pull_up_bar_and_the_band_hip_thrust_needs_a_bench() {
+        val bandOnly = gear(setOf(EquipmentCategory.BAND))
+        assertEquals(
+            "el jalón con banda no tiene dónde anclarse sin la barra de dominadas",
+            ConfigurationAvailability.Missing(RequirementEvidence.UNKNOWN, setOf("pull_up_bar")),
+            verdictOf("lat_pulldown__bilateral__band", bandOnly),
+        )
+        assertEquals(
+            "el hip thrust con banda apoya la espalda alta en un banco",
+            ConfigurationAvailability.Missing(RequirementEvidence.UNKNOWN, setOf("bench")),
+            verdictOf("hip_thrust__bilateral__band", bandOnly),
+        )
+        assertEquals(
+            ConfigurationAvailability.Available,
+            verdictOf("lat_pulldown__bilateral__band", gear(setOf(EquipmentCategory.BAND, EquipmentCategory.PULL_UP_BAR))),
+        )
+        assertEquals(
+            ConfigurationAvailability.Available,
+            verdictOf(
+                "hip_thrust__bilateral__band",
+                gear(
+                    setOf(EquipmentCategory.BAND, EquipmentCategory.SUPPORT),
+                    mapOf(EquipmentKeys.BENCH_FLAT to ApparatusPresence.PRESENT),
+                ),
+            ),
+        )
+    }
+
+    @Test
+    fun the_incline_curl_needs_the_adjustable_bench_and_the_rack_chin_the_low_bar() {
+        val flatBenchOnly = gear(
+            setOf(EquipmentCategory.DUMBBELLS, EquipmentCategory.SUPPORT),
+            mapOf(EquipmentKeys.BENCH_FLAT to ApparatusPresence.PRESENT),
+        )
+        val adjustable = gear(
+            setOf(EquipmentCategory.DUMBBELLS, EquipmentCategory.SUPPORT),
+            mapOf(EquipmentKeys.BENCH_ADJUSTABLE to ApparatusPresence.PRESENT),
+        )
+        assertEquals(
+            "un banco plano no acredita el inclinado",
+            ConfigurationAvailability.Missing(RequirementEvidence.UNKNOWN, setOf("bench_incline")),
+            verdictOf("incline_biceps_curl__dumbbells", flatBenchOnly),
+        )
+        assertEquals(ConfigurationAvailability.Available, verdictOf("incline_biceps_curl__dumbbells", adjustable))
+
+        val withoutLowBar = gear(setOf(EquipmentCategory.SUPPORT, EquipmentCategory.PULL_UP_BAR))
+        assertEquals(
+            ConfigurationAvailability.Missing(RequirementEvidence.UNKNOWN, setOf("low_bar_support")),
+            verdictOf("rack_chin__default", withoutLowBar),
+        )
+        assertEquals(
+            ConfigurationAvailability.Available,
+            verdictOf(
+                "rack_chin__default",
+                gear(setOf(EquipmentCategory.SUPPORT), mapOf(EquipmentKeys.LOW_BAR_SUPPORT to ApparatusPresence.PRESENT)),
+            ),
+        )
+    }
+
+    @Test
+    fun the_close_grip_pulldown_belongs_to_the_curated_high_low_cable_station() {
+        val closeGrip = "close_grip_lat_pulldown__cable"
+        assertTrue(
+            "alta M4 en la polea alta y baja: sin ella PHAT dejaría de ser viable con polea",
+            closeGrip in curatedConfigurationsOf(EquipmentKeys.CABLE_HIGH_LOW),
+        )
+        val present = TrainingOptions(
+            availability = EquipmentAvailability(
+                categories = setOf(EquipmentCategory.CABLE),
+                apparatus = mapOf(EquipmentKeys.CABLE_HIGH_LOW to ApparatusPresence.PRESENT),
+            ),
+        ).resolveEffectiveEquipment(emptySet())
+        assertTrue(machineConfigToken(closeGrip) in present.tokens)
+        assertTrue(machineConfigToken("lat_pulldown__bilateral__cable") in present.tokens)
+
+        val deniedAvailability = EquipmentAvailability(
+            categories = setOf(EquipmentCategory.CABLE),
+            apparatus = mapOf(EquipmentKeys.CABLE_HIGH_LOW to ApparatusPresence.ABSENT),
+        )
+        assertTrue(configurationDeniedByAbsentKey(closeGrip, deniedAvailability))
+        assertFalse(
+            machineConfigToken(closeGrip) in TrainingOptions(availability = deniedAvailability).resolveEffectiveEquipment(emptySet()).tokens,
+        )
+    }
 }

@@ -126,7 +126,21 @@ internal val LEGACY_SUPPORT_ATTESTED_REQUIREMENTS: Set<String> = setOf(
     REQUIREMENT_NORDIC_ANCHOR,
 )
 
-/** Requisito que una configuración expresa fuera de su `equipmentId` (§13.2). */
+/**
+ * Requisito que una configuración expresa fuera de su `equipmentId` (§13.2).
+ *
+ * Paquete A · B4 (DEC-w2-04, parte 1; `docs/WIZARD_PLAN_DEVIATIONS.md`):
+ * - El rack sigue a la LIFT, no al implemento: las sentadillas con barra que se descargan de un
+ *   soporte (trasera alta y baja, frontal, con pausa, a cajón, Anderson y con barra de seguridad)
+ *   lo exigen; el peso muerto, el press militar, la Smith y las variantes de kettlebell o
+ *   mancuerna NO (la Smith trae su propio soporte y las demás no se descargan de un rack).
+ * - La banca por NOMBRE: las variantes de barra de la banca plana (con pausa, con agarre cerrado,
+ *   Spoto y con cadenas) exigen banco y rack igual que la banca de barra; el prefijo `bench_press__`
+ *   no las cubría.
+ * - Huecos de soporte: el rack chin, las dominadas escapulares, la suspensión en barra y el jalón con
+ *   banda dependen de una barra (baja estable o de dominadas), y el hip thrust con banda y el curl
+ *   inclinado dependen de un banco.
+ */
 internal fun supportRequirementsFor(configurationId: String): Set<String> = when {
     // Banca: exige banco; la variante de barra exige además rack; las
     // inclinadas/declinadas exigen un banco regulable. `floor_press__*` queda
@@ -138,16 +152,33 @@ internal fun supportRequirementsFor(configurationId: String): Set<String> = when
             add(REQUIREMENT_BENCH_INCLINE)
             if (configurationId.endsWith(BARBELL_SUFFIX)) add(REQUIREMENT_RACK)
         }
-    configurationId.startsWith(BENCH_PRESS_PREFIX) -> buildSet {
+    FLAT_BENCH_PRESS_PREFIXES.any { configurationId.startsWith(it) } ||
+        configurationId in BARBELL_BENCH_VARIANT_CONFIGURATIONS -> buildSet {
         add(REQUIREMENT_BENCH)
-        if (configurationId.endsWith(BARBELL_SUFFIX)) add(REQUIREMENT_RACK)
+        if (configurationId.endsWith(BARBELL_SUFFIX) || configurationId in BARBELL_BENCH_VARIANT_CONFIGURATIONS) {
+            add(REQUIREMENT_RACK)
+        }
     }
+    // Curl inclinado: el banco regulable lo acredita (y acredita también el plano).
+    INCLINE_BICEPS_CURL_CONFIGURATION == configurationId ->
+        setOf(REQUIREMENT_BENCH, REQUIREMENT_BENCH_INCLINE)
+    // Sentadillas de barra descargadas de un soporte.
+    configurationId in RACK_SQUAT_CONFIGURATIONS -> setOf(REQUIREMENT_RACK)
+    // Hip thrust con banda: la espalda alta se apoya en un banco.
+    configurationId.startsWith(HIP_THRUST_PREFIX) && configurationId.endsWith(BAND_SUFFIX) ->
+        setOf(REQUIREMENT_BENCH)
+    // Jalón con banda: la banda se ancla arriba, en la barra de dominadas.
+    configurationId.startsWith(LAT_PULLDOWN_PREFIX) && configurationId.endsWith(BAND_SUFFIX) ->
+        setOf(REQUIREMENT_PULL_UP_BAR)
     // Fondos y dominadas: cada uno con SU apoyo (§13.2: no derivar uno del otro).
     "triceps_fondos_entre_bancos__default" == configurationId -> setOf(REQUIREMENT_BENCH)
     "tren_superior_fondos__default" == configurationId -> setOf(REQUIREMENT_DIP_BARS)
-    configurationId.startsWith(PULL_UP_PREFIX) -> setOf(REQUIREMENT_PULL_UP_BAR)
+    configurationId.startsWith(PULL_UP_PREFIX) ||
+        configurationId.startsWith(SCAPULAR_PULL_UP_PREFIX) ||
+        configurationId.startsWith(DEAD_HANG_PREFIX) -> setOf(REQUIREMENT_PULL_UP_BAR)
     // Apoyos concretos
-    "back_remo_invertido__default" == configurationId -> setOf(REQUIREMENT_LOW_BAR_SUPPORT)
+    "back_remo_invertido__default" == configurationId ||
+        configurationId.startsWith(RACK_CHIN_PREFIX) -> setOf(REQUIREMENT_LOW_BAR_SUPPORT)
     "curl_isquios_con_balon__default" == configurationId -> setOf(REQUIREMENT_BALL)
     "hams_curl_nordic_peso_corporal__default" == configurationId -> setOf(REQUIREMENT_NORDIC_ANCHOR)
     "push_up__feet_elevated" == configurationId -> setOf(REQUIREMENT_SUPPORT)
@@ -155,10 +186,49 @@ internal fun supportRequirementsFor(configurationId: String): Set<String> = when
 }
 
 private const val BENCH_PRESS_PREFIX = "bench_press__"
+private const val PAUSED_BENCH_PRESS_PREFIX = "paused_bench_press__"
+private const val CLOSE_GRIP_BENCH_PRESS_PREFIX = "close_grip_bench_press__"
 private const val INCLINE_BENCH_PRESS_PREFIX = "incline_bench_press__"
 private const val DECLINE_BENCH_PRESS_PREFIX = "decline_bench_press__"
 private const val PULL_UP_PREFIX = "pull_up__"
+private const val SCAPULAR_PULL_UP_PREFIX = "back_dominadas_escapulares__"
+private const val DEAD_HANG_PREFIX = "forearms_suspension_isometrica_barra_fija__"
+private const val RACK_CHIN_PREFIX = "rack_chin__"
+private const val HIP_THRUST_PREFIX = "hip_thrust__"
+private const val LAT_PULLDOWN_PREFIX = "lat_pulldown__"
 private const val BARBELL_SUFFIX = "__barbell"
+private const val BAND_SUFFIX = "__band"
+private const val INCLINE_BICEPS_CURL_CONFIGURATION = "incline_biceps_curl__dumbbells"
+
+/** Banca plana por nombre de definición: la de barra (`__barbell`) exige además el rack. */
+private val FLAT_BENCH_PRESS_PREFIXES = listOf(
+    BENCH_PRESS_PREFIX,
+    PAUSED_BENCH_PRESS_PREFIX,
+    CLOSE_GRIP_BENCH_PRESS_PREFIX,
+)
+
+/**
+ * Variantes de la banca con barra cuyo id no lleva el sufijo `__barbell` (definiciones
+ * `tren_superior_*`, sufijo `__default`): Spoto y con cadenas. Banco y rack como la banca de barra.
+ */
+private val BARBELL_BENCH_VARIANT_CONFIGURATIONS = setOf(
+    "tren_superior_press_spoto_barra__default",
+    "tren_superior_press_banca_cadenas__default",
+)
+
+/**
+ * Sentadillas con barra que se cargan desde un rack (paquete A · B4). La Smith, la kettlebell y la
+ * mancuerna no están aquí a propósito; tampoco el peso muerto ni el press militar.
+ */
+private val RACK_SQUAT_CONFIGURATIONS = setOf(
+    "high_bar_back_squat__barbell",
+    "low_bar_back_squat__barbell",
+    "front_squat__barbell",
+    "paused_back_squat__barbell",
+    "high_bar_back_squat__safety_bar",
+    "quads_sentadilla_cajon__default",
+    "quads_sentadilla_anderson__default",
+)
 
 // ─── Mapeo curado clave → configuraciones (§13.2 «Habilita / no habilita») ───
 
@@ -243,10 +313,15 @@ private val CHEST_PRESS_CONVERGING_CONFIGURATIONS = setOf(
     "tren_superior_press_pecho_maquina_convergente__default",
 )
 
-/** Polea alta y baja: jalón, remo y extensiones con montaje curado (no doble polea ni cuerda). */
+/**
+ * Polea alta y baja: jalón, remo y extensiones con montaje curado (no doble polea ni cuerda).
+ * Paquete A · B4: incluye el jalón con agarre cerrado (alta M4 del catálogo), la misma polea alta
+ * con otro agarre; sin él, PHAT dejaría de ser viable con polea al migrar `lat-close` a esa configuración.
+ */
 private val CABLE_HIGH_LOW_CONFIGURATIONS = setOf(
     "lat_pulldown__bilateral__cable",
     "lat_pulldown__unilateral__cable",
+    "close_grip_lat_pulldown__cable",
     "conventional_row__cable",
     "triceps_pushdown__bilateral__cable",
     "triceps_pushdown__unilateral__cable",

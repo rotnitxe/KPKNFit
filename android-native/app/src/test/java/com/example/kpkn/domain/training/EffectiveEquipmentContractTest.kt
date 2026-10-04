@@ -12,6 +12,7 @@ import com.example.kpkn.data.models.PlateStock
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.programs.CatalogLevel
 import com.example.kpkn.data.programs.TrainingFocus
+import com.example.kpkn.data.protocols.definitions.NativeProfileKind
 import com.example.kpkn.domain.exercises.catalogv2.InMemoryExerciseCatalogRepositoryV2
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -413,5 +414,56 @@ class EffectiveEquipmentContractTest {
                 result.report.limitations.joinToString(" ")
         }
         assertNoEquipmentLeak(program, setOf("bodyweight"), "peso corporal")
+    }
+
+    // ─── Paquete A · B4: el rack de las sentadillas de barra llega al filtro real del motor ─────
+
+    /**
+     * Músculo propio con barra y banco confirmados y el estado indicado del rack. La sentadilla de barra exige rack
+     * (N-05): confirmado la hace; sin responder o negado, la sentadilla cae a la variante sin carga (no hay mancuernas,
+     * Smith ni kettlebell en este material) en vez de prescribir una sentadilla pesada sin dónde cargarla.
+     */
+    private fun squatsOf(rack: ApparatusPresence?, programId: String): Set<String> {
+        val availability = EquipmentAvailability(
+            categories = setOf(EquipmentCategory.BARBELL, EquipmentCategory.SUPPORT),
+            supports = buildMap {
+                put(EquipmentKeys.BENCH_FLAT, ApparatusPresence.PRESENT)
+                if (rack != null) put(EquipmentKeys.SQUAT_RACK, rack)
+            },
+        )
+        val input = PersonalizerInput(
+            catalogEntryId = NativeProfileKind.MUSCLE.entryId,
+            focus = TrainingFocus.FULL_BODY,
+            frequency = 3,
+            weekdays = listOf(1, 3, 5),
+            equipment = emptySet(),
+            level = CatalogLevel.INTERMEDIATE,
+            availableMinutes = 90,
+        )
+        val result = personalizer().personalize(programId, input, TrainingOptions(availability = availability))
+        val program = requireNotNull(result.program) {
+            "Músculo con barra y banco (rack=$rack) debe generarse: ${result.report.reasonCode} ${result.report.limitations}"
+        }
+        return exercisesOf(program).mapNotNull { it.catalogConfigurationId }
+            .filter { "squat" in it || "sentadilla" in it }
+            .toSet()
+    }
+
+    @Test
+    fun barbell_squats_need_the_rack_and_without_it_the_squat_falls_back_to_the_loadless_squat() {
+        val withRack = squatsOf(ApparatusPresence.PRESENT, "rack-present")
+        assertTrue("con rack confirmado se hace la sentadilla de barra: $withRack", "high_bar_back_squat__barbell" in withRack)
+
+        listOf<ApparatusPresence?>(null, ApparatusPresence.UNKNOWN, ApparatusPresence.ABSENT).forEach { rack ->
+            val squats = squatsOf(rack, "rack-$rack")
+            assertFalse(
+                "con el rack en estado $rack no puede prescribirse una sentadilla de barra: $squats",
+                squats.any { it.endsWith("__barbell") },
+            )
+            assertTrue(
+                "con el rack en estado $rack la sentadilla es la variante sin carga: $squats",
+                "quads_sentadilla_sin_carga__default" in squats,
+            )
+        }
     }
 }

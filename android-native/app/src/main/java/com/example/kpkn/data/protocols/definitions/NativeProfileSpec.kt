@@ -224,6 +224,19 @@ object NativeDoseTable {
  * aparato/polea → banda → reserva corporal. La resolución filtra por material
  * declarado y catálogo aprobado; un candidato no viable se salta al siguiente.
  * Lista vacía = slot suprimido (aislamiento sin resistencia, §13.3).
+ *
+ * Paquete A · B5 (curaduría de programas, 2026-10-03; DEC-w2-04 parte 1): kettlebell, Smith, mancuerna
+ * y banda dejan de ser material «invisible» para los planes propios. Orden de las altas: cada una va
+ * DETRÁS de las variantes con barra, mancuerna, polea y máquina que su lista ya tenía y DELANTE de la
+ * banda y de la reserva de peso corporal (§13.3); entre las altas, primero la mancuerna, luego la Smith
+ * y luego la kettlebell. Excepciones por lógica de prioridad: en T y A las variantes de banda ya iban
+ * delante de las de máquina y las altas van tras ellas; en V el jalón con banda va justo detrás de las
+ * dominadas (es tirón vertical) y delante de los remos de respaldo; en D el hip thrust con banda va
+ * delante de la reserva corporal. Efecto: quien ya resolvía una variante con barra, mancuerna, polea o
+ * máquina conserva su elección; cambian quienes solo tenían banda, kettlebell, Smith, mancuernas sin
+ * banco o peso corporal. Los soportes de cada alta (banco para el hip thrust con banda, barra de
+ * dominadas para el jalón con banda) los fija `supportRequirementsFor` (B4), no esta tabla. Cada id
+ * está APPROVED en el catálogo (`NativeCandidateTableSlotsTest`, `CatalogIdsExistInCatalogTest`).
  */
 object NativeCandidateTable {
     // Reservas curadas sin constante en CatalogIds.
@@ -244,39 +257,74 @@ object NativeCandidateTable {
     private const val MACHINE_PULLDOWN = "lat_pulldown__bilateral__machine"
     private const val INCLINE_DB_PRESS = "incline_bench_press__dumbbells"
 
+    // Paquete A · B5: variantes de Smith, kettlebell, mancuerna y banda sin constante en CatalogIds
+    // (todas APPROVED en el catálogo; el `equipmentId` coincide con el sufijo del id).
+    private const val SQ_SMITH = "high_bar_back_squat__smith_machine"
+    private const val SQ_FRONT_KETTLEBELL = "front_squat__kettlebell"
+    private const val FLOOR_PRESS_DB = "floor_press__dumbbells"
+    private const val BENCH_PRESS_SMITH = "bench_press__smith_machine"
+    private const val RDL_SMITH = "romanian_deadlift__bilateral__smith_machine"
+    private const val HIP_THRUST_BAND = "hip_thrust__bilateral__band"
+    private const val ROW_SMITH = "conventional_row__smith_machine"
+    private const val ROW_KETTLEBELL = "conventional_row__kettlebell"
+    private const val PULLDOWN_BAND = "lat_pulldown__bilateral__band"
+    private const val OHP_SMITH = "military_press__smith_machine"
+    private const val OHP_KETTLEBELL = "military_press__kettlebell"
+    private const val LUNGE_KETTLEBELL = "walking_lunge__kettlebell"
+    private const val LATERAL_KETTLEBELL = "standing_lateral_raise__kettlebell"
+    private const val HAMMER_KETTLEBELL = "hammer_curl__kettlebell"
+    private const val OVERHEAD_TRICEPS_DB = "overhead_triceps__dumbbells"
+    private const val FRENCH_PRESS_KETTLEBELL = "triceps_press_frances__kettlebell"
+
     /**
      * Candidatos por (clave de slot, intención). `F/Fv` de S/B/D usan las
      * configuraciones de competición cuando hay barra (§11.1/§14.3); `H` usa la
-     * variante de volumen. El material decide cuál se resuelve.
+     * variante de volumen. El material decide cuál se resuelve. El orden de las
+     * altas de Smith, kettlebell, mancuerna y banda (paquete A · B5) está en el
+     * KDoc del objeto.
      */
     fun candidatesFor(key: NativeSlotKey, intent: SlotIntent): List<String> = when (key) {
         NativeSlotKey.S -> when (intent) {
-            SlotIntent.F, SlotIntent.FV -> listOf(CatalogIds.SQ_LOW, SQ_GOBLET, SQ_BODYWEIGHT)
-            else -> listOf(CatalogIds.SQ_HIGH, SQ_GOBLET, SQ_BODYWEIGHT)
+            SlotIntent.F, SlotIntent.FV ->
+                listOf(CatalogIds.SQ_LOW, SQ_GOBLET, SQ_SMITH, SQ_FRONT_KETTLEBELL, SQ_BODYWEIGHT)
+            else -> listOf(CatalogIds.SQ_HIGH, SQ_GOBLET, SQ_SMITH, SQ_FRONT_KETTLEBELL, SQ_BODYWEIGHT)
         }
         NativeSlotKey.B -> when (intent) {
             SlotIntent.F, SlotIntent.FV ->
-                listOf(CatalogIds.BP, CatalogIds.BP_DB, CatalogIds.BP_FLOOR, KNEE_PUSH_UP, PUSH_UP_FLAT)
+                listOf(
+                    CatalogIds.BP,
+                    CatalogIds.BP_DB,
+                    CatalogIds.BP_FLOOR,
+                    FLOOR_PRESS_DB,
+                    BENCH_PRESS_SMITH,
+                    KNEE_PUSH_UP,
+                    PUSH_UP_FLAT,
+                )
             else ->
                 listOf(
                     CatalogIds.BP,
                     CatalogIds.BP_DB,
                     INCLINE_DB_PRESS,
                     CatalogIds.BP_FLOOR,
+                    FLOOR_PRESS_DB,
+                    BENCH_PRESS_SMITH,
                     BAND_CHEST_PRESS,
                     KNEE_PUSH_UP,
                     PUSH_UP_FLAT,
                 )
         }
         NativeSlotKey.D -> when (intent) {
-            SlotIntent.F -> listOf(CatalogIds.DL, CatalogIds.RDL, RDL_DB, GLUTE_BRIDGE, FROG_PUMP)
-            else -> listOf(CatalogIds.RDL, RDL_DB, GLUTE_BRIDGE, FROG_PUMP)
+            SlotIntent.F ->
+                listOf(CatalogIds.DL, CatalogIds.RDL, RDL_DB, RDL_SMITH, HIP_THRUST_BAND, GLUTE_BRIDGE, FROG_PUMP)
+            else -> listOf(CatalogIds.RDL, RDL_DB, RDL_SMITH, HIP_THRUST_BAND, GLUTE_BRIDGE, FROG_PUMP)
         }
         NativeSlotKey.R -> listOf(
             CatalogIds.ROW,
             CatalogIds.ROW_DB,
             CatalogIds.ROW_CABLE,
             MACHINE_ROW,
+            ROW_SMITH,
+            ROW_KETTLEBELL,
             BAND_ROW,
             LOW_BAR_ROW,
         )
@@ -284,27 +332,63 @@ object NativeCandidateTable {
             CatalogIds.LAT,
             MACHINE_PULLDOWN,
             CatalogIds.PULLUP,
+            PULLDOWN_BAND,
             LOW_BAR_ROW,
             CatalogIds.ROW_DB,
             CatalogIds.ROW,
+            ROW_SMITH,
+            ROW_KETTLEBELL,
             BAND_ROW,
         )
         NativeSlotKey.O -> listOf(
             CatalogIds.OHP,
             OHP_DB,
             MACHINE_OLYMPIC_PRESS,
+            OHP_SMITH,
+            OHP_KETTLEBELL,
             KNEE_PUSH_UP,
             PUSH_UP_FLAT,
         )
-        NativeSlotKey.U -> listOf(CatalogIds.LUNGE_W_BARBELL, CatalogIds.LUNGE_W, CatalogIds.LUNGE_REVERSE_BODYWEIGHT)
+        NativeSlotKey.U -> listOf(
+            CatalogIds.LUNGE_W_BARBELL,
+            CatalogIds.LUNGE_W,
+            LUNGE_KETTLEBELL,
+            CatalogIds.LUNGE_REVERSE_BODYWEIGHT,
+        )
         NativeSlotKey.C -> listOf(CatalogIds.CRUNCH, CatalogIds.PLANCHA)
-        NativeSlotKey.L -> listOf(CatalogIds.LATERAL, MACHINE_LATERAL_RAISE, CatalogIds.LATERAL_CABLE)
-        NativeSlotKey.A -> listOf(CatalogIds.CURL, CatalogIds.HAMMER, HAMMER_BAND, MACHINE_PREACHER_CURL)
-        NativeSlotKey.T -> listOf(CatalogIds.PUSHDOWN, BAND_PUSHDOWN, MACHINE_PUSHDOWN, BODYWEIGHT_TRICEPS_PRESS)
+        NativeSlotKey.L -> listOf(
+            CatalogIds.LATERAL,
+            MACHINE_LATERAL_RAISE,
+            CatalogIds.LATERAL_CABLE,
+            LATERAL_KETTLEBELL,
+        )
+        NativeSlotKey.A -> listOf(
+            CatalogIds.CURL,
+            CatalogIds.HAMMER,
+            HAMMER_BAND,
+            MACHINE_PREACHER_CURL,
+            HAMMER_KETTLEBELL,
+        )
+        NativeSlotKey.T -> listOf(
+            CatalogIds.PUSHDOWN,
+            BAND_PUSHDOWN,
+            MACHINE_PUSHDOWN,
+            OVERHEAD_TRICEPS_DB,
+            FRENCH_PRESS_KETTLEBELL,
+            BODYWEIGHT_TRICEPS_PRESS,
+        )
         NativeSlotKey.G -> listOf(CatalogIds.CALF, CALF_BODYWEIGHT)
         // §11.5: carga ligera específica con barra/rack; corporal sin salto si no.
         NativeSlotKey.PS -> listOf(CatalogIds.SQ_HIGH, PS_BODYWEIGHT, SQ_GOBLET)
-        NativeSlotKey.PB -> listOf(CatalogIds.BP, CatalogIds.BP_DB, CatalogIds.BP_FLOOR, PB_BODYWEIGHT, PUSH_UP_FLAT)
+        NativeSlotKey.PB -> listOf(
+            CatalogIds.BP,
+            CatalogIds.BP_DB,
+            CatalogIds.BP_FLOOR,
+            FLOOR_PRESS_DB,
+            BENCH_PRESS_SMITH,
+            PB_BODYWEIGHT,
+            PUSH_UP_FLAT,
+        )
         NativeSlotKey.BG -> listOf(GLUTE_BRIDGE_BODYWEIGHT, FROG_PUMP)
         NativeSlotKey.SM -> listOf(SUPERMAN)
     }

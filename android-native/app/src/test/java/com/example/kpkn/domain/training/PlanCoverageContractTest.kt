@@ -41,12 +41,17 @@ private val VIOLATION_CEILING: Map<String, Int> = mapOf(
     // (smoke 226, ci/0 887, ci/1 885, ci/2 886, ci/3 879).
     // tras A.B1–B3/B7 (2026-10-03): corrida `full` = 3 162 (NOT_HONEST 195 → 120, DISHONEST_ABSENT 270 → 0,
     // NO_REPAIR 30 → 0; TIME_BUDGET_INEXACT 1 578 y MATERIAL_UNUSED 1 464 no cambian: A.C2 y A.B5).
-    "smoke" to 200,
-    "ci/0" to 790,
-    "ci/1" to 787,
-    "ci/2" to 797,
-    "ci/3" to 788,
-    "full" to 3_162,
+    // tras A.B4/B5 (2026-10-03): corrida `full` = 1 704 (MATERIAL_UNUSED 1 464 → 0: kettlebell y Smith+banco usan ya
+    // su material; NOT_HONEST 120 sin cambio; TIME_BUDGET_INEXACT 1 578 → 1 584, +6: Atleta con solo kettlebell (E10) o solo
+    // Smith (E11) pasa del calendario «sin tirón» al calendario con tirón, más largo, y cae en el mismo patrón de A.C2 que el
+    // resto de fixtures con tirón, 81 → 84 filas cada uno). Ready 13 624 → 13 471 (−153: Atleta E10 y E11 −72 cada uno,
+    // Músculo E10, E11 y E16 −3 cada uno), todas rechazos honestos TIME_BUDGET con reparación `SetMinutes`.
+    "smoke" to 110,
+    "ci/0" to 432,
+    "ci/1" to 420,
+    "ci/2" to 426,
+    "ci/3" to 426,
+    "full" to 1_704,
 )
 
 /** Filas de la rejilla C1: 3 objetivos x 3 niveles x 6 días x 5 duraciones x 19 fixtures + Atleta x 12 (cardio). */

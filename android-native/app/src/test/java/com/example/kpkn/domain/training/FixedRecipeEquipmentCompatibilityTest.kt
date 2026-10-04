@@ -2,6 +2,7 @@ package com.example.kpkn.domain.training
 
 import com.example.kpkn.data.exercises.catalogv2.CatalogCompositionMetadataProvider
 import com.example.kpkn.data.exercises.catalogv2.toLegacyConfigurationLookup
+import com.example.kpkn.data.models.ApparatusPresence
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.EquipmentAvailability
 import com.example.kpkn.data.models.EquipmentCategory
@@ -14,8 +15,10 @@ import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.protocols.PROTOCOL_LIBRARY
+import com.example.kpkn.data.protocols.definitions.AuthoredPhulPhatRecipes
 import com.example.kpkn.data.protocols.isVisibleForApplication
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2
+import com.example.kpkn.domain.onboarding.AuthoredPlanFixtures
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -243,10 +246,191 @@ class FixedRecipeEquipmentCompatibilityTest {
         assertEquals(setOf("ball"), supportRequirementsFor("curl_isquios_con_balon__default"))
         assertEquals(setOf("nordic_anchor"), supportRequirementsFor("hams_curl_nordic_peso_corporal__default"))
         assertEquals(setOf("support"), supportRequirementsFor("push_up__feet_elevated"))
-        // §13.2: NADA de rack por coincidencia de implemento.
-        assertEquals(emptySet<String>(), supportRequirementsFor("high_bar_back_squat__barbell"))
+        // §13.2: nada de rack por coincidencia de IMPLEMENTO. Paquete A · B4 (N-05): el rack sigue a la lift, así que la
+        // sentadilla trasera de barra lo exige (antes devolvía vacío) y el peso muerto rumano con barra no.
+        assertEquals(setOf("rack"), supportRequirementsFor("high_bar_back_squat__barbell"))
         assertEquals(emptySet<String>(), supportRequirementsFor("romanian_deadlift__bilateral__barbell"))
         assertEquals(emptySet<String>(), supportRequirementsFor("unknown_configuration__default"))
+    }
+
+    // ─── Paquete A · B4 (DEC-w2-04 parte 1): soportes reales de sentadillas y press ─────────
+
+    @Test
+    fun the_rack_follows_the_barbell_squat_lifts_and_not_the_implement_or_the_smith() {
+        listOf(
+            "high_bar_back_squat__barbell",
+            "low_bar_back_squat__barbell",
+            "front_squat__barbell",
+            "paused_back_squat__barbell",
+            "high_bar_back_squat__safety_bar",
+            "quads_sentadilla_cajon__default",
+            "quads_sentadilla_anderson__default",
+        ).forEach { id -> assertEquals("rack en $id", setOf("rack"), supportRequirementsFor(id)) }
+        // La Smith trae su propio soporte; la kettlebell, la mancuerna y el peso corporal no se descargan de un rack;
+        // el peso muerto, el press militar y la zancada de barra quedan fuera (N-05: «no Smith, no OHP»).
+        listOf(
+            "high_bar_back_squat__smith_machine",
+            "low_bar_back_squat__smith_machine",
+            "front_squat__smith_machine",
+            "front_squat__kettlebell",
+            "quads_sentadilla_copa__default",
+            "quads_sentadilla_sin_carga__default",
+            "conventional_deadlift__bilateral__barbell",
+            "deadlift_to_knees__barbell",
+            "military_press__barbell",
+            "military_press__smith_machine",
+            "walking_lunge__barbell",
+        ).forEach { id -> assertEquals("sin rack en $id", emptySet<String>(), supportRequirementsFor(id)) }
+    }
+
+    @Test
+    fun barbell_bench_variants_by_name_ask_for_bench_and_rack_like_the_barbell_bench_press() {
+        // Antes el prefijo `bench_press__` no los cubría: no exigían banco ni rack.
+        listOf(
+            "paused_bench_press__barbell",
+            "close_grip_bench_press__barbell",
+            "tren_superior_press_spoto_barra__default",
+            "tren_superior_press_banca_cadenas__default",
+        ).forEach { id -> assertEquals("banco y rack en $id", setOf("bench", "rack"), supportRequirementsFor(id)) }
+        // Lo que ya estaba no cambia: el suelo sigue sin banco y la inclinada sigue pidiendo el banco regulable.
+        assertEquals(emptySet<String>(), supportRequirementsFor("floor_press__barbell"))
+        assertEquals(setOf("bench", "bench_incline", "rack"), supportRequirementsFor("incline_bench_press__barbell"))
+        assertEquals(setOf("bench"), supportRequirementsFor("bench_press__smith_machine"))
+    }
+
+    @Test
+    fun support_gaps_are_closed_for_rack_chin_scapular_pull_ups_dead_hang_band_variants_and_the_incline_curl() {
+        assertEquals(setOf("low_bar_support"), supportRequirementsFor("rack_chin__default"))
+        assertEquals(setOf("pull_up_bar"), supportRequirementsFor("back_dominadas_escapulares__default"))
+        assertEquals(setOf("pull_up_bar"), supportRequirementsFor("forearms_suspension_isometrica_barra_fija__default"))
+        // El jalón con banda se ancla arriba; el de polea no necesita la barra.
+        assertEquals(setOf("pull_up_bar"), supportRequirementsFor("lat_pulldown__bilateral__band"))
+        assertEquals(setOf("pull_up_bar"), supportRequirementsFor("lat_pulldown__unilateral__band"))
+        assertEquals(emptySet<String>(), supportRequirementsFor("lat_pulldown__bilateral__cable"))
+        assertEquals(emptySet<String>(), supportRequirementsFor("close_grip_lat_pulldown__cable"))
+        // El hip thrust con banda apoya la espalda alta en un banco.
+        assertEquals(setOf("bench"), supportRequirementsFor("hip_thrust__bilateral__band"))
+        assertEquals(setOf("bench"), supportRequirementsFor("hip_thrust__unilateral__band"))
+        // El curl inclinado necesita el banco regulable (que acredita también el plano).
+        assertEquals(setOf("bench", "bench_incline"), supportRequirementsFor("incline_biceps_curl__dumbbells"))
+        assertEquals(emptySet<String>(), supportRequirementsFor("standing_biceps_curl__barbell"))
+    }
+
+    /** Programa de un protocolo del catálogo, materializado como lo hace el wizard (receta intacta). */
+    private fun programOfProtocol(protocolId: String): Program = ProgramProtocolEngine.applyProtocol(
+        program = Program(id = "guard-$protocolId", name = protocolId),
+        protocol = PROTOCOL_LIBRARY.first { it.id == protocolId },
+        metadata = CatalogCompositionMetadataProvider.fromCatalog(catalog),
+        exerciseList = catalog.toLegacyConfigurationLookup().values.toList(),
+    )
+
+    @Test
+    fun squat_only_protocols_now_ask_for_the_rack_they_never_asked_for() {
+        // Smolov y Smolov Jr entrenan SOLO la sentadilla con barra (más jalón y face pull en polea): sin banca, el rack
+        // no salía por ningún otro camino. Con B4 exigen barra y rack; la polea ya figuraba.
+        listOf("smolov", "smolov-jr").forEach { id ->
+            val program = programOfProtocol(id)
+            assertEquals(
+                "$id con barra y polea declaradas pero sin rack",
+                setOf("rack"),
+                missingFixedRecipeEquipment(program, setOf("bodyweight", "barbell", "cable"), catalog),
+            )
+            assertEquals(
+                "$id con barra, polea y rack declarados",
+                emptySet<String>(),
+                missingFixedRecipeEquipment(program, setOf("bodyweight", "barbell", "cable", "rack"), catalog),
+            )
+        }
+    }
+
+    @Test
+    fun phat_now_asks_for_the_low_bar_support_that_its_rack_chin_always_needed() {
+        // PHAT lleva el rack chin (`rack-chin`, T2) en dos días y se hace con una barra baja estable, pero hasta B4 no pedía
+        // ningún soporte. Con el gimnasio completo y esa llave sin responder falta confirmarla (confirmable, no se infiere);
+        // negada, el rack chin no tiene sustituto curado en `PlanAdaptationResolver` y la adaptación no es viable
+        // (A.B6 decidirá si se añade uno).
+        val full = AuthoredPlanFixtures.fullGym.availability
+        fun adaptWith(lowBar: ApparatusPresence?): PlanAdaptationResult {
+            val supports = if (lowBar == null) {
+                full.supports - EquipmentKeys.LOW_BAR_SUPPORT
+            } else {
+                full.supports + (EquipmentKeys.LOW_BAR_SUPPORT to lowBar)
+            }
+            val gear = AuthoredPlanFixtures.Gear("phat-barra-baja-$lowBar", full.copy(supports = supports))
+            return PlanAdaptationResolver.adapt(
+                PlanAdaptationRequest(
+                    recipe = AuthoredPhulPhatRecipes.phatAdapted,
+                    equipment = gear.equipment,
+                    availability = gear.availability,
+                    catalog = catalog,
+                ),
+            )
+        }
+
+        assertTrue(
+            "con la barra baja confirmada PHAT adaptado sigue viable",
+            adaptWith(ApparatusPresence.PRESENT) is PlanAdaptationResult.Adapted,
+        )
+        val unknown = adaptWith(null)
+        assertTrue("barra baja sin responder: $unknown", unknown is PlanAdaptationResult.NotViable)
+        unknown as PlanAdaptationResult.NotViable
+        assertEquals(PlanAdaptationReason.APPARATUS_UNKNOWN, unknown.reason)
+        assertEquals("rack-chin", unknown.slotId)
+        assertEquals(setOf("low_bar_support"), unknown.missingRequirements)
+
+        val denied = adaptWith(ApparatusPresence.ABSENT)
+        assertTrue("barra baja negada: $denied", denied is PlanAdaptationResult.NotViable)
+        denied as PlanAdaptationResult.NotViable
+        assertEquals(PlanAdaptationReason.NO_VALID_SUBSTITUTION, denied.reason)
+        assertEquals("rack-chin", denied.slotId)
+        assertEquals(setOf("low_bar_support"), denied.missingRequirements)
+    }
+
+    @Test
+    fun every_visible_fixed_recipe_with_a_rack_squat_reports_the_rack_when_it_is_missing() {
+        val rackSquats = setOf(
+            "high_bar_back_squat__barbell",
+            "low_bar_back_squat__barbell",
+            "front_squat__barbell",
+            "paused_back_squat__barbell",
+            "high_bar_back_squat__safety_bar",
+            "quads_sentadilla_cajon__default",
+            "quads_sentadilla_anderson__default",
+        )
+        val everythingButTheRack = setOf(
+            "bodyweight", "barbell", "dumbbells", "kettlebell", "band", "cable", "smith_machine", "bench",
+            "bench_incline", "pull_up_bar", "low_bar_support", "dip_bars", "support", "ez_bar",
+        )
+        val withRackSquat = linkedMapOf<String, Boolean>()
+        val notMaterialized = mutableListOf<String>()
+        PROTOCOL_LIBRARY.filter { it.isVisibleForApplication && it.defaultSplit != null }.forEach { protocol ->
+            // Materializar no es lo que se prueba aquí: una receta que no se pueda materializar con estos metadatos se
+            // anota en la salida y se salta (el resto de pruebas de protocolos ya vigilan su materialización).
+            val program = runCatching { programOfProtocol(protocol.id) }.getOrNull()
+            if (program == null) {
+                notMaterialized += protocol.id
+                return@forEach
+            }
+            val configurationIds = program.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }
+                .flatMap { it.weeks }.flatMap { it.sessions }.flatMap { it.allExercises() }
+                .mapNotNull { it.catalogConfigurationId }.toSet()
+            if (configurationIds.none { it in rackSquats }) return@forEach
+            val missing = missingFixedRecipeEquipment(program, everythingButTheRack, catalog)
+            assertTrue("${protocol.id} lleva una sentadilla de barra y debe pedir el rack: $missing", "rack" in missing)
+            // Solo se pide el rack si esa receta no lo tenía ya por una banca de barra.
+            val askedForRackAlready = configurationIds.any { id ->
+                val needs = supportRequirementsFor(id)
+                "bench" in needs && "rack" in needs
+            }
+            withRackSquat[protocol.id] = askedForRackAlready
+        }
+        println("[B4] recetas visibles que no se materializaron en esta prueba: $notMaterialized")
+        println("[B4] recetas fijas visibles con sentadilla de barra (id → ya pedía rack por la banca): $withRackSquat")
+        println("[B4] recetas fijas que piden rack SOLO por la sentadilla: ${withRackSquat.filterValues { !it }.keys}")
+        assertTrue(
+            "Smolov y Smolov Jr piden rack solo por la sentadilla: $withRackSquat",
+            withRackSquat["smolov"] == false && withRackSquat["smolov-jr"] == false,
+        )
     }
 
     @Test

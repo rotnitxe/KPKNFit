@@ -169,7 +169,8 @@ class AuthoredPlansActivationParityTest {
         assertEquals(recipe.provenance, ready.provenance)
         assertEquals(ready.preparedPlan.planProvenance, ready.provenance)
         assertEquals(PlanProvenanceClass.ADAPTED, ready.provenance?.category)
-        assertEquals(2, ready.provenance?.slotChanges?.size)
+        // Paquete A · B4: sin rack, banca e inclinada (a mancuernas) y las dos sentadillas de barra (a Smith).
+        assertEquals(4, ready.provenance?.slotChanges?.size)
 
         commit(ready.preparedPlan)
 
