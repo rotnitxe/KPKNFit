@@ -24,39 +24,41 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con mancuernas y agarre amplio, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
+              "description": "Palmas hacia los pies y codos abiertos casi en cruz con el tronco: así se traduce el agarre amplio con mancuernas. Cada carga termina junto a la axila, y el trapecio y el deltoides posterior trabajan más que con los codos pegados.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
-                "Mancuernas y agarre amplio con el pecho apoyado: los codos se separan para acercar las cargas a la parte alta del torso. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+                "Abre los codos hacia fuera y súbelos hasta la altura de los hombros.",
+                "Aprieta las escápulas arriba sin separar el esternón del respaldo.",
+                "Baja despacio hasta que los brazos vuelvan a colgar estirados."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión",
-                    "Aducción Del Hombro"
+                    "Abducción horizontal",
+                    "Extensión del hombro"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Retracción Escapular"
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
                   "role": "STABILIZER"
@@ -68,7 +70,8 @@
               "movementPatternId": "horizontal_pull",
               "performanceProfileId": "chest_supported_row__dumbbells__wide__remo_pecho_apoyado",
               "primaryMuscles": [
-                "latissimus_dorsi"
+                "latissimus_dorsi",
+                "trapezius"
               ],
               "replacementGroup": "back_row_supported",
               "replacementPriority": 3,
@@ -76,53 +79,54 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Aducción Del Hombro",
-                    "Retracción Escapular",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Abducción horizontal",
+                    "Extensión del hombro",
+                    "Retracción escapular",
+                    "Flexión del codo",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión",
-                        "Aducción Del Hombro"
+                        "Abducción horizontal",
+                        "Extensión del hombro"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Retracción Escapular"
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "latissimus_dorsi"
+                    "latissimus_dorsi",
+                    "trapezius"
                   ],
                   "secondaryMuscles": [
-                    "trapezius",
-                    "deltoid"
+                    "rhomboids",
+                    "deltoid",
+                    "biceps"
                   ],
                   "stabilizerMuscles": [
-                    "rhomboids",
-                    "biceps"
+                    "forearm"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -190,24 +194,26 @@
                     "dumbbells"
                   ],
                   "preservesIntent": [
-                    "horizontal_pull:latissimus_dorsi"
+                    "horizontal_pull:latissimus_dorsi",
+                    "horizontal_pull:trapezius"
                   ],
                   "replacementGroup": "back_row_supported",
                   "replacementPriority": 3
                 }
               },
               "secondaryMuscles": [
-                "trapezius",
-                "deltoid"
+                "rhomboids",
+                "deltoid",
+                "biceps"
               ],
               "setupCues": [
-                "Preparación: Mancuernas y agarre amplio con el pecho apoyado: los codos se separan para acercar las cargas a la parte alta del torso."
+                "Inclina el respaldo y échate boca abajo, con el esternón cerca del borde alto del acolchado.",
+                "Agarra las mancuernas con las palmas mirando hacia tus pies y deja los brazos colgando."
               ],
               "setupTimeSeconds": 30,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "rhomboids",
-                "biceps"
+                "forearm"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -235,39 +241,41 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con kettlebell y agarre amplio, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del dorsal ancho. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
+              "description": "En agarre amplio, cada asa queda atravesada en la palma y los codos se abren hasta la altura de los hombros. La bola cuelga por debajo del puño y se balancea si el tirón es brusco, así que la subida pide un ritmo parejo.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
-                "Kettlebells y agarre amplio con el pecho apoyado: los codos se abren mientras el peso bajo el agarre exige estabilidad en cada mano. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+                "Abre los codos hacia fuera hasta la altura de los hombros, sin dar tirones.",
+                "Cierra las escápulas en lo alto con el pecho quieto sobre el respaldo.",
+                "Baja despacio hasta estirar los brazos."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión",
-                    "Aducción Del Hombro"
+                    "Abducción horizontal",
+                    "Extensión del hombro"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Retracción Escapular"
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
                   "role": "STABILIZER"
@@ -279,7 +287,8 @@
               "movementPatternId": "horizontal_pull",
               "performanceProfileId": "chest_supported_row__kettlebell__wide__remo_pecho_apoyado",
               "primaryMuscles": [
-                "latissimus_dorsi"
+                "latissimus_dorsi",
+                "trapezius"
               ],
               "replacementGroup": "back_row_supported",
               "replacementPriority": 3,
@@ -287,53 +296,54 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Aducción Del Hombro",
-                    "Retracción Escapular",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Abducción horizontal",
+                    "Extensión del hombro",
+                    "Retracción escapular",
+                    "Flexión del codo",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión",
-                        "Aducción Del Hombro"
+                        "Abducción horizontal",
+                        "Extensión del hombro"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Retracción Escapular"
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "latissimus_dorsi"
+                    "latissimus_dorsi",
+                    "trapezius"
                   ],
                   "secondaryMuscles": [
-                    "trapezius",
-                    "deltoid"
+                    "rhomboids",
+                    "deltoid",
+                    "biceps"
                   ],
                   "stabilizerMuscles": [
-                    "rhomboids",
-                    "biceps"
+                    "forearm"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -401,24 +411,26 @@
                     "kettlebell"
                   ],
                   "preservesIntent": [
-                    "horizontal_pull:latissimus_dorsi"
+                    "horizontal_pull:latissimus_dorsi",
+                    "horizontal_pull:trapezius"
                   ],
                   "replacementGroup": "back_row_supported",
                   "replacementPriority": 3
                 }
               },
               "secondaryMuscles": [
-                "trapezius",
-                "deltoid"
+                "rhomboids",
+                "deltoid",
+                "biceps"
               ],
               "setupCues": [
-                "Preparación: Kettlebells y agarre amplio con el pecho apoyado: los codos se abren mientras el peso bajo el agarre exige estabilidad en cada mano."
+                "Inclina el respaldo lo justo para que las bolas no toquen el suelo con los brazos estirados.",
+                "Échate boca abajo y agarra cada asa con las palmas mirando hacia tus pies."
               ],
               "setupTimeSeconds": 30,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "rhomboids",
-                "biceps"
+                "forearm"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -446,39 +458,41 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con máquina y agarre amplio, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
+              "description": "En los mangos exteriores, con las palmas hacia abajo, los codos salen a la altura de los hombros y el tirón se vuelve una apertura hacia atrás. Los brazos de la máquina fijan el arco, y el trapecio y el deltoides posterior suben su parte del trabajo.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
-                "Máquina y agarre amplio con el pecho apoyado: los codos se separan siguiendo un recorrido predeterminado hacia la espalda alta. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+                "Separa los codos del cuerpo y tira hasta que lleguen a la línea de los hombros.",
+                "No despegues el pecho de la almohadilla al final.",
+                "Deja volver los mangos hasta estirar los brazos sin que la carga golpee."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión",
-                    "Aducción Del Hombro"
+                    "Abducción horizontal",
+                    "Extensión del hombro"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Retracción Escapular"
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
                   "role": "STABILIZER"
@@ -490,7 +504,8 @@
               "movementPatternId": "horizontal_pull",
               "performanceProfileId": "chest_supported_row__machine__wide__remo_pecho_apoyado",
               "primaryMuscles": [
-                "latissimus_dorsi"
+                "latissimus_dorsi",
+                "trapezius"
               ],
               "replacementGroup": "back_row_supported",
               "replacementPriority": 3,
@@ -498,53 +513,54 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Aducción Del Hombro",
-                    "Retracción Escapular",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Abducción horizontal",
+                    "Extensión del hombro",
+                    "Retracción escapular",
+                    "Flexión del codo",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión",
-                        "Aducción Del Hombro"
+                        "Abducción horizontal",
+                        "Extensión del hombro"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Retracción Escapular"
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "latissimus_dorsi"
+                    "latissimus_dorsi",
+                    "trapezius"
                   ],
                   "secondaryMuscles": [
-                    "trapezius",
-                    "deltoid"
+                    "rhomboids",
+                    "deltoid",
+                    "biceps"
                   ],
                   "stabilizerMuscles": [
-                    "rhomboids",
-                    "biceps"
+                    "forearm"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -612,24 +628,26 @@
                     "machine"
                   ],
                   "preservesIntent": [
-                    "horizontal_pull:latissimus_dorsi"
+                    "horizontal_pull:latissimus_dorsi",
+                    "horizontal_pull:trapezius"
                   ],
                   "replacementGroup": "back_row_supported",
                   "replacementPriority": 3
                 }
               },
               "secondaryMuscles": [
-                "trapezius",
-                "deltoid"
+                "rhomboids",
+                "deltoid",
+                "biceps"
               ],
               "setupCues": [
-                "Preparación: Máquina y agarre amplio con el pecho apoyado: los codos se separan siguiendo un recorrido predeterminado hacia la espalda alta."
+                "Ajusta el asiento para que los mangos queden a la altura de tu pecho.",
+                "Apoya el pecho en la almohadilla y agarra los mangos horizontales de fuera con las palmas hacia abajo."
               ],
               "setupTimeSeconds": 55,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "rhomboids",
-                "biceps"
+                "forearm"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -657,39 +675,42 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con agarre amplio y polea alta, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. El agarre amplio abre los codos y reparte el esfuerzo del dorsal ancho hacia la espalda alta. Desde polea alta, la tracción entra por arriba y alarga el recorrido del dorsal ancho.",
+              "description": "Desde la polea alta, la barra larga baja hacia el pecho con las manos muy separadas y los codos abiertos, que descienden hacia los costados. Las escápulas, además de juntarse, bajan, y el trapecio y el deltoides posterior aportan más que con un agarre estrecho.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
-                "Polea alta y agarre amplio con el pecho apoyado: los codos se abren y la línea de tirón alcanza con mayor claridad la espalda alta. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+                "Tira de la barra hacia la parte alta del pecho bajando los codos hacia los costados.",
+                "Junta y baja las escápulas sin despegar el pecho del respaldo.",
+                "Deja subir la barra hasta estirar los brazos hacia la polea."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión",
-                    "Aducción Del Hombro"
+                    "Aducción del hombro",
+                    "Extensión del hombro"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Retracción Escapular"
+                    "Retracción escapular",
+                    "Depresión escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
                   "role": "STABILIZER"
@@ -701,7 +722,8 @@
               "movementPatternId": "horizontal_pull",
               "performanceProfileId": "chest_supported_row__cable__wide__remo_pecho_apoyado",
               "primaryMuscles": [
-                "latissimus_dorsi"
+                "latissimus_dorsi",
+                "trapezius"
               ],
               "replacementGroup": "back_row_supported",
               "replacementPriority": 2,
@@ -709,53 +731,56 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Aducción Del Hombro",
-                    "Retracción Escapular",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Aducción del hombro",
+                    "Extensión del hombro",
+                    "Retracción escapular",
+                    "Depresión escapular",
+                    "Flexión del codo",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión",
-                        "Aducción Del Hombro"
+                        "Aducción del hombro",
+                        "Extensión del hombro"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Retracción Escapular"
+                        "Retracción escapular",
+                        "Depresión escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "latissimus_dorsi"
+                    "latissimus_dorsi",
+                    "trapezius"
                   ],
                   "secondaryMuscles": [
-                    "trapezius",
-                    "deltoid"
+                    "rhomboids",
+                    "deltoid",
+                    "biceps"
                   ],
                   "stabilizerMuscles": [
-                    "rhomboids",
-                    "biceps"
+                    "forearm"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -824,24 +849,26 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "horizontal_pull:latissimus_dorsi"
+                    "horizontal_pull:latissimus_dorsi",
+                    "horizontal_pull:trapezius"
                   ],
                   "replacementGroup": "back_row_supported",
                   "replacementPriority": 2
                 }
               },
               "secondaryMuscles": [
-                "trapezius",
-                "deltoid"
+                "rhomboids",
+                "deltoid",
+                "biceps"
               ],
               "setupCues": [
-                "Preparación: Polea alta y agarre amplio con el pecho apoyado: los codos se abren y la línea de tirón alcanza con mayor claridad la espalda alta."
+                "Sube la polea al punto más alto y coloca el banco inclinado de cara a la columna.",
+                "Apoya el pecho en el respaldo y sujeta la barra larga bien abierta, con las palmas mirando a la polea."
               ],
               "setupTimeSeconds": 35,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "rhomboids",
-                "biceps"
+                "forearm"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -870,39 +897,41 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con agarre amplio y polea media, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta. Con la polea a media altura, la línea horizontal pide control del dorsal ancho.",
+              "description": "Sentado frente a la columna con el pecho en una almohadilla casi vertical, el cable llega en horizontal a la barra larga y los codos se abren hasta la línea de los hombros. La barra frena delante de la almohadilla, y el trapecio y el deltoides posterior llevan buena parte del tirón.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
-                "Polea media y agarre amplio con el pecho apoyado: la apertura de los codos desplaza el foco hacia romboides y trapecio medio. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+                "Tira con los codos hacia fuera hasta que la barra quede justo delante de la almohadilla.",
+                "Aprieta las escápulas sin separar el pecho de la almohadilla.",
+                "Estira los brazos hacia la polea sin soltar la barra."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión",
-                    "Aducción Del Hombro"
+                    "Abducción horizontal",
+                    "Extensión del hombro"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Retracción Escapular"
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
                   "role": "STABILIZER"
@@ -914,7 +943,8 @@
               "movementPatternId": "horizontal_pull",
               "performanceProfileId": "chest_supported_row__cable__wide__remo_pecho_apoyado",
               "primaryMuscles": [
-                "latissimus_dorsi"
+                "latissimus_dorsi",
+                "trapezius"
               ],
               "replacementGroup": "back_row_supported",
               "replacementPriority": 2,
@@ -922,53 +952,54 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Aducción Del Hombro",
-                    "Retracción Escapular",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Abducción horizontal",
+                    "Extensión del hombro",
+                    "Retracción escapular",
+                    "Flexión del codo",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión",
-                        "Aducción Del Hombro"
+                        "Abducción horizontal",
+                        "Extensión del hombro"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Retracción Escapular"
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "latissimus_dorsi"
+                    "latissimus_dorsi",
+                    "trapezius"
                   ],
                   "secondaryMuscles": [
-                    "trapezius",
-                    "deltoid"
+                    "rhomboids",
+                    "deltoid",
+                    "biceps"
                   ],
                   "stabilizerMuscles": [
-                    "rhomboids",
-                    "biceps"
+                    "forearm"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1037,24 +1068,26 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "horizontal_pull:latissimus_dorsi"
+                    "horizontal_pull:latissimus_dorsi",
+                    "horizontal_pull:trapezius"
                   ],
                   "replacementGroup": "back_row_supported",
                   "replacementPriority": 2
                 }
               },
               "secondaryMuscles": [
-                "trapezius",
-                "deltoid"
+                "rhomboids",
+                "deltoid",
+                "biceps"
               ],
               "setupCues": [
-                "Preparación: Polea media y agarre amplio con el pecho apoyado: la apertura de los codos desplaza el foco hacia romboides y trapecio medio."
+                "Pon la polea a la altura de tu pecho y siéntate de cara a la columna, con la almohadilla vertical delante del pecho.",
+                "Apoya el pecho en la almohadilla, los pies en el suelo, y sujeta la barra larga bien abierta con las palmas hacia abajo."
               ],
               "setupTimeSeconds": 35,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "rhomboids",
-                "biceps"
+                "forearm"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -1083,39 +1116,41 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con agarre amplio y polea baja, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre amplio abre los codos y reparte el esfuerzo del dorsal ancho hacia la espalda alta. Desde polea baja, la tracción entra por abajo y cambia el ángulo del dorsal ancho.",
+              "description": "Desde la polea baja, la barra larga sube en diagonal hacia el pecho con los codos abiertos, y el recorrido se corta poco antes de tocar el banco. Las escápulas se juntan arriba con el trapecio llevando una parte grande del trabajo.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
-                "Polea baja y agarre amplio con el pecho apoyado: los codos se separan y la carga sube hacia la zona media del pecho. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+                "Tira con los codos hacia fuera hasta que la barra quede a un palmo del banco.",
+                "Aprieta las escápulas sin separar el pecho del respaldo.",
+                "Baja la barra hasta estirar los brazos hacia el suelo."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión",
-                    "Aducción Del Hombro"
+                    "Abducción horizontal",
+                    "Extensión del hombro"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Retracción Escapular"
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
                   "role": "STABILIZER"
@@ -1127,7 +1162,8 @@
               "movementPatternId": "horizontal_pull",
               "performanceProfileId": "chest_supported_row__cable__wide__remo_pecho_apoyado",
               "primaryMuscles": [
-                "latissimus_dorsi"
+                "latissimus_dorsi",
+                "trapezius"
               ],
               "replacementGroup": "back_row_supported",
               "replacementPriority": 2,
@@ -1135,53 +1171,54 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Aducción Del Hombro",
-                    "Retracción Escapular",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Abducción horizontal",
+                    "Extensión del hombro",
+                    "Retracción escapular",
+                    "Flexión del codo",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión",
-                        "Aducción Del Hombro"
+                        "Abducción horizontal",
+                        "Extensión del hombro"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Retracción Escapular"
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "latissimus_dorsi"
+                    "latissimus_dorsi",
+                    "trapezius"
                   ],
                   "secondaryMuscles": [
-                    "trapezius",
-                    "deltoid"
+                    "rhomboids",
+                    "deltoid",
+                    "biceps"
                   ],
                   "stabilizerMuscles": [
-                    "rhomboids",
-                    "biceps"
+                    "forearm"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1250,24 +1287,26 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "horizontal_pull:latissimus_dorsi"
+                    "horizontal_pull:latissimus_dorsi",
+                    "horizontal_pull:trapezius"
                   ],
                   "replacementGroup": "back_row_supported",
                   "replacementPriority": 2
                 }
               },
               "secondaryMuscles": [
-                "trapezius",
-                "deltoid"
+                "rhomboids",
+                "deltoid",
+                "biceps"
               ],
               "setupCues": [
-                "Preparación: Polea baja y agarre amplio con el pecho apoyado: los codos se separan y la carga sube hacia la zona media del pecho."
+                "Baja la polea al punto más bajo y coloca el banco inclinado de cara a la columna.",
+                "Apoya el pecho en el respaldo y sujeta la barra larga bien abierta, con las palmas hacia abajo."
               ],
               "setupTimeSeconds": 35,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "rhomboids",
-                "biceps"
+                "forearm"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -1296,39 +1335,41 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con mancuernas y agarre medio, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado.",
+              "description": "Cada mancuerna cuelga bajo su hombro y sube por fuera del banco hasta las costillas bajas, con el codo a medio camino entre el costado y la cruz. Los brazos van sueltos, así que si un lado se queda corto se nota enseguida.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
-                "Mancuernas y agarre medio con el pecho apoyado: la apertura moderada de los codos reparte la demanda entre dorsal y espalda media. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+                "Lleva los codos hacia atrás en diagonal hasta que las mancuernas lleguen a las costillas bajas.",
+                "Aprieta las escápulas arriba sin separar el esternón del respaldo.",
+                "Vuelve despacio hasta estirar los codos y deja que las escápulas se abran."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión",
-                    "Aducción Del Hombro"
+                    "Extensión del hombro",
+                    "Abducción horizontal"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Retracción Escapular"
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
                   "role": "STABILIZER"
@@ -1348,38 +1389,38 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Aducción Del Hombro",
-                    "Retracción Escapular",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Extensión del hombro",
+                    "Abducción horizontal",
+                    "Retracción escapular",
+                    "Flexión del codo",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión",
-                        "Aducción Del Hombro"
+                        "Extensión del hombro",
+                        "Abducción horizontal"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Retracción Escapular"
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
                       "role": "STABILIZER"
@@ -1389,12 +1430,13 @@
                     "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "trapezius",
                     "rhomboids",
+                    "trapezius",
+                    "deltoid",
                     "biceps"
                   ],
                   "stabilizerMuscles": [
-                    "deltoid"
+                    "forearm"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1469,17 +1511,19 @@
                 }
               },
               "secondaryMuscles": [
-                "trapezius",
                 "rhomboids",
+                "trapezius",
+                "deltoid",
                 "biceps"
               ],
               "setupCues": [
-                "Preparación: Mancuernas y agarre medio con el pecho apoyado: la apertura moderada de los codos reparte la demanda entre dorsal y espalda media."
+                "Inclina el respaldo y échate boca abajo, con el esternón cerca del borde alto del acolchado.",
+                "Toma una mancuerna con cada mano y deja que cuelguen bajo los hombros, con los pies firmes detrás."
               ],
               "setupTimeSeconds": 30,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "deltoid"
+                "forearm"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -1507,39 +1551,41 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con kettlebell y agarre medio, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado.",
+              "description": "La bola cuelga bastante por debajo del asa, de modo que el banco necesita altura para que no roce el suelo con los brazos estirados. Los codos salen en diagonal y las asas terminan a la altura de las costillas.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
-                "Kettlebells y agarre medio con el pecho apoyado: la carga desplazada obliga a organizar la muñeca cuando los codos retroceden. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+                "Tira de los codos en diagonal hasta que las asas lleguen a las costillas.",
+                "Sube a un ritmo parejo para que las bolas no se balanceen.",
+                "Baja hasta estirar los brazos sin soltar las asas."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión",
-                    "Aducción Del Hombro"
+                    "Extensión del hombro",
+                    "Abducción horizontal"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Retracción Escapular"
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
                   "role": "STABILIZER"
@@ -1559,38 +1605,38 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Aducción Del Hombro",
-                    "Retracción Escapular",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Extensión del hombro",
+                    "Abducción horizontal",
+                    "Retracción escapular",
+                    "Flexión del codo",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión",
-                        "Aducción Del Hombro"
+                        "Extensión del hombro",
+                        "Abducción horizontal"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Retracción Escapular"
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
                       "role": "STABILIZER"
@@ -1600,12 +1646,13 @@
                     "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "trapezius",
                     "rhomboids",
+                    "trapezius",
+                    "deltoid",
                     "biceps"
                   ],
                   "stabilizerMuscles": [
-                    "deltoid"
+                    "forearm"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1680,17 +1727,19 @@
                 }
               },
               "secondaryMuscles": [
-                "trapezius",
                 "rhomboids",
+                "trapezius",
+                "deltoid",
                 "biceps"
               ],
               "setupCues": [
-                "Preparación: Kettlebells y agarre medio con el pecho apoyado: la carga desplazada obliga a organizar la muñeca cuando los codos retroceden."
+                "Inclina el respaldo lo justo para que las bolas no toquen el suelo con los brazos estirados.",
+                "Échate boca abajo con un kettlebell colgando de cada mano bajo los hombros."
               ],
               "setupTimeSeconds": 30,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "deltoid"
+                "forearm"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -1718,39 +1767,41 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con máquina y agarre medio, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. El agarre medio equilibra el reparto del trabajo del dorsal ancho.",
+              "description": "Sentado frente a la almohadilla, los mangos quedan a la altura del pecho y recorren el arco fijo de los brazos de la máquina. Sin carga que estabilizar, la serie puede acercarse al fallo sin que la postura cambie.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
-                "Máquina y agarre medio con el pecho apoyado: la guía fija una apertura moderada para repartir el tirón entre dorsal y espalda media. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+                "Tira de los mangos hacia ti hasta que los codos pasen la línea de la espalda.",
+                "No despegues el pecho de la almohadilla al final.",
+                "Deja volver los mangos hasta estirar los brazos sin que la carga golpee."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión",
-                    "Aducción Del Hombro"
+                    "Extensión del hombro",
+                    "Abducción horizontal"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Retracción Escapular"
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
                   "role": "STABILIZER"
@@ -1770,38 +1821,38 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Aducción Del Hombro",
-                    "Retracción Escapular",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Extensión del hombro",
+                    "Abducción horizontal",
+                    "Retracción escapular",
+                    "Flexión del codo",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión",
-                        "Aducción Del Hombro"
+                        "Extensión del hombro",
+                        "Abducción horizontal"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Retracción Escapular"
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
                       "role": "STABILIZER"
@@ -1811,12 +1862,13 @@
                     "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "trapezius",
                     "rhomboids",
+                    "trapezius",
+                    "deltoid",
                     "biceps"
                   ],
                   "stabilizerMuscles": [
-                    "deltoid"
+                    "forearm"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1891,17 +1943,19 @@
                 }
               },
               "secondaryMuscles": [
-                "trapezius",
                 "rhomboids",
+                "trapezius",
+                "deltoid",
                 "biceps"
               ],
               "setupCues": [
-                "Preparación: Máquina y agarre medio con el pecho apoyado: la guía fija una apertura moderada para repartir el tirón entre dorsal y espalda media."
+                "Ajusta el asiento para que los mangos queden a la altura de tu pecho.",
+                "Apoya el pecho en la almohadilla y toma los mangos a la anchura de tus hombros."
               ],
               "setupTimeSeconds": 55,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "deltoid"
+                "forearm"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -1929,39 +1983,42 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con agarre medio y polea alta, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre medio equilibra el reparto del trabajo del dorsal ancho. Desde polea alta, la tracción entra por arriba y alarga el recorrido del dorsal ancho.",
+              "description": "La polea alta tira desde arriba y por delante, así que los brazos arrancan elevados y los codos bajan y retroceden hasta las costillas. Con las manos al ancho de los hombros, el tirón mezcla la extensión del hombro con el cierre de las escápulas.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
-                "Polea alta y agarre medio con el pecho apoyado: los codos bajan con una apertura moderada y combinan dorsal con espalda media. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+                "Baja y retrasa los codos hasta que lleguen a las costillas.",
+                "Junta y baja las escápulas sin despegar el pecho del respaldo.",
+                "Deja subir la barra hasta estirar los brazos hacia la polea."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión",
-                    "Aducción Del Hombro"
+                    "Extensión del hombro",
+                    "Aducción del hombro"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Retracción Escapular"
+                    "Retracción escapular",
+                    "Depresión escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
                   "role": "STABILIZER"
@@ -1981,38 +2038,40 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Aducción Del Hombro",
-                    "Retracción Escapular",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Extensión del hombro",
+                    "Aducción del hombro",
+                    "Retracción escapular",
+                    "Depresión escapular",
+                    "Flexión del codo",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión",
-                        "Aducción Del Hombro"
+                        "Extensión del hombro",
+                        "Aducción del hombro"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Retracción Escapular"
+                        "Retracción escapular",
+                        "Depresión escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
                       "role": "STABILIZER"
@@ -2022,12 +2081,13 @@
                     "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "trapezius",
                     "rhomboids",
+                    "trapezius",
+                    "deltoid",
                     "biceps"
                   ],
                   "stabilizerMuscles": [
-                    "deltoid"
+                    "forearm"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -2103,17 +2163,19 @@
                 }
               },
               "secondaryMuscles": [
-                "trapezius",
                 "rhomboids",
+                "trapezius",
+                "deltoid",
                 "biceps"
               ],
               "setupCues": [
-                "Preparación: Polea alta y agarre medio con el pecho apoyado: los codos bajan con una apertura moderada y combinan dorsal con espalda media."
+                "Sube la polea al punto más alto y coloca el banco inclinado de cara a la columna.",
+                "Apoya el pecho en el respaldo y sujeta la barra corta con las manos a la anchura de tus hombros."
               ],
               "setupTimeSeconds": 35,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "deltoid"
+                "forearm"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -2142,39 +2204,41 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con agarre medio y polea media, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre medio equilibra el reparto del trabajo del dorsal ancho. Con la polea a media altura, la línea horizontal pide control del dorsal ancho.",
+              "description": "El tronco queda vertical contra la almohadilla y el cable llega en horizontal a la altura del pecho, perpendicular al cuerpo. Las asas pasan por los lados del apoyo hasta las costillas, y el cable no afloja ni con los brazos estirados delante.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
-                "Polea media y agarre medio con el pecho apoyado: los codos siguen una diagonal equilibrada entre el costado y la espalda alta. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+                "Lleva los codos hacia atrás en diagonal hasta que pasen la línea de la espalda.",
+                "Aprieta las escápulas sin separar el pecho de la almohadilla.",
+                "Estira los brazos hacia la polea sin soltar las asas."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión",
-                    "Aducción Del Hombro"
+                    "Extensión del hombro",
+                    "Abducción horizontal"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Retracción Escapular"
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
                   "role": "STABILIZER"
@@ -2194,38 +2258,38 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Aducción Del Hombro",
-                    "Retracción Escapular",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Extensión del hombro",
+                    "Abducción horizontal",
+                    "Retracción escapular",
+                    "Flexión del codo",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión",
-                        "Aducción Del Hombro"
+                        "Extensión del hombro",
+                        "Abducción horizontal"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Retracción Escapular"
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
                       "role": "STABILIZER"
@@ -2235,12 +2299,13 @@
                     "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "trapezius",
                     "rhomboids",
+                    "trapezius",
+                    "deltoid",
                     "biceps"
                   ],
                   "stabilizerMuscles": [
-                    "deltoid"
+                    "forearm"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -2316,17 +2381,19 @@
                 }
               },
               "secondaryMuscles": [
-                "trapezius",
                 "rhomboids",
+                "trapezius",
+                "deltoid",
                 "biceps"
               ],
               "setupCues": [
-                "Preparación: Polea media y agarre medio con el pecho apoyado: los codos siguen una diagonal equilibrada entre el costado y la espalda alta."
+                "Pon la polea a la altura de tu pecho y siéntate de cara a la columna, con la almohadilla vertical delante del pecho.",
+                "Apoya el pecho en la almohadilla, los pies en el suelo, y toma un asa en cada mano a la anchura de tus hombros."
               ],
               "setupTimeSeconds": 35,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "deltoid"
+                "forearm"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -2355,39 +2422,41 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con agarre medio y polea baja, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado. Desde polea baja, la tracción entra por abajo y cambia el ángulo del dorsal ancho.",
+              "description": "El cable sale de abajo y por delante, así que el tirón empieza con los brazos estirados hacia el suelo y acaba con las manos frente a la parte baja del pecho. El banco marca el final: la barra frena antes de tocar el acolchado.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
-                "Polea baja y agarre medio con el pecho apoyado: la tracción asciende hacia el torso y los codos recorren una diagonal intermedia. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+                "Lleva los codos hacia atrás en diagonal hasta que la barra quede a un palmo del banco.",
+                "Aprieta las escápulas sin separar el pecho del respaldo.",
+                "Baja la barra hasta estirar los brazos hacia el suelo."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión",
-                    "Aducción Del Hombro"
+                    "Extensión del hombro",
+                    "Abducción horizontal"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Retracción Escapular"
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
                   "role": "STABILIZER"
@@ -2407,38 +2476,38 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Aducción Del Hombro",
-                    "Retracción Escapular",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Extensión del hombro",
+                    "Abducción horizontal",
+                    "Retracción escapular",
+                    "Flexión del codo",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión",
-                        "Aducción Del Hombro"
+                        "Extensión del hombro",
+                        "Abducción horizontal"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Retracción Escapular"
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
                       "role": "STABILIZER"
@@ -2448,12 +2517,13 @@
                     "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "trapezius",
                     "rhomboids",
+                    "trapezius",
+                    "deltoid",
                     "biceps"
                   ],
                   "stabilizerMuscles": [
-                    "deltoid"
+                    "forearm"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -2529,17 +2599,19 @@
                 }
               },
               "secondaryMuscles": [
-                "trapezius",
                 "rhomboids",
+                "trapezius",
+                "deltoid",
                 "biceps"
               ],
               "setupCues": [
-                "Preparación: Polea baja y agarre medio con el pecho apoyado: la tracción asciende hacia el torso y los codos recorren una diagonal intermedia."
+                "Baja la polea al punto más bajo y coloca el banco inclinado de cara a la columna.",
+                "Apoya el pecho en el respaldo y sujeta la barra corta con las manos a la anchura de tus hombros."
               ],
               "setupTimeSeconds": 35,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "deltoid"
+                "forearm"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -2568,39 +2640,41 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con mancuernas y agarre cerrado, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. Con mancuernas, cada lado ajusta su línea y el trabajo del dorsal ancho se equilibra solo. Con el agarre cerrado, los codos viajan cerca del torso y el esfuerzo del dorsal ancho se concentra.",
+              "description": "Con las palmas enfrentadas, los codos rozan las costillas y las mancuernas suben hacia la cadera, por detrás de la línea del tronco. Así el dorsal ancho gana protagonismo frente a la espalda alta, y se mueve más carga que con los codos abiertos.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
-                "Mancuernas y agarre cerrado con el pecho apoyado: los codos descienden junto al cuerpo y cada brazo conserva su propia trayectoria. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+                "Sube los codos rozando las costillas hasta que pasen la línea de la espalda.",
+                "Aguanta un segundo arriba con las escápulas juntas.",
+                "Baja hasta que los brazos cuelguen estirados."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión",
-                    "Aducción Del Hombro"
+                    "Extensión del hombro",
+                    "Aducción del hombro"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Retracción Escapular"
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
                   "role": "STABILIZER"
@@ -2620,38 +2694,38 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Aducción Del Hombro",
-                    "Retracción Escapular",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Extensión del hombro",
+                    "Aducción del hombro",
+                    "Retracción escapular",
+                    "Flexión del codo",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión",
-                        "Aducción Del Hombro"
+                        "Extensión del hombro",
+                        "Aducción del hombro"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Retracción Escapular"
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
                       "role": "STABILIZER"
@@ -2662,10 +2736,12 @@
                   ],
                   "secondaryMuscles": [
                     "rhomboids",
+                    "trapezius",
+                    "deltoid",
                     "biceps"
                   ],
                   "stabilizerMuscles": [
-                    "deltoid"
+                    "forearm"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -2741,15 +2817,18 @@
               },
               "secondaryMuscles": [
                 "rhomboids",
+                "trapezius",
+                "deltoid",
                 "biceps"
               ],
               "setupCues": [
-                "Preparación: Mancuernas y agarre cerrado con el pecho apoyado: los codos descienden junto al cuerpo y cada brazo conserva su propia trayectoria."
+                "Inclina el respaldo y échate boca abajo, con el esternón cerca del borde alto del acolchado.",
+                "Agarra las mancuernas con las palmas enfrentadas, una a cada lado del banco."
               ],
               "setupTimeSeconds": 30,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "deltoid"
+                "forearm"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -2777,39 +2856,41 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con kettlebell y agarre cerrado, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto. Con el agarre cerrado, los codos viajan cerca del torso y el esfuerzo del dorsal ancho se concentra.",
+              "description": "Con las palmas mirando al banco, las asas quedan en línea con el cuerpo y cada bola cuelga pegada a un lateral. Los codos suben rozando el tronco hasta pasar la espalda, y el dorsal ancho gana peso en el tirón.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
-                "Kettlebells y agarre cerrado con el pecho apoyado: el peso cuelga bajo la mano y los codos permanecen cerca del costado. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+                "Sube los codos pegados al tronco hasta que pasen la línea de la espalda.",
+                "Aguanta arriba un instante sin que las bolas se balanceen.",
+                "Baja hasta que los brazos queden estirados."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión",
-                    "Aducción Del Hombro"
+                    "Extensión del hombro",
+                    "Aducción del hombro"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Retracción Escapular"
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
                   "role": "STABILIZER"
@@ -2829,38 +2910,38 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Aducción Del Hombro",
-                    "Retracción Escapular",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Extensión del hombro",
+                    "Aducción del hombro",
+                    "Retracción escapular",
+                    "Flexión del codo",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión",
-                        "Aducción Del Hombro"
+                        "Extensión del hombro",
+                        "Aducción del hombro"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Retracción Escapular"
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
                       "role": "STABILIZER"
@@ -2871,10 +2952,12 @@
                   ],
                   "secondaryMuscles": [
                     "rhomboids",
+                    "trapezius",
+                    "deltoid",
                     "biceps"
                   ],
                   "stabilizerMuscles": [
-                    "deltoid"
+                    "forearm"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -2950,15 +3033,18 @@
               },
               "secondaryMuscles": [
                 "rhomboids",
+                "trapezius",
+                "deltoid",
                 "biceps"
               ],
               "setupCues": [
-                "Preparación: Kettlebells y agarre cerrado con el pecho apoyado: el peso cuelga bajo la mano y los codos permanecen cerca del costado."
+                "Inclina el respaldo lo justo para que las bolas no toquen el suelo con los brazos estirados.",
+                "Échate boca abajo y agarra cada asa con la palma mirando hacia el banco."
               ],
               "setupTimeSeconds": 30,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "deltoid"
+                "forearm"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -2986,39 +3072,41 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con máquina y agarre cerrado, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso.",
+              "description": "Los agarres verticales del centro juntan las manos con las palmas enfrentadas, y los codos pasan rozando el costado. El arco de la máquina termina con las manos junto a las costillas bajas y el dorsal ancho como protagonista.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
-                "Máquina y agarre cerrado con el pecho apoyado: el recorrido guiado mantiene los codos junto al cuerpo y reduce la variación entre repeticiones. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+                "Lleva los codos pegados al cuerpo hasta que las manos lleguen a las costillas.",
+                "No despegues el pecho de la almohadilla al final.",
+                "Deja volver los mangos hasta estirar los brazos sin que la carga golpee."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión",
-                    "Aducción Del Hombro"
+                    "Extensión del hombro",
+                    "Aducción del hombro"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Retracción Escapular"
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
                   "role": "STABILIZER"
@@ -3038,38 +3126,38 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Aducción Del Hombro",
-                    "Retracción Escapular",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Extensión del hombro",
+                    "Aducción del hombro",
+                    "Retracción escapular",
+                    "Flexión del codo",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión",
-                        "Aducción Del Hombro"
+                        "Extensión del hombro",
+                        "Aducción del hombro"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Retracción Escapular"
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
                       "role": "STABILIZER"
@@ -3080,10 +3168,12 @@
                   ],
                   "secondaryMuscles": [
                     "rhomboids",
+                    "trapezius",
+                    "deltoid",
                     "biceps"
                   ],
                   "stabilizerMuscles": [
-                    "deltoid"
+                    "forearm"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -3159,15 +3249,18 @@
               },
               "secondaryMuscles": [
                 "rhomboids",
+                "trapezius",
+                "deltoid",
                 "biceps"
               ],
               "setupCues": [
-                "Preparación: Máquina y agarre cerrado con el pecho apoyado: el recorrido guiado mantiene los codos junto al cuerpo y reduce la variación entre repeticiones."
+                "Ajusta el asiento para que los mangos queden a la altura de tu pecho.",
+                "Apoya el pecho y agarra los mangos verticales del centro con las palmas enfrentadas."
               ],
               "setupTimeSeconds": 55,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "deltoid"
+                "forearm"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -3195,39 +3288,41 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con agarre cerrado y polea alta, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. Con el agarre cerrado, los codos viajan cerca del torso y el esfuerzo del dorsal ancho se concentra. Con la polea alta, la línea de tracción cae desde arriba sobre el dorsal ancho.",
+              "description": "Con el agarre en V colgando de lo alto, los codos descienden junto al tronco desde un brazo elevado hasta quedar a la altura de las costillas. Es el ajuste de este remo que más recorrido de extensión de hombro pide, la acción propia del dorsal ancho.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
-                "Polea alta y agarre cerrado con el pecho apoyado: la línea descendente lleva los codos cerca del costado y favorece la tracción del dorsal. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+                "Baja los codos pegados al cuerpo hasta que queden junto a las costillas.",
+                "Aprieta las escápulas abajo y atrás un instante.",
+                "Deja subir el agarre hasta estirar los brazos."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión",
-                    "Aducción Del Hombro"
+                    "Extensión del hombro"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Retracción Escapular"
+                    "Retracción escapular",
+                    "Depresión escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
                   "role": "STABILIZER"
@@ -3247,38 +3342,38 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Aducción Del Hombro",
-                    "Retracción Escapular",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Extensión del hombro",
+                    "Retracción escapular",
+                    "Depresión escapular",
+                    "Flexión del codo",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión",
-                        "Aducción Del Hombro"
+                        "Extensión del hombro"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Retracción Escapular"
+                        "Retracción escapular",
+                        "Depresión escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
                       "role": "STABILIZER"
@@ -3289,10 +3384,12 @@
                   ],
                   "secondaryMuscles": [
                     "rhomboids",
+                    "trapezius",
+                    "deltoid",
                     "biceps"
                   ],
                   "stabilizerMuscles": [
-                    "deltoid"
+                    "forearm"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -3369,15 +3466,18 @@
               },
               "secondaryMuscles": [
                 "rhomboids",
+                "trapezius",
+                "deltoid",
                 "biceps"
               ],
               "setupCues": [
-                "Preparación: Polea alta y agarre cerrado con el pecho apoyado: la línea descendente lleva los codos cerca del costado y favorece la tracción del dorsal."
+                "Sube la polea al punto más alto y coloca el banco inclinado de cara a la columna.",
+                "Apoya el pecho en el respaldo y toma el agarre en V con las palmas enfrentadas."
               ],
               "setupTimeSeconds": 35,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "deltoid"
+                "forearm"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -3406,39 +3506,41 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con agarre cerrado y polea media, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso. Desde polea media, la línea horizontal pide control y mantiene el foco del dorsal ancho.",
+              "description": "Con las dos asas juntas a los lados de la almohadilla y las palmas enfrentadas, los codos se deslizan pegados a las costillas con el tronco vertical. Así el dorsal ancho toma la delantera y el hombro se extiende por detrás del tronco.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
-                "Polea media y agarre cerrado con el pecho apoyado: la empuñadura llega hacia la cintura con los codos recogidos. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+                "Lleva los codos rozando las costillas hasta que las asas lleguen a los costados del pecho.",
+                "Aprieta las escápulas sin separar el pecho de la almohadilla.",
+                "Estira los brazos hacia la polea sin soltar las asas."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión",
-                    "Aducción Del Hombro"
+                    "Extensión del hombro",
+                    "Aducción del hombro"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Retracción Escapular"
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
                   "role": "STABILIZER"
@@ -3458,38 +3560,38 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Aducción Del Hombro",
-                    "Retracción Escapular",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Extensión del hombro",
+                    "Aducción del hombro",
+                    "Retracción escapular",
+                    "Flexión del codo",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión",
-                        "Aducción Del Hombro"
+                        "Extensión del hombro",
+                        "Aducción del hombro"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Retracción Escapular"
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
                       "role": "STABILIZER"
@@ -3500,10 +3602,12 @@
                   ],
                   "secondaryMuscles": [
                     "rhomboids",
+                    "trapezius",
+                    "deltoid",
                     "biceps"
                   ],
                   "stabilizerMuscles": [
-                    "deltoid"
+                    "forearm"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -3580,15 +3684,18 @@
               },
               "secondaryMuscles": [
                 "rhomboids",
+                "trapezius",
+                "deltoid",
                 "biceps"
               ],
               "setupCues": [
-                "Preparación: Polea media y agarre cerrado con el pecho apoyado: la empuñadura llega hacia la cintura con los codos recogidos."
+                "Pon la polea a la altura de tu pecho y siéntate de cara a la columna, con la almohadilla vertical delante del pecho.",
+                "Apoya el pecho en la almohadilla, los pies en el suelo, y toma las dos asas juntas con las palmas enfrentadas."
               ],
               "setupTimeSeconds": 35,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "deltoid"
+                "forearm"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -3617,39 +3724,41 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con agarre cerrado y polea baja, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso. Desde polea baja, la tracción entra por abajo y cambia el ángulo del dorsal ancho.",
+              "description": "Enganchado a la polea baja, el agarre en V sube hacia el final del esternón y los codos pasan pegados al tronco hasta quedar detrás de la espalda. El dorsal ancho lleva la delantera, y el banco frena el agarre justo antes de tocarlo.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
-                "Polea baja y agarre cerrado con el pecho apoyado: las manos suben hacia la parte baja del torso mientras los codos permanecen próximos. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+                "Lleva los codos pegados al cuerpo hasta que el agarre quede a un palmo del banco.",
+                "Aprieta las escápulas sin separar el pecho del respaldo.",
+                "Baja el agarre hasta estirar los brazos hacia el suelo."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión",
-                    "Aducción Del Hombro"
+                    "Extensión del hombro",
+                    "Aducción del hombro"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Retracción Escapular"
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
                   "role": "STABILIZER"
@@ -3669,38 +3778,38 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Aducción Del Hombro",
-                    "Retracción Escapular",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Extensión del hombro",
+                    "Aducción del hombro",
+                    "Retracción escapular",
+                    "Flexión del codo",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión",
-                        "Aducción Del Hombro"
+                        "Extensión del hombro",
+                        "Aducción del hombro"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Retracción Escapular"
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
                       "role": "STABILIZER"
@@ -3711,10 +3820,12 @@
                   ],
                   "secondaryMuscles": [
                     "rhomboids",
+                    "trapezius",
+                    "deltoid",
                     "biceps"
                   ],
                   "stabilizerMuscles": [
-                    "deltoid"
+                    "forearm"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -3791,15 +3902,18 @@
               },
               "secondaryMuscles": [
                 "rhomboids",
+                "trapezius",
+                "deltoid",
                 "biceps"
               ],
               "setupCues": [
-                "Preparación: Polea baja y agarre cerrado con el pecho apoyado: las manos suben hacia la parte baja del torso mientras los codos permanecen próximos."
+                "Baja la polea al punto más bajo y coloca el banco inclinado de cara a la columna.",
+                "Apoya el pecho en el respaldo y toma el agarre en V con las palmas enfrentadas."
               ],
               "setupTimeSeconds": 35,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "deltoid"
+                "forearm"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -3812,7 +3926,7 @@
           }
         ],
         "defaultConfigurationId": "chest_supported_row__dumbbells__medium",
-        "description": "El Remo con Pecho Apoyado es la tracción horizontal sin trampas: con el torso pegado al banco, el dorsal ancho tira sin que la zona lumbar pueda robar ni un ápice del trabajo. Se ejecuta con el pecho sobre el banco inclinado y las mancuernas colgando, llevando los codos hacia atrás hasta juntar los omóplatos y bajando con el mismo control. En polea la tensión no se apaga en ningún punto del recorrido, una variante que conviene tener en el arsenal. La vía más honesta para construir una espalda alta sin pagarla con la espalda baja.",
+        "description": "El Remo con Pecho Apoyado (chest supported row) es un tirón horizontal para la espalda: el dorsal ancho lleva los codos hacia atrás mientras el trapecio y los romboides juntan las escápulas, con ayuda del deltoides posterior y del bíceps. El pecho descansa sobre un respaldo inclinado o sobre la almohadilla de una estación, los brazos arrancan estirados hacia la carga y cada tirón termina con los codos más allá de la línea de la espalda. Como el apoyo sostiene el torso, la zona lumbar no carga con ninguna inclinación y la cadera no puede dar impulso. Con los codos abiertos trabaja más la espalda alta; pegados al costado, el dorsal. Encaja en sesiones en las que la espalda baja ya trabajó con bisagras y todavía falta volumen de tirón.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

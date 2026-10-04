@@ -34,7 +34,7 @@ JOINT_IDS = frozenset(
     }
 )
 
-# Movement patterns the runtime knows how to place in a session (62 today).
+# Movement patterns the runtime knows how to place in a session (63 today).
 # Mirror of `AprendeOntology.catalogPatternToWikiLab` (Kotlin); a test keeps both in sync.
 # A ficha may only move an exercise to one of these. A new pattern needs the Kotlin
 # ontology, `CompositionTaxonomy` and `AprendeCatalogAuditTest` first, and the user's approval.
@@ -52,7 +52,7 @@ MOVEMENT_PATTERN_IDS = frozenset(
         "lateral_knee_dominant", "lateral_trunk_flexion",
         "neck_extension", "neck_flexion", "neck_lateral_flexion", "pinch_grip", "plantar_flexion",
         "romanian_deadlift", "romanian_deadlift_deficit", "scapular_depression", "scapular_elevation",
-        "shoulder_abduction_diagonal", "shoulder_abduction_full_rom", "shoulder_flexion",
+        "scapular_retraction", "shoulder_abduction_diagonal", "shoulder_abduction_full_rom", "shoulder_flexion",
         "spinal_extension", "spinal_flexion", "trunk_flexion", "trunk_rotation", "unilateral_hip_dominant",
         "unilateral_knee_dominant", "unilateral_knee_dominant_asymmetric", "vertical_pull",
         "vertical_pull_abduction", "vertical_push", "wrist_extension", "wrist_flexion",

@@ -1,91 +1,994 @@
 {
   "definitions": {
     "lying_pullover": {
-      "public": {
-        "configurations": {
-          "lying_pullover__barbell": {
-            "description": "Con barra, tumbado en la banca, la carga viaja con los brazos extendidos por detrás de la cabeza y regresa sobre el pecho. El pectoral trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-            "executionCues": [
-              "Barra acostado detrás de la cabeza: el arco largo con carga completa. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Extensión del hombro",
+              "Flexión frenada del hombro"
             ],
-            "setupCues": [
-              "Preparación: Barra acostado detrás de la cabeza: el arco largo con carga completa."
+            "id": "glenohumeral",
+            "role": "PRIMARY",
+            "sources": [
+              "marchetti2011",
+              "teixeira2022",
+              "statpearls_pectoral"
+            ],
+            "why": "El hombro recorre la mitad alta de su arco de elevación: de unos 90 grados, con los brazos verticales sobre el pecho, a cerca de 180, con los brazos junto a las orejas, y vuelta. Con peso libre la carga pesa más con los brazos cerca de la horizontal, detrás de la cabeza, donde su brazo de palanca es más largo (Marchetti y Uchida 2011); con resistencia constante, el pectoral rindió más entre 90 y 135 grados (Teixeira 2022)."
+          },
+          {
+            "actions": [
+              "Rotación escapular superior",
+              "Rotación escapular inferior"
+            ],
+            "id": "escapulotoracica",
+            "role": "SECONDARY",
+            "sources": [
+              "statpearls_extrinsic_back",
+              "statpearls_pectoral"
+            ],
+            "why": "Las escápulas, apoyadas en el banco, giran hacia arriba cuando los brazos pasan por encima de la cabeza y vuelven al subir la carga; acompañan al húmero sin ser el motor del gesto."
+          },
+          {
+            "actions": [
+              "Flexión ligera sostenida del codo"
+            ],
+            "id": "codo",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_triceps",
+              "landin2011"
+            ],
+            "why": "El codo queda apenas doblado y no cambia de ángulo durante el arco: el tríceps lo sostiene para que la carga no caiga hacia la cara ni el gesto se convierta en una extensión de codo."
+          },
+          {
+            "actions": [
+              "Sostén del agarre"
+            ],
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_forearm_compartments"
+            ],
+            "why": "Con la mancuerna, las palmas empujan la cara interna del disco con las muñecas algo extendidas y firmes bajo una carga que pasa por encima de la cara; la muñeca no aporta movimiento."
+          },
+          {
+            "actions": [
+              "Control del arqueo lumbar"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_abdominal_wall",
+              "statpearls_extrinsic_back"
+            ],
+            "why": "Al pasar los brazos detrás de la cabeza, el estiramiento del dorsal tira hacia un arqueo lumbar; la pared abdominal lo frena y la zona lumbar se queda sobre el banco."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "pectoralis",
+            "role": "PRIMARY",
+            "sources": [
+              "teixeira2022",
+              "marchetti2011",
+              "muyor2022",
+              "statpearls_pectoralis_major"
+            ],
+            "why": "Su porción esternocostal lleva el brazo desde la elevación por encima de la cabeza hacia delante. En el pull over tumbado con polea, su actividad isométrica fue mayor entre 90 y 135 grados de flexión del hombro, dentro del arco de este ejercicio, mientras que el dorsal rindió más entre 0 y 45 (Teixeira 2022). Con barra superó al dorsal (Marchetti y Uchida 2011) y se activó más que en el pull over de pie en polea, sobre todo en sus porciones esternal y costal (Muyor 2022)."
+          },
+          {
+            "id": "latissimus_dorsi",
+            "role": "SECONDARY",
+            "sources": [
+              "teixeira2022",
+              "marchetti2011",
+              "difonza2026",
+              "statpearls_extrinsic_back"
+            ],
+            "why": "Extiende el hombro en el mismo arco y queda estirado al máximo con los brazos detrás de la cabeza. Rinde más cerca del costado, entre 0 y 45 grados de flexión (Teixeira 2022), un tramo que el pull over tumbado no recorre; con barra se activó menos que el pectoral (Marchetti y Uchida 2011), y una revisión de 2026 concluye que el pull over no lo trabaja de forma selectiva (Di Fonza 2026). Asiste sin llevar el gesto."
+          },
+          {
+            "id": "triceps",
+            "role": "SECONDARY",
+            "sources": [
+              "muyor2022",
+              "statpearls_triceps"
+            ],
+            "why": "Su cabeza larga cruza el hombro y ayuda a extenderlo, y el resto del músculo sostiene el codo casi recto bajo la carga. Muyor et al. (2022) lo midieron en el pull over con barra y lo cuentan entre los músculos que este ejercicio activa, aunque fue todavía más alto en el pull over de pie en polea: ayuda con trabajo real sin llevar el gesto."
+          },
+          {
+            "id": "deltoid",
+            "role": "SECONDARY",
+            "sources": [
+              "pezaratcorreia2020",
+              "muyor2022",
+              "bull2007",
+              "statpearls_deltoid"
+            ],
+            "why": "En pull over con barra tumbado, el deltoides posterior estuvo entre los músculos más activos, con 49-51 % de su contracción máxima (Pezarat-Correia 2020); la porción anterior se activó más que en el pull over de pie en polea (Muyor 2022) y de forma moderada con los brazos estirados (Bull et al. 2007). Mueve y sujeta el hombro a lo largo del arco, así que suma como secundario."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "muyor2022",
+              "statpearls_abdominal_wall",
+              "statpearls_extrinsic_back"
+            ],
+            "why": "La pared abdominal frena el arqueo lumbar cuando los brazos pasan detrás de la cabeza y estiran el dorsal, que se ancla en la columna y la pelvis. En el pull over con barra el recto abdominal se activó más que en el pull over de pie en polea (Muyor 2022). Trabaja en isometría y no mueve ninguna articulación del gesto."
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_forearm_compartments"
+            ],
+            "why": "Los flexores de los dedos y de la muñeca sujetan la carga por encima de la cara durante todo el arco; no la mueven, pero si ceden la carga cae."
+          }
+        ],
+        "overrides": {
+          "lying_pullover__barbell": {
+            "joints": [
+              {
+                "actions": [
+                  "Sostén del agarre"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_forearm_compartments"
+                ],
+                "why": "La barra se toma en prono con las manos a la anchura de los hombros; las muñecas quedan rectas y fijas mientras una carga larga pasa por encima de la cara."
+              }
             ]
           },
           "lying_pullover__cable": {
-            "description": "Con polea, tumbado en la banca, la carga viaja con los brazos extendidos por detrás de la cabeza y regresa sobre el pecho. Con la polea, la tensión sobre el pectoral se mantiene viva de principio a fin.",
-            "executionCues": [
-              "Polea acostado: la tensión constante estira el dorsal en todo el recorrido. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
-            ],
-            "setupCues": [
-              "Preparación: Polea acostado: la tensión constante estira el dorsal en todo el recorrido."
-            ]
-          },
-          "lying_pullover__dumbbells": {
-            "description": "Con mancuernas, tumbado en la banca, la carga viaja con los brazos extendidos por detrás de la cabeza y regresa sobre el pecho. Con mancuernas, cada lado ajusta su línea y el trabajo del pectoral se equilibra solo.",
-            "executionCues": [
-              "Mancuerna acostado llevándola detrás de la cabeza: el dorsal se estira a fondo. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
-            ],
-            "setupCues": [
-              "Preparación: Mancuerna acostado llevándola detrás de la cabeza: el dorsal se estira a fondo."
+            "joints": [
+              {
+                "actions": [
+                  "Extensión del hombro",
+                  "Flexión frenada del hombro"
+                ],
+                "id": "glenohumeral",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_pectoral",
+                  "statpearls_extrinsic_back"
+                ],
+                "why": "El cable tira hacia la polea baja situada detrás de la cabeza, no en vertical: con los brazos verticales sobre el pecho la carga todavía empuja el brazo hacia atrás, así que el hombro trabaja también en el tramo alto, donde con peso libre apenas pesa. Se deduce de la geometría del cable."
+              },
+              {
+                "actions": [
+                  "Sostén del agarre"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_forearm_compartments"
+                ],
+                "why": "Las manos cierran una barra corta unida al cable y las muñecas quedan rectas mientras el cable tira de ellas hacia la polea."
+              }
             ]
           },
           "lying_pullover__kettlebell": {
-            "description": "Con kettlebell, tumbado en la banca, la carga viaja con los brazos extendidos por detrás de la cabeza y regresa sobre el pecho. El pectoral trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+            "joints": [
+              {
+                "actions": [
+                  "Sostén del agarre",
+                  "Control del balanceo de la carga"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_forearm_compartments"
+                ],
+                "why": "Con la bola colgando bajo el asa, la muñeca tiene que impedir que la carga se balancee en el arco; sigue sin aportar movimiento propio."
+              }
+            ],
+            "muscles": [
+              {
+                "id": "forearm",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_forearm_compartments"
+                ],
+                "why": "Las manos cierran los lados del asa y la bola cuelga por debajo, más lejos del hombro que el asa; los flexores de los dedos y de la muñeca frenan que la bola se balancee o gire al pasar detrás de la cabeza."
+              }
+            ]
+          }
+        }
+      },
+      "public": {
+        "configurations": {
+          "lying_pullover__barbell": {
+            "description": "La barra se toma en prono con las manos a la anchura de los hombros y pasa por encima de la cara en cada repetición. Al compartir la barra, los dos brazos bajan a la vez y ninguno puede adelantarse.",
             "executionCues": [
-              "Kettlebell acostado detrás de la cabeza: la campana se perciben distinta en el arco. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
+              "Pasa la barra por encima de la cara y llévala detrás de la cabeza con los codos casi rectos.",
+              "Baja hasta que los brazos queden a la altura del banco, con las costillas abajo.",
+              "Sube la barra por el mismo arco hasta tenerla otra vez sobre el pecho."
             ],
             "setupCues": [
-              "Preparación: Kettlebell acostado detrás de la cabeza: la campana se perciben distinta en el arco."
+              "Túmbate en el banco con los pies firmes en el suelo y la cabeza apoyada.",
+              "Sostén la barra sobre el pecho en prono, con las manos a la anchura de los hombros."
+            ]
+          },
+          "lying_pullover__cable": {
+            "description": "El banco se coloca delante de una polea baja, con la cabeza hacia ella, y el cable tira hacia la polea desde detrás de la cabeza. Por eso la carga se nota también con los brazos verticales sobre el pecho.",
+            "executionCues": [
+              "Tira en arco hasta tener las manos sobre el pecho, sin doblar más los codos.",
+              "Aguanta un instante arriba, donde el cable todavía tira.",
+              "Vuelve despacio hasta que los brazos queden detrás de la cabeza."
+            ],
+            "setupCues": [
+              "Coloca el banco con la cabeza hacia una polea baja y engancha una barra corta.",
+              "Túmbate y agarra la barra por detrás de la cabeza, con los brazos casi rectos y el cable tenso."
+            ]
+          },
+          "lying_pullover__dumbbells": {
+            "description": "Una sola mancuerna va en vertical, con las palmas apoyadas bajo el disco de arriba y los pulgares rodeando el mango. Con las manos juntas los codos se abren un poco, y en el estiramiento la mancuerna cuelga recta detrás de la cabeza.",
+            "executionCues": [
+              "Lleva la mancuerna en arco por detrás de la cabeza con los codos apenas doblados.",
+              "Para cuando los brazos queden junto a las orejas, sin arquear la zona lumbar.",
+              "Vuelve por el mismo arco hasta tener la mancuerna sobre el pecho."
+            ],
+            "setupCues": [
+              "Túmbate a lo largo del banco con la cabeza cerca del borde y los pies apoyados en el suelo.",
+              "Sujeta una mancuerna en vertical sobre el pecho, con las palmas bajo el disco de arriba."
+            ]
+          },
+          "lying_pullover__kettlebell": {
+            "description": "La kettlebell se sujeta por los lados del asa y la bola cuelga por debajo de las manos, así que el peso queda más lejos del hombro y tiende a balancearse al pasar detrás de la cabeza.",
+            "executionCues": [
+              "Llévala en arco detrás de la cabeza sin dejar que la bola se balancee.",
+              "Para con los brazos junto a las orejas y la espalda pegada al banco.",
+              "Vuelve despacio hasta tener la kettlebell sobre el pecho."
+            ],
+            "setupCues": [
+              "Túmbate a lo largo del banco con los pies en el suelo.",
+              "Sujeta la kettlebell por los lados del asa sobre el pecho, con la bola colgando hacia ti."
             ]
           }
         },
-        "description": "El Pull Over en Banca estira el pectoral y el dorsal en un arco por encima de la cabeza: tumbado, la carga viaja desde el pecho hasta atrás de la nuca y regresa. Se ejecuta con una mancuerna a dos manos, bajando hasta sentir el estiramiento en las costillas y subiendo sin doblar los codos de más. El tríceps y el dorsal asisten el retorno. El expansor de la caja torácica con más historia del fisicoculturismo."
+        "description": "El Pull Over en Banca (lying pullover) lleva la carga en arco desde encima del pecho hasta detrás de la cabeza y la devuelve, tumbado boca arriba con los codos casi rectos. En esa extensión de hombro tumbado, el pectoral mayor trabaja más que el dorsal ancho, que ayuda en el mismo arco junto a la cabeza larga del tríceps. Cabeza, espalda y cadera quedan sobre el banco: el tronco no da impulso y lo que hay que vigilar es que la zona lumbar no se arquee. Con pesos libres, el tramo exigente llega con los brazos cerca de la horizontal; arriba, con los brazos verticales, la carga apenas pesa. Trabaja pectoral y dorsal con el brazo por encima de la cabeza, un ángulo que el press de banca y los remos no recorren."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "En el pull over con barra libre, tumbado y con una carga del 30 % del peso corporal, el pectoral mayor se activó más que el dorsal ancho, y la activación dependió del brazo de palanca de la carga externa.",
+          "id": "marchetti2011",
+          "title": "Effects of the pullover exercise on the pectoralis major and latissimus dorsi muscles as evaluated by EMG",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/21975179/"
+        },
+        {
+          "claim": "Revisión de 23 estudios de electromiografía: el pull over pareció activar preferentemente el pectoral mayor en lugar de dirigirse de forma selectiva al dorsal ancho.",
+          "id": "difonza2026",
+          "title": "Electromyographic Analysis of Latissimus Dorsi Activation During Common Resistance Training Exercises: A Narrative Review",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/42647355/"
+        },
+        {
+          "claim": "En 24 hombres, la porción anterior del deltoides tuvo actividad moderada en el pull over y fuerte en el pull over con los brazos doblados; la porción clavicular del pectoral fue de débil a moderada en ambos.",
+          "id": "bull2007",
+          "title": "Electromyographic validation of the deltoideus (anterior portion) and pectoralis major (clavicular portion) muscles in pull-over exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/18051626/"
+        },
+        {
+          "claim": "El tríceps braquial extiende el codo y el hombro; con estimulación eléctrica, su momento de extensión del hombro dependió sobre todo del ángulo del hombro y aumentó al pasar de 0 a 80 grados.",
+          "id": "landin2011",
+          "title": "The shoulder extension function of the triceps brachii",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/20934352/"
+        },
+        {
+          "claim": "Describe el pectoral mayor con sus dos cabezas, clavicular y esternocostal, y su inserción en el húmero.",
+          "id": "statpearls_pectoralis_major",
+          "title": "Anatomy, Thorax, Pectoralis Major",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30252247/"
+        },
+        {
+          "claim": "El grupo pectoral flexiona, aduce y rota hacia dentro el húmero y ayuda a estabilizar la escápula.",
+          "id": "statpearls_pectoral",
+          "title": "Anatomy, Shoulder and Upper Limb, Pectoral Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31424825/"
+        },
+        {
+          "claim": "Describe los músculos extrínsecos de la espalda, entre ellos el dorsal ancho, cuya función es mover el miembro superior controlando la escápula y el húmero.",
+          "id": "statpearls_extrinsic_back",
+          "title": "Anatomy, Back, Extrinsic Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725901/"
+        },
+        {
+          "claim": "La función primaria del tríceps es extender el codo; su cabeza larga nace en el tubérculo infraglenoideo de la escápula.",
+          "id": "statpearls_triceps",
+          "title": "Anatomy, Shoulder and Upper Limb, Triceps Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725681/"
+        },
+        {
+          "claim": "Describe el deltoides como músculo clave del movimiento y la estabilidad del hombro.",
+          "id": "statpearls_deltoid",
+          "title": "Anatomy, Shoulder and Upper Limb, Deltoid Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725741/"
+        },
+        {
+          "claim": "La pared abdominal contiene y protege las vísceras, genera presión intraabdominal y mueve la columna vertebral.",
+          "id": "statpearls_abdominal_wall",
+          "title": "Anatomy, Abdomen and Pelvis: Abdominal Wall",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31869113/"
+        },
+        {
+          "claim": "Describe los compartimentos del antebrazo: el anterior flexiona la muñeca y los dedos.",
+          "id": "statpearls_forearm_compartments",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/"
+        },
+        {
+          "claim": "En 15 hombres entrenados, con contracciones isométricas máximas a 0, 45, 90, 135 y 180 grados de flexión del hombro en un pull over tumbado y en un jalón de pie con el tronco vertical, los dos con una barra corta en polea, el pectoral mayor fue más alto entre 90 y 135 grados, y el dorsal ancho y el deltoides posterior entre 0 y 45. El dorsal y el deltoides posterior siguieron el mismo patrón en los dos ejercicios.",
+          "id": "teixeira2022",
+          "title": "Differences Between Pullover and Pulldown Exercises on Maximal Isometric Force and Myoelectric Activity in Recreationally-Trained Men",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/35992501/"
+        },
+        {
+          "claim": "En 20 adultos activos, el pull over con barra dio más actividad que el pull over de pie en polea con los brazos rectos, con agarre al 100 y al 150 % de la distancia biacromial, en el pectoral mayor, el deltoides anterior y el recto abdominal; el dorsal ancho y el tríceps fueron más altos en el pull over de pie en polea. La fase concéntrica superó a la excéntrica en todos los músculos.",
+          "id": "muyor2022",
+          "title": "Comparison of Electromyographic Activity during Barbell Pullover and Straight Arm Pulldown Exercises",
+          "url": "https://doi.org/10.3390/app122111138"
+        },
+        {
+          "claim": "En 15 hombres entrenados, en tres variantes de pull over con barra tumbado al 60 % de una repetición máxima, los músculos más activos fueron el infraespinoso (51-53 %) y el deltoides posterior (49-51 %); el ancho del agarre y el apoyo inestable no cambiaron la actividad.",
+          "id": "pezaratcorreia2020",
+          "title": "Comparison of shoulder and trunk muscle activation between different pullover exercises",
+          "url": "https://doi.org/10.33155/j.ramd.2020.03.004"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Extensión del hombro tumbado boca arriba a lo largo de un banco plano: la carga, sujeta con las dos manos y los codos casi rectos, baja en arco desde encima del pecho hasta detrás de la cabeza y vuelve. Estar tumbado con el tronco apoyado lo separa del pull over de pie en polea y del sentado en máquina.",
+        "keyPositions": [
+          "Arriba: brazos verticales sobre el pecho y la carga encima del esternón.",
+          "Estiramiento: brazos junto a las orejas, más o menos paralelos al banco, carga detrás de la cabeza y sin tocar el suelo, zona lumbar apoyada."
+        ],
+        "mistakes": [
+          "Doblar y estirar los codos en cada repetición: el gesto pasa a ser una extensión de tríceps.",
+          "Arquear la zona lumbar al bajar la carga detrás de la cabeza.",
+          "Bajar más allá de lo que el hombro admite y rebotar en el estiramiento.",
+          "Levantar la cadera del banco para ganar recorrido."
+        ],
+        "phases": [
+          {
+            "description": "La carga está sobre el pecho, con los brazos verticales y los codos apenas doblados.",
+            "name": "Inicio"
+          },
+          {
+            "description": "Los brazos giran sobre el hombro y llevan la carga por encima de la cara hacia atrás, sin cambiar el ángulo del codo.",
+            "name": "Descenso"
+          },
+          {
+            "description": "Los brazos llegan junto a las orejas con la carga detrás de la cabeza y la zona lumbar pegada al banco.",
+            "name": "Estiramiento"
+          },
+          {
+            "description": "Los brazos vuelven por el mismo arco hasta dejar la carga otra vez sobre el pecho.",
+            "name": "Regreso"
+          }
+        ],
+        "setup": [
+          "Tumbado a lo largo del banco, con la cabeza cerca del borde, la espalda y la cadera apoyadas y los pies planos en el suelo.",
+          "La carga empieza sobre el pecho, con los brazos verticales y los codos apenas doblados.",
+          "Con polea: el banco se coloca con la cabeza hacia una polea baja y el cable sale por detrás de la cabeza hasta la barra corta."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral a la altura del banco, con el atleta entero, la carga detrás de la cabeza y el espacio entre la carga y el suelo dentro del encuadre.",
+          "contacts": "Cabeza, espalda y cadera apoyadas en el banco; pies planos en el suelo; las manos son el único contacto con la carga.",
+          "load": "Carga sujeta con las dos manos detrás de la cabeza, por encima del suelo y sin apoyarse en nada.",
+          "orientation": "Atleta tumbado boca arriba a lo largo del banco, con la cabeza hacia un extremo del encuadre y la carga más allá de la cabeza.",
+          "phase": "Punto de estiramiento: brazos casi rectos junto a las orejas y la carga detrás de la cabeza, más o menos a la altura del banco.",
+          "posture": "Codos apenas doblados, brazos junto a las orejas, zona lumbar pegada al banco, costillas abajo y rodillas dobladas con los pies en el suelo."
+        },
+        "byImplement": {
+          "barbell": {
+            "geometry": "Banco plano; barra recta con discos, tomada en prono con las manos a la anchura de los hombros; en el estiramiento queda detrás de la cabeza, por encima del suelo."
+          },
+          "cable": {
+            "geometry": "Banco plano delante de una polea baja, con la cabeza del atleta hacia la polea; barra corta unida al cable y tomada con las dos manos; el cable va desde la barra hacia atrás y abajo, hasta la polea cerca del suelo."
+          },
+          "dumbbells": {
+            "geometry": "Banco plano; una sola mancuerna sostenida en vertical con las dos palmas bajo el disco superior y los pulgares alrededor del mango; en el estiramiento cuelga detrás de la cabeza."
+          },
+          "kettlebell": {
+            "geometry": "Banco plano; una kettlebell tomada con las dos manos por los lados del asa, con la bola colgando bajo las manos; en el estiramiento la bola queda detrás de la cabeza."
+          }
+        },
+        "forbidden": [
+          "Atleta de pie frente a una polea alta, o sentado en una máquina: eso es el pull over de pie o el de máquina.",
+          "Codos muy doblados con la carga junto a la frente, como en una extensión de tríceps.",
+          "Cadera levantada del banco o espalda arqueada en puente.",
+          "Carga apoyada en el suelo o flotando sin que las manos la sujeten.",
+          "Brazos verticales sobre el pecho en el fotograma: eso es el inicio, no el estiramiento.",
+          "Atleta atravesado sobre el banco con solo los hombros apoyados y la cadera baja."
+        ],
+        "promptCore": {
+          "barbell": "Side view of an athlete lying face up along a flat bench, frozen at the STRETCH point of a barbell pullover. Both hands grip a loaded straight barbell with an overhand grip at shoulder width. The arms are almost straight, upper arms beside the ears, and the bar is held behind the head at about bench height, clear of the floor. The head, upper back and hips rest on the bench, the lower back stays flat and both feet are planted on the floor.",
+          "cable": "Side view of an athlete lying face up along a flat bench placed in front of a low cable pulley, head toward the pulley, frozen at the STRETCH point of a cable pullover. Both hands grip a short straight bar attached to the cable. The arms are almost straight, upper arms beside the ears, and the bar is behind the head at about bench height. The taut cable runs from the bar backward and down to the pulley near the floor. The head, upper back and hips rest on the bench and both feet are planted on the floor.",
+          "dumbbells": "Side view of an athlete lying face up along a flat bench, frozen at the STRETCH point of a dumbbell pullover. Both hands hold a single dumbbell vertically, palms pressed under the top plate and thumbs around the handle. The arms are almost straight with a slight bend at the elbows, upper arms beside the ears, and the dumbbell hangs behind the head at about bench height, clear of the floor. The head, upper back and hips rest on the bench, the lower back stays flat and both feet are planted on the floor.",
+          "kettlebell": "Side view of an athlete lying face up along a flat bench, frozen at the STRETCH point of a kettlebell pullover. Both hands grip the two sides of the kettlebell handle and the round bell hangs below the hands. The arms are almost straight, upper arms beside the ears, and the kettlebell is held behind the head at about bench height, clear of the floor. The head, upper back and hips rest on the bench, the lower back stays flat and both feet are planted on the floor."
+        },
+        "qa": [
+          "¿Las dos manos sujetan la carga y la carga no flota suelta?",
+          "¿Los brazos están casi rectos junto a las orejas, con la carga detrás de la cabeza?",
+          "¿El atleta está tumbado boca arriba a lo largo del banco, con la cadera apoyada?",
+          "¿La carga queda por encima del suelo, sin tocarlo?"
+        ]
+      }
     },
     "pullover": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Extensión del hombro"
+            ],
+            "id": "glenohumeral",
+            "role": "PRIMARY",
+            "sources": [
+              "statpearls_extrinsic_back",
+              "munozgarces2026"
+            ],
+            "why": "El brazo baja desde la elevación por delante, a la altura de la cabeza, hasta el costado del muslo: es el único gran movimiento del gesto y el que carga al dorsal, cuya mayor activación isométrica apareció en extensión del hombro (Muñoz-Garcés 2026)."
+          },
+          {
+            "actions": [
+              "Depresión escapular",
+              "Rotación escapular inferior"
+            ],
+            "id": "escapulotoracica",
+            "role": "SECONDARY",
+            "sources": [
+              "statpearls_extrinsic_back"
+            ],
+            "why": "La escápula baja y rota hacia abajo acompañando al brazo en la segunda mitad del arco; ayuda a terminar el recorrido, pero el movimiento que carga la polea es el del hombro."
+          },
+          {
+            "actions": [
+              "Extensión sostenida del codo"
+            ],
+            "id": "codo",
+            "role": "STABILIZER",
+            "sources": [
+              "landin2011",
+              "statpearls_triceps"
+            ],
+            "why": "El codo queda casi recto durante todo el arco; si se dobla, la palanca se acorta y el gesto pasa a ser un jalón."
+          },
+          {
+            "actions": [
+              "Sostén del agarre"
+            ],
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_forearm_compartments"
+            ],
+            "why": "La muñeca queda firme sobre la barra, la cuerda o el maneral mientras el cable tira de ella hacia arriba; no aporta movimiento."
+          },
+          {
+            "actions": [
+              "Flexión sostenida de la cadera"
+            ],
+            "id": "cadera",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_hip"
+            ],
+            "why": "La cadera queda doblada en una bisagra ligera y no se mueve: sostiene el tronco inclinado y lleva hasta las piernas la fuerza con la que el cable tira de los brazos."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "latissimus_dorsi",
+            "role": "PRIMARY",
+            "sources": [
+              "muyor2022",
+              "teixeira2022",
+              "munozgarces2026",
+              "alqaisi2022",
+              "statpearls_extrinsic_back"
+            ],
+            "why": "Es el principal extensor del hombro y aquí trabaja sin la ayuda de la flexión del codo. En el pull over de pie en polea con los brazos rectos se activó más que en el pull over tumbado con barra (Muyor 2022), y en contracciones isométricas rindió más entre 0 y 45 grados de flexión del hombro, el final de este arco (Teixeira 2022); la extensión del hombro es la tarea que más lo activa (Muñoz-Garcés 2026; Al-Qaisi 2022)."
+          },
+          {
+            "id": "triceps",
+            "role": "SECONDARY",
+            "sources": [
+              "muyor2022",
+              "statpearls_triceps"
+            ],
+            "why": "Su cabeza larga cruza el hombro y ayuda a extenderlo, y el resto del músculo fija el codo casi recto. En el pull over de pie en polea el tríceps se activó más que en el pull over tumbado con barra, con los dos anchos de agarre probados (Muyor 2022): ayuda con trabajo real sin llevar el gesto."
+          },
+          {
+            "id": "pectoralis",
+            "role": "SECONDARY",
+            "sources": [
+              "teixeira2022",
+              "muyor2022",
+              "statpearls_pectoralis_major"
+            ],
+            "why": "Su porción esternocostal ayuda al principio del arco, con el brazo todavía elevado: en contracciones isométricas el pectoral rindió más entre 90 y 135 grados de flexión del hombro (Teixeira 2022). En este gesto se activó menos que en el pull over tumbado con barra (Muyor 2022), así que acompaña al dorsal sin llevar el movimiento."
+          },
+          {
+            "id": "deltoid",
+            "role": "SECONDARY",
+            "sources": [
+              "teixeira2022",
+              "statpearls_deltoid"
+            ],
+            "why": "Su porción posterior extiende el hombro en el último tramo, con el brazo cerca del costado. En el jalón de pie isométrico con barra en polea y el tronco vertical, el deltoides posterior y el dorsal rindieron más entre 0 y 45 grados de flexión del hombro, con el mismo patrón que en el pull over tumbado (Teixeira 2022): ayuda con trabajo real al final del arco."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_abdominal_wall"
+            ],
+            "why": "La pared abdominal sujeta las costillas abajo y el tronco quieto mientras la polea tira de los brazos hacia arriba y delante; sin ella el tronco se arquea o se hunde. Se deduce de la postura de pie sin apoyo."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "fenwick2009"
+            ],
+            "why": "Sostienen la columna neutra en la bisagra de cadera. En el remo de pie con el tronco inclinado sin apoyo la espalda se activó de forma amplia y la carga lumbar fue la mayor (Fenwick 2009); aquí la inclinación es menor y solo fijan la postura."
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_forearm_compartments"
+            ],
+            "why": "Los flexores de los dedos sujetan la barra, la cuerda o el maneral contra el tirón del cable durante toda la serie, con la muñeca firme."
+          }
+        ],
+        "overrides": {
+          "pullover__unilateral__cable": {
+            "joints": [
+              {
+                "actions": [
+                  "Extensión del hombro"
+                ],
+                "id": "glenohumeral",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_extrinsic_back"
+                ],
+                "why": "Sin barra que tope con los muslos, la mano pasa junto a la cadera y el brazo puede terminar algo por detrás del tronco: la extensión del hombro llega un poco más lejos que con las dos manos."
+              },
+              {
+                "actions": [
+                  "Antirrotación del tronco"
+                ],
+                "id": "columna-toracica",
+                "role": "STABILIZER",
+                "sources": [
+                  "fenwick2009"
+                ],
+                "why": "De pie, sin asiento ni rodillo, la columna dorsal tiene que seguir de frente a la torre mientras un solo brazo baja con la carga; esa antirrotación la sostienen los músculos del tronco (extrapolado de Fenwick 2009)."
+              }
+            ],
+            "muscles": [
+              {
+                "id": "core",
+                "role": "STABILIZER",
+                "sources": [
+                  "fenwick2009",
+                  "statpearls_abdominal_wall"
+                ],
+                "why": "Al tirar de un solo lado, la polea arrastra el hombro de ese lado hacia la torre y el tronco tiende a abrirse en giro; los oblicuos lo cierran en cada repetición. Fenwick et al. (2009) vieron ese reto de torsión en el remo de pie a un brazo en polea, y aquí se extrapola."
+              }
+            ]
+          }
+        }
+      },
       "public": {
         "configurations": {
           "pullover__bilateral__cable": {
-            "description": "De pie frente a una polea alta, la barra recorre un arco desde sobre la cabeza hasta los muslos con los brazos casi extendidos. La tensión continua permite aislar el dorsal sin convertirlo en un jalón de codos flexionados.",
+            "description": "Con una barra recta o una cuerda en las dos manos, el agarre baja frente al cuerpo y los dos brazos trazan el mismo arco hasta los muslos. La polea, alta y delante, tira hacia arriba y hacia la torre durante todo el recorrido.",
             "executionCues": [
-              "Agarre prono a la anchura de los hombros, brazos casi rectos; la barra describe un arco continuo hasta los muslos sin balanceo del tronco."
+              "Baja el agarre en arco hasta los muslos sin doblar los codos.",
+              "Aprieta un segundo abajo con los hombros lejos de las orejas.",
+              "Sube despacio hasta que las manos vuelvan a la altura de la cabeza."
             ],
             "setupCues": [
-              "Preparación: La barra recta cuelga de una polea alta y el cuerpo queda un paso detrás de la vertical del cable."
+              "Engancha una barra recta o una cuerda en la polea alta y da uno o dos pasos hacia atrás.",
+              "Agarra con los brazos casi rectos a la altura de la cabeza y flexiona un poco caderas y rodillas."
             ]
           },
           "pullover__unilateral__cable": {
-            "description": "Con una empuñadura y de pie frente a la polea alta, un brazo dibuja el arco hacia el costado de la cadera mientras el torso permanece estable. La tensión constante deja visible cualquier diferencia entre dorsales.",
+            "description": "Un único maneral deja que el brazo estirado pase junto a la cadera y termine algo por detrás del tronco. El cuerpo quiere girar hacia la torre y la pared abdominal lo frena.",
             "executionCues": [
-              "Brazo casi recto y hombro bajo; la empuñadura recorre un arco continuo hasta la cadera sin girar el pecho hacia el cable."
+              "Baja el brazo estirado hasta que la mano pase junto a la cadera.",
+              "No dejes que los hombros giren hacia la polea.",
+              "Vuelve despacio hasta tener el brazo a la altura de la cabeza."
             ],
             "setupCues": [
-              "Preparación: La empuñadura queda en una polea alta y el cuerpo se sitúa un paso detrás de la vertical del cable."
+              "Cuelga un maneral de la polea alta y tómalo con una mano, con el brazo casi recto.",
+              "Retrocede un paso, inclina un poco el tronco y apoya la otra mano en el muslo."
             ]
           }
         },
-        "description": "El Pull Over de Pie en Polea lleva los brazos casi extendidos desde arriba hasta los muslos para aislar la extensión de hombro del dorsal bajo tensión continua."
+        "description": "El Pull Over de Pie en Polea (straight-arm pulldown) se hace de pie frente a una polea alta, bajando un agarre en arco desde la altura de la cabeza hasta rozar los muslos con los brazos casi rectos. Es una extensión de hombro que lleva el dorsal ancho, con ayuda de la cabeza larga del tríceps, de la porción esternal del pectoral al principio del arco y del deltoides posterior al final. El tronco se inclina un poco hacia delante con una bisagra de cadera y no se mueve; como los codos no se doblan, el tirón no se convierte en un jalón. Trabaja el dorsal sin que los flexores del codo limiten la serie, por eso suele ir antes o después de las tracciones pesadas."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "En 20 personas sanas, la extensión isométrica del hombro produjo más amplitud electromiográfica del dorsal ancho que la aducción, la rotación interna y la inclinación lateral del tronco, en sus dos regiones.",
+          "id": "munozgarces2026",
+          "title": "Regional Activation of the Latissimus Dorsi Muscle by High-Density Surface Electromyography During Isometric Shoulder and Trunk Exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/41345828/"
+        },
+        {
+          "claim": "Entre cinco pruebas de contracción máxima del dorsal ancho, la extensión del hombro con el pecho apoyado y la extensión tumbado boca abajo dieron la mayor actividad, por encima del jalón, la flexión con abducción y la rotación interna.",
+          "id": "alqaisi2022",
+          "title": "Electromyography analysis: Comparison of maximum voluntary contraction exercises for the latissimus dorsi",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/35253718/"
+        },
+        {
+          "claim": "El tríceps braquial extiende el codo y el hombro; su momento de extensión del hombro dependió sobre todo del ángulo del hombro y aumentó al pasar de 0 a 80 grados.",
+          "id": "landin2011",
+          "title": "The shoulder extension function of the triceps brachii",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/20934352/"
+        },
+        {
+          "claim": "El remo de pie con el tronco inclinado activó la espalda de forma amplia y simétrica y dio la mayor carga lumbar; el remo de pie a un brazo en polea retó la capacidad del tronco para resistir la torsión.",
+          "id": "fenwick2009",
+          "title": "Comparison of different rowing exercises: trunk muscle activation and lumbar spine motion, load, and stiffness",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/19620925/"
+        },
+        {
+          "claim": "Describe los músculos extrínsecos de la espalda, entre ellos el dorsal ancho, cuya función es mover el miembro superior controlando la escápula y el húmero.",
+          "id": "statpearls_extrinsic_back",
+          "title": "Anatomy, Back, Extrinsic Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725901/"
+        },
+        {
+          "claim": "La función primaria del tríceps es extender el codo; su cabeza larga nace en el tubérculo infraglenoideo de la escápula.",
+          "id": "statpearls_triceps",
+          "title": "Anatomy, Shoulder and Upper Limb, Triceps Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725681/"
+        },
+        {
+          "claim": "Describe el pectoral mayor con sus dos cabezas, clavicular y esternocostal, y su inserción en el húmero.",
+          "id": "statpearls_pectoralis_major",
+          "title": "Anatomy, Thorax, Pectoralis Major",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30252247/"
+        },
+        {
+          "claim": "La pared abdominal contiene y protege las vísceras, genera presión intraabdominal y mueve la columna vertebral.",
+          "id": "statpearls_abdominal_wall",
+          "title": "Anatomy, Abdomen and Pelvis: Abdominal Wall",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31869113/"
+        },
+        {
+          "claim": "Describe los compartimentos del antebrazo: el anterior flexiona la muñeca y los dedos.",
+          "id": "statpearls_forearm_compartments",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/"
+        },
+        {
+          "claim": "La función principal de la cadera es sostener el peso del tronco y transmitir la carga entre el esqueleto axial y los miembros inferiores.",
+          "id": "statpearls_hip",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hip Joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29262200/"
+        },
+        {
+          "claim": "En 15 hombres entrenados, con contracciones isométricas máximas a 0, 45, 90, 135 y 180 grados de flexión del hombro en un pull over tumbado y en un jalón de pie con el tronco vertical, los dos con una barra corta en polea, el pectoral mayor fue más alto entre 90 y 135 grados, y el dorsal ancho y el deltoides posterior entre 0 y 45. El dorsal y el deltoides posterior siguieron el mismo patrón en los dos ejercicios.",
+          "id": "teixeira2022",
+          "title": "Differences Between Pullover and Pulldown Exercises on Maximal Isometric Force and Myoelectric Activity in Recreationally-Trained Men",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/35992501/"
+        },
+        {
+          "claim": "En 20 adultos activos, el pull over con barra dio más actividad que el pull over de pie en polea con los brazos rectos, con agarre al 100 y al 150 % de la distancia biacromial, en el pectoral mayor, el deltoides anterior y el recto abdominal; el dorsal ancho y el tríceps fueron más altos en el pull over de pie en polea. La fase concéntrica superó a la excéntrica en todos los músculos.",
+          "id": "muyor2022",
+          "title": "Comparison of Electromyographic Activity during Barbell Pullover and Straight Arm Pulldown Exercises",
+          "url": "https://doi.org/10.3390/app122111138"
+        },
+        {
+          "claim": "Describe el deltoides como músculo clave del movimiento y la estabilidad del hombro, con porciones anterior, media y posterior.",
+          "id": "statpearls_deltoid",
+          "title": "Anatomy, Shoulder and Upper Limb, Deltoid Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725741/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Extensión del hombro de pie frente a una polea alta: con los brazos casi rectos y una ligera bisagra de cadera, el agarre baja en arco desde la altura de la cabeza hasta los muslos y vuelve. Estar de pie con la carga llegando desde arriba y delante lo separa del pull over tumbado en banca y del sentado en máquina.",
+        "keyPositions": [
+          "Inicio: brazos delante y arriba, a la altura de la cabeza, codos apenas flexionados y escápulas subidas.",
+          "Final: agarre junto a los muslos, brazos rectos pegados al cuerpo, escápulas abajo y el tronco con la misma inclinación que al empezar."
+        ],
+        "mistakes": [
+          "Doblar los codos al bajar y convertir el gesto en un jalón.",
+          "Hundir el tronco hacia delante para empujar el agarre con el peso del cuerpo.",
+          "Dejar que el cable suba los brazos de golpe en la vuelta.",
+          "Cortar el recorrido a la altura del pecho sin llegar a los muslos."
+        ],
+        "phases": [
+          {
+            "description": "Brazos arriba a la altura de la cabeza, con el cable tenso y el dorsal estirado.",
+            "name": "Estiramiento"
+          },
+          {
+            "description": "Los brazos bajan rectos frente al cuerpo, girando solo en el hombro.",
+            "name": "Arco"
+          },
+          {
+            "description": "El agarre llega a los muslos y las escápulas quedan bajas un instante.",
+            "name": "Final"
+          },
+          {
+            "description": "Los brazos suben por el mismo arco sin que el cable los arrastre.",
+            "name": "Vuelta"
+          }
+        ],
+        "setup": [
+          "Polea alta con barra recta o cuerda; en la versión a un brazo, un maneral.",
+          "De pie a uno o dos pasos de la torre, pies separados como la cadera, rodillas sueltas y tronco inclinado unos 20 a 30 grados desde la cadera.",
+          "Brazos casi rectos y agarre a la altura de la cabeza, con el cable tenso desde el inicio."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral a la altura de la cadera, con el atleta entero, el cable y la polea alta dentro del encuadre.",
+          "contacts": "Pies planos en el suelo a la anchura de la cadera; las manos sobre el agarre son el único contacto con la carga.",
+          "load": "La resistencia llega por un cable tenso desde la polea alta hasta las manos; la pila de placas está levantada en la torre.",
+          "orientation": "Atleta de pie y de perfil, de cara a la torre de la polea, con el tronco algo inclinado hacia delante desde la cadera.",
+          "phase": "Inicio del arco: brazos casi rectos por delante y arriba, con el agarre a la altura de la cabeza y el cable tenso.",
+          "posture": "Brazos casi rectos, codos apenas flexionados, columna neutra, rodillas algo flexionadas, cadera hacia atrás y cuello alineado con el tronco."
+        },
+        "byImplement": {
+          "cable": {
+            "geometry": "Torre de polea con la polea en lo más alto; barra recta corta o cuerda unida al cable; el cable baja en diagonal desde la polea hasta las manos, que están a la altura de la cabeza y por delante de ella."
+          }
+        },
+        "byVariant": {
+          "pullover__unilateral__cable": {
+            "difference": "Un solo maneral en una mano, unido al cable de la polea alta; la otra mano descansa sobre el muslo y no toca la carga."
+          }
+        },
+        "forbidden": [
+          "Atleta sentado con los muslos bajo un rodillo: eso es un jalón.",
+          "Codos doblados en ángulo recto con la barra junto al pecho: eso es un jalón, no un pull over.",
+          "Atleta tumbado en un banco: eso es el pull over en banca.",
+          "Tronco casi horizontal o espalda redondeada.",
+          "Barra flotando sin manos que la sujeten, o cable flojo.",
+          "Atleta sentado con los brazos contra almohadillas: eso es el pull over en máquina."
+        ],
+        "promptCore": {
+          "cable": "Side view of an athlete standing in front of a tall cable tower, frozen at the START of a standing straight-arm cable pullover. Both hands grip a short straight bar attached to the cable from the high pulley, with an overhand grip at shoulder width. The arms are almost straight, reaching forward and up so the bar is at head height. The hips are pushed back in a slight hinge, the knees are soft, the back is flat and both feet are planted on the floor. The cable runs taut from the bar up to the pulley and the weight stack is lifted."
+        },
+        "qa": [
+          "¿Las dos manos agarran la barra o la cuerda y el cable va tenso hasta la polea alta?",
+          "¿Los brazos están casi rectos, con el agarre a la altura de la cabeza?",
+          "¿El atleta está de pie, con la cadera algo atrás y la espalda recta?",
+          "¿La polea está por encima de la cabeza y delante del atleta?"
+        ]
+      }
     },
     "seated_machine_pullover": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Extensión del hombro"
+            ],
+            "id": "glenohumeral",
+            "role": "PRIMARY",
+            "sources": [
+              "statpearls_extrinsic_back",
+              "munozgarces2026"
+            ],
+            "why": "El brazo gira alrededor del eje de la máquina desde la elevación por detrás de la cabeza hasta el costado: es el único movimiento que desplaza la carga."
+          },
+          {
+            "actions": [
+              "Depresión escapular",
+              "Rotación escapular inferior"
+            ],
+            "id": "escapulotoracica",
+            "role": "SECONDARY",
+            "sources": [
+              "statpearls_extrinsic_back"
+            ],
+            "why": "La escápula baja y rota hacia abajo acompañando al brazo, sobre todo al final del arco; con la espalda en el respaldo sigue al húmero sin ser el motor."
+          },
+          {
+            "actions": [
+              "Flexión sostenida del codo"
+            ],
+            "id": "codo",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_triceps",
+              "landin2011"
+            ],
+            "why": "El codo queda doblado y apoyado en la almohadilla durante todo el arco: no se estira ni se flexiona contra la carga y solo conserva el ángulo, con el tríceps como sostén."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "latissimus_dorsi",
+            "role": "PRIMARY",
+            "sources": [
+              "munozgarces2026",
+              "alqaisi2022",
+              "teixeira2022",
+              "statpearls_extrinsic_back"
+            ],
+            "why": "Extiende el hombro desde la elevación completa hasta el costado y aquí recibe la resistencia en el brazo, sin depender de la mano. La extensión del hombro fue la tarea que más activó el dorsal en contracciones isométricas (Muñoz-Garcés 2026; Al-Qaisi 2022), y en pull over isométricos con polea rindió más entre 0 y 45 grados de flexión (Teixeira 2022), el tramo final de esta máquina."
+          },
+          {
+            "id": "pectoralis",
+            "role": "SECONDARY",
+            "sources": [
+              "teixeira2022",
+              "statpearls_pectoralis_major"
+            ],
+            "why": "Su porción esternocostal ayuda en la parte alta del arco, con el brazo elevado: en pull over isométricos con polea el pectoral rindió más entre 90 y 135 grados de flexión del hombro (Teixeira 2022). Al final del recorrido, con el brazo junto al costado, deja el trabajo al dorsal y al deltoides posterior, así que acompaña sin ser el motor."
+          },
+          {
+            "id": "deltoid",
+            "role": "SECONDARY",
+            "sources": [
+              "teixeira2022",
+              "statpearls_deltoid"
+            ],
+            "why": "Su porción posterior extiende el hombro en el último tramo, cuando el brazo llega junto al costado: en pull over y jalón isométricos con polea, el deltoides posterior rindió más entre 0 y 45 grados de flexión del hombro, como el dorsal (Teixeira 2022), justo donde termina el arco de esta máquina. Ayuda con trabajo real y suma como secundario."
+          },
+          {
+            "id": "triceps",
+            "role": "STABILIZER",
+            "sources": [
+              "landin2011",
+              "statpearls_triceps"
+            ],
+            "why": "La fuerza entra por la parte de atrás del brazo, así que el codo no se estira contra la carga y el tríceps no mueve el antebrazo. Su cabeza larga cruza el hombro y puede extenderlo: con estimulación eléctrica, su momento de extensión del hombro creció entre 0 y 80 grados (Landin y Thompson 2011), pero eso mide su capacidad y no su actividad en esta máquina. Sin datos del gesto, se cuenta como estabilizador del hombro y del codo apoyado."
+          }
+        ]
+      },
       "public": {
         "configurations": {
           "seated_machine_pullover__machine": {
-            "description": "Sentado contra el respaldo, los apoyos de codo recorren un arco guiado desde arriba hasta los costados de la cintura. La máquina descarga el equilibrio y permite que el dorsal ancho conduzca la extensión de hombro completa.",
+            "description": "Las almohadillas giran sobre un eje que coincide con el hombro y reciben el empuje de la cara de atrás del brazo, cerca del codo, mientras las manos descansan abiertas sobre la barra. El cinturón fija la cadera al asiento y, si la máquina tiene pedal, este acerca la barra para empezar.",
             "executionCues": [
-              "La espalda permanece apoyada; los codos impulsan las almohadillas hacia abajo y adelante hasta la línea de las costillas, sin tirar solo de las manos."
+              "Empuja con los codos hacia delante y abajo hasta que la barra llegue al vientre.",
+              "No despegues la espalda del respaldo ni te encorves al final.",
+              "Vuelve despacio hasta sentir el estiramiento con los brazos detrás de la cabeza."
             ],
             "setupCues": [
-              "Preparación: El asiento se ajusta para que el hombro coincida con el eje de giro y los codos lleguen cómodos a sus apoyos."
+              "Sube o baja el asiento hasta que el centro de tu hombro coincida con el eje de giro y abróchate el cinturón.",
+              "Apoya la parte de atrás de los brazos en las almohadillas y deja las manos abiertas sobre la barra; si hay pedal, úsalo para acercarla."
             ]
           }
         },
-        "description": "El Pull Over Sentado en Máquina fija el torso contra un respaldo y lleva los codos desde arriba hasta la cintura en un arco guiado que concentra la extensión de hombro en el dorsal ancho."
+        "description": "El Pull Over Sentado en Máquina (machine pullover) cambia el punto de empuje: la fuerza entra por la parte de atrás del brazo, apoyada en unas almohadillas, y las manos solo descansan sobre la barra. Sentado con el hombro alineado con el eje de la máquina, los brazos bajan en arco desde detrás de la cabeza hasta la altura del vientre en una extensión de hombro. El dorsal ancho mueve el brazo; el pectoral ayuda en la parte alta del arco, y el deltoides posterior y la cabeza larga del tríceps acompañan en la mitad baja. Con el cinturón y el respaldo, el tronco queda sujeto y solo el hombro mueve la carga. Como ni el agarre ni el codo hacen de eslabón débil, la serie se acaba por el cansancio de la espalda."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "La extensión isométrica del hombro produjo más amplitud electromiográfica del dorsal ancho que la aducción, la rotación interna y la inclinación lateral del tronco, en sus regiones torácica y lumbopélvica.",
+          "id": "munozgarces2026",
+          "title": "Regional Activation of the Latissimus Dorsi Muscle by High-Density Surface Electromyography During Isometric Shoulder and Trunk Exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/41345828/"
+        },
+        {
+          "claim": "En 15 hombres, las pruebas de extensión del hombro, con el pecho apoyado o tumbado boca abajo, dieron más actividad máxima del dorsal ancho que el jalón, la flexión con abducción y la rotación interna.",
+          "id": "alqaisi2022",
+          "title": "Electromyography analysis: Comparison of maximum voluntary contraction exercises for the latissimus dorsi",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/35253718/"
+        },
+        {
+          "claim": "El tríceps braquial actúa como extensor del codo y del hombro; el ángulo del hombro fue el factor que más pesó en su momento de extensión del hombro, que aumentó entre 0 y 80 grados.",
+          "id": "landin2011",
+          "title": "The shoulder extension function of the triceps brachii",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/20934352/"
+        },
+        {
+          "claim": "Describe los músculos extrínsecos de la espalda, entre ellos el dorsal ancho, cuya función es mover el miembro superior controlando la escápula y el húmero.",
+          "id": "statpearls_extrinsic_back",
+          "title": "Anatomy, Back, Extrinsic Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725901/"
+        },
+        {
+          "claim": "Describe el pectoral mayor con sus dos cabezas, clavicular y esternocostal, y su inserción en el húmero.",
+          "id": "statpearls_pectoralis_major",
+          "title": "Anatomy, Thorax, Pectoralis Major",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30252247/"
+        },
+        {
+          "claim": "La función primaria del tríceps es extender el codo; su cabeza larga nace en el tubérculo infraglenoideo de la escápula.",
+          "id": "statpearls_triceps",
+          "title": "Anatomy, Shoulder and Upper Limb, Triceps Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725681/"
+        },
+        {
+          "claim": "En 15 hombres entrenados, con contracciones isométricas máximas a 0, 45, 90, 135 y 180 grados de flexión del hombro en un pull over tumbado y en un jalón de pie con el tronco vertical, los dos con una barra corta en polea, el pectoral mayor fue más alto entre 90 y 135 grados, y el dorsal ancho y el deltoides posterior entre 0 y 45. El dorsal y el deltoides posterior siguieron el mismo patrón en los dos ejercicios.",
+          "id": "teixeira2022",
+          "title": "Differences Between Pullover and Pulldown Exercises on Maximal Isometric Force and Myoelectric Activity in Recreationally-Trained Men",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/35992501/"
+        },
+        {
+          "claim": "Describe el deltoides como músculo clave del movimiento y la estabilidad del hombro, con porciones anterior, media y posterior.",
+          "id": "statpearls_deltoid",
+          "title": "Anatomy, Shoulder and Upper Limb, Deltoid Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725741/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Extensión del hombro sentado en una máquina de pull over: con el hombro alineado con el eje de giro y la parte de atrás del brazo contra unas almohadillas, los brazos bajan desde detrás de la cabeza hasta el vientre. Que la fuerza entre por el brazo y no por la mano, con el tronco sujeto por el respaldo y el cinturón, lo separa del pull over en banca y del de pie en polea.",
+        "keyPositions": [
+          "Inicio: brazos por encima y detrás de la cabeza, codos doblados sobre las almohadillas y dorsal estirado.",
+          "Final: almohadillas a los costados del tronco, barra junto al vientre y espalda apoyada en el respaldo."
+        ],
+        "mistakes": [
+          "Apretar la barra y tirar con las manos: el esfuerzo pasa a los antebrazos.",
+          "Encorvar el tronco al final para que la barra llegue más abajo.",
+          "Asiento mal ajustado: el hombro no coincide con el eje y el brazo resbala por la almohadilla.",
+          "Soltar la vuelta y dejar que las placas golpeen."
+        ],
+        "phases": [
+          {
+            "description": "Los brazos quedan arriba y detrás de la cabeza, con la parte de atrás del brazo contra las almohadillas.",
+            "name": "Estiramiento"
+          },
+          {
+            "description": "Los codos empujan las almohadillas hacia delante y abajo, girando alrededor del hombro.",
+            "name": "Arco"
+          },
+          {
+            "description": "La barra llega al vientre y las almohadillas a los costados, con la espalda en el respaldo.",
+            "name": "Final"
+          },
+          {
+            "description": "Los brazos suben despacio hasta el estiramiento sin despegar los codos de las almohadillas.",
+            "name": "Vuelta"
+          }
+        ],
+        "setup": [
+          "Asiento a la altura justa para que el centro del hombro coincida con el eje de las palancas; cinturón abrochado sobre la cadera.",
+          "Parte de atrás de los brazos, cerca del codo, contra las almohadillas; manos abiertas apoyadas sobre la barra, sin apretarla.",
+          "Si la máquina tiene pedal, sirve para acercar la barra al empezar y para dejarla al terminar."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral a la altura del hombro, con la máquina, el eje de giro, las almohadillas y la pila de placas dentro del encuadre.",
+          "contacts": "Espalda contra el respaldo, cadera sujeta por el cinturón, pies en el suelo, parte de atrás de los brazos contra las almohadillas y manos abiertas sobre la barra.",
+          "load": "La carga llega por las palancas que giran alrededor del hombro; la pila de placas está levantada en la torre y nada pesa en las manos.",
+          "orientation": "Atleta sentado de perfil, con la espalda contra el respaldo y la cara al frente.",
+          "phase": "Final del arco: las almohadillas junto a los costados del tronco y la barra a la altura del vientre.",
+          "posture": "Tronco erguido sin encorvarse, codos doblados junto a los costados, hombros bajos y cuello neutro."
+        },
+        "byImplement": {
+          "machine": {
+            "geometry": "Máquina de pull over con asiento, respaldo y cinturón; una palanca a cada lado con su eje a la altura del hombro, almohadillas para la parte de atrás de los brazos y una barra que une ambas palancas por delante; la pila de placas en la torre."
+          }
+        },
+        "forbidden": [
+          "Manos cerradas tirando de un maneral sin almohadillas contra los brazos.",
+          "Atleta tumbado en un banco: eso es el pull over en banca.",
+          "Atleta de pie frente a una polea alta: eso es el pull over de pie.",
+          "Tronco encorvado hacia delante o espalda despegada del respaldo.",
+          "Barra colgando de un cable por encima de la cabeza, como en un jalón."
+        ],
+        "promptCore": {
+          "machine": "Side view of an athlete seated in a pullover machine with the back against the backrest and a belt across the hips, frozen at the END of the pullover. The backs of the upper arms press against the padded lever arms, which pivot at shoulder height, and the pads sit beside the ribs. The hands rest open on the crossbar in front of the belly, without gripping hard. The elbows are bent and close to the torso, the chest is up and the back stays on the pad. The weight stack is lifted inside the machine tower."
+        },
+        "qa": [
+          "¿La parte de atrás de los brazos está contra las almohadillas de las palancas?",
+          "¿Las manos descansan sobre la barra y la carga sale de la máquina, sin pesas sueltas en las manos?",
+          "¿La barra está a la altura del vientre y las almohadillas junto a los costados?",
+          "¿El atleta está sentado con la espalda en el respaldo?"
+        ]
+      }
     }
   },
   "familyId": "upper_vertical_pull_pullover",

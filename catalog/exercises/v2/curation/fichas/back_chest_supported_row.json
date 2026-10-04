@@ -1,174 +1,1269 @@
 {
   "definitions": {
     "chest_supported_row": {
-      "public": {
-        "configurations": {
-          "chest_supported_row__cable__high__close": {
-            "description": "Con agarre cerrado y polea alta, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. Con el agarre cerrado, los codos viajan cerca del torso y el esfuerzo del dorsal ancho se concentra. Con la polea alta, la línea de tracción cae desde arriba sobre el dorsal ancho.",
-            "executionCues": [
-              "Polea alta y agarre cerrado con el pecho apoyado: la línea descendente lleva los codos cerca del costado y favorece la tracción del dorsal. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Extensión del hombro",
+              "Abducción horizontal"
             ],
-            "setupCues": [
-              "Preparación: Polea alta y agarre cerrado con el pecho apoyado: la línea descendente lleva los codos cerca del costado y favorece la tracción del dorsal."
+            "id": "glenohumeral",
+            "role": "PRIMARY",
+            "sources": [
+              "statpearls_extrinsic_back",
+              "statpearls_deltoid"
+            ],
+            "why": "El húmero pasa de colgar por delante del tronco a quedar detrás de la espalda, con el codo a medio camino entre el costado y la cruz: extensión con algo de abducción horizontal, que es lo que acerca la carga."
+          },
+          {
+            "actions": [
+              "Retracción escapular"
+            ],
+            "id": "escapulotoracica",
+            "role": "PRIMARY",
+            "sources": [
+              "statpearls_rhomboids",
+              "statpearls_trapezius",
+              "lehman2004"
+            ],
+            "why": "Las escápulas se separan con los brazos estirados y se juntan al final del tirón. Con el pecho fijo en el apoyo ese deslizamiento es entero en cada repetición, por eso cuenta como articulación principal."
+          },
+          {
+            "actions": [
+              "Flexión del codo"
+            ],
+            "id": "codo",
+            "role": "SECONDARY",
+            "sources": [
+              "statpearls_biceps",
+              "lehman2004"
+            ],
+            "why": "El codo se dobla para acercar la carga mientras el hombro tira; acompaña la tracción sin decidir dónde termina el recorrido."
+          },
+          {
+            "actions": [
+              "Sostén del agarre"
+            ],
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_forearm_compartments"
+            ],
+            "why": "Cada muñeca sostiene su mancuerna en posición neutra y puede girar lo que pida el hombro, sin intervenir en el tirón."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "latissimus_dorsi",
+            "role": "PRIMARY",
+            "sources": [
+              "statpearls_extrinsic_back",
+              "fischer2025"
+            ],
+            "why": "Extiende y aduce el hombro: lleva el codo desde delante del cuerpo hasta detrás de la espalda. Con el pecho apoyado, ni la cadera ni la zona lumbar comparten el tirón; en el remo prono, la mitad alta del recorrido dio más excitación media del dorsal que la baja."
+          },
+          {
+            "id": "rhomboids",
+            "role": "SECONDARY",
+            "sources": [
+              "lehman2004",
+              "berckmans2021",
+              "statpearls_rhomboids"
+            ],
+            "why": "Acercan el borde interno de la escápula a la columna al final de cada tirón. El remo sentado dio la mayor actividad del conjunto romboides y trapecio medio frente a los jalones, y con electrodos intramusculares el romboides mayor trabajó de forma moderada en la extensión del hombro tumbado boca abajo."
+          },
+          {
+            "id": "trapezius",
+            "role": "SECONDARY",
+            "sources": [
+              "statpearls_trapezius",
+              "vasconcelos2023"
+            ],
+            "why": "Sus fibras medias retraen la escápula y las inferiores la bajan y la fijan mientras el codo retrocede. Con los agarres medio y cerrado acompaña al dorsal; en el remo sentado, su actividad creció a medida que los codos se separaban del tronco."
+          },
+          {
+            "id": "deltoid",
+            "role": "SECONDARY",
+            "sources": [
+              "statpearls_deltoid",
+              "vasconcelos2023"
+            ],
+            "why": "La porción posterior extiende el hombro junto al dorsal y lo abduce en horizontal cuando el codo se separa del costado. En el remo sentado se activó más cuanto más abierto iba el brazo; con los agarres medio y cerrado ayuda sin decidir el tirón."
+          },
+          {
+            "id": "biceps",
+            "role": "SECONDARY",
+            "sources": [
+              "lehman2004",
+              "padovan2025",
+              "statpearls_biceps"
+            ],
+            "why": "Flexiona el codo para acercar la carga al tronco. Su actividad no cambió entre remos y jalones (Lehman et al. 2004), y entre el agarre estrecho y el ancho del remo sentado solo se desplazó la zona más excitada del músculo: es una ayuda constante, no el motor."
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_forearm_compartments"
+            ],
+            "why": "Los flexores de los dedos y de la muñeca cierran la mano sobre las mancuernas, las asas o los mangos durante toda la serie, sin mover la carga por sí mismos."
+          }
+        ],
+        "overrides": {
+          "chest_supported_row__cable__high__close": {
+            "joints": [
+              {
+                "actions": [
+                  "Extensión del hombro"
+                ],
+                "id": "glenohumeral",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_extrinsic_back"
+                ],
+                "why": "Con el agarre en V el codo baja pegado al tronco desde un brazo elevado; casi todo el gesto es extensión del hombro en el plano sagital."
+              },
+              {
+                "actions": [
+                  "Retracción escapular",
+                  "Depresión escapular"
+                ],
+                "id": "escapulotoracica",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_trapezius",
+                  "statpearls_rhomboids"
+                ],
+                "why": "Con la polea alta las escápulas parten elevadas y al tirar bajan además de juntarse: las fibras inferiores del trapecio las deprimen y las medias las retraen."
+              },
+              {
+                "actions": [
+                  "Sostén del agarre"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_forearm_compartments"
+                ],
+                "why": "La mano sostiene el agarre unido al cable, que tira siempre en la línea de la polea; la muñeca queda firme en esa dirección sin mover la carga."
+              }
+            ],
+            "muscles": [
+              {
+                "id": "latissimus_dorsi",
+                "role": "PRIMARY",
+                "sources": [
+                  "padovan2025",
+                  "vasconcelos2023",
+                  "statpearls_extrinsic_back"
+                ],
+                "why": "Con los codos rozando las costillas, el hombro se extiende en un arco largo, la acción principal del dorsal. En el remo sentado, el agarre estrecho le dio más amplitud que el ancho, y los codos pegados permitieron más fuerza pico que los abiertos."
+              }
             ]
           },
           "chest_supported_row__cable__high__medium": {
-            "description": "Con agarre medio y polea alta, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre medio equilibra el reparto del trabajo del dorsal ancho. Desde polea alta, la tracción entra por arriba y alarga el recorrido del dorsal ancho.",
-            "executionCues": [
-              "Polea alta y agarre medio con el pecho apoyado: los codos bajan con una apertura moderada y combinan dorsal con espalda media. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
-            ],
-            "setupCues": [
-              "Preparación: Polea alta y agarre medio con el pecho apoyado: los codos bajan con una apertura moderada y combinan dorsal con espalda media."
+            "joints": [
+              {
+                "actions": [
+                  "Extensión del hombro",
+                  "Aducción del hombro"
+                ],
+                "id": "glenohumeral",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_extrinsic_back"
+                ],
+                "why": "El brazo empieza elevado por delante y el codo baja y retrocede hasta las costillas: extensión del hombro desde una flexión amplia, uno de los recorridos de hombro más largos de este remo."
+              },
+              {
+                "actions": [
+                  "Retracción escapular",
+                  "Depresión escapular"
+                ],
+                "id": "escapulotoracica",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_trapezius",
+                  "statpearls_rhomboids"
+                ],
+                "why": "Con la polea alta las escápulas parten elevadas y al tirar bajan además de juntarse: las fibras inferiores del trapecio las deprimen y las medias las retraen."
+              },
+              {
+                "actions": [
+                  "Sostén del agarre"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_forearm_compartments"
+                ],
+                "why": "La mano sostiene el agarre unido al cable, que tira siempre en la línea de la polea; la muñeca queda firme en esa dirección sin mover la carga."
+              }
             ]
           },
           "chest_supported_row__cable__high__wide": {
-            "description": "Con agarre amplio y polea alta, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. El agarre amplio abre los codos y reparte el esfuerzo del dorsal ancho hacia la espalda alta. Desde polea alta, la tracción entra por arriba y alarga el recorrido del dorsal ancho.",
-            "executionCues": [
-              "Polea alta y agarre amplio con el pecho apoyado: los codos se abren y la línea de tirón alcanza con mayor claridad la espalda alta. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+            "joints": [
+              {
+                "actions": [
+                  "Aducción del hombro",
+                  "Extensión del hombro"
+                ],
+                "id": "glenohumeral",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_extrinsic_back",
+                  "statpearls_deltoid"
+                ],
+                "why": "El cable baja desde arriba y el brazo arranca elevado y abierto por delante; el codo desciende hacia el costado en una mezcla de aducción y extensión del hombro, más cerca de un jalón que de un remo horizontal."
+              },
+              {
+                "actions": [
+                  "Retracción escapular",
+                  "Depresión escapular"
+                ],
+                "id": "escapulotoracica",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_trapezius",
+                  "statpearls_rhomboids"
+                ],
+                "why": "Con la polea alta las escápulas parten elevadas y al tirar bajan además de juntarse: las fibras inferiores del trapecio las deprimen y las medias las retraen."
+              },
+              {
+                "actions": [
+                  "Sostén del agarre"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_forearm_compartments"
+                ],
+                "why": "La mano sostiene el agarre unido al cable, que tira siempre en la línea de la polea; la muñeca queda firme en esa dirección sin mover la carga."
+              }
             ],
-            "setupCues": [
-              "Preparación: Polea alta y agarre amplio con el pecho apoyado: los codos se abren y la línea de tirón alcanza con mayor claridad la espalda alta."
+            "muscles": [
+              {
+                "id": "latissimus_dorsi",
+                "role": "PRIMARY",
+                "sources": [
+                  "padovan2025",
+                  "statpearls_extrinsic_back"
+                ],
+                "why": "Sigue siendo el primer motor porque el hombro se extiende en cada repetición, aunque en el remo sentado el agarre ancho le dio menos amplitud que el estrecho."
+              },
+              {
+                "id": "trapezius",
+                "role": "PRIMARY",
+                "sources": [
+                  "padovan2025",
+                  "ekstrom2003",
+                  "statpearls_trapezius"
+                ],
+                "why": "Con las manos separadas y los codos abiertos, juntar las escápulas pasa a ser la mitad del gesto. En el remo sentado, el agarre ancho excitó más las tres porciones del trapecio, y la extensión horizontal del hombro fue de los ejercicios que más activaron el trapecio medio: aquí comparte el papel de motor con el dorsal."
+              },
+              {
+                "id": "deltoid",
+                "role": "SECONDARY",
+                "sources": [
+                  "vasconcelos2023",
+                  "statpearls_deltoid"
+                ],
+                "why": "Con el codo cerca de la altura del hombro, la porción posterior abduce el brazo en horizontal y gana peso: en el remo sentado se activó más a 60 y 90 grados de abducción. Sigue como ayuda porque el dorsal y el trapecio llevan el tirón."
+              }
             ]
           },
           "chest_supported_row__cable__low__close": {
-            "description": "Con agarre cerrado y polea baja, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso. Desde polea baja, la tracción entra por abajo y cambia el ángulo del dorsal ancho.",
-            "executionCues": [
-              "Polea baja y agarre cerrado con el pecho apoyado: las manos suben hacia la parte baja del torso mientras los codos permanecen próximos. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+            "joints": [
+              {
+                "actions": [
+                  "Extensión del hombro",
+                  "Aducción del hombro"
+                ],
+                "id": "glenohumeral",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_extrinsic_back"
+                ],
+                "why": "Con el agarre en V desde abajo el codo sube pegado al costado y el húmero se extiende hasta quedar detrás del tronco."
+              },
+              {
+                "actions": [
+                  "Sostén del agarre"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_forearm_compartments"
+                ],
+                "why": "La mano sostiene el agarre unido al cable, que tira siempre en la línea de la polea; la muñeca queda firme en esa dirección sin mover la carga."
+              }
             ],
-            "setupCues": [
-              "Preparación: Polea baja y agarre cerrado con el pecho apoyado: las manos suben hacia la parte baja del torso mientras los codos permanecen próximos."
+            "muscles": [
+              {
+                "id": "latissimus_dorsi",
+                "role": "PRIMARY",
+                "sources": [
+                  "padovan2025",
+                  "vasconcelos2023",
+                  "statpearls_extrinsic_back"
+                ],
+                "why": "Con los codos rozando las costillas, el hombro se extiende en un arco largo, la acción principal del dorsal. En el remo sentado, el agarre estrecho le dio más amplitud que el ancho, y los codos pegados permitieron más fuerza pico que los abiertos."
+              }
             ]
           },
           "chest_supported_row__cable__low__medium": {
-            "description": "Con agarre medio y polea baja, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado. Desde polea baja, la tracción entra por abajo y cambia el ángulo del dorsal ancho.",
-            "executionCues": [
-              "Polea baja y agarre medio con el pecho apoyado: la tracción asciende hacia el torso y los codos recorren una diagonal intermedia. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
-            ],
-            "setupCues": [
-              "Preparación: Polea baja y agarre medio con el pecho apoyado: la tracción asciende hacia el torso y los codos recorren una diagonal intermedia."
+            "joints": [
+              {
+                "actions": [
+                  "Extensión del hombro",
+                  "Abducción horizontal"
+                ],
+                "id": "glenohumeral",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_extrinsic_back"
+                ],
+                "why": "Desde la polea baja la carga tira hacia abajo y adelante; el codo sube en diagonal hasta pasar la línea de la espalda, con la extensión del hombro como acción principal."
+              },
+              {
+                "actions": [
+                  "Sostén del agarre"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_forearm_compartments"
+                ],
+                "why": "La mano sostiene el agarre unido al cable, que tira siempre en la línea de la polea; la muñeca queda firme en esa dirección sin mover la carga."
+              }
             ]
           },
           "chest_supported_row__cable__low__wide": {
-            "description": "Con agarre amplio y polea baja, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre amplio abre los codos y reparte el esfuerzo del dorsal ancho hacia la espalda alta. Desde polea baja, la tracción entra por abajo y cambia el ángulo del dorsal ancho.",
-            "executionCues": [
-              "Polea baja y agarre amplio con el pecho apoyado: los codos se separan y la carga sube hacia la zona media del pecho. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+            "joints": [
+              {
+                "actions": [
+                  "Abducción horizontal",
+                  "Extensión del hombro"
+                ],
+                "id": "glenohumeral",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_deltoid",
+                  "vasconcelos2023"
+                ],
+                "why": "El cable sube desde el suelo y la barra larga llega a la parte baja del pecho con los codos abiertos: el húmero combina extensión y abducción horizontal contra una carga que tira hacia abajo y adelante."
+              },
+              {
+                "actions": [
+                  "Sostén del agarre"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_forearm_compartments"
+                ],
+                "why": "La mano sostiene el agarre unido al cable, que tira siempre en la línea de la polea; la muñeca queda firme en esa dirección sin mover la carga."
+              }
             ],
-            "setupCues": [
-              "Preparación: Polea baja y agarre amplio con el pecho apoyado: los codos se separan y la carga sube hacia la zona media del pecho."
+            "muscles": [
+              {
+                "id": "latissimus_dorsi",
+                "role": "PRIMARY",
+                "sources": [
+                  "padovan2025",
+                  "statpearls_extrinsic_back"
+                ],
+                "why": "Sigue siendo el primer motor porque el hombro se extiende en cada repetición, aunque en el remo sentado el agarre ancho le dio menos amplitud que el estrecho."
+              },
+              {
+                "id": "trapezius",
+                "role": "PRIMARY",
+                "sources": [
+                  "padovan2025",
+                  "ekstrom2003",
+                  "statpearls_trapezius"
+                ],
+                "why": "Con las manos separadas y los codos abiertos, juntar las escápulas pasa a ser la mitad del gesto. En el remo sentado, el agarre ancho excitó más las tres porciones del trapecio, y la extensión horizontal del hombro fue de los ejercicios que más activaron el trapecio medio: aquí comparte el papel de motor con el dorsal."
+              },
+              {
+                "id": "deltoid",
+                "role": "SECONDARY",
+                "sources": [
+                  "vasconcelos2023",
+                  "statpearls_deltoid"
+                ],
+                "why": "Con el codo cerca de la altura del hombro, la porción posterior abduce el brazo en horizontal y gana peso: en el remo sentado se activó más a 60 y 90 grados de abducción. Sigue como ayuda porque el dorsal y el trapecio llevan el tirón."
+              }
             ]
           },
           "chest_supported_row__cable__mid__close": {
-            "description": "Con agarre cerrado y polea media, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso. Desde polea media, la línea horizontal pide control y mantiene el foco del dorsal ancho.",
-            "executionCues": [
-              "Polea media y agarre cerrado con el pecho apoyado: la empuñadura llega hacia la cintura con los codos recogidos. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+            "joints": [
+              {
+                "actions": [
+                  "Extensión del hombro",
+                  "Aducción del hombro"
+                ],
+                "id": "glenohumeral",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_extrinsic_back"
+                ],
+                "why": "Con las asas juntas y el tronco vertical, el codo pasa pegado a las costillas y el húmero se extiende hasta quedar por detrás del tronco, en el plano sagital."
+              },
+              {
+                "actions": [
+                  "Sostén del agarre"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_forearm_compartments"
+                ],
+                "why": "La mano sostiene el agarre unido al cable, que tira siempre en la línea de la polea; la muñeca queda firme en esa dirección sin mover la carga."
+              }
             ],
-            "setupCues": [
-              "Preparación: Polea media y agarre cerrado con el pecho apoyado: la empuñadura llega hacia la cintura con los codos recogidos."
+            "muscles": [
+              {
+                "id": "latissimus_dorsi",
+                "role": "PRIMARY",
+                "sources": [
+                  "padovan2025",
+                  "vasconcelos2023",
+                  "statpearls_extrinsic_back"
+                ],
+                "why": "Con los codos rozando las costillas, el hombro se extiende en un arco largo, la acción principal del dorsal. En el remo sentado, el agarre estrecho le dio más amplitud que el ancho, y los codos pegados permitieron más fuerza pico que los abiertos."
+              }
             ]
           },
           "chest_supported_row__cable__mid__medium": {
-            "description": "Con agarre medio y polea media, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre medio equilibra el reparto del trabajo del dorsal ancho. Con la polea a media altura, la línea horizontal pide control del dorsal ancho.",
-            "executionCues": [
-              "Polea media y agarre medio con el pecho apoyado: los codos siguen una diagonal equilibrada entre el costado y la espalda alta. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
-            ],
-            "setupCues": [
-              "Preparación: Polea media y agarre medio con el pecho apoyado: los codos siguen una diagonal equilibrada entre el costado y la espalda alta."
+            "joints": [
+              {
+                "actions": [
+                  "Extensión del hombro",
+                  "Abducción horizontal"
+                ],
+                "id": "glenohumeral",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_extrinsic_back",
+                  "statpearls_deltoid"
+                ],
+                "why": "Con el tronco vertical y el cable horizontal, el brazo arranca estirado al frente y el codo retrocede en diagonal hasta pasar la espalda: extensión con algo de abducción horizontal, con carga también al estirar."
+              },
+              {
+                "actions": [
+                  "Sostén del agarre"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_forearm_compartments"
+                ],
+                "why": "La mano sostiene el agarre unido al cable, que tira siempre en la línea de la polea; la muñeca queda firme en esa dirección sin mover la carga."
+              }
             ]
           },
           "chest_supported_row__cable__mid__wide": {
-            "description": "Con agarre amplio y polea media, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta. Con la polea a media altura, la línea horizontal pide control del dorsal ancho.",
-            "executionCues": [
-              "Polea media y agarre amplio con el pecho apoyado: la apertura de los codos desplaza el foco hacia romboides y trapecio medio. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+            "joints": [
+              {
+                "actions": [
+                  "Abducción horizontal",
+                  "Extensión del hombro"
+                ],
+                "id": "glenohumeral",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_deltoid",
+                  "vasconcelos2023"
+                ],
+                "why": "Con el tronco vertical, el cable llega en horizontal y los codos se abren hasta la línea de los hombros; el húmero viaja hacia atrás en el plano horizontal, con la abducción horizontal al mando."
+              },
+              {
+                "actions": [
+                  "Sostén del agarre"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_forearm_compartments"
+                ],
+                "why": "La mano sostiene el agarre unido al cable, que tira siempre en la línea de la polea; la muñeca queda firme en esa dirección sin mover la carga."
+              }
             ],
-            "setupCues": [
-              "Preparación: Polea media y agarre amplio con el pecho apoyado: la apertura de los codos desplaza el foco hacia romboides y trapecio medio."
+            "muscles": [
+              {
+                "id": "latissimus_dorsi",
+                "role": "PRIMARY",
+                "sources": [
+                  "padovan2025",
+                  "statpearls_extrinsic_back"
+                ],
+                "why": "Sigue siendo el primer motor porque el hombro se extiende en cada repetición, aunque en el remo sentado el agarre ancho le dio menos amplitud que el estrecho."
+              },
+              {
+                "id": "trapezius",
+                "role": "PRIMARY",
+                "sources": [
+                  "padovan2025",
+                  "ekstrom2003",
+                  "statpearls_trapezius"
+                ],
+                "why": "Con las manos separadas y los codos abiertos, juntar las escápulas pasa a ser la mitad del gesto. En el remo sentado, el agarre ancho excitó más las tres porciones del trapecio, y la extensión horizontal del hombro fue de los ejercicios que más activaron el trapecio medio: aquí comparte el papel de motor con el dorsal."
+              },
+              {
+                "id": "deltoid",
+                "role": "SECONDARY",
+                "sources": [
+                  "vasconcelos2023",
+                  "statpearls_deltoid"
+                ],
+                "why": "Con el codo cerca de la altura del hombro, la porción posterior abduce el brazo en horizontal y gana peso: en el remo sentado se activó más a 60 y 90 grados de abducción. Sigue como ayuda porque el dorsal y el trapecio llevan el tirón."
+              }
             ]
           },
           "chest_supported_row__dumbbells__close": {
-            "description": "Con mancuernas y agarre cerrado, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. Con mancuernas, cada lado ajusta su línea y el trabajo del dorsal ancho se equilibra solo. Con el agarre cerrado, los codos viajan cerca del torso y el esfuerzo del dorsal ancho se concentra.",
-            "executionCues": [
-              "Mancuernas y agarre cerrado con el pecho apoyado: los codos descienden junto al cuerpo y cada brazo conserva su propia trayectoria. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+            "joints": [
+              {
+                "actions": [
+                  "Extensión del hombro",
+                  "Aducción del hombro"
+                ],
+                "id": "glenohumeral",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_extrinsic_back",
+                  "vasconcelos2023"
+                ],
+                "why": "Con las palmas enfrentadas el codo pasa rozando el costado y el húmero se extiende hasta quedar detrás del tronco, pegado a él: extensión y aducción, sin apertura lateral."
+              }
             ],
-            "setupCues": [
-              "Preparación: Mancuernas y agarre cerrado con el pecho apoyado: los codos descienden junto al cuerpo y cada brazo conserva su propia trayectoria."
-            ]
-          },
-          "chest_supported_row__dumbbells__medium": {
-            "description": "Con mancuernas y agarre medio, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado.",
-            "executionCues": [
-              "Mancuernas y agarre medio con el pecho apoyado: la apertura moderada de los codos reparte la demanda entre dorsal y espalda media. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
-            ],
-            "setupCues": [
-              "Preparación: Mancuernas y agarre medio con el pecho apoyado: la apertura moderada de los codos reparte la demanda entre dorsal y espalda media."
+            "muscles": [
+              {
+                "id": "latissimus_dorsi",
+                "role": "PRIMARY",
+                "sources": [
+                  "padovan2025",
+                  "vasconcelos2023",
+                  "statpearls_extrinsic_back"
+                ],
+                "why": "Con los codos rozando las costillas, el hombro se extiende en un arco largo, la acción principal del dorsal. En el remo sentado, el agarre estrecho le dio más amplitud que el ancho, y los codos pegados permitieron más fuerza pico que los abiertos."
+              }
             ]
           },
           "chest_supported_row__dumbbells__wide": {
-            "description": "Con mancuernas y agarre amplio, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
-            "executionCues": [
-              "Mancuernas y agarre amplio con el pecho apoyado: los codos se separan para acercar las cargas a la parte alta del torso. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+            "joints": [
+              {
+                "actions": [
+                  "Abducción horizontal",
+                  "Extensión del hombro"
+                ],
+                "id": "glenohumeral",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_deltoid",
+                  "vasconcelos2023"
+                ],
+                "why": "Con el agarre amplio el codo sube abierto, cerca de la altura del hombro, y el húmero se separa del tronco en el plano horizontal: domina la abducción horizontal, con algo de extensión."
+              }
             ],
-            "setupCues": [
-              "Preparación: Mancuernas y agarre amplio con el pecho apoyado: los codos se separan para acercar las cargas a la parte alta del torso."
+            "muscles": [
+              {
+                "id": "latissimus_dorsi",
+                "role": "PRIMARY",
+                "sources": [
+                  "padovan2025",
+                  "statpearls_extrinsic_back"
+                ],
+                "why": "Sigue siendo el primer motor porque el hombro se extiende en cada repetición, aunque en el remo sentado el agarre ancho le dio menos amplitud que el estrecho."
+              },
+              {
+                "id": "trapezius",
+                "role": "PRIMARY",
+                "sources": [
+                  "padovan2025",
+                  "ekstrom2003",
+                  "statpearls_trapezius"
+                ],
+                "why": "Con las manos separadas y los codos abiertos, juntar las escápulas pasa a ser la mitad del gesto. En el remo sentado, el agarre ancho excitó más las tres porciones del trapecio, y la extensión horizontal del hombro fue de los ejercicios que más activaron el trapecio medio: aquí comparte el papel de motor con el dorsal."
+              },
+              {
+                "id": "deltoid",
+                "role": "SECONDARY",
+                "sources": [
+                  "vasconcelos2023",
+                  "statpearls_deltoid"
+                ],
+                "why": "Con el codo cerca de la altura del hombro, la porción posterior abduce el brazo en horizontal y gana peso: en el remo sentado se activó más a 60 y 90 grados de abducción. Sigue como ayuda porque el dorsal y el trapecio llevan el tirón."
+              }
             ]
           },
           "chest_supported_row__kettlebell__close": {
-            "description": "Con kettlebell y agarre cerrado, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto. Con el agarre cerrado, los codos viajan cerca del torso y el esfuerzo del dorsal ancho se concentra.",
-            "executionCues": [
-              "Kettlebells y agarre cerrado con el pecho apoyado: el peso cuelga bajo la mano y los codos permanecen cerca del costado. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+            "joints": [
+              {
+                "actions": [
+                  "Extensión del hombro",
+                  "Aducción del hombro"
+                ],
+                "id": "glenohumeral",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_extrinsic_back",
+                  "vasconcelos2023"
+                ],
+                "why": "Con las palmas enfrentadas el codo pasa rozando el costado y el húmero se extiende hasta quedar detrás del tronco, pegado a él: extensión y aducción, sin apertura lateral."
+              },
+              {
+                "actions": [
+                  "Sostén del agarre"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_forearm_compartments"
+                ],
+                "why": "El asa queda en el puño y la bola cuelga por debajo; la muñeca y los flexores de los dedos frenan el balanceo de esa masa baja en cada subida."
+              }
             ],
-            "setupCues": [
-              "Preparación: Kettlebells y agarre cerrado con el pecho apoyado: el peso cuelga bajo la mano y los codos permanecen cerca del costado."
+            "muscles": [
+              {
+                "id": "latissimus_dorsi",
+                "role": "PRIMARY",
+                "sources": [
+                  "padovan2025",
+                  "vasconcelos2023",
+                  "statpearls_extrinsic_back"
+                ],
+                "why": "Con los codos rozando las costillas, el hombro se extiende en un arco largo, la acción principal del dorsal. En el remo sentado, el agarre estrecho le dio más amplitud que el ancho, y los codos pegados permitieron más fuerza pico que los abiertos."
+              }
             ]
           },
           "chest_supported_row__kettlebell__medium": {
-            "description": "Con kettlebell y agarre medio, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado.",
-            "executionCues": [
-              "Kettlebells y agarre medio con el pecho apoyado: la carga desplazada obliga a organizar la muñeca cuando los codos retroceden. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
-            ],
-            "setupCues": [
-              "Preparación: Kettlebells y agarre medio con el pecho apoyado: la carga desplazada obliga a organizar la muñeca cuando los codos retroceden."
+            "joints": [
+              {
+                "actions": [
+                  "Sostén del agarre"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_forearm_compartments"
+                ],
+                "why": "El asa queda en el puño y la bola cuelga por debajo; la muñeca y los flexores de los dedos frenan el balanceo de esa masa baja en cada subida."
+              }
             ]
           },
           "chest_supported_row__kettlebell__wide": {
-            "description": "Con kettlebell y agarre amplio, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del dorsal ancho. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
-            "executionCues": [
-              "Kettlebells y agarre amplio con el pecho apoyado: los codos se abren mientras el peso bajo el agarre exige estabilidad en cada mano. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+            "joints": [
+              {
+                "actions": [
+                  "Abducción horizontal",
+                  "Extensión del hombro"
+                ],
+                "id": "glenohumeral",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_deltoid",
+                  "vasconcelos2023"
+                ],
+                "why": "Con el agarre amplio el codo sube abierto, cerca de la altura del hombro, y el húmero se separa del tronco en el plano horizontal: domina la abducción horizontal, con algo de extensión."
+              },
+              {
+                "actions": [
+                  "Sostén del agarre"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_forearm_compartments"
+                ],
+                "why": "El asa queda en el puño y la bola cuelga por debajo; la muñeca y los flexores de los dedos frenan el balanceo de esa masa baja en cada subida."
+              }
             ],
-            "setupCues": [
-              "Preparación: Kettlebells y agarre amplio con el pecho apoyado: los codos se abren mientras el peso bajo el agarre exige estabilidad en cada mano."
+            "muscles": [
+              {
+                "id": "latissimus_dorsi",
+                "role": "PRIMARY",
+                "sources": [
+                  "padovan2025",
+                  "statpearls_extrinsic_back"
+                ],
+                "why": "Sigue siendo el primer motor porque el hombro se extiende en cada repetición, aunque en el remo sentado el agarre ancho le dio menos amplitud que el estrecho."
+              },
+              {
+                "id": "trapezius",
+                "role": "PRIMARY",
+                "sources": [
+                  "padovan2025",
+                  "ekstrom2003",
+                  "statpearls_trapezius"
+                ],
+                "why": "Con las manos separadas y los codos abiertos, juntar las escápulas pasa a ser la mitad del gesto. En el remo sentado, el agarre ancho excitó más las tres porciones del trapecio, y la extensión horizontal del hombro fue de los ejercicios que más activaron el trapecio medio: aquí comparte el papel de motor con el dorsal."
+              },
+              {
+                "id": "deltoid",
+                "role": "SECONDARY",
+                "sources": [
+                  "vasconcelos2023",
+                  "statpearls_deltoid"
+                ],
+                "why": "Con el codo cerca de la altura del hombro, la porción posterior abduce el brazo en horizontal y gana peso: en el remo sentado se activó más a 60 y 90 grados de abducción. Sigue como ayuda porque el dorsal y el trapecio llevan el tirón."
+              }
             ]
           },
           "chest_supported_row__machine__close": {
-            "description": "Con máquina y agarre cerrado, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso.",
-            "executionCues": [
-              "Máquina y agarre cerrado con el pecho apoyado: el recorrido guiado mantiene los codos junto al cuerpo y reduce la variación entre repeticiones. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+            "joints": [
+              {
+                "actions": [
+                  "Extensión del hombro",
+                  "Aducción del hombro"
+                ],
+                "id": "glenohumeral",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_extrinsic_back",
+                  "vasconcelos2023"
+                ],
+                "why": "En los agarres verticales el codo pasa pegado al costado y la palanca lleva la extensión del hombro hasta detrás del tronco."
+              },
+              {
+                "actions": [
+                  "Sostén del agarre"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_forearm_compartments"
+                ],
+                "why": "Los mangos de la estación fijan la orientación de la mano; la muñeca solo transmite la fuerza al brazo de palanca, sin sostener una carga libre."
+              }
             ],
-            "setupCues": [
-              "Preparación: Máquina y agarre cerrado con el pecho apoyado: el recorrido guiado mantiene los codos junto al cuerpo y reduce la variación entre repeticiones."
+            "muscles": [
+              {
+                "id": "latissimus_dorsi",
+                "role": "PRIMARY",
+                "sources": [
+                  "padovan2025",
+                  "vasconcelos2023",
+                  "statpearls_extrinsic_back"
+                ],
+                "why": "Con los codos rozando las costillas, el hombro se extiende en un arco largo, la acción principal del dorsal. En el remo sentado, el agarre estrecho le dio más amplitud que el ancho, y los codos pegados permitieron más fuerza pico que los abiertos."
+              }
             ]
           },
           "chest_supported_row__machine__medium": {
-            "description": "Con máquina y agarre medio, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. El agarre medio equilibra el reparto del trabajo del dorsal ancho.",
-            "executionCues": [
-              "Máquina y agarre medio con el pecho apoyado: la guía fija una apertura moderada para repartir el tirón entre dorsal y espalda media. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
-            ],
-            "setupCues": [
-              "Preparación: Máquina y agarre medio con el pecho apoyado: la guía fija una apertura moderada para repartir el tirón entre dorsal y espalda media."
+            "joints": [
+              {
+                "actions": [
+                  "Extensión del hombro",
+                  "Abducción horizontal"
+                ],
+                "id": "glenohumeral",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_extrinsic_back",
+                  "statpearls_deltoid"
+                ],
+                "why": "Los brazos de la máquina giran sobre su eje y fijan el arco: el codo retrocede en diagonal hasta pasar la espalda, siempre por el mismo camino."
+              },
+              {
+                "actions": [
+                  "Sostén del agarre"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_forearm_compartments"
+                ],
+                "why": "Los mangos de la estación fijan la orientación de la mano; la muñeca solo transmite la fuerza al brazo de palanca, sin sostener una carga libre."
+              }
             ]
           },
           "chest_supported_row__machine__wide": {
-            "description": "Con máquina y agarre amplio, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
+            "joints": [
+              {
+                "actions": [
+                  "Abducción horizontal",
+                  "Extensión del hombro"
+                ],
+                "id": "glenohumeral",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_deltoid",
+                  "vasconcelos2023"
+                ],
+                "why": "En los mangos exteriores el codo viaja abierto a la altura del hombro y la palanca marca un arco fijo hacia atrás en el plano horizontal."
+              },
+              {
+                "actions": [
+                  "Sostén del agarre"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_forearm_compartments"
+                ],
+                "why": "Los mangos de la estación fijan la orientación de la mano; la muñeca solo transmite la fuerza al brazo de palanca, sin sostener una carga libre."
+              }
+            ],
+            "muscles": [
+              {
+                "id": "latissimus_dorsi",
+                "role": "PRIMARY",
+                "sources": [
+                  "padovan2025",
+                  "statpearls_extrinsic_back"
+                ],
+                "why": "Sigue siendo el primer motor porque el hombro se extiende en cada repetición, aunque en el remo sentado el agarre ancho le dio menos amplitud que el estrecho."
+              },
+              {
+                "id": "trapezius",
+                "role": "PRIMARY",
+                "sources": [
+                  "padovan2025",
+                  "ekstrom2003",
+                  "statpearls_trapezius"
+                ],
+                "why": "Con las manos separadas y los codos abiertos, juntar las escápulas pasa a ser la mitad del gesto. En el remo sentado, el agarre ancho excitó más las tres porciones del trapecio, y la extensión horizontal del hombro fue de los ejercicios que más activaron el trapecio medio: aquí comparte el papel de motor con el dorsal."
+              },
+              {
+                "id": "deltoid",
+                "role": "SECONDARY",
+                "sources": [
+                  "vasconcelos2023",
+                  "statpearls_deltoid"
+                ],
+                "why": "Con el codo cerca de la altura del hombro, la porción posterior abduce el brazo en horizontal y gana peso: en el remo sentado se activó más a 60 y 90 grados de abducción. Sigue como ayuda porque el dorsal y el trapecio llevan el tirón."
+              }
+            ]
+          }
+        }
+      },
+      "public": {
+        "configurations": {
+          "chest_supported_row__cable__high__close": {
+            "description": "Con el agarre en V colgando de lo alto, los codos descienden junto al tronco desde un brazo elevado hasta quedar a la altura de las costillas. Es el ajuste de este remo que más recorrido de extensión de hombro pide, la acción propia del dorsal ancho.",
             "executionCues": [
-              "Máquina y agarre amplio con el pecho apoyado: los codos se separan siguiendo un recorrido predeterminado hacia la espalda alta. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+              "Baja los codos pegados al cuerpo hasta que queden junto a las costillas.",
+              "Aprieta las escápulas abajo y atrás un instante.",
+              "Deja subir el agarre hasta estirar los brazos."
             ],
             "setupCues": [
-              "Preparación: Máquina y agarre amplio con el pecho apoyado: los codos se separan siguiendo un recorrido predeterminado hacia la espalda alta."
+              "Sube la polea al punto más alto y coloca el banco inclinado de cara a la columna.",
+              "Apoya el pecho en el respaldo y toma el agarre en V con las palmas enfrentadas."
+            ]
+          },
+          "chest_supported_row__cable__high__medium": {
+            "description": "La polea alta tira desde arriba y por delante, así que los brazos arrancan elevados y los codos bajan y retroceden hasta las costillas. Con las manos al ancho de los hombros, el tirón mezcla la extensión del hombro con el cierre de las escápulas.",
+            "executionCues": [
+              "Baja y retrasa los codos hasta que lleguen a las costillas.",
+              "Junta y baja las escápulas sin despegar el pecho del respaldo.",
+              "Deja subir la barra hasta estirar los brazos hacia la polea."
+            ],
+            "setupCues": [
+              "Sube la polea al punto más alto y coloca el banco inclinado de cara a la columna.",
+              "Apoya el pecho en el respaldo y sujeta la barra corta con las manos a la anchura de tus hombros."
+            ]
+          },
+          "chest_supported_row__cable__high__wide": {
+            "description": "Desde la polea alta, la barra larga baja hacia el pecho con las manos muy separadas y los codos abiertos, que descienden hacia los costados. Las escápulas, además de juntarse, bajan, y el trapecio y el deltoides posterior aportan más que con un agarre estrecho.",
+            "executionCues": [
+              "Tira de la barra hacia la parte alta del pecho bajando los codos hacia los costados.",
+              "Junta y baja las escápulas sin despegar el pecho del respaldo.",
+              "Deja subir la barra hasta estirar los brazos hacia la polea."
+            ],
+            "setupCues": [
+              "Sube la polea al punto más alto y coloca el banco inclinado de cara a la columna.",
+              "Apoya el pecho en el respaldo y sujeta la barra larga bien abierta, con las palmas mirando a la polea."
+            ]
+          },
+          "chest_supported_row__cable__low__close": {
+            "description": "Enganchado a la polea baja, el agarre en V sube hacia el final del esternón y los codos pasan pegados al tronco hasta quedar detrás de la espalda. El dorsal ancho lleva la delantera, y el banco frena el agarre justo antes de tocarlo.",
+            "executionCues": [
+              "Lleva los codos pegados al cuerpo hasta que el agarre quede a un palmo del banco.",
+              "Aprieta las escápulas sin separar el pecho del respaldo.",
+              "Baja el agarre hasta estirar los brazos hacia el suelo."
+            ],
+            "setupCues": [
+              "Baja la polea al punto más bajo y coloca el banco inclinado de cara a la columna.",
+              "Apoya el pecho en el respaldo y toma el agarre en V con las palmas enfrentadas."
+            ]
+          },
+          "chest_supported_row__cable__low__medium": {
+            "description": "El cable sale de abajo y por delante, así que el tirón empieza con los brazos estirados hacia el suelo y acaba con las manos frente a la parte baja del pecho. El banco marca el final: la barra frena antes de tocar el acolchado.",
+            "executionCues": [
+              "Lleva los codos hacia atrás en diagonal hasta que la barra quede a un palmo del banco.",
+              "Aprieta las escápulas sin separar el pecho del respaldo.",
+              "Baja la barra hasta estirar los brazos hacia el suelo."
+            ],
+            "setupCues": [
+              "Baja la polea al punto más bajo y coloca el banco inclinado de cara a la columna.",
+              "Apoya el pecho en el respaldo y sujeta la barra corta con las manos a la anchura de tus hombros."
+            ]
+          },
+          "chest_supported_row__cable__low__wide": {
+            "description": "Desde la polea baja, la barra larga sube en diagonal hacia el pecho con los codos abiertos, y el recorrido se corta poco antes de tocar el banco. Las escápulas se juntan arriba con el trapecio llevando una parte grande del trabajo.",
+            "executionCues": [
+              "Tira con los codos hacia fuera hasta que la barra quede a un palmo del banco.",
+              "Aprieta las escápulas sin separar el pecho del respaldo.",
+              "Baja la barra hasta estirar los brazos hacia el suelo."
+            ],
+            "setupCues": [
+              "Baja la polea al punto más bajo y coloca el banco inclinado de cara a la columna.",
+              "Apoya el pecho en el respaldo y sujeta la barra larga bien abierta, con las palmas hacia abajo."
+            ]
+          },
+          "chest_supported_row__cable__mid__close": {
+            "description": "Con las dos asas juntas a los lados de la almohadilla y las palmas enfrentadas, los codos se deslizan pegados a las costillas con el tronco vertical. Así el dorsal ancho toma la delantera y el hombro se extiende por detrás del tronco.",
+            "executionCues": [
+              "Lleva los codos rozando las costillas hasta que las asas lleguen a los costados del pecho.",
+              "Aprieta las escápulas sin separar el pecho de la almohadilla.",
+              "Estira los brazos hacia la polea sin soltar las asas."
+            ],
+            "setupCues": [
+              "Pon la polea a la altura de tu pecho y siéntate de cara a la columna, con la almohadilla vertical delante del pecho.",
+              "Apoya el pecho en la almohadilla, los pies en el suelo, y toma las dos asas juntas con las palmas enfrentadas."
+            ]
+          },
+          "chest_supported_row__cable__mid__medium": {
+            "description": "El tronco queda vertical contra la almohadilla y el cable llega en horizontal a la altura del pecho, perpendicular al cuerpo. Las asas pasan por los lados del apoyo hasta las costillas, y el cable no afloja ni con los brazos estirados delante.",
+            "executionCues": [
+              "Lleva los codos hacia atrás en diagonal hasta que pasen la línea de la espalda.",
+              "Aprieta las escápulas sin separar el pecho de la almohadilla.",
+              "Estira los brazos hacia la polea sin soltar las asas."
+            ],
+            "setupCues": [
+              "Pon la polea a la altura de tu pecho y siéntate de cara a la columna, con la almohadilla vertical delante del pecho.",
+              "Apoya el pecho en la almohadilla, los pies en el suelo, y toma un asa en cada mano a la anchura de tus hombros."
+            ]
+          },
+          "chest_supported_row__cable__mid__wide": {
+            "description": "Sentado frente a la columna con el pecho en una almohadilla casi vertical, el cable llega en horizontal a la barra larga y los codos se abren hasta la línea de los hombros. La barra frena delante de la almohadilla, y el trapecio y el deltoides posterior llevan buena parte del tirón.",
+            "executionCues": [
+              "Tira con los codos hacia fuera hasta que la barra quede justo delante de la almohadilla.",
+              "Aprieta las escápulas sin separar el pecho de la almohadilla.",
+              "Estira los brazos hacia la polea sin soltar la barra."
+            ],
+            "setupCues": [
+              "Pon la polea a la altura de tu pecho y siéntate de cara a la columna, con la almohadilla vertical delante del pecho.",
+              "Apoya el pecho en la almohadilla, los pies en el suelo, y sujeta la barra larga bien abierta con las palmas hacia abajo."
+            ]
+          },
+          "chest_supported_row__dumbbells__close": {
+            "description": "Con las palmas enfrentadas, los codos rozan las costillas y las mancuernas suben hacia la cadera, por detrás de la línea del tronco. Así el dorsal ancho gana protagonismo frente a la espalda alta, y se mueve más carga que con los codos abiertos.",
+            "executionCues": [
+              "Sube los codos rozando las costillas hasta que pasen la línea de la espalda.",
+              "Aguanta un segundo arriba con las escápulas juntas.",
+              "Baja hasta que los brazos cuelguen estirados."
+            ],
+            "setupCues": [
+              "Inclina el respaldo y échate boca abajo, con el esternón cerca del borde alto del acolchado.",
+              "Agarra las mancuernas con las palmas enfrentadas, una a cada lado del banco."
+            ]
+          },
+          "chest_supported_row__dumbbells__medium": {
+            "description": "Cada mancuerna cuelga bajo su hombro y sube por fuera del banco hasta las costillas bajas, con el codo a medio camino entre el costado y la cruz. Los brazos van sueltos, así que si un lado se queda corto se nota enseguida.",
+            "executionCues": [
+              "Lleva los codos hacia atrás en diagonal hasta que las mancuernas lleguen a las costillas bajas.",
+              "Aprieta las escápulas arriba sin separar el esternón del respaldo.",
+              "Vuelve despacio hasta estirar los codos y deja que las escápulas se abran."
+            ],
+            "setupCues": [
+              "Inclina el respaldo y échate boca abajo, con el esternón cerca del borde alto del acolchado.",
+              "Toma una mancuerna con cada mano y deja que cuelguen bajo los hombros, con los pies firmes detrás."
+            ]
+          },
+          "chest_supported_row__dumbbells__wide": {
+            "description": "Palmas hacia los pies y codos abiertos casi en cruz con el tronco: así se traduce el agarre amplio con mancuernas. Cada carga termina junto a la axila, y el trapecio y el deltoides posterior trabajan más que con los codos pegados.",
+            "executionCues": [
+              "Abre los codos hacia fuera y súbelos hasta la altura de los hombros.",
+              "Aprieta las escápulas arriba sin separar el esternón del respaldo.",
+              "Baja despacio hasta que los brazos vuelvan a colgar estirados."
+            ],
+            "setupCues": [
+              "Inclina el respaldo y échate boca abajo, con el esternón cerca del borde alto del acolchado.",
+              "Agarra las mancuernas con las palmas mirando hacia tus pies y deja los brazos colgando."
+            ]
+          },
+          "chest_supported_row__kettlebell__close": {
+            "description": "Con las palmas mirando al banco, las asas quedan en línea con el cuerpo y cada bola cuelga pegada a un lateral. Los codos suben rozando el tronco hasta pasar la espalda, y el dorsal ancho gana peso en el tirón.",
+            "executionCues": [
+              "Sube los codos pegados al tronco hasta que pasen la línea de la espalda.",
+              "Aguanta arriba un instante sin que las bolas se balanceen.",
+              "Baja hasta que los brazos queden estirados."
+            ],
+            "setupCues": [
+              "Inclina el respaldo lo justo para que las bolas no toquen el suelo con los brazos estirados.",
+              "Échate boca abajo y agarra cada asa con la palma mirando hacia el banco."
+            ]
+          },
+          "chest_supported_row__kettlebell__medium": {
+            "description": "La bola cuelga bastante por debajo del asa, de modo que el banco necesita altura para que no roce el suelo con los brazos estirados. Los codos salen en diagonal y las asas terminan a la altura de las costillas.",
+            "executionCues": [
+              "Tira de los codos en diagonal hasta que las asas lleguen a las costillas.",
+              "Sube a un ritmo parejo para que las bolas no se balanceen.",
+              "Baja hasta estirar los brazos sin soltar las asas."
+            ],
+            "setupCues": [
+              "Inclina el respaldo lo justo para que las bolas no toquen el suelo con los brazos estirados.",
+              "Échate boca abajo con un kettlebell colgando de cada mano bajo los hombros."
+            ]
+          },
+          "chest_supported_row__kettlebell__wide": {
+            "description": "En agarre amplio, cada asa queda atravesada en la palma y los codos se abren hasta la altura de los hombros. La bola cuelga por debajo del puño y se balancea si el tirón es brusco, así que la subida pide un ritmo parejo.",
+            "executionCues": [
+              "Abre los codos hacia fuera hasta la altura de los hombros, sin dar tirones.",
+              "Cierra las escápulas en lo alto con el pecho quieto sobre el respaldo.",
+              "Baja despacio hasta estirar los brazos."
+            ],
+            "setupCues": [
+              "Inclina el respaldo lo justo para que las bolas no toquen el suelo con los brazos estirados.",
+              "Échate boca abajo y agarra cada asa con las palmas mirando hacia tus pies."
+            ]
+          },
+          "chest_supported_row__machine__close": {
+            "description": "Los agarres verticales del centro juntan las manos con las palmas enfrentadas, y los codos pasan rozando el costado. El arco de la máquina termina con las manos junto a las costillas bajas y el dorsal ancho como protagonista.",
+            "executionCues": [
+              "Lleva los codos pegados al cuerpo hasta que las manos lleguen a las costillas.",
+              "No despegues el pecho de la almohadilla al final.",
+              "Deja volver los mangos hasta estirar los brazos sin que la carga golpee."
+            ],
+            "setupCues": [
+              "Ajusta el asiento para que los mangos queden a la altura de tu pecho.",
+              "Apoya el pecho y agarra los mangos verticales del centro con las palmas enfrentadas."
+            ]
+          },
+          "chest_supported_row__machine__medium": {
+            "description": "Sentado frente a la almohadilla, los mangos quedan a la altura del pecho y recorren el arco fijo de los brazos de la máquina. Sin carga que estabilizar, la serie puede acercarse al fallo sin que la postura cambie.",
+            "executionCues": [
+              "Tira de los mangos hacia ti hasta que los codos pasen la línea de la espalda.",
+              "No despegues el pecho de la almohadilla al final.",
+              "Deja volver los mangos hasta estirar los brazos sin que la carga golpee."
+            ],
+            "setupCues": [
+              "Ajusta el asiento para que los mangos queden a la altura de tu pecho.",
+              "Apoya el pecho en la almohadilla y toma los mangos a la anchura de tus hombros."
+            ]
+          },
+          "chest_supported_row__machine__wide": {
+            "description": "En los mangos exteriores, con las palmas hacia abajo, los codos salen a la altura de los hombros y el tirón se vuelve una apertura hacia atrás. Los brazos de la máquina fijan el arco, y el trapecio y el deltoides posterior suben su parte del trabajo.",
+            "executionCues": [
+              "Separa los codos del cuerpo y tira hasta que lleguen a la línea de los hombros.",
+              "No despegues el pecho de la almohadilla al final.",
+              "Deja volver los mangos hasta estirar los brazos sin que la carga golpee."
+            ],
+            "setupCues": [
+              "Ajusta el asiento para que los mangos queden a la altura de tu pecho.",
+              "Apoya el pecho en la almohadilla y agarra los mangos horizontales de fuera con las palmas hacia abajo."
             ]
           }
         },
-        "description": "El Remo con Pecho Apoyado es la tracción horizontal sin trampas: con el torso pegado al banco, el dorsal ancho tira sin que la zona lumbar pueda robar ni un ápice del trabajo. Se ejecuta con el pecho sobre el banco inclinado y las mancuernas colgando, llevando los codos hacia atrás hasta juntar los omóplatos y bajando con el mismo control. En polea la tensión no se apaga en ningún punto del recorrido, una variante que conviene tener en el arsenal. La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
+        "description": "El Remo con Pecho Apoyado (chest supported row) es un tirón horizontal para la espalda: el dorsal ancho lleva los codos hacia atrás mientras el trapecio y los romboides juntan las escápulas, con ayuda del deltoides posterior y del bíceps. El pecho descansa sobre un respaldo inclinado o sobre la almohadilla de una estación, los brazos arrancan estirados hacia la carga y cada tirón termina con los codos más allá de la línea de la espalda. Como el apoyo sostiene el torso, la zona lumbar no carga con ninguna inclinación y la cadera no puede dar impulso. Con los codos abiertos trabaja más la espalda alta; pegados al costado, el dorsal. Encaja en sesiones en las que la espalda baja ya trabajó con bisagras y todavía falta volumen de tirón."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "El remo sentado dio la mayor actividad del conjunto trapecio medio y romboides frente a los jalones, y la actividad del bíceps no cambió entre los cuatro ejercicios comparados.",
+          "id": "lehman2004",
+          "title": "Variations in muscle activation levels during traditional latissimus dorsi weight training exercises: An experimental study",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/15228624/"
+        },
+        {
+          "claim": "En el remo prono con barra, hecho tumbado boca abajo, el dorsal ancho tuvo más excitación media en la mitad superior del recorrido que en la inferior o en el recorrido entero.",
+          "id": "fischer2025",
+          "title": "Impact of different ranges of motion in the prone barbell row on muscle excitation",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/40513198/"
+        },
+        {
+          "claim": "Con electrodos intramusculares, el romboides mayor mostró actividad moderada (25-45 % de la contracción máxima) en los cuatro ejercicios, entre ellos la extensión del hombro tumbado boca abajo.",
+          "id": "berckmans2021",
+          "title": "Rehabilitation Exercises for Dysfunction of the Scapula: Exploration of Muscle Activity Using Fine-Wire EMG",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/34279126/"
+        },
+        {
+          "claim": "En el remo sentado, el agarre estrecho dio más amplitud del dorsal ancho en ambas fases y el ancho más excitación de las porciones superior, media e inferior del trapecio y del deltoides lateral; en el bíceps solo cambió la localización de la excitación.",
+          "id": "padovan2025",
+          "title": "High-Density Surface Electromyography Excitation of Prime Movers in the Narrow vs. Wide Grip Seated Row Exercise",
+          "url": "https://doi.org/10.5114/jhk/209550"
+        },
+        {
+          "claim": "En el remo sentado en polea, el trapecio superior y medio y el deltoides posterior se activaron más a 60 y 90 grados de abducción del hombro, y el dorsal ancho y la fuerza pico fueron mayores con el brazo cerca de 0 grados.",
+          "id": "vasconcelos2023",
+          "title": "Effect Of Different Grip Position And Shoulder- Abduction Angle On Muscle Strength And Activation During The Seated Cable Row",
+          "url": "https://doi.org/10.47206/ijsc.v3i1.190"
+        },
+        {
+          "claim": "Entre diez ejercicios escapulares, la extensión horizontal del hombro con rotación externa fue uno de los dos que más activaron el trapecio medio.",
+          "id": "ekstrom2003",
+          "title": "Surface electromyographic analysis of exercises for the trapezius and serratus anterior muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/12774999/"
+        },
+        {
+          "claim": "Describe la acción del dorsal ancho (extensión, aducción y rotación interna del hombro) y de los músculos extrínsecos de la espalda sobre la escápula y el húmero.",
+          "id": "statpearls_extrinsic_back",
+          "title": "Anatomy, Back, Extrinsic Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725901/"
+        },
+        {
+          "claim": "Describe a los romboides como retractores y rotadores inferiores de la escápula.",
+          "id": "statpearls_rhomboids",
+          "title": "Anatomy, Back, Rhomboid Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30521277/"
+        },
+        {
+          "claim": "Las fibras medias del trapecio retraen la escápula y las inferiores la deprimen; el músculo estabiliza y mueve la escápula.",
+          "id": "statpearls_trapezius",
+          "title": "Anatomy, Back, Trapezius",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30085536/"
+        },
+        {
+          "claim": "Describe las porciones del deltoides; la posterior extiende y abduce horizontalmente el hombro.",
+          "id": "statpearls_deltoid",
+          "title": "Anatomy, Shoulder and Upper Limb, Deltoid Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725741/"
+        },
+        {
+          "claim": "Describe al bíceps braquial como flexor del codo y supinador del antebrazo.",
+          "id": "statpearls_biceps",
+          "title": "Anatomy, Shoulder and Upper Limb, Biceps Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30137823/"
+        },
+        {
+          "claim": "Describe los compartimentos del antebrazo y los flexores de dedos y muñeca que sostienen el agarre.",
+          "id": "statpearls_forearm_compartments",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Remo horizontal con el torso apoyado boca abajo sobre un respaldo inclinado o sentado contra una almohadilla vertical: los brazos parten estirados hacia la carga y los codos viajan atrás hasta pasar la línea de la espalda, sin que la cadera ni la zona lumbar intervengan. El respaldo inclinado, con los pies en el suelo, lo separa del remo seal, que se hace tumbado en horizontal sobre un banco alto, y el apoyo del pecho lo separa del remo convencional.",
+        "keyPositions": [
+          "Inicio: brazos estirados hacia la carga, escápulas separadas y pecho en contacto con el apoyo.",
+          "Punto alto: codos detrás de la línea de la espalda y escápulas juntas, con el pecho todavía apoyado; con agarre amplio los codos quedan a la altura de los hombros y con el cerrado junto a las costillas."
+        ],
+        "mistakes": [
+          "Separar el pecho del respaldo al final del tirón para ganar recorrido arqueando la espalda.",
+          "Encoger los hombros durante el tirón, como en un encogimiento, en lugar de cerrar las escápulas.",
+          "Quedarse corto arriba, con los codos todavía por delante de la línea de la espalda.",
+          "Empujar con los pies para levantar el cuerpo del apoyo."
+        ],
+        "phases": [
+          {
+            "description": "El primer movimiento es el de las escápulas, que se acercan a la columna; después empiezan a doblarse los codos.",
+            "name": "Arranque"
+          },
+          {
+            "description": "Los codos viajan atrás según el agarre: abiertos hacia los lados, en diagonal o rozando las costillas, con el pecho quieto.",
+            "name": "Tirón"
+          },
+          {
+            "description": "Los codos pasan la línea de la espalda y las escápulas se aprietan un instante.",
+            "name": "Punto alto"
+          },
+          {
+            "description": "Los brazos se estiran de nuevo hasta que las escápulas se separan, sin soltar la carga de golpe.",
+            "name": "Vuelta"
+          }
+        ],
+        "setup": [
+          "Respaldo inclinado o almohadilla de la estación a la altura del esternón, con la parte alta del pecho apoyada y el cuello en línea con el tronco.",
+          "Pies apoyados en el suelo o en el reposapiés, sin empujar para separar el pecho del apoyo.",
+          "Mancuernas o kettlebells colgando bajo los hombros; en la estación, mangos a la altura del pecho; con cable, banco inclinado de cara a la columna para la polea alta o la baja, y sentado contra una almohadilla vertical para la media.",
+          "Agarre amplio con palmas hacia los pies y codos en cruz; medio con codos en diagonal; cerrado con palmas enfrentadas y codos pegados al tronco."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral a la altura del apoyo, con el atleta entero de la cabeza a los pies y la carga visible.",
+          "contacts": "Esternón contra el apoyo, pies en el suelo o en el reposapiés y manos cerradas sobre los agarres de la carga.",
+          "load": "Carga sujeta por las dos manos, cerca del tronco, sin tocar el suelo ni el apoyo.",
+          "orientation": "Atleta de perfil, mirando hacia la izquierda del encuadre, con el pecho contra el apoyo y el cuello en línea con el tronco.",
+          "phase": "Punto alto del tirón: codos por detrás de la línea de la espalda, escápulas juntas y la carga en su punto más cercano al tronco.",
+          "posture": "Columna neutra, hombros lejos de las orejas, codos flexionados por detrás del tronco y muñecas firmes."
+        },
+        "byImplement": {
+          "cable": {
+            "geometry": "Banco con el respaldo inclinado unos 45 grados, colocado de cara a una columna de poleas; barra corta unida al cable de la polea baja, que sube en diagonal desde el suelo; en el punto alto la barra queda a un palmo del acolchado, frente a la parte baja del pecho. La polea media usa otra estación: sentado contra una almohadilla vertical, descrita en sus variantes."
+          },
+          "dumbbells": {
+            "geometry": "Banco con el respaldo inclinado unos 45 grados; una mancuerna en cada mano, a cada lado del banco; en el punto alto quedan junto a las costillas bajas, por fuera del respaldo."
+          },
+          "kettlebell": {
+            "geometry": "Banco con el respaldo inclinado unos 45 grados; un kettlebell en cada mano a cada lado del banco, con la bola colgando por debajo del asa; en el punto alto las asas quedan junto a las costillas."
+          },
+          "machine": {
+            "geometry": "Estación de remo sentado con almohadilla vertical para el pecho y dos mangos en brazos de palanca; atleta sentado con el pecho contra la almohadilla; en el punto alto los mangos quedan junto a los costados del pecho."
+          }
+        },
+        "byVariant": {
+          "chest_supported_row__cable__high__close": {
+            "difference": "El cable baja en diagonal desde una polea por encima de la cabeza; agarre en V con palmas enfrentadas y codos pegados al tronco."
+          },
+          "chest_supported_row__cable__high__medium": {
+            "difference": "El cable baja en diagonal desde una polea por encima de la cabeza; barra corta al ancho de los hombros y codos junto a las costillas."
+          },
+          "chest_supported_row__cable__high__wide": {
+            "difference": "El cable baja en diagonal desde una polea por encima de la cabeza; barra larga en prono con las manos muy separadas y codos abiertos hacia los costados."
+          },
+          "chest_supported_row__cable__low__close": {
+            "difference": "El cable sube en diagonal desde una polea a ras de suelo; agarre en V con palmas enfrentadas y codos pegados al tronco."
+          },
+          "chest_supported_row__cable__low__wide": {
+            "difference": "El cable sube en diagonal desde una polea a ras de suelo; barra larga en prono, codos abiertos y barra a un palmo del banco."
+          },
+          "chest_supported_row__cable__mid__close": {
+            "difference": "Otra estación: atleta sentado de cara a la columna, tronco vertical y pecho contra una almohadilla casi vertical, pies en el suelo; cable horizontal desde la polea a la altura del pecho; dos asas juntas con las palmas enfrentadas a los lados de la almohadilla y codos pegados a las costillas."
+          },
+          "chest_supported_row__cable__mid__medium": {
+            "difference": "Otra estación: atleta sentado de cara a la columna, tronco vertical y pecho contra una almohadilla casi vertical, pies en el suelo; cable horizontal desde la polea a la altura del pecho; un asa en cada mano al ancho de los hombros, que pasa por los lados de la almohadilla, y codos por detrás del tronco."
+          },
+          "chest_supported_row__cable__mid__wide": {
+            "difference": "Otra estación: atleta sentado de cara a la columna, tronco vertical y pecho contra una almohadilla casi vertical, pies en el suelo; cable horizontal desde la polea a la altura del pecho; barra larga en prono con las manos muy separadas, codos abiertos a la altura de los hombros y la barra justo delante de la almohadilla."
+          },
+          "chest_supported_row__dumbbells__close": {
+            "difference": "Palmas enfrentadas y codos rozando las costillas; las mancuernas llegan junto a la cadera, por detrás de la línea del tronco."
+          },
+          "chest_supported_row__dumbbells__wide": {
+            "difference": "Palmas hacia los pies y codos abiertos a los lados, a la altura de los hombros; las mancuernas llegan junto a las axilas."
+          },
+          "chest_supported_row__kettlebell__close": {
+            "difference": "Palmas mirando al banco y codos pegados al tronco; cada bola cuelga junto a un lateral del banco."
+          },
+          "chest_supported_row__kettlebell__wide": {
+            "difference": "Asas atravesadas en la palma y codos abiertos a la altura de los hombros; las bolas cuelgan bajo los puños, junto a las axilas."
+          },
+          "chest_supported_row__machine__close": {
+            "difference": "Manos en los mangos verticales del centro, palmas enfrentadas y codos pegados al tronco."
+          },
+          "chest_supported_row__machine__wide": {
+            "difference": "Manos en los mangos horizontales exteriores, palmas hacia abajo y codos abiertos a la altura de los hombros."
+          }
+        },
+        "forbidden": [
+          "Atleta tumbado en horizontal sobre un banco alto con la carga colgando debajo: eso es el remo seal.",
+          "Atleta de pie e inclinado sin apoyo para el pecho: eso es un remo con el tronco libre, no un remo con pecho apoyado.",
+          "Pecho separado del respaldo o espalda arqueada hacia arriba.",
+          "Codos estirados en el fotograma: la imagen es del punto alto, no de la salida.",
+          "Carga apoyada en el suelo o en el banco, o manos que no la agarran.",
+          "Barra o agarre del cable atravesando el acolchado.",
+          "Una sola mano tirando mientras la otra descansa: el remo es a dos manos.",
+          "Atleta de pie sobre una plataforma, con el pecho en una almohadilla inclinada y tirando de una palanca cargada con discos: eso es la máquina de remo en barra T, no este remo.",
+          "En la polea media, atleta tumbado en un banco inclinado: con la polea media se rema sentado, con el tronco vertical contra una almohadilla."
+        ],
+        "promptCore": {
+          "cable": "Side view of a muscular athlete lying face down on an adjustable bench set at a 45 degree incline, frozen at the TOP of a chest supported cable row. The high end of the bench faces a cable column, so the athlete faces the column. The upper chest is pressed against the bench pad and both feet are planted on the floor. Both hands grip a short straight cable bar, shoulder width apart; the cable rises diagonally from a pulley at floor level in front of the bench. Elbows are bent and pulled back past the line of the back, shoulder blades squeezed together. The bar stops a hand width in front of the pad and the weight stack is lifted.",
+          "dumbbells": "Side view of a muscular athlete lying face down on an adjustable bench set at a 45 degree incline, frozen at the TOP of a chest supported dumbbell row. The upper chest is pressed against the top of the bench pad and both feet are planted on the floor behind the bench. Each hand grips one dumbbell, one on each side of the bench, palms angled toward the body. Elbows are bent and pulled back past the line of the back, shoulder blades squeezed together. The dumbbells are held beside the lower ribs, clear of the floor.",
+          "kettlebell": "Side view of a muscular athlete lying face down on an adjustable bench set at a 45 degree incline, frozen at the TOP of a chest supported kettlebell row. The upper chest is pressed against the top of the bench pad and both feet are planted on the floor behind the bench. Each hand grips the handle of one kettlebell, one on each side of the bench, with the round bell hanging below the fist. Elbows are bent and pulled back past the line of the back, shoulder blades squeezed together. The kettlebells are held beside the ribs, clear of the floor.",
+          "machine": "Side view of a muscular athlete seated on a chest supported row machine, frozen at the TOP of the row. The chest is pressed against the upright chest pad and both feet rest flat on the floor. Both hands grip the two machine handles, shoulder width apart, and hold them beside the chest. Elbows are bent and pulled back behind the torso, shoulder blades squeezed together. The lever arms of the machine are pulled back toward the athlete and the handles do not touch the pad."
+        },
+        "qa": [
+          "¿El pecho del atleta está apoyado en el respaldo inclinado o en una almohadilla vertical?",
+          "¿Las dos manos agarran la carga y nada flota suelto?",
+          "¿Los codos están por detrás de la línea de la espalda, con las escápulas juntas?",
+          "¿Los pies están en el suelo o en el reposapiés?",
+          "¿La carga está separada del suelo?"
+        ]
+      }
     }
   },
   "familyId": "back_chest_supported_row",

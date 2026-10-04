@@ -24,39 +24,40 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con banda elástica, los brazos se abren al frente hasta que los omóplatos se juntan atrás. Con la banda, la resistencia crece a medida que avanza el trabajo del trapecio.",
+              "description": "Sin anclaje, una mano tira contra la otra: con las manos al ancho de los hombros la goma apenas se estira, y la mayor resistencia llega con los brazos en cruz, justo cuando las escápulas están más cerca.",
               "efc": 2.5,
               "equipmentId": "band",
               "executionCues": [
-                "Banda al frente y separación hacia el pecho: la espalda alta se activa al instante. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Abre los brazos hacia los lados, sin doblar los codos, hasta que la banda toque el pecho.",
+                "Junta los omóplatos al abrir y deja los hombros bajos.",
+                "Regresa despacio hasta tener otra vez las manos delante del pecho."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión",
-                    "Aducción Del Hombro"
+                    "Abducción horizontal"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Retracción Escapular"
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Sostén de la extensión del codo"
                   ],
                   "jointId": "codo",
-                  "role": "SECONDARY"
+                  "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
                   "role": "STABILIZER"
@@ -65,7 +66,7 @@
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "variable_band_resistance",
-              "movementPatternId": "horizontal_pull",
+              "movementPatternId": "horizontal_abduction",
               "performanceProfileId": "back_band_pull_apart__band__band_pull_apart",
               "primaryMuscles": [
                 "trapezius"
@@ -76,38 +77,36 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Aducción Del Hombro",
-                    "Retracción Escapular",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Abducción horizontal",
+                    "Retracción escapular",
+                    "Sostén de la extensión del codo",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión",
-                        "Aducción Del Hombro"
+                        "Abducción horizontal"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Retracción Escapular"
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Sostén de la extensión del codo"
                       ],
                       "jointId": "codo",
-                      "role": "SECONDARY"
+                      "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
                       "role": "STABILIZER"
@@ -117,9 +116,12 @@
                     "trapezius"
                   ],
                   "secondaryMuscles": [
-                    "deltoid"
+                    "deltoid",
+                    "rhomboids"
                   ],
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "forearm"
+                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -128,7 +130,7 @@
                   "kineticChain": "POSTERIOR",
                   "laterality": "BILATERAL",
                   "loadMode": "variable_band_resistance",
-                  "movementPatternId": "horizontal_pull",
+                  "movementPatternId": "horizontal_abduction",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -180,21 +182,25 @@
                     "band"
                   ],
                   "preservesIntent": [
-                    "horizontal_pull:trapezius"
+                    "horizontal_abduction:trapezius"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
-                "deltoid"
+                "deltoid",
+                "rhomboids"
               ],
               "setupCues": [
-                "Preparación: Banda al frente y separación hacia el pecho: la espalda alta se activa al instante."
+                "Sujeta la banda con las palmas hacia abajo y las manos al ancho de los hombros.",
+                "Sube los brazos estirados al frente hasta la altura de los hombros, con la banda ya algo estirada."
               ],
               "setupTimeSeconds": 10,
               "ssc": 0.4,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "forearm"
+              ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
             },
@@ -202,7 +208,7 @@
           }
         ],
         "defaultConfigurationId": "back_band_pull_apart__default",
-        "description": "El Band Pull-Apart abre los brazos contra una banda elástica hasta que los omóplatos se juntan atrás: trapecio medio y deltoide posterior trabajando en un gesto que cabe en un bolsillo. Se ejecuta con los brazos extendidos al frente, separando la banda hasta tocar el pecho y regresando con calma. El antídoto portátil contra los hombros adelantados por el teclado.",
+        "description": "El Band Pull-Apart, o separación de banda, abre los brazos estirados contra una banda elástica sujeta al frente, a la altura de los hombros, hasta que la banda roza el pecho. Es abducción horizontal del hombro con retracción de las escápulas: el trapecio medio y los romboides las acercan a la columna y el deltoides posterior lleva los brazos hacia atrás. Medido con electromiografía, el trapecio medio fue el músculo más activo al abrir en horizontal, con cualquier posición de la mano. Con las palmas hacia arriba subieron el trapecio inferior y los rotadores externos; con las palmas hacia abajo, el deltoides posterior y también el trapecio superior. Se monta en segundos entre series de press o al calentar los hombros, con una banda ligera y muchas repeticiones.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -239,41 +245,49 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con banda elástica, sentado con las piernas extendidas, la banda anclada a los pies se recoge hacia la cintura. Con la banda, la resistencia crece a medida que avanza el trabajo del trapecio.",
+              "description": "La goma sale de un anclaje a la altura del pecho y pide más fuerza cuanto más atrás llegan los codos. De pie y sin respaldo, el cuerpo hace de contrapeso: inclinarse hacia atrás estira la banda con el peso y abarata el tirón.",
               "efc": 2.5,
               "equipmentId": "band",
               "executionCues": [
-                "Banda anclada y tirón hacia el torso: el remo que cabe en cualquier mochila. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Lleva los codos atrás, rozando el costado, hasta que las manos lleguen a las costillas.",
+                "Aprieta las escápulas al final con el torso quieto y vertical.",
+                "Vuelve despacio hasta estirar los brazos, sin dejar que la banda tire de ti."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión",
-                    "Aducción Del Hombro"
+                    "Extensión del hombro"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Retracción Escapular"
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Estabilidad en posición neutra"
+                  ],
+                  "jointId": "columna-lumbar",
                   "role": "STABILIZER"
                 }
               ],
@@ -283,7 +297,6 @@
               "movementPatternId": "horizontal_pull",
               "performanceProfileId": "back_remo_banda__band__remo_en_banda_elastica",
               "primaryMuscles": [
-                "trapezius",
                 "latissimus_dorsi"
               ],
               "replacementGroup": null,
@@ -292,53 +305,62 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Aducción Del Hombro",
-                    "Retracción Escapular",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Extensión del hombro",
+                    "Retracción escapular",
+                    "Flexión del codo",
+                    "Sostén del agarre",
+                    "Estabilidad en posición neutra"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión",
-                        "Aducción Del Hombro"
+                        "Extensión del hombro"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Retracción Escapular"
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad en posición neutra"
+                      ],
+                      "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "trapezius",
                     "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
+                    "trapezius",
+                    "rhomboids",
                     "deltoid",
-                    "biceps",
+                    "biceps"
+                  ],
+                  "stabilizerMuscles": [
+                    "forearm",
                     "erector_spinae"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -352,7 +374,8 @@
                     "glenohumeral",
                     "escapulotoracica",
                     "codo",
-                    "muñeca"
+                    "muñeca",
+                    "columna-lumbar"
                   ],
                   "resistanceProfile": "variable_band",
                   "stability": "self_stabilized"
@@ -399,7 +422,6 @@
                     "band"
                   ],
                   "preservesIntent": [
-                    "horizontal_pull:trapezius",
                     "horizontal_pull:latissimus_dorsi"
                   ],
                   "replacementGroup": null,
@@ -407,16 +429,22 @@
                 }
               },
               "secondaryMuscles": [
+                "trapezius",
+                "rhomboids",
                 "deltoid",
-                "biceps",
-                "erector_spinae"
+                "biceps"
               ],
               "setupCues": [
-                "Preparación: Banda anclada y tirón hacia el torso: el remo que cabe en cualquier mochila."
+                "Rodea un poste firme con la banda a la altura del pecho y toma un extremo con cada mano.",
+                "Retrocede hasta que la banda quede estirada con los brazos rectos y adelanta un poco un pie.",
+                "Gira las palmas una hacia la otra y deja las muñecas rectas."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.4,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "forearm",
+                "erector_spinae"
+              ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
             },
@@ -424,7 +452,7 @@
           }
         ],
         "defaultConfigurationId": "back_remo_banda__default",
-        "description": "El Remo en Banda Elástica monta el tirón horizontal sin gimnasio: la banda anclada a los pies y el dorsal ancho y trapecio tirando hacia la cintura. Se ejecuta sentado con las piernas extendidas, llevando los codos atrás y regresando sin que la banda afloje de golpe. Bíceps y espalda alta acompañan el gesto. El remo que viaja en la mochila y se monta en cualquier hotel.",
+        "description": "El Remo en Banda Elástica tira de una goma anclada delante, a la altura del pecho, y lleva las manos desde los brazos estirados hasta las costillas, de pie y sin apoyo para el tronco. El motor es el dorsal ancho, que lleva los codos atrás con el deltoides posterior mientras el bíceps los dobla; al final, la porción media e inferior del trapecio y los romboides cierran las escápulas. La goma se alarga durante todo el tirón, así que el final, con las escápulas juntas, es el tramo más duro y la salida el más ligero. Frente al material de gimnasio, en el remo a una mano la banda activó algo menos a los motores del tirón con la goma floja y casi lo mismo con la goma estirada. Basta un poste firme para montarlo en cualquier sitio.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -461,41 +489,57 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con mancuernas, con el tronco inclinado, cada tirón sube desde parado alternando brazos. Con mancuernas, cada lado ajusta su línea y el trabajo del dorsal ancho se equilibra solo.",
+              "description": "Las mancuernas descansan en el suelo por dentro de los pies, con las asas paralelas a ellos, y se agarran en neutro. La mano libre empuja sobre la mancuerna que espera; con mancuernas hexagonales ese apoyo no rueda.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
-                "Mancuernas colgando y tirón con balanceo del torso: el remo gorila tradicional. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Rema una mancuerna hasta la cadera mientras la otra mano empuja la otra mancuerna contra el suelo.",
+                "Deja que el pecho gire un poco hacia el brazo que sube, sin que la cadera se levante.",
+                "Posa la mancuerna, cambia de brazo y alterna hasta terminar las repeticiones."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión",
-                    "Aducción Del Hombro"
+                    "Extensión del hombro"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Retracción Escapular"
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Extensión isométrica de la cadera"
+                  ],
+                  "jointId": "cadera",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Resistencia a la rotación del tronco",
+                    "Estabilidad del tronco inclinado"
+                  ],
+                  "jointId": "columna-lumbar",
                   "role": "STABILIZER"
                 }
               ],
@@ -513,40 +557,56 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Aducción Del Hombro",
-                    "Retracción Escapular",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Extensión del hombro",
+                    "Retracción escapular",
+                    "Flexión del codo",
+                    "Sostén del agarre",
+                    "Extensión isométrica de la cadera",
+                    "Resistencia a la rotación del tronco",
+                    "Estabilidad del tronco inclinado"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión",
-                        "Aducción Del Hombro"
+                        "Extensión del hombro"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Retracción Escapular"
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Extensión isométrica de la cadera"
+                      ],
+                      "jointId": "cadera",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Resistencia a la rotación del tronco",
+                        "Estabilidad del tronco inclinado"
+                      ],
+                      "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     }
                   ],
@@ -554,10 +614,18 @@
                     "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "biceps",
-                    "rhomboids"
+                    "rhomboids",
+                    "trapezius",
+                    "deltoid",
+                    "biceps"
                   ],
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "erector_spinae",
+                    "core",
+                    "hamstrings",
+                    "gluteus_maximus",
+                    "forearm"
+                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -571,7 +639,9 @@
                     "glenohumeral",
                     "escapulotoracica",
                     "codo",
-                    "muñeca"
+                    "muñeca",
+                    "cadera",
+                    "columna-lumbar"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -631,15 +701,24 @@
                 }
               },
               "secondaryMuscles": [
-                "biceps",
-                "rhomboids"
+                "rhomboids",
+                "trapezius",
+                "deltoid",
+                "biceps"
               ],
               "setupCues": [
-                "Preparación: Mancuernas colgando y tirón con balanceo del torso: el remo gorila tradicional."
+                "Abre los pies bastante más que los hombros y deja una mancuerna por dentro de cada pie, con el asa paralela a él.",
+                "Lleva la cadera atrás, dobla las rodillas y agarra las dos asas con el torso casi paralelo al suelo."
               ],
               "setupTimeSeconds": 30,
               "ssc": 0.4,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "erector_spinae",
+                "core",
+                "hamstrings",
+                "gluteus_maximus",
+                "forearm"
+              ],
               "technicalDifficulty": 5.0,
               "ttc": 1.8
             },
@@ -665,41 +744,57 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con kettlebell, con el tronco inclinado, cada tirón sube desde parado alternando brazos. El dorsal ancho trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+              "description": "Cada kettlebell se apoya sobre su base plana, así que la que espera aguanta el empuje de la mano libre sin rodar. El asa queda alta y fácil de alcanzar, y al remar la bola cuelga por debajo del puño hasta la altura de la cadera.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
-                "Kettlebells colgando y tirón con balanceo: el agarre suma trabajo al remo gorila. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Rema una kettlebell hasta la cadera y empuja la otra contra el suelo con la mano libre.",
+                "Abre un poco el pecho hacia el lado que rema y vuelve a cuadrarlo al bajar.",
+                "Apoya la kettlebell en el suelo antes de remar con el otro brazo."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión",
-                    "Aducción Del Hombro"
+                    "Extensión del hombro"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Retracción Escapular"
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Extensión isométrica de la cadera"
+                  ],
+                  "jointId": "cadera",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Resistencia a la rotación del tronco",
+                    "Estabilidad del tronco inclinado"
+                  ],
+                  "jointId": "columna-lumbar",
                   "role": "STABILIZER"
                 }
               ],
@@ -717,40 +812,56 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Aducción Del Hombro",
-                    "Retracción Escapular",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Extensión del hombro",
+                    "Retracción escapular",
+                    "Flexión del codo",
+                    "Sostén del agarre",
+                    "Extensión isométrica de la cadera",
+                    "Resistencia a la rotación del tronco",
+                    "Estabilidad del tronco inclinado"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión",
-                        "Aducción Del Hombro"
+                        "Extensión del hombro"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Retracción Escapular"
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Extensión isométrica de la cadera"
+                      ],
+                      "jointId": "cadera",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Resistencia a la rotación del tronco",
+                        "Estabilidad del tronco inclinado"
+                      ],
+                      "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     }
                   ],
@@ -758,10 +869,18 @@
                     "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "biceps",
-                    "rhomboids"
+                    "rhomboids",
+                    "trapezius",
+                    "deltoid",
+                    "biceps"
                   ],
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "erector_spinae",
+                    "core",
+                    "hamstrings",
+                    "gluteus_maximus",
+                    "forearm"
+                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -775,7 +894,9 @@
                     "glenohumeral",
                     "escapulotoracica",
                     "codo",
-                    "muñeca"
+                    "muñeca",
+                    "cadera",
+                    "columna-lumbar"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -835,15 +956,24 @@
                 }
               },
               "secondaryMuscles": [
-                "biceps",
-                "rhomboids"
+                "rhomboids",
+                "trapezius",
+                "deltoid",
+                "biceps"
               ],
               "setupCues": [
-                "Preparación: Kettlebells colgando y tirón con balanceo: el agarre suma trabajo al remo gorila."
+                "Separa mucho los pies y pon una kettlebell de pie por dentro de cada uno.",
+                "Lleva la cadera atrás hasta dejar el torso casi horizontal y agarra cada asa con la palma hacia dentro."
               ],
               "setupTimeSeconds": 30,
               "ssc": 0.4,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "erector_spinae",
+                "core",
+                "hamstrings",
+                "gluteus_maximus",
+                "forearm"
+              ],
               "technicalDifficulty": 5.0,
               "ttc": 1.8
             },
@@ -869,41 +999,55 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con polea, con el tronco inclinado, cada tirón sube desde parado alternando brazos. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin.",
+              "description": "Con dos poleas bajas delante del cuerpo, cada mano sujeta un agarre y los brazos se alternan, pero nada queda apoyado en el suelo: el brazo que espera sostiene su cable estirado con la misma carga. Ese peso compensa buena parte de la torsión, así que el tronco gira poco.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
-                "Polea y tirón con balanceo: la tensión constante cambia el remo gorila. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Rema un agarre hasta la cadera mientras el otro brazo sigue estirado sosteniendo su cable.",
+                "Estira ese brazo de nuevo y rema con el otro, sin que el tronco gire hacia la polea."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión",
-                    "Aducción Del Hombro"
+                    "Extensión del hombro"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Retracción Escapular"
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Extensión isométrica de la cadera"
+                  ],
+                  "jointId": "cadera",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Estabilidad del tronco inclinado"
+                  ],
+                  "jointId": "columna-lumbar",
                   "role": "STABILIZER"
                 }
               ],
@@ -921,40 +1065,54 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Aducción Del Hombro",
-                    "Retracción Escapular",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Extensión del hombro",
+                    "Retracción escapular",
+                    "Flexión del codo",
+                    "Sostén del agarre",
+                    "Extensión isométrica de la cadera",
+                    "Estabilidad del tronco inclinado"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión",
-                        "Aducción Del Hombro"
+                        "Extensión del hombro"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Retracción Escapular"
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Extensión isométrica de la cadera"
+                      ],
+                      "jointId": "cadera",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad del tronco inclinado"
+                      ],
+                      "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     }
                   ],
@@ -962,10 +1120,18 @@
                     "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "biceps",
-                    "rhomboids"
+                    "rhomboids",
+                    "trapezius",
+                    "deltoid",
+                    "biceps"
                   ],
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "erector_spinae",
+                    "core",
+                    "hamstrings",
+                    "gluteus_maximus",
+                    "forearm"
+                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -979,7 +1145,9 @@
                     "glenohumeral",
                     "escapulotoracica",
                     "codo",
-                    "muñeca"
+                    "muñeca",
+                    "cadera",
+                    "columna-lumbar"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
@@ -1039,15 +1207,24 @@
                 }
               },
               "secondaryMuscles": [
-                "biceps",
-                "rhomboids"
+                "rhomboids",
+                "trapezius",
+                "deltoid",
+                "biceps"
               ],
               "setupCues": [
-                "Preparación: Polea y tirón con balanceo: la tensión constante cambia el remo gorila."
+                "Pon las dos poleas abajo, toma un agarre de mano en cada una y retrocede hasta que las dos pilas se despeguen.",
+                "Abre bien los pies, lleva la cadera atrás y deja el torso casi horizontal con los brazos estirados hacia las poleas."
               ],
               "setupTimeSeconds": 35,
               "ssc": 0.4,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "erector_spinae",
+                "core",
+                "hamstrings",
+                "gluteus_maximus",
+                "forearm"
+              ],
               "technicalDifficulty": 5.0,
               "ttc": 1.8
             },
@@ -1057,7 +1234,7 @@
           }
         ],
         "defaultConfigurationId": "back_remo_gorilla_mancuernas__dumbbells",
-        "description": "El Remo Gorilla alterna mancuernas partiendo del suelo y con el tronco inclinado: cada tirón sube desde parado y el dorsal produce fuerza de arranque una y otra vez. Se ejecuta con la espalda firme, tirando una mano mientras la otra espera, como un gorila moviendo carga. Kettlebells o polea baja sirven igual de bien. Potencia de espalda con un punto de picardía en cada brazada.",
+        "description": "El Remo Gorilla (gorilla row) alterna los brazos desde el suelo en una postura muy abierta: piernas separadas, cadera en bisagra, rodillas dobladas y torso casi horizontal, con dos cargas apoyadas entre los pies. Un brazo rema hasta la cadera mientras la otra mano agarra la segunda carga y empuja sobre ella contra el suelo; después se cambia de lado. Lidera el dorsal ancho, porque el codo viaja pegado al costado, y se suman romboides, trapecio, deltoides posterior y bíceps; el tronco, mientras, frena el giro que provoca tirar de un solo lado. La bisagra la sostienen erectores, glúteos e isquiosurales, quietos durante toda la serie. Reúne remo y antirrotación en un solo gesto, con un brazo que tira y otro que hace de puntal.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1098,41 +1275,57 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con peso corporal, colgado bajo una barra fija, el cuerpo rígido sube el pecho hasta tocarla. Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa.",
+              "description": "Sin lastre, lo que pesa es la parte del cuerpo que no descansa en los talones: bajar la barra o subir los pies a un cajón aumenta esa parte, y doblar las rodillas la reduce.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
-                "Colgado bajo la barra con el cuerpo recto, acercas el pecho a ella. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Lleva los codos hacia el suelo y atrás hasta que el pecho roce la barra.",
+                "Junta las escápulas arriba, sin adelantar la barbilla.",
+                "Baja despacio hasta estirar los brazos, con la cadera en línea."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión",
-                    "Aducción Del Hombro"
+                    "Extensión del hombro",
+                    "Abducción horizontal"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Retracción Escapular"
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén de la extensión de cadera"
+                  ],
+                  "jointId": "cadera",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Estabilidad en posición neutra"
+                  ],
+                  "jointId": "columna-lumbar",
                   "role": "STABILIZER"
                 }
               ],
@@ -1150,40 +1343,56 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Aducción Del Hombro",
-                    "Retracción Escapular",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Extensión del hombro",
+                    "Abducción horizontal",
+                    "Retracción escapular",
+                    "Flexión del codo",
+                    "Sostén del agarre",
+                    "Sostén de la extensión de cadera",
+                    "Estabilidad en posición neutra"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión",
-                        "Aducción Del Hombro"
+                        "Extensión del hombro",
+                        "Abducción horizontal"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Retracción Escapular"
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén de la extensión de cadera"
+                      ],
+                      "jointId": "cadera",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad en posición neutra"
+                      ],
+                      "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1193,10 +1402,16 @@
                   "secondaryMuscles": [
                     "trapezius",
                     "deltoid",
-                    "biceps",
-                    "erector_spinae"
+                    "rhomboids",
+                    "biceps"
                   ],
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "forearm",
+                    "erector_spinae",
+                    "core",
+                    "gluteus_maximus",
+                    "hamstrings"
+                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -1210,7 +1425,9 @@
                     "glenohumeral",
                     "escapulotoracica",
                     "codo",
-                    "muñeca"
+                    "muñeca",
+                    "cadera",
+                    "columna-lumbar"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -1266,15 +1483,23 @@
               "secondaryMuscles": [
                 "trapezius",
                 "deltoid",
-                "biceps",
-                "erector_spinae"
+                "rhomboids",
+                "biceps"
               ],
               "setupCues": [
-                "Preparación: Colgado bajo la barra con el cuerpo recto, acercas el pecho a ella."
+                "Fija la barra a la altura de tu cintura y cuélgate debajo, con las manos algo más abiertas que los hombros.",
+                "Agarra con las palmas hacia tus pies, estira las piernas y apoya solo los talones.",
+                "Alinea hombros, cadera y tobillos antes del primer tirón."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.4,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "forearm",
+                "erector_spinae",
+                "core",
+                "gluteus_maximus",
+                "hamstrings"
+              ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
             },
@@ -1282,7 +1507,7 @@
           }
         ],
         "defaultConfigurationId": "back_remo_invertido__default",
-        "description": "El Remo Invertido cuelga del lado contrario de una barra fija: debajo de ella, el cuerpo rígido sube el pecho hasta tocarla con el dorsal ancho tirando. Se ejecuta con los talones en el suelo y la cadera alta, bajando y subiendo sin que la cintura colapse. Bíceps, trapecio y erectores acompañan el tirón. La dominada de quien todavía no hace dominadas, y un remo serio para quien ya las hace.",
+        "description": "El Remo Invertido (inverted row) es un tirón horizontal con el propio peso: el cuerpo cuelga boca arriba bajo una barra fija, con los talones en el suelo, y el pecho sube hasta tocarla. El dorsal ancho lidera el tirón; el deltoides posterior, el trapecio y los romboides llevan codos y escápulas hacia atrás, y el bíceps dobla el codo. Glúteos, isquiosurales, abdomen y erectores trabajan sin moverse para que el cuerpo suba como una tabla, sin que la cadera se hunda. Con anillas o correas de suspensión, que se mueven, el deltoides medio y los oblicuos trabajan más que con un apoyo fijo. Frente a un remo inclinado de pie, la zona lumbar soporta bastante menos carga, así que encaja también cuando la espalda baja llega cansada.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1319,41 +1544,49 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con mancuernas, desde la posición de plancha, un brazo rema mientras el cuerpo se niega a rotar. El dorsal ancho trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+              "description": "Las mancuernas de caras planas, como las hexagonales, no ruedan bajo la mano de apoyo y dan una base ancha y baja. El asa queda cerca del suelo, así que el cuerpo forma una plancha casi horizontal y la mancuerna sube hasta la costilla.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
-                "Mancuernas en plancha y remo de un brazo: el core combate el giro. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Empuja una mancuerna contra el suelo y sube la otra hasta la costilla, con el codo pegado al costado.",
+                "No dejes que la cadera gire hacia el brazo que rema.",
+                "Posa la mancuerna sin golpe y repite con el otro brazo."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión",
-                    "Aducción Del Hombro"
+                    "Extensión del hombro"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Retracción Escapular"
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Resistencia a la rotación"
+                  ],
+                  "jointId": "columna-lumbar",
                   "role": "STABILIZER"
                 }
               ],
@@ -1371,40 +1604,46 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Aducción Del Hombro",
-                    "Retracción Escapular",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Extensión del hombro",
+                    "Retracción escapular",
+                    "Flexión del codo",
+                    "Sostén del agarre",
+                    "Resistencia a la rotación"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión",
-                        "Aducción Del Hombro"
+                        "Extensión del hombro"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Retracción Escapular"
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Resistencia a la rotación"
+                      ],
+                      "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1412,11 +1651,16 @@
                     "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
+                    "trapezius",
+                    "rhomboids",
+                    "deltoid",
                     "biceps",
-                    "rhomboids"
+                    "core"
                   ],
                   "stabilizerMuscles": [
-                    "core"
+                    "triceps",
+                    "pectoralis",
+                    "forearm"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1431,7 +1675,8 @@
                     "glenohumeral",
                     "escapulotoracica",
                     "codo",
-                    "muñeca"
+                    "muñeca",
+                    "columna-lumbar"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -1490,16 +1735,22 @@
                 }
               },
               "secondaryMuscles": [
+                "trapezius",
+                "rhomboids",
+                "deltoid",
                 "biceps",
-                "rhomboids"
+                "core"
               ],
               "setupCues": [
-                "Preparación: Mancuernas en plancha y remo de un brazo: el core combate el giro."
+                "Pon dos mancuernas hexagonales en el suelo, bajo los hombros, y agárralas con las palmas enfrentadas.",
+                "Estira las piernas atrás con los pies más abiertos que la cadera y el cuerpo recto."
               ],
               "setupTimeSeconds": 30,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "core"
+                "triceps",
+                "pectoralis",
+                "forearm"
               ],
               "technicalDifficulty": 5.0,
               "ttc": 1.8
@@ -1526,41 +1777,49 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con kettlebell, desde la posición de plancha, un brazo rema mientras el cuerpo se niega a rotar. El dorsal ancho trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+              "description": "La bola queda bajo el asa: la mano de apoyo empuja más lejos del suelo y sobre una base redonda y pequeña, que vuelca si la muñeca se tuerce. En el brazo que rema, la bola cuelga bajo el puño y tira del antebrazo hacia el suelo.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
-                "Kettlebells en plancha y remo de un brazo: la campana baja el centro de gravedad y exige más. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Aprieta el asa de apoyo y lleva la otra kettlebell hacia la cadera, codo cerca del costado.",
+                "Vigila que la kettlebell de apoyo no se incline y que la cadera no rote.",
+                "Deja la kettlebell en el suelo con suavidad antes de cambiar de brazo."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión",
-                    "Aducción Del Hombro"
+                    "Extensión del hombro"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Retracción Escapular"
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Resistencia a la rotación"
+                  ],
+                  "jointId": "columna-lumbar",
                   "role": "STABILIZER"
                 }
               ],
@@ -1578,40 +1837,46 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Aducción Del Hombro",
-                    "Retracción Escapular",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Extensión del hombro",
+                    "Retracción escapular",
+                    "Flexión del codo",
+                    "Sostén del agarre",
+                    "Resistencia a la rotación"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión",
-                        "Aducción Del Hombro"
+                        "Extensión del hombro"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Retracción Escapular"
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Resistencia a la rotación"
+                      ],
+                      "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1619,11 +1884,16 @@
                     "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
+                    "trapezius",
+                    "rhomboids",
+                    "deltoid",
                     "biceps",
-                    "rhomboids"
+                    "core"
                   ],
                   "stabilizerMuscles": [
-                    "core"
+                    "triceps",
+                    "pectoralis",
+                    "forearm"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1638,7 +1908,8 @@
                     "glenohumeral",
                     "escapulotoracica",
                     "codo",
-                    "muñeca"
+                    "muñeca",
+                    "columna-lumbar"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -1697,16 +1968,22 @@
                 }
               },
               "secondaryMuscles": [
+                "trapezius",
+                "rhomboids",
+                "deltoid",
                 "biceps",
-                "rhomboids"
+                "core"
               ],
               "setupCues": [
-                "Preparación: Kettlebells en plancha y remo de un brazo: la campana baja el centro de gravedad y exige más."
+                "Coloca dos kettlebells bajo los hombros y cierra cada mano sobre el asa, con la muñeca recta encima de la bola.",
+                "Abre los pies más que la cadera y estira el cuerpo en plancha alta."
               ],
               "setupTimeSeconds": 30,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "core"
+                "triceps",
+                "pectoralis",
+                "forearm"
               ],
               "technicalDifficulty": 5.0,
               "ttc": 1.8
@@ -1717,7 +1994,7 @@
           }
         ],
         "defaultConfigurationId": "back_remo_renegado_mancuernas__dumbbells",
-        "description": "El Remo Renegado mezcla plancha y remo en la misma repetición: desde la posición de flexión con mancuernas, un brazo rema mientras el resto del cuerpo se niega a rotar. Se ejecuta con los pies separados y la cadera quieta, alternando lados con la espalda plana. El core trabaja tanto como el dorsal en cada tirón. Espalda y abdomen en un solo gesto, eficiencia pura.",
+        "description": "En el Remo Renegado (renegade row) se rema desde una plancha alta: cada mano descansa sobre una carga apoyada en el suelo y un brazo sube la suya hacia la cadera mientras el otro brazo y los pies sostienen el cuerpo. El dorsal ancho tira del codo hacia atrás con ayuda del trapecio, los romboides, el bíceps y la porción posterior del deltoides. Los oblicuos y el resto del core frenan el giro de la pelvis hacia el lado que rema, y en el brazo de apoyo el pectoral y el tríceps fijan hombro y codo. Abrir los pies más que la cadera ensancha la base y facilita no rotar. Une espalda y estabilidad del tronco en la misma serie, con cargas modestas y mucha exigencia de postura.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1758,39 +2035,41 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "description": "Con polea, la cuerda viaja hacia la cara abriendo los codos hasta que las manos quedan a la altura de las orejas. Con la polea, la tensión sobre el deltoide se mantiene viva de principio a fin.",
+              "description": "Colocada por encima de la cabeza, la polea tira de las manos hacia delante y algo hacia arriba en todo el recorrido, sin tramos de descanso; al final, ese tiro intenta girar los antebrazos hacia delante y los hombros lo frenan rotando hacia fuera.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
-                "Cuerda a la altura de la cara: tiras abriendo los codos hacia los lados. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Tira del centro de la cuerda hacia tu frente con los codos altos, a la altura de los hombros.",
+                "Separa los extremos al final hasta dejar las manos junto a las orejas, nudillos hacia el techo.",
+                "Aguanta un segundo y estira los brazos hacia la polea sin dejar que te arrastre."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión",
-                    "Aducción Del Hombro"
+                    "Abducción horizontal",
+                    "Rotación externa"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Retracción Escapular"
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
                   "role": "STABILIZER"
@@ -1810,38 +2089,38 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Aducción Del Hombro",
-                    "Retracción Escapular",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Abducción horizontal",
+                    "Rotación externa",
+                    "Retracción escapular",
+                    "Flexión del codo",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión",
-                        "Aducción Del Hombro"
+                        "Abducción horizontal",
+                        "Rotación externa"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Retracción Escapular"
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
                       "role": "STABILIZER"
@@ -1852,9 +2131,12 @@
                   ],
                   "secondaryMuscles": [
                     "trapezius",
-                    "latissimus_dorsi"
+                    "rhomboids",
+                    "biceps"
                   ],
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "forearm"
+                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -1923,14 +2205,18 @@
               },
               "secondaryMuscles": [
                 "trapezius",
-                "latissimus_dorsi"
+                "rhomboids",
+                "biceps"
               ],
               "setupCues": [
-                "Preparación: Cuerda a la altura de la cara: tiras abriendo los codos hacia los lados."
+                "Sube la polea por encima de tu cabeza y engancha una cuerda doble.",
+                "Agarra un extremo con cada mano, pulgares hacia atrás, y retrocede con un pie adelantado hasta notar el tiro."
               ],
               "setupTimeSeconds": 25,
               "ssc": 0.3,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "forearm"
+              ],
               "technicalDifficulty": 3.8,
               "ttc": 1.6
             },
@@ -1938,7 +2224,7 @@
           }
         ],
         "defaultConfigurationId": "deltoides_face_pull__default",
-        "description": "El Face Pull trae la cuerda de la polea alta hacia la cara abriendo los codos: el deltoide posterior y el trapecio medio juntan los omóplatos en cada repetición. Se ejecuta con la cuerda doble, tirando hasta las orejas con los pulgares atrás y regresando sin perder la postura. El hombro se siente reorganizado al terminar. La vitamina diaria de la salud del hombro, cortesía de la polea.",
+        "description": "El Face Pull lleva una cuerda desde una polea alta hasta la cara, con los codos a la altura de los hombros y las manos separándose hasta quedar junto a las orejas. Reúne tres acciones en cada repetición: abducción horizontal del hombro, rotación externa al final y retracción de las escápulas. Mientras la cuerda se acerca, el bíceps cierra el codo, el deltoides posterior abre el brazo hacia atrás y la escápula se retrae por acción del trapecio medio y los romboides. En la posición final, con los antebrazos casi verticales y los nudillos hacia el techo, son los rotadores externos del hombro quienes aguantan el tiro del cable. Encaja como contrapeso de los días de press, con cargas moderadas y una breve pausa al final de cada repetición.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

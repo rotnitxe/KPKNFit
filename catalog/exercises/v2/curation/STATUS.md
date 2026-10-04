@@ -10,16 +10,18 @@ vigente es esto:
 - Revisión del catálogo `v2-approved-2026-09-29-a` (sin cambio; los ids tampoco
   cambian, el resolver rechaza ejercicios guardados con otra revisión) y
   ontología `wikilab-v3-2026-08-08`.
-- 96 familias, 206 definiciones, 527 configuraciones, 415 pares definición ×
+- 96 familias, 206 definiciones, 523 configuraciones, 415 pares definición ×
   implemento (el 2026-10-02 se retiró `sissy_squat__barbell`; las selecciones
   guardadas se remapean a `sissy_squat__smith_machine`; el 2026-10-03 se dieron de
-  alta las cinco especialidades M1-M5, ver más abajo). SHA-256 canónico compartido
-  `b2a652bb4f654f32e2925593858b3110e6c06a95637e7a2a4bad19d20cc6734a`.
+  alta las cinco especialidades M1-M5, ver más abajo; el 2026-10-04 se retiraron
+  las cuatro configuraciones unilaterales de `romanian_sumo_deadlift`, con remap
+  al rumano unilateral del mismo implemento). SHA-256 canónico compartido
+  `31ccbddd4943362bd4258679900ed21549516484985ff01d613360e30c04c562`.
 - Fuente única de autoría: `curation/fichas/<familyId>.json` (una por familia,
   96). Se copia con `scripts/catalog_v2_apply_fichas.py`; el flujo completo y las
   reglas están en `EDITORIAL_GUIDE.md`. El gate falla si `source/` difiere de lo
   que producen las fichas.
-- Estado de las fichas: 143 definiciones `LEGACY` y **63 `CURATED`**. Piloto
+- Estado de las fichas: 123 definiciones `LEGACY` y **83 `CURATED`**. Piloto
   (2026-10-01): `seal_row`, `pull_up` y `glutes_clamshells_banda`. Lote 1, pecho
   (2026-10-02, 20 definiciones, aplicado): `floor_press`, las aperturas
   (`decline_chest_fly`, `flat_chest_fly`, `incline_chest_fly`, `reverse_pec_fly`),
@@ -33,7 +35,14 @@ vigente es esto:
   patrones que quedaron sin uso (`knee_hip_extension` y `knee_hip_flexion`, que
   también salen de la ontología: quedan 62) y cubre `biarticular_lengthened`; y
   `CompositionTaxonomy.kt` cuenta el nórdico inverso como extensión de rodilla y no
-  como flexión de codo. Altas M1-M5 (2026-10-03, paquete D de la curaduría de programas,
+  como flexión de codo. Lote 4, tirones (2026-10-03, 20 definiciones, aplicado; informe
+  en `curation/lotes/LOTE_04_TIRONES.md`). Con el OK del usuario: el Kelso pasa al patrón
+  nuevo `scapular_retraction` (la ontología queda en 63 patrones), los Y-Raises a
+  `shoulder_abduction_diagonal` y el Band Pull-Apart a `horizontal_abduction`; cambian los
+  principales de 9 configuraciones protegidas (entra el trapecio en los remos con agarre
+  amplio, las dominadas escapulares y los Y-Raises, y sale del jalón) y el remo en banda pasa
+  a tener el dorsal como dominante; `EmphasisEngine.kt` deja de etiquetar como anterior el
+  deltoides de los tirones. Altas M1-M5 (2026-10-03, paquete D de la curaduría de programas,
   ya `CURATED`): `close_grip_bench_press`, `paused_back_squat`, `deadlift_to_knees`,
   `close_grip_lat_pulldown` e `incline_biceps_curl`, cada una una especialidad de una
   sola configuración (`close_grip_bench_press__barbell`, `paused_back_squat__barbell`,
@@ -112,6 +121,26 @@ secundario con cualquier agarre).
 
 ### Re-curaduría por lotes (plan aprobado el 2026-10-02)
 
+**Continuación 2026-10-04 — lote 5, bisagras:** informe listo en
+`lotes/LOTE_05_BISAGRAS.md`: 21 definiciones, 59 configuraciones y 43 pares en
+copias privadas bajo `artifacts/catalog-lote05-20261004/`, pendientes del OK del
+lote para aplicar anatomía/textos y hacer commit. Lint conjunto: 0 errores y
+0 avisos; 186 citas de 39 URLs verificadas. `good_morning_seated` sigue LEGACY
+porque la evidencia no resuelve la dominancia dinámica propuesta. Las cuatro
+variantes unilaterales del rumano sumo se retiraron por decisión expresa del
+usuario (registro separado al final); no se aplicó el resto del lote.
+El usuario aclaró que el exceso aportado por ejercicios donde ESE músculo es
+secundario o estabilizador se permite; el extra donde es principal debe ajustarse.
+Se conserva la anatomía según evidencia y se separan ambos aportes en el informe.
+Esta decisión está registrada en R7 y en el manual de autoría. La coordinación
+de programas incorporó al árbol actual un contador separado de todos los
+PRIMARY por grupo para el techo de W2 y el ajustador, preservando el volumen
+indirecto en los informes. Su validación nativa está en el gate compartido; esta
+entrada no declara aprobado el impacto semanal de la anatomía privada.
+Revisión visual: 46 pares, 35 PNG vistos, 14 PASA, 21 FALLA y 11 SIN_IMAGEN;
+los tres pares del sentado apartado se distinguen en `lotes/COLA_IMAGENES.md`.
+Pytest tras el retiro: 206 tests y 160 subtests aprobados (baseline: 197/158).
+
 Las 178 definiciones `LEGACY` pasan a `CURATED` en diez lotes ordenados por gravedad:
 2 sentadillas, 3 rodilla aislada, 4 tirones, 5 bisagras, 6 unilaterales, 7 glúteo y
 pierna baja, 8 hombro, 9 bíceps, 10 tríceps, 11 core, cuello y antebrazo.
@@ -129,7 +158,8 @@ pierna baja, 8 hombro, 9 bíceps, 10 tríceps, 11 core, cuello y antebrazo.
   - Patrones nuevos, que entran en el lote 4:
     - Y-Raises pasa a `shoulder_abduction_diagonal`.
     - `scapular_retraction` para el Kelso.
-    - `forearm_rotation` para pronaciones y supinaciones.
+    - `forearm_rotation` para pronaciones y supinaciones: pasa al lote 11, porque
+      `AprendeCatalogAuditTest` exige que la ontología liste solo patrones en uso.
   - Quien coordina puede añadir `allowedDifferences` de herencia, con razón y fuente,
     listadas en el informe del lote.
 - **Línea base antes del lote 2.** El árbol tiene trabajo del wizard sin commit.
@@ -151,6 +181,11 @@ pierna baja, 8 hombro, 9 bíceps, 10 tríceps, 11 core, cuello y antebrazo.
     la cadera inmóvil son de una sola articulación (lote 3; necesita un script estructural).
   - Nombres con doble nombre entre paréntesis: «Curl Nórdico (Nordic Hamstring Curl)» y
     «Curl Nórdico Inverso (Reverse Nordic Curl)» (regla R6).
+  - Los tres Pull Over son extensión del hombro con el codo fijo; la ontología no tiene ese
+    patrón y siguen como `vertical_pull` (lote 4).
+  - Familia de dominadas: `pull_up` (piloto) no lista romboides ni deltoides y la dominada
+    en rack sí (lote 4).
+  - Variantes nuevas anotadas: Kelso Shrugs con mancuernas, la versión más habitual (lote 4).
 
 ---
 
@@ -345,6 +380,36 @@ catálogo que se empaqueta como runtime Android. El corte contiene:
   regenerado (y copia idéntica a iOS).
 - Backend: pruebas Python del catálogo → `OK`.
 - Android: `testBaseDebugUnitTest` y `testHealthDebugUnitTest` → 0 failures.
+
+## Retiro autorizado del rumano sumo unilateral (2026-10-04)
+
+El usuario pidió eliminar este ejercicio. Se retiran exclusivamente
+`romanian_sumo_deadlift__unilateral__barbell`,
+`romanian_sumo_deadlift__unilateral__smith_machine`,
+`romanian_sumo_deadlift__unilateral__dumbbells` y
+`romanian_sumo_deadlift__unilateral__hex_bar`. Las cuatro configuraciones
+bilaterales y el default bilateral con barra permanecen. El eje `stance`
+desaparece porque ya no ofrece elección; `laterality` del perfil conserva
+`BILATERAL`. No cambian patrones, revisión, músculos ni reglas anatómicas.
+
+Las selecciones guardadas migran explícitamente a
+`romanian_deadlift__unilateral__<mismo implemento>`, actualizando definición,
+configuración y perfil. Las parejas de identidad incorrectas siguen siendo
+inválidas. Las sesiones conservan series, cargas, ocurrencia y modificadores.
+
+El corte resultante contiene 206 definiciones, 523 configuraciones y 415 pares
+de definición e implemento. Se aplicó mediante
+`scripts/catalog_v2_retire_romanian_sumo_unilateral.py` con hashes comprobados;
+la segunda aplicación produjo cero cambios. La integración privada se
+sincronizó con el mismo retiro y solo se rebasa su entrada
+`romanian_sumo_deadlift` tras probar equivalencia exacta con la ficha shared
+original menos las cuatro retiradas. Evidencia en
+`artifacts/catalog-lote05-20261004/retirement/`.
+
+Merge, gate estricto, compiler write/check y pin/check pasaron. Las 19 pruebas
+Python dirigidas de backend y retiro pasaron. Las pruebas Kotlin nuevas de
+remap y contratos quedan pendientes del gate Android de integración; este
+corte no ejecutó Gradle ni ADB.
 
 ## Regla de mantenimiento
 

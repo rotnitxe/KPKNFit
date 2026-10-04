@@ -12,6 +12,20 @@ internal val RETIRED_CONFIGURATION_REPLACEMENTS: Map<String, String> = mapOf(
     // 2026-10-02: retirada por el dueño del producto (muy inestable, casi nadie puede hacerla);
     // la Smith lleva la misma barra sobre la espalda.
     "sissy_squat__barbell" to "sissy_squat__smith_machine",
+    // 2026-10-04: el dueño retira el rumano sumo unilateral. Conserva apoyo
+    // unilateral e implemento en el rumano convencional, con su propia definición.
+    "romanian_sumo_deadlift__unilateral__barbell" to "romanian_deadlift__unilateral__barbell",
+    "romanian_sumo_deadlift__unilateral__smith_machine" to "romanian_deadlift__unilateral__smith_machine",
+    "romanian_sumo_deadlift__unilateral__dumbbells" to "romanian_deadlift__unilateral__dumbbells",
+    "romanian_sumo_deadlift__unilateral__hex_bar" to "romanian_deadlift__unilateral__hex_bar",
+)
+
+/** Exact replacement profiles for the four saved single-leg sumo RDL identities. */
+internal val RETIRED_ROMANIAN_SUMO_CONFIGURATION_PROFILES: Map<String, String> = mapOf(
+    "romanian_sumo_deadlift__unilateral__barbell" to "romanian_deadlift__barbell__peso_muerto_rumano",
+    "romanian_sumo_deadlift__unilateral__smith_machine" to "romanian_deadlift__smith_machine__peso_muerto_rumano",
+    "romanian_sumo_deadlift__unilateral__dumbbells" to "romanian_deadlift__dumbbells__peso_muerto_rumano",
+    "romanian_sumo_deadlift__unilateral__hex_bar" to "romanian_deadlift__hex_bar__peso_muerto_rumano",
 )
 
 /**
@@ -93,15 +107,28 @@ class ExerciseCatalogV2Resolver(
                 "catalog_revision_mismatch:${selection.catalogRevision}:${catalog.catalogRevision}",
             )
         }
-        val definition = definitionsById[selection.definitionId]
+        val sourceDefinition = definitionsById[selection.definitionId]
             ?: return ExerciseSelectionValidationV2.Invalid("unknown_definition:${selection.definitionId}")
-        val configurationId = RETIRED_CONFIGURATION_REPLACEMENTS[selection.configurationId] ?: selection.configurationId
-        if (definition.configurations.none { it.id == configurationId }) {
+        val replacement = RETIRED_CONFIGURATION_REPLACEMENTS[selection.configurationId]
+        // A retired configuration is valid only with its original definition;
+        // the remap must not repair an unrelated or mismatched selection.
+        val configurationId = if (selection.configurationId.substringBefore("__") == sourceDefinition.id) {
+            replacement ?: selection.configurationId
+        } else {
+            selection.configurationId
+        }
+        val definitionId = if (configurationId != selection.configurationId) {
+            configurationId.substringBefore("__")
+        } else {
+            selection.definitionId
+        }
+        val definition = definitionsById[definitionId]
+        if (definition == null || definition.configurations.none { it.id == configurationId }) {
             return ExerciseSelectionValidationV2.Invalid(
                 "unknown_configuration:${selection.definitionId}:${selection.configurationId}",
             )
         }
-        return ExerciseSelectionValidationV2.Valid(selection.copy(configurationId = configurationId))
+        return ExerciseSelectionValidationV2.Valid(selection.copy(definitionId = definitionId, configurationId = configurationId))
     }
 
     fun resolve(selection: ExerciseSelectionV2): ResolvedExerciseProfileV2? =

@@ -41,7 +41,7 @@
       "id": "vertical-pull.elbow-flexors",
       "title": "En toda tracción vertical el bíceps flexiona el codo contra carga (con cualquier agarre)",
       "evidence": "La electromiografía de dominadas y jalones registra activación alta del bíceps braquial con agarre prono, neutro y supino (Youdas et al. 2010, J Strength Cond Res; Dickie et al. 2017, J Electromyogr Kinesiol); flexionar el codo es parte del recorrido, así que nunca es solo estabilizador. Sustituye a la regla L11 de la guía.",
-      "applies": {"definitionIds": ["pull_up", "rack_chin", "lat_pulldown"]},
+      "applies": {"definitionIds": ["pull_up", "rack_chin", "lat_pulldown", "close_grip_lat_pulldown"]},
       "require": [{"muscle": "biceps", "atLeast": "SECONDARY"}],
       "exact": [{"muscle": "latissimus_dorsi", "role": "PRIMARY"}]
     },
@@ -61,7 +61,7 @@
       "applies": {
         "movementPatterns": [
           "scapular_elevation", "scapular_depression", "shoulder_abduction_full_rom", "shoulder_abduction_diagonal",
-          "shoulder_flexion", "horizontal_abduction"
+          "shoulder_flexion", "horizontal_abduction", "scapular_retraction"
         ]
       },
       "forbid": [
@@ -174,7 +174,8 @@
           "knee_push_up", "tren_superior_fondos", "tren_superior_press_banca_cadenas",
           "tren_superior_press_banda_resistencia", "tren_superior_press_pecho_maquina_convergente",
           "tren_superior_press_spoto_barra", "tren_superior_press_unilateral_polea",
-          "tren_superior_squeeze_press_mancuernas", "tren_superior_press_inclinado_maquina_convergente"
+          "tren_superior_squeeze_press_mancuernas", "tren_superior_press_inclinado_maquina_convergente",
+          "close_grip_bench_press"
         ]
       },
       "require": [
@@ -230,6 +231,8 @@
     {"id": "inherit.copenhagen-dynamic", "child": "copenhagen_plank_dynamic", "parent": "copenhagen_plank", "allowedDifferences": []},
     {"id": "inherit.hyperextension-zercher", "child": "glutes_hiperextension_45_zercher", "parent": "glutes_hiperextension_45", "allowedDifferences": []},
     {"id": "inherit.swing-unilateral", "child": "hams_swing_kettlebell_unilateral", "parent": "hams_swing_kettlebell_dos_manos", "allowedDifferences": []},
-    {"id": "inherit.pistol-assisted", "child": "quads_sentadilla_pistola_asistida_trx", "parent": "quads_sentadilla_pistola", "allowedDifferences": []}
+    {"id": "inherit.pistol-assisted", "child": "quads_sentadilla_pistola_asistida_trx", "parent": "quads_sentadilla_pistola", "allowedDifferences": []},
+    {"id": "inherit.paused-high-bar", "child": "paused_back_squat", "parent": "high_bar_back_squat", "allowedDifferences": []},
+    {"id": "inherit.close-grip-bench", "child": "close_grip_bench_press", "parent": "bench_press", "allowedDifferences": []}
   ]
 }

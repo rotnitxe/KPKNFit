@@ -133,7 +133,7 @@ class ExerciseCatalogV2BackendTest(unittest.TestCase):
     def test_editorial_android_ios_artifacts_have_one_hash_and_revision(self) -> None:
         self.assertEqual(
             verify_shared_catalog_artifacts(),
-            "b2a652bb4f654f32e2925593858b3110e6c06a95637e7a2a4bad19d20cc6734a",
+            "31ccbddd4943362bd4258679900ed21549516484985ff01d613360e30c04c562",
         )
 
     def test_retired_decline_variants_are_absent_from_the_shared_catalog(self) -> None:
@@ -205,7 +205,7 @@ class ExerciseCatalogV2BackendTest(unittest.TestCase):
         self.assertEqual(definitions["standing_lateral_raise"]["optionAxes"], ["implement"])
         self.assertEqual(definitions["seated_lateral_raise"]["optionAxes"], ["implement"])
         self.assertEqual(len(definitions["romanian_deadlift"]["configurations"]), 8)
-        self.assertEqual(len(definitions["romanian_sumo_deadlift"]["configurations"]), 8)
+        self.assertEqual(len(definitions["romanian_sumo_deadlift"]["configurations"]), 4)
         self.assertEqual(len(definitions["rear_delt_raise"]["configurations"]), 3)
         self.assertEqual(definitions["conventional_deadlift"]["optionAxes"], ["implement", "laterality"])
         self.assertEqual(definitions["sumo_deadlift"]["optionAxes"], ["implement"])
@@ -223,7 +223,7 @@ class ExerciseCatalogV2BackendTest(unittest.TestCase):
         self.assertEqual(len(definitions["chest_supported_row"]["configurations"]), 18)
         self.assertEqual(len(definitions["crossbody_triceps_extension"]["configurations"]), 2)
         self.assertEqual(definitions["tren_superior_cruce_poleas"]["optionAxes"], ["implement", "pulley_height"])
-        self.assertEqual(definitions["romanian_sumo_deadlift"]["optionAxes"], ["implement", "stance"])
+        self.assertEqual(definitions["romanian_sumo_deadlift"]["optionAxes"], ["implement"])
         self.assertNotIn("deadlift", definitions)
         self.assertNotIn("leg_curl", definitions)
         self.assertNotIn("lateral_raise", definitions)
@@ -231,6 +231,24 @@ class ExerciseCatalogV2BackendTest(unittest.TestCase):
         self.assertNotIn("hams_curl_femoral_sentado_unilateral_maquina", definitions)
         self.assertNotIn("tren_superior_flexiones_clasicas", definitions)
         self.assertNotIn("triceps_press_california_barra_recta", definitions)
+
+    def test_retired_sumo_rdl_has_only_implement_chips_and_bilateral_variants(self) -> None:
+        sumo = next(
+            definition
+            for family in self.catalog["families"]
+            for definition in family["definitions"]
+            if definition["id"] == "romanian_sumo_deadlift"
+        )
+        implements = {"barbell", "smith_machine", "dumbbells", "hex_bar"}
+        self.assertEqual(sumo["optionAxes"], ["implement"])
+        self.assertEqual(sumo["defaultConfigurationId"], "romanian_sumo_deadlift__bilateral__barbell")
+        self.assertEqual({configuration["id"] for configuration in sumo["configurations"]}, {
+            f"romanian_sumo_deadlift__bilateral__{implement}" for implement in implements
+        })
+        for configuration in sumo["configurations"]:
+            self.assertEqual(set(configuration["selectedOptions"]), {"implement"})
+            self.assertEqual(configuration["profile"]["laterality"], "BILATERAL")
+            self.assertEqual(set(configuration["profile"]["richMetadata"]["display"]["selectedOptions"]), {"implement"})
 
 
 if __name__ == "__main__":

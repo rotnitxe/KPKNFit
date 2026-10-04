@@ -1,66 +1,527 @@
 {
   "definitions": {
     "pendlay_row": {
-      "public": {
-        "configurations": {
-          "pendlay_row__barbell": {
-            "description": "Con barra, cada tirón nace desde parado con la carga apoyada en el suelo y el torso casi horizontal. El dorsal ancho trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-            "executionCues": [
-              "Barra apoyada en el suelo y torso casi paralelo: cada repetición comienza desde cero y termina con la carga otra vez separada del cuerpo. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones."
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Extensión del hombro",
+              "Abducción horizontal"
             ],
-            "setupCues": [
-              "Preparación: Barra apoyada en el suelo y torso casi paralelo: cada repetición comienza desde cero y termina con la carga otra vez separada del cuerpo."
-            ]
+            "id": "glenohumeral",
+            "role": "PRIMARY",
+            "sources": [
+              "statpearls_extrinsic_back",
+              "statpearls_deltoid"
+            ],
+            "why": "El hombro parte de unos 90 grados de flexión respecto del tronco, con el brazo perpendicular a la espalda horizontal, y termina extendido con el codo por encima de la espalda; los codos algo separados añaden apertura horizontal."
           },
-          "pendlay_row__cable": {
-            "description": "Con polea, cada tirón nace desde parado con la carga apoyada en el suelo y el torso casi horizontal. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-            "executionCues": [
-              "Polea baja con el torso horizontal: la empuñadura parte de una posición detenida antes de cada tirón y el cable conserva tensión al volver. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones."
+          {
+            "actions": [
+              "Retracción escapular"
             ],
-            "setupCues": [
-              "Preparación: Polea baja con el torso horizontal: la empuñadura parte de una posición detenida antes de cada tirón y el cable conserva tensión al volver."
+            "id": "escapulotoracica",
+            "role": "PRIMARY",
+            "sources": [
+              "lehman2004",
+              "statpearls_rhomboids"
+            ],
+            "why": "Cada parada deja las escápulas separadas y cada tirón las junta: el recorrido escapular es entero en todas las repeticiones porque ninguna empieza a medio camino."
+          },
+          {
+            "actions": [
+              "Flexión del codo"
+            ],
+            "id": "codo",
+            "role": "SECONDARY",
+            "sources": [
+              "statpearls_biceps"
+            ],
+            "why": "Pasa de estirado a doblado en un gesto rápido y vuelve a estirarse del todo en cada apoyo; acompaña al hombro, que es donde nace el tirón."
+          },
+          {
+            "actions": [
+              "Sostén del agarre"
+            ],
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_forearm_compartments"
+            ],
+            "why": "Se queda recta bajo la carga para transmitir el arranque brusco desde parado; con la barra, el antebrazo queda en pronación."
+          },
+          {
+            "actions": [
+              "Extensión isométrica de la cadera"
+            ],
+            "id": "cadera",
+            "role": "STABILIZER",
+            "sources": [
+              "fenwick2009",
+              "statpearls_gluteus_maximus",
+              "statpearls_hamstring"
+            ],
+            "why": "Queda doblada cerca de 90 grados durante toda la serie y sus extensores frenan, sin moverla, el peso del torso horizontal y de la carga."
+          },
+          {
+            "actions": [
+              "Estabilidad del tronco horizontal"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "fenwick2009"
+            ],
+            "why": "Con el torso horizontal, la zona lumbar soporta el mayor momento de flexión que puede imponer el peso del tronco. La musculatura del tronco la sostiene sin moverse en cada tirón; en el remo de pie con barra del estudio de Fenwick et al. quedó flexionada unos 23 grados pese a la consigna de espalda neutra, y fue la que más compresión recibió entre los remos medidos."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "latissimus_dorsi",
+            "role": "PRIMARY",
+            "sources": [
+              "statpearls_extrinsic_back",
+              "wilson1991"
+            ],
+            "why": "Con la espalda horizontal, el brazo cuelga a unos 90 grados del tronco y el dorsal lo extiende desde ahí hasta detrás de la espalda, un arco más largo que con el torso a medio inclinar. Cada tirón arranca sin el estiramiento de una bajada encadenada: tras una pausa, la ayuda del rebote se desvanece con una semivida de 0,85 segundos (Wilson et al., medido en press de banca)."
+          },
+          {
+            "id": "trapezius",
+            "role": "PRIMARY",
+            "sources": [
+              "lehman2004",
+              "statpearls_extrinsic_back"
+            ],
+            "why": "En cada parada las escápulas quedan separadas por el peso de los brazos estirados; sus fibras medias e inferiores inician el tirón juntándolas hacia la columna y las superiores sostienen la cintura escapular. Ningún estudio midió este remo: su papel de motor se extrapola de esa función retractora y de que el remo sentado fue la tarea que más activó el grupo trapecio medio y romboides en Lehman et al."
+          },
+          {
+            "id": "rhomboids",
+            "role": "SECONDARY",
+            "sources": [
+              "statpearls_rhomboids",
+              "lehman2004"
+            ],
+            "why": "Recorren con el trapecio medio toda la distancia entre la escápula separada de la parada y la escápula junta del punto alto; en el estudio de Lehman et al., su actividad conjunta con el trapecio medio fue mayor en el remo sentado que en los jalones."
+          },
+          {
+            "id": "deltoid",
+            "role": "SECONDARY",
+            "sources": [
+              "statpearls_deltoid",
+              "rabello2024"
+            ],
+            "why": "La porción posterior extiende el hombro y lo abre en horizontal cuando la carga va a la parte baja del pecho con los codos separados del tronco. La revisión de Rabello et al. situó a las dominadas y al remo invertido en suspensión a la cabeza de su activación; no midió este remo, así que su papel aquí se extrapola."
+          },
+          {
+            "id": "biceps",
+            "role": "SECONDARY",
+            "sources": [
+              "statpearls_biceps",
+              "lehman2004"
+            ],
+            "why": "Dobla el codo en un tirón rápido desde parado y lo vuelve a estirar en cada apoyo: contribuye al tirón y por eso cuenta como secundario. Su actividad no cambió entre las tareas de tracción de Lehman et al."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "fenwick2009",
+              "saeterbakken2015"
+            ],
+            "why": "Sujetan la espalda paralela al suelo, la inclinación en la que el peso del torso y de la carga hace más fuerza sobre la columna. En un remo de pie con barra sin parada los erectores lumbares rondaron el 43 % de su máximo (Fenwick et al.), y remar con peso libre y con los dos brazos los activó más que hacerlo en máquina o con uno (Saeterbakken et al.). La carga se posa un instante entre repeticiones, pero el torso sigue horizontal: no mueven la columna y cuentan como estabilizador."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "saeterbakken2015"
+            ],
+            "why": "El sistema lumbopélvico se vuelve a fijar en cada parada, antes de que la carga despegue; en el remo con peso libre, remar con los dos brazos activó más el multífido y los erectores que hacerlo con uno (Saeterbakken et al.)."
+          },
+          {
+            "id": "hamstrings",
+            "role": "STABILIZER",
+            "sources": [
+              "fenwick2009",
+              "statpearls_hamstring"
+            ],
+            "why": "Con la espalda horizontal y las rodillas apenas dobladas quedan estirados y sujetan la pelvis en la bisagra durante toda la serie; en un remo de pie con barra sin parada el bíceps femoral trabajó en torno al 12 % de su máximo (Fenwick et al.)."
+          },
+          {
+            "id": "gluteus_maximus",
+            "role": "STABILIZER",
+            "sources": [
+              "fenwick2009",
+              "statpearls_gluteus_maximus"
+            ],
+            "why": "Sostiene la cadera doblada cerca de 90 grados mientras el torso horizontal y la carga tiran hacia delante; no la extiende porque el torso no sube. En un remo de pie con barra sin parada rondó el 19 % de su máximo (Fenwick et al.)."
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_forearm_compartments"
+            ],
+            "why": "La mano vuelve a cerrarse sobre la carga en cada parada y aprieta al máximo en el arranque brusco; los flexores de los dedos sostienen la carga y el braquiorradial ayuda a doblar el codo."
+          }
+        ],
+        "overrides": {
+          "pendlay_row__cable": {
+            "joints": [
+              {
+                "actions": [
+                  "Extensión del hombro",
+                  "Abducción horizontal"
+                ],
+                "id": "glenohumeral",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_extrinsic_back",
+                  "statpearls_deltoid"
+                ],
+                "why": "El cable tira hacia la polea, abajo y delante; con la espalda horizontal esa línea queda oblicua al tronco y la resistencia también arrastra los brazos hacia delante."
+              },
+              {
+                "actions": [
+                  "Extensión isométrica de la cadera"
+                ],
+                "id": "cadera",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_gluteus_maximus",
+                  "statpearls_hamstring"
+                ],
+                "why": "La pila que se despega en cada arranque tira del cuerpo hacia la polea; la cadera y los pies frenan ese arrastre además del peso del torso horizontal."
+              }
             ]
           },
           "pendlay_row__dumbbells": {
-            "description": "Con mancuernas, cada tirón nace desde parado con la carga apoyada en el suelo y el torso casi horizontal. El dorsal ancho trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-            "executionCues": [
-              "Dos mancuernas parten del suelo y suben hacia el torso con la espalda paralela a la plataforma. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones."
-            ],
-            "setupCues": [
-              "Preparación: Dos mancuernas parten del suelo y suben hacia el torso con la espalda paralela a la plataforma."
+            "joints": [
+              {
+                "actions": [
+                  "Extensión del hombro"
+                ],
+                "id": "glenohumeral",
+                "role": "PRIMARY",
+                "sources": [
+                  "difonza2026",
+                  "statpearls_extrinsic_back"
+                ],
+                "why": "Con las palmas enfrentadas, los codos suben pegados al costado hacia la cintura, con más extensión que apertura; en remos sentados, los codos menos abiertos se asociaron con más actividad del dorsal (Di Fonza et al.)."
+              },
+              {
+                "actions": [
+                  "Sostén del agarre"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_forearm_compartments"
+                ],
+                "why": "Cada muñeca sostiene su mancuerna en neutro y la vuelve a posar en el suelo sin girarla."
+              }
             ]
           },
           "pendlay_row__kettlebell": {
-            "description": "Con kettlebell, cada tirón nace desde parado con la carga apoyada en el suelo y el torso casi horizontal. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del dorsal ancho.",
-            "executionCues": [
-              "Kettlebells apoyadas delante de los pies: el agarre queda bajo y obliga a organizar muñecas, escápulas y tronco antes de despegar. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones."
-            ],
-            "setupCues": [
-              "Preparación: Kettlebells apoyadas delante de los pies: el agarre queda bajo y obliga a organizar muñecas, escápulas y tronco antes de despegar."
+            "joints": [
+              {
+                "actions": [
+                  "Extensión del hombro"
+                ],
+                "id": "glenohumeral",
+                "role": "PRIMARY",
+                "sources": [
+                  "difonza2026",
+                  "statpearls_extrinsic_back"
+                ],
+                "why": "El agarre neutro lleva los codos junto al tronco y la bola sube colgada bajo el puño hasta la cintura; el hombro se extiende mucho más de lo que se abre."
+              },
+              {
+                "actions": [
+                  "Sostén del agarre"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_forearm_compartments"
+                ],
+                "why": "En el arranque la bola tira del asa hacia abajo y la hace girar dentro del puño; la muñeca, en neutro, se queda recta para que la kettlebell no cabecee."
+              }
             ]
           },
           "pendlay_row__machine": {
-            "description": "Con máquina, cada tirón nace desde parado con la carga apoyada en el suelo y el torso casi horizontal. En la máquina, la trayectoria guiada concentra todo el esfuerzo del dorsal ancho.",
-            "executionCues": [
-              "Máquina con el tronco casi horizontal y las asas detenidas al inicio: el apoyo del aparato limita la deriva de la trayectoria. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones."
-            ],
-            "setupCues": [
-              "Preparación: Máquina con el tronco casi horizontal y las asas detenidas al inicio: el apoyo del aparato limita la deriva de la trayectoria."
+            "joints": [
+              {
+                "actions": [
+                  "Extensión del hombro"
+                ],
+                "id": "glenohumeral",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_extrinsic_back"
+                ],
+                "why": "Los mangos describen el arco de la palanca, que vuelve a su tope entre repeticiones; el hombro sigue ese arco y la máquina no sostiene el tronco."
+              }
             ]
           },
           "pendlay_row__smith_machine": {
-            "description": "Con máquina Smith, cada tirón nace desde parado con la carga apoyada en el suelo y el torso casi horizontal. El dorsal ancho trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
+            "joints": [
+              {
+                "actions": [
+                  "Extensión del hombro",
+                  "Abducción horizontal"
+                ],
+                "id": "glenohumeral",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_extrinsic_back",
+                  "statpearls_deltoid"
+                ],
+                "why": "Las guías imponen una línea vertical; con el torso horizontal coincide con la perpendicular a la espalda, y el hombro tira por ella sin poder corregirla."
+              }
+            ]
+          }
+        }
+      },
+      "public": {
+        "configurations": {
+          "pendlay_row__barbell": {
+            "description": "La barra reposa en el suelo entre repeticiones y la altura de los discos marca el punto de salida, a media espinilla con discos de tamaño olímpico. Las manos la toman en prono, un poco más abiertas que los hombros, y la barra sube hasta tocar la parte baja del pecho.",
             "executionCues": [
-              "Smith desde la posición baja: la barra se detiene entre repeticiones y vuelve a subir por una línea guiada. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones."
+              "Arranca de golpe y lleva la barra hasta tocar la parte baja del pecho.",
+              "No levantes el torso: la espalda sigue paralela al suelo durante el tirón.",
+              "Devuelve la barra al suelo y espera a que se quede quieta antes del siguiente."
             ],
             "setupCues": [
-              "Preparación: Smith desde la posición baja: la barra se detiene entre repeticiones y vuelve a subir por una línea guiada."
+              "Coloca la barra sobre la mitad del pie y agárrala en prono, con las manos un poco más abiertas que los hombros.",
+              "Sube la cadera algo por encima de la de un peso muerto hasta que la espalda quede paralela al suelo.",
+              "Tensa la espalda y los brazos sin despegar la barra antes de cada tirón."
+            ]
+          },
+          "pendlay_row__cable": {
+            "description": "Con la polea baja delante, la parada llega cuando la pila de placas se apoya entre repeticiones; al arrancar, el cable tira de las manos hacia abajo y hacia la máquina. El torso se queda horizontal sin ningún apoyo.",
+            "executionCues": [
+              "Arranca con fuerza y lleva la barra hasta la parte baja del pecho sin que el torso suba.",
+              "Vuelve hasta que la pila se apoye y para un instante antes del siguiente tirón."
+            ],
+            "setupCues": [
+              "Une una barra recta al cable de la polea baja y colócate donde la pila descansa con tus brazos estirados.",
+              "Inclina el torso hasta dejarlo paralelo al suelo y agarra la barra en prono."
+            ]
+          },
+          "pendlay_row__dumbbells": {
+            "description": "Cada mancuerna parte del suelo, debajo de su hombro, con el asa a poca altura, y se agarra en neutro. Los dos brazos arrancan a la vez, pero cada uno levanta y vuelve a posar su propia carga.",
+            "executionCues": [
+              "Tira de las dos mancuernas a la vez hacia los lados de la cintura, rápido y sin levantar el torso.",
+              "Pósalas en el suelo y deja que se queden quietas antes de repetir."
+            ],
+            "setupCues": [
+              "Pon las mancuernas en el suelo bajo los hombros, paralelas entre sí.",
+              "Inclínate hasta dejar la espalda paralela al suelo, dobla algo las rodillas y agarra cada asa con las palmas enfrentadas."
+            ]
+          },
+          "pendlay_row__kettlebell": {
+            "description": "Las dos kettlebells esperan en el suelo bajo los hombros, y su asa alta se alcanza con el torso horizontal sin doblar mucho las rodillas. Cada mano agarra en neutro y la base plana de la bola vuelve a tocar el suelo en cada parada.",
+            "executionCues": [
+              "Tira de las dos kettlebells hacia la cintura de forma explosiva, con los codos cerca del cuerpo.",
+              "Posa las bolas en el suelo sin soltar las asas y para un instante antes de repetir."
+            ],
+            "setupCues": [
+              "Coloca dos kettlebells en el suelo bajo los hombros, con cada asa orientada de delante atrás.",
+              "Inclina el torso hasta la horizontal y agarra cada asa con las palmas hacia dentro."
+            ]
+          },
+          "pendlay_row__machine": {
+            "description": "En una estación de palanca de pie, la parada consiste en dejar que el brazo de la máquina vuelva a su tope entre repeticiones. El eje marca el arco de los mangos, y el tronco, sin cojín delante, tiene que quedarse horizontal por su cuenta.",
+            "executionCues": [
+              "Tira con fuerza hasta acercar los mangos al pecho, sin levantar el torso.",
+              "Devuelve la palanca a su tope y para un instante antes del siguiente tirón."
+            ],
+            "setupCues": [
+              "Súbete a la plataforma, dobla algo las rodillas e inclina el torso hasta dejarlo paralelo al suelo.",
+              "Toma los mangos con la palanca todavía apoyada en su tope y los codos rectos."
+            ]
+          },
+          "pendlay_row__smith_machine": {
+            "description": "La barra arranca de los topes de seguridad, puestos a la altura que alcanzan las manos con el torso horizontal, y sube por dos guías verticales. Esa parada en los topes hace de suelo, y la barra no puede salirse de la vertical.",
+            "executionCues": [
+              "Arranca en vertical, rápido, y lleva la barra a la parte baja del pecho.",
+              "Baja hasta apoyar la barra en los topes y deja que se pare antes de repetir."
+            ],
+            "setupCues": [
+              "Pon los topes de seguridad a la altura que alcanzan tus manos con el torso paralelo al suelo.",
+              "Deja la barra sobre los topes, agárrala en prono y gírala para que los ganchos queden libres."
             ]
           }
         },
-        "description": "El Remo Pendlay convierte cada repetición en una prueba independiente: la barra descansa en el suelo entre tirones y no hay rebote ni inercia que valga. La ejecución pide el torso casi horizontal: explotar desde parado hasta el abdomen y depositar la carga en el suelo antes de la siguiente. Dorsal y trapecio producen fuerza pura de arranque en cada intento. El remo de los que entrenan fuerza explosiva, sin concesiones."
+        "description": "El Remo Pendlay (Pendlay row), que popularizó el entrenador de halterofilia Glenn Pendlay, arranca cada repetición desde parado, con la carga apoyada y sin rebote. La espalda queda paralela al suelo, con la cadera algo más alta que en la salida de un peso muerto, y la carga sale en un tirón explosivo hacia la parte baja del pecho para volver a posarse. Dorsal ancho y trapecio llevan el tirón, ayudados por romboides, deltoides y bíceps, mientras erectores, glúteos e isquiosurales sujetan el tronco horizontal. Como cada repetición empieza parada, la bajada anterior no presta impulso a la siguiente. Construye fuerza de arranque en la espalda alta desde la inclinación más exigente para la zona lumbar."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "En un remo de pie con barra, sin parada, los erectores lumbares trabajaron en torno al 43 % de su máximo, el glúteo mayor al 19 % y el bíceps femoral al 12,5 %; frente al remo invertido y al remo a un brazo en polea fue el que más flexionó y comprimió la zona lumbar.",
+          "id": "fenwick2009",
+          "title": "Comparison of different rowing exercises: trunk muscle activation and lumbar spine motion, load, and stiffness",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/19620925/"
+        },
+        {
+          "claim": "En press de banca al 95 % del máximo, la ayuda que aporta el estiramiento previo decayó al imponer una pausa entre la bajada y la subida, con una semivida de 0,85 segundos; se extrapola a la parada en el suelo de cada repetición.",
+          "id": "wilson1991",
+          "title": "The effect on performance of imposing a delay during a stretch-shorten cycle movement",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/2020276/"
+        },
+        {
+          "claim": "El remo inclinado con peso libre activó los erectores más que el remo en máquina, y remar con los dos brazos dio, en general, más actividad de erectores y multífido que hacerlo con uno.",
+          "id": "saeterbakken2015",
+          "title": "The Effect of Performing Bi- and Unilateral Row Exercises on Core Muscle Activation",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/26134664/"
+        },
+        {
+          "claim": "El remo sentado dio la mayor actividad del grupo trapecio medio y romboides frente a los jalones, y la actividad del bíceps no cambió entre las tareas.",
+          "id": "lehman2004",
+          "title": "Variations in muscle activation levels during traditional latissimus dorsi weight training exercises: An experimental study",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/15228624/"
+        },
+        {
+          "claim": "Para el deltoides posterior, el grupo de las dominadas dio la mayor activación, y la dominada estándar y el remo invertido en suspensión fueron los ejercicios individuales que más lo activaron.",
+          "id": "rabello2024",
+          "title": "Activation of the three deltoid muscle portions during common strengthening exercises: A systematic review",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/39593452/"
+        },
+        {
+          "claim": "En el remo sentado, el agarre más estrecho y el menor ángulo de abducción del hombro se asociaron, en estudios separados, con más actividad del dorsal ancho.",
+          "id": "difonza2026",
+          "title": "Electromyographic Analysis of Latissimus Dorsi Activation During Common Resistance Training Exercises: A Narrative Review",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/42647355/"
+        },
+        {
+          "claim": "El trapecio, el dorsal ancho y los romboides mueven el miembro superior dirigiendo la escápula y el húmero; el dorsal extiende y aduce el hombro.",
+          "id": "statpearls_extrinsic_back",
+          "title": "Anatomy, Back, Extrinsic Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725901/"
+        },
+        {
+          "claim": "Los romboides estabilizan la cintura escapular y llevan la escápula hacia la columna.",
+          "id": "statpearls_rhomboids",
+          "title": "Anatomy, Back, Rhomboid Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30521277/"
+        },
+        {
+          "claim": "Describe las porciones del deltoides; la posterior extiende el brazo y lo lleva hacia atrás en horizontal.",
+          "id": "statpearls_deltoid",
+          "title": "Anatomy, Shoulder and Upper Limb, Deltoid Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725741/"
+        },
+        {
+          "claim": "El bíceps braquial flexiona el codo y supina el antebrazo.",
+          "id": "statpearls_biceps",
+          "title": "Anatomy, Shoulder and Upper Limb, Biceps Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30137823/"
+        },
+        {
+          "claim": "Los flexores de la muñeca y de los dedos del compartimento anterior cierran el agarre, y el braquiorradial forma parte del grupo móvil del antebrazo.",
+          "id": "statpearls_forearm_compartments",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/"
+        },
+        {
+          "claim": "Los isquiosurales nacen en la tuberosidad isquiática y su disposición favorece la extensión de la cadera.",
+          "id": "statpearls_hamstring",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hamstring Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31536294/"
+        },
+        {
+          "claim": "El glúteo mayor, el más grande de la región glútea, es clave en el movimiento y en la estabilidad de la postura erguida.",
+          "id": "statpearls_gluteus_maximus",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Maximus Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30855781/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Remo de pie en el que cada repetición sale desde parado, con la carga apoyada y la espalda paralela al suelo: el tirón es explosivo hasta la parte baja del pecho y la carga vuelve a posarse antes de la siguiente. El tronco no se levanta en ningún momento y la parada entre repeticiones elimina el rebote.",
+        "keyPositions": [
+          "Parada: brazos estirados, escápulas separadas, carga apoyada y espalda horizontal.",
+          "Punto alto: carga pegada a la parte baja del pecho, con los codos por encima de la espalda y las escápulas juntas; el torso sigue horizontal."
+        ],
+        "mistakes": [
+          "Levantar el torso al tirar y perder la espalda horizontal.",
+          "Rebotar la carga contra el suelo en lugar de dejarla parada.",
+          "Redondear la espalda al devolver la carga al apoyo.",
+          "Tirar solo con los brazos, sin juntar las escápulas en el punto alto."
+        ],
+        "phases": [
+          {
+            "description": "La carga reposa y el atleta, con la espalda horizontal, aprieta el agarre y fija el tronco antes de tirar.",
+            "name": "Apoyo"
+          },
+          {
+            "description": "Desde parado, los codos salen rápidos hacia arriba y la carga llega a la parte baja del pecho sin que el torso se mueva.",
+            "name": "Tirón explosivo"
+          },
+          {
+            "description": "La carga baja hasta posarse de nuevo y se queda quieta un instante antes del siguiente tirón.",
+            "name": "Vuelta al apoyo"
+          }
+        ],
+        "setup": [
+          "Carga apoyada bajo los hombros, sobre la mitad del pie; agarre prono con la barra y neutro con mancuernas y kettlebells.",
+          "Cadera algo más alta que en la salida de un peso muerto, rodillas algo flexionadas y espalda paralela al suelo antes de tocar la carga.",
+          "Espalda neutra y abdomen firme antes de cada tirón."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral pura a la altura de la espalda, con el atleta entero y el suelo bajo la carga a la vista.",
+          "contacts": "Pies apoyados con toda la planta a la anchura de la cadera; las manos agarran la carga y nada apoya el pecho.",
+          "load": "La carga queda arriba, contra la parte baja del pecho, lejos del suelo y de cualquier apoyo.",
+          "orientation": "Atleta de perfil con la cabeza hacia la izquierda del encuadre, espalda horizontal y mirada al suelo.",
+          "phase": "Punto más alto del tirón: carga contra la parte baja del pecho, codos por encima de la línea de la espalda y torso todavía paralelo al suelo.",
+          "posture": "Espalda plana y paralela al suelo, cadera a la altura de los hombros o algo más alta, rodillas algo flexionadas y cuello neutro."
+        },
+        "byImplement": {
+          "barbell": {
+            "geometry": "Barra olímpica con discos de tamaño estándar, agarrada en prono algo más ancha que los hombros; en el punto alto toca la parte baja del pecho y los discos quedan en el aire, lejos del suelo."
+          },
+          "cable": {
+            "geometry": "Polea baja delante del atleta; barra recta unida al cable contra la parte baja del pecho, cable en diagonal hasta la polea y pila de placas levantada."
+          },
+          "dumbbells": {
+            "geometry": "Una mancuerna en cada mano, palmas enfrentadas, junto a los lados de la cintura; el suelo queda libre debajo de ellas."
+          },
+          "kettlebell": {
+            "geometry": "Una kettlebell en cada mano en agarre neutro, con la bola colgando bajo el puño junto a la cintura y el suelo libre debajo."
+          },
+          "machine": {
+            "geometry": "Estación de palanca de pie con plataforma y sin cojín para el pecho; los mangos junto a la parte baja del pecho y el brazo de palanca, con sus discos, levantado de su tope."
+          },
+          "smith_machine": {
+            "geometry": "Barra fijada a dos guías verticales; los topes de seguridad quedan bajos, a la altura de las manos con los brazos estirados, y la barra está arriba, contra la parte baja del pecho."
+          }
+        },
+        "forbidden": [
+          "Torso inclinado unos 45 grados o más erguido: eso es un remo convencional, no un remo Pendlay.",
+          "Cadera baja, espinillas pegadas a la barra y pecho alto: eso es la salida de un peso muerto.",
+          "Pecho apoyado en un banco o en un cojín: eso es un remo seal o un remo con pecho apoyado.",
+          "Fotograma de la parada con la espalda claramente por encima de la horizontal: el fotograma es el punto alto con la espalda paralela al suelo.",
+          "Carga flotando sin que las manos la agarren.",
+          "Espalda redondeada o cabeza levantada mirando al frente.",
+          "Carga en el suelo o en los topes, o brazos estirados: el fotograma es el punto alto."
+        ],
+        "promptCore": {
+          "barbell": "Side view of an athlete bent over with the back flat and parallel to the floor, frozen at the TOP of a barbell Pendlay row. Both hands grip the barbell with an overhand grip slightly wider than the shoulders and hold it against the lower chest. Elbows are bent and lifted above the line of the back. Hips at shoulder height, knees slightly bent, neck neutral, eyes on the floor. Both feet flat on the floor and nothing supports the chest. The plates are in the air, high above the floor.",
+          "cable": "Side view of an athlete facing a low cable pulley, bent over with the back flat and parallel to the floor, frozen at the TOP of a cable row. Both hands grip a straight bar attached to the cable with an overhand grip and hold it against the lower chest. The cable runs diagonally down and forward to the pulley near the floor. Elbows are lifted above the line of the back, knees slightly bent, both feet flat on the floor. The weight stack is lifted off its rest.",
+          "dumbbells": "Side view of an athlete bent over with the back flat and parallel to the floor, frozen at the TOP of a dumbbell Pendlay row. Each hand grips one dumbbell with palms facing each other and holds it beside the waist. Elbows are bent and lifted above the line of the back. Hips at shoulder height, knees slightly bent, neck neutral. Both feet flat on the floor and nothing supports the chest. Both dumbbells are in the air, high above the floor.",
+          "kettlebell": "Side view of an athlete bent over with the back flat and parallel to the floor, frozen at the TOP of a double kettlebell Pendlay row. Each hand grips the handle of one kettlebell with a neutral grip and holds it beside the waist, the round bell hanging just below the fist. Elbows are lifted above the line of the back. Hips at shoulder height, knees slightly bent. Both feet flat on the floor and nothing supports the chest. Both kettlebells are in the air.",
+          "machine": "Side view of an athlete standing on the foot platform of a plate-loaded lever row machine that has no chest pad, back flat and parallel to the floor, frozen at the TOP of the row. Both hands grip the machine handles and hold them against the lower chest. Elbows are lifted above the line of the back. Knees slightly bent, neck neutral. Nothing touches the chest. The lever arm with its plates is raised above its rest stop.",
+          "smith_machine": "Side view of an athlete bent over between the two vertical rails of a guided barbell rack, back flat and parallel to the floor, frozen at the TOP of a guided barbell row. Both hands grip the bar with an overhand grip and hold it against the lower chest; the bar is locked inside the rails. The safety stops sit low, at the height of the hands with straight arms. Elbows are lifted above the line of the back, knees slightly bent. Both feet flat on the floor."
+        },
+        "qa": [
+          "¿La espalda del atleta está plana y paralela al suelo?",
+          "¿Las manos agarran la carga y la carga no flota suelta?",
+          "¿La carga está contra la parte baja del pecho, con los codos por encima de la espalda, en el punto alto?",
+          "¿Los pies están apoyados en el suelo y nada sostiene el pecho?"
+        ]
+      }
     }
   },
   "familyId": "back_pendlay_row",

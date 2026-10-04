@@ -22,7 +22,9 @@ The ``title`` of a source must be the title of the work in its original language
 ``verify`` is safe to run from several authors at once: the network work happens outside a lock and
 only the read-merge-write of the proof file is serialized. Authors working on a private copy of the
 fichas pass ``--fichas-dir <copy>`` to ``verify``/``check`` and always scope ``verify`` with
-``--definitions`` (an unscoped run drops proof that no ficha of *that* directory cites).
+``--definitions`` (an unscoped run drops proof that no ficha of *that* directory cites). With
+``--proof <file>`` they verify and check against a private proof file instead of the shared one, so
+nothing under ``catalog/`` changes until the coordinator merges it.
 """
 from __future__ import annotations
 
@@ -274,9 +276,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="comma-separated definition ids: verify only their sources and never drop proof of other definitions",
     )
     verify.add_argument("--fichas-dir", type=Path, help="read the fichas of this directory (a private copy) instead of the shared one")
+    verify.add_argument("--proof", type=Path, help="read and update this proof file (a private registry) instead of the shared one")
     check = commands.add_parser("check", help="offline: every CURATED source has fresh proof")
     check.add_argument("--definitions", help="comma-separated definition ids: check only their sources")
     check.add_argument("--fichas-dir", type=Path, help="read the fichas of this directory (a private copy) instead of the shared one")
+    check.add_argument("--proof", type=Path, help="check against this proof file instead of the shared one")
     abstract = commands.add_parser("abstract", help="print the PubMed abstract of a source (to judge whether a claim is faithful)")
     abstract.add_argument("pmids", nargs="+", help="PubMed ids or pubmed.ncbi.nlm.nih.gov URLs")
     return parser
@@ -299,7 +303,7 @@ def main(
         sys.stdout.reconfigure(encoding="utf-8")
     arguments = build_parser().parse_args(argv)
     fichas_dir = Path(fichas_dir) if fichas_dir is not None else (getattr(arguments, "fichas_dir", None) or FICHAS)
-    proof_path = Path(proof_path) if proof_path is not None else PROOF
+    proof_path = Path(proof_path) if proof_path is not None else (getattr(arguments, "proof", None) or PROOF)
     if arguments.command == "lookup":
         for query in arguments.queries:
             print(f"> {query}")

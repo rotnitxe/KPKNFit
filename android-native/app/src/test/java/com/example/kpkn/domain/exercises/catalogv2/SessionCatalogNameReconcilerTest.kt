@@ -122,6 +122,60 @@ class SessionCatalogNameReconcilerTest {
     }
 
     @Test
+    fun retired_sumo_rdl_updates_complete_saved_identity_and_preserves_prescription() {
+        listOf("barbell", "smith_machine", "dumbbells", "hex_bar").forEach { implement ->
+            val oldId = "romanian_sumo_deadlift__unilateral__$implement"
+            val newId = "romanian_deadlift__unilateral__$implement"
+            val stale = catalogExercise("saved-$implement", "Peso Muerto Rumano Sumo").copy(
+                exerciseDbId = oldId,
+                exerciseId = oldId,
+                canonicalExerciseId = oldId,
+                exerciseFamilyId = "romanian_sumo_deadlift",
+                catalogDefinitionId = "romanian_sumo_deadlift",
+                catalogConfigurationId = oldId,
+                performanceProfileId = oldId,
+                isUnilateral = true,
+                variantName = "Tempo personal",
+                techniqueModifier = com.example.kpkn.data.protocols.TechniqueModifier.SPEED,
+                reference1RM = 40.0,
+                restTime = 90,
+            )
+            val migrated = SessionCatalogNameReconciler.reconcileExercise(stale, displayNameIndex)
+            assertEquals(newId, migrated.exerciseDbId)
+            assertEquals(newId, migrated.exerciseId)
+            assertEquals(newId, migrated.canonicalExerciseId)
+            assertEquals("romanian_deadlift", migrated.exerciseFamilyId)
+            assertEquals("romanian_deadlift", migrated.catalogDefinitionId)
+            assertEquals(newId, migrated.catalogConfigurationId)
+            assertEquals("romanian_deadlift__${implement}__peso_muerto_rumano", migrated.performanceProfileId)
+            assertEquals("Peso Muerto Rumano", migrated.name)
+            assertEquals(stale.id, migrated.id)
+            assertEquals(stale.occurrenceId, migrated.occurrenceId)
+            assertEquals(stale.sets, migrated.sets)
+            assertEquals(stale.reference1RM, migrated.reference1RM)
+            assertEquals(stale.restTime, migrated.restTime)
+            assertEquals(stale.variantName, migrated.variantName)
+            assertEquals(stale.techniqueModifier, migrated.techniqueModifier)
+            assertTrue(migrated.isUnilateral)
+            assertEquals(migrated, SessionCatalogNameReconciler.reconcileExercise(migrated, displayNameIndex))
+        }
+    }
+
+    @Test
+    fun retired_sumo_rdl_never_repairs_custom_or_wrong_definition_or_absent_target() {
+        val oldId = "romanian_sumo_deadlift__unilateral__barbell"
+        val stale = catalogExercise("saved", "Mi nombre").copy(
+            catalogDefinitionId = "romanian_sumo_deadlift",
+            catalogConfigurationId = oldId,
+        )
+        val custom = stale.copy(exerciseDbId = "custom:rdl")
+        assertEquals(custom, SessionCatalogNameReconciler.reconcileExercise(custom, displayNameIndex))
+        val mismatched = stale.copy(catalogDefinitionId = "bench_press")
+        assertEquals(mismatched, SessionCatalogNameReconciler.reconcileExercise(mismatched, displayNameIndex))
+        assertEquals(stale, SessionCatalogNameReconciler.reconcileExercise(stale, emptyMap()))
+    }
+
+    @Test
     fun normalizeSessionStructure_clears_redundant_loose_exercises() {
         val exercise = catalogExercise("ex1", "Press de Banca Plano")
         val part = com.example.kpkn.data.models.SessionPart(

@@ -142,6 +142,13 @@ las configuraciones de la definición, ni una más ni una menos.
   sin evidencia; si cambia, se reporta (§6). En `overrides`, un PRIMARY nuevo se agrega
   al final (nunca queda dominante) y `role: NONE` sobre el primero promueve al
   siguiente.
+- **Exceso de volumen (criterio del usuario, 2026-10-04).** El exceso aportado por
+  ejercicios en los que ESE músculo es SECONDARY o STABILIZER se permite y se
+  distingue del volumen directo en el informe. Si ESE EXTRA lo aporta un ejercicio
+  en el que ESE músculo es PRIMARY, se revisa y ajusta la prescripción antes de
+  darla por aceptada. La ficha conserva los roles que respalda la evidencia: no
+  se rebaja un PRIMARY para hacer que un plan quepa en su tope. La tolerancia al
+  aporte indirecto no autoriza más series principales.
 - `why` (≥40 caracteres): la función concreta de ESE músculo o articulación en ESE
   ejercicio y por qué merece ese rol. No es una definición de libro del músculo.
 - `sources`: ids declarados en `sources` (cada `why` se apoya en lo que el estudio

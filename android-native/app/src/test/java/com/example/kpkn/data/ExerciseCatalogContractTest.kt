@@ -43,14 +43,16 @@ class ExerciseCatalogContractTest {
         // `sissy_squat__barbell` (decisión del usuario, 2026-10-02) lo deja en 201/522. Las
         // cinco altas M1-M5 del 2026-10-03 (`close_grip_bench_press`, `paused_back_squat`,
         // `deadlift_to_knees`, `close_grip_lat_pulldown` e `incline_biceps_curl`) lo llevan
-        // a 206/527 con la misma revisión.
+        // a 206/527 con la misma revisión. El usuario retira las cuatro
+        // configuraciones unilaterales de `romanian_sumo_deadlift` el
+        // 2026-10-04: quedan 206 definiciones y 523 configuraciones.
         assertEquals(2, catalog.schemaVersion)
         assertEquals("v2-approved-2026-09-29-a", catalog.catalogRevision)
         assertEquals(catalog.families.size, catalog.families.map { it.id }.distinct().size)
         assertEquals(definitions.size, definitions.map { it.id }.distinct().size)
         assertEquals(configurations.size, configurations.map { it.id }.distinct().size)
         assertEquals(206, definitions.size)
-        assertEquals(527, configurations.size)
+        assertEquals(523, configurations.size)
     }
 
     @Test
@@ -72,6 +74,30 @@ class ExerciseCatalogContractTest {
             configurations.single { it.id == "sissy_squat__smith_machine" }.profile,
             resolver.resolve(saved),
         )
+    }
+
+    @Test
+    fun retired_single_leg_sumo_rdl_selections_resolve_to_same_implement_conventional_rdl() {
+        val resolver = ExerciseCatalogV2Resolver(catalog)
+        val sumo = definitions.single { it.id == "romanian_sumo_deadlift" }
+        assertEquals("romanian_sumo_deadlift__bilateral__barbell", sumo.defaultConfigurationId)
+        assertEquals(listOf("implement"), sumo.optionAxes)
+        listOf("barbell", "smith_machine", "dumbbells", "hex_bar").forEach { implement ->
+            val retiredId = "romanian_sumo_deadlift__unilateral__$implement"
+            val replacementId = "romanian_deadlift__unilateral__$implement"
+            assertTrue(configurations.none { it.id == retiredId })
+            assertTrue(sumo.configurations.any { it.id == "romanian_sumo_deadlift__bilateral__$implement" })
+            val saved = ExerciseSelectionV2("romanian_sumo_deadlift", retiredId, catalog.catalogRevision)
+            val validation = resolver.validate(saved)
+            assertTrue(validation is ExerciseSelectionValidationV2.Valid)
+            val migrated = (validation as ExerciseSelectionValidationV2.Valid).selection
+            assertEquals("romanian_deadlift", migrated.definitionId)
+            assertEquals(replacementId, migrated.configurationId)
+            val target = configurations.single { it.id == replacementId }.profile
+            assertEquals(implement, target.equipmentId)
+            assertEquals("UNILATERAL", target.laterality.name)
+            assertEquals(target, resolver.resolve(saved))
+        }
     }
 
     @Test

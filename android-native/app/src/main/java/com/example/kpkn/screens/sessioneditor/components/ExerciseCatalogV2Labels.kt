@@ -250,6 +250,7 @@ internal fun exerciseCatalogMovementLabel(id: String): String = when (id) {
     "romanian_deadlift_deficit" -> "Peso muerto rumano con déficit"
     "scapular_depression" -> "Depresión escapular"
     "scapular_elevation" -> "Elevación escapular"
+    "scapular_retraction" -> "Retracción escapular"
     "shoulder_abduction" -> "Abducción de hombro"
     "shoulder_abduction_diagonal" -> "Abducción diagonal de hombro"
     "shoulder_abduction_full_rom" -> "Abducción completa de hombro"

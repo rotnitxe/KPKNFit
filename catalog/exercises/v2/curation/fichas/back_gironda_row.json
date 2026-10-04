@@ -1,39 +1,399 @@
 {
   "definitions": {
     "gironda_row": {
-      "public": {
-        "configurations": {
-          "gironda_row__close": {
-            "description": "Con agarre cerrado, el torso acompaña el recorrido con una inclinación amplia y la espalda corta el tirón con un arco más largo. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso.",
-            "executionCues": [
-              "Agarre cerrado en el Gironda: los codos viajan cerca del cuerpo y el dorsal recibe una línea larga de tracción. El recorrido nace de una inclinación controlada del torso; la espalda acompaña el vaivén sin perder la tensión en los dorsales."
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Extensión del hombro",
+              "Abducción horizontal"
             ],
-            "setupCues": [
-              "Preparación: Agarre cerrado en el Gironda: los codos viajan cerca del cuerpo y el dorsal recibe una línea larga de tracción."
-            ]
+            "id": "glenohumeral",
+            "role": "PRIMARY",
+            "sources": [
+              "statpearls_extrinsic_back",
+              "statpearls_deltoid"
+            ],
+            "why": "El brazo parte estirado al frente, a la altura del cable, y el codo retrocede hasta pasar la línea del tronco: extensión del hombro con algo de apertura por el agarre medio."
           },
-          "gironda_row__medium": {
-            "description": "Con agarre medio, el torso acompaña el recorrido con una inclinación amplia y la espalda corta el tirón con un arco más largo. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre medio equilibra el reparto del trabajo del dorsal ancho.",
-            "executionCues": [
-              "Agarre medio en el Gironda: la trayectoria queda entre el tirón hacia la cintura y la apertura hacia la espalda alta. El recorrido nace de una inclinación controlada del torso; la espalda acompaña el vaivén sin perder la tensión en los dorsales."
+          {
+            "actions": [
+              "Retracción escapular"
             ],
-            "setupCues": [
-              "Preparación: Agarre medio en el Gironda: la trayectoria queda entre el tirón hacia la cintura y la apertura hacia la espalda alta."
+            "id": "escapulotoracica",
+            "role": "PRIMARY",
+            "sources": [
+              "statpearls_rhomboids",
+              "statpearls_trapezius",
+              "lehman2004"
+            ],
+            "why": "Las escápulas se adelantan con los brazos estirados y se juntan cuando el agarre llega al tronco; con el tronco quieto, ese deslizamiento es el que cierra el gesto."
+          },
+          {
+            "actions": [
+              "Flexión del codo"
+            ],
+            "id": "codo",
+            "role": "SECONDARY",
+            "sources": [
+              "statpearls_biceps"
+            ],
+            "why": "El codo pasa de estirado a flexionado mientras el hombro tira, sin marcar el final del recorrido."
+          },
+          {
+            "actions": [
+              "Estabilidad del tronco"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "saeterbakken2015"
+            ],
+            "why": "La zona lumbar queda neutra con el tronco erguido; el cable tira hacia delante y los erectores la sostienen sin que el tronco se balancee."
+          },
+          {
+            "actions": [
+              "Sostén del agarre"
+            ],
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_forearm_compartments"
+            ],
+            "why": "La muñeca queda firme detrás de la barra o del triángulo, alineada con el cable durante toda la serie."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "latissimus_dorsi",
+            "role": "PRIMARY",
+            "sources": [
+              "lehman2004",
+              "statpearls_extrinsic_back"
+            ],
+            "why": "Es el extensor del hombro que acerca la barra al tronco. En el remo sentado en polea, hecho con las manos juntas en agarre neutro, se registró la mayor relación entre dorsal y bíceps junto con el jalón ancho (Lehman et al. 2004)."
+          },
+          {
+            "id": "rhomboids",
+            "role": "SECONDARY",
+            "sources": [
+              "lehman2004",
+              "statpearls_rhomboids"
+            ],
+            "why": "Cierran las escápulas al final del tirón; el remo sentado dio la mayor actividad del conjunto romboides y trapecio medio frente a los jalones, y juntar las escápulas a propósito no la aumentó."
+          },
+          {
+            "id": "trapezius",
+            "role": "SECONDARY",
+            "sources": [
+              "statpearls_trapezius",
+              "padovan2025"
+            ],
+            "why": "Retrae la escápula con sus fibras medias y la fija con las inferiores mientras el cable tira de los brazos hacia delante; con los agarres medio y cerrado acompaña al dorsal."
+          },
+          {
+            "id": "deltoid",
+            "role": "SECONDARY",
+            "sources": [
+              "vasconcelos2023",
+              "statpearls_deltoid"
+            ],
+            "why": "Su porción posterior extiende el hombro con el dorsal; en el remo sentado su actividad crece a medida que los codos se separan del cuerpo."
+          },
+          {
+            "id": "biceps",
+            "role": "SECONDARY",
+            "sources": [
+              "padovan2025",
+              "statpearls_biceps"
+            ],
+            "why": "Dobla el codo para llevar la barra al tronco; entre el agarre estrecho y el ancho del remo sentado solo cambió la zona más excitada del músculo, no su amplitud."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "saeterbakken2015"
+            ],
+            "why": "Sostienen el tronco erguido contra el cable, que tira de los brazos hacia la polea; en el remo sentado en polea a dos manos su actividad fue mayor que a una mano, pero no mueven la carga."
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_forearm_compartments"
+            ],
+            "why": "Los flexores de los dedos sostienen la barra o el triángulo mientras el cable tira de las manos hacia delante durante toda la serie."
+          }
+        ],
+        "overrides": {
+          "gironda_row__close": {
+            "joints": [
+              {
+                "actions": [
+                  "Extensión del hombro",
+                  "Aducción del hombro"
+                ],
+                "id": "glenohumeral",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_extrinsic_back",
+                  "lehman2004"
+                ],
+                "why": "Con el triángulo el codo pasa pegado al costado y el húmero se extiende hasta quedar detrás del tronco, sin apertura lateral."
+              }
+            ],
+            "muscles": [
+              {
+                "id": "latissimus_dorsi",
+                "role": "PRIMARY",
+                "sources": [
+                  "padovan2025",
+                  "vasconcelos2023",
+                  "statpearls_extrinsic_back"
+                ],
+                "why": "Con el triángulo, los codos pasan junto a los costados y el hombro se extiende en todo su arco, la acción propia del dorsal: en el remo sentado el agarre estrecho le dio más amplitud y los codos pegados permitieron más fuerza pico."
+              }
             ]
           },
           "gironda_row__wide": {
-            "description": "Con agarre amplio, el torso acompaña el recorrido con una inclinación amplia y la espalda corta el tirón con un arco más largo. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
+            "joints": [
+              {
+                "actions": [
+                  "Abducción horizontal",
+                  "Extensión del hombro"
+                ],
+                "id": "glenohumeral",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_deltoid",
+                  "vasconcelos2023"
+                ],
+                "why": "Con la barra larga el codo viaja abierto, cerca de la altura del hombro, y el húmero se separa del tronco hacia atrás en el plano horizontal."
+              }
+            ],
+            "muscles": [
+              {
+                "id": "latissimus_dorsi",
+                "role": "PRIMARY",
+                "sources": [
+                  "padovan2025",
+                  "statpearls_extrinsic_back"
+                ],
+                "why": "Conserva el primer puesto porque el hombro se sigue extendiendo, aunque en el remo sentado el agarre ancho le dio menos amplitud que el estrecho."
+              },
+              {
+                "id": "trapezius",
+                "role": "PRIMARY",
+                "sources": [
+                  "padovan2025",
+                  "vasconcelos2023",
+                  "statpearls_trapezius"
+                ],
+                "why": "Con la barra larga y los codos abiertos, cerrar las escápulas pasa a ser media tarea. En el remo sentado, el agarre ancho excitó más el trapecio superior, medio e inferior, y los ángulos de 60 y 90 grados de abducción subieron el trapecio medio: comparte con el dorsal el papel de motor."
+              },
+              {
+                "id": "deltoid",
+                "role": "SECONDARY",
+                "sources": [
+                  "vasconcelos2023",
+                  "statpearls_deltoid"
+                ],
+                "why": "Con los codos separados del tronco, la porción posterior abre el brazo hacia atrás y gana actividad, como se vio a 60 y 90 grados de abducción; sigue como ayuda."
+              },
+              {
+                "id": "erector_spinae",
+                "role": "STABILIZER",
+                "sources": [
+                  "padovan2025",
+                  "saeterbakken2015"
+                ],
+                "why": "Sostienen el tronco erguido; con el agarre ancho su excitación fue algo mayor en la fase de bajada del remo sentado, sin llegar a mover la carga."
+              }
+            ]
+          }
+        }
+      },
+      "public": {
+        "configurations": {
+          "gironda_row__close": {
+            "description": "El triángulo une las manos, palmas frente a frente, y los codos se deslizan junto a los costados hasta que el agarre toca el ombligo. Con las manos juntas el dorsal ancho trabaja más que con un agarre abierto, y se mueve más carga.",
             "executionCues": [
-              "Agarre amplio en el Gironda: los codos se separan y la espalda alta recibe más protagonismo durante el vaivén. El recorrido nace de una inclinación controlada del torso; la espalda acompaña el vaivén sin perder la tensión en los dorsales."
+              "Tira hasta que el triángulo toque el ombligo, con los codos pegados a los costados.",
+              "Junta las escápulas al final con el tronco quieto.",
+              "Estira los brazos de vuelta sin que el tronco se vaya hacia delante."
             ],
             "setupCues": [
-              "Preparación: Agarre amplio en el Gironda: los codos se separan y la espalda alta recibe más protagonismo durante el vaivén."
+              "Siéntate frente a la polea baja con los pies en la plataforma y las rodillas un poco flexionadas.",
+              "Agarra el triángulo con las palmas enfrentadas y siéntate erguido."
+            ]
+          },
+          "gironda_row__medium": {
+            "description": "Con una barra corta o dos asas al ancho de los hombros, los codos retroceden en diagonal y el agarre toca el tronco a la altura de las costillas bajas. El dorsal ancho lleva el tirón, con el trapecio y los romboides cerrando las escápulas al final.",
+            "executionCues": [
+              "Tira de la barra hacia las costillas bajas llevando los codos atrás.",
+              "Junta las escápulas al final con el tronco quieto.",
+              "Estira los brazos de vuelta sin que el tronco se vaya hacia delante."
+            ],
+            "setupCues": [
+              "Siéntate frente a la polea baja con los pies en la plataforma y las rodillas un poco flexionadas.",
+              "Toma la barra corta con las manos alineadas con tus hombros y endereza el tronco."
+            ]
+          },
+          "gironda_row__wide": {
+            "description": "Una barra larga, agarrada con las palmas hacia abajo y bastante más abierta que los hombros, termina a la altura del esternón, con los codos separados del tronco. Ese ancho hace trabajar más las tres porciones del trapecio y el deltoides que un agarre estrecho.",
+            "executionCues": [
+              "Acerca la barra al esternón con los codos lejos de los costados.",
+              "Junta las escápulas al final con el tronco quieto.",
+              "Estira los brazos de vuelta sin que el tronco se vaya hacia delante."
+            ],
+            "setupCues": [
+              "Siéntate frente a la polea baja con los pies en la plataforma y las rodillas un poco flexionadas.",
+              "Agarra la barra larga con las palmas hacia abajo, bastante más abierta que los hombros."
             ]
           }
         },
-        "description": "El Remo Gironda es la lectura más fina del remo en polea: el torso acompaña el recorrido con una inclinación amplia y el dorsal trabaja en un arco más largo que en el remo estricto. Se practica ante la polea baja con las rodillas suaves, dejando que el tronco siga la carga en la vuelta y cortando con la espalda al tirar. La elección de los puristas para sentir cada fibra de la espalda con una tensión que no da tregua."
+        "description": "El Remo Gironda, el remo sentado en polea baja que en los gimnasios lleva el nombre de Vince Gironda, es un tirón horizontal en el que el dorsal ancho acerca el agarre al tronco mientras trapecio y romboides llevan las escápulas hacia la columna. Sentado frente a la polea, con los pies en la plataforma y las rodillas algo flexionadas, el tronco queda erguido y quieto mientras el agarre viaja hasta tocarlo. Incluso con los codos estirados, el cable tira de los brazos hacia la polea. Los erectores solo sostienen el tronco: si este se balancea, la espalda baja empieza a mover la carga. Es un remo de polea para sumar trabajo de espalda con el tronco erguido, sin bisagra de cadera que sostener."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "En el remo sentado en polea, con las manos a unos 15 centímetros y agarre neutro, la relación entre dorsal y bíceps fue de las más altas, la actividad del trapecio medio y romboides fue la mayor y la del bíceps no cambió entre ejercicios.",
+          "id": "lehman2004",
+          "title": "Variations in muscle activation levels during traditional latissimus dorsi weight training exercises: An experimental study",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/15228624/"
+        },
+        {
+          "claim": "En el remo sentado en polea y en el de máquina, los erectores y el multífido trabajaron más a dos manos que a una: a una mano rindieron entre el 60 y el 78 % de la actividad bilateral.",
+          "id": "saeterbakken2015",
+          "title": "The Effect of Performing Bi- and Unilateral Row Exercises on Core Muscle Activation",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/26134664/"
+        },
+        {
+          "claim": "En el remo sentado, el agarre estrecho dio más amplitud del dorsal ancho en ambas fases y el ancho más excitación del trapecio superior, medio e inferior, del deltoides lateral y, solo en la bajada, de los erectores; en el bíceps solo cambió la localización de la excitación.",
+          "id": "padovan2025",
+          "title": "High-Density Surface Electromyography Excitation of Prime Movers in the Narrow vs. Wide Grip Seated Row Exercise",
+          "url": "https://doi.org/10.5114/jhk/209550"
+        },
+        {
+          "claim": "En el remo sentado en polea, el trapecio superior y medio y el deltoides posterior se activaron más a 60 y 90 grados de abducción del hombro, y el dorsal ancho y la fuerza pico fueron mayores con el brazo cerca de 0 grados.",
+          "id": "vasconcelos2023",
+          "title": "Effect Of Different Grip Position And Shoulder- Abduction Angle On Muscle Strength And Activation During The Seated Cable Row",
+          "url": "https://doi.org/10.47206/ijsc.v3i1.190"
+        },
+        {
+          "claim": "Describe la acción del dorsal ancho (extensión, aducción y rotación interna del hombro) y de los músculos extrínsecos de la espalda sobre la escápula y el húmero.",
+          "id": "statpearls_extrinsic_back",
+          "title": "Anatomy, Back, Extrinsic Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725901/"
+        },
+        {
+          "claim": "Describe a los romboides como retractores y rotadores inferiores de la escápula.",
+          "id": "statpearls_rhomboids",
+          "title": "Anatomy, Back, Rhomboid Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30521277/"
+        },
+        {
+          "claim": "Las fibras medias del trapecio retraen la escápula y las inferiores la deprimen; el músculo estabiliza y mueve la escápula.",
+          "id": "statpearls_trapezius",
+          "title": "Anatomy, Back, Trapezius",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30085536/"
+        },
+        {
+          "claim": "Describe las porciones del deltoides; la posterior extiende y abduce horizontalmente el hombro.",
+          "id": "statpearls_deltoid",
+          "title": "Anatomy, Shoulder and Upper Limb, Deltoid Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725741/"
+        },
+        {
+          "claim": "Describe al bíceps braquial como flexor del codo y supinador del antebrazo.",
+          "id": "statpearls_biceps",
+          "title": "Anatomy, Shoulder and Upper Limb, Biceps Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30137823/"
+        },
+        {
+          "claim": "Describe los compartimentos del antebrazo y los flexores de dedos y muñeca que sostienen el agarre.",
+          "id": "statpearls_forearm_compartments",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Remo sentado frente a una polea baja: los pies empujan una plataforma, las rodillas están algo flexionadas y el tronco queda erguido y quieto mientras la barra o el triángulo viaja desde los brazos estirados hasta tocar el tronco. El asiento y el cable horizontal lo separan del remo en polea de pie con el tronco inclinado, y la ausencia de apoyo para el pecho, de los remos con pecho apoyado.",
+        "keyPositions": [
+          "Inicio: brazos estirados al frente, escápulas adelantadas por el cable y tronco vertical.",
+          "Final: el agarre toca el tronco, los codos quedan detrás de la línea de la espalda, las escápulas juntas y el tronco sigue vertical o apenas inclinado hacia atrás."
+        ],
+        "mistakes": [
+          "Tirar con un balanceo del tronco, de modo que la cadera y la espalda baja arrastren la carga.",
+          "Dejar que el cable arrastre el tronco hacia delante en la vuelta y redondear la espalda.",
+          "Encogerse de hombros en cada tirón en lugar de bajar y juntar las escápulas.",
+          "Bloquear las rodillas o separar los pies de la plataforma."
+        ],
+        "phases": [
+          {
+            "description": "Los brazos se extienden hacia la polea y las escápulas se adelantan, con el tronco quieto.",
+            "name": "Estirada"
+          },
+          {
+            "description": "Las escápulas se juntan y los codos retroceden hasta que el agarre toca el tronco.",
+            "name": "Tirón"
+          },
+          {
+            "description": "Un instante con los codos atrás y el pecho alto, con el tronco todavía vertical.",
+            "name": "Pausa"
+          },
+          {
+            "description": "Los brazos se estiran de nuevo sin que el cable arrastre el tronco hacia delante.",
+            "name": "Vuelta"
+          }
+        ],
+        "setup": [
+          "Sentado en el banco largo de la estación de remo bajo, los pies contra la plataforma y las rodillas un poco flexionadas.",
+          "Tronco vertical, pecho alto y hombros bajos; los brazos estirados hacia la polea con el cable ya tenso.",
+          "Barra larga en prono para el agarre amplio, barra corta o dos asas al ancho de los hombros para el medio y triángulo con palmas enfrentadas para el cerrado."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral a la altura del pecho, con el atleta sentado entero, la plataforma de los pies y la polea dentro del encuadre.",
+          "contacts": "Glúteos sobre el asiento, plantas contra la plataforma y manos cerradas sobre el agarre del cable.",
+          "load": "El cable sale horizontal de la polea baja hacia las manos; la pila de placas está levantada y nada se apoya en el suelo.",
+          "orientation": "Atleta de perfil, sentado de cara a la polea, que queda a la derecha del encuadre, con el tronco vertical.",
+          "phase": "Final del tirón: el agarre toca el tronco, los codos quedan por detrás de la espalda y las escápulas juntas.",
+          "posture": "Tronco vertical o apenas detrás de la vertical, pecho alto, hombros bajos y rodillas algo flexionadas."
+        },
+        "byImplement": {
+          "cable": {
+            "geometry": "Estación de remo bajo: banco largo y bajo, plataforma vertical para los pies y polea a la altura de los pies; el cable corre horizontal hasta una barra corta sujeta con las dos manos al ancho de los hombros."
+          }
+        },
+        "byVariant": {
+          "gironda_row__close": {
+            "difference": "Triángulo con las palmas enfrentadas y las manos juntas; el agarre llega al ombligo y los codos pasan pegados a las costillas."
+          },
+          "gironda_row__wide": {
+            "difference": "Barra larga agarrada en prono, manos bastante más abiertas que los hombros; la barra termina a la altura del esternón, con los codos separados del tronco."
+          }
+        },
+        "forbidden": [
+          "Atleta de pie e inclinado tirando de una polea baja: eso es el remo en polea de pie, no esta versión sentada.",
+          "Tronco echado muy atrás, más allá de unos pocos grados, o doblado hacia delante en el fotograma final.",
+          "Polea alta con el cable bajando desde arriba: eso es un jalón.",
+          "Pecho apoyado en una almohadilla: eso es un remo con pecho apoyado.",
+          "Pies fuera de la plataforma o piernas bloqueadas del todo.",
+          "Una sola mano en el agarre: este remo es a dos manos."
+        ],
+        "promptCore": {
+          "cable": "Side view of a muscular athlete seated on the low bench of a seated cable row station, frozen at the END of the pull. Both feet are pressed flat against the vertical foot platform with the knees slightly bent. Both hands grip a short straight cable bar, shoulder width apart, and hold it touching the lower ribs. Elbows are bent and pulled behind the torso, shoulder blades squeezed together, chest up. The torso is upright, leaning back no more than a few degrees. The cable runs horizontally from the low pulley at foot level to the bar, and the weight stack is lifted."
+        },
+        "qa": [
+          "¿El atleta está sentado con los pies contra la plataforma y las rodillas algo flexionadas?",
+          "¿Las dos manos agarran la barra o el triángulo y el cable llega horizontal desde la polea baja?",
+          "¿El agarre toca el tronco y los codos quedan por detrás de la espalda?",
+          "¿El tronco está vertical o apenas inclinado hacia atrás, sin balanceo marcado?"
+        ]
+      }
     }
   },
   "familyId": "back_gironda_row",

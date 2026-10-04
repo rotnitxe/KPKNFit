@@ -64,6 +64,20 @@ class EmphasisEngineTest {
         assertEquals("anterior", emphasis("deltoid", "deltoides_press_landmine_unilateral", pattern = "vertical_push"))
     }
 
+    @Test
+    fun pulls_emphasize_posterior_deltoid() {
+        assertEquals("posterior", emphasis("deltoid", "conventional_row", pattern = "horizontal_pull"))
+        assertEquals("posterior", emphasis("deltoid", "back_band_pull_apart", pattern = "horizontal_pull"))
+        assertEquals("posterior", emphasis("deltoid", "lat_pulldown", pattern = "vertical_pull"))
+        assertEquals("posterior", emphasis("deltoid", "back_encogimientos_kelso", pattern = "scapular_retraction"))
+    }
+
+    @Test
+    fun upright_row_and_y_raise_emphasize_lateral_deltoid() {
+        assertEquals("lateral", emphasis("deltoid", "deltoides_remo_menton", pattern = "vertical_pull_abduction"))
+        assertEquals("lateral", emphasis("deltoid", "back_y_raises", pattern = "shoulder_abduction_diagonal"))
+    }
+
     // Glute
     @Test
     fun hip_extension_emphasizes_mayor_glute() {

@@ -23,6 +23,14 @@ object EmphasisEngine {
         "shoulder_abduction_full_rom",
     )
 
+    // En los tirones (remos, jalones, dominadas, pullovers, retracción escapular) el deltoides
+    // que colabora extiende el hombro o lo abduce en horizontal: es la porción posterior.
+    private val PULL_PATTERNS = setOf(
+        "horizontal_pull",
+        "vertical_pull",
+        "scapular_retraction",
+    )
+
     fun deriveEmphasis(
         muscleId: String,
         definitionId: String,
@@ -60,8 +68,10 @@ object EmphasisEngine {
         }
         val pattern = movementPatternId
         if (pattern == "horizontal_abduction") return "posterior"
+        if (pattern != null && PULL_PATTERNS.contains(pattern)) return "posterior"
         if (pattern != null && LATERAL_RAISE_PATTERNS.contains(pattern)) return "lateral"
-        if (id.contains("upright_row")) return "lateral"
+        // Remo al mentón (tirón vertical con abducción): porción lateral.
+        if (id.contains("upright_row") || pattern == "vertical_pull_abduction") return "lateral"
         // Presses (horizontal/vertical/arnold/landmine…) y asistencias de empuje.
         return "anterior"
     }

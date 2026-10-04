@@ -70,25 +70,26 @@ class AprendeCatalogAuditTest {
         // cinco altas M1-M5 del 2026-10-03 (`close_grip_bench_press`, `paused_back_squat`,
         // `deadlift_to_knees`, `close_grip_lat_pulldown` e `incline_biceps_curl`, cada una
         // una especialidad de una sola configuración) lo llevan a 206/527 con la misma revisión.
+        // El retiro autorizado de las cuatro unilaterales de rumano sumo (2026-10-04) deja 206/523.
         assertEquals("v2-approved-2026-09-29-a", report.catalogRevision)
         assertEquals("wikilab-v3-2026-08-08", report.ontologyRevision)
         assertEquals(96, report.familyCount)
         assertEquals(206, report.definitionCount)
-        assertEquals(527, report.configurationCount)
-        assertEquals(527, report.richMetadataCount)
-        assertEquals(527, report.editorialCoverageCount)
-        assertEquals(527, report.jointCoverageCount)
+        assertEquals(523, report.configurationCount)
+        assertEquals(523, report.richMetadataCount)
+        assertEquals(523, report.editorialCoverageCount)
+        assertEquals(523, report.jointCoverageCount)
         assertEquals(0, report.shortDescriptionCount)
         assertEquals(0, report.duplicateDescriptionCount)
         assertEquals(0, report.desynchronizedMetadataCount)
         assertEquals(0, report.reverseLinkConsistencyIssueCount)
-        assertEquals("b2a652bb4f654f32e2925593858b3110e6c06a95637e7a2a4bad19d20cc6734a", report.sourceSha256)
+        assertEquals("31ccbddd4943362bd4258679900ed21549516484985ff01d613360e30c04c562", report.sourceSha256)
         assertTrue("músculos sin puente: ${report.unmappedMuscleIds}", report.unmappedMuscleIds.isEmpty())
         assertTrue("patrones sin puente: ${report.unmappedPatternIds}", report.unmappedPatternIds.isEmpty())
         assertTrue(report.unknownJointIds.isEmpty())
         assertTrue(report.invalidLegacyMappings.isEmpty())
         assertEquals(21, AprendeOntology.catalogMuscleToWikiLab.size)
-        assertEquals(62, AprendeOntology.catalogPatternToWikiLab.size)
+        assertEquals(63, AprendeOntology.catalogPatternToWikiLab.size)
         assertEquals(
             catalogMuscleIds(),
             AprendeOntology.catalogMuscleToWikiLab.keys,
@@ -128,9 +129,9 @@ class AprendeCatalogAuditTest {
             .map { it.id }
             .toSet()
 
-        // 206 definiciones / 527 configuraciones aprobadas (ver comentario de
+        // 206 definiciones / 523 configuraciones aprobadas (ver comentario de
         // `approved_catalog_has_complete_aprende_ontology_and_editorial_coverage`).
-        assertEquals(527, runtime.size)
+        assertEquals(523, runtime.size)
         assertEquals(sourceConfigurationIds, runtime.keys)
         assertTrue(runtime.values.all {
             val configurationId = it.catalogConfigurationId
@@ -144,7 +145,7 @@ class AprendeCatalogAuditTest {
         val reverse = buildAprendeCatalogReverseIndex(catalog)
         // A configuration contributes to exactly one movement-pattern bucket;
         // this also guards against parent-name deduplication.
-        assertEquals(527, reverse.exerciseIdsByPattern.values.sumOf { it.size })
+        assertEquals(523, reverse.exerciseIdsByPattern.values.sumOf { it.size })
         catalog.families.flatMap { it.definitions }.flatMap { it.configurations }.forEach { configuration ->
             val profile = configuration.profile
             assertTrue(configuration.id in reverse.exerciseIdsByPattern[profile.movementPatternId].orEmpty())

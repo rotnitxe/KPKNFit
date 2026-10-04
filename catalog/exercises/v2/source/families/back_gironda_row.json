@@ -24,39 +24,48 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con agarre amplio, el torso acompaña el recorrido con una inclinación amplia y la espalda corta el tirón con un arco más largo. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
+              "description": "Una barra larga, agarrada con las palmas hacia abajo y bastante más abierta que los hombros, termina a la altura del esternón, con los codos separados del tronco. Ese ancho hace trabajar más las tres porciones del trapecio y el deltoides que un agarre estrecho.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
-                "Agarre amplio en el Gironda: los codos se separan y la espalda alta recibe más protagonismo durante el vaivén. El recorrido nace de una inclinación controlada del torso; la espalda acompaña el vaivén sin perder la tensión en los dorsales."
+                "Acerca la barra al esternón con los codos lejos de los costados.",
+                "Junta las escápulas al final con el tronco quieto.",
+                "Estira los brazos de vuelta sin que el tronco se vaya hacia delante."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión",
-                    "Aducción Del Hombro"
+                    "Abducción horizontal",
+                    "Extensión del hombro"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Retracción Escapular"
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Estabilidad del tronco"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
                   "role": "STABILIZER"
@@ -68,7 +77,8 @@
               "movementPatternId": "horizontal_pull",
               "performanceProfileId": "gironda_row__wide__remo_gironda",
               "primaryMuscles": [
-                "latissimus_dorsi"
+                "latissimus_dorsi",
+                "trapezius"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -76,53 +86,63 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Aducción Del Hombro",
-                    "Retracción Escapular",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Abducción horizontal",
+                    "Extensión del hombro",
+                    "Retracción escapular",
+                    "Flexión del codo",
+                    "Estabilidad del tronco",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión",
-                        "Aducción Del Hombro"
+                        "Abducción horizontal",
+                        "Extensión del hombro"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Retracción Escapular"
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Estabilidad del tronco"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "latissimus_dorsi"
+                    "latissimus_dorsi",
+                    "trapezius"
                   ],
                   "secondaryMuscles": [
-                    "trapezius",
-                    "deltoid"
+                    "rhomboids",
+                    "deltoid",
+                    "biceps"
                   ],
                   "stabilizerMuscles": [
-                    "rhomboids",
-                    "biceps"
+                    "erector_spinae",
+                    "forearm"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -137,6 +157,7 @@
                     "glenohumeral",
                     "escapulotoracica",
                     "codo",
+                    "columna-lumbar",
                     "muñeca"
                   ],
                   "resistanceProfile": "continuous_cable",
@@ -188,24 +209,27 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "horizontal_pull:latissimus_dorsi"
+                    "horizontal_pull:latissimus_dorsi",
+                    "horizontal_pull:trapezius"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
-                "trapezius",
-                "deltoid"
+                "rhomboids",
+                "deltoid",
+                "biceps"
               ],
               "setupCues": [
-                "Preparación: Agarre amplio en el Gironda: los codos se separan y la espalda alta recibe más protagonismo durante el vaivén."
+                "Siéntate frente a la polea baja con los pies en la plataforma y las rodillas un poco flexionadas.",
+                "Agarra la barra larga con las palmas hacia abajo, bastante más abierta que los hombros."
               ],
               "setupTimeSeconds": 35,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "rhomboids",
-                "biceps"
+                "erector_spinae",
+                "forearm"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -232,39 +256,48 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con agarre medio, el torso acompaña el recorrido con una inclinación amplia y la espalda corta el tirón con un arco más largo. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre medio equilibra el reparto del trabajo del dorsal ancho.",
+              "description": "Con una barra corta o dos asas al ancho de los hombros, los codos retroceden en diagonal y el agarre toca el tronco a la altura de las costillas bajas. El dorsal ancho lleva el tirón, con el trapecio y los romboides cerrando las escápulas al final.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
-                "Agarre medio en el Gironda: la trayectoria queda entre el tirón hacia la cintura y la apertura hacia la espalda alta. El recorrido nace de una inclinación controlada del torso; la espalda acompaña el vaivén sin perder la tensión en los dorsales."
+                "Tira de la barra hacia las costillas bajas llevando los codos atrás.",
+                "Junta las escápulas al final con el tronco quieto.",
+                "Estira los brazos de vuelta sin que el tronco se vaya hacia delante."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión",
-                    "Aducción Del Hombro"
+                    "Extensión del hombro",
+                    "Abducción horizontal"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Retracción Escapular"
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Estabilidad del tronco"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
                   "role": "STABILIZER"
@@ -284,38 +317,46 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Aducción Del Hombro",
-                    "Retracción Escapular",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Extensión del hombro",
+                    "Abducción horizontal",
+                    "Retracción escapular",
+                    "Flexión del codo",
+                    "Estabilidad del tronco",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión",
-                        "Aducción Del Hombro"
+                        "Extensión del hombro",
+                        "Abducción horizontal"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Retracción Escapular"
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Estabilidad del tronco"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
                       "role": "STABILIZER"
@@ -325,12 +366,14 @@
                     "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "trapezius",
                     "rhomboids",
+                    "trapezius",
+                    "deltoid",
                     "biceps"
                   ],
                   "stabilizerMuscles": [
-                    "deltoid"
+                    "erector_spinae",
+                    "forearm"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -345,6 +388,7 @@
                     "glenohumeral",
                     "escapulotoracica",
                     "codo",
+                    "columna-lumbar",
                     "muñeca"
                   ],
                   "resistanceProfile": "continuous_cable",
@@ -403,17 +447,20 @@
                 }
               },
               "secondaryMuscles": [
-                "trapezius",
                 "rhomboids",
+                "trapezius",
+                "deltoid",
                 "biceps"
               ],
               "setupCues": [
-                "Preparación: Agarre medio en el Gironda: la trayectoria queda entre el tirón hacia la cintura y la apertura hacia la espalda alta."
+                "Siéntate frente a la polea baja con los pies en la plataforma y las rodillas un poco flexionadas.",
+                "Toma la barra corta con las manos alineadas con tus hombros y endereza el tronco."
               ],
               "setupTimeSeconds": 35,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "deltoid"
+                "erector_spinae",
+                "forearm"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -440,39 +487,48 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con agarre cerrado, el torso acompaña el recorrido con una inclinación amplia y la espalda corta el tirón con un arco más largo. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso.",
+              "description": "El triángulo une las manos, palmas frente a frente, y los codos se deslizan junto a los costados hasta que el agarre toca el ombligo. Con las manos juntas el dorsal ancho trabaja más que con un agarre abierto, y se mueve más carga.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
-                "Agarre cerrado en el Gironda: los codos viajan cerca del cuerpo y el dorsal recibe una línea larga de tracción. El recorrido nace de una inclinación controlada del torso; la espalda acompaña el vaivén sin perder la tensión en los dorsales."
+                "Tira hasta que el triángulo toque el ombligo, con los codos pegados a los costados.",
+                "Junta las escápulas al final con el tronco quieto.",
+                "Estira los brazos de vuelta sin que el tronco se vaya hacia delante."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión",
-                    "Aducción Del Hombro"
+                    "Extensión del hombro",
+                    "Aducción del hombro"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Retracción Escapular"
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Estabilidad del tronco"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
                   "role": "STABILIZER"
@@ -492,38 +548,46 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Aducción Del Hombro",
-                    "Retracción Escapular",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Extensión del hombro",
+                    "Aducción del hombro",
+                    "Retracción escapular",
+                    "Flexión del codo",
+                    "Estabilidad del tronco",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión",
-                        "Aducción Del Hombro"
+                        "Extensión del hombro",
+                        "Aducción del hombro"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Retracción Escapular"
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Estabilidad del tronco"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
                       "role": "STABILIZER"
@@ -534,10 +598,13 @@
                   ],
                   "secondaryMuscles": [
                     "rhomboids",
+                    "trapezius",
+                    "deltoid",
                     "biceps"
                   ],
                   "stabilizerMuscles": [
-                    "deltoid"
+                    "erector_spinae",
+                    "forearm"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -552,6 +619,7 @@
                     "glenohumeral",
                     "escapulotoracica",
                     "codo",
+                    "columna-lumbar",
                     "muñeca"
                   ],
                   "resistanceProfile": "continuous_cable",
@@ -611,15 +679,19 @@
               },
               "secondaryMuscles": [
                 "rhomboids",
+                "trapezius",
+                "deltoid",
                 "biceps"
               ],
               "setupCues": [
-                "Preparación: Agarre cerrado en el Gironda: los codos viajan cerca del cuerpo y el dorsal recibe una línea larga de tracción."
+                "Siéntate frente a la polea baja con los pies en la plataforma y las rodillas un poco flexionadas.",
+                "Agarra el triángulo con las palmas enfrentadas y siéntate erguido."
               ],
               "setupTimeSeconds": 35,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "deltoid"
+                "erector_spinae",
+                "forearm"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -630,7 +702,7 @@
           }
         ],
         "defaultConfigurationId": "gironda_row__medium",
-        "description": "El Remo Gironda es la lectura más fina del remo en polea: el torso acompaña el recorrido con una inclinación amplia y el dorsal trabaja en un arco más largo que en el remo estricto. Se practica ante la polea baja con las rodillas suaves, dejando que el tronco siga la carga en la vuelta y cortando con la espalda al tirar. La elección de los puristas para sentir cada fibra de la espalda con una tensión que no da tregua.",
+        "description": "El Remo Gironda, el remo sentado en polea baja que en los gimnasios lleva el nombre de Vince Gironda, es un tirón horizontal en el que el dorsal ancho acerca el agarre al tronco mientras trapecio y romboides llevan las escápulas hacia la columna. Sentado frente a la polea, con los pies en la plataforma y las rodillas algo flexionadas, el tronco queda erguido y quieto mientras el agarre viaja hasta tocarlo. Incluso con los codos estirados, el cable tira de los brazos hacia la polea. Los erectores solo sostienen el tronco: si este se balancea, la espalda baja empieza a mover la carga. Es un remo de polea para sumar trabajo de espalda con el tronco erguido, sin bisagra de cadera que sostener.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

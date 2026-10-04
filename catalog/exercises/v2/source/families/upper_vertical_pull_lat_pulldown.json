@@ -24,38 +24,43 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con polea y a dos lados, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. Con ambos lados a la vez, el trabajo del dorsal ancho se reparte.",
+              "description": "Una barra larga cuelga de un solo cable que baja derecho desde la polea alta, y la pila pesa lo mismo con los brazos arriba que con la barra en el pecho. Con las palmas al frente y las manos algo por fuera de los hombros, los codos bajan por los lados del tronco.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
-                "Polea alta con ambas manos: tiras de la barra hacia el pecho. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
+                "Baja primero las escápulas y después trae la barra hasta la parte alta del pecho.",
+                "Baja los codos por los lados del tronco, sin echar el cuerpo hacia atrás para ayudarte.",
+                "Deja subir la barra despacio, sin dejar caer la pila sobre el resto de placas."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Aducción Y Extensión"
+                    "Aducción del hombro",
+                    "Extensión del hombro"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Depresión Y Rotación"
+                    "Depresión escapular",
+                    "Rotación escapular inferior",
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
                   "role": "STABILIZER"
@@ -67,8 +72,7 @@
               "movementPatternId": "vertical_pull",
               "performanceProfileId": "lat_pulldown__cable__jalon_pecho",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_pulldown_pronated",
               "replacementPriority": 1,
@@ -76,51 +80,61 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Aducción Y Extensión",
-                    "Depresión Y Rotación",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Aducción del hombro",
+                    "Extensión del hombro",
+                    "Depresión escapular",
+                    "Rotación escapular inferior",
+                    "Retracción escapular",
+                    "Flexión del codo",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Aducción Y Extensión"
+                        "Aducción del hombro",
+                        "Extensión del hombro"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Depresión Y Rotación"
+                        "Depresión escapular",
+                        "Rotación escapular inferior",
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
                     "biceps",
+                    "trapezius",
                     "deltoid"
                   ],
                   "stabilizerMuscles": [
-                    "erector_spinae"
+                    "erector_spinae",
+                    "core",
+                    "pectoralis",
+                    "forearm",
+                    "rhomboids"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -188,8 +202,7 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "vertical_pull:latissimus_dorsi",
-                    "vertical_pull:trapezius"
+                    "vertical_pull:latissimus_dorsi"
                   ],
                   "replacementGroup": "back_pulldown_pronated",
                   "replacementPriority": 1
@@ -197,15 +210,22 @@
               },
               "secondaryMuscles": [
                 "biceps",
+                "trapezius",
                 "deltoid"
               ],
               "setupCues": [
-                "Preparación: Polea alta con ambas manos: tiras de la barra hacia el pecho."
+                "Ajusta el rodillo para que los muslos queden trabados con los pies apoyados en el suelo.",
+                "Agarra la barra con las palmas al frente, las manos un poco más abiertas que los hombros.",
+                "Siéntate con los brazos estirados, el pecho alto y el tronco apenas reclinado."
               ],
               "setupTimeSeconds": 35,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "erector_spinae"
+                "erector_spinae",
+                "core",
+                "pectoralis",
+                "forearm",
+                "rhomboids"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -233,40 +253,52 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con polea y a un lado, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. Un lado cada vez: el esfuerzo del dorsal ancho se aísla y las asimetrías quedan al descubierto.",
+              "description": "Con un maneral en una sola mano, el brazo baja por su lado y el codo puede terminar algo por detrás del tronco, con la palma girando hacia dentro. El tronco tiende a rotar hacia la polea y los oblicuos lo frenan en cada repetición.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
-                "Polea alta con una mano: cada dorsal trabaja por separado con tensión constante. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
+                "Baja el codo junto a las costillas hasta que la mano llegue al costado del pecho.",
+                "Deja que la palma gire hacia dentro al final, sin girar el tronco hacia la polea.",
+                "Vuelve despacio hasta tener el brazo estirado y la escápula arriba."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Aducción Y Extensión"
+                    "Extensión del hombro",
+                    "Aducción del hombro"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Depresión Y Rotación"
+                    "Depresión escapular",
+                    "Rotación escapular inferior",
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Antirrotación del tronco"
+                  ],
+                  "jointId": "columna-toracica",
                   "role": "STABILIZER"
                 }
               ],
@@ -276,8 +308,7 @@
               "movementPatternId": "vertical_pull",
               "performanceProfileId": "lat_pulldown__cable__jalon_pecho",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_pulldown_pronated",
               "replacementPriority": 1,
@@ -285,51 +316,69 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Aducción Y Extensión",
-                    "Depresión Y Rotación",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Extensión del hombro",
+                    "Aducción del hombro",
+                    "Depresión escapular",
+                    "Rotación escapular inferior",
+                    "Retracción escapular",
+                    "Flexión del codo",
+                    "Sostén del agarre",
+                    "Antirrotación del tronco"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Aducción Y Extensión"
+                        "Extensión del hombro",
+                        "Aducción del hombro"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Depresión Y Rotación"
+                        "Depresión escapular",
+                        "Rotación escapular inferior",
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Antirrotación del tronco"
+                      ],
+                      "jointId": "columna-toracica",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
                     "biceps",
+                    "trapezius",
                     "deltoid"
                   ],
                   "stabilizerMuscles": [
-                    "erector_spinae"
+                    "erector_spinae",
+                    "core",
+                    "pectoralis",
+                    "forearm",
+                    "rhomboids"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -344,7 +393,8 @@
                     "glenohumeral",
                     "escapulotoracica",
                     "codo",
-                    "muñeca"
+                    "muñeca",
+                    "columna-toracica"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
@@ -397,8 +447,7 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "vertical_pull:latissimus_dorsi",
-                    "vertical_pull:trapezius"
+                    "vertical_pull:latissimus_dorsi"
                   ],
                   "replacementGroup": "back_pulldown_pronated",
                   "replacementPriority": 1
@@ -406,15 +455,21 @@
               },
               "secondaryMuscles": [
                 "biceps",
+                "trapezius",
                 "deltoid"
               ],
               "setupCues": [
-                "Preparación: Polea alta con una mano: cada dorsal trabaja por separado con tensión constante."
+                "Engancha un maneral en la polea alta y siéntate con los muslos bajo el rodillo.",
+                "Agarra el maneral con una mano y apoya la otra en el muslo."
               ],
               "setupTimeSeconds": 35,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "erector_spinae"
+                "erector_spinae",
+                "core",
+                "pectoralis",
+                "forearm",
+                "rhomboids"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -442,38 +497,43 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con máquina y a dos lados, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. A dos lados, el trabajo del dorsal ancho admite más carga total.",
+              "description": "Los manerales van en palancas que giran sobre un eje fijo, así que las manos bajan por un arco que dibuja la máquina y que converge hacia el pecho. No hay cable que oscile ni barra que se incline, y la carga suele ir en discos sobre las palancas.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
-                "Máquina de jalón con ambas manos: el guiado hace el recorrido más estable. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
+                "Baja los dos manerales a la vez hasta que las manos queden junto al pecho.",
+                "Saca el pecho y junta las escápulas abajo, sin despegar los muslos.",
+                "Vuelve despacio hasta que las palancas lleguen arriba sin golpear el tope."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Aducción Y Extensión"
+                    "Extensión del hombro",
+                    "Aducción del hombro"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Depresión Y Rotación"
+                    "Depresión escapular",
+                    "Rotación escapular inferior",
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
                   "role": "STABILIZER"
@@ -485,8 +545,7 @@
               "movementPatternId": "vertical_pull",
               "performanceProfileId": "lat_pulldown__machine__jalon_pecho",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_pulldown_pronated",
               "replacementPriority": 2,
@@ -494,51 +553,61 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Aducción Y Extensión",
-                    "Depresión Y Rotación",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Extensión del hombro",
+                    "Aducción del hombro",
+                    "Depresión escapular",
+                    "Rotación escapular inferior",
+                    "Retracción escapular",
+                    "Flexión del codo",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Aducción Y Extensión"
+                        "Extensión del hombro",
+                        "Aducción del hombro"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Depresión Y Rotación"
+                        "Depresión escapular",
+                        "Rotación escapular inferior",
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
                     "biceps",
+                    "trapezius",
                     "deltoid"
                   ],
                   "stabilizerMuscles": [
-                    "erector_spinae"
+                    "erector_spinae",
+                    "core",
+                    "pectoralis",
+                    "forearm",
+                    "rhomboids"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -606,8 +675,7 @@
                     "machine"
                   ],
                   "preservesIntent": [
-                    "vertical_pull:latissimus_dorsi",
-                    "vertical_pull:trapezius"
+                    "vertical_pull:latissimus_dorsi"
                   ],
                   "replacementGroup": "back_pulldown_pronated",
                   "replacementPriority": 2
@@ -615,15 +683,21 @@
               },
               "secondaryMuscles": [
                 "biceps",
+                "trapezius",
                 "deltoid"
               ],
               "setupCues": [
-                "Preparación: Máquina de jalón con ambas manos: el guiado hace el recorrido más estable."
+                "Ajusta el asiento para alcanzar los manerales con los brazos estirados.",
+                "Traba los muslos bajo el rodillo y agarra un maneral con cada mano."
               ],
               "setupTimeSeconds": 55,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "erector_spinae"
+                "erector_spinae",
+                "core",
+                "pectoralis",
+                "forearm",
+                "rhomboids"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -651,40 +725,52 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con máquina y a un lado, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. A un lado, el trabajo del dorsal ancho se hace en solitario y las diferencias salen a la vista.",
+              "description": "Con una sola palanca en marcha, la otra mano descansa en el muslo y el arco fijo lleva el codo hacia la cadera sin que haga falta buscar el recorrido. Cada lado mueve su propia carga, así que se nota enseguida si un brazo tira menos.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
-                "Máquina con una mano y un dorsal a la vez: el apoyo guiado elimina parte del equilibrio mientras cada lado completa su propio tirón. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
+                "Baja la palanca hasta que el codo quede junto a las costillas.",
+                "Tira sin ladear el tronco hacia la palanca que trabaja.",
+                "Sube despacio hasta estirar el brazo y cambia de lado al terminar la serie."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Aducción Y Extensión"
+                    "Extensión del hombro",
+                    "Aducción del hombro"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Depresión Y Rotación"
+                    "Depresión escapular",
+                    "Rotación escapular inferior",
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Antirrotación del tronco"
+                  ],
+                  "jointId": "columna-toracica",
                   "role": "STABILIZER"
                 }
               ],
@@ -694,8 +780,7 @@
               "movementPatternId": "vertical_pull",
               "performanceProfileId": "lat_pulldown__machine__jalon_pecho",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_pulldown_pronated",
               "replacementPriority": 2,
@@ -703,51 +788,69 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Aducción Y Extensión",
-                    "Depresión Y Rotación",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Extensión del hombro",
+                    "Aducción del hombro",
+                    "Depresión escapular",
+                    "Rotación escapular inferior",
+                    "Retracción escapular",
+                    "Flexión del codo",
+                    "Sostén del agarre",
+                    "Antirrotación del tronco"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Aducción Y Extensión"
+                        "Extensión del hombro",
+                        "Aducción del hombro"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Depresión Y Rotación"
+                        "Depresión escapular",
+                        "Rotación escapular inferior",
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Antirrotación del tronco"
+                      ],
+                      "jointId": "columna-toracica",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
                     "biceps",
+                    "trapezius",
                     "deltoid"
                   ],
                   "stabilizerMuscles": [
-                    "erector_spinae"
+                    "erector_spinae",
+                    "core",
+                    "pectoralis",
+                    "forearm",
+                    "rhomboids"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -762,7 +865,8 @@
                     "glenohumeral",
                     "escapulotoracica",
                     "codo",
-                    "muñeca"
+                    "muñeca",
+                    "columna-toracica"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
@@ -815,8 +919,7 @@
                     "machine"
                   ],
                   "preservesIntent": [
-                    "vertical_pull:latissimus_dorsi",
-                    "vertical_pull:trapezius"
+                    "vertical_pull:latissimus_dorsi"
                   ],
                   "replacementGroup": "back_pulldown_pronated",
                   "replacementPriority": 2
@@ -824,15 +927,21 @@
               },
               "secondaryMuscles": [
                 "biceps",
+                "trapezius",
                 "deltoid"
               ],
               "setupCues": [
-                "Preparación: Máquina con una mano y un dorsal a la vez: el apoyo guiado elimina parte del equilibrio mientras cada lado completa su propio tirón."
+                "Ajusta el asiento y traba los muslos bajo el rodillo.",
+                "Agarra un solo maneral y apoya la otra mano en el muslo o en el asiento."
               ],
               "setupTimeSeconds": 55,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "erector_spinae"
+                "erector_spinae",
+                "core",
+                "pectoralis",
+                "forearm",
+                "rhomboids"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -860,38 +969,43 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con banda elástica y a dos lados, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. Con la banda, la resistencia crece a medida que avanza el trabajo del dorsal ancho. Con ambos lados a la vez, el trabajo del dorsal ancho se reparte.",
+              "description": "La banda, anclada por encima de la cabeza, tira poco con los brazos estirados y opone su máxima resistencia cuando las manos llegan al pecho. Se monta de rodillas en el suelo bajo cualquier punto alto firme, sin asiento ni pila de placas.",
               "efc": 2.5,
               "equipmentId": "band",
               "executionCues": [
-                "Banda anclada arriba y tirón con ambos brazos: la carga aumenta al acercar las manos al pecho. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
+                "Tira de los codos hacia abajo hasta que las manos queden junto al pecho.",
+                "Aguanta un instante abajo, donde la banda tira más fuerte.",
+                "Deja subir las manos despacio hasta estirar los brazos."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Aducción Y Extensión"
+                    "Aducción del hombro",
+                    "Extensión del hombro"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Depresión Y Rotación"
+                    "Depresión escapular",
+                    "Rotación escapular inferior",
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
                   "role": "STABILIZER"
@@ -903,8 +1017,7 @@
               "movementPatternId": "vertical_pull",
               "performanceProfileId": "lat_pulldown__band__jalon_pecho",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -912,51 +1025,61 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Aducción Y Extensión",
-                    "Depresión Y Rotación",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Aducción del hombro",
+                    "Extensión del hombro",
+                    "Depresión escapular",
+                    "Rotación escapular inferior",
+                    "Retracción escapular",
+                    "Flexión del codo",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Aducción Y Extensión"
+                        "Aducción del hombro",
+                        "Extensión del hombro"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Depresión Y Rotación"
+                        "Depresión escapular",
+                        "Rotación escapular inferior",
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
                     "biceps",
+                    "trapezius",
                     "deltoid"
                   ],
                   "stabilizerMuscles": [
-                    "erector_spinae"
+                    "erector_spinae",
+                    "core",
+                    "pectoralis",
+                    "forearm",
+                    "rhomboids"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1024,8 +1147,7 @@
                     "band"
                   ],
                   "preservesIntent": [
-                    "vertical_pull:latissimus_dorsi",
-                    "vertical_pull:trapezius"
+                    "vertical_pull:latissimus_dorsi"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -1033,15 +1155,21 @@
               },
               "secondaryMuscles": [
                 "biceps",
+                "trapezius",
                 "deltoid"
               ],
               "setupCues": [
-                "Preparación: Banda anclada arriba y tirón con ambos brazos: la carga aumenta al acercar las manos al pecho."
+                "Ata la banda a un punto firme por encima de tu cabeza, como el travesaño de un rack.",
+                "Arrodíllate debajo, toma un extremo en cada mano y estira los brazos hacia arriba."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "erector_spinae"
+                "erector_spinae",
+                "core",
+                "pectoralis",
+                "forearm",
+                "rhomboids"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -1069,40 +1197,52 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con banda elástica y a un lado, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. Con la banda, la resistencia crece a medida que avanza el trabajo del dorsal ancho. A un lado, el trabajo del dorsal ancho se hace en solitario y las diferencias salen a la vista.",
+              "description": "Una sola mano tira del extremo de la banda, con la rodilla de ese lado en el suelo y la otra pierna adelantada, y el codo baja hasta rozar las costillas. Como la banda tira más cuanto más se estira, el tramo final junto al costado es el más duro.",
               "efc": 2.5,
               "equipmentId": "band",
               "executionCues": [
-                "Banda con una mano: tensión progresiva en un dorsal a la vez. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
+                "Baja el codo hacia el bolsillo de atrás hasta que la mano llegue al costado.",
+                "Aprieta el abdomen para que el tronco no gire hacia el anclaje.",
+                "Sube despacio hasta estirar el brazo del todo."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Aducción Y Extensión"
+                    "Extensión del hombro",
+                    "Aducción del hombro"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Depresión Y Rotación"
+                    "Depresión escapular",
+                    "Rotación escapular inferior",
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Antirrotación del tronco"
+                  ],
+                  "jointId": "columna-toracica",
                   "role": "STABILIZER"
                 }
               ],
@@ -1112,8 +1252,7 @@
               "movementPatternId": "vertical_pull",
               "performanceProfileId": "lat_pulldown__band__jalon_pecho",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -1121,51 +1260,69 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Aducción Y Extensión",
-                    "Depresión Y Rotación",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Extensión del hombro",
+                    "Aducción del hombro",
+                    "Depresión escapular",
+                    "Rotación escapular inferior",
+                    "Retracción escapular",
+                    "Flexión del codo",
+                    "Sostén del agarre",
+                    "Antirrotación del tronco"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Aducción Y Extensión"
+                        "Extensión del hombro",
+                        "Aducción del hombro"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Depresión Y Rotación"
+                        "Depresión escapular",
+                        "Rotación escapular inferior",
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Antirrotación del tronco"
+                      ],
+                      "jointId": "columna-toracica",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
                     "biceps",
+                    "trapezius",
                     "deltoid"
                   ],
                   "stabilizerMuscles": [
-                    "erector_spinae"
+                    "erector_spinae",
+                    "core",
+                    "pectoralis",
+                    "forearm",
+                    "rhomboids"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1180,7 +1337,8 @@
                     "glenohumeral",
                     "escapulotoracica",
                     "codo",
-                    "muñeca"
+                    "muñeca",
+                    "columna-toracica"
                   ],
                   "resistanceProfile": "variable_band",
                   "stability": "self_stabilized"
@@ -1233,8 +1391,7 @@
                     "band"
                   ],
                   "preservesIntent": [
-                    "vertical_pull:latissimus_dorsi",
-                    "vertical_pull:trapezius"
+                    "vertical_pull:latissimus_dorsi"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -1242,15 +1399,21 @@
               },
               "secondaryMuscles": [
                 "biceps",
+                "trapezius",
                 "deltoid"
               ],
               "setupCues": [
-                "Preparación: Banda con una mano: tensión progresiva en un dorsal a la vez."
+                "Ancla la banda por encima de tu cabeza y arrodíllate con una pierna adelantada.",
+                "Toma el extremo con la mano del lado de la rodilla apoyada y estira el brazo hacia el anclaje."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "erector_spinae"
+                "erector_spinae",
+                "core",
+                "pectoralis",
+                "forearm",
+                "rhomboids"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -1262,7 +1425,7 @@
           }
         ],
         "defaultConfigurationId": "lat_pulldown__bilateral__cable",
-        "description": "El Jalón al Pecho es la tracción vertical con carga ajustable: el agarre desciende hasta la parte alta del pecho con el dorsal ancho y el trapecio tirando y el bíceps cerrando el gesto. Se ejecuta sentado con los muslos fijos, llevando los codos hacia el torso y regresando sin soltar la tensión. Con banda se monta en casa; la máquina permite progresar al kilo. La fábrica de espalda ancha para quien aún no domina la barra fija.",
+        "description": "El Jalón al Pecho (lat pulldown) es una tracción vertical en la que el cuerpo se queda quieto y lo que se mueve es el agarre: baja desde lo alto, con los codos extendidos sobre la cabeza, hasta la parte alta del pecho. Lo mueve el dorsal ancho, que lleva el brazo hacia abajo y hacia el costado; el bíceps dobla el codo, el deltoides posterior acompaña el brazo hacia atrás y el trapecio baja y junta las escápulas. Se hace sentado con los muslos trabados bajo el rodillo, o de rodillas bajo un anclaje alto, con el pecho alto y el tronco apenas reclinado. Como la carga se elige y puede quedar muy por debajo del peso corporal, permite aprender la tracción vertical antes de la primera dominada y seguir sumando series cuando las dominadas ya no salen.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1326,7 +1489,8 @@
                 {
                   "actions": [
                     "Depresión escapular",
-                    "Rotación escapular inferior"
+                    "Rotación escapular inferior",
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
@@ -1364,6 +1528,7 @@
                     "Extensión del hombro",
                     "Depresión escapular",
                     "Rotación escapular inferior",
+                    "Retracción escapular",
                     "Flexión del codo",
                     "Sostén del agarre"
                   ],
@@ -1379,7 +1544,8 @@
                     {
                       "actions": [
                         "Depresión escapular",
-                        "Rotación escapular inferior"
+                        "Rotación escapular inferior",
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
@@ -1408,7 +1574,11 @@
                     "deltoid"
                   ],
                   "stabilizerMuscles": [
-                    "erector_spinae"
+                    "erector_spinae",
+                    "pectoralis",
+                    "core",
+                    "forearm",
+                    "rhomboids"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1495,7 +1665,11 @@
               "setupTimeSeconds": 35,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "erector_spinae"
+                "erector_spinae",
+                "pectoralis",
+                "core",
+                "forearm",
+                "rhomboids"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8

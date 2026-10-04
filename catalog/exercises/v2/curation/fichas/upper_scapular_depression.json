@@ -1,21 +1,248 @@
 {
   "definitions": {
     "back_dominadas_escapulares": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Depresión escapular",
+              "Retracción escapular",
+              "Rotación escapular inferior"
+            ],
+            "id": "escapulotoracica",
+            "role": "PRIMARY",
+            "sources": [
+              "statpearls_trapezius",
+              "fennell2016",
+              "statpearls_extrinsic_back",
+              "baig_pectoral"
+            ],
+            "why": "Es la articulación que produce todo el recorrido: las escápulas salen de la suspensión elevadas, separadas y rotadas hacia arriba, y en el punto alto quedan bajas, juntas y algo rotadas hacia abajo; ese deslizamiento sobre el tórax es lo que sube el cuerpo. Las deprimen las fibras inferiores del trapecio y el pectoral menor, y el dorsal ancho las arrastra hacia abajo a través del húmero; el trapecio medio y los romboides las retraen, y los romboides las rotan hacia abajo."
+          },
+          {
+            "actions": [
+              "Estabilidad del hombro en suspensión"
+            ],
+            "id": "glenohumeral",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_rotator_cuff"
+            ],
+            "why": "El brazo sigue por encima de la cabeza y el húmero apenas cambia de ángulo respecto del tronco. El manguito rotador, estabilizador dinámico de una articulación muy móvil (StatPearls), centra la cabeza del húmero mientras el peso del cuerpo tira de ella hacia abajo."
+          },
+          {
+            "actions": [
+              "Extensión sostenida del codo"
+            ],
+            "id": "codo",
+            "role": "STABILIZER",
+            "sources": [
+              "exel2023"
+            ],
+            "why": "Queda extendido toda la serie y solo transmite el peso del cuerpo hacia la barra. Colgar con los brazos estirados exige al codo menos momento flexor que suspenderse con el codo bloqueado a 90 o 135 grados (Exel et al.)."
+          },
+          {
+            "actions": [
+              "Sostén del agarre"
+            ],
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_forearm_compartments",
+              "exel2023"
+            ],
+            "why": "La muñeca queda firme bajo la barra mientras los flexores de los dedos cierran la mano; no se mueve, pero todo el peso corporal pasa por ella hasta la barra."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "latissimus_dorsi",
+            "role": "PRIMARY",
+            "sources": [
+              "park2015",
+              "statpearls_extrinsic_back"
+            ],
+            "why": "Con las manos fijas en la barra, acerca el tronco al húmero y desciende la cintura escapular, que es lo que eleva el cuerpo unos centímetros sin flexionar el codo. En isometrías contra el peso del tronco, levantar el cuerpo bajando los hombros favoreció la porción lateral del dorsal (Park et al.); allí los brazos estaban abajo, pero la depresión de los hombros contra el peso corporal es la misma."
+          },
+          {
+            "id": "trapezius",
+            "role": "PRIMARY",
+            "sources": [
+              "statpearls_trapezius",
+              "youdas2010"
+            ],
+            "why": "Sus fibras inferiores deprimen la escápula (StatPearls) y, en la dominada, la secuencia de activación arranca con el trapecio bajo (Youdas et al.): es justo el tramo que este ejercicio aísla, por eso comparte el papel principal con el dorsal. Las fibras superiores, que elevan la escápula, deben quedar en silencio para que los hombros no vuelvan hacia las orejas."
+          },
+          {
+            "id": "rhomboids",
+            "role": "SECONDARY",
+            "sources": [
+              "fennell2016"
+            ],
+            "why": "Retraen la escápula junto con el trapecio medio y además la rotan hacia abajo; en la retracción escapular ambos se coactivaron siempre (Fennell et al.). Aquí cierran las escápulas hacia la columna mientras bajan, sin ser los que levantan el cuerpo, y por eso suman como secundarios."
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "sources": [
+              "exel2023",
+              "statpearls_forearm_compartments"
+            ],
+            "why": "Los flexores de los dedos sostienen todo el peso corporal en isometría durante la serie. En suspensiones de escalada su activación no cambió entre colgar con los brazos extendidos y con el codo bloqueado en flexión (Exel et al.), así que el agarre trabaja aunque los brazos no se doblen."
+          },
+          {
+            "id": "pectoralis",
+            "role": "STABILIZER",
+            "sources": [
+              "youdas2010",
+              "baig_pectoral"
+            ],
+            "why": "Youdas et al. vieron que la dominada arranca con el trapecio bajo y el pectoral mayor, que llegó al 44-57 % de su máximo en el conjunto de la repetición. En el tramo que aísla este ejercicio fija el húmero y acompaña la bajada de la cintura escapular junto con el pectoral menor, del grupo que estabiliza la escápula (StatPearls); no eleva el cuerpo por sí mismo, por eso cuenta como estabilizador."
+          }
+        ]
+      },
       "public": {
         "configurations": {
           "back_dominadas_escapulares__default": {
-            "description": "Con peso corporal, colgado con los brazos extendidos, los omóplatos se hunden y se elevan sin flexionar los codos. Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa.",
+            "description": "Sin lastre ni banda, la carga es el cuerpo entero colgando de la barra fija y el recorrido se reduce a unos centímetros con los codos bloqueados. Las manos soportan todo ese peso en cada repetición y también en las pausas abajo.",
             "executionCues": [
-              "Colgado de la barra moviendo solo los omóplatos: la espalda se activa sin doblarte. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Baja los hombros lejos de las orejas y junta las escápulas, con los codos rectos.",
+              "Aguanta un segundo arriba con el pecho un poco adelantado.",
+              "Vuelve despacio a la suspensión hasta que los hombros suban otra vez."
             ],
             "setupCues": [
-              "Preparación: Colgado de la barra moviendo solo los omóplatos: la espalda se activa sin doblarte."
+              "Cuélgate de la barra fija con las palmas al frente, las manos algo más abiertas que los hombros.",
+              "Estira los brazos del todo y deja que los hombros suban hacia las orejas.",
+              "Junta las piernas y despega los pies del suelo sin balancearte."
             ]
           }
         },
-        "description": "Las Dominadas Escapulares son el primer escalón de la tracción: colgado de la barra fija, los omóplatos se hunden y se elevan sin flexionar los codos. Se ejecutan con los brazos rectos, bajando los hombros de las orejas y subiendo el pecho unos centímetros con solo la espalda. El dorsal ancho aprende a encenderse aquí. La activación que enseña de qué va de verdad colgarse."
+        "description": "Las Dominadas Escapulares (scapular pull-ups) aíslan el primer tramo de la dominada: colgado de una barra con los codos rectos, el cuerpo sube unos pocos centímetros porque las escápulas bajan y se acercan entre sí. Ese descenso de la cintura escapular lo producen el dorsal ancho y las fibras inferiores del trapecio, y los romboides ayudan a juntar las escápulas. Como los brazos no se doblan, la subida nace en la espalda y no en los codos, y las manos sostienen todo el peso corporal de principio a fin. Es la forma de practicar la salida de la suspensión con los hombros lejos de las orejas, sin que los brazos lleguen a tirar."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "Entre cuatro isometrías contra el peso de la parte superior del cuerpo, levantar el cuerpo descendiendo los hombros (body lifting) y la inclinación lateral del tronco favorecieron la porción lateral del dorsal ancho; el remo invertido activó más la porción medial.",
+          "id": "park2015",
+          "title": "Comparison of isometric exercises for activating latissimus dorsi against the upper body weight",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/25282576/"
+        },
+        {
+          "claim": "En dominadas y chin-ups la secuencia de activación sugiere que el gesto arranca con el trapecio bajo y el pectoral mayor y termina con el bíceps y el dorsal; el trapecio bajo llegó al 45-56 % y el pectoral mayor al 44-57 % de su contracción máxima.",
+          "id": "youdas2010",
+          "title": "Surface electromyographic activation patterns and elbow joint motion during a pull-up, chin-up, or perfect-pullup™ rotational exercise",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/21068680/"
+        },
+        {
+          "claim": "Las fibras superiores del trapecio elevan y rotan hacia arriba la escápula y extienden el cuello, las medias la retraen y las inferiores la deprimen y ayudan a rotarla hacia arriba.",
+          "id": "statpearls_trapezius",
+          "title": "Anatomy, Back, Trapezius",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30085536/"
+        },
+        {
+          "claim": "Trapecio medio y romboides son retractores de la escápula y los romboides además la rotan hacia abajo; con electromiografía de aguja fina, todas las posiciones de retracción produjeron coactivación de ambos.",
+          "id": "fennell2016",
+          "title": "Shoulder Retractor Strengthening Exercise to Minimize Rhomboid Muscle Activity and Subacromial Impingement",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/27504044/"
+        },
+        {
+          "claim": "En suspensiones de los dedos, la activación de los flexores de los dedos no cambió entre los brazos extendidos y los bloqueos de codo a 90 y 135 grados, mientras el momento flexor del codo creció con el bloqueo; colgar con los brazos extendidos entrena el antebrazo con poca exigencia para codo y hombro.",
+          "id": "exel2023",
+          "title": "Neuromechanics of finger hangs with arm lock-offs: analyzing joint moments and muscle activations to improve practice guidelines for climbing",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/37927449/"
+        },
+        {
+          "claim": "El manguito rotador está entre los estabilizadores dinámicos de la articulación glenohumeral, que es muy móvil pero tiene poca estabilidad propia.",
+          "id": "statpearls_rotator_cuff",
+          "title": "Anatomy, Rotator Cuff",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/28722874/"
+        },
+        {
+          "claim": "Describe los compartimentos del antebrazo: los músculos del compartimento anterior flexionan la muñeca y los dedos.",
+          "id": "statpearls_forearm_compartments",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/"
+        },
+        {
+          "claim": "Los músculos extrínsecos de la espalda, entre ellos el trapecio, el dorsal ancho y los romboides, mueven el miembro superior controlando el movimiento de la escápula y del húmero.",
+          "id": "statpearls_extrinsic_back",
+          "title": "Anatomy, Back, Extrinsic Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725901/"
+        },
+        {
+          "claim": "El grupo pectoral (pectoral mayor y menor, serrato anterior y subclavio) flexiona, aduce y rota internamente el húmero y estabiliza la escápula.",
+          "id": "baig_pectoral",
+          "title": "Anatomy, Shoulder and Upper Limb, Pectoral Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31424825/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Suspensión de una barra fija con los brazos extendidos en la que el cuerpo sube unos centímetros solo por la depresión y la retracción de las escápulas. Los codos no se flexionan en ningún momento: eso lo separa de la dominada, que continúa el tirón con los brazos.",
+        "keyPositions": [
+          "Inicio: cuerpo colgando, codos bloqueados, escápulas arriba y separadas, cabeza hundida entre los brazos.",
+          "Punto alto: codos todavía bloqueados, escápulas bajas y juntas, hombros lejos de las orejas y cabeza por debajo de la barra, con el pecho algo adelantado."
+        ],
+        "mistakes": [
+          "Doblar los codos para subir más: el gesto pasa a ser el inicio de una dominada.",
+          "Balancear las piernas o arquear la zona lumbar para ganar altura.",
+          "Quedarse arriba toda la serie sin volver a la suspensión, con lo que desaparece la mitad del recorrido.",
+          "Adelantar la cabeza o encoger el cuello en lugar de bajar los hombros."
+        ],
+        "phases": [
+          {
+            "description": "El cuerpo cuelga quieto de la barra, codos bloqueados y escápulas arriba, con los hombros pegados a las orejas.",
+            "name": "Suspensión"
+          },
+          {
+            "description": "Las escápulas bajan y se acercan a la columna, y el cuerpo sube unos centímetros sin que los codos se doblen.",
+            "name": "Depresión"
+          },
+          {
+            "description": "Un segundo arriba con los hombros lejos de las orejas, el cuello largo y el pecho algo adelantado.",
+            "name": "Pausa"
+          },
+          {
+            "description": "Las escápulas suben despacio hasta la suspensión pasiva, sin soltarse de golpe.",
+            "name": "Regreso"
+          }
+        ],
+        "setup": [
+          "Barra fija a una altura que deje colgar el cuerpo con los pies separados del suelo y los brazos del todo extendidos.",
+          "Agarre prono con los pulgares rodeando la barra y las manos algo más abiertas que los hombros.",
+          "Salida desde la suspensión pasiva: escápulas elevadas y separadas, hombros junto a las orejas, piernas juntas."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista posterior a tres cuartos, con encuadre de la barra a los pies y la espalda alta bien visible para juzgar la posición de las escápulas.",
+          "contacts": "Solo las manos tocan la barra; los pies cuelgan en el aire, sin apoyarse en el suelo, en un cajón ni en una banda.",
+          "load": "El peso del propio cuerpo colgando de la barra, sin lastre ni ayuda.",
+          "orientation": "Atleta de espaldas a la cámara, girado unos 30 grados, con el cuerpo vertical bajo la barra y la cabeza por debajo de ella.",
+          "phase": "Punto alto del gesto: codos todavía bloqueados, escápulas bajas y juntas, y el cuerpo unos centímetros por encima de la suspensión pasiva.",
+          "posture": "Brazos rectos por encima de la cabeza, hombros lejos de las orejas, cuello largo, pecho algo adelantado, piernas juntas y tronco sin balanceo."
+        },
+        "byImplement": {
+          "bodyweight": {
+            "geometry": "Barra fija horizontal en la parte alta del encuadre; las manos la rodean en prono algo más abiertas que los hombros y la barra queda por encima de la cabeza, con aire entre la barra y la coronilla."
+          }
+        },
+        "forbidden": [
+          "Codos flexionados o barbilla cerca de la barra: eso es una dominada, no una dominada escapular.",
+          "Hombros encogidos hasta las orejas con la cabeza hundida entre los brazos: eso es la suspensión pasiva de partida, no el punto que se dibuja.",
+          "Pies apoyados en el suelo, en un cajón o en una banda de asistencia.",
+          "Piernas balanceándose o zona lumbar muy arqueada para ganar altura.",
+          "Manos que no rodean la barra o cuerpo que no cuelga de ella."
+        ],
+        "promptCore": {
+          "bodyweight": "Rear three-quarter view of a muscular athlete hanging from a straight fixed pull-up bar, frozen at the TOP of a scapular pull-up. Both hands grip the bar overhead with an overhand grip slightly wider than the shoulders. The elbows are locked completely straight. The shoulders are pulled down far from the ears and the shoulder blades are pressed down and together on the upper back, so the neck looks long and the head stays below the bar. The legs hang together, feet clear of the floor, no swing."
+        },
+        "qa": [
+          "¿Las dos manos agarran la barra y el cuerpo cuelga de ella con los pies en el aire?",
+          "¿Los codos están completamente estirados?",
+          "¿Los hombros quedan lejos de las orejas, con el cuello visible y las escápulas bajas?",
+          "¿La cabeza queda por debajo de la barra, sin que la barbilla se acerque a ella?"
+        ]
+      }
     }
   },
   "familyId": "upper_scapular_depression",

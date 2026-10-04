@@ -303,8 +303,7 @@ EXPECTED_AXIS_ORDER = {
         "implement"
     ],
     "romanian_sumo_deadlift": [
-        "implement",
-        "stance"
+        "implement"
     ],
     "good_morning_seated": [
         "implement"

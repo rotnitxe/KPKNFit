@@ -276,8 +276,7 @@ AXIS_ORDER_OVERRIDES = {
         "implement"
     ],
     "romanian_sumo_deadlift": [
-        "implement",
-        "stance"
+        "implement"
     ],
     "good_morning_seated": [
         "implement"

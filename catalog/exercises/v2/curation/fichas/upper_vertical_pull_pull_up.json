@@ -1,120 +1,259 @@
 {
-  "schemaVersion": 1,
-  "familyId": "upper_vertical_pull_pull_up",
   "definitions": {
     "pull_up": {
-      "status": "CURATED",
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Aducción del hombro",
+              "Extensión del hombro"
+            ],
+            "id": "glenohumeral",
+            "role": "PRIMARY",
+            "sources": [
+              "prinold2016",
+              "youdas2010"
+            ],
+            "why": "El húmero baja desde la suspensión por encima de la cabeza hasta quedar junto al tronco: esa aducción y extensión es el movimiento que sube el cuerpo, y su recorrido cambia con el ancho del agarre (Prinold y Bull)."
+          },
+          {
+            "actions": [
+              "Depresión escapular",
+              "Retracción escapular",
+              "Rotación escapular inferior"
+            ],
+            "id": "escapulotoracica",
+            "role": "PRIMARY",
+            "sources": [
+              "prinold2016",
+              "youdas2010"
+            ],
+            "why": "La escápula se deprime para arrancar y rota mientras el brazo baja. Su cinemática cambia con la técnica: el agarre ancho reduce la protracción y retracción, y el supino se aleja del plano de la escápula (Prinold y Bull)."
+          },
+          {
+            "actions": [
+              "Flexión del codo"
+            ],
+            "id": "codo",
+            "role": "SECONDARY",
+            "sources": [
+              "youdas2010"
+            ],
+            "why": "Recorre cerca de 100° entre la suspensión y el punto alto (93° en prono y 101° en supino; Youdas et al.), así que la flexión del codo acompaña toda la subida sin ser el motor del gesto."
+          },
+          {
+            "actions": [
+              "Sostén del agarre"
+            ],
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "sources": [
+              "youdas2010"
+            ],
+            "why": "Youdas et al. midieron el recorrido del codo, no un movimiento de la muñeca. Ella se limita a sostener el agarre elegido, con las palmas al frente, hacia ti o enfrentadas, mientras el cuerpo cuelga de la barra."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "latissimus_dorsi",
+            "role": "PRIMARY",
+            "sources": [
+              "youdas2010",
+              "lusk2010"
+            ],
+            "why": "Motor de la tracción en todos los agarres: en dominadas y chin-ups alcanza el 117-130 % de su contracción isométrica máxima y su activación pico cierra el gesto (Youdas et al.). En el jalón, que comparte la tracción vertical, el agarre prono lo activa más que el supino (Lusk et al.)."
+          },
+          {
+            "id": "biceps",
+            "role": "SECONDARY",
+            "sources": [
+              "youdas2010",
+              "dickie2017"
+            ],
+            "why": "Flexiona el codo en cualquier agarre. En el conjunto de las condiciones llegó al 78-96 % de su contracción máxima, más en la chin-up supina que en la dominada prona, y siempre por debajo del dorsal, que llegó al 117-130 % (Youdas et al.). Dickie et al. no hallaron otra diferencia por orientar la mano, y el bíceps trabajó más en la subida que en la bajada. El codo recorre cerca de 100°, así que asiste: no es solo estabilizador ni comparte el motor con el dorsal."
+          },
+          {
+            "id": "trapezius",
+            "role": "SECONDARY",
+            "sources": [
+              "youdas2010",
+              "dickie2017"
+            ],
+            "why": "El trapecio bajo arranca la repetición: su pico es el primero del ciclo (Youdas et al.). En el conjunto de las tres condiciones midió 45-56 % de la contracción máxima, y fue mayor en la dominada prona que en la supina. El trapecio medio se activó más con agarre prono que con neutro (Dickie et al.). Ninguno de los dos estudios midió que el ancho del agarre lo suba o lo baje."
+          },
+          {
+            "id": "pectoralis",
+            "role": "STABILIZER",
+            "sources": [
+              "youdas2010"
+            ],
+            "why": "Se activa al inicio de la repetición junto con el trapecio bajo (Youdas et al.). En el conjunto de las tres condiciones midió 44-57 % de la contracción máxima, y fue mayor en la chin-up supina que en la dominada prona. Queda por debajo del dorsal (117-130 %) y del bíceps (78-96 %), así que estabiliza la aducción del hombro."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "youdas2010"
+            ],
+            "why": "El oblicuo externo trabaja de forma isométrica para que el tronco no se arquee ni balancee (31-35 % de la contracción máxima; Youdas et al.). No mueve ninguna articulación del gesto: solo mantiene el cuerpo en un bloque."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "youdas2010"
+            ],
+            "why": "Sostiene la columna en extensión neutra mientras el cuerpo cuelga y sube (39-41 % de la contracción máxima; Youdas et al.). Su trabajo es postural: no extiende la columna durante la repetición."
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "sources": [
+              "dickie2017"
+            ],
+            "why": "Dickie et al. midieron el braquiorradial más activo en la subida que en la bajada, en todas las variantes de agarre. El rol de estabilizador es el del antebrazo que mantiene la mano cerrada sobre la barra mientras el cuerpo cuelga: eso no lo midió ese estudio, es la demanda de la suspensión."
+          }
+        ]
+      },
       "public": {
-        "description": "La Dominada (pull-up) es una tracción vertical en la que el cuerpo cuelga de una barra fija y sube hasta que la barbilla la supera. El dorsal ancho es el motor en todos los agarres, y el bíceps flexiona el codo contra todo el peso corporal aunque las palmas miren al frente, sin llegar al nivel del dorsal. El trapecio bajo arranca el gesto deprimiendo la escápula. Con las palmas hacia ti el bíceps y el pectoral aportan más, y con las palmas al frente pesa más el trapecio bajo. Al no haber apoyo de tronco ni de piernas, nada compensa un balanceo.",
         "configurations": {
-          "pull_up__pronated__medium": {
-            "description": "Con las palmas al frente y las manos al ancho de los hombros, el trapecio bajo trabaja más que con las palmas hacia ti, y el bíceps no recibe ese extra. Es la dominada de referencia.",
-            "setupCues": [
-              "Cuélgate con las palmas al frente y las manos al ancho de los hombros, brazos estirados.",
-              "Cruza los tobillos por detrás y deja las escápulas altas hasta que empieces a tirar."
-            ],
+          "pull_up__neutral__close": {
+            "description": "Con las asas juntas y las palmas enfrentadas, los codos bajan pegados al tronco y la muñeca no gira hacia ti. Orientar la mano así no cambió la activación respecto del prono ni del supino.",
             "executionCues": [
-              "Arranca deprimiendo las escápulas y sube hasta pasar la barbilla por encima de la barra.",
-              "Baja hasta estirar los brazos del todo, sin balancear las piernas."
-            ]
-          },
-          "pull_up__pronated__wide": {
-            "description": "Con las manos bastante más separadas que los hombros y las palmas al frente, el hombro trabaja más abducido. La escápula se mueve menos hacia delante y atrás, y esa técnica se asocia a más riesgo de pinzamiento.",
-            "setupCues": [
-              "Cuélgate con las palmas al frente y las manos claramente más separadas que los hombros.",
-              "Deja los brazos estirados y las escápulas altas, sin adelantar la cabeza hacia la barra."
+              "Sube con los codos rozando las costillas hasta que la barbilla supere las manos.",
+              "Baja hasta estirar los brazos del todo, sin acortar el recorrido abajo."
             ],
-            "executionCues": [
-              "Sube llevando los codos hacia los lados hasta que la barbilla supere la barra.",
-              "Baja despacio hasta estirar los brazos sin dejar caer el cuerpo."
-            ]
-          },
-          "pull_up__pronated__close": {
-            "description": "Con las manos juntas y las palmas al frente, los codos bajan rozando las costillas en lugar de abrirse hacia los lados. El dorsal lleva la subida y el bíceps flexiona el codo sin la ventaja de la palma hacia ti.",
             "setupCues": [
-              "Cuélgate con las palmas al frente y las manos casi juntas, dentro del ancho de los hombros.",
-              "Estira los brazos y mantén las escápulas altas hasta el primer tirón."
-            ],
-            "executionCues": [
-              "Sube con los codos rozando los costados hasta pasar la barbilla por encima de la barra.",
-              "Baja hasta colgar del todo, sin acortar el recorrido abajo."
-            ]
-          },
-          "pull_up__supinated__medium": {
-            "description": "Con las palmas hacia ti y las manos al ancho de los hombros, el bíceps y el pectoral se activan más que en la prona, y el trapecio bajo menos. El codo recorre unos 101°, frente a unos 93° con las palmas al frente.",
-            "setupCues": [
-              "Cuélgate con las palmas hacia ti y las manos al ancho de los hombros.",
-              "Estira los brazos con las escápulas altas y no dobles las muñecas hacia atrás."
-            ],
-            "executionCues": [
-              "Tira con los codos hacia abajo hasta que la barbilla supere la barra.",
-              "Baja controlando el estiramiento del bíceps hasta colgar del todo."
-            ]
-          },
-          "pull_up__supinated__wide": {
-            "description": "Las palmas hacia ti y las manos muy separadas alejan el brazo del plano de la escápula, con una rotación de hombro marcada. El ancho reduce el juego de la escápula y suma riesgo de pinzamiento.",
-            "setupCues": [
-              "Cuélgate con las palmas hacia ti y las manos claramente más separadas que los hombros.",
-              "Revisa que las muñecas no se doblen hacia atrás al cargar el peso del cuerpo."
-            ],
-            "executionCues": [
-              "Sube hasta pasar la barbilla por encima de la barra, con los codos hacia los lados.",
-              "Baja despacio hasta estirar los brazos, sin soltar el agarre."
-            ]
-          },
-          "pull_up__supinated__close": {
-            "description": "Con las palmas hacia ti y las manos juntas, los codos bajan pegados a las costillas. El bíceps y el pectoral aportan más que con las palmas al frente, sin una medición propia de este ancho.",
-            "setupCues": [
-              "Cuélgate con las palmas hacia ti y las manos casi juntas.",
-              "Estira los brazos por completo y deja las escápulas altas antes de flexionar los codos."
-            ],
-            "executionCues": [
-              "Sube con los codos pegados a las costillas hasta superar la barra con la barbilla.",
-              "Baja hasta colgar del todo, frenando el estiramiento del bíceps."
+              "Cuélgate de unas asas juntas con las palmas enfrentadas.",
+              "Estira los brazos y deja las escápulas altas, sin empujar las rodillas hacia delante."
             ]
           },
           "pull_up__neutral__medium": {
             "description": "En las asas, con las palmas enfrentadas y las manos al ancho de los hombros, hombro, brazo y antebrazo se activaron parecido al prono y al supino. La muñeca queda mirando al otro brazo, sin girar al frente ni hacia ti.",
-            "setupCues": [
-              "Cuélgate de unas asas paralelas con las palmas enfrentadas, al ancho de los hombros.",
-              "Estira los brazos, deja las escápulas altas y cruza los tobillos por detrás."
-            ],
             "executionCues": [
               "Tira con los codos hacia abajo hasta que la barbilla supere las manos.",
               "Baja hasta estirar los brazos sin balancear el cuerpo."
+            ],
+            "setupCues": [
+              "Cuélgate de unas asas paralelas con las palmas enfrentadas, al ancho de los hombros.",
+              "Estira los brazos, deja las escápulas altas y cruza los tobillos por detrás."
             ]
           },
           "pull_up__neutral__wide": {
             "description": "Las asas se separan más que los hombros y las palmas siguen enfrentadas, así que los codos se abren y el hombro queda abducido. Entre prono y neutro solo cambió el trapecio medio, mayor en el prono, no el trapecio bajo por el ancho.",
-            "setupCues": [
-              "Cuélgate de unas asas separadas con las palmas enfrentadas, las manos más abiertas que los hombros.",
-              "Deja los brazos estirados y las escápulas altas, con el cuerpo vertical entre las asas."
-            ],
             "executionCues": [
               "Sube llevando los codos hacia los lados hasta pasar la barbilla por encima de las manos.",
               "Baja despacio hasta colgar del todo, sin dejar caer el cuerpo."
+            ],
+            "setupCues": [
+              "Cuélgate de unas asas separadas con las palmas enfrentadas, las manos más abiertas que los hombros.",
+              "Deja los brazos estirados y las escápulas altas, con el cuerpo vertical entre las asas."
             ]
           },
-          "pull_up__neutral__close": {
-            "description": "Con las asas juntas y las palmas enfrentadas, los codos bajan pegados al tronco y la muñeca no gira hacia ti. Orientar la mano así no cambió la activación respecto del prono ni del supino.",
-            "setupCues": [
-              "Cuélgate de unas asas juntas con las palmas enfrentadas.",
-              "Estira los brazos y deja las escápulas altas, sin empujar las rodillas hacia delante."
-            ],
+          "pull_up__pronated__close": {
+            "description": "Con las manos juntas y las palmas al frente, los codos bajan rozando las costillas en lugar de abrirse hacia los lados. El dorsal lleva la subida y el bíceps flexiona el codo sin la ventaja de la palma hacia ti.",
             "executionCues": [
-              "Sube con los codos rozando las costillas hasta que la barbilla supere las manos.",
-              "Baja hasta estirar los brazos del todo, sin acortar el recorrido abajo."
+              "Sube con los codos rozando los costados hasta pasar la barbilla por encima de la barra.",
+              "Baja hasta colgar del todo, sin acortar el recorrido abajo."
+            ],
+            "setupCues": [
+              "Cuélgate con las palmas al frente y las manos casi juntas, dentro del ancho de los hombros.",
+              "Estira los brazos y mantén las escápulas altas hasta el primer tirón."
+            ]
+          },
+          "pull_up__pronated__medium": {
+            "description": "Con las palmas al frente y las manos al ancho de los hombros, el trapecio bajo trabaja más que con las palmas hacia ti, y el bíceps no recibe ese extra. Es la dominada de referencia.",
+            "executionCues": [
+              "Arranca deprimiendo las escápulas y sube hasta pasar la barbilla por encima de la barra.",
+              "Baja hasta estirar los brazos del todo, sin balancear las piernas."
+            ],
+            "setupCues": [
+              "Cuélgate con las palmas al frente y las manos al ancho de los hombros, brazos estirados.",
+              "Cruza los tobillos por detrás y deja las escápulas altas hasta que empieces a tirar."
+            ]
+          },
+          "pull_up__pronated__wide": {
+            "description": "Con las manos bastante más separadas que los hombros y las palmas al frente, el hombro trabaja más abducido. La escápula se mueve menos hacia delante y atrás, y esa técnica se asocia a más riesgo de pinzamiento.",
+            "executionCues": [
+              "Sube llevando los codos hacia los lados hasta que la barbilla supere la barra.",
+              "Baja despacio hasta estirar los brazos sin dejar caer el cuerpo."
+            ],
+            "setupCues": [
+              "Cuélgate con las palmas al frente y las manos claramente más separadas que los hombros.",
+              "Deja los brazos estirados y las escápulas altas, sin adelantar la cabeza hacia la barra."
+            ]
+          },
+          "pull_up__supinated__close": {
+            "description": "Con las palmas hacia ti y las manos juntas, los codos bajan pegados a las costillas. El bíceps y el pectoral aportan más que con las palmas al frente, sin una medición propia de este ancho.",
+            "executionCues": [
+              "Sube con los codos pegados a las costillas hasta superar la barra con la barbilla.",
+              "Baja hasta colgar del todo, frenando el estiramiento del bíceps."
+            ],
+            "setupCues": [
+              "Cuélgate con las palmas hacia ti y las manos casi juntas.",
+              "Estira los brazos por completo y deja las escápulas altas antes de flexionar los codos."
+            ]
+          },
+          "pull_up__supinated__medium": {
+            "description": "Con las palmas hacia ti y las manos al ancho de los hombros, el bíceps y el pectoral se activan más que en la prona, y el trapecio bajo menos. El codo recorre unos 101°, frente a unos 93° con las palmas al frente.",
+            "executionCues": [
+              "Tira con los codos hacia abajo hasta que la barbilla supere la barra.",
+              "Baja controlando el estiramiento del bíceps hasta colgar del todo."
+            ],
+            "setupCues": [
+              "Cuélgate con las palmas hacia ti y las manos al ancho de los hombros.",
+              "Estira los brazos con las escápulas altas y no dobles las muñecas hacia atrás."
+            ]
+          },
+          "pull_up__supinated__wide": {
+            "description": "Las palmas hacia ti y las manos muy separadas alejan el brazo del plano de la escápula, con una rotación de hombro marcada. El ancho reduce el juego de la escápula y suma riesgo de pinzamiento.",
+            "executionCues": [
+              "Sube hasta pasar la barbilla por encima de la barra, con los codos hacia los lados.",
+              "Baja despacio hasta estirar los brazos, sin soltar el agarre."
+            ],
+            "setupCues": [
+              "Cuélgate con las palmas hacia ti y las manos claramente más separadas que los hombros.",
+              "Revisa que las muñecas no se doblen hacia atrás al cargar el peso del cuerpo."
             ]
           }
-        }
+        },
+        "description": "La Dominada (pull-up) es una tracción vertical en la que el cuerpo cuelga de una barra fija y sube hasta que la barbilla la supera. El dorsal ancho es el motor en todos los agarres, y el bíceps flexiona el codo contra todo el peso corporal aunque las palmas miren al frente, sin llegar al nivel del dorsal. El trapecio bajo arranca el gesto deprimiendo la escápula. Con las palmas hacia ti el bíceps y el pectoral aportan más, y con las palmas al frente pesa más el trapecio bajo. Al no haber apoyo de tronco ni de piernas, nada compensa un balanceo."
       },
+      "sources": [
+        {
+          "claim": "En 25 voluntarios, el dorsal alcanzó 117-130 % de su contracción máxima, el bíceps 78-96 % y el trapecio bajo 45-56 %. El bíceps y el pectoral se activaron más en la chin-up supina que en la dominada prona, y el trapecio bajo al revés. El codo recorrió 93° en prono y 101° en supino, y la repetición arranca con trapecio bajo y pectoral y termina con bíceps y dorsal.",
+          "id": "youdas2010",
+          "title": "Surface electromyographic activation patterns and elbow joint motion during a pull-up, chin-up, or perfect-pullup™ rotational exercise",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/21068680/"
+        },
+        {
+          "claim": "En 19 hombres entrenados, la activación del complejo hombro-brazo-antebrazo fue similar entre agarre supino, prono, neutro y cuerda. Solo el trapecio medio se activó más con agarre prono que con neutro, y el braquiorradial, el bíceps y el pectoral trabajaron más en la subida que en la bajada.",
+          "id": "dickie2017",
+          "title": "Electromyographic analysis of muscle activation during pull-up variations",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/28011412/"
+        },
+        {
+          "claim": "En el jalón frontal, que comparte la tracción vertical con la dominada, el agarre prono activó más el dorsal que el supino, sin que el ancho del agarre cambiara la activación del dorsal, del trapecio medio ni del bíceps.",
+          "id": "lusk2010",
+          "title": "Grip width and forearm orientation effects on muscle activity during the lat pull-down",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/20543740/"
+        },
+        {
+          "claim": "En el jalón prono, el ancho del agarre entre una y dos veces la distancia biacromial apenas cambió la activación del dorsal, el trapecio y el infraespinoso. El agarre ancho bajó la carga de 6 repeticiones y, en la fase excéntrica, activó más el dorsal que el estrecho.",
+          "id": "andersen2014",
+          "title": "Effects of grip width on muscle strength and activation in the lat pull-down",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/24662157/"
+        },
+        {
+          "claim": "En 11 practicantes habituales, la cinemática de la escápula y del hombro cambió entre el agarre prono, el supino y el ancho. El supino mostró rotación glenohumeral extrema y el ancho menos protracción y retracción, ambos con más riesgo de pinzamiento subacromial.",
+          "id": "prinold2016",
+          "title": "Scapula kinematics of pull-up techniques: Avoiding impingement risk with training changes",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/26383875/"
+        }
+      ],
+      "status": "CURATED",
       "technique": {
         "identity": "Tracción vertical del propio cuerpo colgado de una barra fija: desde la suspensión con los brazos estirados, el cuerpo sube hasta que la barbilla supera la barra y baja hasta colgar de nuevo, sin apoyo de tronco ni de piernas y sin balanceo.",
-        "setup": [
-          "Suspensión completa de una barra fija, con los brazos estirados y las escápulas elevadas.",
-          "Agarre prono (palmas al frente), supino (palmas hacia ti) o neutro (palmas enfrentadas), con las manos al ancho de los hombros, juntas o claramente más separadas.",
-          "Piernas relajadas, con los tobillos cruzados por detrás para que no balanceen."
-        ],
         "keyPositions": [
           "Inicio: cuerpo colgando en vertical, codos estirados, escápulas elevadas y barra por encima de la cabeza.",
           "Punto más alto: barbilla por encima de la barra, codos flexionados y por debajo de la barra, escápulas deprimidas y juntas, pecho acercándose a la barra."
@@ -127,145 +266,36 @@
         ],
         "phases": [
           {
-            "name": "Suspensión",
-            "description": "Cuerpo colgando con los brazos estirados y las escápulas elevadas, los hombros cerca de las orejas; las piernas quietas."
+            "description": "Cuerpo colgando con los brazos estirados y las escápulas elevadas, los hombros cerca de las orejas; las piernas quietas.",
+            "name": "Suspensión"
           },
           {
-            "name": "Inicio",
-            "description": "Las escápulas bajan y se juntan antes de que el codo flexione, y el cuerpo empieza a subir sin balanceo."
+            "description": "Las escápulas bajan y se juntan antes de que el codo flexione, y el cuerpo empieza a subir sin balanceo.",
+            "name": "Inicio"
           },
           {
-            "name": "Tracción",
-            "description": "Los codos bajan hacia las costillas o hacia los lados, según el ancho del agarre, hasta que la barbilla supera la barra."
+            "description": "Los codos bajan hacia las costillas o hacia los lados, según el ancho del agarre, hasta que la barbilla supera la barra.",
+            "name": "Tracción"
           },
           {
-            "name": "Bajada",
-            "description": "El cuerpo desciende controlado hasta la suspensión completa, con los brazos estirados y las escápulas de nuevo elevadas."
-          }
-        ]
-      },
-      "anatomy": {
-        "muscles": [
-          {
-            "id": "latissimus_dorsi",
-            "role": "PRIMARY",
-            "why": "Motor de la tracción en todos los agarres: en dominadas y chin-ups alcanza el 117-130 % de su contracción isométrica máxima y su activación pico cierra el gesto (Youdas et al.). En el jalón, que comparte la tracción vertical, el agarre prono lo activa más que el supino (Lusk et al.).",
-            "sources": [
-              "youdas2010",
-              "lusk2010"
-            ]
-          },
-          {
-            "id": "biceps",
-            "role": "SECONDARY",
-            "why": "Flexiona el codo en cualquier agarre. En el conjunto de las condiciones llegó al 78-96 % de su contracción máxima, más en la chin-up supina que en la dominada prona, y siempre por debajo del dorsal, que llegó al 117-130 % (Youdas et al.). Dickie et al. no hallaron otra diferencia por orientar la mano, y el bíceps trabajó más en la subida que en la bajada. El codo recorre cerca de 100°, así que asiste: no es solo estabilizador ni comparte el motor con el dorsal.",
-            "sources": [
-              "youdas2010",
-              "dickie2017"
-            ]
-          },
-          {
-            "id": "trapezius",
-            "role": "SECONDARY",
-            "why": "El trapecio bajo arranca la repetición: su pico es el primero del ciclo (Youdas et al.). En el conjunto de las tres condiciones midió 45-56 % de la contracción máxima, y fue mayor en la dominada prona que en la supina. El trapecio medio se activó más con agarre prono que con neutro (Dickie et al.). Ninguno de los dos estudios midió que el ancho del agarre lo suba o lo baje.",
-            "sources": [
-              "youdas2010",
-              "dickie2017"
-            ]
-          },
-          {
-            "id": "pectoralis",
-            "role": "STABILIZER",
-            "why": "Se activa al inicio de la repetición junto con el trapecio bajo (Youdas et al.). En el conjunto de las tres condiciones midió 44-57 % de la contracción máxima, y fue mayor en la chin-up supina que en la dominada prona. Queda por debajo del dorsal (117-130 %) y del bíceps (78-96 %), así que estabiliza la aducción del hombro.",
-            "sources": [
-              "youdas2010"
-            ]
-          },
-          {
-            "id": "core",
-            "role": "STABILIZER",
-            "why": "El oblicuo externo trabaja de forma isométrica para que el tronco no se arquee ni balancee (31-35 % de la contracción máxima; Youdas et al.). No mueve ninguna articulación del gesto: solo mantiene el cuerpo en un bloque.",
-            "sources": [
-              "youdas2010"
-            ]
-          },
-          {
-            "id": "erector_spinae",
-            "role": "STABILIZER",
-            "why": "Sostiene la columna en extensión neutra mientras el cuerpo cuelga y sube (39-41 % de la contracción máxima; Youdas et al.). Su trabajo es postural: no extiende la columna durante la repetición.",
-            "sources": [
-              "youdas2010"
-            ]
-          },
-          {
-            "id": "forearm",
-            "role": "STABILIZER",
-            "why": "Dickie et al. midieron el braquiorradial más activo en la subida que en la bajada, en todas las variantes de agarre. El rol de estabilizador es el del antebrazo que mantiene la mano cerrada sobre la barra mientras el cuerpo cuelga: eso no lo midió ese estudio, es la demanda de la suspensión.",
-            "sources": [
-              "dickie2017"
-            ]
+            "description": "El cuerpo desciende controlado hasta la suspensión completa, con los brazos estirados y las escápulas de nuevo elevadas.",
+            "name": "Bajada"
           }
         ],
-        "joints": [
-          {
-            "id": "glenohumeral",
-            "role": "PRIMARY",
-            "actions": [
-              "Aducción del hombro",
-              "Extensión del hombro"
-            ],
-            "why": "El húmero baja desde la suspensión por encima de la cabeza hasta quedar junto al tronco: esa aducción y extensión es el movimiento que sube el cuerpo, y su recorrido cambia con el ancho del agarre (Prinold y Bull).",
-            "sources": [
-              "prinold2016",
-              "youdas2010"
-            ]
-          },
-          {
-            "id": "escapulotoracica",
-            "role": "PRIMARY",
-            "actions": [
-              "Depresión escapular",
-              "Retracción escapular",
-              "Rotación escapular inferior"
-            ],
-            "why": "La escápula se deprime para arrancar y rota mientras el brazo baja. Su cinemática cambia con la técnica: el agarre ancho reduce la protracción y retracción, y el supino se aleja del plano de la escápula (Prinold y Bull).",
-            "sources": [
-              "prinold2016",
-              "youdas2010"
-            ]
-          },
-          {
-            "id": "codo",
-            "role": "SECONDARY",
-            "actions": [
-              "Flexión del codo"
-            ],
-            "why": "Recorre cerca de 100° entre la suspensión y el punto alto (93° en prono y 101° en supino; Youdas et al.), así que la flexión del codo acompaña toda la subida sin ser el motor del gesto.",
-            "sources": [
-              "youdas2010"
-            ]
-          },
-          {
-            "id": "muñeca",
-            "role": "STABILIZER",
-            "actions": [
-              "Sostén del agarre"
-            ],
-            "why": "Youdas et al. midieron el recorrido del codo, no un movimiento de la muñeca. Ella se limita a sostener el agarre elegido, con las palmas al frente, hacia ti o enfrentadas, mientras el cuerpo cuelga de la barra.",
-            "sources": [
-              "youdas2010"
-            ]
-          }
+        "setup": [
+          "Suspensión completa de una barra fija, con los brazos estirados y las escápulas elevadas.",
+          "Agarre prono (palmas al frente), supino (palmas hacia ti) o neutro (palmas enfrentadas), con las manos al ancho de los hombros, juntas o claramente más separadas.",
+          "Piernas relajadas, con los tobillos cruzados por detrás para que no balanceen."
         ]
       },
       "visual": {
         "base": {
           "camera": "Vista lateral pura, con encuadre completo de la barra a los pies y espacio por encima de la barra.",
-          "phase": "Punto más alto de la subida: la barbilla supera la barra, los codos quedan flexionados por debajo de ella y las escápulas juntas.",
-          "orientation": "Atleta de perfil mirando a la izquierda, cuerpo vertical, cabeza ligeramente por encima de la barra.",
           "contacts": "Solo las manos tocan la barra; el cuerpo cuelga libre, sin apoyar pies, rodillas ni tronco en nada.",
-          "posture": "Tronco en bloque, columna neutra, hombros lejos de las orejas, piernas juntas con los tobillos cruzados por detrás.",
-          "load": "El propio peso del cuerpo colgando de la barra, sin lastre, banda ni ayuda."
+          "load": "El propio peso del cuerpo colgando de la barra, sin lastre, banda ni ayuda.",
+          "orientation": "Atleta de perfil mirando a la izquierda, cuerpo vertical, cabeza ligeramente por encima de la barra.",
+          "phase": "Punto más alto de la subida: la barbilla supera la barra, los codos quedan flexionados por debajo de ella y las escápulas juntas.",
+          "posture": "Tronco en bloque, columna neutra, hombros lejos de las orejas, piernas juntas con los tobillos cruzados por detrás."
         },
         "byImplement": {
           "bodyweight": {
@@ -273,20 +303,8 @@
           }
         },
         "byVariant": {
-          "pull_up__pronated__wide": {
-            "difference": "Las manos se separan bastante más que los hombros y las palmas miran al frente, con los codos abiertos hacia los lados."
-          },
-          "pull_up__pronated__close": {
-            "difference": "Las manos quedan casi juntas, dentro del ancho de los hombros, con las palmas al frente y los codos pegados al tronco."
-          },
-          "pull_up__supinated__medium": {
-            "difference": "Las palmas miran hacia el atleta en vez de al frente, con las manos al ancho de los hombros."
-          },
-          "pull_up__supinated__wide": {
-            "difference": "Las palmas miran hacia el atleta y las manos se separan bastante más que los hombros, con los codos abiertos."
-          },
-          "pull_up__supinated__close": {
-            "difference": "Las palmas miran hacia el atleta y las manos quedan casi juntas, con los codos pegados a las costillas."
+          "pull_up__neutral__close": {
+            "difference": "Dos asas paralelas juntas, con las palmas enfrentadas y los codos pegados al tronco."
           },
           "pull_up__neutral__medium": {
             "difference": "Dos asas paralelas en vez de una barra recta, con las palmas enfrentadas y las manos al ancho de los hombros."
@@ -294,75 +312,358 @@
           "pull_up__neutral__wide": {
             "difference": "Dos asas paralelas separadas más que los hombros, con las palmas enfrentadas y los codos abiertos hacia los lados."
           },
-          "pull_up__neutral__close": {
-            "difference": "Dos asas paralelas juntas, con las palmas enfrentadas y los codos pegados al tronco."
+          "pull_up__pronated__close": {
+            "difference": "Las manos quedan casi juntas, dentro del ancho de los hombros, con las palmas al frente y los codos pegados al tronco."
+          },
+          "pull_up__pronated__wide": {
+            "difference": "Las manos se separan bastante más que los hombros y las palmas miran al frente, con los codos abiertos hacia los lados."
+          },
+          "pull_up__supinated__close": {
+            "difference": "Las palmas miran hacia el atleta y las manos quedan casi juntas, con los codos pegados a las costillas."
+          },
+          "pull_up__supinated__medium": {
+            "difference": "Las palmas miran hacia el atleta en vez de al frente, con las manos al ancho de los hombros."
+          },
+          "pull_up__supinated__wide": {
+            "difference": "Las palmas miran hacia el atleta y las manos se separan bastante más que los hombros, con los codos abiertos."
           }
         },
         "forbidden": [
-          "Pies apoyados en el suelo o en un banco: eso es un remo invertido, no una dominada.",
+          "Pies apoyados en el suelo o en un banco: la dominada se dibuja colgada y sin apoyo.",
           "Barra sujeta por delante de la cara con el cuerpo sentado: eso es un jalón, no una dominada.",
           "Balanceo de piernas o de tronco para subir.",
           "Barbilla por debajo de la barra o brazos estirados en el punto que se dibuja."
         ],
+        "promptCore": {
+          "bodyweight": "Side view of a muscular athlete frozen at the TOP of a pull-up on a straight fixed bar: both hands grip the bar overhead with palms facing forward, the chin is above the bar, the elbows are bent and pulled down in front of the shoulders, the chest is close to the bar, the shoulder blades are pulled down and together. The body hangs straight, ankles crossed behind, feet clear of the ground. No kipping, no swing."
+        },
         "qa": [
           "¿El atleta cuelga de una barra con los pies en el aire, sin apoyar nada más?",
           "¿Las dos manos agarran la barra o las asas, y no flotan sueltas?",
           "¿La barbilla queda por encima de la barra y los codos están flexionados?",
           "¿El cuerpo está vertical, sin balancear las piernas?"
+        ]
+      }
+    },
+    "rack_chin": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Aducción del hombro",
+              "Extensión del hombro"
+            ],
+            "id": "glenohumeral",
+            "role": "PRIMARY",
+            "sources": [
+              "statpearls_extrinsic_back",
+              "youdas2010"
+            ],
+            "why": "El húmero baja desde la elevación completa hasta quedar junto a las costillas, y como el pecho llega a la barra el codo termina por detrás del tronco: la extensión del hombro va más allá que en una dominada que acaba con la barbilla sobre la barra. Se deduce de la posición final, sin cinemática medida de esta variante."
+          },
+          {
+            "actions": [
+              "Depresión escapular",
+              "Rotación escapular inferior",
+              "Retracción escapular"
+            ],
+            "id": "escapulotoracica",
+            "role": "PRIMARY",
+            "sources": [
+              "youdas2010",
+              "lehman2004"
+            ],
+            "why": "La escápula baja y rota hacia abajo al arrancar, y en la dominada el pico del trapecio inferior llega primero, junto con el del pectoral (Youdas 2010); al final se acerca a la columna cuando el pecho toca la barra."
+          },
+          {
+            "actions": [
+              "Flexión del codo"
+            ],
+            "id": "codo",
+            "role": "SECONDARY",
+            "sources": [
+              "youdas2010",
+              "statpearls_biceps"
+            ],
+            "why": "El codo pasa de recto a muy doblado cuando el pecho toca la barra, movido por el bíceps y el braquiorradial; en la dominada colgada recorrió unos 93 grados con agarre prono (Youdas 2010). Acompaña al hombro sin ser el motor."
+          },
+          {
+            "actions": [
+              "Sostén del agarre"
+            ],
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_forearm_compartments"
+            ],
+            "why": "La muñeca queda recta bajo la barra mientras la mano sostiene el cuerpo colgado; no aporta movimiento al tirón."
+          },
+          {
+            "actions": [
+              "Flexión sostenida de la cadera"
+            ],
+            "id": "cadera",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_hip"
+            ],
+            "why": "La cadera queda doblada cerca del ángulo recto con las piernas tendidas hasta el apoyo de los talones; no empuja, sostiene la postura sentada en el aire y pasa a las piernas la parte del peso que cargan los talones."
+          }
         ],
-        "promptCore": {
-          "bodyweight": "Side view of a muscular athlete frozen at the TOP of a pull-up on a straight fixed bar: both hands grip the bar overhead with palms facing forward, the chin is above the bar, the elbows are bent and pulled down in front of the shoulders, the chest is close to the bar, the shoulder blades are pulled down and together. The body hangs straight, ankles crossed behind, feet clear of the ground. No kipping, no swing."
-        }
+        "muscles": [
+          {
+            "id": "latissimus_dorsi",
+            "role": "PRIMARY",
+            "sources": [
+              "youdas2010",
+              "statpearls_extrinsic_back"
+            ],
+            "why": "Aduce y extiende el húmero para subir el tronco hasta la barra: es el motor del gesto. No hay electromiografía de esta variante; en dominadas colgadas promedió el 117-130 % de su contracción máxima (Youdas 2010), y aquí hace el mismo tirón con parte del peso sobre los talones."
+          },
+          {
+            "id": "biceps",
+            "role": "SECONDARY",
+            "sources": [
+              "youdas2010",
+              "doma2013",
+              "statpearls_biceps"
+            ],
+            "why": "Dobla el codo contra la parte del peso que no sostienen los talones. En la dominada llegó al 78-96 % de su contracción máxima, siempre por debajo del dorsal (Youdas 2010), y trabajó más que en el jalón (Doma 2013); aquí se extrapola con menos carga, como ayuda real y no como simple estabilizador."
+          },
+          {
+            "id": "trapezius",
+            "role": "SECONDARY",
+            "sources": [
+              "youdas2010",
+              "dickie2017"
+            ],
+            "why": "Sus fibras inferiores arrancan el tirón deprimiendo la escápula: en la dominada promediaron 45-56 % de su contracción máxima y su pico llega primero, junto con el del pectoral (Youdas 2010). Las medias acercan la escápula a la columna cuando el pecho llega a la barra y se activaron más con agarre prono que con neutro (Dickie 2017). El papel de secundario se apoya en esa porción inferior, medida por separado."
+          },
+          {
+            "id": "deltoid",
+            "role": "SECONDARY",
+            "sources": [
+              "padovan2024",
+              "statpearls_deltoid"
+            ],
+            "why": "Su porción posterior extiende el hombro cuando los codos pasan por detrás del tronco para que el pecho toque la barra. En el jalón por delante de la cara, una tracción vertical con el mismo final, se excitó más que en el tras nuca (Padovan 2024); aquí se extrapola, sin electromiografía propia."
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "sources": [
+              "dickie2017",
+              "statpearls_forearm_compartments"
+            ],
+            "why": "Los flexores de los dedos sostienen el cuerpo colgado de la barra durante toda la serie, y el braquiorradial ayuda a doblar el codo: en las dominadas se activó más en la subida que en la bajada (Dickie 2017). El agarre carga con el peso que no apoyan los talones."
+          },
+          {
+            "id": "rhomboids",
+            "role": "STABILIZER",
+            "sources": [
+              "lehman2004",
+              "youdas2010",
+              "statpearls_rhomboids"
+            ],
+            "why": "Fijan el borde interno de la escápula contra el tórax mientras el dorsal y el trapecio la bajan, y la sujetan junta cuando el pecho toca la barra. El único dato que los incluye es el canal que comparten con el trapecio medio en Lehman et al. (2004), más bajo en los jalones que en el remo. Sin una medida propia de que muevan la escápula quedan como estabilizadores, mientras que el trapecio es secundario por su porción inferior, medida aparte por Youdas et al. (2010)."
+          },
+          {
+            "id": "pectoralis",
+            "role": "STABILIZER",
+            "sources": [
+              "youdas2010",
+              "statpearls_pectoral"
+            ],
+            "why": "Su porción esternal ayuda a cerrar el brazo hacia el tronco al empezar la subida. En la dominada midió 44-57 % de su contracción máxima, muy por debajo del dorsal (Youdas 2010); aquí se extrapola como sostén de la aducción y no como motor."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "youdas2010",
+              "statpearls_abdominal_wall"
+            ],
+            "why": "La pared abdominal sostiene el tronco vertical sobre la cadera doblada, con las piernas tendidas hasta el apoyo de los talones, para que no se balancee ni se arquee; en la dominada el oblicuo externo trabajó al 31-35 % de su máximo (Youdas 2010). Es sostén isométrico."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "youdas2010"
+            ],
+            "why": "Sostienen la columna erguida mientras el tronco sube vertical bajo la barra; en la dominada midieron 39-41 % de su contracción máxima (Youdas 2010). Fijan la postura y no extienden la columna durante la repetición."
+          }
+        ]
+      },
+      "public": {
+        "configurations": {
+          "rack_chin__default": {
+            "description": "La barra va más o menos a la altura de los hombros de una persona de pie, y el apoyo de los talones, delante, queda cerca de la altura de la cabeza al colgar. Las piernas, cruzadas y con las rodillas apenas flexionadas, sostienen parte del peso sin empujar.",
+            "executionCues": [
+              "Tira de los codos hacia los bolsillos y sube hasta que el pecho toque la barra.",
+              "No empujes con los talones ni subas la cadera por encima de los pies.",
+              "Baja despacio hasta tener los brazos rectos y las escápulas arriba."
+            ],
+            "setupCues": [
+              "Pon la barra del rack a la altura de tus hombros y, delante, un apoyo alto para los talones a un largo de piernas.",
+              "Siéntate debajo, agarra la barra en prono bastante más abierta que los hombros y engancha los talones en el apoyo.",
+              "Cruza los tobillos y cuelga con los brazos rectos, el tronco vertical y la cadera hacia el suelo."
+            ]
+          }
+        },
+        "description": "La Dominada en Rack (rack chin) se hace colgado de una barra fijada en un rack, con los talones enganchados en un apoyo alto que queda delante, como el extremo levantado de un banco. El tronco sube recto bajo la barra hasta que el pecho la toca, en una tracción vertical con los codos bajando hacia los bolsillos y la cadera siempre por debajo de los pies. El dorsal ancho es el motor principal, el bíceps flexiona el codo y el trapecio inferior tira de las escápulas hacia abajo, mientras los talones cargan una parte del peso del cuerpo sin empujar. Un disco sobre los muslos o un cinturón de lastre la endurecen. Permite acumular repeticiones de tracción vertical con menos carga que la dominada colgada y con un final de pecho contra la barra."
       },
       "sources": [
         {
+          "claim": "En dominadas colgadas con agarre prono, supino y con asas giratorias, el dorsal promedió 117-130 % de su contracción máxima, el bíceps 78-96 %, el trapecio inferior 45-56 %, el pectoral 44-57 %, los erectores 39-41 % y el oblicuo externo 31-35 %. La repetición arrancó con trapecio inferior y pectoral, y el codo recorrió unos 93 grados en prono.",
           "id": "youdas2010",
-          "url": "https://pubmed.ncbi.nlm.nih.gov/21068680/",
           "title": "Surface electromyographic activation patterns and elbow joint motion during a pull-up, chin-up, or perfect-pullup™ rotational exercise",
-          "claim": "En 25 voluntarios, el dorsal alcanzó 117-130 % de su contracción máxima, el bíceps 78-96 % y el trapecio bajo 45-56 %. El bíceps y el pectoral se activaron más en la chin-up supina que en la dominada prona, y el trapecio bajo al revés. El codo recorrió 93° en prono y 101° en supino, y la repetición arranca con trapecio bajo y pectoral y termina con bíceps y dorsal."
+          "url": "https://pubmed.ncbi.nlm.nih.gov/21068680/"
         },
         {
+          "claim": "En 19 hombres entrenados la activación fue parecida entre agarres, salvo el trapecio medio, mayor con agarre prono que con neutro; el braquiorradial, el bíceps y el pectoral trabajaron más en la subida que en la bajada.",
           "id": "dickie2017",
-          "url": "https://pubmed.ncbi.nlm.nih.gov/28011412/",
           "title": "Electromyographic analysis of muscle activation during pull-up variations",
-          "claim": "En 19 hombres entrenados, la activación del complejo hombro-brazo-antebrazo fue similar entre agarre supino, prono, neutro y cuerda. Solo el trapecio medio se activó más con agarre prono que con neutro, y el braquiorradial, el bíceps y el pectoral trabajaron más en la subida que en la bajada."
+          "url": "https://pubmed.ncbi.nlm.nih.gov/28011412/"
         },
         {
-          "id": "lusk2010",
-          "url": "https://pubmed.ncbi.nlm.nih.gov/20543740/",
-          "title": "Grip width and forearm orientation effects on muscle activity during the lat pull-down",
-          "claim": "En el jalón frontal, que comparte la tracción vertical con la dominada, el agarre prono activó más el dorsal que el supino, sin que el ancho del agarre cambiara la activación del dorsal, del trapecio medio ni del bíceps."
+          "claim": "En la fase concéntrica, el bíceps y los erectores se activaron más en la dominada que en el jalón.",
+          "id": "doma2013",
+          "title": "Kinematic and electromyographic comparisons between chin-ups and lat-pull down exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/24245055/"
         },
         {
-          "id": "andersen2014",
-          "url": "https://pubmed.ncbi.nlm.nih.gov/24662157/",
-          "title": "Effects of grip width on muscle strength and activation in the lat pull-down",
-          "claim": "En el jalón prono, el ancho del agarre entre una y dos veces la distancia biacromial apenas cambió la activación del dorsal, el trapecio y el infraespinoso. El agarre ancho bajó la carga de 6 repeticiones y, en la fase excéntrica, activó más el dorsal que el estrecho."
+          "claim": "El grupo trapecio medio y romboides tuvo su mayor actividad en el remo sentado, por encima de los jalones con agarre ancho y con agarre invertido.",
+          "id": "lehman2004",
+          "title": "Variations in muscle activation levels during traditional latissimus dorsi weight training exercises: An experimental study",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/15228624/"
         },
         {
-          "id": "prinold2016",
-          "url": "https://pubmed.ncbi.nlm.nih.gov/26383875/",
-          "title": "Scapula kinematics of pull-up techniques: Avoiding impingement risk with training changes",
-          "claim": "En 11 practicantes habituales, la cinemática de la escápula y del hombro cambió entre el agarre prono, el supino y el ancho. El supino mostró rotación glenohumeral extrema y el ancho menos protracción y retracción, ambos con más riesgo de pinzamiento subacromial."
+          "claim": "El jalón por delante de la cara, que termina con la barra en el pecho, excitó más el deltoides posterior que el jalón tras nuca en la fase ascendente.",
+          "id": "padovan2024",
+          "title": "High-Density Electromyography Excitation in Front vs. Back Lat Pull-Down Prime Movers",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/38689585/"
+        },
+        {
+          "claim": "Describe los músculos extrínsecos de la espalda, entre ellos el dorsal ancho, el trapecio y los romboides, cuya función es mover el miembro superior controlando la escápula y el húmero.",
+          "id": "statpearls_extrinsic_back",
+          "title": "Anatomy, Back, Extrinsic Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725901/"
+        },
+        {
+          "claim": "Describe al bíceps braquial como flexor del codo y potente supinador del antebrazo.",
+          "id": "statpearls_biceps",
+          "title": "Anatomy, Shoulder and Upper Limb, Biceps Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30137823/"
+        },
+        {
+          "claim": "Describe el deltoides como músculo clave del movimiento y la estabilidad del hombro, con porciones anterior, media y posterior.",
+          "id": "statpearls_deltoid",
+          "title": "Anatomy, Shoulder and Upper Limb, Deltoid Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725741/"
+        },
+        {
+          "claim": "Describe los romboides mayor y menor como músculos del movimiento del miembro superior y de la estabilidad de la cintura escapular y la escápula.",
+          "id": "statpearls_rhomboids",
+          "title": "Anatomy, Back, Rhomboid Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30521277/"
+        },
+        {
+          "claim": "El grupo pectoral flexiona, aduce y rota hacia dentro el húmero y ayuda a estabilizar la escápula.",
+          "id": "statpearls_pectoral",
+          "title": "Anatomy, Shoulder and Upper Limb, Pectoral Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31424825/"
+        },
+        {
+          "claim": "Describe los compartimentos del antebrazo: el anterior flexiona la muñeca y los dedos, y el braquiorradial forma parte del grupo lateral.",
+          "id": "statpearls_forearm_compartments",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/"
+        },
+        {
+          "claim": "La pared abdominal contiene y protege las vísceras, genera presión intraabdominal y mueve la columna vertebral.",
+          "id": "statpearls_abdominal_wall",
+          "title": "Anatomy, Abdomen and Pelvis: Abdominal Wall",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31869113/"
+        },
+        {
+          "claim": "La función principal de la cadera es sostener el peso del tronco y transmitir la carga entre el esqueleto axial y los miembros inferiores.",
+          "id": "statpearls_hip",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hip Joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29262200/"
         }
-      ]
-    },
-    "rack_chin": {
-      "status": "LEGACY",
-      "public": {
-        "description": "La dominada en rack fija la barra a la altura del pecho para que el cuerpo suba en tracción vertical con los pies en el suelo: el mismo gesto de tirón que la dominada, con parte del peso corporal descargada sobre las piernas.",
-        "configurations": {
-          "rack_chin__default": {
-            "description": "Con la barra fijada a la altura del pecho y los pies apoyados en el suelo, el cuerpo sube en tracción vertical hasta acercar el esternón a la barra y desciende sin impulso. La posición inclinada descarga parte del peso corporal y convierte el gesto en una alternativa accesible a la dominada completa.",
-            "setupCues": [
-              "Preparación: Barra en el rack al nivel del esternón y manos con agarre prono algo más anchas que los hombros: desde pies planos, el pecho sube hacia la barra con los codos viajando hacia atrás y la escápula deprimida, y el regreso baja hasta estirar los brazos sin hundir los hombros."
-            ],
-            "executionCues": [
-              "Barra en el rack al nivel del esternón y manos con agarre prono algo más anchas que los hombros: desde pies planos, el pecho sube hacia la barra con los codos viajando hacia atrás y la escápula deprimida, y el regreso baja hasta estirar los brazos sin hundir los hombros."
-            ]
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Tracción vertical colgado de una barra fija en un rack, con los talones enganchados en un apoyo alto delante y la cadera colgando cerca del suelo: el tronco sube vertical hasta que el pecho toca la barra y vuelve a bajar hasta colgar con los brazos rectos. El apoyo elevado de los talones lo separa de la dominada colgada, y el tronco vertical con la cadera por debajo de los pies lo separa del remo invertido, que tira con el cuerpo tendido.",
+        "keyPositions": [
+          "Abajo: brazos rectos, escápulas subidas, cadera a pocos centímetros del suelo y pies enganchados en el apoyo, más altos que la cadera.",
+          "Arriba: pecho contra la barra, codos doblados junto a las costillas y por detrás del tronco, escápulas juntas y bajas, tronco vertical y cadera todavía por debajo de los pies."
+        ],
+        "mistakes": [
+          "Empujar con los talones contra el apoyo para subir: las piernas hacen el trabajo del dorsal.",
+          "Levantar la cadera por encima de los pies o reclinar el tronco, hasta que el gesto se convierte en un remo invertido.",
+          "Parar con la barbilla sobre la barra sin que el pecho llegue a tocarla.",
+          "Dejarse caer en la bajada o no estirar los brazos abajo."
+        ],
+        "phases": [
+          {
+            "description": "Brazos rectos, escápulas subidas y cadera cerca del suelo, con los talones quietos en el apoyo.",
+            "name": "Cuelgue"
+          },
+          {
+            "description": "Las escápulas bajan, los codos van hacia los bolsillos y el tronco sube vertical sin ayuda de las piernas.",
+            "name": "Tirón"
+          },
+          {
+            "description": "El pecho toca la barra con los codos por detrás del tronco y las escápulas juntas.",
+            "name": "Contacto"
+          },
+          {
+            "description": "El cuerpo baja sin prisa hasta que los codos se estiran del todo, con la cadera de nuevo cerca del suelo.",
+            "name": "Bajada"
           }
-        }
+        ],
+        "setup": [
+          "Barra del rack más o menos a la altura de los hombros de pie: sentado debajo, las manos apenas la alcanzan con los brazos rectos y la cadera queda a pocos centímetros del suelo.",
+          "Apoyo de los talones delante, a un largo de piernas y alto: los pies deben quedar por encima de la cadera también en el punto alto, así que se usa el extremo levantado de un banco, más o menos a la altura de la cabeza del atleta colgado; rodillas apenas flexionadas y tobillos cruzados.",
+          "Agarre prono ancho, bastante más abierto que los hombros y a menudo con correas; tronco vertical y mirada al frente."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral pura a la altura de la barra, con el rack, la barra, el atleta entero y el apoyo de los talones dentro del encuadre.",
+          "contacts": "Manos cerradas sobre la barra; talones enganchados en el borde de un apoyo alto, con los tobillos cruzados; la cadera en el aire, sin tocar el suelo.",
+          "load": "El propio peso del cuerpo, sostenido entre las manos en la barra y los talones en el apoyo; sin lastre ni banda.",
+          "orientation": "Atleta de perfil bajo la barra, con el tronco vertical y las piernas tendidas hacia delante, hasta el apoyo de los talones.",
+          "phase": "Punto alto: el pecho toca la barra, los codos doblados quedan por detrás del tronco y las escápulas juntas.",
+          "posture": "Tronco vertical, pecho alto, columna neutra, cadera doblada cerca del ángulo recto, rodillas apenas flexionadas y pies a la altura de la cadera o por encima."
+        },
+        "byImplement": {
+          "bodyweight": {
+            "geometry": "Rack de potencia con una barra recta apoyada en los soportes más o menos a la altura de los hombros de una persona de pie; delante, el extremo levantado de un banco, más alto que la cadera del atleta, sostiene los talones; manos en prono, bastante más abiertas que los hombros, a menudo con correas."
+          }
+        },
+        "forbidden": [
+          "Atleta colgado con los pies en el aire: eso es una dominada, no la dominada en rack.",
+          "Cuerpo tendido en diagonal con el pecho hacia el techo bajo una barra baja: eso es un remo invertido.",
+          "Cadera más alta que los pies, con los talones en un apoyo bajo: si los pies quedan bajos, el gesto se vuelve un remo.",
+          "Pies en el suelo con las rodillas dobladas empujando para subir.",
+          "Barbilla sobre la barra sin que el pecho la toque, o brazos estirados en el fotograma.",
+          "Barra sin rack que la sostenga, o sin apoyo para los talones."
+        ],
+        "promptCore": {
+          "bodyweight": "Side view of a muscular athlete frozen at the TOP of a rack chin-up. A straight barbell rests on the hooks of a power rack at about the shoulder height of a standing person. Both hands grip the bar with a wide overhand grip, hands well outside the shoulders, and the chest touches the bar. The elbows are bent and pulled down and back behind the torso. The torso is vertical under the bar and the hips hang below the level of the feet. The legs reach forward, knees slightly bent and ankles crossed, with both heels hooked over the raised end of a bench in front of the rack, set higher than the hips. Only the hands and the heels touch anything."
+        },
+        "qa": [
+          "¿Las dos manos agarran la barra del rack y el cuerpo no flota sin apoyo?",
+          "¿El pecho toca la barra con los codos doblados por detrás del tronco?",
+          "¿Los talones están apoyados en un soporte alto delante del rack?",
+          "¿El tronco está vertical bajo la barra, con la cadera a la altura de los pies o por debajo?"
+        ]
       }
     }
-  }
+  },
+  "familyId": "upper_vertical_pull_pull_up",
+  "schemaVersion": 1
 }

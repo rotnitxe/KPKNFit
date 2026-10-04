@@ -63,7 +63,7 @@ class OntologyMirrorTest(unittest.TestCase):
         block = kotlin_block(self.kotlin, "val catalogPatternToWikiLab")
         patterns = set(re.findall(r'"([^"]+)"\s+to\s+', block))
         self.assertEqual(patterns, set(MOVEMENT_PATTERN_IDS))
-        self.assertEqual(len(MOVEMENT_PATTERN_IDS), 62)
+        self.assertEqual(len(MOVEMENT_PATTERN_IDS), 63)
 
     def test_roles_are_the_three_runtime_roles(self) -> None:
         self.assertEqual(ROLES, ("PRIMARY", "SECONDARY", "STABILIZER"))

@@ -135,6 +135,11 @@ sliders/balón, Curl Nórdico, zerchers, planchas, Dragon Flag, Frog Pumps.
   - En la sentadilla sin carga, el glúteo mayor es PRIMARY por regla de producto
     (planes del wizard).
 - Un músculo no puede estar en dos listas de la misma config.
+- **Volumen (aclaración del usuario, 2026-10-04):** se permite superar el volumen
+  por el extra de ejercicios donde ESE músculo es secundario o estabilizador.
+  El extra de un ejercicio donde ESE músculo es principal necesita ajuste de
+  prescripción. Se informa por separado del aporte indirecto y no se cambia la
+  anatomía para esconderlo.
 - Chips que redistribuyen énfasis cambian las listas por config.
 - NEUTRALIZER no existe en el catálogo.
 - El porqué de cada rol vive en la ficha (`anatomy`, campo `why` de cada

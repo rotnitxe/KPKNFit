@@ -24,33 +24,44 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con peso corporal, colgado con los brazos extendidos, los omóplatos se hunden y se elevan sin flexionar los codos. Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa.",
+              "description": "Sin lastre ni banda, la carga es el cuerpo entero colgando de la barra fija y el recorrido se reduce a unos centímetros con los codos bloqueados. Las manos soportan todo ese peso en cada repetición y también en las pausas abajo.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
-                "Colgado de la barra moviendo solo los omóplatos: la espalda se activa sin doblarte. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Baja los hombros lejos de las orejas y junta las escápulas, con los codos rectos.",
+                "Aguanta un segundo arriba con el pecho un poco adelantado.",
+                "Vuelve despacio a la suspensión hasta que los hombros suban otra vez."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Elevación O Depresión"
+                    "Depresión escapular",
+                    "Retracción escapular",
+                    "Rotación escapular inferior"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Centrado Del Hombro"
+                    "Estabilidad del hombro en suspensión"
                   ],
                   "jointId": "glenohumeral",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Posición Cervical"
+                    "Extensión sostenida del codo"
                   ],
-                  "jointId": "columna-cervical",
+                  "jointId": "codo",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén del agarre"
+                  ],
+                  "jointId": "muñeca",
                   "role": "STABILIZER"
                 }
               ],
@@ -60,7 +71,8 @@
               "movementPatternId": "scapular_depression",
               "performanceProfileId": "back_dominadas_escapulares__bodyweight__dominadas_escapulares",
               "primaryMuscles": [
-                "latissimus_dorsi"
+                "latissimus_dorsi",
+                "trapezius"
               ],
               "replacementGroup": "back_pullup_scapular",
               "replacementPriority": 3,
@@ -68,42 +80,56 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Elevación O Depresión",
-                    "Centrado Del Hombro",
-                    "Posición Cervical"
+                    "Depresión escapular",
+                    "Retracción escapular",
+                    "Rotación escapular inferior",
+                    "Estabilidad del hombro en suspensión",
+                    "Extensión sostenida del codo",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Elevación O Depresión"
+                        "Depresión escapular",
+                        "Retracción escapular",
+                        "Rotación escapular inferior"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Centrado Del Hombro"
+                        "Estabilidad del hombro en suspensión"
                       ],
                       "jointId": "glenohumeral",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Posición Cervical"
+                        "Extensión sostenida del codo"
                       ],
-                      "jointId": "columna-cervical",
+                      "jointId": "codo",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del agarre"
+                      ],
+                      "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "latissimus_dorsi"
+                    "latissimus_dorsi",
+                    "trapezius"
                   ],
                   "secondaryMuscles": [
-                    "trapezius",
-                    "deltoid",
-                    "biceps"
+                    "rhomboids"
                   ],
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "forearm",
+                    "pectoralis"
+                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -116,7 +142,8 @@
                   "relevantJoints": [
                     "escapulotoracica",
                     "glenohumeral",
-                    "columna-cervical"
+                    "codo",
+                    "muñeca"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -163,23 +190,27 @@
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "scapular_depression:latissimus_dorsi"
+                    "scapular_depression:latissimus_dorsi",
+                    "scapular_depression:trapezius"
                   ],
                   "replacementGroup": "back_pullup_scapular",
                   "replacementPriority": 3
                 }
               },
               "secondaryMuscles": [
-                "trapezius",
-                "deltoid",
-                "biceps"
+                "rhomboids"
               ],
               "setupCues": [
-                "Preparación: Colgado de la barra moviendo solo los omóplatos: la espalda se activa sin doblarte."
+                "Cuélgate de la barra fija con las palmas al frente, las manos algo más abiertas que los hombros.",
+                "Estira los brazos del todo y deja que los hombros suban hacia las orejas.",
+                "Junta las piernas y despega los pies del suelo sin balancearte."
               ],
               "setupTimeSeconds": 10,
               "ssc": 0.4,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "forearm",
+                "pectoralis"
+              ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
             },
@@ -187,7 +218,7 @@
           }
         ],
         "defaultConfigurationId": "back_dominadas_escapulares__default",
-        "description": "Las Dominadas Escapulares son el primer escalón de la tracción: colgado de la barra fija, los omóplatos se hunden y se elevan sin flexionar los codos. Se ejecutan con los brazos rectos, bajando los hombros de las orejas y subiendo el pecho unos centímetros con solo la espalda. El dorsal ancho aprende a encenderse aquí. La activación que enseña de qué va de verdad colgarse.",
+        "description": "Las Dominadas Escapulares (scapular pull-ups) aíslan el primer tramo de la dominada: colgado de una barra con los codos rectos, el cuerpo sube unos pocos centímetros porque las escápulas bajan y se acercan entre sí. Ese descenso de la cintura escapular lo producen el dorsal ancho y las fibras inferiores del trapecio, y los romboides ayudan a juntar las escápulas. Como los brazos no se doblan, la subida nace en la espalda y no en los codos, y las manos sostienen todo el peso corporal de principio a fin. Es la forma de practicar la salida de la suspensión con los hombros lejos de las orejas, sin que los brazos lleguen a tirar.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

@@ -13,6 +13,7 @@ import sys
 import tempfile
 import unittest
 import urllib.error
+from unittest import mock
 from pathlib import Path
 from typing import Any
 
@@ -220,6 +221,17 @@ class ProofFileTest(unittest.TestCase):
         sources.write_proof(self.proof_path, {"schemaVersion": 1, "sources": {}})
         self.assertTrue(self.proof_path.is_file())
         self.assertEqual([self.proof_path.name], sorted(path.name for path in self.proof_path.parent.iterdir() if path.is_file()))
+
+    def test_proof_flag_points_verify_and_check_at_a_private_registry(self) -> None:
+        self.write_ficha("fam.json", ficha("pull_up", [source("https://pubmed.ncbi.nlm.nih.gov/21068680/")]))
+        private = Path(self.temp.name) / "private_proof.json"
+        reply = fake_fetch({"esummary": pubmed_reply("21068680", TITLE)})
+        with mock.patch.object(sources, "PROOF", self.proof_path), contextlib.redirect_stdout(io.StringIO()):
+            verified = sources.main(["verify", "--definitions", "pull_up", "--proof", str(private)], fichas_dir=self.fichas, fetch=reply, pause=0)
+            checked = sources.main(["check", "--proof", str(private)], fichas_dir=self.fichas, pause=0)
+        self.assertEqual((0, 0), (verified, checked))
+        self.assertIn("https://pubmed.ncbi.nlm.nih.gov/21068680/", json.loads(private.read_text(encoding="utf-8"))["sources"])
+        self.assertFalse(self.proof_path.exists(), "the shared proof file must stay untouched")
 
     def test_abstract_prints_the_record_for_ids_and_urls(self) -> None:
         fetch = fake_fetch({"efetch": "1. J Strength Cond Res. 2010.\n\nAbstract text about pull-ups.\n"})

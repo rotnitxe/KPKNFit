@@ -19,7 +19,8 @@
           {
             "actions": [
               "Depresión escapular",
-              "Rotación escapular inferior"
+              "Rotación escapular inferior",
+              "Retracción escapular"
             ],
             "id": "escapulotoracica",
             "role": "PRIMARY",
@@ -27,7 +28,7 @@
               "statpearls_extrinsic_back",
               "lehman2004"
             ],
-            "why": "La escápula baja y rota hacia abajo mientras el brazo desciende, acompañando al húmero; es una parte del gesto, no solo una fijación. Dorsal y trapecio inferior gobiernan ese deslizamiento."
+            "why": "La escápula baja y rota hacia abajo mientras el brazo desciende, acompañando al húmero, y se junta con la del otro lado cuando el asa toca el pecho; es una parte del gesto, no solo una fijación. Dorsal, trapecio y romboides gobiernan ese deslizamiento."
           },
           {
             "actions": [
@@ -100,6 +101,41 @@
               "statpearls_back"
             ],
             "why": "Sostienen el tronco inclinado unos grados hacia atrás mientras el asa baja, con los muslos fijos bajo los apoyos. Su trabajo es isométrico, de modo que suman como estabilizador y no como motor."
+          },
+          {
+            "id": "pectoralis",
+            "role": "STABILIZER",
+            "sources": [
+              "sperandei2009",
+              "statpearls_pectoral"
+            ],
+            "why": "Con los codos cerrados sobre las costillas, su porción esternal acompaña el cierre del brazo hacia el tronco. Sperandei et al. (2009) lo midieron con el asa en V: más bajo que con la barra por delante de la cara y más alto que tras nuca, mientras el dorsal no cambió entre técnicas. Es una ayuda menor de la aducción, contada como estabilizador."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "doma2013",
+              "statpearls_abdominal_wall"
+            ],
+            "why": "Los abdominales sujetan el tronco algo reclinado mientras el asa sube y baja delante de la cara; Doma et al. (2013) registraron más recto abdominal en la vuelta del jalón que en la de la dominada. Trabajan en isometría, sin mover el tronco."
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_forearm_compartments"
+            ],
+            "why": "Los dedos rodean el asa en V o la barra recta toda la serie, con la mano en neutro o en prono según el agarre, y el braquiorradial ayuda a flexionar el codo; sostiene la carga sin desplazarla."
+          },
+          {
+            "id": "rhomboids",
+            "role": "STABILIZER",
+            "sources": [
+              "lehman2004",
+              "statpearls_rhomboids"
+            ],
+            "why": "Junto al trapecio medio juntan las escápulas cuando el asa toca el pecho y las pegan al tórax. Lehman et al. (2004) los registraron en un solo canal con el trapecio medio, más alto en el remo sentado que en los jalones; sin medida propia, se cuentan como estabilizadores."
           }
         ]
       },
@@ -169,6 +205,36 @@
           "id": "statpearls_forearm_compartments",
           "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
           "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/"
+        },
+        {
+          "claim": "En 24 hombres entrenados al 80 % de una repetición máxima, en la fase concéntrica el pectoral mayor fue más alto en el jalón por delante de la cara que con el asa en V, y con el asa en V más que tras nuca; el dorsal no cambió entre las tres técnicas.",
+          "id": "sperandei2009",
+          "title": "Electromyographic analysis of three different types of lat pull-down",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/19855327/"
+        },
+        {
+          "claim": "En la fase excéntrica, el recto abdominal se activó más en el jalón que en la dominada.",
+          "id": "doma2013",
+          "title": "Kinematic and electromyographic comparisons between chin-ups and lat-pull down exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/24245055/"
+        },
+        {
+          "claim": "Atribuye al grupo pectoral la flexión, la aducción y la rotación interna del húmero, además de un papel en la estabilización de la escápula.",
+          "id": "statpearls_pectoral",
+          "title": "Anatomy, Shoulder and Upper Limb, Pectoral Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31424825/"
+        },
+        {
+          "claim": "Explica que la pared abdominal, además de contener las vísceras, genera presión dentro del abdomen y mueve la columna.",
+          "id": "statpearls_abdominal_wall",
+          "title": "Anatomy, Abdomen and Pelvis: Abdominal Wall",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31869113/"
+        },
+        {
+          "claim": "Presenta a los romboides como músculos que mueven el miembro superior y dan estabilidad a la escápula y a la cintura escapular.",
+          "id": "statpearls_rhomboids",
+          "title": "Anatomy, Back, Rhomboid Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30521277/"
         }
       ],
       "status": "CURATED",
@@ -242,66 +308,568 @@
       }
     },
     "lat_pulldown": {
-      "public": {
-        "configurations": {
-          "lat_pulldown__bilateral__band": {
-            "description": "Con banda elástica y a dos lados, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. Con la banda, la resistencia crece a medida que avanza el trabajo del dorsal ancho. Con ambos lados a la vez, el trabajo del dorsal ancho se reparte.",
-            "executionCues": [
-              "Banda anclada arriba y tirón con ambos brazos: la carga aumenta al acercar las manos al pecho. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Aducción del hombro",
+              "Extensión del hombro"
             ],
-            "setupCues": [
-              "Preparación: Banda anclada arriba y tirón con ambos brazos: la carga aumenta al acercar las manos al pecho."
-            ]
+            "id": "glenohumeral",
+            "role": "PRIMARY",
+            "sources": [
+              "statpearls_extrinsic_back",
+              "andersen2014"
+            ],
+            "why": "Con la barra larga y las manos por fuera de los hombros, el húmero baja sobre todo por el plano lateral: la aducción domina y la extensión aparece cuando el codo pasa junto al tronco. Ese descenso del brazo mueve la carga; Andersen et al. (2014) vieron una activación del dorsal parecida con anchos de una a dos veces la distancia entre acromios."
           },
-          "lat_pulldown__bilateral__cable": {
-            "description": "Con polea y a dos lados, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. Con ambos lados a la vez, el trabajo del dorsal ancho se reparte.",
-            "executionCues": [
-              "Polea alta con ambas manos: tiras de la barra hacia el pecho. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
+          {
+            "actions": [
+              "Depresión escapular",
+              "Rotación escapular inferior",
+              "Retracción escapular"
             ],
-            "setupCues": [
-              "Preparación: Polea alta con ambas manos: tiras de la barra hacia el pecho."
+            "id": "escapulotoracica",
+            "role": "PRIMARY",
+            "sources": [
+              "lehman2004",
+              "statpearls_extrinsic_back"
+            ],
+            "why": "Al descender el brazo, la escápula se deprime y gira hacia abajo; en el punto bajo, con el agarre en el pecho, además se acerca a la columna. No es un simple ajuste: el trapecio y los romboides trabajan en los jalones, aunque menos que en el remo (Lehman 2004)."
+          },
+          {
+            "actions": [
+              "Flexión del codo"
+            ],
+            "id": "codo",
+            "role": "SECONDARY",
+            "sources": [
+              "doma2013",
+              "statpearls_biceps"
+            ],
+            "why": "El codo pasa de casi estirado a muy doblado en el punto bajo, movido por el bíceps y el braquiorradial; acompaña al hombro, que es el que decide el tirón (Doma 2013)."
+          },
+          {
+            "actions": [
+              "Sostén del agarre"
+            ],
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_forearm_compartments"
+            ],
+            "why": "La muñeca queda recta y firme bajo la carga mientras los flexores de los dedos cierran la mano; no aporta movimiento al tirón."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "latissimus_dorsi",
+            "role": "PRIMARY",
+            "sources": [
+              "doma2013",
+              "andersen2014",
+              "lusk2010",
+              "statpearls_extrinsic_back"
+            ],
+            "why": "Lleva el húmero hacia abajo y hacia el costado: es el motor del jalón. En la fase de tirón superó, junto con el bíceps, al pectoral, al tríceps y a los erectores, y en la vuelta superó al pectoral, al tríceps y al bíceps (Doma 2013). El ancho del agarre entre una y dos veces la distancia entre acromios apenas lo cambió (Andersen 2014) y el agarre prono lo activó más que el supino (Lusk 2010)."
+          },
+          {
+            "id": "biceps",
+            "role": "SECONDARY",
+            "sources": [
+              "doma2013",
+              "lehman2004",
+              "lusk2010",
+              "statpearls_biceps"
+            ],
+            "why": "Dobla el codo contra la carga durante todo el tirón. En el jalón su actividad al tirar quedó por encima de la del pectoral, el tríceps y los erectores, y en la vuelta por debajo de la del dorsal (Doma 2013); ni el tipo de agarre (Lusk 2010) ni el ejercicio (Lehman 2004) la cambiaron. Asiste con trabajo real, pero el gesto lo decide el dorsal."
+          },
+          {
+            "id": "trapezius",
+            "role": "SECONDARY",
+            "sources": [
+              "buonsenso2025",
+              "andersen2014",
+              "lehman2004"
+            ],
+            "why": "Sus fibras inferiores bajan la escápula al arrancar y las medias la acercan a la columna en el punto bajo. En las siete variantes de Buonsenso et al. (2025) el dorsal dominó con claridad al trapecio medio salvo con el tronco inclinado 30 grados, donde quedaron más parejos, y ninguna variante cambió sus porciones media e inferior; el ancho del agarre tampoco cambió la actividad del trapecio (Andersen 2014). Como contrapunto, en el jalón ancho isométrico de Lehman et al. (2004) el canal trapecio medio-romboides marcó 23 % frente al 26 % del dorsal y al 15 % del bíceps. Con esa evidencia queda por debajo del dorsal, como secundario."
+          },
+          {
+            "id": "deltoid",
+            "role": "SECONDARY",
+            "sources": [
+              "buonsenso2025",
+              "padovan2024",
+              "statpearls_deltoid"
+            ],
+            "why": "Su porción posterior ayuda a llevar el brazo hacia abajo y atrás, sobre todo cuando el codo pasa por detrás de la línea del tronco. Se activó más con agarre ancho prono y el tronco inclinado 30 grados (Buonsenso 2025), y el jalón por delante de la cara lo excitó más que el tras nuca en la fase ascendente (Padovan 2024)."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "doma2013"
+            ],
+            "why": "Sostienen el tronco erguido y apenas reclinado sobre la pelvis, fijada por el rodillo o por la postura de rodillas, mientras la carga tira de los brazos hacia arriba. En el jalón su actividad al tirar quedó por debajo de la del dorsal y la del bíceps, y por debajo de la que mostraron en la dominada (Doma 2013): fijan la postura, no mueven la carga."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "doma2013",
+              "statpearls_abdominal_wall"
+            ],
+            "why": "La pared abdominal fija el tronco reclinado sobre la pelvis; en la vuelta del jalón el recto abdominal se activó más que en la de la dominada (Doma 2013). Es sostén isométrico: no mueve ninguna articulación del gesto."
+          },
+          {
+            "id": "pectoralis",
+            "role": "STABILIZER",
+            "sources": [
+              "youdas2010",
+              "padovan2024",
+              "doma2013",
+              "statpearls_pectoral"
+            ],
+            "why": "Su porción esternal ayuda a arrancar la aducción con el brazo arriba: en la dominada su pico llega al principio de la subida, junto con el del trapecio inferior (Youdas 2010), y aquí se extrapola a la misma tracción vertical. El jalón por delante de la cara lo excitó más que el tras nuca en la fase descendente (Padovan 2024), pero al tirar quedó por debajo del dorsal y del bíceps (Doma 2013): su aporte es pequeño y se cuenta como estabilizador."
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_forearm_compartments"
+            ],
+            "why": "Los flexores de los dedos y de la muñeca cierran la mano sobre la barra, los manerales o la banda durante toda la serie, con cargas que pueden acercarse al peso del cuerpo; el braquiorradial además acompaña la flexión del codo."
+          },
+          {
+            "id": "rhomboids",
+            "role": "STABILIZER",
+            "sources": [
+              "lehman2004",
+              "buonsenso2025",
+              "statpearls_rhomboids"
+            ],
+            "why": "Acercan la escápula a la columna cuando el agarre llega al pecho y la sujetan contra el tórax. Solo hay un dato que los incluya: en el jalón ancho isométrico de Lehman et al. (2004) el canal que comparten con el trapecio medio marcó 23 %, menos que en el remo sentado. El trapecio queda en secundario por su porción inferior, que deprime la escápula y se midió aparte (Buonsenso 2025); los romboides, sin medida propia, cuentan como estabilizadores."
+          }
+        ],
+        "overrides": {
+          "lat_pulldown__bilateral__band": {
+            "joints": [
+              {
+                "actions": [
+                  "Aducción del hombro",
+                  "Extensión del hombro"
+                ],
+                "id": "glenohumeral",
+                "role": "PRIMARY",
+                "sources": [
+                  "mcmaster2010",
+                  "statpearls_extrinsic_back"
+                ],
+                "why": "El brazo hace el mismo descenso, pero la resistencia es mínima con las manos arriba y máxima con las manos junto al pecho, porque la tensión de una banda crece con el estiramiento (McMaster 2010). El tramo final del tirón es el que más exige al hombro."
+              }
             ]
           },
           "lat_pulldown__bilateral__machine": {
-            "description": "Con máquina y a dos lados, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. A dos lados, el trabajo del dorsal ancho admite más carga total.",
-            "executionCues": [
-              "Máquina de jalón con ambas manos: el guiado hace el recorrido más estable. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
-            ],
-            "setupCues": [
-              "Preparación: Máquina de jalón con ambas manos: el guiado hace el recorrido más estable."
+            "joints": [
+              {
+                "actions": [
+                  "Extensión del hombro",
+                  "Aducción del hombro"
+                ],
+                "id": "glenohumeral",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_extrinsic_back"
+                ],
+                "why": "Las palancas convergen hacia el pecho y los manerales suelen dejar las palmas enfrentadas o en semiprono, así que los codos bajan algo por delante del tronco y la extensión del hombro pesa más que con la barra larga. El arco lo fija el eje de la máquina."
+              }
             ]
           },
           "lat_pulldown__unilateral__band": {
-            "description": "Con banda elástica y a un lado, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. Con la banda, la resistencia crece a medida que avanza el trabajo del dorsal ancho. A un lado, el trabajo del dorsal ancho se hace en solitario y las diferencias salen a la vista.",
-            "executionCues": [
-              "Banda con una mano: tensión progresiva en un dorsal a la vez. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
+            "joints": [
+              {
+                "actions": [
+                  "Extensión del hombro",
+                  "Aducción del hombro"
+                ],
+                "id": "glenohumeral",
+                "role": "PRIMARY",
+                "sources": [
+                  "mcmaster2010",
+                  "statpearls_extrinsic_back"
+                ],
+                "why": "El codo baja hacia el bolsillo de atrás y termina junto al costado, algo por detrás del tronco; la resistencia es máxima en ese tramo final porque la banda está más estirada (McMaster 2010)."
+              },
+              {
+                "actions": [
+                  "Antirrotación del tronco"
+                ],
+                "id": "columna-toracica",
+                "role": "STABILIZER",
+                "sources": [
+                  "fenwick2009",
+                  "statpearls_abdominal_wall"
+                ],
+                "why": "Sin asiento ni rodillo que fijen la pelvis, la columna dorsal es la que debe evitar el giro hacia el anclaje mientras tira un solo brazo (Fenwick 2009, extrapolado del remo a un brazo)."
+              }
             ],
-            "setupCues": [
-              "Preparación: Banda con una mano: tensión progresiva en un dorsal a la vez."
+            "muscles": [
+              {
+                "id": "core",
+                "role": "STABILIZER",
+                "sources": [
+                  "fenwick2009",
+                  "statpearls_abdominal_wall"
+                ],
+                "why": "De rodillas, con una pierna adelantada y un solo brazo tirando, no hay rodillo ni asiento que fijen la pelvis y el tronco tiende a girar hacia el anclaje; la pared abdominal lo frena. Se extrapola del remo de pie a un brazo en polea, que exigió resistir la torsión (Fenwick 2009)."
+              }
             ]
           },
           "lat_pulldown__unilateral__cable": {
-            "description": "Con polea y a un lado, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. Un lado cada vez: el esfuerzo del dorsal ancho se aísla y las asimetrías quedan al descubierto.",
-            "executionCues": [
-              "Polea alta con una mano: cada dorsal trabaja por separado con tensión constante. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
+            "joints": [
+              {
+                "actions": [
+                  "Extensión del hombro",
+                  "Aducción del hombro"
+                ],
+                "id": "glenohumeral",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_extrinsic_back"
+                ],
+                "why": "Con un maneral la mano baja libre por su lado y el codo puede terminar algo por detrás del tronco, así que la extensión gana peso frente a la aducción que impone la barra larga; la palma suele girar hacia dentro al final."
+              },
+              {
+                "actions": [
+                  "Antirrotación del tronco"
+                ],
+                "id": "columna-toracica",
+                "role": "STABILIZER",
+                "sources": [
+                  "fenwick2009",
+                  "statpearls_abdominal_wall"
+                ],
+                "why": "La columna dorsal no debe girar hacia el lado que tira: los músculos del tronco la sostienen frente a la torsión que crea un solo brazo cargado (Fenwick 2009)."
+              }
             ],
-            "setupCues": [
-              "Preparación: Polea alta con una mano: cada dorsal trabaja por separado con tensión constante."
+            "muscles": [
+              {
+                "id": "core",
+                "role": "STABILIZER",
+                "sources": [
+                  "fenwick2009",
+                  "statpearls_abdominal_wall"
+                ],
+                "why": "Con un solo brazo tirando, la carga empuja el tronco a girar y a inclinarse hacia la polea, y los oblicuos con el resto de la pared abdominal lo sujetan. En el remo de pie a un brazo en polea el tronco tuvo que resistir la torsión (Fenwick 2009); aquí se extrapola a la tracción vertical."
+              }
             ]
           },
           "lat_pulldown__unilateral__machine": {
-            "description": "Con máquina y a un lado, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. A un lado, el trabajo del dorsal ancho se hace en solitario y las diferencias salen a la vista.",
+            "joints": [
+              {
+                "actions": [
+                  "Extensión del hombro",
+                  "Aducción del hombro"
+                ],
+                "id": "glenohumeral",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_extrinsic_back"
+                ],
+                "why": "El arco fijo de la palanca lleva el codo hacia la cadera, algo por delante del tronco, así que el hombro se extiende más de lo que se aduce; con un solo brazo el recorrido lo marca la máquina y no la otra mano."
+              },
+              {
+                "actions": [
+                  "Antirrotación del tronco"
+                ],
+                "id": "columna-toracica",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_abdominal_wall"
+                ],
+                "why": "Con la pelvis sujeta solo por los muslos trabados, la columna dorsal no debe rotar hacia la palanca que tira; la pared abdominal y los músculos de la espalda la sostienen frente a esa torsión."
+              }
+            ],
+            "muscles": [
+              {
+                "id": "core",
+                "role": "STABILIZER",
+                "sources": [
+                  "fenwick2009",
+                  "statpearls_abdominal_wall"
+                ],
+                "why": "Con una sola palanca cargada el tronco tiende a inclinarse y girar hacia ese lado aunque los muslos estén trabados, y la pared abdominal lo sujeta. Se extrapola del remo de pie a un brazo en polea, donde el tronco tuvo que resistir la torsión (Fenwick 2009)."
+              }
+            ]
+          }
+        }
+      },
+      "public": {
+        "configurations": {
+          "lat_pulldown__bilateral__band": {
+            "description": "La banda, anclada por encima de la cabeza, tira poco con los brazos estirados y opone su máxima resistencia cuando las manos llegan al pecho. Se monta de rodillas en el suelo bajo cualquier punto alto firme, sin asiento ni pila de placas.",
             "executionCues": [
-              "Máquina con una mano y un dorsal a la vez: el apoyo guiado elimina parte del equilibrio mientras cada lado completa su propio tirón. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
+              "Tira de los codos hacia abajo hasta que las manos queden junto al pecho.",
+              "Aguanta un instante abajo, donde la banda tira más fuerte.",
+              "Deja subir las manos despacio hasta estirar los brazos."
             ],
             "setupCues": [
-              "Preparación: Máquina con una mano y un dorsal a la vez: el apoyo guiado elimina parte del equilibrio mientras cada lado completa su propio tirón."
+              "Ata la banda a un punto firme por encima de tu cabeza, como el travesaño de un rack.",
+              "Arrodíllate debajo, toma un extremo en cada mano y estira los brazos hacia arriba."
+            ]
+          },
+          "lat_pulldown__bilateral__cable": {
+            "description": "Una barra larga cuelga de un solo cable que baja derecho desde la polea alta, y la pila pesa lo mismo con los brazos arriba que con la barra en el pecho. Con las palmas al frente y las manos algo por fuera de los hombros, los codos bajan por los lados del tronco.",
+            "executionCues": [
+              "Baja primero las escápulas y después trae la barra hasta la parte alta del pecho.",
+              "Baja los codos por los lados del tronco, sin echar el cuerpo hacia atrás para ayudarte.",
+              "Deja subir la barra despacio, sin dejar caer la pila sobre el resto de placas."
+            ],
+            "setupCues": [
+              "Ajusta el rodillo para que los muslos queden trabados con los pies apoyados en el suelo.",
+              "Agarra la barra con las palmas al frente, las manos un poco más abiertas que los hombros.",
+              "Siéntate con los brazos estirados, el pecho alto y el tronco apenas reclinado."
+            ]
+          },
+          "lat_pulldown__bilateral__machine": {
+            "description": "Los manerales van en palancas que giran sobre un eje fijo, así que las manos bajan por un arco que dibuja la máquina y que converge hacia el pecho. No hay cable que oscile ni barra que se incline, y la carga suele ir en discos sobre las palancas.",
+            "executionCues": [
+              "Baja los dos manerales a la vez hasta que las manos queden junto al pecho.",
+              "Saca el pecho y junta las escápulas abajo, sin despegar los muslos.",
+              "Vuelve despacio hasta que las palancas lleguen arriba sin golpear el tope."
+            ],
+            "setupCues": [
+              "Ajusta el asiento para alcanzar los manerales con los brazos estirados.",
+              "Traba los muslos bajo el rodillo y agarra un maneral con cada mano."
+            ]
+          },
+          "lat_pulldown__unilateral__band": {
+            "description": "Una sola mano tira del extremo de la banda, con la rodilla de ese lado en el suelo y la otra pierna adelantada, y el codo baja hasta rozar las costillas. Como la banda tira más cuanto más se estira, el tramo final junto al costado es el más duro.",
+            "executionCues": [
+              "Baja el codo hacia el bolsillo de atrás hasta que la mano llegue al costado.",
+              "Aprieta el abdomen para que el tronco no gire hacia el anclaje.",
+              "Sube despacio hasta estirar el brazo del todo."
+            ],
+            "setupCues": [
+              "Ancla la banda por encima de tu cabeza y arrodíllate con una pierna adelantada.",
+              "Toma el extremo con la mano del lado de la rodilla apoyada y estira el brazo hacia el anclaje."
+            ]
+          },
+          "lat_pulldown__unilateral__cable": {
+            "description": "Con un maneral en una sola mano, el brazo baja por su lado y el codo puede terminar algo por detrás del tronco, con la palma girando hacia dentro. El tronco tiende a rotar hacia la polea y los oblicuos lo frenan en cada repetición.",
+            "executionCues": [
+              "Baja el codo junto a las costillas hasta que la mano llegue al costado del pecho.",
+              "Deja que la palma gire hacia dentro al final, sin girar el tronco hacia la polea.",
+              "Vuelve despacio hasta tener el brazo estirado y la escápula arriba."
+            ],
+            "setupCues": [
+              "Engancha un maneral en la polea alta y siéntate con los muslos bajo el rodillo.",
+              "Agarra el maneral con una mano y apoya la otra en el muslo."
+            ]
+          },
+          "lat_pulldown__unilateral__machine": {
+            "description": "Con una sola palanca en marcha, la otra mano descansa en el muslo y el arco fijo lleva el codo hacia la cadera sin que haga falta buscar el recorrido. Cada lado mueve su propia carga, así que se nota enseguida si un brazo tira menos.",
+            "executionCues": [
+              "Baja la palanca hasta que el codo quede junto a las costillas.",
+              "Tira sin ladear el tronco hacia la palanca que trabaja.",
+              "Sube despacio hasta estirar el brazo y cambia de lado al terminar la serie."
+            ],
+            "setupCues": [
+              "Ajusta el asiento y traba los muslos bajo el rodillo.",
+              "Agarra un solo maneral y apoya la otra mano en el muslo o en el asiento."
             ]
           }
         },
-        "description": "El Jalón al Pecho es la tracción vertical con carga ajustable: el agarre desciende hasta la parte alta del pecho con el dorsal ancho y el trapecio tirando y el bíceps cerrando el gesto. Se ejecuta sentado con los muslos fijos, llevando los codos hacia el torso y regresando sin soltar la tensión. Con banda se monta en casa; la máquina permite progresar al kilo. La fábrica de espalda ancha para quien aún no domina la barra fija."
+        "description": "El Jalón al Pecho (lat pulldown) es una tracción vertical en la que el cuerpo se queda quieto y lo que se mueve es el agarre: baja desde lo alto, con los codos extendidos sobre la cabeza, hasta la parte alta del pecho. Lo mueve el dorsal ancho, que lleva el brazo hacia abajo y hacia el costado; el bíceps dobla el codo, el deltoides posterior acompaña el brazo hacia atrás y el trapecio baja y junta las escápulas. Se hace sentado con los muslos trabados bajo el rodillo, o de rodillas bajo un anclaje alto, con el pecho alto y el tronco apenas reclinado. Como la carga se elige y puede quedar muy por debajo del peso corporal, permite aprender la tracción vertical antes de la primera dominada y seguir sumando series cuando las dominadas ya no salen."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "En el jalón, el bíceps y el dorsal superaron al pectoral, al tríceps y a los erectores en la fase concéntrica, y el dorsal superó al pectoral, al tríceps y al bíceps en la excéntrica. Frente a la dominada, el jalón tuvo menos bíceps y erectores en la concéntrica y más recto abdominal en la excéntrica.",
+          "id": "doma2013",
+          "title": "Kinematic and electromyographic comparisons between chin-ups and lat-pull down exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/24245055/"
+        },
+        {
+          "claim": "Con agarre prono de una a dos veces la distancia entre acromios, la activación del dorsal, el trapecio y el infraespinoso fue similar; el agarre ancho permitió algo menos de carga en 6 repeticiones y, en la fase excéntrica, activó más el dorsal que el estrecho.",
+          "id": "andersen2014",
+          "title": "Effects of grip width on muscle strength and activation in the lat pull-down",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/24662157/"
+        },
+        {
+          "claim": "En el jalón frontal, el agarre prono activó más el dorsal que el supino con las dos anchuras probadas, y el tipo de agarre no cambió la actividad del trapecio medio ni del bíceps.",
+          "id": "lusk2010",
+          "title": "Grip width and forearm orientation effects on muscle activity during the lat pull-down",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/20543740/"
+        },
+        {
+          "claim": "En el jalón con agarre ancho sostenido 10 segundos con la barra a la altura de los ojos, el dorsal marcó 26 %, el canal trapecio medio-romboides 23 % y el bíceps 15 % de su contracción de referencia. El grupo trapecio medio-romboides fue más alto en el remo sentado, y ningún ejercicio cambió la actividad del bíceps.",
+          "id": "lehman2004",
+          "title": "Variations in muscle activation levels during traditional latissimus dorsi weight training exercises: An experimental study",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/15228624/"
+        },
+        {
+          "claim": "Con la carga de 8 repeticiones, el jalón por delante de la cara excitó más el dorsal y el pectoral mayor que el tras nuca en la fase descendente, y más el bíceps y el deltoides posterior en la ascendente; en conjunto excitó más a los motores principales.",
+          "id": "padovan2024",
+          "title": "High-Density Electromyography Excitation in Front vs. Back Lat Pull-Down Prime Movers",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/38689585/"
+        },
+        {
+          "claim": "En 40 hombres entrenados, siete variantes de jalón con otro agarre o inclinación del tronco no cambiaron la activación del dorsal, el bíceps, los trapecios medio e inferior ni el infraespinoso; solo el deltoides posterior fue mayor con agarre ancho prono y el tronco inclinado 30 grados. En la discusión, el dorsal dominó con claridad al trapecio medio salvo en las dos variantes con el tronco a 30 grados, donde la activación quedó más pareja.",
+          "id": "buonsenso2025",
+          "title": "Electromyographic Analysis of Back Muscle Activation During Lat Pulldown Exercise: Effects of Grip Variations and Forearm Orientation",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/40981044/"
+        },
+        {
+          "claim": "La tensión de las bandas elásticas creció con el estiramiento siguiendo una curva de segundo grado: cuanto más se alarga la banda, más resistencia opone.",
+          "id": "mcmaster2010",
+          "title": "Quantification of rubber and chain-based resistance modes",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/20613648/"
+        },
+        {
+          "claim": "De los tres remos comparados, el remo de pie a un brazo en polea fue el que retó la capacidad de la musculatura del tronco para resistir la torsión.",
+          "id": "fenwick2009",
+          "title": "Comparison of different rowing exercises: trunk muscle activation and lumbar spine motion, load, and stiffness",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/19620925/"
+        },
+        {
+          "claim": "Describe los músculos extrínsecos de la espalda, entre ellos el dorsal ancho, el trapecio y los romboides, cuya función es mover el miembro superior controlando la escápula y el húmero.",
+          "id": "statpearls_extrinsic_back",
+          "title": "Anatomy, Back, Extrinsic Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725901/"
+        },
+        {
+          "claim": "Describe al bíceps braquial como flexor del codo y potente supinador del antebrazo.",
+          "id": "statpearls_biceps",
+          "title": "Anatomy, Shoulder and Upper Limb, Biceps Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30137823/"
+        },
+        {
+          "claim": "Describe el deltoides como músculo clave del movimiento y la estabilidad del hombro, con porciones anterior, media y posterior.",
+          "id": "statpearls_deltoid",
+          "title": "Anatomy, Shoulder and Upper Limb, Deltoid Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725741/"
+        },
+        {
+          "claim": "El grupo pectoral flexiona, aduce y rota hacia dentro el húmero y ayuda a estabilizar la escápula.",
+          "id": "statpearls_pectoral",
+          "title": "Anatomy, Shoulder and Upper Limb, Pectoral Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31424825/"
+        },
+        {
+          "claim": "Describe los compartimentos del antebrazo: el anterior flexiona la muñeca y los dedos, y el braquiorradial forma parte del grupo lateral.",
+          "id": "statpearls_forearm_compartments",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/"
+        },
+        {
+          "claim": "La pared abdominal contiene y protege las vísceras, genera presión intraabdominal y mueve la columna vertebral.",
+          "id": "statpearls_abdominal_wall",
+          "title": "Anatomy, Abdomen and Pelvis: Abdominal Wall",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31869113/"
+        },
+        {
+          "claim": "En dominadas colgadas, los picos de actividad del trapecio inferior y del pectoral mayor llegaron al principio de la subida y los del bíceps y el dorsal al final; el pectoral promedió 44-57 % de su contracción máxima.",
+          "id": "youdas2010",
+          "title": "Surface electromyographic activation patterns and elbow joint motion during a pull-up, chin-up, or perfect-pullup™ rotational exercise",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/21068680/"
+        },
+        {
+          "claim": "Describe los romboides mayor y menor como músculos del movimiento del miembro superior y de la estabilidad de la cintura escapular y la escápula.",
+          "id": "statpearls_rhomboids",
+          "title": "Anatomy, Back, Rhomboid Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30521277/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Tracción vertical con el cuerpo fijo: sentado con los muslos trabados bajo el rodillo, o de rodillas bajo el anclaje alto de la banda, el agarre baja desde los brazos estirados sobre la cabeza hasta la parte alta del pecho. La barra larga tomada por fuera de los hombros, o un maneral por mano, lo separa del jalón con agarre cerrado, y que el cuerpo no suba hacia la barra lo separa de la dominada.",
+        "keyPositions": [
+          "Inicio: los dos brazos rectos por encima de la cabeza, con las escápulas subidas y el agarre alineado con el cable, las palancas o la banda.",
+          "Punto bajo: agarre a la altura de la clavícula, codos por debajo y a los lados del tronco, escápulas bajas y juntas, pecho alto y tronco reclinado unos pocos grados."
+        ],
+        "mistakes": [
+          "Reclinar el tronco cada vez más para arrastrar la carga con el peso del cuerpo, hasta que el gesto parece un remo.",
+          "Llevar la barra por detrás de la nuca.",
+          "Encoger los hombros al empezar en lugar de bajar las escápulas.",
+          "Despegar los muslos del rodillo o, de rodillas, sentarse sobre los talones para ayudarse.",
+          "Soltar la subida y dejar que la carga tire de los brazos de golpe."
+        ],
+        "phases": [
+          {
+            "description": "Los brazos quedan rectos por encima de la cabeza, sujetos al agarre ya cargado, con las escápulas subidas.",
+            "name": "Brazos arriba"
+          },
+          {
+            "description": "Las escápulas bajan unos centímetros antes de que los codos empiecen a doblarse.",
+            "name": "Arranque escapular"
+          },
+          {
+            "description": "Los codos bajan por los lados del tronco y el agarre llega a la clavícula con el pecho alto.",
+            "name": "Tirón"
+          },
+          {
+            "description": "Los brazos se estiran de nuevo despacio hasta que las escápulas vuelven a subir, sin soltar el peso.",
+            "name": "Regreso"
+          }
+        ],
+        "setup": [
+          "Polea y máquina: asiento a una altura en la que los muslos quedan trabados bajo el rodillo y las manos llegan al agarre con los brazos estirados.",
+          "Banda: anclada en un punto firme por encima de la cabeza, con el atleta de rodillas debajo, o con una rodilla en el suelo en la versión a un brazo.",
+          "Agarre: barra larga en prono con las manos algo por fuera de los hombros, un maneral de la máquina en cada mano, o un solo maneral en la versión unilateral."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral a la altura del hombro, con el atleta de perfil, el agarre junto al pecho y el anclaje alto dentro del encuadre.",
+          "contacts": "Manos cerradas sobre el agarre, único contacto con la carga.",
+          "load": "La resistencia llega desde arriba: el agarre queda unido al anclaje alto y las manos lo sostienen junto a la clavícula, lejos del suelo.",
+          "orientation": "Atleta de perfil, de frente al anclaje alto, con el tronco apenas reclinado hacia atrás y el cuello neutro.",
+          "phase": "Punto bajo del tirón: el agarre a la altura de la clavícula, justo bajo la barbilla, con los codos por debajo y a los lados del tronco y las escápulas bajas y juntas.",
+          "posture": "Pecho alto, columna neutra, hombros lejos de las orejas, codos apuntando al suelo por debajo de las manos y muñecas rectas."
+        },
+        "byImplement": {
+          "band": {
+            "geometry": "Banda elástica anclada en un punto firme por encima de la cabeza, por ejemplo el travesaño superior de un rack; el atleta de rodillas debajo, con las rodillas en el suelo y la cadera extendida, y un extremo de la banda en cada mano; la banda va estirada en línea recta desde el anclaje hasta las manos."
+          },
+          "cable": {
+            "geometry": "Estación de jalón con asiento, rodillo para los muslos y polea alta; el atleta sentado con los muslos trabados bajo el rodillo y los pies en el suelo; una barra larga recta, o con las puntas algo inclinadas, cuelga de un único cable casi vertical; manos en prono algo por fuera de los hombros; la pila de placas sube por la torre."
+          },
+          "machine": {
+            "geometry": "Máquina de jalón de palancas con asiento y rodillo; el atleta sentado con los muslos trabados bajo el rodillo y los pies en el suelo; dos brazos articulados giran sobre un eje alto del armazón, cada uno con un maneral en su extremo y discos cargados en la palanca; ningún cable ni barra colgante; los manerales bajan por un arco que converge hacia el pecho."
+          }
+        },
+        "byVariant": {
+          "lat_pulldown__unilateral__band": {
+            "difference": "De rodillas con una pierna adelantada, una sola mano sostiene el extremo de la banda junto al costado del pecho; la otra mano queda libre."
+          },
+          "lat_pulldown__unilateral__cable": {
+            "difference": "Un solo maneral en una mano, unido al cable de la polea alta; la otra mano descansa sobre el muslo y el codo que trabaja baja junto a las costillas."
+          },
+          "lat_pulldown__unilateral__machine": {
+            "difference": "Solo una palanca está abajo, con la mano en su maneral; la otra palanca queda arriba y la mano libre descansa sobre el muslo."
+          }
+        },
+        "forbidden": [
+          "Manos juntas en un asa en V con las palmas enfrentadas: eso es el jalón con agarre cerrado.",
+          "Barra bajando por detrás de la nuca, o parada delante de la cara sin llegar al pecho.",
+          "Atleta colgado de una barra fija con los pies en el aire: eso es una dominada.",
+          "Tronco tumbado hacia atrás casi en horizontal, como en un remo.",
+          "En la máquina: barra colgando de uno o dos cables; eso es la polea.",
+          "Agarre flotando sin manos que lo sujeten, o cable o banda flojos."
+        ],
+        "promptCore": {
+          "band": "Side view of an athlete kneeling upright on the floor under a resistance band looped around the top crossbar of a tall rack, frozen at the BOTTOM of a band lat pulldown. Each hand grips one end of the band, and both hands are held beside the upper chest. Elbows point down beside the ribs, the chest is up and the hips are straight, knees on the floor. The band is stretched taut in a straight line from the anchor above the head down to the hands.",
+          "cable": "Side view of an athlete seated at a lat pulldown station with the thighs locked under the roller pad, frozen at the BOTTOM of a cable lat pulldown. Both hands grip a long straight bar with an overhand grip, hands wider than the shoulders, and hold it at the top of the chest just below the chin. Elbows point down and out to the sides of the torso, the chest is up, the torso leans back slightly and the shoulder blades are pulled down. A single steel cable runs straight up from the middle of the bar to the high pulley, and the weight stack is lifted off its rest.",
+          "machine": "Side view of an athlete seated in a plate-loaded lat pulldown machine with the thighs locked under the roller pad, frozen at the BOTTOM of the pulldown. Each hand grips the handle at the end of its own pivoting lever arm, and both handles sit beside the upper chest. Elbows point down beside the ribs, the chest is up and the torso leans back slightly. The lever arms rise from the handles to a pivot high on the machine frame, with weight plates loaded on them. No cable and no hanging bar."
+        },
+        "qa": [
+          "¿Las manos agarran la barra, los manerales o la banda, y nada flota suelto?",
+          "¿El agarre está a la altura de la parte alta del pecho, con los codos por debajo y a los lados del tronco?",
+          "¿El atleta está sentado con los muslos bajo el rodillo, o de rodillas en la versión con banda?",
+          "¿La resistencia sale de un anclaje situado por encima de la cabeza?",
+          "¿El tronco está casi vertical, apenas reclinado hacia atrás?"
+        ]
+      }
     }
   },
   "familyId": "upper_vertical_pull_lat_pulldown",

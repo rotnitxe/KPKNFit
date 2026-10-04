@@ -1,6 +1,41 @@
 {
   "schemaVersion": 1,
   "sources": {
+    "https://doi.org/10.19164/gjsscmr.v2i1.1582": {
+      "foundTitle": "Optimising Lat Activation: A Comparative Analysis of Grip Width in the Bent-Over Barbell Row",
+      "method": "crossref",
+      "similarity": 1.0,
+      "title": "Optimising Lat Activation: A Comparative Analysis of Grip Width in the Bent-Over Barbell Row",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://doi.org/10.33155/j.ramd.2020.03.004": {
+      "foundTitle": "Comparison of shoulder and trunk muscle activation between different pullover exercises",
+      "method": "crossref",
+      "similarity": 1.0,
+      "title": "Comparison of shoulder and trunk muscle activation between different pullover exercises",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://doi.org/10.3390/app122111138": {
+      "foundTitle": "Comparison of Electromyographic Activity during Barbell Pullover and Straight Arm Pulldown Exercises",
+      "method": "crossref",
+      "similarity": 1.0,
+      "title": "Comparison of Electromyographic Activity during Barbell Pullover and Straight Arm Pulldown Exercises",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://doi.org/10.47206/ijsc.v3i1.190": {
+      "foundTitle": "Effect Of Different Grip Position And Shoulder- Abduction Angle On Muscle Strength And Activation During The Seated Cable Row",
+      "method": "crossref",
+      "similarity": 1.0,
+      "title": "Effect Of Different Grip Position And Shoulder- Abduction Angle On Muscle Strength And Activation During The Seated Cable Row",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://doi.org/10.5114/jhk/209550": {
+      "foundTitle": "High-Density Surface Electromyography Excitation of Prime Movers in the Narrow vs. Wide Grip Seated Row Exercise",
+      "method": "crossref",
+      "similarity": 1.0,
+      "title": "High-Density Surface Electromyography Excitation of Prime Movers in the Narrow vs. Wide Grip Seated Row Exercise",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/10188748/": {
       "foundTitle": "Stance width and bar load effects on leg muscle activity during the parallel squat.",
       "method": "pubmed-esummary",
@@ -78,6 +113,13 @@
       "title": "Variations in muscle activation levels during traditional latissimus dorsi weight training exercises: An experimental study",
       "verifiedAt": "2026-10-01"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/15296366/": {
+      "foundTitle": "Electromyographic analysis of the rotator cuff and deltoid musculature during common shoulder external rotation exercises.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Electromyographic analysis of the rotator cuff and deltoid musculature during common shoulder external rotation exercises",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/15705025/": {
       "foundTitle": "Dynamic and electromyographical analysis in variants of push-up exercise.",
       "method": "pubmed-esummary",
@@ -127,11 +169,25 @@
       "title": "Electromyographic study of the flexor muscles of the elbow articulation in weightlifting trained subjects",
       "verifiedAt": "2026-10-03"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/18051626/": {
+      "foundTitle": "Electromyographic validation of the deltoideus (anterior portion) and pectoralis major (clavicular portion) muscles in pull-over exercises.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Electromyographic validation of the deltoideus (anterior portion) and pectoralis major (clavicular portion) muscles in pull-over exercises",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/18076231/": {
       "foundTitle": "Trunk muscle activation during dynamic weight-training exercises and isometric instability activities.",
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "Trunk muscle activation during dynamic weight-training exercises and isometric instability activities",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/18174934/": {
+      "foundTitle": "Electromyographic analysis of the supraspinatus and deltoid muscles during 3 common rehabilitation exercises.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Electromyographic analysis of the supraspinatus and deltoid muscles during 3 common rehabilitation exercises",
       "verifiedAt": "2026-10-03"
     },
     "https://pubmed.ncbi.nlm.nih.gov/18438254/": {
@@ -183,11 +239,25 @@
       "title": "Effect of kinetically altering a repetition via the use of chain resistance on velocity during the bench press",
       "verifiedAt": "2026-10-02"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/19855327/": {
+      "foundTitle": "Electromyographic analysis of three different types of lat pull-down.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Electromyographic analysis of three different types of lat pull-down",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/20182386/": {
       "foundTitle": "Squatting kinematics and kinetics and their application to exercise performance.",
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "Squatting kinematics and kinetics and their application to exercise performance",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/20195020/": {
+      "foundTitle": "Three-dimensional scapular and clavicular kinematics and scapular muscle activity during retraction exercises.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Three-dimensional scapular and clavicular kinematics and scapular muscle activity during retraction exercises",
       "verifiedAt": "2026-10-03"
     },
     "https://pubmed.ncbi.nlm.nih.gov/2020276/": {
@@ -218,12 +288,26 @@
       "title": "Grip width and forearm orientation effects on muscle activity during the lat pull-down",
       "verifiedAt": "2026-10-01"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/20613648/": {
+      "foundTitle": "Quantification of rubber and chain-based resistance modes.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Quantification of rubber and chain-based resistance modes",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/20664364/": {
       "foundTitle": "Comparison of muscle-activation patterns during the conventional push-up and perfect· pushup™ exercises.",
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "Comparison of muscle-activation patterns during the conventional push-up and perfect pushup exercises",
       "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/20934352/": {
+      "foundTitle": "The shoulder extension function of the triceps brachii.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "The shoulder extension function of the triceps brachii",
+      "verifiedAt": "2026-10-03"
     },
     "https://pubmed.ncbi.nlm.nih.gov/21068680/": {
       "foundTitle": "Surface electromyographic activation patterns and elbow joint motion during a pull-up, chin-up, or perfect-pullup™ rotational exercise.",
@@ -253,12 +337,26 @@
       "title": "Kinetic analysis of several variations of push-ups",
       "verifiedAt": "2026-10-02"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/21975179/": {
+      "foundTitle": "Effects of the pullover exercise on the pectoralis major and latissimus dorsi muscles as evaluated by EMG.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Effects of the pullover exercise on the pectoralis major and latissimus dorsi muscles as evaluated by EMG",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/22034614/": {
       "foundTitle": "Electromyographic analysis of gluteus medius and gluteus maximus during rehabilitation exercises.",
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "Electromyographic analysis of gluteus medius and gluteus maximus during rehabilitation exercises",
       "verifiedAt": "2026-10-01"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/22076101/": {
+      "foundTitle": "Scapular muscle activity from selected strengthening exercises performed at low and high intensities.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Scapular muscle activity from selected strengthening exercises performed at low and high intensities",
+      "verifiedAt": "2026-10-03"
     },
     "https://pubmed.ncbi.nlm.nih.gov/22109658/": {
       "foundTitle": "A review of the anatomy of the hip abductor muscles, gluteus medius, gluteus minimus, and tensor fascia lata.",
@@ -279,6 +377,13 @@
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "Muscle activation in the loaded free barbell squat: a brief review",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/22436839/": {
+      "foundTitle": "Trunk muscle activation during stabilization exercises with single and double leg support.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Trunk muscle activation during stabilization exercises with single and double leg support",
       "verifiedAt": "2026-10-03"
     },
     "https://pubmed.ncbi.nlm.nih.gov/22488226/": {
@@ -365,6 +470,13 @@
       "title": "Effect of the shoulder position on the biceps brachii emg in different dumbbell curls",
       "verifiedAt": "2026-10-03"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/24245055/": {
+      "foundTitle": "Kinematic and electromyographic comparisons between chin-ups and lat-pull down exercises.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Kinematic and electromyographic comparisons between chin-ups and lat-pull down exercises",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/24575723/": {
       "foundTitle": "Imposing a pause between the eccentric and concentric phases increases the reliability of isoinertial strength assessments.",
       "method": "pubmed-esummary",
@@ -405,6 +517,13 @@
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "Muscle activation and strength in squat and Bulgarian squat on stable and unstable surface",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/25282576/": {
+      "foundTitle": "Comparison of isometric exercises for activating latissimus dorsi against the upper body weight.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Comparison of isometric exercises for activating latissimus dorsi against the upper body weight",
       "verifiedAt": "2026-10-03"
     },
     "https://pubmed.ncbi.nlm.nih.gov/25419894/": {
@@ -449,6 +568,13 @@
       "title": "Lower extremity strength and the range of motion in relation to squat depth",
       "verifiedAt": "2026-10-03"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/26134664/": {
+      "foundTitle": "The Effect of Performing Bi- and Unilateral Row Exercises on Core Muscle Activation.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "The Effect of Performing Bi- and Unilateral Row Exercises on Core Muscle Activation",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/26170726/": {
       "foundTitle": "Muscle and intensity based hamstring exercise classification in elite female track and field athletes: implications for exercise selection during rehabilitation.",
       "method": "pubmed-esummary",
@@ -477,6 +603,20 @@
       "title": "Scapula kinematics of pull-up techniques: Avoiding impingement risk with training changes",
       "verifiedAt": "2026-10-01"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/26409441/": {
+      "foundTitle": "Modifying the shoulder joint position during shrugging and retraction exercises alters the activation of the medial scapular muscles.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Modifying the shoulder joint position during shrugging and retraction exercises alters the activation of the medial scapular muscles",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/26422610/": {
+      "foundTitle": "Activation of Spinal Stabilizers and Shoulder Complex Muscles During an Inverted Row Using a Portable Pull-up Device and Body Weight Resistance.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Activation of Spinal Stabilizers and Shoulder Complex Muscles During an Inverted Row Using a Portable Pull-up Device and Body Weight Resistance",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/27032805/": {
       "foundTitle": "Unique activation of the quadriceps femoris during single- and multi-joint exercises.",
       "method": "pubmed-esummary",
@@ -496,6 +636,13 @@
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "Impact of exercise selection on hamstring muscle activation",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/27504044/": {
+      "foundTitle": "Shoulder Retractor Strengthening Exercise to Minimize Rhomboid Muscle Activity and Subacromial Impingement.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Shoulder Retractor Strengthening Exercise to Minimize Rhomboid Muscle Activity and Subacromial Impingement",
       "verifiedAt": "2026-10-03"
     },
     "https://pubmed.ncbi.nlm.nih.gov/27632836/": {
@@ -526,6 +673,13 @@
       "title": "Electromyographic Comparison of Barbell Deadlift, Hex Bar Deadlift, and Hip Thrust Exercises: A Cross-Over Study",
       "verifiedAt": "2026-10-03"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/28217415/": {
+      "foundTitle": "MUSCLE ACTIVATION PATTERNS DURING SUSPENSION TRAINING EXERCISES.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Muscle Activation Patterns During Suspension Training Exercises",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/28570490/": {
       "foundTitle": "A Review of the Biomechanical Differences Between the High-Bar and Low-Bar Back-Squat.",
       "method": "pubmed-esummary",
@@ -538,6 +692,13 @@
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "Comparison of Muscle Activation Between Back Squats and Belt Squats",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/28628370/": {
+      "foundTitle": "Multiple-joint exercises using elastic resistance bands vs. conventional resistance-training equipment: A cross-over study.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Multiple-joint exercises using elastic resistance bands vs. conventional resistance-training equipment: A cross-over study",
       "verifiedAt": "2026-10-03"
     },
     "https://pubmed.ncbi.nlm.nih.gov/28658084/": {
@@ -559,6 +720,13 @@
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "The Effects of Bench Press Variations in Competitive Athletes on Muscle Activity and Performance",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/28722874/": {
+      "foundTitle": "Anatomy, Rotator Cuff.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Anatomy, Rotator Cuff",
       "verifiedAt": "2026-10-03"
     },
     "https://pubmed.ncbi.nlm.nih.gov/29076958/": {
@@ -596,6 +764,13 @@
       "title": "Adductor magnus: An EMG investigation into proximal and distal portions and direction specific action",
       "verifiedAt": "2026-10-03"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/29599855/": {
+      "foundTitle": "Muscle Activity in Upper-Body Single-Joint Resistance Exercises with Elastic Resistance Bands vs. Free Weights.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Muscle Activity in Upper-Body Single-Joint Resistance Exercises with Elastic Resistance Bands vs. Free Weights",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/29685059/": {
       "foundTitle": "Hamstring Muscle Use in Women During Hip Extension and the Nordic Hamstring Exercise: A Functional Magnetic Resonance Imaging Study.",
       "method": "pubmed-esummary",
@@ -617,11 +792,25 @@
       "title": "Anatomy, Bony Pelvis and Lower Limb, Knee",
       "verifiedAt": "2026-10-01"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/29944029/": {
+      "foundTitle": "Scapular muscle balance and spinal stabilizer recruitment during an inverted row.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Scapular muscle balance and spinal stabilizer recruitment during an inverted row",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/30020706/": {
       "foundTitle": "Anatomy, Bony Pelvis and Lower Limb: Thigh Quadriceps Muscle.",
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "Anatomy, Bony Pelvis and Lower Limb: Thigh Quadriceps Muscle",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/30085536/": {
+      "foundTitle": "Anatomy, Back, Trapezius.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Anatomy, Back, Trapezius",
       "verifiedAt": "2026-10-03"
     },
     "https://pubmed.ncbi.nlm.nih.gov/30102684/": {
@@ -743,6 +932,13 @@
       "title": "Anatomy, Back, Extrinsic Muscles",
       "verifiedAt": "2026-10-01"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/30725943/": {
+      "foundTitle": "Anatomy, Shoulder and Upper Limb, Sternoclavicular Joint.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Anatomy, Shoulder and Upper Limb, Sternoclavicular Joint",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/30855781/": {
       "foundTitle": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Maximus Muscle.",
       "method": "pubmed-esummary",
@@ -841,6 +1037,13 @@
       "title": "Core Muscle Activation in Three Lower Extremity Exercises With Different Stability Requirements",
       "verifiedAt": "2026-10-03"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/31971759/": {
+      "foundTitle": "Anatomy, Head and Neck, Levator Scapulae Muscles.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Anatomy, Head and Neck, Levator Scapulae Muscles",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/32107499/": {
       "foundTitle": "Electromyographic activity in deadlift exercise and its variants. A systematic review.",
       "method": "pubmed-esummary",
@@ -881,6 +1084,13 @@
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "Is the Rear Foot Elevated Split Squat Unilateral? An Investigation Into the Kinetic and Kinematic Demands",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/32940548/": {
+      "foundTitle": "Recruitment of Shoulder Complex and Torso Stabilizer Muscles With Rowing Exercises Using a Suspension Strap Training System.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Recruitment of Shoulder Complex and Torso Stabilizer Muscles With Rowing Exercises Using a Suspension Strap Training System",
       "verifiedAt": "2026-10-03"
     },
     "https://pubmed.ncbi.nlm.nih.gov/33009197/": {
@@ -981,12 +1191,33 @@
       "title": "The role of exercise selection in regional Muscle Hypertrophy: A randomized controlled trial",
       "verifiedAt": "2026-10-03"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/34911072/": {
+      "foundTitle": "Shoulder-Abduction Angle and Trapezius Muscle Activity During Scapular-Retraction Exercise.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Shoulder-Abduction Angle and Trapezius Muscle Activity During Scapular-Retraction Exercise",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/35202059/": {
       "foundTitle": "Chest Exercises: Movement and Loading of Shoulder, Elbow and Wrist Joints.",
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "Chest Exercises: Movement and Loading of Shoulder, Elbow and Wrist Joints",
       "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/35253718/": {
+      "foundTitle": "Electromyography analysis: Comparison of maximum voluntary contraction exercises for the latissimus dorsi.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Electromyography analysis: Comparison of maximum voluntary contraction exercises for the latissimus dorsi",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/35391860/": {
+      "foundTitle": "Band Pull-Apart Exercise: Effects of Movement Direction and Hand Position on Shoulder Muscle Activity.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Band Pull-Apart Exercise: Effects of Movement Direction and Hand Position on Shoulder Muscle Activity",
+      "verifiedAt": "2026-10-03"
     },
     "https://pubmed.ncbi.nlm.nih.gov/35599468/": {
       "foundTitle": "Activation of upper limb muscles in subjects with scapular dyskinesis during bench-press and dumbbell fly on stable and unstable surfaces.",
@@ -1007,6 +1238,13 @@
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "Muscle Activation Patterns of the Proximal Medial and Distal Biceps Femoris and Gluteus Maximus Among 6 Hip Extension and Knee Flexion Exercises in Trained Women",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/35992501/": {
+      "foundTitle": "Differences Between Pullover and Pulldown Exercises on Maximal Isometric Force and Myoelectric Activity in Recreationally-Trained Men.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Differences Between Pullover and Pulldown Exercises on Maximal Isometric Force and Myoelectric Activity in Recreationally-Trained Men",
       "verifiedAt": "2026-10-03"
     },
     "https://pubmed.ncbi.nlm.nih.gov/36026487/": {
@@ -1058,6 +1296,13 @@
       "title": "Backseat Inclination Affects the Myoelectric Activation During the Inclined Leg Press Exercise in Recreationally Trained Men",
       "verifiedAt": "2026-10-03"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/37458020/": {
+      "foundTitle": "Influence of scapular motion cues on trapezius muscle activity during Y exercise.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Influence of scapular motion cues on trapezius muscle activity during Y exercise",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/37624134/": {
       "foundTitle": "Lateral Force and EMG Activity in Wide- and Narrow-Grip Bench Press in Various Conditions.",
       "method": "pubmed-esummary",
@@ -1072,6 +1317,13 @@
       "title": "Hip thrust and back squat training elicit similar gluteus muscle hypertrophy and transfer similarly to the deadlift",
       "verifiedAt": "2026-10-03"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/37927449/": {
+      "foundTitle": "Neuromechanics of finger hangs with arm lock-offs: analyzing joint moments and muscle activations to improve practice guidelines for climbing.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Neuromechanics of finger hangs with arm lock-offs: analyzing joint moments and muscle activations to improve practice guidelines for climbing",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/38006325/": {
       "foundTitle": "Hamstring-to-quadriceps activation ratio during lower-limb strengthening exercises.",
       "method": "pubmed-esummary",
@@ -1079,11 +1331,25 @@
       "title": "Hamstring-to-quadriceps activation ratio during lower-limb strengthening exercises",
       "verifiedAt": "2026-10-03"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/38261765/": {
+      "foundTitle": "Comparative Electromyographic Study of Scapular Stabilizing Muscles During Five Main Rehabilitation Exercises.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Comparative Electromyographic Study of Scapular Stabilizing Muscles During Five Main Rehabilitation Exercises",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/38595263/": {
       "foundTitle": "A Biomechanical Comparison Between the Safety-Squat Bar and Traditional Barbell Back Squat.",
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "A Biomechanical Comparison Between the Safety-Squat Bar and Traditional Barbell Back Squat",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/38689585/": {
+      "foundTitle": "High-Density Electromyography Excitation in Front vs. Back Lat Pull-Down Prime Movers.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "High-Density Electromyography Excitation in Front vs. Back Lat Pull-Down Prime Movers",
       "verifiedAt": "2026-10-03"
     },
     "https://pubmed.ncbi.nlm.nih.gov/38689586/": {
@@ -1105,6 +1371,13 @@
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "Reverse Nordic Curl Does Not Generate Superior Eccentric Activation of the Quadriceps Muscle Than Bodyweight Squat-Based Exercises",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/39593452/": {
+      "foundTitle": "Activation of the three deltoid muscle portions during common strengthening exercises: A systematic review.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Activation of the three deltoid muscle portions during common strengthening exercises: A systematic review",
       "verifiedAt": "2026-10-03"
     },
     "https://pubmed.ncbi.nlm.nih.gov/39686276/": {
@@ -1149,6 +1422,13 @@
       "title": "Changes of abdominal wall tension across various resistance exercises during maximal and submaximal loads in healthy adults: a cross-sectional study",
       "verifiedAt": "2026-10-03"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/40513198/": {
+      "foundTitle": "Impact of different ranges of motion in the prone barbell row on muscle excitation.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Impact of different ranges of motion in the prone barbell row on muscle excitation",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/40867012/": {
       "foundTitle": "Targeted muscle activation in Bulgarian split squat variations: effects of trunk position and suspension-based execution.",
       "method": "pubmed-esummary",
@@ -1163,11 +1443,25 @@
       "title": "Superficial and Deep Gluteal Muscle Activation During Common Therapeutic Exercises: A Muscle Functional Magnetic Resonance Imaging Analysis",
       "verifiedAt": "2026-10-01"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/40981044/": {
+      "foundTitle": "Electromyographic Analysis of Back Muscle Activation During Lat Pulldown Exercise: Effects of Grip Variations and Forearm Orientation.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Electromyographic Analysis of Back Muscle Activation During Lat Pulldown Exercise: Effects of Grip Variations and Forearm Orientation",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/41318473/": {
       "foundTitle": "Persistent neuromuscular deficits in the posterior kinetic chain following hamstring strain injury: EMG insights from nordic hamstring curl, kettlebell swing, and supine sliding leg curl.",
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "Persistent neuromuscular deficits in the posterior kinetic chain following hamstring strain injury: EMG insights from nordic hamstring curl, kettlebell swing, and supine sliding leg curl",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/41345828/": {
+      "foundTitle": "Regional Activation of the Latissimus Dorsi Muscle by High-Density Surface Electromyography During Isometric Shoulder and Trunk Exercises.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Regional Activation of the Latissimus Dorsi Muscle by High-Density Surface Electromyography During Isometric Shoulder and Trunk Exercises",
       "verifiedAt": "2026-10-03"
     },
     "https://pubmed.ncbi.nlm.nih.gov/41612762/": {
@@ -1224,6 +1518,13 @@
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "The effects of bar positioning, stance width, repetition, and load on muscle activity during the barbell back squat",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/42647355/": {
+      "foundTitle": "Electromyographic Analysis of Latissimus Dorsi Activation During Common Resistance Training Exercises: A Narrative Review.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Electromyographic Analysis of Latissimus Dorsi Activation During Common Resistance Training Exercises: A Narrative Review",
       "verifiedAt": "2026-10-03"
     },
     "https://pubmed.ncbi.nlm.nih.gov/8775157/": {

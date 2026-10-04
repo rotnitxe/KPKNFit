@@ -110,6 +110,7 @@ object AprendeOntology {
         "romanian_deadlift_deficit" to "hinge",
         "scapular_depression" to "scapular-depression",
         "scapular_elevation" to "scapular-elevation",
+        "scapular_retraction" to null,
         "shoulder_abduction_diagonal" to null,
         "shoulder_abduction_full_rom" to "shoulder-abduction",
         "shoulder_flexion" to "shoulder-flexion",

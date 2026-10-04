@@ -24,33 +24,42 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con mancuernas, los hombros se elevan hacia las orejas y descienden de forma controlada sin rotar el tronco. El trapecio trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+              "description": "Las mancuernas cuelgan a los costados con las palmas hacia los muslos, en la vertical de los hombros, y nada roza el cuerpo al subir. Cada brazo carga su propio peso, así que si un hombro sube menos que el otro se nota enseguida.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
-                "Mancuernas a los costados y hombros hacia arriba: el encogimiento tradicional. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Sube los hombros hacia las orejas en línea recta, sin doblar los codos.",
+                "Arriba, comprueba que las dos mancuernas quedan a la misma altura y baja despacio.",
+                "No gires los hombros en círculo ni al subir ni al bajar."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Elevación O Depresión"
+                    "Elevación escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Centrado Del Hombro"
+                    "Estabilidad del hombro con el brazo colgando"
                   ],
                   "jointId": "glenohumeral",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Posición Cervical"
+                    "Posición neutra del cuello"
                   ],
                   "jointId": "columna-cervical",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén del agarre"
+                  ],
+                  "jointId": "muñeca",
                   "role": "STABILIZER"
                 }
               ],
@@ -68,30 +77,38 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Elevación O Depresión",
-                    "Centrado Del Hombro",
-                    "Posición Cervical"
+                    "Elevación escapular",
+                    "Estabilidad del hombro con el brazo colgando",
+                    "Posición neutra del cuello",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Elevación O Depresión"
+                        "Elevación escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Centrado Del Hombro"
+                        "Estabilidad del hombro con el brazo colgando"
                       ],
                       "jointId": "glenohumeral",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Posición Cervical"
+                        "Posición neutra del cuello"
                       ],
                       "jointId": "columna-cervical",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del agarre"
+                      ],
+                      "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
                   ],
@@ -101,7 +118,9 @@
                   "secondaryMuscles": [
                     "rhomboids"
                   ],
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "forearm"
+                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -114,7 +133,8 @@
                   "relevantJoints": [
                     "escapulotoracica",
                     "glenohumeral",
-                    "columna-cervical"
+                    "columna-cervical",
+                    "muñeca"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -180,11 +200,14 @@
                 "rhomboids"
               ],
               "setupCues": [
-                "Preparación: Mancuernas a los costados y hombros hacia arriba: el encogimiento tradicional."
+                "Ponte de pie con los pies al ancho de la cadera y una mancuerna en cada mano.",
+                "Deja los brazos estirados a los costados, con las palmas mirando a los muslos."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.4,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "forearm"
+              ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
             },
@@ -210,33 +233,42 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con máquina Smith, los hombros se elevan hacia las orejas y descienden de forma controlada sin rotar el tronco. El trapecio trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
+              "description": "Los rieles fijan la barra en vertical y los ganchos dejan sacarla ya a la altura de los muslos, sin levantarla desde el suelo. Al no tener que estabilizar la barra hacia delante o hacia atrás, solo queda subir y bajar los hombros.",
               "efc": 2.5,
               "equipmentId": "smith_machine",
               "executionCues": [
-                "Smith con los hombros libres: la guía permite cargar más sin tener que equilibrar la barra. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Sube los hombros en vertical a lo largo de los rieles, sin doblar los codos.",
+                "Baja hasta sentir el cuello largo y vuelve a subir sin rebotar.",
+                "Al terminar, gira la barra para engancharla antes de soltarla."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Elevación O Depresión"
+                    "Elevación escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Centrado Del Hombro"
+                    "Estabilidad del hombro con la carga delante"
                   ],
                   "jointId": "glenohumeral",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Posición Cervical"
+                    "Posición neutra del cuello"
                   ],
                   "jointId": "columna-cervical",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén del agarre en prono"
+                  ],
+                  "jointId": "muñeca",
                   "role": "STABILIZER"
                 }
               ],
@@ -254,30 +286,38 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Elevación O Depresión",
-                    "Centrado Del Hombro",
-                    "Posición Cervical"
+                    "Elevación escapular",
+                    "Estabilidad del hombro con la carga delante",
+                    "Posición neutra del cuello",
+                    "Sostén del agarre en prono"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Elevación O Depresión"
+                        "Elevación escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Centrado Del Hombro"
+                        "Estabilidad del hombro con la carga delante"
                       ],
                       "jointId": "glenohumeral",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Posición Cervical"
+                        "Posición neutra del cuello"
                       ],
                       "jointId": "columna-cervical",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del agarre en prono"
+                      ],
+                      "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
                   ],
@@ -287,7 +327,9 @@
                   "secondaryMuscles": [
                     "rhomboids"
                   ],
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "forearm"
+                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -300,7 +342,8 @@
                   "relevantJoints": [
                     "escapulotoracica",
                     "glenohumeral",
-                    "columna-cervical"
+                    "columna-cervical",
+                    "muñeca"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "self_stabilized"
@@ -366,11 +409,15 @@
                 "rhomboids"
               ],
               "setupCues": [
-                "Preparación: Smith con los hombros libres: la guía permite cargar más sin tener que equilibrar la barra."
+                "Coloca los ganchos de la barra a la altura de la mitad del muslo.",
+                "Ponte de pie pegado a la barra y agárrala en prono, al ancho de los hombros.",
+                "Gira la barra para soltar los ganchos y estira los brazos."
               ],
               "setupTimeSeconds": 40,
               "ssc": 0.4,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "forearm"
+              ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
             },
@@ -396,33 +443,41 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con polea, los hombros se elevan hacia las orejas y descienden de forma controlada sin rotar el tronco. Con la polea, la tensión sobre el trapecio se mantiene viva de principio a fin.",
+              "description": "La polea baja queda por delante de los pies y tira de la barra hacia ella, así que la resistencia no es del todo vertical. Un paso hacia la polea o hacia atrás cambia ese ángulo, y el peso se ajusta con el pasador.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
-                "Polea y hombros hacia arriba: la tensión constante mantiene el trapecio cargado. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Sube los hombros hacia las orejas sin dejar que la polea te incline hacia delante.",
+                "Frena la bajada de los hombros, porque el cable tira de la barra hacia la polea."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Elevación O Depresión"
+                    "Elevación escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Centrado Del Hombro"
+                    "Estabilidad del hombro ante un tirón oblicuo"
                   ],
                   "jointId": "glenohumeral",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Posición Cervical"
+                    "Posición neutra del cuello"
                   ],
                   "jointId": "columna-cervical",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén del agarre en prono"
+                  ],
+                  "jointId": "muñeca",
                   "role": "STABILIZER"
                 }
               ],
@@ -440,30 +495,38 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Elevación O Depresión",
-                    "Centrado Del Hombro",
-                    "Posición Cervical"
+                    "Elevación escapular",
+                    "Estabilidad del hombro ante un tirón oblicuo",
+                    "Posición neutra del cuello",
+                    "Sostén del agarre en prono"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Elevación O Depresión"
+                        "Elevación escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Centrado Del Hombro"
+                        "Estabilidad del hombro ante un tirón oblicuo"
                       ],
                       "jointId": "glenohumeral",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Posición Cervical"
+                        "Posición neutra del cuello"
                       ],
                       "jointId": "columna-cervical",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del agarre en prono"
+                      ],
+                      "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
                   ],
@@ -473,7 +536,9 @@
                   "secondaryMuscles": [
                     "rhomboids"
                   ],
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "forearm"
+                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -486,7 +551,8 @@
                   "relevantJoints": [
                     "escapulotoracica",
                     "glenohumeral",
-                    "columna-cervical"
+                    "columna-cervical",
+                    "muñeca"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
@@ -552,11 +618,14 @@
                 "rhomboids"
               ],
               "setupCues": [
-                "Preparación: Polea y hombros hacia arriba: la tensión constante mantiene el trapecio cargado."
+                "Ponte de pie frente a la polea baja con una barra recta enganchada al cable.",
+                "Agarra la barra en prono al ancho de los hombros y retrocede hasta que el cable quede tirante."
               ],
               "setupTimeSeconds": 25,
               "ssc": 0.4,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "forearm"
+              ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
             },
@@ -582,33 +651,41 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con kettlebell, los hombros se elevan hacia las orejas y descienden de forma controlada sin rotar el tronco. El trapecio trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+              "description": "Cada kettlebell cuelga bajo el puño con la bola pegada al lateral del muslo, y su asa gruesa obliga a cerrar la mano con más fuerza. Si los hombros no suben en línea recta, la bola roza o golpea la pierna.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
-                "Kettlebells a los costados: el peso colgante obliga a fijar la escápula mientras los hombros suben. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Sube los hombros hacia las orejas sin que las bolas choquen con las piernas.",
+                "Aprieta el asa toda la serie y baja despacio."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Elevación O Depresión"
+                    "Elevación escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Centrado Del Hombro"
+                    "Estabilidad del hombro con el brazo colgando"
                   ],
                   "jointId": "glenohumeral",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Posición Cervical"
+                    "Posición neutra del cuello"
                   ],
                   "jointId": "columna-cervical",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén del agarre neutro"
+                  ],
+                  "jointId": "muñeca",
                   "role": "STABILIZER"
                 }
               ],
@@ -626,30 +703,38 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Elevación O Depresión",
-                    "Centrado Del Hombro",
-                    "Posición Cervical"
+                    "Elevación escapular",
+                    "Estabilidad del hombro con el brazo colgando",
+                    "Posición neutra del cuello",
+                    "Sostén del agarre neutro"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Elevación O Depresión"
+                        "Elevación escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Centrado Del Hombro"
+                        "Estabilidad del hombro con el brazo colgando"
                       ],
                       "jointId": "glenohumeral",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Posición Cervical"
+                        "Posición neutra del cuello"
                       ],
                       "jointId": "columna-cervical",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del agarre neutro"
+                      ],
+                      "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
                   ],
@@ -659,7 +744,9 @@
                   "secondaryMuscles": [
                     "rhomboids"
                   ],
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "forearm"
+                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -672,7 +759,8 @@
                   "relevantJoints": [
                     "escapulotoracica",
                     "glenohumeral",
-                    "columna-cervical"
+                    "columna-cervical",
+                    "muñeca"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -738,11 +826,14 @@
                 "rhomboids"
               ],
               "setupCues": [
-                "Preparación: Kettlebells a los costados: el peso colgante obliga a fijar la escápula mientras los hombros suben."
+                "Toma una kettlebell en cada mano, con la bola por fuera del muslo.",
+                "Ponte de pie con los brazos estirados y las palmas mirando al cuerpo."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.4,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "forearm"
+              ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
             },
@@ -768,33 +859,42 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con barra, los hombros se elevan hacia las orejas y descienden de forma controlada sin rotar el tronco. Con la barra, la carga sube al máximo y la progresión del trapecio se mide sin trampa.",
+              "description": "La barra libre cuelga delante de los muslos en agarre prono al ancho de los hombros y se carga con discos hasta pesos altos. Al quedar el peso por delante del cuerpo, tira de los hombros hacia el frente, y la barra puede rozar los muslos en la subida.",
               "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
-                "Barra al frente y hombros hacia arriba: el encogimiento tradicional con barra. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Sube los hombros hacia las orejas sin doblar los codos ni adelantar la barra.",
+                "Haz una pausa arriba y baja despacio, sin que el peso de la barra te incline hacia delante.",
+                "Deja que la barra roce los muslos sin apoyarla en ellos."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Elevación O Depresión"
+                    "Elevación escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Centrado Del Hombro"
+                    "Estabilidad del hombro con la carga delante"
                   ],
                   "jointId": "glenohumeral",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Posición Cervical"
+                    "Posición neutra del cuello"
                   ],
                   "jointId": "columna-cervical",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén del agarre en prono"
+                  ],
+                  "jointId": "muñeca",
                   "role": "STABILIZER"
                 }
               ],
@@ -812,30 +912,38 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Elevación O Depresión",
-                    "Centrado Del Hombro",
-                    "Posición Cervical"
+                    "Elevación escapular",
+                    "Estabilidad del hombro con la carga delante",
+                    "Posición neutra del cuello",
+                    "Sostén del agarre en prono"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Elevación O Depresión"
+                        "Elevación escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Centrado Del Hombro"
+                        "Estabilidad del hombro con la carga delante"
                       ],
                       "jointId": "glenohumeral",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Posición Cervical"
+                        "Posición neutra del cuello"
                       ],
                       "jointId": "columna-cervical",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del agarre en prono"
+                      ],
+                      "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
                   ],
@@ -845,7 +953,9 @@
                   "secondaryMuscles": [
                     "rhomboids"
                   ],
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "forearm"
+                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -858,7 +968,8 @@
                   "relevantJoints": [
                     "escapulotoracica",
                     "glenohumeral",
-                    "columna-cervical"
+                    "columna-cervical",
+                    "muñeca"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -924,11 +1035,14 @@
                 "rhomboids"
               ],
               "setupCues": [
-                "Preparación: Barra al frente y hombros hacia arriba: el encogimiento tradicional con barra."
+                "Saca la barra del soporte a la altura de los muslos y da un paso atrás.",
+                "Agarra la barra en prono al ancho de los hombros, con los brazos estirados delante de los muslos."
               ],
               "setupTimeSeconds": 35,
               "ssc": 0.4,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "forearm"
+              ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
             },
@@ -938,7 +1052,7 @@
           }
         ],
         "defaultConfigurationId": "back_encogimientos__dumbbells",
-        "description": "Los Encogimientos elevan los hombros hacia las orejas contra carga: el trapecio superior trabaja en el gesto más simple del gimnasio. Se ejecutan con mancuernas a los lados o barra al frente, subiendo en vertical y bajando sin rodar los hombros hacia delante. En polea baja o con kettlebells el gesto se monta con otro agarre. Trapecios que se ven desde lejos, construidos un centímetro cada vez.",
+        "description": "Los Encogimientos (shrugs) suben los hombros hacia las orejas con los brazos colgando y la carga en las manos, y los devuelven abajo hasta notar el cuello largo. Entre diez ejercicios comparados con electromiografía, encoger un hombro fue el que más activó la porción superior del trapecio; el elevador de la escápula y los romboides ayudan a subir la escápula y el antebrazo sujeta el peso. Los codos no se doblan y los hombros no ruedan: el recorrido es corto y casi vertical. Según el implemento, la carga cuelga a los costados o delante de los muslos, y eso cambia hacia dónde tira de los hombros. Como las piernas no empujan y el tronco solo se sostiene, la subida es trabajo de la espalda alta, y admite cargas altas.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -980,40 +1094,63 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con barra, con el torso inclinado, los hombros se retraen hacia atrás y arriba mientras la carga cuelga. La barra es la referencia para cargar el trapecio con peso de verdad.",
+              "description": "Sin apoyo para el pecho, el tronco se inclina casi paralelo al suelo y la barra cuelga bajo los hombros en agarre prono. La zona lumbar y las caderas sostienen esa inclinación toda la serie, de modo que la espalda baja trabaja además de las escápulas.",
               "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
-                "Barra por detrás del cuerpo: el Kelso shrug tradicional con los brazos atrás. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Junta las escápulas hacia la columna sin doblar los codos ni subir los hombros.",
+                "Aguanta un segundo con las escápulas juntas.",
+                "Sepáralas despacio sin perder la inclinación del tronco."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Elevación O Depresión"
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Centrado Del Hombro"
+                    "Retracción de la clavícula"
+                  ],
+                  "jointId": "esternoclavicular",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad del hombro con el brazo estirado"
                   ],
                   "jointId": "glenohumeral",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Posición Cervical"
+                    "Sostén del agarre"
                   ],
-                  "jointId": "columna-cervical",
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Estabilidad del tronco inclinado"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Flexión sostenida de la cadera"
+                  ],
+                  "jointId": "cadera",
                   "role": "STABILIZER"
                 }
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
-              "movementPatternId": "scapular_elevation",
+              "movementPatternId": "scapular_retraction",
               "performanceProfileId": "back_encogimientos_kelso__barbell",
               "primaryMuscles": [
                 "trapezius"
@@ -1024,30 +1161,54 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Elevación O Depresión",
-                    "Centrado Del Hombro",
-                    "Posición Cervical"
+                    "Retracción escapular",
+                    "Retracción de la clavícula",
+                    "Estabilidad del hombro con el brazo estirado",
+                    "Sostén del agarre",
+                    "Estabilidad del tronco inclinado",
+                    "Flexión sostenida de la cadera"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Elevación O Depresión"
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Centrado Del Hombro"
+                        "Retracción de la clavícula"
+                      ],
+                      "jointId": "esternoclavicular",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad del hombro con el brazo estirado"
                       ],
                       "jointId": "glenohumeral",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Posición Cervical"
+                        "Sostén del agarre"
                       ],
-                      "jointId": "columna-cervical",
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad del tronco inclinado"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Flexión sostenida de la cadera"
+                      ],
+                      "jointId": "cadera",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1057,7 +1218,12 @@
                   "secondaryMuscles": [
                     "rhomboids"
                   ],
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "forearm",
+                    "erector_spinae",
+                    "hamstrings",
+                    "gluteus_maximus"
+                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -1066,11 +1232,14 @@
                   "kineticChain": "POSTERIOR",
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "free_external_load",
-                  "movementPatternId": "scapular_elevation",
+                  "movementPatternId": "scapular_retraction",
                   "relevantJoints": [
                     "escapulotoracica",
+                    "esternoclavicular",
                     "glenohumeral",
-                    "columna-cervical"
+                    "muñeca",
+                    "columna-lumbar",
+                    "cadera"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -1125,7 +1294,7 @@
                     "smith_machine"
                   ],
                   "preservesIntent": [
-                    "scapular_elevation:trapezius"
+                    "scapular_retraction:trapezius"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
@@ -1135,11 +1304,18 @@
                 "rhomboids"
               ],
               "setupCues": [
-                "Preparación: Barra por detrás del cuerpo: el Kelso shrug tradicional con los brazos atrás."
+                "Agarra la barra en prono, un poco más ancho que los hombros, y sácala del soporte.",
+                "Inclina el tronco desde la cadera hasta dejarlo casi paralelo al suelo, con las rodillas algo flexionadas.",
+                "Deja colgar la barra bajo los hombros con los brazos estirados."
               ],
               "setupTimeSeconds": 35,
               "ssc": 0.4,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "forearm",
+                "erector_spinae",
+                "hamstrings",
+                "gluteus_maximus"
+              ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
             },
@@ -1165,40 +1341,49 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con máquina, con el torso inclinado, los hombros se retraen hacia atrás y arriba mientras la carga cuelga. En la máquina, la trayectoria guiada concentra todo el esfuerzo del trapecio.",
+              "description": "El pecho descansa en el acolchado de una máquina de remo con apoyo y las manos sostienen las asas con los brazos estirados. Solo se mueven las escápulas, y la carga avanza unos centímetros sin que la espalda baja tenga que sostener el tronco.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
-                "Máquina con los brazos detrás: el guiado hace el recorrido estable. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Junta las escápulas y lleva las asas unos centímetros atrás, con los codos rectos.",
+                "Mantén el pecho pegado al acolchado durante toda la serie.",
+                "Vuelve despacio hasta notar las escápulas separadas."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Elevación O Depresión"
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Centrado Del Hombro"
+                    "Retracción de la clavícula"
+                  ],
+                  "jointId": "esternoclavicular",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad del hombro con el brazo estirado"
                   ],
                   "jointId": "glenohumeral",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Posición Cervical"
+                    "Sostén del agarre"
                   ],
-                  "jointId": "columna-cervical",
+                  "jointId": "muñeca",
                   "role": "STABILIZER"
                 }
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
-              "movementPatternId": "scapular_elevation",
+              "movementPatternId": "scapular_retraction",
               "performanceProfileId": "back_encogimientos_kelso__machine",
               "primaryMuscles": [
                 "trapezius"
@@ -1209,30 +1394,38 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Elevación O Depresión",
-                    "Centrado Del Hombro",
-                    "Posición Cervical"
+                    "Retracción escapular",
+                    "Retracción de la clavícula",
+                    "Estabilidad del hombro con el brazo estirado",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Elevación O Depresión"
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Centrado Del Hombro"
+                        "Retracción de la clavícula"
+                      ],
+                      "jointId": "esternoclavicular",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad del hombro con el brazo estirado"
                       ],
                       "jointId": "glenohumeral",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Posición Cervical"
+                        "Sostén del agarre"
                       ],
-                      "jointId": "columna-cervical",
+                      "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1242,7 +1435,9 @@
                   "secondaryMuscles": [
                     "rhomboids"
                   ],
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "forearm"
+                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -1251,11 +1446,12 @@
                   "kineticChain": "POSTERIOR",
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "guided_external_load",
-                  "movementPatternId": "scapular_elevation",
+                  "movementPatternId": "scapular_retraction",
                   "relevantJoints": [
                     "escapulotoracica",
+                    "esternoclavicular",
                     "glenohumeral",
-                    "columna-cervical"
+                    "muñeca"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "self_stabilized"
@@ -1310,7 +1506,7 @@
                     "smith_machine"
                   ],
                   "preservesIntent": [
-                    "scapular_elevation:trapezius"
+                    "scapular_retraction:trapezius"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
@@ -1320,11 +1516,14 @@
                 "rhomboids"
               ],
               "setupCues": [
-                "Preparación: Máquina con los brazos detrás: el guiado hace el recorrido estable."
+                "Ajusta el asiento para que el borde del acolchado quede a la altura del pecho.",
+                "Apoya el pecho, agarra las asas y deja los brazos estirados con las escápulas separadas."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.4,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "forearm"
+              ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
             },
@@ -1350,40 +1549,55 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con polea, con el torso inclinado, los hombros se retraen hacia atrás y arriba mientras la carga cuelga. Con la polea, la tensión sobre el trapecio se mantiene viva de principio a fin.",
+              "description": "Sentado en la estación de remo, con el tronco vertical, el cable sube en diagonal desde la polea, junto a los pies, hasta las manos a la altura del pecho. Juntar las escápulas aleja la barra unos centímetros de la polea, con la carga tirando hacia delante y hacia abajo.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
-                "Polea por detrás: la tensión constante acompaña el encogimiento trasero. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Junta las escápulas y lleva los hombros hacia atrás sin doblar los codos ni echar el tronco atrás.",
+                "Deja que la polea separe las escápulas despacio antes de repetir."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Elevación O Depresión"
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Centrado Del Hombro"
+                    "Retracción de la clavícula"
+                  ],
+                  "jointId": "esternoclavicular",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad del hombro con el brazo al frente"
                   ],
                   "jointId": "glenohumeral",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Posición Cervical"
+                    "Sostén del agarre"
                   ],
-                  "jointId": "columna-cervical",
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Estabilidad del tronco erguido"
+                  ],
+                  "jointId": "columna-lumbar",
                   "role": "STABILIZER"
                 }
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
-              "movementPatternId": "scapular_elevation",
+              "movementPatternId": "scapular_retraction",
               "performanceProfileId": "back_encogimientos_kelso__cable",
               "primaryMuscles": [
                 "trapezius"
@@ -1394,30 +1608,46 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Elevación O Depresión",
-                    "Centrado Del Hombro",
-                    "Posición Cervical"
+                    "Retracción escapular",
+                    "Retracción de la clavícula",
+                    "Estabilidad del hombro con el brazo al frente",
+                    "Sostén del agarre",
+                    "Estabilidad del tronco erguido"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Elevación O Depresión"
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Centrado Del Hombro"
+                        "Retracción de la clavícula"
+                      ],
+                      "jointId": "esternoclavicular",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad del hombro con el brazo al frente"
                       ],
                       "jointId": "glenohumeral",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Posición Cervical"
+                        "Sostén del agarre"
                       ],
-                      "jointId": "columna-cervical",
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad del tronco erguido"
+                      ],
+                      "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1427,7 +1657,10 @@
                   "secondaryMuscles": [
                     "rhomboids"
                   ],
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "forearm",
+                    "erector_spinae"
+                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -1436,11 +1669,13 @@
                   "kineticChain": "POSTERIOR",
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "continuous_cable",
-                  "movementPatternId": "scapular_elevation",
+                  "movementPatternId": "scapular_retraction",
                   "relevantJoints": [
                     "escapulotoracica",
+                    "esternoclavicular",
                     "glenohumeral",
-                    "columna-cervical"
+                    "muñeca",
+                    "columna-lumbar"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
@@ -1495,7 +1730,7 @@
                     "smith_machine"
                   ],
                   "preservesIntent": [
-                    "scapular_elevation:trapezius"
+                    "scapular_retraction:trapezius"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
@@ -1505,11 +1740,15 @@
                 "rhomboids"
               ],
               "setupCues": [
-                "Preparación: Polea por detrás: la tensión constante acompaña el encogimiento trasero."
+                "Siéntate en la estación de remo con los pies en la plataforma y las rodillas algo flexionadas.",
+                "Agarra la barra con las palmas hacia abajo y siéntate erguido con los brazos estirados al frente."
               ],
               "setupTimeSeconds": 25,
               "ssc": 0.4,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "forearm",
+                "erector_spinae"
+              ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
             },
@@ -1535,40 +1774,48 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con kettlebell, con el torso inclinado, los hombros se retraen hacia atrás y arriba mientras la carga cuelga. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del trapecio.",
+              "description": "Con el pecho sobre un banco inclinado, cada mano sostiene una kettlebell que cuelga bajo el hombro y se mueve por su cuenta. La bola por debajo del puño tiende a balancearse si las escápulas se sueltan de golpe.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
-                "Kettlebells por detrás: el agarre suma trabajo y el trapecio aumenta su tensión. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Junta las escápulas sin doblar los codos y nota cómo las dos kettlebells suben a la vez.",
+                "Aguanta un segundo arriba y baja las kettlebells despacio, sin que se balanceen."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Elevación O Depresión"
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Centrado Del Hombro"
+                    "Retracción de la clavícula"
+                  ],
+                  "jointId": "esternoclavicular",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad del hombro con el brazo estirado"
                   ],
                   "jointId": "glenohumeral",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Posición Cervical"
+                    "Sostén del agarre"
                   ],
-                  "jointId": "columna-cervical",
+                  "jointId": "muñeca",
                   "role": "STABILIZER"
                 }
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
-              "movementPatternId": "scapular_elevation",
+              "movementPatternId": "scapular_retraction",
               "performanceProfileId": "back_encogimientos_kelso__kettlebell",
               "primaryMuscles": [
                 "trapezius"
@@ -1579,30 +1826,38 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Elevación O Depresión",
-                    "Centrado Del Hombro",
-                    "Posición Cervical"
+                    "Retracción escapular",
+                    "Retracción de la clavícula",
+                    "Estabilidad del hombro con el brazo estirado",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Elevación O Depresión"
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Centrado Del Hombro"
+                        "Retracción de la clavícula"
+                      ],
+                      "jointId": "esternoclavicular",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad del hombro con el brazo estirado"
                       ],
                       "jointId": "glenohumeral",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Posición Cervical"
+                        "Sostén del agarre"
                       ],
-                      "jointId": "columna-cervical",
+                      "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1612,7 +1867,9 @@
                   "secondaryMuscles": [
                     "rhomboids"
                   ],
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "forearm"
+                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -1621,11 +1878,12 @@
                   "kineticChain": "POSTERIOR",
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "free_external_load",
-                  "movementPatternId": "scapular_elevation",
+                  "movementPatternId": "scapular_retraction",
                   "relevantJoints": [
                     "escapulotoracica",
+                    "esternoclavicular",
                     "glenohumeral",
-                    "columna-cervical"
+                    "muñeca"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -1680,7 +1938,7 @@
                     "smith_machine"
                   ],
                   "preservesIntent": [
-                    "scapular_elevation:trapezius"
+                    "scapular_retraction:trapezius"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
@@ -1690,11 +1948,14 @@
                 "rhomboids"
               ],
               "setupCues": [
-                "Preparación: Kettlebells por detrás: el agarre suma trabajo y el trapecio aumenta su tensión."
+                "Inclina un banco unos 45 grados y túmbate boca abajo con el pecho en la parte alta.",
+                "Deja colgar una kettlebell en cada mano bajo los hombros, con los brazos estirados."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.4,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "forearm"
+              ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
             },
@@ -1720,40 +1981,48 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con máquina Smith, con el torso inclinado, los hombros se retraen hacia atrás y arriba mientras la carga cuelga. El trapecio trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
+              "description": "Un banco inclinado unos 45 grados se coloca entre los rieles, con el pecho sobre el extremo alto y la barra colgando delante. La barra solo puede subir en vertical y se desengancha a la altura de los brazos, sin recogerla del suelo.",
               "efc": 2.5,
               "equipmentId": "smith_machine",
               "executionCues": [
-                "Smith por detrás: la barra guiada con los brazos atrás y mucha carga. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Junta las escápulas y deja que la barra suba por los rieles, con los codos rectos.",
+                "Baja despacio hasta separar las escápulas y engancha la barra al terminar."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Elevación O Depresión"
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Centrado Del Hombro"
+                    "Retracción de la clavícula"
+                  ],
+                  "jointId": "esternoclavicular",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad del hombro con el brazo estirado"
                   ],
                   "jointId": "glenohumeral",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Posición Cervical"
+                    "Sostén del agarre"
                   ],
-                  "jointId": "columna-cervical",
+                  "jointId": "muñeca",
                   "role": "STABILIZER"
                 }
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
-              "movementPatternId": "scapular_elevation",
+              "movementPatternId": "scapular_retraction",
               "performanceProfileId": "back_encogimientos_kelso__smith_machine",
               "primaryMuscles": [
                 "trapezius"
@@ -1764,30 +2033,38 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Elevación O Depresión",
-                    "Centrado Del Hombro",
-                    "Posición Cervical"
+                    "Retracción escapular",
+                    "Retracción de la clavícula",
+                    "Estabilidad del hombro con el brazo estirado",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Elevación O Depresión"
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Centrado Del Hombro"
+                        "Retracción de la clavícula"
+                      ],
+                      "jointId": "esternoclavicular",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad del hombro con el brazo estirado"
                       ],
                       "jointId": "glenohumeral",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Posición Cervical"
+                        "Sostén del agarre"
                       ],
-                      "jointId": "columna-cervical",
+                      "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1797,7 +2074,9 @@
                   "secondaryMuscles": [
                     "rhomboids"
                   ],
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "forearm"
+                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -1806,11 +2085,12 @@
                   "kineticChain": "POSTERIOR",
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "guided_external_load",
-                  "movementPatternId": "scapular_elevation",
+                  "movementPatternId": "scapular_retraction",
                   "relevantJoints": [
                     "escapulotoracica",
+                    "esternoclavicular",
                     "glenohumeral",
-                    "columna-cervical"
+                    "muñeca"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "self_stabilized"
@@ -1865,7 +2145,7 @@
                     "smith_machine"
                   ],
                   "preservesIntent": [
-                    "scapular_elevation:trapezius"
+                    "scapular_retraction:trapezius"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
@@ -1875,11 +2155,15 @@
                 "rhomboids"
               ],
               "setupCues": [
-                "Preparación: Smith por detrás: la barra guiada con los brazos atrás y mucha carga."
+                "Coloca un banco inclinado unos 45 grados entre los rieles, con el extremo alto bajo la barra.",
+                "Túmbate boca abajo con el pecho en el borde alto y agarra la barra en prono, más ancho que los hombros.",
+                "Desengancha la barra girándola y deja que los brazos cuelguen estirados."
               ],
               "setupTimeSeconds": 40,
               "ssc": 0.4,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "forearm"
+              ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
             },
@@ -1889,7 +2173,7 @@
           }
         ],
         "defaultConfigurationId": "back_encogimientos_kelso__barbell",
-        "description": "Los Kelso Shrugs son el encogimiento inteligente: con el torso inclinado hacia delante, los hombros se retraen hacia atrás y arriba trabajando el trapecio medio además del superior. Se ejecutan con barra, máquina o polea, juntando los omóplatos mientras la carga cuelga. La posición inclinada cambia el objetivo del gesto. El encogimiento para quien quiere grosor en la espalda alta, no solo cuello.",
+        "description": "Los Kelso Shrugs, popularizados por Paul Kelso, son un encogimiento hacia atrás: con los brazos estirados, las escápulas se juntan hacia la columna y vuelven a separarse. El pecho va apoyado, el tronco inclinado o, en la polea, el cable tira de los brazos hacia delante, de modo que la carga se opone a juntar las escápulas y no a subirlas. El trapecio medio lleva el gesto junto con los romboides, mientras los hombros siguen bajos, sin acercarse a las orejas. Como los codos no se flexionan, la carga solo avanza los pocos centímetros que recorren las escápulas. Es una forma de cargar la retracción de la espalda alta por separado, sin que el gesto se convierta en un remo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1930,44 +2214,54 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con mancuernas, inclinado hacia delante, los brazos suben en diagonal hasta formar una Y. El trapecio trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+              "description": "Con una mancuerna ligera en cada mano, cada brazo dibuja su lado de la Y sin nada que lo una al otro. El tronco se sostiene solo, inclinado desde la cadera, durante toda la serie, y la zona lumbar trabaja en isometría para que la espalda no se redondee.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
-                "Subes los brazos en forma de Y desde el suelo: la espalda alta y el hombro trabajan con elegancia. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Pega la parte baja de las escápulas a las costillas antes de subir los brazos.",
+                "Sube los brazos estirados en diagonal hasta formar una Y con el tronco, con los pulgares hacia arriba.",
+                "Aguanta un segundo arriba y baja despacio sin enderezar el tronco."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Elevación O Depresión"
+                    "Abducción en el plano de la escápula"
+                  ],
+                  "jointId": "glenohumeral",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Rotación escapular superior",
+                    "Báscula posterior de la escápula"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Centrado Del Hombro"
+                    "Estabilidad del tronco inclinado"
                   ],
-                  "jointId": "glenohumeral",
+                  "jointId": "columna-lumbar",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Posición Cervical"
+                    "Flexión sostenida de la cadera"
                   ],
-                  "jointId": "columna-cervical",
+                  "jointId": "cadera",
                   "role": "STABILIZER"
                 }
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
-              "movementPatternId": "scapular_elevation",
+              "movementPatternId": "shoulder_abduction_diagonal",
               "performanceProfileId": "back_y_raises__dumbbells__y_raises",
               "primaryMuscles": [
                 "trapezius",
-                "latissimus_dorsi"
+                "deltoid"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -1975,43 +2269,53 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Elevación O Depresión",
-                    "Centrado Del Hombro",
-                    "Posición Cervical"
+                    "Abducción en el plano de la escápula",
+                    "Rotación escapular superior",
+                    "Báscula posterior de la escápula",
+                    "Estabilidad del tronco inclinado",
+                    "Flexión sostenida de la cadera"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Elevación O Depresión"
+                        "Abducción en el plano de la escápula"
+                      ],
+                      "jointId": "glenohumeral",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Rotación escapular superior",
+                        "Báscula posterior de la escápula"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Centrado Del Hombro"
+                        "Estabilidad del tronco inclinado"
                       ],
-                      "jointId": "glenohumeral",
+                      "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Posición Cervical"
+                        "Flexión sostenida de la cadera"
                       ],
-                      "jointId": "columna-cervical",
+                      "jointId": "cadera",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
                     "trapezius",
-                    "latissimus_dorsi"
+                    "deltoid"
                   ],
-                  "secondaryMuscles": [
-                    "deltoid",
-                    "biceps",
-                    "erector_spinae"
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
+                    "erector_spinae",
+                    "hamstrings",
+                    "gluteus_maximus"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -2020,11 +2324,12 @@
                   "kineticChain": "POSTERIOR",
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
-                  "movementPatternId": "scapular_elevation",
+                  "movementPatternId": "shoulder_abduction_diagonal",
                   "relevantJoints": [
-                    "escapulotoracica",
                     "glenohumeral",
-                    "columna-cervical"
+                    "escapulotoracica",
+                    "columna-lumbar",
+                    "cadera"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -2072,24 +2377,26 @@
                     "dumbbells"
                   ],
                   "preservesIntent": [
-                    "scapular_elevation:trapezius",
-                    "scapular_elevation:latissimus_dorsi"
+                    "shoulder_abduction_diagonal:trapezius",
+                    "shoulder_abduction_diagonal:deltoid"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "deltoid",
-                "biceps",
-                "erector_spinae"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
-                "Preparación: Subes los brazos en forma de Y desde el suelo: la espalda alta y el hombro trabajan con elegancia."
+                "Toma una mancuerna ligera en cada mano y ponte de pie con los pies bajo la cadera.",
+                "Inclina el tronco desde la cadera unos 45 grados, con las rodillas algo flexionadas y la espalda recta.",
+                "Deja colgar los brazos bajo los hombros, con las palmas enfrentadas."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.4,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "erector_spinae",
+                "hamstrings",
+                "gluteus_maximus"
+              ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
             },
@@ -2097,7 +2404,7 @@
           }
         ],
         "defaultConfigurationId": "back_y_raises__default",
-        "description": "Los Y-Raises elevan los brazos en diagonal hasta formar una Y con el torso inclinado: el trapecio inferior y el dorsal ancho trabajan la parte baja de la espalda alta que casi nadie entrena. Se ejecutan con mancuernas ligeras, subiendo despacio y aguantando un segundo arriba. La espalda se siente reorganizada al terminar. La pieza de postura que completa los hombros sanos.",
+        "description": "Los Y-Raises dibujan una Y con los brazos estirados por encima de la cabeza, de pie y con la cadera flexionada para inclinar el tronco. El trapecio inferior y el medio rotan la escápula hacia arriba y la llevan atrás mientras el deltoides eleva el brazo, así que el esfuerzo cae en la parte baja de la espalda alta y en el hombro. Los pulgares apuntan arriba y los brazos suben en la prolongación del tronco, algo abiertos. Con los brazos estirados el peso queda lejos del hombro y basta una carga ligera: lo difícil es llegar arriba sin subir los hombros hacia las orejas ni enderezar el tronco.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

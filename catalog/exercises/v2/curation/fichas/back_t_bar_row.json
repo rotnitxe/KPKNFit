@@ -1,66 +1,705 @@
 {
   "definitions": {
     "t_bar_row": {
-      "public": {
-        "configurations": {
-          "t_bar_row__machine__close": {
-            "description": "Con máquina y agarre cerrado, la carga anclada en un extremo gira hacia el pecho con el torso firme y el agarre cerrado. En la máquina, la trayectoria guiada concentra todo el esfuerzo del dorsal ancho. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso.",
-            "executionCues": [
-              "Máquina T con agarre cerrado: las asas acercan los codos al cuerpo y la guía mantiene la carga en una línea repetible. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido."
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Extensión del hombro",
+              "Abducción horizontal"
             ],
-            "setupCues": [
-              "Preparación: Máquina T con agarre cerrado: las asas acercan los codos al cuerpo y la guía mantiene la carga en una línea repetible."
+            "id": "glenohumeral",
+            "role": "PRIMARY",
+            "sources": [
+              "statpearls_extrinsic_back",
+              "statpearls_deltoid"
+            ],
+            "why": "El brazo cuelga bajo el hombro y el codo sube hasta quedar detrás del tronco, con una ligera apertura por el agarre medio: extensión con algo de abducción horizontal."
+          },
+          {
+            "actions": [
+              "Retracción escapular"
+            ],
+            "id": "escapulotoracica",
+            "role": "PRIMARY",
+            "sources": [
+              "statpearls_rhomboids",
+              "statpearls_trapezius"
+            ],
+            "why": "Las escápulas se separan con la carga abajo y se juntan cuando las placas se acercan al pecho; ese deslizamiento acompaña cada tirón."
+          },
+          {
+            "actions": [
+              "Flexión del codo"
+            ],
+            "id": "codo",
+            "role": "SECONDARY",
+            "sources": [
+              "statpearls_biceps"
+            ],
+            "why": "El codo se dobla hasta pasar los 90 grados para acercar el agarre al pecho, siguiendo al hombro."
+          },
+          {
+            "actions": [
+              "Estabilidad del tronco inclinado"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "fenwick2009",
+              "saeterbakken2015"
+            ],
+            "why": "La columna lumbar queda neutra e inclinada mientras la carga tira de los brazos hacia el suelo; no se mueve, pero la sostiene bajo carga. Fenwick et al. (2009) midieron la mayor carga lumbar en el remo con barra inclinado; se extrapola a la barra T libre, que repite la postura."
+          },
+          {
+            "actions": [
+              "Extensión isométrica de la cadera"
+            ],
+            "id": "cadera",
+            "role": "STABILIZER",
+            "sources": [
+              "fenwick2009"
+            ],
+            "why": "La cadera queda flexionada en bisagra y sus extensores la sostienen en isometría toda la serie, fijando el ángulo del tronco; si se extiende para ayudar, el remo se vuelve un balanceo. En el remo con barra inclinado, Fenwick et al. (2009) midieron el glúteo mayor en torno al 19 % y el bíceps femoral en el 12,5 % de su contracción máxima; se extrapola a la barra T."
+          },
+          {
+            "actions": [
+              "Sostén del agarre"
+            ],
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_forearm_compartments"
+            ],
+            "why": "La muñeca sostiene el agarre neutro o prono bajo el extremo cargado sin intervenir en el tirón."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "latissimus_dorsi",
+            "role": "PRIMARY",
+            "sources": [
+              "fenwick2009",
+              "statpearls_extrinsic_back"
+            ],
+            "why": "Extiende el hombro y lleva el codo atrás contra una carga que sube en arco hacia el pecho. En el remo inclinado sin apoyo la actividad de la espalda fue alta y simétrica de arriba abajo, con el dorsal como extensor del hombro."
+          },
+          {
+            "id": "rhomboids",
+            "role": "SECONDARY",
+            "sources": [
+              "lehman2004",
+              "statpearls_rhomboids"
+            ],
+            "why": "Cierran las escápulas cuando las placas llegan arriba; el conjunto de romboides y trapecio medio rinde más en los remos que en los jalones, según Lehman et al. (2004)."
+          },
+          {
+            "id": "trapezius",
+            "role": "SECONDARY",
+            "sources": [
+              "statpearls_trapezius",
+              "lehman2004"
+            ],
+            "why": "Las fibras medias retraen la escápula y las inferiores la fijan contra el tórax con el tronco inclinado; con los agarres medio y cerrado acompaña al dorsal sin sustituirlo."
+          },
+          {
+            "id": "deltoid",
+            "role": "SECONDARY",
+            "sources": [
+              "statpearls_deltoid",
+              "vasconcelos2023"
+            ],
+            "why": "La porción posterior ayuda a extender el hombro y a llevar el codo atrás; su aporte crece cuanto más se separan los codos del tronco, según lo medido en el remo sentado."
+          },
+          {
+            "id": "biceps",
+            "role": "SECONDARY",
+            "sources": [
+              "lehman2004",
+              "statpearls_biceps"
+            ],
+            "why": "Flexiona el codo para subir el agarre hasta el pecho. En los remos y jalones de Lehman et al. (2004) su actividad no cambió de un ejercicio a otro, así que es una ayuda fija del tirón."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "saeterbakken2015",
+              "fenwick2009"
+            ],
+            "why": "Con la cadera flexionada y el tronco inclinado sin apoyo, sostienen la columna neutra en isometría toda la serie. En el remo inclinado con peso libre se activaron más que en el remo en máquina y la carga lumbar fue la mayor de los remos comparados; la barra T libre repite esa postura, así que se extrapola."
+          },
+          {
+            "id": "gluteus_maximus",
+            "role": "STABILIZER",
+            "sources": [
+              "fenwick2009"
+            ],
+            "why": "Sostiene la cadera en bisagra contra el peso del tronco y de la carga, sin extenderla durante la serie. En el remo con barra inclinado, Fenwick et al. (2009) midieron el glúteo mayor en torno al 19 % de su contracción máxima; se extrapola a la barra T libre, que repite esa postura sin apoyo."
+          },
+          {
+            "id": "hamstrings",
+            "role": "STABILIZER",
+            "sources": [
+              "fenwick2009"
+            ],
+            "why": "Los isquiosurales frenan la flexión de la cadera y comparten con el glúteo el sostén de la bisagra. En el remo con barra inclinado el bíceps femoral rondó el 12,5 % de su contracción máxima (Fenwick et al. 2009), dato que se extrapola a la barra T libre."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "saeterbakken2015"
+            ],
+            "why": "La pared abdominal se tensa alrededor de la columna para que la inclinación no ceda mientras los brazos tiran. En el remo inclinado con peso libre se registró actividad del recto abdominal y del oblicuo externo, este menor a dos manos que a una (Saeterbakken et al. 2015); se extrapola a la barra T libre."
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_forearm_compartments"
+            ],
+            "why": "Los flexores de los dedos cierran la mano sobre el agarre en V, los mangos del accesorio o los de la máquina y la sostienen toda la serie sin mover la carga."
+          }
+        ],
+        "overrides": {
+          "t_bar_row__machine__close": {
+            "joints": [
+              {
+                "actions": [
+                  "Extensión del hombro",
+                  "Aducción del hombro"
+                ],
+                "id": "glenohumeral",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_extrinsic_back"
+                ],
+                "why": "Con los asideros neutros del centro, el codo roza el costado mientras la palanca lleva el húmero hasta detrás del tronco."
+              },
+              {
+                "id": "columna-lumbar",
+                "role": "NONE",
+                "why": "Con el pecho sobre la almohadilla, la columna lumbar no carga con la inclinación del tronco."
+              },
+              {
+                "id": "cadera",
+                "role": "NONE",
+                "why": "Los pies empujan la plataforma y el cuerpo descansa en la almohadilla, así que la cadera no sostiene una bisagra con carga."
+              },
+              {
+                "actions": [
+                  "Sostén del agarre"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_forearm_compartments"
+                ],
+                "why": "Los mangos de la palanca fijan la orientación de la mano y la muñeca solo transmite la fuerza al brazo de la máquina."
+              }
+            ],
+            "muscles": [
+              {
+                "id": "erector_spinae",
+                "role": "NONE",
+                "why": "La almohadilla recibe el pecho y el tronco no tiene que sostener la inclinación, así que los erectores dejan de trabajar como sostén."
+              },
+              {
+                "id": "gluteus_maximus",
+                "role": "NONE",
+                "why": "Con el pecho en la almohadilla y los pies en la plataforma, la cadera no sostiene una bisagra con carga y el glúteo deja de trabajar como sostén."
+              },
+              {
+                "id": "hamstrings",
+                "role": "NONE",
+                "why": "El cuerpo descansa en la almohadilla, así que los isquiosurales no tienen que frenar la flexión de la cadera durante la serie."
+              },
+              {
+                "id": "core",
+                "role": "NONE",
+                "why": "La almohadilla sostiene el tronco inclinado y la pared abdominal no tiene que fijar la columna contra la carga."
+              },
+              {
+                "id": "latissimus_dorsi",
+                "role": "PRIMARY",
+                "sources": [
+                  "padovan2025",
+                  "swann2026",
+                  "statpearls_extrinsic_back"
+                ],
+                "why": "Con el agarre en V los codos pasan pegados al tronco y el hombro se extiende en un arco largo, la acción propia del dorsal. Si eso le da más actividad que un agarre abierto no está resuelto con el tronco inclinado: el remo sentado y el remo con barra discrepan."
+              }
             ]
           },
           "t_bar_row__machine__medium": {
-            "description": "Con máquina y agarre medio, la carga anclada en un extremo gira hacia el pecho con el torso firme y el agarre cerrado. En la máquina, la trayectoria guiada concentra todo el esfuerzo del dorsal ancho. El agarre medio equilibra el reparto del trabajo del dorsal ancho.",
-            "executionCues": [
-              "Máquina T con agarre medio: el recorrido guiado coloca los codos en una diagonal intermedia entre dorsal y espalda alta. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido."
+            "joints": [
+              {
+                "actions": [
+                  "Extensión del hombro",
+                  "Abducción horizontal"
+                ],
+                "id": "glenohumeral",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_extrinsic_back",
+                  "statpearls_deltoid"
+                ],
+                "why": "La palanca gira sobre su eje y marca el arco de los mangos; el codo retrocede en diagonal hasta pasar la espalda con el pecho fijo en la almohadilla."
+              },
+              {
+                "id": "columna-lumbar",
+                "role": "NONE",
+                "why": "Con el pecho sobre la almohadilla, la columna lumbar no carga con la inclinación del tronco."
+              },
+              {
+                "id": "cadera",
+                "role": "NONE",
+                "why": "Los pies empujan la plataforma y el cuerpo descansa en la almohadilla, así que la cadera no sostiene una bisagra con carga."
+              },
+              {
+                "actions": [
+                  "Sostén del agarre"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_forearm_compartments"
+                ],
+                "why": "Los mangos de la palanca fijan la orientación de la mano y la muñeca solo transmite la fuerza al brazo de la máquina."
+              }
             ],
-            "setupCues": [
-              "Preparación: Máquina T con agarre medio: el recorrido guiado coloca los codos en una diagonal intermedia entre dorsal y espalda alta."
+            "muscles": [
+              {
+                "id": "erector_spinae",
+                "role": "NONE",
+                "why": "La almohadilla recibe el pecho y el tronco no tiene que sostener la inclinación, así que los erectores dejan de trabajar como sostén."
+              },
+              {
+                "id": "gluteus_maximus",
+                "role": "NONE",
+                "why": "Con el pecho en la almohadilla y los pies en la plataforma, la cadera no sostiene una bisagra con carga y el glúteo deja de trabajar como sostén."
+              },
+              {
+                "id": "hamstrings",
+                "role": "NONE",
+                "why": "El cuerpo descansa en la almohadilla, así que los isquiosurales no tienen que frenar la flexión de la cadera durante la serie."
+              },
+              {
+                "id": "core",
+                "role": "NONE",
+                "why": "La almohadilla sostiene el tronco inclinado y la pared abdominal no tiene que fijar la columna contra la carga."
+              }
             ]
           },
           "t_bar_row__machine__wide": {
-            "description": "Con máquina y agarre amplio, la carga anclada en un extremo gira hacia el pecho con el torso firme y el agarre cerrado. El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
-            "executionCues": [
-              "Máquina T con agarre amplio: las asas separan los codos y llevan el trabajo hacia romboides y trapecio medio. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido."
+            "joints": [
+              {
+                "actions": [
+                  "Abducción horizontal",
+                  "Extensión del hombro"
+                ],
+                "id": "glenohumeral",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_deltoid",
+                  "vasconcelos2023"
+                ],
+                "why": "En los mangos exteriores de la palanca el codo sube abierto hacia la altura del hombro, en un arco fijo marcado por el eje de la máquina."
+              },
+              {
+                "id": "columna-lumbar",
+                "role": "NONE",
+                "why": "Con el pecho sobre la almohadilla, la columna lumbar no carga con la inclinación del tronco."
+              },
+              {
+                "id": "cadera",
+                "role": "NONE",
+                "why": "Los pies empujan la plataforma y el cuerpo descansa en la almohadilla, así que la cadera no sostiene una bisagra con carga."
+              },
+              {
+                "actions": [
+                  "Sostén del agarre"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_forearm_compartments"
+                ],
+                "why": "Los mangos de la palanca fijan la orientación de la mano y la muñeca solo transmite la fuerza al brazo de la máquina."
+              }
             ],
-            "setupCues": [
-              "Preparación: Máquina T con agarre amplio: las asas separan los codos y llevan el trabajo hacia romboides y trapecio medio."
+            "muscles": [
+              {
+                "id": "erector_spinae",
+                "role": "NONE",
+                "why": "La almohadilla recibe el pecho y el tronco no tiene que sostener la inclinación, así que los erectores dejan de trabajar como sostén."
+              },
+              {
+                "id": "gluteus_maximus",
+                "role": "NONE",
+                "why": "Con el pecho en la almohadilla y los pies en la plataforma, la cadera no sostiene una bisagra con carga y el glúteo deja de trabajar como sostén."
+              },
+              {
+                "id": "hamstrings",
+                "role": "NONE",
+                "why": "El cuerpo descansa en la almohadilla, así que los isquiosurales no tienen que frenar la flexión de la cadera durante la serie."
+              },
+              {
+                "id": "core",
+                "role": "NONE",
+                "why": "La almohadilla sostiene el tronco inclinado y la pared abdominal no tiene que fijar la columna contra la carga."
+              },
+              {
+                "id": "latissimus_dorsi",
+                "role": "PRIMARY",
+                "sources": [
+                  "swann2026",
+                  "padovan2025"
+                ],
+                "why": "Conserva el primer puesto porque cada repetición extiende el hombro. En el remo inclinado con barra, el agarre ancho dio más actividad del dorsal que el de hombros, lo contrario de lo medido en el remo sentado, así que con el tronco inclinado el ancho no le resta protagonismo de forma clara."
+              },
+              {
+                "id": "trapezius",
+                "role": "PRIMARY",
+                "sources": [
+                  "padovan2025",
+                  "vasconcelos2023",
+                  "statpearls_trapezius"
+                ],
+                "why": "Con los mangos anchos y los codos abiertos, cerrar las escápulas pesa tanto como extender el hombro. No hay mediciones propias de la barra T; en el remo sentado el agarre ancho excitó más todo el trapecio, y aquí se le da el mismo papel de motor junto al dorsal."
+              },
+              {
+                "id": "deltoid",
+                "role": "SECONDARY",
+                "sources": [
+                  "vasconcelos2023",
+                  "statpearls_deltoid"
+                ],
+                "why": "La porción posterior abre el brazo hacia atrás a la altura del hombro; su actividad sube con la abducción en el remo sentado, y aquí acompaña sin pasar a principal."
+              }
             ]
           },
           "t_bar_row__t_bar__close": {
-            "description": "Con barra T y agarre cerrado, la carga anclada en un extremo gira hacia el pecho con el torso firme y el agarre cerrado. Con la barra T, el agarre cerrado y la carga en un extremo dan un tirón distinto para el dorsal ancho. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso.",
-            "executionCues": [
-              "Barra T con agarre cerrado: el anclaje mantiene una trayectoria estable mientras los codos avanzan cerca del costado. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido."
+            "joints": [
+              {
+                "actions": [
+                  "Extensión del hombro",
+                  "Aducción del hombro"
+                ],
+                "id": "glenohumeral",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_extrinsic_back"
+                ],
+                "why": "Con el agarre en V el codo pasa rozando las costillas y el húmero se extiende hasta quedar detrás del tronco, sin apertura lateral."
+              }
             ],
-            "setupCues": [
-              "Preparación: Barra T con agarre cerrado: el anclaje mantiene una trayectoria estable mientras los codos avanzan cerca del costado."
-            ]
-          },
-          "t_bar_row__t_bar__medium": {
-            "description": "Con barra T y agarre medio, la carga anclada en un extremo gira hacia el pecho con el torso firme y el agarre cerrado. Con la barra T, el agarre cerrado y la carga en un extremo dan un tirón distinto para el dorsal ancho. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado.",
-            "executionCues": [
-              "Barra T con agarre medio: el anclaje ofrece una línea diagonal y el codo queda entre el costado y la apertura de la espalda alta. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido."
-            ],
-            "setupCues": [
-              "Preparación: Barra T con agarre medio: el anclaje ofrece una línea diagonal y el codo queda entre el costado y la apertura de la espalda alta."
+            "muscles": [
+              {
+                "id": "latissimus_dorsi",
+                "role": "PRIMARY",
+                "sources": [
+                  "padovan2025",
+                  "swann2026",
+                  "statpearls_extrinsic_back"
+                ],
+                "why": "Con el agarre en V los codos pasan pegados al tronco y el hombro se extiende en un arco largo, la acción propia del dorsal. Si eso le da más actividad que un agarre abierto no está resuelto con el tronco inclinado: el remo sentado y el remo con barra discrepan."
+              }
             ]
           },
           "t_bar_row__t_bar__wide": {
-            "description": "Con barra T y agarre amplio, la carga anclada en un extremo gira hacia el pecho con el torso firme y el agarre cerrado. El dorsal ancho trabaja con la barra T, que concentra la carga en un extremo. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
+            "joints": [
+              {
+                "actions": [
+                  "Abducción horizontal",
+                  "Extensión del hombro"
+                ],
+                "id": "glenohumeral",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_deltoid",
+                  "vasconcelos2023"
+                ],
+                "why": "Con los mangos anchos el codo sube abierto, hacia la altura del hombro, y el húmero se separa del tronco en el plano horizontal."
+              }
+            ],
+            "muscles": [
+              {
+                "id": "latissimus_dorsi",
+                "role": "PRIMARY",
+                "sources": [
+                  "swann2026",
+                  "padovan2025"
+                ],
+                "why": "Conserva el primer puesto porque cada repetición extiende el hombro. En el remo inclinado con barra, el agarre ancho dio más actividad del dorsal que el de hombros, lo contrario de lo medido en el remo sentado, así que con el tronco inclinado el ancho no le resta protagonismo de forma clara."
+              },
+              {
+                "id": "trapezius",
+                "role": "PRIMARY",
+                "sources": [
+                  "padovan2025",
+                  "vasconcelos2023",
+                  "statpearls_trapezius"
+                ],
+                "why": "Con los mangos anchos y los codos abiertos, cerrar las escápulas pesa tanto como extender el hombro. No hay mediciones propias de la barra T; en el remo sentado el agarre ancho excitó más todo el trapecio, y aquí se le da el mismo papel de motor junto al dorsal."
+              },
+              {
+                "id": "deltoid",
+                "role": "SECONDARY",
+                "sources": [
+                  "vasconcelos2023",
+                  "statpearls_deltoid"
+                ],
+                "why": "La porción posterior abre el brazo hacia atrás a la altura del hombro; su actividad sube con la abducción en el remo sentado, y aquí acompaña sin pasar a principal."
+              }
+            ]
+          }
+        }
+      },
+      "public": {
+        "configurations": {
+          "t_bar_row__machine__close": {
+            "description": "Los asideros neutros del centro juntan las manos y llevan los codos pegados al cuerpo. Con el tronco apoyado, el dorsal ancho trabaja en su recorrido largo sin que la zona lumbar intervenga.",
             "executionCues": [
-              "Barra T con agarre amplio: las manos abiertas separan los codos y orientan el tirón hacia la espalda alta. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido."
+              "Tira con los codos junto al tronco hasta que pasen la espalda.",
+              "Deja el pecho pegado a la almohadilla mientras subes.",
+              "Baja los asideros hasta estirar los brazos, sin soltarlos."
             ],
             "setupCues": [
-              "Preparación: Barra T con agarre amplio: las manos abiertas separan los codos y orientan el tirón hacia la espalda alta."
+              "Sube a la plataforma y apoya el pecho en la almohadilla inclinada.",
+              "Toma los asideros neutros del centro con las palmas enfrentadas."
+            ]
+          },
+          "t_bar_row__machine__medium": {
+            "description": "De pie sobre la plataforma y con el pecho en la almohadilla inclinada, los mangos medios quedan bajo los hombros y el brazo cargado gira sobre su eje. La inclinación la sostiene la almohadilla, no la cadera.",
+            "executionCues": [
+              "Tira hasta que tus codos queden por detrás del tronco.",
+              "Deja el pecho pegado a la almohadilla mientras subes.",
+              "Baja los mangos hasta estirar los brazos, sin soltarlos."
+            ],
+            "setupCues": [
+              "Sube a la plataforma y apoya el pecho en la almohadilla inclinada.",
+              "Agarra los mangos medios y deja los brazos colgando."
+            ]
+          },
+          "t_bar_row__machine__wide": {
+            "description": "En la máquina de barra T con apoyo, los mangos exteriores dejan las palmas hacia abajo y los codos se abren hacia los lados. El pecho descansa en la almohadilla, de modo que trapecio y dorsal ancho tiran sin que la espalda baja sostenga nada.",
+            "executionCues": [
+              "Abre los codos hacia los lados hasta la altura de los hombros.",
+              "Deja el pecho pegado a la almohadilla mientras subes.",
+              "Baja los mangos hasta estirar los brazos, sin soltarlos."
+            ],
+            "setupCues": [
+              "Sube a la plataforma y apoya el pecho en la almohadilla inclinada.",
+              "Toma los mangos de los extremos con el dorso de las manos hacia arriba."
+            ]
+          },
+          "t_bar_row__t_bar__close": {
+            "description": "El agarre en V se engancha debajo de la barra, junto a los discos, con las palmas enfrentadas y las manos casi juntas. Los codos pasan rozando las costillas y el arco de la barra acerca las placas al esternón.",
+            "executionCues": [
+              "Sube los codos pegados a las costillas hasta que los discos rocen el pecho.",
+              "Junta las escápulas arriba sin levantar el tronco.",
+              "Baja hasta estirar los brazos sin que los discos golpeen el suelo."
+            ],
+            "setupCues": [
+              "Colócate a horcajadas sobre la barra, de cara a los discos, con los pies algo más abiertos que la cadera.",
+              "Dobla las rodillas y echa la cadera atrás hasta que el tronco quede inclinado con la espalda recta.",
+              "Engancha el agarre en V bajo la barra, pegado a los discos, y sujétalo con las palmas enfrentadas."
+            ]
+          },
+          "t_bar_row__t_bar__medium": {
+            "description": "Con las manos al ancho de los hombros en el accesorio, los codos se abren en diagonal y las placas suben hasta rozar la parte baja del pecho. La cadera y la espalda baja sostienen el tronco inclinado durante toda la serie, sin nada delante que lo apoye.",
+            "executionCues": [
+              "Tira de los codos hacia atrás hasta que las placas se acerquen a la parte baja del pecho.",
+              "Junta las escápulas arriba sin levantar el tronco.",
+              "Baja hasta estirar los brazos sin que los discos golpeen el suelo."
+            ],
+            "setupCues": [
+              "Colócate a horcajadas sobre la barra, de cara a los discos, con los pies algo más abiertos que la cadera.",
+              "Dobla las rodillas y echa la cadera atrás hasta que el tronco quede inclinado con la espalda recta.",
+              "Sujeta los mangos del accesorio con las manos separadas como tus hombros."
+            ]
+          },
+          "t_bar_row__t_bar__wide": {
+            "description": "Un accesorio de mangos anchos en el extremo de la barra deja las palmas hacia abajo y los codos abiertos casi a la altura de los hombros. Juntar las escápulas gana peso frente a extender el hombro, y el trapecio comparte el trabajo con el dorsal ancho.",
+            "executionCues": [
+              "Separa los codos del cuerpo mientras tiras, hasta la altura de los hombros.",
+              "Junta las escápulas arriba sin levantar el tronco.",
+              "Baja hasta estirar los brazos sin que los discos golpeen el suelo."
+            ],
+            "setupCues": [
+              "Colócate a horcajadas sobre la barra, de cara a los discos, con los pies algo más abiertos que la cadera.",
+              "Dobla las rodillas y echa la cadera atrás hasta que el tronco quede inclinado con la espalda recta.",
+              "Agarra los extremos del accesorio con las palmas hacia abajo, más abiertos que los hombros."
             ]
           }
         },
-        "description": "El Remo en Barra T es la tracción con la carga anclada en un extremo: el dorsal tira en un arco que se cierra hacia el pecho con un agarre naturalmente cerrado. Se ejecuta con el pecho cerca del soporte y la espalda firme, subiendo las placas hasta el torso y bajándolas sin soltar la tensión. Las máquinas de barra T con apoyo pectoral ofrecen la misma esencia sin pedirle nada a la lumbar. Grosor de espalda media garantizado, con sabor a gimnasio de siempre."
+        "description": "El Remo en Barra T (T-bar row) es un tirón horizontal con la carga en el extremo de una barra anclada por el otro: el dorsal ancho tira de los codos hacia atrás, y el trapecio con los romboides cierra las escápulas. A horcajadas sobre la barra, con las rodillas flexionadas y el tronco inclinado desde la cadera, las placas suben en arco hacia el pecho. Al girar sobre su anclaje, la barra acerca la carga al cuerpo cuanto más sube. Sin apoyo, los erectores sostienen la inclinación toda la serie; en la máquina, una almohadilla recibe el pecho y la espalda baja descansa. Es un remo para mover mucho peso con el tronco inclinado, y su versión con apoyo conserva el gesto cuando la zona lumbar pide descanso."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "El remo inclinado de pie produjo una activación grande y simétrica de toda la espalda y la mayor carga lumbar de los tres remos comparados. En él, el glúteo mayor rondó el 19,0 % y el bíceps femoral el 12,5 % de la contracción máxima, frente al 19,2 % y el 25,7 % del remo invertido.",
+          "id": "fenwick2009",
+          "title": "Comparison of different rowing exercises: trunk muscle activation and lumbar spine motion, load, and stiffness",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/19620925/"
+        },
+        {
+          "claim": "El remo inclinado con peso libre activó más los erectores que el remo en máquina (un 34 % más a dos manos); a dos manos los erectores trabajaron más que a una, el oblicuo externo trabajó menos que a una mano y el recto abdominal no cambió entre condiciones.",
+          "id": "saeterbakken2015",
+          "title": "The Effect of Performing Bi- and Unilateral Row Exercises on Core Muscle Activation",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/26134664/"
+        },
+        {
+          "claim": "El remo sentado dio la mayor actividad del conjunto trapecio medio y romboides frente a los jalones, y la actividad del bíceps no cambió entre los cuatro ejercicios comparados.",
+          "id": "lehman2004",
+          "title": "Variations in muscle activation levels during traditional latissimus dorsi weight training exercises: An experimental study",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/15228624/"
+        },
+        {
+          "claim": "En el remo sentado, el agarre estrecho dio más amplitud del dorsal ancho en ambas fases y el ancho más excitación de las porciones superior, media e inferior del trapecio y del deltoides lateral; en el bíceps solo cambió la localización de la excitación.",
+          "id": "padovan2025",
+          "title": "High-Density Surface Electromyography Excitation of Prime Movers in the Narrow vs. Wide Grip Seated Row Exercise",
+          "url": "https://doi.org/10.5114/jhk/209550"
+        },
+        {
+          "claim": "En el remo sentado en polea, el trapecio superior y medio y el deltoides posterior se activaron más a 60 y 90 grados de abducción del hombro, y el dorsal ancho y la fuerza pico fueron mayores con el brazo cerca de 0 grados.",
+          "id": "vasconcelos2023",
+          "title": "Effect Of Different Grip Position And Shoulder- Abduction Angle On Muscle Strength And Activation During The Seated Cable Row",
+          "url": "https://doi.org/10.47206/ijsc.v3i1.190"
+        },
+        {
+          "claim": "En el remo inclinado con barra, el agarre al 150 % de la anchura biacromial dio más actividad EMG del dorsal ancho que el agarre al 100 %, en 20 estudiantes activos.",
+          "id": "swann2026",
+          "title": "Optimising Lat Activation: A Comparative Analysis of Grip Width in the Bent-Over Barbell Row",
+          "url": "https://doi.org/10.19164/gjsscmr.v2i1.1582"
+        },
+        {
+          "claim": "Describe la acción del dorsal ancho (extensión, aducción y rotación interna del hombro) y de los músculos extrínsecos de la espalda sobre la escápula y el húmero.",
+          "id": "statpearls_extrinsic_back",
+          "title": "Anatomy, Back, Extrinsic Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725901/"
+        },
+        {
+          "claim": "Describe a los romboides como retractores y rotadores inferiores de la escápula.",
+          "id": "statpearls_rhomboids",
+          "title": "Anatomy, Back, Rhomboid Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30521277/"
+        },
+        {
+          "claim": "Las fibras medias del trapecio retraen la escápula y las inferiores la deprimen; el músculo estabiliza y mueve la escápula.",
+          "id": "statpearls_trapezius",
+          "title": "Anatomy, Back, Trapezius",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30085536/"
+        },
+        {
+          "claim": "Describe las porciones del deltoides; la posterior extiende y abduce horizontalmente el hombro.",
+          "id": "statpearls_deltoid",
+          "title": "Anatomy, Shoulder and Upper Limb, Deltoid Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725741/"
+        },
+        {
+          "claim": "Describe al bíceps braquial como flexor del codo y supinador del antebrazo.",
+          "id": "statpearls_biceps",
+          "title": "Anatomy, Shoulder and Upper Limb, Biceps Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30137823/"
+        },
+        {
+          "claim": "Describe los compartimentos del antebrazo y los flexores de dedos y muñeca que sostienen el agarre.",
+          "id": "statpearls_forearm_compartments",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Remo con la carga en el extremo libre de una barra cuyo otro extremo gira en un anclaje del suelo: el atleta, a horcajadas sobre la barra y de cara a los discos, flexiona las rodillas, inclina el tronco desde la cadera y sube las placas en arco hasta la parte baja del pecho. En la máquina, el pecho descansa en una almohadilla inclinada y una palanca con discos describe el mismo arco. El eje de giro fijo lo separa del remo convencional, y el tronco inclinado sobre los pies, del remo con pecho apoyado en banco.",
+        "keyPositions": [
+          "Inicio: brazos colgando estirados, placas suspendidas por encima del suelo, tronco inclinado y espalda neutra.",
+          "Punto alto: placas o mangos pegados al torso justo por debajo del esternón, codos detrás del tronco y escápulas juntas, con el tronco en el mismo ángulo que al empezar."
+        ],
+        "mistakes": [
+          "Erguir el tronco al tirar para que la cadera y la espalda baja empujen la carga.",
+          "Redondear la espalda cuando las placas están abajo.",
+          "Rebotar los discos contra el suelo entre repeticiones.",
+          "En la máquina, separar el pecho de la almohadilla para alargar el tirón."
+        ],
+        "phases": [
+          {
+            "description": "La cadera va atrás y el tronco se inclina con la espalda neutra antes del primer tirón; en la máquina, el pecho se apoya en la almohadilla.",
+            "name": "Bisagra"
+          },
+          {
+            "description": "Los codos viajan hacia atrás y las placas suben en arco, cada vez más cerca del cuerpo mientras la barra gira sobre su anclaje.",
+            "name": "Tirón"
+          },
+          {
+            "description": "Las placas llegan junto al pecho y las escápulas se cierran un instante.",
+            "name": "Arriba"
+          },
+          {
+            "description": "Los brazos se estiran hasta que las escápulas se separan, con las placas otra vez suspendidas.",
+            "name": "Descenso"
+          }
+        ],
+        "setup": [
+          "Barra en un anclaje o en una esquina con discos solo en el extremo libre; un pie a cada lado de la barra, de cara a los discos.",
+          "Rodillas flexionadas, cadera atrás y tronco inclinado unos 45 grados o algo más, con la columna neutra.",
+          "Agarre en V bajo la barra, junto a los discos, para el cerrado; accesorio con mangos al ancho de los hombros para el medio; mangos abiertos con palmas hacia abajo para el amplio.",
+          "Máquina: pies en la plataforma, pecho sobre la almohadilla inclinada y manos en los mangos de la palanca."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral a la altura de la cadera, con el atleta entero, el punto de giro y la carga dentro del encuadre.",
+          "contacts": "Pies firmes en el suelo o en la plataforma, manos cerradas sobre los agarres y, en la versión con apoyo, el pecho contra la almohadilla.",
+          "load": "La carga sube en arco alrededor de un eje fijo y queda separada del suelo.",
+          "orientation": "Atleta de perfil, con el tronco inclinado hacia delante, la cabeza hacia la izquierda del encuadre y la mirada al suelo unos pasos por delante.",
+          "phase": "Punto alto del tirón: codos por detrás del tronco, escápulas juntas y la carga cerca de la parte baja del pecho.",
+          "posture": "Rodillas flexionadas, cadera atrás, espalda neutra y hombros lejos de las orejas."
+        },
+        "byImplement": {
+          "machine": {
+            "geometry": "Máquina de remo en barra T con plataforma para los pies, almohadilla de pecho inclinada y una palanca cargada con discos que gira sobre un eje bajo la almohadilla; el atleta de pie en la plataforma con el pecho apoyado y las manos en los mangos de la palanca."
+          },
+          "t_bar": {
+            "geometry": "Barra olímpica con un extremo anclado al suelo detrás del atleta y discos en el extremo libre, delante de sus pies; el atleta a horcajadas sobre la barra, de cara a los discos, con las manos en un accesorio de mangos enganchado bajo la barra junto a los discos."
+          }
+        },
+        "byVariant": {
+          "t_bar_row__machine__close": {
+            "difference": "Manos en los asideros neutros del centro, palmas enfrentadas y codos pegados al cuerpo."
+          },
+          "t_bar_row__machine__wide": {
+            "difference": "Manos en los mangos exteriores de la palanca, palmas hacia abajo y codos abiertos."
+          },
+          "t_bar_row__t_bar__close": {
+            "difference": "Agarre en V bajo la barra, palmas enfrentadas y codos pegados a las costillas."
+          },
+          "t_bar_row__t_bar__wide": {
+            "difference": "Mangos anchos con las palmas hacia abajo y los codos abiertos casi a la altura de los hombros."
+          }
+        },
+        "forbidden": [
+          "Atleta con una barra libre sujeta por el centro y discos en ambos extremos: eso es un remo con barra, no un remo en barra T.",
+          "Tronco erguido o casi vertical en la versión libre: la bisagra de cadera forma parte del ejercicio.",
+          "Espalda redondeada o cabeza echada hacia el techo.",
+          "Discos apoyados en el suelo en el fotograma, o manos que no agarran los mangos.",
+          "En la máquina, pecho separado de la almohadilla o atleta sentado.",
+          "Brazos estirados con la carga abajo, como en la salida: el fotograma es el punto alto, con los codos por detrás del tronco y la carga junto al pecho."
+        ],
+        "promptCore": {
+          "machine": "Side view of a muscular athlete on a chest supported T-bar row machine, frozen at the TOP of the row. Both feet stand on the foot platform and the chest is pressed against the inclined chest pad. Both hands grip the handles of the plate loaded lever arm, shoulder width apart, and hold them beside the lower chest. Elbows are bent and pulled behind the torso, shoulder blades squeezed together. The lever arm with its weight plates is raised clear of the floor.",
+          "t_bar": "Side view of a muscular athlete standing astride a long barbell whose rear end is anchored to the floor behind him, frozen at the TOP of a T-bar row. Knees bent, hips pushed back, torso inclined forward about 45 degrees with a neutral spine. Both hands grip the parallel handles of a row handle hooked under the bar just behind the weight plates, shoulder width apart, and hold the plates close to the lower chest. Elbows are bent and pulled behind the torso, shoulder blades squeezed. Both feet are flat on the floor, one on each side of the bar. The plates are lifted well clear of the floor."
+        },
+        "qa": [
+          "¿Las dos manos agarran los mangos y la carga no flota suelta?",
+          "¿Los codos están por detrás del tronco, con la carga cerca de la parte baja del pecho?",
+          "¿La barra tiene un extremo fijo al suelo y discos solo en el otro, o se ve la palanca de la máquina?",
+          "¿En la versión libre el tronco está inclinado con la espalda recta y las rodillas flexionadas?",
+          "¿En la máquina el pecho está apoyado en la almohadilla y los pies en la plataforma?"
+        ]
+      }
     }
   },
   "familyId": "back_t_bar_row",

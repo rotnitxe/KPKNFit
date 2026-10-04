@@ -24,39 +24,41 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con máquina y agarre amplio, la carga anclada en un extremo gira hacia el pecho con el torso firme y el agarre cerrado. El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
+              "description": "En la máquina de barra T con apoyo, los mangos exteriores dejan las palmas hacia abajo y los codos se abren hacia los lados. El pecho descansa en la almohadilla, de modo que trapecio y dorsal ancho tiran sin que la espalda baja sostenga nada.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
-                "Máquina T con agarre amplio: las asas separan los codos y llevan el trabajo hacia romboides y trapecio medio. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido."
+                "Abre los codos hacia los lados hasta la altura de los hombros.",
+                "Deja el pecho pegado a la almohadilla mientras subes.",
+                "Baja los mangos hasta estirar los brazos, sin soltarlos."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión",
-                    "Aducción Del Hombro"
+                    "Abducción horizontal",
+                    "Extensión del hombro"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Retracción Escapular"
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
                   "role": "STABILIZER"
@@ -68,7 +70,8 @@
               "movementPatternId": "horizontal_pull",
               "performanceProfileId": "t_bar_row__machine__wide__remo_barra_t",
               "primaryMuscles": [
-                "latissimus_dorsi"
+                "latissimus_dorsi",
+                "trapezius"
               ],
               "replacementGroup": "back_row_tbar",
               "replacementPriority": null,
@@ -76,53 +79,54 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Aducción Del Hombro",
-                    "Retracción Escapular",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Abducción horizontal",
+                    "Extensión del hombro",
+                    "Retracción escapular",
+                    "Flexión del codo",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión",
-                        "Aducción Del Hombro"
+                        "Abducción horizontal",
+                        "Extensión del hombro"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Retracción Escapular"
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "latissimus_dorsi"
+                    "latissimus_dorsi",
+                    "trapezius"
                   ],
                   "secondaryMuscles": [
-                    "trapezius",
-                    "deltoid"
+                    "rhomboids",
+                    "deltoid",
+                    "biceps"
                   ],
                   "stabilizerMuscles": [
-                    "rhomboids",
-                    "biceps"
+                    "forearm"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -190,24 +194,26 @@
                     "machine"
                   ],
                   "preservesIntent": [
-                    "horizontal_pull:latissimus_dorsi"
+                    "horizontal_pull:latissimus_dorsi",
+                    "horizontal_pull:trapezius"
                   ],
                   "replacementGroup": "back_row_tbar",
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
-                "trapezius",
-                "deltoid"
+                "rhomboids",
+                "deltoid",
+                "biceps"
               ],
               "setupCues": [
-                "Preparación: Máquina T con agarre amplio: las asas separan los codos y llevan el trabajo hacia romboides y trapecio medio."
+                "Sube a la plataforma y apoya el pecho en la almohadilla inclinada.",
+                "Toma los mangos de los extremos con el dorso de las manos hacia arriba."
               ],
               "setupTimeSeconds": 55,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "rhomboids",
-                "biceps"
+                "forearm"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -235,39 +241,55 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con barra T y agarre amplio, la carga anclada en un extremo gira hacia el pecho con el torso firme y el agarre cerrado. El dorsal ancho trabaja con la barra T, que concentra la carga en un extremo. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
+              "description": "Un accesorio de mangos anchos en el extremo de la barra deja las palmas hacia abajo y los codos abiertos casi a la altura de los hombros. Juntar las escápulas gana peso frente a extender el hombro, y el trapecio comparte el trabajo con el dorsal ancho.",
               "efc": 2.5,
               "equipmentId": "t_bar",
               "executionCues": [
-                "Barra T con agarre amplio: las manos abiertas separan los codos y orientan el tirón hacia la espalda alta. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido."
+                "Separa los codos del cuerpo mientras tiras, hasta la altura de los hombros.",
+                "Junta las escápulas arriba sin levantar el tronco.",
+                "Baja hasta estirar los brazos sin que los discos golpeen el suelo."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión",
-                    "Aducción Del Hombro"
+                    "Abducción horizontal",
+                    "Extensión del hombro"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Retracción Escapular"
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Estabilidad del tronco inclinado"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Extensión isométrica de la cadera"
+                  ],
+                  "jointId": "cadera",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
                   "role": "STABILIZER"
@@ -279,7 +301,8 @@
               "movementPatternId": "horizontal_pull",
               "performanceProfileId": "t_bar_row__t_bar__wide__remo_barra_t",
               "primaryMuscles": [
-                "latissimus_dorsi"
+                "latissimus_dorsi",
+                "trapezius"
               ],
               "replacementGroup": "back_row_tbar",
               "replacementPriority": null,
@@ -287,53 +310,74 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Aducción Del Hombro",
-                    "Retracción Escapular",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Abducción horizontal",
+                    "Extensión del hombro",
+                    "Retracción escapular",
+                    "Flexión del codo",
+                    "Estabilidad del tronco inclinado",
+                    "Extensión isométrica de la cadera",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión",
-                        "Aducción Del Hombro"
+                        "Abducción horizontal",
+                        "Extensión del hombro"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Retracción Escapular"
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Estabilidad del tronco inclinado"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Extensión isométrica de la cadera"
+                      ],
+                      "jointId": "cadera",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "latissimus_dorsi"
+                    "latissimus_dorsi",
+                    "trapezius"
                   ],
                   "secondaryMuscles": [
-                    "trapezius",
-                    "deltoid"
+                    "rhomboids",
+                    "deltoid",
+                    "biceps"
                   ],
                   "stabilizerMuscles": [
-                    "rhomboids",
-                    "biceps"
+                    "erector_spinae",
+                    "gluteus_maximus",
+                    "hamstrings",
+                    "core",
+                    "forearm"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -348,6 +392,8 @@
                     "glenohumeral",
                     "escapulotoracica",
                     "codo",
+                    "columna-lumbar",
+                    "cadera",
                     "muñeca"
                   ],
                   "resistanceProfile": "gravity_arc",
@@ -401,24 +447,31 @@
                     "t_bar"
                   ],
                   "preservesIntent": [
-                    "horizontal_pull:latissimus_dorsi"
+                    "horizontal_pull:latissimus_dorsi",
+                    "horizontal_pull:trapezius"
                   ],
                   "replacementGroup": "back_row_tbar",
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
-                "trapezius",
-                "deltoid"
+                "rhomboids",
+                "deltoid",
+                "biceps"
               ],
               "setupCues": [
-                "Preparación: Barra T con agarre amplio: las manos abiertas separan los codos y orientan el tirón hacia la espalda alta."
+                "Colócate a horcajadas sobre la barra, de cara a los discos, con los pies algo más abiertos que la cadera.",
+                "Dobla las rodillas y echa la cadera atrás hasta que el tronco quede inclinado con la espalda recta.",
+                "Agarra los extremos del accesorio con las palmas hacia abajo, más abiertos que los hombros."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "rhomboids",
-                "biceps"
+                "erector_spinae",
+                "gluteus_maximus",
+                "hamstrings",
+                "core",
+                "forearm"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -446,39 +499,41 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con máquina y agarre medio, la carga anclada en un extremo gira hacia el pecho con el torso firme y el agarre cerrado. En la máquina, la trayectoria guiada concentra todo el esfuerzo del dorsal ancho. El agarre medio equilibra el reparto del trabajo del dorsal ancho.",
+              "description": "De pie sobre la plataforma y con el pecho en la almohadilla inclinada, los mangos medios quedan bajo los hombros y el brazo cargado gira sobre su eje. La inclinación la sostiene la almohadilla, no la cadera.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
-                "Máquina T con agarre medio: el recorrido guiado coloca los codos en una diagonal intermedia entre dorsal y espalda alta. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido."
+                "Tira hasta que tus codos queden por detrás del tronco.",
+                "Deja el pecho pegado a la almohadilla mientras subes.",
+                "Baja los mangos hasta estirar los brazos, sin soltarlos."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión",
-                    "Aducción Del Hombro"
+                    "Extensión del hombro",
+                    "Abducción horizontal"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Retracción Escapular"
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
                   "role": "STABILIZER"
@@ -498,38 +553,38 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Aducción Del Hombro",
-                    "Retracción Escapular",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Extensión del hombro",
+                    "Abducción horizontal",
+                    "Retracción escapular",
+                    "Flexión del codo",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión",
-                        "Aducción Del Hombro"
+                        "Extensión del hombro",
+                        "Abducción horizontal"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Retracción Escapular"
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
                       "role": "STABILIZER"
@@ -539,12 +594,13 @@
                     "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "trapezius",
                     "rhomboids",
+                    "trapezius",
+                    "deltoid",
                     "biceps"
                   ],
                   "stabilizerMuscles": [
-                    "deltoid"
+                    "forearm"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -619,17 +675,19 @@
                 }
               },
               "secondaryMuscles": [
-                "trapezius",
                 "rhomboids",
+                "trapezius",
+                "deltoid",
                 "biceps"
               ],
               "setupCues": [
-                "Preparación: Máquina T con agarre medio: el recorrido guiado coloca los codos en una diagonal intermedia entre dorsal y espalda alta."
+                "Sube a la plataforma y apoya el pecho en la almohadilla inclinada.",
+                "Agarra los mangos medios y deja los brazos colgando."
               ],
               "setupTimeSeconds": 55,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "deltoid"
+                "forearm"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -657,39 +715,55 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con barra T y agarre medio, la carga anclada en un extremo gira hacia el pecho con el torso firme y el agarre cerrado. Con la barra T, el agarre cerrado y la carga en un extremo dan un tirón distinto para el dorsal ancho. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado.",
+              "description": "Con las manos al ancho de los hombros en el accesorio, los codos se abren en diagonal y las placas suben hasta rozar la parte baja del pecho. La cadera y la espalda baja sostienen el tronco inclinado durante toda la serie, sin nada delante que lo apoye.",
               "efc": 2.5,
               "equipmentId": "t_bar",
               "executionCues": [
-                "Barra T con agarre medio: el anclaje ofrece una línea diagonal y el codo queda entre el costado y la apertura de la espalda alta. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido."
+                "Tira de los codos hacia atrás hasta que las placas se acerquen a la parte baja del pecho.",
+                "Junta las escápulas arriba sin levantar el tronco.",
+                "Baja hasta estirar los brazos sin que los discos golpeen el suelo."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión",
-                    "Aducción Del Hombro"
+                    "Extensión del hombro",
+                    "Abducción horizontal"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Retracción Escapular"
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Estabilidad del tronco inclinado"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Extensión isométrica de la cadera"
+                  ],
+                  "jointId": "cadera",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
                   "role": "STABILIZER"
@@ -709,38 +783,54 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Aducción Del Hombro",
-                    "Retracción Escapular",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Extensión del hombro",
+                    "Abducción horizontal",
+                    "Retracción escapular",
+                    "Flexión del codo",
+                    "Estabilidad del tronco inclinado",
+                    "Extensión isométrica de la cadera",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión",
-                        "Aducción Del Hombro"
+                        "Extensión del hombro",
+                        "Abducción horizontal"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Retracción Escapular"
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Estabilidad del tronco inclinado"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Extensión isométrica de la cadera"
+                      ],
+                      "jointId": "cadera",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
                       "role": "STABILIZER"
@@ -750,12 +840,17 @@
                     "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "trapezius",
                     "rhomboids",
+                    "trapezius",
+                    "deltoid",
                     "biceps"
                   ],
                   "stabilizerMuscles": [
-                    "deltoid"
+                    "erector_spinae",
+                    "gluteus_maximus",
+                    "hamstrings",
+                    "core",
+                    "forearm"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -770,6 +865,8 @@
                     "glenohumeral",
                     "escapulotoracica",
                     "codo",
+                    "columna-lumbar",
+                    "cadera",
                     "muñeca"
                   ],
                   "resistanceProfile": "gravity_arc",
@@ -830,17 +927,24 @@
                 }
               },
               "secondaryMuscles": [
-                "trapezius",
                 "rhomboids",
+                "trapezius",
+                "deltoid",
                 "biceps"
               ],
               "setupCues": [
-                "Preparación: Barra T con agarre medio: el anclaje ofrece una línea diagonal y el codo queda entre el costado y la apertura de la espalda alta."
+                "Colócate a horcajadas sobre la barra, de cara a los discos, con los pies algo más abiertos que la cadera.",
+                "Dobla las rodillas y echa la cadera atrás hasta que el tronco quede inclinado con la espalda recta.",
+                "Sujeta los mangos del accesorio con las manos separadas como tus hombros."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "deltoid"
+                "erector_spinae",
+                "gluteus_maximus",
+                "hamstrings",
+                "core",
+                "forearm"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -868,39 +972,41 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con máquina y agarre cerrado, la carga anclada en un extremo gira hacia el pecho con el torso firme y el agarre cerrado. En la máquina, la trayectoria guiada concentra todo el esfuerzo del dorsal ancho. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso.",
+              "description": "Los asideros neutros del centro juntan las manos y llevan los codos pegados al cuerpo. Con el tronco apoyado, el dorsal ancho trabaja en su recorrido largo sin que la zona lumbar intervenga.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
-                "Máquina T con agarre cerrado: las asas acercan los codos al cuerpo y la guía mantiene la carga en una línea repetible. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido."
+                "Tira con los codos junto al tronco hasta que pasen la espalda.",
+                "Deja el pecho pegado a la almohadilla mientras subes.",
+                "Baja los asideros hasta estirar los brazos, sin soltarlos."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión",
-                    "Aducción Del Hombro"
+                    "Extensión del hombro",
+                    "Aducción del hombro"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Retracción Escapular"
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
                   "role": "STABILIZER"
@@ -920,38 +1026,38 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Aducción Del Hombro",
-                    "Retracción Escapular",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Extensión del hombro",
+                    "Aducción del hombro",
+                    "Retracción escapular",
+                    "Flexión del codo",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión",
-                        "Aducción Del Hombro"
+                        "Extensión del hombro",
+                        "Aducción del hombro"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Retracción Escapular"
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
                       "role": "STABILIZER"
@@ -962,10 +1068,12 @@
                   ],
                   "secondaryMuscles": [
                     "rhomboids",
+                    "trapezius",
+                    "deltoid",
                     "biceps"
                   ],
                   "stabilizerMuscles": [
-                    "deltoid"
+                    "forearm"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1041,15 +1149,18 @@
               },
               "secondaryMuscles": [
                 "rhomboids",
+                "trapezius",
+                "deltoid",
                 "biceps"
               ],
               "setupCues": [
-                "Preparación: Máquina T con agarre cerrado: las asas acercan los codos al cuerpo y la guía mantiene la carga en una línea repetible."
+                "Sube a la plataforma y apoya el pecho en la almohadilla inclinada.",
+                "Toma los asideros neutros del centro con las palmas enfrentadas."
               ],
               "setupTimeSeconds": 55,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "deltoid"
+                "forearm"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -1077,39 +1188,55 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con barra T y agarre cerrado, la carga anclada en un extremo gira hacia el pecho con el torso firme y el agarre cerrado. Con la barra T, el agarre cerrado y la carga en un extremo dan un tirón distinto para el dorsal ancho. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso.",
+              "description": "El agarre en V se engancha debajo de la barra, junto a los discos, con las palmas enfrentadas y las manos casi juntas. Los codos pasan rozando las costillas y el arco de la barra acerca las placas al esternón.",
               "efc": 2.5,
               "equipmentId": "t_bar",
               "executionCues": [
-                "Barra T con agarre cerrado: el anclaje mantiene una trayectoria estable mientras los codos avanzan cerca del costado. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido."
+                "Sube los codos pegados a las costillas hasta que los discos rocen el pecho.",
+                "Junta las escápulas arriba sin levantar el tronco.",
+                "Baja hasta estirar los brazos sin que los discos golpeen el suelo."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión",
-                    "Aducción Del Hombro"
+                    "Extensión del hombro",
+                    "Aducción del hombro"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Retracción Escapular"
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Estabilidad del tronco inclinado"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Extensión isométrica de la cadera"
+                  ],
+                  "jointId": "cadera",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
                   "role": "STABILIZER"
@@ -1129,38 +1256,54 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Aducción Del Hombro",
-                    "Retracción Escapular",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Extensión del hombro",
+                    "Aducción del hombro",
+                    "Retracción escapular",
+                    "Flexión del codo",
+                    "Estabilidad del tronco inclinado",
+                    "Extensión isométrica de la cadera",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión",
-                        "Aducción Del Hombro"
+                        "Extensión del hombro",
+                        "Aducción del hombro"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Retracción Escapular"
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Estabilidad del tronco inclinado"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Extensión isométrica de la cadera"
+                      ],
+                      "jointId": "cadera",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
                       "role": "STABILIZER"
@@ -1171,10 +1314,16 @@
                   ],
                   "secondaryMuscles": [
                     "rhomboids",
+                    "trapezius",
+                    "deltoid",
                     "biceps"
                   ],
                   "stabilizerMuscles": [
-                    "deltoid"
+                    "erector_spinae",
+                    "gluteus_maximus",
+                    "hamstrings",
+                    "core",
+                    "forearm"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1189,6 +1338,8 @@
                     "glenohumeral",
                     "escapulotoracica",
                     "codo",
+                    "columna-lumbar",
+                    "cadera",
                     "muñeca"
                   ],
                   "resistanceProfile": "gravity_arc",
@@ -1250,15 +1401,23 @@
               },
               "secondaryMuscles": [
                 "rhomboids",
+                "trapezius",
+                "deltoid",
                 "biceps"
               ],
               "setupCues": [
-                "Preparación: Barra T con agarre cerrado: el anclaje mantiene una trayectoria estable mientras los codos avanzan cerca del costado."
+                "Colócate a horcajadas sobre la barra, de cara a los discos, con los pies algo más abiertos que la cadera.",
+                "Dobla las rodillas y echa la cadera atrás hasta que el tronco quede inclinado con la espalda recta.",
+                "Engancha el agarre en V bajo la barra, pegado a los discos, y sujétalo con las palmas enfrentadas."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "deltoid"
+                "erector_spinae",
+                "gluteus_maximus",
+                "hamstrings",
+                "core",
+                "forearm"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -1270,7 +1429,7 @@
           }
         ],
         "defaultConfigurationId": "t_bar_row__t_bar__medium",
-        "description": "El Remo en Barra T es la tracción con la carga anclada en un extremo: el dorsal tira en un arco que se cierra hacia el pecho con un agarre naturalmente cerrado. Se ejecuta con el pecho cerca del soporte y la espalda firme, subiendo las placas hasta el torso y bajándolas sin soltar la tensión. Las máquinas de barra T con apoyo pectoral ofrecen la misma esencia sin pedirle nada a la lumbar. Grosor de espalda media garantizado, con sabor a gimnasio de siempre.",
+        "description": "El Remo en Barra T (T-bar row) es un tirón horizontal con la carga en el extremo de una barra anclada por el otro: el dorsal ancho tira de los codos hacia atrás, y el trapecio con los romboides cierra las escápulas. A horcajadas sobre la barra, con las rodillas flexionadas y el tronco inclinado desde la cadera, las placas suben en arco hacia el pecho. Al girar sobre su anclaje, la barra acerca la carga al cuerpo cuanto más sube. Sin apoyo, los erectores sostienen la inclinación toda la serie; en la máquina, una almohadilla recibe el pecho y la espalda baja descansa. Es un remo para mover mucho peso con el tronco inclinado, y su versión con apoyo conserva el gesto cuando la zona lumbar pide descanso.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

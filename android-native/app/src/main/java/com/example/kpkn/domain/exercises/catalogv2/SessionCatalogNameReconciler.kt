@@ -11,7 +11,8 @@ import com.example.kpkn.data.protocols.TechniqueModifier
  *
  * Función pura: re-deriva [Exercise.name] para todo ejercicio con
  * [Exercise.catalogConfigurationId] resoluble en el índice y sin prefijo
- * `custom:`. Solo reescribe `name`; conserva variantName/técnica e identidad.
+ * `custom:`. Conserva variantName/técnica; los retiros explícitos también
+ * migran la identidad completa a su reemplazo documentado.
  * Sin migración Room: los nombres viven en blobs JSON y se reparan en
  * carga/guardado.
  *
@@ -23,7 +24,8 @@ object SessionCatalogNameReconciler {
         exercise: Exercise,
         displayNameIndex: Map<String, String>,
     ): Exercise {
-        val remapped = remapLegacyCatalogConfiguration(exercise)
+        if (isManualCustom(exercise)) return exercise
+        val remapped = remapLegacyCatalogConfiguration(remapRetiredRomanianSumoConfiguration(exercise, displayNameIndex))
         val configurationId = remapped.catalogConfigurationId?.trim().orEmpty()
         if (configurationId.isBlank()) return remapped
         if (isManualCustom(remapped)) return remapped
@@ -33,6 +35,26 @@ object SessionCatalogNameReconciler {
             ?: return remapped
         if (remapped.name.trim() == derived.trim()) return remapped
         return remapped.copy(name = derived)
+    }
+
+    private fun remapRetiredRomanianSumoConfiguration(
+        exercise: Exercise,
+        displayNameIndex: Map<String, String>,
+    ): Exercise {
+        val configurationId = exercise.catalogConfigurationId?.trim()?.lowercase().orEmpty()
+        val replacementProfileId = RETIRED_ROMANIAN_SUMO_CONFIGURATION_PROFILES[configurationId] ?: return exercise
+        if (exercise.catalogDefinitionId != "romanian_sumo_deadlift") return exercise
+        val replacementId = RETIRED_CONFIGURATION_REPLACEMENTS.getValue(configurationId)
+        if (replacementId !in displayNameIndex) return exercise
+        return exercise.copy(
+            exerciseDbId = replacementId,
+            exerciseId = replacementId,
+            canonicalExerciseId = replacementId,
+            exerciseFamilyId = "romanian_deadlift",
+            catalogDefinitionId = "romanian_deadlift",
+            catalogConfigurationId = replacementId,
+            performanceProfileId = replacementProfileId,
+        )
     }
 
     /**

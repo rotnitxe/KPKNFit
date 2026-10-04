@@ -67,6 +67,7 @@ object CompositionTaxonomy {
         "horizontal_pull" to PatternFamily.HORIZONTAL_PULL,
         "horizontal_abduction" to PatternFamily.HORIZONTAL_PULL,
         "scapular_depression" to PatternFamily.HORIZONTAL_PULL,
+        "scapular_retraction" to PatternFamily.HORIZONTAL_PULL,
         "vertical_pull" to PatternFamily.VERTICAL_PULL,
         "vertical_pull_abduction" to PatternFamily.VERTICAL_PULL,
         "knee_extension" to PatternFamily.KNEE_EXTENSION,

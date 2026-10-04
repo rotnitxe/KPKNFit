@@ -1,127 +1,1010 @@
 {
   "definitions": {
     "back_encogimientos": {
-      "public": {
-        "configurations": {
-          "back_encogimientos__barbell": {
-            "description": "Con barra, los hombros se elevan hacia las orejas y descienden de forma controlada sin rotar el tronco. Con la barra, la carga sube al máximo y la progresión del trapecio se mide sin trampa.",
-            "executionCues": [
-              "Barra al frente y hombros hacia arriba: el encogimiento tradicional con barra. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Elevación escapular"
             ],
-            "setupCues": [
-              "Preparación: Barra al frente y hombros hacia arriba: el encogimiento tradicional con barra."
+            "id": "escapulotoracica",
+            "role": "PRIMARY",
+            "sources": [
+              "statpearls_trapezius",
+              "castelein2016"
+            ],
+            "why": "Las escápulas suben y bajan sobre el tórax, y ese desplazamiento vertical es todo el recorrido del ejercicio. Lo producen las fibras superiores del trapecio con el elevador de la escápula y los romboides (Castelein et al.)."
+          },
+          {
+            "actions": [
+              "Estabilidad del hombro con el brazo colgando"
+            ],
+            "id": "glenohumeral",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_rotator_cuff"
+            ],
+            "why": "Con la carga a los costados el brazo cuelga vertical junto al tronco y el peso tira del húmero hacia abajo. El manguito rotador lo mantiene centrado en la glenoide (StatPearls) sin que el hombro gire ni se separe del cuerpo."
+          },
+          {
+            "actions": [
+              "Posición neutra del cuello"
+            ],
+            "id": "columna-cervical",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_trapezius",
+              "statpearls_levator"
+            ],
+            "why": "El trapecio superior también extiende el cuello y el elevador de la escápula lo extiende y lo inclina (StatPearls), así que la columna cervical tiene que quedarse alineada para que la fuerza suba la escápula y no mueva la cabeza."
+          },
+          {
+            "actions": [
+              "Sostén del agarre"
+            ],
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_forearm_compartments"
+            ],
+            "why": "Las muñecas quedan neutras, con las palmas hacia el cuerpo, mientras los dedos sostienen la carga; no se doblan ni se extienden durante la serie."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "trapezius",
+            "role": "PRIMARY",
+            "sources": [
+              "statpearls_trapezius",
+              "ekstrom2003",
+              "castelein2016"
+            ],
+            "why": "Sus fibras superiores elevan la escápula (StatPearls) y son el motor del gesto: entre diez ejercicios para el trapecio y el serrato, el encogimiento de un solo hombro dio la mayor actividad de la porción superior (Ekstrom et al.), y con los brazos a los costados sosteniendo un peso esa actividad fue alta (Castelein et al.)."
+          },
+          {
+            "id": "rhomboids",
+            "role": "SECONDARY",
+            "sources": [
+              "castelein2016",
+              "statpearls_levator"
+            ],
+            "why": "Con electrodos de aguja fina, el romboides mayor y el elevador de la escápula se activaron en el encogimiento con los brazos a los costados más que al encoger con los brazos por encima de la cabeza (Castelein et al.). Acompañan al trapecio en la subida junto con el elevador, que también eleva la escápula (StatPearls), sin ser los que deciden la serie."
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_forearm_compartments"
+            ],
+            "why": "Los flexores de los dedos y de la muñeca cierran la mano sobre la carga en isometría toda la serie; cuanto más pesa, más tienen que apretar, pero no mueven ninguna articulación del gesto."
+          }
+        ],
+        "overrides": {
+          "back_encogimientos__barbell": {
+            "joints": [
+              {
+                "actions": [
+                  "Estabilidad del hombro con la carga delante"
+                ],
+                "id": "glenohumeral",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_rotator_cuff"
+                ],
+                "why": "La barra cuelga delante de los muslos, así que los brazos quedan algo por delante del tronco y la carga tira de los hombros hacia el frente. El manguito rotador centra la cabeza del húmero mientras los hombros suben sin rodar hacia delante."
+              },
+              {
+                "actions": [
+                  "Sostén del agarre en prono"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_forearm_compartments"
+                ],
+                "why": "Con agarre prono al ancho de los hombros, las muñecas quedan firmes sobre la barra con los nudillos al frente mientras los flexores de los dedos sostienen discos que pueden pesar mucho."
+              }
             ]
           },
           "back_encogimientos__cable": {
-            "description": "Con polea, los hombros se elevan hacia las orejas y descienden de forma controlada sin rotar el tronco. Con la polea, la tensión sobre el trapecio se mantiene viva de principio a fin.",
-            "executionCues": [
-              "Polea y hombros hacia arriba: la tensión constante mantiene el trapecio cargado. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-            ],
-            "setupCues": [
-              "Preparación: Polea y hombros hacia arriba: la tensión constante mantiene el trapecio cargado."
-            ]
-          },
-          "back_encogimientos__dumbbells": {
-            "description": "Con mancuernas, los hombros se elevan hacia las orejas y descienden de forma controlada sin rotar el tronco. El trapecio trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-            "executionCues": [
-              "Mancuernas a los costados y hombros hacia arriba: el encogimiento tradicional. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-            ],
-            "setupCues": [
-              "Preparación: Mancuernas a los costados y hombros hacia arriba: el encogimiento tradicional."
+            "joints": [
+              {
+                "actions": [
+                  "Estabilidad del hombro ante un tirón oblicuo"
+                ],
+                "id": "glenohumeral",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_rotator_cuff"
+                ],
+                "why": "El cable sale de la polea baja por delante del cuerpo y arrastra la barra hacia ella, hacia abajo y algo al frente. El hombro resiste ese tirón oblicuo con el manguito rotador mientras la escápula sube en vertical."
+              },
+              {
+                "actions": [
+                  "Sostén del agarre en prono"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_forearm_compartments"
+                ],
+                "why": "Agarre prono sobre la barra de la polea: la muñeca queda firme mientras el cable tira de la mano hacia la polea, no solo hacia el suelo."
+              }
             ]
           },
           "back_encogimientos__kettlebell": {
-            "description": "Con kettlebell, los hombros se elevan hacia las orejas y descienden de forma controlada sin rotar el tronco. El trapecio trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
-            "executionCues": [
-              "Kettlebells a los costados: el peso colgante obliga a fijar la escápula mientras los hombros suben. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-            ],
-            "setupCues": [
-              "Preparación: Kettlebells a los costados: el peso colgante obliga a fijar la escápula mientras los hombros suben."
+            "joints": [
+              {
+                "actions": [
+                  "Sostén del agarre neutro"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_forearm_compartments"
+                ],
+                "why": "El asa gruesa llena la mano y la bola cuelga bajo el puño, así que la muñeca tiene que quedarse neutra para que la kettlebell no gire hacia el antebrazo durante la subida."
+              }
             ]
           },
           "back_encogimientos__smith_machine": {
-            "description": "Con máquina Smith, los hombros se elevan hacia las orejas y descienden de forma controlada sin rotar el tronco. El trapecio trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
+            "joints": [
+              {
+                "actions": [
+                  "Estabilidad del hombro con la carga delante"
+                ],
+                "id": "glenohumeral",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_rotator_cuff"
+                ],
+                "why": "La barra queda delante de los muslos, pero los rieles impiden que se aleje o se acerque al cuerpo, de modo que el hombro solo sostiene la carga hacia abajo mientras la escápula sube. El manguito rotador centra la cabeza del húmero."
+              },
+              {
+                "actions": [
+                  "Sostén del agarre en prono"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_forearm_compartments"
+                ],
+                "why": "La muñeca queda en prono sobre la barra de los rieles y solo gira al principio y al final para soltarla y engancharla; durante la serie los dedos sostienen el peso."
+              }
+            ]
+          }
+        }
+      },
+      "public": {
+        "configurations": {
+          "back_encogimientos__barbell": {
+            "description": "La barra libre cuelga delante de los muslos en agarre prono al ancho de los hombros y se carga con discos hasta pesos altos. Al quedar el peso por delante del cuerpo, tira de los hombros hacia el frente, y la barra puede rozar los muslos en la subida.",
             "executionCues": [
-              "Smith con los hombros libres: la guía permite cargar más sin tener que equilibrar la barra. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Sube los hombros hacia las orejas sin doblar los codos ni adelantar la barra.",
+              "Haz una pausa arriba y baja despacio, sin que el peso de la barra te incline hacia delante.",
+              "Deja que la barra roce los muslos sin apoyarla en ellos."
             ],
             "setupCues": [
-              "Preparación: Smith con los hombros libres: la guía permite cargar más sin tener que equilibrar la barra."
+              "Saca la barra del soporte a la altura de los muslos y da un paso atrás.",
+              "Agarra la barra en prono al ancho de los hombros, con los brazos estirados delante de los muslos."
+            ]
+          },
+          "back_encogimientos__cable": {
+            "description": "La polea baja queda por delante de los pies y tira de la barra hacia ella, así que la resistencia no es del todo vertical. Un paso hacia la polea o hacia atrás cambia ese ángulo, y el peso se ajusta con el pasador.",
+            "executionCues": [
+              "Sube los hombros hacia las orejas sin dejar que la polea te incline hacia delante.",
+              "Frena la bajada de los hombros, porque el cable tira de la barra hacia la polea."
+            ],
+            "setupCues": [
+              "Ponte de pie frente a la polea baja con una barra recta enganchada al cable.",
+              "Agarra la barra en prono al ancho de los hombros y retrocede hasta que el cable quede tirante."
+            ]
+          },
+          "back_encogimientos__dumbbells": {
+            "description": "Las mancuernas cuelgan a los costados con las palmas hacia los muslos, en la vertical de los hombros, y nada roza el cuerpo al subir. Cada brazo carga su propio peso, así que si un hombro sube menos que el otro se nota enseguida.",
+            "executionCues": [
+              "Sube los hombros hacia las orejas en línea recta, sin doblar los codos.",
+              "Arriba, comprueba que las dos mancuernas quedan a la misma altura y baja despacio.",
+              "No gires los hombros en círculo ni al subir ni al bajar."
+            ],
+            "setupCues": [
+              "Ponte de pie con los pies al ancho de la cadera y una mancuerna en cada mano.",
+              "Deja los brazos estirados a los costados, con las palmas mirando a los muslos."
+            ]
+          },
+          "back_encogimientos__kettlebell": {
+            "description": "Cada kettlebell cuelga bajo el puño con la bola pegada al lateral del muslo, y su asa gruesa obliga a cerrar la mano con más fuerza. Si los hombros no suben en línea recta, la bola roza o golpea la pierna.",
+            "executionCues": [
+              "Sube los hombros hacia las orejas sin que las bolas choquen con las piernas.",
+              "Aprieta el asa toda la serie y baja despacio."
+            ],
+            "setupCues": [
+              "Toma una kettlebell en cada mano, con la bola por fuera del muslo.",
+              "Ponte de pie con los brazos estirados y las palmas mirando al cuerpo."
+            ]
+          },
+          "back_encogimientos__smith_machine": {
+            "description": "Los rieles fijan la barra en vertical y los ganchos dejan sacarla ya a la altura de los muslos, sin levantarla desde el suelo. Al no tener que estabilizar la barra hacia delante o hacia atrás, solo queda subir y bajar los hombros.",
+            "executionCues": [
+              "Sube los hombros en vertical a lo largo de los rieles, sin doblar los codos.",
+              "Baja hasta sentir el cuello largo y vuelve a subir sin rebotar.",
+              "Al terminar, gira la barra para engancharla antes de soltarla."
+            ],
+            "setupCues": [
+              "Coloca los ganchos de la barra a la altura de la mitad del muslo.",
+              "Ponte de pie pegado a la barra y agárrala en prono, al ancho de los hombros.",
+              "Gira la barra para soltar los ganchos y estira los brazos."
             ]
           }
         },
-        "description": "Los Encogimientos elevan los hombros hacia las orejas contra carga: el trapecio superior trabaja en el gesto más simple del gimnasio. Se ejecutan con mancuernas a los lados o barra al frente, subiendo en vertical y bajando sin rodar los hombros hacia delante. En polea baja o con kettlebells el gesto se monta con otro agarre. Trapecios que se ven desde lejos, construidos un centímetro cada vez."
+        "description": "Los Encogimientos (shrugs) suben los hombros hacia las orejas con los brazos colgando y la carga en las manos, y los devuelven abajo hasta notar el cuello largo. Entre diez ejercicios comparados con electromiografía, encoger un hombro fue el que más activó la porción superior del trapecio; el elevador de la escápula y los romboides ayudan a subir la escápula y el antebrazo sujeta el peso. Los codos no se doblan y los hombros no ruedan: el recorrido es corto y casi vertical. Según el implemento, la carga cuelga a los costados o delante de los muslos, y eso cambia hacia dónde tira de los hombros. Como las piernas no empujan y el tronco solo se sostiene, la subida es trabajo de la espalda alta, y admite cargas altas."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "Entre diez ejercicios para el trapecio y el serrato anterior, el encogimiento de hombro unilateral produjo la mayor actividad electromiográfica del trapecio superior.",
+          "id": "ekstrom2003",
+          "title": "Surface electromyographic analysis of exercises for the trapezius and serratus anterior muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/12774999/"
+        },
+        {
+          "claim": "Con electrodos de superficie y de aguja fina, el encogimiento con los brazos a los costados sosteniendo un peso dio actividad alta del trapecio superior, y el elevador de la escápula y el romboides mayor se activaron menos al encoger con los brazos por encima de la cabeza.",
+          "id": "castelein2016",
+          "title": "Modifying the shoulder joint position during shrugging and retraction exercises alters the activation of the medial scapular muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/26409441/"
+        },
+        {
+          "claim": "El trapecio va del occipital a las vértebras torácicas bajas y a la espina de la escápula; sus fibras superiores elevan y rotan hacia arriba la escápula y extienden el cuello.",
+          "id": "statpearls_trapezius",
+          "title": "Anatomy, Back, Trapezius",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30085536/"
+        },
+        {
+          "claim": "El elevador de la escápula eleva la escápula y, junto con otros músculos, puede rotar hacia abajo la cavidad glenoidea y extender e inclinar lateralmente el cuello.",
+          "id": "statpearls_levator",
+          "title": "Anatomy, Head and Neck, Levator Scapulae Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31971759/"
+        },
+        {
+          "claim": "El manguito rotador está entre los estabilizadores dinámicos de la articulación glenohumeral, que es muy móvil pero tiene poca estabilidad propia.",
+          "id": "statpearls_rotator_cuff",
+          "title": "Anatomy, Rotator Cuff",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/28722874/"
+        },
+        {
+          "claim": "Describe los compartimentos del antebrazo: los músculos del compartimento anterior flexionan la muñeca y los dedos.",
+          "id": "statpearls_forearm_compartments",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Elevación de la cintura escapular de pie, con los brazos extendidos y la carga colgando de las manos a los costados o delante de los muslos: los hombros suben hacia las orejas y vuelven abajo sin flexionar los codos. Que los hombros suban en vertical lo separa del encogimiento hacia atrás, en el que el tronco va apoyado o inclinado y las escápulas se juntan.",
+        "keyPositions": [
+          "Inicio: hombros bajos, cuello largo, brazos colgando rectos y la carga a la altura de los muslos.",
+          "Punto alto: hombros cerca de las orejas, escápulas elevadas, codos todavía rectos y la carga unos centímetros más arriba que al inicio."
+        ],
+        "mistakes": [
+          "Doblar los codos para subir más la carga, lo que convierte el gesto en un remo al mentón corto.",
+          "Rodar los hombros en círculo en lugar de subirlos y bajarlos en vertical.",
+          "Adelantar la cabeza o bajar la barbilla al subir los hombros.",
+          "Rebotar abajo o usar las piernas para lanzar la carga hacia arriba."
+        ],
+        "phases": [
+          {
+            "description": "Los hombros suben en vertical hacia las orejas, con los brazos colgando rectos y la carga cerca del cuerpo.",
+            "name": "Subida"
+          },
+          {
+            "description": "Pausa de un segundo con los hombros en su punto más alto y la cabeza quieta, mirando al frente.",
+            "name": "Arriba"
+          },
+          {
+            "description": "Los hombros descienden despacio hasta que el cuello vuelve a quedar largo y los brazos del todo estirados.",
+            "name": "Bajada"
+          }
+        ],
+        "setup": [
+          "De pie, pies al ancho de la cadera, rodillas sin bloquear y tronco vertical.",
+          "Mancuernas o kettlebells a los costados con las palmas hacia el cuerpo; barra libre, barra de la Smith o barra de polea delante de los muslos, en prono al ancho de los hombros.",
+          "Brazos estirados y hombros relajados abajo antes de la primera repetición."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista frontal a tres cuartos a la altura del pecho, con encuadre de la cabeza a los pies para ver la distancia entre los hombros y las orejas.",
+          "contacts": "Pies apoyados en el suelo al ancho de la cadera; las manos son el único contacto con la carga, que cuelga sin tocar el suelo.",
+          "load": "Carga colgando de las manos con los brazos extendidos, por debajo de la cadera y separada del suelo.",
+          "orientation": "Atleta de pie, de frente a la cámara y girado unos 30 grados, tronco vertical y mirada al frente.",
+          "phase": "Punto alto del encogimiento: hombros subidos hacia las orejas, codos rectos y la carga en su posición más alta.",
+          "posture": "Tronco y cuello verticales, brazos colgando rectos, hombros subidos sin rodar hacia delante y rodillas apenas flexionadas."
+        },
+        "byImplement": {
+          "barbell": {
+            "geometry": "Barra libre con discos delante de los muslos, en agarre prono al ancho de los hombros; en el punto alto la barra queda a la altura de la parte alta del muslo."
+          },
+          "cable": {
+            "geometry": "Columna de polea delante del atleta, con la polea baja cerca del suelo; el cable sube hasta el centro de una barra recta que el atleta sostiene en prono con las dos manos, delante de los muslos."
+          },
+          "dumbbells": {
+            "geometry": "Una mancuerna en cada mano a los costados, con las palmas hacia los muslos y las cargas paralelas a las piernas, a la altura de la mitad del muslo."
+          },
+          "kettlebell": {
+            "geometry": "Una kettlebell en cada mano a los costados, con el asa en el puño y la bola colgando bajo la mano, pegada al lateral del muslo."
+          },
+          "smith_machine": {
+            "geometry": "Barra de la máquina Smith entre dos rieles verticales, delante de los muslos y en agarre prono al ancho de los hombros; los discos quedan a ambos lados, por fuera de los rieles."
+          }
+        },
+        "forbidden": [
+          "Tronco inclinado hacia delante o pecho apoyado en un banco con las escápulas juntas: eso es un Kelso Shrug, no un encogimiento.",
+          "Codos flexionados o carga a la altura del pecho: eso es un remo al mentón.",
+          "Hombros caídos y relajados en el fotograma: el punto que se dibuja es el alto.",
+          "Carga flotando sin que las manos la agarren, o apoyada en el suelo.",
+          "Cabeza adelantada o barbilla hundida hacia el pecho.",
+          "Cable enganchado a un extremo de la barra, una sola mano en la barra, o atleta de lado o de espaldas a la polea."
+        ],
+        "promptCore": {
+          "barbell": "Three-quarter front view of a muscular athlete standing upright, frozen at the TOP of a barbell shrug. Both hands grip a loaded barbell with an overhand grip at shoulder width and hold it in front of the upper thighs. The arms hang completely straight and the shoulders are lifted high toward the ears. Head and neck neutral, eyes forward, feet flat on the floor at hip width. The plates hang clear of the floor.",
+          "cable": "Three-quarter front view of a muscular athlete standing upright and facing a cable column one step in front, the column at the edge of the frame, frozen at the TOP of a cable shrug. Both hands grip a short straight bar with an overhand grip at shoulder width and hold it in front of the upper thighs. The cable is attached to the middle of the bar and runs taut down to the low pulley at the base of the column. The arms hang completely straight and the shoulders are lifted high toward the ears. Head and neck neutral, feet flat on the floor.",
+          "dumbbells": "Three-quarter front view of a muscular athlete standing upright, frozen at the TOP of a dumbbell shrug. Each hand grips one dumbbell at the sides with the palms facing the thighs. The arms hang completely straight and the shoulders are lifted high toward the ears, without rolling forward. Head and neck neutral, eyes forward, feet flat on the floor at hip width. The dumbbells hang beside the thighs, clear of the floor.",
+          "kettlebell": "Three-quarter front view of a muscular athlete standing upright, frozen at the TOP of a kettlebell shrug. Each hand grips the handle of one kettlebell at the sides, the round bell hanging just below the fist beside the outer thigh. The arms hang completely straight and the shoulders are lifted high toward the ears. Head and neck neutral, eyes forward, feet flat on the floor. The kettlebells are clear of the floor.",
+          "smith_machine": "Three-quarter front view of a muscular athlete standing upright between the two vertical rails of a guided bar machine, frozen at the TOP of a shrug. Both hands grip the guided bar with an overhand grip at shoulder width and hold it in front of the upper thighs, the bar locked inside the rails. The arms hang completely straight and the shoulders are lifted high toward the ears. Head and neck neutral, feet flat on the floor. The plates sit outside the rails, clear of the floor."
+        },
+        "qa": [
+          "¿Las manos agarran la carga y esta cuelga de ellas, sin flotar ni apoyarse en el suelo?",
+          "¿Los hombros están subidos hacia las orejas, en el punto alto?",
+          "¿Los codos están completamente estirados?",
+          "¿El atleta está de pie con el tronco y el cuello verticales?"
+        ]
+      }
     },
     "back_encogimientos_kelso": {
-      "public": {
-        "configurations": {
-          "back_encogimientos_kelso__barbell": {
-            "description": "Con barra, con el torso inclinado, los hombros se retraen hacia atrás y arriba mientras la carga cuelga. La barra es la referencia para cargar el trapecio con peso de verdad.",
-            "executionCues": [
-              "Barra por detrás del cuerpo: el Kelso shrug tradicional con los brazos atrás. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Retracción escapular"
             ],
-            "setupCues": [
-              "Preparación: Barra por detrás del cuerpo: el Kelso shrug tradicional con los brazos atrás."
+            "id": "escapulotoracica",
+            "role": "PRIMARY",
+            "sources": [
+              "oyama2010",
+              "statpearls_trapezius"
+            ],
+            "why": "Las escápulas se acercan a la columna y vuelven a separarse, y ese deslizamiento es todo el recorrido. En los ejercicios de retracción la escápula rota hacia fuera y hacia arriba y bascula hacia atrás (Oyama et al.), sin la elevación de un encogimiento de pie."
+          },
+          {
+            "actions": [
+              "Retracción de la clavícula"
+            ],
+            "id": "esternoclavicular",
+            "role": "SECONDARY",
+            "sources": [
+              "oyama2010",
+              "statpearls_sc"
+            ],
+            "why": "La clavícula acompaña a la escápula: en los ejercicios de retracción se retrae y desciende en su unión con el esternón (Oyama et al.). Ese descenso confirma que los hombros no suben hacia las orejas."
+          },
+          {
+            "actions": [
+              "Estabilidad del hombro con el brazo estirado"
+            ],
+            "id": "glenohumeral",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_rotator_cuff"
+            ],
+            "why": "El brazo no cambia de ángulo respecto de la escápula y la acompaña en su recorrido; el manguito rotador centra la cabeza del húmero mientras la carga tira del brazo hacia el suelo (StatPearls)."
+          },
+          {
+            "actions": [
+              "Sostén del agarre"
+            ],
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_forearm_compartments"
+            ],
+            "why": "La muñeca queda firme bajo la carga, en prono con la barra o las asas y en neutro con las kettlebells, sin flexionarse ni extenderse durante la serie."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "trapezius",
+            "role": "PRIMARY",
+            "sources": [
+              "statpearls_trapezius",
+              "kara2021"
+            ],
+            "why": "Sus fibras medias retraen la escápula (StatPearls) y son el motor del gesto. Kara et al. midieron la retracción de pie con banda elástica y el codo a 90 grados, salvo el remo alto, que partía del codo extendido: con el brazo a 0 y a 120 grados de abducción el trapecio medio superó al superior y al inferior. Aquí los brazos van estirados todo el recorrido, así que el dato se extrapola; las fibras superiores no deben subir los hombros, porque la escápula va hacia la columna."
+          },
+          {
+            "id": "rhomboids",
+            "role": "SECONDARY",
+            "sources": [
+              "fennell2016"
+            ],
+            "why": "Retraen la escápula junto con el trapecio medio y además la rotan hacia abajo; en todas las posiciones de retracción medidas con aguja fina se coactivaron con el trapecio (Fennell et al.). Con el codo extendido y el hombro en rotación externa, el trapecio medio ganó peso frente al romboides mayor respecto de la posición de remo; de ahí se deduce que aquí, también con el codo extendido, asisten sin liderar."
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_forearm_compartments"
+            ],
+            "why": "Los flexores de los dedos sostienen la barra, las asas o las kettlebells en isometría; la mano no se mueve y solo transmite la carga a unos brazos que cuelgan o se estiran sin doblarse."
+          }
+        ],
+        "overrides": {
+          "back_encogimientos_kelso__barbell": {
+            "joints": [
+              {
+                "actions": [
+                  "Estabilidad del tronco inclinado"
+                ],
+                "id": "columna-lumbar",
+                "role": "STABILIZER",
+                "sources": [
+                  "fenwick2009"
+                ],
+                "why": "La columna lumbar no se mueve, pero sostiene el tronco casi horizontal con la barra colgando por delante, la postura que dio la mayor carga lumbar entre los remos de Fenwick et al."
+              },
+              {
+                "actions": [
+                  "Flexión sostenida de la cadera"
+                ],
+                "id": "cadera",
+                "role": "STABILIZER",
+                "sources": [
+                  "fenwick2009"
+                ],
+                "why": "La cadera queda flexionada en bisagra toda la serie y los isquiosurales y el glúteo mayor sostienen el tronco inclinado sin moverlo; Fenwick et al. midieron esa musculatura en los remos con el tronco inclinado."
+              }
+            ],
+            "muscles": [
+              {
+                "id": "erector_spinae",
+                "role": "STABILIZER",
+                "sources": [
+                  "fenwick2009"
+                ],
+                "why": "Sin pecho apoyado, los erectores sostienen en isometría la columna inclinada casi en horizontal toda la serie. Fenwick et al. midieron en el remo de pie inclinado una activación alta y simétrica de la espalda con la mayor carga lumbar de los remos comparados; aquí los brazos no tiran, pero la postura del tronco es esa."
+              },
+              {
+                "id": "hamstrings",
+                "role": "STABILIZER",
+                "sources": [
+                  "fenwick2009",
+                  "statpearls_hamstring"
+                ],
+                "why": "Con el tronco casi horizontal y las rodillas algo flexionadas sujetan la pelvis en la bisagra sin cambiar de longitud. En el remo de pie con barra el bíceps femoral rondó el 12 % de su máximo (Fenwick et al.); aquí la postura es la misma y los brazos no reman, así que su trabajo es isométrico y moderado."
+              },
+              {
+                "id": "gluteus_maximus",
+                "role": "STABILIZER",
+                "sources": [
+                  "fenwick2009",
+                  "statpearls_gluteus_maximus"
+                ],
+                "why": "Frena la flexión de la cadera que provocan el peso del tronco inclinado y la barra colgando, sin extenderla durante la serie. En el remo de pie con barra rondó el 19 % de su máximo (Fenwick et al.), en la misma postura que aquí."
+              }
             ]
           },
           "back_encogimientos_kelso__cable": {
-            "description": "Con polea, con el torso inclinado, los hombros se retraen hacia atrás y arriba mientras la carga cuelga. Con la polea, la tensión sobre el trapecio se mantiene viva de principio a fin.",
+            "joints": [
+              {
+                "actions": [
+                  "Estabilidad del hombro con el brazo al frente"
+                ],
+                "id": "glenohumeral",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_rotator_cuff"
+                ],
+                "why": "Con el tronco erguido, los brazos apuntan hacia la polea a la altura del pecho y el cable tira de ellos hacia delante y algo hacia abajo; el manguito rotador centra la cabeza del húmero mientras la escápula se retrae."
+              },
+              {
+                "actions": [
+                  "Estabilidad del tronco erguido"
+                ],
+                "id": "columna-lumbar",
+                "role": "STABILIZER",
+                "sources": [
+                  "saeterbakken2015"
+                ],
+                "why": "La columna no se mueve: queda erguida mientras el cable tira de los brazos hacia delante y los erectores la sostienen; no se inclina hacia atrás para ayudar a juntar las escápulas."
+              }
+            ],
+            "muscles": [
+              {
+                "id": "erector_spinae",
+                "role": "STABILIZER",
+                "sources": [
+                  "saeterbakken2015"
+                ],
+                "why": "Sentado y sin respaldo, el cable tira de los brazos y del tronco hacia la polea, y los erectores sostienen la espalda erguida en isometría. En el remo sentado en polea su actividad con los dos brazos superó a la de uno solo (Saeterbakken et al.); aquí los brazos no reman, pero el tronco resiste el mismo tirón."
+              }
+            ]
+          }
+        }
+      },
+      "pattern": {
+        "movementPatternId": "scapular_retraction",
+        "sources": [
+          "oyama2010",
+          "kara2021",
+          "fennell2016"
+        ],
+        "why": "El Kelso Shrug junta las escápulas hacia la columna con los brazos estirados y los codos sin flexionar: la escápula se retrae y la clavícula se retrae y desciende (Oyama et al.), y el motor es el trapecio medio con los romboides (Kara et al.; Fennell et al.). Los hombros no suben hacia las orejas, así que la elevación escapular no lo describe. Decisión del usuario en el plan de re-curaduría (2026-10-02)."
+      },
+      "public": {
+        "configurations": {
+          "back_encogimientos_kelso__barbell": {
+            "description": "Sin apoyo para el pecho, el tronco se inclina casi paralelo al suelo y la barra cuelga bajo los hombros en agarre prono. La zona lumbar y las caderas sostienen esa inclinación toda la serie, de modo que la espalda baja trabaja además de las escápulas.",
             "executionCues": [
-              "Polea por detrás: la tensión constante acompaña el encogimiento trasero. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Junta las escápulas hacia la columna sin doblar los codos ni subir los hombros.",
+              "Aguanta un segundo con las escápulas juntas.",
+              "Sepáralas despacio sin perder la inclinación del tronco."
             ],
             "setupCues": [
-              "Preparación: Polea por detrás: la tensión constante acompaña el encogimiento trasero."
+              "Agarra la barra en prono, un poco más ancho que los hombros, y sácala del soporte.",
+              "Inclina el tronco desde la cadera hasta dejarlo casi paralelo al suelo, con las rodillas algo flexionadas.",
+              "Deja colgar la barra bajo los hombros con los brazos estirados."
+            ]
+          },
+          "back_encogimientos_kelso__cable": {
+            "description": "Sentado en la estación de remo, con el tronco vertical, el cable sube en diagonal desde la polea, junto a los pies, hasta las manos a la altura del pecho. Juntar las escápulas aleja la barra unos centímetros de la polea, con la carga tirando hacia delante y hacia abajo.",
+            "executionCues": [
+              "Junta las escápulas y lleva los hombros hacia atrás sin doblar los codos ni echar el tronco atrás.",
+              "Deja que la polea separe las escápulas despacio antes de repetir."
+            ],
+            "setupCues": [
+              "Siéntate en la estación de remo con los pies en la plataforma y las rodillas algo flexionadas.",
+              "Agarra la barra con las palmas hacia abajo y siéntate erguido con los brazos estirados al frente."
             ]
           },
           "back_encogimientos_kelso__kettlebell": {
-            "description": "Con kettlebell, con el torso inclinado, los hombros se retraen hacia atrás y arriba mientras la carga cuelga. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del trapecio.",
+            "description": "Con el pecho sobre un banco inclinado, cada mano sostiene una kettlebell que cuelga bajo el hombro y se mueve por su cuenta. La bola por debajo del puño tiende a balancearse si las escápulas se sueltan de golpe.",
             "executionCues": [
-              "Kettlebells por detrás: el agarre suma trabajo y el trapecio aumenta su tensión. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Junta las escápulas sin doblar los codos y nota cómo las dos kettlebells suben a la vez.",
+              "Aguanta un segundo arriba y baja las kettlebells despacio, sin que se balanceen."
             ],
             "setupCues": [
-              "Preparación: Kettlebells por detrás: el agarre suma trabajo y el trapecio aumenta su tensión."
+              "Inclina un banco unos 45 grados y túmbate boca abajo con el pecho en la parte alta.",
+              "Deja colgar una kettlebell en cada mano bajo los hombros, con los brazos estirados."
             ]
           },
           "back_encogimientos_kelso__machine": {
-            "description": "Con máquina, con el torso inclinado, los hombros se retraen hacia atrás y arriba mientras la carga cuelga. En la máquina, la trayectoria guiada concentra todo el esfuerzo del trapecio.",
+            "description": "El pecho descansa en el acolchado de una máquina de remo con apoyo y las manos sostienen las asas con los brazos estirados. Solo se mueven las escápulas, y la carga avanza unos centímetros sin que la espalda baja tenga que sostener el tronco.",
             "executionCues": [
-              "Máquina con los brazos detrás: el guiado hace el recorrido estable. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Junta las escápulas y lleva las asas unos centímetros atrás, con los codos rectos.",
+              "Mantén el pecho pegado al acolchado durante toda la serie.",
+              "Vuelve despacio hasta notar las escápulas separadas."
             ],
             "setupCues": [
-              "Preparación: Máquina con los brazos detrás: el guiado hace el recorrido estable."
+              "Ajusta el asiento para que el borde del acolchado quede a la altura del pecho.",
+              "Apoya el pecho, agarra las asas y deja los brazos estirados con las escápulas separadas."
             ]
           },
           "back_encogimientos_kelso__smith_machine": {
-            "description": "Con máquina Smith, con el torso inclinado, los hombros se retraen hacia atrás y arriba mientras la carga cuelga. El trapecio trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
+            "description": "Un banco inclinado unos 45 grados se coloca entre los rieles, con el pecho sobre el extremo alto y la barra colgando delante. La barra solo puede subir en vertical y se desengancha a la altura de los brazos, sin recogerla del suelo.",
             "executionCues": [
-              "Smith por detrás: la barra guiada con los brazos atrás y mucha carga. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Junta las escápulas y deja que la barra suba por los rieles, con los codos rectos.",
+              "Baja despacio hasta separar las escápulas y engancha la barra al terminar."
             ],
             "setupCues": [
-              "Preparación: Smith por detrás: la barra guiada con los brazos atrás y mucha carga."
+              "Coloca un banco inclinado unos 45 grados entre los rieles, con el extremo alto bajo la barra.",
+              "Túmbate boca abajo con el pecho en el borde alto y agarra la barra en prono, más ancho que los hombros.",
+              "Desengancha la barra girándola y deja que los brazos cuelguen estirados."
             ]
           }
         },
-        "description": "Los Kelso Shrugs son el encogimiento inteligente: con el torso inclinado hacia delante, los hombros se retraen hacia atrás y arriba trabajando el trapecio medio además del superior. Se ejecutan con barra, máquina o polea, juntando los omóplatos mientras la carga cuelga. La posición inclinada cambia el objetivo del gesto. El encogimiento para quien quiere grosor en la espalda alta, no solo cuello."
+        "description": "Los Kelso Shrugs, popularizados por Paul Kelso, son un encogimiento hacia atrás: con los brazos estirados, las escápulas se juntan hacia la columna y vuelven a separarse. El pecho va apoyado, el tronco inclinado o, en la polea, el cable tira de los brazos hacia delante, de modo que la carga se opone a juntar las escápulas y no a subirlas. El trapecio medio lleva el gesto junto con los romboides, mientras los hombros siguen bajos, sin acercarse a las orejas. Como los codos no se flexionan, la carga solo avanza los pocos centímetros que recorren las escápulas. Es una forma de cargar la retracción de la espalda alta por separado, sin que el gesto se convierta en un remo."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "De pie, con banda elástica y el codo a 90 grados (el remo alto a 120 grados empezaba con el codo extendido), el trapecio medio superó al superior y al inferior en la retracción a 0 y a 120 grados de abducción; a 90 grados se activaron más las tres porciones.",
+          "id": "kara2021",
+          "title": "Shoulder-Abduction Angle and Trapezius Muscle Activity During Scapular-Retraction Exercise",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/34911072/"
+        },
+        {
+          "claim": "Con aguja fina, todas las posiciones de retracción coactivaron trapecio medio y romboides mayor; la relación trapecio-romboides fue un 22 % menor en la posición de remo con el codo flexionado que con el codo extendido y el hombro en rotación externa.",
+          "id": "fennell2016",
+          "title": "Shoulder Retractor Strengthening Exercise to Minimize Rhomboid Muscle Activity and Subacromial Impingement",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/27504044/"
+        },
+        {
+          "claim": "En seis ejercicios de retracción, el patrón general fue rotación externa, rotación superior y báscula posterior de la escápula, con retracción y depresión de la clavícula; la cantidad de movimiento y la actividad muscular variaron entre ejercicios.",
+          "id": "oyama2010",
+          "title": "Three-dimensional scapular and clavicular kinematics and scapular muscle activity during retraction exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/20195020/"
+        },
+        {
+          "claim": "Las fibras medias del trapecio retraen la escápula, las superiores la elevan y las inferiores la deprimen y ayudan a rotarla hacia arriba.",
+          "id": "statpearls_trapezius",
+          "title": "Anatomy, Back, Trapezius",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30085536/"
+        },
+        {
+          "claim": "La articulación esternoclavicular es la principal conexión ósea entre el esqueleto axial y el miembro superior, y una de las cinco articulaciones esenciales para su función.",
+          "id": "statpearls_sc",
+          "title": "Anatomy, Shoulder and Upper Limb, Sternoclavicular Joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725943/"
+        },
+        {
+          "claim": "El manguito rotador está entre los estabilizadores dinámicos de la articulación glenohumeral, que es muy móvil pero tiene poca estabilidad propia.",
+          "id": "statpearls_rotator_cuff",
+          "title": "Anatomy, Rotator Cuff",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/28722874/"
+        },
+        {
+          "claim": "Describe los compartimentos del antebrazo: los músculos del compartimento anterior flexionan la muñeca y los dedos.",
+          "id": "statpearls_forearm_compartments",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/"
+        },
+        {
+          "claim": "Entre tres remos, el remo de pie con el tronco inclinado produjo una activación alta y simétrica de la espalda y la mayor carga lumbar; en él, el bíceps femoral rondó el 12 % y el glúteo mayor el 19 % de su máximo.",
+          "id": "fenwick2009",
+          "title": "Comparison of different rowing exercises: trunk muscle activation and lumbar spine motion, load, and stiffness",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/19620925/"
+        },
+        {
+          "claim": "Comparó remo libre inclinado, remo sentado en polea y remo en máquina: con un brazo, la actividad de erectores y multífido en polea y máquina fue el 60-78 % de la registrada con dos, y el remo libre bilateral activó los erectores un 34 % más que el de máquina.",
+          "id": "saeterbakken2015",
+          "title": "The Effect of Performing Bi- and Unilateral Row Exercises on Core Muscle Activation",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/26134664/"
+        },
+        {
+          "claim": "Los isquiosurales ocupan el compartimento posterior del muslo, nacen en la tuberosidad isquiática y extienden la cadera además de flexionar la rodilla.",
+          "id": "statpearls_hamstring",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hamstring Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31536294/"
+        },
+        {
+          "claim": "El glúteo mayor es el más grande y superficial de los músculos glúteos, clave para el movimiento y la estabilidad en posición erguida.",
+          "id": "statpearls_gluteus_maximus",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Maximus Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30855781/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Retracción escapular con los brazos estirados: el pecho se apoya en un banco inclinado o en el acolchado de una máquina, o el tronco se sostiene inclinado sin apoyo o erguido frente a una polea, y las escápulas se juntan hacia la columna sin que los codos se flexionen. La dirección del gesto lo separa del encogimiento de pie: las escápulas van hacia atrás, no hacia las orejas.",
+        "keyPositions": [
+          "Inicio: brazos estirados, escápulas separadas y algo adelantadas, carga colgando o tirando hacia la polea.",
+          "Punto clave: escápulas juntas cerca de la columna, hombros bajos y lejos de las orejas, brazos sin doblar y la carga desplazada unos centímetros hacia atrás o hacia arriba."
+        ],
+        "mistakes": [
+          "Doblar los codos y convertir el gesto en un remo corto.",
+          "Elevar los hombros como en un encogimiento de pie, cuando deberían ir hacia atrás.",
+          "Despegar el pecho del apoyo o, sin apoyo, perder la inclinación del tronco.",
+          "Soltar la vuelta de golpe en lugar de separar las escápulas despacio."
+        ],
+        "phases": [
+          {
+            "description": "Las escápulas parten separadas y algo adelantadas, con los brazos estirados bajo los hombros o hacia la polea.",
+            "name": "Separación"
+          },
+          {
+            "description": "Las escápulas se deslizan hacia la columna y la carga se desplaza unos centímetros, sin que el codo se flexione.",
+            "name": "Retracción"
+          },
+          {
+            "description": "Un segundo con las escápulas juntas y los hombros bajos, lejos de las orejas.",
+            "name": "Pausa"
+          },
+          {
+            "description": "Las escápulas se separan despacio hasta la posición de partida, sin perder el apoyo del pecho ni la inclinación del tronco.",
+            "name": "Vuelta"
+          }
+        ],
+        "setup": [
+          "Banco inclinado unos 45 grados, con el pecho en el extremo alto y la carga colgando por delante del banco.",
+          "Máquina de remo con apoyo: acolchado a la altura del pecho y asas al alcance con los brazos estirados.",
+          "Barra libre sin apoyo: tronco inclinado desde la cadera casi paralelo al suelo, rodillas algo flexionadas.",
+          "Polea: sentado en la estación de remo, tronco erguido, manos a la altura del pecho y cable en diagonal hacia la polea, junto a los pies."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral a tres cuartos desde atrás, a la altura de la espalda, con el tronco, los brazos y la carga dentro del encuadre.",
+          "contacts": "Las manos son el único contacto con la carga; el pecho descansa en un banco o un acolchado, o los pies y la cadera sostienen el tronco cuando no hay apoyo.",
+          "load": "Carga colgando de los brazos estirados bajo los hombros, o tirando de ellos hacia delante y hacia abajo en la polea, sin tocar el suelo.",
+          "orientation": "Atleta de perfil girado hacia la cámara para que se vea la espalda alta; el tronco queda inclinado o erguido según la estación.",
+          "phase": "Punto de máxima retracción: escápulas juntas cerca de la columna, codos rectos y hombros bajos, lejos de las orejas.",
+          "posture": "Brazos estirados, codos sin flexionar, cuello alineado con el tronco, hombros abajo y escápulas visiblemente juntas."
+        },
+        "byImplement": {
+          "barbell": {
+            "geometry": "Sin banco: tronco inclinado casi paralelo al suelo y barra libre con discos colgando bajo los hombros, en agarre prono algo más ancho que los hombros; la barra queda a media tibia y los discos a pocos centímetros del suelo."
+          },
+          "cable": {
+            "geometry": "Estación de remo sentado: la polea está junto a los pies y el cable sube en diagonal, tenso, hasta una barra recta que el atleta sujeta con los brazos estirados a la altura del pecho."
+          },
+          "kettlebell": {
+            "geometry": "Banco inclinado unos 45 grados con el pecho sobre el extremo alto; una kettlebell en cada mano colgando bajo los hombros, por delante del banco y sin tocar el suelo."
+          },
+          "machine": {
+            "geometry": "Máquina de remo con apoyo de pecho: acolchado contra el esternón, dos asas por delante y por debajo de los hombros y la pila de placas dentro del bastidor."
+          },
+          "smith_machine": {
+            "geometry": "Banco inclinado unos 45 grados entre los rieles de la máquina Smith; la barra cuelga entre los rieles por delante del extremo alto del banco, en agarre prono más ancho que los hombros."
+          }
+        },
+        "forbidden": [
+          "De pie y erguido con los hombros subidos hacia las orejas: eso es un encogimiento, no un Kelso Shrug.",
+          "Codos flexionados o carga acercándose al pecho o al vientre: eso es un remo.",
+          "Brazos elevados por delante de la cabeza o abiertos en Y: eso son elevaciones, no una retracción.",
+          "Pecho despegado del banco o del acolchado cuando la estación tiene apoyo.",
+          "Carga flotando sin que las manos la agarren, o apoyada en el suelo."
+        ],
+        "promptCore": {
+          "barbell": "Rear three-quarter side view of a muscular athlete standing bent over at the hips with the torso almost parallel to the floor, frozen at the PEAK of a barbell Kelso shrug with the shoulder blades squeezed together. Both hands grip the barbell with an overhand grip slightly wider than the shoulders. The arms hang completely straight below the shoulders, elbows locked, shoulders far from the ears. Knees slightly bent, back flat, neck neutral. The bar hangs at mid-shin height and the plates stay just clear of the floor.",
+          "cable": "Rear three-quarter side view of a muscular athlete seated upright at a low cable row station, feet on the platform, frozen at the PEAK of a cable Kelso shrug with the shoulder blades squeezed together. Both hands grip a straight bar with an overhand grip, the arms completely straight and reaching forward at chest height, elbows locked. The cable runs taut on a diagonal from the bar down to the pulley at the level of the feet. Torso vertical, shoulders low, neck neutral.",
+          "kettlebell": "Rear three-quarter side view of a muscular athlete lying face down on an incline bench set to about 45 degrees, chest on the top of the pad, frozen at the PEAK of a Kelso shrug with the shoulder blades squeezed together. Each hand grips the handle of one kettlebell, the bells hanging straight below the shoulders in front of the bench. Arms completely straight, elbows locked, shoulders far from the ears, neck neutral. The kettlebells are clear of the floor.",
+          "machine": "Rear three-quarter side view of a muscular athlete with the chest pressed against the pad of a chest-supported row machine, frozen at the PEAK of a Kelso shrug with the shoulder blades squeezed together. Both hands grip the machine handles with the arms completely straight, elbows locked, shoulders low and far from the ears. Neck neutral, feet on the floor. The weight stack stays inside the machine frame.",
+          "smith_machine": "Rear three-quarter side view of a muscular athlete lying face down on an incline bench set to about 45 degrees between the two vertical rails of a guided bar machine, frozen at the PEAK of a Kelso shrug with the shoulder blades squeezed together. Both hands grip the guided bar with an overhand grip wider than the shoulders, the bar hanging in front of the top of the bench inside the rails. Arms completely straight, elbows locked, shoulders far from the ears. The plates are clear of the floor."
+        },
+        "qa": [
+          "¿Las manos agarran la carga y esta no flota suelta?",
+          "¿Los codos están completamente estirados?",
+          "¿Las escápulas se ven juntas y los hombros lejos de las orejas?",
+          "¿El tronco está apoyado, inclinado o sentado frente a la polea, y no de pie y vertical con la carga colgando?"
+        ]
+      }
     },
     "back_y_raises": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Abducción en el plano de la escápula"
+            ],
+            "id": "glenohumeral",
+            "role": "PRIMARY",
+            "sources": [
+              "reinold2007",
+              "statpearls_rotator_cuff"
+            ],
+            "why": "El húmero sube estirado desde colgar bajo el hombro hasta quedar por encima de la cabeza, en diagonal entre la flexión y la abducción; ese arco es el que levanta las mancuernas y lo produce el deltoides, con el manguito rotador centrando la cabeza del húmero (StatPearls)."
+          },
+          {
+            "actions": [
+              "Rotación escapular superior",
+              "Báscula posterior de la escápula"
+            ],
+            "id": "escapulotoracica",
+            "role": "PRIMARY",
+            "sources": [
+              "yu2023",
+              "ekstrom2003"
+            ],
+            "why": "Para que el brazo llegue arriba la escápula rota hacia arriba y bascula hacia atrás, y el trapecio inferior hace las dos cosas mientras la mantiene baja. En el ejercicio Y, indicar esa báscula posterior aumentó el ángulo de báscula y la actividad del trapecio inferior (Yu y Kang)."
+          },
+          {
+            "actions": [
+              "Estabilidad del tronco inclinado"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "fenwick2009"
+            ],
+            "why": "La zona lumbar queda neutra con el tronco inclinado y sin apoyo, la postura de mayor carga lumbar entre los remos de Fenwick et al.; no se arquea para ayudar a que los brazos suban."
+          },
+          {
+            "actions": [
+              "Flexión sostenida de la cadera"
+            ],
+            "id": "cadera",
+            "role": "STABILIZER",
+            "sources": [
+              "fenwick2009"
+            ],
+            "why": "La cadera se queda flexionada unos 45 grados toda la serie y los isquiosurales y el glúteo mayor sostienen el peso del tronco sin moverla; es la misma bisagra que exige el remo de pie inclinado (Fenwick et al.)."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "trapezius",
+            "role": "PRIMARY",
+            "sources": [
+              "ekstrom2003",
+              "statpearls_trapezius"
+            ],
+            "why": "Sus fibras inferiores y medias rotan la escápula hacia arriba y la basculan hacia atrás mientras el brazo sube. Tumbado boca abajo, elevar el brazo por encima de la cabeza en la línea del trapecio inferior dio la máxima actividad de esa porción y una de las dos mayores del trapecio medio (Ekstrom et al.). Con el tronco a unos 45 grados el dato se extrapola: la resistencia máxima llega a mitad de la subida, con el brazo horizontal, y arriba baja a cerca del 70 %."
+          },
+          {
+            "id": "deltoid",
+            "role": "PRIMARY",
+            "sources": [
+              "reinold2007",
+              "statpearls_deltoid"
+            ],
+            "why": "Eleva el brazo estirado contra la carga en toda la subida. Reinold et al. no midieron una Y: en la abducción horizontal boca abajo a 100 grados con rotación externa, el deltoides posterior llegó al 87 % y el medio al 63 % de su máximo, y en la elevación de pie en el plano de la escápula, al 38 % y al 52 %. La Y inclinada combina ese plano con una posición parecida a la del gesto boca abajo; de ambos datos se extrapola que mueve el brazo a la par que el trapecio mueve la escápula."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "fenwick2009"
+            ],
+            "why": "Sostienen en isometría la columna neutra con el tronco inclinado y sin apoyo durante toda la serie. Es la postura que en el remo de pie dio la mayor carga lumbar entre los remos de Fenwick et al.; aquí las manos llevan mucho menos peso, pero el tronco tiene que quedarse igual de quieto."
+          },
+          {
+            "id": "hamstrings",
+            "role": "STABILIZER",
+            "sources": [
+              "fenwick2009",
+              "statpearls_hamstring"
+            ],
+            "why": "Sujetan la pelvis en la bisagra de unos 45 grados con las rodillas algo flexionadas, sin cambiar de longitud mientras los brazos suben. En el remo de pie con barra, con el tronco más inclinado, el bíceps femoral rondó el 12 % de su máximo (Fenwick et al.); aquí la carga de las manos es menor y su trabajo es isométrico y ligero."
+          },
+          {
+            "id": "gluteus_maximus",
+            "role": "STABILIZER",
+            "sources": [
+              "fenwick2009",
+              "statpearls_gluteus_maximus"
+            ],
+            "why": "Frena la flexión de la cadera que provoca el peso del tronco inclinado y no extiende la cadera durante la serie. Se extrapola del remo de pie con barra, donde rondó el 19 % de su máximo (Fenwick et al.)."
+          }
+        ]
+      },
+      "pattern": {
+        "movementPatternId": "shoulder_abduction_diagonal",
+        "sources": [
+          "ekstrom2003",
+          "reinold2007",
+          "yu2023"
+        ],
+        "why": "El Y-Raise eleva el brazo estirado hacia arriba y afuera hasta formar una Y, en diagonal entre la flexión y la abducción, con rotación superior y báscula posterior de la escápula. Lo mueven el trapecio inferior y el deltoides (Ekstrom et al.; Reinold et al.; Yu y Kang) y los hombros no suben hacia las orejas: es una elevación diagonal del hombro, no un encogimiento. Decisión del usuario, lote 4 (2026-10-03)."
+      },
       "public": {
         "configurations": {
           "back_y_raises__default": {
-            "description": "Con mancuernas, inclinado hacia delante, los brazos suben en diagonal hasta formar una Y. El trapecio trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+            "description": "Con una mancuerna ligera en cada mano, cada brazo dibuja su lado de la Y sin nada que lo una al otro. El tronco se sostiene solo, inclinado desde la cadera, durante toda la serie, y la zona lumbar trabaja en isometría para que la espalda no se redondee.",
             "executionCues": [
-              "Subes los brazos en forma de Y desde el suelo: la espalda alta y el hombro trabajan con elegancia. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Pega la parte baja de las escápulas a las costillas antes de subir los brazos.",
+              "Sube los brazos estirados en diagonal hasta formar una Y con el tronco, con los pulgares hacia arriba.",
+              "Aguanta un segundo arriba y baja despacio sin enderezar el tronco."
             ],
             "setupCues": [
-              "Preparación: Subes los brazos en forma de Y desde el suelo: la espalda alta y el hombro trabajan con elegancia."
+              "Toma una mancuerna ligera en cada mano y ponte de pie con los pies bajo la cadera.",
+              "Inclina el tronco desde la cadera unos 45 grados, con las rodillas algo flexionadas y la espalda recta.",
+              "Deja colgar los brazos bajo los hombros, con las palmas enfrentadas."
             ]
           }
         },
-        "description": "Los Y-Raises elevan los brazos en diagonal hasta formar una Y con el torso inclinado: el trapecio inferior y el dorsal ancho trabajan la parte baja de la espalda alta que casi nadie entrena. Se ejecutan con mancuernas ligeras, subiendo despacio y aguantando un segundo arriba. La espalda se siente reorganizada al terminar. La pieza de postura que completa los hombros sanos."
+        "description": "Los Y-Raises dibujan una Y con los brazos estirados por encima de la cabeza, de pie y con la cadera flexionada para inclinar el tronco. El trapecio inferior y el medio rotan la escápula hacia arriba y la llevan atrás mientras el deltoides eleva el brazo, así que el esfuerzo cae en la parte baja de la espalda alta y en el hombro. Los pulgares apuntan arriba y los brazos suben en la prolongación del tronco, algo abiertos. Con los brazos estirados el peso queda lejos del hombro y basta una carga ligera: lo difícil es llegar arriba sin subir los hombros hacia las orejas ni enderezar el tronco."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "Tumbado boca abajo, elevar el brazo por encima de la cabeza en la línea de las fibras del trapecio inferior produjo la máxima actividad del trapecio inferior y, junto con la extensión horizontal con rotación externa, la mayor del trapecio medio.",
+          "id": "ekstrom2003",
+          "title": "Surface electromyographic analysis of exercises for the trapezius and serratus anterior muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/12774999/"
+        },
+        {
+          "claim": "En el ejercicio Y boca abajo, la indicación de bascular la escápula hacia atrás dio la mayor actividad del trapecio inferior y aumentó el ángulo de báscula posterior; añadir aducción y depresión elevó la del trapecio superior, y el trapecio medio no cambió entre condiciones.",
+          "id": "yu2023",
+          "title": "Influence of scapular motion cues on trapezius muscle activity during Y exercise",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/37458020/"
+        },
+        {
+          "claim": "Con aguja fina, la abducción horizontal boca abajo a 100 grados con rotación externa (prone full can) dio 87 % de la contracción máxima en el deltoides posterior y 63 % en el medio; la elevación de pie en el plano de la escápula (full can) dio 38 % y 52 %.",
+          "id": "reinold2007",
+          "title": "Electromyographic analysis of the supraspinatus and deltoid muscles during 3 common rehabilitation exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/18174934/"
+        },
+        {
+          "claim": "Entre tres remos, el remo de pie con el tronco inclinado produjo una activación alta y simétrica de la espalda y la mayor carga lumbar; en él, el bíceps femoral rondó el 12 % y el glúteo mayor el 19 % de su máximo.",
+          "id": "fenwick2009",
+          "title": "Comparison of different rowing exercises: trunk muscle activation and lumbar spine motion, load, and stiffness",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/19620925/"
+        },
+        {
+          "claim": "Las fibras inferiores del trapecio deprimen la escápula y ayudan a las superiores a rotarla hacia arriba; las medias la retraen.",
+          "id": "statpearls_trapezius",
+          "title": "Anatomy, Back, Trapezius",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30085536/"
+        },
+        {
+          "claim": "El deltoides forma el contorno del hombro y es una pieza clave de su movimiento y su estabilidad.",
+          "id": "statpearls_deltoid",
+          "title": "Anatomy, Shoulder and Upper Limb, Deltoid Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725741/"
+        },
+        {
+          "claim": "El manguito rotador está entre los estabilizadores dinámicos de la articulación glenohumeral, que es muy móvil pero tiene poca estabilidad propia.",
+          "id": "statpearls_rotator_cuff",
+          "title": "Anatomy, Rotator Cuff",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/28722874/"
+        },
+        {
+          "claim": "Los isquiosurales ocupan el compartimento posterior del muslo, nacen en la tuberosidad isquiática y extienden la cadera además de flexionar la rodilla.",
+          "id": "statpearls_hamstring",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hamstring Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31536294/"
+        },
+        {
+          "claim": "El glúteo mayor es el más grande y superficial de los músculos glúteos, clave para el movimiento y la estabilidad en posición erguida.",
+          "id": "statpearls_gluteus_maximus",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Maximus Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30855781/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Elevación de los brazos estirados por encima de la cabeza en diagonal, abiertos unos 30 a 45 grados respecto de la línea del tronco, de pie y con el tronco inclinado desde la cadera sin apoyo para el pecho. Arriba, brazos y tronco dibujan una Y; la escápula rota hacia arriba y bascula hacia atrás sin subir hacia las orejas, lo que lo separa de un encogimiento.",
+        "keyPositions": [
+          "Inicio: brazos verticales bajo los hombros, codos casi rectos, escápulas relajadas.",
+          "Punto alto: brazos estirados en la prolongación del tronco y abiertos en Y, pulgares hacia arriba, escápulas rotadas hacia arriba y basculadas hacia atrás, hombros lejos de las orejas."
+        ],
+        "mistakes": [
+          "Subir los hombros hacia las orejas al elevar los brazos.",
+          "Enderezar el tronco o arquear la zona lumbar para que los brazos lleguen más alto.",
+          "Doblar los codos y acortar la palanca.",
+          "Usar un peso que obliga a balancear el cuerpo para subir."
+        ],
+        "phases": [
+          {
+            "description": "La escápula bascula hacia atrás, con su parte baja pegada a las costillas, mientras los brazos todavía cuelgan bajo los hombros; los hombros no se encogen.",
+            "name": "Preparación"
+          },
+          {
+            "description": "Los brazos suben estirados en diagonal, con los pulgares hacia arriba, hasta quedar en la prolongación del tronco.",
+            "name": "Elevación"
+          },
+          {
+            "description": "Un segundo arriba con la Y formada, sin que los hombros suban ni el tronco se enderece.",
+            "name": "Pausa"
+          },
+          {
+            "description": "Los brazos bajan despacio hasta colgar de nuevo bajo los hombros, con la espalda todavía inclinada.",
+            "name": "Descenso"
+          }
+        ],
+        "setup": [
+          "De pie, pies bajo la cadera y rodillas algo flexionadas.",
+          "Tronco inclinado desde la cadera unos 45 grados respecto del suelo, espalda recta y cuello alineado.",
+          "Una mancuerna ligera en cada mano y brazos colgando bajo los hombros, con las palmas enfrentadas."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista frontal a tres cuartos, algo elevada, con el cuerpo entero en el encuadre para ver a la vez la inclinación del tronco y la Y de los brazos.",
+          "contacts": "Solo los pies tocan el suelo; ninguna parte del tronco se apoya en un banco o soporte, y cada mano sujeta su carga.",
+          "load": "Carga ligera en cada mano, por encima y por delante de la cabeza, lejos del suelo.",
+          "orientation": "Atleta de pie inclinado hacia delante desde la cadera unos 45 grados, con la mirada al suelo por delante de los pies.",
+          "phase": "Punto alto: brazos estirados por encima de la cabeza, en la prolongación del tronco y abiertos en Y, con los pulgares hacia arriba.",
+          "posture": "Espalda recta, cuello alineado con el tronco, rodillas algo flexionadas, hombros lejos de las orejas y codos estirados."
+        },
+        "byImplement": {
+          "dumbbells": {
+            "geometry": "Una mancuerna ligera en cada mano, sujeta con los pulgares hacia arriba; en el punto alto quedan por encima de la cabeza y más abiertas que los hombros, formando la Y con el tronco."
+          }
+        },
+        "forbidden": [
+          "Pecho apoyado en un banco inclinado: eso son los Y-Raises Sentado en Banco Inclinado, no esta versión de pie.",
+          "Atleta erguido que levanta los brazos por delante o a los lados: eso es una elevación frontal o lateral.",
+          "Brazos abiertos en cruz formando una T en lugar de una Y, o hombros encogidos hacia las orejas.",
+          "Codos doblados o mancuernas por debajo de la cabeza en el fotograma.",
+          "Mancuernas flotando sin que las manos las sujeten."
+        ],
+        "promptCore": {
+          "dumbbells": "Three-quarter front view of an athlete standing and hinged forward at the hips about 45 degrees, frozen at the TOP of a dumbbell Y-raise. Each hand grips one light dumbbell with the thumbs pointing up. Both arms are fully straight and raised overhead in line with the torso, spread wide in a Y shape. Back flat, knees slightly bent, neck neutral, shoulders down and away from the ears. Nothing supports the chest. The dumbbells are held high above the floor."
+        },
+        "qa": [
+          "¿Cada mano agarra su mancuerna y ninguna flota suelta?",
+          "¿Los brazos están estirados por encima de la cabeza formando una Y con el tronco?",
+          "¿El atleta está de pie con el tronco inclinado desde la cadera y nada bajo el pecho?",
+          "¿Los hombros quedan lejos de las orejas?"
+        ]
+      }
     }
   },
   "familyId": "upper_scapular_elevation",

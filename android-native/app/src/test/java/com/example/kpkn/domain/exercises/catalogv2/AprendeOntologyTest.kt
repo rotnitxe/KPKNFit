@@ -11,7 +11,7 @@ class AprendeOntologyTest {
     @Test
     fun every_catalog_axis_and_anatomy_id_has_an_explicit_bridge() {
         assertEquals(21, AprendeOntology.catalogMuscleToWikiLab.size)
-        assertEquals(62, AprendeOntology.catalogPatternToWikiLab.size)
+        assertEquals(63, AprendeOntology.catalogPatternToWikiLab.size)
         assertTrue(AprendeOntology.catalogMuscleToWikiLab.values.all { it in APRENDE_MUSCLE_IDS })
         assertTrue(
             AprendeOntology.catalogPatternToWikiLab.values

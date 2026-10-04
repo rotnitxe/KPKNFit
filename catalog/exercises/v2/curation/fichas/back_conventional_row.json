@@ -1,66 +1,529 @@
 {
   "definitions": {
     "conventional_row": {
-      "public": {
-        "configurations": {
-          "conventional_row__barbell": {
-            "description": "Con barra, el torso inclinado se mantiene firme mientras la carga sube hacia el abdomen y los codos cierran el tirón. Con la barra, la carga sube al máximo y la progresión del dorsal ancho se mide sin trampa.",
-            "executionCues": [
-              "Barra frente a los muslos, tronco inclinado y codos hacia la cintura: la carga permite progresar con una referencia estable para toda la espalda. La cadera fija la inclinación del torso y los codos llevan la carga hacia la cintura sin convertir el remo en un balanceo."
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Extensión del hombro",
+              "Abducción horizontal"
             ],
-            "setupCues": [
-              "Preparación: Barra frente a los muslos, tronco inclinado y codos hacia la cintura: la carga permite progresar con una referencia estable para toda la espalda."
-            ]
+            "id": "glenohumeral",
+            "role": "PRIMARY",
+            "sources": [
+              "statpearls_extrinsic_back",
+              "statpearls_deltoid"
+            ],
+            "why": "El brazo pasa de colgar perpendicular al suelo a quedar con el codo por detrás de la espalda: el hombro se extiende y, con los codos algo abiertos por el agarre prono, también se abre en horizontal. Es la articulación que mueve la carga."
           },
-          "conventional_row__cable": {
-            "description": "Con polea, el torso inclinado se mantiene firme mientras la carga sube hacia el abdomen y los codos cierran el tirón. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin.",
-            "executionCues": [
-              "Polea baja frente al cuerpo: el cable mantiene tensión mientras el torso conserva una inclinación fija. La cadera fija la inclinación del torso y los codos llevan la carga hacia la cintura sin convertir el remo en un balanceo."
+          {
+            "actions": [
+              "Retracción escapular"
             ],
-            "setupCues": [
-              "Preparación: Polea baja frente al cuerpo: el cable mantiene tensión mientras el torso conserva una inclinación fija."
+            "id": "escapulotoracica",
+            "role": "PRIMARY",
+            "sources": [
+              "lehman2004",
+              "statpearls_rhomboids"
+            ],
+            "why": "Abajo, el peso colgado separa las escápulas de la columna; arriba quedan juntas. Sin pecho apoyado que frene el recorrido, la retracción completa forma parte de cada repetición."
+          },
+          {
+            "actions": [
+              "Flexión del codo"
+            ],
+            "id": "codo",
+            "role": "SECONDARY",
+            "sources": [
+              "statpearls_biceps",
+              "lehman2004"
+            ],
+            "why": "Pasa de estirado a doblado en ángulo recto o algo más cerrado en el punto alto; acompaña al hombro, donde nace el tirón."
+          },
+          {
+            "actions": [
+              "Sostén del agarre"
+            ],
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_forearm_compartments"
+            ],
+            "why": "Se queda recta y firme mientras la mano aprieta la carga durante toda la serie; con la barra en prono, el antebrazo queda girado hacia abajo."
+          },
+          {
+            "actions": [
+              "Extensión isométrica de la cadera"
+            ],
+            "id": "cadera",
+            "role": "STABILIZER",
+            "sources": [
+              "fenwick2009",
+              "statpearls_gluteus_maximus",
+              "statpearls_hamstring"
+            ],
+            "why": "Queda flexionada en bisagra durante toda la serie: sus extensores frenan, sin moverla, el peso del torso y de la carga que tiran hacia delante. En el remo de pie con barra, glúteo mayor e isquiosurales trabajaron por debajo del 20 % de su máximo (Fenwick et al.)."
+          },
+          {
+            "actions": [
+              "Estabilidad del tronco inclinado"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "fenwick2009"
+            ],
+            "why": "Soporta la mayor compresión de los remos medidos por Fenwick et al., unos 3.600 newtons. La musculatura del tronco la sostiene sin moverse mientras los brazos tiran; en el estudio quedó flexionada unos 23 grados pese a la consigna de espalda neutra."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "latissimus_dorsi",
+            "role": "PRIMARY",
+            "sources": [
+              "fenwick2009",
+              "statpearls_extrinsic_back"
+            ],
+            "why": "Extiende el hombro y lleva el codo desde la vertical, con el brazo colgando, hasta detrás de la espalda: es el motor del tirón. En el remo de pie con barra trabajó por encima de la mitad de su máximo en la fase de subida (Fenwick et al.)."
+          },
+          {
+            "id": "trapezius",
+            "role": "PRIMARY",
+            "sources": [
+              "lehman2004",
+              "statpearls_extrinsic_back"
+            ],
+            "why": "Con el tronco inclinado, el peso colgado separa las escápulas y tira de ellas hacia el suelo; las fibras medias e inferiores las devuelven hacia la columna en cada subida y las superiores sostienen la cintura escapular. Comparte el papel de motor con el dorsal porque la retracción ocupa buena parte del recorrido; en el estudio de Lehman et al., el remo sentado fue la tarea que más activó el grupo trapecio medio y romboides."
+          },
+          {
+            "id": "rhomboids",
+            "role": "SECONDARY",
+            "sources": [
+              "statpearls_rhomboids",
+              "lehman2004"
+            ],
+            "why": "Acercan el borde interno de cada escápula a la columna y fijan esa retracción en el punto alto, una tarea que comparten con el trapecio medio: Lehman et al. midieron los dos juntos, sin separarlos. El trapecio es mucho mayor y además sostiene la cintura escapular colgada de la carga; los romboides, más pequeños y solo retractores, suman como secundarios."
+          },
+          {
+            "id": "deltoid",
+            "role": "SECONDARY",
+            "sources": [
+              "statpearls_deltoid",
+              "rabello2024"
+            ],
+            "why": "Su porción posterior acompaña al dorsal en la extensión del hombro y abre el brazo en horizontal cuando los codos se separan del tronco con el agarre prono. En la revisión de Rabello et al., las dominadas y el remo invertido en suspensión fueron los ejercicios que más activaron esa porción; la revisión no midió este remo, así que su papel aquí se extrapola de esos tirones."
+          },
+          {
+            "id": "biceps",
+            "role": "SECONDARY",
+            "sources": [
+              "lehman2004",
+              "statpearls_biceps"
+            ],
+            "why": "Dobla el codo al subir y frena su extensión al bajar, una ayuda real al tirón que lo hace secundario. Su actividad fue la misma en remos y jalones según Lehman et al."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "fenwick2009",
+              "saeterbakken2015"
+            ],
+            "why": "Sujetan la columna con el tronco inclinado y sin apoyo. En el remo de pie con barra los erectores lumbares rondaron el 43 % de su máximo en los dos lados; de los torácicos, el izquierdo llegó al 73 % en la subida y el derecho no varió entre remos (Fenwick et al.). El remo libre bilateral los activó un 34 % más que el remo en máquina (Saeterbakken et al.). No mueven la columna: trabajan en isometría y por eso cuentan como estabilizador."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "fenwick2009",
+              "saeterbakken2015"
+            ],
+            "why": "El sistema lumbopélvico sostiene la pelvis y la columna bajo la mayor compresión lumbar de los tres remos medidos por Fenwick et al. La pared abdominal trabaja poco en el remo bilateral, con el oblicuo externo en torno al 4 % de su máximo y el interno cerca del 13 %; el sostén recae sobre todo en la musculatura de la zona lumbar, incluido el multífido, más activo al remar con las dos manos que con una (Saeterbakken et al.)."
+          },
+          {
+            "id": "hamstrings",
+            "role": "STABILIZER",
+            "sources": [
+              "fenwick2009",
+              "statpearls_hamstring"
+            ],
+            "why": "Cruzan la cadera por detrás y sostienen la bisagra sin cambiar de longitud, con las rodillas apenas flexionadas. En el remo de pie con barra el bíceps femoral rondó el 12 % de su máximo, menos que en el remo invertido (Fenwick et al.): trabajo isométrico y moderado."
+          },
+          {
+            "id": "gluteus_maximus",
+            "role": "STABILIZER",
+            "sources": [
+              "fenwick2009",
+              "statpearls_gluteus_maximus"
+            ],
+            "why": "Frena la flexión de cadera que provocan el peso del torso y la carga colgada; no extiende la cadera durante la serie, solo la sujeta. Su actividad en el remo de pie con barra rondó el 19 % del máximo, igual que en el remo invertido (Fenwick et al.)."
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_forearm_compartments"
+            ],
+            "why": "Los flexores de los dedos y de la muñeca cierran la mano sobre la carga desde la primera repetición hasta la última; el braquiorradial ayuda además a doblar el codo."
+          }
+        ],
+        "overrides": {
+          "conventional_row__cable": {
+            "joints": [
+              {
+                "actions": [
+                  "Extensión del hombro",
+                  "Abducción horizontal"
+                ],
+                "id": "glenohumeral",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_extrinsic_back",
+                  "statpearls_deltoid"
+                ],
+                "why": "El cable tira de las manos hacia delante y abajo, hacia la polea, así que el hombro trabaja contra carga desde los brazos estirados hasta el final del tirón."
+              },
+              {
+                "actions": [
+                  "Extensión isométrica de la cadera"
+                ],
+                "id": "cadera",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_gluteus_maximus",
+                  "statpearls_hamstring"
+                ],
+                "why": "Además del peso del torso, el cable arrastra el cuerpo hacia la máquina; los extensores de la cadera frenan ese tirón hacia delante sin que la bisagra se abra."
+              }
             ]
           },
           "conventional_row__dumbbells": {
-            "description": "Con mancuernas, el torso inclinado se mantiene firme mientras la carga sube hacia el abdomen y los codos cierran el tirón. Con mancuernas, cada lado ajusta su línea y el trabajo del dorsal ancho se equilibra solo.",
-            "executionCues": [
-              "Mancuernas suspendidas bajo los hombros: cada brazo puede elegir una línea ligeramente distinta mientras el tronco permanece inclinado. La cadera fija la inclinación del torso y los codos llevan la carga hacia la cintura sin convertir el remo en un balanceo."
-            ],
-            "setupCues": [
-              "Preparación: Mancuernas suspendidas bajo los hombros: cada brazo puede elegir una línea ligeramente distinta mientras el tronco permanece inclinado."
+            "joints": [
+              {
+                "actions": [
+                  "Extensión del hombro"
+                ],
+                "id": "glenohumeral",
+                "role": "PRIMARY",
+                "sources": [
+                  "difonza2026",
+                  "statpearls_extrinsic_back"
+                ],
+                "why": "Con las palmas enfrentadas, los codos suben pegados al costado y el hombro trabaja casi solo en extensión; como nada choca con el cuerpo, el codo puede pasar la línea de la espalda. En remos sentados, los codos menos abiertos se asociaron con más actividad del dorsal (Di Fonza et al.)."
+              },
+              {
+                "actions": [
+                  "Sostén del agarre"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_forearm_compartments"
+                ],
+                "why": "Cada muñeca sostiene su mancuerna en neutro, sin el giro hacia abajo del agarre prono, y puede rotar un poco durante el tirón."
+              }
             ]
           },
           "conventional_row__kettlebell": {
-            "description": "Con kettlebell, el torso inclinado se mantiene firme mientras la carga sube hacia el abdomen y los codos cierran el tirón. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del dorsal ancho.",
-            "executionCues": [
-              "Kettlebells colgando entre las piernas: el centro de masa bajo el agarre añade trabajo de muñeca y exige que el torso no se desorganice. La cadera fija la inclinación del torso y los codos llevan la carga hacia la cintura sin convertir el remo en un balanceo."
-            ],
-            "setupCues": [
-              "Preparación: Kettlebells colgando entre las piernas: el centro de masa bajo el agarre añade trabajo de muñeca y exige que el torso no se desorganice."
+            "joints": [
+              {
+                "actions": [
+                  "Extensión del hombro"
+                ],
+                "id": "glenohumeral",
+                "role": "PRIMARY",
+                "sources": [
+                  "difonza2026",
+                  "statpearls_extrinsic_back"
+                ],
+                "why": "El agarre neutro deja los codos junto al tronco: el hombro se extiende mucho más de lo que se abre y la carga sube junto a las caderas."
+              },
+              {
+                "actions": [
+                  "Sostén del agarre"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_forearm_compartments"
+                ],
+                "why": "La bola cuelga por debajo del asa y el asa tiende a rodar dentro del puño; la muñeca, en neutro, se queda recta para que la carga no cabecee al subir."
+              }
             ]
           },
           "conventional_row__machine": {
-            "description": "Con máquina, el torso inclinado se mantiene firme mientras la carga sube hacia el abdomen y los codos cierran el tirón. En la máquina, la trayectoria guiada concentra todo el esfuerzo del dorsal ancho.",
-            "executionCues": [
-              "Máquina de remo con el pecho libre: el recorrido guiado reduce la necesidad de equilibrar la carga y deja más energía para la tracción. La cadera fija la inclinación del torso y los codos llevan la carga hacia la cintura sin convertir el remo en un balanceo."
-            ],
-            "setupCues": [
-              "Preparación: Máquina de remo con el pecho libre: el recorrido guiado reduce la necesidad de equilibrar la carga y deja más energía para la tracción."
+            "joints": [
+              {
+                "actions": [
+                  "Extensión del hombro"
+                ],
+                "id": "glenohumeral",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_extrinsic_back"
+                ],
+                "why": "Los mangos giran alrededor del eje de la palanca y el hombro sigue ese arco; la máquina fija el recorrido de la carga, pero no sostiene el tronco."
+              }
             ]
           },
           "conventional_row__smith_machine": {
-            "description": "Con máquina Smith, el torso inclinado se mantiene firme mientras la carga sube hacia el abdomen y los codos cierran el tirón. El dorsal ancho trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
+            "joints": [
+              {
+                "actions": [
+                  "Extensión del hombro",
+                  "Abducción horizontal"
+                ],
+                "id": "glenohumeral",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_extrinsic_back",
+                  "statpearls_deltoid"
+                ],
+                "why": "Las guías obligan a la barra a subir en vertical, así que el hombro no puede acercarla a la cadera durante el tirón; es el cuerpo el que se coloca para que esa línea llegue a la parte baja de las costillas."
+              }
+            ]
+          }
+        }
+      },
+      "public": {
+        "configurations": {
+          "conventional_row__barbell": {
+            "description": "Una sola barra une las manos en prono, un poco por fuera de los hombros, y los codos salen algo abiertos al subir. El tirón termina con la barra contra la parte baja de las costillas, un tope que deja todas las repeticiones a la misma altura.",
             "executionCues": [
-              "Smith con la barra en una trayectoria fija: el guiado reduce el componente de equilibrio mientras el tronco sostiene la posición inclinada. La cadera fija la inclinación del torso y los codos llevan la carga hacia la cintura sin convertir el remo en un balanceo."
+              "Tira de los codos hacia atrás hasta tocar con la barra la parte baja de las costillas.",
+              "Junta las escápulas arriba sin enderezar el torso.",
+              "Baja hasta estirar los codos del todo, con la barra lejos del suelo."
             ],
             "setupCues": [
-              "Preparación: Smith con la barra en una trayectoria fija: el guiado reduce el componente de equilibrio mientras el tronco sostiene la posición inclinada."
+              "Agarra la barra en el suelo en prono, algo más ancho que los hombros, y levántala como en un peso muerto hasta quedar de pie.",
+              "Con la barra frente a los muslos, lleva la cadera atrás hasta inclinar el torso unos cuarenta y cinco grados.",
+              "Flexiona un poco las rodillas y deja la barra colgando bajo los hombros con los brazos estirados."
+            ]
+          },
+          "conventional_row__cable": {
+            "description": "El cable sale de la polea baja y tira de las manos en diagonal hacia la máquina, no solo hacia el suelo, así que con los brazos estirados la carga todavía tira del cuerpo hacia delante. Entre repeticiones la pila no llega a apoyarse.",
+            "executionCues": [
+              "Lleva la barra hacia la parte baja de las costillas sin dejar que el cable te arrastre hacia delante.",
+              "Vuelve hasta estirar los codos sin que la pila toque abajo."
+            ],
+            "setupCues": [
+              "Engancha una barra recta a la polea baja y agárrala en prono.",
+              "Retrocede hasta que la pila se despegue y lleva la cadera atrás hasta inclinar el torso con los brazos estirados."
+            ]
+          },
+          "conventional_row__dumbbells": {
+            "description": "Cada mano sostiene su mancuerna, por lo general con las palmas enfrentadas, y los codos suben cerca de los costados. Nada choca con el cuerpo en la subida, así que el codo pasa la línea de la espalda, y cada brazo mueve su carga por separado.",
+            "executionCues": [
+              "Sube las dos mancuernas a la vez hacia la cintura, con los codos rozando los costados.",
+              "Lleva los codos algo más allá de la espalda y aprieta las escápulas un instante.",
+              "Estira los brazos del todo al bajar, sin que el torso se levante."
+            ],
+            "setupCues": [
+              "Toma una mancuerna en cada mano con las palmas mirándose entre sí.",
+              "Lleva la cadera atrás, flexiona un poco las rodillas y deja las mancuernas colgando bajo los hombros."
+            ]
+          },
+          "conventional_row__kettlebell": {
+            "description": "Cada asa se agarra en neutro y la bola cuelga bajo el puño, así que el centro de la carga queda más bajo que la mano, a la altura de las rodillas. Las kettlebells suben de peso a saltos fijos, a menudo de cuatro en cuatro kilos, lo que limita el ajuste fino.",
+            "executionCues": [
+              "Sube las dos kettlebells hacia la cintura con los codos pegados al cuerpo.",
+              "Arriba, aprieta las escápulas sin doblar las muñecas.",
+              "Baja hasta estirar los brazos, con las bolas en el aire."
+            ],
+            "setupCues": [
+              "Pon dos kettlebells en el suelo entre los pies, con las asas apuntando hacia delante.",
+              "Lleva la cadera atrás, agárralas en neutro y levántalas hasta que cuelguen bajo los hombros con el torso inclinado."
+            ]
+          },
+          "conventional_row__machine": {
+            "description": "De pie sobre la plataforma de una estación de palanca y sin cojín para el pecho, los mangos recorren el arco fijo que marca el eje de la máquina. La carga no se desvía hacia ningún lado, pero nada apoya el pecho y la espalda baja carga con el tronco inclinado.",
+            "executionCues": [
+              "Tira de los mangos hacia la parte baja de las costillas siguiendo el arco de la máquina.",
+              "Aprieta las escápulas arriba sin levantar el pecho.",
+              "Vuelve hasta estirar los brazos sin que la palanca golpee el tope."
+            ],
+            "setupCues": [
+              "Súbete a la plataforma con los pies a la anchura de la cadera y las rodillas algo flexionadas.",
+              "Inclina el torso desde la cadera, agarra los mangos con los brazos estirados y despega la palanca de su tope."
+            ]
+          },
+          "conventional_row__smith_machine": {
+            "description": "La barra corre por dos guías verticales: sube en línea recta y no puede acercarse a la cadera ni alejarse de ella. El cuerpo se coloca para que esa línea pase justo delante de las rodillas, y los ganchos permiten soltar la barra a muchas alturas.",
+            "executionCues": [
+              "Tira en vertical hasta que la barra toque la parte baja de las costillas.",
+              "Baja por las guías hasta estirar los codos sin que el torso suba.",
+              "Al acabar la serie, gira la barra para dejarla enganchada."
+            ],
+            "setupCues": [
+              "Ajusta los topes de seguridad justo por debajo de donde quedará la barra con los brazos estirados.",
+              "Engancha la barra a la altura de las rodillas, inclínate y agárrala en prono algo más ancho que los hombros.",
+              "Desengancha la barra con un giro de muñecas y déjala colgando con los brazos estirados."
             ]
           }
         },
-        "description": "El Remo Convencional es el tirón horizontal con más historia del gimnasio: dorsal ancho y trapecio moviendo la barra mientras la cadera sostiene la postura inclinada. Se ejecuta con el torso casi paralelo al suelo y la espalda neutra, llevando la barra hacia el abdomen con los codos pegados y bajándola sin que el tronco baile. Para corregir un lado rezagado, el remo con mancuerna a una mano es casi otro ejercicio y un corrector magnífico. Un constructor de espalda completa que exige respeto por la postura."
+        "description": "El Remo Convencional (bent-over row) es el tirón horizontal de pie y sin apoyo: el tronco se inclina desde la cadera, la carga cuelga de los brazos estirados y sube hacia la parte baja de las costillas. El dorsal ancho y el trapecio dirigen el tirón, y los romboides, el deltoides posterior y el bíceps los acompañan en cada repetición. Las rodillas se doblan un poco y el ángulo del torso no cambia en toda la serie, así que erectores, glúteos e isquiosurales trabajan quietos, en isometría. Entre repeticiones la carga baja hasta estirar los codos sin tocar el suelo. Comparado con otros dos remos en laboratorio, fue el que más activó los erectores lumbares y más comprimió la columna: entrena la espalda de arriba abajo y pide una zona lumbar preparada para sostenerlo."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "En el remo de pie con barra, frente al remo invertido y al remo a un brazo en polea, los erectores lumbares trabajaron en torno al 43 % de su máximo en los dos lados; el torácico izquierdo llegó al 73 % en la subida y el derecho no varió entre remos. El dorsal superó la mitad de su máximo, el glúteo mayor rondó el 19 %, el bíceps femoral el 12,5 %, el oblicuo externo el 4 % y el interno el 13 %. Fue el remo con más compresión lumbar (unos 3.576 N), y la zona lumbar quedó flexionada unos 23 grados.",
+          "id": "fenwick2009",
+          "title": "Comparison of different rowing exercises: trunk muscle activation and lumbar spine motion, load, and stiffness",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/19620925/"
+        },
+        {
+          "claim": "El remo inclinado libre bilateral activó los erectores un 34 % más que el remo en máquina bilateral y un 12 % más que el remo libre unilateral; en general, remar con los dos brazos dio más actividad de erectores y multífido que hacerlo con uno, y remar con uno activó más el oblicuo externo.",
+          "id": "saeterbakken2015",
+          "title": "The Effect of Performing Bi- and Unilateral Row Exercises on Core Muscle Activation",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/26134664/"
+        },
+        {
+          "claim": "El remo sentado produjo la mayor actividad del grupo trapecio medio y romboides entre las tareas comparadas, y la actividad del bíceps no varió entre remos y jalones.",
+          "id": "lehman2004",
+          "title": "Variations in muscle activation levels during traditional latissimus dorsi weight training exercises: An experimental study",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/15228624/"
+        },
+        {
+          "claim": "En el remo sentado, un agarre más estrecho y un menor ángulo de abducción del hombro se asociaron, en estudios separados, con más actividad del dorsal ancho; la relación entre el húmero y el tronco parece decidir cómo se reparte la carga muscular en los tirones.",
+          "id": "difonza2026",
+          "title": "Electromyographic Analysis of Latissimus Dorsi Activation During Common Resistance Training Exercises: A Narrative Review",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/42647355/"
+        },
+        {
+          "claim": "Para el deltoides posterior, el grupo de las dominadas dio la mayor activación, y la dominada estándar y el remo invertido en suspensión fueron los ejercicios individuales que más lo activaron.",
+          "id": "rabello2024",
+          "title": "Activation of the three deltoid muscle portions during common strengthening exercises: A systematic review",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/39593452/"
+        },
+        {
+          "claim": "El trapecio, el dorsal ancho y los romboides son músculos extrínsecos de la espalda cuya función principal es mover el miembro superior dirigiendo la escápula y el húmero; el dorsal extiende y aduce el hombro.",
+          "id": "statpearls_extrinsic_back",
+          "title": "Anatomy, Back, Extrinsic Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725901/"
+        },
+        {
+          "claim": "Los romboides mayor y menor intervienen en el movimiento del miembro superior y en la estabilidad de la cintura escapular y de la escápula, a la que acercan a la columna.",
+          "id": "statpearls_rhomboids",
+          "title": "Anatomy, Back, Rhomboid Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30521277/"
+        },
+        {
+          "claim": "Describe las porciones del deltoides como clave del movimiento y la estabilidad del hombro; la posterior extiende el brazo y lo lleva hacia atrás en horizontal.",
+          "id": "statpearls_deltoid",
+          "title": "Anatomy, Shoulder and Upper Limb, Deltoid Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725741/"
+        },
+        {
+          "claim": "El bíceps braquial cruza el codo y lo flexiona, y con el codo doblado es el supinador más potente del antebrazo.",
+          "id": "statpearls_biceps",
+          "title": "Anatomy, Shoulder and Upper Limb, Biceps Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30137823/"
+        },
+        {
+          "claim": "El compartimento anterior del antebrazo flexiona la muñeca y los dedos, lo que cierra el agarre, y el grupo móvil incluye al braquiorradial.",
+          "id": "statpearls_forearm_compartments",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/"
+        },
+        {
+          "claim": "Los isquiosurales nacen en la tuberosidad isquiática, cruzan la cadera y la rodilla y su disposición favorece la extensión de la cadera.",
+          "id": "statpearls_hamstring",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hamstring Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31536294/"
+        },
+        {
+          "claim": "El glúteo mayor es el músculo más grande y superficial de la región glútea y clave en el movimiento y en la estabilidad de la postura erguida.",
+          "id": "statpearls_gluteus_maximus",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Maximus Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30855781/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Remo de pie con el tronco inclinado hacia delante desde la cadera, por lo general entre unos 45 grados y casi la horizontal, sin ningún apoyo para el pecho. La carga cuelga bajo los hombros, sube hasta la parte baja de las costillas o la cintura y vuelve a bajar hasta estirar los codos sin tocar el suelo: las repeticiones se encadenan sin pausa abajo.",
+        "keyPositions": [
+          "Abajo: brazos estirados y perpendiculares al suelo, escápulas separadas y carga a la altura de las rodillas o algo por debajo, en el aire.",
+          "Arriba: codos por detrás de la línea de la espalda, escápulas juntas y carga contra la parte baja de las costillas o junto a la cintura, con el torso en el mismo ángulo que abajo."
+        ],
+        "mistakes": [
+          "Enderezar el torso en cada repetición para ayudarse con la cadera.",
+          "Redondear la zona lumbar al inclinarse o al bajar la carga.",
+          "Subir los hombros hacia las orejas al tirar, en vez de llevar las escápulas hacia la columna.",
+          "Cortar la bajada antes de estirar los codos."
+        ],
+        "phases": [
+          {
+            "description": "Con la carga ya en las manos, la cadera retrocede y el torso se inclina hasta el ángulo de trabajo, que no cambiará durante la serie.",
+            "name": "Inclinación"
+          },
+          {
+            "description": "Las escápulas se juntan y los codos viajan atrás y arriba hasta que la carga llega a la parte baja de las costillas.",
+            "name": "Tirón"
+          },
+          {
+            "description": "Los codos se estiran del todo y las escápulas se separan, con la carga suspendida por encima del suelo.",
+            "name": "Bajada"
+          }
+        ],
+        "setup": [
+          "Pies a la anchura de la cadera, rodillas algo flexionadas y cadera atrás hasta inclinar el torso; espalda neutra y cuello en línea con ella.",
+          "Agarre según el implemento: prono algo más ancho que los hombros con la barra, neutro con mancuernas y kettlebells, mangos o barra recta en la máquina y en la polea.",
+          "Antes de la primera repetición la carga cuelga bajo los hombros con los codos estirados."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral pura a la altura de la cadera, con el atleta entero de la cabeza a los pies y la carga a la vista.",
+          "contacts": "Solo los pies tocan el suelo, con toda la planta apoyada a la anchura de la cadera; las manos son el único contacto con la carga y nada sostiene el pecho.",
+          "load": "La carga está en el aire, pegada a la parte baja de las costillas o junto a la cintura, muy por encima del suelo.",
+          "orientation": "Atleta de pie y de perfil, con la cabeza hacia la izquierda del encuadre, el torso inclinado hacia delante unos 45 grados respecto del suelo y la mirada al suelo, un poco por delante de los pies.",
+          "phase": "Punto más alto del tirón: codos por detrás de la línea de la espalda, escápulas juntas y carga a la altura de la parte baja de las costillas.",
+          "posture": "Rodillas algo flexionadas, cadera atrás en bisagra, espalda recta de la pelvis a la cabeza, cuello alineado y hombros lejos de las orejas."
+        },
+        "byImplement": {
+          "barbell": {
+            "geometry": "Barra olímpica horizontal con discos a ambos lados, agarrada en prono algo más ancha que los hombros; en el punto alto toca la parte baja de las costillas y los codos salen algo abiertos."
+          },
+          "cable": {
+            "geometry": "Polea baja delante del atleta; una barra recta unida al cable, agarrada en prono, toca la parte baja de las costillas y el cable baja en diagonal hasta la polea, con la pila de placas levantada."
+          },
+          "dumbbells": {
+            "geometry": "Una mancuerna en cada mano con las palmas enfrentadas, a los lados de la cintura; los codos pasan la línea de la espalda pegados al costado."
+          },
+          "kettlebell": {
+            "geometry": "Una kettlebell en cada mano con agarre neutro; las bolas cuelgan bajo los puños junto a la cadera y los codos quedan por detrás de la espalda."
+          },
+          "machine": {
+            "geometry": "Estación de palanca de pie, con plataforma para los pies y sin cojín para el pecho; los mangos, unidos a un brazo que gira sobre un eje, llegan junto a las costillas y los discos van cargados en ese brazo."
+          },
+          "smith_machine": {
+            "geometry": "Barra fijada a dos guías verticales a ambos lados del atleta, agarrada en prono algo más ancha que los hombros; en el punto alto queda contra la parte baja de las costillas, dentro de las guías."
+          }
+        },
+        "forbidden": [
+          "Torso casi erguido, con la cadera apenas doblada: el remo convencional se hace con el tronco bien inclinado hacia delante.",
+          "Pecho apoyado en un banco o en un cojín: eso es un remo seal o un remo con pecho apoyado.",
+          "Torso paralelo al suelo con la carga apoyada en el suelo o a punto de tocarlo: eso es un remo Pendlay.",
+          "Un solo brazo remando mientras el otro se apoya en un banco o en otra carga: eso es otro remo.",
+          "Brazos estirados con la carga colgando: el fotograma es el punto alto, no la salida.",
+          "Espalda redondeada o cabeza levantada mirando al frente.",
+          "Carga flotando sin que las manos la agarren."
+        ],
+        "promptCore": {
+          "barbell": "Side view of an athlete standing and bent forward at the hips, torso about 45 degrees to the floor, frozen at the TOP of a barbell bent-over row. Both hands grip the barbell with an overhand grip slightly wider than the shoulders and hold it against the lower ribs. Elbows are bent and pulled behind the line of the back, shoulder blades squeezed. Knees slightly bent, back flat, neck neutral, eyes on the floor ahead of the feet. Both feet flat on the floor. Nothing supports the chest. The plates hang in the air, far above the floor.",
+          "cable": "Side view of an athlete facing a low cable pulley, standing and bent forward at the hips with the torso about 45 degrees to the floor, frozen at the TOP of a cable bent-over row. Both hands grip a straight bar attached to the cable with an overhand grip and hold it against the lower ribs. The cable runs diagonally down and forward to the pulley near the floor. Elbows are pulled behind the line of the back. Knees slightly bent, back flat, both feet flat on the floor. The weight stack is lifted.",
+          "dumbbells": "Side view of an athlete standing and bent forward at the hips, torso about 45 degrees to the floor, frozen at the TOP of a dumbbell bent-over row. Each hand grips one dumbbell with palms facing each other and holds it beside the waist. Elbows are bent, close to the ribs and pulled behind the line of the back. Knees slightly bent, back flat, neck neutral, eyes down. Both feet flat on the floor. Nothing supports the chest. Both dumbbells are in the air, high above the floor.",
+          "kettlebell": "Side view of an athlete standing and bent forward at the hips, torso about 45 degrees to the floor, frozen at the TOP of a double kettlebell bent-over row. Each hand grips the handle of one kettlebell with a neutral grip and holds it beside the hip, the round bell hanging just below the fist. Elbows are bent and pulled behind the line of the back. Knees slightly bent, back flat, neck neutral. Both feet flat on the floor. Both kettlebells are in the air, high above the floor.",
+          "machine": "Side view of an athlete standing on the foot platform of a plate-loaded lever row machine that has no chest pad, bent forward at the hips with the torso about 45 degrees to the floor, frozen at the TOP of the row. Both hands grip the machine handles and hold them beside the lower ribs. Elbows are bent and pulled behind the line of the back. Knees slightly bent, back flat, neck neutral. Nothing touches the chest. The lever arm with its plates is raised off its rest stop.",
+          "smith_machine": "Side view of an athlete standing between the two vertical rails of a guided barbell rack, bent forward at the hips with the torso about 45 degrees to the floor, frozen at the TOP of a guided barbell row. Both hands grip the bar with an overhand grip and hold it against the lower ribs; the bar is locked inside the rails. Elbows are bent and pulled behind the line of the back. Knees slightly bent, back flat, neck neutral. Both feet flat on the floor. The plates are high above the floor."
+        },
+        "qa": [
+          "¿El atleta está de pie con el torso inclinado unos 45 grados y nada le apoya el pecho?",
+          "¿Las manos agarran la carga y la carga no flota suelta?",
+          "¿Los codos están doblados por detrás de la línea de la espalda y la carga junto a las costillas, en el punto alto?",
+          "¿La carga está en el aire, lejos del suelo?",
+          "¿La espalda está recta y las rodillas solo algo flexionadas?"
+        ]
+      }
     }
   },
   "familyId": "back_conventional_row",

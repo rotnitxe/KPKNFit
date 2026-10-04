@@ -227,6 +227,32 @@ class ExerciseCatalogV2ResolverTest {
     }
 
     @Test
+    fun retired_cross_definition_mapping_requires_exact_source_pair_and_existing_target() {
+        val template = catalog.families[1].definitions.single()
+        val sumo = template.copy(
+            id = "romanian_sumo_deadlift",
+            configurations = listOf(template.configurations.single().copy(id = "romanian_sumo_deadlift__bilateral__barbell")),
+            defaultConfigurationId = "romanian_sumo_deadlift__bilateral__barbell",
+        )
+        val target = template.copy(
+            id = "romanian_deadlift",
+            configurations = listOf(template.configurations.single().copy(id = "romanian_deadlift__unilateral__barbell")),
+            defaultConfigurationId = "romanian_deadlift__unilateral__barbell",
+        )
+        val family = catalog.families[1].copy(definitions = listOf(sumo, target))
+        val resolver = ExerciseCatalogV2Resolver(catalog.copy(families = listOf(family)))
+        val saved = ExerciseSelectionV2("romanian_sumo_deadlift", "romanian_sumo_deadlift__unilateral__barbell", catalog.catalogRevision)
+        val migrated = resolver.validate(saved) as ExerciseSelectionValidationV2.Valid
+        assertEquals("romanian_deadlift", migrated.selection.definitionId)
+        assertEquals("romanian_deadlift__unilateral__barbell", migrated.selection.configurationId)
+        assertTrue(resolver.validate(saved.copy(definitionId = "romanian_deadlift")) is ExerciseSelectionValidationV2.Invalid)
+        assertTrue(resolver.validate(saved.copy(catalogRevision = "different")) is ExerciseSelectionValidationV2.Invalid)
+        val missingTarget = ExerciseCatalogV2Resolver(catalog.copy(families = listOf(family.copy(definitions = listOf(sumo)))))
+        assertTrue(missingTarget.validate(saved) is ExerciseSelectionValidationV2.Invalid)
+        assertNull(missingTarget.resolve(saved))
+    }
+
+    @Test
     fun specific_search_returns_one_parent_with_suggested_configuration() {
         val result = ExerciseCatalogV2Resolver(catalog).search("curl bayesiano")
 

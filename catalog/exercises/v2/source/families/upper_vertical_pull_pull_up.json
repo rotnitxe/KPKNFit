@@ -2068,40 +2068,52 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con la barra fijada a la altura del pecho y los pies apoyados en el suelo, el cuerpo sube en tracción vertical hasta acercar el esternón a la barra y desciende sin impulso. La posición inclinada descarga parte del peso corporal y convierte el gesto en una alternativa accesible a la dominada completa.",
+              "description": "La barra va más o menos a la altura de los hombros de una persona de pie, y el apoyo de los talones, delante, queda cerca de la altura de la cabeza al colgar. Las piernas, cruzadas y con las rodillas apenas flexionadas, sostienen parte del peso sin empujar.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
-                "Barra en el rack al nivel del esternón y manos con agarre prono algo más anchas que los hombros: desde pies planos, el pecho sube hacia la barra con los codos viajando hacia atrás y la escápula deprimida, y el regreso baja hasta estirar los brazos sin hundir los hombros."
+                "Tira de los codos hacia los bolsillos y sube hasta que el pecho toque la barra.",
+                "No empujes con los talones ni subas la cadera por encima de los pies.",
+                "Baja despacio hasta tener los brazos rectos y las escápulas arriba."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Aducción Y Extensión"
+                    "Aducción del hombro",
+                    "Extensión del hombro"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Depresión Y Rotación"
+                    "Depresión escapular",
+                    "Rotación escapular inferior",
+                    "Retracción escapular"
                   ],
                   "jointId": "escapulotoracica",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Flexión sostenida de la cadera"
+                  ],
+                  "jointId": "cadera",
                   "role": "STABILIZER"
                 }
               ],
@@ -2119,49 +2131,69 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Aducción Y Extensión",
-                    "Depresión Y Rotación",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Aducción del hombro",
+                    "Extensión del hombro",
+                    "Depresión escapular",
+                    "Rotación escapular inferior",
+                    "Retracción escapular",
+                    "Flexión del codo",
+                    "Sostén del agarre",
+                    "Flexión sostenida de la cadera"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Aducción Y Extensión"
+                        "Aducción del hombro",
+                        "Extensión del hombro"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Depresión Y Rotación"
+                        "Depresión escapular",
+                        "Rotación escapular inferior",
+                        "Retracción escapular"
                       ],
                       "jointId": "escapulotoracica",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Flexión sostenida de la cadera"
+                      ],
+                      "jointId": "cadera",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
                     "latissimus_dorsi"
                   ],
-                  "secondaryMuscles": [],
-                  "stabilizerMuscles": [
+                  "secondaryMuscles": [
                     "biceps",
+                    "trapezius",
+                    "deltoid"
+                  ],
+                  "stabilizerMuscles": [
+                    "forearm",
                     "rhomboids",
-                    "core"
+                    "pectoralis",
+                    "core",
+                    "erector_spinae"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -2176,7 +2208,8 @@
                     "glenohumeral",
                     "escapulotoracica",
                     "codo",
-                    "muñeca"
+                    "muñeca",
+                    "cadera"
                   ],
                   "resistanceProfile": "body_angle",
                   "stability": "self_stabilized"
@@ -2232,16 +2265,24 @@
                   "replacementPriority": 1
                 }
               },
-              "secondaryMuscles": [],
+              "secondaryMuscles": [
+                "biceps",
+                "trapezius",
+                "deltoid"
+              ],
               "setupCues": [
-                "Preparación: Barra en el rack al nivel del esternón y manos con agarre prono algo más anchas que los hombros: desde pies planos, el pecho sube hacia la barra con los codos viajando hacia atrás y la escápula deprimida, y el regreso baja hasta estirar los brazos sin hundir los hombros."
+                "Pon la barra del rack a la altura de tus hombros y, delante, un apoyo alto para los talones a un largo de piernas.",
+                "Siéntate debajo, agarra la barra en prono bastante más abierta que los hombros y engancha los talones en el apoyo.",
+                "Cruza los tobillos y cuelga con los brazos rectos, el tronco vertical y la cadera hacia el suelo."
               ],
               "setupTimeSeconds": 30,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "biceps",
+                "forearm",
                 "rhomboids",
-                "core"
+                "pectoralis",
+                "core",
+                "erector_spinae"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -2250,7 +2291,7 @@
           }
         ],
         "defaultConfigurationId": "rack_chin__default",
-        "description": "La dominada en rack fija la barra a la altura del pecho para que el cuerpo suba en tracción vertical con los pies en el suelo: el mismo gesto de tirón que la dominada, con parte del peso corporal descargada sobre las piernas.",
+        "description": "La Dominada en Rack (rack chin) se hace colgado de una barra fijada en un rack, con los talones enganchados en un apoyo alto que queda delante, como el extremo levantado de un banco. El tronco sube recto bajo la barra hasta que el pecho la toca, en una tracción vertical con los codos bajando hacia los bolsillos y la cadera siempre por debajo de los pies. El dorsal ancho es el motor principal, el bíceps flexiona el codo y el trapecio inferior tira de las escápulas hacia abajo, mientras los talones cargan una parte del peso del cuerpo sin empujar. Un disco sobre los muslos o un cinturón de lastre la endurecen. Permite acumular repeticiones de tracción vertical con menos carga que la dominada colgada y con un final de pecho contra la barra.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

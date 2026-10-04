@@ -1,8 +1,8 @@
 # Índice del catálogo de ejercicios v2
 
 Revisión: `v2-approved-2026-09-29-a` · Ontología: `wikilab-v3-2026-08-08`
-96 familias · 206 definiciones · 527 configuraciones
-Hash canónico: `b2a652bb4f654f32…`
+96 familias · 206 definiciones · 523 configuraciones
+Hash canónico: `31ccbddd4943362b…`
 
 Artefacto informativo generado por `scripts/merge_catalog_v2_families.py`.
 No editar a mano: se regenera en cada merge.
@@ -58,7 +58,7 @@ No editar a mano: se regenera en cada merge.
 | hinge_good_morning | good_morning_seated | Buenos Días Sentado | implement | 3 |
 | hinge_good_morning | good_morning_zercher | Buenos Días/RDL Zercher |  | 1 |
 | hinge_rdl | romanian_deadlift | Peso Muerto Rumano | implement, stance | 8 |
-| hinge_rdl | romanian_sumo_deadlift | Peso Muerto Rumano Sumo | implement, stance | 8 |
+| hinge_rdl | romanian_sumo_deadlift | Peso Muerto Rumano Sumo | implement | 4 |
 | hip_abduction | hip_abduction | Abducciones de Pierna | implement, station, laterality | 8 |
 | hip_adduction | copenhagen_plank | Plancha Copenhague |  | 1 |
 | hip_adduction | hip_adduction | Aducciones de Pierna | implement, station, laterality | 8 |
