@@ -44,6 +44,10 @@ internal object PlanEditorialTable {
         "Cada tipo de día lleva siempre el mismo levantamiento."
     private const val NOTE_SMOLOV =
         "Solo trabaja la sentadilla, más dos accesorios de espalda."
+    private const val NOTE_SMOLOV_JR =
+        "En origen es un programa de banca; aquí solo trabaja la sentadilla, más dos accesorios de espalda."
+    private const val NOTE_LILLIEBRIDGE =
+        "Los porcentajes semanales son los de KPKN: la hoja original no es pública."
     private const val NOTE_KORTE =
         "Sentadilla y peso muerto con 8×5 el mismo día, como en el método."
     private const val NOTE_SHEIKO =
@@ -371,10 +375,11 @@ internal object PlanEditorialTable {
             "protocol:wendler-531-bbb",
             thirdParty(
                 displayName = "5/3/1 Boring But Big",
-                summary = "Ciclos de 4 semanas (semanas de 5, de 3 y de 1 repeticiones, y descarga), con 4 días: " +
-                    "sentadilla, banca, peso muerto y press. Tras el levantamiento principal, que termina con " +
-                    "una serie al máximo de repeticiones, haces 5 series de 10 con carga ligera para sumar " +
-                    "volumen.",
+                summary = "Ciclos de 4 semanas (de 5, de 3 y de 1 repeticiones, y descarga), con 4 días: " +
+                    "sentadilla, banca, peso muerto y press. En las tres primeras, tras el levantamiento " +
+                    "principal (con una última serie al máximo de repeticiones), haces 5 series de 10 al 50 % " +
+                    "de tu máximo de entrenamiento; la descarga no las lleva. Cada ciclo ese máximo sube " +
+                    "2,5 kg (banca y press) o 5 kg.",
                 rank = 410,
                 level = CatalogLevel.INTERMEDIATE,
                 methodName = "5/3/1 Boring But Big",
@@ -395,7 +400,8 @@ internal object PlanEditorialTable {
                 displayName = "5/3/1 First Set Last",
                 summary = "Las mismas olas de 5/3/1, pero tras el levantamiento principal haces 5×5 con el peso de " +
                     "tu primera serie de trabajo. Tiene menos volumen que Boring But Big y se centra más en " +
-                    "la fuerza. 4 días por semana, ciclos de 4 semanas.",
+                    "la fuerza. 4 días por semana, ciclos de 4 semanas; la cuarta es de descarga y no lleva " +
+                    "esos 5×5.",
                 rank = 411,
                 level = CatalogLevel.INTERMEDIATE,
                 methodName = "5/3/1 First Set Last",
@@ -409,7 +415,8 @@ internal object PlanEditorialTable {
                 displayName = "Madcow 5×5",
                 summary = "Ciclo de 4 semanas que se repite, 3 días: lunes de volumen con rampa de 5 series de 5, " +
                     "miércoles más ligero y viernes con una serie pesada de 3 repeticiones. Las cargas suben " +
-                    "un 2,5 % cada semana. Para intermedios que ya no progresan cada sesión.",
+                    "un 2,5 % cada semana. Al cerrar el ciclo tu máximo de entrenamiento sube 2,5 kg en banca " +
+                    "o 5 kg en sentadilla y peso muerto, y la rampa vuelve a empezar.",
                 rank = 420,
                 level = CatalogLevel.INTERMEDIATE,
                 methodName = "Madcow 5×5",
@@ -422,8 +429,10 @@ internal object PlanEditorialTable {
             thirdParty(
                 displayName = "GZCLP",
                 summary = "Ciclos de 4 semanas con 4 días: cada día un levantamiento principal (5 series de 3, la " +
-                    "última al máximo), uno complementario de 3×10 y accesorios de 15 o más repeticiones. Es " +
-                    "una progresión lineal de Cody Lefever; esta versión incluye solo su primera etapa.",
+                    "última al máximo de repeticiones), uno complementario de 3×10 y accesorios de 15 a 20 " +
+                    "repeticiones. Es solo la primera etapa del método de Cody Lefever. Tu máximo de " +
+                    "entrenamiento sube al cerrar cada ciclo (2,5 kg banca y press, 5 kg sentadilla y peso " +
+                    "muerto), más despacio que el método original.",
                 rank = 430,
                 level = CatalogLevel.INTERMEDIATE,
                 methodName = "GZCLP",
@@ -431,15 +440,14 @@ internal object PlanEditorialTable {
                 terms = setOf(PlanTerm.TIERS, PlanTerm.AMRAP, PlanTerm.CYCLE),
             ),
         )
-        // ⚠ receta: el texto describe la receta de hoy (alternativa en §2.8 del diseño
-        // editorial); revisar cuando el paquete B la corrija.
         add(
             "protocol:candito-6",
             thirdParty(
                 displayName = "Candito 6 semanas",
-                summary = "6 semanas con sentadilla, banca y peso muerto: la primera semana tiene 5 sesiones de " +
-                    "adaptación y las demás 4. Pasas de series de 8 repeticiones a series de 3, luego dobles " +
-                    "pesadas y, al final, simples cerca de tu máximo.",
+                summary = "6 semanas, 4 días por semana con sentadilla, banca y peso muerto. Empiezas con dos " +
+                    "semanas de series de 6 a 8 repeticiones, pasas a series de 3, luego a dobles pesadas y " +
+                    "terminas con simples cerca de tu máximo. La hoja original tiene 5 sesiones en la " +
+                    "primera semana; aquí son 4, como en el resto del plan.",
                 rank = 435,
                 level = CatalogLevel.INTERMEDIATE,
                 methodName = "Candito 6 semanas",
@@ -452,7 +460,7 @@ internal object PlanEditorialTable {
             thirdParty(
                 displayName = "Calgary Barbell 16 semanas",
                 summary = "16 semanas, 4 días por semana: sentadilla, banca, peso muerto y banca de volumen. Cuatro " +
-                    "fases: series de 5 a 7 repeticiones, una serie pesada seguida de otras más ligeras y, al " +
+                    "fases: series de 5 a 7 repeticiones, series pesadas seguidas de otras más ligeras y, al " +
                     "final, trabajo por esfuerzo percibido con prueba de máximos.",
                 rank = 440,
                 level = CatalogLevel.INTERMEDIATE,
@@ -490,19 +498,19 @@ internal object PlanEditorialTable {
                 terms = setOf(PlanTerm.ONE_RM, PlanTerm.SBD),
             ),
         )
-        // ⚠ receta: el texto describe la receta de hoy (alternativa en §2.8 del diseño
-        // editorial); revisar cuando el paquete B la corrija.
         add(
             "protocol:lilliebridge",
             thirdParty(
                 displayName = "Lilliebridge",
-                summary = "10 semanas, 3 días por semana: sentadilla pesada o peso muerto ligero en semanas " +
-                    "alternas, banca pesada (simples o al máximo de repeticiones) y banca de volumen. La " +
-                    "semana 10 es una descarga ligera.",
+                summary = "10 semanas, 3 días por semana. El lunes alternas una sentadilla pesada (semanas " +
+                    "impares) y un peso muerto pesado (semanas pares), con el otro levantamiento más ligero; " +
+                    "el miércoles haces banca pesada (simples, o series de 5 con la última al máximo de " +
+                    "repeticiones) y el viernes banca de volumen. La semana 10 es una descarga ligera.",
                 rank = 451,
                 level = CatalogLevel.ADVANCED,
                 methodName = "Lilliebridge",
-                authors = "Matt Lilliebridge",
+                authors = "Ernie Lilliebridge (familia Lilliebridge)",
+                notes = listOf(NOTE_LILLIEBRIDGE),
                 terms = setOf(PlanTerm.AMRAP, PlanTerm.DELOAD, PlanTerm.SBD),
             ),
         )
@@ -521,15 +529,15 @@ internal object PlanEditorialTable {
                 terms = setOf(PlanTerm.SBD),
             ),
         )
-        // ⚠ receta: el texto describe la receta de hoy (alternativa en §2.8 del diseño
-        // editorial); revisar cuando el paquete B la corrija.
+        // El texto describe la receta de hoy (cada tipo de día lleva siempre el mismo levantamiento).
+        // Si D3 fase 2 implementa la rotación semanal, usar la alternativa de §2.8 del diseño editorial.
         add(
             "protocol:cube-method",
             thirdParty(
                 displayName = "Cube Method",
                 summary = "10 semanas, 4 días por semana: sentadilla pesada, sentadilla en cajón y banca rápidas, " +
-                    "peso muerto por repeticiones y un día de torso para músculo. La carga sube cada semana y " +
-                    "la décima es de prueba de máximos.",
+                    "peso muerto por repeticiones y un día de torso para músculo. La carga sube por etapas y " +
+                    "la décima semana es de prueba.",
                 rank = 453,
                 level = CatalogLevel.ADVANCED,
                 methodName = "Cube Method",
@@ -577,8 +585,10 @@ internal object PlanEditorialTable {
             thirdParty(
                 displayName = "nSuns 5/3/1",
                 summary = "4 días por semana, ciclos de 4 semanas: cada día haces 9 series de un levantamiento " +
-                    "principal (la última al máximo de repeticiones) y 8 de un complementario. Con esa última " +
-                    "serie el plan ajusta tu máximo de entrenamiento. Es muy exigente.",
+                    "principal y 8 de uno complementario. En sentadilla, peso muerto y banca pesada, la " +
+                    "tercera serie es un intento al 95 % de tu máximo de entrenamiento, hecho al máximo de " +
+                    "repeticiones: según cuántas hagas, el plan puede proponerte subir o bajar ese máximo. " +
+                    "Es muy exigente.",
                 rank = 461,
                 level = CatalogLevel.ADVANCED,
                 methodName = "nSuns 5/3/1",
@@ -629,8 +639,6 @@ internal object PlanEditorialTable {
                 terms = setOf(PlanTerm.TIERS),
             ),
         )
-        // ⚠ receta: el texto describe la receta de hoy (alternativa en §2.8 del diseño
-        // editorial); revisar cuando el paquete B la corrija.
         add(
             "protocol:smolov",
             thirdParty(
@@ -648,8 +656,6 @@ internal object PlanEditorialTable {
                 terms = setOf(PlanTerm.ONE_RM),
             ),
         )
-        // ⚠ receta: el texto describe la receta de hoy (alternativa en §2.8 del diseño
-        // editorial); revisar cuando el paquete B la corrija.
         add(
             "protocol:smolov-jr",
             thirdParty(
@@ -663,7 +669,7 @@ internal object PlanEditorialTable {
                 methodName = "Smolov Jr",
                 authors = "Sergey Smolov",
                 kind = PlanKind.ESPECIALIZACION,
-                notes = listOf(NOTE_SMOLOV),
+                notes = listOf(NOTE_SMOLOV_JR),
                 terms = setOf(PlanTerm.ONE_RM),
             ),
         )
@@ -721,38 +727,40 @@ internal object PlanEditorialTable {
             "protocol:kpkn-native-sbd-4",
             own(
                 displayName = "Sentadilla, banca y peso muerto KPKN",
-                summary = "11 semanas, 4 días por semana: sentadilla, peso muerto, banca pesada y banca de volumen. " +
-                    "Cuatro semanas de base, cuatro de intensificación, dos de pico y una final de descarga; " +
-                    "las cargas parten de tus marcas.",
+                summary = "11 semanas, 4 días por semana: sentadilla el lunes, banca de volumen el martes, peso " +
+                    "muerto el jueves y banca pesada el viernes. Cuatro semanas de base, cuatro de " +
+                    "intensificación, dos de pico (series de 2 y de 1 repeticiones hasta cerca del 90 % de " +
+                    "tu máximo) y una final de descarga; el peso muerto también llega pesado al pico. Las " +
+                    "cargas parten de tus marcas.",
                 rank = 300,
                 levels = ONLY_INTERMEDIATE,
                 attributionLine = "$OWN_PLAN No afiliado a federaciones de powerlifting.",
                 terms = setOf(PlanTerm.SBD, PlanTerm.POWERLIFTING, PlanTerm.DELOAD),
             ),
         )
-        // ⚠ receta: el texto describe la receta de hoy (alternativa en §2.8 del diseño
-        // editorial); revisar cuando el paquete B la corrija.
         add(
             "protocol:kpkn-ppl-6",
             own(
                 displayName = "Empuje, tirón y pierna KPKN",
-                summary = "12 semanas, 6 días por semana: empuje, tirón y pierna, cada uno dos veces. Cada semana " +
-                    "te acercas más al fallo (de 3 repeticiones en reserva a 1, y a 0 en la segunda sesión de " +
-                    "cada grupo) y las dos últimas semanas son de descarga.",
+                summary = "12 semanas, 6 días por semana: empuje, tirón y pierna, cada uno dos veces. A lo largo " +
+                    "de las semanas te acercas más al fallo (de 3 repeticiones en reserva a 1) y la segunda " +
+                    "sesión de cada grupo va un punto más cerca, sin bajar nunca de 1. Las dos últimas " +
+                    "semanas son de descarga, con cerca de la mitad de las series.",
                 rank = 340,
                 levels = ONLY_INTERMEDIATE,
                 terms = setOf(PlanTerm.UL_PPL, PlanTerm.RIR, PlanTerm.DELOAD),
             ),
         )
-        // ⚠ receta: el texto describe la receta de hoy (alternativa en §2.8 del diseño
-        // editorial); revisar cuando el paquete B la corrija.
+        // El texto describe la receta de hoy (el número de series no sube de una semana a otra).
+        // Si D3 fase 2 implementa la rampa de volumen, usar la alternativa de §2.8 del diseño editorial.
         add(
             "protocol:kpkn-rp-style",
             own(
                 displayName = "Mesociclo de músculo (estilo RP)",
-                summary = "6 semanas, 4 días por semana (torso A, pierna A, torso B y pierna B). Cada semana te " +
-                    "acercas más al fallo (de 3 repeticiones en reserva a 1, y 0 en la segunda pierna) y la " +
-                    "sexta es de descarga. Plan propio inspirado en los mesociclos de Renaissance " +
+                summary = "6 semanas, 4 días por semana (torso A, pierna A, torso B y pierna B). Cada dos semanas " +
+                    "te acercas más al fallo, de 3 repeticiones en reserva a 1; la segunda pierna va un punto " +
+                    "más cerca, sin bajar nunca de 1, y las series no aumentan. La sexta semana es de " +
+                    "descarga, con cerca de la mitad de las series. Plan propio inspirado en Renaissance " +
                     "Periodization.",
                 rank = 341,
                 levels = ONLY_ADVANCED,
@@ -761,8 +769,9 @@ internal object PlanEditorialTable {
                 terms = setOf(PlanTerm.UL_PPL, PlanTerm.RIR, PlanTerm.DELOAD),
             ),
         )
-        // ⚠ receta: el texto describe la receta de hoy (alternativa en §2.8 del diseño
-        // editorial); revisar cuando el paquete B la corrija.
+        // El texto describe la receta de hoy (solo la sentadilla va por serie pesada a esfuerzo).
+        // Si D3 fase 2 lleva el método a series pesadas por esfuerzo en los tres levantamientos,
+        // usar la alternativa de §2.8 del diseño editorial.
         add(
             "protocol:kpkn-rts-style",
             own(

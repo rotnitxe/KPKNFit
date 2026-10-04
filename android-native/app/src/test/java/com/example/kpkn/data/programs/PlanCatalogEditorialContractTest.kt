@@ -163,7 +163,6 @@ class PlanCatalogEditorialContractTest {
         val citedSessions = Regex("""(\d+)\s+sesiones\s+por\s+semana""")
         entries
             .filter { it.supportedFrequencies.first == it.supportedFrequencies.last }
-            .filter { it.id !in FREQUENCY_TEXT_EXCEPTIONS }
             .forEach { entry ->
                 val cited = (citedDays.findAll(entry.summary) + citedSessions.findAll(entry.summary))
                     .map { it.groupValues[1].toInt() }
@@ -425,6 +424,7 @@ class PlanCatalogEditorialContractTest {
             "protocol:texas-method-3d",
             "protocol:westside-conjugate",
             "protocol:cube-method",
+            "protocol:lilliebridge",
             "protocol:smolov",
             "protocol:smolov-jr",
             "protocol:korte-3x3",
@@ -611,16 +611,5 @@ class PlanCatalogEditorialContractTest {
          * `levels` llega en C.P3 y este caso desaparece.
          */
         val LEGACY_BASE_LEVEL = setOf("native:gym-muscle", "native:bodyweight")
-
-        /**
-         * Entradas cuyo resumen cita días que la receta de hoy no cumple (unión de días distinta
-         * de la declarada). ⚠ receta: E-10, se alinea en B.S6.
-         */
-        val FREQUENCY_TEXT_EXCEPTIONS = setOf(
-            "protocol:candito-6",
-            "protocol:lilliebridge",
-            "protocol:smolov",
-            "protocol:smolov-jr",
-        )
     }
 }
