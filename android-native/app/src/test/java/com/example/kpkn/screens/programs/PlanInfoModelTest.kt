@@ -1,7 +1,20 @@
 package com.example.kpkn.screens.programs
 
+import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.CardioDetails
 import com.example.kpkn.data.models.CardioType
+import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.ExerciseSet
+import com.example.kpkn.data.models.IntensityMode
+import com.example.kpkn.data.models.Macrocycle
+import com.example.kpkn.data.models.Mesocycle
+import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.ProgramWeek
+import com.example.kpkn.data.models.RepRange
+import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.models.SessionPart
+import com.example.kpkn.data.models.WarmupExercise
+import com.example.kpkn.data.models.WarmupSetDefinition
 import com.example.kpkn.data.programs.CatalogEntry
 import com.example.kpkn.data.programs.CatalogSource
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
@@ -541,6 +554,273 @@ class PlanInfoModelTest {
         assertEquals(TypicalWeek.Unavailable, model.typicalWeek)
         assertEquals("Estructura", model.kindLabel)
         assertTrue(model.material.isEmpty())
+    }
+
+    // ─── 3b · La semana real de un candidato listo (ReadyWeekSnapshot.from, C.P5) ─
+
+    private fun exerciseOf(
+        id: String,
+        name: String,
+        configurationId: String? = null,
+        sets: List<ExerciseSet>,
+        warmups: List<WarmupSetDefinition> = emptyList(),
+    ): Exercise = Exercise(
+        id = id,
+        name = name,
+        catalogConfigurationId = configurationId,
+        sets = sets,
+        warmupSets = warmups,
+    )
+
+    /** Series de repeticiones como las de los planes propios: rango, repeticiones en reserva y el punto medio como objetivo. */
+    private fun repSets(count: Int, min: Int = 8, max: Int = 12, rir: Int? = 2): List<ExerciseSet> =
+        List(count) { index ->
+            ExerciseSet(
+                id = "set-$index",
+                targetReps = (min + max) / 2,
+                targetRepsRange = RepRange(min, max),
+                targetRIR = rir,
+                intensityMode = if (rir != null) IntensityMode.RIR else null,
+            )
+        }
+
+    private fun sessionOf(
+        id: String,
+        name: String,
+        dayOfWeek: Int?,
+        exercises: List<Exercise>,
+        parts: List<SessionPart> = emptyList(),
+        cardioFirst: Boolean = false,
+    ): Session = Session(id = id, name = name, exercises = exercises, parts = parts, dayOfWeek = dayOfWeek, cardioFirst = cardioFirst)
+
+    /** Un programa con una semana por cada lista de sesiones, en un solo bloque. */
+    private fun programOf(vararg weeks: List<Session>): Program {
+        val programWeeks = weeks.mapIndexed { index, sessions ->
+            ProgramWeek(id = "w$index", name = "Semana ${index + 1}", sessions = sessions)
+        }
+        return Program(
+            id = "p",
+            name = "Plan",
+            macrocycles = listOf(
+                Macrocycle("m", "Macro", blocks = listOf(Block("b", "Bloque", mesocycles = listOf(Mesocycle("me", "Meso", weeks = programWeeks))))),
+            ),
+        )
+    }
+
+    private fun readyOf(program: Program, equipment: Map<String, String> = emptyMap()): ReadyWeekSnapshot =
+        ReadyWeekSnapshot.from(program, names = { id -> fakeNames[id] }, equipmentOf = { id -> equipment[id] })
+
+    @Test
+    fun a_ready_week_is_the_first_week_of_the_prepared_program_with_its_days_and_grouped_sets() {
+        val weekOne = listOf(
+            sessionOf(
+                "s1", "Torso A", 1,
+                listOf(
+                    exerciseOf("e1", "Press de banca", "bp", repSets(3)),
+                    exerciseOf("e2", "Remo", sets = repSets(4, 10, 10, null)),
+                ),
+            ),
+            sessionOf("s2", "Día 2", 3, listOf(exerciseOf("e3", "Sentadilla", "sq", repSets(3, 5, 5, 3)))),
+        )
+        val weekTwo = listOf(sessionOf("s3", "Otra semana", 1, listOf(exerciseOf("e4", "Otro ejercicio", sets = repSets(9, 9, 9, null)))))
+
+        val snapshot = readyOf(programOf(weekOne, weekTwo))
+
+        assertEquals(
+            listOf(
+                ReadySession(
+                    "Lunes · Torso A",
+                    listOf(
+                        ReadyExercise("Press de banca", "3 × 8–12 con 2 repeticiones en reserva"),
+                        ReadyExercise("Remo", "4 × 10"),
+                    ),
+                ),
+                ReadySession("Miércoles", listOf(ReadyExercise("Sentadilla", "3 × 5 con 3 repeticiones en reserva"))),
+            ),
+            snapshot.sessions,
+        )
+    }
+
+    @Test
+    fun a_ready_week_names_the_day_with_the_weekday_and_the_split_name_when_there_is_one() {
+        fun label(name: String, day: Int?, index: Int = 0): String {
+            val sessions = List(index + 1) { position ->
+                sessionOf("s$position", if (position == index) name else "Día ${position + 1}", day, listOf(exerciseOf("e$position", "Press", sets = repSets(3))))
+            }
+            return readyOf(programOf(sessions)).sessions[index].label
+        }
+        assertEquals("Lunes · Empuje", label("Empuje", 1))
+        assertEquals("Domingo", label("Día 1", 7))
+        assertEquals("Viernes", label("día 3", 5))
+        assertEquals("Torso", label("Torso", null))
+        assertEquals("Sesión 3", label("Día 3", null, index = 2))
+        assertEquals("un día fuera de 1 a 7 no inventa nombre", "Torso", label("Torso", 9))
+    }
+
+    @Test
+    fun a_ready_week_never_lists_warmups_or_empty_slots() {
+        val warmups = listOf(
+            WarmupSetDefinition(id = "w1", percentageOfWorkingWeight = 40.0, targetReps = 8),
+            WarmupSetDefinition(id = "w2", percentageOfWorkingWeight = 60.0, targetReps = 5),
+        )
+        val withEmptySlot = repSets(3) + ExerciseSet(id = "gap", isEmptySlot = true)
+        val session = Session(
+            id = "s1",
+            name = "Torso",
+            exercises = listOf(exerciseOf("e1", "Press de banca", "bp", withEmptySlot, warmups = warmups)),
+            warmup = listOf(WarmupExercise(id = "wu", name = "Movilidad de hombro")),
+            dayOfWeek = 1,
+        )
+        val lines = readyOf(programOf(listOf(session))).sessions.single().exercises
+        assertEquals(listOf(ReadyExercise("Press de banca", "3 × 8–12 con 2 repeticiones en reserva")), lines)
+        assertFalse("la sesión no cuenta los calentamientos", lines.any { it.name.contains("Movilidad") })
+    }
+
+    @Test
+    fun a_ready_week_says_the_cardio_the_way_the_recipes_do_and_respects_its_position() {
+        val cardio = Exercise(
+            id = "c1",
+            name = "treadmill",
+            cardioDetails = CardioDetails(type = CardioType.TREADMILL, targetDurationSeconds = 20 * 60),
+        )
+        val part = SessionPart(id = "part", name = "Cardio", exercises = listOf(cardio), isCardioGroup = true)
+        val strength = listOf(exerciseOf("e1", "Sentadilla", "sq", repSets(3, 5, 5, 3)))
+        val after = readyOf(programOf(listOf(sessionOf("s1", "Día 1", 2, strength, parts = listOf(part)))))
+        assertEquals(
+            listOf(ReadyExercise("Sentadilla", "3 × 5 con 3 repeticiones en reserva"), ReadyExercise("Cardio: Cinta 20 min", "")),
+            after.sessions.single().exercises,
+        )
+        val first = readyOf(programOf(listOf(sessionOf("s1", "Día 1", 2, strength, parts = listOf(part), cardioFirst = true))))
+        assertEquals("Cardio: Cinta 20 min", first.sessions.single().exercises.first().name)
+        assertFalse("el nombre interno del cardio no se enseña", first.sessions.single().exercises.any { it.name.contains("treadmill") })
+    }
+
+    @Test
+    fun the_catalog_name_wins_and_the_program_name_is_the_fallback() {
+        val exercises = listOf(
+            exerciseOf("e1", "Sentadilla (nombre del programa)", "sq", repSets(3)),
+            exerciseOf("e2", "Nombre del programa", "configuracion-desconocida", repSets(3)),
+            exerciseOf("e3", "Solo el programa", sets = repSets(3)),
+            exerciseOf("e4", "  ", sets = repSets(3)),
+        )
+        val names = readyOf(programOf(listOf(sessionOf("s1", "Día 1", 1, exercises)))).sessions.single().exercises.map { it.name }
+        assertEquals(
+            listOf("Sentadilla", "Nombre del programa", "Solo el programa", PlanInfoModelBuilder.UNKNOWN_EXERCISE),
+            names,
+        )
+    }
+
+    @Test
+    fun ready_exercises_with_the_same_name_and_different_material_are_told_apart() {
+        val names = mapOf(
+            "conventional_row__cable" to "Remo Convencional",
+            "conventional_row__dumbbells" to "Remo Convencional",
+            "sq" to "Sentadilla",
+        )
+        val equipment = mapOf(
+            "conventional_row__cable" to "cable",
+            "conventional_row__dumbbells" to "dumbbells",
+            "sq" to "barbell",
+        )
+        val program = programOf(
+            listOf(
+                sessionOf(
+                    "s1", "Día 1", 1,
+                    listOf(
+                        exerciseOf("e1", "Remo Convencional", "conventional_row__cable", repSets(3, 10, 10, null)),
+                        exerciseOf("e2", "Remo Convencional", "conventional_row__dumbbells", repSets(3, 10, 10, null)),
+                        exerciseOf("e3", "Sentadilla", "sq", repSets(3, 10, 10, null)),
+                        exerciseOf("e4", "Sentadilla", "sq", repSets(2, 5, 5, null)),
+                    ),
+                ),
+            ),
+        )
+        val lines = ReadyWeekSnapshot.from(program, names = { id -> names[id] }, equipmentOf = { id -> equipment[id] })
+            .sessions.single().exercises.map { "${it.name} · ${it.series}" }
+        assertEquals(
+            listOf(
+                "Remo Convencional (polea alta y baja) · 3 × 10",
+                "Remo Convencional (mancuerna) · 3 × 10",
+                "Sentadilla · 3 × 10",
+                "Sentadilla · 2 × 5",
+            ),
+            lines,
+        )
+    }
+
+    @Test
+    fun ready_sets_by_time_read_as_seconds() {
+        fun timed(vararg seconds: Int) = seconds.mapIndexed { index, value -> ExerciseSet(id = "t$index", targetDuration = value) }
+        fun series(vararg seconds: Int): String =
+            readyOf(programOf(listOf(sessionOf("s1", "Día 1", 1, listOf(exerciseOf("e1", "Plancha", sets = timed(*seconds)))))))
+                .sessions.single().exercises.single().series
+        assertEquals("3 × 30 s", series(30, 30, 30))
+        assertEquals("2 × 30 s y 1 × 45 s", series(30, 30, 45))
+        assertEquals("1 × 1 min 30 s", series(90))
+    }
+
+    @Test
+    fun ready_sets_with_a_percentage_or_an_amrap_read_like_recipe_sets() {
+        fun series(vararg sets: ExerciseSet): String =
+            readyOf(programOf(listOf(sessionOf("s1", "Día 1", 1, listOf(exerciseOf("e1", "Sentadilla", "sq", sets.toList()))))))
+                .sessions.single().exercises.single().series
+        assertEquals(
+            "1 × 5+ al 85 % de tu TM",
+            series(ExerciseSet(id = "a", targetReps = 5, isAmrap = true, targetPercentageRM = 85.0, loadBasis = LoadBasis.PERCENT_TM)),
+        )
+        assertEquals(
+            "5 × 5 al 70 % de tu 1RM",
+            series(*Array(5) { ExerciseSet(id = "p$it", targetReps = 5, targetPercentageRM = 70.0) }),
+        )
+        assertEquals(
+            "3 × 8 a esfuerzo 8 de 10",
+            series(*Array(3) { ExerciseSet(id = "r$it", targetReps = 8, targetRPE = 8.0, intensityMode = IntensityMode.RPE) }),
+        )
+        // Un ejercicio sin series de trabajo no enseña nada: ni línea ni texto.
+        val withoutSets = readyOf(programOf(listOf(sessionOf("s1", "Día 1", 1, listOf(exerciseOf("e1", "Sentadilla", "sq", emptyList()))))))
+        assertTrue(withoutSets.sessions.single().exercises.isEmpty())
+    }
+
+    @Test
+    fun a_program_without_weeks_or_without_exercises_gives_nothing_to_show_and_the_sheet_stays_generated() {
+        val native = entry("native:muscle-foundation-v2")
+        val empty = readyOf(Program(id = "p", name = "Vacío"))
+        assertTrue(empty.sessions.isEmpty())
+        assertEquals(TypicalWeek.Generated(PlanInfoModelBuilder.GENERATED_WEEK_TEXT), build(native, PlanInfoMode.WIZARD, empty).typicalWeek)
+
+        val noExercises = readyOf(programOf(listOf(sessionOf("s1", "Día 1", 1, emptyList()))))
+        assertEquals(1, noExercises.sessions.size)
+        assertTrue(noExercises.sessions.single().exercises.isEmpty())
+        assertEquals(
+            "una semana sin ejercicios no cuenta como semana lista",
+            TypicalWeek.Generated(PlanInfoModelBuilder.GENERATED_WEEK_TEXT),
+            build(native, PlanInfoMode.WIZARD, noExercises).typicalWeek,
+        )
+    }
+
+    @Test
+    fun a_ready_week_reaches_the_sheet_of_a_native_plan_without_leaking_codes() {
+        val program = programOf(
+            listOf(
+                sessionOf("s1", "Torso", 1, listOf(exerciseOf("e1", "Press de banca", "bp", repSets(3)), exerciseOf("e2", "Remo", sets = repSets(3, 10, 10, null)))),
+                sessionOf("s2", "Día 2", 4, listOf(exerciseOf("e3", "Sentadilla", "sq", repSets(4, 6, 8, 3)))),
+            ),
+        )
+        val model = build(entry("native:muscle-foundation-v2"), PlanInfoMode.WIZARD, readyOf(program))
+        assertEquals(
+            TypicalWeek.Days(
+                listOf(
+                    DayLines("Lunes · Torso", listOf("Press de banca · 3 × 8–12 con 2 repeticiones en reserva", "Remo · 3 × 10")),
+                    DayLines("Jueves", listOf("Sentadilla · 4 × 6–8 con 3 repeticiones en reserva")),
+                ),
+            ),
+            model.typicalWeek,
+        )
+        allTexts(model).forEach { text ->
+            FORBIDDEN.forEach { (what, regex) ->
+                assertFalse("«$text» contiene $what", regex.containsMatchIn(text))
+            }
+        }
     }
 
     // ─── 4 · Cabecera, botón y glosario ──────────────────────────────────────

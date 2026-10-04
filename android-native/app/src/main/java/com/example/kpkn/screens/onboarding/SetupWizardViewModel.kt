@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import com.example.kpkn.data.exercises.catalogConfigurationDisplayName
 import com.example.kpkn.data.exercises.catalogv2.ApprovedAssetExerciseCatalogRepositoryV2
 import com.example.kpkn.data.exercises.catalogv2.CatalogCompositionMetadataProvider
 import com.example.kpkn.data.exercises.catalogv2.toLegacyConfigurationLookup
@@ -15,6 +16,7 @@ import com.example.kpkn.data.programs.CatalogLevel
 import com.example.kpkn.data.programs.CatalogEntry
 import com.example.kpkn.data.programs.CatalogSource
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
+import com.example.kpkn.data.programs.PlanLabels
 import com.example.kpkn.data.programs.TrainingFocus
 import com.example.kpkn.data.protocols.PROTOCOL_LIBRARY
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogRepositoryV2
@@ -26,6 +28,7 @@ import com.example.kpkn.domain.onboarding.*
 import com.example.kpkn.domain.text.SpanishPlurals
 import com.example.kpkn.domain.training.*
 import com.example.kpkn.screens.nutrition.NutritionWizardDraft
+import com.example.kpkn.screens.programs.ReadyWeekSnapshot
 import java.time.LocalDate
 import java.util.UUID
 import kotlinx.coroutines.CancellationException
@@ -405,6 +408,26 @@ class SetupWizardViewModel @JvmOverloads constructor(
         val current = _state.value
         _state.value = current.copy(planCandidates = current.availablePlanCandidates.take(current.planCandidates.size + 3))
     }
+
+    /**
+     * La primera semana REAL del candidato [planId] para la hoja «Cómo funciona» (C.P5): la del programa que la
+     * evaluación ya dejó preparado (`Ready.preparedPlan`), tal como saldría si se eligiera ese plan con las
+     * respuestas de ahora. Solo lee la caché de evaluaciones: nunca materializa nada.
+     *
+     * Devuelve null si no hay semana lista: el plan no es un candidato viable de la lista vigente, sus respuestas
+     * cambiaron desde el barrido, el catálogo de ejercicios todavía no está cargado, o la caché (32 evaluaciones,
+     * las tres primeras tarjetas se refrescan al terminar el barrido) ya soltó ese plan. En ese caso la hoja
+     * dice «Se genera con tus días, tu tiempo y tu material».
+     */
+    fun readyWeekSnapshotFor(planId: String): ReadyWeekSnapshot? {
+        val ready = readyCandidateFor(planId) ?: return null
+        return ReadyWeekSnapshot.from(
+            program = ready.preparedPlan,
+            names = { configurationId -> catalogConfigurationDisplayName(configurationId) },
+            equipmentOf = { configurationId -> CompositionMetadataHolder.current?.metadata(configurationId)?.equipmentId },
+        ).takeIf { snapshot -> snapshot.sessions.isNotEmpty() }
+    }
+
     fun activeNutritionPlan(): NutritionPlan? = environment.activeNutritionPlan()
     fun hasInitialRecoveryEvidence(): Boolean = environment.hasInitialRecoveryEvidence()
     fun searchExercises(query: String) {
@@ -1431,6 +1454,26 @@ class SetupWizardViewModel @JvmOverloads constructor(
         return SetupPreview(ready.preparedPlan, ready.report)
     }
 
+    /**
+     * El `Ready` que el barrido vigente dejó en la caché para [planId], o null. La clave se reconstruye como la
+     * armó `collectViable`: el pase pedido evalúa con el material declarado y el pase a peso corporal
+     * ([SetupWizardState.planAdaptedToBodyweight]) con el borrador adaptado, que es el que lleva su `Ready`.
+     * Una respuesta que cambió desde el barrido cambia la clave, y entonces no hay `Ready` que enseñar.
+     */
+    private fun readyCandidateFor(planId: String): PlanCandidateEvaluation.Ready? {
+        val current = _state.value
+        val draft = current.draft
+        if (draft.trainingPath == SetupTrainingPath.FROM_SCRATCH) return null
+        val exerciseRevision = exerciseCatalogRevision() ?: return null
+        val equipment = if (current.planAdaptedToBodyweight) setOf("bodyweight") else effectiveEquipmentIds(draft)
+        val source = if (equipment == setOf("bodyweight")) bodyweightAdapted(draft) else draft
+        val inputKey = candidateInputKey(source, equipment, exerciseRevision)
+        val cacheRevision = "${PersonalizedPlanCatalog.REVISION}|$exerciseRevision"
+        val ready = candidateCache.get(cacheRevision, "$inputKey|$planId") as? PlanCandidateEvaluation.Ready
+            ?: return null
+        return ready.takeIf { it.planId == planId && it.inputKey == inputKey }
+    }
+
     private suspend fun runPreview(generation: Long, key: List<Any?>, draft: SetupWizardDraft) {
         if (!initialized) {
             if (ownsPreview(generation)) {
@@ -2116,9 +2159,12 @@ class SetupWizardViewModel @JvmOverloads constructor(
                     val options = viable.map { entry ->
                         SetupPlanCandidate(
                             id = entry.id,
-                            title = entry.title,
-                            subtitle = entry.technicalSubtitle,
-                            description = entry.description,
+                            // C.P5: la ficha editorial, no los alias heredados del catálogo. La tarjeta pinta
+                            // título, subtítulo y motivos; `description` y `details` no los pinta ninguna
+                            // pantalla (ver KDoc de `SetupPlanCandidate`).
+                            title = entry.displayName,
+                            subtitle = PlanLabels.subtitle(entry),
+                            description = entry.summary,
                             source = entry.source.name,
                             reasons = buildList {
                                 draft.daysPerWeek?.let { days ->
@@ -2134,11 +2180,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
                                 // A.E1 (D6): qué hace ESTA tarjeta con la bolsa de prioridades (si la hay).
                                 planOrderPriorityReason(entry, draft.trainingOptions.orderPriorities)?.let { add(it) }
                             },
-                            details = listOfNotNull(
-                                entry.sourceAuthor?.let { "Método de $it" },
-                                entry.sourceRevision?.let { "Revisión del método: $it" },
-                                entry.disclaimer,
-                            ).joinToString("\n").ifBlank { null },
+                            details = entry.attributionLine?.takeIf { it.isNotBlank() },
                         )
                     }
                     val current = _state.value

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
@@ -57,6 +59,8 @@ import com.example.kpkn.screens.onboarding.design.WizardRadioMark
 import com.example.kpkn.screens.onboarding.design.WizardShapes
 import com.example.kpkn.screens.onboarding.design.WizardSpacing
 import com.example.kpkn.screens.onboarding.design.WizardTypography
+import com.example.kpkn.screens.programs.PlanInfoMode
+import com.example.kpkn.screens.programs.PlanInfoSheet
 
 /**
  * Contenido de cada paso del bloque **Entreno** del wizard de configuración.
@@ -651,7 +655,11 @@ internal fun prioritiesAfterDelta(
 
 // ─── SPLIT ──────────────────────────────────────────────────────────────────
 
-private fun splitDisplayName(template: SplitTemplate): String = when (template.id) {
+/**
+ * Nombre en español llano de un reparto: el mismo en la lista de repartos y en la revisión (C.P5).
+ * Los repartos sin nombre propio aquí conservan el `name` de su plantilla.
+ */
+internal fun splitDisplayName(template: SplitTemplate): String = when (template.id) {
     "ul_x4" -> "Torso y pierna, 4 días"
     "ppl_ul" -> "Empuje, tirón, pierna y torso"
     "fullbody_x3" -> "Cuerpo completo, 3 días"
@@ -672,6 +680,10 @@ private fun splitDisplayName(template: SplitTemplate): String = when (template.i
     "push_pull_x4" -> "Empuje y tirón, 4 días"
     else -> template.name
 }
+
+/** Nombre del reparto [splitId] en español llano; null si el catálogo de repartos no lo conoce (nunca el id). */
+internal fun splitDisplayName(splitId: String): String? =
+    SPLIT_TEMPLATES.firstOrNull { template -> template.id == splitId }?.let { template -> splitDisplayName(template) }
 
 private const val SPLIT_RECOMMENDED = "recommended"
 private const val SPLIT_CUSTOM = "custom"
@@ -973,6 +985,8 @@ internal fun droppedSelectionNotice(dropped: SetupDroppedSelection, chosenMinute
 private fun TrainingPlanStep(state: SetupWizardState, vm: SetupWizardViewModel) {
     val step = SetupStepId.PLAN
     val draft = state.draft
+    // C.P5: el plan cuya hoja «Cómo funciona» está abierta (su id). Sobrevive a girar la pantalla.
+    var infoPlanId by rememberSaveable { mutableStateOf<String?>(null) }
     if (draft.trainingPath == SetupTrainingPath.FROM_SCRATCH) {
         FromScratchSessions(state = state)
         return
@@ -1006,6 +1020,7 @@ private fun TrainingPlanStep(state: SetupWizardState, vm: SetupWizardViewModel) 
                     subtitle = planCandidateSubtitle(candidate),
                     selected = candidate.id in selected,
                     onClick = { vm.selectPlan(candidate.id) },
+                    footer = { PlanInfoLink(candidate = candidate, onClick = { infoPlanId = candidate.id }) },
                 )
             }
             val hidden = state.availablePlanCandidates.size - state.planCandidates.size
@@ -1019,6 +1034,50 @@ private fun TrainingPlanStep(state: SetupWizardState, vm: SetupWizardViewModel) 
             CandidateCountsLine(state = state)
         }
     }
+
+    infoPlanId?.let { planId ->
+        CandidatePlanInfo(planId = planId, vm = vm, onDismiss = { infoPlanId = null })
+    }
+}
+
+/**
+ * Enlace «Ver cómo funciona» al pie de la tarjeta de un plan (C.P5). Es un botón aparte de la tarjeta, que solo
+ * elige: abre la hoja del plan sin cambiar la selección. Cada enlace dice de qué plan es para TalkBack.
+ */
+@Composable
+private fun PlanInfoLink(candidate: SetupPlanCandidate, onClick: () -> Unit) {
+    TextButton(
+        onClick = onClick,
+        modifier = Modifier
+            .testTag("plan-info-${candidate.id}")
+            .semantics { contentDescription = "$PLAN_INFO_LINK ${candidate.title}" },
+        contentPadding = PaddingValues(horizontal = 0.dp, vertical = 8.dp),
+    ) {
+        Text(text = PLAN_INFO_LINK, color = WizardColors.text, style = WizardTypography.cardSubtitle)
+    }
+}
+
+private const val PLAN_INFO_LINK = "Ver cómo funciona"
+
+/**
+ * La hoja «Cómo funciona» de un candidato del asistente (C.P5): la entrada del catálogo con la semana real que
+ * ya calculó la evaluación (solo la pintan los planes sin receta) y «Elegir este plan» como botón principal, que
+ * elige el plan y cierra la hoja. No navega a Conceptos clave: el asistente no se interrumpe.
+ */
+@Composable
+private fun CandidatePlanInfo(planId: String, vm: SetupWizardViewModel, onDismiss: () -> Unit) {
+    val entry = remember(planId) { PersonalizedPlanCatalog.find(planId) } ?: return
+    val readyWeek = remember(planId) { vm.readyWeekSnapshotFor(planId) }
+    PlanInfoSheet(
+        entry = entry,
+        mode = PlanInfoMode.WIZARD,
+        readyWeek = readyWeek,
+        onDismiss = onDismiss,
+        onPrimaryAction = {
+            vm.selectPlan(planId)
+            onDismiss()
+        },
+    )
 }
 
 /**
@@ -1049,7 +1108,7 @@ private fun DroppedSelectionBanner(
     )
 }
 
-/** §15.2: evaluados / viables / no viables (nunca «publicados» de un subconjunto). */
+/** §15.2: revisados / encajan (nunca «publicados» de un subconjunto). */
 @Composable
 private fun CandidateCountsLine(state: SetupWizardState) {
     val counts = state.candidateCounts
@@ -1062,11 +1121,24 @@ private fun CandidateCountsLine(state: SetupWizardState) {
     )
 }
 
-/** «3 planes evaluados · 2 viables · 1 no viable»: cada cifra concuerda con su sustantivo. */
-internal fun candidateCountsText(counts: SetupCandidateCounts): String =
-    "${SpanishPlurals.withNoun(counts.evaluated, "plan evaluado", "planes evaluados")} · " +
-        "${SpanishPlurals.withNoun(counts.viable, "viable", "viables")} · " +
-        SpanishPlurals.withNoun(counts.nonViable, "no viable", "no viables")
+/**
+ * «12 planes revisados · 3 encajan con tus respuestas» (C.P5): cada cifra concuerda con su sustantivo y con su
+ * verbo. Con uno solo («1 plan revisado · 1 encaja con tus respuestas», lo normal en Atleta completo) y con
+ * ninguno («… · ninguno encaja con tus respuestas») el texto cambia de forma, no solo de número. Los que no
+ * encajan no se cuentan aparte: son la resta.
+ */
+internal fun candidateCountsText(counts: SetupCandidateCounts): String {
+    val reviewed = SpanishPlurals.withNoun(counts.evaluated, "plan revisado", "planes revisados")
+    val fitting = when (counts.viable) {
+        0 -> "ninguno encaja con tus respuestas"
+        else -> SpanishPlurals.choose(
+            counts.viable,
+            "1 encaja con tus respuestas",
+            "${counts.viable} encajan con tus respuestas",
+        )
+    }
+    return "$reviewed · $fitting"
+}
 
 /**
  * T-005 / §15.2: incompatibilidad con ACCIONES concretas, antes de revisión y

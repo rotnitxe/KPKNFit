@@ -1,5 +1,11 @@
 package com.example.kpkn.screens.programs
 
+import com.example.kpkn.data.models.CardioDetails
+import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.ExerciseSet
+import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.models.effectiveRepRange
 import com.example.kpkn.data.programs.CatalogEntry
 import com.example.kpkn.data.programs.CatalogSource
 import com.example.kpkn.data.programs.GlossaryEntry
@@ -74,11 +80,30 @@ data class SourceSection(
 )
 
 /**
- * Primera semana ya materializada de un candidato `Ready` del asistente, tal como la entrega el
- * asistente: sesiones con sus ejercicios y las series ya redactadas. La hoja solo la pinta en los
- * planes sin receta; construir este objeto desde el candidato es cosa del asistente (C.P5).
+ * Primera semana ya materializada de un candidato `Ready` del asistente: sesiones con sus ejercicios y
+ * las series ya redactadas. La hoja solo la pinta en los planes sin receta. [from] la construye desde el
+ * programa preparado del candidato (C.P5); el asistente la entrega con `readyWeekSnapshotFor`.
  */
-data class ReadyWeekSnapshot(val sessions: List<ReadySession>)
+data class ReadyWeekSnapshot(val sessions: List<ReadySession>) {
+    companion object {
+        /**
+         * La primera semana de [program] (un programa ya materializado), sin calentamientos, con el día de
+         * la semana de cada sesión y las series de cada ejercicio redactadas como las de una receta
+         * («3 × 8–12 con 2 repeticiones en reserva»). Un programa sin semanas da un snapshot vacío, que la
+         * hoja trata como «sin semana lista».
+         *
+         * @param names nombre visible de un ejercicio por su configuración (null = no se conoce; entonces
+         *   vale el nombre del propio programa).
+         * @param equipmentOf `equipmentId` del catálogo de una configuración, para distinguir dos ejercicios
+         *   del mismo nombre con distinto material.
+         */
+        fun from(
+            program: Program,
+            names: (String) -> String?,
+            equipmentOf: (String) -> String?,
+        ): ReadyWeekSnapshot = PlanInfoModelBuilder.readyWeekOf(program, names, equipmentOf)
+    }
+}
 
 data class ReadySession(val label: String, val exercises: List<ReadyExercise>)
 
@@ -278,10 +303,143 @@ object PlanInfoModelBuilder {
         }
     }
 
-    private fun cardioLine(block: RecipeCardioBlock): String {
-        val type = CardioPrescriptionFormatter.typeLabel(block.details.type)
-        val minutes = (block.details.effectiveDurationSeconds() + 59) / 60
+    private fun cardioLine(block: RecipeCardioBlock): String = cardioLine(block.details)
+
+    private fun cardioLine(details: CardioDetails): String {
+        val type = CardioPrescriptionFormatter.typeLabel(details.type)
+        val minutes = (details.effectiveDurationSeconds() + 59) / 60
         return if (minutes > 0) "Cardio: $type $minutes min" else "Cardio: $type"
+    }
+
+    // ─── La semana real de un candidato listo del asistente (C.P5) ────────────
+
+    private val weekdayNames = listOf("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo")
+
+    /** «Día 1», «Día 2»…: el nombre de sesión que los planes propios ponen cuando no hay reparto con nombres. */
+    private val genericSessionName = Regex("""^[Dd][ií]a \d+$""")
+
+    /**
+     * La primera semana de un programa ya preparado como [ReadyWeekSnapshot] (ver [ReadyWeekSnapshot.from]):
+     * una [ReadySession] por sesión y una línea por ejercicio, con las series de trabajo redactadas como las
+     * de una receta. Los calentamientos no cuentan: las aproximaciones viven en `Exercise.warmupSets` y en
+     * `Session.warmup`, que `Session.allExercises` no recorre. El cardio sale como en las recetas
+     * («Cardio: Cinta 20 min»).
+     */
+    internal fun readyWeekOf(
+        program: Program,
+        names: (String) -> String?,
+        equipmentOf: (String) -> String?,
+    ): ReadyWeekSnapshot {
+        val week = program.macrocycles
+            .flatMap { macrocycle -> macrocycle.blocks }
+            .flatMap { block -> block.mesocycles }
+            .flatMap { mesocycle -> mesocycle.weeks }
+            .firstOrNull()
+            ?: return ReadyWeekSnapshot(emptyList())
+        return ReadyWeekSnapshot(
+            week.sessions.mapIndexed { index, session -> readySession(session, index, names, equipmentOf) },
+        )
+    }
+
+    private fun readySession(
+        session: Session,
+        index: Int,
+        names: (String) -> String?,
+        equipmentOf: (String) -> String?,
+    ): ReadySession {
+        // Un ejercicio sin series de trabajo no enseña nada; el cardio se cuenta por su duración.
+        val exercises = session.allExercises().filter { exercise ->
+            exercise.cardioDetails != null || exercise.sets.any { set -> !set.isEmptySlot }
+        }
+        val baseNames = exercises.map { exercise -> readyExerciseName(exercise, names) }
+        // Dos configuraciones distintas con el mismo nombre (remo con mancuernas y remo en polea) se distinguen
+        // por su material; el mismo ejercicio dos veces, no.
+        val ambiguous = baseNames.indices
+            .filter { position -> exercises[position].cardioDetails == null }
+            .groupBy { position -> baseNames[position] }
+            .filterValues { positions ->
+                positions.mapNotNull { position -> exercises[position].catalogConfigurationId }.distinct().size > 1
+            }
+            .keys
+        val lines = exercises.mapIndexed { position, exercise ->
+            val cardio = exercise.cardioDetails
+            if (cardio != null) {
+                ReadyExercise(name = cardioLine(cardio), series = "")
+            } else {
+                val base = baseNames[position]
+                val configurationId = exercise.catalogConfigurationId
+                val name = if (base in ambiguous && configurationId != null) {
+                    distinguished(base, configurationId, equipmentOf)
+                } else {
+                    base
+                }
+                ReadyExercise(name = name, series = readySeries(exercise))
+            }
+        }
+        return ReadySession(label = readySessionLabel(session, index), exercises = lines)
+    }
+
+    /** El nombre del catálogo manda (el mismo vocabulario que las recetas); el del programa es el respaldo. */
+    private fun readyExerciseName(exercise: Exercise, names: (String) -> String?): String =
+        exercise.catalogConfigurationId?.let(names)?.trim()?.takeIf { it.isNotEmpty() }
+            ?: exercise.name.trim().takeIf { it.isNotEmpty() }
+            ?: UNKNOWN_EXERCISE
+
+    /**
+     * «Lunes · Torso» con el día de la semana y el nombre del reparto; «Lunes» si la sesión solo se llama
+     * «Día 1»; el nombre solo si no tiene día; «Sesión 2» si no tiene ninguno de los dos.
+     */
+    private fun readySessionLabel(session: Session, index: Int): String {
+        val weekday = session.dayOfWeek?.let { day -> weekdayNames.getOrNull(day - 1) }
+        val name = session.name.trim().takeIf { it.isNotEmpty() && !genericSessionName.matches(it) }
+        return when {
+            weekday != null && name != null -> weekday + NAME_SEPARATOR + name
+            weekday != null -> weekday
+            name != null -> name
+            else -> "Sesión ${index + 1}"
+        }
+    }
+
+    /** Las series de trabajo de un ejercicio ya materializado; vacío si no tiene. */
+    private fun readySeries(exercise: Exercise): String {
+        val working = exercise.sets.filterNot { set -> set.isEmptySlot }
+        if (working.isEmpty()) return ""
+        val timed = working.all { set -> set.effectiveRepRange() == null && (set.targetDuration ?: 0) > 0 }
+        return if (timed) timedSeries(working) else formatSets(working.map { set -> recipeSetOf(set) })
+    }
+
+    /** La serie ya materializada con la forma de una serie de receta, para redactarla con las mismas reglas. */
+    private fun recipeSetOf(set: ExerciseSet): SetRecipe {
+        val range = set.effectiveRepRange()
+        return SetRecipe(
+            reps = set.targetReps?.takeIf { it > 0 },
+            repsMin = range?.min,
+            repsMax = range?.max,
+            percent = set.targetPercentageRM,
+            rpe = set.targetRPE,
+            rir = set.targetRIR,
+            amrap = set.isAmrap,
+            isTopSet = set.isTopSet,
+            loadBasis = set.loadBasis ?: LoadBasis.PERCENT_1RM,
+        )
+    }
+
+    /** «3 × 30 s» para las series por tiempo (planchas, isométricos); las duraciones distintas se listan. */
+    private fun timedSeries(sets: List<ExerciseSet>): String {
+        val groups = ArrayList<Pair<Int, Int>>()
+        for (set in sets) {
+            val seconds = set.targetDuration ?: 0
+            val last = groups.lastOrNull()
+            if (last != null && last.first == seconds) {
+                groups[groups.lastIndex] = seconds to (last.second + 1)
+            } else {
+                groups.add(seconds to 1)
+            }
+        }
+        val parts = groups.map { (seconds, count) ->
+            "$count $TIMES ${CardioPrescriptionFormatter.formatDuration(seconds)}"
+        }
+        return if (parts.size == 1) parts.first() else parts.dropLast(1).joinToString(", ") + " y " + parts.last()
     }
 
     private val regionWords = mapOf("Upper" to "Torso", "Lower" to "Pierna")

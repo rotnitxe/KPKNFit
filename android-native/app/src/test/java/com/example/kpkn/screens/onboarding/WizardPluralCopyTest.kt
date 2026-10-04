@@ -51,20 +51,56 @@ class WizardPluralCopyTest {
         assertEquals("Define el foco de tus 4 días (2 de 4).", customSplitPendingText(target = 4, defined = 2))
     }
 
+    /**
+     * C.P5 · «12 planes revisados · 3 encajan con tus respuestas»: cada cifra concuerda con su sustantivo y con su
+     * verbo (uno: «1 plan revisado · 1 encaja»; ninguno: «ninguno encaja»), y los no viables ya no se cuentan aparte.
+     */
     @Test
     fun candidateCountsAgreeForEachFigure() {
         assertEquals(
-            "1 plan evaluado · 1 viable · 0 no viables",
+            "1 plan revisado · 1 encaja con tus respuestas",
             candidateCountsText(SetupCandidateCounts(evaluated = 1, viable = 1, nonViable = 0)),
         )
         assertEquals(
-            "5 planes evaluados · 1 viable · 1 no viable",
-            candidateCountsText(SetupCandidateCounts(evaluated = 5, viable = 1, nonViable = 1)),
+            "5 planes revisados · 1 encaja con tus respuestas",
+            candidateCountsText(SetupCandidateCounts(evaluated = 5, viable = 1, nonViable = 4)),
         )
         assertEquals(
-            "12 planes evaluados · 7 viables · 5 no viables",
+            "12 planes revisados · 3 encajan con tus respuestas",
+            candidateCountsText(SetupCandidateCounts(evaluated = 12, viable = 3, nonViable = 9)),
+        )
+        assertEquals(
+            "12 planes revisados · 7 encajan con tus respuestas",
             candidateCountsText(SetupCandidateCounts(evaluated = 12, viable = 7, nonViable = 5)),
         )
+    }
+
+    @Test
+    fun candidateCountsToleratesASinglePlanAndNoViablePlan() {
+        // Atleta completo evalúa un solo plan (DEC-w2-06): «1 plan revisado», nunca «1 planes».
+        assertEquals(
+            "1 plan revisado · ninguno encaja con tus respuestas",
+            candidateCountsText(SetupCandidateCounts(evaluated = 1, viable = 0, nonViable = 1)),
+        )
+        assertEquals(
+            "12 planes revisados · ninguno encaja con tus respuestas",
+            candidateCountsText(SetupCandidateCounts(evaluated = 12, viable = 0, nonViable = 12)),
+        )
+    }
+
+    @Test
+    fun candidateCountsNeverPairsAnAmountWithTheWrongNounOrVerb() {
+        for (evaluated in 0..14) {
+            for (viable in 0..evaluated) {
+                val text = candidateCountsText(SetupCandidateCounts(evaluated, viable, evaluated - viable))
+                assertTrue("«$text» mezcla 1 con un sustantivo en plural", !oneWithPlural.containsMatchIn(text))
+                // El límite de palabra evita confundir «11 encajan» con «1 encajan» y «10 encajan» con «0 encaja».
+                assertTrue("«$text» dice «1 encajan»", !Regex("""\b1 encajan""").containsMatchIn(text))
+                assertTrue("«$text» dice «0 encaja»", !Regex("""\b0 encaja""").containsMatchIn(text))
+                assertTrue("«$text» no es la forma de «$evaluated planes revisados»", text.startsWith("$evaluated plan"))
+                assertTrue("«$text» enseña una cifra de no viables", !text.contains("viable"))
+            }
+        }
     }
 
     // ─── Series y repeticiones ───────────────────────────────────────────────

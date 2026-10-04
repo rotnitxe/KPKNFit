@@ -831,6 +831,18 @@ data class SetupWizardState(
         get() = stepValidation.any { it.isBlocking }
 }
 
+/**
+ * Tarjeta de un plan viable en el paso PLAN (C.P5).
+ *
+ * - [title] es el `displayName` de la ficha editorial y [subtitle] su `PlanLabels.subtitle`
+ *   («Ciclo de 4 semanas que se repite · Intermedio»); la tarjeta pinta ambos más los [reasons].
+ * - La hoja «Cómo funciona» no sale de aquí: la tarjeta guarda el [id] y la hoja se arma con la entrada del
+ *   catálogo y la semana real que entrega el asistente (`readyWeekSnapshotFor`).
+ * - [description] (el resumen editorial) y [details] (la línea de atribución) NO los pinta ninguna pantalla.
+ *   Se conservan como contrato de datos porque dos pruebas los leen: `SetupExecutableAvailabilityMatrixTest`
+ *   exige que un plan de autor publique su atribución en [details] y `SetupWizardOneDayCopyTest` revisa el
+ *   texto de [description]. Pueden retirarse junto con esas dos aserciones.
+ */
 data class SetupPlanCandidate(
     val id: String,
     val title: String,

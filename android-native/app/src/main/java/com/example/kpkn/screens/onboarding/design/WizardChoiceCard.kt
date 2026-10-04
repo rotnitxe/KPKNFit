@@ -31,6 +31,10 @@ import androidx.compose.ui.unit.dp
  *
  * La selección nunca depende solo del color: además del borde blanco grueso hay
  * un radio relleno con punto, `selected` para TalkBack y `Role.RadioButton`.
+ *
+ * [footer] es un pie opcional dentro del marco de la tarjeta (p. ej. el enlace «Ver cómo funciona» de
+ * los planes). Va FUERA de la zona que se toca para elegir: es un control aparte (su propio botón, con su
+ * propia semántica), no un hijo fundido en el radio. Sin pie, la tarjeta es exactamente la de siempre.
  */
 @Composable
 fun WizardChoiceCard(
@@ -40,18 +44,62 @@ fun WizardChoiceCard(
     selected: Boolean,
     enabled: Boolean = true,
     onClick: () -> Unit,
+    footer: (@Composable () -> Unit)? = null,
+) {
+    val minHeight = WizardSpacing.touchTarget + 16.dp
+    val borderWidth = if (selected) WizardColors.selectedBorderWidth else WizardColors.unselectedBorderWidth
+    val borderColor = if (selected) WizardColors.selectedBorder else WizardColors.cardBorder
+    if (footer == null) {
+        WizardChoiceRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .defaultMinSize(minHeight = minHeight)
+                .background(WizardColors.cardFill, WizardShapes.card)
+                .border(width = borderWidth, color = borderColor, shape = WizardShapes.card),
+            title = title,
+            subtitle = subtitle,
+            icon = icon,
+            selected = selected,
+            enabled = enabled,
+            onClick = onClick,
+        )
+    } else {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(WizardColors.cardFill, WizardShapes.card)
+                .border(width = borderWidth, color = borderColor, shape = WizardShapes.card),
+        ) {
+            WizardChoiceRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .defaultMinSize(minHeight = minHeight),
+                title = title,
+                subtitle = subtitle,
+                icon = icon,
+                selected = selected,
+                enabled = enabled,
+                onClick = onClick,
+            )
+            Box(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 4.dp)) { footer() }
+        }
+    }
+}
+
+/** La zona que se toca para elegir: icono, título, subtítulo y radio, con la semántica de radio. */
+@Composable
+private fun WizardChoiceRow(
+    modifier: Modifier,
+    title: String,
+    subtitle: String?,
+    icon: ImageVector?,
+    selected: Boolean,
+    enabled: Boolean,
+    onClick: () -> Unit,
 ) {
     val alpha = if (enabled) 1f else 0.45f
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .defaultMinSize(minHeight = WizardSpacing.touchTarget + 16.dp)
-            .background(WizardColors.cardFill, WizardShapes.card)
-            .border(
-                width = if (selected) WizardColors.selectedBorderWidth else WizardColors.unselectedBorderWidth,
-                color = if (selected) WizardColors.selectedBorder else WizardColors.cardBorder,
-                shape = WizardShapes.card,
-            )
+        modifier = modifier
             .semantics {
                 role = Role.RadioButton
                 this.selected = selected

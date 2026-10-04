@@ -372,13 +372,24 @@ private fun briefSetsReps(exercise: Exercise): String? {
     return if (reps != null) "${sets.size} × $reps" else SpanishPlurals.sets(sets.size)
 }
 
-private fun draftSplitLabel(state: SetupWizardState): String? {
+/**
+ * El reparto semanal en palabras (C.P5): el nombre que la persona le puso si es propio; si no, el nombre del
+ * reparto elegido o, sin elección, el que el motor aplicó al programa preparado (el mismo nombre que ve en la
+ * lista de repartos). Nunca el id técnico («ul_x4»): un reparto que el catálogo no conoce queda sin declarar.
+ */
+internal fun draftSplitLabel(state: SetupWizardState): String? {
     val draft = state.draft
-    return draft.customSplitName
-        ?: draft.selectedSplitId
-        ?: state.programPreview?.selectedSplitId
-        ?: null
+    draft.customSplitName?.takeIf { it.isNotBlank() }?.let { return it }
+    val splitId = draft.selectedSplitId ?: state.programPreview?.selectedSplitId ?: return null
+    if (splitId == CUSTOM_SPLIT_ID) {
+        return state.programPreview?.customSplitName?.takeIf { it.isNotBlank() } ?: CUSTOM_SPLIT_LABEL
+    }
+    return splitDisplayName(splitId)
 }
+
+/** Id del reparto que arma la persona día a día; su nombre es el que ella le puso. */
+private const val CUSTOM_SPLIT_ID = "custom"
+private const val CUSTOM_SPLIT_LABEL = "Reparto personalizado"
 
 private val WEEKDAY_LABELS = listOf("", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo")
 
