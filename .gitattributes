@@ -1,3 +1,5 @@
 # Assets de catálogo hasheados por tests de integridad: sin conversión de EOL.
 android-native/app/src/main/assets/exercise_catalog_v2.json -text
+android-native/app/src/main/resources/exercise_catalog_v2.json -text
+catalog/exercises/v2/source/catalog_v2.json -text
 ios-native/KPKNFit/KPKNFit/exercise_catalog_v2.json -text
