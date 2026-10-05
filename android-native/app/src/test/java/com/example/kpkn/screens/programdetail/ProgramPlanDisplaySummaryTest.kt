@@ -26,8 +26,8 @@ import org.junit.Test
 
 /**
  * C.P7 · Cómo se ve un plan ya elegido o activado: la tarjeta «Plan y procedencia» del detalle del programa
- * ([buildProgramPlanDisplaySummary]), su chip ámbar ([planChipLabel]), la línea de máximos de entrenamiento
- * ([trainingMaxLine]), el vocabulario del enfoque del banner ([focusModeLabel]) y la fila «Plan» de la revisión
+ * ([buildProgramPlanDisplaySummary]), la etiqueta corta del plan ([planChipLabel]), la línea de máximos de entrenamiento
+ * ([trainingMaxLine]), el vocabulario del enfoque ([focusModeLabel]) y la fila «Plan» de la revisión
  * del asistente ([planReviewValue]). Todo son funciones puras: JVM, sin Robolectric ni Compose, sobre el
  * catálogo de producción.
  */

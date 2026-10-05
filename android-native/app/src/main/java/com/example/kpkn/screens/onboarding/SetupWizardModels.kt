@@ -1250,8 +1250,11 @@ object SetupWizardValidation {
                     else -> ok("warmups")
                 }
             }
-            SetupStepId.PLAN -> if (draft.selectedCatalogId != null || draft.trainingPath == SetupTrainingPath.FROM_SCRATCH) ok("plan")
-                else absent("plan", "Elige un plan")
+            SetupStepId.PLAN -> when {
+                draft.programRoute == SetupProgramRoute.LATER -> ok("plan")
+                draft.selectedCatalogId != null || draft.trainingPath == SetupTrainingPath.FROM_SCRATCH -> ok("plan")
+                else -> absent("plan", "Elige un plan")
+            }
             SetupStepId.TRAINING_REVIEW, SetupStepId.NUTRITION_RESULT,
             SetupStepId.RINGS_RESULT, SetupStepId.REVIEW_ACTIVATE -> emptyList()
             SetupStepId.NUTRITION_START -> if (draft.isAnswered(step)) ok("nutritionStart") else absent("nutritionStart", "Elige una opción de nutrición")

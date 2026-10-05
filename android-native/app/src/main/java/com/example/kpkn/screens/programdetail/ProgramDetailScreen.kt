@@ -31,7 +31,6 @@ import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramCalendarizationMode
 import com.example.kpkn.data.models.ProgramKeyDate
-import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.RecoveryChannelId
 import com.example.kpkn.data.models.Session
@@ -199,22 +198,10 @@ fun ProgramDetailScreen(
                 spinalBattery = augeSnapshot.ringScore(RecoveryChannelId.STRUCTURE),
                 isVolumeCalibrated = p.volumeRecommendations.isNotEmpty() && p.athleteProfileScore != null,
                 blockProgressLabel = viewModel.blockProgressLabel(),
-                // Nombre corto del plan del catálogo, sin emoji (C.P7); null si el programa no viene de un método.
-                protocolLabel = remember(p.sourceProtocolId, p.structureTemplateId, p.planProvenance?.planId) {
-                    planChipLabel(p)
-                },
                 onBack = onBack,
                 onStartPause = { viewModel.toggleStartPause() },
                 onTitleDescriptionChange = { name, description ->
                     viewModel.updateProgram(p.copy(name = name, description = description))
-                },
-                onFocusChange = { mode ->
-                    val programMode = try {
-                        ProgramMode.valueOf(mode.uppercase())
-                    } catch (_: Exception) {
-                        ProgramMode.HYPERTROPHY
-                    }
-                    viewModel.updateProgram(p.copy(mode = programMode))
                 },
                 onCoverChange = { coverImage ->
                     viewModel.updateProgram(p.copy(coverImage = coverImage))

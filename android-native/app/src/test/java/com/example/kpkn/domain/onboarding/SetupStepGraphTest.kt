@@ -127,6 +127,21 @@ class SetupStepGraphTest {
     }
 
     @Test
+    fun deferredProgramSkipsConfigurationAfterThePlanAndKeepsTheTrainingMilestone() {
+        val later = fullContext.copy(programRouteLater = true)
+        val route = SetupStepGraph.stepIds(later)
+        assertFalse(SetupStepId.AUTOREGULATION in route)
+        assertFalse(SetupStepId.AUTOREGULATION_CONFIRM in route)
+        assertFalse(SetupStepId.WARMUPS in route)
+        assertFalse(SetupStepId.TRAINING_REVIEW in route)
+        assertTrue(SetupStepId.PLAN in route)
+        assertTrue(SetupStepId.MILESTONE_TRAINING in route)
+        assertEquals(SetupStepId.MILESTONE_TRAINING, SetupStepGraph.next(SetupStepId.PLAN, later))
+        assertEquals(SetupStepId.PLAN, SetupStepGraph.previous(SetupStepId.MILESTONE_TRAINING, later))
+        assertFalse(SetupStepId.AUTOREGULATION_CONFIRM in SetupStepGraph.stepIds(later.copy(autoregulationOn = true)))
+    }
+
+    @Test
     fun marksBranchOnlyAddsTrainingMarksWhenTheUserKnowsThem() {
         assertEquals(
             SetupStepId.TRAINING_MARKS,

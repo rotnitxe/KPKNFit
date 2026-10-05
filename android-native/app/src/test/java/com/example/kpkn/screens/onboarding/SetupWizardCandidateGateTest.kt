@@ -374,6 +374,33 @@ class SetupWizardCandidateGateTest {
     }
 
     @Test
+    fun deferredProgramBypassesThePlanGateAndSaysTheProgramComesLater() {
+        val state = SetupWizardState(
+            draft = SetupWizardDraft(
+                programRoute = SetupProgramRoute.LATER,
+                selectedCatalogId = "native:zzz",
+                trainingPath = SetupTrainingPath.PERSONALIZE,
+                includeNutrition = true,
+            ),
+            availablePlanCandidates = emptyList(),
+            isCandidateLoading = true,
+        )
+        assertTrue(planSelectionGate(state, SetupStepId.PLAN).isEmpty())
+        assertTrue(SetupWizardValidation.validateStep(state.draft, SetupStepId.PLAN).none { it.isBlocking })
+        val rows = trainingMilestoneRows(state)
+        assertTrue(rows.any { it.first == "Plan" && it.second == DEFER_PROGRAM_REVIEW_VALUE })
+        assertFalse(rows.any { it.first == "Autorregulación" || it.first == "Calentamientos" })
+        assertEquals(
+            "El programa lo armarás más adelante. El plan nutricional se activa al confirmar.",
+            activationBody(state),
+        )
+        assertEquals(
+            "No se activa ningún programa. Podrás armar el tuyo más adelante.",
+            activationBody(state.copy(draft = state.draft.copy(includeNutrition = false))),
+        )
+    }
+
+    @Test
     fun whileTheListIsLoadingTheGateSaysItIsReviewingThePlansInsteadOfAskingToChooseOne() {
         // H9: con la lista calculándose no se puede pedir «elige un plan de la lista»: todavía no hay lista.
         assertEquals(

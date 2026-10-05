@@ -21,18 +21,13 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Icon
@@ -41,8 +36,6 @@ import androidx.compose.material3.MaterialTheme
 import com.example.kpkn.ui.components.KpknSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -73,18 +66,10 @@ import coil.request.ImageRequest
 import com.example.kpkn.data.models.AthleteProfileScore
 import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.data.models.VolumeRecommendation
-import com.example.kpkn.ui.components.KpknAlertDialog
-import com.example.kpkn.ui.components.KpknDropdownMenu
-
 private data class CoverGradient(
     val id: String,
     val name: String,
     val colors: List<Color>,
-)
-
-private data class FocusOption(
-    val mode: ProgramMode,
-    val label: String,
 )
 
 private val heroCoverGradients = listOf(
@@ -104,15 +89,6 @@ internal fun focusModeLabel(mode: ProgramMode): String = when (mode) {
     ProgramMode.HYPERTROPHY -> "Músculo"
 }
 
-/** Etiqueta del enfoque cuando [focusMode] no es ninguno de los modos conocidos (no ocurre con los datos reales). */
-private const val UNKNOWN_FOCUS_LABEL = "Enfoque"
-
-private val focusOptions = listOf(
-    ProgramMode.POWERLIFTING,
-    ProgramMode.POWERBUILDING,
-    ProgramMode.HYPERTROPHY,
-).map { mode -> FocusOption(mode, focusModeLabel(mode)) }
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun CompactHeroBanner(
@@ -129,14 +105,12 @@ fun CompactHeroBanner(
     onBack: () -> Unit,
     onStartPause: () -> Unit,
     onTitleDescriptionChange: (String, String?) -> Unit,
-    onFocusChange: (String) -> Unit,
     onCoverChange: (String) -> Unit,
     onApplyVolumeCalibration: (ProgramMode, AthleteProfileScore, List<VolumeRecommendation>) -> Unit,
     onIncreaseVolumeCurrentWeek: () -> Unit,
     onReduceVolumeCurrentWeek: () -> Unit,
     openVolumeSheetToken: Int = 0,
     blockProgressLabel: String? = null,
-    protocolLabel: String? = null,
     modifier: Modifier = Modifier,
 ) {
     val coverGradient = remember(coverValue) { resolveGradient(coverValue) }
@@ -160,11 +134,8 @@ fun CompactHeroBanner(
         isPaused -> Color(0xFFFBBF24)
         else -> Color(0xFFCBD5E1)
     }
-    var showFocusMenu by remember { mutableStateOf(false) }
     var showCoverSheet by remember { mutableStateOf(false) }
     var showVolumeSheet by remember { mutableStateOf(false) }
-    var pendingFocusMode by remember { mutableStateOf<ProgramMode?>(null) }
-    var showFocusRecalibrationDialog by remember { mutableStateOf(false) }
     var draftName by remember(programName) { mutableStateOf(programName) }
     var draftDescription by remember(programDescription) { mutableStateOf(programDescription.orEmpty()) }
 
@@ -240,40 +211,6 @@ fun CompactHeroBanner(
                                 contentColor = primaryTextColor,
                                 containerColor = glassColor,
                                 borderColor = strokeColor,
-                            )
-                        }
-
-                        if (!protocolLabel.isNullOrBlank()) {
-                            CompactHeroPill(
-                                label = protocolLabel,
-                                accent = Color(0xFFFBBF24),
-                                contentColor = primaryTextColor,
-                                containerColor = glassColor,
-                                borderColor = strokeColor,
-                            )
-                        }
-
-                        Box {
-                            CompactFocusPill(
-                                onClick = { showFocusMenu = true },
-                                label = focusOptions.find { it.mode.name.equals(focusMode, ignoreCase = true) }?.label
-                                    ?: UNKNOWN_FOCUS_LABEL,
-                                contentColor = primaryTextColor,
-                                containerColor = glassColor,
-                                borderColor = strokeColor,
-                            )
-
-                            FocusDropdownMenu(
-                                expanded = showFocusMenu,
-                                focusMode = focusMode,
-                                onDismiss = { showFocusMenu = false },
-                                onSelect = { option ->
-                                    if (!option.mode.name.equals(focusMode, ignoreCase = true)) {
-                                        pendingFocusMode = option.mode
-                                        showFocusRecalibrationDialog = true
-                                    }
-                                    showFocusMenu = false
-                                },
                             )
                         }
                     }
@@ -420,62 +357,11 @@ fun CompactHeroBanner(
 
     if (showVolumeSheet) {
         VolumeCalibrationSheet(
-            currentMode = pendingFocusMode ?: runCatching { ProgramMode.valueOf(focusMode.uppercase()) }.getOrDefault(ProgramMode.HYPERTROPHY),
-            onDismiss = {
-                showVolumeSheet = false
-                pendingFocusMode = null
-            },
+            currentMode = runCatching { ProgramMode.valueOf(focusMode.uppercase()) }.getOrDefault(ProgramMode.HYPERTROPHY),
+            onDismiss = { showVolumeSheet = false },
             onSave = { result ->
                 onApplyVolumeCalibration(result.mode, result.score, result.recommendations)
                 showVolumeSheet = false
-                pendingFocusMode = null
-            },
-        )
-    }
-
-    if (showFocusRecalibrationDialog && pendingFocusMode != null) {
-        KpknAlertDialog(
-            onDismissRequest = {
-                showFocusRecalibrationDialog = false
-                pendingFocusMode = null
-            },
-            title = { Text("Cambiar enfoque", fontWeight = FontWeight.Black) },
-            text = {
-                Text("¿Deseas recalibrar el volumen de entrenamiento después de cambiar el enfoque del programa?")
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        val newMode = pendingFocusMode ?: return@Button
-                        onFocusChange(newMode.name.lowercase())
-                        showFocusRecalibrationDialog = false
-                        showVolumeSheet = true
-                    },
-                ) {
-                    Text("Sí, recalibrar")
-                }
-            },
-            dismissButton = {
-                Row {
-                    TextButton(
-                        onClick = {
-                            val newMode = pendingFocusMode ?: return@TextButton
-                            onFocusChange(newMode.name.lowercase())
-                            showFocusRecalibrationDialog = false
-                            pendingFocusMode = null
-                        },
-                    ) {
-                        Text("Solo cambiar")
-                    }
-                    TextButton(
-                        onClick = {
-                            showFocusRecalibrationDialog = false
-                            pendingFocusMode = null
-                        },
-                    ) {
-                        Text("Cancelar")
-                    }
-                }
             },
         )
     }
@@ -513,26 +399,6 @@ private fun InlineHeroTextField(
             innerTextField()
         },
     )
-}
-
-@Composable
-private fun FocusDropdownMenu(
-    expanded: Boolean,
-    focusMode: String,
-    onDismiss: () -> Unit,
-    onSelect: (FocusOption) -> Unit,
-) {
-    KpknDropdownMenu(
-        expanded = expanded,
-        onDismissRequest = onDismiss,
-    ) {
-        focusOptions.forEach { option ->
-            DropdownMenuItem(
-                text = { Text(option.label) },
-                onClick = { onSelect(option) },
-            )
-        }
-    }
 }
 
 @Composable
@@ -601,9 +467,7 @@ private fun CompactHeroPill(
         color = containerColor,
         shadowElevation = 0.dp,
         tonalElevation = 0.dp,
-        modifier = Modifier
-            .border(1.dp, borderColor, RoundedCornerShape(999.dp))
-            .widthIn(min = 96.dp),
+        modifier = Modifier.border(1.dp, borderColor, RoundedCornerShape(999.dp)),
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp),
@@ -623,46 +487,6 @@ private fun CompactHeroPill(
                 fontSize = 11.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-            )
-        }
-    }
-}
-
-@Composable
-private fun CompactFocusPill(
-    onClick: () -> Unit,
-    label: String,
-    contentColor: Color,
-    containerColor: Color,
-    borderColor: Color,
-) {
-    Surface(
-        modifier = Modifier
-            .border(1.dp, borderColor, RoundedCornerShape(999.dp))
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(999.dp),
-        color = containerColor,
-        shadowElevation = 0.dp,
-        tonalElevation = 0.dp,
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            Text(
-                text = label,
-                color = contentColor,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 11.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Icon(
-                imageVector = Icons.Default.KeyboardArrowDown,
-                contentDescription = null,
-                tint = contentColor,
-                modifier = Modifier.size(13.dp),
             )
         }
     }

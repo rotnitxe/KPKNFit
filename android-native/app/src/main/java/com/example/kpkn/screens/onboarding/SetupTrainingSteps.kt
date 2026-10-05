@@ -1277,7 +1277,7 @@ private fun TrainingPlanStep(state: SetupWizardState, vm: SetupWizardViewModel) 
                 WizardChoiceCard(
                     title = candidate.title,
                     subtitle = planCandidateSubtitle(candidate),
-                    selected = candidate.id in selected,
+                    selected = draft.programRoute != SetupProgramRoute.LATER && candidate.id in selected,
                     onClick = { vm.selectPlan(candidate.id) },
                     footer = { PlanInfoLink(candidate = candidate, onClick = { infoPlanId = candidate.id }) },
                 )
@@ -1293,6 +1293,8 @@ private fun TrainingPlanStep(state: SetupWizardState, vm: SetupWizardViewModel) 
             CandidateCountsLine(state = state)
         }
     }
+
+    DeferProgramChoice(selected = draft.programRoute == SetupProgramRoute.LATER, onClick = vm::deferProgramUntilLater)
 
     infoPlanId?.let { planId ->
         CandidatePlanInfo(planId = planId, vm = vm, onDismiss = { infoPlanId = null })
@@ -1317,6 +1319,26 @@ private fun PlanInfoLink(candidate: SetupPlanCandidate, onClick: () -> Unit) {
 }
 
 private const val PLAN_INFO_LINK = "Ver cómo funciona"
+
+/** Texto exacto de la tarjeta que aplaza el programa en el paso PLAN. */
+internal const val DEFER_PROGRAM_CHOICE = "Yo haré mi programa de entreno manualmente más adelante"
+
+/** Lo que dicen el hito y la revisión cuando no se crea un programa ahora. */
+internal const val DEFER_PROGRAM_REVIEW_VALUE = "Lo armarás manualmente más adelante"
+
+/**
+ * Escape del catálogo: la persona no elige un plan y armará el suyo después.
+ * Visible también mientras la lista carga, falla o no tiene planes compatibles.
+ */
+@Composable
+private fun DeferProgramChoice(selected: Boolean, onClick: () -> Unit) {
+    WizardChoiceCard(
+        title = DEFER_PROGRAM_CHOICE,
+        subtitle = "No creamos un programa ahora. Podrás armarlo desde cero cuando quieras.",
+        selected = selected,
+        onClick = onClick,
+    )
+}
 
 /**
  * La hoja «Cómo funciona» de un candidato del asistente (C.P5): la entrada del catálogo con la semana real que
@@ -1928,9 +1950,13 @@ internal fun trainingMilestoneRows(state: SetupWizardState): List<Pair<String, S
         if (draft.selectedSplitId != null) {
             draftSplitLabel(state)?.let { name -> add("Reparto" to name) }
         }
-        draft.selectedCatalogId?.let { id ->
-            // C.P6: el nombre de la ficha editorial; si el id ya no resuelve, nunca se pinta el id crudo.
-            add("Plan" to (PersonalizedPlanCatalog.find(id)?.displayName ?: "Tu plan elegido"))
+        if (draft.programRoute == SetupProgramRoute.LATER) {
+            add("Plan" to DEFER_PROGRAM_REVIEW_VALUE)
+        } else {
+            draft.selectedCatalogId?.let { id ->
+                // C.P6: el nombre de la ficha editorial; si el id ya no resuelve, nunca se pinta el id crudo.
+                add("Plan" to (PersonalizedPlanCatalog.find(id)?.displayName ?: "Tu plan elegido"))
+            }
         }
         if (draft.knowsTrainingMarks) {
             val marks = listOfNotNull(
@@ -1940,8 +1966,10 @@ internal fun trainingMilestoneRows(state: SetupWizardState): List<Pair<String, S
             )
             add("Marcas" to if (marks.isEmpty()) "Sin marcas declaradas" else marks.joinToString(" / ") { "${formatTrainingNumber(it)} kg" })
         }
-        add("Autorregulación" to autoregulationSummary(draft))
-        add("Calentamientos" to warmupSummary(draft))
+        if (draft.programRoute != SetupProgramRoute.LATER) {
+            add("Autorregulación" to autoregulationSummary(draft))
+            add("Calentamientos" to warmupSummary(draft))
+        }
     }
 }
 

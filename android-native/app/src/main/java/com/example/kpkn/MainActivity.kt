@@ -84,6 +84,7 @@ import com.example.kpkn.screens.sessioneditor.CatalogSavedStateKeys
 import com.example.kpkn.screens.sessioneditor.CatalogSelectionMode
 import com.example.kpkn.screens.sessioneditor.components.ExerciseCatalogScreen
 import com.example.kpkn.screens.home.HomeScreen
+import com.example.kpkn.screens.home.rememberHomeViewModel
 import com.example.kpkn.screens.home.HomeGlassOverlay
 import com.example.kpkn.screens.home.HomeGlassOverlayChange
 import com.example.kpkn.screens.home.ConceptosClaveScreen
@@ -1116,6 +1117,15 @@ private fun KPKNNavGraph(
             )
         }
         composable(KpknRoute.Home.route) { homeBackStack ->
+            val homeViewModel = rememberHomeViewModel()
+            val openCreateProgram = {
+                val onboardingCompleted = ProgramRepository.getInstance().settings.value.onboardingCompleted
+                if (onboardingCompleted) {
+                    homeViewModel.openCreateProgramSheet()
+                } else {
+                    createProgramAndOpen(navController)
+                }
+            }
             val homeResumedState = remember(homeBackStack) {
                 mutableStateOf(homeBackStack.lifecycle.currentState == Lifecycle.State.RESUMED)
             }
@@ -1138,6 +1148,7 @@ private fun KPKNNavGraph(
                 },
             ) {
                 HomeScreen(
+                viewModel = homeViewModel,
                 themeMode = themeMode,
                 nutritionViewModel = nutritionViewModel,
                 onThemeChange = onThemeChange,
@@ -1145,7 +1156,7 @@ private fun KPKNNavGraph(
                 onNavigateToProgram = { programId ->
                     navController.navigate(KpknRoute.ProgramDetail.create(programId))
                 },
-                onCreateProgram = { createProgramAndOpen(navController) },
+                onCreateProgram = openCreateProgram,
                 onStartWorkout = { session, program ->
                     navController.navigate(KpknRoute.Workout.create(program.id, session.id))
                 },
@@ -1178,7 +1189,7 @@ private fun KPKNNavGraph(
                                     KpknRoute.ProgramDetail.create(programId)
                                 )
                             } else {
-                                createProgramAndOpen(navController)
+                                openCreateProgram()
                             }
                         }
                     }

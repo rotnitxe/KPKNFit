@@ -366,10 +366,15 @@ object SetupStepGraph {
             add(SetupStepId.SPLIT)
             // El plan aparece antes de ajustes y marcas: un candidato es válido sin marcas completas.
             add(SetupStepId.PLAN)
-            add(SetupStepId.AUTOREGULATION)
-            if (context.autoregulationOn) add(SetupStepId.AUTOREGULATION_CONFIRM)
-            add(SetupStepId.WARMUPS)
-            add(SetupStepId.TRAINING_REVIEW)
+            // «Lo haré más adelante» no tiene programa que configurar: se saltan
+            // autorregulación, calentamientos y la revisión del programa. El hito
+            // del bloque se mantiene y el recorrido sigue a nutrición o a la revisión.
+            if (!context.programRouteLater) {
+                add(SetupStepId.AUTOREGULATION)
+                if (context.autoregulationOn) add(SetupStepId.AUTOREGULATION_CONFIRM)
+                add(SetupStepId.WARMUPS)
+                add(SetupStepId.TRAINING_REVIEW)
+            }
             add(SetupStepId.MILESTONE_TRAINING)
         }
         // Bloque 3: Nutrición. El arranque es siempre explícito: un estado

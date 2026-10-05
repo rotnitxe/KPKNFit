@@ -212,6 +212,29 @@ class SetupWizardStepApiTest {
         assertTrue(vm.state.value.errors.isEmpty())
     }
 
+    @Test
+    fun deferringTheProgramClearsThePlanAndChoosingOneReturnsToCustomizable() = runTest {
+        val vm = vm()
+        vm.initialize(SetupWizardMode.FULL)
+        advanceUntilIdle()
+        val stepBefore = vm.state.value.currentStep
+
+        vm.selectPlan("catalog-plan-x")
+        advanceUntilIdle()
+        vm.deferProgramUntilLater()
+        advanceUntilIdle()
+
+        assertNull(vm.state.value.draft.selectedCatalogId)
+        assertEquals(SetupProgramRoute.LATER, vm.state.value.draft.programRoute)
+        assertEquals(stepBefore, vm.state.value.currentStep)
+
+        vm.selectPlan("catalog-plan-y")
+        advanceUntilIdle()
+        assertEquals("catalog-plan-y", vm.state.value.draft.selectedCatalogId)
+        assertEquals(SetupProgramRoute.CUSTOMIZABLE, vm.state.value.draft.programRoute)
+        assertEquals(stepBefore, vm.state.value.currentStep)
+    }
+
     // --- errores con reintento específico -------------------------------------
 
     @Test

@@ -145,11 +145,21 @@ fun SetupReviewStep(
 }
 
 /** Copy de la confirmación según el alcance real: solo registro no promete plan. */
-private fun activationBody(state: SetupWizardState): String = when {
-    !state.draft.includeNutrition -> "El programa se activa al confirmar."
-    state.draft.stepContext().nutritionStartChoice == "tracking_only" ->
-        "El programa se activa al confirmar. En solo registro no hay plan nutricional que activar."
-    else -> "El programa y el plan nutricional se activan juntos al confirmar."
+internal fun activationBody(state: SetupWizardState): String {
+    val later = state.draft.programRoute == SetupProgramRoute.LATER
+    val trackingOnly = state.draft.stepContext().nutritionStartChoice == "tracking_only"
+    return when {
+        later && !state.draft.includeNutrition ->
+            "No se activa ningún programa. Podrás armar el tuyo más adelante."
+        later && trackingOnly ->
+            "No se activa ningún programa. Podrás armar el tuyo más adelante. En solo registro no hay plan nutricional que activar."
+        later ->
+            "El programa lo armarás más adelante. El plan nutricional se activa al confirmar."
+        !state.draft.includeNutrition -> "El programa se activa al confirmar."
+        trackingOnly ->
+            "El programa se activa al confirmar. En solo registro no hay plan nutricional que activar."
+        else -> "El programa y el plan nutricional se activan juntos al confirmar."
+    }
 }
 
 // ─── Resumen: datos básicos ──────────────────────────────────────────────────
@@ -265,6 +275,15 @@ private fun TrainingSummary(
     // El plan elegido (la INTENCIÓN del borrador, §15.2): de ahí salen el título y «Ver cómo funciona».
     val planEntry = remember(state.draft.selectedCatalogId) {
         state.draft.selectedCatalogId?.let(PersonalizedPlanCatalog::find)
+    }
+    if (state.draft.programRoute == SetupProgramRoute.LATER) {
+        SetupDataLine(
+            label = "Programa",
+            value = DEFER_PROGRAM_REVIEW_VALUE,
+            onEdit = edit(SetupStepId.PLAN),
+        )
+        SetupFormCaption("No creamos un programa ahora. Podrás hacerlo desde cero cuando quieras.")
+        return
     }
     val program = state.programPreview
     if (program == null) {

@@ -352,9 +352,11 @@ class SetupWizardViewModel @JvmOverloads constructor(
      * T-005 / §15.4: entrar en la selección UNIFICADA normaliza la ruta a
      * CUSTOMIZABLE + PERSONALIZE (el origen histórico sigue en el espejo
      * legacy); un borrador con ID de plan antiguo se conserva para lectura.
-     * La selección conserva intención (`selectedCatalogId`), nunca cambia de
-     * plan en silencio: si las respuestas cambian, el preview queda obsoleto
-     * y la activación espera re-preparar.
+     * Elegir una tarjeta también sale de «lo haré más adelante»: esa ruta no
+     * crea programa, y una tarjeta sí. La selección conserva intención
+     * (`selectedCatalogId`), nunca cambia de plan en silencio: si las
+     * respuestas cambian, el preview queda obsoleto y la activación espera
+     * re-preparar.
      *
      * Paquete A · D2 (B-01): elegir un plan descarta el aviso de «tu plan elegido ya no encaja»
      * ([SetupWizardState.droppedSelection]); la elección nueva es la respuesta a ese aviso.
@@ -366,12 +368,25 @@ class SetupWizardViewModel @JvmOverloads constructor(
             else draft.copy(
                 selectedCatalogId = id,
                 acceptFixedRecipeDifference = false,
-                // LATER no se convierte en entrenamiento por elegir una tarjeta.
-                programRoute = if (draft.programRoute == SetupProgramRoute.LATER) {
-                    draft.programRoute
-                } else {
-                    SetupProgramRoute.CUSTOMIZABLE
-                },
+                programRoute = SetupProgramRoute.CUSTOMIZABLE,
+                trainingPath = SetupTrainingPath.PERSONALIZE,
+            )
+        }
+    }
+
+    /**
+     * El usuario aplaza el programa: no elige candidato y la activación no crea
+     * ninguno. Sigue en PLAN; Continuar salta la configuración del programa
+     * (autorregulación, calentamientos y revisión) porque no hay programa.
+     */
+    fun deferProgramUntilLater() {
+        if (_state.value.droppedSelection != null) _state.value = _state.value.copy(droppedSelection = null)
+        updateStep(SetupStepId.PLAN) { draft ->
+            if (draft.trainingPath == SetupTrainingPath.FROM_SCRATCH) draft
+            else draft.copy(
+                selectedCatalogId = null,
+                acceptFixedRecipeDifference = false,
+                programRoute = SetupProgramRoute.LATER,
                 trainingPath = SetupTrainingPath.PERSONALIZE,
             )
         }
@@ -1373,6 +1388,24 @@ class SetupWizardViewModel @JvmOverloads constructor(
 
     private fun preparePreview(draft: SetupWizardDraft) {
         prepareRingsPreview(draft)
+        // «Lo haré más adelante» y el alta sin entreno no tienen programa. Se retira
+        // cualquier vista previa anterior aunque la lista de planes siga calculándose.
+        if (!draft.includeTraining || draft.programRoute == SetupProgramRoute.LATER) {
+            previewJob?.cancel()
+            previewJob = null
+            lastSuccessfulTrainingKey = null
+            preparingTrainingKey = null
+            _state.value = _state.value.copy(
+                programPreview = null,
+                previewReport = null,
+                fixedSessionEstimateMinutes = null,
+                fixedTrainingDays = null,
+                isPreviewLoading = false,
+                previewError = null,
+            )
+            updateNutritionPreview(draft)
+            return
+        }
         // Paquete A · D2 (B-01): una selección que ya no está entre los viables no tiene programa que
         // preparar. Mientras siga marcada como caída ([SetupWizardState.droppedSelection]) ninguna vía
         // (guardado de una respuesta, confirmación, reintento) relanza su preview: sería el error del plan
@@ -3109,12 +3142,13 @@ private const val DROPPED_SELECTION_FALLBACK_TITLE = "Tu plan elegido"
  * sirva, es que todavía no se sabe. Con la lista lista y la selección fuera de ella vale
  * [PLAN_SELECTION_REQUIRED_MESSAGE].
  *
- * No añade nada cuando la validación del paso ya habla por sí sola (sin plan elegido) ni en la ruta «desde cero»,
- * que no usa candidatos.
+ * No añade nada cuando la validación del paso ya habla por sí sola (sin plan elegido), ni en «lo haré más
+ * adelante», ni en la ruta «desde cero», que no usan candidatos.
  */
 internal fun planSelectionGate(state: SetupWizardState, step: SetupStepId): Map<String, String> {
     if (step != SetupStepId.PLAN) return emptyMap()
     val draft = state.draft
+    if (draft.programRoute == SetupProgramRoute.LATER) return emptyMap()
     if (draft.trainingPath == SetupTrainingPath.FROM_SCRATCH) return emptyMap()
     val selected = draft.selectedCatalogId ?: return emptyMap()
     if (state.isCandidateLoading) return mapOf("plan" to PLAN_CANDIDATES_LOADING_MESSAGE)
