@@ -1,0 +1,434 @@
+--------- beginning of main
+10-05 15:28:33.602  3278  3278 I AconfigPackage: android.net.http is mapped to com.android.tethering
+10-05 15:28:33.602  3278  3278 I AconfigPackage: com.android.net.thread.flags is mapped to com.android.tethering
+10-05 15:28:33.603  3278  3278 I AconfigPackage: com.android.system.virtualmachine.flags is mapped to com.android.virt
+10-05 15:28:33.606  3278  3278 E FeatureFlagsImplExport: android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+10-05 15:28:33.609  3278  3278 D UiAutomationConnection: Created on user UserHandle{0}
+10-05 15:28:33.609  3278  3278 I UiAutomation: Initialized for user 0 on display 0
+10-05 15:28:33.609  3278  3278 W UiAutomation: Created with deprecatead constructor, assumes DEFAULT_DISPLAY
+--------- beginning of system
+10-05 15:28:33.611   715   787 D AccessibilityManagerService: changeCurrentUserForTestAutomationIfNeededLocked(0): ignoring because device doesn't support visible background users
+10-05 15:28:33.611   715   787 I UiAutomationManager: Registering UiTestAutomationService (id=com.android.server.accessibility/UiAutomation, flags=0x0) when called by user 0
+10-05 15:28:33.613   715   787 V AccessibilityManagerService: onUserStateChangedLocked for userId: 0, forceUpdate: false
+10-05 15:28:33.614   715   787 W MagnificationConnectionManager: requestConnection duplicated request: connect=false, mConnectionState=DISCONNECTED
+10-05 15:28:33.617  1458  1837 I AiAiEcho: Settings changed for uri: content://settings/secure/accessibility_enabled
+10-05 15:28:33.617   715   715 W IPCThreadState: Sending oneway calls to frozen process.
+10-05 15:28:33.617   715   715 W IPCThreadState: Sending oneway calls to frozen process.
+10-05 15:28:33.618   715   715 W IPCThreadState: Sending oneway calls to frozen process.
+10-05 15:28:33.618   715   715 W IPCThreadState: Sending oneway calls to frozen process.
+10-05 15:28:33.619   715   715 W IPCThreadState: Sending oneway calls to frozen process.
+10-05 15:28:33.619   715   715 W IPCThreadState: Sending oneway calls to frozen process.
+10-05 15:28:33.620  1458  1691 I AiAiEcho: Predicting[0]:  [CONTEXT sampling_count=5 ]
+10-05 15:28:33.621  1458  1691 I AiAiEcho: EchoTargets: 
+10-05 15:28:33.621  1458  1691 I AiAiEcho: Filtered by AiAi flag check: 
+10-05 15:28:33.621  1458  1691 I AiAiEcho: [CONTEXT ratelimit_period="10 SECONDS" ]
+10-05 15:28:33.623   715   715 W IPCThreadState: Sending oneway calls to frozen process.
+10-05 15:28:33.623   715   715 W IPCThreadState: Sending oneway calls to frozen process.
+10-05 15:28:33.623  1458  1691 I AiAiEcho: #remoteViewsTwiddler: feature disabled.
+10-05 15:28:33.624  1458  1691 I AiAiEcho: Predicting[0]:  [CONTEXT sampling_count=5 ]
+10-05 15:28:33.624  1458  1691 I AiAiEcho: EchoTargets: 
+10-05 15:28:33.624  1458  1691 I AiAiEcho: Filtered by AiAi flag check: 
+10-05 15:28:33.624  1458  1691 I AiAiEcho: [CONTEXT ratelimit_period="10 SECONDS" ]
+10-05 15:28:33.625  1458  1691 I AiAiEcho: #remoteViewsTwiddler: feature disabled.
+10-05 15:28:33.627   715   715 W IPCThreadState: Sending oneway calls to frozen process.
+10-05 15:28:33.627   715   715 W IPCThreadState: Sending oneway calls to frozen process.
+10-05 15:28:33.628   715   715 W IPCThreadState: Sending oneway calls to frozen process.
+10-05 15:28:33.629   715   715 W IPCThreadState: Sending oneway calls to frozen process.
+10-05 15:28:33.629   715   715 D BatterySaverPolicy: accessibility changed to true, updating policy.
+10-05 15:28:33.632  1566  1866 I alhi    : NGA disabled since it's running Panthera and at least one a11y feature is on.
+10-05 15:28:33.633  1566  1866 I alhi    : (REDACTED) Nga state changed to %s
+10-05 15:28:33.633  1458  1691 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface home with targets# 0 (types=[])
+10-05 15:28:33.634   715   787 V AccessibilityManagerService: onUserStateChangedLocked for userId: 0, forceUpdate: false
+10-05 15:28:33.634  1566  1866 I alhi    : (REDACTED) isTngActive=%s
+10-05 15:28:33.637   715   787 W MagnificationConnectionManager: requestConnection duplicated request: connect=false, mConnectionState=DISCONNECTED
+10-05 15:28:33.637  1458  1691 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface lockscreen with targets# 0 (types=[])
+10-05 15:28:33.638  1458  1837 I AiAiEcho: Settings changed for uri: content://settings/secure/accessibility_enabled
+10-05 15:28:33.642  1458  1691 I AiAiEcho: Predicting[0]:  [CONTEXT sampling_count=5 ]
+10-05 15:28:33.644  1458  1691 I AiAiEcho: EchoTargets: 
+10-05 15:28:33.644  1458  1691 I AiAiEcho: Filtered by AiAi flag check: 
+10-05 15:28:33.644  1458  1691 I AiAiEcho: [CONTEXT ratelimit_period="10 SECONDS" ]
+10-05 15:28:33.644   715   715 W IPCThreadState: Sending oneway calls to frozen process.
+10-05 15:28:33.644  1126  1126 D SsBaseTemplateCard: No text view can be set up
+10-05 15:28:33.645  1126  1126 D SsBaseTemplateCard: Passed-in item info is null
+10-05 15:28:33.645  1126  1126 D SsBaseTemplateCard: Passed-in item info is null
+10-05 15:28:33.645   715   715 W IPCThreadState: Sending oneway calls to frozen process.
+10-05 15:28:33.645  1126  1126 D SsBaseTemplateCard: Passed-in item info is null
+10-05 15:28:33.645  1458  1691 I AiAiEcho: #remoteViewsTwiddler: feature disabled.
+10-05 15:28:33.645  1126  1126 I SsBaseTemplateCard: Secondary card pane is null
+10-05 15:28:33.645   715   715 W IPCThreadState: Sending oneway calls to frozen process.
+10-05 15:28:33.645   715   715 W IPCThreadState: Sending oneway calls to frozen process.
+10-05 15:28:33.645  1458  1691 I AiAiEcho: Predicting[0]:  [CONTEXT sampling_count=5 ]
+10-05 15:28:33.645  1458  1691 I AiAiEcho: EchoTargets: 
+10-05 15:28:33.645  1458  1691 I AiAiEcho: Filtered by AiAi flag check: 
+10-05 15:28:33.645  1458  1691 I AiAiEcho: [CONTEXT ratelimit_period="10 SECONDS" ]
+10-05 15:28:33.645  1566  1811 W GoogleApiManager: The service for cvmy is not available: ConnectionResult{statusCode=SERVICE_DISABLED, resolution=null, message=null}
+10-05 15:28:33.646   715   715 W IPCThreadState: Sending oneway calls to frozen process.
+10-05 15:28:33.646   715   715 W IPCThreadState: Sending oneway calls to frozen process.
+10-05 15:28:33.647  1458  1691 I AiAiEcho: #remoteViewsTwiddler: feature disabled.
+10-05 15:28:33.648  1480  1901 I tkr     : (REDACTED) Nga on-device enabled based on TNG:MA active state: %b
+10-05 15:28:33.649   715   715 W IPCThreadState: Sending oneway calls to frozen process.
+10-05 15:28:33.649   715   715 W IPCThreadState: Sending oneway calls to frozen process.
+10-05 15:28:33.651  1458  1691 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface home with targets# 0 (types=[])
+10-05 15:28:33.651  1480  1901 I tkr     : (REDACTED) Nga on-device enabled based on TNG:MA active state: %b
+10-05 15:28:33.652  1458  1691 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface lockscreen with targets# 0 (types=[])
+10-05 15:28:33.655  1126  1126 D SsBaseTemplateCard: No text view can be set up
+10-05 15:28:33.655  1126  1126 D SsBaseTemplateCard: Passed-in item info is null
+10-05 15:28:33.655  1126  1126 D SsBaseTemplateCard: Passed-in item info is null
+10-05 15:28:33.655  1126  1126 D SsBaseTemplateCard: Passed-in item info is null
+10-05 15:28:33.655  1126  1126 I SsBaseTemplateCard: Secondary card pane is null
+10-05 15:28:33.656   959   959 W PageIndicator: Total number of pages invalid: 0. Assuming 1 page.
+10-05 15:28:33.664   959   959 W PageIndicator: Total number of pages invalid: 0. Assuming 1 page.
+10-05 15:28:33.665   715   788 D OomAdjuster: Not killing cached processes
+10-05 15:28:33.666   715   908 D BackgroundInstallControlService: Package event received: 0
+10-05 15:28:33.668  1480  1803 W GoogleApiManager: The service for cvmy is not available: ConnectionResult{statusCode=SERVICE_DISABLED, resolution=null, message=null}
+10-05 15:28:33.678  1480  1803 W GoogleApiManager: The service for cygv is not available: ConnectionResult{statusCode=SERVICE_DISABLED, resolution=null, message=null}
+10-05 15:28:33.679  1480  1803 W GoogleApiAvailability: GMS core API Availability. ConnectionResult=3, tag=null
+10-05 15:28:33.679  1480  1803 W GoogleApiAvailability: java.lang.IllegalArgumentException
+10-05 15:28:33.679  1480  1803 W GoogleApiAvailability: 	at cwjv.i(PG:23)
+10-05 15:28:33.679  1480  1803 W GoogleApiAvailability: 	at cwon.j(PG:35)
+10-05 15:28:33.679  1480  1803 W GoogleApiAvailability: 	at cwoj.j(PG:126)
+10-05 15:28:33.679  1480  1803 W GoogleApiAvailability: 	at cwoj.e(PG:181)
+10-05 15:28:33.679  1480  1803 W GoogleApiAvailability: 	at cwon.k(PG:32)
+10-05 15:28:33.679  1480  1803 W GoogleApiAvailability: 	at cwon.handleMessage(PG:585)
+10-05 15:28:33.679  1480  1803 W GoogleApiAvailability: 	at android.os.Handler.dispatchMessage(Handler.java:106)
+10-05 15:28:33.679  1480  1803 W GoogleApiAvailability: 	at cxib.b(PG:1)
+10-05 15:28:33.679  1480  1803 W GoogleApiAvailability: 	at cxib.dispatchMessage(PG:1)
+10-05 15:28:33.679  1480  1803 W GoogleApiAvailability: 	at android.os.Looper.loopOnce(Looper.java:248)
+10-05 15:28:33.679  1480  1803 W GoogleApiAvailability: 	at android.os.Looper.loop(Looper.java:338)
+10-05 15:28:33.679  1480  1803 W GoogleApiAvailability: 	at android.os.HandlerThread.run(HandlerThread.java:85)
+10-05 15:28:33.685  1480  1803 W GoogleApiManager: The service for cwhv is not available: ConnectionResult{statusCode=SERVICE_DISABLED, resolution=null, message=null}
+10-05 15:28:33.785  2185  2333 E GooglePlayServicesUtil: GooglePlayServices not available due to error 3
+10-05 15:28:33.786  2185  2333 W GoogleApiAvailability: GMS core API Availability. ConnectionResult=3, tag=null
+10-05 15:28:33.786  2185  2333 W GoogleApiAvailability: java.lang.IllegalArgumentException
+10-05 15:28:33.786  2185  2333 W GoogleApiAvailability: 	at cak.d(PG:29)
+10-05 15:28:33.786  2185  2333 W GoogleApiAvailability: 	at cak.b(PG:7)
+10-05 15:28:33.786  2185  2333 W GoogleApiAvailability: 	at frx.a(PG:269)
+10-05 15:28:33.786  2185  2333 W GoogleApiAvailability: 	at fsb.a(PG:7)
+10-05 15:28:33.786  2185  2333 W GoogleApiAvailability: 	at fsb.createSocket(PG:6)
+10-05 15:28:33.786  2185  2333 W GoogleApiAvailability: 	at kly.a(PG:1234)
+10-05 15:28:33.786  2185  2333 W GoogleApiAvailability: 	at klv.a(PG:24)
+10-05 15:28:33.786  2185  2333 W GoogleApiAvailability: 	at kmq.a(PG:131)
+10-05 15:28:33.786  2185  2333 W GoogleApiAvailability: 	at klp.a(PG:480)
+10-05 15:28:33.786  2185  2333 W GoogleApiAvailability: 	at kmq.a(PG:131)
+10-05 15:28:33.786  2185  2333 W GoogleApiAvailability: 	at kmk.a(PG:117)
+10-05 15:28:33.786  2185  2333 W GoogleApiAvailability: 	at kmq.a(PG:131)
+10-05 15:28:33.786  2185  2333 W GoogleApiAvailability: 	at kms.a(PG:133)
+10-05 15:28:33.786  2185  2333 W GoogleApiAvailability: 	at kmq.a(PG:131)
+10-05 15:28:33.786  2185  2333 W GoogleApiAvailability: 	at kpt.a(PG:3)
+10-05 15:28:33.786  2185  2333 W GoogleApiAvailability: 	at kps.a(PG:1)
+10-05 15:28:33.786  2185  2333 W GoogleApiAvailability: 	at kmq.a(PG:131)
+10-05 15:28:33.786  2185  2333 W GoogleApiAvailability: 	at kmc.d(PG:85)
+10-05 15:28:33.786  2185  2333 W GoogleApiAvailability: 	at klz.run(PG:37)
+10-05 15:28:33.786  2185  2333 W GoogleApiAvailability: 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1156)
+10-05 15:28:33.786  2185  2333 W GoogleApiAvailability: 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:651)
+10-05 15:28:33.786  2185  2333 W GoogleApiAvailability: 	at java.lang.Thread.run(Thread.java:1119)
+10-05 15:28:33.878  3186  3193 I om.example.kpkn: Background concurrent mark compact GC freed 30MB AllocSpace bytes, 0(0B) LOS objects, 27% free, 64MB/88MB, paused 3.769ms,3.649ms total 304.269ms
+10-05 15:28:33.892  1458  1881 W AiAiEcho: LyftNotificationParser Ridesharing ETA not enabled
+10-05 15:28:33.892  1458  1881 I AiAiEcho: SmartspaceNotificationPredictor no parser can handle this notification or notification is invalid
+10-05 15:28:33.892  1126  1126 I NotificationListener: received notification posted event - com.google.android.googlequicksearchbox#UserHandle{0},category=-1
+10-05 15:28:33.925   959  1253 W HWUI    : Image decoding logging dropped!
+10-05 15:28:33.934   959  1253 W HWUI    : Image decoding logging dropped!
+10-05 15:28:34.284  2185  2333 E GooglePlayServicesUtil: GooglePlayServices not available due to error 3
+10-05 15:28:34.285  2185  2333 W GoogleApiAvailability: GMS core API Availability. ConnectionResult=3, tag=null
+10-05 15:28:34.285  2185  2333 W GoogleApiAvailability: java.lang.IllegalArgumentException
+10-05 15:28:34.285  2185  2333 W GoogleApiAvailability: 	at cak.d(PG:29)
+10-05 15:28:34.285  2185  2333 W GoogleApiAvailability: 	at cak.b(PG:7)
+10-05 15:28:34.285  2185  2333 W GoogleApiAvailability: 	at frx.a(PG:269)
+10-05 15:28:34.285  2185  2333 W GoogleApiAvailability: 	at fsb.a(PG:7)
+10-05 15:28:34.285  2185  2333 W GoogleApiAvailability: 	at fsb.createSocket(PG:6)
+10-05 15:28:34.285  2185  2333 W GoogleApiAvailability: 	at kly.a(PG:1234)
+10-05 15:28:34.285  2185  2333 W GoogleApiAvailability: 	at klv.a(PG:24)
+10-05 15:28:34.285  2185  2333 W GoogleApiAvailability: 	at kmq.a(PG:131)
+10-05 15:28:34.285  2185  2333 W GoogleApiAvailability: 	at klp.a(PG:480)
+10-05 15:28:34.285  2185  2333 W GoogleApiAvailability: 	at kmq.a(PG:131)
+10-05 15:28:34.285  2185  2333 W GoogleApiAvailability: 	at kmk.a(PG:117)
+10-05 15:28:34.285  2185  2333 W GoogleApiAvailability: 	at kmq.a(PG:131)
+10-05 15:28:34.285  2185  2333 W GoogleApiAvailability: 	at kms.a(PG:133)
+10-05 15:28:34.285  2185  2333 W GoogleApiAvailability: 	at kmq.a(PG:131)
+10-05 15:28:34.285  2185  2333 W GoogleApiAvailability: 	at kpt.a(PG:3)
+10-05 15:28:34.285  2185  2333 W GoogleApiAvailability: 	at kps.a(PG:1)
+10-05 15:28:34.285  2185  2333 W GoogleApiAvailability: 	at kmq.a(PG:131)
+10-05 15:28:34.285  2185  2333 W GoogleApiAvailability: 	at kmc.d(PG:85)
+10-05 15:28:34.285  2185  2333 W GoogleApiAvailability: 	at klz.run(PG:37)
+10-05 15:28:34.285  2185  2333 W GoogleApiAvailability: 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1156)
+10-05 15:28:34.285  2185  2333 W GoogleApiAvailability: 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:651)
+10-05 15:28:34.285  2185  2333 W GoogleApiAvailability: 	at java.lang.Thread.run(Thread.java:1119)
+10-05 15:28:34.612  3186  3193 I om.example.kpkn: Background concurrent mark compact GC freed 31MB AllocSpace bytes, 0(0B) LOS objects, 26% free, 68MB/92MB, paused 3.539ms,2.779ms total 279.330ms
+10-05 15:28:34.666  3186  3186 E om.example.kpkn: hiddenapi: Accessing hidden method Landroid/view/accessibility/AccessibilityNodeInfo;->getSelection()Landroid/view/accessibility/AccessibilityNodeInfo$Selection; (runtime_flags=0, domain=platform, api=blocked) from /data/app/~~usABahlqPKWWz5lxZCX_QQ==/com.example.kpkn-0XzILmzwsQ0bh-yMGYEG2A==/base.apk (domain=app) using linking: denied
+10-05 15:28:34.672  3186  3186 E om.example.kpkn: hiddenapi: Accessing hidden method Landroid/view/accessibility/AccessibilityNodeInfo;->setSelection(Landroid/view/accessibility/AccessibilityNodeInfo$Selection;)V (runtime_flags=0, domain=platform, api=blocked) from /data/app/~~usABahlqPKWWz5lxZCX_QQ==/com.example.kpkn-0XzILmzwsQ0bh-yMGYEG2A==/base.apk (domain=app) using linking: denied
+10-05 15:28:34.673  3186  3186 E om.example.kpkn: hiddenapi: Accessing hidden method Landroid/view/accessibility/AccessibilityNodeInfo;->setSelection(Landroid/view/accessibility/AccessibilityNodeInfo$Selection;)V (runtime_flags=0, domain=platform, api=blocked) from /data/app/~~usABahlqPKWWz5lxZCX_QQ==/com.example.kpkn-0XzILmzwsQ0bh-yMGYEG2A==/base.apk (domain=app) using linking: denied
+10-05 15:28:34.769  3278  3278 W AccessibilityNodeInfoDumper: Fetch time: 111ms
+10-05 15:28:34.773   715   788 V AccessibilityManagerService: onUserStateChangedLocked for userId: 0, forceUpdate: false
+10-05 15:28:34.775   715   788 W MagnificationConnectionManager: requestConnection duplicated request: connect=false, mConnectionState=DISCONNECTED
+10-05 15:28:34.775  1458  1468 I AiAiEcho: Settings changed for uri: content://settings/secure/accessibility_enabled
+10-05 15:28:34.775   715   788 D AccessibilityManagerService: restoreCurrentUserForTestAutomationIfNeededLocked(): ignoring because device doesn't support visible background users
+10-05 15:28:34.775  1458  1691 I AiAiEcho: Predicting[0]:  [CONTEXT sampling_count=5 ]
+10-05 15:28:34.775   715   715 W IPCThreadState: Sending oneway calls to frozen process.
+10-05 15:28:34.775  1458  1691 I AiAiEcho: EchoTargets: 
+10-05 15:28:34.775  1458  1691 I AiAiEcho: Filtered by AiAi flag check: 
+10-05 15:28:34.775  1458  1691 I AiAiEcho: [CONTEXT ratelimit_period="10 SECONDS" ]
+10-05 15:28:34.775   715   715 W IPCThreadState: Sending oneway calls to frozen process.
+10-05 15:28:34.776  1458  1691 I AiAiEcho: #remoteViewsTwiddler: feature disabled.
+10-05 15:28:34.776   715   715 W IPCThreadState: Sending oneway calls to frozen process.
+10-05 15:28:34.776   715   715 W IPCThreadState: Sending oneway calls to frozen process.
+10-05 15:28:34.776  1458  1691 I AiAiEcho: Predicting[0]:  [CONTEXT sampling_count=5 ]
+10-05 15:28:34.776   715   715 W IPCThreadState: Sending oneway calls to frozen process.
+10-05 15:28:34.776   715   715 W IPCThreadState: Sending oneway calls to frozen process.
+10-05 15:28:34.776  1458  1691 I AiAiEcho: EchoTargets: 
+10-05 15:28:34.776  1458  1691 I AiAiEcho: Filtered by AiAi flag check: 
+10-05 15:28:34.776  1458  1691 I AiAiEcho: [CONTEXT ratelimit_period="10 SECONDS" ]
+10-05 15:28:34.777  1458  1691 I AiAiEcho: #remoteViewsTwiddler: feature disabled.
+10-05 15:28:34.777   715   715 W IPCThreadState: Sending oneway calls to frozen process.
+10-05 15:28:34.777   715   715 W IPCThreadState: Sending oneway calls to frozen process.
+10-05 15:28:34.778   715   715 W IPCThreadState: Sending oneway calls to frozen process.
+10-05 15:28:34.778   715   715 W IPCThreadState: Sending oneway calls to frozen process.
+10-05 15:28:34.778  1458  1691 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface home with targets# 0 (types=[])
+10-05 15:28:34.778   715   715 W IPCThreadState: Sending oneway calls to frozen process.
+10-05 15:28:34.778   715   715 W IPCThreadState: Sending oneway calls to frozen process.
+10-05 15:28:34.779  1458  1691 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface lockscreen with targets# 0 (types=[])
+10-05 15:28:34.779  3278  3298 W IPCThreadState: call to talkWithDriver in joinThreadPool returned error: -9 (Bad file descriptor), FD: -1
+10-05 15:28:34.779   715   715 D BatterySaverPolicy: accessibility changed to false, updating policy.
+10-05 15:28:34.779  3278  3288 W IPCThreadState: call to talkWithDriver in joinThreadPool returned error: -9 (Bad file descriptor), FD: -1
+10-05 15:28:34.780  3278  3278 D AndroidRuntime: Shutting down VM
+10-05 15:28:34.780  3278  3289 W IPCThreadState: call to talkWithDriver in joinThreadPool returned error: -9 (Bad file descriptor), FD: -1
+10-05 15:28:34.782  1566  1808 I alhi    : NGA enabled in interactor.
+10-05 15:28:34.782  1566  1808 I alhi    : (REDACTED) Nga state changed to %s
+10-05 15:28:34.783  1566  1808 I alhi    : (REDACTED) isTngActive=%s
+10-05 15:28:34.785  1126  1126 D SsBaseTemplateCard: No text view can be set up
+10-05 15:28:34.785  1126  1126 D SsBaseTemplateCard: Passed-in item info is null
+10-05 15:28:34.785  1126  1126 D SsBaseTemplateCard: Passed-in item info is null
+10-05 15:28:34.785  1126  1126 D SsBaseTemplateCard: Passed-in item info is null
+10-05 15:28:34.785  1126  1126 I SsBaseTemplateCard: Secondary card pane is null
+10-05 15:28:34.786  1480  3162 I sww     : Initializing all components
+10-05 15:28:34.786  1566  1811 W GoogleApiManager: The service for cvmy is not available: ConnectionResult{statusCode=SERVICE_DISABLED, resolution=null, message=null}
+10-05 15:28:34.786  1480  1907 I wxp     : (REDACTED) onIsEnabledChanged, isEnabled: %s
+10-05 15:28:34.786  1480  1907 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-05 15:28:34.786  1480  1907 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-05 15:28:34.787  1480  1907 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-05 15:28:34.787  1480  1907 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-05 15:28:34.787  1480  1907 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-05 15:28:34.787  1480  1907 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-05 15:28:34.787  1480  1907 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-05 15:28:34.787  1480  1907 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-05 15:28:34.788  1480  1907 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-05 15:28:34.788  1480  1901 I tkr     : (REDACTED) Nga on-device enabled based on TNG:MA active state: %b
+10-05 15:28:34.788  1480  1907 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-05 15:28:34.788  1480  1907 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-05 15:28:34.788  1480  1901 I tkr     : (REDACTED) Nga on-device enabled based on TNG:MA active state: %b
+10-05 15:28:34.788  1480  1907 I xlz     : (REDACTED) Setting session to type: %s
+10-05 15:28:34.788  1480  1907 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-05 15:28:34.788  1480  1907 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-05 15:28:34.788  1480  1907 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-05 15:28:34.788  1480  1907 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-05 15:28:34.788  1480  1907 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-05 15:28:34.789  1480  1907 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-05 15:28:34.789  1480  1907 I xnl     : (REDACTED) setNavBarVisible: %s
+10-05 15:28:34.789  1480  1907 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-05 15:28:34.790  1480  1907 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-05 15:28:34.790  1480  1907 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-05 15:28:34.790  1480  1907 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-05 15:28:34.790  1480  1907 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-05 15:28:34.790  1480  1907 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-05 15:28:34.794  1566  1811 W GoogleApiManager: The service for cvmy is not available: ConnectionResult{statusCode=SERVICE_DISABLED, resolution=null, message=null}
+10-05 15:28:34.800  2185  2333 E GooglePlayServicesUtil: GooglePlayServices not available due to error 3
+10-05 15:28:34.800  1480  1907 I wqn     : (REDACTED) stopListening(%s, %s)
+10-05 15:28:34.800  1480  1907 I tuc     : (REDACTED) on opa visibility changed %s
+10-05 15:28:34.800  2185  2333 W GoogleApiAvailability: GMS core API Availability. ConnectionResult=3, tag=null
+10-05 15:28:34.800  2185  2333 W GoogleApiAvailability: java.lang.IllegalArgumentException
+10-05 15:28:34.800  2185  2333 W GoogleApiAvailability: 	at cak.d(PG:29)
+10-05 15:28:34.800  2185  2333 W GoogleApiAvailability: 	at cak.b(PG:7)
+10-05 15:28:34.800  2185  2333 W GoogleApiAvailability: 	at frx.a(PG:269)
+10-05 15:28:34.800  2185  2333 W GoogleApiAvailability: 	at fsb.a(PG:7)
+10-05 15:28:34.800  2185  2333 W GoogleApiAvailability: 	at fsb.createSocket(PG:6)
+10-05 15:28:34.800  2185  2333 W GoogleApiAvailability: 	at kly.a(PG:1234)
+10-05 15:28:34.800  2185  2333 W GoogleApiAvailability: 	at klv.a(PG:24)
+10-05 15:28:34.800  2185  2333 W GoogleApiAvailability: 	at kmq.a(PG:131)
+10-05 15:28:34.800  2185  2333 W GoogleApiAvailability: 	at klp.a(PG:480)
+10-05 15:28:34.800  2185  2333 W GoogleApiAvailability: 	at kmq.a(PG:131)
+10-05 15:28:34.800  2185  2333 W GoogleApiAvailability: 	at kmk.a(PG:117)
+10-05 15:28:34.800  2185  2333 W GoogleApiAvailability: 	at kmq.a(PG:131)
+10-05 15:28:34.800  2185  2333 W GoogleApiAvailability: 	at kms.a(PG:133)
+10-05 15:28:34.800  2185  2333 W GoogleApiAvailability: 	at kmq.a(PG:131)
+10-05 15:28:34.800  2185  2333 W GoogleApiAvailability: 	at kpt.a(PG:3)
+10-05 15:28:34.800  2185  2333 W GoogleApiAvailability: 	at kps.a(PG:1)
+10-05 15:28:34.800  2185  2333 W GoogleApiAvailability: 	at kmq.a(PG:131)
+10-05 15:28:34.800  2185  2333 W GoogleApiAvailability: 	at kmc.d(PG:85)
+10-05 15:28:34.800  2185  2333 W GoogleApiAvailability: 	at klz.run(PG:37)
+10-05 15:28:34.800  2185  2333 W GoogleApiAvailability: 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1156)
+10-05 15:28:34.800  2185  2333 W GoogleApiAvailability: 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:651)
+10-05 15:28:34.800  2185  2333 W GoogleApiAvailability: 	at java.lang.Thread.run(Thread.java:1119)
+10-05 15:28:34.800   959   959 W DSRotLockSettingsMngr: Setting is ignored, but no fallback was specified.
+10-05 15:28:34.800  1480  1901 I thn     : Initialize
+10-05 15:28:34.802   959   959 W PageIndicator: Total number of pages invalid: 0. Assuming 1 page.
+10-05 15:28:34.803  1480  1803 W GoogleApiManager: The service for cvmy is not available: ConnectionResult{statusCode=SERVICE_DISABLED, resolution=null, message=null}
+10-05 15:28:34.813   715   908 D BackgroundInstallControlService: Package event received: 0
+10-05 15:28:34.815  1480  1901 I tuc     : (REDACTED) on opa visibility changed %s
+10-05 15:28:34.816  1480  1890 I sww     : Successfully initialized all components
+10-05 15:28:34.817  1480  1906 I elnq    : (REDACTED) #audio# activating audio request client(%s)
+10-05 15:28:34.817  1480  1906 I eloo    : (REDACTED) #audio# activating audio client(token(%d), %s)
+10-05 15:28:34.817  1480  1890 I tkr     : (REDACTED) Nga on-device enabled based on TNG:MA active state: %b
+10-05 15:28:34.822  1480  1906 I eloo    : (REDACTED) #audio# enforcing concurrency state on a new client(%s, token(%d))
+10-05 15:28:34.826  1480  1906 I emhn    : (REDACTED) #audio# initializing the default route(%d) for %s
+10-05 15:28:34.828  1480  1803 W GoogleApiManager: The service for cvmy is not available: ConnectionResult{statusCode=SERVICE_DISABLED, resolution=null, message=null}
+10-05 15:28:34.829  1480  1906 I elno    : (REDACTED) #audio# routing audio request client(token(%d)) to(%s)
+10-05 15:28:34.830  1480  1906 I emhv    : (REDACTED) #audio# initializing the default route(%s) for hotword
+10-05 15:28:34.830  1480  1906 I emhn    : (REDACTED) #audio# updating to audio route(token(%d), %s) for %s
+10-05 15:28:34.831  1480  1890 I egel    : showGestureNav
+10-05 15:28:34.831  1480  1890 I egej    : (REDACTED) setUiHints(hints = %s)
+10-05 15:28:34.833  1480  1906 I emhn    : (REDACTED) #audio# enforcing %s route(parent=%d) concurrency
+10-05 15:28:34.833  1480  1906 I emhn    : (REDACTED) #audio# disconnecting(%s) audio %s for %s
+10-05 15:28:34.835  1480  1906 I emhn    : (REDACTED) #audio# audio route(token(%d), %s) OK to update
+10-05 15:28:34.836   715   908 D BackgroundInstallControlService: Package event received: 0
+10-05 15:28:34.836  1480  1906 I emhn    : (REDACTED) #audio# starting connection to audio route(token(%d), %s) for %s
+10-05 15:28:34.837  1480  1890 I elqm    : (REDACTED) #audio# referencing(%s) to(%s), (%s)
+10-05 15:28:34.838  1480  1803 W GoogleApiManager: The service for cwhv is not available: ConnectionResult{statusCode=SERVICE_DISABLED, resolution=null, message=null}
+10-05 15:28:34.839  1480  1901 I elto    : (REDACTED) #audio# audio routing(%s) took %d(ms)
+10-05 15:28:34.839  1480  1906 I vlu     : (REDACTED) State changed: %s => %s by %s and %s with %s
+10-05 15:28:34.839  1480  1890 I emkk    : (REDACTED) #audio# route(%s) for audio request client(token(%d)) updated with status(%s)
+10-05 15:28:34.841  1480  1906 I vrs     : (REDACTED) Recognizer choice: (recognizer_type: %s, recognizer_mode: %s, choice_reason: %s)
+10-05 15:28:34.848  1480  1906 I xik     : (REDACTED) onActiveStateChangeEvent: %s => %s
+10-05 15:28:34.849  1480  1803 W GoogleApiManager: The service for cvmy is not available: ConnectionResult{statusCode=SERVICE_DISABLED, resolution=null, message=null}
+10-05 15:28:34.850  1480  1803 W GoogleApiManager: The service for cygv is not available: ConnectionResult{statusCode=SERVICE_DISABLED, resolution=null, message=null}
+10-05 15:28:34.850  1480  1890 I egej    : setUiHints: finished successfully
+10-05 15:28:34.851  1480  1803 W GoogleApiAvailability: GMS core API Availability. ConnectionResult=3, tag=null
+10-05 15:28:34.851  1480  1803 W GoogleApiAvailability: java.lang.IllegalArgumentException
+10-05 15:28:34.851  1480  1803 W GoogleApiAvailability: 	at cwjv.i(PG:23)
+10-05 15:28:34.851  1480  1803 W GoogleApiAvailability: 	at cwon.j(PG:35)
+10-05 15:28:34.851  1480  1803 W GoogleApiAvailability: 	at cwoj.j(PG:126)
+10-05 15:28:34.851  1480  1803 W GoogleApiAvailability: 	at cwoj.e(PG:181)
+10-05 15:28:34.851  1480  1803 W GoogleApiAvailability: 	at cwon.k(PG:32)
+10-05 15:28:34.851  1480  1803 W GoogleApiAvailability: 	at cwon.handleMessage(PG:585)
+10-05 15:28:34.851  1480  1803 W GoogleApiAvailability: 	at android.os.Handler.dispatchMessage(Handler.java:106)
+10-05 15:28:34.851  1480  1803 W GoogleApiAvailability: 	at cxib.b(PG:1)
+10-05 15:28:34.851  1480  1803 W GoogleApiAvailability: 	at cxib.dispatchMessage(PG:1)
+10-05 15:28:34.851  1480  1803 W GoogleApiAvailability: 	at android.os.Looper.loopOnce(Looper.java:248)
+10-05 15:28:34.851  1480  1803 W GoogleApiAvailability: 	at android.os.Looper.loop(Looper.java:338)
+10-05 15:28:34.851  1480  1803 W GoogleApiAvailability: 	at android.os.HandlerThread.run(HandlerThread.java:85)
+10-05 15:28:34.854   715   908 D BackgroundInstallControlService: Package event received: 0
+10-05 15:28:34.856  1480  1803 W GoogleApiManager: The service for cwhv is not available: ConnectionResult{statusCode=SERVICE_DISABLED, resolution=null, message=null}
+10-05 15:28:34.866  1480  1803 W GoogleApiManager: The service for cvmy is not available: ConnectionResult{statusCode=SERVICE_DISABLED, resolution=null, message=null}
+10-05 15:28:34.866  1480  1803 W GoogleApiManager: The service for cygv is not available: ConnectionResult{statusCode=SERVICE_DISABLED, resolution=null, message=null}
+10-05 15:28:34.868  1480  1803 W GoogleApiAvailability: GMS core API Availability. ConnectionResult=3, tag=null
+10-05 15:28:34.868  1480  1803 W GoogleApiAvailability: java.lang.IllegalArgumentException
+10-05 15:28:34.868  1480  1803 W GoogleApiAvailability: 	at cwjv.i(PG:23)
+10-05 15:28:34.868  1480  1803 W GoogleApiAvailability: 	at cwon.j(PG:35)
+10-05 15:28:34.868  1480  1803 W GoogleApiAvailability: 	at cwoj.j(PG:126)
+10-05 15:28:34.868  1480  1803 W GoogleApiAvailability: 	at cwoj.e(PG:181)
+10-05 15:28:34.868  1480  1803 W GoogleApiAvailability: 	at cwon.k(PG:32)
+10-05 15:28:34.868  1480  1803 W GoogleApiAvailability: 	at cwon.handleMessage(PG:585)
+10-05 15:28:34.868  1480  1803 W GoogleApiAvailability: 	at android.os.Handler.dispatchMessage(Handler.java:106)
+10-05 15:28:34.868  1480  1803 W GoogleApiAvailability: 	at cxib.b(PG:1)
+10-05 15:28:34.868  1480  1803 W GoogleApiAvailability: 	at cxib.dispatchMessage(PG:1)
+10-05 15:28:34.868  1480  1803 W GoogleApiAvailability: 	at android.os.Looper.loopOnce(Looper.java:248)
+10-05 15:28:34.868  1480  1803 W GoogleApiAvailability: 	at android.os.Looper.loop(Looper.java:338)
+10-05 15:28:34.868  1480  1803 W GoogleApiAvailability: 	at android.os.HandlerThread.run(HandlerThread.java:85)
+10-05 15:28:34.871   715   908 D BackgroundInstallControlService: Package event received: 0
+10-05 15:28:34.873  1480  1906 W fiki    : (REDACTED) Missing generator mapping for generator %s
+10-05 15:28:34.873  1480  1906 W fiki    : (REDACTED) Missing generator mapping for generator %s
+10-05 15:28:34.873  1480  1906 W fiki    : (REDACTED) Missing generator mapping for generator %s
+10-05 15:28:34.874  1480  1803 W GoogleApiManager: The service for cwhv is not available: ConnectionResult{statusCode=SERVICE_DISABLED, resolution=null, message=null}
+10-05 15:28:34.884  1480  1803 W GoogleApiManager: The service for cvmy is not available: ConnectionResult{statusCode=SERVICE_DISABLED, resolution=null, message=null}
+10-05 15:28:34.884  1480  1890 I ypk     : Ignoring as prefetch was recently called
+10-05 15:28:34.885  1480  1906 I vhj     : (REDACTED) #onActiveStateChangeEvent, newState: %s, previousState: %s.
+10-05 15:28:34.886   715   908 D BackgroundInstallControlService: Package event received: 0
+10-05 15:28:34.892  1480  1803 W GoogleApiManager: The service for cvmy is not available: ConnectionResult{statusCode=SERVICE_DISABLED, resolution=null, message=null}
+10-05 15:28:34.892  1480  1803 W GoogleApiManager: The service for cygv is not available: ConnectionResult{statusCode=SERVICE_DISABLED, resolution=null, message=null}
+10-05 15:28:34.894  1480  1803 W GoogleApiAvailability: GMS core API Availability. ConnectionResult=3, tag=null
+10-05 15:28:34.894  1480  1803 W GoogleApiAvailability: java.lang.IllegalArgumentException
+10-05 15:28:34.894  1480  1803 W GoogleApiAvailability: 	at cwjv.i(PG:23)
+10-05 15:28:34.894  1480  1803 W GoogleApiAvailability: 	at cwon.j(PG:35)
+10-05 15:28:34.894  1480  1803 W GoogleApiAvailability: 	at cwoj.j(PG:126)
+10-05 15:28:34.894  1480  1803 W GoogleApiAvailability: 	at cwoj.e(PG:181)
+10-05 15:28:34.894  1480  1803 W GoogleApiAvailability: 	at cwon.k(PG:32)
+10-05 15:28:34.894  1480  1803 W GoogleApiAvailability: 	at cwon.handleMessage(PG:585)
+10-05 15:28:34.894  1480  1803 W GoogleApiAvailability: 	at android.os.Handler.dispatchMessage(Handler.java:106)
+10-05 15:28:34.894  1480  1803 W GoogleApiAvailability: 	at cxib.b(PG:1)
+10-05 15:28:34.894  1480  1803 W GoogleApiAvailability: 	at cxib.dispatchMessage(PG:1)
+10-05 15:28:34.894  1480  1803 W GoogleApiAvailability: 	at android.os.Looper.loopOnce(Looper.java:248)
+10-05 15:28:34.894  1480  1803 W GoogleApiAvailability: 	at android.os.Looper.loop(Looper.java:338)
+10-05 15:28:34.894  1480  1803 W GoogleApiAvailability: 	at android.os.HandlerThread.run(HandlerThread.java:85)
+10-05 15:28:34.897   715   908 D BackgroundInstallControlService: Package event received: 0
+10-05 15:28:34.900  1480  1803 W GoogleApiManager: The service for cwhv is not available: ConnectionResult{statusCode=SERVICE_DISABLED, resolution=null, message=null}
+10-05 15:28:34.912  1480  1803 W GoogleApiManager: The service for cvmy is not available: ConnectionResult{statusCode=SERVICE_DISABLED, resolution=null, message=null}
+10-05 15:28:34.912  1480  1803 W GoogleApiManager: The service for cygv is not available: ConnectionResult{statusCode=SERVICE_DISABLED, resolution=null, message=null}
+10-05 15:28:34.914  1480  1803 W GoogleApiAvailability: GMS core API Availability. ConnectionResult=3, tag=null
+10-05 15:28:34.914  1480  1803 W GoogleApiAvailability: java.lang.IllegalArgumentException
+10-05 15:28:34.914  1480  1803 W GoogleApiAvailability: 	at cwjv.i(PG:23)
+10-05 15:28:34.914  1480  1803 W GoogleApiAvailability: 	at cwon.j(PG:35)
+10-05 15:28:34.914  1480  1803 W GoogleApiAvailability: 	at cwoj.j(PG:126)
+10-05 15:28:34.914  1480  1803 W GoogleApiAvailability: 	at cwoj.e(PG:181)
+10-05 15:28:34.914  1480  1803 W GoogleApiAvailability: 	at cwon.k(PG:32)
+10-05 15:28:34.914  1480  1803 W GoogleApiAvailability: 	at cwon.handleMessage(PG:585)
+10-05 15:28:34.914  1480  1803 W GoogleApiAvailability: 	at android.os.Handler.dispatchMessage(Handler.java:106)
+10-05 15:28:34.914  1480  1803 W GoogleApiAvailability: 	at cxib.b(PG:1)
+10-05 15:28:34.914  1480  1803 W GoogleApiAvailability: 	at cxib.dispatchMessage(PG:1)
+10-05 15:28:34.914  1480  1803 W GoogleApiAvailability: 	at android.os.Looper.loopOnce(Looper.java:248)
+10-05 15:28:34.914  1480  1803 W GoogleApiAvailability: 	at android.os.Looper.loop(Looper.java:338)
+10-05 15:28:34.914  1480  1803 W GoogleApiAvailability: 	at android.os.HandlerThread.run(HandlerThread.java:85)
+10-05 15:28:34.920   715   908 D BackgroundInstallControlService: Package event received: 0
+10-05 15:28:34.924  1480  1803 W GoogleApiManager: The service for cwhv is not available: ConnectionResult{statusCode=SERVICE_DISABLED, resolution=null, message=null}
+10-05 15:28:34.929  1480  1803 W GoogleApiManager: The service for cvmy is not available: ConnectionResult{statusCode=SERVICE_DISABLED, resolution=null, message=null}
+10-05 15:28:34.933   715   908 D BackgroundInstallControlService: Package event received: 0
+10-05 15:28:34.942  1480  1803 W GoogleApiManager: The service for cygv is not available: ConnectionResult{statusCode=SERVICE_DISABLED, resolution=null, message=null}
+10-05 15:28:34.944  1480  1803 W GoogleApiAvailability: GMS core API Availability. ConnectionResult=3, tag=null
+10-05 15:28:34.944  1480  1803 W GoogleApiAvailability: java.lang.IllegalArgumentException
+10-05 15:28:34.944  1480  1803 W GoogleApiAvailability: 	at cwjv.i(PG:23)
+10-05 15:28:34.944  1480  1803 W GoogleApiAvailability: 	at cwon.j(PG:35)
+10-05 15:28:34.944  1480  1803 W GoogleApiAvailability: 	at cwoj.j(PG:126)
+10-05 15:28:34.944  1480  1803 W GoogleApiAvailability: 	at cwoj.e(PG:181)
+10-05 15:28:34.944  1480  1803 W GoogleApiAvailability: 	at cwon.k(PG:32)
+10-05 15:28:34.944  1480  1803 W GoogleApiAvailability: 	at cwon.handleMessage(PG:585)
+10-05 15:28:34.944  1480  1803 W GoogleApiAvailability: 	at android.os.Handler.dispatchMessage(Handler.java:106)
+10-05 15:28:34.944  1480  1803 W GoogleApiAvailability: 	at cxib.b(PG:1)
+10-05 15:28:34.944  1480  1803 W GoogleApiAvailability: 	at cxib.dispatchMessage(PG:1)
+10-05 15:28:34.944  1480  1803 W GoogleApiAvailability: 	at android.os.Looper.loopOnce(Looper.java:248)
+10-05 15:28:34.944  1480  1803 W GoogleApiAvailability: 	at android.os.Looper.loop(Looper.java:338)
+10-05 15:28:34.944  1480  1803 W GoogleApiAvailability: 	at android.os.HandlerThread.run(HandlerThread.java:85)
+10-05 15:28:34.946  1480  1803 W GoogleApiManager: The service for cwhv is not available: ConnectionResult{statusCode=SERVICE_DISABLED, resolution=null, message=null}
+10-05 15:28:34.946  1480  1803 I ClearcutMetricXmitter: Transmission has failed: cwlg: 17: API: ClearcutLogger.API is not available on this device. Connection failed with: ConnectionResult{statusCode=SERVICE_DISABLED, resolution=null, message=null}
+10-05 15:28:35.068  1458  1881 W AiAiEcho: LyftNotificationParser Ridesharing ETA not enabled
+10-05 15:28:35.068  1458  1881 I AiAiEcho: SmartspaceNotificationPredictor no parser can handle this notification or notification is invalid
+10-05 15:28:35.068  1126  1126 I NotificationListener: received notification posted event - com.google.android.googlequicksearchbox#UserHandle{0},category=-1
+10-05 15:28:35.084  1458  1881 W AiAiEcho: LyftNotificationParser Ridesharing ETA not enabled
+10-05 15:28:35.084  1458  1881 I AiAiEcho: SmartspaceNotificationPredictor no parser can handle this notification or notification is invalid
+10-05 15:28:35.086  1126  1126 I NotificationListener: received notification posted event - com.google.android.googlequicksearchbox#UserHandle{0},category=-1
+10-05 15:28:35.109   959  1253 W HWUI    : Image decoding logging dropped!
+10-05 15:28:35.110  1126  1126 I NotificationListener: received notification posted event - com.google.android.googlequicksearchbox#UserHandle{0},category=-1
+10-05 15:28:35.111  1458  1881 W AiAiEcho: LyftNotificationParser Ridesharing ETA not enabled
+10-05 15:28:35.111  1458  1881 I AiAiEcho: SmartspaceNotificationPredictor no parser can handle this notification or notification is invalid
+10-05 15:28:35.117   959  1253 W HWUI    : Image decoding logging dropped!
+10-05 15:28:35.130  1126  1126 I NotificationListener: received notification posted event - com.google.android.googlequicksearchbox#UserHandle{0},category=-1
+10-05 15:28:35.131  1458  1881 W AiAiEcho: LyftNotificationParser Ridesharing ETA not enabled
+10-05 15:28:35.131  1458  1881 I AiAiEcho: SmartspaceNotificationPredictor no parser can handle this notification or notification is invalid
+10-05 15:28:35.152  1458  1881 W AiAiEcho: LyftNotificationParser Ridesharing ETA not enabled
+10-05 15:28:35.152  1458  1881 I AiAiEcho: SmartspaceNotificationPredictor no parser can handle this notification or notification is invalid
+10-05 15:28:35.154   959  1253 W HWUI    : Image decoding logging dropped!
+10-05 15:28:35.154  1126  1126 I NotificationListener: received notification posted event - com.google.android.googlequicksearchbox#UserHandle{0},category=-1
+10-05 15:28:35.171   959  1253 W HWUI    : Image decoding logging dropped!
+10-05 15:28:35.178   959  1253 W HWUI    : Image decoding logging dropped!
+10-05 15:28:35.311  2185  2333 E GooglePlayServicesUtil: GooglePlayServices not available due to error 3
+10-05 15:28:35.312  2185  2333 W GoogleApiAvailability: GMS core API Availability. ConnectionResult=3, tag=null
+10-05 15:28:35.312  2185  2333 W GoogleApiAvailability: java.lang.IllegalArgumentException
+10-05 15:28:35.312  2185  2333 W GoogleApiAvailability: 	at cak.d(PG:29)
+10-05 15:28:35.312  2185  2333 W GoogleApiAvailability: 	at cak.b(PG:7)
+10-05 15:28:35.312  2185  2333 W GoogleApiAvailability: 	at frx.a(PG:269)
+10-05 15:28:35.312  2185  2333 W GoogleApiAvailability: 	at fsb.a(PG:7)
+10-05 15:28:35.312  2185  2333 W GoogleApiAvailability: 	at fsb.createSocket(PG:6)
+10-05 15:28:35.312  2185  2333 W GoogleApiAvailability: 	at kly.a(PG:1234)
+10-05 15:28:35.312  2185  2333 W GoogleApiAvailability: 	at klv.a(PG:24)
+10-05 15:28:35.312  2185  2333 W GoogleApiAvailability: 	at kmq.a(PG:131)
+10-05 15:28:35.312  2185  2333 W GoogleApiAvailability: 	at klp.a(PG:480)
+10-05 15:28:35.312  2185  2333 W GoogleApiAvailability: 	at kmq.a(PG:131)
+10-05 15:28:35.312  2185  2333 W GoogleApiAvailability: 	at kmk.a(PG:117)
+10-05 15:28:35.312  2185  2333 W GoogleApiAvailability: 	at kmq.a(PG:131)
+10-05 15:28:35.312  2185  2333 W GoogleApiAvailability: 	at kms.a(PG:133)
+10-05 15:28:35.312  2185  2333 W GoogleApiAvailability: 	at kmq.a(PG:131)
+10-05 15:28:35.312  2185  2333 W GoogleApiAvailability: 	at kpt.a(PG:3)
+10-05 15:28:35.312  2185  2333 W GoogleApiAvailability: 	at kps.a(PG:1)
+10-05 15:28:35.312  2185  2333 W GoogleApiAvailability: 	at kmq.a(PG:131)
+10-05 15:28:35.312  2185  2333 W GoogleApiAvailability: 	at kmc.d(PG:85)
+10-05 15:28:35.312  2185  2333 W GoogleApiAvailability: 	at klz.run(PG:37)
+10-05 15:28:35.312  2185  2333 W GoogleApiAvailability: 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1156)
+10-05 15:28:35.312  2185  2333 W GoogleApiAvailability: 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:651)
+10-05 15:28:35.312  2185  2333 W GoogleApiAvailability: 	at java.lang.Thread.run(Thread.java:1119)
+10-05 15:28:35.501  3186  3193 I om.example.kpkn: Background concurrent mark compact GC freed 32MB AllocSpace bytes, 0(0B) LOS objects, 24% free, 72MB/96MB, paused 3.945ms,2.087ms total 296.123ms

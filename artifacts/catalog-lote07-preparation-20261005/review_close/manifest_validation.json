@@ -1,0 +1,47 @@
+[
+  {
+    "author": "A_kickbacks",
+    "manifest": "authors\\A_kickbacks\\HASH_MANIFEST.json",
+    "manifestSha256": "bfd658133d9481c1fe2f0c72fae5c2a58697af47275811c2baab42bd8edf1a5c",
+    "listed": 216,
+    "ok": 216,
+    "missing": [],
+    "mismatch": []
+  },
+  {
+    "author": "B_supported_hip",
+    "manifest": "authors\\B_supported_hip\\HASH_MANIFEST.json",
+    "manifestSha256": "cc3c2b32c8fa8224624125b10b865b711cdead829f224e0ce6beb614563b35d5",
+    "listed": 216,
+    "ok": 216,
+    "missing": [],
+    "mismatch": []
+  },
+  {
+    "author": "C_abduction",
+    "manifest": "authors\\C_abduction\\HASH_MANIFEST.json",
+    "manifestSha256": "02855d2d7bd3f0900279aa4903ffcd5f14dd9a566f99bb7e23ee114216a1aae1",
+    "listed": 233,
+    "ok": 233,
+    "missing": [],
+    "mismatch": []
+  },
+  {
+    "author": "D_adduction",
+    "manifest": "authors\\D_adduction\\hash_manifest.json",
+    "manifestSha256": "1414eb5db98822068dd9f1e2aa5c1a3c6e676f99d8408233b85e083dcec6e95e",
+    "listed": 0,
+    "ok": 0,
+    "missing": [],
+    "mismatch": []
+  },
+  {
+    "author": "E_lower_leg",
+    "manifest": "authors\\E_lower_leg\\hash_manifest.json",
+    "manifestSha256": "4879b1301b3695a5e5113e7b55e7d9091b98b60134fdb6122b024e8b08ff7a67",
+    "listed": 0,
+    "ok": 0,
+    "missing": [],
+    "mismatch": []
+  }
+]

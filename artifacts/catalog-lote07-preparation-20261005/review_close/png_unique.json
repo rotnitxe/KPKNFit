@@ -1,0 +1,148 @@
+{
+  "android-native/app/src/main/res/drawable-nodpi/exercise_glutes_puente_gluteos_barbell_batch10.png": {
+    "sha256": "adc53afad4f4d3e1c3a8e41f365fddf084e23b6f402dd70b3d0fc6c88811efb9",
+    "configs": [
+      "glutes_puente_gluteos__bilateral__barbell",
+      "glutes_puente_gluteos__unilateral__barbell"
+    ]
+  },
+  "android-native/app/src/main/res/drawable-nodpi/exercise_glutes_puente_gluteos_dumbbells_batch10.png": {
+    "sha256": "0c2e22e67ba4ff05d9d63a187a2190d58c0bb9644b409b7192f68643d8229c64",
+    "configs": [
+      "glutes_puente_gluteos__bilateral__dumbbells",
+      "glutes_puente_gluteos__unilateral__dumbbells"
+    ]
+  },
+  "android-native/app/src/main/res/drawable-nodpi/exercise_glutes_puente_gluteos_smith_machine_batch10.png": {
+    "sha256": "f43af098f78b4ce6c00bcdbf0a4cc904d13311eec884ab1e4b030035a5cab72f",
+    "configs": [
+      "glutes_puente_gluteos__bilateral__smith_machine",
+      "glutes_puente_gluteos__unilateral__smith_machine"
+    ]
+  },
+  "android-native/app/src/main/res/drawable-nodpi/exercise_hip_thrust.png": {
+    "sha256": "294f92863bf98ff06924ecd10c0c717a7b4f275332bd5f032abfe6728c98e89b",
+    "configs": [
+      "hip_thrust__bilateral__barbell",
+      "hip_thrust__unilateral__barbell"
+    ]
+  },
+  "android-native/app/src/main/res/drawable-nodpi/exercise_hip_thrust_smith.png": {
+    "sha256": "3e55321ac4299d52326925b6fab0379f8ec8a0b6b230545985fd5e092bb0912a",
+    "configs": [
+      "hip_thrust__bilateral__smith_machine",
+      "hip_thrust__unilateral__smith_machine"
+    ]
+  },
+  "android-native/app/src/main/res/drawable-nodpi/exercise_hip_thrust_maquina.png": {
+    "sha256": "b7c511f7b597cdd4645af20f7d7880998a0ab3148350c84731bc9d4f9bf13c34",
+    "configs": [
+      "hip_thrust__bilateral__machine",
+      "hip_thrust__unilateral__machine"
+    ]
+  },
+  "android-native/app/src/main/res/drawable-nodpi/exercise_hip_thrust_banda.png": {
+    "sha256": "81883de2c94dfd8bd971ddddf74bdff28c7d9a1fddf264cae26136dad432db44",
+    "configs": [
+      "hip_thrust__bilateral__band",
+      "hip_thrust__unilateral__band"
+    ]
+  },
+  "android-native/app/src/main/res/drawable-nodpi/exercise_hip_abduction_machine_batch10.png": {
+    "sha256": "fbce1127062c0f79eeef7580081eec2d4aae232bba3097c307c50919d2da5b29",
+    "configs": [
+      "hip_abduction__seated__machine__bilateral",
+      "hip_abduction__seated__machine__unilateral"
+    ]
+  },
+  "android-native/app/src/main/res/drawable-nodpi/exercise_hip_abduction_cable_batch10.png": {
+    "sha256": "5d7255529f91d97104356247f15e1bfa6a43a133890ddc4985bca7713f6daf09",
+    "configs": [
+      "hip_abduction__standing__cable__bilateral",
+      "hip_abduction__standing__cable__unilateral"
+    ]
+  },
+  "android-native/app/src/main/res/drawable-nodpi/exercise_hip_abduction_band_batch10.png": {
+    "sha256": "a435a9f03386f05af96b17c256cfb8e6e358ec79f38004a82fe0d6f6b27917cd",
+    "configs": [
+      "hip_abduction__standing__band__bilateral",
+      "hip_abduction__standing__band__unilateral"
+    ]
+  },
+  "android-native/app/src/main/res/drawable-nodpi/exercise_hip_adduction_machine_batch10.png": {
+    "sha256": "7b264832c1face307c43a14d0103d991d619ce3af96050a08e78b604a7a7231f",
+    "configs": [
+      "hip_adduction__seated__machine__bilateral",
+      "hip_adduction__seated__machine__unilateral"
+    ]
+  },
+  "android-native/app/src/main/res/drawable-nodpi/exercise_hip_adduction_cable_batch10.png": {
+    "sha256": "d6ce4db3a148d686279bf5a5ccfc5e650b963aea4d79e202ca1fbd7712d2b6aa",
+    "configs": [
+      "hip_adduction__standing__cable__bilateral",
+      "hip_adduction__standing__cable__unilateral"
+    ]
+  },
+  "android-native/app/src/main/res/drawable-nodpi/exercise_hip_adduction_band_batch10.png": {
+    "sha256": "f205932fbefd023d0b75ac09ddf160bae363f40ffdb7e31a1e755ea1e53e3bdb",
+    "configs": [
+      "hip_adduction__standing__band__bilateral",
+      "hip_adduction__standing__band__unilateral"
+    ]
+  },
+  "android-native/app/src/main/res/drawable-nodpi/exercise_copenhagen_plank_bodyweight_batch10.png": {
+    "sha256": "c2ddcb0f3bc5c7a4b5886e59f678b8ae530a69731addfcd49018ff9c28003062",
+    "configs": [
+      "copenhagen_plank__default"
+    ]
+  },
+  "android-native/app/src/main/res/drawable-nodpi/exercise_copenhagen_plank_dynamic_bodyweight_batch10.png": {
+    "sha256": "177d84ea9bade328420d65c7d4601e38347406ec482c6561b3aaf0c27970e0a4",
+    "configs": [
+      "copenhagen_plank_dynamic__default"
+    ]
+  },
+  "android-native/app/src/main/res/drawable-nodpi/exercise_glutes_frog_pumps_batch8.png": {
+    "sha256": "faf908a423d3048243100a95d804ca4501dc8c7475316ebc8f17dc148bf39d80",
+    "configs": [
+      "glutes_frog_pumps__default"
+    ]
+  },
+  "android-native/app/src/main/res/drawable-nodpi/exercise_glutes_monster_walk_banda_batch8.png": {
+    "sha256": "87451e3f966049d49875ae158a70d0ad275eb7d9daad40d7d064ed512340364a",
+    "configs": [
+      "glutes_monster_walk_banda__default"
+    ]
+  },
+  "android-native/app/src/main/res/drawable-nodpi/exercise_calf_raise_machine_batch9.png": {
+    "sha256": "ad373dd88dfb01b3cc8e3dd5d737d24f1d1f223a008bd9bfddc270af0f07ebac",
+    "configs": [
+      "calf_raise__bilateral__machine",
+      "calf_raise__unilateral__machine",
+      "calf_raise__bilateral__seated_machine",
+      "calf_raise__bilateral__donkey_machine",
+      "calf_raise__bilateral__leg_press_machine"
+    ]
+  },
+  "android-native/app/src/main/res/drawable-nodpi/exercise_calf_raise_barbell_batch9.png": {
+    "sha256": "2b9a225a902349a75c626d95a43174067f885137414e067011220c0174a34197",
+    "configs": [
+      "calf_raise__bilateral__barbell",
+      "calf_raise__unilateral__barbell"
+    ]
+  },
+  "android-native/app/src/main/res/drawable-nodpi/exercise_calf_raise_smith_machine_batch9.png": {
+    "sha256": "f76621d994f8e9c87e9d16f49761bf24856380166e3baaa2b2019f7464b78ab4",
+    "configs": [
+      "calf_raise__bilateral__smith_machine",
+      "calf_raise__unilateral__smith_machine"
+    ]
+  },
+  "android-native/app/src/main/res/drawable-nodpi/exercise_calf_raise_cable_batch9.png": {
+    "sha256": "649382ad6cfc9eb821601acf9681d2e7d01f159802ab304cf0851e985e2ab82f",
+    "configs": [
+      "calf_raise__bilateral__cable",
+      "calf_raise__unilateral__cable"
+    ]
+  }
+}

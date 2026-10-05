@@ -1,0 +1,19 @@
+{
+  "checkedAtLocal": "2026-10-05T15:28",
+  "serial": "emulator-5554",
+  "avd": "Pixel_9_Pro_XL",
+  "install": "installBaseDebug BUILD SUCCESSFUL, Installed on 1 device, Pixel_9_Pro_XL(AVD) - 16",
+  "topResumedActivity": "com.example.kpkn/.MainActivity",
+  "screen": "Tu punto de partida / Continuar configuración",
+  "fatalException": false,
+  "roomUserVersion": 28,
+  "onboardingCompleted": false,
+  "setupDrafts": 6,
+  "programs": 0,
+  "workoutLogs": 0,
+  "continuedWizard": false,
+  "activatedProgram": false,
+  "otherDevicesInstalled": false,
+  "apkSha256": "fff8cca968de1ae594213de4a0cc075304abb8f58315ea75db93fe0f565d277c",
+  "catalogSha256": "c67eeb8ff6a8e68988fd3e0396fe8601920d3cdec7a05973fa95bf6085eb7566"
+}

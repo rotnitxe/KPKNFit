@@ -1,0 +1,615 @@
+{
+  "definitions": {
+    "hip_thrust": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Extensión de cadera"
+            ],
+            "id": "cadera",
+            "role": "PRIMARY",
+            "sources": [
+              "hip_joint",
+              "thrust_kinetics"
+            ],
+            "why": "La carga se eleva desde una pelvis baja entre el apoyo torácico y los pies; la cadera realiza el mayor cambio extensor útil durante el empuje."
+          },
+          {
+            "actions": [
+              "Extensión de rodilla durante el empuje"
+            ],
+            "id": "rodilla",
+            "role": "SECONDARY",
+            "sources": [
+              "thrust_kinetics",
+              "bridge_thrust_emg"
+            ],
+            "why": "El pie plantado transmite fuerza y el ángulo de rodilla cambia con el arco del cuerpo; la demanda extensora medida es menor que la de cadera, pero no nula."
+          },
+          {
+            "actions": [
+              "Sostén lumbopélvico"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "abdominal_wall",
+              "thrust_kinetics"
+            ],
+            "why": "El apoyo elevado sostiene el tórax mientras la pelvis se mueve; la relación lumbar se vigila para que el recorrido de cadera no se reemplace con hiperextensión."
+          },
+          {
+            "actions": [
+              "Transmisión de fuerzas entre pelvis y tronco"
+            ],
+            "id": "sacroiliaca",
+            "role": "STABILIZER",
+            "sources": [
+              "pelvic_joints"
+            ],
+            "why": "El empuje de los pies llega al sacro a través de la pelvis y se transmite al torso apoyado; no se busca una movilidad sacroilíaca adicional para levantar la carga."
+          },
+          {
+            "actions": [
+              "Agarre del contacto de resistencia"
+            ],
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "sources": [
+              "forearm_anatomy",
+              "thrust_variations",
+              "thrust_machine"
+            ],
+            "why": "El eje libre o guiado, el tramo pélvico de la banda o las asas de la estación necesitan sujeción; la muñeca transmite esa fijación sin generar el empuje pélvico."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "gluteus_maximus",
+            "role": "PRIMARY",
+            "sources": [
+              "gm_anatomy",
+              "thrust_kinetics"
+            ],
+            "why": "Es el motor que extiende la cadera y eleva la pelvis bajo la carga con apoyo torácico elevado; la demanda extensora de cadera supera la de rodilla."
+          },
+          {
+            "id": "hamstrings",
+            "role": "SECONDARY",
+            "sources": [
+              "ham_anatomy",
+              "bridge_thrust_emg"
+            ],
+            "why": "Sus cabezas que cruzan la cadera ayudan al empuje pélvico; las rodillas flexionadas reducen su longitud y no convierten la tarea en extensión de rodilla."
+          },
+          {
+            "id": "quadriceps",
+            "role": "SECONDARY",
+            "sources": [
+              "thrust_kinetics",
+              "bridge_thrust_emg"
+            ],
+            "why": "Aporta demanda extensora en la rodilla mientras el pie fija el apoyo inferior; el vasto lateral se activa en el hip thrust estudiado y no domina sobre la cadera."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "abdominal_wall",
+              "thrust_kinetics"
+            ],
+            "why": "Sostiene el enlace de costillas y pelvis cuando el torso gira sobre su apoyo; limita que la elevación pélvica se complete a costa de arquear la zona lumbar."
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "sources": [
+              "forearm_anatomy",
+              "thrust_variations",
+              "thrust_machine"
+            ],
+            "why": "Las manos sujetan el eje, las asas o la banda según la estación; ese agarre fija el contacto y evita desplazamientos ajenos a la extensión de cadera."
+          }
+        ],
+        "overrides": {
+          "hip_thrust__bilateral__band": {
+            "joints": [
+              {
+                "actions": [
+                  "Extensión de cadera"
+                ],
+                "id": "cadera",
+                "role": "PRIMARY",
+                "sources": [
+                  "hip_joint",
+                  "thrust_variations"
+                ],
+                "why": "La pelvis extiende contra una banda larga anclada por debajo y a ambos lados; su estiramiento crece al elevar las caderas, sin resistencia de apertura en las rodillas."
+              }
+            ],
+            "muscles": []
+          },
+          "hip_thrust__bilateral__machine": {
+            "joints": [
+              {
+                "actions": [
+                  "Extensión de cadera"
+                ],
+                "id": "cadera",
+                "role": "PRIMARY",
+                "sources": [
+                  "hip_joint",
+                  "thrust_machine"
+                ],
+                "why": "La cadera eleva el rodillo de empuje con los pies sobre la plataforma; el respaldo basculante sostiene el tronco y acompaña su cambio de inclinación."
+              }
+            ],
+            "muscles": [
+              {
+                "id": "forearm",
+                "role": "STABILIZER",
+                "sources": [
+                  "forearm_anatomy",
+                  "thrust_machine"
+                ],
+                "why": "Los dedos agarran las asas de la estación para fijar el cuerpo contra el respaldo durante el empuje; el rodillo, no las manos, carga la pelvis."
+              }
+            ]
+          },
+          "hip_thrust__bilateral__smith_machine": {
+            "joints": [
+              {
+                "actions": [
+                  "Extensión de cadera"
+                ],
+                "id": "cadera",
+                "role": "PRIMARY",
+                "sources": [
+                  "hip_joint",
+                  "thrust_variations"
+                ],
+                "why": "La pelvis empuja una barra limitada por los carriles de la Smith; la posición del banco respecto del eje organiza el arco de la cadera y el apoyo del pie."
+              }
+            ],
+            "muscles": []
+          },
+          "hip_thrust__unilateral__band": {
+            "joints": [
+              {
+                "actions": [
+                  "Transferencia pélvica con apoyo unilateral"
+                ],
+                "id": "sacroiliaca",
+                "role": "STABILIZER",
+                "sources": [
+                  "pelvic_joints",
+                  "thrust_variations"
+                ],
+                "why": "El anillo pélvico recibe el empuje desde un solo pie y lo transmite al respaldo o banco; el lado libre no debe aportar un segundo apoyo ni una torsión deliberada."
+              },
+              {
+                "actions": [
+                  "Extensión de cadera"
+                ],
+                "id": "cadera",
+                "role": "PRIMARY",
+                "sources": [
+                  "hip_joint",
+                  "thrust_variations"
+                ],
+                "why": "La pelvis extiende contra una banda larga anclada por debajo y a ambos lados; su estiramiento crece al elevar las caderas, sin resistencia de apertura en las rodillas."
+              }
+            ],
+            "muscles": [
+              {
+                "id": "gluteus_medius",
+                "role": "STABILIZER",
+                "sources": [
+                  "gmmed_anatomy",
+                  "bridge_emg"
+                ],
+                "why": "El apoyo de un único pie exige sostener las hemipelvis a una altura parecida; su función frontal es isométrica, sin mover la pierna en abducción contra carga."
+              }
+            ]
+          },
+          "hip_thrust__unilateral__barbell": {
+            "joints": [
+              {
+                "actions": [
+                  "Extensión de cadera"
+                ],
+                "id": "cadera",
+                "role": "PRIMARY",
+                "sources": [
+                  "hip_joint",
+                  "thrust_variations"
+                ],
+                "why": "Una sola cadera eleva la pelvis bajo la resistencia y el apoyo superior elevado; el lado de la pierna suspendida pierde el soporte inferior y requiere control frontal."
+              },
+              {
+                "actions": [
+                  "Transferencia pélvica con apoyo unilateral"
+                ],
+                "id": "sacroiliaca",
+                "role": "STABILIZER",
+                "sources": [
+                  "pelvic_joints",
+                  "thrust_variations"
+                ],
+                "why": "El anillo pélvico recibe el empuje desde un solo pie y lo transmite al respaldo o banco; el lado libre no debe aportar un segundo apoyo ni una torsión deliberada."
+              }
+            ],
+            "muscles": [
+              {
+                "id": "gluteus_medius",
+                "role": "STABILIZER",
+                "sources": [
+                  "gmmed_anatomy",
+                  "bridge_emg"
+                ],
+                "why": "El apoyo de un único pie exige sostener las hemipelvis a una altura parecida; su función frontal es isométrica, sin mover la pierna en abducción contra carga."
+              }
+            ]
+          },
+          "hip_thrust__unilateral__machine": {
+            "joints": [
+              {
+                "actions": [
+                  "Transferencia pélvica con apoyo unilateral"
+                ],
+                "id": "sacroiliaca",
+                "role": "STABILIZER",
+                "sources": [
+                  "pelvic_joints",
+                  "thrust_variations"
+                ],
+                "why": "El anillo pélvico recibe el empuje desde un solo pie y lo transmite al respaldo o banco; el lado libre no debe aportar un segundo apoyo ni una torsión deliberada."
+              },
+              {
+                "actions": [
+                  "Extensión de cadera"
+                ],
+                "id": "cadera",
+                "role": "PRIMARY",
+                "sources": [
+                  "hip_joint",
+                  "thrust_machine"
+                ],
+                "why": "Una sola cadera eleva el rodillo de empuje con un pie sobre la plataforma y el otro fuera de ella; el respaldo basculante sostiene el tronco y acompaña su cambio de inclinación."
+              }
+            ],
+            "muscles": [
+              {
+                "id": "gluteus_medius",
+                "role": "STABILIZER",
+                "sources": [
+                  "gmmed_anatomy",
+                  "bridge_emg"
+                ],
+                "why": "El apoyo de un único pie exige sostener las hemipelvis a una altura parecida; su función frontal es isométrica, sin mover la pierna en abducción contra carga."
+              },
+              {
+                "id": "forearm",
+                "role": "STABILIZER",
+                "sources": [
+                  "forearm_anatomy",
+                  "thrust_machine"
+                ],
+                "why": "Los dedos agarran las asas de la estación para fijar el cuerpo contra el respaldo durante el empuje; el rodillo, no las manos, carga la pelvis."
+              }
+            ]
+          },
+          "hip_thrust__unilateral__smith_machine": {
+            "joints": [
+              {
+                "actions": [
+                  "Transferencia pélvica con apoyo unilateral"
+                ],
+                "id": "sacroiliaca",
+                "role": "STABILIZER",
+                "sources": [
+                  "pelvic_joints",
+                  "thrust_variations"
+                ],
+                "why": "El anillo pélvico recibe el empuje desde un solo pie y lo transmite al respaldo o banco; el lado libre no debe aportar un segundo apoyo ni una torsión deliberada."
+              },
+              {
+                "actions": [
+                  "Extensión de cadera"
+                ],
+                "id": "cadera",
+                "role": "PRIMARY",
+                "sources": [
+                  "hip_joint",
+                  "thrust_variations"
+                ],
+                "why": "La pelvis empuja una barra limitada por los carriles de la Smith; la posición del banco respecto del eje organiza el arco de la cadera y el apoyo del pie."
+              }
+            ],
+            "muscles": [
+              {
+                "id": "gluteus_medius",
+                "role": "STABILIZER",
+                "sources": [
+                  "gmmed_anatomy",
+                  "bridge_emg"
+                ],
+                "why": "El apoyo de un único pie exige sostener las hemipelvis a una altura parecida; su función frontal es isométrica, sin mover la pierna en abducción contra carga."
+              }
+            ]
+          }
+        }
+      },
+      "public": {
+        "configurations": {
+          "hip_thrust__bilateral__band": {
+            "description": "Una banda larga cruza las caderas y se fija a dos anclajes bajos a los lados del banco. Su estiramiento aumenta al subir la pelvis con ambos pies, añadiendo resistencia a la extensión sin cargar las rodillas hacia dentro.",
+            "executionCues": [
+              "Eleva la pelvis contra la banda sin deslizar su contacto hacia el abdomen.",
+              "Baja con ambos pies planos y los hombros sobre el banco."
+            ],
+            "setupCues": [
+              "Fija una banda larga a dos anclajes bajos del rack y pásala sobre las caderas.",
+              "Apoya la espalda alta en un banco estable y los dos pies en el suelo."
+            ]
+          },
+          "hip_thrust__bilateral__barbell": {
+            "description": "El eje acolchado descansa sobre las caderas y ambas piernas lo elevan con la espalda alta sobre un banco. Los discos permiten graduar el peso, mientras las manos sujetan la barra para que no ruede sobre el cuerpo.",
+            "executionCues": [
+              "Eleva la pelvis hasta extender las caderas con las tibias casi verticales.",
+              "Baja desde la cadera mientras los hombros siguen en contacto con el banco."
+            ],
+            "setupCues": [
+              "Fija un banco detrás de la espalda alta y planta ambos pies.",
+              "Apoya la barra acolchada sobre las caderas y agarra el eje por fuera del cuerpo."
+            ]
+          },
+          "hip_thrust__bilateral__machine": {
+            "description": "El rodillo de empuje comprime la parte anterior de la pelvis y el respaldo basculante acompaña al tronco. Los dos pies cargan la plataforma de la estación, con una entrada y un ajuste propios de ese mecanismo.",
+            "executionCues": [
+              "Empuja la plataforma hasta extender las caderas bajo el rodillo.",
+              "Devuelve el rodillo al inicio mientras la espalda sigue apoyada."
+            ],
+            "setupCues": [
+              "Ajusta el respaldo y el rodillo a tu pelvis siguiendo la estación.",
+              "Coloca ambos pies planos sobre la plataforma y agarra las asas."
+            ]
+          },
+          "hip_thrust__bilateral__smith_machine": {
+            "description": "La barra de la Smith recorre sus carriles mientras los dos pies empujan desde el suelo. La ubicación del banco respecto del eje determina dónde queda la pelvis; la guía reduce el desplazamiento lateral de la carga.",
+            "executionCues": [
+              "Sube con ambos pies firmes sin deslizar los hombros del banco.",
+              "Baja hasta flexionar las caderas dentro del recorrido disponible."
+            ],
+            "setupCues": [
+              "Alinea la pelvis bajo la barra de la Smith con la espalda alta sobre el banco.",
+              "Prepara los topes y sujeta la barra acolchada antes de desenganchar."
+            ]
+          },
+          "hip_thrust__unilateral__band": {
+            "description": "El elástico anclado a los lados tira de la pelvis hacia abajo y solo un pie responde a esa resistencia. La pierna opuesta está flexionada; el aumento de estiramiento arriba se suma a la exigencia de sostener la pelvis sin caída lateral.",
+            "executionCues": [
+              "Sube desde la cadera apoyada hasta estirar la banda sin girar el tronco.",
+              "Desciende sin que el pie libre contacte con el suelo."
+            ],
+            "setupCues": [
+              "Pasa la banda anclada a los lados sobre la pelvis, sin rodear las rodillas.",
+              "Con la espalda alta apoyada, recoge una pierna y planta el pie activo."
+            ]
+          },
+          "hip_thrust__unilateral__barbell": {
+            "description": "Una sola pierna levanta la pelvis y una barra libre, con la otra rodilla recogida en el aire. La longitud del eje exige sujeción manual a ambos lados y la pelvis recibe apoyo inferior únicamente del pie que empuja.",
+            "executionCues": [
+              "Extiende la cadera de apoyo sin inclinar la barra.",
+              "Desciende con el pie libre suspendido y los hombros sobre el banco."
+            ],
+            "setupCues": [
+              "Centra la barra sobre la pelvis con acolchado y sujétala a ambos lados.",
+              "Apoya la espalda alta en el banco y recoge una pierna sin tocar el suelo."
+            ]
+          },
+          "hip_thrust__unilateral__machine": {
+            "description": "Sobre la misma plataforma queda un pie activo y el otro sale del apoyo. El rodillo conserva el contacto sobre ambas caderas, pero la fuerza que lo eleva procede de un lado; la espalda acompaña la inclinación del respaldo móvil.",
+            "executionCues": [
+              "Eleva el rodillo desde la cadera de apoyo sin torcer la pelvis.",
+              "Regresa con el pie libre fuera de la plataforma."
+            ],
+            "setupCues": [
+              "Ajusta el rodillo y el respaldo antes de liberar un pie de la plataforma.",
+              "Recoge la pierna libre y agarra las asas con ambas manos."
+            ]
+          },
+          "hip_thrust__unilateral__smith_machine": {
+            "description": "El carril sujeta el eje lateralmente y un único pie aporta el empuje de abajo. La pierna suspendida deja al glúteo medio una tarea de sostén pélvico, aunque el eje ya quede sujeto por los carriles.",
+            "executionCues": [
+              "Levanta la pelvis sin girar hacia el lado libre.",
+              "Vuelve al punto bajo sin que el pie suspendido ayude."
+            ],
+            "setupCues": [
+              "Sitúa un pie bajo su rodilla y eleva la pierna libre.",
+              "Sujeta la barra acolchada sobre las caderas con la espalda alta apoyada en el banco."
+            ]
+          }
+        },
+        "description": "El Hip Thrust carga la extensión de cadera y da protagonismo al glúteo mayor, con ayuda de isquiosurales y cuádriceps. Un apoyo elevado sostiene la espalda alta y permite que la pelvis baje antes de subir entre el torso y los muslos. El abdomen sostiene la relación entre costillas y pelvis durante ese recorrido. La variante a una pierna añade trabajo de sostén lateral. Su rasgo propio es elevar una pelvis cargada entre el apoyo alto de los hombros y los pies plantados delante del cuerpo."
+      },
+      "sources": [
+        {
+          "claim": "La extensión de cadera es una función del glúteo mayor; esa función fundamenta el motor de la elevación pélvica, sin inferir un porcentaje de activación.",
+          "id": "gm_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Maximus Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30855781/"
+        },
+        {
+          "claim": "Los isquiosurales que cruzan la cadera asisten su extensión y flexionan la rodilla; la flexión de rodilla modifica su longitud en el puente.",
+          "id": "ham_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hamstring Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31536294/"
+        },
+        {
+          "claim": "La pared abdominal participa en el control de la columna y la presión intraabdominal; su estabilización se interpreta según el montaje descrito.",
+          "id": "abdominal_wall",
+          "title": "Anatomy, Abdomen and Pelvis: Abdominal Wall",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31869113/"
+        },
+        {
+          "claim": "El glúteo medio interviene en la estabilidad de pelvis y miembro inferior; el sostén unilateral no equivale a una abducción dinámica resistida.",
+          "id": "gmmed_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Medius Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/32491441/"
+        },
+        {
+          "claim": "La articulación sacroilíaca transmite fuerzas entre pelvis y miembros inferiores con movilidad pequeña, sin convertirse en motor de la repetición.",
+          "id": "pelvic_joints",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Pelvic Joints",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30860758/"
+        },
+        {
+          "claim": "La cadera permite flexión, extensión, abducción y rotación; distingue el movimiento extensor de una postura abductada y externamente rotada.",
+          "id": "hip_joint",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hip Joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29262200/"
+        },
+        {
+          "claim": "Los flexores de dedos y muñeca intervienen en el agarre; la función estabilizadora depende de sujetar una carga o las asas que fijan el cuerpo.",
+          "id": "forearm_anatomy",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/"
+        },
+        {
+          "claim": "Comparó puente con barra e hip thrust con barra: ambos reclutan extensores de cadera y el hip thrust mostró mayor señal del vasto lateral en esa muestra; la EMG no prueba hipertrofia.",
+          "id": "bridge_thrust_emg",
+          "title": "Electromyographic differences of the gluteus maximus, gluteus medius, biceps femoris, and vastus lateralis between the barbell hip thrust and barbell glute bridge.",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/35586943/"
+        },
+        {
+          "claim": "En hip thrust bilateral con barra la demanda extensora de cadera superó a rodilla y pelvis-tronco; el momento de cadera disminuyó durante la subida en lugar de permanecer constante.",
+          "id": "thrust_kinetics",
+          "title": "A comprehensive biomechanical analysis of the barbell hip thrust.",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/33780488/"
+        },
+        {
+          "claim": "En puentes supinos estables y unilaterales se registró actividad glútea, isquiosural y de multífidos; las mayores señales por músculo correspondieron a condiciones diferentes.",
+          "id": "bridge_emg",
+          "title": "Magnitudes of muscle activation of spine stabilizers, gluteals, and hamstrings during supine bridge to neutral position",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/25671354/"
+        },
+        {
+          "claim": "Demostraciones de puente en suelo, con barra y a una pierna, además de puente unilateral en Smith; distingue el apoyo en suelo del apoyo elevado del hip thrust.",
+          "id": "bridge_demonstrations",
+          "title": "The Evolution of the Hip Thrust",
+          "url": "https://bretcontreras.com/the-evolution-of-the-hip-thrust/"
+        },
+        {
+          "claim": "Incluye montajes unilaterales en Smith y con banda anclada al rack, con espalda alta elevada y una pierna libre; no se trasladan sus opiniones sobre curvas a la barra.",
+          "id": "thrust_variations",
+          "title": "How to Perform Single-Leg Hip Thrusts (12 Excellent Variations)",
+          "url": "https://bretcontreras.com/single-leg-hip-thrusts/"
+        },
+        {
+          "claim": "La página del modelo Panatta 1FE097 publica fotos y demostración del fabricante, plataforma de pies y rodillo de empuje ajustable; respalda la estación real elegida.",
+          "id": "thrust_machine",
+          "title": "Fit Evo - Hip Thrust",
+          "url": "https://panattaturkiye.com/fit-evo---hip-thrust"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Empuje pélvico supino con el apoyo superior elevado bajo la espalda alta y los pies delante del cuerpo. La pelvis baja entre ellos y asciende al extender las caderas; el torso pivota sobre su apoyo o acompaña el respaldo móvil de la estación.",
+        "keyPositions": [
+          "Abajo: pelvis más baja que la espalda alta y caderas flexionadas, con hombros aún apoyados y pies firmes.",
+          "Arriba: pelvis elevada hasta alinear el torso con el muslo de apoyo, rodilla doblada y resistencia en contacto con la parte anterior de las caderas.",
+          "Unilateral: rodilla libre recogida y pie suspendido, sin segundo contacto inferior ni descenso del lado libre de la pelvis."
+        ],
+        "mistakes": [
+          "Convertir la variante unilateral en un apoyo escalonado con dos pies plantados.",
+          "Desplazar el contacto superior hacia el cuello en lugar de la espalda alta.",
+          "Levantar las costillas y arquear la zona lumbar para simular mayor altura de pelvis.",
+          "Colocar la banda únicamente alrededor de las rodillas en vez de sobre la pelvis anclada."
+        ],
+        "phases": [
+          {
+            "description": "El apoyo inferior produce la elevación de la pelvis contra la resistencia situada sobre las caderas, con la espalda alta en su superficie de sostén.",
+            "name": "Empuje"
+          },
+          {
+            "description": "El torso y el muslo de apoyo se alinean, con el contacto pélvico de la carga intacto y sin proyectar las costillas hacia arriba.",
+            "name": "Extensión alcanzada"
+          },
+          {
+            "description": "Las caderas flexionan y la pelvis vuelve por debajo del apoyo superior; el torso gira junto al respaldo o sobre el borde del banco.",
+            "name": "Descenso pélvico"
+          }
+        ],
+        "setup": [
+          "Banco estable bajo la zona inferior de las escápulas para las configuraciones libres, guiadas o elásticas; en máquina se usa el respaldo basculante propio.",
+          "Pies planos delante del cuerpo, con tibias aproximadamente verticales en la posición alta; una sola planta participa en unilateral.",
+          "Barra acolchada sobre los pliegues de las caderas, banda larga sobre la pelvis con anclajes bajos laterales, o rodillo pélvico de máquina con su plataforma y asas."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral oblicua con apoyo superior, pelvis, resistencia y pies visibles en el mismo encuadre.",
+          "contacts": "Espalda alta sostenida por una superficie elevada; pie o pies plantados delante del cuerpo, pelvis en contacto con la resistencia.",
+          "load": "La resistencia empuja hacia abajo sobre la parte anterior de la pelvis mientras la cadera la eleva.",
+          "orientation": "Atleta boca arriba sobre un apoyo superior elevado, cabeza a la izquierda y pies hacia la derecha.",
+          "phase": "Extensión superior de cadera, con pelvis elevada y resistencia en contacto sobre ella.",
+          "posture": "Torso y muslo de apoyo alineados arriba, rodilla doblada, tibia próxima a vertical y costillas recogidas."
+        },
+        "byImplement": {
+          "band": {
+            "geometry": "Banda larga sobre los pliegues de las caderas, tensada hacia dos anclajes bajos fijados a los laterales del rack. Banco estable tras los hombros, pies delante y manos sobre el tramo pélvico para evitar desplazamiento."
+          },
+          "barbell": {
+            "geometry": "Banco horizontal firme bajo las escápulas inferiores, barra transversal acolchada sobre las caderas y manos agarrando el eje. Discos a ambos lados separados del suelo en la posición alta y pies planos delante del banco."
+          },
+          "machine": {
+            "geometry": "Estación de hip thrust con torre de pesas, plataforma fija delante de los pies, respaldo acolchado basculante bajo el tronco y rodillo transversal conectado al brazo de empuje sobre la pelvis. Ambas manos agarran las asas y el rodillo está elevado en contacto con las caderas."
+          },
+          "smith_machine": {
+            "geometry": "Banco colocado dentro de una Smith completa de carriles verticales; barra acolchada guiada cruza la pelvis y sigue conectada a sus carros. Pies delante del banco y espalda alta sobre su borde, manos sujetando el eje."
+          }
+        },
+        "byVariant": {
+          "hip_thrust__unilateral__band": {
+            "difference": "Solo un pie está plantado en el suelo o la plataforma de la estación; la pierna libre queda recogida y suspendida. Rodillo, banda o eje siguen tocando la pelvis, con ambas caderas a altura semejante."
+          },
+          "hip_thrust__unilateral__barbell": {
+            "difference": "Solo un pie está plantado en el suelo o la plataforma de la estación; la pierna libre queda recogida y suspendida. Rodillo, banda o eje siguen tocando la pelvis, con ambas caderas a altura semejante."
+          },
+          "hip_thrust__unilateral__machine": {
+            "difference": "Solo un pie está plantado en el suelo o la plataforma de la estación; la pierna libre queda recogida y suspendida. Rodillo, banda o eje siguen tocando la pelvis, con ambas caderas a altura semejante."
+          },
+          "hip_thrust__unilateral__smith_machine": {
+            "difference": "Solo un pie está plantado en el suelo o la plataforma de la estación; la pierna libre queda recogida y suspendida. Rodillo, banda o eje siguen tocando la pelvis, con ambas caderas a altura semejante."
+          }
+        },
+        "forbidden": [
+          "Espalda alta directamente en el suelo: corresponde al puente y no a este apoyo elevado.",
+          "Peso separado de la pelvis o rodillo flotando fuera del cuerpo.",
+          "Máquina inventada que combine cinturón, barra libre y rodillo como una sola resistencia.",
+          "Banda cerrada solo en los muslos con apertura resistida de rodillas: esa acción añadiría glúteo medio principal y no representa la banda pélvica anclada.",
+          "Dos pies en apoyo en una variante unilateral o un pie libre colocado sobre el activo.",
+          "Torso libre sin banco ni respaldo, o apoyo solo bajo el cuello."
+        ],
+        "promptCore": {
+          "band": "Oblique side view, frozen at the TOP of a band hip thrust. Shoulder blades press into a stable bench, both feet flat on the floor in front. One long resistance band is stretched across the raised hip creases to two fixed low pegs on opposite sides of a rack. Both hands hold the band against the pelvis. Torso and thighs align, knees bent, ribs low. The band is not around the knees. No text or logos.",
+          "barbell": "Oblique side view, frozen at the TOP of a barbell hip thrust. Lower shoulder blades press against the edge of a stable bench and both feet are flat on the floor in front. A padded loaded barbell rests across the hip creases; both hands grip its shaft beside the body. Torso and thighs are aligned, knees bent, shins nearly vertical and ribs low. Both plates are clear of the floor. No text or logos.",
+          "machine": "Side view, frozen at the TOP of a selectorized hip thrust station. The athlete faces upward, back supported by the tilted padded backrest. Both feet press flat into the front platform. Both hands grip side handles. A padded transverse roller on the machine lever is pressed against the raised hip creases, never floating. Torso and thighs align, knees bent; the lever is linked to a real weight stack. No text or logos.",
+          "smith_machine": "Side view, frozen at the TOP of a hip thrust inside a complete vertical Smith machine. Upper back presses against a bench, both feet flat on the floor in front. The padded guided bar stays attached to both rail carriages and rests across the raised pelvis, held by both hands. Torso and thighs align, knees bent and ribs low; the loaded bar ends are clear of the floor. No text or logos."
+        },
+        "qa": [
+          "¿La espalda alta está sostenida por un apoyo elevado o por el respaldo propio de la estación?",
+          "¿La pelvis se encuentra en la posición superior y el torso se alinea con el muslo de apoyo?",
+          "¿La resistencia toca las caderas y las manos agarran el eje, las asas o el tramo pélvico de la banda?",
+          "¿Se ve un pie activo en unilateral y dos en bilateral?",
+          "¿La banda pélvica se fija a dos anclajes bajos y no representa una abducción resistida de rodillas?",
+          "¿El mecanismo de máquina se muestra como una estación real con respaldo, plataforma y rodillo unidos al sistema de carga?"
+        ]
+      }
+    }
+  },
+  "familyId": "lower_hip_extension_hip_thrust",
+  "schemaVersion": 1
+}
