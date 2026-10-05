@@ -1,0 +1,1643 @@
+== bulgarian_split_squat x barbell
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Side view of an athlete frozen at the BOTTOM of a barbell Bulgarian split squat. A loaded barbell rests across the upper back and both hands grip it beside the shoulders. The top of the rear foot rests on a flat bench behind; the front foot is flat on the floor with the heel down. The front thigh is nearly parallel to the floor and the rear knee hovers a few centimeters above the floor. Torso upright, front knee over the front foot. The plates are well clear of the floor.
+
+GEOMETRIA: Barra olímpica cruzada sobre la parte superior de la espalda, con las dos manos agarrándola a los lados de los hombros; discos a ambos lados; banco plano detrás.
+CAMARA: Vista lateral o de tres cuartos a la altura de la cadera, con el banco, los dos pies y la cabeza dentro del encuadre.
+FASE: Punto bajo: muslo delantero casi horizontal y rodilla trasera a pocos centímetros del suelo, justo antes de subir.
+ORIENTACION: Atleta de espaldas al apoyo trasero, con la pierna de trabajo delante y la otra estirada hacia atrás hasta ese apoyo.
+CONTACTOS: Planta entera del pie delantero en el suelo; empeine del pie trasero apoyado encima del apoyo de detrás, un banco o un rodillo; la rodilla trasera no toca el suelo.
+POSTURA: Tronco erguido o algo inclinado hacia delante, columna neutra, rodilla delantera alineada con el pie y pelvis nivelada.
+CARGA: La carga está sujeta por el atleta en todo momento y queda separada del suelo.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: Sentadilla sobre una sola pierna con el empeine trasero en un banco detrás: la rodilla de atrás baja hacia el suelo y la pierna delantera, que soporta casi todo el peso, vuelve a extenderse. La carga puede ir en las manos, sobre la espalda o delante del pecho; el pie elevado sobre el banco la separa de la zancada estática, con los dos pies en el suelo.
+  POSICION CLAVE: Arriba: pierna delantera casi recta, rodilla trasera doblada con el empeine sobre el banco y tronco erguido.
+  POSICION CLAVE: Punto bajo: muslo delantero cerca de la horizontal, rodilla delantera sobre el pie, talón delantero apoyado y rodilla de atrás suspendida justo encima del suelo.
+  FASE Bajada: La rodilla de atrás cae en vertical hacia el suelo mientras la de delante se dobla, con el peso sobre todo el pie delantero.
+  FASE Punto bajo: El muslo delantero llega cerca de la horizontal y la rodilla de atrás queda suspendida a pocos centímetros del suelo.
+  FASE Subida: El pie delantero empuja el suelo hasta extender rodilla y cadera; el pie de atrás solo acompaña sobre el banco.
+
+RECHAZAR SI:
+  - Pie trasero apoyado en el suelo: eso es una zancada estática, no una sentadilla búlgara.
+  - Rodilla trasera apoyada en el suelo o atleta arrodillado.
+  - Barra en el pliegue de los codos: eso es la búlgara Zercher, otra definición.
+  - En polea: cables cruzados en X, poleas colocadas junto a los pies o cables que salen de cajas o bloques en el suelo; cada cable baja en diagonal hasta la polea baja de una torre real, una a cada lado del atleta.
+  - En Smith: banco unido o fundido con la estructura de la máquina, o barra libre sobre unos soportes sin rieles.
+  - En máquina: un soporte con rodillo y asas fijas sin carga, un banco suelto en lugar del rodillo de la máquina o discos sin brazos de palanca que los muevan.
+  - Talón delantero despegado del suelo o rodilla delantera hundida hacia dentro.
+  - Carga flotando sin que las manos la sujeten.
+
+QA (si/no, inspector limpio):
+  1. ¿El empeine del pie trasero está apoyado sobre el banco o el rodillo y el pie delantero entero en el suelo?
+  2. ¿El muslo delantero está cerca de la horizontal y la rodilla trasera cerca del suelo sin tocarlo?
+  3. ¿Las manos sujetan la carga y nada flota suelto?
+  4. ¿En polea, las torres quedan a izquierda y derecha del atleta y cada cable baja en diagonal, hacia fuera, hasta la polea baja de su propia torre, sin cruzarse?
+  5. ¿En Smith, la barra va dentro de los rieles y el banco es una pieza aparte?
+
+== bulgarian_split_squat x cable
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Three-quarter front view of an athlete standing between the two towers of a cable machine, frozen at the BOTTOM of a cable Bulgarian split squat. The towers stand to the left and right of the athlete, with both pulleys set at the lowest position at the base of each tower. Each hand grips a single handle beside the hip, and each cable runs diagonally down and outward to the low pulley of its own tower, without crossing. The top of the rear foot rests on a flat bench behind; the front foot is flat on the floor. The front thigh is nearly parallel to the floor, the rear knee is just above the floor and the torso is upright.
+
+GEOMETRIA: De pie entre las dos torres de una máquina de poleas, que quedan a izquierda y derecha del atleta, con ambas poleas en la posición más baja, en la base de cada torre; un mango en cada mano junto a la cadera y cada cable bajando en diagonal, hacia fuera, hasta la polea baja de su propia torre, sin cruzarse; banco plano detrás.
+CAMARA: Vista lateral o de tres cuartos a la altura de la cadera, con el banco, los dos pies y la cabeza dentro del encuadre.
+FASE: Punto bajo: muslo delantero casi horizontal y rodilla trasera a pocos centímetros del suelo, justo antes de subir.
+ORIENTACION: Atleta de espaldas al apoyo trasero, con la pierna de trabajo delante y la otra estirada hacia atrás hasta ese apoyo.
+CONTACTOS: Planta entera del pie delantero en el suelo; empeine del pie trasero apoyado encima del apoyo de detrás, un banco o un rodillo; la rodilla trasera no toca el suelo.
+POSTURA: Tronco erguido o algo inclinado hacia delante, columna neutra, rodilla delantera alineada con el pie y pelvis nivelada.
+CARGA: La carga está sujeta por el atleta en todo momento y queda separada del suelo.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: Sentadilla sobre una sola pierna con el empeine trasero en un banco detrás: la rodilla de atrás baja hacia el suelo y la pierna delantera, que soporta casi todo el peso, vuelve a extenderse. La carga puede ir en las manos, sobre la espalda o delante del pecho; el pie elevado sobre el banco la separa de la zancada estática, con los dos pies en el suelo.
+  POSICION CLAVE: Arriba: pierna delantera casi recta, rodilla trasera doblada con el empeine sobre el banco y tronco erguido.
+  POSICION CLAVE: Punto bajo: muslo delantero cerca de la horizontal, rodilla delantera sobre el pie, talón delantero apoyado y rodilla de atrás suspendida justo encima del suelo.
+  FASE Bajada: La rodilla de atrás cae en vertical hacia el suelo mientras la de delante se dobla, con el peso sobre todo el pie delantero.
+  FASE Punto bajo: El muslo delantero llega cerca de la horizontal y la rodilla de atrás queda suspendida a pocos centímetros del suelo.
+  FASE Subida: El pie delantero empuja el suelo hasta extender rodilla y cadera; el pie de atrás solo acompaña sobre el banco.
+
+RECHAZAR SI:
+  - Pie trasero apoyado en el suelo: eso es una zancada estática, no una sentadilla búlgara.
+  - Rodilla trasera apoyada en el suelo o atleta arrodillado.
+  - Barra en el pliegue de los codos: eso es la búlgara Zercher, otra definición.
+  - En polea: cables cruzados en X, poleas colocadas junto a los pies o cables que salen de cajas o bloques en el suelo; cada cable baja en diagonal hasta la polea baja de una torre real, una a cada lado del atleta.
+  - En Smith: banco unido o fundido con la estructura de la máquina, o barra libre sobre unos soportes sin rieles.
+  - En máquina: un soporte con rodillo y asas fijas sin carga, un banco suelto en lugar del rodillo de la máquina o discos sin brazos de palanca que los muevan.
+  - Talón delantero despegado del suelo o rodilla delantera hundida hacia dentro.
+  - Carga flotando sin que las manos la sujeten.
+
+QA (si/no, inspector limpio):
+  1. ¿El empeine del pie trasero está apoyado sobre el banco o el rodillo y el pie delantero entero en el suelo?
+  2. ¿El muslo delantero está cerca de la horizontal y la rodilla trasera cerca del suelo sin tocarlo?
+  3. ¿Las manos sujetan la carga y nada flota suelto?
+  4. ¿En polea, las torres quedan a izquierda y derecha del atleta y cada cable baja en diagonal, hacia fuera, hasta la polea baja de su propia torre, sin cruzarse?
+  5. ¿En Smith, la barra va dentro de los rieles y el banco es una pieza aparte?
+
+== bulgarian_split_squat x dumbbells
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Side view of an athlete frozen at the BOTTOM of a dumbbell Bulgarian split squat. Each hand grips one dumbbell hanging at the side with straight arms. The top of the rear foot rests on a flat bench behind; the front foot is flat on the floor with the heel down. The front thigh is nearly parallel to the floor and the rear knee hovers a few centimeters above the floor. Torso upright, front knee over the front foot. The dumbbells hang beside the hips, clear of the floor.
+
+GEOMETRIA: Una mancuerna en cada mano, colgando a los costados con los brazos estirados; banco plano detrás.
+CAMARA: Vista lateral o de tres cuartos a la altura de la cadera, con el banco, los dos pies y la cabeza dentro del encuadre.
+FASE: Punto bajo: muslo delantero casi horizontal y rodilla trasera a pocos centímetros del suelo, justo antes de subir.
+ORIENTACION: Atleta de espaldas al apoyo trasero, con la pierna de trabajo delante y la otra estirada hacia atrás hasta ese apoyo.
+CONTACTOS: Planta entera del pie delantero en el suelo; empeine del pie trasero apoyado encima del apoyo de detrás, un banco o un rodillo; la rodilla trasera no toca el suelo.
+POSTURA: Tronco erguido o algo inclinado hacia delante, columna neutra, rodilla delantera alineada con el pie y pelvis nivelada.
+CARGA: La carga está sujeta por el atleta en todo momento y queda separada del suelo.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: Sentadilla sobre una sola pierna con el empeine trasero en un banco detrás: la rodilla de atrás baja hacia el suelo y la pierna delantera, que soporta casi todo el peso, vuelve a extenderse. La carga puede ir en las manos, sobre la espalda o delante del pecho; el pie elevado sobre el banco la separa de la zancada estática, con los dos pies en el suelo.
+  POSICION CLAVE: Arriba: pierna delantera casi recta, rodilla trasera doblada con el empeine sobre el banco y tronco erguido.
+  POSICION CLAVE: Punto bajo: muslo delantero cerca de la horizontal, rodilla delantera sobre el pie, talón delantero apoyado y rodilla de atrás suspendida justo encima del suelo.
+  FASE Bajada: La rodilla de atrás cae en vertical hacia el suelo mientras la de delante se dobla, con el peso sobre todo el pie delantero.
+  FASE Punto bajo: El muslo delantero llega cerca de la horizontal y la rodilla de atrás queda suspendida a pocos centímetros del suelo.
+  FASE Subida: El pie delantero empuja el suelo hasta extender rodilla y cadera; el pie de atrás solo acompaña sobre el banco.
+
+RECHAZAR SI:
+  - Pie trasero apoyado en el suelo: eso es una zancada estática, no una sentadilla búlgara.
+  - Rodilla trasera apoyada en el suelo o atleta arrodillado.
+  - Barra en el pliegue de los codos: eso es la búlgara Zercher, otra definición.
+  - En polea: cables cruzados en X, poleas colocadas junto a los pies o cables que salen de cajas o bloques en el suelo; cada cable baja en diagonal hasta la polea baja de una torre real, una a cada lado del atleta.
+  - En Smith: banco unido o fundido con la estructura de la máquina, o barra libre sobre unos soportes sin rieles.
+  - En máquina: un soporte con rodillo y asas fijas sin carga, un banco suelto en lugar del rodillo de la máquina o discos sin brazos de palanca que los muevan.
+  - Talón delantero despegado del suelo o rodilla delantera hundida hacia dentro.
+  - Carga flotando sin que las manos la sujeten.
+
+QA (si/no, inspector limpio):
+  1. ¿El empeine del pie trasero está apoyado sobre el banco o el rodillo y el pie delantero entero en el suelo?
+  2. ¿El muslo delantero está cerca de la horizontal y la rodilla trasera cerca del suelo sin tocarlo?
+  3. ¿Las manos sujetan la carga y nada flota suelto?
+  4. ¿En polea, las torres quedan a izquierda y derecha del atleta y cada cable baja en diagonal, hacia fuera, hasta la polea baja de su propia torre, sin cruzarse?
+  5. ¿En Smith, la barra va dentro de los rieles y el banco es una pieza aparte?
+
+== bulgarian_split_squat x kettlebell
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Side view of an athlete frozen at the BOTTOM of a goblet kettlebell Bulgarian split squat. Both hands hold one kettlebell by the horns of the handle in front of the chest, bell facing down, elbows pointing to the floor. The top of the rear foot rests on a flat bench behind; the front foot is flat on the floor. The front thigh is nearly parallel to the floor and the rear knee hovers a few centimeters above the floor. Torso upright. The kettlebell stays against the chest, far above the floor.
+
+GEOMETRIA: Una kettlebell sujeta con las dos manos por los cuernos del asa delante del pecho, con la bola hacia abajo y los codos apuntando al suelo; banco plano detrás.
+CAMARA: Vista lateral o de tres cuartos a la altura de la cadera, con el banco, los dos pies y la cabeza dentro del encuadre.
+FASE: Punto bajo: muslo delantero casi horizontal y rodilla trasera a pocos centímetros del suelo, justo antes de subir.
+ORIENTACION: Atleta de espaldas al apoyo trasero, con la pierna de trabajo delante y la otra estirada hacia atrás hasta ese apoyo.
+CONTACTOS: Planta entera del pie delantero en el suelo; empeine del pie trasero apoyado encima del apoyo de detrás, un banco o un rodillo; la rodilla trasera no toca el suelo.
+POSTURA: Tronco erguido o algo inclinado hacia delante, columna neutra, rodilla delantera alineada con el pie y pelvis nivelada.
+CARGA: La carga está sujeta por el atleta en todo momento y queda separada del suelo.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: Sentadilla sobre una sola pierna con el empeine trasero en un banco detrás: la rodilla de atrás baja hacia el suelo y la pierna delantera, que soporta casi todo el peso, vuelve a extenderse. La carga puede ir en las manos, sobre la espalda o delante del pecho; el pie elevado sobre el banco la separa de la zancada estática, con los dos pies en el suelo.
+  POSICION CLAVE: Arriba: pierna delantera casi recta, rodilla trasera doblada con el empeine sobre el banco y tronco erguido.
+  POSICION CLAVE: Punto bajo: muslo delantero cerca de la horizontal, rodilla delantera sobre el pie, talón delantero apoyado y rodilla de atrás suspendida justo encima del suelo.
+  FASE Bajada: La rodilla de atrás cae en vertical hacia el suelo mientras la de delante se dobla, con el peso sobre todo el pie delantero.
+  FASE Punto bajo: El muslo delantero llega cerca de la horizontal y la rodilla de atrás queda suspendida a pocos centímetros del suelo.
+  FASE Subida: El pie delantero empuja el suelo hasta extender rodilla y cadera; el pie de atrás solo acompaña sobre el banco.
+
+RECHAZAR SI:
+  - Pie trasero apoyado en el suelo: eso es una zancada estática, no una sentadilla búlgara.
+  - Rodilla trasera apoyada en el suelo o atleta arrodillado.
+  - Barra en el pliegue de los codos: eso es la búlgara Zercher, otra definición.
+  - En polea: cables cruzados en X, poleas colocadas junto a los pies o cables que salen de cajas o bloques en el suelo; cada cable baja en diagonal hasta la polea baja de una torre real, una a cada lado del atleta.
+  - En Smith: banco unido o fundido con la estructura de la máquina, o barra libre sobre unos soportes sin rieles.
+  - En máquina: un soporte con rodillo y asas fijas sin carga, un banco suelto en lugar del rodillo de la máquina o discos sin brazos de palanca que los muevan.
+  - Talón delantero despegado del suelo o rodilla delantera hundida hacia dentro.
+  - Carga flotando sin que las manos la sujeten.
+
+QA (si/no, inspector limpio):
+  1. ¿El empeine del pie trasero está apoyado sobre el banco o el rodillo y el pie delantero entero en el suelo?
+  2. ¿El muslo delantero está cerca de la horizontal y la rodilla trasera cerca del suelo sin tocarlo?
+  3. ¿Las manos sujetan la carga y nada flota suelto?
+  4. ¿En polea, las torres quedan a izquierda y derecha del atleta y cada cable baja en diagonal, hacia fuera, hasta la polea baja de su propia torre, sin cruzarse?
+  5. ¿En Smith, la barra va dentro de los rieles y el banco es una pieza aparte?
+
+== bulgarian_split_squat x machine
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Side view of an athlete on a plate-loaded lever machine for split squats, frozen at the BOTTOM of a machine Bulgarian split squat. The athlete stands between two lever arms loaded with weight plates, and each hand grips a lever handle beside the hip with straight arms. The top of the rear foot rests on the padded roller of the machine behind. The front foot is flat on the platform. The front thigh is nearly parallel to the floor, the rear knee is just above the floor and the torso is upright.
+
+GEOMETRIA: Máquina de palanca cargada con discos: el atleta de pie entre dos brazos de palanca, con un mango en cada mano a los lados de la cadera y los brazos estirados; el empeine trasero sobre el rodillo acolchado de la propia máquina.
+CAMARA: Vista lateral o de tres cuartos a la altura de la cadera, con el banco, los dos pies y la cabeza dentro del encuadre.
+FASE: Punto bajo: muslo delantero casi horizontal y rodilla trasera a pocos centímetros del suelo, justo antes de subir.
+ORIENTACION: Atleta de espaldas al apoyo trasero, con la pierna de trabajo delante y la otra estirada hacia atrás hasta ese apoyo.
+CONTACTOS: Planta entera del pie delantero en el suelo; empeine del pie trasero apoyado encima del apoyo de detrás, un banco o un rodillo; la rodilla trasera no toca el suelo.
+POSTURA: Tronco erguido o algo inclinado hacia delante, columna neutra, rodilla delantera alineada con el pie y pelvis nivelada.
+CARGA: La carga está sujeta por el atleta en todo momento y queda separada del suelo.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: Sentadilla sobre una sola pierna con el empeine trasero en un banco detrás: la rodilla de atrás baja hacia el suelo y la pierna delantera, que soporta casi todo el peso, vuelve a extenderse. La carga puede ir en las manos, sobre la espalda o delante del pecho; el pie elevado sobre el banco la separa de la zancada estática, con los dos pies en el suelo.
+  POSICION CLAVE: Arriba: pierna delantera casi recta, rodilla trasera doblada con el empeine sobre el banco y tronco erguido.
+  POSICION CLAVE: Punto bajo: muslo delantero cerca de la horizontal, rodilla delantera sobre el pie, talón delantero apoyado y rodilla de atrás suspendida justo encima del suelo.
+  FASE Bajada: La rodilla de atrás cae en vertical hacia el suelo mientras la de delante se dobla, con el peso sobre todo el pie delantero.
+  FASE Punto bajo: El muslo delantero llega cerca de la horizontal y la rodilla de atrás queda suspendida a pocos centímetros del suelo.
+  FASE Subida: El pie delantero empuja el suelo hasta extender rodilla y cadera; el pie de atrás solo acompaña sobre el banco.
+
+RECHAZAR SI:
+  - Pie trasero apoyado en el suelo: eso es una zancada estática, no una sentadilla búlgara.
+  - Rodilla trasera apoyada en el suelo o atleta arrodillado.
+  - Barra en el pliegue de los codos: eso es la búlgara Zercher, otra definición.
+  - En polea: cables cruzados en X, poleas colocadas junto a los pies o cables que salen de cajas o bloques en el suelo; cada cable baja en diagonal hasta la polea baja de una torre real, una a cada lado del atleta.
+  - En Smith: banco unido o fundido con la estructura de la máquina, o barra libre sobre unos soportes sin rieles.
+  - En máquina: un soporte con rodillo y asas fijas sin carga, un banco suelto en lugar del rodillo de la máquina o discos sin brazos de palanca que los muevan.
+  - Talón delantero despegado del suelo o rodilla delantera hundida hacia dentro.
+  - Carga flotando sin que las manos la sujeten.
+
+QA (si/no, inspector limpio):
+  1. ¿El empeine del pie trasero está apoyado sobre el banco o el rodillo y el pie delantero entero en el suelo?
+  2. ¿El muslo delantero está cerca de la horizontal y la rodilla trasera cerca del suelo sin tocarlo?
+  3. ¿Las manos sujetan la carga y nada flota suelto?
+  4. ¿En polea, las torres quedan a izquierda y derecha del atleta y cada cable baja en diagonal, hacia fuera, hasta la polea baja de su propia torre, sin cruzarse?
+  5. ¿En Smith, la barra va dentro de los rieles y el banco es una pieza aparte?
+
+== bulgarian_split_squat x smith_machine
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Side view of an athlete inside a Smith machine, frozen at the BOTTOM of a Smith machine Bulgarian split squat. The bar rests across the upper back, locked in the vertical rails, and both hands grip it beside the shoulders. The top of the rear foot rests on a separate flat bench that stands on its own behind the athlete, not attached to the machine. The front foot is flat on the floor. The front thigh is nearly parallel to the floor and the rear knee hovers just above the floor. Torso upright.
+
+GEOMETRIA: Barra de la máquina Smith sobre la parte superior de la espalda, dentro de los rieles verticales, con las manos a los lados de los hombros; un banco plano aparte, detrás, que no forma parte de la máquina.
+CAMARA: Vista lateral o de tres cuartos a la altura de la cadera, con el banco, los dos pies y la cabeza dentro del encuadre.
+FASE: Punto bajo: muslo delantero casi horizontal y rodilla trasera a pocos centímetros del suelo, justo antes de subir.
+ORIENTACION: Atleta de espaldas al apoyo trasero, con la pierna de trabajo delante y la otra estirada hacia atrás hasta ese apoyo.
+CONTACTOS: Planta entera del pie delantero en el suelo; empeine del pie trasero apoyado encima del apoyo de detrás, un banco o un rodillo; la rodilla trasera no toca el suelo.
+POSTURA: Tronco erguido o algo inclinado hacia delante, columna neutra, rodilla delantera alineada con el pie y pelvis nivelada.
+CARGA: La carga está sujeta por el atleta en todo momento y queda separada del suelo.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: Sentadilla sobre una sola pierna con el empeine trasero en un banco detrás: la rodilla de atrás baja hacia el suelo y la pierna delantera, que soporta casi todo el peso, vuelve a extenderse. La carga puede ir en las manos, sobre la espalda o delante del pecho; el pie elevado sobre el banco la separa de la zancada estática, con los dos pies en el suelo.
+  POSICION CLAVE: Arriba: pierna delantera casi recta, rodilla trasera doblada con el empeine sobre el banco y tronco erguido.
+  POSICION CLAVE: Punto bajo: muslo delantero cerca de la horizontal, rodilla delantera sobre el pie, talón delantero apoyado y rodilla de atrás suspendida justo encima del suelo.
+  FASE Bajada: La rodilla de atrás cae en vertical hacia el suelo mientras la de delante se dobla, con el peso sobre todo el pie delantero.
+  FASE Punto bajo: El muslo delantero llega cerca de la horizontal y la rodilla de atrás queda suspendida a pocos centímetros del suelo.
+  FASE Subida: El pie delantero empuja el suelo hasta extender rodilla y cadera; el pie de atrás solo acompaña sobre el banco.
+
+RECHAZAR SI:
+  - Pie trasero apoyado en el suelo: eso es una zancada estática, no una sentadilla búlgara.
+  - Rodilla trasera apoyada en el suelo o atleta arrodillado.
+  - Barra en el pliegue de los codos: eso es la búlgara Zercher, otra definición.
+  - En polea: cables cruzados en X, poleas colocadas junto a los pies o cables que salen de cajas o bloques en el suelo; cada cable baja en diagonal hasta la polea baja de una torre real, una a cada lado del atleta.
+  - En Smith: banco unido o fundido con la estructura de la máquina, o barra libre sobre unos soportes sin rieles.
+  - En máquina: un soporte con rodillo y asas fijas sin carga, un banco suelto en lugar del rodillo de la máquina o discos sin brazos de palanca que los muevan.
+  - Talón delantero despegado del suelo o rodilla delantera hundida hacia dentro.
+  - Carga flotando sin que las manos la sujeten.
+
+QA (si/no, inspector limpio):
+  1. ¿El empeine del pie trasero está apoyado sobre el banco o el rodillo y el pie delantero entero en el suelo?
+  2. ¿El muslo delantero está cerca de la horizontal y la rodilla trasera cerca del suelo sin tocarlo?
+  3. ¿Las manos sujetan la carga y nada flota suelto?
+  4. ¿En polea, las torres quedan a izquierda y derecha del atleta y cada cable baja en diagonal, hacia fuera, hasta la polea baja de su propia torre, sin cruzarse?
+  5. ¿En Smith, la barra va dentro de los rieles y el banco es una pieza aparte?
+
+== bulgarian_zercher x barbell
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Side view of an athlete frozen at the BOTTOM of a Zercher Bulgarian split squat. A loaded barbell sits in the crooks of both bent elbows, pressed against the lower torso at navel height, forearms pointing up and hands clasped in front of the chest. The top of the rear foot rests on a flat bench behind; the front foot is flat on the floor. The front thigh is nearly parallel to the floor and the rear knee hovers a few centimeters above the floor. Torso upright, chest up. The bar does not touch the thigh and the plates are well clear of the floor.
+
+GEOMETRIA: Barra olímpica con un disco a cada lado, encajada en la cara interna de los dos codos y apretada contra el abdomen; banco plano detrás del atleta.
+CAMARA: Vista lateral a la altura de la cadera, con el banco, ambos pies, los brazos y la cabeza dentro del encuadre.
+FASE: Fondo de la bajada: muslo adelantado casi horizontal y rodilla de atrás a pocos centímetros del suelo.
+ORIENTACION: Atleta de perfil y de espaldas al banco, con la pierna de trabajo delante.
+CONTACTOS: Planta entera del pie adelantado en el suelo; dorso del pie trasero sobre el banco; la carga apoyada en el pliegue de ambos codos.
+POSTURA: Tronco erguido, pecho alto, antebrazos verticales, manos juntas delante del pecho y rodilla adelantada alineada con el pie.
+CARGA: La carga queda delante del abdomen, a la altura del ombligo, separada del muslo y lejos del suelo.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: Sentadilla a una pierna con la barra sujeta en la flexura de los codos, contra el abdomen, y el dorso del pie trasero sobre un banco. Llevar la carga en los brazos doblados, por delante del tronco, la separa de la búlgara con la barra a la espalda o con el peso colgando de las manos.
+  POSICION CLAVE: Arriba: barra contra el abdomen, pecho alto, pierna adelantada casi recta y el pie de atrás sobre el banco.
+  POSICION CLAVE: Abajo: muslo adelantado casi horizontal, barra todavía en los codos y separada del muslo, rodilla de atrás a pocos centímetros del suelo.
+  FASE Descenso: La pierna de atrás se dobla, su rodilla se acerca al suelo y la barra desciende pegada al abdomen, con el pecho alto.
+  FASE Fondo: El muslo adelantado queda casi horizontal y los codos siguen delante del tronco sin rozar la pierna.
+  FASE Ascenso: La planta adelantada empuja el suelo y cadera y rodilla se estiran a la vez hasta volver de pie.
+
+RECHAZAR SI:
+  - Barra sobre la espalda o los hombros: eso es la sentadilla búlgara con barra, no la Zercher.
+  - Barra agarrada con las manos, como en un curl o una sentadilla frontal, en lugar de apoyada en el pliegue de los codos.
+  - Pie trasero en el suelo: eso sería una zancada estática.
+  - Barra apoyada sobre el muslo adelantado en el fondo.
+  - Rodilla de atrás apoyada en el suelo.
+
+QA (si/no, inspector limpio):
+  1. ¿La barra descansa en el pliegue de los dos codos, delante del tronco, y no sobre la espalda?
+  2. ¿El dorso del pie trasero está sobre el banco y el pie adelantado entero en el suelo?
+  3. ¿El muslo adelantado está casi horizontal y la rodilla de atrás cerca del suelo sin tocarlo?
+  4. ¿La barra queda separada del muslo y los discos lejos del suelo?
+
+== forward_lunge x barbell
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Three-quarter side view of an athlete frozen at the BOTTOM of a forward lunge. Front knee is bent about 90 degrees, front foot flat on the floor; rear knee is close to the floor but not touching, rear toes planted and heel lifted. Torso upright, feet on separate tracks. A barbell rests across the upper back below the neck; both hands grip it outside the shoulders. Plates remain above the floor.
+
+GEOMETRIA: Eje transversal sobre los trapecios, por debajo del cuello, sujeto a ambos lados por las manos. Los discos quedan a los lados de los hombros y por encima del piso.
+CAMARA: Vista lateral en tres cuartos, con cuerpo entero, suelo y contactos de la carga visibles.
+FASE: Fondo del descenso: rodilla anterior doblada y rodilla posterior suspendida cerca del suelo, antes de la subida.
+ORIENTACION: Torso orientado al frente del paso, cuello prolongando la columna y mirada al frente.
+CONTACTOS: Planta delantera pegada al suelo, antepié posterior en el piso y rodilla posterior sin tocarlo; carga unida a su soporte corporal.
+POSTURA: Pelvis entre los pies, rodilla delantera cerca de un ángulo recto y talón delantero apoyado; sin giro visible del torso.
+CARGA: Carga sostenida por el contacto que corresponde al implemento y elevada del suelo durante el fondo de la zancada.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: Zancada con salida de un pie hacia delante y recuperación de ese mismo pie después de la subida; cada repetición empieza y termina con el cuerpo en el punto original. La carga o la resistencia se reciben mediante el soporte propio de la configuración.
+  POSICION CLAVE: Entrada: una pierna sale desde los apoyos paralelos y aterriza con la planta; la otra conserva los dedos sobre el suelo.
+  POSICION CLAVE: Fondo frontal: rodilla anterior cerca de un ángulo recto, talón pegado al piso y rodilla posterior suspendida bajo el cuerpo.
+  FASE Recepción: El pie que sale al frente contacta la planta y empieza a recibir peso antes de que la pelvis descienda.
+  FASE Descenso frontal: La extremidad que aterrizó absorbe el descenso mediante flexión de cadera y rodilla; atrás, la rodilla baja cerca del suelo conservando un espacio sin contacto.
+  FASE Retorno: La pierna que aterrizó extiende rodilla y cadera; su pie recupera después la posición junto al que no salió.
+
+RECHAZAR SI:
+  - Pies paralelos y descenso bilateral como una sentadilla.
+  - Rodilla posterior apoyada en el suelo o pie posterior elevado sobre un banco.
+  - Cargas suspendidas sin contacto con el atleta.
+  - Piernas cruzadas o pies alineados sobre una misma calle.
+
+QA (si/no, inspector limpio):
+  1. ¿La planta delantera toca el suelo y el talón está apoyado?
+  2. ¿La rodilla posterior queda doblada y cerca del piso sin apoyarse en él?
+  3. ¿El antepié posterior apoya en el suelo con el talón elevado, sin quedar el pie suspendido?
+  4. ¿Los dos pies están separados delante y detrás, sin que el posterior repose sobre un banco?
+  5. ¿El torso conserva su orientación sin retorcerse hacia un lado?
+  6. ¿En Barra, el eje descansa en la espalda alta por debajo del cuello, las dos manos lo agarran por fuera de los hombros y los discos quedan elevados sobre el suelo?
+  7. ¿En Polea, una sola mano agarra el asa junto a su cadera con el codo extendido, el cable visible sale de una polea baja detrás del atleta y no atraviesa el cuerpo?
+  8. ¿En Mancuernas, hay exactamente una pesa agarrada por cada mano con palmas hacia los muslos, brazos largos y ambas cargas suspendidas sin tocar el suelo?
+  9. ¿En Kettlebell, hay una sola pesa ante el esternón y las dos manos agarran los lados de su asa, con el cuerpo de la pesa debajo y los codos flexionados hacia abajo?
+  10. ¿En Smith, la barra toca la espalda alta y ambas manos la agarran, con sus dos carros unidos a dos raíles reales visibles y los discos elevados sobre el suelo?
+
+== forward_lunge x cable
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Three-quarter side view of an athlete frozen at the BOTTOM of a forward lunge. Front knee is bent about 90 degrees, front foot flat on the floor; rear knee is close to the floor but not touching, rear toes planted and heel lifted. Torso upright, feet on separate tracks. One hand grips a single cable handle beside its hip with the elbow straight. A taut visible cable connects that hand to a low pulley; the other hand rests on the waist. The low pulley is behind the athlete, opposite the forward step.
+
+GEOMETRIA: Polea baja con un asa individual junto a la cadera de un lado, agarrada por la mano de ese lado con el codo extendido. Cable visible, sin atravesar el cuerpo; la pierna contraria cambia de posición. La estación se encuentra detrás del atleta; el atleta mira en sentido opuesto a ella.
+CAMARA: Vista lateral en tres cuartos, con cuerpo entero, suelo y contactos de la carga visibles.
+FASE: Fondo del descenso: rodilla anterior doblada y rodilla posterior suspendida cerca del suelo, antes de la subida.
+ORIENTACION: Torso orientado al frente del paso, cuello prolongando la columna y mirada al frente.
+CONTACTOS: Planta delantera pegada al suelo, antepié posterior en el piso y rodilla posterior sin tocarlo; carga unida a su soporte corporal.
+POSTURA: Pelvis entre los pies, rodilla delantera cerca de un ángulo recto y talón delantero apoyado; sin giro visible del torso.
+CARGA: Carga sostenida por el contacto que corresponde al implemento y elevada del suelo durante el fondo de la zancada.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: Zancada con salida de un pie hacia delante y recuperación de ese mismo pie después de la subida; cada repetición empieza y termina con el cuerpo en el punto original. La carga o la resistencia se reciben mediante el soporte propio de la configuración.
+  POSICION CLAVE: Entrada: una pierna sale desde los apoyos paralelos y aterriza con la planta; la otra conserva los dedos sobre el suelo.
+  POSICION CLAVE: Fondo frontal: rodilla anterior cerca de un ángulo recto, talón pegado al piso y rodilla posterior suspendida bajo el cuerpo.
+  FASE Recepción: El pie que sale al frente contacta la planta y empieza a recibir peso antes de que la pelvis descienda.
+  FASE Descenso frontal: La extremidad que aterrizó absorbe el descenso mediante flexión de cadera y rodilla; atrás, la rodilla baja cerca del suelo conservando un espacio sin contacto.
+  FASE Retorno: La pierna que aterrizó extiende rodilla y cadera; su pie recupera después la posición junto al que no salió.
+
+RECHAZAR SI:
+  - Pies paralelos y descenso bilateral como una sentadilla.
+  - Rodilla posterior apoyada en el suelo o pie posterior elevado sobre un banco.
+  - Cargas suspendidas sin contacto con el atleta.
+  - Piernas cruzadas o pies alineados sobre una misma calle.
+
+QA (si/no, inspector limpio):
+  1. ¿La planta delantera toca el suelo y el talón está apoyado?
+  2. ¿La rodilla posterior queda doblada y cerca del piso sin apoyarse en él?
+  3. ¿El antepié posterior apoya en el suelo con el talón elevado, sin quedar el pie suspendido?
+  4. ¿Los dos pies están separados delante y detrás, sin que el posterior repose sobre un banco?
+  5. ¿El torso conserva su orientación sin retorcerse hacia un lado?
+  6. ¿En Barra, el eje descansa en la espalda alta por debajo del cuello, las dos manos lo agarran por fuera de los hombros y los discos quedan elevados sobre el suelo?
+  7. ¿En Polea, una sola mano agarra el asa junto a su cadera con el codo extendido, el cable visible sale de una polea baja detrás del atleta y no atraviesa el cuerpo?
+  8. ¿En Mancuernas, hay exactamente una pesa agarrada por cada mano con palmas hacia los muslos, brazos largos y ambas cargas suspendidas sin tocar el suelo?
+  9. ¿En Kettlebell, hay una sola pesa ante el esternón y las dos manos agarran los lados de su asa, con el cuerpo de la pesa debajo y los codos flexionados hacia abajo?
+  10. ¿En Smith, la barra toca la espalda alta y ambas manos la agarran, con sus dos carros unidos a dos raíles reales visibles y los discos elevados sobre el suelo?
+
+== forward_lunge x dumbbells
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Three-quarter side view of an athlete frozen at the BOTTOM of a forward lunge. Front knee is bent about 90 degrees, front foot flat on the floor; rear knee is close to the floor but not touching, rear toes planted and heel lifted. Torso upright, feet on separate tracks. Each hand grips one dumbbell with a neutral grip, arms hanging at the sides. Both dumbbells are clear of the floor beside the legs.
+
+GEOMETRIA: Una mancuerna agarrada por cada mano con palmas hacia los muslos y brazos extendidos a los costados. En el fondo, ambas pesas quedan junto a las piernas, suspendidas sin tocar el suelo.
+CAMARA: Vista lateral en tres cuartos, con cuerpo entero, suelo y contactos de la carga visibles.
+FASE: Fondo del descenso: rodilla anterior doblada y rodilla posterior suspendida cerca del suelo, antes de la subida.
+ORIENTACION: Torso orientado al frente del paso, cuello prolongando la columna y mirada al frente.
+CONTACTOS: Planta delantera pegada al suelo, antepié posterior en el piso y rodilla posterior sin tocarlo; carga unida a su soporte corporal.
+POSTURA: Pelvis entre los pies, rodilla delantera cerca de un ángulo recto y talón delantero apoyado; sin giro visible del torso.
+CARGA: Carga sostenida por el contacto que corresponde al implemento y elevada del suelo durante el fondo de la zancada.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: Zancada con salida de un pie hacia delante y recuperación de ese mismo pie después de la subida; cada repetición empieza y termina con el cuerpo en el punto original. La carga o la resistencia se reciben mediante el soporte propio de la configuración.
+  POSICION CLAVE: Entrada: una pierna sale desde los apoyos paralelos y aterriza con la planta; la otra conserva los dedos sobre el suelo.
+  POSICION CLAVE: Fondo frontal: rodilla anterior cerca de un ángulo recto, talón pegado al piso y rodilla posterior suspendida bajo el cuerpo.
+  FASE Recepción: El pie que sale al frente contacta la planta y empieza a recibir peso antes de que la pelvis descienda.
+  FASE Descenso frontal: La extremidad que aterrizó absorbe el descenso mediante flexión de cadera y rodilla; atrás, la rodilla baja cerca del suelo conservando un espacio sin contacto.
+  FASE Retorno: La pierna que aterrizó extiende rodilla y cadera; su pie recupera después la posición junto al que no salió.
+
+RECHAZAR SI:
+  - Pies paralelos y descenso bilateral como una sentadilla.
+  - Rodilla posterior apoyada en el suelo o pie posterior elevado sobre un banco.
+  - Cargas suspendidas sin contacto con el atleta.
+  - Piernas cruzadas o pies alineados sobre una misma calle.
+
+QA (si/no, inspector limpio):
+  1. ¿La planta delantera toca el suelo y el talón está apoyado?
+  2. ¿La rodilla posterior queda doblada y cerca del piso sin apoyarse en él?
+  3. ¿El antepié posterior apoya en el suelo con el talón elevado, sin quedar el pie suspendido?
+  4. ¿Los dos pies están separados delante y detrás, sin que el posterior repose sobre un banco?
+  5. ¿El torso conserva su orientación sin retorcerse hacia un lado?
+  6. ¿En Barra, el eje descansa en la espalda alta por debajo del cuello, las dos manos lo agarran por fuera de los hombros y los discos quedan elevados sobre el suelo?
+  7. ¿En Polea, una sola mano agarra el asa junto a su cadera con el codo extendido, el cable visible sale de una polea baja detrás del atleta y no atraviesa el cuerpo?
+  8. ¿En Mancuernas, hay exactamente una pesa agarrada por cada mano con palmas hacia los muslos, brazos largos y ambas cargas suspendidas sin tocar el suelo?
+  9. ¿En Kettlebell, hay una sola pesa ante el esternón y las dos manos agarran los lados de su asa, con el cuerpo de la pesa debajo y los codos flexionados hacia abajo?
+  10. ¿En Smith, la barra toca la espalda alta y ambas manos la agarran, con sus dos carros unidos a dos raíles reales visibles y los discos elevados sobre el suelo?
+
+== forward_lunge x kettlebell
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Three-quarter side view of an athlete frozen at the BOTTOM of a forward lunge. Front knee is bent about 90 degrees, front foot flat on the floor; rear knee is close to the floor but not touching, rear toes planted and heel lifted. Torso upright, feet on separate tracks. Both hands grip the sides of a single kettlebell handle at chest height. Elbows are bent downward; the bell hangs below its handle and remains far above the floor.
+
+GEOMETRIA: Una kettlebell frente al esternón, con el cuerpo de la pesa bajo el asa. Ambas manos agarran los lados del asa y ambos codos están flexionados, dirigidos abajo; la pesa no toca el suelo.
+CAMARA: Vista lateral en tres cuartos, con cuerpo entero, suelo y contactos de la carga visibles.
+FASE: Fondo del descenso: rodilla anterior doblada y rodilla posterior suspendida cerca del suelo, antes de la subida.
+ORIENTACION: Torso orientado al frente del paso, cuello prolongando la columna y mirada al frente.
+CONTACTOS: Planta delantera pegada al suelo, antepié posterior en el piso y rodilla posterior sin tocarlo; carga unida a su soporte corporal.
+POSTURA: Pelvis entre los pies, rodilla delantera cerca de un ángulo recto y talón delantero apoyado; sin giro visible del torso.
+CARGA: Carga sostenida por el contacto que corresponde al implemento y elevada del suelo durante el fondo de la zancada.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: Zancada con salida de un pie hacia delante y recuperación de ese mismo pie después de la subida; cada repetición empieza y termina con el cuerpo en el punto original. La carga o la resistencia se reciben mediante el soporte propio de la configuración.
+  POSICION CLAVE: Entrada: una pierna sale desde los apoyos paralelos y aterriza con la planta; la otra conserva los dedos sobre el suelo.
+  POSICION CLAVE: Fondo frontal: rodilla anterior cerca de un ángulo recto, talón pegado al piso y rodilla posterior suspendida bajo el cuerpo.
+  FASE Recepción: El pie que sale al frente contacta la planta y empieza a recibir peso antes de que la pelvis descienda.
+  FASE Descenso frontal: La extremidad que aterrizó absorbe el descenso mediante flexión de cadera y rodilla; atrás, la rodilla baja cerca del suelo conservando un espacio sin contacto.
+  FASE Retorno: La pierna que aterrizó extiende rodilla y cadera; su pie recupera después la posición junto al que no salió.
+
+RECHAZAR SI:
+  - Pies paralelos y descenso bilateral como una sentadilla.
+  - Rodilla posterior apoyada en el suelo o pie posterior elevado sobre un banco.
+  - Cargas suspendidas sin contacto con el atleta.
+  - Piernas cruzadas o pies alineados sobre una misma calle.
+
+QA (si/no, inspector limpio):
+  1. ¿La planta delantera toca el suelo y el talón está apoyado?
+  2. ¿La rodilla posterior queda doblada y cerca del piso sin apoyarse en él?
+  3. ¿El antepié posterior apoya en el suelo con el talón elevado, sin quedar el pie suspendido?
+  4. ¿Los dos pies están separados delante y detrás, sin que el posterior repose sobre un banco?
+  5. ¿El torso conserva su orientación sin retorcerse hacia un lado?
+  6. ¿En Barra, el eje descansa en la espalda alta por debajo del cuello, las dos manos lo agarran por fuera de los hombros y los discos quedan elevados sobre el suelo?
+  7. ¿En Polea, una sola mano agarra el asa junto a su cadera con el codo extendido, el cable visible sale de una polea baja detrás del atleta y no atraviesa el cuerpo?
+  8. ¿En Mancuernas, hay exactamente una pesa agarrada por cada mano con palmas hacia los muslos, brazos largos y ambas cargas suspendidas sin tocar el suelo?
+  9. ¿En Kettlebell, hay una sola pesa ante el esternón y las dos manos agarran los lados de su asa, con el cuerpo de la pesa debajo y los codos flexionados hacia abajo?
+  10. ¿En Smith, la barra toca la espalda alta y ambas manos la agarran, con sus dos carros unidos a dos raíles reales visibles y los discos elevados sobre el suelo?
+
+== forward_lunge x smith_machine
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Three-quarter side view of an athlete frozen at the BOTTOM of a forward lunge. Front knee is bent about 90 degrees, front foot flat on the floor; rear knee is close to the floor but not touching, rear toes planted and heel lifted. Torso upright, feet on separate tracks. Both hands grip the Smith bar resting across the upper back. Its carriage is attached to two visible fixed rails; plates are above the floor and safety stops are lower.
+
+GEOMETRIA: Eje transversal sobre la espalda alta, unido a un carro que baja entre dos raíles visibles. Ambas manos agarran el eje; los discos siguen elevados sobre el piso y los seguros quedan más abajo.
+CAMARA: Vista lateral en tres cuartos, con cuerpo entero, suelo y contactos de la carga visibles.
+FASE: Fondo del descenso: rodilla anterior doblada y rodilla posterior suspendida cerca del suelo, antes de la subida.
+ORIENTACION: Torso orientado al frente del paso, cuello prolongando la columna y mirada al frente.
+CONTACTOS: Planta delantera pegada al suelo, antepié posterior en el piso y rodilla posterior sin tocarlo; carga unida a su soporte corporal.
+POSTURA: Pelvis entre los pies, rodilla delantera cerca de un ángulo recto y talón delantero apoyado; sin giro visible del torso.
+CARGA: Carga sostenida por el contacto que corresponde al implemento y elevada del suelo durante el fondo de la zancada.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: Zancada con salida de un pie hacia delante y recuperación de ese mismo pie después de la subida; cada repetición empieza y termina con el cuerpo en el punto original. La carga o la resistencia se reciben mediante el soporte propio de la configuración.
+  POSICION CLAVE: Entrada: una pierna sale desde los apoyos paralelos y aterriza con la planta; la otra conserva los dedos sobre el suelo.
+  POSICION CLAVE: Fondo frontal: rodilla anterior cerca de un ángulo recto, talón pegado al piso y rodilla posterior suspendida bajo el cuerpo.
+  FASE Recepción: El pie que sale al frente contacta la planta y empieza a recibir peso antes de que la pelvis descienda.
+  FASE Descenso frontal: La extremidad que aterrizó absorbe el descenso mediante flexión de cadera y rodilla; atrás, la rodilla baja cerca del suelo conservando un espacio sin contacto.
+  FASE Retorno: La pierna que aterrizó extiende rodilla y cadera; su pie recupera después la posición junto al que no salió.
+
+RECHAZAR SI:
+  - Pies paralelos y descenso bilateral como una sentadilla.
+  - Rodilla posterior apoyada en el suelo o pie posterior elevado sobre un banco.
+  - Cargas suspendidas sin contacto con el atleta.
+  - Piernas cruzadas o pies alineados sobre una misma calle.
+
+QA (si/no, inspector limpio):
+  1. ¿La planta delantera toca el suelo y el talón está apoyado?
+  2. ¿La rodilla posterior queda doblada y cerca del piso sin apoyarse en él?
+  3. ¿El antepié posterior apoya en el suelo con el talón elevado, sin quedar el pie suspendido?
+  4. ¿Los dos pies están separados delante y detrás, sin que el posterior repose sobre un banco?
+  5. ¿El torso conserva su orientación sin retorcerse hacia un lado?
+  6. ¿En Barra, el eje descansa en la espalda alta por debajo del cuello, las dos manos lo agarran por fuera de los hombros y los discos quedan elevados sobre el suelo?
+  7. ¿En Polea, una sola mano agarra el asa junto a su cadera con el codo extendido, el cable visible sale de una polea baja detrás del atleta y no atraviesa el cuerpo?
+  8. ¿En Mancuernas, hay exactamente una pesa agarrada por cada mano con palmas hacia los muslos, brazos largos y ambas cargas suspendidas sin tocar el suelo?
+  9. ¿En Kettlebell, hay una sola pesa ante el esternón y las dos manos agarran los lados de su asa, con el cuerpo de la pesa debajo y los codos flexionados hacia abajo?
+  10. ¿En Smith, la barra toca la espalda alta y ambas manos la agarran, con sus dos carros unidos a dos raíles reales visibles y los discos elevados sobre el suelo?
+
+== reverse_lunge x barbell
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Three-quarter side view of an athlete frozen at the BOTTOM of a reverse lunge. Front knee is bent about 90 degrees, front foot flat on the floor; rear knee is close to the floor but not touching, rear toes planted and heel lifted. Torso upright, feet on separate tracks. A barbell rests across the upper back below the neck; both hands grip it outside the shoulders. Plates remain above the floor.
+
+GEOMETRIA: Eje transversal sobre los trapecios, por debajo del cuello, sujeto a ambos lados por las manos. Los discos quedan a los lados de los hombros y por encima del piso.
+CAMARA: Vista lateral en tres cuartos, con cuerpo entero, suelo y contactos de la carga visibles.
+FASE: Fondo del descenso: rodilla anterior doblada y rodilla posterior suspendida cerca del suelo, antes de la subida.
+ORIENTACION: Torso orientado al frente del paso, cuello prolongando la columna y mirada al frente.
+CONTACTOS: Planta delantera pegada al suelo, antepié posterior en el piso y rodilla posterior sin tocarlo; el soporte de carga corresponde al implemento, salvo en corporal.
+POSTURA: Pelvis entre los pies, rodilla delantera cerca de un ángulo recto y talón delantero apoyado; sin giro visible del torso.
+CARGA: Peso corporal sobre los apoyos y carga externa, si corresponde, sostenida en el contacto propio del implemento sin apoyarse en el suelo.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: Zancada en la que la pierna de trabajo conserva el pie plantado y la contraria se desplaza atrás para el descenso. La carga acompaña el torso por su sujeción elegida, o solo se usa el peso corporal; el pie que retrocedió vuelve a la salida.
+  POSICION CLAVE: Apoyo fijo: toda la planta anterior permanece en el mismo sitio del suelo durante el retroceso.
+  POSICION CLAVE: Posición inferior inversa: antepié retrasado y talón posterior alto, rodilla trasera cercana al suelo y pelvis entre las piernas.
+  FASE Retroceso: Un pie deja la salida hacia atrás mientras el delantero conserva su superficie de contacto para recibir más peso.
+  FASE Bajada sobre el apoyo fijo: La pelvis baja entre los contactos con flexión de ambas rodillas, sin que el talón delantero se despegue del suelo.
+  FASE Recuperación del pie posterior: El apoyo delantero eleva el cuerpo y permite traer de vuelta la pierna de atrás junto a la que quedó fija.
+
+RECHAZAR SI:
+  - Pies paralelos y descenso bilateral como una sentadilla.
+  - Rodilla posterior apoyada en el suelo o pie posterior elevado sobre un banco.
+  - Cargas suspendidas sin contacto con el atleta.
+  - Piernas cruzadas o pies alineados sobre una misma calle.
+
+QA (si/no, inspector limpio):
+  1. ¿La planta delantera toca el suelo y el talón está apoyado?
+  2. ¿La rodilla posterior queda doblada y cerca del piso sin apoyarse en él?
+  3. ¿El antepié posterior apoya en el suelo con el talón elevado, sin quedar el pie suspendido?
+  4. ¿Los dos pies están separados delante y detrás, sin que el posterior repose sobre un banco?
+  5. ¿El torso conserva su orientación sin retorcerse hacia un lado?
+  6. ¿En Barra, el eje descansa en la espalda alta por debajo del cuello, las dos manos lo agarran por fuera de los hombros y los discos quedan elevados sobre el suelo?
+  7. ¿En Peso Corporal, no hay carga externa ni asa y ambas manos descansan en la cintura?
+  8. ¿En Polea, una sola mano agarra el asa junto a su cadera con el codo extendido, el cable visible sale de una polea baja delante del atleta y no atraviesa el cuerpo?
+  9. ¿En Mancuernas, hay exactamente una pesa agarrada por cada mano con palmas hacia los muslos, brazos largos y ambas cargas suspendidas sin tocar el suelo?
+  10. ¿En Kettlebell, hay una sola pesa ante el esternón y las dos manos agarran los lados de su asa, con el cuerpo de la pesa debajo y los codos flexionados hacia abajo?
+  11. ¿En Smith, la barra toca la espalda alta y ambas manos la agarran, con sus dos carros unidos a dos raíles reales visibles y los discos elevados sobre el suelo?
+
+== reverse_lunge x bodyweight
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Three-quarter side view of an athlete frozen at the BOTTOM of a reverse lunge. Front knee is bent about 90 degrees, front foot flat on the floor; rear knee is close to the floor but not touching, rear toes planted and heel lifted. Torso upright, feet on separate tracks. There is no external load. Both hands rest on the waist. Neither hand holds a handle or weight; the two feet are the only contacts with the floor.
+
+GEOMETRIA: No existe carga externa ni asa. Ambas manos descansan en la cintura y los pies son los únicos contactos con el suelo.
+CAMARA: Vista lateral en tres cuartos, con cuerpo entero, suelo y contactos de la carga visibles.
+FASE: Fondo del descenso: rodilla anterior doblada y rodilla posterior suspendida cerca del suelo, antes de la subida.
+ORIENTACION: Torso orientado al frente del paso, cuello prolongando la columna y mirada al frente.
+CONTACTOS: Planta delantera pegada al suelo, antepié posterior en el piso y rodilla posterior sin tocarlo; el soporte de carga corresponde al implemento, salvo en corporal.
+POSTURA: Pelvis entre los pies, rodilla delantera cerca de un ángulo recto y talón delantero apoyado; sin giro visible del torso.
+CARGA: Peso corporal sobre los apoyos y carga externa, si corresponde, sostenida en el contacto propio del implemento sin apoyarse en el suelo.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: Zancada en la que la pierna de trabajo conserva el pie plantado y la contraria se desplaza atrás para el descenso. La carga acompaña el torso por su sujeción elegida, o solo se usa el peso corporal; el pie que retrocedió vuelve a la salida.
+  POSICION CLAVE: Apoyo fijo: toda la planta anterior permanece en el mismo sitio del suelo durante el retroceso.
+  POSICION CLAVE: Posición inferior inversa: antepié retrasado y talón posterior alto, rodilla trasera cercana al suelo y pelvis entre las piernas.
+  FASE Retroceso: Un pie deja la salida hacia atrás mientras el delantero conserva su superficie de contacto para recibir más peso.
+  FASE Bajada sobre el apoyo fijo: La pelvis baja entre los contactos con flexión de ambas rodillas, sin que el talón delantero se despegue del suelo.
+  FASE Recuperación del pie posterior: El apoyo delantero eleva el cuerpo y permite traer de vuelta la pierna de atrás junto a la que quedó fija.
+
+RECHAZAR SI:
+  - Pies paralelos y descenso bilateral como una sentadilla.
+  - Rodilla posterior apoyada en el suelo o pie posterior elevado sobre un banco.
+  - Cargas suspendidas sin contacto con el atleta.
+  - Piernas cruzadas o pies alineados sobre una misma calle.
+
+QA (si/no, inspector limpio):
+  1. ¿La planta delantera toca el suelo y el talón está apoyado?
+  2. ¿La rodilla posterior queda doblada y cerca del piso sin apoyarse en él?
+  3. ¿El antepié posterior apoya en el suelo con el talón elevado, sin quedar el pie suspendido?
+  4. ¿Los dos pies están separados delante y detrás, sin que el posterior repose sobre un banco?
+  5. ¿El torso conserva su orientación sin retorcerse hacia un lado?
+  6. ¿En Barra, el eje descansa en la espalda alta por debajo del cuello, las dos manos lo agarran por fuera de los hombros y los discos quedan elevados sobre el suelo?
+  7. ¿En Peso Corporal, no hay carga externa ni asa y ambas manos descansan en la cintura?
+  8. ¿En Polea, una sola mano agarra el asa junto a su cadera con el codo extendido, el cable visible sale de una polea baja delante del atleta y no atraviesa el cuerpo?
+  9. ¿En Mancuernas, hay exactamente una pesa agarrada por cada mano con palmas hacia los muslos, brazos largos y ambas cargas suspendidas sin tocar el suelo?
+  10. ¿En Kettlebell, hay una sola pesa ante el esternón y las dos manos agarran los lados de su asa, con el cuerpo de la pesa debajo y los codos flexionados hacia abajo?
+  11. ¿En Smith, la barra toca la espalda alta y ambas manos la agarran, con sus dos carros unidos a dos raíles reales visibles y los discos elevados sobre el suelo?
+
+== reverse_lunge x cable
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Three-quarter side view of an athlete frozen at the BOTTOM of a reverse lunge. Front knee is bent about 90 degrees, front foot flat on the floor; rear knee is close to the floor but not touching, rear toes planted and heel lifted. Torso upright, feet on separate tracks. One hand grips a single cable handle beside its hip with the elbow straight. A taut visible cable connects that hand to a low pulley; the other hand rests on the waist. The low pulley is in front of the athlete, who faces the station.
+
+GEOMETRIA: Polea baja con un asa individual junto a la cadera de un lado, agarrada por la mano de ese lado con el codo extendido. Cable visible, sin atravesar el cuerpo; la pierna contraria cambia de posición. La estación se encuentra delante del atleta; el atleta mira hacia ella.
+CAMARA: Vista lateral en tres cuartos, con cuerpo entero, suelo y contactos de la carga visibles.
+FASE: Fondo del descenso: rodilla anterior doblada y rodilla posterior suspendida cerca del suelo, antes de la subida.
+ORIENTACION: Torso orientado al frente del paso, cuello prolongando la columna y mirada al frente.
+CONTACTOS: Planta delantera pegada al suelo, antepié posterior en el piso y rodilla posterior sin tocarlo; el soporte de carga corresponde al implemento, salvo en corporal.
+POSTURA: Pelvis entre los pies, rodilla delantera cerca de un ángulo recto y talón delantero apoyado; sin giro visible del torso.
+CARGA: Peso corporal sobre los apoyos y carga externa, si corresponde, sostenida en el contacto propio del implemento sin apoyarse en el suelo.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: Zancada en la que la pierna de trabajo conserva el pie plantado y la contraria se desplaza atrás para el descenso. La carga acompaña el torso por su sujeción elegida, o solo se usa el peso corporal; el pie que retrocedió vuelve a la salida.
+  POSICION CLAVE: Apoyo fijo: toda la planta anterior permanece en el mismo sitio del suelo durante el retroceso.
+  POSICION CLAVE: Posición inferior inversa: antepié retrasado y talón posterior alto, rodilla trasera cercana al suelo y pelvis entre las piernas.
+  FASE Retroceso: Un pie deja la salida hacia atrás mientras el delantero conserva su superficie de contacto para recibir más peso.
+  FASE Bajada sobre el apoyo fijo: La pelvis baja entre los contactos con flexión de ambas rodillas, sin que el talón delantero se despegue del suelo.
+  FASE Recuperación del pie posterior: El apoyo delantero eleva el cuerpo y permite traer de vuelta la pierna de atrás junto a la que quedó fija.
+
+RECHAZAR SI:
+  - Pies paralelos y descenso bilateral como una sentadilla.
+  - Rodilla posterior apoyada en el suelo o pie posterior elevado sobre un banco.
+  - Cargas suspendidas sin contacto con el atleta.
+  - Piernas cruzadas o pies alineados sobre una misma calle.
+
+QA (si/no, inspector limpio):
+  1. ¿La planta delantera toca el suelo y el talón está apoyado?
+  2. ¿La rodilla posterior queda doblada y cerca del piso sin apoyarse en él?
+  3. ¿El antepié posterior apoya en el suelo con el talón elevado, sin quedar el pie suspendido?
+  4. ¿Los dos pies están separados delante y detrás, sin que el posterior repose sobre un banco?
+  5. ¿El torso conserva su orientación sin retorcerse hacia un lado?
+  6. ¿En Barra, el eje descansa en la espalda alta por debajo del cuello, las dos manos lo agarran por fuera de los hombros y los discos quedan elevados sobre el suelo?
+  7. ¿En Peso Corporal, no hay carga externa ni asa y ambas manos descansan en la cintura?
+  8. ¿En Polea, una sola mano agarra el asa junto a su cadera con el codo extendido, el cable visible sale de una polea baja delante del atleta y no atraviesa el cuerpo?
+  9. ¿En Mancuernas, hay exactamente una pesa agarrada por cada mano con palmas hacia los muslos, brazos largos y ambas cargas suspendidas sin tocar el suelo?
+  10. ¿En Kettlebell, hay una sola pesa ante el esternón y las dos manos agarran los lados de su asa, con el cuerpo de la pesa debajo y los codos flexionados hacia abajo?
+  11. ¿En Smith, la barra toca la espalda alta y ambas manos la agarran, con sus dos carros unidos a dos raíles reales visibles y los discos elevados sobre el suelo?
+
+== reverse_lunge x dumbbells
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Three-quarter side view of an athlete frozen at the BOTTOM of a reverse lunge. Front knee is bent about 90 degrees, front foot flat on the floor; rear knee is close to the floor but not touching, rear toes planted and heel lifted. Torso upright, feet on separate tracks. Each hand grips one dumbbell with a neutral grip, arms hanging at the sides. Both dumbbells are clear of the floor beside the legs.
+
+GEOMETRIA: Una mancuerna agarrada por cada mano con palmas hacia los muslos y brazos extendidos a los costados. En el fondo, ambas pesas quedan junto a las piernas, suspendidas sin tocar el suelo.
+CAMARA: Vista lateral en tres cuartos, con cuerpo entero, suelo y contactos de la carga visibles.
+FASE: Fondo del descenso: rodilla anterior doblada y rodilla posterior suspendida cerca del suelo, antes de la subida.
+ORIENTACION: Torso orientado al frente del paso, cuello prolongando la columna y mirada al frente.
+CONTACTOS: Planta delantera pegada al suelo, antepié posterior en el piso y rodilla posterior sin tocarlo; el soporte de carga corresponde al implemento, salvo en corporal.
+POSTURA: Pelvis entre los pies, rodilla delantera cerca de un ángulo recto y talón delantero apoyado; sin giro visible del torso.
+CARGA: Peso corporal sobre los apoyos y carga externa, si corresponde, sostenida en el contacto propio del implemento sin apoyarse en el suelo.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: Zancada en la que la pierna de trabajo conserva el pie plantado y la contraria se desplaza atrás para el descenso. La carga acompaña el torso por su sujeción elegida, o solo se usa el peso corporal; el pie que retrocedió vuelve a la salida.
+  POSICION CLAVE: Apoyo fijo: toda la planta anterior permanece en el mismo sitio del suelo durante el retroceso.
+  POSICION CLAVE: Posición inferior inversa: antepié retrasado y talón posterior alto, rodilla trasera cercana al suelo y pelvis entre las piernas.
+  FASE Retroceso: Un pie deja la salida hacia atrás mientras el delantero conserva su superficie de contacto para recibir más peso.
+  FASE Bajada sobre el apoyo fijo: La pelvis baja entre los contactos con flexión de ambas rodillas, sin que el talón delantero se despegue del suelo.
+  FASE Recuperación del pie posterior: El apoyo delantero eleva el cuerpo y permite traer de vuelta la pierna de atrás junto a la que quedó fija.
+
+RECHAZAR SI:
+  - Pies paralelos y descenso bilateral como una sentadilla.
+  - Rodilla posterior apoyada en el suelo o pie posterior elevado sobre un banco.
+  - Cargas suspendidas sin contacto con el atleta.
+  - Piernas cruzadas o pies alineados sobre una misma calle.
+
+QA (si/no, inspector limpio):
+  1. ¿La planta delantera toca el suelo y el talón está apoyado?
+  2. ¿La rodilla posterior queda doblada y cerca del piso sin apoyarse en él?
+  3. ¿El antepié posterior apoya en el suelo con el talón elevado, sin quedar el pie suspendido?
+  4. ¿Los dos pies están separados delante y detrás, sin que el posterior repose sobre un banco?
+  5. ¿El torso conserva su orientación sin retorcerse hacia un lado?
+  6. ¿En Barra, el eje descansa en la espalda alta por debajo del cuello, las dos manos lo agarran por fuera de los hombros y los discos quedan elevados sobre el suelo?
+  7. ¿En Peso Corporal, no hay carga externa ni asa y ambas manos descansan en la cintura?
+  8. ¿En Polea, una sola mano agarra el asa junto a su cadera con el codo extendido, el cable visible sale de una polea baja delante del atleta y no atraviesa el cuerpo?
+  9. ¿En Mancuernas, hay exactamente una pesa agarrada por cada mano con palmas hacia los muslos, brazos largos y ambas cargas suspendidas sin tocar el suelo?
+  10. ¿En Kettlebell, hay una sola pesa ante el esternón y las dos manos agarran los lados de su asa, con el cuerpo de la pesa debajo y los codos flexionados hacia abajo?
+  11. ¿En Smith, la barra toca la espalda alta y ambas manos la agarran, con sus dos carros unidos a dos raíles reales visibles y los discos elevados sobre el suelo?
+
+== reverse_lunge x kettlebell
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Three-quarter side view of an athlete frozen at the BOTTOM of a reverse lunge. Front knee is bent about 90 degrees, front foot flat on the floor; rear knee is close to the floor but not touching, rear toes planted and heel lifted. Torso upright, feet on separate tracks. Both hands grip the sides of a single kettlebell handle at chest height. Elbows are bent downward; the bell hangs below its handle and remains far above the floor.
+
+GEOMETRIA: Una kettlebell frente al esternón, con el cuerpo de la pesa bajo el asa. Ambas manos agarran los lados del asa y ambos codos están flexionados, dirigidos abajo; la pesa no toca el suelo.
+CAMARA: Vista lateral en tres cuartos, con cuerpo entero, suelo y contactos de la carga visibles.
+FASE: Fondo del descenso: rodilla anterior doblada y rodilla posterior suspendida cerca del suelo, antes de la subida.
+ORIENTACION: Torso orientado al frente del paso, cuello prolongando la columna y mirada al frente.
+CONTACTOS: Planta delantera pegada al suelo, antepié posterior en el piso y rodilla posterior sin tocarlo; el soporte de carga corresponde al implemento, salvo en corporal.
+POSTURA: Pelvis entre los pies, rodilla delantera cerca de un ángulo recto y talón delantero apoyado; sin giro visible del torso.
+CARGA: Peso corporal sobre los apoyos y carga externa, si corresponde, sostenida en el contacto propio del implemento sin apoyarse en el suelo.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: Zancada en la que la pierna de trabajo conserva el pie plantado y la contraria se desplaza atrás para el descenso. La carga acompaña el torso por su sujeción elegida, o solo se usa el peso corporal; el pie que retrocedió vuelve a la salida.
+  POSICION CLAVE: Apoyo fijo: toda la planta anterior permanece en el mismo sitio del suelo durante el retroceso.
+  POSICION CLAVE: Posición inferior inversa: antepié retrasado y talón posterior alto, rodilla trasera cercana al suelo y pelvis entre las piernas.
+  FASE Retroceso: Un pie deja la salida hacia atrás mientras el delantero conserva su superficie de contacto para recibir más peso.
+  FASE Bajada sobre el apoyo fijo: La pelvis baja entre los contactos con flexión de ambas rodillas, sin que el talón delantero se despegue del suelo.
+  FASE Recuperación del pie posterior: El apoyo delantero eleva el cuerpo y permite traer de vuelta la pierna de atrás junto a la que quedó fija.
+
+RECHAZAR SI:
+  - Pies paralelos y descenso bilateral como una sentadilla.
+  - Rodilla posterior apoyada en el suelo o pie posterior elevado sobre un banco.
+  - Cargas suspendidas sin contacto con el atleta.
+  - Piernas cruzadas o pies alineados sobre una misma calle.
+
+QA (si/no, inspector limpio):
+  1. ¿La planta delantera toca el suelo y el talón está apoyado?
+  2. ¿La rodilla posterior queda doblada y cerca del piso sin apoyarse en él?
+  3. ¿El antepié posterior apoya en el suelo con el talón elevado, sin quedar el pie suspendido?
+  4. ¿Los dos pies están separados delante y detrás, sin que el posterior repose sobre un banco?
+  5. ¿El torso conserva su orientación sin retorcerse hacia un lado?
+  6. ¿En Barra, el eje descansa en la espalda alta por debajo del cuello, las dos manos lo agarran por fuera de los hombros y los discos quedan elevados sobre el suelo?
+  7. ¿En Peso Corporal, no hay carga externa ni asa y ambas manos descansan en la cintura?
+  8. ¿En Polea, una sola mano agarra el asa junto a su cadera con el codo extendido, el cable visible sale de una polea baja delante del atleta y no atraviesa el cuerpo?
+  9. ¿En Mancuernas, hay exactamente una pesa agarrada por cada mano con palmas hacia los muslos, brazos largos y ambas cargas suspendidas sin tocar el suelo?
+  10. ¿En Kettlebell, hay una sola pesa ante el esternón y las dos manos agarran los lados de su asa, con el cuerpo de la pesa debajo y los codos flexionados hacia abajo?
+  11. ¿En Smith, la barra toca la espalda alta y ambas manos la agarran, con sus dos carros unidos a dos raíles reales visibles y los discos elevados sobre el suelo?
+
+== reverse_lunge x smith_machine
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Three-quarter side view of an athlete frozen at the BOTTOM of a reverse lunge. Front knee is bent about 90 degrees, front foot flat on the floor; rear knee is close to the floor but not touching, rear toes planted and heel lifted. Torso upright, feet on separate tracks. Both hands grip the Smith bar resting across the upper back. Its carriage is attached to two visible fixed rails; plates are above the floor and safety stops are lower.
+
+GEOMETRIA: Eje transversal sobre la espalda alta, unido a un carro que baja entre dos raíles visibles. Ambas manos agarran el eje; los discos siguen elevados sobre el piso y los seguros quedan más abajo.
+CAMARA: Vista lateral en tres cuartos, con cuerpo entero, suelo y contactos de la carga visibles.
+FASE: Fondo del descenso: rodilla anterior doblada y rodilla posterior suspendida cerca del suelo, antes de la subida.
+ORIENTACION: Torso orientado al frente del paso, cuello prolongando la columna y mirada al frente.
+CONTACTOS: Planta delantera pegada al suelo, antepié posterior en el piso y rodilla posterior sin tocarlo; el soporte de carga corresponde al implemento, salvo en corporal.
+POSTURA: Pelvis entre los pies, rodilla delantera cerca de un ángulo recto y talón delantero apoyado; sin giro visible del torso.
+CARGA: Peso corporal sobre los apoyos y carga externa, si corresponde, sostenida en el contacto propio del implemento sin apoyarse en el suelo.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: Zancada en la que la pierna de trabajo conserva el pie plantado y la contraria se desplaza atrás para el descenso. La carga acompaña el torso por su sujeción elegida, o solo se usa el peso corporal; el pie que retrocedió vuelve a la salida.
+  POSICION CLAVE: Apoyo fijo: toda la planta anterior permanece en el mismo sitio del suelo durante el retroceso.
+  POSICION CLAVE: Posición inferior inversa: antepié retrasado y talón posterior alto, rodilla trasera cercana al suelo y pelvis entre las piernas.
+  FASE Retroceso: Un pie deja la salida hacia atrás mientras el delantero conserva su superficie de contacto para recibir más peso.
+  FASE Bajada sobre el apoyo fijo: La pelvis baja entre los contactos con flexión de ambas rodillas, sin que el talón delantero se despegue del suelo.
+  FASE Recuperación del pie posterior: El apoyo delantero eleva el cuerpo y permite traer de vuelta la pierna de atrás junto a la que quedó fija.
+
+RECHAZAR SI:
+  - Pies paralelos y descenso bilateral como una sentadilla.
+  - Rodilla posterior apoyada en el suelo o pie posterior elevado sobre un banco.
+  - Cargas suspendidas sin contacto con el atleta.
+  - Piernas cruzadas o pies alineados sobre una misma calle.
+
+QA (si/no, inspector limpio):
+  1. ¿La planta delantera toca el suelo y el talón está apoyado?
+  2. ¿La rodilla posterior queda doblada y cerca del piso sin apoyarse en él?
+  3. ¿El antepié posterior apoya en el suelo con el talón elevado, sin quedar el pie suspendido?
+  4. ¿Los dos pies están separados delante y detrás, sin que el posterior repose sobre un banco?
+  5. ¿El torso conserva su orientación sin retorcerse hacia un lado?
+  6. ¿En Barra, el eje descansa en la espalda alta por debajo del cuello, las dos manos lo agarran por fuera de los hombros y los discos quedan elevados sobre el suelo?
+  7. ¿En Peso Corporal, no hay carga externa ni asa y ambas manos descansan en la cintura?
+  8. ¿En Polea, una sola mano agarra el asa junto a su cadera con el codo extendido, el cable visible sale de una polea baja delante del atleta y no atraviesa el cuerpo?
+  9. ¿En Mancuernas, hay exactamente una pesa agarrada por cada mano con palmas hacia los muslos, brazos largos y ambas cargas suspendidas sin tocar el suelo?
+  10. ¿En Kettlebell, hay una sola pesa ante el esternón y las dos manos agarran los lados de su asa, con el cuerpo de la pesa debajo y los codos flexionados hacia abajo?
+  11. ¿En Smith, la barra toca la espalda alta y ambas manos la agarran, con sus dos carros unidos a dos raíles reales visibles y los discos elevados sobre el suelo?
+
+== walking_lunge x barbell
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Three-quarter side view of an athlete frozen at the BOTTOM of a walking lunge. Front knee is bent about 90 degrees, front foot flat on the floor; rear knee is close to the floor but not touching, rear toes planted and heel lifted. Torso upright, feet on separate tracks. A barbell rests across the upper back below the neck; both hands grip it outside the shoulders. Plates remain above the floor.
+
+GEOMETRIA: Eje transversal sobre los trapecios, por debajo del cuello, sujeto a ambos lados por las manos. Los discos quedan a los lados de los hombros y por encima del piso.
+CAMARA: Vista lateral en tres cuartos, con cuerpo entero, suelo y contactos de la carga visibles.
+FASE: Fondo del descenso: rodilla anterior doblada y rodilla posterior suspendida cerca del suelo, antes de la subida.
+ORIENTACION: Torso orientado al frente del paso, cuello prolongando la columna y mirada al frente.
+CONTACTOS: Planta delantera pegada al suelo, antepié posterior en el piso y rodilla posterior sin tocarlo; carga unida a su soporte corporal.
+POSTURA: Pelvis entre los pies, rodilla delantera cerca de un ángulo recto y talón delantero apoyado; sin giro visible del torso.
+CARGA: Carga sostenida por el contacto que corresponde al implemento y elevada del suelo durante el fondo de la zancada.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: Sucesión de zancadas que ganan terreno: después de subir, la pierna posterior pasa delante y recibe la próxima repetición. El torso transporta la carga de la configuración con libertad de avance sobre el suelo y no vuelve a un punto fijo.
+  POSICION CLAVE: Primer apoyo: la pierna adelantada carga la planta mientras el pie de atrás conserva contacto sobre sus dedos.
+  POSICION CLAVE: Transición: la rodilla y la cadera anteriores se extienden antes de que el pie retrasado salga hacia su siguiente apoyo.
+  FASE Paso receptor: Una nueva planta se sitúa delante y recibe el descenso mientras la carga permanece conectada a su soporte corporal.
+  FASE Elevación sobre la pierna anterior: La pierna que llegó delante extiende sus articulaciones para elevar el torso sin impulso de los brazos.
+  FASE Paso siguiente: La pierna posterior adelanta su pie más allá del apoyo receptor y comienza otra bajada en una zona nueva del suelo.
+
+RECHAZAR SI:
+  - Pies paralelos y descenso bilateral como una sentadilla.
+  - Rodilla posterior apoyada en el suelo o pie posterior elevado sobre un banco.
+  - Cargas suspendidas sin contacto con el atleta.
+  - Piernas cruzadas o pies alineados sobre una misma calle.
+  - Smith o cable anclado a una estación fija como soporte del avance.
+
+QA (si/no, inspector limpio):
+  1. ¿La planta delantera toca el suelo y el talón está apoyado?
+  2. ¿La rodilla posterior queda doblada y cerca del piso sin apoyarse en él?
+  3. ¿El antepié posterior apoya en el suelo con el talón elevado, sin quedar el pie suspendido?
+  4. ¿Los dos pies están separados delante y detrás, sin que el posterior repose sobre un banco?
+  5. ¿El torso conserva su orientación sin retorcerse hacia un lado?
+  6. ¿En Barra, el eje descansa en la espalda alta por debajo del cuello, las dos manos lo agarran por fuera de los hombros y los discos quedan elevados sobre el suelo?
+  7. ¿En Mancuernas, hay exactamente una pesa agarrada por cada mano con palmas hacia los muslos, brazos largos y ambas cargas suspendidas sin tocar el suelo?
+  8. ¿En Kettlebell, hay una sola pesa ante el esternón y las dos manos agarran los lados de su asa, con el cuerpo de la pesa debajo y los codos flexionados hacia abajo?
+  9. ¿La escena usa únicamente carga libre y carece de raíles o cables anclados que impidan el avance caminando?
+
+== walking_lunge x dumbbells
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Three-quarter side view of an athlete frozen at the BOTTOM of a walking lunge. Front knee is bent about 90 degrees, front foot flat on the floor; rear knee is close to the floor but not touching, rear toes planted and heel lifted. Torso upright, feet on separate tracks. Each hand grips one dumbbell with a neutral grip, arms hanging at the sides. Both dumbbells are clear of the floor beside the legs.
+
+GEOMETRIA: Una mancuerna agarrada por cada mano con palmas hacia los muslos y brazos extendidos a los costados. En el fondo, ambas pesas quedan junto a las piernas, suspendidas sin tocar el suelo.
+CAMARA: Vista lateral en tres cuartos, con cuerpo entero, suelo y contactos de la carga visibles.
+FASE: Fondo del descenso: rodilla anterior doblada y rodilla posterior suspendida cerca del suelo, antes de la subida.
+ORIENTACION: Torso orientado al frente del paso, cuello prolongando la columna y mirada al frente.
+CONTACTOS: Planta delantera pegada al suelo, antepié posterior en el piso y rodilla posterior sin tocarlo; carga unida a su soporte corporal.
+POSTURA: Pelvis entre los pies, rodilla delantera cerca de un ángulo recto y talón delantero apoyado; sin giro visible del torso.
+CARGA: Carga sostenida por el contacto que corresponde al implemento y elevada del suelo durante el fondo de la zancada.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: Sucesión de zancadas que ganan terreno: después de subir, la pierna posterior pasa delante y recibe la próxima repetición. El torso transporta la carga de la configuración con libertad de avance sobre el suelo y no vuelve a un punto fijo.
+  POSICION CLAVE: Primer apoyo: la pierna adelantada carga la planta mientras el pie de atrás conserva contacto sobre sus dedos.
+  POSICION CLAVE: Transición: la rodilla y la cadera anteriores se extienden antes de que el pie retrasado salga hacia su siguiente apoyo.
+  FASE Paso receptor: Una nueva planta se sitúa delante y recibe el descenso mientras la carga permanece conectada a su soporte corporal.
+  FASE Elevación sobre la pierna anterior: La pierna que llegó delante extiende sus articulaciones para elevar el torso sin impulso de los brazos.
+  FASE Paso siguiente: La pierna posterior adelanta su pie más allá del apoyo receptor y comienza otra bajada en una zona nueva del suelo.
+
+RECHAZAR SI:
+  - Pies paralelos y descenso bilateral como una sentadilla.
+  - Rodilla posterior apoyada en el suelo o pie posterior elevado sobre un banco.
+  - Cargas suspendidas sin contacto con el atleta.
+  - Piernas cruzadas o pies alineados sobre una misma calle.
+  - Smith o cable anclado a una estación fija como soporte del avance.
+
+QA (si/no, inspector limpio):
+  1. ¿La planta delantera toca el suelo y el talón está apoyado?
+  2. ¿La rodilla posterior queda doblada y cerca del piso sin apoyarse en él?
+  3. ¿El antepié posterior apoya en el suelo con el talón elevado, sin quedar el pie suspendido?
+  4. ¿Los dos pies están separados delante y detrás, sin que el posterior repose sobre un banco?
+  5. ¿El torso conserva su orientación sin retorcerse hacia un lado?
+  6. ¿En Barra, el eje descansa en la espalda alta por debajo del cuello, las dos manos lo agarran por fuera de los hombros y los discos quedan elevados sobre el suelo?
+  7. ¿En Mancuernas, hay exactamente una pesa agarrada por cada mano con palmas hacia los muslos, brazos largos y ambas cargas suspendidas sin tocar el suelo?
+  8. ¿En Kettlebell, hay una sola pesa ante el esternón y las dos manos agarran los lados de su asa, con el cuerpo de la pesa debajo y los codos flexionados hacia abajo?
+  9. ¿La escena usa únicamente carga libre y carece de raíles o cables anclados que impidan el avance caminando?
+
+== walking_lunge x kettlebell
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Three-quarter side view of an athlete frozen at the BOTTOM of a walking lunge. Front knee is bent about 90 degrees, front foot flat on the floor; rear knee is close to the floor but not touching, rear toes planted and heel lifted. Torso upright, feet on separate tracks. Both hands grip the sides of a single kettlebell handle at chest height. Elbows are bent downward; the bell hangs below its handle and remains far above the floor.
+
+GEOMETRIA: Una kettlebell frente al esternón, con el cuerpo de la pesa bajo el asa. Ambas manos agarran los lados del asa y ambos codos están flexionados, dirigidos abajo; la pesa no toca el suelo.
+CAMARA: Vista lateral en tres cuartos, con cuerpo entero, suelo y contactos de la carga visibles.
+FASE: Fondo del descenso: rodilla anterior doblada y rodilla posterior suspendida cerca del suelo, antes de la subida.
+ORIENTACION: Torso orientado al frente del paso, cuello prolongando la columna y mirada al frente.
+CONTACTOS: Planta delantera pegada al suelo, antepié posterior en el piso y rodilla posterior sin tocarlo; carga unida a su soporte corporal.
+POSTURA: Pelvis entre los pies, rodilla delantera cerca de un ángulo recto y talón delantero apoyado; sin giro visible del torso.
+CARGA: Carga sostenida por el contacto que corresponde al implemento y elevada del suelo durante el fondo de la zancada.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: Sucesión de zancadas que ganan terreno: después de subir, la pierna posterior pasa delante y recibe la próxima repetición. El torso transporta la carga de la configuración con libertad de avance sobre el suelo y no vuelve a un punto fijo.
+  POSICION CLAVE: Primer apoyo: la pierna adelantada carga la planta mientras el pie de atrás conserva contacto sobre sus dedos.
+  POSICION CLAVE: Transición: la rodilla y la cadera anteriores se extienden antes de que el pie retrasado salga hacia su siguiente apoyo.
+  FASE Paso receptor: Una nueva planta se sitúa delante y recibe el descenso mientras la carga permanece conectada a su soporte corporal.
+  FASE Elevación sobre la pierna anterior: La pierna que llegó delante extiende sus articulaciones para elevar el torso sin impulso de los brazos.
+  FASE Paso siguiente: La pierna posterior adelanta su pie más allá del apoyo receptor y comienza otra bajada en una zona nueva del suelo.
+
+RECHAZAR SI:
+  - Pies paralelos y descenso bilateral como una sentadilla.
+  - Rodilla posterior apoyada en el suelo o pie posterior elevado sobre un banco.
+  - Cargas suspendidas sin contacto con el atleta.
+  - Piernas cruzadas o pies alineados sobre una misma calle.
+  - Smith o cable anclado a una estación fija como soporte del avance.
+
+QA (si/no, inspector limpio):
+  1. ¿La planta delantera toca el suelo y el talón está apoyado?
+  2. ¿La rodilla posterior queda doblada y cerca del piso sin apoyarse en él?
+  3. ¿El antepié posterior apoya en el suelo con el talón elevado, sin quedar el pie suspendido?
+  4. ¿Los dos pies están separados delante y detrás, sin que el posterior repose sobre un banco?
+  5. ¿El torso conserva su orientación sin retorcerse hacia un lado?
+  6. ¿En Barra, el eje descansa en la espalda alta por debajo del cuello, las dos manos lo agarran por fuera de los hombros y los discos quedan elevados sobre el suelo?
+  7. ¿En Mancuernas, hay exactamente una pesa agarrada por cada mano con palmas hacia los muslos, brazos largos y ambas cargas suspendidas sin tocar el suelo?
+  8. ¿En Kettlebell, hay una sola pesa ante el esternón y las dos manos agarran los lados de su asa, con el cuerpo de la pesa debajo y los codos flexionados hacia abajo?
+  9. ¿La escena usa únicamente carga libre y carece de raíles o cables anclados que impidan el avance caminando?
+
+== step_up x barbell
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Oblique side view, frozen halfway through a forward barbell step-up. The entire left foot and heel are on a solid box; the left hip and knee are partly extending. The right foot is airborne behind the box. A straight bar rests across the upper back below the neck; both hands grip it overhand outside the shoulders. Plates remain clear of the box and floor. Pelvis level, spine neutral, no jump.
+
+GEOMETRIA: Barra transversal sobre espalda alta, por debajo del cuello; manos en prono a ambos lados de los hombros, discos fuera del ancho del torso y del cajón.
+CAMARA: Vista lateral oblicua que muestre ambas piernas, borde del cajón y contacto de manos con la carga.
+FASE: Mitad final del ascenso, con el pie libre suspendido detrás y la rodilla del apoyo todavía algo flexionada.
+ORIENTACION: Atleta de frente al cajón, cabeza a la izquierda de la imagen y pies en planos sagitales próximos.
+CONTACTOS: Todo el pie de trabajo, incluido el talón, sobre el cajón; pie libre en el aire; manos en contacto con la carga.
+POSTURA: Pelvis aproximadamente horizontal, rodilla elevada dirigida sobre los dedos y columna neutra sin extensión añadida.
+CARGA: Carga unida al cuerpo por el soporte correspondiente y separada del suelo, sin descanso sobre el cajón.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: Ascenso frontal repetido a un cajón: un pie permanece arriba mientras la otra pierna pasa del suelo a la altura de la plataforma y regresa. La rodilla y la cadera del apoyo elevado se extienden para levantar cuerpo y carga; no es un salto ni un paso cruzado.
+  POSICION CLAVE: Inicio: pie elevado firme, rodilla y cadera flexionadas, pie libre apoyado abajo sin empuje anticipado.
+  POSICION CLAVE: Ascenso intermedio: talón elevado sobre la plataforma, rodilla alineada con el pie, pie libre separado del suelo y pelvis cerca de horizontal.
+  POSICION CLAVE: Final: articulaciones del apoyo extendidas sin bloquearlas hacia atrás; la otra pierna termina elevada a la altura del escalón sin tomar el peso principal.
+  FASE Preparación: El pie elevado recibe la carga antes de que el pie libre abandone el suelo; los brazos fijan su contacto con el implemento.
+  FASE Ascenso: La cadera y la rodilla del apoyo se extienden mientras el cuerpo gana altura; el pie libre acompaña sin salto.
+  FASE Llegada: La pierna apoyada termina extendida y el pie libre queda junto a la plataforma, sin un gesto añadido de elevación de rodilla.
+  FASE Regreso: La misma pierna flexiona cadera y rodilla para acercar el pie libre al suelo; este toca sin recibir una caída brusca.
+
+RECHAZAR SI:
+  - Salto con los dos pies en el aire, en lugar de un pie que permanezca sobre el cajón.
+  - Carga flotante, manos separadas de las asas o pesas apoyadas sobre la plataforma.
+  - Pie libre empujando desde el suelo en el fotograma indicado.
+  - Barra sobre hombros delanteros o en los codos dentro del brief de barra trasera: pertenecen a especialidades separadas.
+  - Cable de polea alta que ayude a levantar el cuerpo, o asas acercadas por un remo.
+
+QA (si/no, inspector limpio):
+  1. ¿El pie de trabajo está entero sobre el cajón y el talón sigue apoyado?
+  2. ¿El pie libre está en el aire detrás de la plataforma durante el ascenso?
+  3. ¿La rodilla de apoyo aún está algo flexionada en el fotograma indicado?
+  4. ¿Ambas manos sujetan de forma visible las pesas, asas o eje y ninguna carga flota?
+  5. ¿La pelvis evita una caída lateral marcada y la espalda no forma un arco hacia atrás?
+  6. ¿En Barra, el eje toca la espalda alta, ambas manos lo agarran en prono por fuera de los hombros y los discos quedan separados del cajón y del suelo?
+  7. ¿En Smith, el eje toca la espalda alta con ambas manos agarrándolo y sus dos carros se unen visiblemente a dos carriles reales, con el cajón dentro de la estación y libre de la base?
+  8. ¿En Mancuernas, hay una pesa agarrada de forma visible por cada mano en neutro, con los brazos largos y las dos cargas fuera de los muslos y bordes del cajón?
+  9. ¿En Kettlebell, una sola pesa queda ante el esternón y ambas palmas rodean y sostienen visiblemente su cuerpo redondo, con los codos doblados y el asa libre del cajón?
+  10. ¿En Polea, cada mano agarra su propia asa con el brazo largo y dos cables tensos salen de dos poleas bajas próximas al cajón, por fuera de las piernas y sin cruzar el borde?
+
+== step_up x cable
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Oblique side view, frozen halfway through a forward cable step-up. Entire left foot and heel on a solid box, left knee partly extended, right foot airborne behind it. Each hand firmly grips one stirrup handle at its side with a straight arm. Two taut cables run outside the legs from the handles to two low pulleys close beside the box. No cable crosses the platform edge. Pelvis level, spine neutral, no rowing motion.
+
+GEOMETRIA: Cajón entre dos salidas de polea bajas y próximas; una asa en cada mano colgante y un cable tenso hacia cada salida, por fuera de las piernas, sin contacto con el borde.
+CAMARA: Vista lateral oblicua que muestre ambas piernas, borde del cajón y contacto de manos con la carga.
+FASE: Mitad final del ascenso, con el pie libre suspendido detrás y la rodilla del apoyo todavía algo flexionada.
+ORIENTACION: Atleta de frente al cajón, cabeza a la izquierda de la imagen y pies en planos sagitales próximos.
+CONTACTOS: Todo el pie de trabajo, incluido el talón, sobre el cajón; pie libre en el aire; manos en contacto con la carga.
+POSTURA: Pelvis aproximadamente horizontal, rodilla elevada dirigida sobre los dedos y columna neutra sin extensión añadida.
+CARGA: Carga unida al cuerpo por el soporte correspondiente y separada del suelo, sin descanso sobre el cajón.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: Ascenso frontal repetido a un cajón: un pie permanece arriba mientras la otra pierna pasa del suelo a la altura de la plataforma y regresa. La rodilla y la cadera del apoyo elevado se extienden para levantar cuerpo y carga; no es un salto ni un paso cruzado.
+  POSICION CLAVE: Inicio: pie elevado firme, rodilla y cadera flexionadas, pie libre apoyado abajo sin empuje anticipado.
+  POSICION CLAVE: Ascenso intermedio: talón elevado sobre la plataforma, rodilla alineada con el pie, pie libre separado del suelo y pelvis cerca de horizontal.
+  POSICION CLAVE: Final: articulaciones del apoyo extendidas sin bloquearlas hacia atrás; la otra pierna termina elevada a la altura del escalón sin tomar el peso principal.
+  FASE Preparación: El pie elevado recibe la carga antes de que el pie libre abandone el suelo; los brazos fijan su contacto con el implemento.
+  FASE Ascenso: La cadera y la rodilla del apoyo se extienden mientras el cuerpo gana altura; el pie libre acompaña sin salto.
+  FASE Llegada: La pierna apoyada termina extendida y el pie libre queda junto a la plataforma, sin un gesto añadido de elevación de rodilla.
+  FASE Regreso: La misma pierna flexiona cadera y rodilla para acercar el pie libre al suelo; este toca sin recibir una caída brusca.
+
+RECHAZAR SI:
+  - Salto con los dos pies en el aire, en lugar de un pie que permanezca sobre el cajón.
+  - Carga flotante, manos separadas de las asas o pesas apoyadas sobre la plataforma.
+  - Pie libre empujando desde el suelo en el fotograma indicado.
+  - Barra sobre hombros delanteros o en los codos dentro del brief de barra trasera: pertenecen a especialidades separadas.
+  - Cable de polea alta que ayude a levantar el cuerpo, o asas acercadas por un remo.
+
+QA (si/no, inspector limpio):
+  1. ¿El pie de trabajo está entero sobre el cajón y el talón sigue apoyado?
+  2. ¿El pie libre está en el aire detrás de la plataforma durante el ascenso?
+  3. ¿La rodilla de apoyo aún está algo flexionada en el fotograma indicado?
+  4. ¿Ambas manos sujetan de forma visible las pesas, asas o eje y ninguna carga flota?
+  5. ¿La pelvis evita una caída lateral marcada y la espalda no forma un arco hacia atrás?
+  6. ¿En Barra, el eje toca la espalda alta, ambas manos lo agarran en prono por fuera de los hombros y los discos quedan separados del cajón y del suelo?
+  7. ¿En Smith, el eje toca la espalda alta con ambas manos agarrándolo y sus dos carros se unen visiblemente a dos carriles reales, con el cajón dentro de la estación y libre de la base?
+  8. ¿En Mancuernas, hay una pesa agarrada de forma visible por cada mano en neutro, con los brazos largos y las dos cargas fuera de los muslos y bordes del cajón?
+  9. ¿En Kettlebell, una sola pesa queda ante el esternón y ambas palmas rodean y sostienen visiblemente su cuerpo redondo, con los codos doblados y el asa libre del cajón?
+  10. ¿En Polea, cada mano agarra su propia asa con el brazo largo y dos cables tensos salen de dos poleas bajas próximas al cajón, por fuera de las piernas y sin cruzar el borde?
+
+== step_up x dumbbells
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Oblique side view, frozen halfway through a forward dumbbell step-up. The entire left foot including the heel rests on a solid box. Left knee is still slightly bent, pelvis level, spine neutral. Right foot is airborne behind the box. Each hand firmly grips one dumbbell with a neutral grip; both arms hang straight beside the thighs. The dumbbells remain outside the box edges and above the floor.
+
+GEOMETRIA: Una mancuerna firmemente agarrada por cada mano en neutro; brazos largos, cargas por fuera de los muslos y del borde lateral del cajón, sin tocarlo.
+CAMARA: Vista lateral oblicua que muestre ambas piernas, borde del cajón y contacto de manos con la carga.
+FASE: Mitad final del ascenso, con el pie libre suspendido detrás y la rodilla del apoyo todavía algo flexionada.
+ORIENTACION: Atleta de frente al cajón, cabeza a la izquierda de la imagen y pies en planos sagitales próximos.
+CONTACTOS: Todo el pie de trabajo, incluido el talón, sobre el cajón; pie libre en el aire; manos en contacto con la carga.
+POSTURA: Pelvis aproximadamente horizontal, rodilla elevada dirigida sobre los dedos y columna neutra sin extensión añadida.
+CARGA: Carga unida al cuerpo por el soporte correspondiente y separada del suelo, sin descanso sobre el cajón.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: Ascenso frontal repetido a un cajón: un pie permanece arriba mientras la otra pierna pasa del suelo a la altura de la plataforma y regresa. La rodilla y la cadera del apoyo elevado se extienden para levantar cuerpo y carga; no es un salto ni un paso cruzado.
+  POSICION CLAVE: Inicio: pie elevado firme, rodilla y cadera flexionadas, pie libre apoyado abajo sin empuje anticipado.
+  POSICION CLAVE: Ascenso intermedio: talón elevado sobre la plataforma, rodilla alineada con el pie, pie libre separado del suelo y pelvis cerca de horizontal.
+  POSICION CLAVE: Final: articulaciones del apoyo extendidas sin bloquearlas hacia atrás; la otra pierna termina elevada a la altura del escalón sin tomar el peso principal.
+  FASE Preparación: El pie elevado recibe la carga antes de que el pie libre abandone el suelo; los brazos fijan su contacto con el implemento.
+  FASE Ascenso: La cadera y la rodilla del apoyo se extienden mientras el cuerpo gana altura; el pie libre acompaña sin salto.
+  FASE Llegada: La pierna apoyada termina extendida y el pie libre queda junto a la plataforma, sin un gesto añadido de elevación de rodilla.
+  FASE Regreso: La misma pierna flexiona cadera y rodilla para acercar el pie libre al suelo; este toca sin recibir una caída brusca.
+
+RECHAZAR SI:
+  - Salto con los dos pies en el aire, en lugar de un pie que permanezca sobre el cajón.
+  - Carga flotante, manos separadas de las asas o pesas apoyadas sobre la plataforma.
+  - Pie libre empujando desde el suelo en el fotograma indicado.
+  - Barra sobre hombros delanteros o en los codos dentro del brief de barra trasera: pertenecen a especialidades separadas.
+  - Cable de polea alta que ayude a levantar el cuerpo, o asas acercadas por un remo.
+
+QA (si/no, inspector limpio):
+  1. ¿El pie de trabajo está entero sobre el cajón y el talón sigue apoyado?
+  2. ¿El pie libre está en el aire detrás de la plataforma durante el ascenso?
+  3. ¿La rodilla de apoyo aún está algo flexionada en el fotograma indicado?
+  4. ¿Ambas manos sujetan de forma visible las pesas, asas o eje y ninguna carga flota?
+  5. ¿La pelvis evita una caída lateral marcada y la espalda no forma un arco hacia atrás?
+  6. ¿En Barra, el eje toca la espalda alta, ambas manos lo agarran en prono por fuera de los hombros y los discos quedan separados del cajón y del suelo?
+  7. ¿En Smith, el eje toca la espalda alta con ambas manos agarrándolo y sus dos carros se unen visiblemente a dos carriles reales, con el cajón dentro de la estación y libre de la base?
+  8. ¿En Mancuernas, hay una pesa agarrada de forma visible por cada mano en neutro, con los brazos largos y las dos cargas fuera de los muslos y bordes del cajón?
+  9. ¿En Kettlebell, una sola pesa queda ante el esternón y ambas palmas rodean y sostienen visiblemente su cuerpo redondo, con los codos doblados y el asa libre del cajón?
+  10. ¿En Polea, cada mano agarra su propia asa con el brazo largo y dos cables tensos salen de dos poleas bajas próximas al cajón, por fuera de las piernas y sin cruzar el borde?
+
+== step_up x kettlebell
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Oblique side view, frozen halfway through a forward goblet kettlebell step-up. Entire left foot and heel on a solid box, left knee still partly bent, right foot airborne behind it. Both palms visibly cup and support the ROUND BODY of one kettlebell close to the sternum, with the fingers wrapped around it. Elbows stay bent near the ribs, handle visible and clear of the platform. The bell remains above the box and floor. Pelvis level, neutral spine.
+
+GEOMETRIA: Una kettlebell delante del esternón: ambas manos rodean y sostienen el cuerpo redondo, codos flexionados próximos al torso y asa visible, sin contacto de la pesa con el cajón.
+CAMARA: Vista lateral oblicua que muestre ambas piernas, borde del cajón y contacto de manos con la carga.
+FASE: Mitad final del ascenso, con el pie libre suspendido detrás y la rodilla del apoyo todavía algo flexionada.
+ORIENTACION: Atleta de frente al cajón, cabeza a la izquierda de la imagen y pies en planos sagitales próximos.
+CONTACTOS: Todo el pie de trabajo, incluido el talón, sobre el cajón; pie libre en el aire; manos en contacto con la carga.
+POSTURA: Pelvis aproximadamente horizontal, rodilla elevada dirigida sobre los dedos y columna neutra sin extensión añadida.
+CARGA: Carga unida al cuerpo por el soporte correspondiente y separada del suelo, sin descanso sobre el cajón.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: Ascenso frontal repetido a un cajón: un pie permanece arriba mientras la otra pierna pasa del suelo a la altura de la plataforma y regresa. La rodilla y la cadera del apoyo elevado se extienden para levantar cuerpo y carga; no es un salto ni un paso cruzado.
+  POSICION CLAVE: Inicio: pie elevado firme, rodilla y cadera flexionadas, pie libre apoyado abajo sin empuje anticipado.
+  POSICION CLAVE: Ascenso intermedio: talón elevado sobre la plataforma, rodilla alineada con el pie, pie libre separado del suelo y pelvis cerca de horizontal.
+  POSICION CLAVE: Final: articulaciones del apoyo extendidas sin bloquearlas hacia atrás; la otra pierna termina elevada a la altura del escalón sin tomar el peso principal.
+  FASE Preparación: El pie elevado recibe la carga antes de que el pie libre abandone el suelo; los brazos fijan su contacto con el implemento.
+  FASE Ascenso: La cadera y la rodilla del apoyo se extienden mientras el cuerpo gana altura; el pie libre acompaña sin salto.
+  FASE Llegada: La pierna apoyada termina extendida y el pie libre queda junto a la plataforma, sin un gesto añadido de elevación de rodilla.
+  FASE Regreso: La misma pierna flexiona cadera y rodilla para acercar el pie libre al suelo; este toca sin recibir una caída brusca.
+
+RECHAZAR SI:
+  - Salto con los dos pies en el aire, en lugar de un pie que permanezca sobre el cajón.
+  - Carga flotante, manos separadas de las asas o pesas apoyadas sobre la plataforma.
+  - Pie libre empujando desde el suelo en el fotograma indicado.
+  - Barra sobre hombros delanteros o en los codos dentro del brief de barra trasera: pertenecen a especialidades separadas.
+  - Cable de polea alta que ayude a levantar el cuerpo, o asas acercadas por un remo.
+
+QA (si/no, inspector limpio):
+  1. ¿El pie de trabajo está entero sobre el cajón y el talón sigue apoyado?
+  2. ¿El pie libre está en el aire detrás de la plataforma durante el ascenso?
+  3. ¿La rodilla de apoyo aún está algo flexionada en el fotograma indicado?
+  4. ¿Ambas manos sujetan de forma visible las pesas, asas o eje y ninguna carga flota?
+  5. ¿La pelvis evita una caída lateral marcada y la espalda no forma un arco hacia atrás?
+  6. ¿En Barra, el eje toca la espalda alta, ambas manos lo agarran en prono por fuera de los hombros y los discos quedan separados del cajón y del suelo?
+  7. ¿En Smith, el eje toca la espalda alta con ambas manos agarrándolo y sus dos carros se unen visiblemente a dos carriles reales, con el cajón dentro de la estación y libre de la base?
+  8. ¿En Mancuernas, hay una pesa agarrada de forma visible por cada mano en neutro, con los brazos largos y las dos cargas fuera de los muslos y bordes del cajón?
+  9. ¿En Kettlebell, una sola pesa queda ante el esternón y ambas palmas rodean y sostienen visiblemente su cuerpo redondo, con los codos doblados y el asa libre del cajón?
+  10. ¿En Polea, cada mano agarra su propia asa con el brazo largo y dos cables tensos salen de dos poleas bajas próximas al cajón, por fuera de las piernas y sin cruzar el borde?
+
+== step_up x smith_machine
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Oblique side view, frozen halfway through a Smith machine step-up inside a real two-rail frame. The entire left foot and heel are on a solid box; left hip and knee are partly extended. Right foot is airborne behind the box. The guided bar rests on the upper back, both hands grip it overhand, and both rail sleeves visibly connect the bar to the frame. Plates are off the floor; the box clears the machine base.
+
+GEOMETRIA: Eje apoyado sobre espalda alta y agarrado con ambas manos, unido a dos carriles reales. Cajón dentro de la estación, pie libre sin tocar su base y discos separados del suelo.
+CAMARA: Vista lateral oblicua que muestre ambas piernas, borde del cajón y contacto de manos con la carga.
+FASE: Mitad final del ascenso, con el pie libre suspendido detrás y la rodilla del apoyo todavía algo flexionada.
+ORIENTACION: Atleta de frente al cajón, cabeza a la izquierda de la imagen y pies en planos sagitales próximos.
+CONTACTOS: Todo el pie de trabajo, incluido el talón, sobre el cajón; pie libre en el aire; manos en contacto con la carga.
+POSTURA: Pelvis aproximadamente horizontal, rodilla elevada dirigida sobre los dedos y columna neutra sin extensión añadida.
+CARGA: Carga unida al cuerpo por el soporte correspondiente y separada del suelo, sin descanso sobre el cajón.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: Ascenso frontal repetido a un cajón: un pie permanece arriba mientras la otra pierna pasa del suelo a la altura de la plataforma y regresa. La rodilla y la cadera del apoyo elevado se extienden para levantar cuerpo y carga; no es un salto ni un paso cruzado.
+  POSICION CLAVE: Inicio: pie elevado firme, rodilla y cadera flexionadas, pie libre apoyado abajo sin empuje anticipado.
+  POSICION CLAVE: Ascenso intermedio: talón elevado sobre la plataforma, rodilla alineada con el pie, pie libre separado del suelo y pelvis cerca de horizontal.
+  POSICION CLAVE: Final: articulaciones del apoyo extendidas sin bloquearlas hacia atrás; la otra pierna termina elevada a la altura del escalón sin tomar el peso principal.
+  FASE Preparación: El pie elevado recibe la carga antes de que el pie libre abandone el suelo; los brazos fijan su contacto con el implemento.
+  FASE Ascenso: La cadera y la rodilla del apoyo se extienden mientras el cuerpo gana altura; el pie libre acompaña sin salto.
+  FASE Llegada: La pierna apoyada termina extendida y el pie libre queda junto a la plataforma, sin un gesto añadido de elevación de rodilla.
+  FASE Regreso: La misma pierna flexiona cadera y rodilla para acercar el pie libre al suelo; este toca sin recibir una caída brusca.
+
+RECHAZAR SI:
+  - Salto con los dos pies en el aire, en lugar de un pie que permanezca sobre el cajón.
+  - Carga flotante, manos separadas de las asas o pesas apoyadas sobre la plataforma.
+  - Pie libre empujando desde el suelo en el fotograma indicado.
+  - Barra sobre hombros delanteros o en los codos dentro del brief de barra trasera: pertenecen a especialidades separadas.
+  - Cable de polea alta que ayude a levantar el cuerpo, o asas acercadas por un remo.
+
+QA (si/no, inspector limpio):
+  1. ¿El pie de trabajo está entero sobre el cajón y el talón sigue apoyado?
+  2. ¿El pie libre está en el aire detrás de la plataforma durante el ascenso?
+  3. ¿La rodilla de apoyo aún está algo flexionada en el fotograma indicado?
+  4. ¿Ambas manos sujetan de forma visible las pesas, asas o eje y ninguna carga flota?
+  5. ¿La pelvis evita una caída lateral marcada y la espalda no forma un arco hacia atrás?
+  6. ¿En Barra, el eje toca la espalda alta, ambas manos lo agarran en prono por fuera de los hombros y los discos quedan separados del cajón y del suelo?
+  7. ¿En Smith, el eje toca la espalda alta con ambas manos agarrándolo y sus dos carros se unen visiblemente a dos carriles reales, con el cajón dentro de la estación y libre de la base?
+  8. ¿En Mancuernas, hay una pesa agarrada de forma visible por cada mano en neutro, con los brazos largos y las dos cargas fuera de los muslos y bordes del cajón?
+  9. ¿En Kettlebell, una sola pesa queda ante el esternón y ambas palmas rodean y sostienen visiblemente su cuerpo redondo, con los codos doblados y el asa libre del cajón?
+  10. ¿En Polea, cada mano agarra su propia asa con el brazo largo y dos cables tensos salen de dos poleas bajas próximas al cajón, por fuera de las piernas y sin cruzar el borde?
+
+== quads_zancada_frontal_zercher x barbell
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Three-quarter side view of an athlete frozen at the BOTTOM of a forward lunge. Front knee is bent about 90 degrees, front foot flat on the floor; rear knee is close to the floor but not touching, rear toes planted and heel lifted. Torso upright, feet on separate tracks. A straight barbell rests firmly in the crooks of both bent elbows close to the abdomen. The hands are joined above the bar; neither hand grips it. Plates are clear of the floor beside the torso.
+
+GEOMETRIA: Barra recta transversal alojada dentro de ambos pliegues de los codos, cerca del abdomen. Antebrazos doblados con manos juntas encima del eje; discos a los lados del cuerpo, separados del piso.
+CAMARA: Vista lateral en tres cuartos, con cuerpo entero, suelo y contactos de la carga visibles.
+FASE: Fondo del descenso: rodilla anterior doblada y rodilla posterior suspendida cerca del suelo, antes de la subida.
+ORIENTACION: Torso orientado al frente del paso, cuello prolongando la columna y mirada al frente.
+CONTACTOS: Planta delantera pegada al suelo, antepié posterior en el piso y rodilla posterior sin tocarlo; carga unida a su soporte corporal.
+POSTURA: Pelvis entre los pies, rodilla delantera cerca de un ángulo recto y talón delantero apoyado; sin giro visible del torso.
+CARGA: Carga sostenida por el contacto que corresponde al implemento y elevada del suelo durante el fondo de la zancada.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: Paso frontal con una barra descansando dentro de los codos flexionados, próxima al abdomen y con manos juntas por encima del eje. La pierna adelantada recibe la bajada y luego devuelve el cuerpo a la salida, conservando la cuna de los brazos.
+  POSICION CLAVE: Antes del paso: el eje toca los dos pliegues y queda delante del vientre con los codos próximos al torso.
+  POSICION CLAVE: Abajo tras la recepción: talón anterior plantado, pierna posterior doblada y eje todavía dentro de la cuna, sin subir hacia el pecho.
+  FASE Salida con cuna anterior: La pierna libre avanza mientras la barra conserva el contacto bilateral en los codos y permanece cerca del abdomen.
+  FASE Recepción bajo el eje abrazado: El pie delantero absorbe el peso y las rodillas se doblan, conservando el torso y la sujeción de los antebrazos.
+  FASE Regreso Zercher: La extensión de la pierna que salió devuelve el cuerpo; ese pie retrocede después a la salida sin un curl de la barra.
+
+RECHAZAR SI:
+  - Pies paralelos y descenso bilateral como una sentadilla.
+  - Rodilla posterior apoyada en el suelo o pie posterior elevado sobre un banco.
+  - Cargas suspendidas sin contacto con el atleta.
+  - Piernas cruzadas o pies alineados sobre una misma calle.
+  - Barra colocada sobre los hombros en un estante frontal.
+  - Eje agarrado con los brazos largos o descansando encima de las muñecas.
+
+QA (si/no, inspector limpio):
+  1. ¿La planta delantera toca el suelo y el talón está apoyado?
+  2. ¿La rodilla posterior queda doblada y cerca del piso sin apoyarse en él?
+  3. ¿El antepié posterior sigue plantado en el suelo con el talón elevado, sin que el pie quede en el aire?
+  4. ¿La barra está alojada en los dos pliegues de los codos cerca del abdomen, sin descansar sobre los hombros?
+  5. ¿Ambos antebrazos están doblados con las manos juntas encima del eje y los discos quedan separados del piso?
+  6. ¿Los dos pies están separados delante y detrás, sin que el posterior repose sobre un banco?
+  7. ¿El torso conserva su orientación sin retorcerse hacia un lado?
+
+== quads_zancada_inversa_frontal x barbell
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Three-quarter side view of an athlete frozen at the BOTTOM of a reverse lunge. Front knee is bent about 90 degrees, front foot flat on the floor; rear knee is close to the floor but not touching, rear toes planted and heel lifted. Torso upright, feet on separate tracks. A straight barbell rests on the front of both shoulders. Fingers are under the bar, wrists extended, elbows pointing forward. The bar is supported by the shoulders, not the elbow creases; plates remain above the floor.
+
+GEOMETRIA: Barra recta transversal sobre los deltoides anteriores, con dedos debajo del eje y codos hacia delante. El eje no descansa en los codos ni en las manos; discos elevados a ambos lados de los hombros.
+CAMARA: Vista lateral en tres cuartos, con cuerpo entero, suelo y contactos de la carga visibles.
+FASE: Fondo del descenso: rodilla anterior doblada y rodilla posterior suspendida cerca del suelo, antes de la subida.
+ORIENTACION: Torso orientado al frente del paso, cuello prolongando la columna y mirada al frente.
+CONTACTOS: Planta delantera pegada al suelo, antepié posterior en el piso y rodilla posterior sin tocarlo; carga unida a su soporte corporal.
+POSTURA: Pelvis entre los pies, rodilla delantera cerca de un ángulo recto y talón delantero apoyado; sin giro visible del torso.
+CARGA: Carga sostenida por el contacto que corresponde al implemento y elevada del suelo durante el fondo de la zancada.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: Retroceso de una pierna bajo una barra que descansa en los hombros delanteros, con los dedos debajo del eje y los codos elevados al frente. El pie anterior queda plantado y produce la subida mientras el estante se conserva.
+  POSICION CLAVE: Salida de estante: el eje toca los hombros por delante del cuello y las manos organizan su posición desde abajo.
+  POSICION CLAVE: Fondo con paso atrás: rodilla anterior doblada, rodilla posterior elevada del piso y codos que siguen orientados delante.
+  FASE Paso detrás del estante: La pierna libre se desplaza atrás mientras el eje conserva su descanso anterior sobre los hombros.
+  FASE Descenso frontal sobre el pie fijo: La pelvis desciende con el estante elevado; la rodilla anterior se flexiona y la otra se aproxima al suelo por detrás.
+  FASE Subida y reencuentro: El pie fijo eleva el cuerpo bajo la barra antes de que el pie retrasado vuelva junto a la planta original.
+
+RECHAZAR SI:
+  - Pies paralelos y descenso bilateral como una sentadilla.
+  - Rodilla posterior apoyada en el suelo o pie posterior elevado sobre un banco.
+  - Cargas suspendidas sin contacto con el atleta.
+  - Piernas cruzadas o pies alineados sobre una misma calle.
+  - Barra recibida en los pliegues de los codos como un Zercher.
+  - Barra colocada detrás del cuello sobre los trapecios.
+
+QA (si/no, inspector limpio):
+  1. ¿La planta delantera toca el suelo y el talón está apoyado?
+  2. ¿La rodilla posterior queda doblada y cerca del piso sin apoyarse en él?
+  3. ¿El antepié posterior sigue plantado en el suelo con el talón elevado, sin que el pie quede en el aire?
+  4. ¿La barra toca ambos deltoides anteriores cerca de la base del cuello, sin descansar sobre la espalda ni dentro de los codos?
+  5. ¿Los dedos quedan debajo del eje, las muñecas están extendidas y ambos codos apuntan elevados al frente?
+  6. ¿Los dos pies están separados delante y detrás, sin que el posterior repose sobre un banco?
+  7. ¿El torso conserva su orientación sin retorcerse hacia un lado?
+
+== quads_zancada_inversa_zercher x barbell
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Three-quarter side view of an athlete frozen at the BOTTOM of a reverse lunge. Front knee is bent about 90 degrees, front foot flat on the floor; rear knee is close to the floor but not touching, rear toes planted and heel lifted. Torso upright, feet on separate tracks. A straight barbell rests firmly in the crooks of both bent elbows close to the abdomen. The hands are joined above the bar; neither hand grips it. Plates are clear of the floor beside the torso.
+
+GEOMETRIA: Barra recta transversal alojada dentro de ambos pliegues de los codos, cerca del abdomen. Antebrazos doblados con manos juntas encima del eje; discos a los lados del cuerpo, separados del piso.
+CAMARA: Vista lateral en tres cuartos, con cuerpo entero, suelo y contactos de la carga visibles.
+FASE: Fondo del descenso: rodilla anterior doblada y rodilla posterior suspendida cerca del suelo, antes de la subida.
+ORIENTACION: Torso orientado al frente del paso, cuello prolongando la columna y mirada al frente.
+CONTACTOS: Planta delantera pegada al suelo, antepié posterior en el piso y rodilla posterior sin tocarlo; carga unida a su soporte corporal.
+POSTURA: Pelvis entre los pies, rodilla delantera cerca de un ángulo recto y talón delantero apoyado; sin giro visible del torso.
+CARGA: Carga sostenida por el contacto que corresponde al implemento y elevada del suelo durante el fondo de la zancada.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: La barra descansa en los pliegues de los codos delante del vientre mientras una pierna retrocede y la otra conserva su planta en el suelo. Las manos se reúnen encima del eje y el pie retrasado vuelve después de la subida.
+  POSICION CLAVE: Inicio abrazado: la carga toca los pliegues flexionados y los pies aún están en dos apoyos paralelos.
+  POSICION CLAVE: Posición baja inversa: el talón delantero sigue en el piso y la barra conserva el contacto en los codos con la rodilla posterior cerca del suelo.
+  FASE Retirada de la pierna libre: Un pie se coloca atrás sobre sus dedos mientras el soporte de codos sigue próximo al vientre.
+  FASE Bajada con contacto de codos: La pierna fija flexiona su rodilla bajo el peso del torso y la barra, sin perder los dos puntos de recepción del eje.
+  FASE Recuperación bajo la cuna: La pierna anterior produce la elevación y el pie de atrás vuelve a su lado mientras los brazos conservan su flexión.
+
+RECHAZAR SI:
+  - Pies paralelos y descenso bilateral como una sentadilla.
+  - Rodilla posterior apoyada en el suelo o pie posterior elevado sobre un banco.
+  - Cargas suspendidas sin contacto con el atleta.
+  - Piernas cruzadas o pies alineados sobre una misma calle.
+  - Barra colocada sobre los hombros en un estante frontal.
+  - Eje agarrado con los brazos largos o descansando encima de las muñecas.
+
+QA (si/no, inspector limpio):
+  1. ¿La planta delantera toca el suelo y el talón está apoyado?
+  2. ¿La rodilla posterior queda doblada y cerca del piso sin apoyarse en él?
+  3. ¿El antepié posterior sigue plantado en el suelo con el talón elevado, sin que el pie quede en el aire?
+  4. ¿El eje está asentado en ambos pliegues de los codos delante del abdomen y separado del suelo?
+  5. ¿Los codos siguen flexionados y las manos están juntas encima de la barra, sin sostenerla sobre muñecas ni hombros?
+  6. ¿Los dos pies están separados delante y detrás, sin que el posterior repose sobre un banco?
+  7. ¿El torso conserva su orientación sin retorcerse hacia un lado?
+
+== quads_zancada_caminando_frontal_barra_recta x barbell
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Three-quarter side view of an athlete frozen at the BOTTOM of a walking lunge. Front knee is bent about 90 degrees, front foot flat on the floor; rear knee is close to the floor but not touching, rear toes planted and heel lifted. Torso upright, feet on separate tracks. A straight barbell rests on the front of both shoulders. Fingers are under the bar, wrists extended, elbows pointing forward. The bar is supported by the shoulders, not the elbow creases; plates remain above the floor.
+
+GEOMETRIA: Barra recta transversal sobre los deltoides anteriores, con dedos debajo del eje y codos hacia delante. El eje no descansa en los codos ni en las manos; discos elevados a ambos lados de los hombros.
+CAMARA: Vista lateral en tres cuartos, con cuerpo entero, suelo y contactos de la carga visibles.
+FASE: Fondo del descenso: rodilla anterior doblada y rodilla posterior suspendida cerca del suelo, antes de la subida.
+ORIENTACION: Torso orientado al frente del paso, cuello prolongando la columna y mirada al frente.
+CONTACTOS: Planta delantera pegada al suelo, antepié posterior en el piso y rodilla posterior sin tocarlo; carga unida a su soporte corporal.
+POSTURA: Pelvis entre los pies, rodilla delantera cerca de un ángulo recto y talón delantero apoyado; sin giro visible del torso.
+CARGA: Carga sostenida por el contacto que corresponde al implemento y elevada del suelo durante el fondo de la zancada.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: Avance alterno por el suelo transportando una barra que reposa en la parte delantera de ambos hombros, con dedos debajo y codos altos. Después de cada subida, el pie posterior pasa al frente sin interrumpir el estante.
+  POSICION CLAVE: Apoyo de descenso: rodilla delantera flexionada y eje centrado sobre los hombros con ambos codos delante del pecho.
+  POSICION CLAVE: Traslado del estante: la pierna de atrás pasa delante después de la extensión del apoyo anterior, con la barra aún lejos del suelo.
+  FASE Llegada con estante alto: El pie receptor se apoya delante mientras el eje sigue sobre los deltoides anteriores y las muñecas conservan el contacto.
+  FASE Salida desde el apoyo cargado: La pierna anterior se extiende para elevar el cuerpo; el estante viaja unido al torso sin desplazarse sobre las manos.
+  FASE Transporte al próximo apoyo: El pie que venía detrás rebasa el apoyo anterior y recibe otra bajada mientras sigue elevado el estante.
+
+RECHAZAR SI:
+  - Pies paralelos y descenso bilateral como una sentadilla.
+  - Rodilla posterior apoyada en el suelo o pie posterior elevado sobre un banco.
+  - Cargas suspendidas sin contacto con el atleta.
+  - Piernas cruzadas o pies alineados sobre una misma calle.
+  - Smith o cable anclado a una estación fija como soporte del avance.
+  - Barra recibida en los pliegues de los codos como un Zercher.
+  - Barra colocada detrás del cuello sobre los trapecios.
+
+QA (si/no, inspector limpio):
+  1. ¿La planta delantera toca el suelo y el talón está apoyado?
+  2. ¿La rodilla posterior queda doblada y cerca del piso sin apoyarse en él?
+  3. ¿El antepié posterior sigue plantado en el suelo con el talón elevado, sin que el pie quede en el aire?
+  4. ¿La barra toca ambos hombros delanteros, sin descansar en la espalda ni en los pliegues de los codos?
+  5. ¿Los dedos quedan debajo del eje con muñecas extendidas y codos altos hacia delante, y la carga es libre de raíles o cables anclados?
+  6. ¿Los dos pies están separados delante y detrás, sin que el posterior repose sobre un banco?
+  7. ¿El torso conserva su orientación sin retorcerse hacia un lado?
+
+== quads_zancada_caminando_zercher_barra_recta x barbell
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Three-quarter side view of an athlete frozen at the BOTTOM of a walking lunge. Front knee is bent about 90 degrees, front foot flat on the floor; rear knee is close to the floor but not touching, rear toes planted and heel lifted. Torso upright, feet on separate tracks. A straight barbell rests firmly in the crooks of both bent elbows close to the abdomen. The hands are joined above the bar; neither hand grips it. Plates are clear of the floor beside the torso.
+
+GEOMETRIA: Barra recta transversal alojada dentro de ambos pliegues de los codos, cerca del abdomen. Antebrazos doblados con manos juntas encima del eje; discos a los lados del cuerpo, separados del piso.
+CAMARA: Vista lateral en tres cuartos, con cuerpo entero, suelo y contactos de la carga visibles.
+FASE: Fondo del descenso: rodilla anterior doblada y rodilla posterior suspendida cerca del suelo, antes de la subida.
+ORIENTACION: Torso orientado al frente del paso, cuello prolongando la columna y mirada al frente.
+CONTACTOS: Planta delantera pegada al suelo, antepié posterior en el piso y rodilla posterior sin tocarlo; carga unida a su soporte corporal.
+POSTURA: Pelvis entre los pies, rodilla delantera cerca de un ángulo recto y talón delantero apoyado; sin giro visible del torso.
+CARGA: Carga sostenida por el contacto que corresponde al implemento y elevada del suelo durante el fondo de la zancada.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: Desplazamiento de zancadas enlazadas con una barra contenida en ambos pliegues de los codos por delante del abdomen. Los antebrazos doblados y las manos juntas sostienen el eje durante la bajada, la subida y el paso de la pierna posterior hacia delante.
+  POSICION CLAVE: Fondo durante el avance: planta delantera apoyada, antepié trasero en el suelo y barra recibida en los dos pliegues.
+  POSICION CLAVE: Cambio de pierna: el eje permanece delante del abdomen mientras el apoyo anterior se extiende y el pie posterior pasa por el costado.
+  FASE Nuevo apoyo abrazado: La planta que llega delante recibe el peso mientras el contacto del eje sigue dentro de los codos flexionados.
+  FASE Elevación con soporte próximo: Rodilla y cadera anteriores se extienden sin añadir una subida de brazos, dejando el eje a la misma altura relativa del abdomen.
+  FASE Continuación del avance: La pierna posterior pasa al frente del apoyo extendido y coloca el siguiente pie receptor sin desarmar la cuna.
+
+RECHAZAR SI:
+  - Pies paralelos y descenso bilateral como una sentadilla.
+  - Rodilla posterior apoyada en el suelo o pie posterior elevado sobre un banco.
+  - Cargas suspendidas sin contacto con el atleta.
+  - Piernas cruzadas o pies alineados sobre una misma calle.
+  - Smith o cable anclado a una estación fija como soporte del avance.
+  - Barra colocada sobre los hombros en un estante frontal.
+  - Eje agarrado con los brazos largos o descansando encima de las muñecas.
+
+QA (si/no, inspector limpio):
+  1. ¿La planta delantera toca el suelo y el talón está apoyado?
+  2. ¿La rodilla posterior queda doblada y cerca del piso sin apoyarse en él?
+  3. ¿El antepié posterior sigue plantado en el suelo con el talón elevado, sin que el pie quede en el aire?
+  4. ¿El eje toca los dos pliegues de los codos delante del abdomen y permanece separado del suelo?
+  5. ¿Los antebrazos siguen doblados con manos juntas encima de la barra y la carga es libre de raíles o cables anclados?
+  6. ¿Los dos pies están separados delante y detrás, sin que el posterior repose sobre un banco?
+  7. ¿El torso conserva su orientación sin retorcerse hacia un lado?
+
+== quads_step_up_cajon_frontal x barbell
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Oblique side view, frozen halfway through a front-rack barbell step-up. The left foot and heel are fully supported on a solid box; left knee remains partly bent and right foot is airborne behind the box. A straight barbell is pressed onto both front shoulders near the neck. Fingers of both hands wrap around the bar in a clean rack, wrists extended, elbows lifted forward. Plates remain above the box and floor. Spine neutral, pelvis level.
+
+GEOMETRIA: Barra recta transversal sobre ambos deltoides anteriores; dedos rodean el eje en clean rack, muñecas extendidas y codos altos delante del torso; discos fuera de los hombros.
+CAMARA: Vista lateral oblicua con manos, codos, dos pies y superficie del cajón visibles.
+FASE: Ascenso intermedio: rodilla de apoyo todavía flexionada y pie libre suspendido detrás del cajón.
+ORIENTACION: Atleta mira hacia el cajón, con pelvis de frente y hombros elevados al mismo nivel.
+CONTACTOS: Pie elevado entero sobre la plataforma, pie libre en el aire y carga en contacto real con hombros y dedos.
+POSTURA: Codos apuntan al frente, tronco cercano a vertical con columna neutra y rodilla sobre el pie elevado.
+CARGA: Carga transversal en apoyo anterior alto, sostenida junto a la base del cuello y por encima del cajón.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: Step-up frontal con barra en apoyo de clean rack sobre los hombros anteriores, dedos alrededor del eje y codos altos. La pierna elevada inicia la subida desde flexión de rodilla y cadera y el pie libre regresa al suelo después de cada repetición.
+  POSICION CLAVE: Inicio: barra sobre hombros anteriores, dedos en el eje, codos elevados y pierna del cajón flexionada.
+  POSICION CLAVE: Mitad del ascenso: barra adherida al apoyo frontal, pie libre suspendido atrás y talón del pie elevado sobre la superficie.
+  POSICION CLAVE: Arriba: pierna elevada extendida y espalda sin arqueo; la otra pierna queda próxima al escalón y los codos siguen altos delante del eje.
+  FASE Apoyo frontal: Los hombros reciben la barra y los dedos fijan el eje antes de cargar el pie elevado.
+  FASE Subida: La pierna del cajón extiende cadera y rodilla y eleva la barra con el torso; el pie libre no aporta un salto.
+  FASE Retorno: El pie inferior vuelve a contactar con el piso cuando la pierna del cajón recibe el descenso; los hombros siguen sosteniendo el eje.
+
+RECHAZAR SI:
+  - Eje detrás de la cabeza o sobre la espalda: no muestra la recepción frontal.
+  - Carga atrapada en los pliegues de los codos como en el Zercher.
+  - Barra flotando delante del pecho sin contacto con hombros o dedos.
+  - Los dos pies separados de la plataforma durante un salto.
+
+QA (si/no, inspector limpio):
+  1. ¿La barra toca los hombros delanteros cerca de la base del cuello?
+  2. ¿Los dedos de ambas manos rodean el eje y los codos están elevados delante?
+  3. ¿El pie elevado y su talón están enteros sobre el cajón?
+  4. ¿El pie libre está suspendido detrás mientras la rodilla apoyada conserva flexión?
+  5. ¿El eje y los discos quedan separados del cajón y del suelo?
+
+== quads_step_up_cajon_zercher x barbell
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Oblique side view, frozen halfway through a Zercher barbell step-up. Entire left foot and heel on a solid box, left knee still bent, right foot airborne behind it. A straight barbell is visibly seated in BOTH elbow creases in front of the abdomen. Elbows stay bent, forearms slope upward and both hands clasp together near the chest. The bar is held close to the torso, clear of the thigh, box edge and floor. Pelvis level, spine neutral.
+
+GEOMETRIA: Eje de barra recta transversal en los dos pliegues del codo; antebrazos flexionados, manos juntas frente al esternón y discos a ambos lados del torso, por encima del suelo.
+CAMARA: Vista lateral oblicua donde se vean ambos pliegues del codo, el eje de carga y los dos pies.
+FASE: Subida intermedia, con la rodilla elevada todavía doblada y el pie libre suspendido detrás.
+ORIENTACION: Pelvis y pecho miran hacia el cajón; cabeza a la izquierda de la imagen.
+CONTACTOS: Pie de trabajo y talón sobre la plataforma; carga asentada en los codos; manos juntas; pie libre sin apoyo.
+POSTURA: Codos doblados delante del abdomen, pelvis nivelada y columna sin arco hacia atrás.
+CARGA: Carga transversal recibida por los dos brazos doblados delante del abdomen, sin descansar en muslo ni cajón.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: Step-up con barra transversal asentada en ambos pliegues del codo, antebrazos flexionados y manos juntas. Un pie permanece sobre el cajón, el otro inicia en el suelo, y la carga acompaña al torso sin que los brazos cambien de ángulo para elevarla.
+  POSICION CLAVE: Inicio: eje apoyado en los codos, rodilla del cajón flexionada y pie libre en el suelo.
+  POSICION CLAVE: Fotograma intermedio: pie libre detrás en el aire, talón elevado sobre el cajón y eje suspendido frente al abdomen sin tocar la plataforma.
+  POSICION CLAVE: Final: cadera y rodilla de apoyo extendidas, codos todavía doblados y barra en su recepción inicial.
+  FASE Recepción: El eje se asienta en los dos pliegues del codo antes de cargar la pierna del cajón.
+  FASE Ascenso Zercher: La pierna elevada extiende rodilla y cadera mientras la barra permanece cercana al abdomen y el pie libre gana altura.
+  FASE Descenso: La rodilla del escalón se dobla al regresar y permite tocar abajo con la otra pierna; los codos retienen el eje sin descargarlo en la plataforma.
+
+RECHAZAR SI:
+  - Barra en hombros delanteros con codos altos: corresponde al apoyo frontal, no a la recepción Zercher.
+  - Barra sobre espalda o cuello, en lugar de los dos pliegues del codo.
+  - Eje apoyado sobre el muslo elevado o sobre el borde del cajón.
+  - Carga flotante sin contacto visible con los brazos.
+
+QA (si/no, inspector limpio):
+  1. ¿El eje está asentado en ambos pliegues del codo?
+  2. ¿Los codos permanecen doblados y las manos están juntas?
+  3. ¿El pie de trabajo y su talón apoyan enteros sobre el cajón?
+  4. ¿El pie libre está suspendido detrás durante el ascenso intermedio?
+  5. ¿La barra evita contacto con el muslo, el cajón y el suelo?
+
+== glutes_step_up_gluteo x dumbbells
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Pure side view, frozen in the FIRST THIRD of a hip-biased forward dumbbell step-up. Entire left foot and heel are flat on a solid box; left shin is nearly vertical and knee is bent close to 90 degrees. Left hip remains flexed, torso leans forward from the hip with a neutral spine. Right foot is just airborne behind the box. Each hand firmly grips one dumbbell with straight hanging arms outside the thighs. Both weights clear the box edges and floor, pelvis level.
+
+GEOMETRIA: Una mancuerna por mano en agarre neutro, cargas por fuera de los muslos y de los lados del cajón. El pie elevado queda adelantado y la tibia casi vertical, sin que ninguna pesa descanse en el apoyo.
+CAMARA: Lateral pura con tibia elevada, pie entero, pelvis, inclinación del torso y ambos brazos legibles.
+FASE: Primer tercio de la subida, justo después de separar el pie libre del suelo, con cadera aún flexionada.
+ORIENTACION: Atleta de frente al cajón con pie de trabajo adelantado respecto al cuerpo y cabeza hacia la izquierda.
+CONTACTOS: Todo el pie y talón elevados sobre la superficie, pie libre suspendido detrás y manos cerradas sobre la carga.
+POSTURA: Tibia del apoyo cerca de vertical, rodilla doblada, torso inclinado desde cadera y espalda con forma neutra.
+CARGA: Dos cargas colgantes sostenidas por brazos largos a los lados, separadas del suelo y del borde de la plataforma.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: Step-up frontal con énfasis de extensión de cadera: pie entero adelantado sobre el cajón, tibia inicialmente próxima a vertical y torso cercano al muslo por flexión de cadera. Dos mancuernas colgantes acompañan el ascenso; tanto cadera como rodilla se extienden.
+  POSICION CLAVE: Inicio: flexión de cadera, rodilla cerca de ángulo recto y tibia casi vertical; ambos pesos fuera del cajón y el pie libre todavía en el suelo.
+  POSICION CLAVE: Fotograma de primer tercio: pie libre apenas suspendido detrás, cadera aún flexionada y torso algo inclinado; talón del apoyo sobre la superficie.
+  POSICION CLAVE: Final: tronco erguido por extensión de cadera, rodilla de apoyo extendida y pie libre junto al pie elevado, sin impulso adicional.
+  FASE Salida desde cadera: El pie adelantado recibe la carga con el tronco inclinado desde la cadera; la tibia elevada empieza próxima a vertical.
+  FASE Elevación: La cadera y la rodilla se extienden mientras las mancuernas cuelgan a los lados y el pie libre abandona el suelo.
+  FASE Erguimiento: El torso llega a una posición erguida con la pierna elevada extendida, sin arquear la zona lumbar.
+  FASE Regreso al apoyo: La cadera y la rodilla del apoyo flexionan para devolver el pie libre al suelo, recuperando la distancia inicial del cuerpo al cajón.
+
+RECHAZAR SI:
+  - Paso lateral o cruzado sobre el cajón en lugar de apoyo frontal adelantado.
+  - Columna redondeada como sustituto de la flexión de cadera.
+  - Dos rodillas rectas en el fotograma inicial, ocultando el recorrido de la rodilla de apoyo.
+  - Pie libre empujando el suelo o mancuerna descansando sobre el borde.
+
+QA (si/no, inspector limpio):
+  1. ¿El pie elevado y su talón están apoyados enteros en el cajón?
+  2. ¿La tibia elevada queda casi vertical y la rodilla sigue claramente doblada?
+  3. ¿El torso se inclina desde la cadera con la espalda sin redondeo marcado?
+  4. ¿El pie libre está apenas separado del suelo detrás del cajón en el primer tercio?
+  5. ¿Cada mano agarra una mancuerna y ambas cuelgan sin tocar suelo o cajón?
+
+== quads_sentadilla_pistola x bodyweight
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Three-quarter side view of an athlete frozen at the BOTTOM of a bodyweight pistol squat, facing right. The stance foot is flat on the floor with its heel down; the stance knee is deeply bent and the hip is below that knee. The other leg is straight forward, with its heel clearly above the floor. Both empty hands reach forward without gripping the foot or any support. The torso leans slightly forward. Only the stance foot touches the ground; the hips remain off the floor. No equipment, text or logos.
+
+GEOMETRIA: Solo el pie de trabajo apoya en suelo llano; el talón libre queda delante, separado del suelo, y ambas manos vacías se proyectan al frente sin sujetar nada.
+CAMARA: Vista lateral con un pequeño ángulo frontal para distinguir los dos pies y el talón de apoyo.
+FASE: Fotograma congelado en el fondo, con la cadera por debajo de la rodilla de apoyo.
+ORIENTACION: Atleta mirando a la derecha; la pierna libre se proyecta al frente hacia el mismo lado.
+CONTACTOS: Un único pie toca el suelo con toda su planta; el pie opuesto, las manos y la cadera están suspendidos.
+POSTURA: Rodilla de trabajo flexionada profundamente, tronco algo inclinado y pierna libre estirada delante, sin cruce.
+CARGA: El cuerpo es la carga y no hay objeto sostenido en las manos.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: Sentadilla corporal profunda sobre un solo pie, con la pierna libre estirada por delante y suspendida durante la repetición. Los brazos se adelantan sin agarrar un soporte ni el pie libre.
+  POSICION CLAVE: Inicio: atleta sobre un pie, pierna opuesta estirada hacia delante y brazos adelantados.
+  POSICION CLAVE: Fondo: cadera por debajo de la rodilla de trabajo, talón de apoyo en el suelo y talón libre suspendido delante.
+  POSICION CLAVE: Final: cadera y rodilla de apoyo extendidas antes de posar la pierna libre.
+  FASE Descenso: Rodilla y cadera de apoyo se flexionan mientras la tibia avanza y el tronco se inclina; el pie opuesto sigue suspendido delante.
+  FASE Fondo: La pelvis queda por debajo de la rodilla cargada sin descansar en el suelo; solo el pie de trabajo sostiene el cuerpo.
+  FASE Ascenso: El pie de trabajo empuja el suelo y la pierna cargada extiende cadera y rodilla, con los brazos y la pierna libre aún adelantados.
+
+RECHAZAR SI:
+  - Pie libre apoyado delante o atrás, o rodilla libre doblada hacia atrás.
+  - Manos agarrando el pie libre o un soporte externo.
+  - Dos plantas apoyadas en el suelo o cadera descansando en él.
+  - Fotograma de pie sin flexión profunda de la rodilla cargada.
+
+QA (si/no, inspector limpio):
+  1. ¿Solo un pie toca el suelo y su talón permanece apoyado?
+  2. ¿La otra pierna está estirada al frente y su talón está en el aire?
+  3. ¿Las dos manos están vacías y no agarran el pie ni ningún apoyo?
+  4. ¿La cadera está por debajo de la rodilla doblada y separada del suelo?
+  5. ¿La rodilla de apoyo sigue la dirección de los dedos sin cruzar hacia dentro?
+
+== quads_sentadilla_pistola_asistida_trx x trx
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Three-quarter side view of an athlete frozen at the BOTTOM of an assisted pistol squat, facing a high anchor to the right. Each hand grips one suspension handle with palms facing inward; both straps are taut from the hands to the same fixed high anchor. The stance foot is flat with heel down, knee deeply bent and hip below the knee. The free leg is straight forward with its heel above the floor, outside every strap. Arms reach toward the anchor with elbows almost straight. The hips do not touch the floor. No text or logos.
+
+GEOMETRIA: Dos correas cortas parten de un anclaje fijo alto y frontal; cada mano agarra un asa con palma hacia dentro. Las correas están tensas, los codos casi extendidos en el fondo y ambos pies quedan fuera de ellas.
+CAMARA: Vista lateral oblicua que muestra el pie de apoyo, el pie libre y ambos contactos de las manos.
+FASE: Instante congelado en el fondo, con la pelvis por debajo de la rodilla de trabajo y los codos abiertos.
+ORIENTACION: Atleta orientado a la derecha hacia un anclaje alto situado delante del cuerpo.
+CONTACTOS: Solo un pie apoya en el suelo; cada mano sujeta un asa y el pie opuesto está suspendido al frente.
+POSTURA: Pierna de apoyo doblada profundamente, pierna libre recta delante y brazos adelantados hacia el anclaje.
+CARGA: El peso del cuerpo se reparte entre el pie de apoyo y la asistencia recibida a través de las manos.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: Sentadilla profunda sobre un pie con ambas manos sujetando las asas de correas ancladas arriba y delante. La pierna libre se estira al frente fuera de las correas; los codos se abren al bajar y se doblan para aportar ayuda al ascenso.
+  POSICION CLAVE: Inicio: codos doblados delante del torso, pie de apoyo plantado y pierna opuesta elevada.
+  POSICION CLAVE: Posición más baja: asas agarradas con codos abiertos, talón cargado pegado al suelo y pelvis baja respecto a la rodilla de apoyo; el pie opuesto queda suspendido delante.
+  POSICION CLAVE: Final: la pierna cargada vuelve a extenderse mientras los codos recuperan flexión para ayudar.
+  FASE Bajada con asistencia: La cadera baja y la rodilla de apoyo se dobla mientras los brazos se abren siguiendo la distancia al anclaje, con las correas tensas.
+  FASE Posición profunda: Con la rodilla de trabajo doblada profundamente, la cadera desciende a un nivel inferior y el pie opuesto continúa suspendido por delante, sin entrar en las correas.
+  FASE Salida del fondo: La pierna de trabajo empuja el suelo para extenderse y las manos aportan la ayuda necesaria, doblando los codos mientras el cuerpo asciende.
+
+RECHAZAR SI:
+  - Pie metido en una correa, especialmente suspendido por detrás del atleta.
+  - Una mano suelta, manos sin asas o correas sin anclaje físico.
+  - Dos pies apoyados en el suelo o pie libre doblado hacia atrás.
+  - Correas flojas mientras la imagen presenta ayuda del anclaje.
+  - Atleta colgado sin contacto del pie de trabajo con el suelo.
+
+QA (si/no, inspector limpio):
+  1. ¿Cada mano agarra un asa y ambas correas se unen a un anclaje fijo delante y arriba?
+  2. ¿Las correas están tensas y los codos casi estirados en este fotograma del fondo?
+  3. ¿Solo el pie de trabajo apoya en el suelo con el talón pegado?
+  4. ¿La pierna libre está recta hacia delante, con el pie en el aire y fuera de las correas?
+  5. ¿La cadera está por debajo de la rodilla cargada sin tocar el suelo?
+
+== quads_sentadilla_cosaca x bodyweight
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Front three-quarter view of an athlete frozen at the BOTTOM of a bodyweight Cossack squat. The athlete left knee is deeply bent with the hip low over the left foot; the whole left foot and heel are flat on the floor. The right leg extends straight to the right side of the athlete; the right heel touches the floor and its toes point upward. The wide foot positions are fixed. Both empty hands are clasped at chest height, touching no support. The chest faces forward and the hips stay above the floor. No weights, text or logos.
+
+GEOMETRIA: En suelo plano, los pies siguen separados en una base fija. El pie izquierdo apoya toda la planta y el talón derecho toca el suelo con la punta elevada; las manos están juntas y vacías delante del pecho.
+CAMARA: Vista frontal ligeramente oblicua para distinguir ambas piernas, los dos talones y la profundidad de la cadera.
+FASE: Fotograma congelado en el fondo sobre la pierna izquierda del atleta, sin comenzar el retorno.
+ORIENTACION: Pecho hacia la cámara, pierna izquierda doblada y pierna derecha estirada lateralmente.
+CONTACTOS: Pie izquierdo entero apoyado; talón derecho en el suelo con sus dedos elevados; manos juntas ante el pecho sin apoyo.
+POSTURA: Cadera baja sobre el pie izquierdo, rodilla izquierda siguiendo sus dedos y rodilla derecha extendida al costado.
+CARGA: Peso corporal repartido sobre el pie doblado y el contacto del talón del lado recto, sin carga externa.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: Sentadilla corporal lateral desde una base ancha y fija: una pierna se dobla profundamente mientras la opuesta queda estirada al costado. El pie del lado cargado apoya entero y el lado recto conserva el talón en el suelo con la punta hacia arriba.
+  POSICION CLAVE: Centro: ambas rodillas extendidas, pies separados y cadera entre los dos apoyos.
+  POSICION CLAVE: Fondo izquierdo de la demostración: rodilla izquierda doblada y cadera baja sobre ese pie; pierna derecha larga al costado con talón derecho apoyado y punta arriba.
+  POSICION CLAVE: Retorno: el cuerpo recupera altura y se dirige al centro sin desplazar los talones.
+  FASE Traslado lateral: La pelvis se dirige hacia el pie que recibirá el cuerpo, doblando esa rodilla mientras la contraria continúa extendida.
+  FASE Posición baja: La cadera queda cerca del talón del lado doblado, con toda la planta de ese pie apoyada; la pierna opuesta permanece larga con punta elevada.
+  FASE Regreso al centro: El pie cargado empuja para extender rodilla y cadera y recuperar el centro de la base; los talones conservan su ubicación.
+
+RECHAZAR SI:
+  - Pierna recta proyectada al frente en lugar de al costado.
+  - Talón del lado cargado elevado o ambas rodillas dobladas.
+  - Pie de la pierna recta flotando sin contacto de su talón.
+  - Manos apoyadas en el suelo o en un muslo, o pies desplazados para dar un paso.
+
+QA (si/no, inspector limpio):
+  1. ¿La pierna izquierda del atleta está doblada y la derecha estirada hacia su costado?
+  2. ¿Toda la planta izquierda, incluido el talón, está apoyada en el suelo?
+  3. ¿El talón derecho toca el suelo y sus dedos apuntan hacia arriba?
+  4. ¿Las manos están vacías y juntas ante el pecho, sin agarrar carga ni apoyo?
+  5. ¿La cadera está baja sobre el pie izquierdo, separada del suelo, en el fotograma del fondo?
+
+== quads_sentadilla_bulgara_somersault x barbell
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Three-quarter side view of an athlete frozen at the BOTTOM of a Somersault Bulgarian split squat. The front foot is flat on the floor, heel down; the top of the rear foot rests on a flat bench behind. A loaded barbell is pressed against the front hip crease between thigh and belly, supported by the hip. Both hands grip the shaft outside the thighs and hold it against the hip crease. Front knee and hip bent, rear knee above the floor, torso slightly leaning forward with a neutral spine. The plates are clear of the floor and bench.
+
+GEOMETRIA: Barra cargada transversalmente sobre el pliegue anterior de la cadera, entre muslo delantero y vientre; ambas manos la agarran por fuera de los muslos y la aprietan contra ese contacto. Discos a ambos lados, por encima del suelo y separados del banco posterior.
+CAMARA: Vista de tres cuartos lateral a la altura de la cadera, con cabeza, apoyo trasero, pies y carga completos.
+FASE: Punto bajo de la repetición, con rodilla y cadera delanteras flexionadas y rodilla posterior suspendida.
+ORIENTACION: Atleta orientado hacia la izquierda del encuadre, con el apoyo posterior detrás de la pierna de trabajo.
+CONTACTOS: Planta delantera entera sobre el suelo y empeine posterior sobre el banco; carga apoyada en el pliegue anterior de la cadera y retenida por ambas manos.
+POSTURA: Pelvis sobre la pierna adelantada, columna neutra y tronco algo inclinado sin caída lateral; talón delantero apoyado.
+CARGA: Carga baja contra el pliegue entre muslo y vientre, suspendida del suelo y separada del apoyo posterior.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: Sentadilla con el empeine posterior elevado sobre un banco y la barra apoyada en el pliegue anterior de la cadera, sujeta con ambas manos. La pierna delantera flexiona y extiende rodilla y cadera; la colocación baja de la carga sobre la pelvis identifica el montaje.
+  POSICION CLAVE: Punto bajo: rodilla y cadera delanteras flexionadas, talón delantero en el suelo y empeine posterior en el banco; la barra sigue pegada al pliegue de la cadera.
+  POSICION CLAVE: Arriba: pierna delantera casi extendida, pelvis sobre ese pie y barra todavía apoyada contra la cadera, con las dos manos sujetándola.
+  FASE Descenso: La pierna adelantada dobla rodilla y cadera; la barra desciende pegada a la pelvis mientras el empeine posterior permanece sobre el banco.
+  FASE Punto bajo: La barra sigue asentada en el pliegue de la cadera y retenida por las manos; el talón delantero continúa apoyado y la rodilla posterior no toca el suelo.
+  FASE Ascenso: La rodilla y la cadera delanteras se extienden para elevar el cuerpo con la carga, sin sustituir la subida por un impulso de la pierna posterior.
+
+RECHAZAR SI:
+  - Barra apoyada en el trapecio o la espalda: la verdad confirmada sitúa la barra en la cadera.
+  - Barra en los hombros con brazos cruzados al frente: reproduce el montaje heredado falso.
+  - Barra flotando delante de la pelvis sin contacto con la cadera ni agarre de ambas manos.
+  - Pie posterior en el suelo o talón delantero elevado sobre una cuña añadida.
+  - Banco, plataforma, disco o cuña añadidos bajo el pie delantero: la planta de trabajo debe apoyar entera sobre el suelo, sin un apoyo delantero inventado.
+
+QA (si/no, inspector limpio):
+  1. ¿La barra está apoyada en el pliegue de la cadera, en vez de sobre el trapecio o los brazos cruzados?
+  2. ¿Ambas manos agarran la barra y la retienen contra la cadera sin que la carga flote?
+  3. ¿El empeine posterior descansa en el banco y la planta delantera entera toca el suelo?
+  4. ¿La imagen muestra el punto bajo, con la rodilla delantera flexionada y la posterior sin tocar el suelo?
+  5. ¿Los discos quedan separados del suelo y del banco?
+
+== quads_sentadilla_bulgara_jefferson x barbell
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Three-quarter side view of an athlete frozen at the BOTTOM of a Jefferson Bulgarian split squat. The left front foot is flat on the floor; the top of the right rear foot rests on a flat bench. A loaded barbell crosses between the thighs below the pelvis. The left hand grips the shaft behind the front thigh and the right hand grips it in front of the rear thigh. Both arms are straight. Front thigh nearly horizontal, rear knee above the floor, torso slightly leaning forward without twisting. The plates are just above the floor and clear of the bench.
+
+GEOMETRIA: Barra horizontal que cruza entre los muslos por debajo de la pelvis. La mano del lado adelantado agarra detrás de ese muslo y la otra delante del posterior; discos a ambos lados por fuera de las manos, con espacio libre junto al banco.
+CAMARA: Vista de tres cuartos desde el lado de la pierna adelantada, con el atleta entero y ambos extremos de la carga visibles.
+FASE: Fondo de la sentadilla, con el muslo delantero casi horizontal y la rodilla posterior suspendida sobre el suelo.
+ORIENTACION: Pierna izquierda adelantada hacia la izquierda del encuadre y pierna derecha llevada al apoyo posterior.
+CONTACTOS: Planta delantera completa en el suelo, empeine posterior sobre el banco y ambas manos agarrando la carga en lados desfasados de la pelvis.
+POSTURA: Tronco ligeramente inclinado con columna neutra, brazos estirados y pelvis sin giro hacia la mano posterior.
+CARGA: Carga suspendida bajo la pelvis entre los muslos; los extremos quedan cerca del suelo, sin apoyarse en él.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: Sentadilla a una pierna con el empeine posterior elevado y una barra suspendida de las manos que cruza entre los muslos. Las manos agarran por lados desfasados de la pelvis, una detrás del muslo adelantado y otra delante del posterior; el pie delantero recibe el ascenso mientras la carga queda por debajo de la pelvis.
+  POSICION CLAVE: Fondo: pierna adelantada flexionada hasta acercar el muslo al paralelo, pie de trabajo plano y rodilla posterior sin tocar el piso; barra entre los muslos con los discos bajos.
+  POSICION CLAVE: Arriba: rodilla y cadera delanteras casi extendidas, pie posterior aún elevado y barra suspendida bajo la pelvis con los brazos estirados.
+  FASE Bajada: La rodilla y la cadera delanteras se doblan y la rodilla posterior desciende; los brazos siguen estirados y la barra baja entre los muslos.
+  FASE Fondo: La rodilla posterior queda suspendida, el talón delantero continúa en el suelo y las dos manos sujetan la barra con los discos cerca del suelo.
+  FASE Subida: La pierna adelantada extiende rodilla y cadera para elevar el cuerpo y la barra, sin tirar con los codos ni girar hacia la mano posterior.
+
+RECHAZAR SI:
+  - Barra por delante de ambas piernas: debe cruzar entre los muslos con las manos desfasadas.
+  - Barra apoyada en la espalda o la cadera, en lugar de colgada de ambas manos.
+  - Pie posterior en el suelo: se pierde el apoyo elevado propio de esta búlgara.
+  - Codos flexionados levantando la barra o carga flotando sin agarre.
+
+QA (si/no, inspector limpio):
+  1. ¿La barra cruza entre los muslos por debajo de la pelvis y los discos están a ambos lados?
+  2. ¿Las dos manos agarran la barra, una detrás del muslo delantero y otra delante del posterior, con los brazos estirados?
+  3. ¿El pie delantero completo toca el suelo y el empeine posterior está sobre el banco?
+  4. ¿El atleta está en el fondo, con muslo delantero casi horizontal y rodilla posterior sin tocar el suelo?
+  5. ¿Los discos están separados del suelo y del apoyo posterior?
+
+== quads_zancada_inversa_maquina_hack x machine
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Wide oblique side view, frozen at the BOTTOM after the backward step of a hack machine lunge. Show a real sled on two inclined rails, back pad, shoulder pads, handles and a broad foot platform. The athlete faces away from the pad with back pressed against it and shoulders under the pads. Both hands grip sled handles. Front foot and heel rest flat on the platform; front knee and hip bent. The rear foot has stepped back and rests on a stable available support behind. Plates are fixed to the sled horns, no added bench.
+
+GEOMETRIA: Máquina hack convencional con dos raíles inclinados y un carro que incluye respaldo, almohadillas de hombro y asas. Espalda contra respaldo; pie delantero entero sobre plataforma y pie atrasado en la superficie disponible detrás durante el paso. Discos fijados en los soportes del carro, sin mecanismos auxiliares.
+CAMARA: Lateral oblicua abierta para mostrar respaldo, raíles, manos y ambos apoyos.
+FASE: Fondo tras el retroceso del pie, antes de que el carro suba y el pie regrese.
+ORIENTACION: Espalda contra el respaldo y pecho mirando en la orientación normal hacia fuera.
+CONTACTOS: Hombros bajo almohadillas del carro, espalda en respaldo, manos en asas, pie delantero entero y pie posterior apoyados.
+POSTURA: Rodilla delantera doblada, apoyo posterior detrás y pelvis sin giro hacia el acolchado.
+CARGA: Carga solidaria al carro por los soportes de discos, transmitida al atleta mediante las almohadillas de hombro.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: Zancada inversa dentro de una máquina hack convencional: espalda en el respaldo, hombros bajo sus pads y un pie que retrocede durante el gesto y regresa al sitio habitual después de subir. El carro recorre los raíles inclinados mientras la pierna delantera soporta el ascenso.
+  POSICION CLAVE: Abajo, el pie que permanece delante conserva planta y talón sobre la plataforma; su rodilla está doblada.
+  POSICION CLAVE: El pie que retrocedió queda detrás con apoyo real y su rodilla baja; la espalda continúa contra el respaldo.
+  POSICION CLAVE: Los hombros reciben las almohadillas del carro y las dos manos agarran sus asas.
+  FASE Retroceso: Desde los apoyos normales, un pie se desplaza atrás sobre la superficie disponible y el otro permanece delante.
+  FASE Entrada al punto bajo: La pierna delantera se dobla y el carro desciende por los raíles, conservando espalda y hombros sus contactos.
+  FASE Elevación y cierre: Rodilla y cadera de apoyo recuperan extensión y el pie atrasado vuelve al lugar normal para cerrar la repetición.
+
+RECHAZAR SI:
+  - Pecho mirando al respaldo, como una hack invertida, en lugar de la posición habitual confirmada.
+  - Pie posterior flotante, sobre un banco añadido o suspendido con un rodillo.
+  - Brazo pivotante de V-Squat que sustituya el carro sobre dos raíles.
+  - Dos pies paralelos abajo o apoyo posterior fijo sin paso y regreso entre repeticiones.
+
+QA (si/no, inspector limpio):
+  1. ¿La espalda está contra el respaldo y el pecho mira hacia fuera en la orientación habitual?
+  2. ¿Ambos hombros reciben las almohadillas y las manos agarran las asas del carro?
+  3. ¿El pie delantero conserva talón y planta en la plataforma mientras el otro apoya más atrás?
+  4. ¿La rodilla delantera aparece doblada en el punto inferior posterior al paso?
+  5. ¿Hay carro sobre dos raíles inclinados y discos fijados a sus soportes?
+
+== quads_zancada_inversa_maquina_v_squat x machine
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Oblique side view, frozen at the BOTTOM after the backward step of a V-squat machine lunge. A real pivoting arm has shoulder pads, a back pad, handles and a broad foot platform. The athlete faces away from the back pad; back presses against it and shoulders sit under both pads. Both hands grip the handles. Front foot and heel rest flat, front knee and hip bent. The other foot has stepped back and its forefoot rests on the available rear support surface. Plates sit on the machine arms. No added bench.
+
+GEOMETRIA: V-Squat de palanca pivotante con respaldo, dos almohadillas de hombro, asas y plataforma suficiente para el paso. El pie de trabajo conserva su apoyo delantero; el otro retrocede a la superficie posterior disponible y vuelve al sitio habitual al completar cada repetición. Discos en soportes del brazo móvil.
+CAMARA: Vista lateral oblicua con respaldo, pivote, dos pies y asas reconocibles.
+FASE: Punto inferior después del paso atrás, con la pierna delantera claramente doblada y el pie posterior aún sin regresar.
+ORIENTACION: Espalda hacia el respaldo habitual y pecho mirando fuera del aparato.
+CONTACTOS: Espalda contra el acolchado, hombros bajo almohadillas, manos cerradas sobre asas y pies en la superficie de apoyo.
+POSTURA: Pie delantero entero apoyado, pie posterior detrás, pelvis sin cruzarse ni girar hacia el respaldo.
+CARGA: Carga recibida por los hombros a través del brazo articulado, con discos en sus soportes laterales.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: Zancada con paso atrás y regreso del pie dentro de una V-Squat real, con orientación habitual, espalda contra el respaldo y hombros bajo las almohadillas. El otro pie conserva su apoyo delantero mientras el brazo articulado baja y sube.
+  POSICION CLAVE: Abajo, rodilla y cadera delanteras están flexionadas y el talón delantero conserva contacto.
+  POSICION CLAVE: El apoyo posterior permanece detrás sin cruzar la línea del pie delantero; el pecho mira fuera del respaldo.
+  POSICION CLAVE: El brazo articulado se mueve en su arco propio con discos simétricos en los soportes laterales.
+  FASE Paso atrás: Un pie deja su posición habitual y se coloca más atrás, mientras el otro conserva el apoyo delantero y la espalda continúa en el respaldo.
+  FASE Descenso: La pierna que permanece delante se dobla y el brazo pivotante baja, con el apoyo posterior sobre la superficie disponible.
+  FASE Subida y regreso: La pierna delantera eleva el conjunto y el pie que retrocedió vuelve al sitio normal, completando una repetición con ambos apoyos como al inicio.
+
+RECHAZAR SI:
+  - Cuerpo invertido de cara al respaldo: contradice la postura habitual confirmada por el usuario.
+  - Banco detrás del atleta, rodillo para el pie o plataforma añadida sin base en el montaje humano.
+  - Carro sobre raíles inclinados que sustituye la palanca de la V-Squat.
+  - Pies paralelos a la misma altura en el fotograma inferior o pie trasero permanentemente fijo durante toda una serie.
+
+QA (si/no, inspector limpio):
+  1. ¿La espalda conserva contacto con el respaldo y el pecho mira fuera de él?
+  2. ¿Los hombros están bajo las almohadillas y ambas manos agarran las asas?
+  3. ¿Un pie permanece delante y el otro está apoyado más atrás, como tras el paso de la zancada?
+  4. ¿La rodilla delantera está doblada en el punto inferior?
+  5. ¿Se reconoce una palanca pivotante con discos montados y no un carro inventado?
+
+== glutes_zancada_cruzada x dumbbells
+PROMPT (GenerateImage, ASCII):
+Semi-realistic 3D catalog illustration, not a comic, not a gym photo. No thick black outlines. No cel-shade. Isolated athlete and equipment on a black background. No logos, no text, blank plates, dark clothes. One scene only.
+
+EXERCISE: Front three-quarter view, frozen at the BOTTOM of a dumbbell curtsy lunge. The left foot and heel rest flat on the floor, left knee bent and pointing along its foot. The right leg crosses BEHIND the left toward the left side; right forefoot rests on the floor, heel lifted and rear knee near the floor. Chest and pelvis face forward without twisting. Each hand firmly grips one dumbbell with a neutral grip; straight arms hang outside the thighs and both weights remain clear of the knees and floor.
+
+GEOMETRIA: Una mancuerna en cada mano, agarre neutro y brazos extendidos por fuera de los muslos. Las pesas cuelgan sobre el suelo sin descansar sobre la pierna adelantada; el pie posterior cruza por detrás del apoyo delantero.
+CAMARA: Vista anterior oblicua con ambas manos y el cruce posterior visibles.
+FASE: Fondo de la zancada, antes de salir del apoyo cruzado.
+ORIENTACION: Pecho y pelvis al frente, pierna posterior hacia el lado opuesto detrás de la delantera.
+CONTACTOS: Planta y talón delanteros en el suelo, antepié posterior apoyado y manos cerradas sobre las cargas.
+POSTURA: Rodilla delantera doblada sobre su pie, rodilla posterior baja, pelvis sin giro marcado.
+CARGA: Dos cargas suspendidas por manos independientes junto a los muslos, separadas del suelo y de las rodillas.
+
+CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):
+  QUE ES: Zancada diagonal con una pierna que cruza por detrás de la de apoyo y después regresa a la base inicial. El pie delantero conserva el talón apoyado; dos cargas cuelgan de manos independientes fuera de los muslos.
+  POSICION CLAVE: Abajo, pierna posterior cruzada detrás, su talón elevado y rodilla cerca del suelo; pie delantero entero apoyado.
+  POSICION CLAVE: Pecho y pelvis siguen orientados aproximadamente al frente, sin rotar hacia el pie posterior.
+  POSICION CLAVE: La rodilla delantera conserva la dirección de su pie aunque el otro cruce por detrás.
+  FASE Paso cruzado: El pie libre viaja atrás y hacia el lado opuesto, quedando detrás de la pierna que conserva su apoyo delantero.
+  FASE Descenso diagonal: Ambas rodillas se doblan y la posterior se acerca al suelo mientras el talón delantero sigue plantado.
+  FASE Regreso al centro: La pierna delantera recupera extensión de rodilla y cadera y permite devolver el pie posterior a la separación inicial.
+
+RECHAZAR SI:
+  - Paso atrás paralelo sin cruce diagonal detrás de la pierna de apoyo.
+  - Rodilla delantera colapsada hacia dentro o pelvis girada siguiendo el pie posterior.
+  - Salto lateral, elevación de pierna al terminar o pie posterior sobre un banco.
+  - Mancuernas flotantes o apoyadas sobre los muslos en vez de agarradas.
+
+QA (si/no, inspector limpio):
+  1. ¿La pierna posterior cruza visiblemente por detrás hacia el lado opuesto?
+  2. ¿El pie delantero conserva la planta y el talón en el suelo?
+  3. ¿La rodilla posterior queda baja, con el antepié posterior apoyado en el suelo y su talón elevado en el fotograma inferior?
+  4. ¿La rodilla delantera apunta aproximadamente como su pie y el pecho mira al frente?
+  5. ¿Cada mano agarra una mancuerna que cuelga sin tocar rodillas ni suelo?

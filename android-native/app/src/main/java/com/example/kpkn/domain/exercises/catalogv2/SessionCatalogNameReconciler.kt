@@ -25,7 +25,7 @@ object SessionCatalogNameReconciler {
         displayNameIndex: Map<String, String>,
     ): Exercise {
         if (isManualCustom(exercise)) return exercise
-        val remapped = remapLegacyCatalogConfiguration(remapRetiredRomanianSumoConfiguration(exercise, displayNameIndex))
+        val remapped = remapLegacyCatalogConfiguration(remapRetiredCatalogConfiguration(exercise, displayNameIndex))
         val configurationId = remapped.catalogConfigurationId?.trim().orEmpty()
         if (configurationId.isBlank()) return remapped
         if (isManualCustom(remapped)) return remapped
@@ -37,21 +37,24 @@ object SessionCatalogNameReconciler {
         return remapped.copy(name = derived)
     }
 
-    private fun remapRetiredRomanianSumoConfiguration(
+    private fun remapRetiredCatalogConfiguration(
         exercise: Exercise,
         displayNameIndex: Map<String, String>,
     ): Exercise {
         val configurationId = exercise.catalogConfigurationId?.trim()?.lowercase().orEmpty()
-        val replacementProfileId = RETIRED_ROMANIAN_SUMO_CONFIGURATION_PROFILES[configurationId] ?: return exercise
-        if (exercise.catalogDefinitionId != "romanian_sumo_deadlift") return exercise
+        val replacementProfileId = RETIRED_ROMANIAN_SUMO_CONFIGURATION_PROFILES[configurationId]
+            ?: RETIRED_WALKING_CONFIGURATION_PROFILES[configurationId]
+            ?: return exercise
+        if (exercise.catalogDefinitionId != configurationId.substringBefore("__")) return exercise
         val replacementId = RETIRED_CONFIGURATION_REPLACEMENTS.getValue(configurationId)
+        val replacementDefinitionId = replacementId.substringBefore("__")
         if (replacementId !in displayNameIndex) return exercise
         return exercise.copy(
             exerciseDbId = replacementId,
             exerciseId = replacementId,
             canonicalExerciseId = replacementId,
-            exerciseFamilyId = "romanian_deadlift",
-            catalogDefinitionId = "romanian_deadlift",
+            exerciseFamilyId = replacementDefinitionId,
+            catalogDefinitionId = replacementDefinitionId,
             catalogConfigurationId = replacementId,
             performanceProfileId = replacementProfileId,
         )

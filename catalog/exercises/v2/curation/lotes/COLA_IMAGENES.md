@@ -1,3 +1,5 @@
+# Cola de imágenes aprobadas — catálogo de ejercicios
+
 # Lote 5: cola de imágenes aprobada
 
 **COLA APROBADA — 4 de octubre de 2026. Imágenes pendientes, no generadas.** La anatomía y los textos del lote están aprobados y aplicados; se comprobó la igualdad de sus 21 cuerpos compartidos con la integración. Los originales y sus resultados de revisión se conservan.
@@ -409,3 +411,158 @@ La propuesta de cambio de dominante fue apartada. Sus tres PNG se conservaron en
 ## Registro completo
 
 `artifacts/catalog-lote05-20261004/integration/image_queue.json` conserva los 46 pares, los hashes reales de 35 archivos, todas las QA literales y sus motivos. Para el sentado se identifica la propuesta apartada como fuente. Los registros anteriores A/B permanecen intactos.
+
+
+# Lote 6: cola de imágenes aprobada
+
+Corte aplicado c67eeb8f… / 521 configuraciones. **32 entradas aprobadas: 10 FALLA y 22 SIN_IMAGEN**; tres PNG PASA quedan fuera. No se generaron imágenes ni se relajó QA. Las dos walking retiradas quedan fuera. Los siete briefs parentales no cambian.
+
+[42 briefs completos](LOTE_06_BRIEFS_VISUALES.txt) · [Informe del lote](LOTE_06_UNILATERALES.md).
+
+### `forward_lunge__barbell`
+
+**MISSING_IMAGE** — Crear el PNG de este par a partir del brief CURATED literal; no existe imagen mapeada.
+
+### `forward_lunge__smith_machine`
+
+**MISSING_IMAGE** — Crear el PNG de este par a partir del brief CURATED literal; no existe imagen mapeada.
+
+### `forward_lunge__dumbbells`
+
+**MISSING_IMAGE** — Crear el PNG de este par a partir del brief CURATED literal; no existe imagen mapeada.
+
+### `forward_lunge__kettlebell`
+
+**MISSING_IMAGE** — Crear el PNG de este par a partir del brief CURATED literal; no existe imagen mapeada.
+
+### `forward_lunge__cable`
+
+**MISSING_IMAGE** — Crear el PNG de este par a partir del brief CURATED literal; no existe imagen mapeada.
+
+### `glutes_step_up_gluteo__default`
+
+**FALLA** — Mostrar dos mancuernas, una agarrada visiblemente en cada mano con brazos largos; situar el pie libre apenas separado del suelo en el primer tercio. Conservar pie elevado entero, tibia próxima a vertical y flexión de cadera.
+
+Original: `C:\Users\valen\Documents\KPKNFit\android-native\app\src\main\res\drawable-nodpi\exercise_glutes_step_up_gluteo_batch8.png`. SHA-256: `aa1e7275430492ea559387850eac3fc1acc50780007508e39d5e681d1cb579d6`.
+
+### `glutes_zancada_cruzada__default`
+
+**MISSING_IMAGE** — Crear el PNG de este par a partir del brief CURATED literal; no existe imagen mapeada.
+
+### `quads_sentadilla_bulgara_jefferson__default`
+
+**MISSING_IMAGE** — Crear el PNG de este par a partir del brief CURATED literal; no existe imagen mapeada.
+
+### `quads_sentadilla_bulgara_somersault__default`
+
+**MISSING_IMAGE** — Crear el PNG de este par a partir del brief CURATED literal; no existe imagen mapeada.
+
+### `quads_sentadilla_cosaca__default`
+
+**FALLA** — Reponer el fotograma con pierna anatómica izquierda doblada y derecha extendida al costado, conservando la planta izquierda y el talón derecho sobre el suelo y los dedos derechos arriba. No cambiar QA para acomodar este PNG.
+
+Original: `C:\Users\valen\Documents\KPKNFit\android-native\app\src\main\res\drawable-nodpi\exercise_quads_sentadilla_cosaca_batch8.png`. SHA-256: `9c27be0cf98a2f56652806b8aa44d2853c7c68d75a7adbbac86a1af1fe17df87`.
+
+### `quads_sentadilla_pistola_asistida_trx__default`
+
+**MISSING_IMAGE** — Crear el PNG de este par a partir del brief CURATED literal; no existe imagen mapeada.
+
+### `quads_step_up_cajon_frontal__default`
+
+**MISSING_IMAGE** — Crear el PNG de este par a partir del brief CURATED literal; no existe imagen mapeada.
+
+### `quads_step_up_cajon_zercher__default`
+
+**MISSING_IMAGE** — Crear el PNG de este par a partir del brief CURATED literal; no existe imagen mapeada.
+
+### `quads_zancada_caminando_frontal_barra_recta__default`
+
+**MISSING_IMAGE** — Crear el PNG de este par a partir del brief CURATED literal; no existe imagen mapeada.
+
+### `quads_zancada_caminando_zercher_barra_recta__default`
+
+**MISSING_IMAGE** — Crear el PNG de este par a partir del brief CURATED literal; no existe imagen mapeada.
+
+### `quads_zancada_frontal_zercher__default`
+
+**MISSING_IMAGE** — Crear el PNG de este par a partir del brief CURATED literal; no existe imagen mapeada.
+
+### `quads_zancada_inversa_frontal__default`
+
+**MISSING_IMAGE** — Crear el PNG de este par a partir del brief CURATED literal; no existe imagen mapeada.
+
+### `quads_zancada_inversa_maquina_hack__default`
+
+**MISSING_IMAGE** — Crear el PNG de este par a partir del brief CURATED literal; no existe imagen mapeada.
+
+### `quads_zancada_inversa_maquina_v_squat__default`
+
+**MISSING_IMAGE** — Crear el PNG de este par a partir del brief CURATED literal; no existe imagen mapeada.
+
+### `quads_zancada_inversa_zercher__default`
+
+**MISSING_IMAGE** — Crear el PNG de este par a partir del brief CURATED literal; no existe imagen mapeada.
+
+### `reverse_lunge__barbell`
+
+**FALLA** — Mostrar el fondo de la zancada con los dedos posteriores plantados de forma inequívoca sobre el mismo suelo del pie delantero, talón posterior elevado y rodilla posterior cerca del piso sin apoyarla. Conservar la barra en espalda alta y ambos agarres.
+
+Original: `C:\Users\valen\Documents\KPKNFit\android-native\app\src\main\res\drawable-nodpi\exercise_reverse_lunge_barbell_batch9.png`. SHA-256: `aefcb830634d7a49711f576303d112d8c59866ec77b51a3aab6e7bd8f7327983`.
+
+### `reverse_lunge__smith_machine`
+
+**FALLA** — Bajar al fondo y apoyar de forma visible los dedos posteriores sobre el suelo dentro de la Smith, con talón posterior elevado y rodilla trasera cercana al piso sin contacto. Mantener barra sobre espalda alta, dos carros/guías reales y ambos agarres.
+
+Original: `C:\Users\valen\Documents\KPKNFit\android-native\app\src\main\res\drawable-nodpi\exercise_reverse_lunge_smith_machine_batch9.png`. SHA-256: `6de0e94c718e5d95cb7a17c857ee1fc369cb9744917770a8a590a0f238bf1565`.
+
+### `reverse_lunge__dumbbells`
+
+**FALLA** — Mantener las dos mancuernas laterales con ambos agarres visibles y representar el fondo con antepié posterior inequívocamente plantado, talón posterior elevado y rodilla retrasada cerca del piso.
+
+Original: `C:\Users\valen\Documents\KPKNFit\android-native\app\src\main\res\drawable-nodpi\exercise_reverse_lunge_dumbbells_batch9.png`. SHA-256: `73f4bea959df53e19461349735f455d222cbdf74980c40e0797d86d5a9fcc0e1`.
+
+### `reverse_lunge__kettlebell`
+
+**FALLA** — Reponer una sola kettlebell frente al esternón con ambas manos agarrando los lados del asa y codos doblados hacia abajo; mostrar antepié posterior plantado, talón posterior elevado y fondo cerca del suelo.
+
+Original: `C:\Users\valen\Documents\KPKNFit\android-native\app\src\main\res\drawable-nodpi\exercise_reverse_lunge_kettlebell_batch9.png`. SHA-256: `38997b93599436c5d4801c146dded16b501d93065c54226c62785474add4b857`.
+
+### `reverse_lunge__cable`
+
+**FALLA** — Eliminar el escalón frontal. Mostrar el pie delantero entero sobre suelo plano y el fondo con ambas rodillas flexionadas, dedos posteriores plantados y talón posterior elevado. Mantener una asa junto a cadera y polea baja delante.
+
+Original: `C:\Users\valen\Documents\KPKNFit\android-native\app\src\main\res\drawable-nodpi\exercise_reverse_lunge_cable_batch9.png`. SHA-256: `f9163208fe6a061fdbc2eec5cd9ae2c21d7fc7af32fc7b49d3eaa2597afdf105`.
+
+### `reverse_lunge__bodyweight`
+
+**MISSING_IMAGE** — Crear el PNG de este par a partir del brief CURATED literal; no existe imagen mapeada.
+
+### `step_up__dumbbells`
+
+**FALLA** — Cambiar el encuadre para que se vea cada mano agarrando su mancuerna de forma inequívoca, con dos brazos largos y cargas fuera de los muslos/bordes. Conservar pie entero en cajón, rodilla flexionada y pie libre detrás en el aire.
+
+Original: `C:\Users\valen\Documents\KPKNFit\android-native\app\src\main\res\drawable-nodpi\exercise_step_up_dumbbells_batch10.png`. SHA-256: `10ef6f448dc8c38bd1e6e7caf8de0462fdf1acea118dfcbe917ef9e84063d3e8`.
+
+### `step_up__kettlebell`
+
+**FALLA** — Reponer una sola kettlebell delante del esternón con ambas palmas rodeando y sosteniendo visiblemente su cuerpo redondo, codos flexionados y asa libre del cajón. Conservar la postura de Step-Up y el pie libre suspendido.
+
+Original: `C:\Users\valen\Documents\KPKNFit\android-native\app\src\main\res\drawable-nodpi\exercise_step_up_kettlebell_batch10.png`. SHA-256: `0114375d4b5f75d54919b6a530540baa2e89070aec9fa80844f7aa017f8ffe72`.
+
+### `step_up__cable`
+
+**FALLA** — Mostrar dos poleas bajas próximas al cajón y dos cables tensos por fuera de las piernas; cada mano debe agarrar su propia asa con brazo largo. Evitar contacto de cables con el borde. Conservar el pie elevado entero y el pie libre suspendido.
+
+Original: `C:\Users\valen\Documents\KPKNFit\android-native\app\src\main\res\drawable-nodpi\exercise_step_up_cable_batch10.png`. SHA-256: `a65a72e7efe1e0b1659032691b5743ed2046323a991e8b02a457c0aa172bfe77`.
+
+### `walking_lunge__barbell`
+
+**MISSING_IMAGE** — Crear el PNG de este par a partir del brief CURATED literal; no existe imagen mapeada.
+
+### `walking_lunge__dumbbells`
+
+**MISSING_IMAGE** — Crear el PNG de este par a partir del brief CURATED literal; no existe imagen mapeada.
+
+### `walking_lunge__kettlebell`
+
+**MISSING_IMAGE** — Crear el PNG de este par a partir del brief CURATED literal; no existe imagen mapeada.

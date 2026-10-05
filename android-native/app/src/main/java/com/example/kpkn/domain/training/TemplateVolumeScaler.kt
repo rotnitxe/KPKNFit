@@ -178,15 +178,18 @@ object TemplateVolumeScaler {
                         for ((acc, exercise) in sortedBySets) {
                             if (remaining <= 0) break
                             val contributions = acc.contributions(exercise)
+                            val primaryGroups = acc.primaryGroups(exercise)
                             diagnostic?.invoke("TRY target=$muscle session=${acc.session.name} exercise=${exercise.catalogConfigurationId} sets=${acc.directSetsFor(muscle, exercise)} contributions=$contributions projected=$projected targets=$targets")
                             // A bounded allowance applies only to indirect collateral work.
                             // Existing excess is preserved, never used to raise the ceiling.
                             val blocked = contributions.any { (affected, contribution) ->
                                 val target = targets[affected] ?: return@any false
-                                val limit = if (affected != muscle) {
-                                    target.target.toDouble() + INDIRECT_MRV_TOLERANCE
-                                } else {
+                                // A second PRIMARY of this exercise is still direct work,
+                                // even when this pass is filling another muscle's target.
+                                val limit = if (affected == muscle || affected in primaryGroups) {
                                     target.ceiling.toDouble()
+                                } else {
+                                    target.target.toDouble() + INDIRECT_MRV_TOLERANCE
                                 }
                                 val rejected = (projected[affected] ?: 0.0) + contribution > limit + EPSILON
                                 if (rejected) diagnostic?.invoke("REJECT target=$muscle exercise=${exercise.catalogConfigurationId} affected=$affected before=${projected[affected]} delta=$contribution limit=$limit")
@@ -307,6 +310,15 @@ object TemplateVolumeScaler {
                 com.example.kpkn.domain.exercises.ExerciseMuscleResolver
                     .effectiveMusclesForVolume(exercise, exerciseIndex),
             )
+
+        fun primaryGroups(exercise: Exercise): Set<String> =
+            com.example.kpkn.domain.exercises.ExerciseMuscleResolver
+                .effectiveMusclesForVolume(exercise, exerciseIndex)
+                .asSequence()
+                .filter { it.role == com.example.kpkn.data.models.MuscleRole.PRIMARY }
+                .map { VolumeCalculator.normalizeCanonicalMuscleGroup(it.muscle, it.emphasis) }
+                .filter { it in VolumeCalculator.standardVolumeMuscles }
+                .toSet()
 
         fun directContributions(exercise: Exercise): Map<String, Double> = directMap(exercise)
 

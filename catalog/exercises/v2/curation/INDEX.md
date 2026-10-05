@@ -1,8 +1,8 @@
 # Índice del catálogo de ejercicios v2
 
 Revisión: `v2-approved-2026-09-29-a` · Ontología: `wikilab-v3-2026-08-08`
-96 familias · 206 definiciones · 523 configuraciones
-Hash canónico: `1c267f408dce0649…`
+96 familias · 206 definiciones · 521 configuraciones
+Hash canónico: `c67eeb8ff6a8e689…`
 
 Artefacto informativo generado por `scripts/merge_catalog_v2_families.py`.
 No editar a mano: se regenera en cada merge.
@@ -147,7 +147,7 @@ No editar a mano: se regenera en cada merge.
 | lower_unilateral_knee_dominant | quads_zancada_inversa_maquina_v_squat | Zancada Inversa en Máquina V-Squat |  | 1 |
 | lower_unilateral_knee_dominant | quads_zancada_inversa_zercher | Zancada Inversa Zercher |  | 1 |
 | lower_unilateral_knee_dominant_asymmetric | quads_sentadilla_bulgara_jefferson | Sentadilla Búlgara Jefferson |  | 1 |
-| lower_walking_lunge | walking_lunge | Zancada Caminando | implement | 5 |
+| lower_walking_lunge | walking_lunge | Zancada Caminando | implement | 3 |
 | lower_wrist_extension | forearms_curl_muneca_inverso_sentado | Extensión de Muñeca | implement | 4 |
 | lower_wrist_flexion | forearms_curl_muneca_de_pie_tras_espalda_barra | Curl de Muñeca de Pie Tras Espalda con Barra |  | 1 |
 | lower_wrist_flexion | forearms_curl_muneca_sentado | Curl de Muñeca | implement | 4 |

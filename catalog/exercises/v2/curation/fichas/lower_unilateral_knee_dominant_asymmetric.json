@@ -1,21 +1,319 @@
 {
   "definitions": {
     "quads_sentadilla_bulgara_jefferson": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Flexión de la rodilla",
+              "Extensión de la rodilla"
+            ],
+            "id": "rodilla",
+            "role": "PRIMARY",
+            "sources": [
+              "helme2022",
+              "andersen2014"
+            ],
+            "why": "La rodilla adelantada pasa de flexión a extensión bajo el peso del cuerpo y la barra suspendida. La acción se observa en el montaje Jefferson; el predominio de apoyo delantero y la actividad extensora se extrapolan de los estudios de búlgara estándar."
+          },
+          {
+            "actions": [
+              "Flexión de la cadera",
+              "Extensión de la cadera"
+            ],
+            "id": "cadera",
+            "role": "PRIMARY",
+            "sources": [
+              "arakawa2023",
+              "mackey2021"
+            ],
+            "why": "La cadera adelantada se flexiona en el descenso y se extiende para elevar la pelvis y la barra. La demostración muestra esa acción; el trabajo y momento extensor documentados en búlgaras estándar apoyan la inferencia funcional, sin asignar sus valores al agarre Jefferson."
+          },
+          {
+            "actions": [
+              "Dorsiflexión del tobillo",
+              "Flexión plantar del tobillo"
+            ],
+            "id": "tobillo",
+            "role": "SECONDARY",
+            "sources": [
+              "mackey2021"
+            ],
+            "why": "La tibia avanza sobre el pie delantero al bajar y retorna al subir con el talón apoyado. Se extrapola la contribución dinámica del tobillo medida en la búlgara estándar, aunque la distribución de carga de este montaje no fue medida en ese ensayo."
+          },
+          {
+            "actions": [
+              "Estabilidad del tronco",
+              "Resistencia a la rotación del tronco"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "andersen2014",
+              "hamlyn2007"
+            ],
+            "why": "La columna lumbar transmite la carga suspendida a la pelvis sin doblarse ni seguir el giro de las manos desfasadas. Este sostén isométrico se infiere del montaje observado y de los estudios de tronco en búlgaras y ejercicios cargados, sin prueba específica de Jefferson."
+          },
+          {
+            "actions": [
+              "Sostén del agarre"
+            ],
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_forearm_compartments"
+            ],
+            "why": "Cada muñeca queda firme mientras una mano agarra por delante y la otra por detrás del muslo correspondiente. Transmite el peso colgado al brazo sin flexionarse para levantarlo; se extrapola la función de agarre de los compartimentos del antebrazo."
+          },
+          {
+            "actions": [
+              "Sostén del hombro bajo carga"
+            ],
+            "id": "glenohumeral",
+            "role": "STABILIZER",
+            "sources": [
+              "deltoid_anatomy"
+            ],
+            "why": "El agarre anterior y posterior a la pelvis transmite la barra suspendida a las dos articulaciones del hombro. La glenohumeral conserva la relación entre brazo y tronco durante el descenso unilateral, sin añadir una elevación de brazos para mover los discos."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "quadriceps",
+            "role": "PRIMARY",
+            "sources": [
+              "helme2022",
+              "andersen2014"
+            ],
+            "why": "Los vastos extienden la rodilla delantera y elevan la pelvis con la barra colgada bajo ella. Helme midió el predominio de fuerza del pie delantero y Andersen la participación de los vastos en búlgaras habituales; se extrapola esa función motora al montaje Jefferson, sin atribuirle mediciones propias ni decidir dominancia por EMG."
+          },
+          {
+            "id": "gluteus_maximus",
+            "role": "PRIMARY",
+            "sources": [
+              "arakawa2023",
+              "mccurdy2018"
+            ],
+            "why": "Extiende la cadera adelantada desde la flexión del punto bajo mientras la barra cuelga entre los muslos. Esa extensión contra carga fundamenta el papel motor compartido con el cuádriceps; Arakawa y McCurdy respaldan el trabajo de cadera en búlgaras estándar, extrapolado aquí sin ensayos específicos del agarre Jefferson."
+          },
+          {
+            "id": "hamstrings",
+            "role": "SECONDARY",
+            "sources": [
+              "andersen2014",
+              "mccurdy2018"
+            ],
+            "why": "Ayudan a extender la cadera de trabajo con la rodilla moviéndose al mismo tiempo. Su ayuda se extrapola de la actividad de isquiosurales medida en la búlgara habitual; la barra entre los muslos no convierte el gesto en una flexión de rodilla aislada ni acredita que lideren la subida."
+          },
+          {
+            "id": "adductors",
+            "role": "SECONDARY",
+            "sources": [
+              "collings2026"
+            ],
+            "why": "El aductor mayor ayuda a extender la cadera adelantada desde el fondo. La barra entre los muslos necesita espacio, pero no demuestra por sí sola una mayor contribución aductora; se extrapola la función extensora estimada por Collings en sentadilla y step-up, sin un modelo de esta especialidad."
+          },
+          {
+            "id": "calves",
+            "role": "SECONDARY",
+            "sources": [
+              "mackey2021"
+            ],
+            "why": "Los flexores plantares frenan y devuelven la tibia delantera mientras el pie permanece apoyado. El trabajo del tobillo documentado por Mackey en la búlgara estándar respalda la ayuda dinámica, extrapolada a la carga Jefferson sin afirmar que el agarre reproduzca los mismos momentos."
+          },
+          {
+            "id": "gluteus_medius",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_gluteus_medius",
+              "mccurdy2010"
+            ],
+            "why": "La pelvis debe sostenerse sobre el pie delantero pese al agarre desfasado y al apoyo posterior alto. Se infiere su función postural de la anatomía abductora y de su actividad en sentadilla unilateral, sin transformar esa estabilización en abducción repetida como motor principal."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "andersen2014"
+            ],
+            "why": "Resiste el giro y la inclinación del tronco que pueden aparecer con las manos en lados desfasados de la pelvis. El aumento de actividad del oblicuo externo en búlgaras habituales apoya el sostén del torso; el efecto concreto de este agarre es una inferencia mecánica, no un resultado de ese ensayo."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "hamlyn2007"
+            ],
+            "why": "Sostiene la columna sin redondearla mientras el peso cuelga de los brazos y la cadera se flexiona. No extiende dinámicamente la espalda para mover la barra; su función isométrica se extrapola de la mecánica observada y de la actividad extensora medida por Hamlyn en otros ejercicios cargados."
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_forearm_compartments"
+            ],
+            "why": "Los flexores de los dedos sostienen la barra suspendida de ambas manos durante toda la serie. Esa sujeción está presente en la demostración del montaje; se atribuye el rol isométrico a la función descrita por StatPearls, sin usar el agarre como motor de la subida."
+          },
+          {
+            "id": "deltoid",
+            "role": "STABILIZER",
+            "sources": [
+              "deltoid_anatomy"
+            ],
+            "why": "Las manos desfasadas sostienen el eje entre los muslos y llevan su tracción a hombros con brazos largos. El deltoides limita desplazamiento inferior mientras la pierna delantera eleva la carga; es función anatómica aplicada a Jefferson, sin electromiografía de este montaje."
+          }
+        ]
+      },
       "public": {
         "configurations": {
           "quads_sentadilla_bulgara_jefferson__default": {
-            "description": "Con barra, con el pie de atrás en alto y la barra entre las piernas, el descenso es vertical y asimétrico. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
+            "description": "Colgada entre los muslos, la barra se sostiene con una mano adelantada y otra retrasada. Los discos suben a ambos lados de la pierna de trabajo, con espacio libre junto al apoyo posterior.",
             "executionCues": [
-              "Pie trasero en el banco y barra en posición Jefferson: dos ejercicios duros combinados en uno. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Dobla la rodilla delantera y baja la de atrás hacia el suelo con los brazos estirados.",
+              "Conserva el pecho orientado al frente sin girar hacia la mano retrasada.",
+              "Empuja con la planta delantera y extiende rodilla y cadera para subir la barra entre los muslos."
             ],
             "setupCues": [
-              "Preparación: Pie trasero en el banco y barra en posición Jefferson: dos ejercicios duros combinados en uno."
+              "Ponte a horcajadas sobre la barra y apoya el empeine posterior en el banco.",
+              "Agarra la barra con una mano detrás del muslo delantero y la otra delante del posterior.",
+              "Deja el pie delantero plano y comprueba que los discos no alcanzan el banco."
             ]
           }
         },
-        "description": "La Sentadilla Búlgara Jefferson monta la barra entre las piernas con el pie trasero elevado sobre el banco: dos rarezas en una que cargan el cuádriceps con una asimetría singular. Se practica agarrando la barra a horcajadas, bajando en vertical sobre la pierna de apoyo y regresando sin que el torso se tuerza. El agarre Jefferson cambia la línea de la carga por completo. Para los que ya dominaron todo lo convencional y buscan territorio nuevo."
+        "description": "La Sentadilla Búlgara Jefferson combina el pie posterior elevado con una barra que cruza entre los muslos y cuelga de las manos. El cuádriceps extiende la rodilla adelantada y el glúteo mayor extiende su cadera para elevar el cuerpo. Una mano agarra por detrás del muslo delantero y la otra por delante del posterior, con los brazos estirados. Durante el descenso, la rodilla posterior se acerca al piso y la barra continúa suspendida entre los muslos. El agarre desfasado da espacio a la barra, pero también exige resistir el giro del tronco durante toda la serie."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "En 715 repeticiones medidas con dos plataformas de fuerza, el pie delantero aportó de media el 84,4 % de la fuerza vertical; la fuerza del pie trasero no pasó del peso de la propia pierna.",
+          "id": "helme2022",
+          "title": "Is the Rear Foot Elevated Split Squat Unilateral? An Investigation Into the Kinetic and Kinematic Demands",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/32796420/"
+        },
+        {
+          "claim": "Con la misma carga relativa, la sentadilla búlgara activó más el bíceps femoral (63-77 %) y el oblicuo externo (58-62 %) que la sentadilla, menos el recto femoral (16-21 %) y por igual los vastos y el recto abdominal.",
+          "id": "andersen2014",
+          "title": "Muscle activation and strength in squat and Bulgarian squat on stable and unstable surface",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/25254898/"
+        },
+        {
+          "claim": "En la sentadilla unilateral modificada con el pie trasero elevado, el glúteo mayor llegó al 65,6 % y los isquiosurales al 40,1 % de la contracción máxima, más que en la sentadilla bilateral y el peso muerto rígido.",
+          "id": "mccurdy2018",
+          "title": "Gluteus Maximus and Hamstring Activation During Selected Weight-Bearing Resistance Exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29076958/"
+        },
+        {
+          "claim": "Con cargas de 10 RM, el momento extensor de cadera fue un 44 % mayor en el punto bajo y un 47 % mayor en el pico que en la sentadilla trasera, y también fueron mayores los momentos de abducción y rotación externa.",
+          "id": "arakawa2023",
+          "title": "Greater Hip Moments in Rear-Foot-Elevated Split Squats Than in Conventional Back Squats With the Same Relative Intensity of Loads",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/36542838/"
+        },
+        {
+          "claim": "En la búlgara, el impulso, el trabajo y el momento máximo de la cadera superaron a los de la rodilla y el tobillo; el impulso de momento del tobillo fue mayor que el de la rodilla y el recorrido de la rodilla, menor que en la sentadilla trasera.",
+          "id": "mackey2021",
+          "title": "Biomechanical Differences Between the Bulgarian Split-Squat and Back Squat",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/34055144/"
+        },
+        {
+          "claim": "La sentadilla unilateral modificada activó más el glúteo medio y los isquiosurales que la sentadilla de dos piernas, que activó más el cuádriceps.",
+          "id": "mccurdy2010",
+          "title": "Comparison of lower extremity EMG between the 2-leg squat and modified single-leg squat in female athletes",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/20231745/"
+        },
+        {
+          "claim": "En un modelo guiado por electromiografía, la subida al cajón y la sentadilla quedaron en el nivel más alto de fuerza para la porción isquiocondílea del aductor mayor, que generó fuerzas altas en los ejercicios orientados a extender la cadera.",
+          "id": "collings2026",
+          "title": "Hip Adductor Muscle Forces during Strength Training and Rehabilitation Exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/41931009/"
+        },
+        {
+          "claim": "El glúteo medio y el menor abducen la cadera y son clave para la estabilidad de la pierna y la pelvis.",
+          "id": "statpearls_gluteus_medius",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Medius Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/32491441/"
+        },
+        {
+          "claim": "Describe los compartimentos del antebrazo y los flexores de los dedos y de la muñeca que cierran el agarre sobre la carga.",
+          "id": "statpearls_forearm_compartments",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/"
+        },
+        {
+          "claim": "En sentadilla y peso muerto al 80 % de 1RM, la actividad de los erectores superó con claridad a la de esos ejercicios con el peso corporal y a la de los ejercicios de inestabilidad.",
+          "id": "hamlyn2007",
+          "title": "Trunk muscle activation during dynamic weight-training exercises and isometric instability activities",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/18076231/"
+        },
+        {
+          "claim": "El capítulo completo NBK537056 describe flexión anterior, extensión posterior y sostén de la articulación glenohumeral frente al desplazamiento inferior con un brazo aducido bajo carga. Se aplica la función al contacto descrito; no mide esta variante ni demuestra una diferencia cuantitativa entre implementos.",
+          "id": "deltoid_anatomy",
+          "title": "Anatomy, Shoulder and Upper Limb, Deltoid Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725741/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Sentadilla a una pierna con el empeine posterior elevado y una barra suspendida de las manos que cruza entre los muslos. Las manos agarran por lados desfasados de la pelvis, una detrás del muslo adelantado y otra delante del posterior; el pie delantero recibe el ascenso mientras la carga queda por debajo de la pelvis.",
+        "keyPositions": [
+          "Fondo: pierna adelantada flexionada hasta acercar el muslo al paralelo, pie de trabajo plano y rodilla posterior sin tocar el piso; barra entre los muslos con los discos bajos.",
+          "Arriba: rodilla y cadera delanteras casi extendidas, pie posterior aún elevado y barra suspendida bajo la pelvis con los brazos estirados."
+        ],
+        "mistakes": [
+          "Girar el pecho o la pelvis siguiendo la mano que queda por detrás.",
+          "Doblar los codos para levantar la barra cuando la pierna empieza a fatigarse.",
+          "Dejar que los discos golpeen el banco o el suelo antes de completar el descenso previsto.",
+          "Despegar el talón delantero o colapsar esa rodilla hacia dentro."
+        ],
+        "phases": [
+          {
+            "description": "La rodilla y la cadera delanteras se doblan y la rodilla posterior desciende; los brazos siguen estirados y la barra baja entre los muslos.",
+            "name": "Bajada"
+          },
+          {
+            "description": "La rodilla posterior queda suspendida, el talón delantero continúa en el suelo y las dos manos sujetan la barra con los discos cerca del suelo.",
+            "name": "Fondo"
+          },
+          {
+            "description": "La pierna adelantada extiende rodilla y cadera para elevar el cuerpo y la barra, sin tirar con los codos ni girar hacia la mano posterior.",
+            "name": "Subida"
+          }
+        ],
+        "setup": [
+          "Banco estable detrás y barra bajo la pelvis, cruzando entre las piernas; pie delantero entero en el suelo y empeine posterior sobre el banco.",
+          "Una mano por detrás del muslo adelantado y la otra por delante del posterior, con ambas sujetando el eje y los brazos extendidos.",
+          "Separación del apoyo y de los discos suficiente para que la barra pueda bajar sin golpearlos."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista de tres cuartos desde el lado de la pierna adelantada, con el atleta entero y ambos extremos de la carga visibles.",
+          "contacts": "Planta delantera completa en el suelo, empeine posterior sobre el banco y ambas manos agarrando la carga en lados desfasados de la pelvis.",
+          "load": "Carga suspendida bajo la pelvis entre los muslos; los extremos quedan cerca del suelo, sin apoyarse en él.",
+          "orientation": "Pierna izquierda adelantada hacia la izquierda del encuadre y pierna derecha llevada al apoyo posterior.",
+          "phase": "Fondo de la sentadilla, con el muslo delantero casi horizontal y la rodilla posterior suspendida sobre el suelo.",
+          "posture": "Tronco ligeramente inclinado con columna neutra, brazos estirados y pelvis sin giro hacia la mano posterior."
+        },
+        "byImplement": {
+          "barbell": {
+            "geometry": "Barra horizontal que cruza entre los muslos por debajo de la pelvis. La mano del lado adelantado agarra detrás de ese muslo y la otra delante del posterior; discos a ambos lados por fuera de las manos, con espacio libre junto al banco."
+          }
+        },
+        "forbidden": [
+          "Barra por delante de ambas piernas: debe cruzar entre los muslos con las manos desfasadas.",
+          "Barra apoyada en la espalda o la cadera, en lugar de colgada de ambas manos.",
+          "Pie posterior en el suelo: se pierde el apoyo elevado propio de esta búlgara.",
+          "Codos flexionados levantando la barra o carga flotando sin agarre."
+        ],
+        "promptCore": {
+          "barbell": "Three-quarter side view of an athlete frozen at the BOTTOM of a Jefferson Bulgarian split squat. The left front foot is flat on the floor; the top of the right rear foot rests on a flat bench. A loaded barbell crosses between the thighs below the pelvis. The left hand grips the shaft behind the front thigh and the right hand grips it in front of the rear thigh. Both arms are straight. Front thigh nearly horizontal, rear knee above the floor, torso slightly leaning forward without twisting. The plates are just above the floor and clear of the bench."
+        },
+        "qa": [
+          "¿La barra cruza entre los muslos por debajo de la pelvis y los discos están a ambos lados?",
+          "¿Las dos manos agarran la barra, una detrás del muslo delantero y otra delante del posterior, con los brazos estirados?",
+          "¿El pie delantero completo toca el suelo y el empeine posterior está sobre el banco?",
+          "¿El atleta está en el fondo, con muslo delantero casi horizontal y rodilla posterior sin tocar el suelo?",
+          "¿Los discos están separados del suelo y del apoyo posterior?"
+        ]
+      }
     }
   },
   "familyId": "lower_unilateral_knee_dominant_asymmetric",

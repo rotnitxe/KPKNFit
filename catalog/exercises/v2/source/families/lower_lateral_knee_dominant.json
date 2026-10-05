@@ -24,38 +24,52 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con peso corporal, una pierna se hunde en flexión lateral mientras la otra se extiende hacia el costado. Sin más carga que el propio cuerpo, la exigencia del cuádriceps es la justa.",
+              "description": "La posición amplia permite trasladar el cuerpo de un pie al otro sin dar pasos. En el lado estirado, el talón queda en contacto con el suelo y la punta gira hacia arriba, mientras el pie que recibe el peso conserva toda la planta apoyada.",
               "efc": 2.8,
               "equipmentId": "bodyweight",
               "executionCues": [
-                "Paso amplio al lado y bajada lateral con la otra pierna extendida: movilidad y fuerza de piernas en un movimiento elegante. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Dobla una rodilla y desplaza la cadera hacia ese pie.",
+                "Estira la otra pierna hacia el costado con el talón apoyado y la punta hacia arriba.",
+                "Empuja desde el pie de trabajo para volver al centro sin mover los talones de sitio."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión Unilateral"
+                    "Flexión de la rodilla del lado cargado",
+                    "Extensión al volver al centro"
                   ],
                   "jointId": "rodilla",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Extensión Y Control Frontal"
+                    "Flexión y extensión del lado cargado",
+                    "Abducción en la base amplia",
+                    "Aducción relativa al volver al centro"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Equilibrio Y Dorsiflexión"
+                    "Dorsiflexión del lado cargado",
+                    "Retorno desde dorsiflexión",
+                    "Sostén del talón de la pierna recta"
                   ],
                   "jointId": "tobillo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Transferencia Unilateral"
+                    "Sostén del tronco durante el desplazamiento lateral"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Transmisión de fuerza durante el traslado lateral"
                   ],
                   "jointId": "sacroiliaca",
                   "role": "STABILIZER"
@@ -67,7 +81,8 @@
               "movementPatternId": "lateral_knee_dominant",
               "performanceProfileId": "quads_sentadilla_cosaca__bodyweight__sentadilla_cosaca",
               "primaryMuscles": [
-                "quadriceps"
+                "quadriceps",
+                "gluteus_maximus"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -75,48 +90,72 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión Unilateral",
-                    "Extensión Y Control Frontal",
-                    "Equilibrio Y Dorsiflexión",
-                    "Transferencia Unilateral"
+                    "Flexión de la rodilla del lado cargado",
+                    "Extensión al volver al centro",
+                    "Flexión y extensión del lado cargado",
+                    "Abducción en la base amplia",
+                    "Aducción relativa al volver al centro",
+                    "Dorsiflexión del lado cargado",
+                    "Retorno desde dorsiflexión",
+                    "Sostén del talón de la pierna recta",
+                    "Sostén del tronco durante el desplazamiento lateral",
+                    "Transmisión de fuerza durante el traslado lateral"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión Unilateral"
+                        "Flexión de la rodilla del lado cargado",
+                        "Extensión al volver al centro"
                       ],
                       "jointId": "rodilla",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Extensión Y Control Frontal"
+                        "Flexión y extensión del lado cargado",
+                        "Abducción en la base amplia",
+                        "Aducción relativa al volver al centro"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Equilibrio Y Dorsiflexión"
+                        "Dorsiflexión del lado cargado",
+                        "Retorno desde dorsiflexión",
+                        "Sostén del talón de la pierna recta"
                       ],
                       "jointId": "tobillo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Transferencia Unilateral"
+                        "Sostén del tronco durante el desplazamiento lateral"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Transmisión de fuerza durante el traslado lateral"
                       ],
                       "jointId": "sacroiliaca",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "quadriceps"
+                    "quadriceps",
+                    "gluteus_maximus"
                   ],
                   "secondaryMuscles": [
-                    "adductors"
+                    "adductors",
+                    "calves"
                   ],
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "gluteus_medius",
+                    "core",
+                    "erector_spinae"
+                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -130,6 +169,7 @@
                     "rodilla",
                     "cadera",
                     "tobillo",
+                    "columna-lumbar",
                     "sacroiliaca"
                   ],
                   "resistanceProfile": "gravity_arc",
@@ -178,21 +218,28 @@
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "lateral_knee_dominant:quadriceps"
+                    "lateral_knee_dominant:quadriceps",
+                    "lateral_knee_dominant:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
-                "adductors"
+                "adductors",
+                "calves"
               ],
               "setupCues": [
-                "Preparación: Paso amplio al lado y bajada lateral con la otra pierna extendida: movilidad y fuerza de piernas en un movimiento elegante."
+                "Separa los pies más allá de los hombros y deja espacio para bajar hacia ambos lados.",
+                "Junta las manos delante del pecho sin apoyar los brazos sobre los muslos."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.5,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "gluteus_medius",
+                "core",
+                "erector_spinae"
+              ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
             },
@@ -200,7 +247,7 @@
           }
         ],
         "defaultConfigurationId": "quads_sentadilla_cosaca__default",
-        "description": "La Sentadilla Cosaca traslada el peso a un lado con la otra pierna extendida: el cuádriceps de la pierna que flexiona se hunde en un rango enorme mientras la otra pierna estira el aductor. Se ejecuta desplazándose lateralmente hasta el fondo y regresando al centro, con el peso corporal como carga suficiente. Movilidad de cadera y fuerza unilateral en un solo gesto. La sentadilla lateral que revela lo que falta por trabajar.",
+        "description": "La Sentadilla Cosaca combina la flexión de una pierna con la extensión lateral de la otra, cargando el cuádriceps y el glúteo mayor del lado que baja. Desde una base amplia, el cuerpo se desplaza hacia un pie mientras la pierna opuesta queda larga, con su talón en el suelo y la punta elevada. La vuelta al centro suma la ayuda de los aductores, que también trabajan en una posición alargada. Es una forma de explorar profundidad de sentadilla y apertura de cadera sin convertir el desplazamiento en un paso.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

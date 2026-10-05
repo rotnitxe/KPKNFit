@@ -10,17 +10,17 @@ vigente es esto:
 - Revisión del catálogo `v2-approved-2026-09-29-a` (sin cambio; los ids tampoco
   cambian, el resolver rechaza ejercicios guardados con otra revisión) y
   ontología `wikilab-v3-2026-08-08`.
-- 96 familias, 206 definiciones, 523 configuraciones, 415 pares definición ×
+- 96 familias, 206 definiciones, 521 configuraciones, 413 pares definición ×
   implemento (el 2026-10-02 se retiró `sissy_squat__barbell`; las selecciones
   guardadas se remapean a `sissy_squat__smith_machine`; el 2026-10-03 se dieron de
   alta las cinco especialidades M1-M5, ver más abajo; el 2026-10-04 se retiraron
   las cuatro configuraciones unilaterales del rumano sumo). SHA-256 canónico compartido
-  `1c267f408dce0649a07c72125d90f9aedcf5d2926ed6ec5dd7724ccdcf688099`.
+  `c67eeb8ff6a8e68988fd3e0396fe8601920d3cdec7a05973fa95bf6085eb7566`.
 - Fuente única de autoría: `curation/fichas/<familyId>.json` (una por familia,
   96). Se copia con `scripts/catalog_v2_apply_fichas.py`; el flujo completo y las
   reglas están en `EDITORIAL_GUIDE.md`. El gate falla si `source/` difiere de lo
   que producen las fichas.
-- Estado de las fichas: 102 definiciones `LEGACY` y **104 `CURATED`**. Piloto
+- Estado de las fichas: 82 definiciones `LEGACY` y **124 `CURATED`**. Piloto
   (2026-10-01): `seal_row`, `pull_up` y `glutes_clamshells_banda`. Lote 1, pecho
   (2026-10-02, 20 definiciones, aplicado): `floor_press`, las aperturas
   (`decline_chest_fly`, `flat_chest_fly`, `incline_chest_fly`, `reverse_pec_fly`),
@@ -70,6 +70,43 @@ vigente es esto:
   `QUALITY_BASELINE.md` pertenecen a `scripts/catalog_v2_quality_audit.py`
   (auditoría de solo lectura; el baseline es la medición **previa** a retirar los
   campos, por eso sigue midiendo textos que el catálogo ya no contiene).
+
+### Lote 6 — aplicado; Python PASSED, validación nativa pendiente · 2026-10-05
+
+El humano aprobó el lote 6 y el commit acotado original de **41 rutas**, y después autorizó añadir las **dos rutas de volumen**: alcance final **43 rutas**. La aprobación original, sus propuestas y sus hashes permanecen inmutables; la ampliación se registra por separado en `USER_APPROVAL_VOLUME.json`. **Push: NOT_AUTHORIZED**. La ejecución registrada distingue aplicación del catálogo, validación Python y validación nativa pendiente.
+
+El contenido aplicado comprende **22 definiciones / 42 configuraciones**: **20 curaciones nuevas y dos correcciones de consistencia de definiciones ya CURATED**. El catálogo real contiene **206 definiciones, 124 CURATED / 82 LEGACY, 521 configuraciones / 413 pares definición×equipmentId**, tras retirar únicamente las dos configuraciones walking autorizadas. Fuente canónica, asset Android, recurso JVM Android e iOS son idénticos: **2.348.607 bytes cada uno**, SHA-256 **`c67eeb8ff6a8e68988fd3e0396fe8601920d3cdec7a05973fa95bf6085eb7566`**, según `runtime_parity.json` y el recuento de la fuente aplicada.
+
+La revisión anatómica y de fuentes está aprobada, con **16 cambios de conjunto PRIMARY**, incluidos **dos protegidos**, **cero cambios de dominante** y **13 diferencias de herencia justificadas**. Ciencia, textos y briefs se conservan como aprobados; no se vuelve a revisar ciencia ni se rebaja anatomía para acomodar volumen. El inventario visual registra **13 PNG existentes: tres PASA y diez FALLA**, más **22 faltantes**. La cola aprobada contiene **32 entradas**: diez correcciones y 22 imágenes pendientes de generar; esos estados no representan aprobación de PNG nuevos.
+
+La ampliación de volumen aplicada incluye `TemplateVolumeScaler` y su auditoría: otro músculo PRIMARY del ejercicio respeta su techo, aunque no sea el objetivo que se está escalando; SECONDARY/STABILIZER conservan la tolerancia indirecta vigente. La protección usa el rol efectivo, incluidos overrides con contribución explícita de 0.5. La base ya excedida se conserva sin añadir PRIMARY que agrave ese exceso. **Los nueve tests de `TemplateVolumeScaleAuditTest` pasaron el 2026-10-05: 0 fallos, 0 errores, 0 omitidos, BUILD SUCCESSFUL en 11 min 16 s.** Cubren Cosaca/Hack, Step-Up glúteo/curtsy, suma total frente a subtotal directo, límite alcanzado y tolerancia indirecta legítima. El límite indirecto existente `target + 2` queda documentado; no se introduce un umbral universal de 17.5.
+
+Las reservas de recursos quedaron separadas hasta el cierre de alimentos. Programas entregó **LIBRE ROOT_SOURCE / ROOT_GIT_INDEX a las 04:27:38 UTC del 2026-10-05**, con HEAD de entrega **`5e264cda426dd51c837fb73a6aea11ff5150132d`**. Gate39 de alimentos terminó en su checkout aislado e733 y liberó Gradle. ROOT ejecutó las suites nativas sobre c67. El emulador `Pixel_9_Pro_XL` en el puerto 5554 informó boot completado, pero el daemon ADB ya ocupado en el puerto 5037 rechazó clientes nuevos; instalación y UI siguen **NOT_RUN**. No se modifica el checkout aislado de alimentos. Los resultados anteriores SHA1c/523 no certifican este lote.
+
+La captura de `before_manifest.json` comprende **43 rutas**, con **200 archivos congelados y seis bases nativas coincidentes**; las dos bases adicionales de volumen coinciden con sus recibos antes/candidato. `retire_splice_receipt.json` registra **22 cuerpos, seis candidatos nativos y dos de volumen aplicados**, 13 adiciones de herencia y retiro idempotente. `land_exit.json` registra **exit 0**. `land.log` confirma gate **READY**, auditoría de las 22 definiciones / 42 configuraciones con **cero errores / cero avisos**, compiler write/check y pin del SHA aplicado.
+
+La validación Python terminó a las **04:36:21 UTC del 2026-10-05**: `python_exit_uv2.json` registra **exit 0** y `python_tests_uv2.log` registra **214 passed en 113.53 s**, incluidos los ocho tests del retiro walking. `python_junit.xml` registra **376 casos XML, cero errores, cero fallos y cero omitidos**; se conserva ese conteo separado del resumen pytest. El comando ejecutado fue `uv run --offline --no-project --with pytest --with pydantic python -X utf8 -m pytest scripts/tests backend/tests/test_exercises_catalog_v2.py --junitxml=artifacts/catalog-lote06-preparation-20261004/approved_land/python_junit.xml`.
+
+Los dos intentos anteriores permanecen archivados y diferenciados: `python_exit.json` / `python_tests.log`, **exit 1** por ausencia de pytest; `python_exit_uv.json` / `python_tests_uv.log`, **exit 2** por ausencia de pydantic durante colección. Son fallos del entorno de ejecución previo y no resultados FAIL del producto. El intento final completado es la evidencia Python vigente.
+
+La evidencia se registra por etapa; los resultados Python no sustituyen Kotlin, build, instalación ni UI:
+
+| Etapa | Estado real | Evidencia / pendiente |
+| --- | --- | --- |
+| Captura de las 43 rutas | **PASSED** | `before_manifest.json`: 43 rutas, 200 archivos congelados y seis bases nativas coincidentes; dos bases de volumen coincidentes. |
+| Retiro, splice y land | **PASSED** | `retire_splice_receipt.json`: 22 cuerpos + seis candidatos nativos + dos de volumen aplicados, retiro idempotente; `land_exit.json`: exit 0. |
+| Compiler de catálogo y coherencia de artefactos | **PASSED** | `land.log`: compiler write/check; `runtime_parity.json`: cuatro copias de 2.348.607 bytes y SHA idéntico. Esta compilación del catálogo no verifica Kotlin. |
+| Pin del SHA aplicado | **PASSED** | `land.log`: pin del SHA canónico `c67eeb8f…`; check posterior adicional al pin **NOT_RUN en los recibos consultados**. |
+| Curated gate y quality audit | **PASSED** | `land.log`: READY y 22 definiciones / 42 configuraciones auditadas, cero errores / cero avisos; lint permanece separado de la aceptación científica. |
+| Pytest y retiro walking | **PASSED** | `python_exit_uv2.json`: exit 0; `python_tests_uv2.log`: 214 passed / 113.53 s; `python_junit.xml`: tests=376 incluyendo subtests, 214 testcase, sin errores/fallos. |
+| Materialización de prescripciones y auditoría Gradle de volumen | **PASSED en directo; sin exceso PRIMARY** | `TemplateVolumeScaleAuditTest` 9/0/0/0. Suites de resolver, reconciliador, contratos, búsqueda, W2, fitter, plantillas, equipo y volumen: 201 tests, 0 fallos. `materialization.json`: solo Cosaca entra en planes históricos; directo semanal nunca supera `min(MAV, MRV)`. Las otras 15 promociones no tienen slot. |
+| testBaseDebugUnitTest completo | **1 fallo preexistente** | 719 suites, 6348 tests, 1 fallo, 0 errores, 2 omitidos, 25 min 36 s. El fallo es `WorkoutSnapshotCommitTest.concurrentInputIsNotClaimedCommittedAndOldCaptureCannotEraseRecord` (`UncaughtExceptionsBeforeTest`, pool SQLite cerrado), el mismo de Base completa 1. Los otros cuatro fallos históricos no reaparecen. No se relajó ningún umbral. |
+| Build BaseDebug | **PASSED** | `assembleBaseDebug` BUILD SUCCESSFUL en 47 s. APK `app-base-debug.apk`, 553.916.698 bytes, SHA-256 `fff8cca968de1ae594213de4a0cc075304abb8f58315ea75db93fe0f565d277c`. Dentro del APK, `assets/exercise_catalog_v2.json` y `exercise_catalog_v2.json` son c67, 2.348.607 bytes. |
+| Emulador/UI | **NOT_RUN** | El proceso de `Pixel_9_Pro_XL` en 5554 registró boot completado y no pudo registrarse: `Unable to connect to adb daemon on port 5037`. El daemon existente rechaza clientes. No se instaló ni se abrió MainActivity. `install Success` no se declara. |
+| Documentación final y commit acotado | **En este cierre** | Informes actualizados con estos resultados. Staging solo de las 43 rutas, sin el comentario previo del reconciliador ni `artifacts/consolidation-20261001/TODO.md`. Push no autorizado. |
+
+Las aprobaciones `USER_APPROVAL.json` y `USER_APPROVAL_VOLUME.json` continúan vigentes e inmutables. El cierre pendiente requiere evidencia nativa y commit del lote; no depende de volver a pedir los mismos OK ni de reutilizar resultados históricos.
+
 
 ### Campos retirados del esquema y prueba de no uso (F1)
 

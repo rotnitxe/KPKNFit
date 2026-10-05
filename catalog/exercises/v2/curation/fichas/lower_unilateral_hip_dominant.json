@@ -1,38 +1,684 @@
 {
   "definitions": {
     "glutes_step_up_gluteo": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Extensión de cadera",
+              "Flexión de cadera durante el descenso"
+            ],
+            "id": "cadera",
+            "role": "PRIMARY",
+            "sources": [
+              "glute_max_anatomy",
+              "catalyst_setup",
+              "simenz_stepup"
+            ],
+            "why": "La cadera inicia flexionada con el pie adelantado y el pecho cercano al muslo por inclinación del tronco desde esa articulación. Su extensión endereza el cuerpo y es el énfasis intencionado; esa geometría no prueba por sí sola reparto exacto entre músculos."
+          },
+          {
+            "actions": [
+              "Extensión de rodilla",
+              "Flexión de rodilla durante el descenso"
+            ],
+            "id": "rodilla",
+            "role": "PRIMARY",
+            "sources": [
+              "simenz_stepup",
+              "quadriceps_anatomy"
+            ],
+            "why": "El pie permanece sobre el cajón mientras la rodilla sale de flexión para elevar el cuerpo. Conserva acción principal aunque la tibia adelante poco; la descripción heredada de simple estabilidad no corresponde a una subida real."
+          },
+          {
+            "actions": [
+              "Dorsiflexión de tobillo",
+              "Flexión plantar de tobillo"
+            ],
+            "id": "tobillo",
+            "role": "SECONDARY",
+            "sources": [
+              "simenz_stepup",
+              "calf_anatomy"
+            ],
+            "why": "Con la tibia inicial próxima a vertical, el tobillo ajusta menos el avance anterior que en un apoyo más cercano al cuerpo. Aun así acompaña la transferencia de peso sobre el pie y recibe el descenso, sin quedar ausente."
+          },
+          {
+            "actions": [
+              "Sostén postural lumbar"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "lumbar_anatomy",
+              "iap_stiffness"
+            ],
+            "why": "El tronco empieza inclinado desde la cadera y se endereza con ella; la región lumbar conserva su forma bajo las mancuernas. Los extensores vertebrales y el core sostienen esa posición sin una extensión lumbar añadida."
+          },
+          {
+            "actions": [
+              "Transferencia de carga entre pelvis y tronco"
+            ],
+            "id": "sacroiliaca",
+            "role": "STABILIZER",
+            "sources": [
+              "sacroiliac_transfer"
+            ],
+            "why": "Desde el pie adelantado se transmite una carga unilateral a la pelvis y al tronco inclinado; las conexiones de la sacroilíaca se interpretan como vía de sostén y transferencia, sin suponer una acción voluntaria en esa articulación."
+          },
+          {
+            "actions": [
+              "Sostén del agarre"
+            ],
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "sources": [
+              "forearm_anatomy"
+            ],
+            "why": "Ambas muñecas sostienen un contacto de agarre neutro con las pesas laterales mientras el torso cambia su inclinación por la cadera; transmiten el peso de las mancuernas sin flexionarse para iniciar la subida."
+          },
+          {
+            "actions": [
+              "Estabilidad del hombro al transportar las pesas"
+            ],
+            "id": "glenohumeral",
+            "role": "STABILIZER",
+            "sources": [
+              "deltoid_anatomy"
+            ],
+            "why": "Los hombros mantienen brazos colgantes respecto al tronco que pasa de inclinado a erguido; reciben la tracción de las dos mancuernas sin elevarlas por un gesto de hombro para impulsar el cuerpo."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "gluteus_maximus",
+            "role": "PRIMARY",
+            "sources": [
+              "glute_max_anatomy",
+              "kipp_forces",
+              "catalyst_setup"
+            ],
+            "why": "El apoyo adelantado y la tibia próxima a vertical dejan la cadera flexionada al iniciar; extenderla eleva el tronco desde esa posición. La instrucción primaria describe énfasis de cadera con esta estrategia, por lo que se conserva glúteo mayor primero. Es inferencia del montaje y su intención, no dominancia universal demostrada por EMG."
+          },
+          {
+            "id": "quadriceps",
+            "role": "PRIMARY",
+            "sources": [
+              "quadriceps_anatomy",
+              "simenz_stepup"
+            ],
+            "why": "La rodilla flexionada del pie elevado también debe extenderse contra cuerpo y mancuernas. El cuádriceps se agrega como motor directo tras el glúteo; inclinar el torso o atrasar la rodilla no elimina ese trabajo ni justifica clasificarlo como mero estabilizador."
+          },
+          {
+            "id": "hamstrings",
+            "role": "SECONDARY",
+            "sources": [
+              "simenz_stepup",
+              "kipp_forces"
+            ],
+            "why": "La posición adelantada inicia con flexión de cadera y permite a los isquiosurales ayudar al glúteo a enderezarla; su participación se extrapola del step-up cargado, sin adjudicarles el primer lugar de la prescripción."
+          },
+          {
+            "id": "calves",
+            "role": "SECONDARY",
+            "sources": [
+              "calf_anatomy",
+              "kipp_forces"
+            ],
+            "why": "Incluso con tibia inicialmente vertical, el pie elevado recibe el peso de cuerpo y mancuernas; los flexores plantares acompañan ese traslado y la bajada, reuniendo sóleo y gastrocnemio dentro de calves."
+          },
+          {
+            "id": "gluteus_medius",
+            "role": "STABILIZER",
+            "sources": [
+              "glute_med_anatomy",
+              "simenz_stepup"
+            ],
+            "why": "El apoyo adelantado sigue siendo unilateral y sus abductores sostienen la pelvis frente a la gravedad; no hay abducción repetida de la pierna ni una prueba de que esa activación gobierne la serie."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "lumbar_anatomy"
+            ],
+            "why": "La inclinación de partida procede de la cadera y exige que los extensores vertebrales conserven la espalda al transportar las dos pesas; se infiere isometría, evitando confundir el erguimiento corporal con extensión lumbar."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "iap_stiffness"
+            ],
+            "why": "Las mancuernas se transportan desde un tronco inicialmente inclinado y un solo pie cargado; la pared abdominal limita rotación y cambios entre tórax y pelvis mediante sostén postural extrapolado de mediciones de rigidez."
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "sources": [
+              "forearm_anatomy"
+            ],
+            "why": "Las manos mantienen cerrados sus dedos sobre dos empuñaduras mientras el cuerpo empieza inclinado hacia el muslo; ese agarre conserva las mancuernas suspendidas a distinta altura del cajón, por función anatómica del antebrazo."
+          },
+          {
+            "id": "deltoid",
+            "role": "STABILIZER",
+            "sources": [
+              "deltoid_anatomy"
+            ],
+            "why": "Al partir inclinado desde la cadera, las pesas siguen colgadas de brazos largos y ejercen tracción sobre sus hombros; el deltoides limita el desplazamiento inferior de la articulación por función anatómica, sin participar en el erguimiento de cadera."
+          },
+          {
+            "id": "adductors",
+            "role": "SECONDARY",
+            "sources": [
+              "collings_adductors",
+              "adductor_anatomy"
+            ],
+            "why": "El apoyo adelantado conserva una salida desde cadera flexionada; la porción isquiocondílea del aductor mayor coopera al erguir el cuerpo que transporta las mancuernas. Es aplicación funcional del estudio de step-up a esta estrategia, sin demostrar una jerarquía muscular por la tibia vertical."
+          }
+        ]
+      },
       "public": {
         "configurations": {
           "glutes_step_up_gluteo__default": {
-            "description": "Con mancuernas, con el torso inclinado hacia delante, la subida al cajón se convierte en un empuje de cadera. El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+            "description": "Dos mancuernas cuelgan a los lados del cuerpo mientras el pie elevado queda adelantado sobre el cajón. Los brazos no añaden impulso y la pesa del lado del apoyo debe pasar libre por fuera del borde durante la subida.",
             "executionCues": [
-              "Subes a un cajón empujando con una pierna, con el glúteo protagonizando. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Extiende la cadera y la rodilla apoyadas sin balancear el torso para arrancar.",
+              "Levanta el pie libre sin empujar desde el suelo y llega erguido sobre el cajón.",
+              "Recibe la bajada con la pierna elevada hasta que el pie libre toque el suelo."
             ],
             "setupCues": [
-              "Preparación: Subes a un cajón empujando con una pierna, con el glúteo protagonizando."
+              "Deja una mancuerna suspendida en cada costado, con los brazos extendidos y los puños cerrados.",
+              "Adelanta todo el pie sobre el cajón y ajusta el inicio a unos noventa grados de flexión de rodilla.",
+              "Acerca el torso al muslo desde la cadera y deja la tibia elevada casi vertical."
             ]
           }
         },
-        "description": "El Step-Up de Glúteo inclina el torso hacia delante sobre el cajón y convierte la subida en un asunto de cadera: el glúteo mayor empuja la extensión con el cuádriceps en segundo plano. Se ejecuta con una mancuerna ligera, subiendo con la pierna de arriba y bajando sin impulso del pie libre. La inclinación frontal es lo que cambia el protagonista respecto al step-up normal. El ajuste fino para que el glúteo se lleve el trabajo que le corresponde."
+        "description": "El Step-Up de Glúteo enfatiza la extensión de cadera con el pie elevado algo alejado del cuerpo y la tibia próxima a vertical. El glúteo mayor y el cuádriceps levantan el cuerpo desde ese apoyo; la rodilla también se extiende. El torso se acerca al muslo desde la cadera antes de la subida, sin un balanceo que lance el cuerpo. El ajuste se define por la posición del pie y la salida desde flexión de cadera, no por inclinar el pecho sin cambiar el apoyo."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "En quince mujeres entrenadas, cuatro step-ups cargados a seis repeticiones máximas sobre cajón de 45,72 centímetros reclutaron extensores de cadera y rodilla. El abstract describe también flexión plantar; no establece dominancia universal ni estudia cargas frontal o Zercher.",
+          "id": "simenz_stepup",
+          "title": "Electromyographical analysis of lower extremity muscle activation during variations of the loaded step-up exercise.",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/22237139/"
+        },
+        {
+          "claim": "En nueve hombres, el modelado por optimización estática estimó fuerzas crecientes con la carga en glúteos, vastos, isquiosurales y flexores plantares durante el step-up. Son fuerzas estimadas de ese protocolo, no una comparación específica de estas especialidades.",
+          "id": "kipp_forces",
+          "title": "Muscle Forces During the Squat, Split Squat, and Step-Up Across a Range of External Loads in College-Aged Men.",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/32569122/"
+        },
+        {
+          "claim": "La función extensora de rodilla del cuádriceps permite interpretar el ascenso al escalón. El rol en las cargas de esta ficha es una inferencia funcional, no un resultado experimental del capítulo.",
+          "id": "quadriceps_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Thigh Quadriceps Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30020706/"
+        },
+        {
+          "claim": "La extensión de cadera y el sostén erguido del glúteo mayor fundamentan su contribución al ascenso; la aplicación a posiciones específicas de carga es una extrapolación anatómica.",
+          "id": "glute_max_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Maximus Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30855781/"
+        },
+        {
+          "claim": "Los abductores glúteos intervienen en la estabilidad pélvica de la locomoción. Su rol estabilizador en apoyo unilateral se infiere de esa función, sin convertir la activación EMG en prueba de dominancia.",
+          "id": "glute_med_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Medius Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/32491441/"
+        },
+        {
+          "claim": "El gastrocnemio y el sóleo forman el tríceps sural; el gastrocnemio aporta flexión plantar. La categoría calves incluye aquí ambos, y acompaña al ascenso sin sustituir los extensores de cadera y rodilla.",
+          "id": "calf_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Gastrocnemius Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30422541/"
+        },
+        {
+          "claim": "El capítulo distingue musculatura intrínseca vertebral de musculatura extrínseca. Se usa su función postural para inferir sostén lumbar isométrico, sin afirmar EMG de step-up.",
+          "id": "lumbar_anatomy",
+          "title": "Anatomy, Back, Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725759/"
+        },
+        {
+          "claim": "En diez voluntarios, elevar la presión intraabdominal aumentó la rigidez en flexión e inclinación lateral durante pruebas isométricas; en extensión no alcanzó significación estadística. La coactivación postural se extrapola al step-up, sin medición de su activación.",
+          "id": "iap_stiffness",
+          "title": "Lumbar spine stability can be augmented with an abdominal belt and/or increased intra-abdominal pressure.",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/10552322/"
+        },
+        {
+          "claim": "Los compartimentos del antebrazo contienen flexores de dedos y muñeca. Su sostén del agarre y de la muñeca en esta ficha se deduce del contacto real con la carga.",
+          "id": "forearm_anatomy",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/"
+        },
+        {
+          "claim": "La disección de once miembros y estimaciones de fuerza muestran capacidad de las inserciones del glúteo mayor para comprimir la sacroilíaca y favorecer transferencia de carga. Se extrapola a apoyo unilateral sin atribuirle movimiento visible.",
+          "id": "sacroiliac_transfer",
+          "title": "Anatomy and biomechanics of gluteus maximus and the thoracolumbar fascia at the sacroiliac joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/23959791/"
+        },
+        {
+          "claim": "La instrucción original documenta apoyo entero sobre cajón, mínima ayuda del pie del suelo, y cargas trasera, clean rack, Zercher y colgantes. Relaciona pie más alejado y tibia vertical con énfasis de extensores de cadera; no es un ensayo de dominancia muscular.",
+          "id": "catalyst_setup",
+          "title": "Step-up - Olympic Weightlifting Exercise Library: Demo Videos, Information & More - Catalyst Athletics",
+          "url": "https://www.catalystathletics.com/exercise/560/Step-up/"
+        },
+        {
+          "claim": "El capítulo completo describe flexión anterior del brazo y estabilización glenohumeral, incluida resistencia a desplazamiento inferior con carga colgante. Se extrapolan esas funciones al contacto real de cada montaje, sin ensayo exclusivo de step-up.",
+          "id": "deltoid_anatomy",
+          "title": "Anatomy, Shoulder and Upper Limb, Deltoid Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725741/"
+        },
+        {
+          "claim": "El modelo asistido por EMG estimó fuerza alta de la porción isquiocondílea del aductor mayor en step-up y sentadilla. Apoya participación extensora; no prueba dominancia muscular ni mide montajes frontal, Zercher, hip-biased, curtsy, Hack o V-Squat.",
+          "id": "collings_adductors",
+          "title": "Hip Adductor Muscle Forces during Strength Training and Rehabilitation Exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/41931009/"
+        },
+        {
+          "claim": "El capítulo completo NBK534842 distingue la porción aductora y la porción isquiocondílea que ayuda a extender la cadera. El rol cooperante se infiere del cambio resistido de cadera, no de una comparación de EMG entre músculos.",
+          "id": "adductor_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Thigh Adductor Magnus Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30521263/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Step-up frontal con énfasis de extensión de cadera: pie entero adelantado sobre el cajón, tibia inicialmente próxima a vertical y torso cercano al muslo por flexión de cadera. Dos mancuernas colgantes acompañan el ascenso; tanto cadera como rodilla se extienden.",
+        "keyPositions": [
+          "Inicio: flexión de cadera, rodilla cerca de ángulo recto y tibia casi vertical; ambos pesos fuera del cajón y el pie libre todavía en el suelo.",
+          "Fotograma de primer tercio: pie libre apenas suspendido detrás, cadera aún flexionada y torso algo inclinado; talón del apoyo sobre la superficie.",
+          "Final: tronco erguido por extensión de cadera, rodilla de apoyo extendida y pie libre junto al pie elevado, sin impulso adicional."
+        ],
+        "mistakes": [
+          "Inclinar solo la zona lumbar o balancear el pecho para generar impulso.",
+          "Atrasar tanto el cuerpo que se pierda el talón del pie elevado o se arrastre el cajón.",
+          "Empujar con el pie inferior para superar el tramo inicial.",
+          "Describir la rodilla como inmóvil mientras en realidad se extiende para subir."
+        ],
+        "phases": [
+          {
+            "description": "El pie adelantado recibe la carga con el tronco inclinado desde la cadera; la tibia elevada empieza próxima a vertical.",
+            "name": "Salida desde cadera"
+          },
+          {
+            "description": "La cadera y la rodilla se extienden mientras las mancuernas cuelgan a los lados y el pie libre abandona el suelo.",
+            "name": "Elevación"
+          },
+          {
+            "description": "El torso llega a una posición erguida con la pierna elevada extendida, sin arquear la zona lumbar.",
+            "name": "Erguimiento"
+          },
+          {
+            "description": "La cadera y la rodilla del apoyo flexionan para devolver el pie libre al suelo, recuperando la distancia inicial del cuerpo al cajón.",
+            "name": "Regreso al apoyo"
+          }
+        ],
+        "setup": [
+          "Cajón firme donde todo el pie quepa y la rodilla inicial quede cerca de noventa grados, sin giro de pelvis para alcanzarlo.",
+          "Pie elevado algo adelantado con respecto al cuerpo y pie libre sobre el suelo detrás del borde frontal del cajón; tibia elevada casi vertical.",
+          "Una mancuerna en cada mano, brazos largos por fuera de los muslos; torso inclinado desde la cadera con columna neutra."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Lateral pura con tibia elevada, pie entero, pelvis, inclinación del torso y ambos brazos legibles.",
+          "contacts": "Todo el pie y talón elevados sobre la superficie, pie libre suspendido detrás y manos cerradas sobre la carga.",
+          "load": "Dos cargas colgantes sostenidas por brazos largos a los lados, separadas del suelo y del borde de la plataforma.",
+          "orientation": "Atleta de frente al cajón con pie de trabajo adelantado respecto al cuerpo y cabeza hacia la izquierda.",
+          "phase": "Primer tercio de la subida, justo después de separar el pie libre del suelo, con cadera aún flexionada.",
+          "posture": "Tibia del apoyo cerca de vertical, rodilla doblada, torso inclinado desde cadera y espalda con forma neutra."
+        },
+        "byImplement": {
+          "dumbbells": {
+            "geometry": "Una mancuerna por mano en agarre neutro, cargas por fuera de los muslos y de los lados del cajón. El pie elevado queda adelantado y la tibia casi vertical, sin que ninguna pesa descanse en el apoyo."
+          }
+        },
+        "forbidden": [
+          "Paso lateral o cruzado sobre el cajón en lugar de apoyo frontal adelantado.",
+          "Columna redondeada como sustituto de la flexión de cadera.",
+          "Dos rodillas rectas en el fotograma inicial, ocultando el recorrido de la rodilla de apoyo.",
+          "Pie libre empujando el suelo o mancuerna descansando sobre el borde."
+        ],
+        "promptCore": {
+          "dumbbells": "Pure side view, frozen in the FIRST THIRD of a hip-biased forward dumbbell step-up. Entire left foot and heel are flat on a solid box; left shin is nearly vertical and knee is bent close to 90 degrees. Left hip remains flexed, torso leans forward from the hip with a neutral spine. Right foot is just airborne behind the box. Each hand firmly grips one dumbbell with straight hanging arms outside the thighs. Both weights clear the box edges and floor, pelvis level."
+        },
+        "qa": [
+          "¿El pie elevado y su talón están apoyados enteros en el cajón?",
+          "¿La tibia elevada queda casi vertical y la rodilla sigue claramente doblada?",
+          "¿El torso se inclina desde la cadera con la espalda sin redondeo marcado?",
+          "¿El pie libre está apenas separado del suelo detrás del cajón en el primer tercio?",
+          "¿Cada mano agarra una mancuerna y ambas cuelgan sin tocar suelo o cajón?"
+        ]
+      }
     },
     "glutes_zancada_cruzada": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Flexión de cadera",
+              "Extensión de cadera"
+            ],
+            "id": "cadera",
+            "role": "PRIMARY",
+            "sources": [
+              "gmax",
+              "kin"
+            ],
+            "why": "La cadera delantera cambia de flexión a extensión para elevar el cuerpo y los pesos desde la postura cruzada. El componente diagonal altera la colocación de los apoyos, pero no sustituye la acción extensora que produce el ascenso."
+          },
+          {
+            "actions": [
+              "Flexión de rodilla",
+              "Extensión de rodilla"
+            ],
+            "id": "rodilla",
+            "role": "PRIMARY",
+            "sources": [
+              "quad",
+              "kin"
+            ],
+            "why": "La rodilla delantera se dobla al bajar y recupera extensión cuando el pie posterior vuelve al centro. Ese recorrido hace trabajo mecánico durante toda la repetición y corrige la antigua etiqueta de simple estabilidad."
+          },
+          {
+            "actions": [
+              "Dorsiflexión de tobillo",
+              "Flexión plantar de tobillo"
+            ],
+            "id": "tobillo",
+            "role": "SECONDARY",
+            "sources": [
+              "calf",
+              "kin"
+            ],
+            "why": "El apoyo delantero sigue con talón en el suelo mientras su tibia se desplaza; el tobillo acompaña la bajada y el regreso de la postura diagonal. No es un balanceo fijo ni una elevación de talón añadida."
+          },
+          {
+            "actions": [
+              "Sostén lumbar isométrico"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "trunk",
+              "core"
+            ],
+            "why": "La espalda no se enrolla ni gira para completar la salida del cruce, a pesar de las mancuernas colgantes y la separación diagonal de pies. Se contabiliza sostén de la columna, sin proponer extensión lumbar como fase de ascenso."
+          },
+          {
+            "actions": [
+              "Sostén del agarre"
+            ],
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "sources": [
+              "grip"
+            ],
+            "why": "Las dos muñecas quedan aproximadamente neutras mientras las manos sostienen las mancuernas a los lados. La carga sube con la extensión de la pierna y no con un giro de muñeca o un curl del brazo."
+          },
+          {
+            "actions": [
+              "Sostén del hombro bajo carga"
+            ],
+            "id": "glenohumeral",
+            "role": "STABILIZER",
+            "sources": [
+              "deltoid_anatomy"
+            ],
+            "why": "Las cargas laterales se transmiten desde manos independientes hasta los hombros mientras el otro pie pasa por detrás. Las glenohumerales mantienen los brazos próximos al tronco frente a esa tracción, sin producir el regreso al apoyo inicial por una acción de hombro."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "gluteus_maximus",
+            "role": "PRIMARY",
+            "sources": [
+              "gmax",
+              "kin"
+            ],
+            "why": "La cadera de apoyo se flexiona al entrar en el cruce y necesita extensión para recuperar la altura y regresar de pie. El glúteo mayor participa como motor de esa extensión; su primer puesto se conserva del catálogo, sin afirmar una superioridad medida frente al cuádriceps en curtsy."
+          },
+          {
+            "id": "quadriceps",
+            "role": "PRIMARY",
+            "sources": [
+              "quad",
+              "kin"
+            ],
+            "why": "El retorno desde el cruce requiere enderezar la rodilla delantera bajo el peso corporal y las mancuernas. La extensión dinámica es parte central de la repetición, no una mera estabilidad de rodilla; esta asignación se infiere de su función y del gesto, no de EMG específico."
+          },
+          {
+            "id": "hamstrings",
+            "role": "SECONDARY",
+            "sources": [
+              "hams",
+              "emg"
+            ],
+            "why": "El paso diagonal deja la cadera del apoyo delantero flexionada y los isquiosurales pueden colaborar en su extensión al salir. La rodilla se extiende al mismo tiempo, de modo que se reconoce ayuda a la cadera sin presentar el cruce como flexión resistida de rodilla."
+          },
+          {
+            "id": "calves",
+            "role": "SECONDARY",
+            "sources": [
+              "calf",
+              "kin"
+            ],
+            "why": "El talón delantero permanece plantado mientras la tibia avanza al doblar la rodilla. El tríceps sural regula ese avance y el retorno tibial; la transferencia a curtsy procede de función anatómica, sin medir su amplitud de actividad en esta variante."
+          },
+          {
+            "id": "gluteus_medius",
+            "role": "STABILIZER",
+            "sources": [
+              "gmed"
+            ],
+            "why": "Al cruzarse el pie posterior, la pelvis necesita sostén lateral sobre la pierna delantera para evitar caída y deriva hacia el lado libre. El glúteo medio regula esa posición; el cruce no constituye una abducción o rotación externa dinámica contra resistencia."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "core"
+            ],
+            "why": "Las mancuernas cuelgan a ambos lados mientras el cruce tiende a modificar la orientación del torso. La pared abdominal ayuda a fijar tronco y pelvis sin flexionarlos para subir; el id representa esa función postural compartida, inferida para la curtsy."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "trunk"
+            ],
+            "why": "Durante la salida diagonal, el tronco sin respaldo conserva su forma bajo las cargas laterales. Se infiere sostén lumbar isométrico de la postura cargada, usando Hamlyn como contexto de estabilización y sin adjudicar a la curtsy los valores de sus sentadillas o pesos muertos."
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "sources": [
+              "grip"
+            ],
+            "why": "Cada mano sostiene una mancuerna durante el descenso cruzado y el regreso al centro. Los flexores de dedos cierran el agarre sin que la muñeca impulse la subida, por lo que la participación corresponde al sostén continuo de dos cargas."
+          },
+          {
+            "id": "adductors",
+            "role": "SECONDARY",
+            "sources": [
+              "collings_adductors",
+              "adductor_anatomy"
+            ],
+            "why": "Cuando la pierna delantera devuelve el cuerpo desde el descenso cruzado, su cadera necesita extenderse. El segmento isquiocondíleo del aductor mayor ayuda a esa acción por anatomía; las estimaciones de sentadilla y step-up se extrapolan al cruce, que Collings no estudió."
+          },
+          {
+            "id": "deltoid",
+            "role": "STABILIZER",
+            "sources": [
+              "deltoid_anatomy"
+            ],
+            "why": "Durante el paso diagonal, cada mancuerna permanece suspendida al costado y tira del brazo extendido hacia abajo. El deltoides contrarresta el desplazamiento inferior de la cabeza humeral por función anatómica; el cruce no aporta un ensayo muscular propio."
+          }
+        ]
+      },
       "public": {
         "configurations": {
           "glutes_zancada_cruzada__default": {
-            "description": "Con mancuernas, la pierna cruza por detrás en diagonal y la delantera aguanta todo el peso. Con mancuernas, cada lado ajusta su línea y el trabajo del glúteo mayor se equilibra solo.",
+            "description": "Dos mancuernas cuelgan junto a los muslos, sostenidas por brazos extendidos. El paso cruzado deja las cargas fuera de las rodillas y añade trabajo de agarre mientras el tronco resiste el giro hacia la pierna que retrocede.",
             "executionCues": [
-              "El paso cruza por detrás de la otra pierna y bajas en diagonal. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Da un paso diagonal atrás, cruzando por detrás de la pierna de apoyo.",
+              "Dobla ambas rodillas con el talón delantero en el suelo.",
+              "Empuja el suelo con la pierna delantera y devuelve el pie posterior a su posición inicial.",
+              "Orienta la rodilla delantera hacia los dedos de ese pie."
             ],
             "setupCues": [
-              "Preparación: El paso cruza por detrás de la otra pierna y bajas en diagonal."
+              "Agarra dos mancuernas y déjalas colgar fuera de tus muslos con los codos estirados.",
+              "Coloca los pies separados antes de iniciar el cruce."
             ]
           }
         },
-        "description": "La Zancada Cruzada lleva la pierna hacia atrás en diagonal, cruzando por detrás de la de apoyo: el glúteo de la pierna fija trabaja en un ángulo que las zancadas normales no visitan. Se ejecuta con mancuernas suaves, bajando con la cadera cuadrada y regresando sin que la rodilla de apoyo baile. El patrón curtsy despierta el lateral del glúteo y la cara externa del muslo. La zancada olvidada que redondea lo que las demás dejan."
+        "description": "La Zancada Cruzada, o curtsy lunge, combina la flexión de la pierna delantera con un paso diagonal que cruza la otra por detrás. Glúteo mayor y cuádriceps producen el regreso a la posición de pie; el glúteo medio ayuda a sujetar la pelvis sobre el apoyo delantero. La rodilla posterior se aproxima al suelo mientras la delantera sigue la dirección de su pie. El cruce cambia la base de apoyo y exige frenar el giro de la pelvis, sin añadir una elevación lateral de pierna al final."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "La extensión de una cadera flexionada y el sostén pélvico son funciones del glúteo mayor. El capítulo permite identificar el motor de cadera, no comparar dominancia con cuádriceps en estas especialidades.",
+          "id": "gmax",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Maximus Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30855781/"
+        },
+        {
+          "claim": "El capítulo describe extensión de rodilla por el cuádriceps. La aplicación a estos apoyos asimétricos es funcional, sin medir fuerza relativa en esta máquina ni en una zancada cruzada.",
+          "id": "quad",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Thigh Quadriceps Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30020706/"
+        },
+        {
+          "claim": "El glúteo medio evita caída pélvica en apoyo unilateral. Se infiere ayuda postural durante el apoyo adelantado o cruzado, sin afirmar que el ejercicio sea una abducción resistida.",
+          "id": "gmed",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Medius Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/32491441/"
+        },
+        {
+          "claim": "Los isquiosurales extienden la cadera y flexionan la rodilla. En estas zancadas pueden asistir a la extensión de cadera mientras la rodilla cambia de ángulo; no se asume aislamiento ni igual trabajo que en un curl.",
+          "id": "hams",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hamstring Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31536294/"
+        },
+        {
+          "claim": "El tríceps sural produce flexión plantar y regula el avance tibial. Se relaciona con el tobillo del pie delantero que continúa apoyado, sin ensayo directo del montaje especializado.",
+          "id": "calf",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Gastrocnemius Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30422541/"
+        },
+        {
+          "claim": "Los flexores de dedos y muñeca permiten sujetar las mancuernas en las manos. Ese sostén es isométrico en la zancada cruzada, sin trabajo dinámico de muñeca.",
+          "id": "grip",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/"
+        },
+        {
+          "claim": "La pared abdominal contribuye al sostén del tronco. Su aplicación a una zancada cruzada con pesos colgantes es una inferencia postural, sin ensayo específico de esta variante.",
+          "id": "core",
+          "title": "Anatomy, Abdomen and Pelvis: Abdominal Wall",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31869113/"
+        },
+        {
+          "claim": "Hamlyn estudió actividad del tronco durante sentadillas, pesos muertos y tareas posturales; no una curtsy. Se usa como contexto de sostén lumbar frente a carga externa, sin trasladar amplitudes EMG.",
+          "id": "trunk",
+          "title": "Trunk muscle activation during dynamic weight-training exercises and isometric instability activities",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/18076231/"
+        },
+        {
+          "claim": "Comfort comparó cinemática y momentos de sentadilla unilateral y zancadas frontal e inversa corporales: las zancadas implicaron rodilla, cadera y tobillo. Sus valores no se transfieren a V-Squat ni a curtsy.",
+          "id": "kin",
+          "title": "Joint Kinetics and Kinematics During Common Lower Limb Rehabilitation Exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/26418958/"
+        },
+        {
+          "claim": "Escamilla midió zancadas frontales externas, no V-Squat ni curtsy: encontró participación de cuádriceps, glúteos, isquiosurales, gastrocnemio y aductor. Sirve como contexto de cooperación, no prueba directa de roles especializados.",
+          "id": "emg",
+          "title": "Effects of Step Length and Stride Variation During Forward Lunges on Lower-Extremity Muscle Activity",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/39982282/"
+        },
+        {
+          "claim": "El modelo asistido por EMG estimó fuerza alta de la porción isquiocondílea del aductor mayor en step-up y sentadilla. Apoya participación extensora; no prueba dominancia muscular ni mide montajes frontal, Zercher, hip-biased, curtsy, Hack o V-Squat.",
+          "id": "collings_adductors",
+          "title": "Hip Adductor Muscle Forces during Strength Training and Rehabilitation Exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/41931009/"
+        },
+        {
+          "claim": "El capítulo completo NBK534842 distingue la porción aductora y la porción isquiocondílea que ayuda a extender la cadera. El rol cooperante se infiere del cambio resistido de cadera, no de una comparación de EMG entre músculos.",
+          "id": "adductor_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Thigh Adductor Magnus Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30521263/"
+        },
+        {
+          "claim": "El capítulo completo NBK537056 describe flexión anterior, extensión posterior y sostén de la articulación glenohumeral frente al desplazamiento inferior con un brazo aducido bajo carga. Se aplica la función al contacto descrito; no mide esta variante ni demuestra una diferencia cuantitativa entre implementos.",
+          "id": "deltoid_anatomy",
+          "title": "Anatomy, Shoulder and Upper Limb, Deltoid Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725741/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Zancada diagonal con una pierna que cruza por detrás de la de apoyo y después regresa a la base inicial. El pie delantero conserva el talón apoyado; dos cargas cuelgan de manos independientes fuera de los muslos.",
+        "keyPositions": [
+          "Abajo, pierna posterior cruzada detrás, su talón elevado y rodilla cerca del suelo; pie delantero entero apoyado.",
+          "Pecho y pelvis siguen orientados aproximadamente al frente, sin rotar hacia el pie posterior.",
+          "La rodilla delantera conserva la dirección de su pie aunque el otro cruce por detrás."
+        ],
+        "mistakes": [
+          "Convertir el cruce en un giro de pelvis y rodilla delantera hacia dentro.",
+          "Apoyar las mancuernas en los muslos para recibir parte de la carga.",
+          "Salir con un salto o añadir una elevación lateral de pierna que modifica el ejercicio."
+        ],
+        "phases": [
+          {
+            "description": "El pie libre viaja atrás y hacia el lado opuesto, quedando detrás de la pierna que conserva su apoyo delantero.",
+            "name": "Paso cruzado"
+          },
+          {
+            "description": "Ambas rodillas se doblan y la posterior se acerca al suelo mientras el talón delantero sigue plantado.",
+            "name": "Descenso diagonal"
+          },
+          {
+            "description": "La pierna delantera recupera extensión de rodilla y cadera y permite devolver el pie posterior a la separación inicial.",
+            "name": "Regreso al centro"
+          }
+        ],
+        "setup": [
+          "Una mancuerna por mano con brazos largos y pies inicialmente separados.",
+          "Espacio detrás y hacia el lado contrario para un paso diagonal sin golpear los pesos."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista anterior oblicua con ambas manos y el cruce posterior visibles.",
+          "contacts": "Planta y talón delanteros en el suelo, antepié posterior apoyado y manos cerradas sobre las cargas.",
+          "load": "Dos cargas suspendidas por manos independientes junto a los muslos, separadas del suelo y de las rodillas.",
+          "orientation": "Pecho y pelvis al frente, pierna posterior hacia el lado opuesto detrás de la delantera.",
+          "phase": "Fondo de la zancada, antes de salir del apoyo cruzado.",
+          "posture": "Rodilla delantera doblada sobre su pie, rodilla posterior baja, pelvis sin giro marcado."
+        },
+        "byImplement": {
+          "dumbbells": {
+            "geometry": "Una mancuerna en cada mano, agarre neutro y brazos extendidos por fuera de los muslos. Las pesas cuelgan sobre el suelo sin descansar sobre la pierna adelantada; el pie posterior cruza por detrás del apoyo delantero."
+          }
+        },
+        "forbidden": [
+          "Paso atrás paralelo sin cruce diagonal detrás de la pierna de apoyo.",
+          "Rodilla delantera colapsada hacia dentro o pelvis girada siguiendo el pie posterior.",
+          "Salto lateral, elevación de pierna al terminar o pie posterior sobre un banco.",
+          "Mancuernas flotantes o apoyadas sobre los muslos en vez de agarradas."
+        ],
+        "promptCore": {
+          "dumbbells": "Front three-quarter view, frozen at the BOTTOM of a dumbbell curtsy lunge. The left foot and heel rest flat on the floor, left knee bent and pointing along its foot. The right leg crosses BEHIND the left toward the left side; right forefoot rests on the floor, heel lifted and rear knee near the floor. Chest and pelvis face forward without twisting. Each hand firmly grips one dumbbell with a neutral grip; straight arms hang outside the thighs and both weights remain clear of the knees and floor."
+        },
+        "qa": [
+          "¿La pierna posterior cruza visiblemente por detrás hacia el lado opuesto?",
+          "¿El pie delantero conserva la planta y el talón en el suelo?",
+          "¿La rodilla posterior queda baja, con el antepié posterior apoyado en el suelo y su talón elevado en el fotograma inferior?",
+          "¿La rodilla delantera apunta aproximadamente como su pie y el pecho mira al frente?",
+          "¿Cada mano agarra una mancuerna que cuelga sin tocar rodillas ni suelo?"
+        ]
+      }
     }
   },
   "familyId": "lower_unilateral_hip_dominant",

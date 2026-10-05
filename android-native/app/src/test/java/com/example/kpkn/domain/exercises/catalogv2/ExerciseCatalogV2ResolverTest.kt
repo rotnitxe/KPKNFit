@@ -252,6 +252,148 @@ class ExerciseCatalogV2ResolverTest {
         assertNull(missingTarget.resolve(saved))
     }
 
+    /** A complete lunge fixture; the shared squat fixture remains unchanged. */
+    private fun lungeRetirementCatalog(implement: String): ExerciseCatalogV2 {
+        fun family(definitionId: String, equipmentId: String): ExerciseFamilyV2 {
+            val configurationId = "${definitionId}__$equipmentId"
+            val name = when (definitionId) {
+                "walking_lunge" -> "Zancada Caminando"
+                "forward_lunge" -> "Zancada Frontal"
+                "reverse_lunge" -> "Zancada Inversa"
+                else -> error("Unexpected lunge definition: $definitionId")
+            }
+            val profile = ResolvedExerciseProfileV2(
+                movementPatternId = "unilateral_knee_dominant",
+                bodyRegion = ExerciseBodyRegionV2.LOWER,
+                kineticChain = ExerciseKineticChainV2.ANTERIOR,
+                laterality = ExerciseLateralityV2.UNILATERAL,
+                equipmentId = equipmentId,
+                loadMode = when (equipmentId) {
+                    "smith_machine" -> "guided_external_load"
+                    "cable" -> "continuous_cable"
+                    else -> "free_external_load"
+                },
+                primaryMuscles = listOf("quadriceps", "gluteus_maximus"),
+                secondaryMuscles = listOf("hamstrings"),
+                stabilizerMuscles = listOf("core"),
+                jointInvolvement = listOf(
+                    JointInvolvementV2("rodilla", JointRoleV2.PRIMARY, listOf("Flexión Y Extensión Unilateral")),
+                    JointInvolvementV2("cadera", JointRoleV2.PRIMARY, listOf("Extensión Y Control Frontal")),
+                    JointInvolvementV2("tobillo", JointRoleV2.SECONDARY, listOf("Equilibrio Y Dorsiflexión")),
+                    JointInvolvementV2("sacroiliaca", JointRoleV2.STABILIZER, listOf("Transferencia Unilateral")),
+                ),
+                efc = 2.8,
+                cnc = 2.2,
+                ssc = 0.5,
+                ttc = 2.0,
+                axialLoadFactor = 0.0,
+                technicalDifficulty = 4.2,
+                resistanceProfile = when (equipmentId) {
+                    "smith_machine" -> "guided_constant"
+                    "cable" -> "continuous_cable"
+                    else -> "gravity_constant"
+                },
+                setupCues = listOf("Alinea el apoyo y mantén la pelvis estable."),
+                executionCues = listOf("Controla el descenso y empuja con la pierna de trabajo."),
+                performanceProfileId = "${configurationId}__zancada",
+                description = "$name con configuración explícita $equipmentId.",
+                articulationType = ExerciseArticulationTypeV2.MULTIARTICULAR,
+                setupTimeSeconds = if (equipmentId == "smith_machine") 50 else 35,
+                fatigueTier = ExerciseFatigueTierV2.MEDIA,
+            )
+            val definition = ExerciseDefinitionV2(
+                id = definitionId,
+                familyId = "lower_$definitionId",
+                kind = ExerciseDefinitionKindV2.PARENT,
+                canonicalName = name,
+                description = "$name con implementación materializada para probar identidades.",
+                searchTerms = listOf(name),
+                optionAxes = listOf("implement"),
+                configurations = listOf(
+                    ExerciseConfigurationV2(
+                        id = configurationId,
+                        selectedOptions = mapOf("implement" to equipmentId),
+                        displaySummary = equipmentId,
+                        profile = profile,
+                        evidence = evidence(),
+                    ),
+                ),
+                defaultConfigurationId = configurationId,
+                evidence = evidence(),
+            )
+            return ExerciseFamilyV2(
+                id = definition.familyId,
+                canonicalName = name,
+                definitions = listOf(definition),
+                evidence = evidence(),
+            )
+        }
+        return catalog.copy(
+            families = listOf(
+                family("walking_lunge", "barbell"),
+                family("forward_lunge", implement),
+                family("reverse_lunge", implement),
+            ),
+        )
+    }
+
+    @Test
+    fun retired_walking_setups_require_exact_saved_pair_revision_and_existing_target() {
+        listOf("smith_machine", "cable").forEach { implement ->
+            val testCatalog = lungeRetirementCatalog(implement)
+            val oldId = "walking_lunge__$implement"
+            val newId = "forward_lunge__$implement"
+            val resolver = ExerciseCatalogV2Resolver(testCatalog)
+            val saved = ExerciseSelectionV2("walking_lunge", oldId, testCatalog.catalogRevision)
+            val migrated = resolver.validate(saved) as ExerciseSelectionValidationV2.Valid
+            assertEquals("forward_lunge", migrated.selection.definitionId)
+            assertEquals(newId, migrated.selection.configurationId)
+            assertEquals(testCatalog.catalogRevision, migrated.selection.catalogRevision)
+            val expectedProfile = testCatalog.families.single { it.id == "lower_forward_lunge" }
+                .definitions.single().configurations.single().profile
+            val resolved = resolver.resolve(saved) ?: error("Retired walking selection did not resolve")
+            assertEquals(expectedProfile, resolved)
+            assertEquals("unilateral_knee_dominant", resolved.movementPatternId)
+            assertEquals(ExerciseBodyRegionV2.LOWER, resolved.bodyRegion)
+            assertEquals(ExerciseKineticChainV2.ANTERIOR, resolved.kineticChain)
+            assertEquals(ExerciseLateralityV2.UNILATERAL, resolved.laterality)
+            assertEquals(implement, resolved.equipmentId)
+            assertEquals("${newId}__zancada", resolved.performanceProfileId)
+            assertEquals(
+                if (implement == "smith_machine") "guided_external_load" else "continuous_cable",
+                resolved.loadMode,
+            )
+            assertTrue(resolver.validate(saved.copy(definitionId = "forward_lunge")) is ExerciseSelectionValidationV2.Invalid)
+            assertTrue(resolver.validate(saved.copy(definitionId = "reverse_lunge")) is ExerciseSelectionValidationV2.Invalid)
+            assertTrue(resolver.validate(saved.copy(catalogRevision = "different")) is ExerciseSelectionValidationV2.Invalid)
+            val missing = ExerciseCatalogV2Resolver(
+                testCatalog.copy(families = testCatalog.families.filterNot { it.id == "lower_forward_lunge" }),
+            )
+            assertTrue(missing.validate(saved) is ExerciseSelectionValidationV2.Invalid)
+            assertNull(missing.resolve(saved))
+        }
+    }
+
+    @Test
+    fun ordinary_forward_and_reverse_smith_and_cable_keep_their_exact_profiles() {
+        listOf("smith_machine", "cable").forEach { implement ->
+            val testCatalog = lungeRetirementCatalog(implement)
+            val resolver = ExerciseCatalogV2Resolver(testCatalog)
+            listOf("forward_lunge", "reverse_lunge").forEach { definitionId ->
+                val selection = ExerciseSelectionV2(definitionId, "${definitionId}__$implement", testCatalog.catalogRevision)
+                val validation = resolver.validate(selection) as ExerciseSelectionValidationV2.Valid
+                assertEquals(selection, validation.selection)
+                val expectedProfile = testCatalog.families.single { it.id == "lower_$definitionId" }
+                    .definitions.single().configurations.single().profile
+                val resolved = resolver.resolve(selection) ?: error("Ordinary lunge selection did not resolve")
+                assertEquals(expectedProfile, resolved)
+                assertEquals(implement, resolved.equipmentId)
+                assertEquals(ExerciseLateralityV2.UNILATERAL, resolved.laterality)
+                assertEquals("${definitionId}__${implement}__zancada", resolved.performanceProfileId)
+            }
+        }
+    }
+
     @Test
     fun specific_search_returns_one_parent_with_suggested_configuration() {
         val result = ExerciseCatalogV2Resolver(catalog).search("curl bayesiano")

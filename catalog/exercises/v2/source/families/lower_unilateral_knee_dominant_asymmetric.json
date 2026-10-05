@@ -24,40 +24,60 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con barra, con el pie de atrás en alto y la barra entre las piernas, el descenso es vertical y asimétrico. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
+              "description": "Colgada entre los muslos, la barra se sostiene con una mano adelantada y otra retrasada. Los discos suben a ambos lados de la pierna de trabajo, con espacio libre junto al apoyo posterior.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
-                "Pie trasero en el banco y barra en posición Jefferson: dos ejercicios duros combinados en uno. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Dobla la rodilla delantera y baja la de atrás hacia el suelo con los brazos estirados.",
+                "Conserva el pecho orientado al frente sin girar hacia la mano retrasada.",
+                "Empuja con la planta delantera y extiende rodilla y cadera para subir la barra entre los muslos."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión Unilateral"
+                    "Flexión de la rodilla",
+                    "Extensión de la rodilla"
                   ],
                   "jointId": "rodilla",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Extensión Y Control Frontal"
+                    "Flexión de la cadera",
+                    "Extensión de la cadera"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Equilibrio Y Dorsiflexión"
+                    "Dorsiflexión del tobillo",
+                    "Flexión plantar del tobillo"
                   ],
                   "jointId": "tobillo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Transferencia Unilateral"
+                    "Estabilidad del tronco",
+                    "Resistencia a la rotación del tronco"
                   ],
-                  "jointId": "sacroiliaca",
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén del agarre"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén del hombro bajo carga"
+                  ],
+                  "jointId": "glenohumeral",
                   "role": "STABILIZER"
                 }
               ],
@@ -67,7 +87,8 @@
               "movementPatternId": "unilateral_knee_dominant_asymmetric",
               "performanceProfileId": "quads_sentadilla_bulgara_jefferson__barbell__sentadilla_bulgara_jefferson",
               "primaryMuscles": [
-                "quadriceps"
+                "quadriceps",
+                "gluteus_maximus"
               ],
               "replacementGroup": null,
               "replacementPriority": 999,
@@ -75,49 +96,81 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión Unilateral",
-                    "Extensión Y Control Frontal",
-                    "Equilibrio Y Dorsiflexión",
-                    "Transferencia Unilateral"
+                    "Flexión de la rodilla",
+                    "Extensión de la rodilla",
+                    "Flexión de la cadera",
+                    "Extensión de la cadera",
+                    "Dorsiflexión del tobillo",
+                    "Flexión plantar del tobillo",
+                    "Estabilidad del tronco",
+                    "Resistencia a la rotación del tronco",
+                    "Sostén del agarre",
+                    "Sostén del hombro bajo carga"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión Unilateral"
+                        "Flexión de la rodilla",
+                        "Extensión de la rodilla"
                       ],
                       "jointId": "rodilla",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Extensión Y Control Frontal"
+                        "Flexión de la cadera",
+                        "Extensión de la cadera"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Equilibrio Y Dorsiflexión"
+                        "Dorsiflexión del tobillo",
+                        "Flexión plantar del tobillo"
                       ],
                       "jointId": "tobillo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Transferencia Unilateral"
+                        "Estabilidad del tronco",
+                        "Resistencia a la rotación del tronco"
                       ],
-                      "jointId": "sacroiliaca",
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del agarre"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del hombro bajo carga"
+                      ],
+                      "jointId": "glenohumeral",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "quadriceps"
-                  ],
-                  "secondaryMuscles": [
-                    "adductors",
+                    "quadriceps",
                     "gluteus_maximus"
                   ],
-                  "stabilizerMuscles": [],
+                  "secondaryMuscles": [
+                    "hamstrings",
+                    "adductors",
+                    "calves"
+                  ],
+                  "stabilizerMuscles": [
+                    "gluteus_medius",
+                    "core",
+                    "erector_spinae",
+                    "forearm",
+                    "deltoid"
+                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -131,7 +184,9 @@
                     "rodilla",
                     "cadera",
                     "tobillo",
-                    "sacroiliaca"
+                    "columna-lumbar",
+                    "muñeca",
+                    "glenohumeral"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -179,22 +234,32 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "unilateral_knee_dominant_asymmetric:quadriceps"
+                    "unilateral_knee_dominant_asymmetric:quadriceps",
+                    "unilateral_knee_dominant_asymmetric:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
                 }
               },
               "secondaryMuscles": [
+                "hamstrings",
                 "adductors",
-                "gluteus_maximus"
+                "calves"
               ],
               "setupCues": [
-                "Preparación: Pie trasero en el banco y barra en posición Jefferson: dos ejercicios duros combinados en uno."
+                "Ponte a horcajadas sobre la barra y apoya el empeine posterior en el banco.",
+                "Agarra la barra con una mano detrás del muslo delantero y la otra delante del posterior.",
+                "Deja el pie delantero plano y comprueba que los discos no alcanzan el banco."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.5,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "gluteus_medius",
+                "core",
+                "erector_spinae",
+                "forearm",
+                "deltoid"
+              ],
               "technicalDifficulty": 5.2,
               "ttc": 2.0
             },
@@ -202,7 +267,7 @@
           }
         ],
         "defaultConfigurationId": "quads_sentadilla_bulgara_jefferson__default",
-        "description": "La Sentadilla Búlgara Jefferson monta la barra entre las piernas con el pie trasero elevado sobre el banco: dos rarezas en una que cargan el cuádriceps con una asimetría singular. Se practica agarrando la barra a horcajadas, bajando en vertical sobre la pierna de apoyo y regresando sin que el torso se tuerza. El agarre Jefferson cambia la línea de la carga por completo. Para los que ya dominaron todo lo convencional y buscan territorio nuevo.",
+        "description": "La Sentadilla Búlgara Jefferson combina el pie posterior elevado con una barra que cruza entre los muslos y cuelga de las manos. El cuádriceps extiende la rodilla adelantada y el glúteo mayor extiende su cadera para elevar el cuerpo. Una mano agarra por detrás del muslo delantero y la otra por delante del posterior, con los brazos estirados. Durante el descenso, la rodilla posterior se acerca al piso y la barra continúa suspendida entre los muslos. El agarre desfasado da espacio a la barra, pero también exige resistir el giro del tronco durante toda la serie.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

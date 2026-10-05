@@ -72,13 +72,31 @@
       "parent": "bench_press"
     },
     {
-      "allowedDifferences": [],
+      "allowedDifferences": [
+        {
+          "muscle": "biceps",
+          "why": "El eje descansa dentro de los codos flexionados y el bíceps resiste su apertura en isometría; el padre default recibe mancuernas con brazos largos. Inferencia anatómica de PMID30137823, sin EMG específica de Zercher."
+        },
+        {
+          "muscle": "forearm",
+          "why": "El padre default recibe una mancuerna por mano; en la especialidad el eje reposa en los pliegues de los codos con las manos juntas, sin agarrarlo. Inferencia de función de dedos y compartimentos del antebrazo, PMID30969606."
+        }
+      ],
       "child": "quads_zancada_frontal_zercher",
       "id": "inherit.zercher-forward-lunge",
       "parent": "forward_lunge"
     },
     {
-      "allowedDifferences": [],
+      "allowedDifferences": [
+        {
+          "muscle": "biceps",
+          "why": "El eje descansa dentro de los codos flexionados y el bíceps resiste su apertura en isometría; el padre default recibe mancuernas con brazos largos. Inferencia anatómica de PMID30137823, sin EMG específica de Zercher."
+        },
+        {
+          "muscle": "forearm",
+          "why": "El padre default recibe una mancuerna por mano; en la especialidad el eje reposa en los pliegues de los codos con las manos juntas, sin agarrarlo. Inferencia de función de dedos y compartimentos del antebrazo, PMID30969606."
+        }
+      ],
       "child": "quads_zancada_inversa_zercher",
       "id": "inherit.zercher-reverse-lunge",
       "parent": "reverse_lunge"
@@ -90,7 +108,16 @@
       "parent": "reverse_lunge"
     },
     {
-      "allowedDifferences": [],
+      "allowedDifferences": [
+        {
+          "muscle": "biceps",
+          "why": "El eje descansa dentro de los codos flexionados y el bíceps resiste su apertura en isometría; el padre default recibe mancuernas con brazos largos. Inferencia anatómica de PMID30137823, sin EMG específica de Zercher."
+        },
+        {
+          "muscle": "forearm",
+          "why": "El padre default recibe una mancuerna por mano; en la especialidad el eje reposa en los pliegues de los codos con las manos juntas, sin agarrarlo. Inferencia de función de dedos y compartimentos del antebrazo, PMID30969606."
+        }
+      ],
       "child": "quads_zancada_caminando_zercher_barra_recta",
       "id": "inherit.zercher-walking-lunge",
       "parent": "walking_lunge"
@@ -102,7 +129,16 @@
       "parent": "walking_lunge"
     },
     {
-      "allowedDifferences": [],
+      "allowedDifferences": [
+        {
+          "muscle": "biceps",
+          "why": "PROPUESTA PRIVADA B: la barra reposa sobre ambos pliegues del codo, con flexión mantenida; en el padre con mancuernas los codos cuelgan extendidos. Se extrapola función flexora del bíceps (StatPearls, PMID 30137823, https://pubmed.ncbi.nlm.nih.gov/30137823/) a la recepción Zercher documentada por Catalyst (https://www.catalystathletics.com/exercise/560/Step-up/), sin ensayo específico ni cambio PRIMARY. Pendiente de revisión y aprobación; solo copia privada."
+        },
+        {
+          "muscle": "forearm",
+          "why": "PROPUESTA PRIVADA B: los codos reciben el peso del eje y las manos se juntan sin agarrar una carga; en el padre por defecto cada mano transporta una mancuerna y los flexores de dedos sostienen la empuñadura. Función de dedos y muñeca según StatPearls (PMID 30969606, https://pubmed.ncbi.nlm.nih.gov/30969606/) extrapolada al contacto Zercher que documenta Catalyst (https://www.catalystathletics.com/exercise/560/Step-up/). Este montaje omite agarre cargado, no rebaja roles para ocultar volumen; propuesta privada pendiente de revisión."
+        }
+      ],
       "child": "quads_step_up_cajon_zercher",
       "id": "inherit.zercher-step-up",
       "parent": "step_up"
@@ -129,7 +165,12 @@
       "parent": "bulgarian_split_squat"
     },
     {
-      "allowedDifferences": [],
+      "allowedDifferences": [
+        {
+          "muscle": "deltoid",
+          "why": "En Somersault la pelvis recibe directamente el eje según la definición humana; las manos mantienen su contacto y la barra no cuelga de brazos aducidos. El padre default transmite dos mancuernas colgantes a los hombros. La diferencia de vía de carga justifica ausencia deltoid en Somersault frente a STABILIZER parental por tracción inferior; función anatómica NBK537056/PMID30725741 aplicada al contacto, sin EMG comparativa."
+        }
+      ],
       "child": "quads_sentadilla_bulgara_somersault",
       "id": "inherit.somersault-bulgarian",
       "parent": "bulgarian_split_squat"
@@ -209,7 +250,24 @@
       "parent": "hams_swing_kettlebell_dos_manos"
     },
     {
-      "allowedDifferences": [],
+      "allowedDifferences": [
+        {
+          "muscle": "biceps",
+          "why": "Las manos sujetan las asas y los codos se doblan al usar la asistencia durante la subida; el padre sin apoyo manual no transfiere ayuda desde un anclaje. Inferencia funcional de StatPearls PMID30137823 (https://pubmed.ncbi.nlm.nih.gov/30137823/) y montaje primario TRX (https://www.trxtraining.com/blogs/news/these-3-trx-moves-are-exclusive-to-the-straps); sin EMG específico de la pistola asistida. Propuesta privada lote 6."
+        },
+        {
+          "muscle": "latissimus_dorsi",
+          "why": "La ayuda de las manos incorpora extensión de hombro al acercar los brazos al torso durante el ascenso; el padre libre no recibe carga por las manos. Inferencia de función del dorsal en StatPearls PMID30725901 (https://pubmed.ncbi.nlm.nih.gov/30725901/) y asistencia manual demostrada por TRX (https://www.trxtraining.com/blogs/news/these-3-trx-moves-are-exclusive-to-the-straps). Sin EMG de esta variante. Propuesta privada lote 6."
+        },
+        {
+          "muscle": "forearm",
+          "why": "Los flexores de dedos y muñeca cierran ambas manos sobre las asas para transmitir asistencia; las manos del padre están vacías y sin apoyo. Inferencia de StatPearls PMID30969606 (https://pubmed.ncbi.nlm.nih.gov/30969606/) y montaje primario TRX (https://www.trxtraining.com/blogs/news/these-3-trx-moves-are-exclusive-to-the-straps). Propuesta privada lote 6."
+        },
+        {
+          "muscle": "deltoid",
+          "why": "La pistola asistida utiliza asas cargadas delante del cuerpo y extensión dinámica del hombro durante la ayuda; la pistola libre solo mantiene brazos vacíos adelantados como contrapeso. La función extensora de la porción posterior del deltoides (NBK537056/PMID30725741) y los fotogramas 46–48 s del demo original TRX de Stephanie Warwick (Vimeo723800899) sustentan SECONDARY cooperante por inferencia; no hay EMG comparativa ni reparto de fuerza medido. Es diferencia de exposición y recorrido real, no excepción por volumen."
+        }
+      ],
       "child": "quads_sentadilla_pistola_asistida_trx",
       "id": "inherit.pistol-assisted",
       "parent": "quads_sentadilla_pistola"

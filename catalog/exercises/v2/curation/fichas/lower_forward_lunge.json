@@ -1,57 +1,625 @@
 {
   "definitions": {
     "forward_lunge": {
-      "public": {
-        "configurations": {
-          "forward_lunge__barbell": {
-            "description": "Con barra, el paso largo al frente frena con la pierna delantera y regresa con fuerza. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-            "executionCues": [
-              "Barra en la espalda y paso al frente: la zancada tradicional con carga. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Flexión de rodilla",
+              "Extensión de rodilla"
             ],
-            "setupCues": [
-              "Preparación: Barra en la espalda y paso al frente: la zancada tradicional con carga."
+            "id": "rodilla",
+            "role": "PRIMARY",
+            "sources": [
+              "comfort",
+              "quads"
+            ],
+            "why": "El aterrizaje flexiona la rodilla anterior bajo el peso; su extensión posterior devuelve el cuerpo a la salida, una acción motora respaldada por cinética y anatomía del cuádriceps."
+          },
+          {
+            "actions": [
+              "Flexión de cadera",
+              "Extensión de cadera"
+            ],
+            "id": "cadera",
+            "role": "PRIMARY",
+            "sources": [
+              "hip",
+              "comfort"
+            ],
+            "why": "La cadera de la pierna que sale recibe flexión y después se extiende para el retorno; los momentos extensores medidos en frontal sustentan su participación principal."
+          },
+          {
+            "actions": [
+              "Dorsiflexión del tobillo",
+              "Flexión plantar del tobillo"
+            ],
+            "id": "tobillo",
+            "role": "SECONDARY",
+            "sources": [
+              "ankle",
+              "comfort"
+            ],
+            "why": "La tibia se desplaza sobre el pie adelantado y su tobillo acompaña la salida con flexión plantar; detrás, el talón elevado permite doblar la rodilla posterior."
+          },
+          {
+            "actions": [
+              "Transferencia de carga pélvica"
+            ],
+            "id": "sacroiliaca",
+            "role": "STABILIZER",
+            "sources": [
+              "si",
+              "hip"
+            ],
+            "why": "Al llegar el peso a la pierna adelantada, esta unión transmite fuerza desde la pelvis al tronco; su papel estabilizador se infiere de anatomía, sin una medición específica del paso."
+          },
+          {
+            "actions": [
+              "Sostén de la postura lumbar"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "load_trunk",
+              "bezerra"
+            ],
+            "why": "La región lumbar sostiene su postura durante la recepción y el retorno frontal; su actividad muscular acompaña la resistencia al plegado del torso, sin una extensión vertebral que complete la subida."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "quadriceps",
+            "role": "PRIMARY",
+            "sources": [
+              "quads",
+              "escamilla"
+            ],
+            "why": "Extiende la rodilla de la pierna que aterriza y frena su flexión al recibir el peso. Esa extensión cargada es central al regreso; conserva el primer PRIMARY del patrón sin deducir dominancia de una amplitud EMG."
+          },
+          {
+            "id": "gluteus_maximus",
+            "role": "PRIMARY",
+            "sources": [
+              "gmax",
+              "escamilla"
+            ],
+            "why": "La cadera adelantada se flexiona en la recepción y se extiende al devolver el cuerpo. El glúteo mayor produce esa extensión cargada, por lo que acompaña como PRIMARY al cuádriceps y no queda como mero sostén postural."
+          },
+          {
+            "id": "hamstrings",
+            "role": "SECONDARY",
+            "sources": [
+              "ham",
+              "escamilla"
+            ],
+            "why": "Ayudan a extender la cadera delantera y coactivan alrededor de la rodilla en el aterrizaje. Su activación en zancadas y su función anatómica respaldan ayuda secundaria, sin sustituir la extensión de rodilla del cuádriceps."
+          },
+          {
+            "id": "calves",
+            "role": "SECONDARY",
+            "sources": [
+              "calf",
+              "escamilla"
+            ],
+            "why": "El gastrocnemio y el sóleo, agrupados aquí como calves, acompañan el desplazamiento tibial y la flexión plantar del regreso. La medición de gastrocnemio en zancadas respalda contribución secundaria del tobillo."
+          },
+          {
+            "id": "adductors",
+            "role": "SECONDARY",
+            "sources": [
+              "adduct",
+              "escamilla"
+            ],
+            "why": "La actividad de aductores registrada en zancadas acompaña el control del muslo; la porción posterior del aductor mayor puede ayudar a extender la cadera. Esa ayuda secundaria se infiere de su anatomía, sin asignarle dominancia."
+          },
+          {
+            "id": "gluteus_medius",
+            "role": "STABILIZER",
+            "sources": [
+              "gmed",
+              "escamilla"
+            ],
+            "why": "El paso carga más una cadera y exige impedir que la pelvis caiga de lado. Su función abductora sostiene ese apoyo frontal; aquí no hay una abducción repetida, aunque la EMG sea alta, así que el rol es STABILIZER."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "abdwall",
+              "load_trunk"
+            ],
+            "why": "La pared abdominal sostiene la relación entre tórax y pelvis cuando el cuerpo aterriza y cambia de dirección. Se clasifica como sostén isométrico; la extensión de las piernas, no una flexión del tronco, eleva la carga."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "bezerra",
+              "load_trunk"
+            ],
+            "why": "Los erectores resisten el plegado del tronco durante la recepción y el empuje. La columna conserva su postura en lugar de extenderse para subir; por eso su actividad lumbar documentada en zancadas es estabilizadora."
+          }
+        ],
+        "overrides": {
+          "forward_lunge__barbell": {
+            "joints": [
+              {
+                "actions": [
+                  "Sostén de la postura lumbar"
+                ],
+                "id": "columna-lumbar",
+                "role": "STABILIZER",
+                "sources": [
+                  "load_trunk",
+                  "bezerra"
+                ],
+                "why": "El eje apoyado arriba sigue el aterrizaje frontal y su retorno; la zona lumbar sostiene la forma del torso sin extenderse para lanzar el peso, por inferencia del montaje posterior."
+              }
             ]
           },
           "forward_lunge__cable": {
-            "description": "Con polea, el paso largo al frente frena con la pierna delantera y regresa con fuerza. El cuádriceps trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-            "executionCues": [
-              "Polea y paso al frente: la tensión constante añade exigencia a la zancada. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+            "joints": [
+              {
+                "actions": [
+                  "Sostén de la postura lumbar"
+                ],
+                "id": "columna-lumbar",
+                "role": "STABILIZER",
+                "sources": [
+                  "load_trunk",
+                  "bezerra"
+                ],
+                "why": "El cable posterior tira del asa al recibir la pierna contraria y exige resistir el giro del torso; la región lumbar conserva su postura por inferencia de esa tracción asimétrica."
+              },
+              {
+                "actions": [
+                  "Sostén del agarre"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "forearm"
+                ],
+                "why": "La muñeca del asa transmite el tirón que llega desde detrás durante la recepción; conserva su orientación mientras las piernas regresan, sin ser motor de un remo."
+              },
+              {
+                "actions": [
+                  "Sostén glenohumeral bajo carga"
+                ],
+                "id": "glenohumeral",
+                "role": "STABILIZER",
+                "sources": [
+                  "deltoid"
+                ],
+                "why": "El hombro del asa conserva el brazo junto a la cadera cuando el cable posterior tira durante la llegada de la pierna contraria; estabilidad glenohumeral deducida del montaje, sin un recorrido de remo."
+              }
             ],
-            "setupCues": [
-              "Preparación: Polea y paso al frente: la tensión constante añade exigencia a la zancada."
+            "muscles": [
+              {
+                "id": "forearm",
+                "role": "STABILIZER",
+                "sources": [
+                  "forearm"
+                ],
+                "why": "La mano junto a la cadera recibe la tracción del cable posterior durante el paso al frente; se infiere sostén isométrico de dedos y antebrazo para no soltar el asa."
+              },
+              {
+                "id": "deltoid",
+                "role": "STABILIZER",
+                "sources": [
+                  "deltoid"
+                ],
+                "why": "La tracción posterior del asa llega a un hombro mientras aterriza la pierna contraria. Se infiere que el deltoides conserva el brazo junto al torso y sostiene la unión glenohumeral ante ese cambio de apoyo, sin medición electromiográfica propia."
+              }
             ]
           },
           "forward_lunge__dumbbells": {
-            "description": "Con mancuernas, el paso largo al frente frena con la pierna delantera y regresa con fuerza. Con mancuernas, cada lado ajusta su línea y el trabajo del cuádriceps se equilibra solo.",
-            "executionCues": [
-              "Mancuernas a los costados y paso al frente: la versión más equilibrada y cómoda. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+            "joints": [
+              {
+                "actions": [
+                  "Sostén de la postura lumbar"
+                ],
+                "id": "columna-lumbar",
+                "role": "STABILIZER",
+                "sources": [
+                  "load_trunk",
+                  "bezerra"
+                ],
+                "why": "Al llegar el pie delantero, las pesas cuelgan de dos brazos y el torso transmite su carga sin flexión lumbar añadida; el sostén se extrapola de la distribución bilateral estudiada."
+              },
+              {
+                "actions": [
+                  "Sostén del agarre"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "forearm"
+                ],
+                "why": "Las dos muñecas conservan su orientación mientras cuelgan las pesas y aterriza la pierna; son contactos estabilizadores, sin flexionarse para elevar la carga."
+              },
+              {
+                "actions": [
+                  "Sostén glenohumeral bajo carga"
+                ],
+                "id": "glenohumeral",
+                "role": "STABILIZER",
+                "sources": [
+                  "deltoid"
+                ],
+                "why": "Los hombros transmiten la recepción de dos pesos laterales sin desplazarse como motor del regreso frontal; se infiere sostén glenohumeral por la función del deltoides bajo cargas que cuelgan del brazo."
+              }
             ],
-            "setupCues": [
-              "Preparación: Mancuernas a los costados y paso al frente: la versión más equilibrada y cómoda."
+            "muscles": [
+              {
+                "id": "forearm",
+                "role": "STABILIZER",
+                "sources": [
+                  "forearm"
+                ],
+                "why": "Cada mano recibe una mancuerna durante la recepción y el retorno frontal; los flexores de los dedos sostienen el peso sin movimiento de muñeca, por inferencia de su anatomía."
+              },
+              {
+                "id": "deltoid",
+                "role": "STABILIZER",
+                "sources": [
+                  "deltoid"
+                ],
+                "why": "El aterrizaje frontal transmite a ambos hombros el peso de las mancuernas colgantes. El deltoides contribuye al sostén de la cabeza humeral frente al tirón inferior; se extrapola su función anatómica al regreso, sin EMG de este montaje."
+              }
             ]
           },
           "forward_lunge__kettlebell": {
-            "description": "Con kettlebell, el paso largo al frente frena con la pierna delantera y regresa con fuerza. El cuádriceps trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
-            "executionCues": [
-              "Kettlebells y paso al frente: el agarre suma trabajo al ejercicio. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+            "joints": [
+              {
+                "actions": [
+                  "Sostén de la postura lumbar"
+                ],
+                "id": "columna-lumbar",
+                "role": "STABILIZER",
+                "sources": [
+                  "load_trunk",
+                  "bezerra"
+                ],
+                "why": "La pesa delante del esternón viaja con el torso al aterrizar y regresar; se infiere resistencia lumbar a cambiar la inclinación, sin usar la espalda para impulsarla."
+              },
+              {
+                "actions": [
+                  "Sostén del agarre"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "forearm"
+                ],
+                "why": "El asa queda entre ambas manos durante la llegada al apoyo; las muñecas conservan el contacto lateral y no añaden flexiones al descenso o la subida."
+              },
+              {
+                "actions": [
+                  "Sostén de flexión del codo"
+                ],
+                "id": "codo",
+                "role": "STABILIZER",
+                "sources": [
+                  "biceps"
+                ],
+                "why": "La flexión de ambos codos sitúa el asa frente al esternón antes y después del aterrizaje; no aparece una flexión dinámica adicional para completar el regreso."
+              },
+              {
+                "actions": [
+                  "Sostén de la posición anterior del brazo"
+                ],
+                "id": "glenohumeral",
+                "role": "STABILIZER",
+                "sources": [
+                  "deltoid"
+                ],
+                "why": "El hombro conserva la posición anterior de los brazos que reciben el asa durante la recepción frontal; su sostén acompaña la subida sin presionar la carga arriba."
+              }
             ],
-            "setupCues": [
-              "Preparación: Kettlebells y paso al frente: el agarre suma trabajo al ejercicio."
+            "muscles": [
+              {
+                "id": "forearm",
+                "role": "STABILIZER",
+                "sources": [
+                  "forearm"
+                ],
+                "why": "Ambas manos aprietan los lados del asa para que la pesa no caiga durante el paso frontal; esta sujeción isométrica se deduce de los flexores de dedos."
+              },
+              {
+                "id": "biceps",
+                "role": "STABILIZER",
+                "sources": [
+                  "biceps"
+                ],
+                "why": "Al recibir el paso, los codos doblados conservan la pesa frente al pecho; se infiere del bíceps una resistencia a su extensión, sin evidencia EMG específica del soporte."
+              },
+              {
+                "id": "deltoid",
+                "role": "STABILIZER",
+                "sources": [
+                  "deltoid"
+                ],
+                "why": "Los brazos reciben por delante la pesa goblet al frenar el paso y después regresar. La función deltoidea permite inferir sostén de esa posición y del hombro; los brazos no alzan la kettlebell para completar la subida."
+              }
             ]
           },
           "forward_lunge__smith_machine": {
-            "description": "Con máquina Smith, el paso largo al frente frena con la pierna delantera y regresa con fuerza. El cuádriceps trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
+            "joints": [
+              {
+                "actions": [
+                  "Sostén de la postura lumbar"
+                ],
+                "id": "columna-lumbar",
+                "role": "STABILIZER",
+                "sources": [
+                  "load_trunk",
+                  "bezerra"
+                ],
+                "why": "El carro limita la salida lateral del eje, pero la espalda baja sigue sin respaldo durante el paso frontal; se infiere sostén lumbar para conservar el tronco al recibir el peso."
+              }
+            ]
+          }
+        }
+      },
+      "public": {
+        "configurations": {
+          "forward_lunge__barbell": {
+            "description": "La barra sobre la espalda acompaña el aterrizaje y el regreso del cuerpo. Las manos fijan su posición, mientras el peso descansa en la parte alta del tronco.",
             "executionCues": [
-              "Smith y paso al frente: el guiado da estabilidad y puedes concentrarte en la bajada. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+              "Adelanta un pie y recibe el peso con la planta apoyada.",
+              "Dobla las dos rodillas hasta acercar la posterior al suelo.",
+              "Empuja con el pie adelantado y devuélvelo a la posición de salida."
             ],
             "setupCues": [
-              "Preparación: Smith y paso al frente: el guiado da estabilidad y puedes concentrarte en la bajada."
+              "Recibe el eje debajo del cuello, sobre la espalda alta, y retíralo del rack.",
+              "Deja espacio delante para dar un paso y volver."
+            ]
+          },
+          "forward_lunge__cable": {
+            "description": "El cable sale del punto bajo de la estación posterior y llega al asa junto a la cadera. Su tirón hacia atrás acompaña el paso frontal; la mano sostiene el asa sin convertir el gesto en un remo.",
+            "executionCues": [
+              "Da el paso alejándote de la estación sin girar el pecho.",
+              "Dobla las piernas con el brazo de carga extendido junto al costado.",
+              "Empuja desde el apoyo delantero y vuelve sin permitir que el cable te arrastre."
+            ],
+            "setupCues": [
+              "Coloca un asa en la polea baja y sitúate de espaldas a la estación.",
+              "Sujétala con una mano junto a la cadera y adelanta después la pierna contraria."
+            ]
+          },
+          "forward_lunge__dumbbells": {
+            "description": "Las cargas cuelgan junto a los muslos y dejan libre el espacio delante del pecho. Cada mano sostiene su peso mientras la pierna adelantada recibe el paso y devuelve el cuerpo.",
+            "executionCues": [
+              "Da un paso al frente sin golpear el muslo con las pesas.",
+              "Desciende entre los dos pies con la rodilla posterior cerca del piso.",
+              "Presiona la planta delantera y vuelve a juntar los apoyos."
+            ],
+            "setupCues": [
+              "Sujeta una mancuerna en cada mano con los brazos al costado.",
+              "Sitúa los pies separados al ancho de las caderas."
+            ]
+          },
+          "forward_lunge__kettlebell": {
+            "description": "Una pesa sujeta por los lados del asa, delante del pecho, deja la carga centrada durante el paso. Los codos doblados sostienen esa altura mientras la pierna delantera frena y empuja el regreso.",
+            "executionCues": [
+              "Avanza un pie sin alejar la pesa del torso.",
+              "Baja el cuerpo hasta que la rodilla de atrás quede a poca distancia del suelo.",
+              "Regresa sobre la pierna adelantada sin levantar la kettlebell con los brazos."
+            ],
+            "setupCues": [
+              "Toma la kettlebell por ambos lados del asa y acércala al pecho.",
+              "Orienta los codos hacia abajo y abre una calle libre delante."
+            ]
+          },
+          "forward_lunge__smith_machine": {
+            "description": "El carro limita el desplazamiento de la barra mientras una pierna adelanta su apoyo y después recupera el lugar de partida. La longitud del paso debe permitir ese descenso sin arrastrar el hombro fuera del raíl.",
+            "executionCues": [
+              "Libera los ganchos y adelanta una pierna sin desplazar la barra fuera de sus guías.",
+              "Flexiona las rodillas con el talón delantero apoyado.",
+              "Extiende la pierna de delante y recoge ese pie antes de repetir."
+            ],
+            "setupCues": [
+              "Apoya el eje de la Smith sobre la espalda alta y sujétalo con ambas manos.",
+              "Ajusta los topes por debajo del descenso previsto y sitúa los pies bajo el cuerpo."
             ]
           }
         },
-        "description": "La Zancada Frontal es el paso largo al frente que lo trabaja todo: cuádriceps y glúteo mayor frenan la bajada y empujan el regreso mientras el equilibrio se pone a prueba. Se ejecuta dando un paso decidido, bajando la rodilla trasera hacia el suelo y volviendo con fuerza a la posición inicial. Con mancuernas a los lados la carga queda cómoda; con barra a la espalda sube la exigencia. El básico unilateral que no puede faltar en ninguna pierna completa."
+        "description": "La Zancada Frontal entrena los extensores de rodilla y cadera, cuádriceps y glúteo mayor, al recibir el peso con un paso hacia delante y devolver el cuerpo al punto de salida. Tras el apoyo, ambas rodillas se doblan y la pierna adelantada frena el descenso. Su empuje devuelve el pie al lado del otro, sin avanzar por la sala. El aterrizaje y el regreso hacen que cada repetición incluya una recepción del peso, además de la subida."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "En nueve hombres, las zancadas frontal e inversa corporales presentaron momentos extensores y movimiento de rodilla y cadera. La frontal produjo mayor momento de cadera. No midió activación muscular ni determinó un músculo dominante.",
+          "id": "comfort",
+          "title": "Joint Kinetics and Kinematics During Common Lower Limb Rehabilitation Exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/26418958/"
+        },
+        {
+          "claim": "La zancada frontal cargada registró actividad de cuádriceps, glúteos, isquiosurales, gastrocnemio y aductores. El paso y su longitud modificaron esa actividad. Los datos agudos no establecen roles de volumen ni demuestran hipertrofia.",
+          "id": "escamilla",
+          "title": "Effects of Step Length and Stride Variation During Forward Lunges on Lower-Extremity Muscle Activity",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/39982282/"
+        },
+        {
+          "claim": "En doce mujeres con carga, la zancada caminando y la frontal registraron más actividad del glúteo mayor que la estática; caminar e inclinar el tronco aumentaron la actividad lumbar. No evaluó Smith, polea ni carga Zercher.",
+          "id": "bezerra",
+          "title": "Influence of Trunk Position during Three Lunge Exercises on Muscular Activation in Trained Women",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/34055138/"
+        },
+        {
+          "claim": "Comparó zancadas corporales y cargadas y registró cuádriceps, isquiosurales y musculatura de la pierna. La carga elevó su activación. El protocolo listado no permite atribuir un estímulo exclusivo a la kettlebell ni incluye Smith o polea.",
+          "id": "wu",
+          "title": "Effect of Loading Devices on Muscle Activation in Squat and Lunge",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30676181/"
+        },
+        {
+          "claim": "Comparó distribución unilateral y bilateral de mancuernas durante zancadas y registró actividad de erectores y pared abdominal. Sustenta su participación postural; las extrapolaciones a carga frontal, cable y Zercher no son mediciones de esas variantes.",
+          "id": "load_trunk",
+          "title": "Effect of Load Distribution on Trunk Muscle Activity with Lunge Exercises in Amateur Athletes: Cross-Sectional Study",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/36981573/"
+        },
+        {
+          "claim": "Describe la anatomía y función extensora de rodilla del cuádriceps; combinada con la cinética de zancadas permite interpretar el frenado y la subida de la pierna delantera.",
+          "id": "quads",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Thigh Quadriceps Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30020706/"
+        },
+        {
+          "claim": "Describe la extensión de cadera del glúteo mayor. Esa función y la extensión cargada de cadera sustentan su papel motor en la zancada; no aporta una comparación entre implementos.",
+          "id": "gmax",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Maximus Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30855781/"
+        },
+        {
+          "claim": "Expone la función abductora y la estabilidad pélvica del glúteo medio. Aquí se infiere sostén frontal del apoyo asimétrico, sin convertirlo en motor de una abducción deliberada.",
+          "id": "gmed",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Medius Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/32491441/"
+        },
+        {
+          "claim": "Los isquiosurales extienden la cadera y flexionan la rodilla. Su contribución secundaria en zancadas se combina con electromiografía de ese gesto, sin hacerlos dominantes.",
+          "id": "ham",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hamstring Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31536294/"
+        },
+        {
+          "claim": "Describe la flexión plantar y la participación del gastrocnemio en postura y propulsión; se aplica al tobillo de apoyo que acompaña la subida y el paso.",
+          "id": "calf",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Gastrocnemius Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30422541/"
+        },
+        {
+          "claim": "Describe los aductores, su sostén pélvico y las porciones del aductor mayor. La aplicación a la asistencia de la cadera en zancadas se identifica como inferencia anatómica.",
+          "id": "adduct",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Thigh Adductor Magnus Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30521263/"
+        },
+        {
+          "claim": "Los flexores del compartimento anterior sostienen muñeca y dedos. Justifica el agarre isométrico de cargas sujetas con las manos, sin asignarlo a una barra apoyada en los codos.",
+          "id": "forearm",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/"
+        },
+        {
+          "claim": "Describe la función flexora del bíceps. El sostén isométrico del codo bajo una barra Zercher se infiere de esa función; no se presenta como electromiografía específica.",
+          "id": "biceps",
+          "title": "Anatomy, Shoulder and Upper Limb, Biceps Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30137823/"
+        },
+        {
+          "claim": "Describe la pared abdominal, la presión intraabdominal y su relación con el tronco; sustenta por inferencia la resistencia al cambio de postura durante apoyos alternos.",
+          "id": "abdwall",
+          "title": "Anatomy, Abdomen and Pelvis: Abdominal Wall",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31869113/"
+        },
+        {
+          "claim": "Describe la dorsiflexión y flexión plantar de la articulación del tobillo y sus elementos estabilizadores; se aplica al pie delantero plantado y al talón posterior elevado.",
+          "id": "ankle",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Ankle Joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31424742/"
+        },
+        {
+          "claim": "Describe la cadera como articulación que facilita movilidad y transmite carga entre tronco y extremidades; complementa los momentos y ángulos medidos en zancadas.",
+          "id": "hip",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hip Joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29262200/"
+        },
+        {
+          "claim": "El estudio anatómico estimó capacidad de las inserciones del glúteo mayor para contribuir a la transferencia de fuerza sacroilíaca. No midió movimiento sacroilíaco en zancadas.",
+          "id": "si",
+          "title": "Anatomy and biomechanics of gluteus maximus and the thoracolumbar fascia at the sacroiliac joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/23959791/"
+        },
+        {
+          "claim": "Describe las acciones y estabilidad del deltoides. El sostén del brazo elevado en un estante frontal se infiere de su función, sin afirmar que mueve las piernas.",
+          "id": "deltoid",
+          "title": "Anatomy, Shoulder and Upper Limb, Deltoid Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725741/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Zancada con salida de un pie hacia delante y recuperación de ese mismo pie después de la subida; cada repetición empieza y termina con el cuerpo en el punto original. La carga o la resistencia se reciben mediante el soporte propio de la configuración.",
+        "keyPositions": [
+          "Entrada: una pierna sale desde los apoyos paralelos y aterriza con la planta; la otra conserva los dedos sobre el suelo.",
+          "Fondo frontal: rodilla anterior cerca de un ángulo recto, talón pegado al piso y rodilla posterior suspendida bajo el cuerpo."
+        ],
+        "mistakes": [
+          "Convertir el retorno en otro paso al frente y terminar avanzando por la sala.",
+          "Recibir el paso con el talón delantero levantado o desplazar el torso lateralmente."
+        ],
+        "phases": [
+          {
+            "description": "El pie que sale al frente contacta la planta y empieza a recibir peso antes de que la pelvis descienda.",
+            "name": "Recepción"
+          },
+          {
+            "description": "La extremidad que aterrizó absorbe el descenso mediante flexión de cadera y rodilla; atrás, la rodilla baja cerca del suelo conservando un espacio sin contacto.",
+            "name": "Descenso frontal"
+          },
+          {
+            "description": "La pierna que aterrizó extiende rodilla y cadera; su pie recupera después la posición junto al que no salió.",
+            "name": "Retorno"
+          }
+        ],
+        "setup": [
+          "Pies separados al ancho de la pelvis sobre un suelo plano y espacio disponible por delante para la recepción.",
+          "El punto de carga corresponde a espalda alta, manos laterales, asa anterior o cable posterior según el implemento."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral en tres cuartos, con cuerpo entero, suelo y contactos de la carga visibles.",
+          "contacts": "Planta delantera pegada al suelo, antepié posterior en el piso y rodilla posterior sin tocarlo; carga unida a su soporte corporal.",
+          "load": "Carga sostenida por el contacto que corresponde al implemento y elevada del suelo durante el fondo de la zancada.",
+          "orientation": "Torso orientado al frente del paso, cuello prolongando la columna y mirada al frente.",
+          "phase": "Fondo del descenso: rodilla anterior doblada y rodilla posterior suspendida cerca del suelo, antes de la subida.",
+          "posture": "Pelvis entre los pies, rodilla delantera cerca de un ángulo recto y talón delantero apoyado; sin giro visible del torso."
+        },
+        "byImplement": {
+          "barbell": {
+            "geometry": "Eje transversal sobre los trapecios, por debajo del cuello, sujeto a ambos lados por las manos. Los discos quedan a los lados de los hombros y por encima del piso."
+          },
+          "cable": {
+            "geometry": "Polea baja con un asa individual junto a la cadera de un lado, agarrada por la mano de ese lado con el codo extendido. Cable visible, sin atravesar el cuerpo; la pierna contraria cambia de posición. La estación se encuentra detrás del atleta; el atleta mira en sentido opuesto a ella."
+          },
+          "dumbbells": {
+            "geometry": "Una mancuerna agarrada por cada mano con palmas hacia los muslos y brazos extendidos a los costados. En el fondo, ambas pesas quedan junto a las piernas, suspendidas sin tocar el suelo."
+          },
+          "kettlebell": {
+            "geometry": "Una kettlebell frente al esternón, con el cuerpo de la pesa bajo el asa. Ambas manos agarran los lados del asa y ambos codos están flexionados, dirigidos abajo; la pesa no toca el suelo."
+          },
+          "smith_machine": {
+            "geometry": "Eje transversal sobre la espalda alta, unido a un carro que baja entre dos raíles visibles. Ambas manos agarran el eje; los discos siguen elevados sobre el piso y los seguros quedan más abajo."
+          }
+        },
+        "forbidden": [
+          "Pies paralelos y descenso bilateral como una sentadilla.",
+          "Rodilla posterior apoyada en el suelo o pie posterior elevado sobre un banco.",
+          "Cargas suspendidas sin contacto con el atleta.",
+          "Piernas cruzadas o pies alineados sobre una misma calle."
+        ],
+        "promptCore": {
+          "barbell": "Three-quarter side view of an athlete frozen at the BOTTOM of a forward lunge. Front knee is bent about 90 degrees, front foot flat on the floor; rear knee is close to the floor but not touching, rear toes planted and heel lifted. Torso upright, feet on separate tracks. A barbell rests across the upper back below the neck; both hands grip it outside the shoulders. Plates remain above the floor.",
+          "cable": "Three-quarter side view of an athlete frozen at the BOTTOM of a forward lunge. Front knee is bent about 90 degrees, front foot flat on the floor; rear knee is close to the floor but not touching, rear toes planted and heel lifted. Torso upright, feet on separate tracks. One hand grips a single cable handle beside its hip with the elbow straight. A taut visible cable connects that hand to a low pulley; the other hand rests on the waist. The low pulley is behind the athlete, opposite the forward step.",
+          "dumbbells": "Three-quarter side view of an athlete frozen at the BOTTOM of a forward lunge. Front knee is bent about 90 degrees, front foot flat on the floor; rear knee is close to the floor but not touching, rear toes planted and heel lifted. Torso upright, feet on separate tracks. Each hand grips one dumbbell with a neutral grip, arms hanging at the sides. Both dumbbells are clear of the floor beside the legs.",
+          "kettlebell": "Three-quarter side view of an athlete frozen at the BOTTOM of a forward lunge. Front knee is bent about 90 degrees, front foot flat on the floor; rear knee is close to the floor but not touching, rear toes planted and heel lifted. Torso upright, feet on separate tracks. Both hands grip the sides of a single kettlebell handle at chest height. Elbows are bent downward; the bell hangs below its handle and remains far above the floor.",
+          "smith_machine": "Three-quarter side view of an athlete frozen at the BOTTOM of a forward lunge. Front knee is bent about 90 degrees, front foot flat on the floor; rear knee is close to the floor but not touching, rear toes planted and heel lifted. Torso upright, feet on separate tracks. Both hands grip the Smith bar resting across the upper back. Its carriage is attached to two visible fixed rails; plates are above the floor and safety stops are lower."
+        },
+        "qa": [
+          "¿La planta delantera toca el suelo y el talón está apoyado?",
+          "¿La rodilla posterior queda doblada y cerca del piso sin apoyarse en él?",
+          "¿El antepié posterior apoya en el suelo con el talón elevado, sin quedar el pie suspendido?",
+          "¿Los dos pies están separados delante y detrás, sin que el posterior repose sobre un banco?",
+          "¿El torso conserva su orientación sin retorcerse hacia un lado?",
+          "¿En Barra, el eje descansa en la espalda alta por debajo del cuello, las dos manos lo agarran por fuera de los hombros y los discos quedan elevados sobre el suelo?",
+          "¿En Polea, una sola mano agarra el asa junto a su cadera con el codo extendido, el cable visible sale de una polea baja detrás del atleta y no atraviesa el cuerpo?",
+          "¿En Mancuernas, hay exactamente una pesa agarrada por cada mano con palmas hacia los muslos, brazos largos y ambas cargas suspendidas sin tocar el suelo?",
+          "¿En Kettlebell, hay una sola pesa ante el esternón y las dos manos agarran los lados de su asa, con el cuerpo de la pesa debajo y los codos flexionados hacia abajo?",
+          "¿En Smith, la barra toca la espalda alta y ambas manos la agarran, con sus dos carros unidos a dos raíles reales visibles y los discos elevados sobre el suelo?"
+        ]
+      }
     }
   },
   "familyId": "lower_forward_lunge",

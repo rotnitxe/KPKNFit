@@ -52,7 +52,8 @@ class ExerciseCatalogContractTest {
         assertEquals(definitions.size, definitions.map { it.id }.distinct().size)
         assertEquals(configurations.size, configurations.map { it.id }.distinct().size)
         assertEquals(206, definitions.size)
-        assertEquals(523, configurations.size)
+        // Retiro humano de walking_lunge en Smith y polea: 206 definiciones / 521 configuraciones.
+        assertEquals(521, configurations.size)
     }
 
     @Test

@@ -75,15 +75,15 @@ class AprendeCatalogAuditTest {
         assertEquals("wikilab-v3-2026-08-08", report.ontologyRevision)
         assertEquals(96, report.familyCount)
         assertEquals(206, report.definitionCount)
-        assertEquals(523, report.configurationCount)
-        assertEquals(523, report.richMetadataCount)
-        assertEquals(523, report.editorialCoverageCount)
-        assertEquals(523, report.jointCoverageCount)
+        assertEquals(521, report.configurationCount)
+        assertEquals(521, report.richMetadataCount)
+        assertEquals(521, report.editorialCoverageCount)
+        assertEquals(521, report.jointCoverageCount)
         assertEquals(0, report.shortDescriptionCount)
         assertEquals(0, report.duplicateDescriptionCount)
         assertEquals(0, report.desynchronizedMetadataCount)
         assertEquals(0, report.reverseLinkConsistencyIssueCount)
-        assertEquals("1c267f408dce0649a07c72125d90f9aedcf5d2926ed6ec5dd7724ccdcf688099", report.sourceSha256)
+        assertEquals("c67eeb8ff6a8e68988fd3e0396fe8601920d3cdec7a05973fa95bf6085eb7566", report.sourceSha256)
         assertTrue("músculos sin puente: ${report.unmappedMuscleIds}", report.unmappedMuscleIds.isEmpty())
         assertTrue("patrones sin puente: ${report.unmappedPatternIds}", report.unmappedPatternIds.isEmpty())
         assertTrue(report.unknownJointIds.isEmpty())
@@ -129,9 +129,9 @@ class AprendeCatalogAuditTest {
             .map { it.id }
             .toSet()
 
-        // 206 definiciones / 523 configuraciones aprobadas (ver comentario de
+        // 206 definiciones / 521 configuraciones tras retirar caminata Smith/polea (ver comentario de
         // `approved_catalog_has_complete_aprende_ontology_and_editorial_coverage`).
-        assertEquals(523, runtime.size)
+        assertEquals(521, runtime.size)
         assertEquals(sourceConfigurationIds, runtime.keys)
         assertTrue(runtime.values.all {
             val configurationId = it.catalogConfigurationId
@@ -145,7 +145,7 @@ class AprendeCatalogAuditTest {
         val reverse = buildAprendeCatalogReverseIndex(catalog)
         // A configuration contributes to exactly one movement-pattern bucket;
         // this also guards against parent-name deduplication.
-        assertEquals(523, reverse.exerciseIdsByPattern.values.sumOf { it.size })
+        assertEquals(521, reverse.exerciseIdsByPattern.values.sumOf { it.size })
         catalog.families.flatMap { it.definitions }.flatMap { it.configurations }.forEach { configuration ->
             val profile = configuration.profile
             assertTrue(configuration.id in reverse.exerciseIdsByPattern[profile.movementPatternId].orEmpty())

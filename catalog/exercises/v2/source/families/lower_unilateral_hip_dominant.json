@@ -24,40 +24,66 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con mancuernas, con el torso inclinado hacia delante, la subida al cajón se convierte en un empuje de cadera. El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+              "description": "Dos mancuernas cuelgan a los lados del cuerpo mientras el pie elevado queda adelantado sobre el cajón. Los brazos no añaden impulso y la pesa del lado del apoyo debe pasar libre por fuera del borde durante la subida.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
-                "Subes a un cajón empujando con una pierna, con el glúteo protagonizando. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Extiende la cadera y la rodilla apoyadas sin balancear el torso para arrancar.",
+                "Levanta el pie libre sin empujar desde el suelo y llega erguido sobre el cajón.",
+                "Recibe la bajada con la pierna elevada hasta que el pie libre toque el suelo."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión"
+                    "Extensión de cadera",
+                    "Flexión de cadera durante el descenso"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad"
+                    "Extensión de rodilla",
+                    "Flexión de rodilla durante el descenso"
                   ],
                   "jointId": "rodilla",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Dorsiflexión de tobillo",
+                    "Flexión plantar de tobillo"
+                  ],
+                  "jointId": "tobillo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Alineación"
+                    "Sostén postural lumbar"
                   ],
                   "jointId": "columna-lumbar",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Control Pélvico"
+                    "Transferencia de carga entre pelvis y tronco"
                   ],
                   "jointId": "sacroiliaca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén del agarre"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Estabilidad del hombro al transportar las pesas"
+                  ],
+                  "jointId": "glenohumeral",
                   "role": "STABILIZER"
                 }
               ],
@@ -67,7 +93,8 @@
               "movementPatternId": "unilateral_hip_dominant",
               "performanceProfileId": "glutes_step_up_gluteo__dumbbells__step_up_de_gluteo",
               "primaryMuscles": [
-                "gluteus_maximus"
+                "gluteus_maximus",
+                "quadriceps"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -75,48 +102,87 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Estabilidad",
-                    "Alineación",
-                    "Control Pélvico"
+                    "Extensión de cadera",
+                    "Flexión de cadera durante el descenso",
+                    "Extensión de rodilla",
+                    "Flexión de rodilla durante el descenso",
+                    "Dorsiflexión de tobillo",
+                    "Flexión plantar de tobillo",
+                    "Sostén postural lumbar",
+                    "Transferencia de carga entre pelvis y tronco",
+                    "Sostén del agarre",
+                    "Estabilidad del hombro al transportar las pesas"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión"
+                        "Extensión de cadera",
+                        "Flexión de cadera durante el descenso"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad"
+                        "Extensión de rodilla",
+                        "Flexión de rodilla durante el descenso"
                       ],
                       "jointId": "rodilla",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Dorsiflexión de tobillo",
+                        "Flexión plantar de tobillo"
+                      ],
+                      "jointId": "tobillo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Alineación"
+                        "Sostén postural lumbar"
                       ],
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Control Pélvico"
+                        "Transferencia de carga entre pelvis y tronco"
                       ],
                       "jointId": "sacroiliaca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del agarre"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad del hombro al transportar las pesas"
+                      ],
+                      "jointId": "glenohumeral",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "gluteus_maximus"
+                    "gluteus_maximus",
+                    "quadriceps"
                   ],
                   "secondaryMuscles": [
-                    "hamstrings"
+                    "hamstrings",
+                    "calves",
+                    "adductors"
                   ],
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "gluteus_medius",
+                    "erector_spinae",
+                    "core",
+                    "forearm",
+                    "deltoid"
+                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -129,8 +195,11 @@
                   "relevantJoints": [
                     "cadera",
                     "rodilla",
+                    "tobillo",
                     "columna-lumbar",
-                    "sacroiliaca"
+                    "sacroiliaca",
+                    "muñeca",
+                    "glenohumeral"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -178,21 +247,32 @@
                     "dumbbells"
                   ],
                   "preservesIntent": [
-                    "unilateral_hip_dominant:gluteus_maximus"
+                    "unilateral_hip_dominant:gluteus_maximus",
+                    "unilateral_hip_dominant:quadriceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
-                "hamstrings"
+                "hamstrings",
+                "calves",
+                "adductors"
               ],
               "setupCues": [
-                "Preparación: Subes a un cajón empujando con una pierna, con el glúteo protagonizando."
+                "Deja una mancuerna suspendida en cada costado, con los brazos extendidos y los puños cerrados.",
+                "Adelanta todo el pie sobre el cajón y ajusta el inicio a unos noventa grados de flexión de rodilla.",
+                "Acerca el torso al muslo desde la cadera y deja la tibia elevada casi vertical."
               ],
               "setupTimeSeconds": 30,
               "ssc": 0.5,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "gluteus_medius",
+                "erector_spinae",
+                "core",
+                "forearm",
+                "deltoid"
+              ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
             },
@@ -200,7 +280,7 @@
           }
         ],
         "defaultConfigurationId": "glutes_step_up_gluteo__default",
-        "description": "El Step-Up de Glúteo inclina el torso hacia delante sobre el cajón y convierte la subida en un asunto de cadera: el glúteo mayor empuja la extensión con el cuádriceps en segundo plano. Se ejecuta con una mancuerna ligera, subiendo con la pierna de arriba y bajando sin impulso del pie libre. La inclinación frontal es lo que cambia el protagonista respecto al step-up normal. El ajuste fino para que el glúteo se lleve el trabajo que le corresponde.",
+        "description": "El Step-Up de Glúteo enfatiza la extensión de cadera con el pie elevado algo alejado del cuerpo y la tibia próxima a vertical. El glúteo mayor y el cuádriceps levantan el cuerpo desde ese apoyo; la rodilla también se extiende. El torso se acerca al muslo desde la cadera antes de la subida, sin un balanceo que lance el cuerpo. El ajuste se define por la posición del pie y la salida desde flexión de cadera, no por inclinar el pecho sin cambiar el apoyo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -238,40 +318,60 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con mancuernas, la pierna cruza por detrás en diagonal y la delantera aguanta todo el peso. Con mancuernas, cada lado ajusta su línea y el trabajo del glúteo mayor se equilibra solo.",
+              "description": "Dos mancuernas cuelgan junto a los muslos, sostenidas por brazos extendidos. El paso cruzado deja las cargas fuera de las rodillas y añade trabajo de agarre mientras el tronco resiste el giro hacia la pierna que retrocede.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
-                "El paso cruza por detrás de la otra pierna y bajas en diagonal. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Da un paso diagonal atrás, cruzando por detrás de la pierna de apoyo.",
+                "Dobla ambas rodillas con el talón delantero en el suelo.",
+                "Empuja el suelo con la pierna delantera y devuelve el pie posterior a su posición inicial.",
+                "Orienta la rodilla delantera hacia los dedos de ese pie."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión"
+                    "Flexión de cadera",
+                    "Extensión de cadera"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad"
+                    "Flexión de rodilla",
+                    "Extensión de rodilla"
                   ],
                   "jointId": "rodilla",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Dorsiflexión de tobillo",
+                    "Flexión plantar de tobillo"
+                  ],
+                  "jointId": "tobillo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Alineación"
+                    "Sostén lumbar isométrico"
                   ],
                   "jointId": "columna-lumbar",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Control Pélvico"
+                    "Sostén del agarre"
                   ],
-                  "jointId": "sacroiliaca",
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén del hombro bajo carga"
+                  ],
+                  "jointId": "glenohumeral",
                   "role": "STABILIZER"
                 }
               ],
@@ -281,7 +381,8 @@
               "movementPatternId": "unilateral_hip_dominant",
               "performanceProfileId": "glutes_zancada_cruzada__dumbbells__zancada_cruzada",
               "primaryMuscles": [
-                "gluteus_maximus"
+                "gluteus_maximus",
+                "quadriceps"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -289,48 +390,79 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Estabilidad",
-                    "Alineación",
-                    "Control Pélvico"
+                    "Flexión de cadera",
+                    "Extensión de cadera",
+                    "Flexión de rodilla",
+                    "Extensión de rodilla",
+                    "Dorsiflexión de tobillo",
+                    "Flexión plantar de tobillo",
+                    "Sostén lumbar isométrico",
+                    "Sostén del agarre",
+                    "Sostén del hombro bajo carga"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión"
+                        "Flexión de cadera",
+                        "Extensión de cadera"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad"
+                        "Flexión de rodilla",
+                        "Extensión de rodilla"
                       ],
                       "jointId": "rodilla",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Dorsiflexión de tobillo",
+                        "Flexión plantar de tobillo"
+                      ],
+                      "jointId": "tobillo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Alineación"
+                        "Sostén lumbar isométrico"
                       ],
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Control Pélvico"
+                        "Sostén del agarre"
                       ],
-                      "jointId": "sacroiliaca",
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del hombro bajo carga"
+                      ],
+                      "jointId": "glenohumeral",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "gluteus_maximus"
-                  ],
-                  "secondaryMuscles": [
+                    "gluteus_maximus",
                     "quadriceps"
                   ],
-                  "stabilizerMuscles": [],
+                  "secondaryMuscles": [
+                    "hamstrings",
+                    "calves",
+                    "adductors"
+                  ],
+                  "stabilizerMuscles": [
+                    "gluteus_medius",
+                    "core",
+                    "erector_spinae",
+                    "forearm",
+                    "deltoid"
+                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -343,8 +475,10 @@
                   "relevantJoints": [
                     "cadera",
                     "rodilla",
+                    "tobillo",
                     "columna-lumbar",
-                    "sacroiliaca"
+                    "muñeca",
+                    "glenohumeral"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -392,21 +526,31 @@
                     "dumbbells"
                   ],
                   "preservesIntent": [
-                    "unilateral_hip_dominant:gluteus_maximus"
+                    "unilateral_hip_dominant:gluteus_maximus",
+                    "unilateral_hip_dominant:quadriceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
-                "quadriceps"
+                "hamstrings",
+                "calves",
+                "adductors"
               ],
               "setupCues": [
-                "Preparación: El paso cruza por detrás de la otra pierna y bajas en diagonal."
+                "Agarra dos mancuernas y déjalas colgar fuera de tus muslos con los codos estirados.",
+                "Coloca los pies separados antes de iniciar el cruce."
               ],
               "setupTimeSeconds": 30,
               "ssc": 0.5,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "gluteus_medius",
+                "core",
+                "erector_spinae",
+                "forearm",
+                "deltoid"
+              ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
             },
@@ -414,7 +558,7 @@
           }
         ],
         "defaultConfigurationId": "glutes_zancada_cruzada__default",
-        "description": "La Zancada Cruzada lleva la pierna hacia atrás en diagonal, cruzando por detrás de la de apoyo: el glúteo de la pierna fija trabaja en un ángulo que las zancadas normales no visitan. Se ejecuta con mancuernas suaves, bajando con la cadera cuadrada y regresando sin que la rodilla de apoyo baile. El patrón curtsy despierta el lateral del glúteo y la cara externa del muslo. La zancada olvidada que redondea lo que las demás dejan.",
+        "description": "La Zancada Cruzada, o curtsy lunge, combina la flexión de la pierna delantera con un paso diagonal que cruza la otra por detrás. Glúteo mayor y cuádriceps producen el regreso a la posición de pie; el glúteo medio ayuda a sujetar la pelvis sobre el apoyo delantero. La rodilla posterior se aproxima al suelo mientras la delantera sigue la dirección de su pie. El cruce cambia la base de apoyo y exige frenar el giro de la pelvis, sin añadir una elevación lateral de pierna al final.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

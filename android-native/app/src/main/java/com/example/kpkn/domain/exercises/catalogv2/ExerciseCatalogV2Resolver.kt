@@ -9,6 +9,9 @@ import com.example.kpkn.domain.exercises.ExerciseMatchLexicon
  * catalog/exercises/v2/curation/STATUS.md: an explicit identity, never a fallback.
  */
 internal val RETIRED_CONFIGURATION_REPLACEMENTS: Map<String, String> = mapOf(
+    // Retiro humano: avanzar caminando no es posible con Smith o polea fija.
+    "walking_lunge__smith_machine" to "forward_lunge__smith_machine",
+    "walking_lunge__cable" to "forward_lunge__cable",
     // 2026-10-02: retirada por el dueño del producto (muy inestable, casi nadie puede hacerla);
     // la Smith lleva la misma barra sobre la espalda.
     "sissy_squat__barbell" to "sissy_squat__smith_machine",
@@ -18,6 +21,12 @@ internal val RETIRED_CONFIGURATION_REPLACEMENTS: Map<String, String> = mapOf(
     "romanian_sumo_deadlift__unilateral__smith_machine" to "romanian_deadlift__unilateral__smith_machine",
     "romanian_sumo_deadlift__unilateral__dumbbells" to "romanian_deadlift__unilateral__dumbbells",
     "romanian_sumo_deadlift__unilateral__hex_bar" to "romanian_deadlift__unilateral__hex_bar",
+)
+
+/** Same-implement ordinary lunges for the two retired walking setups. */
+internal val RETIRED_WALKING_CONFIGURATION_PROFILES: Map<String, String> = mapOf(
+    "walking_lunge__smith_machine" to "forward_lunge__smith_machine__zancada",
+    "walking_lunge__cable" to "forward_lunge__cable__zancada",
 )
 
 /** Exact replacement profiles for the four saved single-leg sumo RDL identities. */

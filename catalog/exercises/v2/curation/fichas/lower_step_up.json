@@ -1,57 +1,645 @@
 {
   "definitions": {
     "step_up": {
-      "public": {
-        "configurations": {
-          "step_up__barbell": {
-            "description": "Con barra, un pie sube a la plataforma y la pierna de apoyo impulsa el cuerpo hasta quedar de pie sobre ella. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-            "executionCues": [
-              "Barra en la espalda y subida al cajón: fuerza y estabilidad en cada paso. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Extensión de rodilla",
+              "Flexión de rodilla durante el descenso"
             ],
-            "setupCues": [
-              "Preparación: Barra en la espalda y subida al cajón: fuerza y estabilidad en cada paso."
+            "id": "rodilla",
+            "role": "PRIMARY",
+            "sources": [
+              "simenz_stepup",
+              "quadriceps_anatomy"
+            ],
+            "why": "La pierna sobre el cajón extiende la rodilla contra peso corporal y carga externa; al regresar, esa misma rodilla se flexiona recibiendo el descenso. No es una articulación inmóvil."
+          },
+          {
+            "actions": [
+              "Extensión de cadera",
+              "Flexión de cadera durante el descenso"
+            ],
+            "id": "cadera",
+            "role": "PRIMARY",
+            "sources": [
+              "simenz_stepup",
+              "glute_max_anatomy"
+            ],
+            "why": "La cadera del pie elevado pasa de flexión a una posición erguida mientras el cuerpo asciende. Comparte el movimiento con la rodilla y vuelve a flexión al tocar el pie libre el suelo."
+          },
+          {
+            "actions": [
+              "Dorsiflexión de tobillo",
+              "Flexión plantar de tobillo"
+            ],
+            "id": "tobillo",
+            "role": "SECONDARY",
+            "sources": [
+              "simenz_stepup",
+              "calf_anatomy"
+            ],
+            "why": "La tibia avanza sobre el pie fijo al preparar y recibir la repetición; el tobillo acompaña la subida hacia menor dorsiflexión. La participación de flexores plantares no requiere despegar el talón."
+          },
+          {
+            "actions": [
+              "Sostén postural lumbar"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "lumbar_anatomy",
+              "iap_stiffness"
+            ],
+            "why": "El tronco se desplaza junto con la pelvis sin flexión lumbar deliberada. La carga libre carece de respaldo y exige una posición vertebral sostenida mientras cadera y rodilla cambian de ángulo."
+          },
+          {
+            "actions": [
+              "Transferencia de carga entre pelvis y tronco"
+            ],
+            "id": "sacroiliaca",
+            "role": "STABILIZER",
+            "sources": [
+              "sacroiliac_transfer"
+            ],
+            "why": "La carga del pie elevado pasa de la hemipelvis al tronco durante el apoyo unilateral. La explicación se extrapola de la anatomía y del modelo de compresión de esta articulación, no de un movimiento medido en step-up."
+          },
+          {
+            "actions": [
+              "Sostén del agarre"
+            ],
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "sources": [
+              "forearm_anatomy"
+            ],
+            "why": "Cada mano recibe una carga colgante independiente; la muñeca transmite su peso sin doblarse deliberadamente. El sostén de dedos y muñeca acompaña toda la repetición."
+          },
+          {
+            "actions": [
+              "Estabilidad bajo tracción de carga colgante"
+            ],
+            "id": "glenohumeral",
+            "role": "STABILIZER",
+            "sources": [
+              "deltoid_anatomy"
+            ],
+            "why": "Los brazos aducidos transportan las mancuernas por debajo de los hombros, que conservan su relación con el tronco frente a la tracción inferior. No hay una elevación deliberada del brazo para alcanzar el cajón."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "quadriceps",
+            "role": "PRIMARY",
+            "sources": [
+              "quadriceps_anatomy",
+              "simenz_stepup"
+            ],
+            "why": "La rodilla de apoyo sale de flexión y se extiende para elevar el cuerpo. Ese motor del ascenso sigue primero en el step-up base; el orden no se deduce de comparar amplitudes EMG entre músculos."
+          },
+          {
+            "id": "gluteus_maximus",
+            "role": "PRIMARY",
+            "sources": [
+              "kipp_forces",
+              "glute_max_anatomy"
+            ],
+            "why": "Extiende la cadera cargada del pie elevado y participa directamente en levantar el tronco. El modelado de step-up confirma demanda dependiente de carga; no es solo sostén postural ni desaparece con carga frontal."
+          },
+          {
+            "id": "hamstrings",
+            "role": "SECONDARY",
+            "sources": [
+              "simenz_stepup",
+              "kipp_forces"
+            ],
+            "why": "Los isquiosurales ayudan a extender la cadera durante el ascenso y coactúan con el cuádriceps alrededor de la rodilla. Los resultados del step-up cargado respaldan participación, sin demostrar que decidan la serie."
+          },
+          {
+            "id": "calves",
+            "role": "SECONDARY",
+            "sources": [
+              "calf_anatomy",
+              "kipp_forces"
+            ],
+            "why": "El tríceps sural del pie elevado acompaña el avance de la tibia y la flexión plantar del ascenso. calves representa gastrocnemio y sóleo; el talón permanece apoyado en el fotograma, sin convertirlo en una elevación de gemelos."
+          },
+          {
+            "id": "gluteus_medius",
+            "role": "STABILIZER",
+            "sources": [
+              "glute_med_anatomy",
+              "simenz_stepup"
+            ],
+            "why": "Con un solo pie cargado, los abductores de esa cadera limitan la caída de la pelvis y el desplazamiento medial del fémur. Se infiere función frontal de sostén, no abducción intencionada ni dominancia del movimiento."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "lumbar_anatomy"
+            ],
+            "why": "La espalda carece de respaldo y los extensores vertebrales sostienen el tronco mientras se eleva la carga. Su función se interpreta como isometría postural; la columna no se extiende para producir la repetición."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "iap_stiffness"
+            ],
+            "why": "La coactivación de la pared abdominal y musculatura profunda resiste el giro y la flexión del tronco sobre un apoyo unilateral. La aplicación del estudio de rigidez isométrica al step-up es una extrapolación, sin EMG específico."
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "sources": [
+              "forearm_anatomy"
+            ],
+            "why": "Los flexores de los dedos sostienen las dos mancuernas colgantes durante subida y descenso, con muñecas cercanas a neutro. Esa isometría transporta la carga, sin mover el cuerpo por flexión de muñeca."
+          },
+          {
+            "id": "deltoid",
+            "role": "STABILIZER",
+            "sources": [
+              "deltoid_anatomy"
+            ],
+            "why": "Las mancuernas suspendidas traccionan hacia abajo el brazo aducido; el deltoides ayuda a resistir el desplazamiento inferior del hombro. Ese sostén glenohumeral está descrito anatómicamente y se extrapola al transporte durante el step-up, sin EMG exclusivo."
+          },
+          {
+            "id": "adductors",
+            "role": "SECONDARY",
+            "sources": [
+              "collings_adductors",
+              "adductor_anatomy"
+            ],
+            "why": "Al subir desde el pie elevado, la porción isquiocondílea del aductor mayor asiste a la extensión de cadera que eleva cuerpo y carga. Collings estimó su fuerza en step-up mediante un modelo asistido por EMG; ese resultado no ordena los motores del ejercicio."
+          }
+        ],
+        "overrides": {
+          "step_up__barbell": {
+            "joints": [
+              {
+                "id": "muñeca",
+                "role": "NONE",
+                "why": "La barra reposa en la espalda y las manos fijan su posición, sin recibir una pesa colgante. No se atribuye al agarre el esfuerzo isométrico de transportar mancuernas."
+              },
+              {
+                "id": "glenohumeral",
+                "role": "NONE",
+                "why": "La resistencia descansa sobre espalda alta, sin la tracción de una pesa colgante sobre cada brazo; este perfil omite el sostén glenohumeral descrito para el contacto de mancuernas del padre."
+              }
+            ],
+            "muscles": [
+              {
+                "id": "forearm",
+                "role": "NONE",
+                "why": "La barra reposa en la espalda y las manos fijan su posición, sin recibir una pesa colgante. No se atribuye al agarre el esfuerzo isométrico de transportar mancuernas."
+              },
+              {
+                "id": "deltoid",
+                "role": "NONE",
+                "why": "El eje recibido en la espalda carga el tronco a través de ese apoyo y las manos fijan su posición; este contacto no transporta las pesas suspendidas que justifican el deltoides declarado en el perfil por defecto."
+              }
             ]
           },
           "step_up__cable": {
-            "description": "Con polea, un pie sube a la plataforma y la pierna de apoyo impulsa el cuerpo hasta quedar de pie sobre ella. Con la polea, la tensión sobre el cuádriceps se mantiene viva de principio a fin.",
-            "executionCues": [
-              "Polea y subida al cajón: la tensión constante añade exigencia a cada paso. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+            "joints": [
+              {
+                "actions": [
+                  "Transmisión de tracción del cable"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "forearm_anatomy",
+                  "exrx_cable_setup"
+                ],
+                "why": "Las asas cuelgan al lado del cajón y cada muñeca transmite una resistencia dirigida hacia la polea baja. Los antebrazos acompañan la subida sin girar ni doblar la muñeca para ganar recorrido."
+              },
+              {
+                "actions": [
+                  "Sostén frente a tracción de polea baja"
+                ],
+                "id": "glenohumeral",
+                "role": "STABILIZER",
+                "sources": [
+                  "deltoid_anatomy",
+                  "exrx_cable_setup"
+                ],
+                "why": "Las asas transmiten el tirón inferior de los cables a brazos que permanecen al costado; el hombro sostiene esa posición durante el ascenso y no lleva las manos hacia arriba como en una elevación frontal."
+              }
             ],
-            "setupCues": [
-              "Preparación: Polea y subida al cajón: la tensión constante añade exigencia a cada paso."
-            ]
-          },
-          "step_up__dumbbells": {
-            "description": "Con mancuernas, un pie sube a la plataforma y la pierna de apoyo impulsa el cuerpo hasta quedar de pie sobre ella. Con mancuernas, cada lado ajusta su línea y el trabajo del cuádriceps se equilibra solo.",
-            "executionCues": [
-              "Mancuernas y subida al cajón: la versión más equilibrada y cómoda del step-up. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-            ],
-            "setupCues": [
-              "Preparación: Mancuernas y subida al cajón: la versión más equilibrada y cómoda del step-up."
+            "muscles": [
+              {
+                "id": "forearm",
+                "role": "STABILIZER",
+                "sources": [
+                  "forearm_anatomy",
+                  "exrx_cable_setup"
+                ],
+                "why": "Cada mano agarra una asa que recibe la tracción de su polea baja. Los dedos permanecen cerrados mientras el cable cambia de inclinación, sin flexionar el codo como en un remo."
+              },
+              {
+                "id": "deltoid",
+                "role": "STABILIZER",
+                "sources": [
+                  "deltoid_anatomy",
+                  "exrx_cable_setup"
+                ],
+                "why": "La tracción de dos salidas bajas llega a las manos y después a los hombros por brazos largos; el deltoides participa en conservar la relación glenohumeral bajo esa resistencia dirigida hacia abajo, por extrapolación de su función estabilizadora."
+              }
             ]
           },
           "step_up__kettlebell": {
-            "description": "Con kettlebell, un pie sube a la plataforma y la pierna de apoyo impulsa el cuerpo hasta quedar de pie sobre ella. El cuádriceps trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
-            "executionCues": [
-              "Kettlebell y subida al cajón: el agarre suma trabajo al movimiento. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+            "joints": [
+              {
+                "actions": [
+                  "Sostén de flexión del codo"
+                ],
+                "id": "codo",
+                "role": "STABILIZER",
+                "sources": [
+                  "biceps_anatomy"
+                ],
+                "why": "Los codos conservan un ángulo flexionado para sostener la kettlebell delante del pecho. No cambian de ángulo como parte del ascenso y por ello no son motores de la repetición."
+              },
+              {
+                "actions": [
+                  "Sostén anterior del brazo"
+                ],
+                "id": "glenohumeral",
+                "role": "STABILIZER",
+                "sources": [
+                  "deltoid_anatomy"
+                ],
+                "why": "Los brazos quedan delante del torso sosteniendo la kettlebell próxima al esternón. El hombro conserva esa posición, sin elevar la carga por encima de la cabeza."
+              },
+              {
+                "actions": [
+                  "Sostén de la pesa delante del pecho"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "forearm_anatomy",
+                  "goblet_demo_setup"
+                ],
+                "why": "Las dos palmas sostienen el cuerpo de la pesa frente al esternón y transmiten su carga a los antebrazos; esa posición se conserva al subir, sin lanzar la kettlebell con una flexión de muñeca."
+              }
             ],
-            "setupCues": [
-              "Preparación: Kettlebell y subida al cajón: el agarre suma trabajo al movimiento."
+            "muscles": [
+              {
+                "id": "biceps",
+                "role": "STABILIZER",
+                "sources": [
+                  "biceps_anatomy"
+                ],
+                "why": "Ambos codos permanecen flexionados para que la kettlebell no se aleje del pecho. El bíceps sostiene ese ángulo en isometría; no tira de la pesa para elevar el cuerpo."
+              },
+              {
+                "id": "deltoid",
+                "role": "STABILIZER",
+                "sources": [
+                  "deltoid_anatomy"
+                ],
+                "why": "La pesa delante del esternón requiere sostener los brazos en una posición anterior fija. Se deduce trabajo postural del deltoides, sin movimiento de press ni elevación deliberada."
+              },
+              {
+                "id": "forearm",
+                "role": "STABILIZER",
+                "sources": [
+                  "forearm_anatomy",
+                  "goblet_demo_setup"
+                ],
+                "why": "Las manos rodean y sostienen el cuerpo redondo de la kettlebell delante del pecho durante la repetición. Los dedos conservan ese contacto cargado; el antebrazo aporta sostén aunque no haya dos pesas colgantes."
+              }
             ]
           },
           "step_up__smith_machine": {
-            "description": "Con máquina Smith, un pie sube a la plataforma y la pierna de apoyo impulsa el cuerpo hasta quedar de pie sobre ella. En la Smith, la guía fija permite concentrar todo el esfuerzo del cuádriceps.",
+            "joints": [
+              {
+                "id": "muñeca",
+                "role": "NONE",
+                "why": "La carga apoya sobre la espalda y el eje está guiado. Las manos desenganchan y fijan la barra, sin sostener una resistencia colgante comparable a las asas de polea."
+              },
+              {
+                "actions": [
+                  "Sostén lumbar bajo carga guiada"
+                ],
+                "id": "columna-lumbar",
+                "role": "STABILIZER",
+                "sources": [
+                  "lumbar_anatomy",
+                  "smith_demo_setup"
+                ],
+                "why": "La barra avanza por sus guías, pero no hay acolchado que sostenga la espalda. La región lumbar conserva su posición mientras la cadera acerca el tronco a la vertical."
+              },
+              {
+                "id": "glenohumeral",
+                "role": "NONE",
+                "why": "La resistencia descansa sobre espalda alta, sin la tracción de una pesa colgante sobre cada brazo; este perfil omite el sostén glenohumeral descrito para el contacto de mancuernas del padre."
+              }
+            ],
+            "muscles": [
+              {
+                "id": "forearm",
+                "role": "NONE",
+                "why": "La carga apoya sobre la espalda y el eje está guiado. Las manos desenganchan y fijan la barra, sin sostener una resistencia colgante comparable a las asas de polea."
+              },
+              {
+                "id": "core",
+                "role": "STABILIZER",
+                "sources": [
+                  "iap_stiffness"
+                ],
+                "why": "Las guías restringen el eje, pero el torso sigue sin respaldo y la pelvis carga un solo pie. La pared abdominal resiste giro y desplazamiento entre tórax y pelvis; la guía no convierte ese sostén en reposo."
+              },
+              {
+                "id": "erector_spinae",
+                "role": "STABILIZER",
+                "sources": [
+                  "lumbar_anatomy"
+                ],
+                "why": "El carril limita el movimiento de la barra sin apoyar la columna del atleta. Los extensores vertebrales siguen sosteniendo el torso durante el ascenso, por inferencia postural y no por EMG comparativo de Smith."
+              },
+              {
+                "id": "deltoid",
+                "role": "NONE",
+                "why": "El eje recibido en la espalda carga el tronco a través de ese apoyo y las manos fijan su posición; este contacto no transporta las pesas suspendidas que justifican el deltoides declarado en el perfil por defecto."
+              }
+            ]
+          }
+        }
+      },
+      "public": {
+        "configurations": {
+          "step_up__barbell": {
+            "description": "La barra descansa sobre la espalda alta y asciende junto al torso, dejando ambas manos ocupadas en sujetarla. El cajón queda fuera del soporte de salida y la carga no puede apoyarse en él al bajar.",
             "executionCues": [
-              "Smith y subida al cajón: el guiado cuida el equilibrio mientras subes. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+              "Empuja el cajón con la pierna elevada hasta enderezar cadera y rodilla.",
+              "Acerca el pie libre arriba sin dar un salto ni descargar el peso sobre él.",
+              "Vuelve a tocar el suelo con el pie libre mientras flexionas la pierna del cajón."
             ],
             "setupCues": [
-              "Preparación: Smith y subida al cajón: el guiado cuida el equilibrio mientras subes."
+              "Recibe el eje detrás de los hombros desde el soporte y ciérralo con las dos manos.",
+              "Sitúa un cajón firme delante y apoya un pie entero, con la rodilla cerca de un ángulo recto."
+            ]
+          },
+          "step_up__cable": {
+            "description": "Dos poleas bajas próximas al cajón tiran de las asas hacia abajo y hacia sus puntos de salida. Los brazos cuelgan a los lados y los cables quedan por fuera de las piernas; la dirección de esa resistencia cambia al ganar altura.",
+            "executionCues": [
+              "Sube por extensión de la pierna elevada, sin remar con las asas.",
+              "Acerca el pie libre al cajón cuando la pierna apoyada esté extendida.",
+              "Baja hasta tocar el suelo y conserva las asas fuera del borde de la plataforma."
+            ],
+            "setupCues": [
+              "Coloca el cajón entre dos poleas bajas próximas y toma una asa con cada mano.",
+              "Deja los brazos largos y sitúa los cables por fuera de las piernas.",
+              "Apoya el pie de trabajo entero sin pisar ningún cable."
+            ]
+          },
+          "step_up__dumbbells": {
+            "description": "Las dos mancuernas quedan suspendidas por fuera de los muslos, con un agarre independiente a cada lado. Los laterales del cajón dejan pasar esas cargas durante la subida; el borde no sirve como descanso para las pesas.",
+            "executionCues": [
+              "Levanta el cuerpo extendiendo la pierna apoyada y conserva las pesas separadas del cajón.",
+              "Deja el pie libre cerca del pie elevado al terminar, sin trasladarle el peso.",
+              "Desciende hasta tocar el suelo con ese pie y repite desde el apoyo elevado."
+            ],
+            "setupCues": [
+              "Agarra las dos mancuernas y permite que cuelguen lateralmente, con los codos estirados.",
+              "Elige un cajón donde quepa todo el pie y apoya la pierna de trabajo."
+            ]
+          },
+          "step_up__kettlebell": {
+            "description": "Una kettlebell sostenida por las dos manos queda delante del pecho. Ese apoyo anterior ocupa los brazos y exige conservar la pesa cerca del torso mientras la pierna elevada inicia el ascenso; separarla hacia delante añade esfuerzo de sostén.",
+            "executionCues": [
+              "Presiona la superficie con el pie elevado y sube con la pesa junto al pecho.",
+              "Endereza la pierna de trabajo sin lanzar la kettlebell hacia delante.",
+              "Regresa el pie libre al suelo y conserva los codos flexionados."
+            ],
+            "setupCues": [
+              "Sostén el cuerpo redondo de la kettlebell con ambas manos delante del pecho, con los codos doblados.",
+              "Apoya todo el pie sobre un cajón que puedas alcanzar sin torcer la pelvis."
+            ]
+          },
+          "step_up__smith_machine": {
+            "description": "El eje de la Smith corre por sus guías mientras la barra apoya sobre los hombros posteriores. La posición del cajón debe permitir esa subida dentro de la estación, sin que el pie libre choque con la base ni la barra llegue al tope superior.",
+            "executionCues": [
+              "Eleva el cuerpo por la pierna del cajón y deja que el eje suba por sus guías.",
+              "Baja el pie libre hasta el suelo sin soltar la barra ni empujar con esa pierna.",
+              "Engancha el eje antes de retirar el pie del cajón."
+            ],
+            "setupCues": [
+              "Coloca el cajón dentro de la Smith y comprueba el espacio disponible al subir y bajar.",
+              "Ajusta los topes bajo la posición inicial y recibe la barra sobre la espalda alta.",
+              "Desengancha el eje con las manos y apoya un pie entero en el cajón."
             ]
           }
         },
-        "description": "El Step-Up a Cajón convierte subir un escalón en fuerza unilateral real: la pierna de arriba eleva todo el cuerpo sin ayuda de la de abajo. Se ejecuta apoyando el pie entero en el cajón, subiendo hasta extender la cadera y bajando despacio sin empujarse con el pie del suelo. Cuádriceps y glúteo se turnan según la inclinación del torso. Con barra o mancuernas se carga como un básico más. La medida exacta de la fuerza de cada pierna por separado."
+        "description": "El Step-Up a Cajón entrena cuádriceps y glúteo mayor elevando el cuerpo con una pierna desde un escalón. El pie de trabajo queda entero sobre la superficie, mientras cadera y rodilla se extienden y el pie libre asciende sin salto. La bajada vuelve al suelo por la misma pierna, sin dejar caer el peso. La altura del cajón cambia el punto de partida: una superficie alcanzable sin girar la pelvis permite repetir ese arranque desde flexión en cada subida."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "En quince mujeres entrenadas, cuatro step-ups cargados a seis repeticiones máximas sobre cajón de 45,72 centímetros reclutaron extensores de cadera y rodilla. El abstract describe también flexión plantar; no establece dominancia universal ni estudia cargas frontal o Zercher.",
+          "id": "simenz_stepup",
+          "title": "Electromyographical analysis of lower extremity muscle activation during variations of the loaded step-up exercise.",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/22237139/"
+        },
+        {
+          "claim": "En nueve hombres, el modelado por optimización estática estimó fuerzas crecientes con la carga en glúteos, vastos, isquiosurales y flexores plantares durante el step-up. Son fuerzas estimadas de ese protocolo, no una comparación específica de estas especialidades.",
+          "id": "kipp_forces",
+          "title": "Muscle Forces During the Squat, Split Squat, and Step-Up Across a Range of External Loads in College-Aged Men.",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/32569122/"
+        },
+        {
+          "claim": "La función extensora de rodilla del cuádriceps permite interpretar el ascenso al escalón. El rol en las cargas de esta ficha es una inferencia funcional, no un resultado experimental del capítulo.",
+          "id": "quadriceps_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Thigh Quadriceps Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30020706/"
+        },
+        {
+          "claim": "La extensión de cadera y el sostén erguido del glúteo mayor fundamentan su contribución al ascenso; la aplicación a posiciones específicas de carga es una extrapolación anatómica.",
+          "id": "glute_max_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Maximus Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30855781/"
+        },
+        {
+          "claim": "Los abductores glúteos intervienen en la estabilidad pélvica de la locomoción. Su rol estabilizador en apoyo unilateral se infiere de esa función, sin convertir la activación EMG en prueba de dominancia.",
+          "id": "glute_med_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Medius Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/32491441/"
+        },
+        {
+          "claim": "El gastrocnemio y el sóleo forman el tríceps sural; el gastrocnemio aporta flexión plantar. La categoría calves incluye aquí ambos, y acompaña al ascenso sin sustituir los extensores de cadera y rodilla.",
+          "id": "calf_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Gastrocnemius Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30422541/"
+        },
+        {
+          "claim": "El capítulo distingue musculatura intrínseca vertebral de musculatura extrínseca. Se usa su función postural para inferir sostén lumbar isométrico, sin afirmar EMG de step-up.",
+          "id": "lumbar_anatomy",
+          "title": "Anatomy, Back, Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725759/"
+        },
+        {
+          "claim": "En diez voluntarios, elevar la presión intraabdominal aumentó la rigidez en flexión e inclinación lateral durante pruebas isométricas; en extensión no alcanzó significación estadística. La coactivación postural se extrapola al step-up, sin medición de su activación.",
+          "id": "iap_stiffness",
+          "title": "Lumbar spine stability can be augmented with an abdominal belt and/or increased intra-abdominal pressure.",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/10552322/"
+        },
+        {
+          "claim": "Los compartimentos del antebrazo contienen flexores de dedos y muñeca. Su sostén del agarre y de la muñeca en esta ficha se deduce del contacto real con la carga.",
+          "id": "forearm_anatomy",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/"
+        },
+        {
+          "claim": "La disección de once miembros y estimaciones de fuerza muestran capacidad de las inserciones del glúteo mayor para comprimir la sacroilíaca y favorecer transferencia de carga. Se extrapola a apoyo unilateral sin atribuirle movimiento visible.",
+          "id": "sacroiliac_transfer",
+          "title": "Anatomy and biomechanics of gluteus maximus and the thoracolumbar fascia at the sacroiliac joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/23959791/"
+        },
+        {
+          "claim": "La instrucción original documenta apoyo entero sobre cajón, mínima ayuda del pie del suelo, y cargas trasera, clean rack, Zercher y colgantes. Relaciona pie más alejado y tibia vertical con énfasis de extensores de cadera; no es un ensayo de dominancia muscular.",
+          "id": "catalyst_setup",
+          "title": "Step-up - Olympic Weightlifting Exercise Library: Demo Videos, Information & More - Catalyst Athletics",
+          "url": "https://www.catalystathletics.com/exercise/560/Step-up/"
+        },
+        {
+          "claim": "El montaje original emplea dos poleas bajas próximas a los lados del cajón, una asa en cada mano y brazos colgantes. El cuerpo sube por extensión de cadera y rodilla; no hay remo ni polea alta que asista la subida.",
+          "id": "exrx_cable_setup",
+          "title": "ExRx.net : Cable Step-up",
+          "url": "https://www.exrx.net/WeightExercises/GluteusMaximus/CBStepUp.html"
+        },
+        {
+          "claim": "La demostración original de Aaron Schiavone muestra dos guías, barra sobre espalda alta y un pie entero sobre un banco dentro de la estación. Fotogramas de 3, 8 y 13 segundos confirman la extensión de la pierna elevada sin salto; el cajón firme de la ficha extrapola esa plataforma, sin concluir músculos desde el video.",
+          "id": "smith_demo_setup",
+          "title": "Smith Machine Step Up - Exercise Demo - YouTube",
+          "url": "https://www.youtube.com/watch?v=56JPOh7J6ow"
+        },
+        {
+          "claim": "El bíceps flexiona el codo. Cuando la carga queda en el pliegue de los brazos o junto al pecho, se infiere sostén isométrico del ángulo, sin EMG específico de esas variantes.",
+          "id": "biceps_anatomy",
+          "title": "Anatomy, Shoulder and Upper Limb, Biceps Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30137823/"
+        },
+        {
+          "claim": "El capítulo completo describe flexión anterior del brazo y estabilización glenohumeral, incluida resistencia a desplazamiento inferior con carga colgante. Se extrapolan esas funciones al contacto real de cada montaje, sin ensayo exclusivo de step-up.",
+          "id": "deltoid_anatomy",
+          "title": "Anatomy, Shoulder and Upper Limb, Deltoid Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725741/"
+        },
+        {
+          "claim": "La demostración original de ZOAR Fitness muestra una kettlebell sostenida con las dos manos alrededor del cuerpo redondo frente al pecho, codos flexionados y ascenso frontal a un cajón. Los fotogramas de 3, 8 y 13 segundos fijan el contacto real; no se adopta su afirmación de torso obligatoriamente vertical como ley biomecánica.",
+          "id": "goblet_demo_setup",
+          "title": "Goblet Step-Up - YouTube",
+          "url": "https://www.youtube.com/watch?v=yL7gbdJpvFk"
+        },
+        {
+          "claim": "El modelo asistido por EMG estimó fuerza alta de la porción isquiocondílea del aductor mayor en step-up y sentadilla. Apoya participación extensora; no prueba dominancia muscular ni mide montajes frontal, Zercher, hip-biased, curtsy, Hack o V-Squat.",
+          "id": "collings_adductors",
+          "title": "Hip Adductor Muscle Forces during Strength Training and Rehabilitation Exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/41931009/"
+        },
+        {
+          "claim": "El capítulo completo NBK534842 distingue la porción aductora y la porción isquiocondílea que ayuda a extender la cadera. El rol cooperante se infiere del cambio resistido de cadera, no de una comparación de EMG entre músculos.",
+          "id": "adductor_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Thigh Adductor Magnus Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30521263/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Ascenso frontal repetido a un cajón: un pie permanece arriba mientras la otra pierna pasa del suelo a la altura de la plataforma y regresa. La rodilla y la cadera del apoyo elevado se extienden para levantar cuerpo y carga; no es un salto ni un paso cruzado.",
+        "keyPositions": [
+          "Inicio: pie elevado firme, rodilla y cadera flexionadas, pie libre apoyado abajo sin empuje anticipado.",
+          "Ascenso intermedio: talón elevado sobre la plataforma, rodilla alineada con el pie, pie libre separado del suelo y pelvis cerca de horizontal.",
+          "Final: articulaciones del apoyo extendidas sin bloquearlas hacia atrás; la otra pierna termina elevada a la altura del escalón sin tomar el peso principal."
+        ],
+        "mistakes": [
+          "Impulsarse desde el pie del suelo o saltar para superar el cajón.",
+          "Apoyar solo el antepié sobre el borde o perder el talón durante el ascenso.",
+          "Inclinar o girar la pelvis para colocar el pie en un cajón demasiado alto.",
+          "Dejar caer el cuerpo y descargar la bajada sobre la pierna libre."
+        ],
+        "phases": [
+          {
+            "description": "El pie elevado recibe la carga antes de que el pie libre abandone el suelo; los brazos fijan su contacto con el implemento.",
+            "name": "Preparación"
+          },
+          {
+            "description": "La cadera y la rodilla del apoyo se extienden mientras el cuerpo gana altura; el pie libre acompaña sin salto.",
+            "name": "Ascenso"
+          },
+          {
+            "description": "La pierna apoyada termina extendida y el pie libre queda junto a la plataforma, sin un gesto añadido de elevación de rodilla.",
+            "name": "Llegada"
+          },
+          {
+            "description": "La misma pierna flexiona cadera y rodilla para acercar el pie libre al suelo; este toca sin recibir una caída brusca.",
+            "name": "Regreso"
+          }
+        ],
+        "setup": [
+          "Superficie firme situada frente al atleta, con espacio para el calzado completo; al comenzar, la rodilla del apoyo ronda noventa grados sin rotación de pelvis.",
+          "Pie de trabajo entero sobre la plataforma y pie libre en el suelo, próximos al ancho de las caderas.",
+          "Carga sostenida por espalda, brazos o manos según implemento; pelvis orientada de frente y columna sin arqueo deliberado."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral oblicua que muestre ambas piernas, borde del cajón y contacto de manos con la carga.",
+          "contacts": "Todo el pie de trabajo, incluido el talón, sobre el cajón; pie libre en el aire; manos en contacto con la carga.",
+          "load": "Carga unida al cuerpo por el soporte correspondiente y separada del suelo, sin descanso sobre el cajón.",
+          "orientation": "Atleta de frente al cajón, cabeza a la izquierda de la imagen y pies en planos sagitales próximos.",
+          "phase": "Mitad final del ascenso, con el pie libre suspendido detrás y la rodilla del apoyo todavía algo flexionada.",
+          "posture": "Pelvis aproximadamente horizontal, rodilla elevada dirigida sobre los dedos y columna neutra sin extensión añadida."
+        },
+        "byImplement": {
+          "barbell": {
+            "geometry": "Barra transversal sobre espalda alta, por debajo del cuello; manos en prono a ambos lados de los hombros, discos fuera del ancho del torso y del cajón."
+          },
+          "cable": {
+            "geometry": "Cajón entre dos salidas de polea bajas y próximas; una asa en cada mano colgante y un cable tenso hacia cada salida, por fuera de las piernas, sin contacto con el borde."
+          },
+          "dumbbells": {
+            "geometry": "Una mancuerna firmemente agarrada por cada mano en neutro; brazos largos, cargas por fuera de los muslos y del borde lateral del cajón, sin tocarlo."
+          },
+          "kettlebell": {
+            "geometry": "Una kettlebell delante del esternón: ambas manos rodean y sostienen el cuerpo redondo, codos flexionados próximos al torso y asa visible, sin contacto de la pesa con el cajón."
+          },
+          "smith_machine": {
+            "geometry": "Eje apoyado sobre espalda alta y agarrado con ambas manos, unido a dos carriles reales. Cajón dentro de la estación, pie libre sin tocar su base y discos separados del suelo."
+          }
+        },
+        "forbidden": [
+          "Salto con los dos pies en el aire, en lugar de un pie que permanezca sobre el cajón.",
+          "Carga flotante, manos separadas de las asas o pesas apoyadas sobre la plataforma.",
+          "Pie libre empujando desde el suelo en el fotograma indicado.",
+          "Barra sobre hombros delanteros o en los codos dentro del brief de barra trasera: pertenecen a especialidades separadas.",
+          "Cable de polea alta que ayude a levantar el cuerpo, o asas acercadas por un remo."
+        ],
+        "promptCore": {
+          "barbell": "Oblique side view, frozen halfway through a forward barbell step-up. The entire left foot and heel are on a solid box; the left hip and knee are partly extending. The right foot is airborne behind the box. A straight bar rests across the upper back below the neck; both hands grip it overhand outside the shoulders. Plates remain clear of the box and floor. Pelvis level, spine neutral, no jump.",
+          "cable": "Oblique side view, frozen halfway through a forward cable step-up. Entire left foot and heel on a solid box, left knee partly extended, right foot airborne behind it. Each hand firmly grips one stirrup handle at its side with a straight arm. Two taut cables run outside the legs from the handles to two low pulleys close beside the box. No cable crosses the platform edge. Pelvis level, spine neutral, no rowing motion.",
+          "dumbbells": "Oblique side view, frozen halfway through a forward dumbbell step-up. The entire left foot including the heel rests on a solid box. Left knee is still slightly bent, pelvis level, spine neutral. Right foot is airborne behind the box. Each hand firmly grips one dumbbell with a neutral grip; both arms hang straight beside the thighs. The dumbbells remain outside the box edges and above the floor.",
+          "kettlebell": "Oblique side view, frozen halfway through a forward goblet kettlebell step-up. Entire left foot and heel on a solid box, left knee still partly bent, right foot airborne behind it. Both palms visibly cup and support the ROUND BODY of one kettlebell close to the sternum, with the fingers wrapped around it. Elbows stay bent near the ribs, handle visible and clear of the platform. The bell remains above the box and floor. Pelvis level, neutral spine.",
+          "smith_machine": "Oblique side view, frozen halfway through a Smith machine step-up inside a real two-rail frame. The entire left foot and heel are on a solid box; left hip and knee are partly extended. Right foot is airborne behind the box. The guided bar rests on the upper back, both hands grip it overhand, and both rail sleeves visibly connect the bar to the frame. Plates are off the floor; the box clears the machine base."
+        },
+        "qa": [
+          "¿El pie de trabajo está entero sobre el cajón y el talón sigue apoyado?",
+          "¿El pie libre está en el aire detrás de la plataforma durante el ascenso?",
+          "¿La rodilla de apoyo aún está algo flexionada en el fotograma indicado?",
+          "¿Ambas manos sujetan de forma visible las pesas, asas o eje y ninguna carga flota?",
+          "¿La pelvis evita una caída lateral marcada y la espalda no forma un arco hacia atrás?",
+          "¿En Barra, el eje toca la espalda alta, ambas manos lo agarran en prono por fuera de los hombros y los discos quedan separados del cajón y del suelo?",
+          "¿En Smith, el eje toca la espalda alta con ambas manos agarrándolo y sus dos carros se unen visiblemente a dos carriles reales, con el cajón dentro de la estación y libre de la base?",
+          "¿En Mancuernas, hay una pesa agarrada de forma visible por cada mano en neutro, con los brazos largos y las dos cargas fuera de los muslos y bordes del cajón?",
+          "¿En Kettlebell, una sola pesa queda ante el esternón y ambas palmas rodean y sostienen visiblemente su cuerpo redondo, con los codos doblados y el asa libre del cajón?",
+          "¿En Polea, cada mano agarra su propia asa con el brazo largo y dos cables tensos salen de dos poleas bajas próximas al cajón, por fuera de las piernas y sin cruzar el borde?"
+        ]
+      }
     }
   },
   "familyId": "lower_step_up",

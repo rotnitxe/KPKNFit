@@ -176,6 +176,45 @@ class SessionCatalogNameReconcilerTest {
     }
 
     @Test
+    fun retired_walking_setups_migrate_saved_identity_preserve_prescription_and_are_idempotent() {
+        listOf("smith_machine", "cable").forEach { implement ->
+            val oldId = "walking_lunge__$implement"
+            val newId = "forward_lunge__$implement"
+            val stale = catalogExercise("saved-$implement", "Zancada Caminando").copy(
+                exerciseDbId = oldId, exerciseId = oldId, canonicalExerciseId = oldId,
+                exerciseFamilyId = "walking_lunge", catalogDefinitionId = "walking_lunge",
+                catalogConfigurationId = oldId, performanceProfileId = oldId + "__zancada",
+                isUnilateral = true, variantName = "Tempo personal",
+                techniqueModifier = com.example.kpkn.data.protocols.TechniqueModifier.SPEED,
+                reference1RM = 40.0, restTime = 90,
+            )
+            val migrated = SessionCatalogNameReconciler.reconcileExercise(stale, displayNameIndex)
+            assertEquals(newId, migrated.exerciseDbId)
+            assertEquals(newId, migrated.exerciseId)
+            assertEquals(newId, migrated.canonicalExerciseId)
+            assertEquals("forward_lunge", migrated.exerciseFamilyId)
+            assertEquals("forward_lunge", migrated.catalogDefinitionId)
+            assertEquals(newId, migrated.catalogConfigurationId)
+            assertEquals(newId + "__zancada", migrated.performanceProfileId)
+            assertEquals("Zancada Frontal", migrated.name)
+            assertEquals(stale.id, migrated.id)
+            assertEquals(stale.occurrenceId, migrated.occurrenceId)
+            assertEquals(stale.sets, migrated.sets)
+            assertEquals(stale.reference1RM, migrated.reference1RM)
+            assertEquals(stale.restTime, migrated.restTime)
+            assertEquals(stale.variantName, migrated.variantName)
+            assertEquals(stale.techniqueModifier, migrated.techniqueModifier)
+            assertTrue(migrated.isUnilateral)
+            assertEquals(migrated, SessionCatalogNameReconciler.reconcileExercise(migrated, displayNameIndex))
+            val custom = stale.copy(exerciseDbId = "custom:lunge")
+            assertEquals(custom, SessionCatalogNameReconciler.reconcileExercise(custom, displayNameIndex))
+            val mismatch = stale.copy(catalogDefinitionId = "bench_press")
+            assertEquals(mismatch, SessionCatalogNameReconciler.reconcileExercise(mismatch, displayNameIndex))
+            assertEquals(stale, SessionCatalogNameReconciler.reconcileExercise(stale, emptyMap()))
+        }
+    }
+
+    @Test
     fun normalizeSessionStructure_clears_redundant_loose_exercises() {
         val exercise = catalogExercise("ex1", "Press de Banca Plano")
         val part = com.example.kpkn.data.models.SessionPart(

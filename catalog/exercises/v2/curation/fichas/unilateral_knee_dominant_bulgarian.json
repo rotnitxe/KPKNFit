@@ -85,7 +85,7 @@
               "deforest2014",
               "mccurdy2018"
             ],
-            "why": "Ayudan al glúteo a extender la cadera delantera. La actividad del bíceps femoral fue mayor que en la sentadilla y que en la zancada estática, y el grupo llegó al 40 % de la contracción máxima, por debajo del glúteo mayor: asisten sin liderar."
+            "why": "Los isquiosurales ayudan a abrir la cadera delantera cuando la rodilla se endereza bajo la carga. Los estudios de búlgara confirman participación, pero comparar su señal con la del glúteo no establece el rol; son cooperantes en esa extensión, sin una flexión de rodilla resistida como objetivo."
           },
           {
             "id": "adductors",
@@ -121,6 +121,14 @@
               "andersen2014"
             ],
             "why": "El oblicuo externo se activó un 58-62 % más que en la sentadilla: el tronco erguido sobre una base estrecha tiene que resistir giros e inclinaciones laterales sin mover la columna."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "andersen2014"
+            ],
+            "why": "El empeine elevado recibe apoyo en banco o rodillo, pero la espalda sigue libre del aparato. Los erectores mantienen el contorno vertebral mientras cambia la altura del tronco; Andersen registró esta musculatura en la búlgara y su sostén se extrapola a los seis implementos."
           }
         ],
         "overrides": {
@@ -136,6 +144,17 @@
                   "statpearls_forearm_compartments"
                 ],
                 "why": "La muñeca se queda recta frente al tirón diagonal del cable y no cambia de ángulo durante la serie."
+              },
+              {
+                "actions": [
+                  "Sostén del hombro bajo carga"
+                ],
+                "id": "glenohumeral",
+                "role": "STABILIZER",
+                "sources": [
+                  "deltoid_anatomy"
+                ],
+                "why": "La resistencia de las torres pasa por manos y antebrazos hasta los hombros mientras el empeine posterior reposa en el banco. Las articulaciones glenohumerales conservan los brazos al costado frente al tirón oblicuo, sin un recorrido de remo o elevación."
               }
             ],
             "muscles": [
@@ -146,6 +165,14 @@
                   "statpearls_forearm_compartments"
                 ],
                 "why": "Los flexores de los dedos cierran cada mango mientras el cable tira hacia abajo y hacia fuera, hacia su torre; el antebrazo trabaja en isometría y no mueve la carga."
+              },
+              {
+                "id": "deltoid",
+                "role": "STABILIZER",
+                "sources": [
+                  "deltoid_anatomy"
+                ],
+                "why": "Los cables llegan desde dos salidas bajas y tiran de los mangos hacia abajo y hacia sus torres; esa fuerza alcanza hombros con brazos largos. El deltoides sostiene la relación humeral por extrapolación anatómica y no abre los brazos para levantar las placas."
               }
             ]
           },
@@ -161,6 +188,17 @@
                   "statpearls_forearm_compartments"
                 ],
                 "why": "La muñeca queda neutra con la mancuerna colgando y transmite su peso al antebrazo; no se flexiona ni se extiende durante la serie."
+              },
+              {
+                "actions": [
+                  "Sostén del hombro bajo carga"
+                ],
+                "id": "glenohumeral",
+                "role": "STABILIZER",
+                "sources": [
+                  "deltoid_anatomy"
+                ],
+                "why": "Los hombros reciben desde las empuñaduras dos cargas suspendidas mientras el tronco cambia de altura sobre la pierna adelantada. Su posición respecto a los brazos se sostiene bajo ese peso, sin que una flexión glenohumeral impulse las mancuernas hacia arriba."
               }
             ],
             "muscles": [
@@ -171,6 +209,14 @@
                   "statpearls_forearm_compartments"
                 ],
                 "why": "Los flexores de los dedos y de la muñeca sostienen cada mancuerna colgada durante toda la serie, sin mover el peso; con cargas altas, el agarre puede ceder antes que las piernas."
+              },
+              {
+                "id": "deltoid",
+                "role": "STABILIZER",
+                "sources": [
+                  "deltoid_anatomy"
+                ],
+                "why": "Las pesas cuelgan junto a ambas caderas y ejercen tracción inferior sobre brazos extendidos durante la bajada al banco. El deltoides ayuda a evitar descenso de la cabeza humeral; esta función de sostén bajo carga se deduce de anatomía, sin comparar activación entre implementos."
               }
             ]
           },
@@ -209,6 +255,17 @@
                   "statpearls_forearm_compartments"
                 ],
                 "why": "Las muñecas se quedan firmes bajo el asa para que la kettlebell no gire hacia delante; no se mueven durante la serie."
+              },
+              {
+                "actions": [
+                  "Sostén del hombro bajo carga"
+                ],
+                "id": "glenohumeral",
+                "role": "STABILIZER",
+                "sources": [
+                  "deltoid_anatomy"
+                ],
+                "why": "El contacto frente al pecho requiere que los hombros mantengan los brazos adelantados para conservar la kettlebell cerca del tronco. La glenohumeral sostiene esa posición durante el descenso, en vez de levantar la pesa con un gesto repetido de hombro."
               }
             ],
             "muscles": [
@@ -219,6 +276,22 @@
                   "statpearls_forearm_compartments"
                 ],
                 "why": "Los dedos rodean los cuernos del asa y los flexores del antebrazo impiden, en isometría, que la kettlebell resbale durante toda la serie."
+              },
+              {
+                "id": "deltoid",
+                "role": "STABILIZER",
+                "sources": [
+                  "deltoid_anatomy"
+                ],
+                "why": "El agarre por cuernos conserva una sola pesa junto al esternón y los brazos en posición anterior. El deltoides sostiene los húmeros en esa recepción mientras las piernas mueven el cuerpo; la aplicación anatómica no implica datos electromiográficos de goblet búlgaro."
+              },
+              {
+                "id": "biceps",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_biceps"
+                ],
+                "why": "El peso recibido por las manos sobre los cuernos tiende a abrir los codos que apuntan abajo junto al pecho. El bíceps conserva su flexión en isometría, según su función anatómica; no ejecuta un curl para ayudar a la pierna delantera."
               }
             ]
           },
@@ -234,6 +307,17 @@
                   "statpearls_forearm_compartments"
                 ],
                 "why": "La muñeca se queda firme sobre el mango y pasa el peso de la palanca al brazo sin moverse."
+              },
+              {
+                "actions": [
+                  "Sostén del hombro bajo carga"
+                ],
+                "id": "glenohumeral",
+                "role": "STABILIZER",
+                "sources": [
+                  "deltoid_anatomy"
+                ],
+                "why": "Al subir por el arco de las palancas, los hombros reciben la resistencia que llega desde sus mangos laterales. Las glenohumerales conservan la relación brazo-tronco mientras el rodillo permanece bajo el pie posterior; no existe acolchado que descargue la espalda ni una elevación de brazos intencionada."
               }
             ],
             "muscles": [
@@ -244,6 +328,14 @@
                   "statpearls_forearm_compartments"
                 ],
                 "why": "Las manos aprietan los mangos de la palanca durante toda la serie; los flexores de los dedos y de la muñeca sujetan el peso sin moverlo, porque lo suben las piernas."
+              },
+              {
+                "id": "deltoid",
+                "role": "STABILIZER",
+                "sources": [
+                  "deltoid_anatomy"
+                ],
+                "why": "Las asas de palanca cargadas se sostienen junto a las caderas y transmiten tirón inferior a los brazos estirados. El deltoides estabiliza el hombro bajo ese contacto; el rodillo sostiene el empeine trasero y no ofrece respaldo al tronco. Es inferencia anatómica, sin ensayo de esta máquina."
               }
             ]
           }
@@ -427,6 +519,12 @@
           "id": "statpearls_forearm_compartments",
           "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
           "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/"
+        },
+        {
+          "claim": "El capítulo completo NBK537056 describe flexión anterior, extensión posterior y sostén de la articulación glenohumeral frente al desplazamiento inferior con un brazo aducido bajo carga. Se aplica la función al contacto descrito; no mide esta variante ni demuestra una diferencia cuantitativa entre implementos.",
+          "id": "deltoid_anatomy",
+          "title": "Anatomy, Shoulder and Upper Limb, Deltoid Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725741/"
         }
       ],
       "status": "CURATED",
@@ -583,6 +681,17 @@
               "statpearls_biceps"
             ],
             "why": "La barra descansa en el pliegue de los codos doblados y los antebrazos suben hacia el pecho; los flexores del codo sostienen ese ángulo sin moverlo durante toda la serie."
+          },
+          {
+            "actions": [
+              "Sostén del hombro bajo carga"
+            ],
+            "id": "glenohumeral",
+            "role": "STABILIZER",
+            "sources": [
+              "deltoid_anatomy"
+            ],
+            "why": "Cada húmero transmite al hombro parte del peso recibido en su codo flexionado; la glenohumeral sostiene la recepción anterior mientras las piernas descienden y suben. No realiza un recorrido de elevación del eje con los brazos."
           }
         ],
         "muscles": [
@@ -611,7 +720,7 @@
               "andersen2014",
               "mccurdy2018"
             ],
-            "why": "Acompañan al glúteo en la extensión de la cadera delantera. Con el pie de atrás en alto, el bíceps femoral trabajó más que en la sentadilla de dos piernas (Andersen et al.), sin llegar al nivel del glúteo mayor."
+            "why": "Con el pie posterior sobre el banco y la barra en brazos flexionados, la musculatura posterior del muslo asiste a la cadera adelantada al subir. La actividad registrada por Andersen respalda presencia; su clasificación cooperante procede de la función compartida, sin jerarquía basada en EMG entre músculos."
           },
           {
             "id": "adductors",
@@ -654,6 +763,22 @@
               "statpearls_biceps"
             ],
             "why": "Sostiene el codo doblado bajo la barra durante toda la serie: el peso apoyado en el pliegue tiende a abrir el codo y los flexores lo impiden en isometría. No hay electromiografía de la variante Zercher; el rol se deduce de la función del músculo."
+          },
+          {
+            "id": "deltoid",
+            "role": "STABILIZER",
+            "sources": [
+              "deltoid_anatomy"
+            ],
+            "why": "La recepción en los codos mantiene los brazos delante del abdomen mientras el atleta baja entre sus apoyos; el deltoides conserva esa posición humeral bajo el eje. Se aplica su función anatómica al contacto Zercher, sin una medición específica de la variante."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "andersen2014"
+            ],
+            "why": "El peso alojado cerca del ombligo tiende a doblar una espalda que no tiene apoyo externo; los erectores sostienen su forma mientras baja la pierna adelantada. Su función se extrapola del registro de búlgara de Andersen, sin cuantificar la recepción en codos."
           }
         ]
       },
@@ -752,6 +877,12 @@
           "id": "collings2026",
           "title": "Hip Adductor Muscle Forces during Strength Training and Rehabilitation Exercises",
           "url": "https://pubmed.ncbi.nlm.nih.gov/41931009/"
+        },
+        {
+          "claim": "El capítulo completo NBK537056 describe flexión anterior, extensión posterior y sostén de la articulación glenohumeral frente al desplazamiento inferior con un brazo aducido bajo carga. Se aplica la función al contacto descrito; no mide esta variante ni demuestra una diferencia cuantitativa entre implementos.",
+          "id": "deltoid_anatomy",
+          "title": "Anatomy, Shoulder and Upper Limb, Deltoid Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725741/"
         }
       ],
       "status": "CURATED",

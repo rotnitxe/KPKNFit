@@ -133,7 +133,8 @@
                   ],
                   "stabilizerMuscles": [
                     "gluteus_medius",
-                    "core"
+                    "core",
+                    "erector_spinae"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -219,7 +220,8 @@
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
-                "core"
+                "core",
+                "erector_spinae"
               ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
@@ -354,7 +356,8 @@
                   ],
                   "stabilizerMuscles": [
                     "gluteus_medius",
-                    "core"
+                    "core",
+                    "erector_spinae"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -440,7 +443,8 @@
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
-                "core"
+                "core",
+                "erector_spinae"
               ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
@@ -514,6 +518,13 @@
                   ],
                   "jointId": "muñeca",
                   "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén del hombro bajo carga"
+                  ],
+                  "jointId": "glenohumeral",
+                  "role": "STABILIZER"
                 }
               ],
               "kineticChain": "ANTERIOR",
@@ -538,7 +549,8 @@
                     "Dorsiflexión del tobillo",
                     "Flexión plantar del tobillo",
                     "Estabilidad del tronco",
-                    "Sostén del agarre"
+                    "Sostén del agarre",
+                    "Sostén del hombro bajo carga"
                   ],
                   "jointInvolvement": [
                     {
@@ -578,6 +590,13 @@
                       ],
                       "jointId": "muñeca",
                       "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del hombro bajo carga"
+                      ],
+                      "jointId": "glenohumeral",
+                      "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
@@ -592,7 +611,9 @@
                   "stabilizerMuscles": [
                     "gluteus_medius",
                     "core",
-                    "forearm"
+                    "erector_spinae",
+                    "forearm",
+                    "deltoid"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -608,7 +629,8 @@
                     "cadera",
                     "tobillo",
                     "columna-lumbar",
-                    "muñeca"
+                    "muñeca",
+                    "glenohumeral"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
@@ -680,7 +702,9 @@
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core",
-                "forearm"
+                "erector_spinae",
+                "forearm",
+                "deltoid"
               ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
@@ -754,6 +778,13 @@
                   ],
                   "jointId": "muñeca",
                   "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén del hombro bajo carga"
+                  ],
+                  "jointId": "glenohumeral",
+                  "role": "STABILIZER"
                 }
               ],
               "kineticChain": "ANTERIOR",
@@ -778,7 +809,8 @@
                     "Dorsiflexión del tobillo",
                     "Flexión plantar del tobillo",
                     "Estabilidad del tronco",
-                    "Sostén del agarre"
+                    "Sostén del agarre",
+                    "Sostén del hombro bajo carga"
                   ],
                   "jointInvolvement": [
                     {
@@ -818,6 +850,13 @@
                       ],
                       "jointId": "muñeca",
                       "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del hombro bajo carga"
+                      ],
+                      "jointId": "glenohumeral",
+                      "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
@@ -832,7 +871,9 @@
                   "stabilizerMuscles": [
                     "gluteus_medius",
                     "core",
-                    "forearm"
+                    "erector_spinae",
+                    "forearm",
+                    "deltoid"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -848,7 +889,8 @@
                     "cadera",
                     "tobillo",
                     "columna-lumbar",
-                    "muñeca"
+                    "muñeca",
+                    "glenohumeral"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "guided"
@@ -920,7 +962,9 @@
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core",
-                "forearm"
+                "erector_spinae",
+                "forearm",
+                "deltoid"
               ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
@@ -994,6 +1038,13 @@
                   ],
                   "jointId": "muñeca",
                   "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén del hombro bajo carga"
+                  ],
+                  "jointId": "glenohumeral",
+                  "role": "STABILIZER"
                 }
               ],
               "kineticChain": "ANTERIOR",
@@ -1018,7 +1069,8 @@
                     "Dorsiflexión del tobillo",
                     "Flexión plantar del tobillo",
                     "Estabilidad del tronco",
-                    "Sostén del agarre"
+                    "Sostén del agarre",
+                    "Sostén del hombro bajo carga"
                   ],
                   "jointInvolvement": [
                     {
@@ -1058,6 +1110,13 @@
                       ],
                       "jointId": "muñeca",
                       "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del hombro bajo carga"
+                      ],
+                      "jointId": "glenohumeral",
+                      "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
@@ -1072,7 +1131,9 @@
                   "stabilizerMuscles": [
                     "gluteus_medius",
                     "core",
-                    "forearm"
+                    "erector_spinae",
+                    "forearm",
+                    "deltoid"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1088,7 +1149,8 @@
                     "cadera",
                     "tobillo",
                     "columna-lumbar",
-                    "muñeca"
+                    "muñeca",
+                    "glenohumeral"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "guided"
@@ -1160,7 +1222,9 @@
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core",
-                "forearm"
+                "erector_spinae",
+                "forearm",
+                "deltoid"
               ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
@@ -1241,6 +1305,13 @@
                   ],
                   "jointId": "muñeca",
                   "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén del hombro bajo carga"
+                  ],
+                  "jointId": "glenohumeral",
+                  "role": "STABILIZER"
                 }
               ],
               "kineticChain": "ANTERIOR",
@@ -1266,7 +1337,8 @@
                     "Flexión plantar del tobillo",
                     "Estabilidad del tronco con carga delantera",
                     "Flexión sostenida del codo",
-                    "Sostén del agarre"
+                    "Sostén del agarre",
+                    "Sostén del hombro bajo carga"
                   ],
                   "jointInvolvement": [
                     {
@@ -1313,6 +1385,13 @@
                       ],
                       "jointId": "muñeca",
                       "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del hombro bajo carga"
+                      ],
+                      "jointId": "glenohumeral",
+                      "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
@@ -1327,7 +1406,10 @@
                   "stabilizerMuscles": [
                     "gluteus_medius",
                     "core",
-                    "forearm"
+                    "erector_spinae",
+                    "forearm",
+                    "deltoid",
+                    "biceps"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1344,7 +1426,8 @@
                     "tobillo",
                     "columna-lumbar",
                     "codo",
-                    "muñeca"
+                    "muñeca",
+                    "glenohumeral"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "guided"
@@ -1416,7 +1499,10 @@
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core",
-                "forearm"
+                "erector_spinae",
+                "forearm",
+                "deltoid",
+                "biceps"
               ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
@@ -1515,6 +1601,13 @@
                   ],
                   "jointId": "codo",
                   "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén del hombro bajo carga"
+                  ],
+                  "jointId": "glenohumeral",
+                  "role": "STABILIZER"
                 }
               ],
               "kineticChain": "ANTERIOR",
@@ -1539,7 +1632,8 @@
                     "Dorsiflexión del tobillo",
                     "Flexión plantar del tobillo",
                     "Estabilidad del tronco con carga delantera",
-                    "Flexión sostenida del codo"
+                    "Flexión sostenida del codo",
+                    "Sostén del hombro bajo carga"
                   ],
                   "jointInvolvement": [
                     {
@@ -1579,6 +1673,13 @@
                       ],
                       "jointId": "codo",
                       "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del hombro bajo carga"
+                      ],
+                      "jointId": "glenohumeral",
+                      "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
@@ -1593,7 +1694,9 @@
                   "stabilizerMuscles": [
                     "gluteus_medius",
                     "core",
-                    "biceps"
+                    "biceps",
+                    "deltoid",
+                    "erector_spinae"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1609,7 +1712,8 @@
                     "cadera",
                     "tobillo",
                     "columna-lumbar",
-                    "codo"
+                    "codo",
+                    "glenohumeral"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -1679,7 +1783,9 @@
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core",
-                "biceps"
+                "biceps",
+                "deltoid",
+                "erector_spinae"
               ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0

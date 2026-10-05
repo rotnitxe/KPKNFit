@@ -24,40 +24,52 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con barra, con el pie trasero elevado y los brazos cruzados al frente, la bajada es vertical sobre una pierna. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+              "description": "Apoyada sobre la cadera, la barra viaja con la pelvis y ambas manos la aprietan contra el cuerpo. Los extremos cargados quedan a los lados del muslo delantero, separados del banco.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
-                "Pie trasero en el banco y barra cruzando los brazos: la búlgara con un extra de equilibrio. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+                "Dobla la rodilla y la cadera delanteras, con la barra pegada al pliegue y el talón apoyado.",
+                "Aprieta la barra contra la cadera para impedir que ruede hacia el muslo.",
+                "Empuja el suelo con el pie delantero y extiende su rodilla y cadera sin inclinarte hacia un lado."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión Unilateral"
+                    "Flexión de la rodilla",
+                    "Extensión de la rodilla"
                   ],
                   "jointId": "rodilla",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Extensión Y Control Frontal"
+                    "Flexión de la cadera",
+                    "Extensión de la cadera"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Equilibrio Y Dorsiflexión"
+                    "Dorsiflexión del tobillo",
+                    "Flexión plantar del tobillo"
                   ],
                   "jointId": "tobillo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Transferencia Unilateral"
+                    "Estabilidad del tronco"
                   ],
-                  "jointId": "sacroiliaca",
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén del agarre"
+                  ],
+                  "jointId": "muñeca",
                   "role": "STABILIZER"
                 }
               ],
@@ -67,7 +79,8 @@
               "movementPatternId": "unilateral_knee_dominant",
               "performanceProfileId": "quads_sentadilla_bulgara_somersault__barbell__sentadilla_bulgara_somersault",
               "primaryMuscles": [
-                "quadriceps"
+                "quadriceps",
+                "gluteus_maximus"
               ],
               "replacementGroup": null,
               "replacementPriority": 999,
@@ -75,48 +88,70 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión Unilateral",
-                    "Extensión Y Control Frontal",
-                    "Equilibrio Y Dorsiflexión",
-                    "Transferencia Unilateral"
+                    "Flexión de la rodilla",
+                    "Extensión de la rodilla",
+                    "Flexión de la cadera",
+                    "Extensión de la cadera",
+                    "Dorsiflexión del tobillo",
+                    "Flexión plantar del tobillo",
+                    "Estabilidad del tronco",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión Unilateral"
+                        "Flexión de la rodilla",
+                        "Extensión de la rodilla"
                       ],
                       "jointId": "rodilla",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Extensión Y Control Frontal"
+                        "Flexión de la cadera",
+                        "Extensión de la cadera"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Equilibrio Y Dorsiflexión"
+                        "Dorsiflexión del tobillo",
+                        "Flexión plantar del tobillo"
                       ],
                       "jointId": "tobillo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Transferencia Unilateral"
+                        "Estabilidad del tronco"
                       ],
-                      "jointId": "sacroiliaca",
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del agarre"
+                      ],
+                      "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "quadriceps"
-                  ],
-                  "secondaryMuscles": [
+                    "quadriceps",
                     "gluteus_maximus"
                   ],
-                  "stabilizerMuscles": [],
+                  "secondaryMuscles": [
+                    "hamstrings",
+                    "adductors",
+                    "calves"
+                  ],
+                  "stabilizerMuscles": [
+                    "gluteus_medius",
+                    "core",
+                    "erector_spinae",
+                    "forearm"
+                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -130,7 +165,8 @@
                     "rodilla",
                     "cadera",
                     "tobillo",
-                    "sacroiliaca"
+                    "columna-lumbar",
+                    "muñeca"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -178,21 +214,31 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "unilateral_knee_dominant:quadriceps"
+                    "unilateral_knee_dominant:quadriceps",
+                    "unilateral_knee_dominant:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
                 }
               },
               "secondaryMuscles": [
-                "gluteus_maximus"
+                "hamstrings",
+                "adductors",
+                "calves"
               ],
               "setupCues": [
-                "Preparación: Pie trasero en el banco y barra cruzando los brazos: la búlgara con un extra de equilibrio."
+                "Lleva la barra al pliegue de la cadera y agárrala con ambas manos por fuera de los muslos.",
+                "Apoya el empeine posterior en el banco y deja el pie delantero entero en el suelo.",
+                "Ajusta la separación del banco para que los discos no choquen con él."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.5,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "gluteus_medius",
+                "core",
+                "erector_spinae",
+                "forearm"
+              ],
               "technicalDifficulty": 5.2,
               "ttc": 2.0
             },
@@ -200,7 +246,7 @@
           }
         ],
         "defaultConfigurationId": "quads_sentadilla_bulgara_somersault__default",
-        "description": "La Sentadilla Búlgara Somersault junta el pie trasero elevado con los brazos cruzados sujetando la barra al frente: cuádriceps y glúteos trabajan a una pierna con una estabilidad distinta a la búlgara normal. Se practica con la carga descansando sobre el antebrazo cruzado, descendiendo vertical y volviendo sin ladear el torso. La posición libera los hombros de sujetar nada. Una variante ingeniosa para quien la búlgara clásica le incomoda en las manos.",
+        "description": "La Sentadilla Búlgara Somersault es una sentadilla con el pie posterior elevado y la barra apoyada en la cadera: el cuádriceps y el glúteo mayor de la pierna adelantada producen la subida. Las manos sujetan la barra contra el pliegue entre muslo y vientre mientras se doblan rodilla y cadera. La carga acompaña a la pelvis y el pie posterior descansa sobre un banco. Los hombros quedan libres de apoyar el peso; el rasgo propio de este montaje es impedir que la barra ruede desde la cadera durante el recorrido.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -238,38 +284,51 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con peso corporal, a una sola pierna, el cuerpo desciende hasta el fondo con la otra extendida al frente. Sin más carga que el propio cuerpo, la exigencia del cuádriceps es la justa.",
+              "description": "Todo el peso corporal recae en el pie de trabajo, con la pierna opuesta suspendida delante. Los brazos adelantados ayudan a compensar el descenso, pero las manos no reciben apoyo ni sujetan el pie libre.",
               "efc": 2.8,
               "equipmentId": "bodyweight",
               "executionCues": [
-                "En una sola pierna bajas hasta el suelo con la otra extendida: equilibrio, movilidad y fuerza. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+                "Dobla la pierna de apoyo y lleva la cadera por debajo de su rodilla.",
+                "Deja el talón de apoyo pegado al suelo y la rodilla orientada hacia los dedos.",
+                "Conserva el pie libre en el aire mientras vuelves a estar de pie."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión Unilateral"
+                    "Flexión de la rodilla de apoyo",
+                    "Extensión de la rodilla de apoyo",
+                    "Sostén de la rodilla libre extendida"
                   ],
                   "jointId": "rodilla",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Extensión Y Control Frontal"
+                    "Flexión y extensión de la cadera de apoyo",
+                    "Sostén de la flexión de la cadera libre"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Equilibrio Y Dorsiflexión"
+                    "Dorsiflexión en el descenso",
+                    "Retorno desde dorsiflexión"
                   ],
                   "jointId": "tobillo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Transferencia Unilateral"
+                    "Sostén del tronco inclinado"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Transferencia de carga entre pelvis y tronco"
                   ],
                   "jointId": "sacroiliaca",
                   "role": "STABILIZER"
@@ -281,7 +340,8 @@
               "movementPatternId": "unilateral_knee_dominant",
               "performanceProfileId": "quads_sentadilla_pistola__bodyweight__sentadilla_pistola",
               "primaryMuscles": [
-                "quadriceps"
+                "quadriceps",
+                "gluteus_maximus"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -289,49 +349,72 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión Unilateral",
-                    "Extensión Y Control Frontal",
-                    "Equilibrio Y Dorsiflexión",
-                    "Transferencia Unilateral"
+                    "Flexión de la rodilla de apoyo",
+                    "Extensión de la rodilla de apoyo",
+                    "Sostén de la rodilla libre extendida",
+                    "Flexión y extensión de la cadera de apoyo",
+                    "Sostén de la flexión de la cadera libre",
+                    "Dorsiflexión en el descenso",
+                    "Retorno desde dorsiflexión",
+                    "Sostén del tronco inclinado",
+                    "Transferencia de carga entre pelvis y tronco"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión Unilateral"
+                        "Flexión de la rodilla de apoyo",
+                        "Extensión de la rodilla de apoyo",
+                        "Sostén de la rodilla libre extendida"
                       ],
                       "jointId": "rodilla",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Extensión Y Control Frontal"
+                        "Flexión y extensión de la cadera de apoyo",
+                        "Sostén de la flexión de la cadera libre"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Equilibrio Y Dorsiflexión"
+                        "Dorsiflexión en el descenso",
+                        "Retorno desde dorsiflexión"
                       ],
                       "jointId": "tobillo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Transferencia Unilateral"
+                        "Sostén del tronco inclinado"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Transferencia de carga entre pelvis y tronco"
                       ],
                       "jointId": "sacroiliaca",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "quadriceps"
+                    "quadriceps",
+                    "gluteus_maximus"
                   ],
                   "secondaryMuscles": [
-                    "gluteus_maximus",
-                    "core"
+                    "hamstrings",
+                    "adductors",
+                    "calves"
                   ],
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "hip_flexors",
+                    "gluteus_medius",
+                    "core",
+                    "erector_spinae"
+                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -345,6 +428,7 @@
                     "rodilla",
                     "cadera",
                     "tobillo",
+                    "columna-lumbar",
                     "sacroiliaca"
                   ],
                   "resistanceProfile": "gravity_arc",
@@ -393,22 +477,30 @@
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "unilateral_knee_dominant:quadriceps"
+                    "unilateral_knee_dominant:quadriceps",
+                    "unilateral_knee_dominant:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
-                "gluteus_maximus",
-                "core"
+                "hamstrings",
+                "adductors",
+                "calves"
               ],
               "setupCues": [
-                "Preparación: En una sola pierna bajas hasta el suelo con la otra extendida: equilibrio, movilidad y fuerza."
+                "Apoya un pie entero y eleva la otra pierna estirada hacia delante.",
+                "Extiende los brazos al frente sin agarrarte a ningún apoyo."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.5,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "hip_flexors",
+                "gluteus_medius",
+                "core",
+                "erector_spinae"
+              ],
               "technicalDifficulty": 5.2,
               "ttc": 2.0
             },
@@ -416,7 +508,7 @@
           }
         ],
         "defaultConfigurationId": "quads_sentadilla_pistola__default",
-        "description": "La Sentadilla Pistola es la sentadilla a una pierna llevada al extremo: bajar hasta el fondo con la otra pierna extendida al frente, sin nada que sostenga el equilibrio. Se ejecuta con el peso corporal, descendiendo despacio hasta que el glúteo roza el talón y subiendo sin que la rodilla colapse. Fuerza, movilidad y control en una sola prueba. La cima de la calistenia de piernas, al alcance de muy pocos.",
+        "description": "La Sentadilla Pistola recorre la flexión y extensión sobre una sola pierna: el cuádriceps estira la rodilla y el glúteo mayor endereza la cadera para volver a estar de pie. La pierna libre permanece extendida al frente mientras el cuerpo baja hasta situar la cadera por debajo de la rodilla de apoyo. El talón de trabajo sigue en el suelo y los brazos adelantados compensan el peso. Su dificultad reúne fuerza de la pierna, movilidad de tobillo y capacidad de sostener la pierna elevada.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -454,40 +546,76 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con TRX, a una pierna con las asas como apoyo, el cuerpo baja hasta el fondo con ayuda del agarre. El cuádriceps trabaja con el TRX, que convierte tu cuerpo en la carga.",
+              "description": "Las dos asas transmiten parte del peso a un anclaje alto frente al atleta. La ayuda de las manos permite explorar el fondo con un solo pie en el suelo, y aumenta o disminuye según cuánto tiren los brazos.",
               "efc": 2.8,
               "equipmentId": "trx",
               "executionCues": [
-                "Sujetándote del TRX, bajas a una pierna con apoyo: la vía estable para conquistar la pistola. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+                "Siéntate hacia abajo sin dejar flojas las correas.",
+                "Preserva el contacto del talón de trabajo y deja la pierna contraria suspendida durante toda la repetición.",
+                "Empuja con la pierna de trabajo y usa las asas solo para la ayuda que necesites."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión Unilateral"
+                    "Flexión de la rodilla de apoyo",
+                    "Extensión de la rodilla de apoyo",
+                    "Sostén de la rodilla libre extendida"
                   ],
                   "jointId": "rodilla",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Extensión Y Control Frontal"
+                    "Flexión y extensión de la cadera de apoyo",
+                    "Sostén de la flexión de la cadera libre"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Equilibrio Y Dorsiflexión"
+                    "Dorsiflexión en el descenso",
+                    "Retorno desde dorsiflexión"
                   ],
                   "jointId": "tobillo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Transferencia Unilateral"
+                    "Sostén del tronco inclinado"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Transferencia de carga entre pelvis y tronco"
                   ],
                   "jointId": "sacroiliaca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Flexión del hombro al descender",
+                    "Extensión del hombro durante la ayuda"
+                  ],
+                  "jointId": "glenohumeral",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Extensión del codo al descender",
+                    "Flexión del codo durante la ayuda"
+                  ],
+                  "jointId": "codo",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Sostén del agarre neutro"
+                  ],
+                  "jointId": "muñeca",
                   "role": "STABILIZER"
                 }
               ],
@@ -497,7 +625,8 @@
               "movementPatternId": "unilateral_knee_dominant",
               "performanceProfileId": "quads_sentadilla_pistola_asistida_trx__trx__sentadilla_pistola_asistida_en_trx",
               "primaryMuscles": [
-                "quadriceps"
+                "quadriceps",
+                "gluteus_maximus"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -505,48 +634,104 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión Unilateral",
-                    "Extensión Y Control Frontal",
-                    "Equilibrio Y Dorsiflexión",
-                    "Transferencia Unilateral"
+                    "Flexión de la rodilla de apoyo",
+                    "Extensión de la rodilla de apoyo",
+                    "Sostén de la rodilla libre extendida",
+                    "Flexión y extensión de la cadera de apoyo",
+                    "Sostén de la flexión de la cadera libre",
+                    "Dorsiflexión en el descenso",
+                    "Retorno desde dorsiflexión",
+                    "Sostén del tronco inclinado",
+                    "Transferencia de carga entre pelvis y tronco",
+                    "Flexión del hombro al descender",
+                    "Extensión del hombro durante la ayuda",
+                    "Extensión del codo al descender",
+                    "Flexión del codo durante la ayuda",
+                    "Sostén del agarre neutro"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión Unilateral"
+                        "Flexión de la rodilla de apoyo",
+                        "Extensión de la rodilla de apoyo",
+                        "Sostén de la rodilla libre extendida"
                       ],
                       "jointId": "rodilla",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Extensión Y Control Frontal"
+                        "Flexión y extensión de la cadera de apoyo",
+                        "Sostén de la flexión de la cadera libre"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Equilibrio Y Dorsiflexión"
+                        "Dorsiflexión en el descenso",
+                        "Retorno desde dorsiflexión"
                       ],
                       "jointId": "tobillo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Transferencia Unilateral"
+                        "Sostén del tronco inclinado"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Transferencia de carga entre pelvis y tronco"
                       ],
                       "jointId": "sacroiliaca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Flexión del hombro al descender",
+                        "Extensión del hombro durante la ayuda"
+                      ],
+                      "jointId": "glenohumeral",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión del codo al descender",
+                        "Flexión del codo durante la ayuda"
+                      ],
+                      "jointId": "codo",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del agarre neutro"
+                      ],
+                      "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "quadriceps"
-                  ],
-                  "secondaryMuscles": [
+                    "quadriceps",
                     "gluteus_maximus"
                   ],
-                  "stabilizerMuscles": [],
+                  "secondaryMuscles": [
+                    "hamstrings",
+                    "adductors",
+                    "calves",
+                    "biceps",
+                    "latissimus_dorsi",
+                    "deltoid"
+                  ],
+                  "stabilizerMuscles": [
+                    "hip_flexors",
+                    "gluteus_medius",
+                    "core",
+                    "erector_spinae",
+                    "forearm"
+                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -560,7 +745,11 @@
                     "rodilla",
                     "cadera",
                     "tobillo",
-                    "sacroiliaca"
+                    "columna-lumbar",
+                    "sacroiliaca",
+                    "glenohumeral",
+                    "codo",
+                    "muñeca"
                   ],
                   "resistanceProfile": "body_angle",
                   "stability": "self_stabilized"
@@ -607,21 +796,34 @@
                     "trx"
                   ],
                   "preservesIntent": [
-                    "unilateral_knee_dominant:quadriceps"
+                    "unilateral_knee_dominant:quadriceps",
+                    "unilateral_knee_dominant:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
-                "gluteus_maximus"
+                "hamstrings",
+                "adductors",
+                "calves",
+                "biceps",
+                "latissimus_dorsi",
+                "deltoid"
               ],
               "setupCues": [
-                "Preparación: Sujetándote del TRX, bajas a una pierna con apoyo: la vía estable para conquistar la pistola."
+                "Ajusta las correas cortas y sitúate mirando al anclaje, con ambas asas en las manos.",
+                "Despega el pie que no trabajará y proyecta esa pierna recta al frente."
               ],
               "setupTimeSeconds": 25,
               "ssc": 0.5,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "hip_flexors",
+                "gluteus_medius",
+                "core",
+                "erector_spinae",
+                "forearm"
+              ],
               "technicalDifficulty": 5.2,
               "ttc": 2.0
             },
@@ -629,7 +831,7 @@
           }
         ],
         "defaultConfigurationId": "quads_sentadilla_pistola_asistida_trx__default",
-        "description": "La Sentadilla Pistola Asistida en TRX pone una red bajo la hazaña: las asas sostienen parte del equilibrio mientras una pierna hace todo el recorrido. Se ejecuta agarrando las cintas con los brazos extendidos, bajando a una pierna y usándolas solo lo justo para subir. El cuádriceps aprende el rango completo sin el miedo al suelo. El puente honesto entre la zancada y la pistola libre.",
+        "description": "La Sentadilla Pistola Asistida en TRX permite entrenar cuádriceps y glúteo mayor a una pierna con ayuda de unas asas sujetas delante del cuerpo. Durante la bajada, las correas acompañan el desplazamiento del tronco y la pierna libre queda estirada hacia delante. El pie de apoyo impulsa la subida mientras los brazos aportan la ayuda necesaria para salir del fondo. La asistencia se puede reducir sin cambiar el gesto de la pierna, de modo que el recorrido no depende todavía de resolver toda la dificultad sin apoyo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -666,40 +868,66 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con barra, con la carga al frente, la subida al cajón se vuelve vertical y estricta. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+              "description": "El eje apoya sobre los deltoides anteriores y las manos lo fijan con los codos elevados. A diferencia de llevar una carga colgante, el apoyo frontal debe conservarse mientras el cuerpo pasa del suelo al cajón.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
-                "Subida al cajón con el peso al frente: el cuádriceps hace el trabajo y el glúteo acompaña. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+                "Levanta el cuerpo con la pierna del cajón y conserva el eje contra los hombros anteriores.",
+                "Lleva el pie libre arriba sin impulsarte desde el suelo.",
+                "Regresa ese pie abajo y conserva el apoyo sobre los hombros."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión Unilateral"
+                    "Extensión de rodilla",
+                    "Flexión de rodilla durante el descenso"
                   ],
                   "jointId": "rodilla",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Extensión Y Control Frontal"
+                    "Extensión de cadera",
+                    "Flexión de cadera durante el descenso"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Equilibrio Y Dorsiflexión"
+                    "Dorsiflexión de tobillo",
+                    "Flexión plantar de tobillo"
                   ],
                   "jointId": "tobillo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Transferencia Unilateral"
+                    "Sostén postural lumbar"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Transferencia de carga entre pelvis y tronco"
                   ],
                   "jointId": "sacroiliaca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén de muñeca en extensión"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén anterior del brazo"
+                  ],
+                  "jointId": "glenohumeral",
                   "role": "STABILIZER"
                 }
               ],
@@ -709,7 +937,8 @@
               "movementPatternId": "unilateral_knee_dominant",
               "performanceProfileId": "quads_step_up_cajon_frontal__barbell__step_up_a_cajon_frontal",
               "primaryMuscles": [
-                "quadriceps"
+                "quadriceps",
+                "gluteus_maximus"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -717,48 +946,87 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión Unilateral",
-                    "Extensión Y Control Frontal",
-                    "Equilibrio Y Dorsiflexión",
-                    "Transferencia Unilateral"
+                    "Extensión de rodilla",
+                    "Flexión de rodilla durante el descenso",
+                    "Extensión de cadera",
+                    "Flexión de cadera durante el descenso",
+                    "Dorsiflexión de tobillo",
+                    "Flexión plantar de tobillo",
+                    "Sostén postural lumbar",
+                    "Transferencia de carga entre pelvis y tronco",
+                    "Sostén de muñeca en extensión",
+                    "Sostén anterior del brazo"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión Unilateral"
+                        "Extensión de rodilla",
+                        "Flexión de rodilla durante el descenso"
                       ],
                       "jointId": "rodilla",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Extensión Y Control Frontal"
+                        "Extensión de cadera",
+                        "Flexión de cadera durante el descenso"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Equilibrio Y Dorsiflexión"
+                        "Dorsiflexión de tobillo",
+                        "Flexión plantar de tobillo"
                       ],
                       "jointId": "tobillo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Transferencia Unilateral"
+                        "Sostén postural lumbar"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Transferencia de carga entre pelvis y tronco"
                       ],
                       "jointId": "sacroiliaca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén de muñeca en extensión"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén anterior del brazo"
+                      ],
+                      "jointId": "glenohumeral",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "quadriceps"
-                  ],
-                  "secondaryMuscles": [
+                    "quadriceps",
                     "gluteus_maximus"
                   ],
-                  "stabilizerMuscles": [],
+                  "secondaryMuscles": [
+                    "hamstrings",
+                    "calves",
+                    "adductors"
+                  ],
+                  "stabilizerMuscles": [
+                    "gluteus_medius",
+                    "erector_spinae",
+                    "core",
+                    "forearm",
+                    "deltoid"
+                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -772,7 +1040,10 @@
                     "rodilla",
                     "cadera",
                     "tobillo",
-                    "sacroiliaca"
+                    "columna-lumbar",
+                    "sacroiliaca",
+                    "muñeca",
+                    "glenohumeral"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -820,21 +1091,32 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "unilateral_knee_dominant:quadriceps"
+                    "unilateral_knee_dominant:quadriceps",
+                    "unilateral_knee_dominant:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
-                "gluteus_maximus"
+                "hamstrings",
+                "calves",
+                "adductors"
               ],
               "setupCues": [
-                "Preparación: Subida al cajón con el peso al frente: el cuádriceps hace el trabajo y el glúteo acompaña."
+                "Recibe la barra sobre los hombros delanteros y eleva los codos.",
+                "Coloca el pie de trabajo completo arriba; comienza con esa rodilla doblada aproximadamente noventa grados.",
+                "Acerca los dedos al eje sin trasladar toda la carga a las muñecas."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.5,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "gluteus_medius",
+                "erector_spinae",
+                "core",
+                "forearm",
+                "deltoid"
+              ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
             },
@@ -842,7 +1124,7 @@
           }
         ],
         "defaultConfigurationId": "quads_step_up_cajon_frontal__default",
-        "description": "El Step-Up a Cajón Frontal traslada la barra a los hombros delanteros y la subida al cajón se vuelve vertical y estricta: el cuádriceps empuja con el torso incapaz de inclinarse hacia delante. Se trabaja con el pecho alto y los codos elevados, pisando firme y extendiendo la cadera arriba sin perder la postura frontal. El core sostiene la carga como en una sentadilla frontal. Una forma exigente de mezclar fuerza unilateral y trabajo de torso.",
+        "description": "El Step-Up a Cajón Frontal eleva el cuerpo con una pierna mientras una barra descansa sobre los hombros delanteros. Cuádriceps y glúteo mayor participan en esa subida: la rodilla abandona su posición flexionada y la cadera acerca el tronco a la vertical. Los codos apuntan delante para conservar la recepción cerca del cuello. Cada regreso al suelo carga de nuevo la pierna del cajón; el contacto de la barra permanece sobre los hombros, aunque el tronco pueda inclinarse desde la cadera.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -880,40 +1162,66 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con barra, con la carga abrazada al torso, una pierna eleva el cuerpo al cajón. La barra es la referencia para cargar el cuádriceps con peso de verdad.",
+              "description": "La barra cruza ambos pliegues del codo y las manos pueden juntarse delante del pecho. El agarre no soporta una pesa por mano: los flexores del codo conservan la recepción durante el ascenso y al volver al suelo.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
-                "Carga en los codos y subida al cajón: el core aguanta mientras la pierna sube con todo. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+                "Presiona el cajón y endereza las articulaciones de esa pierna para elevarte con el eje entre los brazos.",
+                "Conserva la barra cerca del abdomen y los codos doblados.",
+                "Toca el suelo con el pie libre sin apoyar el eje en el cajón."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión Unilateral"
+                    "Extensión de rodilla",
+                    "Flexión de rodilla durante el descenso"
                   ],
                   "jointId": "rodilla",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Extensión Y Control Frontal"
+                    "Extensión de cadera",
+                    "Flexión de cadera durante el descenso"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Equilibrio Y Dorsiflexión"
+                    "Dorsiflexión de tobillo",
+                    "Flexión plantar de tobillo"
                   ],
                   "jointId": "tobillo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Transferencia Unilateral"
+                    "Sostén postural lumbar"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Transferencia de carga entre pelvis y tronco"
                   ],
                   "jointId": "sacroiliaca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén de flexión del codo"
+                  ],
+                  "jointId": "codo",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén anterior del brazo"
+                  ],
+                  "jointId": "glenohumeral",
                   "role": "STABILIZER"
                 }
               ],
@@ -923,7 +1231,8 @@
               "movementPatternId": "unilateral_knee_dominant",
               "performanceProfileId": "quads_step_up_cajon_zercher__barbell__step_up_a_cajon_zercher",
               "primaryMuscles": [
-                "quadriceps"
+                "quadriceps",
+                "gluteus_maximus"
               ],
               "replacementGroup": null,
               "replacementPriority": 999,
@@ -931,48 +1240,87 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión Unilateral",
-                    "Extensión Y Control Frontal",
-                    "Equilibrio Y Dorsiflexión",
-                    "Transferencia Unilateral"
+                    "Extensión de rodilla",
+                    "Flexión de rodilla durante el descenso",
+                    "Extensión de cadera",
+                    "Flexión de cadera durante el descenso",
+                    "Dorsiflexión de tobillo",
+                    "Flexión plantar de tobillo",
+                    "Sostén postural lumbar",
+                    "Transferencia de carga entre pelvis y tronco",
+                    "Sostén de flexión del codo",
+                    "Sostén anterior del brazo"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión Unilateral"
+                        "Extensión de rodilla",
+                        "Flexión de rodilla durante el descenso"
                       ],
                       "jointId": "rodilla",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Extensión Y Control Frontal"
+                        "Extensión de cadera",
+                        "Flexión de cadera durante el descenso"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Equilibrio Y Dorsiflexión"
+                        "Dorsiflexión de tobillo",
+                        "Flexión plantar de tobillo"
                       ],
                       "jointId": "tobillo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Transferencia Unilateral"
+                        "Sostén postural lumbar"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Transferencia de carga entre pelvis y tronco"
                       ],
                       "jointId": "sacroiliaca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén de flexión del codo"
+                      ],
+                      "jointId": "codo",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén anterior del brazo"
+                      ],
+                      "jointId": "glenohumeral",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "quadriceps"
-                  ],
-                  "secondaryMuscles": [
+                    "quadriceps",
                     "gluteus_maximus"
                   ],
-                  "stabilizerMuscles": [],
+                  "secondaryMuscles": [
+                    "hamstrings",
+                    "calves",
+                    "adductors"
+                  ],
+                  "stabilizerMuscles": [
+                    "gluteus_medius",
+                    "erector_spinae",
+                    "core",
+                    "biceps",
+                    "deltoid"
+                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -986,7 +1334,10 @@
                     "rodilla",
                     "cadera",
                     "tobillo",
-                    "sacroiliaca"
+                    "columna-lumbar",
+                    "sacroiliaca",
+                    "codo",
+                    "glenohumeral"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -1034,21 +1385,32 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "unilateral_knee_dominant:quadriceps"
+                    "unilateral_knee_dominant:quadriceps",
+                    "unilateral_knee_dominant:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
                 }
               },
               "secondaryMuscles": [
-                "gluteus_maximus"
+                "hamstrings",
+                "calves",
+                "adductors"
               ],
               "setupCues": [
-                "Preparación: Carga en los codos y subida al cajón: el core aguanta mientras la pierna sube con todo."
+                "Recibe la barra en los dos pliegues del codo desde un soporte y junta las manos.",
+                "Comprueba que el eje no choque con el cajón al apoyar todo el pie arriba.",
+                "Deja la otra pierna en el suelo, con la pelvis orientada al frente."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.5,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "gluteus_medius",
+                "erector_spinae",
+                "core",
+                "biceps",
+                "deltoid"
+              ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
             },
@@ -1056,7 +1418,7 @@
           }
         ],
         "defaultConfigurationId": "quads_step_up_cajon_zercher__default",
-        "description": "El Step-Up a Cajón Zercher lleva la barra contra el torso sostenida por los brazos doblados mientras una pierna eleva el cuerpo al cajón: el cuádriceps sube y el abdomen se tensa para no soltar nada. Se practica pisando entero, con la carga abrazada, y bajando con una pausa que quita cualquier rebote. La posición de los brazos añade trabajo de torso a cada repetición. La versión del step-up para quien quiere pierna y abdomen en el mismo paquete.",
+        "description": "El Step-Up a Cajón Zercher aloja la barra en ambos pliegues del codo y la transporta delante del abdomen durante el ascenso. La pierna del cajón eleva al atleta mediante cuádriceps y glúteo mayor, con extensión efectiva de rodilla y cadera. El bíceps resiste el peso que intenta abrir los codos mientras el eje descansa en sus pliegues. Cada repetición exige espacio entre el eje y la plataforma: apoyarlo en el borde o en el muslo cambia el reparto de la carga que reciben pierna y tronco.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1094,40 +1456,73 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con barra, con la carga al frente, cada apoyo es una zancada que avanza por la sala. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+              "description": "El estante de los hombros transporta la barra de un apoyo al siguiente. Los dedos sostienen su posición y los codos siguen elevados cuando una pierna abandona el apoyo posterior para dar el próximo paso.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
-                "Pasos al frente con la barra en el pecho: piernas y torso trabajando en movimiento. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+                "Inicia el avance con un paso y desciende entre los apoyos.",
+                "Extiende la pierna anterior y pasa la otra por delante sin bajar los codos.",
+                "Repite más adelante conservando la barra sobre los hombros."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión Unilateral"
+                    "Flexión de rodilla",
+                    "Extensión de rodilla"
                   ],
                   "jointId": "rodilla",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Extensión Y Control Frontal"
+                    "Flexión de cadera",
+                    "Extensión de cadera"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Equilibrio Y Dorsiflexión"
+                    "Dorsiflexión del tobillo",
+                    "Flexión plantar del tobillo"
                   ],
                   "jointId": "tobillo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Transferencia Unilateral"
+                    "Transferencia de carga pélvica"
                   ],
                   "jointId": "sacroiliaca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén de la postura lumbar"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén de flexión del hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén de flexión del codo"
+                  ],
+                  "jointId": "codo",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén de extensión de la muñeca"
+                  ],
+                  "jointId": "muñeca",
                   "role": "STABILIZER"
                 }
               ],
@@ -1137,7 +1532,8 @@
               "movementPatternId": "unilateral_knee_dominant",
               "performanceProfileId": "quads_zancada_caminando_frontal_barra_recta__barbell__zancada_caminando_frontal_con_barra_recta",
               "primaryMuscles": [
-                "quadriceps"
+                "quadriceps",
+                "gluteus_maximus"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -1145,48 +1541,95 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión Unilateral",
-                    "Extensión Y Control Frontal",
-                    "Equilibrio Y Dorsiflexión",
-                    "Transferencia Unilateral"
+                    "Flexión de rodilla",
+                    "Extensión de rodilla",
+                    "Flexión de cadera",
+                    "Extensión de cadera",
+                    "Dorsiflexión del tobillo",
+                    "Flexión plantar del tobillo",
+                    "Transferencia de carga pélvica",
+                    "Sostén de la postura lumbar",
+                    "Sostén de flexión del hombro",
+                    "Sostén de flexión del codo",
+                    "Sostén de extensión de la muñeca"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión Unilateral"
+                        "Flexión de rodilla",
+                        "Extensión de rodilla"
                       ],
                       "jointId": "rodilla",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Extensión Y Control Frontal"
+                        "Flexión de cadera",
+                        "Extensión de cadera"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Equilibrio Y Dorsiflexión"
+                        "Dorsiflexión del tobillo",
+                        "Flexión plantar del tobillo"
                       ],
                       "jointId": "tobillo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Transferencia Unilateral"
+                        "Transferencia de carga pélvica"
                       ],
                       "jointId": "sacroiliaca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén de la postura lumbar"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén de flexión del hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén de flexión del codo"
+                      ],
+                      "jointId": "codo",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén de extensión de la muñeca"
+                      ],
+                      "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "quadriceps"
-                  ],
-                  "secondaryMuscles": [
+                    "quadriceps",
                     "gluteus_maximus"
                   ],
-                  "stabilizerMuscles": [],
+                  "secondaryMuscles": [
+                    "hamstrings",
+                    "calves",
+                    "adductors"
+                  ],
+                  "stabilizerMuscles": [
+                    "gluteus_medius",
+                    "core",
+                    "erector_spinae",
+                    "deltoid",
+                    "forearm"
+                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -1200,7 +1643,11 @@
                     "rodilla",
                     "cadera",
                     "tobillo",
-                    "sacroiliaca"
+                    "sacroiliaca",
+                    "columna-lumbar",
+                    "glenohumeral",
+                    "codo",
+                    "muñeca"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -1247,21 +1694,31 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "unilateral_knee_dominant:quadriceps"
+                    "unilateral_knee_dominant:quadriceps",
+                    "unilateral_knee_dominant:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
-                "gluteus_maximus"
+                "hamstrings",
+                "calves",
+                "adductors"
               ],
               "setupCues": [
-                "Preparación: Pasos al frente con la barra en el pecho: piernas y torso trabajando en movimiento."
+                "Recibe el eje sobre la parte delantera de los hombros con los dedos debajo.",
+                "Orienta los codos al frente y despeja el espacio donde vas a caminar."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.5,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "gluteus_medius",
+                "core",
+                "erector_spinae",
+                "deltoid",
+                "forearm"
+              ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
             },
@@ -1269,7 +1726,7 @@
           }
         ],
         "defaultConfigurationId": "quads_zancada_caminando_frontal_barra_recta__default",
-        "description": "La Zancada Caminando Frontal con Barra Recta lleva la carga al frente mientras las piernas encadenan pasos: el cuádriceps trabaja con la columna vertical y la barra sostenida sobre los hombros. Se avanza con pasos largos y los codos en alto, sin dejar caer el estante en ningún apoyo. La combinación castiga piernas y postura a la vez. Caminar con peso nunca fue tan productivo para el muslo frontal.",
+        "description": "La Zancada Caminando Frontal con Barra Recta une el avance alterno de las piernas al sostén de una barra sobre los hombros delanteros. La cadera se extiende con trabajo del glúteo mayor y la rodilla con el cuádriceps; los codos siguen altos bajo la carga. El pie que queda atrás pasa al frente después de la subida y abre la siguiente zancada. El estante frontal viaja con el cuerpo durante toda la serie, sin apoyarse en una estación fija.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1306,40 +1763,66 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con barra, con la carga sobre los antebrazos flexionados, las piernas avanzan paso a paso. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
+              "description": "Los pliegues de los codos transportan el eje por delante del vientre mientras se suceden los pasos. La mano no sostiene una pesa colgante; el bíceps conserva la cuna de los brazos durante cada cambio de apoyo.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
-                "Pasos al frente con la barra en los codos: la versión más exigente de la zancada caminando. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+                "Avanza una pierna y baja el cuerpo sin alejar la barra del abdomen.",
+                "Levántate sobre el pie de delante y lleva el posterior al siguiente apoyo.",
+                "Continúa los pasos con los codos cerrados, sin levantar el peso con los antebrazos."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión Unilateral"
+                    "Flexión de rodilla",
+                    "Extensión de rodilla"
                   ],
                   "jointId": "rodilla",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Extensión Y Control Frontal"
+                    "Flexión de cadera",
+                    "Extensión de cadera"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Equilibrio Y Dorsiflexión"
+                    "Dorsiflexión del tobillo",
+                    "Flexión plantar del tobillo"
                   ],
                   "jointId": "tobillo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Transferencia Unilateral"
+                    "Transferencia de carga pélvica"
                   ],
                   "jointId": "sacroiliaca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén de la postura lumbar"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén de flexión del codo"
+                  ],
+                  "jointId": "codo",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén de la posición del brazo"
+                  ],
+                  "jointId": "glenohumeral",
                   "role": "STABILIZER"
                 }
               ],
@@ -1349,7 +1832,8 @@
               "movementPatternId": "unilateral_knee_dominant",
               "performanceProfileId": "quads_zancada_caminando_zercher_barra_recta__barbell__zancada_caminando_zercher_con_barra_recta",
               "primaryMuscles": [
-                "quadriceps"
+                "quadriceps",
+                "gluteus_maximus"
               ],
               "replacementGroup": null,
               "replacementPriority": 999,
@@ -1357,48 +1841,87 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión Unilateral",
-                    "Extensión Y Control Frontal",
-                    "Equilibrio Y Dorsiflexión",
-                    "Transferencia Unilateral"
+                    "Flexión de rodilla",
+                    "Extensión de rodilla",
+                    "Flexión de cadera",
+                    "Extensión de cadera",
+                    "Dorsiflexión del tobillo",
+                    "Flexión plantar del tobillo",
+                    "Transferencia de carga pélvica",
+                    "Sostén de la postura lumbar",
+                    "Sostén de flexión del codo",
+                    "Sostén de la posición del brazo"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión Unilateral"
+                        "Flexión de rodilla",
+                        "Extensión de rodilla"
                       ],
                       "jointId": "rodilla",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Extensión Y Control Frontal"
+                        "Flexión de cadera",
+                        "Extensión de cadera"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Equilibrio Y Dorsiflexión"
+                        "Dorsiflexión del tobillo",
+                        "Flexión plantar del tobillo"
                       ],
                       "jointId": "tobillo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Transferencia Unilateral"
+                        "Transferencia de carga pélvica"
                       ],
                       "jointId": "sacroiliaca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén de la postura lumbar"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén de flexión del codo"
+                      ],
+                      "jointId": "codo",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén de la posición del brazo"
+                      ],
+                      "jointId": "glenohumeral",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "quadriceps"
-                  ],
-                  "secondaryMuscles": [
+                    "quadriceps",
                     "gluteus_maximus"
                   ],
-                  "stabilizerMuscles": [],
+                  "secondaryMuscles": [
+                    "hamstrings",
+                    "calves",
+                    "adductors"
+                  ],
+                  "stabilizerMuscles": [
+                    "gluteus_medius",
+                    "core",
+                    "erector_spinae",
+                    "biceps",
+                    "deltoid"
+                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -1412,7 +1935,10 @@
                     "rodilla",
                     "cadera",
                     "tobillo",
-                    "sacroiliaca"
+                    "sacroiliaca",
+                    "columna-lumbar",
+                    "codo",
+                    "glenohumeral"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -1459,21 +1985,31 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "unilateral_knee_dominant:quadriceps"
+                    "unilateral_knee_dominant:quadriceps",
+                    "unilateral_knee_dominant:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
                 }
               },
               "secondaryMuscles": [
-                "gluteus_maximus"
+                "hamstrings",
+                "calves",
+                "adductors"
               ],
               "setupCues": [
-                "Preparación: Pasos al frente con la barra en los codos: la versión más exigente de la zancada caminando."
+                "Recibe el eje dentro de los codos y reúne las manos por encima de él.",
+                "Revisa el pasillo para que los extremos del eje no encuentren obstáculos."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.5,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "gluteus_medius",
+                "core",
+                "erector_spinae",
+                "biceps",
+                "deltoid"
+              ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
             },
@@ -1481,7 +2017,7 @@
           }
         ],
         "defaultConfigurationId": "quads_zancada_caminando_zercher_barra_recta__default",
-        "description": "La Zancada Caminando Zercher con Barra Recta carga el peso sobre los antebrazos flexionados mientras las piernas avanzan paso a paso: el cuádriceps empuja y el tronco se defiende de la carga abrazada. Se avanza con zancadas completas, sin prisa y con los codos pegados al cuerpo. La incomodidad de la sujeción se suma a la de las piernas. Una prueba integral que deja huella en todo el cuerpo.",
+        "description": "La Zancada Caminando Zercher con Barra Recta enlaza apoyos sucesivos con la barra alojada en los codos; cuádriceps y glúteo mayor impulsan cada subida. Al subir sobre la pierna delantera, la posterior pasa al frente y el cuerpo gana terreno. Los brazos doblados sostienen la barra cerca del vientre y el tronco resiste su caída hacia delante. El avance obliga a conservar esa sujeción también entre repeticiones, cuando cambia el pie que recibe el peso.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1518,40 +2054,66 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con barra, el paso al frente con la carga en el doblez de los brazos frena y empuja con la pierna delantera. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
+              "description": "La barra apoya en ambos pliegues de los codos, a poca distancia del abdomen, durante la recepción del paso. Los antebrazos forman una cuna y los bíceps sostienen ese ángulo mientras la pierna adelantada devuelve el cuerpo.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
-                "Paso al frente con la carga en los codos: equilibrio, piernas y core en un mismo movimiento. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+                "Da un paso hacia delante sin abrir los codos.",
+                "Desciende con la rodilla posterior suspendida sobre el piso.",
+                "Empuja con la pierna que avanzó y devuelve ese pie sin elevar la barra con los brazos."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión Unilateral"
+                    "Flexión de rodilla",
+                    "Extensión de rodilla"
                   ],
                   "jointId": "rodilla",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Extensión Y Control Frontal"
+                    "Flexión de cadera",
+                    "Extensión de cadera"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Equilibrio Y Dorsiflexión"
+                    "Dorsiflexión del tobillo",
+                    "Flexión plantar del tobillo"
                   ],
                   "jointId": "tobillo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Transferencia Unilateral"
+                    "Transferencia de carga pélvica"
                   ],
                   "jointId": "sacroiliaca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén de la postura lumbar"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén de flexión del codo"
+                  ],
+                  "jointId": "codo",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén de la posición del brazo"
+                  ],
+                  "jointId": "glenohumeral",
                   "role": "STABILIZER"
                 }
               ],
@@ -1561,7 +2123,8 @@
               "movementPatternId": "unilateral_knee_dominant",
               "performanceProfileId": "quads_zancada_frontal_zercher__barbell__zancada_frontal_zercher",
               "primaryMuscles": [
-                "quadriceps"
+                "quadriceps",
+                "gluteus_maximus"
               ],
               "replacementGroup": null,
               "replacementPriority": 999,
@@ -1569,48 +2132,87 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión Unilateral",
-                    "Extensión Y Control Frontal",
-                    "Equilibrio Y Dorsiflexión",
-                    "Transferencia Unilateral"
+                    "Flexión de rodilla",
+                    "Extensión de rodilla",
+                    "Flexión de cadera",
+                    "Extensión de cadera",
+                    "Dorsiflexión del tobillo",
+                    "Flexión plantar del tobillo",
+                    "Transferencia de carga pélvica",
+                    "Sostén de la postura lumbar",
+                    "Sostén de flexión del codo",
+                    "Sostén de la posición del brazo"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión Unilateral"
+                        "Flexión de rodilla",
+                        "Extensión de rodilla"
                       ],
                       "jointId": "rodilla",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Extensión Y Control Frontal"
+                        "Flexión de cadera",
+                        "Extensión de cadera"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Equilibrio Y Dorsiflexión"
+                        "Dorsiflexión del tobillo",
+                        "Flexión plantar del tobillo"
                       ],
                       "jointId": "tobillo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Transferencia Unilateral"
+                        "Transferencia de carga pélvica"
                       ],
                       "jointId": "sacroiliaca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén de la postura lumbar"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén de flexión del codo"
+                      ],
+                      "jointId": "codo",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén de la posición del brazo"
+                      ],
+                      "jointId": "glenohumeral",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "quadriceps"
-                  ],
-                  "secondaryMuscles": [
+                    "quadriceps",
                     "gluteus_maximus"
                   ],
-                  "stabilizerMuscles": [],
+                  "secondaryMuscles": [
+                    "hamstrings",
+                    "calves",
+                    "adductors"
+                  ],
+                  "stabilizerMuscles": [
+                    "gluteus_medius",
+                    "core",
+                    "erector_spinae",
+                    "biceps",
+                    "deltoid"
+                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -1624,7 +2226,10 @@
                     "rodilla",
                     "cadera",
                     "tobillo",
-                    "sacroiliaca"
+                    "sacroiliaca",
+                    "columna-lumbar",
+                    "codo",
+                    "glenohumeral"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -1672,21 +2277,31 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "unilateral_knee_dominant:quadriceps"
+                    "unilateral_knee_dominant:quadriceps",
+                    "unilateral_knee_dominant:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
                 }
               },
               "secondaryMuscles": [
-                "gluteus_maximus"
+                "hamstrings",
+                "calves",
+                "adductors"
               ],
               "setupCues": [
-                "Preparación: Paso al frente con la carga en los codos: equilibrio, piernas y core en un mismo movimiento."
+                "Saca el eje del soporte recibido dentro de los codos y conserva los brazos doblados.",
+                "Junta las manos delante del pecho y sitúa la carga cerca del abdomen."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.5,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "gluteus_medius",
+                "core",
+                "erector_spinae",
+                "biceps",
+                "deltoid"
+              ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
             },
@@ -1694,7 +2309,7 @@
           }
         ],
         "defaultConfigurationId": "quads_zancada_frontal_zercher__default",
-        "description": "La Zancada Frontal Zercher da el paso al frente con la carga sostenida contra el pecho por los brazos doblados: la pierna delantera frena y empuja mientras el abdomen impide que el peso desarme la postura. Se practica bajando la rodilla trasera con la espalda alta y regresando con firmeza. Este agarre hace que cargas moderadas se sientan enormes. Una zancada con carácter para quien domina la versión con pesos a los lados.",
+        "description": "La Zancada Frontal Zercher combina el paso hacia delante con una barra recibida en los pliegues de los codos. Cuádriceps y glúteo mayor frenan la llegada y elevan el cuerpo antes de volver al punto inicial. Los brazos siguen doblados y el tronco sostiene la carga próxima al abdomen durante el cambio de apoyo. La barra queda por delante del cuerpo, de modo que el sostén de los codos acompaña cada repetición sin convertirse en un curl.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1732,40 +2347,73 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con barra, el paso atrás con la carga en el estante delantero trabaja con el torso erguido. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
+              "description": "El eje descansa en la parte anterior de los hombros con los dedos por debajo y los codos hacia delante. El pie fijo sostiene la subida mientras la barra permanece sobre ese estante durante el retroceso.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
-                "Paso atrás con la barra al frente del pecho: estable, tolerante con la rodilla y con una demanda amplia. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+                "Retrasa un pie dejando el otro pegado al suelo.",
+                "Baja la pelvis entre las piernas sin hundir los codos.",
+                "Sube con la pierna delantera y retorna el pie libre al lado del apoyo."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión Unilateral"
+                    "Flexión de rodilla",
+                    "Extensión de rodilla"
                   ],
                   "jointId": "rodilla",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Extensión Y Control Frontal"
+                    "Flexión de cadera",
+                    "Extensión de cadera"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Equilibrio Y Dorsiflexión"
+                    "Dorsiflexión del tobillo",
+                    "Flexión plantar del tobillo"
                   ],
                   "jointId": "tobillo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Transferencia Unilateral"
+                    "Transferencia de carga pélvica"
                   ],
                   "jointId": "sacroiliaca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén de la postura lumbar"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén de flexión del hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén de flexión del codo"
+                  ],
+                  "jointId": "codo",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén de extensión de la muñeca"
+                  ],
+                  "jointId": "muñeca",
                   "role": "STABILIZER"
                 }
               ],
@@ -1775,7 +2423,8 @@
               "movementPatternId": "unilateral_knee_dominant",
               "performanceProfileId": "quads_zancada_inversa_frontal__barbell__zancada_inversa_frontal",
               "primaryMuscles": [
-                "quadriceps"
+                "quadriceps",
+                "gluteus_maximus"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -1783,48 +2432,95 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión Unilateral",
-                    "Extensión Y Control Frontal",
-                    "Equilibrio Y Dorsiflexión",
-                    "Transferencia Unilateral"
+                    "Flexión de rodilla",
+                    "Extensión de rodilla",
+                    "Flexión de cadera",
+                    "Extensión de cadera",
+                    "Dorsiflexión del tobillo",
+                    "Flexión plantar del tobillo",
+                    "Transferencia de carga pélvica",
+                    "Sostén de la postura lumbar",
+                    "Sostén de flexión del hombro",
+                    "Sostén de flexión del codo",
+                    "Sostén de extensión de la muñeca"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión Unilateral"
+                        "Flexión de rodilla",
+                        "Extensión de rodilla"
                       ],
                       "jointId": "rodilla",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Extensión Y Control Frontal"
+                        "Flexión de cadera",
+                        "Extensión de cadera"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Equilibrio Y Dorsiflexión"
+                        "Dorsiflexión del tobillo",
+                        "Flexión plantar del tobillo"
                       ],
                       "jointId": "tobillo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Transferencia Unilateral"
+                        "Transferencia de carga pélvica"
                       ],
                       "jointId": "sacroiliaca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén de la postura lumbar"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén de flexión del hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén de flexión del codo"
+                      ],
+                      "jointId": "codo",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén de extensión de la muñeca"
+                      ],
+                      "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "quadriceps"
-                  ],
-                  "secondaryMuscles": [
+                    "quadriceps",
                     "gluteus_maximus"
                   ],
-                  "stabilizerMuscles": [],
+                  "secondaryMuscles": [
+                    "hamstrings",
+                    "calves",
+                    "adductors"
+                  ],
+                  "stabilizerMuscles": [
+                    "gluteus_medius",
+                    "core",
+                    "erector_spinae",
+                    "deltoid",
+                    "forearm"
+                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -1838,7 +2534,11 @@
                     "rodilla",
                     "cadera",
                     "tobillo",
-                    "sacroiliaca"
+                    "sacroiliaca",
+                    "columna-lumbar",
+                    "glenohumeral",
+                    "codo",
+                    "muñeca"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -1886,21 +2586,31 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "unilateral_knee_dominant:quadriceps"
+                    "unilateral_knee_dominant:quadriceps",
+                    "unilateral_knee_dominant:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
-                "gluteus_maximus"
+                "hamstrings",
+                "calves",
+                "adductors"
               ],
               "setupCues": [
-                "Preparación: Paso atrás con la barra al frente del pecho: estable, tolerante con la rodilla y con una demanda amplia."
+                "Saca la barra del rack apoyándola sobre los deltoides delanteros.",
+                "Sostén los dedos debajo del eje y eleva los codos antes del paso."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.5,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "gluteus_medius",
+                "core",
+                "erector_spinae",
+                "deltoid",
+                "forearm"
+              ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
             },
@@ -1908,7 +2618,7 @@
           }
         ],
         "defaultConfigurationId": "quads_zancada_inversa_frontal__default",
-        "description": "La Zancada Inversa Frontal retrocede con la carga apoyada en el estante delantero: la pierna fija trabaja con el torso firme y el abdomen sosteniendo todo en cada repetición. Se practica dando el paso atrás con los codos elevados, bajando despacio y regresando al centro sin perder la altura del pecho. La posición frontal suma exigencia arriba a la zancada más amable con la rodilla. Una combinación elegante de pierna unilateral y trabajo del tronco.",
+        "description": "La Zancada Inversa Frontal entrena la pierna delantera, con cuádriceps y glúteo mayor como motores, y la barra sobre la parte anterior de los hombros. El pie de trabajo permanece plantado mientras el otro retrocede y vuelve tras la subida. Los codos apuntan al frente para conservar el apoyo de la barra cuando ambas rodillas se doblan. La dificultad incluye sostener ese estante elevado durante el paso, además de extender la pierna delantera.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1946,41 +2656,39 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con máquina, el paso atrás dentro del raíl deja al cuádriceps de la pierna delantera solo ante la carga. En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps.",
+              "description": "El carro se desplaza por los raíles inclinados y transmite la carga a través de los hombros. La espalda apoyada permite que las piernas hagan la zancada con un pie estable delante y el otro retrocediendo y regresando.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
-                "Paso atrás con el guiado de la hack: la estabilidad de la máquina con el trabajo de la zancada. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+                "Lleva un pie atrás y dobla la pierna que conserva el apoyo delantero.",
+                "Presiona con el pie delantero para elevar el carro sin separar la espalda.",
+                "Devuelve el pie posterior a su lugar habitual al completar la subida."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión Unilateral"
+                    "Flexión de rodilla",
+                    "Extensión de rodilla"
                   ],
                   "jointId": "rodilla",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Extensión Y Control Frontal"
+                    "Flexión de cadera",
+                    "Extensión de cadera"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Equilibrio Y Dorsiflexión"
+                    "Dorsiflexión de tobillo",
+                    "Flexión plantar de tobillo"
                   ],
                   "jointId": "tobillo",
                   "role": "SECONDARY"
-                },
-                {
-                  "actions": [
-                    "Transferencia Unilateral"
-                  ],
-                  "jointId": "sacroiliaca",
-                  "role": "STABILIZER"
                 }
               ],
               "kineticChain": "ANTERIOR",
@@ -1989,7 +2697,8 @@
               "movementPatternId": "unilateral_knee_dominant",
               "performanceProfileId": "quads_zancada_inversa_maquina_hack__machine__zancada_inversa_en_maquina_hack",
               "primaryMuscles": [
-                "quadriceps"
+                "quadriceps",
+                "gluteus_maximus"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -1997,48 +2706,51 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión Unilateral",
-                    "Extensión Y Control Frontal",
-                    "Equilibrio Y Dorsiflexión",
-                    "Transferencia Unilateral"
+                    "Flexión de rodilla",
+                    "Extensión de rodilla",
+                    "Flexión de cadera",
+                    "Extensión de cadera",
+                    "Dorsiflexión de tobillo",
+                    "Flexión plantar de tobillo"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión Unilateral"
+                        "Flexión de rodilla",
+                        "Extensión de rodilla"
                       ],
                       "jointId": "rodilla",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Extensión Y Control Frontal"
+                        "Flexión de cadera",
+                        "Extensión de cadera"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Equilibrio Y Dorsiflexión"
+                        "Dorsiflexión de tobillo",
+                        "Flexión plantar de tobillo"
                       ],
                       "jointId": "tobillo",
                       "role": "SECONDARY"
-                    },
-                    {
-                      "actions": [
-                        "Transferencia Unilateral"
-                      ],
-                      "jointId": "sacroiliaca",
-                      "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "quadriceps"
-                  ],
-                  "secondaryMuscles": [
+                    "quadriceps",
                     "gluteus_maximus"
                   ],
-                  "stabilizerMuscles": [],
+                  "secondaryMuscles": [
+                    "hamstrings",
+                    "calves",
+                    "adductors"
+                  ],
+                  "stabilizerMuscles": [
+                    "gluteus_medius"
+                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -2051,8 +2763,7 @@
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
-                    "tobillo",
-                    "sacroiliaca"
+                    "tobillo"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
@@ -2099,21 +2810,28 @@
                     "machine"
                   ],
                   "preservesIntent": [
-                    "unilateral_knee_dominant:quadriceps"
+                    "unilateral_knee_dominant:quadriceps",
+                    "unilateral_knee_dominant:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
-                "gluteus_maximus"
+                "hamstrings",
+                "calves",
+                "adductors"
               ],
               "setupCues": [
-                "Preparación: Paso atrás con el guiado de la hack: la estabilidad de la máquina con el trabajo de la zancada."
+                "Entra bajo las almohadillas con la espalda sobre el respaldo de la hack.",
+                "Agarra las asas y sitúa los pies en sus apoyos normales.",
+                "Comprueba una superficie estable detrás para el pie que va a retroceder."
               ],
               "setupTimeSeconds": 55,
               "ssc": 0.5,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "gluteus_medius"
+              ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
             },
@@ -2121,7 +2839,7 @@
           }
         ],
         "defaultConfigurationId": "quads_zancada_inversa_maquina_hack__default",
-        "description": "La Zancada Inversa en Máquina Hack mete el paso atrás dentro del raíl: la espalda apoyada y la trayectoria fija dejan al cuádriceps de la pierna delantera trabajar sin preocuparse del equilibrio. Se ejecuta retrocediendo con el pie libre, bajando hasta el fondo del raíl y subiendo con la pierna que queda en la plataforma. La máquina convierte una zancada inestable en un gesto concentrado. La opción guiada para exprimir el cuádriceps pierna a pierna.",
+        "description": "La Zancada Inversa en Máquina Hack lleva un pie atrás y lo devuelve a su apoyo inicial bajo el carro de una hack convencional. La espalda continúa sobre el respaldo, con los hombros bajo las almohadillas y la pierna delantera flexionándose para recibir la bajada. Cuádriceps y glúteo mayor producen el ascenso al extender rodilla y cadera. Los raíles restringen el desplazamiento del carro, pero el pie posterior sí cambia de lugar en cada repetición; no permanece suspendido detrás del cuerpo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -2158,41 +2876,39 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con máquina, el paso atrás con la plataforma inclinada y guiada elimina el balanceo de la ecuación. El cuádriceps trabaja en la máquina, con el recorrido guiado y sin distracciones.",
+              "description": "El brazo articulado describe un arco con los hombros bajo sus almohadillas. La espalda conserva contacto con el respaldo mientras un pie retrocede durante la bajada y regresa al apoyo habitual después del ascenso.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
-                "Paso atrás con la plataforma V-Squat guiada: unilateral, profunda y con la espalda protegida. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+                "Lleva un pie hacia atrás sin cambiar la orientación habitual del cuerpo.",
+                "Dobla la rodilla y la cadera delanteras sin separar la espalda del respaldo.",
+                "Empuja con el pie delantero para recuperar altura y devuelve el otro al lugar inicial."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión Unilateral"
+                    "Flexión de rodilla",
+                    "Extensión de rodilla"
                   ],
                   "jointId": "rodilla",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Extensión Y Control Frontal"
+                    "Flexión de cadera",
+                    "Extensión de cadera"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Equilibrio Y Dorsiflexión"
+                    "Dorsiflexión de tobillo",
+                    "Flexión plantar de tobillo"
                   ],
                   "jointId": "tobillo",
                   "role": "SECONDARY"
-                },
-                {
-                  "actions": [
-                    "Transferencia Unilateral"
-                  ],
-                  "jointId": "sacroiliaca",
-                  "role": "STABILIZER"
                 }
               ],
               "kineticChain": "ANTERIOR",
@@ -2201,7 +2917,8 @@
               "movementPatternId": "unilateral_knee_dominant",
               "performanceProfileId": "quads_zancada_inversa_maquina_v_squat__machine__zancada_inversa_en_maquina_v_squat",
               "primaryMuscles": [
-                "quadriceps"
+                "quadriceps",
+                "gluteus_maximus"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -2209,48 +2926,51 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión Unilateral",
-                    "Extensión Y Control Frontal",
-                    "Equilibrio Y Dorsiflexión",
-                    "Transferencia Unilateral"
+                    "Flexión de rodilla",
+                    "Extensión de rodilla",
+                    "Flexión de cadera",
+                    "Extensión de cadera",
+                    "Dorsiflexión de tobillo",
+                    "Flexión plantar de tobillo"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión Unilateral"
+                        "Flexión de rodilla",
+                        "Extensión de rodilla"
                       ],
                       "jointId": "rodilla",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Extensión Y Control Frontal"
+                        "Flexión de cadera",
+                        "Extensión de cadera"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Equilibrio Y Dorsiflexión"
+                        "Dorsiflexión de tobillo",
+                        "Flexión plantar de tobillo"
                       ],
                       "jointId": "tobillo",
                       "role": "SECONDARY"
-                    },
-                    {
-                      "actions": [
-                        "Transferencia Unilateral"
-                      ],
-                      "jointId": "sacroiliaca",
-                      "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "quadriceps"
-                  ],
-                  "secondaryMuscles": [
+                    "quadriceps",
                     "gluteus_maximus"
                   ],
-                  "stabilizerMuscles": [],
+                  "secondaryMuscles": [
+                    "hamstrings",
+                    "calves",
+                    "adductors"
+                  ],
+                  "stabilizerMuscles": [
+                    "gluteus_medius"
+                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -2263,8 +2983,7 @@
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
-                    "tobillo",
-                    "sacroiliaca"
+                    "tobillo"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
@@ -2311,21 +3030,28 @@
                     "machine"
                   ],
                   "preservesIntent": [
-                    "unilateral_knee_dominant:quadriceps"
+                    "unilateral_knee_dominant:quadriceps",
+                    "unilateral_knee_dominant:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
-                "gluteus_maximus"
+                "hamstrings",
+                "calves",
+                "adductors"
               ],
               "setupCues": [
-                "Preparación: Paso atrás con la plataforma V-Squat guiada: unilateral, profunda y con la espalda protegida."
+                "Coloca los hombros bajo las almohadillas y la espalda contra el respaldo habitual.",
+                "Sitúa ambos pies en sus apoyos habituales y comprueba el espacio para llevar uno hacia atrás.",
+                "Agarra las asas y comprueba que ambos pies tienen espacio para la bajada."
               ],
               "setupTimeSeconds": 55,
               "ssc": 0.5,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "gluteus_medius"
+              ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
             },
@@ -2333,7 +3059,7 @@
           }
         ],
         "defaultConfigurationId": "quads_zancada_inversa_maquina_v_squat__default",
-        "description": "La Zancada Inversa en Máquina V-Squat usa el ángulo reclinado del aparato para el paso atrás: la pierna de apoyo trabaja con la carga guiada y la espalda descansando en el respaldo. Se ejecuta bajando la rodilla que retrocede hacia el suelo y empujando con la pierna fija en la plataforma. El respaldo permite hundirse en el rango sin miedo al balanceo. La zancada unilateral más cómoda para la espalda y más dura para el cuádriceps.",
+        "description": "La Zancada Inversa en Máquina V-Squat parte de los apoyos habituales del aparato y desplaza un pie hacia atrás durante la repetición. El cuádriceps extiende la rodilla de apoyo y el glúteo mayor devuelve la cadera hacia extensión durante la subida. Espalda y hombros conservan contacto con sus acolchados mientras baja y sube el brazo articulado. El pie posterior vuelve después al lugar que ocupaba al inicio: el paso y su regreso forman parte del movimiento, sin desplazar la máquina por la sala.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -2370,40 +3096,66 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con barra, el retroceso con la carga abrazada al tronco suma tensión de torso a cada repetición. La barra es la referencia para cargar el cuádriceps con peso de verdad.",
+              "description": "El retroceso ocurre con la barra dentro de los codos flexionados, sin depender de un estante sobre los hombros. La carga queda delante del abdomen y el bíceps sostiene la flexión durante la subida de la pierna fija.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
-                "Paso atrás con la barra en los codos: la combinación exigente que trabaja piernas y torso. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+                "Retrocede con un pie mientras sostienes la barra abrazada al vientre.",
+                "Flexiona la rodilla de delante hasta acercar la posterior al suelo.",
+                "Extiende la pierna de apoyo y recoge el pie retrasado sin hacer un curl."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión Unilateral"
+                    "Flexión de rodilla",
+                    "Extensión de rodilla"
                   ],
                   "jointId": "rodilla",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Extensión Y Control Frontal"
+                    "Flexión de cadera",
+                    "Extensión de cadera"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Equilibrio Y Dorsiflexión"
+                    "Dorsiflexión del tobillo",
+                    "Flexión plantar del tobillo"
                   ],
                   "jointId": "tobillo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Transferencia Unilateral"
+                    "Transferencia de carga pélvica"
                   ],
                   "jointId": "sacroiliaca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén de la postura lumbar"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén de flexión del codo"
+                  ],
+                  "jointId": "codo",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén de la posición del brazo"
+                  ],
+                  "jointId": "glenohumeral",
                   "role": "STABILIZER"
                 }
               ],
@@ -2413,7 +3165,8 @@
               "movementPatternId": "unilateral_knee_dominant",
               "performanceProfileId": "quads_zancada_inversa_zercher__barbell__zancada_inversa_zercher",
               "primaryMuscles": [
-                "quadriceps"
+                "quadriceps",
+                "gluteus_maximus"
               ],
               "replacementGroup": null,
               "replacementPriority": 999,
@@ -2421,48 +3174,87 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión Unilateral",
-                    "Extensión Y Control Frontal",
-                    "Equilibrio Y Dorsiflexión",
-                    "Transferencia Unilateral"
+                    "Flexión de rodilla",
+                    "Extensión de rodilla",
+                    "Flexión de cadera",
+                    "Extensión de cadera",
+                    "Dorsiflexión del tobillo",
+                    "Flexión plantar del tobillo",
+                    "Transferencia de carga pélvica",
+                    "Sostén de la postura lumbar",
+                    "Sostén de flexión del codo",
+                    "Sostén de la posición del brazo"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión Unilateral"
+                        "Flexión de rodilla",
+                        "Extensión de rodilla"
                       ],
                       "jointId": "rodilla",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Extensión Y Control Frontal"
+                        "Flexión de cadera",
+                        "Extensión de cadera"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Equilibrio Y Dorsiflexión"
+                        "Dorsiflexión del tobillo",
+                        "Flexión plantar del tobillo"
                       ],
                       "jointId": "tobillo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Transferencia Unilateral"
+                        "Transferencia de carga pélvica"
                       ],
                       "jointId": "sacroiliaca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén de la postura lumbar"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén de flexión del codo"
+                      ],
+                      "jointId": "codo",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén de la posición del brazo"
+                      ],
+                      "jointId": "glenohumeral",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "quadriceps"
-                  ],
-                  "secondaryMuscles": [
+                    "quadriceps",
                     "gluteus_maximus"
                   ],
-                  "stabilizerMuscles": [],
+                  "secondaryMuscles": [
+                    "hamstrings",
+                    "calves",
+                    "adductors"
+                  ],
+                  "stabilizerMuscles": [
+                    "gluteus_medius",
+                    "core",
+                    "erector_spinae",
+                    "biceps",
+                    "deltoid"
+                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -2476,7 +3268,10 @@
                     "rodilla",
                     "cadera",
                     "tobillo",
-                    "sacroiliaca"
+                    "sacroiliaca",
+                    "columna-lumbar",
+                    "codo",
+                    "glenohumeral"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -2524,21 +3319,31 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "unilateral_knee_dominant:quadriceps"
+                    "unilateral_knee_dominant:quadriceps",
+                    "unilateral_knee_dominant:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
                 }
               },
               "secondaryMuscles": [
-                "gluteus_maximus"
+                "hamstrings",
+                "calves",
+                "adductors"
               ],
               "setupCues": [
-                "Preparación: Paso atrás con la barra en los codos: la combinación exigente que trabaja piernas y torso."
+                "Acércate al rack y recibe el eje dentro de los brazos flexionados.",
+                "Acerca los antebrazos y reúne las manos por encima del eje."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.5,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "gluteus_medius",
+                "core",
+                "erector_spinae",
+                "biceps",
+                "deltoid"
+              ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
             },
@@ -2546,7 +3351,7 @@
           }
         ],
         "defaultConfigurationId": "quads_zancada_inversa_zercher__default",
-        "description": "La Zancada Inversa Zercher retrocede con la carga abrazada al tronco: la pierna fija empuja y el abdomen trabaja doble para que nada se desarme. La mecánica pide sujetar la barra con los brazos cruzados sobre ella, dar el paso atrás y bajar hasta rozar el suelo con la rodilla. Esta sujeción añade trabajo abdominal a la zancada más protectora de rodilla. Una especialidad completa para pierna y tronco al mismo tiempo.",
+        "description": "La Zancada Inversa Zercher lleva una barra en los pliegues de los codos mientras cuádriceps y glúteo mayor elevan el cuerpo sobre el pie delantero. El otro pie se desplaza hacia atrás hasta apoyar su antepié, y regresa después de que la pierna fija eleva el cuerpo. La barra sigue abrazada cerca del abdomen, con los codos flexionados. Sujeción y retroceso ocurren a la vez, sin que los brazos eleven la carga para ayudar a las piernas.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

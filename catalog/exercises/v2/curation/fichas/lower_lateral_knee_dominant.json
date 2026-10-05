@@ -1,21 +1,280 @@
 {
   "definitions": {
     "quads_sentadilla_cosaca": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Flexión de la rodilla del lado cargado",
+              "Extensión al volver al centro"
+            ],
+            "id": "rodilla",
+            "role": "PRIMARY",
+            "sources": [
+              "quad",
+              "lateral_joints"
+            ],
+            "why": "Una rodilla recibe la mayor carga y se dobla profundamente mientras la contraria permanece extendida. La salida del fondo nace en la extensión de la rodilla cargada junto con la cadera."
+          },
+          {
+            "actions": [
+              "Flexión y extensión del lado cargado",
+              "Abducción en la base amplia",
+              "Aducción relativa al volver al centro"
+            ],
+            "id": "cadera",
+            "role": "PRIMARY",
+            "sources": [
+              "glutmax",
+              "adductor",
+              "lateral_joints"
+            ],
+            "why": "La cadera del lado doblado desciende flexionándose y sube con extensión. La separación de los pies permite desplazamiento frontal y cambia el ángulo entre pelvis y muslos; los aductores acompañan el retorno, sin convertir la postura abierta en una abducción aislada."
+          },
+          {
+            "actions": [
+              "Dorsiflexión del lado cargado",
+              "Retorno desde dorsiflexión",
+              "Sostén del talón de la pierna recta"
+            ],
+            "id": "tobillo",
+            "role": "SECONDARY",
+            "sources": [
+              "lateral_joints"
+            ],
+            "why": "El tobillo cargado permite que la tibia avance con el talón abajo; el lado extendido pivota sobre su talón y dirige los dedos arriba. Esta asimetría es distinta de una sentadilla con dos plantas enteras apoyadas."
+          },
+          {
+            "actions": [
+              "Sostén del tronco durante el desplazamiento lateral"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "abdominal",
+              "trunk_sls"
+            ],
+            "why": "La columna sostiene el torso mientras el cuerpo sale del centro hacia un lado y vuelve. La repetición no exige doblar lateralmente la espalda para suplir la movilidad de cadera."
+          },
+          {
+            "actions": [
+              "Transmisión de fuerza durante el traslado lateral"
+            ],
+            "id": "sacroiliaca",
+            "role": "STABILIZER",
+            "sources": [
+              "sij_transfer"
+            ],
+            "why": "El apoyo se reparte de forma desigual entre la planta del lado doblado y el talón opuesto, y esa fuerza se transmite por la pelvis. El modelo de las inserciones del glúteo mayor respalda inferir compresión y sostén sacroilíaco durante el traslado, sin afirmar datos de una cosaca medida."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "quadriceps",
+            "role": "PRIMARY",
+            "sources": [
+              "quad",
+              "lateral_joints"
+            ],
+            "why": "La rodilla del lado que recibe el cuerpo se flexiona profundamente y el cuádriceps la extiende para devolverlo al centro. El otro miembro permanece largo; la dominancia se funda en la acción de la rodilla cargada, sin atribuirla a una comparación EMG no realizada."
+          },
+          {
+            "id": "gluteus_maximus",
+            "role": "PRIMARY",
+            "sources": [
+              "glutmax",
+              "lateral_joints"
+            ],
+            "why": "La cadera del lado flexionado desciende hasta una posición profunda y se extiende para volver al centro y arriba. Esa extensión mueve el peso corporal; el rol es una inferencia funcional para la cosaca, no un resultado directo de EMG del estudio de zancadas laterales."
+          },
+          {
+            "id": "adductors",
+            "role": "SECONDARY",
+            "sources": [
+              "adductor",
+              "adductor_actions"
+            ],
+            "why": "Los aductores del lado extendido quedan alargados y ayudan a acercar la pelvis hacia ese talón durante la vuelta al centro; el aductor mayor también puede asistir la extensión de la cadera flexionada. Es una inferencia de funciones aductoras y extensoras, no un rol deducido del estiramiento pasivo."
+          },
+          {
+            "id": "calves",
+            "role": "SECONDARY",
+            "sources": [
+              "lateral_joints"
+            ],
+            "why": "En el pie que recibe el peso, el complejo flexor plantar modera el avance de la tibia y acompaña su retorno al centro con el talón abajo. Se extrapola esa función desde una zancada lateral; el talón del lado recto es un contacto adicional, no el principal impulso."
+          },
+          {
+            "id": "gluteus_medius",
+            "role": "STABILIZER",
+            "sources": [
+              "glutmed",
+              "pelvis_stability"
+            ],
+            "why": "Ayuda a orientar el muslo cargado y sostener la pelvis mientras el cuerpo se traslada de lado. La abducción de la posición amplia no implica por sí sola abducción contra resistencia como objetivo; este rol de alineación se infiere, sin EMG específico de la cosaca."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "abdominal",
+              "trunk_sls"
+            ],
+            "why": "La pared abdominal sostiene el tronco mientras la pelvis se desplaza lateralmente sobre un pie y el otro talón conserva contacto. No produce una flexión abdominal repetida; se infiere sostén desde anatomía de la pared y control del tronco en SLS."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "trunk_sls"
+            ],
+            "why": "Sostienen el tronco sin respaldo cuando la cadera se dirige hacia un lado, sin arquear la espalda para volver al centro. La participación postural se extrapola de registros de extensores lumbares en SLS, sin asumir los mismos niveles en la cosaca."
+          }
+        ]
+      },
       "public": {
         "configurations": {
           "quads_sentadilla_cosaca__default": {
-            "description": "Con peso corporal, una pierna se hunde en flexión lateral mientras la otra se extiende hacia el costado. Sin más carga que el propio cuerpo, la exigencia del cuádriceps es la justa.",
+            "description": "La posición amplia permite trasladar el cuerpo de un pie al otro sin dar pasos. En el lado estirado, el talón queda en contacto con el suelo y la punta gira hacia arriba, mientras el pie que recibe el peso conserva toda la planta apoyada.",
             "executionCues": [
-              "Paso amplio al lado y bajada lateral con la otra pierna extendida: movilidad y fuerza de piernas en un movimiento elegante. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Dobla una rodilla y desplaza la cadera hacia ese pie.",
+              "Estira la otra pierna hacia el costado con el talón apoyado y la punta hacia arriba.",
+              "Empuja desde el pie de trabajo para volver al centro sin mover los talones de sitio."
             ],
             "setupCues": [
-              "Preparación: Paso amplio al lado y bajada lateral con la otra pierna extendida: movilidad y fuerza de piernas en un movimiento elegante."
+              "Separa los pies más allá de los hombros y deja espacio para bajar hacia ambos lados.",
+              "Junta las manos delante del pecho sin apoyar los brazos sobre los muslos."
             ]
           }
         },
-        "description": "La Sentadilla Cosaca traslada el peso a un lado con la otra pierna extendida: el cuádriceps de la pierna que flexiona se hunde en un rango enorme mientras la otra pierna estira el aductor. Se ejecuta desplazándose lateralmente hasta el fondo y regresando al centro, con el peso corporal como carga suficiente. Movilidad de cadera y fuerza unilateral en un solo gesto. La sentadilla lateral que revela lo que falta por trabajar."
+        "description": "La Sentadilla Cosaca combina la flexión de una pierna con la extensión lateral de la otra, cargando el cuádriceps y el glúteo mayor del lado que baja. Desde una base amplia, el cuerpo se desplaza hacia un pie mientras la pierna opuesta queda larga, con su talón en el suelo y la punta elevada. La vuelta al centro suma la ayuda de los aductores, que también trabajan en una posición alargada. Es una forma de explorar profundidad de sentadilla y apertura de cadera sin convertir el desplazamiento en un paso."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "Describe el cuádriceps y sus funciones sobre rodilla y cadera; la extensión de rodilla de apoyo y el sostén de la pierna libre se interpretan según la tarea.",
+          "id": "quad",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Thigh Quadriceps Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30020706/"
+        },
+        {
+          "claim": "La función extensora de cadera del glúteo mayor sustenta su papel motor cuando el cuerpo asciende desde una cadera flexionada; el rol se infiere de la mecánica, no de una jerarquía EMG.",
+          "id": "glutmax",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Maximus Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30855781/"
+        },
+        {
+          "claim": "Describe aducción del muslo y soporte pélvico del grupo aductor, además de las porciones del aductor mayor; la participación en estas variantes es una extrapolación funcional.",
+          "id": "adductor",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Thigh Adductor Magnus Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30521263/"
+        },
+        {
+          "claim": "Las dos regiones del aductor mayor presentan actividad durante extensión isométrica de cadera y la proximal también durante aducción. Respalda extrapolar esas funciones sin convertir el estudio isométrico en un ensayo de pistola o cosaca.",
+          "id": "adductor_actions",
+          "title": "Adductor magnus: An EMG investigation into proximal and distal portions and direction specific action",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29520841/"
+        },
+        {
+          "claim": "El glúteo medio y menor son abductores y contribuyen a la estabilidad de pelvis y miembro inferior; no determina por sí solo el rol de una cosaca.",
+          "id": "glutmed",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Medius Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/32491441/"
+        },
+        {
+          "claim": "La pared abdominal une tórax y pelvis y produce presión abdominal y movimientos vertebrales; se infiere sostén del tronco durante estas sentadillas.",
+          "id": "abdominal",
+          "title": "Anatomy, Abdomen and Pelvis: Abdominal Wall",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31869113/"
+        },
+        {
+          "claim": "Registra actividad de extensores lumbares y oblicuos en cuatro sentadillas unilaterales, con niveles bajos. Justifica reconocer participación postural, sin prometer fuerza, hipertrofia ni igualar estas tareas a una pistola profunda.",
+          "id": "trunk_sls",
+          "title": "Trunk and hip electromyographic activity during single leg squat exercises do sex differences exist?",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/25383244/"
+        },
+        {
+          "claim": "En adultos mayores, la zancada lateral demanda momentos y potencia de los extensores y de los flexores plantares. Se extrapola solo la participación articular al gesto lateral de la cosaca; no sus porcentajes ni un reparto muscular propio.",
+          "id": "lateral_joints",
+          "title": "Biomechanical attributes of lunging activities for older adults",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/15320687/"
+        },
+        {
+          "claim": "Relaciona actividad del glúteo medio con estabilidad de pelvis y rodilla durante mini sentadillas a una pierna; se extrapola el papel de alineación, no su activación numérica.",
+          "id": "pelvis_stability",
+          "title": "The Relationship of Anticipatory Gluteus Medius Activity to Pelvic and Knee Stability in the Transition to Single-Leg Stance",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/26079865/"
+        },
+        {
+          "claim": "La anatomía cadavérica y el modelo de fuerzas muestran capacidad del glúteo mayor para comprimir la sacroilíaca y ayudar a transferir carga entre piernas y tronco. Se extrapola esa estabilización, sin atribuir mediciones articulares a estas sentadillas.",
+          "id": "sij_transfer",
+          "title": "Anatomy and biomechanics of gluteus maximus and the thoracolumbar fascia at the sacroiliac joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/23959791/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Sentadilla corporal lateral desde una base ancha y fija: una pierna se dobla profundamente mientras la opuesta queda estirada al costado. El pie del lado cargado apoya entero y el lado recto conserva el talón en el suelo con la punta hacia arriba.",
+        "keyPositions": [
+          "Centro: ambas rodillas extendidas, pies separados y cadera entre los dos apoyos.",
+          "Fondo izquierdo de la demostración: rodilla izquierda doblada y cadera baja sobre ese pie; pierna derecha larga al costado con talón derecho apoyado y punta arriba.",
+          "Retorno: el cuerpo recupera altura y se dirige al centro sin desplazar los talones."
+        ],
+        "mistakes": [
+          "Doblar la pierna que debe quedar extendida al costado.",
+          "Levantar el talón del pie cargado al profundizar la bajada.",
+          "Mover un pie para convertir el desplazamiento fijo en una zancada lateral.",
+          "Apoyar las manos en el suelo o sobre el muslo para levantarse."
+        ],
+        "phases": [
+          {
+            "description": "La pelvis se dirige hacia el pie que recibirá el cuerpo, doblando esa rodilla mientras la contraria continúa extendida.",
+            "name": "Traslado lateral"
+          },
+          {
+            "description": "La cadera queda cerca del talón del lado doblado, con toda la planta de ese pie apoyada; la pierna opuesta permanece larga con punta elevada.",
+            "name": "Posición baja"
+          },
+          {
+            "description": "El pie cargado empuja para extender rodilla y cadera y recuperar el centro de la base; los talones conservan su ubicación.",
+            "name": "Regreso al centro"
+          }
+        ],
+        "setup": [
+          "Base amplia con los dos pies en el suelo y espacio despejado a los lados.",
+          "Manos juntas ante el pecho sin apoyarlas sobre las piernas."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista frontal ligeramente oblicua para distinguir ambas piernas, los dos talones y la profundidad de la cadera.",
+          "contacts": "Pie izquierdo entero apoyado; talón derecho en el suelo con sus dedos elevados; manos juntas ante el pecho sin apoyo.",
+          "load": "Peso corporal repartido sobre el pie doblado y el contacto del talón del lado recto, sin carga externa.",
+          "orientation": "Pecho hacia la cámara, pierna izquierda doblada y pierna derecha estirada lateralmente.",
+          "phase": "Fotograma congelado en el fondo sobre la pierna izquierda del atleta, sin comenzar el retorno.",
+          "posture": "Cadera baja sobre el pie izquierdo, rodilla izquierda siguiendo sus dedos y rodilla derecha extendida al costado."
+        },
+        "byImplement": {
+          "bodyweight": {
+            "geometry": "En suelo plano, los pies siguen separados en una base fija. El pie izquierdo apoya toda la planta y el talón derecho toca el suelo con la punta elevada; las manos están juntas y vacías delante del pecho."
+          }
+        },
+        "forbidden": [
+          "Pierna recta proyectada al frente en lugar de al costado.",
+          "Talón del lado cargado elevado o ambas rodillas dobladas.",
+          "Pie de la pierna recta flotando sin contacto de su talón.",
+          "Manos apoyadas en el suelo o en un muslo, o pies desplazados para dar un paso."
+        ],
+        "promptCore": {
+          "bodyweight": "Front three-quarter view of an athlete frozen at the BOTTOM of a bodyweight Cossack squat. The athlete left knee is deeply bent with the hip low over the left foot; the whole left foot and heel are flat on the floor. The right leg extends straight to the right side of the athlete; the right heel touches the floor and its toes point upward. The wide foot positions are fixed. Both empty hands are clasped at chest height, touching no support. The chest faces forward and the hips stay above the floor. No weights, text or logos."
+        },
+        "qa": [
+          "¿La pierna izquierda del atleta está doblada y la derecha estirada hacia su costado?",
+          "¿Toda la planta izquierda, incluido el talón, está apoyada en el suelo?",
+          "¿El talón derecho toca el suelo y sus dedos apuntan hacia arriba?",
+          "¿Las manos están vacías y juntas ante el pecho, sin agarrar carga ni apoyo?",
+          "¿La cadera está baja sobre el pie izquierdo, separada del suelo, en el fotograma del fondo?"
+        ]
+      }
     }
   },
   "familyId": "lower_lateral_knee_dominant",
