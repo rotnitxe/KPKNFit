@@ -11,34 +11,78 @@ import com.example.kpkn.data.protocols.SetRecipe
 import com.example.kpkn.data.protocols.SlotRole
 import com.example.kpkn.data.protocols.TechniqueModifier
 import com.example.kpkn.data.protocols.TrainingPlanRecipe
+import com.example.kpkn.data.protocols.WeekRecipe
 import com.example.kpkn.data.protocols.asDeload
+import com.example.kpkn.data.protocols.mainWorkPercentOfOneRm
+import com.example.kpkn.data.protocols.dropT3
 import com.example.kpkn.data.protocols.replaceT1Work
 import com.example.kpkn.data.protocols.topSetAndBackoff
 import com.example.kpkn.data.protocols.weekRecipe
 
+/**
+ * Recetas de las plantillas avanzadas de la biblioteca (powerlifting, powerbuilding y culturismo).
+ *
+ * `contentVersion = 2` en las siete (B.S6 partes 1 y 2b): todas cambiaron de contenido (descargas reales,
+ * RIR sin 0 en compuestos, configuraciones propias en vez de parches de técnica, suelo de series de los
+ * accesorios). Solo cambia la identidad de los programas NUEVOS (`recipeId`, `contentVersion`, ocurrencia,
+ * día y slot); los ya activados conservan su snapshot de la versión 1 en `Program.sourceRecipe`.
+ */
 object KpknAdvancedProgramRecipes {
+    private const val CONTENT_VERSION = 2
+
     private val sbd = mapOf(
         LiftSlot.SQUAT to CatalogIds.SQ_LOW,
         LiftSlot.BENCH to CatalogIds.BP,
         LiftSlot.DEADLIFT to CatalogIds.DL,
     )
 
+    /**
+     * Semana de descarga REAL (B.S6 parte 2b, C5): `kind = DELOAD`, `blockGoal = DELOAD` y cada día pasa por
+     * [asDeload] (la mitad de las series con suelo, RIR ≥ 4, RPE ≤ 6 y porcentajes al 70 % como máximo). La
+     * semana conserva el bloque (`blockIndex`) de la semana que sustituye: las plantillas fijan su estructura
+     * por bloques, así que la descarga cierra un bloque en vez de crear uno nuevo.
+     */
+    private fun deloadOrTraining(
+        weekNumber: Int,
+        blockIndex: Int,
+        blockName: String,
+        goal: BlockGoal,
+        days: List<DayRecipe>,
+        deload: Boolean,
+    ): WeekRecipe = if (deload) {
+        weekRecipe(
+            weekNumber, blockIndex, blockName, BlockGoal.DELOAD, days.map { it.asDeload() },
+            kind = WeekExecutionKind.DELOAD,
+        )
+    } else {
+        weekRecipe(weekNumber, blockIndex, blockName, goal, days.inPeakOneRm(goal))
+    }
+
     fun plBeginner12(): TrainingPlanRecipe {
         val weeks = (1..12).map { w ->
             val (block, name, goal, squat, bench, dl) = when {
                 w <= 4 -> Quad(0, "Base", BlockGoal.ACCUMULATION, 70.0 + w, 68.0 + w, 68.0 + w / 2)
                 w <= 8 -> Quad(1, "Intensificación", BlockGoal.INTENSIFICATION, 78.0 + (w - 4), 75.0 + (w - 4), 75.0 + (w - 4))
-                else -> Quad(2, "Peak", BlockGoal.PEAK, 88.0 + (w - 9), 85.0 + (w - 9), 88.0 + (w - 9))
+                else -> Quad(2, "Pico", BlockGoal.PEAK, 88.0 + (w - 9), 85.0 + (w - 9), 88.0 + (w - 9))
             }
             val t1Sets = if (goal == BlockGoal.PEAK) 3 else 4
             val t1Reps = if (goal == BlockGoal.PEAK) 2 else if (goal == BlockGoal.INTENSIFICATION) 4 else 5
-            weekRecipe(w, block, name, goal, listOf(
-                DayArchetypes.plSquat(squat, t1Sets = t1Sets, t1Reps = t1Reps, weekday = 1, t1Amrap = w == 1 || w == 5 || w == 9),
-                DayArchetypes.plBenchHeavy(bench, t1Sets = t1Sets, t1Reps = t1Reps, weekday = 3),
-                DayArchetypes.plDeadlift(dl, t1Sets = t1Sets.coerceAtMost(3), t1Reps = t1Reps.coerceAtLeast(2), weekday = 5),
-            ))
+            // C5 (B.S6 parte 2b): las semanas 4 y 8 cierran los bloques de Base e Intensificación con una descarga real.
+            val deload = w == 4 || w == 8
+            deloadOrTraining(
+                w, block, name, goal,
+                listOf(
+                    DayArchetypes.plSquat(squat, t1Sets = t1Sets, t1Reps = t1Reps, weekday = 1, t1Amrap = w == 1 || w == 5 || w == 9),
+                    DayArchetypes.plBenchHeavy(bench, t1Sets = t1Sets, t1Reps = t1Reps, weekday = 3),
+                    DayArchetypes.plDeadlift(dl, t1Sets = t1Sets.coerceAtMost(3), t1Reps = t1Reps.coerceAtLeast(2), weekday = 5),
+                ),
+                deload,
+            )
         }
-        return TrainingPlanRecipe("power-12-3", weeks, 0.90, sbd, claimedDaysPerWeek = 3, claimedLevel = "principiante")
+        return TrainingPlanRecipe(
+            "power-12-3", weeks, 0.90, sbd,
+            claimedDaysPerWeek = 3, claimedLevel = "principiante", contentVersion = CONTENT_VERSION,
+        )
     }
 
     fun plIntermediate16(): TrainingPlanRecipe {
@@ -47,11 +91,13 @@ object KpknAdvancedProgramRecipes {
                 w <= 5 -> Quad(0, "Hipertrofia específica", BlockGoal.ACCUMULATION, 70.0 + (w - 1), 68.0 + (w - 1), 66.0 + (w - 1) / 2)
                 w <= 10 -> Quad(1, "Fuerza", BlockGoal.INTENSIFICATION, 78.0 + (w - 6), 76.0 + (w - 6), 75.0 + (w - 6))
                 w <= 14 -> Quad(2, "Pico", BlockGoal.PEAK, 88.0 + (w - 11) * 2, 86.0 + (w - 11) * 2, 88.0 + (w - 11))
-                else -> Quad(3, "Taper/Test", BlockGoal.TAPER, if (w == 15) 91.0 else 90.0, if (w == 15) 90.0 else 90.0, if (w == 15) 90.0 else 90.0)
+                else -> Quad(3, "Descarga y prueba", BlockGoal.TAPER, if (w == 15) 91.0 else 90.0, if (w == 15) 90.0 else 90.0, if (w == 15) 90.0 else 90.0)
             }
+            // C9 (B.S6 parte 2b): la técnica ya viaja en el id de la configuración (déficit en `DL_DEF`, cajón en `SQ_BOX`):
+            // el modificador sobraba y el contrato lo marcaba como redundante.
             val (sqId, sqTech, bpId, bpTech, dlId, dlTech) = when (spec.block) {
-                0 -> Variant(CatalogIds.SQ_HIGH, null, CatalogIds.BP_SPOTO, null, CatalogIds.DL_DEF, TechniqueModifier.DEFICIT)
-                1 -> Variant(CatalogIds.SQ_BOX, TechniqueModifier.BOX, CatalogIds.BP_INC, null, CatalogIds.RDL, null)
+                0 -> Variant(CatalogIds.SQ_HIGH, null, CatalogIds.BP_SPOTO, null, CatalogIds.DL_DEF, null)
+                1 -> Variant(CatalogIds.SQ_BOX, null, CatalogIds.BP_INC, null, CatalogIds.RDL, null)
                 else -> Variant(CatalogIds.SQ_LOW, null, CatalogIds.BP, null, CatalogIds.DL, null)
             }
             val drop = when (spec.goal) {
@@ -86,25 +132,27 @@ object KpknAdvancedProgramRecipes {
                     DayArchetypes.plBenchVolume((spec.bench - 8).coerceAtLeast(58.0), weekday = 5).dropT3(drop),
                 )
             }
-            weekRecipe(w, spec.block, spec.name, spec.goal, days)
+            weekRecipe(w, spec.block, spec.name, spec.goal, days.inPeakOneRm(spec.goal))
         }
-        return TrainingPlanRecipe("power-16-4", weeks, 0.90, sbd, claimedDaysPerWeek = 4, claimedLevel = "intermedio")
+        return TrainingPlanRecipe("power-16-4", weeks, 0.90, sbd, claimedDaysPerWeek = 4, claimedLevel = "intermedio", contentVersion = CONTENT_VERSION)
     }
 
     fun plAdvanced20(): TrainingPlanRecipe {
         val weeks = (1..20).map { w ->
             val spec = when {
-                w <= 6 -> Quad(0, "Acumulación", BlockGoal.ACCUMULATION, 68.0 + w, 66.0 + w, 66.0)
-                w <= 11 -> Quad(1, "Transmutación", BlockGoal.INTENSIFICATION, 78.0 + (w - 7), 76.0 + (w - 7), 74.0 + (w - 7))
-                w <= 15 -> Quad(2, "Realización", BlockGoal.SPECIFICITY, 84.0 + (w - 12), 82.0 + (w - 12), 82.0)
+                w <= 6 -> Quad(0, "Volumen", BlockGoal.ACCUMULATION, 68.0 + w, 66.0 + w, 66.0)
+                w <= 11 -> Quad(1, "Intensidad", BlockGoal.INTENSIFICATION, 78.0 + (w - 7), 76.0 + (w - 7), 74.0 + (w - 7))
+                w <= 15 -> Quad(2, "Específico", BlockGoal.SPECIFICITY, 84.0 + (w - 12), 82.0 + (w - 12), 82.0)
                 w <= 18 -> Quad(3, "Pico", BlockGoal.PEAK, 90.0 + (w - 16), 88.0 + (w - 16), 90.0)
-                else -> Quad(4, "Taper", BlockGoal.TAPER, if (w == 19) 91.0 else 90.0, if (w == 19) 90.0 else 88.0, if (w == 19) 90.0 else 88.0)
+                else -> Quad(4, "Descarga y prueba", BlockGoal.TAPER, if (w == 19) 91.0 else 90.0, if (w == 19) 90.0 else 88.0, if (w == 19) 90.0 else 88.0)
             }
+            // C9 (B.S6 parte 2b): déficit, cajón y pausa son configuraciones propias del catálogo, así que ninguna lleva además el modificador
+            // de técnica; el bloque de realización migra su peso muerto con déficit a `DL_DEF` (antes `DL` + `DEFICIT`, un parche).
+            // C-03 (M2, B.S6): la sentadilla con pausa es una configuración propia del catálogo, no `SQ_LOW` + `PAUSE_2S`.
             val (sqId, sqTech, bpId, bpTech, dlId, dlTech) = when (spec.block) {
-                0 -> Variant(CatalogIds.SQ_HIGH, null, CatalogIds.BP_SPOTO, null, CatalogIds.DL_DEF, TechniqueModifier.DEFICIT)
-                1 -> Variant(CatalogIds.SQ_BOX, TechniqueModifier.BOX, CatalogIds.BP_INC, null, CatalogIds.RDL, null)
-                // C-03 (M2, B.S6): la sentadilla con pausa es una configuración propia del catálogo, no `SQ_LOW` + `PAUSE_2S`.
-                2 -> Variant(CatalogIds.SQ_PAUSED, null, CatalogIds.BP_PAUSE, null, CatalogIds.DL, TechniqueModifier.DEFICIT)
+                0 -> Variant(CatalogIds.SQ_HIGH, null, CatalogIds.BP_SPOTO, null, CatalogIds.DL_DEF, null)
+                1 -> Variant(CatalogIds.SQ_BOX, null, CatalogIds.BP_INC, null, CatalogIds.RDL, null)
+                2 -> Variant(CatalogIds.SQ_PAUSED, null, CatalogIds.BP_PAUSE, null, CatalogIds.DL_DEF, null)
                 else -> Variant(CatalogIds.SQ_LOW, null, CatalogIds.BP, null, CatalogIds.DL, null)
             }
             val drop = when (spec.goal) {
@@ -113,10 +161,12 @@ object KpknAdvancedProgramRecipes {
                 else -> 0
             }
             val amrap = w == 1 || w == 7 || w == 12 || w == 16
+            // C9: la sentadilla con anderson (pines) y el press con cadenas son configuraciones propias; el press técnico del bloque 2 es
+            // ahora `BP_CHAINS` en el T1 (antes `BP_FLOOR` + `CHAINS_BANDS`) y el press en suelo pasa al suplementario.
             val techDay = when (spec.block) {
                 0 -> DayArchetypes.plSquat((spec.squat - 12).coerceAtLeast(58.0), t1Sets = 3, t1Reps = 5, weekday = 6, label = "Sentadilla técnica", t1ConfigurationId = CatalogIds.SQ_SSB)
-                1 -> DayArchetypes.plSquat((spec.squat - 12).coerceAtLeast(58.0), t1Sets = 3, t1Reps = 4, weekday = 6, label = "Sentadilla técnica", t1ConfigurationId = CatalogIds.SQ_PIN, t1Technique = TechniqueModifier.PIN)
-                2 -> DayArchetypes.plBenchHeavy((spec.bench - 10).coerceAtLeast(58.0), t1Sets = 3, t1Reps = 3, weekday = 6, label = "Press técnico", t1ConfigurationId = CatalogIds.BP_FLOOR, t2ConfigurationId = CatalogIds.BP_CHAINS, t1Technique = TechniqueModifier.CHAINS_BANDS)
+                1 -> DayArchetypes.plSquat((spec.squat - 12).coerceAtLeast(58.0), t1Sets = 3, t1Reps = 4, weekday = 6, label = "Sentadilla técnica", t1ConfigurationId = CatalogIds.SQ_PIN)
+                2 -> DayArchetypes.plBenchHeavy((spec.bench - 10).coerceAtLeast(58.0), t1Sets = 3, t1Reps = 3, weekday = 6, label = "Press técnico", t1ConfigurationId = CatalogIds.BP_CHAINS, t2ConfigurationId = CatalogIds.BP_FLOOR)
                 else -> DayArchetypes.plSquat((spec.squat - 12).coerceAtLeast(58.0), t1Sets = 3, t1Reps = 3, weekday = 6, label = "Sentadilla técnica")
             }
             val days = when {
@@ -149,30 +199,37 @@ object KpknAdvancedProgramRecipes {
                     techDay.dropT3(drop),
                 )
             }
-            weekRecipe(w, spec.block, spec.name, spec.goal, days)
+            weekRecipe(w, spec.block, spec.name, spec.goal, days.inPeakOneRm(spec.goal))
         }
-        return TrainingPlanRecipe("power-20-5", weeks, 0.90, sbd, claimedDaysPerWeek = 5, claimedLevel = "avanzado")
+        return TrainingPlanRecipe("power-20-5", weeks, 0.90, sbd, claimedDaysPerWeek = 5, claimedLevel = "avanzado", contentVersion = CONTENT_VERSION)
     }
 
     fun powerbuilding16(): TrainingPlanRecipe {
         val weeks = (1..16).map { w ->
             val spec = when {
-                w <= 4 -> Quad(0, "Acumulación", BlockGoal.ACCUMULATION, 70.0 + w, 68.0 + w, 68.0)
+                w <= 4 -> Quad(0, "Volumen", BlockGoal.ACCUMULATION, 70.0 + w, 68.0 + w, 68.0)
                 w <= 8 -> Quad(1, "Fuerza", BlockGoal.INTENSIFICATION, 78.0 + (w - 4), 76.0 + (w - 4), 74.0)
-                w <= 12 -> Quad(2, "Hipertrofia dirigida", BlockGoal.SPECIFICITY, 75.0, 72.0, 70.0)
-                else -> Quad(3, "Realización", BlockGoal.REALIZATION, 88.0 + (w - 13), 85.0 + (w - 13), 88.0)
+                w <= 12 -> Quad(2, "Volumen moderado", BlockGoal.SPECIFICITY, 75.0, 72.0, 70.0)
+                else -> Quad(3, "Específico", BlockGoal.REALIZATION, 88.0 + (w - 13), 85.0 + (w - 13), 88.0)
             }
             val t1Sets = if (spec.goal == BlockGoal.REALIZATION) 3 else 4
             val t1Reps = if (spec.goal == BlockGoal.REALIZATION) 2 else 5
             val drop = if (spec.goal == BlockGoal.REALIZATION) 2 else if (spec.goal == BlockGoal.INTENSIFICATION) 1 else 0
-            weekRecipe(w, spec.block, spec.name, spec.goal, listOf(
-                DayArchetypes.plSquat(spec.squat, t1Sets = t1Sets, t1Reps = t1Reps, weekday = 1).dropT3(drop),
-                DayArchetypes.bbTorso(if (w <= 8) 2 else 1).copy(weekday = 2, label = "Hipertrofia torso").dropT3(drop),
-                DayArchetypes.plDeadlift(spec.dl, weekday = 4).dropT3(drop),
-                DayArchetypes.plBenchHeavy(spec.bench, weekday = 5).dropT3(drop),
-            ))
+            // C5 (B.S6 parte 2b): las semanas 4, 8 y 12 cierran los tres primeros bloques con una descarga real; el bloque de
+            // realización es el pico y termina el plan.
+            val deload = w == 4 || w == 8 || w == 12
+            deloadOrTraining(
+                w, spec.block, spec.name, spec.goal,
+                listOf(
+                    DayArchetypes.plSquat(spec.squat, t1Sets = t1Sets, t1Reps = t1Reps, weekday = 1).dropT3(drop),
+                    DayArchetypes.bbTorso(if (w <= 8) 2 else 1).copy(weekday = 2, label = "Hipertrofia torso").dropT3(drop),
+                    DayArchetypes.plDeadlift(spec.dl, weekday = 4).dropT3(drop),
+                    DayArchetypes.plBenchHeavy(spec.bench, weekday = 5).dropT3(drop),
+                ),
+                deload,
+            )
         }
-        return TrainingPlanRecipe("powerbuild-16-4", weeks, 0.90, sbd, claimedDaysPerWeek = 4, claimedLevel = "avanzado")
+        return TrainingPlanRecipe("powerbuild-16-4", weeks, 0.90, sbd, claimedDaysPerWeek = 4, claimedLevel = "avanzado", contentVersion = CONTENT_VERSION)
     }
 
     fun hypertrophyUl12(): TrainingPlanRecipe {
@@ -200,7 +257,7 @@ object KpknAdvancedProgramRecipes {
                 kind = if (mapped.third == BlockGoal.DELOAD) WeekExecutionKind.DELOAD else WeekExecutionKind.TRAINING,
             )
         }
-        return TrainingPlanRecipe("body-12-3", weeks, claimedDaysPerWeek = 4, claimedLevel = "intermedio")
+        return TrainingPlanRecipe("body-12-3", weeks, claimedDaysPerWeek = 4, claimedLevel = "intermedio", contentVersion = CONTENT_VERSION)
     }
 
     fun ppl16(): TrainingPlanRecipe {
@@ -212,74 +269,91 @@ object KpknAdvancedProgramRecipes {
                 else -> 2
             }
             val mapped = when {
-                w <= 4 -> Triple(0, "Volumen largo", BlockGoal.ACCUMULATION)
-                w <= 8 -> Triple(1, "Especialización", BlockGoal.ACCUMULATION)
-                w <= 12 -> Triple(2, "Definición", BlockGoal.DENSITY)
-                else -> Triple(3, "Pico de hipertrofia", BlockGoal.INTENSIFICATION)
+                w <= 4 -> Triple(0, "Volumen", BlockGoal.ACCUMULATION)
+                w <= 8 -> Triple(1, "Progresión", BlockGoal.ACCUMULATION)
+                w <= 12 -> Triple(2, "Intensidad", BlockGoal.DENSITY)
+                else -> Triple(3, "Pico", BlockGoal.INTENSIFICATION)
             }
-            weekRecipe(w, mapped.first, mapped.second, mapped.third, listOf(
-                DayArchetypes.bbPush(rir).copy(weekday = 1),
-                DayArchetypes.bbPull(rir).copy(weekday = 2),
-                DayArchetypes.bbLegs(rir).copy(weekday = 3),
-                DayArchetypes.bbPush((rir - 1).coerceAtLeast(0)).copy(weekday = 4, label = "Empuje 2"),
-                DayArchetypes.bbPull((rir - 1).coerceAtLeast(0)).copy(weekday = 5, label = "Tirón 2"),
-                DayArchetypes.bbLegs((rir - 1).coerceAtLeast(0)).copy(weekday = 6, label = "Pierna 2"),
-            ))
+            // L-24 (B.S6 parte 2b): la segunda sesión de cada grupo baja un RIR pero nunca a 0 en los compuestos (antes llegaba a RIR 0
+            // en las semanas 9 a 12), como el PPL de 12 semanas.
+            val secondRir = (rir - 1).coerceAtLeast(1)
+            // C5 (B.S6 parte 2b): la última semana de cada bloque (4, 8, 12 y 16) es una descarga real.
+            val deload = w % 4 == 0
+            deloadOrTraining(
+                w, mapped.first, mapped.second, mapped.third,
+                listOf(
+                    DayArchetypes.bbPush(rir).copy(weekday = 1),
+                    DayArchetypes.bbPull(rir).copy(weekday = 2),
+                    DayArchetypes.bbLegs(rir).copy(weekday = 3),
+                    DayArchetypes.bbPush(secondRir).copy(weekday = 4, label = "Empuje 2"),
+                    DayArchetypes.bbPull(secondRir).copy(weekday = 5, label = "Tirón 2"),
+                    DayArchetypes.bbLegs(secondRir).copy(weekday = 6, label = "Pierna 2"),
+                ),
+                deload,
+            )
         }
-        return TrainingPlanRecipe("body-16-4", weeks, claimedDaysPerWeek = 6, claimedLevel = "avanzado")
+        return TrainingPlanRecipe("body-16-4", weeks, claimedDaysPerWeek = 6, claimedLevel = "avanzado", contentVersion = CONTENT_VERSION)
     }
 
     fun offSeason20(): TrainingPlanRecipe {
         val weeks = (1..20).map { w ->
             val rir = if (w % 6 == 0) 4 else ((w - 1) % 5).let { 3 - it / 2 }.coerceAtLeast(1)
             val mapped = when {
-                w <= 4 -> Triple(0, "Off-season", BlockGoal.ACCUMULATION)
+                w <= 4 -> Triple(0, "Base", BlockGoal.ACCUMULATION)
                 w <= 8 -> Triple(1, "Volumen", BlockGoal.ACCUMULATION)
-                w <= 12 -> Triple(2, "Especialización", BlockGoal.INTENSIFICATION)
-                w <= 16 -> Triple(3, "Definición", BlockGoal.DENSITY)
-                else -> Triple(4, "Pico de hipertrofia", BlockGoal.INTENSIFICATION)
+                w <= 12 -> Triple(2, "Énfasis en torso", BlockGoal.INTENSIFICATION)
+                w <= 16 -> Triple(3, "Énfasis en pierna", BlockGoal.DENSITY)
+                else -> Triple(4, "Pico", BlockGoal.INTENSIFICATION)
             }
+            // L-24 (B.S6 parte 2b): las sesiones «de volumen», «extra» y «pump» bajan un RIR pero nunca a 0 en los compuestos
+            // (antes `coerceAtLeast(0)` y una pierna «pump» a RIR 0 explícito).
             val days = when (mapped.first) {
                 0 -> listOf(
                     DayArchetypes.bbPush(rir).copy(weekday = 1),
                     DayArchetypes.bbPull(rir).copy(weekday = 2),
                     DayArchetypes.bbLegs(rir).copy(weekday = 3),
                     DayArchetypes.bbTorso(rir).copy(weekday = 5, label = "Torso extra"),
-                    DayArchetypes.bbLegs((rir - 1).coerceAtLeast(0), weekday = 6, label = "Pierna extra"),
+                    DayArchetypes.bbLegs((rir - 1).coerceAtLeast(1), weekday = 6, label = "Pierna extra"),
                 )
                 1 -> listOf(
                     DayArchetypes.bbPush(rir).copy(weekday = 1),
                     DayArchetypes.bbPull(rir).copy(weekday = 2),
                     DayArchetypes.bbLegs(rir).copy(weekday = 3),
-                    DayArchetypes.bbPush((rir - 1).coerceAtLeast(0)).copy(weekday = 5, label = "Empuje volumen"),
-                    DayArchetypes.bbPull((rir - 1).coerceAtLeast(0)).copy(weekday = 6, label = "Tirón volumen"),
+                    DayArchetypes.bbPush((rir - 1).coerceAtLeast(1)).copy(weekday = 5, label = "Empuje volumen"),
+                    DayArchetypes.bbPull((rir - 1).coerceAtLeast(1)).copy(weekday = 6, label = "Tirón volumen"),
                 )
                 2 -> listOf(
                     DayArchetypes.bbPush(rir).copy(weekday = 1, label = "Empuje especialización"),
                     DayArchetypes.bbPull(rir).copy(weekday = 2),
                     DayArchetypes.bbLegs(rir).copy(weekday = 3),
                     DayArchetypes.bbTorso(rir).copy(weekday = 5, label = "Torso especialización"),
-                    DayArchetypes.bbPush((rir - 1).coerceAtLeast(0)).copy(weekday = 6, label = "Hombro/pecho extra"),
+                    DayArchetypes.bbPush((rir - 1).coerceAtLeast(1)).copy(weekday = 6, label = "Hombro/pecho extra"),
                 )
                 3 -> listOf(
                     DayArchetypes.bbPush(rir).copy(weekday = 1),
                     DayArchetypes.bbPull(rir).copy(weekday = 2),
                     DayArchetypes.bbLegs(rir, hipDominant = true).copy(weekday = 3, label = "Pierna cadera"),
                     DayArchetypes.bbTorso(rir).copy(weekday = 5),
-                    DayArchetypes.bbLegs((rir - 1).coerceAtLeast(0)).copy(weekday = 6, label = "Pierna rodilla"),
+                    DayArchetypes.bbLegs((rir - 1).coerceAtLeast(1)).copy(weekday = 6, label = "Pierna rodilla"),
                 )
                 else -> listOf(
                     DayArchetypes.bbPush(rir.coerceAtMost(1)).copy(weekday = 1),
                     DayArchetypes.bbPull(rir.coerceAtMost(1)).copy(weekday = 2),
                     DayArchetypes.bbLegs(rir.coerceAtMost(1)).copy(weekday = 3),
                     DayArchetypes.bbTorso(rir.coerceAtMost(1)).copy(weekday = 5, label = "Torso pump"),
-                    DayArchetypes.bbLegs(0, hipDominant = true, weekday = 6, label = "Pierna pump"),
+                    DayArchetypes.bbLegs(1, hipDominant = true, weekday = 6, label = "Pierna pump"),
                 )
             }
-            weekRecipe(w, mapped.first, mapped.second, mapped.third, days)
+            // C5 (B.S6 parte 2b): las semanas de RIR 4 (6, 12 y 18) eran la «descarga» del diseño pero repetían las mismas series; ahora
+            // son descargas reales (`kind = DELOAD`, series recortadas y RIR ≥ 4). Ninguna es la primera de su bloque.
+            deloadOrTraining(w, mapped.first, mapped.second, mapped.third, days, deload = w % 6 == 0)
         }
-        return TrainingPlanRecipe("body-20-5", weeks, claimedDaysPerWeek = 5, claimedLevel = "avanzado")
+        return TrainingPlanRecipe("body-20-5", weeks, claimedDaysPerWeek = 5, claimedLevel = "avanzado", contentVersion = CONTENT_VERSION)
     }
+
+    /** L-05: los picos, realizaciones y openers de las plantillas propias son %1RM, no % del TM. */
+    private fun List<DayRecipe>.inPeakOneRm(goal: BlockGoal): List<DayRecipe> =
+        if (goal in setOf(BlockGoal.PEAK, BlockGoal.REALIZATION, BlockGoal.TAPER)) map { it.mainWorkPercentOfOneRm() } else this
 
     private fun peakDay(day: DayRecipe, topPct: Double, backPct: Double, topReps: Int): DayRecipe {
         val topSets = if (topReps <= 1) 1 else 2
@@ -322,16 +396,6 @@ object KpknAdvancedProgramRecipes {
         val dlId: String,
         val dlTech: TechniqueModifier?,
     )
-
-    private fun DayRecipe.dropT3(n: Int): DayRecipe {
-        if (n <= 0) return this
-        return copy(
-            slots = slots.map { slot ->
-                if (slot.role != SlotRole.T3_ACCESSORY) slot
-                else slot.copy(sets = slot.sets.take((slot.sets.size - n).coerceAtLeast(1)))
-            },
-        )
-    }
 
     private data class Quad(
         val block: Int,

@@ -169,6 +169,8 @@ class ProtocolAttributionTest {
             "madcow-5x5" to "Madcow (a partir de Bill Starr)",
             // El id conserva la grafía «phillipi» porque está persistido; solo cambia el texto.
             "coan-phillipi-dl" to "Ed Coan y Mark Philippi",
+            // H-06 (B.S6 parte 2b): el método es de Ernie Lilliebridge y su familia (no «Matt»); sin barra ni símbolo de sección.
+            "lilliebridge" to "Ernie Lilliebridge (familia Lilliebridge)",
         )
         expected.forEach { (id, authors) ->
             val protocol = visibleProtocols.single { it.id == id }

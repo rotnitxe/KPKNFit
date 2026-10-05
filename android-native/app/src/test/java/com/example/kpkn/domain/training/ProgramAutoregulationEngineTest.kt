@@ -18,10 +18,14 @@ import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.WorkoutLog
+import com.example.kpkn.data.programs.PROGRAM_TEMPLATES
+import com.example.kpkn.data.protocols.AutoregulationHook
+import com.example.kpkn.data.protocols.AutoregulationHookKind
 import com.example.kpkn.data.protocols.CatalogIds
 import com.example.kpkn.data.protocols.DayArchetypes
 import com.example.kpkn.data.protocols.LiftSlot
 import com.example.kpkn.data.protocols.LoadBasis
+import com.example.kpkn.data.protocols.PROTOCOL_LIBRARY
 import com.example.kpkn.data.protocols.ProgressionRule
 import com.example.kpkn.data.protocols.SetRecipe
 import com.example.kpkn.data.protocols.SlotRole
@@ -308,14 +312,35 @@ class ProgramAutoregulationEngineTest {
     }
 
     @Test
-    fun a_single_at_95_percent_is_short_and_lowers_the_tm_even_when_the_target_was_1_plus() {
-        val hit = AmrapHit(LiftSlot.DEADLIFT, 95.0, prescribedReps = 1, actualReps = 1)
-        assertTrue(ProgramAutoregulationEngine.isShortAmrap(hit))
-        assertEquals(-2.5, ProgramAutoregulationEngine.amrapTmChange(ProgressionRule.AmrapDrivenTm(), hit)!!.percentDelta!!, 1e-9)
-        // Por debajo del 90 % del TM una sola repetición con objetivo 1+ cumple y la tabla no sube nada.
-        val lighter = AmrapHit(LiftSlot.DEADLIFT, 87.5, prescribedReps = 1, actualReps = 1)
-        assertFalse(ProgramAutoregulationEngine.isShortAmrap(lighter))
-        assertNull(ProgramAutoregulationEngine.amrapTmChange(ProgressionRule.AmrapDrivenTm(), lighter))
+    fun a_single_at_95_percent_meets_a_1_plus_target_and_changes_nothing() {
+        // H-01 (B.S6 parte 2b): antes una sola repetición con objetivo 1+ desde el 90 % del TM contaba como AMRAP corto y bajaba el TM un 2,5 %.
+        // nSuns y 5/3/1 tratan 1 repetición al 95 % como un éxito: la tabla (`zeroToOneKg = 0`) ya dice «sin subida» y no hay bajada.
+        listOf(95.0, 90.0, 87.5, 70.0).forEach { percent ->
+            val hit = AmrapHit(LiftSlot.DEADLIFT, percent, prescribedReps = 1, actualReps = 1)
+            assertFalse("1 repetición con objetivo 1+ al $percent % no es un AMRAP corto", ProgramAutoregulationEngine.isShortAmrap(hit))
+            assertNull("sin propuesta de TM al $percent %", ProgramAutoregulationEngine.amrapTmChange(ProgressionRule.AmrapDrivenTm(), hit))
+            assertNull(ProgramAutoregulationEngine.amrapTmChange(ProgressionRule.CycleIncrement(2.5, 5.0), hit))
+        }
+        // Con 2 o más repeticiones sobre un 1+ la tabla sí sube (2 o 3 repeticiones: 2,5 kg).
+        val twoReps = AmrapHit(LiftSlot.DEADLIFT, 95.0, prescribedReps = 1, actualReps = 2)
+        assertEquals(2.5, ProgramAutoregulationEngine.amrapTmChange(ProgressionRule.AmrapDrivenTm(), twoReps)!!.kgDelta!!, 1e-9)
+        // Lo corto es quedarse por debajo del objetivo, también al 95 % (3+ con una sola repetición baja el TM un 2,5 %).
+        val short = AmrapHit(LiftSlot.DEADLIFT, 95.0, prescribedReps = 3, actualReps = 1)
+        assertTrue(ProgramAutoregulationEngine.isShortAmrap(short))
+        assertEquals(-2.5, ProgramAutoregulationEngine.amrapTmChange(ProgressionRule.AmrapDrivenTm(), short)!!.percentDelta!!, 1e-9)
+        // Sin mínimo declarado el AMRAP nunca es corto.
+        assertFalse(ProgramAutoregulationEngine.isShortAmrap(AmrapHit(LiftSlot.DEADLIFT, 95.0, prescribedReps = 0, actualReps = 0)))
+    }
+
+    @Test
+    fun the_one_rep_of_a_1_plus_does_not_count_as_short_for_the_cycle_close_freeze() {
+        // El 1+ al 95 % de nSuns y de la semana 3 del 5/3/1 con una sola repetición cumple el objetivo: no cuenta para «un lift con AMRAP
+        // corto no sube» (`shortAmrapLifts` filtra con la misma definición de AMRAP corto que `amrapTmChange`).
+        val hits = listOf(
+            AmrapHit(LiftSlot.SQUAT, 95.0, prescribedReps = 1, actualReps = 1),
+            AmrapHit(LiftSlot.BENCH, 95.0, prescribedReps = 1, actualReps = 0),
+        )
+        assertEquals(listOf(false, true), hits.map { ProgramAutoregulationEngine.isShortAmrap(it) })
     }
 
     @Test
@@ -734,6 +759,75 @@ class ProgramAutoregulationEngineTest {
         assertTrue(entry.resolutionReason, entry.resolutionReason.contains("no indica a qué levantamiento"))
     }
 
+    // ─── B.S6 parte 2b · H-05: el AMRAP de una receta sin regla de progresión no mueve el TM ─────────
+
+    private fun publishedProgram(recipe: TrainingPlanRecipe): Program = PlanMaterializer.materialize(
+        Program(
+            id = "pub-${recipe.id}",
+            name = recipe.id,
+            structure = ProgramStructure.COMPLEX,
+            powerliftingProfile = PowerliftingProfile(squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 220.0, overhead1RM = 80.0),
+            autoregulationMode = AutoregulationMode.PROPOSE,
+        ),
+        recipe,
+        CatalogCompositionTestSupport.metadata,
+        SeqIds(),
+        strict = false,
+    ).copy(autoregulationMode = AutoregulationMode.PROPOSE)
+
+    @Test
+    fun the_amrap_of_a_recipe_without_a_progression_rule_or_the_amrap_hook_never_moves_the_tm() {
+        // Cube (PM de repeticiones), Lilliebridge (banca con AMRAP en las semanas pares) y la plantilla de powerlifting de 12 semanas llevan
+        // series AMRAP marcadas, pero su `progression` es `None` y no declaran el gancho `AMRAP_TM`: el método no usa el AMRAP para ajustar
+        // el TM. Antes un AMRAP corto caía en la rama «otra regla» y proponía bajar el TM un 2,5 %.
+        val cases = listOf(
+            PROTOCOL_LIBRARY.first { it.id == "cube-method" }.recipe!! to LiftSlot.DEADLIFT,
+            PROTOCOL_LIBRARY.first { it.id == "lilliebridge" }.recipe!! to LiftSlot.BENCH,
+            PROGRAM_TEMPLATES.first { it.id == "power-12-3" }.recipe!! to LiftSlot.SQUAT,
+        )
+        cases.forEach { (recipe, lift) ->
+            assertEquals("${recipe.id}: sin regla", ProgressionRule.None, recipe.progression)
+            assertTrue("${recipe.id}: sin gancho AMRAP_TM", recipe.autoregulationHooks.none { it.kind == AutoregulationHookKind.AMRAP_TM })
+            assertTrue(
+                "${recipe.id}: lleva series AMRAP",
+                recipe.weeks.any { week -> week.days.any { day -> day.slots.any { slot -> slot.sets.any { it.amrap } } } },
+            )
+            assertFalse("${recipe.id}: su AMRAP no mueve el TM", ProgramAutoregulationEngine.amrapMovesTm(recipe))
+            val program = publishedProgram(recipe)
+            val week = firstWeek(program)
+            fun adjustments(candidate: TrainingPlanRecipe, hit: AmrapHit): List<AutoregulationProposal> =
+                ProgramAutoregulationEngine.evaluate(
+                    program = program,
+                    completedWeek = week,
+                    logs = emptyList(),
+                    recipe = candidate,
+                    signals = WeeklyAutoregulationSignals(amrapHits = listOf(hit), readinessScore = 80),
+                ).filter { it.kind == AutoregulationProposalKind.ADJUST_TM }
+
+            val short = AmrapHit(lift, 70.0, prescribedReps = 8, actualReps = 5)
+            val long = AmrapHit(lift, 70.0, prescribedReps = 8, actualReps = 12)
+            assertTrue("${recipe.id}: un AMRAP corto no baja el TM", adjustments(recipe, short).isEmpty())
+            assertTrue("${recipe.id}: uno largo tampoco lo sube", adjustments(recipe, long).isEmpty())
+
+            // Con una regla de progresión, o con el gancho `AMRAP_TM`, el MISMO AMRAP corto sí propone bajar el TM un 2,5 %.
+            val withRule = adjustments(recipe.copy(progression = ProgressionRule.CycleIncrement(2.5, 5.0)), short).single()
+            assertEquals(lift.name, withRule.liftSlot)
+            assertEquals(-2.5, withRule.percentDelta!!, 1e-9)
+            val hooked = recipe.copy(autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.AMRAP_TM)))
+            assertTrue(ProgramAutoregulationEngine.amrapMovesTm(hooked))
+            assertEquals(-2.5, adjustments(hooked, short).single().percentDelta!!, 1e-9)
+        }
+    }
+
+    @Test
+    fun recipes_with_a_rule_or_the_hook_keep_proposing_from_their_amrap() {
+        // Contraste con H-05: las recetas publicadas con regla o con gancho (nSuns, GZCLP, 5/3/1, Juggernaut, SBS, J&T) siguen proponiendo.
+        listOf("nsuns-531-lp-4d", "gzclp", "wendler-531-bbb", "juggernaut-2", "kpkn-sbs-rtf", "gzcl-jt-2").forEach { id ->
+            assertTrue("$id: su AMRAP mueve el TM", ProgramAutoregulationEngine.amrapMovesTm(PROTOCOL_LIBRARY.first { it.id == id }.recipe!!))
+        }
+        assertFalse(ProgramAutoregulationEngine.amrapMovesTm(PROTOCOL_LIBRARY.first { it.id == "kpkn-rts-style" }.recipe!!))
+    }
+
     // ─── B.S6 parte 2a · DEC-w3-07: la propuesta de variante técnica se retira ───────────────────
 
     @Test
@@ -846,23 +940,36 @@ class ProgramProgressEngineAutoregulationTest {
             weeks = listOf(
                 com.example.kpkn.data.protocols.weekRecipe(
                     1, 0, "A", com.example.kpkn.data.models.BlockGoal.ACCUMULATION,
-                    listOf(DayArchetypes.plBenchHeavy(70.0, weekday = 1)),
+                    listOf(DayArchetypes.plBenchHeavy(85.0, t1Reps = 5, weekday = 1, t1Amrap = true)),
                 ),
                 com.example.kpkn.data.protocols.weekRecipe(
                     2, 0, "A", com.example.kpkn.data.models.BlockGoal.ACCUMULATION,
-                    listOf(DayArchetypes.plBenchHeavy(72.5, weekday = 1)),
+                    listOf(DayArchetypes.plBenchHeavy(87.5, t1Reps = 5, weekday = 1, t1Amrap = true)),
                 ),
             ),
             liftSlots = mapOf(LiftSlot.BENCH to CatalogIds.BP, LiftSlot.SQUAT to CatalogIds.SQ_LOW, LiftSlot.DEADLIFT to CatalogIds.DL),
+            progression = ProgressionRule.AmrapDrivenTm(),
+            autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.AMRAP_TM)),
         )
         val program = PlanMaterializer.materialize(
-            Program(id = "hook-p", name = "Hook", structure = ProgramStructure.COMPLEX, autoregulationMode = AutoregulationMode.PROPOSE),
+            Program(
+                id = "hook-p",
+                name = "Hook",
+                structure = ProgramStructure.COMPLEX,
+                autoregulationMode = AutoregulationMode.PROPOSE,
+                powerliftingProfile = PowerliftingProfile(bench1RM = 200.0, benchTM = 180.0),
+            ),
             recipe,
             CatalogCompositionTestSupport.metadata,
             SeqIds(),
         ).copy(autoregulationMode = AutoregulationMode.PROPOSE)
         val week = program.macrocycles.first().blocks.first().mesocycles.first().weeks.first()
         val session = week.sessions.first()
+        val bench = session.allExercises().first { it.catalogConfigurationId == CatalogIds.BP }
+        val amrapSet = bench.sets.single { it.isAmrap }
+        assertEquals(5, amrapSet.targetReps)
+        assertEquals(85.0, amrapSet.targetPercentageRM ?: -1.0, 0.001)
+        assertEquals(153.0, amrapSet.weight ?: -1.0, 0.001)
         val log = WorkoutLog(
             id = "log1",
             programId = program.id,
@@ -873,10 +980,10 @@ class ProgramProgressEngineAutoregulationTest {
             weekId = week.id,
             completedExercises = listOf(
                 CompletedExercise(
-                    exerciseId = session.allExercises().first().id,
+                    exerciseId = bench.id,
                     exerciseName = "Bench",
                     catalogConfigurationId = CatalogIds.BP,
-                    sets = listOf(CompletedSet(id = "s", weight = 100.0, reps = 1, amrapPerformed = true, rpe = 9.5)),
+                    sets = listOf(CompletedSet(id = amrapSet.id, weight = 153.0, reps = 6, amrapPerformed = true, rpe = 8.0)),
                 ),
             ),
         )
@@ -887,7 +994,14 @@ class ProgramProgressEngineAutoregulationTest {
             weekInstanceId = week.id,
             logs = listOf(log),
             weeklySignals = WeeklyAutoregulationSignals(
-                amrapHits = listOf(AmrapHit(LiftSlot.BENCH, 95.0, 5, 1, 9.5)),
+                amrapHits = listOf(AmrapHit(
+                    liftSlot = LiftSlot.BENCH,
+                    percent = 85.0,
+                    prescribedReps = 5,
+                    actualReps = 6,
+                    meanRpe = 8.0,
+                    weightRatio = 1.0,
+                )),
                 readinessScore = 70,
             ),
             compositionMetadata = CatalogCompositionTestSupport.metadata,
@@ -895,5 +1009,9 @@ class ProgramProgressEngineAutoregulationTest {
         assertTrue(result.advancedWeek)
         assertEquals(PendingProgramActionType.CONFIRM_AUTOREGULATION, result.program.runState?.pendingAction?.type)
         assertTrue(result.autoregulationProposals.isNotEmpty())
+        val proposal = result.autoregulationProposals.single()
+        assertEquals(AutoregulationProposalKind.ADJUST_TM, proposal.kind)
+        assertEquals(LiftSlot.BENCH.name, proposal.liftSlot)
+        assertEquals(7.5, proposal.kgDelta ?: -1.0, 0.001)
     }
 }

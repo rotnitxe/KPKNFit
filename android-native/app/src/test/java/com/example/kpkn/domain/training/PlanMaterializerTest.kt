@@ -58,7 +58,7 @@ class PlanMaterializerTest {
                 LiftSlot.BENCH to CatalogIds.BP,
                 LiftSlot.DEADLIFT to CatalogIds.DL,
             ),
-            claimedDaysPerWeek = 4,
+            claimedDaysPerWeek = 1,
         )
     }
 
@@ -797,5 +797,83 @@ class PlanMaterializerTest {
         assertEquals("la semana efectiva y su versión no cambian", recipe.weeks.first(), kept.weekRecipe)
         assertEquals(4, kept.version)
         assertEquals(listOf("native-cycle-c2", "p-1"), program.nativeProgressionAudit.map { it.proposalId })
+    }
+
+    // ─── B.S6 parte 2b: los kg de las correcciones del revisor (H-04, H-06/L-07, H-07) ──────────
+
+    private fun materializePublished(id: String, profile: PowerliftingProfile): Program =
+        PlanMaterializer.materialize(
+            Program(id = "kg-$id", name = id),
+            PROTOCOL_LIBRARY.first { it.id == id }.recipe!!,
+            CatalogCompositionTestSupport.metadata,
+            SeqIds(),
+            profile = profile,
+        )
+
+    @Test
+    fun lilliebridge_heavy_deadlift_resolves_to_170_174_180_and_184_kg_with_a_200_kg_one_rm() {
+        // L-07: el lunes de las semanas pares es un peso muerto pesado de 2 singles al 85, 87, 90 y 92 %, y Lilliebridge pesa sobre el 1RM
+        // (TM al 100 %): con un 1RM de 200 kg son 170, 174, 180 y 184 kg. Las semanas impares llevan la sentadilla pesada el lunes.
+        val program = materializePublished("lilliebridge", PowerliftingProfile(squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 200.0))
+        val weeks = weeksOf(program)
+        assertEquals(10, weeks.size)
+        listOf(2 to 170.0, 4 to 174.0, 6 to 180.0, 8 to 184.0).forEach { (weekNumber, kg) ->
+            val deadlift = weeks[weekNumber - 1].sessions.flatMap { it.allExercises() }
+                .first { it.catalogConfigurationId == CatalogIds.DL && it.slotRole == SlotRole.T1_MAIN }
+            assertEquals("semana $weekNumber: dos singles", 2, deadlift.sets.size)
+            deadlift.sets.forEach { set ->
+                assertEquals("semana $weekNumber: carga del peso muerto pesado", kg, set.weight ?: -1.0, 0.01)
+                assertEquals("semana $weekNumber: un single", 1, set.targetReps)
+            }
+            assertTrue("semana $weekNumber: la última serie es el top set", deadlift.sets.last().isTopSet)
+        }
+        // Las semanas impares no tienen peso muerto pesado: su lunes es la sentadilla pesada (87, 90, 92, 95 y 90 % de 200 kg).
+        listOf(1 to 174.0, 3 to 180.0, 5 to 184.0, 7 to 190.0, 9 to 180.0).forEach { (weekNumber, kg) ->
+            val squat = weeks[weekNumber - 1].sessions.flatMap { it.allExercises() }
+                .first { it.catalogConfigurationId == CatalogIds.SQ_LOW && it.slotRole == SlotRole.T1_MAIN }
+            squat.sets.forEach { assertEquals("semana $weekNumber: sentadilla pesada", kg, it.weight ?: -1.0, 0.01) }
+        }
+    }
+
+    @Test
+    fun texas_3d_deadlift_volume_and_recovery_press_resolve_against_the_5rm_training_max() {
+        // H-07 (D7): con el TM al 87 % del 1RM, el peso muerto 1×5 del lunes va al 90 % del TM (el peso del volumen) y el press de
+        // recuperación 3×5 del miércoles al 80 % del TM. Con 1RM de 220 kg y 80 kg: TM 191,4 kg y 69,6 kg.
+        val program = materializePublished(
+            "texas-method-3d",
+            PowerliftingProfile(squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 220.0, overhead1RM = 80.0),
+        )
+        val week = weeksOf(program)[1]
+        val byName = week.sessions.associateBy { it.name }
+        val deadliftTm = 220.0 * 0.87
+        val overheadTm = 80.0 * 0.87
+        val deadlift = byName.getValue("Volumen 5x5").allExercises().first { it.catalogConfigurationId == CatalogIds.DL }
+        assertEquals(1, deadlift.sets.size)
+        assertEquals("peso muerto del lunes al 90 % del TM", deadliftTm * 0.90, deadlift.sets.single().weight ?: -1.0, 0.01)
+        assertTrue("más pesado que el 70 % del TM de antes", (deadlift.sets.single().weight ?: 0.0) > deadliftTm * 0.70 + 20.0)
+        val press = byName.getValue("Recuperación").allExercises().first { it.catalogConfigurationId == CatalogIds.OHP }
+        assertEquals(3, press.sets.size)
+        press.sets.forEach { assertEquals("press del miércoles al 80 % del TM", overheadTm * 0.80, it.weight ?: -1.0, 0.01) }
+    }
+
+    @Test
+    fun gzclp_t2_resolves_kilos_on_the_four_days_and_the_press_day_t2_uses_the_bench_tm() {
+        // H-04: los cuatro T2 salían sin `liftSlot` y, sin base de carga, sin kilos. Con TM 180 / 108 / 198 / 72 el T2 de la semana 1 (3×10 al
+        // 65 % del TM de SU levantamiento) pesa 117 kg (sentadilla frontal), 70,2 kg (banca inclinada), 128,7 kg (rumano) y 70,2 kg (la
+        // banca del día de press militar: con el TM del press militar serían 46,8 kg).
+        val program = materializePublished(
+            "gzclp",
+            PowerliftingProfile(squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 220.0, overhead1RM = 80.0),
+        )
+        val week1 = weeksOf(program).first()
+        val expected = mapOf("Sentadilla" to 117.0, "Banca" to 70.2, "Peso muerto" to 128.7, "Press militar" to 70.2)
+        expected.forEach { (day, kg) ->
+            val t2 = week1.sessions.first { it.name == day }.allExercises().first { it.slotRole == SlotRole.T2_SUPPLEMENTAL }
+            assertEquals("$day: 3 series de T2", 3, t2.sets.size)
+            t2.sets.forEach { assertEquals("$day: T2 al 65 % del TM", kg, it.weight ?: -1.0, 0.01) }
+        }
+        val pressDayT2 = week1.sessions.first { it.name == "Press militar" }.allExercises().first { it.slotRole == SlotRole.T2_SUPPLEMENTAL }
+        assertEquals(CatalogIds.BP, pressDayT2.catalogConfigurationId)
+        assertTrue("no carga con el TM del press militar", (pressDayT2.sets.first().weight ?: 0.0) > 46.8 + 10.0)
     }
 }

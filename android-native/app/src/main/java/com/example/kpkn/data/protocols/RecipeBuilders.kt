@@ -149,12 +149,23 @@ fun weekRecipe(
     weekName = weekName,
 )
 
-fun DayRecipe.dropT3(n: Int): DayRecipe {
+/**
+ * Quita [n] series de trabajo a cada accesorio (T3) del día, sin pasar de [minSets] series por slot.
+ *
+ * H-03 (B.S6 parte 2b): el suelo ya no es de 1 serie en todas partes. El contrato de receta (C1) solo
+ * admite un T3 de una serie en las semanas de PICO, REALIZACIÓN, TAPER o DESCARGA; en el resto (p. ej. la
+ * intensificación) un accesorio de 2 series, como el encogimiento 2×8, no puede quedar en 1. Por eso el
+ * suelo por defecto es 2 y solo baja a 1 cuando el recorte es de 2 series o más, que es lo que piden esas
+ * semanas de pico, taper o descarga (`dropT3(2)`); la intensificación recorta una sola serie (`dropT3(1)`).
+ * Una receta que necesite otro suelo lo pasa en [minSets]. Un slot con menos series que el suelo se queda
+ * como está: nunca se añaden series.
+ */
+fun DayRecipe.dropT3(n: Int, minSets: Int = if (n >= 2) 1 else 2): DayRecipe {
     if (n <= 0) return this
     return copy(
         slots = slots.map { slot ->
             if (slot.role != SlotRole.T3_ACCESSORY) slot
-            else slot.copy(sets = slot.sets.take((slot.sets.size - n).coerceAtLeast(1)))
+            else slot.copy(sets = slot.sets.take((slot.sets.size - n).coerceAtLeast(minSets)))
         },
     )
 }
@@ -275,4 +286,22 @@ fun kpknOwnSource(
     reviewedAt = "2026-09-13",
     catalogRevision = "v2-approved-2026-08-12-a",
     approvedBy = "KPKN Editorial",
+)
+
+/**
+ * L-05/B.S6: los porcentajes de trabajo T1 de pico y test están escritos sobre el 1RM.
+ * Las etapas anteriores conservan su TM; el llamador aplica esto solo en las semanas
+ * PEAK/REALIZATION/TAPER que declara sobre 1RM. Las series por esfuerzo o referencia
+ * observada y las aproximaciones conservan su base de carga.
+ */
+fun DayRecipe.mainWorkPercentOfOneRm(): DayRecipe = copy(
+    slots = slots.map { slot ->
+        if (slot.role != SlotRole.T1_MAIN) slot else slot.copy(
+            sets = slot.sets.map { set ->
+                if (!set.isWarmup && set.percent != null && set.loadBasis == LoadBasis.PERCENT_TM && set.reference == null) {
+                    set.copy(loadBasis = LoadBasis.PERCENT_1RM)
+                } else set
+            },
+        )
+    },
 )

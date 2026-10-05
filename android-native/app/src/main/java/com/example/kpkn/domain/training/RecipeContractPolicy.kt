@@ -16,11 +16,6 @@ import com.example.kpkn.data.protocols.TechniqueModifier
 import com.example.kpkn.data.protocols.TrainingPlanRecipe
 import com.example.kpkn.data.protocols.WeekRecipe
 import com.example.kpkn.domain.text.SpanishPlurals
-import java.util.Locale
-import kotlin.math.abs
-
-/** Medida del porcentaje de una serie: el valor crudo de la receta o el %1RM efectivo. */
-private typealias PercentMeasure = (SetRecipe, SlotRecipe, WeekRecipe) -> Double?
 
 /**
  * Contrato de receta válida (B.S2 del plan de curaduría de programas).
@@ -30,15 +25,15 @@ private typealias PercentMeasure = (SetRecipe, SlotRecipe, WeekRecipe) -> Double
  * vacías, días declarados, descarga, consumidor de la progresión, base del porcentaje, enlaces
  * `supplementalOf`, técnica redundante y semanas idénticas.
  *
- * Estado actual: **modo inventario**. [evaluate] emite todo como [CompositionSeverity.SOFT] y
- * `SessionCompositionPolicy.evaluateRecipeRaw` lo suma al final, así que `hardFindings` no
- * cambia. B.S6 corrige los datos, declara exenciones justificadas (de 25 caracteres o más) y
- * pasa el contrato a HARD llamando con `CompositionSeverity.HARD`; C10 queda siempre como aviso.
+ * B.S6: la ruta de validación pide [CompositionSeverity.HARD] para C1–C9; [evaluate]
+ * conserva el modo SOFT explícito para el inventario. C10 queda siempre como aviso.
+ * C7 se cumple en [SessionCompositionPolicy] usando [PercentBasis] en H/W/BLOCK/taper,
+ * sin mantener una segunda implementación de esos chequeos.
  *
  * Los ámbitos usan el formato de la política (`w{n}/{día}`, `w{n}`, `block{i}/{nombre}`) más
  * `recipe` para lo que cuelga de la receta entera y una forma por slot, `w{n}/{día}/{slot}`, para
  * los hallazgos de un slot concreto. Por regla: C1, C3, C8 y C9 por slot; C2 por día; C4 y C10 por
- * semana; C7 por día, semana o bloque; C5 y C6 `recipe`. Así
+ * semana; C5 y C6 `recipe`. C7 se cumple en la política de intensidad compartida. Así
  * [SessionCompositionPolicy.applyExemptions] los filtra igual que al resto de reglas y B.S6 puede
  * declarar exenciones por slot (p. ej. el slot `t1` del día «Banca/OHP» en cualquier semana: `w*`
  * seguido de la barra, `Banca/OHP`, la barra y `t1`). El glob está anclado: el glob de día (`w*`,
@@ -88,23 +83,6 @@ object RecipeContractPolicy {
     private const val DELOAD_REQUIRED_FROM_WEEKS = 8
     private const val IDENTICAL_WEEKS_RUN = 3
 
-    // Umbrales de porcentaje que la política mide hoy sobre el valor crudo (los espeja C7).
-    private const val ACCUMULATION_CEILING = 80.0
-    private const val INTENSIFICATION_FLOOR = 77.0
-    private const val PEAK_FLOOR = 85.0
-    private const val DELOAD_CEILING = 70.0
-    private const val TAPER_MIN_DAYS = 7
-    private const val TAPER_MAX_DAYS = 10
-    private const val PERCENT_EPSILON = 1e-9
-
-    /** Bloques en los que H8 exige 1-6 repeticiones en las series pesadas del T1. */
-    private val STRENGTH_GOALS: Set<BlockGoal> = setOf(
-        BlockGoal.INTENSIFICATION,
-        BlockGoal.PEAK,
-        BlockGoal.REALIZATION,
-        BlockGoal.SPECIFICITY,
-    )
-
     /**
      * Hallazgos del contrato de [recipe], sin filtrar por exenciones. Con [severity] distinto de
      * SOFT, todas las reglas salen con esa severidad salvo C10, que es siempre aviso.
@@ -121,7 +99,6 @@ object RecipeContractPolicy {
         findings += checkClaimedDays(recipe)
         findings += checkDeloadRequired(recipe)
         findings += checkProgressionConsumer(recipe)
-        findings += checkPercentBasis(recipe, metadata)
         findings += checkSupplementalLinks(recipe, metadata)
         findings += checkRedundantTechnique(recipe)
         findings += checkIdenticalWeeks(recipe)
@@ -145,10 +122,6 @@ object RecipeContractPolicy {
         "${dayScope(week, day)}/${slot.id}"
 
     private fun weekScope(week: WeekRecipe): String = "w${week.weekNumber}"
-
-    private fun fmt(value: Double): String = String.format(Locale.ROOT, "%.1f", value)
-
-    private fun fmtOrDash(value: Double?): String = if (value == null) "—" else "${fmt(value)} %"
 
     // ─── C1 · series de trabajo por slot ──────────────────────────────────────────
 
@@ -413,346 +386,8 @@ object RecipeContractPolicy {
             }
         }
 
-    // ─── C7 · base del porcentaje (TM frente a 1RM) ───────────────────────────────
-
-    /**
-     * C7: la política compara hoy el `percent` crudo en BLOCK, H5a, H8, H9, W3, W4 y la última
-     * pesada del taper, aunque casi siempre sea un porcentaje del TM. Aquí cada chequeo se repite
-     * con el %1RM efectivo ([PercentBasis.effective1RmPercent]) y se emite un hallazgo cuando el
-     * veredicto cambiaría. Las series que no se pueden expresar sobre el 1RM (REP_MAX, RPE,
-     * referencia de trabajo observado o lastre) se miden con su valor crudo en las dos pasadas, de
-     * modo que solo cuenta la conversión TM→1RM y la resolución de `PERCENT_OF_TOP_SET`. No
-     * cambia ninguna de esas reglas: solo inventaría. Sin ninguna conversión en la receta (TM del
-     * 100 %, bases en 1RM o series sin porcentaje) no hay nada que comparar y sale vacío al instante.
-     */
-    private fun checkPercentBasis(
-        recipe: TrainingPlanRecipe,
-        metadata: ExerciseCompositionMetadataProvider,
-    ): List<CompositionFinding> {
-        val trainingMax = recipe.trainingMaxPercent
-        val raw: PercentMeasure = { set, _, _ -> set.percent }
-        val effective: PercentMeasure = { set, slot, week ->
-            PercentBasis.effective1RmPercent(set, slot, week, trainingMax) ?: set.percent
-        }
-        if (!conversionChangesAnyPercent(recipe, effective)) return emptyList()
-        val cache = HashMap<String, ExerciseCompositionMetadata?>()
-        val metaOf: (String) -> ExerciseCompositionMetadata? = { id ->
-            if (cache.containsKey(id)) cache[id] else metadata.metadata(id).also { cache[id] = it }
-        }
-        val findings = mutableListOf<CompositionFinding>()
-        recipe.weeks.forEach { week ->
-            week.days.forEach { day -> addDayBasisFindings(findings, day, week, metaOf, raw, effective) }
-            addWeekBasisFindings(findings, week, metaOf, raw, effective)
-        }
-        addBlockBasisFindings(findings, recipe, raw, effective)
-        return findings
-    }
-
-    private fun conversionChangesAnyPercent(recipe: TrainingPlanRecipe, effective: PercentMeasure): Boolean =
-        recipe.weeks.any { week ->
-            week.days.any { day ->
-                day.slots.any { slot ->
-                    slot.sets.any { set ->
-                        val rawPercent = set.percent
-                        rawPercent != null && abs((effective(set, slot, week) ?: rawPercent) - rawPercent) > PERCENT_EPSILON
-                    }
-                }
-            }
-        }
-
-    private fun verdictLabel(fires: Boolean): String = if (fires) "hay hallazgo" else "no hay hallazgo"
-
-    private fun heavySetsLabel(count: Int): String = SpanishPlurals.withNoun(count, "serie pesada", "series pesadas")
-
-    private fun pairsLabel(count: Int): String = SpanishPlurals.withNoun(count, "par", "pares")
-
-    private fun daysOrDash(days: Int?): String = if (days == null) "— días" else SpanishPlurals.days(days)
-
-    /** Emite el hallazgo de C7 solo si el veredicto crudo y el efectivo difieren; los textos se construyen entonces. */
-    private inline fun emitIfChanged(
-        findings: MutableList<CompositionFinding>,
-        check: String,
-        item: String,
-        scope: String,
-        rawFires: Boolean,
-        effectiveFires: Boolean,
-        rawDetail: () -> String,
-        effectiveDetail: () -> String,
-    ) {
-        if (rawFires == effectiveFires) return
-        val label = if (item.isEmpty()) check else "$check $item"
-        findings += finding(
-            C7_PERCENT_BASIS,
-            scope,
-            "$label: con el % crudo ${verdictLabel(rawFires)} (${rawDetail()}) y con el %1RM efectivo " +
-                "${verdictLabel(effectiveFires)} (${effectiveDetail()})",
-        )
-    }
-
-    /** Serie pesada según la política: top set o al menos el 85 % medido con [percentOf]. */
-    private fun isHeavy(set: SetRecipe, slot: SlotRecipe, week: WeekRecipe, percentOf: PercentMeasure): Boolean =
-        set.isTopSet || (percentOf(set, slot, week) ?: 0.0) >= SessionCompositionPolicy.HEAVY_PERCENT
-
-    private fun peakLabel(slot: SlotRecipe, week: WeekRecipe, percentOf: PercentMeasure): String =
-        fmtOrDash(slot.sets.mapNotNull { percentOf(it, slot, week) }.maxOrNull())
-
-    /** H5a cuenta el slot como axial pesado si no cuelga de otro y alguna serie es pesada (o REP_MAX). */
-    private fun isHeavyAxial(slot: SlotRecipe, week: WeekRecipe, percentOf: PercentMeasure): Boolean =
-        slot.supplementalOf == null &&
-            slot.sets.any { set -> isHeavy(set, slot, week, percentOf) || set.loadBasis == LoadBasis.REP_MAX }
-
-    /** Series del T1 «pesadas» con menos de 1 o más de 6 repeticiones (H8). */
-    private fun heavyOutOfRepRange(slot: SlotRecipe, week: WeekRecipe, percentOf: PercentMeasure): Int =
-        slot.sets.count { set ->
-            if (set.isWarmup) return@count false
-            val reps = set.reps ?: set.repsMax ?: 0
-            isHeavy(set, slot, week, percentOf) && reps > 0 && reps !in 1..6
-        }
-
-    /** H5a, H8 y H9: chequeos de un día. */
-    private fun addDayBasisFindings(
-        findings: MutableList<CompositionFinding>,
-        day: DayRecipe,
-        week: WeekRecipe,
-        metaOf: (String) -> ExerciseCompositionMetadata?,
-        raw: PercentMeasure,
-        effective: PercentMeasure,
-    ) {
-        val scope = dayScope(week, day)
-
-        // H5a: más de un axial T1/T2 a ≥ 85 % o top set.
-        val axialSlots = day.slots.filter { slot ->
-            (slot.role == SlotRole.T1_MAIN || slot.role == SlotRole.T2_SUPPLEMENTAL) &&
-                (metaOf(slot.lift.configurationId)?.axialLoadFactor ?: 0.0) >= SessionCompositionPolicy.AXIAL_SLOT_THRESHOLD
-        }
-        if (axialSlots.size > 1) {
-            val rawHeavy = axialSlots.count { isHeavyAxial(it, week, raw) }
-            val effectiveHeavy = axialSlots.count { isHeavyAxial(it, week, effective) }
-            emitIfChanged(
-                findings, "H5a", "", scope, rawHeavy > 1, effectiveHeavy > 1,
-                { "axiales T1/T2: " + axialSlots.joinToString { "${it.id} ${peakLabel(it, week, raw)}" } },
-                { "axiales T1/T2: " + axialSlots.joinToString { "${it.id} ${peakLabel(it, week, effective)}" } },
-            )
-        }
-
-        // H8: en bloques de fuerza o pico, series pesadas del T1 fuera de 1-6 repeticiones.
-        if (week.blockGoal in STRENGTH_GOALS) {
-            day.slots.forEach { slot ->
-                if (slot.role != SlotRole.T1_MAIN) return@forEach
-                val rawOut = heavyOutOfRepRange(slot, week, raw)
-                val effectiveOut = heavyOutOfRepRange(slot, week, effective)
-                emitIfChanged(
-                    findings, "H8", slot.id, scope, rawOut > 0, effectiveOut > 0,
-                    { "T1 ${peakLabel(slot, week, raw)}, ${heavySetsLabel(rawOut)} fuera de 1-6 repeticiones" },
-                    { "T1 ${peakLabel(slot, week, effective)}, ${heavySetsLabel(effectiveOut)} fuera de 1-6 repeticiones" },
-                )
-            }
-        }
-
-        // H9: solo el T1 sube su suelo de descanso (de 180 a 240 s) cuando alguna serie es pesada.
-        day.slots.forEach { slot ->
-            if (slot.role != SlotRole.T1_MAIN) return@forEach
-            val rawHeavy = slot.sets.any { (raw(it, slot, week) ?: 0.0) >= SessionCompositionPolicy.HEAVY_PERCENT }
-            val effectiveHeavy = slot.sets.any { (effective(it, slot, week) ?: 0.0) >= SessionCompositionPolicy.HEAVY_PERCENT }
-            if (rawHeavy == effectiveHeavy) return@forEach
-            val meta = metaOf(slot.lift.configurationId)
-            val isolation = CompositionTaxonomy.isIsolation(
-                CompositionTaxonomy.familyOf(meta?.movementPatternId),
-                meta?.articulationType,
-                slot.lift.configurationId,
-            )
-            val rawMinimum = SessionCompositionPolicy.minimumRestSeconds(slot.role, rawHeavy, isolation)
-            val effectiveMinimum = SessionCompositionPolicy.minimumRestSeconds(slot.role, effectiveHeavy, isolation)
-            emitIfChanged(
-                findings, "H9", slot.id, scope, slot.restSeconds < rawMinimum, slot.restSeconds < effectiveMinimum,
-                {
-                    "descanso ${slot.restSeconds} s, mínimo $rawMinimum s con carga " +
-                        "${if (rawHeavy) "pesada" else "no pesada"} (${peakLabel(slot, week, raw)})"
-                },
-                {
-                    "descanso ${slot.restSeconds} s, mínimo $effectiveMinimum s con carga " +
-                        "${if (effectiveHeavy) "pesada" else "no pesada"} (${peakLabel(slot, week, effective)})"
-                },
-            )
-        }
-    }
-
-    /** Posiciones de los días con un T1 axial pesado (W3); sin weekday, un descanso entre días listados. */
-    private fun heavyAxialDays(
-        week: WeekRecipe,
-        metaOf: (String) -> ExerciseCompositionMetadata?,
-        percentOf: PercentMeasure,
-    ): List<Int> = week.days.mapIndexedNotNull { index, day ->
-        val heavyAxial = day.slots.any { slot ->
-            slot.role == SlotRole.T1_MAIN &&
-                (metaOf(slot.lift.configurationId)?.axialLoadFactor ?: 0.0) >= SessionCompositionPolicy.AXIAL_SLOT_THRESHOLD &&
-                slot.sets.any { set -> isHeavy(set, slot, week, percentOf) }
-        }
-        if (heavyAxial) day.weekday ?: (index * 2) else null
-    }
-
-    private fun hasClosePair(positions: List<Int>): Boolean =
-        positions.zipWithNext().any { (first, second) -> second - first < 2 }
-
-    private fun hasHeavyT1(day: DayRecipe, token: String, week: WeekRecipe, percentOf: PercentMeasure): Boolean =
-        day.slots.any { slot ->
-            slot.lift.configurationId.contains(token) &&
-                slot.role == SlotRole.T1_MAIN &&
-                slot.sets.any { set -> isHeavy(set, slot, week, percentOf) }
-        }
-
-    /** Pares de días consecutivos con peso muerto pesado seguido de sentadilla pesada (W4). */
-    private fun deadliftBeforeSquatPairs(week: WeekRecipe, percentOf: PercentMeasure): Int =
-        week.days.sortedBy { it.weekday ?: Int.MAX_VALUE }.zipWithNext().count { (previous, next) ->
-            val previousDay = previous.weekday
-            val nextDay = next.weekday
-            val consecutive = if (previousDay != null && nextDay != null) {
-                nextDay - previousDay == 1 || (previousDay == 7 && nextDay == 1)
-            } else {
-                true
-            }
-            consecutive &&
-                hasHeavyT1(previous, "deadlift", week, percentOf) &&
-                hasHeavyT1(next, "squat", week, percentOf)
-        }
-
-    /** W3 y W4: chequeos de una semana. */
-    private fun addWeekBasisFindings(
-        findings: MutableList<CompositionFinding>,
-        week: WeekRecipe,
-        metaOf: (String) -> ExerciseCompositionMetadata?,
-        raw: PercentMeasure,
-        effective: PercentMeasure,
-    ) {
-        val scope = weekScope(week)
-
-        // W3: T1 axiales pesados en días consecutivos.
-        val rawDays = heavyAxialDays(week, metaOf, raw)
-        val effectiveDays = heavyAxialDays(week, metaOf, effective)
-        emitIfChanged(
-            findings, "W3", "", scope, hasClosePair(rawDays), hasClosePair(effectiveDays),
-            { "T1 axiales pesados en los días $rawDays" },
-            { "T1 axiales pesados en los días $effectiveDays" },
-        )
-
-        // W4: peso muerto pesado el día anterior a una sentadilla pesada.
-        val rawClashes = deadliftBeforeSquatPairs(week, raw)
-        val effectiveClashes = deadliftBeforeSquatPairs(week, effective)
-        emitIfChanged(
-            findings, "W4", "", scope, rawClashes > 0, effectiveClashes > 0,
-            { "${pairsLabel(rawClashes)} de días con peso muerto pesado seguido de sentadilla pesada" },
-            { "${pairsLabel(effectiveClashes)} de días con peso muerto pesado seguido de sentadilla pesada" },
-        )
-    }
-
-    /** Porcentajes de las series de trabajo de todos los T1 de las semanas de un bloque. */
-    private fun blockT1Percents(weeks: List<WeekRecipe>, percentOf: PercentMeasure): List<Double> {
-        val percents = ArrayList<Double>()
-        weeks.forEach { week ->
-            week.days.forEach { day ->
-                day.slots.forEach { slot ->
-                    if (slot.role != SlotRole.T1_MAIN) return@forEach
-                    slot.sets.forEach { set ->
-                        if (set.isWarmup) return@forEach
-                        val value = percentOf(set, slot, week)
-                        if (value != null) percents.add(value)
-                    }
-                }
-            }
-        }
-        return percents
-    }
-
-    /** BLOCK (acumulación, intensificación, pico, descarga y taper): chequeos de un bloque. */
-    private fun addBlockBasisFindings(
-        findings: MutableList<CompositionFinding>,
-        recipe: TrainingPlanRecipe,
-        raw: PercentMeasure,
-        effective: PercentMeasure,
-    ) {
-        val byBlock = recipe.weeks.groupBy { it.blockIndex }.toSortedMap()
-        byBlock.forEach { (index, weeks) ->
-            val head = weeks.first()
-            val scope = "block$index/${head.blockName}"
-            when (head.blockGoal) {
-                BlockGoal.ACCUMULATION -> {
-                    val before = blockT1Percents(weeks, raw)
-                    val after = blockT1Percents(weeks, effective)
-                    emitIfChanged(
-                        findings, "BLOCK acumulación (T1 > 80 %)", "", scope,
-                        before.any { it > ACCUMULATION_CEILING }, after.any { it > ACCUMULATION_CEILING },
-                        { "T1 máx ${fmtOrDash(before.maxOrNull())}" },
-                        { "T1 máx ${fmtOrDash(after.maxOrNull())}" },
-                    )
-                }
-                BlockGoal.INTENSIFICATION -> {
-                    val before = blockT1Percents(weeks, raw)
-                    val after = blockT1Percents(weeks, effective)
-                    emitIfChanged(
-                        findings, "BLOCK intensificación (T1 bajo 78 %)", "", scope,
-                        before.any { it in 1.0..INTENSIFICATION_FLOOR }, after.any { it in 1.0..INTENSIFICATION_FLOOR },
-                        { "T1 mín ${fmtOrDash(before.minOrNull())}" },
-                        { "T1 mín ${fmtOrDash(after.minOrNull())}" },
-                    )
-                }
-                BlockGoal.PEAK, BlockGoal.REALIZATION -> {
-                    val before = blockT1Percents(weeks, raw)
-                    val after = blockT1Percents(weeks, effective)
-                    emitIfChanged(
-                        findings, "BLOCK pico (T1 ≥ 85 %)", "", scope,
-                        before.isNotEmpty() && before.none { it >= PEAK_FLOOR },
-                        after.isNotEmpty() && after.none { it >= PEAK_FLOOR },
-                        { "T1 máx ${fmtOrDash(before.maxOrNull())}" },
-                        { "T1 máx ${fmtOrDash(after.maxOrNull())}" },
-                    )
-                }
-                BlockGoal.DELOAD -> {
-                    val before = blockT1Percents(weeks, raw)
-                    val after = blockT1Percents(weeks, effective)
-                    emitIfChanged(
-                        findings, "BLOCK descarga (T1 > 70 %)", "", scope,
-                        before.any { it > DELOAD_CEILING }, after.any { it > DELOAD_CEILING },
-                        { "T1 máx ${fmtOrDash(before.maxOrNull())}" },
-                        { "T1 máx ${fmtOrDash(after.maxOrNull())}" },
-                    )
-                }
-                BlockGoal.TAPER -> {
-                    val before = taperDays(weeks, raw)
-                    val after = taperDays(weeks, effective)
-                    emitIfChanged(
-                        findings, "BLOCK taper (última pesada a 7-10 días del test)", "", scope,
-                        before != null && before !in TAPER_MIN_DAYS..TAPER_MAX_DAYS,
-                        after != null && after !in TAPER_MIN_DAYS..TAPER_MAX_DAYS,
-                        { "última pesada a ${daysOrDash(before)} del test" },
-                        { "última pesada a ${daysOrDash(after)} del test" },
-                    )
-                }
-                else -> Unit
-            }
-        }
-    }
-
-    /**
-     * Días entre la última pesada del taper y el día de test (el de weekday más alto de la última
-     * semana), o null si no hay ni pesada ni test. Espeja `checkTaperLastHeavy` de la política.
-     */
-    private fun taperDays(weeks: List<WeekRecipe>, percentOf: PercentMeasure): Int? {
-        val ordered = weeks.sortedBy { it.weekNumber }
-        val lastWeek = ordered.lastOrNull() ?: return null
-        val testDay = lastWeek.days.maxByOrNull { it.weekday ?: 0 } ?: return null
-        val testWeekday = testDay.weekday ?: 7
-        val lastHeavy = ordered.flatMap { week -> week.days.map { day -> week to day } }
-            .lastOrNull { (week, day) ->
-                val isTest = week.weekNumber == lastWeek.weekNumber && day.label == testDay.label
-                !isTest && day.slots.any { slot ->
-                    slot.role == SlotRole.T1_MAIN &&
-                        slot.sets.any { set -> !set.isWarmup && isHeavy(set, slot, week, percentOf) }
-                }
-            } ?: return null
-        val heavyWeek = lastHeavy.first.weekNumber
-        val heavyDay = lastHeavy.second.weekday ?: 1
-        return (lastWeek.weekNumber - heavyWeek) * 7 + (testWeekday - heavyDay)
-    }
+    // C7 no repite H/W/BLOCK: SessionCompositionPolicy mide siempre mediante PercentBasis.
+    // Su contrato diferencial (%TM ↔ %1RM) se verifica sobre esa ruta compartida.
 
     // ─── C8 · enlaces supplementalOf ──────────────────────────────────────────────
 

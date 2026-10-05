@@ -507,145 +507,114 @@ class RecipeContractPolicyTest {
         assertNone("gancho con AMRAP", contract(recipeWithT1(amrap, LiftSlot.SQUAT, ProgressionRule.None, hooks), c6))
     }
 
-    // ─── C7 · base del porcentaje ─────────────────────────────────────────────────
+    // ─── C7 · una sola base de intensidad en la política ──────────────────────────
 
-    @Test
-    fun c7_flags_a_peak_whose_t1_only_reaches_85_percent_in_raw_tm_terms() {
-        val c7 = RecipeContractPolicy.C7_PERCENT_BASIS
-        val peakSet = SetRecipe(reps = 2, percent = 93.0, isTopSet = true)
-        val peak = recipeOf(listOf(weekOf(listOf(t1Day(CatalogIds.SQ_LOW, LiftSlot.SQUAT, listOf(peakSet), 1)), goal = BlockGoal.PEAK)))
+    private val percentRules = setOf("H5a", "H8", "H9", "W3", "W4", "BLOCK")
 
-        val findings = contract(peak, c7)
-        assertEquals(findings.map { it.message }.toString(), 1, findings.size)
-        val finding = findings.single()
-        assertEquals("block0/Bloque", finding.scope)
-        assertTrue(finding.message, finding.message.contains("BLOCK pico"))
-        assertTrue("valor crudo 93.0 en el mensaje: ${finding.message}", finding.message.contains("93.0"))
-        assertTrue("valor efectivo 83.7 en el mensaje: ${finding.message}", finding.message.contains("83.7"))
+    private fun intensityFindings(recipe: TrainingPlanRecipe): List<CompositionFinding> =
+        SessionCompositionPolicy.evaluateRecipeRaw(recipe, metadata).filter { it.rule in percentRules }
 
-        // Con TM = 1RM, con base %1RM o sin porcentaje la conversión no cambia nada.
-        assertNone("trainingMaxPercent 1.0", contract(peak.copy(trainingMaxPercent = 1.0), c7))
-        val oneRm = peakSet.copy(loadBasis = LoadBasis.PERCENT_1RM)
-        val inOneRm = recipeOf(listOf(weekOf(listOf(t1Day(CatalogIds.SQ_LOW, LiftSlot.SQUAT, listOf(oneRm), 1)), goal = BlockGoal.PEAK)))
-        assertNone("base PERCENT_1RM", contract(inOneRm, c7))
-        val rpeOnly = recipeOf(
-            listOf(weekOf(listOf(t1Day(CatalogIds.SQ_LOW, LiftSlot.SQUAT, rpeSets(2, 2, 9.0), 1)), goal = BlockGoal.PEAK)),
-        )
-        assertNone("solo RPE", contract(rpeOnly, c7))
+    /** Misma dosis escrita en %1RM: oráculo diferencial para la ruta real de validación. */
+    private fun inOneRm(recipe: TrainingPlanRecipe): TrainingPlanRecipe = recipe.copy(
+        trainingMaxPercent = 1.0,
+        weeks = recipe.weeks.map { week ->
+            week.copy(days = week.days.map { day ->
+                day.copy(slots = day.slots.map { slot ->
+                    slot.copy(sets = slot.sets.map { set ->
+                        PercentBasis.effective1RmPercent(set, slot, week, recipe.trainingMaxPercent)?.let {
+                            set.copy(percent = it, loadBasis = LoadBasis.PERCENT_1RM)
+                        } ?: set
+                    })
+                })
+            })
+        },
+    )
+
+    private fun assertIntensityEquivalent(recipe: TrainingPlanRecipe) {
+        assertEquals("%TM y la misma dosis en %1RM deben dar el mismo contrato", intensityFindings(inOneRm(recipe)), intensityFindings(recipe))
+        assertNone("C7 no mantiene un espejo de los chequeos", contract(recipe, RecipeContractPolicy.C7_PERCENT_BASIS))
     }
 
     @Test
-    fun c7_flags_h8_when_heavy_sets_stop_being_heavy_in_1rm_terms() {
-        val recipe = recipeOf(
-            listOf(
-                weekOf(
-                    listOf(t1Day(CatalogIds.SQ_LOW, LiftSlot.SQUAT, sets(4, 8, 88.0), 1)),
-                    goal = BlockGoal.INTENSIFICATION,
-                ),
-            ),
+    fun c7_block_thresholds_use_effective_one_rm_for_peak_intensification_accumulation_and_deload() {
+        val cases = listOf(
+            Triple(BlockGoal.PEAK, 93.0, true), // 83,7 % 1RM: el pico no alcanza 85 %.
+            Triple(BlockGoal.PEAK, 95.0, false),
+            Triple(BlockGoal.INTENSIFICATION, 85.0, true), // 76,5 % 1RM: bajo 78 %.
+            Triple(BlockGoal.ACCUMULATION, 88.0, false), // 79,2 % 1RM: no sobrepasa 80 %.
+            Triple(BlockGoal.DELOAD, 75.0, false), // 67,5 % 1RM: no sobrepasa 70 %.
+            Triple(BlockGoal.DELOAD, 80.0, true),
         )
-        val findings = contract(recipe, RecipeContractPolicy.C7_PERCENT_BASIS)
-        assertEquals(findings.map { it.message }.toString(), 1, findings.size)
-        assertEquals("w1/Dia", findings.single().scope)
-        assertTrue(findings.single().message, findings.single().message.contains("H8 t1"))
-        // Concordancia de número en los recuentos: «4 series pesadas» y «0 series pesadas».
-        assertTrue(findings.single().message, findings.single().message.contains("4 series pesadas fuera de 1-6 repeticiones"))
-        assertTrue(findings.single().message, findings.single().message.contains("0 series pesadas fuera de 1-6 repeticiones"))
-
-        // Con una sola serie pesada el recuento va en singular.
-        val oneHeavy = recipeOf(
-            listOf(
-                weekOf(
-                    listOf(t1Day(CatalogIds.SQ_LOW, LiftSlot.SQUAT, sets(1, 8, 88.0), 1)),
-                    goal = BlockGoal.INTENSIFICATION,
-                ),
-            ),
-        )
-        val h8 = contract(oneHeavy, RecipeContractPolicy.C7_PERCENT_BASIS).single { it.message.contains("H8 t1") }
-        assertTrue(h8.message, h8.message.contains("1 serie pesada fuera de 1-6 repeticiones"))
+        cases.forEach { (goal, percent, expected) ->
+            val set = SetRecipe(reps = if (goal == BlockGoal.PEAK) 2 else 5, percent = percent)
+            val recipe = recipeOf(listOf(weekOf(listOf(t1Day(CatalogIds.SQ_LOW, LiftSlot.SQUAT, listOf(set), 1)), goal = goal)))
+            assertIntensityEquivalent(recipe)
+            assertEquals("$goal / $percent %TM", expected, intensityFindings(recipe).any { it.rule == "BLOCK" })
+        }
     }
 
     @Test
-    fun c7_flags_h5a_h9_w3_and_w4_when_the_verdict_changes() {
-        val c7 = RecipeContractPolicy.C7_PERCENT_BASIS
-
-        // H5a: dos axiales T1/T2 «pesados» al 88 % TM (79,2 % 1RM).
-        val h5a = recipeOf(
-            listOf(
-                weekOf(
-                    listOf(
-                        dayOf(
-                            listOf(
-                                slotOf("sq", SlotRole.T1_MAIN, CatalogIds.SQ_LOW, sets(3, 5, 88.0), LiftSlot.SQUAT, rest = 240),
-                                slotOf("dl", SlotRole.T2_SUPPLEMENTAL, CatalogIds.DL, sets(3, 5, 88.0), LiftSlot.DEADLIFT, rest = 240),
-                            ),
-                            weekday = 1,
-                        ),
-                    ),
-                ),
-            ),
-        )
-        assertTrue("H5a", contract(h5a, c7).any { it.message.contains("H5a") })
-
-        // H9: el T1 al 90 % TM con 180 s de descanso exige 240 s solo con el valor crudo.
-        val h9 = recipeOf(listOf(weekOf(listOf(t1Day(CatalogIds.SQ_LOW, LiftSlot.SQUAT, sets(3, 5, 90.0), 1, rest = 180)))))
-        val h9Findings = contract(h9, c7)
-        assertEquals(h9Findings.map { it.message }.toString(), 1, h9Findings.size)
-        assertTrue(h9Findings.single().message, h9Findings.single().message.contains("H9 t1"))
-
-        // W3: sentadilla y peso muerto «pesados» en días consecutivos.
-        val w3 = recipeOf(
-            listOf(
-                weekOf(
-                    listOf(
-                        t1Day(CatalogIds.SQ_LOW, LiftSlot.SQUAT, sets(3, 3, 88.0), 1, "A"),
-                        t1Day(CatalogIds.DL, LiftSlot.DEADLIFT, sets(3, 3, 88.0), 2, "B"),
-                    ),
-                ),
-            ),
-        )
-        assertTrue("W3", contract(w3, c7).any { it.scope == "w1" && it.message.contains("W3") })
-
-        // W4: peso muerto pesado el día anterior a una sentadilla pesada.
-        val w4 = recipeOf(
-            listOf(
-                weekOf(
-                    listOf(
-                        t1Day(CatalogIds.DL, LiftSlot.DEADLIFT, sets(3, 3, 88.0), 1, "A"),
-                        t1Day(CatalogIds.SQ_LOW, LiftSlot.SQUAT, sets(3, 3, 88.0), 2, "B"),
-                    ),
-                ),
-            ),
-        )
-        assertTrue("W4", contract(w4, c7).any { it.scope == "w1" && it.message.contains("W4") })
+    fun c7_h8_uses_effective_one_rm_and_retains_the_top_set_exception() {
+        val recipe = recipeOf(listOf(weekOf(listOf(t1Day(CatalogIds.SQ_LOW, LiftSlot.SQUAT, sets(4, 8, 88.0), 1)), goal = BlockGoal.INTENSIFICATION)))
+        assertIntensityEquivalent(recipe)
+        assertFalse("88 %TM son 79,2 %1RM y no disparan H8 pesado", intensityFindings(recipe).any { it.rule == "H8" })
+        val top = recipe.copy(weeks = recipe.weeks.map { week -> week.copy(days = week.days.map { day -> day.copy(slots = day.slots.map { slot -> slot.copy(sets = slot.sets.map { it.copy(isTopSet = true) }) }) }) })
+        assertIntensityEquivalent(top)
+        assertTrue("el top set sigue siendo pesado por diseño", intensityFindings(top).any { it.rule == "H8" })
     }
 
     @Test
-    fun c7_flags_a_taper_whose_last_heavy_day_moves_when_measured_in_1rm_terms() {
+    fun c7_h5a_h9_w3_and_w4_use_effective_one_rm_at_the_heavy_boundary() {
+        val h5a = recipeOf(listOf(weekOf(listOf(dayOf(listOf(
+            slotOf("sq", SlotRole.T1_MAIN, CatalogIds.SQ_LOW, sets(3, 3, 88.0), LiftSlot.SQUAT, rest = 240),
+            slotOf("dl", SlotRole.T2_SUPPLEMENTAL, CatalogIds.DL, sets(3, 3, 88.0), LiftSlot.DEADLIFT, rest = 240),
+        ), weekday = 1)))))
+        val h9 = recipeOf(listOf(weekOf(listOf(t1Day(CatalogIds.SQ_LOW, LiftSlot.SQUAT, sets(3, 3, 90.0), 1, rest = 180)))))
+        val consecutive = recipeOf(listOf(weekOf(listOf(
+            t1Day(CatalogIds.DL, LiftSlot.DEADLIFT, sets(3, 3, 90.0), 1, "PM"),
+            t1Day(CatalogIds.SQ_LOW, LiftSlot.SQUAT, sets(3, 3, 90.0), 2, "Sentadilla"),
+        ))))
+        listOf(h5a, h9, consecutive).forEach { assertIntensityEquivalent(it) }
+        assertFalse(intensityFindings(h5a).any { it.rule == "H5a" })
+        assertFalse(intensityFindings(h9).any { it.rule == "H9" })
+        assertFalse(intensityFindings(consecutive).any { it.rule in setOf("W3", "W4") })
+        listOf(h5a, h9, consecutive).forEach { below ->
+            val heavy = below.copy(weeks = below.weeks.map { week -> week.copy(days = week.days.map { day -> day.copy(slots = day.slots.map { slot -> slot.copy(sets = slot.sets.map { it.copy(percent = 95.0) }) }) }) })
+            assertIntensityEquivalent(heavy)
+            val expected = when (below) { h5a -> setOf("H5a"); h9 -> setOf("H9"); else -> setOf("W3", "W4") }
+            expected.forEach { rule -> assertTrue("$rule a 95 %TM (85,5 %1RM)", intensityFindings(heavy).any { it.rule == rule }) }
+        }
+    }
+
+    @Test
+    fun c7_taper_last_heavy_uses_effective_one_rm() {
         val weeks = listOf(
-            weekOf(
-                listOf(
-                    t1Day(CatalogIds.SQ_LOW, LiftSlot.SQUAT, sets(2, 2, 97.0), 1, "Pesado A"),
-                    t1Day(CatalogIds.SQ_LOW, LiftSlot.SQUAT, sets(2, 2, 90.0), 5, "Pesado B"),
-                    t1Day(CatalogIds.SQ_LOW, LiftSlot.SQUAT, sets(2, 5, 60.0), 2, "Ligero", rest = 180),
-                ),
-                number = 1,
-                goal = BlockGoal.TAPER,
-            ),
-            weekOf(
-                listOf(
-                    t1Day(CatalogIds.SQ_LOW, LiftSlot.SQUAT, listOf(SetRecipe(reps = 1, percent = 100.0, isTopSet = true)), 5, "Test"),
-                    t1Day(CatalogIds.SQ_LOW, LiftSlot.SQUAT, sets(2, 5, 60.0), 2, "Ligero 2", rest = 180),
-                ),
-                number = 2,
-                goal = BlockGoal.TAPER,
-            ),
+            weekOf(listOf(
+                t1Day(CatalogIds.SQ_LOW, LiftSlot.SQUAT, sets(2, 2, 97.0), 1, "Pesado A"),
+                t1Day(CatalogIds.SQ_LOW, LiftSlot.SQUAT, sets(2, 2, 90.0), 5, "Pesado B"),
+                t1Day(CatalogIds.SQ_LOW, LiftSlot.SQUAT, sets(2, 5, 60.0), 2, "Ligero", rest = 180),
+            ), number = 1, goal = BlockGoal.TAPER),
+            weekOf(listOf(
+                t1Day(CatalogIds.SQ_LOW, LiftSlot.SQUAT, sets(2, 1, 100.0), 5, "Test"),
+                t1Day(CatalogIds.SQ_LOW, LiftSlot.SQUAT, sets(2, 5, 60.0), 2, "Ligero 2", rest = 180),
+            ), number = 2, goal = BlockGoal.TAPER),
         )
-        // Crudo: la última pesada (90 %) queda a 7 días del test. Efectivo: solo el 97 % (87,3 %) es
-        // pesado, y queda a 11 días.
-        val findings = contract(recipeOf(weeks), RecipeContractPolicy.C7_PERCENT_BASIS)
-        assertEquals(findings.map { it.message }.toString(), 1, findings.size)
-        assertTrue(findings.single().message, findings.single().message.contains("BLOCK taper"))
+        val recipe = recipeOf(weeks)
+        assertIntensityEquivalent(recipe)
+        assertTrue("solo 97 %TM (87,3 %1RM) es pesado, a 11 días del test", intensityFindings(recipe).any { it.rule == "BLOCK" && it.message.contains("11 días") })
+    }
+
+    @Test
+    fun c7_resolves_top_set_percent_and_ignores_observed_load_references_in_heavy_checks() {
+        val volume = slotOf("volume", SlotRole.T1_MAIN, CatalogIds.SQ_LOW, sets(5, 5, 95.0).map { it.copy(loadBasis = LoadBasis.PERCENT_OF_TOP_SET) }, LiftSlot.SQUAT, rest = 180)
+        val anchor = slotOf("top", SlotRole.T1_MAIN, CatalogIds.SQ_LOW, listOf(SetRecipe(reps = 1, percent = 80.0, isTopSet = true)), LiftSlot.SQUAT, rest = 240)
+        val recipe = recipeOf(listOf(weekOf(listOf(dayOf(listOf(volume), "Volumen", 1), dayOf(listOf(anchor), "Top", 5)))))
+        assertIntensityEquivalent(recipe)
+        assertFalse("95 % del top de 80 %TM no exige descanso pesado", intensityFindings(recipe).any { it.rule == "H9" })
+        val observed = recipeOf(listOf(weekOf(listOf(t1Day(CatalogIds.SQ_LOW, LiftSlot.SQUAT, listOf(SetRecipe(
+            reps = 5, percent = 100.0, reference = PlanLoadReference(PlanLoadReferenceKind.OBSERVED_WORKING_SET, CatalogIds.SQ_LOW),
+        )), 1, rest = 180)))))
+        assertFalse("100 % de la carga observada no es 100 %1RM", intensityFindings(observed).any { it.rule == "H9" })
     }
 
     // ─── C8 · enlaces supplementalOf ──────────────────────────────────────────────
@@ -860,18 +829,13 @@ class RecipeContractPolicyTest {
         val plain = singleDay(slots)
         val exempt = plain.copy(exemptions = listOf(exemption))
 
-        // En bruto el contrato está; con la exención declarada desaparece; nunca llega a HARD.
+        // En bruto el contrato está y es HARD; solo la exención por slot lo silencia.
         assertTrue(SessionCompositionPolicy.evaluateRecipeRaw(plain, metadata).any { it.rule == RecipeContractPolicy.C1_SET_RANGE })
         assertTrue(SessionCompositionPolicy.evaluateRecipe(plain, metadata).any { it.rule == RecipeContractPolicy.C1_SET_RANGE })
         assertFalse(SessionCompositionPolicy.evaluateRecipe(exempt, metadata).any { it.rule == RecipeContractPolicy.C1_SET_RANGE })
         assertTrue(SessionCompositionPolicy.evaluateRecipeRaw(exempt, metadata).any { it.rule == RecipeContractPolicy.C1_SET_RANGE })
-        listOf(plain, exempt).forEach { recipe ->
-            val hard = ProgramRecipeValidator.hardFindings(recipe, metadata)
-            assertTrue(
-                "el contrato en modo inventario no puede producir HARD: ${hard.filter { it.rule in RecipeContractPolicy.RULES }}",
-                hard.none { it.rule in RecipeContractPolicy.RULES },
-            )
-        }
+        assertTrue(ProgramRecipeValidator.hardFindings(plain, metadata).any { it.rule == RecipeContractPolicy.C1_SET_RANGE })
+        assertFalse(ProgramRecipeValidator.hardFindings(exempt, metadata).any { it.rule == RecipeContractPolicy.C1_SET_RANGE })
     }
 
     @Test

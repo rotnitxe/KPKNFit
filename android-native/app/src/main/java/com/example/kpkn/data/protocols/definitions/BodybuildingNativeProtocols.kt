@@ -23,6 +23,7 @@ import com.example.kpkn.data.protocols.TrainingPlanRecipe
 import com.example.kpkn.data.protocols.asDeload
 import com.example.kpkn.data.protocols.attributed
 import com.example.kpkn.data.protocols.day
+import com.example.kpkn.data.protocols.mainWorkPercentOfOneRm
 import com.example.kpkn.data.protocols.dropT3
 import com.example.kpkn.data.protocols.kpknOwnSource
 import com.example.kpkn.data.protocols.rangeRirSets
@@ -114,6 +115,13 @@ object BodybuildingProtocols {
 
     private val phatExemptions = listOf(
         RecipeCompositionExemption("H3", "*", "PHAT Lower Power y Pecho/Brazos agrupan el mismo dominante por diseño de Norton"),
+        // B.S6 parte 2b (C1, por slot): el PHAT heredado trae la extensión de cuádriceps del día de potencia de piernas en una sola serie
+        // de 12 repeticiones. Es la versión anterior (la Fase 2 la oculta) y las recetas autoradas de PHAT la sustituyen en el catálogo.
+        RecipeCompositionExemption(
+            "C1_SET_RANGE", "w*/Power Lower/ext",
+            "El PHAT heredado programa la extensión de cuádriceps del día Power Lower en una sola serie de 12 repeticiones; es la versión anterior que las recetas autoradas sustituyen",
+            "https://www.simplyshredded.com/mega-feature-layne-norton-training-series-full-power-hypertrophy-routine-updated-2011.html",
+        ),
     )
 
     private fun phatPowerUpper() = day(
@@ -242,6 +250,7 @@ object KpknNativeHypertrophyProtocols {
             },
             claimedDaysPerWeek = 6,
             claimedLevel = "intermedio",
+            contentVersion = 2,
         ),
         fidelitySpec = ProtocolFidelitySpec(12, 6, requiresRpe = true, claimedLevel = "intermedio"),
     )
@@ -281,6 +290,7 @@ object KpknNativeHypertrophyProtocols {
             claimedDaysPerWeek = 4,
             claimedLevel = "avanzado",
             autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.RPE_CAP)),
+            contentVersion = 2,
         ),
         fidelitySpec = ProtocolFidelitySpec(6, 4, requiresRpe = true, claimedLevel = "avanzado"),
     )
@@ -310,14 +320,22 @@ object KpknNativeAutoregFrameworks {
                 val goal = if (w <= 5) BlockGoal.INTENSIFICATION else BlockGoal.PEAK
                 val reps = if (w <= 5) 3 else 1
                 val rpe = if (w <= 5) 8.0 else 9.0
-                weekRecipe(w, if (w <= 5) 0 else 1, if (w <= 5) "Desarrollo" else "Pivote", goal, listOf(
+                // C5 (B.S6 parte 2b): es un plan propio de KPKN y no puede declarar exenciones, así que la semana 5, la última del bloque de
+                // desarrollo y la que precede al pivote, es una descarga real (`kind = DELOAD`, series recortadas y RIR ≥ 4).
+                val deload = w == 5
+                val days = listOf(
                     DayArchetypes.plSquat(if (w <= 5) 80.0 else 90.0, t1Sets = 1 + 3, t1Reps = reps, weekday = 1).let { d ->
                         d.copy(slots = listOf(slot("sq", SlotRole.T1_MAIN, CatalogIds.SQ_LOW, rpeTopSet(reps, rpe, 3), if (rpe >= 9) 240 else 180, LiftSlot.SQUAT, isCompetitionLift = true)) + d.slots.drop(1))
                     },
                     DayArchetypes.plBenchHeavy(if (w <= 5) 78.0 else 88.0, weekday = 2),
                     DayArchetypes.plDeadlift(if (w <= 5) 75.0 else 88.0, weekday = 4),
                     DayArchetypes.plBenchVolume(if (w <= 5) 68.0 else 62.0, weekday = 5),
-                ).map { day -> if (goal == BlockGoal.PEAK) day.dropT3(2) else day })
+                ).map { day -> if (goal == BlockGoal.PEAK) day.dropT3(2).mainWorkPercentOfOneRm() else day }
+                weekRecipe(
+                    w, if (w <= 5) 0 else 1, if (w <= 5) "Desarrollo" else "Pivote", if (deload) BlockGoal.DELOAD else goal,
+                    if (deload) days.map { it.asDeload() } else days,
+                    kind = if (deload) WeekExecutionKind.DELOAD else WeekExecutionKind.TRAINING,
+                )
             },
             trainingMaxPercent = 0.90,
             liftSlots = sbdSlots(),
@@ -328,6 +346,7 @@ object KpknNativeAutoregFrameworks {
             claimedDaysPerWeek = 4,
             claimedLevel = "avanzado",
             autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.RPE_CAP)),
+            contentVersion = 2,
         ),
         fidelitySpec = ProtocolFidelitySpec(8, 4, requiresRpe = true, claimedLevel = "avanzado"),
     )
@@ -349,12 +368,20 @@ object KpknNativeAutoregFrameworks {
             weeks = (1..8).map { w ->
                 val pct = if (w <= 4) 70.0 + w else 78.0 + (w - 4)
                 val goal = if (w <= 4) BlockGoal.ACCUMULATION else BlockGoal.INTENSIFICATION
-                weekRecipe(w, if (w <= 4) 0 else 1, if (w <= 4) "Base" else "Intensificación", goal, listOf(
+                // C5 (B.S6 parte 2b): es un plan propio de KPKN y no puede declarar exenciones, así que la semana 4, la última de la base,
+                // es una descarga real: sin series AMRAP, con la mitad de las series y RIR ≥ 4.
+                val deload = w == 4
+                val days = listOf(
                     DayArchetypes.plSquat(pct, t1Sets = 4, t1Reps = if (w <= 4) 6 else 4, t1Amrap = true, weekday = 1),
                     DayArchetypes.plBenchHeavy(pct, t1Sets = 4, t1Reps = if (w <= 4) 6 else 4, t1Amrap = true, weekday = 2),
                     DayArchetypes.plDeadlift(pct - 3, t1Sets = 3, t1Reps = if (w <= 4) 5 else 3, t1Amrap = true, weekday = 4),
                     DayArchetypes.plBenchVolume((pct - 8).coerceAtLeast(60.0), weekday = 5),
-                ))
+                )
+                weekRecipe(
+                    w, if (w <= 4) 0 else 1, if (w <= 4) "Base" else "Intensificación", if (deload) BlockGoal.DELOAD else goal,
+                    if (deload) days.map { it.asDeload() } else days,
+                    kind = if (deload) WeekExecutionKind.DELOAD else WeekExecutionKind.TRAINING,
+                )
             },
             trainingMaxPercent = 0.90,
             liftSlots = sbdSlots(),
@@ -362,6 +389,7 @@ object KpknNativeAutoregFrameworks {
             claimedDaysPerWeek = 4,
             claimedLevel = "intermedio",
             autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.AMRAP_TM)),
+            contentVersion = 2,
         ),
         fidelitySpec = ProtocolFidelitySpec(8, 4, requiresAmrap = true, requiresPercent = true, claimedLevel = "intermedio"),
     )

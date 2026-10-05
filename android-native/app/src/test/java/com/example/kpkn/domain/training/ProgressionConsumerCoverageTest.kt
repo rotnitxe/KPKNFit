@@ -68,10 +68,12 @@ class ProgressionConsumerCoverageTest {
 
     /**
      * Recetas publicadas cuyo alcance de `CycleIncrement` todavía no cuadra con su estructura.
-     * Juggernaut declara la subida por ciclo, pero no se repite y tiene cuatro olas: el hook por
-     * ciclo nunca se ejecuta en ella. B.S6 la pasa a `IncrementScope.BLOCK` y retira la entrada.
+     * Juggernaut declaraba la subida por ciclo, pero no se repite y tiene cuatro olas: el hook por
+     * ciclo nunca se ejecutaba en ella. B.S6 parte 2b la pasó a `IncrementScope.BLOCK` (sube el TM al entrar
+     * en cada ola) y retiró la entrada: la lista queda vacía y una receta nueva con un alcance que nunca
+     * ocurre falla aquí.
      */
-    private val scopePending: Set<String> = setOf("juggernaut-2")
+    private val scopePending: Set<String> = emptySet()
 
     private data class Published(val label: String, val recipe: TrainingPlanRecipe)
 
@@ -201,6 +203,26 @@ class ProgressionConsumerCoverageTest {
             "Alcance de CycleIncrement que nunca se ejecuta:\n${offenders.joinToString("\n")}",
             offenders.isEmpty(),
         )
+    }
+
+    @Test
+    fun juggernaut_raises_the_tm_by_block_and_the_other_cycle_increment_recipes_by_cycle() {
+        // B.S6 parte 2b: Juggernaut (4 olas, no se repite) pasa a BLOCK; 5/3/1, Madcow y GZCLP (un solo bloque que se repite) siguen por ciclo.
+        val byId = published().associate { it.recipe.id to it.recipe }
+        val scopes = byId.values.mapNotNull { recipe ->
+            (recipe.progression as? ProgressionRule.CycleIncrement)?.let { recipe.id to it.scope }
+        }.toMap()
+        assertEquals(
+            mapOf(
+                "juggernaut-2" to IncrementScope.BLOCK,
+                "wendler-531-bbb" to IncrementScope.CYCLE,
+                "wendler-531-fsl" to IncrementScope.CYCLE,
+                "madcow-5x5" to IncrementScope.CYCLE,
+                "gzclp" to IncrementScope.CYCLE,
+            ),
+            scopes,
+        )
+        assertTrue("sin entradas pendientes de alcance", scopePending.isEmpty())
     }
 
     @Test

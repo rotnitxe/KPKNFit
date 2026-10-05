@@ -227,11 +227,11 @@ internal object PlanEditorialTable {
                 displayName = "Powerlifting para principiantes",
                 summary = "12 semanas, 3 días por semana: un día de sentadilla, uno de banca y uno de peso muerto. " +
                     "Empiezas con cargas moderadas de 5 repeticiones y terminas con series pesadas de 2. " +
-                    "Pensado para quien empieza en powerlifting (fuerza máxima en sentadilla, banca y peso " +
-                    "muerto).",
+                    "Las semanas 4 y 8 son de descarga, con menos series. Para quien empieza en powerlifting " +
+                    "(fuerza máxima en sentadilla, banca y peso muerto).",
                 rank = 310,
                 levels = ONLY_BEGINNER,
-                terms = setOf(PlanTerm.POWERLIFTING, PlanTerm.SBD),
+                terms = setOf(PlanTerm.POWERLIFTING, PlanTerm.SBD, PlanTerm.DELOAD),
             ),
         )
         add(
@@ -265,10 +265,11 @@ internal object PlanEditorialTable {
                 displayName = "Fuerza y músculo avanzado",
                 summary = "16 semanas, 4 días por semana: sentadilla, un día de torso para músculo, peso muerto y " +
                     "banca pesada. Cuatro fases de cuatro semanas: volumen, fuerza, volumen moderado y pico " +
-                    "de pocas repeticiones. Para quien ya entrena con constancia.",
+                    "de pocas repeticiones. Las semanas 4, 8 y 12 son de descarga, con menos series. " +
+                    "Para quien ya entrena con constancia.",
                 rank = 320,
                 levels = ONLY_ADVANCED,
-                terms = setOf(PlanTerm.POWERBUILDING),
+                terms = setOf(PlanTerm.POWERBUILDING, PlanTerm.DELOAD),
             ),
         )
         add(
@@ -287,12 +288,12 @@ internal object PlanEditorialTable {
             "template:body-16-4",
             own(
                 displayName = "Empuje, tirón y pierna",
-                summary = "16 semanas, 6 días por semana: empuje, tirón y pierna, cada uno dos veces. Cuatro fases " +
-                    "de cuatro semanas en las que cada vez te quedan menos repeticiones en reserva (de 3 a 1) " +
-                    "y una última fase con 2. Para quien ya entrena mucho.",
+                summary = "16 semanas, 6 días por semana: empuje, tirón y pierna, cada uno dos veces. El esfuerzo " +
+                    "cambia por fases, dejando entre 1 y 3 repeticiones en reserva en las semanas de trabajo. " +
+                    "Las semanas 4, 8, 12 y 16 son de descarga, con menos series y más repeticiones en reserva.",
                 rank = 331,
                 levels = ONLY_ADVANCED,
-                terms = setOf(PlanTerm.UL_PPL, PlanTerm.RIR),
+                terms = setOf(PlanTerm.UL_PPL, PlanTerm.RIR, PlanTerm.DELOAD),
             ),
         )
         add(
@@ -300,11 +301,12 @@ internal object PlanEditorialTable {
             own(
                 displayName = "Músculo en bloques con énfasis",
                 summary = "20 semanas, 5 días por semana de empuje, tirón y pierna, en bloques de cuatro semanas: " +
-                    "base, volumen, énfasis en torso, énfasis en pierna y pico final. Para quien ya entrena " +
-                    "mucho y quiere variar el foco.",
+                    "base, volumen, énfasis en torso, énfasis en pierna y una fase final más exigente. " +
+                    "Las semanas 6, 12 y 18 son de descarga, con menos series. Para quien ya entrena mucho " +
+                    "y quiere variar el foco.",
                 rank = 332,
                 levels = ONLY_ADVANCED,
-                terms = setOf(PlanTerm.UL_PPL),
+                terms = setOf(PlanTerm.UL_PPL, PlanTerm.DELOAD),
             ),
         )
         add(
@@ -565,9 +567,11 @@ internal object PlanEditorialTable {
             "protocol:juggernaut-2",
             thirdParty(
                 displayName = "Juggernaut Method 2.0",
-                summary = "16 semanas en cuatro olas de 4 (de 10, 8, 5 y 3 repeticiones), con 4 días: sentadilla, " +
-                    "banca, peso muerto y press. La semana 3 de cada ola cierra con una serie al máximo de " +
-                    "repeticiones que ajusta tu máximo de entrenamiento, y la 4 es de descarga.",
+                summary = "16 semanas en cuatro olas de 4, de 10, 8, 5 y 3 repeticiones, con 4 días. La tercera " +
+                    "semana incluye una serie al máximo de repeticiones que puede proponer ajustar tu máximo " +
+                    "de entrenamiento; la cuarta es de descarga. Al empezar la siguiente ola, si cumpliste " +
+                    "las repeticiones previstas, ese máximo " +
+                    "sube 2,5 kg en banca y press y 5 kg en sentadilla y peso muerto.",
                 rank = 460,
                 level = CatalogLevel.ADVANCED,
                 methodName = "Juggernaut Method 2.0",
@@ -776,17 +780,18 @@ internal object PlanEditorialTable {
             "protocol:kpkn-rts-style",
             own(
                 displayName = "Fuerza por esfuerzo (estilo RTS)",
-                summary = "8 semanas, 4 días: sentadilla, banca, peso muerto y banca de volumen. En la sentadilla " +
-                    "haces una serie pesada a esfuerzo 8 de 10 (9 al final) seguida de series más ligeras; en " +
-                    "el resto sigues porcentajes de tu máximo de entrenamiento. Plan propio inspirado en " +
-                    "Reactive Training Systems.",
+                summary = "8 semanas, 4 días: sentadilla, banca, peso muerto y banca de volumen. En las semanas " +
+                    "de trabajo, la sentadilla combina una serie pesada a esfuerzo 8 de 10 (9 al final) con " +
+                    "series más ligeras; el resto usa porcentajes del máximo que levantas una sola vez. " +
+                    "La semana 5 es de descarga, con menos series. Plan propio inspirado en Reactive Training Systems.",
                 rank = 342,
                 levels = ONLY_ADVANCED,
                 attributionLine = "$OWN_PLAN Inspirado en Reactive Training Systems; sin afiliación con " +
                     "Reactive Training Systems.",
                 terms = setOf(
                     PlanTerm.RPE,
-                    PlanTerm.TM,
+                    PlanTerm.ONE_RM,
+                    PlanTerm.DELOAD,
                     PlanTerm.TOP_SET,
                     PlanTerm.SBD,
                 ),
@@ -797,14 +802,14 @@ internal object PlanEditorialTable {
             own(
                 displayName = "Fuerza por repeticiones al máximo (estilo SBS)",
                 summary = "8 semanas, 4 días: la última serie de cada levantamiento principal va al máximo de " +
-                    "repeticiones. Si haces más de las previstas, tu máximo de entrenamiento sube un 0,5 % " +
-                    "por repetición extra, y baja si te quedas corto. Plan propio inspirado en Stronger By " +
-                    "Science.",
+                    "repeticiones en las semanas de trabajo. Si superas el objetivo, el plan puede proponer " +
+                    "subir tu máximo de entrenamiento un 0,5 % por repetición extra, o bajarlo si te quedas " +
+                    "corto. La semana 4 es de descarga, con menos series. Plan propio inspirado en Stronger By Science.",
                 rank = 343,
                 levels = ONLY_INTERMEDIATE,
                 attributionLine = "$OWN_PLAN Inspirado en Stronger By Science; sin afiliación con Stronger By " +
                     "Science.",
-                terms = setOf(PlanTerm.AMRAP, PlanTerm.TM),
+                terms = setOf(PlanTerm.AMRAP, PlanTerm.TM, PlanTerm.DELOAD),
             ),
         )
 

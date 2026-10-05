@@ -75,7 +75,7 @@ val PROGRAM_TEMPLATES: List<ProgramTemplateOption> = listOf(
         type = ProgramStructure.COMPLEX,
         weeks = 12,
         trackLabel = "Powerlifting",
-        blockNames = listOf("Base", "Intensificación", "Peak"),
+        blockNames = listOf("Base", "Intensificación", "Pico"),
         blockWeekCounts = listOf(4, 4, 4),
         blockGoals = listOf(
             MesocycleGoal.ACCUMULATION,
@@ -98,7 +98,7 @@ val PROGRAM_TEMPLATES: List<ProgramTemplateOption> = listOf(
         type = ProgramStructure.COMPLEX,
         weeks = 16,
         trackLabel = "Powerlifting",
-        blockNames = listOf("Hipertrofia específica", "Fuerza", "Pico", "Taper/Test"),
+        blockNames = listOf("Hipertrofia específica", "Fuerza", "Pico", "Descarga y prueba"),
         blockWeekCounts = listOf(5, 5, 4, 2),
         blockGoals = listOf(
             MesocycleGoal.ACCUMULATION,
@@ -123,7 +123,7 @@ val PROGRAM_TEMPLATES: List<ProgramTemplateOption> = listOf(
         type = ProgramStructure.COMPLEX,
         weeks = 20,
         trackLabel = "Powerlifting",
-        blockNames = listOf("Acumulación", "Transmutación", "Realización", "Pico", "Taper"),
+        blockNames = listOf("Volumen", "Intensidad", "Específico", "Pico", "Descarga y prueba"),
         blockWeekCounts = listOf(6, 5, 4, 3, 2),
         blockGoals = listOf(
             MesocycleGoal.ACCUMULATION,
@@ -151,7 +151,7 @@ val PROGRAM_TEMPLATES: List<ProgramTemplateOption> = listOf(
         weeks = 16,
         trackLabel = "Powerbuilding",
         audienceLabel = "Avanzado",
-        blockNames = listOf("Acumulación", "Fuerza", "Hipertrofia dirigida", "Realización"),
+        blockNames = listOf("Volumen", "Fuerza", "Volumen moderado", "Específico"),
         blockWeekCounts = listOf(4, 4, 4, 4),
         blockGoals = listOf(
             MesocycleGoal.ACCUMULATION,
@@ -207,7 +207,7 @@ val PROGRAM_TEMPLATES: List<ProgramTemplateOption> = listOf(
         weeks = 16,
         trackLabel = "Culturismo",
         audienceLabel = "Avanzado",
-        blockNames = listOf("Volumen largo", "Especialización", "Definición", "Pico de hipertrofia"),
+        blockNames = listOf("Volumen", "Progresión", "Intensidad", "Pico"),
         blockWeekCounts = listOf(4, 4, 4, 4),
         blockGoals = listOf(
             MesocycleGoal.ACCUMULATION,
@@ -233,7 +233,7 @@ val PROGRAM_TEMPLATES: List<ProgramTemplateOption> = listOf(
         weeks = 20,
         trackLabel = "Culturismo",
         audienceLabel = "Avanzado",
-        blockNames = listOf("Off-season", "Volumen", "Especialización", "Definición", "Pico de hipertrofia"),
+        blockNames = listOf("Base", "Volumen", "Énfasis en torso", "Énfasis en pierna", "Pico"),
         blockWeekCounts = listOf(4, 4, 4, 4, 4),
         blockGoals = listOf(
             MesocycleGoal.ACCUMULATION,

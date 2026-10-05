@@ -1,5 +1,8 @@
 package com.example.kpkn.domain.training
 
+import com.example.kpkn.data.models.ApparatusPresence
+import com.example.kpkn.data.models.EquipmentAvailability
+import com.example.kpkn.data.models.EquipmentCategory
 import com.example.kpkn.data.models.EquipmentInventory
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.LoadModeV2
@@ -23,7 +26,6 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
-import org.junit.Assume.assumeTrue
 import org.junit.BeforeClass
 import org.junit.Test
 
@@ -67,6 +69,7 @@ class NativeProgressionRealPlanTest {
         days: Int,
         equipment: Set<String>,
         level: CatalogLevel = CatalogLevel.INTERMEDIATE,
+        options: TrainingOptions = TrainingOptions(),
     ): Program {
         val result = personalizer().personalize(
             programId,
@@ -80,6 +83,7 @@ class NativeProgressionRealPlanTest {
                 cardio = null,
                 volumeRecommendations = emptyList(),
             ),
+            options = options,
         )
         return requireNotNull(result.program) {
             "el plan propio no se generó: ${result.report.limitations} (${result.report.reasonCode})"
@@ -358,16 +362,31 @@ class NativeProgressionRealPlanTest {
 
     @Test
     fun mixedRealPlan_bodyweightSlotProgressesByIdentity_notByTheRecipeStrategy() {
-        val program = generate("real-mixed", NativeProfileKind.MUSCLE.entryId, days = 4, equipment = DUMBBELLS)
+        val program = generate(
+            "real-mixed",
+            NativeProfileKind.MUSCLE.entryId,
+            days = 4,
+            equipment = DUMBBELLS + "pull_up_bar",
+            options = TrainingOptions(
+                availability = EquipmentAvailability(
+                    categories = setOf(EquipmentCategory.DUMBBELLS, EquipmentCategory.PULL_UP_BAR),
+                    supports = mapOf(EquipmentKeys.PULLUP_BAR to ApparatusPresence.PRESENT),
+                ),
+            ),
+        )
         assertNotNull(program.sourceRecipe?.nativeProgression)
         val firstWeekSessions = weeksOf(program).first().sessions
+        assertTrue(
+            "el plan mixto conserva al menos un slot de mancuernas gestionado",
+            firstWeekSessions.flatMap { managedOf(program, it.id) }.any { equipmentOf(it) == "dumbbells" },
+        )
         val bodyweightSlot = firstWeekSessions.asSequence()
             .flatMap { session -> managedOf(program, session.id).asSequence().map { session to it } }
             .firstOrNull { (_, exercise) ->
                 equipmentOf(exercise) == "bodyweight" &&
                     !exercise.isUnilateral && exercise.unilateralMode == UnilateralMode.BILATERAL
             }
-        assumeTrue("el plan generado no trae un slot corporal gestionado dentro de un plan de carga", bodyweightSlot != null)
+        assertNotNull("la barra de dominadas confirmada aporta un slot corporal gestionado al plan mixto", bodyweightSlot)
         val (session1, bodyweightExercise) = bodyweightSlot!!
         assertEquals(
             "la receta es de carga: el slot corporal es el caso mixto",

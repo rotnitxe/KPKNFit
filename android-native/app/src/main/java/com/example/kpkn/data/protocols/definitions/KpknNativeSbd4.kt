@@ -22,9 +22,10 @@ object KpknNativeSbd4 {
         // L-05/L-06 (B.S6): el peso muerto se entrena pesado en todo el plan y el pico llega a ≥ 85 % del 1RM efectivo
         // (95 y 100 % del TM al 90 % = 85,5 y 90 % del 1RM; antes 88-93 % del TM = 79-84 % del 1RM).
         // Base: DL 3×4 al 72-75 %. Intensificación: DL 3×3 al 80-86 %. Peak: w9 DL 3×2@94 y w10 DL 2×1@98. Taper: w11 DL 2×2@80.
-        // Taper (tabla B.S6): sentadilla y banca pesada al 85 % del TM (76,5 % del 1RM; antes 80 y 78 %). Efecto conocido: con el % crudo el
-        // lunes de la semana 11 cuenta como «pesada» (85 % o más) y la última pesada queda a 4 días del test (hallazgo SOFT de BLOCK, objetivo
-        // 7-10 días; C7 del contrato lo inventaría porque con el %1RM efectivo no hay hallazgo). Bajar ese taper al 80 % lo elimina.
+        // Taper (B.S6 parte 2b, decisión c): sentadilla, peso muerto y banca pesada al 80 % del TM (72 % del 1RM). La tabla de la parte 1 lo
+        // había subido al 85 % y con el % crudo el lunes de la semana 11 contaba como «pesada» (85 % o más): la última pesada quedaba a 4
+        // días del test (hallazgo SOFT de BLOCK, objetivo 7-10) y C7 lo inventariaba. Al 80 % la última pesada es la banca del viernes de la
+        // semana 10 (100 % del TM), a 7 días del test, con el % crudo y con el %1RM efectivo.
         val weeks = buildList {
             repeat(4) { i ->
                 val w = i + 1
@@ -42,7 +43,7 @@ object KpknNativeSbd4 {
             }
             add(week(9, 2, "Peak", BlockGoal.PEAK, 95.0, 94.0, 78.0, 95.0, t1Sets = 3, t1Reps = 2, dlSets = 3, dlReps = 2, dropAccessories = true))
             add(week(10, 2, "Peak", BlockGoal.PEAK, 100.0, 98.0, 75.0, 100.0, t1Sets = 2, t1Reps = 1, dlSets = 2, dlReps = 1, dropAccessories = true))
-            add(week(11, 3, "Taper", BlockGoal.TAPER, 85.0, 80.0, 65.0, 85.0, t1Sets = 2, t1Reps = 2, dlSets = 2, dlReps = 2, dropAccessories = true))
+            add(week(11, 3, "Taper", BlockGoal.TAPER, 80.0, 80.0, 65.0, 80.0, t1Sets = 2, t1Reps = 2, dlSets = 2, dlReps = 2, dropAccessories = true))
         }
         return TrainingPlanRecipe(
             id = "kpkn-native-sbd-4",
@@ -56,6 +57,7 @@ object KpknNativeSbd4 {
             claimedDaysPerWeek = 4,
             claimedLevel = "intermedio",
             autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.WEEKLY_REVIEW)),
+            contentVersion = 2,
         )
     }
 

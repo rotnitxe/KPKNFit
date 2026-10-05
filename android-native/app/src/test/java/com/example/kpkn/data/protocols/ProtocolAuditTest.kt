@@ -24,8 +24,10 @@ class ProtocolAuditTest {
          * y series recortadas) y Smolov Jr tiene un solo bloque, que esta comprobación no mira. Quedan:
          * - los que se repiten (un ciclo que se repite no necesita descarga final): Texas ×2, 5/3/1 ×2, Madcow, nSuns, GZCLP,
          *   Westside, PHUL y PHAT heredados;
-         * - los que no se repiten, duran 8 semanas o más y no traen ninguna semana de descarga ni de taper (hallazgo C5 del
-         *   contrato de receta): J&T, Rippler, UHF-9, Juggernaut, Sheiko, Coan, Korte, Cube, Calgary, RTS y SBS;
+         * - los que no se repiten, duran 8 semanas o más y terminan sin un ProtocolBlock de descarga: J&T, Rippler, UHF-9, Sheiko, Coan,
+         *   Korte, Cube y Calgary no traen ninguna semana de descarga ni de taper y lo declaran con una exención C5 (B.S6 parte 2b,
+         *   «termina en el test o la competición»); Juggernaut, RTS y SBS sí traen semanas de descarga (`kind = DELOAD`) dentro de sus
+         *   bloques, pero su último bloque (la ola de 3s, el pivote, la intensificación) no es de descarga;
          * - los que tienen su descarga o su taper DENTRO de un bloque que no se llama así (Candito, Lilliebridge y TSA 9): su
          *   último `ProtocolBlock` no es de descarga, y renombrarlo rompería la estructura que fijan otras pruebas;
          * - los tres índices históricos ocultos (`juggernaut-base`, `rts-base` y `coan-phillipi`).

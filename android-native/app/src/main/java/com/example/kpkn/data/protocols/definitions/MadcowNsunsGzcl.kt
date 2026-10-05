@@ -19,6 +19,7 @@ import com.example.kpkn.data.protocols.SlotRole
 import com.example.kpkn.data.protocols.TrainingPlanRecipe
 import com.example.kpkn.data.protocols.attributed
 import com.example.kpkn.data.protocols.day
+import com.example.kpkn.data.protocols.mainWorkPercentOfOneRm
 import com.example.kpkn.data.protocols.dropT3
 import com.example.kpkn.data.protocols.percentSets
 import com.example.kpkn.data.protocols.repeatPercentSets
@@ -89,6 +90,7 @@ object MadcowProtocol {
             claimedDaysPerWeek = 3,
             claimedLevel = "intermedio",
             repeats = true,
+            contentVersion = 2,
         )
     }
 
@@ -202,11 +204,25 @@ object NSunsProtocol {
                     "nSuns publica el T1 de peso muerto con 9 series (rampa 5/3/1+ y 6 de respaldo) por diseño",
                     NSUNS_URL,
                 ),
+                // H-09 (B.S6 parte 2b): el T2 de peso muerto sumo cuelga del T1 de sentadilla y el T2 de sentadilla frontal del T1 de
+                // peso muerto del mismo día. Son dos levantamientos de competición con su propio `liftSlot` (la hoja nSuns los junta en
+                // la misma sesión); el enlace `supplementalOf` no se borra y C8 lo marca por ser de otro grupo de patrón.
+                RecipeCompositionExemption(
+                    "C8_SUPPLEMENTAL_LINK", "w*/Sentadilla/Sumo/t2",
+                    "La hoja nSuns pone el T2 de peso muerto sumo (8 series al 50-70 %) detrás del T1 de sentadilla del mismo día: dos levantamientos de competición, cada uno con su levantamiento declarado",
+                    NSUNS_URL,
+                ),
+                RecipeCompositionExemption(
+                    "C8_SUPPLEMENTAL_LINK", "w*/Peso muerto/Frontal/t2",
+                    "La hoja nSuns pone el T2 de sentadilla frontal (8 series al 50-70 %) detrás del T1 de peso muerto del mismo día: dos levantamientos de competición, cada uno con su levantamiento declarado",
+                    NSUNS_URL,
+                ),
             ),
             claimedDaysPerWeek = 4,
             claimedLevel = "avanzado",
             autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.AMRAP_TM)),
             repeats = true,
+            contentVersion = 2,
         )
     }
 
@@ -232,6 +248,9 @@ object NSunsProtocol {
 }
 
 object GzclProtocols {
+    /** Fuente de los métodos GZCL (J&T, Rippler y UHF 9): `sourceUrl` de sus exenciones C5. */
+    private const val GZCL_URL = "https://gzclmethod.com/"
+
     private fun t1Stage(week: Int): List<SetRecipe> {
         val stage = ((week - 1) / 4).coerceIn(0, 2)
         return when (stage) {
@@ -255,12 +274,22 @@ object GzclProtocols {
             Triple("Peso muerto", CatalogIds.DL, LiftSlot.DEADLIFT) to CatalogIds.RDL,
             Triple("Press militar", CatalogIds.OHP, LiftSlot.OVERHEAD) to CatalogIds.BP,
         )
+        // H-04 (B.S6 parte 2b): el T2 declara SIEMPRE su levantamiento (antes `lift.takeIf { t2id == id }`, que nunca se cumple porque el T2
+        // es una variante del T1: los cuatro T2 quedaban sin `liftSlot`, sin base de carga y sin kilos). Es el levantamiento de la variante:
+        // sentadilla frontal → sentadilla, banca inclinada → banca, peso muerto rumano → peso muerto y, en el día de press militar, la banca
+        // (el T2 de ese día es `BP`, así que carga con el TM de banca y no con el del press militar).
+        val t2Lifts = mapOf(
+            CatalogIds.SQ_FRONT to LiftSlot.SQUAT,
+            CatalogIds.BP_INC to LiftSlot.BENCH,
+            CatalogIds.RDL to LiftSlot.DEADLIFT,
+            CatalogIds.BP to LiftSlot.BENCH,
+        )
         val weeks = (1..4).map { w ->
             weekRecipe(w, 0, "Etapa T1", BlockGoal.ACCUMULATION, days.mapIndexed { index, (main, t2id) ->
                 val (label, id, lift) = main
                 day(label, weekday = listOf(1, 2, 4, 5)[index], slots = listOf(
                     slot("t1", SlotRole.T1_MAIN, id, t1Stage(w), 240, lift, isCompetitionLift = lift != LiftSlot.OVERHEAD),
-                    slot("t2", SlotRole.T2_SUPPLEMENTAL, t2id, t2Stage(w), 120, lift.takeIf { t2id == id }, supplementalOf = "t1"),
+                    slot("t2", SlotRole.T2_SUPPLEMENTAL, t2id, t2Stage(w), 120, t2Lifts.getValue(t2id), supplementalOf = "t1"),
                     // L-09 (B.S6): `rpeSets` solo copia `repsMax`; el rango 15-20 del T3 pierde el mínimo si no se fija `repsMin`.
                     slot(
                         "t3a", SlotRole.T3_ACCESSORY, if (index % 2 == 0) CatalogIds.LAT else CatalogIds.PENDLAY,
@@ -283,6 +312,7 @@ object GzclProtocols {
             claimedLevel = "intermedio",
             autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.AMRAP_TM)),
             repeats = true,
+            contentVersion = 2,
         )
     }
 
@@ -336,9 +366,21 @@ object GzclProtocols {
                 gzclDay("Banca", 2, CatalogIds.BP, LiftSlot.BENCH, CatalogIds.BP_INC, t1, t2sets, CatalogIds.PENDLAY, CatalogIds.JM),
                 gzclDay("Peso muerto", 4, CatalogIds.DL, LiftSlot.DEADLIFT, CatalogIds.RDL, t1.take(3), if (i < 6) repeatPercentSets(3, 6, 70.0, 120) else repeatPercentSets(3, 4, 75.0, 120), CatalogIds.ROW, CatalogIds.GHR),
                 gzclDay("Press", 5, CatalogIds.OHP, LiftSlot.OVERHEAD, CatalogIds.BP, t1, t2sets, CatalogIds.LAT, CatalogIds.FACE),
-            ))
+            ).map { day -> if (goal == BlockGoal.PEAK) day.mainWorkPercentOfOneRm() else day })
         }
-        return TrainingPlanRecipe("gzcl-jt-2", weeks, 0.90, sbdSlots(), ProgressionRule.RepMaxAutoregulated, claimedDaysPerWeek = 4, claimedLevel = "avanzado", autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.AMRAP_TM)))
+        return TrainingPlanRecipe(
+            "gzcl-jt-2", weeks, 0.90, sbdSlots(), ProgressionRule.RepMaxAutoregulated,
+            // B.S6 parte 2b (C5): son 12 semanas que no se repiten y terminan en el test de 1RM; no hay semana de descarga.
+            exemptions = listOf(
+                RecipeCompositionExemption(
+                    "C5_DELOAD_REQUIRED", "recipe",
+                    "Jacked & Tan 2.0 son 12 semanas que terminan en un test de 1RM (el primero es el de la semana 6); el método no programa semanas de descarga aparte",
+                    GZCL_URL,
+                ),
+            ),
+            claimedDaysPerWeek = 4, claimedLevel = "avanzado", autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.AMRAP_TM)),
+            contentVersion = 2,
+        )
     }
 
     val jackedAndTan = Protocol(
@@ -369,7 +411,18 @@ object GzclProtocols {
                 gzclDay("Press", 5, CatalogIds.OHP, LiftSlot.OVERHEAD, CatalogIds.BP, repeatPercentSets(3, 3, pct - 5, 180, amrapLast = i < 10), t2sets, CatalogIds.LAT, CatalogIds.FACE),
             ))
         }
-        return TrainingPlanRecipe("gzcl-rippler", weeks, 0.90, sbdSlots(), ProgressionRule.None, claimedDaysPerWeek = 4, claimedLevel = "intermedio")
+        return TrainingPlanRecipe(
+            "gzcl-rippler", weeks, 0.90, sbdSlots(), ProgressionRule.None,
+            // B.S6 parte 2b (C5): son 12 semanas que no se repiten y cierran con el test de las semanas 11 y 12 (97,5 y 100 % del TM).
+            exemptions = listOf(
+                RecipeCompositionExemption(
+                    "C5_DELOAD_REQUIRED", "recipe",
+                    "The Rippler son 12 semanas que cierran con el test de las semanas 11 y 12 (97,5 y 100 % del TM); el método no programa semanas de descarga aparte",
+                    GZCL_URL,
+                ),
+            ),
+            claimedDaysPerWeek = 4, claimedLevel = "intermedio",
+        )
     }
 
     val rippler = Protocol(
@@ -405,9 +458,20 @@ object GzclProtocols {
                 DayArchetypes.plDeadlift(pct - 4, t1Sets = 3, t1Reps = if (w >= 6) 2 else 5, weekday = 3),
                 DayArchetypes.plBenchVolume((pct - 8).coerceAtLeast(60.0), weekday = 5),
                 lightSquat,
-            ).map { day -> if (goal == BlockGoal.PEAK) day.dropT3(2) else day })
+            ).map { day -> if (goal == BlockGoal.PEAK) day.dropT3(2).mainWorkPercentOfOneRm() else day })
         }
-        return TrainingPlanRecipe("gzcl-uhf-9", weeks, 0.90, sbdSlots(), ProgressionRule.None, claimedDaysPerWeek = 5, claimedLevel = "avanzado")
+        return TrainingPlanRecipe(
+            "gzcl-uhf-9", weeks, 0.90, sbdSlots(), ProgressionRule.None,
+            // B.S6 parte 2b (C5): son 9 semanas que no se repiten y terminan en la semana de pico; el método no programa descarga aparte.
+            exemptions = listOf(
+                RecipeCompositionExemption(
+                    "C5_DELOAD_REQUIRED", "recipe",
+                    "GZCL UHF 9 son 9 semanas que terminan en la semana de pico (la novena); el método no programa una semana de descarga aparte",
+                    GZCL_URL,
+                ),
+            ),
+            claimedDaysPerWeek = 5, claimedLevel = "avanzado", contentVersion = 2,
+        )
     }
 
     val uhf9 = Protocol(

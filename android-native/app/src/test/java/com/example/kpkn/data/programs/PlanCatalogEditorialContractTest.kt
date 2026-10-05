@@ -2,9 +2,11 @@ package com.example.kpkn.data.programs
 
 import com.example.kpkn.data.models.WeekExecutionKind
 import com.example.kpkn.data.protocols.DayRecipe
+import com.example.kpkn.data.protocols.IncrementScope
 import com.example.kpkn.data.protocols.LiftRef
 import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.data.protocols.PlanProvenanceClass
+import com.example.kpkn.data.protocols.ProgressionRule
 import com.example.kpkn.data.protocols.SetRecipe
 import com.example.kpkn.data.protocols.SlotRecipe
 import com.example.kpkn.data.protocols.SlotRole
@@ -517,6 +519,43 @@ class PlanCatalogEditorialContractTest {
             assertNotNull("find($id)", PersonalizedPlanCatalog.find(id))
             assertEquals("lookup($id)", id, PersonalizedPlanCatalog.lookup(id)?.entry?.id)
         }
+    }
+
+    @Test
+    fun numbered_deload_claims_match_the_published_recipe() {
+        val claim = Regex("""(?:La semana|Las semanas) ([0-9, y]+) (?:es|son) de descarga""")
+        val checked = mutableSetOf<String>()
+        entries.forEach { entry ->
+            val match = claim.find(entry.summary) ?: return@forEach
+            val statedWeeks = Regex("""\d+""").findAll(match.groupValues[1]).map { it.value.toInt() }.toSet()
+            val recipe = requireNotNull(entry.recipe ?: entry.template?.recipe) { "${entry.id}: descarga sin receta" }
+            val actualWeeks = recipe.weeks.filter { it.kind == WeekExecutionKind.DELOAD }.map { it.weekNumber }.toSet()
+            assertEquals("${entry.id}: semanas de descarga del resumen vs receta", actualWeeks, statedWeeks)
+            checked += entry.id
+        }
+        assertTrue(
+            "el contrato debe cubrir las seis fichas corregidas: $checked",
+            checked.containsAll(
+                setOf(
+                    "template:power-12-3", "template:powerbuild-16-4", "template:body-16-4", "template:body-20-5",
+                    "protocol:kpkn-rts-style", "protocol:kpkn-sbs-rtf",
+                ),
+            ),
+        )
+    }
+
+    @Test
+    fun juggernaut_summary_distinguishes_method_increment_from_performance_proposal() {
+        val entry = entry("protocol:juggernaut-2")
+        val recipe = requireNotNull(entry.recipe)
+        val rule = recipe.progression as ProgressionRule.CycleIncrement
+        assertEquals(IncrementScope.BLOCK, rule.scope)
+        assertEquals(2.5, rule.upperKg, 0.0)
+        assertEquals(5.0, rule.lowerKg, 0.0)
+        assertEquals(setOf(4, 8, 12, 16), recipe.weeks.filter { it.kind == WeekExecutionKind.DELOAD }.map { it.weekNumber }.toSet())
+        assertTrue("el rendimiento se presenta como propuesta", entry.summary.contains("puede proponer ajustar"))
+        assertTrue("el incremento se asocia a la ola siguiente", entry.summary.contains("Al empezar la siguiente ola"))
+        assertTrue("el cierre corto no promete subir", entry.summary.contains("si cumpliste las repeticiones previstas"))
     }
 
     // ─── Ayudas ───────────────────────────────────────────────────────────────

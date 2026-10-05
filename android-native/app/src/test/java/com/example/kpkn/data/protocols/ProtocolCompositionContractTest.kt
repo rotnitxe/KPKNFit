@@ -3,6 +3,8 @@ package com.example.kpkn.data.protocols
 import com.example.kpkn.data.programs.PROGRAM_TEMPLATES
 import com.example.kpkn.data.protocols.definitions.AuthoredPhulPhatRecipes
 import com.example.kpkn.domain.training.CatalogCompositionTestSupport
+import com.example.kpkn.data.models.BlockGoal
+import com.example.kpkn.domain.training.PercentBasis
 import com.example.kpkn.domain.training.ProgramRecipeValidator
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -77,4 +79,25 @@ class ProtocolCompositionContractTest {
 
         assertTrue(failures.joinToString("\n\n"), failures.isEmpty())
     }
+    @Test
+    fun every_published_peak_or_realization_reaches_the_effective_one_rm_floor() {
+        // También mira las semanas cuyo goal cambia dentro de un blockIndex: BLOCK usa el goal de su primera semana.
+        val recipes = PROTOCOL_LIBRARY.filter { it.isVisibleForApplication }.map { requireNotNull(it.recipe) } +
+            PROGRAM_TEMPLATES.mapNotNull { it.recipe } + AuthoredPhulPhatRecipes.all
+        val failures = recipes.flatMap { recipe ->
+            recipe.weeks.filter { it.blockGoal in setOf(BlockGoal.PEAK, BlockGoal.REALIZATION) }
+                .groupBy { it.blockIndex }.mapNotNull { (block, weeks) ->
+                    val peak = weeks.flatMap { week -> week.days.flatMap { day -> day.slots
+                        .filter { it.role == SlotRole.T1_MAIN }.flatMap { slot -> slot.sets.filter { !it.isWarmup }
+                            .mapNotNull { PercentBasis.effective1RmPercent(it, slot, week, recipe.trainingMaxPercent) } }
+                    } }.maxOrNull()
+                    if (recipe.id == "juggernaut-2" && block == 3) {
+                        assertTrue("Juggernaut: exención solo en la ola 3s", recipe.exemptions.any { it.rule == "BLOCK" && it.scope == "block3/3s" })
+                        null
+                    } else if (peak != null && peak < 85.0) "${recipe.id} block$block: pico a $peak %1RM" else null
+                }
+        }
+        assertTrue(failures.joinToString("\n"), failures.isEmpty())
+    }
+
 }

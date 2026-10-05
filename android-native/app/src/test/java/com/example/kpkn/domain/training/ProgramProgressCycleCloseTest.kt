@@ -1154,6 +1154,188 @@ class ProgramProgressCycleCloseTest {
         assertEquals(1, appliedProposals(enteringWave2, "author-block-b2").size)
     }
 
+    // ─── B.S6 parte 2b: Juggernaut real por olas, y cierre real de ciclo con Madcow y GZCLP ──────
+
+    private fun publishedRecipe(id: String): TrainingPlanRecipe = PROTOCOL_LIBRARY.first { it.id == id }.recipe!!
+
+    @Test
+    fun real_juggernaut_raises_the_tm_once_per_wave_entered_and_never_at_the_end_of_the_3s_wave() {
+        val recipe = publishedRecipe("juggernaut-2")
+        assertEquals(ProgressionRule.CycleIncrement(2.5, 5.0, IncrementScope.BLOCK), recipe.progression)
+        val program = PlanMaterializer.materialize(
+            Program(id = "jug", name = "Juggernaut"),
+            recipe,
+            CatalogCompositionTestSupport.metadata,
+            SeqIds(),
+            profile = PowerliftingProfile(squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 220.0, overhead1RM = 80.0),
+        )
+        assertEquals(ProgramStructure.COMPLEX, program.structure)
+        assertEquals(16, weeksOf(program).size)
+        val blocks = program.macrocycles.first().blocks
+        assertEquals(listOf("10s", "8s", "5s", "3s"), blocks.map { it.name })
+        // Las cuatro semanas de cada ola son 3 de entrenamiento y la de descarga (la 4, 8, 12 y 16).
+        assertEquals(
+            List(4) { listOf(false, false, false, true) }.flatten(),
+            weeksOf(program).map { it.executionKind == com.example.kpkn.data.models.WeekExecutionKind.DELOAD },
+        )
+        fun squatKg(target: Program, weekIndex: Int) = t1Of(weeksOf(target)[weekIndex], CatalogIds.SQ_LOW).sets.first().weight!!
+        fun tmOf(target: Program) = target.powerliftingProfile!!
+        // TM iniciales (90 % del 1RM): 180 / 108 / 198 / 72 kg, y la primera serie de la ola de 10s es el 60 %.
+        assertEquals(180.0, tmOf(program).squatTM!!, 1e-9)
+        assertEquals(72.0, tmOf(program).overheadTM!!, 1e-9)
+        assertEquals(0.60 * 180.0, squatKg(program, 0), 1e-6)
+
+        // Semanas 1 a 3 de la ola de 10s: dentro de la ola no sube nada.
+        var current = program
+        (0..2).forEach { index ->
+            val step = advanceWave(current, index)
+            assertTrue("semana ${index + 1}: avanza", step.advancedWeek)
+            current = step.program
+            assertEquals("semana ${index + 1}: el TM no cambia", 180.0, tmOf(current).squatTM!!, 1e-9)
+            assertTrue("semana ${index + 1}: sin avisos", userNotices(current).isEmpty())
+        }
+
+        // Semana 4, la descarga: al entrar en la ola de 8s el TM sube UNA vez (+5 sentadilla y peso muerto, +2,5 banca y press militar).
+        val entering8s = advanceWave(current, 3)
+        assertTrue(entering8s.advancedWeek)
+        val tm8 = tmOf(entering8s.program)
+        assertEquals(185.0, tm8.squatTM!!, 1e-9)
+        assertEquals(110.5, tm8.benchTM!!, 1e-9)
+        assertEquals(203.0, tm8.deadliftTM!!, 1e-9)
+        assertEquals(74.5, tm8.overheadTM!!, 1e-9)
+        assertEquals("los 1RM no se tocan", 200.0, tm8.squat1RM!!, 1e-9)
+        val notice = userNotices(entering8s.program).single()
+        assertEquals("author-block-b1", notice.proposalId)
+        assertEquals(
+            "Nuevo bloque: TM sentadilla 180 → 185 kg, banca 108 → 110,5 kg, peso muerto 198 → 203 kg, press militar 72 → 74,5 kg.",
+            notice.reason,
+        )
+        assertEquals(1, appliedProposals(entering8s.program, "author-block-b1").size)
+        // La ola de 10s (ya entrenada) conserva su carga; la de 8s toma el TM nuevo (65 % de 185 kg la primera serie).
+        assertEquals(0.60 * 180.0, squatKg(entering8s.program, 0), 1e-6)
+        assertEquals(0.65 * 185.0, squatKg(entering8s.program, 4), 1e-6)
+        // Entrar otra vez en la misma ola no vuelve a subir el TM (idempotente por la marca author-block-b1).
+        val again = AuthoredProgressionEngine.applyAtBlockClose(
+            entering8s.program, blocks[1].id, CatalogCompositionTestSupport.metadata, inventory = null,
+        )
+        assertEquals(entering8s.program, again)
+
+        // Dentro de la ola de 8s (semanas 5 a 7) no sube; al entrar en la de 5s sube otra vez y al entrar en la de 3s, otra.
+        current = entering8s.program
+        (4..6).forEach { index -> current = advanceWave(current, index).program }
+        assertEquals(185.0, tmOf(current).squatTM!!, 1e-9)
+        val entering5s = advanceWave(current, 7)
+        assertEquals(190.0, tmOf(entering5s.program).squatTM!!, 1e-9)
+        assertEquals(0.70 * 190.0, squatKg(entering5s.program, 8), 1e-6)
+        current = entering5s.program
+        (8..10).forEach { index -> current = advanceWave(current, index).program }
+        val entering3s = advanceWave(current, 11)
+        val tm3 = tmOf(entering3s.program)
+        assertEquals(195.0, tm3.squatTM!!, 1e-9)
+        assertEquals(115.5, tm3.benchTM!!, 1e-9)
+        assertEquals(213.0, tm3.deadliftTM!!, 1e-9)
+        assertEquals(79.5, tm3.overheadTM!!, 1e-9)
+        assertEquals(0.75 * 195.0, squatKg(entering3s.program, 12), 1e-6)
+        assertEquals(listOf("author-block-b1", "author-block-b2", "author-block-b3"), userNotices(entering3s.program).map { it.proposalId })
+
+        // Dentro de la ola de 3s (semanas 13 a 15) y al terminarla (semana 16) NO sube nada: no hay ola siguiente.
+        current = entering3s.program
+        (12..14).forEach { index -> current = advanceWave(current, index).program }
+        val finished = advanceWave(current, 15)
+        assertEquals("el final de la ola de 3s no sube el TM", tm3, tmOf(finished.program))
+        assertEquals(3, userNotices(finished.program).size)
+        assertEquals(3, finished.program.effectiveWeekRecipes.flatMap { it.appliedProposals }.count { it.proposalId.startsWith("author-block-b") })
+    }
+
+    @Test
+    fun madcow_cycle_close_raises_the_tm_by_5_2_5_and_5_and_rebuilds_the_four_weeks() {
+        // L-03 (B.S6 parte 1): el +2,5 %/semana ya va dentro de la rampa y la subida del método es la del TM al cerrar el ciclo. El TM de Madcow es el
+        // 87 % del 1RM (≈ 5RM): 1RM 200 / 120 / 220 → TM 174 / 104,4 / 191,4 kg; con el paso de 0,5 kg el TM nuevo es 179 / 107 / 196,5 kg.
+        val (program, logs) = wendlerAtCycleEnd(
+            publishedRecipe("madcow-5x5"),
+            PowerliftingProfile(squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 220.0),
+        )
+        val before = program.powerliftingProfile!!
+        assertEquals(174.0, before.squatTM!!, 1e-9)
+        assertEquals(104.4, before.benchTM!!, 1e-9)
+        assertEquals(191.4, before.deadliftTM!!, 1e-9)
+
+        val result = ProgramProgressEngine.completeCycle(program, null, 1, logs)
+
+        assertTrue(result.advancedCycle)
+        assertEquals(2, result.program.runState?.cycleNumber)
+        val after = result.program.powerliftingProfile!!
+        assertEquals(179.0, after.squatTM!!, 1e-9)
+        assertEquals(107.0, after.benchTM!!, 1e-9)
+        assertEquals(196.5, after.deadliftTM!!, 1e-9)
+        assertEquals("los 1RM no se tocan", 200.0, after.squat1RM!!, 1e-9)
+
+        // Las cuatro semanas conservan sus ids y se reconstruyen con el TM nuevo: la primera serie de la rampa del lunes es el 46,25, 47,5,
+        // 48,75 y 50 % del TM (la rampa 50 % × 92,5, 95, 97,5 y 100 %).
+        val beforeWeeks = weeksOf(program)
+        val afterWeeks = weeksOf(result.program)
+        assertEquals(4, afterWeeks.size)
+        assertEquals(beforeWeeks.map { it.id }, afterWeeks.map { it.id })
+        listOf(46.25, 47.5, 48.75, 50.0).forEachIndexed { index, percent ->
+            assertEquals("antes semana ${index + 1}", percent / 100.0 * 174.0, t1Of(beforeWeeks[index], CatalogIds.SQ_LOW).sets.first().weight!!, 1e-6)
+            assertEquals("después semana ${index + 1}", percent / 100.0 * 179.0, t1Of(afterWeeks[index], CatalogIds.SQ_LOW).sets.first().weight!!, 1e-6)
+        }
+        // El triple del viernes de la semana 4 (102,5 % del TM) sube con él: es el techo de sentadilla del plan.
+        val friday = afterWeeks[3].sessions.first { it.name == "Intensidad" }.allExercises().first { it.catalogConfigurationId == CatalogIds.SQ_LOW }
+        assertEquals(1.025 * 179.0, friday.sets[4].weight!!, 1e-6)
+        assertTrue(result.program.macrocycles.flatMap { it.blocks }.none { it.materializationPending })
+        val notice = userNotices(result.program).single()
+        assertEquals("author-cycle-c2", notice.proposalId)
+        assertEquals("Nuevo ciclo: TM sentadilla 174 → 179 kg, banca 104,4 → 107 kg, peso muerto 191,4 → 196,5 kg.", notice.reason)
+        assertEquals(1, appliedProposals(result.program, "author-cycle-c2").size)
+        // Cerrar otra vez el mismo ciclo no vuelve a subir nada.
+        val again = ProgramProgressEngine.completeCycle(result.program, null, 1, logs)
+        assertEquals(result.program.powerliftingProfile, again.program.powerliftingProfile)
+        assertEquals(allWeights(result.program), allWeights(again.program))
+    }
+
+    @Test
+    fun gzclp_cycle_close_raises_the_tm_and_rebuilds_the_t1_and_the_t2_loads_of_the_four_days() {
+        // H-04/H-10: con los cuatro T2 sin `liftSlot` el cierre del ciclo reconstruía el T1 pero el T2 seguía sin kilos. Ahora el T2 de cada día
+        // carga con el TM de su levantamiento y sube con él: TM 180 / 108 / 198 / 72 → 185 / 110,5 / 203 / 74,5 kg.
+        val (program, logs) = wendlerAtCycleEnd(
+            publishedRecipe("gzclp"),
+            PowerliftingProfile(squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 220.0, overhead1RM = 80.0),
+        )
+        val before = program.powerliftingProfile!!
+        assertEquals(180.0, before.squatTM!!, 1e-9)
+        assertEquals(72.0, before.overheadTM!!, 1e-9)
+        fun t2Of(week: ProgramWeek, day: String) =
+            week.sessions.first { it.name == day }.allExercises().first { it.slotRole == SlotRole.T2_SUPPLEMENTAL }
+
+        val result = ProgramProgressEngine.completeCycle(program, null, 1, logs)
+
+        assertTrue(result.advancedCycle)
+        val after = result.program.powerliftingProfile!!
+        assertEquals(185.0, after.squatTM!!, 1e-9)
+        assertEquals(110.5, after.benchTM!!, 1e-9)
+        assertEquals(203.0, after.deadliftTM!!, 1e-9)
+        assertEquals(74.5, after.overheadTM!!, 1e-9)
+        val beforeWeek = weeksOf(program).first()
+        val afterWeek = weeksOf(result.program).first()
+        // T1 de la semana 1 (5×3 al 85 % del TM): antes con 180 kg, ahora con 185.
+        assertEquals(0.85 * 180.0, t1Of(beforeWeek, CatalogIds.SQ_LOW).sets.first().weight!!, 1e-6)
+        assertEquals(0.85 * 185.0, t1Of(afterWeek, CatalogIds.SQ_LOW).sets.first().weight!!, 1e-6)
+        assertEquals(0.85 * 74.5, t1Of(afterWeek, CatalogIds.OHP).sets.first().weight!!, 1e-6)
+        // T2 de la semana 1 (3×10 al 65 % del TM de su levantamiento): con kilos antes y después del cierre.
+        val t2Before = mapOf("Sentadilla" to 180.0, "Banca" to 108.0, "Peso muerto" to 198.0, "Press militar" to 108.0)
+        val t2After = mapOf("Sentadilla" to 185.0, "Banca" to 110.5, "Peso muerto" to 203.0, "Press militar" to 110.5)
+        t2Before.forEach { (day, tm) ->
+            assertEquals("$day antes", 0.65 * tm, t2Of(beforeWeek, day).sets.first().weight!!, 1e-6)
+            assertEquals("$day después", 0.65 * t2After.getValue(day), t2Of(afterWeek, day).sets.first().weight!!, 1e-6)
+        }
+        assertEquals("author-cycle-c2", userNotices(result.program).single().proposalId)
+        assertEquals(
+            "Nuevo ciclo: TM sentadilla 180 → 185 kg, banca 108 → 110,5 kg, peso muerto 198 → 203 kg, press militar 72 → 74,5 kg.",
+            userNotices(result.program).single().reason,
+        )
+    }
+
     // ─── B.S5 · R-19: el test de 1RM también actualiza el perfil de cargas ────────
 
     /** Las dos olas con el cursor en la última semana de la ola 1 y el test de 1RM pendiente antes de la ola 2. */

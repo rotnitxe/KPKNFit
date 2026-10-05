@@ -19,6 +19,7 @@ import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.models.WorkoutLog
+import com.example.kpkn.data.protocols.AutoregulationHookKind
 import com.example.kpkn.data.protocols.LiftSlot
 import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.data.protocols.ProgressionRule
@@ -97,9 +98,6 @@ object ProgramAutoregulationEngine {
 
     /** Un AMRAP de `AmrapDrivenTm` solo mueve el TM desde este porcentaje del TM: uno más ligero no mide el TM. */
     const val AMRAP_TM_MIN_PERCENT = 85.0
-
-    /** Desde este porcentaje, 1 repetición o menos en un AMRAP cuenta como AMRAP corto aunque el objetivo fuera 1+. */
-    const val SHORT_AMRAP_SINGLE_MIN_PERCENT = 90.0
 
     /** Bajada del TM (en %) por un AMRAP corto, un top set dos o más repeticiones corto o una serie al máximo muy baja. */
     const val TM_DOWN_PERCENT = -2.5
@@ -1001,6 +999,12 @@ object ProgramAutoregulationEngine {
      * puede bajar el TM si el AMRAP quedó corto; solo `AmrapDrivenTm` y `RepTargetDrivenTm` lo suben), el
      * top set de `TopSetPr` y la serie al máximo de `RepMaxAutoregulated`. Un levantamiento sin ajuste
      * (hit sin levantamiento, cambio nulo) no genera propuesta.
+     *
+     * H-05 (B.S6 parte 2b): el AMRAP de una receta SIN regla de progresión (`None`) y sin el gancho
+     * `AMRAP_TM` no mueve el TM, ni para subirlo ni para bajarlo ([amrapMovesTm]). Cube, Lilliebridge y la
+     * plantilla de powerlifting de 12 semanas llevan series AMRAP marcadas como parte de su tabla, pero su
+     * método no usa el AMRAP para ajustar el TM: antes un AMRAP corto de esas recetas caía en la rama «otra
+     * regla» y proponía bajar el TM un 2,5 %.
      */
     private fun performanceProposals(
         recipe: TrainingPlanRecipe,
@@ -1009,7 +1013,9 @@ object ProgramAutoregulationEngine {
         readiness: Int?,
     ): List<AutoregulationProposal> {
         val proposals = mutableListOf<AutoregulationProposal>()
+        val amrapCanMoveTm = amrapMovesTm(recipe)
         signals.amrapHits.forEach { hit ->
+            if (!amrapCanMoveTm) return@forEach
             // Sin levantamiento en la receta (las dominadas de Texas) el hit solo se registra: no hay TM que ajustar.
             val lift = hit.liftSlot ?: return@forEach
             val change = amrapTmChange(recipe.progression, hit) ?: return@forEach
@@ -1048,13 +1054,23 @@ object ProgramAutoregulationEngine {
         (kgDelta ?: 0.0) < 0.0 || (percentDelta ?: 0.0) < 0.0
 
     /**
-     * AMRAP corto: menos repeticiones que el objetivo, o una repetición o menos desde el
-     * [SHORT_AMRAP_SINGLE_MIN_PERCENT] % del TM (a esa intensidad una sola repetición indica un TM
-     * demasiado alto aunque el objetivo fuera 1+). Un AMRAP corto nunca sube el TM.
+     * true si el AMRAP de [recipe] puede mover el TM: la receta declara una regla de progresión o el
+     * gancho `AMRAP_TM`. Sin ninguna de las dos (`None` y sin gancho) el AMRAP es solo una serie al máximo
+     * de la tabla del autor y no genera propuestas de TM (H-05).
      */
-    internal fun isShortAmrap(hit: AmrapHit): Boolean =
-        hit.actualReps < hit.prescribedReps ||
-            (hit.prescribedReps > 0 && hit.actualReps <= 1 && (hit.percent ?: 0.0) >= SHORT_AMRAP_SINGLE_MIN_PERCENT)
+    internal fun amrapMovesTm(recipe: TrainingPlanRecipe): Boolean =
+        recipe.progression != ProgressionRule.None ||
+            recipe.autoregulationHooks.any { it.kind == AutoregulationHookKind.AMRAP_TM }
+
+    /**
+     * AMRAP corto: menos repeticiones que el objetivo. Un AMRAP corto nunca sube el TM.
+     *
+     * Una sola repetición en una serie «1+» NO es corta (decisión B.S6 parte 2b, H-01): cumple el objetivo.
+     * nSuns y 5/3/1 tratan 1 repetición al 95 % como un éxito y la tabla de `AmrapDrivenTm`
+     * (`zeroToOneKg = 0`) ya expresa «sin subida» para ese caso, así que no hace falta una cláusula aparte
+     * que la volviera una bajada del TM. Sin mínimo declarado (`prescribedReps = 0`) el AMRAP nunca es corto.
+     */
+    internal fun isShortAmrap(hit: AmrapHit): Boolean = hit.actualReps < hit.prescribedReps
 
     /**
      * Cambio de TM de un AMRAP según la regla de la receta, o null si no mueve el TM. Lo corto se evalúa

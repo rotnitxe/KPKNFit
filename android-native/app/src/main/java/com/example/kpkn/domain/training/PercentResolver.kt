@@ -10,7 +10,7 @@ import kotlin.math.floor
 /**
  * Resuelve el porcentaje de una serie. Es puro: lo comparten el materializador,
  * que lo convierte en kg, y la política de composición, que lo convierte en
- * %1RM para H11 y H11b a través de [PercentBasis]. Así las dos miden con la
+ * %1RM para los chequeos de intensidad a través de [PercentBasis]. Así las dos miden con la
  * misma regla y no pueden discrepar.
  *
  * El resolutor solo transforma `PERCENT_OF_TOP_SET`: cuelga del top set de la
@@ -78,9 +78,9 @@ object PercentResolver {
 
 /**
  * Base de porcentaje común: convierte la prescripción de una serie en %1RM
- * efectivo y calcula cuántas repeticiones caben a ese porcentaje. Lo usan H11 y
- * H11b de [SessionCompositionPolicy] para medir kg resueltos y no el valor
- * crudo de la receta.
+ * efectivo y calcula cuántas repeticiones caben a ese porcentaje. Lo usan
+ * H5a/H8/H9/H11/H11b/W3/W4/BLOCK/taper de [SessionCompositionPolicy] para medir
+ * kg resueltos y no el valor crudo de la receta.
  */
 object PercentBasis {
     /** TM por defecto (90 % del 1RM) cuando la receta no declara un `trainingMaxPercent` válido. */

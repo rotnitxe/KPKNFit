@@ -59,11 +59,15 @@ class ExemptionScopeMigrationTest {
 
     // ─── Tabla ANTIGUA congelada: recetaId → (regla, ámbito viejo) ─────────────────
 
-    /** Smolov: las H6 vivas (S1, S2, S3 y Test) y, nueva en B.S6, la C4 de las semanas 9 a 13 (`==` sobre el ámbito de semana). */
+    /**
+     * Smolov: las H6 vivas (S1, S2, S3 y Test), la C4 de las semanas 9 a 13 (`==` sobre el ámbito de semana, nueva en B.S6 parte 1) y, nuevas
+     * en la parte 2b, la C1 por slot del día S4 de cualquier semana (`contains`) y del segundo día de la semana 9 (`==`).
+     */
     private val smolovLegacy = listOf(
         "H6" to "S1", "H6" to "S2", "H6" to "S3", "H6" to "Test",
         "C4_CLAIMED_DAYS" to "w9", "C4_CLAIMED_DAYS" to "w10", "C4_CLAIMED_DAYS" to "w11",
         "C4_CLAIMED_DAYS" to "w12", "C4_CLAIMED_DAYS" to "w13",
+        "C1_SET_RANGE" to "S4/sq", "C1_SET_RANGE" to "w9/S2/sq",
     )
 
     private val phulAuthoredLegacy = listOf(
@@ -82,18 +86,50 @@ class ExemptionScopeMigrationTest {
         "H3" to "Pecho/brazos hipertrofia",
     )
 
+    /**
+     * Exenciones de B.S6 parte 2b cuyo ámbito antiguo (`contains`) casaría con MÁS ámbitos que el glob anclado nuevo: son `recipeId →
+     * «regla|ámbito nuevo»`. Solo la C1 de la sentadilla de Sheiko: el id de slot `a` es prefijo de `a2` y el `contains` antiguo
+     * silenciaría también el segundo bloque de sentadilla (ningún hallazgo C1 lo toca: tiene 2 a 5 series). Para ellas no se exige la
+     * igualdad de conjuntos, sino que el ámbito nuevo sea un subconjunto no vacío del antiguo.
+     */
+    private val narrowerThanLegacy = setOf(
+        "sheiko-29-32" to "C1_SET_RANGE|w*/Sentadilla/Banca/a",
+    )
+
     private val legacyScopes: Map<String, List<Pair<String, String>>> = mapOf(
-        // B.S6: el T1 de 9 series de cada día, por slot (`contains` sobre «día/slot»); H5b y H6 `*` estaban muertas.
+        // B.S6: el T1 de 9 series de cada día, por slot (`contains` sobre «día/slot»); H5b y H6 `*` estaban muertas. Parte 2b (H-09): el T2 de
+        // peso muerto sumo (sentadilla) y el de sentadilla frontal (peso muerto) cuelgan de su T1 de otro patrón: C8 por slot.
         "nsuns-531-lp-4d" to listOf(
             "C1_SET_RANGE" to "Banca/OHP/t1",
             "C1_SET_RANGE" to "Sentadilla/Sumo/t1",
             "C1_SET_RANGE" to "Banca/Cerrado/t1",
             "C1_SET_RANGE" to "Peso muerto/Frontal/t1",
+            "C8_SUPPLEMENTAL_LINK" to "Sentadilla/Sumo/t2",
+            "C8_SUPPLEMENTAL_LINK" to "Peso muerto/Frontal/t2",
         ),
         "smolov" to smolovLegacy,
-        "coan-phillipi-dl" to listOf("H2" to "Peso muerto"),
-        "korte-3x3" to listOf("H5b" to "*"),
-        "phat-verified" to listOf("H3" to "*"),
+        "smolov-jr" to listOf("C1_SET_RANGE" to "S4/sq"),
+        "coan-phillipi-dl" to listOf("H2" to "Peso muerto", "C5_DELOAD_REQUIRED" to "recipe"),
+        "korte-3x3" to listOf("H5b" to "*", "C5_DELOAD_REQUIRED" to "recipe"),
+        "phat-verified" to listOf("H3" to "*", "C1_SET_RANGE" to "Power Lower/ext"),
+        // B.S6 parte 2b: Texas de 3 días (peso muerto de una serie que cuelga de la sentadilla), Texas de 4 días (los dos volúmenes que cuelgan
+        // del top de otro patrón), Westside (los tirones rápidos), Juggernaut (la ola de 3s, `==` sobre el ámbito de bloque), Sheiko (series de
+        // más por slot y C5) y los métodos que terminan en el test o la competición (C5, `==` sobre «recipe»).
+        "texas-method-3d" to listOf("C1_SET_RANGE" to "Volumen 5x5/dl", "C8_SUPPLEMENTAL_LINK" to "Volumen 5x5/dl"),
+        "texas-method-4d" to listOf("C8_SUPPLEMENTAL_LINK" to "Sentadilla/PM/t2", "C8_SUPPLEMENTAL_LINK" to "PM/Sentadilla/t2"),
+        "westside-conjugate" to listOf("C8_SUPPLEMENTAL_LINK" to "DE Lower/sdl"),
+        "juggernaut-2" to listOf("BLOCK" to "block3/3s"),
+        "sheiko-29-32" to listOf(
+            "C1_SET_RANGE" to "Sentadilla/Banca/b",
+            "C1_SET_RANGE" to "Sentadilla/Banca/a",
+            "C1_SET_RANGE" to "Peso muerto/Banca/a",
+            "C5_DELOAD_REQUIRED" to "recipe",
+        ),
+        "gzcl-jt-2" to listOf("C5_DELOAD_REQUIRED" to "recipe"),
+        "gzcl-rippler" to listOf("C5_DELOAD_REQUIRED" to "recipe"),
+        "gzcl-uhf-9" to listOf("C5_DELOAD_REQUIRED" to "recipe"),
+        "cube-method" to listOf("C5_DELOAD_REQUIRED" to "recipe"),
+        "calgary-16" to listOf("C5_DELOAD_REQUIRED" to "recipe"),
         AuthoredPhulPhatRecipes.PHUL_ORIGINAL_ID to phulAuthoredLegacy,
         AuthoredPhulPhatRecipes.PHUL_ADAPTED_ID to phulAuthoredLegacy,
         AuthoredPhulPhatRecipes.PHAT_ORIGINAL_ID to phatAuthoredLegacy,
@@ -130,7 +166,6 @@ class ExemptionScopeMigrationTest {
             rule in setOf("C1_SET_RANGE", "C3_EMPTY_SET", "C8_SUPPLEMENTAL_LINK", "C9_REDUNDANT_TECHNIQUE") -> slotScopes
             rule in setOf("C4_CLAIMED_DAYS", "C10_IDENTICAL_WEEKS") -> weekScopes
             rule in setOf("C5_DELOAD_REQUIRED", "C6_PROGRESSION_CONSUMER") -> listOf("recipe")
-            rule == "C7_PERCENT_BASIS" -> dayScopes + weekScopes + blockScopes
             rule.startsWith("W") || rule in setOf("S4", "S5", "S6") -> weekScopes
             else -> dayScopes
         }.distinct()
@@ -178,7 +213,12 @@ class ExemptionScopeMigrationTest {
                 val universe = scopeUniverse(recipe, rule)
                 val oldMatches = universe.filter { legacyMatches(oldScope, it) }
                 val newMatches = universe.filter { SessionCompositionPolicy.scopeMatches(newScope, it) }
-                if (oldMatches != newMatches) {
+                if ((recipe.id to "$rule|$newScope") in narrowerThanLegacy) {
+                    // El ámbito antiguo era más ancho a propósito: el nuevo debe casar con algo y solo con ámbitos que el antiguo también casaba.
+                    if (newMatches.isEmpty() || !oldMatches.containsAll(newMatches)) {
+                        failures += "${entry.label}: $rule '$oldScope' → '$newScope' debe ser un subconjunto no vacío: casa con $newMatches y casaba con $oldMatches"
+                    }
+                } else if (oldMatches != newMatches) {
                     failures += "${entry.label}: $rule '$oldScope' → '$newScope' casa con $newMatches y casaba con $oldMatches"
                 }
                 val covered = raw.count { it.rule == rule && SessionCompositionPolicy.scopeMatches(newScope, it.scope) }

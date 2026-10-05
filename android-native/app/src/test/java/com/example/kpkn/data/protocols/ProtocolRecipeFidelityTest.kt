@@ -538,13 +538,19 @@ class ProtocolRecipeFidelityTest {
         assertEquals(CatalogIds.BP_CLOSE_GRIP, closeGrip.lift.configurationId)
         assertNull(closeGrip.technique)
         // C1: las cuatro series de 9 se declaran por slot (el `t1` de cada día), nunca con un comodín.
+        val c1Exemptions = recipe.exemptions.filter { it.rule == RecipeContractPolicy.C1_SET_RANGE }
         assertEquals(
             listOf("w*/Banca/OHP/t1", "w*/Sentadilla/Sumo/t1", "w*/Banca/Cerrado/t1", "w*/Peso muerto/Frontal/t1"),
-            recipe.exemptions.map { it.scope },
+            c1Exemptions.map { it.scope },
         )
-        assertTrue(recipe.exemptions.all { it.rule == RecipeContractPolicy.C1_SET_RANGE && it.justification.length >= 25 && it.sourceUrl != null })
+        assertTrue(c1Exemptions.all { it.justification.length >= 25 && it.sourceUrl != null })
         val c1 = SessionCompositionPolicy.evaluateRecipe(recipe, metadata).filter { it.rule == RecipeContractPolicy.C1_SET_RANGE }
         assertTrue("C1 sin silenciar: $c1", c1.isEmpty())
+        // B.S6 parte 2b (H-09): el T2 de peso muerto cuelga de la sentadilla y el de sentadilla del peso muerto; se declara por slot.
+        assertEquals(
+            listOf("w*/Sentadilla/Sumo/t2", "w*/Peso muerto/Frontal/t2"),
+            recipe.exemptions.filter { it.rule == RecipeContractPolicy.C8_SUPPLEMENTAL_LINK }.map { it.scope },
+        )
     }
 
     @Test
@@ -643,12 +649,14 @@ class ProtocolRecipeFidelityTest {
     }
 
     @Test
-    fun westside_rotates_three_me_variants_without_a_progression_rule_or_exemptions() {
-        // L-14: sin exenciones (W5 muerta), sin variantes inalcanzables y sin `RepMaxAutoregulated` (las variantes no cuentan).
+    fun westside_rotates_three_me_variants_without_a_progression_rule_and_declares_only_the_sdl_link() {
+        // L-14: sin la W5 muerta, sin variantes inalcanzables y sin `RepMaxAutoregulated` (las variantes no cuentan). B.S6 parte 2b (H-09):
+        // la única exención es la C8 de los tirones rápidos de peso muerto (`sdl`), que cuelgan de la sentadilla rápida (`de`).
         val protocol = visible().first { it.id == "westside-conjugate" }
         val recipe = protocol.recipe!!
         assertEquals(ProgressionRule.None, recipe.progression)
-        assertTrue(recipe.exemptions.isEmpty())
+        assertEquals(listOf(RecipeContractPolicy.C8_SUPPLEMENTAL_LINK), recipe.exemptions.map { it.rule })
+        assertEquals(listOf("w*/DE Lower/sdl"), recipe.exemptions.map { it.scope })
         assertTrue(protocol.exemptions.isEmpty())
         val lower = recipe.weeks.map { week -> week.days.first { it.label == "ME Lower" }.slots.first { it.id == "me" }.lift.configurationId }
         val upper = recipe.weeks.map { week -> week.days.first { it.label == "ME Upper" }.slots.first { it.id == "me" }.lift.configurationId }
@@ -714,7 +722,15 @@ class ProtocolRecipeFidelityTest {
             assertFalse("sin comodines", exemption.scope.contains("*"))
             assertTrue("con fuente", !exemption.sourceUrl.isNullOrBlank())
         }
-        assertEquals(setOf("H6", RecipeContractPolicy.C4_CLAIMED_DAYS), recipe.exemptions.map { it.rule }.toSet())
+        // B.S6 parte 2b: además, la C1 por slot del día S4 de la base (10×3) y del segundo día de la semana 9 (9 series).
+        assertEquals(
+            setOf("H6", RecipeContractPolicy.C4_CLAIMED_DAYS, RecipeContractPolicy.C1_SET_RANGE),
+            recipe.exemptions.map { it.rule }.toSet(),
+        )
+        assertEquals(
+            listOf("w*/S4/sq", "w9/S2/sq"),
+            recipe.exemptions.filter { it.rule == RecipeContractPolicy.C1_SET_RANGE }.map { it.scope },
+        )
         assertTrue("sin la W3 ni la W6 muertas", recipe.exemptions.none { it.rule == "W3" || it.rule == "W6" })
         assertTrue("sin la H6 muerta de S4", recipe.exemptions.none { it.scope == "w*/S4" })
         assertEquals(setOf(1, 3, 4, 6), recipe.weeks.flatMap { week -> week.days.map { it.weekday } }.toSet())
@@ -727,16 +743,17 @@ class ProtocolRecipeFidelityTest {
     }
 
     @Test
-    fun smolov_jr_labels_its_days_s1_to_s4_and_inherits_no_exemptions() {
-        // L-35: los cuatro días se llamaban «Sesión» y heredaban siete exenciones muertas del Smolov completo.
+    fun smolov_jr_labels_its_days_s1_to_s4_and_inherits_only_the_s4_set_range_exemption() {
+        // L-35: los cuatro días se llamaban «Sesión» y heredaban siete exenciones muertas del Smolov completo. B.S6 parte 2b: solo queda la
+        // C1 por slot del día S4 (10×3 al 85 %), declarada igual en la receta y en el protocolo.
         val protocol = visible().first { it.id == "smolov-jr" }
         val recipe = protocol.recipe!!
         recipe.weeks.forEach { week ->
             assertEquals("semana ${week.weekNumber}", listOf("S1", "S2", "S3", "S4"), week.days.map { it.label })
             assertEquals(listOf(1, 3, 4, 6), week.days.map { it.weekday })
         }
-        assertTrue(recipe.exemptions.isEmpty())
-        assertTrue(protocol.exemptions.isEmpty())
+        assertEquals(listOf(RecipeContractPolicy.C1_SET_RANGE to "w*/S4/sq"), recipe.exemptions.map { it.rule to it.scope })
+        assertEquals(recipe.exemptions, protocol.exemptions)
         assertEquals(ProgressionRule.WeeklyKg(mapOf(2 to 5.0, 3 to 10.0)), recipe.progression)
     }
 
@@ -744,7 +761,15 @@ class ProtocolRecipeFidelityTest {
     fun ppl_never_prescribes_rir_zero_on_compounds() {
         // L-24/L-25: la segunda sesión de cada grupo (PPL «2», pierna B del estilo RP y de la plantilla de 12 semanas) bajaba hasta
         // RIR 0 en los compuestos (semanas 5 a 10 de PPL, 3 a 5 de RP, 5 y 7 a 11 de body-12-3), contra el «RIR 3→1» de la descripción.
-        listOf(recipeOf("kpkn-ppl-6"), recipeOf("kpkn-rp-style"), templateRecipe("body-12-3")).forEach { recipe ->
+        // B.S6 parte 2b (L-24): las plantillas de 16 y 20 semanas tenían el mismo defecto (las sesiones de volumen, extra y pump
+        // llegaban a RIR 0 con `coerceAtLeast(0)` y la pierna «pump» lo fijaba explícito); ahora entran en la misma comprobación.
+        listOf(
+            recipeOf("kpkn-ppl-6"),
+            recipeOf("kpkn-rp-style"),
+            templateRecipe("body-12-3"),
+            templateRecipe("body-16-4"),
+            templateRecipe("body-20-5"),
+        ).forEach { recipe ->
             val zeroRir = recipe.weeks.flatMap { week ->
                 week.days.flatMap { day ->
                     day.slots.filter { slot -> workSets(slot).any { (it.rir ?: Int.MAX_VALUE) <= 0 } }.map { "w${week.weekNumber}/${day.label}/${it.id}" }
@@ -871,22 +896,405 @@ class ProtocolRecipeFidelityTest {
         assertTrue(slotsOf(recipeOf("sheiko-29-32")).filter { it.lift.configurationId == CatalogIds.DL_TO_KNEES }.none { it.isCompetitionLift })
     }
 
+    /** Una receta publicada con las exenciones que declara su protocolo además de las de la propia receta. */
+    private data class PublishedRecipe(
+        val label: String,
+        val recipe: TrainingPlanRecipe,
+        val protocolExemptions: List<RecipeCompositionExemption>,
+    )
+
+    /** TODAS las recetas que la app publica: los protocolos visibles, las plantillas con receta y las cuatro autoradas. */
+    private fun publishedRecipes(): List<PublishedRecipe> =
+        visible().map { PublishedRecipe("protocolo ${it.id}", it.recipe!!, it.exemptions) } +
+            PROGRAM_TEMPLATES.mapNotNull { template ->
+                template.recipe?.let { PublishedRecipe("plantilla ${template.id}", it, emptyList()) }
+            } +
+            AuthoredPhulPhatRecipes.all.map { PublishedRecipe("autorada ${it.id}", it, emptyList()) }
+
     @Test
-    fun the_corrected_recipes_have_no_hard_composition_findings_with_their_declared_exemptions() {
-        val ids = listOf(
-            "madcow-5x5", "texas-method-3d", "texas-method-4d", "kpkn-native-sbd-4", "lilliebridge", "smolov", "smolov-jr",
-            "wendler-531-bbb", "wendler-531-fsl", "nsuns-531-lp-4d", "kpkn-ppl-6", "kpkn-rp-style", "gzclp", "gzcl-uhf-9",
-            "westside-conjugate", "calgary-16", "tsa-9", "candito-6", "cube-method", "kpkn-rts-style", "sheiko-29-32",
-            "coan-phillipi-dl", "korte-3x3",
-        )
-        val failures = ids.mapNotNull { id ->
-            val hard = ProgramRecipeValidator.hardFindings(recipeOf(id), metadata)
-            if (hard.isEmpty()) null else "$id:\n" + hard.joinToString("\n") { "  ${it.rule} ${it.scope}: ${it.message}" }
-        } + listOf("body-12-3", "power-20-5").mapNotNull { id ->
-            val hard = ProgramRecipeValidator.hardFindings(templateRecipe(id), metadata)
-            if (hard.isEmpty()) null else "$id:\n" + hard.joinToString("\n") { "  ${it.rule} ${it.scope}: ${it.message}" }
+    fun every_published_recipe_has_no_hard_composition_findings_with_its_declared_exemptions() {
+        // H-10 (B.S6 parte 2b): la prueba de la parte 1 miraba 25 recetas escogidas; esta recorre TODAS las publicadas (también `phul-verified`,
+        // las cuatro autoradas y las que ningún cambio ha tocado), con las exenciones de su receta y de su protocolo.
+        val all = publishedRecipes()
+        val ids = all.map { it.recipe.id }
+        assertEquals("ids de receta únicos", ids.size, ids.toSet().size)
+        assertTrue("phul-verified está entre las publicadas", "phul-verified" in ids)
+        assertTrue("las cuatro autoradas están entre las publicadas", AuthoredPhulPhatRecipes.all.all { it.id in ids })
+        assertTrue("29 protocolos, 7 plantillas y 4 autoradas como mínimo: ${all.size}", all.size >= 40)
+        val failures = all.mapNotNull { entry ->
+            val hard = ProgramRecipeValidator.hardFindings(entry.recipe, metadata, entry.protocolExemptions)
+            if (hard.isEmpty()) null else "${entry.label}:\n" + hard.joinToString("\n") { "  ${it.rule} ${it.scope}: ${it.message}" }
         }
         assertTrue("HARD sin cubrir:\n" + failures.joinToString("\n\n"), failures.isEmpty())
+    }
+
+    @Test
+    fun with_the_contract_in_hard_mode_every_published_recipe_is_clean_after_its_exemptions_except_c7_and_c10() {
+        // El contrato C1 a C10 pasa a HARD en la parte 2c. Lo que queda por resolver ANTES es solo C7 (la política mide el % del TM sin
+        // convertirlo a %1RM efectivo) y C10 (siempre aviso, aunque el resto sea HARD): todo lo demás ya está corregido en los datos o
+        // exento por slot con su fuente. Esta prueba evalúa el contrato en modo HARD, tal como lo hará la parte 2c.
+        val pending = setOf(RecipeContractPolicy.C7_PERCENT_BASIS, RecipeContractPolicy.C10_IDENTICAL_WEEKS)
+        val failures = publishedRecipes().mapNotNull { entry ->
+            val hard = RecipeContractPolicy.evaluate(entry.recipe, metadata, CompositionSeverity.HARD)
+                .filter { it.severity == CompositionSeverity.HARD && it.rule !in pending }
+            val left = SessionCompositionPolicy.applyExemptions(hard, entry.recipe.exemptions + entry.protocolExemptions)
+            if (left.isEmpty()) null else "${entry.label}:\n" + left.joinToString("\n") { "  ${it.rule} ${it.scope}: ${it.message}" }
+        }
+        assertTrue("Contrato en modo HARD sin cubrir (C1-C9):\n" + failures.joinToString("\n\n"), failures.isEmpty())
+    }
+
+    @Test
+    fun every_contract_exemption_is_justified_scoped_to_the_minimum_and_cites_its_source() {
+        val offenders = mutableListOf<String>()
+        publishedRecipes().forEach { entry ->
+            (entry.recipe.exemptions + entry.protocolExemptions).filter { it.rule in RecipeContractPolicy.RULES }.forEach { exemption ->
+                val label = "${entry.label} ${exemption.rule} '${exemption.scope}'"
+                if (exemption.justification.trim().length < 25) offenders += "$label: justificación de menos de 25 caracteres"
+                if (exemption.sourceUrl.isNullOrBlank()) offenders += "$label: sin fuente (sourceUrl)"
+                if (exemption.scope == "*") offenders += "$label: ámbito comodín"
+                when (exemption.rule) {
+                    // C5 cuelga de la receta entera; C1 y C8 son por slot (nunca todos los slots de un día).
+                    RecipeContractPolicy.C5_DELOAD_REQUIRED ->
+                        if (exemption.scope != RecipeContractPolicy.RECIPE_SCOPE) offenders += "$label: C5 se declara en el ámbito «recipe»"
+                    RecipeContractPolicy.C1_SET_RANGE, RecipeContractPolicy.C8_SUPPLEMENTAL_LINK ->
+                        if (exemption.scope.endsWith("*")) offenders += "$label: C1 y C8 se declaran por slot, no por día"
+                    else -> Unit
+                }
+            }
+        }
+        assertTrue("Exenciones del contrato mal declaradas:\n" + offenders.joinToString("\n"), offenders.isEmpty())
+        // Las plantillas y las recetas propias de KPKN nunca declaran ninguna: corrigen el dato.
+        publishedRecipes().filter { it.label.startsWith("plantilla") }.forEach { assertTrue("${it.label} sin exenciones", it.recipe.exemptions.isEmpty()) }
+    }
+
+    // ─── B.S6 parte 2b: correcciones del revisor, Juggernaut por olas, C1/C5/C8/C9 restantes ─────────────────
+
+    @Test
+    fun calgary_friday_of_week_16_is_light_and_the_paused_squat_stays_at_or_below_70_percent_from_week_12() {
+        // H-02: el viernes de Calgary llevaba la sentadilla con pausa hasta el 83 % (semana 16) tras los singles de la semana y la banca de
+        // volumen al 70 %. Desde la semana 12 la pausa no pasa del 70 % y el viernes de la 16 es ligero (banca ≤ 65 %, pausa al 60 %).
+        val recipe = recipeOf("calgary-16")
+        recipe.weeks.filter { it.weekNumber >= 12 }.forEach { week ->
+            val tech = week.days.first { it.weekday == 5 }.slots.first { it.id == "sq-tech" }
+            assertEquals(CatalogIds.SQ_PAUSED, tech.lift.configurationId)
+            assertTrue(
+                "semana ${week.weekNumber}: la sentadilla con pausa va al 70 % o menos: ${workSets(tech).map { it.percent }}",
+                workSets(tech).all { (it.percent ?: 0.0) <= 70.0 },
+            )
+        }
+        val week16 = recipe.weeks.first { it.weekNumber == 16 }
+        assertEquals("sigue siendo una semana de cuatro días", listOf(1, 2, 4, 5), week16.days.map { it.weekday })
+        val friday = week16.days.first { it.weekday == 5 }
+        val bench = friday.slots.first { it.role == SlotRole.T1_MAIN }
+        assertTrue("banca del viernes ≤ 65 %: ${workSets(bench).map { it.percent }}", workSets(bench).all { (it.percent ?: 0.0) <= 65.0 })
+        val pause = friday.slots.first { it.id == "sq-tech" }
+        assertTrue("pausa del viernes ligera: ${workSets(pause).map { it.percent }}", workSets(pause).all { (it.percent ?: 0.0) <= 65.0 })
+        // Lo demás de la semana 16 es el test: sentadilla 95 %, banca 93 % y peso muerto 90 % en una sola serie.
+        listOf(1 to 95.0, 2 to 93.0, 4 to 90.0).forEach { (weekday, percent) ->
+            val t1 = week16.days.first { it.weekday == weekday }.slots.first { it.role == SlotRole.T1_MAIN }
+            assertEquals(listOf(percent), workSets(t1).map { it.percent })
+        }
+        // Las semanas 1 a 11 no cambian: la pausa sigue 12 puntos por debajo de la sentadilla (con suelo del 55 %).
+        val squatW5 = recipe.weeks.first { it.weekNumber == 5 }.days.first { it.weekday == 1 }.slots.first { it.role == SlotRole.T1_MAIN }
+        val techW5 = recipe.weeks.first { it.weekNumber == 5 }.days.first { it.weekday == 5 }.slots.first { it.id == "sq-tech" }
+        assertEquals(workSets(squatW5).first().percent!! - 12.0, workSets(techW5).first().percent!!, 1e-9)
+    }
+
+    @Test
+    fun texas_3d_deadlift_volume_is_90_percent_of_the_tm_and_the_recovery_press_is_80_percent() {
+        // H-07 (D7): con el TM al 87 % del 1RM, el peso muerto de una serie de 5 del lunes (70 % del TM = 61 % del 1RM) y el press de
+        // recuperación (60 % del TM = 52 %) estaban muy por debajo del peso del volumen; ahora van al 90 % (78,3 %) y al 80 % (69,6 %).
+        val recipe = recipeOf("texas-method-3d")
+        assertEquals(0.87, recipe.trainingMaxPercent, 1e-9)
+        recipe.weeks.forEach { week ->
+            val label = "semana ${week.weekNumber}"
+            val monday = week.days.first { it.weekday == 1 }
+            val deadlift = monday.slots.first { it.id == "dl" }
+            assertEquals("$label: una serie de 5", listOf(5), workSets(deadlift).map { it.reps })
+            assertEquals("$label: al 90 % del TM", listOf(90.0), workSets(deadlift).map { it.percent })
+            assertEquals(LoadBasis.PERCENT_TM, workSets(deadlift).single().loadBasis)
+            assertEquals("$label: cuelga de la sentadilla del lunes", "sq", deadlift.supplementalOf)
+            val effective = PercentBasis.effective1RmPercent(workSets(deadlift).single(), deadlift, week, recipe.trainingMaxPercent)
+            assertEquals("$label: 90 % del TM = 78,3 % del 1RM", 78.3, effective!!, 1e-6)
+            val press = week.days.first { it.weekday == 3 }.slots.first { it.id == "ohp" }
+            assertEquals("$label: 3 series de 5", listOf(5, 5, 5), workSets(press).map { it.reps })
+            assertTrue("$label: press al 80 % del TM", workSets(press).all { it.percent == 80.0 && it.loadBasis == LoadBasis.PERCENT_TM })
+        }
+        // C1 y C8 del peso muerto del lunes: se declaran por slot con la fuente de Rippetoe y no dejan hallazgo vivo ni abren H5a.
+        assertEquals(
+            listOf(
+                RecipeContractPolicy.C1_SET_RANGE to "w*/Volumen 5x5/dl",
+                RecipeContractPolicy.C8_SUPPLEMENTAL_LINK to "w*/Volumen 5x5/dl",
+            ),
+            recipe.exemptions.map { it.rule to it.scope },
+        )
+        assertTrue(recipe.exemptions.all { it.sourceUrl.orEmpty().contains("startingstrength.com") && it.justification.length >= 25 })
+        val raw = RecipeContractPolicy.evaluate(recipe, metadata)
+        assertEquals("el peso muerto de una serie sale en las 4 semanas", 4, raw.count { it.rule == RecipeContractPolicy.C1_SET_RANGE })
+        assertEquals("y su enlace con la sentadilla también", 4, raw.count { it.rule == RecipeContractPolicy.C8_SUPPLEMENTAL_LINK })
+        val alive = SessionCompositionPolicy.evaluateRecipe(recipe, metadata)
+            .filter { it.rule == RecipeContractPolicy.C1_SET_RANGE || it.rule == RecipeContractPolicy.C8_SUPPLEMENTAL_LINK }
+        assertTrue("sin hallazgos vivos: $alive", alive.isEmpty())
+        assertTrue(
+            "con el enlace, el lunes no cuenta dos axiales pesados (H5a)",
+            SessionCompositionPolicy.evaluateRecipeRaw(recipe, metadata).none { it.rule == "H5a" },
+        )
+    }
+
+    @Test
+    fun gzclp_t2_declares_its_lift_and_the_press_day_t2_loads_with_the_bench_tm() {
+        // H-04: `lift.takeIf { t2id == id }` nunca se cumplía (el T2 es una variante del T1), así que los cuatro T2 quedaban sin `liftSlot`.
+        val recipe = recipeOf("gzclp")
+        val expected = mapOf(
+            "Sentadilla" to LiftSlot.SQUAT,
+            "Banca" to LiftSlot.BENCH,
+            "Peso muerto" to LiftSlot.DEADLIFT,
+            // El T2 del día de press militar es la banca: carga con el TM de banca y no con el del press militar.
+            "Press militar" to LiftSlot.BENCH,
+        )
+        recipe.weeks.forEach { week ->
+            assertEquals(expected.keys.toList(), week.days.map { it.label })
+            expected.forEach { (label, lift) ->
+                val t2 = week.days.first { it.label == label }.slots.first { it.id == "t2" }
+                assertEquals("semana ${week.weekNumber} $label", lift, t2.lift.liftSlot)
+                assertEquals("t1", t2.supplementalOf)
+            }
+        }
+    }
+
+    @Test
+    fun juggernaut_closes_each_wave_with_a_deload_week_and_raises_the_tm_when_entering_a_wave() {
+        // B.S6 parte 2b: `CycleIncrement(2,5; 5; BLOCK)` (Juggernaut no se repite: sube al entrar en cada ola, no al cerrar un ciclo) y la cuarta
+        // semana de cada ola (4, 8, 12 y 16) es la descarga del método (`kind = DELOAD`, T2 y T3 a 2 series de RPE 6; el T1 conserva su tabla).
+        val protocol = visible().first { it.id == "juggernaut-2" }
+        val recipe = protocol.recipe!!
+        assertEquals(ProgressionRule.CycleIncrement(upperKg = 2.5, lowerKg = 5.0, scope = IncrementScope.BLOCK), recipe.progression)
+        assertEquals(listOf(4, 8, 12, 16), recipe.weeks.filter { it.kind == WeekExecutionKind.DELOAD }.map { it.weekNumber })
+        assertEquals("4 olas de 4 semanas", listOf(4, 4, 4, 4), recipe.weeks.groupBy { it.blockIndex }.values.map { it.size })
+        recipe.weeks.forEach { week ->
+            val deload = week.weekNumber % 4 == 0
+            assertEquals("semana ${week.weekNumber}: kind", if (deload) WeekExecutionKind.DELOAD else WeekExecutionKind.TRAINING, week.kind)
+            if (!deload) assertTrue(week.blockGoal != BlockGoal.DELOAD)
+        }
+        recipe.weeks.filter { it.kind == WeekExecutionKind.DELOAD }.forEach { week ->
+            assertEquals("semana ${week.weekNumber}: blockGoal", BlockGoal.DELOAD, week.blockGoal)
+            week.days.forEach { day ->
+                day.slots.forEach { slot ->
+                    val label = "semana ${week.weekNumber} ${day.label}/${slot.id}"
+                    if (slot.role == SlotRole.T1_MAIN) {
+                        assertEquals("$label: la tabla del autor", listOf(40.0, 50.0, 60.0), workSets(slot).map { it.percent })
+                        assertTrue("$label: 3×5", workSets(slot).all { it.reps == 5 && !it.amrap })
+                    } else {
+                        assertEquals("$label: 2 series", 2, workSets(slot).size)
+                        assertTrue("$label: RPE 6", workSets(slot).all { it.rpe == 6.0 })
+                    }
+                }
+            }
+        }
+        // El AMRAP de la realización (semana 3 de cada ola) sigue donde estaba.
+        listOf(3, 7, 11, 15).forEach { number ->
+            val t1 = recipe.weeks.first { it.weekNumber == number }.days.first().slots.first { it.role == SlotRole.T1_MAIN }
+            assertTrue("semana $number: AMRAP de realización", workSets(t1).last().amrap)
+        }
+        // C5: ya no pide descarga. C7 usa la política compartida: la ola de 3s
+        // (90 % TM = 81 % 1RM) conserva su exención BLOCK específica y su fuente.
+        assertTrue(RecipeContractPolicy.evaluate(recipe, metadata).none { it.rule == RecipeContractPolicy.C5_DELOAD_REQUIRED })
+        assertEquals(
+            listOf("BLOCK" to "block3/3s"),
+            recipe.exemptions.map { it.rule to it.scope },
+        )
+        assertTrue(recipe.exemptions.single().sourceUrl.orEmpty().contains("jtsstrength.com"))
+        val raw = SessionCompositionPolicy.evaluateRecipeRaw(recipe, metadata)
+        val peakBlockHard = raw.filter { it.rule == "BLOCK" && it.severity == CompositionSeverity.HARD }
+        assertEquals("un único HARD de pico medido en %1RM", listOf("block3/3s"), peakBlockHard.map { it.scope })
+        assertTrue(peakBlockHard.single().message, peakBlockHard.single().message.contains("sin T1 >= 85%"))
+        assertTrue("sin la exención específica el HARD permanece", SessionCompositionPolicy.evaluateRecipe(
+            recipe.copy(exemptions = emptyList()), metadata,
+        ).contains(peakBlockHard.single()))
+        val applied = SessionCompositionPolicy.evaluateRecipe(recipe, metadata)
+        assertTrue("la exención silencia el HARD de esa ola", applied.none { it == peakBlockHard.single() })
+        assertTrue("no queda el espejo C7 en la política real", raw.none { it.rule == RecipeContractPolicy.C7_PERCENT_BASIS })
+        assertTrue("el inventario no duplica C7", RecipeContractPolicy.evaluate(recipe, metadata).none {
+            it.rule == RecipeContractPolicy.C7_PERCENT_BASIS
+        })
+    }
+
+    @Test
+    fun dropping_one_set_never_leaves_a_one_set_accessory_outside_peak_taper_and_deload() {
+        // H-03: `dropT3(n)` dejaba un mínimo de 1 serie en todas partes y el encogimiento 2×8 volvía a 1 en la intensificación (C1).
+        val day = DayArchetypes.plDeadlift(70.0)
+        fun setsOf(dropped: DayRecipe, id: String) = workSets(dropped.slots.single { it.id == id }).size
+        assertEquals("el encogimiento 2×8 se queda en 2 con dropT3(1)", 2, setsOf(day.dropT3(1), "shrug"))
+        assertEquals("y baja a 1 con dropT3(2), el recorte de pico, taper o descarga", 1, setsOf(day.dropT3(2), "shrug"))
+        assertEquals("un accesorio de 3 series pasa a 2 con dropT3(1)", 2, setsOf(day.dropT3(1), "ghr"))
+        assertEquals("y a 1 con dropT3(2)", 1, setsOf(day.dropT3(2), "ghr"))
+        assertEquals("el suelo se puede fijar", 1, setsOf(day.dropT3(1, minSets = 1), "shrug"))
+        assertEquals("dropT3(0) no toca nada", day, day.dropT3(0))
+        // Nunca se tocan los slots que no son T3 ni se añaden series.
+        val untouched = day.dropT3(2).slots.filter { it.role != SlotRole.T3_ACCESSORY }
+        assertEquals(day.slots.filter { it.role != SlotRole.T3_ACCESSORY }, untouched)
+        // Con datos reales: el encogimiento de Calgary, TSA y las plantillas de powerlifting sigue en 2 series en la intensificación.
+        listOf(recipeOf("calgary-16"), recipeOf("tsa-9"), templateRecipe("power-16-4"), templateRecipe("power-20-5")).forEach { recipe ->
+            recipe.weeks.filter { it.blockGoal == BlockGoal.INTENSIFICATION }.forEach { week ->
+                val shrugs = week.days.flatMap { it.slots }.filter { it.lift.configurationId == CatalogIds.SHRUG }
+                assertTrue("${recipe.id} semana ${week.weekNumber}: encogimiento de 2 series", shrugs.all { workSets(it).size == 2 })
+            }
+        }
+    }
+
+    @Test
+    fun the_long_templates_close_their_blocks_with_real_deload_weeks() {
+        // C5 (B.S6 parte 2b): las plantillas no pueden declarar exenciones, así que power-12-3, powerbuild-16-4, body-16-4 y body-20-5 ganan
+        // descargas reales. La estructura por bloques no cambia: la descarga es la última semana de un bloque (nunca la primera) y las
+        // series se recortan con `asDeload` (la mitad con suelo, RIR 4 o más, RPE 6 o menos, porcentajes al 70 % como máximo).
+        val expected = mapOf(
+            "power-12-3" to listOf(4, 8),
+            "powerbuild-16-4" to listOf(4, 8, 12),
+            "body-16-4" to listOf(4, 8, 12, 16),
+            "body-20-5" to listOf(6, 12, 18),
+        )
+        expected.forEach { (id, deloadWeeks) ->
+            val recipe = templateRecipe(id)
+            assertTrue("$id sin exenciones", recipe.exemptions.isEmpty())
+            assertEquals("$id: semanas de descarga", deloadWeeks, recipe.weeks.filter { it.kind == WeekExecutionKind.DELOAD }.map { it.weekNumber })
+            assertTrue(
+                "$id: la primera semana de cada bloque sigue entrenando (las plantillas fijan la meta de bloque por su primera semana)",
+                recipe.weeks.groupBy { it.blockIndex }.values.all { it.first().kind == WeekExecutionKind.TRAINING },
+            )
+            fun workSetCount(week: WeekRecipe) = week.days.sumOf { day -> day.slots.sumOf { workSets(it).size } }
+            deloadWeeks.forEach { number ->
+                val deload = recipe.weeks.first { it.weekNumber == number }
+                assertEquals("$id w$number: blockGoal", BlockGoal.DELOAD, deload.blockGoal)
+                val reference = recipe.weeks.last { it.kind == WeekExecutionKind.TRAINING && it.weekNumber < number }
+                assertTrue(
+                    "$id w$number: la descarga recorta las series (${workSetCount(deload)} frente a ${workSetCount(reference)})",
+                    workSetCount(deload) * 100 <= workSetCount(reference) * 60,
+                )
+                val work = deload.days.flatMap { day -> day.slots.flatMap { workSets(it) } }
+                assertTrue(
+                    "$id w$number: RIR 4 o más, RPE 6 o menos y porcentajes al 70 % como máximo",
+                    work.all { (it.rir ?: 0) >= 4 && (it.rpe ?: 10.0) <= 6.0 && (it.percent ?: 0.0) <= 70.0 },
+                )
+                assertEquals("$id w$number: mismos días que la semana anterior", reference.days.map { it.weekday }, deload.days.map { it.weekday })
+            }
+            assertTrue("$id: C5 sin hallazgo", RecipeContractPolicy.evaluate(recipe, metadata).none { it.rule == RecipeContractPolicy.C5_DELOAD_REQUIRED })
+        }
+    }
+
+    @Test
+    fun the_kpkn_own_autoregulated_plans_close_a_block_with_a_real_deload_because_they_cannot_declare_exemptions() {
+        // C5: kpkn-rts-style y kpkn-sbs-rtf son planes propios (KPKN_NATIVE) y ninguna prueba admite que declaren exenciones, así que
+        // la semana que cierra su primer bloque (la 5 en RTS, antes del pivote; la 4 en SBS, al acabar la base) es una descarga real.
+        mapOf("kpkn-rts-style" to 5, "kpkn-sbs-rtf" to 4).forEach { (id, number) ->
+            val protocol = visible().first { it.id == id }
+            val recipe = protocol.recipe!!
+            assertEquals(ProtocolPublicationStatus.KPKN_NATIVE, protocol.publicationStatus)
+            assertTrue("$id sin exenciones", recipe.exemptions.isEmpty() && protocol.exemptions.isEmpty())
+            assertEquals("$id: semanas de descarga", listOf(number), recipe.weeks.filter { it.kind == WeekExecutionKind.DELOAD }.map { it.weekNumber })
+            val deload = recipe.weeks.first { it.weekNumber == number }
+            assertEquals(BlockGoal.DELOAD, deload.blockGoal)
+            assertEquals("$id: sigue en el bloque que cierra", 0, deload.blockIndex)
+            val work = deload.days.flatMap { day -> day.slots.flatMap { workSets(it) } }
+            assertTrue("$id: sin series AMRAP en la descarga", work.none { it.amrap })
+            assertTrue("$id: RIR 4 o más y RPE 6 o menos", work.all { (it.rir ?: 0) >= 4 && (it.rpe ?: 10.0) <= 6.0 })
+            assertTrue("$id: C5 sin hallazgo", RecipeContractPolicy.evaluate(recipe, metadata).none { it.rule == RecipeContractPolicy.C5_DELOAD_REQUIRED })
+            assertEquals("$id: ocho semanas y cuatro días", 8, recipe.weeks.size)
+        }
+    }
+
+    @Test
+    fun power_16_and_20_week_templates_carry_no_redundant_technique_modifier() {
+        // C9: la técnica ya viaja en el id de la configuración (déficit, cajón, anderson, cadenas), así que el modificador sobraba. El press
+        // técnico del bloque 2 pasa a `BP_CHAINS` en el T1 y `BP_FLOOR` en el suplementario; el peso muerto con déficit migra a `DL_DEF`.
+        listOf("power-16-4", "power-20-5").forEach { id ->
+            val recipe = templateRecipe(id)
+            val techniques = slotsOf(recipe).mapNotNull { it.technique }
+            assertTrue("$id: modificadores restantes $techniques", techniques.isEmpty())
+            val c9 = RecipeContractPolicy.evaluate(recipe, metadata).filter { it.rule == RecipeContractPolicy.C9_REDUNDANT_TECHNIQUE }
+            assertTrue("$id: C9 sin hallazgo: $c9", c9.isEmpty())
+        }
+        val advanced = templateRecipe("power-20-5")
+        val configurations = slotsOf(advanced).map { it.lift.configurationId }.toSet()
+        listOf(CatalogIds.SQ_BOX, CatalogIds.SQ_PIN, CatalogIds.DL_DEF, CatalogIds.BP_CHAINS, CatalogIds.BP_FLOOR, CatalogIds.SQ_PAUSED)
+            .forEach { assertTrue("power-20-5 usa $it", it in configurations) }
+        val technicalPress = advanced.weeks.first { it.weekNumber == 12 }.days.first { it.label == "Press técnico" }
+        assertEquals(CatalogIds.BP_CHAINS, technicalPress.slots.first { it.id == "bp" }.lift.configurationId)
+        assertEquals(CatalogIds.BP_FLOOR, technicalPress.slots.first { it.id == "inc" }.lift.configurationId)
+        assertEquals("bp", technicalPress.slots.first { it.id == "inc" }.supplementalOf)
+        val blockTwoDeadlift = advanced.weeks.first { it.weekNumber == 12 }.days.first { it.label == "Peso muerto" }.slots.first { it.id == "dl" }
+        assertEquals(CatalogIds.DL_DEF, blockTwoDeadlift.lift.configurationId)
+        assertNull(blockTwoDeadlift.technique)
+    }
+
+    @Test
+    fun kpkn_sbd4_taper_is_at_80_percent_and_the_last_heavy_day_is_seven_days_before_the_test() {
+        // Decisión (c): el taper al 85 % de la parte 1 hacía «pesada» el lunes de la semana 11 y la última pesada quedaba a 4 días del test
+        // (C7 lo inventariaba). Al 80 % la última pesada es la banca del viernes de la semana 10 (100 % del TM), a 7 días.
+        val recipe = recipeOf("kpkn-native-sbd-4")
+        val taper = recipe.weeks.last()
+        assertEquals(11, taper.weekNumber)
+        assertEquals(BlockGoal.TAPER, taper.blockGoal)
+        val taperT1 = taper.days.flatMap { day -> day.slots.filter { it.role == SlotRole.T1_MAIN }.flatMap { workSets(it) } }
+        assertTrue("T1 del taper al 80 % o menos: ${taperT1.map { it.percent }}", taperT1.all { (it.percent ?: 0.0) <= 80.0 })
+        assertEquals(80.0, taper.days.first { it.weekday == 1 }.slots.first { it.id == "sq" }.sets.first { !it.isWarmup }.percent!!, 1e-9)
+        assertEquals(80.0, taper.days.first { it.weekday == 5 }.slots.first { it.id == "bp" }.sets.first { !it.isWarmup }.percent!!, 1e-9)
+        val c7 = RecipeContractPolicy.evaluate(recipe, metadata).filter { it.rule == RecipeContractPolicy.C7_PERCENT_BASIS }
+        assertTrue("SBD-4 ya no tiene C7: $c7", c7.isEmpty())
+        val taperBlock = SessionCompositionPolicy.evaluateRecipeRaw(recipe, metadata)
+            .filter { it.rule == "BLOCK" && it.message.contains("Última pesada") }
+        assertTrue("la última pesada queda a 7 días del test: $taperBlock", taperBlock.isEmpty())
+    }
+
+    @Test
+    fun lilliebridge_credits_the_lilliebridge_family_and_says_the_weekly_percentages_are_kpkns() {
+        // H-06: el método es de Ernie Lilliebridge y su familia. La hoja original no es pública: los porcentajes semanales son los de KPKN.
+        val protocol = visible().first { it.id == "lilliebridge" }
+        assertEquals("Ernie Lilliebridge (familia Lilliebridge)", protocol.author)
+        assertEquals("No afiliado a Ernie Lilliebridge (familia Lilliebridge)", protocol.source.disclaimer)
+        assertEquals("Los porcentajes semanales son los de KPKN: la hoja original no es pública", protocol.source.variant)
+        assertFalse(protocol.author.contains("Matt"))
+        assertFalse("sin barra ni símbolo de sección", protocol.author.contains('/') || protocol.author.contains('§'))
+    }
+
+    @Test
+    fun peaks_and_one_rm_tests_use_real_one_rm_while_earlier_phases_keep_their_training_max() {
+        val templates = listOf("power-12-3", "power-16-4", "power-20-5", "powerbuild-16-4").map { templateRecipe(it) }
+        val protocols = listOf("kpkn-rts-style", "gzcl-uhf-9", "gzcl-jt-2").map { recipeOf(it) }
+        (templates + protocols).forEach { recipe ->
+            assertEquals("${recipe.id}: las fases previas mantienen TM = 90 %1RM", 0.90, recipe.trainingMaxPercent, 1e-9)
+            recipe.weeks.forEach { week ->
+                val peak = week.blockGoal in setOf(BlockGoal.PEAK, BlockGoal.REALIZATION, BlockGoal.TAPER)
+                val percentages = week.days.flatMap { it.slots }.filter { it.role == SlotRole.T1_MAIN }
+                    .flatMap { workSets(it) }.filter { it.percent != null && it.reference == null }
+                if (peak) assertTrue("${recipe.id} w${week.weekNumber}: los T1 de pico/test se expresan en %1RM", percentages.all { it.loadBasis == LoadBasis.PERCENT_1RM })
+                else assertTrue("${recipe.id} w${week.weekNumber}: las fases previas mantienen %TM", percentages.all { it.loadBasis == LoadBasis.PERCENT_TM })
+            }
+        }
+        val jacked = recipeOf("gzcl-jt-2")
+        listOf(6, 12).forEach { number ->
+            val week = jacked.weeks.first { it.weekNumber == number }
+            val test = week.days.first { it.weekday == 1 }.slots.first { it.role == SlotRole.T1_MAIN }.sets.first()
+            assertEquals("J&T w$number: test de 1RM real", 100.0, test.percent!!, 1e-9)
+            assertEquals(1, test.reps)
+            assertEquals(LoadBasis.PERCENT_1RM, test.loadBasis)
+        }
+    }
+
+    @Test
+    fun the_recipes_changed_in_b_s6_carry_content_version_2_and_the_untouched_ones_stay_at_1() {
+        // `contentVersion` es parte de la identidad (recipeId, contentVersion, ocurrencia, día, slot) de los programas NUEVOS; los activados
+        // conservan su snapshot de la versión 1 en `Program.sourceRecipe`. Ninguna otra prueba fija el número de una receta publicada.
+        val bumped = listOf(
+            "madcow-5x5", "texas-method-3d", "texas-method-4d", "kpkn-native-sbd-4", "lilliebridge", "smolov", "smolov-jr", "wendler-531-bbb",
+            "wendler-531-fsl", "nsuns-531-lp-4d", "kpkn-ppl-6", "kpkn-rp-style", "kpkn-rts-style", "kpkn-sbs-rtf", "candito-6", "gzcl-uhf-9",
+            "tsa-9", "calgary-16", "gzclp", "gzcl-jt-2", "cube-method", "westside-conjugate", "sheiko-29-32", "juggernaut-2",
+        )
+        bumped.forEach { id -> assertEquals("$id: contentVersion", 2, recipeOf(id).contentVersion) }
+        listOf("gzcl-rippler", "coan-phillipi-dl", "korte-3x3", "phul-verified", "phat-verified").forEach { id ->
+            assertEquals("$id: sin cambios de contenido", 1, recipeOf(id).contentVersion)
+        }
+        PROGRAM_TEMPLATES.mapNotNull { it.recipe }.forEach { assertEquals("${it.id}: contentVersion", 2, it.contentVersion) }
+        AuthoredPhulPhatRecipes.all.forEach { assertEquals("${it.id}: contentVersion", 2, it.contentVersion) }
     }
 
     // ─── §10.2/§10.3: tablas normativas de los originales autorados (E) ──────

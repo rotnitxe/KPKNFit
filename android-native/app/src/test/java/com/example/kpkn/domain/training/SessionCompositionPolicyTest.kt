@@ -1,6 +1,7 @@
 package com.example.kpkn.domain.training
 
 import com.example.kpkn.data.models.BlockGoal
+import com.example.kpkn.data.programs.KpknMuscleGroup
 import com.example.kpkn.data.protocols.CatalogIds
 import com.example.kpkn.data.protocols.CompositionSeverity
 import com.example.kpkn.data.protocols.DayRecipe
@@ -568,12 +569,13 @@ class SessionCompositionPolicyTest {
         // Hasta el límite (16): volumen normal, sin hallazgo.
         assertTrue(gluteMrvFindings(nativeGluteRecipe(16)).isEmpty())
 
-        // Entre el límite y el techo (17 y 17,5 series): «volumen alto», SOFT. No bloquea la receta.
+        // 17 PRIMARY está en la banda propia. Añadir 0,5 indirecto conserva el total de 17,5
+        // sin cambiar la clasificación de los 17 PRIMARY ni consumir más banda.
         val seventeen = nativeGluteRecipe(17)
         // 17 de puente (1,0 por serie) + 1 de superman (0,5 de glúteo secundario) = 17,5 exactos.
         val seventeenAndAHalf = nativeGluteRecipe(17, listOf(superman))
         assertEquals(
-            "el contador único mide 17,5 series de glúteo",
+            "la dosis total conserva las 17,5 series de glúteo",
             17.5,
             SessionCompositionPolicy.weeklyGroupSets(seventeenAndAHalf.weeks.first(), metadata)
                 .getValue(com.example.kpkn.data.programs.KpknMuscleGroup.GLUTES),
@@ -650,7 +652,99 @@ class SessionCompositionPolicyTest {
             assertEquals("un hallazgo legacy de glúteos con $sets series: $findings", 1, findings.size)
             assertEquals(com.example.kpkn.data.protocols.CompositionSeverity.SOFT, findings.single().severity)
             assertFalse(findings.single().message.contains("volumen alto"))
+            assertFalse("legacy no recibe el techo propio de 17,5", findings.single().message.contains("17.5"))
         }
+    }
+
+    private fun volumeRoleMetadata(
+        bridgePrimary: List<String> = listOf("gluteus_maximus"),
+        chestPrimary: List<String> = listOf("pectoralis"),
+        chestSecondary: List<String> = emptyList(),
+    ) = ExerciseCompositionMetadataProvider { configurationId ->
+        metadata.metadata(configurationId)?.let { original ->
+            when (configurationId) {
+                CatalogIds.GLUTE_BRIDGE_BODYWEIGHT -> original.copy(
+                    primaryMuscles = bridgePrimary,
+                    secondaryMuscles = emptyList(),
+                )
+                CatalogIds.BP -> original.copy(
+                    primaryMuscles = chestPrimary,
+                    secondaryMuscles = chestSecondary,
+                )
+                else -> original
+            }
+        }
+    }
+
+    @Test
+    fun w2_primary_ceiling_allows_indirect_excess_without_using_the_native_glute_band() {
+        val roleMetadata = volumeRoleMetadata(chestSecondary = listOf("gluteus_maximus"))
+        val indirect = slot("bp", SlotRole.T3_ACCESSORY, CatalogIds.BP, rangeRirSets(6, 8, 12, 2), 120)
+        val recipe = nativeGluteRecipe(16, listOf(indirect))
+        val week = recipe.weeks.single()
+
+        assertEquals(19.0, SessionCompositionPolicy.weeklyGroupSets(week, roleMetadata).getValue(KpknMuscleGroup.GLUTES), 0.0)
+        assertEquals(16.0, SessionCompositionPolicy.weeklyPrimaryGroupSets(week, roleMetadata).getValue(KpknMuscleGroup.GLUTES), 0.0)
+        val findings = ProgramRecipeValidator.validate(recipe, roleMetadata).filter { it.message.contains("GLUTES") }
+        assertTrue("los PRIMARY no superan MRV: $findings", findings.none { it.rule == "W2" })
+        val notice = findings.single { it.rule == "W2_INDIRECT_VOLUME" }
+        assertEquals(CompositionSeverity.SOFT, notice.severity)
+        assertTrue(notice.message, notice.message.contains("19.0 series totales, 16.0 principales"))
+        assertFalse(notice.message, notice.message.contains("volumen alto") || notice.message.contains("17.5"))
+    }
+
+    @Test
+    fun w2_rejects_primary_excess_even_when_the_same_group_also_receives_indirect_sets() {
+        val roleMetadata = volumeRoleMetadata(chestSecondary = listOf("gluteus_maximus"))
+        val indirect = slot("bp", SlotRole.T3_ACCESSORY, CatalogIds.BP, rangeRirSets(6, 8, 12, 2), 120)
+        val recipe = nativeGluteRecipe(18, listOf(indirect))
+        assertEquals(21.0, SessionCompositionPolicy.weeklyGroupSets(recipe.weeks.single(), roleMetadata).getValue(KpknMuscleGroup.GLUTES), 0.0)
+        val findings = ProgramRecipeValidator.validate(recipe, roleMetadata).filter { it.message.contains("GLUTES") }
+        assertTrue("18 PRIMARY supera incluso la banda propia: $findings", findings.any {
+            it.rule == "W2" && it.severity == CompositionSeverity.HARD && it.message.contains("18.0 series principales > MRV")
+        })
+        assertTrue("el exceso principal no se reclasifica como indirecto permitido", findings.none { it.rule == "W2_INDIRECT_VOLUME" })
+    }
+
+    @Test
+    fun w2_limits_the_second_primary_muscle_and_deduplicates_heads_of_the_same_group() {
+        val secondPrimaryMetadata = volumeRoleMetadata(bridgePrimary = listOf("pectoralis", "gluteus_maximus"))
+        val over = nativeGluteRecipe(18)
+        assertEquals(18.0, SessionCompositionPolicy.weeklyPrimaryGroupSets(over.weeks.single(), secondPrimaryMetadata).getValue(KpknMuscleGroup.GLUTES), 0.0)
+        assertTrue(ProgramRecipeValidator.hardFindings(over, secondPrimaryMetadata).any {
+            it.rule == "W2" && it.message.contains("GLUTES") && it.message.contains("> MRV")
+        })
+
+        val twoHeadsMetadata = volumeRoleMetadata(bridgePrimary = listOf("gluteus_maximus", "gluteus_medius"))
+        val inside = nativeGluteRecipe(16)
+        // La dosis previa cuenta ambas cabezas; el techo PRIMARY deduplica su grupo por slot.
+        assertEquals(32.0, SessionCompositionPolicy.weeklyGroupSets(inside.weeks.single(), twoHeadsMetadata).getValue(KpknMuscleGroup.GLUTES), 0.0)
+        assertEquals(16.0, SessionCompositionPolicy.weeklyPrimaryGroupSets(inside.weeks.single(), twoHeadsMetadata).getValue(KpknMuscleGroup.GLUTES), 0.0)
+        val findings = ProgramRecipeValidator.validate(inside, twoHeadsMetadata)
+        assertTrue("las cabezas duplicadas no crean exceso principal ni aporte indirecto: $findings", findings.none {
+            it.message.contains("GLUTES") && it.rule in setOf("W2", "W2_INDIRECT_VOLUME")
+        })
+    }
+
+    @Test
+    fun w2_keeps_total_secondary_dose_for_minimum_landmarks() {
+        val roleMetadata = volumeRoleMetadata(chestPrimary = listOf("triceps"), chestSecondary = listOf("pectoralis"))
+        val days = (1..4).map { index ->
+            day("D$index", listOf(slot("bp", SlotRole.T3_ACCESSORY, CatalogIds.BP, rangeRirSets(4, 8, 12, 2), 120)))
+        }
+        val recipe = TrainingPlanRecipe(
+            id = "legacy-secondary-dose",
+            claimedDaysPerWeek = 4,
+            weeks = listOf(weekRecipe(1, 0, "Base", BlockGoal.ACCUMULATION, days)),
+            liftSlots = mapOf(LiftSlot.SQUAT to CatalogIds.SQ_LOW, LiftSlot.BENCH to CatalogIds.BP),
+            compositionProfile = RecipeCompositionProfile.LEGACY_STANDARD,
+        )
+        assertEquals(8.0, SessionCompositionPolicy.weeklyGroupSets(recipe.weeks.single(), roleMetadata).getValue(KpknMuscleGroup.CHEST), 0.0)
+        assertEquals(0.0, SessionCompositionPolicy.weeklyPrimaryGroupSets(recipe.weeks.single(), roleMetadata)[KpknMuscleGroup.CHEST] ?: 0.0, 0.0)
+        val minimumFindings = ProgramRecipeValidator.validate(recipe, roleMetadata).filter {
+            it.rule == "W2" && it.message.contains("CHEST") && it.message.contains("< MEV")
+        }
+        assertTrue("el mínimo conserva las 8 series de dosis secundaria: $minimumFindings", minimumFindings.isEmpty())
     }
 
     // ─── B.S1: H11 sobre kg resueltos, H11b (Epley) y ámbitos de exención en glob anclado ───

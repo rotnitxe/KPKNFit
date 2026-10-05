@@ -13,6 +13,9 @@ import com.example.kpkn.data.models.ProgramRunState
 import com.example.kpkn.data.models.ProgramGoals
 import com.example.kpkn.data.models.Loop
 import com.example.kpkn.data.programs.PROGRAM_TEMPLATES
+import com.example.kpkn.data.protocols.CatalogIds
+import com.example.kpkn.data.protocols.LiftSlot
+import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -229,6 +232,7 @@ class ProgramTemplateEngineTest {
 
     @Test
     fun power_template_forces_sbd_split_on_existing_non_power_split_and_hydrates_recorded_goals() {
+        val template = PROGRAM_TEMPLATES.first { it.id == "power-16-4" }
         val result = ProgramTemplateEngine.applyTemplate(
             Program(
                 id = "existing-ul",
@@ -237,16 +241,43 @@ class ProgramTemplateEngineTest {
                 selectedSplitId = "ul_x4",
                 goals = ProgramGoals(squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 220.0),
             ),
-            PROGRAM_TEMPLATES.first { it.id == "power-16-4" },
+            template,
         )
         assertEquals("pl_classic_4", result.program.selectedSplitId)
-        val squat = result.program.macrocycles
-            .flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }
-            .flatMap { it.sessions }.flatMap { it.allExercises() }
-            .first { it.catalogConfigurationId == "low_bar_back_squat__barbell" }
-        assertEquals(180.0, squat.reference1RM ?: -1.0, 0.001)
-        val load = calculateSuggestedLoad(squat, squat.sets.first()) ?: -1.0
-        assertTrue("Carga sugerida debería derivar del TM", load > 100.0)
+        val recipe = requireNotNull(template.recipe)
+        val blocks = result.program.macrocycles.flatMap { it.blocks }
+
+        fun assertSquatPhase(
+            goal: BlockGoal,
+            configurationId: String,
+            basis: LoadBasis,
+            referenceKg: Double,
+            firstLoadKg: Double,
+        ) {
+            val recipeWeek = recipe.weeks.first { it.blockGoal == goal }
+            val slot = recipeWeek.days.flatMap { it.slots }.first { it.lift.liftSlot == LiftSlot.SQUAT }
+            assertEquals(configurationId, slot.lift.configurationId)
+            val week = blocks.first { it.goal == goal }.mesocycles.flatMap { it.weeks }.first()
+            assertEquals(recipeWeek.weekNumber, week.progressionIndex)
+            val squat = week.sessions.flatMap { it.allExercises() }
+                .first { it.catalogConfigurationId == configurationId }
+            assertEquals("$goal: referencia de la fase", referenceKg, squat.reference1RM ?: -1.0, 0.001)
+            assertEquals("$goal: primera carga publicada", firstLoadKg, squat.sets.first().weight ?: -1.0, 0.001)
+            val workingSets = slot.sets.filterNot { it.isWarmup }
+            assertEquals("$goal: conserva todas las series", workingSets.size, squat.sets.size)
+            workingSets.zip(squat.sets).forEachIndexed { index, (source, materialized) ->
+                assertEquals("$goal serie $index: base fuente", basis, source.loadBasis)
+                assertEquals("$goal serie $index: base materializada", basis, materialized.loadBasis)
+                val percent = requireNotNull(PercentResolver.resolve(source, slot, recipeWeek))
+                val expectedKg = referenceKg * percent / 100.0
+                assertEquals("$goal serie $index: porcentaje", percent, materialized.targetPercentageRM ?: -1.0, 0.001)
+                assertEquals("$goal serie $index: kg resueltos", expectedKg, materialized.weight ?: -1.0, 0.001)
+                assertEquals("$goal serie $index: kg sugeridos", expectedKg, calculateSuggestedLoad(squat, materialized) ?: -1.0, 0.001)
+            }
+        }
+
+        assertSquatPhase(BlockGoal.ACCUMULATION, CatalogIds.SQ_HIGH, LoadBasis.PERCENT_TM, 180.0, 126.0)
+        assertSquatPhase(BlockGoal.PEAK, CatalogIds.SQ_LOW, LoadBasis.PERCENT_1RM, 200.0, 176.0)
     }
 
     @Test

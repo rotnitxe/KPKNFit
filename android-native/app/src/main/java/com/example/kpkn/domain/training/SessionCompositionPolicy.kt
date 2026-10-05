@@ -96,9 +96,9 @@ object SessionCompositionPolicy {
      * inventariar H11/H11b y para comprobar que migrar el ámbito de una exención
      * no pierde ni amplía lo que silencia.
      *
-     * Al final suma el contrato de receta válida ([RecipeContractPolicy], B.S2). Por ahora en
-     * modo inventario: todos sus hallazgos son SOFT, así que `hardFindings` no cambia, y
-     * [evaluateRecipe] los filtra con las exenciones igual que al resto.
+     * Al final suma el contrato de receta válida (B.S6): C1–C9 son HARD, C10 conserva su
+     * severidad SOFT. [evaluateRecipe] aplica las exenciones declaradas igual que al resto.
+     * C7 se cumple aquí usando [PercentBasis] en todos los chequeos de intensidad.
      */
     internal fun evaluateRecipeRaw(
         recipe: TrainingPlanRecipe,
@@ -112,7 +112,7 @@ object SessionCompositionPolicy {
             raw += evaluateWeek(week, recipe, metadata)
         }
         raw += evaluateBlocks(recipe)
-        raw += RecipeContractPolicy.evaluate(recipe, metadata)
+        raw += RecipeContractPolicy.evaluate(recipe, metadata, CompositionSeverity.HARD)
         return raw
     }
 
@@ -147,11 +147,11 @@ object SessionCompositionPolicy {
         findings += checkH2(day, resolved, scope)
         findings += checkH3(resolved, scope)
         findings += checkH4(day, resolved, scope)
-        findings += checkH5(resolved, scope)
+        findings += checkH5(resolved, week, scope, trainingMaxPercent)
         findings += checkH6(resolved, week.blockGoal, scope, compositionProfile, day)
         findings += checkH7(resolved, scope)
-        findings += checkH8(resolved, week.blockGoal, scope)
-        findings += checkH9(resolved, scope)
+        findings += checkH8(resolved, week, scope, trainingMaxPercent)
+        findings += checkH9(resolved, week, scope, trainingMaxPercent)
         findings += checkH10(resolved, scope)
         findings += checkH11(resolved, week, scope, trainingMaxPercent)
         findings += checkH11b(resolved, week, scope, trainingMaxPercent)
@@ -278,7 +278,9 @@ object SessionCompositionPolicy {
 
     private fun checkH5(
         resolved: List<Triple<SlotRecipe, ExerciseCompositionMetadata?, PatternFamily?>>,
+        week: WeekRecipe,
         scope: String,
+        trainingMaxPercent: Double,
     ): List<CompositionFinding> {
         val findings = mutableListOf<CompositionFinding>()
         val axialSlots = resolved.filter { (slot, meta, _) ->
@@ -291,7 +293,7 @@ object SessionCompositionPolicy {
         val heavy = axialSlots.count { (slot, _, _) ->
             if (slot.supplementalOf != null) return@count false
             slot.sets.any { set ->
-                val pct = set.percent ?: 0.0
+                val pct = PercentBasis.effective1RmPercent(set, slot, week, trainingMaxPercent) ?: 0.0
                 set.isTopSet || pct >= HEAVY_PERCENT || set.loadBasis == LoadBasis.REP_MAX
             }
         }
@@ -462,10 +464,12 @@ object SessionCompositionPolicy {
 
     private fun checkH8(
         resolved: List<Triple<SlotRecipe, ExerciseCompositionMetadata?, PatternFamily?>>,
-        goal: BlockGoal,
+        week: WeekRecipe,
         scope: String,
+        trainingMaxPercent: Double,
     ): List<CompositionFinding> {
         val findings = mutableListOf<CompositionFinding>()
+        val goal = week.blockGoal
         val fuerzaPico = goal == BlockGoal.INTENSIFICATION || goal == BlockGoal.PEAK ||
             goal == BlockGoal.REALIZATION || goal == BlockGoal.SPECIFICITY
         resolved.forEach { (slot, meta, family) ->
@@ -476,7 +480,7 @@ object SessionCompositionPolicy {
             }
             if (slot.role == SlotRole.T1_MAIN && fuerzaPico) {
                 work.forEach { set ->
-                    val heavy = (set.percent ?: 0.0) >= HEAVY_PERCENT || set.isTopSet
+                    val heavy = (PercentBasis.effective1RmPercent(set, slot, week, trainingMaxPercent) ?: 0.0) >= HEAVY_PERCENT || set.isTopSet
                     val reps = set.reps ?: set.repsMax ?: 0
                     if (heavy && reps > 0 && reps !in 1..6) {
                         findings += hard("H8", scope, "T1 Fuerza/Pico $reps reps (debe 1-6) en series >= $HEAVY_PERCENT% o top set")
@@ -519,11 +523,13 @@ object SessionCompositionPolicy {
 
     private fun checkH9(
         resolved: List<Triple<SlotRecipe, ExerciseCompositionMetadata?, PatternFamily?>>,
+        week: WeekRecipe,
         scope: String,
+        trainingMaxPercent: Double,
     ): List<CompositionFinding> {
         val findings = mutableListOf<CompositionFinding>()
         resolved.forEach { (slot, meta, family) ->
-            val heavy = slot.sets.any { (it.percent ?: 0.0) >= HEAVY_PERCENT }
+            val heavy = slot.sets.any { (PercentBasis.effective1RmPercent(it, slot, week, trainingMaxPercent) ?: 0.0) >= HEAVY_PERCENT }
             val isolation = CompositionTaxonomy.isIsolation(family, meta?.articulationType, slot.lift.configurationId)
             val minRest = minimumRestSeconds(slot.role, heavy, isolation)
             if (slot.restSeconds < minRest) {
@@ -706,15 +712,26 @@ object SessionCompositionPolicy {
         val groupsHit: Map<KpknMuscleGroup, Int>,
         val volumeSets: Map<KpknMuscleGroup, Double>,
         val primarySets: Map<KpknMuscleGroup, Double>,
+        val primaryRoleSets: Map<KpknMuscleGroup, Double>,
+        val indirectRoleSets: Map<KpknMuscleGroup, Double>,
     )
 
     private fun tallyWeek(week: WeekRecipe, metadata: ExerciseCompositionMetadataProvider): WeekMuscleTally {
         val groupsHit = mutableMapOf<KpknMuscleGroup, Int>()
         val volumeSets = mutableMapOf<KpknMuscleGroup, Double>()
         val primarySets = mutableMapOf<KpknMuscleGroup, Double>()
+        val primaryRoleSets = mutableMapOf<KpknMuscleGroup, Double>()
+        val indirectRoleSets = mutableMapOf<KpknMuscleGroup, Double>()
         week.days.forEach { day ->
             day.slots.forEach { slot ->
                 val meta = metadata.metadata(slot.lift.configurationId) ?: return@forEach
+                // El techo cuenta todos los PRIMARY; varias cabezas del mismo grupo
+                // dentro del slot representan una sola serie principal de ese grupo.
+                meta.primaryMuscles.mapNotNull { muscle ->
+                    CompositionTaxonomy.muscleGroup(muscle, meta.movementPatternId, meta.configurationId)
+                }.toSet().forEach { group ->
+                    primaryRoleSets[group] = (primaryRoleSets[group] ?: 0.0) + slot.workingSets().size
+                }
                 meta.primaryMuscles.forEachIndexed { muscleIndex, muscle ->
                     val group = CompositionTaxonomy.muscleGroup(muscle, meta.movementPatternId, meta.configurationId)
                         ?: return@forEach
@@ -727,23 +744,34 @@ object SessionCompositionPolicy {
                 meta.secondaryMuscles.forEach { muscle ->
                     val group = CompositionTaxonomy.muscleGroup(muscle, meta.movementPatternId, meta.configurationId)
                         ?: return@forEach
-                    volumeSets[group] = (volumeSets[group] ?: 0.0) + slot.workingSets().size * 0.5
+                    val indirectSets = slot.workingSets().size * 0.5
+                    volumeSets[group] = (volumeSets[group] ?: 0.0) + indirectSets
+                    indirectRoleSets[group] = (indirectRoleSets[group] ?: 0.0) + indirectSets
                 }
             }
         }
-        return WeekMuscleTally(groupsHit, volumeSets, primarySets)
+        return WeekMuscleTally(groupsHit, volumeSets, primarySets, primaryRoleSets, indirectRoleSets)
     }
 
     /**
-     * Series semanales por grupo muscular de UNA semana de receta: 1,0 por serie de trabajo en cada
-     * músculo primario y 0,5 en cada secundario. Es el contador único de W2: la política lo usa para
-     * clasificar el volumen (normal, «volumen alto» o rechazo) y el ajustador de los planes propios lo
-     * reutiliza para decidir si un plan cabe en la banda, así que ambos miden con la misma regla.
+     * Dosis semanal total: conserva la contabilidad de 1,0 por músculo primario y 0,5 por
+     * secundario. Los mínimos, la frecuencia y los informes siguen usando su contador original;
+     * el techo MRV se comprueba aparte con [weeklyPrimaryGroupSets].
      */
     fun weeklyGroupSets(
         week: WeekRecipe,
         metadata: ExerciseCompositionMetadataProvider,
     ): Map<KpknMuscleGroup, Double> = tallyWeek(week, metadata).volumeSets
+
+    /**
+     * Series semanales en las que el grupo tiene rol PRIMARY, sin sumar secundarios ni repetir
+     * cabezas del mismo grupo dentro de un slot. Este es el contador del techo MRV de W2 y del
+     * ajustador; el contador de músculos dominantes para frecuencia/picos permanece separado.
+     */
+    fun weeklyPrimaryGroupSets(
+        week: WeekRecipe,
+        metadata: ExerciseCompositionMetadataProvider,
+    ): Map<KpknMuscleGroup, Double> = tallyWeek(week, metadata).primaryRoleSets
 
     private fun evaluateWeek(
         week: WeekRecipe,
@@ -769,7 +797,7 @@ object SessionCompositionPolicy {
             null
         }
         val hypertrophy = week.blockGoal in setOf(BlockGoal.ACCUMULATION, BlockGoal.DENSITY)
-        // Contador único de series por grupo (también lo usa el ajustador de planes propios).
+        // Dosis total, rol principal y músculo dominante mantienen contadores separados.
         val tally = tallyWeek(week, metadata)
         val groupsHit = tally.groupsHit
         val volumeSets = tally.volumeSets
@@ -805,13 +833,13 @@ object SessionCompositionPolicy {
             ) {
                 findings += hard("W2", scope, "$group $sets series < MEV ${landmark.mev}")
             }
-            if (sets > landmark.mrv && mrvApplies) {
-                // B-02: solo en planes propios y solo en glúteos, entre el límite (MRV) y el
-                // techo blando el exceso es «volumen alto» (SOFT, permitido con aviso); por
-                // encima del techo sigue siendo HARD. El texto «> MRV» se conserva en ambos
-                // casos: el ajustador filtra por él los excesos que corrige por su cuenta.
+            val principalSets = tally.primaryRoleSets[group] ?: 0.0
+            if (principalSets > landmark.mrv && mrvApplies) {
+                // B-02: la banda de glúteos hasta 17,5 se reserva a los PRIMARY propios.
+                // Los escapes existentes de PL/SBD, especialización y MEV 0 legacy no cambian.
+                // El texto «> MRV» sigue identificando los excesos del ajustador.
                 val inSoftBand = nativeKind != null &&
-                    VolumeSoftBand.bandOf(group, sets, landmark.mrv) == VolumeBand.HIGH_VOLUME
+                    VolumeSoftBand.bandOf(group, principalSets, landmark.mrv) == VolumeBand.HIGH_VOLUME
                 val finding = CompositionFinding(
                     if (!inSoftBand && (nativeKind != null || landmark.mev > 0)) {
                         CompositionSeverity.HARD
@@ -821,13 +849,31 @@ object SessionCompositionPolicy {
                     "W2",
                     scope,
                     if (inSoftBand) {
-                        "$group $sets series > MRV ${landmark.mrv} " +
+                        "$group $principalSets series principales > MRV ${landmark.mrv} " +
                             "(volumen alto, tolerancia blanda hasta ${VolumeSoftBand.softCeiling(group, landmark.mrv)})"
                     } else {
-                        "$group $sets series > MRV ${landmark.mrv}"
+                        "$group $principalSets series principales > MRV ${landmark.mrv}"
                     },
                 )
                 findings += finding
+            }
+            val primaryCeiling = if (nativeKind != null) {
+                VolumeSoftBand.softCeiling(group, landmark.mrv)
+            } else {
+                landmark.mrv.toDouble()
+            }
+            if (mrvApplies && sets > landmark.mrv && principalSets <= primaryCeiling &&
+                (tally.indirectRoleSets[group] ?: 0.0) > 0.0
+            ) {
+                // El aporte indirecto conserva la dosis y el aviso, pero no consume la banda
+                // propia ni bloquea una semana cuyos PRIMARY caben en su techo aplicable.
+                findings += CompositionFinding(
+                    CompositionSeverity.SOFT,
+                    "W2_INDIRECT_VOLUME",
+                    scope,
+                    "$group $sets series totales, $principalSets principales " +
+                        "(el aporte indirecto eleva el total sobre MRV ${landmark.mrv})",
+                )
             }
         }
         if (peak) {
@@ -849,7 +895,7 @@ object SessionCompositionPolicy {
                 val meta = metadata.metadata(slot.lift.configurationId)
                 slot.role == SlotRole.T1_MAIN &&
                     (meta?.axialLoadFactor ?: 0.0) >= AXIAL_SLOT_THRESHOLD &&
-                    slot.sets.any { (it.percent ?: 0.0) >= HEAVY_PERCENT || it.isTopSet }
+                    slot.sets.any { (PercentBasis.effective1RmPercent(it, slot, week, recipe.trainingMaxPercent) ?: 0.0) >= HEAVY_PERCENT || it.isTopSet }
             }
             val position = day.weekday ?: (index * 2)
             position.takeIf { heavyAxial }
@@ -866,13 +912,13 @@ object SessionCompositionPolicy {
                 else -> true
             }
             if (!consecutive) return@forEach
-            val prevDl = prev.slots.any {
-                it.lift.configurationId.contains("deadlift") && it.role == SlotRole.T1_MAIN &&
-                    it.sets.any { set -> (set.percent ?: 0.0) >= HEAVY_PERCENT || set.isTopSet }
+            val prevDl = prev.slots.any { slot ->
+                slot.lift.configurationId.contains("deadlift") && slot.role == SlotRole.T1_MAIN &&
+                    slot.sets.any { set -> (PercentBasis.effective1RmPercent(set, slot, week, recipe.trainingMaxPercent) ?: 0.0) >= HEAVY_PERCENT || set.isTopSet }
             }
-            val nextSq = next.slots.any {
-                it.lift.configurationId.contains("squat") && it.role == SlotRole.T1_MAIN &&
-                    it.sets.any { set -> (set.percent ?: 0.0) >= HEAVY_PERCENT || set.isTopSet }
+            val nextSq = next.slots.any { slot ->
+                slot.lift.configurationId.contains("squat") && slot.role == SlotRole.T1_MAIN &&
+                    slot.sets.any { set -> (PercentBasis.effective1RmPercent(set, slot, week, recipe.trainingMaxPercent) ?: 0.0) >= HEAVY_PERCENT || set.isTopSet }
             }
             if (prevDl && nextSq) findings += hard("W4", scope, "Peso muerto pesado el día anterior a sentadilla pesada")
         }
@@ -1130,7 +1176,15 @@ object SessionCompositionPolicy {
             val t1Work = weeks.flatMap { it.days }.flatMap { it.slots }
                 .filter { it.role == SlotRole.T1_MAIN }
                 .flatMap { it.workingSets() }
-            val t1Percents = t1Work.mapNotNull { it.percent }
+            val t1Percents = weeks.flatMap { week ->
+                week.days.flatMap { day ->
+                    day.slots.filter { it.role == SlotRole.T1_MAIN }.flatMap { slot ->
+                        slot.workingSets().mapNotNull { set ->
+                            PercentBasis.effective1RmPercent(set, slot, week, recipe.trainingMaxPercent)
+                        }
+                    }
+                }
+            }
             val t1Reps = t1Work.mapNotNull { it.reps ?: it.repsMax }
             val scope = "block$index/${weeks.first().blockName}"
             val volume = weeklyVolume[index] ?: 0.0
@@ -1173,11 +1227,10 @@ object SessionCompositionPolicy {
                             findings += soft("BLOCK", scope, "Taper volumen −${"%.0f".format(drop * 100)}% vs bloque anterior (objetivo 50-70%)")
                         }
                     }
-                    findings += checkTaperLastHeavy(weeks, scope)
+                    findings += checkTaperLastHeavy(weeks, scope, recipe.trainingMaxPercent)
                 }
                 BlockGoal.DELOAD -> {
-                    val hot = t1Work.filter { (it.percent ?: 0.0) > 70.0 }
-                    if (hot.isNotEmpty()) {
+                    if (t1Percents.any { it > 70.0 }) {
                         findings += hard("BLOCK", scope, "Descarga con T1 > 70%")
                     }
                     val lowRir = weeks.flatMap { it.days }.flatMap { it.slots }.flatMap { it.workingSets() }
@@ -1242,7 +1295,7 @@ object SessionCompositionPolicy {
         return findings
     }
 
-    private fun checkTaperLastHeavy(weeks: List<WeekRecipe>, scope: String): List<CompositionFinding> {
+    private fun checkTaperLastHeavy(weeks: List<WeekRecipe>, scope: String, trainingMaxPercent: Double): List<CompositionFinding> {
         val ordered = weeks.sortedBy { it.weekNumber }
         val lastWeek = ordered.lastOrNull() ?: return emptyList()
         val testDay = lastWeek.days.maxByOrNull { it.weekday ?: 0 } ?: return emptyList()
@@ -1252,7 +1305,7 @@ object SessionCompositionPolicy {
         }.lastOrNull { (week, day) ->
             val isTest = week.weekNumber == lastWeek.weekNumber && day.label == testDay.label
             !isTest && day.slots.any { slot ->
-                slot.role == SlotRole.T1_MAIN && slot.workingSets().any { (it.percent ?: 0.0) >= HEAVY_PERCENT || it.isTopSet }
+                slot.role == SlotRole.T1_MAIN && slot.workingSets().any { (PercentBasis.effective1RmPercent(it, slot, week, trainingMaxPercent) ?: 0.0) >= HEAVY_PERCENT || it.isTopSet }
             }
         } ?: return emptyList()
         val heavyWeek = lastHeavy.first.weekNumber
@@ -1264,9 +1317,6 @@ object SessionCompositionPolicy {
             listOf(soft("BLOCK", scope, "Última pesada $days días antes del test (objetivo 7-10)"))
         }
     }
-
-    private fun DayRecipe.dayslotsPercents(): List<Double> =
-        slots.filter { it.role == SlotRole.T1_MAIN }.flatMap { it.workingSets().mapNotNull { set -> set.percent } }
 
     private fun SlotRecipe.workingSets(): List<SetRecipe> = sets.filter { !it.isWarmup }
 

@@ -1,10 +1,13 @@
 package com.example.kpkn.data.protocols.definitions
 
 import com.example.kpkn.data.models.BlockGoal
+import com.example.kpkn.data.models.WeekExecutionKind
 import com.example.kpkn.data.protocols.AutoregulationHook
 import com.example.kpkn.data.protocols.AutoregulationHookKind
 import com.example.kpkn.data.protocols.CatalogIds
 import com.example.kpkn.data.protocols.DayArchetypes
+import com.example.kpkn.data.protocols.DayRecipe
+import com.example.kpkn.data.protocols.IncrementScope
 import com.example.kpkn.data.protocols.LiftSlot
 import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.data.protocols.ProgressionRule
@@ -80,6 +83,21 @@ object JuggernautProtocol {
         )),
     )
 
+    /**
+     * Descarga de un día de Juggernaut (B.S6 parte 2b, C5): la cuarta semana de cada ola. El T1 conserva la tabla del autor (3×5 al 40,
+     * 50 y 60 %) y el T2 y los T3 se quedan en 2 series a RPE 6. Equivale a [asDeload] sin tocar el T1 del autor (que recortaría su
+     * tercera serie y le pondría un RPE y un RIR que la tabla no trae).
+     */
+    private fun DayRecipe.asWaveDeload(): DayRecipe = copy(
+        slots = slots.map { slot ->
+            if (slot.role == SlotRole.T1_MAIN) {
+                slot
+            } else {
+                slot.copy(sets = slot.sets.take(2).map { set -> set.copy(rpe = 6.0) })
+            }
+        },
+    )
+
     fun recipe(): TrainingPlanRecipe {
         val lifts = listOf(
             Triple("Sentadilla", CatalogIds.SQ_LOW, LiftSlot.SQUAT) to 1,
@@ -91,7 +109,9 @@ object JuggernautProtocol {
             wave.weeks.mapIndexed { weekInWave, steps ->
                 val absolute = waveIndex * 4 + weekInWave + 1
                 val amrap = weekInWave == 2
-                weekRecipe(absolute, waveIndex, wave.name, wave.goal, lifts.map { (triple, weekday) ->
+                // C5 (B.S6 parte 2b): la cuarta semana de cada ola (4, 8, 12 y 16) es la descarga del método: `kind = DELOAD`.
+                val deload = weekInWave == 3
+                weekRecipe(absolute, waveIndex, wave.name, if (deload) BlockGoal.DELOAD else wave.goal, lifts.map { (triple, weekday) ->
                     val (label, id, lift) = triple
                     val built = day(
                         label,
@@ -126,11 +146,33 @@ object JuggernautProtocol {
                             )
                         },
                     )
-                    if (wave.goal == BlockGoal.PEAK) built.dropT3(2) else built
-                })
+                    if (deload) built.asWaveDeload() else if (wave.goal == BlockGoal.PEAK) built.dropT3(2) else built
+                }, kind = if (deload) WeekExecutionKind.DELOAD else WeekExecutionKind.TRAINING)
             }
         }
-        return TrainingPlanRecipe(id = "juggernaut-2", weeks = weeks, trainingMaxPercent = 0.90, liftSlots = sbdSlots(), progression = ProgressionRule.CycleIncrement(2.5, 5.0), claimedDaysPerWeek = 4, claimedLevel = "avanzado", autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.AMRAP_TM)))
+        return TrainingPlanRecipe(
+            id = "juggernaut-2",
+            weeks = weeks,
+            trainingMaxPercent = 0.90,
+            liftSlots = sbdSlots(),
+            // B.S6 parte 2b: Juggernaut sube el TM al entrar en cada ola (5 kg en sentadilla y peso muerto, 2,5 kg en banca y press militar),
+            // no al cerrar un ciclo (la receta no se repite): `scope = BLOCK`. Entrar en la ola 8s sube el TM una vez y el final de la ola
+            // 3s, la última, no sube nada.
+            progression = ProgressionRule.CycleIncrement(2.5, 5.0, scope = IncrementScope.BLOCK),
+            // C7/B.S6 parte 2c: la ola de 3s llega al 90 % TM (81 % 1RM); el método mide su realización sobre el TM.
+            // Exención BLOCK limitada a esa ola, tras convertir todos los chequeos a %1RM efectivo.
+            exemptions = listOf(
+                RecipeCompositionExemption(
+                    "BLOCK", "block3/3s",
+                    "La ola de 3s de Juggernaut llega al 90 % del TM (el 81 % del 1RM con el TM al 90 %): el método mide su realización sobre el TM y no sobre el 1RM",
+                    "https://www.jtsstrength.com/the-juggernaut-method-2-0/",
+                ),
+            ),
+            claimedDaysPerWeek = 4,
+            claimedLevel = "avanzado",
+            autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.AMRAP_TM)),
+            contentVersion = 2,
+        )
     }
 
     val definition = protocol(
@@ -144,6 +186,9 @@ object JuggernautProtocol {
 }
 
 object RemainingVerifiedProtocols {
+    /** Fuente de los programas Sheiko #29 a #32: `sourceUrl` de sus exenciones. */
+    private const val SHEIKO_URL = "https://www.powerliftingtowin.com/sheiko/"
+
     val sheiko = run {
         // B.S6: las seis exenciones de Sheiko (H2, H3, H4, H5b y H6 ×2) estaban muertas —el a2 cuelga del a con `supplementalOf`,
         // los días caben en 10-30 series y el presupuesto espinal en 12— y se retiran, también la H5b de justificación corta.
@@ -390,7 +435,31 @@ object RemainingVerifiedProtocols {
             attributed("Sheiko programs #29-32", "https://www.powerliftingtowin.com/sheiko/", "Boris Sheiko"),
             TrainingPlanRecipe(
                 "sheiko-29-32", weeks, 1.0, sbdSlots(), ProgressionRule.None,
-                claimedDaysPerWeek = 3, claimedLevel = "avanzado",
+                // B.S6 parte 2b: C1 por slot (la banca de la sesión de sentadilla y banca con 9 y 10 series en #29 a #31, la sentadilla con 9 en
+                // la semana 5 a 7 y el peso muerto hasta la rodilla con 9 en la 5) y C5 (la 16 es la competición). Todo por diseño de la tabla.
+                exemptions = listOf(
+                    RecipeCompositionExemption(
+                        "C1_SET_RANGE", "w*/Sentadilla/Banca/b",
+                        "La tabla de Sheiko programa la banca de la sesión de sentadilla y banca con 9 o 10 series en los bloques #29 a #31 por diseño del volumen",
+                        SHEIKO_URL,
+                    ),
+                    RecipeCompositionExemption(
+                        "C1_SET_RANGE", "w*/Sentadilla/Banca/a",
+                        "La tabla de Sheiko programa la sentadilla del lunes con 9 series en las semanas 5 a 7 (bloque #30) por diseño del volumen",
+                        SHEIKO_URL,
+                    ),
+                    RecipeCompositionExemption(
+                        "C1_SET_RANGE", "w*/Peso muerto/Banca/a",
+                        "La tabla de Sheiko programa el peso muerto hasta la rodilla del miércoles de la semana 5 con 9 series por diseño del volumen",
+                        SHEIKO_URL,
+                    ),
+                    RecipeCompositionExemption(
+                        "C5_DELOAD_REQUIRED", "recipe",
+                        "Los programas Sheiko #29 a #32 terminan en la competición: la semana 16 cierra con un volumen mínimo de 60 a 70 % y el método no programa una semana de descarga aparte",
+                        SHEIKO_URL,
+                    ),
+                ),
+                claimedDaysPerWeek = 3, claimedLevel = "avanzado", contentVersion = 2,
             ),
             ProtocolFidelitySpec(
                 16, 3, requiresPercent = true, claimedLevel = "avanzado",
@@ -420,7 +489,20 @@ object RemainingVerifiedProtocols {
                 "La fase intensa de Smolov (semanas 9 a 13) son 3 sesiones de sentadilla por semana; el claim de 4 días es el de la base",
                 smolovSource,
             )
-        }
+        } + listOf(
+            // B.S6 parte 2b (C1, por slot): el día S4 de la base (semanas 1 a 5) es 10×3 al 85 % (80-85 % en la intro) y el segundo día de la
+            // semana 9 trae 9 series (3, 3, 4, 3 y 5×2): la tabla de Smolov las prescribe así.
+            RecipeCompositionExemption(
+                "C1_SET_RANGE", "w*/S4/sq",
+                "Smolov programa el día S4 de la base con 10 series de 3 repeticiones por diseño de la tabla",
+                smolovSource,
+            ),
+            RecipeCompositionExemption(
+                "C1_SET_RANGE", "w9/S2/sq",
+                "Smolov programa el segundo día de la fase intensa de la semana 9 con 9 series (rampa y 5 de 2 repeticiones) por diseño de la tabla",
+                smolovSource,
+            ),
+        )
         fun squatDay(label: String, weekday: Int, sets: List<SetRecipe>, box: Boolean = false) = day(
             label, weekday = weekday, slots = listOf(
                 slot(
@@ -550,7 +632,7 @@ object RemainingVerifiedProtocols {
             TrainingPlanRecipe(
                 "smolov", weeks, 1.0, mapOf(LiftSlot.SQUAT to CatalogIds.SQ_LOW),
                 ProgressionRule.WeeklyKg(mapOf(4 to 10.0, 5 to 15.0)), exemptions,
-                claimedDaysPerWeek = 4, claimedLevel = "avanzado",
+                claimedDaysPerWeek = 4, claimedLevel = "avanzado", contentVersion = 2,
             ),
             ProtocolFidelitySpec(
                 13, 4, requiresPercent = true, claimedLevel = "avanzado",
@@ -559,6 +641,18 @@ object RemainingVerifiedProtocols {
             exemptions = exemptions,
         )
     }
+
+    /**
+     * B.S6 parte 2b (C1, por slot): el día S4 de Smolov Jr es 10×3 al 85 % en las tres semanas. Las siete exenciones del Smolov completo
+     * no se heredan (estaban muertas aquí); esta es la única que silencia un hallazgo del contrato.
+     */
+    private val smolovJrExemptions = listOf(
+        RecipeCompositionExemption(
+            "C1_SET_RANGE", "w*/S4/sq",
+            "Smolov Jr programa el día S4 con 10 series de 3 repeticiones al 85 % por diseño de la tabla",
+            "https://www.powerliftingtowin.com/smolov/",
+        ),
+    )
 
     val smolovJr = smolov.copy(
         id = "smolov-jr",
@@ -598,16 +692,17 @@ object RemainingVerifiedProtocols {
             liftSlots = mapOf(LiftSlot.SQUAT to CatalogIds.SQ_LOW),
             progression = ProgressionRule.WeeklyKg(mapOf(2 to 5.0, 3 to 10.0)),
             // B.S6: las siete exenciones heredadas de Smolov estaban muertas en Jr (con los días «Sesión» ninguna casaba y,
-            // con S1 a S4, tampoco hay hallazgo que silenciar: los días suman 12-16 series) y se retiran.
-            exemptions = emptyList(),
+            // con S1 a S4, tampoco hay hallazgo que silenciar: los días suman 12-16 series) y se retiran. Solo queda la C1 del S4.
+            exemptions = smolovJrExemptions,
             claimedDaysPerWeek = 4,
             claimedLevel = "avanzado",
+            contentVersion = 2,
         ),
         fidelitySpec = ProtocolFidelitySpec(
             3, 4, requiresPercent = true, claimedLevel = "avanzado",
             percentAnchors = mapOf("jr" to listOf(70.0, 75.0, 80.0, 85.0)),
         ),
-        exemptions = emptyList(),
+        exemptions = smolovJrExemptions,
     )
 
     val candito = protocol(
@@ -660,9 +755,22 @@ object RemainingVerifiedProtocols {
                     )
                 }
             },
-            trainingMaxPercent = 1.0, liftSlots = sbdSlots(), claimedDaysPerWeek = 4, claimedLevel = "intermedio",
+            trainingMaxPercent = 1.0, liftSlots = sbdSlots(), claimedDaysPerWeek = 4, claimedLevel = "intermedio", contentVersion = 2,
         ),
         ProtocolFidelitySpec(6, 4, requiresPercent = true, claimedLevel = "intermedio", percentAnchors = mapOf("w1" to listOf(70.0), "w3" to listOf(85.0))),
+    )
+
+    /**
+     * Coan-Philippi: la H2 de la sesión (DL, speed, SLDL y buenos días son cuatro bisagras) y, desde B.S6 parte 2b, la C5: son 10 semanas
+     * que no se repiten y terminan en un single al 100 %, sin una semana de descarga aparte.
+     */
+    private val coanExemptions = listOf(
+        RecipeCompositionExemption("H2", "w*/Peso muerto", "DL + speed + SLDL + good morning"),
+        RecipeCompositionExemption(
+            "C5_DELOAD_REQUIRED", "recipe",
+            "Coan-Philippi son 10 semanas de peso muerto que terminan en un single al 100 % en la semana 10; el método no programa una semana de descarga aparte",
+            "https://www.powerliftingtowin.com/coan-phillipi-deadlift-routine/",
+        ),
     )
 
     val coan = protocol(
@@ -688,10 +796,10 @@ object RemainingVerifiedProtocols {
             }
             // B.S6: la H3 («cuatro bisagras por diseño») estaba muerta (los cuatro accesorios no repiten dominante más de tres veces
             // ni tres seguidas) y se retira; la H2 sigue viva: DL, speed, SLDL y buenos días son cuatro bisagras en la sesión.
-            TrainingPlanRecipe("coan-phillipi-dl", weeks, 1.0, mapOf(LiftSlot.DEADLIFT to CatalogIds.DL), ProgressionRule.None, listOf(RecipeCompositionExemption("H2", "w*/Peso muerto", "DL + speed + SLDL + good morning")), claimedDaysPerWeek = 1, claimedLevel = "avanzado")
+            TrainingPlanRecipe("coan-phillipi-dl", weeks, 1.0, mapOf(LiftSlot.DEADLIFT to CatalogIds.DL), ProgressionRule.None, coanExemptions, claimedDaysPerWeek = 1, claimedLevel = "avanzado")
         },
         ProtocolFidelitySpec(10, 1, requiresPercent = true, claimedLevel = "avanzado", percentAnchors = mapOf("w10" to listOf(100.0))),
         kind = ProtocolKind.SPECIALIZATION,
-        exemptions = listOf(RecipeCompositionExemption("H2", "w*/Peso muerto", "DL + speed + SLDL + good morning")),
+        exemptions = coanExemptions,
     )
 }

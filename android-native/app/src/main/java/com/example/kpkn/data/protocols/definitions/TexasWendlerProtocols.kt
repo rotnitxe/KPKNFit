@@ -31,6 +31,9 @@ import com.example.kpkn.data.protocols.slot
 import com.example.kpkn.data.protocols.weekRecipe
 import com.example.kpkn.data.programs.DaySlotTemplate
 
+/** URL del artículo del Texas Method: es la `sourceUrl` de las exenciones de las recetas de 3 y de 4 días. */
+private const val TEXAS_URL = "https://startingstrength.com/article/the_texas_method"
+
 internal fun sbdSlots() = mapOf(
     LiftSlot.SQUAT to CatalogIds.SQ_LOW,
     LiftSlot.BENCH to CatalogIds.BP,
@@ -48,7 +51,10 @@ object TexasMethodProtocols {
         slots = listOf(
             slot("sq", SlotRole.T1_MAIN, CatalogIds.SQ_LOW, repeatPercentSets(5, 5, 90.0, 240, basis = LoadBasis.PERCENT_OF_TOP_SET), 240, LiftSlot.SQUAT, isCompetitionLift = true),
             slot("bp", SlotRole.T2_SUPPLEMENTAL, CatalogIds.BP, repeatPercentSets(5, 5, 90.0, 180, basis = LoadBasis.PERCENT_OF_TOP_SET), 180, LiftSlot.BENCH, isCompetitionLift = true),
-            slot("dl", SlotRole.T2_SUPPLEMENTAL, CatalogIds.DL, repeatPercentSets(1, 5, 70.0, 240), 240, LiftSlot.DEADLIFT, isCompetitionLift = true),
+            // H-07 (B.S6 parte 2b, D7): el peso muerto de una serie de 5 del lunes va al 90 % del TM (≈ 78 % del 1RM con el TM al 87 %), el
+            // mismo peso del volumen de sentadilla; antes iba al 70 % (≈ 61 % del 1RM). Cuelga de la sentadilla del día como el volumen
+            // del Texas de 4 días: con el 90 % crudo la política contaría dos axiales pesados (H5a, que mide el % del TM sin convertirlo).
+            slot("dl", SlotRole.T2_SUPPLEMENTAL, CatalogIds.DL, repeatPercentSets(1, 5, 90.0, 240), 240, LiftSlot.DEADLIFT, supplementalOf = "sq", isCompetitionLift = true),
             kpknAssist("ghr", CatalogIds.GHR, 3, 8, 90),
             kpknAssist("pallof", CatalogIds.PALLOF, 3, 10, 60),
         ),
@@ -59,7 +65,8 @@ object TexasMethodProtocols {
         weekday = 3,
         slots = listOf(
             slot("sq", SlotRole.T1_MAIN, CatalogIds.SQ_LOW, repeatPercentSets(2, 5, 80.0, 180, basis = LoadBasis.PERCENT_OF_TOP_SET), 180, LiftSlot.SQUAT, isCompetitionLift = true),
-            slot("ohp", SlotRole.T2_SUPPLEMENTAL, CatalogIds.OHP, repeatPercentSets(3, 5, 60.0, 150), 150, LiftSlot.OVERHEAD),
+            // H-07 (B.S6 parte 2b, D7): el press ligero de recuperación 3×5 va al 80 % del TM (≈ 70 % del 1RM); antes al 60 % (≈ 52 %).
+            slot("ohp", SlotRole.T2_SUPPLEMENTAL, CatalogIds.OHP, repeatPercentSets(3, 5, 80.0, 150), 150, LiftSlot.OVERHEAD),
             // L-16 (B.S6): las dominadas llevaban las 3 series como AMRAP y a RPE 8 a la vez (contradictorio), en un slot sin
             // `liftSlot`; ahora son 3×8 a RPE 8 sin AMRAP (el TM de Texas sube con el top set del viernes, `TopSetPr`).
             slot("chin", SlotRole.T3_ACCESSORY, CatalogIds.CHIN, rpeSets(3, 8, 8.0), 120),
@@ -93,17 +100,33 @@ object TexasMethodProtocols {
         trainingMaxPercent = 0.87,
         liftSlots = sbdSlots(),
         progression = ProgressionRule.TopSetPr(upperKg = 1.25, lowerKg = 2.5),
+        // B.S6 parte 2b: el peso muerto del lunes es UNA serie de 5 (C1) y cuelga de la sentadilla del mismo día (C8). Rippetoe programa
+        // el peso muerto de la jornada de volumen en una sola serie de 5 repeticiones, y la sentadilla y el peso muerto son dos
+        // levantamientos de competición, cada uno con su levantamiento declarado.
+        exemptions = listOf(
+            RecipeCompositionExemption(
+                "C1_SET_RANGE", "w*/Volumen 5x5/dl",
+                "El Texas Method de Rippetoe programa el peso muerto del lunes (jornada de volumen) en una sola serie de 5 repeticiones",
+                TEXAS_URL,
+            ),
+            RecipeCompositionExemption(
+                "C8_SUPPLEMENTAL_LINK", "w*/Volumen 5x5/dl",
+                "El peso muerto 1×5 del lunes cuelga de la sentadilla 5×5 del mismo día, como el volumen del Texas de 4 días: dos levantamientos de competición, cada uno con su levantamiento declarado",
+                TEXAS_URL,
+            ),
+        ),
         claimedDaysPerWeek = 3,
         claimedLevel = "intermedio",
         autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.WEEKLY_REVIEW)),
         repeats = true,
+        contentVersion = 2,
     )
 
     val threeDay = Protocol(
         id = "texas-method-3d",
         name = "Texas Method",
         emoji = "🤠",
-        description = "3 días, 4 semanas: lunes 5×5 @ 90 % del top de viernes, miércoles 2×5 @ 80 % del lunes, viernes 1×5 PR. Power clean no catalogado: el T3 de intensidad es remo Pendlay explosivo (sugerido por KPKN).",
+        description = "3 días, 4 semanas: lunes 5×5 @ 90 % del top de viernes y peso muerto 1×5 al 90 % del TM, miércoles 2×5 @ 80 % del lunes y press 3×5 al 80 % del TM, viernes 1×5 PR. Power clean no catalogado: el T3 de intensidad es remo Pendlay explosivo (sugerido por KPKN).",
         author = "Mark Rippetoe y Glenn Pendlay",
         tags = listOf("powerlifting", "intermedio", "3 días", "4 semanas", "%"),
         blocks = listOf(ProtocolBlock("Texas", 4, "Intensificación", 70, 90, 1.0)),
@@ -219,6 +242,7 @@ object WendlerProtocols {
             claimedLevel = "intermedio",
             autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.AMRAP_TM)),
             repeats = true,
+            contentVersion = 2,
         )
     }
 
@@ -282,9 +306,26 @@ object TexasMethodFourDay {
         trainingMaxPercent = 0.87,
         liftSlots = sbdSlots(),
         progression = ProgressionRule.TopSetPr(upperKg = 1.25, lowerKg = 2.5),
+        // H-09 (B.S6 parte 2b): el volumen de peso muerto (3×5) cuelga del top set de sentadilla del martes y el de sentadilla (5×5) del top
+        // set de peso muerto del viernes. Son dos levantamientos de competición con su propio `liftSlot` en el mismo día y el enlace
+        // `supplementalOf` (que la política usa para no contar dos axiales pesados) no se borra: C8 lo marca por ser de otro grupo de
+        // patrón y se declara aquí, por slot y con su fuente.
+        exemptions = listOf(
+            RecipeCompositionExemption(
+                "C8_SUPPLEMENTAL_LINK", "w*/Sentadilla/PM/t2",
+                "El volumen de peso muerto 3×5 al 90 % del TM cuelga del top set de sentadilla del mismo día por diseño de Baker y Rippetoe: dos levantamientos de competición, cada uno con su levantamiento declarado",
+                TEXAS_URL,
+            ),
+            RecipeCompositionExemption(
+                "C8_SUPPLEMENTAL_LINK", "w*/PM/Sentadilla/t2",
+                "El volumen de sentadilla 5×5 al 90 % del TM cuelga del top set de peso muerto del mismo día por diseño de Baker y Rippetoe: dos levantamientos de competición, cada uno con su levantamiento declarado",
+                TEXAS_URL,
+            ),
+        ),
         claimedDaysPerWeek = 4,
         claimedLevel = "intermedio",
         repeats = true,
+        contentVersion = 2,
     )
 
     val definition = Protocol(

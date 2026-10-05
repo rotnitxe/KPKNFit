@@ -129,6 +129,9 @@ object AuthoredPhulPhatRecipes {
         claimedDaysPerWeek = 4,
         claimedLevel = "intermedio",
         repeats = true,
+        // B.S6 parte 2b: `contentVersion = 2` desde que la parte 1 cambió el curl inclinado a `CURL_INCLINE` (D2). Solo cambia la identidad de
+        // los programas nuevos; los activados conservan su snapshot de la versión 1. La adaptación hereda el número de su original.
+        contentVersion = 2,
         compositionProfile = RecipeCompositionProfile.AUTHORED_EXACT,
         provenance = AuthoredSources.phul.toOriginalProvenance(PHUL_ORIGINAL_ID),
         // R16 (decisión del dueño): PHUL, original y adaptado (copia), sube la carga con la doble
@@ -352,6 +355,8 @@ object AuthoredPhulPhatRecipes {
         // fabricada y sin descarga inventada; repetir la ventana es una acción
         // consciente del usuario, no un ciclo ciego.
         repeats = false,
+        // B.S6 parte 2b: `contentVersion = 2` desde que la parte 1 cambió el jalón cerrado a `LAT_CLOSE_GRIP` (D2); ver PHUL.
+        contentVersion = 2,
         compositionProfile = RecipeCompositionProfile.AUTHORED_EXACT,
         provenance = AuthoredSources.phat.toOriginalProvenance(PHAT_ORIGINAL_ID),
     )

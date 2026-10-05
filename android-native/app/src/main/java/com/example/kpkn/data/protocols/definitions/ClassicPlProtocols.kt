@@ -38,6 +38,12 @@ object ClassicPlProtocols {
         // miércoles y viernes, nunca seguidos— y se retira; la H5b sigue viva: SQ 8×5 + DL 8×5 en la fase I.
         val exemptions = listOf(
             RecipeCompositionExemption("H5b", "*", "Korte SQ 8×5 + DL 8×5 por diseño"),
+            // B.S6 parte 2b (C5): son 8 semanas que no se repiten y no traen descarga ni taper.
+            RecipeCompositionExemption(
+                "C5_DELOAD_REQUIRED", "recipe",
+                "Korte 3×3 son 8 semanas que terminan en los singles semanales del 80 al 95 % de la fase II; el método no programa una semana de descarga aparte",
+                "https://www.powerliftingtowin.com/korte-3x3/",
+            ),
         )
         fun sbdDay(label: String, weekday: Int, sq: Double, bp: Double, dl: Double, heavy: LiftSlot?) = day(
             label, weekday = weekday, slots = listOf(
@@ -148,7 +154,18 @@ object ClassicPlProtocols {
             defaultSplit = "cube_method", publicationStatus = ProtocolPublicationStatus.VERIFIED,
             kind = ProtocolKind.FIXED_PROGRAM,
             source = attributed("The Cube Method", "https://www.powerliftingtowin.com/brandon-lillys-cube-method/", "Brandon Lilly"),
-            recipe = TrainingPlanRecipe("cube-method", weeks, 0.95, sbdSlots(), ProgressionRule.None, claimedDaysPerWeek = 4, claimedLevel = "avanzado"),
+            recipe = TrainingPlanRecipe(
+                "cube-method", weeks, 0.95, sbdSlots(), ProgressionRule.None,
+                // B.S6 parte 2b (C5): el Cube termina en la semana 10 con el test y no trae descarga.
+                exemptions = listOf(
+                    RecipeCompositionExemption(
+                        "C5_DELOAD_REQUIRED", "recipe",
+                        "El Cube Method son 10 semanas que terminan en la semana 10 con el test de una repetición; el método no programa una semana de descarga aparte",
+                        "https://www.powerliftingtowin.com/brandon-lillys-cube-method/",
+                    ),
+                ),
+                claimedDaysPerWeek = 4, claimedLevel = "avanzado", contentVersion = 2,
+            ),
             fidelitySpec = ProtocolFidelitySpec(10, 4, requiresPercent = true, claimedLevel = "avanzado", percentAnchors = mapOf("heavy" to listOf(80.0))),
         )
     }
@@ -188,13 +205,18 @@ object ClassicPlProtocols {
             id = "lilliebridge", name = "Lilliebridge Method", emoji = "🌉",
             description = "10 semanas, 3 días: el lunes alterna sentadilla pesada (semanas impares) y peso muerto pesado (pares); " +
                 "banca con singles y AMRAP alternos. Sin regla de subida de TM.",
-            author = "Matt Lilliebridge", tags = listOf("powerlifting", "avanzado", "3 días", "10 semanas", "%", "AMRAP"),
+            // H-06 (B.S6 parte 2b): el método es de Ernie Lilliebridge y su familia, no de «Matt Lilliebridge». La hoja original no es
+            // pública, así que los porcentajes de cada semana son los de KPKN (lo dice `source.variant`; el texto editorial lo reescribe C.P4).
+            author = "Ernie Lilliebridge (familia Lilliebridge)", tags = listOf("powerlifting", "avanzado", "3 días", "10 semanas", "%", "AMRAP"),
             blocks = listOf(ProtocolBlock("Desarrollo", 6, "Intensificación", 65, 92), ProtocolBlock("Pico", 4, "Peak", 70, 96)),
             defaultSplit = "pl_sbd_x3", publicationStatus = ProtocolPublicationStatus.VERIFIED,
-            source = attributed("Lilliebridge Method", "https://www.powerliftingtowin.com/the-lilliebridge-method/", "Matt Lilliebridge"),
+            source = attributed(
+                "Lilliebridge Method", "https://www.powerliftingtowin.com/the-lilliebridge-method/", "Ernie Lilliebridge (familia Lilliebridge)",
+                variant = "Los porcentajes semanales son los de KPKN: la hoja original no es pública",
+            ),
             // B.S4 (hallazgo): con `TopSetPr` el plan propondría +2,5 kg por cada semana pesada; Lilliebridge sube por semana según su
             // tabla de porcentajes, no por récord del top set, así que no lleva regla de subida (`None`).
-            recipe = TrainingPlanRecipe("lilliebridge", weeks, 1.0, sbdSlots(), ProgressionRule.None, claimedDaysPerWeek = 3, claimedLevel = "avanzado"),
+            recipe = TrainingPlanRecipe("lilliebridge", weeks, 1.0, sbdSlots(), ProgressionRule.None, claimedDaysPerWeek = 3, claimedLevel = "avanzado", contentVersion = 2),
             fidelitySpec = ProtocolFidelitySpec(10, 3, requiresPercent = true, claimedLevel = "avanzado", percentAnchors = mapOf("w1_sq" to listOf(87.0))),
         )
     }
@@ -249,7 +271,21 @@ object ClassicPlProtocols {
             source = attributed("Westside Barbell conjugate method", "https://www.westside-barbell.com/blogs/the-blog/the-conjugate-method", "Louie Simmons"),
             // L-14 (B.S6): `RepMaxAutoregulated` solo lee la serie al máximo del levantamiento de competición y los máximos de
             // Westside son variantes (cajón, buenos días, press con cadenas), que no cuentan: la regla nunca actuaba. Sin regla.
-            recipe = TrainingPlanRecipe("westside-conjugate", weeks, 0.90, sbdSlots(), ProgressionRule.None, claimedDaysPerWeek = 4, claimedLevel = "avanzado", repeats = true),
+            recipe = TrainingPlanRecipe(
+                "westside-conjugate", weeks, 0.90, sbdSlots(), ProgressionRule.None,
+                // H-09 (B.S6 parte 2b): los tirones rápidos de peso muerto (`sdl`) cuelgan de la sentadilla rápida al cajón (`de`): son
+                // dos levantamientos de competición con su propio `liftSlot` en el mismo día. El enlace `supplementalOf` es anterior al
+                // contrato (la política exime de H2, H4, H5a y H7 a los slots colgados) y no se borra: C8 lo marca por ser de otro grupo de
+                // patrón y se declara aquí, por slot y con su fuente.
+                exemptions = listOf(
+                    RecipeCompositionExemption(
+                        "C8_SUPPLEMENTAL_LINK", "w*/DE Lower/sdl",
+                        "Los tirones rápidos de peso muerto van pegados a la sentadilla rápida al cajón del día de esfuerzo dinámico de piernas por diseño de Westside: dos levantamientos de competición del mismo día, cada uno con su levantamiento declarado",
+                        "https://www.westside-barbell.com/blogs/the-blog/the-conjugate-method",
+                    ),
+                ),
+                claimedDaysPerWeek = 4, claimedLevel = "avanzado", repeats = true, contentVersion = 2,
+            ),
             fidelitySpec = ProtocolFidelitySpec(3, 4, requiresPercent = true, claimedLevel = "avanzado", percentAnchors = mapOf("de" to listOf(50.0))),
         )
     }
@@ -341,8 +377,16 @@ object ClassicPlProtocols {
             }
             val drop = if (goal == BlockGoal.PEAK) 2 else if (goal == BlockGoal.INTENSIFICATION) 1 else 0
             // L-05 (B.S6): con el TM al 100 % del 1RM, el volumen de banca de la semana 16 (95 - 8 = 87 %) ya no cabe en 6 repeticiones por
-            // Epley (H11b, no exentable); la semana del test lleva ese día al 70 %. Las semanas 1 a 15 no cambian (el máximo es 84 %).
-            val volPct = if (w == 16) 70.0 else (sq.pct - 8).coerceAtLeast(55.0)
+            // Epley (H11b, no exentable). H-02 (B.S6 parte 2b): el viernes de la semana 16, tras los singles de sentadilla (95 %), banca
+            // (93 %) y peso muerto (90 %), es un día ligero: banca de volumen al 65 % y sentadilla con pausa al 60 %. Las semanas 1 a 15 no
+            // cambian en la banca (el máximo es 84 %).
+            val volPct = if (w == 16) 65.0 else (sq.pct - 8).coerceAtLeast(55.0)
+            // H-02: desde la semana 12 (pico) la sentadilla con pausa del viernes no pasa del 70 % (antes llegaba al 83 % en la 16).
+            val techPct = when {
+                w == 16 -> 60.0
+                w >= 12 -> (sq.pct - 12).coerceIn(55.0, 70.0)
+                else -> (sq.pct - 12).coerceAtLeast(55.0)
+            }
             weekRecipe(w, when { w <= 4 -> 0; w <= 8 -> 1; w <= 11 -> 2; else -> 3 }, "F${when { w <= 4 -> 1; w <= 8 -> 2; w <= 11 -> 3; else -> 4 }}", goal, listOf(
                 DayArchetypes.plSquat(sq.pct, t1Sets = sq.sets, t1Reps = sq.reps, weekday = 1)
                     .replaceT1Work(work(sq, rpe)).dropT3(drop),
@@ -354,7 +398,7 @@ object ClassicPlProtocols {
                     DayArchetypes.plDeadlift(dl.pct, t1Sets = dl.sets, t1Reps = dl.reps.coerceAtLeast(1), weekday = 4)
                         .replaceT1Work(work(dl, rpe)),
                 ).dropT3(drop),
-                withSquatTech(DayArchetypes.plBenchVolume(volPct, weekday = 5), (sq.pct - 12).coerceAtLeast(55.0)).dropT3(drop),
+                withSquatTech(DayArchetypes.plBenchVolume(volPct, weekday = 5), techPct).dropT3(drop),
             ))
         }
         Protocol(
@@ -365,7 +409,19 @@ object ClassicPlProtocols {
             defaultSplit = "pl_classic_4", publicationStatus = ProtocolPublicationStatus.VERIFIED,
             source = attributed("Calgary Barbell 16 Week Program", "https://calgarybarbell.com/", "Bryce Krawczyk"),
             // L-05 (B.S6): los porcentajes de Calgary son del 1RM, no de un TM del 90 %: TM = 100 % del 1RM.
-            recipe = TrainingPlanRecipe("calgary-16", weeks, 1.0, sbdSlots(), ProgressionRule.None, claimedDaysPerWeek = 4, claimedLevel = "intermedio", autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.RPE_CAP))),
+            recipe = TrainingPlanRecipe(
+                "calgary-16", weeks, 1.0, sbdSlots(), ProgressionRule.None,
+                // B.S6 parte 2b (C5): las semanas 12 a 16 son el taper del propio programa y la 16 es el test; no hay descarga aparte.
+                exemptions = listOf(
+                    RecipeCompositionExemption(
+                        "C5_DELOAD_REQUIRED", "recipe",
+                        "Calgary Barbell 16: las semanas 12 a 16 son el taper del propio programa (top set a RPE 8-9 y test en la semana 16); el método no programa una semana de descarga aparte",
+                        "https://calgarybarbell.com/",
+                    ),
+                ),
+                claimedDaysPerWeek = 4, claimedLevel = "intermedio", autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.RPE_CAP)),
+                contentVersion = 2,
+            ),
             fidelitySpec = ProtocolFidelitySpec(
                 16, 4, requiresPercent = true, requiresRpe = true, claimedLevel = "intermedio",
                 percentAnchors = mapOf("w1_sq" to listOf(64.0), "w5_sq" to listOf(76.0, 66.0), "w16" to listOf(95.0)),
@@ -437,7 +493,7 @@ object ClassicPlProtocols {
             defaultSplit = "pl_classic_4", publicationStatus = ProtocolPublicationStatus.VERIFIED,
             source = attributed("TSA 9 Week Intermediate Program v2", "https://www.thestrengthathlete.com/", "The Strength Athlete"),
             // L-05 (B.S6): los porcentajes de TSA son del 1RM (el test de la semana 9 al 95 % era un 85,5 % con un TM del 90 %).
-            recipe = TrainingPlanRecipe("tsa-9", weeks, 1.0, sbdSlots(), ProgressionRule.None, claimedDaysPerWeek = 4, claimedLevel = "intermedio"),
+            recipe = TrainingPlanRecipe("tsa-9", weeks, 1.0, sbdSlots(), ProgressionRule.None, claimedDaysPerWeek = 4, claimedLevel = "intermedio", contentVersion = 2),
             fidelitySpec = ProtocolFidelitySpec(
                 9, 4, requiresPercent = true, claimedLevel = "intermedio",
                 percentAnchors = mapOf("w1_sq" to listOf(71.0), "w1_bp" to listOf(69.0), "w5_deload" to listOf(60.0)),
