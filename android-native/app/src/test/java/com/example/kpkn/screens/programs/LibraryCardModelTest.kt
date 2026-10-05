@@ -228,10 +228,13 @@ class LibraryCardModelTest {
     // ─── 4 · Qué hace el tap de cada tarjeta ─────────────────────────────────
 
     @Test
-    fun a_template_follows_the_assistant_when_there_is_one_and_creates_from_the_template_when_there_is_not() {
+    fun a_template_with_a_recipe_follows_the_assistant_when_there_is_one_and_creates_from_the_template_when_there_is_not() {
         val templates = listed.filter { it.source == CatalogSource.TEMPLATE }
         assertEquals(10, templates.size)
-        templates.forEach { entry ->
+        val withRecipe = templates.filterNot(::isBlankStructure)
+        // Las siete plantillas con la semana escrita en una receta; las tres estructuras en blanco van aparte (H1).
+        assertEquals(7, withRecipe.size)
+        withRecipe.forEach { entry ->
             // C.P6 (D8, r2 §16.1): con asistente la plantilla NO crea el programa directo; su botón lleva al asistente,
             // que evalúa con el material, los días y el tiempo de la persona antes de proponerla.
             val withAssistant = libraryTapFor(entry, hasPlanAction = true)
@@ -244,6 +247,52 @@ class LibraryCardModelTest {
             assertEquals("${entry.id}: usa su plantilla", LibraryPrimary.UseTemplate(requireNotNull(entry.template)), primary)
             assertEquals("Usar esta plantilla", primary?.label)
         }
+    }
+
+    @Test
+    fun a_blank_structure_keeps_the_direct_path_even_when_there_is_an_assistant() {
+        // H1 (excepción a r2 §16.1): el asistente no materializa plantillas vacías y nunca las ofrece como candidatas, así
+        // que «Configurar este plan» las dejaría en un callejón sin salida. Conservan «Usar esta plantilla».
+        val structures = listed.filter { it.kind == PlanKind.ESTRUCTURA }
+        assertEquals(
+            "las tres estructuras en blanco",
+            setOf("template:simple-1", "template:simple-ab", "template:simple-4"),
+            structures.map { it.id }.toSet(),
+        )
+        structures.forEach { entry ->
+            assertTrue("${entry.id}: es una estructura en blanco", isBlankStructure(entry))
+            val template = requireNotNull(entry.template)
+            val withAssistant = libraryTapFor(entry, hasPlanAction = true)
+            assertEquals("${entry.id}: camino directo", LibraryTap.OpenSheet(LibraryPrimary.UseTemplate(template)), withAssistant)
+            assertEquals("Usar esta plantilla", (withAssistant as LibraryTap.OpenSheet).primary?.label)
+            assertEquals(
+                "${entry.id}: sin asistente es lo mismo",
+                LibraryTap.OpenSheet(LibraryPrimary.UseTemplate(template)),
+                libraryTapFor(entry, hasPlanAction = false),
+            )
+        }
+        // Ninguna otra entrada se considera estructura en blanco.
+        assertEquals(structures.map { it.id }.toSet(), listed.filter(::isBlankStructure).map { it.id }.toSet())
+    }
+
+    @Test
+    fun the_previous_muscle_and_cardio_version_opens_a_read_only_sheet_because_no_goal_of_the_assistant_offers_it() {
+        // H1: `native:strength-cardio` declara `references = ∅` (C.P2b): ningún objetivo del asistente lo sirve.
+        val legacy = entry("native:strength-cardio")
+        assertFalse(servesSomeWizardGoal(legacy))
+        assertEquals(LibraryTap.OpenSheet(null), libraryTapFor(legacy, hasPlanAction = true))
+        assertNull((libraryTapFor(legacy, hasPlanAction = true) as LibraryTap.OpenSheet).primary)
+        // Los planes que sí sirven a un objetivo siguen configurándose.
+        assertTrue(servesSomeWizardGoal(entry("native:muscle-foundation-v2")))
+        assertEquals(
+            LibraryTap.OpenSheet(LibraryPrimary.ConfigurePlan),
+            libraryTapFor(entry("native:muscle-foundation-v2"), hasPlanAction = true),
+        )
+        // «Otros» del filtro de perfil es justo lo que ningún objetivo sirve: la versión anterior y las tres estructuras.
+        assertEquals(
+            setOf("native:strength-cardio", "template:simple-1", "template:simple-ab", "template:simple-4"),
+            listed.filterNot(::servesSomeWizardGoal).map { it.id }.toSet(),
+        )
     }
 
     @Test
@@ -280,10 +329,20 @@ class LibraryCardModelTest {
         val withoutProtocol = listed.filter { it.template == null && visibleProtocolOf(it) == null }
         // Los siete nativos y los cuatro de autor.
         assertEquals(11, withoutProtocol.size)
-        withoutProtocol.forEach { entry ->
+        // Con asistente, todos se configuran salvo la versión anterior «Músculo y cardio», que ningún objetivo sirve (H1).
+        val configurable = withoutProtocol.filter(::servesSomeWizardGoal)
+        assertEquals(10, configurable.size)
+        configurable.forEach { entry ->
             val configure = libraryTapFor(entry, hasPlanAction = true)
             assertEquals("${entry.id}", LibraryTap.OpenSheet(LibraryPrimary.ConfigurePlan), configure)
             assertEquals("Configurar este plan", (configure as LibraryTap.OpenSheet).primary?.label)
+        }
+        assertEquals(
+            listOf("native:strength-cardio"),
+            withoutProtocol.filterNot(::servesSomeWizardGoal).map { it.id },
+        )
+        withoutProtocol.forEach { entry ->
+            // Sin asistente no hay acción posible para ellos: la hoja es de solo lectura.
             val readOnly = libraryTapFor(entry, hasPlanAction = false)
             assertEquals("${entry.id}", LibraryTap.OpenSheet(null), readOnly)
             assertNull((readOnly as LibraryTap.OpenSheet).primary)
@@ -303,12 +362,15 @@ class LibraryCardModelTest {
     @Test
     fun every_listed_entry_resolves_to_an_action_or_to_the_read_only_sheet_in_every_context() {
         listed.forEach { entry ->
-            // Con asistente TODA tarjeta abre su hoja con «Configurar este plan»: nada se entrega ni se crea directo.
-            assertEquals(
-                "${entry.id}: con asistente",
-                LibraryTap.OpenSheet(LibraryPrimary.ConfigurePlan),
-                libraryTapFor(entry, hasPlanAction = true),
-            )
+            // Con asistente toda tarjeta abre su hoja y nada se entrega al llamador: las que el asistente ofrece traen
+            // «Configurar este plan»; las tres estructuras en blanco, «Usar esta plantilla»; la versión anterior que
+            // ningún objetivo sirve, la hoja de solo lectura (H1).
+            val expected = when {
+                isBlankStructure(entry) -> LibraryTap.OpenSheet(LibraryPrimary.UseTemplate(requireNotNull(entry.template)))
+                !servesSomeWizardGoal(entry) -> LibraryTap.OpenSheet(null)
+                else -> LibraryTap.OpenSheet(LibraryPrimary.ConfigurePlan)
+            }
+            assertEquals("${entry.id}: con asistente", expected, libraryTapFor(entry, hasPlanAction = true))
             val tap = libraryTapFor(entry, hasPlanAction = false)
             when (tap) {
                 is LibraryTap.HandOffProtocol -> assertEquals(entry.sourceId, tap.protocol.id)

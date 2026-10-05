@@ -300,7 +300,9 @@ class PlanInfoModelTest {
         )
         assertTrue("el miércoles lleva 2 × 5 al 80 %: $allLines", allLines.any { it.endsWith(" · 2 × 5 al 80 % de tu serie más pesada") })
         assertTrue("el viernes es la serie más pesada: $allLines", allLines.any { it.endsWith(" · 1 × 5 como tu serie más pesada") })
-        assertTrue("el peso muerto del lunes va al 70 % de tu TM: $allLines", allLines.any { it.endsWith(" · 1 × 5 al 70 % de tu TM") })
+        // B.S6 parte 2b (H-07, D7): el peso muerto de la serie de 5 del lunes pasa del 70 % al 90 % del TM (≈ 78 % del 1RM con el TM al
+        // 87 %, el mismo peso que el volumen de sentadilla) y cuelga de la sentadilla del día en la receta.
+        assertTrue("el peso muerto del lunes va al 90 % de tu TM: $allLines", allLines.any { it.endsWith(" · 1 × 5 al 90 % de tu TM") })
         // B.S6 (L-16): las dominadas dejan de ser AMRAP (llevaban «AMRAP» y RPE 8 a la vez, y un AMRAP sin levantamiento de la
         // receta no mueve ningún TM); ahora son 3 × 8 a esfuerzo 8 de 10, sin el «+».
         assertTrue("las dominadas a esfuerzo 8: $allLines", allLines.any { it.endsWith(" · 3 × 8 a esfuerzo 8 de 10") })
