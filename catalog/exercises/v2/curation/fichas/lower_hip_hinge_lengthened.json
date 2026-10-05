@@ -1,84 +1,702 @@
 {
   "definitions": {
     "stiff_leg_deadlift": {
-      "public": {
-        "configurations": {
-          "stiff_leg_deadlift__bilateral__barbell": {
-            "description": "Con barra y a dos lados, con las piernas casi extendidas, la carga baja hasta el estiramiento máximo de los isquiosurales. Los isquiosurales trabajan con la barra, que permite cargar pesado y medir la progresión con claridad. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
-            "executionCues": [
-              "Barra con ambas piernas casi rectas: el estiramiento de los isquios marca el recorrido. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda."
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Flexión de cadera",
+              "Extensión de cadera"
             ],
-            "setupCues": [
-              "Preparación: Barra con ambas piernas casi rectas: el estiramiento de los isquios marca el recorrido."
-            ]
+            "id": "cadera",
+            "role": "PRIMARY",
+            "sources": [
+              "coratella2022",
+              "hip_anatomy"
+            ],
+            "why": "Desde el arranque con pelvis alta, su extensión eleva el torso y la carga con escaso cambio de rodillas. La acción de los extensores observada en piernas rígidas y la capacidad de transmisión de carga de la articulación fundamentan su rol principal."
           },
-          "stiff_leg_deadlift__bilateral__dumbbells": {
-            "description": "Con mancuernas y a dos lados, con las piernas casi extendidas, la carga baja hasta el estiramiento máximo de los isquiosurales. Los isquiosurales trabajan con mancuernas, que dejan que cada lado corrija su trayectoria. A dos lados, el trabajo de los isquiosurales admite más carga total.",
-            "executionCues": [
-              "Mancuernas con ambas piernas: la carga a los costados con recorrido libre. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda."
+          {
+            "actions": [
+              "Estabilidad con rodilla poco flexionada"
             ],
-            "setupCues": [
-              "Preparación: Mancuernas con ambas piernas: la carga a los costados con recorrido libre."
-            ]
+            "id": "rodilla",
+            "role": "STABILIZER",
+            "sources": [
+              "coratella2022",
+              "knee_anatomy"
+            ],
+            "why": "Queda cerca de la extensión durante el alcance al piso y durante el despegue, sin bloquearse hacia atrás. La falta de recorrido extensor relevante hace que su función sea sostener el apoyo, aunque la posición de esa rodilla determine la longitud de los isquiosurales."
+          },
+          {
+            "actions": [
+              "Resistencia a la flexión lumbar"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "coratella2022",
+              "pelvic_anatomy"
+            ],
+            "why": "El arranque bajo aumenta la necesidad de sostener una espalda neutra, pero no pide enderezar vértebras redondeadas. La articulación transmite la fuerza al torso; se clasifica como estabilizadora mientras el gesto dinámico ocurre en la cadera."
+          },
+          {
+            "actions": [
+              "Transmisión de carga entre pelvis y tronco"
+            ],
+            "id": "sacroiliaca",
+            "role": "STABILIZER",
+            "sources": [
+              "pelvic_anatomy"
+            ],
+            "why": "Durante el despegue transmite el peso del tronco desde el sacro hacia los ilíacos y las piernas. La restricción de su movimiento descrita en anatomía pélvica respalda una función de enlace estable, en vez de atribuirle la elevación del torso."
+          },
+          {
+            "actions": [
+              "Sostén del agarre"
+            ],
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "sources": [
+              "forearm_anatomy"
+            ],
+            "why": "En la salida baja las manos reciben el peso con muñecas sin doblarse, y siguen así hasta depositarlo otra vez. La contracción sostenida de los dedos transmite esa carga manual a través de la articulación, sin hacer una flexión de muñeca contra resistencia."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "hamstrings",
+            "role": "PRIMARY",
+            "sources": [
+              "hamstrings_anatomy",
+              "coratella2022",
+              "mccurdy2018"
+            ],
+            "why": "Al despegar desde un apoyo bajo, extienden la cadera con las rodillas muy próximas a rectas. Coratella y McCurdy confirman actividad isquiosural, pero no que sea mayor que en rumano; se conserva su primer lugar heredado por el foco del ejercicio, sin convertir amplitudes EMG entre músculos en una jerarquía universal."
+          },
+          {
+            "id": "gluteus_maximus",
+            "role": "PRIMARY",
+            "sources": [
+              "coratella2022",
+              "glute_anatomy",
+              "mccurdy2018"
+            ],
+            "why": "Levanta el torso al extender la cadera alta del arranque de piernas rígidas. Coratella vio más excitación glútea aquí que en rumano y McCurdy actividad glútea importante; esas observaciones contradicen la idea de que unas rodillas rectas eliminan su función motora."
+          },
+          {
+            "id": "adductors",
+            "role": "SECONDARY",
+            "sources": [
+              "adductor2018",
+              "adductor2026"
+            ],
+            "why": "La capacidad extensora del aductor mayor permite asistencia al despegue con cadera flexionada. Esta entrada es inferida de Benn y del modelo de Collings sobre peso muerto convencional, no de EMG propia de piernas rígidas; por eso no sustituye a los dos motores principales."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "coratella2022",
+              "pelvic_anatomy"
+            ],
+            "why": "El torso se encuentra muy inclinado en el alcance inicial y los erectores resisten que la espalda se doble al despegar. Coratella midió actividad lumbar en piernas rígidas, pero el levantamiento correcto cambia la cadera con posición vertebral estable."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "core2025",
+              "abdominal_anatomy"
+            ],
+            "why": "En la salida baja, el abdomen fija el tronco para que la extensión de cadera eleve el cuerpo como unidad. Se extrapola del rumano la respuesta abdominal hallada por Jurik y se apoya en la función de presión abdominal, sin decir que piernas rígidas fue medido por ese sensor."
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "sources": [
+              "forearm_anatomy"
+            ],
+            "why": "Sujetan el peso desde el despegue hasta devolverlo a su apoyo original. Los flexores de los dedos descritos en anatomía del antebrazo sostienen el agarre de forma isométrica; son necesarios para cargar las manos pero no elevan la cadera."
+          }
+        ],
+        "overrides": {
+          "stiff_leg_deadlift__bilateral__dumbbells": {
+            "joints": [
+              {
+                "actions": [
+                  "Sostén del agarre neutro"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "forearm_anatomy"
+                ],
+                "why": "Las manos orientadas en neutro sujetan asas independientes desde el despegue hasta apoyar la carga. La muñeca transmite el peso sin doblarse para levantarlo, una aplicación de la función de agarre del antebrazo a esta salida baja."
+              }
+            ],
+            "muscles": []
           },
           "stiff_leg_deadlift__bilateral__hex_bar": {
-            "description": "Con barra hexagonal y a dos lados, con las piernas casi extendidas, la carga baja hasta el estiramiento máximo de los isquiosurales. Los isquiosurales trabajan con la barra hexagonal, que centra la carga y alivia la espalda. A dos lados, el trabajo de los isquiosurales admite más carga total.",
-            "executionCues": [
-              "Barra hexagonal con ambas piernas: carga estable y estiramiento profundo. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda."
+            "joints": [
+              {
+                "actions": [
+                  "Sostén del agarre neutro"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "forearm_anatomy"
+                ],
+                "why": "Las manos orientadas en neutro sujetan asas independientes desde el despegue hasta apoyar la carga. La muñeca transmite el peso sin doblarse para levantarlo, una aplicación de la función de agarre del antebrazo a esta salida baja."
+              }
             ],
-            "setupCues": [
-              "Preparación: Barra hexagonal con ambas piernas: carga estable y estiramiento profundo."
-            ]
+            "muscles": []
           },
           "stiff_leg_deadlift__bilateral__smith_machine": {
-            "description": "Con máquina Smith y a dos lados, con las piernas casi extendidas, la carga baja hasta el estiramiento máximo de los isquiosurales. Los isquiosurales trabajan en la Smith, con la trayectoria guiada y estabilidad extra. A dos lados, el trabajo de los isquiosurales admite más carga total.",
-            "executionCues": [
-              "Smith con ambas piernas: el guiado te deja bajar hasta el estiramiento máximo con estabilidad. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda."
+            "joints": [
+              {
+                "actions": [
+                  "Resistencia a la flexión lumbar"
+                ],
+                "id": "columna-lumbar",
+                "role": "STABILIZER",
+                "sources": [
+                  "coratella2022",
+                  "pelvic_anatomy"
+                ],
+                "why": "La salida baja del Smith conserva el tronco sin respaldo aunque el carro no pueda desviarse de los rieles. El papel lumbar se deduce de ese torso cargado y libre, como sostén isométrico durante el arranque de piernas rígidas."
+              }
             ],
-            "setupCues": [
-              "Preparación: Smith con ambas piernas: el guiado te deja bajar hasta el estiramiento máximo con estabilidad."
-            ]
+            "muscles": []
           },
           "stiff_leg_deadlift__unilateral__barbell": {
-            "description": "Con barra y a un lado, con las piernas casi extendidas, la carga baja hasta el estiramiento máximo de los isquiosurales. Con la barra, la carga sube al máximo y la progresión de los isquiosurales se mide sin trampa. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
-            "executionCues": [
-              "Barra en una pierna casi recta: el isquio estirado a fondo y el equilibrio en cada repetición. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda."
+            "joints": [
+              {
+                "actions": [
+                  "Flexión de cadera",
+                  "Extensión de cadera",
+                  "Estabilidad frontal de cadera"
+                ],
+                "id": "cadera",
+                "role": "PRIMARY",
+                "sources": [
+                  "hip_anatomy",
+                  "mo2023",
+                  "collings2023"
+                ],
+                "why": "La articulación del apoyo realiza la extensión desde el alcance bajo y sostiene el plano frontal al perder el otro pie. Se extrapola la tarea unilateral de Mo y Collings a piernas rígidas, conservando la cadera como eje que levanta la carga."
+              },
+              {
+                "actions": [
+                  "Transmisión de carga entre pelvis y tronco"
+                ],
+                "id": "sacroiliaca",
+                "role": "STABILIZER",
+                "sources": [
+                  "pelvic_anatomy",
+                  "mo2023"
+                ],
+                "why": "El despegue unilateral envía la carga del torso a un solo miembro inferior a través del enlace sacroilíaco. Su movilidad limitada fundamenta transmisión estable por inferencia anatómica; ni su giro ni el lumbar generan el arranque."
+              }
             ],
-            "setupCues": [
-              "Preparación: Barra en una pierna casi recta: el isquio estirado a fondo y el equilibrio en cada repetición."
+            "muscles": [
+              {
+                "id": "gluteus_medius",
+                "role": "STABILIZER",
+                "sources": [
+                  "mo2023",
+                  "collings2023",
+                  "abductors2012"
+                ],
+                "why": "En el arranque con un pie, sostiene la pelvis para que el alcance inferior no vaya acompañado de una caída lateral. Se extrapolan la actividad y fuerzas de rumano unilateral al despegue de piernas rígidas, sin una medida directa de esta modalidad."
+              },
+              {
+                "id": "tensor_fasciae_latae",
+                "role": "STABILIZER",
+                "sources": [
+                  "abductors2012"
+                ],
+                "why": "Forma parte del grupo abductor que puede fijar la pelvis durante el alcance bajo sobre una sola pierna. Flack aporta la función anatómica para esa inferencia; no hay EMG específica del tensor en piernas rígidas ni fundamento para volverlo motor extensor."
+              }
             ]
           },
           "stiff_leg_deadlift__unilateral__dumbbells": {
-            "description": "Con mancuernas y a un lado, con las piernas casi extendidas, la carga baja hasta el estiramiento máximo de los isquiosurales. Con mancuernas, cada lado ajusta su línea y el trabajo de los isquiosurales se equilibra solo. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
-            "executionCues": [
-              "Una mancuerna desciende junto a la pierna de apoyo mientras la pierna libre se aleja. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda."
+            "joints": [
+              {
+                "actions": [
+                  "Flexión de cadera",
+                  "Extensión de cadera",
+                  "Estabilidad frontal de cadera"
+                ],
+                "id": "cadera",
+                "role": "PRIMARY",
+                "sources": [
+                  "hip_anatomy",
+                  "mo2023",
+                  "collings2023"
+                ],
+                "why": "La articulación del apoyo realiza la extensión desde el alcance bajo y sostiene el plano frontal al perder el otro pie. Se extrapola la tarea unilateral de Mo y Collings a piernas rígidas, conservando la cadera como eje que levanta la carga."
+              },
+              {
+                "actions": [
+                  "Transmisión de carga entre pelvis y tronco"
+                ],
+                "id": "sacroiliaca",
+                "role": "STABILIZER",
+                "sources": [
+                  "pelvic_anatomy",
+                  "mo2023"
+                ],
+                "why": "El despegue unilateral envía la carga del torso a un solo miembro inferior a través del enlace sacroilíaco. Su movilidad limitada fundamenta transmisión estable por inferencia anatómica; ni su giro ni el lumbar generan el arranque."
+              },
+              {
+                "actions": [
+                  "Sostén del agarre neutro"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "forearm_anatomy"
+                ],
+                "why": "Las manos orientadas en neutro sujetan asas independientes desde el despegue hasta apoyar la carga. La muñeca transmite el peso sin doblarse para levantarlo, una aplicación de la función de agarre del antebrazo a esta salida baja."
+              }
             ],
-            "setupCues": [
-              "Preparación: Una mancuerna desciende junto a la pierna de apoyo mientras la pierna libre se aleja."
+            "muscles": [
+              {
+                "id": "gluteus_medius",
+                "role": "STABILIZER",
+                "sources": [
+                  "mo2023",
+                  "collings2023",
+                  "abductors2012"
+                ],
+                "why": "En el arranque con un pie, sostiene la pelvis para que el alcance inferior no vaya acompañado de una caída lateral. Se extrapolan la actividad y fuerzas de rumano unilateral al despegue de piernas rígidas, sin una medida directa de esta modalidad."
+              },
+              {
+                "id": "tensor_fasciae_latae",
+                "role": "STABILIZER",
+                "sources": [
+                  "abductors2012"
+                ],
+                "why": "Forma parte del grupo abductor que puede fijar la pelvis durante el alcance bajo sobre una sola pierna. Flack aporta la función anatómica para esa inferencia; no hay EMG específica del tensor en piernas rígidas ni fundamento para volverlo motor extensor."
+              }
             ]
           },
           "stiff_leg_deadlift__unilateral__hex_bar": {
-            "description": "Con barra hexagonal y a un lado, con las piernas casi extendidas, la carga baja hasta el estiramiento máximo de los isquiosurales. Con la barra hexagonal, la carga queda centrada y la espalda sufre menos en el trabajo de los isquiosurales. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
-            "executionCues": [
-              "Barra hexagonal en una pierna: la carga estable más el reto del equilibrio. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda."
+            "joints": [
+              {
+                "actions": [
+                  "Flexión de cadera",
+                  "Extensión de cadera",
+                  "Estabilidad frontal de cadera"
+                ],
+                "id": "cadera",
+                "role": "PRIMARY",
+                "sources": [
+                  "hip_anatomy",
+                  "mo2023",
+                  "collings2023"
+                ],
+                "why": "La articulación del apoyo realiza la extensión desde el alcance bajo y sostiene el plano frontal al perder el otro pie. Se extrapola la tarea unilateral de Mo y Collings a piernas rígidas, conservando la cadera como eje que levanta la carga."
+              },
+              {
+                "actions": [
+                  "Transmisión de carga entre pelvis y tronco"
+                ],
+                "id": "sacroiliaca",
+                "role": "STABILIZER",
+                "sources": [
+                  "pelvic_anatomy",
+                  "mo2023"
+                ],
+                "why": "El despegue unilateral envía la carga del torso a un solo miembro inferior a través del enlace sacroilíaco. Su movilidad limitada fundamenta transmisión estable por inferencia anatómica; ni su giro ni el lumbar generan el arranque."
+              },
+              {
+                "actions": [
+                  "Sostén del agarre neutro"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "forearm_anatomy"
+                ],
+                "why": "Las manos orientadas en neutro sujetan asas independientes desde el despegue hasta apoyar la carga. La muñeca transmite el peso sin doblarse para levantarlo, una aplicación de la función de agarre del antebrazo a esta salida baja."
+              }
             ],
-            "setupCues": [
-              "Preparación: Barra hexagonal en una pierna: la carga estable más el reto del equilibrio."
+            "muscles": [
+              {
+                "id": "gluteus_medius",
+                "role": "STABILIZER",
+                "sources": [
+                  "mo2023",
+                  "collings2023",
+                  "abductors2012"
+                ],
+                "why": "En el arranque con un pie, sostiene la pelvis para que el alcance inferior no vaya acompañado de una caída lateral. Se extrapolan la actividad y fuerzas de rumano unilateral al despegue de piernas rígidas, sin una medida directa de esta modalidad."
+              },
+              {
+                "id": "tensor_fasciae_latae",
+                "role": "STABILIZER",
+                "sources": [
+                  "abductors2012"
+                ],
+                "why": "Forma parte del grupo abductor que puede fijar la pelvis durante el alcance bajo sobre una sola pierna. Flack aporta la función anatómica para esa inferencia; no hay EMG específica del tensor en piernas rígidas ni fundamento para volverlo motor extensor."
+              }
             ]
           },
           "stiff_leg_deadlift__unilateral__smith_machine": {
-            "description": "Con máquina Smith y a un lado, con las piernas casi extendidas, la carga baja hasta el estiramiento máximo de los isquiosurales. Los isquiosurales trabajan en la Smith, con la trayectoria guiada y estabilidad extra. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
+            "joints": [
+              {
+                "actions": [
+                  "Flexión de cadera",
+                  "Extensión de cadera",
+                  "Estabilidad frontal de cadera"
+                ],
+                "id": "cadera",
+                "role": "PRIMARY",
+                "sources": [
+                  "hip_anatomy",
+                  "mo2023",
+                  "collings2023"
+                ],
+                "why": "La articulación del apoyo realiza la extensión desde el alcance bajo y sostiene el plano frontal al perder el otro pie. Se extrapola la tarea unilateral de Mo y Collings a piernas rígidas, conservando la cadera como eje que levanta la carga."
+              },
+              {
+                "actions": [
+                  "Transmisión de carga entre pelvis y tronco"
+                ],
+                "id": "sacroiliaca",
+                "role": "STABILIZER",
+                "sources": [
+                  "pelvic_anatomy",
+                  "mo2023"
+                ],
+                "why": "El despegue unilateral envía la carga del torso a un solo miembro inferior a través del enlace sacroilíaco. Su movilidad limitada fundamenta transmisión estable por inferencia anatómica; ni su giro ni el lumbar generan el arranque."
+              },
+              {
+                "actions": [
+                  "Resistencia a la flexión lumbar"
+                ],
+                "id": "columna-lumbar",
+                "role": "STABILIZER",
+                "sources": [
+                  "coratella2022",
+                  "pelvic_anatomy"
+                ],
+                "why": "La salida baja del Smith conserva el tronco sin respaldo aunque el carro no pueda desviarse de los rieles. El papel lumbar se deduce de ese torso cargado y libre, como sostén isométrico durante el arranque de piernas rígidas."
+              }
+            ],
+            "muscles": [
+              {
+                "id": "gluteus_medius",
+                "role": "STABILIZER",
+                "sources": [
+                  "mo2023",
+                  "collings2023",
+                  "abductors2012"
+                ],
+                "why": "En el arranque con un pie, sostiene la pelvis para que el alcance inferior no vaya acompañado de una caída lateral. Se extrapolan la actividad y fuerzas de rumano unilateral al despegue de piernas rígidas, sin una medida directa de esta modalidad."
+              },
+              {
+                "id": "tensor_fasciae_latae",
+                "role": "STABILIZER",
+                "sources": [
+                  "abductors2012"
+                ],
+                "why": "Forma parte del grupo abductor que puede fijar la pelvis durante el alcance bajo sobre una sola pierna. Flack aporta la función anatómica para esa inferencia; no hay EMG específica del tensor en piernas rígidas ni fundamento para volverlo motor extensor."
+              }
+            ]
+          }
+        }
+      },
+      "public": {
+        "configurations": {
+          "stiff_leg_deadlift__bilateral__barbell": {
+            "description": "Los discos descansan en el piso entre repeticiones y los dos pies quedan detrás de la barra. La cadera alta y las rodillas casi rectas distinguen este despegue de un peso muerto que comienza empujando con las piernas dobladas.",
             "executionCues": [
-              "Smith en una pierna: estabilidad del guiado y estiramiento unilateral del isquio. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda."
+              "Despega desde el apoyo con la cadera alta y poco cambio de rodilla.",
+              "Levanta el torso como una unidad y termina sin arquear la espalda hacia atrás.",
+              "Deposita de nuevo el peso en su nivel de partida flexionando la cadera."
             ],
             "setupCues": [
-              "Preparación: Smith en una pierna: estabilidad del guiado y estiramiento unilateral del isquio."
+              "Sitúa los dos pies paralelos al ancho de las caderas frente a la carga apoyada.",
+              "Alcanza la barra cerca de las tibias con cadera alta y rodillas apenas dobladas."
+            ]
+          },
+          "stiff_leg_deadlift__bilateral__dumbbells": {
+            "description": "Cada mancuerna parte junto a un pie, con su altura de apoyo determinada por el tamaño de las cabezas. Las manos pueden acercarse a las piernas en neutro; alcanzar ambos pesos no requiere que el torso rote.",
+            "executionCues": [
+              "Despega desde el apoyo con la cadera alta y poco cambio de rodilla.",
+              "Levanta el torso como una unidad y termina sin arquear la espalda hacia atrás.",
+              "Deposita de nuevo el peso en su nivel de partida flexionando la cadera."
+            ],
+            "setupCues": [
+              "Sitúa los dos pies paralelos al ancho de las caderas frente a la carga apoyada.",
+              "Coloca los pesos a los lados de los pies y toma cada uno con la mano correspondiente."
+            ]
+          },
+          "stiff_leg_deadlift__bilateral__hex_bar": {
+            "description": "El marco se apoya en los discos y los pies quedan dentro, entre las asas bajas. Usar las asas altas acorta el alcance del arranque; para esta variante la altura de las manos debe corresponder al despegue bajo disponible.",
+            "executionCues": [
+              "Despega desde el apoyo con la cadera alta y poco cambio de rodilla.",
+              "Levanta el torso como una unidad y termina sin arquear la espalda hacia atrás.",
+              "Deposita de nuevo el peso en su nivel de partida flexionando la cadera."
+            ],
+            "setupCues": [
+              "Sitúa los dos pies paralelos al ancho de las caderas frente a la carga apoyada.",
+              "Pisa dentro del marco apoyado y toma las asas bajas sin hundir las rodillas."
+            ]
+          },
+          "stiff_leg_deadlift__bilateral__smith_machine": {
+            "description": "Los topes inferiores de la estación fijan la altura del arranque con los pies paralelos y las rodillas apenas flexionadas. Si el carril termina demasiado alto, el despegue queda elevado y ya no coincide con la salida desde el piso.",
+            "executionCues": [
+              "Despega desde el apoyo con la cadera alta y poco cambio de rodilla.",
+              "Levanta el torso como una unidad y termina sin arquear la espalda hacia atrás.",
+              "Deposita de nuevo el peso en su nivel de partida flexionando la cadera."
+            ],
+            "setupCues": [
+              "Sitúa los dos pies paralelos al ancho de las caderas frente a la carga apoyada.",
+              "Fija el arranque inferior del carro a una altura que alcances sin curvar la columna."
+            ]
+          },
+          "stiff_leg_deadlift__unilateral__barbell": {
+            "description": "El despegue con una sola pierna deja la barra atravesada delante del pie que carga y ambas manos tiran de ella por igual. Alcanzar el piso con la rodilla casi recta depende de la movilidad de esa cadera.",
+            "executionCues": [
+              "Despega desde el apoyo con la cadera alta y poco cambio de rodilla.",
+              "Levanta el torso como una unidad y termina sin arquear la espalda hacia atrás.",
+              "Deposita de nuevo el peso en su nivel de partida flexionando la cadera.",
+              "Devuelve el peso al apoyo sin girar la pelvis ni doblar más la rodilla para alcanzarlo."
+            ],
+            "setupCues": [
+              "Deja solo un pie apoyado y alcanza la carga extendiendo la otra pierna hacia atrás.",
+              "Alcanza la barra cerca de las tibias con cadera alta y rodillas apenas dobladas."
+            ]
+          },
+          "stiff_leg_deadlift__unilateral__dumbbells": {
+            "description": "Las dos cargas parten a los lados del pie que trabaja y la pierna sin apoyo se alarga hacia atrás. La libertad de las manos facilita colocarlas cerca de la tibia, aunque la salida baja exige conservar el ángulo casi recto de rodilla.",
+            "executionCues": [
+              "Despega desde el apoyo con la cadera alta y poco cambio de rodilla.",
+              "Levanta el torso como una unidad y termina sin arquear la espalda hacia atrás.",
+              "Deposita de nuevo el peso en su nivel de partida flexionando la cadera.",
+              "Devuelve el peso al apoyo sin girar la pelvis ni doblar más la rodilla para alcanzarlo."
+            ],
+            "setupCues": [
+              "Deja solo un pie apoyado y alcanza la carga extendiendo la otra pierna hacia atrás.",
+              "Coloca los pesos a los lados de los pies y toma cada uno con la mano correspondiente."
+            ]
+          },
+          "stiff_leg_deadlift__unilateral__hex_bar": {
+            "description": "La carga rodea al pie de apoyo al despegar desde las asas bajas, en vez de quedar atravesada delante de él. El marco necesita holgura posterior para la extremidad sin apoyo; un travesaño estrecho puede impedir esa postura.",
+            "executionCues": [
+              "Despega desde el apoyo con la cadera alta y poco cambio de rodilla.",
+              "Levanta el torso como una unidad y termina sin arquear la espalda hacia atrás.",
+              "Deposita de nuevo el peso en su nivel de partida flexionando la cadera.",
+              "Devuelve el peso al apoyo sin girar la pelvis ni doblar más la rodilla para alcanzarlo."
+            ],
+            "setupCues": [
+              "Deja solo un pie apoyado y alcanza la carga extendiendo la otra pierna hacia atrás.",
+              "Pisa dentro del marco apoyado y toma las asas bajas sin hundir las rodillas."
+            ]
+          },
+          "stiff_leg_deadlift__unilateral__smith_machine": {
+            "description": "Un pie carga al cuerpo mientras el carro empieza en su posición baja y la pierna libre se extiende detrás. El riel impide que el peso gire, pero no compensa un arranque que exija doblar mucho la rodilla de apoyo.",
+            "executionCues": [
+              "Despega desde el apoyo con la cadera alta y poco cambio de rodilla.",
+              "Levanta el torso como una unidad y termina sin arquear la espalda hacia atrás.",
+              "Deposita de nuevo el peso en su nivel de partida flexionando la cadera.",
+              "Devuelve el peso al apoyo sin girar la pelvis ni doblar más la rodilla para alcanzarlo."
+            ],
+            "setupCues": [
+              "Deja solo un pie apoyado y alcanza la carga extendiendo la otra pierna hacia atrás.",
+              "Fija el arranque inferior del carro a una altura que alcances sin curvar la columna."
             ]
           }
         },
-        "description": "El Peso Muerto Piernas Rígidas lleva la bisagra a su rango máximo: con las piernas casi extendidas desde el suelo, los isquiosurales se estiran al límite en cada repetición. La barra sale del piso sin flexionar apenas las rodillas y sube con la espalda firme hasta la vertical. Es hermano del rumano, pero aquí la carga parte del piso y el estiramiento es aún más profundo. El estirón cargado definitivo para la parte trasera del muslo."
+        "description": "Peso Muerto Piernas Rígidas entrena la extensión de cadera con isquiosurales y glúteo mayor desde un arranque bajo y con las rodillas casi rectas. El torso se inclina para alcanzar la carga y la cadera queda alta; al despegar, las piernas no hacen el empuje de una sentadilla. La subida termina cuando el cuerpo vuelve a estar erguido y la bajada devuelve el peso a su apoyo sin redondear la espalda. El piso fija el inicio de cada repetición, por lo que este ejercicio depende del alcance real de la cadera y de la altura de la carga."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "En diez culturistas comparó rumano, rumano sobre escalón y piernas rígidas al ochenta por ciento de su carga máxima. El rumano en escalón elevó la excitación del glúteo mayor, semitendinoso y longísimo durante la subida; el rumano excitó más el semitendinoso que piernas rígidas, y piernas rígidas más el glúteo mayor. No demuestra un rango máximo universal ni hipertrofia superior.",
+          "id": "coratella2022",
+          "title": "An Electromyographic Analysis of Romanian, Step-Romanian, and Stiff-Leg Deadlift: Implication for Resistance Training",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/35162922/"
+        },
+        {
+          "claim": "En dieciocho mujeres entrenadas, el peso muerto piernas rígidas produjo actividad tanto del glúteo mayor como de los isquiosurales; la actividad normalizada del glúteo fue mayor. La comparación no permite convertir amplitud EMG en una clasificación universal de dominancia.",
+          "id": "mccurdy2018",
+          "title": "Gluteus Maximus and Hamstring Activation During Selected Weight-Bearing Resistance Exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29076958/"
+        },
+        {
+          "claim": "El rumano a una pierna con mancuerna o volante activó fuertemente glúteo mayor y bíceps femoral y reclutó glúteo medio, erectores y oblicuo externo. La posición de la carga afectó la actividad; la evidencia directa no incluye Smith, barra hexagonal ni una supuesta postura sumo unilateral.",
+          "id": "mo2023",
+          "title": "Effects of loading positions on the activation of trunk and hip muscles during flywheel and dumbbell single-leg Romanian deadlift exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/38093908/"
+        },
+        {
+          "claim": "Un modelo informado por EMG situó el rumano cargado a una pierna en el primer grupo de fuerza estimada para glúteo mayor, medio y mínimo. La fuerza elevada del medio durante apoyo unilateral respalda su tarea de sostén pélvico, sin convertirla en abducciones dinámicas.",
+          "id": "collings2023",
+          "title": "Gluteal Muscle Forces during Hip-Focused Injury Prevention and Rehabilitation Exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/36918403/"
+        },
+        {
+          "claim": "Describe el complejo isquiosural posterior, sus inserciones a través de cadera y rodilla y su función de extensión de cadera y flexión de rodilla; permite razonar el alargamiento con cadera flexionada y rodilla poco flexionada.",
+          "id": "hamstrings_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hamstring Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31536294/"
+        },
+        {
+          "claim": "Describe la región glútea y al glúteo mayor como músculo superficial de gran tamaño relacionado con movimiento dinámico y estabilidad erguida. La función extensora aquí se contrasta con la evidencia directa de pesos muertos.",
+          "id": "glute_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Maximus Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30855781/"
+        },
+        {
+          "claim": "La EMG intramuscular mostró que ambas porciones del aductor mayor tuvieron su mayor actividad en extensión de cadera; sus funciones de rotación difirieron. Respalda su capacidad extensora, no una superioridad del sumo rumano ni una medición de esa variante.",
+          "id": "adductor2018",
+          "title": "Adductor magnus: An EMG investigation into proximal and distal portions and direction specific action",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29520841/"
+        },
+        {
+          "claim": "El modelo neuromusculoesquelético informado por EMG estimó fuerzas altas del aductor mayor isquiocondilar en peso muerto y sumo, ambos dentro del primer grupo para ese fascículo. No evaluó rumano ni piernas rígidas: su aplicación a esas bisagras es una extrapolación anatómica explícita.",
+          "id": "adductor2026",
+          "title": "Hip Adductor Muscle Forces during Strength Training and Rehabilitation Exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/41931009/"
+        },
+        {
+          "claim": "Con un sensor de pared abdominal, el rumano estuvo entre los ejercicios de miembros inferiores que aumentaron más la tensión abdominal. El estudio mide respuesta abdominal y no identifica por separado cada músculo profundo.",
+          "id": "core2025",
+          "title": "Changes of abdominal wall tension across various resistance exercises during maximal and submaximal loads in healthy adults: a cross-sectional study",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/40325422/"
+        },
+        {
+          "claim": "Describe la pared abdominal como estructura capaz de generar presión intraabdominal y mover la columna; sustenta su capacidad de fijar el tronco, sin que la bisagra necesite movimiento lumbar.",
+          "id": "abdominal_anatomy",
+          "title": "Anatomy, Abdomen and Pelvis: Abdominal Wall",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31869113/"
+        },
+        {
+          "claim": "Describe los compartimentos del antebrazo y la función flexora de muñeca y dedos del compartimento anterior; aplicada a la sujeción continua de una carga manual explica el trabajo isométrico del agarre.",
+          "id": "forearm_anatomy",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/"
+        },
+        {
+          "claim": "Revisa glúteo medio, menor y tensor de la fascia lata y su contribución a estabilización pélvica, abducción y rotación de cadera. La tarea de sostén en estas bisagras es una deducción funcional, no EMG específica del tensor en peso muerto.",
+          "id": "abductors2012",
+          "title": "A review of the anatomy of the hip abductor muscles, gluteus medius, gluteus minimus, and tensor fascia lata",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/22109658/"
+        },
+        {
+          "claim": "Describe la cadera como articulación que soporta dinámicamente el peso del tronco y transmite carga entre esqueleto axial y miembros inferiores.",
+          "id": "hip_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hip Joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29262200/"
+        },
+        {
+          "claim": "Explica flexión y extensión de la rodilla y la importancia de su apoyo muscular para estabilizarla; en la bisagra con ángulo casi fijo la función descrita es postural.",
+          "id": "knee_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Knee",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29763193/"
+        },
+        {
+          "claim": "Describe la movilidad restringida sacroilíaca y la transmisión del peso de torso y extremidades superiores hacia los miembros inferiores, además de las articulaciones lumbosacras.",
+          "id": "pelvic_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Pelvic Joints",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30860758/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Peso muerto de arranque bajo con rodillas casi extendidas y cadera alta. La carga despega de su apoyo al extender la cadera y regresa allí entre repeticiones; la flexión de rodilla no produce el arranque.",
+        "keyPositions": [
+          "Inicio bajo: cadera alta, rodillas casi rectas, brazos hacia la carga y torso inclinado desde la pelvis.",
+          "Despegue: el ángulo de rodilla cambia poco mientras la cadera se extiende.",
+          "Posición erguida: hombros sobre la pelvis, rodillas sin hiperextensión y carga colgando con los brazos extendidos."
+        ],
+        "mistakes": [
+          "Buscar el apoyo inferior redondeando la espalda en vez de flexionar la cadera.",
+          "Hundirse con las rodillas dobladas para arrancar como una sentadilla.",
+          "Hiperextender rodillas o arquear el tronco al terminar."
+        ],
+        "phases": [
+          {
+            "description": "El atleta alcanza la carga con la cadera alta y la columna neutra mientras las rodillas permanecen apenas flexionadas.",
+            "name": "Preparación baja"
+          },
+          {
+            "description": "La cadera se extiende y eleva el torso y el peso como una unidad, sin doblar los codos.",
+            "name": "Levantamiento"
+          },
+          {
+            "description": "La cadera flexiona para depositar el peso en su altura original, sin dejarlo caer ni ganar profundidad lumbar.",
+            "name": "Apoyo de regreso"
+          }
+        ],
+        "setup": [
+          "Carga en su apoyo inferior y espacio para alcanzar el agarre con brazos largos.",
+          "Pies al ancho de las caderas, columna neutra y una flexión mínima de rodillas sin bloqueo forzado.",
+          "En las configuraciones unilaterales, una pierna sostiene el cuerpo y la libre se alarga detrás; el arranque debe caber en el alcance de esa cadera."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral ligeramente oblicua a la altura de la cadera, con atleta entero, manos y piso visibles.",
+          "contacts": "Los pies se apoyan enteros en el piso; las manos sujetan la carga; en el arranque bajo los discos tocan su apoyo.",
+          "load": "Carga junto a las piernas, debajo de las manos y los codos extendidos; no se eleva hacia el pecho.",
+          "orientation": "Atleta mirando hacia la izquierda del encuadre; cabeza alineada con el torso inclinado y mirada hacia el piso.",
+          "phase": "Fotograma de arranque bajo, justo antes del despegue con la carga apoyada y las rodillas casi rectas.",
+          "posture": "Cadera alta y retrasada, rodillas casi extendidas sin bloqueo, torso inclinado y columna neutra."
+        },
+        "byImplement": {
+          "barbell": {
+            "geometry": "Barra recta transversal delante de las tibias, discos a ambos lados y agarre prono simétrico con las dos manos."
+          },
+          "dumbbells": {
+            "geometry": "Una mancuerna en cada mano, a ambos lados de las tibias y en agarre neutro; sus cabezas no chocan contra las piernas."
+          },
+          "hex_bar": {
+            "geometry": "Atleta dentro de un marco hexagonal, una mano en cada asa lateral baja y discos por fuera del cuerpo, sin barra delante de las tibias."
+          },
+          "smith_machine": {
+            "geometry": "Barra del carro atravesada delante de las piernas; ambas manos en prono y rieles visibles a ambos lados, con topes inferiores ajustados."
+          }
+        },
+        "byVariant": {
+          "stiff_leg_deadlift__unilateral__barbell": {
+            "difference": "Una pierna soporta el cuerpo y la otra se alarga detrás sin tocar el piso; la pelvis no se abre hacia la cámara. La carga sigue sujeta en las dos manos, cerca de la pierna de apoyo."
+          },
+          "stiff_leg_deadlift__unilateral__dumbbells": {
+            "difference": "Una pierna soporta el cuerpo y la otra se alarga detrás sin tocar el piso; la pelvis no se abre hacia la cámara. La carga sigue sujeta en las dos manos, cerca de la pierna de apoyo."
+          },
+          "stiff_leg_deadlift__unilateral__hex_bar": {
+            "difference": "Un solo pie queda apoyado; la pierna libre se extiende detrás y el torso inclinado y esa pierna forman una línea aproximada. Ambas manos conservan su agarre del implemento; el marco no debe cortar el paso de la pierna libre."
+          },
+          "stiff_leg_deadlift__unilateral__smith_machine": {
+            "difference": "Una pierna soporta el cuerpo y la otra se alarga detrás sin tocar el piso; la pelvis no se abre hacia la cámara. La carga sigue sujeta en las dos manos, cerca de la pierna de apoyo."
+          }
+        },
+        "forbidden": [
+          "Rodillas muy dobladas y cadera baja como en el arranque de una sentadilla.",
+          "Espalda redondeada, cuello levantado o codos doblados para tirar del peso.",
+          "Peso lejos del cuerpo o flotando sin una mano que lo sujete.",
+          "Carga junto al pecho, apoyada sobre la espalda o levantada con un remo."
+        ],
+        "promptCore": {
+          "barbell": "Oblique side view of an athlete. Frozen at the BOTTOM START of a stiff-leg deadlift before the weight leaves its lower support. Hips are high, knees nearly straight but unlocked, spine neutral and arms long. Both feet are flat on the floor at hip width. Both hands physically grip the straight barbell with an overhand grip. The bar is close to the shins with plates on both ends. The weight rests on its low support, ready to lift. No text, logos or brands.",
+          "dumbbells": "Oblique side view of an athlete. Frozen at the BOTTOM START of a stiff-leg deadlift before the weight leaves its lower support. Hips are high, knees nearly straight but unlocked, spine neutral and arms long. Both feet are flat on the floor at hip width. Each hand physically grips one dumbbell with palms facing inward. Both dumbbell heads rest on the lower support beside the legs, with each hand still gripping its handle and both arms straight, immediately before liftoff. No text, logos or brands.",
+          "hex_bar": "Oblique side view of an athlete. Frozen at the BOTTOM START of a stiff-leg deadlift before the weight leaves its lower support. Hips are high, knees nearly straight but unlocked, spine neutral and arms long. Both feet are flat on the floor at hip width. Both hands physically grip the low side handles of a hex bar. The athlete stands inside its frame and the plates sit outside the feet. The weight rests on its low support, ready to lift. No text, logos or brands.",
+          "smith_machine": "Oblique side view of an athlete. Frozen at the BOTTOM START of a stiff-leg deadlift before the weight leaves its lower support. Hips are high, knees nearly straight but unlocked, spine neutral and arms long. Both feet are flat on the floor at hip width. Both hands physically grip the Smith machine bar with an overhand grip. The bar is close to the legs and remains attached to visible side rails. The weight rests on its low support, ready to lift. No text, logos or brands."
+        },
+        "qa": [
+          "¿Las rodillas están casi rectas o con una flexión pequeña, sin una sentadilla profunda?",
+          "¿Las manos agarran físicamente la carga y ninguna pieza flota suelta?",
+          "¿El fotograma muestra la carga en su apoyo inferior justo antes del despegue?",
+          "¿La pelvis está detrás del apoyo y la columna conserva una línea neutra?",
+          "¿Los brazos cuelgan rectos junto a las piernas, sin llevar el peso al pecho?"
+        ]
+      }
     }
   },
   "familyId": "lower_hip_hinge_lengthened",

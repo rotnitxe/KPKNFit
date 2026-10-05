@@ -1,38 +1,597 @@
 {
   "definitions": {
     "hams_swing_kettlebell_dos_manos": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Extensión rápida de la cadera",
+              "Flexión de la cadera al recibir la carga"
+            ],
+            "id": "cadera",
+            "role": "PRIMARY",
+            "sources": [
+              "mcgill2012",
+              "vangelder2015"
+            ],
+            "why": "La cadera genera el empuje desde la posición retrasada y vuelve a flexionarse al recibir la campana. La cinemática y actividad registradas en el swing distinguen este impulso de un arco que nazca solo al levantar los brazos."
+          },
+          {
+            "actions": [
+              "Extensión acompañante de la rodilla",
+              "Flexión moderada al recibir la pesa"
+            ],
+            "id": "rodilla",
+            "role": "SECONDARY",
+            "sources": [
+              "mcgill2012"
+            ],
+            "why": "Las rodillas cambian de ángulo junto a la bisagra, pero el descenso no es una sentadilla profunda. El componente de rodilla del patrón descrito por McGill acompaña el impulso principal de cadera y hace espacio para la carga posterior."
+          },
+          {
+            "actions": [
+              "Flexión del hombro durante el arco delantero",
+              "Extensión del hombro durante el regreso"
+            ],
+            "id": "glenohumeral",
+            "role": "SECONDARY",
+            "sources": [
+              "abuwarda2024"
+            ],
+            "why": "Los brazos suben y bajan en torno al hombro para acompañar la campana hasta el pecho y de regreso. El protocolo de Abuwarda diferencia impulso y vuelo con participación del deltoides; esta articulación dirige el arco sin sustituir a la cadera como fuente principal de lanzamiento."
+          },
+          {
+            "actions": [
+              "Resistencia a la flexión vertebral",
+              "Estabilidad lumbar durante el impulso"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "mcgill2012",
+              "andersen2016"
+            ],
+            "why": "La columna no inicia el lanzamiento arqueándose ni lo recibe redondeándose. Su papel es resistir la carga cambiante mientras la cadera gira, coherente con el esfuerzo de extensores lumbares y pared abdominal registrado en los estudios del swing."
+          },
+          {
+            "actions": [
+              "Transferencia del empuje con el pie apoyado"
+            ],
+            "id": "tobillo",
+            "role": "STABILIZER",
+            "sources": [
+              "mcgill2012"
+            ],
+            "why": "Ambas plantas siguen sobre el suelo durante el vaivén y transmiten las fuerzas registradas en el swing. El impulso no requiere despegar los talones ni saltar; el rol de apoyo se deduce de esa ejecución y de las fuerzas de reacción medidas por McGill."
+          },
+          {
+            "actions": [
+              "Sujeción continua del asa"
+            ],
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "sources": [
+              "forearm_anatomy"
+            ],
+            "why": "La posición de la muñeca acompaña al antebrazo sin añadir un gesto para lanzar la pesa. Los flexores digitales sostienen el asa en ambos cambios de dirección, por inferencia anatómica; el instante de vuelo no implica soltar la campana."
+          },
+          {
+            "actions": [
+              "Transmisión del impulso entre pelvis y tronco"
+            ],
+            "id": "sacroiliaca",
+            "role": "STABILIZER",
+            "sources": [
+              "pelvic_joints"
+            ],
+            "why": "La fuerza de la bisagra se transmite por la pelvis a un tronco que continúa unido a la carga por los brazos. La movilidad reducida de esta articulación respalda el sostén de esa transferencia, sin que una rotación sacroilíaca genere el vaivén."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "hamstrings",
+            "role": "PRIMARY",
+            "sources": [
+              "vangelder2015",
+              "hamstring_anatomy"
+            ],
+            "why": "Extienden la cadera desde el paso posterior de la pesa y ayudan a recibir su vuelta bajo carga. Van Gelder registró actividad del bíceps femoral en el swing; se conserva el dominante heredado sin inferir que una amplitud electromiográfica aislada lo sitúe siempre por encima de cada glúteo."
+          },
+          {
+            "id": "gluteus_maximus",
+            "role": "PRIMARY",
+            "sources": [
+              "mcgill2012",
+              "vangelder2015"
+            ],
+            "why": "La extensión rápida de la cadera impulsa la campana después del recorrido posterior. La activación glútea documentada por McGill y Van Gelder corresponde a un motor del impulso, no a un acompañante postural; se añade detrás de los isquiosurales sin cambiar el primer principal."
+          },
+          {
+            "id": "quadriceps",
+            "role": "SECONDARY",
+            "sources": [
+              "mcgill2012",
+              "quadriceps_anatomy"
+            ],
+            "why": "La rodilla se estira parcialmente junto al empuje de cadera y vuelve a doblarse al recibir la pesa. McGill describe ese componente de rodilla y la anatomía del cuádriceps explica su asistencia; el swing aquí definido evita una sentadilla profunda y conserva la propulsión de cadera como acción central."
+          },
+          {
+            "id": "deltoid",
+            "role": "SECONDARY",
+            "sources": [
+              "abuwarda2024"
+            ],
+            "why": "El hombro acompaña el arco y participa en su dirección y frenado, aunque el lanzamiento empiece en la cadera. Abuwarda registró deltoides anterior y posterior durante el swing ruso y discutió sus aportes por fase; esa participación no requiere elevar deliberadamente la pesa como en una elevación frontal."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "mcgill2012",
+              "andersen2016"
+            ],
+            "why": "El tronco cambia su inclinación mediante la cadera mientras los erectores resisten que la columna se doble. Los registros de McGill y Andersen muestran participación lumbar, pero el fotograma y la técnica exigen columna neutra; una señal alta no basta para llamarlos motores de extensión vertebral."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "mcgill2012",
+              "andersen2016"
+            ],
+            "why": "La pared abdominal afirma la unión entre pelvis y tórax durante el impulso y la recepción. Los registros abdominales del swing apoyan esa función de sostén y transferencia, sin añadir un crunch ni una rotación deliberada de tronco al movimiento."
+          },
+          {
+            "id": "gluteus_medius",
+            "role": "STABILIZER",
+            "sources": [
+              "vangelder2015"
+            ],
+            "why": "La pelvis conserva su orientación sobre los dos pies mientras la pesa entra y sale por el centro. Van Gelder midió actividad del glúteo medio; aquí se interpreta como control pélvico del gesto sagital, sin presentar la activación como una abducción de piernas que produzca el lanzamiento."
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "sources": [
+              "forearm_anatomy"
+            ],
+            "why": "Los dedos de ambas manos cierran el asa durante el cambio de dirección y el instante alto. El rol se deduce de la función de los flexores digitales: la campana sigue unida a las manos y no se eleva mediante una flexión repetida de las muñecas."
+          }
+        ]
+      },
       "public": {
         "configurations": {
           "hams_swing_kettlebell_dos_manos__default": {
-            "description": "Con kettlebell, la campana se balancea entre las piernas y sale lanzada hasta el pecho por la potencia de la cadera. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo de los isquiosurales.",
+            "description": "La sujeción compartida centra una campana delante del cuerpo y permite recibirla entre los muslos antes del siguiente impulso. El asa queda dentro de ambas manos durante todo el arco, incluso en el instante alto en que la carga deja de subir.",
             "executionCues": [
-              "Impulsas la campana entre las piernas y la lanzas al pecho con la cadera. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Lleva la pesa atrás entre los muslos, con la cadera retrasada y las rodillas ligeramente dobladas.",
+              "Extiende rápido la cadera para impulsar la campana hacia delante hasta la altura del pecho.",
+              "Deja que regrese y vuelve a doblar la cadera cuando la carga se acerque a los muslos.",
+              "Termina guiando la campana al suelo delante de ti sin soltar el asa."
             ],
             "setupCues": [
-              "Preparación: Impulsas la campana entre las piernas y la lanzas al pecho con la cadera."
+              "Coloca la kettlebell un poco delante de tus pies y abre la base para dejarla pasar entre los muslos.",
+              "Inclina el tronco desde la cadera y agarra el asa con ambas manos.",
+              "Tensa el tronco y deja los codos estirados antes de llevar la pesa hacia atrás."
             ]
           }
         },
-        "description": "El Swing con Kettlebell a Dos Manos convierte la bisagra en un gesto balístico: la campana se balancea entre las piernas y sale lanzada hasta el pecho por la potencia de la cadera. Se ejecuta dejando que la kettlebell caiga y empujando el suelo con glúteos e isquiosurales, sin usar los brazos para subirla. Los erectores mantienen la espalda en cada vaivén. El movimiento que enseña potencia de cadera y quema energía a partes iguales."
+        "description": "El Swing con Kettlebell a Dos Manos es una bisagra rápida de cadera que impulsa una sola pesa hasta el pecho, con trabajo de isquiosurales y glúteo mayor. Ambas manos comparten el asa mientras la carga viaja atrás entre los muslos y regresa hacia delante al extender la cadera. El tronco se afirma durante ese impulso y los brazos acompañan el arco, sin convertirlo en una elevación frontal. En esta versión rusa, el recorrido termina delante del pecho en lugar de seguir por encima de la cabeza. Su carácter balístico está en alternar el empuje de cadera y el regreso de la carga, con los dos pies siempre apoyados."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "El estudio registró movimiento tridimensional, actividad muscular y fuerzas durante ejercicios con kettlebell. El swing mostró una bisagra con participación de rodilla, pulsos de activación de glúteos y extensores lumbares y demanda abdominal. Las cargas espinales calculadas no demuestran seguridad ni ausencia de demanda lumbar.",
+          "id": "mcgill2012",
+          "title": "Kettlebell swing, snatch, and bottoms-up carry: back and hip muscle activation, motion, and low back loads",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/21997449/"
+        },
+        {
+          "claim": "La comparación de swing a una y dos manos midió bíceps femoral, glúteo mayor y medio. Los tres participaron y el bíceps femoral alcanzó su pico antes que los glúteos en la versión a una mano. Ni el momento del pico ni el promedio electromiográfico establecen una dominancia universal o resultados de hipertrofia.",
+          "id": "vangelder2015",
+          "title": "EMG Analysis and Sagittal Plane Kinematics of the Two-Handed and Single-Handed Kettlebell Swing: A Descriptive Study",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/26618061/"
+        },
+        {
+          "claim": "El agarre a una mano redistribuyó lateralmente la actividad de erectores superiores y recto abdominal respecto del agarre a dos manos. No hubo diferencias significativas en oblicuo externo ni erectores inferiores; la demanda asimétrica no equivale a más actividad de todos los músculos del tronco.",
+          "id": "andersen2016",
+          "title": "Core Muscle Activation in One-Armed and Two-Armed Kettlebell Swing",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/26473519/"
+        },
+        {
+          "claim": "El estudio de swing ruso a dos manos hasta el pecho midió actividad de deltoides anterior y posterior y músculos del tronco. Su protocolo separa impulso de cadera, vuelo, caída y desaceleración; la participación del hombro no convierte el ejercicio en elevación frontal, ni prueba iguales amplitudes en la versión a una mano.",
+          "id": "abuwarda2024",
+          "title": "Assessment of trunk and shoulder muscle asymmetries during two-armed kettlebell swings: implications for training optimization and injury prevention",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/39564447/"
+        },
+        {
+          "claim": "La anatomía del compartimento anterior explica la flexión de dedos y muñeca. Se usa para deducir el agarre sostenido de un asa o una cuerda, sin presentarse como electromiografía de swing o pull-through.",
+          "id": "forearm_anatomy",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/"
+        },
+        {
+          "claim": "Los isquiosurales que cruzan la cadera pueden extenderla además de flexionar la rodilla. Esta función complementa la participación registrada en las bisagras de estas fichas y no atribuye extensión de cadera a la cabeza corta del bíceps femoral.",
+          "id": "hamstring_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hamstring Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31536294/"
+        },
+        {
+          "claim": "La función extensora de rodilla del cuádriceps permite interpretar su asistencia al pequeño empuje de rodilla del swing. Es una inferencia anatómica a partir del recorrido, no una amplitud electromiográfica de este músculo medida aquí.",
+          "id": "quadriceps_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Thigh Quadriceps Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30020706/"
+        },
+        {
+          "claim": "La sacroilíaca une pelvis y tronco y transmite carga a los miembros inferiores con movilidad restringida. Su papel en estas bisagras se deduce como transferencia de fuerzas, no como articulación propulsora.",
+          "id": "pelvic_joints",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Pelvic Joints",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30860758/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Swing ruso con una kettlebell sostenida por dos manos, dos pies al suelo y extensión rápida de cadera que lleva la carga desde detrás de los muslos hasta delante del pecho. El arco termina por debajo de la cabeza y se enlaza con otra recepción posterior, sin lanzamiento libre ni cambio de manos.",
+        "keyPositions": [
+          "Recepción: caderas atrás, torso inclinado y campana alta entre los muslos, sin bajar a una sentadilla profunda.",
+          "Extremo delantero: atleta erguido, brazos aproximadamente horizontales, ambas manos sobre el asa y campana delante del pecho sin tocarlo."
+        ],
+        "mistakes": [
+          "Elevar la pesa lentamente con los hombros en lugar de enlazarla con el impulso de cadera.",
+          "Enviar la campana sobre la cabeza y cambiar el recorrido ruso fijado para esta definición.",
+          "Doblar la columna al recibir la carga o inclinarse hacia atrás al terminar el empuje.",
+          "Soltar el asa en el punto alto o flexionar los codos para acercar la campana al rostro."
+        ],
+        "phases": [
+          {
+            "description": "Las manos llevan la pesa entre los muslos y la cadera retrocede para cargar la bisagra.",
+            "name": "Entrada posterior"
+          },
+          {
+            "description": "La extensión rápida de cadera y el pequeño empuje de rodillas envían la campana hacia el arco delantero.",
+            "name": "Impulso de cadera"
+          },
+          {
+            "description": "El cuerpo queda erguido y la campana alcanza delante del pecho con el asa todavía agarrada por las dos manos.",
+            "name": "Extremo delantero"
+          },
+          {
+            "description": "La carga desciende por su arco y la cadera vuelve atrás al aproximarse las manos a los muslos.",
+            "name": "Recepción del regreso"
+          }
+        ],
+        "setup": [
+          "Campana sobre el suelo algo por delante de los pies, con separación suficiente para pasarla entre los muslos.",
+          "Dos manos rodean el asa y brazos largos parten de una bisagra con columna neutra.",
+          "Plantas apoyadas y zona posterior despejada para recibir la pesa sin chocar con las rodillas."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista de tres cuartos lateral a la altura del tórax, encuadre de cuerpo completo y carga delantera visible.",
+          "contacts": "Las dos plantas están en el suelo; ambas manos sujetan la misma carga sin apoyo de la pesa sobre el cuerpo.",
+          "load": "Una resistencia suspendida delante del pecho, por debajo de la cabeza y separada del suelo, todavía sujeta por ambas manos.",
+          "orientation": "Atleta orientado a la derecha, de modo que ambas manos y el espacio frente al pecho se distingan.",
+          "phase": "Instante congelado en el extremo delantero del arco, con brazos aproximadamente horizontales y cadera extendida.",
+          "posture": "Tronco erguido con pelvis debajo del tórax, hombros sin encogimiento y codos largos orientados hacia delante."
+        },
+        "byImplement": {
+          "kettlebell": {
+            "geometry": "Una campana delante del tórax, con ambas manos en prono cerradas sobre el asa superior; su cuerpo cuelga por debajo del asa agarrada y no toca el pecho."
+          }
+        },
+        "forbidden": [
+          "Campana sobre la cabeza, propio del recorrido americano.",
+          "Solo una mano agarrando el asa o una campana en cada mano.",
+          "Carga apoyada en el suelo, entre los muslos o junto al cuerpo cuando el fotograma elegido es el extremo delantero.",
+          "Asa suelta con campana flotante, brazos muy doblados o tronco inclinado hacia atrás."
+        ],
+        "promptCore": {
+          "kettlebell": "Full body three quarter side view of an athlete frozen at the FRONT TOP of a Russian two handed kettlebell swing. Both hands firmly grip the same kettlebell handle overhand at lower chest height, arms almost horizontal and elbows straight. The bell body hangs below the gripped handle, clear of the torso and floor. Both soles are flat on the ground, hips and knees extended, trunk upright without leaning backward. The weight is below the head, not overhead, and visibly attached to the gripping hands. No text or logos."
+        },
+        "qa": [
+          "¿Ambas manos agarran el asa de una única kettlebell?",
+          "¿Los brazos están casi horizontales y la pesa queda delante del pecho por debajo de la cabeza?",
+          "¿El atleta está erguido con cadera extendida en este extremo delantero?",
+          "¿Los dos pies apoyan completamente en el suelo?",
+          "¿La campana cuelga del asa sujeta sin tocar el torso?"
+        ]
+      }
     },
     "hams_swing_kettlebell_unilateral": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Extensión rápida de ambas caderas",
+              "Flexión para recibir la campana"
+            ],
+            "id": "cadera",
+            "role": "PRIMARY",
+            "sources": [
+              "vangelder2015",
+              "mcgill2012"
+            ],
+            "why": "La cadera mantiene el patrón propulsor con ambos pies sobre el suelo: unilateral describe el agarre, no el apoyo inferior. La cinemática y activación de la comparación de una y dos manos respaldan que la bisagra continúa generando el ascenso."
+          },
+          {
+            "actions": [
+              "Extensión acompañante de ambas rodillas",
+              "Flexión durante el retorno"
+            ],
+            "id": "rodilla",
+            "role": "SECONDARY",
+            "sources": [
+              "mcgill2012",
+              "vangelder2015"
+            ],
+            "why": "Las rodillas flexionan moderadamente para recibir el arco posterior y se extienden junto a la cadera. La sujeción única no requiere una rodilla en el aire; se conserva el componente asistente del swing con base de dos pies."
+          },
+          {
+            "actions": [
+              "Flexión del hombro del brazo cargado",
+              "Extensión durante el regreso de la pesa"
+            ],
+            "id": "glenohumeral",
+            "role": "SECONDARY",
+            "sources": [
+              "abuwarda2024"
+            ],
+            "why": "Un hombro conduce la unión entre asa y tronco mientras el brazo libre acompaña sin sujeción. La articulación sigue el arco ruso hasta el pecho; su participación se extrapola de la cinemática de hombro del swing bilateral y no se presenta como impulso principal de la campana."
+          },
+          {
+            "actions": [
+              "Resistencia a la flexión lumbar",
+              "Resistencia al giro bajo carga asimétrica"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "andersen2016"
+            ],
+            "why": "El tronco evita la flexión y el giro que podría acompañar a un asa sostenida de un solo lado. Los cambios de actividad lateral del tronco en Andersen apoyan esta demanda, sin demostrar que toda la zona lumbar trabaje más que en la versión a dos manos."
+          },
+          {
+            "actions": [
+              "Apoyo bilateral durante la carga de una mano"
+            ],
+            "id": "tobillo",
+            "role": "STABILIZER",
+            "sources": [
+              "mcgill2012"
+            ],
+            "why": "Los dos tobillos transmiten el empuje hacia el suelo aunque la sujeción sea unilateral. El rol se deduce de las plantas apoyadas en el swing y sus fuerzas de reacción, sin salto ni elevación del pie libre que cambie la tarea inferior."
+          },
+          {
+            "actions": [
+              "Sujeción del asa con una sola muñeca"
+            ],
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "sources": [
+              "forearm_anatomy"
+            ],
+            "why": "La muñeca del brazo cargado transmite toda la fuerza de ese agarre mientras los dedos conservan el asa. La otra mano no comparte la carga, pero tampoco se añade una flexión de muñeca que impulse la pesa: esta explicación procede de la anatomía de los flexores digitales."
+          },
+          {
+            "actions": [
+              "Transferencia del impulso y sostén de orientación pélvica"
+            ],
+            "id": "sacroiliaca",
+            "role": "STABILIZER",
+            "sources": [
+              "pelvic_joints"
+            ],
+            "why": "La fuerza del agarre único llega al tronco y a una pelvis apoyada sobre las dos piernas. La articulación de movilidad restringida transmite esa carga sin requerir una rotación voluntaria de la pelvis; es una inferencia anatómica sobre la tarea asimétrica."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "hamstrings",
+            "role": "PRIMARY",
+            "sources": [
+              "vangelder2015",
+              "hamstring_anatomy"
+            ],
+            "why": "Los extensores posteriores de ambas caderas siguen produciendo el impulso aunque solo una mano sujete la pesa. Van Gelder midió el bíceps femoral en esta versión y encontró su pico antes que el de los glúteos; se conserva la dominancia heredada sin confundir la secuencia temporal con prueba de superioridad muscular."
+          },
+          {
+            "id": "gluteus_maximus",
+            "role": "PRIMARY",
+            "sources": [
+              "vangelder2015",
+              "mcgill2012"
+            ],
+            "why": "Ambos pies apoyados permiten que la extensión de cadera lance la campana con participación del glúteo mayor. Su actividad se registró en el swing a una mano; retirar una mano no lo transforma en estabilizador ni convierte el ejercicio en una tarea de una sola pierna."
+          },
+          {
+            "id": "quadriceps",
+            "role": "SECONDARY",
+            "sources": [
+              "mcgill2012",
+              "quadriceps_anatomy"
+            ],
+            "why": "El pequeño cambio de rodilla acompaña la salida de cadera mientras los dos pies continúan apoyados. El rol asistente se infiere de la cinemática de bisagra con rodilla del swing y de la función extensora del cuádriceps, sin asignarle una actividad unilateral que no fue medida."
+          },
+          {
+            "id": "deltoid",
+            "role": "SECONDARY",
+            "sources": [
+              "abuwarda2024"
+            ],
+            "why": "El hombro de carga acompaña y dirige el arco de una sola pesa sin iniciar una elevación frontal aislada. Se extrapola la participación de deltoides anterior y posterior del swing ruso bilateral a la sujeción única; no se afirma que quitar una mano iguale o eleve su señal electromiográfica."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "andersen2016",
+              "mcgill2012"
+            ],
+            "why": "Además de sostener la curvatura vertebral, los erectores responden a la tracción lateral del brazo de carga. Andersen encontró redistribución entre lados de los erectores superiores, sin diferencias de los inferiores; esto justifica el sostén asimétrico y no una extensión lumbar activa para lanzar la campana."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "andersen2016"
+            ],
+            "why": "La carga de una mano produce una demanda de resistencia al giro del tronco, sin que este giro forme parte deliberada de la repetición. Andersen documentó actividad lateral distinta del recto abdominal, pero no mayor señal global del oblicuo externo; el rol sigue siendo estabilizador, con una explicación propia del agarre asimétrico."
+          },
+          {
+            "id": "gluteus_medius",
+            "role": "STABILIZER",
+            "sources": [
+              "vangelder2015"
+            ],
+            "why": "La pelvis debe conservar su dirección con dos apoyos pese a la fuerza aplicada por una sola mano. Van Gelder registró glúteo medio en esta versión; su función aquí es control pélvico, no abducción dinámica de una pierna que genere el lanzamiento."
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "sources": [
+              "forearm_anatomy"
+            ],
+            "why": "Los flexores digitales de la mano cargada sostienen por sí solos el asa en cada retorno. Se deduce de la anatomía del agarre una mayor concentración de la sujeción en ese lado, sin inventar porcentajes de actividad o un nuevo rol de motor para la muñeca."
+          }
+        ]
+      },
       "public": {
         "configurations": {
           "hams_swing_kettlebell_unilateral__default": {
-            "description": "Con kettlebell, la campana se balancea con una sola mano mientras el torso impide la rotación en cada vaivén. Los isquiosurales trabajan con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+            "description": "Una mano conserva el asa y la otra queda libre durante toda la serie. La campana recorre el espacio central mientras pecho y pelvis resisten desviarse hacia el brazo cargado, con ambas piernas participando en el impulso.",
             "executionCues": [
-              "La campana viaja con una sola mano y el torso aguanta el giro. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Recibe la pesa entre los muslos y conserva el pecho orientado al frente.",
+              "Impulsa la campana con la cadera hasta delante del pecho, con el codo de carga largo.",
+              "Acompaña el movimiento con el brazo libre sin tocar el asa ni girar deliberadamente el torso.",
+              "Apoya la campana en el suelo antes de cambiar la mano de agarre."
             ],
             "setupCues": [
-              "Preparación: La campana viaja con una sola mano y el torso aguanta el giro."
+              "Separa los pies para abrir el paso de la campana y agarra el asa por su centro con una mano.",
+              "Deja libre la otra mano y orienta pecho y pelvis hacia el mismo frente.",
+              "Dobla la cadera para iniciar el paso posterior sin despegar ningún pie."
             ]
           }
         },
-        "description": "El Swing con Kettlebell a Una Mano añade el giro al vaivén: con una sola mano en la campana, el core debe impedir que el torso rote en cada balanceo. Se ejecuta igual que el swing a dos manos, pero el brazo libre busca equilibrio y la cadera trabaja con un extra de control. Los isquiosurales y el glúteo siguen siendo el motor. La progresión natural cuando el swing básico ya se domina."
+        "description": "El Swing con Kettlebell a Una Mano impulsa una campana mediante una bisagra explosiva, con isquiosurales y glúteo mayor como motores y una sujeción que carga un solo lado del tronco. Los dos pies siguen en el suelo mientras la pesa pasa entre los muslos y asciende delante del pecho. La mano libre acompaña el gesto sin agarrar el asa y el cuerpo resiste el giro que introduce la tracción asimétrica. El recorrido ruso acaba delante, sin llegar por encima de la cabeza. Su particularidad está en recibir y transmitir el impulso con un solo agarre, no en levantar la pierna del mismo lado."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "El estudio registró movimiento tridimensional, actividad muscular y fuerzas durante ejercicios con kettlebell. El swing mostró una bisagra con participación de rodilla, pulsos de activación de glúteos y extensores lumbares y demanda abdominal. Las cargas espinales calculadas no demuestran seguridad ni ausencia de demanda lumbar.",
+          "id": "mcgill2012",
+          "title": "Kettlebell swing, snatch, and bottoms-up carry: back and hip muscle activation, motion, and low back loads",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/21997449/"
+        },
+        {
+          "claim": "La comparación de swing a una y dos manos midió bíceps femoral, glúteo mayor y medio. Los tres participaron y el bíceps femoral alcanzó su pico antes que los glúteos en la versión a una mano. Ni el momento del pico ni el promedio electromiográfico establecen una dominancia universal o resultados de hipertrofia.",
+          "id": "vangelder2015",
+          "title": "EMG Analysis and Sagittal Plane Kinematics of the Two-Handed and Single-Handed Kettlebell Swing: A Descriptive Study",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/26618061/"
+        },
+        {
+          "claim": "El agarre a una mano redistribuyó lateralmente la actividad de erectores superiores y recto abdominal respecto del agarre a dos manos. No hubo diferencias significativas en oblicuo externo ni erectores inferiores; la demanda asimétrica no equivale a más actividad de todos los músculos del tronco.",
+          "id": "andersen2016",
+          "title": "Core Muscle Activation in One-Armed and Two-Armed Kettlebell Swing",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/26473519/"
+        },
+        {
+          "claim": "El estudio de swing ruso a dos manos hasta el pecho midió actividad de deltoides anterior y posterior y músculos del tronco. Su protocolo separa impulso de cadera, vuelo, caída y desaceleración; la participación del hombro no convierte el ejercicio en elevación frontal, ni prueba iguales amplitudes en la versión a una mano.",
+          "id": "abuwarda2024",
+          "title": "Assessment of trunk and shoulder muscle asymmetries during two-armed kettlebell swings: implications for training optimization and injury prevention",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/39564447/"
+        },
+        {
+          "claim": "La anatomía del compartimento anterior explica la flexión de dedos y muñeca. Se usa para deducir el agarre sostenido de un asa o una cuerda, sin presentarse como electromiografía de swing o pull-through.",
+          "id": "forearm_anatomy",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/"
+        },
+        {
+          "claim": "Los isquiosurales que cruzan la cadera pueden extenderla además de flexionar la rodilla. Esta función complementa la participación registrada en las bisagras de estas fichas y no atribuye extensión de cadera a la cabeza corta del bíceps femoral.",
+          "id": "hamstring_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hamstring Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31536294/"
+        },
+        {
+          "claim": "La función extensora de rodilla del cuádriceps permite interpretar su asistencia al pequeño empuje de rodilla del swing. Es una inferencia anatómica a partir del recorrido, no una amplitud electromiográfica de este músculo medida aquí.",
+          "id": "quadriceps_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Thigh Quadriceps Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30020706/"
+        },
+        {
+          "claim": "La sacroilíaca une pelvis y tronco y transmite carga a los miembros inferiores con movilidad restringida. Su papel en estas bisagras se deduce como transferencia de fuerzas, no como articulación propulsora.",
+          "id": "pelvic_joints",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Pelvic Joints",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30860758/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Balanceo ruso con agarre de una mano y base de dos pies: la pesa recibe una aceleración de cadera tras pasar entre los muslos y llega al pecho con el codo largo. La otra mano acompaña sin sujetar y la pelvis resiste el giro inducido por la carga lateral.",
+        "keyPositions": [
+          "Tramo posterior: pesa entre los muslos, pelvis atrás y brazo de carga cerca del cuerpo sin girar el tronco deliberadamente.",
+          "Extremo delantero: cadera extendida y mano cargada a la altura aproximada del pecho, otra mano separada del asa."
+        ],
+        "mistakes": [
+          "Interpretar unilateral como apoyo sobre una pierna y levantar el pie del lado libre.",
+          "Cambiar de mano lanzando el asa durante una repetición que no contempla cambio de agarre.",
+          "Arrastrar todo el pecho hacia el lado del brazo cargado en cada regreso.",
+          "Subir hasta encima de la cabeza o completar el arco con un curl del brazo."
+        ],
+        "phases": [
+          {
+            "description": "La mano lleva el asa entre las piernas mientras las dos caderas retroceden y el brazo libre acompaña.",
+            "name": "Carga posterior de una mano"
+          },
+          {
+            "description": "La cadera se extiende con rapidez para proyectar la pesa delante, con pecho y pelvis orientados al frente.",
+            "name": "Propulsión con dos apoyos"
+          },
+          {
+            "description": "El asa sigue agarrada por una sola mano a la altura del pecho y la campana queda abajo del agarre.",
+            "name": "Llegada frontal"
+          },
+          {
+            "description": "El tronco resiste desviarse mientras recibe la campana en otra bisagra, conservando los dos pies apoyados.",
+            "name": "Regreso asimétrico"
+          }
+        ],
+        "setup": [
+          "Base de dos pies con espacio entre los muslos, campana delante y una mano cerrada en el centro del asa.",
+          "Pecho y pelvis orientados al mismo frente antes del primer vaivén; otro brazo disponible para acompañar.",
+          "Salida de bisagra con codo de carga largo y ninguna pierna elevada."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista frontal oblicua a la altura del tórax para distinguir una mano cargada y la otra completamente libre.",
+          "contacts": "Los dos pies apoyan en el suelo; una mano sostiene la carga y la otra está separada de ella.",
+          "load": "Una sola resistencia delante del pecho por debajo de la cabeza, unida a la mano cargada y lejos del suelo.",
+          "orientation": "Atleta de frente con un leve giro de cámara, mientras pecho y pelvis apuntan en la misma dirección.",
+          "phase": "Punto delantero congelado del arco ruso, con cadera extendida y brazo de carga aproximadamente horizontal.",
+          "posture": "Tronco alto sin giro marcado, rodillas extendidas y codo del brazo cargado largo; el brazo libre puede quedar a un costado."
+        },
+        "byImplement": {
+          "kettlebell": {
+            "geometry": "Una kettlebell en la mano derecha para la ilustración, dedos cerrados en el centro del asa en prono; campana debajo del asa, mano izquierda visible sin contacto con ella."
+          }
+        },
+        "forbidden": [
+          "Dos manos sobre el asa o dos campanas en lugar de una carga y una mano libre.",
+          "Pie contrario levantado: la lateralidad corresponde al agarre, no a una pierna de apoyo.",
+          "Pesa elevada por encima de la cabeza o junto al hombro con el codo flexionado.",
+          "Campana flotando sin la mano cerrada sobre el asa, o torso girado por completo hacia ella."
+        ],
+        "promptCore": {
+          "kettlebell": "Front three quarter full body view, athlete frozen at the FRONT TOP of a one handed Russian kettlebell swing. The RIGHT hand alone firmly grips the center of one kettlebell handle overhand at chest height, right elbow straight and arm almost horizontal. The bell hangs below that handle clear of the body and floor. The LEFT hand is visibly empty beside the torso, not touching the weight. Both feet are flat on the floor, hips extended, chest and pelvis face forward without twisting. Weight stays below the head, no text or logos."
+        },
+        "qa": [
+          "¿Una sola mano agarra el asa y la otra es visible y está vacía?",
+          "¿Hay una única campana unida físicamente a la mano cargada?",
+          "¿La pesa queda delante del pecho por debajo de la cabeza con el brazo casi horizontal?",
+          "¿Ambas plantas siguen en el suelo?",
+          "¿La pelvis y el pecho apuntan hacia el mismo frente en el fotograma?"
+        ]
+      }
     }
   },
   "familyId": "lower_hip_hinge_explosive",

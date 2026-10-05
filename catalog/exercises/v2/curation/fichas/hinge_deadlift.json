@@ -1,84 +1,673 @@
 {
   "definitions": {
     "conventional_deadlift": {
-      "public": {
-        "configurations": {
-          "conventional_deadlift__bilateral__barbell": {
-            "description": "Con barra y a dos lados, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. La barra es la referencia para cargar el glúteo mayor con peso de verdad. A dos lados, el trabajo del glúteo mayor admite más carga total.",
-            "executionCues": [
-              "Barra con ambas piernas: el peso muerto más directo para, desde el suelo con las dos manos. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado."
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Extensión de la cadera",
+              "Flexión de la cadera"
             ],
-            "setupCues": [
-              "Preparación: Barra con ambas piernas: el peso muerto más directo para, desde el suelo con las dos manos."
-            ]
+            "id": "cadera",
+            "role": "PRIMARY",
+            "sources": [
+              "escamilla2000"
+            ],
+            "why": "La pelvis se acerca al tronco erguido por extensión de cadera después del arranque y vuelve a flexionarse al devolver la carga. Escamilla midió momento extensor en este estilo; esta rotación de cadera produce el recorrido sin pedir que se extienda la zona lumbar."
           },
-          "conventional_deadlift__bilateral__dumbbells": {
-            "description": "Con mancuernas y a dos lados, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. A dos lados, el trabajo del glúteo mayor admite más carga total.",
-            "executionCues": [
-              "Mancuernas con ambas piernas: las pesas viajan por fuera de las rodillas y el recorrido es más libre. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado."
+          {
+            "actions": [
+              "Extensión de la rodilla",
+              "Flexión de la rodilla"
             ],
-            "setupCues": [
-              "Preparación: Mancuernas con ambas piernas: las pesas viajan por fuera de las rodillas y el recorrido es más libre."
+            "id": "rodilla",
+            "role": "PRIMARY",
+            "sources": [
+              "escamilla2000",
+              "escamilla2002"
+            ],
+            "why": "La salida desde el suelo requiere extensión cargada de rodilla y la vuelta recupera su flexión. El momento extensor documentado junto a actividad de los vastos diferencia esta tarea de una bisagra con la rodilla casi inmóvil."
+          },
+          {
+            "actions": [
+              "Resistencia a la flexión lumbar"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "hamlyn2007"
+            ],
+            "why": "La inclinación del tronco cambia al extender la cadera, mientras la columna lumbar conserva una posición neutra. El esfuerzo registrado en los erectores sostiene ese segmento frente a la carga anterior y no añade un arco lumbar al final."
+          },
+          {
+            "actions": [
+              "Transmisión de fuerza entre tronco y pelvis"
+            ],
+            "id": "sacroiliaca",
+            "role": "STABILIZER",
+            "sources": [
+              "pelvic_joints"
+            ],
+            "why": "El empuje de las piernas atraviesa la pelvis hacia un tronco que sostiene la carga con los brazos. Su movilidad restringida y función anatómica de transferencia justifican estabilidad, sin asignarle un movimiento de elevación de la carga."
+          },
+          {
+            "actions": [
+              "Sostén isométrico del agarre"
+            ],
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "sources": [
+              "forearm_anatomy"
+            ],
+            "why": "La mano cierra el agarre mientras la muñeca se aproxima a neutro para sostener el implemento. El capítulo anatómico explica la función de los flexores de dedos y muñeca; la muñeca no necesita doblarse en cada repetición."
+          },
+          {
+            "actions": [
+              "Dorsiflexión durante la salida",
+              "Retorno desde la dorsiflexión"
+            ],
+            "id": "tobillo",
+            "role": "SECONDARY",
+            "sources": [
+              "escamilla2000"
+            ],
+            "why": "El avance inicial de la tibia sobre un pie apoyado acompaña a la flexión de rodilla y se revierte al subir. Escamilla registró momento flexor plantar en el convencional; esa transferencia participa en el arranque sin sustituir el movimiento principal de cadera y rodilla."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "gluteus_maximus",
+            "role": "PRIMARY",
+            "sources": [
+              "escamilla2002",
+              "escamilla2000"
+            ],
+            "why": "Extiende la cadera para llevar la pelvis desde el arranque inclinado hasta la posición erguida. Escamilla registró su actividad durante el peso muerto; el rol es de motor de esa extensión. Se conserva como dominante heredado, sin interpretar amplitudes electromiográficas entre músculos como una jerarquía universal."
+          },
+          {
+            "id": "hamstrings",
+            "role": "PRIMARY",
+            "sources": [
+              "hamstring_anatomy",
+              "escamilla2002"
+            ],
+            "why": "Las porciones que cruzan la cadera cooperan con el glúteo en su extensión y siguen activas al aproximarse al bloqueo. La cabeza corta del bíceps femoral no extiende la cadera. Su contribución motora y la actividad registrada en el patrón justifican una serie principal, aunque rodillas y cadera cambien a la vez."
+          },
+          {
+            "id": "quadriceps",
+            "role": "PRIMARY",
+            "sources": [
+              "escamilla2000",
+              "escamilla2002"
+            ],
+            "why": "Las rodillas pasan de flexionadas a extendidas para despegar la carga, en lugar de limitarse a sostener un ángulo fijo. La combinación de momento extensor de rodilla y actividad de los vastos durante ese tramo sustenta su rol de motor; no implica desplazar al glúteo del primer lugar."
+          },
+          {
+            "id": "adductors",
+            "role": "SECONDARY",
+            "sources": [
+              "collings2026",
+              "escamilla2002"
+            ],
+            "why": "La porción isquiocondílea del aductor mayor ayuda a extender la cadera durante el tirón, sin que el ejercicio sea una aducción de piernas. El modelo de Collings estimó fuerzas altas en esa porción y el grácil en el convencional; no respalda atribuir la misma fuerza a todo el grupo aductor."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "hamlyn2007",
+              "escamilla2002"
+            ],
+            "why": "Los extensores espinales resisten el momento que tiende a doblar la columna con el tronco inclinado. La actividad lumbar registrada puede ser alta, pero la columna conserva su forma mientras el movimiento procede de cadera y rodillas; no se cuenta como extensión dinámica del tronco."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "hamlyn2007"
+            ],
+            "why": "La pared abdominal fija el tronco antes del despegue y transmite el empuje hacia las manos. Hamlyn midió actividad del oblicuo externo y abdominales bajos sin diferencias significativas entre las tareas comparadas; la función postural se deduce de la columna estable, sin afirmar hipertrofia de esa medición."
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "sources": [
+              "forearm_anatomy"
+            ],
+            "why": "Los flexores de los dedos sujetan los mangos durante todo el tirón y la bajada, con la muñeca sin flexión deliberada. Es un esfuerzo de agarre deducido de la anatomía del compartimento anterior, no un movimiento de antebrazo que levante la carga."
+          }
+        ],
+        "overrides": {
+          "conventional_deadlift__bilateral__dumbbells": {
+            "joints": [
+              {
+                "actions": [
+                  "Sostén del agarre neutro"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "forearm_anatomy"
+                ],
+                "why": "Cada mano puede orientar su mango de forma independiente con las palmas enfrentadas. Los flexores de dedos conservan ambas pesas suspendidas y las muñecas transmiten la fuerza sin una flexión repetida; es una deducción anatómica del agarre."
+              }
             ]
           },
           "conventional_deadlift__bilateral__hex_bar": {
-            "description": "Con barra hexagonal y a dos lados, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. El glúteo mayor trabaja con la barra hexagonal, que centra la carga y alivia la espalda. Con ambos lados a la vez, el trabajo del glúteo mayor se reparte.",
-            "executionCues": [
-              "Barra hexagonal con ambas piernas: el cuerpo queda dentro de la carga y el recorrido es más vertical. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado."
+            "joints": [
+              {
+                "actions": [
+                  "Extensión de la rodilla",
+                  "Flexión de la rodilla"
+                ],
+                "id": "rodilla",
+                "role": "PRIMARY",
+                "sources": [
+                  "swinton2011"
+                ],
+                "why": "Las asas laterales sitúan el cuerpo dentro de la resistencia y aumentaron el momento máximo de rodilla frente a la barra recta en Swinton. La altura del asa modifica la flexión de salida; aquí se ilustra el asa baja y se conserva la extensión cargada como acción principal."
+              },
+              {
+                "actions": [
+                  "Sostén del agarre en asas laterales"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "forearm_anatomy"
+                ],
+                "why": "Las asas del marco dejan las palmas enfrentadas y la carga a los lados del cuerpo. La muñeca conserva su posición mientras los flexores de los dedos sostienen cada asa, por inferencia anatómica, sin mover la carga mediante una flexión propia."
+              }
             ],
-            "setupCues": [
-              "Preparación: Barra hexagonal con ambas piernas: el cuerpo queda dentro de la carga y el recorrido es más vertical."
+            "muscles": [
+              {
+                "id": "quadriceps",
+                "role": "PRIMARY",
+                "sources": [
+                  "swinton2011",
+                  "escamilla2002"
+                ],
+                "why": "La posición dentro del marco admite una salida con más flexión de rodillas y el estudio bilateral de Swinton registró un mayor momento máximo en ellas. Esa evidencia refuerza que los vastos son motores de la extensión; no cuantifica un nuevo reparto de series ni demuestra dominancia sobre todos los extensores de cadera."
+              }
             ]
           },
           "conventional_deadlift__bilateral__smith_machine": {
-            "description": "Con máquina Smith y a dos lados, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. Con ambos lados a la vez, el trabajo del glúteo mayor se reparte.",
-            "executionCues": [
-              "Smith con ambas piernas: la barra sube guiada y puedes concentrarte en empujar sin pensar en el equilibrio. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado."
+            "joints": [
+              {
+                "actions": [
+                  "Extensión de la cadera",
+                  "Flexión de la cadera"
+                ],
+                "id": "cadera",
+                "role": "PRIMARY",
+                "sources": [
+                  "escamilla2000"
+                ],
+                "why": "La cadera se extiende con las manos obligadas a seguir los raíles; el apoyo debe acomodarse a esa línea. La cinemática de cadera del peso muerto libre sustenta el patrón, mientras la restricción del carro se describe por su mecánica, sin inferir una activación superior."
+              }
             ],
-            "setupCues": [
-              "Preparación: Smith con ambas piernas: la barra sube guiada y puedes concentrarte en empujar sin pensar en el equilibrio."
+            "muscles": [
+              {
+                "id": "erector_spinae",
+                "role": "STABILIZER",
+                "sources": [
+                  "hamlyn2007"
+                ],
+                "why": "Los raíles restringen el carro pero no sostienen el torso inclinado: la columna todavía resiste la flexión bajo la carga anterior. Es una extrapolación mecánica del peso muerto libre medido por Hamlyn; no se declara menor o mayor actividad en Smith sin una comparación directa."
+              }
             ]
           },
           "conventional_deadlift__unilateral__barbell": {
-            "description": "Con barra y a un lado, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. Con la barra, la carga sube al máximo y la progresión del glúteo mayor se mide sin trampa. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
-            "executionCues": [
-              "Barra en apoyo de una sola pierna: el equilibrio se convierte en protagonista y la cadera trabaja a fondo. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado."
+            "joints": [
+              {
+                "actions": [
+                  "Extensión de la cadera de apoyo",
+                  "Resistencia al giro de la pelvis"
+                ],
+                "id": "cadera",
+                "role": "PRIMARY",
+                "sources": [
+                  "escamilla2000",
+                  "mo2023"
+                ],
+                "why": "Solo la cadera del miembro apoyado produce el ascenso mientras la pelvis resiste desviaciones en el plano frontal. El estudio de Mo trata otra bisagra unilateral y se usa como evidencia indirecta de control pélvico, junto al patrón extensor bilateral de Escamilla."
+              },
+              {
+                "actions": [
+                  "Transferencia de carga hacia una pierna"
+                ],
+                "id": "sacroiliaca",
+                "role": "STABILIZER",
+                "sources": [
+                  "pelvic_joints"
+                ],
+                "why": "La fuerza del tronco y la carga anterior alcanza el suelo por un miembro inferior, con transferencia asimétrica a través de la pelvis. Esa demanda se deduce de la movilidad restringida de la sacroilíaca y del apoyo único, no de una amplitud sacroilíaca medida en esta variante."
+              }
             ],
-            "setupCues": [
-              "Preparación: Barra en apoyo de una sola pierna: el equilibrio se convierte en protagonista y la cadera trabaja a fondo."
+            "muscles": [
+              {
+                "id": "gluteus_medius",
+                "role": "STABILIZER",
+                "sources": [
+                  "mo2023"
+                ],
+                "why": "El pie libre elimina el segundo apoyo y la pelvis debe resistir la caída y el giro sobre la cadera apoyada. Mo midió glúteo medio en el rumano unilateral, no en esta salida desde el suelo; se extrapola únicamente su función de estabilidad, sin copiar la amplitud de activación."
+              },
+              {
+                "id": "tensor_fasciae_latae",
+                "role": "STABILIZER",
+                "sources": [
+                  "tfl_anatomy"
+                ],
+                "why": "Coopera en el sostén lateral de la pelvis cuando el atleta trabaja sobre un pie y el otro queda recogido. El capítulo anatómico respalda su función pélvica en apoyo; aplicarla al arranque unilateral es una inferencia y no una medición directa de este ejercicio."
+              }
             ]
           },
           "conventional_deadlift__unilateral__dumbbells": {
-            "description": "Con mancuernas y a un lado, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
-            "executionCues": [
-              "Mancuerna en una pierna: equilibrio, isquios y glúteo trabajando juntos. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado."
+            "joints": [
+              {
+                "actions": [
+                  "Extensión sobre el miembro apoyado",
+                  "Resistencia a la inclinación lateral"
+                ],
+                "id": "cadera",
+                "role": "PRIMARY",
+                "sources": [
+                  "escamilla2000",
+                  "mo2023"
+                ],
+                "why": "Las dos pesas cuelgan sin conectarse entre sí y una sola cadera extiende el cuerpo desde abajo. El apoyo unilateral exige impedir el giro de pelvis; Mo respalda esa función en rumano con carga unilateral, de modo que la explicación aquí es una extrapolación mecánica."
+              },
+              {
+                "actions": [
+                  "Agarre neutro independiente"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "forearm_anatomy"
+                ],
+                "why": "Los dos mangos pueden seguir a los costados de la pierna de apoyo con palmas enfrentadas. Cada muñeca permanece estable para transferir la carga sostenida por los dedos, sin usar su flexión como recurso para iniciar el despegue."
+              }
             ],
-            "setupCues": [
-              "Preparación: Mancuerna en una pierna: equilibrio, isquios y glúteo trabajando juntos."
+            "muscles": [
+              {
+                "id": "gluteus_medius",
+                "role": "STABILIZER",
+                "sources": [
+                  "mo2023"
+                ],
+                "why": "La pelvis resiste el descenso del lado libre sobre la pierna que empuja, con una pesa a cada lado. La actividad del glúteo medio en Mo apoya la función de sostén unilateral, pero su tarea usó rumano y una mancuerna; no se trasladan cifras a este arreglo bilateral de cargas."
+              },
+              {
+                "id": "tensor_fasciae_latae",
+                "role": "STABILIZER",
+                "sources": [
+                  "tfl_anatomy"
+                ],
+                "why": "El tensor ayuda a sostener la pelvis del miembro que carga el cuerpo mientras el pie contrario está elevado. Su función anatómica de estabilidad pélvica permite esta inferencia aunque no haya registro directo del músculo con dos mancuernas desde el suelo."
+              }
             ]
           },
           "conventional_deadlift__unilateral__hex_bar": {
-            "description": "Con barra hexagonal y a un lado, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. El glúteo mayor trabaja con la barra hexagonal, que centra la carga y alivia la espalda. Un lado cada vez: el esfuerzo del glúteo mayor se aísla y las asimetrías quedan al descubierto.",
-            "executionCues": [
-              "Barra hexagonal en una pierna: la carga estable y el trabajo de equilibrio de la cadera. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado."
+            "joints": [
+              {
+                "actions": [
+                  "Extensión de la rodilla apoyada",
+                  "Flexión de la rodilla apoyada"
+                ],
+                "id": "rodilla",
+                "role": "PRIMARY",
+                "sources": [
+                  "swinton2011",
+                  "escamilla2000"
+                ],
+                "why": "La rodilla del único miembro apoyado se extiende desde el suelo para elevar el marco. Swinton demuestra la demanda extensora del marco en apoyo bilateral; aquí se conserva el motor por la acción cargada, sin afirmar que el incremento bilateral tenga igual magnitud sobre una pierna."
+              },
+              {
+                "actions": [
+                  "Extensión de la cadera de apoyo",
+                  "Estabilidad de la pelvis sin segundo apoyo"
+                ],
+                "id": "cadera",
+                "role": "PRIMARY",
+                "sources": [
+                  "swinton2011",
+                  "mo2023"
+                ],
+                "why": "La cadera apoyada combina extensión con sostén frontal de la pelvis dentro del marco. La extensión se infiere del peso muerto estudiado por Swinton y el sostén unilateral de Mo; ninguno midió esta combinación exacta de implemento y apoyo."
+              }
             ],
-            "setupCues": [
-              "Preparación: Barra hexagonal en una pierna: la carga estable y el trabajo de equilibrio de la cadera."
+            "muscles": [
+              {
+                "id": "gluteus_medius",
+                "role": "STABILIZER",
+                "sources": [
+                  "mo2023"
+                ],
+                "why": "El marco rodea al atleta, pero no apoya la pelvis: el glúteo medio resiste su caída hacia el lado del pie libre. La función se extrapola del trabajo de Mo en rumano unilateral; no hay una comparación de activación que justifique atribuir ventaja al marco en esta configuración."
+              },
+              {
+                "id": "tensor_fasciae_latae",
+                "role": "STABILIZER",
+                "sources": [
+                  "tfl_anatomy"
+                ],
+                "why": "Con un pie suspendido dentro del marco, el tensor coopera con los glúteos en el sostén pélvico de la pierna apoyada. El papel procede de la anatomía del apoyo único; no se presenta como electromiografía específica de la barra hexagonal."
+              }
             ]
           },
           "conventional_deadlift__unilateral__smith_machine": {
-            "description": "Con máquina Smith y a un lado, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
+            "joints": [
+              {
+                "actions": [
+                  "Extensión de la cadera de apoyo",
+                  "Estabilidad frontal de la pelvis"
+                ],
+                "id": "cadera",
+                "role": "PRIMARY",
+                "sources": [
+                  "escamilla2000",
+                  "mo2023"
+                ],
+                "why": "La cadera apoyada mueve el cuerpo con un punto de tracción limitado por los raíles; el miembro libre no empuja. Su extensión se deduce del patrón de Escamilla y su control frontal de las tareas unilaterales de Mo, sin equivalencia experimental entre esas tareas y Smith."
+              }
+            ],
+            "muscles": [
+              {
+                "id": "gluteus_medius",
+                "role": "STABILIZER",
+                "sources": [
+                  "mo2023"
+                ],
+                "why": "Aunque el carro no bascule libremente, la pelvis sigue sobre una sola cadera y el pie contrario no presta apoyo. El glúteo medio se asigna a sostén lateral por extrapolación funcional de la bisagra unilateral de Mo, sin atribuir a Smith sus resultados electromiográficos."
+              },
+              {
+                "id": "tensor_fasciae_latae",
+                "role": "STABILIZER",
+                "sources": [
+                  "tfl_anatomy"
+                ],
+                "why": "La limitación del carro no elimina el sostén de la pelvis sobre la pierna apoyada. La anatomía del tensor respalda una ayuda pélvica en apoyo único; este rol no afirma que la máquina aumente su activación ni que participe como extensor de cadera."
+              },
+              {
+                "id": "erector_spinae",
+                "role": "STABILIZER",
+                "sources": [
+                  "hamlyn2007"
+                ],
+                "why": "El torso carece de respaldo durante la salida con un pie apoyado y por ello necesita sostén lumbar aunque el carro viaje sobre raíles. Se infiere de la mecánica y de la actividad de erectores en peso muerto libre, sin una medición específica del arranque unilateral en Smith."
+              }
+            ]
+          }
+        }
+      },
+      "public": {
+        "configurations": {
+          "conventional_deadlift__bilateral__barbell": {
+            "description": "Los discos fijan la altura de salida de la barra recta, que asciende delante de las espinillas con las manos por fuera de las piernas. El contacto cercano al cuerpo facilita repetir el mismo arranque en ambos apoyos.",
             "executionCues": [
-              "Smith en una pierna: el guiado te permite trabajar un lado a la vez con estabilidad. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado."
+              "Empuja el suelo con ambos pies y eleva hombros y caderas juntos al empezar.",
+              "Acerca la cadera a la barra después de pasar las rodillas, hasta quedar erguido.",
+              "Devuelve los discos al suelo doblando cadera y rodillas, sin rebote."
             ],
             "setupCues": [
-              "Preparación: Smith en una pierna: el guiado te permite trabajar un lado a la vez con estabilidad."
+              "Sitúa la barra sobre la mitad de ambos pies, separados al ancho de tus caderas.",
+              "Cierra las manos por fuera de las piernas y acerca las espinillas a la barra.",
+              "Tensa el tronco con los codos estirados antes de despegar los discos."
+            ]
+          },
+          "conventional_deadlift__bilateral__dumbbells": {
+            "description": "Dos cargas independientes pasan junto a la cara externa de las piernas y permiten usar las palmas enfrentadas. Su tamaño determina cuánto hay que doblar cadera y rodillas para alcanzarlas desde el suelo, sin un eje rígido que una las manos.",
+            "executionCues": [
+              "Levanta ambas mancuernas a la vez mientras empujas con las dos piernas.",
+              "Deja las pesas junto a tus muslos al terminar, con los brazos extendidos.",
+              "Apoya las dos cargas sin adelantarlas respecto de los pies."
+            ],
+            "setupCues": [
+              "Deja una mancuerna junto a cada pie, con los mangos paralelos entre sí.",
+              "Dobla cadera y rodillas hasta agarrar ambos mangos con las palmas enfrentadas.",
+              "Revisa que las dos pesas estén a la misma altura antes de levantarlas."
+            ]
+          },
+          "conventional_deadlift__bilateral__hex_bar": {
+            "description": "El cuerpo queda dentro del marco y las asas laterales llevan las manos junto a las caderas. Esta disposición puede favorecer una mayor participación de la extensión de rodillas; las asas altas acortan la salida respecto de las bajas.",
+            "executionCues": [
+              "Despega todo el marco a la vez empujando el suelo con ambos apoyos.",
+              "Extiende las rodillas y lleva la pelvis debajo del tronco hasta ponerte de pie.",
+              "Regresa el marco horizontal al suelo sin apoyar antes un lado."
+            ],
+            "setupCues": [
+              "Entra al centro del marco con ambos pies al ancho de las caderas.",
+              "Agarra las asas bajas con las palmas enfrentadas, a igual distancia de los extremos.",
+              "Deja el marco nivelado y dobla las rodillas sin elevar los talones."
+            ]
+          },
+          "conventional_deadlift__bilateral__smith_machine": {
+            "description": "Los raíles determinan por dónde asciende la barra, por lo que los pies se ubican según esa línea y no según el borde de la máquina. La altura mínima del carro puede recortar el tramo inicial respecto de una salida desde el suelo.",
+            "executionCues": [
+              "Empuja contra el suelo sin alejar los pies de la línea de los raíles.",
+              "Termina de pie sin inclinarte hacia atrás contra la barra.",
+              "Baja el carro hasta el apoyo previsto y vuelve a engancharlo al terminar."
+            ],
+            "setupCues": [
+              "Comprueba que el carro llegue a la altura de salida prevista y que los topes no recorten el recorrido.",
+              "Alinea ambos pies para que la barra pase junto a tus piernas sin arrastrarte hacia delante.",
+              "Libera los ganchos con ambas manos por fuera de las rodillas y los brazos largos."
+            ]
+          },
+          "conventional_deadlift__unilateral__barbell": {
+            "description": "Ambas manos sostienen el eje recto, pero solo una pierna empuja desde el suelo y la rodilla libre permanece doblada detrás. Su anchura añade dificultad para impedir que un extremo baje antes que el otro durante el arranque.",
+            "executionCues": [
+              "Eleva la barra desde el suelo extendiendo cadera y rodilla de la pierna apoyada.",
+              "Conserva los extremos a igual altura y la pelvis mirando al frente.",
+              "Vuelve al apoyo inicial sin apoyar el pie libre durante la repetición."
+            ],
+            "setupCues": [
+              "Pon la barra delante del pie de apoyo y agárrala con las dos manos por fuera de esa pierna.",
+              "Dobla la rodilla libre y despega ese pie sin girar la pelvis.",
+              "Flexiona la rodilla de apoyo lo necesario para alcanzar la barra con la columna neutra."
+            ]
+          },
+          "conventional_deadlift__unilateral__dumbbells": {
+            "description": "Una mancuerna en cada mano deja libre el espacio delante de la rodilla de apoyo. El pie contrario queda en el aire y las dos cargas se desplazan a los lados de la pierna, sin convertir el gesto en una zancada con apoyo trasero.",
+            "executionCues": [
+              "Empuja con el pie apoyado y sube las pesas por ambos lados de esa pierna.",
+              "Acaba con el tronco erguido y la rodilla libre todavía recogida.",
+              "Deja las cargas a la vez en el suelo sin girar hacia una de ellas."
+            ],
+            "setupCues": [
+              "Agarra una mancuerna con cada mano, junto a la pierna que trabajará.",
+              "Levanta el pie contrario con esa rodilla doblada y orienta las caderas al frente.",
+              "Dobla la rodilla apoyada para que las pesas lleguen al suelo sin redondear el tronco."
+            ]
+          },
+          "conventional_deadlift__unilateral__hex_bar": {
+            "description": "El apoyo único queda dentro del marco, con una mano en cada asa y el otro pie recogido en el aire. La estructura rodea al atleta, de modo que el espacio para la pierna libre debe comprobarse antes de iniciar cada repetición.",
+            "executionCues": [
+              "Levanta el marco con la pierna de apoyo sin balancearlo hacia los lados.",
+              "Extiende esa rodilla hasta quedar alto con el pie libre separado de la barra.",
+              "Apoya la estructura entera antes de recolocar los pies."
+            ],
+            "setupCues": [
+              "Coloca el pie de apoyo en el centro del marco y toma las dos asas bajas.",
+              "Recoge el otro pie dentro del espacio libre, sin descansar sobre la estructura.",
+              "Dobla la rodilla apoyada y nivela el marco antes de despegarlo."
+            ]
+          },
+          "conventional_deadlift__unilateral__smith_machine": {
+            "description": "Un solo pie recibe el empuje mientras el carro limita el desplazamiento de las manos. La pierna libre queda recogida detrás y la pelvis todavía necesita sostén propio, aunque los raíles reduzcan la inclinación lateral de la carga.",
+            "executionCues": [
+              "Presiona el suelo con la pierna apoyada mientras el carro asciende.",
+              "Llega erguido sin desplazar la pelvis hacia el pie que está en el aire.",
+              "Desciende hasta la altura inicial y engancha la barra antes de cambiar de pierna."
+            ],
+            "setupCues": [
+              "Sitúa el pie de trabajo bajo la línea del carro y toma la barra con ambas manos.",
+              "Recoge la pierna libre detrás y ajusta el apoyo antes de soltar los ganchos.",
+              "Comprueba el espacio entre la rodilla libre y la máquina durante la salida."
             ]
           }
         },
-        "description": "El Peso Muerto Convencional es el levantamiento que mide la fuerza entera de una persona: glúteos e isquiosurales abren la cadera y los cuádriceps empujan el suelo mientras la espalda transmite todo a la barra. Se ejecuta con los pies al ancho de la cadera y la barra pegada a las espinillas, extendiendo cadera y rodillas a la vez hasta quedar erguido. Con la barra hexagonal la carga queda centrada y la espalda trabaja más cómoda; con mancuernas se aprende el gesto con cargas amables. El rey absoluto de la fuerza total, sin discusión posible."
+        "description": "El Peso Muerto Convencional combina el empuje de cuádriceps con la extensión de cadera que producen glúteo mayor e isquiosurales al despegar una carga del suelo. En el apoyo bilateral, los pies quedan aproximadamente al ancho de la cadera y los brazos cuelgan por fuera de las piernas. La subida empieza empujando el suelo y termina erguido, con la carga cerca del cuerpo y los codos estirados. El apoyo a una pierna añade una demanda de estabilidad pélvica. Su rasgo central es el arranque desde abajo, donde piernas y cadera deben poner en marcha la misma carga."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "En trece jugadores a doce repeticiones máximas, el sumo elevó la actividad de los vastos medial y lateral frente al convencional. Glúteo mayor, aductor y paraespinales se activaron más con mayor flexión de rodilla; los isquiosurales, hacia intervalos de menor flexión. No compara apoyo unilateral ni déficit.",
+          "id": "escamilla2002",
+          "title": "An electromyographic analysis of sumo and conventional style deadlifts",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/11932579/"
+        },
+        {
+          "claim": "El análisis tridimensional de veinticuatro powerlifters registró momentos extensores de cadera y rodilla en ambos estilos. El sumo tuvo postura más ancha, puntas más abiertas y tronco más vertical, mientras el convencional recorrió mayor distancia vertical. No midió variantes elevadas sobre una plataforma.",
+          "id": "escamilla2000",
+          "title": "A three-dimensional biomechanical analysis of sumo and conventional style deadlifts",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/10912892/"
+        },
+        {
+          "claim": "La electromiografía de peso muerto al ochenta por ciento del máximo registró actividad elevada de los erectores lumbares superiores frente al peso corporal. La actividad de oblicuo externo y abdominales bajos no difirió significativamente entre tareas; este resultado no demuestra que dejen de estabilizar.",
+          "id": "hamlyn2007",
+          "title": "Trunk muscle activation during dynamic weight-training exercises and isometric instability activities",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/18076231/"
+        },
+        {
+          "claim": "El compartimento anterior contiene los flexores de muñeca y dedos. De esa función anatómica se deduce el sostén isométrico del agarre; el capítulo no estudia una variante específica de peso muerto.",
+          "id": "forearm_anatomy",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/"
+        },
+        {
+          "claim": "La sacroilíaca transmite una parte importante del peso del tronco y los miembros superiores a las piernas, con movilidad restringida. Sustenta su papel de transferencia de fuerza, no una extensión activa de esa articulación.",
+          "id": "pelvic_joints",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Pelvic Joints",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30860758/"
+        },
+        {
+          "claim": "Describe la extensión de cadera y la flexión de rodilla de los isquiosurales, salvo la cabeza corta del bíceps femoral en la cadera. La anatomía complementa la electromiografía del patrón sin demostrar adaptaciones por déficit.",
+          "id": "hamstring_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hamstring Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31536294/"
+        },
+        {
+          "claim": "En diecinueve powerlifters, el marco hexagonal elevó el momento máximo de rodilla y redujo los máximos de cadera y columna lumbar frente a la barra recta. La comparación fue bilateral con cargas submáximas; no establece seguridad clínica ni se extrapola como medición de la versión unilateral.",
+          "id": "swinton2011",
+          "title": "A biomechanical analysis of straight and hexagonal barbell deadlifts using submaximal loads",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/21659894/"
+        },
+        {
+          "claim": "Estudió rumano a una pierna, no convencional desde el suelo. Registró glúteo medio, extensores de cadera y estabilizadores del tronco; el cambio contralateral con volante elevó varias actividades. Sirve como apoyo indirecto al control pélvico unilateral, sin atribuir sus resultados cuantitativos a estas configuraciones.",
+          "id": "mo2023",
+          "title": "Effects of loading positions on the activation of trunk and hip muscles during flywheel and dumbbell single-leg Romanian deadlift exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/38093908/"
+        },
+        {
+          "claim": "El tensor de la fascia lata coopera con los glúteos en la estabilidad pélvica al estar de pie y caminar. Su función en el apoyo a una pierna de esta ficha es una inferencia anatómica, no una medición electromiográfica del peso muerto convencional unilateral.",
+          "id": "tfl_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Tensor Fasciae Latae Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29763045/"
+        },
+        {
+          "claim": "Un modelo neuromusculoesquelético asistido por electromiografía en quince participantes situó convencional y sumo en el grupo de mayor fuerza normalizada para la porción isquiocondílea del aductor mayor y el grácil. No encontró ese nivel para todos los aductores ni examinó déficit o versiones unilaterales.",
+          "id": "collings2026",
+          "title": "Hip Adductor Muscle Forces during Strength Training and Rehabilitation Exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/41931009/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Levantamiento completo desde el suelo con cadera y rodillas flexionadas al inicio, carga sostenida por brazos largos y extensión hasta estar erguido. La rodilla participa en el despegue y la cadera completa el ascenso; en la opción unilateral solo un pie toca el suelo y la rodilla libre queda recogida.",
+        "keyPositions": [
+          "Salida: cadera detrás de los hombros, rodillas flexionadas, talones apoyados y carga todavía en el suelo o apoyo inicial del carro.",
+          "Final: cadera y rodillas extendidas, pelvis bajo el tórax y carga suspendida junto a los muslos, sin inclinación hacia atrás."
+        ],
+        "mistakes": [
+          "Levantar primero las caderas y perder la flexión de rodilla antes de que despegue la carga.",
+          "Doblar los codos o alejar las manos del cuerpo para completar la subida.",
+          "Terminar arqueando la zona lumbar en vez de quedar alineado.",
+          "Apoyar la pierna libre o girar la pelvis en una configuración unilateral."
+        ],
+        "phases": [
+          {
+            "description": "El agarre queda cerrado y el tronco se tensa antes de que las piernas empujen, sin doblar los brazos.",
+            "name": "Preparación del despegue"
+          },
+          {
+            "description": "Las rodillas se extienden mientras hombros y pelvis ascienden coordinados, con la carga cerca del cuerpo.",
+            "name": "Salida del suelo"
+          },
+          {
+            "description": "La cadera termina su extensión y el atleta queda de pie con el peso colgando de las manos.",
+            "name": "Final erguido"
+          },
+          {
+            "description": "La pelvis retrocede y las rodillas se doblan para llevar el peso a su altura inicial sin hacerlo rebotar.",
+            "name": "Regreso al apoyo"
+          }
+        ],
+        "setup": [
+          "Base bilateral aproximadamente al ancho de la cadera; un solo pie apoyado cuando se elige unilateral.",
+          "Carga cercana a los pies y manos junto a la cara externa de las piernas, con brazos extendidos.",
+          "Smith: recorrido mínimo comprobado; barra hexagonal: asas bajas y cuerpo centrado; mancuernas: un mango por mano."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista de tres cuartos a la altura de las caderas, con todo el cuerpo y los apoyos inferiores en el encuadre.",
+          "contacts": "Las manos cierran el agarre de la carga; los pies de trabajo apoyan toda la planta en el suelo, sin otro sostén del cuerpo.",
+          "load": "Resistencia sostenida junto a las piernas a la altura aproximada de las rodillas, separada del suelo.",
+          "orientation": "Atleta mirando hacia la derecha del encuadre, con ambas manos y los pies visibles.",
+          "phase": "Instante congelado a mitad del ascenso, cuando la carga alcanza la rodilla y la cadera todavía está flexionada.",
+          "posture": "Torso algo inclinado con columna neutra, codos estirados y rodillas parcialmente flexionadas; base estrecha de cadera en bilateral."
+        },
+        "byImplement": {
+          "barbell": {
+            "geometry": "Barra recta horizontal delante de ambas rodillas, sujeta en prono por fuera de las piernas, con discos en ambos extremos y eje cerca de las espinillas."
+          },
+          "dumbbells": {
+            "geometry": "Una mancuerna en cada mano, con agarre neutro y los mangos a ambos lados de las rodillas; las pesas no quedan delante del rostro ni apoyadas en el suelo."
+          },
+          "hex_bar": {
+            "geometry": "Marco hexagonal alrededor de los pies; ambas manos agarran asas bajas laterales y los discos sobresalen a los lados, con la estructura nivelada a la altura de las rodillas."
+          },
+          "smith_machine": {
+            "geometry": "Barra del carro delante de las rodillas, con manos externas a las piernas, visible entre los raíles de la Smith; ganchos liberados y discos unidos al carro."
+          }
+        },
+        "byVariant": {
+          "conventional_deadlift__unilateral__barbell": {
+            "difference": "Solo el pie de trabajo toca el suelo; el pie contrario se recoge atrás con la rodilla doblada. Ambas manos sujetan la barra horizontal por fuera de la pierna apoyada."
+          },
+          "conventional_deadlift__unilateral__dumbbells": {
+            "difference": "Una sola planta apoya y la pierna libre se recoge; una mancuerna en cada mano a los lados del miembro apoyado, sin segunda pierna sobre el suelo."
+          },
+          "conventional_deadlift__unilateral__hex_bar": {
+            "difference": "Un pie en el centro del marco soporta al atleta y la pierna libre queda recogida dentro del espacio disponible; ambas manos sostienen las asas bajas sin apoyo del pie libre sobre la barra."
+          },
+          "conventional_deadlift__unilateral__smith_machine": {
+            "difference": "Un pie apoya bajo el carro y el otro queda elevado detrás con la rodilla doblada; el cuerpo no toca los raíles y las dos manos agarran la barra."
+          }
+        },
+        "forbidden": [
+          "Pies muy separados y manos entre las piernas: corresponde a la postura sumo.",
+          "Fotograma erguido de bloqueo o carga todavía apoyada en el suelo, en vez del ascenso intermedio elegido.",
+          "Rodilla de apoyo casi inmóvil y pierna libre extendida hacia atrás como una bisagra unilateral rumana.",
+          "Manos abiertas con el implemento flotando o codos doblados para elevarlo."
+        ],
+        "promptCore": {
+          "barbell": "Three quarter view of an athlete frozen MIDWAY through a conventional deadlift from the floor. Both hands grip a straight barbell overhand outside the legs, elbows fully straight. The bar is held close to the shins at knee height and both plates are clear of the floor. Both feet are flat on the floor at hip width. Knees are partly bent, hips are still flexed, torso leans forward with a neutral spine. The athlete faces right. No text or logos.",
+          "dumbbells": "Three quarter view, full body athlete frozen MIDWAY through a dumbbell deadlift from the floor. Each hand grips one dumbbell with palms facing inward. Both dumbbells are held beside the knees, clear of the floor, elbows straight. The feet are planted at hip width, knees partly flexed and hips bent with a neutral spine. The torso is inclined forward and the athlete faces right. The weights are visibly connected to the gripping hands. No lettering or logos.",
+          "hex_bar": "Full body three quarter view of an athlete frozen MIDWAY through a low handle hex bar deadlift. The athlete stands inside the hexagonal frame and each hand grips a low side handle with palms facing inward, arms straight. The frame is horizontal at knee level and its plates are suspended clear of the floor. Both feet are flat at hip width, knees partly bent and hips flexed, back neutral, torso inclined forward. No text or logos.",
+          "smith_machine": "An athlete in a Smith machine frozen MIDWAY through a deadlift. Both hands grip the machine bar overhand outside the legs, arms straight. The bar is at knee height beside the shins, its carriage attached to visible rails, hooks released and plates raised clear of the floor. Both feet are flat at hip width, knees partly bent, hips flexed and trunk leaning forward with a neutral back. Three quarter view, entire athlete and rails visible, no text."
+        },
+        "qa": [
+          "¿Cada mano agarra el implemento y toda la carga queda conectada físicamente a ellas?",
+          "¿El peso está a la altura de las rodillas y separado del suelo?",
+          "¿La cadera sigue flexionada con los brazos rectos en este fotograma intermedio?",
+          "¿En bilateral los pies tienen una separación cercana al ancho de cadera?",
+          "¿En unilateral solo una planta toca el suelo y la rodilla de apoyo sigue algo flexionada?",
+          "¿Si aparece la barra hexagonal, las manos usan las asas bajas a la altura del marco?"
+        ]
+      }
     },
     "deadlift_to_knees": {
       "anatomy": {
@@ -336,30 +925,314 @@
       }
     },
     "sumo_deadlift": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Extensión de la cadera en postura abierta",
+              "Flexión de la cadera en postura abierta"
+            ],
+            "id": "cadera",
+            "role": "PRIMARY",
+            "sources": [
+              "escamilla2000"
+            ],
+            "why": "La cadera sale flexionada con los muslos separados y termina extendida bajo el tronco. La cinética tridimensional documentó momento extensor; apertura y giro de los muslos preparan la postura pero no sustituyen esa extensión por un movimiento de aducción aislado."
+          },
+          {
+            "actions": [
+              "Extensión de la rodilla",
+              "Flexión de la rodilla"
+            ],
+            "id": "rodilla",
+            "role": "PRIMARY",
+            "sources": [
+              "escamilla2000",
+              "escamilla2002"
+            ],
+            "why": "Ambas rodillas se estiran contra la carga mientras siguen la orientación abierta de los pies. El momento extensor y la mayor actividad de los vastos en sumo hacen de esta articulación un motor del ascenso, en lugar de una simple base inmóvil."
+          },
+          {
+            "actions": [
+              "Estabilidad lumbar con tronco más vertical"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "escamilla2000",
+              "escamilla2002"
+            ],
+            "why": "La columna conserva su curvatura mientras se abre la cadera y asciende el tronco. La mayor verticalidad promedio del sumo no elimina el sostén paraespinal registrado, ni permite prometer menor esfuerzo lumbar para cada persona."
+          },
+          {
+            "actions": [
+              "Transferencia entre pelvis y ambos miembros inferiores"
+            ],
+            "id": "sacroiliaca",
+            "role": "STABILIZER",
+            "sources": [
+              "pelvic_joints"
+            ],
+            "why": "La base amplia recibe el peso transmitido desde el tronco a través de la pelvis. Su anatomía de movilidad reducida justifica que la sacroilíaca conduzca la carga sin servir como articulación que genere el levantamiento."
+          },
+          {
+            "actions": [
+              "Sostén del agarre interno"
+            ],
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "sources": [
+              "forearm_anatomy"
+            ],
+            "why": "Las manos se sitúan entre los muslos y sus dedos cierran el agarre para que la carga cuelgue. La muñeca permanece cerca de neutro mientras se extienden rodillas y cadera; la función del compartimento flexor se aplica por deducción anatómica."
+          },
+          {
+            "actions": [
+              "Dorsiflexión con los pies orientados hacia afuera",
+              "Transferencia del empuje al suelo"
+            ],
+            "id": "tobillo",
+            "role": "SECONDARY",
+            "sources": [
+              "escamilla2000"
+            ],
+            "why": "La tibia cambia su inclinación sobre el pie abierto durante el arranque y la vuelta. Escamilla encontró momento dorsiflexor de tobillo en el sumo, distinto del convencional; su participación acompaña y transmite el movimiento de la pierna."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "gluteus_maximus",
+            "role": "PRIMARY",
+            "sources": [
+              "escamilla2002",
+              "escamilla2000"
+            ],
+            "why": "La extensión de cadera lleva la pelvis abierta desde la salida hasta debajo del tórax. Escamilla registró glúteo mayor activo en el sumo y momento extensor de cadera; esa función sustenta el motor, conservando la dominancia heredada sin atribuirla a una comparación electromiográfica entre músculos."
+          },
+          {
+            "id": "hamstrings",
+            "role": "PRIMARY",
+            "sources": [
+              "escamilla2002",
+              "hamstring_anatomy"
+            ],
+            "why": "Los isquiosurales que cruzan la cadera participan en su extensión pese a la mayor separación de los pies. En Escamilla su actividad creció en intervalos de menor flexión de rodilla; la postura sumo no elimina ese trabajo ni permite afirmar que sean menos activos en todas las fases."
+          },
+          {
+            "id": "quadriceps",
+            "role": "PRIMARY",
+            "sources": [
+              "escamilla2002",
+              "escamilla2000"
+            ],
+            "why": "Extienden las rodillas abiertas para iniciar y continuar la subida. El sumo produjo mayor actividad de vastos medial y lateral que el convencional y momento extensor de rodilla; por eso la rodilla aporta propulsión y el cuádriceps recibe rol principal, sin reclamar aislamiento muscular."
+          },
+          {
+            "id": "adductors",
+            "role": "SECONDARY",
+            "sources": [
+              "collings2026",
+              "escamilla2002"
+            ],
+            "why": "Ayudan al cierre extensor de cadera desde la postura abierta, especialmente mediante la porción isquiocondílea del aductor mayor. El modelo asistido por electromiografía encontró fuerzas altas en esa porción y el grácil durante sumo, sin que todo el grupo lidere el levantamiento."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "escamilla2002",
+              "escamilla2000"
+            ],
+            "why": "El torso suele salir más vertical pero la carga aún genera demanda sobre la columna. Los paraespinales torácicos y lumbares se activaron durante el sumo; se les asigna sostén de una columna neutra y no movimiento lumbar para completar la elevación."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "escamilla2002"
+            ],
+            "why": "La pared abdominal fija la relación entre costillas y pelvis mientras el empuje de ambos pies alcanza las manos. Escamilla registró recto abdominal y oblicuo externo y cambios con cinturón; esa evidencia apoya participación del tronco, no un papel de motor de la cadera."
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "sources": [
+              "forearm_anatomy"
+            ],
+            "why": "El agarre interno debe conservar la resistencia suspendida entre las piernas a pesar de que los brazos permanezcan estirados. Los flexores digitales descritos en el capítulo anatómico realizan ese sostén; no se necesita flexión activa de muñeca para subir."
+          }
+        ],
+        "overrides": {
+          "sumo_deadlift__dumbbells": {
+            "joints": [
+              {
+                "actions": [
+                  "Sostén neutro de dos mangos independientes"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "forearm_anatomy"
+                ],
+                "why": "Las palmas enfrentadas sujetan las cargas independientes entre los muslos abiertos y no quedan fijadas al mismo eje transversal. La función flexora de los dedos sostiene cada mango sin doblar deliberadamente las muñecas; esta explicación es anatómica, sin electromiografía de sumo con mancuernas."
+              },
+              {
+                "actions": [
+                  "Extensión con la carga entre los muslos",
+                  "Flexión con la carga entre los muslos"
+                ],
+                "id": "cadera",
+                "role": "PRIMARY",
+                "sources": [
+                  "escamilla2000"
+                ],
+                "why": "Las caderas se extienden sobre una base amplia con dos cargas dentro del hueco entre las piernas. Su tamaño modifica la profundidad alcanzable; se extrapola la acción extensora del sumo con barra, sin atribuir idénticos ángulos o momentos a las mancuernas."
+              }
+            ]
+          }
+        }
+      },
       "public": {
         "configurations": {
           "sumo_deadlift__barbell": {
-            "description": "Con barra, con los pies muy abiertos y los brazos por dentro, el recorrido se acorta y la cadera empuja al frente. Con la barra, la carga sube al máximo y la progresión del glúteo mayor se mide sin trampa.",
+            "description": "Las manos quedan juntas dentro de las piernas y el eje pasa por delante de las espinillas abiertas. El agarre interno permite acercar la pelvis a la barra sin que los antebrazos choquen con las rodillas.",
             "executionCues": [
-              "Barra en postura sumo: pies amplios, manos dentro y el recorrido más corto hacia arriba. La base amplia deja los brazos dentro de las piernas; la cadera se acerca a la carga antes de iniciar una subida vertical."
+              "Empuja el suelo con ambas plantas y abre las rodillas hacia las puntas.",
+              "Sube la barra cerca de las piernas hasta quedar erguido, sin inclinarte hacia atrás.",
+              "Dobla cadera y rodillas para devolver los discos al suelo."
             ],
             "setupCues": [
-              "Preparación: Barra en postura sumo: pies amplios, manos dentro y el recorrido más corto hacia arriba."
+              "Abre los pies más que tus hombros y orienta las puntas hacia afuera.",
+              "Toma la barra por dentro de las piernas con ambos brazos estirados.",
+              "Acerca las espinillas al eje dejando las rodillas alineadas con los pies."
             ]
           },
           "sumo_deadlift__dumbbells": {
-            "description": "Con mancuernas, con los pies muy abiertos y los brazos por dentro, el recorrido se acorta y la cadera empuja al frente. Con mancuernas, cada lado ajusta su línea y el trabajo del glúteo mayor se equilibra solo.",
+            "description": "Las dos mancuernas cuelgan en el hueco entre los muslos con palmas enfrentadas. Al no haber un eje transversal, el tamaño de cada pesa condiciona la altura de salida y el espacio disponible para bajar entre las piernas.",
             "executionCues": [
-              "Mancuernas a los costados con una base amplia: la carga deja espacio entre las piernas y la cadera puede acercarse al suelo. La base amplia deja los brazos dentro de las piernas; la cadera se acerca a la carga antes de iniciar una subida vertical."
+              "Eleva las mancuernas por el centro de la postura abierta sin acercar las rodillas entre sí.",
+              "Acaba de pie con las cargas bajo la pelvis y los codos largos.",
+              "Baja las pesas dentro del hueco entre los pies hasta apoyarlas."
             ],
             "setupCues": [
-              "Preparación: Mancuernas a los costados con una base amplia: la carga deja espacio entre las piernas y la cadera puede acercarse al suelo."
+              "Sitúa dos mancuernas entre los pies separados, con sus mangos paralelos.",
+              "Flexiona cadera y rodillas para cerrar una mano en cada mango.",
+              "Deja espacio entre ambas pesas y alinea cada rodilla con su pie abierto."
             ]
           }
         },
-        "description": "El Peso Muerto Sumo abre los pies y mete los brazos por dentro: el recorrido se acorta y aductores y cuádriceps toman parte del botín que en el convencional se llevan los isquiosurales. Se ejecuta con las puntas hacia afuera y la espalda alta, empujando el suelo con las piernas mientras la barra sube rozando el cuerpo. Muchos levantadores descubren aquí que su estructura pide esta postura. La vía ancha para levantar mucho con menos peaje lumbar."
+        "description": "El Peso Muerto Sumo distribuye el levantamiento desde el suelo entre los extensores de cadera, glúteo mayor e isquiosurales, y el cuádriceps, con asistencia de los aductores en una postura amplia. Las puntas miran hacia afuera y los brazos pasan entre las piernas mientras las rodillas siguen la dirección de los pies. Desde esa postura, el empuje eleva la carga cerca del cuerpo hasta colocar la pelvis bajo el tronco. Con barra, la salida suele admitir un torso más vertical y menos distancia de subida que el convencional. La apertura cambia el arranque y la demanda de las rodillas, pero no convierte el movimiento en un ejercicio exclusivo de aductores."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "En trece jugadores a doce repeticiones máximas, el sumo elevó la actividad de los vastos medial y lateral frente al convencional. Glúteo mayor, aductor y paraespinales se activaron más con mayor flexión de rodilla; los isquiosurales, hacia intervalos de menor flexión. No compara apoyo unilateral ni déficit.",
+          "id": "escamilla2002",
+          "title": "An electromyographic analysis of sumo and conventional style deadlifts",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/11932579/"
+        },
+        {
+          "claim": "El análisis tridimensional de veinticuatro powerlifters registró momentos extensores de cadera y rodilla en ambos estilos. El sumo tuvo postura más ancha, puntas más abiertas y tronco más vertical, mientras el convencional recorrió mayor distancia vertical. No midió variantes elevadas sobre una plataforma.",
+          "id": "escamilla2000",
+          "title": "A three-dimensional biomechanical analysis of sumo and conventional style deadlifts",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/10912892/"
+        },
+        {
+          "claim": "El compartimento anterior contiene los flexores de muñeca y dedos. De esa función anatómica se deduce el sostén isométrico del agarre; el capítulo no estudia una variante específica de peso muerto.",
+          "id": "forearm_anatomy",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/"
+        },
+        {
+          "claim": "La sacroilíaca transmite una parte importante del peso del tronco y los miembros superiores a las piernas, con movilidad restringida. Sustenta su papel de transferencia de fuerza, no una extensión activa de esa articulación.",
+          "id": "pelvic_joints",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Pelvic Joints",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30860758/"
+        },
+        {
+          "claim": "Describe la extensión de cadera y la flexión de rodilla de los isquiosurales, salvo la cabeza corta del bíceps femoral en la cadera. La anatomía complementa la electromiografía del patrón sin demostrar adaptaciones por déficit.",
+          "id": "hamstring_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hamstring Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31536294/"
+        },
+        {
+          "claim": "Un modelo neuromusculoesquelético asistido por electromiografía en quince participantes situó convencional y sumo en el grupo de mayor fuerza normalizada para la porción isquiocondílea del aductor mayor y el grácil. No encontró ese nivel para todos los aductores ni examinó déficit o versiones unilaterales.",
+          "id": "collings2026",
+          "title": "Hip Adductor Muscle Forces during Strength Training and Rehabilitation Exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/41931009/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Peso muerto completo desde abajo con ambos pies muy separados y rotados hacia afuera, rodillas alineadas con cada pie abierto y manos entre las piernas. El torso asciende desde una postura relativamente vertical y la pelvis termina alineada debajo del tórax.",
+        "keyPositions": [
+          "Inicio: carga apoyada en el suelo, cadera flexionada y rodillas abiertas sin colapsar hacia el centro.",
+          "Bloqueo: piernas y caderas extendidas, tronco vertical y manos bajo la pelvis con el peso suspendido."
+        ],
+        "mistakes": [
+          "Dejar que las rodillas se cierren mientras los pies siguen orientados hacia afuera.",
+          "Abrir los pies tanto que no sea posible apoyar sus plantas completas.",
+          "Levantar las caderas primero y alejar el peso de las espinillas.",
+          "Convertir el final en una inclinación lumbar hacia atrás."
+        ],
+        "phases": [
+          {
+            "description": "Las manos alcanzan el implemento dentro de las piernas y el tronco queda firme antes de cargar los brazos.",
+            "name": "Toma interna"
+          },
+          {
+            "description": "Las plantas presionan el suelo mientras las rodillas conservan su orientación y la carga comienza a subir.",
+            "name": "Empuje de la base amplia"
+          },
+          {
+            "description": "La cadera se aproxima a la línea del tronco y el atleta termina alto, con codos largos y hombros sobre la pelvis.",
+            "name": "Extensión final"
+          },
+          {
+            "description": "El peso vuelve al hueco entre las piernas al flexionar de nuevo cadera y rodillas sin cerrar la postura.",
+            "name": "Descenso central"
+          }
+        ],
+        "setup": [
+          "Pies más separados que los hombros y puntas abiertas según la postura que admita la cadera.",
+          "Rodillas abiertas en la dirección de los pies, con los brazos dentro del espacio entre muslos.",
+          "Barra delante de las espinillas o dos mancuernas en el hueco central, siempre con ambos pies al mismo nivel."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista frontal ligeramente oblicua a la altura de la pelvis, con separación de pies y agarre claramente visibles.",
+          "contacts": "Ambas plantas completas sobre el suelo al mismo nivel; cada mano cierra el agarre dentro de las piernas.",
+          "load": "Carga suspendida dentro de la anchura de las piernas a la altura de las rodillas, sin contacto con el suelo.",
+          "orientation": "Cuerpo hacia el observador con una ligera rotación para apreciar el tronco y las piernas abiertas.",
+          "phase": "Fotograma congelado durante el ascenso con carga a la altura de las rodillas, antes de terminar la extensión de cadera.",
+          "posture": "Pies muy separados con puntas abiertas, rodillas siguiendo esa orientación, brazos largos y tronco relativamente vertical."
+        },
+        "byImplement": {
+          "barbell": {
+            "geometry": "Barra horizontal cerca de las espinillas, con manos en prono más juntas que los pies y discos exteriores a ambos lados de la postura."
+          },
+          "dumbbells": {
+            "geometry": "Dos mancuernas separadas dentro del hueco entre los muslos, una en cada mano con palmas enfrentadas; ambas al mismo nivel sin tocarse ni flotar."
+          }
+        },
+        "forbidden": [
+          "Postura de pies al ancho de cadera con manos externas: se pierde la identidad sumo.",
+          "Mancuernas colocadas por fuera de los pies en lugar del hueco entre muslos.",
+          "Rodillas cerradas hacia el centro o manos sueltas sobre una carga suspendida.",
+          "Atleta sobre una plataforma elevada: pertenece al sumo en déficit."
+        ],
+        "promptCore": {
+          "barbell": "Front three quarter full body view, athlete frozen MIDWAY through a sumo barbell deadlift. Feet are very wide apart with toes outward, both soles flat on the same floor. Knees stay open along the toes. Both hands grip the straight barbell overhand INSIDE the legs, elbows straight. The bar is held at knee height near the shins, all plates clear of the ground. Torso is fairly upright with neutral spine and hips still flexed. No lettering or logos.",
+          "dumbbells": "Front three quarter view of an athlete frozen MIDWAY through a sumo dumbbell deadlift. Both feet are wide apart with toes outward and soles flat on the floor, knees open. Each hand grips one dumbbell with palms facing inward INSIDE the gap between the thighs. The two weights hang at knee level clear of the ground, visibly held by the hands. Arms straight, hips partly flexed and neutral back, fairly upright torso. Full body visible, no text."
+        },
+        "qa": [
+          "¿Los pies están claramente más abiertos que los hombros y sus puntas miran hacia afuera?",
+          "¿Las manos agarran cada carga dentro de la separación entre las piernas?",
+          "¿El peso está elevado a la altura de las rodillas y no sobre el suelo?",
+          "¿Las rodillas apuntan en la misma dirección que los pies?",
+          "¿Ambos pies apoyan en el mismo suelo, sin escalón?"
+        ]
+      }
     }
   },
   "familyId": "hinge_deadlift",

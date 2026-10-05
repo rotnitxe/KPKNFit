@@ -24,40 +24,50 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con mancuernas, en el banco inclinado, el torso baja y sube pivotando sobre la cadera con el glúteo dirigiendo. Con mancuernas, cada lado ajusta su línea y el trabajo del glúteo mayor se equilibra solo.",
+              "description": "Dos cargas cuelgan bajo los hombros, una por mano, mientras el torso pivota sobre el apoyo inclinado. Los brazos largos dejan el peso separado del pecho y el agarre sostiene ambas mancuernas durante todo el recorrido.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
-                "Mancuerna en el pecho en el banco a 45: subes con la cadera y el glúteo dirige el movimiento. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar."
+                "Pliega la cadera dejando que las mancuernas cuelguen sin golpear el banco.",
+                "Extiende la cadera hasta alinear el torso con las piernas.",
+                "Termina la repetición sin subir el pecho por encima de la línea corporal."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión"
+                    "Flexión de cadera sobre el borde",
+                    "Extensión de cadera hasta alineación"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad"
+                    "Sostén de la posición de rodilla"
                   ],
                   "jointId": "rodilla",
-                  "role": "SECONDARY"
+                  "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Alineación"
+                    "Sostén del perfil lumbar"
                   ],
                   "jointId": "columna-lumbar",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Control Pélvico"
+                    "Transferencia de fuerza de cadera a tronco"
                   ],
                   "jointId": "sacroiliaca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén del implemento agarrado"
+                  ],
+                  "jointId": "muñeca",
                   "role": "STABILIZER"
                 }
               ],
@@ -67,7 +77,8 @@
               "movementPatternId": "hip_extension",
               "performanceProfileId": "glutes_hiperextension_45__dumbbells",
               "primaryMuscles": [
-                "gluteus_maximus"
+                "gluteus_maximus",
+                "hamstrings"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -75,49 +86,60 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Estabilidad",
-                    "Alineación",
-                    "Control Pélvico"
+                    "Flexión de cadera sobre el borde",
+                    "Extensión de cadera hasta alineación",
+                    "Sostén de la posición de rodilla",
+                    "Sostén del perfil lumbar",
+                    "Transferencia de fuerza de cadera a tronco",
+                    "Sostén del implemento agarrado"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión"
+                        "Flexión de cadera sobre el borde",
+                        "Extensión de cadera hasta alineación"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad"
+                        "Sostén de la posición de rodilla"
                       ],
                       "jointId": "rodilla",
-                      "role": "SECONDARY"
+                      "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Alineación"
+                        "Sostén del perfil lumbar"
                       ],
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Control Pélvico"
+                        "Transferencia de fuerza de cadera a tronco"
                       ],
                       "jointId": "sacroiliaca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del implemento agarrado"
+                      ],
+                      "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "gluteus_maximus"
-                  ],
-                  "secondaryMuscles": [
+                    "gluteus_maximus",
                     "hamstrings"
                   ],
+                  "secondaryMuscles": [],
                   "stabilizerMuscles": [
-                    "erector_spinae"
+                    "erector_spinae",
+                    "core",
+                    "forearm"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -132,7 +154,8 @@
                     "cadera",
                     "rodilla",
                     "columna-lumbar",
-                    "sacroiliaca"
+                    "sacroiliaca",
+                    "muñeca"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -187,22 +210,24 @@
                     "smith_machine"
                   ],
                   "preservesIntent": [
-                    "hip_extension:gluteus_maximus"
+                    "hip_extension:gluteus_maximus",
+                    "hip_extension:hamstrings"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "hamstrings"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
-                "Preparación: Mancuerna en el pecho en el banco a 45: subes con la cadera y el glúteo dirige el movimiento."
+                "Ajusta el acolchado por debajo del pliegue de cadera y sujeta los tobillos.",
+                "Agarra una mancuerna en cada mano con los brazos largos."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.5,
               "stabilizerMuscles": [
-                "erector_spinae"
+                "erector_spinae",
+                "core",
+                "forearm"
               ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
@@ -229,38 +254,41 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con barra, en el banco inclinado, el torso baja y sube pivotando sobre la cadera con el glúteo dirigiendo. El glúteo mayor trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+              "description": "El eje apoyado en la espalda alta acompaña al torso y deja las manos dedicadas a fijar ese contacto. Su posición posterior exige acomodar la barra y los discos sin que rocen el banco al inclinarse.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
-                "Barra en la espalda en el banco a 45: el glúteo empuja el peso con la cadera. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar."
+                "Baja desde la cadera conservando la forma del tronco.",
+                "Devuelve la pelvis y el torso a su alineación inicial.",
+                "Afirma la barra con las manos sin empujarla por separado."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión"
+                    "Flexión de cadera sobre el borde",
+                    "Extensión de cadera hasta alineación"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad"
+                    "Sostén de la posición de rodilla"
                   ],
                   "jointId": "rodilla",
-                  "role": "SECONDARY"
+                  "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Alineación"
+                    "Sostén del perfil lumbar"
                   ],
                   "jointId": "columna-lumbar",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Control Pélvico"
+                    "Transferencia de fuerza de cadera a tronco"
                   ],
                   "jointId": "sacroiliaca",
                   "role": "STABILIZER"
@@ -272,7 +300,8 @@
               "movementPatternId": "hip_extension",
               "performanceProfileId": "glutes_hiperextension_45__barbell",
               "primaryMuscles": [
-                "gluteus_maximus"
+                "gluteus_maximus",
+                "hamstrings"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -280,49 +309,51 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Estabilidad",
-                    "Alineación",
-                    "Control Pélvico"
+                    "Flexión de cadera sobre el borde",
+                    "Extensión de cadera hasta alineación",
+                    "Sostén de la posición de rodilla",
+                    "Sostén del perfil lumbar",
+                    "Transferencia de fuerza de cadera a tronco"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión"
+                        "Flexión de cadera sobre el borde",
+                        "Extensión de cadera hasta alineación"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad"
+                        "Sostén de la posición de rodilla"
                       ],
                       "jointId": "rodilla",
-                      "role": "SECONDARY"
+                      "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Alineación"
+                        "Sostén del perfil lumbar"
                       ],
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Control Pélvico"
+                        "Transferencia de fuerza de cadera a tronco"
                       ],
                       "jointId": "sacroiliaca",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "gluteus_maximus"
-                  ],
-                  "secondaryMuscles": [
+                    "gluteus_maximus",
                     "hamstrings"
                   ],
+                  "secondaryMuscles": [],
                   "stabilizerMuscles": [
-                    "erector_spinae"
+                    "erector_spinae",
+                    "core"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -392,22 +423,23 @@
                     "smith_machine"
                   ],
                   "preservesIntent": [
-                    "hip_extension:gluteus_maximus"
+                    "hip_extension:gluteus_maximus",
+                    "hip_extension:hamstrings"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "hamstrings"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
-                "Preparación: Barra en la espalda en el banco a 45: el glúteo empuja el peso con la cadera."
+                "Asienta la barra en la espalda alta y sujétala fuera de los hombros.",
+                "Coloca la cadera libre sobre el borde del banco y fija los tobillos."
               ],
               "setupTimeSeconds": 35,
               "ssc": 0.5,
               "stabilizerMuscles": [
-                "erector_spinae"
+                "erector_spinae",
+                "core"
               ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
@@ -434,40 +466,57 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con disco, en el banco inclinado, el torso baja y sube pivotando sobre la cadera con el glúteo dirigiendo. Con el disco, el lastre es simple y directo sobre el glúteo mayor.",
+              "description": "El disco se abraza cerca del pecho con los codos doblados, de modo que la carga queda pegada al torso. Esa proximidad permite sujetarlo durante la bisagra sin una barra que sobresalga hacia los lados del banco.",
               "efc": 2.8,
               "equipmentId": "plate",
               "executionCues": [
-                "Disco en el pecho en el banco a 45: carga ligera y control total del recorrido. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar."
+                "Inclina el torso sin separar el disco del pecho.",
+                "Eleva el cuerpo extendiendo las caderas con las rodillas quietas.",
+                "Acaba al llegar a la línea de las piernas sin arquear la cintura."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión"
+                    "Flexión de cadera sobre el borde",
+                    "Extensión de cadera hasta alineación"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad"
+                    "Sostén de la posición de rodilla"
                   ],
                   "jointId": "rodilla",
-                  "role": "SECONDARY"
+                  "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Alineación"
+                    "Sostén del perfil lumbar"
                   ],
                   "jointId": "columna-lumbar",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Control Pélvico"
+                    "Transferencia de fuerza de cadera a tronco"
                   ],
                   "jointId": "sacroiliaca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén del implemento agarrado"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén de la flexión para abrazar el disco"
+                  ],
+                  "jointId": "codo",
                   "role": "STABILIZER"
                 }
               ],
@@ -477,7 +526,8 @@
               "movementPatternId": "hip_extension",
               "performanceProfileId": "glutes_hiperextension_45__plate",
               "primaryMuscles": [
-                "gluteus_maximus"
+                "gluteus_maximus",
+                "hamstrings"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -485,49 +535,69 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Estabilidad",
-                    "Alineación",
-                    "Control Pélvico"
+                    "Flexión de cadera sobre el borde",
+                    "Extensión de cadera hasta alineación",
+                    "Sostén de la posición de rodilla",
+                    "Sostén del perfil lumbar",
+                    "Transferencia de fuerza de cadera a tronco",
+                    "Sostén del implemento agarrado",
+                    "Sostén de la flexión para abrazar el disco"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión"
+                        "Flexión de cadera sobre el borde",
+                        "Extensión de cadera hasta alineación"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad"
+                        "Sostén de la posición de rodilla"
                       ],
                       "jointId": "rodilla",
-                      "role": "SECONDARY"
+                      "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Alineación"
+                        "Sostén del perfil lumbar"
                       ],
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Control Pélvico"
+                        "Transferencia de fuerza de cadera a tronco"
                       ],
                       "jointId": "sacroiliaca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del implemento agarrado"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén de la flexión para abrazar el disco"
+                      ],
+                      "jointId": "codo",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "gluteus_maximus"
-                  ],
-                  "secondaryMuscles": [
+                    "gluteus_maximus",
                     "hamstrings"
                   ],
+                  "secondaryMuscles": [],
                   "stabilizerMuscles": [
-                    "erector_spinae"
+                    "erector_spinae",
+                    "core",
+                    "forearm",
+                    "biceps"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -542,7 +612,9 @@
                     "cadera",
                     "rodilla",
                     "columna-lumbar",
-                    "sacroiliaca"
+                    "sacroiliaca",
+                    "muñeca",
+                    "codo"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -597,22 +669,25 @@
                     "smith_machine"
                   ],
                   "preservesIntent": [
-                    "hip_extension:gluteus_maximus"
+                    "hip_extension:gluteus_maximus",
+                    "hip_extension:hamstrings"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "hamstrings"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
-                "Preparación: Disco en el pecho en el banco a 45: carga ligera y control total del recorrido."
+                "Abraza el disco contra el pecho antes de iniciar la repetición.",
+                "Afirma los tobillos y deja el pliegue de cadera fuera del borde del apoyo."
               ],
               "setupTimeSeconds": 15,
               "ssc": 0.5,
               "stabilizerMuscles": [
-                "erector_spinae"
+                "erector_spinae",
+                "core",
+                "forearm",
+                "biceps"
               ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
@@ -639,38 +714,41 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con máquina Smith, en el banco inclinado, el torso baja y sube pivotando sobre la cadera con el glúteo dirigiendo. En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor.",
+              "description": "La barra apoyada sobre la espalda queda sujeta a un recorrido vertical que debe encajar con el banco inclinado. La colocación del banco limita la bisagra disponible y no permite suponer el mismo arco que con una barra libre.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
-                "Smith en el banco a 45: la barra guiada acompaña el movimiento y puedes cargar con control. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar."
+                "Pliega la cadera hasta donde puedas conservar los contactos con el banco y la barra.",
+                "Interrumpe la bajada si la guía te desplaza fuera del acolchado.",
+                "Regresa con la cadera sin arquear la zona lumbar."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión"
+                    "Flexión de cadera sobre el borde",
+                    "Extensión de cadera hasta alineación"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad"
+                    "Sostén de la posición de rodilla"
                   ],
                   "jointId": "rodilla",
-                  "role": "SECONDARY"
+                  "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Alineación"
+                    "Sostén del perfil lumbar"
                   ],
                   "jointId": "columna-lumbar",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Control Pélvico"
+                    "Transferencia de fuerza de cadera a tronco"
                   ],
                   "jointId": "sacroiliaca",
                   "role": "STABILIZER"
@@ -682,7 +760,8 @@
               "movementPatternId": "hip_extension",
               "performanceProfileId": "glutes_hiperextension_45__smith_machine",
               "primaryMuscles": [
-                "gluteus_maximus"
+                "gluteus_maximus",
+                "hamstrings"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -690,49 +769,51 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Estabilidad",
-                    "Alineación",
-                    "Control Pélvico"
+                    "Flexión de cadera sobre el borde",
+                    "Extensión de cadera hasta alineación",
+                    "Sostén de la posición de rodilla",
+                    "Sostén del perfil lumbar",
+                    "Transferencia de fuerza de cadera a tronco"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión"
+                        "Flexión de cadera sobre el borde",
+                        "Extensión de cadera hasta alineación"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad"
+                        "Sostén de la posición de rodilla"
                       ],
                       "jointId": "rodilla",
-                      "role": "SECONDARY"
+                      "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Alineación"
+                        "Sostén del perfil lumbar"
                       ],
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Control Pélvico"
+                        "Transferencia de fuerza de cadera a tronco"
                       ],
                       "jointId": "sacroiliaca",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "gluteus_maximus"
-                  ],
-                  "secondaryMuscles": [
+                    "gluteus_maximus",
                     "hamstrings"
                   ],
+                  "secondaryMuscles": [],
                   "stabilizerMuscles": [
-                    "erector_spinae"
+                    "erector_spinae",
+                    "core"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -802,22 +883,23 @@
                     "smith_machine"
                   ],
                   "preservesIntent": [
-                    "hip_extension:gluteus_maximus"
+                    "hip_extension:gluteus_maximus",
+                    "hip_extension:hamstrings"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "hamstrings"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
-                "Preparación: Smith en el banco a 45: la barra guiada acompaña el movimiento y puedes cargar con control."
+                "Alinea el banco con la barra y prueba un recorrido breve sin añadir discos.",
+                "Ajusta los topes y apoya la barra en la espalda alta con ambas manos."
               ],
               "setupTimeSeconds": 40,
               "ssc": 0.5,
               "stabilizerMuscles": [
-                "erector_spinae"
+                "erector_spinae",
+                "core"
               ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
@@ -828,7 +910,7 @@
           }
         ],
         "defaultConfigurationId": "glutes_hiperextension_45__plate",
-        "description": "Las Hiperextensiones a 45° para Glúteos usan el banco inclinado para aislar la cadera: el torso baja y sube pivotando sobre la cadera con el glúteo mayor empujando la subida. Se ejecutan con las caderas al borde del apoyo, bajando con la espalda redondeada hacia el suelo y extendiendo con intención de glúteo. Los isquiosurales acompañan y un disco o unas mancuernas añaden carga cuando el cuerpo ya no basta. El clásico del banco romano pensado para el trasero.",
+        "description": "Las Hiperextensiones a 45° para Glúteos son una extensión de cadera sobre banco inclinado que trabaja el glúteo mayor y los isquiosurales. El borde del acolchado queda debajo del pliegue de cadera para que el torso se incline como una unidad y vuelva a la línea de las piernas. La espalda conserva su forma y el regreso termina al extender la cadera, sin añadir un arqueo de cintura. El disco cercano al pecho o la carga suspendida bajo los hombros cambian dónde queda el peso durante esa bisagra.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -3113,38 +3195,48 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con barra, con la carga sujeta contra el pecho, el torso baja y sube en el banco inclinado con la cadera al mando. La barra es la referencia para cargar el glúteo mayor con peso de verdad.",
+              "description": "Los pliegues internos de los codos reciben el eje y las manos se juntan por encima, sin hacer un agarre pesado de dedos. El borde bajo las caderas deja libre el pivote mientras los discos quedan a los lados del banco.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
-                "Carga en los codos frente al pecho en el banco a 45: el peso queda cerca del cuerpo y el glúteo hace el trabajo. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar."
+                "Inclina el torso desde las caderas sin redondear la zona lumbar.",
+                "Levanta el cuerpo hasta la línea de las piernas con la barra cerca del pecho.",
+                "Sostén el ángulo de los codos durante toda la repetición."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión"
+                    "Flexión de cadera con carga anterior",
+                    "Extensión de cadera hacia la línea corporal"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad"
+                    "Sostén de rodilla en el banco"
                   ],
                   "jointId": "rodilla",
-                  "role": "SECONDARY"
+                  "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Alineación"
+                    "Resistencia a la flexión lumbar"
                   ],
                   "jointId": "columna-lumbar",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Control Pélvico"
+                    "Sostén isométrico de la barra recibida"
+                  ],
+                  "jointId": "codo",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Transferencia de fuerza entre cadera y torso"
                   ],
                   "jointId": "sacroiliaca",
                   "role": "STABILIZER"
@@ -3156,7 +3248,8 @@
               "movementPatternId": "hip_extension",
               "performanceProfileId": "glutes_hiperextension_45_zercher",
               "primaryMuscles": [
-                "gluteus_maximus"
+                "gluteus_maximus",
+                "hamstrings"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -3164,49 +3257,60 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Estabilidad",
-                    "Alineación",
-                    "Control Pélvico"
+                    "Flexión de cadera con carga anterior",
+                    "Extensión de cadera hacia la línea corporal",
+                    "Sostén de rodilla en el banco",
+                    "Resistencia a la flexión lumbar",
+                    "Sostén isométrico de la barra recibida",
+                    "Transferencia de fuerza entre cadera y torso"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión"
+                        "Flexión de cadera con carga anterior",
+                        "Extensión de cadera hacia la línea corporal"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad"
+                        "Sostén de rodilla en el banco"
                       ],
                       "jointId": "rodilla",
-                      "role": "SECONDARY"
+                      "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Alineación"
+                        "Resistencia a la flexión lumbar"
                       ],
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Control Pélvico"
+                        "Sostén isométrico de la barra recibida"
+                      ],
+                      "jointId": "codo",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Transferencia de fuerza entre cadera y torso"
                       ],
                       "jointId": "sacroiliaca",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "gluteus_maximus"
-                  ],
-                  "secondaryMuscles": [
+                    "gluteus_maximus",
                     "hamstrings"
                   ],
+                  "secondaryMuscles": [],
                   "stabilizerMuscles": [
-                    "erector_spinae"
+                    "erector_spinae",
+                    "core",
+                    "biceps"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -3221,6 +3325,7 @@
                     "cadera",
                     "rodilla",
                     "columna-lumbar",
+                    "codo",
                     "sacroiliaca"
                   ],
                   "resistanceProfile": "gravity_arc",
@@ -3270,22 +3375,24 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "hip_extension:gluteus_maximus"
+                    "hip_extension:gluteus_maximus",
+                    "hip_extension:hamstrings"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "hamstrings"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
-                "Preparación: Carga en los codos frente al pecho en el banco a 45: el peso queda cerca del cuerpo y el glúteo hace el trabajo."
+                "Ajusta el banco para liberar el pliegue de cadera y asegurar los tobillos.",
+                "Recibe la barra en ambos codos doblados y junta las manos frente al pecho."
               ],
               "setupTimeSeconds": 35,
               "ssc": 0.5,
               "stabilizerMuscles": [
-                "erector_spinae"
+                "erector_spinae",
+                "core",
+                "biceps"
               ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
@@ -3294,7 +3401,7 @@
           }
         ],
         "defaultConfigurationId": "glutes_hiperextension_45_zercher__default",
-        "description": "La Hiperextensión a 45 Zercher para Glúteos carga el banco inclinado de otra manera: la barra abrazada en los codos añade peso sin ocupar las manos ni tocar la espalda. Se ejecuta igual que la versión con lastre al pecho, bajando el torso y extendiendo con potencia de glúteo mayor e isquiosurales. La posición zercher exige core firme y brazos pacientes. Otra manera de cargar el banco romano, con el torso trabajando el doble.",
+        "description": "La Hiperextensión a 45 Zercher para Glúteos carga la extensión de cadera en el banco inclinado con una barra recibida en los codos. Glúteo mayor e isquiosurales levantan el torso mientras la espalda conserva su forma y las piernas quedan sujetas. La barra viaja cerca del pecho durante la inclinación, con los codos doblados para sostenerla en vez de tirar de ella. Esa colocación permite cargar la bisagra sin apoyar el eje en la espalda, aunque el sostén de brazos puede limitar la repetición.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

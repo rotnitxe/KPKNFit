@@ -1,21 +1,239 @@
 {
   "definitions": {
     "hams_pull_through": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Extensión frente a resistencia posterior",
+              "Flexión durante el retorno hacia la polea"
+            ],
+            "id": "cadera",
+            "role": "PRIMARY",
+            "sources": [
+              "dicus2023"
+            ],
+            "why": "La pelvis retrocede y avanza con los dos pies fijos mientras el cable aporta resistencia desde la parte posterior baja. Dicus estudia este movimiento como bisagra de rodilla suave; la cadera produce el recorrido y no se sustituye por flexión lumbar."
+          },
+          {
+            "actions": [
+              "Conservación de una flexión ligera"
+            ],
+            "id": "rodilla",
+            "role": "STABILIZER",
+            "sources": [
+              "dicus2023"
+            ],
+            "why": "El protocolo de bisagra con pierna casi recta deja la rodilla algo doblada y con variación pequeña en la repetición. Ese ángulo permite mover la pelvis sin convertir la tarea en un empuje de rodillas: aquí se clasifica como sostén, no extensión cargada dominante."
+          },
+          {
+            "actions": [
+              "Resistencia a la flexión lumbar bajo tracción posterior"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "dicus2023"
+            ],
+            "why": "La columna se sostiene neutra mientras cambia el ángulo de cadera. La actividad del longísimo y multífido medida en pull-through apoya esa participación; la inclinación del torso no equivale a un ciclo de flexión y extensión vertebral."
+          },
+          {
+            "actions": [
+              "Transmisión de resistencia desde pelvis a tronco"
+            ],
+            "id": "sacroiliaca",
+            "role": "STABILIZER",
+            "sources": [
+              "pelvic_joints"
+            ],
+            "why": "La pelvis transmite la resistencia de la cuerda al cuerpo apoyado en ambos miembros inferiores. La anatomía pélvica justifica estabilidad con movilidad limitada, sin presentar un desplazamiento sacroilíaco como origen de la extensión de cadera."
+          },
+          {
+            "actions": [
+              "Agarre neutro de los extremos de cuerda"
+            ],
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "sources": [
+              "forearm_anatomy"
+            ],
+            "why": "Las palmas enfrentadas rodean los dos extremos y los dedos resisten el tirón del cable. La muñeca conserva su posición al viajar la mano con el cuerpo; el sostén se deduce de los flexores digitales y no de una flexión activa repetida de esta articulación."
+          },
+          {
+            "actions": [
+              "Transmisión de la tracción a través de los brazos"
+            ],
+            "id": "glenohumeral",
+            "role": "STABILIZER",
+            "sources": [
+              "dicus2023"
+            ],
+            "why": "Las manos permanecen bajas y los brazos unen la cuerda con el tronco sin realizar una elevación deliberada de hombro. Este rol de transferencia se deduce de la geometría del pull-through mostrado por Dicus; su estudio no registró músculos del hombro."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "hamstrings",
+            "role": "PRIMARY",
+            "sources": [
+              "dicus2023",
+              "hamstring_anatomy"
+            ],
+            "why": "La rodilla casi fija permite a los isquiosurales extender la cadera al vencer la tracción posterior de la polea. Dicus registró bíceps femoral y semitendinoso en pull-through, aunque con menor actividad que en rumano; esa reducción no elimina su trabajo de motor ni exige cambiar el dominante heredado."
+          },
+          {
+            "id": "gluteus_maximus",
+            "role": "PRIMARY",
+            "sources": [
+              "dicus2023"
+            ],
+            "why": "Lleva la pelvis hacia delante desde la bisagra y completa la extensión contra el cable posterior. Dicus midió glúteo mayor en este ejercicio de extensión de cadera; su función dinámica justifica principal junto a los isquiosurales, sin atribuirle una dominancia universal basada en señales entre músculos."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "dicus2023"
+            ],
+            "why": "La columna conserva su forma mientras el tronco gira desde la cadera y resiste la carga del cable. Dicus registró longísimo y multífido, con menor actividad que en rumano; el gesto neutro los usa como sostén vertebral y no para crear recorrido lumbar añadido."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "hamlyn2007",
+              "dicus2023"
+            ],
+            "why": "La pared abdominal sostiene la relación entre tórax y pelvis frente a la tracción posterior para que el movimiento se concentre en la cadera. Es una inferencia mecánica del pull-through apoyada indirectamente por mediciones de tronco en peso muerto; Hamlyn no midió esta configuración en cable."
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "sources": [
+              "forearm_anatomy"
+            ],
+            "why": "Cada mano conserva un extremo de la cuerda mientras el cable tira de la sujeción durante la ida y la vuelta. Los dedos generan un agarre estático por su anatomía flexora; la serie no requiere flexionar las muñecas ni usar un curl para mover las placas."
+          }
+        ]
+      },
       "public": {
         "configurations": {
           "hams_pull_through__default": {
-            "description": "Con polea, de espaldas a la polea baja, la cuerda pasa entre las piernas y la cadera se proyecta atrás y adelante. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco.",
+            "description": "Cada mano sujeta un extremo de la cuerda unida al cable que llega desde abajo por detrás de los pies. Un paso de separación de la estación deja espacio para llevar las manos atrás entre los muslos sin tocar la torre ni dejar descansar las placas entre repeticiones.",
             "executionCues": [
-              "De espaldas a la polea baja, la cuerda pasa entre las piernas y la cadera empuja atrás y adelante. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Lleva la pelvis hacia atrás mientras las manos pasan entre los muslos y el cable permanece tenso.",
+              "Extiende la cadera hasta colocar la pelvis debajo del pecho, sin tirar con los codos.",
+              "Regresa a la bisagra con la columna neutra y las rodillas sin doblarse en una sentadilla."
             ],
             "setupCues": [
-              "Preparación: De espaldas a la polea baja, la cuerda pasa entre las piernas y la cadera empuja atrás y adelante."
+              "Ajusta la polea cerca del suelo y engancha una cuerda de dos extremos.",
+              "Ponte de espaldas a la estación y agarra un extremo con cada mano entre las piernas.",
+              "Aléjate hasta tensar el cable, con ambos pies firmes y las rodillas ligeramente dobladas."
             ]
           }
         },
-        "description": "El Pull-Through enseña la bisagra sin peso sobre la espalda: de espaldas a la polea baja, la cuerda pasa entre las piernas y la cadera se proyecta atrás y adelante con cada repetición. Los isquiosurales y los glúteos dirigen el vaivén mientras los brazos solo guían la cuerda. Es la escuela de la cadera para quien todavía no domina el peso muerto. La vía amable para aprender el patrón que mueve todo lo demás."
+        "description": "El Pull-Through es una bisagra de cadera contra una polea baja situada detrás del cuerpo, con isquiosurales y glúteo mayor moviendo la pelvis. La cuerda pasa entre las piernas y los brazos cuelgan mientras la cadera retrocede hacia la estación y después avanza hasta quedar erguido. Las rodillas permanecen ligeramente flexionadas y el tronco acompaña el cambio de cadera con la columna neutra. La resistencia tira desde atrás y su efecto sobre la cadera varía según la distancia y la postura, aunque el cable continúe tenso. Esta dirección de carga ofrece una forma de practicar la bisagra sin sostener un peso sobre los hombros."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "Comparó pull-through en cable, rumano y extensión inversa al cincuenta por ciento del máximo estimado. El pull-through reclutó glúteo mayor, bíceps femoral, semitendinoso y extensores lumbares; frente al rumano disminuyeron varios registros lumbares e isquiosurales. Una menor señal no significa ausencia del músculo ni eficacia clínica superior.",
+          "id": "dicus2023",
+          "title": "A Comparison of Muscle Recruitment Across Three Straight-Legged, Hinge-Pattern Resistance Training Exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/37113509/"
+        },
+        {
+          "claim": "La anatomía del compartimento anterior explica la flexión de dedos y muñeca. Se usa para deducir el agarre sostenido de un asa o una cuerda, sin presentarse como electromiografía de swing o pull-through.",
+          "id": "forearm_anatomy",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/"
+        },
+        {
+          "claim": "Los isquiosurales que cruzan la cadera pueden extenderla además de flexionar la rodilla. Esta función complementa la participación registrada en las bisagras de estas fichas y no atribuye extensión de cadera a la cabeza corta del bíceps femoral.",
+          "id": "hamstring_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hamstring Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31536294/"
+        },
+        {
+          "claim": "La sacroilíaca une pelvis y tronco y transmite carga a los miembros inferiores con movilidad restringida. Su papel en estas bisagras se deduce como transferencia de fuerzas, no como articulación propulsora.",
+          "id": "pelvic_joints",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Pelvic Joints",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30860758/"
+        },
+        {
+          "claim": "Midió erectores y pared abdominal durante peso muerto y otras tareas. Solo se utiliza indirectamente para la estabilización abdominal de una bisagra de pie; no registró pull-through ni demuestra su actividad abdominal específica.",
+          "id": "hamlyn2007",
+          "title": "Trunk muscle activation during dynamic weight-training exercises and isometric instability activities",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/18076231/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Bisagra con el atleta de espaldas a una polea cerca del suelo, cuerda pasando entre las piernas y una mano en cada extremo. La pelvis retrocede y vuelve bajo el tronco, con rodillas suavemente flexionadas y brazos largos; el cable permanece conectado a la estación por detrás.",
+        "keyPositions": [
+          "Bisagra: pelvis retrasada hacia la estación, torso inclinado neutro y manos desplazadas atrás entre los muslos.",
+          "Final: tronco erguido, pelvis bajo las costillas y manos bajas por delante de la pelvis, con el cable tenso hacia la polea posterior."
+        ],
+        "mistakes": [
+          "Ponerse de frente a la torre y transformar el gesto en una tracción hacia el abdomen.",
+          "Sentarse en una flexión profunda de rodillas en lugar de desplazar la pelvis atrás.",
+          "Flexionar los codos para acercar la cuerda al tronco o terminar arqueando la espalda.",
+          "Acercarse tanto a la polea que la cuerda golpee la estación o las placas descansen antes de acabar."
+        ],
+        "phases": [
+          {
+            "description": "La cadera se flexiona y las manos acompañan entre los muslos hacia la polea, con rodillas poco variables.",
+            "name": "Retroceso de pelvis"
+          },
+          {
+            "description": "La pelvis avanza bajo el tronco al extender la cadera mientras el agarre continúa bajo y los codos largos.",
+            "name": "Extensión contra el cable"
+          },
+          {
+            "description": "El atleta queda erguido con cuerda delante de la pelvis y resistencia conectada por detrás sin inclinarse hacia atrás.",
+            "name": "Final alineado"
+          },
+          {
+            "description": "La pelvis vuelve hacia la estación y el cuerpo se inclina desde la cadera sin dejar descansar la carga.",
+            "name": "Vuelta a la bisagra"
+          }
+        ],
+        "setup": [
+          "Polea baja detrás del atleta con una cuerda de dos extremos unida al cable.",
+          "Pies separados lo suficiente para que cuerda y manos pasen entre los muslos sin chocar con las rodillas.",
+          "Distancia de la torre que permita el recorrido posterior sin contacto con la estructura ni descanso de las placas durante la serie."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral a la altura de la pelvis, con atleta entero y punto posterior bajo de conexión dentro del encuadre.",
+          "contacts": "Ambas plantas apoyan en el suelo y una mano agarra cada extremo de la sujeción; el cuerpo no descansa sobre la estación.",
+          "load": "Resistencia conectada desde detrás y abajo, pasando entre las piernas hasta la sujeción manual situada delante de la pelvis.",
+          "orientation": "Atleta mirando hacia la derecha, con la conexión de resistencia por detrás a la izquierda.",
+          "phase": "Final congelado de la extensión de cadera con tronco erguido y manos delante de la pelvis.",
+          "posture": "Pelvis debajo de las costillas, rodillas suavemente flexionadas y brazos largos con manos a la altura de los muslos."
+        },
+        "byImplement": {
+          "cable": {
+            "geometry": "Polea cerca del suelo por detrás del atleta; cable tenso cruza el hueco entre ambas piernas hasta la unión central de una cuerda; cada mano agarra un extremo bajo delante de la pelvis."
+          }
+        },
+        "forbidden": [
+          "Polea delante del atleta o cable que llega desde arriba, en lugar de conexión posterior baja.",
+          "Cuerda delante del abdomen con codos doblados como en un remo.",
+          "Cable unido a un cinturón o a las caderas sin sujeción manual.",
+          "Final con espalda arqueada hacia atrás o conexión que atraviesa un muslo en lugar del espacio entre piernas."
+        ],
+        "promptCore": {
+          "cable": "Full body side view of an athlete facing RIGHT, frozen at the END of a cable pull through hip extension. A LOW pulley station stands BEHIND the athlete on the LEFT. A taut cable runs from that low pulley THROUGH THE GAP BETWEEN BOTH LEGS to the center of a rope attachment. Each hand firmly grips one rope end in front of the upper inner thighs, arms straight and hands low. Both feet flat on the floor, knees slightly bent, pelvis under the chest and torso upright without leaning back. Show the continuous cable path and station, no text or logos."
+        },
+        "qa": [
+          "¿La estación y la polea baja están detrás del atleta?",
+          "¿Se ve un cable continuo y tenso pasando entre las piernas hasta la cuerda?",
+          "¿Cada mano agarra un extremo y ambas manos quedan bajas delante de la pelvis?",
+          "¿El cuerpo está erguido sobre ambos pies con rodillas suavemente flexionadas?",
+          "¿Los codos siguen estirados y la espalda no se arquea hacia atrás?"
+        ]
+      }
     }
   },
   "familyId": "lower_hip_hinge",

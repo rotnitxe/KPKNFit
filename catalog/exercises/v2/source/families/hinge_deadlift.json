@@ -24,41 +24,60 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con barra y a dos lados, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. La barra es la referencia para cargar el glúteo mayor con peso de verdad. A dos lados, el trabajo del glúteo mayor admite más carga total.",
+              "description": "Los discos fijan la altura de salida de la barra recta, que asciende delante de las espinillas con las manos por fuera de las piernas. El contacto cercano al cuerpo facilita repetir el mismo arranque en ambos apoyos.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
-                "Barra con ambas piernas: el peso muerto más directo para, desde el suelo con las dos manos. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado."
+                "Empuja el suelo con ambos pies y eleva hombros y caderas juntos al empezar.",
+                "Acerca la cadera a la barra después de pasar las rodillas, hasta quedar erguido.",
+                "Devuelve los discos al suelo doblando cadera y rodillas, sin rebote."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Extensión de la cadera",
+                    "Flexión de la cadera"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión Ligera Y Estabilidad"
+                    "Extensión de la rodilla",
+                    "Flexión de la rodilla"
                   ],
                   "jointId": "rodilla",
-                  "role": "SECONDARY"
+                  "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Resistencia A La Flexión"
+                    "Resistencia a la flexión lumbar"
                   ],
                   "jointId": "columna-lumbar",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Transferencia Pelvis-Tronco"
+                    "Transmisión de fuerza entre tronco y pelvis"
                   ],
                   "jointId": "sacroiliaca",
                   "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén isométrico del agarre"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Dorsiflexión durante la salida",
+                    "Retorno desde la dorsiflexión"
+                  ],
+                  "jointId": "tobillo",
+                  "role": "SECONDARY"
                 }
               ],
               "kineticChain": "POSTERIOR",
@@ -68,7 +87,8 @@
               "performanceProfileId": "conventional_deadlift__barbell__peso_muerto",
               "primaryMuscles": [
                 "gluteus_maximus",
-                "hamstrings"
+                "hamstrings",
+                "quadriceps"
               ],
               "replacementGroup": "ham_deadlift",
               "replacementPriority": 1,
@@ -76,51 +96,75 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión",
-                    "Flexión Ligera Y Estabilidad",
-                    "Resistencia A La Flexión",
-                    "Transferencia Pelvis-Tronco"
+                    "Extensión de la cadera",
+                    "Flexión de la cadera",
+                    "Extensión de la rodilla",
+                    "Flexión de la rodilla",
+                    "Resistencia a la flexión lumbar",
+                    "Transmisión de fuerza entre tronco y pelvis",
+                    "Sostén isométrico del agarre",
+                    "Dorsiflexión durante la salida",
+                    "Retorno desde la dorsiflexión"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Extensión de la cadera",
+                        "Flexión de la cadera"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión Ligera Y Estabilidad"
+                        "Extensión de la rodilla",
+                        "Flexión de la rodilla"
                       ],
                       "jointId": "rodilla",
-                      "role": "SECONDARY"
+                      "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Resistencia A La Flexión"
+                        "Resistencia a la flexión lumbar"
                       ],
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Transferencia Pelvis-Tronco"
+                        "Transmisión de fuerza entre tronco y pelvis"
                       ],
                       "jointId": "sacroiliaca",
                       "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén isométrico del agarre"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Dorsiflexión durante la salida",
+                        "Retorno desde la dorsiflexión"
+                      ],
+                      "jointId": "tobillo",
+                      "role": "SECONDARY"
                     }
                   ],
                   "primaryMuscles": [
                     "gluteus_maximus",
-                    "hamstrings"
+                    "hamstrings",
+                    "quadriceps"
                   ],
                   "secondaryMuscles": [
-                    "quadriceps"
+                    "adductors"
                   ],
                   "stabilizerMuscles": [
                     "erector_spinae",
-                    "core"
+                    "core",
+                    "forearm"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -135,7 +179,9 @@
                     "cadera",
                     "rodilla",
                     "columna-lumbar",
-                    "sacroiliaca"
+                    "sacroiliaca",
+                    "muñeca",
+                    "tobillo"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -189,23 +235,27 @@
                   ],
                   "preservesIntent": [
                     "deadlift:gluteus_maximus",
-                    "deadlift:hamstrings"
+                    "deadlift:hamstrings",
+                    "deadlift:quadriceps"
                   ],
                   "replacementGroup": "ham_deadlift",
                   "replacementPriority": 1
                 }
               },
               "secondaryMuscles": [
-                "quadriceps"
+                "adductors"
               ],
               "setupCues": [
-                "Preparación: Barra con ambas piernas: el peso muerto más directo para, desde el suelo con las dos manos."
+                "Sitúa la barra sobre la mitad de ambos pies, separados al ancho de tus caderas.",
+                "Cierra las manos por fuera de las piernas y acerca las espinillas a la barra.",
+                "Tensa el tronco con los codos estirados antes de despegar los discos."
               ],
               "setupTimeSeconds": 45,
               "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
-                "core"
+                "core",
+                "forearm"
               ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
@@ -233,41 +283,60 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con barra y a un lado, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. Con la barra, la carga sube al máximo y la progresión del glúteo mayor se mide sin trampa. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
+              "description": "Ambas manos sostienen el eje recto, pero solo una pierna empuja desde el suelo y la rodilla libre permanece doblada detrás. Su anchura añade dificultad para impedir que un extremo baje antes que el otro durante el arranque.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
-                "Barra en apoyo de una sola pierna: el equilibrio se convierte en protagonista y la cadera trabaja a fondo. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado."
+                "Eleva la barra desde el suelo extendiendo cadera y rodilla de la pierna apoyada.",
+                "Conserva los extremos a igual altura y la pelvis mirando al frente.",
+                "Vuelve al apoyo inicial sin apoyar el pie libre durante la repetición."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Extensión de la cadera de apoyo",
+                    "Resistencia al giro de la pelvis"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión Ligera Y Estabilidad"
+                    "Extensión de la rodilla",
+                    "Flexión de la rodilla"
                   ],
                   "jointId": "rodilla",
-                  "role": "SECONDARY"
+                  "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Resistencia A La Flexión"
+                    "Resistencia a la flexión lumbar"
                   ],
                   "jointId": "columna-lumbar",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Transferencia Pelvis-Tronco"
+                    "Transferencia de carga hacia una pierna"
                   ],
                   "jointId": "sacroiliaca",
                   "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén isométrico del agarre"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Dorsiflexión durante la salida",
+                    "Retorno desde la dorsiflexión"
+                  ],
+                  "jointId": "tobillo",
+                  "role": "SECONDARY"
                 }
               ],
               "kineticChain": "POSTERIOR",
@@ -277,7 +346,8 @@
               "performanceProfileId": "conventional_deadlift__barbell__peso_muerto_unilateral",
               "primaryMuscles": [
                 "gluteus_maximus",
-                "hamstrings"
+                "hamstrings",
+                "quadriceps"
               ],
               "replacementGroup": "ham_deadlift",
               "replacementPriority": 1,
@@ -285,51 +355,76 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión",
-                    "Flexión Ligera Y Estabilidad",
-                    "Resistencia A La Flexión",
-                    "Transferencia Pelvis-Tronco"
+                    "Extensión de la cadera de apoyo",
+                    "Resistencia al giro de la pelvis",
+                    "Extensión de la rodilla",
+                    "Flexión de la rodilla",
+                    "Resistencia a la flexión lumbar",
+                    "Transferencia de carga hacia una pierna",
+                    "Sostén isométrico del agarre",
+                    "Dorsiflexión durante la salida",
+                    "Retorno desde la dorsiflexión"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Extensión de la cadera de apoyo",
+                        "Resistencia al giro de la pelvis"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión Ligera Y Estabilidad"
+                        "Extensión de la rodilla",
+                        "Flexión de la rodilla"
                       ],
                       "jointId": "rodilla",
-                      "role": "SECONDARY"
+                      "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Resistencia A La Flexión"
+                        "Resistencia a la flexión lumbar"
                       ],
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Transferencia Pelvis-Tronco"
+                        "Transferencia de carga hacia una pierna"
                       ],
                       "jointId": "sacroiliaca",
                       "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén isométrico del agarre"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Dorsiflexión durante la salida",
+                        "Retorno desde la dorsiflexión"
+                      ],
+                      "jointId": "tobillo",
+                      "role": "SECONDARY"
                     }
                   ],
                   "primaryMuscles": [
                     "gluteus_maximus",
-                    "hamstrings"
+                    "hamstrings",
+                    "quadriceps"
                   ],
                   "secondaryMuscles": [
-                    "quadriceps"
+                    "adductors"
                   ],
                   "stabilizerMuscles": [
                     "erector_spinae",
                     "core",
+                    "forearm",
+                    "gluteus_medius",
                     "tensor_fasciae_latae"
                   ],
                   "volumeContribution": "indirect"
@@ -345,7 +440,9 @@
                     "cadera",
                     "rodilla",
                     "columna-lumbar",
-                    "sacroiliaca"
+                    "sacroiliaca",
+                    "muñeca",
+                    "tobillo"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -399,23 +496,28 @@
                   ],
                   "preservesIntent": [
                     "deadlift:gluteus_maximus",
-                    "deadlift:hamstrings"
+                    "deadlift:hamstrings",
+                    "deadlift:quadriceps"
                   ],
                   "replacementGroup": "ham_deadlift",
                   "replacementPriority": 1
                 }
               },
               "secondaryMuscles": [
-                "quadriceps"
+                "adductors"
               ],
               "setupCues": [
-                "Preparación: Barra en apoyo de una sola pierna: el equilibrio se convierte en protagonista y la cadera trabaja a fondo."
+                "Pon la barra delante del pie de apoyo y agárrala con las dos manos por fuera de esa pierna.",
+                "Dobla la rodilla libre y despega ese pie sin girar la pelvis.",
+                "Flexiona la rodilla de apoyo lo necesario para alcanzar la barra con la columna neutra."
               ],
               "setupTimeSeconds": 45,
               "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
+                "forearm",
+                "gluteus_medius",
                 "tensor_fasciae_latae"
               ],
               "technicalDifficulty": 4.2,
@@ -444,41 +546,60 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con máquina Smith y a dos lados, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. Con ambos lados a la vez, el trabajo del glúteo mayor se reparte.",
+              "description": "Los raíles determinan por dónde asciende la barra, por lo que los pies se ubican según esa línea y no según el borde de la máquina. La altura mínima del carro puede recortar el tramo inicial respecto de una salida desde el suelo.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
-                "Smith con ambas piernas: la barra sube guiada y puedes concentrarte en empujar sin pensar en el equilibrio. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado."
+                "Empuja contra el suelo sin alejar los pies de la línea de los raíles.",
+                "Termina de pie sin inclinarte hacia atrás contra la barra.",
+                "Baja el carro hasta el apoyo previsto y vuelve a engancharlo al terminar."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Extensión de la cadera",
+                    "Flexión de la cadera"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión Ligera Y Estabilidad"
+                    "Extensión de la rodilla",
+                    "Flexión de la rodilla"
                   ],
                   "jointId": "rodilla",
-                  "role": "SECONDARY"
+                  "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Resistencia A La Flexión"
+                    "Resistencia a la flexión lumbar"
                   ],
                   "jointId": "columna-lumbar",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Transferencia Pelvis-Tronco"
+                    "Transmisión de fuerza entre tronco y pelvis"
                   ],
                   "jointId": "sacroiliaca",
                   "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén isométrico del agarre"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Dorsiflexión durante la salida",
+                    "Retorno desde la dorsiflexión"
+                  ],
+                  "jointId": "tobillo",
+                  "role": "SECONDARY"
                 }
               ],
               "kineticChain": "POSTERIOR",
@@ -488,7 +609,8 @@
               "performanceProfileId": "conventional_deadlift__smith_machine__peso_muerto",
               "primaryMuscles": [
                 "gluteus_maximus",
-                "hamstrings"
+                "hamstrings",
+                "quadriceps"
               ],
               "replacementGroup": "ham_deadlift",
               "replacementPriority": 1,
@@ -496,50 +618,75 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión",
-                    "Flexión Ligera Y Estabilidad",
-                    "Resistencia A La Flexión",
-                    "Transferencia Pelvis-Tronco"
+                    "Extensión de la cadera",
+                    "Flexión de la cadera",
+                    "Extensión de la rodilla",
+                    "Flexión de la rodilla",
+                    "Resistencia a la flexión lumbar",
+                    "Transmisión de fuerza entre tronco y pelvis",
+                    "Sostén isométrico del agarre",
+                    "Dorsiflexión durante la salida",
+                    "Retorno desde la dorsiflexión"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Extensión de la cadera",
+                        "Flexión de la cadera"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión Ligera Y Estabilidad"
+                        "Extensión de la rodilla",
+                        "Flexión de la rodilla"
                       ],
                       "jointId": "rodilla",
-                      "role": "SECONDARY"
+                      "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Resistencia A La Flexión"
+                        "Resistencia a la flexión lumbar"
                       ],
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Transferencia Pelvis-Tronco"
+                        "Transmisión de fuerza entre tronco y pelvis"
                       ],
                       "jointId": "sacroiliaca",
                       "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén isométrico del agarre"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Dorsiflexión durante la salida",
+                        "Retorno desde la dorsiflexión"
+                      ],
+                      "jointId": "tobillo",
+                      "role": "SECONDARY"
                     }
                   ],
                   "primaryMuscles": [
                     "gluteus_maximus",
-                    "hamstrings"
-                  ],
-                  "secondaryMuscles": [
+                    "hamstrings",
                     "quadriceps"
                   ],
+                  "secondaryMuscles": [
+                    "adductors"
+                  ],
                   "stabilizerMuscles": [
-                    "core"
+                    "erector_spinae",
+                    "core",
+                    "forearm"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -554,7 +701,9 @@
                     "cadera",
                     "rodilla",
                     "columna-lumbar",
-                    "sacroiliaca"
+                    "sacroiliaca",
+                    "muñeca",
+                    "tobillo"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "self_stabilized"
@@ -608,22 +757,27 @@
                   ],
                   "preservesIntent": [
                     "deadlift:gluteus_maximus",
-                    "deadlift:hamstrings"
+                    "deadlift:hamstrings",
+                    "deadlift:quadriceps"
                   ],
                   "replacementGroup": "ham_deadlift",
                   "replacementPriority": 1
                 }
               },
               "secondaryMuscles": [
-                "quadriceps"
+                "adductors"
               ],
               "setupCues": [
-                "Preparación: Smith con ambas piernas: la barra sube guiada y puedes concentrarte en empujar sin pensar en el equilibrio."
+                "Comprueba que el carro llegue a la altura de salida prevista y que los topes no recorten el recorrido.",
+                "Alinea ambos pies para que la barra pase junto a tus piernas sin arrastrarte hacia delante.",
+                "Libera los ganchos con ambas manos por fuera de las rodillas y los brazos largos."
               ],
               "setupTimeSeconds": 50,
               "ssc": 1.0,
               "stabilizerMuscles": [
-                "core"
+                "erector_spinae",
+                "core",
+                "forearm"
               ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
@@ -651,41 +805,60 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con máquina Smith y a un lado, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
+              "description": "Un solo pie recibe el empuje mientras el carro limita el desplazamiento de las manos. La pierna libre queda recogida detrás y la pelvis todavía necesita sostén propio, aunque los raíles reduzcan la inclinación lateral de la carga.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
-                "Smith en una pierna: el guiado te permite trabajar un lado a la vez con estabilidad. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado."
+                "Presiona el suelo con la pierna apoyada mientras el carro asciende.",
+                "Llega erguido sin desplazar la pelvis hacia el pie que está en el aire.",
+                "Desciende hasta la altura inicial y engancha la barra antes de cambiar de pierna."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Extensión de la cadera de apoyo",
+                    "Estabilidad frontal de la pelvis"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión Ligera Y Estabilidad"
+                    "Extensión de la rodilla",
+                    "Flexión de la rodilla"
                   ],
                   "jointId": "rodilla",
-                  "role": "SECONDARY"
+                  "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Resistencia A La Flexión"
+                    "Resistencia a la flexión lumbar"
                   ],
                   "jointId": "columna-lumbar",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Transferencia Pelvis-Tronco"
+                    "Transmisión de fuerza entre tronco y pelvis"
                   ],
                   "jointId": "sacroiliaca",
                   "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén isométrico del agarre"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Dorsiflexión durante la salida",
+                    "Retorno desde la dorsiflexión"
+                  ],
+                  "jointId": "tobillo",
+                  "role": "SECONDARY"
                 }
               ],
               "kineticChain": "POSTERIOR",
@@ -695,7 +868,8 @@
               "performanceProfileId": "conventional_deadlift__smith_machine__peso_muerto_unilateral",
               "primaryMuscles": [
                 "gluteus_maximus",
-                "hamstrings"
+                "hamstrings",
+                "quadriceps"
               ],
               "replacementGroup": "ham_deadlift",
               "replacementPriority": 1,
@@ -703,50 +877,76 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión",
-                    "Flexión Ligera Y Estabilidad",
-                    "Resistencia A La Flexión",
-                    "Transferencia Pelvis-Tronco"
+                    "Extensión de la cadera de apoyo",
+                    "Estabilidad frontal de la pelvis",
+                    "Extensión de la rodilla",
+                    "Flexión de la rodilla",
+                    "Resistencia a la flexión lumbar",
+                    "Transmisión de fuerza entre tronco y pelvis",
+                    "Sostén isométrico del agarre",
+                    "Dorsiflexión durante la salida",
+                    "Retorno desde la dorsiflexión"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Extensión de la cadera de apoyo",
+                        "Estabilidad frontal de la pelvis"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión Ligera Y Estabilidad"
+                        "Extensión de la rodilla",
+                        "Flexión de la rodilla"
                       ],
                       "jointId": "rodilla",
-                      "role": "SECONDARY"
+                      "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Resistencia A La Flexión"
+                        "Resistencia a la flexión lumbar"
                       ],
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Transferencia Pelvis-Tronco"
+                        "Transmisión de fuerza entre tronco y pelvis"
                       ],
                       "jointId": "sacroiliaca",
                       "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén isométrico del agarre"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Dorsiflexión durante la salida",
+                        "Retorno desde la dorsiflexión"
+                      ],
+                      "jointId": "tobillo",
+                      "role": "SECONDARY"
                     }
                   ],
                   "primaryMuscles": [
                     "gluteus_maximus",
-                    "hamstrings"
-                  ],
-                  "secondaryMuscles": [
+                    "hamstrings",
                     "quadriceps"
                   ],
+                  "secondaryMuscles": [
+                    "adductors"
+                  ],
                   "stabilizerMuscles": [
+                    "erector_spinae",
                     "core",
+                    "forearm",
+                    "gluteus_medius",
                     "tensor_fasciae_latae"
                   ],
                   "volumeContribution": "indirect"
@@ -762,7 +962,9 @@
                     "cadera",
                     "rodilla",
                     "columna-lumbar",
-                    "sacroiliaca"
+                    "sacroiliaca",
+                    "muñeca",
+                    "tobillo"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "self_stabilized"
@@ -816,22 +1018,28 @@
                   ],
                   "preservesIntent": [
                     "deadlift:gluteus_maximus",
-                    "deadlift:hamstrings"
+                    "deadlift:hamstrings",
+                    "deadlift:quadriceps"
                   ],
                   "replacementGroup": "ham_deadlift",
                   "replacementPriority": 1
                 }
               },
               "secondaryMuscles": [
-                "quadriceps"
+                "adductors"
               ],
               "setupCues": [
-                "Preparación: Smith en una pierna: el guiado te permite trabajar un lado a la vez con estabilidad."
+                "Sitúa el pie de trabajo bajo la línea del carro y toma la barra con ambas manos.",
+                "Recoge la pierna libre detrás y ajusta el apoyo antes de soltar los ganchos.",
+                "Comprueba el espacio entre la rodilla libre y la máquina durante la salida."
               ],
               "setupTimeSeconds": 50,
               "ssc": 1.0,
               "stabilizerMuscles": [
+                "erector_spinae",
                 "core",
+                "forearm",
+                "gluteus_medius",
                 "tensor_fasciae_latae"
               ],
               "technicalDifficulty": 4.2,
@@ -860,41 +1068,60 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con mancuernas y a dos lados, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. A dos lados, el trabajo del glúteo mayor admite más carga total.",
+              "description": "Dos cargas independientes pasan junto a la cara externa de las piernas y permiten usar las palmas enfrentadas. Su tamaño determina cuánto hay que doblar cadera y rodillas para alcanzarlas desde el suelo, sin un eje rígido que una las manos.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
-                "Mancuernas con ambas piernas: las pesas viajan por fuera de las rodillas y el recorrido es más libre. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado."
+                "Levanta ambas mancuernas a la vez mientras empujas con las dos piernas.",
+                "Deja las pesas junto a tus muslos al terminar, con los brazos extendidos.",
+                "Apoya las dos cargas sin adelantarlas respecto de los pies."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Extensión de la cadera",
+                    "Flexión de la cadera"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión Ligera Y Estabilidad"
+                    "Extensión de la rodilla",
+                    "Flexión de la rodilla"
                   ],
                   "jointId": "rodilla",
-                  "role": "SECONDARY"
+                  "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Resistencia A La Flexión"
+                    "Resistencia a la flexión lumbar"
                   ],
                   "jointId": "columna-lumbar",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Transferencia Pelvis-Tronco"
+                    "Transmisión de fuerza entre tronco y pelvis"
                   ],
                   "jointId": "sacroiliaca",
                   "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén del agarre neutro"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Dorsiflexión durante la salida",
+                    "Retorno desde la dorsiflexión"
+                  ],
+                  "jointId": "tobillo",
+                  "role": "SECONDARY"
                 }
               ],
               "kineticChain": "POSTERIOR",
@@ -904,7 +1131,8 @@
               "performanceProfileId": "conventional_deadlift__dumbbells__peso_muerto",
               "primaryMuscles": [
                 "gluteus_maximus",
-                "hamstrings"
+                "hamstrings",
+                "quadriceps"
               ],
               "replacementGroup": "ham_deadlift",
               "replacementPriority": 1,
@@ -912,51 +1140,75 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión",
-                    "Flexión Ligera Y Estabilidad",
-                    "Resistencia A La Flexión",
-                    "Transferencia Pelvis-Tronco"
+                    "Extensión de la cadera",
+                    "Flexión de la cadera",
+                    "Extensión de la rodilla",
+                    "Flexión de la rodilla",
+                    "Resistencia a la flexión lumbar",
+                    "Transmisión de fuerza entre tronco y pelvis",
+                    "Sostén del agarre neutro",
+                    "Dorsiflexión durante la salida",
+                    "Retorno desde la dorsiflexión"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Extensión de la cadera",
+                        "Flexión de la cadera"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión Ligera Y Estabilidad"
+                        "Extensión de la rodilla",
+                        "Flexión de la rodilla"
                       ],
                       "jointId": "rodilla",
-                      "role": "SECONDARY"
+                      "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Resistencia A La Flexión"
+                        "Resistencia a la flexión lumbar"
                       ],
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Transferencia Pelvis-Tronco"
+                        "Transmisión de fuerza entre tronco y pelvis"
                       ],
                       "jointId": "sacroiliaca",
                       "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del agarre neutro"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Dorsiflexión durante la salida",
+                        "Retorno desde la dorsiflexión"
+                      ],
+                      "jointId": "tobillo",
+                      "role": "SECONDARY"
                     }
                   ],
                   "primaryMuscles": [
                     "gluteus_maximus",
-                    "hamstrings"
+                    "hamstrings",
+                    "quadriceps"
                   ],
                   "secondaryMuscles": [
-                    "quadriceps"
+                    "adductors"
                   ],
                   "stabilizerMuscles": [
                     "erector_spinae",
-                    "core"
+                    "core",
+                    "forearm"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -971,7 +1223,9 @@
                     "cadera",
                     "rodilla",
                     "columna-lumbar",
-                    "sacroiliaca"
+                    "sacroiliaca",
+                    "muñeca",
+                    "tobillo"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -1025,23 +1279,27 @@
                   ],
                   "preservesIntent": [
                     "deadlift:gluteus_maximus",
-                    "deadlift:hamstrings"
+                    "deadlift:hamstrings",
+                    "deadlift:quadriceps"
                   ],
                   "replacementGroup": "ham_deadlift",
                   "replacementPriority": 1
                 }
               },
               "secondaryMuscles": [
-                "quadriceps"
+                "adductors"
               ],
               "setupCues": [
-                "Preparación: Mancuernas con ambas piernas: las pesas viajan por fuera de las rodillas y el recorrido es más libre."
+                "Deja una mancuerna junto a cada pie, con los mangos paralelos entre sí.",
+                "Dobla cadera y rodillas hasta agarrar ambos mangos con las palmas enfrentadas.",
+                "Revisa que las dos pesas estén a la misma altura antes de levantarlas."
               ],
               "setupTimeSeconds": 30,
               "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
-                "core"
+                "core",
+                "forearm"
               ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
@@ -1069,41 +1327,60 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con mancuernas y a un lado, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
+              "description": "Una mancuerna en cada mano deja libre el espacio delante de la rodilla de apoyo. El pie contrario queda en el aire y las dos cargas se desplazan a los lados de la pierna, sin convertir el gesto en una zancada con apoyo trasero.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
-                "Mancuerna en una pierna: equilibrio, isquios y glúteo trabajando juntos. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado."
+                "Empuja con el pie apoyado y sube las pesas por ambos lados de esa pierna.",
+                "Acaba con el tronco erguido y la rodilla libre todavía recogida.",
+                "Deja las cargas a la vez en el suelo sin girar hacia una de ellas."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Extensión sobre el miembro apoyado",
+                    "Resistencia a la inclinación lateral"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión Ligera Y Estabilidad"
+                    "Extensión de la rodilla",
+                    "Flexión de la rodilla"
                   ],
                   "jointId": "rodilla",
-                  "role": "SECONDARY"
+                  "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Resistencia A La Flexión"
+                    "Resistencia a la flexión lumbar"
                   ],
                   "jointId": "columna-lumbar",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Transferencia Pelvis-Tronco"
+                    "Transmisión de fuerza entre tronco y pelvis"
                   ],
                   "jointId": "sacroiliaca",
                   "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Agarre neutro independiente"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Dorsiflexión durante la salida",
+                    "Retorno desde la dorsiflexión"
+                  ],
+                  "jointId": "tobillo",
+                  "role": "SECONDARY"
                 }
               ],
               "kineticChain": "POSTERIOR",
@@ -1113,7 +1390,8 @@
               "performanceProfileId": "conventional_deadlift__dumbbells__peso_muerto_unilateral",
               "primaryMuscles": [
                 "gluteus_maximus",
-                "hamstrings"
+                "hamstrings",
+                "quadriceps"
               ],
               "replacementGroup": "ham_deadlift",
               "replacementPriority": 1,
@@ -1121,51 +1399,76 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión",
-                    "Flexión Ligera Y Estabilidad",
-                    "Resistencia A La Flexión",
-                    "Transferencia Pelvis-Tronco"
+                    "Extensión sobre el miembro apoyado",
+                    "Resistencia a la inclinación lateral",
+                    "Extensión de la rodilla",
+                    "Flexión de la rodilla",
+                    "Resistencia a la flexión lumbar",
+                    "Transmisión de fuerza entre tronco y pelvis",
+                    "Agarre neutro independiente",
+                    "Dorsiflexión durante la salida",
+                    "Retorno desde la dorsiflexión"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Extensión sobre el miembro apoyado",
+                        "Resistencia a la inclinación lateral"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión Ligera Y Estabilidad"
+                        "Extensión de la rodilla",
+                        "Flexión de la rodilla"
                       ],
                       "jointId": "rodilla",
-                      "role": "SECONDARY"
+                      "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Resistencia A La Flexión"
+                        "Resistencia a la flexión lumbar"
                       ],
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Transferencia Pelvis-Tronco"
+                        "Transmisión de fuerza entre tronco y pelvis"
                       ],
                       "jointId": "sacroiliaca",
                       "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Agarre neutro independiente"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Dorsiflexión durante la salida",
+                        "Retorno desde la dorsiflexión"
+                      ],
+                      "jointId": "tobillo",
+                      "role": "SECONDARY"
                     }
                   ],
                   "primaryMuscles": [
                     "gluteus_maximus",
-                    "hamstrings"
+                    "hamstrings",
+                    "quadriceps"
                   ],
                   "secondaryMuscles": [
-                    "quadriceps"
+                    "adductors"
                   ],
                   "stabilizerMuscles": [
                     "erector_spinae",
                     "core",
+                    "forearm",
+                    "gluteus_medius",
                     "tensor_fasciae_latae"
                   ],
                   "volumeContribution": "indirect"
@@ -1181,7 +1484,9 @@
                     "cadera",
                     "rodilla",
                     "columna-lumbar",
-                    "sacroiliaca"
+                    "sacroiliaca",
+                    "muñeca",
+                    "tobillo"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -1235,23 +1540,28 @@
                   ],
                   "preservesIntent": [
                     "deadlift:gluteus_maximus",
-                    "deadlift:hamstrings"
+                    "deadlift:hamstrings",
+                    "deadlift:quadriceps"
                   ],
                   "replacementGroup": "ham_deadlift",
                   "replacementPriority": 1
                 }
               },
               "secondaryMuscles": [
-                "quadriceps"
+                "adductors"
               ],
               "setupCues": [
-                "Preparación: Mancuerna en una pierna: equilibrio, isquios y glúteo trabajando juntos."
+                "Agarra una mancuerna con cada mano, junto a la pierna que trabajará.",
+                "Levanta el pie contrario con esa rodilla doblada y orienta las caderas al frente.",
+                "Dobla la rodilla apoyada para que las pesas lleguen al suelo sin redondear el tronco."
               ],
               "setupTimeSeconds": 30,
               "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
+                "forearm",
+                "gluteus_medius",
                 "tensor_fasciae_latae"
               ],
               "technicalDifficulty": 4.2,
@@ -1280,41 +1590,60 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con barra hexagonal y a dos lados, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. El glúteo mayor trabaja con la barra hexagonal, que centra la carga y alivia la espalda. Con ambos lados a la vez, el trabajo del glúteo mayor se reparte.",
+              "description": "El cuerpo queda dentro del marco y las asas laterales llevan las manos junto a las caderas. Esta disposición puede favorecer una mayor participación de la extensión de rodillas; las asas altas acortan la salida respecto de las bajas.",
               "efc": 2.8,
               "equipmentId": "hex_bar",
               "executionCues": [
-                "Barra hexagonal con ambas piernas: el cuerpo queda dentro de la carga y el recorrido es más vertical. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado."
+                "Despega todo el marco a la vez empujando el suelo con ambos apoyos.",
+                "Extiende las rodillas y lleva la pelvis debajo del tronco hasta ponerte de pie.",
+                "Regresa el marco horizontal al suelo sin apoyar antes un lado."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Extensión de la cadera",
+                    "Flexión de la cadera"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión Ligera Y Estabilidad"
+                    "Extensión de la rodilla",
+                    "Flexión de la rodilla"
                   ],
                   "jointId": "rodilla",
-                  "role": "SECONDARY"
+                  "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Resistencia A La Flexión"
+                    "Resistencia a la flexión lumbar"
                   ],
                   "jointId": "columna-lumbar",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Transferencia Pelvis-Tronco"
+                    "Transmisión de fuerza entre tronco y pelvis"
                   ],
                   "jointId": "sacroiliaca",
                   "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén del agarre en asas laterales"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Dorsiflexión durante la salida",
+                    "Retorno desde la dorsiflexión"
+                  ],
+                  "jointId": "tobillo",
+                  "role": "SECONDARY"
                 }
               ],
               "kineticChain": "POSTERIOR",
@@ -1324,7 +1653,8 @@
               "performanceProfileId": "conventional_deadlift__hex_bar__peso_muerto",
               "primaryMuscles": [
                 "gluteus_maximus",
-                "hamstrings"
+                "hamstrings",
+                "quadriceps"
               ],
               "replacementGroup": "ham_deadlift",
               "replacementPriority": 1,
@@ -1332,51 +1662,75 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión",
-                    "Flexión Ligera Y Estabilidad",
-                    "Resistencia A La Flexión",
-                    "Transferencia Pelvis-Tronco"
+                    "Extensión de la cadera",
+                    "Flexión de la cadera",
+                    "Extensión de la rodilla",
+                    "Flexión de la rodilla",
+                    "Resistencia a la flexión lumbar",
+                    "Transmisión de fuerza entre tronco y pelvis",
+                    "Sostén del agarre en asas laterales",
+                    "Dorsiflexión durante la salida",
+                    "Retorno desde la dorsiflexión"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Extensión de la cadera",
+                        "Flexión de la cadera"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión Ligera Y Estabilidad"
+                        "Extensión de la rodilla",
+                        "Flexión de la rodilla"
                       ],
                       "jointId": "rodilla",
-                      "role": "SECONDARY"
+                      "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Resistencia A La Flexión"
+                        "Resistencia a la flexión lumbar"
                       ],
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Transferencia Pelvis-Tronco"
+                        "Transmisión de fuerza entre tronco y pelvis"
                       ],
                       "jointId": "sacroiliaca",
                       "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del agarre en asas laterales"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Dorsiflexión durante la salida",
+                        "Retorno desde la dorsiflexión"
+                      ],
+                      "jointId": "tobillo",
+                      "role": "SECONDARY"
                     }
                   ],
                   "primaryMuscles": [
                     "gluteus_maximus",
-                    "hamstrings"
+                    "hamstrings",
+                    "quadriceps"
                   ],
                   "secondaryMuscles": [
-                    "quadriceps"
+                    "adductors"
                   ],
                   "stabilizerMuscles": [
                     "erector_spinae",
-                    "core"
+                    "core",
+                    "forearm"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1391,7 +1745,9 @@
                     "cadera",
                     "rodilla",
                     "columna-lumbar",
-                    "sacroiliaca"
+                    "sacroiliaca",
+                    "muñeca",
+                    "tobillo"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -1445,23 +1801,27 @@
                   ],
                   "preservesIntent": [
                     "deadlift:gluteus_maximus",
-                    "deadlift:hamstrings"
+                    "deadlift:hamstrings",
+                    "deadlift:quadriceps"
                   ],
                   "replacementGroup": "ham_deadlift",
                   "replacementPriority": 1
                 }
               },
               "secondaryMuscles": [
-                "quadriceps"
+                "adductors"
               ],
               "setupCues": [
-                "Preparación: Barra hexagonal con ambas piernas: el cuerpo queda dentro de la carga y el recorrido es más vertical."
+                "Entra al centro del marco con ambos pies al ancho de las caderas.",
+                "Agarra las asas bajas con las palmas enfrentadas, a igual distancia de los extremos.",
+                "Deja el marco nivelado y dobla las rodillas sin elevar los talones."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "erector_spinae",
-                "core"
+                "core",
+                "forearm"
               ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
@@ -1489,41 +1849,60 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con barra hexagonal y a un lado, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. El glúteo mayor trabaja con la barra hexagonal, que centra la carga y alivia la espalda. Un lado cada vez: el esfuerzo del glúteo mayor se aísla y las asimetrías quedan al descubierto.",
+              "description": "El apoyo único queda dentro del marco, con una mano en cada asa y el otro pie recogido en el aire. La estructura rodea al atleta, de modo que el espacio para la pierna libre debe comprobarse antes de iniciar cada repetición.",
               "efc": 2.8,
               "equipmentId": "hex_bar",
               "executionCues": [
-                "Barra hexagonal en una pierna: la carga estable y el trabajo de equilibrio de la cadera. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado."
+                "Levanta el marco con la pierna de apoyo sin balancearlo hacia los lados.",
+                "Extiende esa rodilla hasta quedar alto con el pie libre separado de la barra.",
+                "Apoya la estructura entera antes de recolocar los pies."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Extensión de la cadera de apoyo",
+                    "Estabilidad de la pelvis sin segundo apoyo"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión Ligera Y Estabilidad"
+                    "Extensión de la rodilla apoyada",
+                    "Flexión de la rodilla apoyada"
                   ],
                   "jointId": "rodilla",
-                  "role": "SECONDARY"
+                  "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Resistencia A La Flexión"
+                    "Resistencia a la flexión lumbar"
                   ],
                   "jointId": "columna-lumbar",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Transferencia Pelvis-Tronco"
+                    "Transmisión de fuerza entre tronco y pelvis"
                   ],
                   "jointId": "sacroiliaca",
                   "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén isométrico del agarre"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Dorsiflexión durante la salida",
+                    "Retorno desde la dorsiflexión"
+                  ],
+                  "jointId": "tobillo",
+                  "role": "SECONDARY"
                 }
               ],
               "kineticChain": "POSTERIOR",
@@ -1533,7 +1912,8 @@
               "performanceProfileId": "conventional_deadlift__hex_bar__peso_muerto_unilateral",
               "primaryMuscles": [
                 "gluteus_maximus",
-                "hamstrings"
+                "hamstrings",
+                "quadriceps"
               ],
               "replacementGroup": "ham_deadlift",
               "replacementPriority": 1,
@@ -1541,51 +1921,76 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión",
-                    "Flexión Ligera Y Estabilidad",
-                    "Resistencia A La Flexión",
-                    "Transferencia Pelvis-Tronco"
+                    "Extensión de la cadera de apoyo",
+                    "Estabilidad de la pelvis sin segundo apoyo",
+                    "Extensión de la rodilla apoyada",
+                    "Flexión de la rodilla apoyada",
+                    "Resistencia a la flexión lumbar",
+                    "Transmisión de fuerza entre tronco y pelvis",
+                    "Sostén isométrico del agarre",
+                    "Dorsiflexión durante la salida",
+                    "Retorno desde la dorsiflexión"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Extensión de la cadera de apoyo",
+                        "Estabilidad de la pelvis sin segundo apoyo"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión Ligera Y Estabilidad"
+                        "Extensión de la rodilla apoyada",
+                        "Flexión de la rodilla apoyada"
                       ],
                       "jointId": "rodilla",
-                      "role": "SECONDARY"
+                      "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Resistencia A La Flexión"
+                        "Resistencia a la flexión lumbar"
                       ],
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Transferencia Pelvis-Tronco"
+                        "Transmisión de fuerza entre tronco y pelvis"
                       ],
                       "jointId": "sacroiliaca",
                       "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén isométrico del agarre"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Dorsiflexión durante la salida",
+                        "Retorno desde la dorsiflexión"
+                      ],
+                      "jointId": "tobillo",
+                      "role": "SECONDARY"
                     }
                   ],
                   "primaryMuscles": [
                     "gluteus_maximus",
-                    "hamstrings"
+                    "hamstrings",
+                    "quadriceps"
                   ],
                   "secondaryMuscles": [
-                    "quadriceps"
+                    "adductors"
                   ],
                   "stabilizerMuscles": [
                     "erector_spinae",
                     "core",
+                    "forearm",
+                    "gluteus_medius",
                     "tensor_fasciae_latae"
                   ],
                   "volumeContribution": "indirect"
@@ -1601,7 +2006,9 @@
                     "cadera",
                     "rodilla",
                     "columna-lumbar",
-                    "sacroiliaca"
+                    "sacroiliaca",
+                    "muñeca",
+                    "tobillo"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -1655,23 +2062,28 @@
                   ],
                   "preservesIntent": [
                     "deadlift:gluteus_maximus",
-                    "deadlift:hamstrings"
+                    "deadlift:hamstrings",
+                    "deadlift:quadriceps"
                   ],
                   "replacementGroup": "ham_deadlift",
                   "replacementPriority": 1
                 }
               },
               "secondaryMuscles": [
-                "quadriceps"
+                "adductors"
               ],
               "setupCues": [
-                "Preparación: Barra hexagonal en una pierna: la carga estable y el trabajo de equilibrio de la cadera."
+                "Coloca el pie de apoyo en el centro del marco y toma las dos asas bajas.",
+                "Recoge el otro pie dentro del espacio libre, sin descansar sobre la estructura.",
+                "Dobla la rodilla apoyada y nivela el marco antes de despegarlo."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
+                "forearm",
+                "gluteus_medius",
                 "tensor_fasciae_latae"
               ],
               "technicalDifficulty": 4.2,
@@ -1684,7 +2096,7 @@
           }
         ],
         "defaultConfigurationId": "conventional_deadlift__bilateral__barbell",
-        "description": "El Peso Muerto Convencional es el levantamiento que mide la fuerza entera de una persona: glúteos e isquiosurales abren la cadera y los cuádriceps empujan el suelo mientras la espalda transmite todo a la barra. Se ejecuta con los pies al ancho de la cadera y la barra pegada a las espinillas, extendiendo cadera y rodillas a la vez hasta quedar erguido. Con la barra hexagonal la carga queda centrada y la espalda trabaja más cómoda; con mancuernas se aprende el gesto con cargas amables. El rey absoluto de la fuerza total, sin discusión posible.",
+        "description": "El Peso Muerto Convencional combina el empuje de cuádriceps con la extensión de cadera que producen glúteo mayor e isquiosurales al despegar una carga del suelo. En el apoyo bilateral, los pies quedan aproximadamente al ancho de la cadera y los brazos cuelgan por fuera de las piernas. La subida empieza empujando el suelo y termina erguido, con la carga cerca del cuerpo y los codos estirados. El apoyo a una pierna añade una demanda de estabilidad pélvica. Su rasgo central es el arranque desde abajo, donde piernas y cadera deben poner en marcha la misma carga.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1727,41 +2139,60 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con barra, con los pies muy abiertos y los brazos por dentro, el recorrido se acorta y la cadera empuja al frente. Con la barra, la carga sube al máximo y la progresión del glúteo mayor se mide sin trampa.",
+              "description": "Las manos quedan juntas dentro de las piernas y el eje pasa por delante de las espinillas abiertas. El agarre interno permite acercar la pelvis a la barra sin que los antebrazos choquen con las rodillas.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
-                "Barra en postura sumo: pies amplios, manos dentro y el recorrido más corto hacia arriba. La base amplia deja los brazos dentro de las piernas; la cadera se acerca a la carga antes de iniciar una subida vertical."
+                "Empuja el suelo con ambas plantas y abre las rodillas hacia las puntas.",
+                "Sube la barra cerca de las piernas hasta quedar erguido, sin inclinarte hacia atrás.",
+                "Dobla cadera y rodillas para devolver los discos al suelo."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Extensión de la cadera en postura abierta",
+                    "Flexión de la cadera en postura abierta"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión Ligera Y Estabilidad"
+                    "Extensión de la rodilla",
+                    "Flexión de la rodilla"
                   ],
                   "jointId": "rodilla",
-                  "role": "SECONDARY"
+                  "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Resistencia A La Flexión"
+                    "Estabilidad lumbar con tronco más vertical"
                   ],
                   "jointId": "columna-lumbar",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Transferencia Pelvis-Tronco"
+                    "Transferencia entre pelvis y ambos miembros inferiores"
                   ],
                   "jointId": "sacroiliaca",
                   "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén del agarre interno"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Dorsiflexión con los pies orientados hacia afuera",
+                    "Transferencia del empuje al suelo"
+                  ],
+                  "jointId": "tobillo",
+                  "role": "SECONDARY"
                 }
               ],
               "kineticChain": "POSTERIOR",
@@ -1780,39 +2211,61 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión",
-                    "Flexión Ligera Y Estabilidad",
-                    "Resistencia A La Flexión",
-                    "Transferencia Pelvis-Tronco"
+                    "Extensión de la cadera en postura abierta",
+                    "Flexión de la cadera en postura abierta",
+                    "Extensión de la rodilla",
+                    "Flexión de la rodilla",
+                    "Estabilidad lumbar con tronco más vertical",
+                    "Transferencia entre pelvis y ambos miembros inferiores",
+                    "Sostén del agarre interno",
+                    "Dorsiflexión con los pies orientados hacia afuera",
+                    "Transferencia del empuje al suelo"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Extensión de la cadera en postura abierta",
+                        "Flexión de la cadera en postura abierta"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión Ligera Y Estabilidad"
+                        "Extensión de la rodilla",
+                        "Flexión de la rodilla"
                       ],
                       "jointId": "rodilla",
-                      "role": "SECONDARY"
+                      "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Resistencia A La Flexión"
+                        "Estabilidad lumbar con tronco más vertical"
                       ],
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Transferencia Pelvis-Tronco"
+                        "Transferencia entre pelvis y ambos miembros inferiores"
                       ],
                       "jointId": "sacroiliaca",
                       "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del agarre interno"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Dorsiflexión con los pies orientados hacia afuera",
+                        "Transferencia del empuje al suelo"
+                      ],
+                      "jointId": "tobillo",
+                      "role": "SECONDARY"
                     }
                   ],
                   "primaryMuscles": [
@@ -1824,7 +2277,9 @@
                     "adductors"
                   ],
                   "stabilizerMuscles": [
-                    "core"
+                    "erector_spinae",
+                    "core",
+                    "forearm"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1839,7 +2294,9 @@
                     "cadera",
                     "rodilla",
                     "columna-lumbar",
-                    "sacroiliaca"
+                    "sacroiliaca",
+                    "muñeca",
+                    "tobillo"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -1902,12 +2359,16 @@
                 "adductors"
               ],
               "setupCues": [
-                "Preparación: Barra en postura sumo: pies amplios, manos dentro y el recorrido más corto hacia arriba."
+                "Abre los pies más que tus hombros y orienta las puntas hacia afuera.",
+                "Toma la barra por dentro de las piernas con ambos brazos estirados.",
+                "Acerca las espinillas al eje dejando las rodillas alineadas con los pies."
               ],
               "setupTimeSeconds": 45,
               "ssc": 1.0,
               "stabilizerMuscles": [
-                "core"
+                "erector_spinae",
+                "core",
+                "forearm"
               ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
@@ -1934,41 +2395,60 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con mancuernas, con los pies muy abiertos y los brazos por dentro, el recorrido se acorta y la cadera empuja al frente. Con mancuernas, cada lado ajusta su línea y el trabajo del glúteo mayor se equilibra solo.",
+              "description": "Las dos mancuernas cuelgan en el hueco entre los muslos con palmas enfrentadas. Al no haber un eje transversal, el tamaño de cada pesa condiciona la altura de salida y el espacio disponible para bajar entre las piernas.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
-                "Mancuernas a los costados con una base amplia: la carga deja espacio entre las piernas y la cadera puede acercarse al suelo. La base amplia deja los brazos dentro de las piernas; la cadera se acerca a la carga antes de iniciar una subida vertical."
+                "Eleva las mancuernas por el centro de la postura abierta sin acercar las rodillas entre sí.",
+                "Acaba de pie con las cargas bajo la pelvis y los codos largos.",
+                "Baja las pesas dentro del hueco entre los pies hasta apoyarlas."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Extensión con la carga entre los muslos",
+                    "Flexión con la carga entre los muslos"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión Ligera Y Estabilidad"
+                    "Extensión de la rodilla",
+                    "Flexión de la rodilla"
                   ],
                   "jointId": "rodilla",
-                  "role": "SECONDARY"
+                  "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Resistencia A La Flexión"
+                    "Estabilidad lumbar con tronco más vertical"
                   ],
                   "jointId": "columna-lumbar",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Transferencia Pelvis-Tronco"
+                    "Transferencia entre pelvis y ambos miembros inferiores"
                   ],
                   "jointId": "sacroiliaca",
                   "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén neutro de dos mangos independientes"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Dorsiflexión con los pies orientados hacia afuera",
+                    "Transferencia del empuje al suelo"
+                  ],
+                  "jointId": "tobillo",
+                  "role": "SECONDARY"
                 }
               ],
               "kineticChain": "POSTERIOR",
@@ -1987,39 +2467,61 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión",
-                    "Flexión Ligera Y Estabilidad",
-                    "Resistencia A La Flexión",
-                    "Transferencia Pelvis-Tronco"
+                    "Extensión con la carga entre los muslos",
+                    "Flexión con la carga entre los muslos",
+                    "Extensión de la rodilla",
+                    "Flexión de la rodilla",
+                    "Estabilidad lumbar con tronco más vertical",
+                    "Transferencia entre pelvis y ambos miembros inferiores",
+                    "Sostén neutro de dos mangos independientes",
+                    "Dorsiflexión con los pies orientados hacia afuera",
+                    "Transferencia del empuje al suelo"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Extensión con la carga entre los muslos",
+                        "Flexión con la carga entre los muslos"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión Ligera Y Estabilidad"
+                        "Extensión de la rodilla",
+                        "Flexión de la rodilla"
                       ],
                       "jointId": "rodilla",
-                      "role": "SECONDARY"
+                      "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Resistencia A La Flexión"
+                        "Estabilidad lumbar con tronco más vertical"
                       ],
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Transferencia Pelvis-Tronco"
+                        "Transferencia entre pelvis y ambos miembros inferiores"
                       ],
                       "jointId": "sacroiliaca",
                       "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén neutro de dos mangos independientes"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Dorsiflexión con los pies orientados hacia afuera",
+                        "Transferencia del empuje al suelo"
+                      ],
+                      "jointId": "tobillo",
+                      "role": "SECONDARY"
                     }
                   ],
                   "primaryMuscles": [
@@ -2031,7 +2533,9 @@
                     "adductors"
                   ],
                   "stabilizerMuscles": [
-                    "core"
+                    "erector_spinae",
+                    "core",
+                    "forearm"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -2046,7 +2550,9 @@
                     "cadera",
                     "rodilla",
                     "columna-lumbar",
-                    "sacroiliaca"
+                    "sacroiliaca",
+                    "muñeca",
+                    "tobillo"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -2109,12 +2615,16 @@
                 "adductors"
               ],
               "setupCues": [
-                "Preparación: Mancuernas a los costados con una base amplia: la carga deja espacio entre las piernas y la cadera puede acercarse al suelo."
+                "Sitúa dos mancuernas entre los pies separados, con sus mangos paralelos.",
+                "Flexiona cadera y rodillas para cerrar una mano en cada mango.",
+                "Deja espacio entre ambas pesas y alinea cada rodilla con su pie abierto."
               ],
               "setupTimeSeconds": 30,
               "ssc": 1.0,
               "stabilizerMuscles": [
-                "core"
+                "erector_spinae",
+                "core",
+                "forearm"
               ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
@@ -2125,7 +2635,7 @@
           }
         ],
         "defaultConfigurationId": "sumo_deadlift__barbell",
-        "description": "El Peso Muerto Sumo abre los pies y mete los brazos por dentro: el recorrido se acorta y aductores y cuádriceps toman parte del botín que en el convencional se llevan los isquiosurales. Se ejecuta con las puntas hacia afuera y la espalda alta, empujando el suelo con las piernas mientras la barra sube rozando el cuerpo. Muchos levantadores descubren aquí que su estructura pide esta postura. La vía ancha para levantar mucho con menos peaje lumbar.",
+        "description": "El Peso Muerto Sumo distribuye el levantamiento desde el suelo entre los extensores de cadera, glúteo mayor e isquiosurales, y el cuádriceps, con asistencia de los aductores en una postura amplia. Las puntas miran hacia afuera y los brazos pasan entre las piernas mientras las rodillas siguen la dirección de los pies. Desde esa postura, el empuje eleva la carga cerca del cuerpo hasta colocar la pelvis bajo el tronco. Con barra, la salida suele admitir un torso más vertical y menos distancia de subida que el convencional. La apertura cambia el arranque y la demanda de las rodillas, pero no convierte el movimiento en un ejercicio exclusivo de aductores.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

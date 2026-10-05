@@ -24,40 +24,50 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con barra, desde la plataforma, la carga baja por los muslos con un recorrido extra. Con la barra, la carga sube al máximo y la progresión de los isquiosurales se mide sin trampa.",
+              "description": "Los pies elevados alejan el piso donde podrían descansar los discos y dejan más espacio para descender respecto del apoyo de los pies. La altura elegida tiene sentido solo si la cadera dispone de ese tramo adicional con la espalda neutra.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
-                "Desde la plataforma, la barra baja por los muslos con más recorrido. La cadera viaja atrás con las rodillas poco flexionadas y la carga roza las piernas; la subida termina al recuperar la línea del tronco."
+                "Desliza la barra cerca de las piernas al enviar la pelvis atrás.",
+                "Aprovecha el espacio adicional solo si puedes continuar el giro de cadera sin redondear la columna.",
+                "Regresa arriba desde la cadera, conservando los discos en el aire."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Flexión de cadera",
+                    "Extensión de cadera"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión Ligera Y Estabilidad"
+                    "Estabilidad con rodilla poco flexionada"
                   ],
                   "jointId": "rodilla",
-                  "role": "SECONDARY"
+                  "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Resistencia A La Flexión"
+                    "Resistencia a la flexión lumbar"
                   ],
                   "jointId": "columna-lumbar",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Transferencia Pelvis-Tronco"
+                    "Transmisión de carga entre pelvis y tronco"
                   ],
                   "jointId": "sacroiliaca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén del agarre"
+                  ],
+                  "jointId": "muñeca",
                   "role": "STABILIZER"
                 }
               ],
@@ -67,7 +77,8 @@
               "movementPatternId": "romanian_deadlift",
               "performanceProfileId": "hams_peso_muerto_rumano_deficit__barbell__peso_muerto_rumano_en_deficit",
               "primaryMuscles": [
-                "hamstrings"
+                "hamstrings",
+                "gluteus_maximus"
               ],
               "replacementGroup": "ham_rdl",
               "replacementPriority": 1,
@@ -75,49 +86,63 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión",
-                    "Flexión Ligera Y Estabilidad",
-                    "Resistencia A La Flexión",
-                    "Transferencia Pelvis-Tronco"
+                    "Flexión de cadera",
+                    "Extensión de cadera",
+                    "Estabilidad con rodilla poco flexionada",
+                    "Resistencia a la flexión lumbar",
+                    "Transmisión de carga entre pelvis y tronco",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Flexión de cadera",
+                        "Extensión de cadera"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión Ligera Y Estabilidad"
+                        "Estabilidad con rodilla poco flexionada"
                       ],
                       "jointId": "rodilla",
-                      "role": "SECONDARY"
+                      "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Resistencia A La Flexión"
+                        "Resistencia a la flexión lumbar"
                       ],
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Transferencia Pelvis-Tronco"
+                        "Transmisión de carga entre pelvis y tronco"
                       ],
                       "jointId": "sacroiliaca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del agarre"
+                      ],
+                      "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "hamstrings"
+                    "hamstrings",
+                    "gluteus_maximus"
                   ],
                   "secondaryMuscles": [
-                    "gluteus_maximus",
-                    "erector_spinae"
+                    "adductors"
                   ],
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "erector_spinae",
+                    "core",
+                    "forearm"
+                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -131,7 +156,8 @@
                     "cadera",
                     "rodilla",
                     "columna-lumbar",
-                    "sacroiliaca"
+                    "sacroiliaca",
+                    "muñeca"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -179,22 +205,27 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "romanian_deadlift:hamstrings"
+                    "romanian_deadlift:hamstrings",
+                    "romanian_deadlift:gluteus_maximus"
                   ],
                   "replacementGroup": "ham_rdl",
                   "replacementPriority": 1
                 }
               },
               "secondaryMuscles": [
-                "gluteus_maximus",
-                "erector_spinae"
+                "adductors"
               ],
               "setupCues": [
-                "Preparación: Desde la plataforma, la barra baja por los muslos con más recorrido."
+                "Sube a una plataforma baja con ambos pies enteros y la barra libre por delante.",
+                "Empieza erguido con agarre prono y una ligera flexión de rodillas."
               ],
               "setupTimeSeconds": 45,
               "ssc": 1.0,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "erector_spinae",
+                "core",
+                "forearm"
+              ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
             },
@@ -202,7 +233,7 @@
           }
         ],
         "defaultConfigurationId": "hams_peso_muerto_rumano_deficit__default",
-        "description": "El Peso Muerto Rumano en Déficit añade altura bajo los pies y deja que la barra baje más allá de las puntas. Los isquiosurales alcanzan un estiramiento que el rumano estándar no puede dar, con los erectores custodiando la espalda. Se ejecuta bajando la carga por los muslos hasta el nuevo tope y regresando con la cadera. El siguiente nivel del RDL para quien ya agota su rango en el suelo.",
+        "description": "El Peso Muerto Rumano en Déficit añade un apoyo elevado al trabajo de isquiosurales y glúteo mayor para ampliar la bisagra cuando el suelo interrumpe antes el recorrido. La repetición comienza erguido sobre la plataforma y la barra baja junto a las piernas, con rodillas ligeramente flexionadas y columna neutra. El piso queda más lejos del apoyo de los pies, pero la altura del eje no define el déficit. La plataforma aporta espacio para el descenso; si la movilidad ya limita la bajada, elevarse no añade recorrido aprovechable.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

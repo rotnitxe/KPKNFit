@@ -24,40 +24,68 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con kettlebell, la campana se balancea entre las piernas y sale lanzada hasta el pecho por la potencia de la cadera. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo de los isquiosurales.",
+              "description": "La sujeción compartida centra una campana delante del cuerpo y permite recibirla entre los muslos antes del siguiente impulso. El asa queda dentro de ambas manos durante todo el arco, incluso en el instante alto en que la carga deja de subir.",
               "efc": 2.8,
               "equipmentId": "kettlebell",
               "executionCues": [
-                "Impulsas la campana entre las piernas y la lanzas al pecho con la cadera. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Lleva la pesa atrás entre los muslos, con la cadera retrasada y las rodillas ligeramente dobladas.",
+                "Extiende rápido la cadera para impulsar la campana hacia delante hasta la altura del pecho.",
+                "Deja que regrese y vuelve a doblar la cadera cuando la carga se acerque a los muslos.",
+                "Termina guiando la campana al suelo delante de ti sin soltar el asa."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión Explosiva"
+                    "Extensión rápida de la cadera",
+                    "Flexión de la cadera al recibir la carga"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Rigidez Del Tronco"
-                  ],
-                  "jointId": "columna-lumbar",
-                  "role": "STABILIZER"
-                },
-                {
-                  "actions": [
-                    "Extensión Coordinada"
+                    "Extensión acompañante de la rodilla",
+                    "Flexión moderada al recibir la pesa"
                   ],
                   "jointId": "rodilla",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Transferencia Al Suelo"
+                    "Flexión del hombro durante el arco delantero",
+                    "Extensión del hombro durante el regreso"
+                  ],
+                  "jointId": "glenohumeral",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Resistencia a la flexión vertebral",
+                    "Estabilidad lumbar durante el impulso"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Transferencia del empuje con el pie apoyado"
                   ],
                   "jointId": "tobillo",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sujeción continua del asa"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Transmisión del impulso entre pelvis y tronco"
+                  ],
+                  "jointId": "sacroiliaca",
                   "role": "STABILIZER"
                 }
               ],
@@ -67,7 +95,8 @@
               "movementPatternId": "hip_hinge_explosive",
               "performanceProfileId": "hams_swing_kettlebell_dos_manos__kettlebell__swing_con_kettlebell_a_dos_manos",
               "primaryMuscles": [
-                "hamstrings"
+                "hamstrings",
+                "gluteus_maximus"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -75,49 +104,87 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión Explosiva",
-                    "Rigidez Del Tronco",
-                    "Extensión Coordinada",
-                    "Transferencia Al Suelo"
+                    "Extensión rápida de la cadera",
+                    "Flexión de la cadera al recibir la carga",
+                    "Extensión acompañante de la rodilla",
+                    "Flexión moderada al recibir la pesa",
+                    "Flexión del hombro durante el arco delantero",
+                    "Extensión del hombro durante el regreso",
+                    "Resistencia a la flexión vertebral",
+                    "Estabilidad lumbar durante el impulso",
+                    "Transferencia del empuje con el pie apoyado",
+                    "Sujeción continua del asa",
+                    "Transmisión del impulso entre pelvis y tronco"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión Explosiva"
+                        "Extensión rápida de la cadera",
+                        "Flexión de la cadera al recibir la carga"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Rigidez Del Tronco"
-                      ],
-                      "jointId": "columna-lumbar",
-                      "role": "STABILIZER"
-                    },
-                    {
-                      "actions": [
-                        "Extensión Coordinada"
+                        "Extensión acompañante de la rodilla",
+                        "Flexión moderada al recibir la pesa"
                       ],
                       "jointId": "rodilla",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Transferencia Al Suelo"
+                        "Flexión del hombro durante el arco delantero",
+                        "Extensión del hombro durante el regreso"
+                      ],
+                      "jointId": "glenohumeral",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Resistencia a la flexión vertebral",
+                        "Estabilidad lumbar durante el impulso"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Transferencia del empuje con el pie apoyado"
                       ],
                       "jointId": "tobillo",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sujeción continua del asa"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Transmisión del impulso entre pelvis y tronco"
+                      ],
+                      "jointId": "sacroiliaca",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "hamstrings"
+                    "hamstrings",
+                    "gluteus_maximus"
                   ],
                   "secondaryMuscles": [
-                    "gluteus_maximus",
-                    "erector_spinae"
+                    "quadriceps",
+                    "deltoid"
                   ],
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "erector_spinae",
+                    "core",
+                    "gluteus_medius",
+                    "forearm"
+                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -129,9 +196,12 @@
                   "movementPatternId": "hip_hinge_explosive",
                   "relevantJoints": [
                     "cadera",
-                    "columna-lumbar",
                     "rodilla",
-                    "tobillo"
+                    "glenohumeral",
+                    "columna-lumbar",
+                    "tobillo",
+                    "muñeca",
+                    "sacroiliaca"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -178,22 +248,30 @@
                     "kettlebell"
                   ],
                   "preservesIntent": [
-                    "hip_hinge_explosive:hamstrings"
+                    "hip_hinge_explosive:hamstrings",
+                    "hip_hinge_explosive:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
-                "gluteus_maximus",
-                "erector_spinae"
+                "quadriceps",
+                "deltoid"
               ],
               "setupCues": [
-                "Preparación: Impulsas la campana entre las piernas y la lanzas al pecho con la cadera."
+                "Coloca la kettlebell un poco delante de tus pies y abre la base para dejarla pasar entre los muslos.",
+                "Inclina el tronco desde la cadera y agarra el asa con ambas manos.",
+                "Tensa el tronco y deja los codos estirados antes de llevar la pesa hacia atrás."
               ],
               "setupTimeSeconds": 30,
               "ssc": 0.5,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "erector_spinae",
+                "core",
+                "gluteus_medius",
+                "forearm"
+              ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
             },
@@ -201,7 +279,7 @@
           }
         ],
         "defaultConfigurationId": "hams_swing_kettlebell_dos_manos__default",
-        "description": "El Swing con Kettlebell a Dos Manos convierte la bisagra en un gesto balístico: la campana se balancea entre las piernas y sale lanzada hasta el pecho por la potencia de la cadera. Se ejecuta dejando que la kettlebell caiga y empujando el suelo con glúteos e isquiosurales, sin usar los brazos para subirla. Los erectores mantienen la espalda en cada vaivén. El movimiento que enseña potencia de cadera y quema energía a partes iguales.",
+        "description": "El Swing con Kettlebell a Dos Manos es una bisagra rápida de cadera que impulsa una sola pesa hasta el pecho, con trabajo de isquiosurales y glúteo mayor. Ambas manos comparten el asa mientras la carga viaja atrás entre los muslos y regresa hacia delante al extender la cadera. El tronco se afirma durante ese impulso y los brazos acompañan el arco, sin convertirlo en una elevación frontal. En esta versión rusa, el recorrido termina delante del pecho en lugar de seguir por encima de la cabeza. Su carácter balístico está en alternar el empuje de cadera y el regreso de la carga, con los dos pies siempre apoyados.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -238,40 +316,68 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con kettlebell, la campana se balancea con una sola mano mientras el torso impide la rotación en cada vaivén. Los isquiosurales trabajan con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+              "description": "Una mano conserva el asa y la otra queda libre durante toda la serie. La campana recorre el espacio central mientras pecho y pelvis resisten desviarse hacia el brazo cargado, con ambas piernas participando en el impulso.",
               "efc": 2.8,
               "equipmentId": "kettlebell",
               "executionCues": [
-                "La campana viaja con una sola mano y el torso aguanta el giro. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Recibe la pesa entre los muslos y conserva el pecho orientado al frente.",
+                "Impulsa la campana con la cadera hasta delante del pecho, con el codo de carga largo.",
+                "Acompaña el movimiento con el brazo libre sin tocar el asa ni girar deliberadamente el torso.",
+                "Apoya la campana en el suelo antes de cambiar la mano de agarre."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión Explosiva"
+                    "Extensión rápida de ambas caderas",
+                    "Flexión para recibir la campana"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Rigidez Del Tronco"
-                  ],
-                  "jointId": "columna-lumbar",
-                  "role": "STABILIZER"
-                },
-                {
-                  "actions": [
-                    "Extensión Coordinada"
+                    "Extensión acompañante de ambas rodillas",
+                    "Flexión durante el retorno"
                   ],
                   "jointId": "rodilla",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Transferencia Al Suelo"
+                    "Flexión del hombro del brazo cargado",
+                    "Extensión durante el regreso de la pesa"
+                  ],
+                  "jointId": "glenohumeral",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Resistencia a la flexión lumbar",
+                    "Resistencia al giro bajo carga asimétrica"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Apoyo bilateral durante la carga de una mano"
                   ],
                   "jointId": "tobillo",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sujeción del asa con una sola muñeca"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Transferencia del impulso y sostén de orientación pélvica"
+                  ],
+                  "jointId": "sacroiliaca",
                   "role": "STABILIZER"
                 }
               ],
@@ -281,7 +387,8 @@
               "movementPatternId": "hip_hinge_explosive",
               "performanceProfileId": "hams_swing_kettlebell_unilateral__kettlebell__swing_con_kettlebell_a_una_mano",
               "primaryMuscles": [
-                "hamstrings"
+                "hamstrings",
+                "gluteus_maximus"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -289,49 +396,87 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión Explosiva",
-                    "Rigidez Del Tronco",
-                    "Extensión Coordinada",
-                    "Transferencia Al Suelo"
+                    "Extensión rápida de ambas caderas",
+                    "Flexión para recibir la campana",
+                    "Extensión acompañante de ambas rodillas",
+                    "Flexión durante el retorno",
+                    "Flexión del hombro del brazo cargado",
+                    "Extensión durante el regreso de la pesa",
+                    "Resistencia a la flexión lumbar",
+                    "Resistencia al giro bajo carga asimétrica",
+                    "Apoyo bilateral durante la carga de una mano",
+                    "Sujeción del asa con una sola muñeca",
+                    "Transferencia del impulso y sostén de orientación pélvica"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión Explosiva"
+                        "Extensión rápida de ambas caderas",
+                        "Flexión para recibir la campana"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Rigidez Del Tronco"
-                      ],
-                      "jointId": "columna-lumbar",
-                      "role": "STABILIZER"
-                    },
-                    {
-                      "actions": [
-                        "Extensión Coordinada"
+                        "Extensión acompañante de ambas rodillas",
+                        "Flexión durante el retorno"
                       ],
                       "jointId": "rodilla",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Transferencia Al Suelo"
+                        "Flexión del hombro del brazo cargado",
+                        "Extensión durante el regreso de la pesa"
+                      ],
+                      "jointId": "glenohumeral",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Resistencia a la flexión lumbar",
+                        "Resistencia al giro bajo carga asimétrica"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Apoyo bilateral durante la carga de una mano"
                       ],
                       "jointId": "tobillo",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sujeción del asa con una sola muñeca"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Transferencia del impulso y sostén de orientación pélvica"
+                      ],
+                      "jointId": "sacroiliaca",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "hamstrings"
+                    "hamstrings",
+                    "gluteus_maximus"
                   ],
                   "secondaryMuscles": [
-                    "gluteus_maximus",
-                    "core"
+                    "quadriceps",
+                    "deltoid"
                   ],
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "erector_spinae",
+                    "core",
+                    "gluteus_medius",
+                    "forearm"
+                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -343,9 +488,12 @@
                   "movementPatternId": "hip_hinge_explosive",
                   "relevantJoints": [
                     "cadera",
-                    "columna-lumbar",
                     "rodilla",
-                    "tobillo"
+                    "glenohumeral",
+                    "columna-lumbar",
+                    "tobillo",
+                    "muñeca",
+                    "sacroiliaca"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -392,22 +540,30 @@
                     "kettlebell"
                   ],
                   "preservesIntent": [
-                    "hip_hinge_explosive:hamstrings"
+                    "hip_hinge_explosive:hamstrings",
+                    "hip_hinge_explosive:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
-                "gluteus_maximus",
-                "core"
+                "quadriceps",
+                "deltoid"
               ],
               "setupCues": [
-                "Preparación: La campana viaja con una sola mano y el torso aguanta el giro."
+                "Separa los pies para abrir el paso de la campana y agarra el asa por su centro con una mano.",
+                "Deja libre la otra mano y orienta pecho y pelvis hacia el mismo frente.",
+                "Dobla la cadera para iniciar el paso posterior sin despegar ningún pie."
               ],
               "setupTimeSeconds": 30,
               "ssc": 0.5,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "erector_spinae",
+                "core",
+                "gluteus_medius",
+                "forearm"
+              ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
             },
@@ -415,7 +571,7 @@
           }
         ],
         "defaultConfigurationId": "hams_swing_kettlebell_unilateral__default",
-        "description": "El Swing con Kettlebell a Una Mano añade el giro al vaivén: con una sola mano en la campana, el core debe impedir que el torso rote en cada balanceo. Se ejecuta igual que el swing a dos manos, pero el brazo libre busca equilibrio y la cadera trabaja con un extra de control. Los isquiosurales y el glúteo siguen siendo el motor. La progresión natural cuando el swing básico ya se domina.",
+        "description": "El Swing con Kettlebell a Una Mano impulsa una campana mediante una bisagra explosiva, con isquiosurales y glúteo mayor como motores y una sujeción que carga un solo lado del tronco. Los dos pies siguen en el suelo mientras la pesa pasa entre los muslos y asciende delante del pecho. La mano libre acompaña el gesto sin agarrar el asa y el cuerpo resiste el giro que introduce la tracción asimétrica. El recorrido ruso acaba delante, sin llegar por encima de la cabeza. Su particularidad está en recibir y transmitir el impulso con un solo agarre, no en levantar la pierna del mismo lado.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

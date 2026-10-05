@@ -24,40 +24,57 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con polea, de espaldas a la polea baja, la cuerda pasa entre las piernas y la cadera se proyecta atrás y adelante. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco.",
+              "description": "Cada mano sujeta un extremo de la cuerda unida al cable que llega desde abajo por detrás de los pies. Un paso de separación de la estación deja espacio para llevar las manos atrás entre los muslos sin tocar la torre ni dejar descansar las placas entre repeticiones.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
-                "De espaldas a la polea baja, la cuerda pasa entre las piernas y la cadera empuja atrás y adelante. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Lleva la pelvis hacia atrás mientras las manos pasan entre los muslos y el cable permanece tenso.",
+                "Extiende la cadera hasta colocar la pelvis debajo del pecho, sin tirar con los codos.",
+                "Regresa a la bisagra con la columna neutra y las rodillas sin doblarse en una sentadilla."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Extensión frente a resistencia posterior",
+                    "Flexión durante el retorno hacia la polea"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión Ligera Y Estabilidad"
+                    "Conservación de una flexión ligera"
                   ],
                   "jointId": "rodilla",
-                  "role": "SECONDARY"
+                  "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Resistencia A La Flexión"
+                    "Resistencia a la flexión lumbar bajo tracción posterior"
                   ],
                   "jointId": "columna-lumbar",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Transferencia Pelvis-Tronco"
+                    "Transmisión de resistencia desde pelvis a tronco"
                   ],
                   "jointId": "sacroiliaca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Agarre neutro de los extremos de cuerda"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Transmisión de la tracción a través de los brazos"
+                  ],
+                  "jointId": "glenohumeral",
                   "role": "STABILIZER"
                 }
               ],
@@ -67,7 +84,8 @@
               "movementPatternId": "hip_hinge",
               "performanceProfileId": "hams_pull_through__cable__pull_through",
               "primaryMuscles": [
-                "hamstrings"
+                "hamstrings",
+                "gluteus_maximus"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -75,46 +93,69 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión",
-                    "Flexión Ligera Y Estabilidad",
-                    "Resistencia A La Flexión",
-                    "Transferencia Pelvis-Tronco"
+                    "Extensión frente a resistencia posterior",
+                    "Flexión durante el retorno hacia la polea",
+                    "Conservación de una flexión ligera",
+                    "Resistencia a la flexión lumbar bajo tracción posterior",
+                    "Transmisión de resistencia desde pelvis a tronco",
+                    "Agarre neutro de los extremos de cuerda",
+                    "Transmisión de la tracción a través de los brazos"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Extensión frente a resistencia posterior",
+                        "Flexión durante el retorno hacia la polea"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión Ligera Y Estabilidad"
+                        "Conservación de una flexión ligera"
                       ],
                       "jointId": "rodilla",
-                      "role": "SECONDARY"
+                      "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Resistencia A La Flexión"
+                        "Resistencia a la flexión lumbar bajo tracción posterior"
                       ],
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Transferencia Pelvis-Tronco"
+                        "Transmisión de resistencia desde pelvis a tronco"
                       ],
                       "jointId": "sacroiliaca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Agarre neutro de los extremos de cuerda"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Transmisión de la tracción a través de los brazos"
+                      ],
+                      "jointId": "glenohumeral",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "hamstrings"
+                    "hamstrings",
+                    "gluteus_maximus"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "erector_spinae",
+                    "core",
+                    "forearm"
+                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -128,7 +169,9 @@
                     "cadera",
                     "rodilla",
                     "columna-lumbar",
-                    "sacroiliaca"
+                    "sacroiliaca",
+                    "muñeca",
+                    "glenohumeral"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
@@ -176,7 +219,8 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "hip_hinge:hamstrings"
+                    "hip_hinge:hamstrings",
+                    "hip_hinge:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -184,11 +228,17 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Preparación: De espaldas a la polea baja, la cuerda pasa entre las piernas y la cadera empuja atrás y adelante."
+                "Ajusta la polea cerca del suelo y engancha una cuerda de dos extremos.",
+                "Ponte de espaldas a la estación y agarra un extremo con cada mano entre las piernas.",
+                "Aléjate hasta tensar el cable, con ambos pies firmes y las rodillas ligeramente dobladas."
               ],
               "setupTimeSeconds": 35,
               "ssc": 0.5,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "erector_spinae",
+                "core",
+                "forearm"
+              ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
             },
@@ -196,7 +246,7 @@
           }
         ],
         "defaultConfigurationId": "hams_pull_through__default",
-        "description": "El Pull-Through enseña la bisagra sin peso sobre la espalda: de espaldas a la polea baja, la cuerda pasa entre las piernas y la cadera se proyecta atrás y adelante con cada repetición. Los isquiosurales y los glúteos dirigen el vaivén mientras los brazos solo guían la cuerda. Es la escuela de la cadera para quien todavía no domina el peso muerto. La vía amable para aprender el patrón que mueve todo lo demás.",
+        "description": "El Pull-Through es una bisagra de cadera contra una polea baja situada detrás del cuerpo, con isquiosurales y glúteo mayor moviendo la pelvis. La cuerda pasa entre las piernas y los brazos cuelgan mientras la cadera retrocede hacia la estación y después avanza hasta quedar erguido. Las rodillas permanecen ligeramente flexionadas y el tronco acompaña el cambio de cadera con la columna neutra. La resistencia tira desde atrás y su efecto sobre la cadera varía según la distancia y la postura, aunque el cable continúe tenso. Esta dirección de carga ofrece una forma de practicar la bisagra sin sostener un peso sobre los hombros.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

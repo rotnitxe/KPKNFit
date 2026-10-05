@@ -24,31 +24,42 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con máquina, con las piernas fijas en el soporte, el torso baja y sube extendiendo la columna. En la máquina, la trayectoria guiada concentra todo el esfuerzo de los erectores.",
+              "description": "El acolchado sostiene la pelvis y los muslos mientras los tobillos quedan fijados bajo los rodillos. Con los brazos cruzados, el peso del torso basta para cargar el cambio de curvatura de la espalda.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
-                "En el banco de hiperextensiones: bajas el torso y subes con la espalda trabajando. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Redondea suavemente el tronco sin retirar la pelvis del acolchado.",
+                "Recupera la línea del cuerpo extendiendo la espalda.",
+                "Termina la subida sin llevar los hombros por encima de esa línea."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión"
+                    "Flexión lumbar de descenso",
+                    "Extensión lumbar de retorno"
                   ],
                   "jointId": "columna-lumbar",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Extensión"
+                    "Flexión torácica",
+                    "Extensión torácica"
                   ],
-                  "jointId": "cadera",
+                  "jointId": "columna-toracica",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Control Pélvico"
+                    "Sostén de la posición pélvica"
+                  ],
+                  "jointId": "cadera",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Transmisión de carga al apoyo pélvico"
                   ],
                   "jointId": "sacroiliaca",
                   "role": "STABILIZER"
@@ -68,27 +79,40 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Control Pélvico"
+                    "Flexión lumbar de descenso",
+                    "Extensión lumbar de retorno",
+                    "Flexión torácica",
+                    "Extensión torácica",
+                    "Sostén de la posición pélvica",
+                    "Transmisión de carga al apoyo pélvico"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión"
+                        "Flexión lumbar de descenso",
+                        "Extensión lumbar de retorno"
                       ],
                       "jointId": "columna-lumbar",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Extensión"
+                        "Flexión torácica",
+                        "Extensión torácica"
                       ],
-                      "jointId": "cadera",
+                      "jointId": "columna-toracica",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Control Pélvico"
+                        "Sostén de la posición pélvica"
+                      ],
+                      "jointId": "cadera",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Transmisión de carga al apoyo pélvico"
                       ],
                       "jointId": "sacroiliaca",
                       "role": "STABILIZER"
@@ -97,10 +121,11 @@
                   "primaryMuscles": [
                     "erector_spinae"
                   ],
-                  "secondaryMuscles": [
-                    "gluteus_maximus"
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
+                    "gluteus_maximus",
+                    "hamstrings"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -112,6 +137,7 @@
                   "movementPatternId": "spinal_extension",
                   "relevantJoints": [
                     "columna-lumbar",
+                    "columna-toracica",
                     "cadera",
                     "sacroiliaca"
                   ],
@@ -168,15 +194,17 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "gluteus_maximus"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
-                "Preparación: En el banco de hiperextensiones: bajas el torso y subes con la espalda trabajando."
+                "Ajusta el banco para apoyar la pelvis y sujetar los tobillos.",
+                "Apoya los antebrazos contra el pecho y prolonga con el torso la línea de las piernas."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.4,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "gluteus_maximus",
+                "hamstrings"
+              ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
             },
@@ -184,7 +212,7 @@
           }
         ],
         "defaultConfigurationId": "back_extension_lumbar__default",
-        "description": "Las Hiperextensiones de Espalda Baja usan el banco romano para extender la columna contra la gravedad: los erectores suben y bajan el torso con las piernas fijas en el soporte. Se ejecutan bajando el tronco con la espalda neutra y regresando hasta la línea del cuerpo, sin pasarse de altura. La máquina o el banco dedicado es todo lo que hace falta. La base de una zona lumbar fuerte y resistente al día a día.",
+        "description": "Las Hiperextensiones de Espalda Baja son una extensión del tronco en un banco de apoyo que pone a los erectores espinales a mover la columna. La pelvis queda asentada sobre el acolchado y la espalda cambia de una flexión suave a su posición alineada, con las piernas sujetas. El recorrido nace en la espalda y acaba en la alineación corporal, con poca variación del ángulo de cadera. Su diferencia está en practicar la extensión de espalda con una base que sostiene las piernas.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -223,33 +251,50 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con peso corporal, boca abajo, brazos y piernas se elevan a la vez y se sostienen unos segundos. Los erectores trabajan con el peso corporal como única carga.",
+              "description": "La zona ventral del tronco y la pelvis sirven de apoyo mientras el pecho, las manos y los pies quedan apenas separados del suelo. Los brazos se prolongan delante de la cabeza y las rodillas permanecen extendidas durante la pausa.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
-                "Boca abajo en el suelo: levantas brazos y piernas a la vez y aguantas un momento. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Eleva un poco el pecho, los brazos y las piernas sin doblar las rodillas.",
+                "Sostén la posición sin levantar la barbilla.",
+                "Devuelve el cuerpo al suelo sin dejar caer las extremidades."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión"
+                    "Extensión de la región lumbar",
+                    "Sostén de la extensión"
                   ],
                   "jointId": "columna-lumbar",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Extensión"
+                    "Extensión torácica acompañante"
+                  ],
+                  "jointId": "columna-toracica",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Extensión de cadera para elevar las piernas"
                   ],
                   "jointId": "cadera",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Control Pélvico"
+                    "Sostén del brazo por delante de la cabeza"
                   ],
-                  "jointId": "sacroiliaca",
+                  "jointId": "glenohumeral",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén de la extensión de rodilla"
+                  ],
+                  "jointId": "rodilla",
                   "role": "STABILIZER"
                 }
               ],
@@ -267,29 +312,48 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Control Pélvico"
+                    "Extensión de la región lumbar",
+                    "Sostén de la extensión",
+                    "Extensión torácica acompañante",
+                    "Extensión de cadera para elevar las piernas",
+                    "Sostén del brazo por delante de la cabeza",
+                    "Sostén de la extensión de rodilla"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión"
+                        "Extensión de la región lumbar",
+                        "Sostén de la extensión"
                       ],
                       "jointId": "columna-lumbar",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Extensión"
+                        "Extensión torácica acompañante"
+                      ],
+                      "jointId": "columna-toracica",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión de cadera para elevar las piernas"
                       ],
                       "jointId": "cadera",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Control Pélvico"
+                        "Sostén del brazo por delante de la cabeza"
                       ],
-                      "jointId": "sacroiliaca",
+                      "jointId": "glenohumeral",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén de la extensión de rodilla"
+                      ],
+                      "jointId": "rodilla",
                       "role": "STABILIZER"
                     }
                   ],
@@ -300,7 +364,9 @@
                     "gluteus_maximus",
                     "hamstrings"
                   ],
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "deltoid"
+                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -312,8 +378,10 @@
                   "movementPatternId": "spinal_extension",
                   "relevantJoints": [
                     "columna-lumbar",
+                    "columna-toracica",
                     "cadera",
-                    "sacroiliaca"
+                    "glenohumeral",
+                    "rodilla"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -371,11 +439,14 @@
                 "hamstrings"
               ],
               "setupCues": [
-                "Preparación: Boca abajo en el suelo: levantas brazos y piernas a la vez y aguantas un momento."
+                "Túmbate boca abajo y estira los brazos delante de la cabeza.",
+                "Apoya el abdomen y deja el cuello en línea con la espalda."
               ],
               "setupTimeSeconds": 10,
               "ssc": 0.4,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "deltoid"
+              ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
             },
@@ -383,7 +454,7 @@
           }
         ],
         "defaultConfigurationId": "back_superman_suelo__default",
-        "description": "El Superman en Suelo eleva brazos y piernas a la vez estando boca abajo: los erectores sostienen el arco unos segundos y regresan al suelo. Se ejecuta sin material, con pausas arriba y sin golpear el suelo al bajar. La espalda baja trabaja con el propio peso del cuerpo como carga. El punto de partida perfecto para cuidar la espalda antes de atreverse con el banco romano.",
+        "description": "El Superman en Suelo combina una extensión de espalda con una pequeña elevación de piernas y brazos, trabajando los erectores espinales con ayuda de glúteos e isquiosurales. Boca abajo, la parte frontal del tronco queda apoyada y el pecho se despega al mismo tiempo que las extremidades. La pausa superior sostiene esa postura sin buscar altura mediante un gran arco de cintura o de cuello. Al usar el peso de los segmentos corporales, permite reconocer qué parte del movimiento procede del tronco y cuál de la cadera.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -420,31 +491,48 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Con barra, sobre el banco de 45 grados con la carga sujeta entre los brazos, el torso pivota sobre las caderas. La barra es la referencia para cargar los erectores con peso de verdad.",
+              "description": "Los pliegues de los codos reciben el eje y el banco inclinado sostiene la base de la pelvis. Las manos se juntan para cerrar el sostén de la barra, que acompaña el cambio de curvatura del tronco.",
               "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
-                "Carga en los codos en el banco a 45: subes el torso con la espalda baja haciendo el trabajo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Deja que la espalda se flexione suavemente sin perder el contacto de la pelvis.",
+                "Extiende el tronco hasta recuperar la línea de las piernas.",
+                "Conserva la barra cerca del cuerpo sin abrir los codos."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Extensión"
+                    "Flexión lumbar cargada",
+                    "Extensión lumbar de recuperación"
                   ],
                   "jointId": "columna-lumbar",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Extensión"
+                    "Flexión y extensión torácicas"
                   ],
-                  "jointId": "cadera",
+                  "jointId": "columna-toracica",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Control Pélvico"
+                    "Sostén pélvico sobre el banco"
+                  ],
+                  "jointId": "cadera",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén de la carga en flexión"
+                  ],
+                  "jointId": "codo",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Transferencia hacia la pelvis apoyada"
                   ],
                   "jointId": "sacroiliaca",
                   "role": "STABILIZER"
@@ -464,27 +552,46 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Extensión",
-                    "Control Pélvico"
+                    "Flexión lumbar cargada",
+                    "Extensión lumbar de recuperación",
+                    "Flexión y extensión torácicas",
+                    "Sostén pélvico sobre el banco",
+                    "Sostén de la carga en flexión",
+                    "Transferencia hacia la pelvis apoyada"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Extensión"
+                        "Flexión lumbar cargada",
+                        "Extensión lumbar de recuperación"
                       ],
                       "jointId": "columna-lumbar",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Extensión"
+                        "Flexión y extensión torácicas"
                       ],
-                      "jointId": "cadera",
+                      "jointId": "columna-toracica",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Control Pélvico"
+                        "Sostén pélvico sobre el banco"
+                      ],
+                      "jointId": "cadera",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén de la carga en flexión"
+                      ],
+                      "jointId": "codo",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Transferencia hacia la pelvis apoyada"
                       ],
                       "jointId": "sacroiliaca",
                       "role": "STABILIZER"
@@ -495,7 +602,10 @@
                   ],
                   "secondaryMuscles": [],
                   "stabilizerMuscles": [
-                    "core"
+                    "gluteus_maximus",
+                    "hamstrings",
+                    "core",
+                    "biceps"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -508,7 +618,9 @@
                   "movementPatternId": "spinal_extension",
                   "relevantJoints": [
                     "columna-lumbar",
+                    "columna-toracica",
                     "cadera",
+                    "codo",
                     "sacroiliaca"
                   ],
                   "resistanceProfile": "gravity_arc",
@@ -566,12 +678,16 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Preparación: Carga en los codos en el banco a 45: subes el torso con la espalda baja haciendo el trabajo."
+                "Ajusta el banco para sostener la pelvis y asegurar los tobillos.",
+                "Recibe la barra en los pliegues de ambos codos y junta las manos cerca del pecho."
               ],
               "setupTimeSeconds": 35,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "core"
+                "gluteus_maximus",
+                "hamstrings",
+                "core",
+                "biceps"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -580,7 +696,7 @@
           }
         ],
         "defaultConfigurationId": "back_hiperextension_45_zercher_espalda_baja__default",
-        "description": "La Hiperextensión a 45 Zercher para Espalda Baja añade la barra abrazada al torso en el banco inclinado: los erectores extienden la cadera y la columna con la carga pegada al pecho. Se ejecuta bajando el tronco y subiendo con la espalda firme y los brazos sujetando sin ayudar. La posición zercher añade trabajo de core al del lumbar. Una carga distinta para el banco de 45 grados, con el tronco entero comprometido.",
+        "description": "La Hiperextensión a 45 Zercher para Espalda Baja es una extensión de columna cargada en el pliegue de los codos, con los erectores espinales a cargo del retorno. El banco recibe la pelvis y sujeta las piernas mientras el torso se redondea suavemente y recupera su línea. La barra permanece cerca del pecho y los brazos sostienen su posición sin levantarla por separado. La carga anterior exige distinguir el movimiento de espalda del simple balanceo de la cadera.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

@@ -1,55 +1,812 @@
 {
   "definitions": {
     "hams_peso_muerto_convencional_deficit": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Extensión de la cadera desde apoyo elevado",
+              "Flexión de la cadera al alcanzar el suelo"
+            ],
+            "id": "cadera",
+            "role": "PRIMARY",
+            "sources": [
+              "escamilla2000"
+            ],
+            "why": "La barra queda más baja respecto de los pies y la cadera debe flexionarse lo necesario para alcanzarla, con una contribución que depende también de las rodillas. Se extrapola la acción extensora del convencional, sin afirmar ángulos o momentos medidos en déficit."
+          },
+          {
+            "actions": [
+              "Extensión de la rodilla desde una salida más baja",
+              "Flexión de la rodilla en el descenso"
+            ],
+            "id": "rodilla",
+            "role": "PRIMARY",
+            "sources": [
+              "escamilla2000",
+              "escamilla2002"
+            ],
+            "why": "La rodilla participa en alcanzar la barra desde el apoyo elevado y en levantarla al extenderse. Esta acción cargada deriva del convencional estudiado; el incremento de recorrido no convierte las rodillas en una articulación meramente estabilizadora."
+          },
+          {
+            "actions": [
+              "Resistencia a la flexión durante el arranque profundo"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "hamlyn2007"
+            ],
+            "why": "La altura añadida solo se acepta dentro de una posición que permita conservar la columna neutra. La flexión adicional proviene de cadera y rodilla; el sostén lumbar se deduce del patrón libre estudiado por Hamlyn sin datos específicos de esta plataforma."
+          },
+          {
+            "actions": [
+              "Transferencia desde tronco hacia el apoyo elevado"
+            ],
+            "id": "sacroiliaca",
+            "role": "STABILIZER",
+            "sources": [
+              "pelvic_joints"
+            ],
+            "why": "La sacroilíaca transmite la carga del tronco a ambos miembros inferiores apoyados sobre el escalón. Se aplica su función anatómica de transferencia con movilidad restringida, sin atribuir al desnivel una rotación sacroilíaca que produzca el gesto."
+          },
+          {
+            "actions": [
+              "Agarre sostenido en un recorrido alargado"
+            ],
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "sources": [
+              "forearm_anatomy"
+            ],
+            "why": "Ambas muñecas conservan la posición mientras los dedos sostienen el eje desde el suelo hasta el bloqueo. El recorrido añadido afecta la distancia que viaja el agarre, pero no exige flexionar la muñeca para elevar la barra."
+          },
+          {
+            "actions": [
+              "Dorsiflexión sobre una plataforma firme",
+              "Transferencia del empuje al apoyo"
+            ],
+            "id": "tobillo",
+            "role": "SECONDARY",
+            "sources": [
+              "escamilla2000"
+            ],
+            "why": "Los pies quedan enteramente sobre la plataforma mientras la tibia se inclina y regresa con la rodilla. Se hereda la participación secundaria del tobillo convencional; el estudio base no cuantificó cuánto cambia su momento con este desnivel."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "gluteus_maximus",
+            "role": "PRIMARY",
+            "sources": [
+              "escamilla2002",
+              "escamilla2000"
+            ],
+            "why": "Extiende la cadera desde una salida más baja relativa a los pies hasta la posición erguida. Se conserva el motor y dominante del convencional; Escamilla estudió el patrón al nivel del suelo, de modo que no se atribuye una activación mayor a la plataforma sin evidencia directa."
+          },
+          {
+            "id": "hamstrings",
+            "role": "PRIMARY",
+            "sources": [
+              "hamstring_anatomy",
+              "escamilla2002"
+            ],
+            "why": "Contribuyen a extender la cadera durante el recorrido añadido igual que en el convencional completo. Doblar más las rodillas puede compensar parte de su longitud de cadera, así que el déficit no demuestra por sí solo mayor estiramiento ni mayor activación; el rol se infiere del patrón base y su función anatómica."
+          },
+          {
+            "id": "quadriceps",
+            "role": "PRIMARY",
+            "sources": [
+              "escamilla2000",
+              "escamilla2002"
+            ],
+            "why": "Las rodillas flexionadas para alcanzar la barra con los pies elevados sobre el suelo de los discos deben extenderse contra carga al salir. Esa acción motora conserva el papel del convencional sustentado por cinética y electromiografía; no hay un resultado de esos estudios que cuantifique cuánto aumenta con el déficit."
+          },
+          {
+            "id": "adductors",
+            "role": "SECONDARY",
+            "sources": [
+              "collings2026"
+            ],
+            "why": "El aductor mayor coopera en la extensión de cadera de la postura convencional aunque el apoyo esté elevado. Collings estudió fuerzas del patrón base y no plataformas, por lo que se hereda la asistencia funcional sin afirmar un incremento específico en el grácil o el resto del grupo."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "hamlyn2007",
+              "escamilla2002"
+            ],
+            "why": "La salida con los pies elevados exige sostener la forma lumbar durante la inclinación del torso. El trabajo de erectores del convencional respalda esa función; se aplica por inferencia de una columna fija, sin convertir la mayor profundidad en extensión lumbar activa."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "hamlyn2007"
+            ],
+            "why": "La pared abdominal enlaza pelvis y tórax mientras los discos despegan del suelo que rodea el apoyo elevado. El papel postural del peso muerto medido por Hamlyn se extrapola al déficit, sin afirmar que una plataforma cambie la actividad abdominal o produzca más trabajo dinámico del tronco."
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "sources": [
+              "forearm_anatomy"
+            ],
+            "why": "El agarre debe sostener la barra a lo largo de un desplazamiento vertical mayor, con muñecas quietas y codos largos. Los flexores de dedos explican esa tarea por anatomía; una mayor distancia de recorrido no permite asignarles un nuevo rol motor."
+          }
+        ]
+      },
       "public": {
         "configurations": {
           "hams_peso_muerto_convencional_deficit__default": {
-            "description": "Con barra, desde la plataforma, la carga parte de más abajo y el recorrido crece en cada repetición. Los isquiosurales trabajan con la barra, que permite cargar pesado y medir la progresión con claridad.",
+            "description": "Una plataforma baja sostiene ambos pies mientras los discos permanecen en el suelo circundante. La diferencia de niveles alarga el tramo previo al paso de la barra por las rodillas y cambia cuánto hay que flexionarlas en la preparación.",
             "executionCues": [
-              "Desde la plataforma, la barra parte más abajo y el recorrido crece. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Despega los discos empujando contra la plataforma con hombros y caderas coordinados.",
+              "Lleva la pelvis hacia la barra al superar las rodillas y termina de pie.",
+              "Devuelve los discos al suelo junto a la plataforma sin rebotarlos."
             ],
             "setupCues": [
-              "Preparación: Desde la plataforma, la barra parte más abajo y el recorrido crece."
+              "Sube ambos pies a una plataforma firme y baja, con espacio para los discos a los lados.",
+              "Agarra la barra desde el suelo por fuera de las piernas sin redondear la espalda.",
+              "Comprueba que toda la planta apoye y que la barra pueda pasar cerca de las espinillas."
             ]
           }
         },
-        "description": "El Peso Muerto Convencional en Déficit sube al atleta a una plataforma y alarga el arranque: la barra parte de más abajo y los isquiosurales se estiran unos centímetros extra en cada repetición. La técnica es la del convencional de siempre, solo que el suelo queda más lejos. Esos centímetros adicionales se traducen en fuerza de arranque que el peso muerto normal nota enseguida. El déficit que convierte un buen arranque en uno imparable."
+        "description": "El Peso Muerto Convencional en Déficit añade distancia a un levantamiento donde el cuádriceps estira las rodillas y el glúteo mayor comparte la extensión de cadera con los isquiosurales. Los discos reposan en el suelo que rodea el apoyo elevado del atleta y las rodillas parten dobladas y el agarre se alcanza sin curvatura lumbar deliberada. Después, piernas y cadera llevan el cuerpo hasta quedar erguido tras cada salida desde la plataforma. El interés del déficit está en practicar una salida más baja; no garantiza por sí mismo más estiramiento de isquiosurales ni una mejora del peso muerto habitual."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "En trece jugadores a doce repeticiones máximas, el sumo elevó la actividad de los vastos medial y lateral frente al convencional. Glúteo mayor, aductor y paraespinales se activaron más con mayor flexión de rodilla; los isquiosurales, hacia intervalos de menor flexión. No compara apoyo unilateral ni déficit.",
+          "id": "escamilla2002",
+          "title": "An electromyographic analysis of sumo and conventional style deadlifts",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/11932579/"
+        },
+        {
+          "claim": "El análisis tridimensional de veinticuatro powerlifters registró momentos extensores de cadera y rodilla en ambos estilos. El sumo tuvo postura más ancha, puntas más abiertas y tronco más vertical, mientras el convencional recorrió mayor distancia vertical. No midió variantes elevadas sobre una plataforma.",
+          "id": "escamilla2000",
+          "title": "A three-dimensional biomechanical analysis of sumo and conventional style deadlifts",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/10912892/"
+        },
+        {
+          "claim": "La electromiografía de peso muerto al ochenta por ciento del máximo registró actividad elevada de los erectores lumbares superiores frente al peso corporal. La actividad de oblicuo externo y abdominales bajos no difirió significativamente entre tareas; este resultado no demuestra que dejen de estabilizar.",
+          "id": "hamlyn2007",
+          "title": "Trunk muscle activation during dynamic weight-training exercises and isometric instability activities",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/18076231/"
+        },
+        {
+          "claim": "El compartimento anterior contiene los flexores de muñeca y dedos. De esa función anatómica se deduce el sostén isométrico del agarre; el capítulo no estudia una variante específica de peso muerto.",
+          "id": "forearm_anatomy",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/"
+        },
+        {
+          "claim": "La sacroilíaca transmite una parte importante del peso del tronco y los miembros superiores a las piernas, con movilidad restringida. Sustenta su papel de transferencia de fuerza, no una extensión activa de esa articulación.",
+          "id": "pelvic_joints",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Pelvic Joints",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30860758/"
+        },
+        {
+          "claim": "Describe la extensión de cadera y la flexión de rodilla de los isquiosurales, salvo la cabeza corta del bíceps femoral en la cadera. La anatomía complementa la electromiografía del patrón sin demostrar adaptaciones por déficit.",
+          "id": "hamstring_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hamstring Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31536294/"
+        },
+        {
+          "claim": "Un modelo neuromusculoesquelético asistido por electromiografía en quince participantes situó convencional y sumo en el grupo de mayor fuerza normalizada para la porción isquiocondílea del aductor mayor y el grácil. No encontró ese nivel para todos los aductores ni examinó déficit o versiones unilaterales.",
+          "id": "collings2026",
+          "title": "Hip Adductor Muscle Forces during Strength Training and Rehabilitation Exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/41931009/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Convencional con barra completa desde el suelo y ambos pies sobre una plataforma baja: los discos empiezan fuera de ella, sobre el suelo que rodea la plataforma. El desnivel eleva al atleta en vez de elevar la carga, conserva el bloqueo final y permite flexionar las rodillas en la salida.",
+        "keyPositions": [
+          "Inicio: plantas por encima del suelo y discos apoyados abajo, con cadera y rodillas flexionadas.",
+          "Final: atleta erguido sobre el mismo escalón y barra junto a los muslos, con discos suspendidos."
+        ],
+        "mistakes": [
+          "Subir a una altura que obligue a redondear la columna para alcanzar la barra.",
+          "Poner también los discos sobre bloques y eliminar el desnivel que define el déficit.",
+          "Dejar parte de los talones fuera de la plataforma durante el empuje.",
+          "Rebotar los discos contra el suelo para evitar repetir el tramo más bajo."
+        ],
+        "phases": [
+          {
+            "description": "Las manos agarran la barra en el suelo mientras las plantas permanecen por encima en la plataforma.",
+            "name": "Alcance desde arriba"
+          },
+          {
+            "description": "Las piernas empujan el escalón y la carga recorre el tramo añadido antes de aproximarse a las rodillas.",
+            "name": "Despegue bajo"
+          },
+          {
+            "description": "La extensión de cadera completa la subida y el cuerpo queda alto sin arco lumbar adicional.",
+            "name": "Bloqueo sobre la plataforma"
+          },
+          {
+            "description": "El eje baja cerca de las piernas hasta que los discos vuelven al suelo exterior, sin contacto con el escalón.",
+            "name": "Retorno al nivel inferior"
+          }
+        ],
+        "setup": [
+          "Plataforma continua, firme y suficientemente ancha para apoyar ambos pies al ancho de cadera.",
+          "Discos en el suelo a ambos lados del escalón, sin barras de soporte bajo la carga.",
+          "Manos por fuera de las piernas y columna neutra al alcanzar el eje desde el nivel superior."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral oblicua a la altura de la plataforma, con el desnivel y toda la postura de salida visibles.",
+          "contacts": "Ambos pies completos sobre la superficie elevada; ambas manos sujetan la carga; ningún disco descansa sobre el escalón.",
+          "load": "Carga cerca de las espinillas, con los discos apenas separados del suelo que rodea al apoyo.",
+          "orientation": "Atleta de perfil hacia la derecha, con las dos plantas y el borde de la plataforma identificables.",
+          "phase": "Salida congelada inmediatamente después del despegue: los discos se separan apenas del suelo inferior mientras los pies siguen elevados.",
+          "posture": "Rodillas flexionadas, cadera detrás de los hombros y tronco inclinado neutro, con brazos largos por fuera de las piernas."
+        },
+        "byImplement": {
+          "barbell": {
+            "geometry": "Barra recta delante de las espinillas, discos fuera de la plataforma a ambos lados y ligeramente suspendidos del suelo inferior; manos pronas externas a las piernas."
+          }
+        },
+        "forbidden": [
+          "Barra o discos elevados sobre bloques: esa geometría acorta la salida en vez de alargarla.",
+          "Pies al nivel del suelo junto a una plataforma decorativa, sin verdadero desnivel.",
+          "Piernas rectas durante el arranque, propio de otro tipo de déficit.",
+          "Discos flotando sin contacto de las manos con el eje."
+        ],
+        "promptCore": {
+          "barbell": "Side three quarter view of an athlete frozen at LIFTOFF in a conventional deficit barbell deadlift. Both entire feet stand on a low solid platform at hip width. Both hands firmly grip the straight bar overhand outside the legs, arms straight. The bar stays close to the shins; the raised feet increase the reach to the lower floor. Its plates are just clear of the surrounding lower floor and are NOT on the platform. Knees and hips are bent, torso inclined with a neutral spine. Show the step and full athlete, no text."
+        },
+        "qa": [
+          "¿Ambas plantas están enteramente sobre una plataforma que eleva al atleta?",
+          "¿Las dos manos agarran la barra por fuera de las piernas?",
+          "¿Los discos están fuera del escalón y apenas despegados del suelo inferior?",
+          "¿El suelo donde despegan los discos está más bajo que el apoyo de ambos pies?",
+          "¿Las rodillas están flexionadas y la espalda conserva su forma neutra?"
+        ]
+      }
     },
     "hams_peso_muerto_piernas_rigidas_deficit": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Flexión de cadera",
+              "Extensión de cadera"
+            ],
+            "id": "cadera",
+            "role": "PRIMARY",
+            "sources": [
+              "coratella2022",
+              "hip_anatomy"
+            ],
+            "why": "Extiende desde la flexión inicial necesaria para alcanzar la barra cuyos discos reposan en un piso inferior al apoyo de los pies. La evidencia de piernas rígidas respalda este papel motor por extrapolación al desnivel; la plataforma modifica el alcance requerido y no cambia la articulación que levanta."
+          },
+          {
+            "actions": [
+              "Estabilidad con rodilla poco flexionada"
+            ],
+            "id": "rodilla",
+            "role": "STABILIZER",
+            "sources": [
+              "coratella2022",
+              "knee_anatomy"
+            ],
+            "why": "Permanece casi recta mientras los pies están elevados y la carga comienza en el piso inferior. Mantener un ángulo reducido de flexión tiene función postural; una extensión grande de rodillas al despegar transformaría la variante en otro tipo de peso muerto."
+          },
+          {
+            "actions": [
+              "Resistencia a la flexión lumbar"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "coratella2022",
+              "pelvic_anatomy"
+            ],
+            "why": "El alcance aumentado requiere transmitir la fuerza con posición vertebral estable. Sujetar la barra flexionando vértebras alteraría la identidad de este despegue; la movilidad requerida pertenece a las caderas, no a la columna."
+          },
+          {
+            "actions": [
+              "Transmisión de carga entre pelvis y tronco"
+            ],
+            "id": "sacroiliaca",
+            "role": "STABILIZER",
+            "sources": [
+              "pelvic_anatomy"
+            ],
+            "why": "Transfiere a la pelvis elevada el peso del torso y de la barra que despega desde abajo. El enlace entre sacro e ilíacos tiene recorrido anatómico restringido y estabiliza esa transferencia, sin añadir una acción propia de extensión."
+          },
+          {
+            "actions": [
+              "Sostén del agarre"
+            ],
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "sources": [
+              "forearm_anatomy"
+            ],
+            "why": "En el agarre inicial de la barra sostiene los dedos cerrados y la muñeca sin doblarse mientras los discos reposan en el piso inferior. Continúa transmitiendo el peso durante el despegue y el regreso; el desnivel no la convierte en motor de la repetición."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "hamstrings",
+            "role": "PRIMARY",
+            "sources": [
+              "hamstrings_anatomy",
+              "coratella2022",
+              "mccurdy2018"
+            ],
+            "why": "Deben extender la cadera desde un arranque con los discos en un piso inferior al apoyo de los pies y las rodillas casi extendidas. Su función se extrapola de piernas rígidas sin plataforma y de la anatomía biarticular; el déficit no garantiza un estiramiento máximo ni dispone de EMG específica en las fuentes citadas."
+          },
+          {
+            "id": "gluteus_maximus",
+            "role": "PRIMARY",
+            "sources": [
+              "coratella2022",
+              "glute_anatomy",
+              "mccurdy2018"
+            ],
+            "why": "La cadera alta del arranque se extiende con ayuda motora del glúteo mayor para levantar el peso hasta la vertical. La actividad importante registrada por Coratella y McCurdy en piernas rígidas sin desnivel se extrapola a este déficit, justificando principal en lugar del secundario heredado."
+          },
+          {
+            "id": "adductors",
+            "role": "SECONDARY",
+            "sources": [
+              "adductor2018",
+              "adductor2026"
+            ],
+            "why": "Se infiere que el aductor mayor posterior asiste a la extensión al despegar una carga cuyos discos descansan en el piso inferior al apoyo de los pies. Benn sustenta esa función y Collings el trabajo en peso muerto, pero ninguno probó piernas rígidas elevado; no se lo presenta como motor dominante."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "coratella2022",
+              "pelvic_anatomy"
+            ],
+            "why": "Resisten el redondeo de la espalda al alcanzar y despegar la barra del piso inferior. Se aplica el sostén lumbar medido en piernas rígidas sin plataforma; esta variante exige cadera dinámica y columna fija, por lo que el secundario heredado pasa a estabilizador."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "core2025",
+              "abdominal_anatomy"
+            ],
+            "why": "Fija el torso desde la posición baja de agarre para transmitir la extensión de cadera mientras los pies están elevados respecto del piso de reposo de los discos. Es una extrapolación de la respuesta abdominal en rumano y de la función de presión de la pared, no una medición abdominal del despegue en déficit."
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "sources": [
+              "forearm_anatomy"
+            ],
+            "why": "Los dedos sujetan la barra desde el despegue de los discos del piso inferior hasta su regreso al mismo apoyo. El desnivel entre ese piso y los pies no elimina la contracción isométrica de agarre descrita por anatomía del antebrazo; las manos no generan la extensión del tronco."
+          }
+        ],
+        "overrides": {}
+      },
       "public": {
         "configurations": {
           "hams_peso_muerto_piernas_rigidas_deficit__default": {
-            "description": "Con barra, desde la plataforma y con las piernas casi extendidas, el estiramiento llega al límite. La barra es la referencia para cargar los isquiosurales con peso de verdad.",
+            "description": "Los discos comienzan sobre el piso inferior mientras ambos pies descansan en una superficie elevada. El desnivel aumenta el alcance de manos a barra con las rodillas casi rectas, y cada repetición devuelve los discos al mismo apoyo.",
             "executionCues": [
-              "Plataforma más piernas casi rectas: el estiramiento de los isquios llega al límite. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Despega del piso inferior con la pelvis alta, sin agacharte doblando las rodillas.",
+              "Levántate hasta alinear el torso sobre la plataforma y deja los codos extendidos.",
+              "Devuelve los discos al piso de abajo sin ganar alcance con la espalda."
             ],
             "setupCues": [
-              "Preparación: Plataforma más piernas casi rectas: el estiramiento de los isquios llega al límite."
+              "Eleva ambos pies sobre un apoyo firme dejando los discos en el piso inferior.",
+              "Agarra la barra desde abajo con rodillas próximas a rectas y columna neutra."
             ]
           }
         },
-        "description": "El Peso Muerto Piernas Rígidas en Déficit junta las dos cosas que más estiran el isquio: piernas casi extendidas y una plataforma que aleja el suelo. El estiramiento bajo carga llega al máximo disponible y los erectores aguantan la columna en cada bajada. Se ejecuta bajando la barra más allá de los pies con la espalda intacta. Solo para quien ya tiene movilidad y control de sobra."
+        "description": "Peso Muerto Piernas Rígidas en Déficit utiliza isquiosurales y glúteo mayor en un despegue desde el piso con los pies sobre una plataforma. Las rodillas quedan casi extendidas y la cadera alta permite alcanzar la barra cuyos discos descansan en el piso inferior. El peso vuelve a ese apoyo entre repeticiones, sin conseguir profundidad doblando la columna. El desnivel aumenta el alcance relativo de los pies a la barra; una altura excesiva hace que el arranque deje de caber en la movilidad de cadera."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "En diez culturistas comparó rumano, rumano sobre escalón y piernas rígidas al ochenta por ciento de su carga máxima. El rumano en escalón elevó la excitación del glúteo mayor, semitendinoso y longísimo durante la subida; el rumano excitó más el semitendinoso que piernas rígidas, y piernas rígidas más el glúteo mayor. No demuestra un rango máximo universal ni hipertrofia superior.",
+          "id": "coratella2022",
+          "title": "An Electromyographic Analysis of Romanian, Step-Romanian, and Stiff-Leg Deadlift: Implication for Resistance Training",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/35162922/"
+        },
+        {
+          "claim": "En dieciocho mujeres entrenadas, el peso muerto piernas rígidas produjo actividad tanto del glúteo mayor como de los isquiosurales; la actividad normalizada del glúteo fue mayor. La comparación no permite convertir amplitud EMG en una clasificación universal de dominancia.",
+          "id": "mccurdy2018",
+          "title": "Gluteus Maximus and Hamstring Activation During Selected Weight-Bearing Resistance Exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29076958/"
+        },
+        {
+          "claim": "Describe el complejo isquiosural posterior, sus inserciones a través de cadera y rodilla y su función de extensión de cadera y flexión de rodilla; permite razonar el alargamiento con cadera flexionada y rodilla poco flexionada.",
+          "id": "hamstrings_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hamstring Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31536294/"
+        },
+        {
+          "claim": "Describe la región glútea y al glúteo mayor como músculo superficial de gran tamaño relacionado con movimiento dinámico y estabilidad erguida. La función extensora aquí se contrasta con la evidencia directa de pesos muertos.",
+          "id": "glute_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Maximus Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30855781/"
+        },
+        {
+          "claim": "La EMG intramuscular mostró que ambas porciones del aductor mayor tuvieron su mayor actividad en extensión de cadera; sus funciones de rotación difirieron. Respalda su capacidad extensora, no una superioridad del sumo rumano ni una medición de esa variante.",
+          "id": "adductor2018",
+          "title": "Adductor magnus: An EMG investigation into proximal and distal portions and direction specific action",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29520841/"
+        },
+        {
+          "claim": "El modelo neuromusculoesquelético informado por EMG estimó fuerzas altas del aductor mayor isquiocondilar en peso muerto y sumo, ambos dentro del primer grupo para ese fascículo. No evaluó rumano ni piernas rígidas: su aplicación a esas bisagras es una extrapolación anatómica explícita.",
+          "id": "adductor2026",
+          "title": "Hip Adductor Muscle Forces during Strength Training and Rehabilitation Exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/41931009/"
+        },
+        {
+          "claim": "Con un sensor de pared abdominal, el rumano estuvo entre los ejercicios de miembros inferiores que aumentaron más la tensión abdominal. El estudio mide respuesta abdominal y no identifica por separado cada músculo profundo.",
+          "id": "core2025",
+          "title": "Changes of abdominal wall tension across various resistance exercises during maximal and submaximal loads in healthy adults: a cross-sectional study",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/40325422/"
+        },
+        {
+          "claim": "Describe la pared abdominal como estructura capaz de generar presión intraabdominal y mover la columna; sustenta su capacidad de fijar el tronco, sin que la bisagra necesite movimiento lumbar.",
+          "id": "abdominal_anatomy",
+          "title": "Anatomy, Abdomen and Pelvis: Abdominal Wall",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31869113/"
+        },
+        {
+          "claim": "Describe los compartimentos del antebrazo y la función flexora de muñeca y dedos del compartimento anterior; aplicada a la sujeción continua de una carga manual explica el trabajo isométrico del agarre.",
+          "id": "forearm_anatomy",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/"
+        },
+        {
+          "claim": "Describe la cadera como articulación que soporta dinámicamente el peso del tronco y transmite carga entre esqueleto axial y miembros inferiores.",
+          "id": "hip_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hip Joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29262200/"
+        },
+        {
+          "claim": "Explica flexión y extensión de la rodilla y la importancia de su apoyo muscular para estabilizarla; en la bisagra con ángulo casi fijo la función descrita es postural.",
+          "id": "knee_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Knee",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29763193/"
+        },
+        {
+          "claim": "Describe la movilidad restringida sacroilíaca y la transmisión del peso de torso y extremidades superiores hacia los miembros inferiores, además de las articulaciones lumbosacras.",
+          "id": "pelvic_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Pelvic Joints",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30860758/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Despegue bilateral con los discos de la barra reposando en un piso inferior al apoyo de los pies: una plataforma eleva ambos pies y las rodillas permanecen casi rectas. Cada repetición parte desde ese apoyo y devuelve los discos al piso; el eje puede quedar por encima de las plantas según el diámetro de los discos.",
+        "keyPositions": [
+          "Arranque: pies elevados, discos en el piso inferior, cadera alta, torso inclinado y rodillas apenas flexionadas.",
+          "Despegue: la barra abandona el piso sin que la cadera baje hacia una sentadilla.",
+          "Final: cuerpo vertical sobre la plataforma, barra delante de los muslos y pelvis debajo del tórax."
+        ],
+        "mistakes": [
+          "Usar una plataforma tan alta que alcanzar la barra solo sea posible redondeando la zona lumbar.",
+          "Doblar mucho las rodillas para convertir el arranque bajo en un empuje de piernas.",
+          "Apoyar los discos sobre la plataforma en lugar de devolverlos al piso inferior."
+        ],
+        "phases": [
+          {
+            "description": "La cadera se flexiona con las rodillas casi rectas hasta sujetar la barra cuyos discos reposan en el piso inferior al apoyo de los pies.",
+            "name": "Alcance"
+          },
+          {
+            "description": "Con la columna en su posición, la cadera extiende y levanta la carga pegada a las piernas hasta la vertical.",
+            "name": "Despegue y extensión"
+          },
+          {
+            "description": "El torso vuelve a inclinarse desde la cadera y los discos descansan otra vez en el piso inferior al apoyo.",
+            "name": "Retorno al piso"
+          }
+        ],
+        "setup": [
+          "Plataforma baja, rígida y de superficie antideslizante, con apoyo completo de ambos pies y discos fuera de sus bordes.",
+          "Barra en el piso delante del apoyo; manos en prono, brazos extendidos y cadera alta al alcanzar el agarre."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral ligeramente oblicua a la altura de la cadera, con atleta entero, manos y piso visibles.",
+          "contacts": "Ambos pies enteros apoyados sobre la plataforma; manos agarrando la carga y discos en el piso inferior.",
+          "load": "Barra cerca de las tibias y sujeta por ambas manos; discos en el piso inferior al apoyo de los pies. La altura del eje depende del radio de los discos y del desnivel de la plataforma.",
+          "orientation": "Atleta mirando hacia la izquierda del encuadre; cabeza alineada con el torso inclinado y mirada hacia el piso.",
+          "phase": "Fotograma de arranque bajo, justo antes del despegue con la carga apoyada y las rodillas casi rectas.",
+          "posture": "Cadera alta y retrasada, rodillas casi extendidas sin bloqueo, torso inclinado y columna neutra."
+        },
+        "byImplement": {
+          "barbell": {
+            "geometry": "Barra recta delante de las tibias; agarre prono con ambas manos, discos en el piso inferior y pies sobre la plataforma."
+          }
+        },
+        "byVariant": {},
+        "forbidden": [
+          "Rodillas muy dobladas y cadera baja como en el arranque de una sentadilla.",
+          "Espalda redondeada, cuello levantado o codos doblados para tirar del peso.",
+          "Discos sobre la plataforma o pies en el piso inferior: desaparece el déficit.",
+          "Carga junto al pecho, apoyada sobre la espalda o levantada con un remo."
+        ],
+        "promptCore": {
+          "barbell": "Oblique side view of an athlete. Frozen at the BOTTOM START of a stiff-leg deadlift before the weight leaves its lower support. Hips are high, knees nearly straight but unlocked, spine neutral and arms long. Both feet are flat on a low raised platform at hip width. Both hands physically grip the straight barbell with an overhand grip. The bar is close to the shins with plates on both ends. The plates rest on the lower floor, which is below the platform surface supporting the feet. The bar shaft may remain above the soles depending on plate size and platform height. No text, logos or brands."
+        },
+        "qa": [
+          "¿Las rodillas están casi rectas o con una flexión pequeña, sin una sentadilla profunda?",
+          "¿Las manos agarran físicamente la carga y ninguna pieza flota suelta?",
+          "¿El fotograma muestra la carga en su apoyo inferior justo antes del despegue?",
+          "¿Los pies descansan completos sobre una plataforma elevada respecto del piso de reposo de los discos?",
+          "¿Los brazos cuelgan rectos junto a las piernas, sin llevar el peso al pecho?"
+        ]
+      }
     },
     "hams_peso_muerto_sumo_deficit": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Extensión de la cadera abierta desde apoyo elevado",
+              "Flexión de la cadera para alcanzar la barra"
+            ],
+            "id": "cadera",
+            "role": "PRIMARY",
+            "sources": [
+              "escamilla2000"
+            ],
+            "why": "Las caderas abiertas parten de un alcance prolongado por el apoyo elevado y se extienden hasta alinear la pelvis. La acción procede del sumo al suelo estudiado tridimensionalmente; el déficit cambia la geometría inicial sin ofrecer aquí una medición propia de momentos."
+          },
+          {
+            "actions": [
+              "Extensión de la rodilla orientada hacia afuera",
+              "Flexión durante la vuelta al suelo inferior"
+            ],
+            "id": "rodilla",
+            "role": "PRIMARY",
+            "sources": [
+              "escamilla2000",
+              "escamilla2002"
+            ],
+            "why": "Las rodillas siguen las puntas abiertas y se estiran al elevar la carga desde el nivel inferior. El sumo base presenta momento extensor y actividad de vastos; se conserva la función motora sin asegurar una magnitud mayor por usar plataforma."
+          },
+          {
+            "actions": [
+              "Sostén lumbar durante la salida sumo ampliada"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "escamilla2002"
+            ],
+            "why": "El atleta alcanza un punto bajo relativo al pie, pero la columna conserva su curvatura mientras se flexionan caderas y rodillas. El registro paraespinal del sumo justifica sostén por extrapolación, sin usar una flexión lumbar extra para obtener el recorrido."
+          },
+          {
+            "actions": [
+              "Transferencia desde tronco al apoyo abierto elevado"
+            ],
+            "id": "sacroiliaca",
+            "role": "STABILIZER",
+            "sources": [
+              "pelvic_joints"
+            ],
+            "why": "La carga del tórax llega a las piernas abiertas a través de la pelvis y finalmente al escalón. La movilidad anatómica restringida sustenta el rol de transmisión; el desnivel no requiere que la sacroilíaca produzca el movimiento principal."
+          },
+          {
+            "actions": [
+              "Sujeción interna a lo largo del tramo añadido"
+            ],
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "sources": [
+              "forearm_anatomy"
+            ],
+            "why": "Las manos cierran el eje entre las piernas y las muñecas siguen estables desde el nivel inferior hasta la extensión final. El agarre corresponde a la función flexora digital descrita en anatomía, sin una flexión repetida de muñeca que ayude a subir."
+          },
+          {
+            "actions": [
+              "Dorsiflexión con base abierta sobre plataforma",
+              "Transmisión al escalón"
+            ],
+            "id": "tobillo",
+            "role": "SECONDARY",
+            "sources": [
+              "escamilla2000"
+            ],
+            "why": "Los pies abiertos apoyan toda la planta mientras la tibia acompaña al cambio de rodilla sobre la plataforma. Se conserva la participación secundaria del tobillo sumo, aunque la cinética de Escamilla no cuantificó este tramo ampliado."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "gluteus_maximus",
+            "role": "PRIMARY",
+            "sources": [
+              "escamilla2002",
+              "escamilla2000"
+            ],
+            "why": "Extiende la cadera desde el alcance bajo con los muslos abiertos hasta el bloqueo sobre el apoyo. Se conserva el primer motor del sumo convencional; las mediciones de Escamilla son del patrón al suelo, por lo que no prueban que el déficit cambie su dominancia o aumente su actividad."
+          },
+          {
+            "id": "hamstrings",
+            "role": "PRIMARY",
+            "sources": [
+              "hamstring_anatomy",
+              "escamilla2002"
+            ],
+            "why": "Acompañan la extensión cargada de la cadera en la base sumo y el final erguido. El desnivel exige ajustar simultáneamente rodilla y cadera, así que su longitud no puede deducirse solo de la altura de plataforma; se hereda la función motora del sumo, sin afirmar electromiografía de esta variante."
+          },
+          {
+            "id": "quadriceps",
+            "role": "PRIMARY",
+            "sources": [
+              "escamilla2000",
+              "escamilla2002"
+            ],
+            "why": "Las rodillas abiertas se extienden desde la posición necesaria para agarrar la barra desde los pies elevados. El papel motor del sumo está sustentado por momentos articulares y actividad de los vastos; la altura añadida no elimina esa extensión ni demuestra cuánto aumenta su participación."
+          },
+          {
+            "id": "adductors",
+            "role": "SECONDARY",
+            "sources": [
+              "collings2026",
+              "escamilla2002"
+            ],
+            "why": "El grupo asiste a la cadera abierta, con contribución extensora de la porción isquiocondílea del aductor mayor. Se extrapola del sumo estudiado por Collings; el apoyo elevado no fue comparado y por sí solo no convierte la asistencia de esa porción en dominancia de todos los aductores."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "escamilla2002"
+            ],
+            "why": "Sostienen el tronco sin movimiento lumbar añadido mientras el cuerpo parte de una altura distinta a la de la barra. Los paraespinales activos en el sumo base sustentan esta inferencia postural; no se usa el déficit para afirmar una extensión dinámica de columna."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "escamilla2002"
+            ],
+            "why": "La pared abdominal fija la pelvis y el tórax sobre la postura amplia para transmitir el empuje del escalón al agarre. El registro abdominal del sumo de Escamilla apoya participación, pero no midió esta plataforma ni permite asignar al core un papel propulsor."
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "sources": [
+              "forearm_anatomy"
+            ],
+            "why": "Los dedos conservan un agarre interno de la barra durante el tramo vertical añadido y la bajada. La anatomía del compartimento anterior explica el esfuerzo isométrico de sujeción; los brazos largos y la muñeca fija impiden tratarlo como motor del levantamiento."
+          }
+        ]
+      },
       "public": {
         "configurations": {
           "hams_peso_muerto_sumo_deficit__default": {
-            "description": "Con barra, con la postura amplia sobre la plataforma, el recorrido es más largo que el sumo normal. La barra es la referencia para cargar los isquiosurales con peso de verdad.",
+            "description": "El apoyo elevado debe ser ancho para alojar ambos pies separados y orientados hacia fuera, con la barra delante y los discos fuera de sus bordes. Las manos internas alcanzan un nivel más bajo respecto de las plantas que en el sumo al suelo.",
             "executionCues": [
-              "Postura amplia desde la plataforma: más recorrido que el sumo normal y más trabajo para glúteos y aductores. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Empuja el apoyo elevado sin cerrar las rodillas hacia el centro.",
+              "Eleva la barra hasta quedar alto sobre la plataforma con el tronco alineado.",
+              "Vuelve al suelo inferior por el espacio entre las piernas y sin golpear el escalón."
             ],
             "setupCues": [
-              "Preparación: Postura amplia desde la plataforma: más recorrido que el sumo normal y más trabajo para glúteos y aductores."
+              "Apoya los dos pies abiertos sobre una plataforma baja que admita toda tu postura.",
+              "Orienta rodillas y puntas en la misma dirección y agarra la barra entre las piernas.",
+              "Comprueba que los discos queden libres junto a los bordes al iniciar la subida."
             ]
           }
         },
-        "description": "El Peso Muerto Sumo en Déficit coloca al atleta sobre un escalón y conserva la postura abierta: aductores y glúteos trabajan en un recorrido más largo que el sumo normal. Se ejecuta presionando el suelo con las piernas separadas mientras la barra sube desde más abajo de lo habitual. La combinación pide técnica fina y caderas fuertes. Una prueba avanzada para los que ya dominan el sumo convencional."
+        "description": "El Peso Muerto Sumo en Déficit amplía el recorrido del levantamiento abierto, con extensión de rodilla a cargo del cuádriceps y extensión de cadera compartida por isquiosurales y glúteo mayor, asistidos por aductores. La postura abierta deja los brazos entre las piernas y los discos comienzan en el suelo que rodea la plataforma elevada. Las rodillas se orientan hacia las puntas mientras el empuje devuelve el cuerpo a la vertical. La plataforma debe admitir la anchura de ambos pies y dejar espacio para los discos. Ese desnivel ofrece práctica del tramo inicial más largo sin justificar que los aductores o los isquiosurales pasen a liderar el ejercicio."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "En trece jugadores a doce repeticiones máximas, el sumo elevó la actividad de los vastos medial y lateral frente al convencional. Glúteo mayor, aductor y paraespinales se activaron más con mayor flexión de rodilla; los isquiosurales, hacia intervalos de menor flexión. No compara apoyo unilateral ni déficit.",
+          "id": "escamilla2002",
+          "title": "An electromyographic analysis of sumo and conventional style deadlifts",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/11932579/"
+        },
+        {
+          "claim": "El análisis tridimensional de veinticuatro powerlifters registró momentos extensores de cadera y rodilla en ambos estilos. El sumo tuvo postura más ancha, puntas más abiertas y tronco más vertical, mientras el convencional recorrió mayor distancia vertical. No midió variantes elevadas sobre una plataforma.",
+          "id": "escamilla2000",
+          "title": "A three-dimensional biomechanical analysis of sumo and conventional style deadlifts",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/10912892/"
+        },
+        {
+          "claim": "El compartimento anterior contiene los flexores de muñeca y dedos. De esa función anatómica se deduce el sostén isométrico del agarre; el capítulo no estudia una variante específica de peso muerto.",
+          "id": "forearm_anatomy",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/"
+        },
+        {
+          "claim": "La sacroilíaca transmite una parte importante del peso del tronco y los miembros superiores a las piernas, con movilidad restringida. Sustenta su papel de transferencia de fuerza, no una extensión activa de esa articulación.",
+          "id": "pelvic_joints",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Pelvic Joints",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30860758/"
+        },
+        {
+          "claim": "Describe la extensión de cadera y la flexión de rodilla de los isquiosurales, salvo la cabeza corta del bíceps femoral en la cadera. La anatomía complementa la electromiografía del patrón sin demostrar adaptaciones por déficit.",
+          "id": "hamstring_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hamstring Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31536294/"
+        },
+        {
+          "claim": "Un modelo neuromusculoesquelético asistido por electromiografía en quince participantes situó convencional y sumo en el grupo de mayor fuerza normalizada para la porción isquiocondílea del aductor mayor y el grácil. No encontró ese nivel para todos los aductores ni examinó déficit o versiones unilaterales.",
+          "id": "collings2026",
+          "title": "Hip Adductor Muscle Forces during Strength Training and Rehabilitation Exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/41931009/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Sumo completo con barra desde el suelo inferior y pies separados sobre una plataforma ancha de poca altura. La carga no está elevada: el atleta sí, con manos dentro de las piernas y rodillas flexionadas hacia afuera durante el alcance inicial.",
+        "keyPositions": [
+          "Despegue: ambos pies por encima del suelo, rodillas abiertas y carga apenas separada del nivel inferior.",
+          "Final: postura amplia sobre el apoyo elevado, cadera extendida y brazos rectos con la barra bajo la pelvis."
+        ],
+        "mistakes": [
+          "Usar una plataforma estrecha y apoyar solo parte de cada pie para sostener la separación.",
+          "Añadir profundidad cerrando las rodillas o flexionando la columna.",
+          "Apoyar los discos encima de la plataforma y perder el recorrido adicional.",
+          "Golpear el borde del escalón durante el descenso."
+        ],
+        "phases": [
+          {
+            "description": "Los brazos descienden entre las piernas hasta el eje situado abajo, con ambas plantas enteramente sobre el apoyo.",
+            "name": "Alcance interno bajo"
+          },
+          {
+            "description": "Las rodillas siguen las puntas mientras el atleta presiona el escalón y la barra deja el suelo inferior.",
+            "name": "Empuje abierto"
+          },
+          {
+            "description": "La pelvis se sitúa bajo el tórax al terminar la extensión de las piernas y la cadera.",
+            "name": "Llegada a la vertical"
+          },
+          {
+            "description": "La barra vuelve al nivel inferior cerca de las espinillas, con los discos alejados de la plataforma y sin cerrar la postura.",
+            "name": "Descenso fuera del borde"
+          }
+        ],
+        "setup": [
+          "Plataforma capaz de sostener la totalidad de la postura abierta, sin pie partido sobre un borde.",
+          "Discos apoyados en el suelo fuera del perímetro del escalón y barra accesible por delante de las espinillas.",
+          "Agarre interno a las rodillas, puntas abiertas y torso neutro antes de que despegue la carga."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista frontal oblicua baja que muestre el escalón ancho, la orientación de los pies y el nivel inferior de la carga.",
+          "contacts": "Ambas plantas completas sobre la superficie elevada y las manos cerradas dentro de las piernas; la carga no descansa en el escalón.",
+          "load": "Resistencia horizontal dentro del hueco entre piernas, cercana a las espinillas y suspendida sobre el suelo inferior.",
+          "orientation": "Atleta de frente con ligera rotación que haga visible el borde delantero de la plataforma.",
+          "phase": "Instante congelado del despegue, con los discos apenas levantados del suelo inferior y ambos pies sobre el escalón.",
+          "posture": "Base amplia con puntas abiertas, rodillas flexionadas y alineadas hacia afuera, brazos estirados y espalda neutra."
+        },
+        "byImplement": {
+          "barbell": {
+            "geometry": "Barra recta horizontal agarrada en prono entre las rodillas abiertas, con discos exteriores al perímetro de la plataforma ancha, apenas separados del nivel inferior."
+          }
+        },
+        "forbidden": [
+          "Separación de pies estrecha o manos por fuera de ambas piernas, que cambian la postura sumo.",
+          "Uno o ambos pies en el suelo inferior, sin apoyo elevado para el atleta.",
+          "Discos descansando sobre bloques o sobre el escalón junto al atleta.",
+          "Barra suspendida con las manos abiertas o sin ningún agarre visible."
+        ],
+        "promptCore": {
+          "barbell": "Front three quarter low view of an athlete frozen at LIFTOFF in a sumo deficit barbell deadlift. Both feet are wide apart, toes outward, entire soles planted on a wide low platform. Knees point outward. Both hands grip the straight bar overhand INSIDE the legs with straight elbows. The bar stays close to the shins; plates sit outside the platform edges and are just lifted clear of the lower surrounding floor. Neutral spine and partly bent hips. Show all feet and the step, no text."
+        },
+        "qa": [
+          "¿Los dos pies abiertos tienen toda la planta sobre una plataforma ancha?",
+          "¿Las manos agarran el eje por dentro de las rodillas?",
+          "¿Los discos quedan fuera de la plataforma y apenas levantados del suelo inferior?",
+          "¿La plataforma queda sobre el suelo donde los discos inician su despegue?",
+          "¿Las rodillas y las puntas miran hacia afuera en la misma dirección?"
+        ]
+      }
     }
   },
   "familyId": "lower_hip_hinge_deficit",

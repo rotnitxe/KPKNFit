@@ -24,41 +24,60 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con barra, desde la plataforma, la carga parte de más abajo y el recorrido crece en cada repetición. Los isquiosurales trabajan con la barra, que permite cargar pesado y medir la progresión con claridad.",
+              "description": "Una plataforma baja sostiene ambos pies mientras los discos permanecen en el suelo circundante. La diferencia de niveles alarga el tramo previo al paso de la barra por las rodillas y cambia cuánto hay que flexionarlas en la preparación.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
-                "Desde la plataforma, la barra parte más abajo y el recorrido crece. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Despega los discos empujando contra la plataforma con hombros y caderas coordinados.",
+                "Lleva la pelvis hacia la barra al superar las rodillas y termina de pie.",
+                "Devuelve los discos al suelo junto a la plataforma sin rebotarlos."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Extensión de la cadera desde apoyo elevado",
+                    "Flexión de la cadera al alcanzar el suelo"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión Ligera Y Estabilidad"
+                    "Extensión de la rodilla desde una salida más baja",
+                    "Flexión de la rodilla en el descenso"
                   ],
                   "jointId": "rodilla",
-                  "role": "SECONDARY"
+                  "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Resistencia A La Flexión"
+                    "Resistencia a la flexión durante el arranque profundo"
                   ],
                   "jointId": "columna-lumbar",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Transferencia Pelvis-Tronco"
+                    "Transferencia desde tronco hacia el apoyo elevado"
                   ],
                   "jointId": "sacroiliaca",
                   "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Agarre sostenido en un recorrido alargado"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Dorsiflexión sobre una plataforma firme",
+                    "Transferencia del empuje al apoyo"
+                  ],
+                  "jointId": "tobillo",
+                  "role": "SECONDARY"
                 }
               ],
               "kineticChain": "POSTERIOR",
@@ -67,7 +86,9 @@
               "movementPatternId": "hip_hinge_deficit",
               "performanceProfileId": "hams_peso_muerto_convencional_deficit__barbell__peso_muerto_convencional_en_deficit",
               "primaryMuscles": [
-                "hamstrings"
+                "gluteus_maximus",
+                "hamstrings",
+                "quadriceps"
               ],
               "replacementGroup": "ham_deadlift",
               "replacementPriority": 1,
@@ -75,49 +96,76 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión",
-                    "Flexión Ligera Y Estabilidad",
-                    "Resistencia A La Flexión",
-                    "Transferencia Pelvis-Tronco"
+                    "Extensión de la cadera desde apoyo elevado",
+                    "Flexión de la cadera al alcanzar el suelo",
+                    "Extensión de la rodilla desde una salida más baja",
+                    "Flexión de la rodilla en el descenso",
+                    "Resistencia a la flexión durante el arranque profundo",
+                    "Transferencia desde tronco hacia el apoyo elevado",
+                    "Agarre sostenido en un recorrido alargado",
+                    "Dorsiflexión sobre una plataforma firme",
+                    "Transferencia del empuje al apoyo"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Extensión de la cadera desde apoyo elevado",
+                        "Flexión de la cadera al alcanzar el suelo"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión Ligera Y Estabilidad"
+                        "Extensión de la rodilla desde una salida más baja",
+                        "Flexión de la rodilla en el descenso"
                       ],
                       "jointId": "rodilla",
-                      "role": "SECONDARY"
+                      "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Resistencia A La Flexión"
+                        "Resistencia a la flexión durante el arranque profundo"
                       ],
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Transferencia Pelvis-Tronco"
+                        "Transferencia desde tronco hacia el apoyo elevado"
                       ],
                       "jointId": "sacroiliaca",
                       "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Agarre sostenido en un recorrido alargado"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Dorsiflexión sobre una plataforma firme",
+                        "Transferencia del empuje al apoyo"
+                      ],
+                      "jointId": "tobillo",
+                      "role": "SECONDARY"
                     }
                   ],
                   "primaryMuscles": [
-                    "hamstrings"
+                    "gluteus_maximus",
+                    "hamstrings",
+                    "quadriceps"
                   ],
                   "secondaryMuscles": [
-                    "gluteus_maximus",
-                    "erector_spinae"
+                    "adductors"
                   ],
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "erector_spinae",
+                    "core",
+                    "forearm"
+                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -131,7 +179,9 @@
                     "cadera",
                     "rodilla",
                     "columna-lumbar",
-                    "sacroiliaca"
+                    "sacroiliaca",
+                    "muñeca",
+                    "tobillo"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -179,22 +229,29 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "hip_hinge_deficit:hamstrings"
+                    "hip_hinge_deficit:gluteus_maximus",
+                    "hip_hinge_deficit:hamstrings",
+                    "hip_hinge_deficit:quadriceps"
                   ],
                   "replacementGroup": "ham_deadlift",
                   "replacementPriority": 1
                 }
               },
               "secondaryMuscles": [
-                "gluteus_maximus",
-                "erector_spinae"
+                "adductors"
               ],
               "setupCues": [
-                "Preparación: Desde la plataforma, la barra parte más abajo y el recorrido crece."
+                "Sube ambos pies a una plataforma firme y baja, con espacio para los discos a los lados.",
+                "Agarra la barra desde el suelo por fuera de las piernas sin redondear la espalda.",
+                "Comprueba que toda la planta apoye y que la barra pueda pasar cerca de las espinillas."
               ],
               "setupTimeSeconds": 45,
               "ssc": 1.0,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "erector_spinae",
+                "core",
+                "forearm"
+              ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
             },
@@ -202,7 +259,7 @@
           }
         ],
         "defaultConfigurationId": "hams_peso_muerto_convencional_deficit__default",
-        "description": "El Peso Muerto Convencional en Déficit sube al atleta a una plataforma y alarga el arranque: la barra parte de más abajo y los isquiosurales se estiran unos centímetros extra en cada repetición. La técnica es la del convencional de siempre, solo que el suelo queda más lejos. Esos centímetros adicionales se traducen en fuerza de arranque que el peso muerto normal nota enseguida. El déficit que convierte un buen arranque en uno imparable.",
+        "description": "El Peso Muerto Convencional en Déficit añade distancia a un levantamiento donde el cuádriceps estira las rodillas y el glúteo mayor comparte la extensión de cadera con los isquiosurales. Los discos reposan en el suelo que rodea el apoyo elevado del atleta y las rodillas parten dobladas y el agarre se alcanza sin curvatura lumbar deliberada. Después, piernas y cadera llevan el cuerpo hasta quedar erguido tras cada salida desde la plataforma. El interés del déficit está en practicar una salida más baja; no garantiza por sí mismo más estiramiento de isquiosurales ni una mejora del peso muerto habitual.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -240,40 +297,50 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con barra, desde la plataforma y con las piernas casi extendidas, el estiramiento llega al límite. La barra es la referencia para cargar los isquiosurales con peso de verdad.",
+              "description": "Los discos comienzan sobre el piso inferior mientras ambos pies descansan en una superficie elevada. El desnivel aumenta el alcance de manos a barra con las rodillas casi rectas, y cada repetición devuelve los discos al mismo apoyo.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
-                "Plataforma más piernas casi rectas: el estiramiento de los isquios llega al límite. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Despega del piso inferior con la pelvis alta, sin agacharte doblando las rodillas.",
+                "Levántate hasta alinear el torso sobre la plataforma y deja los codos extendidos.",
+                "Devuelve los discos al piso de abajo sin ganar alcance con la espalda."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Flexión de cadera",
+                    "Extensión de cadera"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión Ligera Y Estabilidad"
+                    "Estabilidad con rodilla poco flexionada"
                   ],
                   "jointId": "rodilla",
-                  "role": "SECONDARY"
+                  "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Resistencia A La Flexión"
+                    "Resistencia a la flexión lumbar"
                   ],
                   "jointId": "columna-lumbar",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Transferencia Pelvis-Tronco"
+                    "Transmisión de carga entre pelvis y tronco"
                   ],
                   "jointId": "sacroiliaca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén del agarre"
+                  ],
+                  "jointId": "muñeca",
                   "role": "STABILIZER"
                 }
               ],
@@ -283,7 +350,8 @@
               "movementPatternId": "hip_hinge_deficit",
               "performanceProfileId": "hams_peso_muerto_piernas_rigidas_deficit__barbell__peso_muerto_piernas_rigidas_en_deficit",
               "primaryMuscles": [
-                "hamstrings"
+                "hamstrings",
+                "gluteus_maximus"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -291,49 +359,63 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión",
-                    "Flexión Ligera Y Estabilidad",
-                    "Resistencia A La Flexión",
-                    "Transferencia Pelvis-Tronco"
+                    "Flexión de cadera",
+                    "Extensión de cadera",
+                    "Estabilidad con rodilla poco flexionada",
+                    "Resistencia a la flexión lumbar",
+                    "Transmisión de carga entre pelvis y tronco",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Flexión de cadera",
+                        "Extensión de cadera"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión Ligera Y Estabilidad"
+                        "Estabilidad con rodilla poco flexionada"
                       ],
                       "jointId": "rodilla",
-                      "role": "SECONDARY"
+                      "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Resistencia A La Flexión"
+                        "Resistencia a la flexión lumbar"
                       ],
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Transferencia Pelvis-Tronco"
+                        "Transmisión de carga entre pelvis y tronco"
                       ],
                       "jointId": "sacroiliaca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del agarre"
+                      ],
+                      "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "hamstrings"
+                    "hamstrings",
+                    "gluteus_maximus"
                   ],
                   "secondaryMuscles": [
-                    "gluteus_maximus",
-                    "erector_spinae"
+                    "adductors"
                   ],
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "erector_spinae",
+                    "core",
+                    "forearm"
+                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -347,7 +429,8 @@
                     "cadera",
                     "rodilla",
                     "columna-lumbar",
-                    "sacroiliaca"
+                    "sacroiliaca",
+                    "muñeca"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -395,22 +478,27 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "hip_hinge_deficit:hamstrings"
+                    "hip_hinge_deficit:hamstrings",
+                    "hip_hinge_deficit:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
-                "gluteus_maximus",
-                "erector_spinae"
+                "adductors"
               ],
               "setupCues": [
-                "Preparación: Plataforma más piernas casi rectas: el estiramiento de los isquios llega al límite."
+                "Eleva ambos pies sobre un apoyo firme dejando los discos en el piso inferior.",
+                "Agarra la barra desde abajo con rodillas próximas a rectas y columna neutra."
               ],
               "setupTimeSeconds": 45,
               "ssc": 1.0,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "erector_spinae",
+                "core",
+                "forearm"
+              ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
             },
@@ -418,7 +506,7 @@
           }
         ],
         "defaultConfigurationId": "hams_peso_muerto_piernas_rigidas_deficit__default",
-        "description": "El Peso Muerto Piernas Rígidas en Déficit junta las dos cosas que más estiran el isquio: piernas casi extendidas y una plataforma que aleja el suelo. El estiramiento bajo carga llega al máximo disponible y los erectores aguantan la columna en cada bajada. Se ejecuta bajando la barra más allá de los pies con la espalda intacta. Solo para quien ya tiene movilidad y control de sobra.",
+        "description": "Peso Muerto Piernas Rígidas en Déficit utiliza isquiosurales y glúteo mayor en un despegue desde el piso con los pies sobre una plataforma. Las rodillas quedan casi extendidas y la cadera alta permite alcanzar la barra cuyos discos descansan en el piso inferior. El peso vuelve a ese apoyo entre repeticiones, sin conseguir profundidad doblando la columna. El desnivel aumenta el alcance relativo de los pies a la barra; una altura excesiva hace que el arranque deje de caber en la movilidad de cadera.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -456,41 +544,60 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con barra, con la postura amplia sobre la plataforma, el recorrido es más largo que el sumo normal. La barra es la referencia para cargar los isquiosurales con peso de verdad.",
+              "description": "El apoyo elevado debe ser ancho para alojar ambos pies separados y orientados hacia fuera, con la barra delante y los discos fuera de sus bordes. Las manos internas alcanzan un nivel más bajo respecto de las plantas que en el sumo al suelo.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
-                "Postura amplia desde la plataforma: más recorrido que el sumo normal y más trabajo para glúteos y aductores. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Empuja el apoyo elevado sin cerrar las rodillas hacia el centro.",
+                "Eleva la barra hasta quedar alto sobre la plataforma con el tronco alineado.",
+                "Vuelve al suelo inferior por el espacio entre las piernas y sin golpear el escalón."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Extensión de la cadera abierta desde apoyo elevado",
+                    "Flexión de la cadera para alcanzar la barra"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión Ligera Y Estabilidad"
+                    "Extensión de la rodilla orientada hacia afuera",
+                    "Flexión durante la vuelta al suelo inferior"
                   ],
                   "jointId": "rodilla",
-                  "role": "SECONDARY"
+                  "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Resistencia A La Flexión"
+                    "Sostén lumbar durante la salida sumo ampliada"
                   ],
                   "jointId": "columna-lumbar",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Transferencia Pelvis-Tronco"
+                    "Transferencia desde tronco al apoyo abierto elevado"
                   ],
                   "jointId": "sacroiliaca",
                   "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sujeción interna a lo largo del tramo añadido"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Dorsiflexión con base abierta sobre plataforma",
+                    "Transmisión al escalón"
+                  ],
+                  "jointId": "tobillo",
+                  "role": "SECONDARY"
                 }
               ],
               "kineticChain": "POSTERIOR",
@@ -499,7 +606,9 @@
               "movementPatternId": "hip_hinge_deficit",
               "performanceProfileId": "hams_peso_muerto_sumo_deficit__barbell__peso_muerto_sumo_en_deficit",
               "primaryMuscles": [
-                "hamstrings"
+                "gluteus_maximus",
+                "hamstrings",
+                "quadriceps"
               ],
               "replacementGroup": "ham_deadlift",
               "replacementPriority": 1,
@@ -507,49 +616,76 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión",
-                    "Flexión Ligera Y Estabilidad",
-                    "Resistencia A La Flexión",
-                    "Transferencia Pelvis-Tronco"
+                    "Extensión de la cadera abierta desde apoyo elevado",
+                    "Flexión de la cadera para alcanzar la barra",
+                    "Extensión de la rodilla orientada hacia afuera",
+                    "Flexión durante la vuelta al suelo inferior",
+                    "Sostén lumbar durante la salida sumo ampliada",
+                    "Transferencia desde tronco al apoyo abierto elevado",
+                    "Sujeción interna a lo largo del tramo añadido",
+                    "Dorsiflexión con base abierta sobre plataforma",
+                    "Transmisión al escalón"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Extensión de la cadera abierta desde apoyo elevado",
+                        "Flexión de la cadera para alcanzar la barra"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión Ligera Y Estabilidad"
+                        "Extensión de la rodilla orientada hacia afuera",
+                        "Flexión durante la vuelta al suelo inferior"
                       ],
                       "jointId": "rodilla",
-                      "role": "SECONDARY"
+                      "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Resistencia A La Flexión"
+                        "Sostén lumbar durante la salida sumo ampliada"
                       ],
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Transferencia Pelvis-Tronco"
+                        "Transferencia desde tronco al apoyo abierto elevado"
                       ],
                       "jointId": "sacroiliaca",
                       "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sujeción interna a lo largo del tramo añadido"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Dorsiflexión con base abierta sobre plataforma",
+                        "Transmisión al escalón"
+                      ],
+                      "jointId": "tobillo",
+                      "role": "SECONDARY"
                     }
                   ],
                   "primaryMuscles": [
-                    "hamstrings"
+                    "gluteus_maximus",
+                    "hamstrings",
+                    "quadriceps"
                   ],
                   "secondaryMuscles": [
-                    "gluteus_maximus",
                     "adductors"
                   ],
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "erector_spinae",
+                    "core",
+                    "forearm"
+                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -563,7 +699,9 @@
                     "cadera",
                     "rodilla",
                     "columna-lumbar",
-                    "sacroiliaca"
+                    "sacroiliaca",
+                    "muñeca",
+                    "tobillo"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -611,22 +749,29 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "hip_hinge_deficit:hamstrings"
+                    "hip_hinge_deficit:gluteus_maximus",
+                    "hip_hinge_deficit:hamstrings",
+                    "hip_hinge_deficit:quadriceps"
                   ],
                   "replacementGroup": "ham_deadlift",
                   "replacementPriority": 1
                 }
               },
               "secondaryMuscles": [
-                "gluteus_maximus",
                 "adductors"
               ],
               "setupCues": [
-                "Preparación: Postura amplia desde la plataforma: más recorrido que el sumo normal y más trabajo para glúteos y aductores."
+                "Apoya los dos pies abiertos sobre una plataforma baja que admita toda tu postura.",
+                "Orienta rodillas y puntas en la misma dirección y agarra la barra entre las piernas.",
+                "Comprueba que los discos queden libres junto a los bordes al iniciar la subida."
               ],
               "setupTimeSeconds": 45,
               "ssc": 1.0,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "erector_spinae",
+                "core",
+                "forearm"
+              ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
             },
@@ -634,7 +779,7 @@
           }
         ],
         "defaultConfigurationId": "hams_peso_muerto_sumo_deficit__default",
-        "description": "El Peso Muerto Sumo en Déficit coloca al atleta sobre un escalón y conserva la postura abierta: aductores y glúteos trabajan en un recorrido más largo que el sumo normal. Se ejecuta presionando el suelo con las piernas separadas mientras la barra sube desde más abajo de lo habitual. La combinación pide técnica fina y caderas fuertes. Una prueba avanzada para los que ya dominan el sumo convencional.",
+        "description": "El Peso Muerto Sumo en Déficit amplía el recorrido del levantamiento abierto, con extensión de rodilla a cargo del cuádriceps y extensión de cadera compartida por isquiosurales y glúteo mayor, asistidos por aductores. La postura abierta deja los brazos entre las piernas y los discos comienzan en el suelo que rodea la plataforma elevada. Las rodillas se orientan hacia las puntas mientras el empuje devuelve el cuerpo a la vertical. La plataforma debe admitir la anchura de ambos pies y dejar espacio para los discos. Ese desnivel ofrece práctica del tramo inicial más largo sin justificar que los aductores o los isquiosurales pasen a liderar el ejercicio.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

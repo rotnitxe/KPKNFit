@@ -1,65 +1,583 @@
 {
   "definitions": {
     "glutes_hiperextension_45": {
-      "public": {
-        "configurations": {
-          "glutes_hiperextension_45__barbell": {
-            "description": "Con barra, en el banco inclinado, el torso baja y sube pivotando sobre la cadera con el glúteo dirigiendo. El glúteo mayor trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-            "executionCues": [
-              "Barra en la espalda en el banco a 45: el glúteo empuja el peso con la cadera. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar."
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Flexión de cadera sobre el borde",
+              "Extensión de cadera hasta alineación"
             ],
-            "setupCues": [
-              "Preparación: Barra en la espalda en el banco a 45: el glúteo empuja el peso con la cadera."
-            ]
+            "id": "cadera",
+            "role": "PRIMARY",
+            "sources": [
+              "extension_modes",
+              "glute_anatomy"
+            ],
+            "why": "Es el pivote libre por encima del acolchado y realiza la flexión de bajada y extensión de regreso. El estudio de modos de banco romano distingue este movimiento dinámico de la columna que cambia de curva."
           },
-          "glutes_hiperextension_45__dumbbells": {
-            "description": "Con mancuernas, en el banco inclinado, el torso baja y sube pivotando sobre la cadera con el glúteo dirigiendo. Con mancuernas, cada lado ajusta su línea y el trabajo del glúteo mayor se equilibra solo.",
-            "executionCues": [
-              "Mancuerna en el pecho en el banco a 45: subes con la cadera y el glúteo dirige el movimiento. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar."
+          {
+            "actions": [
+              "Sostén de la posición de rodilla"
             ],
-            "setupCues": [
-              "Preparación: Mancuerna en el pecho en el banco a 45: subes con la cadera y el glúteo dirige el movimiento."
+            "id": "rodilla",
+            "role": "STABILIZER",
+            "sources": [
+              "hamstring_anatomy",
+              "roman_emg"
+            ],
+            "why": "Las piernas se sujetan contra los rodillos y la rodilla conserva casi todo su ángulo. Los isquios actúan desde la cadera; la rodilla no genera impulso ni una extensión repetida durante la subida."
+          },
+          {
+            "actions": [
+              "Sostén del perfil lumbar"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "roman_emg",
+              "extension_modes"
+            ],
+            "why": "Conserva el perfil del tronco durante una extensión de cadera con carga. El registro de erectores en banco confirma demanda de espalda, pero esta técnica evita usar el cambio de curva lumbar para sumar altura al final."
+          },
+          {
+            "actions": [
+              "Transferencia de fuerza de cadera a tronco"
+            ],
+            "id": "sacroiliaca",
+            "role": "STABILIZER",
+            "sources": [
+              "sij_transfer"
+            ],
+            "why": "Transfiere la fuerza de los extensores de cadera hacia el tronco que queda fuera del acolchado. La inferencia procede de los vínculos glúteos y fasciales, no de una medición específica del disco o del banco inclinado."
+          },
+          {
+            "actions": [
+              "Sostén del implemento agarrado"
+            ],
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "sources": [
+              "forearm_anatomy"
+            ],
+            "why": "Conserva su alineación al agarrar el disco o las cargas que cuelgan de las manos. El agarre no requiere un recorrido de muñeca para completar la extensión de cadera."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "gluteus_maximus",
+            "role": "PRIMARY",
+            "sources": [
+              "roman_emg",
+              "glute_anatomy"
+            ],
+            "why": "Extiende la cadera para devolver el torso a la línea de las piernas con la espalda estable. La electromiografía del banco a cuarenta y cinco grados confirma su activación; se conserva el dominante heredado sin inferir superioridad sobre los isquios a partir de comparar EMG entre músculos."
+          },
+          {
+            "id": "hamstrings",
+            "role": "PRIMARY",
+            "sources": [
+              "roman_emg",
+              "hamstring_anatomy"
+            ],
+            "why": "Sus porciones biarticulares son motores de extensión de cadera con la rodilla casi fija. El banco romano registra actividad relevante de bíceps femoral; la función extensora justifica una serie principal en esta bisagra, detrás del glúteo en el orden editorial."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "extension_modes",
+              "roman_emg"
+            ],
+            "why": "Sostiene la forma lumbar mientras el movimiento seleccionado procede de la cadera. Su actividad puede ser alta en el banco, pero la EMG no convierte un sostén de columna en extensión espinal dinámica; se distingue la ejecución de cadera de la de columna."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "abdominal_wall"
+            ],
+            "why": "La pared abdominal contribuye a sujetar el torso como una unidad durante el pivote de cadera. Se infiere esa función postural de su anatomía, sin presentarla como motor que eleva el cuerpo ni dar una magnitud de activación específica."
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "sources": [
+              "forearm_anatomy"
+            ],
+            "why": "Los flexores de dedos sostienen el disco abrazado o las cargas suspendidas de las manos. La función anatómica justifica el sostén del agarre, separado del trabajo de cadera que levanta el torso."
+          }
+        ],
+        "overrides": {
+          "glutes_hiperextension_45__barbell": {
+            "joints": [
+              {
+                "id": "muñeca",
+                "role": "NONE",
+                "why": "El eje descansa en la espalda alta y la posición de manos es de sujeción auxiliar; no se declara aquí una carga de agarre comparable al disco."
+              }
+            ],
+            "muscles": [
+              {
+                "id": "forearm",
+                "role": "NONE",
+                "why": "La espalda recibe el peso de la barra y las manos fijan su colocación; no sostienen cargas colgantes ni un disco abrazado como en el default."
+              }
             ]
           },
           "glutes_hiperextension_45__plate": {
-            "description": "Con disco, en el banco inclinado, el torso baja y sube pivotando sobre la cadera con el glúteo dirigiendo. Con el disco, el lastre es simple y directo sobre el glúteo mayor.",
-            "executionCues": [
-              "Disco en el pecho en el banco a 45: carga ligera y control total del recorrido. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar."
+            "joints": [
+              {
+                "actions": [
+                  "Sostén de la flexión para abrazar el disco"
+                ],
+                "id": "codo",
+                "role": "STABILIZER",
+                "sources": [
+                  "biceps_anatomy"
+                ],
+                "why": "Permanece doblado para recibir el disco junto al tórax sin alejarlo durante la inclinación. Se deduce del sostén por flexores de codo y no de un recorrido articular que impulse la carga."
+              }
             ],
-            "setupCues": [
-              "Preparación: Disco en el pecho en el banco a 45: carga ligera y control total del recorrido."
+            "muscles": [
+              {
+                "id": "biceps",
+                "role": "STABILIZER",
+                "sources": [
+                  "biceps_anatomy"
+                ],
+                "why": "Con los codos doblados para abrazar el disco, los flexores sostienen su posición contra el pecho. Se razona a partir de la función del bíceps; el ángulo se conserva y no se hace un curl con el disco."
+              }
             ]
           },
           "glutes_hiperextension_45__smith_machine": {
-            "description": "Con máquina Smith, en el banco inclinado, el torso baja y sube pivotando sobre la cadera con el glúteo dirigiendo. En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor.",
+            "joints": [
+              {
+                "id": "muñeca",
+                "role": "NONE",
+                "why": "El soporte posterior y los rieles reciben el peso; el agarre de manos solo fija el contacto y no se equipara al de las mancuernas o disco."
+              }
+            ],
+            "muscles": [
+              {
+                "id": "forearm",
+                "role": "NONE",
+                "why": "La carga queda recibida por la espalda y sus extremos están guiados; las manos la afirman sin soportarla como un peso suspendido."
+              }
+            ]
+          }
+        }
+      },
+      "public": {
+        "configurations": {
+          "glutes_hiperextension_45__barbell": {
+            "description": "El eje apoyado en la espalda alta acompaña al torso y deja las manos dedicadas a fijar ese contacto. Su posición posterior exige acomodar la barra y los discos sin que rocen el banco al inclinarse.",
             "executionCues": [
-              "Smith en el banco a 45: la barra guiada acompaña el movimiento y puedes cargar con control. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar."
+              "Baja desde la cadera conservando la forma del tronco.",
+              "Devuelve la pelvis y el torso a su alineación inicial.",
+              "Afirma la barra con las manos sin empujarla por separado."
             ],
             "setupCues": [
-              "Preparación: Smith en el banco a 45: la barra guiada acompaña el movimiento y puedes cargar con control."
+              "Asienta la barra en la espalda alta y sujétala fuera de los hombros.",
+              "Coloca la cadera libre sobre el borde del banco y fija los tobillos."
+            ]
+          },
+          "glutes_hiperextension_45__dumbbells": {
+            "description": "Dos cargas cuelgan bajo los hombros, una por mano, mientras el torso pivota sobre el apoyo inclinado. Los brazos largos dejan el peso separado del pecho y el agarre sostiene ambas mancuernas durante todo el recorrido.",
+            "executionCues": [
+              "Pliega la cadera dejando que las mancuernas cuelguen sin golpear el banco.",
+              "Extiende la cadera hasta alinear el torso con las piernas.",
+              "Termina la repetición sin subir el pecho por encima de la línea corporal."
+            ],
+            "setupCues": [
+              "Ajusta el acolchado por debajo del pliegue de cadera y sujeta los tobillos.",
+              "Agarra una mancuerna en cada mano con los brazos largos."
+            ]
+          },
+          "glutes_hiperextension_45__plate": {
+            "description": "El disco se abraza cerca del pecho con los codos doblados, de modo que la carga queda pegada al torso. Esa proximidad permite sujetarlo durante la bisagra sin una barra que sobresalga hacia los lados del banco.",
+            "executionCues": [
+              "Inclina el torso sin separar el disco del pecho.",
+              "Eleva el cuerpo extendiendo las caderas con las rodillas quietas.",
+              "Acaba al llegar a la línea de las piernas sin arquear la cintura."
+            ],
+            "setupCues": [
+              "Abraza el disco contra el pecho antes de iniciar la repetición.",
+              "Afirma los tobillos y deja el pliegue de cadera fuera del borde del apoyo."
+            ]
+          },
+          "glutes_hiperextension_45__smith_machine": {
+            "description": "La barra apoyada sobre la espalda queda sujeta a un recorrido vertical que debe encajar con el banco inclinado. La colocación del banco limita la bisagra disponible y no permite suponer el mismo arco que con una barra libre.",
+            "executionCues": [
+              "Pliega la cadera hasta donde puedas conservar los contactos con el banco y la barra.",
+              "Interrumpe la bajada si la guía te desplaza fuera del acolchado.",
+              "Regresa con la cadera sin arquear la zona lumbar."
+            ],
+            "setupCues": [
+              "Alinea el banco con la barra y prueba un recorrido breve sin añadir discos.",
+              "Ajusta los topes y apoya la barra en la espalda alta con ambas manos."
             ]
           }
         },
-        "description": "Las Hiperextensiones a 45° para Glúteos usan el banco inclinado para aislar la cadera: el torso baja y sube pivotando sobre la cadera con el glúteo mayor empujando la subida. Se ejecutan con las caderas al borde del apoyo, bajando con la espalda redondeada hacia el suelo y extendiendo con intención de glúteo. Los isquiosurales acompañan y un disco o unas mancuernas añaden carga cuando el cuerpo ya no basta. El clásico del banco romano pensado para el trasero."
+        "description": "Las Hiperextensiones a 45° para Glúteos son una extensión de cadera sobre banco inclinado que trabaja el glúteo mayor y los isquiosurales. El borde del acolchado queda debajo del pliegue de cadera para que el torso se incline como una unidad y vuelva a la línea de las piernas. La espalda conserva su forma y el regreso termina al extender la cadera, sin añadir un arqueo de cintura. El disco cercano al pecho o la carga suspendida bajo los hombros cambian dónde queda el peso durante esa bisagra."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "En quince mujeres entrenadas, el banco romano a cuarenta y cinco grados activó glúteo mayor e isquiosurales, con mayor actividad del bíceps femoral que los otros dos ejercicios estudiados. No compara dominancia EMG entre músculos ni examina una carga Zercher.",
+          "id": "roman_emg",
+          "title": "Comparison of Muscle Activity in Three Single-Joint, Hip Extension Exercises in Resistance-Trained Women",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/33948095/"
+        },
+        {
+          "claim": "Comparó ejecuciones de extensión con cadera dinámica y columna dinámica. La flexión torácica predominó en la segunda; los momentos máximos de espalda y cadera fueron mayores en la primera. La flexión lumbar apareció en ambas: no demuestra aislamiento completo de un segmento.",
+          "id": "extension_modes",
+          "title": "Loading conditions in the spine, hip and knee during different executions of back extension exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/28451436/"
+        },
+        {
+          "claim": "El glúteo mayor es extensor de cadera; esa función permite razonar su papel dinámico cuando el tronco pivota en la cadera y su papel postural cuando la pelvis y el ángulo de cadera quedan relativamente fijos.",
+          "id": "glute_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Maximus Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30855781/"
+        },
+        {
+          "claim": "Los isquiosurales biarticulares extienden la cadera y flexionan la rodilla; la cabeza corta del bíceps femoral no extiende la cadera. Sirve de base anatómica para distinguir bisagra, elevación de piernas y sostén con piernas sujetas.",
+          "id": "hamstring_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hamstring Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31536294/"
+        },
+        {
+          "claim": "La pared abdominal genera presión intraabdominal y puede mover la columna. Su participación de sostén en estas ejecuciones se deduce de esa función y no de una medición específica de todas las variantes.",
+          "id": "abdominal_wall",
+          "title": "Anatomy, Abdomen and Pelvis: Abdominal Wall",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31869113/"
+        },
+        {
+          "claim": "Describe los músculos que flexionan dedos y muñeca en el compartimento anterior. Su sostén del implemento se aplica por anatomía al agarre de cargas y asas; no implica que levanten el tronco.",
+          "id": "forearm_anatomy",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/"
+        },
+        {
+          "claim": "El bíceps flexiona el codo y supina el antebrazo. Se infiere sostén isométrico cuando la barra descansa dentro de los codos durante las dos extensiones Zercher, sin EMG directo de esas variantes.",
+          "id": "biceps_anatomy",
+          "title": "Anatomy, Shoulder and Upper Limb, Biceps Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30137823/"
+        },
+        {
+          "claim": "El estudio anatómico modeló capacidad compresiva sacroilíaca a través de inserciones glúteas y fasciales, compatible con transferencia entre tronco y extremidades. No midió ninguna de las seis variantes de esta entrega.",
+          "id": "sij_transfer",
+          "title": "Anatomy and biomechanics of gluteus maximus and the thoracolumbar fascia at the sacroiliac joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/23959791/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Con los tobillos anclados en un banco romano de cuarenta y cinco grados, la cadera libre sobre el borde permite inclinar y levantar el torso de forma estable. El recorrido concluye en la diagonal de las piernas sin cambiar deliberadamente la curvatura lumbar.",
+        "keyPositions": [
+          "Arriba: tronco y piernas forman una línea diagonal sin arqueo extra de cintura.",
+          "Abajo: flexión de cadera por encima del apoyo, espalda con su forma inicial y carga por encima del suelo."
+        ],
+        "mistakes": [
+          "Apoyar el abdomen tan arriba que el borde impida el pivote de cadera.",
+          "Enrollar la zona lumbar para ganar profundidad.",
+          "Añadir una extensión de espalda al final de la subida.",
+          "Flexionar las rodillas o perder sujeción en los rodillos."
+        ],
+        "phases": [
+          {
+            "description": "El torso desciende sobre la cadera libre mientras el acolchado recibe los muslos y el perfil de columna apenas cambia.",
+            "name": "Pivote de cadera"
+          },
+          {
+            "description": "Los extensores de cadera elevan el torso hasta quedar en continuidad con las piernas sujetas, sin sobrepasar esa alineación.",
+            "name": "Extensión hasta la línea"
+          }
+        ],
+        "setup": [
+          "Acolchado bajo la parte alta de los muslos sin tapar el pliegue de cadera, tobillos bajo rodillos y pies en la plataforma.",
+          "Disco abrazado en el pecho, dos mancuernas agarradas con brazos largos o barra recibida en la espalda alta según configuración.",
+          "Smith: banco alineado y rango probado con la barra guiada antes de aumentar carga."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral completa del banco inclinado, el borde bajo la cadera y todos los contactos inferiores.",
+          "contacts": "Muslos en el acolchado bajo el pliegue de cadera, tobillos bajo rodillos y pies sobre plataforma.",
+          "load": "Resistencia unida al cuerpo por su agarre o apoyo superior, situada por encima del suelo.",
+          "orientation": "Pecho y cabeza hacia la izquierda y abajo, piernas en diagonal hacia la derecha.",
+          "phase": "Fotograma inferior de flexión de cadera con el torso estable inclinado por delante del apoyo.",
+          "posture": "Cadera doblada y tronco con perfil neutro sin enrollamiento lumbar; rodillas aproximadamente extendidas."
+        },
+        "byImplement": {
+          "barbell": {
+            "geometry": "Barra recta transversal sobre la espalda alta debajo del cuello, ambas manos agarrando fuera de los hombros; discos sobresalen a los lados del torso sin tocar el banco inclinado."
+          },
+          "dumbbells": {
+            "geometry": "Dos mancuernas colgando bajo los hombros, una cerrada en cada mano con brazos largos. El atleta pivota desde la cadera en banco a cuarenta y cinco grados; ambas cargas quedan a los lados y fuera de la estructura."
+          },
+          "plate": {
+            "geometry": "Un disco agarrado por sus bordes y pegado al pecho, codos doblados y antebrazos recibiéndolo; la cadera está libre sobre el borde del banco de cuarenta y cinco grados."
+          },
+          "smith_machine": {
+            "geometry": "Banco inclinado dentro de una estación Smith, barra guiada tocando la espalda alta y manos alrededor del eje; ambos extremos conectados a rieles verticales, rodillos de tobillos y topes visibles por debajo."
+          }
+        },
+        "forbidden": [
+          "Espalda enrollada en flexión y extensión dinámica en lugar de cadera que pivota.",
+          "Acolchado cubriendo el abdomen por encima del pliegue de cadera.",
+          "Barra recibida dentro de los codos: pertenece a la definición Zercher.",
+          "Tronco por encima de la línea de piernas mediante un arqueo lumbar final.",
+          "Carga suelta sin manos que la agarren o sin contacto de espalda."
+        ],
+        "promptCore": {
+          "barbell": "An athlete frozen at the BOTTOM of a 45-degree Roman chair hip extension, viewed from the side. A loaded straight barbell rests against the upper back below the neck and both hands grip it outside the shoulders. Upper thighs touch the pad below the hip crease, ankles stay under rollers and feet touch the platform. Hips flex forward with a neutral lumbar spine. Barbell plates are clear of the bench and floor.",
+          "dumbbells": "Side view frozen at the BOTTOM of a 45-degree Roman chair hip extension. Upper thighs touch the pad below the hip crease, ankles under rollers and feet on the platform. Hips are flexed while the spine keeps a neutral profile. Each straight arm hangs below its shoulder and each hand grips one dumbbell. Both weights hang clear of the bench and floor. The movement is a hip hinge, not a rounded spinal curl.",
+          "plate": "Side view at the BOTTOM of a weighted 45-degree Roman chair hip extension. Both hands grip the edges of one weight plate held pressed against the chest, elbows bent. Thighs touch the pad below the hip crease and ankles are secured under rollers with feet on the platform. Hips are visibly flexed, torso inclines forward as a straight unit and the lumbar spine stays neutral. The plate remains above the floor.",
+          "smith_machine": "Side view frozen at the BOTTOM of a Smith-loaded 45-degree Roman chair hip extension. The bench sits inside visible vertical rails. Both hands grip the guided bar touching the upper back, both bar ends attached to the rails. Thighs touch the pad below the hip crease, ankles under rollers and feet on the platform. Hips show a modest flexion angle, spine neutral. Plates remain above the floor and mechanical safety stops."
+        },
+        "qa": [
+          "¿El torso está abajo con una cadera visiblemente flexionada y una espalda de perfil estable?",
+          "¿El borde del acolchado queda debajo del pliegue de cadera?",
+          "¿Tobillos y pies permanecen sujetos en el banco?",
+          "¿Las manos sujetan la carga y esta toca su apoyo o cuelga de un agarre real?",
+          "¿La carga está libre del suelo y los rieles se ven conectados cuando hay Smith?"
+        ]
+      }
     },
     "glutes_hiperextension_45_zercher": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Flexión de cadera con carga anterior",
+              "Extensión de cadera hacia la línea corporal"
+            ],
+            "id": "cadera",
+            "role": "PRIMARY",
+            "sources": [
+              "extension_modes",
+              "glute_anatomy"
+            ],
+            "why": "El torso y la carga basculan sobre la cadera que queda libre por encima del borde del banco. La distinción entre cadera y columna dinámicas sustenta esta identidad, aplicada al montaje Zercher sin una medición de esa carga concreta."
+          },
+          {
+            "actions": [
+              "Sostén de rodilla en el banco"
+            ],
+            "id": "rodilla",
+            "role": "STABILIZER",
+            "sources": [
+              "hamstring_anatomy"
+            ],
+            "why": "Con la sujeción de tobillos, conserva su posición durante el descenso y el regreso del torso. Los isquiosurales trabajan como extensores de cadera y no impulsan aquí una flexión de rodilla repetida."
+          },
+          {
+            "actions": [
+              "Resistencia a la flexión lumbar"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "extension_modes",
+              "back_anatomy"
+            ],
+            "why": "No busca generar la subida mediante un cambio de curvatura: conserva el perfil de la espalda frente al peso recibido por los brazos. El papel se infiere de la ejecución de cadera del estudio y de la anatomía extensora."
+          },
+          {
+            "actions": [
+              "Sostén isométrico de la barra recibida"
+            ],
+            "id": "codo",
+            "role": "STABILIZER",
+            "sources": [
+              "biceps_anatomy"
+            ],
+            "why": "Recibe el eje y conserva flexión para sostenerlo próximo al torso mientras este pivota. La función deducida de los flexores no implica un curl ni una apertura de codos que desplace la barra."
+          },
+          {
+            "actions": [
+              "Transferencia de fuerza entre cadera y torso"
+            ],
+            "id": "sacroiliaca",
+            "role": "STABILIZER",
+            "sources": [
+              "sij_transfer"
+            ],
+            "why": "Enlaza las fuerzas de cadera y tronco entre la carga anterior y el apoyo de muslos. La transferencia se razona desde las inserciones glúteas y fasciales descritas, sin adjudicar un recorrido visible a esta articulación."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "gluteus_maximus",
+            "role": "PRIMARY",
+            "sources": [
+              "glute_anatomy",
+              "roman_emg"
+            ],
+            "why": "Extiende la cadera para elevar el torso y la carga abrazada hasta la línea corporal. Se conserva el dominante del padre: la anatomía y la EMG del banco romano sustentan el motor de cadera, con extrapolación explícita porque no se evaluó la colocación Zercher."
+          },
+          {
+            "id": "hamstrings",
+            "role": "PRIMARY",
+            "sources": [
+              "hamstring_anatomy",
+              "roman_emg"
+            ],
+            "why": "Sus porciones biarticulares comparten la extensión de cadera con las piernas sujetas y las rodillas casi quietas. El rol motor procede de anatomía y actividad del banco romano; aplicarlo a carga en codos es una inferencia de la misma bisagra, no EMG directo de Zercher."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "extension_modes",
+              "back_anatomy"
+            ],
+            "why": "Conserva el perfil lumbar mientras la cadera cambia de ángulo y desplaza la barra que acompaña al pecho. La demanda de espalda del banco no autoriza a llamarlo extensor de cadera; aquí se prescribe sostén y no cambios de curvatura espinal."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "abdominal_wall"
+            ],
+            "why": "La pared abdominal sostiene la relación de tórax y pelvis alrededor de una carga anterior. Se trata de una inferencia funcional de rigidez del tronco, sin datos que permitan decir que su esfuerzo sea doble o mayor que con el disco del padre."
+          },
+          {
+            "id": "biceps",
+            "role": "STABILIZER",
+            "sources": [
+              "biceps_anatomy"
+            ],
+            "why": "Los flexores del codo retienen la barra en los pliegues internos durante la bisagra. Su papel se infiere de la función de flexión bajo carga con ángulo fijo; no producen un recorrido de brazos que eleve la barra separada del torso."
+          }
+        ]
+      },
       "public": {
         "configurations": {
           "glutes_hiperextension_45_zercher__default": {
-            "description": "Con barra, con la carga sujeta contra el pecho, el torso baja y sube en el banco inclinado con la cadera al mando. La barra es la referencia para cargar el glúteo mayor con peso de verdad.",
+            "description": "Los pliegues internos de los codos reciben el eje y las manos se juntan por encima, sin hacer un agarre pesado de dedos. El borde bajo las caderas deja libre el pivote mientras los discos quedan a los lados del banco.",
             "executionCues": [
-              "Carga en los codos frente al pecho en el banco a 45: el peso queda cerca del cuerpo y el glúteo hace el trabajo. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar."
+              "Inclina el torso desde las caderas sin redondear la zona lumbar.",
+              "Levanta el cuerpo hasta la línea de las piernas con la barra cerca del pecho.",
+              "Sostén el ángulo de los codos durante toda la repetición."
             ],
             "setupCues": [
-              "Preparación: Carga en los codos frente al pecho en el banco a 45: el peso queda cerca del cuerpo y el glúteo hace el trabajo."
+              "Ajusta el banco para liberar el pliegue de cadera y asegurar los tobillos.",
+              "Recibe la barra en ambos codos doblados y junta las manos frente al pecho."
             ]
           }
         },
-        "description": "La Hiperextensión a 45 Zercher para Glúteos carga el banco inclinado de otra manera: la barra abrazada en los codos añade peso sin ocupar las manos ni tocar la espalda. Se ejecuta igual que la versión con lastre al pecho, bajando el torso y extendiendo con potencia de glúteo mayor e isquiosurales. La posición zercher exige core firme y brazos pacientes. Otra manera de cargar el banco romano, con el torso trabajando el doble."
+        "description": "La Hiperextensión a 45 Zercher para Glúteos carga la extensión de cadera en el banco inclinado con una barra recibida en los codos. Glúteo mayor e isquiosurales levantan el torso mientras la espalda conserva su forma y las piernas quedan sujetas. La barra viaja cerca del pecho durante la inclinación, con los codos doblados para sostenerla en vez de tirar de ella. Esa colocación permite cargar la bisagra sin apoyar el eje en la espalda, aunque el sostén de brazos puede limitar la repetición."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "En quince mujeres entrenadas, el banco romano a cuarenta y cinco grados activó glúteo mayor e isquiosurales, con mayor actividad del bíceps femoral que los otros dos ejercicios estudiados. No compara dominancia EMG entre músculos ni examina una carga Zercher.",
+          "id": "roman_emg",
+          "title": "Comparison of Muscle Activity in Three Single-Joint, Hip Extension Exercises in Resistance-Trained Women",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/33948095/"
+        },
+        {
+          "claim": "Comparó ejecuciones de extensión con cadera dinámica y columna dinámica. La flexión torácica predominó en la segunda; los momentos máximos de espalda y cadera fueron mayores en la primera. La flexión lumbar apareció en ambas: no demuestra aislamiento completo de un segmento.",
+          "id": "extension_modes",
+          "title": "Loading conditions in the spine, hip and knee during different executions of back extension exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/28451436/"
+        },
+        {
+          "claim": "El glúteo mayor es extensor de cadera; esa función permite razonar su papel dinámico cuando el tronco pivota en la cadera y su papel postural cuando la pelvis y el ángulo de cadera quedan relativamente fijos.",
+          "id": "glute_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Maximus Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30855781/"
+        },
+        {
+          "claim": "Los isquiosurales biarticulares extienden la cadera y flexionan la rodilla; la cabeza corta del bíceps femoral no extiende la cadera. Sirve de base anatómica para distinguir bisagra, elevación de piernas y sostén con piernas sujetas.",
+          "id": "hamstring_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hamstring Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31536294/"
+        },
+        {
+          "claim": "Distingue la musculatura intrínseca unida a la columna de las capas que actúan sobre hombro y caja torácica. Su anatomía sustenta la extensión y el sostén de la espalda, sin atribuir extensión de cadera a los erectores.",
+          "id": "back_anatomy",
+          "title": "Anatomy, Back, Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725759/"
+        },
+        {
+          "claim": "La pared abdominal genera presión intraabdominal y puede mover la columna. Su participación de sostén en estas ejecuciones se deduce de esa función y no de una medición específica de todas las variantes.",
+          "id": "abdominal_wall",
+          "title": "Anatomy, Abdomen and Pelvis: Abdominal Wall",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31869113/"
+        },
+        {
+          "claim": "El bíceps flexiona el codo y supina el antebrazo. Se infiere sostén isométrico cuando la barra descansa dentro de los codos durante las dos extensiones Zercher, sin EMG directo de esas variantes.",
+          "id": "biceps_anatomy",
+          "title": "Anatomy, Shoulder and Upper Limb, Biceps Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30137823/"
+        },
+        {
+          "claim": "El estudio anatómico modeló capacidad compresiva sacroilíaca a través de inserciones glúteas y fasciales, compatible con transferencia entre tronco y extremidades. No midió ninguna de las seis variantes de esta entrega.",
+          "id": "sij_transfer",
+          "title": "Anatomy and biomechanics of gluteus maximus and the thoracolumbar fascia at the sacroiliac joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/23959791/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Extensión de cadera con apoyo de muslos en banco de cuarenta y cinco grados, sosteniendo un eje sobre los pliegues de los codos. La espalda conserva su forma mientras el conjunto pivota hasta regresar a la línea de las piernas, sin enrollar el tronco sobre la pelvis.",
+        "keyPositions": [
+          "Inicio superior: torso en línea con piernas, codos flexionados y barra atravesando los pliegues internos.",
+          "Abajo: bisagra de cadera, tronco largo y barra cercana al pecho con discos que no tocan el suelo."
+        ],
+        "mistakes": [
+          "Redondear y extender la espalda como motor de la repetición.",
+          "Dejar que la barra salga del pliegue y ruede hacia las manos.",
+          "Colocar el apoyo por encima de las caderas y bloquear el pivote.",
+          "Terminar arqueando la cintura o elevando la barra con los brazos."
+        ],
+        "phases": [
+          {
+            "description": "El conjunto de tronco y barra se inclina por flexión de cadera mientras los codos conservan su ángulo y la espalda su forma.",
+            "name": "Descenso en bisagra"
+          },
+          {
+            "description": "Los extensores de cadera recuperan la línea de las piernas, con la barra todavía recibida cerca del tórax y sin un tirón de brazos.",
+            "name": "Regreso desde cadera"
+          }
+        ],
+        "setup": [
+          "Borde del banco bajo el pliegue de cadera, pies en plataforma y tobillos sujetos por los rodillos.",
+          "El eje se asienta en los pliegues de los dos codos y los dedos se entrelazan por encima, junto al esternón."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Plano lateral con ligera apertura frontal que muestre los dos codos, la cadera y toda la estructura del banco.",
+          "contacts": "Muslos recibidos por el banco bajo la cadera, tobillos sujetos y carga sobre ambos pliegues internos de codo.",
+          "load": "Carga transversal dentro de los brazos, frente al pecho y suspendida a distancia del suelo.",
+          "orientation": "Cabeza hacia la izquierda y abajo, pies hacia la derecha en la plataforma inclinada.",
+          "phase": "Posición inferior de la bisagra con espalda de forma estable y carga próxima al torso.",
+          "posture": "Caderas flexionadas sobre el borde libre, espalda larga con perfil lumbar neutro y codos doblados."
+        },
+        "byImplement": {
+          "barbell": {
+            "geometry": "Barra recta horizontal apoyada dentro de ambos codos; manos juntas por encima del eje sin agarrarlo. Banco de cuarenta y cinco grados con acolchado bajo caderas y discos a los lados sin contacto con su bastidor."
+          }
+        },
+        "forbidden": [
+          "Cambio visible de curvatura lumbar como en una extensión espinal.",
+          "Apoyo que cubra la pelvis por encima del pliegue e impida la bisagra.",
+          "Barra sobre la espalda o sostenida con los brazos largos.",
+          "Eje flotando delante del pecho sin contacto dentro de los codos."
+        ],
+        "promptCore": {
+          "barbell": "Three-quarter side view frozen at the BOTTOM of a Zercher hip extension on a 45-degree Roman chair. Thighs touch the pad below the hip crease, ankles stay secured under rollers and feet touch the platform. Hips are flexed but the lumbar spine stays neutral, torso long. A straight loaded bar rests inside BOTH elbow creases close to the chest. Hands clasp above it without gripping the shaft. The plates hang clear of the bench and floor."
+        },
+        "qa": [
+          "¿La imagen inferior presenta flexión de cadera con perfil lumbar neutro?",
+          "¿El acolchado queda por debajo del pliegue para permitir el pivote?",
+          "¿La barra toca ambos pliegues de codo y las manos se juntan sin agarrar su eje?",
+          "¿Los tobillos están sujetos y los discos no tocan el banco ni el suelo?"
+        ]
+      }
     },
     "glutes_patada_gluteo": {
       "public": {

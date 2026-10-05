@@ -1,21 +1,280 @@
 {
   "definitions": {
     "hams_peso_muerto_rumano_deficit": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Flexión de cadera",
+              "Extensión de cadera"
+            ],
+            "id": "cadera",
+            "role": "PRIMARY",
+            "sources": [
+              "coratella2022",
+              "hip_anatomy"
+            ],
+            "why": "Tiene espacio para seguir flexionando antes de que los discos encuentren el piso y luego extiende para regresar sobre el escalón. La medición de rumano elevado respalda que el recorrido adicional siga siendo de esta articulación principal, si la movilidad lo permite."
+          },
+          {
+            "actions": [
+              "Estabilidad con rodilla poco flexionada"
+            ],
+            "id": "rodilla",
+            "role": "STABILIZER",
+            "sources": [
+              "coratella2022",
+              "knee_anatomy"
+            ],
+            "why": "Con los pies sobre el soporte conserva una flexión suave en toda la bajada suspendida. No baja el cuerpo flexionándose para alcanzar el piso inferior; su sostén del ángulo conserva el alargamiento posterior y explica el rol estabilizador."
+          },
+          {
+            "actions": [
+              "Resistencia a la flexión lumbar"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "coratella2022",
+              "pelvic_anatomy"
+            ],
+            "why": "La distancia añadida al piso no autoriza que se flexione para bajar más la barra. Erectores activos y vértebras estables transmiten la carga mientras la pelvis gira; por eso el déficit aumenta una exigencia de sostén sin hacer lumbar la acción principal."
+          },
+          {
+            "actions": [
+              "Transmisión de carga entre pelvis y tronco"
+            ],
+            "id": "sacroiliaca",
+            "role": "STABILIZER",
+            "sources": [
+              "pelvic_anatomy"
+            ],
+            "why": "Une el torso cargado con la pelvis que gira encima del escalón y transfiere ese peso hacia los apoyos elevados. El nivel del piso no modifica su pequeño recorrido anatómico ni su papel estabilizador de transmisión."
+          },
+          {
+            "actions": [
+              "Sostén del agarre"
+            ],
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "sources": [
+              "forearm_anatomy"
+            ],
+            "why": "Las muñecas sostienen el agarre prono de la barra durante el descenso desde el apoyo elevado. El antebrazo fija esa posición mientras los dedos soportan el peso; el mayor alcance disponible no necesita una flexión activa de las manos."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "hamstrings",
+            "role": "PRIMARY",
+            "sources": [
+              "hamstrings_anatomy",
+              "coratella2022",
+              "mcallister2014"
+            ],
+            "why": "La elevación bajo los pies puede dejar más espacio para la flexión de cadera con poco cambio de rodillas. En el rumano sobre escalón Coratella midió mayor excitación del semitendinoso al subir; son motores de la vuelta, sin que la plataforma garantice recorrido extra a toda persona."
+          },
+          {
+            "id": "gluteus_maximus",
+            "role": "PRIMARY",
+            "sources": [
+              "coratella2022",
+              "glute_anatomy"
+            ],
+            "why": "El escalón deja un punto inferior potencialmente más bajo y el glúteo mayor extiende la cadera para salir de él. Su excitación aumentó en el rumano elevado de Coratella, evidencia directa para corregir el secundario heredado a principal junto a isquiosurales."
+          },
+          {
+            "id": "adductors",
+            "role": "SECONDARY",
+            "sources": [
+              "adductor2018",
+              "adductor2026"
+            ],
+            "why": "También desde el apoyo elevado, la porción posterior del aductor mayor puede ayudar a extender la cadera. Se extrapolan la función extensora medida por Benn y las fuerzas de peso muerto de Collings; no se afirma haber medido al aductor en rumano sobre plataforma."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "coratella2022",
+              "pelvic_anatomy"
+            ],
+            "why": "El alcance adicional disponible exige que el tramo lumbar no ceda mientras la pelvis continúa girando. Coratella halló más EMG del longísimo en rumano sobre escalón, pero una contracción de sostén sigue siendo estabilizadora y no una extensión lumbar que mueva la carga."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "core2025",
+              "abdominal_anatomy"
+            ],
+            "why": "La plataforma deja el abdomen sin apoyo igual que en rumano al piso, y la pared abdominal fija el tórax respecto de la pelvis. La respuesta medida por Jurik se extrapola al apoyo elevado; no representa abdominales dinámicos ni un resultado específico para déficit."
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "sources": [
+              "forearm_anatomy"
+            ],
+            "why": "Las manos agarran una barra que desciende desde el apoyo elevado y sostienen su peso sin soltarla abajo. El rol deriva de los flexores digitales del antebrazo; añadir altura no cambia ese agarre isométrico por una acción motora de la bisagra."
+          }
+        ],
+        "overrides": {}
+      },
       "public": {
         "configurations": {
           "hams_peso_muerto_rumano_deficit__default": {
-            "description": "Con barra, desde la plataforma, la carga baja por los muslos con un recorrido extra. Con la barra, la carga sube al máximo y la progresión de los isquiosurales se mide sin trampa.",
+            "description": "Los pies elevados alejan el piso donde podrían descansar los discos y dejan más espacio para descender respecto del apoyo de los pies. La altura elegida tiene sentido solo si la cadera dispone de ese tramo adicional con la espalda neutra.",
             "executionCues": [
-              "Desde la plataforma, la barra baja por los muslos con más recorrido. La cadera viaja atrás con las rodillas poco flexionadas y la carga roza las piernas; la subida termina al recuperar la línea del tronco."
+              "Desliza la barra cerca de las piernas al enviar la pelvis atrás.",
+              "Aprovecha el espacio adicional solo si puedes continuar el giro de cadera sin redondear la columna.",
+              "Regresa arriba desde la cadera, conservando los discos en el aire."
             ],
             "setupCues": [
-              "Preparación: Desde la plataforma, la barra baja por los muslos con más recorrido."
+              "Sube a una plataforma baja con ambos pies enteros y la barra libre por delante.",
+              "Empieza erguido con agarre prono y una ligera flexión de rodillas."
             ]
           }
         },
-        "description": "El Peso Muerto Rumano en Déficit añade altura bajo los pies y deja que la barra baje más allá de las puntas. Los isquiosurales alcanzan un estiramiento que el rumano estándar no puede dar, con los erectores custodiando la espalda. Se ejecuta bajando la carga por los muslos hasta el nuevo tope y regresando con la cadera. El siguiente nivel del RDL para quien ya agota su rango en el suelo."
+        "description": "El Peso Muerto Rumano en Déficit añade un apoyo elevado al trabajo de isquiosurales y glúteo mayor para ampliar la bisagra cuando el suelo interrumpe antes el recorrido. La repetición comienza erguido sobre la plataforma y la barra baja junto a las piernas, con rodillas ligeramente flexionadas y columna neutra. El piso queda más lejos del apoyo de los pies, pero la altura del eje no define el déficit. La plataforma aporta espacio para el descenso; si la movilidad ya limita la bajada, elevarse no añade recorrido aprovechable."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "En diez culturistas comparó rumano, rumano sobre escalón y piernas rígidas al ochenta por ciento de su carga máxima. El rumano en escalón elevó la excitación del glúteo mayor, semitendinoso y longísimo durante la subida; el rumano excitó más el semitendinoso que piernas rígidas, y piernas rígidas más el glúteo mayor. No demuestra un rango máximo universal ni hipertrofia superior.",
+          "id": "coratella2022",
+          "title": "An Electromyographic Analysis of Romanian, Step-Romanian, and Stiff-Leg Deadlift: Implication for Resistance Training",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/35162922/"
+        },
+        {
+          "claim": "En doce hombres entrenados, la actividad de los isquiosurales se maximizó en el rumano y glute-ham raise entre cuatro ejercicios; también midió erectores y glúteo medio. Respalda participación en el rumano estudiado, sin demostrar las variantes sumo o sus implementos.",
+          "id": "mcallister2014",
+          "title": "Muscle activation during various hamstring exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/24149748/"
+        },
+        {
+          "claim": "Describe el complejo isquiosural posterior, sus inserciones a través de cadera y rodilla y su función de extensión de cadera y flexión de rodilla; permite razonar el alargamiento con cadera flexionada y rodilla poco flexionada.",
+          "id": "hamstrings_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hamstring Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31536294/"
+        },
+        {
+          "claim": "Describe la región glútea y al glúteo mayor como músculo superficial de gran tamaño relacionado con movimiento dinámico y estabilidad erguida. La función extensora aquí se contrasta con la evidencia directa de pesos muertos.",
+          "id": "glute_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Maximus Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30855781/"
+        },
+        {
+          "claim": "La EMG intramuscular mostró que ambas porciones del aductor mayor tuvieron su mayor actividad en extensión de cadera; sus funciones de rotación difirieron. Respalda su capacidad extensora, no una superioridad del sumo rumano ni una medición de esa variante.",
+          "id": "adductor2018",
+          "title": "Adductor magnus: An EMG investigation into proximal and distal portions and direction specific action",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29520841/"
+        },
+        {
+          "claim": "El modelo neuromusculoesquelético informado por EMG estimó fuerzas altas del aductor mayor isquiocondilar en peso muerto y sumo, ambos dentro del primer grupo para ese fascículo. No evaluó rumano ni piernas rígidas: su aplicación a esas bisagras es una extrapolación anatómica explícita.",
+          "id": "adductor2026",
+          "title": "Hip Adductor Muscle Forces during Strength Training and Rehabilitation Exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/41931009/"
+        },
+        {
+          "claim": "Con un sensor de pared abdominal, el rumano estuvo entre los ejercicios de miembros inferiores que aumentaron más la tensión abdominal. El estudio mide respuesta abdominal y no identifica por separado cada músculo profundo.",
+          "id": "core2025",
+          "title": "Changes of abdominal wall tension across various resistance exercises during maximal and submaximal loads in healthy adults: a cross-sectional study",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/40325422/"
+        },
+        {
+          "claim": "Describe la pared abdominal como estructura capaz de generar presión intraabdominal y mover la columna; sustenta su capacidad de fijar el tronco, sin que la bisagra necesite movimiento lumbar.",
+          "id": "abdominal_anatomy",
+          "title": "Anatomy, Abdomen and Pelvis: Abdominal Wall",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31869113/"
+        },
+        {
+          "claim": "Describe los compartimentos del antebrazo y la función flexora de muñeca y dedos del compartimento anterior; aplicada a la sujeción continua de una carga manual explica el trabajo isométrico del agarre.",
+          "id": "forearm_anatomy",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/"
+        },
+        {
+          "claim": "Describe la cadera como articulación que soporta dinámicamente el peso del tronco y transmite carga entre esqueleto axial y miembros inferiores.",
+          "id": "hip_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hip Joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29262200/"
+        },
+        {
+          "claim": "Explica flexión y extensión de la rodilla y la importancia de su apoyo muscular para estabilizarla; en la bisagra con ángulo casi fijo la función descrita es postural.",
+          "id": "knee_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Knee",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29763193/"
+        },
+        {
+          "claim": "Describe la movilidad restringida sacroilíaca y la transmisión del peso de torso y extremidades superiores hacia los miembros inferiores, además de las articulaciones lumbosacras.",
+          "id": "pelvic_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Pelvic Joints",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30860758/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Bisagra bilateral que comienza erguido sobre una plataforma; la barra baja cerca de las piernas con rodillas suavemente flexionadas y permanece suspendida entre repeticiones. El piso potencial de reposo de los discos queda por debajo del apoyo de los pies, sin exigir que el eje cruce el plano de las plantas.",
+        "keyPositions": [
+          "Inicio: atleta erguido sobre el apoyo elevado, barra suspendida delante de los muslos.",
+          "Punto inferior: pelvis atrás, columna neutra y discos suspendidos fuera de la plataforma; la bajada termina en el alcance de cadera disponible."
+        ],
+        "mistakes": [
+          "Forzar una bajada adicional cuando la movilidad de cadera ya se ha agotado, solo porque el piso queda más lejos.",
+          "Redondear la espalda para aprovechar una plataforma demasiado alta.",
+          "Dar un tirón de brazos o arquear la espalda al volver a la vertical."
+        ],
+        "phases": [
+          {
+            "description": "La pelvis retrocede y el torso se inclina con poco cambio de rodillas; la carga permanece suspendida junto a las piernas.",
+            "name": "Descenso sobre apoyo"
+          },
+          {
+            "description": "La bajada termina cuando la cadera deja de ofrecer recorrido con columna neutra, aunque el piso quede más lejos.",
+            "name": "Límite de la bisagra"
+          },
+          {
+            "description": "Los extensores de cadera recuperan la vertical mientras la barra asciende sin flexión de codos.",
+            "name": "Extensión de cadera"
+          }
+        ],
+        "setup": [
+          "Plataforma firme de altura moderada y ambos pies enteros apoyados al ancho de las caderas.",
+          "Barra sostenida en prono con ambas manos y brazos largos; discos libres de los bordes del soporte."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral ligeramente oblicua a la altura de la cadera, con atleta entero, manos y piso visibles.",
+          "contacts": "Dos pies apoyados en la plataforma elevada; manos como único contacto con la carga suspendida.",
+          "load": "Barra cerca de las tibias y sujeta por ambas manos; discos suspendidos fuera de la plataforma y libres del piso inferior. La altura del eje respecto de las plantas no determina el déficit.",
+          "orientation": "Atleta mirando hacia la izquierda del encuadre; cabeza alineada con el torso inclinado y mirada hacia el piso.",
+          "phase": "Fotograma inferior del descenso, con cadera flexionada y peso suspendido antes de iniciar la subida.",
+          "posture": "Pelvis retrasada, rodillas con flexión pequeña, brazos rectos, cuello neutro y columna sin redondeo."
+        },
+        "byImplement": {
+          "barbell": {
+            "geometry": "Barra recta junto a las tibias; ambas manos en prono y discos suspendidos fuera de los bordes de la plataforma, sin tocar el piso inferior."
+          }
+        },
+        "byVariant": {},
+        "forbidden": [
+          "Rodillas muy dobladas y cadera baja como en el arranque de una sentadilla.",
+          "Espalda redondeada, cuello levantado o codos doblados para tirar del peso.",
+          "Discos sobre la plataforma o pies en el piso inferior: desaparece el déficit.",
+          "Carga junto al pecho, apoyada sobre la espalda o levantada con un remo."
+        ],
+        "promptCore": {
+          "barbell": "Oblique side view of an athlete. Frozen at the BOTTOM of a Romanian deadlift descent, hips pushed back, knees slightly bent, spine neutral and arms straight. Both feet are flat on a low raised platform at hip width. Both hands physically grip the straight barbell with an overhand grip. The bar is close to the shins with plates on both ends. The plates remain suspended outside the platform edges, clear of the lower floor. That floor is below the surface supporting the feet. Do not force the bar shaft below sole level. No text, logos or brands."
+        },
+        "qa": [
+          "¿Las rodillas están casi rectas o con una flexión pequeña, sin una sentadilla profunda?",
+          "¿Las manos agarran físicamente la carga y ninguna pieza flota suelta?",
+          "¿El torso está inclinado desde la cadera y la carga sigue suspendida en el punto inferior?",
+          "¿Los pies descansan completos sobre una plataforma elevada respecto del piso donde podrían reposar los discos, con la carga libre de sus bordes?",
+          "¿Los brazos cuelgan rectos junto a las piernas, sin llevar el peso al pecho?"
+        ]
+      }
     }
   },
   "familyId": "lower_romanian_deadlift",

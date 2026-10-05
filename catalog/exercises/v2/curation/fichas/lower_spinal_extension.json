@@ -1,55 +1,644 @@
 {
   "definitions": {
     "back_extension_lumbar": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Flexión lumbar de descenso",
+              "Extensión lumbar de retorno"
+            ],
+            "id": "columna-lumbar",
+            "role": "PRIMARY",
+            "sources": [
+              "extension_modes",
+              "back_anatomy"
+            ],
+            "why": "La región lumbar participa en el cambio visible de la espalda desde flexión a alineación. La investigación de modos de extensión registra curvatura lumbar y permite declarar esta acción como parte principal sin atribuir todo el recorrido exclusivamente a ella."
+          },
+          {
+            "actions": [
+              "Flexión torácica",
+              "Extensión torácica"
+            ],
+            "id": "columna-toracica",
+            "role": "SECONDARY",
+            "sources": [
+              "extension_modes"
+            ],
+            "why": "El tórax también se flexiona y recupera su forma al enrollar el tronco sobre el banco. La flexión torácica predomina en la ejecución de columna dinámica del estudio, por lo que no debe quedar descrita como una espalda rígida."
+          },
+          {
+            "actions": [
+              "Sostén de la posición pélvica"
+            ],
+            "id": "cadera",
+            "role": "STABILIZER",
+            "sources": [
+              "extension_modes",
+              "pelvic_support"
+            ],
+            "why": "Permanece relativamente fija sobre el apoyo pélvico para que la espalda produzca el recorrido. Esta es la ejecución seleccionada de columna dinámica; se reconoce que un banco no elimina todo movimiento ni toda demanda de cadera."
+          },
+          {
+            "actions": [
+              "Transmisión de carga al apoyo pélvico"
+            ],
+            "id": "sacroiliaca",
+            "role": "STABILIZER",
+            "sources": [
+              "sij_transfer"
+            ],
+            "why": "Transmite la fuerza del tronco a la pelvis asentada en el soporte. La función deriva del enlace anatómico entre fascia y musculatura glútea, sin adjudicar una extensión dinámica a esta articulación."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "erector_spinae",
+            "role": "PRIMARY",
+            "sources": [
+              "extension_modes",
+              "back_anatomy"
+            ],
+            "why": "El tronco cambia de curvatura al bajar y la musculatura extensora lo devuelve a la alineación. Los estudios distinguen este modo de columna dinámica de la extensión de cadera; el rol principal corresponde a ese recorrido espinal, sin pretender aislamiento lumbar completo."
+          },
+          {
+            "id": "gluteus_maximus",
+            "role": "STABILIZER",
+            "sources": [
+              "glute_anatomy",
+              "pelvic_support"
+            ],
+            "why": "Ayuda a conservar la relación entre pelvis y muslos contra el apoyo mientras el gesto elegido ocurre en la espalda. Se infiere la función postural de la anatomía y del registro de glúteos en banco romano; el soporte no implica ausencia de actividad."
+          },
+          {
+            "id": "hamstrings",
+            "role": "STABILIZER",
+            "sources": [
+              "hamstring_anatomy",
+              "pelvic_support"
+            ],
+            "why": "Con las piernas sujetas y poca variación de cadera, sus porciones biarticulares contribuyen al sostén posterior. Su actividad en banco romano depende de la posición de cadera; esta ficha no les asigna una extensión de cadera que la técnica no pide."
+          }
+        ]
+      },
       "public": {
         "configurations": {
           "back_extension_lumbar__default": {
-            "description": "Con máquina, con las piernas fijas en el soporte, el torso baja y sube extendiendo la columna. En la máquina, la trayectoria guiada concentra todo el esfuerzo de los erectores.",
+            "description": "El acolchado sostiene la pelvis y los muslos mientras los tobillos quedan fijados bajo los rodillos. Con los brazos cruzados, el peso del torso basta para cargar el cambio de curvatura de la espalda.",
             "executionCues": [
-              "En el banco de hiperextensiones: bajas el torso y subes con la espalda trabajando. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Redondea suavemente el tronco sin retirar la pelvis del acolchado.",
+              "Recupera la línea del cuerpo extendiendo la espalda.",
+              "Termina la subida sin llevar los hombros por encima de esa línea."
             ],
             "setupCues": [
-              "Preparación: En el banco de hiperextensiones: bajas el torso y subes con la espalda trabajando."
+              "Ajusta el banco para apoyar la pelvis y sujetar los tobillos.",
+              "Apoya los antebrazos contra el pecho y prolonga con el torso la línea de las piernas."
             ]
           }
         },
-        "description": "Las Hiperextensiones de Espalda Baja usan el banco romano para extender la columna contra la gravedad: los erectores suben y bajan el torso con las piernas fijas en el soporte. Se ejecutan bajando el tronco con la espalda neutra y regresando hasta la línea del cuerpo, sin pasarse de altura. La máquina o el banco dedicado es todo lo que hace falta. La base de una zona lumbar fuerte y resistente al día a día."
+        "description": "Las Hiperextensiones de Espalda Baja son una extensión del tronco en un banco de apoyo que pone a los erectores espinales a mover la columna. La pelvis queda asentada sobre el acolchado y la espalda cambia de una flexión suave a su posición alineada, con las piernas sujetas. El recorrido nace en la espalda y acaba en la alineación corporal, con poca variación del ángulo de cadera. Su diferencia está en practicar la extensión de espalda con una base que sostiene las piernas."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "Comparó ejecuciones de extensión con cadera dinámica y columna dinámica. La flexión torácica predominó en la segunda; los momentos máximos de espalda y cadera fueron mayores en la primera. La flexión lumbar apareció en ambas: no demuestra aislamiento completo de un segmento.",
+          "id": "extension_modes",
+          "title": "Loading conditions in the spine, hip and knee during different executions of back extension exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/28451436/"
+        },
+        {
+          "claim": "Distingue la musculatura intrínseca unida a la columna de las capas que actúan sobre hombro y caja torácica. Su anatomía sustenta la extensión y el sostén de la espalda, sin atribuir extensión de cadera a los erectores.",
+          "id": "back_anatomy",
+          "title": "Anatomy, Back, Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725759/"
+        },
+        {
+          "claim": "El glúteo mayor es extensor de cadera; esa función permite razonar su papel dinámico cuando el tronco pivota en la cadera y su papel postural cuando la pelvis y el ángulo de cadera quedan relativamente fijos.",
+          "id": "glute_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Maximus Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30855781/"
+        },
+        {
+          "claim": "Los isquiosurales biarticulares extienden la cadera y flexionan la rodilla; la cabeza corta del bíceps femoral no extiende la cadera. Sirve de base anatómica para distinguir bisagra, elevación de piernas y sostén con piernas sujetas.",
+          "id": "hamstring_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hamstring Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31536294/"
+        },
+        {
+          "claim": "En veintidós personas, fijar la pelvis no modificó la actividad de espalda y glúteos entre las condiciones comparadas; la posición de cadera flexionada redujo la del bíceps femoral. Un apoyo no permite afirmar que glúteos e isquiosurales se apaguen.",
+          "id": "pelvic_support",
+          "title": "Effect of pelvic stabilization and hip position on trunk extensor activity during back extension exercises on a Roman chair",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/19229445/"
+        },
+        {
+          "claim": "El estudio anatómico modeló capacidad compresiva sacroilíaca a través de inserciones glúteas y fasciales, compatible con transferencia entre tronco y extremidades. No midió ninguna de las seis variantes de esta entrega.",
+          "id": "sij_transfer",
+          "title": "Anatomy and biomechanics of gluteus maximus and the thoracolumbar fascia at the sacroiliac joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/23959791/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Extensión de columna sobre banco de apoyo con la pelvis y las piernas sujetas. El tronco se redondea de forma suave al bajar y recupera su forma al subir; la base pélvica permanece relativamente fija y el cuerpo no pivota como una pieza rígida desde la cadera.",
+        "keyPositions": [
+          "Inicio superior: tronco prolongando la línea de las piernas sin arqueo final.",
+          "Abajo: espalda suavemente flexionada, cabeza siguiendo su curva y pelvis todavía asentada en el banco."
+        ],
+        "mistakes": [
+          "Plegar únicamente la cadera con la espalda rígida.",
+          "Despegar la pelvis para ampliar la bajada.",
+          "Rebotar desde la posición flexionada.",
+          "Subir más allá de la línea de las piernas mediante un arqueo final."
+        ],
+        "phases": [
+          {
+            "description": "La espalda se curva gradualmente mientras el acolchado recibe la pelvis y la sujeción inferior impide deslizar las piernas.",
+            "name": "Flexión sobre apoyo"
+          },
+          {
+            "description": "El torso recupera su curvatura inicial por acción de los extensores espinales, hasta quedar alineado con las piernas.",
+            "name": "Extensión del tronco"
+          }
+        ],
+        "setup": [
+          "Pelvis y muslos recibidos en el acolchado de un banco romano, tobillos bajo los rodillos y pies en su plataforma.",
+          "Brazos cruzados contra el pecho y torso alineado con las piernas antes de bajar."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Plano lateral completo con el perfil de la espalda y los apoyos de pelvis y tobillos visibles.",
+          "contacts": "Pelvis y muslos sobre acolchado; tobillos bajo rodillos y brazos cruzados tocando el pecho.",
+          "load": "El propio torso cuelga más allá del apoyo, sin lastre externo sostenido.",
+          "orientation": "Cabeza hacia la izquierda y abajo, siguiendo el torso curvado sin extender el cuello.",
+          "phase": "Posición inferior de la repetición con la espalda flexionada suavemente sobre la base pélvica.",
+          "posture": "Espalda redondeada de forma moderada y piernas alineadas en el soporte, sin gran cambio del ángulo de cadera."
+        },
+        "byImplement": {
+          "machine": {
+            "geometry": "Banco romano con acolchado bajo pelvis y muslos, plataforma de pies y rodillos sobre tobillos. El tronco libre se curva por delante del apoyo; no hay barra ni cable unido al cuerpo."
+          }
+        },
+        "forbidden": [
+          "Torso completamente rígido pivotando en una bisagra profunda de cadera.",
+          "Pelvis despegada del apoyo o tobillos fuera de los rodillos.",
+          "Arqueo exagerado de la espalda en la posición superior.",
+          "Barra dentro de los codos o sobre los hombros."
+        ],
+        "promptCore": {
+          "machine": "Side view of an athlete frozen at the BOTTOM of a spinal back extension on a Roman chair. Pelvis and upper thighs stay pressed against the pad, ankles secured under the rollers and feet touching the platform. Arms cross against the chest. The spine is visibly but moderately rounded and the head follows its curve. Hips stay close to their supported starting angle. The torso is the only load, with no free-floating equipment."
+        },
+        "qa": [
+          "¿La imagen muestra el fotograma inferior con una curva visible de la espalda?",
+          "¿La pelvis toca el acolchado y los tobillos quedan sujetos bajo los rodillos?",
+          "¿Los brazos están cruzados contra el pecho sin una carga flotante?",
+          "¿El ángulo de cadera cambia poco y el torso no se representa como una tabla rígida?"
+        ]
+      }
     },
     "back_hiperextension_45_zercher_espalda_baja": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Flexión lumbar cargada",
+              "Extensión lumbar de recuperación"
+            ],
+            "id": "columna-lumbar",
+            "role": "PRIMARY",
+            "sources": [
+              "extension_modes",
+              "back_anatomy"
+            ],
+            "why": "Cambia de flexión moderada a alineación mientras la barra acompaña al torso. El modo de columna dinámica estudiado sirve como referencia biomecánica; la aplicación a Zercher es explícitamente extrapolada y no un estudio de esa colocación de carga."
+          },
+          {
+            "actions": [
+              "Flexión y extensión torácicas"
+            ],
+            "id": "columna-toracica",
+            "role": "SECONDARY",
+            "sources": [
+              "extension_modes"
+            ],
+            "why": "La curvatura del tórax cambia al redondear y recuperar el tronco con la carga cercana al pecho. La investigación de extensión espinal identifica esta participación torácica; no se supone que los hombros permanezcan sobre una espalda totalmente rígida."
+          },
+          {
+            "actions": [
+              "Sostén pélvico sobre el banco"
+            ],
+            "id": "cadera",
+            "role": "STABILIZER",
+            "sources": [
+              "pelvic_support",
+              "extension_modes"
+            ],
+            "why": "El banco recibe la base pélvica y limita la basculación para que el gesto visible ocurra en la columna. El apoyo se describe como relativo, porque la evidencia de banco romano no demuestra que toda demanda o todo movimiento de cadera desaparezca."
+          },
+          {
+            "actions": [
+              "Sostén de la carga en flexión"
+            ],
+            "id": "codo",
+            "role": "STABILIZER",
+            "sources": [
+              "biceps_anatomy"
+            ],
+            "why": "Los pliegues internos sostienen la barra con flexión aproximadamente fija al bajar y subir. Esa función se deduce de los flexores del codo, sin contracciones de flexión que impulsen la carga en una trayectoria separada."
+          },
+          {
+            "actions": [
+              "Transferencia hacia la pelvis apoyada"
+            ],
+            "id": "sacroiliaca",
+            "role": "STABILIZER",
+            "sources": [
+              "sij_transfer"
+            ],
+            "why": "Une el torso cargado por delante con la pelvis apoyada en el banco. El papel de transmisión se infiere de los vínculos glúteo-fasciales y no convierte esta articulación en fuente de la extensión del tronco."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "erector_spinae",
+            "role": "PRIMARY",
+            "sources": [
+              "extension_modes",
+              "back_anatomy"
+            ],
+            "why": "Devuelve la curvatura del tronco desde la flexión mientras la barra aumenta la carga anterior. Se extrapola el modo de columna dinámica del banco romano a la posición Zercher; no se atribuye a los erectores una extensión de cadera ni una actividad EMG específica de esta variante."
+          },
+          {
+            "id": "gluteus_maximus",
+            "role": "STABILIZER",
+            "sources": [
+              "glute_anatomy",
+              "pelvic_support"
+            ],
+            "why": "Contribuye a sostener la pelvis contra el banco cuando el recorrido se concentra en el cambio de forma de la espalda. La función se razona anatómicamente; la barra dentro de los codos no convierte por sí sola al glúteo en motor de este gesto espinal."
+          },
+          {
+            "id": "hamstrings",
+            "role": "STABILIZER",
+            "sources": [
+              "hamstring_anatomy",
+              "pelvic_support"
+            ],
+            "why": "Ayuda a fijar la relación entre muslos y pelvis con las piernas sujetas. El banco romano puede reclutar isquiosurales aun con apoyo, pero la técnica de esta definición no solicita una bisagra amplia para que ellos eleven el torso."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "abdominal_wall"
+            ],
+            "why": "La pared abdominal aporta sostén entre tórax y pelvis alrededor de la carga abrazada. Es una inferencia de coactivación postural; no se promete rigidez lumbar absoluta porque el ejercicio contiene flexión y extensión de columna."
+          },
+          {
+            "id": "biceps",
+            "role": "STABILIZER",
+            "sources": [
+              "biceps_anatomy"
+            ],
+            "why": "El bíceps y otros flexores conservan el ángulo doblado de los codos que reciben la barra. Se deduce de la anatomía del codo bajo carga: el brazo la sostiene y no hace un curl durante la extensión de espalda."
+          }
+        ]
+      },
       "public": {
         "configurations": {
           "back_hiperextension_45_zercher_espalda_baja__default": {
-            "description": "Con barra, sobre el banco de 45 grados con la carga sujeta entre los brazos, el torso pivota sobre las caderas. La barra es la referencia para cargar los erectores con peso de verdad.",
+            "description": "Los pliegues de los codos reciben el eje y el banco inclinado sostiene la base de la pelvis. Las manos se juntan para cerrar el sostén de la barra, que acompaña el cambio de curvatura del tronco.",
             "executionCues": [
-              "Carga en los codos en el banco a 45: subes el torso con la espalda baja haciendo el trabajo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Deja que la espalda se flexione suavemente sin perder el contacto de la pelvis.",
+              "Extiende el tronco hasta recuperar la línea de las piernas.",
+              "Conserva la barra cerca del cuerpo sin abrir los codos."
             ],
             "setupCues": [
-              "Preparación: Carga en los codos en el banco a 45: subes el torso con la espalda baja haciendo el trabajo."
+              "Ajusta el banco para sostener la pelvis y asegurar los tobillos.",
+              "Recibe la barra en los pliegues de ambos codos y junta las manos cerca del pecho."
             ]
           }
         },
-        "description": "La Hiperextensión a 45 Zercher para Espalda Baja añade la barra abrazada al torso en el banco inclinado: los erectores extienden la cadera y la columna con la carga pegada al pecho. Se ejecuta bajando el tronco y subiendo con la espalda firme y los brazos sujetando sin ayudar. La posición zercher añade trabajo de core al del lumbar. Una carga distinta para el banco de 45 grados, con el tronco entero comprometido."
+        "description": "La Hiperextensión a 45 Zercher para Espalda Baja es una extensión de columna cargada en el pliegue de los codos, con los erectores espinales a cargo del retorno. El banco recibe la pelvis y sujeta las piernas mientras el torso se redondea suavemente y recupera su línea. La barra permanece cerca del pecho y los brazos sostienen su posición sin levantarla por separado. La carga anterior exige distinguir el movimiento de espalda del simple balanceo de la cadera."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "Comparó ejecuciones de extensión con cadera dinámica y columna dinámica. La flexión torácica predominó en la segunda; los momentos máximos de espalda y cadera fueron mayores en la primera. La flexión lumbar apareció en ambas: no demuestra aislamiento completo de un segmento.",
+          "id": "extension_modes",
+          "title": "Loading conditions in the spine, hip and knee during different executions of back extension exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/28451436/"
+        },
+        {
+          "claim": "Distingue la musculatura intrínseca unida a la columna de las capas que actúan sobre hombro y caja torácica. Su anatomía sustenta la extensión y el sostén de la espalda, sin atribuir extensión de cadera a los erectores.",
+          "id": "back_anatomy",
+          "title": "Anatomy, Back, Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725759/"
+        },
+        {
+          "claim": "El glúteo mayor es extensor de cadera; esa función permite razonar su papel dinámico cuando el tronco pivota en la cadera y su papel postural cuando la pelvis y el ángulo de cadera quedan relativamente fijos.",
+          "id": "glute_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Maximus Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30855781/"
+        },
+        {
+          "claim": "Los isquiosurales biarticulares extienden la cadera y flexionan la rodilla; la cabeza corta del bíceps femoral no extiende la cadera. Sirve de base anatómica para distinguir bisagra, elevación de piernas y sostén con piernas sujetas.",
+          "id": "hamstring_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hamstring Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31536294/"
+        },
+        {
+          "claim": "En veintidós personas, fijar la pelvis no modificó la actividad de espalda y glúteos entre las condiciones comparadas; la posición de cadera flexionada redujo la del bíceps femoral. Un apoyo no permite afirmar que glúteos e isquiosurales se apaguen.",
+          "id": "pelvic_support",
+          "title": "Effect of pelvic stabilization and hip position on trunk extensor activity during back extension exercises on a Roman chair",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/19229445/"
+        },
+        {
+          "claim": "La pared abdominal genera presión intraabdominal y puede mover la columna. Su participación de sostén en estas ejecuciones se deduce de esa función y no de una medición específica de todas las variantes.",
+          "id": "abdominal_wall",
+          "title": "Anatomy, Abdomen and Pelvis: Abdominal Wall",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31869113/"
+        },
+        {
+          "claim": "El bíceps flexiona el codo y supina el antebrazo. Se infiere sostén isométrico cuando la barra descansa dentro de los codos durante las dos extensiones Zercher, sin EMG directo de esas variantes.",
+          "id": "biceps_anatomy",
+          "title": "Anatomy, Shoulder and Upper Limb, Biceps Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30137823/"
+        },
+        {
+          "claim": "El estudio anatómico modeló capacidad compresiva sacroilíaca a través de inserciones glúteas y fasciales, compatible con transferencia entre tronco y extremidades. No midió ninguna de las seis variantes de esta entrega.",
+          "id": "sij_transfer",
+          "title": "Anatomy and biomechanics of gluteus maximus and the thoracolumbar fascia at the sacroiliac joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/23959791/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Ejercicio de columna que se curva y recupera sobre una estación inclinada de cuarenta y cinco grados, con un eje recibido en los pliegues internos de los brazos. La pelvis conserva su contacto con el acolchado y el tronco cambia de forma con una basculación pélvica pequeña.",
+        "keyPositions": [
+          "Superior: tronco alineado con las piernas y eje todavía recibido en ambos codos.",
+          "Inferior: espalda moderadamente redondeada, pelvis asentada y discos separados del suelo junto al torso."
+        ],
+        "mistakes": [
+          "Plegarse solo desde la cadera sin cambiar la forma de la espalda.",
+          "Permitir que la barra ruede de los codos hacia las manos.",
+          "Subir con un tirón de brazos o un rebote del tronco.",
+          "Sobrepasar la línea corporal con un gran arco de cintura."
+        ],
+        "phases": [
+          {
+            "description": "El tronco se flexiona de forma gradual con la barra acompañándolo cerca del pecho y la base pélvica recibida por el banco.",
+            "name": "Curvatura con carga"
+          },
+          {
+            "description": "Los extensores recuperan la forma del tronco hasta su alineación inicial mientras los codos sostienen la barra sin abrirse.",
+            "name": "Recuperación espinal"
+          }
+        ],
+        "setup": [
+          "Apoyo del banco bajo pelvis y muslos; piernas prolongadas hacia los rodillos que fijan los tobillos.",
+          "Barra recta dentro de los dos pliegues de codo, antebrazos elevados y manos juntas cerca del esternón."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral con leve apertura frontal para mostrar ambos contactos de la carga con los codos.",
+          "contacts": "Pelvis en el acolchado, tobillos sujetos y carga tocando el interior de ambos codos; manos juntas.",
+          "load": "Carga recibida por los brazos frente al pecho, próxima al tronco y por encima del suelo.",
+          "orientation": "Pecho y cabeza hacia la izquierda y abajo, piernas apoyadas en diagonal hacia la derecha.",
+          "phase": "Fotograma inferior con curvatura moderada de la espalda y pelvis asentada.",
+          "posture": "Torso suavemente redondeado sobre la pelvis relativamente fija, codos doblados sin variar su ángulo."
+        },
+        "byImplement": {
+          "barbell": {
+            "geometry": "Banco de cuarenta y cinco grados con apoyo pélvico y rodillos de tobillos; barra recta transversal dentro de ambos pliegues de codo, manos juntas sin agarrar el eje y discos libres a ambos lados."
+          }
+        },
+        "forbidden": [
+          "Tronco rígido pivotando profundamente en la cadera.",
+          "Barra en la espalda o agarrada con brazos rectos.",
+          "Carga sin contacto real con ambos pliegues de codo.",
+          "Pelvis flotando fuera del banco o extensión final exagerada."
+        ],
+        "promptCore": {
+          "barbell": "Three-quarter side view frozen at the BOTTOM of a Zercher spinal back extension on a 45-degree Roman chair. Pelvis stays pressed against the pad, ankles under rollers and feet on the platform. The spine is moderately rounded, with little hip-angle change. A loaded straight bar rests firmly inside BOTH elbow creases close to the torso. Bent arms hold it, hands clasp near the chest without gripping the shaft. Plates are clear of the floor."
+        },
+        "qa": [
+          "¿La espalda aparece redondeada en el fotograma inferior?",
+          "¿La pelvis sigue sobre el acolchado y los tobillos están sujetos?",
+          "¿La barra toca ambos pliegues de codo y las manos se juntan sin agarrar el eje?",
+          "¿Los discos permanecen por encima del suelo junto al tronco?"
+        ]
+      }
     },
     "back_superman_suelo": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Extensión de la región lumbar",
+              "Sostén de la extensión"
+            ],
+            "id": "columna-lumbar",
+            "role": "PRIMARY",
+            "sources": [
+              "back_anatomy",
+              "superman_ultrasound"
+            ],
+            "why": "La extensión espinal despega la zona alta del torso de la base abdominal. El capítulo anatómico sustenta la acción de los extensores y el Superman ecográfico observa contracción del multífido lumbar, sin fijar un ángulo obligatorio."
+          },
+          {
+            "actions": [
+              "Extensión torácica acompañante"
+            ],
+            "id": "columna-toracica",
+            "role": "SECONDARY",
+            "sources": [
+              "back_anatomy"
+            ],
+            "why": "La región torácica acompaña la elevación del pecho, en lugar de dejar todo el arqueo en la cintura. Su participación extensora se razona a partir de la musculatura intrínseca de la espalda; no existe medición torácica en el estudio ecográfico citado."
+          },
+          {
+            "actions": [
+              "Extensión de cadera para elevar las piernas"
+            ],
+            "id": "cadera",
+            "role": "SECONDARY",
+            "sources": [
+              "glute_anatomy",
+              "hamstring_anatomy"
+            ],
+            "why": "La extensión de cadera levanta ambos muslos respecto a la pelvis apoyada. Glúteo mayor e isquiosurales realizan esta parte del gesto, diferente de la extensión vertebral que eleva el pecho."
+          },
+          {
+            "actions": [
+              "Sostén del brazo por delante de la cabeza"
+            ],
+            "id": "glenohumeral",
+            "role": "STABILIZER",
+            "sources": [
+              "deltoid_anatomy"
+            ],
+            "why": "Sostiene los brazos en su posición elevada delante de la cabeza mientras el torso se despega. La sujeción se infiere de la función estabilizadora de hombro; no se prescribe una repetición separada de flexión del brazo."
+          },
+          {
+            "actions": [
+              "Sostén de la extensión de rodilla"
+            ],
+            "id": "rodilla",
+            "role": "STABILIZER",
+            "sources": [
+              "hamstring_anatomy"
+            ],
+            "why": "Queda extendida al elevar la pierna y durante la pausa, sin una flexión dinámica. Esa posición permite que los isquiosurales actúen aquí desde la cadera, no mediante un curl de rodilla."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "erector_spinae",
+            "role": "PRIMARY",
+            "sources": [
+              "back_anatomy",
+              "superman_ultrasound"
+            ],
+            "why": "Los extensores intrínsecos levantan el pecho y sostienen la extensión del tronco. La ontología agrupa aquí el trabajo extensor de espalda; el estudio de Superman mide multífido por grosor ecográfico, no EMG de erectores, por lo que no se confunden ambas mediciones."
+          },
+          {
+            "id": "gluteus_maximus",
+            "role": "SECONDARY",
+            "sources": [
+              "glute_anatomy"
+            ],
+            "why": "Extiende la cadera para despegar los muslos mientras el abdomen permanece en el suelo. Su acción acompaña la extensión del tronco, con un recorrido de piernas pequeño; el rol se infiere anatómicamente, sin asumir que el estudio de multífido midiera el glúteo."
+          },
+          {
+            "id": "hamstrings",
+            "role": "SECONDARY",
+            "sources": [
+              "hamstring_anatomy"
+            ],
+            "why": "Las porciones que cruzan la cadera ayudan a elevar las piernas rectas y sostienen esa posición. La rodilla no realiza un curl; la participación se deduce de su función de extensión de cadera en esta geometría prona."
+          },
+          {
+            "id": "deltoid",
+            "role": "STABILIZER",
+            "sources": [
+              "deltoid_anatomy"
+            ],
+            "why": "Contribuye al sostén del hombro para que los brazos sigan prolongados delante de la cabeza durante la elevación y la pausa. Esta ejecución no pide elevar los brazos por un arco independiente; el rol postural se deduce de la anatomía del hombro."
+          }
+        ]
+      },
       "public": {
         "configurations": {
           "back_superman_suelo__default": {
-            "description": "Con peso corporal, boca abajo, brazos y piernas se elevan a la vez y se sostienen unos segundos. Los erectores trabajan con el peso corporal como única carga.",
+            "description": "La zona ventral del tronco y la pelvis sirven de apoyo mientras el pecho, las manos y los pies quedan apenas separados del suelo. Los brazos se prolongan delante de la cabeza y las rodillas permanecen extendidas durante la pausa.",
             "executionCues": [
-              "Boca abajo en el suelo: levantas brazos y piernas a la vez y aguantas un momento. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Eleva un poco el pecho, los brazos y las piernas sin doblar las rodillas.",
+              "Sostén la posición sin levantar la barbilla.",
+              "Devuelve el cuerpo al suelo sin dejar caer las extremidades."
             ],
             "setupCues": [
-              "Preparación: Boca abajo en el suelo: levantas brazos y piernas a la vez y aguantas un momento."
+              "Túmbate boca abajo y estira los brazos delante de la cabeza.",
+              "Apoya el abdomen y deja el cuello en línea con la espalda."
             ]
           }
         },
-        "description": "El Superman en Suelo eleva brazos y piernas a la vez estando boca abajo: los erectores sostienen el arco unos segundos y regresan al suelo. Se ejecuta sin material, con pausas arriba y sin golpear el suelo al bajar. La espalda baja trabaja con el propio peso del cuerpo como carga. El punto de partida perfecto para cuidar la espalda antes de atreverse con el banco romano."
+        "description": "El Superman en Suelo combina una extensión de espalda con una pequeña elevación de piernas y brazos, trabajando los erectores espinales con ayuda de glúteos e isquiosurales. Boca abajo, la parte frontal del tronco queda apoyada y el pecho se despega al mismo tiempo que las extremidades. La pausa superior sostiene esa postura sin buscar altura mediante un gran arco de cintura o de cuello. Al usar el peso de los segmentos corporales, permite reconocer qué parte del movimiento procede del tronco y cuál de la cadera."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "Distingue la musculatura intrínseca unida a la columna de las capas que actúan sobre hombro y caja torácica. Su anatomía sustenta la extensión y el sostén de la espalda, sin atribuir extensión de cadera a los erectores.",
+          "id": "back_anatomy",
+          "title": "Anatomy, Back, Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725759/"
+        },
+        {
+          "claim": "Midió grosor del multífido lumbar por ultrasonido y esfuerzo percibido en Superman de distintos grados; el grado tres mostró mayor cambio de grosor. No fue EMG de erectores, ni una prueba de prevención de lesiones o superioridad sobre bancos.",
+          "id": "superman_ultrasound",
+          "title": "Comparison of lumbar multifidus thickness and perceived exertion during graded superman exercises with or without an abdominal drawing-in maneuver in young adults",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30276184/"
+        },
+        {
+          "claim": "El glúteo mayor es extensor de cadera; esa función permite razonar su papel dinámico cuando el tronco pivota en la cadera y su papel postural cuando la pelvis y el ángulo de cadera quedan relativamente fijos.",
+          "id": "glute_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Maximus Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30855781/"
+        },
+        {
+          "claim": "Los isquiosurales biarticulares extienden la cadera y flexionan la rodilla; la cabeza corta del bíceps femoral no extiende la cadera. Sirve de base anatómica para distinguir bisagra, elevación de piernas y sostén con piernas sujetas.",
+          "id": "hamstring_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hamstring Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31536294/"
+        },
+        {
+          "claim": "Describe al deltoides como participante en movimiento y estabilidad de hombro. Se usa para inferir sostén de los brazos extendidos delante de la cabeza en el Superman, sin medición directa de su actividad.",
+          "id": "deltoid_anatomy",
+          "title": "Anatomy, Shoulder and Upper Limb, Deltoid Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725741/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Elevación simultánea del pecho, brazos extendidos delante de la cabeza y piernas rectas estando boca abajo en el suelo. Abdomen y pelvis conservan su apoyo; el tronco se extiende y las caderas despegan los muslos para una pausa breve.",
+        "keyPositions": [
+          "Inicio: pecho, brazos y piernas en el suelo con el abdomen en contacto.",
+          "Arriba: pecho y extremidades elevados pocos centímetros, abdomen y pelvis aún en apoyo, codos y rodillas extendidos."
+        ],
+        "mistakes": [
+          "Levantar la barbilla y cerrar la nuca para ganar altura.",
+          "Dar impulso con las manos o doblar las rodillas.",
+          "Despegar la pelvis y balancearse sobre el abdomen.",
+          "Soltar las piernas contra el suelo al finalizar."
+        ],
+        "phases": [
+          {
+            "description": "La extensión de espalda eleva el pecho y la extensión de cadera levanta las piernas, con los brazos prolongados delante de la cabeza.",
+            "name": "Despegue simultáneo"
+          },
+          {
+            "description": "El pecho, las manos y los pies quedan elevados mientras abdomen y pelvis siguen recibiendo el peso sobre el suelo.",
+            "name": "Pausa prona"
+          },
+          {
+            "description": "Los segmentos elevados bajan hasta recuperar el contacto inicial, sin rebotar contra el suelo.",
+            "name": "Apoyo completo"
+          }
+        ],
+        "setup": [
+          "Atleta tumbado prono sobre suelo o colchoneta, brazos proyectados hacia delante y piernas extendidas.",
+          "Abdomen y pelvis apoyados, mirada hacia el suelo y cuello sin echar la cabeza atrás."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Perfil lateral bajo mostrando cabeza, brazos, pelvis y ambos pies dentro del encuadre.",
+          "contacts": "Abdomen y pelvis permanecen contra el suelo; manos, pecho y pies no lo tocan.",
+          "load": "Peso de los propios brazos, tronco y piernas, sin objetos externos.",
+          "orientation": "Cabeza y manos hacia la izquierda, mirada al suelo y piernas prolongadas a la derecha.",
+          "phase": "Pausa superior del Superman con pecho y extremidades ligeramente elevados.",
+          "posture": "Brazos rectos delante de la cabeza, piernas estiradas y cuello alineado con la extensión moderada del torso."
+        },
+        "byImplement": {
+          "bodyweight": {
+            "geometry": "Atleta prono sobre una colchoneta lisa, abdomen y pelvis apoyados, brazos extendidos delante de la cabeza y ambas piernas rectas; manos y pies elevados unos centímetros sin sostener equipo."
+          }
+        },
+        "forbidden": [
+          "Cuatro apoyos con un brazo y una pierna como en bird dog.",
+          "Manos apoyadas junto al pecho como en una extensión tipo cobra.",
+          "Rodillas flexionadas con los pies hacia el techo.",
+          "Cabeza mirando hacia arriba o pelvis despegada de la colchoneta."
+        ],
+        "promptCore": {
+          "bodyweight": "Low side view of an athlete frozen at the TOP of a bilateral Superman on the floor. Belly and pelvis are pressed against a plain mat. Chest, both straight arms reaching ahead of the head and both straight legs are lifted only a few inches. Elbows and knees are straight, neck follows the torso and eyes face down. Hands and feet are clear of the mat. There is no equipment and no hand support under the body."
+        },
+        "qa": [
+          "¿Pecho, manos y ambos pies aparecen elevados en la pausa superior?",
+          "¿Abdomen y pelvis sostienen el cuerpo sobre el suelo sin apoyo de las manos?",
+          "¿Los brazos apuntan delante de la cabeza y las rodillas están extendidas?",
+          "¿La cabeza sigue la línea del torso y la elevación es pequeña?"
+        ]
+      }
     }
   },
   "familyId": "lower_spinal_extension",

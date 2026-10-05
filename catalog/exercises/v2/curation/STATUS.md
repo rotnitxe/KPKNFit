@@ -14,14 +14,13 @@ vigente es esto:
   implemento (el 2026-10-02 se retiró `sissy_squat__barbell`; las selecciones
   guardadas se remapean a `sissy_squat__smith_machine`; el 2026-10-03 se dieron de
   alta las cinco especialidades M1-M5, ver más abajo; el 2026-10-04 se retiraron
-  las cuatro configuraciones unilaterales de `romanian_sumo_deadlift`, con remap
-  al rumano unilateral del mismo implemento). SHA-256 canónico compartido
-  `31ccbddd4943362bd4258679900ed21549516484985ff01d613360e30c04c562`.
+  las cuatro configuraciones unilaterales del rumano sumo). SHA-256 canónico compartido
+  `1c267f408dce0649a07c72125d90f9aedcf5d2926ed6ec5dd7724ccdcf688099`.
 - Fuente única de autoría: `curation/fichas/<familyId>.json` (una por familia,
   96). Se copia con `scripts/catalog_v2_apply_fichas.py`; el flujo completo y las
   reglas están en `EDITORIAL_GUIDE.md`. El gate falla si `source/` difiere de lo
   que producen las fichas.
-- Estado de las fichas: 123 definiciones `LEGACY` y **83 `CURATED`**. Piloto
+- Estado de las fichas: 102 definiciones `LEGACY` y **104 `CURATED`**. Piloto
   (2026-10-01): `seal_row`, `pull_up` y `glutes_clamshells_banda`. Lote 1, pecho
   (2026-10-02, 20 definiciones, aplicado): `floor_press`, las aperturas
   (`decline_chest_fly`, `flat_chest_fly`, `incline_chest_fly`, `reverse_pec_fly`),
@@ -49,7 +48,19 @@ vigente es esto:
   `deadlift_to_knees__barbell`, `close_grip_lat_pulldown__cable`,
   `incline_biceps_curl__dumbbells`), sin eje nuevo ni cambio de revisión; el cableado en
   recetas, soportes y remaps es un paso posterior. El paso a `CURATED` se hace por
-  lotes y queda registrado aquí.
+  lotes y queda registrado aquí. Lote 5, bisagras (2026-10-04, aprobado y
+  aplicado): 21 definiciones / 59 configuraciones; cuatro retiros autorizados
+  del rumano sumo unilateral. `good_morning_seated` sigue `LEGACY`; la cola de
+  32 imágenes está aprobada y pendiente de generación. Informe en
+  `curation/lotes/LOTE_05_BISAGRAS.md`. La captura nativa fresca propia aprobó
+  11 suites / 67 tests y el gate compartido filtrado aprobó 50 suites / 402 tests,
+  ambos sin fallos, errores ni omitidos. Base completa 1 queda como corrida
+  histórica fallida (6327 tests, 5 fallos, 3 omitidos). Las ejecuciones completas
+  posteriores se siguen en el chat de programas; aquí no se declara aprobación
+  global de Base. APK, instalación, launch y restauración tienen evidencia
+  propia aprobada. Las cuatro fichas/selector siguen sin ejecutar: Setup
+  incompleto y plan candidato aún no seleccionado, sin defecto demostrado;
+  Programas C.P14 los comprobará al final integral.
 - `editorial_briefs.json` y su copia `.bak.2026-08-08` se eliminaron: sus 201
   definiciones eran idénticas al contenido de las fichas esqueleto.
 - Los 8 generadores por plantilla (`build_catalog_v2_*`, `curaduria_v3` a `v6`,
@@ -121,25 +132,53 @@ secundario con cualquier agarre).
 
 ### Re-curaduría por lotes (plan aprobado el 2026-10-02)
 
-**Continuación 2026-10-04 — lote 5, bisagras:** informe listo en
-`lotes/LOTE_05_BISAGRAS.md`: 21 definiciones, 59 configuraciones y 43 pares en
-copias privadas bajo `artifacts/catalog-lote05-20261004/`, pendientes del OK del
-lote para aplicar anatomía/textos y hacer commit. Lint conjunto: 0 errores y
-0 avisos; 186 citas de 39 URLs verificadas. `good_morning_seated` sigue LEGACY
-porque la evidencia no resuelve la dominancia dinámica propuesta. Las cuatro
-variantes unilaterales del rumano sumo se retiraron por decisión expresa del
-usuario (registro separado al final); no se aplicó el resto del lote.
+**Continuación 2026-10-04 — lote 5, bisagras:** aprobado por el usuario y
+aplicado; informe en `lotes/LOTE_05_BISAGRAS.md`. Se incorporaron 21 definiciones,
+59 configuraciones y 43 pares. El catálogo vigente tiene 523 configuraciones,
+104 definiciones `CURATED` y 102 `LEGACY`, con SHA-256 canónico
+`1c267f408dce0649a07c72125d90f9aedcf5d2926ed6ec5dd7724ccdcf688099`.
+Lint conjunto: 0 errores y 0 avisos; 186 citas de
+39 URLs verificadas. `good_morning_seated` sigue LEGACY porque la evidencia
+no resuelve la dominancia dinámica propuesta; conservar el dato heredado no
+lo valida científicamente. Las cuatro variantes unilaterales del rumano sumo
+se retiraron por decisión expresa del usuario (registro separado al final).
 El usuario aclaró que el exceso aportado por ejercicios donde ESE músculo es
 secundario o estabilizador se permite; el extra donde es principal debe ajustarse.
 Se conserva la anatomía según evidencia y se separan ambos aportes en el informe.
 Esta decisión está registrada en R7 y en el manual de autoría. La coordinación
 de programas incorporó al árbol actual un contador separado de todos los
 PRIMARY por grupo para el techo de W2 y el ajustador, preservando el volumen
-indirecto en los informes. Su validación nativa está en el gate compartido; esta
-entrada no declara aprobado el impacto semanal de la anatomía privada.
+indirecto en los informes. Esta entrada no declara aprobado el impacto semanal.
+La cola de 32 imágenes está aprobada, pendiente y sin imágenes generadas.
 Revisión visual: 46 pares, 35 PNG vistos, 14 PASA, 21 FALLA y 11 SIN_IMAGEN;
 los tres pares del sentado apartado se distinguen en `lotes/COLA_IMAGENES.md`.
 Pytest tras el retiro: 206 tests y 160 subtests aprobados (baseline: 197/158).
+Pytest tras aplicar el lote: 206 tests y 160 subtests aprobados en 112.68 s;
+JUnit confirma 0 fallos/errores. La captura Android fresca de catálogo aprobó
+11 suites / 67 tests, incluida ExerciseCatalogAuditTest; el gate compartido
+filtrado de 50 suites aprobó 402 tests, sin fallos, errores ni omitidos, con
+BUILD SUCCESSFUL en 9m49s. Los resultados 10 suites / 58 tests y 48 suites /
+797 tests se conservan como históricos; cobertura FULL: 25650 casos, 0 violaciones.
+Base completa 1 permanece histórica FAILED: 718 suites / 6327 tests, 5 fallos,
+0 errores y 3 omitidos. Las ejecuciones completas posteriores se siguen en el
+chat de programas; este checkpoint no declara aprobación global de Base.
+APK BaseDebug SHA-256
+`6237d204e2e1f8dd8cfd2259189e7b708b7fd477052fcd764501d7b31721fc72`,
+instalación Success y MainActivity top-resumed tienen evidencia propia; la
+restauración verificó 207 archivos y WAL idéntico, con la app detenida. Las
+cuatro fichas/selector quedan NOT_RUN: configuración incompleta y plan candidato
+aún no seleccionado; Continuar deshabilitado es esperado en ese estado y no
+demuestra un defecto. Programas C.P14 comprobará el selector al FINAL integral
+con 104 CURATED / 102 LEGACY.
+Android y el APK consumieron el árbol compartido con catálogo SHA1c y WIP de
+programas excluido de los commits de catálogo. La base SHA31cc tiene ocho
+suites / 42 tests previos y coherencia privada; no se reconstruyó ni probó un
+checkout aislado del commit intermedio. Los gates posteriores SHA1c no se
+atribuyen a SHA31cc. El checkpoint final de 39 rutas requiere integración con
+los commits de programas para la app completa. El alcance exacto y la evidencia
+Git se conservan en `artifacts/catalog-lote05-20261004/approved_land/commit_state`.
+Los resultados y sus pruebas están en
+`artifacts/catalog-lote05-20261004/native_evidence.json`.
 
 Las 178 definiciones `LEGACY` pasan a `CURATED` en diez lotes ordenados por gravedad:
 2 sentadillas, 3 rodilla aislada, 4 tirones, 5 bisagras, 6 unilaterales, 7 glúteo y

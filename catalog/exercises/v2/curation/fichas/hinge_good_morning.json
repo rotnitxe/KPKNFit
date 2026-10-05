@@ -1,84 +1,383 @@
 {
   "definitions": {
     "good_morning": {
-      "public": {
-        "configurations": {
-          "good_morning__bilateral__barbell": {
-            "description": "Con barra y a dos lados, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. La barra es la referencia para cargar los isquiosurales con peso de verdad. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
-            "executionCues": [
-              "Barra sobre los hombros con ambas piernas: la inclinación tradicional de cadera hacia delante. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos."
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Flexión de cadera",
+              "Extensión de cadera"
             ],
-            "setupCues": [
-              "Preparación: Barra sobre los hombros con ambas piernas: la inclinación tradicional de cadera hacia delante."
-            ]
-          },
-          "good_morning__bilateral__machine": {
-            "description": "Con máquina y a dos lados, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
-            "executionCues": [
-              "Máquina de este ejercicio de cadera: la cadera apoya en la almohadilla y el recorrido viene guiado. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos."
+            "id": "cadera",
+            "role": "PRIMARY",
+            "sources": [
+              "gm_kinetics",
+              "hamstring_anatomy"
             ],
-            "setupCues": [
-              "Preparación: Máquina de este ejercicio de cadera: la cadera apoya en la almohadilla y el recorrido viene guiado."
-            ]
+            "why": "La flexión de cadera inclina el tronco y la extensión lo devuelve a la vertical; el estudio cinético del buenos días registra el momento externo que los extensores deben contrarrestar."
           },
-          "good_morning__bilateral__safety_bar": {
-            "description": "Con barra de seguridad y a dos lados, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. Los isquiosurales trabajan con la barra de seguridad, que asienta la carga con comodidad. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
-            "executionCues": [
-              "Barra de estabilidad sobre los hombros: los agarres frontales acercan la carga y hacen más cómoda la posición de las manos. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos."
+          {
+            "actions": [
+              "Sostén de la flexión ligera"
             ],
-            "setupCues": [
-              "Preparación: Barra de estabilidad sobre los hombros: los agarres frontales acercan la carga y hacen más cómoda la posición de las manos."
-            ]
-          },
-          "good_morning__bilateral__smith_machine": {
-            "description": "Con máquina Smith y a dos lados, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. Los isquiosurales trabajan en la Smith, con la trayectoria guiada y estabilidad extra. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
-            "executionCues": [
-              "Smith con ambas piernas: la barra guiada te permite ir profundo con control. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos."
+            "id": "rodilla",
+            "role": "STABILIZER",
+            "sources": [
+              "gm_kinetics",
+              "hamstring_anatomy"
             ],
-            "setupCues": [
-              "Preparación: Smith con ambas piernas: la barra guiada te permite ir profundo con control."
-            ]
+            "why": "Una pequeña flexión inicial queda aproximadamente fija durante esta ejecución. Los isquiosurales cruzan la rodilla y el buenos días presenta demanda articular, pero no se prescribe una extensión de rodilla para impulsar la subida."
           },
+          {
+            "actions": [
+              "Resistencia a la flexión lumbar"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "gm_kinetics",
+              "gm_load"
+            ],
+            "why": "Conserva su curva mientras el torso gira alrededor de la cadera; los momentos lumbares y la actividad de erectores descritos en buenos días sustentan esa resistencia a la flexión, no una flexión y extensión lumbar deliberadas."
+          },
+          {
+            "actions": [
+              "Transferencia de carga entre pelvis y tronco"
+            ],
+            "id": "sacroiliaca",
+            "role": "STABILIZER",
+            "sources": [
+              "sij_transfer"
+            ],
+            "why": "Une la pelvis cargada con el tronco durante la bisagra. La transferencia se infiere del modelo anatómico de inserciones del glúteo y fascia que pueden comprimir esta articulación; no es el lugar del recorrido visible."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "hamstrings",
+            "role": "PRIMARY",
+            "sources": [
+              "gm_load",
+              "hamstring_anatomy"
+            ],
+            "why": "Sus porciones que cruzan la cadera frenan la inclinación y la extienden al regresar. El buenos días con rodillas poco flexionadas carga esa función; su actividad se midió directamente en la versión de pie con barra. Se conserva el dominante heredado, sin afirmar superioridad EMG sobre el glúteo."
+          },
+          {
+            "id": "gluteus_maximus",
+            "role": "PRIMARY",
+            "sources": [
+              "glute_anatomy",
+              "gm_kinetics"
+            ],
+            "why": "Extiende la cadera junto con los isquiosurales para levantar el torso y su carga. Es un motor de la bisagra, no solo una ayuda postural; el rol se deduce de su función anatómica y del momento de cadera medido, sin comparación EMG directa en este ejercicio."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "gm_load",
+              "gm_kinetics"
+            ],
+            "why": "Resiste el momento que flexionaría la columna mientras el tronco bascula desde la cadera. Aunque el estudio registra actividad de los erectores, aquí la técnica pide una curva lumbar estable y no extensión espinal repetida como motor."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "abdominal_wall"
+            ],
+            "why": "La pared abdominal sostiene la rigidez entre tórax y pelvis mientras el torso se inclina cargado. Se infiere una contracción postural de la anatomía abdominal; no se atribuye a los abdominales la extensión que devuelve la cadera."
+          }
+        ],
+        "overrides": {
           "good_morning__unilateral__barbell": {
-            "description": "Con barra y a un lado, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. La barra es la referencia para cargar los isquiosurales con peso de verdad. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
-            "executionCues": [
-              "Barra en una sola pierna: el equilibrio añade trabajo a la cadera y la espalda baja. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos."
-            ],
-            "setupCues": [
-              "Preparación: Barra en una sola pierna: el equilibrio añade trabajo a la cadera y la espalda baja."
+            "muscles": [
+              {
+                "id": "gluteus_medius",
+                "role": "STABILIZER",
+                "sources": [
+                  "glute_medius"
+                ],
+                "why": "Con un solo pie de apoyo, ayuda a que la pelvis no caiga ni gire mientras la otra pierna sale hacia atrás. Es una extrapolación de su función estabilizadora anatómica, sin EMG específico de esta configuración."
+              }
             ]
           },
           "good_morning__unilateral__machine": {
-            "description": "Con máquina y a un lado, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. En la máquina, la trayectoria guiada concentra todo el esfuerzo de los isquiosurales. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
-            "executionCues": [
-              "Máquina en una pierna: el guiado cuida la postura mientras el lado trabajado hace todo el esfuerzo. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos."
-            ],
-            "setupCues": [
-              "Preparación: Máquina en una pierna: el guiado cuida la postura mientras el lado trabajado hace todo el esfuerzo."
+            "muscles": [
+              {
+                "id": "gluteus_medius",
+                "role": "STABILIZER",
+                "sources": [
+                  "glute_medius"
+                ],
+                "why": "Con un solo pie de apoyo, ayuda a que la pelvis no caiga ni gire mientras la otra pierna sale hacia atrás. Es una extrapolación de su función estabilizadora anatómica, sin EMG específico de esta configuración; el apoyo de la máquina puede reducir esa exigencia."
+              }
             ]
           },
           "good_morning__unilateral__safety_bar": {
-            "description": "Con barra de seguridad y a un lado, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. Los isquiosurales trabajan con la barra de seguridad, que asienta la carga con comodidad. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
-            "executionCues": [
-              "Barra de estabilidad en una pierna: comodidad del agarre más el reto del equilibrio. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos."
-            ],
-            "setupCues": [
-              "Preparación: Barra de estabilidad en una pierna: comodidad del agarre más el reto del equilibrio."
+            "muscles": [
+              {
+                "id": "gluteus_medius",
+                "role": "STABILIZER",
+                "sources": [
+                  "glute_medius"
+                ],
+                "why": "Con un solo pie de apoyo, ayuda a que la pelvis no caiga ni gire mientras la otra pierna sale hacia atrás. Es una extrapolación de su función estabilizadora anatómica, sin EMG específico de esta configuración."
+              }
             ]
           },
           "good_morning__unilateral__smith_machine": {
-            "description": "Con máquina Smith y a un lado, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. Los isquiosurales trabajan en la Smith, con la trayectoria guiada y estabilidad extra. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
+            "muscles": [
+              {
+                "id": "gluteus_medius",
+                "role": "STABILIZER",
+                "sources": [
+                  "glute_medius"
+                ],
+                "why": "Con un solo pie de apoyo, ayuda a que la pelvis no caiga ni gire mientras la otra pierna sale hacia atrás. Es una extrapolación de su función estabilizadora anatómica, sin EMG específico de esta configuración."
+              }
+            ]
+          }
+        }
+      },
+      "public": {
+        "configurations": {
+          "good_morning__bilateral__barbell": {
+            "description": "El peso cruza la espalda alta y ambos pies sostienen la bisagra; la carga acompaña al tronco en un arco libre. Las manos fijan su posición sobre los hombros mientras la cadera retrocede.",
             "executionCues": [
-              "Smith en una pierna: el guiado sostiene el equilibrio y la cadera trabaja a fondo. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos."
+              "Dobla un poco las rodillas y lleva la cadera hacia atrás.",
+              "Inclina el torso sin cambiar la curva de la espalda.",
+              "Vuelve a erguirte extendiendo la cadera sin echarte hacia atrás."
             ],
             "setupCues": [
-              "Preparación: Smith en una pierna: el guiado sostiene el equilibrio y la cadera trabaja a fondo."
+              "Saca la barra del soporte y apóyala sobre la espalda alta, fuera del cuello.",
+              "Agarra la barra a ambos lados y coloca los pies al ancho de tus caderas."
+            ]
+          },
+          "good_morning__bilateral__machine": {
+            "description": "Un brazo de palanca acolchado recibe la espalda alta y un apoyo anterior delimita la posición de la pelvis. El ajuste de esos contactos permite inclinar el torso con ambos pies en la plataforma.",
+            "executionCues": [
+              "Abre la cadera para bajar el torso y desplazar la palanca acolchada.",
+              "Respeta el recorrido de la estación sin doblar la zona lumbar.",
+              "Devuelve la palanca extendiendo la cadera."
+            ],
+            "setupCues": [
+              "Ajusta el apoyo anterior a la pelvis y el respaldo móvil a la espalda alta.",
+              "Coloca ambos pies en la plataforma y toma las asas de la estación."
+            ]
+          },
+          "good_morning__bilateral__safety_bar": {
+            "description": "El acolchado descansa sobre los hombros y los agarres quedan delante del pecho, sin alcanzar una barra detrás de la espalda. Los extremos curvos dejan los discos más bajos que el apoyo superior.",
+            "executionCues": [
+              "Desplaza la cadera hacia atrás con una flexión pequeña de rodillas.",
+              "Baja el torso hasta el límite que puedas alcanzar sin redondear la espalda.",
+              "Levanta el pecho mediante la extensión de cadera, sin tirar de los agarres."
+            ],
+            "setupCues": [
+              "Ajusta el acolchado sobre la espalda alta y toma los agarres delanteros.",
+              "Apoya ambos pies firmes y comprueba que la barra no ruede al inclinarte."
+            ]
+          },
+          "good_morning__bilateral__smith_machine": {
+            "description": "La barra recorre los rieles aunque el torso cambie de inclinación, por lo que la distancia de los pies al bastidor determina el espacio para la cadera. Ambos apoyos permanecen en el suelo durante el descenso.",
+            "executionCues": [
+              "Inclina el pecho dejando que la barra baje por sus rieles.",
+              "Cierra el descenso antes de que la guía te obligue a redondear el tronco.",
+              "Extiende la cadera y vuelve a la altura inicial."
+            ],
+            "setupCues": [
+              "Apoya la barra sobre la espalda alta y ajusta los topes por debajo de tu recorrido.",
+              "Sitúa ambos pies donde puedas retroceder la cadera sin perder el contacto con la barra."
+            ]
+          },
+          "good_morning__unilateral__barbell": {
+            "description": "Un pie queda en el suelo y la pierna libre se desplaza hacia atrás mientras la barra cruza los hombros. La bisagra exige sostener la pelvis nivelada además de levantar el torso.",
+            "executionCues": [
+              "Lleva la pierna libre hacia atrás a medida que inclinas el pecho.",
+              "Conserva la rodilla de apoyo ligeramente doblada y la pelvis mirando al suelo.",
+              "Recupera la vertical desde la cadera de apoyo."
+            ],
+            "setupCues": [
+              "Coloca la barra en la espalda alta y afírmala con las dos manos.",
+              "Carga el peso sobre un pie y despega la otra pierna sin girar la pelvis."
+            ]
+          },
+          "good_morning__unilateral__machine": {
+            "description": "La palanca recibe la carga del torso mientras un solo pie soporta el movimiento en la plataforma. Esta opción depende de que los apoyos permitan liberar la otra pierna sin torcer la pelvis contra el acolchado.",
+            "executionCues": [
+              "Inclina el tronco sobre el apoyo único y deja la pierna libre fuera de la plataforma.",
+              "Interrumpe el recorrido si la pelvis gira contra el soporte.",
+              "Retorna a la postura erguida con la cadera de apoyo."
+            ],
+            "setupCues": [
+              "Comprueba que la estación permita soltar una pierna sin perder sus contactos.",
+              "Ajusta los acolchados y apoya un pie centrado en la plataforma."
+            ]
+          },
+          "good_morning__unilateral__safety_bar": {
+            "description": "Los agarres frontales sujetan el yugo mientras una pierna queda libre detrás del cuerpo. El acolchado fija el contacto superior, pero no sustituye el trabajo de la cadera de apoyo para impedir un giro.",
+            "executionCues": [
+              "Abre la bisagra enviando la pierna libre hacia atrás.",
+              "Detén la bajada antes de que una cadera se eleve respecto de la otra.",
+              "Regresa sobre la pierna de apoyo sin empujar las asas hacia arriba."
+            ],
+            "setupCues": [
+              "Centra el yugo acolchado sobre los hombros y sujeta sus asas.",
+              "Afirma un pie en el suelo antes de separar la otra pierna."
+            ]
+          },
+          "good_morning__unilateral__smith_machine": {
+            "description": "El recorrido fijo limita el desplazamiento de la carga al hacer la bisagra sobre un solo pie. La pierna libre queda fuera del suelo y los rieles ayudan con el balanceo de la barra, sin fijar la pelvis.",
+            "executionCues": [
+              "Desplaza la pierna libre atrás sin abrir la cadera hacia el costado.",
+              "Baja siguiendo el riel hasta donde puedas conservar la espalda y el pie de apoyo firmes.",
+              "Eleva el torso con la cadera de apoyo."
+            ],
+            "setupCues": [
+              "Ajusta la barra y los topes para un recorrido corto de prueba.",
+              "Sostén la carga en la espalda alta y retira un pie del suelo."
             ]
           }
         },
-        "description": "El Buenos Días, o Good Morning, es una bisagra de cadera que pone a isquiosurales y glúteos a trabajar en un rango enorme, sometidos a mucha tensión mientras se estiran. Se ejecuta con la barra apoyada sobre los trapecios, igual que en una sentadilla: al flexionar la cadera el torso se inclina hacia delante y la parte trasera de las piernas empieza a estirarse, y la subida nace de empujar el suelo con la cadera. Quienes acumulan molestias en el hombro tienen en la barra de seguridad una aliada perfecta para seguir entrenándolo sin renunciar a la carga. Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
+        "description": "El Buenos Días, conocido como good morning, es una bisagra que carga los isquiosurales y el glúteo mayor al inclinar el torso con peso apoyado en la parte superior del cuerpo. La pelvis retrocede con las rodillas apenas dobladas; la espalda conserva su forma mientras el pecho baja y vuelve a erguirse. La barra libre permite acompañar el arco del torso, mientras una estación con recorrido fijo exige ajustar los apoyos a ese recorrido. Su rasgo es levantar la carga desde la cadera con las manos dedicadas a sujetar el apoyo superior."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "En buenos días de pie, la actividad integrada de isquiosurales y erectores tendió a aumentar con la carga; aumentó la flexión de rodilla y disminuyó la longitud estimada de los isquiosurales. No estudió versiones sentadas, unilaterales, en máquina ni Zercher.",
+          "id": "gm_load",
+          "title": "Effects of load on good morning kinematics and EMG activity",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/25653899/"
+        },
+        {
+          "claim": "En trece participantes, el buenos días mostró poca flexión de rodilla y momentos externos de flexión en cadera y región lumbar. Sustenta el patrón y la demanda de sostén espinal, sin medir el reparto entre glúteo mayor e isquiosurales.",
+          "id": "gm_kinetics",
+          "title": "Kinetic and kinematic differences between deadlifts and goodmornings",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/24314057/"
+        },
+        {
+          "claim": "Describe los isquiosurales biarticulares como extensores de cadera y flexores de rodilla; la cabeza corta del bíceps femoral no cruza la cadera. La función se aplica a la bisagra, sin equivaler a una medición de cada configuración.",
+          "id": "hamstring_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hamstring Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31536294/"
+        },
+        {
+          "claim": "La anatomía del glúteo mayor sustenta su contribución a extender la cadera contra la carga del torso; esta asignación funcional no procede de electromiografía de las variantes del catálogo.",
+          "id": "glute_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Maximus Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30855781/"
+        },
+        {
+          "claim": "La pared abdominal participa en la presión intraabdominal y en el movimiento de la columna. Se infiere su función de rigidez del tronco cuando la bisagra se hace sin flexión lumbar deliberada.",
+          "id": "abdominal_wall",
+          "title": "Anatomy, Abdomen and Pelvis: Abdominal Wall",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31869113/"
+        },
+        {
+          "claim": "El estudio anatómico y su modelo estimaron capacidad de compresión sacroilíaca mediante las inserciones del glúteo mayor, compatible con transferencia de carga entre piernas y tronco. No midió un buenos días.",
+          "id": "sij_transfer",
+          "title": "Anatomy and biomechanics of gluteus maximus and the thoracolumbar fascia at the sacroiliac joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/23959791/"
+        },
+        {
+          "claim": "Describe al glúteo medio y mínimo como abductores relevantes para la estabilidad de la extremidad inferior y pelvis. Su rol postural en apoyo unilateral se deduce de esa función anatómica.",
+          "id": "glute_medius",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Medius Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/32491441/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Bisagra de pie con la carga apoyada en la espalda alta o en un brazo acolchado sobre el torso. El pecho se inclina desde la cadera y vuelve a la vertical con una pequeña flexión de rodilla, sin levantar una carga suspendida de las manos.",
+        "keyPositions": [
+          "Inicio: torso vertical, planta del pie apoyada y rodillas ligeramente flexionadas.",
+          "Abajo: cadera flexionada, pecho inclinado hacia el suelo y columna con su forma inicial; el rango acaba antes de compensar con flexión lumbar.",
+          "En apoyo único, la pelvis queda nivelada y la pierna libre se extiende atrás en la misma dirección que el tronco."
+        ],
+        "mistakes": [
+          "Doblar cada vez más las rodillas y convertir la bisagra en una sentadilla.",
+          "Redondear la espalda para acercar el pecho al suelo.",
+          "Elevar una cadera o girar el torso en el apoyo unilateral.",
+          "Echar la cintura hacia delante al completar la subida."
+        ],
+        "phases": [
+          {
+            "description": "La cadera retrocede o pivota contra el apoyo mientras el torso baja como una unidad y la rodilla apenas modifica su ángulo.",
+            "name": "Inclinación"
+          },
+          {
+            "description": "El descenso acaba en el rango de cadera disponible sin redondear el tronco ni descargar el peso sobre un tope.",
+            "name": "Cambio de dirección"
+          },
+          {
+            "description": "Los extensores de cadera elevan el tronco hasta quedar erguido, con los apoyos del pie y la carga superior todavía firmes.",
+            "name": "Retorno"
+          }
+        ],
+        "setup": [
+          "Carga asentada en la espalda alta y manos sobre la barra, asas delanteras o agarraderas de la estación.",
+          "Dos pies al ancho de caderas en la base; en unilateral, un pie sostiene el cuerpo y la pierna libre se prolonga hacia atrás.",
+          "En máquina, ajuste del apoyo pélvico anterior y del acolchado móvil para permitir la bisagra."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral a la altura de la pelvis con todo el cuerpo y la carga dentro del encuadre.",
+          "contacts": "Carga en contacto con la espalda alta; manos sobre los agarres correspondientes y pie o pies sobre la superficie de apoyo.",
+          "load": "Carga situada sobre el torso, por encima del suelo y sin colgar de los brazos.",
+          "orientation": "Atleta orientado hacia la izquierda, mirada hacia abajo en continuidad con el cuello.",
+          "phase": "Fotograma inferior de la bisagra, con el tronco inclinado hacia delante y la cadera flexionada.",
+          "posture": "Tronco largo con columna neutra y rodillas poco flexionadas; cadera situada detrás del pecho."
+        },
+        "byImplement": {
+          "barbell": {
+            "geometry": "Barra recta transversal apoyada sobre la espalda alta, debajo del cuello, con ambas manos rodeándola fuera de los hombros; discos a ambos lados suspendidos y pies en el suelo."
+          },
+          "machine": {
+            "geometry": "Estación de bisagra de pie con brazo de palanca acolchado contra la espalda alta, soporte anterior de pelvis y plataforma para los pies; ambas manos agarran las asas y el brazo cargado permanece unido al bastidor."
+          },
+          "safety_bar": {
+            "geometry": "Barra de seguridad con yugo acolchado sobre ambos hombros, asas proyectadas hacia delante y manos cerradas sobre ellas; extremos curvos con discos por debajo de la altura del yugo."
+          },
+          "smith_machine": {
+            "geometry": "Barra Smith transversal sobre la espalda alta, ambas manos la sujetan y sus extremos están unidos a dos rieles verticales; pies en el suelo y topes mecánicos bajo la posición mostrada."
+          }
+        },
+        "byVariant": {
+          "good_morning__unilateral__barbell": {
+            "difference": "Solo un pie permanece apoyado; la otra pierna se extiende hacia atrás, fuera del suelo o plataforma, con las dos caderas niveladas."
+          },
+          "good_morning__unilateral__machine": {
+            "difference": "Solo un pie permanece apoyado; la otra pierna se extiende hacia atrás, fuera del suelo o plataforma, con las dos caderas niveladas."
+          },
+          "good_morning__unilateral__safety_bar": {
+            "difference": "Solo un pie permanece apoyado; la otra pierna se extiende hacia atrás, fuera del suelo o plataforma, con las dos caderas niveladas."
+          },
+          "good_morning__unilateral__smith_machine": {
+            "difference": "Solo un pie permanece apoyado; la otra pierna se extiende hacia atrás, fuera del suelo o plataforma, con las dos caderas niveladas."
+          }
+        },
+        "forbidden": [
+          "Carga dentro del pliegue de los codos: corresponde a la identidad Zercher.",
+          "Atleta sentado en un banco: corresponde al buenos días sentado.",
+          "Barra colgando de las manos por debajo de la cintura como en un peso muerto.",
+          "Espalda redondeada o rodillas profundamente flexionadas.",
+          "Máquina de extensión lumbar sentada sin bisagra de cadera."
+        ],
+        "promptCore": {
+          "barbell": "Side view of an athlete frozen at the BOTTOM of a standing barbell good morning. Both feet are flat on the floor, knees only slightly bent, hips pushed backward and torso inclined forward with a neutral spine. A loaded barbell is pressed against the upper back below the neck. Both hands grip the shaft outside the shoulders. Plates remain above the floor, with the neck aligned to the back.",
+          "machine": "Side view of an athlete frozen at the BOTTOM of a standing good morning machine hip hinge. Both feet press on the platform. The pelvis touches a fixed front pad and the upper back touches a moving padded lever attached to the frame. Both hands grip the machine handles. Torso inclines forward, knees remain slightly bent, spine neutral. The loaded lever stays visibly connected to the station.",
+          "safety_bar": "Side view, frozen at the BOTTOM of a safety bar good morning. The padded yoke is pressed against both shoulders and both hands grip the front handles. Curved bar ends carry plates below the yoke, clear of the floor. Both feet stay flat, knees slightly flexed, hips back and torso leaning forward with a straight spinal profile. Eyes point down.",
+          "smith_machine": "An athlete frozen at the BOTTOM of a Smith machine good morning, viewed from the side. Both hands grip the guided bar resting against the upper back below the neck. Each end of the bar is attached to a visible vertical rail. Both feet touch the floor, hips are flexed backward, knees slightly bent and torso inclined forward with a neutral spine. Plates and bar are above the safety stops."
+        },
+        "qa": [
+          "¿El fotograma muestra el tronco inclinado y la cadera flexionada?",
+          "¿La carga toca la espalda alta o su acolchado, con las manos sujetando los agarres y nada flotando?",
+          "¿Las rodillas están solo ligeramente dobladas y la espalda conserva una curva neutra?",
+          "¿Cada extremo de la barra Smith o del brazo de máquina está unido a su estructura?",
+          "¿En la variante unilateral un solo pie sostiene el cuerpo y la otra pierna sale hacia atrás?",
+          "¿Si aparece la máquina, su apoyo anterior contacta con la pelvis y la palanca con la espalda alta?"
+        ]
+      }
     },
     "good_morning_seated": {
       "public": {
@@ -116,21 +415,240 @@
       "status": "LEGACY"
     },
     "good_morning_zercher": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Flexión de cadera",
+              "Extensión de cadera"
+            ],
+            "id": "cadera",
+            "role": "PRIMARY",
+            "sources": [
+              "gm_kinetics",
+              "hamstring_anatomy"
+            ],
+            "why": "La carga abrazada acompaña al torso mientras la cadera se flexiona; su extensión levanta ese conjunto al regreso. El momento de cadera del buenos días con barra posterior se extrapola a esta bisagra anterior, sin medición cinética de la Zercher."
+          },
+          {
+            "actions": [
+              "Sostén de la flexión ligera"
+            ],
+            "id": "rodilla",
+            "role": "STABILIZER",
+            "sources": [
+              "hamstring_anatomy",
+              "gm_kinetics"
+            ],
+            "why": "El ángulo de rodilla se fija con una flexión pequeña para que la repetición proceda de la cadera. Se infiere de la geometría y de la función biarticular de los isquiosurales, sin buscar un impulso de extensión de rodillas."
+          },
+          {
+            "actions": [
+              "Resistencia a la flexión lumbar"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "gm_kinetics",
+              "gm_load"
+            ],
+            "why": "La barra recibida delante del pecho tiende a inclinar el tronco cargado; la región lumbar conserva su forma durante todo el recorrido. Se extrapola la resistencia espinal medida en buenos días, sin presentar esta variante como extensión lumbar."
+          },
+          {
+            "actions": [
+              "Transferencia de carga entre pelvis y tronco"
+            ],
+            "id": "sacroiliaca",
+            "role": "STABILIZER",
+            "sources": [
+              "sij_transfer"
+            ],
+            "why": "La pelvis enlaza el apoyo de ambos pies con la carga del torso y los brazos. La función de transferencia de fuerza se deduce de los enlaces glúteo-fascia descritos anatómicamente, sin suponer un movimiento sacroilíaco que levante la barra."
+          },
+          {
+            "actions": [
+              "Sostén isométrico de la flexión"
+            ],
+            "id": "codo",
+            "role": "STABILIZER",
+            "sources": [
+              "biceps_anatomy"
+            ],
+            "why": "Conserva su flexión para sostener la barra en el pliegue mientras el torso se inclina. El rol se infiere de la función de los flexores del codo; la articulación no abre ni cierra para generar la repetición."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "hamstrings",
+            "role": "PRIMARY",
+            "sources": [
+              "hamstring_anatomy",
+              "gm_kinetics"
+            ],
+            "why": "Las porciones biarticulares frenan y revierten la flexión de cadera con poca flexión de rodilla. Se conserva el dominante del buenos días; trasladar la carga al pliegue de los codos no elimina su función, aunque la evidencia cinética procede de la versión con carga en la espalda."
+          },
+          {
+            "id": "gluteus_maximus",
+            "role": "PRIMARY",
+            "sources": [
+              "glute_anatomy",
+              "gm_kinetics"
+            ],
+            "why": "Extiende la cadera para levantar el torso y la barra sostenida delante de él, compartiendo el movimiento principal con los isquiosurales. Se deduce de la anatomía del extensor y de la bisagra descrita, sin EMG directo de la carga Zercher."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "gm_kinetics",
+              "gm_load"
+            ],
+            "why": "Impide que el torso cargado por delante se redondee durante la bisagra. Se extrapola el momento lumbar medido en buenos días al montaje Zercher; su papel aquí sigue siendo sostén de la columna, sin cuantificar una demanda mayor."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "abdominal_wall"
+            ],
+            "why": "La pared abdominal sostiene la rigidez entre tórax y pelvis mientras la barra queda por delante del cuerpo. Esta función se infiere de la anatomía abdominal y la geometría de carga, sin evidencia que permita afirmar que trabaje el doble."
+          },
+          {
+            "id": "biceps",
+            "role": "STABILIZER",
+            "sources": [
+              "biceps_anatomy"
+            ],
+            "why": "Los flexores del codo, incluido el bíceps braquial, sostienen la barra dentro de los codos sin cambiar su ángulo. Es una inferencia de su función anatómica de flexión bajo carga, no una medición del Zercher ni una flexión repetida que mueva la barra."
+          }
+        ]
+      },
       "public": {
         "configurations": {
           "good_morning_zercher__default": {
-            "description": "Con barra, con la carga abrazada en los codos, la inclinación frontal pone al core a trabajar el doble. La barra es la referencia para cargar los isquiosurales con peso de verdad.",
+            "description": "La barra descansa dentro de ambos codos, cerca del torso, y las manos se juntan delante del pecho sin agarrar su eje. Esta colocación exige sostener la flexión de los brazos durante toda la bisagra.",
             "executionCues": [
-              "Barra en los codos, torso inclinándose hacia delante con la carga pegada al pecho. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Envía la cadera hacia atrás sin separar la barra del torso.",
+              "Inclina el pecho conservando el ángulo de los codos y la forma de la espalda.",
+              "Extiende la cadera para volver a estar erguido sin elevar la barra con los brazos."
             ],
             "setupCues": [
-              "Preparación: Barra en los codos, torso inclinándose hacia delante con la carga pegada al pecho."
+              "Coloca la barra sobre soportes a la altura de tus codos doblados.",
+              "Recíbela en ambos pliegues del codo y junta las manos delante del pecho.",
+              "Retrocede con los pies al ancho de caderas y las rodillas algo flexionadas."
             ]
           }
         },
-        "description": "El Buenos Días/RDL Zercher une ambas identidades en un solo gesto: la barra vive en el hueco de los codos y la cadera hace la misma inclinación de siempre. Glúteos e isquiosurales siguen mandando, pero el torso trabaja el doble para no desarmarse. La posición incomoda los brazos y exige técnica depurada. Una especialidad dura para quien ya exprimió las variantes convencionales."
+        "description": "El Buenos Días/RDL Zercher carga la bisagra de cadera desde el pliegue de los codos y trabaja isquiosurales y glúteo mayor. La barra queda delante del torso, los brazos doblados la sostienen y la cadera retrocede mientras el pecho se inclina con la espalda estable. Al regresar, la cadera eleva el conjunto sin abrir los codos ni convertir el gesto en una sentadilla. El sostén de brazos y tronco añade una exigencia que puede limitar la carga antes que los extensores de cadera."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "En buenos días de pie, la actividad integrada de isquiosurales y erectores tendió a aumentar con la carga; aumentó la flexión de rodilla y disminuyó la longitud estimada de los isquiosurales. No estudió versiones sentadas, unilaterales, en máquina ni Zercher.",
+          "id": "gm_load",
+          "title": "Effects of load on good morning kinematics and EMG activity",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/25653899/"
+        },
+        {
+          "claim": "En trece participantes, el buenos días mostró poca flexión de rodilla y momentos externos de flexión en cadera y región lumbar. Sustenta el patrón y la demanda de sostén espinal, sin medir el reparto entre glúteo mayor e isquiosurales.",
+          "id": "gm_kinetics",
+          "title": "Kinetic and kinematic differences between deadlifts and goodmornings",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/24314057/"
+        },
+        {
+          "claim": "Describe los isquiosurales biarticulares como extensores de cadera y flexores de rodilla; la cabeza corta del bíceps femoral no cruza la cadera. La función se aplica a la bisagra, sin equivaler a una medición de cada configuración.",
+          "id": "hamstring_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hamstring Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31536294/"
+        },
+        {
+          "claim": "La anatomía del glúteo mayor sustenta su contribución a extender la cadera contra la carga del torso; esta asignación funcional no procede de electromiografía de las variantes del catálogo.",
+          "id": "glute_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Maximus Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30855781/"
+        },
+        {
+          "claim": "La pared abdominal participa en la presión intraabdominal y en el movimiento de la columna. Se infiere su función de rigidez del tronco cuando la bisagra se hace sin flexión lumbar deliberada.",
+          "id": "abdominal_wall",
+          "title": "Anatomy, Abdomen and Pelvis: Abdominal Wall",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31869113/"
+        },
+        {
+          "claim": "El estudio anatómico y su modelo estimaron capacidad de compresión sacroilíaca mediante las inserciones del glúteo mayor, compatible con transferencia de carga entre piernas y tronco. No midió un buenos días.",
+          "id": "sij_transfer",
+          "title": "Anatomy and biomechanics of gluteus maximus and the thoracolumbar fascia at the sacroiliac joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/23959791/"
+        },
+        {
+          "claim": "Describe al bíceps como flexor del codo y supinador. Con la barra en el pliegue de los codos y el ángulo inmóvil se infiere sostén isométrico, sin un estudio directo de la bisagra Zercher.",
+          "id": "biceps_anatomy",
+          "title": "Anatomy, Shoulder and Upper Limb, Biceps Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30137823/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Bisagra de pie con barra recta apoyada transversalmente en ambos pliegues del codo, delante del tronco. Las manos se juntan y los codos quedan flexionados; la barra acompaña al torso mientras la cadera retrocede y retorna.",
+        "keyPositions": [
+          "Inicio: tronco erguido, eje horizontal recibido en los codos y dedos entrelazados cerca del esternón.",
+          "Abajo: pecho inclinado, cadera atrás y barra todavía apoyada dentro de los codos cerca del tronco; discos separados del suelo."
+        ],
+        "mistakes": [
+          "Dejar que los codos se abran y la barra ruede hacia las muñecas.",
+          "Alejar la barra del torso al inclinarse.",
+          "Flexionar profundamente las rodillas para convertir el gesto en sentadilla.",
+          "Redondear la espalda en lugar de aumentar la flexión de cadera."
+        ],
+        "phases": [
+          {
+            "description": "La barra queda recibida en los pliegues de ambos codos, con el ángulo de brazos fijo y las plantas completamente apoyadas.",
+            "name": "Carga abrazada"
+          },
+          {
+            "description": "La pelvis se desplaza atrás a medida que el pecho baja; la barra acompaña esa inclinación junto al torso y los codos conservan su flexión.",
+            "name": "Bisagra anterior"
+          },
+          {
+            "description": "La extensión de cadera devuelve el tronco y su carga a la vertical mientras la forma de la espalda y la flexión de brazos permanecen estables.",
+            "name": "Regreso erguido"
+          }
+        ],
+        "setup": [
+          "Barra en soportes a una altura que permita recibirla dentro de ambos codos antes de separarse del rack.",
+          "Antebrazos elevados, manos juntas, barra próxima al torso y pies al ancho de caderas.",
+          "Rodillas ligeramente dobladas antes de iniciar la inclinación."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral ligeramente frontal a la altura de la cadera, con ambos codos y toda la carga visibles.",
+          "contacts": "Los dos pliegues de codo reciben la carga, las manos se juntan delante del pecho y ambos pies pisan el suelo.",
+          "load": "Carga transversal delante del tronco, próxima al pecho y suspendida sobre el suelo.",
+          "orientation": "Atleta de pie orientado hacia la izquierda, cabeza en continuidad con la espalda.",
+          "phase": "Fotograma inferior de la bisagra de cadera con el pecho inclinado y la carga recibida delante del torso.",
+          "posture": "Cadera desplazada atrás, rodillas ligeramente dobladas y columna neutra con los brazos doblados sin variar su ángulo."
+        },
+        "byImplement": {
+          "barbell": {
+            "geometry": "Barra recta horizontal apoyada en ambos pliegues internos del codo, no en las manos; manos juntas delante del pecho, discos a ambos lados y por encima del suelo al inclinarse."
+          }
+        },
+        "forbidden": [
+          "Barra sobre la espalda alta o yugo sobre los hombros.",
+          "Manos agarrando una barra colgante con los codos extendidos.",
+          "Sentadilla profunda con rodillas muy flexionadas.",
+          "Barra flotante delante de los brazos sin tocar ambos pliegues del codo."
+        ],
+        "promptCore": {
+          "barbell": "Three-quarter side view of an athlete frozen at the BOTTOM of a Zercher good morning. The loaded barbell rests firmly inside BOTH elbow creases in front of the torso. Elbows stay bent and hands clasp together near the chest without gripping the shaft. Hips push backward, knees are only slightly bent, both feet are flat on the floor and the torso leans forward with a neutral spine. The bar stays close to the body and all plates remain above the floor."
+        },
+        "qa": [
+          "¿La barra está apoyada dentro de los dos pliegues del codo y no flota?",
+          "¿Las manos están juntas sin agarrar el eje de la barra?",
+          "¿El pecho aparece inclinado y la cadera desplazada atrás en el fotograma inferior?",
+          "¿Las rodillas muestran solo una flexión pequeña y ambos pies pisan el suelo?",
+          "¿La barra permanece próxima al torso con sus discos por encima del suelo?"
+        ]
+      }
     }
   },
   "familyId": "hinge_good_morning",

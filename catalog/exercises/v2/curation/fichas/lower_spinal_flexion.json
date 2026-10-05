@@ -1,48 +1,293 @@
 {
   "definitions": {
     "back_jefferson_curl": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Flexión lumbar progresiva",
+              "Extensión lumbar de retorno"
+            ],
+            "id": "columna-lumbar",
+            "role": "PRIMARY",
+            "sources": [
+              "flexion_relaxation",
+              "back_anatomy"
+            ],
+            "why": "La región lumbar se flexiona y vuelve a extenderse como parte del recorrido buscado. Los estudios de flexión de pie con masa en las manos documentan el cambio de ángulo y la variación de actividad extensora; se extrapolan a este método sin prescribir flexión máxima."
+          },
+          {
+            "actions": [
+              "Flexión torácica gradual",
+              "Extensión torácica de recuperación"
+            ],
+            "id": "columna-toracica",
+            "role": "PRIMARY",
+            "sources": [
+              "back_anatomy"
+            ],
+            "why": "La espalda alta cambia deliberadamente de curva al iniciar el enrollamiento y al recuperar la postura. La anatomía intrínseca respalda su movimiento extensor; el gesto no puede describirse como un recorrido exclusivamente lumbar."
+          },
+          {
+            "actions": [
+              "Flexión cervical acompañante",
+              "Retorno a la alineación cervical"
+            ],
+            "id": "columna-cervical",
+            "role": "SECONDARY",
+            "sources": [
+              "back_anatomy"
+            ],
+            "why": "La cabeza acompaña el inicio de la flexión al recoger la barbilla y recupera su alineación al final. Se incluye por el movimiento real de la región cervical, sin usar la cabeza como carga ni como impulso para extender el tronco."
+          },
+          {
+            "actions": [
+              "Flexión de cadera acompañante",
+              "Extensión de cadera acompañante"
+            ],
+            "id": "cadera",
+            "role": "SECONDARY",
+            "sources": [
+              "glute_anatomy",
+              "hamstring_anatomy"
+            ],
+            "why": "Acompaña la inclinación al final y la recuperación del tronco junto al recorrido espinal. Las funciones extensora de glúteo e isquiosurales sustentan ese movimiento, por lo que no se presenta como una cadera completamente inmóvil."
+          },
+          {
+            "actions": [
+              "Sostén de la rodilla casi extendida"
+            ],
+            "id": "rodilla",
+            "role": "STABILIZER",
+            "sources": [
+              "hamstring_anatomy"
+            ],
+            "why": "Su ángulo casi extendido se conserva para que la profundidad no proceda de agacharse. Esa posición determina la longitud de los isquiosurales, sin una flexión y extensión de rodilla como patrón de la repetición."
+          },
+          {
+            "actions": [
+              "Sostén del agarre de carga"
+            ],
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "sources": [
+              "forearm_anatomy"
+            ],
+            "why": "Alinea la mano con el antebrazo mientras los dedos sostienen el peso o la tracción del cable. No realiza flexiones repetidas para aumentar el descenso ni para elevar el torso."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "erector_spinae",
+            "role": "PRIMARY",
+            "sources": [
+              "back_anatomy",
+              "flexion_relaxation"
+            ],
+            "why": "Participa en frenar partes del descenso y extender la columna durante el retorno. El rol se infiere de anatomía y flexiones cargadas de pie; la flexion-relaxation observada cerca del final impide afirmar actividad continua o máxima en la posición más redondeada."
+          },
+          {
+            "id": "hamstrings",
+            "role": "SECONDARY",
+            "sources": [
+              "hamstring_anatomy"
+            ],
+            "why": "Con las rodillas casi rectas, la cadera que acompaña al final alarga sus porciones biarticulares y estas ayudan al retorno de cadera. Es una inferencia anatómica, no un estudio de hipertrofia del Jefferson ni una afirmación de trabajo solo por sensación de estiramiento."
+          },
+          {
+            "id": "gluteus_maximus",
+            "role": "SECONDARY",
+            "sources": [
+              "glute_anatomy"
+            ],
+            "why": "Ayuda a recuperar la inclinación de cadera que acompaña a la flexión espinal. Se razona desde su acción extensora; el énfasis del ejercicio sigue siendo el cambio de curvatura de columna y no una repetición de extensión de cadera con torso fijo."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "abdominal_wall"
+            ],
+            "why": "La pared abdominal contribuye a organizar la relación de tórax y pelvis alrededor de la carga descendente. Se infiere un papel de sostén y coactivación, sin atribuirle el retorno extensor ni decir que el tronco permanezca rígido."
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "sources": [
+              "forearm_anatomy"
+            ],
+            "why": "Los flexores de dedos sujetan la barra, las mancuernas o el asa de polea durante el recorrido con los brazos largos. Su función se deduce de la anatomía del agarre; no originan el cambio de forma de la espalda."
+          }
+        ]
+      },
       "public": {
         "configurations": {
           "back_jefferson_curl__barbell": {
-            "description": "Con barra, el tronco se redondea vértebra a vértebra hasta que las manos rozan el suelo y regresa enrollándose. La barra es la referencia para cargar los erectores con peso de verdad.",
+            "description": "El eje une las dos manos delante de los muslos y baja cerca de las piernas al redondearse el tronco. La anchura de la plataforma deja sitio a los discos y a la barra sin convertir el suelo en un tope de cada repetición.",
             "executionCues": [
-              "Barra en las manos y espalda que se redondea de forma progresiva: la carga acompaña cada segmento durante el descenso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Recoge la barbilla y redondea la espalda gradualmente.",
+              "Deja que la barra baje cerca de las piernas sin doblar más las rodillas.",
+              "Regresa despacio hasta estar erguido sin tirar de los brazos."
             ],
             "setupCues": [
-              "Preparación: Barra en las manos y espalda que se redondea de forma progresiva: la carga acompaña cada segmento durante el descenso."
+              "Sube a una plataforma firme que deje sitio libre para los discos.",
+              "Agarra la barra frente a los muslos con los brazos extendidos."
             ]
           },
           "back_jefferson_curl__cable": {
-            "description": "Con polea, el tronco se redondea vértebra a vértebra hasta que las manos rozan el suelo y regresa enrollándose. Los erectores trabajan con la polea, que mantiene la tensión constante en todo el arco.",
+            "description": "El cable sale desde una estación al nivel del suelo frente al atleta y lleva la tracción de las manos hacia delante y abajo. La distancia a esa salida modifica el tirón, por lo que la resistencia no reproduce una carga que cuelga vertical.",
             "executionCues": [
-              "Polea baja durante el redondeo: el cable conserva tensión cuando la espalda cambia de ángulo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Deja que la espalda se curve gradualmente mientras el cable permanece tenso.",
+              "Acorta el descenso si la tracción te lleva fuera del apoyo.",
+              "Recupera el tronco erguido sin hacer un remo con los brazos."
             ],
             "setupCues": [
-              "Preparación: Polea baja durante el redondeo: el cable conserva tensión cuando la espalda cambia de ángulo."
+              "Colócate frente a una polea baja y toma su barra corta con ambas manos.",
+              "Afirma los pies y deja espacio para flexionar el tronco sin que el cable roce la plataforma."
             ]
           },
           "back_jefferson_curl__dumbbells": {
-            "description": "Con mancuernas, el tronco se redondea vértebra a vértebra hasta que las manos rozan el suelo y regresa enrollándose. Los erectores trabajan con mancuernas, que dejan que cada lado corrija su trayectoria.",
+            "description": "Las dos mancuernas cuelgan junto a las piernas con los codos extendidos. La separación entre ambas permite ajustar el espacio alrededor de las rodillas, pero no convierte el movimiento espinal en dos repeticiones unilaterales.",
             "executionCues": [
-              "Mancuernas en las manos: cada brazo acompaña la curvatura sin depender de una barra que una ambos lados. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Enrolla el tronco de arriba hacia abajo sin golpear las piernas con las mancuernas.",
+              "Baja ambas cargas sin girar el pecho hacia un lado.",
+              "Recupera la postura vertical con una subida lenta."
             ],
             "setupCues": [
-              "Preparación: Mancuernas en las manos: cada brazo acompaña la curvatura sin depender de una barra que una ambos lados."
+              "Afirma ambos pies sobre una plataforma con espacio delante.",
+              "Cierra cada mano sobre el mango de una mancuerna y estira los codos."
             ]
           },
           "back_jefferson_curl__smith_machine": {
-            "description": "Con máquina Smith, el tronco se redondea vértebra a vértebra hasta que las manos rozan el suelo y regresa enrollándose. Los erectores trabajan en la Smith, con la trayectoria guiada y estabilidad extra.",
+            "description": "Los rieles fijan la posición horizontal del eje mientras el tronco cambia de curva. El espacio de los pies respecto a los rieles limita cuánto puede redondearse la espalda sin que los brazos tiren del cuerpo hacia delante.",
             "executionCues": [
-              "Smith: la barra guiada desciende con la espalda redondeada con estabilidad. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Redondea el tronco dejando que la barra descienda por los rieles.",
+              "Detén la bajada antes de perder el apoyo de los pies o tirar con los hombros.",
+              "Vuelve a la vertical sin doblar los codos."
             ],
             "setupCues": [
-              "Preparación: Smith: la barra guiada desciende con la espalda redondeada con estabilidad."
+              "Prueba la posición de los pies frente a la barra guiada sin carga adicional.",
+              "Ajusta los topes por debajo del rango que puedas alcanzar sin desplazar los pies."
             ]
           }
         },
-        "description": "El Jefferson Curl redondea la columna vértebra a vértebra con carga ligera: los erectores se estiran bajo tensión en un descenso enrollado que sube desenrollándose. Se ejecuta de pie, dejando caer la barra o las mancuernas hacia el suelo con las piernas casi rectas y regresando con la misma calma. La carga debe ser simbólica; aquí el rango y el control mandan sobre el peso. La lección de movilidad de la columna que pocos practican y muchos necesitan."
+        "description": "El Jefferson Curl combina flexión y extensión progresivas de la columna con un descenso cargado del tronco, orientado al trabajo de los erectores espinales. La espalda se redondea desde la cabeza hacia abajo, las rodillas quedan casi rectas y la cadera acompaña al final de la inclinación. Una plataforma deja espacio para que la carga baje sin golpear el suelo, sin convertir esa profundidad en una obligación. El recorrido incluye curvatura vertebral deliberada y una recuperación gradual de la postura erguida."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "Distingue la musculatura intrínseca unida a la columna de las capas que actúan sobre hombro y caja torácica. Su anatomía sustenta la extensión y el sostén de la espalda, sin atribuir extensión de cadera a los erectores.",
+          "id": "back_anatomy",
+          "title": "Anatomy, Back, Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725759/"
+        },
+        {
+          "claim": "Durante flexiones de tronco de pie, con y sin masa en las manos, veintitrés de treinta participantes mostraron relajación eléctrica de erectores cerca de la flexión completa. Informa la cautela contra afirmar actividad continua al fondo; no examinó el Jefferson Curl como protocolo deportivo.",
+          "id": "flexion_relaxation",
+          "title": "Repeated spinal flexion modulates the flexion-relaxation phenomenon",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/14527804/"
+        },
+        {
+          "claim": "Los isquiosurales biarticulares extienden la cadera y flexionan la rodilla; la cabeza corta del bíceps femoral no extiende la cadera. Sirve de base anatómica para distinguir bisagra, elevación de piernas y sostén con piernas sujetas.",
+          "id": "hamstring_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hamstring Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31536294/"
+        },
+        {
+          "claim": "El glúteo mayor es extensor de cadera; esa función permite razonar su papel dinámico cuando el tronco pivota en la cadera y su papel postural cuando la pelvis y el ángulo de cadera quedan relativamente fijos.",
+          "id": "glute_anatomy",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Maximus Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30855781/"
+        },
+        {
+          "claim": "La pared abdominal genera presión intraabdominal y puede mover la columna. Su participación de sostén en estas ejecuciones se deduce de esa función y no de una medición específica de todas las variantes.",
+          "id": "abdominal_wall",
+          "title": "Anatomy, Abdomen and Pelvis: Abdominal Wall",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31869113/"
+        },
+        {
+          "claim": "Describe los músculos que flexionan dedos y muñeca en el compartimento anterior. Su sostén del implemento se aplica por anatomía al agarre de cargas y asas; no implica que levanten el tronco.",
+          "id": "forearm_anatomy",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Flexión progresiva de toda la espalda de pie con la carga sostenida por brazos extendidos delante de las piernas. Las rodillas quedan casi rectas y la cadera acompaña al final; el retorno recupera la postura vertebral erguida sin usar un tirón de brazos.",
+        "keyPositions": [
+          "Inicio: atleta erguido, hombros relajados y brazos colgantes delante de las piernas.",
+          "Abajo: espalda curvada de cervical a lumbar, cabeza siguiendo el enrollamiento, rodillas casi extendidas y carga suspendida sin contacto con el suelo."
+        ],
+        "mistakes": [
+          "Bajar con una espalda rígida haciendo solo bisagra de cadera.",
+          "Doblar progresivamente las rodillas para alcanzar más profundidad.",
+          "Rebotar al final de la flexión o tirar con los codos.",
+          "Buscar el suelo aunque cambie la postura de pies o hombros."
+        ],
+        "phases": [
+          {
+            "description": "La barbilla se recoge y el tronco se flexiona gradualmente de arriba hacia abajo mientras la carga permanece sostenida por los brazos.",
+            "name": "Enrollamiento"
+          },
+          {
+            "description": "La cadera acompaña dentro del rango disponible y la carga queda suspendida, sin convertir la posición extrema en una pausa obligatoria.",
+            "name": "Inclinación final"
+          },
+          {
+            "description": "La espalda y la cadera recuperan despacio la postura de pie, con los brazos largos y la cabeza alineándose al final.",
+            "name": "Desenrollamiento"
+          }
+        ],
+        "setup": [
+          "Apoyo estable de ambos pies, con plataforma si hace falta espacio para la carga por debajo de su nivel.",
+          "Manos sobre barra, una mancuerna por mano o asa de polea baja; brazos largos y carga situada por delante de muslos.",
+          "Smith: posición de pies que permita probar el recorrido vertical del eje sin perder el apoyo."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral del cuerpo completo que permite observar la curva de toda la columna y el espacio bajo las manos.",
+          "contacts": "Ambos pies completamente sobre una base firme; las manos son el contacto que sostiene la carga.",
+          "load": "Resistencia sostenida frente a las piernas con los brazos largos, sin apoyarse en el suelo.",
+          "orientation": "Atleta orientado a la izquierda, cabeza baja siguiendo la curva del tronco.",
+          "phase": "Fotograma inferior de la flexión progresiva de pie, carga suspendida y espalda curvada.",
+          "posture": "Espalda redondeada de arriba abajo, rodillas casi extendidas y cadera acompañando la inclinación."
+        },
+        "byImplement": {
+          "barbell": {
+            "geometry": "Atleta de pie sobre un cajón bajo, barra recta horizontal en ambas manos por delante de espinillas, agarre prono y discos suspendidos bajo el nivel de los pies sin tocar el suelo."
+          },
+          "cable": {
+            "geometry": "Atleta frente a una polea baja con ambos pies sobre base estable, manos agarrando una barra corta frente a las espinillas y cable tenso que sale hacia delante y abajo sin atravesar el cuerpo ni la plataforma."
+          },
+          "dumbbells": {
+            "geometry": "Dos mancuernas, una agarrada por cada mano delante y al lado de cada espinilla, brazos largos y plataformas de apoyo firmes; las dos cargas permanecen separadas del suelo."
+          },
+          "smith_machine": {
+            "geometry": "Barra Smith agarrada delante de las piernas con codos extendidos; sus dos extremos están unidos a rieles verticales y el apoyo elevado de pies está colocado para no forzar tracción del hombro. Topes debajo de la carga."
+          }
+        },
+        "forbidden": [
+          "Espalda neutra rígida propia de una bisagra o un peso muerto rumano.",
+          "Rodillas profundamente flexionadas o atleta sentado.",
+          "Carga suelta sin manos cerradas alrededor de su agarre.",
+          "Discos o mancuernas descansando en el suelo en el fotograma inferior.",
+          "Cable cortando el cuerpo o riel Smith ausente."
+        ],
+        "promptCore": {
+          "barbell": "Side view of an athlete frozen at the BOTTOM of a barbell Jefferson curl, standing on a stable low box. The whole spine is visibly rounded from upper back to lumbar region, head hanging in line with that curve, knees almost straight. Both hands grip the barbell in front of the shins with straight elbows. The plates hang below the foot platform and remain clear of the floor. Both feet stay flat on the box.",
+          "cable": "Side view of an athlete frozen at the BOTTOM of a low-cable Jefferson curl. Both feet touch a stable platform, knees remain almost straight and the whole spine is rounded with head following the curve. Both hands grip a short straight handle in front of the shins with straight elbows. A taut cable runs forward and downward to a visible low pulley, clear of the platform and body.",
+          "dumbbells": "An athlete frozen at the BOTTOM of a dumbbell Jefferson curl in side view. Both feet are flat on a firm low platform, knees almost straight, entire spine rounded and head following the curve. Each hand firmly grips one dumbbell, hanging in front of and slightly beside its shin. Elbows are straight. Both dumbbells remain below the foot level without touching the floor.",
+          "smith_machine": "Side view frozen at the BOTTOM of a Smith Jefferson curl. The athlete has both feet flat on a stable raised platform, knees almost straight and a visibly rounded spine. Both straight arms hold the guided bar in front of the shins with a closed grip. Both ends of the bar attach to visible vertical rails. Plates remain above the floor and below the foot level; safety stops sit under the bar."
+        },
+        "qa": [
+          "¿La espalda se ve curvada de arriba abajo en el fotograma inferior?",
+          "¿Ambos pies están firmes y las rodillas casi extendidas?",
+          "¿Las manos agarran la carga con los codos largos, sin objetos flotando?",
+          "¿La carga está suspendida y separada del suelo?",
+          "¿El cable o los rieles, cuando corresponden, permanecen unidos al implemento?"
+        ]
+      }
     }
   },
   "familyId": "lower_spinal_flexion",
