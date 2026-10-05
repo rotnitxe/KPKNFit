@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.sessioneditor.components
 
+import com.example.kpkn.domain.training.CatalogCompositionTestSupport
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Test
@@ -59,5 +60,22 @@ class ExerciseCatalogV2LabelsTest {
         assertEquals("Con Barra H", exerciseCatalogVariantTagLabel("h_bar"))
         assertEquals("Glúteo Medio", exerciseCatalogMuscleLabel("gluteus_medius"))
         assertFalse(exerciseCatalogOptionLabel("dumbbells").equals("dumbbells", ignoreCase = true))
+
+        val configurations = CatalogCompositionTestSupport.catalog.families
+            .flatMap { it.definitions }
+            .flatMap { it.configurations }
+            .associateBy { it.id }
+        mapOf(
+            "calf_raise__bilateral__donkey_machine" to
+                ("donkey_machine" to "Máquina de gemelo donkey · Bilateral"),
+            "calf_raise__bilateral__leg_press_machine" to
+                ("leg_press_machine" to "En prensa de piernas · Bilateral"),
+            "push_up__hands_elevated" to ("hands_elevated" to "Manos elevadas"),
+        ).forEach { (configurationId, expected) ->
+            val (rawOption, expectedSummary) = expected
+            val summary = exerciseCatalogConfigurationSummary(configurations.getValue(configurationId))
+            assertEquals("$configurationId: resumen de configuración real", expectedSummary, summary)
+            assertFalse("$configurationId: no filtrar opción cruda $rawOption", summary.contains(rawOption, ignoreCase = true))
+        }
     }
 }
