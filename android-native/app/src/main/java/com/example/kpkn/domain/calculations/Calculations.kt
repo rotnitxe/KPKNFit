@@ -10,6 +10,8 @@ import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.plannedRepAnchor
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
+import com.example.kpkn.data.protocols.LoadBasis
+import com.example.kpkn.domain.training.TrainingMaxResolver
 import kotlin.math.exp
 import kotlin.math.pow
 import kotlin.math.round
@@ -247,6 +249,13 @@ fun resolveReferenceCapacity(
         .maxOrNull()
 }
 
+/** PERCENT_TM declares the reference base, not authorship or a guessed history 1RM. */
+private fun explicitTrainingMaxLoad(exercise: Exercise, set: ExerciseSet): Double? {
+    val trainingMax = exercise.reference1RM?.takeIf { it.isFinite() && it > 0.0 } ?: return null
+    val percent = set.targetPercentageRM?.takeIf { it.isFinite() && it > 0.0 } ?: return null
+    return TrainingMaxResolver.loadKg(percent, trainingMax)?.takeIf { it.isFinite() && it > 0.0 }
+}
+
 fun calculateSuggestedLoad(exercise: Exercise, set: ExerciseSet): Double? {
     val loadMode = set.loadModeV2 ?: LoadModeV2.LOAD
     if (loadMode == LoadModeV2.BODYWEIGHT) return 0.0
@@ -269,6 +278,9 @@ fun calculateSuggestedLoad(exercise: Exercise, set: ExerciseSet): Double? {
         return if (suggested > 0.0) roundSuggestedLoad(suggested) else null
     }
 
+    if (exercise.trainingMode == TrainingMode.RM && set.loadBasis == LoadBasis.PERCENT_TM) {
+        return explicitTrainingMaxLoad(exercise, set)
+    }
     val referenceCapacity = resolveReferenceCapacity(exercise) ?: return null
     val suggested = when (exercise.trainingMode) {
         TrainingMode.RM -> {
@@ -321,6 +333,9 @@ fun calculateSuggestedLoad(
         return if (suggested > 0.0) roundSuggestedLoad(suggested) else null
     }
 
+    if (exercise.trainingMode == TrainingMode.RM && set.loadBasis == LoadBasis.PERCENT_TM) {
+        return explicitTrainingMaxLoad(exercise, set)
+    }
     val referenceCapacity = resolveReferenceCapacity(exercise, history) ?: return null
     val suggested = when (exercise.trainingMode) {
         TrainingMode.RM -> {

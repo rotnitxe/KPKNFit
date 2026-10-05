@@ -59,6 +59,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.*
+import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.domain.exercises.*
 import com.example.kpkn.domain.calculations.estimatePercent1RM
 import com.example.kpkn.domain.training.RepRangeParser
@@ -157,6 +158,8 @@ internal fun InlineSetRow(
         SessionEditorBreakpoint.Comfortable -> SetCardDensity.Comfortable
     }
     val isRmMode = trainingMode == TrainingMode.RM
+    val usesExplicitTmPercent = isRmMode && set.loadBasis == LoadBasis.PERCENT_TM &&
+        (set.loadModeV2 ?: LoadModeV2.LOAD) == LoadModeV2.LOAD
     val isSoloRpeMode = trainingMode == TrainingMode.SOLO_RPE
     val isAmrapMode = set.isAmrap || trainingMode == TrainingMode.AMRAP
     var selectedUniSide by remember(set.id, fixedUnilateralSide) { mutableStateOf(fixedUnilateralSide ?: "L") }
@@ -182,7 +185,7 @@ internal fun InlineSetRow(
     }
     val displayedWeight = predictedWeight
     val metricLabel = when (trainingMode) {
-        TrainingMode.RM -> "Reps est."
+        TrainingMode.RM -> if (usesExplicitTmPercent) "Reps" else "Reps est."
         TrainingMode.REPS -> if (isAmrapMode) "Reps mín." else "Reps / rango"
         TrainingMode.TIME -> if (isAmrapMode) "Tiempo mín." else "Tiempo"
         TrainingMode.DISTANCE -> if (isAmrapMode) "Dist. mín." else "Dist."
@@ -224,7 +227,12 @@ internal fun InlineSetRow(
     fun uniOrSetInt(getSet: (ExerciseSet) -> Int?, getTarget: (UnilateralTarget?) -> Int?): Int? =
         if (isUnilateral && activeSideTarget != null) getTarget(activeSideTarget) else getSet(set)
     val metricValue = when (trainingMode) {
-        TrainingMode.RM -> formatEstimatedMetric(estimatedMetric, trainingMode, customUnit)
+        TrainingMode.RM -> if (usesExplicitTmPercent) {
+            val range = if (isUnilateral) activeSideTarget?.targetRepsRange else set.targetRepsRange
+            range?.format() ?: uniOrSetInt({ it.targetReps }, { it?.targetReps })?.toString().orEmpty()
+        } else {
+            formatEstimatedMetric(estimatedMetric, trainingMode, customUnit)
+        }
         TrainingMode.TIME -> (
             if (isUnilateral && activeSideTarget != null) activeSideTarget.targetDuration else set.targetDuration
         )?.toString().orEmpty()
@@ -422,7 +430,7 @@ internal fun InlineSetRow(
             ) {
                 if (isRmMode) {
                     EditorMiniField(
-                        label = "%RM",
+                        label = if (usesExplicitTmPercent) "% del TM" else "%RM",
                         value = formatEditableNumber(set.targetPercentageRM ?: sliderPercent),
                         stateKey = "percent-${set.id}",
                         keyboardType = KeyboardType.Decimal,
@@ -430,7 +438,10 @@ internal fun InlineSetRow(
                     ) { input ->
                         commitEditedField { current ->
                             current.copy(
-                                targetPercentageRM = input.safeDoubleOrNull()?.let { roundToMax2Decimals(it) },
+                                targetPercentageRM = input.safeDoubleOrNull()?.let {
+                                    if (usesExplicitTmPercent) it.takeIf { value -> value.isFinite() && value > 0.0 }
+                                    else roundToMax2Decimals(it)
+                                },
                                 intensityMode = null,
                                 targetRPE = null,
                                 targetRIR = null,
@@ -676,7 +687,8 @@ internal fun InlineSetRow(
                             text = buildString {
                                 append(displayedWeight?.let { "${formatMax2Decimals(it)} kg" } ?: "Usa carga inteligente para estimar la carga inicial")
                                 if (isRmMode && reference1RM != null) {
-                                    append(" · ${formatMax2Decimals(sliderPercent.toDouble())}% RM")
+                                    val basis = if (usesExplicitTmPercent) "del TM" else "RM"
+                                    append(" · ${formatMax2Decimals(sliderPercent.toDouble())}% $basis")
                                 }
                             },
                             style = MaterialTheme.typography.bodyMedium,

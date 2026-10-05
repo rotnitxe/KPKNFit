@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.sessioneditor
 
 import com.example.kpkn.data.models.*
+import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import com.example.kpkn.domain.calculations.resolveReferenceCapacity
@@ -443,6 +444,12 @@ internal fun Session.normalizeSession(): Session {
     ).normalizeMobilityCompatibility())
 }
 
+private fun ExerciseSet.usesExternalTrainingMax(): Boolean =
+    loadBasis == LoadBasis.PERCENT_TM && (loadModeV2 ?: LoadModeV2.LOAD) == LoadModeV2.LOAD
+
+private fun Exercise.usesExternalTrainingMax(): Boolean =
+    trainingMode == TrainingMode.RM && sets.any { it.usesExternalTrainingMax() }
+
 internal fun Exercise.normalizeExercise(): Exercise {
     val preservedLeftTargets = sets.map { it.leftTarget }
     val preservedRightTargets = sets.map { it.rightTarget }
@@ -456,7 +463,12 @@ internal fun Exercise.normalizeExercise(): Exercise {
         )
     }
     val normalizedIdentity = normalizedIdentityFields()
-    val resolved1rm = resolveReferenceCapacity(normalizedIdentity.copy(sets = restoredSets))
+    val restored = normalizedIdentity.copy(sets = restoredSets)
+    val resolved1rm = if (restored.usesExternalTrainingMax()) {
+        restored.reference1RM
+    } else {
+        resolveReferenceCapacity(restored)
+    }
     return normalizedIdentity.copy(
         restTime = restTime ?: suggestRestSeconds(restoredSets.size, restoredSets.mapNotNull { it.targetRPE }.averageOrNull() ?: 8.0),
         reference1RM = resolved1rm,
@@ -475,13 +487,18 @@ internal fun Exercise.withSharedPerformanceFromHistory(history: List<WorkoutLog>
     val normalized = normalizedIdentityFields()
     val shared = normalized.resolveSharedPerformance(history) ?: return normalized
     val withReferences = normalized.copy(
-        reference1RM = normalized.reference1RM ?: shared.reference1RM,
+        reference1RM = if (normalized.usesExternalTrainingMax()) {
+            normalized.reference1RM
+        } else {
+            normalized.reference1RM ?: shared.reference1RM
+        },
         prFor1RM = normalized.prFor1RM ?: shared.prReference,
         consolidatedWeight = normalized.consolidatedWeight ?: shared.consolidatedWeight,
     )
     val hydratedSets = withReferences.sets.mapIndexed { index, set ->
+        val explicitTm = withReferences.trainingMode == TrainingMode.RM && set.usesExternalTrainingMax()
         val normalizedSet = when {
-            withReferences.trainingMode == TrainingMode.RM && set.targetPercentageRM == null -> {
+            withReferences.trainingMode == TrainingMode.RM && !explicitTm && set.targetPercentageRM == null -> {
                 set.copy(
                     targetPercentageRM = 75.0,
                     intensityMode = null,
@@ -490,7 +507,7 @@ internal fun Exercise.withSharedPerformanceFromHistory(history: List<WorkoutLog>
             else -> set
         }
         val suggested = calculateSuggestedLoad(withReferences, normalizedSet, history)
-            ?: shared.suggestedNextLoad?.takeIf { index == 0 }
+            ?: shared.suggestedNextLoad?.takeIf { index == 0 && !explicitTm }
         if (normalizedSet.weight == null && suggested != null && suggested > 0.0) {
             normalizedSet.copy(weight = suggested)
         } else {
@@ -540,6 +557,7 @@ internal fun Exercise.resolveSharedPerformance(history: List<WorkoutLog>): Share
 }
 
 internal fun ExerciseSet.normalizeSet(exercise: Exercise): ExerciseSet {
+    val usesExplicitTmPercent = exercise.trainingMode == TrainingMode.RM && usesExternalTrainingMax()
     val normalized = when {
         exercise.trainingMode == TrainingMode.AMRAP -> copy(
             intensityMode = IntensityMode.AMRAP,
@@ -579,7 +597,11 @@ internal fun ExerciseSet.normalizeSet(exercise: Exercise): ExerciseSet {
                 targetRIR = null,
                 isFailure = false,
                 isAmrap = false,
-                targetPercentageRM = roundToMax2Decimals((targetPercentageRM ?: 75.0).coerceIn(40.0, 100.0)),
+                targetPercentageRM = if (usesExplicitTmPercent) {
+                    targetPercentageRM?.takeIf { it.isFinite() && it > 0.0 }
+                } else {
+                    roundToMax2Decimals((targetPercentageRM ?: 75.0).coerceIn(40.0, 100.0))
+                },
             )
             TrainingMode.SOLO_RPE -> copy(
                 intensityMode = IntensityMode.RPE,
@@ -600,7 +622,7 @@ internal fun ExerciseSet.normalizeSet(exercise: Exercise): ExerciseSet {
         }
     }
     val autoWeight = calculateSuggestedLoad(exercise, normalized)
-    return normalized.copy(weight = autoWeight ?: normalized.weight)
+    return normalized.copy(weight = if (usesExplicitTmPercent) autoWeight else autoWeight ?: normalized.weight)
 }
 
 internal fun createNextSetTemplate(exercise: Exercise, template: ExerciseSet): ExerciseSet {
