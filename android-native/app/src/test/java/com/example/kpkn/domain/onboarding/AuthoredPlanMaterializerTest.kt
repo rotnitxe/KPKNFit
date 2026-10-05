@@ -278,6 +278,9 @@ class AuthoredPlanMaterializerTest {
             assertTrue("$planId exige barra: $tokens", "barbell" in tokens)
             assertTrue("$planId exige máquinas: $tokens", "machine" in tokens)
             assertTrue("diagnóstico de configuraciones afectadas", failure.affectedSlots.isNotEmpty())
+            assertTrue("la barra viaja fuera del mensaje", "barbell" in failure.missingRequirements)
+            assertTrue("cada máquina viaja con su configuración exacta",
+                failure.missingRequirements.any { it.startsWith("machine_config:") })
         }
     }
 
@@ -289,12 +292,18 @@ class AuthoredPlanMaterializerTest {
             assertEquals(PlanEvaluationStage.MATERIAL, failure.stage)
             assertEquals("$planId: solo faltan máquinas sin confirmar", PlanRejectionReason.APPARATUS_UNKNOWN, failure.reason)
             assertEquals(listOf("machine"), tokensOf(failure))
+            assertTrue("requisitos exactos para el panel", failure.missingRequirements.isNotEmpty())
+            assertTrue(failure.missingRequirements.all { it.startsWith("machine_config:") &&
+                SetupApparatusPanel.keyForToken(it) != null })
         }
         listOf(PHUL_ADAPTED, PHAT_ADAPTED).forEach { planId ->
             val failure = rejection(planId, gear)
             assertEquals(PlanEvaluationStage.MATERIAL, failure.stage)
             assertEquals("$planId: adaptar no inventa una máquina", PlanRejectionReason.APPARATUS_UNKNOWN, failure.reason)
             assertEquals(listOf("machine"), tokensOf(failure))
+            assertTrue("la adaptación conserva el requisito exacto", failure.missingRequirements.isNotEmpty())
+            assertTrue(failure.missingRequirements.all { it.startsWith("machine_config:") &&
+                SetupApparatusPanel.keyForToken(it) != null })
         }
     }
 

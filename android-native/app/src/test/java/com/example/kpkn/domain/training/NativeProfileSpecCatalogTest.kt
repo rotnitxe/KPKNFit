@@ -216,6 +216,25 @@ class NativeProfileSpecCatalogTest {
     }
 
     @Test
+    fun single_day_athlete_uses_the_real_vertical_pull_without_changing_the_other_slots() {
+        val horizontal = NativeProfileCalendars.athlete(1, pullAvailable = true).single()
+        val vertical = NativeProfileCalendars.athlete(1, pullAvailable = true, horizontalPullAvailable = false).single()
+        assertEquals(horizontal.cardio, vertical.cardio)
+        assertEquals(horizontal.name, vertical.name)
+        assertEquals(
+            horizontal.slots.map { if (it.key == NativeSlotKey.R) it.copy(key = NativeSlotKey.V) else it },
+            vertical.slots,
+        )
+        assertTrue(vertical.slots.any { it.key == NativeSlotKey.V && it.intent == SlotIntent.H })
+        assertFalse(vertical.slots.any { it.key == NativeSlotKey.R })
+        // Solo X1 cambia; sin tirón se mantiene el calendario sin tirón y los días 2..6 siguen intactos.
+        assertEquals(NativeProfileCalendars.athlete(1, false), NativeProfileCalendars.athlete(1, false, false))
+        (2..6).forEach { days ->
+            assertEquals(NativeProfileCalendars.athlete(days, true), NativeProfileCalendars.athlete(days, true, false))
+        }
+    }
+
+    @Test
     fun dose_table_matches_section_11_2_exactly() {
         // F
         val fBeg = NativeDoseTable.doseFor(SlotIntent.F, NativeDoseLevel.BEGINNER, false)

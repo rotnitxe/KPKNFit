@@ -1,5 +1,6 @@
 package com.example.kpkn.domain.training
 
+import com.example.kpkn.data.models.ApparatusPresence
 import com.example.kpkn.data.models.EquipmentAvailability
 import com.example.kpkn.data.models.EquipmentCategory
 import com.example.kpkn.data.models.LoadQuantityConvention
@@ -267,13 +268,20 @@ private val CURATED_SUBSTITUTIONS: Map<String, List<CuratedCandidate>> = mapOf(
     // Altas M1 a M5 (B.S6): una técnica que ya es una configuración propia (agarre cerrado, pausa, inclinado) conserva las alternativas
     // curadas de la configuración base de la que antes era un parche (`técnica` + base), así que adaptar una receta sin el material
     // exacto cambia el ejercicio igual que antes y no deja el slot sin sustituto.
+    // B.S6 parte 2b (H-08): la Smith (misma definición que la banca y la sentadilla de barra) entra como ÚLTIMA alternativa del mismo
+    // patrón; y el jalón cerrado, que es de polea, ofrece primero el jalón en máquina antes de las dominadas.
     "close_grip_bench_press" to listOf(
         c("bench_press__dumbbells", 2, true, "Press de banca con mancuernas: mismo patrón de empuje horizontal sin barra ni rack (§13.4)."),
         c("floor_press__dumbbells", 2, true, "Press en suelo con mancuernas: empuje horizontal sin banca ni barra."),
+        c("bench_press__smith_machine", 2, true, "Press de banca en máquina Smith: mismo patrón de empuje horizontal sin barra libre ni rack (§13.4)."),
         c("push_up__flat", 3, false, "Empuje con peso corporal: cambio de patrón documentado; se prescriben reps y RIR (§13.4)."),
     ),
-    "paused_back_squat" to squatToGoblet(),
-    "close_grip_lat_pulldown" to latPulldownToPullUp(),
+    "paused_back_squat" to squatToGoblet() + listOf(
+        c("high_bar_back_squat__smith_machine", 2, true, "Sentadilla en máquina Smith: mismo patrón de rodilla sin barra libre ni rack (§13.4)."),
+    ),
+    "close_grip_lat_pulldown" to listOf(
+        c("lat_pulldown__bilateral__machine", 2, true, "Jalón en máquina bilateral: mismo patrón de tracción vertical sin polea."),
+    ) + latPulldownToPullUp(),
     "incline_biceps_curl" to listOf(
         c("biceps_curl_sentado_banco_plano__dumbbells", 2, true, "Curl sentado en banco plano con mancuernas: mismo patrón de flexión de codo sin el banco regulable."),
         c("hammer_curl__dumbbells", 2, true, "Curl martillo con mancuernas: mismo patrón de flexión de codo sin banco."),
@@ -281,19 +289,16 @@ private val CURATED_SUBSTITUTIONS: Map<String, List<CuratedCandidate>> = mapOf(
 )
 
 /**
- * Gaps del catálogo publicado que bloquean la adaptación (regla STOP): la
- * reserva corporal documentada NO existe como id verificado, así que el slot
- * falla tipado en vez de inventar un id (se reporta al paquete de catálogo).
+ * Limitaciones del catálogo publicado que siguen vigentes cuando no existe una
+ * reserva compatible o una equivalencia de patrón verificada. No se inventan
+ * ids ni equivalencias.
  */
 private val CATALOG_GAP_NOTES: Map<String, String> = mapOf(
-    "calf_raise" to "Sin variante de gemelo con peso corporal publicada (gap: calf_raise__bilateral__bodyweight); solo variantes de barra, máquina, cable y Smith.",
-    "reverse_lunge" to "Sin zancada inversa con peso corporal publicada (gap: reverse_lunge__bodyweight); solo variantes de barra, mancuerna, kettlebell, cable y Smith.",
     "forward_lunge" to "Sin zancada con peso corporal publicada; solo variantes de barra, mancuerna, kettlebell, cable y Smith.",
     "walking_lunge" to "Sin zancada caminando con peso corporal publicada; solo variantes de barra, mancuerna, kettlebell, cable y Smith.",
     "lying_leg_curl" to "El curl femoral no tiene equivalencia de patrón: un puente o frog pump es extensión de cadera y no sustituye la flexión de rodilla (§13.4); el caller debe elegir una estructura propia de isquios.",
     "seated_leg_curl" to "El curl femoral no tiene equivalencia de patrón: un puente o frog pump es extensión de cadera y no sustituye la flexión de rodilla (§13.4); el caller debe elegir una estructura propia de isquios.",
     "standing_leg_curl" to "El curl femoral no tiene equivalencia de patrón: un puente o frog pump es extensión de cadera y no sustituye la flexión de rodilla (§13.4); el caller debe elegir una estructura propia de isquios.",
-    "push_up" to "Sin elevación de manos publicada (gap: push_up__hands_elevated); se usa la variante plana o de rodillas.",
 )
 
 private const val MATERIAL_BODYWEIGHT = "bodyweight"
@@ -352,7 +357,7 @@ private fun requirementsOf(
     addAll(supportRequirementsFor(configurationId))
 }
 
-private fun evidenceOfKind(
+internal fun evidenceOfKind(
     kind: String,
     configurationId: String,
     equipment: EffectiveEquipmentResult,
@@ -360,14 +365,27 @@ private fun evidenceOfKind(
 ): RequirementEvidence {
     if (kind == MATERIAL_BODYWEIGHT || kind == MATERIAL_CARDIO) return RequirementEvidence.PRESENT
     // Vocabulario de soportes: la evidencia estructurada ya distingue ausente de sin confirmar.
-    if (kind in KNOWN_REQUIREMENTS) return equipment.requirements[kind] ?: RequirementEvidence.UNKNOWN
+    if (kind in KNOWN_REQUIREMENTS) {
+        val evidence = equipment.requirements[kind] ?: RequirementEvidence.UNKNOWN
+        return if (evidence != RequirementEvidence.PRESENT &&
+            EFFECTIVE_EQUIPMENT_KEYS.none { kind in it.attestedTokens }
+        ) RequirementEvidence.ABSENT else evidence
+    }
     if (kind == MATERIAL_MACHINE) {
         if (machineConfigToken(configurationId) in equipment.tokens) return RequirementEvidence.PRESENT
+        val panelKeys = EFFECTIVE_EQUIPMENT_KEYS.filter { key ->
+            key.category == EquipmentCategory.MACHINES &&
+                (configurationId.isBlank() || configurationId in key.machineConfigurations)
+        }
+        // Sin una configuración curada en el panel no existe una confirmación que pueda resolverla.
+        if (panelKeys.isEmpty()) return RequirementEvidence.ABSENT
         if (availability != null) {
             if (configurationDeniedByAbsentKey(configurationId, availability)) return RequirementEvidence.ABSENT
             // MACHINES confirmada sin la configuración exacta → falta confirmarla
             // («falta confirmar leg curl»); categoría sin marcar → ausente.
-            return if (EquipmentCategory.MACHINES in availability.categories) {
+            return if (EquipmentCategory.MACHINES in availability.categories &&
+                panelKeys.any { availability.presenceOf(it.key) == ApparatusPresence.UNKNOWN }
+            ) {
                 RequirementEvidence.UNKNOWN
             } else {
                 RequirementEvidence.ABSENT
@@ -377,6 +395,11 @@ private fun evidenceOfKind(
         return if (hasConcreteOrigin(equipment)) RequirementEvidence.ABSENT else RequirementEvidence.UNKNOWN
     }
     if (kind in equipment.tokens) return RequirementEvidence.PRESENT
+    // GHD, rueda abdominal, safety/hex bar, discos, TRX… no tienen llave del panel.
+    // Ausencia sin confirmación disponible: no se debe ofrecer un CTA que nunca los acredite.
+    if (kind !in setOf("barbell", "dumbbells", "kettlebell", "band", "cable", "smith_machine") &&
+        EFFECTIVE_EQUIPMENT_KEYS.none { kind in it.attestedTokens }
+    ) return RequirementEvidence.ABSENT
     if (availability != null) return RequirementEvidence.ABSENT
     return if (hasConcreteOrigin(equipment)) RequirementEvidence.ABSENT else RequirementEvidence.UNKNOWN
 }

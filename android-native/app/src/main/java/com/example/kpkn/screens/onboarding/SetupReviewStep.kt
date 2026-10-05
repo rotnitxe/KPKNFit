@@ -211,7 +211,7 @@ internal fun bodyFatReviewValue(draft: SetupWizardDraft): String? = when (val so
  * propio supera el máximo recomendado dentro de la tolerancia aprobada.
  */
 internal fun highVolumeReviewText(notice: HighVolumeNotice): String =
-    "Volumen alto en ${notice.muscle}: ${VolumeSoftBand.formatSets(notice.weeklySets)} series por semana " +
+    "Volumen alto en ${notice.muscle}: ${VolumeSoftBand.formatSets(notice.weeklySets)} series principales por semana " +
         "(recomendado ${notice.recommendedSets}). Es un exceso pequeño y aceptable."
 
 /**

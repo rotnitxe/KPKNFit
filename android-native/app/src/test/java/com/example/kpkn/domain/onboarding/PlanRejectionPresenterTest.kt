@@ -1,6 +1,8 @@
 package com.example.kpkn.domain.onboarding
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
@@ -223,7 +225,7 @@ class PlanRejectionPresenterTest {
     fun anUnknownApparatusSaysWhatIsMissingAndOffersToConfirmIt() {
         present(
             view(PlanRejectionReason.APPARATUS_UNKNOWN, apparatusKey = "squat_rack", missing = listOf("rack"), needsConfirmation = true),
-        ).assertIs("Falta confirmar si tienes rack de sentadilla.", RejectionAction.ConfirmApparatus)
+        ).assertIs("Falta confirmar si tienes rack.", RejectionAction.ConfirmApparatus)
         present(
             view(
                 PlanRejectionReason.APPARATUS_UNKNOWN,
@@ -231,7 +233,7 @@ class PlanRejectionPresenterTest {
                 missing = listOf("rack", "bench"),
                 needsConfirmation = true,
             ),
-        ).assertIs("Falta confirmar si tienes rack de sentadilla y banco plano.", RejectionAction.ConfirmApparatus)
+        ).assertIs("Falta confirmar si tienes rack y banco.", RejectionAction.ConfirmApparatus)
         // Solo la llave, sin lista de requisitos (ruta heredada).
         present(view(PlanRejectionReason.APPARATUS_UNKNOWN, apparatusKey = "pullup_bar")).assertIs(
             "Falta confirmar si tienes barra de dominadas.",
@@ -245,10 +247,10 @@ class PlanRejectionPresenterTest {
             "Falta confirmar si tienes todo el material de este plan.",
             RejectionAction.SeeAlternatives,
         )
-        // El ViewModel heredado marca la confirmación aunque no haya llave: el botón se respeta.
+        // Una marca heredada sin llave no convierte el requisito en confirmable.
         present(view(PlanRejectionReason.APPARATUS_UNKNOWN, needsConfirmation = true)).assertIs(
             "Falta confirmar si tienes todo el material de este plan.",
-            RejectionAction.ConfirmApparatus,
+            RejectionAction.SeeAlternatives,
         )
     }
 
@@ -256,36 +258,37 @@ class PlanRejectionPresenterTest {
     fun anAbsentApparatusNamesWhatTheAnswersDenyAndOffersToConfirmOrSeeAlternatives() {
         // «, que dijiste que no tienes» no lleva pronombre, así que concuerda igual con «rack», «mancuernas» o «barra y carga».
         present(view(PlanRejectionReason.APPARATUS_ABSENT, missing = listOf("rack"))).assertIs(
-            "Este plan necesita rack de sentadilla, que dijiste que no tienes.",
+            "Este plan necesita rack, que dijiste que no tienes.",
             RejectionAction.ConfirmApparatus,
             RejectionAction.SeeAlternatives,
         )
         present(view(PlanRejectionReason.APPARATUS_ABSENT, missing = listOf("rack", "bench"))).assertIs(
-            "Este plan necesita rack de sentadilla y banco plano, que dijiste que no tienes.",
+            "Este plan necesita rack y banco, que dijiste que no tienes.",
             RejectionAction.ConfirmApparatus,
             RejectionAction.SeeAlternatives,
         )
         // La barra es una categoría, no una llave del panel: se nombra con su palabra llana.
         present(view(PlanRejectionReason.APPARATUS_ABSENT, missing = listOf("barbell"))).assertIs(
             "Este plan necesita barra y carga, que dijiste que no tienes.",
-            RejectionAction.ConfirmApparatus,
             RejectionAction.SeeAlternatives,
         )
         present(view(PlanRejectionReason.APPARATUS_ABSENT, missing = listOf("barbell", "dumbbells"))).assertIs(
             "Este plan necesita barra y carga y mancuernas, que dijiste que no tienes.",
-            RejectionAction.ConfirmApparatus,
             RejectionAction.SeeAlternatives,
         )
         present(view(PlanRejectionReason.APPARATUS_ABSENT, missing = listOf("dumbbells"))).assertIs(
             "Este plan necesita mancuernas, que dijiste que no tienes.",
-            RejectionAction.ConfirmApparatus,
             RejectionAction.SeeAlternatives,
         )
         present(view(PlanRejectionReason.APPARATUS_ABSENT)).assertIs(
             "Este plan necesita material que dijiste que no tienes.",
-            RejectionAction.ConfirmApparatus,
             RejectionAction.SeeAlternatives,
         )
+        listOf("ghd", "ab_wheel", "safety_bar", "hex_bar", "plate", "trx").forEach { token ->
+            present(view(PlanRejectionReason.APPARATUS_ABSENT, missing = listOf(token))).assertIs(
+                "Este plan necesita material que dijiste que no tienes.", RejectionAction.SeeAlternatives,
+            )
+        }
     }
 
     @Test
@@ -347,7 +350,7 @@ class PlanRejectionPresenterTest {
     @Test
     fun aRejectionWithoutCodeThatNeedsConfirmationIsTreatedAsAnUnknownApparatus() {
         present(view(reason = null, needsConfirmation = true, apparatusKey = "bench_flat")).assertIs(
-            "Falta confirmar si tienes banco plano.",
+            "Falta confirmar si tienes banco.",
             RejectionAction.ConfirmApparatus,
         )
     }
@@ -408,5 +411,106 @@ class PlanRejectionPresenterTest {
         )
         assertEquals("Rack de sentadilla", PlanRejectionPresenter.panelLabelOf("squat_rack"))
         assertNull(PlanRejectionPresenter.panelLabelOf("not_a_panel_key"))
+    }
+
+    // ─── H14: el texto y el botón de un toque nombran el mismo requisito ───────────────────────
+
+    @Test
+    fun theShortNamesAreTheOnesOfTheOneTapButton() {
+        assertEquals("rack", PlanRejectionPresenter.shortLabelOf("squat_rack"))
+        assertEquals("banco", PlanRejectionPresenter.shortLabelOf("bench_flat"))
+        assertEquals("banco regulable", PlanRejectionPresenter.shortLabelOf("bench_adjustable"))
+        assertEquals("banco predicador", PlanRejectionPresenter.shortLabelOf("preacher_bench"))
+        assertEquals("barra de dominadas", PlanRejectionPresenter.shortLabelOf("pullup_bar"))
+        assertEquals("paralelas", PlanRejectionPresenter.shortLabelOf("dip_bars"))
+        assertEquals("barra baja", PlanRejectionPresenter.shortLabelOf("low_bar_support"))
+        assertEquals("barra EZ", PlanRejectionPresenter.shortLabelOf("ez_bar"))
+        // Una llave del panel sin nombre corto usa la etiqueta del panel en minúscula; una que no es del panel, ninguna.
+        assertEquals("prensa de piernas", PlanRejectionPresenter.shortLabelOf("leg_press"))
+        assertNull(PlanRejectionPresenter.shortLabelOf("not_a_panel_key"))
+    }
+
+    @Test
+    fun theTextNamesTheKeyThatTheContextResolvesForEachRequirement() {
+        val missingRackAndBench = view(
+            PlanRejectionReason.APPARATUS_UNKNOWN,
+            apparatusKey = "squat_rack",
+            missing = listOf("rack", "bench"),
+            needsConfirmation = true,
+        )
+        // Por defecto, la primera llave del panel que acredita el requisito: el banco plano.
+        present(missingRackAndBench).assertIs("Falta confirmar si tienes rack y banco.", RejectionAction.ConfirmApparatus)
+        // El asistente resuelve `bench` con la llave que sigue sin responder: con el banco plano ya negado es el
+        // regulable, y el texto lo dice igual que el botón («Sí, tengo rack y banco regulable»).
+        val adjustable = context.copy(
+            apparatusKeyOf = { token -> if (token == "bench") "bench_adjustable" else SetupApparatusPanel.keyForToken(token) },
+        )
+        present(missingRackAndBench, adjustable).assertIs(
+            "Falta confirmar si tienes rack y banco regulable.",
+            RejectionAction.ConfirmApparatus,
+        )
+        // El mismo criterio vale para el material ausente.
+        present(view(PlanRejectionReason.APPARATUS_ABSENT, missing = listOf("bench")), adjustable).assertIs(
+            "Este plan necesita banco regulable, que dijiste que no tienes.",
+            RejectionAction.ConfirmApparatus,
+            RejectionAction.SeeAlternatives,
+        )
+        // Un requisito sin llave del panel se nombra con su palabra llana.
+        present(
+            view(PlanRejectionReason.APPARATUS_UNKNOWN, apparatusKey = "squat_rack", missing = listOf("rack", "barbell"), needsConfirmation = true),
+            adjustable,
+        ).assertIs("Falta confirmar si tienes rack y barra y carga.", RejectionAction.ConfirmApparatus)
+    }
+
+    // ─── H12: el rechazo de perfil del plan propio de Fuerza y músculo sale del presentador ─────
+
+    @Test
+    fun theOwnFuerzaYMusculoPlanExplainsTheRequirementWithWeightsInsteadOfExternalResistance() {
+        val own = "native:powerbuilding-foundation-v2"
+        val ownContext = context.copy(
+            goalLabel = "Fuerza y músculo",
+            ownPlanId = own,
+            goalProfile = PlanGoalProfile.STRENGTH_MUSCLE,
+        )
+
+        present(view(PlanRejectionReason.PROFILE_MISMATCH, own), ownContext).assertIs(
+            PlanRejectionPresenter.OWN_POWERBUILDING_TEXT,
+            RejectionAction.ChangeGoal,
+            RejectionAction.SeeAlternatives,
+        )
+        assertEquals(
+            "Fuerza y músculo necesita pesas en los ejercicios principales: barra con rack y banco, o mancuernas.",
+            PlanRejectionPresenter.OWN_POWERBUILDING_TEXT,
+        )
+        assertFalse(PlanRejectionPresenter.OWN_POWERBUILDING_TEXT, "resistencia externa" in PlanRejectionPresenter.OWN_POWERBUILDING_TEXT)
+    }
+
+    @Test
+    fun theOwnPowerbuildingTextOnlyAppliesToTheProfileRejectionOfThatOwnPlan() {
+        val own = "native:powerbuilding-foundation-v2"
+        val ownContext = context.copy(
+            goalLabel = "Fuerza y músculo",
+            ownPlanId = own,
+            goalProfile = PlanGoalProfile.STRENGTH_MUSCLE,
+        )
+
+        // Otro plan con el mismo motivo, otro objetivo o un contexto sin plan propio: la frase de disciplina de siempre.
+        present(view(PlanRejectionReason.PROFILE_MISMATCH, "native:strength-foundation-v2"), ownContext).assertIs(
+            "Este plan es de powerlifting; tu objetivo es fuerza y músculo.",
+            RejectionAction.ChangeGoal,
+            RejectionAction.SeeAlternatives,
+        )
+        val musclePresentation = present(
+            view(PlanRejectionReason.PROFILE_MISMATCH, own),
+            ownContext.copy(goalLabel = "Músculo", goalProfile = PlanGoalProfile.MUSCLE),
+        )
+        assertNotEquals(PlanRejectionPresenter.OWN_POWERBUILDING_TEXT, musclePresentation.text)
+        val withoutOwnPlan = present(view(PlanRejectionReason.PROFILE_MISMATCH, own), context)
+        assertNotEquals(PlanRejectionPresenter.OWN_POWERBUILDING_TEXT, withoutOwnPlan.text)
+        // Los demás motivos del plan propio conservan su texto.
+        present(view(PlanRejectionReason.TIME_BUDGET, own, requiredMinutes = 31), ownContext).assertIs(
+            "Con las series mínimas este plan necesita 31 min por sesión y elegiste 20.",
+            RejectionAction.SetMinutes(31),
+        )
     }
 }

@@ -4,8 +4,11 @@ import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.data.programs.PlanLabels
+import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
+import com.example.kpkn.domain.onboarding.SetupWizardBlock
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -237,6 +240,109 @@ class WizardPluralCopyTest {
             val cited = numberOfDays.findAll(text).map { it.value }.toList()
             assertEquals("${entry.id}: repite el mismo «N días»: $cited", cited.size, cited.toSet().size)
         }
+    }
+
+    // ─── Hitos entre bloques: el texto sale de la ruta del borrador (H8/H15) ─────────────────────
+
+    private fun routeOf(draft: SetupWizardDraft): List<SetupStepId> = SetupStepGraph.stepIds(draft.stepContext())
+
+    private val fullRoute: List<SetupStepId> get() = routeOf(SetupWizardDraft())
+
+    /** El asistente de solo entreno que abre la biblioteca con el alta ya completa. */
+    private val trainingOnlyRoute: List<SetupStepId>
+        get() = routeOf(SetupWizardDraft(draftScope = "training_only", includeNutrition = false))
+
+    @Test
+    fun theFullRouteKeepsTheMilestoneCopyItAlwaysHad() {
+        val route = fullRoute
+        assertEquals(
+            listOf(
+                SetupWizardBlock.BASICS,
+                SetupWizardBlock.TRAINING,
+                SetupWizardBlock.NUTRITION,
+                SetupWizardBlock.RINGS,
+                SetupWizardBlock.REVIEW,
+            ),
+            milestoneBlocks(route),
+        )
+        assertEquals("Faltan Entreno, Nutrición, Rings y la revisión final.", milestoneHeroSubtitle(SetupStepId.MILESTONE_BASICS, route))
+        assertEquals("Faltan Nutrición, Rings y la revisión final.", milestoneHeroSubtitle(SetupStepId.MILESTONE_TRAINING, route))
+        assertEquals("Faltan Rings y la revisión final.", milestoneHeroSubtitle(SetupStepId.MILESTONE_NUTRITION, route))
+        assertEquals("Solo queda la revisión final.", milestoneHeroSubtitle(SetupStepId.MILESTONE_RINGS, route))
+        assertEquals(
+            "Se activa el programa y el plan nutricional juntos, al final del alta.",
+            milestoneBody(SetupWizardBlock.REVIEW, route),
+        )
+    }
+
+    @Test
+    fun theTrainingOnlyRouteNeverTalksAboutNutritionOrRings() {
+        val route = trainingOnlyRoute
+        assertEquals(
+            listOf(SetupWizardBlock.BASICS, SetupWizardBlock.TRAINING, SetupWizardBlock.REVIEW),
+            milestoneBlocks(route),
+        )
+        assertEquals("Faltan Entreno y la revisión final.", milestoneHeroSubtitle(SetupStepId.MILESTONE_BASICS, route))
+        assertEquals("Solo queda la revisión final.", milestoneHeroSubtitle(SetupStepId.MILESTONE_TRAINING, route))
+        assertEquals(
+            "Se activa tu programa al final, con lo que hayas respondido.",
+            milestoneBody(SetupWizardBlock.REVIEW, route),
+        )
+        // Ningún texto de los hitos de esta ruta nombra los bloques que no recorre.
+        val texts = milestoneBlocks(route).map { block -> milestoneBlockTitle(block) + " " + milestoneBody(block, route) } +
+            listOf(SetupStepId.MILESTONE_BASICS, SetupStepId.MILESTONE_TRAINING).map { step -> milestoneHeroSubtitle(step, route) }
+        texts.forEach { text ->
+            assertFalse("«$text» habla de Nutrición", text.contains("Nutrición") || text.contains("nutricional"))
+            assertFalse("«$text» habla de Rings", text.contains("Rings"))
+        }
+    }
+
+    @Test
+    fun aFullRouteWithoutNutritionSkipsItInTheMilestoneCopy() {
+        val route = routeOf(SetupWizardDraft(includeNutrition = false))
+        assertEquals("Faltan Entreno, Rings y la revisión final.", milestoneHeroSubtitle(SetupStepId.MILESTONE_BASICS, route))
+        assertEquals("Faltan Rings y la revisión final.", milestoneHeroSubtitle(SetupStepId.MILESTONE_TRAINING, route))
+        assertEquals("Solo queda la revisión final.", milestoneHeroSubtitle(SetupStepId.MILESTONE_RINGS, route))
+        assertEquals(
+            "sin nutrición no se activa ningún plan nutricional",
+            "Se activa tu programa al final, con lo que hayas respondido.",
+            milestoneBody(SetupWizardBlock.REVIEW, route),
+        )
+    }
+
+    @Test
+    fun aStepThatIsNotAMilestoneOfTheRouteGetsTheGeneralPhrase() {
+        val general = "Los bloques de tu ruta y la revisión final para activar tu plan."
+        assertEquals(general, milestoneHeroSubtitle(SetupStepId.NAME, fullRoute))
+        // Un hito que esta ruta no recorre (Nutrición en el asistente de solo entreno) tampoco da un «faltan».
+        assertEquals(general, milestoneHeroSubtitle(SetupStepId.MILESTONE_NUTRITION, trainingOnlyRoute))
+    }
+
+    // ─── Resumen del hito de Entreno: la fila «Reparto» (H13) ───────────────────────────────
+
+    private fun milestoneState(draft: SetupWizardDraft) = SetupWizardState(draft = draft)
+
+    @Test
+    fun theMilestoneSummarySaysTheSplitWithItsPlainSpanishNameUnderTheLabelReparto() {
+        val rows = trainingMilestoneRows(milestoneState(SetupWizardDraft(goal = SetupGoal.MUSCLE, daysPerWeek = 4, selectedSplitId = "ul_x4")))
+
+        assertTrue("$rows", rows.contains("Reparto" to "Torso y pierna, 4 días"))
+        assertTrue("la fila ya no se llama «Split»: $rows", rows.none { (label, _) -> label == "Split" })
+        // El mismo nombre que ve en la lista de repartos y en la revisión; nunca el nombre técnico ni el id.
+        assertEquals("Torso y pierna, 4 días", splitDisplayName("ul_x4"))
+        rows.forEach { (_, value) -> assertFalse("«$value» lleva un id", value.contains("ul_x4")) }
+    }
+
+    @Test
+    fun theMilestoneSplitRowNamesTheOwnSplitAndNeverShowsAnUnknownId() {
+        fun rowsOf(draft: SetupWizardDraft) = trainingMilestoneRows(milestoneState(draft)).filter { (label, _) -> label == "Reparto" }
+
+        assertEquals(listOf("Reparto" to "Mi reparto"), rowsOf(SetupWizardDraft(selectedSplitId = "custom", customSplitName = "Mi reparto")))
+        assertEquals(listOf("Reparto" to "Reparto personalizado"), rowsOf(SetupWizardDraft(selectedSplitId = "custom")))
+        // Un reparto que el catálogo no conoce no añade fila (nunca se pinta el id).
+        assertTrue(rowsOf(SetupWizardDraft(selectedSplitId = "id_que_no_existe")).isEmpty())
+        // Sin reparto elegido («Recomendado») tampoco.
+        assertTrue(rowsOf(SetupWizardDraft(selectedSplitId = null)).isEmpty())
     }
 
     private fun entry(id: String) =

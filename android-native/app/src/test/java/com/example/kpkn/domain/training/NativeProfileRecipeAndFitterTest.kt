@@ -145,8 +145,8 @@ class NativeProfileRecipeAndFitterTest {
                 }
                 val problems = mutableListOf<String>()
                 result.report.muscles.forEach { row ->
-                    val weekly = row.directSets + row.indirectSets
-                    if (weekly > row.mrv + 0.001) problems += "${row.muscle}: volumen $weekly > MRV ${row.mrv}"
+                    val ceiling = VolumeSoftBand.softCeilingFor(row.muscle, row.mrv)
+                    if (row.directSets > ceiling + 0.001) problems += "${row.muscle}: principales ${row.directSets} > techo $ceiling"
                 }
                 if (recipe.weeks.size != 6) problems += "semanas=${recipe.weeks.size}"
                 if (recipe.claimedDaysPerWeek != days) problems += "claimedDays=${recipe.claimedDaysPerWeek}"
@@ -234,9 +234,10 @@ class NativeProfileRecipeAndFitterTest {
                     }
                     weeks.forEachIndexed { index, week ->
                         val glutes = VolumeCalculator.calculateRoleSeparatedMuscleVolume(week.sessions, lookup)["Glúteos"]
-                        val weeklyGlutes = (glutes?.directSets ?: 0.0) + (glutes?.indirectSets ?: 0.0)
-                        if (weeklyGlutes > realGluteMrv + 0.001) {
-                            failures += "$context -> semana ${index + 1}: glúteos=$weeklyGlutes > MRV $realGluteMrv"
+                        val weeklyGlutes = glutes?.directSets ?: 0.0
+                        val ceiling = VolumeSoftBand.softCeilingFor("Glúteos", realGluteMrv)
+                        if (weeklyGlutes > ceiling + 0.001) {
+                            failures += "$context -> semana ${index + 1}: glúteos principales=$weeklyGlutes > techo $ceiling"
                         }
                         week.sessions.forEach { session ->
                             val measured = SessionDurationEstimator.estimate(session).totalMinutes
@@ -495,6 +496,46 @@ class NativeProfileRecipeAndFitterTest {
     }
 
     @Test
+    fun pullup_bar_only_completes_one_day_athlete_at_both_trained_levels_without_cutting_cardio() {
+        listOf(CatalogLevel.INTERMEDIATE, CatalogLevel.ADVANCED).forEach { level ->
+            listOf(10, 30).forEach { cardioMinutes ->
+                val result = generate(
+                    NativeProfileKind.COMPLETE_ATHLETE.entryId,
+                    days = 1,
+                    level = level,
+                    equipment = setOf("bodyweight", "pull_up_bar"),
+                    minutes = 90,
+                    cardioPreference = CardioPreference(CardioType.WALK, cardioMinutes),
+                )
+                val program = requireProgram(result, "E13 Atleta $level 1 día cardio=$cardioMinutes")
+                val recipe = requireNotNull(program.sourceRecipe)
+                val firstDay = recipe.weeks.first().days.single()
+                val vertical = firstDay.slots.single { it.id == "v" }
+                assertEquals(SlotIntent.H, vertical.intent)
+                assertEquals(SlotRole.T3_ACCESSORY, vertical.role)
+                assertEquals(3, vertical.workingSetsForTest().size)
+                assertEquals("usa la barra real", com.example.kpkn.data.protocols.CatalogIds.PULLUP,
+                    vertical.lift.configurationId)
+                assertFalse("no inventa remo", firstDay.slots.any { it.id == "r" })
+                assertTrue("potencia sigue presente", firstDay.slots.any { it.intent == SlotIntent.P })
+                assertTrue("fuerza relativa sigue presente", firstDay.slots.any { it.intent == SlotIntent.F })
+                assertTrue("el suelo H semanal sigue en cuatro series", firstDay.slots
+                    .filter { it.intent == SlotIntent.H }.sumOf { it.workingSetsForTest().size } >= 4)
+                assertTrue("todos los HARD siguen vigentes", ProgramRecipeValidator.hardFindings(recipe, metadata).isEmpty())
+                recipe.weeks.forEach { week ->
+                    assertEquals("el cardio elegido se conserva en cada semana", cardioMinutes * 60,
+                        week.days.single().cardioBlocks.single().details.effectiveDurationSeconds())
+                }
+                assertTrue("la persona recibe una explicación del tirón vertical",
+                    result.report.planNotes.any { "tirón vertical" in it })
+                weeksOf(program).flatMap { it.sessions }.forEach { session ->
+                    assertTrue(SessionDurationEstimator.estimate(session).totalMinutes <= 90)
+                }
+            }
+        }
+    }
+
+    @Test
     fun low_bar_support_completes_one_day_athlete_hypertrophy_floor() {
         listOf(CatalogLevel.BEGINNER, CatalogLevel.INTERMEDIATE, CatalogLevel.ADVANCED).forEach { level ->
             val program = requireProgram(
@@ -738,9 +779,10 @@ class NativeProfileRecipeAndFitterTest {
                 weeksOf(program).forEachIndexed { weekIndex, week ->
                     assertEquals("$context w${weekIndex + 1} conserva $days sesiones", days, week.sessions.size)
                     val glutes = VolumeCalculator.calculateRoleSeparatedMuscleVolume(week.sessions, lookup)["Glúteos"]
-                    val weeklyGlutes = (glutes?.directSets ?: 0.0) + (glutes?.indirectSets ?: 0.0)
-                    assertTrue("$context w${weekIndex + 1}: glúteos=$weeklyGlutes > MRV $realGluteMrv",
-                        weeklyGlutes <= realGluteMrv + 0.001)
+                    val weeklyGlutes = glutes?.directSets ?: 0.0
+                    val ceiling = VolumeSoftBand.softCeilingFor("Glúteos", realGluteMrv)
+                    assertTrue("$context w${weekIndex + 1}: glúteos principales=$weeklyGlutes > techo $ceiling",
+                        weeklyGlutes <= ceiling + 0.001)
                 }
             }
         }
@@ -859,9 +901,10 @@ class NativeProfileRecipeAndFitterTest {
                     materializedWeek.sessions,
                     lookup,
                 )["Glúteos"]
-                val weeklyGlutes = (gluteVolume?.directSets ?: 0.0) + (gluteVolume?.indirectSets ?: 0.0)
-                assertTrue("$weekContext glúteos=$weeklyGlutes > MRV real $realGluteMrv",
-                    weeklyGlutes <= realGluteMrv + 0.001)
+                val weeklyGlutes = gluteVolume?.directSets ?: 0.0
+                val ceiling = VolumeSoftBand.softCeilingFor("Glúteos", realGluteMrv)
+                assertTrue("$weekContext glúteos principales=$weeklyGlutes > techo $ceiling",
+                    weeklyGlutes <= ceiling + 0.001)
                 assertTrue("$weekContext todas las sesiones caben en 60 min", materializedWeek.sessions.all {
                     (it.targetDurationMinutes ?: Int.MAX_VALUE) <= 60
                 })
@@ -1274,8 +1317,8 @@ class NativeProfileRecipeAndFitterTest {
         val program = requireProgram(result, "fuerza6 con MRV de pectorales=4")
         val pectorals = result.report.muscles.single { it.muscle == "Pectorales" }
         assertTrue(
-            "volumen ${pectorals.directSets}+${pectorals.indirectSets} excede MRV ${pectorals.mrv}",
-            pectorals.directSets + pectorals.indirectSets <= pectorals.mrv + 0.001,
+            "series principales ${pectorals.directSets} exceden MRV personal ${pectorals.mrv}",
+            pectorals.directSets <= pectorals.mrv + 0.001,
         )
         val benchMain = requireNotNull(program.sourceRecipe).weeks.first().days.flatMap { it.slots }
             .single { it.lift.liftSlot == com.example.kpkn.data.protocols.LiftSlot.BENCH && it.intent == SlotIntent.F }
@@ -1450,7 +1493,7 @@ class NativeProfileRecipeAndFitterTest {
         glutesSoftBand,
     )
 
-    /** Músculo corporal de 6 días, principiante, 100 min: el plan que hoy termina en 15,5 series de glúteo. */
+    /** Músculo corporal de 6 días, principiante, 100 min: testigo de mínimos directos de glúteo. */
     private val muscleBodyweightSixDaysInput = PersonalizerInput(
         catalogEntryId = NativeProfileKind.MUSCLE.entryId,
         focus = TrainingFocus.FULL_BODY,
@@ -1460,8 +1503,8 @@ class NativeProfileRecipeAndFitterTest {
         availableMinutes = 100,
     )
 
-    /** Máximo semanal de series de glúteo de un programa, medido con el contador de volumen real. */
-    private fun peakGluteSets(program: com.example.kpkn.data.models.Program, catalogV2: ExerciseCatalogV2): Double {
+    /** Máximo TOTAL de glúteos para comprobar informes; no se usa como techo de PRIMARY. */
+    private fun peakGluteTotalSets(program: com.example.kpkn.data.models.Program, catalogV2: ExerciseCatalogV2): Double {
         val lookup = catalogV2.toLegacyConfigurationLookup().values.toList()
         return weeksOf(program).maxOf { week ->
             val glutes = VolumeCalculator.calculateRoleSeparatedMuscleVolume(week.sessions, lookup)["Glúteos"]
@@ -1478,88 +1521,116 @@ class NativeProfileRecipeAndFitterTest {
         }
 
     @Test
-    fun glutes_soft_band_delivers_a_high_volume_plan_only_when_no_other_lever_remains() {
-        val bridge = NativeCandidateTable.GLUTE_BRIDGE_BODYWEIGHT
-        // Control con el catálogo real: dentro del límite, sin aviso y sin usar la banda.
-        val control = personalizerFor(catalog).personalize("np-band-control", muscleBodyweightSixDaysInput)
+    fun extra_secondary_glute_total_is_allowed_without_consuming_the_primary_band() {
+        val control = personalizerFor(catalog).personalize("np-indirect", muscleBodyweightSixDaysInput)
         val controlProgram = requireProgram(control, "control Músculo corporal 6d")
-        assertTrue("sin aviso de volumen alto con el catálogo real", control.report.highVolume.isEmpty())
-        val controlPeak = peakGluteSets(controlProgram, catalog)
-        assertTrue("el control cabe en el límite de 16: $controlPeak", controlPeak <= 16.001)
-        val bridgeSets = weeklySetsOf(requireNotNull(controlProgram.sourceRecipe), bridge)
-        assertTrue("el puente aparece en la receta de control", bridgeSets > 0)
-
-        // Con +0,5 de glúteo por serie de puente el plan se pasa de su límite por 0,5 × series de puente.
-        val boosted = catalogWithExtraGluteSecondary(bridge)
-        val expectedPeak = controlPeak + 0.5 * bridgeSets
-        assertTrue("premisa de la prueba: $expectedPeak cae entre 16 y 17,5", expectedPeak > 16.0 && expectedPeak <= 17.5)
-
-        // Sin tolerancia (comportamiento anterior) esa receta no tiene salida: COMPOSITION.
-        val legacy = personalizerFor(boosted, glutesSoftBand = 0.0)
-            .personalize("np-band-legacy", muscleBodyweightSixDaysInput)
-        assertNull("sin banda el plan se rechazaba", legacy.program)
-        assertEquals("COMPOSITION", legacy.report.reasonCode)
-
-        // Con la banda se entrega, con aviso de volumen alto y con el texto llano del plan.
-        val result = personalizerFor(boosted).personalize("np-band", muscleBodyweightSixDaysInput)
-        val program = requireProgram(result, "Músculo corporal 6d con glúteos en la banda")
-        val notice = result.report.highVolume.single()
-        assertEquals("Glúteos", notice.muscle)
-        assertEquals(16, notice.recommendedSets)
-        assertEquals(17.5, notice.ceilingSets, 0.0)
-        assertEquals(expectedPeak, notice.weeklySets, 0.001)
-        assertTrue("la nota va en las limitaciones: ${result.report.limitations}", notice.message in result.report.limitations)
-        assertTrue("la nota va en la descripción del plan", program.description.orEmpty().contains(notice.message))
-        assertEquals(
-            "Glúteos ${VolumeSoftBand.formatSets(expectedPeak)} series (recomendado 16, tolerancia hasta 17,5)",
-            notice.message,
-        )
-        assertTrue("ninguna semana pasa del techo blando", peakGluteSets(program, boosted) <= 17.5 + 0.001)
-
-        // Último recurso: la cascada de §12.3 corrió ANTES de aceptar la banda y retiró los accesorios opcionales
-        // que sí podía quitar (el gemelo corporal no suma glúteos, pero la cascada no distingue por músculo).
-        val recipe = requireNotNull(program.sourceRecipe)
-        assertTrue(
-            "la banda no detiene la cascada: el gemelo opcional debió retirarse antes",
-            recipe.weeks.flatMap { it.days }.flatMap { it.slots }
-                .none { it.lift.configurationId == "calf_raise__bilateral__bodyweight" },
-        )
-
-        // La política y el ajustador miden igual: SOFT (volumen alto) pero nunca HARD, y el mismo número.
+        val targets = arrayOf(NativeCandidateTable.GLUTE_BRIDGE_BODYWEIGHT, "reverse_lunge__bodyweight")
+        val boosted = catalogWithExtraGluteSecondary(*targets)
         val boostedMetadata = CatalogCompositionMetadataProvider.fromCatalog(boosted)
-        assertTrue(
-            "la banda no es un HARD: ${ProgramRecipeValidator.hardFindings(recipe, boostedMetadata)}",
-            ProgramRecipeValidator.hardFindings(recipe, boostedMetadata).isEmpty(),
-        )
-        assertTrue(
-            "la política ve el volumen alto de glúteos como SOFT",
-            ProgramRecipeValidator.validate(recipe, boostedMetadata).any {
-                it.severity == CompositionSeverity.SOFT && it.rule == "W2" && it.message.contains("GLUTES")
-            },
-        )
-        val policyPeak = recipe.weeks.maxOf { week ->
-            SessionCompositionPolicy.weeklyGroupSets(week, boostedMetadata)[com.example.kpkn.data.programs.KpknMuscleGroup.GLUTES] ?: 0.0
+        val originalRecipe = requireNotNull(controlProgram.sourceRecipe)
+        val originalPrimary = originalRecipe.weeks.maxOf { week ->
+            SessionCompositionPolicy.weeklyPrimaryGroupSets(week, metadata)[com.example.kpkn.data.programs.KpknMuscleGroup.GLUTES] ?: 0.0
         }
-        assertEquals("mismo contador en política y ajustador", notice.weeklySets, policyPeak, 0.001)
+        val expectedTotal = peakGluteTotalSets(controlProgram, catalog) +
+            targets.sumOf { id -> weeklySetsOf(originalRecipe, id) * 0.5 }
+        assertTrue("la premisa excede incluso 17,5 por trabajo secundario: $expectedTotal", expectedTotal > 17.5)
+        listOf(0.0, GLUTES_SOFT_BAND).forEach { band ->
+            val result = personalizerFor(boosted, band).personalize("np-indirect", muscleBodyweightSixDaysInput)
+            val program = requireProgram(result, "total indirecto alto con banda=$band")
+            assertEquals("el total indirecto no cambia dosis ni retiradas", originalRecipe, program.sourceRecipe)
+            assertEquals(expectedTotal, peakGluteTotalSets(program, boosted), 0.001)
+            assertTrue("no consume banda de PRIMARY", result.report.highVolume.isEmpty())
+            val recipe = requireNotNull(program.sourceRecipe)
+            val primary = recipe.weeks.maxOf { week ->
+                SessionCompositionPolicy.weeklyPrimaryGroupSets(week, boostedMetadata)[com.example.kpkn.data.programs.KpknMuscleGroup.GLUTES] ?: 0.0
+            }
+            assertEquals(originalPrimary, primary, 0.001)
+            assertTrue("el total se informa en lenguaje llano", result.report.planNotes.any {
+                it.startsWith("Glúteos:") && "principales" in it && "secundario o de estabilización" in it
+            })
+            assertTrue("no se entrega una receta con HARD", ProgramRecipeValidator.hardFindings(recipe, boostedMetadata).isEmpty())
+            assertTrue("la política informa el exceso indirecto", ProgramRecipeValidator.validate(recipe, boostedMetadata).any {
+                it.severity == CompositionSeverity.SOFT && it.rule == "W2_INDIRECT_VOLUME"
+            })
+        }
+    }
+
+    private fun catalogWithAddedRole(muscle: String, primary: Boolean): ExerciseCatalogV2 = catalog.copy(
+        families = catalog.families.map { family -> family.copy(
+            definitions = family.definitions.map { definition -> definition.copy(
+                configurations = definition.configurations.map { configuration ->
+                    val profile = configuration.profile
+                    configuration.copy(profile = profile.copy(
+                        primaryMuscles = (profile.primaryMuscles.filterNot { it == muscle } + if (primary) listOf(muscle) else emptyList()).distinct(),
+                        secondaryMuscles = profile.secondaryMuscles.filterNot { it == muscle },
+                        stabilizerMuscles = (profile.stabilizerMuscles.filterNot { it == muscle } + if (primary) emptyList() else listOf(muscle)).distinct(),
+                    ))
+                },
+            ) },
+        ) },
+    )
+
+    @Test
+    fun native_fitter_preserves_stabilizer_total_but_refuses_personal_primary_overflow() {
+        val input = PersonalizerInput(
+            NativeProfileKind.MUSCLE.entryId, TrainingFocus.FULL_BODY, 1,
+            equipment = BARBELL, level = CatalogLevel.INTERMEDIATE, availableMinutes = 100,
+            volumeRecommendations = listOf(VolumeRecommendation("Cuello", 0, 1, 1)),
+        )
+        val indirectCatalog = catalogWithAddedRole("neck", primary = false)
+        val allowed = personalizerFor(indirectCatalog).personalize("np-role-neck", input)
+        val program = requireProgram(allowed, "Cuello solo estabilizador con límite personal 1")
+        val row = allowed.report.muscles.single { it.muscle == "Cuello" }
+        assertEquals(1, row.mrv)
+        assertEquals(0.0, row.directSets, 0.001)
+        assertTrue("el total real supera el límite solo por estabilización", row.indirectSets > row.mrv)
+        val firstWeek = weeksOf(program).first()
+        val workSets = firstWeek.sessions.sumOf { session -> session.allExercises().sumOf { VolumeCalculator.countEffectiveSets(it.sets) } }
+        assertEquals("peso STABILIZER 0,4 intacto", workSets * 0.4, row.indirectSets, 0.001)
+        assertTrue("aviso informativo sin banda", allowed.report.highVolume.isEmpty())
+        assertTrue(allowed.report.planNotes.any { it.startsWith("Cuello:") && "0 principales" in it })
+        val overflowCatalog = catalogWithAddedRole("neck", primary = true)
+        val rejected = personalizerFor(overflowCatalog).personalize("np-role-neck-primary", input)
+        assertNull("las series PRIMARY no pueden superar el límite personal 1", rejected.program)
+        assertEquals("COMPOSITION", rejected.report.reasonCode)
     }
 
     @Test
-    fun glutes_above_the_soft_ceiling_are_still_rejected_with_composition() {
-        val lunge = "reverse_lunge__bodyweight"
-        val control = personalizerFor(catalog).personalize("np-over-control", muscleBodyweightSixDaysInput)
-        val controlProgram = requireProgram(control, "control Músculo corporal 6d")
-        val controlPeak = peakGluteSets(controlProgram, catalog)
-        val lungeSets = weeklySetsOf(requireNotNull(controlProgram.sourceRecipe), lunge)
-        val boosted = catalogWithExtraGluteSecondary(lunge)
-        val expectedPeak = controlPeak + 0.5 * lungeSets
-        assertTrue("premisa de la prueba: $expectedPeak supera el techo blando de 17,5", expectedPeak > 17.5)
+    fun shared_policy_group_does_not_assign_another_muscles_work_to_a_personal_limit() {
+        val rhomboidsCatalog = catalogWithAddedRole("rhomboids", primary = true)
+        val fixture = rhomboidsCatalog.copy(families = rhomboidsCatalog.families.map { family ->
+            family.copy(definitions = family.definitions.map { definition ->
+                definition.copy(configurations = definition.configurations.map { configuration ->
+                    configuration.copy(profile = configuration.profile.copy(
+                        primaryMuscles = configuration.profile.primaryMuscles.filterNot { it == "trapezius" },
+                    ))
+                })
+            })
+        })
+        val input = PersonalizerInput(
+            NativeProfileKind.MUSCLE.entryId, TrainingFocus.FULL_BODY, 1,
+            equipment = BARBELL, level = CatalogLevel.INTERMEDIATE, availableMinutes = 100,
+            volumeRecommendations = listOf(VolumeRecommendation("Trapecio", 0, 1, 1)),
+        )
+        val result = personalizerFor(fixture).personalize("np-shared-primary", input)
+        val program = requireProgram(result, "Romboides PRIMARY con Trapecio personal=1")
+        assertEquals(0.0, result.report.muscles.single { it.muscle == "Trapecio" }.directSets, 0.001)
+        assertTrue(result.report.muscles.single { it.muscle == "Romboides" }.directSets > 1.0)
+        assertTrue(ProgramRecipeValidator.hardFindings(requireNotNull(program.sourceRecipe),
+            CatalogCompositionMetadataProvider.fromCatalog(fixture)).isEmpty())
+    }
 
+    @Test
+    fun primary_glutes_above_the_soft_ceiling_are_rejected_with_composition() {
+        val boosted = catalogWithAddedRole("gluteus_maximus", primary = true)
+        // Incluso tras quitar C/I opcionales, 6 días conservan al menos 24 H principales:
+        // tres BU con B 2 y tres BL con tres H 2. No se toca calendario ni dosis.
         listOf(0.0, GLUTES_SOFT_BAND).forEachIndexed { index, band ->
-            val result = personalizerFor(boosted, band).personalize("np-over-$index", muscleBodyweightSixDaysInput)
-            assertNull("con banda $band el plan sigue rechazado", result.program)
+            val result = personalizerFor(boosted, band).personalize("np-primary-over-$index", muscleBodyweightSixDaysInput)
+            assertNull("PRIMARY por encima de 17,5 se rechaza con banda=$band", result.program)
             assertEquals("COMPOSITION", result.report.reasonCode)
-            assertTrue(result.report.limitations.joinToString(), result.report.limitations.any { it.contains("Glúteos") })
-            assertTrue("un rechazo no lleva avisos de volumen alto", result.report.highVolume.isEmpty())
+            assertTrue(result.report.limitations.any { "Glúteos" in it })
+            assertTrue(result.report.highVolume.isEmpty())
         }
     }
 

@@ -320,6 +320,9 @@ class SimpleCyclePersonalizer(
         val budgets = budgets(input, focused)
         val slots = List(days.size) { mutableListOf<Slot>() }
         val totals = mutableMapOf<String, Double>()
+        // El total conserva su uso para dosis/MEV y déficits. El techo semanal
+        // se aplica por separado a las series del músculo como PRINCIPAL.
+        val primaryTotals = mutableMapOf<String, Double>()
         val notes = mutableListOf<String>()
         splitPlan?.notes?.let { notes.addAll(it) }
         val priorityDays = spacedIndices(days, minOf(3, days.size))
@@ -382,11 +385,10 @@ class SimpleCyclePersonalizer(
             if (minutes(daySlots, 1, existing == null) > input.availableMinutes) return false
             val withinBudgets = candidate.volume.all { (muscle, contribution) ->
                 val budget = budgets[muscle] ?: return@all false
-                val total = contribution.directSets + contribution.indirectSets
                 val directInDay = daySlots.sumOf { it.sets * (it.candidate.volume[muscle]?.directSets ?: 0.0) }
                 val hasDirect = daySlots.any { muscle in it.candidate.primary }
                 val frequency = slots.count { day -> day.any { muscle in it.candidate.primary } }
-                (totals[muscle] ?: 0.0) + total <= minOf(budget.mav, budget.mrv) + 0.0001 &&
+                (primaryTotals[muscle] ?: 0.0) + contribution.directSets <= minOf(budget.mav, budget.mrv) + 0.0001 &&
                     directInDay + contribution.directSets <= 12.0 &&
                     (contribution.directSets == 0.0 || hasDirect || frequency < budget.frequencyCap)
             }
@@ -405,6 +407,7 @@ class SimpleCyclePersonalizer(
             val existing = slots[dayIndex].firstOrNull { it.candidate.id == candidate.id }
             if (existing == null) slots[dayIndex] += Slot(candidate, 1) else existing.sets++
             candidate.volume.forEach { (muscle, value) -> totals[muscle] = (totals[muscle] ?: 0.0) + value.directSets + value.indirectSets }
+            candidate.volume.forEach { (muscle, value) -> primaryTotals[muscle] = (primaryTotals[muscle] ?: 0.0) + value.directSets }
             return true
         }
         fun muscleCandidates(muscle: String, dayIndex: Int): List<Candidate> {
@@ -530,7 +533,11 @@ class SimpleCyclePersonalizer(
             if (muscle in focused && deficit > 1.0) notes += "$muscle: el tiempo, equipo o volumen indirecto limitan el objetivo. No se excedió MAV."
             MuscleBudgetReport(muscle, direct, indirect, budget.target, budget.mev, budget.mav, budget.mrv, frequency, deficit)
         }
-        if (reports.any { it.directSets + it.indirectSets > minOf(it.mav, it.mrv) + 0.001 }) return unavailable("La combinación excede el volumen permitido. Elige otra distribución.")
+        if (reports.any { it.directSets > minOf(it.mav, it.mrv) + 0.001 }) return unavailable("La combinación excede el volumen principal permitido. Elige otra distribución.")
+        reports.filter { row ->
+            row.directSets <= minOf(row.mav, row.mrv) + 0.001 &&
+                row.directSets + row.indirectSets > minOf(row.mav, row.mrv) + 0.001
+        }.forEach { row -> notes += indirectVolumeNote(row.muscle, row.directSets, row.directSets + row.indirectSets) }
         val week = ProgramWeek("$programId-week", "Semana repetible", sessions = sessions)
         val sourceRecipe = TrainingPlanRecipe(
             id = "$programId-onboarding-recipe",
@@ -685,7 +692,7 @@ class SimpleCyclePersonalizer(
         val minutesByDay: List<Int>,
         /** Minutos de TODAS las sesiones materializadas (máximo real §12.2). */
         val allSessionMinutes: List<Int>,
-        /** Exceso real sobre MRV, ponderado por el estimador compartido de volumen. */
+        /** Exceso de las series PRINCIPALES reales sobre MRV. */
         val overMrv: Map<String, Double>,
         /**
          * B-02: exceso sobre el TECHO BLANDO de cada músculo (el MRV, salvo glúteos, que admiten
@@ -881,7 +888,9 @@ class SimpleCyclePersonalizer(
             NativeProfileKind.STRENGTH -> NativeProfileCalendars.strength(selectedDays.size)
             NativeProfileKind.MUSCLE -> NativeProfileCalendars.muscle(selectedDays.size, pullAvailable)
             NativeProfileKind.POWERBUILDING -> NativeProfileCalendars.powerbuilding(selectedDays.size)
-            NativeProfileKind.COMPLETE_ATHLETE -> NativeProfileCalendars.athlete(selectedDays.size, pullAvailable)
+            NativeProfileKind.COMPLETE_ATHLETE -> NativeProfileCalendars.athlete(
+                selectedDays.size, pullAvailable, horizontalPullAvailable = horizontalPull != null,
+            )
         }
         val startDay = selectedDays.first()
         // Identidad de calendario (§14.3): el día de receta rota con la misma
@@ -910,6 +919,13 @@ class SimpleCyclePersonalizer(
         val notes = mutableListOf<String>()
         // B-03: notas del plan escritas en lenguaje llano; la revisión del wizard las muestra tal cual.
         val plainNotes = mutableListOf<String>()
+        if (kind == NativeProfileKind.COMPLETE_ATHLETE && selectedDays.size == 1 &&
+            horizontalPull == null && verticalPull != null
+        ) {
+            val note = "Con tu material, el día de entrenamiento usa tirón vertical en lugar de remo."
+            notes += note
+            plainNotes += note
+        }
         val dayPlans = archetypes.mapIndexed { index, archetype ->
             val sessionKind = when (archetype.cardio) {
                 NativeCardioRole.NONE -> RecipeSessionKind.STRENGTH
@@ -1069,12 +1085,11 @@ class SimpleCyclePersonalizer(
         val legacyLookup = ready.catalog.toLegacyConfigurationLookup()
         val legacyLookupList = legacyLookup.values.toList()
 
-        /** Series semanales (directas + indirectas) de cada músculo con presupuesto; 0 si el músculo no aparece. */
-        fun weeklySetsBySession(sessions: List<Session>): Map<String, Double> {
+        /** Series semanales como PRINCIPAL; el volumen indirecto sigue íntegro en el informe real. */
+        fun weeklyPrimarySetsBySession(sessions: List<Session>): Map<String, Double> {
             val actual = VolumeCalculator.calculateRoleSeparatedMuscleVolume(sessions, legacyLookupList)
             return nativeBudgets.keys.associateWith { muscle ->
-                val volume = actual[muscle]
-                (volume?.directSets ?: 0.0) + (volume?.indirectSets ?: 0.0)
+                actual[muscle]?.directSets ?: 0.0
             }
         }
 
@@ -1131,23 +1146,44 @@ class SimpleCyclePersonalizer(
             val sessions = sessionsByWeek.flatten()
             val perSession = sessions.map(::estimateNativeSessionMinutes)
             val perWeekMinutes = sessionsByWeek.map { weekSessions -> weekSessions.map(::estimateNativeSessionMinutes) }
-            val weeklySetsByWeek = sessionsByWeek.map(::weeklySetsBySession)
-            // B-02: los glúteos se miden TAMBIÉN con el contador de la política (W2) y se toma el mayor de los
-            // dos, así que el ajustador solo entrega lo que la política y el volumen real aceptan por igual.
-            val policyGluteSets = recipe.weeks.maxOfOrNull { week ->
-                SessionCompositionPolicy.weeklyGroupSets(week, metadata)[KpknMuscleGroup.GLUTES] ?: 0.0
-            } ?: 0.0
+            val weeklySetsByWeek = sessionsByWeek.map(::weeklyPrimarySetsBySession)
+            // La política y el materializado comparten el techo PRIMARY. Se toma
+            // el mayor: todos los músculos primarios cuentan, no solo el dominante.
+            val groups = budgetMuscleGroups()
+            val policyPrimarySets = recipe.weeks.map { week ->
+                SessionCompositionPolicy.weeklyPrimaryGroupSets(week, metadata)
+            }
+            val groupedPolicyExcess = nativeBudgets.keys.associateWith { muscle ->
+                val group = groups.getValue(muscle)
+                if (muscle in VolumeCalculator.standardVolumeMuscles &&
+                    group in setOf(KpknMuscleGroup.BACK_UPPER, KpknMuscleGroup.CORE, KpknMuscleGroup.CALVES)
+                ) {
+                    val peak = policyPrimarySets.maxOfOrNull { it[group] ?: 0.0 } ?: 0.0
+                    (peak - VolumeLandmarks.byGroup.getValue(group).mrv).coerceAtLeast(0.0)
+                } else 0.0
+            }
             val weeklyPeak = nativeBudgets.keys.associateWith { muscle ->
-                val peak = weeklySetsByWeek.maxOfOrNull { it.getValue(muscle) } ?: 0.0
-                if (muscle == VolumeSoftBand.GLUTES_MUSCLE) maxOf(peak, policyGluteSets) else peak
+                val realPeak = weeklySetsByWeek.maxOfOrNull { it.getValue(muscle) } ?: 0.0
+                // Las filas alias sin volumen canónico (p. ej. Glúteo Medio) no
+                // inventan otro techo sin banda sobre el mismo grupo muscular.
+                val group = groups.getValue(muscle)
+                val policyPeak = if (muscle in VolumeCalculator.standardVolumeMuscles &&
+                    // Estos grupos reúnen filas canónicas distintas. La política
+                    // aplica su techo global conjunto; los límites personales de
+                    // cada fila se contrastan con su propio volumen real.
+                    group !in setOf(KpknMuscleGroup.BACK_UPPER, KpknMuscleGroup.CORE, KpknMuscleGroup.CALVES)
+                ) {
+                    policyPrimarySets.maxOfOrNull { it[group] ?: 0.0 } ?: 0.0
+                } else 0.0
+                maxOf(realPeak, policyPeak)
             }
             // El recorte (cascada de §12.3) sigue guiándose por el MRV: la banda solo se usa como último recurso.
             val overMrv = nativeBudgets.mapNotNull { (muscle, row) ->
-                val excess = weeklyPeak.getValue(muscle) - row.mrv
+                val excess = maxOf(weeklyPeak.getValue(muscle) - row.mrv, groupedPolicyExcess.getValue(muscle))
                 if (excess > 0.001) muscle to excess else null
             }.toMap()
             val overSoftCeiling = nativeBudgets.mapNotNull { (muscle, row) ->
-                val excess = weeklyPeak.getValue(muscle) - softCeilingOf(muscle, row.mrv)
+                val excess = maxOf(weeklyPeak.getValue(muscle) - softCeilingOf(muscle, row.mrv), groupedPolicyExcess.getValue(muscle))
                 if (excess > 0.001) muscle to excess else null
             }.toMap()
             val highVolume = nativeBudgets.mapNotNull { (muscle, row) ->
@@ -1445,8 +1481,31 @@ class SimpleCyclePersonalizer(
             }
         }
 
+        val finalHard = ProgramRecipeValidator.hardFindings(fit.recipe, metadata)
+        if (finalHard.isNotEmpty()) {
+            return fail(
+                finalHard.joinToString("; ") { "${it.rule} ${it.scope}: ${it.message}" },
+                reasonCode = "COMPOSITION",
+            )
+        }
         notes += adjustments
         fit.highVolume.forEach { notice -> notes += notice.message }
+        val finalWeeks = fit.program.macrocycles.flatMap { it.blocks }
+            .flatMap { it.mesocycles }.flatMap { it.weeks }
+        val finalVolumes = finalWeeks.map { week ->
+            VolumeCalculator.calculateRoleSeparatedMuscleVolume(week.sessions, legacyLookupList)
+        }
+        nativeBudgets.forEach { (muscle, row) ->
+            val largestTotalWeek = finalVolumes.maxByOrNull { it[muscle]?.totalSets ?: 0.0 }
+            val volume = largestTotalWeek?.get(muscle)
+            val direct = volume?.directSets ?: 0.0
+            val total = volume?.totalSets ?: 0.0
+            if (direct <= row.mrv + 0.001 && total > row.mrv + 0.001) {
+                val note = indirectVolumeNote(muscle, direct, total)
+                notes += note
+                plainNotes += note
+            }
+        }
         val program = fit.program.copy(
             description = (entry.description + "\n" + notes.distinct().joinToString("\n")).trim(),
             sourceRecipe = fit.recipe,
@@ -1486,19 +1545,19 @@ class SimpleCyclePersonalizer(
             }
             MuscleBudgetReport(muscle, direct, indirect, budgetRow.target, budgetRow.mev, budgetRow.mav, budgetRow.mrv, frequency, (budgetRow.target - direct - indirect).coerceAtLeast(0.0))
         }
-        // §14.3: para los planes propios el techo semanal es el MRV con
-        // contabilidad real; MAV es un objetivo de programación, no un límite
+        // §14.3 y decisión por roles: el techo semanal propio se aplica a
+        // las series PRINCIPALES reales; MAV es un objetivo de programación, no un límite
         // duro (los suelos/techos de §§11–12 mandan). LEGACY conserva su
         // comprobación min(MAV, MRV) sin cambios en la ruta histórica. B-02: en glúteos el
         // techo es el blando (MRV + banda); en el resto de músculos sigue siendo el MRV.
         val overVolume = reports.filter {
-            it.directSets + it.indirectSets > softCeilingOf(it.muscle, it.mrv) + 0.001
+            it.directSets > softCeilingOf(it.muscle, it.mrv) + 0.001
         }
         if (overVolume.isNotEmpty()) {
             return unavailable(
                 "La combinación excede el volumen permitido. Elige otra distribución. " +
                     overVolume.joinToString("; ") {
-                        "${it.muscle}: ${it.directSets}+${it.indirectSets} > mrv ${it.mrv}"
+                        "${it.muscle}: ${it.directSets} principales > mrv ${it.mrv}"
                     },
             )
         }
@@ -1910,9 +1969,8 @@ class SimpleCyclePersonalizer(
         )
     }
 
-    /** El presupuesto depende del enfoque del plan; las prioridades de orden no lo alteran. */
-    private fun budgets(input: PersonalizerInput, focused: Set<String>): Map<String, Budget> {
-        val groups = linkedMapOf(
+    /** La misma correspondencia sirve al presupuesto y al techo PRIMARY compartido con W2. */
+    private fun budgetMuscleGroups(): Map<String, KpknMuscleGroup> = linkedMapOf(
             "Pectorales" to KpknMuscleGroup.CHEST, "Dorsales" to KpknMuscleGroup.BACK_LATS,
             "Trapecio" to KpknMuscleGroup.BACK_UPPER, "Romboides" to KpknMuscleGroup.BACK_UPPER,
             "Cuádriceps" to KpknMuscleGroup.QUADS, "Isquiosurales" to KpknMuscleGroup.HAMS,
@@ -1923,7 +1981,10 @@ class SimpleCyclePersonalizer(
             "Erectores Espinales" to KpknMuscleGroup.ERECTORS, "Antebrazo" to KpknMuscleGroup.FOREARMS,
             "Aductores" to KpknMuscleGroup.ADDUCTORS, "Cuello" to KpknMuscleGroup.NECK,
         )
-        return groups.mapValues { (muscle, group) ->
+
+    /** El presupuesto depende del enfoque del plan; las prioridades de orden no lo alteran. */
+    private fun budgets(input: PersonalizerInput, focused: Set<String>): Map<String, Budget> {
+        return budgetMuscleGroups().mapValues { (muscle, group) ->
             val global = VolumeLandmarks.byGroup.getValue(group)
             val personal = input.volumeRecommendations.firstOrNull { VolumeCalculator.normalizeCanonicalMuscleGroup(it.muscleGroup) == muscle }
             val mav = (personal?.maxAdaptiveVolume ?: global.mav).coerceAtLeast(1)
@@ -1935,6 +1996,11 @@ class SimpleCyclePersonalizer(
             Budget(mev, mav, mrv, target, personal?.frequencyCap?.coerceIn(1, 6) ?: 3)
         }
     }
+
+    /** Aviso informativo: el total se conserva, pero el exceso indirecto no es la banda de principales. */
+    private fun indirectVolumeNote(muscle: String, direct: Double, total: Double): String =
+        "$muscle: ${VolumeSoftBand.formatSets(total)} series en total " +
+            "(${VolumeSoftBand.formatSets(direct)} principales); el resto es trabajo secundario o de estabilización."
 
     /**
      * Filtro real de material por configuración:

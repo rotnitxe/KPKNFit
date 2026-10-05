@@ -40,8 +40,9 @@ sealed interface PlanRepair {
 
         /**
          * Disponibilidad con las [categories] añadidas y cada llave de [keys] en `PRESENT`. Una llave
-         * que no es del panel se ignora; una ausencia que la persona había declarado se sobrescribe
-         * (es justo lo que la reparación le pide revisar).
+         * que no es del panel se ignora; una ausencia que la persona había declarado SE sobrescribe si la
+         * llave viene en [keys]. El asesor no las propone: de las llaves que acreditan un requisito elige la que
+         * sigue sin responder ([PlanRepairAdvisor.confirmableKeyFor]), nunca una que la persona negó.
          */
         fun applyTo(availability: EquipmentAvailability): EquipmentAvailability {
             val withCategories = availability.copy(categories = availability.categories + categories)

@@ -450,7 +450,7 @@ class PlanGenerationCoverageT006Test {
                                     }
                                 }
 
-                                // Todo plan entregado: sin HARD, con la política y el ajustador de acuerdo y ≤ 17,5.
+                                // Todo plan entregado: sin HARD y ≤ 17,5 series PRINCIPALES de glúteos.
                                 val delivered = bandResult.program
                                 if (delivered != null) {
                                     val recipe = requireNotNull(delivered.sourceRecipe)
@@ -470,8 +470,8 @@ class PlanGenerationCoverageT006Test {
                                     }
                                     val glutes = bandResult.report.muscles
                                         .firstOrNull { it.muscle == VolumeSoftBand.GLUTES_MUSCLE }
-                                    if (glutes != null && glutes.directSets + glutes.indirectSets > 17.5 + 0.001) {
-                                        problems.add("$label: glúteos ${glutes.directSets + glutes.indirectSets} > techo blando 17,5")
+                                    if (glutes != null && glutes.directSets > 17.5 + 0.001) {
+                                        problems.add("$label: glúteos principales ${glutes.directSets} > techo blando 17,5")
                                     }
                                 }
                             }

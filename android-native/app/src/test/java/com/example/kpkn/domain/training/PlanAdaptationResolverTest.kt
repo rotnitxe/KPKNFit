@@ -6,7 +6,9 @@ import com.example.kpkn.data.models.CardioDetails
 import com.example.kpkn.data.models.CardioType
 import com.example.kpkn.data.models.EquipmentAvailability
 import com.example.kpkn.data.models.EquipmentCategory
+import com.example.kpkn.data.models.EquipmentInventory
 import com.example.kpkn.data.models.LoadQuantityConvention
+import com.example.kpkn.data.models.MachineLoadRange
 import com.example.kpkn.data.models.PowerliftingProfile
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.programs.CatalogLevel
@@ -1067,5 +1069,174 @@ class PlanAdaptationResolverTest {
         )
         assertEquals(sessionsOf(program).map { it.id }, sessionsOf(rebuilt).map { it.id })
         assertEquals(exercisesOf(program).map { it.id }, exercisesOf(rebuilt).map { it.id })
+    }
+
+    // ─── B.S6 parte 2b (H-08): las cuatro cadenas curadas de las altas M1 a M5 ───────────────────────────────
+    // Una técnica que pasó a ser configuración propia (agarre cerrado, pausa, inclinado) conserva las alternativas curadas de
+    // la configuración base de la que antes era un parche. Estos casos las afirman con el motor real y el catálogo publicado,
+    // en el orden exacto de la cadena y sin inventar ningún id.
+
+    /** Banca plana acreditada y rack negado, con las categorías pedidas además de los soportes (sin barra libre en ninguna). */
+    private fun benchNoRack(vararg categories: EquipmentCategory): Scenario = confirmed(
+        categories = setOf(EquipmentCategory.SUPPORT) + categories,
+        supports = mapOf(
+            EquipmentKeys.BENCH_FLAT to ApparatusPresence.PRESENT,
+            EquipmentKeys.SQUAT_RACK to ApparatusPresence.ABSENT,
+        ),
+    )
+
+    /** Máquina declarada en el inventario con su configuración exacta: acredita el token `machine_config:<id>` y nada más. */
+    private fun withDeclaredMachine(
+        categories: Set<EquipmentCategory>,
+        configurationId: String,
+        supports: Map<String, ApparatusPresence> = emptyMap(),
+    ): Scenario {
+        val availability = EquipmentAvailability(categories = categories, supports = supports)
+        val inventory = EquipmentInventory(
+            machines = listOf(MachineLoadRange(name = "Jalón", equipmentKind = "machine", configurationId = configurationId)),
+        )
+        return Scenario(
+            equipment = TrainingOptions(inventory = inventory, availability = availability).resolveEffectiveEquipment(emptySet()),
+            availability = availability,
+        )
+    }
+
+    private fun adaptedOf(scenario: Scenario, recipe: TrainingPlanRecipe): PlanAdaptationResult.Adapted {
+        val result = PlanAdaptationResolver.adapt(scenario.request(recipe))
+        assertTrue("Se espera adaptación tipada: $result", result is PlanAdaptationResult.Adapted)
+        return result as PlanAdaptationResult.Adapted
+    }
+
+    @Test
+    fun close_grip_bench_press_falls_to_dumbbells_then_smith_then_push_up_in_that_order() {
+        val original = accessoryRecipe("close_grip_bench_press__barbell", "s-cgbp")
+
+        val dumbbells = adaptedOf(benchNoRack(EquipmentCategory.DUMBBELLS), original).changes.single()
+        assertEquals("close_grip_bench_press__barbell", dumbbells.fromConfigurationId)
+        assertEquals("bench_press__dumbbells", dumbbells.toConfigurationId)
+        assertTrue(dumbbells.samePattern)
+
+        // La Smith (misma definición que la banca de barra) es la alternativa del mismo patrón cuando no hay barra, rack ni mancuernas.
+        val smith = adaptedOf(benchNoRack(EquipmentCategory.SMITH_MACHINE), original)
+        val smithChange = smith.changes.single()
+        assertEquals("close_grip_bench_press__barbell", smithChange.fromConfigurationId)
+        assertEquals("bench_press__smith_machine", smithChange.toConfigurationId)
+        assertTrue("Mismo patrón de empuje horizontal", smithChange.samePattern)
+        assertTrue("Nota de la cadena: ${smithChange.reason}", smithChange.reason.contains("Smith"))
+        assertEquals("bench_press__smith_machine", slotOf(smith.recipe).lift.configurationId)
+        assertNoH9Findings(smith.recipe)
+
+        // Es la ÚLTIMA alternativa del mismo patrón: con mancuernas y Smith gana la mancuerna.
+        val both = adaptedOf(benchNoRack(EquipmentCategory.DUMBBELLS, EquipmentCategory.SMITH_MACHINE), original).changes.single()
+        assertEquals("bench_press__dumbbells", both.toConfigurationId)
+
+        // Solo banca: reserva corporal con el cambio de patrón documentado.
+        val pushUp = adaptedOf(benchNoRack(), original).changes.single()
+        assertEquals("push_up__flat", pushUp.toConfigurationId)
+        assertFalse("Cambio de patrón documentado", pushUp.samePattern)
+
+        // La receta original queda intacta.
+        assertEquals("close_grip_bench_press__barbell", slotOf(original).lift.configurationId)
+    }
+
+    @Test
+    fun paused_back_squat_falls_to_goblet_then_smith_then_bodyweight_in_that_order() {
+        val original = accessoryRecipe("paused_back_squat__barbell", "s-pbs")
+
+        val goblet = adaptedOf(confirmed(setOf(EquipmentCategory.SUPPORT, EquipmentCategory.DUMBBELLS)), original).changes.single()
+        assertEquals("paused_back_squat__barbell", goblet.fromConfigurationId)
+        assertEquals("quads_sentadilla_copa__default", goblet.toConfigurationId)
+        assertTrue(goblet.samePattern)
+
+        // La Smith sustituye la sentadilla con pausa sin barra libre ni rack y sin mancuernas.
+        val smith = adaptedOf(confirmed(setOf(EquipmentCategory.SUPPORT, EquipmentCategory.SMITH_MACHINE)), original)
+        val smithChange = smith.changes.single()
+        assertEquals("paused_back_squat__barbell", smithChange.fromConfigurationId)
+        assertEquals("high_bar_back_squat__smith_machine", smithChange.toConfigurationId)
+        assertTrue("Mismo patrón de rodilla", smithChange.samePattern)
+        assertTrue("Nota de la cadena: ${smithChange.reason}", smithChange.reason.contains("Smith"))
+        assertEquals("high_bar_back_squat__smith_machine", slotOf(smith.recipe).lift.configurationId)
+        assertNoH9Findings(smith.recipe)
+
+        // Con mancuernas y Smith gana la copa: la Smith es la última alternativa de nivel 2.
+        val both = adaptedOf(
+            confirmed(setOf(EquipmentCategory.SUPPORT, EquipmentCategory.DUMBBELLS, EquipmentCategory.SMITH_MACHINE)),
+            original,
+        ).changes.single()
+        assertEquals("quads_sentadilla_copa__default", both.toConfigurationId)
+
+        // Sin ningún material externo: la reserva de peso corporal (nivel 3).
+        val bodyweight = adaptedOf(confirmed(setOf(EquipmentCategory.SUPPORT)), original).changes.single()
+        assertEquals("quads_sentadilla_sin_carga__default", bodyweight.toConfigurationId)
+        assertTrue(bodyweight.samePattern)
+    }
+
+    @Test
+    fun close_grip_lat_pulldown_falls_to_the_machine_then_pull_up_then_dumbbell_row_in_that_order() {
+        val original = accessoryRecipe("close_grip_lat_pulldown__cable", "s-cgpd")
+
+        // Sin polea pero con el jalón en máquina declarado con su configuración exacta: la máquina va primero, aunque haya barra.
+        val withMachine = withDeclaredMachine(
+            categories = setOf(EquipmentCategory.SUPPORT, EquipmentCategory.MACHINES, EquipmentCategory.PULL_UP_BAR),
+            configurationId = "lat_pulldown__bilateral__machine",
+            supports = mapOf(EquipmentKeys.PULLUP_BAR to ApparatusPresence.PRESENT),
+        )
+        val machine = adaptedOf(withMachine, original).changes.single()
+        assertEquals("close_grip_lat_pulldown__cable", machine.fromConfigurationId)
+        assertEquals("lat_pulldown__bilateral__machine", machine.toConfigurationId)
+        assertTrue("Mismo patrón de tracción vertical", machine.samePattern)
+
+        // Solo con la barra de dominadas: dominadas en pronación media.
+        val pullUp = adaptedOf(
+            confirmed(
+                categories = setOf(EquipmentCategory.SUPPORT, EquipmentCategory.PULL_UP_BAR),
+                supports = mapOf(EquipmentKeys.PULLUP_BAR to ApparatusPresence.PRESENT),
+            ),
+            original,
+        ).changes.single()
+        assertEquals("pull_up__pronated__medium", pullUp.toConfigurationId)
+        assertTrue(pullUp.samePattern)
+
+        // Sin máquina ni barra: reserva horizontal con mancuernas, con el cambio de patrón documentado.
+        val row = adaptedOf(
+            confirmed(
+                categories = setOf(EquipmentCategory.SUPPORT, EquipmentCategory.DUMBBELLS),
+                supports = mapOf(EquipmentKeys.PULLUP_BAR to ApparatusPresence.ABSENT),
+            ),
+            original,
+        ).changes.single()
+        assertEquals("conventional_row__dumbbells", row.toConfigurationId)
+        assertFalse("Tracción vertical a horizontal documentada", row.samePattern)
+    }
+
+    @Test
+    fun incline_biceps_curl_without_an_adjustable_bench_falls_to_the_seated_flat_bench_curl() {
+        val original = accessoryRecipe("incline_biceps_curl__dumbbells", "s-ibc")
+
+        // Mancuernas con banco plano y banco regulable negado: el curl sentado en banco plano conserva el patrón de flexión de codo.
+        val seated = adaptedOf(
+            confirmed(
+                categories = setOf(EquipmentCategory.SUPPORT, EquipmentCategory.DUMBBELLS),
+                supports = mapOf(
+                    EquipmentKeys.BENCH_FLAT to ApparatusPresence.PRESENT,
+                    EquipmentKeys.BENCH_ADJUSTABLE to ApparatusPresence.ABSENT,
+                ),
+            ),
+            original,
+        ).changes.single()
+        assertEquals("incline_biceps_curl__dumbbells", seated.fromConfigurationId)
+        assertEquals("biceps_curl_sentado_banco_plano__dumbbells", seated.toConfigurationId)
+        assertTrue(seated.samePattern)
+
+        // Sin mancuernas no hay reserva corporal inventada: falla tipado y el caller elige una estructura propia.
+        val failure = PlanAdaptationResolver.adapt(
+            confirmed(
+                categories = setOf(EquipmentCategory.SUPPORT),
+                supports = mapOf(EquipmentKeys.BENCH_ADJUSTABLE to ApparatusPresence.ABSENT),
+            ).request(original),
+        ) as PlanAdaptationResult.NotViable
+        assertEquals(PlanAdaptationReason.APPARATUS_ABSENT, failure.reason)
+        assertEquals("s-ibc", failure.slotId)
+        assertTrue(failure.detail.contains("Sin alternativa viable"))
     }
 }

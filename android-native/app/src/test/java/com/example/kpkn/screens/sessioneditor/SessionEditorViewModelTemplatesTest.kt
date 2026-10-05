@@ -3,6 +3,9 @@ package com.example.kpkn.screens.sessioneditor
 import android.app.Application
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
+import androidx.lifecycle.ViewModelStore
+import androidx.lifecycle.viewModelScope
+import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.Macrocycle
 import com.example.kpkn.data.models.Mesocycle
@@ -19,8 +22,10 @@ import com.example.kpkn.data.sessions.SessionTemplateKind
 import com.example.kpkn.data.sessions.SessionTemplatePublicationStatus
 import com.example.kpkn.data.sessions.SessionTemplateSourceType
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -42,26 +47,47 @@ class SessionEditorViewModelTemplatesTest {
 
     private val dispatcher = UnconfinedTestDispatcher()
     private lateinit var repository: ProgramRepository
+    private lateinit var viewModelStore: ViewModelStore
+    private val ownedViewModelJobs = mutableListOf<Job>()
+    private var nextViewModelKey = 0
 
     @Before
-    fun setup() = runBlocking {
+    fun setup(): Unit = runBlocking {
+        viewModelStore = ViewModelStore()
+        ownedViewModelJobs.clear()
+        nextViewModelKey = 0
         Dispatchers.setMain(dispatcher)
         val context = ApplicationProvider.getApplicationContext<Context>()
         SessionTemplateRepository.resetForTests()
         ProgramRepository.initForTests(context)
         repository = ProgramRepository.getInstance()
+        // The editor's template repository must share this fixture's Room instance.
+        setDatabaseSingletonForTest(repository.databaseForTests())
         repository.clearPrograms()
         repository.clearActiveProgram()
         repository.clearOngoingWorkout()
         withTimeout(10_000) {
             while (!repository.isReady.value) delay(25)
         }
+        withTimeout(10_000) {
+            SessionTemplateRepository.getInstance(context).isReady.first { it }
+        }
     }
 
     @After
-    fun tearDown() {
-        ProgramRepository.closeInstance()
-        Dispatchers.resetMain()
+    fun tearDown(): Unit = runBlocking {
+        try {
+            // Cancel and await only this fixture's ViewModels while Main and Room remain available.
+            if (this@SessionEditorViewModelTemplatesTest::viewModelStore.isInitialized) viewModelStore.clear()
+            withTimeout(10_000) {
+                ownedViewModelJobs.forEach { it.join() }
+            }
+            SessionTemplateRepository.resetForTests()
+            ProgramRepository.closeInstance()
+        } finally {
+            setDatabaseSingletonForTest(null)
+            Dispatchers.resetMain()
+        }
     }
 
     @Test
@@ -149,7 +175,16 @@ class SessionEditorViewModelTemplatesTest {
             draftMacroIndex = 0,
             draftMesoIndex = 0,
             draftDayOfWeek = null,
-        )
+        ).also { viewModel ->
+            viewModelStore.put("session-editor-${nextViewModelKey++}", viewModel)
+            viewModel.viewModelScope.coroutineContext[Job]?.let(ownedViewModelJobs::add)
+        }
+
+    private fun setDatabaseSingletonForTest(database: KpknDatabase?) {
+        KpknDatabase::class.java.getDeclaredField("INSTANCE").apply {
+            isAccessible = true
+        }.set(null, database)
+    }
 
     private suspend fun awaitSession(vm: SessionEditorViewModel) = vm.awaitSessionLoaded()
 

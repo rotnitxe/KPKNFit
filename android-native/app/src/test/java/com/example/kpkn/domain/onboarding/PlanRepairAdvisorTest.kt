@@ -315,6 +315,135 @@ class PlanRepairAdvisorTest {
         assertEquals(emptyList<PlanRepair>(), repairs)
     }
 
+    // ─── H5: de las llaves que acreditan un requisito se confirma la que sigue sin responder ──────
+
+    @Test
+    fun theFlatBenchDeniedAndTheAdjustableUnansweredProposesTheAdjustableBench() {
+        val availability = EquipmentAvailability(
+            categories = EquipmentCategory.entries.toSet(),
+            supports = mapOf("bench_flat" to ApparatusPresence.ABSENT),
+        )
+        val probe = Probe { probeRequest, tried ->
+            if (tried.presenceOf("squat_rack") == ApparatusPresence.PRESENT &&
+                tried.presenceOf("bench_adjustable") == ApparatusPresence.PRESENT
+            ) {
+                ready(probeRequest)
+            } else {
+                rejected(PlanRejectionReason.APPARATUS_UNKNOWN, missing = listOf("rack", "bench"))
+            }
+        }
+
+        val repairs = suggest(
+            request(PlanGoalProfile.STRENGTH),
+            rejected(PlanRejectionReason.APPARATUS_UNKNOWN, missing = listOf("rack", "bench")),
+            availability = availability,
+            probe = probe,
+        )
+
+        // «Banco plano = No» no se pisa: lo que se confirma es el regulable, que acredita el mismo requisito.
+        assertEquals(
+            listOf<PlanRepair>(PlanRepair.ConfirmApparatus(listOf("squat_rack", "bench_adjustable"), setOf(EquipmentCategory.SUPPORT))),
+            repairs,
+        )
+        val tried = probe.calls.single().second
+        assertEquals(ApparatusPresence.PRESENT, tried.presenceOf("bench_adjustable"))
+        assertEquals("la negativa de la persona sigue en pie", ApparatusPresence.ABSENT, tried.presenceOf("bench_flat"))
+    }
+
+    @Test
+    fun noRepairIsProposedWhenEveryKeyThatAttestsTheRequirementWasDenied() {
+        val availability = EquipmentAvailability(
+            categories = EquipmentCategory.entries.toSet(),
+            supports = mapOf(
+                "bench_flat" to ApparatusPresence.ABSENT,
+                "bench_adjustable" to ApparatusPresence.ABSENT,
+                "squat_rack" to ApparatusPresence.ABSENT,
+            ),
+        )
+        val probe = Probe { probeRequest, _ -> ready(probeRequest) }
+
+        listOf(listOf("bench"), listOf("rack"), listOf("rack", "bench")).forEach { missing ->
+            val repairs = suggest(
+                request(PlanGoalProfile.STRENGTH),
+                rejected(PlanRejectionReason.APPARATUS_UNKNOWN, missing = missing),
+                availability = availability,
+                probe = probe,
+            )
+            assertEquals("requisitos=$missing", emptyList<PlanRepair>(), repairs)
+        }
+        assertTrue("sin una llave sin responder no se prueba nada", probe.calls.isEmpty())
+    }
+
+    @Test
+    fun aRequirementWithOneUnansweredAndOneDeniedKeyConfirmsOnlyTheUnansweredOneAndKeepsTheOthers() {
+        val availability = EquipmentAvailability(
+            categories = EquipmentCategory.entries.toSet(),
+            supports = mapOf("bench_adjustable" to ApparatusPresence.ABSENT),
+        )
+        val probe = Probe { probeRequest, _ -> ready(probeRequest) }
+
+        val repairs = suggest(
+            request(PlanGoalProfile.STRENGTH),
+            rejected(PlanRejectionReason.APPARATUS_UNKNOWN, missing = listOf("bench", "bench_incline", "rack")),
+            availability = availability,
+            probe = probe,
+        )
+
+        // `bench` lo acreditan el plano (sin responder) y el regulable (negado): el plano. `bench_incline` solo lo
+        // acredita el regulable, negado: sin llave. `rack`: el rack de sentadilla.
+        assertEquals(
+            listOf<PlanRepair>(PlanRepair.ConfirmApparatus(listOf("bench_flat", "squat_rack"), setOf(EquipmentCategory.SUPPORT))),
+            repairs,
+        )
+    }
+
+    @Test
+    fun theConfirmableKeyIsTheFirstUnansweredOneAndNeverADeniedOrAlreadyConfirmedOne() {
+        // Sin respuestas manda el orden del panel: el banco plano antes que el regulable.
+        assertEquals("bench_flat", PlanRepairAdvisor.confirmableKeyFor("bench", null))
+        assertEquals("bench_flat", PlanRepairAdvisor.confirmableKeyFor("bench", everything))
+        assertEquals("bench_adjustable", PlanRepairAdvisor.confirmableKeyFor("bench_incline", everything))
+        assertEquals(listOf("bench_flat", "bench_adjustable"), PlanRepairAdvisor.keysAttesting("bench"))
+
+        fun withBenches(flat: ApparatusPresence?, adjustable: ApparatusPresence?) = EquipmentAvailability(
+            categories = EquipmentCategory.entries.toSet(),
+            supports = listOfNotNull(
+                flat?.let { "bench_flat" to it },
+                adjustable?.let { "bench_adjustable" to it },
+            ).toMap(),
+        )
+        assertEquals(
+            "plano negado, regulable sin responder",
+            "bench_adjustable",
+            PlanRepairAdvisor.confirmableKeyFor("bench", withBenches(ApparatusPresence.ABSENT, null)),
+        )
+        assertEquals(
+            "plano sin responder, regulable negado",
+            "bench_flat",
+            PlanRepairAdvisor.confirmableKeyFor("bench", withBenches(null, ApparatusPresence.ABSENT)),
+        )
+        assertNull(
+            "los dos negados",
+            PlanRepairAdvisor.confirmableKeyFor("bench", withBenches(ApparatusPresence.ABSENT, ApparatusPresence.ABSENT)),
+        )
+        assertNull(
+            "los dos ya confirmados: no hay nada que confirmar",
+            PlanRepairAdvisor.confirmableKeyFor("bench", withBenches(ApparatusPresence.PRESENT, ApparatusPresence.PRESENT)),
+        )
+        // Tokens de categoría, `machine` y desconocidos no tienen llave que confirmar.
+        listOf("barbell", "dumbbells", "machine", "token_inventado").forEach { token ->
+            assertNull(token, PlanRepairAdvisor.confirmableKeyFor(token, everything))
+        }
+        // Las configuraciones de máquina se resuelven por su id, con o sin el prefijo.
+        assertEquals("leg_press", PlanRepairAdvisor.confirmableKeyFor("machine_config:quads_prensa_piernas__bilateral", everything))
+        assertEquals("leg_press", PlanRepairAdvisor.confirmableKeyFor("quads_prensa_piernas__bilateral", everything))
+        // Varios requisitos: en el orden de los requisitos y sin repetir.
+        assertEquals(
+            listOf("squat_rack", "bench_flat"),
+            PlanRepairAdvisor.confirmableKeysFor(listOf("rack", "bench", "bench", "barbell"), everything),
+        )
+    }
+
     // ─── APPARATUS_ABSENT y PROFILE_MISMATCH: SwitchGoal ───────────────────────────────────────
 
     @Test

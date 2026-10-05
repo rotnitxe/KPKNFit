@@ -400,12 +400,26 @@ class SessionTemplateCatalogTest {
             val weeklyVol = VolumeCalculator.calculateCanonicalWeeklyMuscleVolumeForSessions(
                 sessions, exerciseDatabase, 1.0
             )
+            val weeklyRoles = VolumeCalculator.calculateRoleSeparatedMuscleVolume(
+                sessions, exerciseDatabase, divisor = 1.0,
+            )
+
+            if (split.id == "bro_split") {
+                val biceps = weeklyRoles["Bíceps"]
+                val total = weeklyVol.firstOrNull { it.muscleName == "Bíceps" }?.weeklySets
+                println(
+                    "[PRIMARY audit] ${split.name} Bíceps: total=$total, " +
+                        "primary=${biceps?.directSets}, secondary=${biceps?.secondarySets}, " +
+                        "stabilizer=${biceps?.stabilizerSets}, indirect=${biceps?.indirectSets}",
+                )
+            }
 
             weeklyVol.forEach { entry ->
                 val range = SessionTemplateCatalogPolicy.WEEKLY_VOLUME_RANGES[entry.muscleName]
                 if (range != null) {
-                    if (entry.weeklySets > range.endInclusive + 2.0) {
-                        failures += "El split '${split.name}' excede el volumen semanal óptimo para '${entry.muscleName}': ${entry.weeklySets} series (máx: ${range.endInclusive}) picked=$picked"
+                    val primarySets = weeklyRoles[entry.muscleName]?.directSets ?: 0.0
+                    if (primarySets > range.endInclusive + 2.0) {
+                        failures += "El split '${split.name}' excede el volumen semanal óptimo para '${entry.muscleName}': $primarySets series principales (${entry.weeklySets} totales; máx: ${range.endInclusive}) picked=$picked"
                     }
                 }
             }

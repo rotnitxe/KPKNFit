@@ -347,11 +347,11 @@ class SetupWizardActivationGateTest {
 
             assertEquals(
                 PlanRejectionReason.APPARATUS_ABSENT,
-                vm.apparatusReason("Esta receta necesita material: bench, machine", draft),
+                vm.apparatusReason(listOf("bench", "machine"), draft),
             )
             assertEquals(
                 PlanRejectionReason.APPARATUS_UNKNOWN,
-                vm.apparatusReason("Esta receta necesita material: machine", draft),
+                vm.apparatusReason(listOf("machine"), draft),
             )
 
             // Antes bastaba negar solo el banco plano para declarar `bench` ausente (ANY). Con ALL, el banco
@@ -363,7 +363,7 @@ class SetupWizardActivationGateTest {
             )
             assertEquals(
                 PlanRejectionReason.APPARATUS_UNKNOWN,
-                vm.apparatusReason("Esta receta necesita material: bench, machine", onlyFlatDenied),
+                vm.apparatusReason(listOf("bench", "machine"), onlyFlatDenied),
             )
         } finally {
             store.clear()
@@ -372,7 +372,7 @@ class SetupWizardActivationGateTest {
 
     /**
      * Paquete A · B1: la llave confirmable de un rechazo de aparatos sale de `missingRequirements` (tokens que
-     * informa el motor) y NO del texto del mensaje; el parseo del texto solo queda para rechazos sin lista.
+     * informa el motor) y NO del texto del mensaje; sin lista estructurada no se inventa una confirmación.
      */
     @Test
     fun apparatusRejectionsTakeTheConfirmableKeyFromMissingRequirementsInsteadOfTheMessage() = runTest(dispatcher.scheduler) {
@@ -403,11 +403,12 @@ class SetupWizardActivationGateTest {
             assertEquals(SetupCandidateRejectionStage.MATERIAL, unknown.stage)
             assertEquals(PlanRejectionReason.APPARATUS_UNKNOWN, unknown.reasonCode)
 
-            // Si el primer requisito no tiene llave (la barra es una categoría), se usa el primero que sí la tiene.
+            // Una ausencia no es confirmable, aunque el diagnóstico también nombre un soporte del panel.
             val mixed = vm.setupRejectionOf(
                 rejected(PlanRejectionReason.APPARATUS_ABSENT, "Falta barra y carga, rack.", listOf("barbell", "rack")),
             )
-            assertEquals("squat_rack", mixed.apparatusKey)
+            assertNull(mixed.apparatusKey)
+            assertFalse(mixed.needsApparatusConfirmation)
 
             // Solo una categoría: no hay llave que confirmar y NO se lee el mensaje, aunque nombre tokens tras «:».
             val categoryOnly = vm.setupRejectionOf(
@@ -415,14 +416,24 @@ class SetupWizardActivationGateTest {
             )
             assertNull(categoryOnly.apparatusKey)
             assertEquals(listOf("barbell"), categoryOnly.missingRequirements)
-            assertTrue(categoryOnly.needsApparatusConfirmation)
+            assertFalse(categoryOnly.needsApparatusConfirmation)
 
-            // Sin lista (ruta heredada de la excepción de fallo): se conserva el parseo del texto.
+            // Sin lista (ruta heredada): el mensaje puede mencionar un banco, pero no acredita una llave pendiente.
             val legacy = vm.setupRejectionOf(
                 rejected(PlanRejectionReason.APPARATUS_UNKNOWN, "Esta receta necesita material: bench", emptyList()),
             )
-            assertEquals("bench_flat", legacy.apparatusKey)
+            assertNull(legacy.apparatusKey)
+            assertFalse(legacy.needsApparatusConfirmation)
             assertTrue(legacy.missingRequirements.isEmpty())
+
+            listOf("ghd", "ab_wheel", "safety_bar", "hex_bar", "plate", "trx").forEach { token ->
+                assertEquals("$token no tiene confirmación disponible", PlanRejectionReason.APPARATUS_ABSENT,
+                    vm.apparatusReason(listOf(token), SetupWizardDraft()))
+                val unavailable = vm.setupRejectionOf(rejected(PlanRejectionReason.APPARATUS_ABSENT,
+                    "Este diagnóstico menciona: bench", listOf(token)))
+                assertNull("$token no inventa una llave", unavailable.apparatusKey)
+                assertFalse("$token no ofrece confirmar", unavailable.needsApparatusConfirmation)
+            }
 
             // Un motivo que no es de aparatos no lleva llave ni confirmación.
             val time = vm.setupRejectionOf(

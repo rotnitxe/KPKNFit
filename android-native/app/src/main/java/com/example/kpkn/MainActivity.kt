@@ -1193,7 +1193,12 @@ private fun KPKNNavGraph(
                 // E-18: desde la biblioteca de Inicio, «Configurar este plan» lleva el plan elegido al asistente
                 // (planId); el aviso de bienvenida lo abre sin plan (null).
                 onOpenSetupWizard = { planId ->
-                    navController.navigate(KpknRoute.SetupWizard.create(planId = planId)) { launchSingleTop = true }
+                    if (planId == null) {
+                        // El aviso de bienvenida: el alta completa, sin plan.
+                        navController.navigate(KpknRoute.SetupWizard.create()) { launchSingleTop = true }
+                    } else {
+                        openLibraryPlanInWizard(navController, planId)
+                    }
                 },
                 onOpenConcept = { conceptId ->
                     navController.navigate(KpknRoute.Concepts.create(conceptId))
@@ -1260,9 +1265,7 @@ private fun KPKNNavGraph(
                 },
                 // E-18: la biblioteca entrega el plan elegido (planes propios, de autor, plantillas y métodos) y el
                 // asistente lo guarda como intención con el objetivo prefijado.
-                onSelectPlan = { entry ->
-                    navController.navigate(KpknRoute.SetupWizard.create(planId = entry.id)) { launchSingleTop = true }
-                },
+                onSelectPlan = { entry -> openLibraryPlanInWizard(navController, entry.id) },
                 onOpenConcept = { conceptId ->
                     navController.navigate(KpknRoute.Concepts.create(conceptId))
                 },
@@ -1414,9 +1417,15 @@ private fun KPKNNavGraph(
                     navController.navigate(KpknRoute.Concepts.create(conceptId))
                 },
                 onDone = {
-                    navController.navigate(KpknRoute.Home.route) {
-                        popUpTo(KpknRoute.SetupEntry.route) { inclusive = true }
-                        launchSingleTop = true
+                    // H7: si Inicio ya está en la pila (el asistente se abrió desde la biblioteca, con el alta hecha), se
+                    // vuelve a él en lugar de apilar otro Inicio encima: así «Atrás» desde Inicio no regresa a un
+                    // asistente ya activado. Sin Inicio en la pila (el alta inicial: [SetupEntry, asistente]) se navega a
+                    // Inicio y se retira el arranque, como siempre.
+                    if (!navController.popBackStack(KpknRoute.Home.route, inclusive = false)) {
+                        navController.navigate(KpknRoute.Home.route) {
+                            popUpTo(KpknRoute.SetupEntry.route) { inclusive = true }
+                            launchSingleTop = true
+                        }
                     }
                 },
                 onCancel = { navController.popBackStack() },
@@ -1702,6 +1711,18 @@ private fun KPKNNavGraph(
             )
         }
     }
+}
+
+/**
+ * «Configurar este plan» desde la biblioteca (Planes e Inicio): lleva el plan elegido al asistente. Con el alta ya
+ * completada abre el asistente de SOLO entrenamiento (no vuelve a pedir nutrición ni Rings); con el alta incompleta, el
+ * completo. La regla es de [com.example.kpkn.navigation.PostDischargeRouting.libraryPlanRoute].
+ */
+private fun openLibraryPlanInWizard(navController: androidx.navigation.NavHostController, planId: String) {
+    val onboardingCompleted = ProgramRepository.getInstance().settings.value.onboardingCompleted
+    navController.navigate(
+        com.example.kpkn.navigation.PostDischargeRouting.libraryPlanRoute(onboardingCompleted, planId),
+    ) { launchSingleTop = true }
 }
 
 private fun createProgramAndOpen(navController: androidx.navigation.NavHostController) {

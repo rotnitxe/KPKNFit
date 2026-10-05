@@ -137,6 +137,11 @@ object AuthoredPlanMaterializer {
             reason,
             materialMessage(missing.flatMap { (_, verdict) -> verdict.missing }.toSet()),
             affectedSlots = missing.map { (configurationId, _) -> configurationId }.sorted(),
+            missingRequirements = missing.flatMap { (configurationId, verdict) ->
+                verdict.missing.map { token ->
+                    if (token == "machine") "machine_config:$configurationId" else token
+                }
+            }.distinct().sorted(),
         )
     }
 
@@ -188,8 +193,7 @@ object AuthoredPlanMaterializer {
                 PlanEvaluationStage.PROFILE to PlanRejectionReason.LEVEL_UNSUITABLE
         }
         val message = when (result.reason) {
-            // Los tokens van SIEMPRE tras el primer «:»: la UI los usa para el
-            // aviso «Falta confirmar …» (misma convención que la guardia fija).
+            // El mensaje es diagnóstico; la UI usa la lista estructurada de requisitos.
             PlanAdaptationReason.APPARATUS_ABSENT, PlanAdaptationReason.APPARATUS_UNKNOWN ->
                 if (result.missingRequirements.isNotEmpty()) {
                     materialMessage(result.missingRequirements)
@@ -212,6 +216,11 @@ object AuthoredPlanMaterializer {
             message,
             affectedSlots = affected,
             requiredMinutes = result.requiredMinutes,
+            missingRequirements = result.missingRequirements.map { token ->
+                if (token == "machine" && result.configurationId != null) {
+                    "machine_config:${result.configurationId}"
+                } else token
+            },
         )
     }
 

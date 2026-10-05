@@ -142,9 +142,11 @@ fun SetupWizardScreen(
                 )
                 // El aviso flota sobre el paso: no empuja la cabecera, la pregunta
                 // ni el botón. Sigue siendo descartable y reintenta la misma operación.
-                if (state.errors.isNotEmpty()) {
+                // H6: lo que el paso ya pinta por sí mismo (la lista de planes y el preview) no se repite aquí.
+                val floatingErrors = state.errors.filterKeys { key -> !stepRendersError(step, key) }
+                if (floatingErrors.isNotEmpty()) {
                     WizardInlineErrors(
-                        errors = state.errors,
+                        errors = floatingErrors,
                         onDismiss = viewModel::clearError,
                         retryFor = viewModel::retryOperationForError,
                         onRetry = { operation -> viewModel.retryFailedOperation(operation) },
@@ -156,6 +158,23 @@ fun SetupWizardScreen(
             }
         }
     }
+}
+
+/**
+ * H6: ¿el paso [step] ya pinta por sí mismo el error de clave [key] de `SetupWizardState.errors`? Si sí, el aviso
+ * flotante ([WizardInlineErrors]) no lo repite: antes pintaba TODO `errors` encima del paso y el mismo texto salía dos
+ * veces (en el paso y en el aviso, con su propio «Reintentar»).
+ *
+ *  - PLAN pinta `candidates` (la búsqueda que falló o «ningún plan viable») y `preview` (el error del programa de la
+ *    selección, encima de las tarjetas, con su «Reintentar»).
+ *  - TRAINING_REVIEW y la revisión final (REVIEW_ACTIVATE) pintan `preview` (sin programa preparado).
+ *
+ * Todo lo demás (guardado, activación, la clave `plan` de «Continuar»…) no lo pinta ningún paso y sigue en el aviso.
+ */
+internal fun stepRendersError(step: SetupStepId, key: String): Boolean = when (step) {
+    SetupStepId.PLAN -> key == "candidates" || key == "preview"
+    SetupStepId.TRAINING_REVIEW, SetupStepId.REVIEW_ACTIVATE -> key == "preview"
+    else -> false
 }
 
 /**

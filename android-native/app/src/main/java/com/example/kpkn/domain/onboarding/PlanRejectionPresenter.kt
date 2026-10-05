@@ -46,10 +46,25 @@ data class PresentationContext(
     val daysChosen: Int? = null,
     /** Disciplina del plan rechazado («powerlifting», «hipertrofia»…) para el motivo de perfil. */
     val disciplineLabelOf: (String?) -> String? = { null },
-    /** Nombre de una llave del panel de material; por defecto, la etiqueta curada del propio panel. */
-    val apparatusLabelOf: (String) -> String? = { key -> PlanRejectionPresenter.panelLabelOf(key) },
+    /**
+     * Nombre de una llave del panel de material; por defecto, el nombre corto del botón de un toque
+     * ([PlanRejectionPresenter.shortLabelOf]: «rack», «banco», «banco regulable»…), de modo que el texto y el botón
+     * dicen lo mismo con las mismas palabras.
+     */
+    val apparatusLabelOf: (String) -> String? = { key -> PlanRejectionPresenter.shortLabelOf(key) },
     /** Días por semana que el plan rechazado admite (un solo valor para los planes de autor). */
     val planDaysOf: (String?) -> IntRange? = { null },
+    /**
+     * Llave del panel que confirma un requisito de material (`bench`, `rack`…). Por defecto la primera que lo
+     * acredita ([SetupApparatusPanel.keyForToken]); el asistente pasa la que sigue SIN responder
+     * ([PlanRepairAdvisor.confirmableKeyFor]), la misma que confirma el botón de un toque, para que el texto y el
+     * botón nombren siempre el mismo requisito («banco» o «banco regulable» si el plano ya se negó).
+     */
+    val apparatusKeyOf: (String) -> String? = { token -> SetupApparatusPanel.keyForToken(token) },
+    /** Plan propio del objetivo elegido (el que la persona espera ver); null = no se conoce. */
+    val ownPlanId: String? = null,
+    /** Perfil del objetivo elegido; con [ownPlanId] decide el texto del rechazo de perfil del plan propio. */
+    val goalProfile: PlanGoalProfile? = null,
 )
 
 /** Botón de un rechazo. La UI decide qué hace cada uno con la API del wizard; [label] es su texto. */
@@ -106,6 +121,14 @@ object PlanRejectionPresenter {
 
     /** Fallo interno del motor al preparar el plan (composición, materialización, carga, configuración). */
     const val INTERNAL_TEXT: String = "Algo falló al preparar este plan. Tus respuestas no cambian."
+
+    /**
+     * Rechazo de perfil del plan PROPIO de Fuerza y músculo (r2 §11.1): sin barra con rack y banco ni mancuernas, la
+     * frase genérica de disciplina («Este plan es de …; tu objetivo es …») no explica nada; se dice el requisito, con
+     * «pesas» y no con el término técnico. Es la única fuente de este texto: el asistente no lo reescribe.
+     */
+    const val OWN_POWERBUILDING_TEXT: String =
+        "Fuerza y músculo necesita pesas en los ejercicios principales: barra con rack y banco, o mancuernas."
 
     /**
      * El rechazo más accionable de [rejections], o null si la lista está vacía. Orden de preferencia, y a igual
@@ -168,6 +191,13 @@ object PlanRejectionPresenter {
     /** Etiqueta curada del panel de material para [key] («Rack de sentadilla»), o null si no es una llave del panel. */
     fun panelLabelOf(key: String): String? = PANEL_LABELS[key]
 
+    /**
+     * Nombre corto de una llave del panel («rack», «banco», «banco regulable», «barra baja»): el del botón de un toque
+     * («Sí, tengo rack y banco») y, con las mismas palabras, el del texto («Falta confirmar si tienes rack y banco»).
+     * Las llaves sin nombre corto usan la etiqueta del panel en minúscula; null si [key] no es una llave del panel.
+     */
+    fun shortLabelOf(key: String): String? = SHORT_LABELS[key] ?: panelLabelOf(key)?.lowercaseFirst()
+
     // ─── Motivos ───────────────────────────────────────────────────────────────────────────────
 
     private fun catalogError() = RejectionPresentation(CATALOG_TEXT, RejectionAction.Retry)
@@ -182,6 +212,13 @@ object PlanRejectionPresenter {
     }
 
     private fun profileMismatchText(rejection: RejectionView, context: PresentationContext): String {
+        // El plan propio de Fuerza y músculo se rechaza por perfil cuando no hay resistencia externa: ahí se dice el
+        // requisito en lugar de la frase de disciplina.
+        if (rejection.planId != null && rejection.planId == context.ownPlanId &&
+            context.goalProfile == PlanGoalProfile.STRENGTH_MUSCLE
+        ) {
+            return OWN_POWERBUILDING_TEXT
+        }
         val discipline = context.disciplineLabelOf(rejection.planId)?.lowercaseFirst()
         val goal = context.goalLabel?.lowercaseFirst()
         return when {
@@ -218,8 +255,7 @@ object PlanRejectionPresenter {
         } else {
             "Falta confirmar si tienes ${joinSpanish(labels)}."
         }
-        val canConfirm = rejection.needsApparatusConfirmation || rejection.apparatusKey != null ||
-            rejection.missingRequirements.any { SetupApparatusPanel.keyForToken(it) != null }
+        val canConfirm = rejection.apparatusKey?.let(::panelLabelOf) != null
         return RejectionPresentation(
             text,
             if (canConfirm) RejectionAction.ConfirmApparatus else RejectionAction.SeeAlternatives,
@@ -235,7 +271,13 @@ object PlanRejectionPresenter {
         } else {
             "Este plan necesita ${joinSpanish(labels)}, que dijiste que no tienes."
         }
-        return RejectionPresentation(text, RejectionAction.ConfirmApparatus, RejectionAction.SeeAlternatives)
+        val canReview = rejection.apparatusKey?.let(::panelLabelOf) != null ||
+            rejection.missingRequirements.any { SetupApparatusPanel.keyForToken(it) != null }
+        return if (canReview) {
+            RejectionPresentation(text, RejectionAction.ConfirmApparatus, RejectionAction.SeeAlternatives)
+        } else {
+            RejectionPresentation(text, RejectionAction.SeeAlternatives)
+        }
     }
 
     private fun timeBudget(rejection: RejectionView, context: PresentationContext): RejectionPresentation {
@@ -263,7 +305,7 @@ object PlanRejectionPresenter {
      */
     private fun apparatusLabels(rejection: RejectionView, context: PresentationContext): List<String> {
         val fromRequirements = rejection.missingRequirements.mapNotNull { token ->
-            SetupApparatusPanel.keyForToken(token)?.let(context.apparatusLabelOf) ?: TOKEN_LABELS[token]
+            context.apparatusKeyOf(token)?.let(context.apparatusLabelOf) ?: TOKEN_LABELS[token]
         }
         val labels = fromRequirements.ifEmpty { listOfNotNull(rejection.apparatusKey?.let(context.apparatusLabelOf)) }
         return labels.map { it.lowercaseFirst() }.distinct()
@@ -290,6 +332,21 @@ object PlanRejectionPresenter {
         "cable" to "poleas",
         "ball" to "balón",
         "support" to "apoyo estable",
+    )
+
+    /**
+     * Nombres cortos de las llaves del panel (decisión D5 del dueño: «Sí, tengo rack y banco»). Las demás llaves usan
+     * la etiqueta del panel en minúscula ([shortLabelOf]).
+     */
+    private val SHORT_LABELS: Map<String, String> = mapOf(
+        "squat_rack" to "rack",
+        "bench_flat" to "banco",
+        "bench_adjustable" to "banco regulable",
+        "preacher_bench" to "banco predicador",
+        "pullup_bar" to "barra de dominadas",
+        "dip_bars" to "paralelas",
+        "low_bar_support" to "barra baja",
+        "ez_bar" to "barra EZ",
     )
 
     private val PANEL_LABELS: Map<String, String> by lazy {

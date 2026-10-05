@@ -601,8 +601,20 @@ object NativeProfileCalendars {
      * dedicado de cardio; ≥2 días = al menos dos exposiciones de potencia y
      * resistencia en días distintos.
      */
-    fun athlete(days: Int, pullAvailable: Boolean): List<NativeDayArchetype> = when (days) {
-        1 -> listOf(if (pullAvailable) X1 else X1_NP)
+    fun athlete(
+        days: Int,
+        pullAvailable: Boolean,
+        horizontalPullAvailable: Boolean = pullAvailable,
+    ): List<NativeDayArchetype> = when (days) {
+        // A.B3/C1: con solo tirón vertical real el slot R no existe. Se conserva la intención y su dosis
+        // usando V en X1; no se pierde la exposición H ni se cambia potencia, fuerza o cardio.
+        1 -> listOf(
+            if (!pullAvailable) X1_NP else if (!horizontalPullAvailable) {
+                X1.copy(slots = X1.slots.map { slot ->
+                    if (slot.key == NativeSlotKey.R) slot.copy(key = NativeSlotKey.V) else slot
+                })
+            } else X1,
+        )
         2 -> listOf(if (pullAvailable) XA_CARDIO else XA_NP_CARDIO, if (pullAvailable) XB_CARDIO else XB_NP_CARDIO)
         3 -> listOf(if (pullAvailable) XA else XA_NP, if (pullAvailable) XB else XB_NP, X_ACC_U_C)
         4 -> listOf(

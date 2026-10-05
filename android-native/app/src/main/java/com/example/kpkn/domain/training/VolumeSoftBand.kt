@@ -7,7 +7,7 @@ import kotlin.math.roundToLong
 /**
  * B-02 (cierre 2026-10-02): holgura semanal de los glúteos sobre su límite.
  *
- * El límite normal sigue siendo el MRV global de [VolumeLandmarks] (16 series por
+ * El límite normal sigue siendo el MRV global de [VolumeLandmarks] (16 series PRINCIPALES por
  * semana) y NO se modifica. La banda añade 1,5 series (≈ 9 %), así que el techo
  * blando es 17,5:
  *
@@ -35,7 +35,7 @@ enum class VolumeBand {
 
 /**
  * Un músculo cuyo volumen semanal quedó en la banda de «volumen alto» de un plan entregado.
- * [weeklySets] es el máximo semanal del plan; [recommendedSets] el límite normal y
+ * [weeklySets] es el máximo semanal de series PRINCIPALES del plan; [recommendedSets] el límite normal y
  * [ceilingSets] el techo blando.
  */
 data class HighVolumeNotice(
@@ -44,9 +44,9 @@ data class HighVolumeNotice(
     val recommendedSets: Int,
     val ceilingSets: Double,
 ) {
-    /** Nota en lenguaje llano: «Glúteos 17 series (recomendado 16, tolerancia hasta 17,5)». */
+    /** Nota en lenguaje llano: «Glúteos 17 series principales (recomendado 16, tolerancia hasta 17,5)». */
     val message: String
-        get() = "$muscle ${VolumeSoftBand.formatSets(weeklySets)} series " +
+        get() = "$muscle ${VolumeSoftBand.formatSets(weeklySets)} series principales " +
             "(recomendado $recommendedSets, tolerancia hasta ${VolumeSoftBand.formatSets(ceilingSets)})"
 }
 
@@ -86,7 +86,7 @@ object VolumeSoftBand {
     /**
      * Aviso de «volumen alto» si [weeklySets] del [muscle] pasa su [limit] sin superar su techo
      * blando; null si cabe en el límite, si lo supera de verdad o si el músculo no tiene banda.
-     * La comparación admite el ruido decimal de las sumas de series indirectas.
+     * La comparación admite el ruido decimal del conteo de series principales.
      */
     fun noticeOrNull(
         muscle: String,

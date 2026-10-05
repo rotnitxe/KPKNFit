@@ -29,6 +29,7 @@ import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogStateV2
 import com.example.kpkn.domain.onboarding.AuthoredPlanFixtures
 import com.example.kpkn.domain.onboarding.PlanEvaluationStage
 import com.example.kpkn.domain.onboarding.PlanMaterializationException
+import com.example.kpkn.domain.onboarding.PlanRejectionPresenter
 import com.example.kpkn.domain.onboarding.PlanRejectionReason
 import com.example.kpkn.domain.onboarding.PlanRepair
 import com.example.kpkn.domain.onboarding.RejectionAction
@@ -252,10 +253,10 @@ class SetupWizardCandidateGateTest {
 
         fun RejectionNotice.act(): RejectionAction? = (primary?.effect as? NoticeEffect.Act)?.action
 
-        // Material por confirmar: nombra la llave con la etiqueta del panel («rack de sentadilla») y lleva al panel.
+        // Material por confirmar: nombra la llave con su nombre corto («rack», el mismo del botón de un toque) y lleva al panel.
         val unknown = noticeOf(PlanRejectionReason.APPARATUS_UNKNOWN, key = "squat_rack")
         assertTrue(unknown.text.startsWith(DROPPED_SELECTION_LEAD))
-        assertTrue(unknown.text, unknown.text.contains("Falta confirmar si tienes rack de sentadilla."))
+        assertTrue(unknown.text, unknown.text.contains("Falta confirmar si tienes rack."))
         assertFalse("nunca la llave cruda: ${unknown.text}", unknown.text.contains("squat_rack"))
         assertEquals(RejectionAction.ConfirmApparatus, unknown.act())
         assertEquals("Confirmar material", unknown.primary?.label)
@@ -265,12 +266,17 @@ class SetupWizardCandidateGateTest {
         assertFalse(unmapped.text, unmapped.text.contains("llave_que_no_existe"))
         assertTrue(unmapped.text, unmapped.text.contains("Falta confirmar si tienes todo el material de este plan."))
 
-        // Material declarado ausente: «Confirmar material» y, con las alternativas a la vista, «Ver alternativas».
+        // Sin requisito ni llave revisable no se ofrece una confirmación de material imposible.
         val absent = noticeOf(PlanRejectionReason.APPARATUS_ABSENT)
         assertTrue(absent.text, absent.text.contains("Este plan necesita material que dijiste que no tienes."))
-        assertEquals(RejectionAction.ConfirmApparatus, absent.act())
-        assertEquals("Ver alternativas", absent.secondary?.label)
-        assertEquals(NoticeEffect.Act(RejectionAction.SeeAlternatives), absent.secondary?.effect)
+        assertEquals(RejectionAction.SeeAlternatives, absent.act())
+        assertNull(absent.secondary)
+        // Una llave real permite revisar la respuesta sobre ese aparato y ver alternativas.
+        val absentRack = noticeOf(PlanRejectionReason.APPARATUS_ABSENT, key = "squat_rack")
+        assertTrue(absentRack.text, absentRack.text.contains("Este plan necesita rack, que dijiste que no tienes."))
+        assertEquals(RejectionAction.ConfirmApparatus, absentRack.act())
+        assertEquals("Ver alternativas", absentRack.secondary?.label)
+        assertEquals(NoticeEffect.Act(RejectionAction.SeeAlternatives), absentRack.secondary?.effect)
 
         // Tiempo: el presentador dice los minutos EXACTOS y el botón los aplica («Ajustar a N min»).
         val time = noticeOf(PlanRejectionReason.TIME_BUDGET, requiredMinutes = 75)
@@ -319,13 +325,13 @@ class SetupWizardCandidateGateTest {
     fun theDroppedSelectionNoticeOffersTheOwnPlanRepairWhenItsRejectionCarriesOne() {
         val draft = SetupWizardDraft(goal = SetupGoal.STRENGTH, daysPerWeek = 3, minutesPerSession = 60)
         val repair = PlanRepair.ConfirmApparatus(listOf("squat_rack", "bench_flat"), setOf(EquipmentCategory.SUPPORT))
-        val own = rejected("native:strength-foundation-v2", PlanRejectionReason.APPARATUS_UNKNOWN)
+        val own = rejected("native:strength-foundation-v2", PlanRejectionReason.APPARATUS_UNKNOWN, apparatusKey = "squat_rack")
             .copy(missingRequirements = listOf("rack", "bench"), repairs = listOf(repair))
 
         val notice = droppedSelectionNotice(SetupDroppedSelection(own.planId!!, "Fuerza", own), draft)
 
         assertTrue(notice.text, notice.text.startsWith(DROPPED_SELECTION_LEAD))
-        assertTrue(notice.text, notice.text.contains("Falta confirmar si tienes rack de sentadilla y banco plano."))
+        assertTrue(notice.text, notice.text.contains("Falta confirmar si tienes rack y banco."))
         // D5: el botón principal es la reparación de un toque y la navegación equivalente pasa a secundaria.
         assertEquals("Sí, tengo rack y banco", notice.primary?.label)
         assertEquals(NoticeEffect.Apply(listOf(repair)), notice.primary?.effect)
@@ -359,12 +365,190 @@ class SetupWizardCandidateGateTest {
         assertTrue("selección viable: avanza", gate().isEmpty())
         assertEquals(mapOf("plan" to PLAN_SELECTION_REQUIRED_MESSAGE), gate(selected = "native:zzz"))
         assertEquals("lista vacía", mapOf("plan" to PLAN_SELECTION_REQUIRED_MESSAGE), gate(cards = emptyList()))
-        assertEquals("lista calculándose", mapOf("plan" to PLAN_SELECTION_REQUIRED_MESSAGE), gate(loading = true))
+        assertEquals("lista calculándose", mapOf("plan" to PLAN_CANDIDATES_LOADING_MESSAGE), gate(loading = true))
         assertEquals("Elige un plan de la lista para continuar", PLAN_SELECTION_REQUIRED_MESSAGE)
         // Sin plan elegido habla la validación del paso; otros pasos y la ruta «desde cero» no usan la puerta.
         assertTrue(gate(selected = null).isEmpty())
         assertTrue(gate(step = SetupStepId.SPLIT, selected = "native:zzz").isEmpty())
         assertTrue(gate(path = SetupTrainingPath.FROM_SCRATCH, cards = emptyList()).isEmpty())
+    }
+
+    @Test
+    fun whileTheListIsLoadingTheGateSaysItIsReviewingThePlansInsteadOfAskingToChooseOne() {
+        // H9: con la lista calculándose no se puede pedir «elige un plan de la lista»: todavía no hay lista.
+        assertEquals(
+            "Estamos revisando los planes; vuelve a tocar Continuar en un momento",
+            PLAN_CANDIDATES_LOADING_MESSAGE,
+        )
+        fun gate(loading: Boolean, cards: List<SetupPlanCandidate>, selected: String? = "native:a") = planSelectionGate(
+            SetupWizardState(
+                draft = SetupWizardDraft(selectedCatalogId = selected, trainingPath = SetupTrainingPath.PERSONALIZE),
+                availablePlanCandidates = cards,
+                isCandidateLoading = loading,
+            ),
+            SetupStepId.PLAN,
+        )
+
+        assertEquals(mapOf("plan" to PLAN_CANDIDATES_LOADING_MESSAGE), gate(loading = true, cards = listOf(card("native:a"))))
+        assertEquals(
+            "calculándose y con la lista aún vacía",
+            mapOf("plan" to PLAN_CANDIDATES_LOADING_MESSAGE),
+            gate(loading = true, cards = emptyList()),
+        )
+        // Con la lista lista, el mensaje vuelve a ser el de elegir un plan viable.
+        assertEquals(mapOf("plan" to PLAN_SELECTION_REQUIRED_MESSAGE), gate(loading = false, cards = listOf(card("native:b"))))
+        assertTrue(gate(loading = false, cards = listOf(card("native:a"))).isEmpty())
+        // Sin plan elegido no hay nada que decir de la carga: habla la validación del paso.
+        assertTrue(gate(loading = true, cards = emptyList(), selected = null).isEmpty())
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // H6 — el aviso flotante no repite lo que el paso ya pinta (función pura)
+    // ═════════════════════════════════════════════════════════════════════════
+
+    @Test
+    fun theFloatingErrorsSkipWhatTheStepAlreadyPaintsAndKeepEverythingElse() {
+        // El paso PLAN pinta la búsqueda (`candidates`) y el preview de la selección (`preview`).
+        assertTrue(stepRendersError(SetupStepId.PLAN, "candidates"))
+        assertTrue(stepRendersError(SetupStepId.PLAN, "preview"))
+        // La revisión del entreno y la final pintan el preview.
+        assertTrue(stepRendersError(SetupStepId.TRAINING_REVIEW, "preview"))
+        assertTrue(stepRendersError(SetupStepId.REVIEW_ACTIVATE, "preview"))
+        // Lo demás no lo pinta ningún paso y sigue en el aviso flotante: guardado, activación, la puerta de «Continuar»…
+        listOf("save", "commit", "plan", "initialize", "program", "review", "profile", "time", "schedule").forEach { key ->
+            assertFalse("PLAN no pinta «$key»", stepRendersError(SetupStepId.PLAN, key))
+            assertFalse("TRAINING_REVIEW no pinta «$key»", stepRendersError(SetupStepId.TRAINING_REVIEW, key))
+            assertFalse("REVIEW_ACTIVATE no pinta «$key»", stepRendersError(SetupStepId.REVIEW_ACTIVATE, key))
+        }
+        // El preview y la búsqueda de planes solo los pinta su paso: en cualquier otro siguen en el aviso.
+        SetupStepId.entries.filter { it != SetupStepId.PLAN && it != SetupStepId.TRAINING_REVIEW && it != SetupStepId.REVIEW_ACTIVATE }
+            .forEach { step ->
+                assertFalse("$step no pinta «preview»", stepRendersError(step, "preview"))
+                assertFalse("$step no pinta «candidates»", stepRendersError(step, "candidates"))
+            }
+        assertFalse("la revisión del entreno no pinta la búsqueda", stepRendersError(SetupStepId.TRAINING_REVIEW, "candidates"))
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // H10 — el error del preview que lee la persona (función pura)
+    // ═════════════════════════════════════════════════════════════════════════
+
+    @Test
+    fun thePreviewFailureTextNeverIsTheRawEngineMessageForCatalogAndInternalFailures() {
+        val raw = "RAW-ENGINE-TEXT machine_config:quads_prensa_piernas__bilateral falló en com.example.Clase"
+        fun typed(reason: PlanRejectionReason) =
+            PlanMaterializationException(PlanEvaluationStage.MATERIALIZATION, reason, raw)
+
+        // Catálogo que no quedó listo: el texto del presentador único.
+        assertEquals(PlanRejectionPresenter.CATALOG_TEXT, previewFailureText(typed(PlanRejectionReason.CATALOG_NOT_READY)))
+        // Fallos internos tipados y errores sin tipar: «Algo falló al preparar este plan…».
+        listOf(
+            PlanRejectionReason.INTERNAL_MATERIALIZATION,
+            PlanRejectionReason.UNRESOLVED_CONFIGURATION,
+            PlanRejectionReason.COMPOSITION,
+            PlanRejectionReason.LOAD_BASIS_UNREPRESENTABLE,
+        ).forEach { reason ->
+            assertEquals("$reason", PlanRejectionPresenter.INTERNAL_TEXT, previewFailureText(typed(reason)))
+        }
+        listOf(
+            IllegalStateException(raw),
+            RuntimeException(raw),
+            NullPointerException(),
+            IllegalArgumentException(null as String?),
+        ).forEach { error ->
+            assertEquals(error.javaClass.simpleName, PlanRejectionPresenter.INTERNAL_TEXT, previewFailureText(error))
+        }
+        listOf(
+            previewFailureText(typed(PlanRejectionReason.CATALOG_NOT_READY)),
+            previewFailureText(typed(PlanRejectionReason.INTERNAL_MATERIALIZATION)),
+            previewFailureText(IllegalStateException(raw)),
+        ).forEach { shown ->
+            assertFalse("«$shown» lleva el texto crudo", shown.contains("RAW-ENGINE-TEXT") || shown.contains("machine_config"))
+        }
+    }
+
+    @Test
+    fun thePreviewFailureTextKeepsTheStructuredCauseWithoutShowingRawTokensOrDiagnostics() {
+        val message = "RAW-ENGINE-TEXT machine_config:quads_prensa_piernas__bilateral\nDiagnóstico W6 slot=private-id"
+        listOf(
+            PlanRejectionReason.APPARATUS_UNKNOWN,
+            PlanRejectionReason.APPARATUS_ABSENT,
+            PlanRejectionReason.TIME_BUDGET,
+            PlanRejectionReason.PROFILE_MISMATCH,
+            PlanRejectionReason.FREQUENCY,
+            PlanRejectionReason.SPLIT,
+            PlanRejectionReason.LEVEL_UNSUITABLE,
+            PlanRejectionReason.NO_VALID_SUBSTITUTION,
+            PlanRejectionReason.RECIPE_UNAVAILABLE,
+        ).forEach { reason ->
+            val error = PlanMaterializationException(PlanEvaluationStage.MATERIAL, reason, message,
+                requiredMinutes = 75, missingRequirements = listOf("rack"))
+            val shown = previewFailureText(error)
+            assertTrue("$reason tiene causa comprensible", shown.isNotBlank())
+            listOf("RAW-ENGINE-TEXT", "machine_config", "quads_prensa", "Diagnóstico", "private-id", "W6").forEach { raw ->
+                assertFalse("$reason muestra $raw en «$shown»", raw in shown)
+            }
+        }
+        val draft = SetupWizardDraft(goal = SetupGoal.STRENGTH, daysPerWeek = 3, minutesPerSession = 60)
+        assertEquals("Falta confirmar si tienes rack.", previewFailureText(
+            PlanMaterializationException(PlanEvaluationStage.MATERIAL, PlanRejectionReason.APPARATUS_UNKNOWN,
+                message, missingRequirements = listOf("rack")), draft))
+        assertEquals("Este plan necesita mancuernas, que dijiste que no tienes.", previewFailureText(
+            PlanMaterializationException(PlanEvaluationStage.MATERIAL, PlanRejectionReason.APPARATUS_ABSENT,
+                message, missingRequirements = listOf("dumbbells")), draft))
+        assertEquals("Con las series mínimas este plan necesita 75 min por sesión y elegiste 60.", previewFailureText(
+            PlanMaterializationException(PlanEvaluationStage.SESSION_DURATION, PlanRejectionReason.TIME_BUDGET,
+                message, requiredMinutes = 75), draft))
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // H2 (b) — el motivo que explica por qué el planificador excluyó un plan (función pura)
+    // ═════════════════════════════════════════════════════════════════════════
+
+    @Test
+    fun theSynthesizedRejectionExplainsTheFrequencyFirstAndThenTheGoal() {
+        val fourDayMethod = checkNotNull(
+            com.example.kpkn.data.programs.PersonalizedPlanCatalog.find(
+                com.example.kpkn.data.protocols.definitions.AuthoredPhulPhatRecipes.PHUL_ORIGINAL_ID,
+            ),
+        )
+        val strengthOwn = checkNotNull(
+            com.example.kpkn.data.programs.PersonalizedPlanCatalog.find(
+                com.example.kpkn.data.protocols.definitions.NativeProfileKind.STRENGTH.entryId,
+            ),
+        )
+
+        // Días: el plan usa 4 y la persona eligió 3.
+        val frequency = checkNotNull(
+            synthesizedRejectionFor(fourDayMethod, SetupWizardDraft(goal = SetupGoal.MUSCLE, daysPerWeek = 3)),
+        )
+        assertEquals(PlanRejectionReason.FREQUENCY, frequency.reasonCode)
+        assertEquals(SetupCandidateRejectionStage.FREQUENCY, frequency.stage)
+        assertEquals(fourDayMethod.id, frequency.planId)
+        // Las dos cosas a la vez: manda la frecuencia, como en los filtros del planificador.
+        assertEquals(
+            PlanRejectionReason.FREQUENCY,
+            synthesizedRejectionFor(strengthOwn, SetupWizardDraft(goal = SetupGoal.MUSCLE, daysPerWeek = 7))?.reasonCode,
+        )
+        // Objetivo: el plan propio de Fuerza no sirve a Músculo.
+        val profile = checkNotNull(
+            synthesizedRejectionFor(strengthOwn, SetupWizardDraft(goal = SetupGoal.MUSCLE, daysPerWeek = 3)),
+        )
+        assertEquals(PlanRejectionReason.PROFILE_MISMATCH, profile.reasonCode)
+        assertEquals(SetupCandidateRejectionStage.PROFILE, profile.stage)
+        // Ni lo uno ni lo otro: no hay motivo que sintetizar.
+        assertNull(synthesizedRejectionFor(fourDayMethod, SetupWizardDraft(goal = SetupGoal.MUSCLE, daysPerWeek = 4)))
+        assertNull(synthesizedRejectionFor(strengthOwn, SetupWizardDraft(goal = SetupGoal.STRENGTH, daysPerWeek = 3)))
+        // Sin días elegidos y sin objetivo (o con uno legacy) tampoco.
+        assertNull(synthesizedRejectionFor(strengthOwn, SetupWizardDraft(goal = null, daysPerWeek = null)))
+        assertNull(synthesizedRejectionFor(strengthOwn, SetupWizardDraft(goal = SetupGoal.HEALTH, daysPerWeek = 3)))
+        // El texto crudo nunca se pinta: el presentador lo escribe con las respuestas de la persona.
+        val notice = droppedSelectionNotice(
+            SetupDroppedSelection(fourDayMethod.id, fourDayMethod.displayName, frequency),
+            SetupWizardDraft(goal = SetupGoal.MUSCLE, daysPerWeek = 3, minutesPerSession = 60),
+        )
+        assertEquals("$DROPPED_SELECTION_LEAD Este plan usa 4 días distintos; elegiste 3 días.", notice.text)
+        assertEquals("Cambiar días", notice.primary?.label)
     }
 
     // ═════════════════════════════════════════════════════════════════════════

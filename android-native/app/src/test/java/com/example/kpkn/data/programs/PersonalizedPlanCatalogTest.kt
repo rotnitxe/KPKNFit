@@ -29,6 +29,46 @@ class PersonalizedPlanCatalogTest {
     private fun personalizer() = SimpleCyclePersonalizer(InMemoryExerciseCatalogRepositoryV2(catalog).also { runBlocking { it.load() } })
 
     @Test
+    fun legacy_volume_cap_uses_primary_and_keeps_stabilizer_totals_in_the_report() {
+        fun withNeckRole(primary: Boolean) = catalog.copy(families = catalog.families.map { family ->
+            family.copy(definitions = family.definitions.map { definition ->
+                definition.copy(configurations = definition.configurations.map { configuration ->
+                    val profile = configuration.profile
+                    configuration.copy(profile = profile.copy(
+                        primaryMuscles = (profile.primaryMuscles.filterNot { it == "neck" } + if (primary) listOf("neck") else emptyList()).distinct(),
+                        secondaryMuscles = profile.secondaryMuscles.filterNot { it == "neck" },
+                        stabilizerMuscles = (profile.stabilizerMuscles.filterNot { it == "neck" } + if (primary) emptyList() else listOf("neck")).distinct(),
+                    ))
+                })
+            })
+        })
+        val input = PersonalizerInput(
+            "native:machine-muscle", TrainingFocus.FULL_BODY, 2,
+            equipment = setOf("machine"), level = CatalogLevel.INTERMEDIATE, availableMinutes = 100,
+            volumeRecommendations = listOf(VolumeRecommendation("Cuello", 0, 1, 1)),
+        )
+        val control = personalizer().personalize("legacy-role-neck-control", input)
+        assertNotNull("control con frecuencia publicada: ${control.report.limitations}", control.program)
+        val indirectCatalog = withNeckRole(primary = false)
+        val allowed = SimpleCyclePersonalizer(InMemoryExerciseCatalogRepositoryV2(indirectCatalog).also {
+            runBlocking { it.load() }
+        }).personalize("legacy-role-neck", input)
+        assertNotNull("el total indirecto no impide la sesión: ${allowed.report.limitations}", allowed.program)
+        val row = allowed.report.muscles.single { it.muscle == "Cuello" }
+        assertEquals(1, row.mrv)
+        assertEquals(0.0, row.directSets, 0.001)
+        assertTrue("el informe conserva el volumen estabilizador real", row.indirectSets > row.mrv)
+        assertTrue(allowed.report.limitations.any { it.startsWith("Cuello:") && "0 principales" in it })
+        assertTrue("LEGACY no consume la banda propia", allowed.report.highVolume.isEmpty())
+        val primaryCatalog = withNeckRole(primary = true)
+        val rejected = SimpleCyclePersonalizer(InMemoryExerciseCatalogRepositoryV2(primaryCatalog).also {
+            runBlocking { it.load() }
+        }).personalize("legacy-role-neck-primary", input)
+        assertNull("con límite PRIMARY=1 no caben las tres variantes mínimas", rejected.program)
+        assertTrue("un rechazo legacy no usa la banda propia", rejected.report.highVolume.isEmpty())
+    }
+
+    @Test
     fun nativeFamiliesArePublishedAndNamespaced() {
         val entries = PersonalizedPlanCatalog.entries()
         // 8 familias históricas + los cuatro planes propios de §11.1 (T-004a).
@@ -262,7 +302,11 @@ class PersonalizedPlanCatalogTest {
                 assertTrue(session.targetDurationMinutes!! <= input.availableMinutes)
             }
             result.report.muscles.forEach { row ->
-                assertTrue("${entry.id}/${row.muscle}", row.directSets + row.indirectSets <= minOf(row.mav, row.mrv) + 0.001)
+                val ceiling = if (com.example.kpkn.data.protocols.definitions.NativeProfileKind.fromEntryId(entry.id) != null) {
+                    com.example.kpkn.domain.training.VolumeSoftBand.softCeilingFor(row.muscle, row.mrv)
+                } else minOf(row.mav, row.mrv).toDouble()
+                assertTrue("${entry.id}/${row.muscle}: principales=${row.directSets}, total=${row.directSets + row.indirectSets}",
+                    row.directSets <= ceiling + 0.001)
             }
             assertEquals(program, planner.personalize(program.id, input).program)
         }

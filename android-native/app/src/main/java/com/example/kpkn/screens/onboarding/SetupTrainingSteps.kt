@@ -50,8 +50,8 @@ import com.example.kpkn.domain.nutrition.parseLocalizedNumber
 import com.example.kpkn.domain.onboarding.PlanEvaluationStage
 import com.example.kpkn.domain.onboarding.PlanGoalProfile
 import com.example.kpkn.domain.onboarding.PlanRejectionPresenter
-import com.example.kpkn.domain.onboarding.PlanRejectionReason
 import com.example.kpkn.domain.onboarding.PlanRepair
+import com.example.kpkn.domain.onboarding.PlanRepairAdvisor
 import com.example.kpkn.domain.onboarding.PresentationContext
 import com.example.kpkn.domain.onboarding.RejectionAction
 import com.example.kpkn.domain.onboarding.RejectionPresentation
@@ -984,24 +984,16 @@ internal data class RejectionNotice(
 /** Arranque común del aviso de la selección caída. */
 internal const val DROPPED_SELECTION_LEAD = "Tu plan elegido ya no encaja con tus respuestas."
 
-/** Fuerza y músculo sin resistencia externa (r2 §11.1): la frase genérica de disciplina no explica el requisito. */
-internal const val OWN_POWERBUILDING_RESISTANCE_TEXT =
-    "Fuerza y músculo necesita resistencia externa en los ejercicios principales: barra con rack y banco, o mancuernas."
+/**
+ * Frase que se añade al aviso de «Cambiar a Fuerza y músculo» (recomendación 2): con mancuernas, los ejercicios
+ * principales de ese plan serán versiones con mancuernas, no con barra. El asesor solo propone ese destino cuando la
+ * categoría de mancuernas está marcada.
+ */
+internal const val STRENGTH_MUSCLE_DUMBBELLS_HINT =
+    " Con tus mancuernas, los ejercicios principales serán versiones con mancuernas."
 
 /** Como mucho dos botones por aviso (el principal y uno secundario). */
 private const val MAX_NOTICE_BUTTONS = 2
-
-/** Nombres cortos de las llaves del panel para el botón «Sí, tengo rack y banco» (D5); el resto usa la etiqueta del panel. */
-private val SHORT_APPARATUS_LABELS: Map<String, String> = mapOf(
-    "squat_rack" to "rack",
-    "bench_flat" to "banco",
-    "bench_adjustable" to "banco regulable",
-    "preacher_bench" to "banco predicador",
-    "pullup_bar" to "barra de dominadas",
-    "dip_bars" to "paralelas",
-    "low_bar_support" to "barra baja",
-    "ez_bar" to "barra EZ",
-)
 
 /** Minúscula inicial para insertar una etiqueta en una frase; deja intactas las siglas («EZ»). */
 private fun String.lowercaseFirst(): String =
@@ -1013,8 +1005,8 @@ private fun joinSpanish(items: List<String>): String = when (items.size) {
     else -> items.dropLast(1).joinToString(", ") + " y " + items.last()
 }
 
-private fun shortApparatusLabel(key: String): String =
-    SHORT_APPARATUS_LABELS[key] ?: PlanRejectionPresenter.panelLabelOf(key)?.lowercaseFirst() ?: "material"
+/** Nombre corto de una llave para el botón de un toque: el MISMO que usa el texto del presentador (H14). */
+private fun shortApparatusLabel(key: String): String = PlanRejectionPresenter.shortLabelOf(key) ?: "material"
 
 /**
  * La proyección mínima de un rechazo del asistente para el presentador. NO lleva `reason` (el texto crudo del motor),
@@ -1052,31 +1044,35 @@ internal fun disciplineLabelOf(planId: String?): String? {
     }
 }
 
-/** Lo que el presentador necesita saber de las respuestas de la persona para escribir el texto. */
-internal fun presentationContextOf(draft: SetupWizardDraft): PresentationContext = PresentationContext(
-    userMinutes = draft.minutesPerSession,
-    goalLabel = draft.goal?.label,
-    daysChosen = draft.daysPerWeek,
-    disciplineLabelOf = ::disciplineLabelOf,
-    planDaysOf = { planId -> planId?.let(PersonalizedPlanCatalog::find)?.supportedFrequencies },
-)
-
 /**
- * La presentación del presentador, con una excepción: el rechazo del plan PROPIO de Fuerza y músculo por falta de
- * resistencia externa es un `PROFILE_MISMATCH` que la frase genérica («Este plan es de …; tu objetivo es …») no
- * explica; ahí se dice el requisito (r2 §11.1) y se conservan los botones del presentador.
+ * Lo que el presentador necesita saber de las respuestas de la persona para escribir el texto.
+ *
+ *  - H14: [PresentationContext.apparatusKeyOf] resuelve cada requisito de material con la llave que sigue SIN
+ *    responder ([PlanRepairAdvisor.confirmableKeyFor]), la misma que confirma el botón de un toque; si todas están
+ *    respondidas (un rechazo por material ausente) conserva la primera del panel, como antes.
+ *  - H12: [PresentationContext.ownPlanId] y [PresentationContext.goalProfile] dejan que el presentador diga, con su
+ *    único texto, el requisito de resistencia del plan propio de Fuerza y músculo.
  */
-private fun presentationFor(rejection: SetupCandidateRejection, draft: SetupWizardDraft): RejectionPresentation {
-    val view = rejection.toRejectionView()
-    val presented = PlanRejectionPresenter.present(view, presentationContextOf(draft))
-    val goal = planGoalProfileOf(draft.goal)
-    val isOwnPowerbuilding = goal == PlanGoalProfile.STRENGTH_MUSCLE && view.planId == ownPlanIdOf(goal)
-    return if (isOwnPowerbuilding && view.reasonCode == PlanRejectionReason.PROFILE_MISMATCH) {
-        presented.copy(text = OWN_POWERBUILDING_RESISTANCE_TEXT)
-    } else {
-        presented
-    }
+internal fun presentationContextOf(draft: SetupWizardDraft): PresentationContext {
+    val availability = draft.trainingOptions.availability
+    val goalProfile = planGoalProfileOf(draft.goal)
+    return PresentationContext(
+        userMinutes = draft.minutesPerSession,
+        goalLabel = draft.goal?.label,
+        daysChosen = draft.daysPerWeek,
+        disciplineLabelOf = ::disciplineLabelOf,
+        planDaysOf = { planId -> planId?.let(PersonalizedPlanCatalog::find)?.supportedFrequencies },
+        apparatusKeyOf = { token ->
+            PlanRepairAdvisor.confirmableKeyFor(token, availability) ?: SetupApparatusPanel.keyForToken(token)
+        },
+        ownPlanId = ownPlanIdOf(goalProfile),
+        goalProfile = goalProfile,
+    )
 }
+
+/** La presentación del presentador único, con el contexto de las respuestas de la persona (sin excepciones locales). */
+private fun presentationFor(rejection: SetupCandidateRejection, draft: SetupWizardDraft): RejectionPresentation =
+    PlanRejectionPresenter.present(rejection.toRejectionView(), presentationContextOf(draft))
 
 /**
  * Etiqueta del botón de las reparaciones (D5): «Sí, tengo rack y banco», «Cambiar a Músculo», «Ajustar a N min»,
@@ -1130,8 +1126,14 @@ internal fun rejectionNotice(
     val cardioHint = repairs.filterIsInstance<PlanRepair.SetCardioMinutes>().firstOrNull()
         ?.let { repair -> " Con ${repair.minutes} min de cardio sí cabe." }
         .orEmpty()
+    // «Cambiar a Fuerza y músculo» solo se propone con mancuernas: el texto avisa de que los principales las usarán.
+    val dumbbellHint = if (repairs.any { it is PlanRepair.SwitchGoal && it.goal == PlanGoalProfile.STRENGTH_MUSCLE }) {
+        STRENGTH_MUSCLE_DUMBBELLS_HINT
+    } else {
+        ""
+    }
     return RejectionNotice(
-        text = presentation.text + cardioHint,
+        text = presentation.text + cardioHint + dumbbellHint,
         primary = buttons.first(),
         secondary = buttons.getOrNull(1),
     )
@@ -1898,8 +1900,21 @@ private fun TrainingEditShortcuts(state: SetupWizardState, vm: SetupWizardViewMo
 /** Resumen real de lo respondido en el bloque antes de cerrarlo. */
 @Composable
 private fun TrainingMilestoneSummary(state: SetupWizardState) {
+    val rows = trainingMilestoneRows(state)
+    Column(verticalArrangement = Arrangement.spacedBy(WizardSpacing.cardGap)) {
+        rows.forEach { (label, value) -> TrainingSummaryRow(label = label, value = value) }
+    }
+}
+
+/**
+ * Las filas del resumen del hito del bloque Entreno (etiqueta, valor), sin pintar. La fila «Reparto» lleva el nombre
+ * en español llano que la persona vio al elegirlo, el mismo de la revisión ([draftSplitLabel], que a su vez usa
+ * [splitDisplayName]): nunca el nombre técnico de la plantilla ni el id. Un reparto que el catálogo no conoce no
+ * añade fila.
+ */
+internal fun trainingMilestoneRows(state: SetupWizardState): List<Pair<String, String>> {
     val draft = state.draft
-    val rows: List<Pair<String, String>> = buildList {
+    return buildList {
         draft.experience?.let { add("Experiencia" to it.label) }
         draft.goal?.let { add("Objetivo" to it.label) }
         draft.daysPerWeek?.let { add("Días por semana" to it.toString()) }
@@ -1910,10 +1925,8 @@ private fun TrainingMilestoneSummary(state: SetupWizardState) {
         if (draft.equipment.isNotEmpty()) {
             add("Material" to draft.equipment.joinToString(", ") { it.label })
         }
-        draft.selectedSplitId?.let { id ->
-            val name = SPLIT_TEMPLATES.firstOrNull { it.id == id }?.name
-                ?: if (id == SPLIT_CUSTOM) "Personalizado" else id
-            add("Split" to name)
+        if (draft.selectedSplitId != null) {
+            draftSplitLabel(state)?.let { name -> add("Reparto" to name) }
         }
         draft.selectedCatalogId?.let { id ->
             // C.P6: el nombre de la ficha editorial; si el id ya no resuelve, nunca se pinta el id crudo.
@@ -1929,9 +1942,6 @@ private fun TrainingMilestoneSummary(state: SetupWizardState) {
         }
         add("Autorregulación" to autoregulationSummary(draft))
         add("Calentamientos" to warmupSummary(draft))
-    }
-    Column(verticalArrangement = Arrangement.spacedBy(WizardSpacing.cardGap)) {
-        rows.forEach { (label, value) -> TrainingSummaryRow(label = label, value = value) }
     }
 }
 

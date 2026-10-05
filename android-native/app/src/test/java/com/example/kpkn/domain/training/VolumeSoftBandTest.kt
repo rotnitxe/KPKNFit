@@ -64,13 +64,13 @@ class VolumeSoftBandTest {
         assertEquals(17.0, notice.weeklySets, 0.0)
         assertEquals(16, notice.recommendedSets)
         assertEquals(17.5, notice.ceilingSets, 0.0)
-        assertEquals("Glúteos 17 series (recomendado 16, tolerancia hasta 17,5)", notice.message)
+        assertEquals("Glúteos 17 series principales (recomendado 16, tolerancia hasta 17,5)", notice.message)
         assertEquals(
-            "Glúteos 17,5 series (recomendado 16, tolerancia hasta 17,5)",
+            "Glúteos 17,5 series principales (recomendado 16, tolerancia hasta 17,5)",
             requireNotNull(VolumeSoftBand.noticeOrNull("Glúteos", 17.5, 16)).message,
         )
         assertEquals(
-            "Glúteos 16,5 series (recomendado 16, tolerancia hasta 17,5)",
+            "Glúteos 16,5 series principales (recomendado 16, tolerancia hasta 17,5)",
             requireNotNull(VolumeSoftBand.noticeOrNull("Glúteos", 16.5, 16)).message,
         )
         listOf("MRV", "BL", "puente H", "H1", "W2", "SOFT", "HARD").forEach { jargon ->
@@ -81,7 +81,7 @@ class VolumeSoftBandTest {
     @Test
     fun the_notice_exists_only_inside_the_band_and_tolerates_decimal_noise() {
         assertNull("dentro del límite no hay aviso", VolumeSoftBand.noticeOrNull("Glúteos", 16.0, 16))
-        assertNull("ruido decimal de las series indirectas no crea aviso", VolumeSoftBand.noticeOrNull("Glúteos", 16.0004, 16))
+        assertNull("ruido decimal del conteo no crea aviso", VolumeSoftBand.noticeOrNull("Glúteos", 16.0004, 16))
         assertNotNull("17,5 con ruido decimal sigue dentro de la banda", VolumeSoftBand.noticeOrNull("Glúteos", 17.5004, 16))
         assertNull("por encima del techo no es un aviso, es un rechazo", VolumeSoftBand.noticeOrNull("Glúteos", 17.6, 16))
         assertNull("otros músculos no tienen banda", VolumeSoftBand.noticeOrNull("Pectorales", 23.0, 22))

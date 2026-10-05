@@ -29,6 +29,7 @@ import com.example.kpkn.data.programs.CatalogDuration
 import com.example.kpkn.data.programs.CatalogEntry
 import com.example.kpkn.data.programs.CatalogSource
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
+import com.example.kpkn.data.programs.PlanKind
 import com.example.kpkn.data.programs.PlanLabels
 import com.example.kpkn.data.programs.PlanOrigin
 import com.example.kpkn.data.programs.ProgramTemplateOption
@@ -113,12 +114,39 @@ internal fun visibleProtocolOf(entry: CatalogEntry): Protocol? =
     PROTOCOL_LIBRARY.firstOrNull { protocol -> protocol.id == entry.sourceId && protocol.isVisibleForApplication }
 
 /**
- * Qué hace el tap de una tarjeta (C.P6, decisión D8 y r2 §16.1: la biblioteca no se salta el evaluador).
+ * ¿Es una estructura en blanco? (`kind == ESTRUCTURA`, o una plantilla sin receta): un esqueleto que la persona
+ * rellena. No tiene semana escrita que el asistente pueda evaluar con el material, los días y el tiempo, y por eso el
+ * asistente no la ofrece nunca como candidata (`SetupTrainingPlanner`): solo se crea desde la plantilla.
+ */
+internal fun isBlankStructure(entry: CatalogEntry): Boolean {
+    val template = entry.template ?: return false
+    return entry.kind == PlanKind.ESTRUCTURA || template.recipe == null
+}
+
+/**
+ * ¿Sirve la entrada a algún objetivo del asistente? Misma regla que el filtro «Otros» de la biblioteca (su
+ * complemento) y que el prefiltro del planificador ([PlanGoalMatcher]). Lo que no sirve a ninguno (la versión anterior
+ * «Músculo y cardio», `references = ∅`) no puede llegar a ser candidato: «Configurar este plan» lo dejaría en un
+ * asistente que nunca lo ofrece.
+ */
+internal fun servesSomeWizardGoal(entry: CatalogEntry): Boolean =
+    LIBRARY_GOAL_PROFILES.any { goal -> PlanGoalMatcher.matches(entry, goal) }
+
+/**
+ * Qué hace el tap de una tarjeta (C.P6, decisión D8: la biblioteca no se salta el evaluador).
  *
- *  - CON asistente al que seguir ([hasPlanAction], Planes e Inicio): TODA tarjeta —plan propio, de autor, plantilla
- *    o método— abre su hoja «Cómo funciona» y su botón principal es «Configurar este plan», que lleva el plan al
- *    asistente. Plantillas y métodos ya no crean el programa directo: el asistente evalúa con las respuestas de la
- *    persona (material, días, tiempo) antes de proponerlo.
+ *  - CON asistente al que seguir ([hasPlanAction], Planes e Inicio): la tarjeta abre su hoja «Cómo funciona» y su
+ *    botón principal es «Configurar este plan», que lleva el plan al asistente. Plantillas y métodos ya no crean el
+ *    programa directo: el asistente evalúa con las respuestas de la persona (material, días, tiempo) antes de
+ *    proponerlo. Dos excepciones, porque el asistente nunca las ofrece y «Configurar este plan» sería un callejón sin
+ *    salida (H1):
+ *     · las estructuras en blanco ([isBlankStructure]) conservan el camino directo «Usar esta plantilla»: el asistente
+ *       no materializa plantillas vacías (excepción de implementación al camino directo de C.P6;
+ *       conserva la creación en blanco de r2 §16.1);
+ *     · lo que no sirve a ningún objetivo del asistente ([servesSomeWizardGoal]; hoy, `native:strength-cardio`) abre
+ *       la hoja de solo lectura, sin botón.
+ *    `LibraryReachabilityTest` fija que toda tarjeta con «Configurar este plan» sale entre los candidatos del
+ *    planificador para algún objetivo y alguna frecuencia.
  *  - SIN asistente (la biblioteca embebida del editor, que reemplaza o añade estructura): el camino directo de
  *    siempre. Plantilla → crear desde la plantilla; método con ficha en la biblioteca → entregarlo al llamador; el
  *    resto abre la hoja de solo lectura.
@@ -128,7 +156,13 @@ internal fun libraryTapFor(
     hasPlanAction: Boolean,
     protocolOf: (CatalogEntry) -> Protocol? = ::visibleProtocolOf,
 ): LibraryTap {
-    if (hasPlanAction) return LibraryTap.OpenSheet(LibraryPrimary.ConfigurePlan)
+    if (hasPlanAction) {
+        entry.template?.let { template ->
+            if (isBlankStructure(entry)) return LibraryTap.OpenSheet(LibraryPrimary.UseTemplate(template))
+        }
+        if (!servesSomeWizardGoal(entry)) return LibraryTap.OpenSheet(null)
+        return LibraryTap.OpenSheet(LibraryPrimary.ConfigurePlan)
+    }
     entry.template?.let { template -> return LibraryTap.OpenSheet(LibraryPrimary.UseTemplate(template)) }
     if (entry.source == CatalogSource.PROTOCOL) {
         protocolOf(entry)?.let { protocol -> return LibraryTap.HandOffProtocol(protocol) }
@@ -198,7 +232,7 @@ fun CreateProgramTemplateSheet(
             )
             FilterRow(
                 label = "Duración",
-                options = listOf("Todas", "Semana repetible", "Ciclo finito"),
+                options = listOf("Todas", "Semana repetible", "Ciclo repetible", "Ciclo finito"),
                 selected = when (durationFilter) {
                     null -> "Todas"
                     CatalogDuration.REPEATING_WEEK -> "Semana repetible"

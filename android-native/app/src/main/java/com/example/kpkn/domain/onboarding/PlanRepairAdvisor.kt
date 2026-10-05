@@ -1,9 +1,11 @@
 package com.example.kpkn.domain.onboarding
 
+import com.example.kpkn.data.models.ApparatusPresence
 import com.example.kpkn.data.models.EquipmentAvailability
 import com.example.kpkn.data.models.EquipmentCategory
 import com.example.kpkn.data.programs.TrainingReference
 import com.example.kpkn.data.protocols.definitions.NativeCardioDefaults
+import com.example.kpkn.domain.training.EFFECTIVE_EQUIPMENT_KEYS
 
 /**
  * Evaluación de prueba que el asesor pide al llamador: «¿qué pasaría con este pedido y este material?».
@@ -30,15 +32,18 @@ typealias PlanRepairEvaluator = suspend (PlanCandidateRequest, EquipmentAvailabi
  *    ofrece (10, 15, 20, 30) que sea menor que el actual y deje el plan `Ready`: el cardio solo baja por decisión
  *    de la persona, nunca dentro del generador (DEC-w1-01).
  *  - `APPARATUS_UNKNOWN` → [PlanRepair.ConfirmApparatus] con las llaves del panel que resuelven los
- *    `missingRequirements` del rechazo (`SetupApparatusPanel.keyForToken`) y sus categorías
- *    (`SetupApparatusPanel.categoriesFor`), si con el material confirmado queda `Ready`; si con él solo falla por
- *    tiempo, se encadena UN [PlanRepair.SetMinutes] con los minutos exactos.
+ *    `missingRequirements` del rechazo y sus categorías (`SetupApparatusPanel.categoriesFor`), si con el material
+ *    confirmado queda `Ready`; si con él solo falla por tiempo, se encadena UN [PlanRepair.SetMinutes] con los minutos
+ *    exactos. De entre las llaves que acreditan un requisito (el banco lo acreditan el plano y el regulable) se elige
+ *    la que sigue SIN responder ([confirmableKeyFor]): nunca una que la persona negó («banco plano = No» con el
+ *    regulable sin responder propone el regulable) y, si ninguna está sin responder, no se propone nada.
  *  - `APPARATUS_ABSENT` y `PROFILE_MISMATCH` → [PlanRepair.SwitchGoal] hacia un objetivo cuyo plan propio ya existe
  *    (DEC-w2-02, sin «fuerza relativa»): Fuerza → Fuerza y músculo si hay mancuernas (categoría confirmada) y, si no,
  *    Músculo; Fuerza y músculo → Músculo; Músculo y Atleta completo no tienen destino. Jamás hacia Atleta completo.
  *    Solo se propone si el destino queda `Ready` o falla únicamente por tiempo y un `SetMinutes` lo arregla
  *    (`alsoMinutes`).
- *  - `SPLIT` → [PlanRepair.ClearSplit] si, sin el reparto elegido, queda `Ready` (lo activa A.E2).
+ *  - `SPLIT` → [PlanRepair.ClearSplit] si, sin el reparto elegido, queda `Ready` (desde A.E2 los planes propios rechazan
+ *    por reparto, y el wizard la aplica con las mismas escrituras que la tarjeta «Recomendado»).
  *  - El resto de motivos (catálogo, frecuencia, composición, internos…) no tiene reparación de un toque.
  *
  * El destino de [PlanRepair.SwitchGoal] se evalúa con la referencia propia de ese objetivo, sin cardio y sin
@@ -108,6 +113,36 @@ object PlanRepairAdvisor {
             PlanGoalProfile.LEGACY_HEALTH -> null
         }
 
+    // ─── Llaves del panel que acreditan un requisito (paso H5) ─────────────────────────────────
+
+    /**
+     * TODAS las llaves del panel que acreditan [token], en el orden del catálogo de llaves. Es el criterio de
+     * [SetupApparatusPanel.keyForToken] (token entre los `attestedTokens` de la llave, o id de configuración entre sus
+     * `machineConfigurations`, con o sin el prefijo `machine_config:`), pero sin quedarse con la primera: el banco lo
+     * acreditan el plano y el regulable, y `keyForToken` devuelve siempre el plano aunque la persona lo haya negado.
+     */
+    internal fun keysAttesting(token: String): List<String> {
+        val configurationId = token.removePrefix("machine_config:")
+        return EFFECTIVE_EQUIPMENT_KEYS
+            .filter { key -> token in key.attestedTokens || configurationId in key.machineConfigurations }
+            .map { key -> key.key }
+    }
+
+    /**
+     * La llave que hay que CONFIRMAR para que [token] quede acreditado: de las que lo acreditan, la primera cuya
+     * presencia en [availability] sigue sin responder (`UNKNOWN`). Nunca una `ABSENT` —confirmarla pisaría un «No» de
+     * la persona— ni una `PRESENT` (el requisito ya estaría acreditado). Null si el token no tiene llave del panel
+     * (`barbell`, `dumbbells`, `machine`…) o si ninguna de sus llaves está sin responder.
+     */
+    internal fun confirmableKeyFor(token: String, availability: EquipmentAvailability?): String? =
+        keysAttesting(token).firstOrNull { key ->
+            SetupApparatusPanel.presenceOf(availability, key) == ApparatusPresence.UNKNOWN
+        }
+
+    /** Las llaves a confirmar para [tokens], en el orden de los requisitos y sin repetir ([confirmableKeyFor]). */
+    internal fun confirmableKeysFor(tokens: List<String>, availability: EquipmentAvailability?): List<String> =
+        tokens.mapNotNull { token -> confirmableKeyFor(token, availability) }.distinct()
+
     // ─── TIME_BUDGET ───────────────────────────────────────────────────────────────────────────
 
     private suspend fun timeBudgetRepairs(
@@ -163,7 +198,7 @@ object PlanRepairAdvisor {
         availability: EquipmentAvailability,
         evaluate: PlanRepairEvaluator,
     ): List<PlanRepair> {
-        val keys = rejected.missingRequirements.mapNotNull(SetupApparatusPanel::keyForToken).distinct()
+        val keys = confirmableKeysFor(rejected.missingRequirements, availability)
         if (keys.isEmpty()) return emptyList()
         val repair = PlanRepair.ConfirmApparatus(keys, SetupApparatusPanel.categoriesFor(keys))
         val confirmed = repair.applyTo(availability)

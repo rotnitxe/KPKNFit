@@ -33,6 +33,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -365,7 +366,8 @@ class SetupWizardAuthoredPlansTest {
         val originalRejection = checkNotNull(rejectionOf(swept, original)) { "falta el rechazo de $original: ${stateDump(swept)}" }
         assertEquals(PlanRejectionReason.APPARATUS_ABSENT, originalRejection.reasonCode)
         assertEquals(SetupCandidateRejectionStage.MATERIAL, originalRejection.stage)
-        assertTrue(originalRejection.needsApparatusConfirmation)
+        assertFalse(originalRejection.needsApparatusConfirmation)
+        assertTrue("el autorado conserva los requisitos estructurados", originalRejection.missingRequirements.isNotEmpty())
 
         val adaptedRejection = checkNotNull(rejectionOf(swept, adapted)) { "falta el rechazo de $adapted: ${stateDump(swept)}" }
         assertEquals(PlanRejectionReason.NO_VALID_SUBSTITUTION, adaptedRejection.reasonCode)
@@ -378,8 +380,12 @@ class SetupWizardAuthoredPlansTest {
         assertNotNull(state.previewError)
         assertTrue(
             "el error explica el material que falta: ${state.previewError}",
-            state.previewError.orEmpty().contains("material") && state.previewError.orEmpty().contains("barbell"),
+            state.previewError.orEmpty().contains("barra y carga") &&
+                state.previewError.orEmpty().contains("que dijiste que no tienes"),
         )
+        listOf("barbell", "machine_config", "APPARATUS_", "Diagnóstico").forEach { technical ->
+            assertFalse("el preview no muestra $technical", state.previewError.orEmpty().contains(technical))
+        }
     }
 
     // ─── F-A2: razón tipada de los nativos v2 ────────────────────────────────

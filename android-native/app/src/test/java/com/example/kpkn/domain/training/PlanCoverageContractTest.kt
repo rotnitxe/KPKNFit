@@ -52,15 +52,17 @@ private val VIOLATION_CEILING: Map<String, Int> = mapOf(
     // Músculo E10, E11 y E16 −3 cada uno), todas rechazos honestos TIME_BUDGET con reparación `SetMinutes`.
     // tras A.C1/C2 (2026-10-03): corrida `full` = 120 (TIME_BUDGET_INEXACT 1 584 → 0: `requiredMinutes` es ya el mínimo
     // exacto del generador, DEC-w2-03; quedan solo las 120 NOT_HONEST `COMPOSITION` de Atleta de 1 día, intermedio y
-    // avanzado, con solo barra de dominadas (E13), que esperan a las tablas de candidatos o a un calendario con V).
+    // avanzado, con solo barra de dominadas (E13), entonces pendientes de candidatos o de un calendario con V).
     // Ready 13 471, rechazos honestos 12 059 y reparaciones por clase no cambian: el asesor del dominio reproduce la
     // semántica de las simulaciones que sustituye (smoke 110 → 8, ci/0–ci/3 → 30 cada uno).
-    "smoke" to 8,
-    "ci/0" to 30,
-    "ci/1" to 30,
-    "ci/2" to 30,
-    "ci/3" to 30,
-    "full" to 120,
+    // cierre A3 (gate48, 2026-10-04): corrida `full` de 25 650 filas = 0 violaciones tras resolver E13;
+    // el ratchet queda en 0 para smoke, los cuatro shards ci y full.
+    "smoke" to 0,
+    "ci/0" to 0,
+    "ci/1" to 0,
+    "ci/2" to 0,
+    "ci/3" to 0,
+    "full" to 0,
 )
 
 /** Filas de la rejilla C1: 3 objetivos x 3 niveles x 6 días x 5 duraciones x 19 fixtures + Atleta x 12 (cardio). */

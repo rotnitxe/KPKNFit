@@ -121,10 +121,12 @@ class SetupWizardViewModel @JvmOverloads constructor(
 
     /**
      * [preselectedPlanId] (E-18, C.P6): el plan que la persona eligió en la biblioteca («Configurar este plan»). Entra
-     * como INTENCIÓN —`selectedCatalogId`, r2 §15.2— y prefija el objetivo cuando el plan sirve a uno solo, SIN confirmar
-     * ningún paso: el asistente sigue preguntando lo demás y, al llegar a PLAN, la selección queda hecha si el plan
-     * es viable (si no, cae con el aviso de la selección caída). Un id que no existe o no se ofrece se ignora (con
-     * registro). Se aplica UNA vez por plan y sesión: tras recrear el ViewModel no pisa lo que la persona ya cambió.
+     * como INTENCIÓN —`selectedCatalogId`, r2 §15.2— y prefija el objetivo cuando el plan sirve a uno solo y los días
+     * cuando admite una sola frecuencia, SIN confirmar ningún paso: el asistente sigue preguntando lo demás y, al llegar
+     * a PLAN, la selección queda hecha si el plan es viable (si no, el aviso de la selección caída explica por qué y la
+     * intención se conserva hasta que la persona elija otro plan). Un id que no existe, no se ofrece o el planificador
+     * no puede ofrecer para ningún objetivo y frecuencia se ignora (con registro). Se aplica UNA vez por plan y
+     * sesión: tras recrear el ViewModel no pisa lo que la persona ya cambió.
      */
     fun initialize(
         mode: SetupWizardMode,
@@ -412,7 +414,11 @@ class SetupWizardViewModel @JvmOverloads constructor(
         if (restoredFromStorage && savedStateHandle.get<String>(PRESELECTED_PLAN_KEY) == wanted) return draft
         val seeded = draft.withPreselectedPlan(wanted)
         if (seeded == null) {
-            Log.w(DIAG_TAG, "preselección ignorada: el plan «$wanted» no existe, no se ofrece o el borrador no incluye entrenamiento")
+            Log.w(
+                DIAG_TAG,
+                "preselección ignorada: el plan «$wanted» no existe, no se ofrece, el planificador no lo puede ofrecer " +
+                    "para ningún objetivo y frecuencia o el borrador no incluye entrenamiento",
+            )
             return draft
         }
         savedStateHandle[PRESELECTED_PLAN_KEY] = wanted
@@ -477,7 +483,13 @@ class SetupWizardViewModel @JvmOverloads constructor(
     fun candidatePlans(): List<SetupPlanCandidate> = _state.value.planCandidates
     fun showMoreCandidates() {
         val current = _state.value
-        _state.value = current.copy(planCandidates = current.availablePlanCandidates.take(current.planCandidates.size + 3))
+        _state.value = current.copy(
+            planCandidates = visibleCandidatesFor(
+                available = current.availablePlanCandidates,
+                selectedId = current.draft.selectedCatalogId,
+                minimumVisible = current.planCandidates.size + CANDIDATES_PAGE_SIZE,
+            ),
+        )
     }
 
     /**
@@ -1134,7 +1146,20 @@ class SetupWizardViewModel @JvmOverloads constructor(
         // gate de RINGS debe poder seguir mostrando la causa real).
         val ringsDiagnosis = _state.value.lastFailure
             ?.takeIf { it.startsWith(RINGS_FAILURE_PREFIX) }
-        _state.value = _state.value.copy(draft = draft, dirty = dirty, isLoading = false, machineState = machine,
+        val current = _state.value
+        // H3: si la selección pasó a un plan viable que no estaba entre las tarjetas visibles (una escritura del
+        // borrador, la biblioteca…), se amplía lo visible hasta incluirlo; sin lista calculada no hay nada que ampliar.
+        val visibleCards = if (current.availablePlanCandidates.isEmpty()) {
+            current.planCandidates
+        } else {
+            visibleCandidatesFor(
+                available = current.availablePlanCandidates,
+                selectedId = draft.selectedCatalogId,
+                minimumVisible = maxOf(current.planCandidates.size, INITIAL_VISIBLE_CANDIDATES),
+            )
+        }
+        _state.value = current.copy(draft = draft, dirty = dirty, isLoading = false, machineState = machine,
+            planCandidates = visibleCards,
             errors = emptyMap(), previewError = null, lastFailure = ringsDiagnosis, isSubmittingAnswer = false,
             // §15.2: la selección guardada queda obsoleta en cuanto las
             // respuestas dejan de coincidir con el preview preparado; el
@@ -1474,6 +1499,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 cached.stage, cached.reasonCode,
                 cached.details ?: cached.reasonCode.name,
                 cached.affectedSlots, cached.requiredMinutes,
+                missingRequirements = cached.missingRequirements,
             )
             PlanCandidateEvaluation.CatalogLoading, null -> Unit
         }
@@ -1500,6 +1526,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
                     evaluation.stage, evaluation.reasonCode,
                     evaluation.details ?: evaluation.reasonCode.name,
                     evaluation.affectedSlots, evaluation.requiredMinutes,
+                    missingRequirements = evaluation.missingRequirements,
                 )
             }
             PlanCandidateEvaluation.CatalogLoading -> throw PlanMaterializationException(
@@ -1625,9 +1652,13 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 preparingTrainingKey = null
                 if (previewKey(_state.value.draft) == key) {
                     val machine = _state.value.machineState
+                    // H10: el texto crudo del motor va solo al registro; la persona lee un texto llano (catálogo o fallo
+                    // interno por el presentador único) y los rechazos que sí puede arreglar conservan su mensaje.
+                    val shown = previewFailureText(error, _state.value.draft)
+                    Log.w(DIAG_TAG, "el preview falló: ${failureDetail(error).take(DIAG_REASON_MAX)}")
                     _state.value = _state.value.copy(isPreviewLoading = false,
                         machineState = if (machine == WizChatMachineState.PreparingPreview) stateForCurrentStep() else machine,
-                        previewError = error.message ?: "No se pudo preparar la vista previa", errors = _state.value.errors + ("preview" to (error.message ?: "No se pudo preparar la vista previa")), lastFailure = error.message)
+                        previewError = shown, errors = _state.value.errors + ("preview" to shown), lastFailure = error.message)
                 } else {
                     retirePreviewLoading()
                 }
@@ -1859,7 +1890,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
             } catch (typed: PlanMaterializationException) {
                 throw typed
             } catch (failure: SetupCandidateFailureException) {
-                throw translateCandidateFailure(failure, source)
+                throw translateCandidateFailure(failure)
             }
             val program = outcome.program ?: throw PlanMaterializationException(
                 PlanEvaluationStage.MATERIALIZATION,
@@ -1875,7 +1906,6 @@ class SetupWizardViewModel @JvmOverloads constructor(
     /** Etapa/ causa tipadas de un fallo del motor (T-001 / §15.2). */
     private fun translateCandidateFailure(
         failure: SetupCandidateFailureException,
-        draft: SetupWizardDraft,
     ): PlanMaterializationException {
         val message = failure.message?.trim().orEmpty().ifBlank { "fallo de materialización sin mensaje" }
         return when (failure.stage) {
@@ -1893,7 +1923,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
             SetupCandidateRejectionStage.COMPOSITION -> PlanMaterializationException(
                 PlanEvaluationStage.COMPOSITION, PlanRejectionReason.COMPOSITION, message)
             SetupCandidateRejectionStage.MATERIAL -> PlanMaterializationException(
-                PlanEvaluationStage.MATERIAL, apparatusReason(message, draft), message)
+                PlanEvaluationStage.MATERIAL, PlanRejectionReason.APPARATUS_ABSENT, message)
             SetupCandidateRejectionStage.MATERIALIZATION -> {
                 // El motor ya clasificó el mensaje; sin señal clara el fallo es
                 // interno (nunca se disfraza de «falta de material»).
@@ -1903,7 +1933,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
                     SetupCandidateRejectionStage.FREQUENCY -> PlanMaterializationException(
                         PlanEvaluationStage.FREQUENCY_SPLIT, PlanRejectionReason.FREQUENCY, message)
                     SetupCandidateRejectionStage.MATERIAL -> PlanMaterializationException(
-                        PlanEvaluationStage.MATERIAL, apparatusReason(message, draft), message)
+                        PlanEvaluationStage.MATERIAL, PlanRejectionReason.APPARATUS_ABSENT, message)
                     SetupCandidateRejectionStage.DURATION -> PlanMaterializationException(
                         PlanEvaluationStage.SESSION_DURATION, PlanRejectionReason.TIME_BUDGET, message)
                     SetupCandidateRejectionStage.PROFILE -> PlanMaterializationException(
@@ -1917,11 +1947,10 @@ class SetupWizardViewModel @JvmOverloads constructor(
 
     /**
      * ¿Falta confirmar el aparato (UNKNOWN) o está realmente ausente (ABSENT)?
-     * Los tokens de `missingFixedRecipeEquipment` se contrastan con la evidencia
-     * del resolver; sin señal, la ausencia declarada manda.
+     * Los requisitos estructurados se contrastan con la misma evidencia que usa el adaptador.
+     * Sin tokens no existe una confirmación de material que la UI pueda ofrecer.
      */
-    internal fun apparatusReason(message: String, draft: SetupWizardDraft): PlanRejectionReason {
-        val tokens = missingEquipmentTokens(message)
+    internal fun apparatusReason(tokens: List<String>, draft: SetupWizardDraft): PlanRejectionReason {
         if (tokens.isEmpty()) return PlanRejectionReason.APPARATUS_ABSENT
         val evidence = tokens.map { requirementEvidence(it, draft) }
         return when {
@@ -1933,45 +1962,25 @@ class SetupWizardViewModel @JvmOverloads constructor(
         }
     }
 
-    private fun missingEquipmentTokens(message: String): List<String> = message.substringAfter(":", "")
-        .split(",").map { it.trim() }.filter { it.isNotEmpty() }
-
     private fun requirementEvidence(token: String, draft: SetupWizardDraft): RequirementEvidence {
         val resolved = draft.trainingOptions
             .resolveEffectiveEquipment(draft.equipment.map { it.catalogId }.toSet())
-        resolved.requirements[token]?.let { return it }
-
-        val availability = draft.trainingOptions.availability ?: return RequirementEvidence.UNKNOWN
-        val requestedConfiguration = token.removePrefix("machine_config:")
-            .takeIf { token.startsWith("machine_config:") }
-        if (token != "machine" && requestedConfiguration == null) return RequirementEvidence.UNKNOWN
-        if (EquipmentCategory.MACHINES !in availability.categories) return RequirementEvidence.ABSENT
-        val keys = EFFECTIVE_EQUIPMENT_KEYS.filter { key ->
-            key.category == EquipmentCategory.MACHINES &&
-                (requestedConfiguration == null || requestedConfiguration in key.machineConfigurations)
-        }
-        if (keys.isEmpty()) return RequirementEvidence.UNKNOWN
-        val presences = keys.map { SetupApparatusPanel.presenceOf(availability, it.key) }
-        if (requestedConfiguration == null) {
-            return when {
-                presences.all { it == ApparatusPresence.ABSENT } -> RequirementEvidence.ABSENT
-                presences.any { it == ApparatusPresence.UNKNOWN } -> RequirementEvidence.UNKNOWN
-                else -> RequirementEvidence.ABSENT
-            }
-        }
-        return when {
-            presences.any { it == ApparatusPresence.ABSENT } -> RequirementEvidence.ABSENT
-            presences.any { it == ApparatusPresence.UNKNOWN } -> RequirementEvidence.UNKNOWN
-            else -> RequirementEvidence.ABSENT
-        }
+        val configuration = token.takeIf { it.startsWith("machine_config:") }?.removePrefix("machine_config:")
+        return evidenceOfKind(
+            kind = if (configuration != null) "machine" else token,
+            configurationId = configuration.orEmpty(),
+            equipment = resolved,
+            availability = draft.trainingOptions.availability,
+        )
     }
 
     /**
      * Rechazo del evaluador → instrumentación estructurada del wizard (paquete A). `internal` para que las
      * pruebas fijen la copia de `missingRequirements` y la llave confirmable (A.B1) sin montar un barrido completo.
      */
-    internal fun setupRejectionOf(evaluation: PlanCandidateEvaluation.Rejected): SetupCandidateRejection =
-        SetupCandidateRejection(
+    internal fun setupRejectionOf(evaluation: PlanCandidateEvaluation.Rejected): SetupCandidateRejection {
+        val apparatusKey = apparatusKeyFor(evaluation)
+        return SetupCandidateRejection(
             planId = evaluation.planId,
             stage = setupStageOf(evaluation.stage),
             // Conserva la CAUSA concreta (mensaje real), nunca solo una clase.
@@ -1980,11 +1989,12 @@ class SetupWizardViewModel @JvmOverloads constructor(
             affectedSlots = evaluation.affectedSlots,
             missingCapabilities = evaluation.missingCapabilities,
             requiredMinutes = evaluation.requiredMinutes,
-            needsApparatusConfirmation = evaluation.reasonCode == PlanRejectionReason.APPARATUS_UNKNOWN ||
-                evaluation.reasonCode == PlanRejectionReason.APPARATUS_ABSENT,
-            apparatusKey = apparatusKeyFor(evaluation),
+            needsApparatusConfirmation = evaluation.reasonCode == PlanRejectionReason.APPARATUS_UNKNOWN &&
+                apparatusKey != null,
+            apparatusKey = apparatusKey,
             missingRequirements = evaluation.missingRequirements,
         )
+    }
 
     /**
      * `SetupCandidateRejectionStage.CATALOG` es GLOBAL (planId nulo): un
@@ -2007,38 +2017,16 @@ class SetupWizardViewModel @JvmOverloads constructor(
     /**
      * Clave curada del panel a la que lleva la acción «Falta confirmar X».
      *
-     * Paquete A · B1: con `missingRequirements` informados por el motor la llave sale de
-     * [SetupApparatusPanel.keyForToken] y NO se lee el texto del mensaje (si ningún token tiene
-     * llave, como `barbell`, no hay nada que confirmar y devuelve null). El parseo del texto con
-     * `substringAfter(":")` queda solo para la ruta heredada de `SetupCandidateFailureException`,
-     * que no trae la lista.
+     * Paquete A · B1: con `missingRequirements` informados por el motor la llave sale del panel
+     * ([PlanRepairAdvisor.confirmableKeyFor], la que sigue sin responder) y NO se lee el texto del mensaje.
+     * Sin una llave pendiente o con
+     * un requisito ausente no existe confirmación de un toque; el CTA de material solo es para UNKNOWN.
      */
     private fun apparatusKeyFor(evaluation: PlanCandidateEvaluation.Rejected): String? {
-        if (evaluation.reasonCode != PlanRejectionReason.APPARATUS_UNKNOWN &&
-            evaluation.reasonCode != PlanRejectionReason.APPARATUS_ABSENT
-        ) return null
-        if (evaluation.missingRequirements.isNotEmpty()) {
-            return evaluation.missingRequirements.firstNotNullOfOrNull(SetupApparatusPanel::keyForToken)
-        }
-        val tokens = evaluation.details?.let(::missingEquipmentTokens).orEmpty()
-        return tokens.firstNotNullOfOrNull { token ->
-            EFFECTIVE_EQUIPMENT_KEYS.firstOrNull { key ->
-                token in key.attestedTokens ||
-                    token.removePrefix("machine_config:") in key.machineConfigurations
-            }?.key ?: if (token == "machine") {
-                val availability = _state.value.draft.trainingOptions.availability
-                    ?.takeIf { EquipmentCategory.MACHINES in it.categories }
-                if (availability == null) null else {
-                    val machines = EFFECTIVE_EQUIPMENT_KEYS.filter { it.category == EquipmentCategory.MACHINES }
-                    val desiredPresence = if (evaluation.reasonCode == PlanRejectionReason.APPARATUS_UNKNOWN) {
-                        ApparatusPresence.UNKNOWN
-                    } else {
-                        ApparatusPresence.ABSENT
-                    }
-                    machines.firstOrNull { availability.presenceOf(it.key) == desiredPresence }?.key
-                        ?: machines.firstOrNull { availability.presenceOf(it.key) == ApparatusPresence.UNKNOWN }?.key
-                }
-            } else null
+        if (evaluation.reasonCode != PlanRejectionReason.APPARATUS_UNKNOWN) return null
+        val availability = _state.value.draft.trainingOptions.availability
+        return evaluation.missingRequirements.firstNotNullOfOrNull { token ->
+            PlanRepairAdvisor.confirmableKeyFor(token, availability)
         }
     }
 
@@ -2387,7 +2375,10 @@ class SetupWizardViewModel @JvmOverloads constructor(
                         // Éxito: sólo se retira la marca propia de candidatos;
                         // `previewError` ajeno (p. ej. del programa) se conserva.
                         _state.value = current.copy(
-                            planCandidates = options.take(3), availablePlanCandidates = options,
+                            // H3: las tarjetas visibles son las primeras, pero el plan elegido (o el preseleccionado desde
+                            // la biblioteca) viable nunca queda escondido detrás de «Ver más opciones».
+                            planCandidates = visibleCandidatesFor(options, current.draft.selectedCatalogId),
+                            availablePlanCandidates = options,
                             isCandidateLoading = false,
                             planAdaptedToBodyweight = useAdapted,
                             errors = current.errors - "candidates",
@@ -2461,18 +2452,36 @@ class SetupWizardViewModel @JvmOverloads constructor(
      *  - si el paso PLAN todavía NO se confirmó, la selección se limpia: la persona no confirmó nada;
      *  - si ya se confirmó, la selección se CONSERVA (no se borra una respuesta confirmada) y el paso queda
      *    por revisar con la API de dependencias (`withPendingReview`); mientras tanto
-     *    [planSelectionGate] impide continuar con ella.
+     *    [planSelectionGate] impide continuar con ella;
+     *  - excepción (H2 c): si la selección es el plan que la persona trajo de la biblioteca ([PRESELECTED_PLAN_KEY]),
+     *    se conserva aunque PLAN no esté confirmado. Es su intención: el aviso explica qué falta y, cuando el plan
+     *    vuelve a ser viable, el barrido siguiente lo prepara solo; elegir otro plan la reemplaza.
+     *
+     * Si el barrido no evaluó el plan (el planificador lo excluyó), el aviso lleva el motivo sintetizado por
+     * [synthesizedRejectionFor] (días o disciplina).
      */
     private fun dropSelection(planId: String, rejections: List<SetupCandidateRejection>) {
+        val entry = PersonalizedPlanCatalog.find(planId)
         val dropped = SetupDroppedSelection(
             planId = planId,
             // C.P5/C.P6: el nombre de la ficha editorial, no el alias heredado `title`.
-            title = PersonalizedPlanCatalog.find(planId)?.displayName ?: DROPPED_SELECTION_FALLBACK_TITLE,
-            rejection = rejections.firstOrNull { it.planId == planId },
+            title = entry?.displayName ?: DROPPED_SELECTION_FALLBACK_TITLE,
+            // H2 (b): un plan que el barrido ni evaluó (el planificador lo excluyó por días u objetivo) se explica con
+            // el motivo que lo excluyó, para que el presentador dé su texto y su botón («Este plan usa 4 días distintos;
+            // elegiste 3 días.» → Cambiar días) en lugar del genérico «ya no está entre los planes…».
+            rejection = rejections.firstOrNull { it.planId == planId }
+                ?: entry?.let { synthesizedRejectionFor(it, _state.value.draft) },
         )
+        // H2 (c): el plan que la persona trajo de la biblioteca es su INTENCIÓN mientras siga siendo la selección: no se
+        // limpia aunque no encaje todavía (el aviso explica por qué) y, en cuanto vuelve a encajar, ya está elegido.
+        val libraryIntent = savedStateHandle.get<String>(PRESELECTED_PLAN_KEY) == planId
         // El código cerrado del motivo solo va al registro (la pantalla muestra texto llano): id del plan y
         // código, sin respuestas ni datos personales.
-        Log.i(DIAG_TAG, "selección caída: plan=$planId motivo=${dropped.rejection?.reasonCode ?: "sin rechazo"}")
+        Log.i(
+            DIAG_TAG,
+            "selección caída: plan=$planId motivo=${dropped.rejection?.reasonCode ?: "sin rechazo"} " +
+                "intención de la biblioteca=$libraryIntent",
+        )
         // Primero se retira la propiedad del preview en vuelo; después se publica la marca (el guard de
         // `preparePreview` la lee) para que el guardado de abajo no relance nada.
         releasePreviewGeneration(cancelInFlight = true)
@@ -2489,6 +2498,8 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 draft.selectedCatalogId != planId -> draft
                 SetupStepId.PLAN in draft.stepProgress.answers ->
                     draft.copy(stepProgress = draft.stepProgress.withPendingReview(setOf(SetupStepId.PLAN)))
+                // La intención de la biblioteca se conserva (H2 c); `planSelectionGate` impide continuar con ella.
+                libraryIntent -> draft
                 else -> draft.copy(selectedCatalogId = null, acceptFixedRecipeDifference = false)
             }
         }
@@ -2632,10 +2643,12 @@ class SetupWizardViewModel @JvmOverloads constructor(
         if (missingMaterial.isNotEmpty()) {
             // T-001 / AC-T001-02: etapa MATERIAL tipada. No todo rechazo es
             // material, pero ÉSTE sí lo es y se reporta como tal.
-            throw SetupCandidateFailureException(
-                SetupCandidateRejectionStage.MATERIAL,
+            throw PlanMaterializationException(
+                PlanEvaluationStage.MATERIAL,
+                apparatusReason(missingMaterial.sorted(), draft),
                 "Esta receta necesita material que no has declarado: " +
                     missingMaterial.sorted().joinToString(", "),
+                missingRequirements = missingMaterial.sorted(),
             )
         }
         val sessionDays = program.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }
@@ -3076,6 +3089,13 @@ internal const val CATALOG_UNAVAILABLE_MESSAGE = "No pudimos cargar el catálogo
 /** Paquete A · D2 (B-01): aviso de «Continuar» en el paso PLAN sin una selección viable de la lista vigente. */
 internal const val PLAN_SELECTION_REQUIRED_MESSAGE = "Elige un plan de la lista para continuar"
 
+/**
+ * H9: aviso de «Continuar» en el paso PLAN mientras la lista de planes se está calculando. Con la lista en carga no
+ * se puede decir «elige un plan de la lista» (la lista todavía no está): se explica la espera y se pide repetir.
+ */
+internal const val PLAN_CANDIDATES_LOADING_MESSAGE =
+    "Estamos revisando los planes; vuelve a tocar Continuar en un momento"
+
 /** Nombre de reserva de una selección caída cuyo id ya no resuelve en el catálogo (nunca se pinta el id crudo). */
 private const val DROPPED_SELECTION_FALLBACK_TITLE = "Tu plan elegido"
 
@@ -3085,6 +3105,10 @@ private const val DROPPED_SELECTION_FALLBACK_TITLE = "Tu plan elegido"
  * no solo las tarjetas visibles) y que la lista no esté calculándose; si no, devuelve el error de paso
  * (`errors["plan"]`) y el paso no avanza. Es una función pura para poder probarla sin montar el ViewModel.
  *
+ * Con la lista calculándose el aviso es propio ([PLAN_CANDIDATES_LOADING_MESSAGE], H9): no es que el plan no
+ * sirva, es que todavía no se sabe. Con la lista lista y la selección fuera de ella vale
+ * [PLAN_SELECTION_REQUIRED_MESSAGE].
+ *
  * No añade nada cuando la validación del paso ya habla por sí sola (sin plan elegido) ni en la ruta «desde cero»,
  * que no usa candidatos.
  */
@@ -3093,8 +3117,76 @@ internal fun planSelectionGate(state: SetupWizardState, step: SetupStepId): Map<
     val draft = state.draft
     if (draft.trainingPath == SetupTrainingPath.FROM_SCRATCH) return emptyMap()
     val selected = draft.selectedCatalogId ?: return emptyMap()
-    val viable = !state.isCandidateLoading && state.availablePlanCandidates.any { it.id == selected }
+    if (state.isCandidateLoading) return mapOf("plan" to PLAN_CANDIDATES_LOADING_MESSAGE)
+    val viable = state.availablePlanCandidates.any { it.id == selected }
     return if (viable) emptyMap() else mapOf("plan" to PLAN_SELECTION_REQUIRED_MESSAGE)
+}
+
+/** Tarjetas de plan que se ven al principio de la lista (el resto sale con «Ver más opciones»). */
+internal const val INITIAL_VISIBLE_CANDIDATES = 3
+
+/** Cuántas tarjetas más suma cada toque de «Ver más opciones». */
+private const val CANDIDATES_PAGE_SIZE = 3
+
+/**
+ * H3: las tarjetas visibles de la lista [available] (el orden del planificador no cambia): las primeras
+ * [minimumVisible] y, si el plan elegido [selectedId] es viable pero está más allá, las que hagan falta para incluirlo.
+ * Así el plan elegido —o el que la persona trajo de la biblioteca— nunca queda escondido detrás de «Ver más
+ * opciones» y no hay que ir a buscarlo para ver que está marcado. Sin selección, o con una que no está en la lista
+ * (no es viable), son las [minimumVisible] primeras.
+ */
+internal fun visibleCandidatesFor(
+    available: List<SetupPlanCandidate>,
+    selectedId: String?,
+    minimumVisible: Int = INITIAL_VISIBLE_CANDIDATES,
+): List<SetupPlanCandidate> {
+    val selectedIndex = selectedId?.let { id -> available.indexOfFirst { candidate -> candidate.id == id } } ?: -1
+    return available.take(maxOf(minimumVisible, selectedIndex + 1))
+}
+
+/**
+ * H10: el texto que la persona lee cuando el preview falla. El mensaje crudo del motor (`error.message`: ids de
+ * configuración, tokens, nombres de clases) va solo al registro. El catálogo que no quedó listo se dice con el texto
+ * del presentador único ([PlanRejectionPresenter.CATALOG_TEXT]) y un fallo interno —composición, materialización,
+ * configuración sin resolver, base de carga, o cualquier error sin tipar— con [PlanRejectionPresenter.INTERNAL_TEXT].
+ * Los rechazos que la persona puede arreglar (material, tiempo, perfil, frecuencia…) usan el mismo presentador
+ * que la lista: el motivo y los valores estructurados se conservan, los tokens e ids del mensaje no se pintan.
+ */
+internal fun previewFailureText(error: Throwable, draft: SetupWizardDraft? = null): String {
+    val typed = error as? PlanMaterializationException ?: return PlanRejectionPresenter.INTERNAL_TEXT
+    return when (typed.reason) {
+        PlanRejectionReason.CATALOG_NOT_READY -> PlanRejectionPresenter.CATALOG_TEXT
+        PlanRejectionReason.UNRESOLVED_CONFIGURATION,
+        PlanRejectionReason.INTERNAL_MATERIALIZATION,
+        PlanRejectionReason.COMPOSITION,
+        PlanRejectionReason.LOAD_BASIS_UNREPRESENTABLE -> PlanRejectionPresenter.INTERNAL_TEXT
+        PlanRejectionReason.RECIPE_UNAVAILABLE,
+        PlanRejectionReason.PROFILE_MISMATCH,
+        PlanRejectionReason.LEVEL_UNSUITABLE,
+        PlanRejectionReason.FREQUENCY,
+        PlanRejectionReason.SPLIT,
+        PlanRejectionReason.APPARATUS_UNKNOWN,
+        PlanRejectionReason.APPARATUS_ABSENT,
+        PlanRejectionReason.NO_VALID_SUBSTITUTION,
+        PlanRejectionReason.TIME_BUDGET -> {
+            val key = if (typed.reason == PlanRejectionReason.APPARATUS_UNKNOWN) {
+                typed.missingRequirements.firstNotNullOfOrNull { token ->
+                    PlanRepairAdvisor.confirmableKeyFor(token, draft?.trainingOptions?.availability)
+                }
+            } else null
+            PlanRejectionPresenter.present(
+                RejectionView(
+                    planId = draft?.selectedCatalogId,
+                    reasonCode = typed.reason,
+                    requiredMinutes = typed.requiredMinutes,
+                    missingRequirements = typed.missingRequirements,
+                    apparatusKey = key,
+                    needsApparatusConfirmation = key != null,
+                ),
+                draft?.let(::presentationContextOf) ?: PresentationContext(),
+            ).text
+        }
+    }
 }
 
 /**
@@ -3177,8 +3269,27 @@ internal fun SetupWizardDraft.withRepair(
     is PlanRepair.SetCardioMinutes -> withStepChoice(SetupStepId.CARDIO_TIME, repair.minutes.toString(), nowEpochMs)
     is PlanRepair.ConfirmApparatus -> withConfirmedApparatus(repair)
     is PlanRepair.SwitchGoal -> withSwitchedGoal(repair, nowEpochMs)
-    PlanRepair.ClearSplit -> copy(selectedSplitId = null)
+    PlanRepair.ClearSplit -> withRecommendedSplit(nowEpochMs)
 }
+
+/**
+ * Valor estable de la tarjeta «Recomendado» del paso SPLIT: sin reparto forzado, el motor ordena los días como mejor
+ * encaje. Es el mismo valor que escribe esa tarjeta (`SetupTrainingSteps`, `selectSplit`).
+ */
+internal const val SPLIT_CHOICE_RECOMMENDED = "recommended"
+
+/**
+ * El borrador con el reparto retirado y escrito EXACTAMENTE como lo deja la tarjeta «Recomendado» del paso SPLIT:
+ * la selección `recommended` del paso (`withStepChoice`), sin reparto elegido y sin el patrón ni el nombre del reparto
+ * propio. Quitar el reparto con «Quitar el reparto» o por un cambio de objetivo (H4) deja así la misma huella que
+ * hubiera dejado la persona; antes solo se ponía `selectedSplitId = null` y el paso SPLIT conservaba la selección y el
+ * patrón del reparto retirado (un reparto propio seguía marcado y con su nombre).
+ */
+internal fun SetupWizardDraft.withRecommendedSplit(
+    nowEpochMs: Long = System.currentTimeMillis(),
+): SetupWizardDraft =
+    withStepChoice(SetupStepId.SPLIT, SPLIT_CHOICE_RECOMMENDED, nowEpochMs)
+        .copy(selectedSplitId = null, customSplitPattern = emptyList(), customSplitName = null)
 
 /**
  * Confirma las llaves y las categorías de la reparación. Si la persona ya había marcado categorías en el paso de
@@ -3201,7 +3312,8 @@ private fun SetupWizardDraft.withConfirmedApparatus(repair: PlanRepair.ConfirmAp
 
 /**
  * Cambia el objetivo como lo haría el paso GOAL (con el estilo de volumen que infiere), sube los minutos si el destino
- * solo cabe con más tiempo y retira el reparto elegido, que era del objetivo anterior. Nunca va a Atleta completo.
+ * solo cabe con más tiempo y retira el reparto elegido, que era del objetivo anterior, como lo hace la tarjeta
+ * «Recomendado» ([withRecommendedSplit], H4). Nunca va a Atleta completo.
  */
 private fun SetupWizardDraft.withSwitchedGoal(repair: PlanRepair.SwitchGoal, nowEpochMs: Long): SetupWizardDraft {
     val value = goalChoiceValueOf(repair.goal) ?: return this
@@ -3209,7 +3321,7 @@ private fun SetupWizardDraft.withSwitchedGoal(repair: PlanRepair.SwitchGoal, now
     val timed = repair.alsoMinutes
         ?.let { minutes -> switched.withStepNumber(SetupStepId.SESSION_TIME, minutes.toDouble(), nowEpochMs) }
         ?: switched
-    return timed.copy(selectedSplitId = null)
+    return timed.withRecommendedSplit(nowEpochMs)
 }
 
 /**
@@ -3249,14 +3361,76 @@ private val PRESELECTABLE_GOALS: List<PlanGoalProfile> = listOf(
 )
 
 /**
+ * H1 (c): ¿puede el planificador ofrecer [entry] para ALGÚN objetivo del asistente y ALGUNA frecuencia que la entrada
+ * admite? Se pregunta al propio [SetupTrainingPlanner] con el pedido que arma el barrido (referencia y capacidades
+ * requeridas de cada objetivo), no a una regla paralela: una entrada que ahí no sale —las tres estructuras en blanco y
+ * `native:strength-cardio`, cuyas `references` y `capabilities` no sirven a ningún objetivo— no puede llegar a ser un
+ * candidato por mucho que se pida desde la biblioteca o desde un enlace con un id a mano.
+ */
+internal fun wizardCanOffer(entry: CatalogEntry): Boolean = PRESELECTABLE_GOALS.any { goal ->
+    val reference = PlanRepairAdvisor.referenceOf(goal)
+    val capabilities = PlanGoalMatcher.requiredCapabilities(goal)
+    entry.supportedFrequencies.any { days ->
+        days in 1..MAX_WIZARD_DAYS && SetupTrainingPlanner.candidates(
+            SetupTrainingPlannerInput(
+                reference = reference,
+                frequency = days,
+                equipment = setOf("general_gym"),
+                level = CatalogLevel.BEGINNER,
+                focus = TrainingFocus.FULL_BODY,
+                requiredCapabilities = capabilities,
+            ),
+        ).any { candidate -> candidate.id == entry.id }
+    }
+}
+
+/** Días por semana máximos que pregunta el asistente. */
+private const val MAX_WIZARD_DAYS = 6
+
+/**
+ * H2 (b): el rechazo que explica por qué el planificador excluyó [entry] con las respuestas de [draft], para un plan
+ * que el barrido ni evaluó. Mismo orden que los filtros del planificador: primero la frecuencia (el plan no admite los
+ * días elegidos) y después la disciplina (el plan no sirve al objetivo elegido, [PlanGoalMatcher]). Null si ninguna de
+ * las dos lo explica (la exclusión es de otra clase y el aviso queda en la forma general). El texto de `reason` solo
+ * va al registro: la persona lee el del presentador.
+ */
+internal fun synthesizedRejectionFor(entry: CatalogEntry, draft: SetupWizardDraft): SetupCandidateRejection? {
+    val days = draft.daysPerWeek
+    if (days != null && days !in entry.supportedFrequencies) {
+        return SetupCandidateRejection(
+            planId = entry.id,
+            stage = SetupCandidateRejectionStage.FREQUENCY,
+            reason = "el plan admite ${entry.supportedFrequencies} días por semana y se eligieron $days",
+            reasonCode = PlanRejectionReason.FREQUENCY,
+        )
+    }
+    val goalProfile = planGoalProfileOf(draft.goal)
+    if (!PlanGoalMatcher.matches(entry, goalProfile)) {
+        return SetupCandidateRejection(
+            planId = entry.id,
+            stage = SetupCandidateRejectionStage.PROFILE,
+            reason = "el plan no sirve al objetivo $goalProfile",
+            reasonCode = PlanRejectionReason.PROFILE_MISMATCH,
+        )
+    }
+    return null
+}
+
+/**
  * E-18 (C.P6) — el borrador con el plan [planId] de la biblioteca como INTENCIÓN, o null si no se puede (el id no
- * existe, la entrada no se ofrece o el borrador no incluye entrenamiento).
+ * existe, la entrada no se ofrece, el planificador no la puede ofrecer para ningún objetivo y frecuencia
+ * ([wizardCanOffer]) o el borrador no incluye entrenamiento).
  *
  *  - `selectedCatalogId` guarda la intención (r2 §15.2); no confirma el paso PLAN ni ningún otro: el asistente
  *    sigue preguntando todo y, al llegar a PLAN, la selección queda hecha si el plan es viable y, si no, cae con el
  *    aviso de selección caída.
  *  - El objetivo se prefija SIN confirmar cuando el plan sirve a UNO solo ([PlanGoalMatcher.matches]); un plan que
  *    casa con varios (PHUL: Músculo y Fuerza y músculo) no prefija nada y deja que la persona elija.
+ *  - H2 (a): con el mismo criterio, los días por semana se prefijan SIN confirmar cuando el plan admite una sola
+ *    frecuencia (los métodos y las plantillas con receta: «4 días»); los planes de 1 a 6 días no prefijan nada.
+ *  - H18: un paso que ya estaba CONFIRMADO (borrador restaurado) y cuyo valor cambia por la preselección —el objetivo,
+ *    los días o el plan elegido— no se cambia en silencio: se deja marcado para revisar (`withPendingReview`) y su
+ *    respuesta conserva el dato.
  *  - La ruta se normaliza como al elegir una tarjeta (personalizable) y se descarta «lo decidiré después»: la
  *    persona acaba de pedir configurar este plan.
  */
@@ -3266,18 +3440,30 @@ internal fun SetupWizardDraft.withPreselectedPlan(
 ): SetupWizardDraft? {
     if (!includeTraining) return null
     val entry = PersonalizedPlanCatalog.find(planId)
-        ?.takeIf { it.listed && it.publication == PublicationState.PUBLISHED }
+        ?.takeIf { it.listed && it.publication == PublicationState.PUBLISHED && wizardCanOffer(it) }
         ?: return null
     val servedGoal = PRESELECTABLE_GOALS.filter { candidate -> PlanGoalMatcher.matches(entry, candidate) }.singleOrNull()
-    val prefixed = if (servedGoal != null && planGoalProfileOf(goal) != servedGoal) {
-        goalChoiceValueOf(servedGoal)?.let { value -> withStepChoice(SetupStepId.GOAL, value, nowEpochMs) } ?: this
+    val goalValue = servedGoal
+        ?.takeIf { planGoalProfileOf(goal) != it }
+        ?.let { goalChoiceValueOf(it) }
+    val withGoal = if (goalValue != null) withStepChoice(SetupStepId.GOAL, goalValue, nowEpochMs) else this
+    val fixedDays = entry.supportedFrequencies.takeIf { it.first == it.last }?.first
+    val changesDays = fixedDays != null && daysPerWeek != fixedDays
+    val withDays = if (fixedDays != null && changesDays) {
+        withGoal.withStepChoice(SetupStepId.DAYS, fixedDays.toString(), nowEpochMs)
     } else {
-        this
+        withGoal
     }
-    return prefixed.copy(
+    val confirmedAndChanged = buildSet {
+        if (goalValue != null && SetupStepId.GOAL in stepProgress.answers) add(SetupStepId.GOAL)
+        if (changesDays && SetupStepId.DAYS in stepProgress.answers) add(SetupStepId.DAYS)
+        if (selectedCatalogId != entry.id && SetupStepId.PLAN in stepProgress.answers) add(SetupStepId.PLAN)
+    }
+    return withDays.copy(
         selectedCatalogId = entry.id,
         acceptFixedRecipeDifference = false,
         programRoute = SetupProgramRoute.CUSTOMIZABLE,
         trainingPath = SetupTrainingPath.PERSONALIZE,
+        stepProgress = withDays.stepProgress.withPendingReview(confirmedAndChanged),
     )
 }

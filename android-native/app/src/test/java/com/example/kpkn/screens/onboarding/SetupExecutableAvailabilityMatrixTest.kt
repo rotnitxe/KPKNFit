@@ -1185,6 +1185,8 @@ class SetupExecutableAvailabilityMatrixTest {
     private fun <T> TestScope.withT020Vm(
         label: String,
         catalog: ExerciseCatalogRepositoryV2? = null,
+        mode: SetupWizardMode = SetupWizardMode.FULL,
+        preselectedPlanId: String? = null,
         body: (SetupWizardViewModel) -> T,
     ): T {
         currentCaseLabel = "T020-$label"
@@ -1206,7 +1208,7 @@ class SetupExecutableAvailabilityMatrixTest {
             ?: error("T020: viewModelScope de $label no expone Job")
         var failure: Throwable? = null
         try {
-            vm.initialize(SetupWizardMode.FULL, draftId = "t020-$label")
+            vm.initialize(mode, draftId = "t020-$label", preselectedPlanId = preselectedPlanId)
             if (!awaitUntil(vm, SETTLE_BUDGET_MS) { !it.isLoading }) {
                 throw AssertionError("HARNESS: el wizard T020-$label no salió de isLoading (${stateDump(vm.state.value)})")
             }
@@ -1619,6 +1621,107 @@ class SetupExecutableAvailabilityMatrixTest {
                     "el plan propio sigue viable con su reparto equivalente",
                     accepted.availablePlanCandidates.any { it.id == own },
                 )
+            }
+        }
+
+    // ═════════════════════════════════════════════════════════════════════════════════════
+    // T022 · H2 (curaduría de programas, 2026-10-04) — el plan de la biblioteca que el planificador excluye, con el motor REAL
+    // ═════════════════════════════════════════════════════════════════════════════════════
+    //
+    // Mismo arnés que T020 (motor real, planificador, evaluador, caché y asesor de producción), con el asistente de SOLO
+    // entrenamiento que abre la biblioteca cuando el alta ya está completa (`TRAINING_ONLY`) y el plan preseleccionado:
+    //  a. Fuerza → Músculo con el plan propio de Fuerza preseleccionado: el aviso explica el perfil, la intención se
+    //     conserva, y al volver a Fuerza (gimnasio sin confirmar) el rechazo de material lleva su reparación de un toque y el
+    //     plan, que sigue elegido, llega a programa sin volver a elegirlo.
+    //  b. Un método de 4 días preseleccionado con 3 días elegidos: «Este plan usa 4 días distintos; elegiste 3 días.» y el
+    //     botón «Cambiar días» (antes, el genérico «ya no está entre los planes que corresponden a tus respuestas»).
+
+    @Test
+    fun T022_a_fuerza_preseleccionada_y_el_objetivo_pasa_a_musculo_explica_el_perfil_y_la_intencion_llega_a_programa_al_volver() =
+        runTest(timeout = 10.minutes) {
+            val own = NativeProfileKind.STRENGTH.entryId
+            withT020Vm("t022-a-fuerza-a-musculo", mode = SetupWizardMode.TRAINING_ONLY, preselectedPlanId = own) { vm ->
+                val seeded = vm.state.value.draft
+                assertEquals("el plan de la biblioteca, como intención", own, seeded.selectedCatalogId)
+                assertEquals("el objetivo del plan, prefijado y sin confirmar", SetupGoal.STRENGTH, seeded.goal)
+                assertFalse(SetupStepId.GOAL in seeded.stepProgress.answers)
+
+                // 1. La persona pasa a Músculo: el plan propio de Fuerza deja de ser candidato del objetivo.
+                applyFixture(vm, t020Row("t022a-musculo", SetupGoal.MUSCLE, SetupExperience.NEW, allCategories, days = 3, minutes = 60))
+                val dropped = requireSettled(vm, "plan de Fuerza caído por el objetivo") { state ->
+                    state.draft.goal == SetupGoal.MUSCLE && state.droppedSelection?.planId == own
+                }
+                assertEquals(
+                    "el planificador ni lo evaluó: el motivo se sintetiza",
+                    PlanRejectionReason.PROFILE_MISMATCH,
+                    checkNotNull(dropped.droppedSelection?.rejection).reasonCode,
+                )
+                assertEquals("la intención se conserva", own, dropped.draft.selectedCatalogId)
+                val profileNotice = droppedSelectionNotice(checkNotNull(dropped.droppedSelection), dropped.draft)
+                assertTrue(profileNotice.text, profileNotice.text.startsWith(DROPPED_SELECTION_LEAD))
+                assertTrue(profileNotice.text, profileNotice.text.contains("músculo"))
+                assertEquals("Cambiar objetivo", profileNotice.primary?.label)
+                assertEquals("Ver alternativas", profileNotice.secondary?.label)
+                assertT020PlainLanguage(profileNotice)
+
+                // 2. Vuelve a Fuerza con el gimnasio sin confirmar: ahora el plan SÍ se evalúa y falta rack y banco.
+                applyFixture(vm, t020Row("t022a-fuerza", SetupGoal.STRENGTH, SetupExperience.INTERMEDIATE, allCategories, days = 3, minutes = 60))
+                val unknown = requireSettled(vm, "plan de Fuerza rechazado por material sin confirmar, con su reparación") { state ->
+                    state.draft.goal == SetupGoal.STRENGTH &&
+                        state.candidateRejections.any { it.planId == own && it.repairs.isNotEmpty() }
+                }
+                assertEquals(own, unknown.draft.selectedCatalogId)
+                val notice = unknown.droppedSelection?.let { droppedSelectionNotice(it, unknown.draft) } ?: t020Notice(unknown)
+                assertTrue(
+                    "etiqueta de D5 en el botón principal: ${notice.primary?.label}",
+                    notice.primary?.label?.startsWith("Sí, tengo rack y banco") == true,
+                )
+                assertT020PlainLanguage(notice)
+
+                // 3. Un toque: el plan sigue elegido (nadie lo eligió otra vez) y llega a un programa ejecutable.
+                performNoticeEffect(checkNotNull(notice.primary).effect, vm)
+                val ready = requireSettled(vm, "plan de la biblioteca viable, elegido y preparado") { state ->
+                    state.droppedSelection == null && state.draft.selectedCatalogId == own &&
+                        state.programPreview != null && state.availablePlanCandidates.any { it.id == own }
+                }
+                val program = checkNotNull(ready.programPreview)
+                val issues = ProgramExecutionContract.validate(program)
+                assertTrue("T022: $own no es ejecutable: ${issues.joinToString("; ") { it.message }}", issues.isEmpty())
+                assertEquals(ProgramMode.POWERLIFTING, program.mode)
+            }
+        }
+
+    @Test
+    fun T022_b_un_metodo_de_cuatro_dias_con_tres_dias_elegidos_dice_cuantos_dias_usa_y_ofrece_cambiar_los_dias() =
+        runTest(timeout = 10.minutes) {
+            val method = AuthoredPhulPhatRecipes.PHUL_ORIGINAL_ID
+            withT020Vm("t022-b-metodo-de-cuatro-dias", mode = SetupWizardMode.TRAINING_ONLY, preselectedPlanId = method) { vm ->
+                val seeded = vm.state.value.draft
+                assertEquals(method, seeded.selectedCatalogId)
+                assertEquals("los días del método, sin confirmar", 4, seeded.daysPerWeek)
+                assertFalse(SetupStepId.DAYS in seeded.stepProgress.answers)
+
+                // La persona elige Músculo y 3 días: el planificador ya no ofrece un método de 4 días.
+                applyFixture(vm, t020Row("t022b", SetupGoal.MUSCLE, SetupExperience.NEW, allCategories, days = 3, minutes = 60))
+                val dropped = requireSettled(vm, "método de 4 días caído por los 3 días elegidos") { state ->
+                    state.draft.daysPerWeek == 3 && state.droppedSelection?.planId == method
+                }
+
+                assertEquals(
+                    PlanRejectionReason.FREQUENCY,
+                    checkNotNull(dropped.droppedSelection?.rejection).reasonCode,
+                )
+                assertEquals("la intención se conserva", method, dropped.draft.selectedCatalogId)
+                val notice = droppedSelectionNotice(checkNotNull(dropped.droppedSelection), dropped.draft)
+                assertEquals("$DROPPED_SELECTION_LEAD Este plan usa 4 días distintos; elegiste 3 días.", notice.text)
+                assertEquals("Cambiar días", notice.primary?.label)
+                assertEquals(NoticeEffect.Act(RejectionAction.ChangeDays), notice.primary?.effect)
+                assertNull(notice.secondary)
+                assertT020PlainLanguage(notice)
+
+                // El botón lleva al paso de los días.
+                performNoticeEffect(checkNotNull(notice.primary).effect, vm)
+                requireSettled(vm, "cursor en el paso de los días") { it.currentStep == SetupStepId.DAYS }
             }
         }
 

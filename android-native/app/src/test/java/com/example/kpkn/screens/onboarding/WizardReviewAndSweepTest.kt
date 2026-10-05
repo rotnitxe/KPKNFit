@@ -73,11 +73,11 @@ class WizardReviewAndSweepTest {
     @Test
     fun highVolumeNoticeIsWrittenInPlainLanguage() {
         assertEquals(
-            "Volumen alto en Glúteos: 17,5 series por semana (recomendado 16). Es un exceso pequeño y aceptable.",
+            "Volumen alto en Glúteos: 17,5 series principales por semana (recomendado 16). Es un exceso pequeño y aceptable.",
             highVolumeReviewText(HighVolumeNotice("Glúteos", 17.5, 16, 17.5)),
         )
         assertEquals(
-            "Volumen alto en Glúteos: 17 series por semana (recomendado 16). Es un exceso pequeño y aceptable.",
+            "Volumen alto en Glúteos: 17 series principales por semana (recomendado 16). Es un exceso pequeño y aceptable.",
             highVolumeReviewText(HighVolumeNotice("Glúteos", 17.0, 16, 17.5)),
         )
     }

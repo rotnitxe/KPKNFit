@@ -209,17 +209,14 @@ private const val BODY_FAT_SUBTITLE = "Mueve la figura. Si tienes el dato medido
 private fun MilestoneContent(step: SetupStepId, state: SetupWizardState) {
     val currentBlock = SetupStepGraph.blockOf(step)
     val completed = state.completedBlocks
-    val items = listOf(
-        SetupWizardBlock.BASICS to "Datos básicos",
-        SetupWizardBlock.TRAINING to "Entreno",
-        SetupWizardBlock.NUTRITION to "Nutrición",
-        SetupWizardBlock.RINGS to "Rings",
-        SetupWizardBlock.REVIEW to "Revisión y activación",
-    ).map { (block, title) ->
+    // H8/H15: las etapas y lo que falta salen de la RUTA efectiva del borrador, no de una lista fija: un asistente
+    // solo de entreno (TRAINING_ONLY, desde la biblioteca) no habla de Nutrición ni de Rings.
+    val route = SetupStepGraph.stepIds(state.draft.stepContext())
+    val items = milestoneBlocks(route).map { block ->
         WizardMilestoneItem(
             block = block.toWizardBlock(),
-            title = title,
-            body = milestoneBody(block),
+            title = milestoneBlockTitle(block),
+            body = milestoneBody(block, route),
             state = when {
                 block in completed -> WizardMilestoneState.DONE
                 block == currentBlock -> WizardMilestoneState.CURRENT
@@ -230,7 +227,7 @@ private fun MilestoneContent(step: SetupStepId, state: SetupWizardState) {
     WizardMilestones(
         items = items,
         heroTitle = MILESTONE_HERO_TITLE,
-        heroSubtitle = milestoneHeroSubtitle(step),
+        heroSubtitle = milestoneHeroSubtitle(step, route),
     )
 }
 
@@ -241,21 +238,56 @@ private fun MilestoneContent(step: SetupStepId, state: SetupWizardState) {
  */
 private const val MILESTONE_HERO_TITLE = "UN PASO MÁS"
 
-/** Qué queda por recorrer: los cuatro bloques de la ruta más la revisión. */
-private fun milestoneHeroSubtitle(step: SetupStepId): String = when (step) {
-    SetupStepId.MILESTONE_BASICS -> "Faltan Entreno, Nutrición, Rings y la revisión final."
-    SetupStepId.MILESTONE_TRAINING -> "Faltan Nutrición, Rings y la revisión final."
-    SetupStepId.MILESTONE_NUTRITION -> "Faltan Rings y la revisión final."
-    SetupStepId.MILESTONE_RINGS -> "Solo queda la revisión final."
-    else -> "Cuatro bloques y la revisión final para activar tu plan."
+/** Los bloques de la ruta efectiva [route], en el orden en que se recorren y sin repetir. */
+internal fun milestoneBlocks(route: List<SetupStepId>): List<SetupWizardBlock> =
+    route.map(SetupStepGraph::blockOf).distinct()
+
+/** Nombre de cada etapa en la lista de etapas del hito. */
+internal fun milestoneBlockTitle(block: SetupWizardBlock): String = when (block) {
+    SetupWizardBlock.BASICS -> "Datos básicos"
+    SetupWizardBlock.TRAINING -> "Entreno"
+    SetupWizardBlock.NUTRITION -> "Nutrición"
+    SetupWizardBlock.RINGS -> "Rings"
+    SetupWizardBlock.REVIEW -> "Revisión y activación"
 }
 
-private fun milestoneBody(block: SetupWizardBlock): String = when (block) {
+/**
+ * Qué queda por recorrer tras el hito [step], según la ruta efectiva [route]: los bloques que vienen después del suyo y
+ * la revisión final («Faltan Entreno, Nutrición, Rings y la revisión final.»; con una ruta de solo entreno «Faltan
+ * Entreno y la revisión final.» y, al cerrar Entreno, «Solo queda la revisión final.»). Un paso que no es un hito del
+ * recorrido da la frase general.
+ */
+internal fun milestoneHeroSubtitle(step: SetupStepId, route: List<SetupStepId>): String {
+    if (!SetupStepGraph.isMilestone(step) || step !in route) {
+        return "Los bloques de tu ruta y la revisión final para activar tu plan."
+    }
+    val current = SetupStepGraph.blockOf(step)
+    val remaining = milestoneBlocks(route)
+        .dropWhile { block -> block != current }
+        .drop(1)
+        .filter { block -> block != SetupWizardBlock.REVIEW }
+    return if (remaining.isEmpty()) {
+        "Solo queda la revisión final."
+    } else {
+        "Faltan ${remaining.joinToString(", ") { block -> milestoneBlockTitle(block) }} y la revisión final."
+    }
+}
+
+/**
+ * Párrafo de cada etapa. La revisión dice qué se activa según la ruta: el programa y el plan nutricional juntos
+ * solo si la ruta trae el bloque de Nutrición; con una ruta de solo entreno se activa únicamente el programa.
+ */
+internal fun milestoneBody(block: SetupWizardBlock, route: List<SetupStepId>): String = when (block) {
     SetupWizardBlock.BASICS -> "Edad, sexo usado por la ecuación, altura, peso y grasa corporal actual."
     SetupWizardBlock.TRAINING -> "Ruta, equipo, calendario, prioridades de orden y calentamientos."
     SetupWizardBlock.NUTRITION -> "Presupuesto energético, macros y reparto semanal según el gasto previsto."
     SetupWizardBlock.RINGS -> "Entrenamiento reciente, sensaciones y molestias para calibrar la recuperación."
-    SetupWizardBlock.REVIEW -> "Se activa el programa y el plan nutricional juntos, al final del alta."
+    SetupWizardBlock.REVIEW ->
+        if (SetupWizardBlock.NUTRITION in milestoneBlocks(route)) {
+            "Se activa el programa y el plan nutricional juntos, al final del alta."
+        } else {
+            "Se activa tu programa al final, con lo que hayas respondido."
+        }
 }
 
 /**

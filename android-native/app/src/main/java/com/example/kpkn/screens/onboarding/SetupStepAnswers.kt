@@ -12,6 +12,7 @@ import com.example.kpkn.data.models.PlanDirection
 import com.example.kpkn.data.models.TrainingStyle
 import com.example.kpkn.data.models.VolumeCalibrationProfile
 import com.example.kpkn.data.models.VolumeCalibrationResponses
+import com.example.kpkn.data.splits.SPLIT_TEMPLATES
 import com.example.kpkn.domain.nutrition.EerActivity
 import com.example.kpkn.domain.nutrition.EerSex
 import com.example.kpkn.domain.nutrition.NutritionConfigurationMode
@@ -315,8 +316,9 @@ private fun SetupWizardDraft.projectChoice(
             else -> {
                 // Un cambio de perfil invalida resultados dependientes, pero no
                 // borra preferencias de cardio declaradas: pueden volver a ser
-                // relevantes si el usuario cambia el objetivo de nuevo.
-                val base = copy(goal = resolved)
+                // relevantes si el usuario cambia el objetivo de nuevo. Sí retira
+                // el reparto que el objetivo nuevo ya no ofrece (D6/A.E2, H4).
+                val base = copy(goal = resolved).withoutSplitNotOfferedFor(resolved)
                 val inferred = resolved.inferredTrainingStyle
                 if (inferred != null) base.withVolumeStyle(inferred)
                 else base.copy(
@@ -613,6 +615,20 @@ private fun SetupWizardDraft.withRings(
     val base = ringsAnswers ?: SetupRingsAnswers()
     val changed = change(base)
     return copy(ringsAnswers = if (changed.capturedAtMs == null) changed.copy(capturedAtMs = nowEpochMs) else changed)
+}
+
+/**
+ * D6 (A.E2): un reparto de powerlifting solo se ofrece en Fuerza ([isSplitOfferedForGoal]). Si el objetivo nuevo
+ * [goal] ya no ofrece el reparto elegido, se retira como lo haría la tarjeta «Recomendado» ([withRecommendedSplit]):
+ * sin él, el plan propio del objetivo nuevo no lo rechazaría por `SPLIT` (el rechazo que solo repara «Quitar el
+ * reparto») y el paso SPLIT no conservaría marcado un reparto que su lista ya no muestra. El reparto propio
+ * («custom») y los repartos que el objetivo sí ofrece no se tocan; un id que el catálogo de repartos no conoce
+ * tampoco (la lista tampoco lo decide).
+ */
+private fun SetupWizardDraft.withoutSplitNotOfferedFor(goal: SetupGoal): SetupWizardDraft {
+    val splitId = selectedSplitId ?: return this
+    val template = SPLIT_TEMPLATES.firstOrNull { split -> split.id == splitId } ?: return this
+    return if (isSplitOfferedForGoal(template, goal)) this else withRecommendedSplit()
 }
 
 /** Cambio de estilo con recalibración completa cuando las cuatro respuestas existen. */

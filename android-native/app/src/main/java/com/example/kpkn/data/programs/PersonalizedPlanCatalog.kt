@@ -143,7 +143,7 @@ data class CatalogEntry(
 }
 
 object PersonalizedPlanCatalog {
-    const val REVISION = "native-cycle-1"
+    const val REVISION = "native-cycle-2"
 
     // Los textos de las ocho familias históricas viven en PlanEditorialTable;
     // aquí solo quedan días, material y nivel base.
