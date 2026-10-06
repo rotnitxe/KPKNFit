@@ -1,0 +1,16 @@
+KPKN — Animaciones
+===================
+Videos MP4 (H.264, 30 fps), fondo negro, logo Torre anidada + texto Syne.
+
+16x9/   1920x1080 — presentaciones, YouTube, pantallas.
+9x16/   1080x1920 — pantalla de carga de la app, Reels, Stories, TikTok.
+
+presentacion/  Apilar, Respirar, Pulso, Carga, Deformar (intro con KPKN).
+cargando/      Apilando, Ola, Girando — son UN ciclo: ponlos en loop y no se nota el corte.
+momentos/      Meta cumplida, Nuevo récord, Racha, Recuperado, Sin conexión.
+
+kpkn-animaciones.html  Abre en el navegador (funciona sin internet) para verlas todas en vivo,
+                       cambiar formato y verlas seguidas.
+
+Para usarlas dentro de la app como animación nativa (más liviana que un video),
+la lógica está en el HTML: se puede portar a Lottie, Compose o React.

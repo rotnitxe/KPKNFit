@@ -1,0 +1,32 @@
+KPKN — Identidad visual: "Torre anidada"
+==========================================
+
+Concepto
+--------
+Tres anillos de tronco vistos en perspectiva y apilados unos dentro de otros:
+la carga de Caupolicán (torre, peso, subir) + el crecimiento de los anillos.
+Cada disco es un ring de la app:
+  - Base   -> Columna  (sostiene todo)
+  - Medio  -> Músculo
+  - Arriba -> Energía
+
+S1-principal    Logo principal (tres discos).
+S2-con-nucleo   Variante con núcleo sólido en el disco superior (el usuario al centro).
+
+Colores
+-------
+  Tinta (oscuro)  #121212
+  Crema (claro)   #F2EEE6
+  Versión color (PROPUESTA, reemplazar por los colores reales de los rings):
+  Columna #3D7BFF · Músculo #E8572A · Energía #F5B82E
+
+Tipografía: Syne ExtraBold (800), tracking -1%. Fuente completa en la carpeta Fuente-Syne. En los SVG el texto ya está en trazos.
+
+Carpetas (dentro de S1 y S2)
+----------------------------
+01-simbolo     SVG + PNG transparente (256/512/1024/2048): negro, blanco, blanco-puro, color.
+02-logotipo    Símbolo + KPKN horizontal y vertical. SVG + PNG transparente.
+03-app-icon    android/res (copiar sobre app/src/main/res), play-store-512, ios, web
+               (favicon, PWA, manifest-snippet.json, head-snippet.html).
+04-splash      Pantallas de carga oscuro/claro/color + ícono SplashScreen Android 12+.
+05-redes       Avatares 1080, banners, imagen OG 1200x630.

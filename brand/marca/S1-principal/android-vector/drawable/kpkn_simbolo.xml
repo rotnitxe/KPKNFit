@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- KPKN · Torre anidada. Blanco: aplicar tint/colorFilter para otros colores. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+  android:width="96.0dp" android:height="62.3dp"
+  android:viewportWidth="84.000" android:viewportHeight="54.500">
+  <group android:translateX="-8.000" android:translateY="-31.500">
+    <path android:fillColor="#FFFFFFFF" android:fillType="evenOdd" android:pathData="M12 70 a38 12 0 1 0 76 0 a38 12 0 1 0 -76 0 Z M17 68 a33 8.5 0 1 0 66 0 a33 8.5 0 1 0 -66 0 Z"/>
+    <path android:fillColor="#FFFFFFFF" android:fillType="evenOdd" android:pathData="M22 55 a28 9 0 1 0 56 0 a28 9 0 1 0 -56 0 Z M26 53.5 a24 6.5 0 1 0 48 0 a24 6.5 0 1 0 -48 0 Z"/>
+    <path android:fillColor="#FFFFFFFF" android:fillType="evenOdd" android:pathData="M32 42 a18 6.5 0 1 0 36 0 a18 6.5 0 1 0 -36 0 Z M35.5 41 a14.5 4.3 0 1 0 29 0 a14.5 4.3 0 1 0 -29 0 Z"/>
+  </group>
+</vector>

@@ -1,0 +1,21 @@
+Fuente de marca KPKN: Syne
+==========================
+Es la tipografía del logotipo (Syne ExtraBold 800). Licencia SIL Open Font License 1.1 (OFL.txt):
+puedes usarla, incrustarla en tu app y distribuirla gratis, también en una app comercial.
+Solo mantén el archivo OFL.txt junto a la fuente y no la vendas por separado.
+
+Archivos
+--------
+ttf/        Pesos estáticos 400-800 (instalar en Windows/Mac o usar en Figma).
+variable/   Syne[wght].ttf, un solo archivo con todos los pesos (400-800).
+woff2/      Para web / React.
+android/res/font/   Copia el contenido en app/src/main/res/font/ (nombres ya en minúscula + syne.xml).
+android/compose/KpknType.kt   Tipografía Material 3 lista para Jetpack Compose.
+web/syne.css        @font-face listo para React/web.
+
+Recomendación de uso
+--------------------
+- Syne 800 para títulos grandes, números de récords y el nombre KPKN.
+- Syne 600-700 para subtítulos y botones.
+- Para texto largo (descripciones, listas) usa una sans neutra (la del sistema o Inter):
+  Syne es muy expresiva y cansa en párrafos.

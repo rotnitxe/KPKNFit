@@ -9,6 +9,7 @@ This repository contains the KPKN Fit product: a native Kotlin Android applicati
 *   📂 **`backend/`** — Python FastAPI backend: `main.py` entrypoint, `routers/` (HTTP endpoints), `engines/` (server-side logic), `models/` (pydantic schemas), `supabase_migration.sql`, and `requirements.txt`. The app is offline-first; the backend is a secondary sync/AI layer.
 *   📂 **`data/`** — Source-of-truth static datasets (TypeScript/JSON): exercise databases and expansions, food databases (USDA, OpenFoodFacts, Chilean foods), muscle/joint/tendon catalogs, split and program templates. These are compiled into the app's bundled assets by scripts.
 *   📂 **`design_assets/`** — Logos, icons, illustrations, and backgrounds (PNG/SVG).
+*   📂 **`brand/`** — Official visual identity kit ("Torre anidada"): logo, app icon, splash, Syne font, animations (MP4, HTML, `KpknMotion.kt`) and wizard overlays. `brand/README.md` has the palette, usage rules and the table of where each brand resource lives in the app.
 *   📂 **`docs/`** — Living documentation:
     *   `docs/android/` — Focused Android skill guides (Compose canvas, Room offline, ViewModel flows, native hardware, local AI).
     *   `docs/archive/` — Historical reports and the old React Native migration notes.

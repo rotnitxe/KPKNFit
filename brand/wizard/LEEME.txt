@@ -1,0 +1,42 @@
+KPKN — Animaciones de módulo completado (wizard de bienvenida)
+===============================================================
+Overlay a pantalla completa con fondo desenfocado (backdrop-filter blur) que se pone
+encima de todo. Es SVG animado con JavaScript: sin video, sin librerías, ~20 KB.
+
+Módulos:  "basicos" · "entreno" · "nutricion" · "rings"
+
+Archivos
+--------
+kpkn-module-overlay.js   El motor. Cópialo a src/ (por ejemplo src/ui/).
+KpknModuleOverlay.jsx    Componente React listo.
+kpkn-bienvenida.html     Demo: ábrela en el navegador para probar el wizard completo.
+
+Uso en React
+------------
+import KpknModuleOverlay from "./KpknModuleOverlay";
+
+const [done, setDone] = useState(null);
+// al guardar cada paso:
+setDone("basicos");          // o "entreno", "nutricion", "rings"
+
+<KpknModuleOverlay
+  type={done}
+  onClose={() => { setDone(null); irAlSiguientePaso(); }}
+/>
+
+Uso sin React
+-------------
+import { showModuleComplete } from "./kpkn-module-overlay.js";
+showModuleComplete("entreno", { onClose: () => irAlSiguientePaso() });
+
+Opciones: title, subtitle, cta ("Continuar"; null = sin botón y se cierra tocando),
+          autoClose (ms, 0 = espera al botón), container (elemento donde montarlo), onClose.
+
+Notas
+-----
+- Usa la fuente Syne si ya está cargada en la app (ver KPKN-Marca/Fuente-Syne/web).
+- Respeta "reducir movimiento" del sistema: muestra el estado final sin animar.
+- Colores de los rings: columna #8FB2FF, músculo #F49A6E, energía #F7CF73; confirmación #43D18C
+  (se cambian arriba del archivo, en COLORS).
+- backdrop-filter funciona en WebView de Android moderno y en iOS; en equipos muy viejos
+  queda solo el fondo oscuro semitransparente.
