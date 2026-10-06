@@ -204,6 +204,8 @@ tasks.named("check").configure {
 dependencies {
     coreLibraryDesugaring(libs.desugar.jdk.libs)
     implementation(libs.androidx.core.ktx)
+    // SplashScreen API (Theme.KPKN.Starting + installSplashScreen()): splash de marca en todas las versiones de Android.
+    implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.navigation.compose)

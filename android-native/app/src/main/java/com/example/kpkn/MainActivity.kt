@@ -16,6 +16,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.SystemBarStyle
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
@@ -152,6 +153,9 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // SplashScreen API: va antes de super.onCreate. Aplica el splash de marca (Theme.KPKN.Starting)
+        // y, al terminar, deja la Activity con Theme.KPKN (postSplashScreenTheme).
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         // La app es SIEMPRE oscura (KPKNTheme dark): íconos claros fijos para
         // contraste correcto de status/nav bar en wizard y rutas setup/*.

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  KPKN · ícono del splash (SplashScreen API). Reproduce brand/marca/S1-principal/04-splash/android-splash-icon.svg:
+  Torre anidada (tres elipses evenodd) en crema #F2EEE6, centrada en un lienzo de 288 dp (ícono sin fondo:
+  el logo cabe en el círculo central de 192 dp que deja la SplashScreen API).
+
+  Transformaciones del SVG, hechas con <group> para dejar los arcos tal cual:
+    translate(50,50) scale(0.8157894736842105) translate(-50,-49.75)  y, dentro, translate(0,-9)
+  El grupo exterior aplica translate(50,50) + scale; el interior, la suma de las dos traslaciones (0,-9) + (-50,-49.75).
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="288dp"
+    android:height="288dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+    <group
+        android:translateX="50"
+        android:translateY="50"
+        android:scaleX="0.8157894736842105"
+        android:scaleY="0.8157894736842105">
+        <group
+            android:translateX="-50"
+            android:translateY="-58.75">
+            <path
+                android:fillColor="#F2EEE6"
+                android:fillType="evenOdd"
+                android:pathData="M12 70 a38 12 0 1 0 76 0 a38 12 0 1 0 -76 0 Z M17 68 a33 8.5 0 1 0 66 0 a33 8.5 0 1 0 -66 0 Z" />
+            <path
+                android:fillColor="#F2EEE6"
+                android:fillType="evenOdd"
+                android:pathData="M22 55 a28 9 0 1 0 56 0 a28 9 0 1 0 -56 0 Z M26 53.5 a24 6.5 0 1 0 48 0 a24 6.5 0 1 0 -48 0 Z" />
+            <path
+                android:fillColor="#F2EEE6"
+                android:fillType="evenOdd"
+                android:pathData="M32 42 a18 6.5 0 1 0 36 0 a18 6.5 0 1 0 -36 0 Z M35.5 41 a14.5 4.3 0 1 0 29 0 a14.5 4.3 0 1 0 -29 0 Z" />
+        </group>
+    </group>
+</vector>
