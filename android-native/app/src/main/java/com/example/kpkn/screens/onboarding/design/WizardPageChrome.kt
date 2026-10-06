@@ -35,7 +35,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -53,14 +52,14 @@ import dev.chrisbanes.haze.hazeEffect
 /**
  * Cromo fijo de la página larga: cabecera de cristal arriba, velo bajo la barra de estado y
  * botón de confirmar abajo con su propio velo. Es lo único que no se desliza; todo lo demás
- * pasa por detrás y lo que pasa se desenfoca solo bajo estas piezas (`haze`).
+ * pasa por detrás y lo que pasa se desenfoca solo bajo estas piezas (`haze`). Sin brillos, sin
+ * sombras de colores: un filete uniforme y desenfoque real.
  */
 
 /** Un tramo de la barra de progreso de la cabecera: un bloque del recorrido. */
 data class WizardProgressSegment(
     /** 0..1: parte de los pasos del bloque que ya están confirmados. */
     val fill: Float,
-    val accent: Color,
 )
 
 /** Alto de la cabecera por debajo de la barra de estado: píldora + aire arriba y abajo. */
@@ -140,13 +139,13 @@ private fun ProgressSegment(segment: WizardProgressSegment) {
             .width(22.dp)
             .height(3.dp)
             .clip(RoundedCornerShape(99.dp))
-            .background(Color.White.copy(alpha = 0.22f)),
+            .background(Color.White.copy(alpha = 0.18f)),
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth(segment.fill.coerceIn(0f, 1f))
                 .height(3.dp)
-                .background(segment.accent),
+                .background(WizardColors.progressFill),
         )
     }
 }
@@ -164,7 +163,7 @@ private fun WizardGlassPill(
         modifier = modifier
             .clip(shape)
             .hazeEffect(state = haze, style = wizardHazeStyle())
-            .border(1.dp, wizardGlassBorderBrush(), shape)
+            .border(1.dp, WizardColors.glassBorder, shape)
             .then(if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier)
             .semantics { contentDescription = description },
         contentAlignment = Alignment.Center,
@@ -203,7 +202,6 @@ fun WizardTopScrim(height: Dp, modifier: Modifier = Modifier) {
  */
 @Composable
 fun WizardDock(
-    haze: HazeState,
     enabled: Boolean,
     label: String,
     onClick: () -> Unit,
@@ -220,8 +218,8 @@ fun WizardDock(
                 .background(
                     Brush.verticalGradient(
                         0f to Color.Transparent,
-                        0.55f to Color.Black.copy(alpha = 0.86f),
-                        1f to Color.Black,
+                        0.6f to Color.Black.copy(alpha = 0.78f),
+                        1f to Color.Black.copy(alpha = 0.96f),
                     ),
                 ),
         )
@@ -231,20 +229,19 @@ fun WizardDock(
                 .navigationBarsPadding()
                 .padding(bottom = 16.dp),
         ) {
-            WizardDockButton(haze = haze, enabled = enabled, label = label, onClick = onClick)
+            WizardDockButton(enabled = enabled, label = label, onClick = onClick)
         }
     }
 }
 
 /** Alto del velo inferior sobre la barra de navegación. */
-val WizardDockScrimHeight: Dp = 150.dp
+val WizardDockScrimHeight: Dp = 130.dp
 
 /** Espacio que el contenido debe respetar por encima del borde inferior: botón, aire y velo. */
 val WizardDockClearance: Dp = WizardSpacing.dockButton + 16.dp + 20.dp
 
 @Composable
 private fun WizardDockButton(
-    haze: HazeState,
     enabled: Boolean,
     label: String,
     onClick: () -> Unit,
@@ -263,26 +260,16 @@ private fun WizardDockButton(
                 scaleX = scale
                 scaleY = scale
             }
-            .then(
-                if (enabled) {
-                    Modifier.shadow(
-                        elevation = 14.dp,
-                        shape = CircleShape,
-                        ambientColor = Color.White.copy(alpha = 0.35f),
-                        spotColor = Color.White.copy(alpha = 0.35f),
-                    )
-                } else {
-                    Modifier
-                },
-            )
             .clip(CircleShape)
             .then(
                 if (enabled) {
                     Modifier.background(WizardColors.cta)
                 } else {
+                    // Deshabilitado: sólido, no translúcido. Si no, el texto que pasa por debajo se lee a través
+                    // del botón y ensucia justo donde el usuario busca el estado.
                     Modifier
-                        .hazeEffect(state = haze, style = wizardHazeStyle())
-                        .border(1.dp, wizardGlassBorderBrush(), CircleShape)
+                        .background(WizardColors.ctaDisabled)
+                        .border(1.dp, WizardColors.glassBorder, CircleShape)
                 },
             )
             .clickable(

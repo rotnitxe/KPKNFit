@@ -94,22 +94,19 @@ object WizardColors {
     val info = Color(0xFF74B5FF)
 
     /**
-     * Liquid Glass sobre negro: relleno blanco muy translúcido y borde con brillo
-     * superior (más claro arriba-izquierda que abajo-derecha), como una lámina de
-     * vidrio que recibe luz desde arriba.
+     * Cristal discreto: relleno blanco muy tenue y un único filete uniforme. Sin brillos en las
+     * esquinas ni degradados de borde: el vidrio solo se nota por lo que desenfoca de lo que pasa
+     * por detrás (cabecera y botón), no por adornos.
      */
-    val glassFill = Color.White.copy(alpha = 0.07f)
-    val glassFillStrong = Color.White.copy(alpha = 0.11f)
-    val glassBorderHigh = Color.White.copy(alpha = 0.34f)
-    val glassBorderLow = Color.White.copy(alpha = 0.08f)
+    val glassFill = Color.White.copy(alpha = 0.06f)
+    val glassBorder = Color.White.copy(alpha = 0.14f)
+
+    /** Filete que separa las secciones y las filas-resumen de la página larga. */
+    val divider = Color.White.copy(alpha = 0.10f)
 }
 
 object WizardShapes {
     val card = RoundedCornerShape(18.dp)
-    /** Sección de un paso: lámina de cristal de la página larga. */
-    val section = RoundedCornerShape(28.dp)
-    /** Fila-resumen de un paso ya confirmado. */
-    val summaryRow = RoundedCornerShape(20.dp)
     /**
      * CTA y píldoras: esquinas cortas (≈8–10 dp) como las referencias
      * `Workouts/p1·p3·p5`, no cápsula completa.
@@ -135,12 +132,10 @@ object WizardSpacing {
     val titleGap = 12.dp
     val hairline = 2.dp
 
-    /** Margen lateral de la página larga; las láminas de cristal llegan casi al borde. */
-    val pageGutter = 12.dp
-    /** Relleno interior de una sección de la página larga. */
-    val sectionPadding = 20.dp
-    /** Hueco entre secciones y filas-resumen de la página larga. */
-    val sectionStackGap = 12.dp
+    /** Aire sobre la etiqueta de cada sección de la página larga. */
+    val sectionPadTop = 28.dp
+    /** Aire bajo el control de cada sección de la página larga. */
+    val sectionPadBottom = 32.dp
     /** Alto base de la fila-resumen: el mismo en todos los pasos confirmados. */
     val summaryRowHeight = 60.dp
 
@@ -150,7 +145,8 @@ object WizardSpacing {
      * fórmula cerrada; con letra grande la fila crece lo justo para que no recorte el texto.
      */
     fun summaryRowHeightFor(fontScale: Float): Dp = maxOf(summaryRowHeight, (39f * fontScale + 12f).dp)
-    /** Alto visible del paso siguiente cuando solo «asoma» bajo el activo. */
+
+    /** Alto mínimo visible del paso siguiente bajo el activo; si sobra pantalla, asoma hasta el borde. */
     val peekHeight = 150.dp
     /** Diámetro del botón de confirmar. */
     val dockButton = 64.dp

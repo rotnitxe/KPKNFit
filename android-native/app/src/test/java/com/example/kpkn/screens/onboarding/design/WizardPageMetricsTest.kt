@@ -30,6 +30,19 @@ class WizardPageMetricsTest {
     }
 
     @Test
+    fun `la linea de foco queda bajo la cabecera y bajo la ultima fila-resumen`() {
+        assertEquals(200 + gap, WizardPageMetrics.focusLine(0, 200, chip, gap))
+        assertEquals(200 + gap + chip + gap, WizardPageMetrics.focusLine(1, 200, chip, gap))
+        assertEquals(200 + gap + chip + gap, WizardPageMetrics.focusLine(7, 200, chip, gap))
+    }
+
+    @Test
+    fun `el asomo llena lo que queda de pantalla y nunca baja de su minimo`() {
+        assertEquals(1_400, WizardPageMetrics.peekWindow(viewportPx = 2_900, focusLinePx = 500, activeHeightPx = 1_000, minPeekPx = 450))
+        assertEquals(450, WizardPageMetrics.peekWindow(viewportPx = 2_900, focusLinePx = 500, activeHeightPx = 2_800, minPeekPx = 450))
+    }
+
+    @Test
     fun `una pagina corta queda fija en su linea de foco`() {
         val limit = lockMax(index = 3, activeHeight = 1_200)
         assertEquals(WizardPageMetrics.target(3, chip, gap), limit)

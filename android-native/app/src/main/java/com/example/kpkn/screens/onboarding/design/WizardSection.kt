@@ -5,6 +5,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -34,7 +35,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.Brush
@@ -62,27 +65,29 @@ import androidx.compose.ui.util.lerp
  *
  *  - [Completed]: ya confirmada, plegada en una fila-resumen que se puede tocar para editarla.
  *  - [Active]: la que se contesta ahora, desplegada del todo.
- *  - [Peek]: la siguiente; solo asoma (etiqueta y título nítidos, control desenfocado y
- *    desvaneciéndose), inerte hasta que el check la active.
+ *  - [Peek]: la siguiente; solo asoma (etiqueta y título tenues, control desenfocado y
+ *    desvaneciéndose hacia abajo), inerte hasta que el check la active.
  */
 enum class WizardPageMode { Completed, Active, Peek }
 
 /**
- * Una página de la página larga: la misma pieza pasa de «asoma» a «activa» a «plegada»
- * animando dos números, `focus` (0 asoma, 1 activa) y `collapse` (0 desplegada, 1 plegada).
- * Así el paso siguiente no aparece de golpe: se desenfoca de menos a nada mientras el
- * anterior se pliega y el scroll lo sube hasta su sitio, todo con la misma duración.
+ * Una página de la página larga. No es una tarjeta: es un tramo de la misma superficie negra,
+ * separado del siguiente por un filete y por aire.
  *
- * Solo se compone lo que se ve: una página plegada no compone su paso (una historia larga
- * no cuesta nada) y una activa no compone su fila-resumen.
+ * La misma pieza pasa de «asoma» a «activa» a «plegada» animando dos números, `focus` (0 asoma,
+ * 1 activa) y `collapse` (0 desplegada, 1 plegada). Así el paso siguiente no aparece de golpe: se
+ * desenfoca de menos a nada mientras el anterior se pliega y el scroll lo sube hasta su sitio,
+ * todo con la misma duración.
  *
- * El contrato de pruebas se conserva: la sección activa lleva `setup-step-<ID>` ([stepTag]) y
- * la fila-resumen `setup-summary-<ID>`.
+ * Solo se compone lo que se ve: una página plegada no compone su paso (una historia larga no
+ * cuesta nada) y una activa no compone su fila-resumen.
+ *
+ * El contrato de pruebas se conserva: la sección activa lleva `setup-step-<ID>` ([stepTag]) y la
+ * fila-resumen `setup-summary-<ID>` ([summaryTag]).
  */
 @Composable
 fun WizardPageItem(
     mode: WizardPageMode,
-    accent: Color,
     eyebrow: String,
     title: String,
     subtitle: String?,
@@ -93,6 +98,11 @@ fun WizardPageItem(
     onEdit: (() -> Unit)?,
     onNaturalHeight: (Int) -> Unit,
     reducedMotion: Boolean,
+    /**
+     * Alto, en píxeles, de la ventana por la que asoma la página siguiente. El host lo calcula para
+     * que el asomo llegue hasta el borde inferior de la pantalla en vez de cortarse a media altura.
+     */
+    peekWindowPx: Int,
     modifier: Modifier = Modifier,
     /**
      * Mantener compuesta la sección aunque la fila ya esté plegada (se usa para la ÚLTIMA confirmada).
@@ -133,7 +143,6 @@ fun WizardPageItem(
     )
 
     val density = LocalDensity.current
-    val peekPx = with(density) { WizardSpacing.peekHeight.roundToPx() }
     val chipPx = with(density) { WizardSpacing.summaryRowHeightFor(density.fontScale).roundToPx() }
 
     // Orden de modificadores: el recorte, el fundido y la máscara van POR FUERA de `pageHeight`
@@ -152,11 +161,14 @@ fun WizardPageItem(
                 drawContent()
                 val f = focus.value
                 if (f < 0.999f) {
-                    // Asoma: opaco arriba (etiqueta y título) y desvanecido abajo (el control).
+                    // Asoma: nítido arriba (etiqueta y título) y cada vez más desvanecido hacia el borde
+                    // inferior, donde el contenido se pierde sin un corte.
                     drawRect(
                         brush = Brush.verticalGradient(
                             0f to Color.Black,
-                            0.58f to Color.Black,
+                            0.20f to Color.Black.copy(alpha = lerp(0.78f, 1f, f)),
+                            0.48f to Color.Black.copy(alpha = lerp(0.34f, 1f, f)),
+                            0.78f to Color.Black.copy(alpha = lerp(0.08f, 1f, f)),
                             1f to Color.Black.copy(alpha = f),
                         ),
                         blendMode = BlendMode.DstIn,
@@ -175,7 +187,7 @@ fun WizardPageItem(
                     )
                 }
             }
-            .pageHeight(collapse = { collapse.value }, focus = { focus.value }, peekPx = peekPx, chipPx = chipPx),
+            .pageHeight(collapse = { collapse.value }, focus = { focus.value }, peekPx = peekWindowPx, chipPx = chipPx),
     ) {
         if (showCard) {
             Box(
@@ -186,11 +198,10 @@ fun WizardPageItem(
                     .then(if (folded) Modifier.clearAndSetSemantics { } else Modifier)
                     .then(if (mode == WizardPageMode.Active) Modifier.testTag(stepTag) else Modifier),
             ) {
-                WizardSectionCard(
+                WizardSectionBody(
                     eyebrow = eyebrow,
                     title = title,
                     subtitle = subtitle,
-                    accent = accent,
                     focus = { focus.value },
                     inert = inert,
                     content = content,
@@ -201,7 +212,6 @@ fun WizardPageItem(
             WizardSummaryRow(
                 label = summaryLabel,
                 value = summaryValue,
-                accent = accent,
                 onClick = onEdit,
                 modifier = Modifier
                     .graphicsLayer { alpha = smoothStep(collapse.value, 0.7f, 1f) }
@@ -233,28 +243,26 @@ private fun smoothStep(value: Float, from: Float, to: Float): Float =
     ((value - from) / (to - from)).coerceIn(0f, 1f)
 
 /**
- * Sección de cristal de un paso, con la misma anatomía en todos: etiqueta pequeña, título,
- * subtítulo y control. Tamaños y pesos salen solo de [WizardTypography].
+ * Cuerpo de un paso, sin contenedor: etiqueta, título, subtítulo y control directamente sobre la
+ * página, con la misma anatomía en todos. Tamaños y pesos salen solo de [WizardTypography].
  *
- * [focus] (0..1) apaga o enciende lo que no debe verse nítido todavía: título y subtítulo bajan
- * a un tenue y el control se desenfoca. El desenfoque se aplica SOLO al control, nunca a la
- * etiqueta, al título ni al contenedor.
+ * [focus] (0..1) apaga lo que no debe verse nítido todavía: el título y el subtítulo bajan a un
+ * tenue, el control se desenfoca y un filete lo separa del paso anterior. El desenfoque se aplica
+ * SOLO al control, nunca a la etiqueta, al título ni al contenedor.
  */
 @Composable
-fun WizardSectionCard(
+private fun WizardSectionBody(
     eyebrow: String,
     title: String,
     subtitle: String?,
-    accent: Color,
     focus: () -> Float,
     inert: Boolean,
-    modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val density = LocalDensity.current
-    val maxBlurPx = with(density) { 18.dp.toPx() }
+    val maxBlurPx = with(density) { 22.dp.toPx() }
     Box(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
             .then(
                 if (inert) {
@@ -268,13 +276,13 @@ fun WizardSectionCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .wizardGlass(WizardShapes.section)
-                .padding(WizardSpacing.sectionPadding),
+                .padding(horizontal = WizardSpacing.gutter),
         ) {
+            Spacer(Modifier.height(WizardSpacing.sectionPadTop))
             Text(
                 text = eyebrow.uppercase(),
                 style = WizardTypography.eyebrow,
-                color = accent,
+                color = WizardColors.textFaint,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -309,7 +317,19 @@ fun WizardSectionCard(
                 verticalArrangement = Arrangement.spacedBy(WizardSpacing.cardGap),
                 content = content,
             )
+            Spacer(Modifier.height(WizardSpacing.sectionPadBottom))
         }
+        // Filete superior: separa la página que asoma de la activa; desaparece al enfocarse
+        // (entonces el separador es el de la fila-resumen que queda encima).
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .fillMaxWidth()
+                .padding(horizontal = WizardSpacing.gutter)
+                .height(1.dp)
+                .graphicsLayer { alpha = 1f - focus() }
+                .background(WizardColors.divider),
+        )
         if (inert) {
             // Un paso que asoma no se toca: se come los toques sin impedir que el dedo arrastre la página.
             Box(
@@ -322,22 +342,32 @@ fun WizardSectionCard(
 }
 
 /**
- * Fila-resumen de un paso confirmado: etiqueta corta arriba, valor en una línea abajo y un
- * lápiz si se puede volver a editar. Misma altura ([WizardSpacing.summaryRowHeight]) en todos.
+ * Fila-resumen de un paso confirmado: una marca, la etiqueta corta arriba, el valor en una línea
+ * abajo y un lápiz si se puede volver a editar. Sin tarjeta: una fila de lista con un filete
+ * inferior. Misma altura ([WizardSpacing.summaryRowHeightFor]) en todas.
  */
 @Composable
 fun WizardSummaryRow(
     label: String,
     value: String,
-    accent: Color,
     onClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
+    val density = LocalDensity.current
+    val gutterPx = with(density) { WizardSpacing.gutter.toPx() }
+    val strokePx = with(density) { 1.dp.toPx() }
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(WizardSpacing.summaryRowHeightFor(LocalDensity.current.fontScale))
-            .wizardGlass(WizardShapes.summaryRow)
+            .height(WizardSpacing.summaryRowHeightFor(density.fontScale))
+            .drawBehind {
+                drawLine(
+                    color = WizardColors.divider,
+                    start = Offset(gutterPx, size.height - strokePx / 2f),
+                    end = Offset(size.width - gutterPx, size.height - strokePx / 2f),
+                    strokeWidth = strokePx,
+                )
+            }
             .then(
                 if (onClick != null) {
                     Modifier.clickable(role = Role.Button, onClickLabel = "Editar $label", onClick = onClick)
@@ -345,29 +375,29 @@ fun WizardSummaryRow(
                     Modifier
                 },
             )
-            .padding(horizontal = 14.dp),
+            .padding(horizontal = WizardSpacing.gutter),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         Box(
             modifier = Modifier
-                .size(28.dp)
+                .size(22.dp)
                 .clip(CircleShape)
-                .background(accent.copy(alpha = 0.22f)),
+                .border(1.dp, WizardColors.glassBorder, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = Icons.Filled.Check,
                 contentDescription = null,
-                tint = accent,
-                modifier = Modifier.size(16.dp),
+                tint = WizardColors.textMuted,
+                modifier = Modifier.size(13.dp),
             )
         }
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = label,
                 style = WizardTypography.note,
-                color = WizardColors.textMuted,
+                color = WizardColors.textFaint,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )

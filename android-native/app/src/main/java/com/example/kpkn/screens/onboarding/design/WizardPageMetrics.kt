@@ -28,6 +28,21 @@ internal object WizardPageMetrics {
         if (index <= 0) 0 else (index - 1) * (chipPx + gapPx)
 
     /**
+     * Distancia, desde el borde superior de la pantalla, a la que queda anclado el inicio de la página
+     * activa [index] cuando el scroll está en [target]: justo bajo la cabecera la primera y bajo la
+     * última fila-resumen las demás.
+     */
+    fun focusLine(index: Int, headerBottomPx: Int, chipPx: Int, gapPx: Int): Int =
+        top(index, headerBottomPx, chipPx, gapPx) - target(index, chipPx, gapPx)
+
+    /**
+     * Alto de la ventana por la que asoma la página siguiente. Llena lo que queda de pantalla bajo la
+     * activa (para que la página no parezca cortarse a media altura) y nunca baja de [minPeekPx].
+     */
+    fun peekWindow(viewportPx: Int, focusLinePx: Int, activeHeightPx: Int, minPeekPx: Int): Int =
+        maxOf(minPeekPx, viewportPx - focusLinePx - activeHeightPx)
+
+    /**
      * Hasta dónde puede llegar el scroll del usuario: lo que el check no ha generado no se
      * alcanza arrastrando. Una página corta queda fija en su línea de foco; una más alta que la
      * pantalla deja bajar hasta ver su final y el asomo del siguiente por encima del botón.

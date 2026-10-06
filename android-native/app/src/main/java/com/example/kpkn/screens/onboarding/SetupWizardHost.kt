@@ -53,7 +53,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.WizChatMachineState
-import com.example.kpkn.screens.onboarding.design.WizardAmbientBackground
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardDarkSystemBars
 import com.example.kpkn.screens.onboarding.design.WizardDock
@@ -209,7 +208,6 @@ private fun WizardLongPage(
     val pages = wizardPresentationSteps(route)
     val currentPage = wizardPageOf(step)
     val currentIndex = pages.indexOf(currentPage).coerceAtLeast(0)
-    val currentBlock = SetupStepGraph.blockOf(currentPage).toWizardBlock()
 
     val ageYears = state.draft.ageYears
     val aliasReady = currentPage != SetupStepId.NAME ||
@@ -222,7 +220,8 @@ private fun WizardLongPage(
     // ── Geometría ────────────────────────────────────────────────────────────
     val statusTopPx = WindowInsets.statusBars.getTop(density)
     val headerBottomPx = statusTopPx + with(density) { WizardHeaderBlockHeight.roundToPx() }
-    val gapPx = with(density) { WizardSpacing.sectionStackGap.roundToPx() }
+    // Las filas-resumen van seguidas, sin hueco entre ellas: la página es una sola superficie.
+    val gapPx = 0
     val chipPx = with(density) { WizardSpacing.summaryRowHeightFor(density.fontScale).roundToPx() }
     val peekPx = with(density) { WizardSpacing.peekHeight.roundToPx() }
     val navBottomPx = WindowInsets.navigationBars.getBottom(density)
@@ -244,6 +243,13 @@ private fun WizardLongPage(
         clearancePx = clearancePx,
         viewportPx = viewportPx,
         activeHeightPx = heights[currentPage] ?: 0,
+    )
+    // El paso siguiente asoma hasta el borde inferior de la pantalla, no a media altura.
+    val peekWindowPx = WizardPageMetrics.peekWindow(
+        viewportPx = viewportPx,
+        focusLinePx = WizardPageMetrics.focusLine(currentIndex, headerBottomPx, chipPx, gapPx),
+        activeHeightPx = heights[currentPage] ?: 0,
+        minPeekPx = peekPx,
     )
     val lockMax by rememberUpdatedState(lockMaxPx)
     val lock = remember(scroll) { WizardScrollLock(scroll) { lockMax } }
@@ -279,8 +285,9 @@ private fun WizardLongPage(
 
     Box(modifier = Modifier.fillMaxSize().background(WizardColors.background)) {
         // Fuente del desenfoque de la cabecera y del botón: el fondo y la página que se desliza.
-        Box(modifier = Modifier.fillMaxSize().hazeSource(state = hazeState)) {
-            WizardAmbientBackground(accent = currentBlock.accent)
+        // El fondo va DENTRO de la fuente: así el desenfoque que ven la cabecera y el botón es opaco y
+        // lo que pasa por debajo no se transparenta nítido a través del cristal.
+        Box(modifier = Modifier.fillMaxSize().hazeSource(state = hazeState).background(WizardColors.background)) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -291,9 +298,7 @@ private fun WizardLongPage(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .verticalScroll(scroll)
-                        .padding(horizontal = WizardSpacing.pageGutter),
-                    verticalArrangement = Arrangement.spacedBy(WizardSpacing.sectionStackGap),
+                        .verticalScroll(scroll),
                 ) {
                     Spacer(Modifier.height(statusTopDp + WizardHeaderBlockHeight))
                     pages.take(currentIndex + 2).forEachIndexed { index, page ->
@@ -324,7 +329,6 @@ private fun WizardLongPage(
                             }
                             WizardPageItem(
                                 mode = pageMode,
-                                accent = SetupStepGraph.blockOf(page).toWizardBlock().accent,
                                 eyebrow = wizardEyebrow(page, pages),
                                 title = copy.title,
                                 subtitle = copy.subtitle,
@@ -339,6 +343,7 @@ private fun WizardLongPage(
                                 },
                                 onNaturalHeight = { heights[page] = it },
                                 reducedMotion = reducedMotion,
+                                peekWindowPx = peekWindowPx,
                                 // La última confirmada sigue compuesta (oculta): atrás despliega justo esa.
                                 keepCard = index == currentIndex - 1,
                             ) {
@@ -360,8 +365,8 @@ private fun WizardLongPage(
         WizardPageHeader(
             haze = hazeState,
             label = wizardHeaderLabel(currentPage, pages).uppercase(),
-            segments = wizardBlockProgress(pages, currentIndex).map { (block, fraction) ->
-                WizardProgressSegment(fill = fraction, accent = block.toWizardBlock().accent)
+            segments = wizardBlockProgress(pages, currentIndex).map { (_, fraction) ->
+                WizardProgressSegment(fill = fraction)
             },
             onBack = { if (viewModel.canGoBack()) viewModel.goBack() else onLeave() },
             onExit = onLeave,
@@ -369,7 +374,6 @@ private fun WizardLongPage(
             modifier = Modifier.align(Alignment.TopCenter).statusBarsPadding(),
         )
         WizardDock(
-            haze = hazeState,
             enabled = checkEnabled,
             label = ctaLabel,
             onClick = {
