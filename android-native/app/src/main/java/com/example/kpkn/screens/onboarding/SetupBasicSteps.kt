@@ -365,8 +365,8 @@ private fun GenderMark.glowColor(): Color = when (this) {
  * `selected`) y mide bastante más de 48 dp.
  *
  * Al pulsar sale un pequeño resplandor (azul masculino, violeta femenino) que se asienta en uno más tenue
- * mientras la opción está elegida. El estado no depende solo del color: la elegida también tiene el glifo y
- * la etiqueta en blanco y una raya bajo la etiqueta.
+ * mientras la opción está elegida. El estado no depende del matiz del resplandor: la elegida también pasa
+ * de gris a blanco en el glifo y en la etiqueta, y se anuncia como seleccionada.
  *
  * Con una escala de fuente grande («Hombre trans» ya no cabe en un cuarto del ancho) las opciones pasan a
  * dos filas de dos, para que ninguna etiqueta se parta.
@@ -464,13 +464,6 @@ private fun GenderOption(
             textAlign = TextAlign.Center,
             minLines = 2,
             maxLines = 2,
-        )
-        // Marca de elegida que no depende del color.
-        Box(
-            modifier = Modifier
-                .padding(top = 4.dp)
-                .size(width = 18.dp, height = 2.dp)
-                .background(if (active) WizardColors.text else Color.Transparent, RoundedCornerShape(1.dp)),
         )
     }
 }
