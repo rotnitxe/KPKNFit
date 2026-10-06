@@ -335,7 +335,8 @@ private fun NutritionActivityContent(state: SetupWizardState, vm: SetupWizardVie
 private fun NutritionManualCaloriesContent(state: SetupWizardState, vm: SetupWizardViewModel) {
     val step = SetupStepId.NUTRITION_MANUAL_CALORIES
     val nutrition = state.draft.nutritionDraft
-    SetupBodyHint(text = "Tus valores, no una estimación: dejar un campo vacío es válido.")
+    // El subtítulo del paso ya dice «tus valores reales»: aquí solo lo que añade.
+    SetupBodyHint(text = "Dejar un campo vacío es válido.")
     SetupBodyTextField(
         label = "Calorías (kcal)",
         initial = nutrition?.manualCalorieTargetText.orEmpty(),
@@ -360,7 +361,8 @@ private fun NutritionManualCaloriesContent(state: SetupWizardState, vm: SetupWiz
 private fun NutritionManualCarbsFatContent(state: SetupWizardState, vm: SetupWizardViewModel) {
     val step = SetupStepId.NUTRITION_MANUAL_CARBS_FAT
     val nutrition = state.draft.nutritionDraft
-    SetupBodyHint(text = "Tus valores, no una estimación: dejar un campo vacío es válido.")
+    // El subtítulo del paso ya dice «tus valores reales»: aquí solo lo que añade.
+    SetupBodyHint(text = "Dejar un campo vacío es válido.")
     SetupBodyTextField(
         label = "Hidratos (g)",
         initial = nutrition?.manualCarbsText.orEmpty(),
@@ -425,9 +427,6 @@ private fun NutritionWeighInsContent(state: SetupWizardState, vm: SetupWizardVie
     var creating by remember { mutableStateOf(false) }
     val target = editing
 
-    if (rows.isEmpty()) {
-        SetupBodyHint(text = "Solo datos reales con fecha: la tendencia y el máximo se declaran en el paso anterior.")
-    }
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(WizardSpacing.cardGap),

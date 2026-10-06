@@ -658,7 +658,7 @@ private fun SetupHeightControl(
 @Composable
 private fun SetupAnthropometryPair(state: SetupWizardState, vm: SetupWizardViewModel) {
     Column(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 28.dp),
+        modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         MeasureHeading(

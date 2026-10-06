@@ -156,14 +156,10 @@ fun WizardPhysiqueSelector(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(WizardSpacing.cardGap),
     ) {
+        // El título del paso ya dice qué se pide: aquí solo el aviso honesto de qué es la figura.
         Text(
-            text = "Estimación visual de tu estado actual",
-            style = WizardTypography.cardTitle,
-            color = WizardColors.text,
-        )
-        Text(
-            text = "La ilustración orienta, no mide tu composición. Elige los ejemplos que quieras ver; esto no cambia el sexo usado por la ecuación.",
-            style = WizardTypography.cardSubtitle,
+            text = "La ilustración orienta, no mide tu composición. Elegir ejemplos no cambia el sexo usado por la ecuación.",
+            style = WizardTypography.note,
             color = WizardColors.textMuted,
         )
 

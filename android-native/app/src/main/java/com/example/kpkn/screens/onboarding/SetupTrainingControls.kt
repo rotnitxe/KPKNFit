@@ -177,7 +177,15 @@ internal fun TrainingSummaryRow(label: String, value: String) {
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(label, style = WizardTypography.cardSubtitle, color = WizardColors.textMuted, modifier = Modifier.weight(1f))
-        Text(value, style = WizardTypography.cardTitle, color = WizardColors.text)
+        // La etiqueta ocupa lo que mide y el valor se reparte el resto: con un valor largo (el nombre de un
+        // programa) la etiqueta no puede quedarse sin ancho y partirse letra a letra.
+        Text(label, style = WizardTypography.cardSubtitle, color = WizardColors.textMuted)
+        Text(
+            value,
+            style = WizardTypography.cardTitle,
+            color = WizardColors.text,
+            textAlign = androidx.compose.ui.text.style.TextAlign.End,
+            modifier = Modifier.weight(1f).padding(start = 12.dp),
+        )
     }
 }

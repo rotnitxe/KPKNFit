@@ -183,6 +183,8 @@ fun SetupWizardScreen(
     }
 }
 
+private val EMPTY_SUMMARY = SetupStepSummary(label = "", value = "")
+
 /**
  * La página larga: fondo ambiental, secciones que se deslizan bajo una cabecera y un botón de
  * cristal fijos, y el aviso flotante de errores.
@@ -229,13 +231,16 @@ private fun WizardLongPage(
     val scroll = rememberScrollState()
     var viewportPx by remember { mutableIntStateOf(0) }
     val heights = remember { mutableStateMapOf<SetupStepId, Int>() }
+    val summaries = remember(state.draft.draftId) { HashMap<SetupStepId, SetupStepSummary>() }
+    val staleSummaries = remember(state.draft.draftId) { HashSet<SetupStepId>() }
     val targetPx = WizardPageMetrics.target(currentIndex, chipPx, gapPx)
     val lockMaxPx = WizardPageMetrics.lockMax(
         index = currentIndex,
         headerBottomPx = headerBottomPx,
         chipPx = chipPx,
         gapPx = gapPx,
-        peekPx = peekPx,
+        // En la última página no hay nada que asome: no se reserva hueco para el siguiente.
+        peekPx = if (currentIndex + 1 < pages.size) peekPx else 0,
         clearancePx = clearancePx,
         viewportPx = viewportPx,
         activeHeightPx = heights[currentPage] ?: 0,
@@ -299,12 +304,23 @@ private fun WizardLongPage(
                                 else -> WizardPageMode.Peek
                             }
                             val copy = wizardPageCopy(page, route)
-                            // Se calcula también para la activa: al volver atrás la fila-resumen se despliega
-                            // en sección y no puede quedarse en blanco mientras lo hace.
-                            val summary = if (pageMode == WizardPageMode.Peek) {
-                                SetupStepSummary(label = "", value = "")
-                            } else {
-                                setupStepSummary(page, state)
+                            // El resumen se calcula UNA vez, cuando la página queda confirmada, y se guarda: recalcular
+                            // todas las filas con cada pulsación sería caro (alguna consulta el catálogo de planes).
+                            // Una página activa lo marca como caduco para que se recalcule al volver a confirmarse,
+                            // pero conserva el texto anterior mientras la fila se despliega en sección.
+                            val summary = when (pageMode) {
+                                WizardPageMode.Completed -> {
+                                    if (page in staleSummaries || page !in summaries) {
+                                        summaries[page] = setupStepSummary(page, state)
+                                        staleSummaries.remove(page)
+                                    }
+                                    summaries.getValue(page)
+                                }
+                                WizardPageMode.Active -> {
+                                    staleSummaries.add(page)
+                                    summaries[page] ?: EMPTY_SUMMARY
+                                }
+                                WizardPageMode.Peek -> summaries[page] ?: EMPTY_SUMMARY
                             }
                             WizardPageItem(
                                 mode = pageMode,
