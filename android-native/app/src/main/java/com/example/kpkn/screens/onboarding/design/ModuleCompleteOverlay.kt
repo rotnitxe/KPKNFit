@@ -438,15 +438,16 @@ private fun DrawScope.drawStages(stages: List<OverlayStage>, t: Float, startAt: 
 }
 
 // ---------------------------------------------------------------- utilidades
-private fun clamp01(v: Float) = v.coerceIn(0f, 1f)
-private fun lerpF(a: Float, b: Float, t: Float) = a + (b - a) * t
-private fun seg(t: Float, a: Float, b: Float) = clamp01((t - a) / (b - a))
-private fun eOutCubic(t: Float) = 1f - (1f - t).pow(3)
-private fun eInOut(t: Float) = if (t < .5f) 4f * t * t * t else 1f - (-2f * t + 2f).pow(3) / 2f
-private fun eOutBack(t: Float): Float { val c1 = 1.9f; val c3 = c1 + 1f; return 1f + c3 * (t - 1f).pow(3) + c1 * (t - 1f).pow(2) }
-private fun eInQuad(t: Float) = t * t
-private fun spring(dt: Float, k: Float = 7f, w: Float = 22f) = if (dt < 0f) 0f else exp(-k * dt) * cos(w * dt)
-private fun mix(a: Color, b: Color, t: Float) = lerp(a, b, clamp01(t))
+// (internas: las escenas de la bienvenida comparten estas curvas de movimiento.)
+internal fun clamp01(v: Float) = v.coerceIn(0f, 1f)
+internal fun lerpF(a: Float, b: Float, t: Float) = a + (b - a) * t
+internal fun seg(t: Float, a: Float, b: Float) = clamp01((t - a) / (b - a))
+internal fun eOutCubic(t: Float) = 1f - (1f - t).pow(3)
+internal fun eInOut(t: Float) = if (t < .5f) 4f * t * t * t else 1f - (-2f * t + 2f).pow(3) / 2f
+internal fun eOutBack(t: Float): Float { val c1 = 1.9f; val c3 = c1 + 1f; return 1f + c3 * (t - 1f).pow(3) + c1 * (t - 1f).pow(2) }
+internal fun eInQuad(t: Float) = t * t
+internal fun spring(dt: Float, k: Float = 7f, w: Float = 22f) = if (dt < 0f) 0f else exp(-k * dt) * cos(w * dt)
+internal fun mix(a: Color, b: Color, t: Float) = lerp(a, b, clamp01(t))
 private const val TAU = 6.2831855f
 private fun parse(d: String): Path = PathParser().parsePathString(d).toPath()
 
