@@ -36,6 +36,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
@@ -53,6 +54,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.WizChatMachineState
+import com.example.kpkn.screens.onboarding.design.KpknModule
+import com.example.kpkn.screens.onboarding.design.ModuleCompleteOverlay
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardDarkSystemBars
 import com.example.kpkn.screens.onboarding.design.WizardDock
@@ -105,6 +108,8 @@ fun SetupWizardScreen(
     onDone: () -> Unit,
     onCancel: () -> Unit,
     viewModel: SetupWizardViewModel = viewModel(),
+    /** La pantalla de arranque (sin nada completado) antes de la primera pregunta de un borrador nuevo. */
+    showIntro: Boolean = true,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
@@ -168,6 +173,7 @@ fun SetupWizardScreen(
             else -> WizardLongPage(
                 state = state,
                 viewModel = viewModel,
+                showIntro = showIntro,
                 onLeave = { leaveNow() },
                 onActivate = {
                     scope.launch {
@@ -195,6 +201,7 @@ private val EMPTY_SUMMARY = SetupStepSummary(label = "", value = "")
 private fun WizardLongPage(
     state: SetupWizardState,
     viewModel: SetupWizardViewModel,
+    showIntro: Boolean,
     onLeave: () -> Unit,
     onActivate: () -> Unit,
 ) {
@@ -206,8 +213,10 @@ private fun WizardLongPage(
     val step = state.currentStep
     val route = SetupStepGraph.stepIds(state.draft.stepContext())
     val pages = wizardPresentationSteps(route)
-    val currentPage = wizardPageOf(step)
+    val currentPage = wizardCurrentPage(step, route)
     val currentIndex = pages.indexOf(currentPage).coerceAtLeast(0)
+    // Un hito es el overlay de «bloque completado» sobre la última página del bloque, ya confirmada.
+    val milestoneModule = if (SetupStepGraph.isMilestone(step)) SetupStepGraph.blockOf(step).toKpknModule() else null
 
     val ageYears = state.draft.ageYears
     val aliasReady = currentPage != SetupStepId.NAME ||
@@ -308,7 +317,7 @@ private fun WizardLongPage(
                                 index == currentIndex -> WizardPageMode.Active
                                 else -> WizardPageMode.Peek
                             }
-                            val copy = wizardPageCopy(page, route)
+                            val copy = wizardPageCopy(page)
                             // El resumen se calcula UNA vez, cuando la página queda confirmada, y se guarda: recalcular
                             // todas las filas con cada pulsación sería caro (alguna consulta el catálogo de planes).
                             // Una página activa lo marca como caduco para que se recalcule al volver a confirmarse,
@@ -336,7 +345,7 @@ private fun WizardLongPage(
                                 summaryValue = summary.value,
                                 stepTag = "setup-step-${page.name}",
                                 summaryTag = "setup-summary-${page.name}",
-                                onEdit = if (pageMode == WizardPageMode.Completed && !SetupStepGraph.isMilestone(page)) {
+                                onEdit = if (pageMode == WizardPageMode.Completed) {
                                     { viewModel.editStep(page) }
                                 } else {
                                     null
@@ -365,7 +374,7 @@ private fun WizardLongPage(
         WizardPageHeader(
             haze = hazeState,
             label = wizardHeaderLabel(currentPage, pages).uppercase(),
-            segments = wizardBlockProgress(pages, currentIndex).map { (_, fraction) ->
+            segments = wizardBlockProgress(pages, confirmedCount = currentIndex + if (milestoneModule != null) 1 else 0).map { (_, fraction) ->
                 WizardProgressSegment(fill = fraction)
             },
             onBack = { if (viewModel.canGoBack()) viewModel.goBack() else onLeave() },
@@ -403,6 +412,39 @@ private fun WizardLongPage(
                     .navigationBarsPadding()
                     .imePadding()
                     .padding(bottom = 92.dp),
+            )
+        }
+
+        // El hito del bloque: la animación del módulo y la fila de etapas con la guía. Continuar confirma el
+        // hito (el cursor pasa al bloque siguiente y la página se desliza hasta él); atrás vuelve a la última
+        // pregunta del bloque.
+        if (milestoneModule != null) {
+            key(step) {
+                ModuleCompleteOverlay(
+                    module = milestoneModule,
+                    onContinue = { viewModel.submitCurrentStep(step) },
+                    onDismiss = { viewModel.goBack() },
+                    stages = milestoneStages(step, route, state.completedBlocks),
+                    rootTag = "setup-step-${step.name}",
+                    ctaTag = "setup-milestone-continue",
+                )
+            }
+        }
+
+        // La pantalla de arranque: lo mismo que un hito pero sin nada completado ni color de «completado».
+        // Solo en el alta completa y mientras el borrador no tenga ninguna respuesta confirmada.
+        var introSeen by rememberSaveable(state.draft.draftId) { mutableStateOf(false) }
+        if (showIntro && !introSeen && milestoneModule == null && state.mode == SetupWizardMode.FULL &&
+            state.draft.stepProgress.answers.isEmpty() && introStages(route).size > 1
+        ) {
+            ModuleCompleteOverlay(
+                module = KpknModule.INTRO,
+                onContinue = { introSeen = true },
+                onDismiss = onLeave,
+                cta = "Empezar",
+                stages = introStages(route),
+                rootTag = "setup-intro",
+                ctaTag = "setup-intro-start",
             )
         }
     }

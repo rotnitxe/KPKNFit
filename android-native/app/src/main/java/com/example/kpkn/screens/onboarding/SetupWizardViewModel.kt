@@ -668,8 +668,16 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 if (_state.value.draft.stepProgress.currentStepId != expectedStep) return@withLock
                 // Navegación manual: se retira la intención de volver a la
                 // revisión en el BORRADOR persistido (nunca en memoria volátil).
-                val stepped = _state.value.draft.copy(reviewReturnStep = null).goBack()
-                val landed = if (stepped.stepProgress.currentStepId == SetupStepId.AGE) stepped.goBack() else stepped
+                var landed = _state.value.draft.copy(reviewReturnStep = null).goBack()
+                // La edad vive en la página del alias y un hito es el overlay de «bloque completado», no una
+                // página: atrás no se detiene en ninguno (desde la primera pregunta de un bloque vuelve a la
+                // última pregunta del anterior, sin repetir la celebración).
+                while (landed.stepProgress.currentStepId.let { it == SetupStepId.AGE || SetupStepGraph.isMilestone(it) }) {
+                    val before = landed.stepProgress.currentStepId
+                    val earlier = landed.goBack()
+                    if (earlier.stepProgress.currentStepId == before) break
+                    landed = earlier
+                }
                 persistAndPublish(landed)
             } } finally { navigationInFlight = false }
         }

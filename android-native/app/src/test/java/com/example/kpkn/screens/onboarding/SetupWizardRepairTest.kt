@@ -1349,8 +1349,7 @@ class SetupWizardRepairTest {
                 listOf(SetupWizardBlock.BASICS, SetupWizardBlock.TRAINING, SetupWizardBlock.REVIEW),
                 milestoneBlocks(route),
             )
-            assertEquals("Faltan Entreno y la revisión final.", milestoneHeroSubtitle(SetupStepId.MILESTONE_BASICS, route))
-            assertEquals("Solo queda la revisión final.", milestoneHeroSubtitle(SetupStepId.MILESTONE_TRAINING, route))
+            assertEquals(listOf("Básicos", "Entreno", "Revisión"), milestoneBlocks(route).map(::milestoneStageLabel))
             assertTrue(route.none { SetupStepGraph.blockOf(it) == SetupWizardBlock.NUTRITION })
             assertTrue(route.none { SetupStepGraph.blockOf(it) == SetupWizardBlock.RINGS })
 

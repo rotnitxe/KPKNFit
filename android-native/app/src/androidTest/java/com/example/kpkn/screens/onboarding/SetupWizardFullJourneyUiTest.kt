@@ -432,6 +432,17 @@ class SetupWizardFullJourneyUiTest {
 
     private fun walkWelcome() {
         composeRule.onNodeWithText("Comenzar").assertIsDisplayed().performClick()
+        // Tras la bienvenida el wizard abre su pantalla de arranque (nada completado) sobre la primera
+        // pregunta; su botón se habilita cuando termina la animación de entrada.
+        awaitUi("pantalla de arranque visible") {
+            composeRule.onNodeWithTag(INTRO).assertIsDisplayed()
+            true
+        }
+        awaitUi("botón Empezar habilitado") {
+            composeRule.onNodeWithTag(INTRO_START).assertIsEnabled()
+            true
+        }
+        composeRule.onNodeWithTag(INTRO_START).performClick()
         // La UI del wizard se compone al cerrar la bienvenida: espera explícita.
         awaitUi("paso NAME visible tras la bienvenida") {
             composeRule.onNodeWithTag(stepTag(SetupStepId.NAME)).assertIsDisplayed()
@@ -1333,8 +1344,13 @@ class SetupWizardFullJourneyUiTest {
     /** El CTA del Host es el ÚNICO avance: comprueba estado, pulsa y exige destino. */
     private fun continueTo(step: SetupStepId, expectedNext: SetupStepId) {
         awaitState("CTA habilitado en ${step.name}") { it.canConfirmStep }
-        composeRule.onNodeWithTag(CTA).assertIsEnabled()
-        composeRule.onNodeWithTag(CTA).performClick()
+        // Un hito es el overlay de «bloque completado»: su botón se habilita al terminar la animación.
+        val cta = if (SetupStepGraph.isMilestone(step)) MILESTONE_CTA else CTA
+        awaitUi("CTA $cta habilitado en ${step.name}") {
+            composeRule.onNodeWithTag(cta).assertIsEnabled()
+            true
+        }
+        composeRule.onNodeWithTag(cta).performClick()
         awaitState("cursor en ${expectedNext.name} tras ${step.name}") { it.currentStep == expectedNext }
         val errors = vm.state.value.errors
         assertTrue("errores al confirmar ${step.name} → ${expectedNext.name}: $errors", errors.isEmpty())
@@ -1838,6 +1854,9 @@ class SetupWizardFullJourneyUiTest {
 
     private companion object {
         const val CTA = "setup-continue"
+        const val MILESTONE_CTA = "setup-milestone-continue"
+        const val INTRO = "setup-intro"
+        const val INTRO_START = "setup-intro-start"
         const val CTA_REVIEW_LABEL = "Activar y entrar a KPKN"
         const val BACK_LABEL = "Volver al paso anterior"
         // Layout SEPARATE (altura sola): rueda vertical de `WizardHeightWheel`.

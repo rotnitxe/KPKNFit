@@ -247,6 +247,7 @@ class SetupWizardJourneyUiTest {
                 onDone = {},
                 onCancel = {},
                 viewModel = vm,
+                showIntro = false,
             )
         }
         composeRule.waitForIdle()
@@ -298,6 +299,7 @@ class SetupWizardJourneyUiTest {
                 onDone = {},
                 onCancel = { cancelled.incrementAndGet() },
                 viewModel = vm,
+                showIntro = false,
             )
         }
         composeRule.waitForIdle()
@@ -343,6 +345,7 @@ class SetupWizardJourneyUiTest {
                 onDone = { done.incrementAndGet() },
                 onCancel = { cancelled.incrementAndGet() },
                 viewModel = vm,
+                showIntro = false,
             )
         }
         composeRule.waitForIdle()
@@ -392,6 +395,7 @@ class SetupWizardJourneyUiTest {
                 onDone = {},
                 onCancel = {},
                 viewModel = vm,
+                showIntro = false,
             )
         }
         composeRule.waitForIdle()
@@ -455,6 +459,7 @@ class SetupWizardJourneyUiTest {
                 onDone = {},
                 onCancel = {},
                 viewModel = vm,
+                showIntro = false,
             )
         }
         composeRule.waitForIdle()
@@ -772,6 +777,7 @@ class SetupWizardJourneyUiTest {
                     onDone = {},
                     onCancel = {},
                     viewModel = vm,
+                    showIntro = false,
                 )
             }
         }

@@ -242,19 +242,12 @@ class WizardPluralCopyTest {
         }
     }
 
-    // ─── Hitos entre bloques: el texto sale de la ruta del borrador (H8/H15) ─────────────────────
+    // ─── Hitos entre bloques: las etapas salen de la ruta del borrador (H8/H15) ────────────────
 
     private fun routeOf(draft: SetupWizardDraft): List<SetupStepId> = SetupStepGraph.stepIds(draft.stepContext())
 
-    private val fullRoute: List<SetupStepId> get() = routeOf(SetupWizardDraft())
-
-    /** El asistente de solo entreno que abre la biblioteca con el alta ya completa. */
-    private val trainingOnlyRoute: List<SetupStepId>
-        get() = routeOf(SetupWizardDraft(draftScope = "training_only", includeNutrition = false))
-
     @Test
-    fun theFullRouteKeepsTheMilestoneCopyItAlwaysHad() {
-        val route = fullRoute
+    fun theFullRouteListsEveryBlockInOrder() {
         assertEquals(
             listOf(
                 SetupWizardBlock.BASICS,
@@ -263,59 +256,27 @@ class WizardPluralCopyTest {
                 SetupWizardBlock.RINGS,
                 SetupWizardBlock.REVIEW,
             ),
-            milestoneBlocks(route),
-        )
-        assertEquals("Faltan Entreno, Nutrición, Rings y la revisión final.", milestoneHeroSubtitle(SetupStepId.MILESTONE_BASICS, route))
-        assertEquals("Faltan Nutrición, Rings y la revisión final.", milestoneHeroSubtitle(SetupStepId.MILESTONE_TRAINING, route))
-        assertEquals("Faltan Rings y la revisión final.", milestoneHeroSubtitle(SetupStepId.MILESTONE_NUTRITION, route))
-        assertEquals("Solo queda la revisión final.", milestoneHeroSubtitle(SetupStepId.MILESTONE_RINGS, route))
-        assertEquals(
-            "Se activa el programa y el plan nutricional juntos, al final del alta.",
-            milestoneBody(SetupWizardBlock.REVIEW, route),
+            milestoneBlocks(routeOf(SetupWizardDraft())),
         )
     }
 
     @Test
     fun theTrainingOnlyRouteNeverTalksAboutNutritionOrRings() {
-        val route = trainingOnlyRoute
+        // El asistente de solo entreno que abre la biblioteca con el alta ya completa.
+        val route = routeOf(SetupWizardDraft(draftScope = "training_only", includeNutrition = false))
         assertEquals(
             listOf(SetupWizardBlock.BASICS, SetupWizardBlock.TRAINING, SetupWizardBlock.REVIEW),
             milestoneBlocks(route),
         )
-        assertEquals("Faltan Entreno y la revisión final.", milestoneHeroSubtitle(SetupStepId.MILESTONE_BASICS, route))
-        assertEquals("Solo queda la revisión final.", milestoneHeroSubtitle(SetupStepId.MILESTONE_TRAINING, route))
-        assertEquals(
-            "Se activa tu programa al final, con lo que hayas respondido.",
-            milestoneBody(SetupWizardBlock.REVIEW, route),
-        )
-        // Ningún texto de los hitos de esta ruta nombra los bloques que no recorre.
-        val texts = milestoneBlocks(route).map { block -> milestoneBlockTitle(block) + " " + milestoneBody(block, route) } +
-            listOf(SetupStepId.MILESTONE_BASICS, SetupStepId.MILESTONE_TRAINING).map { step -> milestoneHeroSubtitle(step, route) }
-        texts.forEach { text ->
-            assertFalse("«$text» habla de Nutrición", text.contains("Nutrición") || text.contains("nutricional"))
-            assertFalse("«$text» habla de Rings", text.contains("Rings"))
-        }
+        val labels = milestoneBlocks(route).map(::milestoneStageLabel)
+        assertEquals(listOf("Básicos", "Entreno", "Revisión"), labels)
+        assertFalse(labels.any { it.contains("Nutrición") || it.contains("Rings") })
     }
 
     @Test
-    fun aFullRouteWithoutNutritionSkipsItInTheMilestoneCopy() {
+    fun aFullRouteWithoutNutritionSkipsItInTheStages() {
         val route = routeOf(SetupWizardDraft(includeNutrition = false))
-        assertEquals("Faltan Entreno, Rings y la revisión final.", milestoneHeroSubtitle(SetupStepId.MILESTONE_BASICS, route))
-        assertEquals("Faltan Rings y la revisión final.", milestoneHeroSubtitle(SetupStepId.MILESTONE_TRAINING, route))
-        assertEquals("Solo queda la revisión final.", milestoneHeroSubtitle(SetupStepId.MILESTONE_RINGS, route))
-        assertEquals(
-            "sin nutrición no se activa ningún plan nutricional",
-            "Se activa tu programa al final, con lo que hayas respondido.",
-            milestoneBody(SetupWizardBlock.REVIEW, route),
-        )
-    }
-
-    @Test
-    fun aStepThatIsNotAMilestoneOfTheRouteGetsTheGeneralPhrase() {
-        val general = "Los bloques de tu ruta y la revisión final para activar tu plan."
-        assertEquals(general, milestoneHeroSubtitle(SetupStepId.NAME, fullRoute))
-        // Un hito que esta ruta no recorre (Nutrición en el asistente de solo entreno) tampoco da un «faltan».
-        assertEquals(general, milestoneHeroSubtitle(SetupStepId.MILESTONE_NUTRITION, trainingOnlyRoute))
+        assertEquals(listOf("Básicos", "Entreno", "Rings", "Revisión"), milestoneBlocks(route).map(::milestoneStageLabel))
     }
 
     // ─── Resumen del hito de Entreno: la fila «Reparto» (H13) ───────────────────────────────
