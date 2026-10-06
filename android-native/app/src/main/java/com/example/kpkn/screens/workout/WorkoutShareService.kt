@@ -6,13 +6,13 @@ import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
-import android.graphics.ColorMatrixColorFilter
 import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.Path
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
 import android.graphics.RectF
 import android.graphics.RadialGradient
 import android.graphics.Typeface
@@ -27,6 +27,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.util.Locale
 import kotlin.math.abs
+import kotlin.math.roundToInt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -139,6 +140,11 @@ object WorkoutShareService {
     }
 
     private const val INSTAGRAM_PACKAGE = "com.instagram.android"
+
+    // Colores de marca con los que se tiñe el símbolo (el vector oficial es blanco):
+    // tinta sobre la tarjeta clara, crema sobre los fondos oscuros.
+    private const val LOGO_INK = 0xFF121212.toInt()
+    private const val LOGO_CREAM = 0xFFF2EEE6.toInt()
 
     private fun renderMinimalStoryCard(
         context: Context,
@@ -253,12 +259,20 @@ object WorkoutShareService {
 
         val contentLeft = cardLeft + 64f
         val contentRight = cardRight - 64f
-        val logo = BitmapFactory.decodeResource(context.resources, R.drawable.kpknicon)
+        // Mismo cuadro de 74 px del logo anterior; el símbolo se ajusta y centra dentro (ver drawLogo).
         val logoSize = 74f
         val logoLeft = cardRight - 64f - logoSize
         val logoTop = cardTop + 52f
-        val logoRect = RectF(logoLeft, logoTop, logoLeft + logoSize, logoTop + logoSize)
-        canvas.drawBitmap(logo, null, logoRect, null)
+        drawLogo(
+            context,
+            canvas,
+            logoLeft.roundToInt(),
+            logoTop.roundToInt(),
+            (logoLeft + logoSize).roundToInt(),
+            (logoTop + logoSize).roundToInt(),
+            255,
+            LOGO_INK,
+        )
 
         canvas.drawText("ENTRENAMIENTO DE HOY", contentLeft, cardTop + 112f, titlePaint)
         canvas.drawText(ellipsize(sessionName.ifBlank { "Sesión" }, sessionPaint, cardWidth - 180f), contentLeft, cardTop + 160f, sessionPaint)
@@ -460,9 +474,8 @@ object WorkoutShareService {
             )
         }
 
-        val logoFilter = buildNegativeFilter()
-        drawLogo(context, canvas, 64, 56, 176, 168, 255, logoFilter)
-        drawLogo(context, canvas, 548, 230, 1060, 760, 30, logoFilter)
+        drawLogo(context, canvas, 64, 56, 176, 168, 255, LOGO_CREAM)
+        drawLogo(context, canvas, 548, 230, 1060, 760, 30, LOGO_CREAM)
 
         val chipRect = RectF(202f, 70f, 430f, 118f)
         canvas.drawRoundRect(chipRect, 22f, 22f, chipPaint)
@@ -626,7 +639,7 @@ object WorkoutShareService {
             )
         }
 
-        drawLogo(context, canvas, width - 164, height - 132, width - 92, height - 60, 210, logoFilter)
+        drawLogo(context, canvas, width - 164, height - 132, width - 92, height - 60, 210, LOGO_CREAM)
         canvas.drawText("Compartido desde KPKN", 64f, height - 92f, sectionTitlePaint)
         canvas.drawText("kpkn.fit", 64f, height - 56f, footerPaint)
 
@@ -688,6 +701,14 @@ object WorkoutShareService {
         return "$sidePrefix$effort x $load"
     }
 
+    /**
+     * Dibuja el símbolo oficial de KPKN (vector blanco `kpkn_simbolo`) en la caja dada, teñido con [color].
+     *
+     * El símbolo es apaisado (≈1,54:1) y un VectorDrawable se estira a sus bounds, así que la caja no se
+     * le pasa tal cual: el símbolo se ajusta al ancho de la caja (o a su alto, si la caja es más apaisada
+     * que él), sin deformarse, y queda centrado. La caja es la que ocupaba el logo anterior, de modo que
+     * el tamaño y la posición en la imagen compartida se conservan.
+     */
     private fun drawLogo(
         context: Context,
         canvas: Canvas,
@@ -696,26 +717,26 @@ object WorkoutShareService {
         right: Int,
         bottom: Int,
         alpha: Int,
-        colorFilter: ColorMatrixColorFilter,
+        color: Int,
     ) {
-        ContextCompat.getDrawable(context, R.drawable.kpknicon)
-            ?.mutate()
-            ?.apply {
-                this.alpha = alpha.coerceIn(0, 255)
-                this.colorFilter = colorFilter
-                setBounds(left, top, right, bottom)
-                draw(canvas)
-            }
+        val symbol = ContextCompat.getDrawable(context, R.drawable.kpkn_simbolo)?.mutate() ?: return
+        val boxWidth = (right - left).toFloat()
+        val boxHeight = (bottom - top).toFloat()
+        val aspect = symbol.intrinsicWidth.toFloat() / symbol.intrinsicHeight.coerceAtLeast(1).toFloat()
+        val width = minOf(boxWidth, boxHeight * aspect)
+        val height = width / aspect
+        val symbolLeft = left + (boxWidth - width) / 2f
+        val symbolTop = top + (boxHeight - height) / 2f
+        symbol.alpha = alpha.coerceIn(0, 255)
+        symbol.colorFilter = PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN)
+        symbol.setBounds(
+            symbolLeft.roundToInt(),
+            symbolTop.roundToInt(),
+            (symbolLeft + width).roundToInt(),
+            (symbolTop + height).roundToInt(),
+        )
+        symbol.draw(canvas)
     }
-
-    private fun buildNegativeFilter(): ColorMatrixColorFilter = ColorMatrixColorFilter(
-        floatArrayOf(
-            -1f, 0f, 0f, 0f, 255f,
-            0f, -1f, 0f, 0f, 255f,
-            0f, 0f, -1f, 0f, 255f,
-            0f, 0f, 0f, 1f, 0f,
-        ),
-    )
 
     private fun drawWrappedText(
         canvas: Canvas,

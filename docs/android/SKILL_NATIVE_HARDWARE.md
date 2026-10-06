@@ -127,7 +127,7 @@ class RestEndReceiver : BroadcastReceiver() {
             val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             
             val notification = NotificationCompat.Builder(context, "kpkn_channel_rest")
-                .setSmallIcon(R.drawable.kpknicon)
+                .setSmallIcon(R.drawable.kpkn_simbolo)
                 .setContentTitle("¡Descanso Terminado!")
                 .setContentText("Es hora de realizar tu siguiente serie de entrenamiento.")
                 .setPriority(NotificationCompat.PRIORITY_HIGH)

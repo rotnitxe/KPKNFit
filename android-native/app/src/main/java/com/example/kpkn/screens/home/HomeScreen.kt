@@ -754,8 +754,10 @@ private fun HomeTopBar(
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     modifier = Modifier.weight(1f),
                 ) {
+                    // Símbolo oficial (vector blanco, se tiñe con tint). Conserva la caja de 43 dp del logo
+                    // anterior: el símbolo es apaisado y el Image (ContentScale.Fit por defecto) lo centra dentro.
                     Image(
-                        painter = painterResource(R.drawable.kpknicon),
+                        painter = painterResource(R.drawable.kpkn_simbolo),
                         contentDescription = "KPKN",
                         modifier = Modifier.size(43.dp),
                         colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),

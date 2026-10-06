@@ -86,7 +86,7 @@ Usar la identidad existente:
 - Músculos: coral `#C96B5C`.
 - Energía: turquesa `#4FA3A5`.
 - Columna: lavanda `#9A86C8`.
-- Logo vectorial existente `ic_logo_kpkn.xml`.
+- Logo vectorial oficial `kpkn_simbolo.xml` (identidad «Torre anidada», ver `brand/README.md`).
 - Familia tipográfica actual, ampliando su jerarquía dentro del onboarding.
 
 El tema efectivo actual es oscuro. Esta tarea no incluye desarrollar un sistema de temas claro/oscuro.

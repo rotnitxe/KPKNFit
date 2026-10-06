@@ -54,8 +54,9 @@ private fun QuickActionWidgetContent(context: Context) {
         horizontalAlignment = Alignment.Horizontal.CenterHorizontally,
         verticalAlignment = Alignment.Vertical.CenterVertically,
     ) {
+        // Símbolo oficial de KPKN: vector blanco, se ve sobre el fondo verde del widget.
         Image(
-            provider = ImageProvider(R.drawable.ic_logo_kpkn),
+            provider = ImageProvider(R.drawable.kpkn_simbolo),
             contentDescription = "Acciones de nutrición",
             modifier = GlanceModifier.size(24.dp),
         )
