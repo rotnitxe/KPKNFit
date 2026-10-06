@@ -12,6 +12,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.R
+import com.example.kpkn.ui.theme.Syne
 
 /**
  * Bloques del wizard tradicional.
@@ -28,20 +29,17 @@ enum class WizardBlock(val accent: Color) {
 }
 
 /**
- * Familias tipográficas candidatas, empaquetadas en `res/font` para funcionar
- * offline.
+ * Familias tipográficas del wizard, empaquetadas en `res/font` para funcionar offline.
  *
- * Archivo e Inter (ambas SIL Open Font License 1.1) son **candidatas**, no
- * familias aprobadas: la familia definitiva se fija en la puerta de aprobación
- * visual. Los pesos declarados aquí son exactamente los empaquetados; ver
- * `assets/fonts/FONT-NOTICE.txt`. No se descarga ninguna fuente en ejecución.
+ *  - [display]: **Syne**, la tipografía de marca (SIL OFL 1.1). Solo para lo importante: títulos de paso,
+ *    números grandes y héroes. Es expresiva y cansa en párrafos.
+ *  - [body]: Inter (SIL OFL 1.1) para todo el texto de lectura: subtítulos, etiquetas, tarjetas, notas.
+ *
+ * Los pesos declarados son exactamente los empaquetados; ver `assets/fonts/FONT-NOTICE.txt`. No se
+ * descarga ninguna fuente en ejecución.
  */
 object WizardFonts {
-    val display: FontFamily = FontFamily(
-        Font(R.font.wizard_display_regular, FontWeight.Normal),
-        Font(R.font.wizard_display_semibold, FontWeight.SemiBold),
-        Font(R.font.wizard_display_bold, FontWeight.Bold),
-    )
+    val display: FontFamily = Syne
 
     val body: FontFamily = FontFamily(
         Font(R.font.wizard_body_regular, FontWeight.Normal),
@@ -165,10 +163,10 @@ object WizardSpacing {
 object WizardTypography {
     val question = TextStyle(
         fontFamily = WizardFonts.display,
-        fontWeight = FontWeight.Bold,
+        fontWeight = FontWeight.ExtraBold,
         fontSize = 30.sp,
         lineHeight = 36.sp,
-        letterSpacing = (-0.4).sp,
+        letterSpacing = (-0.3).sp,
     )
 
     val questionCompact = TextStyle(
@@ -223,10 +221,10 @@ object WizardTypography {
     /** Título de cada paso: el mismo tamaño y peso en todo el wizard, alineado a la izquierda. */
     val stepTitle = TextStyle(
         fontFamily = WizardFonts.display,
-        fontWeight = FontWeight.Bold,
+        fontWeight = FontWeight.ExtraBold,
         fontSize = 28.sp,
         lineHeight = 34.sp,
-        letterSpacing = (-0.3).sp,
+        letterSpacing = (-0.28).sp,
     )
 
     /** Subtítulo de cada paso: una frase, bajo el título. */
@@ -283,7 +281,7 @@ object WizardTypography {
      */
     val heroTitle = TextStyle(
         fontFamily = WizardFonts.display,
-        fontWeight = FontWeight.Bold,
+        fontWeight = FontWeight.ExtraBold,
         fontSize = 38.sp,
         lineHeight = 44.sp,
         letterSpacing = (-0.6).sp,
