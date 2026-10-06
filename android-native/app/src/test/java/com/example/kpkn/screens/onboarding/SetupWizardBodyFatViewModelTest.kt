@@ -83,7 +83,8 @@ class SetupWizardBodyFatViewModelTest {
         vm.setWeightKg(72.0)
         advanceUntilIdle()
         confirm(vm, SetupStepId.WEIGHT, SetupStepId.EQUATION_SEX)
-        vm.setStepChoice(SetupStepId.EQUATION_SEX, "unknown")
+        // «No lo sé» a solas ya no avanza: se contesta la consulta hormonal (equilibrio → ecuación promedio).
+        vm.setStepChoice(SetupStepId.EQUATION_SEX, "hormones_mixed")
         advanceUntilIdle()
         confirm(vm, SetupStepId.EQUATION_SEX, SetupStepId.BODY_FAT)
     }

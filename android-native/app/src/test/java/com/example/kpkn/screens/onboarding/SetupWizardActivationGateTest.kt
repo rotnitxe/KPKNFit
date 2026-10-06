@@ -173,7 +173,8 @@ class SetupWizardActivationGateTest {
         confirm(vm, SetupStepId.AGE, SetupStepId.HEIGHT) { vm.setStepNumber(SetupStepId.AGE, 30.0) }
         confirm(vm, SetupStepId.HEIGHT, SetupStepId.WEIGHT) { vm.setStepNumber(SetupStepId.HEIGHT, 175.0) }
         confirm(vm, SetupStepId.WEIGHT, SetupStepId.EQUATION_SEX) { vm.setStepNumber(SetupStepId.WEIGHT, 72.0) }
-        confirm(vm, SetupStepId.EQUATION_SEX, SetupStepId.BODY_FAT) { vm.setStepChoice(SetupStepId.EQUATION_SEX, "unknown") }
+        // «No lo sé» a solas ya no avanza: se contesta la consulta hormonal (equilibrio → ecuación promedio).
+        confirm(vm, SetupStepId.EQUATION_SEX, SetupStepId.BODY_FAT) { vm.setStepChoice(SetupStepId.EQUATION_SEX, "hormones_mixed") }
         confirm(vm, SetupStepId.BODY_FAT, SetupStepId.MILESTONE_BASICS) { vm.setStepChoice(SetupStepId.BODY_FAT, "unknown") }
         confirm(vm, SetupStepId.MILESTONE_BASICS, SetupStepId.EXPERIENCE)
         // §15.1: material antes de perfiles.

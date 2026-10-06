@@ -96,7 +96,32 @@ data class SetupNumericRange(
 data class SetupOptionDefinition(
     val value: String,
     val label: String,
+    /** Frase corta bajo la etiqueta cuando la opción necesita contexto; nula en las demás. */
+    val description: String? = null,
 )
+
+/**
+ * Valores estables del paso EQUATION_SEX que no son un glifo de género: «No lo sé» y las tres
+ * respuestas sobre el contexto hormonal. Las consumen el catálogo, el reductor de respuestas, la
+ * validación, los resúmenes y la UI, así ninguna repite el literal.
+ *
+ * Las respuestas hormonales eligen la BASE DE LA ECUACIÓN de energía (femenina, masculina o
+ * promedio), no una identidad: el gasto energético depende de la masa libre de grasa y del
+ * entorno hormonal, no de cómo se identifica la persona.
+ */
+object SetupEquationSexValues {
+    /** «No lo sé»: abre la consulta hormonal y, a solas, no basta para continuar. */
+    const val UNKNOWN = "unknown"
+    const val HORMONES_ESTROGEN = "hormones_estrogen"
+    const val HORMONES_ANDROGEN = "hormones_androgen"
+    const val HORMONES_MIXED = "hormones_mixed"
+
+    /** Las tres respuestas hormonales, en el orden en que se muestran. */
+    val HORMONAL: List<String> = listOf(HORMONES_ESTROGEN, HORMONES_ANDROGEN, HORMONES_MIXED)
+
+    /** ¿Debe estar abierta la consulta hormonal con esta selección? Sí con «No lo sé» o con una respuesta hormonal. */
+    fun opensHormonalPanel(value: String?): Boolean = value == UNKNOWN || value in HORMONAL
+}
 
 data class SetupStepDefinition(
     val id: SetupStepId,
@@ -230,12 +255,31 @@ object SetupStepDefinitions {
             // El porqué largo vive en el diálogo «Por qué lo preguntamos» del paso (SetupBasicSteps).
             subtitle = "Lo usamos para calcular tu gasto energético.",
             control = SetupControlKind.SINGLE_CHOICE,
+            // Las cuatro primeras son los glifos de la fila de género. Las tres hormonales están en el catálogo
+            // para que selección, validación, resúmenes y rehidratación las reconozcan, pero la UI no las pinta
+            // en esa fila: salen en el panel que abre «No lo sé».
             options = opt(
                 "female" to "Mujer",
                 "male" to "Hombre",
                 "trans_male" to "Hombre trans",
                 "trans_female" to "Mujer trans",
-                "unknown" to "No lo sé",
+            ) + listOf(
+                SetupOptionDefinition(
+                    SetupEquationSexValues.HORMONES_ESTROGEN,
+                    "Predominan los estrógenos",
+                    "Por ejemplo, ciclo menstrual o terapia con estrógenos.",
+                ),
+                SetupOptionDefinition(
+                    SetupEquationSexValues.HORMONES_ANDROGEN,
+                    "Predominan los andrógenos",
+                    "Por ejemplo, testosterona propia o terapia con testosterona.",
+                ),
+                SetupOptionDefinition(
+                    SetupEquationSexValues.HORMONES_MIXED,
+                    "Un equilibrio o no lo sé",
+                    "Calculamos con el promedio de ambas ecuaciones.",
+                ),
+                SetupOptionDefinition(SetupEquationSexValues.UNKNOWN, "No lo sé"),
             ),
             // El valor migra desde la pregunta de nutrición legacy N_SEX cuando
             // es explícita; "Prefiero no responder" No migra y queda pendiente.

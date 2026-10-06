@@ -505,6 +505,11 @@ class SetupWizardFullJourneyUiTest {
         }
         answerAndContinue(SetupStepId.EQUATION_SEX, SetupStepId.BODY_FAT) {
             clickOption(SetupStepId.EQUATION_SEX, equationSexLabel)
+            // «No lo sé» a solas ya no avanza: abre la consulta hormonal («¿Qué hormonas predominan en tu
+            // cuerpo?») y hay que contestarla. «Un equilibrio o no lo sé» usa el promedio de las ecuaciones.
+            if (equationSexLabel == "No lo sé") {
+                clickOption(SetupStepId.EQUATION_SEX, "Un equilibrio o no lo sé")
+            }
         }
         // Grasa corporal: omisión EXPLÍCITA («Omitir este paso»), nunca un porcentaje inventado.
         // El paso ya no ofrece una tarjeta «No lo sé»: es la figura con slider más un campo

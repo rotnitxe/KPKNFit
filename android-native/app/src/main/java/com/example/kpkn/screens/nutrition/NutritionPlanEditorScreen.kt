@@ -264,28 +264,30 @@ private fun CalculationDataSection(state: NutritionPlanEditorUiState, viewModel:
             modifier = Modifier.weight(1f),
         )
     }
+    OutlinedTextField(
+        value = state.draft.weightText,
+        onValueChange = { viewModel.setWeight(it) },
+        label = { Text("Peso (${state.draft.weightUnit})") },
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth(),
+    )
+    // La ecuación usa el entorno hormonal, no la identidad: femenina, masculina o el promedio de ambas.
+    Text("Ecuación de cálculo", style = MaterialTheme.typography.labelMedium)
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        OutlinedTextField(
-            value = state.draft.weightText,
-            onValueChange = { viewModel.setWeight(it) },
-            label = { Text("Peso (${state.draft.weightUnit})") },
-            singleLine = true,
-            modifier = Modifier.weight(1f),
-        )
-        Column(Modifier.weight(1f)) {
-            Text("Sexo de la ecuación", style = MaterialTheme.typography.labelMedium)
-            Row {
-                EerSex.entries.forEach { sex ->
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        RadioButton(
-                            selected = state.draft.equationSex == sex,
-                            onClick = { viewModel.setEquationSex(sex) },
-                        )
-                        Text(if (sex == EerSex.MALE) "Hombre" else "Mujer", style = MaterialTheme.typography.bodySmall)
-                    }
-                }
-            }
+        EerSex.entries.forEach { sex ->
+            FilterChip(
+                selected = state.draft.equationSex == sex,
+                onClick = { viewModel.setEquationSex(sex) },
+                label = { Text(equationSexLabel(sex), style = MaterialTheme.typography.labelSmall) },
+            )
         }
+    }
+    if (state.draft.equationSex == EerSex.AVERAGE) {
+        Text(
+            "Promedio de la ecuación femenina y la masculina, para un contexto hormonal mixto o no declarado.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
     Text("Actividad", style = MaterialTheme.typography.labelMedium)
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -456,6 +458,13 @@ private fun SwitchRow(label: String, checked: Boolean, onChange: (Boolean) -> Un
 }
 
 private fun Double.roundToIntSafe(): Int = kotlin.math.round(this).toInt()
+
+/** Nombre de la base de la ecuación EER: describe la fórmula (con su entorno hormonal), no a la persona. */
+private fun equationSexLabel(sex: EerSex): String = when (sex) {
+    EerSex.FEMALE -> "Femenino"
+    EerSex.MALE -> "Masculino"
+    EerSex.AVERAGE -> "Promedio"
+}
 
 private fun activityLabel(activity: EerActivity): String = when (activity) {
     EerActivity.INACTIVE -> "Inactivo"

@@ -9,8 +9,18 @@ import java.time.Instant
 import java.util.Locale
 import kotlin.math.roundToInt
 
-/** Sex used by the EER equation, deliberately separate from identity fields. */
-enum class EerSex { FEMALE, MALE }
+/**
+ * Base de la ecuación EER (DRI 2023), deliberadamente separada de la identidad de género:
+ * es la fórmula con la que se calcula, no una descripción de la persona. El gasto de energía
+ * depende sobre todo de la masa libre de grasa y del entorno hormonal, no de cómo se identifica
+ * quien lo calcula.
+ *
+ * - [FEMALE]: ecuación femenina (entorno hormonal con estrógenos predominantes).
+ * - [MALE]: ecuación masculina (entorno hormonal con andrógenos predominantes).
+ * - [AVERAGE]: promedio aritmético de las dos ecuaciones anteriores, para un contexto hormonal
+ *   mixto o no declarado. Es una base de cálculo, NO una identidad.
+ */
+enum class EerSex { FEMALE, MALE, AVERAGE }
 
 enum class EerActivity { INACTIVE, LOW_ACTIVE, ACTIVE, VERY_ACTIVE }
 
@@ -75,6 +85,10 @@ object NutritionEnergyEngine {
      * Adult EER equations from the 2023 National Academies DRI tables.
      * Height is centimetres, weight kilograms and age years. The equation is
      * an initial population estimate; it is not a measurement of metabolism.
+     *
+     * Con [EerSex.AVERAGE] el resultado es la media aritmética de lo que darían la
+     * ecuación femenina y la masculina con los mismos datos (contexto hormonal mixto
+     * o no declarado); con [EerSex.FEMALE] y [EerSex.MALE] no cambia nada.
      */
     fun calculateEer(input: EerInput): EerResult {
         val invalid = when {
@@ -93,28 +107,40 @@ object NutritionEnergyEngine {
         val age = input.ageYears.toDouble()
         val h = input.heightCm
         val w = input.weightKg
-        val kcal = when (input.sex!!) {
-            EerSex.MALE -> when (input.activity) {
-                EerActivity.INACTIVE -> 753.07 - 10.83 * age + 6.50 * h + 14.10 * w
-                EerActivity.LOW_ACTIVE -> 581.47 - 10.83 * age + 8.30 * h + 14.94 * w
-                EerActivity.ACTIVE -> 1004.82 - 10.83 * age + 6.52 * h + 15.91 * w
-                EerActivity.VERY_ACTIVE -> -517.88 - 10.83 * age + 15.61 * h + 19.11 * w
-            }
-            EerSex.FEMALE -> when (input.activity) {
-                EerActivity.INACTIVE -> 584.90 - 7.01 * age + 5.72 * h + 11.71 * w
-                EerActivity.LOW_ACTIVE -> 575.77 - 7.01 * age + 6.60 * h + 12.14 * w
-                EerActivity.ACTIVE -> 710.25 - 7.01 * age + 6.54 * h + 12.34 * w
-                EerActivity.VERY_ACTIVE -> 511.83 - 7.01 * age + 9.07 * h + 12.56 * w
-            }
+        val sex = input.sex!!
+        val kcal = when (sex) {
+            EerSex.MALE -> maleEerKcal(input.activity, age, h, w)
+            EerSex.FEMALE -> femaleEerKcal(input.activity, age, h, w)
+            // Media aritmética de lo que darían las dos ecuaciones con los mismos datos.
+            EerSex.AVERAGE -> (maleEerKcal(input.activity, age, h, w) + femaleEerKcal(input.activity, age, h, w)) / 2.0
         }
         if (!kcal.isFinite() || kcal <= 0.0) return EerResult(ineligibility = NutritionIneligibility.MISSING_REQUIRED_DATA)
         return EerResult(
             kcalPerDay = kcal,
-            assumptions = listOf(
-                "Actividad cotidiana y entrenamiento están representados por una sola categoría EER; no se suma el entrenamiento de nuevo.",
-                "EER es una estimación poblacional inicial y debe calibrarse con tendencia de peso real.",
-            ),
+            assumptions = buildList {
+                add("Actividad cotidiana y entrenamiento están representados por una sola categoría EER; no se suma el entrenamiento de nuevo.")
+                add("EER es una estimación poblacional inicial y debe calibrarse con tendencia de peso real.")
+                if (sex == EerSex.AVERAGE) {
+                    add("Ecuación promedio de la femenina y la masculina (contexto hormonal mixto o no declarado).")
+                }
+            },
         )
+    }
+
+    /** Ecuación EER masculina (DRI 2023) por categoría de actividad: edad en años, altura en cm y peso en kg. */
+    private fun maleEerKcal(activity: EerActivity, age: Double, h: Double, w: Double): Double = when (activity) {
+        EerActivity.INACTIVE -> 753.07 - 10.83 * age + 6.50 * h + 14.10 * w
+        EerActivity.LOW_ACTIVE -> 581.47 - 10.83 * age + 8.30 * h + 14.94 * w
+        EerActivity.ACTIVE -> 1004.82 - 10.83 * age + 6.52 * h + 15.91 * w
+        EerActivity.VERY_ACTIVE -> -517.88 - 10.83 * age + 15.61 * h + 19.11 * w
+    }
+
+    /** Ecuación EER femenina (DRI 2023) por categoría de actividad: edad en años, altura en cm y peso en kg. */
+    private fun femaleEerKcal(activity: EerActivity, age: Double, h: Double, w: Double): Double = when (activity) {
+        EerActivity.INACTIVE -> 584.90 - 7.01 * age + 5.72 * h + 11.71 * w
+        EerActivity.LOW_ACTIVE -> 575.77 - 7.01 * age + 6.60 * h + 12.14 * w
+        EerActivity.ACTIVE -> 710.25 - 7.01 * age + 6.54 * h + 12.34 * w
+        EerActivity.VERY_ACTIVE -> 511.83 - 7.01 * age + 9.07 * h + 12.56 * w
     }
 
     fun calculateMacros(

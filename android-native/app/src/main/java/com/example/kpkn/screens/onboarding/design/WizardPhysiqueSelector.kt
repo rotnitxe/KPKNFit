@@ -70,7 +70,8 @@ enum class WizardPhysiqueMode { COMPLETE, VISUAL_ONLY }
 /** Valor canónico de la figura: los mismos `"female"` / `"male"` del borrador. */
 fun wizardPhysiqueModelOf(sex: EerSex): String = when (sex) {
     EerSex.FEMALE -> "female"
-    EerSex.MALE -> "male"
+    // El promedio no tiene figura propia: la ilustración usa el modelo por defecto.
+    EerSex.MALE, EerSex.AVERAGE -> "male"
 }
 
 /** Lee el modelo canónico; cualquier otro valor no cambia la figura. */

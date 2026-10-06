@@ -4,6 +4,7 @@ import com.example.kpkn.data.models.GoalMetric
 import com.example.kpkn.data.models.PlanDirection
 import kotlin.math.roundToInt
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -36,6 +37,132 @@ class NutritionEnergyEngineTest {
 
         // 710.25 - 7.01(30) + 6.54(170) + 12.34(70)
         assertEquals(2475.55, result.kcalPerDay!!, 0.01)
+    }
+
+    /**
+     * Tabla DRI 2023 evaluada a mano para 30 años, 170 cm y 70 kg (no sale del motor): fija que
+     * añadir la base promedio no movió ni una sola cifra de las ecuaciones femenina y masculina.
+     */
+    private val maleKcalAt30y170cm70kg = mapOf(
+        EerActivity.INACTIVE to 2520.17,
+        EerActivity.LOW_ACTIVE to 2713.37,
+        EerActivity.ACTIVE to 2902.02,
+        EerActivity.VERY_ACTIVE to 3148.62,
+    )
+    private val femaleKcalAt30y170cm70kg = mapOf(
+        EerActivity.INACTIVE to 2166.70,
+        EerActivity.LOW_ACTIVE to 2337.27,
+        EerActivity.ACTIVE to 2475.55,
+        EerActivity.VERY_ACTIVE to 2722.63,
+    )
+
+    private fun kcalOf(input: EerInput): Double = NutritionEnergyEngine.calculateEer(input).kcalPerDay!!
+
+    @Test
+    fun `female and male equations keep every published figure after the average base was added`() {
+        EerActivity.entries.forEach { activity ->
+            assertEquals(
+                "masculina $activity",
+                maleKcalAt30y170cm70kg.getValue(activity),
+                kcalOf(adult.copy(sex = EerSex.MALE, activity = activity)),
+                0.01,
+            )
+            assertEquals(
+                "femenina $activity",
+                femaleKcalAt30y170cm70kg.getValue(activity),
+                kcalOf(adult.copy(sex = EerSex.FEMALE, activity = activity)),
+                0.01,
+            )
+        }
+    }
+
+    @Test
+    fun `average base is the arithmetic mean of the female and male equations`() {
+        EerActivity.entries.forEach { activity ->
+            val expected = (maleKcalAt30y170cm70kg.getValue(activity) + femaleKcalAt30y170cm70kg.getValue(activity)) / 2.0
+            assertEquals(
+                "promedio $activity",
+                expected,
+                kcalOf(adult.copy(sex = EerSex.AVERAGE, activity = activity)),
+                0.01,
+            )
+        }
+        // 2520.17 y 2166.70 en sedentario: la media es 2343.435.
+        assertEquals(2343.435, kcalOf(adult.copy(sex = EerSex.AVERAGE)), 0.01)
+    }
+
+    @Test
+    fun `average base equals the mean of both equations for many age height weight and activity combinations`() {
+        var checked = 0
+        for (age in listOf(19, 30, 45, 70)) for (height in listOf(150.0, 170.0, 190.0)) for (weight in listOf(50.0, 70.0, 110.0)) {
+            for (activity in EerActivity.entries) {
+                val base = EerInput(age, height, weight, EerSex.MALE, activity)
+                val male = kcalOf(base)
+                val female = kcalOf(base.copy(sex = EerSex.FEMALE))
+                val average = kcalOf(base.copy(sex = EerSex.AVERAGE))
+                val label = "$age a / $height cm / $weight kg / $activity"
+                assertEquals(label, (male + female) / 2.0, average, 1e-9)
+                // Una media queda siempre entre los dos extremos.
+                assertTrue(label, average >= minOf(male, female) - 1e-9 && average <= maxOf(male, female) + 1e-9)
+                checked++
+            }
+        }
+        assertEquals("el barrido no se encoge en silencio", 4 * 3 * 3 * 4, checked)
+    }
+
+    @Test
+    fun `only the average base declares its equation among the assumptions`() {
+        val marker = "Ecuación promedio de la femenina y la masculina (contexto hormonal mixto o no declarado)."
+        val average = NutritionEnergyEngine.calculateEer(adult.copy(sex = EerSex.AVERAGE))
+        assertTrue(marker in average.assumptions)
+        // Se suma a las dos suposiciones de siempre, sin sustituirlas.
+        assertEquals(3, average.assumptions.size)
+        assertEquals("EER-2023", average.formula)
+
+        assertFalse(marker in NutritionEnergyEngine.calculateEer(adult.copy(sex = EerSex.MALE)).assumptions)
+        assertFalse(marker in NutritionEnergyEngine.calculateEer(adult.copy(sex = EerSex.FEMALE)).assumptions)
+        assertEquals(2, NutritionEnergyEngine.calculateEer(adult).assumptions.size)
+    }
+
+    @Test
+    fun `average base keeps the same eligibility rules as the other bases`() {
+        val average = adult.copy(sex = EerSex.AVERAGE)
+        assertEquals(NutritionIneligibility.UNDER_19, NutritionEnergyEngine.calculateEer(average.copy(ageYears = 18)).ineligibility)
+        assertEquals(NutritionIneligibility.PREGNANCY, NutritionEnergyEngine.calculateEer(average.copy(pregnant = true)).ineligibility)
+        assertEquals(NutritionIneligibility.LACTATION, NutritionEnergyEngine.calculateEer(average.copy(lactating = true)).ineligibility)
+        assertEquals(
+            NutritionIneligibility.MEDICAL_RESTRICTION,
+            NutritionEnergyEngine.calculateEer(average.copy(medicalRestriction = true)).ineligibility,
+        )
+        assertEquals(NutritionIneligibility.MISSING_REQUIRED_DATA, NutritionEnergyEngine.calculateEer(average.copy(heightCm = 0.0)).ineligibility)
+        // Con base promedio ya hay sexo de cálculo: solo la ausencia total de base lo pide.
+        assertNull(NutritionEnergyEngine.calculateEer(average).ineligibility)
+        assertEquals(NutritionIneligibility.SEX_REQUIRED, NutritionEnergyEngine.calculateEer(adult.copy(sex = null)).ineligibility)
+    }
+
+    @Test
+    fun `a recommendation on the average base records it in the snapshot and centres on the mean`() {
+        val average = NutritionEnergyEngine.recommendPlan(
+            input = adult.copy(sex = EerSex.AVERAGE, activity = EerActivity.ACTIVE),
+            direction = PlanDirection.MAINTENANCE,
+        )
+        val male = NutritionEnergyEngine.recommendPlan(
+            input = adult.copy(sex = EerSex.MALE, activity = EerActivity.ACTIVE),
+            direction = PlanDirection.MAINTENANCE,
+        )
+        val female = NutritionEnergyEngine.recommendPlan(
+            input = adult.copy(sex = EerSex.FEMALE, activity = EerActivity.ACTIVE),
+            direction = PlanDirection.MAINTENANCE,
+        )
+
+        assertEquals("AVERAGE", average.snapshot.inputs["sex"])
+        assertEquals((male.eerKcal!! + female.eerKcal!!) / 2.0, average.eerKcal!!, 1e-9)
+        assertEquals("EER-2023", average.snapshot.formula)
+        assertTrue(average.snapshot.assumptions.any { it.startsWith("Ecuación promedio") })
+        assertNull(average.ineligibility)
+        // El objetivo de mantenimiento sigue a la media: queda entre el femenino y el masculino.
+        val target = average.calorieTargetKcal!!
+        assertTrue(target >= female.calorieTargetKcal!! && target <= male.calorieTargetKcal!!)
     }
 
     @Test

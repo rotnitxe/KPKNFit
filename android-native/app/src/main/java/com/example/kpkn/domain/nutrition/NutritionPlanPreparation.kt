@@ -45,6 +45,12 @@ enum class NutritionPlanPreparationStatus {
 /** Claves de error atribuibles a la aplicabilidad de la ecuación EER. */
 private val EQUATION_ERROR_KEYS = setOf("age", "height", "weight", "equationSex", "eligibility")
 
+/**
+ * Aviso cuando falta la base de la ecuación EER. Habla de la ecuación (femenina, masculina o promedio) y no
+ * de la persona: la base de cálculo no es una identidad.
+ */
+private const val EQUATION_BASE_REQUIRED_MESSAGE = "Selecciona la ecuación de cálculo: femenina, masculina o promedio"
+
 /** Estado derivado de los errores; no prescribe ningún valor nuevo. */
 fun derivedPreparationStatus(errors: Map<String, String>): NutritionPlanPreparationStatus = when {
     errors.isEmpty() -> NutritionPlanPreparationStatus.READY
@@ -122,7 +128,7 @@ object NutritionPlanPreparation {
             if (age == null) baseErrors["age"] = "Ingresa tu edad"
             if (height == null || height !in 100.0..250.0) baseErrors["height"] = "Altura entre 100 y 250 cm"
             if (weight == null || !weight.isFinite() || weight !in 20.0..500.0) baseErrors["weight"] = "Peso entre 20 y 500 kg"
-            if (input.equationSex == null) baseErrors["equationSex"] = "Selecciona el sexo usado por la ecuación"
+            if (input.equationSex == null) baseErrors["equationSex"] = EQUATION_BASE_REQUIRED_MESSAGE
             if (input.eligibilityUnknown) baseErrors["eligibility"] = "No se puede recomendar automáticamente sin confirmar la elegibilidad"
         }
         val inputForEngine = EerInput(age ?: 0, height ?: 0.0, weight ?: 0.0, input.equationSex, input.activity, input.pregnant, input.lactating, input.medicalRestriction)
@@ -154,7 +160,7 @@ object NutritionPlanPreparation {
                     "La recomendación automática no aplica durante la lactancia: define tus objetivos propios o usa solo registro"
                 NutritionIneligibility.MEDICAL_RESTRICTION ->
                     "La recomendación automática no aplica con una condición médica declarada: define tus objetivos propios o usa solo registro"
-                NutritionIneligibility.SEX_REQUIRED -> "Selecciona el sexo usado por la ecuación"
+                NutritionIneligibility.SEX_REQUIRED -> EQUATION_BASE_REQUIRED_MESSAGE
                 NutritionIneligibility.MISSING_REQUIRED_DATA -> "Completa los datos necesarios para calcular"
             }
         }

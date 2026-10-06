@@ -240,6 +240,15 @@ fun configurationModeOf(draft: NutritionPlanEditorDraft): NutritionConfiguration
     else -> NutritionConfigurationMode.AUTOMATIC
 }
 
+/**
+ * Base de la ecuación (femenina, masculina o promedio) con la que se calculó un plan guardado, leída de la
+ * instantánea de su cálculo. Un plan sin ecuación (objetivos propios, pauta profesional o un valor que ya
+ * no existe) no tiene base: devuelve null y el editor deja la elección en blanco en vez de inventarla.
+ */
+fun equationSexOfPlan(plan: NutritionPlan): EerSex? =
+    plan.calculationSnapshot?.inputs?.get("sex")
+        ?.let { saved -> EerSex.entries.firstOrNull { it.name == saved } }
+
 /** Meta tipada resuelta en unidades SI; null = sin meta corporal. */
 fun resolvedTargetSiOf(draft: NutritionPlanEditorDraft): Double? = when (draft.goalMetric) {
     GoalMetric.WEIGHT ->

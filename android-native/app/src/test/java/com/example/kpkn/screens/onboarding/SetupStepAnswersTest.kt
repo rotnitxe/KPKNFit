@@ -2,8 +2,12 @@ package com.example.kpkn.screens.onboarding
 
 import com.example.kpkn.data.models.AutoregulationMode
 import com.example.kpkn.data.models.EquipmentInventory
+import com.example.kpkn.data.models.Gender
 import com.example.kpkn.data.models.PlateStock
+import com.example.kpkn.domain.nutrition.EerSex
+import com.example.kpkn.domain.nutrition.NutritionWizardDraft
 import com.example.kpkn.domain.onboarding.SetupAnswerProvenance
+import com.example.kpkn.domain.onboarding.SetupStepDefinitions
 import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.SetupStepProgress
@@ -387,6 +391,136 @@ class SetupStepAnswersTest {
 
         assertTrue(SetupWizardValidation.validateStep(draft, SetupStepId.RINGS_RECENT).none { it.isBlocking })
         assertTrue(SetupWizardValidation.validateStep(draft, SetupStepId.RINGS_MUSCLE_FEELING).none { it.isBlocking })
+    }
+
+    // ─── Género: base de la ecuación y contexto hormonal ─────────────────────
+
+    private fun SetupWizardDraft.chooseSex(value: String): SetupWizardDraft =
+        withStepChoice(SetupStepId.EQUATION_SEX, value, nowEpochMs = 1L)
+
+    private fun sexChecks(draft: SetupWizardDraft) =
+        SetupWizardValidation.validateStep(draft, SetupStepId.EQUATION_SEX)
+
+    private fun typedSex(sex: EerSex?) = SetupWizardDraft(nutritionDraft = NutritionWizardDraft(equationSex = sex))
+
+    @Test
+    fun everyGenderOptionProjectsToItsEquationBase() {
+        val expected = mapOf(
+            "female" to EerSex.FEMALE,
+            "trans_female" to EerSex.FEMALE,
+            "hormones_estrogen" to EerSex.FEMALE,
+            "male" to EerSex.MALE,
+            "trans_male" to EerSex.MALE,
+            "hormones_androgen" to EerSex.MALE,
+            "hormones_mixed" to EerSex.AVERAGE,
+            "unknown" to null,
+        )
+        // El mapa cubre TODAS las opciones del catálogo: una opción nueva obliga a decidir aquí su base.
+        assertEquals(SetupStepDefinitions.optionValues(SetupStepId.EQUATION_SEX), expected.keys)
+
+        expected.forEach { (value, sex) ->
+            val draft = SetupWizardDraft().chooseSex(value)
+            assertEquals("base de $value", sex, draft.nutritionDraft?.equationSex)
+            assertEquals("selección de $value", setOf(value), draft.selectedValues(SetupStepId.EQUATION_SEX))
+        }
+    }
+
+    @Test
+    fun hormonalAnswersReplaceUnknownInTheSingleSelectionAndGlyphsReplaceThem() {
+        val unknown = SetupWizardDraft().chooseSex("unknown")
+        assertEquals(setOf("unknown"), unknown.selectedValues(SetupStepId.EQUATION_SEX))
+        assertNull(unknown.nutritionDraft?.equationSex)
+
+        // Elegir una respuesta hormonal reemplaza «unknown»: la selección sigue siendo UNA.
+        val estrogen = unknown.chooseSex("hormones_estrogen")
+        assertEquals(setOf("hormones_estrogen"), estrogen.selectedValues(SetupStepId.EQUATION_SEX))
+        assertEquals(EerSex.FEMALE, estrogen.nutritionDraft?.equationSex)
+
+        val androgen = estrogen.chooseSex("hormones_androgen")
+        assertEquals(setOf("hormones_androgen"), androgen.selectedValues(SetupStepId.EQUATION_SEX))
+        assertEquals(EerSex.MALE, androgen.nutritionDraft?.equationSex)
+
+        val mixed = androgen.chooseSex("hormones_mixed")
+        assertEquals(setOf("hormones_mixed"), mixed.selectedValues(SetupStepId.EQUATION_SEX))
+        assertEquals(EerSex.AVERAGE, mixed.nutritionDraft?.equationSex)
+
+        // Elegir un glifo reemplaza el contexto hormonal.
+        val glyph = mixed.chooseSex("trans_female")
+        assertEquals(setOf("trans_female"), glyph.selectedValues(SetupStepId.EQUATION_SEX))
+        assertEquals(EerSex.FEMALE, glyph.nutritionDraft?.equationSex)
+
+        // Volver a «No lo sé» deja otra vez la base sin determinar.
+        val again = glyph.chooseSex("unknown")
+        assertEquals(setOf("unknown"), again.selectedValues(SetupStepId.EQUATION_SEX))
+        assertNull(again.nutritionDraft?.equationSex)
+    }
+
+    @Test
+    fun choosingTheEquationBaseNeverTouchesTheFigureModelNorTheProfileGender() {
+        val base = SetupWizardDraft(physiqueModel = "female", profileGender = Gender.MALE)
+        SetupStepDefinitions.optionValues(SetupStepId.EQUATION_SEX).forEach { value ->
+            val draft = base.chooseSex(value)
+            assertEquals("figura tras $value", "female", draft.physiqueModel)
+            assertEquals("género de perfil tras $value", Gender.MALE, draft.profileGender)
+        }
+    }
+
+    @Test
+    fun rehydratedDraftsWithoutASavedSelectionKeepProducingTheirSelection() {
+        assertEquals(setOf("female"), typedSex(EerSex.FEMALE).selectedValues(SetupStepId.EQUATION_SEX))
+        assertEquals(setOf("male"), typedSex(EerSex.MALE).selectedValues(SetupStepId.EQUATION_SEX))
+        // El promedio solo nace del equilibrio hormonal: la base tipada se ve como la opción que la produce.
+        assertEquals(setOf("hormones_mixed"), typedSex(EerSex.AVERAGE).selectedValues(SetupStepId.EQUATION_SEX))
+        // Sin base no se inventa ningún valor.
+        assertTrue(typedSex(null).selectedValues(SetupStepId.EQUATION_SEX).isEmpty())
+        assertTrue(SetupWizardDraft().selectedValues(SetupStepId.EQUATION_SEX).isEmpty())
+
+        // Con selección guardada manda la guardada: ni los glifos trans ni las respuestas hormonales se pierden.
+        val stored = typedSex(EerSex.FEMALE).copy(
+            stepSelections = mapOf(SetupStepId.EQUATION_SEX to listOf("hormones_estrogen")),
+        )
+        assertEquals(setOf("hormones_estrogen"), stored.selectedValues(SetupStepId.EQUATION_SEX))
+    }
+
+    @Test
+    fun theGenderStepOnlyValidatesWithADeterminedEquationBase() {
+        // Sin respuesta: bloquea.
+        val empty = sexChecks(SetupWizardDraft()).single()
+        assertTrue(empty.isBlocking)
+        assertEquals(SetupValueState.ABSENT, empty.state)
+
+        // «No lo sé» a solas: bloquea y pide contar qué hormonas predominan.
+        val unknown = sexChecks(SetupWizardDraft().chooseSex("unknown")).single()
+        assertTrue(unknown.isBlocking)
+        assertEquals(SetupValueState.ABSENT, unknown.state)
+        assertEquals("equationSex", unknown.key)
+        assertEquals("Cuéntanos qué hormonas predominan en tu cuerpo", unknown.message)
+
+        // Cada opción con una base determinada valida: los cuatro glifos y las tres respuestas hormonales.
+        listOf(
+            "female", "male", "trans_male", "trans_female",
+            "hormones_estrogen", "hormones_androgen", "hormones_mixed",
+        ).forEach { value ->
+            assertTrue(value, sexChecks(SetupWizardDraft().chooseSex(value)).none { it.isBlocking })
+        }
+
+        // Un borrador rehidratado con la base tipada (cualquiera de las tres) también vale.
+        EerSex.entries.forEach { sex -> assertTrue(sex.name, sexChecks(typedSex(sex)).none { it.isBlocking }) }
+
+        // Volver a «No lo sé» desde una respuesta hormonal vuelve a bloquear.
+        assertTrue(sexChecks(SetupWizardDraft().chooseSex("hormones_mixed").chooseSex("unknown")).single().isBlocking)
+    }
+
+    @Test
+    fun anOldConfirmedUnknownAnswerNoLongerOpensTheGenderStep() {
+        // Un borrador antiguo confirmado con «No lo sé» (válido entonces con nutrición a mano) ahora debe contestar la
+        // consulta hormonal: el registro de la respuesta no habilita el paso por sí solo.
+        val old = SetupWizardDraft()
+            .chooseSex("unknown")
+            .recordStepAnswer(SetupStepId.EQUATION_SEX, SetupAnswerProvenance.USER_DECLARED, SetupValueState.DECLARED)
+
+        assertTrue(sexChecks(old).single().isBlocking)
+        assertFalse(SetupWizardState(old.copy(stepProgress = old.stepProgress.at(SetupStepId.EQUATION_SEX, old.stepContext()))).canConfirmStep)
     }
 
     // ─── Serialización de los campos nuevos ──────────────────────────────────

@@ -177,11 +177,13 @@ private fun BasicsSummary(
             "trans_male" -> "Hombre trans"
             "trans_female" -> "Mujer trans"
             "unknown" -> "No lo sé"
-            else -> value
+            // Las tres respuestas hormonales dicen lo mismo que la fila-resumen del paso.
+            else -> equationSexHormonalSummary(value) ?: value
         }
     } ?: when (draft.nutritionDraft?.equationSex) {
         EerSex.FEMALE -> "Femenino"
         EerSex.MALE -> "Masculino"
+        EerSex.AVERAGE -> "Promedio"
         null -> null
     }
     val bodyFat = bodyFatReviewValue(draft)

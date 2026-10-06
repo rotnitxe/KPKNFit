@@ -34,6 +34,7 @@ import com.example.kpkn.domain.onboarding.SetupAnswerProvenance
 import com.example.kpkn.domain.onboarding.SetupChangeDetector
 import com.example.kpkn.domain.onboarding.SetupChangeSource
 import com.example.kpkn.domain.onboarding.SetupDependencyRules
+import com.example.kpkn.domain.onboarding.SetupEquationSexValues
 import com.example.kpkn.domain.onboarding.SetupFieldCheck
 import com.example.kpkn.domain.onboarding.SetupInputFootprint
 import com.example.kpkn.domain.onboarding.SetupInventoryGroup
@@ -1106,12 +1107,14 @@ object SetupWizardValidation {
             SetupStepId.AGE -> number("age", draft.ageYears?.toDouble(), "Añade tu edad o fecha de nacimiento")
             SetupStepId.HEIGHT -> number("height", draft.heightCm, "Indica tu estatura")
             SetupStepId.WEIGHT -> number("weight", draft.weightKg, "Indica tu peso")
+            // Solo vale con una base de ecuación determinada: la energía se calcula con una fórmula
+            // científica en todo momento. «No lo sé» a solas no la determina; abre la consulta
+            // hormonal y hay que contestarla (estrógenos, andrógenos o equilibrio → promedio).
             SetupStepId.EQUATION_SEX -> when {
                 draft.nutritionDraft?.equationSex != null -> ok("equationSex")
-                // «No lo sé» solo es válido con nutrición a mano: la omisión es
-                // una elección explícita del usuario, nunca un default.
-                "unknown" in draft.selectedValues(step) -> ok("equationSex")
-                else -> absent("equationSex", "Elige tu sexo de cálculo o usa «No lo sé»")
+                SetupEquationSexValues.UNKNOWN in draft.selectedValues(step) ->
+                    absent("equationSex", "Cuéntanos qué hormonas predominan en tu cuerpo")
+                else -> absent("equationSex", "Elige tu género o toca «No lo sé» para contarnos tus hormonas")
             }
             SetupStepId.BODY_FAT -> {
                 val raw = draft.inputTexts[step.name]
@@ -1393,7 +1396,7 @@ object SetupWizardValidation {
                     "La edad es necesaria para calcular el gasto energético"))
             if (nutrition?.equationSex == null) add(
                 SetupFieldCheck(SetupStepId.NUTRITION_SEX, "equation.sex", SetupValueState.MISSING_EQUATION_INPUT,
-                    "El sexo de cálculo es necesario para la ecuación de energía"))
+                    "Falta indicar qué hormonas predominan para calcular el gasto energético"))
         }
     }
 

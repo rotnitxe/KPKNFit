@@ -210,6 +210,84 @@ class NutritionPlanEditorEngineTest {
     }
 
     @Test
+    fun averageEquationDraftSavesTheDisplayedRecommendationBaseAndRecordsTheAverage() {
+        val draft = validDraft(base = null, baseEdited = false).copy(equationSex = EerSex.AVERAGE)
+        val recommendation = NutritionEnergyEngine.recommendPlan(
+            input = EerInput(30, 180.0, 80.0, EerSex.AVERAGE, EerActivity.ACTIVE),
+            direction = PlanDirection.DEFICIT,
+        )
+        val base = reviewedBaseOf(draft, recommendation)
+        assertNotNull(base)
+
+        val prepared = NutritionPlanPreparation.prepare(
+            preparationInputOf(draft, planId = "plan-average", existingPlan = null),
+        )
+
+        // La base promedio llega intacta hasta la preparación canónica: sin errores de ecuación.
+        assertEquals(EerSex.AVERAGE, preparationInputOf(draft, planId = "plan-average", existingPlan = null).equationSex)
+        assertTrue(prepared.errors.isEmpty())
+        val plan = prepared.plan!!
+        assertTrue(matchesReviewedBase(plan, base!!))
+        assertEquals("AVERAGE", plan.calculationSnapshot?.inputs?.get("sex"))
+
+        // Su energía queda entre la de las ecuaciones femenina y masculina del mismo borrador.
+        fun targetOf(sex: EerSex) = NutritionPlanPreparation.prepare(
+            preparationInputOf(draft.copy(equationSex = sex), planId = "plan-$sex", existingPlan = null),
+        ).plan!!.calorieTarget
+        assertTrue(plan.calorieTarget in minOf(targetOf(EerSex.FEMALE), targetOf(EerSex.MALE))..maxOf(targetOf(EerSex.FEMALE), targetOf(EerSex.MALE)))
+    }
+
+    @Test
+    fun aSavedPlanReopensWithTheEquationBaseItWasCalculatedWith() {
+        EerSex.entries.forEach { sex ->
+            val plan = NutritionPlanPreparation.prepare(
+                preparationInputOf(validDraft().copy(equationSex = sex), planId = "plan-$sex", existingPlan = null),
+            ).plan!!
+
+            // El editor recupera la base con la que se calculó (también «Promedio»), no la del perfil.
+            assertEquals("base de $sex", sex, equationSexOfPlan(plan))
+        }
+    }
+
+    @Test
+    fun aSavedPlanWithoutAnEquationBaseDoesNotInventOne() {
+        // Objetivos propios: la ecuación no interviene y la instantánea no guarda ninguna base.
+        val selfDefined = NutritionPlanPreparation.prepare(
+            preparationInputOf(
+                validDraft(base = NutritionEditorBase(2000, 150, 250, 55), baseEdited = true)
+                    .copy(equationSex = null, provenance = NutritionEditorProvenance.SELF_DEFINED),
+                planId = "plan-own-goals",
+                existingPlan = null,
+            ),
+        ).plan!!
+        assertNull(equationSexOfPlan(selfDefined))
+
+        // Un valor que ya no existe y un plan sin instantánea tampoco inventan nada.
+        val withUnknownValue = selfDefined.copy(
+            calculationSnapshot = selfDefined.calculationSnapshot!!.copy(
+                inputs = selfDefined.calculationSnapshot!!.inputs + ("sex" to "OTHER"),
+            ),
+        )
+        assertNull(equationSexOfPlan(withUnknownValue))
+        assertNull(equationSexOfPlan(selfDefined.copy(calculationSnapshot = null)))
+    }
+
+    @Test
+    fun missingEquationBaseAsksForTheEquationNotForAnIdentity() {
+        val draft = validDraft().copy(equationSex = null)
+
+        val prepared = NutritionPlanPreparation.prepare(
+            preparationInputOf(draft, planId = "plan-without-base", existingPlan = null),
+        )
+
+        assertNull(prepared.plan)
+        val message = prepared.errors["equationSex"].orEmpty()
+        assertTrue(message, message.contains("ecuación"))
+        assertTrue(message, message.contains("promedio"))
+        assertEquals(NutritionPlanPreparationStatus.BLOCKED_EQUATION, prepared.status)
+    }
+
+    @Test
     fun trackingOnlyDraftProducesNoPlanAndReportsTrackingOnlyStatus() {
         val draft = validDraft().copy(mode = NutritionPlanEditorMode.TRACKING_ONLY)
 

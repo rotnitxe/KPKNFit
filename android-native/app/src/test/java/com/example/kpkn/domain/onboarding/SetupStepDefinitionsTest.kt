@@ -368,10 +368,14 @@ class SetupStepDefinitionsTest {
     @Test
     fun equationSexKeepsAnExplicitUnknownOptionThatLegacyNeutralAnswersDoNotMigrateInto() {
         val equationSex = requireNotNull(SetupStepDefinitions.of(SetupStepId.EQUATION_SEX))
-        // Las cuatro opciones de la fila de género más la opción explícita de desconocimiento
-        // (permitida en nutrición manual).
+        // Las cuatro opciones de la fila de género, las tres respuestas sobre el contexto hormonal
+        // (el panel que abre «No lo sé») y la opción explícita de desconocimiento.
         assertEquals(
-            setOf("female", "male", "trans_male", "trans_female", "unknown"),
+            setOf(
+                "female", "male", "trans_male", "trans_female",
+                "hormones_estrogen", "hormones_androgen", "hormones_mixed",
+                "unknown",
+            ),
             SetupStepDefinitions.optionValues(SetupStepId.EQUATION_SEX),
         )
         assertEquals("No lo sé", equationSex.option("unknown")?.label)
@@ -381,6 +385,64 @@ class SetupStepDefinitionsTest {
         assertEquals("male", SetupStepDefinitions.migratedValue(WizChatQuestionId.N_SEX, "Masculino"))
         // La identidad de género nunca tiene mapa hacia el sexo de cálculo.
         assertNull(SetupStepDefinitions.migratedValue(WizChatQuestionId.P_GENDER, "Mujer"))
+    }
+
+    @Test
+    fun equationSexOffersTheHormonalContextAnswersWithTheirCopy() {
+        val equationSex = requireNotNull(SetupStepDefinitions.of(SetupStepId.EQUATION_SEX))
+
+        // Orden del catálogo: los cuatro glifos, el contexto hormonal y «No lo sé» al final.
+        assertEquals(
+            listOf(
+                "female", "male", "trans_male", "trans_female",
+                "hormones_estrogen", "hormones_androgen", "hormones_mixed",
+                "unknown",
+            ),
+            equationSex.options.map { it.value },
+        )
+
+        val estrogen = requireNotNull(equationSex.option("hormones_estrogen"))
+        assertEquals("Predominan los estrógenos", estrogen.label)
+        assertEquals("Por ejemplo, ciclo menstrual o terapia con estrógenos.", estrogen.description)
+        val androgen = requireNotNull(equationSex.option("hormones_androgen"))
+        assertEquals("Predominan los andrógenos", androgen.label)
+        assertEquals("Por ejemplo, testosterona propia o terapia con testosterona.", androgen.description)
+        val mixed = requireNotNull(equationSex.option("hormones_mixed"))
+        assertEquals("Un equilibrio o no lo sé", mixed.label)
+        assertEquals("Calculamos con el promedio de ambas ecuaciones.", mixed.description)
+
+        // Solo las tres respuestas hormonales llevan descripción: los glifos y «No lo sé» no.
+        val withDescription = equationSex.options.filter { it.description != null }.map { it.value }
+        assertEquals(listOf("hormones_estrogen", "hormones_androgen", "hormones_mixed"), withDescription)
+        assertNull(equationSex.option("unknown")?.description)
+    }
+
+    @Test
+    fun equationSexValueConstantsMatchTheCatalog() {
+        val values = SetupStepDefinitions.optionValues(SetupStepId.EQUATION_SEX)
+        assertEquals("unknown", SetupEquationSexValues.UNKNOWN)
+        assertEquals(
+            listOf("hormones_estrogen", "hormones_androgen", "hormones_mixed"),
+            SetupEquationSexValues.HORMONAL,
+        )
+        assertTrue(values.containsAll(SetupEquationSexValues.HORMONAL))
+        assertTrue(SetupEquationSexValues.UNKNOWN in values)
+
+        // El panel hormonal se abre con «No lo sé» y con cualquier respuesta hormonal, y con nada más.
+        assertTrue(SetupEquationSexValues.opensHormonalPanel("unknown"))
+        SetupEquationSexValues.HORMONAL.forEach { assertTrue(it, SetupEquationSexValues.opensHormonalPanel(it)) }
+        listOf("female", "male", "trans_male", "trans_female").forEach {
+            assertFalse(it, SetupEquationSexValues.opensHormonalPanel(it))
+        }
+        assertFalse(SetupEquationSexValues.opensHormonalPanel(null))
+    }
+
+    @Test
+    fun theHormonalAnswersAreNotMigratedFromAnyLegacyQuestion() {
+        // Contexto hormonal: solo nace de la respuesta de la persona en el paso nuevo.
+        val equationSex = requireNotNull(SetupStepDefinitions.of(SetupStepId.EQUATION_SEX))
+        assertEquals(setOf("Femenino", "Masculino"), equationSex.legacyValueMap.keys)
+        assertEquals(setOf("female", "male"), equationSex.legacyValueMap.values.toSet())
     }
 
     @Test

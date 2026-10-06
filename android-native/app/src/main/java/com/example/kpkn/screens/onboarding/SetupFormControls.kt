@@ -71,7 +71,8 @@ private fun setupFormTextFieldColors() = OutlinedTextFieldDefaults.colors(
 
 /**
  * Tarjetas de una opción cerrada a partir del catálogo
- * `SetupStepDefinitions`: valor estable + etiqueta. La selección se lee fuera
+ * `SetupStepDefinitions`: valor estable + etiqueta y, si la opción la declara,
+ * su descripción como subtítulo. La selección se lee fuera
  * (nunca se fabrica una respuesta dentro del control).
  */
 @Composable
@@ -88,6 +89,7 @@ fun SetupFormChoiceCards(
         options.forEach { option ->
             WizardChoiceCard(
                 title = option.label,
+                subtitle = option.description,
                 selected = isSelected(option.value),
                 onClick = { onOptionClick(option.value) },
             )

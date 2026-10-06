@@ -5,6 +5,7 @@ import com.example.kpkn.data.models.InitialRecoveryResponseState
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.domain.nutrition.NutritionPlanPreparationStatus
 import com.example.kpkn.domain.nutrition.parseLocalizedNumber
+import com.example.kpkn.domain.onboarding.SetupEquationSexValues
 import com.example.kpkn.domain.onboarding.SetupStepDefinitions
 import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
@@ -401,8 +402,21 @@ private fun summaryLabels(step: SetupStepId, values: Set<String>): List<String> 
     return known + extras
 }
 
+/**
+ * Valor corto de las tres respuestas hormonales del paso de género, para la fila-resumen y la revisión
+ * (cabe de sobra en [SETUP_SUMMARY_VALUE_MAX]). Dicen el contexto que la persona contó, sin nombrar
+ * una identidad. Null para cualquier otro valor: los glifos y «No lo sé» usan la etiqueta del catálogo.
+ */
+internal fun equationSexHormonalSummary(value: String): String? = when (value) {
+    SetupEquationSexValues.HORMONES_ESTROGEN -> "Estrógenos predominantes"
+    SetupEquationSexValues.HORMONES_ANDROGEN -> "Andrógenos predominantes"
+    SetupEquationSexValues.HORMONES_MIXED -> "Equilibrio hormonal"
+    else -> null
+}
+
 private fun summaryOptionLabel(step: SetupStepId, value: String): String {
     if (step == SetupStepId.RINGS_DISCOMFORT && value == "omit") return SUMMARY_SKIPPED
+    if (step == SetupStepId.EQUATION_SEX) equationSexHormonalSummary(value)?.let { return it }
     val number = value.toIntOrNull()
     if (number != null) {
         when (step) {

@@ -1,9 +1,17 @@
 package com.example.kpkn.screens.onboarding
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -68,16 +76,18 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.kpkn.domain.nutrition.EerSex
 import com.example.kpkn.domain.nutrition.bodyFatForSliderPos
 import com.example.kpkn.domain.nutrition.parseLocalizedNumber
 import com.example.kpkn.domain.onboarding.SetupControlKind
+import com.example.kpkn.domain.onboarding.SetupEquationSexValues
 import com.example.kpkn.domain.onboarding.SetupOptionDefinition
 import com.example.kpkn.domain.onboarding.SetupStepDefinition
 import com.example.kpkn.domain.onboarding.SetupStepDefinitions
@@ -100,6 +110,7 @@ import com.example.kpkn.screens.onboarding.design.WizardShapes
 import com.example.kpkn.screens.onboarding.design.WizardSpacing
 import com.example.kpkn.screens.onboarding.design.WizardTypography
 import com.example.kpkn.screens.onboarding.design.WizardWeightRule
+import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import java.util.Locale
 import kotlin.math.roundToInt
 
@@ -334,9 +345,16 @@ private fun BirthDateField(state: SetupWizardState, vm: SetupWizardViewModel) {
  * Por qué se pregunta el género. Es el párrafo largo que antes era el subtítulo
  * del paso: ahora vive detrás de «Por qué lo preguntamos» (diálogo) y el
  * subtítulo del catálogo se queda en una frase corta.
+ *
+ * Explica la razón científica (el gasto de energía depende sobre todo de la masa libre de grasa y del
+ * entorno hormonal, no de cómo se identifica la persona) y deja claro que las opciones solo sirven
+ * para elegir la ecuación más adecuada.
  */
 private const val GENDER_WHY_TEXT =
-    "Conocer tu género nos permitirá calcular el gasto energético que te corresponde. Esto es muy importante para calcular tus calorías recomendadas para tu plan de nutrición. Si no tienes una opción que te identifique, elige la que más se apegue a tu contexto hormonal."
+    "El gasto de energía de tu cuerpo depende sobre todo de tu masa libre de grasa (músculo, huesos y órganos) y de tu entorno hormonal, no de cómo te identificas. " +
+        "Por eso lo preguntamos: para elegir la ecuación que mejor se ajusta a tu cuerpo y calcular unas calorías más acertadas para tu plan de nutrición. " +
+        "Las opciones solo sirven para eso; ninguna te define, así que elige la que más se acerque a tu caso. " +
+        "Si no lo tienes claro, toca «No lo sé» y cuéntanos qué hormonas predominan en tu cuerpo."
 
 private data class GenderChoice(val value: String, val label: String, val mark: WizardGenderMark)
 
@@ -745,9 +763,19 @@ fun SetupStepUnitToggle(step: SetupStepId, state: SetupWizardState, vm: SetupWiz
 // ─── Sexo de cálculo ─────────────────────────────────────────────────────────
 
 /**
- * Sexo de cálculo: dos valores del catálogo más «No lo sé», que solo puede
- * continuar cuando la nutrición se prepara a mano (no hay ecuación que
- * completar). No se pregunta identidad de género en ningún caso.
+ * Género → base de la ecuación de energía: cuatro glifos y una tarjeta «No lo sé». La energía se calcula
+ * con fórmulas científicas en todo momento, y esas fórmulas dependen de la masa libre de grasa y del
+ * entorno hormonal, no de la identidad. Por eso «No lo sé» no deja el paso sin resolver: en vez de
+ * volver a preguntar «hombre o mujer», despliega justo debajo de su tarjeta la consulta del contexto
+ * hormonal («¿Qué hormonas predominan en tu cuerpo?») con tres respuestas que eligen la ecuación
+ * (estrógenos → femenina, andrógenos → masculina, equilibrio → promedio de ambas). Solo con una de
+ * ellas el paso continúa (ver `SetupWizardValidation`).
+ *
+ * - Pulsar «No lo sé» guarda `unknown` y abre el panel; elegir una respuesta reemplaza `unknown` en la
+ *   selección única; elegir un glifo reemplaza lo anterior y cierra el panel.
+ * - «No lo sé» se ve seleccionada mientras la selección sea `unknown` o una respuesta hormonal. Volver
+ *   a pulsarla estando abierta no hace nada: no borra la respuesta hormonal ya elegida.
+ * - Escribe solo por `setStepChoice`; no se pregunta ni se guarda una identidad aparte.
  *
  * El subtítulo corto lo pinta el Host; el porqué largo vive detrás de
  * «Por qué lo preguntamos» (diálogo), no como párrafo sobre las opciones.
@@ -759,32 +787,97 @@ private fun SetupEquationSexControl(
     vm: SetupWizardViewModel,
     definition: SetupStepDefinition,
 ) {
-    val draft = state.draft
-    val selected = draft.selectedValues(step).firstOrNull()
-        ?: when (draft.nutritionDraft?.equationSex) {
-            EerSex.FEMALE -> "female"
-            EerSex.MALE -> "male"
-            null -> null
-        }
-    val options = if (definition.options.any { it.value == EQUATION_SEX_UNKNOWN }) {
-        definition.options
-    } else {
-        definition.options + SetupOptionDefinition(EQUATION_SEX_UNKNOWN, "No lo sé")
-    }
+    // `selectedValues` ya devuelve la proyección tipada cuando el borrador se rehidrató sin selección.
+    val selected = state.draft.selectedValues(step).firstOrNull()
+    val hormonalOpen = SetupEquationSexValues.opensHormonalPanel(selected)
+    val unknownOption = definition.option(SetupEquationSexValues.UNKNOWN)
+        ?: SetupOptionDefinition(SetupEquationSexValues.UNKNOWN, "No lo sé")
+    val hormonalOptions = SetupEquationSexValues.HORMONAL.mapNotNull { value -> definition.option(value) }
     var whyOpen by rememberSaveable { mutableStateOf(false) }
     GenderWhyButton(onClick = { whyOpen = true })
     GenderSymbolRow(selected = selected, onSelect = { value -> vm.setStepChoice(step, value) })
-    if (options.any { it.value == EQUATION_SEX_UNKNOWN }) {
+    // Sin separación entre la tarjeta y el panel: el aire de arriba del panel va dentro de lo que se
+    // anima, así el hueco crece y se cierra con él en vez de aparecer de golpe.
+    Column(modifier = Modifier.fillMaxWidth()) {
         SetupFormChoiceCards(
-            options = listOf(SetupOptionDefinition(EQUATION_SEX_UNKNOWN, "No lo sé")),
-            isSelected = { it == selected },
-            onOptionClick = { value -> vm.setStepChoice(step, value) },
+            options = listOf(unknownOption),
+            isSelected = { hormonalOpen },
+            // Abierta (con «No lo sé» o con una respuesta hormonal) no hay nada que cambiar.
+            onOptionClick = { value -> if (!hormonalOpen) vm.setStepChoice(step, value) },
+        )
+        GenderHormonesPanel(
+            visible = hormonalOpen,
+            options = hormonalOptions,
+            selected = selected,
+            onSelect = { value -> vm.setStepChoice(step, value) },
         )
     }
     if (whyOpen) GenderWhyDialog(onDismiss = { whyOpen = false })
 }
 
-private const val EQUATION_SEX_UNKNOWN = "unknown"
+/** Pregunta del panel hormonal. */
+private const val GENDER_HORMONES_QUESTION = "¿Qué hormonas predominan en tu cuerpo?"
+
+/** Marca de prueba del panel hormonal que despliega «No lo sé». */
+internal const val GENDER_HORMONES_TAG = "setup-gender-hormones"
+
+/** Duración del despliegue del panel hormonal: sobria, bastante más corta que el deslizado de página. */
+private const val GENDER_PANEL_MILLIS = 300
+
+/**
+ * Consulta del contexto hormonal que abre «No lo sé»: una pregunta ([GENDER_HORMONES_QUESTION], con el
+ * rol `controlLabel`) y tres tarjetas de elección con su subtítulo. Se despliega con altura y fundido
+ * (sin rebote), y sin animación si la persona pidió reducir el movimiento. Cerrada no compone nada.
+ */
+@Composable
+private fun GenderHormonesPanel(
+    visible: Boolean,
+    options: List<SetupOptionDefinition>,
+    selected: String?,
+    onSelect: (String) -> Unit,
+) {
+    val reducedMotion = wizardReducedMotion()
+    AnimatedVisibility(
+        visible = visible,
+        enter = if (reducedMotion) {
+            EnterTransition.None
+        } else {
+            expandVertically(
+                animationSpec = tween(GENDER_PANEL_MILLIS, easing = FastOutSlowInEasing),
+                expandFrom = Alignment.Top,
+            ) + fadeIn(animationSpec = tween(GENDER_PANEL_MILLIS))
+        },
+        exit = if (reducedMotion) {
+            ExitTransition.None
+        } else {
+            shrinkVertically(
+                animationSpec = tween(GENDER_PANEL_MILLIS, easing = FastOutSlowInEasing),
+                shrinkTowards = Alignment.Top,
+            ) + fadeOut(animationSpec = tween(GENDER_PANEL_MILLIS))
+        },
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = WizardSpacing.sectionGap)
+                .testTag(GENDER_HORMONES_TAG),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                text = GENDER_HORMONES_QUESTION,
+                style = WizardTypography.controlLabel,
+                color = WizardColors.text,
+                modifier = Modifier.semantics { heading() },
+            )
+            SetupFormChoiceCards(
+                options = options,
+                isSelected = { value -> value == selected },
+                onOptionClick = onSelect,
+                modifier = Modifier.selectableGroup(),
+            )
+        }
+    }
+}
 
 // ─── Grasa corporal actual ───────────────────────────────────────────────────
 

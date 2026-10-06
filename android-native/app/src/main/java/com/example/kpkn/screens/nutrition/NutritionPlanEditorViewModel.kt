@@ -27,6 +27,7 @@ import com.example.kpkn.domain.nutrition.NutritionPlanRecommendation
 import com.example.kpkn.domain.nutrition.NutritionWeeklyDistributionMode
 import com.example.kpkn.domain.nutrition.NutritionEnergyEngine
 import com.example.kpkn.domain.nutrition.editorErrorsOf
+import com.example.kpkn.domain.nutrition.equationSexOfPlan
 import com.example.kpkn.domain.nutrition.matchesReviewedBase
 import com.example.kpkn.domain.nutrition.parseLocalizedNumber
 import com.example.kpkn.domain.nutrition.preparationInputOf
@@ -484,6 +485,9 @@ class NutritionPlanEditorViewModel(
             goalMetric = goalMetric,
             targetValueText = target?.toString().orEmpty(),
             ageText = fallbackAge,
+            // La base con la que se calculó el plan (también «Promedio»): sin ella, editar un plan automático
+            // obligaba a volver a elegirla y, si no, quedaba la del perfil.
+            equationSex = equationSexOfPlan(plan),
             bodyFatText = plan.startValue?.takeIf { goalMetric == GoalMetric.BODY_FAT }?.toString().orEmpty(),
             muscleText = plan.startValue?.takeIf { goalMetric == GoalMetric.MUSCLE_MASS }?.toString().orEmpty(),
             base = NutritionEditorBase(

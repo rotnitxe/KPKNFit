@@ -33,6 +33,7 @@ import com.example.kpkn.domain.onboarding.SetupWizardBlock
 import com.example.kpkn.domain.training.TrainingOptions
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -237,6 +238,36 @@ class SetupStepSummariesTest {
     fun equationSexReadsTheTypedValueOfARehydratedDraft() {
         val rehydrated = SetupWizardDraft(nutritionDraft = NutritionWizardDraft(equationSex = EerSex.MALE))
         assertEquals("Hombre", value(SetupStepId.EQUATION_SEX, rehydrated))
+        assertEquals("Mujer", value(SetupStepId.EQUATION_SEX, SetupWizardDraft(nutritionDraft = NutritionWizardDraft(equationSex = EerSex.FEMALE))))
+        // El promedio solo nace del equilibrio hormonal, así que se resume con esa respuesta.
+        assertEquals(
+            "Equilibrio hormonal",
+            value(SetupStepId.EQUATION_SEX, SetupWizardDraft(nutritionDraft = NutritionWizardDraft(equationSex = EerSex.AVERAGE))),
+        )
+    }
+
+    @Test
+    fun equationSexHormonalAnswersAreSummarizedAsTheContextTheyDeclare() {
+        assertEquals(
+            SetupStepSummary("Género", "Estrógenos predominantes"),
+            summary(SetupStepId.EQUATION_SEX, SetupWizardDraft().choose(SetupStepId.EQUATION_SEX, "hormones_estrogen")),
+        )
+        assertEquals("Andrógenos predominantes", value(SetupStepId.EQUATION_SEX, SetupWizardDraft().choose(SetupStepId.EQUATION_SEX, "hormones_androgen")))
+        assertEquals("Equilibrio hormonal", value(SetupStepId.EQUATION_SEX, SetupWizardDraft().choose(SetupStepId.EQUATION_SEX, "hormones_mixed")))
+
+        // Todas caben en una línea del resumen, junto a las cuatro de glifo y «No lo sé».
+        SetupStepDefinitions.optionValues(SetupStepId.EQUATION_SEX).forEach { option ->
+            val draft = SetupWizardDraft().choose(SetupStepId.EQUATION_SEX, option)
+            assertWithinLimits(SetupStepId.EQUATION_SEX, summary(SetupStepId.EQUATION_SEX, draft), "género $option")
+        }
+        // La revisión final dice lo mismo que la fila-resumen para las tres respuestas hormonales.
+        assertEquals("Estrógenos predominantes", equationSexHormonalSummary("hormones_estrogen"))
+        assertEquals("Andrógenos predominantes", equationSexHormonalSummary("hormones_androgen"))
+        assertEquals("Equilibrio hormonal", equationSexHormonalSummary("hormones_mixed"))
+        // Los glifos y «No lo sé» no tienen texto hormonal: usan la etiqueta del catálogo.
+        listOf("female", "male", "trans_male", "trans_female", "unknown").forEach { option ->
+            assertNull(option, equationSexHormonalSummary(option))
+        }
     }
 
     @Test

@@ -21,6 +21,7 @@ import com.example.kpkn.domain.nutrition.WizardPacePreset
 import com.example.kpkn.domain.nutrition.parseLocalizedNumber
 import com.example.kpkn.domain.onboarding.SetupApparatusItem
 import com.example.kpkn.domain.onboarding.SetupApparatusPanel
+import com.example.kpkn.domain.onboarding.SetupEquationSexValues
 import com.example.kpkn.domain.onboarding.SetupStepDefinitions
 import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
@@ -256,12 +257,15 @@ private fun SetupWizardDraft.projectChoice(
     value: String?,
     nowEpochMs: Long,
 ): SetupWizardDraft = when (step) {
-    // El sexo de cálculo vive en el borrador de nutrición; «unknown» lo deja
-    // sin determinar explícitamente y jamás toca `physiqueModel` ni el género.
+    // La base de la ecuación vive en el borrador de nutrición y jamás toca `physiqueModel` ni el
+    // género. Elige la ecuación, no una identidad: los glifos y las respuestas hormonales que
+    // apuntan a lo mismo comparten base (estrógenos → femenina, andrógenos → masculina, equilibrio →
+    // promedio). «unknown» a solas la deja sin determinar: hay que contestar la consulta hormonal.
     SetupStepId.EQUATION_SEX, SetupStepId.NUTRITION_SEX -> withNutrition {
         it.copy(equationSex = when (value) {
-            "female", "trans_female" -> EerSex.FEMALE
-            "male", "trans_male" -> EerSex.MALE
+            "female", "trans_female", SetupEquationSexValues.HORMONES_ESTROGEN -> EerSex.FEMALE
+            "male", "trans_male", SetupEquationSexValues.HORMONES_ANDROGEN -> EerSex.MALE
+            SetupEquationSexValues.HORMONES_MIXED -> EerSex.AVERAGE
             else -> null
         })
     }
@@ -752,7 +756,14 @@ private fun SetupWizardDraft.typedSelections(step: SetupStepId): Set<String> = w
         else -> emptySet()
     }
 
-    SetupStepId.EQUATION_SEX -> nutritionDraft?.equationSex?.name?.lowercase().let { setOfNotNull(it) }
+    // Sin selección guardada, la base tipada se ve como la opción que la produce: «female» y «male» como
+    // siempre; el promedio solo nace del equilibrio hormonal. Nunca se inventa un valor del catálogo.
+    SetupStepId.EQUATION_SEX -> when (nutritionDraft?.equationSex) {
+        EerSex.FEMALE -> setOf("female")
+        EerSex.MALE -> setOf("male")
+        EerSex.AVERAGE -> setOf(SetupEquationSexValues.HORMONES_MIXED)
+        null -> emptySet()
+    }
 
     SetupStepId.BODY_FAT -> bodyFatSource?.name.let { setOfNotNull(it) }
 
