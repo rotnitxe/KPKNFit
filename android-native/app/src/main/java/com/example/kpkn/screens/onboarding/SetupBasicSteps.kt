@@ -1,5 +1,9 @@
 package com.example.kpkn.screens.onboarding
 
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -13,6 +17,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.selectable
@@ -26,6 +31,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TransformedText
@@ -33,6 +39,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -52,8 +59,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
@@ -338,23 +347,29 @@ private val genderChoices = listOf(
     GenderChoice("trans_female", "Mujer trans", GenderMark.TRANS_FEMALE),
 )
 
-/** Aro de cada glifo: tamaño fijo, no crece con la escala de fuente. */
-private val GENDER_DISC_SIZE = 56.dp
+/** Zona del glifo y de su resplandor: es también lo que se toca, así que supera con holgura los 48 dp. */
+private val GENDER_GLYPH_BOX = 60.dp
 
-/** Tamaño del glifo ♀/♂ (icono): 46 dp, es decir 46 sp a escala 1; no sigue la escala de fuente. */
-private val GENDER_GLYPH_SIZE = 46.dp
+/** Lado del lienzo de TODOS los glifos: el mismo para los cuatro, así miden igual y quedan centrados. */
+private val GENDER_GLYPH_SIZE = 40.dp
 
-/** Lado del lienzo del glifo trans, de modo que su trazo ocupe lo mismo que ♀/♂ dentro del aro. */
-private val GENDER_TRANS_GLYPH_SIZE = 40.dp
+/** Color del resplandor: azul para lo masculino, violeta para lo femenino (también en las opciones trans). */
+private fun GenderMark.glowColor(): Color = when (this) {
+    GenderMark.MALE, GenderMark.TRANS_MALE -> WizardColors.genderMasculine
+    GenderMark.FEMALE, GenderMark.TRANS_FEMALE -> WizardColors.genderFeminine
+}
 
 /**
- * Las cuatro opciones de género en una fila. Cada una es un botón de radio
- * (`Role.RadioButton` + `selected`) con etiqueta `note` y el glifo dentro de un
- * aro, y mide bastante más de 48 dp de alto. La elegida lleva aro blanco grueso
- * y glifo y etiqueta en `text`: el estado no depende solo del color.
+ * Las cuatro opciones de género en una fila. Sin círculos ni tarjetas: el glifo va solo, los cuatro del
+ * mismo tamaño y centrados sobre su etiqueta. Cada opción es un botón de radio (`Role.RadioButton` +
+ * `selected`) y mide bastante más de 48 dp.
  *
- * Con una escala de fuente grande («Hombre trans» ya no cabe en un cuarto del
- * ancho) las opciones pasan a dos filas de dos, para que ninguna etiqueta se parta.
+ * Al pulsar sale un pequeño resplandor (azul masculino, violeta femenino) que se asienta en uno más tenue
+ * mientras la opción está elegida. El estado no depende solo del color: la elegida también tiene el glifo y
+ * la etiqueta en blanco y una raya bajo la etiqueta.
+ *
+ * Con una escala de fuente grande («Hombre trans» ya no cabe en un cuarto del ancho) las opciones pasan a
+ * dos filas de dos, para que ninguna etiqueta se parta.
  */
 @Composable
 internal fun GenderSymbolRow(selected: String?, onSelect: (String) -> Unit) {
@@ -369,8 +384,8 @@ internal fun GenderSymbolRow(selected: String?, onSelect: (String) -> Unit) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
-                // Con los glifos alineados abajo, una etiqueta de dos líneas no desplaza los aros.
-                verticalAlignment = Alignment.Bottom,
+                // Todas las celdas miden lo mismo (la etiqueta reserva siempre dos líneas): glifos alineados arriba.
+                verticalAlignment = Alignment.Top,
             ) {
                 rowChoices.forEach { choice ->
                     GenderOption(
@@ -395,95 +410,140 @@ private fun GenderOption(
     onSelect: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    // Pulsado: el resplandor sube rápido; al soltar baja despacio hasta el nivel de reposo (más tenue si está elegida).
+    val glow = animateFloatAsState(
+        targetValue = when {
+            pressed -> GENDER_GLOW_PRESSED
+            active -> GENDER_GLOW_SELECTED
+            else -> 0f
+        },
+        animationSpec = tween(durationMillis = if (pressed) 90 else 380),
+        label = "gender-glow",
+    )
+    val press = animateFloatAsState(
+        targetValue = if (pressed) 0.92f else 1f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium),
+        label = "gender-press",
+    )
+    val glowColor = choice.mark.glowColor()
     Column(
         modifier = modifier
-            .clip(WizardShapes.card)
-            .selectable(selected = active, role = Role.RadioButton, onClick = onSelect)
+            .selectable(
+                selected = active,
+                interactionSource = interaction,
+                indication = null,
+                role = Role.RadioButton,
+                onClick = onSelect,
+            )
             .padding(vertical = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
+        Box(
+            modifier = Modifier
+                .size(GENDER_GLYPH_BOX)
+                .drawBehind { drawGenderGlow(glowColor, glow.value) },
+            contentAlignment = Alignment.Center,
+        ) {
+            GenderGlyph(
+                mark = choice.mark,
+                color = if (active) WizardColors.text else WizardColors.textFaint,
+                modifier = Modifier
+                    .size(GENDER_GLYPH_SIZE)
+                    .graphicsLayer {
+                        scaleX = press.value
+                        scaleY = press.value
+                    },
+            )
+        }
         Text(
             text = choice.label,
             style = WizardTypography.note,
             color = if (active) WizardColors.text else WizardColors.textMuted,
             textAlign = TextAlign.Center,
+            minLines = 2,
             maxLines = 2,
         )
-        GenderMarkDisc(mark = choice.mark, active = active)
+        // Marca de elegida que no depende del color.
+        Box(
+            modifier = Modifier
+                .padding(top = 4.dp)
+                .size(width = 18.dp, height = 2.dp)
+                .background(if (active) WizardColors.text else Color.Transparent, RoundedCornerShape(1.dp)),
+        )
     }
 }
 
-/** Glifo dentro de su aro: fino y apagado en reposo, blanco y grueso cuando está elegido. */
-@Composable
-private fun GenderMarkDisc(mark: GenderMark, active: Boolean) {
-    Box(
-        modifier = Modifier
-            .size(GENDER_DISC_SIZE)
-            .background(WizardColors.cardFill, CircleShape)
-            .border(
-                width = if (active) WizardColors.selectedBorderWidth else WizardColors.unselectedBorderWidth,
-                color = if (active) WizardColors.selectedBorder else WizardColors.cardBorder,
-                shape = CircleShape,
-            ),
-        contentAlignment = Alignment.Center,
-    ) {
-        GenderMarkIcon(mark = mark, active = active)
-    }
-}
+/** Intensidad del resplandor mientras se mantiene pulsada la opción. */
+private const val GENDER_GLOW_PRESSED = 0.75f
 
-@Composable
-private fun GenderMarkIcon(mark: GenderMark, active: Boolean, modifier: Modifier = Modifier) {
-    // Un solo tratamiento para los cuatro glifos: apagado `textFaint`, elegido `text`.
-    // Los dos glifos trans son idénticos: antes solo los distinguía el color (azul/rosa)
-    // y ahora la etiqueta es lo que dice cuál es cuál.
-    val color = if (active) WizardColors.text else WizardColors.textFaint
-    when (mark) {
-        GenderMark.FEMALE -> GenderSignGlyph("♀", color, modifier)
-        GenderMark.MALE -> GenderSignGlyph("♂", color, modifier)
-        GenderMark.TRANS_MALE, GenderMark.TRANS_FEMALE -> TransGlyph(color, modifier.size(GENDER_TRANS_GLYPH_SIZE))
-    }
-}
+/** Intensidad del resplandor, ya asentado, de la opción elegida. */
+private const val GENDER_GLOW_SELECTED = 0.32f
 
-/** Glifo ♀/♂ como icono decorativo: la etiqueta de la opción ya dice qué es (TalkBack no lo repite). */
-@Composable
-private fun GenderSignGlyph(sign: String, color: Color, modifier: Modifier = Modifier) {
-    // Excepción permitida a «sin tamaños propios»: es un icono, no texto; su tamaño no sigue la escala de fuente.
-    val glyphSize = with(LocalDensity.current) { GENDER_GLYPH_SIZE.toSp() }
-    Text(
-        text = sign,
-        style = WizardTypography.controlValue.copy(fontSize = glyphSize, lineHeight = TextUnit.Unspecified),
-        color = color,
-        textAlign = TextAlign.Center,
-        modifier = modifier.clearAndSetSemantics { },
+/** Resplandor suave y pequeño: un degradado radial que nace del centro del glifo y se apaga antes del borde de la zona. */
+private fun DrawScope.drawGenderGlow(color: Color, alpha: Float) {
+    if (alpha <= 0.01f) return
+    val radius = size.minDimension * 0.62f
+    drawCircle(
+        brush = Brush.radialGradient(
+            0f to color.copy(alpha = alpha),
+            0.5f to color.copy(alpha = alpha * 0.4f),
+            1f to Color.Transparent,
+            center = center,
+            radius = radius,
+        ),
+        radius = radius,
+        center = center,
     )
 }
 
+/**
+ * Glifo de género dibujado en un lienzo de 100×100 y escalado al lado que reciba. Los cuatro comparten caja,
+ * grosor de trazo (7 unidades, puntas redondas) y la misma altura de tinta (de 11 a 89), centrada en el lienzo:
+ * por eso miden lo mismo y ninguno queda descentrado, cosa que no ocurría con los símbolos ♀/♂ de la fuente.
+ * Es decorativo: la etiqueta de la opción ya dice qué es.
+ */
 @Composable
-private fun TransGlyph(color: Color, modifier: Modifier = Modifier) {
-    Canvas(modifier) {
-        val s = size.minDimension
-        val stroke = s * 0.085f
-        val center = Offset(s * 0.50f, s * 0.46f)
-        val radius = s * 0.20f
-        drawCircle(color = color, radius = radius, center = center, style = Stroke(stroke, cap = StrokeCap.Square))
-        val stemTop = center.y + radius
-        val stemBottom = s * 0.92f
-        drawLine(color, Offset(center.x, stemTop), Offset(center.x, stemBottom), stroke, StrokeCap.Square)
-        val barY = stemTop + (stemBottom - stemTop) * 0.42f
-        drawLine(color, Offset(center.x - s * 0.13f, barY), Offset(center.x + s * 0.13f, barY), stroke, StrokeCap.Square)
-        fun arrow(angle: Float) {
-            val dir = Offset(kotlin.math.cos(angle), kotlin.math.sin(angle))
-            val start = center + dir * radius
-            val end = start + dir * (s * 0.28f)
-            drawLine(color, start, end, stroke, StrokeCap.Square)
-            val side = Offset(-dir.y, dir.x)
-            val head = s * 0.11f
-            drawLine(color, end, end - dir * head + side * head, stroke, StrokeCap.Square)
-            drawLine(color, end, end - dir * head - side * head, stroke, StrokeCap.Square)
+private fun GenderGlyph(mark: GenderMark, color: Color, modifier: Modifier = Modifier) {
+    Canvas(modifier.clearAndSetSemantics { }) {
+        val u = size.minDimension / 100f
+        val strokeWidth = 7f * u
+        fun point(x: Float, y: Float) = Offset(x * u, y * u)
+        fun line(x1: Float, y1: Float, x2: Float, y2: Float) =
+            drawLine(color, point(x1, y1), point(x2, y2), strokeWidth = strokeWidth, cap = StrokeCap.Round)
+        fun ring(cx: Float, cy: Float, radius: Float) = drawCircle(
+            color = color,
+            radius = radius * u,
+            center = point(cx, cy),
+            style = Stroke(width = strokeWidth, cap = StrokeCap.Round),
+        )
+        when (mark) {
+            GenderMark.FEMALE -> {
+                ring(50f, 37f, 26f)
+                line(50f, 63f, 50f, 89f)
+                line(34f, 76f, 66f, 76f)
+            }
+            GenderMark.MALE -> {
+                ring(37f, 63f, 26f)
+                line(55.4f, 44.6f, 89f, 11f)
+                line(65f, 11f, 89f, 11f)
+                line(89f, 11f, 89f, 35f)
+            }
+            // Símbolo trans (⚧): círculo, dos flechas hacia arriba y cruz abajo. Es el mismo para las dos opciones
+            // trans; la etiqueta y el color del resplandor dicen cuál es cuál.
+            GenderMark.TRANS_MALE, GenderMark.TRANS_FEMALE -> {
+                ring(50f, 45f, 20f)
+                line(64.1f, 30.9f, 84f, 11f)
+                line(64f, 11f, 84f, 11f)
+                line(84f, 11f, 84f, 31f)
+                line(35.9f, 30.9f, 16f, 11f)
+                line(36f, 11f, 16f, 11f)
+                line(16f, 11f, 16f, 31f)
+                line(50f, 65f, 50f, 89f)
+                line(37f, 77f, 63f, 77f)
+            }
         }
-        arrow(-0.62f)
-        arrow(-2.52f)
     }
 }
 

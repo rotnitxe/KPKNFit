@@ -103,6 +103,10 @@ object WizardColors {
 
     /** Filete que separa las secciones y las filas-resumen de la página larga. */
     val divider = Color.White.copy(alpha = 0.10f)
+
+    /** Resplandor al pulsar una opción de género: azul para lo masculino, violeta para lo femenino. */
+    val genderMasculine = Color(0xFF4D8DFF)
+    val genderFeminine = Color(0xFFB27CFF)
 }
 
 object WizardShapes {
