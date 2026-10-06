@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Ícono en blanco del splash del sistema (SplashScreen API). El arranque de KPKN muestra su animación de marca
+  dentro de la app (KpknBrandSplash, animación APILAR del kit): el splash del sistema solo pinta el fondo tinta
+  para que no haya un salto entre una Torre estática y la Torre que se apila. La Torre estática oficial para el
+  splash vive en ic_splash_kpkn.xml por si alguna vez se necesita un splash sin animación.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,0h1v1h-1z" />
+</vector>

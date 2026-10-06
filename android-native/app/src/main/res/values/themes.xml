@@ -6,11 +6,12 @@
         <item name="android:colorBackground">@color/kpkn_window_background</item>
     </style>
 
-    <!-- Tema de arranque de MainActivity (SplashScreen API): fondo tinta de marca y la Torre anidada en crema.
+    <!-- Tema de arranque de MainActivity (SplashScreen API): solo el fondo tinta de marca. La animación de la
+         Torre anidada la dibuja la app (KpknBrandSplash) justo después, sobre el mismo fondo, sin salto.
          installSplashScreen() cambia la Activity a Theme.KPKN (postSplashScreenTheme) cuando termina el splash. -->
     <style name="Theme.KPKN.Starting" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/kpkn_ink</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_kpkn</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_blank</item>
         <item name="postSplashScreenTheme">@style/Theme.KPKN</item>
     </style>
 </resources>

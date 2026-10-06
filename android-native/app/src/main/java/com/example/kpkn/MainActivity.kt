@@ -133,6 +133,7 @@ import com.example.kpkn.data.models.Session
 import java.util.UUID
 import com.example.kpkn.ui.locale.LocaleManager
 import com.example.kpkn.ui.theme.AppThemeMode
+import com.example.kpkn.ui.motion.KpknBrandSplash
 import com.example.kpkn.ui.theme.KPKNTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -273,19 +274,31 @@ class MainActivity : ComponentActivity() {
             LocaleManager.recreateEvent.collect { recreate() }
         }
 
+        // El splash animado de marca solo suena en un arranque en frío desde el ícono: ni al recrear la Activity
+        // (rotación, plegado, idioma) ni al abrir un enlace, un widget o un compartir, que van directo a su destino.
+        val showBrandSplashOnLaunch = savedInstanceState == null &&
+            launchRequest?.route == null && launchRequest?.sharedText == null
+
         setContent {
             var themeMode by remember { mutableStateOf(AppThemeMode.HIGH_CONTRAST) }
+            var showBrandSplash by rememberSaveable { mutableStateOf(showBrandSplashOnLaunch) }
 
             KPKNTheme(themeMode = themeMode) {
-                KPKNApp(
-                    themeMode = themeMode,
-                    onThemeChange = { themeMode = it },
-                    pendingDeepLinkRoute = pendingDeepLinkRoute.value,
-                    onDeepLinkHandled = { pendingDeepLinkRoute.value = null },
-                    pendingSharedNutritionText = pendingSharedNutritionText.value,
-                    onSharedNutritionHandled = { pendingSharedNutritionText.value = null },
-                    onRequestRequiredPermissions = { requestRequiredPermissions() },
-                )
+                Box(Modifier.fillMaxSize()) {
+                    // La app se compone debajo mientras suena la animación: el arranque real no espera a nadie.
+                    KPKNApp(
+                        themeMode = themeMode,
+                        onThemeChange = { themeMode = it },
+                        pendingDeepLinkRoute = pendingDeepLinkRoute.value,
+                        onDeepLinkHandled = { pendingDeepLinkRoute.value = null },
+                        pendingSharedNutritionText = pendingSharedNutritionText.value,
+                        onSharedNutritionHandled = { pendingSharedNutritionText.value = null },
+                        onRequestRequiredPermissions = { requestRequiredPermissions() },
+                    )
+                    if (showBrandSplash) {
+                        KpknBrandSplash(onFinished = { showBrandSplash = false })
+                    }
+                }
             }
         }
     }
