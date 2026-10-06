@@ -1,6 +1,5 @@
 package com.example.kpkn.screens.onboarding.design
 
-import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -32,7 +31,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.remember
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
@@ -93,13 +91,6 @@ fun WizardScaffold(
     showCta: Boolean = true,
     showHeader: Boolean = true,
     /**
-     * Dentro de la página larga: el área mide su contenido. `fillMaxSize` + `weight`
-     * dentro del scroll vertical colapsan el paso a alto cero y la pantalla queda negra.
-     */
-    embedded: Boolean = false,
-    /** Título del paso que viene, asomado y desenfocado bajo esta vista. */
-    nextPeekTitle: String? = null,
-    /**
      * Ruta de **control centrado** (altura/peso): `header` queda fijo arriba y
      * `content` ocupa el espacio restante real de la viewport. `false`
      * conserva el layout clásico con scroll de todas las demás pantallas.
@@ -110,19 +101,6 @@ fun WizardScaffold(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     WizardDarkSystemBars()
-    if (embedded) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = WizardSpacing.gutter, vertical = WizardSpacing.sectionGap),
-            verticalArrangement = Arrangement.spacedBy(WizardSpacing.cardGap),
-        ) {
-            if (centerControl && header != null) header()
-            content()
-            if (nextPeekTitle != null) NextStepPeek(title = nextPeekTitle)
-        }
-        return
-    }
     val haze = remember { HazeState() }
     Box(Modifier.fillMaxSize().background(WizardColors.background)) {
     Row(Modifier.fillMaxSize()) {
@@ -150,7 +128,6 @@ fun WizardScaffold(
                 content = content,
             )
         }
-        if (nextPeekTitle != null) NextStepPeek(title = nextPeekTitle)
         if (showCta) {
             WizardCta(
                 label = ctaLabel,
@@ -338,35 +315,6 @@ private fun GlassPill(
         contentAlignment = Alignment.Center,
         content = { content() },
     )
-}
-
-/**
- * CTA blanco fijo del pie, con el estado deshabilitado de las referencias.
- *
- * Estable para pruebas y para TalkBack: `setup-continue` identifica el único
- * CTA de la pantalla y el nodo publica `Role.Button` junto al estado
- * deshabilitado real (`clickable(enabled = …)` emite `Disabled`), de modo que
- * «ocupado/inválido» se anuncia como botón deshabilitado y no como texto.
- */
-/** Franja inferior desenfocada con el título de lo que viene. */
-@Composable
-private fun NextStepPeek(title: String) {
-    val frame = Modifier
-        .fillMaxWidth()
-        .height(56.dp)
-        .padding(horizontal = WizardSpacing.gutter)
-    Box(
-        modifier = if (Build.VERSION.SDK_INT >= 31) frame.blur(16.dp) else frame,
-        contentAlignment = Alignment.TopCenter,
-    ) {
-        Text(
-            text = title,
-            style = WizardTypography.question,
-            color = WizardColors.text.copy(alpha = 0.42f),
-            maxLines = 1,
-            textAlign = TextAlign.Center,
-        )
-    }
 }
 
 /**

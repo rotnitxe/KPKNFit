@@ -1,60 +1,29 @@
 package com.example.kpkn.screens.onboarding
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.unit.dp
-import com.example.kpkn.domain.onboarding.SetupStepDefinition
 import com.example.kpkn.domain.onboarding.SetupStepDefinitions
 import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.SetupWizardBlock
-import com.example.kpkn.screens.onboarding.design.WizardAnthropometryLayout
 import com.example.kpkn.screens.onboarding.design.WizardBlock
-import com.example.kpkn.screens.onboarding.design.WizardColors
-import com.example.kpkn.screens.onboarding.design.currentAnthropometryLayout
 import com.example.kpkn.screens.onboarding.design.WizardMilestoneItem
 import com.example.kpkn.screens.onboarding.design.WizardMilestoneState
 import com.example.kpkn.screens.onboarding.design.WizardMilestones
-import com.example.kpkn.screens.onboarding.design.WizardScaffold
-import com.example.kpkn.screens.onboarding.design.WizardSpacing
-import com.example.kpkn.screens.onboarding.design.WizardTypography
 
 /**
- * Pantalla tradicional del wizard: **un paso por pantalla**, sin conversación.
+ * Contenido y textos de las páginas del wizard dentro de la **página larga**.
  *
- * Reglas de esta capa (solo dibujo; la orquestación vive en `SetupStepGraph`,
+ * Reglas de esta capa (solo dibujo y textos; la orquestación vive en `SetupStepGraph`,
  * `SetupWizardModels` y el ViewModel):
- * - El catálogo [SetupStepDefinitions] es la única fuente de título, subtítulo,
- *   opciones y control. No se lee ninguna pregunta de WizChat y no se llama a
- *   `answerChoice`/`answerMulti`.
- * - La firma de [SetupStepScreen] la fija el Host: los CTA (Continuar / Activar)
- *   siguen siendo suyos y esta capa nunca confirma un paso ni avanza por su cuenta.
- * - El progreso se calcula sobre la **ruta efectiva**
- *   (`SetupStepGraph.stepIds(draft.stepContext())`) filtrando por bloque y el
- *   paso actual (`state.currentStep`): nunca sobre el orden del enum, porque
- *   las ramas condicionales insertan o quitan pasos.
- * - Raíz única de andamiaje: `WizardScaffold` se instancia una sola vez aquí, con
- *   la pregunta grande y su subtítulo una vez. El contenido por bloque
- *   ([SetupBasicsStepContent], `SetupTrainingStepContent`,
- *   `SetupNutritionStepContent`, `SetupRingsStepContent`, [SetupReviewStep]) no
- *   vuelve a montar un scaffold ni repite la cabecera.
- * - Cada pantalla expone `setup-step-<ID>` como testTag de contenedor; el CTA
- *   (`setup-continue`) lo publica el dueño del scaffold.
+ * - El catálogo [SetupStepDefinitions] es la única fuente de título, subtítulo, opciones y
+ *   control. No se lee ninguna pregunta de WizChat y no se llama a `answerChoice`/`answerMulti`.
+ * - La sección (etiqueta, título, subtítulo) la dibuja el Host con `WizardPageItem`; el
+ *   contenido por bloque ([SetupBasicsStepContent], `SetupTrainingStepContent`,
+ *   `SetupNutritionStepContent`, `SetupRingsStepContent`, [SetupReviewStep]) solo pinta el
+ *   control y nunca repite el título.
+ * - Esta capa nunca confirma un paso ni avanza por su cuenta: el check es del Host.
+ * - Cada sección activa expone `setup-step-<ID>` como testTag y cada fila-resumen
+ *   `setup-summary-<ID>`; el check (`setup-continue`) lo publica el Host.
  */
 
 /**
@@ -80,161 +49,107 @@ fun SetupWizardBlock.toWizardBlock(): WizardBlock = when (this) {
 /** Título de cabecera por bloque; la copia vive en el catálogo, no aquí. */
 fun SetupWizardBlock.headerTitle(): String = SetupStepDefinitions.blockTitle(this)
 
-/** Pantalla completa de un paso. */
+/** Contenido de una página: el hito o el control del paso. Sin título: lo pinta la sección. */
 @Composable
-fun SetupStepScreen(
+internal fun SetupStepContent(
     step: SetupStepId,
     state: SetupWizardState,
     vm: SetupWizardViewModel,
-    onBack: (() -> Unit)?,
-    onExit: () -> Unit,
-    ctaLabel: String = "Continuar",
-    ctaEnabled: Boolean = true,
-    onCta: () -> Unit,
-    showCta: Boolean = true,
-    embedded: Boolean = false,
 ) {
-    val block = SetupStepGraph.blockOf(step)
-    val route = SetupStepGraph.stepIds(state.draft.stepContext())
-    val blockSteps = route.filter { SetupStepGraph.blockOf(it) == block }
-    val index = blockSteps.indexOf(step)
-    val progress = if (blockSteps.size <= 1 || index < 0) 1f else (index + 1f) / blockSteps.size
-
-    // Altura/peso: la pregunta y el toggle de unidad suben a la cabecera fija
-    // y el control se centra en el espacio restante real de la viewport. El
-    // resto de pasos conserva el layout clásico con scroll (API opcional,
-    // por defecto sin cambios).
-    val centerControl = step == SetupStepId.WEIGHT
-    var anthropometryForCta by remember(step) { mutableStateOf(WizardAnthropometryLayout.Pending) }
-    var stepHeader: (@Composable () -> Unit)? = null
-    if (centerControl) {
-        stepHeader = {
-            val layout = if (step == SetupStepId.HEIGHT) {
-                currentAnthropometryLayout()
-            } else {
-                WizardAnthropometryLayout.Separate
-            }
-            SideEffect { anthropometryForCta = layout }
-            if (layout == WizardAnthropometryLayout.Combined) {
-                Unit
-            } else {
-                StepQuestion(step = step, definition = SetupStepDefinitions.of(step))
-                if (layout != WizardAnthropometryLayout.Pending) {
-                    SetupStepUnitToggle(step = step, state = state, vm = vm)
-                }
-            }
-        }
-    }
-    val combinedCta = step == SetupStepId.HEIGHT &&
-        anthropometryForCta == WizardAnthropometryLayout.Combined
-    val aliasPage = step == SetupStepId.NAME
-    val ageYears = state.draft.ageYears
-    val aliasReady = !aliasPage || (
-        state.draft.name.isNotBlank() && ageYears != null && ageYears in 13..100
-        )
-    val ctaReady = ctaEnabled && aliasReady &&
-        (step != SetupStepId.HEIGHT || anthropometryForCta != WizardAnthropometryLayout.Pending) &&
-        (!combinedCta || state.draft.weightKg != null)
-    val presentation = wizardPresentationSteps(route)
-    val here = presentation.indexOf(step)
-    val nextTitle = presentation.getOrNull(here + 1)?.let { SetupStepDefinitions.of(it)?.title }
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .testTag("setup-step-${step.name}"),
-    ) {
-        WizardScaffold(
-            block = block.toWizardBlock(),
-            title = when {
-                step == SetupStepId.HEIGHT -> "¿Cuánto mides y pesas?"
-                else -> SetupStepDefinitions.of(step)?.title ?: block.headerTitle()
-            },
-            progress = progress,
-            onBack = onBack,
-            onExit = onExit,
-            ctaLabel = ctaLabel,
-            ctaEnabled = ctaReady,
-            showCta = showCta,
-            showHeader = showCta && !embedded,
-            embedded = embedded,
-            nextPeekTitle = if (embedded) null else nextTitle,
-            onCta = {
-                when {
-                    combinedCta -> vm.submitAnthropometryPair()
-                    aliasPage -> vm.submitAliasAgePair()
-                    else -> onCta()
-                }
-            },
-            centerControl = centerControl,
-            header = stepHeader,
-        ) {
-            if (SetupStepGraph.isMilestone(step)) {
-                MilestoneContent(step = step, state = state)
-                return@WizardScaffold
-            }
-            if (!centerControl && step != SetupStepId.NAME) {
-                val subtitle = if (step == SetupStepId.BODY_FAT) BODY_FAT_SUBTITLE else SetupStepDefinitions.of(step)?.subtitle
-                if (subtitle != null) {
-                    Text(
-                        text = subtitle,
-                        style = WizardTypography.bodySmall,
-                        color = WizardColors.textMuted,
-                    )
-                }
-            }
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    // En los pasos centrados la cabecera ya trajo su hueco.
-                    .padding(top = if (centerControl) 0.dp else WizardSpacing.titleGap),
-                verticalArrangement = Arrangement.spacedBy(WizardSpacing.cardGap),
-            ) {
-                SetupStepBody(step = step, state = state, vm = vm)
-            }
-        }
+    if (SetupStepGraph.isMilestone(step)) {
+        MilestoneContent(step = step, state = state)
+    } else {
+        SetupStepBody(step = step, state = state, vm = vm)
     }
 }
 
-/** Pregunta única cuando altura y peso caben juntos en la viewport. */
-@Composable
-private fun CombinedMeasureQuestion() {
-    Text(
-        text = "¿Cuánto mides y pesas?",
-        style = WizardTypography.question,
-        color = WizardColors.text,
-        modifier = Modifier.semantics { heading() },
-    )
-}
+/** Título y subtítulo de la sección de una página. Las páginas fusionadas tienen su propio texto. */
+internal data class WizardPageCopy(val title: String, val subtitle: String?)
 
-/** Pregunta grande + subtítulo, renderizados una sola vez por la raíz. */
-@Composable
-private fun StepQuestion(step: SetupStepId, definition: SetupStepDefinition?) {
-    Text(
-        text = definition?.title ?: step.name,
-        style = WizardTypography.question,
-        color = WizardColors.text,
-        modifier = Modifier.semantics { heading() },
-    )
-    // Subtítulo de catálogo para todos los pasos; para BODY_FAT la raíz lo
-    // recorta a 1–2 líneas: el selector de grasa aporta su propio copy y la
-    // pantalla tiene que mantener figura, slider y valor dentro del viewport.
-    val subtitle = if (step == SetupStepId.BODY_FAT) BODY_FAT_SUBTITLE else definition?.subtitle
-    if (subtitle != null) {
-        Text(
-            text = subtitle,
-            style = WizardTypography.bodySmall,
-            color = WizardColors.textMuted,
-            modifier = Modifier.padding(top = 8.dp),
+internal fun wizardPageCopy(page: SetupStepId, route: List<SetupStepId>): WizardPageCopy {
+    if (SetupStepGraph.isMilestone(page)) {
+        return WizardPageCopy(
+            title = milestoneSectionTitle(SetupStepGraph.blockOf(page)),
+            subtitle = milestoneHeroSubtitle(page, route),
         )
+    }
+    val definition = SetupStepDefinitions.of(page)
+    return when (page) {
+        SetupStepId.NAME -> WizardPageCopy("Empecemos por ti", "Tu alias y tu fecha de nacimiento.")
+        SetupStepId.HEIGHT -> WizardPageCopy("¿Cuánto mides y pesas?", "Desliza cada regla hasta tu medida.")
+        SetupStepId.BODY_FAT -> WizardPageCopy(definition?.title ?: page.name, BODY_FAT_SUBTITLE)
+        else -> WizardPageCopy(definition?.title ?: page.name, definition?.subtitle)
     }
 }
 
 /** Subtítulo corto del paso de grasa corporal (máx. 2 líneas). */
 private const val BODY_FAT_SUBTITLE = "Mueve la figura. Si tienes el dato medido, escríbelo debajo."
 
+/** Título de la sección de un hito: lo que acaba de quedar listo. */
+internal fun milestoneSectionTitle(block: SetupWizardBlock): String = when (block) {
+    SetupWizardBlock.BASICS -> "Datos básicos listos"
+    SetupWizardBlock.TRAINING -> "Entreno listo"
+    SetupWizardBlock.NUTRITION -> "Nutrición lista"
+    SetupWizardBlock.RINGS -> "Rings listos"
+    SetupWizardBlock.REVIEW -> "Revisión lista"
+}
+
+/** Página del wizard que muestra el paso del cursor: la edad vive en la del alias y el peso en la de la altura. */
+internal fun wizardPageOf(step: SetupStepId): SetupStepId = when (step) {
+    SetupStepId.AGE -> SetupStepId.NAME
+    SetupStepId.WEIGHT -> SetupStepId.HEIGHT
+    else -> step
+}
+
+/** Posición de una página dentro de su bloque, contando solo las páginas de pregunta (no los hitos). */
+internal data class WizardBlockPosition(val block: SetupWizardBlock, val number: Int, val total: Int)
+
+internal fun wizardBlockPosition(page: SetupStepId, pages: List<SetupStepId>): WizardBlockPosition {
+    val block = SetupStepGraph.blockOf(page)
+    val inBlock = pages.filter { SetupStepGraph.blockOf(it) == block && !SetupStepGraph.isMilestone(it) }
+    val index = inBlock.indexOf(page)
+    return WizardBlockPosition(block, number = if (index < 0) inBlock.size else index + 1, total = inBlock.size)
+}
+
+/** Etiqueta pequeña sobre el título de la sección: «Paso 2 de 5 · Datos básicos». */
+internal fun wizardEyebrow(page: SetupStepId, pages: List<SetupStepId>): String = when {
+    SetupStepGraph.isMilestone(page) -> "Bloque completado"
+    SetupStepGraph.blockOf(page) == SetupWizardBlock.REVIEW -> "Último paso"
+    else -> {
+        val position = wizardBlockPosition(page, pages)
+        "Paso ${position.number} de ${position.total} · ${SetupStepDefinitions.blockTitle(position.block)}"
+    }
+}
+
+/** Texto del centro de la cabecera: el bloque y cuánto llevas, sin repetir la pregunta. */
+internal fun wizardHeaderLabel(page: SetupStepId, pages: List<SetupStepId>): String {
+    val position = wizardBlockPosition(page, pages)
+    val name = SetupStepDefinitions.blockTitle(position.block)
+    return when {
+        SetupStepGraph.isMilestone(page) -> "$name · listo"
+        position.block == SetupWizardBlock.REVIEW -> name
+        else -> "$name · ${position.number}/${position.total}"
+    }
+}
+
 /**
- * Hitos entre bloques: héroe grande más etapas numeradas. Solo la etapa actual
+ * Parte confirmada de cada bloque del recorrido, en orden: 0..1. Un bloque sin preguntas
+ * propias (solo hito) cuenta como completo.
+ */
+internal fun wizardBlockProgress(
+    pages: List<SetupStepId>,
+    currentIndex: Int,
+): List<Pair<SetupWizardBlock, Float>> =
+    pages.map(SetupStepGraph::blockOf).distinct().map { block ->
+        val questions = pages.withIndex().filter { (_, page) ->
+            SetupStepGraph.blockOf(page) == block && !SetupStepGraph.isMilestone(page)
+        }
+        val fraction = if (questions.isEmpty()) 1f else questions.count { (index, _) -> index < currentIndex }.toFloat() / questions.size
+        block to fraction
+    }
+
+/**
+ * Hitos entre bloques: etapas numeradas bajo el título de la sección. Solo la etapa actual
  * muestra su párrafo y solo un bloque aparece como completado cuando su hito
  * quedó **confirmado** (`completedBlocks`), nunca por haber visitado el paso.
  */
@@ -257,19 +172,9 @@ private fun MilestoneContent(step: SetupStepId, state: SetupWizardState) {
             },
         )
     }
-    WizardMilestones(
-        items = items,
-        heroTitle = MILESTONE_HERO_TITLE,
-        heroSubtitle = milestoneHeroSubtitle(step, route),
-    )
+    // El título y el subtítulo del hito los pinta la sección; aquí solo las etapas.
+    WizardMilestones(items = items)
 }
-
-/**
- * Héroe de la transición, como `Workouts/p1`: titular corto en mayúsculas y
- * subtítulo real, **sin** repetir el nombre del bloque que ya encabeza la
- * lista de etapas.
- */
-private const val MILESTONE_HERO_TITLE = "UN PASO MÁS"
 
 /** Los bloques de la ruta efectiva [route], en el orden en que se recorren y sin repetir. */
 internal fun milestoneBlocks(route: List<SetupStepId>): List<SetupWizardBlock> =

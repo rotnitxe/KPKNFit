@@ -134,14 +134,16 @@ object WizardSpacing {
     val titleGap = 12.dp
     val hairline = 2.dp
 
+    /** Margen lateral de la página larga; las láminas de cristal llegan casi al borde. */
+    val pageGutter = 12.dp
     /** Relleno interior de una sección de la página larga. */
-    val sectionPadding = 24.dp
+    val sectionPadding = 20.dp
     /** Hueco entre secciones y filas-resumen de la página larga. */
     val sectionStackGap = 12.dp
     /** Alto fijo de la fila-resumen: la misma en todos los pasos confirmados. */
     val summaryRowHeight = 60.dp
     /** Alto visible del paso siguiente cuando solo «asoma» bajo el activo. */
-    val peekHeight = 112.dp
+    val peekHeight = 150.dp
     /** Diámetro del botón de confirmar. */
     val dockButton = 64.dp
     /** Alto de las píldoras de cristal de la cabecera. */
@@ -356,6 +358,12 @@ object WizardTypography {
         fontSize = 13.sp,
         lineHeight = 18.sp,
     )
+}
+
+/** Duraciones del movimiento de la página larga. */
+object WizardMotion {
+    /** Deslizado del paso siguiente, plegado del anterior y enfoque del que asoma: todo con la misma duración. */
+    const val SlideMillis = 520
 }
 
 /**

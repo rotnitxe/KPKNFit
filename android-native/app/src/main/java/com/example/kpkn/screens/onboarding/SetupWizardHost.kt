@@ -1,48 +1,27 @@
 package com.example.kpkn.screens.onboarding
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.Icon
-import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.snapshotFlow
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInParent
-import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.zIndex
-import com.example.kpkn.domain.onboarding.SetupStepDefinitions
-import com.example.kpkn.screens.onboarding.design.WizardGlassHeader
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeSource
-import kotlin.math.roundToInt
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.ui.draw.blur
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -51,37 +30,70 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.WizChatMachineState
+import com.example.kpkn.screens.onboarding.design.WizardAmbientBackground
 import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.WizardDarkSystemBars
+import com.example.kpkn.screens.onboarding.design.WizardDock
+import com.example.kpkn.screens.onboarding.design.WizardDockClearance
+import com.example.kpkn.screens.onboarding.design.WizardHeaderBlockHeight
+import com.example.kpkn.screens.onboarding.design.WizardMotion
+import com.example.kpkn.screens.onboarding.design.WizardPageHeader
+import com.example.kpkn.screens.onboarding.design.WizardPageItem
+import com.example.kpkn.screens.onboarding.design.WizardPageMetrics
+import com.example.kpkn.screens.onboarding.design.WizardPageMode
+import com.example.kpkn.screens.onboarding.design.WizardProgressSegment
+import com.example.kpkn.screens.onboarding.design.WizardScrollLock
 import com.example.kpkn.screens.onboarding.design.WizardShapes
 import com.example.kpkn.screens.onboarding.design.WizardSpacing
+import com.example.kpkn.screens.onboarding.design.WizardTopScrim
 import com.example.kpkn.screens.onboarding.design.WizardTypography
+import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeSource
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Host del wizard tradicional que sustituye a WizChat.
  *
- * Una pantalla por paso, sin conversación. Conserva intactas las piezas que el
- * plan manda preservar: inicialización del borrador, **atrás sin pérdida** (nunca
- * descarta), diálogos de salida diferenciados y activación conjunta al final.
+ * **Una sola página larga** con secciones de cristal, no una pantalla por paso: lo ya
+ * confirmado se pliega en una fila-resumen (tocarla edita ese paso), el paso actual está
+ * desplegado y el siguiente solo asoma, inerte. El check confirma, y es lo único que genera el
+ * paso siguiente: la página se desliza hasta él (no hay página nueva) y el scroll del usuario no
+ * puede adelantarse a lo que el check no ha generado ([WizardScrollLock]).
  *
- * El paso actual es autoridad del estado ([SetupWizardState.currentStep]); la
- * flecha atrás de la cabecera y el botón de sistema vuelven un paso cuando hay
- * historial y abren la salida explícita en el primer paso. La navegación por
- * salida/descarte solo avanza cuando la operación de persistencia devuelve true.
+ * Conserva intactas las piezas que el plan manda preservar: inicialización del borrador,
+ * **atrás sin pérdida** (nunca descarta), diálogos de salida diferenciados y activación conjunta
+ * al final.
+ *
+ * El paso actual es autoridad del estado ([SetupWizardState.currentStep]); la flecha atrás de la
+ * cabecera y el botón de sistema vuelven un paso cuando hay historial y abren la salida explícita
+ * en el primer paso. La navegación por salida/descarte solo avanza cuando la operación de
+ * persistencia devuelve true.
  */
 @Composable
 fun SetupWizardScreen(
@@ -127,9 +139,6 @@ fun SetupWizardScreen(
         SetupWizardExitDialogs(state = state, viewModel = viewModel, onLeftWizard = onCancel)
     }
 
-    val step: SetupStepId = state.currentStep
-    val renderedStep = if (step == SetupStepId.AGE) SetupStepId.NAME else step
-
     CompositionLocalProvider(LocalOpenConcept provides onOpenConcept) {
         when (state.machineState) {
             WizChatMachineState.Loading -> Box(
@@ -157,136 +166,222 @@ fun SetupWizardScreen(
                 onTertiary = onCancel,
             )
 
-            else -> Box(modifier = Modifier.fillMaxSize().background(WizardColors.background)) {
-                val pages = wizardPresentationSteps(SetupStepGraph.stepIds(state.draft.stepContext()))
-                val currentIndex = pages.indexOf(renderedStep).coerceAtLeast(0)
-                val visible = pages.take(currentIndex + 2)
-                val scroll = rememberScrollState()
-                val anchors = remember { mutableStateMapOf<SetupStepId, Int>() }
-                val haze = remember { HazeState() }
-                val headerTitle = when (renderedStep) {
-                    SetupStepId.HEIGHT -> "¿Cuánto mides y pesas?"
-                    else -> SetupStepDefinitions.of(renderedStep)?.title
-                        ?: SetupStepGraph.blockOf(renderedStep).headerTitle()
-                }
-                val ageYears = state.draft.ageYears
-                val aliasReady = renderedStep != SetupStepId.NAME ||
-                    (state.draft.name.isNotBlank() && ageYears != null && ageYears in 13..100)
-                val measuresReady = renderedStep != SetupStepId.HEIGHT ||
-                    (state.draft.heightCm != null && state.draft.weightKg != null)
-                val checkEnabled = state.canConfirmStep && aliasReady && measuresReady && !state.isSubmittingAnswer
-                val progress = if (pages.size <= 1) 1f else (currentIndex + 1f) / pages.size
-                val headerPx = with(LocalDensity.current) { 76.dp.toPx() }.toInt()
-                LaunchedEffect(renderedStep) {
-                    val y = snapshotFlow { anchors[renderedStep] }.filterNotNull().first()
-                    scroll.animateScrollTo((y - headerPx).coerceAtLeast(0).coerceAtMost(scroll.maxValue))
-                }
-                Column(
-                    Modifier
-                        .fillMaxSize()
-                        .verticalScroll(scroll)
-                        .hazeSource(state = haze)
-                        .statusBarsPadding()
-                        .padding(top = 64.dp, bottom = 120.dp),
-                ) {
-                    visible.forEach { page ->
-                        val peek = pages.indexOf(page) == currentIndex + 1
-                        Box(
-                            Modifier
-                                .fillMaxWidth()
-                                .onGloballyPositioned { anchors[page] = it.positionInParent().y.roundToInt() }
-                                .then(if (peek && android.os.Build.VERSION.SDK_INT >= 31) Modifier.blur(16.dp) else Modifier)
-                                .padding(bottom = if (peek) 12.dp else 28.dp),
-                        ) {
-                            SetupStepScreen(
-                                step = page,
-                                state = state,
-                                vm = viewModel,
-                                showCta = false,
-                                embedded = true,
-                                onBack = { if (viewModel.canGoBack()) viewModel.goBack() else leaveNow() },
-                                onExit = { leaveNow() },
-                                ctaLabel = if (step == SetupStepId.REVIEW_ACTIVATE) "Activar y entrar a KPKN" else "Continuar",
-                                ctaEnabled = checkEnabled,
-                                onCta = {},
-                            )
+            else -> WizardLongPage(
+                state = state,
+                viewModel = viewModel,
+                onLeave = { leaveNow() },
+                onActivate = {
+                    scope.launch {
+                        if (viewModel.commit() != null && !navigatedAfterCommit) {
+                            navigatedAfterCommit = true
+                            onDone()
                         }
                     }
-                }
-                WizardGlassHeader(
-                    haze = haze,
-                    title = headerTitle,
-                    onBack = { if (viewModel.canGoBack()) viewModel.goBack() else leaveNow() },
-                    onExit = { leaveNow() },
-                    exitLabel = "Salir",
-                    modifier = Modifier.align(Alignment.TopCenter).zIndex(2f).statusBarsPadding(),
-                )
-                Box(
-                    Modifier
-                        .align(Alignment.CenterStart)
-                        .padding(start = 8.dp, top = 92.dp, bottom = 112.dp)
-                        .width(5.dp)
-                        .fillMaxHeight()
-                        .clip(RoundedCornerShape(99.dp))
-                        .background(WizardColors.progressTrack.copy(alpha = 0.35f)),
+                },
+            )
+        }
+    }
+}
+
+/**
+ * La página larga: fondo ambiental, secciones que se deslizan bajo una cabecera y un botón de
+ * cristal fijos, y el aviso flotante de errores.
+ *
+ * El destino del deslizado sale de una fórmula cerrada ([WizardPageMetrics]) porque todo lo que
+ * hay antes del paso activo son filas-resumen de alto fijo: no se mide ninguna posición.
+ */
+@Composable
+private fun WizardLongPage(
+    state: SetupWizardState,
+    viewModel: SetupWizardViewModel,
+    onLeave: () -> Unit,
+    onActivate: () -> Unit,
+) {
+    WizardDarkSystemBars()
+    val density = LocalDensity.current
+    val haptics = LocalHapticFeedback.current
+    val reducedMotion = wizardReducedMotion()
+
+    val step = state.currentStep
+    val route = SetupStepGraph.stepIds(state.draft.stepContext())
+    val pages = wizardPresentationSteps(route)
+    val currentPage = wizardPageOf(step)
+    val currentIndex = pages.indexOf(currentPage).coerceAtLeast(0)
+    val currentBlock = SetupStepGraph.blockOf(currentPage).toWizardBlock()
+
+    val ageYears = state.draft.ageYears
+    val aliasReady = currentPage != SetupStepId.NAME ||
+        (state.draft.name.isNotBlank() && ageYears != null && ageYears in 13..100)
+    val measuresReady = step != SetupStepId.HEIGHT ||
+        (state.draft.heightCm != null && state.draft.weightKg != null)
+    val checkEnabled = state.canConfirmStep && aliasReady && measuresReady && !state.isSubmittingAnswer
+    val ctaLabel = if (step == SetupStepId.REVIEW_ACTIVATE) "Activar y entrar a KPKN" else "Continuar"
+
+    // ── Geometría ────────────────────────────────────────────────────────────
+    val statusTopPx = WindowInsets.statusBars.getTop(density)
+    val headerBottomPx = statusTopPx + with(density) { WizardHeaderBlockHeight.roundToPx() }
+    val gapPx = with(density) { WizardSpacing.sectionStackGap.roundToPx() }
+    val chipPx = with(density) { WizardSpacing.summaryRowHeight.roundToPx() }
+    val peekPx = with(density) { WizardSpacing.peekHeight.roundToPx() }
+    val navBottomPx = WindowInsets.navigationBars.getBottom(density)
+    val clearancePx = with(density) { WizardDockClearance.roundToPx() } + navBottomPx
+
+    val scroll = rememberScrollState()
+    var viewportPx by remember { mutableIntStateOf(0) }
+    val heights = remember { mutableStateMapOf<SetupStepId, Int>() }
+    val targetPx = WizardPageMetrics.target(currentIndex, chipPx, gapPx)
+    val lockMaxPx = WizardPageMetrics.lockMax(
+        index = currentIndex,
+        headerBottomPx = headerBottomPx,
+        chipPx = chipPx,
+        gapPx = gapPx,
+        peekPx = peekPx,
+        clearancePx = clearancePx,
+        viewportPx = viewportPx,
+        activeHeightPx = heights[currentPage] ?: 0,
+    )
+    val lockMax by rememberUpdatedState(lockMaxPx)
+    val lock = remember(scroll) { WizardScrollLock(scroll) { lockMax } }
+
+    // Primera vez: colocar la página en el paso del borrador sin animar (reabrir a mitad no
+    // arranca arriba). Después: cada cambio de paso desliza hasta el nuevo, sea hacia delante
+    // (check) o hacia atrás (atrás o tocar una fila-resumen), con la misma duración que el plegado.
+    var restored by remember { mutableStateOf(false) }
+    LaunchedEffect(currentIndex) {
+        if (!restored) {
+            withTimeoutOrNull(1_500) { snapshotFlow { scroll.maxValue }.first { it >= targetPx } }
+            scroll.scrollTo(targetPx.coerceAtMost(scroll.maxValue))
+            restored = true
+        } else if (reducedMotion) {
+            scroll.scrollTo(targetPx.coerceAtMost(scroll.maxValue))
+        } else {
+            scroll.animateScrollTo(
+                targetPx,
+                tween(durationMillis = WizardMotion.SlideMillis, easing = FastOutSlowInEasing),
+            )
+        }
+    }
+    // Si el paso activo se encoge (o se cierra el teclado) y el scroll queda más allá del límite, volver.
+    LaunchedEffect(Unit) {
+        snapshotFlow { lockMax }.collect { limit ->
+            if (scroll.value > limit && !scroll.isScrollInProgress) scroll.animateScrollTo(limit)
+        }
+    }
+
+    val hazeState = remember { HazeState() }
+    val statusTopDp = with(density) { statusTopPx.toDp() }
+    val viewportDp = with(density) { viewportPx.toDp() }
+
+    Box(modifier = Modifier.fillMaxSize().background(WizardColors.background)) {
+        // Fuente del desenfoque de la cabecera y del botón: el fondo y la página que se desliza.
+        Box(modifier = Modifier.fillMaxSize().hazeSource(state = hazeState)) {
+            WizardAmbientBackground(accent = currentBlock.accent)
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .imePadding()
+                    .nestedScroll(lock)
+                    .onSizeChanged { viewportPx = it.height },
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(scroll)
+                        .padding(horizontal = WizardSpacing.pageGutter),
+                    verticalArrangement = Arrangement.spacedBy(WizardSpacing.sectionStackGap),
                 ) {
-                    Box(
-                        Modifier
-                            .fillMaxWidth()
-                            .fillMaxHeight(progress.coerceIn(0.06f, 1f))
-                            .clip(RoundedCornerShape(99.dp))
-                            .align(Alignment.TopCenter)
-                            .background(WizardColors.progressFill.copy(alpha = 0.7f)),
-                    )
-                }
-                Box(
-                    Modifier
-                        .align(Alignment.BottomCenter)
-                        .zIndex(2f)
-                        .navigationBarsPadding()
-                        .padding(bottom = 16.dp)
-                        .size(64.dp)
-                        .clip(CircleShape)
-                        .background(if (checkEnabled) WizardColors.cta else WizardColors.ctaDisabled)
-                        .clickable(enabled = checkEnabled, role = Role.Button, onClick = {
-                            when {
-                                step == SetupStepId.REVIEW_ACTIVATE -> scope.launch {
-                                    if (viewModel.commit() != null && !navigatedAfterCommit) {
-                                        navigatedAfterCommit = true
-                                        onDone()
-                                    }
-                                }
-                                renderedStep == SetupStepId.NAME -> viewModel.submitAliasAgePair()
-                                renderedStep == SetupStepId.HEIGHT -> viewModel.submitAnthropometryPair()
-                                else -> viewModel.submitCurrentStep(step)
+                    Spacer(Modifier.height(statusTopDp + WizardHeaderBlockHeight))
+                    pages.take(currentIndex + 2).forEachIndexed { index, page ->
+                        key(page) {
+                            val pageMode = when {
+                                index < currentIndex -> WizardPageMode.Completed
+                                index == currentIndex -> WizardPageMode.Active
+                                else -> WizardPageMode.Peek
                             }
-                        })
-                        .testTag("setup-continue")
-                        .semantics { contentDescription = if (step == SetupStepId.REVIEW_ACTIVATE) "Activar y entrar a KPKN" else "Continuar" },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        Icons.Filled.Check,
-                        contentDescription = null,
-                        tint = if (checkEnabled) WizardColors.ctaContent else WizardColors.ctaDisabledContent,
-                    )
-                }
-                // El aviso flota sobre el paso: no empuja la cabecera, la pregunta
-                // ni el botón. Sigue siendo descartable y reintenta la misma operación.
-                // H6: lo que el paso ya pinta por sí mismo (la lista de planes y el preview) no se repite aquí.
-                val floatingErrors = state.errors.filterKeys { key -> !stepRendersError(step, key) }
-                if (floatingErrors.isNotEmpty()) {
-                    WizardInlineErrors(
-                        errors = floatingErrors,
-                        onDismiss = viewModel::clearError,
-                        retryFor = viewModel::retryOperationForError,
-                        onRetry = { operation -> viewModel.retryFailedOperation(operation) },
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(bottom = 88.dp),
-                    )
+                            val copy = wizardPageCopy(page, route)
+                            // Se calcula también para la activa: al volver atrás la fila-resumen se despliega
+                            // en sección y no puede quedarse en blanco mientras lo hace.
+                            val summary = if (pageMode == WizardPageMode.Peek) {
+                                SetupStepSummary(label = "", value = "")
+                            } else {
+                                setupStepSummary(page, state)
+                            }
+                            WizardPageItem(
+                                mode = pageMode,
+                                accent = SetupStepGraph.blockOf(page).toWizardBlock().accent,
+                                eyebrow = wizardEyebrow(page, pages),
+                                title = copy.title,
+                                subtitle = copy.subtitle,
+                                summaryLabel = summary.label,
+                                summaryValue = summary.value,
+                                stepTag = "setup-step-${page.name}",
+                                summaryTag = "setup-summary-${page.name}",
+                                onEdit = if (pageMode == WizardPageMode.Completed && !SetupStepGraph.isMilestone(page)) {
+                                    { viewModel.editStep(page) }
+                                } else {
+                                    null
+                                },
+                                onNaturalHeight = { heights[page] = it },
+                                reducedMotion = reducedMotion,
+                            ) {
+                                SetupStepContent(step = page, state = state, vm = viewModel)
+                            }
+                        }
+                    }
+                    // Hueco final: permite anclar arriba incluso un paso corto; el bloqueo de
+                    // scroll impide que el usuario llegue a él arrastrando.
+                    Spacer(Modifier.height(viewportDp))
                 }
             }
+        }
+
+        WizardTopScrim(
+            height = statusTopDp + WizardHeaderBlockHeight + 20.dp,
+            modifier = Modifier.align(Alignment.TopCenter),
+        )
+        WizardPageHeader(
+            haze = hazeState,
+            label = wizardHeaderLabel(currentPage, pages).uppercase(),
+            segments = wizardBlockProgress(pages, currentIndex).map { (block, fraction) ->
+                WizardProgressSegment(fill = fraction, accent = block.toWizardBlock().accent)
+            },
+            onBack = { if (viewModel.canGoBack()) viewModel.goBack() else onLeave() },
+            onExit = onLeave,
+            exitLabel = "Salir",
+            modifier = Modifier.align(Alignment.TopCenter).statusBarsPadding(),
+        )
+        WizardDock(
+            haze = hazeState,
+            enabled = checkEnabled,
+            label = ctaLabel,
+            onClick = {
+                haptics.performHapticFeedback(HapticFeedbackType.ContextClick)
+                when {
+                    step == SetupStepId.REVIEW_ACTIVATE -> onActivate()
+                    currentPage == SetupStepId.NAME -> viewModel.submitAliasAgePair()
+                    step == SetupStepId.HEIGHT -> viewModel.submitAnthropometryPair()
+                    else -> viewModel.submitCurrentStep(step)
+                }
+            },
+            modifier = Modifier.align(Alignment.BottomCenter),
+        )
+
+        // El aviso flota sobre el paso: no empuja la cabecera, la pregunta
+        // ni el botón. Sigue siendo descartable y reintenta la misma operación.
+        // H6: lo que el paso ya pinta por sí mismo (la lista de planes y el preview) no se repite aquí.
+        val floatingErrors = state.errors.filterKeys { key -> !stepRendersError(step, key) }
+        if (floatingErrors.isNotEmpty()) {
+            WizardInlineErrors(
+                errors = floatingErrors,
+                onDismiss = viewModel::clearError,
+                retryFor = viewModel::retryOperationForError,
+                onRetry = { operation -> viewModel.retryFailedOperation(operation) },
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .navigationBarsPadding()
+                    .imePadding()
+                    .padding(bottom = 92.dp),
+            )
         }
     }
 }
