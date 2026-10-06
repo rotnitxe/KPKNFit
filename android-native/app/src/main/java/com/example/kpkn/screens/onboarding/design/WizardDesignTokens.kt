@@ -91,10 +91,24 @@ object WizardColors {
 
     val danger = Color(0xFFFF9B92)
     val info = Color(0xFF74B5FF)
+
+    /**
+     * Liquid Glass sobre negro: relleno blanco muy translúcido y borde con brillo
+     * superior (más claro arriba-izquierda que abajo-derecha), como una lámina de
+     * vidrio que recibe luz desde arriba.
+     */
+    val glassFill = Color.White.copy(alpha = 0.07f)
+    val glassFillStrong = Color.White.copy(alpha = 0.11f)
+    val glassBorderHigh = Color.White.copy(alpha = 0.34f)
+    val glassBorderLow = Color.White.copy(alpha = 0.08f)
 }
 
 object WizardShapes {
     val card = RoundedCornerShape(18.dp)
+    /** Sección de un paso: lámina de cristal de la página larga. */
+    val section = RoundedCornerShape(28.dp)
+    /** Fila-resumen de un paso ya confirmado. */
+    val summaryRow = RoundedCornerShape(20.dp)
     /**
      * CTA y píldoras: esquinas cortas (≈8–10 dp) como las referencias
      * `Workouts/p1·p3·p5`, no cápsula completa.
@@ -119,6 +133,19 @@ object WizardSpacing {
     val sectionGap = 20.dp
     val titleGap = 12.dp
     val hairline = 2.dp
+
+    /** Relleno interior de una sección de la página larga. */
+    val sectionPadding = 24.dp
+    /** Hueco entre secciones y filas-resumen de la página larga. */
+    val sectionStackGap = 12.dp
+    /** Alto fijo de la fila-resumen: la misma en todos los pasos confirmados. */
+    val summaryRowHeight = 60.dp
+    /** Alto visible del paso siguiente cuando solo «asoma» bajo el activo. */
+    val peekHeight = 112.dp
+    /** Diámetro del botón de confirmar. */
+    val dockButton = 64.dp
+    /** Alto de las píldoras de cristal de la cabecera. */
+    val headerPill = 46.dp
 }
 
 /**
@@ -166,7 +193,62 @@ object WizardTypography {
     val cardSubtitle = TextStyle(
         fontFamily = WizardFonts.body,
         fontWeight = FontWeight.Normal,
-        fontSize = 13.5.sp,
+        fontSize = 13.sp,
+        lineHeight = 18.sp,
+    )
+
+    // ── Roles de la página larga ────────────────────────────────────────────
+    // Un único conjunto de roles para TODOS los pasos. Ningún paso fija un
+    // tamaño propio: si necesita otro, se añade un rol aquí. Mínimo 13 sp.
+
+    /** Etiqueta sobre el título de cada sección: «PASO 2 · DATOS BÁSICOS». Va en mayúsculas. */
+    val eyebrow = TextStyle(
+        fontFamily = WizardFonts.body,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 12.sp,
+        lineHeight = 16.sp,
+        letterSpacing = 1.2.sp,
+    )
+
+    /** Título de cada paso: el mismo tamaño y peso en todo el wizard, alineado a la izquierda. */
+    val stepTitle = TextStyle(
+        fontFamily = WizardFonts.display,
+        fontWeight = FontWeight.Bold,
+        fontSize = 28.sp,
+        lineHeight = 34.sp,
+        letterSpacing = (-0.3).sp,
+    )
+
+    /** Subtítulo de cada paso: una frase, bajo el título. */
+    val stepSubtitle = TextStyle(
+        fontFamily = WizardFonts.body,
+        fontWeight = FontWeight.Normal,
+        fontSize = 15.sp,
+        lineHeight = 22.sp,
+    )
+
+    /** Etiqueta de un control o de un campo (Alias, Fecha de nacimiento, Altura, Peso…). */
+    val controlLabel = TextStyle(
+        fontFamily = WizardFonts.body,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 16.sp,
+        lineHeight = 21.sp,
+    )
+
+    /** Valor numérico o de entrada grande (edad, fecha, altura, peso). */
+    val controlValue = TextStyle(
+        fontFamily = WizardFonts.display,
+        fontWeight = FontWeight.Bold,
+        fontSize = 36.sp,
+        lineHeight = 42.sp,
+        letterSpacing = (-0.5).sp,
+    )
+
+    /** Nota al pie de un control: ayudas, rangos, avisos pequeños. */
+    val note = TextStyle(
+        fontFamily = WizardFonts.body,
+        fontWeight = FontWeight.Normal,
+        fontSize = 13.sp,
         lineHeight = 18.sp,
     )
 
@@ -271,8 +353,8 @@ object WizardTypography {
     val caption = TextStyle(
         fontFamily = WizardFonts.body,
         fontWeight = FontWeight.Normal,
-        fontSize = 12.5.sp,
-        lineHeight = 17.sp,
+        fontSize = 13.sp,
+        lineHeight = 18.sp,
     )
 }
 
