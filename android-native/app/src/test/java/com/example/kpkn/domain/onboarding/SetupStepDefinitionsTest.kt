@@ -368,9 +368,10 @@ class SetupStepDefinitionsTest {
     @Test
     fun equationSexKeepsAnExplicitUnknownOptionThatLegacyNeutralAnswersDoNotMigrateInto() {
         val equationSex = requireNotNull(SetupStepDefinitions.of(SetupStepId.EQUATION_SEX))
-        // Opción explícita de desconocimiento: permitida en nutrición manual.
+        // Las cuatro opciones de la fila de género más la opción explícita de desconocimiento
+        // (permitida en nutrición manual).
         assertEquals(
-            setOf("female", "male", "unknown"),
+            setOf("female", "male", "trans_male", "trans_female", "unknown"),
             SetupStepDefinitions.optionValues(SetupStepId.EQUATION_SEX),
         )
         assertEquals("No lo sé", equationSex.option("unknown")?.label)

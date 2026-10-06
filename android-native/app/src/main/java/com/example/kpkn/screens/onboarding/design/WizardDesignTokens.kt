@@ -3,6 +3,7 @@ package com.example.kpkn.screens.onboarding.design
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
@@ -140,8 +141,15 @@ object WizardSpacing {
     val sectionPadding = 20.dp
     /** Hueco entre secciones y filas-resumen de la página larga. */
     val sectionStackGap = 12.dp
-    /** Alto fijo de la fila-resumen: la misma en todos los pasos confirmados. */
+    /** Alto base de la fila-resumen: el mismo en todos los pasos confirmados. */
     val summaryRowHeight = 60.dp
+
+    /**
+     * Alto de la fila-resumen para una escala de fuente dada. Es una función SOLO de la escala (nunca
+     * del contenido), así todas las filas siguen midiendo lo mismo y el deslizado puede usar una
+     * fórmula cerrada; con letra grande la fila crece lo justo para que no recorte el texto.
+     */
+    fun summaryRowHeightFor(fontScale: Float): Dp = maxOf(summaryRowHeight, (39f * fontScale + 12f).dp)
     /** Alto visible del paso siguiente cuando solo «asoma» bajo el activo. */
     val peekHeight = 150.dp
     /** Diámetro del botón de confirmar. */

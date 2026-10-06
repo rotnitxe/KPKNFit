@@ -445,14 +445,16 @@ class SetupWizardFullJourneyTest {
         assertNull("sin respuesta fabricada", vm.state.value.draft.stepProgress.answers[SetupStepId.AGE])
         confirmStep(vm, SetupStepId.AGE, SetupStepId.HEIGHT) { vm.setStepNumber(SetupStepId.AGE, 34.0) }
 
-        // Atrás mueve el cursor por la estela de visitas y no borra nada.
+        // Atrás mueve el cursor por la estela de visitas y no borra nada. Alias y edad son UNA página:
+        // atrás desde la altura aterriza en el alias, no en la edad.
         assertTrue(vm.canGoBack())
         assertTrue(vm.goBack())
-        awaitCondition(vm, "cursor en AGE tras Atrás") {
-            it.draft.stepProgress.currentStepId == SetupStepId.AGE
+        awaitCondition(vm, "cursor en NAME tras Atrás") {
+            it.draft.stepProgress.currentStepId == SetupStepId.NAME
         }
         assertEquals("Ana", vm.state.value.draft.name)
         assertEquals(34, checkNotNull(vm.state.value.draft.ageYears) { "edad persistida en el borrador" })
+        confirmStep(vm, SetupStepId.NAME, SetupStepId.AGE)
         confirmStep(vm, SetupStepId.AGE, SetupStepId.HEIGHT)
 
         confirmStep(vm, SetupStepId.HEIGHT, SetupStepId.WEIGHT) { vm.setStepNumber(SetupStepId.HEIGHT, 176.0) }
@@ -988,11 +990,12 @@ class SetupWizardFullJourneyTest {
     )
 
     /**
-     * Confirmaciones esperadas: la ruta sin revisión más la reconfirmación que
-     * produce Atrás (HEIGHT → Atrás → AGE → Continuar).
+     * Confirmaciones esperadas: la ruta sin revisión más la reconfirmación que produce Atrás.
+     * Alias y edad son una sola página: HEIGHT → Atrás aterriza en NAME → Continuar (NAME) →
+     * Continuar (AGE), así que NAME y AGE se confirman dos veces.
      */
     private fun expectedConfirmations(route: List<SetupStepId>): List<SetupStepId> =
-        route.dropLast(1).toMutableList().apply { addAll(2, listOf(SetupStepId.AGE)) }
+        route.dropLast(1).toMutableList().apply { addAll(2, listOf(SetupStepId.NAME, SetupStepId.AGE)) }
 
     private fun priorityBag(): Map<String, Int> = linkedMapOf(
         "Pectorales" to 2,

@@ -6,6 +6,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.unit.Velocity
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class WizardPageMetricsTest {
@@ -67,6 +68,13 @@ class WizardPageMetricsTest {
 
         val inside = WizardScrollLock(ScrollState(initial = 10)) { 150 }
         assertEquals(Velocity.Zero, inside.onPreFling(Velocity(0f, -900f)))
+    }
+
+    @Test
+    fun `la fila-resumen solo cambia de alto con la escala de fuente`() {
+        assertEquals(WizardSpacing.summaryRowHeight, WizardSpacing.summaryRowHeightFor(1f))
+        assertEquals(WizardSpacing.summaryRowHeightFor(1.4f), WizardSpacing.summaryRowHeightFor(1.4f))
+        assertTrue(WizardSpacing.summaryRowHeightFor(2f) > WizardSpacing.summaryRowHeightFor(1.4f))
     }
 
     private fun lockMax(index: Int, activeHeight: Int): Int = WizardPageMetrics.lockMax(

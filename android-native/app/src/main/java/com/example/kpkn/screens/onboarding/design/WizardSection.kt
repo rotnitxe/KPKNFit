@@ -94,6 +94,12 @@ fun WizardPageItem(
     onNaturalHeight: (Int) -> Unit,
     reducedMotion: Boolean,
     modifier: Modifier = Modifier,
+    /**
+     * Mantener compuesta la sección aunque la fila ya esté plegada (se usa para la ÚLTIMA confirmada).
+     * Volver atrás despliega esa fila: si su paso hubiera que componerlo de cero en ese momento, el
+     * primer fotograma del deslizado se perdería en la composición. Va oculta y fuera de TalkBack.
+     */
+    keepCard: Boolean = false,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val spec = if (reducedMotion) {
@@ -111,7 +117,8 @@ fun WizardPageItem(
         animationSpec = spec,
         label = "wizard-page-focus",
     )
-    val showCard by remember { derivedStateOf { collapse.value < 0.999f } }
+    val showCard by remember(keepCard) { derivedStateOf { keepCard || collapse.value < 0.999f } }
+    val folded by remember { derivedStateOf { collapse.value >= 0.999f } }
     val showChip by remember { derivedStateOf { collapse.value > 0.001f } }
     val fading by remember { derivedStateOf { focus.value < 0.999f } }
     val folding by remember { derivedStateOf { collapse.value > 0.001f && collapse.value < 0.999f } }
@@ -127,7 +134,7 @@ fun WizardPageItem(
 
     val density = LocalDensity.current
     val peekPx = with(density) { WizardSpacing.peekHeight.roundToPx() }
-    val chipPx = with(density) { WizardSpacing.summaryRowHeight.roundToPx() }
+    val chipPx = with(density) { WizardSpacing.summaryRowHeightFor(density.fontScale).roundToPx() }
 
     // Orden de modificadores: el recorte, el fundido y la máscara van POR FUERA de `pageHeight`
     // para que actúen sobre la ventana visible (la altura animada) y no sobre el tamaño natural.
@@ -175,6 +182,8 @@ fun WizardPageItem(
                 modifier = Modifier
                     .graphicsLayer { alpha = 1f - smoothStep(collapse.value, 0.7f, 1f) }
                     .onSizeChanged { onNaturalHeight(it.height) }
+                    // Plegada y solo mantenida: invisible para TalkBack, no solo transparente.
+                    .then(if (folded) Modifier.clearAndSetSemantics { } else Modifier)
                     .then(if (mode == WizardPageMode.Active) Modifier.testTag(stepTag) else Modifier),
             ) {
                 WizardSectionCard(
@@ -327,7 +336,7 @@ fun WizardSummaryRow(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(WizardSpacing.summaryRowHeight)
+            .height(WizardSpacing.summaryRowHeightFor(LocalDensity.current.fontScale))
             .wizardGlass(WizardShapes.summaryRow)
             .then(
                 if (onClick != null) {

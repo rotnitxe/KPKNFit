@@ -223,7 +223,7 @@ private fun WizardLongPage(
     val statusTopPx = WindowInsets.statusBars.getTop(density)
     val headerBottomPx = statusTopPx + with(density) { WizardHeaderBlockHeight.roundToPx() }
     val gapPx = with(density) { WizardSpacing.sectionStackGap.roundToPx() }
-    val chipPx = with(density) { WizardSpacing.summaryRowHeight.roundToPx() }
+    val chipPx = with(density) { WizardSpacing.summaryRowHeightFor(density.fontScale).roundToPx() }
     val peekPx = with(density) { WizardSpacing.peekHeight.roundToPx() }
     val navBottomPx = WindowInsets.navigationBars.getBottom(density)
     val clearancePx = with(density) { WizardDockClearance.roundToPx() } + navBottomPx
@@ -339,6 +339,8 @@ private fun WizardLongPage(
                                 },
                                 onNaturalHeight = { heights[page] = it },
                                 reducedMotion = reducedMotion,
+                                // La última confirmada sigue compuesta (oculta): atrás despliega justo esa.
+                                keepCard = index == currentIndex - 1,
                             ) {
                                 SetupStepContent(step = page, state = state, vm = viewModel)
                             }
