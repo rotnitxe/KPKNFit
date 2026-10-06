@@ -28,9 +28,16 @@ fun WizardDarkSystemBars() {
         } else {
             val previousStatus = controller.isAppearanceLightStatusBars
             val previousNav = controller.isAppearanceLightNavigationBars
+            val window = view.context.findActivity()?.window
+            val previousStatusColor = window?.statusBarColor
+            val previousNavColor = window?.navigationBarColor
+            window?.statusBarColor = android.graphics.Color.BLACK
+            window?.navigationBarColor = android.graphics.Color.BLACK
             controller.isAppearanceLightStatusBars = false
             controller.isAppearanceLightNavigationBars = false
             onDispose {
+                if (previousStatusColor != null) window.statusBarColor = previousStatusColor
+                if (previousNavColor != null) window.navigationBarColor = previousNavColor
                 controller.isAppearanceLightStatusBars = previousStatus
                 controller.isAppearanceLightNavigationBars = previousNav
             }

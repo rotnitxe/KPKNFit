@@ -200,7 +200,7 @@ object SetupStepDefinitions {
         // -------------------------------------------------------------------
         SetupStepDefinition(
             id = SetupStepId.NAME, block = SetupWizardBlock.BASICS, kind = SetupStepKind.QUESTION,
-            title = "¿Cómo te llamas?", control = SetupControlKind.TEXT,
+            title = "Pon tu alias", control = SetupControlKind.TEXT,
             allowSkip = true, legacyQuestion = WizChatQuestionId.P_NAME,
         ),
         SetupStepDefinition(
@@ -223,14 +223,14 @@ object SetupStepDefinitions {
         ),
         SetupStepDefinition(
             id = SetupStepId.EQUATION_SEX, block = SetupWizardBlock.BASICS, kind = SetupStepKind.QUESTION,
-            title = "¿Cuál es tu sexo de cálculo?",
-            subtitle = "Solo se usa para calcular tu gasto energético. No sustituye tu género.",
+            title = "¿Cuál es tu género?",
+            subtitle = "Conocer tu género nos permitirá calcular el gasto energético que te corresponde. Esto es muy importante para calcular tus calorías recomendadas para tu plan de nutrición. Si no tienes una opción que te identifique, elige la que más se apegue a tu contexto hormonal.",
             control = SetupControlKind.SINGLE_CHOICE,
             options = opt(
-                "female" to "Femenino", "male" to "Masculino",
-                // Desconocimiento EXPLÍCITO: permitido en nutrición manual
-                // ("yo traigo mis números" / solo registro); la cadena
-                // automática lo sigue tratando como dato faltante.
+                "female" to "Mujer",
+                "male" to "Hombre",
+                "trans_male" to "Hombre trans",
+                "trans_female" to "Mujer trans",
                 "unknown" to "No lo sé",
             ),
             // El valor migra desde la pregunta de nutrición legacy N_SEX cuando

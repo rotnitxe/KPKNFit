@@ -3,12 +3,44 @@ package com.example.kpkn.screens.onboarding
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.zIndex
+import com.example.kpkn.domain.onboarding.SetupStepDefinitions
+import com.example.kpkn.screens.onboarding.design.WizardGlassHeader
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeSource
+import kotlin.math.roundToInt
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.ui.draw.blur
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.AlertDialog
@@ -25,10 +57,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.WizChatMachineState
 import com.example.kpkn.screens.onboarding.design.WizardColors
@@ -73,36 +107,42 @@ fun SetupWizardScreen(
 
     // Atrás nunca descarta ni borra respuestas: retrocede un paso cuando existe
     // historial y abre la salida explícita solo en el primer paso.
-    BackHandler {
-        when {
-            state.isSavingAndExiting -> Unit
-            state.dialog != SetupWizardDialog.NONE -> viewModel.keepConfiguring()
-            viewModel.canGoBack() -> viewModel.goBack()
-            else -> viewModel.requestExit()
+    fun leaveNow() {
+        scope.launch {
+            viewModel.leaveImmediately()
+            onCancel()
         }
     }
 
-    SetupWizardExitDialogs(state = state, viewModel = viewModel, onLeftWizard = onCancel)
+    BackHandler {
+        when {
+            state.isSavingAndExiting -> Unit
+            state.dialog == SetupWizardDialog.DISCARD -> viewModel.keepConfiguring()
+            viewModel.canGoBack() -> viewModel.goBack()
+            else -> leaveNow()
+        }
+    }
+
+    if (state.dialog == SetupWizardDialog.DISCARD) {
+        SetupWizardExitDialogs(state = state, viewModel = viewModel, onLeftWizard = onCancel)
+    }
 
     val step: SetupStepId = state.currentStep
+    val renderedStep = if (step == SetupStepId.AGE) SetupStepId.NAME else step
 
     CompositionLocalProvider(LocalOpenConcept provides onOpenConcept) {
         when (state.machineState) {
-            WizChatMachineState.Loading -> WizardStatusScreen(
-                title = "Preparando tu configuración…",
-                body = "Estamos recuperando tus respuestas guardadas.",
-                // Si la carga nunca termina, el usuario siempre puede salir.
-                tertiaryLabel = "Volver",
-                onTertiary = onCancel,
+            WizChatMachineState.Loading -> Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(WizardColors.background),
             )
 
             WizChatMachineState.UnsupportedDraft -> WizardStatusScreen(
-                title = "No pude abrir este borrador",
-                body = state.errors["draft"] ?: "El borrador no es convertible. Puedes conservarlo o descartarlo con confirmación.",
-                secondaryLabel = "Volver a configuraciones",
+                title = "No pude abrir tu configuración",
+                body = state.errors["draft"] ?: "Esta configuración no se puede continuar. Puedes volver y empezar de nuevo.",
+                secondaryLabel = "Volver",
                 onSecondary = onCancel,
-                tertiaryLabel = "Descartar este borrador",
-                onTertiary = { viewModel.requestDiscard() },
             )
 
             WizChatMachineState.RecoverableError -> WizardStatusScreen(
@@ -110,36 +150,127 @@ fun SetupWizardScreen(
                 // Mensaje honesto del fallo real, no un texto genérico.
                 body = state.lastFailure
                     ?: state.errors["initialize"]
-                    ?: "Tu borrador sigue guardado. Puedes reintentarlo.",
+                    ?: "Lo que llevas sigue guardado. Puedes reintentarlo.",
                 secondaryLabel = "Reintentar",
                 onSecondary = { viewModel.retryFailedOperation(SetupRetryOperation.LOAD) },
                 tertiaryLabel = "Volver",
                 onTertiary = onCancel,
             )
 
-            else -> Box(modifier = Modifier.fillMaxSize()) {
-                SetupStepScreen(
-                        step = step,
-                        state = state,
-                        vm = viewModel,
-                        onBack = { if (viewModel.canGoBack()) viewModel.goBack() else viewModel.requestExit() },
-                        onExit = { viewModel.requestExit() },
-                        // Un solo CTA por paso, siempre sobre el paso actual.
-                        ctaLabel = if (step == SetupStepId.REVIEW_ACTIVATE) "Activar y entrar a KPKN" else "Continuar",
-                        ctaEnabled = state.canConfirmStep,
-                        onCta = {
-                            if (step == SetupStepId.REVIEW_ACTIVATE) {
-                                scope.launch {
+            else -> Box(modifier = Modifier.fillMaxSize().background(WizardColors.background)) {
+                val pages = wizardPresentationSteps(SetupStepGraph.stepIds(state.draft.stepContext()))
+                val currentIndex = pages.indexOf(renderedStep).coerceAtLeast(0)
+                val visible = pages.take(currentIndex + 2)
+                val scroll = rememberScrollState()
+                val anchors = remember { mutableStateMapOf<SetupStepId, Int>() }
+                val haze = remember { HazeState() }
+                val headerTitle = when (renderedStep) {
+                    SetupStepId.HEIGHT -> "¿Cuánto mides y pesas?"
+                    else -> SetupStepDefinitions.of(renderedStep)?.title
+                        ?: SetupStepGraph.blockOf(renderedStep).headerTitle()
+                }
+                val ageYears = state.draft.ageYears
+                val aliasReady = renderedStep != SetupStepId.NAME ||
+                    (state.draft.name.isNotBlank() && ageYears != null && ageYears in 13..100)
+                val measuresReady = renderedStep != SetupStepId.HEIGHT ||
+                    (state.draft.heightCm != null && state.draft.weightKg != null)
+                val checkEnabled = state.canConfirmStep && aliasReady && measuresReady && !state.isSubmittingAnswer
+                val progress = if (pages.size <= 1) 1f else (currentIndex + 1f) / pages.size
+                val headerPx = with(LocalDensity.current) { 76.dp.toPx() }.toInt()
+                LaunchedEffect(renderedStep) {
+                    val y = snapshotFlow { anchors[renderedStep] }.filterNotNull().first()
+                    scroll.animateScrollTo((y - headerPx).coerceAtLeast(0).coerceAtMost(scroll.maxValue))
+                }
+                Column(
+                    Modifier
+                        .fillMaxSize()
+                        .verticalScroll(scroll)
+                        .hazeSource(state = haze)
+                        .statusBarsPadding()
+                        .padding(top = 64.dp, bottom = 120.dp),
+                ) {
+                    visible.forEach { page ->
+                        val peek = pages.indexOf(page) == currentIndex + 1
+                        Box(
+                            Modifier
+                                .fillMaxWidth()
+                                .onGloballyPositioned { anchors[page] = it.positionInParent().y.roundToInt() }
+                                .then(if (peek && android.os.Build.VERSION.SDK_INT >= 31) Modifier.blur(16.dp) else Modifier)
+                                .padding(bottom = if (peek) 12.dp else 28.dp),
+                        ) {
+                            SetupStepScreen(
+                                step = page,
+                                state = state,
+                                vm = viewModel,
+                                showCta = false,
+                                embedded = true,
+                                onBack = { if (viewModel.canGoBack()) viewModel.goBack() else leaveNow() },
+                                onExit = { leaveNow() },
+                                ctaLabel = if (step == SetupStepId.REVIEW_ACTIVATE) "Activar y entrar a KPKN" else "Continuar",
+                                ctaEnabled = checkEnabled,
+                                onCta = {},
+                            )
+                        }
+                    }
+                }
+                WizardGlassHeader(
+                    haze = haze,
+                    title = headerTitle,
+                    onBack = { if (viewModel.canGoBack()) viewModel.goBack() else leaveNow() },
+                    onExit = { leaveNow() },
+                    exitLabel = "Salir",
+                    modifier = Modifier.align(Alignment.TopCenter).zIndex(2f).statusBarsPadding(),
+                )
+                Box(
+                    Modifier
+                        .align(Alignment.CenterStart)
+                        .padding(start = 8.dp, top = 92.dp, bottom = 112.dp)
+                        .width(5.dp)
+                        .fillMaxHeight()
+                        .clip(RoundedCornerShape(99.dp))
+                        .background(WizardColors.progressTrack.copy(alpha = 0.35f)),
+                ) {
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .fillMaxHeight(progress.coerceIn(0.06f, 1f))
+                            .clip(RoundedCornerShape(99.dp))
+                            .align(Alignment.TopCenter)
+                            .background(WizardColors.progressFill.copy(alpha = 0.7f)),
+                    )
+                }
+                Box(
+                    Modifier
+                        .align(Alignment.BottomCenter)
+                        .zIndex(2f)
+                        .navigationBarsPadding()
+                        .padding(bottom = 16.dp)
+                        .size(64.dp)
+                        .clip(CircleShape)
+                        .background(if (checkEnabled) WizardColors.cta else WizardColors.ctaDisabled)
+                        .clickable(enabled = checkEnabled, role = Role.Button, onClick = {
+                            when {
+                                step == SetupStepId.REVIEW_ACTIVATE -> scope.launch {
                                     if (viewModel.commit() != null && !navigatedAfterCommit) {
                                         navigatedAfterCommit = true
                                         onDone()
                                     }
                                 }
-                            } else {
-                                viewModel.submitCurrentStep(step)
+                                renderedStep == SetupStepId.NAME -> viewModel.submitAliasAgePair()
+                                renderedStep == SetupStepId.HEIGHT -> viewModel.submitAnthropometryPair()
+                                else -> viewModel.submitCurrentStep(step)
                             }
-                        },
-                )
+                        })
+                        .testTag("setup-continue")
+                        .semantics { contentDescription = if (step == SetupStepId.REVIEW_ACTIVATE) "Activar y entrar a KPKN" else "Continuar" },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        Icons.Filled.Check,
+                        contentDescription = null,
+                        tint = if (checkEnabled) WizardColors.ctaContent else WizardColors.ctaDisabledContent,
+                    )
+                }
                 // El aviso flota sobre el paso: no empuja la cabecera, la pregunta
                 // ni el botón. Sigue siendo descartable y reintenta la misma operación.
                 // H6: lo que el paso ya pinta por sí mismo (la lista de planes y el preview) no se repite aquí.
@@ -289,38 +420,7 @@ private fun SetupWizardExitDialogs(
 ) {
     val scope = rememberCoroutineScope()
     when (state.dialog) {
-        SetupWizardDialog.EXIT -> AlertDialog(
-            onDismissRequest = { viewModel.keepConfiguring() },
-            title = { Text("¿Quieres salir?", style = WizardTypography.cardTitle, color = WizardColors.text) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        "Puedes guardar tus respuestas y continuar más tarde. Nada se activa todavía.",
-                        style = WizardTypography.bodySmall,
-                        color = WizardColors.textMuted,
-                    )
-                    // Tercera acción: sólo ABRE el diálogo DISCARD existente.
-                    // Descartar sigue exigiendo su confirmación y la navegación
-                    // sólo ocurre si el borrado se persistió (confirmDiscard).
-                    TextButton(onClick = { viewModel.requestDiscard() }) {
-                        Text("Descartar borrador", color = WizardColors.danger)
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    enabled = !state.isSavingAndExiting,
-                    onClick = {
-                        scope.launch {
-                            if (viewModel.saveAndExit()) onLeftWizard()
-                        }
-                    },
-                ) { Text(if (state.isSavingAndExiting) "Guardando…" else "Guardar y salir") }
-            },
-            dismissButton = {
-                TextButton(onClick = { viewModel.keepConfiguring() }) { Text("Seguir configurando") }
-            },
-        )
+        SetupWizardDialog.EXIT -> Unit
 
         SetupWizardDialog.DISCARD -> AlertDialog(
             onDismissRequest = { viewModel.keepConfiguring() },

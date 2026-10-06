@@ -172,8 +172,10 @@ private fun BasicsSummary(
     val draft = state.draft
     val equationSex = draft.selectedValues(SetupStepId.EQUATION_SEX).firstOrNull()?.let { value ->
         when (value) {
-            "female" -> "Femenino"
-            "male" -> "Masculino"
+            "female" -> "Mujer"
+            "male" -> "Hombre"
+            "trans_male" -> "Hombre trans"
+            "trans_female" -> "Mujer trans"
             "unknown" -> "No lo sé"
             else -> value
         }
@@ -183,7 +185,7 @@ private fun BasicsSummary(
         null -> null
     }
     val bodyFat = bodyFatReviewValue(draft)
-    SetupDataLine(label = "Nombre", value = draft.name.ifBlank { null }, onEdit = edit(SetupStepId.NAME))
+    SetupDataLine(label = "Alias", value = draft.name.ifBlank { null }, onEdit = edit(SetupStepId.NAME))
     SetupDataLine(label = "Edad", value = draft.ageYears?.let { "$it años" }, onEdit = edit(SetupStepId.AGE))
     SetupDataLine(label = "Altura", value = draft.heightCm?.let { "${it.toInt()} cm" }, onEdit = edit(SetupStepId.HEIGHT))
     SetupDataLine(
@@ -191,7 +193,7 @@ private fun BasicsSummary(
         value = draft.weightKg?.let { WizardWeightScale.formatWithUnit(it, WizardMassUnit.KG) },
         onEdit = edit(SetupStepId.WEIGHT),
     )
-    SetupDataLine(label = "Sexo de cálculo", value = equationSex, onEdit = edit(SetupStepId.EQUATION_SEX))
+    SetupDataLine(label = "Género", value = equationSex, onEdit = edit(SetupStepId.EQUATION_SEX))
     SetupDataLine(label = "Grasa corporal", value = bodyFat, onEdit = edit(SetupStepId.BODY_FAT))
 }
 

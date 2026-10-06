@@ -211,9 +211,21 @@ fun CreateProgramTemplateSheet(
             Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text("Planes", fontWeight = FontWeight.Black, fontSize = 20.sp, color = Color.White)
+            Text("Nuevo programa", fontWeight = FontWeight.Black, fontSize = 20.sp, color = Color.White)
+            onCreateBlank?.let { create ->
+                KpknSheetWhiteButton(
+                    text = "Crear desde cero",
+                    onClick = create,
+                    modifier = Modifier.testTag("create-blank-program"),
+                )
+                Text(
+                    "Programa vacío. Le pones el nombre y las sesiones ahí mismo, sin plantilla.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.White.copy(alpha = 0.7f),
+                )
+            }
             Text(
-                "Elige un plan para ver cómo funciona. Antes de activarlo confirmamos tu material, tus días y tu tiempo.",
+                "O elige un plan. Antes de activarlo confirmamos tu material, tus días y tu tiempo.",
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.White.copy(alpha = 0.7f),
             )
@@ -262,6 +274,23 @@ fun CreateProgramTemplateSheet(
                 if (visible.isEmpty()) {
                     Text("No hay planes con esos filtros.", color = Color.White.copy(alpha = 0.72f))
                 }
+                onCreateBlank?.let { create ->
+                    Surface(
+                        onClick = create,
+                        modifier = Modifier.fillMaxWidth().testTag("create-blank-program-card"),
+                        shape = RoundedCornerShape(16.dp),
+                        color = KpknSheetTokens.ControlFill,
+                    ) {
+                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text("Desde cero", fontWeight = FontWeight.Black, color = KpknSheetTokens.ControlLabel)
+                            Text(
+                                "Programa vacío. Lo armas tú.",
+                                color = KpknSheetTokens.ControlLabel.copy(alpha = 0.72f),
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                        }
+                    }
+                }
                 visible.forEach { entry ->
                     LibraryCard(
                         entry = entry,
@@ -274,7 +303,6 @@ fun CreateProgramTemplateSheet(
                     )
                 }
             }
-            onCreateBlank?.let { create -> KpknSheetWhiteButton(text = "Crear desde cero", onClick = create) }
             TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) { Text("Cerrar", color = Color.White) }
         }
     }

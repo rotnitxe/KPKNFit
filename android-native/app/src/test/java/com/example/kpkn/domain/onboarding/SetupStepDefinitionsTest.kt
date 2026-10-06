@@ -68,7 +68,7 @@ class SetupStepDefinitionsTest {
             if (definition.legacyOnly) continue
             val isLabeledScreen = definition.kind != SetupStepKind.QUESTION ||
                 definition.control == SetupControlKind.RESULT_PREVIEW
-            if (isLabeledScreen) continue
+            if (isLabeledScreen || definition.id == SetupStepId.NAME) continue
             assertTrue(
                 "${definition.id} should be a natural question, got «${definition.title}»",
                 definition.title.startsWith("¿") && definition.title.endsWith("?"),
@@ -81,7 +81,7 @@ class SetupStepDefinitionsTest {
         assertEquals("Revisión del plan", SetupStepDefinitions.title(SetupStepId.TRAINING_REVIEW))
         assertEquals("Revisión y activación", SetupStepDefinitions.title(SetupStepId.REVIEW_ACTIVATE))
         // Preguntas grandes de referencia para el bloque de datos básicos.
-        assertEquals("¿Cómo te llamas?", SetupStepDefinitions.title(SetupStepId.NAME))
+        assertEquals("Pon tu alias", SetupStepDefinitions.title(SetupStepId.NAME))
         assertEquals("¿Cuál es tu altura?", SetupStepDefinitions.title(SetupStepId.HEIGHT))
         assertEquals("¿Cuál es tu peso?", SetupStepDefinitions.title(SetupStepId.WEIGHT))
     }

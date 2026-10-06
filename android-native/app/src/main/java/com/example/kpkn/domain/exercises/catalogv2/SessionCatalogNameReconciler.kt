@@ -67,7 +67,8 @@ object SessionCatalogNameReconciler {
      * B.S6 (D2): las recetas publicadas ya no emiten `técnica + configuración base` para el agarre cerrado, la pausa en sentadilla, el
      * peso muerto hasta la rodilla ni el jalón cerrado (usan las configuraciones propias M1 a M5), así que este remap no se amplía a
      * ellas. Los programas ya guardados con la receta anterior conservan su `técnica + base`, que sigue siendo válida. RETIRAR este
-     * remap cuando no queden programas guardados con esas recetas (DEC-w3-07).
+     * remap cuando no queden programas guardados con esas recetas: lo decide la política de migración de los programas ya activados
+     * (pendiente, B.S6 parte 2c). No es parte de DEC-w3-07, que retira la propuesta de AUGE «pasar el T1 a variante técnica».
      */
     private fun remapLegacyCatalogConfiguration(exercise: Exercise): Exercise {
         if (exercise.isCompetitionLift) return exercise

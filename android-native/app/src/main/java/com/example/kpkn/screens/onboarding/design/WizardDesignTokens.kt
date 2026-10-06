@@ -60,8 +60,8 @@ object WizardFonts {
  * dentro de la puerta de aprobación visual.
  */
 object WizardColors {
-    /** Fondo antracita sólido, neutro (sin azul y sin degradados). */
-    val background = Color(0xFF1F1F1F)
+    /** Fondo negro pleno del wizard y de la bienvenida. */
+    val background = Color(0xFF000000)
     val text = Color(0xFFFBFBFB)
     val textMuted = Color(0xFFD5D5D5)
     val textFaint = Color(0xFF8C8C8C)

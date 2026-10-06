@@ -1111,9 +1111,6 @@ private fun KPKNNavGraph(
                         launchSingleTop = true
                     }
                 },
-                onOpenVisualGate = {
-                    navController.navigate(KpknRoute.SetupVisualGate.route)
-                },
             )
         }
         composable(KpknRoute.Home.route) { homeBackStack ->

@@ -367,7 +367,7 @@ class SetupWizardFullJourneyUiTest {
         // (NutritionIneligibility.UNDER_19), sexo de cálculo y los vitales.
         val ageText = if (flavor == NutritionFlavor.AUTOMATIC) AGE_AUTO else AGE_OTHER
         val weightKg = if (flavor == NutritionFlavor.AUTOMATIC) WEIGHT_AUTO else WEIGHT_OTHER
-        val equationSexLabel = if (flavor == NutritionFlavor.AUTOMATIC) "Masculino" else "No lo sé"
+        val equationSexLabel = if (flavor == NutritionFlavor.AUTOMATIC) "Hombre" else "No lo sé"
 
         val draftId = "setup-qa-${UUID.randomUUID()}"
         draftIds += draftId
@@ -443,11 +443,10 @@ class SetupWizardFullJourneyUiTest {
     // ─── Bloque 1: Datos básicos ─────────────────────────────────────────────
 
     private fun walkBasics(ageText: String, weightKg: Int, equationSexLabel: String) {
-        answerAndContinue(SetupStepId.NAME, SetupStepId.AGE) {
+        answerAndContinue(SetupStepId.NAME, SetupStepId.HEIGHT) {
             typeInto(SetupStepId.NAME, NAME_FIELD_LABEL to TEST_NAME)
-        }
-        answerAndContinue(SetupStepId.AGE, SetupStepId.HEIGHT) {
-            typeInto(SetupStepId.AGE, ageFieldLabel() to ageText)
+            vm.setAge(ageText.toInt())
+            composeRule.waitUntil(STEP_TIMEOUT_MS) { vm.state.value.draft.ageYears == ageText.toInt() }
         }
         // Altura y peso: el PRODUCTO elige el layout según el hueco real de la
         // viewport y la escala de fuente (`currentAnthropometryLayout` →

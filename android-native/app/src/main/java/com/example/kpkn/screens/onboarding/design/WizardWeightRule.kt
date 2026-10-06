@@ -304,12 +304,5 @@ fun WizardWeightRule(
         // Sin fila «−0,1/+0,1» visible (no está en las referencias): el
         // incremento sigue disponible por arrastre y por las acciones
         // semánticas «Disminuir/Aumentar 0,1» del propio control.
-        if (!touched && valueKg == null) {
-            Text(
-                text = "Desliza la regla para declarar tu peso. La posición inicial no es una respuesta.",
-                style = WizardTypography.caption,
-                color = WizardColors.textFaint,
-            )
-        }
     }
 }

@@ -668,7 +668,9 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 if (_state.value.draft.stepProgress.currentStepId != expectedStep) return@withLock
                 // Navegación manual: se retira la intención de volver a la
                 // revisión en el BORRADOR persistido (nunca en memoria volátil).
-                persistAndPublish(_state.value.draft.copy(reviewReturnStep = null).goBack())
+                val stepped = _state.value.draft.copy(reviewReturnStep = null).goBack()
+                val landed = if (stepped.stepProgress.currentStepId == SetupStepId.AGE) stepped.goBack() else stepped
+                persistAndPublish(landed)
             } } finally { navigationInFlight = false }
         }
         return true
@@ -729,10 +731,22 @@ class SetupWizardViewModel @JvmOverloads constructor(
     }
 
     /**
-     * Confirma altura y peso en un solo avance cuando las dos reglas caben
-     * en la misma pantalla. El peso tiene que existir ya (el usuario lo movió
-     * o lo confirmó); si no, se confirma solo la altura.
+     * Alias y edad viven en la misma página. Confirma los dos de un avance
+     * cuando la edad ya se movió. Si el cursor está en la edad, confirma solo esa.
      */
+    fun submitAliasAgePair(): SetupSubmitResult {
+        val draft = _state.value.draft
+        val cursor = draft.stepProgress.currentStepId
+        if (cursor == SetupStepId.AGE) return submitCurrentStep(SetupStepId.AGE)
+        if (cursor != SetupStepId.NAME || draft.ageYears == null) return submitCurrentStep(SetupStepId.NAME)
+        confirmPairedAge = true
+        val result = submitCurrentStep(SetupStepId.NAME)
+        if (!result.accepted) confirmPairedAge = false
+        return result
+    }
+
+    private var confirmPairedAge = false
+
     fun submitAnthropometryPair(): SetupSubmitResult {
         val draft = _state.value.draft
         if (draft.stepProgress.currentStepId != SetupStepId.HEIGHT || draft.weightKg == null) {
@@ -746,10 +760,18 @@ class SetupWizardViewModel @JvmOverloads constructor(
 
     private var confirmPairedWeight = false
 
+    /**
+     * Confirma altura y peso en un solo avance cuando las dos reglas caben
+     * en la misma pantalla. El peso tiene que existir ya (el usuario lo movió
+     * o lo confirmó); si no, se confirma solo la altura.
+     */
+
     /** Runs fully under the command mutex: re-validates, records, advances, persists. */
     private suspend fun submitCurrentStepLocked(snapshot: SetupWizardDraft, expectedStep: SetupStepId, expectedRevision: Int?) {
         val pairWeight = confirmPairedWeight && expectedStep == SetupStepId.HEIGHT
         confirmPairedWeight = false
+        val pairAge = confirmPairedAge && expectedStep == SetupStepId.NAME
+        confirmPairedAge = false
         val current = _state.value
         if (!initialized || current.isCommitting || current.machineState == WizChatMachineState.Committed) {
             Log.w(DIAG_TAG, "submitLocked $expectedStep → DROP initialized=$initialized committing=${current.isCommitting} machine=${current.machineState}")
@@ -788,8 +810,23 @@ class SetupWizardViewModel @JvmOverloads constructor(
             stepping.weightKg != null &&
             SetupWizardValidation.validateStep(stepping, SetupStepId.WEIGHT).none { it.isBlocking }
         if (paired) stepping = stepping.confirmCurrentStep(SetupStepId.WEIGHT)
+        val pairedAge = pairAge &&
+            stepping.stepProgress.currentStepId == SetupStepId.AGE &&
+            stepping.ageYears != null &&
+            SetupWizardValidation.validateStep(stepping, SetupStepId.AGE).none { it.isBlocking }
+        if (pairedAge) stepping = stepping.confirmCurrentStep(SetupStepId.AGE)
+        val genderAlreadyChosen = !stepping.stepSelections[SetupStepId.EQUATION_SEX].isNullOrEmpty()
+        val skippedGender = stepping.stepProgress.currentStepId == SetupStepId.EQUATION_SEX && genderAlreadyChosen &&
+            SetupWizardValidation.validateStep(stepping, SetupStepId.EQUATION_SEX).none { it.isBlocking }
+        if (skippedGender) stepping = stepping.confirmCurrentStep(SetupStepId.EQUATION_SEX)
+        val confirmedStep = when {
+            skippedGender -> SetupStepId.EQUATION_SEX
+            paired -> SetupStepId.WEIGHT
+            pairedAge -> SetupStepId.AGE
+            else -> expectedStep
+        }
         val confirmed = SetupDraftCompatibility.normalizeLegacyRouteAtPlan(
-            resumeReviewAfterEdit(stepping, if (paired) SetupStepId.WEIGHT else expectedStep),
+            resumeReviewAfterEdit(stepping, confirmedStep),
         ).withNextDraftRevision(previous)
         val previousCandidateKey = candidateSetKey(previous)
         _state.value = _state.value.copy(machineState = WizChatMachineState.PersistingAnswer, errors = emptyMap(), isSubmittingAnswer = true)
@@ -887,6 +924,34 @@ class SetupWizardViewModel @JvmOverloads constructor(
      * until [confirmDiscard] runs.
      */
     fun clear() = requestDiscard()
+
+    /**
+     * Salir no abre ningún cuadro. Lo respondido ya está persistido en cada
+     * cambio; esto solo empuja una revisión final y marca la salida.
+     */
+    suspend fun leaveImmediately(): Boolean = commandMutex.withLock {
+        if (!initialized || _state.value.isCommitting) return@withLock false
+        val previous = _state.value.draft
+        val toSave = previous.withNextDraftRevision(previous)
+        val previousState = _state.value.machineState
+        _state.value = _state.value.copy(isSavingAndExiting = true, dialog = SetupWizardDialog.NONE, errors = emptyMap())
+        val saved = withContext(NonCancellable) { persistDraft(toSave) }
+        _state.value = if (saved) {
+            _state.value.copy(
+                draft = toSave,
+                machineState = previousState,
+                isSavingAndExiting = false,
+                exitCompleted = true,
+                dialog = SetupWizardDialog.NONE,
+                dirty = false,
+                errors = emptyMap(),
+                lastFailure = null,
+            )
+        } else {
+            _state.value.copy(isSavingAndExiting = false, machineState = previousState, dialog = SetupWizardDialog.NONE)
+        }
+        saved
+    }
 
     /** Exit intention: opens the "Guardar y salir / Seguir configurando" dialog. */
     fun requestExit() {

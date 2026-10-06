@@ -298,7 +298,7 @@ class WizardGateComponentsUiTest {
         composeRule.onNode(
             hasTestTag("setup-continue") and SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Button),
         ).assertExists()
-        composeRule.onNodeWithText("Continuar").assertExists()
+        composeRule.onNodeWithContentDescription("Continuar").assertExists()
     }
 
     @Test

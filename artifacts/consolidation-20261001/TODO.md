@@ -19,7 +19,7 @@ Leyenda: ✅ hecho y verificado · ⚠️ limitación/decisión · ⬜ abierto (
 | Pruebas de calentamiento (antes omitidas) | ✅ 3/3 ejecutadas y verdes |
 | Cierre del plan de asesoramiento (tandas 1–4) | ✅ salvo lo manual (§3) |
 | APK release en el escritorio | ✅ `KPKN Beta 15 base release v2.apk` (versionCode 34, firma debug, R8 + regla ML Kit) |
-| Commit del estado consolidado | ⬜ bloqueado por permisos (§3) |
+| Commit del estado consolidado | ✅ hecho (4 commits en la rama local, sin push) |
 
 ---
 
@@ -66,7 +66,7 @@ Notas por paquete: `closeout/notes/*.md` · registro: `closeout/PROGRESS.md`.
 
 ## 3. Abierto
 
-1. ⬜ **Commit** (dueño): la rama local tiene 1 commit (`hs_err_pid62254.log` desrastreado). El resto del estado (~490 archivos: producto, catálogo de otro agente, herramientas, iOS) quedó **sin commit** porque el sistema de permisos bloqueó el `git add/commit` («Git Destructive»). Hay respaldo de fuentes en `snapshot-pre-closeout/`. Para cerrarlo: que lo ejecutes tú o me digas explícitamente «commitea el estado consolidado» (incluye `RepairBenchmarkTrace.kt`, sin rastrear y que `MainActivity` importa; excluir APK y `artifacts/` pesados).
+1. ✅ **Commit** hecho el 2026-10-03 con tu autorización, en la rama local `consolidation/2026-10-02-wizard-session-repair` (HEAD `5c281a02c`, sin push): tooling/guías, iOS, backend y el estado consolidado (465 archivos). NO incluye lo que otras sesiones editan en paralelo (nutrición/alimentos: `FoodImporter`, `NutritionScreen`, `build.gradle.kts`, `.gitignore`, `docs/audits`…); en `NutritionRepository.kt`, `NutritionViewModelTest.kt` y `MainActivity.kt` solo entraron mis hunks. Tampoco los APK, `device-evidence/`, `logs/`, `snapshot-*` ni los `.db` de fixtures. El push sigue sin hacerse.
 2. ⬜ **iOS** (dueño, 20–40 min): correr las 15 pruebas XCTest en el iMac siguiendo `closeout/IOS_RUN_GUIDE.md`.
 3. ⬜ **Teléfono real** (dueño, 20–30 min): medir el paso PLAN con el APK v2 (log `SetupPlanSweep`, frío y caliente, 3 y 5 días). Si el barrido en frío pasa de ~8–10 s: añadir «Evaluando plan N de M…» (45–60 min).
 4. ⬜ Baja prioridad: fecha de Nutrición mezcla inglés y español en el emulador (locale); el botón de registrar solapa un poco la rueda RIR en pantallas pequeñas; aviso rojo «La receta fija programa Domingo.» muy escueto; pasada 2 de singulares; WebP de ilustraciones.

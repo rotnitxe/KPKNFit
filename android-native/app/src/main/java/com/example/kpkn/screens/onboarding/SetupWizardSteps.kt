@@ -57,6 +57,17 @@ import com.example.kpkn.screens.onboarding.design.WizardTypography
  *   (`setup-continue`) lo publica el dueño del scaffold.
  */
 
+/**
+ * Pasos que se ven como páginas. Alias y edad comparten la página del alias,
+ * así que la edad no es una vista propia cuando el alias está en la ruta.
+ */
+internal fun wizardPresentationSteps(route: List<SetupStepId>): List<SetupStepId> {
+    var steps = route
+    if (SetupStepId.NAME in steps) steps = steps.filterNot { it == SetupStepId.AGE }
+    if (SetupStepId.HEIGHT in steps) steps = steps.filterNot { it == SetupStepId.WEIGHT }
+    return steps
+}
+
 /** Bloque del grafo → bloque visual del sistema de diseño. */
 fun SetupWizardBlock.toWizardBlock(): WizardBlock = when (this) {
     SetupWizardBlock.BASICS -> WizardBlock.BASICS
@@ -80,6 +91,8 @@ fun SetupStepScreen(
     ctaLabel: String = "Continuar",
     ctaEnabled: Boolean = true,
     onCta: () -> Unit,
+    showCta: Boolean = true,
+    embedded: Boolean = false,
 ) {
     val block = SetupStepGraph.blockOf(step)
     val route = SetupStepGraph.stepIds(state.draft.stepContext())
@@ -91,7 +104,7 @@ fun SetupStepScreen(
     // y el control se centra en el espacio restante real de la viewport. El
     // resto de pasos conserva el layout clásico con scroll (API opcional,
     // por defecto sin cambios).
-    val centerControl = step == SetupStepId.HEIGHT || step == SetupStepId.WEIGHT
+    val centerControl = step == SetupStepId.WEIGHT
     var anthropometryForCta by remember(step) { mutableStateOf(WizardAnthropometryLayout.Pending) }
     var stepHeader: (@Composable () -> Unit)? = null
     if (centerControl) {
@@ -103,7 +116,7 @@ fun SetupStepScreen(
             }
             SideEffect { anthropometryForCta = layout }
             if (layout == WizardAnthropometryLayout.Combined) {
-                CombinedMeasureQuestion()
+                Unit
             } else {
                 StepQuestion(step = step, definition = SetupStepDefinitions.of(step))
                 if (layout != WizardAnthropometryLayout.Pending) {
@@ -114,9 +127,17 @@ fun SetupStepScreen(
     }
     val combinedCta = step == SetupStepId.HEIGHT &&
         anthropometryForCta == WizardAnthropometryLayout.Combined
-    val ctaReady = ctaEnabled &&
+    val aliasPage = step == SetupStepId.NAME
+    val ageYears = state.draft.ageYears
+    val aliasReady = !aliasPage || (
+        state.draft.name.isNotBlank() && ageYears != null && ageYears in 13..100
+        )
+    val ctaReady = ctaEnabled && aliasReady &&
         (step != SetupStepId.HEIGHT || anthropometryForCta != WizardAnthropometryLayout.Pending) &&
         (!combinedCta || state.draft.weightKg != null)
+    val presentation = wizardPresentationSteps(route)
+    val here = presentation.indexOf(step)
+    val nextTitle = presentation.getOrNull(here + 1)?.let { SetupStepDefinitions.of(it)?.title }
 
     Box(
         modifier = Modifier
@@ -125,14 +146,25 @@ fun SetupStepScreen(
     ) {
         WizardScaffold(
             block = block.toWizardBlock(),
-            title = block.headerTitle(),
+            title = when {
+                step == SetupStepId.HEIGHT -> "¿Cuánto mides y pesas?"
+                else -> SetupStepDefinitions.of(step)?.title ?: block.headerTitle()
+            },
             progress = progress,
             onBack = onBack,
             onExit = onExit,
             ctaLabel = ctaLabel,
             ctaEnabled = ctaReady,
+            showCta = showCta,
+            showHeader = showCta && !embedded,
+            embedded = embedded,
+            nextPeekTitle = if (embedded) null else nextTitle,
             onCta = {
-                if (combinedCta) vm.submitAnthropometryPair() else onCta()
+                when {
+                    combinedCta -> vm.submitAnthropometryPair()
+                    aliasPage -> vm.submitAliasAgePair()
+                    else -> onCta()
+                }
             },
             centerControl = centerControl,
             header = stepHeader,
@@ -141,8 +173,15 @@ fun SetupStepScreen(
                 MilestoneContent(step = step, state = state)
                 return@WizardScaffold
             }
-            if (!centerControl) {
-                StepQuestion(step = step, definition = SetupStepDefinitions.of(step))
+            if (!centerControl && step != SetupStepId.NAME) {
+                val subtitle = if (step == SetupStepId.BODY_FAT) BODY_FAT_SUBTITLE else SetupStepDefinitions.of(step)?.subtitle
+                if (subtitle != null) {
+                    Text(
+                        text = subtitle,
+                        style = WizardTypography.bodySmall,
+                        color = WizardColors.textMuted,
+                    )
+                }
             }
             Column(
                 modifier = Modifier
@@ -165,12 +204,6 @@ private fun CombinedMeasureQuestion() {
         style = WizardTypography.question,
         color = WizardColors.text,
         modifier = Modifier.semantics { heading() },
-    )
-    Text(
-        text = "Desliza cada regla. La posición inicial no es una respuesta.",
-        style = WizardTypography.bodySmall,
-        color = WizardColors.textMuted,
-        modifier = Modifier.padding(top = 8.dp),
     )
 }
 

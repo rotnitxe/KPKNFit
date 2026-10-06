@@ -7,12 +7,34 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.input.OffsetMapping
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -20,13 +42,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.kpkn.domain.nutrition.EerSex
 import com.example.kpkn.domain.nutrition.bodyFatForSliderPos
 import com.example.kpkn.domain.onboarding.SetupControlKind
@@ -79,13 +106,8 @@ fun SetupBasicsStepContent(
 ) {
     val definition = SetupStepDefinitions.of(step) ?: return
     when (step) {
-        SetupStepId.NAME -> SetupNameField(step = step, state = state, vm = vm, definition = definition)
-        SetupStepId.AGE -> SetupAgeField(step = step, state = state, vm = vm, definition = definition)
-        SetupStepId.HEIGHT -> when (currentAnthropometryLayout()) {
-            WizardAnthropometryLayout.Combined -> SetupAnthropometryPair(state = state, vm = vm)
-            WizardAnthropometryLayout.Separate -> SetupHeightControl(step = step, state = state, vm = vm)
-            WizardAnthropometryLayout.Pending -> Unit
-        }
+        SetupStepId.NAME, SetupStepId.AGE -> SetupAliasAndAge(state = state, vm = vm)
+        SetupStepId.HEIGHT -> SetupAnthropometryPair(state = state, vm = vm)
         SetupStepId.WEIGHT -> SetupWeightControl(step = step, state = state, vm = vm)
         SetupStepId.EQUATION_SEX -> SetupEquationSexControl(step = step, state = state, vm = vm, definition = definition)
         SetupStepId.BODY_FAT -> SetupBodyFatControl(step = step, state = state, vm = vm, definition = definition)
@@ -98,47 +120,359 @@ fun SetupBasicsStepContent(
 // ─── Nombre y edad ───────────────────────────────────────────────────────────
 
 @Composable
-private fun SetupNameField(
-    step: SetupStepId,
+private fun SetupAliasAndAge(
     state: SetupWizardState,
     vm: SetupWizardViewModel,
-    definition: SetupStepDefinition,
 ) {
-    var text by rememberSaveable(state.draft.draftId, state.draft.commitId, step) {
-        mutableStateOf(state.draft.inputTexts[step.name] ?: state.draft.name)
+    var text by rememberSaveable(state.draft.draftId, state.draft.commitId) {
+        mutableStateOf(state.draft.inputTexts[SetupStepId.NAME.name] ?: state.draft.name)
     }
-    SetupFormTextField(
+    val fontSize = (32f - text.length * 0.35f).coerceIn(20f, 28f).sp
+    Column(
+        Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(28.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+    NumberedPrompt("1. Alias", "¿Cómo quieres que te llamemos?")
+    BasicTextField(
         value = text,
-        onValueChange = { raw -> text = raw; vm.setStepText(step, raw) },
-        label = "Nombre",
-        testTag = "setup-name",
+        onValueChange = { raw ->
+            val next = raw.take(32)
+            text = next
+            vm.setStepText(SetupStepId.NAME, next)
+        },
+        textStyle = WizardTypography.question.copy(
+            color = WizardColors.text,
+            fontSize = fontSize,
+            textAlign = TextAlign.Center,
+            fontWeight = FontWeight.SemiBold,
+        ),
+        cursorBrush = SolidColor(WizardColors.text),
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("setup-name"),
+        decorationBox = { inner ->
+            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                if (text.isEmpty()) {
+                    Text(
+                        text = "Pon tu alias",
+                        color = WizardColors.textFaint,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+                inner()
+            }
+        },
     )
-    if (definition.allowSkip) SetupFormSkipAction(onSkip = { vm.skipStep(step) })
+    NumberedPrompt("2. Fecha de nacimiento", null)
+    BirthDateField(state = state, vm = vm)
+    GenderPrompt()
+    GenderSymbolRow(
+        selected = state.draft.selectedValues(SetupStepId.EQUATION_SEX).firstOrNull(),
+        onSelect = { value -> vm.setStepChoice(SetupStepId.EQUATION_SEX, value) },
+    )
+    }
 }
 
-/** Edad con tecleo crudo: el intermedio se conserva en el campo Y en `inputTexts`. */
+private const val GENDER_SUBTITLE =
+    "Conocer tu género nos permitirá calcular el gasto energético que te corresponde. Esto es muy importante para calcular tus calorías recomendadas para tu plan de nutrición. Si no tienes una opción que te identifique, elige la que más se apegue a tu contexto hormonal."
+
+private enum class GenderMark { FEMALE, MALE, TRANS_MALE, TRANS_FEMALE }
+
+private data class GenderChoice(val value: String, val label: String, val mark: GenderMark)
+
+private val genderChoices = listOf(
+    GenderChoice("female", "Mujer", GenderMark.FEMALE),
+    GenderChoice("male", "Hombre", GenderMark.MALE),
+    GenderChoice("trans_male", "Hombre trans", GenderMark.TRANS_MALE),
+    GenderChoice("trans_female", "Mujer trans", GenderMark.TRANS_FEMALE),
+)
+
 @Composable
-private fun SetupAgeField(
-    step: SetupStepId,
-    state: SetupWizardState,
-    vm: SetupWizardViewModel,
-    definition: SetupStepDefinition,
-) {
-    var raw by rememberSaveable(state.draft.draftId, state.draft.commitId, step) {
-        mutableStateOf(state.draft.inputTexts[step.name] ?: state.draft.ageYears?.toString().orEmpty())
+private fun NumberedPrompt(indexLabel: String, caption: String?) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+        Text(indexLabel, color = WizardColors.text, fontSize = 16.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+        if (caption != null) {
+            Text(
+                caption,
+                color = WizardColors.textMuted,
+                fontSize = 14.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+        }
     }
-    SetupFormTextField(
-        value = raw,
-        onValueChange = { input ->
-            val digits = input.filter { it.isDigit() }.take(3)
-            raw = digits
-            vm.setStepText(step, digits)
-            vm.setStepNumber(step, digits.toIntOrNull()?.toDouble())
+}
+
+@Composable
+private fun GenderPrompt() {
+    var info by remember { mutableStateOf(false) }
+    Row(
+        Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text("3. Género", color = WizardColors.text, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.width(8.dp))
+        Text("Elige tu género", color = WizardColors.textMuted, fontSize = 14.sp)
+        Text(
+            "(i)",
+            color = WizardColors.text,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .padding(start = 6.dp)
+                .clickable { info = true },
+        )
+    }
+    if (info) {
+        androidx.compose.ui.window.Popup(onDismissRequest = { info = false }) {
+            Text(
+                GENDER_SUBTITLE,
+                color = WizardColors.text,
+                style = WizardTypography.bodySmall,
+                modifier = Modifier
+                    .padding(24.dp)
+                    .width(280.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color(0xFF1A1A1A))
+                    .padding(16.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun BirthDateField(state: SetupWizardState, vm: SetupWizardViewModel) {
+    var digits by rememberSaveable(state.draft.draftId) {
+        mutableStateOf(state.draft.inputTexts["birthDate"].orEmpty().filter(Char::isDigit).take(8))
+    }
+    val age = ageYearsFromBirthDigits(digits)
+    BasicTextField(
+        value = digits,
+        onValueChange = { raw ->
+            val next = raw.filter(Char::isDigit).take(8)
+            digits = next
+            val years = ageYearsFromBirthDigits(next)
+            vm.updateStep(SetupStepId.AGE) { draft ->
+                draft.copy(
+                    inputTexts = draft.inputTexts + ("birthDate" to next),
+                    ageYears = years,
+                )
+            }
         },
-        label = definition.unit?.let { "Edad ($it)" } ?: "Edad",
-        keyboardType = KeyboardType.Number,
+        visualTransformation = BirthDateVisualTransformation,
+        textStyle = WizardTypography.question.copy(
+            color = WizardColors.text,
+            fontSize = 36.sp,
+            textAlign = TextAlign.Center,
+            fontWeight = FontWeight.SemiBold,
+        ),
+        cursorBrush = SolidColor(WizardColors.text),
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        modifier = Modifier.fillMaxWidth().testTag("setup-birth-date"),
+        decorationBox = { inner ->
+            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                if (digits.isEmpty()) {
+                    Text(
+                        "DD/MM/AAAA",
+                        color = WizardColors.textFaint,
+                        fontSize = 36.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+                inner()
+            }
+        },
     )
-    SetupFormCaption("Entre 13 y 100 años.")
+    if (age != null) {
+        Text(
+            text = "Tienes $age años",
+            color = WizardColors.text,
+            fontSize = 16.sp,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+        )
+    }
+}
+
+@Composable
+internal fun GenderSymbolRow(selected: String?, onSelect: (String) -> Unit) {
+    Row(
+        Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
+        verticalAlignment = Alignment.Top,
+    ) {
+        genderChoices.forEach { choice ->
+            val active = choice.value == selected
+            Column(
+                Modifier
+                    .width(76.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .clickable { onSelect(choice.value) }
+                    .padding(vertical = 4.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(
+                    choice.label,
+                    color = WizardColors.textMuted,
+                    fontSize = 11.sp,
+                    textAlign = TextAlign.Center,
+                    maxLines = 2,
+                    lineHeight = 13.sp,
+                )
+                GenderMarkIcon(choice.mark, active, Modifier.padding(top = 2.dp).size(54.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun GenderMarkIcon(mark: GenderMark, active: Boolean, modifier: Modifier = Modifier) {
+    val color = when (mark) {
+        GenderMark.FEMALE -> if (active) WizardColors.text else WizardColors.textFaint
+        GenderMark.MALE -> if (active) WizardColors.text else WizardColors.textFaint
+        GenderMark.TRANS_MALE -> Color(0xFF3D8BFF)
+        GenderMark.TRANS_FEMALE -> Color(0xFFFF6BA8)
+    }
+    when (mark) {
+        GenderMark.FEMALE -> Text("♀", color = color, fontSize = 46.sp, fontWeight = FontWeight.Bold, modifier = modifier, textAlign = TextAlign.Center)
+        GenderMark.MALE -> Text("♂", color = color, fontSize = 46.sp, fontWeight = FontWeight.Bold, modifier = modifier, textAlign = TextAlign.Center)
+        GenderMark.TRANS_MALE, GenderMark.TRANS_FEMALE -> TransGlyph(color, modifier)
+    }
+}
+
+@Composable
+private fun TransGlyph(color: Color, modifier: Modifier = Modifier) {
+    Canvas(modifier) {
+        val s = size.minDimension
+        val stroke = s * 0.085f
+        val center = Offset(s * 0.50f, s * 0.46f)
+        val radius = s * 0.20f
+        drawCircle(color = color, radius = radius, center = center, style = Stroke(stroke, cap = StrokeCap.Square))
+        val stemTop = center.y + radius
+        val stemBottom = s * 0.92f
+        drawLine(color, Offset(center.x, stemTop), Offset(center.x, stemBottom), stroke, StrokeCap.Square)
+        val barY = stemTop + (stemBottom - stemTop) * 0.42f
+        drawLine(color, Offset(center.x - s * 0.13f, barY), Offset(center.x + s * 0.13f, barY), stroke, StrokeCap.Square)
+        fun arrow(angle: Float) {
+            val dir = Offset(kotlin.math.cos(angle), kotlin.math.sin(angle))
+            val start = center + dir * radius
+            val end = start + dir * (s * 0.28f)
+            drawLine(color, start, end, stroke, StrokeCap.Square)
+            val side = Offset(-dir.y, dir.x)
+            val head = s * 0.11f
+            drawLine(color, end, end - dir * head + side * head, stroke, StrokeCap.Square)
+            drawLine(color, end, end - dir * head - side * head, stroke, StrokeCap.Square)
+        }
+        arrow(-0.62f)
+        arrow(-2.52f)
+    }
+}
+
+@Composable
+private fun MeasureHeading(
+    title: String,
+    metricSelected: Boolean,
+    metric: String,
+    imperial: String,
+    onMetric: () -> Unit,
+    onImperial: () -> Unit,
+) {
+    Row(
+        Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(title, color = WizardColors.text, fontSize = 28.sp, fontWeight = FontWeight.Black)
+        Row(
+            Modifier.clip(RoundedCornerShape(999.dp)).background(Color.White.copy(alpha = 0.10f)).padding(3.dp),
+        ) {
+            UnitChip(metric, metricSelected, onMetric)
+            UnitChip(imperial, !metricSelected, onImperial)
+        }
+    }
+}
+
+@Composable
+private fun UnitChip(label: String, selected: Boolean, onClick: () -> Unit) {
+    Box(
+        Modifier
+            .clip(RoundedCornerShape(999.dp))
+            .background(if (selected) Color.White else Color.Transparent)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 10.dp, vertical = 4.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            label,
+            color = if (selected) Color.Black else WizardColors.text,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+        )
+    }
+}
+
+private object BirthDateVisualTransformation : VisualTransformation {
+    override fun filter(text: AnnotatedString): TransformedText {
+        val digits = text.text.filter(Char::isDigit).take(8)
+        val out = buildString {
+            digits.forEachIndexed { index, char ->
+                if (index == 2 || index == 4) append('/')
+                append(char)
+            }
+        }
+        val mapping = object : OffsetMapping {
+            override fun originalToTransformed(offset: Int): Int {
+                val extra = when {
+                    offset <= 2 -> 0
+                    offset <= 4 -> 1
+                    else -> 2
+                }
+                return (offset + extra).coerceAtMost(out.length)
+            }
+
+            override fun transformedToOriginal(offset: Int): Int {
+                val cut = when {
+                    offset <= 2 -> 0
+                    offset <= 5 -> 1
+                    else -> 2
+                }
+                return (offset - cut).coerceIn(0, digits.length)
+            }
+        }
+        return TransformedText(AnnotatedString(out), mapping)
+    }
+}
+
+private fun formatBirthDigits(digits: String): String = buildString {
+    digits.forEachIndexed { index, char ->
+        if (index == 2 || index == 4) append('/')
+        append(char)
+    }
+}
+
+private fun ageYearsFromBirthDigits(digits: String): Int? {
+    if (digits.length != 8) return null
+    val day = digits.substring(0, 2).toIntOrNull() ?: return null
+    val month = digits.substring(2, 4).toIntOrNull() ?: return null
+    val year = digits.substring(4, 8).toIntOrNull() ?: return null
+    val birth = runCatching { java.time.LocalDate.of(year, month, day) }.getOrNull() ?: return null
+    val today = java.time.LocalDate.now()
+    if (birth.isAfter(today)) return null
+    var age = today.year - birth.year
+    if (today.monthValue < birth.monthValue ||
+        (today.monthValue == birth.monthValue && today.dayOfMonth < birth.dayOfMonth)
+    ) {
+        age -= 1
+    }
+    return age.takeIf { it in 0..120 }
 }
 
 // ─── Altura y peso ───────────────────────────────────────────────────────────
@@ -172,14 +506,19 @@ private fun SetupHeightControl(
 @Composable
 private fun SetupAnthropometryPair(state: SetupWizardState, vm: SetupWizardViewModel) {
     Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 28.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text(text = "Altura", style = WizardTypography.cardSubtitle, color = WizardColors.textMuted)
-        WizardHeightUnitToggle(
-            selected = state.draft.heightUnit.toWizardHeightUnit(),
-            onSelected = { target ->
-                vm.updateStep(SetupStepId.HEIGHT) { draft -> draft.copy(heightUnit = target.wizardHeightCode) }
+        MeasureHeading(
+            title = "Altura",
+            metricSelected = state.draft.heightUnit.toWizardHeightUnit() == WizardHeightUnit.CM,
+            metric = "cm",
+            imperial = "ft",
+            onMetric = {
+                vm.updateStep(SetupStepId.HEIGHT) { draft -> draft.copy(heightUnit = WizardHeightUnit.CM.wizardHeightCode) }
+            },
+            onImperial = {
+                vm.updateStep(SetupStepId.HEIGHT) { draft -> draft.copy(heightUnit = WizardHeightUnit.FT_IN.wizardHeightCode) }
             },
         )
         WizardHeightRule(
@@ -187,10 +526,13 @@ private fun SetupAnthropometryPair(state: SetupWizardState, vm: SetupWizardViewM
             cm = state.draft.heightCm?.toInt(),
             onValueChange = { cm -> vm.setStepNumber(SetupStepId.HEIGHT, cm.toDouble()) },
         )
-        Text(text = "Peso", style = WizardTypography.cardSubtitle, color = WizardColors.textMuted)
-        WizardMassUnitToggle(
-            selected = if (state.draft.weightUnit == "lb") WizardMassUnit.LB else WizardMassUnit.KG,
-            onSelected = { target -> vm.setWeightUnit(target.code) },
+        MeasureHeading(
+            title = "Peso",
+            metricSelected = state.draft.weightUnit != "lb",
+            metric = "kg",
+            imperial = "lb",
+            onMetric = { vm.setWeightUnit("kg") },
+            onImperial = { vm.setWeightUnit("lb") },
         )
         WizardWeightRule(
             unit = if (state.draft.weightUnit == "lb") WizardMassUnit.LB else WizardMassUnit.KG,
@@ -270,12 +612,15 @@ private fun SetupEquationSexControl(
     } else {
         definition.options + SetupOptionDefinition(EQUATION_SEX_UNKNOWN, "No lo sé")
     }
-    SetupFormChoiceCards(
-        options = options,
-        isSelected = { it == selected },
-        onOptionClick = { value -> vm.setStepChoice(step, value) },
-    )
-    SetupFormCaption("Si traes tus propios números de nutrición, puedes dejarlo sin determinar.")
+    Text(GENDER_SUBTITLE, color = WizardColors.textMuted, style = WizardTypography.bodySmall)
+    GenderSymbolRow(selected = selected, onSelect = { value -> vm.setStepChoice(step, value) })
+    if (options.any { it.value == EQUATION_SEX_UNKNOWN }) {
+        SetupFormChoiceCards(
+            options = listOf(SetupOptionDefinition(EQUATION_SEX_UNKNOWN, "No lo sé")),
+            isSelected = { it == selected },
+            onOptionClick = { value -> vm.setStepChoice(step, value) },
+        )
+    }
 }
 
 private const val EQUATION_SEX_UNKNOWN = "unknown"

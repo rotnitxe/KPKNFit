@@ -249,8 +249,8 @@ private fun SetupWizardDraft.projectChoice(
     // sin determinar explícitamente y jamás toca `physiqueModel` ni el género.
     SetupStepId.EQUATION_SEX, SetupStepId.NUTRITION_SEX -> withNutrition {
         it.copy(equationSex = when (value) {
-            "female" -> EerSex.FEMALE
-            "male" -> EerSex.MALE
+            "female", "trans_female" -> EerSex.FEMALE
+            "male", "trans_male" -> EerSex.MALE
             else -> null
         })
     }

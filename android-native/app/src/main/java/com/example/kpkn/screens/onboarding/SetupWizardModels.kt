@@ -1097,7 +1097,7 @@ object SetupWizardValidation {
         }
         return when (step) {
             SetupStepId.NAME -> when {
-                draft.name.isBlank() && !draft.isAnswered(step) -> absent("name", "Escribe un nombre o usa omitir")
+                draft.name.isBlank() && !draft.isAnswered(step) -> absent("name", "Pon tu alias")
                 draft.name.length > 32 -> invalid("name", "Usa hasta 32 caracteres")
                 else -> ok("name")
             }

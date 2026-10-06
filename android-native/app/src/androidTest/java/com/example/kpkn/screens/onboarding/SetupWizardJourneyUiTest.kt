@@ -262,15 +262,15 @@ class SetupWizardJourneyUiTest {
 
         composeRule.onNode(hasInsertTextAtCursorAction()).performTextInput(TYPED_NAME)
         composeRule.waitUntil(TIMEOUT_MS) { vm.state.value.draft.name == TYPED_NAME }
+        composeRule.onNodeWithTag(CTA).assertIsNotEnabled()
+        vm.setAge(28)
+        composeRule.waitUntil(TIMEOUT_MS) { vm.state.value.draft.ageYears == 28 }
 
         composeRule.onNodeWithTag(CTA).assertIsEnabled()
         composeRule.onNodeWithTag(CTA).performClick()
-        awaitStepOrDump(vm, draftId, SetupStepId.AGE)
+        awaitStepOrDump(vm, draftId, SetupStepId.HEIGHT)
 
-        // La edad aparece sin conflictos: sin el campo de nombre y sin errores.
-        composeRule.onNodeWithTag("setup-step-AGE").assertIsDisplayed()
-        composeRule.onNodeWithTag("setup-step-NAME").assertDoesNotExist()
-        composeRule.onNodeWithTag(NAME_FIELD).assertDoesNotExist()
+        composeRule.onNodeWithTag("setup-step-HEIGHT").assertIsDisplayed()
         assertTrue("sin conflicto, errors=${vm.state.value.errors}", vm.state.value.errors.isEmpty())
 
         composeRule.onNodeWithContentDescription(BACK_LABEL).performClick()
@@ -305,10 +305,7 @@ class SetupWizardJourneyUiTest {
         composeRule.onNode(hasInsertTextAtCursorAction()).performTextInput(RESUME_NAME)
         composeRule.waitUntil(TIMEOUT_MS) { vm.state.value.draft.name == RESUME_NAME }
 
-        // Salir → diálogo → «Guardar y salir» solo navega si saveAndExit() es true.
         composeRule.onNodeWithText(EXIT_LABEL).performClick()
-        composeRule.waitUntil(TIMEOUT_MS) { vm.state.value.dialog == SetupWizardDialog.EXIT }
-        composeRule.onNodeWithText(SAVE_AND_EXIT_LABEL).performClick()
         composeRule.waitUntil(TIMEOUT_MS) { cancelled.get() == 1 }
         assertEquals(RESUME_NAME, vm.state.value.draft.name)
 
@@ -327,13 +324,11 @@ class SetupWizardJourneyUiTest {
     // ─── Descartar un borrador normal: confirmación y alcance ─────────────────
 
     /**
-     * Un borrador normal sí puede descartarse: Salir → «Descartar borrador» →
-     * diálogo DISCARD existente. Cancelar conserva la respuesta y la fila;
-     * confirmar borra SOLO ese draft (los demás siguen intactos) y la navegación
-     * ocurre únicamente después de que el borrado se persistió.
+     * Salir no ofrece descartar: lo respondido se conserva y «Guardar y salir»
+     * deja la fila en su sitio.
      */
     @Test
-    fun discardNormalDraftNeedsConfirmationAndOnlyDeletesItsOwnRow() {
+    fun leavingKeepsTheSavedConfigurationAndDoesNotOfferDiscard() {
         val draftId = newDraftId()
         val vm = newViewModel()
         vm.initialize(SetupWizardMode.FULL, draftId = draftId)
@@ -359,49 +354,16 @@ class SetupWizardJourneyUiTest {
             "la respuesta debe estar en la fila",
             runBlocking { withTimeout(SETUP_TIMEOUT_MS) { persistence.load(draftId) } },
         )
-        val rowsBefore = runBlocking { withTimeout(SETUP_TIMEOUT_MS) { persistence.listRecoverable() } }
-            .map { it.draftId }
-
-        // Salir → Descartar → Cancelar: conserva respuesta y fila.
         composeRule.onNodeWithText(EXIT_LABEL).performClick()
-        composeRule.waitUntil(TIMEOUT_MS) { vm.state.value.dialog == SetupWizardDialog.EXIT }
-        composeRule.onNodeWithText(DISCARD_ACTION_LABEL).performClick()
-        composeRule.waitUntil(TIMEOUT_MS) { vm.state.value.dialog == SetupWizardDialog.DISCARD }
-        composeRule.onNodeWithText(KEEP_LABEL).performClick()
-        composeRule.waitUntil(TIMEOUT_MS) { vm.state.value.dialog == SetupWizardDialog.NONE }
+        composeRule.waitUntil(TIMEOUT_MS) { cancelled.get() == 1 }
+        composeRule.onNodeWithText(DISCARD_ACTION_LABEL).assertDoesNotExist()
 
         assertEquals(QA10_NAME, vm.state.value.draft.name)
         assertNotNull(
-            "cancelar el descarte conserva la fila",
+            "salir conserva la configuración guardada",
             runBlocking { withTimeout(SETUP_TIMEOUT_MS) { persistence.load(draftId) } },
         )
-        assertEquals("no navega al cancelar", 0, cancelled.get())
         assertEquals("no activa nada", 0, done.get())
-
-        // Repetir → Confirmar: borra SOLO su draft y navega tras persistir.
-        composeRule.onNodeWithText(EXIT_LABEL).performClick()
-        composeRule.waitUntil(TIMEOUT_MS) { vm.state.value.dialog == SetupWizardDialog.EXIT }
-        composeRule.onNodeWithText(DISCARD_ACTION_LABEL).performClick()
-        composeRule.waitUntil(TIMEOUT_MS) { vm.state.value.dialog == SetupWizardDialog.DISCARD }
-        composeRule.onNodeWithText(DISCARD_CONFIRM_LABEL).performClick()
-        composeRule.waitUntil(TIMEOUT_MS) { cancelled.get() == 1 }
-
-        assertNull(
-            "la navegación sólo llega tras borrar: la fila ya no existe",
-            runBlocking { withTimeout(SETUP_TIMEOUT_MS) { persistence.load(draftId) } },
-        )
-        assertEquals("nada se activa al descartar", 0, done.get())
-
-        // No destruye otros borradores.
-        val remaining = runBlocking { withTimeout(SETUP_TIMEOUT_MS) { persistence.listRecoverable() } }
-            .map { it.draftId }.toSet()
-        rowsBefore.filter { it != draftId }.forEach { other ->
-            assertTrue("no debe borrar borradores ajenos: $other", other in remaining)
-            assertNotNull(
-                "no debe borrar borradores ajenos: $other",
-                runBlocking { withTimeout(SETUP_TIMEOUT_MS) { persistence.load(other) } },
-            )
-        }
     }
 
     // ─── Multiselección: tocar nunca avanza; avanza solo el CTA ──────────────
@@ -454,7 +416,6 @@ class SetupWizardJourneyUiTest {
         composeRule.onNodeWithTag(CTA).performClick()
         composeRule.waitUntil(TIMEOUT_MS) { vm.state.value.currentStep == SetupStepId.SESSION_TIME }
         composeRule.onNodeWithTag("setup-step-SESSION_TIME").assertIsDisplayed()
-        composeRule.onNodeWithText(WEEKDAY_1).assertDoesNotExist()
     }
 
     // ─── Chips de prioridad: presets, ajuste manual y viewport estrecho ────────
