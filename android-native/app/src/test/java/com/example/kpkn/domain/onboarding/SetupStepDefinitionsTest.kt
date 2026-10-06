@@ -47,19 +47,21 @@ class SetupStepDefinitionsTest {
     }
 
     @Test
-    fun bodyFatUsesADedicatedPhysiqueControlWithVisualEstimationAndOmit() {
+    fun bodyFatIsAMandatoryRulerStepWithoutSubtitleOrSkip() {
         val bodyFat = requireNotNull(SetupStepDefinitions.of(SetupStepId.BODY_FAT))
         assertEquals(SetupControlKind.PHYSIQUE, bodyFat.control)
-        assertTrue(bodyFat.allowSkip)
-        // Grasa ACTUAL: medición o estimación visual explícita; desconocido permite omitir.
+        assertEquals("¿Cuál es tu porcentaje de grasa corporal?", bodyFat.title)
+        // Obligatorio y sin subtítulo: la figura y la regla se explican solas.
+        assertFalse("la grasa corporal ya no se puede omitir", bodyFat.allowSkip)
+        assertNull(bodyFat.subtitle)
+        // Grasa ACTUAL: las fuentes antiguas (medida, visual, omitida) siguen en el catálogo para leer borradores viejos.
         assertEquals("measured", bodyFat.option("measured")?.value)
         assertEquals("visual", bodyFat.option("visual")?.value)
         assertEquals("unknown", bodyFat.option("unknown")?.value)
-        assertFalse("no se estima" in bodyFat.subtitle.orEmpty().lowercase())
-        assertTrue("estimación visual" in bodyFat.subtitle.orEmpty())
-        // El rango numérico cualitativo sigue disponible para el valor declarado.
+        // El rango numérico del valor declarado: la regla cubre 5–50 %, pero un dato antiguo de 3–60 % sigue valiendo.
         assertEquals(3.0, bodyFat.range?.min ?: 0.0, 0.0001)
         assertEquals(60.0, bodyFat.range?.max ?: 0.0, 0.0001)
+        assertEquals("%", bodyFat.unit)
     }
 
     @Test

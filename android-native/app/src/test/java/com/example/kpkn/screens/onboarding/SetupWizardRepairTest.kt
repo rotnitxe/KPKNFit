@@ -1359,7 +1359,10 @@ class SetupWizardRepairTest {
             confirmStep(vm, SetupStepId.WEIGHT, SetupStepId.EQUATION_SEX) { vm.setStepNumber(SetupStepId.WEIGHT, 72.0) }
             // «No lo sé» a solas ya no avanza: se contesta la consulta hormonal (equilibrio → ecuación promedio).
             confirmStep(vm, SetupStepId.EQUATION_SEX, SetupStepId.BODY_FAT) { vm.setStepChoice(SetupStepId.EQUATION_SEX, "hormones_mixed") }
-            confirmStep(vm, SetupStepId.BODY_FAT, SetupStepId.MILESTONE_BASICS) { vm.setStepChoice(SetupStepId.BODY_FAT, "unknown") }
+            // La grasa corporal es obligatoria: se declara moviendo la regla (ya no se puede omitir).
+            confirmStep(vm, SetupStepId.BODY_FAT, SetupStepId.MILESTONE_BASICS) {
+                vm.updateStep(SetupStepId.BODY_FAT) { draft -> draft.withBodyFatRulerValue(20) }
+            }
             confirmStep(vm, SetupStepId.MILESTONE_BASICS, SetupStepId.EXPERIENCE)
             confirmStep(vm, SetupStepId.EXPERIENCE, SetupStepId.EQUIPMENT) { vm.setStepChoice(SetupStepId.EXPERIENCE, "intermediate") }
             confirmStep(vm, SetupStepId.EQUIPMENT, SetupStepId.AVAILABILITY) { vm.setStepChoice(SetupStepId.EQUIPMENT, "gym") }

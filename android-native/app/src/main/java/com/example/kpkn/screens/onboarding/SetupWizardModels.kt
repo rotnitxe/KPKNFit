@@ -78,40 +78,47 @@ enum class SetupRecentTrainingState { NOT_ANSWERED, NO, YES, UNKNOWN }
 enum class SetupDiscomfortState { NOT_ANSWERED, NONE, DECLARED, OMITTED }
 
 /**
- * Procedencia de la grasa corporal ACTUAL: una medición real, una estimación
- * visual con la figura o una omisión explícita. El percentil y la fuente son
- * estado actual, nunca una meta; la figura (hombre/mujer) no escribe
+ * Procedencia de la grasa corporal ACTUAL: una estimación visual con la regla y
+ * la figura, una medición (solo la traen borradores antiguos) o una omisión
+ * (también solo antigua: el paso ya es obligatorio). El percentil y la fuente
+ * son estado actual, nunca una meta; la figura (hombre/mujer) no escribe
  * `equationSex` ni plantea identidad.
  */
 @Serializable
 enum class SetupBodyFatSource { MEASURED, VISUAL_ESTIMATE, UNKNOWN }
 
 /**
- * Estado visible del paso de grasa corporal. Solo [PENDING] bloquea Continuar:
- * la figura de arranque («≈25 %») no es una respuesta, así que el paso exige una
- * acción explícita (mover o tocar la figura, escribir una medición u omitir)
- * antes de avanzar. Se deriva siempre del borrador; no se guarda aparte.
+ * Estado visible del paso de grasa corporal. Es obligatorio: solo continúa con un
+ * porcentaje declarado ([isDeclared]). La posición de arranque de la regla
+ * («≈25 %») no es una respuesta, así que [PENDING] y [SKIPPED] bloquean
+ * Continuar hasta que se mueva la regla. Se deriva siempre del borrador; no se
+ * guarda aparte.
  */
 enum class SetupBodyFatState {
-    /** Nada declarado todavía: ni figura, ni medición, ni omisión, ni dato previo. */
+    /** Nada declarado todavía: ni regla movida, ni medición, ni dato previo. */
     PENDING,
 
     /** Sin acción en este alta, pero ya hay un porcentaje previo (Ajustes o borrador anterior): se conserva y no bloquea. */
     ON_FILE,
 
-    /** Estimación visual con la figura. */
+    /** Estimación visual: el porcentaje que la persona fijó moviendo la regla. */
     VISUAL,
 
-    /** Medición escrita por la persona. */
+    /** Medición escrita por la persona (solo en borradores antiguos: el paso ya no tiene campo manual). */
     MEASURED,
 
-    /** «Omitir este paso»: sin dato, a propósito. */
+    /** Omisión de un borrador antiguo («Omitir este paso» ya no existe): sin dato, así que no valida y pide declarar. */
     SKIPPED,
 }
 
-/** Mensaje de la validación y del texto de ayuda del paso mientras está [SetupBodyFatState.PENDING]. */
-internal const val BODY_FAT_PENDING_MESSAGE =
-    "Mueve la figura, usa el valor mostrado, escribe una medición u omite este paso."
+/** El paso ya tiene un porcentaje con el que continuar: el de la regla, una medición antigua o el dato de Ajustes. */
+val SetupBodyFatState.isDeclared: Boolean
+    get() = this == SetupBodyFatState.VISUAL ||
+        this == SetupBodyFatState.MEASURED ||
+        this == SetupBodyFatState.ON_FILE
+
+/** Mensaje de la validación mientras el paso no tiene un porcentaje declarado ([SetupBodyFatState.isDeclared]). */
+internal const val BODY_FAT_PENDING_MESSAGE = "Mueve la regla hasta tu porcentaje de grasa corporal."
 
 private fun Double?.isUsableBodyFat(): Boolean {
     val value = this ?: return false
@@ -1128,11 +1135,11 @@ object SetupWizardValidation {
                     // respuesta vieja ni con omisión previa registrada.
                     (source == SetupBodyFatSource.MEASURED || source == SetupBodyFatSource.VISUAL_ESTIMATE) &&
                         percent == null && parsedRaw == null -> absent("bodyFat", "Indica tu grasa corporal")
-                    // Sin ninguna acción explícita (mover o tocar la figura, escribir una
-                    // medición u omitir) y sin un dato previo en Ajustes no se avanza: la
-                    // figura de arranque (≈25 %) no es una respuesta y nunca se guarda sola.
-                    draft.bodyFatState() == SetupBodyFatState.PENDING -> absent("bodyFat", BODY_FAT_PENDING_MESSAGE)
-                    // Fuente desconocida o omitida explícitamente: sin percentil fabricado.
+                    // El paso es obligatorio: hace falta un porcentaje declarado (la regla
+                    // movida, una medición de un borrador antiguo o el dato de Ajustes). La
+                    // posición de arranque (≈25 %) no es una respuesta y nunca se guarda sola,
+                    // y la omisión de un borrador antiguo («No lo sé») ya no sirve: hay que declarar.
+                    !draft.bodyFatState().isDeclared -> absent("bodyFat", BODY_FAT_PENDING_MESSAGE)
                     else -> ok("bodyFat")
                 }
             }

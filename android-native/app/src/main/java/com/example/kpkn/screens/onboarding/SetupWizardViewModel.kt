@@ -294,11 +294,9 @@ class SetupWizardViewModel @JvmOverloads constructor(
      * estado ausente sin fabricar ningún dato, y no avanza: la confirmación
      * sigue siendo [submitCurrentStep].
      *
-     * En la grasa corporal, omitir también LIMPIA lo que ya se hubiera elegido
-     * (figura, medición, fecha y texto): se aplica el reductor «No lo sé»
-     * ([SetupBodyFatSource.UNKNOWN]) y el paso queda en [SetupBodyFatState.SKIPPED]
-     * con Continuar habilitado. Sin esto, omitir tras mover la figura conservaba
-     * el porcentaje y el usuario creía haberlo descartado.
+     * La grasa corporal ya no se puede omitir (es obligatoria): aquí se rechaza
+     * como cualquier paso sin `allowSkip`. Los borradores antiguos que la
+     * omitieron se siguen leyendo, pero no validan hasta declarar un porcentaje.
      */
     fun skipStep(step: SetupStepId) {
         val definition = SetupStepDefinitions.of(step)
@@ -307,12 +305,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
             return
         }
         mutateDraft(step) { draft ->
-            val cleared = if (step == SetupStepId.BODY_FAT) {
-                draft.withStepChoice(step, SetupBodyFatSource.UNKNOWN.name, System.currentTimeMillis())
-            } else {
-                draft
-            }
-            cleared.recordStepAnswer(step, SetupAnswerProvenance.USER_DECLARED, SetupValueState.ABSENT)
+            draft.recordStepAnswer(step, SetupAnswerProvenance.USER_DECLARED, SetupValueState.ABSENT)
         }
     }
 

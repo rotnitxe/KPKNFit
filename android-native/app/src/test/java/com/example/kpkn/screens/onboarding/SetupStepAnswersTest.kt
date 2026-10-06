@@ -31,8 +31,9 @@ import java.time.LocalDate
  *   sí reemplaza el crudo obsoleto.
  * - La validación numérica prioriza el crudo, exige enteros en edad/tiempo y
  *   usa los rangos del catálogo `SetupStepDefinitions`.
- * - BODY_FAT sin percentil no vale ni respondido; «No lo sé» limpia número,
- *   fecha y texto. AUTO sin confirmación no se salta con un registro previo.
+ * - BODY_FAT sin percentil no vale ni respondido; «No lo sé» (omisión de un
+ *   borrador antiguo) limpia número, fecha y texto y ya no valida: el paso es
+ *   obligatorio. AUTO sin confirmación no se salta con un registro previo.
  * - Pesajes con fecha futura inválidos; inventario contra el contrato real.
  */
 class SetupStepAnswersTest {
@@ -131,7 +132,7 @@ class SetupStepAnswersTest {
         )
     }
 
-    // ─── BODY_FAT: percentil obligatorio con fuente real; UNKNOWN limpia ─────
+    // ─── BODY_FAT: percentil obligatorio con fuente real; UNKNOWN limpia y no valida ─────
 
     @Test
     fun bodyFatWithoutPercentBlocksEvenWithOldRecordedAnswer() {
@@ -164,8 +165,10 @@ class SetupStepAnswersTest {
         assertNull(draft.bodyFatCapturedAtEpochMs)
         assertFalse("BODY_FAT" in draft.inputTexts)
         assertEquals(setOf("UNKNOWN"), draft.selectedValues(SetupStepId.BODY_FAT))
-        // Avance bloqueado solo si hay fuente real sin percentil; UNKNOWN es omisión válida.
-        assertTrue(SetupWizardValidation.validateStep(draft, SetupStepId.BODY_FAT).none { it.isBlocking })
+        // El paso es obligatorio: una omisión de un borrador antiguo ya no valida, hay que declarar un porcentaje.
+        val checks = SetupWizardValidation.validateStep(draft, SetupStepId.BODY_FAT)
+        assertTrue(checks.any { it.isBlocking })
+        assertEquals(BODY_FAT_PENDING_MESSAGE, checks.single { it.isBlocking }.message)
     }
 
     @Test

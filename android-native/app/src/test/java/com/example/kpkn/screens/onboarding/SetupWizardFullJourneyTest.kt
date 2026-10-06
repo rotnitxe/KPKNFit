@@ -462,14 +462,11 @@ class SetupWizardFullJourneyTest {
         confirmStep(vm, SetupStepId.EQUATION_SEX, SetupStepId.BODY_FAT) {
             vm.setStepChoice(SetupStepId.EQUATION_SEX, "male")
         }
-        // Figura visual (hombre/mujer) como estado actual: no toca la ecuación.
+        // Grasa corporal obligatoria: la regla declara el 18 % (estimación visual) y la figura femenina es solo
+        // la referencia visual, así que no toca la ecuación.
         confirmStep(vm, SetupStepId.BODY_FAT, SetupStepId.MILESTONE_BASICS) {
             vm.updateStep(SetupStepId.BODY_FAT) { draft ->
-                draft.copy(
-                    bodyFatPercent = 18.0,
-                    bodyFatSource = SetupBodyFatSource.VISUAL_ESTIMATE,
-                    physiqueModel = "female",
-                )
+                draft.withBodyFatRulerValue(18).copy(physiqueModel = "female")
             }
         }
         confirmStep(vm, SetupStepId.MILESTONE_BASICS, SetupStepId.EXPERIENCE)

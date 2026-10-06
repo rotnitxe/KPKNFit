@@ -534,6 +534,35 @@ fun bodyFatForSliderPos(pos: Float): Double {
     return loFat + (hiFat - loFat) * frac
 }
 
+/**
+ * Inversa de [bodyFatForSliderPos]: la posición del slider (1..7) que corresponde a un porcentaje de grasa.
+ *
+ * Es lineal por tramos entre los puntos medios de los siete grupos ([PhysiqueGroups], 10 %, 15 %… 40 %) y queda
+ * fijada a [1, 7]: por debajo del primer punto medio la figura se queda en la más definida y por encima del último,
+ * en la de mayor volumen, aunque el porcentaje siga bajando o subiendo. Un valor que no es un número cae en la
+ * posición de arranque (4). La regla de grasa corporal del alta saca de aquí el fotograma de la figura.
+ */
+fun physiqueSliderPositionForBodyFat(percent: Double): Float {
+    if (percent.isNaN()) return DEFAULT_PHYSIQUE_SLIDER_POSITION
+    val first = PhysiqueGroups.first()
+    val last = PhysiqueGroups.last()
+    if (percent <= first.midpointBodyFat) return first.group.toFloat()
+    if (percent >= last.midpointBodyFat) return last.group.toFloat()
+    for (index in 0 until PhysiqueGroups.lastIndex) {
+        val lo = PhysiqueGroups[index]
+        val hi = PhysiqueGroups[index + 1]
+        if (percent <= hi.midpointBodyFat) {
+            val span = hi.midpointBodyFat - lo.midpointBodyFat
+            val frac = if (span > 0.0) (percent - lo.midpointBodyFat) / span else 0.0
+            return (lo.group + frac).toFloat().coerceIn(1f, 7f)
+        }
+    }
+    return last.group.toFloat()
+}
+
+/** Posición del slider de la figura cuando todavía no se ha movido: la «Silueta suave» (≈ 25 %). */
+private const val DEFAULT_PHYSIQUE_SLIDER_POSITION = 4f
+
 fun physiqueLabelForSliderPos(pos: Float): String {
     val p = pos.coerceIn(1f, 7f)
     val est = bodyFatForSliderPos(p).toInt()

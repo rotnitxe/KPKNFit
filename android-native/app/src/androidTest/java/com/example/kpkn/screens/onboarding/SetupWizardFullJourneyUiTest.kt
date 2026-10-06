@@ -17,6 +17,7 @@ import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.captureToImage
+import androidx.compose.ui.test.click
 import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasInsertTextAtCursorAction
@@ -66,6 +67,7 @@ import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogStateV2
 import com.example.kpkn.domain.nutrition.NutritionConfigurationMode
 import com.example.kpkn.domain.nutrition.NutritionPlanPreparationStatus
+import com.example.kpkn.domain.nutrition.physiqueSliderPositionForBodyFat
 import com.example.kpkn.domain.onboarding.SetupAnswerProvenance
 import com.example.kpkn.domain.onboarding.SetupStepDefinitions
 import com.example.kpkn.domain.onboarding.SetupStepGraph
@@ -73,6 +75,8 @@ import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.WizChatMachineState
 import com.example.kpkn.domain.training.ProgramExecutionContract
 import com.example.kpkn.data.models.resolvedSchedulePlan
+import com.example.kpkn.screens.onboarding.design.BODY_FAT_RULER_TAG
+import com.example.kpkn.screens.onboarding.design.BODY_FAT_VALUE_TAG
 import com.example.kpkn.screens.onboarding.design.WizardHeightScale
 import com.example.kpkn.screens.onboarding.design.WizardMassUnit
 import com.example.kpkn.screens.onboarding.design.WizardWeightScale
@@ -511,34 +515,43 @@ class SetupWizardFullJourneyUiTest {
                 clickOption(SetupStepId.EQUATION_SEX, "Un equilibrio o no lo sé")
             }
         }
-        // Grasa corporal: omisión EXPLÍCITA («Omitir este paso»), nunca un porcentaje inventado.
-        // El paso ya no ofrece una tarjeta «No lo sé»: es la figura con slider más un campo
-        // opcional de medición exacta, y omitir deja la respuesta declarada sin valor.
-        // La figura de arranque (≈25 %) NO es una respuesta: sin dato previo en Ajustes el
-        // paso dice «Sin dato todavía» y Continuar sigue bloqueado hasta actuar (C1).
+        // Grasa corporal: OBLIGATORIA (ya no hay «Omitir este paso» ni campo de medición). Es una figura
+        // grande con una regla vertical de porcentaje; la posición de arranque (≈25 %) NO es una respuesta:
+        // sin dato previo en Ajustes Continuar sigue bloqueado hasta tocar o arrastrar la regla, y ese primer
+        // contacto la declara como estimación visual (C1).
         assertCurrentStep(SetupStepId.BODY_FAT)
         if (vm.state.value.draft.importedBodyFatPercent == null) {
-            assertInTree("Sin dato todavía")
+            assertNull("sin tocar la regla no hay porcentaje declarado", vm.state.value.draft.bodyFatPercent)
             composeRule.onNodeWithTag(CTA).assertIsNotEnabled()
         }
         answerAndContinue(SetupStepId.BODY_FAT, SetupStepId.MILESTONE_BASICS) {
-            clickOption(SetupStepId.BODY_FAT, "Omitir este paso")
-            awaitUi("estado «Omitido» visible tras omitir la grasa corporal") { existsInTree("Omitido") }
+            touchBodyFatRuler()
+            // La lectura grande se comprueba antes de continuar: al confirmar, la página se pliega y su semántica se oculta.
+            val touched = checkNotNull(vm.state.value.draft.bodyFatPercent) { "la regla declaró un porcentaje" }
+            assertEquals(
+                "la lectura grande dice lo mismo que el borrador",
+                "${touched.toInt()} %",
+                composeRule.onNodeWithTag(BODY_FAT_VALUE_TAG).fetchSemanticsNode()
+                    .config[SemanticsProperties.Text].joinToString("") { it.text },
+            )
         }
         val bodyFatDraft = vm.state.value.draft
         assertEquals(
-            "omitir deja la fuente como omitida (limpia lo elegido)",
-            SetupBodyFatSource.UNKNOWN,
+            "tocar la regla declara una estimación visual",
+            SetupBodyFatSource.VISUAL_ESTIMATE,
             bodyFatDraft.bodyFatSource,
         )
-        assertNull("omitir no fabrica un porcentaje de grasa", bodyFatDraft.bodyFatPercent)
-        assertTrue(
-            "omitir no deja fuente MEASURED ni VISUAL_ESTIMATE (fuente=${bodyFatDraft.bodyFatSource})",
-            bodyFatDraft.bodyFatSource != SetupBodyFatSource.MEASURED &&
-                bodyFatDraft.bodyFatSource != SetupBodyFatSource.VISUAL_ESTIMATE,
+        val declaredBodyFat = checkNotNull(bodyFatDraft.bodyFatPercent) { "la regla declaró un porcentaje" }
+        assertTrue("el porcentaje cae dentro de la regla (5–50 %): $declaredBodyFat", declaredBodyFat in 5.0..50.0)
+        assertEquals("la regla declara enteros", Math.rint(declaredBodyFat), declaredBodyFat, 0.0)
+        assertEquals(
+            "la figura se deriva del porcentaje declarado",
+            physiqueSliderPositionForBodyFat(declaredBodyFat),
+            bodyFatDraft.physiqueSliderPosition,
+            0f,
         )
         assertEquals(
-            "la omisión queda registrada como respuesta del usuario",
+            "la estimación queda registrada como respuesta del usuario",
             SetupAnswerProvenance.USER_DECLARED,
             bodyFatDraft.stepProgress.answers[SetupStepId.BODY_FAT],
         )
@@ -1520,6 +1533,22 @@ class SetupWizardFullJourneyUiTest {
             )
         }
         awaitState("altura declarada = $target cm") { it.draft.heightCm == target.toDouble() }
+    }
+
+    /**
+     * Grasa corporal: UN toque real en el centro de la regla vertical (`setup-bodyfat-ruler`). La posición de
+     * arranque no es respuesta, pero el primer contacto con la regla sí: declara un porcentaje entero como
+     * estimación visual y habilita el check sin pulsar nada más.
+     */
+    private fun touchBodyFatRuler() {
+        val before = vm.state.value.draft.revision
+        composeRule.onNodeWithTag(BODY_FAT_RULER_TAG).performScrollTo()
+        composeRule.onNodeWithTag(BODY_FAT_RULER_TAG).performTouchInput { click(center) }
+        awaitState("porcentaje de grasa declarado con la regla") {
+            it.draft.revision > before &&
+                it.draft.bodyFatSource == SetupBodyFatSource.VISUAL_ESTIMATE &&
+                it.draft.bodyFatPercent != null
+        }
     }
 
     /**

@@ -9,6 +9,7 @@ import com.example.kpkn.data.models.UserVitals
 import com.example.kpkn.data.onboarding.SetupDraft
 import com.example.kpkn.data.onboarding.SetupDraftCandidate
 import com.example.kpkn.data.onboarding.SetupDraftScope
+import com.example.kpkn.domain.nutrition.physiqueSliderPositionForBodyFat
 import com.example.kpkn.domain.onboarding.SetupAnswerProvenance
 import com.example.kpkn.domain.onboarding.SetupStepId
 import kotlinx.coroutines.Dispatchers
@@ -33,11 +34,10 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * C1 · El paso de grasa corporal recorrido con el [SetupWizardViewModel] REAL
- * (persistencia y entorno hermeticos, como [SetupWizardOrchestrationTest]):
- * Continuar queda bloqueado hasta una accion explicita (mover o tocar la
- * figura, escribir una medicion u «Omitir este paso»), omitir limpia lo ya
- * elegido y deja Continuar habilitado sin avanzar, y quien vuelve con una
+ * El paso de grasa corporal (regla vertical, obligatorio) recorrido con el [SetupWizardViewModel] REAL
+ * (persistencia y entorno hermeticos, como [SetupWizardOrchestrationTest]): Continuar queda bloqueado hasta
+ * que se mueve la regla (arrastrar o tocar un punto, que declara el valor en una sola escritura), «omitir» ya
+ * no existe (el ViewModel lo rechaza) y una omision de un borrador antiguo no valida, y quien vuelve con una
  * grasa declarada en Ajustes no se queda bloqueado.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -100,13 +100,13 @@ class SetupWizardBodyFatViewModelTest {
     // ─── Sin acción explícita: bloqueado ─────────────────────────────────────
 
     @Test
-    fun continuarStaysBlockedUntilTheUserActsOnTheBodyFatStep() = runTest {
+    fun continuarStaysBlockedUntilTheUserMovesTheRuler() = runTest {
         val vm = vm()
         walkToBodyFat(vm)
 
         val state = vm.state.value
         assertEquals(SetupBodyFatState.PENDING, state.draft.bodyFatState())
-        assertFalse("la figura de arranque no habilita Continuar", state.canConfirmStep)
+        assertFalse("la posición de arranque no habilita Continuar", state.canConfirmStep)
         assertEquals(BODY_FAT_PENDING_MESSAGE, state.stepValidation.single().message)
         // La pantalla muestra ≈25 % pero no hay ningún dato guardado.
         assertNull(state.draft.bodyFatPercent)
@@ -121,22 +121,28 @@ class SetupWizardBodyFatViewModelTest {
         assertNull("nada se confirmó", vm.state.value.draft.stepProgress.answers[SetupStepId.BODY_FAT])
     }
 
-    // ─── Cada acción explícita desbloquea y avanza ───────────────────────────
+    // ─── Mover la regla desbloquea y avanza ──────────────────────────────────
 
     @Test
-    fun movingOrTappingTheFigureEnablesContinuarAndSavesTheEstimate() = runTest {
+    fun movingTheRulerDeclaresTheValueEnablesContinuarAndSavesTheEstimate() = runTest {
         val vm = vm()
         walkToBodyFat(vm)
 
-        // Mismas llamadas que hace la figura (arrastre o toque) y la línea «Usar ≈ N %».
-        vm.setStepChoice(SetupStepId.BODY_FAT, SetupBodyFatSource.VISUAL_ESTIMATE.name)
-        vm.setStepNumber(SetupStepId.BODY_FAT, 22.0)
+        // Lo que hace la regla al soltar (o al tocar un punto): una sola escritura del borrador.
+        vm.updateStep(SetupStepId.BODY_FAT) { draft -> draft.withBodyFatRulerValue(22) }
         advanceUntilIdle()
 
         assertEquals(SetupBodyFatState.VISUAL, vm.state.value.draft.bodyFatState())
-        assertTrue(vm.state.value.canConfirmStep)
+        assertTrue("el check queda habilitado sin pulsar nada más", vm.state.value.canConfirmStep)
         assertEquals(SetupBodyFatSource.VISUAL_ESTIMATE, bodyFatDraft(vm).bodyFatSource)
         assertEquals(22.0, bodyFatDraft(vm).bodyFatPercent!!, 0.001)
+        assertEquals(
+            "la posición de la figura se deriva del porcentaje",
+            physiqueSliderPositionForBodyFat(22.0),
+            bodyFatDraft(vm).physiqueSliderPosition,
+            0f,
+        )
+        assertEquals("el cursor no se mueve hasta que el check confirma", SetupStepId.BODY_FAT, vm.state.value.currentStep)
 
         confirm(vm, SetupStepId.BODY_FAT, SetupStepId.MILESTONE_BASICS)
         assertEquals(
@@ -145,10 +151,61 @@ class SetupWizardBodyFatViewModelTest {
             bodyFatDraft(vm).stepProgress.answers[SetupStepId.BODY_FAT],
         )
         assertEquals(22.0, bodyFatDraft(vm).bodyFatPercent!!, 0.001)
+
+        // Lo persistido es lo mismo que se ve: porcentaje, fuente, fecha real y posición de la figura.
+        val saved = json.decodeFromString<SetupWizardDraft>(persistence.rows.getValue(bodyFatDraft(vm).draftId).payloadJson)
+        assertEquals(SetupBodyFatSource.VISUAL_ESTIMATE, saved.bodyFatSource)
+        assertEquals(22.0, saved.bodyFatPercent!!, 0.001)
+        assertTrue(saved.bodyFatCapturedAtEpochMs != null)
+        assertEquals(physiqueSliderPositionForBodyFat(22.0), saved.physiqueSliderPosition, 0f)
     }
 
     @Test
-    fun writingAMeasurementEnablesContinuarAndSavesItAsMeasured() = runTest {
+    fun theSetterContractTheOldFigureUsedStillDeclaresTheSameThing() = runTest {
+        val vm = vm()
+        walkToBodyFat(vm)
+
+        vm.setStepChoice(SetupStepId.BODY_FAT, SetupBodyFatSource.VISUAL_ESTIMATE.name)
+        vm.setStepNumber(SetupStepId.BODY_FAT, 22.0)
+        advanceUntilIdle()
+
+        assertEquals(SetupBodyFatState.VISUAL, vm.state.value.draft.bodyFatState())
+        assertTrue(vm.state.value.canConfirmStep)
+        assertEquals(22.0, bodyFatDraft(vm).bodyFatPercent!!, 0.001)
+    }
+
+    @Test
+    fun theFirstTouchOnTheStartingValueIsAlreadyAnAnswer() = runTest {
+        val vm = vm()
+        walkToBodyFat(vm)
+        assertFalse(vm.state.value.canConfirmStep)
+
+        // Tocar el 25 % de arranque: el valor no cambia, pero ahora está declarado.
+        vm.updateStep(SetupStepId.BODY_FAT) { draft -> draft.withBodyFatRulerValue(25) }
+        advanceUntilIdle()
+
+        assertEquals(25.0, bodyFatDraft(vm).bodyFatPercent!!, 0.0)
+        assertEquals(SetupBodyFatState.VISUAL, bodyFatDraft(vm).bodyFatState())
+        assertTrue(vm.state.value.canConfirmStep)
+    }
+
+    @Test
+    fun switchingTheFigureNeverDeclaresThePercentage() = runTest {
+        val vm = vm()
+        walkToBodyFat(vm)
+
+        vm.updateStep(SetupStepId.BODY_FAT) { draft -> draft.copy(physiqueModel = "female") }
+        advanceUntilIdle()
+
+        assertEquals("female", bodyFatDraft(vm).physiqueModel)
+        assertNull("cambiar de figura no fija ningún porcentaje", bodyFatDraft(vm).bodyFatPercent)
+        assertNull(bodyFatDraft(vm).bodyFatSource)
+        assertFalse("y el check sigue bloqueado", vm.state.value.canConfirmStep)
+        assertNull("ni toca el sexo de cálculo", bodyFatDraft(vm).nutritionDraft?.equationSex)
+    }
+
+    @Test
+    fun writingAMeasurementThroughTheSettersStillSavesItAsMeasuredForOldDrafts() = runTest {
         val vm = vm()
         walkToBodyFat(vm)
 
@@ -164,67 +221,58 @@ class SetupWizardBodyFatViewModelTest {
         assertEquals(17.5, bodyFatDraft(vm).bodyFatPercent!!, 0.001)
     }
 
+    // ─── Ya no se puede omitir ───────────────────────────────────────────────
+
     @Test
-    fun skippingEnablesContinuarWithoutAdvancingAndWithoutInventingAPercentage() = runTest {
+    fun skippingTheBodyFatStepIsRejectedAndNothingChanges() = runTest {
         val vm = vm()
         walkToBodyFat(vm)
-        assertFalse(vm.state.value.canConfirmStep)
+        val before = bodyFatDraft(vm)
 
         vm.skipStep(SetupStepId.BODY_FAT)
         advanceUntilIdle()
 
-        val skipped = bodyFatDraft(vm)
-        assertEquals(SetupBodyFatState.SKIPPED, skipped.bodyFatState())
-        assertEquals(SetupBodyFatSource.UNKNOWN, skipped.bodyFatSource)
-        assertNull(skipped.bodyFatPercent)
-        assertEquals(SetupAnswerProvenance.USER_DECLARED, skipped.stepProgress.answers[SetupStepId.BODY_FAT])
-        assertTrue("Omitir deja Continuar habilitado", vm.state.value.canConfirmStep)
-        assertEquals("Omitir no avanza por sí solo", SetupStepId.BODY_FAT, vm.state.value.currentStep)
-
-        confirm(vm, SetupStepId.BODY_FAT, SetupStepId.MILESTONE_BASICS)
-        assertNull(bodyFatDraft(vm).bodyFatPercent)
+        assertEquals("Este paso no se puede omitir", vm.state.value.errors[SetupStepId.BODY_FAT.name])
+        assertEquals("el borrador no cambia", before, bodyFatDraft(vm))
+        assertNull(bodyFatDraft(vm).bodyFatSource)
+        assertNull(bodyFatDraft(vm).stepProgress.answers[SetupStepId.BODY_FAT])
+        assertFalse("y Continuar sigue bloqueado", vm.state.value.canConfirmStep)
+        assertEquals(SetupStepId.BODY_FAT, vm.state.value.currentStep)
     }
 
-    // ─── Omitir limpia lo que ya se había elegido ────────────────────────────
-
     @Test
-    fun skippingAfterMovingTheFigureClearsThePercentageDateAndText() = runTest {
+    fun skippingAfterMovingTheRulerIsRejectedAndKeepsTheDeclaredValue() = runTest {
         val vm = vm()
         walkToBodyFat(vm)
-        vm.setStepChoice(SetupStepId.BODY_FAT, SetupBodyFatSource.VISUAL_ESTIMATE.name)
-        vm.setStepNumber(SetupStepId.BODY_FAT, 22.0)
+        vm.updateStep(SetupStepId.BODY_FAT) { draft -> draft.withBodyFatRulerValue(22) }
         advanceUntilIdle()
+
+        vm.skipStep(SetupStepId.BODY_FAT)
+        advanceUntilIdle()
+
+        assertEquals("Este paso no se puede omitir", vm.state.value.errors[SetupStepId.BODY_FAT.name])
+        assertEquals(SetupBodyFatSource.VISUAL_ESTIMATE, bodyFatDraft(vm).bodyFatSource)
         assertEquals(22.0, bodyFatDraft(vm).bodyFatPercent!!, 0.001)
-        assertTrue(bodyFatDraft(vm).bodyFatCapturedAtEpochMs != null)
-        assertTrue("BODY_FAT" in bodyFatDraft(vm).inputTexts)
-
-        vm.skipStep(SetupStepId.BODY_FAT)
-        advanceUntilIdle()
-
-        val cleared = bodyFatDraft(vm)
-        assertEquals(SetupBodyFatSource.UNKNOWN, cleared.bodyFatSource)
-        assertNull("el porcentaje elegido se descarta", cleared.bodyFatPercent)
-        assertNull("y su fecha", cleared.bodyFatCapturedAtEpochMs)
-        assertFalse("y el texto escrito", "BODY_FAT" in cleared.inputTexts)
         assertTrue(vm.state.value.canConfirmStep)
-
-        // Lo persistido es lo mismo que se ve: ningún porcentaje fantasma en el borrador guardado.
-        val saved = json.decodeFromString<SetupWizardDraft>(persistence.rows.getValue(cleared.draftId).payloadJson)
-        assertEquals(SetupBodyFatSource.UNKNOWN, saved.bodyFatSource)
-        assertNull(saved.bodyFatPercent)
-        assertNull(saved.bodyFatCapturedAtEpochMs)
     }
 
     @Test
-    fun movingTheFigureAfterSkippingDeclaresTheNewEstimate() = runTest {
+    fun anOldOmittedDraftIsBlockedUntilTheRulerDeclaresAPercentage() = runTest {
         val vm = vm()
         walkToBodyFat(vm)
-        vm.skipStep(SetupStepId.BODY_FAT)
+        // Un borrador de una versión anterior que usó «Omitir este paso» (la fuente «No lo sé»).
+        vm.setStepChoice(SetupStepId.BODY_FAT, SetupBodyFatSource.UNKNOWN.name)
         advanceUntilIdle()
         assertEquals(SetupBodyFatState.SKIPPED, bodyFatDraft(vm).bodyFatState())
+        assertFalse("la omisión antigua ya no valida", vm.state.value.canConfirmStep)
+        assertEquals(BODY_FAT_PENDING_MESSAGE, vm.state.value.stepValidation.single().message)
 
-        vm.setStepChoice(SetupStepId.BODY_FAT, SetupBodyFatSource.VISUAL_ESTIMATE.name)
-        vm.setStepNumber(SetupStepId.BODY_FAT, 18.0)
+        val rejected = vm.submitCurrentStep(SetupStepId.BODY_FAT)
+        advanceUntilIdle()
+        assertEquals(SetupSubmitOutcome.REJECTED, rejected.outcome)
+        assertEquals(SetupStepId.BODY_FAT, vm.state.value.currentStep)
+
+        vm.updateStep(SetupStepId.BODY_FAT) { draft -> draft.withBodyFatRulerValue(18) }
         advanceUntilIdle()
 
         assertEquals(SetupBodyFatState.VISUAL, bodyFatDraft(vm).bodyFatState())
@@ -242,6 +290,7 @@ class SetupWizardBodyFatViewModelTest {
         val draft = bodyFatDraft(vm)
         assertEquals("el dato previo viaja en el borrador", 21.0, draft.importedBodyFatPercent!!, 0.001)
         assertEquals(SetupBodyFatState.ON_FILE, draft.bodyFatState())
+        assertEquals("la regla arranca en el dato de Ajustes", 21.0, draft.bodyFatRulerPercent(), 0.001)
         assertTrue("no se bloquea a quien ya declaró su grasa en Ajustes", vm.state.value.canConfirmStep)
 
         confirm(vm, SetupStepId.BODY_FAT, SetupStepId.MILESTONE_BASICS)
@@ -257,15 +306,15 @@ class SetupWizardBodyFatViewModelTest {
     }
 
     @Test
-    fun aReturningUserCanStillOmitTheStepAndTheSettingsValueStaysAsHistory() = runTest {
+    fun aReturningUserCanReplaceTheSettingsValueWithTheRulerAndItStaysAsHistory() = runTest {
         val vm = vm(Settings(userVitals = UserVitals(bodyFatPercentage = 21.0)))
         walkToBodyFat(vm)
 
-        vm.skipStep(SetupStepId.BODY_FAT)
+        vm.updateStep(SetupStepId.BODY_FAT) { draft -> draft.withBodyFatRulerValue(18) }
         advanceUntilIdle()
 
-        assertEquals(SetupBodyFatState.SKIPPED, bodyFatDraft(vm).bodyFatState())
-        assertNull(bodyFatDraft(vm).bodyFatPercent)
+        assertEquals(SetupBodyFatState.VISUAL, bodyFatDraft(vm).bodyFatState())
+        assertEquals(18.0, bodyFatDraft(vm).bodyFatPercent!!, 0.001)
         assertEquals(21.0, bodyFatDraft(vm).importedBodyFatPercent!!, 0.001)
         assertTrue(vm.state.value.canConfirmStep)
     }

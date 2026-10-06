@@ -7,7 +7,7 @@ import org.junit.Test
  * Reglas de copy de la página larga sobre el catálogo [SetupStepDefinitions], para
  * todos los pasos que no son solo lectura de borradores antiguos (`legacyOnly`):
  *
- * - El título cabe en [MAX_TITLE_LENGTH] caracteres y es una pregunta «¿…?».
+ * - El título cabe en [MAX_TITLE_LENGTH] caracteres (44) y es una pregunta «¿…?».
  * - El subtítulo, si existe, cabe en [MAX_SUBTITLE_LENGTH] caracteres.
  *
  * Los nombres de bloque y de vista previa ([LABEL_TITLES]) son etiquetas, no
@@ -26,7 +26,7 @@ class SetupStepCopyRulesTest {
     }
 
     @Test
-    fun titlesFitInFortyCharactersExceptBlockAndPreviewNames() {
+    fun titlesFitInFortyFourCharactersExceptBlockAndPreviewNames() {
         val offenders = productive
             .filter { it.title !in LABEL_TITLES && it.title.length > MAX_TITLE_LENGTH }
             .map { "${it.id}: «${it.title}» (${it.title.length} caracteres)" }
@@ -58,7 +58,11 @@ class SetupStepCopyRulesTest {
     }
 
     private companion object {
-        const val MAX_TITLE_LENGTH = 40
+        /**
+         * 44 y no 40: «¿Cuál es tu porcentaje de grasa corporal?» (41) es la pregunta que pide la persona y no admite
+         * un recorte sin perder «porcentaje». El título sigue cabiendo en dos líneas de `stepTitle` (28 sp) en 390 dp.
+         */
+        const val MAX_TITLE_LENGTH = 44
         const val MAX_SUBTITLE_LENGTH = 100
 
         /** Nombres de bloque, vistas previas, revisión y el alias: etiquetas, no preguntas. */

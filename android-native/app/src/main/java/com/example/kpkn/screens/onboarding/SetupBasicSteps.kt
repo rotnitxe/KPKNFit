@@ -65,7 +65,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.Modifier
@@ -85,15 +84,14 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.domain.nutrition.bodyFatForSliderPos
-import com.example.kpkn.domain.nutrition.parseLocalizedNumber
+import com.example.kpkn.domain.nutrition.physiqueSliderPositionForBodyFat
 import com.example.kpkn.domain.onboarding.SetupControlKind
 import com.example.kpkn.domain.onboarding.SetupEquationSexValues
 import com.example.kpkn.domain.onboarding.SetupOptionDefinition
 import com.example.kpkn.domain.onboarding.SetupStepDefinition
 import com.example.kpkn.domain.onboarding.SetupStepDefinitions
 import com.example.kpkn.domain.onboarding.SetupStepId
-import com.example.kpkn.screens.onboarding.design.WizardBodyFatSource
-import com.example.kpkn.screens.onboarding.design.WizardBodyFatValue
+import com.example.kpkn.screens.onboarding.design.WizardBodyFatPicker
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardAnthropometryLayout
 import com.example.kpkn.screens.onboarding.design.WizardGenderGlyph
@@ -105,14 +103,11 @@ import com.example.kpkn.screens.onboarding.design.WizardHeightWheel
 import com.example.kpkn.screens.onboarding.design.currentAnthropometryLayout
 import com.example.kpkn.screens.onboarding.design.WizardMassUnit
 import com.example.kpkn.screens.onboarding.design.WizardMassUnitToggle
-import com.example.kpkn.screens.onboarding.design.WizardPhysiqueSelector
 import com.example.kpkn.screens.onboarding.design.WizardShapes
 import com.example.kpkn.screens.onboarding.design.WizardSpacing
 import com.example.kpkn.screens.onboarding.design.WizardTypography
 import com.example.kpkn.screens.onboarding.design.WizardWeightRule
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
-import java.util.Locale
-import kotlin.math.roundToInt
 
 /**
  * Bloque 1 «Datos básicos»: nombre, edad, altura, peso, sexo de cálculo y
@@ -152,7 +147,7 @@ fun SetupBasicsStepContent(
         SetupStepId.HEIGHT -> SetupAnthropometryPair(state = state, vm = vm)
         SetupStepId.WEIGHT -> SetupWeightControl(step = step, state = state, vm = vm)
         SetupStepId.EQUATION_SEX -> SetupEquationSexControl(step = step, state = state, vm = vm, definition = definition)
-        SetupStepId.BODY_FAT -> SetupBodyFatControl(step = step, state = state, vm = vm, definition = definition)
+        SetupStepId.BODY_FAT -> SetupBodyFatControl(step = step, state = state, vm = vm)
         // Pasos legacy que solo se leen (identidad de género): se pintan desde el
         // catálogo, nunca desde una pregunta de WizChat.
         else -> SetupCatalogStep(step = step, state = state, vm = vm, definition = definition)
@@ -882,252 +877,60 @@ private fun GenderHormonesPanel(
 // ─── Grasa corporal actual ───────────────────────────────────────────────────
 
 /**
- * Grasa actual en una sola pantalla: la figura y el slider aparecen de entrada.
- * La medición exacta es un campo opcional. Mover el slider estima; escribir
- * el porcentaje la sustituye. No hace falta elegir antes entre tres tarjetas.
- * La figura no toca `equationSex`.
+ * Grasa actual: una figura grande con una regla vertical de porcentaje a su derecha ([WizardBodyFatPicker]).
+ * Mover la regla (arrastrar o tocar un punto) DECLARA el valor: no hay nada más que pulsar y desde ese momento el
+ * check queda habilitado. El paso es obligatorio (sin «omitir») y ya no tiene aviso, estado, enlace ni campo de
+ * medición exacta: quien sabe su número se fija en la regla y quien no, se guía por la figura.
  *
- * La figura de arranque (≈25 %) NO es una respuesta: Continuar queda bloqueado
- * hasta una acción explícita (mover o tocar la figura, escribir una medición u
- * «Omitir este paso»), salvo que Ajustes ya tenga una grasa declarada. El estado
- * se ve siempre en pantalla («Sin dato todavía», «Omitido»…).
+ * La posición de arranque (≈25 %, o el dato de Ajustes si lo hay) NO es una respuesta hasta que se mueve la regla:
+ * se pinta atenuada y no se guarda sola. Un dato ya guardado en Ajustes, o declarado, cuenta como declarado y la
+ * regla arranca en él. La figura nunca toca `equationSex`: cambiar de figura solo cambia la figura.
  */
 @Composable
 private fun SetupBodyFatControl(
     step: SetupStepId,
     state: SetupWizardState,
     vm: SetupWizardViewModel,
-    definition: SetupStepDefinition,
 ) {
-    var showExact by rememberSaveable(state.draft.draftId, step) {
-        mutableStateOf(state.draft.bodyFatSource == SetupBodyFatSource.MEASURED ||
-            !state.draft.inputTexts[step.name].isNullOrBlank())
-    }
-    SetupVisualBodyFat(
-        step = step,
-        state = state,
-        vm = vm,
-        measuredOpen = showExact,
-        bodyFatState = state.draft.bodyFatState(),
-    )
-    SetupExactMeasurementToggle(expanded = showExact, onToggle = { showExact = !showExact })
-    if (showExact) SetupMeasuredBodyFatField(step = step, state = state, vm = vm)
-    if (definition.allowSkip) {
-        SetupFormSkipAction(onSkip = {
-            // Omitir limpia lo elegido: el campo de medición no puede seguir
-            // mostrando un texto que el borrador ya descartó.
-            showExact = false
-            vm.skipStep(step)
-        })
-    }
-}
-
-/**
- * Enlace «Tengo una medición exacta» / «Ocultar medición exacta»: letra
- * `controlLabel`, anunciado como botón y de al menos 48 dp de alto.
- */
-@Composable
-private fun SetupExactMeasurementToggle(expanded: Boolean, onToggle: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .heightIn(min = WizardSpacing.touchTarget)
-            .clip(WizardShapes.pill)
-            .clickable(role = Role.Button, onClick = onToggle)
-            .padding(horizontal = 4.dp),
-        contentAlignment = Alignment.CenterStart,
-    ) {
-        Text(
-            text = if (expanded) "Ocultar medición exacta" else "Tengo una medición exacta",
-            style = WizardTypography.controlLabel,
-            color = WizardColors.text,
-        )
-    }
-}
-
-/**
- * Medido: el texto crudo se persiste **tal cual se escribió** (`setStepText`,
- * sin filtrar: un valor inválido o incompleto se ve y lo señala la
- * validación), y el canónico sale del parseo (`setStepNumber`) sin recortar
- * rangos aquí — el parser y el rango los controla el reducer de M1.
- */
-@Composable
-private fun SetupMeasuredBodyFatField(
-    step: SetupStepId,
-    state: SetupWizardState,
-    vm: SetupWizardViewModel,
-) {
-    var raw by rememberSaveable(state.draft.draftId, state.draft.commitId, step) {
-        mutableStateOf(bodyFatFieldText(state.draft.inputTexts[step.name], state.draft.bodyFatPercent))
-    }
-    SetupFormTextField(
-        value = raw,
-        onValueChange = { input ->
-            raw = input
-            if (input.isNotBlank()) vm.setStepChoice(step, SetupBodyFatSource.MEASURED.name)
-            vm.setStepText(step, input)
-            vm.setStepNumber(step, input.replace(',', '.').toDoubleOrNull())
+    val draft = state.draft
+    WizardBodyFatPicker(
+        percent = draft.bodyFatRulerPercent(),
+        model = draft.physiqueModel,
+        declared = draft.bodyFatState().isDeclared,
+        onPercentChange = { percent ->
+            vm.updateStep(step) { current -> current.withBodyFatRulerValue(percent) }
         },
-        label = "Grasa corporal actual (%)",
-        keyboardType = KeyboardType.Decimal,
-    )
-    SetupFormCaption("Entre 3 % y 60 %.")
-}
-
-/**
- * Visual: valor real del slider (`setStepNumber`) + fuente VISUAL
- * (`setStepChoice`). Figura y posición se persisten en el borrador a través de
- * los callbacks controlados del selector (`model`/`sliderPosition`), sin tocar
- * la ejecución ni `equationSex`.
- */
-@Composable
-private fun SetupVisualBodyFat(
-    step: SetupStepId,
-    state: SetupWizardState,
-    vm: SetupWizardViewModel,
-    measuredOpen: Boolean,
-    bodyFatState: SetupBodyFatState,
-) {
-    val measuredActive = measuredOpen && !state.draft.inputTexts[step.name].isNullOrBlank()
-    // Omitido: el selector compartido sigue mostrando «≈ N % de grasa corporal» (su texto
-    // no cambia); se atenúa para que no parezca un dato declarado. Sigue siendo tocable:
-    // moverlo vuelve a declarar una estimación.
-    Box(modifier = Modifier.alpha(bodyFatSelectorAlpha(bodyFatState))) {
-    WizardPhysiqueSelector(
-        candidate = state.draft.bodyFatPercent?.let {
-            WizardBodyFatValue(percent = it, source = WizardBodyFatSource.VISUAL_ESTIMATE)
-        },
-        onCandidateChange = { value ->
-            if (measuredActive) return@WizardPhysiqueSelector
-            vm.setStepChoice(step, SetupBodyFatSource.VISUAL_ESTIMATE.name)
-            vm.setStepNumber(step, value.percent)
-        },
-        model = state.draft.physiqueModel,
-        sliderPosition = state.draft.physiqueSliderPosition,
         onModelChange = { model ->
-            vm.updateStep(step) { draft -> draft.copy(physiqueModel = model) }
-        },
-        onSliderPositionChange = { position ->
-            vm.updateStep(step) { draft -> draft.copy(physiqueSliderPosition = position) }
-        },
-    )
-    }
-    // El texto del selector compartido no cambia (lo esperan pruebas instrumentadas):
-    // el estado real del dato y la línea tocable «Usar ≈ N %» viven aquí, fuera de él.
-    val figurePercent = bodyFatForSliderPos(state.draft.physiqueSliderPosition)
-    SetupBodyFatStatus(
-        statusText = bodyFatStatusText(state.draft),
-        hint = bodyFatStatusHint(bodyFatState),
-        figurePercent = figurePercent.takeIf { bodyFatState.offersFigureValue },
-        onUseFigure = {
-            vm.setStepChoice(step, SetupBodyFatSource.VISUAL_ESTIMATE.name)
-            vm.setStepNumber(step, figurePercent)
+            // Cambiar de figura solo cambia la figura: ni el porcentaje ni `equationSex`.
+            vm.updateStep(step) { current -> current.copy(physiqueModel = model) }
         },
     )
 }
 
 /**
- * Estado del dato bajo la figura y, mientras no haya una estimación de ESTA
- * pantalla, la línea tocable «Usar ≈ N %» para aceptar lo que muestra la
- * figura. Stateless: el texto lo decide quien llama.
+ * Porcentaje con el que arranca y se pinta la regla: el declarado; si no, el dato creíble de Ajustes
+ * ([SetupBodyFatState.ON_FILE]); y si no hay ninguno, el de la figura de arranque (la posición guardada, ≈25 % por
+ * defecto). Solo los dos primeros son una respuesta ([SetupBodyFatState.isDeclared]); el tercero es una referencia
+ * y la regla lo pinta atenuado hasta que se mueve.
  */
-@Composable
-private fun SetupBodyFatStatus(
-    statusText: String,
-    hint: String?,
-    figurePercent: Double?,
-    onUseFigure: () -> Unit,
-) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        Text(
-            text = statusText,
-            style = WizardTypography.cardTitle,
-            color = WizardColors.text,
-            modifier = Modifier.testTag(BODY_FAT_STATUS_TAG),
-        )
-        if (hint != null) SetupFormCaption(hint)
-        if (figurePercent != null) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = WizardSpacing.touchTarget)
-                    .clip(WizardShapes.pill)
-                    .border(1.dp, WizardColors.selectedBorder, WizardShapes.pill)
-                    .clickable(role = Role.Button, onClick = onUseFigure)
-                    .testTag(BODY_FAT_USE_FIGURE_TAG),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = "Usar ≈ ${figurePercent.roundToInt()} %",
-                    style = WizardTypography.cardTitle,
-                    color = WizardColors.text,
-                )
-            }
-        }
-    }
-}
-
-/** Opacidad del selector de figura: atenuado («sin usar») mientras el paso está omitido. */
-internal fun bodyFatSelectorAlpha(state: SetupBodyFatState): Float =
-    if (state == SetupBodyFatState.SKIPPED) BODY_FAT_SKIPPED_SELECTOR_ALPHA else 1f
-
-internal const val BODY_FAT_SKIPPED_SELECTOR_ALPHA = 0.35f
-
-/** Marca de prueba del estado del dato de grasa corporal. */
-internal const val BODY_FAT_STATUS_TAG = "setup-bodyfat-status"
-
-/** Marca de prueba de la línea tocable «Usar ≈ N %». */
-internal const val BODY_FAT_USE_FIGURE_TAG = "setup-bodyfat-use"
-
-/** Solo se ofrece «Usar ≈ N %» mientras esta pantalla aún no tiene una estimación o medición propia. */
-internal val SetupBodyFatState.offersFigureValue: Boolean
-    get() = this == SetupBodyFatState.PENDING ||
-        this == SetupBodyFatState.ON_FILE ||
-        this == SetupBodyFatState.SKIPPED
-
-/** Línea de estado del dato: siempre dice si hay dato, cuál y si se omitió. */
-internal fun bodyFatStatusText(draft: SetupWizardDraft): String = when (draft.bodyFatState()) {
-    SetupBodyFatState.PENDING -> "Sin dato todavía"
-    SetupBodyFatState.ON_FILE -> (draft.bodyFatPercent ?: draft.importedBodyFatPercent)
-        ?.let { "Dato guardado antes: ≈ ${formatPercent(it)} %" }
-        ?: "Dato guardado antes"
-    SetupBodyFatState.VISUAL -> draft.bodyFatPercent
-        ?.let { "Estimación visual guardada: ≈ ${it.roundToInt()} %" }
-        ?: "Estimación visual guardada"
-    SetupBodyFatState.MEASURED -> draft.bodyFatPercent
-        ?.let { "Medición guardada: ${formatPercent(it)} %" }
-        ?: "Falta el porcentaje de tu medición"
-    SetupBodyFatState.SKIPPED -> "Omitido"
-}
-
-/** Ayuda breve bajo el estado; null cuando el dato ya está claro y no hace falta explicar nada. */
-internal fun bodyFatStatusHint(state: SetupBodyFatState): String? = when (state) {
-    SetupBodyFatState.PENDING -> BODY_FAT_PENDING_MESSAGE
-    SetupBodyFatState.ON_FILE -> "Si continúas, se conserva. Mueve la figura o escribe una medición para cambiarlo."
-    SetupBodyFatState.SKIPPED -> "No se guardará tu grasa corporal. Mueve la figura si cambias de idea."
-    SetupBodyFatState.VISUAL, SetupBodyFatState.MEASURED -> null
-}
-
-private fun formatPercent(value: Double): String =
-    if (value % 1.0 == 0.0) value.toInt().toString() else "%.1f".format(value).replace('.', ',')
+internal fun SetupWizardDraft.bodyFatRulerPercent(): Double =
+    bodyFatPercent?.takeIf { it.isFinite() }
+        ?: importedBodyFatPercent?.takeIf { bodyFatState() == SetupBodyFatState.ON_FILE }
+        ?: bodyFatForSliderPos(physiqueSliderPosition)
 
 /**
- * Texto con el que se abre el campo de medición exacta. Manda lo guardado, pero nunca
- * un `Double` crudo («33.184518814086914», como dejaban las versiones anteriores al
- * mover la figura): con más de un decimal se recorta a uno y conserva el separador que
- * ya traía el texto (el parser acepta punto y coma). Sin texto guardado se parte del
- * porcentaje del borrador.
+ * Declara la estimación visual que fija la regla, en UNA sola escritura: la fuente `VISUAL_ESTIMATE`, el
+ * porcentaje entero (con su fecha real, solo si cambió) y la posición de la figura derivada de ese porcentaje.
+ * Equivale a `setStepChoice` + `setStepNumber` + guardar la posición del slider, pero atómico y con un único guardado.
  */
-internal fun bodyFatFieldText(stored: String?, percent: Double?): String {
-    if (stored == null) return percent?.let(::formatPercent).orEmpty()
-    val separatorIndex = stored.lastIndexOfAny(charArrayOf('.', ','))
-    val decimals = if (separatorIndex < 0) 0 else stored.length - separatorIndex - 1
-    if (decimals <= 1) return stored
-    val parsed = parseLocalizedNumber(stored) ?: return stored
-    val shortText = String.format(Locale.ROOT, "%.1f", parsed).removeSuffix(".0")
-    return if (stored[separatorIndex] == ',') shortText.replace('.', ',') else shortText
+internal fun SetupWizardDraft.withBodyFatRulerValue(
+    percent: Int,
+    nowEpochMs: Long = System.currentTimeMillis(),
+): SetupWizardDraft {
+    val value = percent.toDouble()
+    return withStepChoice(SetupStepId.BODY_FAT, SetupBodyFatSource.VISUAL_ESTIMATE.name, nowEpochMs)
+        .withStepNumber(SetupStepId.BODY_FAT, value, nowEpochMs)
+        .copy(physiqueSliderPosition = physiqueSliderPositionForBodyFat(value))
 }
 
 // ─── Pasos legacy solo lectura ───────────────────────────────────────────────

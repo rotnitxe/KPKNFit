@@ -49,8 +49,8 @@ enum class SetupControlKind {
     TEXT,
     /** A single number with an optional unit and range. */
     NUMBER,
-    /** Body-fat physique selector: measured value or explicit visual estimation
-     *  on a male/female figure; unknown may omit the step. */
+    /** Body-fat step: a vertical percentage ruler (5–50 %) next to a male/female figure.
+     *  Mandatory (no skip); moving the ruler declares a visual estimate. */
     PHYSIQUE,
     /** One option from a closed list. */
     SINGLE_CHOICE,
@@ -289,16 +289,21 @@ object SetupStepDefinitions {
         ),
         SetupStepDefinition(
             id = SetupStepId.BODY_FAT, block = SetupWizardBlock.BASICS, kind = SetupStepKind.QUESTION,
-            title = "¿Cuál es tu grasa corporal?",
-            subtitle = "Usa la estimación visual con la figura. Si tienes una medición, escríbela.",
+            // 41 caracteres: es la única pregunta que pasa de 40 (SetupStepCopyRulesTest admite hasta 44).
+            title = "¿Cuál es tu porcentaje de grasa corporal?",
+            // Sin subtítulo: la figura y la regla se explican solas (la nota, el estado y el campo manual se retiraron).
+            subtitle = null,
             control = SetupControlKind.PHYSIQUE, unit = "%",
             range = SetupNumericRange(3.0, 60.0, "%"),
+            // Fuentes que puede traer un borrador antiguo. El paso actual solo declara «visual» (mover la regla):
+            // ya no hay medición escrita ni «omitir», pero esos borradores se siguen leyendo.
             options = opt(
                 "measured" to "Lo tengo medido",
                 "visual" to "Estimación visual con la figura",
                 "unknown" to "No lo sé / omitir",
             ),
-            allowSkip = true,
+            // Obligatorio: la validación exige un porcentaje declarado entre 3 y 60.
+            allowSkip = false,
         ),
         SetupStepDefinition(
             id = SetupStepId.MILESTONE_BASICS, block = SetupWizardBlock.BASICS, kind = SetupStepKind.MILESTONE,
