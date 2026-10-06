@@ -77,13 +77,11 @@ internal fun wizardPageCopy(page: SetupStepId, route: List<SetupStepId>): Wizard
     return when (page) {
         SetupStepId.NAME -> WizardPageCopy("Empecemos por ti", "Tu alias y tu fecha de nacimiento.")
         SetupStepId.HEIGHT -> WizardPageCopy("¿Cuánto mides y pesas?", "Desliza cada regla hasta tu medida.")
-        SetupStepId.BODY_FAT -> WizardPageCopy(definition?.title ?: page.name, BODY_FAT_SUBTITLE)
+        // La figura y la regla se explican solas: este paso no lleva subtítulo.
+        SetupStepId.BODY_FAT -> WizardPageCopy(definition?.title ?: page.name, null)
         else -> WizardPageCopy(definition?.title ?: page.name, definition?.subtitle)
     }
 }
-
-/** Subtítulo corto del paso de grasa corporal (máx. 2 líneas). */
-private const val BODY_FAT_SUBTITLE = "Mueve la figura. Si tienes el dato medido, escríbelo debajo."
 
 /** Título de la sección de un hito: lo que acaba de quedar listo. */
 internal fun milestoneSectionTitle(block: SetupWizardBlock): String = when (block) {

@@ -86,6 +86,8 @@ import com.example.kpkn.screens.onboarding.design.WizardBodyFatSource
 import com.example.kpkn.screens.onboarding.design.WizardBodyFatValue
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardAnthropometryLayout
+import com.example.kpkn.screens.onboarding.design.WizardGenderGlyph
+import com.example.kpkn.screens.onboarding.design.WizardGenderMark
 import com.example.kpkn.screens.onboarding.design.WizardHeightRule
 import com.example.kpkn.screens.onboarding.design.WizardHeightUnit
 import com.example.kpkn.screens.onboarding.design.WizardHeightUnitToggle
@@ -336,15 +338,13 @@ private fun BirthDateField(state: SetupWizardState, vm: SetupWizardViewModel) {
 private const val GENDER_WHY_TEXT =
     "Conocer tu género nos permitirá calcular el gasto energético que te corresponde. Esto es muy importante para calcular tus calorías recomendadas para tu plan de nutrición. Si no tienes una opción que te identifique, elige la que más se apegue a tu contexto hormonal."
 
-private enum class GenderMark { FEMALE, MALE, TRANS_MALE, TRANS_FEMALE }
-
-private data class GenderChoice(val value: String, val label: String, val mark: GenderMark)
+private data class GenderChoice(val value: String, val label: String, val mark: WizardGenderMark)
 
 private val genderChoices = listOf(
-    GenderChoice("female", "Mujer", GenderMark.FEMALE),
-    GenderChoice("male", "Hombre", GenderMark.MALE),
-    GenderChoice("trans_male", "Hombre trans", GenderMark.TRANS_MALE),
-    GenderChoice("trans_female", "Mujer trans", GenderMark.TRANS_FEMALE),
+    GenderChoice("female", "Mujer", WizardGenderMark.FEMALE),
+    GenderChoice("male", "Hombre", WizardGenderMark.MALE),
+    GenderChoice("trans_male", "Hombre trans", WizardGenderMark.TRANS_MALE),
+    GenderChoice("trans_female", "Mujer trans", WizardGenderMark.TRANS_FEMALE),
 )
 
 /** Zona del glifo y de su resplandor: es también lo que se toca, así que supera con holgura los 48 dp. */
@@ -354,9 +354,9 @@ private val GENDER_GLYPH_BOX = 60.dp
 private val GENDER_GLYPH_SIZE = 40.dp
 
 /** Color del resplandor: azul para lo masculino, violeta para lo femenino (también en las opciones trans). */
-private fun GenderMark.glowColor(): Color = when (this) {
-    GenderMark.MALE, GenderMark.TRANS_MALE -> WizardColors.genderMasculine
-    GenderMark.FEMALE, GenderMark.TRANS_FEMALE -> WizardColors.genderFeminine
+private fun WizardGenderMark.glowColor(): Color = when (this) {
+    WizardGenderMark.MALE, WizardGenderMark.TRANS_MALE -> WizardColors.genderMasculine
+    WizardGenderMark.FEMALE, WizardGenderMark.TRANS_FEMALE -> WizardColors.genderFeminine
 }
 
 /**
@@ -446,7 +446,7 @@ private fun GenderOption(
                 .drawBehind { drawGenderGlow(glowColor, glow.value) },
             contentAlignment = Alignment.Center,
         ) {
-            GenderGlyph(
+            WizardGenderGlyph(
                 mark = choice.mark,
                 color = if (active) WizardColors.text else WizardColors.textFaint,
                 modifier = Modifier
@@ -489,55 +489,6 @@ private fun DrawScope.drawGenderGlow(color: Color, alpha: Float) {
         radius = radius,
         center = center,
     )
-}
-
-/**
- * Glifo de género dibujado en un lienzo de 100×100 y escalado al lado que reciba. Los cuatro comparten caja,
- * grosor de trazo (7 unidades, puntas redondas) y la misma altura de tinta (de 11 a 89), centrada en el lienzo:
- * por eso miden lo mismo y ninguno queda descentrado, cosa que no ocurría con los símbolos ♀/♂ de la fuente.
- * Es decorativo: la etiqueta de la opción ya dice qué es.
- */
-@Composable
-private fun GenderGlyph(mark: GenderMark, color: Color, modifier: Modifier = Modifier) {
-    Canvas(modifier.clearAndSetSemantics { }) {
-        val u = size.minDimension / 100f
-        val strokeWidth = 7f * u
-        fun point(x: Float, y: Float) = Offset(x * u, y * u)
-        fun line(x1: Float, y1: Float, x2: Float, y2: Float) =
-            drawLine(color, point(x1, y1), point(x2, y2), strokeWidth = strokeWidth, cap = StrokeCap.Round)
-        fun ring(cx: Float, cy: Float, radius: Float) = drawCircle(
-            color = color,
-            radius = radius * u,
-            center = point(cx, cy),
-            style = Stroke(width = strokeWidth, cap = StrokeCap.Round),
-        )
-        when (mark) {
-            GenderMark.FEMALE -> {
-                ring(50f, 37f, 26f)
-                line(50f, 63f, 50f, 89f)
-                line(34f, 76f, 66f, 76f)
-            }
-            GenderMark.MALE -> {
-                ring(37f, 63f, 26f)
-                line(55.4f, 44.6f, 89f, 11f)
-                line(65f, 11f, 89f, 11f)
-                line(89f, 11f, 89f, 35f)
-            }
-            // Símbolo trans (⚧): círculo, dos flechas hacia arriba y cruz abajo. Es el mismo para las dos opciones
-            // trans; la etiqueta y el color del resplandor dicen cuál es cuál.
-            GenderMark.TRANS_MALE, GenderMark.TRANS_FEMALE -> {
-                ring(50f, 45f, 20f)
-                line(64.1f, 30.9f, 84f, 11f)
-                line(64f, 11f, 84f, 11f)
-                line(84f, 11f, 84f, 31f)
-                line(35.9f, 30.9f, 16f, 11f)
-                line(36f, 11f, 16f, 11f)
-                line(16f, 11f, 16f, 31f)
-                line(50f, 65f, 50f, 89f)
-                line(37f, 77f, 63f, 77f)
-            }
-        }
-    }
 }
 
 /**
