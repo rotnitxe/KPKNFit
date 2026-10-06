@@ -218,4 +218,40 @@ class SetupBodyFatStepTest {
         assertNull(bodyFatStatusHint(SetupBodyFatState.VISUAL))
         assertNull(bodyFatStatusHint(SetupBodyFatState.MEASURED))
     }
+
+    // ─── Texto del campo de medición exacta ──────────────────────────────────
+
+    @Test
+    fun theFigureWritesAShortTextButKeepsTheFullPrecisionPercentage() {
+        // Lo que emite la figura al mover el slider: un Double crudo, no un porcentaje redondo.
+        val raw = 33.184518814086914
+        val draft = SetupWizardDraft()
+            .withStepChoice(SetupStepId.BODY_FAT, SetupBodyFatSource.VISUAL_ESTIMATE.name, nowEpochMs = 1L)
+            .withStepNumber(SetupStepId.BODY_FAT, raw, nowEpochMs = 2L)
+
+        // El campo de medición exacta lee `inputTexts`: un decimal como máximo, con punto.
+        assertEquals("33.2", draft.inputTexts["BODY_FAT"])
+        // El valor tipado conserva toda su precisión: solo se acorta el texto.
+        assertEquals(raw, draft.bodyFatPercent!!, 0.0)
+        // Un entero no arrastra decimales y un decimal ya corto queda tal cual.
+        assertEquals("22", draft.withStepNumber(SetupStepId.BODY_FAT, 22.0, nowEpochMs = 3L).inputTexts["BODY_FAT"])
+        assertEquals("18.5", draft.withStepNumber(SetupStepId.BODY_FAT, 18.5, nowEpochMs = 3L).inputTexts["BODY_FAT"])
+        // El texto corto sigue siendo un porcentaje válido para el parser y la validación.
+        assertTrue(blocking(draft).isEmpty())
+    }
+
+    @Test
+    fun theMeasurementFieldNeverOpensWithARawDouble() {
+        // Borradores guardados antes de acortar el texto en el origen.
+        assertEquals("33.2", bodyFatFieldText("33.184518814086914", 33.184518814086914))
+        assertEquals("33,2", bodyFatFieldText("33,184518814086914", null))
+        assertEquals("20", bodyFatFieldText("19.99999999999", null))
+        // Lo escrito con un decimal como máximo se respeta tal cual, también a medias.
+        assertEquals("17,5", bodyFatFieldText("17,5", 17.5))
+        assertEquals("17.", bodyFatFieldText("17.", 17.0))
+        assertEquals("abc", bodyFatFieldText("abc", null))
+        // Sin texto guardado se parte del porcentaje del borrador, con coma decimal.
+        assertEquals("21,6", bodyFatFieldText(null, 21.6))
+        assertEquals("", bodyFatFieldText(null, null))
+    }
 }

@@ -6,12 +6,23 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
+import androidx.compose.material3.TextButton
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -43,19 +54,20 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.domain.nutrition.EerSex
 import com.example.kpkn.domain.nutrition.bodyFatForSliderPos
+import com.example.kpkn.domain.nutrition.parseLocalizedNumber
 import com.example.kpkn.domain.onboarding.SetupControlKind
 import com.example.kpkn.domain.onboarding.SetupOptionDefinition
 import com.example.kpkn.domain.onboarding.SetupStepDefinition
@@ -77,6 +89,7 @@ import com.example.kpkn.screens.onboarding.design.WizardShapes
 import com.example.kpkn.screens.onboarding.design.WizardSpacing
 import com.example.kpkn.screens.onboarding.design.WizardTypography
 import com.example.kpkn.screens.onboarding.design.WizardWeightRule
+import java.util.Locale
 import kotlin.math.roundToInt
 
 /**
@@ -97,6 +110,13 @@ import kotlin.math.roundToInt
  *   escribe `equationSex` ni plantea una pregunta de identidad.
  * - La edad admite tecleo numérico crudo: el intermedio («1» de «19») se
  *   conserva en el campo mientras el valor canónico sigue sin declararse.
+ * - Cada paso es una sección de la página larga: el Host pinta la etiqueta, el
+ *   título y el subtítulo, así que aquí no se repiten. Tipografía solo con roles
+ *   de [WizardTypography] (mínimo 13 sp); las únicas excepciones son el glifo
+ *   ♀/♂, que es un icono, y el tamaño del alias, que baja de 36 a 24 sp partiendo
+ *   de `controlValue`.
+ * - El género se pregunta una sola vez, en su propio paso (EQUATION_SEX); la
+ *   primera página solo pide alias y fecha de nacimiento.
  */
 @Composable
 fun SetupBasicsStepContent(
@@ -117,68 +137,194 @@ fun SetupBasicsStepContent(
     }
 }
 
-// ─── Nombre y edad ───────────────────────────────────────────────────────────
+// ─── Alias y fecha de nacimiento ─────────────────────────────────────────────
 
+/**
+ * Primera página (NAME): «Alias» y «Fecha de nacimiento», cada uno con su
+ * etiqueta (`controlLabel`) alineada a la izquierda y el campo a todo el ancho;
+ * bajo la fecha, «Tienes N años». El título de la sección lo pinta el Host y el
+ * género NO se pregunta aquí: tiene su propio paso (EQUATION_SEX).
+ *
+ * Conserva las marcas de prueba (`setup-name`, `setup-birth-date`), las
+ * escrituras al ViewModel y la validación del CTA tal como estaban.
+ */
 @Composable
 private fun SetupAliasAndAge(
+    state: SetupWizardState,
+    vm: SetupWizardViewModel,
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(WizardSpacing.sectionGap),
+    ) {
+        SetupLabeledField(label = "Alias") { AliasField(state = state, vm = vm) }
+        SetupLabeledField(label = "Fecha de nacimiento") { BirthDateField(state = state, vm = vm) }
+    }
+}
+
+/** Etiqueta (`controlLabel`, a la izquierda) sobre un campo a todo el ancho. */
+@Composable
+private fun SetupLabeledField(
+    label: String,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(text = label, style = WizardTypography.controlLabel, color = WizardColors.text)
+        content()
+    }
+}
+
+/**
+ * Marco de un campo de la página larga: tarjeta con borde fino que pasa a borde
+ * blanco grueso con el foco. Vive dentro del `decorationBox` del campo para que
+ * todo el marco (no solo el texto) reciba el toque y abra el teclado.
+ */
+@Composable
+private fun SetupFieldFrame(
+    focused: Boolean,
+    content: @Composable BoxScope.() -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = SETUP_FIELD_MIN_HEIGHT)
+            .background(WizardColors.cardFill, WizardShapes.card)
+            .border(
+                width = if (focused) WizardColors.selectedBorderWidth else WizardColors.unselectedBorderWidth,
+                color = if (focused) WizardColors.selectedBorder else WizardColors.cardBorder,
+                shape = WizardShapes.card,
+            )
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        contentAlignment = Alignment.CenterStart,
+        content = content,
+    )
+}
+
+/** Alto mínimo del marco de un campo: por encima del objetivo táctil de 48 dp y con aire para 36 sp. */
+private val SETUP_FIELD_MIN_HEIGHT = 64.dp
+
+/**
+ * Alias: `controlValue` (36 sp) mientras es corto y hasta 24 sp con alias
+ * largos. Vacío muestra «Pon tu alias» con el mismo estilo en `textFaint`.
+ */
+@Composable
+private fun AliasField(
     state: SetupWizardState,
     vm: SetupWizardViewModel,
 ) {
     var text by rememberSaveable(state.draft.draftId, state.draft.commitId) {
         mutableStateOf(state.draft.inputTexts[SetupStepId.NAME.name] ?: state.draft.name)
     }
-    val fontSize = (32f - text.length * 0.35f).coerceIn(20f, 28f).sp
-    Column(
-        Modifier.fillMaxWidth().padding(horizontal = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(28.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-    NumberedPrompt("1. Alias", "¿Cómo quieres que te llamemos?")
+    val interaction = remember { MutableInteractionSource() }
+    val focused by interaction.collectIsFocusedAsState()
+    // Excepción permitida a «sin tamaños propios»: el tamaño baja con la longitud,
+    // pero siempre partiendo del rol `controlValue`.
+    val style = WizardTypography.controlValue.copy(
+        color = WizardColors.text,
+        fontSize = aliasFontSizeSp(text.length).sp,
+    )
     BasicTextField(
         value = text,
         onValueChange = { raw ->
-            val next = raw.take(32)
+            val next = raw.take(ALIAS_MAX_LENGTH)
             text = next
             vm.setStepText(SetupStepId.NAME, next)
         },
-        textStyle = WizardTypography.question.copy(
-            color = WizardColors.text,
-            fontSize = fontSize,
-            textAlign = TextAlign.Center,
-            fontWeight = FontWeight.SemiBold,
-        ),
+        textStyle = style,
         cursorBrush = SolidColor(WizardColors.text),
         singleLine = true,
         keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
+        interactionSource = interaction,
         modifier = Modifier
             .fillMaxWidth()
             .testTag("setup-name"),
         decorationBox = { inner ->
-            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            SetupFieldFrame(focused = focused) {
                 if (text.isEmpty()) {
-                    Text(
-                        text = "Pon tu alias",
-                        color = WizardColors.textFaint,
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        textAlign = TextAlign.Center,
-                    )
+                    Text(text = "Pon tu alias", style = style, color = WizardColors.textFaint, maxLines = 1)
                 }
                 inner()
             }
         },
     )
-    NumberedPrompt("2. Fecha de nacimiento", null)
-    BirthDateField(state = state, vm = vm)
-    GenderPrompt()
-    GenderSymbolRow(
-        selected = state.draft.selectedValues(SetupStepId.EQUATION_SEX).firstOrNull(),
-        onSelect = { value -> vm.setStepChoice(SetupStepId.EQUATION_SEX, value) },
-    )
+}
+
+/** Longitud máxima del alias (la misma que valida `SetupWizardValidation`). */
+private const val ALIAS_MAX_LENGTH = 32
+
+/** Tamaño del alias en sp: 36 mientras es corto, medio sp menos por carácter y nunca por debajo de 24. */
+private fun aliasFontSizeSp(length: Int): Float =
+    (ALIAS_FONT_MAX_SP - length * ALIAS_FONT_SHRINK_SP_PER_CHAR).coerceIn(ALIAS_FONT_MIN_SP, ALIAS_FONT_MAX_SP)
+
+private const val ALIAS_FONT_MAX_SP = 36f
+private const val ALIAS_FONT_MIN_SP = 24f
+private const val ALIAS_FONT_SHRINK_SP_PER_CHAR = 0.5f
+
+@Composable
+private fun BirthDateField(state: SetupWizardState, vm: SetupWizardViewModel) {
+    var digits by rememberSaveable(state.draft.draftId) {
+        mutableStateOf(state.draft.inputTexts["birthDate"].orEmpty().filter(Char::isDigit).take(8))
+    }
+    val age = ageYearsFromBirthDigits(digits)
+    val interaction = remember { MutableInteractionSource() }
+    val focused by interaction.collectIsFocusedAsState()
+    val style = WizardTypography.controlValue.copy(color = WizardColors.text)
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        BasicTextField(
+            value = digits,
+            onValueChange = { raw ->
+                val next = raw.filter(Char::isDigit).take(8)
+                digits = next
+                val years = ageYearsFromBirthDigits(next)
+                vm.updateStep(SetupStepId.AGE) { draft ->
+                    draft.copy(
+                        inputTexts = draft.inputTexts + ("birthDate" to next),
+                        ageYears = years,
+                    )
+                }
+            },
+            visualTransformation = BirthDateVisualTransformation,
+            textStyle = style,
+            cursorBrush = SolidColor(WizardColors.text),
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            interactionSource = interaction,
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("setup-birth-date"),
+            decorationBox = { inner ->
+                SetupFieldFrame(focused = focused) {
+                    if (digits.isEmpty()) {
+                        Text(text = "DD/MM/AAAA", style = style, color = WizardColors.textFaint, maxLines = 1)
+                    }
+                    inner()
+                }
+            },
+        )
+        if (age != null) {
+            Text(
+                text = if (age == 1) "Tienes 1 año" else "Tienes $age años",
+                style = WizardTypography.note,
+                color = WizardColors.textMuted,
+            )
+        }
     }
 }
 
-private const val GENDER_SUBTITLE =
+// ─── Género (sexo de cálculo) ────────────────────────────────────────────────
+
+/**
+ * Por qué se pregunta el género. Es el párrafo largo que antes era el subtítulo
+ * del paso: ahora vive detrás de «Por qué lo preguntamos» (diálogo) y el
+ * subtítulo del catálogo se queda en una frase corta.
+ */
+private const val GENDER_WHY_TEXT =
     "Conocer tu género nos permitirá calcular el gasto energético que te corresponde. Esto es muy importante para calcular tus calorías recomendadas para tu plan de nutrición. Si no tienes una opción que te identifique, elige la que más se apegue a tu contexto hormonal."
 
 private enum class GenderMark { FEMALE, MALE, TRANS_MALE, TRANS_FEMALE }
@@ -192,160 +338,125 @@ private val genderChoices = listOf(
     GenderChoice("trans_female", "Mujer trans", GenderMark.TRANS_FEMALE),
 )
 
-@Composable
-private fun NumberedPrompt(indexLabel: String, caption: String?) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-        Text(indexLabel, color = WizardColors.text, fontSize = 16.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
-        if (caption != null) {
-            Text(
-                caption,
-                color = WizardColors.textMuted,
-                fontSize = 14.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(top = 4.dp),
-            )
-        }
-    }
-}
+/** Aro de cada glifo: tamaño fijo, no crece con la escala de fuente. */
+private val GENDER_DISC_SIZE = 56.dp
 
-@Composable
-private fun GenderPrompt() {
-    var info by remember { mutableStateOf(false) }
-    Row(
-        Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text("3. Género", color = WizardColors.text, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-        Spacer(Modifier.width(8.dp))
-        Text("Elige tu género", color = WizardColors.textMuted, fontSize = 14.sp)
-        Text(
-            "(i)",
-            color = WizardColors.text,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier
-                .padding(start = 6.dp)
-                .clickable { info = true },
-        )
-    }
-    if (info) {
-        androidx.compose.ui.window.Popup(onDismissRequest = { info = false }) {
-            Text(
-                GENDER_SUBTITLE,
-                color = WizardColors.text,
-                style = WizardTypography.bodySmall,
-                modifier = Modifier
-                    .padding(24.dp)
-                    .width(280.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(Color(0xFF1A1A1A))
-                    .padding(16.dp),
-            )
-        }
-    }
-}
+/** Tamaño del glifo ♀/♂ (icono): 46 dp, es decir 46 sp a escala 1; no sigue la escala de fuente. */
+private val GENDER_GLYPH_SIZE = 46.dp
 
-@Composable
-private fun BirthDateField(state: SetupWizardState, vm: SetupWizardViewModel) {
-    var digits by rememberSaveable(state.draft.draftId) {
-        mutableStateOf(state.draft.inputTexts["birthDate"].orEmpty().filter(Char::isDigit).take(8))
-    }
-    val age = ageYearsFromBirthDigits(digits)
-    BasicTextField(
-        value = digits,
-        onValueChange = { raw ->
-            val next = raw.filter(Char::isDigit).take(8)
-            digits = next
-            val years = ageYearsFromBirthDigits(next)
-            vm.updateStep(SetupStepId.AGE) { draft ->
-                draft.copy(
-                    inputTexts = draft.inputTexts + ("birthDate" to next),
-                    ageYears = years,
-                )
-            }
-        },
-        visualTransformation = BirthDateVisualTransformation,
-        textStyle = WizardTypography.question.copy(
-            color = WizardColors.text,
-            fontSize = 36.sp,
-            textAlign = TextAlign.Center,
-            fontWeight = FontWeight.SemiBold,
-        ),
-        cursorBrush = SolidColor(WizardColors.text),
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-        modifier = Modifier.fillMaxWidth().testTag("setup-birth-date"),
-        decorationBox = { inner ->
-            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                if (digits.isEmpty()) {
-                    Text(
-                        "DD/MM/AAAA",
-                        color = WizardColors.textFaint,
-                        fontSize = 36.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        textAlign = TextAlign.Center,
-                    )
-                }
-                inner()
-            }
-        },
-    )
-    if (age != null) {
-        Text(
-            text = "Tienes $age años",
-            color = WizardColors.text,
-            fontSize = 16.sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-        )
-    }
-}
+/** Lado del lienzo del glifo trans, de modo que su trazo ocupe lo mismo que ♀/♂ dentro del aro. */
+private val GENDER_TRANS_GLYPH_SIZE = 40.dp
 
+/**
+ * Las cuatro opciones de género en una fila. Cada una es un botón de radio
+ * (`Role.RadioButton` + `selected`) con etiqueta `note` y el glifo dentro de un
+ * aro, y mide bastante más de 48 dp de alto. La elegida lleva aro blanco grueso
+ * y glifo y etiqueta en `text`: el estado no depende solo del color.
+ *
+ * Con una escala de fuente grande («Hombre trans» ya no cabe en un cuarto del
+ * ancho) las opciones pasan a dos filas de dos, para que ninguna etiqueta se parta.
+ */
 @Composable
 internal fun GenderSymbolRow(selected: String?, onSelect: (String) -> Unit) {
-    Row(
-        Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
-        verticalAlignment = Alignment.Top,
+    val perRow = if (LocalDensity.current.fontScale > GENDER_GRID_FONT_SCALE) 2 else genderChoices.size
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .selectableGroup(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        genderChoices.forEach { choice ->
-            val active = choice.value == selected
-            Column(
-                Modifier
-                    .width(76.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .clickable { onSelect(choice.value) }
-                    .padding(vertical = 4.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
+        genderChoices.chunked(perRow).forEach { rowChoices ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                // Con los glifos alineados abajo, una etiqueta de dos líneas no desplaza los aros.
+                verticalAlignment = Alignment.Bottom,
             ) {
-                Text(
-                    choice.label,
-                    color = WizardColors.textMuted,
-                    fontSize = 11.sp,
-                    textAlign = TextAlign.Center,
-                    maxLines = 2,
-                    lineHeight = 13.sp,
-                )
-                GenderMarkIcon(choice.mark, active, Modifier.padding(top = 2.dp).size(54.dp))
+                rowChoices.forEach { choice ->
+                    GenderOption(
+                        choice = choice,
+                        active = choice.value == selected,
+                        onSelect = { onSelect(choice.value) },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
             }
         }
+    }
+}
+
+/** Escala de fuente a partir de la cual las opciones de género pasan a dos filas de dos. */
+private const val GENDER_GRID_FONT_SCALE = 1.25f
+
+@Composable
+private fun GenderOption(
+    choice: GenderChoice,
+    active: Boolean,
+    onSelect: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .clip(WizardShapes.card)
+            .selectable(selected = active, role = Role.RadioButton, onClick = onSelect)
+            .padding(vertical = 4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Text(
+            text = choice.label,
+            style = WizardTypography.note,
+            color = if (active) WizardColors.text else WizardColors.textMuted,
+            textAlign = TextAlign.Center,
+            maxLines = 2,
+        )
+        GenderMarkDisc(mark = choice.mark, active = active)
+    }
+}
+
+/** Glifo dentro de su aro: fino y apagado en reposo, blanco y grueso cuando está elegido. */
+@Composable
+private fun GenderMarkDisc(mark: GenderMark, active: Boolean) {
+    Box(
+        modifier = Modifier
+            .size(GENDER_DISC_SIZE)
+            .background(WizardColors.cardFill, CircleShape)
+            .border(
+                width = if (active) WizardColors.selectedBorderWidth else WizardColors.unselectedBorderWidth,
+                color = if (active) WizardColors.selectedBorder else WizardColors.cardBorder,
+                shape = CircleShape,
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        GenderMarkIcon(mark = mark, active = active)
     }
 }
 
 @Composable
 private fun GenderMarkIcon(mark: GenderMark, active: Boolean, modifier: Modifier = Modifier) {
-    val color = when (mark) {
-        GenderMark.FEMALE -> if (active) WizardColors.text else WizardColors.textFaint
-        GenderMark.MALE -> if (active) WizardColors.text else WizardColors.textFaint
-        GenderMark.TRANS_MALE -> Color(0xFF3D8BFF)
-        GenderMark.TRANS_FEMALE -> Color(0xFFFF6BA8)
-    }
+    // Un solo tratamiento para los cuatro glifos: apagado `textFaint`, elegido `text`.
+    // Los dos glifos trans son idénticos: antes solo los distinguía el color (azul/rosa)
+    // y ahora la etiqueta es lo que dice cuál es cuál.
+    val color = if (active) WizardColors.text else WizardColors.textFaint
     when (mark) {
-        GenderMark.FEMALE -> Text("♀", color = color, fontSize = 46.sp, fontWeight = FontWeight.Bold, modifier = modifier, textAlign = TextAlign.Center)
-        GenderMark.MALE -> Text("♂", color = color, fontSize = 46.sp, fontWeight = FontWeight.Bold, modifier = modifier, textAlign = TextAlign.Center)
-        GenderMark.TRANS_MALE, GenderMark.TRANS_FEMALE -> TransGlyph(color, modifier)
+        GenderMark.FEMALE -> GenderSignGlyph("♀", color, modifier)
+        GenderMark.MALE -> GenderSignGlyph("♂", color, modifier)
+        GenderMark.TRANS_MALE, GenderMark.TRANS_FEMALE -> TransGlyph(color, modifier.size(GENDER_TRANS_GLYPH_SIZE))
     }
+}
+
+/** Glifo ♀/♂ como icono decorativo: la etiqueta de la opción ya dice qué es (TalkBack no lo repite). */
+@Composable
+private fun GenderSignGlyph(sign: String, color: Color, modifier: Modifier = Modifier) {
+    // Excepción permitida a «sin tamaños propios»: es un icono, no texto; su tamaño no sigue la escala de fuente.
+    val glyphSize = with(LocalDensity.current) { GENDER_GLYPH_SIZE.toSp() }
+    Text(
+        text = sign,
+        style = WizardTypography.controlValue.copy(fontSize = glyphSize, lineHeight = TextUnit.Unspecified),
+        color = color,
+        textAlign = TextAlign.Center,
+        modifier = modifier.clearAndSetSemantics { },
+    )
 }
 
 @Composable
@@ -376,47 +487,43 @@ private fun TransGlyph(color: Color, modifier: Modifier = Modifier) {
     }
 }
 
+/**
+ * Botón «Por qué lo preguntamos»: abre el diálogo con la explicación larga.
+ * Mide al menos 48 dp de alto y se anuncia como botón.
+ */
 @Composable
-private fun MeasureHeading(
-    title: String,
-    metricSelected: Boolean,
-    metric: String,
-    imperial: String,
-    onMetric: () -> Unit,
-    onImperial: () -> Unit,
-) {
+private fun GenderWhyButton(onClick: () -> Unit) {
     Row(
-        Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .heightIn(min = WizardSpacing.touchTarget)
+            .clip(WizardShapes.pill)
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(horizontal = 4.dp)
+            .testTag(GENDER_WHY_TAG),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        Text(title, color = WizardColors.text, fontSize = 28.sp, fontWeight = FontWeight.Black)
-        Row(
-            Modifier.clip(RoundedCornerShape(999.dp)).background(Color.White.copy(alpha = 0.10f)).padding(3.dp),
-        ) {
-            UnitChip(metric, metricSelected, onMetric)
-            UnitChip(imperial, !metricSelected, onImperial)
-        }
+        Icon(
+            imageVector = Icons.Outlined.Info,
+            contentDescription = null,
+            tint = WizardColors.textMuted,
+            modifier = Modifier.size(20.dp),
+        )
+        Text(text = "Por qué lo preguntamos", style = WizardTypography.controlLabel, color = WizardColors.text)
     }
 }
 
+/** Marca de prueba del botón «Por qué lo preguntamos». */
+internal const val GENDER_WHY_TAG = "setup-gender-why"
+
 @Composable
-private fun UnitChip(label: String, selected: Boolean, onClick: () -> Unit) {
-    Box(
-        Modifier
-            .clip(RoundedCornerShape(999.dp))
-            .background(if (selected) Color.White else Color.Transparent)
-            .clickable(onClick = onClick)
-            .padding(horizontal = 10.dp, vertical = 4.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            label,
-            color = if (selected) Color.Black else WizardColors.text,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold,
-        )
-    }
+private fun GenderWhyDialog(onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Por qué lo preguntamos", style = WizardTypography.cardTitle, color = WizardColors.text) },
+        text = { Text(GENDER_WHY_TEXT, style = WizardTypography.bodySmall, color = WizardColors.textMuted) },
+        confirmButton = { TextButton(onClick = onDismiss) { Text("Entendido", color = WizardColors.text) } },
+    )
 }
 
 private object BirthDateVisualTransformation : VisualTransformation {
@@ -476,6 +583,51 @@ private fun ageYearsFromBirthDigits(digits: String): Int? {
 }
 
 // ─── Altura y peso ───────────────────────────────────────────────────────────
+
+/** Etiqueta de la medida (`controlLabel`) con su selector de unidad a la derecha. */
+@Composable
+private fun MeasureHeading(
+    title: String,
+    metricSelected: Boolean,
+    metric: String,
+    imperial: String,
+    onMetric: () -> Unit,
+    onImperial: () -> Unit,
+) {
+    Row(
+        Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(title, style = WizardTypography.controlLabel, color = WizardColors.text)
+        Row(
+            Modifier.clip(RoundedCornerShape(999.dp)).background(Color.White.copy(alpha = 0.10f)).padding(3.dp),
+        ) {
+            UnitChip(metric, metricSelected, onMetric)
+            UnitChip(imperial, !metricSelected, onImperial)
+        }
+    }
+}
+
+/** Unidad del selector: al menos 48 × 48 dp y `controlLabel`; la elegida va en píldora blanca. */
+@Composable
+private fun UnitChip(label: String, selected: Boolean, onClick: () -> Unit) {
+    Box(
+        Modifier
+            .defaultMinSize(minWidth = WizardSpacing.touchTarget, minHeight = WizardSpacing.touchTarget)
+            .clip(RoundedCornerShape(999.dp))
+            .background(if (selected) Color.White else Color.Transparent)
+            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
+            .padding(horizontal = 12.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            label,
+            style = WizardTypography.controlLabel,
+            color = if (selected) Color.Black else WizardColors.text,
+        )
+    }
+}
 
 /**
  * Altura con rueda vertical de cinco filas. La unidad vive en el borrador
@@ -592,6 +744,9 @@ fun SetupStepUnitToggle(step: SetupStepId, state: SetupWizardState, vm: SetupWiz
  * Sexo de cálculo: dos valores del catálogo más «No lo sé», que solo puede
  * continuar cuando la nutrición se prepara a mano (no hay ecuación que
  * completar). No se pregunta identidad de género en ningún caso.
+ *
+ * El subtítulo corto lo pinta el Host; el porqué largo vive detrás de
+ * «Por qué lo preguntamos» (diálogo), no como párrafo sobre las opciones.
  */
 @Composable
 private fun SetupEquationSexControl(
@@ -612,7 +767,8 @@ private fun SetupEquationSexControl(
     } else {
         definition.options + SetupOptionDefinition(EQUATION_SEX_UNKNOWN, "No lo sé")
     }
-    Text(GENDER_SUBTITLE, color = WizardColors.textMuted, style = WizardTypography.bodySmall)
+    var whyOpen by rememberSaveable { mutableStateOf(false) }
+    GenderWhyButton(onClick = { whyOpen = true })
     GenderSymbolRow(selected = selected, onSelect = { value -> vm.setStepChoice(step, value) })
     if (options.any { it.value == EQUATION_SEX_UNKNOWN }) {
         SetupFormChoiceCards(
@@ -621,6 +777,7 @@ private fun SetupEquationSexControl(
             onOptionClick = { value -> vm.setStepChoice(step, value) },
         )
     }
+    if (whyOpen) GenderWhyDialog(onDismiss = { whyOpen = false })
 }
 
 private const val EQUATION_SEX_UNKNOWN = "unknown"
@@ -656,16 +813,7 @@ private fun SetupBodyFatControl(
         measuredOpen = showExact,
         bodyFatState = state.draft.bodyFatState(),
     )
-    Text(
-        text = if (showExact) "Ocultar medición exacta" else "Tengo una medición exacta",
-        style = WizardTypography.cardSubtitle,
-        color = WizardColors.text,
-        modifier = Modifier
-            .clip(WizardShapes.pill)
-            .clickable { showExact = !showExact }
-            .semantics { role = Role.Button }
-            .padding(horizontal = 4.dp, vertical = 8.dp),
-    )
+    SetupExactMeasurementToggle(expanded = showExact, onToggle = { showExact = !showExact })
     if (showExact) SetupMeasuredBodyFatField(step = step, state = state, vm = vm)
     if (definition.allowSkip) {
         SetupFormSkipAction(onSkip = {
@@ -674,6 +822,28 @@ private fun SetupBodyFatControl(
             showExact = false
             vm.skipStep(step)
         })
+    }
+}
+
+/**
+ * Enlace «Tengo una medición exacta» / «Ocultar medición exacta»: letra
+ * `controlLabel`, anunciado como botón y de al menos 48 dp de alto.
+ */
+@Composable
+private fun SetupExactMeasurementToggle(expanded: Boolean, onToggle: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .heightIn(min = WizardSpacing.touchTarget)
+            .clip(WizardShapes.pill)
+            .clickable(role = Role.Button, onClick = onToggle)
+            .padding(horizontal = 4.dp),
+        contentAlignment = Alignment.CenterStart,
+    ) {
+        Text(
+            text = if (expanded) "Ocultar medición exacta" else "Tengo una medición exacta",
+            style = WizardTypography.controlLabel,
+            color = WizardColors.text,
+        )
     }
 }
 
@@ -690,7 +860,7 @@ private fun SetupMeasuredBodyFatField(
     vm: SetupWizardViewModel,
 ) {
     var raw by rememberSaveable(state.draft.draftId, state.draft.commitId, step) {
-        mutableStateOf(state.draft.inputTexts[step.name] ?: state.draft.bodyFatPercent?.let(::formatPercent).orEmpty())
+        mutableStateOf(bodyFatFieldText(state.draft.inputTexts[step.name], state.draft.bodyFatPercent))
     }
     SetupFormTextField(
         value = raw,
@@ -845,6 +1015,23 @@ internal fun bodyFatStatusHint(state: SetupBodyFatState): String? = when (state)
 
 private fun formatPercent(value: Double): String =
     if (value % 1.0 == 0.0) value.toInt().toString() else "%.1f".format(value).replace('.', ',')
+
+/**
+ * Texto con el que se abre el campo de medición exacta. Manda lo guardado, pero nunca
+ * un `Double` crudo («33.184518814086914», como dejaban las versiones anteriores al
+ * mover la figura): con más de un decimal se recorta a uno y conserva el separador que
+ * ya traía el texto (el parser acepta punto y coma). Sin texto guardado se parte del
+ * porcentaje del borrador.
+ */
+internal fun bodyFatFieldText(stored: String?, percent: Double?): String {
+    if (stored == null) return percent?.let(::formatPercent).orEmpty()
+    val separatorIndex = stored.lastIndexOfAny(charArrayOf('.', ','))
+    val decimals = if (separatorIndex < 0) 0 else stored.length - separatorIndex - 1
+    if (decimals <= 1) return stored
+    val parsed = parseLocalizedNumber(stored) ?: return stored
+    val shortText = String.format(Locale.ROOT, "%.1f", parsed).removeSuffix(".0")
+    return if (stored[separatorIndex] == ',') shortText.replace('.', ',') else shortText
+}
 
 // ─── Pasos legacy solo lectura ───────────────────────────────────────────────
 

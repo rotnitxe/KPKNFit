@@ -194,6 +194,9 @@ object SetupStepDefinitions {
 
     private fun opt(vararg pairs: Pair<String, String>) = pairs.map { (v, l) -> SetupOptionDefinition(v, l) }
 
+    // Copy de la página larga (lo exige SetupStepCopyRulesTest): en los pasos de pregunta el
+    // título es una pregunta de hasta 40 caracteres y el subtítulo, una frase de hasta 100.
+    // Los nombres de bloque y de vista previa son etiquetas y quedan fuera de esa regla.
     val definitions: Map<SetupStepId, SetupStepDefinition> = listOf(
         // -------------------------------------------------------------------
         // Bloque 1: Datos básicos
@@ -224,7 +227,8 @@ object SetupStepDefinitions {
         SetupStepDefinition(
             id = SetupStepId.EQUATION_SEX, block = SetupWizardBlock.BASICS, kind = SetupStepKind.QUESTION,
             title = "¿Cuál es tu género?",
-            subtitle = "Conocer tu género nos permitirá calcular el gasto energético que te corresponde. Esto es muy importante para calcular tus calorías recomendadas para tu plan de nutrición. Si no tienes una opción que te identifique, elige la que más se apegue a tu contexto hormonal.",
+            // El porqué largo vive en el diálogo «Por qué lo preguntamos» del paso (SetupBasicSteps).
+            subtitle = "Lo usamos para calcular tu gasto energético.",
             control = SetupControlKind.SINGLE_CHOICE,
             options = opt(
                 "female" to "Mujer",
@@ -354,7 +358,7 @@ object SetupStepDefinitions {
         SetupStepDefinition(
             id = SetupStepId.EQUIPMENT, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
             title = "¿Dónde entrenas?",
-            subtitle = "En el gimnasio no hace falta inventariar discos ni máquinas. Después marcas solo lo que sí tienes a mano.",
+            subtitle = "En el gimnasio no hace falta anotar discos ni máquinas; luego marcas solo lo que tienes a mano.",
             control = SetupControlKind.ENVIRONMENT_CHOICE,
             options = opt(
                 "gym" to "Gimnasio completo",
@@ -497,7 +501,7 @@ object SetupStepDefinitions {
         ),
         SetupStepDefinition(
             id = SetupStepId.PRIORITIES, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
-            title = "¿Qué grupos musculares te gusta más entrenar o deseas mejorar?",
+            title = "¿Qué músculos quieres priorizar?",
             subtitle = "Puedes elegir todo el cuerpo o un enfoque. Solo cambia el orden de los ejercicios.",
             control = SetupControlKind.POINT_BUDGET,
             options = ORDER_MUSCLE_OPTIONS,
@@ -547,7 +551,7 @@ object SetupStepDefinitions {
         SetupStepDefinition(
             id = SetupStepId.AUTOREGULATION_CONFIRM, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
             title = "¿Confirmas el ajuste automático?",
-            subtitle = "Los cambios se aplican por confirmación y siempre puedes revertirlos. No cambia tus marcas declaradas.",
+            subtitle = "Los cambios se aplican al confirmarlos, puedes revertirlos y tus marcas declaradas no cambian.",
             control = SetupControlKind.AUTO_CONFIRM,
             options = opt("confirmed" to "Confirmado", "review_only" to "Solo revisar"),
         ),
@@ -612,7 +616,7 @@ object SetupStepDefinitions {
         ),
         SetupStepDefinition(
             id = SetupStepId.NUTRITION_DIRECTION, block = SetupWizardBlock.NUTRITION, kind = SetupStepKind.QUESTION,
-            title = "¿Hacia dónde quieres llevar tu alimentación?",
+            title = "¿Cuál es tu objetivo de nutrición?",
             subtitle = "Opcional: define si quieres definir, mantener o hacer volumen.",
             control = SetupControlKind.SINGLE_CHOICE,
             options = opt(
@@ -796,7 +800,7 @@ object SetupStepDefinitions {
         ),
         SetupStepDefinition(
             id = SetupStepId.RINGS_DISCOMFORT, block = SetupWizardBlock.RINGS, kind = SetupStepKind.QUESTION,
-            title = "¿Hay alguna molestia que debamos tener en cuenta?",
+            title = "¿Tienes alguna molestia?",
             subtitle = "Dinos qué te molesta; puedes responder «Sin molestias» u omitirlo.",
             control = SetupControlKind.MULTI_CHOICE,
             options = discomforts(),

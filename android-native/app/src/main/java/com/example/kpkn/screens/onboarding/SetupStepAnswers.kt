@@ -27,6 +27,7 @@ import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.WizChatValidation
 import com.example.kpkn.domain.training.VolumeCalibrationEngine
 import com.example.kpkn.screens.nutrition.NutritionWizardDraft
+import java.util.Locale
 
 /**
  * Reductor puro de respuestas del wizard tradicional.
@@ -141,7 +142,8 @@ fun SetupWizardDraft.withStepText(
 
 /**
  * Número del paso; `value` null retira el dato (nunca deja un default).
- * Escribe también el texto canónico en `inputTexts` (clave `step.name`);
+ * Escribe también el texto canónico en `inputTexts` (clave `step.name`; en la
+ * grasa corporal, con un decimal como máximo);
  * si el retiro llega con texto inválido en el campo, se conserva ese texto
  * para que la validación lo señale en lugar de silenciar el error.
  */
@@ -155,9 +157,9 @@ fun SetupWizardDraft.withStepNumber(
         // Mismo número, otro formato («70,» / «70.» / «70.0» → 70): el crudo
         // que el usuario está escribiendo se conserva intacto.
         value != null && current != null && parseLocalizedNumber(current) == value -> this
-        // Rueda/regla a un valor realmente distinto: el crudo obsoleto se
+        // Rueda/regla/figura a un valor realmente distinto: el crudo obsoleto se
         // reemplaza por el canónico del nuevo número.
-        value != null -> copy(inputTexts = inputTexts + (step.name to canonicalNumberText(value)))
+        value != null -> copy(inputTexts = inputTexts + (step.name to canonicalNumberText(step, value)))
         current == null -> this
         else -> {
             val parsed = parseLocalizedNumber(current)
@@ -180,9 +182,18 @@ private fun normalizeExclusive(step: SetupStepId, values: Set<String>): Set<Stri
     return setOf(chosen)
 }
 
-/** Texto canónico de un número: entero sin decimales, el resto con punto. */
-private fun canonicalNumberText(value: Double): String =
-    if (value.isFinite() && value % 1.0 == 0.0) value.toLong().toString() else value.toString()
+/**
+ * Texto canónico de un número: entero sin decimales, el resto con punto. La grasa
+ * corporal lleva un decimal como máximo: la figura emite un `Double` crudo
+ * («33.184518814086914») y el campo de medición exacta lo mostraría tal cual. Solo se
+ * acorta el texto; el valor tipado ([projectNumber]) conserva toda su precisión.
+ */
+private fun canonicalNumberText(step: SetupStepId, value: Double): String = when {
+    step == SetupStepId.BODY_FAT && value.isFinite() ->
+        String.format(Locale.ROOT, "%.1f", value).removeSuffix(".0")
+    value.isFinite() && value % 1.0 == 0.0 -> value.toLong().toString()
+    else -> value.toString()
+}
 
 // ─── Proyecciones multi ──────────────────────────────────────────────────────
 

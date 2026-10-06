@@ -914,9 +914,9 @@ class SetupWizardJourneyUiTest {
         const val TIMEOUT_MS = 15_000L
         const val SETUP_TIMEOUT_MS = 60_000L
 
-        /** Pregunta aprobada de la entrega F3.5, literal. */
+        /** Pregunta de prioridades, literal (copy corto de la página larga: título de hasta 40 caracteres). */
         const val APPROVED_PRIORITY_QUESTION =
-            "¿Qué grupos musculares te gusta más entrenar o deseas mejorar?"
+            "¿Qué músculos quieres priorizar?"
 
         /** Tags reales publicados por la rama de prioridades. */
         const val PRIORITY_PRESETS_TAG = "setup-priority-presets"

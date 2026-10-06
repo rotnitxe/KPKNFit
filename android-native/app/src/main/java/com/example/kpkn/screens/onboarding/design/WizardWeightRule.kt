@@ -43,7 +43,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
@@ -251,12 +250,15 @@ fun WizardWeightRule(
                                 Text(
                                     text = WizardWeightScale.format(value),
                                     color = WizardColors.textMuted.copy(alpha = .72f),
-                                    fontSize = 16.sp,
+                                    style = WizardTypography.body,
                                     textAlign = TextAlign.Center,
                                     maxLines = 1,
                                     modifier = Modifier
                                         .align(Alignment.TopCenter)
-                                        .requiredWidth(if (isLb) 32.dp else 28.dp)
+                                        // Ancho de la fuente de la regla (Inter, 16 sp): «444» en kg y «1044» en lb
+                                        // son los rótulos más anchos y caben sin recortarse; la separación entre
+                                        // rótulos (≈105 dp) deja sitio de sobra.
+                                        .requiredWidth(if (isLb) 44.dp else 36.dp)
                                         .clickable { jumpTo(index) }
                                         .padding(top = 2.dp),
                                 )

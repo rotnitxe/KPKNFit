@@ -44,7 +44,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
@@ -224,7 +223,7 @@ fun WizardHeightRule(
                                         "${WizardHeightScale.feet(stepCm)}′"
                                     },
                                     color = WizardColors.textMuted.copy(alpha = .72f),
-                                    fontSize = 13.sp,
+                                    style = WizardTypography.note,
                                     textAlign = TextAlign.Center,
                                     maxLines = 1,
                                     modifier = Modifier
