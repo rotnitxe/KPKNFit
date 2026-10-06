@@ -9,6 +9,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.R
@@ -61,28 +62,36 @@ object WizardFonts {
 object WizardColors {
     /** Fondo negro pleno del wizard y de la bienvenida. */
     val background = Color(0xFF000000)
-    val text = Color(0xFFFBFBFB)
-    val textMuted = Color(0xFFD5D5D5)
-    val textFaint = Color(0xFF8C8C8C)
+
+    /**
+     * Texto en la tinta cálida de la marca (crema `#F2EEE6`, la del logo y la demo de bienvenida) y sus
+     * grises cálidos: ya no es un blanco puro, así el wizard hereda el tono de KPKN.
+     */
+    val text = Color(0xFFF2EEE6)
+    val textMuted = Color(0xFFC4BFB6)
+    val textFaint = Color(0xFF8E8980)
 
     val cardFill = Color(0xFF262626)
     val cardBorder = Color(0xFF3E3E3E)
-    val selectedBorder = Color(0xFFFFFFFF)
+    val selectedBorder = Color(0xFFF2EEE6)
     val selectedBorderWidth = 2.dp
     val unselectedBorderWidth = 1.dp
 
     /** Radio derecho de la tarjeta seleccionada: relleno blanco con punto oscuro. */
-    val markFill = Color(0xFFFFFFFF)
+    val markFill = Color(0xFFF2EEE6)
     val markDot = Color(0xFF1F1F1F)
     val markBorder = Color(0xFF6E6E6E)
 
-    val cta = Color(0xFFFFFFFF)
-    val ctaContent = Color(0xFF0D0D0D)
+    val cta = Color(0xFFF2EEE6)
+    val ctaContent = Color(0xFF0B0B0B)
     val ctaDisabled = Color(0xFF2E2E2E)
     val ctaDisabledContent = Color(0xFF7A7A7A)
 
     val progressTrack = Color(0xFF2E2E2E)
-    val progressFill = Color(0xFFFBFBFB)
+    val progressFill = Color(0xFFF2EEE6)
+
+    /** Verde de «hecho» de la marca: bloques completados en el progreso. */
+    val done = Color(0xFF43D18C)
 
     /** Cursor de la regla de peso: verde, con la zona derecha sombreada. */
     val ruleCursor = Color(0xFF3FBF6F)
@@ -167,6 +176,7 @@ object WizardTypography {
         fontSize = 30.sp,
         lineHeight = 36.sp,
         letterSpacing = (-0.3).sp,
+        lineBreak = LineBreak.Heading,
     )
 
     val questionCompact = TextStyle(
@@ -225,6 +235,7 @@ object WizardTypography {
         fontSize = 28.sp,
         lineHeight = 34.sp,
         letterSpacing = (-0.28).sp,
+        lineBreak = LineBreak.Heading,
     )
 
     /** Subtítulo de cada paso: una frase, bajo el título. */
@@ -285,6 +296,7 @@ object WizardTypography {
         fontSize = 38.sp,
         lineHeight = 44.sp,
         letterSpacing = (-0.6).sp,
+        lineBreak = LineBreak.Heading,
     )
 
     val heroSubtitle = TextStyle(

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  KPKN · ícono pequeño de las notificaciones: la Torre anidada en una silueta plana (Android solo usa el canal
+  alfa de estos íconos y los tiñe). Misma geometría que kpkn_simbolo.xml, centrada en un lienzo cuadrado.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="80"
+    android:viewportHeight="80">
+    <group
+        android:translateX="-10"
+        android:translateY="-18.75">
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:fillType="evenOdd"
+            android:pathData="M12 70 a38 12 0 1 0 76 0 a38 12 0 1 0 -76 0 Z M17 68 a33 8.5 0 1 0 66 0 a33 8.5 0 1 0 -66 0 Z" />
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:fillType="evenOdd"
+            android:pathData="M22 55 a28 9 0 1 0 56 0 a28 9 0 1 0 -56 0 Z M26 53.5 a24 6.5 0 1 0 48 0 a24 6.5 0 1 0 -48 0 Z" />
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:fillType="evenOdd"
+            android:pathData="M32 42 a18 6.5 0 1 0 36 0 a18 6.5 0 1 0 -36 0 Z M35.5 41 a14.5 4.3 0 1 0 29 0 a14.5 4.3 0 1 0 -29 0 Z" />
+    </group>
+</vector>

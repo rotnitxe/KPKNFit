@@ -42,7 +42,7 @@ class CardioGpsMilestoneNotifier(context: Context) {
                 val editor = preferences.edit()
                 reached.forEach { kilometre ->
                     val notification = NotificationCompat.Builder(appContext, CHANNEL_ID)
-                        .setSmallIcon(R.mipmap.ic_launcher)
+                        .setSmallIcon(R.drawable.ic_stat_kpkn)
                         .setContentTitle("Hito de cardio")
                         .setContentText("Alcanzaste $kilometre km")
                         .setContentIntent(

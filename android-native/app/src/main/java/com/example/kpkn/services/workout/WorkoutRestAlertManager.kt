@@ -440,7 +440,7 @@ class WorkoutRestAlertManager(private val context: Context) {
         )
 
         val notification = NotificationCompat.Builder(appContext, CHANNEL_REST_ONGOING)
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSmallIcon(R.drawable.ic_stat_kpkn)
             .setContentTitle(appContext.getString(R.string.notif_rest_ongoing_title))
             .setContentText("$sessionName · $exerciseName")
             .setContentIntent(openPending)
@@ -470,7 +470,7 @@ class WorkoutRestAlertManager(private val context: Context) {
         )
 
         val builder = NotificationCompat.Builder(appContext, CHANNEL_REST_FINISHED)
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSmallIcon(R.drawable.ic_stat_kpkn)
             .setContentTitle(appContext.getString(R.string.notif_rest_finished_title))
             .setContentText("$sessionName · $exerciseName")
             .setStyle(NotificationCompat.BigTextStyle().bigText(appContext.getString(R.string.notif_rest_finished_body)))

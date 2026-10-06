@@ -135,7 +135,7 @@ class WorkoutRestForegroundService : Service() {
 
     private fun buildPlaceholderNotification(): android.app.Notification =
         NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSmallIcon(R.drawable.ic_stat_kpkn)
             .setContentTitle(getString(R.string.notif_rest_ongoing_title))
             .setOngoing(true)
             .setOnlyAlertOnce(true)
@@ -151,7 +151,7 @@ class WorkoutRestForegroundService : Service() {
         val contentText = existing.notification.extras.getCharSequence(NotificationCompat.EXTRA_TEXT, "")
         val titleText = existing.notification.extras.getCharSequence(NotificationCompat.EXTRA_TITLE, "")
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSmallIcon(R.drawable.ic_stat_kpkn)
             .setContentTitle(titleText ?: getString(R.string.notif_rest_ongoing_title))
             .setContentText(contentText ?: "")
             .setOngoing(true)
@@ -179,7 +179,7 @@ class WorkoutRestForegroundService : Service() {
         exerciseImage: Bitmap?,
     ): android.app.Notification {
         val builder = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSmallIcon(R.drawable.ic_stat_kpkn)
             .setContentTitle(getString(R.string.notif_rest_ongoing_title))
             .setContentText("$sessionName \u00b7 $exerciseName${if (setInfoText.isNotEmpty()) " \u00b7 $setInfoText" else ""}")
             .setContentIntent(createOpenPendingIntent())

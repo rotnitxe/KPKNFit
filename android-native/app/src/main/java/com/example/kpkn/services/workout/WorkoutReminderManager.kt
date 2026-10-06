@@ -188,7 +188,7 @@ class WorkoutReminderReceiver : BroadcastReceiver() {
 
     private fun sendWorkoutReminder(context: Context, manager: WorkoutReminderManager) {
         val notification = NotificationCompat.Builder(context, WorkoutReminderManager.CHANNEL_WORKOUT_REMINDER)
-            .setSmallIcon(com.example.kpkn.R.mipmap.ic_launcher)
+            .setSmallIcon(com.example.kpkn.R.drawable.ic_stat_kpkn)
             .setContentTitle(context.getString(com.example.kpkn.R.string.notif_app_title))
             .setContentText(context.getString(com.example.kpkn.R.string.notif_workout_text))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
@@ -204,7 +204,7 @@ class WorkoutReminderReceiver : BroadcastReceiver() {
 
     private fun sendSleepReminder(context: Context, manager: WorkoutReminderManager) {
         val notification = NotificationCompat.Builder(context, WorkoutReminderManager.CHANNEL_SLEEP_REMINDER)
-            .setSmallIcon(com.example.kpkn.R.mipmap.ic_launcher)
+            .setSmallIcon(com.example.kpkn.R.drawable.ic_stat_kpkn)
             .setContentTitle(context.getString(com.example.kpkn.R.string.notif_app_title))
             .setContentText(context.getString(com.example.kpkn.R.string.notif_sleep_text))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)

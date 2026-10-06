@@ -205,7 +205,7 @@ class CardioGpsForegroundService : Service() {
 
     /** Last-resort minimal notification that still satisfies a pending startForegroundService(). */
     private fun buildPlaceholderNotification(): Notification = NotificationCompat.Builder(this, CHANNEL_ID)
-        .setSmallIcon(R.mipmap.ic_launcher)
+        .setSmallIcon(R.drawable.ic_stat_kpkn)
         .setContentTitle(getString(R.string.notif_cardio_gps_title))
         .setOngoing(true)
         .setOnlyAlertOnce(true)
@@ -215,7 +215,7 @@ class CardioGpsForegroundService : Service() {
         .build()
 
     private fun buildNotification(): Notification = NotificationCompat.Builder(this, CHANNEL_ID)
-        .setSmallIcon(R.mipmap.ic_launcher)
+        .setSmallIcon(R.drawable.ic_stat_kpkn)
         .setContentTitle(getString(R.string.notif_cardio_gps_title))
         .setContentText(getString(R.string.notif_cardio_gps_body))
         .setContentIntent(

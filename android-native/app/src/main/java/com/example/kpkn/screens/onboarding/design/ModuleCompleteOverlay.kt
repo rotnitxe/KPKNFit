@@ -220,7 +220,9 @@ fun ModuleCompleteOverlay(
                 .fillMaxSize()
                 .then(if (rootTag != null) Modifier.testTag(rootTag) else Modifier)
                 .graphicsLayer { alpha = shown }
-                .background(Color(0xFF060606).copy(alpha = if (blur) 0.52f else 0.88f)),
+                // Sin desenfoque del sistema (Android < 12, ahorro de batería o sin soporte del dispositivo) el fondo debe
+                // tapar casi todo: con menos opacidad el texto de la página de atrás se mezcla con el del overlay.
+                .background(Color(0xFF060606).copy(alpha = if (blur) 0.52f else 0.96f)),
             contentAlignment = Alignment.Center,
         ) {
             val vb = module.viewBox

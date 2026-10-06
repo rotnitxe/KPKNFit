@@ -432,10 +432,12 @@ private fun WizardLongPage(
         }
 
         // La pantalla de arranque: lo mismo que un hito pero sin nada completado ni color de «completado».
-        // Solo en el alta completa y mientras el borrador no tenga ninguna respuesta confirmada.
+        // Solo en el alta completa y mientras el borrador sigue sin empezar: el cursor nunca salió de la primera
+        // pregunta (los valores que traen los ajustes, como el alias o la edad, no cuentan como empezar).
         var introSeen by rememberSaveable(state.draft.draftId) { mutableStateOf(false) }
+        val untouchedDraft = state.draft.stepProgress.visited.size <= 1 && step == route.firstOrNull()
         if (showIntro && !introSeen && milestoneModule == null && state.mode == SetupWizardMode.FULL &&
-            state.draft.stepProgress.answers.isEmpty() && introStages(route).size > 1
+            untouchedDraft && introStages(route).size > 1
         ) {
             ModuleCompleteOverlay(
                 module = KpknModule.INTRO,

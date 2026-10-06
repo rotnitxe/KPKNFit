@@ -40,12 +40,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.example.kpkn.R
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
 
@@ -106,14 +108,26 @@ fun WizardPageHeader(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(5.dp),
             ) {
-                Text(
-                    text = label,
-                    style = WizardTypography.eyebrow,
-                    color = WizardColors.text,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                Row(
                     modifier = Modifier.padding(horizontal = 12.dp),
-                )
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(7.dp),
+                ) {
+                    // La Torre anidada, firma de la marca en cada paso.
+                    Icon(
+                        painter = painterResource(R.drawable.kpkn_simbolo),
+                        contentDescription = null,
+                        tint = WizardColors.text.copy(alpha = 0.92f),
+                        modifier = Modifier.size(width = 17.dp, height = 11.dp),
+                    )
+                    Text(
+                        text = label,
+                        style = WizardTypography.eyebrow,
+                        color = WizardColors.text,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     segments.forEach { segment -> ProgressSegment(segment) }
                 }
@@ -141,11 +155,13 @@ private fun ProgressSegment(segment: WizardProgressSegment) {
             .clip(RoundedCornerShape(99.dp))
             .background(Color.White.copy(alpha = 0.18f)),
     ) {
+        // Bloque completo en verde de marca; el que se está recorriendo, en tinta.
+        val fill = segment.fill.coerceIn(0f, 1f)
         Box(
             modifier = Modifier
-                .fillMaxWidth(segment.fill.coerceIn(0f, 1f))
+                .fillMaxWidth(fill)
                 .height(3.dp)
-                .background(WizardColors.progressFill),
+                .background(if (fill >= 0.999f) WizardColors.done else WizardColors.progressFill),
         )
     }
 }

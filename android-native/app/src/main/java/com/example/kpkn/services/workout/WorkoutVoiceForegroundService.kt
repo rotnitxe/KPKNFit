@@ -318,7 +318,7 @@ class WorkoutVoiceForegroundService : Service() {
     private fun startAsForeground() {
         ensureChannel()
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSmallIcon(R.drawable.ic_stat_kpkn)
             .setContentTitle(getString(R.string.notif_voice_ongoing_title))
             .setContentText(getString(R.string.notif_voice_ongoing_body))
             .setOngoing(true)

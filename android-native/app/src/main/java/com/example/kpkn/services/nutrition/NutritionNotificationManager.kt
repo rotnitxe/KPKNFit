@@ -292,7 +292,7 @@ class NutritionNotificationManager(private val context: Context) {
             appCtx.getString(com.example.kpkn.R.string.notif_macro_title_incomplete)
 
         val notification = NotificationCompat.Builder(appCtx, CHANNEL_MACROS)
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSmallIcon(R.drawable.ic_stat_kpkn)
             .setContentTitle(title)
             .setContentText(deficitItems.first())
             .setStyle(NotificationCompat.BigTextStyle().bigText(body))
@@ -320,7 +320,7 @@ class NutritionNotificationManager(private val context: Context) {
         } catch (_: Exception) { nextDate }
 
         val notification = NotificationCompat.Builder(appCtx, CHANNEL_MEASUREMENT)
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSmallIcon(R.drawable.ic_stat_kpkn)
             .setContentTitle(appCtx.getString(com.example.kpkn.R.string.notif_measurement_title))
             .setContentText(appCtx.getString(com.example.kpkn.R.string.notif_measurement_text, label))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
@@ -350,7 +350,7 @@ class NutritionNotificationManager(private val context: Context) {
         }
 
         val notification = NotificationCompat.Builder(appCtx, CHANNEL_MEALS)
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSmallIcon(R.drawable.ic_stat_kpkn)
             .setContentTitle(appCtx.getString(R.string.notif_app_title))
             .setContentText(appCtx.getString(textRes))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)

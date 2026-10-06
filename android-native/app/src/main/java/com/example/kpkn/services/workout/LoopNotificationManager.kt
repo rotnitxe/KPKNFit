@@ -30,7 +30,7 @@ class LoopNotificationManager(context: Context) {
 
     fun notifyLoopActive(programName: String, loopTitle: String) {
         val notification = NotificationCompat.Builder(appContext, CHANNEL_LOOP)
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSmallIcon(R.drawable.ic_stat_kpkn)
             .setContentTitle("Loop activo: $loopTitle")
             .setContentText("$programName tiene una semana especial lista para programar.")
             .setStyle(NotificationCompat.BigTextStyle().bigText("$programName tiene una semana de loop activa. Revisa el roadmap y programa sus sesiones."))

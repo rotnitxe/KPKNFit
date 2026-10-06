@@ -139,7 +139,7 @@ class CompetitionReminderReceiver : BroadcastReceiver() {
         } + if (date.isNotBlank()) " Fecha: $date." else ""
 
         val notification = NotificationCompat.Builder(context, CompetitionReminderManager.CHANNEL_COMPETITION)
-            .setSmallIcon(com.example.kpkn.R.mipmap.ic_launcher)
+            .setSmallIcon(com.example.kpkn.R.drawable.ic_stat_kpkn)
             .setContentTitle("KPKN · Competición")
             .setContentText(body)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
