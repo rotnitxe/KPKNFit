@@ -333,6 +333,11 @@ private fun TrainingSummary(
     )
     // Entreno v2: lo que se activa en una línea (días, minutos y lugar del programa previsualizado).
     programReviewDetail(program, draft)?.let { detail -> SetupFormCaption(detail) }
+    // Una sesión que cae en un día cuyo lugar no tiene su material: el aviso del tablero se repite aquí, persistente,
+    // porque lo que se activa es esa semana tal como la dejó la persona.
+    state.weekLayout?.placeConflicts?.forEach { conflict ->
+        SetupFormCaption(placeConflictLine(conflict), modifier = Modifier.testTag("review-place-conflict-${conflict.sessionId}"))
+    }
     if (planEntry != null) {
         // Ya está elegido: la hoja es de solo lectura (sin botón primario).
         TextButton(onClick = { showPlanInfo = true }, modifier = Modifier.testTag("review-plan-info")) {

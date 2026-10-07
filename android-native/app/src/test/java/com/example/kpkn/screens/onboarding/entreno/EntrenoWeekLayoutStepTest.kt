@@ -26,6 +26,7 @@ import com.example.kpkn.domain.onboarding.SetupStepProgress
 import com.example.kpkn.domain.onboarding.SetupWizardBlock
 import com.example.kpkn.domain.onboarding.TrainingPlace
 import com.example.kpkn.screens.onboarding.SetupLayoutSession
+import com.example.kpkn.screens.onboarding.SetupPlaceConflict
 import com.example.kpkn.screens.onboarding.SetupPreview
 import com.example.kpkn.screens.onboarding.SetupSplitOption
 import com.example.kpkn.screens.onboarding.SetupWeekLayout
@@ -103,6 +104,7 @@ class EntrenoWeekLayoutStepTest {
         canReset: Boolean = false,
         notes: List<String> = emptyList(),
         refusal: String? = null,
+        placeConflicts: List<SetupPlaceConflict> = emptyList(),
     ) = SetupWeekLayout(
         weekStartDay = 1,
         sessions = sessions,
@@ -113,6 +115,7 @@ class EntrenoWeekLayoutStepTest {
         authoredStructure = authored,
         notes = notes,
         refusal = refusal,
+        placeConflicts = placeConflicts,
     )
 
     private fun show(state: SetupWizardState) {
@@ -179,6 +182,27 @@ class EntrenoWeekLayoutStepTest {
         show(SetupWizardState(draft = draft, weekLayout = layout(refusal = "Este reparto no está disponible.")))
         rule.onNodeWithTag(LAYOUT_REFUSAL_TAG).assertExists()
         rule.onNodeWithText("Este reparto no está disponible.").assertExists()
+    }
+
+    @Test
+    fun aSessionThatDoesNotFitItsDaysPlaceIsWarnedBelowTheBoardAndKeepsItsPlaceLabel() {
+        val conflict = SetupPlaceConflict(
+            sessionId = "p-s1",
+            title = "Pierna",
+            day = 3,
+            sessionPlace = TrainingPlace.GYM,
+            dayPlace = TrainingPlace.HOME,
+        )
+        show(SetupWizardState(draft = draft, weekLayout = layout(canReset = true, placeConflicts = listOf(conflict))))
+        rule.onNodeWithTag("$LAYOUT_PLACE_CONFLICT_TAG-p-s1").assertExists()
+        rule.onNodeWithText("Pierna · miércoles").assertExists()
+        rule.onNodeWithText("Esta sesión usa material del gimnasio; ese día entrenas en casa.").assertExists()
+    }
+
+    @Test
+    fun withoutConflictsThereIsNoPlaceWarning() {
+        show(SetupWizardState(draft = draft, weekLayout = layout()))
+        rule.onNodeWithTag("$LAYOUT_PLACE_CONFLICT_TAG-p-s1").assertDoesNotExist()
     }
 
     @Test

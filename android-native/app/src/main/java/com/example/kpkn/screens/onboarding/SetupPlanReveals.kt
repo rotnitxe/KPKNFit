@@ -100,6 +100,22 @@ data class SetupLayoutSession(
 data class SetupSplitOption(val id: String, val name: String, val summary: String, val dayTitles: List<String>)
 
 /**
+ * Una sesión cuyos ejercicios no se pueden hacer con el material del lugar de su día (la persona la movió a un día de
+ * otro lugar, o el plan de autor trae material que ese lugar no tiene). La persona manda: el movimiento se permite y esto
+ * es el aviso honesto que ve en el tablero y en la revisión final.
+ *
+ * - [sessionPlace]: de qué lugar es el material de la sesión; null si ni el programa lo dice ni ningún lugar declarado lo cubre.
+ * - [dayPlace]: dónde entrena ese día.
+ */
+data class SetupPlaceConflict(
+    val sessionId: String,
+    val title: String,
+    val day: Int,
+    val sessionPlace: TrainingPlace?,
+    val dayPlace: TrainingPlace,
+)
+
+/**
  * La semana del programa previsualizado para el paso WEEK_LAYOUT.
  *
  * - [assignment]: día (1..7) → id de sesión; los días sin entrada son descanso.
@@ -108,6 +124,8 @@ data class SetupSplitOption(val id: String, val name: String, val summary: Strin
  * - [authoredStructure]: el programa trae su reparto de autor; adaptarlo pide el aviso de COPY antes de confirmar.
  * - [notes]: avisos honestos del último ajuste (días desparejos, estructura de autor cambiada…).
  * - [refusal]: por qué no se pudo adaptar el último reparto pedido (null si no hubo problema).
+ * - [placeConflicts]: las sesiones que caen en un día cuyo lugar no tiene su material; el aviso persiste mientras siga así
+ *   (se deshace moviendo otra vez o con «Restablecer»).
  */
 data class SetupWeekLayout(
     val weekStartDay: Int,
@@ -119,6 +137,7 @@ data class SetupWeekLayout(
     val authoredStructure: Boolean,
     val notes: List<String> = emptyList(),
     val refusal: String? = null,
+    val placeConflicts: List<SetupPlaceConflict> = emptyList(),
 )
 
 /**

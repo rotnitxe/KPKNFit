@@ -1774,15 +1774,30 @@ class SetupWizardViewModel @JvmOverloads constructor(
      * semana armada del borrador por el ÚNICO punto que la aplica ([applyLayout]). La activación guarda este mismo
      * programa (`programPreview`), así lo que se ve es lo que se activa. La semana armada no entra en la evaluación de
      * candidatos (su caché no depende de dónde caiga cada sesión): mover una sesión re-arma solo la vista previa.
+     *
+     * Con dos o más lugares el mismo punto pone al día el lugar de cada sesión según el material de su día
+     * ([placeFitFor]), con o sin sesiones movidas: así el programa que se previsualiza y se activa nunca trae una sesión
+     * que no se pueda hacer en su día sin que la semana lo avise ([LayoutOutcome.placeConflicts]).
      */
     private suspend fun materialize(draft: SetupWizardDraft): PreparedPreview {
         val base = materializeBase(draft)
         val program = base.program ?: return PreparedPreview(base, null, null)
-        if (!draft.hasWeekLayout) return PreparedPreview(base, program, LayoutOutcome(program))
+        val placeFit = placeFitFor(draft)
+        if (!draft.hasWeekLayout && placeFit == null) return PreparedPreview(base, program, LayoutOutcome(program))
         val resolver = if (draft.adaptedSplitId != null) traitResolver() else null
-        val outcome = applyLayout(draft, program, resolver)
+        val outcome = applyLayout(draft, program, resolver, placeFit)
         ProgramExecutionContract.requireExecutable(outcome.program)
         return PreparedPreview(SetupPreview(outcome.program, base.report), program, outcome)
+    }
+
+    /**
+     * El contraste de las sesiones con el material de cada lugar ([SessionPlaceFit]); null con un solo lugar (no hay a
+     * qué contrastar) o sin catálogo de ejercicios cargado (no se puede saber qué pide cada ejercicio).
+     */
+    private fun placeFitFor(draft: SetupWizardDraft): SessionPlaceFit? {
+        if (draft.trainingPlaces.size < 2) return null
+        val catalog = (catalogRepository.state.value as? ExerciseCatalogStateV2.Ready)?.catalog ?: return null
+        return SessionPlaceFit.of(catalog, draft.trainingOptions.availability, draft.trainingPlaces)
     }
 
     /**

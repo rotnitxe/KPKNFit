@@ -456,6 +456,104 @@ class SetupWizardEntrenoPlanTest {
         assertNull(recovered.errors["candidates"])
     }
 
+    // ─── Una sesión movida a un día de otro lugar ───────────────────────────────────────────────────
+
+    /** Gimnasio y casa: lunes y viernes en el gimnasio y el miércoles en casa (solo cuerpo: la casa no trae más). */
+    private val gymAndHomeAnswers = Answers(
+        profile = TrainingGoalProfile.STRENGTH_MUSCLE,
+        places = setOf(TrainingPlace.GYM, TrainingPlace.HOME),
+        days = setOf(1, 3, 5),
+        freshDay = 1,
+        minutes = 60,
+        dayPlaces = mapOf(3 to TrainingPlace.HOME),
+    )
+
+    private fun TestScope.reachWeekLayout(vm: SetupWizardViewModel, answers: Answers): SetupWizardState {
+        vm.initialize(SetupWizardMode.TRAINING_ONLY)
+        await(vm, "wizard cargado") { !it.isLoading && it.currentStep == SetupStepId.NAME }
+        walkUntil(vm, SetupStepId.PLAN, answers)
+        await(vm, "programa a medida listo") { idle(it) && it.planSweep == SetupPlanSweep.READY }
+        val generatedId = GeneratedPlans.entryIdFor(answers.profile)
+        confirm(vm, SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT) { vm.selectPlan(generatedId) }
+        return await(vm, "semana armada") { idle(it) && it.programPreview != null && it.weekLayout != null }
+    }
+
+    private fun placeOfSession(state: SetupWizardState, sessionId: String): TrainingPlace? =
+        state.weekLayout?.sessions?.firstOrNull { it.id == sessionId }?.place
+
+    @Test
+    fun aSessionMovedToADayOfAnotherPlaceTakesThatPlaceWhenItsMaterialFitsAndIsActivatedAsPreviewed() =
+        runTest(dispatcher.scheduler, timeout = 10.minutes) {
+            val vm = newVm()
+            val prepared = reachWeekLayout(vm, gymAndHomeAnswers)
+            val layout = checkNotNull(prepared.weekLayout)
+            val homeSession = layout.assignment.getValue(3)
+            assertEquals("el miércoles se arma con el material de casa", TrainingPlace.HOME, placeOfSession(prepared, homeSession))
+            assertTrue("sin nada movido no hay aviso", layout.placeConflicts.isEmpty())
+
+            // La sesión de casa (solo cuerpo) pasa al martes, que se entrena en el gimnasio: cabe, así que cambia de lugar.
+            vm.moveSession(homeSession, 2)
+            val moved = await(vm, "sesión movida y lugar puesto al día") {
+                idle(it) && it.weekLayout?.assignment?.get(2) == homeSession && placeOfSession(it, homeSession) == TrainingPlace.GYM
+            }
+            assertTrue("compatible: sin ruido", moved.weekLayout!!.placeConflicts.isEmpty())
+            assertEquals(TrainingPlace.GYM.name, sessionsOf(checkNotNull(moved.programPreview)).single { it.id == homeSession }.placeId)
+
+            confirm(vm, SetupStepId.WEEK_LAYOUT, SetupStepId.MILESTONE_TRAINING)
+            confirm(vm, SetupStepId.MILESTONE_TRAINING, SetupStepId.REVIEW_ACTIVATE)
+            await(vm, "revisión en reposo") { idle(it) && it.programPreview != null }
+            val shown = checkNotNull(vm.state.value.programPreview)
+            assertTrue("la revisión no avisa de nada", vm.state.value.weekLayout!!.placeConflicts.isEmpty())
+
+            assertNotNull("alta sin errores: ${vm.state.value.errors}", vm.commit())
+            val saved = checkNotNull(room { db.programDao().getById(vm.state.value.draft.commitId) }) { "programa no guardado" }.toProgram()
+            assertEquals("el programa activado es el previsualizado", weekShape(shown), weekShape(saved))
+            assertEquals(TrainingPlace.GYM.name, sessionsOf(saved).single { it.id == homeSession }.placeId)
+            assertEquals(2, sessionsOf(saved).single { it.id == homeSession }.dayOfWeek)
+        }
+
+    @Test
+    fun aSessionThatDoesNotFitTheNewDaysPlaceStaysWarnedInThePreviewTheReviewAndTheActivationUntilItIsUndone() =
+        runTest(dispatcher.scheduler, timeout = 10.minutes) {
+            val vm = newVm()
+            val prepared = reachWeekLayout(vm, gymAndHomeAnswers)
+            val original = checkNotNull(prepared.programPreview)
+            val mondaySession = checkNotNull(prepared.weekLayout).assignment.getValue(1)
+            assertEquals(TrainingPlace.GYM, placeOfSession(prepared, mondaySession))
+
+            // El lunes (gimnasio) cae en el miércoles (casa) e intercambia con la sesión de casa.
+            vm.moveSession(mondaySession, 3)
+            val warned = await(vm, "aviso de la sesión movida") { idle(it) && it.weekLayout?.placeConflicts?.isNotEmpty() == true }
+            val conflict = warned.weekLayout!!.placeConflicts.single()
+            assertEquals(mondaySession, conflict.sessionId)
+            assertEquals(3, conflict.day)
+            assertEquals(TrainingPlace.GYM, conflict.sessionPlace)
+            assertEquals(TrainingPlace.HOME, conflict.dayPlace)
+            assertEquals("conserva su lugar", TrainingPlace.GYM, placeOfSession(warned, mondaySession))
+            assertTrue(warned.weekLayout!!.canReset)
+
+            // «Restablecer» deshace el aviso y devuelve la semana preparada.
+            vm.resetWeekLayout()
+            val clean = await(vm, "semana restablecida") { idle(it) && it.weekLayout?.placeConflicts?.isEmpty() == true && !it.weekLayout!!.canReset }
+            assertEquals("la semana vuelve a ser la del programa", weekShape(original), weekShape(checkNotNull(clean.programPreview)))
+
+            // Se vuelve a mover y esta vez la persona sigue: la revisión y la activación llevan el mismo aviso.
+            vm.moveSession(mondaySession, 3)
+            await(vm, "aviso otra vez") { idle(it) && it.weekLayout?.placeConflicts?.isNotEmpty() == true }
+            confirm(vm, SetupStepId.WEEK_LAYOUT, SetupStepId.MILESTONE_TRAINING)
+            confirm(vm, SetupStepId.MILESTONE_TRAINING, SetupStepId.REVIEW_ACTIVATE)
+            val review = await(vm, "revisión en reposo") { idle(it) && it.programPreview != null && it.weekLayout != null }
+            assertEquals("el aviso persiste en la revisión", listOf(conflict), review.weekLayout!!.placeConflicts)
+            val shown = checkNotNull(review.programPreview)
+
+            assertNotNull("avisada, la persona sí puede activar: ${vm.state.value.errors}", vm.commit())
+            val saved = checkNotNull(room { db.programDao().getById(vm.state.value.draft.commitId) }) { "programa no guardado" }.toProgram()
+            assertEquals("el programa activado es el previsualizado", weekShape(shown), weekShape(saved))
+            val savedMonday = sessionsOf(saved).single { it.id == mondaySession }
+            assertEquals(3, savedMonday.dayOfWeek)
+            assertEquals("conserva el lugar con cuyo material se armó", TrainingPlace.GYM.name, savedMonday.placeId)
+        }
+
     // ═════════════════════════════════════════════════════════════════════════════════════════
     // Arnés
     // ═════════════════════════════════════════════════════════════════════════════════════════
@@ -469,6 +567,8 @@ class SetupWizardEntrenoPlanTest {
         val minutes: Int,
         val muscles: Set<MuscleSymbol> = emptySet(),
         val marks: Map<LiftMark, Double> = emptyMap(),
+        /** El lugar de cada día de entreno (solo con dos o más lugares); sin entrada, el primero de la lista. */
+        val dayPlaces: Map<Int, TrainingPlace> = emptyMap(),
     )
 
     /** Recorre la ruta REAL del alta (con sus ramas) respondiendo cada paso hasta llegar a [target]. */
@@ -496,7 +596,9 @@ class SetupWizardEntrenoPlanTest {
             SetupStepId.EQUIPMENT -> vm.updateStep(SetupStepId.EQUIPMENT) { it.withPlaces(answers.places) }
             SetupStepId.GOAL -> vm.setGoalProfile(answers.profile)
             SetupStepId.FRESH_DAY -> vm.setFreshDay(answers.freshDay)
-            SetupStepId.WEEKDAYS -> vm.updateStep(SetupStepId.WEEKDAYS) { it.withWeekdays(answers.days) }
+            SetupStepId.WEEKDAYS -> vm.updateStep(SetupStepId.WEEKDAYS) { draft ->
+                answers.dayPlaces.entries.fold(draft.withWeekdays(answers.days)) { current, (day, place) -> current.withDayPlace(day, place) }
+            }
             SetupStepId.SESSION_TIME -> vm.setSessionMinutes(answers.minutes)
             SetupStepId.CARDIO_TYPE -> vm.setStepChoice(SetupStepId.CARDIO_TYPE, "WALK")
             SetupStepId.CARDIO_TIME -> vm.setStepChoice(SetupStepId.CARDIO_TIME, "20")

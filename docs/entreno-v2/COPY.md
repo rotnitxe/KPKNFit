@@ -34,6 +34,11 @@ nunca instrucciones de interfaz. Tono: éxito = celebra sin exagerar; aviso = cl
 - **Marcas**: «No la sé»; unidad «kg · lb»; ayuda «Tu mejor levantamiento de una repetición, o una estimación.»
 - **Reparto**: «Adaptar mi programa a este reparto» · «Restablecer» · pie «Puedes cambiar todo esto cuando quieras desde tu programa.» Aviso en planes de autor: «Este programa trae su reparto de autor. Si lo adaptas, cambia su estructura original.»
   Confirmación: «¿Adaptar tu programa a «Torso y pierna»?» / «Reubicamos los ejercicios y mantenemos tu volumen semanal.» → «Adaptar» / «Mantener mi reparto».
+- **Sesión en un día de otro lugar** (la persona manda: el movimiento se permite y el aviso persiste en el tablero y en la revisión final hasta que se mueva otra vez o «Restablecer»):
+  «Esta sesión usa material del gimnasio; ese día entrenas en casa.» El lugar se dice «del gimnasio» · «de casa» · «de espacios públicos» y «en el gimnasio» · «en casa» · «en espacios públicos».
+  Si el programa no dice de qué lugar es el material y ningún lugar declarado lo cubre: «Esta sesión usa material que no hay en casa, donde entrenas ese día.»
+  En la revisión final la línea lleva por delante la sesión y su día: «Pierna A (miércoles): esta sesión usa material del gimnasio; ese día entrenas en casa.»
+  Si el material de la sesión cabe en el lugar de su nuevo día no hay aviso: la sesión pasa a ese lugar sin ruido.
 
 ## Revelado del programa
 - Overlay general: **«Estamos preparando tu programa personalizado»** — etapas «Tu material», «Tus días», «Tu tiempo», «Tus músculos», «Tus ejercicios».
