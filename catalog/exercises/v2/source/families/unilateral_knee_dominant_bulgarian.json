@@ -1510,6 +1510,230 @@
             "selectedOptions": {
               "implement": "kettlebell"
             }
+          },
+          {
+            "displaySummary": "bodyweight",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "editorial:configuration:bulgarian_split_squat__bodyweight",
+                "plan:wizard-entreno-v2-bw1-20261007#bulgarian_split_squat"
+              ],
+              "reviewStatus": "APPROVED"
+            },
+            "id": "bulgarian_split_squat__bodyweight",
+            "profile": {
+              "articulationType": "MULTIARTICULAR",
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-09-29-a",
+              "cnc": 2.2,
+              "description": "El peso del cuerpo ya basta para exigir mucho a la pierna de delante, porque el pie de atrás apenas empuja. Las manos van en la cintura o cruzadas sobre el pecho, y inclinar un poco el tronco hacia delante carga más el glúteo.",
+              "efc": 2.8,
+              "equipmentId": "bodyweight",
+              "executionCues": [
+                "Dobla la rodilla de delante hasta que la de atrás quede a pocos centímetros del suelo.",
+                "Empuja con el pie de delante para subir, sin impulsarte con el de atrás.",
+                "Completa la serie con una pierna y repite con la otra."
+              ],
+              "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión de la rodilla",
+                    "Extensión de la rodilla"
+                  ],
+                  "jointId": "rodilla",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión de la cadera",
+                    "Extensión de la cadera"
+                  ],
+                  "jointId": "cadera",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Dorsiflexión del tobillo",
+                    "Flexión plantar del tobillo"
+                  ],
+                  "jointId": "tobillo",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad del tronco"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "UNILATERAL",
+              "loadMode": "bodyweight",
+              "movementPatternId": "unilateral_knee_dominant",
+              "performanceProfileId": "bulgarian_split_squat__bodyweight__sentadilla_bulgara",
+              "primaryMuscles": [
+                "quadriceps",
+                "gluteus_maximus"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Flexión de la rodilla",
+                    "Extensión de la rodilla",
+                    "Flexión de la cadera",
+                    "Extensión de la cadera",
+                    "Dorsiflexión del tobillo",
+                    "Flexión plantar del tobillo",
+                    "Estabilidad del tronco"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión de la rodilla",
+                        "Extensión de la rodilla"
+                      ],
+                      "jointId": "rodilla",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión de la cadera",
+                        "Extensión de la cadera"
+                      ],
+                      "jointId": "cadera",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Dorsiflexión del tobillo",
+                        "Flexión plantar del tobillo"
+                      ],
+                      "jointId": "tobillo",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad del tronco"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "primaryMuscles": [
+                    "quadriceps",
+                    "gluteus_maximus"
+                  ],
+                  "secondaryMuscles": [
+                    "hamstrings",
+                    "adductors",
+                    "calves"
+                  ],
+                  "stabilizerMuscles": [
+                    "gluteus_medius",
+                    "core",
+                    "erector_spinae"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "bodyweight",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "UNILATERAL",
+                  "loadMode": "bodyweight",
+                  "movementPatternId": "unilateral_knee_dominant",
+                  "relevantJoints": [
+                    "rodilla",
+                    "cadera",
+                    "tobillo",
+                    "columna-lumbar"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "guided"
+                },
+                "display": {
+                  "displayName": "Sentadilla Búlgara",
+                  "displaySummary": "bodyweight",
+                  "selectedOptions": {
+                    "implement": "bodyweight"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 4.2,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Sentadilla Búlgara",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
+                  "configurationId": "bulgarian_split_squat__bodyweight",
+                  "definitionId": "bulgarian_split_squat",
+                  "familyId": "unilateral_knee_dominant_bulgarian",
+                  "kind": "PARENT",
+                  "performanceProfileId": "bulgarian_split_squat__bodyweight__sentadilla_bulgara",
+                  "searchTerms": [
+                    "sentadilla búlgara",
+                    "bulgarian split squat",
+                    "quads_sentadilla_bulgara"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "requiredEquipment": [
+                    "bodyweight"
+                  ],
+                  "role": "accessory_compound"
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "bodyweight"
+                  ],
+                  "preservesIntent": [
+                    "unilateral_knee_dominant:quadriceps",
+                    "unilateral_knee_dominant:gluteus_maximus"
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                }
+              },
+              "secondaryMuscles": [
+                "hamstrings",
+                "adductors",
+                "calves"
+              ],
+              "setupCues": [
+                "Colócate de espaldas a un banco estable y apoya el empeine de un pie sobre él.",
+                "Adelanta el otro pie hasta poder bajar con el talón apoyado y deja las manos en la cintura."
+              ],
+              "setupTimeSeconds": 20,
+              "ssc": 0.5,
+              "stabilizerMuscles": [
+                "gluteus_medius",
+                "core",
+                "erector_spinae"
+              ],
+              "technicalDifficulty": 4.2,
+              "ttc": 2.0
+            },
+            "selectedOptions": {
+              "implement": "bodyweight"
+            }
           }
         ],
         "defaultConfigurationId": "bulgarian_split_squat__dumbbells",

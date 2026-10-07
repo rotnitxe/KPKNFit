@@ -154,6 +154,18 @@
               "Agarra la barra a ambos lados y coloca los pies al ancho de tus caderas."
             ]
           },
+          "good_morning__bilateral__bodyweight": {
+            "description": "Con las manos detrás de la cabeza o cruzadas sobre el pecho, la única resistencia es el peso del tronco al inclinarse. Al no haber nada que apoyar en la espalda ni que agarrar, el ejercicio enseña la bisagra o sirve de calentamiento.",
+            "executionCues": [
+              "Empuja la cadera hacia atrás y baja el pecho con la espalda recta.",
+              "Detente cuando notes que tira la parte posterior de los muslos.",
+              "Vuelve a la vertical extendiendo la cadera, sin doblar más las rodillas."
+            ],
+            "setupCues": [
+              "Colócate de pie con las rodillas apenas flexionadas y los pies bajo las caderas.",
+              "Lleva las manos detrás de la cabeza, con los codos abiertos y sin tirar del cuello, o cruza los brazos sobre el pecho."
+            ]
+          },
           "good_morning__bilateral__machine": {
             "description": "Un brazo de palanca acolchado recibe la espalda alta y un apoyo anterior delimita la posición de la pelvis. El ajuste de esos contactos permite inclinar el torso con ambos pies en la plataforma.",
             "executionCues": [
@@ -239,7 +251,7 @@
             ]
           }
         },
-        "description": "El Buenos Días, conocido como good morning, es una bisagra que carga los isquiosurales y el glúteo mayor al inclinar el torso con peso apoyado en la parte superior del cuerpo. La pelvis retrocede con las rodillas apenas dobladas; la espalda conserva su forma mientras el pecho baja y vuelve a erguirse. La barra libre permite acompañar el arco del torso, mientras una estación con recorrido fijo exige ajustar los apoyos a ese recorrido. Su rasgo es levantar la carga desde la cadera con las manos dedicadas a sujetar el apoyo superior."
+        "description": "El Buenos Días, conocido como good morning, es una bisagra que carga los isquiosurales y el glúteo mayor al inclinar el torso con peso apoyado en la parte superior del cuerpo o, sin implemento, con el propio tronco como carga. La pelvis retrocede con las rodillas apenas dobladas; la espalda conserva su forma mientras el pecho baja y vuelve a erguirse. La barra libre permite acompañar el arco del torso, mientras una estación con recorrido fijo exige ajustar los apoyos a ese recorrido. Su rasgo es que el trabajo sale de la cadera y no de las manos: estas sujetan el apoyo superior o, sin carga, van detrás de la cabeza."
       },
       "sources": [
         {
@@ -287,7 +299,7 @@
       ],
       "status": "CURATED",
       "technique": {
-        "identity": "Bisagra de pie con la carga apoyada en la espalda alta o en un brazo acolchado sobre el torso. El pecho se inclina desde la cadera y vuelve a la vertical con una pequeña flexión de rodilla, sin levantar una carga suspendida de las manos.",
+        "identity": "Bisagra de pie con la carga apoyada en la espalda alta o en un brazo acolchado sobre el torso, o sin carga y con las manos detrás de la cabeza. El pecho se inclina desde la cadera y vuelve a la vertical con una pequeña flexión de rodilla, sin levantar una carga suspendida de las manos.",
         "keyPositions": [
           "Inicio: torso vertical, planta del pie apoyada y rodillas ligeramente flexionadas.",
           "Abajo: cadera flexionada, pecho inclinado hacia el suelo y columna con su forma inicial; el rango acaba antes de compensar con flexión lumbar.",
@@ -316,14 +328,15 @@
         "setup": [
           "Carga asentada en la espalda alta y manos sobre la barra, asas delanteras o agarraderas de la estación.",
           "Dos pies al ancho de caderas en la base; en unilateral, un pie sostiene el cuerpo y la pierna libre se prolonga hacia atrás.",
-          "En máquina, ajuste del apoyo pélvico anterior y del acolchado móvil para permitir la bisagra."
+          "En máquina, ajuste del apoyo pélvico anterior y del acolchado móvil para permitir la bisagra.",
+          "Peso corporal: sin carga, con las manos detrás de la cabeza o los brazos cruzados sobre el pecho."
         ]
       },
       "visual": {
         "base": {
           "camera": "Vista lateral a la altura de la pelvis con todo el cuerpo y la carga dentro del encuadre.",
-          "contacts": "Carga en contacto con la espalda alta; manos sobre los agarres correspondientes y pie o pies sobre la superficie de apoyo.",
-          "load": "Carga situada sobre el torso, por encima del suelo y sin colgar de los brazos.",
+          "contacts": "Si hay carga, en contacto con la espalda alta y con las manos sobre los agarres correspondientes; en corporal, las manos detrás de la cabeza. Pie o pies sobre la superficie de apoyo.",
+          "load": "Si hay carga, situada sobre el torso, por encima del suelo y sin colgar de los brazos; en corporal no hay carga.",
           "orientation": "Atleta orientado hacia la izquierda, mirada hacia abajo en continuidad con el cuello.",
           "phase": "Fotograma inferior de la bisagra, con el tronco inclinado hacia delante y la cadera flexionada.",
           "posture": "Tronco largo con columna neutra y rodillas poco flexionadas; cadera situada detrás del pecho."
@@ -331,6 +344,9 @@
         "byImplement": {
           "barbell": {
             "geometry": "Barra recta transversal apoyada sobre la espalda alta, debajo del cuello, con ambas manos rodeándola fuera de los hombros; discos a ambos lados suspendidos y pies en el suelo."
+          },
+          "bodyweight": {
+            "geometry": "Sin barra ni ninguna carga: las manos están detrás de la cabeza con los codos abiertos y los pies son el único contacto con el suelo."
           },
           "machine": {
             "geometry": "Estación de bisagra de pie con brazo de palanca acolchado contra la espalda alta, soporte anterior de pelvis y plataforma para los pies; ambas manos agarran las asas y el brazo cargado permanece unido al bastidor."
@@ -365,13 +381,15 @@
         ],
         "promptCore": {
           "barbell": "Side view of an athlete frozen at the BOTTOM of a standing barbell good morning. Both feet are flat on the floor, knees only slightly bent, hips pushed backward and torso inclined forward with a neutral spine. A loaded barbell is pressed against the upper back below the neck. Both hands grip the shaft outside the shoulders. Plates remain above the floor, with the neck aligned to the back.",
+          "bodyweight": "Side view of an athlete frozen at the BOTTOM of a bodyweight good morning. The torso is hinged forward from the hips until it leans about 60 degrees from vertical, with a flat back, the hips are pushed back and the knees are only slightly bent. Both hands are placed behind the head with the elbows wide and both feet are flat on the floor. There is no barbell, no weight and nothing resting on the back.",
           "machine": "Side view of an athlete frozen at the BOTTOM of a standing good morning machine hip hinge. Both feet press on the platform. The pelvis touches a fixed front pad and the upper back touches a moving padded lever attached to the frame. Both hands grip the machine handles. Torso inclines forward, knees remain slightly bent, spine neutral. The loaded lever stays visibly connected to the station.",
           "safety_bar": "Side view, frozen at the BOTTOM of a safety bar good morning. The padded yoke is pressed against both shoulders and both hands grip the front handles. Curved bar ends carry plates below the yoke, clear of the floor. Both feet stay flat, knees slightly flexed, hips back and torso leaning forward with a straight spinal profile. Eyes point down.",
           "smith_machine": "An athlete frozen at the BOTTOM of a Smith machine good morning, viewed from the side. Both hands grip the guided bar resting against the upper back below the neck. Each end of the bar is attached to a visible vertical rail. Both feet touch the floor, hips are flexed backward, knees slightly bent and torso inclined forward with a neutral spine. Plates and bar are above the safety stops."
         },
         "qa": [
           "¿El fotograma muestra el tronco inclinado y la cadera flexionada?",
-          "¿La carga toca la espalda alta o su acolchado, con las manos sujetando los agarres y nada flotando?",
+          "¿Si hay carga, toca la espalda alta o su acolchado, con las manos sujetando los agarres y nada flotando?",
+          "¿En Peso Corporal, las manos están detrás de la cabeza y no hay ninguna carga?",
           "¿Las rodillas están solo ligeramente dobladas y la espalda conserva una curva neutra?",
           "¿Cada extremo de la barra Smith o del brazo de máquina está unido a su estructura?",
           "¿En la variante unilateral un solo pie sostiene el cuerpo y la otra pierna sale hacia atrás?",

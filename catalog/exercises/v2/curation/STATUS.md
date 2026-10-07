@@ -10,17 +10,20 @@ vigente es esto:
 - Revisión del catálogo `v2-approved-2026-09-29-a` (sin cambio; los ids tampoco
   cambian, el resolver rechaza ejercicios guardados con otra revisión) y
   ontología `wikilab-v3-2026-08-08`.
-- 96 familias, 206 definiciones, 521 configuraciones, 413 pares definición ×
+- 96 familias, 215 definiciones, 539 configuraciones, 430 pares definición ×
   implemento (el 2026-10-02 se retiró `sissy_squat__barbell`; las selecciones
   guardadas se remapean a `sissy_squat__smith_machine`; el 2026-10-03 se dieron de
   alta las cinco especialidades M1-M5, ver más abajo; el 2026-10-04 se retiraron
-  las cuatro configuraciones unilaterales del rumano sumo). SHA-256 canónico compartido
-  `c67eeb8ff6a8e68988fd3e0396fe8601920d3cdec7a05973fa95bf6085eb7566`.
+  las cuatro configuraciones unilaterales del rumano sumo; el 2026-10-07 el lote
+  BW-1 de peso corporal añadió nueve definiciones y ocho configuraciones
+  `__bodyweight` en definiciones ya `CURATED`, ver «Lote BW-1»). SHA-256 canónico compartido
+  `c30a5c2e61b9d2f7f7bae3d517104b93f5851e772339872badc025c6bc67f831`.
 - Fuente única de autoría: `curation/fichas/<familyId>.json` (una por familia,
   96). Se copia con `scripts/catalog_v2_apply_fichas.py`; el flujo completo y las
   reglas están en `EDITORIAL_GUIDE.md`. El gate falla si `source/` difiere de lo
   que producen las fichas.
-- Estado de las fichas: 82 definiciones `LEGACY` y **124 `CURATED`**. Piloto
+- Estado de las fichas: 82 definiciones `LEGACY` y **133 `CURATED`** (124 tras el lote
+  6 y nueve altas nuevas del lote BW-1, ya `CURATED`). Piloto
   (2026-10-01): `seal_row`, `pull_up` y `glutes_clamshells_banda`. Lote 1, pecho
   (2026-10-02, 20 definiciones, aplicado): `floor_press`, las aperturas
   (`decline_chest_fly`, `flat_chest_fly`, `incline_chest_fly`, `reverse_pec_fly`),
@@ -107,6 +110,46 @@ La evidencia se registra por etapa; los resultados Python no sustituyen Kotlin, 
 
 Las aprobaciones `USER_APPROVAL.json` y `USER_APPROVAL_VOLUME.json` continúan vigentes e inmutables. El lote 6 ya tiene evidencia nativa, commit `692aea428eb712fab46eabc474483d51c14a5e5a` y arranque comprobado. No depende de volver a pedir los mismos OK. Push sigue sin autorizar.
 
+### Lote BW-1 — altas de peso corporal · 2026-10-07 (propuesto, rama `ent/d4`)
+
+Cierra los huecos de la matriz del generador de rutinas (`docs/entreno-v2/matrix-d1.txt`) para quien entrena solo con el cuerpo o en un
+parque. **Pendiente del OK del usuario:** `reviewStatus: APPROVED` en las 18 configuraciones es el estado propuesto para el corte, no
+una aprobación; nada se aterrizó en el árbol principal. Informe completo en `docs/entreno-v2/lote-bw1-report.md`.
+
+- **Nueve definiciones nuevas, ya `CURATED`** (diez configuraciones), en familias que ya existían: `pike_push_up` (`flat`,
+  `feet_elevated`), `negative_pull_up`, `diamond_push_up`, `archer_push_up`, `hollow_body_hold`, `dead_bug`, `side_plank`, `bird_dog` y
+  `wall_sit`.
+- **Ocho configuraciones `__bodyweight`** en definiciones ya `CURATED`: `forward_lunge`, `walking_lunge`, `step_up`,
+  `bulgarian_split_squat`, `sumo_squat`, `sissy_squat`, `romanian_deadlift` (`unilateral`) y `good_morning` (`bilateral`).
+- Cifras: 206 / 521 / 413 → **215 / 539 / 430** (definiciones / configuraciones / pares definición×implemento); `CURATED` 124 → 133;
+  revisión y ontología sin cambio; SHA `c30a5c2e…`. Ningún perfil de configuración preexistente cambia: contra el catálogo base se
+  compararon 42 configuraciones y hay 0 cambios de rol muscular, articular o de patrón, y ninguna configuración existente cambia de
+  texto. Solo se retocó, donde daba por hecha una carga en las manos, la descripción pública de `walking_lunge`, `romanian_deadlift`
+  y `good_morning` y texto interno (técnica, base visual y QA del brief de imagen) de las ocho definiciones con una configuración
+  sin carga nueva.
+- Fuentes: de 6 a 10 por definición nueva, verificadas con `catalog_v2_sources.py verify --definitions` (17 URLs nuevas en
+  `sources_verified.json`). Sin electromiografía del mismo ejercicio para la pica, la flexión arquero, la sentadilla en pared, la
+  dominada negativa, los buenos días y el rumano sin carga: sus roles se extrapolan y cada `why` lo dice.
+- Revisión limpia: tres revisores sin contexto (solo lectura) leyeron las 17 definiciones contra sus fuentes, sin bloqueantes, y
+  sus correcciones están aplicadas. Roles que quedan para el OK del usuario: `dead_bug` con flexores de cadera SECUNDARIOS,
+  `side_plank` con el glúteo medio PRINCIPAL (Collings 2023 y Ekstrom 2007), `bird_dog` con erectores como primer PRIMARY y
+  `diamond_push_up` con el tríceps como primer PRIMARY.
+- `efc/cnc/ssc/ttc` se heredan sin cambio del perfil aprobado más cercano (campos de significado no documentado:
+  `fieldSemanticsGap`) y `technicalDifficulty` es una puntuación editorial modelada entre anclas aprobadas; ver la tabla del informe.
+- Soportes y Kotlin: la dominada negativa pide `pull_up_bar`; la pica con pies elevados, el step-up y la búlgara sin carga piden
+  `support`; el resto no pide nada. El resolutor es el de los paquetes E y E2 (`SYMBOL_EQUIPMENT_KEYS`: las anillas acreditan `trx`
+  y `rings`, y las tres configuraciones TRX ya se alcanzan); de BW-1 queda que «Cajón o step» (`plyo_box`) acredita además `support`.
+- Validación en el worktree: land de prueba (gate READY, auditoría 0/0, compile --check, pines), pytest de `scripts/tests` y del
+  backend (214 aprobadas y 162 subtests) y Kotlin Base (200 suites, 2071 pruebas, filtradas por catálogo, equipo y planes). Los
+  pines de cifras que se movieron son recuentos del catálogo (`AprendeCatalogAuditTest`, `ExerciseCatalogContractTest`,
+  `ExerciseCatalogAuditTest`, `test_catalog_v2_show.py` y el backend); ningún test de planes (T006, cobertura, matriz ejecutable)
+  cambió de cifras.
+- **No hecho:** el remo invertido accesible (necesita un soporte nuevo, regla STOP) y las seis conversiones de definiciones
+  `LEGACY` (`glutes_puente_gluteos` unilateral, `calf_raise` unilateral, `hip_thrust`, `hip_abduction`, `glutes_patada_gluteo` y
+  `glutes_patada_gluteo_lateral`), que corresponden al lote 7 («Glúteo y pierna baja») porque una ficha `CURATED` exige la definición
+  completa y re-derivaría la anatomía aprobada de sus configuraciones.
+- Pendiente: los 17 pares definición × implemento nuevos no tienen PNG (`catalog_v2_visual_brief.py` ya arma su brief, con
+  `promptCore` y QA) y la búsqueda de `core_crunch_suelo_peso_corporal` conserva el término heredado «dead bug / bicho muerto».
 
 ### Campos retirados del esquema y prueba de no uso (F1)
 
