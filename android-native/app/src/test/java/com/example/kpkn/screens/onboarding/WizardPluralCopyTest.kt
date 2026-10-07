@@ -10,7 +10,7 @@ import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.SetupWizardBlock
 import com.example.kpkn.domain.onboarding.TrainingGoalProfile
 import com.example.kpkn.domain.onboarding.TrainingPlace
-import com.example.kpkn.screens.onboarding.entreno.weekdaysCountText
+import com.example.kpkn.screens.onboarding.design.entreno.daysPerWeekUnit
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -52,12 +52,13 @@ class WizardPluralCopyTest {
         assertEquals("Todos los días", weekdaysSummaryText((1..7).toSet()))
     }
 
+    /** El contador del calendario («1 día por semana», «3 días por semana») concuerda con la cifra: nunca «1 días». */
     @Test
-    fun theSelectedDaysCaptionAgreesWithTheNumberOfDays() {
-        assertEquals("Elige entre 1 y 7 días.", weekdaysCountText(0))
-        assertEquals("1 día por semana", weekdaysCountText(1))
-        assertEquals("3 días por semana", weekdaysCountText(3))
-        assertEquals("7 días por semana", weekdaysCountText(7))
+    fun theWeekCalendarCounterAgreesWithTheNumberOfDays() {
+        assertEquals("1 día por semana", "1 ${daysPerWeekUnit(1)}")
+        assertEquals("3 días por semana", "3 ${daysPerWeekUnit(3)}")
+        assertEquals("7 días por semana", "7 ${daysPerWeekUnit(7)}")
+        assertEquals("0 días por semana", "0 ${daysPerWeekUnit(0)}")
     }
 
     /**
