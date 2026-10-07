@@ -216,7 +216,7 @@ private fun WeekDaysCounter(count: Int, reduced: Boolean) {
             label = "weekCount",
         ) { number ->
             Text(
-                text = number.toString(),
+                text = weekCounterText(number),
                 style = WizardTypography.controlValue,
                 color = numberColor,
                 maxLines = 1,

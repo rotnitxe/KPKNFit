@@ -77,6 +77,14 @@ class WeekMathTest {
     }
 
     @Test
+    fun theCounterShowsADashInsteadOfAZeroThatLooksLikeALetter() {
+        assertEquals("–", weekCounterText(0))
+        assertEquals("–", weekCounterText(-1))
+        assertEquals("1", weekCounterText(1))
+        assertEquals("7", weekCounterText(7))
+    }
+
+    @Test
     fun theWeekStartSentenceNamesTheDayInLowerCase() {
         assertEquals("La semana empieza el lunes", weekStartLabel(1))
         assertEquals("La semana empieza el miércoles", weekStartLabel(3))

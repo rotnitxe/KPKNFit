@@ -49,6 +49,12 @@ fun dayFullName(day: Int): String = DAY_FULL_NAMES.getOrElse(day - 1) { "" }
 /** Unidad del contador de días: «día por semana» con uno, «días por semana» con cualquier otra cantidad (también 0). */
 fun daysPerWeekUnit(count: Int): String = if (count == 1) "día por semana" else "días por semana"
 
+/**
+ * La cifra grande del contador. Sin días se ve un guion: el cero de Syne es casi redondo y «O días por semana» se lee como una
+ * letra, no como una cantidad. (Para TalkBack el contador sigue diciendo «0 días por semana».)
+ */
+fun weekCounterText(count: Int): String = if (count > 0) count.toString() else "–"
+
 /** Frase del selector de inicio de semana: «La semana empieza el jueves». */
 fun weekStartLabel(startDay: Int): String =
     "La semana empieza el ${dayFullName(if (isWeekDay(startDay)) startDay else 1).lowercase()}"
