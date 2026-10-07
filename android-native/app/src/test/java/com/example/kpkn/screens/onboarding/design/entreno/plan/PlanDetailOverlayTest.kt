@@ -169,6 +169,21 @@ class PlanDetailOverlayTest {
     }
 
     @Test
+    fun theStructureGoesVerticalOnlyWhenAWordDoesNotFitItsColumn() {
+        val block = PlanBlockModel("Intensidad", "Semanas 5–8", "Menos volumen y cargas más cercanas")
+        // Cada palabra mide 6 px por carácter: «Intensidad» (10) = 60, «cercanas» (8) = 48.
+        val width: (String, BlockText) -> Float = { text, _ -> text.length * 6f }
+        assertTrue(blockWordsFit(block, 100f, width))
+        assertTrue(blockWordsFit(block, 60f, width))
+        assertFalse("«Intensidad» no cabe en 59", blockWordsFit(block, 59f, width))
+        // Cada parte puede medirse con su propio estilo: si las semanas son más anchas, deciden ellas.
+        val wide: (String, BlockText) -> Float = { text, kind -> text.length * (if (kind == BlockText.WEEKS) 12f else 6f) }
+        assertFalse(blockWordsFit(block, 60f, wide))
+        // Sin frase ni palabras sueltas no hay nada que no quepa.
+        assertTrue(blockWordsFit(PlanBlockModel("A", "1", ""), 10f, width))
+    }
+
+    @Test
     fun theWidestTitleDecidesIfTheyFitUnderTheirCircle() {
         val widths = mapOf("Torso" to 30f, "Intensidad" to 66f, "Pierna" to 36f)
         assertEquals(66f, widestTitlePx(widths.keys.toList()) { widths.getValue(it) }, 0f)

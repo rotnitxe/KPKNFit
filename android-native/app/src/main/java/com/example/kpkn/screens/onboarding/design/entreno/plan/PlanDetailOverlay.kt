@@ -15,10 +15,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -477,73 +479,144 @@ private fun ExerciseList(names: List<String>, accent: Color) {
     }
 }
 
+/** Ancho mínimo y máximo de la columna de un bloque en la línea de tiempo horizontal. */
+private val BLOCK_MIN_COL = 112.dp
+private val BLOCK_MAX_COL = 210.dp
+
+/** Aire a la derecha de cada bloque de la línea de tiempo horizontal. */
+private val BLOCK_GAP = 14.dp
+
+/** Cada texto de un bloque tiene su estilo: el nombre, las semanas y la frase. */
+internal enum class BlockText { LABEL, WEEKS, DETAIL }
+
 /**
- * La estructura: una línea de tiempo horizontal con un nodo por bloque, su nombre, sus semanas y una frase. Con pocos
- * bloques se reparten el ancho; con más, la línea se desliza de lado.
+ * ¿Cabe cada palabra de [block] entera en [widthPx]? [widthOf] da el ancho de un texto con el estilo de cada parte. Si alguna no
+ * cabe, la columna partiría una palabra a media palabra y la estructura pasa a la disposición vertical.
+ */
+internal fun blockWordsFit(block: PlanBlockModel, widthPx: Float, widthOf: (String, BlockText) -> Float): Boolean {
+    fun fits(text: String, kind: BlockText) = text.split(' ').filter { it.isNotEmpty() }.all { widthOf(it, kind) <= widthPx }
+    return fits(block.label, BlockText.LABEL) && fits(block.weeksLabel, BlockText.WEEKS) && fits(block.detail, BlockText.DETAIL)
+}
+
+/**
+ * La estructura: una línea de tiempo con un nodo por bloque, su nombre, sus semanas y una frase. Lo normal es horizontal: con
+ * pocos bloques se reparten el ancho; con más, la línea se desliza de lado. Si alguna palabra no cabe en su columna (letra
+ * grande, teléfono estrecho) pasa a vertical, con el riel a la izquierda, y no parte nada.
  */
 @Composable
 private fun BlockTimeline(blocks: List<PlanBlockModel>, accent: Color) {
+    val measurer = rememberTextMeasurer()
+    val density = LocalDensity.current
     BoxWithConstraints(Modifier.fillMaxWidth()) {
-        val colW = maxOf(112f, minOf(210f, maxWidth.value / blocks.size)).dp
+        val colW = maxOf(BLOCK_MIN_COL, minOf(BLOCK_MAX_COL, maxWidth / blocks.size))
         val fill = colW * blocks.size <= maxWidth
         // Con pocos bloques se reparten el ancho; con más, cada columna mide lo suyo y la línea se desliza.
         val columnWidth = if (fill) maxWidth / blocks.size else colW
-        val scrollState = rememberScrollState()
-        Row(
-            Modifier
-                // Si la línea se desliza, el borde derecho se funde: así el último bloque no parece cortado a media palabra.
-                .drawWithContent {
-                    drawContent()
-                    if (scrollState.canScrollForward) {
-                        val fadeW = 36.dp.toPx()
-                        drawRect(
-                            brush = Brush.horizontalGradient(
-                                listOf(Color.Transparent, OverlayScrim),
-                                startX = size.width - fadeW,
-                                endX = size.width,
-                            ),
-                            topLeft = Offset(size.width - fadeW, 0f),
-                            size = Size(fadeW, size.height),
-                        )
+        val innerPx = with(density) { (columnWidth - BLOCK_GAP).toPx() }
+        val horizontal = remember(blocks, innerPx, density.fontScale, density.density) {
+            blocks.all { block ->
+                blockWordsFit(block, innerPx) { text, kind ->
+                    val style = when (kind) {
+                        BlockText.LABEL -> WizardTypography.cardTitle
+                        BlockText.WEEKS -> BLOCK_WEEKS_STYLE
+                        BlockText.DETAIL -> WizardTypography.note
                     }
-                }
-                .horizontalScroll(scrollState),
-        ) {
-            blocks.forEachIndexed { i, block ->
-                val last = i == blocks.lastIndex
-                Column(
-                    Modifier
-                        .width(columnWidth)
-                        .padding(end = 14.dp),
-                ) {
-                    Canvas(
-                        Modifier
-                            .fillMaxWidth()
-                            .height(22.dp),
-                    ) {
-                        val cy = size.height / 2f
-                        val r = 5.dp.toPx()
-                        if (!last) drawLine(accent.copy(alpha = 0.35f), Offset(r * 2f, cy), Offset(size.width + 14.dp.toPx(), cy), 2.dp.toPx(), StrokeCap.Round)
-                        drawCircle(accent, r, Offset(r, cy))
-                    }
-                    Text(block.label, style = WizardTypography.cardTitle, color = WizardColors.text)
-                    Text(
-                        text = block.weeksLabel,
-                        style = WizardTypography.note.copy(fontWeight = FontWeight.SemiBold),
-                        color = accent,
-                        modifier = Modifier.padding(top = 2.dp),
-                    )
-                    if (block.detail.isNotBlank()) {
-                        Text(
-                            text = block.detail,
-                            style = WizardTypography.note,
-                            color = WizardColors.textMuted,
-                            modifier = Modifier.padding(top = 6.dp),
-                        )
-                    }
+                    measurer.measure(text = text, style = style, maxLines = 1, softWrap = false).size.width.toFloat()
                 }
             }
         }
+        if (horizontal) HorizontalBlocks(blocks, accent, columnWidth) else VerticalBlocks(blocks, accent)
+    }
+}
+
+private val BLOCK_WEEKS_STYLE = WizardTypography.note.copy(fontWeight = FontWeight.SemiBold)
+
+@Composable
+private fun HorizontalBlocks(blocks: List<PlanBlockModel>, accent: Color, columnWidth: Dp) {
+    val scrollState = rememberScrollState()
+    Row(
+        Modifier
+            // Si la línea se desliza, el borde derecho se funde: así el último bloque no parece cortado a media palabra.
+            .drawWithContent {
+                drawContent()
+                if (scrollState.canScrollForward) {
+                    val fadeW = 36.dp.toPx()
+                    drawRect(
+                        brush = Brush.horizontalGradient(
+                            listOf(Color.Transparent, OverlayScrim),
+                            startX = size.width - fadeW,
+                            endX = size.width,
+                        ),
+                        topLeft = Offset(size.width - fadeW, 0f),
+                        size = Size(fadeW, size.height),
+                    )
+                }
+            }
+            .horizontalScroll(scrollState),
+    ) {
+        blocks.forEachIndexed { i, block ->
+            val last = i == blocks.lastIndex
+            Column(
+                Modifier
+                    .width(columnWidth)
+                    .padding(end = BLOCK_GAP),
+            ) {
+                Canvas(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(22.dp),
+                ) {
+                    val cy = size.height / 2f
+                    val r = 5.dp.toPx()
+                    if (!last) drawLine(accent.copy(alpha = 0.35f), Offset(r * 2f, cy), Offset(size.width + BLOCK_GAP.toPx(), cy), 2.dp.toPx(), StrokeCap.Round)
+                    drawCircle(accent, r, Offset(r, cy))
+                }
+                BlockTexts(block, accent)
+            }
+        }
+    }
+}
+
+/** La estructura en vertical: el riel a la izquierda (un nodo por bloque) y los textos de cada bloque a su derecha. */
+@Composable
+private fun VerticalBlocks(blocks: List<PlanBlockModel>, accent: Color) {
+    Column {
+        blocks.forEachIndexed { i, block ->
+            val last = i == blocks.lastIndex
+            Row(Modifier.height(IntrinsicSize.Min)) {
+                Canvas(
+                    Modifier
+                        .width(22.dp)
+                        .fillMaxHeight(),
+                ) {
+                    val x = 5.dp.toPx()
+                    val top = 11.dp.toPx()
+                    if (!last) drawLine(accent.copy(alpha = 0.35f), Offset(x, top), Offset(x, size.height + top), 2.dp.toPx(), StrokeCap.Round)
+                    drawCircle(accent, 5.dp.toPx(), Offset(x, top))
+                }
+                Column(Modifier.padding(bottom = if (last) 0.dp else 22.dp)) { BlockTexts(block, accent) }
+            }
+        }
+    }
+}
+
+/** El nombre, las semanas y la frase de un bloque. */
+@Composable
+private fun BlockTexts(block: PlanBlockModel, accent: Color) {
+    Text(block.label, style = WizardTypography.cardTitle, color = WizardColors.text)
+    Text(
+        text = block.weeksLabel,
+        style = BLOCK_WEEKS_STYLE,
+        color = accent,
+        modifier = Modifier.padding(top = 2.dp),
+    )
+    if (block.detail.isNotBlank()) {
+        Text(
+            text = block.detail,
+            style = WizardTypography.note,
+            color = WizardColors.textMuted,
+            modifier = Modifier.padding(top = 6.dp),
+        )
     }
 }
 
