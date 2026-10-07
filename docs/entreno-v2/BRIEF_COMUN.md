@@ -12,12 +12,12 @@ Aplica a TODOS los paquetes de la ola. Cada paquete tiene además su brief propi
   informe (qué, dónde, por qué) en vez de hacerlo; el orquestador lo integra.
 
 ## Compilar y probar (la máquina es justa: 31 GB de RAM compartidos)
-- Compilar (desde `C:\kw\<nombre>\android-native`):
-  `./gradlew --no-daemon -Dorg.gradle.jvmargs=-Xmx4g -Pkotlin.compiler.execution.strategy=in-process -I C:/kw/tools/dbg-suffix.init.gradle :app:assembleBaseDebug`
-- Tests: `./gradlew --no-daemon -Dorg.gradle.jvmargs=-Xmx4g -Pkotlin.compiler.execution.strategy=in-process :app:testBaseDebugUnitTest --tests "<filtro>"`
-- **Nunca** `./gradlew --stop`, **nunca** `clean`, **un solo** Gradle tuyo a la vez, siempre con esas banderas (con 3 GB da OOM).
-  El primer build de un worktree tarda 10–20 min: lánzalo en segundo plano y espera sin sondear. Agrupa tus ediciones
-  antes de compilar y corre solo los tests de lo que tocaste (`--tests`), no la suite entera.
+- **Todo Gradle va por el envoltorio** `C:/kw/tools/gradle_slot.sh`, en segundo plano y con la salida a un log: espera una de las 2 ranuras globales y ≥ 3 GB de RAM libres, y ya añade
+  `--no-daemon -Dorg.gradle.jvmargs=-Xmx4g -Pkotlin.compiler.execution.strategy=in-process` (no los repitas). Formato:
+  `bash /c/kw/tools/gradle_slot.sh /c/kw/<tu-worktree>/android-native [-I C:/kw/tools/dbg-suffix.init.gradle] <tareas>`; por ejemplo `:app:assembleBaseDebug` o
+  `:app:testBaseDebugUnitTest --tests "<filtro>"`.
+- **Nunca** `./gradlew --stop`, **nunca** `clean`, **un solo** Gradle tuyo a la vez. El primer build de un worktree tarda 10–20 min (más con la cola): agrupa tus ediciones antes de
+  compilar, corre solo los tests de lo que tocaste (`--tests`), no la suite entera, y mientras esperas turno sigue editando o leyendo (no sondees).
 - Las herramientas de shell expiran a los 10 min: lanza Gradle con `run_in_background` y redirige la salida a un log.
 
 ## Emulador (solo para paquetes visuales)
