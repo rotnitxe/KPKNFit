@@ -383,7 +383,7 @@ class SetupNutritionResultTest {
     fun `el paso se llama Tu plan de alimentacion y no lleva subtitulo`() {
         val route = SetupStepGraph.stepIds(SetupStepContext(nutritionStartChoice = "automatic", nutritionDirection = "deficit"))
         assertTrue(SetupStepId.NUTRITION_RESULT in route)
-        val copy = wizardPageCopy(SetupStepId.NUTRITION_RESULT, route)
+        val copy = wizardPageCopy(SetupStepId.NUTRITION_RESULT)
         assertEquals("Tu plan de alimentación", copy.title)
         assertNull(copy.subtitle)
         assertTrue(copy.title.length <= 40)
