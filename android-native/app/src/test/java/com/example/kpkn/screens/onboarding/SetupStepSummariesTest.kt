@@ -1,22 +1,25 @@
 package com.example.kpkn.screens.onboarding
 
-import com.example.kpkn.data.models.AutoregulationMode
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.CardioType
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.Macrocycle
 import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.NutritionPlan
-import com.example.kpkn.data.models.PowerliftingProfile
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.RecoveryChannelId
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
-import com.example.kpkn.data.protocols.SetRecipe
 import com.example.kpkn.domain.nutrition.EerSex
 import com.example.kpkn.domain.nutrition.NutritionPlanPreparationStatus
 import com.example.kpkn.domain.nutrition.NutritionWizardDraft
+import com.example.kpkn.domain.onboarding.CapabilityLevel
+import com.example.kpkn.domain.onboarding.CapabilitySkill
+import com.example.kpkn.domain.onboarding.EquipmentSymbolId
+import com.example.kpkn.domain.onboarding.EquipmentSymbols
+import com.example.kpkn.domain.onboarding.LiftMark
+import com.example.kpkn.domain.onboarding.MuscleSymbol
 import com.example.kpkn.domain.onboarding.RingsChannelCoverage
 import com.example.kpkn.domain.onboarding.RingsCoverage
 import com.example.kpkn.domain.onboarding.RingsCoverageSource
@@ -30,6 +33,8 @@ import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.SetupValueState
 import com.example.kpkn.domain.onboarding.SetupWizardBlock
+import com.example.kpkn.domain.onboarding.TrainingGoalProfile
+import com.example.kpkn.domain.onboarding.TrainingPlace
 import com.example.kpkn.domain.training.TrainingOptions
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -86,14 +91,13 @@ class SetupStepSummariesTest {
         assertFalse("$tag: la etiqueta no es de una línea", summary.label.any { it == '\n' || it == '\r' || it == '\t' })
     }
 
-    /** Rutas con todas las ramas condicionales: cardio, marcas, autorregulación, material, inventarios y los tres modos de nutrición. */
+    /** Rutas con todas las ramas condicionales: cardio, capacidades, marcas, inventarios y los tres modos de nutrición. */
     private val routeContexts = listOf(
         SetupStepContext(),
         SetupStepContext(
-            asksAvailability = true,
-            wantsCardio = true,
-            hasTrainingMarks = true,
-            autoregulationOn = true,
+            goalIncludesCardio = true,
+            asksCapabilities = true,
+            asksMarks = true,
             inventoryGroups = SetupInventoryGroup.entries.toSet(),
             nutritionStartChoice = "automatic",
             nutritionDirection = "deficit",
@@ -102,7 +106,7 @@ class SetupStepSummariesTest {
         SetupStepContext(nutritionStartChoice = "self_defined", nutritionDirection = "surplus"),
         SetupStepContext(nutritionStartChoice = "tracking_only"),
         SetupStepContext(nutritionProfessional = true),
-        SetupStepContext(programRouteLater = true),
+        SetupStepContext(hasWeekLayout = false, asksTechnique = false),
     )
 
     // ─── Cobertura y límites ─────────────────────────────────────────────────
@@ -111,9 +115,8 @@ class SetupStepSummariesTest {
     fun everyStepOfTheFullRouteHasALabelAndAValueWithinTheLimits() {
         val routeSteps = routeContexts.flatMap { SetupStepGraph.stepIds(it) }.toSet()
 
-        // El barrido no se encoge en silencio: la ruta trae todo paso no legacy salvo ROUTE
-        // (que ya no forma parte de ninguna ruta nueva).
-        val expected = SetupStepId.entries.filterNot { isLegacy(it) || it == SetupStepId.ROUTE }
+        // El barrido no se encoge en silencio: la ruta trae todo paso que no sea solo lectura de borradores antiguos.
+        val expected = SetupStepId.entries.filterNot { isLegacy(it) }
         assertTrue("pasos fuera de las rutas probadas: ${expected - routeSteps}", routeSteps.containsAll(expected))
 
         routeSteps.forEach { step -> assertWithinLimits(step, summary(step), "borrador por defecto") }
@@ -143,11 +146,8 @@ class SetupStepSummariesTest {
 
     @Test
     fun aFreshDraftOnlyShowsHonestPlaceholdersOrTheContractDefaults() {
-        // Sin respuestas: «Sin responder», «Listo» (resultados), «Completado» (hitos) y las dos
-        // decisiones que el contrato da por buenas sin tocarlas (autorregulación y calentamientos).
-        val allowed = setOf(
-            "Sin responder", "Listo", "Completado", "Propuestas que yo confirmo", "Estándar del plan",
-        )
+        // Sin respuestas: «Sin responder», «Listo» (resultados y la semana) y «Completado» (hitos).
+        val allowed = setOf("Sin responder", "Listo", "Completado")
         SetupStepId.entries.forEach { step ->
             val shown = value(step)
             assertTrue("$step enseña «$shown» con el borrador por defecto", shown in allowed)
@@ -306,11 +306,12 @@ class SetupStepSummariesTest {
             SetupStepSummary("Experiencia", "Ya entreno con constancia"),
             summary(SetupStepId.EXPERIENCE, SetupWizardDraft().choose(SetupStepId.EXPERIENCE, "intermediate")),
         )
-        assertEquals("Fuerza y músculo", value(SetupStepId.GOAL, SetupWizardDraft().choose(SetupStepId.GOAL, "strength_muscle")))
-        assertEquals("Gimnasio completo", value(SetupStepId.EQUIPMENT, SetupWizardDraft().choose(SetupStepId.EQUIPMENT, "gym")))
+        assertEquals("Fuerza y masa muscular", value(SetupStepId.GOAL, SetupWizardDraft().choose(SetupStepId.GOAL, "strength_muscle")))
+        assertEquals("Powerlifting", value(SetupStepId.GOAL, SetupWizardDraft().choose(SetupStepId.GOAL, "powerlifting")))
+        assertEquals("Gimnasio", value(SetupStepId.EQUIPMENT, SetupWizardDraft().choose(SetupStepId.EQUIPMENT, "gym")))
         assertEquals("No lo sé", value(SetupStepId.RINGS_RECENT, SetupWizardDraft().choose(SetupStepId.RINGS_RECENT, "unknown")))
-        assertEquals("Sí, conozco mis marcas", value(SetupStepId.TRAINING_MAX, SetupWizardDraft().choose(SetupStepId.TRAINING_MAX, "yes")))
         assertEquals("Sin responder", value(SetupStepId.EXPERIENCE))
+        assertEquals("Sin responder", value(SetupStepId.GOAL))
     }
 
     @Test
@@ -321,31 +322,77 @@ class SetupStepSummariesTest {
 
     @Test
     fun aRehydratedDraftReadsItsTypedAnswers() {
-        assertEquals("Entreno en casa", value(SetupStepId.EQUIPMENT, SetupWizardDraft(trainingEnvironment = "Entreno en casa")))
+        assertEquals("Casa", value(SetupStepId.EQUIPMENT, SetupWizardDraft(trainingPlaces = setOf(TrainingPlace.HOME))))
         assertEquals("Estoy volviendo", value(SetupStepId.EXPERIENCE, SetupWizardDraft(experience = SetupExperience.RETURNING)))
+        assertEquals("Fuerza y masa muscular", value(SetupStepId.GOAL, SetupWizardDraft(goalProfile = TrainingGoalProfile.STRENGTH_MUSCLE)))
+        // Los pasos retirados siguen leyendo lo que un borrador antiguo guardó.
         assertEquals("Músculo", value(SetupStepId.STYLE, SetupWizardDraft().choose(SetupStepId.STYLE, "bodybuilder")))
     }
 
     @Test
+    fun placesAreNamedInTheContractOrderAndTheFirstOneStartsTheSentence() {
+        assertEquals(SetupStepSummary("Dónde entrenas", "Gimnasio"), summary(SetupStepId.EQUIPMENT, SetupWizardDraft().withPlaces(setOf(TrainingPlace.GYM))))
+        assertEquals("Gimnasio y casa", value(SetupStepId.EQUIPMENT, SetupWizardDraft().withPlaces(setOf(TrainingPlace.HOME, TrainingPlace.GYM))))
+        assertEquals(
+            "Gimnasio, casa y espacios públicos",
+            value(SetupStepId.EQUIPMENT, SetupWizardDraft().withPlaces(TrainingPlace.entries.toSet())),
+        )
+        assertEquals("Espacios públicos", value(SetupStepId.EQUIPMENT, SetupWizardDraft().withPlaces(setOf(TrainingPlace.PUBLIC))))
+        assertEquals("Sin responder", value(SetupStepId.EQUIPMENT))
+        // La revisión final dice lo mismo que la fila-resumen.
+        assertEquals("Gimnasio y casa", placesSummaryText(setOf(TrainingPlace.GYM, TrainingPlace.HOME)))
+        assertNull(placesSummaryText(emptySet()))
+    }
+
+    @Test
+    fun theFreshDayAndTheSessionTimeReadWhatWasDeclared() {
+        assertEquals(SetupStepSummary("Día con más energía", "Jueves"), summary(SetupStepId.FRESH_DAY, SetupWizardDraft().withFreshestDay(4)))
+        assertEquals("Sin responder", value(SetupStepId.FRESH_DAY))
+        assertEquals(SetupStepSummary("Tiempo por sesión", "75 min"), summary(SetupStepId.SESSION_TIME, SetupWizardDraft().withSessionMinutes(75)))
+    }
+
+    @Test
+    fun capabilitiesNameTheExercisesThatAlreadyWorkAndSayAunNingunoOtherwise() {
+        val draft = SetupWizardDraft()
+            .withCapability(CapabilitySkill.PULL_UP, CapabilityLevel.SOME)
+            .withCapability(CapabilitySkill.PUSH_UP, CapabilityLevel.MANY)
+            .withCapability(CapabilitySkill.DIP, CapabilityLevel.NONE)
+        assertEquals(SetupStepSummary("Ejercicios que te salen", "Dominadas, Flexiones"), summary(SetupStepId.CAPABILITIES, draft))
+        assertEquals(
+            "Aún ninguno",
+            value(SetupStepId.CAPABILITIES, SetupWizardDraft().withCapability(CapabilitySkill.DIP, CapabilityLevel.NONE)),
+        )
+        assertEquals("Sin responder", value(SetupStepId.CAPABILITIES))
+    }
+
+    @Test
     fun aMultipleChoiceShowsTwoLabelsAndCountsTheRest() {
+        // Los días de la semana dicen cuántos son y cuáles (en orden de semana).
         val three = SetupWizardDraft().chooseAll(SetupStepId.WEEKDAYS, "5", "1", "3")
-        assertEquals(SetupStepSummary("Días de entreno", "Lunes, Miércoles +1"), summary(SetupStepId.WEEKDAYS, three))
+        assertEquals(SetupStepSummary("Días de entreno", "3 días · lun, mié, vie"), summary(SetupStepId.WEEKDAYS, three))
 
         val seven = SetupWizardDraft().chooseAll(SetupStepId.WEEKDAYS, "1", "2", "3", "4", "5", "6", "7")
-        assertEquals("Lunes, Martes +5", value(SetupStepId.WEEKDAYS, seven))
+        assertEquals("Todos los días", value(SetupStepId.WEEKDAYS, seven))
 
-        // Con uno o dos no hay « +N».
-        assertEquals("Martes, Jueves", value(SetupStepId.WEEKDAYS, SetupWizardDraft().chooseAll(SetupStepId.WEEKDAYS, "4", "2")))
-        assertEquals("Domingo", value(SetupStepId.WEEKDAYS, SetupWizardDraft().chooseAll(SetupStepId.WEEKDAYS, "7")))
+        assertEquals("2 días · mar, jue", value(SetupStepId.WEEKDAYS, SetupWizardDraft().chooseAll(SetupStepId.WEEKDAYS, "4", "2")))
+        assertEquals("1 día · dom", value(SetupStepId.WEEKDAYS, SetupWizardDraft().chooseAll(SetupStepId.WEEKDAYS, "7")))
         assertEquals("Sin responder", value(SetupStepId.WEEKDAYS))
+        // La revisión final dice lo mismo que la fila-resumen.
+        assertEquals("3 días · lun, mié, vie", weekdaysSummaryText(setOf(5, 1, 3)))
+        assertNull(weekdaysSummaryText(emptySet()))
     }
 
     @Test
     fun aMultipleChoiceFollowsTheCatalogOrderAndExclusiveValuesStandAlone() {
-        val categories = SetupWizardDraft().chooseAll(SetupStepId.AVAILABILITY, "CABLE", "BARBELL", "DUMBBELLS", "KETTLEBELL")
-        assertEquals(SetupStepSummary("Material disponible", "Barras olímpicas, Mancuernas +2"), summary(SetupStepId.AVAILABILITY, categories))
+        val gym = SetupWizardDraft().withPlaces(setOf(TrainingPlace.GYM))
+        val symbols = gym.chooseAll(SetupStepId.AVAILABILITY, "CABLE", "BARBELL", "DUMBBELLS", "KETTLEBELL")
+            .answered(SetupStepId.AVAILABILITY)
+        assertEquals(SetupStepSummary("Material", "Barra y discos, Mancuernas +2"), summary(SetupStepId.AVAILABILITY, symbols))
 
-        assertEquals("Solo peso corporal", value(SetupStepId.AVAILABILITY, SetupWizardDraft().chooseAll(SetupStepId.AVAILABILITY, "bodyweight_only")))
+        assertEquals(
+            "Solo peso corporal",
+            value(SetupStepId.AVAILABILITY, gym.chooseAll(SetupStepId.AVAILABILITY, "BODYWEIGHT_ONLY").answered(SetupStepId.AVAILABILITY)),
+        )
 
         assertEquals("Ninguna de estas", value(SetupStepId.NUTRITION_ELIGIBILITY, SetupWizardDraft().chooseAll(SetupStepId.NUTRITION_ELIGIBILITY, "none")))
         assertEquals("Embarazo, Lactancia", value(SetupStepId.NUTRITION_ELIGIBILITY, SetupWizardDraft().chooseAll(SetupStepId.NUTRITION_ELIGIBILITY, "lactation", "pregnancy")))
@@ -357,12 +404,18 @@ class SetupStepSummariesTest {
 
     @Test
     fun theMaterialAnEnvironmentSeedsIsNotAnAnswerUntilTheStepIsConfirmed() {
-        // «Gimnasio completo» siembra todas las categorías; la persona todavía no las ha confirmado.
+        // «Gimnasio» siembra el material habitual; la persona todavía no lo ha confirmado.
         val seeded = SetupWizardDraft().choose(SetupStepId.EQUIPMENT, "gym")
         assertEquals("Sin responder", value(SetupStepId.AVAILABILITY, seeded))
 
-        // Confirmado el paso, la selección vigente es lo que declaró.
-        assertEquals("Barras olímpicas, Mancuernas +9", value(SetupStepId.AVAILABILITY, seeded.answered(SetupStepId.AVAILABILITY)))
+        // Confirmado el paso, la selección vigente es lo que declaró: los símbolos sembrados, en el orden del catálogo.
+        val seed = EquipmentSymbols.seedFor(setOf(TrainingPlace.GYM))
+        val labels = EquipmentSymbolId.entries.filter { it in seed }.map { it.label }
+        assertTrue("el gimnasio siembra varios implementos", labels.size > 2)
+        assertEquals(
+            "${labels[0]}, ${labels[1]} +${labels.size - 2}",
+            value(SetupStepId.AVAILABILITY, seeded.answered(SetupStepId.AVAILABILITY)),
+        )
     }
 
     @Test
@@ -406,7 +459,6 @@ class SetupStepSummariesTest {
         assertEquals("1 día", value(SetupStepId.DAYS, SetupWizardDraft().choose(SetupStepId.DAYS, "1")))
         assertEquals("3 días", value(SetupStepId.DAYS, SetupWizardDraft().choose(SetupStepId.DAYS, "3")))
         // Un número fuera del catálogo también concuerda.
-        assertEquals("7 días", value(SetupStepId.DAYS, SetupWizardDraft(daysPerWeek = 7)))
         assertEquals("1 sesión", value(SetupStepId.RINGS_SESSIONS, SetupWizardDraft().choose(SetupStepId.RINGS_SESSIONS, "1")))
         assertEquals("3 sesiones", value(SetupStepId.RINGS_SESSIONS, SetupWizardDraft().choose(SetupStepId.RINGS_SESSIONS, "3")))
         assertEquals("Hoy", value(SetupStepId.RINGS_RECENCY, SetupWizardDraft().choose(SetupStepId.RINGS_RECENCY, "0")))
@@ -513,56 +565,42 @@ class SetupStepSummariesTest {
     // ─── Entreno ─────────────────────────────────────────────────────────────
 
     @Test
-    fun prioritiesListTheMusclesWithTheMostPointsFirst() {
-        val bag = mapOf("Dorsales" to 1, "Isquiosurales" to 2, "Glúteos" to 2)
-        val draft = SetupWizardDraft(trainingOptions = TrainingOptions(orderPriorities = bag))
-        assertEquals(SetupStepSummary("Prioridades de orden", "Glúteos, Isquiosurales +1"), summary(SetupStepId.PRIORITIES, draft))
-        assertEquals("Bíceps", value(SetupStepId.PRIORITIES, SetupWizardDraft(trainingOptions = TrainingOptions(orderPriorities = mapOf("Bíceps" to 2)))))
-        // Un punto a cero no cuenta.
+    fun prioritiesListTheMusclesWithTheirPlainNames() {
+        val draft = SetupWizardDraft()
+            .withMuscleToggled(MuscleSymbol.HAMSTRINGS)
+            .withMuscleToggled(MuscleSymbol.GLUTES)
+            .withMuscleToggled(MuscleSymbol.BACK)
+        // Con un punto cada uno, por orden alfabético del músculo canónico del motor.
+        assertEquals(SetupStepSummary("Músculos a mejorar", "Espalda, Glúteos +1"), summary(SetupStepId.PRIORITIES, draft))
+        assertEquals("Bíceps", value(SetupStepId.PRIORITIES, SetupWizardDraft().withMuscleToggled(MuscleSymbol.BICEPS)))
+        // Un punto a cero no cuenta y un borrador antiguo con dos puntos sigue leyéndose.
         assertEquals("Bíceps", value(SetupStepId.PRIORITIES, SetupWizardDraft(trainingOptions = TrainingOptions(orderPriorities = mapOf("Bíceps" to 2, "Dorsales" to 0)))))
-    }
-
-    @Test
-    fun anEmptyPrioritiesBagIsWholeBodyOnlyOnceTheStepIsConfirmed() {
-        assertEquals("Sin responder", value(SetupStepId.PRIORITIES))
-        assertEquals("Todo el cuerpo", value(SetupStepId.PRIORITIES, SetupWizardDraft().answered(SetupStepId.PRIORITIES)))
-    }
-
-    @Test
-    fun theSplitReadsWithItsPlainNameNeverItsId() {
         assertEquals(
-            SetupStepSummary("Reparto de entreno", "Torso y pierna, 4 días"),
-            summary(SetupStepId.SPLIT, SetupWizardDraft(selectedSplitId = "ul_x4")),
+            "Glúteos, Isquios +1",
+            value(
+                SetupStepId.PRIORITIES,
+                SetupWizardDraft(trainingOptions = TrainingOptions(orderPriorities = mapOf("Dorsales" to 1, "Isquiosurales" to 2, "Glúteos" to 2))),
+            ),
         )
-        assertEquals("Mi semana", value(SetupStepId.SPLIT, SetupWizardDraft(selectedSplitId = "custom", customSplitName = "Mi semana")))
-        assertEquals("Reparto personalizado", value(SetupStepId.SPLIT, SetupWizardDraft(selectedSplitId = "custom")))
+    }
 
-        // «Recomendado»: sin vista previa, la opción; con ella, el reparto que el motor aplicó.
-        val recommended = SetupWizardDraft().choose(SetupStepId.SPLIT, "recommended")
-        assertEquals("Recomendado para ti", value(SetupStepId.SPLIT, recommended))
-        val preview = Program(id = "p", name = "Plan", selectedSplitId = "ppl_ul")
-        assertEquals("Empuje, tirón, pierna y torso", summary(SetupStepId.SPLIT, SetupWizardState(draft = recommended, programPreview = preview)).value)
-
-        // Un id de reparto guardado solo como selección (borrador rehidratado) también se dice con su nombre llano...
-        assertEquals("Torso y pierna, 4 días", value(SetupStepId.SPLIT, SetupWizardDraft().choose(SetupStepId.SPLIT, "ul_x4")))
-        // ...y uno que el catálogo no conoce queda sin declarar en lugar de enseñar el id.
-        assertEquals("Sin responder", value(SetupStepId.SPLIT, SetupWizardDraft().choose(SetupStepId.SPLIT, "id_que_no_existe")))
-
-        assertEquals("Según el protocolo", value(SetupStepId.SPLIT, SetupWizardDraft(programRoute = SetupProgramRoute.PROTOCOL)))
-        assertEquals("Sin responder", value(SetupStepId.SPLIT))
+    @Test
+    fun anEmptyPrioritiesBagIsSinPreferenciaOnlyOnceTheStepIsConfirmed() {
+        assertEquals("Sin responder", value(SetupStepId.PRIORITIES))
+        assertEquals("Sin preferencia", value(SetupStepId.PRIORITIES, SetupWizardDraft().answered(SetupStepId.PRIORITIES)))
     }
 
     @Test
     fun thePlanReadsWithItsEditorialNameNeverItsId() {
         val entry = PersonalizedPlanCatalog.listedEntries().first { it.displayName.length <= SETUP_SUMMARY_VALUE_MAX }
         assertEquals(
-            SetupStepSummary("Plan elegido", entry.displayName),
+            SetupStepSummary("Programa", entry.displayName),
             summary(SetupStepId.PLAN, SetupWizardDraft(selectedCatalogId = entry.id)),
         )
 
         // Un id que el catálogo ya no conoce: el programa preparado o, sin él, una frase llana; nunca el id.
         val gone = SetupWizardDraft(selectedCatalogId = "plan-que-ya-no-existe")
-        assertEquals("Tu plan elegido", value(SetupStepId.PLAN, gone))
+        assertEquals("Tu programa elegido", value(SetupStepId.PLAN, gone))
         assertEquals(
             "Mi programa",
             summary(SetupStepId.PLAN, SetupWizardState(draft = gone, programPreview = Program(id = "p", name = "Mi programa"))).value,
@@ -575,38 +613,21 @@ class SetupStepSummariesTest {
 
     @Test
     fun marksShowOnlyTheDeclaredLifts() {
-        val three = SetupWizardDraft(powerliftingProfile = PowerliftingProfile(squat1RM = 100.0, bench1RM = 82.5, deadlift1RM = 120.0))
-        assertEquals(SetupStepSummary("Marcas", "Sentadilla 100 kg, Banca 82,5 kg +1"), summary(SetupStepId.TRAINING_MARKS, three))
-        assertEquals("Banca 80 kg", value(SetupStepId.TRAINING_MARKS, SetupWizardDraft(powerliftingProfile = PowerliftingProfile(bench1RM = 80.0))))
-        assertEquals("Sin responder", value(SetupStepId.TRAINING_MARKS))
-        assertEquals("Sin responder", value(SetupStepId.TRAINING_MARKS, SetupWizardDraft(powerliftingProfile = PowerliftingProfile())))
+        val three = SetupWizardDraft()
+            .withLiftMark(LiftMark.SQUAT, 100.0)
+            .withLiftMark(LiftMark.BENCH, 82.5)
+            .withLiftMark(LiftMark.DEADLIFT, 120.0)
+        assertEquals(SetupStepSummary("Marcas", "Sentadilla 100 kg, Press banca 82,5 kg +1"), summary(SetupStepId.TRAINING_MAX, three))
+        assertEquals("Press banca 80 kg", value(SetupStepId.TRAINING_MAX, SetupWizardDraft().withLiftMark(LiftMark.BENCH, 80.0)))
+        // Con otra unidad de visualización se dice en ella (el dato siempre vive en kg).
+        assertEquals("Press banca 176,4 lb", value(SetupStepId.TRAINING_MAX, SetupWizardDraft().withLiftMark(LiftMark.BENCH, 80.0).withMarksUnit("lb")))
+        assertEquals("Sin responder", value(SetupStepId.TRAINING_MAX))
+        // «No la sé» a todo, ya confirmado: sin marcas, y así se dice.
+        assertEquals("Sin marcas", value(SetupStepId.TRAINING_MAX, SetupWizardDraft().answered(SetupStepId.TRAINING_MAX)))
     }
 
     @Test
-    fun autoregulationAndWarmupsReadTheirContractState() {
-        fun options(mode: AutoregulationMode, confirmed: Boolean = false) =
-            SetupWizardDraft(trainingOptions = TrainingOptions(autoregulationMode = mode, automaticConfirmed = confirmed))
-
-        assertEquals(SetupStepSummary("Autorregulación", "Propuestas que yo confirmo"), summary(SetupStepId.AUTOREGULATION))
-        assertEquals("No, lo controlo yo", value(SetupStepId.AUTOREGULATION, options(AutoregulationMode.OFF)))
-        assertEquals("Ajuste automático cada semana", value(SetupStepId.AUTOREGULATION, options(AutoregulationMode.AUTO)))
-
-        // AUTO sin confirmar no es una respuesta; «solo revisar» solo existe una vez registrado.
-        assertEquals("Confirmado", value(SetupStepId.AUTOREGULATION_CONFIRM, options(AutoregulationMode.AUTO, confirmed = true)))
-        assertEquals("Sin responder", value(SetupStepId.AUTOREGULATION_CONFIRM, options(AutoregulationMode.AUTO)))
-        assertEquals("Sin responder", value(SetupStepId.AUTOREGULATION_CONFIRM, options(AutoregulationMode.PROPOSE)))
-        assertEquals("Solo revisar", value(SetupStepId.AUTOREGULATION_CONFIRM, options(AutoregulationMode.PROPOSE).answered(SetupStepId.AUTOREGULATION_CONFIRM)))
-
-        fun warmups(rows: List<SetRecipe>?) = SetupWizardDraft(trainingOptions = TrainingOptions(warmup = rows))
-        val steps = listOf(40.0, 60.0, 80.0).map { SetRecipe(percent = it, reps = 5, isWarmup = true) }
-        assertEquals(SetupStepSummary("Calentamientos", "Estándar del plan"), summary(SetupStepId.WARMUPS))
-        assertEquals("Sin calentamiento automático", value(SetupStepId.WARMUPS, warmups(emptyList())))
-        assertEquals("Personalizado (3 pasos)", value(SetupStepId.WARMUPS, warmups(steps)))
-        assertEquals("Personalizado (1 paso)", value(SetupStepId.WARMUPS, warmups(steps.take(1))))
-    }
-
-    @Test
-    fun theTrainingReviewSummarizesTheFirstWeekOfThePreparedProgram() {
+    fun theWeekLayoutSummarizesTheFirstWeekOfThePreparedProgram() {
         fun session(id: String, exercises: Int) =
             Session(id = id, name = id, exercises = (1..exercises).map { Exercise(id = "$id-$it", name = "Ejercicio $it") })
 
@@ -636,12 +657,26 @@ class SetupStepSummariesTest {
         )
         val draft = SetupWizardDraft()
         assertEquals(
-            SetupStepSummary("Revisión del plan", "1ª semana: 2 sesiones · 3 ejercicios"),
-            summary(SetupStepId.TRAINING_REVIEW, SetupWizardState(draft = draft, programPreview = program)),
+            SetupStepSummary("Tu semana", "2 sesiones por semana"),
+            summary(SetupStepId.WEEK_LAYOUT, SetupWizardState(draft = draft, programPreview = program)),
         )
         // Sin programa preparado, o sin sesiones, no se inventa ninguna cifra.
-        assertEquals("Listo", value(SetupStepId.TRAINING_REVIEW))
-        assertEquals("Listo", summary(SetupStepId.TRAINING_REVIEW, SetupWizardState(draft = draft, programPreview = Program(id = "p", name = "Plan"))).value)
+        assertEquals("Listo", value(SetupStepId.WEEK_LAYOUT))
+        assertEquals("Listo", summary(SetupStepId.WEEK_LAYOUT, SetupWizardState(draft = draft, programPreview = Program(id = "p", name = "Plan"))).value)
+    }
+
+    @Test
+    fun retiredTrainingStepsOnlyReadWhatAnOldDraftStoredAndNeverThrow() {
+        // Sus filas ya no se pintan en el alta, pero un borrador antiguo con selecciones guardadas se lee sin romper.
+        assertEquals("Sin responder", value(SetupStepId.SPLIT))
+        assertEquals("Sin responder", value(SetupStepId.AUTOREGULATION))
+        assertEquals("Sin responder", value(SetupStepId.WARMUPS))
+        assertEquals("Sin responder", value(SetupStepId.TRAINING_REVIEW))
+        assertEquals("Sin responder", value(SetupStepId.TRAINING_MARKS))
+        assertEquals("3 días", value(SetupStepId.DAYS, SetupWizardDraft().choose(SetupStepId.DAYS, "3")))
+        SetupStepId.entries.filter { isLegacy(it) }.forEach { step ->
+            assertWithinLimits(step, summary(step, SetupWizardDraft().choose(step, "valor_desconocido")), "borrador antiguo")
+        }
     }
 
     // ─── Nutrición ───────────────────────────────────────────────────────────
@@ -810,7 +845,17 @@ class SetupStepSummariesTest {
             .withStepNumber(SetupStepId.AGE, 36.0, NOW)
             .withStepNumber(SetupStepId.HEIGHT, 172.0, NOW)
             .withStepNumber(SetupStepId.WEIGHT, 70.1, NOW)
-            .withStepNumber(SetupStepId.SESSION_TIME, 100.0, NOW)
+            .withStepNumber(SetupStepId.SESSION_TIME, 180.0, NOW)
+            .withPlaces(TrainingPlace.entries.toSet())
+            .withGoalProfile(TrainingGoalProfile.STRENGTH_MUSCLE)
+            .withWeekdays(setOf(1, 2, 3, 4, 5, 6))
+            .withFreshestDay(3)
+            .withCapability(CapabilitySkill.PISTOL_SQUAT, CapabilityLevel.MANY)
+            .withCapability(CapabilitySkill.PULL_UP, CapabilityLevel.SOME)
+            .withCapability(CapabilitySkill.PUSH_UP, CapabilityLevel.SOME)
+            .withLiftMark(LiftMark.SQUAT, 1000.0)
+            .withLiftMark(LiftMark.BENCH, 999.5)
+            .withLiftMark(LiftMark.DEADLIFT, 1000.0)
             .choose(SetupStepId.BODY_FAT, SetupBodyFatSource.MEASURED.name)
             .withStepText(SetupStepId.BODY_FAT, "17,5", NOW)
 
@@ -819,7 +864,6 @@ class SetupStepSummariesTest {
             when (definition.control) {
                 SetupControlKind.SINGLE_CHOICE,
                 SetupControlKind.ROUTE_CHOICE,
-                SetupControlKind.ENVIRONMENT_CHOICE,
                 SetupControlKind.TOGGLE,
                 -> options.maxByOrNull { it.label.length }?.let { longest ->
                     draft = draft.withStepChoice(definition.id, longest.value, NOW)
@@ -839,14 +883,9 @@ class SetupStepSummariesTest {
         val longestPlan = PersonalizedPlanCatalog.listedEntries().maxByOrNull { it.displayName.length }
         draft = draft.copy(
             selectedCatalogId = longestPlan?.id,
-            selectedSplitId = "ppl_ul",
-            trainingOptions = TrainingOptions(
-                orderPriorities = mapOf("Erectores Espinales" to 2, "Isquiosurales" to 2, "Cuádriceps" to 1),
-                autoregulationMode = AutoregulationMode.AUTO,
-                automaticConfirmed = true,
-                warmup = listOf(40.0, 60.0, 80.0).map { SetRecipe(percent = it, reps = 5, isWarmup = true) },
+            trainingOptions = draft.trainingOptions.copy(
+                orderPriorities = mapOf("Erectores Espinales" to 1, "Isquiosurales" to 1, "Cuádriceps" to 1),
             ),
-            powerliftingProfile = PowerliftingProfile(squat1RM = 1000.0, bench1RM = 999.5, deadlift1RM = 1000.0),
             weightTrend = "falling",
             previousMaximumWeightKg = 500.0,
             historicalWeighIns = (1..12).map { SetupWeighIn("w$it", "2026-09-%02d".format(it), 70.0 + it) },

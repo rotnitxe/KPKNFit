@@ -4,9 +4,13 @@ import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.data.programs.PlanLabels
+import com.example.kpkn.domain.onboarding.LiftMark
 import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.SetupWizardBlock
+import com.example.kpkn.domain.onboarding.TrainingGoalProfile
+import com.example.kpkn.domain.onboarding.TrainingPlace
+import com.example.kpkn.screens.onboarding.entreno.weekdaysCountText
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -41,17 +45,19 @@ class WizardPluralCopyTest {
     // ─── Contadores y avisos del bloque Entreno ──────────────────────────────
 
     @Test
-    fun weekdaysCounterAgreesWithTheTargetDays() {
-        assertEquals("Elige 1 día · 0 de 1 elegido", weekdaysCounterText(target = 1, selectedCount = 0))
-        assertEquals("Elige 1 día · 1 de 1 elegido", weekdaysCounterText(target = 1, selectedCount = 1))
-        assertEquals("Elige 3 días · 2 de 3 elegidos", weekdaysCounterText(target = 3, selectedCount = 2))
-        assertEquals("Días elegidos: 2", weekdaysCounterText(target = null, selectedCount = 2))
+    fun weekdaysSummaryAgreesWithTheNumberOfDays() {
+        assertEquals("1 día · mié", weekdaysSummaryText(setOf(3)))
+        assertEquals("2 días · lun, jue", weekdaysSummaryText(setOf(1, 4)))
+        assertEquals("3 días · lun, mié, vie", weekdaysSummaryText(setOf(1, 3, 5)))
+        assertEquals("Todos los días", weekdaysSummaryText((1..7).toSet()))
     }
 
     @Test
-    fun customSplitNoticeDoesNotSayYourOneDays() {
-        assertEquals("Define el foco de tu día (0 de 1).", customSplitPendingText(target = 1, defined = 0))
-        assertEquals("Define el foco de tus 4 días (2 de 4).", customSplitPendingText(target = 4, defined = 2))
+    fun theSelectedDaysCaptionAgreesWithTheNumberOfDays() {
+        assertEquals("Elige entre 1 y 7 días.", weekdaysCountText(0))
+        assertEquals("1 día por semana", weekdaysCountText(1))
+        assertEquals("3 días por semana", weekdaysCountText(3))
+        assertEquals("7 días por semana", weekdaysCountText(7))
     }
 
     /**
@@ -163,28 +169,29 @@ class WizardPluralCopyTest {
     // ─── Validaciones de la semana ───────────────────────────────────────────
 
     @Test
-    fun weekValidationMessageAgreesWithTheRequestedDays() {
-        val one = SetupWizardDraft(daysPerWeek = 1, selectedWeekdays = setOf(1, 2))
-        val oneMessage = SetupWizardValidation.validateStep(one, SetupStepId.WEEKDAYS).single().message
-        assertEquals("Selecciona 1 día en tu semana", oneMessage)
-
-        val three = SetupWizardDraft(daysPerWeek = 3, selectedWeekdays = setOf(1))
-        val threeMessage = SetupWizardValidation.validateStep(three, SetupStepId.WEEKDAYS).single().message
-        assertEquals("Selecciona 3 días en tu semana", threeMessage)
+    fun weekValidationAsksForAtLeastOneDayAndSaysTheRange() {
+        val none = SetupWizardDraft()
+        assertEquals(
+            "Elige al menos un día para entrenar.",
+            SetupWizardValidation.validateStep(none, SetupStepId.WEEKDAYS).single().message,
+        )
+        val tooMany = SetupWizardDraft(selectedWeekdays = setOf(1, 9))
+        assertEquals(
+            "Elige entre 1 y 7 días.",
+            SetupWizardValidation.validateStep(tooMany, SetupStepId.WEEKDAYS).single().message,
+        )
+        // Un solo día es válido y no pide nada más.
+        assertTrue(SetupWizardValidation.validateStep(SetupWizardDraft(selectedWeekdays = setOf(2)), SetupStepId.WEEKDAYS).none { it.isBlocking })
     }
 
     @Test
-    fun weekChapterValidationAgreesWithTheRequestedDays() {
-        val one = SetupWizardDraft(daysPerWeek = 1, selectedWeekdays = setOf(1, 2))
-        assertEquals(
-            "Selecciona 1 día en tu semana",
-            SetupWizardValidation.validate(one, SetupWizardChapter.WEEK)["week"],
-        )
-        val five = SetupWizardDraft(daysPerWeek = 5, selectedWeekdays = setOf(1))
-        assertEquals(
-            "Selecciona 5 días en tu semana",
-            SetupWizardValidation.validate(five, SetupWizardChapter.WEEK)["week"],
-        )
+    fun weekChapterValidationAsksForDaysMinutesAndPlaces() {
+        val empty = SetupWizardValidation.validate(SetupWizardDraft(), SetupWizardChapter.WEEK)
+        assertEquals("Elige los días que quieres entrenar", empty["days"])
+        assertEquals("Indica el tiempo disponible", empty["minutes"])
+        assertEquals("Elige al menos un lugar", empty["equipment"])
+        val ready = SetupWizardDraft(selectedWeekdays = setOf(1, 3), minutesPerSession = 60).withPlaces(setOf(TrainingPlace.GYM))
+        assertTrue(SetupWizardValidation.validate(ready, SetupWizardChapter.WEEK).isEmpty())
     }
 
     // ─── Catálogo de planes ──────────────────────────────────────────────────
@@ -279,31 +286,41 @@ class WizardPluralCopyTest {
         assertEquals(listOf("Básicos", "Entreno", "Rings", "Revisión"), milestoneBlocks(route).map(::milestoneStageLabel))
     }
 
-    // ─── Resumen del hito de Entreno: la fila «Reparto» (H13) ───────────────────────────────
+    // ─── Resumen del hito de Entreno: lugares, material, objetivo, días y programa ──────────
 
     private fun milestoneState(draft: SetupWizardDraft) = SetupWizardState(draft = draft)
 
     @Test
-    fun theMilestoneSummarySaysTheSplitWithItsPlainSpanishNameUnderTheLabelReparto() {
-        val rows = trainingMilestoneRows(milestoneState(SetupWizardDraft(goal = SetupGoal.MUSCLE, daysPerWeek = 4, selectedSplitId = "ul_x4")))
+    fun theMilestoneSummaryUsesTheNamesOfTheFinalReview() {
+        val draft = SetupWizardDraft(selectedWeekdays = setOf(1, 3, 5), minutesPerSession = 60)
+            .withPlaces(setOf(TrainingPlace.GYM, TrainingPlace.HOME))
+            .withGoalProfile(TrainingGoalProfile.POWERLIFTING)
+            .withStepChoice(SetupStepId.EXPERIENCE, "intermediate")
+        val rows = trainingMilestoneRows(milestoneState(draft))
 
-        assertTrue("$rows", rows.contains("Reparto" to "Torso y pierna, 4 días"))
-        assertTrue("la fila ya no se llama «Split»: $rows", rows.none { (label, _) -> label == "Split" })
-        // El mismo nombre que ve en la lista de repartos y en la revisión; nunca el nombre técnico ni el id.
-        assertEquals("Torso y pierna, 4 días", splitDisplayName("ul_x4"))
-        rows.forEach { (_, value) -> assertFalse("«$value» lleva un id", value.contains("ul_x4")) }
+        assertEquals("Experiencia" to "Ya entreno con constancia", rows.first())
+        assertTrue("$rows", rows.contains("Lugares" to "Gimnasio y casa"))
+        assertTrue("$rows", rows.contains("Objetivo" to "Powerlifting"))
+        assertTrue("$rows", rows.contains("Días y tiempo" to "3 días · lun, mié, vie · 60 min"))
+        // Ya no hay fila de reparto: la semana la arma el programa.
+        assertTrue("$rows", rows.none { (label, _) -> label == "Reparto" || label == "Split" })
+        // Sin plan elegido tampoco hay fila de programa y nunca se pinta un id.
+        assertTrue("$rows", rows.none { (label, _) -> label == "Programa" })
     }
 
     @Test
-    fun theMilestoneSplitRowNamesTheOwnSplitAndNeverShowsAnUnknownId() {
-        fun rowsOf(draft: SetupWizardDraft) = trainingMilestoneRows(milestoneState(draft)).filter { (label, _) -> label == "Reparto" }
+    fun theMilestoneProgramRowNamesTheChosenPlanAndNeverShowsAnUnknownId() {
+        fun programRows(draft: SetupWizardDraft) =
+            trainingMilestoneRows(milestoneState(draft)).filter { (label, _) -> label == "Programa" }
 
-        assertEquals(listOf("Reparto" to "Mi reparto"), rowsOf(SetupWizardDraft(selectedSplitId = "custom", customSplitName = "Mi reparto")))
-        assertEquals(listOf("Reparto" to "Reparto personalizado"), rowsOf(SetupWizardDraft(selectedSplitId = "custom")))
-        // Un reparto que el catálogo no conoce no añade fila (nunca se pinta el id).
-        assertTrue(rowsOf(SetupWizardDraft(selectedSplitId = "id_que_no_existe")).isEmpty())
-        // Sin reparto elegido («Recomendado») tampoco.
-        assertTrue(rowsOf(SetupWizardDraft(selectedSplitId = null)).isEmpty())
+        val entry = PersonalizedPlanCatalog.listedEntries().first()
+        assertEquals(listOf("Programa" to entry.displayName), programRows(SetupWizardDraft(selectedCatalogId = entry.id)))
+        assertEquals(listOf("Programa" to "Tu programa elegido"), programRows(SetupWizardDraft(selectedCatalogId = "id_que_no_existe")))
+        assertEquals(listOf("Programa" to DEFER_PROGRAM_REVIEW_VALUE), programRows(SetupWizardDraft(programRoute = SetupProgramRoute.LATER)))
+        // Las marcas, solo si se declararon.
+        val marks = trainingMilestoneRows(milestoneState(SetupWizardDraft().withLiftMark(LiftMark.SQUAT, 140.0)))
+        assertTrue("$marks", marks.contains("Marcas" to "140 kg"))
+        assertTrue(trainingMilestoneRows(milestoneState(SetupWizardDraft())).none { (label, _) -> label == "Marcas" })
     }
 
     private fun entry(id: String) =
