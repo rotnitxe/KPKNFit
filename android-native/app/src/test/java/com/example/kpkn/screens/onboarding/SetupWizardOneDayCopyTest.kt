@@ -112,7 +112,7 @@ class SetupWizardOneDayCopyTest {
         vm.updateStep(SetupStepId.AVAILABILITY) {
             it.copy(trainingOptions = it.trainingOptions.copy(availability = AuthoredPlanFixtures.bodyweightOnly.availability))
         }
-        vm.updateStep(SetupStepId.DAYS) { it.copy(daysPerWeek = 1, selectedWeekdays = setOf(1)) }
+        vm.updateStep(SetupStepId.WEEKDAYS) { it.withWeekdays(setOf(1)) }
         vm.updateStep(SetupStepId.SESSION_TIME) { it.copy(minutesPerSession = 60) }
     }
 

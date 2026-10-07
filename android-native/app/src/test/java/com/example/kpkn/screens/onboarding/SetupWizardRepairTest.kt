@@ -5,6 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModelStore
 import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.exercises.catalogv2.CatalogV2ProcessCache
+import com.example.kpkn.data.models.AthleteType
 import com.example.kpkn.data.models.ApparatusPresence
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.CardioType
@@ -46,6 +47,8 @@ import com.example.kpkn.domain.onboarding.PlanRejectionReason
 import com.example.kpkn.domain.onboarding.PlanRepair
 import com.example.kpkn.domain.onboarding.PlanRepairAdvisor
 import com.example.kpkn.domain.onboarding.RejectionAction
+import com.example.kpkn.domain.onboarding.EntrenoStepValues
+import com.example.kpkn.domain.onboarding.EquipmentSymbolId
 import com.example.kpkn.domain.onboarding.SetupAnswerProvenance
 import com.example.kpkn.domain.onboarding.SetupApparatusPanel
 import com.example.kpkn.domain.onboarding.SetupStepDefinitions
@@ -53,6 +56,7 @@ import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.SetupValueState
 import com.example.kpkn.domain.onboarding.SetupWizardBlock
+import com.example.kpkn.domain.onboarding.TrainingGoalProfile
 import com.example.kpkn.domain.onboarding.WizChatMachineState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -176,7 +180,11 @@ class SetupWizardRepairTest {
 
         val minutes = base.withRepair(PlanRepair.SetMinutes(75))
         assertEquals(75, minutes.minutesPerSession)
-        assertEquals("el crudo canónico del paso", "75", minutes.inputTexts[SetupStepId.SESSION_TIME.name])
+        // El tiempo por sesión es un reloj: sin texto crudo. Una reparación escribe los minutos EXACTOS que probó el
+        // asesor (28 son 28, no 30): el programa probado es el que se activa.
+        assertNull(minutes.inputTexts[SetupStepId.SESSION_TIME.name])
+        assertEquals(28, base.withRepair(PlanRepair.SetMinutes(28)).minutesPerSession)
+        assertEquals(26, base.withRepair(PlanRepair.SetMinutes(26)).minutesPerSession)
 
         val cardio = base.withRepair(PlanRepair.SetCardioMinutes(15))
         assertEquals(15, cardio.cardioMinutes)
@@ -187,7 +195,9 @@ class SetupWizardRepairTest {
         val switched = base.withRepair(PlanRepair.SwitchGoal(PlanGoalProfile.STRENGTH_MUSCLE, alsoMinutes = 45))
         assertEquals(SetupGoal.STRENGTH_MUSCLE, switched.goal)
         assertEquals(TrainingStyle.POWERBUILDER, switched.volumeAnswers.style)
-        assertEquals(listOf("strength_muscle"), switched.stepSelections[SetupStepId.GOAL])
+        // El dato es el perfil de objetivo; la selección del paso se lee de él.
+        assertEquals(TrainingGoalProfile.STRENGTH_MUSCLE, switched.goalProfile)
+        assertEquals(setOf("strength_muscle"), switched.selectedValues(SetupStepId.GOAL))
         assertEquals(45, switched.minutesPerSession)
         assertNull(switched.selectedSplitId)
         assertEquals(STRENGTH_OWN, switched.selectedCatalogId)
@@ -197,24 +207,24 @@ class SetupWizardRepairTest {
     }
 
     @Test
-    fun confirmingMaterialWritesThePresenceAndKeepsTheSavedSelectionOfTheStepConsistent() {
-        val withStored = SetupWizardDraft().withCandidateInputs(SetupGoal.STRENGTH, GYM_UNCONFIRMED).copy(
-            stepSelections = mapOf(SetupStepId.AVAILABILITY to listOf("BARBELL", AVAILABILITY_BODYWEIGHT)),
-        )
+    fun confirmingMaterialWritesThePresenceAndTheSelectionOfTheStepIsReadBackFromIt() {
+        val base = SetupWizardDraft().withCandidateInputs(SetupGoal.STRENGTH, GYM_UNCONFIRMED)
+        // Antes de confirmar nada, el rack y el banco no constan como material.
+        assertFalse(EquipmentSymbolId.RACK in base.selectedEquipmentSymbols())
+        assertFalse(EquipmentSymbolId.BENCH in base.selectedEquipmentSymbols())
 
-        val confirmed = withStored.withRepair(confirm("squat_rack", "bench_flat"))
+        val confirmed = base.withRepair(confirm("squat_rack", "bench_flat"))
         val availability = checkNotNull(confirmed.trainingOptions.availability)
         assertEquals(ApparatusPresence.PRESENT, availability.supports["squat_rack"])
         assertEquals(ApparatusPresence.PRESENT, availability.supports["bench_flat"])
         assertTrue(EquipmentCategory.SUPPORT in availability.categories)
-        // «Solo peso corporal» ya no es verdad y la categoría que la reparación añade consta en la tarjeta del paso.
-        val stored = checkNotNull(confirmed.stepSelections[SetupStepId.AVAILABILITY])
-        assertTrue(stored.toString(), "BARBELL" in stored && "SUPPORT" in stored)
-        assertFalse(stored.toString(), AVAILABILITY_BODYWEIGHT in stored)
-
-        // Sin selección guardada no se inventa ninguna.
-        val noStored = SetupWizardDraft().withCandidateInputs(SetupGoal.STRENGTH, GYM_UNCONFIRMED)
-        assertEquals(noStored.stepSelections, noStored.withRepair(confirm("squat_rack")).stepSelections)
+        // La selección del paso es la lectura inversa de la disponibilidad: ya dice rack y banco sin guardar nada
+        // aparte (que se desfasaría), y «solo peso corporal» ya no es verdad.
+        assertNull(confirmed.stepSelections[SetupStepId.AVAILABILITY])
+        val symbols = confirmed.selectedEquipmentSymbols()
+        assertTrue(symbols.toString(), EquipmentSymbolId.RACK in symbols && EquipmentSymbolId.BENCH in symbols)
+        assertFalse(symbols.toString(), EquipmentSymbolId.BODYWEIGHT_ONLY in symbols)
+        assertTrue("RACK" in confirmed.selectedValues(SetupStepId.AVAILABILITY))
     }
 
     @Test
@@ -265,9 +275,12 @@ class SetupWizardRepairTest {
         assertEquals(ATHLETE_OWN, ownPlanIdOf(PlanGoalProfile.COMPLETE_ATHLETE))
         assertNull(ownPlanIdOf(PlanGoalProfile.LEGACY_MIXED))
         assertNull(ownPlanIdOf(PlanGoalProfile.LEGACY_HEALTH))
-        SetupGoal.entries.forEach { goal ->
+        // Cada objetivo vuelve a sí mismo por su perfil de plan, salvo Funcional (que se sirve, de momento, como Atleta
+        // completo) y los legacy, que no tienen plan propio.
+        SetupGoal.entries.filter { it != SetupGoal.FUNCTIONAL }.forEach { goal ->
             assertEquals(goal.name, planGoalProfileOf(goal).toSetupGoal()?.name ?: goal.name)
         }
+        assertEquals(PlanGoalProfile.COMPLETE_ATHLETE, planGoalProfileOf(SetupGoal.FUNCTIONAL))
         assertEquals(PlanGoalProfile.LEGACY_HEALTH, planGoalProfileOf(null))
     }
 
@@ -736,8 +749,8 @@ class SetupWizardRepairTest {
 
         listOf(
             RejectionAction.ChangeGoal to SetupStepId.GOAL,
-            RejectionAction.ChangeDays to SetupStepId.DAYS,
-            RejectionAction.ChangeSplit to SetupStepId.SPLIT,
+            RejectionAction.ChangeDays to SetupStepId.WEEKDAYS,
+            RejectionAction.ChangeSplit to SetupStepId.WEEK_LAYOUT,
             RejectionAction.ConfirmApparatus to SetupStepId.AVAILABILITY,
         ).forEach { (action, step) ->
             performRejectionAction(action, vm)
@@ -776,7 +789,9 @@ class SetupWizardRepairTest {
 
             assertEquals("la intención", POWERBUILDING_OWN, state.draft.selectedCatalogId)
             assertEquals("el objetivo del plan, prefijado", SetupGoal.STRENGTH_MUSCLE, state.draft.goal)
-            assertEquals(listOf("strength_muscle"), state.draft.stepSelections[SetupStepId.GOAL])
+            // El dato es el perfil de objetivo; la selección del paso se lee de él.
+            assertEquals(TrainingGoalProfile.STRENGTH_MUSCLE, state.draft.goalProfile)
+            assertEquals(setOf("strength_muscle"), state.draft.selectedValues(SetupStepId.GOAL))
             assertEquals(TrainingStyle.POWERBUILDER, state.draft.volumeAnswers.style)
             // Sin saltarse pasos: nada se confirma ni se marca como declarado.
             assertFalse(SetupStepId.GOAL in state.draft.stepProgress.answers)
@@ -1000,7 +1015,8 @@ class SetupWizardRepairTest {
             val moved = strength.withStepChoice(SetupStepId.GOAL, value)
             assertNull("«$value» no ofrece repartos de powerlifting", moved.selectedSplitId)
             assertEquals(value, setOf("recommended"), moved.selectedValues(SetupStepId.SPLIT))
-            assertEquals(value, listOf(value), moved.stepSelections[SetupStepId.GOAL])
+            assertNull(value, moved.stepSelections[SetupStepId.GOAL])
+            assertEquals(value, setOf(EntrenoStepValues.goalValue(checkNotNull(moved.goalProfile))), moved.selectedValues(SetupStepId.GOAL))
         }
         // Un reparto que el objetivo nuevo sí ofrece, el reparto propio y un id que el catálogo no conoce no se tocan.
         listOf(generalSplit.id, "custom", "id_que_no_existe").forEach { id ->
@@ -1019,24 +1035,27 @@ class SetupWizardRepairTest {
     fun aPlanWithASingleFrequencyPrefillsTheDaysWithoutConfirmingThem() {
         val seeded = checkNotNull(SetupWizardDraft().withPreselectedPlan(AuthoredPhulPhatRecipes.PHUL_ORIGINAL_ID))
 
+        // Los días son los de la semana: el método de 4 días siembra una semana repartida de 4 días.
         assertEquals("los días del método", 4, seeded.daysPerWeek)
-        assertEquals(listOf("4"), seeded.stepSelections[SetupStepId.DAYS])
-        assertFalse("sin confirmar", SetupStepId.DAYS in seeded.stepProgress.answers)
-        assertFalse("sin declarar", SetupStepId.DAYS in seeded.declaredSteps)
+        assertEquals(4, seeded.selectedWeekdays.size)
+        assertFalse("sin confirmar", SetupStepId.WEEKDAYS in seeded.stepProgress.answers)
+        assertFalse("sin declarar", SetupStepId.WEEKDAYS in seeded.declaredSteps)
         // Los planes que admiten de 1 a 6 días no prefijan nada.
         assertNull(checkNotNull(SetupWizardDraft().withPreselectedPlan(MUSCLE_OWN)).daysPerWeek)
-        // Con los mismos días ya elegidos no se reescribe nada.
+        // Con los mismos días ya elegidos (cuatro) no se reescribe nada: se conserva la semana de la persona.
+        val chosen = setOf(2, 3, 5, 6)
         val already = checkNotNull(
-            SetupWizardDraft(daysPerWeek = 4).withPreselectedPlan(AuthoredPhulPhatRecipes.PHUL_ORIGINAL_ID),
+            SetupWizardDraft().withWeekdays(chosen).withPreselectedPlan(AuthoredPhulPhatRecipes.PHUL_ORIGINAL_ID),
         )
-        assertNull(already.stepSelections[SetupStepId.DAYS])
+        assertEquals(chosen, already.selectedWeekdays)
     }
 
     @Test
     fun aPreselectionNeverChangesAConfirmedStepInSilence() {
-        val confirmed = SetupWizardDraft(goal = SetupGoal.MUSCLE, daysPerWeek = 3, selectedCatalogId = MUSCLE_OWN)
+        val confirmed = SetupWizardDraft(goal = SetupGoal.MUSCLE, selectedCatalogId = MUSCLE_OWN)
+            .withWeekdays(setOf(1, 3, 5))
             .recordStepAnswer(SetupStepId.GOAL, SetupAnswerProvenance.USER_DECLARED, SetupValueState.DECLARED)
-            .recordStepAnswer(SetupStepId.DAYS, SetupAnswerProvenance.USER_DECLARED, SetupValueState.DECLARED)
+            .recordStepAnswer(SetupStepId.WEEKDAYS, SetupAnswerProvenance.USER_DECLARED, SetupValueState.DECLARED)
             .recordStepAnswer(SetupStepId.PLAN, SetupAnswerProvenance.USER_DECLARED, SetupValueState.DECLARED)
 
         // Un plan de Fuerza sobre un borrador de Músculo con el objetivo y el plan confirmados: cambian, pero quedan
@@ -1044,7 +1063,7 @@ class SetupWizardRepairTest {
         val toStrength = checkNotNull(confirmed.withPreselectedPlan(STRENGTH_OWN))
         assertEquals(SetupGoal.STRENGTH, toStrength.goal)
         assertEquals(STRENGTH_OWN, toStrength.selectedCatalogId)
-        assertEquals(setOf(SetupStepId.GOAL, SetupStepId.PLAN), toStrength.stepProgress.pendingReview.intersect(setOf(SetupStepId.GOAL, SetupStepId.DAYS, SetupStepId.PLAN)))
+        assertEquals(setOf(SetupStepId.GOAL, SetupStepId.PLAN), toStrength.stepProgress.pendingReview.intersect(setOf(SetupStepId.GOAL, SetupStepId.WEEKDAYS, SetupStepId.PLAN)))
         assertTrue(SetupStepId.GOAL in toStrength.stepProgress.answers && SetupStepId.PLAN in toStrength.stepProgress.answers)
         assertEquals(3, toStrength.daysPerWeek)
 
@@ -1056,7 +1075,7 @@ class SetupWizardRepairTest {
         // (PHUL sirve a varios) no cambia y no se marca.
         val toMethod = checkNotNull(confirmed.withPreselectedPlan(AuthoredPhulPhatRecipes.PHUL_ORIGINAL_ID))
         assertEquals(4, toMethod.daysPerWeek)
-        assertTrue(SetupStepId.DAYS in toMethod.stepProgress.pendingReview)
+        assertTrue(SetupStepId.WEEKDAYS in toMethod.stepProgress.pendingReview)
         assertFalse(SetupStepId.GOAL in toMethod.stepProgress.pendingReview)
         assertEquals(SetupGoal.MUSCLE, toMethod.goal)
     }
@@ -1122,7 +1141,7 @@ class SetupWizardRepairTest {
             assertEquals(method.id, seeded.draft.selectedCatalogId)
             assertEquals("los días del método, sin confirmar", 3, seeded.draft.daysPerWeek)
             assertEquals("el objetivo del método, sin confirmar", goal, seeded.draft.goal)
-            assertFalse(SetupStepId.DAYS in seeded.draft.stepProgress.answers)
+            assertFalse(SetupStepId.WEEKDAYS in seeded.draft.stepProgress.answers)
 
             // La persona elige 4 días: el planificador ya no ofrece el método y el aviso lo dice con sus palabras.
             vm.update { it.withCandidateInputs(goal, GYM_UNCONFIRMED, days = 4) }
@@ -1145,7 +1164,7 @@ class SetupWizardRepairTest {
 
             // El botón lleva al paso de los días.
             performNoticeEffect(checkNotNull(notice.primary).effect, vm)
-            awaitUntil(vm, "cursor en el paso de los días") { isIdle(it) && it.currentStep == SetupStepId.DAYS }
+            awaitUntil(vm, "cursor en el paso de los días") { isIdle(it) && it.currentStep == SetupStepId.WEEKDAYS }
 
             // Con los 3 días del método vuelve a encajar y ya está elegido y preparado: no hay que volver a elegirlo.
             vm.update { it.withCandidateInputs(goal, GYM_UNCONFIRMED, days = 3) }
@@ -1368,31 +1387,24 @@ class SetupWizardRepairTest {
             confirmStep(vm, SetupStepId.EQUIPMENT, SetupStepId.AVAILABILITY) { vm.setStepChoice(SetupStepId.EQUIPMENT, "gym") }
             confirmStep(vm, SetupStepId.AVAILABILITY, SetupStepId.GOAL)
             // El objetivo ya viene prefijado por la biblioteca: se confirma sin escribirlo.
-            confirmStep(vm, SetupStepId.GOAL, SetupStepId.DAYS)
-            confirmStep(vm, SetupStepId.DAYS, SetupStepId.WEEKDAYS) { vm.setStepChoice(SetupStepId.DAYS, "3") }
+            confirmStep(vm, SetupStepId.GOAL, SetupStepId.FRESH_DAY)
+            confirmStep(vm, SetupStepId.FRESH_DAY, SetupStepId.WEEKDAYS) { vm.setFreshDay(1) }
             confirmStep(vm, SetupStepId.WEEKDAYS, SetupStepId.SESSION_TIME) {
                 vm.setStepChoices(SetupStepId.WEEKDAYS, setOf("1", "3", "5"))
             }
-            confirmStep(vm, SetupStepId.SESSION_TIME, SetupStepId.VOLUME_TECHNIQUE) {
-                vm.setStepText(SetupStepId.SESSION_TIME, "60")
-                vm.setStepNumber(SetupStepId.SESSION_TIME, 60.0)
-            }
+            confirmStep(vm, SetupStepId.SESSION_TIME, SetupStepId.VOLUME_TECHNIQUE) { vm.setSessionMinutes(60) }
             confirmStep(vm, SetupStepId.VOLUME_TECHNIQUE, SetupStepId.VOLUME_CONSISTENCY) { vm.setStepChoice(SetupStepId.VOLUME_TECHNIQUE, "2") }
             confirmStep(vm, SetupStepId.VOLUME_CONSISTENCY, SetupStepId.VOLUME_STRENGTH) { vm.setStepChoice(SetupStepId.VOLUME_CONSISTENCY, "2") }
             confirmStep(vm, SetupStepId.VOLUME_STRENGTH, SetupStepId.VOLUME_MOBILITY) { vm.setStepChoice(SetupStepId.VOLUME_STRENGTH, "2") }
             confirmStep(vm, SetupStepId.VOLUME_MOBILITY, SetupStepId.PRIORITIES) { vm.setStepChoice(SetupStepId.VOLUME_MOBILITY, "2") }
-            confirmStep(vm, SetupStepId.PRIORITIES, SetupStepId.TRAINING_MAX)
-            confirmStep(vm, SetupStepId.TRAINING_MAX, SetupStepId.SPLIT) { vm.setStepChoice(SetupStepId.TRAINING_MAX, "no") }
-            confirmStep(vm, SetupStepId.SPLIT, SetupStepId.PLAN) { vm.setStepChoice(SetupStepId.SPLIT, "recommended") }
+            confirmStep(vm, SetupStepId.PRIORITIES, SetupStepId.PLAN)
             // El plan de la biblioteca sigue elegido: es viable y se confirma sin tocarlo.
             awaitUntil(vm, "plan de la biblioteca viable en la lista") {
                 isIdle(it) && it.availablePlanCandidates.any { card -> card.id == MUSCLE_OWN } && it.programPreview != null
             }
             assertEquals(MUSCLE_OWN, vm.state.value.draft.selectedCatalogId)
-            confirmStep(vm, SetupStepId.PLAN, SetupStepId.AUTOREGULATION)
-            confirmStep(vm, SetupStepId.AUTOREGULATION, SetupStepId.WARMUPS)
-            confirmStep(vm, SetupStepId.WARMUPS, SetupStepId.TRAINING_REVIEW)
-            confirmStep(vm, SetupStepId.TRAINING_REVIEW, SetupStepId.MILESTONE_TRAINING)
+            confirmStep(vm, SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT)
+            confirmStep(vm, SetupStepId.WEEK_LAYOUT, SetupStepId.MILESTONE_TRAINING)
             confirmStep(vm, SetupStepId.MILESTONE_TRAINING, SetupStepId.REVIEW_ACTIVATE)
             awaitUntil(vm, "programa preparado con la huella vigente") {
                 isIdle(it) && it.programPreview != null && !it.selectionStale
@@ -1408,6 +1420,8 @@ class SetupWizardRepairTest {
             val patch = checkNotNull(request.settingsPatch)
             // El parche de Ajustes: solo el programa. El alta ya estaba completa y no se vuelve a marcar...
             assertEquals(SetupPatchField.Set(true), patch.onboardingProgramDone)
+            // ...y el objetivo que la persona confirmó (el de la biblioteca: Músculo → Culturismo) fija su tipo de atleta.
+            assertEquals(SetupPatchField.Set(AthleteType.BODYBUILDER), patch.athleteType)
             assertEquals(SetupPatchField.Unchanged, patch.onboardingCompleted)
             // ...y nada de nutrición ni de Rings se escribe.
             assertEquals(SetupPatchField.Unchanged, patch.onboardingNutritionDone)
