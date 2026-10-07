@@ -255,6 +255,26 @@ internal fun planReviewValue(entry: CatalogEntry?, programName: String): String?
     entry?.displayName ?: programName.ifBlank { null }
 
 /**
+ * Entreno v2 · el programa que se activa en una línea: «4 días · ~60 min por sesión · Gimnasio y En casa». Los días y
+ * los minutos salen de la primera semana de entreno del programa previsualizado (el estimador común); el lugar, del de
+ * cada sesión (`Session.placeId`) o, si el programa no lo dice, de los lugares declarados. Null sin sesiones.
+ */
+internal fun programReviewDetail(program: Program, draft: SetupWizardDraft): String? {
+    val week = SetupPlanReveals.weekOf(program)
+    if (week.isEmpty()) return null
+    val places = week.mapNotNull { it.place }.distinct().ifEmpty { draft.trainingPlaces.toList() }
+        .sortedBy { it.ordinal }
+        .map { it.label }
+    return listOfNotNull(
+        SpanishPlurals.days(week.size),
+        week.maxOf { it.minutes }.takeIf { it > 0 }?.let { "~$it min por sesión" },
+        places.takeIf { it.isNotEmpty() }?.let { names ->
+            if (names.size == 1) names.single() else names.dropLast(1).joinToString(", ") + " y " + names.last()
+        },
+    ).joinToString(" · ")
+}
+
+/**
  * La primera semana REAL del programa de la vista previa, para la hoja «Cómo funciona» de la revisión (C.P6): sin
  * calentamientos, con el día de cada sesión y las series redactadas como las de una receta. Misma construcción que
  * `SetupWizardViewModel.readyWeekSnapshotFor` (la de las tarjetas del paso PLAN). Null si el programa no trae ninguna
@@ -311,6 +331,8 @@ private fun TrainingSummary(
         value = planReviewValue(planEntry, program.name),
         onEdit = edit(SetupStepId.PLAN),
     )
+    // Entreno v2: lo que se activa en una línea (días, minutos y lugar del programa previsualizado).
+    programReviewDetail(program, draft)?.let { detail -> SetupFormCaption(detail) }
     if (planEntry != null) {
         // Ya está elegido: la hoja es de solo lectura (sin botón primario).
         TextButton(onClick = { showPlanInfo = true }, modifier = Modifier.testTag("review-plan-info")) {
@@ -441,25 +463,6 @@ internal fun daysAndTimeReviewValue(draft: SetupWizardDraft): String? =
         weekdaysSummaryText(draft.selectedWeekdays),
         draft.minutesPerSession?.let { minutes -> "$minutes min" },
     ).joinToString(" · ").ifEmpty { null }
-
-/**
- * El reparto semanal en palabras (C.P5): el nombre que la persona le puso si es propio; si no, el nombre del
- * reparto elegido o, sin elección, el que el motor aplicó al programa preparado (el mismo nombre que ve en la
- * lista de repartos). Nunca el id técnico («ul_x4»): un reparto que el catálogo no conoce queda sin declarar.
- */
-internal fun draftSplitLabel(state: SetupWizardState): String? {
-    val draft = state.draft
-    draft.customSplitName?.takeIf { it.isNotBlank() }?.let { return it }
-    val splitId = draft.selectedSplitId ?: state.programPreview?.selectedSplitId ?: return null
-    if (splitId == CUSTOM_SPLIT_ID) {
-        return state.programPreview?.customSplitName?.takeIf { it.isNotBlank() } ?: CUSTOM_SPLIT_LABEL
-    }
-    return splitDisplayName(splitId)
-}
-
-/** Id del reparto que arma la persona día a día; su nombre es el que ella le puso. */
-private const val CUSTOM_SPLIT_ID = "custom"
-private const val CUSTOM_SPLIT_LABEL = "Reparto personalizado"
 
 private val WEEKDAY_LABELS = listOf("", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo")
 
