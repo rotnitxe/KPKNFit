@@ -114,4 +114,34 @@ fatiga, `articulationType`)
 
 ## 2. Detalle por paso
 
-*(se completa a medida que cada paquete aterriza)*
+### 2.1 Pasos con símbolos (`EQUIPMENT` … `TRAINING_MAX`)
+
+Cada paso es `EntrenoXxxStep(state, vm)` en `screens/onboarding/entreno/`: lee `state.draft` y escribe SOLO por el ViewModel
+(`SetupWizardViewModel`). El título y el subtítulo los pinta la sección; el paso aporta su control y, si hace falta, una nota de
+una línea (`EntrenoStepNote`: sin caja, con el texto cambiando por fundido y sin dejar hueco cuando no hay nota).
+
+| Paso | Control (`design/entreno/`) | Escribe (VM → dato del borrador) | Lo que conviene saber |
+|---|---|---|---|
+| `EQUIPMENT` | `PlaceSymbolRow` (tres escenas) | `togglePlace` → `trainingPlaces` | siempre queda un lugar; con dos o más, nota «Después podrás elegir dónde entrenas cada día.»; «En espacios públicos» ocupa tres líneas con la letra al 130 % |
+| `AVAILABILITY` | `EquipmentSymbolGrid` | `toggleEquipmentSymbol` → disponibilidad de material | «Solo peso corporal» es exclusivo; en gimnasio lo habitual viene marcado; sin lugares elegidos solo hay la nota «Elige primero dónde entrenas.» |
+| `GOAL` | `GoalProfileList` | `setGoalProfile` → `goalProfile` | un perfil que el material no cumple sale atenuado con su razón en una línea; tocarlo ofrece «Cambiar mi material» (`editStep(AVAILABILITY)`) y al continuar desde allí se vuelve a este paso |
+| `FRESH_DAY` | `FreshDayRow` | `setFreshDay` → `freshestDay` | un solo día; el inicio de semana lo sigue mientras no se toque |
+| `WEEKDAYS` | `WeekCalendar` | `toggleWeekday`, `setWeekStart`, `setDayPlace` → `selectedWeekdays`, `weekStartDay`, `dayPlaces` | el contador grande muestra «–» cuando no hay días (`weekCounterText`; el cero de Syne se leía como «O»); el lugar de cada día solo aparece con dos o más lugares |
+| `SESSION_TIME` | `SessionClockDial` | `setSessionMinutes` → `minutesPerSession` | el dial avisa en cada muesca y cada escritura relanza el barrido de programas: se escribe una vez a los 220 ms de que el dedo se detiene (y al cerrar el paso si quedó algo sin escribir); sin valor arranca en 60 min atenuado y el check sigue apagado |
+| `CAPABILITIES` | `CapabilitySymbols` | `setCapability` → `capabilities` | la figura hace el movimiento con el ritmo del nivel («Aún no» quieta, «Algunas» tres repeticiones y pausa, «Varias» continuo); tocar la figura avanza el nivel y cada segmento lo fija |
+| `PRIORITIES` | `MuscleSymbolGrid` + «Omitir» | `toggleMuscle`, `clearMuscles` → `priorityMuscles` / `orderPriorities` | hasta 5; las sugerencias del perfil llegan precargadas y rotuladas «Sugerido» mientras no se toque el paso; «Omitir» (arriba a la derecha, 48 dp) limpia y confirma el paso, y el resumen dice «Sin preferencia» |
+| `TRAINING_MAX` | `LiftMarksPicker` | `setLiftMark`, `setMarksUnit` → `liftMarks`, `marksUnit` | regla kg/lb por levantamiento; como el dial, escribe una vez cuando el dedo se detiene; «No la sé» borra la marca; qué levantamientos salen lo decide `MarksContext` (hoy nunca los olímpicos: `CATALOG_HAS_OLYMPIC_LIFTS = false`) |
+
+Reglas comunes: ningún control lleva caja ni borde; los objetivos táctiles miden 48 dp (salvo los siete días del calendario a 360 dp,
+~44,6 dp de ancho: decisión de diseño de `WeekCalendar`); con «reducir movimiento» (`wizardReducedMotion()`) cada símbolo queda en su
+cuadro final. La lectura y la escritura del paso se prueban en `EntrenoStepsSmokeTest` (Robolectric, marcas `setup-place-*`,
+`setup-equipment-*`, `setup-goal-*`, `setup-freshday-*`, `setup-weekday-*`, `setup-sessiontime-*`, `setup-capability-*`,
+`setup-muscle-*`, `setup-mark-*`).
+
+### 2.2 Cómo se revisa un paso en el teléfono
+
+`WizardHarnessActivity` (solo `src/debug`) abre el asistente REAL (modo solo entreno) ya colocado en el paso que se pida, con un
+borrador construido caminando la ruta de verdad. Extras (`--es start GOAL --es persona home …`): `start`, `persona`
+(`gym`/`home`/`park`/`multi`/`all`), `answers` (`places=GYM,HOME/minutes=75`…), `width`, `fontScale`, `reducedMotion`, `fps` (medidor de
+fluidez), `autonext` (recorre el bloque solo: paso vacío, respuesta, «Continuar») con `until`, y `autoselect` (elige el primer programa
+cuando PLAN termina). Se conduce SIEMPRE con `C:\kw\tools\phone_run.py` (candado del teléfono, solo el applicationId `.dbg`).

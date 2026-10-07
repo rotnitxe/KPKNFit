@@ -88,7 +88,7 @@ La ruta del bloque Entreno (`SetupStepGraph.nodes`) sale SOLO de datos del borra
 
 **Datos del borrador y derivados.** Cada paso escribe un dato real (`trainingPlaces`, `trainingOptions.availability`, `goalProfile`, `freshestDay`/`weekStartDay`, `selectedWeekdays`, `dayPlaces`, `minutesPerSession`, `capabilities`, `priorityMuscles`/`orderPriorities`, `liftMarks`) y el reductor mantiene los campos que el motor actual todavía lee (`trainingEnvironment`, `equipment`, `goal`, `daysPerWeek`, `knowsTrainingMarks`, `powerliftingProfile`). Las selecciones de estos pasos se leen de los datos (no se guardan aparte en `stepSelections`).
 
-**Un archivo por control.** Cada paso es `@Composable internal fun EntrenoXxxStep(state, vm)` en `screens/onboarding/entreno/` y solo escribe por el ViewModel: sustituir el control provisional por el definitivo es cambiar el cuerpo de ESE archivo.
+**Un archivo por control.** Cada paso es `@Composable internal fun EntrenoXxxStep(state, vm)` en `screens/onboarding/entreno/` y solo escribe por el ViewModel. Ya no quedan controles provisionales: cada archivo envuelve el control definitivo de `design/entreno/` (qué escribe cada uno y sus detalles, en `WIZARD_ENTRENO_V2.md` §2). Las notas de una línea bajo un control las pinta `EntrenoStepNote` (sin caja, sin hueco si no hay texto), y las escrituras que se disparan en cada muesca (el dial del tiempo y la regla de las marcas) se agrupan: una sola cuando el dedo se detiene, porque cada escritura relanza el barrido de programas.
 
 | Paso | Archivo `entreno/` | VM | Reductor puro (`SetupStepAnswers.kt`) |
 |---|---|---|---|
