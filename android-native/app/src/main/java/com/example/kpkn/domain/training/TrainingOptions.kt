@@ -271,7 +271,8 @@ fun TrainingOptions.resolveEffectiveEquipment(legacyEquipment: Set<String>): Eff
  * - [TrainingOptions.availability] no nula → `bodyweight` + categorías
  *   confirmadas + mapeo curado de las claves `PRESENT`. No emite `general_gym`
  *   ni `free_weights`, y `machine_config:<id>` solo desde mapeo curado o
- *   inventario exacto.
+ *   inventario exacto. Las anillas del wizard acreditan `trx` y el cajón
+ *   `support` (lote BW-1).
  * - [TrainingOptions.inventory] **null** (y sin availability) → perfil legacy
  *   intacto, solo normalizado (`bands`→`band`, `smith`→`smith_machine`).
  * - [TrainingOptions.inventory] **declarado** → manda lo que el material real
@@ -360,6 +361,17 @@ private fun TrainingOptions.resolveWithAvailability(declared: EquipmentAvailabil
         }
         spec.machineConfigurations.forEach { put(machineConfigToken(it), origin) }
         spec.attestedTokens.forEach { put(it, origin) }
+    }
+    // Símbolos del paso de material que el panel curado no lista pero el catálogo ya usa (lote BW-1): las anillas acreditan
+    // la suspensión (`trx`, el implemento de tres configuraciones) y el cajón, un apoyo elevado (`support`). Ambos viven en
+    // la categoría de soportes, igual que las demás llaves de soporte.
+    if (EquipmentCategory.SUPPORT in declared.categories) {
+        if (declared.presenceOf(SUPPORT_KEY_RINGS) == ApparatusPresence.PRESENT) {
+            put(IMPLEMENT_TRX, EffectiveEquipmentOrigin.CONFIRMED_SUPPORT)
+        }
+        if (declared.presenceOf(SUPPORT_KEY_PLYO_BOX) == ApparatusPresence.PRESENT) {
+            put(KIND_SUPPORT, EffectiveEquipmentOrigin.CONFIRMED_SUPPORT)
+        }
     }
     return EffectiveEquipmentResult(
         tokens = origins.keys.toSet(),
