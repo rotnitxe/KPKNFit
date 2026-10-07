@@ -12,5 +12,10 @@
             android:name="com.example.kpkn.debug.EntrenoWeekPreviewActivity"
             android:exported="true"
             android:theme="@style/Theme.KPKN" />
+        <!-- SOLO DEPURACIÓN: vista previa del objetivo y del programa de Entreno (lista de perfiles, portadas, overlay, carrusel y detalle); no se integra. -->
+        <activity
+            android:name="com.example.kpkn.debug.EntrenoPlanPreviewActivity"
+            android:exported="true"
+            android:theme="@style/Theme.KPKN" />
     </application>
 </manifest>
