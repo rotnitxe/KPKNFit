@@ -22,6 +22,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
@@ -31,6 +32,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.unit.Density
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.data.repository.AugeRepository
@@ -41,11 +43,17 @@ import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.data.repository.WikiLabRepository
 import com.example.kpkn.data.repository.WorkoutMediaRepository
 import com.example.kpkn.domain.onboarding.SetupStepId
+import com.example.kpkn.domain.onboarding.WizChatMachineState
 import com.example.kpkn.screens.onboarding.SetupWizardMode
 import com.example.kpkn.screens.onboarding.SetupWizardScreen
+import com.example.kpkn.screens.onboarding.SetupWizardViewModel
+import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
 import com.example.kpkn.screens.onboarding.realSetupWizardPersistence
+import com.example.kpkn.screens.onboarding.touchStep
 import com.example.kpkn.ui.theme.KPKNTheme
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
@@ -67,12 +75,20 @@ import kotlinx.serialization.json.Json
  *  - `answers` (`clave=valor/clave=valor`, sin espacios ni `;`): datos del paso activo ya elegidos, sin confirmarlo. Claves: `places=GYM,HOME`,
  *    `material=BARBELL,RACK` o `material=+RINGS,-BARBELL`, `goal=POWERLIFTING`, `fresh=4`, `days=1,3,5`, `startday=4`,
  *    `dayplaces=3:HOME,6:PUBLIC`, `minutes=75`.
- *  - `width` (dp): simula un teléfono de ese ancho escalando la densidad (360 reproduce el del usuario; el emulador mide 448).
- *  - `fontscale` (decimal): escala de letra (1.3 = 130 %).
+ *  - `width` o `widthDp` (dp): simula un teléfono de ese ancho escalando la densidad (360 reproduce el del usuario; el emulador mide 448).
+ *  - `fontscale` o `fontScale` (decimal): escala de letra (1.3 = 130 %).
+ *  - `reducedMotion` (booleano): fuerza «reducir movimiento» en el asistente (cuadro final estático, sin bucles) sin tocar los ajustes
+ *    del teléfono; solo anula lo que lee `wizardReducedMotion()` (las animaciones propias de Compose siguen su escala del sistema).
+ *  - `fps` (booleano): pinta encima el medidor de fluidez (`FrameMeter`): cuadros por segundo, el cuadro más largo y los lentos.
  *  - `reset` (booleano, `true` por defecto): reconstruye el borrador en cada arranque; con `false` reabre el que hubiera.
+ *  - `autonext` (milisegundos, 0 = apagado): recorre el bloque solo. En cada paso espera el 40 % de ese tiempo con el paso VACÍO,
+ *    escribe lo que contestaría la persona (como si la persona lo eligiera) y al terminar el tiempo «pulsa Continuar»
+ *    (`submitCurrentStep`, la misma función que el botón), hasta llegar a `until` (por defecto `MILESTONE_TRAINING`). Las capturas
+ *    por tiempo enseñan cada paso vacío y lleno, plegado y asomando; sirve sobre todo en el teléfono, donde no se conduce con
+ *    `uiautomator`. El medidor (`fps`) escribe el paso y la fase («vacío» / «lleno») para reconocer cada captura.
  *
  * Las marcas de prueba (`setup-continue`, `setup-place-GYM`, …) salen como `resource-id`, así `uiautomator` encuentra cada
- * control. El movimiento reducido NO se simula aquí: es el ajuste real del sistema (`animator_duration_scale`).
+ * control (en el emulador; en el teléfono real no se usa `uiautomator`).
  */
 class WizardHarnessActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -125,6 +141,10 @@ private class HarnessConfig(
     val widthDp: Float,
     val fontScale: Float,
     val reset: Boolean,
+    val autoNextMs: Long,
+    val until: SetupStepId,
+    val reducedMotion: Boolean,
+    val fps: Boolean,
 ) {
     companion object {
         fun from(intent: Intent): HarnessConfig = HarnessConfig(
@@ -133,19 +153,36 @@ private class HarnessConfig(
                 ?: SetupStepId.EXPERIENCE,
             persona = HarnessPersona.of(intent.getStringExtra("persona")),
             answers = intent.getStringExtra("answers").orEmpty(),
-            widthDp = intent.numberExtra("width"),
-            fontScale = intent.numberExtra("fontscale"),
+            widthDp = intent.numberExtra("width", "widthDp"),
+            fontScale = intent.numberExtra("fontscale", "fontScale"),
             reset = intent.getBooleanExtra("reset", true),
+            autoNextMs = intent.numberExtra("autonext", "autoNext").toLong(),
+            until = intent.getStringExtra("until")
+                ?.let { name -> SetupStepId.entries.firstOrNull { it.name.equals(name, ignoreCase = true) } }
+                ?: SetupStepId.MILESTONE_TRAINING,
+            reducedMotion = intent.getBooleanExtra("reducedMotion", false) || intent.getBooleanExtra("reduced", false),
+            fps = intent.getBooleanExtra("fps", false),
         )
     }
 }
 
-/** Un extra numérico, venga como entero, decimal o texto (`--ei`, `--ef`, `--es`); 0 si no está. */
-private fun Intent.numberExtra(key: String): Float = when (val value = extras?.get(key)) {
-    is Number -> value.toFloat()
-    is String -> value.toFloatOrNull() ?: 0f
-    else -> 0f
+/** Un extra numérico, venga como entero, decimal o texto (`--ei`, `--ef`, `--es`) y con cualquiera de sus nombres; 0 si no está. */
+private fun Intent.numberExtra(vararg keys: String): Float {
+    for (key in keys) {
+        when (val value = extras?.get(key)) {
+            is Number -> return value.toFloat()
+            is String -> value.toFloatOrNull()?.let { return it }
+            else -> Unit
+        }
+    }
+    return 0f
 }
+
+/** Fracción del tiempo de cada paso que se ve vacío antes de que el arnés escriba la respuesta de la persona. */
+private const val FILL_AT = 0.4
+
+/** Tope de «Continuar» automáticos: el arnés nunca da vueltas sin fin si un paso no se deja confirmar. */
+private const val MAX_AUTO_STEPS = 40
 
 /** Identificador del borrador del arnés: propio, para no tocar el borrador canónico del asistente. */
 private const val HARNESS_DRAFT_ID = "setup-harness-w"
@@ -154,8 +191,29 @@ private const val HARNESS_DRAFT_ID = "setup-harness-w"
 @Composable
 private fun HarnessRoot(config: HarnessConfig, onClose: () -> Unit) {
     val context = LocalContext.current
+    val viewModel: SetupWizardViewModel = viewModel()
     var draftId by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(config) { draftId = seedHarnessDraft(context.applicationContext as Application, config) }
+    // Con `autonext`, el arnés recorre el bloque: paso vacío, respuesta de la persona y «Continuar» (ver la documentación).
+    var tourLabel by remember { mutableStateOf("") }
+    LaunchedEffect(viewModel, draftId, config) {
+        if (config.autoNextMs <= 0 || draftId == null) return@LaunchedEffect
+        viewModel.state.first { !it.isLoading && it.machineState == WizChatMachineState.AwaitingAnswer }
+        repeat(MAX_AUTO_STEPS) {
+            val step = viewModel.state.value.currentStep
+            if (step == config.until) {
+                tourLabel = "$step · fin"
+                return@LaunchedEffect
+            }
+            val fillAfter = (config.autoNextMs * FILL_AT).toLong()
+            tourLabel = "$step · vacío"
+            delay(fillAfter)
+            viewModel.update { draft -> draft.answeredAs(step, config.persona).touchStep(step) }
+            tourLabel = "$step · lleno"
+            delay(config.autoNextMs - fillAfter)
+            viewModel.submitCurrentStep()
+        }
+    }
 
     // Para simular un teléfono más estrecho se escala la densidad: el mismo ancho en píxeles pasa a tener menos dp.
     val base = LocalDensity.current
@@ -164,7 +222,10 @@ private fun HarnessRoot(config: HarnessConfig, onClose: () -> Unit) {
         val scaled = if (config.widthDp > 0f) screenWidthDp * base.density / config.widthDp else base.density
         Density(density = scaled, fontScale = if (config.fontScale > 0f) config.fontScale else base.fontScale)
     }
-    CompositionLocalProvider(LocalDensity provides density) {
+    CompositionLocalProvider(
+        LocalDensity provides density,
+        LocalWizardReducedMotion provides (if (config.reducedMotion) true else null),
+    ) {
         KPKNTheme {
             Box(
                 Modifier
@@ -176,11 +237,13 @@ private fun HarnessRoot(config: HarnessConfig, onClose: () -> Unit) {
                     SetupWizardScreen(
                         mode = SetupWizardMode.TRAINING_ONLY,
                         draftId = id,
+                        viewModel = viewModel,
                         onDone = onClose,
                         onCancel = onClose,
                         showIntro = false,
                     )
                 }
+                if (config.fps) FrameMeter(label = tourLabel, modifier = Modifier.align(Alignment.TopStart))
             }
         }
     }

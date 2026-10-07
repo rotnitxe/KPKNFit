@@ -152,7 +152,7 @@ internal fun buildHarnessDraft(
 private const val MAX_STEPS = 80
 
 /** Los datos que contesta [persona] en [step] (los pasos sin datos propios, como el plan, no cambian nada). */
-private fun SetupWizardDraft.answeredAs(step: SetupStepId, persona: HarnessPersona): SetupWizardDraft = when (step) {
+internal fun SetupWizardDraft.answeredAs(step: SetupStepId, persona: HarnessPersona): SetupWizardDraft = when (step) {
     SetupStepId.NAME -> withStepText(step, "Valentina").withStepNumber(SetupStepId.AGE, 29.0)
     SetupStepId.AGE -> withStepNumber(step, 29.0)
     SetupStepId.HEIGHT -> withStepNumber(step, 168.0)
