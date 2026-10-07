@@ -17,7 +17,7 @@ vigente es esto:
   las cuatro configuraciones unilaterales del rumano sumo; el 2026-10-07 el lote
   BW-1 de peso corporal añadió nueve definiciones y ocho configuraciones
   `__bodyweight` en definiciones ya `CURATED`, ver «Lote BW-1»). SHA-256 canónico compartido
-  `c815f8e0391f6e49f10b7d58312402228ef548df5fa27d029e1687b364037f41`.
+  `8e70937474a217c8314eb53f17a94456fee0ec3d93f9587695ec4727dd8f33f9`.
 - Fuente única de autoría: `curation/fichas/<familyId>.json` (una por familia,
   96). Se copia con `scripts/catalog_v2_apply_fichas.py`; el flujo completo y las
   reglas están en `EDITORIAL_GUIDE.md`. El gate falla si `source/` difiere de lo
