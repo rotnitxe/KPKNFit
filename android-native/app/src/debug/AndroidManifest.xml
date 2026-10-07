@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <!-- SOLO DEPURACIÓN: vista previa de los símbolos de Entreno (lugares e implementos); no se integra. -->
+        <activity
+            android:name="com.example.kpkn.debug.EntrenoSymbolsPreviewActivity"
+            android:exported="true"
+            android:theme="@style/Theme.KPKN" />
+    </application>
+</manifest>
