@@ -66,11 +66,13 @@ data class Program(
     /**
      * Calentamientos del plan persistidos en el JSON del programa (elección real
      * del usuario, no estado efímero del onboarding): null = política por defecto
-     * (preset 40 % × 8 / 60 % × 5 / 80 % × 3 sobre la carga de trabajo); lista
-     * vacía = sin aproximaciones automáticas; lista = pasos personalizados. La
-     * rematerialización usa este campo cuando no hay override. Como el programa
-     * se persiste como JSON (`ProgramEntity.data` con `ignoreUnknownKeys`), un
-     * campo defaulted no requiere migración de esquema Room.
+     * (Entreno v2: aproximación y movilidad automáticas; `ApproachPlanner` decide qué
+     * ejercicios se aproximan y cuáles llevan movilidad previa); lista vacía = sin
+     * aproximaciones (solo borradores viejos); lista = pasos personalizados (p. ej.
+     * 40 % × 8 / 60 % × 5 / 80 % × 3 sobre la carga de trabajo) para el primer
+     * compuesto de cada patrón. La rematerialización usa este campo cuando no hay
+     * override. Como el programa se persiste como JSON (`ProgramEntity.data` con
+     * `ignoreUnknownKeys`), un campo defaulted no requiere migración de esquema Room.
      */
     val planWarmupConfig: List<SetRecipe>? = null,
     /**

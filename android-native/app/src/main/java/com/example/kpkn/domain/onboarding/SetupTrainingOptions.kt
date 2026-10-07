@@ -21,9 +21,12 @@ import com.example.kpkn.domain.training.TrainingValidation
  *   material (`general_gym` nunca se asume) y sin inventario se conserva el
  *   perfil legacy. Lo consumen el readiness/candidatos del wizard y el filtro
  *   real de `SimpleCyclePersonalizer`.
- * - `warmup`: vacío = sin calentamientos; null = preset 40 % × 8 / 60 % × 5 /
- *   80 % × 3 sobre la carga de trabajo; lista = pasos personalizados ya
- *   normalizados (orden ascendente, sin duplicados ±5 puntos porcentuales).
+ * - `warmup` (Entreno v2: el calentamiento ya no es una opción): null =
+ *   aproximación y movilidad automáticas (`ApproachPlanner` en cada sesión);
+ *   vacío = sin calentamientos (solo borradores viejos); lista = pasos
+ *   personalizados ya normalizados (orden ascendente, sin duplicados ±5 puntos
+ *   porcentuales) para el primer compuesto de cada patrón, p. ej. 40 % × 8,
+ *   60 % × 5, 80 % × 3 sobre la carga de trabajo.
  *
  * Nota de serialización: la clase real reside en `domain/training` con el
  * nombre de serialización de [TrainingOptions]; todavía no hay ningún draft
