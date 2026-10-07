@@ -54,6 +54,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -151,37 +152,66 @@ fun MuscleSymbolGrid(
     val touched = remember(touchedNames) { touchedNames.mapNotNull { n -> MuscleSymbol.entries.firstOrNull { it.name == n } }.toSet() }
     val shakes = remember { mutableStateMapOf<MuscleSymbol, Int>() }
 
-    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        MuscleGridLogic.gridOrder.chunked(MuscleGridLogic.COLUMNS).forEach { rowItems ->
-            // Se reserva la línea «Sugerido» solo en las filas que traen algún sugerido (es fija: no cambia al tocar).
-            val reserveTag = rowItems.any { it in suggested }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                rowItems.forEach { m ->
-                    MuscleCell(
-                        muscle = m,
-                        isSelected = m in selected,
-                        dimmed = capped && m !in selected,
-                        showTag = MuscleGridLogic.showSuggestedTag(m, suggested, touched),
-                        reserveTag = reserveTag,
-                        pulse = pulse,
-                        shakeStamp = shakes[m] ?: 0,
-                        reducedMotion = reducedMotion,
-                        onTap = {
-                            if (m.name !in touchedNames) touchedNames = touchedNames + m.name
-                            when (MuscleGridLogic.tap(selected, m, maxSelected)) {
-                                MuscleGridLogic.Tap.TOGGLE -> {
-                                    haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                    onToggle(m)
+    BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
+        val labelStyle = rememberGridLabelStyle(constraints.maxWidth)
+        Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            MuscleGridLogic.gridOrder.chunked(MuscleGridLogic.COLUMNS).forEach { rowItems ->
+                // Se reserva la línea «Sugerido» solo en las filas que traen algún sugerido (es fija: no cambia al tocar).
+                val reserveTag = rowItems.any { it in suggested }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(GRID_GAP)) {
+                    rowItems.forEach { m ->
+                        MuscleCell(
+                            muscle = m,
+                            isSelected = m in selected,
+                            dimmed = capped && m !in selected,
+                            showTag = MuscleGridLogic.showSuggestedTag(m, suggested, touched),
+                            reserveTag = reserveTag,
+                            labelStyle = labelStyle,
+                            pulse = pulse,
+                            shakeStamp = shakes[m] ?: 0,
+                            reducedMotion = reducedMotion,
+                            onTap = {
+                                if (m.name !in touchedNames) touchedNames = touchedNames + m.name
+                                when (MuscleGridLogic.tap(selected, m, maxSelected)) {
+                                    MuscleGridLogic.Tap.TOGGLE -> {
+                                        haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                        onToggle(m)
+                                    }
+                                    MuscleGridLogic.Tap.REJECT -> shakes[m] = (shakes[m] ?: 0) + 1
                                 }
-                                MuscleGridLogic.Tap.REJECT -> shakes[m] = (shakes[m] ?: 0) + 1
-                            }
-                        },
-                        modifier = Modifier.weight(1f),
-                    )
+                            },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
                 }
             }
+            CapNote(visible = capped, text = MuscleGridLogic.capNote(maxSelected))
         }
-        CapNote(visible = capped, text = MuscleGridLogic.capNote(maxSelected))
+    }
+}
+
+/** Separación entre celdas de una fila. */
+private val GRID_GAP = 8.dp
+
+/**
+ * El tamaño de letra de los doce nombres, el mismo para todos: 16 sp y, si con letra grande o una pantalla estrecha el
+ * nombre más largo no cabe en la celda, baja de a un punto hasta 13 sp (el mínimo del wizard). Así ninguna etiqueta
+ * choca con la vecina y las filas no se ven dispares.
+ */
+@Composable
+private fun rememberGridLabelStyle(gridWidthPx: Int): TextStyle {
+    val measurer = rememberTextMeasurer()
+    val density = LocalDensity.current
+    val base = WizardTypography.controlLabel
+    return remember(gridWidthPx, measurer, base, density) {
+        val gapPx = with(density) { GRID_GAP.toPx() }
+        val cellPx = (gridWidthPx - gapPx * (MuscleGridLogic.COLUMNS - 1)) / MuscleGridLogic.COLUMNS
+        listOf(16, 15, 14, 13)
+            .map { base.copy(fontSize = it.sp) }
+            .firstOrNull { style ->
+                MuscleSymbol.entries.all { measurer.measure(it.label, style, maxLines = 1, softWrap = false).size.width <= cellPx }
+            }
+            ?: base.copy(fontSize = 13.sp)
     }
 }
 
@@ -219,6 +249,7 @@ private fun MuscleCell(
     dimmed: Boolean,
     showTag: Boolean,
     reserveTag: Boolean,
+    labelStyle: TextStyle,
     pulse: State<Float>,
     shakeStamp: Int,
     reducedMotion: Boolean,
@@ -270,7 +301,16 @@ private fun MuscleCell(
         Canvas(Modifier.fillMaxWidth().padding(horizontal = 2.dp).aspectRatio(1f)) {
             drawMuscle(shape, fade, strokes, sel, pulse, reducedMotion)
         }
-        FittedLabel(text = muscle.label, color = labelColor, modifier = Modifier.padding(top = 2.dp))
+        Text(
+            text = muscle.label,
+            style = labelStyle,
+            color = labelColor,
+            maxLines = 1,
+            softWrap = false,
+            textAlign = TextAlign.Center,
+            // Si aun así un nombre pasara de la celda, crece parejo a los dos lados en vez de cortarse.
+            modifier = Modifier.wrapContentWidth(Alignment.CenterHorizontally, unbounded = true).padding(top = 2.dp),
+        )
         if (reserveTag) {
             if (showTag) {
                 Text(
@@ -285,35 +325,6 @@ private fun MuscleCell(
                 Spacer(Modifier.height(WizardTagLineHeight))
             }
         }
-    }
-}
-
-/**
- * El nombre del músculo: 16 sp, y si con letra grande o una pantalla estrecha no cabe en la celda baja de a un punto
- * hasta 13 sp (el mínimo del wizard). Si ni así cabe, crece parejo a los dos lados en vez de cortarse.
- */
-@Composable
-private fun FittedLabel(text: String, color: Color, modifier: Modifier = Modifier) {
-    val measurer = rememberTextMeasurer()
-    BoxWithConstraints(modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-        val availablePx = constraints.maxWidth
-        val base = WizardTypography.controlLabel
-        val density = LocalDensity.current
-        val style = remember(text, availablePx, measurer, base, density) {
-            listOf(16, 15, 14, 13)
-                .map { base.copy(fontSize = it.sp) }
-                .firstOrNull { measurer.measure(text, it, maxLines = 1, softWrap = false).size.width <= availablePx }
-                ?: base.copy(fontSize = 13.sp)
-        }
-        Text(
-            text = text,
-            style = style,
-            color = color,
-            maxLines = 1,
-            softWrap = false,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.wrapContentWidth(Alignment.CenterHorizontally, unbounded = true),
-        )
     }
 }
 
