@@ -2890,7 +2890,8 @@ class SetupWizardViewModel @JvmOverloads constructor(
                     profile = draft.goalProfile,
                     level = draft.experience.toPlanLevel(),
                     declaredMinutes = draft.minutesPerSession,
-                    coverSeed = index,
+                    // «Otra versión» también se ve en la portada: cada semilla mueve su degradado y su ilustración.
+                    coverSeed = index + draft.planVariantSeed,
                 )
             } else {
                 SetupPlanReveals.forCatalog(
