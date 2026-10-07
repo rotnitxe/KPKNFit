@@ -48,6 +48,8 @@ import kotlinx.coroutines.launch
  *    estado que usa el gesto), `board_selected` (la primera sesión elegida con un toque), `splits` (un reparto tocado, con
  *    el botón de adaptar, el aviso y «Restablecer») o `adapting` (el estado de carga).
  *  - `days` (entero, 1..7, por defecto 4): cuántos días de entreno. `start` (entero, 1..7, por defecto 1): primer día de la semana.
+ *  - `offset` (entero, por defecto 0): desplaza las sesiones esa cantidad de ranuras (para ver cómo arranca la tira cuando
+ *    la primera sesión queda lejos del inicio de la semana).
  *  - `to` (con `board_moving`): `next` (por defecto: el día de la segunda sesión, para ver el intercambio) o un día 1..7.
  *  - `widthDp` (decimal): ancho de la pantalla simulada (p. ej. 360). `fontScale` (decimal): escala de fuente (p. ej. 1.3).
  *  - `reducedMotion` (booleano): fuerza «reducir movimiento» (sin resortes ni bucles).
@@ -61,10 +63,11 @@ class EntrenoLayoutPreviewActivity : ComponentActivity() {
         val days = intent.getIntExtra("days", 4).coerceIn(1, 7)
         val start = intent.getIntExtra("start", 1)
         val moveTo = intent.getStringExtra("to") ?: "next"
+        val offset = intent.getIntExtra("offset", 0)
         val widthDp = intent.getFloatExtra("widthDp", 0f)
         val fontScale = intent.getFloatExtra("fontScale", 0f)
         val reduced = intent.getBooleanExtra("reducedMotion", false)
-        setContent { Preview(scenario, days, start, moveTo, widthDp, fontScale, reduced) }
+        setContent { Preview(scenario, days, start, moveTo, offset, widthDp, fontScale, reduced) }
     }
 }
 
@@ -135,7 +138,7 @@ private fun sampleSplits(days: Int): List<SplitOption> {
 }
 
 @Composable
-private fun Preview(scenario: String, days: Int, start: Int, moveTo: String, widthDp: Float, fontScale: Float, reduced: Boolean) {
+private fun Preview(scenario: String, days: Int, start: Int, moveTo: String, offset: Int, widthDp: Float, fontScale: Float, reduced: Boolean) {
     val base = LocalDensity.current
     val density = if (fontScale > 0f) Density(base.density, fontScale) else base
     CompositionLocalProvider(LocalDensity provides density) {
@@ -153,18 +156,19 @@ private fun Preview(scenario: String, days: Int, start: Int, moveTo: String, wid
                     fontSize = 11.sp,
                 )
                 Spacer(Modifier.height(20.dp))
-                Board(scenario, days, start, moveTo, reduced)
+                Board(scenario, days, start, moveTo, offset, reduced)
             }
         }
     }
 }
 
 @Composable
-private fun Board(scenario: String, days: Int, start: Int, moveTo: String, reduced: Boolean) {
+private fun Board(scenario: String, days: Int, start: Int, moveTo: String, offset: Int, reduced: Boolean) {
     val sessions = remember(days) { sampleSessions(days) }
     val splits = remember(days) { sampleSplits(days) }
-    val initial = remember(days, start) {
-        val slots = splitPatternDays(days, start, emptyList())
+    val initial = remember(days, start, offset) {
+        val order = slotOrder(start)
+        val slots = splitPatternDays(days, start, emptyList()).map { order[(order.indexOf(it) + offset).mod(order.size)] }
         sessions.mapIndexed { index, s -> slots[index] to s.id }.toMap()
     }
     var assignment by remember { mutableStateOf(initial) }
