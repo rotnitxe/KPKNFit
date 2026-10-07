@@ -6,7 +6,8 @@ import org.junit.Test
 
 /**
  * Escribe `build/reports/routine-generator/matrix.txt`: por perfil de material, qué patrones y músculos NO se pudieron
- * cubrir (insumo para las altas del catálogo) y los minutos reales por celda (días × minutos × modo × nivel).
+ * cubrir (insumo para las altas del catálogo), cuántos ejercicios lleva cada sesión de fuerza, cuánto del catálogo alcanzable
+ * se usa y los minutos reales por celda (días × minutos × modo × nivel).
  * No juzga: el barrido ([RoutineGeneratorSweepTest]) es el que falla; esta prueba solo falla si no puede escribir el informe.
  *
  * Un patrón «falta siempre» cuando ninguna celda de ese modo lo cubre (el material o el catálogo no tienen ejercicio para él);
@@ -16,6 +17,7 @@ import org.junit.Test
 class RoutineMatrixReportTest {
 
     private val s = RoutineTestSupport
+    private val index by lazy { GeneratorCatalog.of(s.catalog) }
 
     private val referenceMuscles = listOf(
         "Pectorales", "Dorsales", "Deltoides", "Bíceps", "Tríceps", "Cuádriceps", "Isquiosurales",
@@ -43,6 +45,10 @@ class RoutineMatrixReportTest {
     }
 
     private fun names(patterns: Collection<RoutinePattern>): String = patterns.sortedBy { it.ordinal }.joinToString(", ") { it.label }.ifEmpty { "ninguno" }
+
+    /** Las sesiones con trabajo de fuerza (las de cardio y movilidad están exentas del mínimo de ejercicios). */
+    private fun strengthSessions(cell: Cell): List<RoutineSessionReport> =
+        cell.routine.report.sessions.filter { it.kind == RoutineSessionKind.STRENGTH || it.kind == RoutineSessionKind.MIXED }
 
     @Test
     fun writes_the_coverage_matrix_report() {
@@ -73,6 +79,78 @@ class RoutineMatrixReportTest {
             out.appendLine("${profile.id} | ${names(neverInAnyMode)} | ${names(sometimes)} | $misses de $sessions | $worst")
         }
         out.appendLine()
+
+        // Recuento de huecos: lo que permite comparar dos versiones del generador sin leer línea a línea.
+        out.appendLine("## Recuento de huecos por perfil (los tres modos)")
+        out.appendLine("«siempre» = patrones que ninguna celda de ALGÚN modo cubre; «a veces» = el resto de los que fallan en alguna celda; huecos = suma de patrones sin cubrir de todas las celdas.")
+        out.appendLine("perfil | siempre | a veces | huecos (celdas × patrones)")
+        s.profiles.forEach { profile ->
+            val mine = cells.filter { it.profile == profile }
+            val always = LinkedHashSet<RoutinePattern>()
+            s.generalModes.forEach { mode -> always += gaps(mine.filter { it.mode == mode }).first }
+            val sometimes = mine.flatMap { it.routine.report.patternsMissing }.toSet() - always
+            out.appendLine("${profile.id} | ${always.size} | ${sometimes.size} | ${mine.sumOf { it.routine.report.patternsMissing.size }}")
+        }
+        out.appendLine()
+
+        // Ejercicios por sesión: el síntoma que se ve en pantalla («sesiones delgadas»).
+        out.appendLine("## Ejercicios de fuerza por sesión (media de las sesiones de fuerza y mixtas; todos los niveles y días)")
+        out.appendLine("perfil | modo | mínimo | media | " + s.minutes.joinToString(" | ") { "$it min" })
+        s.profiles.forEach { profile ->
+            val mine = cells.filter { it.profile == profile }
+            fun row(label: String, rowCells: List<Cell>) {
+                val all = rowCells.flatMap { cell -> strengthSessions(cell).map { it.strengthExerciseCount } }
+                val byMinutes = s.minutes.joinToString(" | ") { minutes ->
+                    val counts = rowCells.filter { it.minutes == minutes }.flatMap { cell -> strengthSessions(cell).map { it.strengthExerciseCount } }
+                    if (counts.isEmpty()) "-" else "%.1f".format(counts.average())
+                }
+                out.appendLine("${profile.id} | $label | ${all.minOrNull() ?: 0} | ${if (all.isEmpty()) "-" else "%.2f".format(all.average())} | $byMinutes")
+            }
+            s.generalModes.forEach { mode -> row(mode.label, mine.filter { it.mode == mode }) }
+            row("los tres modos", mine)
+        }
+        out.appendLine()
+
+        // Cuántas sesiones quedan fuera de la ventana de minutos y por cuánto: lo que la aproximación y la movilidad obligatorias
+        // hacen a las sesiones cortas (el mínimo de ejercicios y la rampa del primer ejercicio no caben en 20 min).
+        out.appendLine("## Sesiones fuera de la ventana de minutos, por minutos objetivo (los tres modos, todos los niveles y días)")
+        out.appendLine("«n/N (±d)» = sesiones fuera de la ventana / sesiones, y la mayor desviación en minutos.")
+        out.appendLine("perfil | " + s.minutes.joinToString(" | ") { "$it min" })
+        s.profiles.forEach { profile ->
+            val mine = cells.filter { it.profile == profile }
+            val row = s.minutes.joinToString(" | ") { minutes ->
+                val ofMinutes = mine.filter { it.minutes == minutes }
+                val sessions = ofMinutes.sumOf { it.routine.report.sessions.size }
+                var outside = 0
+                var worst = 0
+                ofMinutes.forEach { cell ->
+                    val window = cell.routine.report.minutesWindow
+                    cell.routine.report.sessionMinutes.forEach { m ->
+                        val deviation = if (m < window.first) window.first - m else if (m > window.last) m - window.last else 0
+                        if (deviation > 0) outside++
+                        worst = maxOf(worst, deviation)
+                    }
+                }
+                if (outside == 0) "0/$sessions" else "$outside/$sessions (±$worst)"
+            }
+            out.appendLine("${profile.id} | $row")
+        }
+        out.appendLine()
+
+        // Cuánto del catálogo que el material abre se usa de verdad (con las máquinas: cuántas de las alcanzables).
+        out.appendLine("## Uso del catálogo por perfil (barrido de los tres modos)")
+        out.appendLine("perfil | configuraciones alcanzables | usadas en el barrido | máquinas alcanzables | máquinas usadas")
+        s.profiles.forEach { profile ->
+            val mine = cells.filter { it.profile == profile }
+            val equipments = profile.byPlace.values.ifEmpty { listOf(profile.availability) }.map { DayEquipment(it) }
+            val reachable = index.entries.values.filter { entry -> equipments.any { it.allows(entry, emptyList()) } }
+            val used = mine.flatMap { it.routine.report.sessions }.flatMap { it.configurationIds }.toSet()
+            val reachableMachines = reachable.count { it.equipmentId == "machine" }
+            val usedMachines = used.count { index.entry(it)?.equipmentId == "machine" }
+            out.appendLine("${profile.id} | ${reachable.size} | ${used.size} | $reachableMachines | $usedMachines")
+        }
+        out.appendLine()
+
         s.profiles.forEach { profile ->
             val mine = cells.filter { it.profile == profile }
             out.appendLine("## ${profile.id}")
@@ -123,7 +201,7 @@ class RoutineMatrixReportTest {
         val file = File("build/reports/routine-generator/matrix.txt")
         file.parentFile.mkdirs()
         file.writeText(out.toString())
-        println(out.lines().take(14).joinToString("\n"))
+        println(out.lines().take(40).joinToString("\n"))
         assertTrue(file.exists() && file.length() > 1000)
     }
 }
