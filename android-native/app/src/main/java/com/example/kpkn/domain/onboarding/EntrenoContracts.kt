@@ -91,3 +91,31 @@ enum class MuscleSymbol(val label: String) {
     CALVES("Pantorrillas"),
     TRAPS("Trapecio"),
 }
+
+/** Ejercicios de peso corporal por los que se pregunta («¿Qué ejercicios ya te salen?») para ofrecer variantes más fáciles o más difíciles. */
+@Serializable
+enum class CapabilitySkill(val label: String) {
+    PULL_UP("Dominadas"),
+    PUSH_UP("Flexiones"),
+    DIP("Fondos"),
+    PISTOL_SQUAT("Sentadilla a una pierna"),
+}
+
+/** Cuánto te sale un [CapabilitySkill]. El orden es el nivel (0, 1, 2). */
+@Serializable
+enum class CapabilityLevel(val label: String) {
+    NONE("Aún no"),
+    SOME("Algunas"),
+    MANY("Varias"),
+}
+
+/** Levantamientos cuya marca (1RM o mejor serie) se puede declarar. Qué se pregunta depende del objetivo. */
+@Serializable
+enum class LiftMark(val label: String) {
+    SQUAT("Sentadilla"),
+    BENCH("Press banca"),
+    DEADLIFT("Peso muerto"),
+    OVERHEAD_PRESS("Press militar"),
+    SNATCH("Arranque"),
+    CLEAN_AND_JERK("Dos tiempos"),
+}
