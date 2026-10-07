@@ -10,11 +10,14 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Constraints
 
 /*
  * Syne, la tipografía de la marca, es MUY ancha en sus pesos gordos: «Powerbuilding» a 17 sp mide más que el hueco de una
  * fila en un teléfono de 360 dp y se parte a media palabra («Powerbuildi / ng»). Estos títulos bajan de tamaño, hasta un
- * mínimo, hasta que su palabra más larga cabe entera; solo si ni al mínimo cabe se parte.
+ * mínimo, hasta que su palabra más larga cabe entera Y el texto entero cabe en las líneas permitidas (si no, «Funcional y
+ * saludable a medida» perdía «a medida» tras un «saludabl…» en la portada de 360 dp); solo si ni al mínimo cabe se parte o
+ * se recorta.
  */
 
 /** El mayor tamaño de [maxSp] a [minSp] (de uno en uno hacia abajo) para el que [fits] es cierto; [minSp] si ninguno. */
@@ -29,7 +32,8 @@ internal fun fitTitleSp(maxSp: Float, minSp: Float, fits: (Float) -> Boolean): F
 
 /**
  * Un texto de marca de hasta [maxLines] líneas cuyo tamaño ([styleOf] da el estilo para cada tamaño en sp) baja de [maxSp] a
- * [minSp] hasta que su palabra más larga cabe en el ancho que le dan. Mide con la densidad (y la escala de fuente) vigentes.
+ * [minSp] hasta que su palabra más larga cabe en el ancho que le dan y el texto completo cabe en [maxLines] líneas. Mide con
+ * la densidad (y la escala de fuente) vigentes.
  */
 @Composable
 internal fun FittedDisplayText(
@@ -48,9 +52,14 @@ internal fun FittedDisplayText(
         val size = remember(text, widthPx, maxSp, minSp, density.fontScale, density.density) {
             val words = text.split(' ').filter { it.isNotEmpty() }
             fitTitleSp(maxSp, minSp) { sp ->
-                words.all { word ->
-                    measurer.measure(text = word, style = styleOf(sp), maxLines = 1, softWrap = false).size.width <= widthPx
-                }
+                val style = styleOf(sp)
+                words.all { word -> measurer.measure(text = word, style = style, maxLines = 1, softWrap = false).size.width <= widthPx } &&
+                    !measurer.measure(
+                        text = text,
+                        style = style,
+                        maxLines = maxLines,
+                        constraints = Constraints(maxWidth = widthPx.toInt()),
+                    ).didOverflowHeight
             }
         }
         Text(text = text, style = styleOf(size), color = color, maxLines = maxLines, overflow = TextOverflow.Ellipsis)
