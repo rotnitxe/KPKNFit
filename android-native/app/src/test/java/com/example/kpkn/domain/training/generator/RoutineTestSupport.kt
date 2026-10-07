@@ -80,6 +80,16 @@ internal object RoutineTestSupport {
         )
     }
 
+    /**
+     * Casa con anillas y cajón: el material que acreditan el símbolo «Anillas o TRX» (fichas TRX) y «Cajón o step» (apoyo elevado).
+     * No entra en [profiles] (la matriz de cobertura sigue siendo de seis perfiles): lo usan las pruebas del lote BW-1 y las muestras.
+     */
+    val homeRingsBox = MaterialProfile(
+        id = "casa con anillas y cajón",
+        places = setOf(TrainingPlace.HOME),
+        availability = availability(setOf(EquipmentSymbolId.RINGS, EquipmentSymbolId.BOX), setOf(TrainingPlace.HOME)),
+    )
+
     val profiles: List<MaterialProfile> = listOf(bodyOnly, park, homeDumbbellsBand, homeBarbell, gym, gymAndHome)
 
     val generalModes = listOf(RoutineMode.GENERAL_STRENGTH_MUSCLE, RoutineMode.GENERAL_HYBRID, RoutineMode.GENERAL_FUNCTIONAL)

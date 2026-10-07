@@ -74,7 +74,8 @@ class GeneratorPoolsCatalogTest {
     }
 
     private fun symbolFor(requirement: String): EquipmentSymbolId? = when (requirement) {
-        "bench", "bench_incline", "support" -> EquipmentSymbolId.BENCH
+        // El banco declinado y el de hiperextensión son los otros bancos de un gimnasio: los acredita el símbolo «Banco».
+        "bench", "bench_incline", "support", "decline_bench", "hyperextension_bench" -> EquipmentSymbolId.BENCH
         "rack", "low_bar_support" -> EquipmentSymbolId.RACK
         "pull_up_bar" -> EquipmentSymbolId.PULL_UP_BAR
         "dip_bars" -> EquipmentSymbolId.PARALLEL_BARS
@@ -102,14 +103,19 @@ class GeneratorPoolsCatalogTest {
         val problems = sources.mapNotNull { source ->
             val entry = index.entry(source.id) ?: return@mapNotNull null
             val needed = (source.requires.map { it.split('|').first() } + supportRequirementsFor(source.id)).toSet()
+            // Con su símbolo madre elegido: la barra EZ, la hexagonal y la T (y los discos, donde sea) con la barra; el GHD y la rueda
+            // con las máquinas; la barra baja con el rack; los bancos declinado y de hiperextensión con el banco. Todos menos los
+            // discos solo se acreditan con gimnasio entre los lugares.
+            val gymExtras = setOf("ez_bar", "hex_bar", "t_bar", "ghd", "ab_wheel")
+            val gymTokens = setOf("low_bar_support", "decline_bench", "hyperextension_bench")
             val symbols = buildSet {
                 tierSymbol(entry.tier)?.let(::add)
                 needed.mapNotNull(::symbolFor).forEach(::add)
-                // La barra EZ y la barra baja solo se acreditan en gimnasio con su símbolo madre elegido.
-                if (entry.equipmentId == "ez_bar") add(EquipmentSymbolId.BARBELL)
+                if (entry.equipmentId in setOf("ez_bar", "hex_bar", "t_bar", "plate")) add(EquipmentSymbolId.BARBELL)
+                if (entry.equipmentId in setOf("ghd", "ab_wheel")) add(EquipmentSymbolId.MACHINES)
                 if ("low_bar_support" in needed) add(EquipmentSymbolId.RACK)
             }
-            val places = if (entry.equipmentId == "ez_bar" || "low_bar_support" in needed) setOf(TrainingPlace.GYM) else setOf(TrainingPlace.HOME)
+            val places = if (entry.equipmentId in gymExtras || needed.any { it in gymTokens }) setOf(TrainingPlace.GYM) else setOf(TrainingPlace.HOME)
             val equipment = DayEquipment(EquipmentSymbols.availabilityOf(symbols, places))
             val own = source.requires.all { equipment.satisfied(it) }
             if (!equipment.allows(entry, source.requires) || !own) {
@@ -133,9 +139,13 @@ class GeneratorPoolsCatalogTest {
         val emptyTiers = BodyweightLadders.all.flatMap { ladder ->
             LadderTier.entries.filter { ladder.rungs(it).isEmpty() }.map { ladder.pattern to (ladder.skill to it) }
         }
-        // El único hueco documentado: fondos sin tramo fácil (los fondos entre bancos viven en la reserva de tríceps).
+        // Los dos huecos documentados: fondos sin tramo fácil (los fondos entre bancos viven en la reserva de tríceps) y empuje
+        // vertical sin tramo fácil (la pica pide antes una flexión estándar: quien aún no las hace no recibe empuje vertical).
         assertEquals(
-            listOf(RoutinePattern.HORIZONTAL_PUSH to (com.example.kpkn.domain.onboarding.CapabilitySkill.DIP to LadderTier.EASY)),
+            listOf(
+                RoutinePattern.HORIZONTAL_PUSH to (com.example.kpkn.domain.onboarding.CapabilitySkill.DIP to LadderTier.EASY),
+                RoutinePattern.VERTICAL_PUSH to (com.example.kpkn.domain.onboarding.CapabilitySkill.PUSH_UP to LadderTier.EASY),
+            ),
             emptyTiers,
         )
     }

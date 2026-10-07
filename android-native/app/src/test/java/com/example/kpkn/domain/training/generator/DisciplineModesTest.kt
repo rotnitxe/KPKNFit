@@ -114,6 +114,8 @@ class DisciplineModesTest {
         assertTrue("sin paseo del granjero: $ids", ids.any { it.startsWith("forearms_paseo_del_granjero") })
         assertTrue(routine.summary.isInitialVersion)
         assertTrue(routine.summary.initialVersionMissing.any { it.contains("yugo") })
+        // El maletín y el Zercher existen desde el lote OL-1: ya no figuran entre lo que falta.
+        assertTrue(routine.summary.initialVersionMissing.none { it.contains("maleta") })
     }
 
     // ─── Base de halterofilia ──────────────────────────────────────────────────────────────────────────────
@@ -123,11 +125,15 @@ class DisciplineModesTest {
         val routine = generate(s.gym, RoutineMode.DISCIPLINE_WEIGHTLIFTING_BASE, RoutineLevel.INTERMEDIATE, 4, 90)
         val ids = idsOf(routine)
         assertTrue("sin sentadilla frontal ni trasera: $ids", ids.any { it == "front_squat__barbell" || it == "high_bar_back_squat__barbell" })
-        assertTrue("sin push press: $ids", "deltoides_push_press__default" in ids)
+        // El empuje explosivo sobre la cabeza rota entre el push press y los enviones (lote OL-1): uno de los dos siempre está.
+        assertTrue("sin push press ni envión: $ids", ids.any { it == "deltoides_push_press__default" || it == "push_jerk__barbell" || it == "split_jerk__barbell" })
+        assertTrue("sin cargada ni arranque: $ids", ids.any { it.startsWith("hang_power_") || it.startsWith("power_") || it.startsWith("squat_clean") || it.startsWith("squat_snatch") })
         assertTrue("sin peso muerto hasta la rodilla o convencional: $ids", ids.any { it == "deadlift_to_knees__barbell" || it == "conventional_deadlift__bilateral__barbell" })
         routine.report.sessions.forEach { assertTrue("${it.title} sin movilidad", it.hasMobility) }
         assertTrue(routine.summary.isInitialVersion)
-        assertTrue(routine.summary.initialVersionMissing.any { it.contains("arranque") })
+        // Lo que ya existe (cargada, arranque, tirones, envión, sentadilla de arranque) deja de figurar; sigue lo que no (bloques, complejos).
+        assertTrue(routine.summary.initialVersionMissing.any { it.contains("arranque") && it.contains("bloques") })
+        assertTrue(routine.summary.initialVersionMissing.none { it.contains("tirones") || it.contains("jerk") })
     }
 
     // ─── Powerlifting, powerbuilding y culturismo a medida ─────────────────────────────────────────────────

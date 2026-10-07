@@ -13,7 +13,9 @@ package com.example.kpkn.domain.training.generator
  * 5. los techos de volumen de los músculos que la disciplina carga de forma distinta (el antebrazo en armwrestling).
  *
  * El catálogo actual NO cubre las disciplinas enteras: cada programa sale rotulado como «versión inicial» y dice
- * exactamente qué falta ([DisciplineSpec.missing]).
+ * exactamente qué falta ([DisciplineSpec.missing]). Con el lote OL-1 (cargadas, arranques, tirones, enviones, sentadilla de
+ * arranque, maletín y Zercher) esa lista se acortó: lo que ya existe se quitó de ella y lo que sigue sin existir (yugo, piedras,
+ * tronco, eje, trineo, neumático, saco y barril; cargada y arranque desde bloques; complejos) sigue declarado.
  */
 
 /** Qué cambia un modo de disciplina respecto al generador general. */
@@ -55,7 +57,7 @@ internal object Disciplines {
                 "remo en anillas",
                 "saltos y trabajo pliométrico",
             ),
-            substitutes = "Mientras tanto usa las escaleras de flexión, dominada, fondo, remo invertido, pistol, core y glúteo del catálogo, con las anillas si las tienes.",
+            substitutes = "Mientras tanto usa las escaleras de flexión, pica (el paso hacia el pino), dominada, fondo, remo invertido, pistol, core y glúteo del catálogo, con las anillas si las tienes.",
             fillers = listOf(
                 RoutinePattern.CORE_STABILITY, RoutinePattern.TRICEPS, RoutinePattern.BICEPS, RoutinePattern.GLUTE,
                 RoutinePattern.CALF, RoutinePattern.BACK_EXTENSION, RoutinePattern.GRIP,
@@ -85,10 +87,10 @@ internal object Disciplines {
                 "press con log y con axle",
                 "trineo (arrastre y empuje)",
                 "volteo de neumático",
-                "acarreos de maleta pesada y de yugo",
+                "acarreos de yugo y con saco de arena o barril",
                 "peso muerto con axle",
             ),
-            substitutes = "Mientras tanto usa peso muerto, sentadilla (también Zercher), press estricto y push press, paseo del granjero y trabajo de agarre.",
+            substitutes = "Mientras tanto usa peso muerto, sentadilla (también Zercher), press estricto, push press y envión, paseo del granjero, del maletín y Zercher, y trabajo de agarre.",
             fillers = listOf(RoutinePattern.GRIP, RoutinePattern.CORE_ROTATION, RoutinePattern.TRAPS, RoutinePattern.BACK_EXTENSION, RoutinePattern.CORE_STABILITY),
             volumeScale = mapOf(Muscles.FOREARMS to 1.5, Muscles.TRAPS to 1.25, Muscles.ERECTORS to 1.25),
             requiredLifts = listOf(
@@ -102,16 +104,14 @@ internal object Disciplines {
             mode = RoutineMode.DISCIPLINE_WEIGHTLIFTING_BASE,
             pools = DisciplinePools.byMode.getValue(RoutineMode.DISCIPLINE_WEIGHTLIFTING_BASE),
             missing = listOf(
-                "arranque, cargada y envión (y sus variantes de potencia, colgado y bloques)",
-                "tirones de arranque y de cargada",
-                "sentadilla de arranque (overhead squat)",
-                "jerk (empuje sobre la cabeza con flexión de piernas)",
+                "cargada y arranque desde bloques",
+                "la cargada con envión como complejo (los dos levantamientos seguidos)",
             ),
-            substitutes = "Mientras tanto construye la base con sentadilla frontal y trasera, push press, peso muerto hasta la rodilla como tirón, swing con kettlebell, espalda alta y core, con movilidad en cada sesión.",
+            substitutes = "Mientras tanto trabaja la cargada, el arranque y el envión por separado (de potencia y desde colgado), con sus tirones, la sentadilla de arranque, la sentadilla frontal y trasera, el push press, la espalda alta y el core, con movilidad en cada sesión.",
             fillers = listOf(RoutinePattern.CORE_STABILITY, RoutinePattern.TRAPS, RoutinePattern.REAR_DELT, RoutinePattern.SINGLE_LEG, RoutinePattern.CORE_ROTATION),
             requiredLifts = listOf(
                 "sentadilla frontal o trasera" to setOf("front_squat__barbell", "high_bar_back_squat__barbell", "paused_back_squat__barbell"),
-                "push press" to setOf("deltoides_push_press__default"),
+                "push press o envión" to setOf("deltoides_push_press__default", "push_jerk__barbell", "split_jerk__barbell"),
             ),
         ),
         DisciplineSpec(

@@ -103,11 +103,43 @@ class RoutineSamplesReportTest {
         render("gimnasio intermedio fuerza y masa 7d 30 min", s.request(s.gym, strength, RoutineLevel.INTERMEDIATE, 7, 30), out)
         render("gimnasio novato funcional 2d 30 min", s.request(s.gym, functional, RoutineLevel.NOVICE, 2, 30), out)
         render("gimnasio avanzado fuerza y masa 2d 180 min", s.request(s.gym, strength, RoutineLevel.ADVANCED, 2, 180), out)
+        // Paquete D1b: el catálogo ampliado (peso corporal BW-1) y el material acreditado (anillas, cajón, sala de máquinas, extras de gimnasio).
+        render("D1b solo cuerpo novato fuerza y masa 4d 45 min", s.request(s.bodyOnly, strength, RoutineLevel.NOVICE, 4, 45), out)
+        render(
+            "D1b solo cuerpo avanzado fuerza y masa 4d 60 min (varias flexiones y dominadas)",
+            s.request(
+                s.bodyOnly, strength, RoutineLevel.ADVANCED, 4, 60,
+                capabilities = mapOf(CapabilitySkill.PUSH_UP to CapabilityLevel.MANY, CapabilitySkill.PULL_UP to CapabilityLevel.MANY),
+            ),
+            out,
+        )
+        render("D1b parque intermedio fuerza y masa 4d 60 min", s.request(s.park, strength, RoutineLevel.INTERMEDIATE, 4, 60), out)
+        render(
+            "D1b parque avanzado fuerza y masa 3d 60 min (pistol y fondos: algunas)",
+            s.request(
+                s.park, strength, RoutineLevel.ADVANCED, 3, 60,
+                capabilities = mapOf(CapabilitySkill.PISTOL_SQUAT to CapabilityLevel.SOME, CapabilitySkill.DIP to CapabilityLevel.SOME),
+            ),
+            out,
+        )
+        render("D1b casa con anillas y cajón intermedio fuerza y masa 4d 60 min", s.request(s.homeRingsBox, strength, RoutineLevel.INTERMEDIATE, 4, 60), out)
+        render("D1b casa mancuernas+banda intermedio fuerza y masa 4d 60 min", s.request(s.homeDumbbellsBand, strength, RoutineLevel.INTERMEDIATE, 4, 60), out)
+        render("D1b gimnasio (sala de máquinas) novato fuerza y masa 4d 60 min", s.request(s.gym, strength, RoutineLevel.NOVICE, 4, 60), out)
+        render("D1b gimnasio avanzado fuerza y masa 5d 90 min, otra versión (semilla 2)", s.request(s.gym, strength, RoutineLevel.ADVANCED, 5, 90, seed = 2), out)
         val marks = mapOf(LiftMark.SQUAT to 140.0, LiftMark.BENCH to 100.0, LiftMark.DEADLIFT to 180.0, LiftMark.OVERHEAD_PRESS to 65.0)
         render("DISCIPLINA calistenia intermedio 4d 60 min (gimnasio, sin pesas)", s.request(s.gym, RoutineMode.DISCIPLINE_CALISTHENICS, RoutineLevel.INTERMEDIATE, 4, 60), out)
         render("DISCIPLINA armwrestling intermedio 4d 75 min", s.request(s.gym, RoutineMode.DISCIPLINE_ARMWRESTLING, RoutineLevel.INTERMEDIATE, 4, 75), out)
         render("DISCIPLINA strongman intermedio 4d 90 min", s.request(s.gym, RoutineMode.DISCIPLINE_STRONGMAN, RoutineLevel.INTERMEDIATE, 4, 90, marks = marks), out)
         render("DISCIPLINA base de halterofilia intermedio 3d 60 min", s.request(s.gym, RoutineMode.DISCIPLINE_WEIGHTLIFTING_BASE, RoutineLevel.INTERMEDIATE, 3, 60, marks = marks), out)
+        // Paquete D1b · lote OL-1 (levantamientos olímpicos y acarreos): las marcas del arranque y de los dos tiempos aún no las pregunta el wizard.
+        val olympicMarks = marks + mapOf(LiftMark.SNATCH to 80.0, LiftMark.CLEAN_AND_JERK to 100.0)
+        render("OL-1 base de halterofilia avanzado 4d 90 min con marcas de arranque y dos tiempos (gimnasio)", s.request(s.gym, RoutineMode.DISCIPLINE_WEIGHTLIFTING_BASE, RoutineLevel.ADVANCED, 4, 90, marks = olympicMarks), out)
+        render("OL-1 base de halterofilia intermedio 1d 60 min (gimnasio)", s.request(s.gym, RoutineMode.DISCIPLINE_WEIGHTLIFTING_BASE, RoutineLevel.INTERMEDIATE, 1, 60), out)
+        render("OL-1 base de halterofilia intermedio 5d 75 min (casa con barra, rack y banco)", s.request(s.homeBarbell, RoutineMode.DISCIPLINE_WEIGHTLIFTING_BASE, RoutineLevel.INTERMEDIATE, 5, 75), out)
+        render("OL-1 base de halterofilia novato 3d 60 min (gimnasio)", s.request(s.gym, RoutineMode.DISCIPLINE_WEIGHTLIFTING_BASE, RoutineLevel.NOVICE, 3, 60), out)
+        render("OL-1 base de halterofilia intermedio 3d 60 min (casa con mancuernas y banda: sin barra)", s.request(s.homeDumbbellsBand, RoutineMode.DISCIPLINE_WEIGHTLIFTING_BASE, RoutineLevel.INTERMEDIATE, 3, 60), out)
+        render("OL-1 strongman avanzado 5d 90 min (gimnasio)", s.request(s.gym, RoutineMode.DISCIPLINE_STRONGMAN, RoutineLevel.ADVANCED, 5, 90, marks = olympicMarks), out)
+        render("OL-1 strongman novato 4d 60 min (casa con mancuernas y banda)", s.request(s.homeDumbbellsBand, RoutineMode.DISCIPLINE_STRONGMAN, RoutineLevel.NOVICE, 4, 60), out)
         render("DISCIPLINA powerlifting avanzado 4d 90 min con marcas (casa con barra)", s.request(s.homeBarbell, RoutineMode.CUSTOM_POWERLIFTING, RoutineLevel.ADVANCED, 4, 90, marks = marks), out)
         render("DISCIPLINA powerbuilding intermedio 4d 75 min", s.request(s.gym, RoutineMode.CUSTOM_POWERBUILDING, RoutineLevel.INTERMEDIATE, 4, 75, marks = marks), out)
         render("DISCIPLINA culturismo intermedio 5d 75 min", s.request(s.gym, RoutineMode.CUSTOM_BODYBUILDING, RoutineLevel.INTERMEDIATE, 5, 75), out)

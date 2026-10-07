@@ -18,10 +18,8 @@ import com.example.kpkn.data.protocols.PlanLoadReferenceKind
 import com.example.kpkn.data.protocols.PlanLoadReferenceState
 import com.example.kpkn.data.protocols.SlotRole
 import com.example.kpkn.data.protocols.TechniqueModifier
-import com.example.kpkn.domain.exercises.catalogv2.JointRoleV2
 import com.example.kpkn.domain.onboarding.TrainingPlace
 import com.example.kpkn.domain.training.NativeLoadConventions
-import com.example.kpkn.domain.training.approach.ApproachExerciseInfo
 import com.example.kpkn.domain.training.approach.ApproachLevel
 import com.example.kpkn.domain.training.approach.ApproachOptions
 import com.example.kpkn.domain.training.approach.ApproachPlanner
@@ -59,17 +57,21 @@ internal data class AssembledSession(
  *   la forma de meter más ejercicios sin acortar descansos de los compuestos. Si una pareja no entra (por tiempo o porque el
  *   presupuesto de volumen de uno de sus dos ejercicios está agotado) se intenta cada ejercicio por separado.
  * - Prioridades: tras un primer ajuste, cada hueco prioritario sube a +25 % de las series que consiguió (`Bundle.boostFloor`).
+ *   El tiempo nunca se lo quita antes que a lo demás: lo prioritario es lo último que se recorta (`MinuteFitter.trimOrder`) y, si ni
+ *   así cabe, la rutina lo dice en una nota.
  * - Si tras ajustar sobran más de 4 min, se añaden ejercicios de relleno (el patrón cuyo músculo está más lejos de su objetivo
  *   semanal, uno por patrón y como mucho dos de core) antes de alargar descansos, movilidad o cardio.
  * - Con más tiempo del que la fuerza absorbe de forma útil (tope por nivel: 70/80/110/130 min) o cuando el material y los
  *   techos de volumen ya no dan más ejercicios, el sobrante va a movilidad y cardio suave. Un bloque de cardio no pasa de 40
  *   min en intervalos ni de 75 continuo (`CardioBuilder.split`).
- * - La aproximación la pone `ApproachPlanner` (D3) al final: su sobrecarga de tiempo se mide con el estimador y se descuenta.
+ * - La aproximación la pone `ApproachPlanner` (D3) al final, con el MISMO proveedor de datos del catálogo que el materializador de
+ *   planes (`GeneratorCatalog.approachInfoOf`): su sobrecarga de tiempo (rampa y movilidad) se mide con el estimador común y se
+ *   descuenta, y una segunda pasada del materializador no cambia nada.
  */
 internal object SessionAssembler {
 
     private const val MIN_STRENGTH_ITEMS = 3
-    private const val MAX_CORRECTIONS = 12
+    private const val MAX_CORRECTIONS = 20
 
     private fun strengthCapSeconds(level: RoutineLevel): Int = when (level) {
         RoutineLevel.NOVICE -> 70
@@ -122,17 +124,6 @@ internal object SessionAssembler {
         RoutineLevel.ADVANCED -> ApproachLevel.ADVANCED
     }
 
-    private fun approachInfo(entry: CatalogEntry): ApproachExerciseInfo {
-        val joints = entry.configuration.profile.jointInvolvement
-            .filter { it.role == JointRoleV2.PRIMARY || it.role == JointRoleV2.SECONDARY }
-            .mapTo(LinkedHashSet()) { it.jointId }
-        if (entry.axialLoadFactor >= 0.5) joints += "columna-lumbar"
-        val loadable = entry.tier == EquipmentTier.BARBELL || entry.tier == EquipmentTier.DUMBBELL ||
-            entry.tier == EquipmentTier.MACHINE || entry.tier == EquipmentTier.CABLE ||
-            entry.tier == EquipmentTier.SMITH || entry.tier == EquipmentTier.KETTLEBELL
-        return ApproachExerciseInfo(joints = joints, isCompound = entry.isCompound, canBeHeavy = entry.isCompound && loadable)
-    }
-
     // ─── Estado mutable de la sesión mientras se ajusta ──────────────────────────────────────────────────────
 
     private class State(
@@ -142,6 +133,8 @@ internal object SessionAssembler {
         var cardioIntervals: Boolean,
         var fillerCardioSeconds: Int,
         val useMobilityPart: Boolean,
+        /** El bloque de cardio de una sesión de fuerza (no el cardio que ES la sesión) puede salir entero como último recurso. */
+        val canOmitCardio: Boolean = false,
     )
 
     // ─── Entrada ───────────────────────────────────────────────────────────────────────────────────────────
@@ -281,6 +274,7 @@ internal object SessionAssembler {
             cardioIntervals = cardioIntervals,
             fillerCardioSeconds = 0,
             useMobilityPart = mobilitySeconds > 0 || (mobilitySpec != null && mobilitySpec.fill),
+            canOmitCardio = plan.cardio == CardioMode.BLOCK,
         )
         var overhead = 0
         if (bundles.any { it.included }) {
@@ -338,6 +332,15 @@ internal object SessionAssembler {
         }
         val final = requireNotNull(best)
         restore(state, final.snapshot)
+        // Si el bloque de cardio tuvo que salir para no pasarse de la ventana (la fuerza ya estaba en su mínimo), se dice.
+        if (state.canOmitCardio && cardioSeconds > 0 && state.cardioSeconds == 0) ctx.notes += cardioOmittedNote(ctx)
+        // Lo prioritario es lo último que el tiempo recorta; si aun así no cabe todo lo que se pidió, se dice (una sola nota por rutina).
+        val squeezed = state.bundles.any { bundle ->
+            if (!bundle.isPriority) return@any false
+            val reachable = minOf(bundle.baseSets, room.maxSets(bundle, state.bundles))
+            reachable >= bundle.minSets && (if (bundle.included) bundle.sets else 0) < reachable
+        }
+        if (squeezed) ctx.notes += priorityTimeNote(ctx)
         val finalSession = final.session.copy(targetDurationMinutes = minutesOf(final.seconds))
         val inWindow = minutesOf(final.seconds) in ctx.windowMinutes
 
@@ -541,12 +544,7 @@ internal object SessionAssembler {
 
     private fun approach(ctx: GenContext, session: Session): Session {
         if (session.exercises.isEmpty()) return session
-        return ApproachPlanner.apply(
-            session,
-            ApproachOptions(level = approachLevel(ctx.level)),
-        ) { exercise ->
-            exercise.catalogConfigurationId?.let { ctx.catalog.entry(it) }?.let(::approachInfo)
-        }
+        return ApproachPlanner.apply(session, ApproachOptions(level = approachLevel(ctx.level)), ctx.catalog.approachInfoOf)
     }
 
     // ─── Prescripción ──────────────────────────────────────────────────────────────────────────────────────
@@ -753,17 +751,26 @@ internal object SessionAssembler {
             if (state.fillerCardioSeconds < 8 * 60) state.fillerCardioSeconds = 0
             return true
         }
-        val included = state.bundles.filter { it.included }.sortedByDescending { it.priority }
+        // De atrás hacia delante y lo prioritario al final: solo se toca si no queda otra cosa.
+        val included = MinuteFitter.trimOrder(state.bundles)
         included.firstOrNull { it.rest > it.minRest }?.let { it.rest = (it.rest - 15).coerceAtLeast(it.minRest); return true }
-        included.firstOrNull { it.sets > it.minSets }?.let { it.sets--; return true }
+        included.firstOrNull { !it.isPriority && it.sets > it.minSets }?.let { it.sets--; return true }
         if (state.mobilitySeconds >= 120 && state.mobilitySeconds > 0) {
             state.mobilitySeconds -= 60
             return true
         }
+        included.firstOrNull { it.isPriority && it.sets > it.minSets }?.let { it.sets--; return true }
         val itemCount = included.sumOf { it.items.size }
         val dropped = included.firstOrNull { itemCount - it.items.size >= minItems }
         if (dropped != null) {
             dropped.included = false
+            return true
+        }
+        // Último recurso: el bloque de cardio no se recorta (la mitad de un bloque no es el bloque que se pidió), pero si con la fuerza
+        // en su mínimo (tres ejercicios con sus series y descansos mínimos, más la aproximación) la sesión sigue pasándose de la
+        // ventana, el bloque entero sale de ESTA sesión: se avisa y el cardio va en otras sesiones o con más minutos.
+        if (state.canOmitCardio && state.cardioSeconds > 0) {
+            state.cardioSeconds = 0
             return true
         }
         return false
@@ -771,7 +778,8 @@ internal object SessionAssembler {
 
     /** Un paso para alargar la sesión; false si ya no queda ninguno. */
     private fun growOnce(state: State, ctx: GenContext, room: VolumeRoom, plan: SessionPlan): Boolean {
-        val included = state.bundles.filter { it.included }.sortedBy { it.priority }
+        // Lo prioritario recibe el tiempo sobrante primero.
+        val included = MinuteFitter.growOrder(state.bundles)
         included.firstOrNull { it.sets < minOf(it.maxSets, room.maxSets(it, state.bundles, soft = true)) }?.let { it.sets++; return true }
         included.firstOrNull { it.restExtendable && it.rest + 15 <= it.maxRest }?.let { it.rest += 15; return true }
         if (plan.cardio != CardioMode.INTERVALS_FILL && plan.cardio != CardioMode.ZONE2_FILL && state.mobilitySeconds < 20 * 60) {
@@ -786,6 +794,10 @@ internal object SessionAssembler {
     private fun cardioOmittedNote(ctx: GenContext): String =
         "Con ${ctx.targetMinutes} min por sesión no cabe un bloque de cardio y una sesión de fuerza completa: " +
             "el cardio no se recorta, así que va en otras sesiones. Con más minutos se suma al final de cada sesión de fuerza."
+
+    private fun priorityTimeNote(ctx: GenContext): String =
+        "Con ${ctx.targetMinutes} min por sesión no caben todas las series que piden tus prioridades en alguna sesión: " +
+            "con más minutos por sesión o con menos prioridades llegan completas."
 
     private fun longSessionNote(ctx: GenContext): String =
         "Con ${ctx.targetMinutes} min por sesión no hay más trabajo de fuerza útil con tu material y tus techos de volumen semanal: " +
