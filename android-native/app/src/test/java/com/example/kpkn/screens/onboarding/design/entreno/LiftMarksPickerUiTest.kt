@@ -11,6 +11,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertHeightIsAtLeast
+import androidx.compose.ui.test.assertWidthIsAtLeast
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
@@ -20,6 +22,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipe
+import androidx.compose.ui.unit.dp
 import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.domain.onboarding.LiftMark
 import org.junit.Assert.assertEquals
@@ -212,5 +215,21 @@ class LiftMarksPickerUiTest {
         ruler(LiftMark.SQUAT).performSemanticsAction(SemanticsActions.SetProgress) { it(150f) }
         rule.waitForIdle()
         assertEquals(listOf<Pair<LiftMark, Double?>>(LiftMark.SQUAT to 150.0), emitted)
+    }
+
+    @Test
+    fun everyTouchTargetIsAtLeast48dp() {
+        show(marks = mapOf(LiftMark.BENCH to 95.0))
+        val tags = listOf(
+            MARK_UNIT_TAG,
+            "setup-mark-SQUAT",
+            "setup-mark-BENCH",
+            "setup-mark-DEADLIFT",
+            "setup-mark-SQUAT-unknown",
+            "setup-mark-SQUAT-ruler",
+        )
+        for (tag in tags) {
+            rule.onNodeWithTag(tag).assertWidthIsAtLeast(48.dp).assertHeightIsAtLeast(48.dp)
+        }
     }
 }

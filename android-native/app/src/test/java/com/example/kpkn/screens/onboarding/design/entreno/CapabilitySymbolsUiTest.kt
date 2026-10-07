@@ -3,9 +3,12 @@ package com.example.kpkn.screens.onboarding.design.entreno
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.assertHeightIsAtLeast
+import androidx.compose.ui.test.assertWidthIsAtLeast
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.unit.dp
 import com.example.kpkn.domain.onboarding.CapabilityLevel
 import com.example.kpkn.domain.onboarding.CapabilitySkill
 import org.junit.Assert.assertEquals
@@ -133,6 +136,15 @@ class CapabilitySymbolsUiTest {
         for (l in CapabilityLevel.entries) {
             val config = segment(CapabilitySkill.PISTOL_SQUAT, l).fetchSemanticsNode().config
             assertFalse(l.name, config[SemanticsProperties.Selected])
+        }
+    }
+
+    @Test
+    fun everyTouchTargetIsAtLeast48dp() {
+        show()
+        for (s in CapabilitySkill.entries) {
+            symbol(s).assertWidthIsAtLeast(48.dp).assertHeightIsAtLeast(48.dp)
+            for (l in CapabilityLevel.entries) segment(s, l).assertWidthIsAtLeast(48.dp).assertHeightIsAtLeast(48.dp)
         }
     }
 }

@@ -6,10 +6,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertHeightIsAtLeast
+import androidx.compose.ui.test.assertWidthIsAtLeast
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.unit.dp
 import com.example.kpkn.domain.onboarding.MuscleSymbol
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -143,5 +146,13 @@ class MuscleSymbolGridUiTest {
     fun withoutSuggestionsThereIsNoLabel() {
         show()
         rule.onAllNodesWithText("Sugerido").assertCountEquals(0)
+    }
+
+    @Test
+    fun everyCellIsAtLeast48dpInBothDirections() {
+        show()
+        for (m in MuscleSymbol.entries) {
+            cell(m).assertWidthIsAtLeast(48.dp).assertHeightIsAtLeast(48.dp)
+        }
     }
 }
