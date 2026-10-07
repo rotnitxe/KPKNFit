@@ -320,7 +320,11 @@ private fun WizardLongPage(
                                 index == currentIndex -> WizardPageMode.Active
                                 else -> WizardPageMode.Peek
                             }
-                            val copy = wizardPageCopy(page, state.draft.goalProfile)
+                            val copy = wizardPageCopy(
+                                page,
+                                state.draft.goalProfile,
+                                programDeferred = state.draft.programRoute == SetupProgramRoute.LATER,
+                            )
                             // El resumen se calcula UNA vez, cuando la página queda confirmada, y se guarda: recalcular
                             // todas las filas con cada pulsación sería caro (alguna consulta el catálogo de planes).
                             // Una página activa lo marca como caduco para que se recalcule al volver a confirmarse,

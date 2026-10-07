@@ -369,14 +369,15 @@ class EntrenoPlanStepTest {
     }
 
     @Test
-    fun aDeferredProgramSaysWhatHappensAndOffersToPrepareItAgain() {
+    fun aDeferredProgramOffersToPrepareItAgainAndLeavesWhatHappensToTheSectionHeading() {
         state = SetupWizardState(
             draft = draftFor(TrainingGoalProfile.FUNCTIONAL_HEALTH).copy(programRoute = SetupProgramRoute.LATER),
             planSweep = SetupPlanSweep.IDLE,
         )
         rule.setContent { Page() }
         rule.onNodeWithTag(PLAN_PREPARING_TAG).assertDoesNotExist()
-        rule.onNodeWithText("Lo armarás manualmente más adelante.").assertExists()
+        // El contenido del paso no repite el título ni el subtítulo que ya pinta la sección (ver `wizardPageCopy`).
+        rule.onNodeWithText("Lo armarás manualmente más adelante.").assertDoesNotExist()
         rule.onNodeWithTag("setup-plan-resume").assertExists()
         rule.onNodeWithTag(DEFER_TAG).assertDoesNotExist()
     }

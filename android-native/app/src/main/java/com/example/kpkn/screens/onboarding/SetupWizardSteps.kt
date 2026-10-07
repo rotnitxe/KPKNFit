@@ -66,9 +66,15 @@ internal data class WizardPageCopy(val title: String, val subtitle: String?)
 
 /**
  * Título y subtítulo de la página [page]. El paso PLAN cambia con el perfil de objetivo ([goalProfile]): con una
- * disciplina se elige entre varios programas; con un perfil general (o sin perfil) se muestra el programa a medida.
+ * disciplina se elige entre varios programas; con un perfil general (o sin perfil) se muestra el programa a medida. Y
+ * con el programa aplazado ([programDeferred], «Lo haré más adelante») dice que todavía no hay programa: el título de un
+ * programa que no se va a crear sería mentira (COPY · «PLAN (aplazado)»).
  */
-internal fun wizardPageCopy(page: SetupStepId, goalProfile: TrainingGoalProfile? = null): WizardPageCopy {
+internal fun wizardPageCopy(
+    page: SetupStepId,
+    goalProfile: TrainingGoalProfile? = null,
+    programDeferred: Boolean = false,
+): WizardPageCopy {
     val definition = SetupStepDefinitions.of(page)
     return when (page) {
         SetupStepId.NAME -> WizardPageCopy("Empecemos por ti", "Tu alias y tu fecha de nacimiento.")
@@ -76,14 +82,19 @@ internal fun wizardPageCopy(page: SetupStepId, goalProfile: TrainingGoalProfile?
         // La figura y la regla se explican solas: este paso no lleva subtítulo.
         SetupStepId.BODY_FAT -> WizardPageCopy(definition?.title ?: page.name, null)
         SetupStepId.PLAN ->
-            if (goalProfile?.isSpecific == true) {
-                WizardPageCopy("Elige tu programa", "Elige el que más te guste. Podrás modificarlo después.")
-            } else {
-                WizardPageCopy(definition?.title ?: page.name, definition?.subtitle)
+            when {
+                programDeferred -> WizardPageCopy(PLAN_DEFERRED_TITLE, PLAN_DEFERRED_SUBTITLE)
+                goalProfile?.isSpecific == true ->
+                    WizardPageCopy("Elige tu programa", "Elige el que más te guste. Podrás modificarlo después.")
+                else -> WizardPageCopy(definition?.title ?: page.name, definition?.subtitle)
             }
         else -> WizardPageCopy(definition?.title ?: page.name, definition?.subtitle)
     }
 }
+
+/** PLAN con el programa aplazado: no hay programa todavía. La revisión final dice lo mismo ([DEFER_PROGRAM_REVIEW_VALUE]). */
+internal const val PLAN_DEFERRED_TITLE = "Sin programa por ahora"
+internal const val PLAN_DEFERRED_SUBTITLE = "$DEFER_PROGRAM_REVIEW_VALUE."
 
 /** Página del wizard que muestra el paso del cursor: la edad vive en la del alias y el peso en la de la altura. */
 internal fun wizardPageOf(step: SetupStepId): SetupStepId = when (step) {

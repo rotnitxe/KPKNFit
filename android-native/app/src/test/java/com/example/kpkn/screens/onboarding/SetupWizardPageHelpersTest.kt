@@ -4,6 +4,7 @@ import com.example.kpkn.domain.onboarding.SetupStepContext
 import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.SetupWizardBlock
+import com.example.kpkn.domain.onboarding.TrainingGoalProfile
 import com.example.kpkn.screens.onboarding.design.KpknModule
 import com.example.kpkn.screens.onboarding.design.OverlayStageState
 import org.junit.Assert.assertEquals
@@ -106,6 +107,26 @@ class SetupWizardPageHelpersTest {
     fun `una pregunta normal usa el titulo y el subtitulo del catalogo`() {
         val copy = wizardPageCopy(SetupStepId.EXPERIENCE)
         assertTrue(copy.title.startsWith("¿"))
+    }
+
+    @Test
+    fun `con el programa aplazado el paso del programa dice que todavia no hay programa`() {
+        TrainingGoalProfile.entries.plus(null).forEach { profile ->
+            val copy = wizardPageCopy(SetupStepId.PLAN, profile, programDeferred = true)
+            assertEquals("Sin programa por ahora", copy.title)
+            // La misma frase que dicen la revisión final y la fila plegada del programa aplazado.
+            assertEquals("$DEFER_PROGRAM_REVIEW_VALUE.", copy.subtitle)
+            assertTrue("título de ${copy.title.length} caracteres", copy.title.length <= 44)
+            assertTrue("subtítulo de ${copy.subtitle!!.length} caracteres", copy.subtitle!!.length <= 100)
+        }
+        // Sin aplazar, el título sigue siendo el del programa que se prepara o se elige.
+        assertEquals("Tu programa a medida", wizardPageCopy(SetupStepId.PLAN, TrainingGoalProfile.STRENGTH_MUSCLE).title)
+        assertEquals("Elige tu programa", wizardPageCopy(SetupStepId.PLAN, TrainingGoalProfile.POWERLIFTING).title)
+        // Aplazar solo cambia el paso del programa.
+        assertEquals(
+            wizardPageCopy(SetupStepId.WEEKDAYS),
+            wizardPageCopy(SetupStepId.WEEKDAYS, TrainingGoalProfile.POWERLIFTING, programDeferred = true),
+        )
     }
 
     // ─── Overlay del hito: animación por bloque y fila de etapas ──────────────────────────────────

@@ -197,10 +197,13 @@ private fun GeneralReveal(
     }
 }
 
-/** El programa aplazado: lo que pasará y la vuelta atrás (volver a preparar el programa con las mismas respuestas). */
+/**
+ * El programa aplazado: la vuelta atrás (volver a preparar el programa con las mismas respuestas). Qué pasa lo dicen el
+ * título y el subtítulo de la sección («Sin programa por ahora» · «Lo armarás manualmente más adelante.»): el contenido
+ * del paso no los repite.
+ */
 @Composable
 private fun DeferredPlan(onResume: () -> Unit) {
-    Text(text = DEFERRED_NOTE, style = WizardTypography.bodySmall, color = WizardColors.textMuted)
     EntrenoTextAction(label = RESUME_LABEL, onClick = onResume, modifier = Modifier.testTag("setup-plan-resume"))
 }
 
@@ -211,7 +214,6 @@ private const val MAX_REASONS = 5
 private const val READY_TITLE = "Tu programa está listo"
 private const val ANOTHER_VERSION_LABEL = "Otra versión"
 private const val DEFER_LABEL = "Lo haré más adelante"
-private const val DEFERRED_NOTE = "Lo armarás manualmente más adelante."
 private const val RESUME_LABEL = "Preparar mi programa ahora"
 private const val RETRY_LABEL = "Reintentar"
 

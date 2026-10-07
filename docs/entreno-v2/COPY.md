@@ -19,6 +19,7 @@ nunca instrucciones de interfaz. Tono: éxito = celebra sin exagerar; aviso = cl
 | `TRAINING_MAX` | ¿Conoces tus marcas? | Con una basta. Sin marcas, el programa sigue siendo válido. |
 | `PLAN` (general) | Tu programa a medida | Armado con tu material, tus días y tu tiempo. |
 | `PLAN` (disciplina) | Elige tu programa | Elige el que más te guste. Podrás modificarlo después. |
+| `PLAN` (aplazado: «Lo haré más adelante») | Sin programa por ahora | Lo armarás manualmente más adelante. |
 | `WEEK_LAYOUT` | Así queda tu semana | Mueve las sesiones a los días que prefieras. |
 
 ## Textos de los controles
@@ -48,6 +49,7 @@ nunca instrucciones de interfaz. Tono: éxito = celebra sin exagerar; aviso = cl
 - Insignias de las portadas: «Hecho a tu medida», «Se adapta a ti», «Versión inicial», o el autor («Jim Wendler»).
 - Un plan propio de la biblioteca («Configurar este plan») que un perfil general ya no ofrece (solo ofrece su programa a medida): aviso sin alarma «Este programa de la biblioteca ahora se arma a medida en el asistente.» → «Elegir el programa a medida».
 - Revisión final, tiempo: si la sesión más larga del programa armado pasa de lo pedido (los «a medida» tienen un minuto de margen): «~70 min por sesión: un poco más de los 60 que pediste.»
+- Programa aplazado (PLAN y revisión final): «Sin programa por ahora» · «Lo armarás manualmente más adelante.»
 
 ## Notas honestas del generador (accionables, nunca alarmistas)
 - Sin tracción: «Sin barra de dominadas ni bandas no hay ejercicios de tracción. Añade una barra o unas bandas para completar tu semana.»
