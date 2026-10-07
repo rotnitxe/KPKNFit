@@ -103,6 +103,29 @@ class RoutineSamplesReportTest {
         render("gimnasio intermedio fuerza y masa 7d 30 min", s.request(s.gym, strength, RoutineLevel.INTERMEDIATE, 7, 30), out)
         render("gimnasio novato funcional 2d 30 min", s.request(s.gym, functional, RoutineLevel.NOVICE, 2, 30), out)
         render("gimnasio avanzado fuerza y masa 2d 180 min", s.request(s.gym, strength, RoutineLevel.ADVANCED, 2, 180), out)
+        // Paquete D1b: el catálogo ampliado (peso corporal BW-1) y el material acreditado (anillas, cajón, sala de máquinas, extras de gimnasio).
+        render("D1b solo cuerpo novato fuerza y masa 4d 45 min", s.request(s.bodyOnly, strength, RoutineLevel.NOVICE, 4, 45), out)
+        render(
+            "D1b solo cuerpo avanzado fuerza y masa 4d 60 min (varias flexiones y dominadas)",
+            s.request(
+                s.bodyOnly, strength, RoutineLevel.ADVANCED, 4, 60,
+                capabilities = mapOf(CapabilitySkill.PUSH_UP to CapabilityLevel.MANY, CapabilitySkill.PULL_UP to CapabilityLevel.MANY),
+            ),
+            out,
+        )
+        render("D1b parque intermedio fuerza y masa 4d 60 min", s.request(s.park, strength, RoutineLevel.INTERMEDIATE, 4, 60), out)
+        render(
+            "D1b parque avanzado fuerza y masa 3d 60 min (pistol y fondos: algunas)",
+            s.request(
+                s.park, strength, RoutineLevel.ADVANCED, 3, 60,
+                capabilities = mapOf(CapabilitySkill.PISTOL_SQUAT to CapabilityLevel.SOME, CapabilitySkill.DIP to CapabilityLevel.SOME),
+            ),
+            out,
+        )
+        render("D1b casa con anillas y cajón intermedio fuerza y masa 4d 60 min", s.request(s.homeRingsBox, strength, RoutineLevel.INTERMEDIATE, 4, 60), out)
+        render("D1b casa mancuernas+banda intermedio fuerza y masa 4d 60 min", s.request(s.homeDumbbellsBand, strength, RoutineLevel.INTERMEDIATE, 4, 60), out)
+        render("D1b gimnasio (sala de máquinas) novato fuerza y masa 4d 60 min", s.request(s.gym, strength, RoutineLevel.NOVICE, 4, 60), out)
+        render("D1b gimnasio avanzado fuerza y masa 5d 90 min, otra versión (semilla 2)", s.request(s.gym, strength, RoutineLevel.ADVANCED, 5, 90, seed = 2), out)
         val marks = mapOf(LiftMark.SQUAT to 140.0, LiftMark.BENCH to 100.0, LiftMark.DEADLIFT to 180.0, LiftMark.OVERHEAD_PRESS to 65.0)
         render("DISCIPLINA calistenia intermedio 4d 60 min (gimnasio, sin pesas)", s.request(s.gym, RoutineMode.DISCIPLINE_CALISTHENICS, RoutineLevel.INTERMEDIATE, 4, 60), out)
         render("DISCIPLINA armwrestling intermedio 4d 75 min", s.request(s.gym, RoutineMode.DISCIPLINE_ARMWRESTLING, RoutineLevel.INTERMEDIATE, 4, 75), out)

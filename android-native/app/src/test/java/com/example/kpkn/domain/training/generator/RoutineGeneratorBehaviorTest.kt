@@ -186,8 +186,9 @@ class RoutineGeneratorBehaviorTest {
 
     // ─── Capacidades y peldaños ────────────────────────────────────────────────────────────────────────────
 
-    private fun pushUpIds(routine: GeneratedRoutine): Set<String> =
-        idsOf(routine.program).filter { it.startsWith("push_up__") || it == "knee_push_up__default" }.toSet()
+    private fun pushUpIds(routine: GeneratedRoutine): Set<String> = idsOf(routine.program).filter {
+        it.startsWith("push_up__") || it == "knee_push_up__default" || it == "diamond_push_up__default" || it == "archer_push_up__default"
+    }.toSet()
 
     @Test
     fun push_up_capability_picks_the_ladder_rung() {
@@ -199,7 +200,10 @@ class RoutineGeneratorBehaviorTest {
         }
         assertTrue(rungs(RoutineLevel.INTERMEDIATE, CapabilityLevel.NONE).all { it == "push_up__hands_elevated" || it == "knee_push_up__default" })
         assertTrue("SOME → estándar", "push_up__flat" in rungs(RoutineLevel.INTERMEDIATE, CapabilityLevel.SOME))
-        assertTrue("MANY sin apoyo → estándar lento", "push_up__flat" in rungs(RoutineLevel.INTERMEDIATE, CapabilityLevel.MANY))
+        // Lote BW-1: el tramo difícil suma el diamante y el arquero (sin apoyo para los pies parte del diamante) y la estándar lenta.
+        val manyWithoutSupport = rungs(RoutineLevel.INTERMEDIATE, CapabilityLevel.MANY)
+        assertTrue("MANY sin apoyo → diamante o estándar lento: $manyWithoutSupport", "diamond_push_up__default" in manyWithoutSupport)
+        assertTrue(manyWithoutSupport.all { it == "diamond_push_up__default" || it == "push_up__flat" || it == "archer_push_up__default" })
         assertTrue("MANY con parque → pies elevados", "push_up__feet_elevated" in rungs(RoutineLevel.INTERMEDIATE, CapabilityLevel.MANY, s.park))
         // El novato nunca arranca en la flexión estándar (dificultad 6,0), aunque diga que le sale.
         assertFalse("push_up__flat" in rungs(RoutineLevel.NOVICE, CapabilityLevel.SOME))
@@ -343,7 +347,10 @@ class RoutineGeneratorBehaviorTest {
                 sessionsOf(routine.program).forEach { session ->
                     val ids = session.allExercises().mapNotNull { it.catalogConfigurationId }
                     // Solo las escaleras con ids propios: la sentadilla, el puente y la potencia comparten ids con otras.
-                    listOf(BodyweightLadders.pushUp, BodyweightLadders.pullUp, BodyweightLadders.row, BodyweightLadders.dips, BodyweightLadders.singleLeg).forEach { ladder ->
+                    listOf(
+                        BodyweightLadders.pushUp, BodyweightLadders.verticalPush, BodyweightLadders.pullUp, BodyweightLadders.row,
+                        BodyweightLadders.dips, BodyweightLadders.singleLeg,
+                    ).forEach { ladder ->
                         // El colgado de barra también es del grupo de agarre (patrón GRIP), no solo de la escalera de dominadas.
                         val fromLadder = ids.filter { it in ladder.allIds && it != "forearms_suspension_isometrica_barra_fija__default" }
                         assertTrue("${profile.id} ${mode.name} ${session.name}: varios ejercicios de la escalera ${ladder.pattern}: $fromLadder", fromLadder.size <= 1)
