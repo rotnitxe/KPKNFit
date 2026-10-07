@@ -529,3 +529,57 @@ internal fun configurationDeniedByAbsentKey(
     availability.presenceOf(spec.key) == ApparatusPresence.ABSENT &&
         configurationId in spec.machineConfigurations
 }
+
+// ─── Llaves de símbolo que el subpanel no pinta (paquete E) ─────────────────────
+
+/**
+ * Llaves que viajan desde `EquipmentSymbols` (el paso «¿Con qué material entrenas?») y que el subpanel §13.2 no pinta:
+ * anillas, cajón, cuerda de saltar y los extras habituales de un gimnasio sin símbolo propio. Es la fuente única de sus
+ * nombres: `EquipmentSymbols` los reexporta y el resolutor las acredita con [SYMBOL_EQUIPMENT_KEYS].
+ */
+internal object SymbolEquipmentKeys {
+    const val RINGS = "rings"
+    const val PLYO_BOX = "plyo_box"
+    const val JUMP_ROPE = "jump_rope"
+    const val PLATE = "plate"
+    const val HEX_BAR = "hex_bar"
+    const val T_BAR = "t_bar"
+    const val GHD = "ghd"
+    const val AB_WHEEL = "ab_wheel"
+}
+
+/**
+ * Una llave de símbolo: la categoría que la delimita (debe constar en la respuesta confirmada, como en
+ * [EffectiveEquipmentKey]) y los tokens que acredita al estar `PRESENT`. No habilita configuraciones por máquina concreta
+ * ni forma parte del subpanel: por eso vive en una lista aparte de [EFFECTIVE_EQUIPMENT_KEYS].
+ */
+internal data class SymbolEquipmentKey(
+    val key: String,
+    val category: EquipmentCategory,
+    val attestedTokens: Set<String>,
+)
+
+/**
+ * Acreditación de las llaves de símbolo en `resolveWithAvailability` (una sola implementación para el planificador, los
+ * planes de autor y el generador de rutinas). Regla STOP: cada token es un `equipmentId` que el catálogo ya declara, un
+ * requisito de [supportRequirementsFor] o un token que piden las reservas del generador; no se inventa ninguno.
+ *
+ * Quedan SIN acreditar a propósito (son raros): `safety_bar`, `h_bar`, `sliders` y `wrist_roller`.
+ */
+internal val SYMBOL_EQUIPMENT_KEYS: List<SymbolEquipmentKey> = listOf(
+    // Anillas o TRX: el catálogo llama `trx` al implemento de suspensión y las reservas del generador piden `rings`.
+    SymbolEquipmentKey(SymbolEquipmentKeys.RINGS, EquipmentCategory.SUPPORT, setOf("trx", "rings")),
+    SymbolEquipmentKey(SymbolEquipmentKeys.PLYO_BOX, EquipmentCategory.SUPPORT, setOf(SymbolEquipmentKeys.PLYO_BOX)),
+    SymbolEquipmentKey(SymbolEquipmentKeys.JUMP_ROPE, EquipmentCategory.CARDIO, setOf(SymbolEquipmentKeys.JUMP_ROPE)),
+    // Barra baja de un parque: la barra de dominadas de un parque suele traerla (`EquipmentSymbols` escribe la llave con
+    // `PUBLIC` entre los lugares y la barra de dominadas elegida). La categoría que consta ahí es la de la barra de
+    // dominadas, no la de soportes, así que esta entrada duplica la llave del subpanel con su otra puerta.
+    SymbolEquipmentKey(EquipmentKeys.LOW_BAR_SUPPORT, EquipmentCategory.PULL_UP_BAR, setOf(REQUIREMENT_LOW_BAR_SUPPORT)),
+    // Extras habituales de un gimnasio, con su símbolo madre elegido: discos, barra hexagonal y barra T con la barra;
+    // GHD y rueda abdominal con las máquinas.
+    SymbolEquipmentKey(SymbolEquipmentKeys.PLATE, EquipmentCategory.BARBELL, setOf(SymbolEquipmentKeys.PLATE)),
+    SymbolEquipmentKey(SymbolEquipmentKeys.HEX_BAR, EquipmentCategory.BARBELL, setOf(SymbolEquipmentKeys.HEX_BAR)),
+    SymbolEquipmentKey(SymbolEquipmentKeys.T_BAR, EquipmentCategory.BARBELL, setOf(SymbolEquipmentKeys.T_BAR)),
+    SymbolEquipmentKey(SymbolEquipmentKeys.GHD, EquipmentCategory.MACHINES, setOf(SymbolEquipmentKeys.GHD)),
+    SymbolEquipmentKey(SymbolEquipmentKeys.AB_WHEEL, EquipmentCategory.MACHINES, setOf(SymbolEquipmentKeys.AB_WHEEL)),
+)
