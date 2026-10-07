@@ -1,8 +1,10 @@
 package com.example.kpkn.screens.onboarding.design.entreno.plan
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
 import com.example.kpkn.screens.onboarding.design.entreno.DEG
 import com.example.kpkn.screens.onboarding.design.entreno.FrontPose
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
@@ -149,22 +151,30 @@ internal class ArmwrestlingArt(lk: Float) : GoalArt(SymbolPalette.musculo, perio
         }
     }
 
-    /** Un trazo que se va desvaneciendo de [a] a [b] (el brazo se pierde fuera del lienzo). */
+    /**
+     * Un trazo que se va desvaneciendo de [a] a [b] (el brazo se pierde fuera del lienzo): UN solo trazo con un degradado de
+     * opacidad a lo largo. Con varios tramos translúcidos, los remates redondos dejan una cuenta en cada unión (se montan o
+     * se tocan de punta); con un degradado no hay uniones.
+     */
     private fun SymbolPen.fadedLine(a: Offset, b: Offset, color: Color) {
-        val n = 7
-        for (k in 0 until n) {
-            val p0 = k.toFloat() / n
-            val p1 = (k + 1f) / n
-            fade(1f - 0.82f * p0) {
-                line(lerpF(a.x, b.x, p0), lerpF(a.y, b.y, p0), lerpF(a.x, b.x, p1), lerpF(a.y, b.y, p1), color, bold)
-            }
-        }
+        val head = color.copy(alpha = color.alpha * ga)
+        val tail = head.copy(alpha = head.alpha * ARM_FADE_END)
+        ds.drawLine(
+            brush = Brush.linearGradient(listOf(head, tail), start = a, end = b),
+            start = a,
+            end = b,
+            strokeWidth = bold,
+            cap = StrokeCap.Round,
+        )
     }
 
     private companion object {
         const val FIST_RX = 7.8f
         const val FIST_RY = 5.8f
         const val FIST_R = 4.4f
+
+        /** Cuánta opacidad le queda al brazo en el borde del lienzo. */
+        const val ARM_FADE_END = 0.18f
     }
 }
 
