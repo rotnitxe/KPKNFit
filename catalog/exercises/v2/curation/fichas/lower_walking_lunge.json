@@ -313,8 +313,8 @@
               "Encadena el paso siguiente sin juntar los pies."
             ],
             "setupCues": [
-              "Ponte de pie con las manos en la cintura y la mirada al frente.",
-              "Despeja un pasillo con espacio para varios pasos largos."
+              "Colócate de pie al inicio de un pasillo despejado, con las manos en la cintura y la mirada al frente.",
+              "Deja espacio para varios pasos largos."
             ]
           },
           "walking_lunge__dumbbells": {
@@ -342,7 +342,7 @@
             ]
           }
         },
-        "description": "La Zancada Caminando enlaza pasos que trabajan cuádriceps y glúteo mayor mientras el cuerpo avanza por el suelo. Una pierna recibe el descenso y extiende rodilla y cadera; la otra pasa hacia delante para iniciar la repetición siguiente. Los apoyos cambian de lugar y el tronco sostiene la carga durante esa transición. La distancia recorrida forma parte del ejercicio: cada subida termina preparando un apoyo nuevo, sin regresar al punto de salida."
+        "description": "La Zancada Caminando enlaza pasos que trabajan cuádriceps y glúteo mayor mientras el cuerpo avanza por el suelo. Una pierna recibe el descenso y extiende rodilla y cadera; la otra pasa hacia delante para iniciar la repetición siguiente. Los apoyos cambian de lugar y el tronco queda estable en esa transición, con carga o sin ella. La distancia recorrida forma parte del ejercicio: cada subida termina preparando un apoyo nuevo, sin regresar al punto de salida."
       },
       "sources": [
         {
@@ -456,7 +456,7 @@
       ],
       "status": "CURATED",
       "technique": {
-        "identity": "Sucesión de zancadas que ganan terreno: después de subir, la pierna posterior pasa delante y recibe la próxima repetición. El torso transporta la carga de la configuración con libertad de avance sobre el suelo y no vuelve a un punto fijo.",
+        "identity": "Sucesión de zancadas que ganan terreno: después de subir, la pierna posterior pasa delante y recibe la próxima repetición. El torso transporta la carga de la configuración, si la hay, con libertad de avance sobre el suelo y no vuelve a un punto fijo.",
         "keyPositions": [
           "Primer apoyo: la pierna adelantada carga la planta mientras el pie de atrás conserva contacto sobre sus dedos.",
           "Transición: la rodilla y la cadera anteriores se extienden antes de que el pie retrasado salga hacia su siguiente apoyo."
@@ -467,7 +467,7 @@
         ],
         "phases": [
           {
-            "description": "Una nueva planta se sitúa delante y recibe el descenso mientras la carga permanece conectada a su soporte corporal.",
+            "description": "Una nueva planta se sitúa delante y recibe el descenso mientras la carga, si la hay, permanece conectada a su soporte corporal.",
             "name": "Paso receptor"
           },
           {
@@ -481,14 +481,14 @@
         ],
         "setup": [
           "Franja despejada de suelo que admita varios pasos y pies separados lateralmente para recibir el peso.",
-          "La carga queda en la espalda, a los costados o frente al pecho según la opción libre escogida."
+          "La carga queda en la espalda, a los costados o frente al pecho según la opción libre escogida; sin carga, las manos se apoyan en la cintura."
         ]
       },
       "visual": {
         "base": {
           "camera": "Vista lateral en tres cuartos, con cuerpo entero, suelo y contactos de la carga visibles.",
-          "contacts": "Planta delantera pegada al suelo, antepié posterior en el piso y rodilla posterior sin tocarlo; carga unida a su soporte corporal.",
-          "load": "Carga sostenida por el contacto que corresponde al implemento y elevada del suelo durante el fondo de la zancada.",
+          "contacts": "Planta delantera pegada al suelo, antepié posterior en el piso y rodilla posterior sin tocarlo; el soporte de carga corresponde al implemento, salvo en corporal.",
+          "load": "Peso corporal sobre los apoyos y carga externa, si corresponde, sostenida en el contacto propio del implemento sin apoyarse en el suelo.",
           "orientation": "Torso orientado al frente del paso, cuello prolongando la columna y mirada al frente.",
           "phase": "Fondo del descenso: rodilla anterior doblada y rodilla posterior suspendida cerca del suelo, antes de la subida.",
           "posture": "Pelvis entre los pies, rodilla delantera cerca de un ángulo recto y talón delantero apoyado; sin giro visible del torso."
@@ -529,7 +529,7 @@
           "¿En Barra, el eje descansa en la espalda alta por debajo del cuello, las dos manos lo agarran por fuera de los hombros y los discos quedan elevados sobre el suelo?",
           "¿En Mancuernas, hay exactamente una pesa agarrada por cada mano con palmas hacia los muslos, brazos largos y ambas cargas suspendidas sin tocar el suelo?",
           "¿En Kettlebell, hay una sola pesa ante el esternón y las dos manos agarran los lados de su asa, con el cuerpo de la pesa debajo y los codos flexionados hacia abajo?",
-          "¿La escena usa únicamente carga libre y carece de raíles o cables anclados que impidan el avance caminando?",
+          "¿La escena carece de raíles, cables o estaciones fijas que impidan avanzar, y cualquier carga que haya es libre?",
           "¿En Peso Corporal, no hay carga externa y ambas manos descansan en la cintura?"
         ]
       }

@@ -2165,7 +2165,7 @@
             ]
           }
         },
-        "description": "Las Flexiones Diamante (diamond push-up) son una flexión de brazos con las manos juntas bajo el pecho, de modo que los pulgares y los índices dibujan un rombo. Al cerrar la base, el tríceps pasa a ser el músculo que más trabaja, con el pectoral mayor también muy activo y el deltoides anterior empujando con ellos. El pecho baja hacia las manos con los codos rozando las costillas. En electromiografía, las manos juntas activaron más el pectoral y el tríceps que las manos separadas. Es la forma de dar más trabajo al tríceps sin salir de la flexión de brazos."
+        "description": "Las Flexiones Diamante (diamond push-up) son una flexión de brazos con las manos juntas bajo el pecho, de modo que los pulgares y los índices dibujan un rombo. Con las manos tan juntas, el tríceps trabaja tanto como el pectoral mayor o más, y el deltoides anterior empuja con ellos. El pecho baja hacia las manos con los codos rozando las costillas. En electromiografía, las manos juntas activaron más el pectoral y el tríceps que las manos separadas. Es una forma de dar más trabajo al tríceps sin salir de la flexión de brazos."
       },
       "technique": {
         "identity": "Flexión de brazos con la base de manos estrecha: las manos se juntan bajo el esternón formando un rombo con pulgares e índices, y el pecho baja hacia ellas con los codos pegados al tronco. Se separa de la flexión estándar por la posición de las manos, y de los fondos entre bancos porque los dos apoyos están en el suelo.",
@@ -2223,7 +2223,7 @@
               "intziegianni2026",
               "statpearls_triceps"
             ],
-            "why": "La base estrecha traslada el trabajo al codo: el tríceps, que lo extiende, fue el músculo más activo de la flexión diamante (Intziegianni et al.), por eso el codo comparte con el hombro la articulación principal."
+            "why": "La base estrecha traslada el trabajo al codo: el tríceps, que lo extiende, fue más activo que el pectoral en la flexión diamante (Intziegianni et al.), por eso el codo comparte con el hombro la articulación principal."
           },
           {
             "actions": [
@@ -2258,7 +2258,7 @@
               "marcolin2015",
               "statpearls_triceps"
             ],
-            "why": "Extiende los codos en la subida y es el que más trabaja: en las flexiones diamante registró más actividad que el pectoral y más que en la flexión estándar y en la de manos abiertas (Intziegianni et al.). Con la base estrecha también subió en los estudios de Cogley et al. y de Marcolin et al."
+            "why": "Extiende los codos para subir el cuerpo. En la flexión diamante registró más actividad que el pectoral y más que en la flexión estándar y en la de manos abiertas, en un solo estudio que normalizó la señal al pico de cada variante y no a una contracción máxima (Intziegianni et al.). Con la base estrecha también subió en los estudios de Cogley et al. y de Marcolin et al."
           },
           {
             "id": "pectoralis",
@@ -2277,7 +2277,7 @@
               "calatayud2014",
               "statpearls_deltoid"
             ],
-            "why": "El deltoides anterior ayuda a empujar: se activa mucho en los empujes estables de tren superior (Calatayud et al.), y la flexión en el suelo es uno de ellos. La base estrecha no cambia su papel de apoyo."
+            "why": "El deltoides anterior ayuda a empujar: se activa mucho en los empujes estables de tren superior (Calatayud et al.), y la flexión en el suelo es uno de ellos."
           },
           {
             "id": "core",
@@ -2292,10 +2292,10 @@
       },
       "visual": {
         "base": {
-          "camera": "Vista lateral a la altura de la cadera, con la cabeza, las manos y los pies dentro del cuadro.",
+          "camera": "Vista de tres cuartos desde delante y algo por encima, con las dos manos juntas, el pecho y los pies dentro del encuadre.",
           "contacts": "Las palmas, juntas bajo el pecho, y las puntas de los pies apoyan en el suelo; el pecho no toca nada.",
           "load": "La única carga es el peso del cuerpo, transmitido por las palmas al suelo.",
-          "orientation": "Cuerpo horizontal con la cabeza hacia la izquierda del encuadre y los pies hacia la derecha.",
+          "orientation": "Cuerpo horizontal, con la cabeza hacia la cámara y los pies al fondo del encuadre.",
           "phase": "Posición baja de la flexión, con el pecho a pocos centímetros de las manos y los codos flexionados.",
           "posture": "Cabeza, tronco y piernas en una línea, cadera ni hundida ni en pica, cuello neutro y codos cerca de las costillas."
         },
@@ -2311,7 +2311,7 @@
           "Cadera hundida o levantada en pica, o pecho ya apoyado en las manos."
         ],
         "promptCore": {
-          "bodyweight": "Side view of a muscular athlete frozen at the BOTTOM of a diamond push-up on a flat floor. Both hands are planted on the floor directly under the chest with the thumbs and index fingers touching to form a diamond shape. The elbows are bent and held close to the ribs, the chest hovers a few centimeters above the hands without touching them, and the toes press into the floor. The body is one straight line from head to heels, hips level, neck neutral. No bench, no bar and no weights."
+          "bodyweight": "Three-quarter front view, from slightly above, of a muscular athlete frozen at the BOTTOM of a diamond push-up on a flat floor. Both hands are planted on the floor directly under the chest with the thumbs and index fingers touching to form a clearly visible diamond shape. The elbows are bent and held close to the ribs, the chest hovers a few centimeters above the hands without touching them, and the toes press into the floor. The body is one straight line from head to heels, hips level, neck neutral. No bench, no bar and no weights."
         },
         "qa": [
           "¿Las dos manos están juntas bajo el pecho, con los pulgares y los índices formando un rombo?",
@@ -2394,7 +2394,7 @@
             ]
           }
         },
-        "description": "Las Flexiones Arquero (archer push-up) son una flexión de brazos con las manos muy separadas en la que el cuerpo baja hacia un lado: un codo se flexiona hasta acercar el pecho a esa mano, mientras el otro brazo queda estirado y apoyado en el suelo como un puntal. El brazo que se flexiona carga casi todo el empuje, de modo que cada repetición exige más a un lado que al otro y después se cambia. El pectoral lidera el empuje, con el tríceps y el deltoides anterior de apoyo, y el abdomen sostiene el cuerpo en línea frente al desequilibrio. Es el paso intermedio entre la flexión con dos brazos y la flexión a un brazo."
+        "description": "Las Flexiones Arquero (archer push-up) llevan el cuerpo hacia un lado en cada repetición: las manos van muy separadas, un codo se flexiona hasta acercar el pecho a esa mano y el otro brazo queda estirado y apoyado en el suelo como un puntal. El brazo que se flexiona carga la mayor parte del empuje, de modo que cada repetición exige más a un lado que al otro y después se cambia. El pectoral lidera el empuje, con el tríceps y el deltoides anterior de apoyo, y el abdomen sostiene el cuerpo en línea frente al desequilibrio. Es el paso intermedio entre la flexión con dos brazos y la flexión a un brazo."
       },
       "technique": {
         "identity": "Flexión de brazos con las manos muy abiertas en la que el cuerpo desciende hacia una de ellas: un codo se flexiona hasta que el pecho queda junto a esa mano y el otro brazo se estira hacia el costado, apoyado como un puntal. Se separa de la flexión ancha porque la carga se concentra en un lado, y de la flexión a un brazo porque la mano estirada sigue apoyada y ayuda.",
@@ -2496,7 +2496,7 @@
               "cogley2005",
               "statpearls_triceps"
             ],
-            "why": "Extiende el codo del brazo que trabaja. Con la base ancha su activación fue menor que con la estrecha (Cogley et al.), y el brazo que queda estirado casi no lo usa, por eso asiste en lugar de liderar."
+            "why": "Extiende el codo del brazo que trabaja. Con la base ancha su activación fue menor que con la estrecha (Cogley et al.), por eso asiste en lugar de liderar."
           },
           {
             "id": "deltoid",
@@ -2513,16 +2513,16 @@
             "sources": [
               "marcolin2015"
             ],
-            "why": "El abdomen y los erectores evitan que el tronco gire hacia el lado que baja. En las variantes asimétricas de flexión de Marcolin et al., con las manos adelantadas o atrasadas, fueron las que más los activaron; se extrapola a este desplazamiento lateral."
+            "why": "El abdomen y los erectores evitan que el tronco gire hacia el lado que baja. En el estudio de Marcolin et al., las flexiones con las manos adelantadas o atrasadas fueron las que más los activaron; se extrapola a este desplazamiento lateral."
           }
         ]
       },
       "visual": {
         "base": {
-          "camera": "Vista frontal desde los pies del atleta, a poca altura, con las dos manos, el pecho y los pies dentro del cuadro.",
+          "camera": "Vista frontal desde delante de la cabeza del atleta, a poca altura, con las dos manos, el pecho y los pies dentro del cuadro.",
           "contacts": "Las dos palmas y las puntas de los pies apoyan en el suelo; el pecho no toca nada.",
           "load": "La única carga es el peso del cuerpo, desplazado sobre el brazo que se flexiona.",
-          "orientation": "Atleta boca abajo, con la cabeza hacia el fondo del encuadre y el pecho desplazado hacia la mano de la izquierda del cuadro.",
+          "orientation": "Atleta boca abajo, con la cabeza hacia la cámara y el pecho desplazado hacia la mano que queda a la izquierda del encuadre.",
           "phase": "Posición baja de la flexión, con el pecho junto a una mano y el otro brazo estirado hacia el costado.",
           "posture": "Cuerpo recto de la cabeza a los talones, cadera sin hundir, cuello neutro y el codo flexionado cerca del tronco."
         },
@@ -2538,7 +2538,7 @@
           "Manos juntas o a la anchura de los hombros."
         ],
         "promptCore": {
-          "bodyweight": "Front view from the athlete's feet, low to the ground, of a muscular athlete frozen at the BOTTOM of an archer push-up on a flat floor. The hands are planted very wide apart. The left elbow is bent and the chest hovers a few centimeters from the left hand, while the right arm is fully straight out to the side with the right palm flat on the floor. The body is one straight line from head to heels with the toes on the floor, hips level and neck neutral. No bench, no bar and no weights."
+          "bodyweight": "Front view from ahead of the athlete's head, low to the ground, of a muscular athlete frozen at the BOTTOM of an archer push-up on a flat floor. The hands are planted very wide apart. The arm on the left side of the image is bent and the chest hovers a few centimeters from that hand, while the arm on the right side of the image is fully straight out to the side with the palm flat on the floor. The body is one straight line from head to heels with the toes on the floor, hips level and neck neutral. No bench, no bar and no weights."
         },
         "qa": [
           "¿Las manos están muy separadas, con una palma a cada lado, y las dos apoyadas en el suelo?",

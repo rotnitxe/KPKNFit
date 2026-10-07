@@ -80,28 +80,29 @@
             "id": "core",
             "role": "STABILIZER",
             "sources": [
+              "haladay2015",
               "statpearls_abdominal_wall"
             ],
-            "why": "La capa profunda de la pared abdominal comprime el tronco y genera presión intraabdominal, lo que ayuda a sostener la columna mientras los extremos pesan hacia el suelo; apoya al abdomen superficial sin liderar el gesto."
+            "why": "La capa profunda de la pared abdominal comprime el tronco y genera presión intraabdominal, lo que ayuda a sostener la columna mientras los extremos pesan hacia el suelo. En el descenso de ambas piernas, el oblicuo interno y el transverso del abdomen guardaron una asociación moderada con el nivel de la prueba (Haladay et al.); apoyan al abdomen superficial sin liderar el gesto."
           }
         ]
       },
       "public": {
         "configurations": {
           "hollow_body_hold__default": {
-            "description": "El peso de los brazos y de las piernas actúa como palanca sobre el abdomen, sin implemento. Bajar los pies hacia el suelo o estirar los brazos por encima de la cabeza alarga esa palanca y la hace más dura.",
+            "description": "El peso de los brazos y de las piernas actúa como palanca sobre el abdomen, sin implemento. Con los brazos ya estirados sobre la cabeza, bajar los pies hacia el suelo es lo que alarga esa palanca y la hace más dura.",
             "executionCues": [
               "Eleva a la vez los hombros y las piernas unos centímetros del suelo.",
               "Aguanta con la zona lumbar pegada y respirando con calma.",
-              "Baja con control en cuanto la espalda baja se despegue."
+              "Baja en cuanto la zona lumbar empiece a despegarse."
             ],
             "setupCues": [
               "Túmbate boca arriba con las piernas juntas y estiradas y los brazos extendidos sobre la cabeza.",
-              "Pega la zona lumbar al suelo antes de elevar nada."
+              "Recoge el mentón y lleva las costillas hacia la pelvis antes de despegar nada."
             ]
           }
         },
-        "description": "El Hollow Body Hold (posición hollow) es una isometría de abdomen heredada de la gimnasia: sobre la espalda, los brazos se estiran por encima de la cabeza y las piernas, juntas y estiradas, se elevan unos centímetros mientras los hombros se despegan del suelo y la zona lumbar sigue pegada a él. El recto abdominal y los oblicuos sostienen esa curva con la espalda baja plana, y los flexores de la cadera levantan las piernas. Cuanto más cerca del suelo quedan los pies, más larga es la palanca y más exige. Doblar las rodillas o dejar los brazos junto al cuerpo la hace asequible."
+        "description": "El Hollow Body Hold (posición hollow) es una isometría de abdomen heredada de la gimnasia: sobre la espalda, los brazos se estiran por encima de la cabeza y las piernas, juntas y estiradas, se elevan unos centímetros mientras los hombros se despegan del suelo y la zona lumbar sigue pegada a él. Los músculos del abdomen, con el recto abdominal y los oblicuos a la cabeza, sostienen esa curva con la zona lumbar plana, mientras los flexores de la cadera levantan las piernas. Cuanto más cerca del suelo quedan los pies, más larga es la palanca y más exige. Doblar las rodillas o dejar los brazos junto al cuerpo la hace asequible. Es una posición de resistencia, no de repeticiones: cuenta mientras la zona lumbar siga pegada al suelo."
       },
       "sources": [
         {
@@ -117,7 +118,7 @@
           "url": "https://pubmed.ncbi.nlm.nih.gov/26467996/"
         },
         {
-          "claim": "Describe la pared abdominal como estructura capaz de generar presión intraabdominal y mover la columna vertebral; sustenta su papel de sostén del tronco.",
+          "claim": "Describe la pared abdominal como estructura capaz de generar presión intraabdominal y mover la columna vertebral.",
           "id": "statpearls_abdominal_wall",
           "title": "Anatomy, Abdomen and Pelvis: Abdominal Wall",
           "url": "https://pubmed.ncbi.nlm.nih.gov/31869113/"
@@ -180,7 +181,7 @@
       "visual": {
         "base": {
           "camera": "Vista lateral a la altura del suelo, con el cuerpo entero dentro del encuadre, de las manos a los pies.",
-          "contacts": "Solo la parte baja de la espalda, la zona lumbar y la pelvis tocan el suelo; hombros, brazos, cabeza y piernas están en el aire.",
+          "contacts": "Solo la zona lumbar y la pelvis tocan el suelo; hombros, brazos, cabeza y piernas están en el aire.",
           "load": "Solo el peso de los brazos y de las piernas, sin ningún implemento a la vista.",
           "orientation": "Atleta tumbado boca arriba, con la cabeza hacia la izquierda del encuadre y los pies hacia la derecha.",
           "phase": "Posición sostenida: hombros y piernas despegados unos centímetros del suelo, en forma de arco hueco.",

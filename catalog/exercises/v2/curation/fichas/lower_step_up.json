@@ -413,14 +413,14 @@
             ]
           },
           "step_up__bodyweight": {
-            "description": "Las manos quedan libres y la única resistencia es el cuerpo, de modo que la altura del cajón decide cuánto cuesta cada subida. Sin carga que ocupe los brazos, la atención va al pie apoyado entero sobre el cajón y a una bajada sin caída.",
+            "description": "Las manos quedan libres y la altura del cajón decide cuánto cuesta cada subida: a más altura, más trabajo para la pierna. La atención va al pie apoyado entero sobre el cajón y a una bajada sin caída.",
             "executionCues": [
-              "Presiona con el pie apoyado y sube hasta quedar de pie sobre el cajón.",
-              "Sube el pie libre hasta el cajón sin tomar impulso ni saltar.",
+              "Presiona con todo el pie apoyado y estira cadera y rodilla hasta quedar erguido sobre el cajón.",
+              "Acerca el pie libre arriba sin impulso, sin saltar y sin cargar el peso en él.",
               "Baja despacio por la misma pierna hasta tocar el suelo con el pie libre."
             ],
             "setupCues": [
-              "Sitúa un cajón o un banco estable delante y apoya todo el pie sobre él.",
+              "Sitúa delante un cajón, un banco o un escalón estable y apoya todo el pie sobre él.",
               "Deja las manos libres, en la cintura o a los lados, para equilibrarte."
             ]
           },
@@ -622,14 +622,14 @@
         "setup": [
           "Superficie firme situada frente al atleta, con espacio para el calzado completo; al comenzar, la rodilla del apoyo ronda noventa grados sin rotación de pelvis.",
           "Pie de trabajo entero sobre la plataforma y pie libre en el suelo, próximos al ancho de las caderas.",
-          "Carga sostenida por espalda, brazos o manos según implemento; pelvis orientada de frente y columna sin arqueo deliberado."
+          "Carga sostenida por espalda, brazos o manos según implemento, o manos libres en la cintura en corporal; pelvis orientada de frente y columna sin arqueo deliberado."
         ]
       },
       "visual": {
         "base": {
           "camera": "Vista lateral oblicua que muestre ambas piernas, borde del cajón y contacto de manos con la carga.",
-          "contacts": "Todo el pie de trabajo, incluido el talón, sobre el cajón; pie libre en el aire; manos en contacto con la carga.",
-          "load": "Carga unida al cuerpo por el soporte correspondiente y separada del suelo, sin descanso sobre el cajón.",
+          "contacts": "Todo el pie de trabajo, incluido el talón, sobre el cajón; pie libre en el aire; manos en contacto con la carga, si la hay, o en la cintura en corporal.",
+          "load": "Carga, si la hay, unida al cuerpo por el soporte correspondiente y separada del suelo, sin descanso sobre el cajón; en corporal no hay carga.",
           "orientation": "Atleta de frente al cajón, cabeza a la izquierda de la imagen y pies en planos sagitales próximos.",
           "phase": "Mitad final del ascenso, con el pie libre suspendido detrás y la rodilla del apoyo todavía algo flexionada.",
           "posture": "Pelvis aproximadamente horizontal, rodilla elevada dirigida sobre los dedos y columna neutra sin extensión añadida."
@@ -656,7 +656,7 @@
         },
         "forbidden": [
           "Salto con los dos pies en el aire, en lugar de un pie que permanezca sobre el cajón.",
-          "Carga flotante, manos separadas de las asas o pesas apoyadas sobre la plataforma.",
+          "Carga flotante, manos separadas de las asas o pesas apoyadas sobre la plataforma; en Peso Corporal, cualquier peso en las manos.",
           "Pie libre empujando desde el suelo en el fotograma indicado.",
           "Barra sobre hombros delanteros o en los codos dentro del brief de barra trasera: pertenecen a especialidades separadas.",
           "Cable de polea alta que ayude a levantar el cuerpo, o asas acercadas por un remo."
@@ -673,7 +673,8 @@
           "¿El pie de trabajo está entero sobre el cajón y el talón sigue apoyado?",
           "¿El pie libre está en el aire detrás de la plataforma durante el ascenso?",
           "¿La rodilla de apoyo aún está algo flexionada en el fotograma indicado?",
-          "¿Si hay carga, ambas manos la sujetan de forma visible y ninguna flota; y, en Peso Corporal, las manos están vacías en la cintura?",
+          "¿Si hay carga, ambas manos la sujetan de forma visible y ninguna flota?",
+          "¿En Peso Corporal, las manos están vacías, en la cintura?",
           "¿La pelvis evita una caída lateral marcada y la espalda no forma un arco hacia atrás?",
           "¿En Barra, el eje toca la espalda alta, ambas manos lo agarran en prono por fuera de los hombros y los discos quedan separados del cajón y del suelo?",
           "¿En Smith, el eje toca la espalda alta con ambas manos agarrándolo y sus dos carros se unen visiblemente a dos carriles reales, con el cajón dentro de la estación y libre de la base?",

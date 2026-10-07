@@ -30,7 +30,7 @@
               "souza2001",
               "kim2016"
             ],
-            "why": "La columna lumbar no se mueve: lo que se pide es que no se arquee mientras brazos y piernas cambian de posición. En los registros de Souza et al. y de Kim et al., el trabajo se concentra en los flexores del tronco, que son los que la sostienen contra esa tendencia."
+            "why": "La columna lumbar no se mueve: lo que se pide es que no se arquee mientras brazos y piernas cambian de posición. En el registro de Souza et al. del Dying Bug, quienes la sostienen contra esa tendencia son el recto abdominal y los oblicuos."
           },
           {
             "actions": [
@@ -65,7 +65,7 @@
             "sources": [
               "statpearls_deltoid"
             ],
-            "why": "El brazo pasa de la vertical a quedar junto a la oreja, un recorrido corto en el que el hombro solo sostiene el peso del brazo; el deltoides anterior es el flexor del hombro, sin carga que lo convierta en protagonista."
+            "why": "El brazo baja de la vertical hasta quedar junto a la oreja, unos noventa grados con solo su propio peso. El hombro lo sostiene sin ser el motor del ejercicio, por eso estabiliza; el deltoides, que mueve y estabiliza esa articulación, interviene solo para sostenerlo."
           }
         ],
         "muscles": [
@@ -90,21 +90,21 @@
           },
           {
             "id": "hip_flexors",
-            "role": "STABILIZER",
+            "role": "SECONDARY",
             "sources": [
               "haladay2015",
               "statpearls_iliopsoas"
             ],
-            "why": "El iliopsoas sostiene la cadera flexionada de la pierna que no baja y frena el descenso de la otra. En una prueba de descenso de ambas piernas, el momento articular de la cadera se asoció de forma muy fuerte con el nivel de la prueba (Haladay et al.); el dead bug mueve una pierna cada vez, con menos exigencia."
+            "why": "El iliopsoas mantiene flexionada la cadera de la pierna que no baja y frena el descenso de la otra, de modo que trabaja en cada repetición. En una prueba de descenso de ambas piernas, el momento articular de la cadera se asoció de forma muy fuerte con el nivel de la prueba (Haladay et al.); el dead bug mueve una pierna cada vez, con menos exigencia."
           }
         ]
       },
       "public": {
         "configurations": {
           "dead_bug__default": {
-            "description": "No hay implemento: el único peso son los brazos y las piernas al alejarse del tronco. Cada repetición cambia el brazo y la pierna que bajan, y la dificultad sube al estirar más la pierna o al hacerlo más despacio.",
+            "description": "El único peso son los brazos y las piernas al alejarse del tronco. Cada repetición cambia el brazo y la pierna que bajan, y la dificultad sube al estirar más la pierna o al hacerlo más despacio.",
             "executionCues": [
-              "Baja un brazo hacia atrás y estira la pierna contraria sin separar la zona lumbar del suelo.",
+              "Baja despacio un brazo por encima de la cabeza y estira la pierna contraria sin separar la zona lumbar del suelo.",
               "Vuelve a la posición inicial con el mismo ritmo lento.",
               "Cambia de lado en cada repetición y sigue respirando."
             ],
@@ -114,7 +114,7 @@
             ]
           }
         },
-        "description": "El Dead Bug (bicho muerto) es un ejercicio de abdomen en el suelo: tumbado boca arriba, los brazos apuntan al techo y las rodillas se doblan sobre la cadera hasta dejar las espinillas paralelas al suelo. Un brazo baja hacia atrás mientras la pierna contraria se estira hacia delante, y el recto abdominal y los oblicuos impiden que la espalda baja se separe del suelo. Después brazo y pierna regresan y el siguiente movimiento cambia de lado. Estirar del todo la pierna alarga la palanca y lo hace más difícil, mientras que doblar la rodilla lo suaviza. Es un ejercicio de control más que de fuerza: enseña a mover las extremidades sin arquear la espalda."
+        "description": "El Dead Bug (bicho muerto) es un ejercicio de abdomen en el suelo: se empieza boca arriba, con los brazos hacia el techo y las rodillas dobladas sobre la cadera, las espinillas paralelas al suelo. Un brazo baja por encima de la cabeza mientras la pierna contraria se estira, y el recto abdominal y los oblicuos impiden que la espalda baja se separe del suelo. Después brazo y pierna regresan y el siguiente movimiento cambia de lado. Estirar del todo la pierna alarga la palanca y lo hace más difícil, mientras que doblar la rodilla lo suaviza. Es un ejercicio de control más que de fuerza: enseña a mover las extremidades sin arquear la espalda."
       },
       "sources": [
         {
@@ -142,7 +142,7 @@
           "url": "https://pubmed.ncbi.nlm.nih.gov/26467996/"
         },
         {
-          "claim": "Describe la pared abdominal como estructura capaz de generar presión intraabdominal y mover la columna vertebral; sustenta su papel de sostén del tronco.",
+          "claim": "Describe la pared abdominal como estructura capaz de generar presión intraabdominal y mover la columna vertebral.",
           "id": "statpearls_abdominal_wall",
           "title": "Anatomy, Abdomen and Pelvis: Abdominal Wall",
           "url": "https://pubmed.ncbi.nlm.nih.gov/31869113/"
@@ -191,7 +191,7 @@
             "name": "Posición inicial"
           },
           {
-            "description": "Un brazo se aleja hacia atrás y la pierna contraria se estira hacia delante al mismo ritmo, sin que el abdomen deje que la espalda se arquee.",
+            "description": "Un brazo baja por encima de la cabeza y la pierna contraria se estira al mismo ritmo, sin que el abdomen deje que la espalda se arquee.",
             "name": "Descenso"
           },
           {

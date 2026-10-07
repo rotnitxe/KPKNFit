@@ -61,7 +61,7 @@
               "kim2016",
               "statpearls_back_muscles"
             ],
-            "why": "Sostienen la columna neutra contra la gravedad mientras brazo y pierna se alejan del apoyo. En el Quadruped de Souza et al. fueron, con el glúteo mayor, los más activos al elevar la pierna del mismo lado, y García-Vaquero et al. midieron su mayor actividad en el erector contrario al brazo elevado. Aun así, ningún músculo pasó del 41 % de la contracción máxima."
+            "why": "Sostienen la columna neutra contra la gravedad mientras brazo y pierna se alejan del apoyo. En el Quadruped de Souza et al. fueron, con el glúteo mayor, los más activos al elevar la pierna del mismo lado, aunque ningún músculo pasó del 41 % de la contracción máxima; y García-Vaquero et al. midieron su mayor actividad en el erector contrario al brazo elevado."
           },
           {
             "id": "abdominals",
@@ -70,7 +70,7 @@
               "souza2001",
               "garcia2012"
             ],
-            "why": "Los oblicuos frenan la rotación del tronco que provoca la asimetría de brazo y pierna: en el Quadruped el oblicuo abdominal estuvo más activo que el recto abdominal (Souza et al.) y el oblicuo interno del lado del brazo elevado fue el más activo del tronco en el bird dog (García-Vaquero et al.)."
+            "why": "Los oblicuos frenan la rotación del tronco que provoca la asimetría de brazo y pierna: en el Quadruped el oblicuo abdominal estuvo más activo que el recto abdominal (Souza et al.) y el oblicuo interno del lado del brazo elevado fue, con el erector contrario, de los más activos del tronco en el bird dog (García-Vaquero et al.)."
           },
           {
             "id": "gluteus_maximus",
@@ -103,14 +103,14 @@
       "public": {
         "configurations": {
           "bird_dog__default": {
-            "description": "No hay implemento: se levanta el peso de un brazo y de una pierna mientras las otras dos extremidades sostienen el cuerpo. Estirar el brazo y la pierna contrarios, en vez de uno solo, es lo que obliga al tronco a no girar.",
+            "description": "Se levanta el peso de un brazo y de una pierna mientras una sola mano y la rodilla contraria sostienen el cuerpo. Con solo esos dos apoyos, el tronco tiene que resistir el giro que provoca el desequilibrio.",
             "executionCues": [
               "Estira un brazo hacia delante y la pierna contraria hacia atrás hasta alinearlos con el tronco.",
               "Detente un instante arriba sin girar la pelvis ni los hombros.",
               "Vuelve despacio y repite con el otro lado."
             ],
             "setupCues": [
-              "Apoya las manos bajo los hombros y las rodillas bajo las caderas, con la espalda recta y el cuello alineado.",
+              "Apoya las manos bajo los hombros y las rodillas bajo las caderas, con la espalda neutra y el cuello alineado.",
               "Mira al suelo, unos centímetros por delante de las manos."
             ]
           }
@@ -155,7 +155,7 @@
           "url": "https://pubmed.ncbi.nlm.nih.gov/30725759/"
         },
         {
-          "claim": "Describe la pared abdominal como estructura capaz de generar presión intraabdominal y mover la columna vertebral; sustenta su papel de sostén del tronco.",
+          "claim": "Describe la pared abdominal como estructura capaz de generar presión intraabdominal y mover la columna vertebral.",
           "id": "statpearls_abdominal_wall",
           "title": "Anatomy, Abdomen and Pelvis: Abdominal Wall",
           "url": "https://pubmed.ncbi.nlm.nih.gov/31869113/"

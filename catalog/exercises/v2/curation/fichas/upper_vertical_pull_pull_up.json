@@ -5,8 +5,8 @@
         "joints": [
           {
             "actions": [
-              "Frenado de la extensión del hombro",
-              "Frenado de la aducción del hombro"
+              "Frenado de la flexión del hombro",
+              "Frenado de la abducción del hombro"
             ],
             "id": "glenohumeral",
             "role": "PRIMARY",
@@ -14,7 +14,7 @@
               "youdas2010",
               "statpearls_extrinsic_back"
             ],
-            "why": "El húmero vuelve de estar junto al tronco a quedar por encima de la cabeza; ese recorrido lo frena el dorsal, que extiende y aduce el hombro y es el músculo que más trabaja en la dominada."
+            "why": "El húmero vuelve de estar junto al tronco a quedar por encima de la cabeza: flexión y abducción del hombro. Ese recorrido lo frena el dorsal, que al contraerse extiende y aduce el hombro y aquí cede alargándose; es el músculo que más trabaja en la dominada."
           },
           {
             "actions": [
@@ -26,7 +26,7 @@
               "youdas2010",
               "statpearls_trapezius"
             ],
-            "why": "La escápula sube y rota hacia arriba a medida que los brazos se estiran; el trapecio inferior, que inicia la dominada, frena ese movimiento."
+            "why": "La escápula sube y rota hacia arriba a medida que los brazos se estiran; el trapecio inferior, que inicia la dominada, frena ese movimiento. Es secundaria y no principal como en la dominada completa porque aquí la escápula solo cede de forma controlada, sin la depresión que arranca el gesto."
           },
           {
             "actions": [
@@ -38,7 +38,7 @@
               "dickie2017",
               "youdas2010"
             ],
-            "why": "El codo recorre unos 100 grados entre la posición alta y colgado (Youdas et al.) y los flexores del codo trabajan menos en la bajada que en la subida (Dickie et al.), por eso acompaña sin ser la articulación principal."
+            "why": "El codo recorre unos 93 grados entre la posición alta y colgado con agarre prono (Youdas et al.) y los flexores del codo trabajan menos en la bajada que en la subida (Dickie et al.), por eso acompaña sin ser la articulación principal."
           },
           {
             "actions": [
@@ -60,7 +60,7 @@
               "youdas2010",
               "statpearls_extrinsic_back"
             ],
-            "why": "Frena la extensión y la aducción del hombro mientras el cuerpo baja; en la dominada completa fue el músculo más activo, con el 117 al 130 % de su contracción máxima (Youdas et al.). No hay electromiografía del dorsal en la bajada aislada, así que conserva su papel de motor del patrón."
+            "why": "Frena la flexión y la abducción del hombro mientras el cuerpo baja: el dorsal, que al contraerse extiende y aduce, aquí cede alargándose. En la dominada completa fue el músculo más activo, con el 117 al 130 % de su contracción máxima (Youdas et al.). No hay electromiografía del dorsal en la bajada aislada, así que conserva su papel de motor del patrón."
           },
           {
             "id": "biceps",
@@ -79,7 +79,7 @@
               "rabello2024",
               "statpearls_deltoid"
             ],
-            "why": "La porción posterior del deltoides extiende el hombro junto con el dorsal: entre los ejercicios revisados, el grupo de las dominadas fue el que más la activó (Rabello et al.). No se midió en la bajada por separado."
+            "why": "La porción posterior del deltoides extiende el hombro junto con el dorsal: entre los ejercicios revisados, el grupo de las dominadas fue el que más la activó (Rabello et al.). En el descenso ayuda al dorsal a frenar la flexión del hombro; no se midió en la bajada por separado."
           },
           {
             "id": "trapezius",
@@ -130,19 +130,19 @@
       "public": {
         "configurations": {
           "negative_pull_up__default": {
-            "description": "Se parte de arriba, con la barbilla sobre la barra y las manos en prono a la anchura de los hombros, y solo cuenta la bajada, que se alarga varios segundos hasta estirar los brazos. Subir con un salto o con un escalón ahorra fuerza para la fase que sí se entrena.",
+            "description": "Se parte de arriba, con la barbilla sobre la barra y las palmas al frente, a la anchura de los hombros, y solo cuenta la bajada, que se alarga varios segundos hasta estirar los brazos. Subir con un salto o con un escalón ahorra fuerza para la fase que sí se entrena.",
             "executionCues": [
-              "Suelta el apoyo y baja despacio, sin balancear las piernas, hasta estirar los brazos.",
-              "Cuelga un instante abajo con los hombros activos.",
-              "Vuelve a la posición alta con el escalón o con un salto y repite."
+              "Quita los pies del escalón, o deja de impulsarte, y baja despacio, sin balancear las piernas, hasta estirar los brazos.",
+              "Cuélgate un instante abajo con los hombros activos.",
+              "Vuelve arriba con el escalón o con un salto y repite."
             ],
             "setupCues": [
-              "Coloca un escalón bajo la barra, o prepárate para saltar, y agarra la barra en prono a la anchura de los hombros.",
-              "Sube hasta tener la barbilla por encima de la barra, con los hombros alejados de las orejas."
+              "Coloca un escalón bajo la barra, o prepárate para saltar, y toma la barra con las palmas hacia delante, a la anchura de los hombros.",
+              "Sube con el escalón o con un salto hasta tener la barbilla por encima de la barra, con los hombros alejados de las orejas."
             ]
           }
         },
-        "description": "La Dominada Negativa es una dominada en la que solo se trabaja la bajada: se llega arriba con un salto o con un escalón, con la barbilla sobre la barra, y se desciende despacio hasta colgar con los brazos estirados. El dorsal ancho frena la caída del cuerpo junto con el bíceps y el deltoides posterior, y el antebrazo sostiene el agarre durante todo el recorrido. Sirve a quien aún no sube su peso, porque la bajada exige menos al bíceps y al pectoral que la subida. En un estudio con escaladores avanzados, cinco semanas de dominadas con trabajo excéntrico mejoraron la fuerza máxima y la velocidad de la dominada."
+        "description": "La Dominada Negativa es una dominada en la que solo se trabaja la bajada: se llega arriba con un salto o con un escalón, con la barbilla sobre la barra, y se desciende despacio hasta colgar con los brazos estirados. El dorsal ancho frena la caída del cuerpo junto con el bíceps y el deltoides posterior, y el antebrazo sostiene el agarre durante todo el recorrido. Sirve a quien todavía no consigue subir su peso: en la electromiografía de dominadas completas, el bíceps y el pectoral se activaron menos en la bajada que en la subida. No es solo un recurso de iniciación: en un estudio con escaladores avanzados, cinco semanas de dominadas con trabajo excéntrico mejoraron la fuerza máxima y la velocidad de la dominada."
       },
       "sources": [
         {

@@ -30,7 +30,7 @@
               "campos2020",
               "statpearls_deltoid"
             ],
-            "why": "El brazo pasa de estar junto a la cabeza, con el hombro muy flexionado, a quedar más abierto al bajar la cabeza entre las manos; ese arco de flexión lo mueve el deltoides, el que más trabaja en los presses por encima de la cabeza (Campos et al.)."
+            "why": "El brazo pasa de estar junto a la cabeza, con el hombro muy flexionado, a quedar más abierto al bajar la cabeza entre las manos; ese arco de flexión lo mueve sobre todo el deltoides anterior, que en el press de hombros se activó más que en el de banca (Campos et al.). Es una extrapolación: no hay medición de la pica."
           },
           {
             "actions": [
@@ -65,7 +65,7 @@
             "sources": [
               "ebben2011"
             ],
-            "why": "La muñeca queda extendida bajo la palma y transmite al suelo el peso que cargan los brazos; en las flexiones con los pies elevados esa fuerza vertical sobre las manos fue mayor (Ebben et al.), y la pica la traslada aún más."
+            "why": "La muñeca queda extendida bajo la palma y transmite al suelo el peso que cargan los brazos; en las flexiones con los pies elevados esa fuerza vertical sobre las manos fue mayor (Ebben et al.); la pica lleva el cuerpo todavía más sobre las manos, aunque no hay medición de ella."
           }
         ],
         "muscles": [
@@ -77,7 +77,7 @@
               "bull2010",
               "statpearls_deltoid"
             ],
-            "why": "Es el músculo que empuja cuando los brazos trabajan por encima de la cabeza. En el press de hombros el deltoides anterior fue el más activo entre cuatro ejercicios (33 % de la contracción máxima) y el medio llegó casi al nivel de la elevación lateral (Campos et al.); en el press militar el anterior alcanzó niveles muy altos en todas las modalidades (Büll et al.). No hay electromiografía de la pica: se extrapola desde esos presses."
+            "why": "Es el músculo que empuja cuando los brazos trabajan por encima de la cabeza. En el press de hombros el deltoides anterior fue el más activo entre cuatro ejercicios (33 % de la contracción máxima) y el medio llegó casi al nivel de la elevación lateral (Campos et al.); en el press militar el anterior alcanzó niveles muy altos en todas las modalidades (Büll et al.). No hay electromiografía de la pica: se extrapola desde esos presses. El pectoral no se lista: su porción clavicular mostró poca actividad en el press militar (Büll et al.)."
           },
           {
             "id": "triceps",
@@ -114,18 +114,18 @@
             ]
           },
           "pike_push_up__flat": {
-            "description": "Manos y pies están en el suelo y las caderas suben hasta formar una V invertida, con el tronco casi vertical y la cabeza apuntando entre las manos. Cuanto más se acercan los pies a las manos, más vertical queda el empuje y más pesa el hombro.",
+            "description": "Manos y pies están en el suelo y las caderas suben hasta formar una V invertida, con la cabeza apuntando entre las manos. Cuanto más se acercan los pies a las manos, más vertical queda el tronco y más pesa el hombro.",
             "executionCues": [
               "Dobla los codos y baja la cabeza entre las manos, hasta casi tocar el suelo.",
               "Empuja el suelo hasta estirar los codos, con las caderas altas."
             ],
             "setupCues": [
               "Apoya las manos en el suelo, algo más abiertas que los hombros, y sube las caderas hasta formar una V invertida.",
-              "Acerca los pies a las manos hasta que el tronco quede casi vertical."
+              "Acerca los pies a las manos hasta subir las caderas lo máximo que puedas con las piernas estiradas."
             ]
           }
         },
-        "description": "Las Flexiones en Pica (pike push-up) son un empuje vertical con el propio peso: desde una V invertida, con las caderas altas y las manos y los pies en el suelo, la cabeza baja entre los brazos hasta casi tocar el suelo y los codos se estiran para volver arriba. El deltoides empuja el cuerpo, el tríceps extiende los codos y el trapecio gira la escápula para acompañar. Como en un press de hombros, los brazos empujan por encima de la cabeza, pero la resistencia es el propio cuerpo. Elevar los pies en un apoyo traslada más peso a las manos y endurece el ejercicio. Es la progresión habitual hacia la flexión en pino."
+        "description": "Las Flexiones en Pica (pike push-up) son un empuje vertical con el propio peso: desde una V invertida, con las caderas altas y las manos y los pies en el suelo, la cabeza baja entre los brazos hasta casi tocar el suelo y los codos se estiran para volver arriba. El deltoides empuja el cuerpo, el tríceps extiende los codos y el trapecio gira la escápula para acompañar. Como en un press de hombros, los brazos empujan por encima de la cabeza, pero la resistencia es el propio cuerpo. Elevar los pies sobre un banco o un cajón traslada más peso a las manos y endurece el ejercicio. Es la progresión habitual hacia la flexión en pino."
       },
       "sources": [
         {
@@ -185,7 +185,7 @@
       ],
       "status": "CURATED",
       "technique": {
-        "identity": "Empuje vertical con el peso del cuerpo desde una V invertida: manos y pies sostienen el cuerpo, las caderas quedan altas y la cabeza baja entre los brazos hasta casi tocar el suelo. Se separa de la flexión de brazos porque el tronco queda casi vertical y el empuje es hacia arriba, y de la flexión en pino porque los pies siguen apoyados.",
+        "identity": "Empuje vertical con el peso del cuerpo desde una V invertida: manos y pies sostienen el cuerpo, las caderas quedan altas y la cabeza baja entre los brazos hasta casi tocar el suelo. Se separa de la flexión de brazos porque el tronco queda muy inclinado hacia las manos y el empuje es casi vertical, y de la flexión en pino porque los pies siguen apoyados.",
         "keyPositions": [
           "Arriba: codos estirados, caderas en el punto más alto y cuerpo en V invertida con la cabeza entre los brazos.",
           "Abajo: codos flexionados, cabeza a pocos centímetros del suelo entre las manos y caderas todavía altas."
@@ -194,7 +194,7 @@
           "Bajar las caderas y convertir el movimiento en una flexión de brazos normal.",
           "Abrir los codos hacia los lados en lugar de llevarlos algo hacia atrás.",
           "Apoyar la cabeza en el suelo y empujar con el cuello.",
-          "Tocar el suelo con la frente y usar el impulso del golpe para subir."
+          "Rebotar con la frente en el suelo para ayudarse a subir."
         ],
         "phases": [
           {
@@ -212,7 +212,7 @@
         ],
         "setup": [
           "Palmas planas en el suelo, algo más separadas que los hombros, y brazos extendidos.",
-          "Piernas estiradas y caderas altas, con los pies lo bastante cerca de las manos para que el tronco quede casi vertical."
+          "Piernas estiradas y caderas altas, con los pies lo bastante cerca de las manos para que las caderas queden lo más altas posible."
         ]
       },
       "visual": {
@@ -241,7 +241,7 @@
           "Rodillas apoyadas en el suelo."
         ],
         "promptCore": {
-          "bodyweight": "Side view of a muscular athlete frozen at the BOTTOM of a pike push-up on a flat floor. Both hands are planted flat on the floor, a little wider than the shoulders, fingers pointing forward, and the toes are on the floor. The hips are the highest point of the body and the legs and back are straight, so the body forms an inverted V. The elbows are bent about 90 degrees and angled slightly back, the top of the head hovers a few centimeters above the floor between the hands, and the neck is neutral. No bench, no bar and nothing in the hands."
+          "bodyweight": "Side view of a muscular athlete frozen at the BOTTOM of a pike push-up on a flat floor. Both hands are planted flat on the floor, a little wider than the shoulders, fingers pointing forward, and the toes are on the floor. The hips are the highest point of the body and the legs and back are straight, so the body forms an inverted V. The elbows are bent about 90 degrees and angled slightly back, the top of the head hovers a few centimeters above the floor between the hands, and the neck is neutral. No bar and nothing in the hands."
         },
         "qa": [
           "¿Las dos palmas están planas en el suelo, sin flotar?",

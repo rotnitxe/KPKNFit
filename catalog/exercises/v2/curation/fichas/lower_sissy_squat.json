@@ -163,15 +163,15 @@
       "public": {
         "configurations": {
           "sissy_squat__bodyweight": {
-            "description": "El único peso es el del cuerpo: los brazos cruzados sobre el pecho o estirados al frente sirven de contrapeso mientras los talones suben y las rodillas avanzan. Sin carga añadida, ya basta con inclinar el cuerpo hacia atrás en una sola línea para que el cuádriceps trabaje a fondo.",
+            "description": "Con los brazos cruzados sobre el pecho, o estirados al frente como contrapeso, los talones suben y las rodillas avanzan. Basta con inclinar el cuerpo hacia atrás en una sola línea para que el cuádriceps trabaje a fondo sin añadir carga.",
             "executionCues": [
               "Eleva los talones y lleva las rodillas hacia delante mientras inclinas el cuerpo hacia atrás en una sola línea.",
-              "Baja todo lo que permitan las rodillas, sin doblar la cadera.",
+              "Baja hasta donde controles el movimiento, sin doblar la cadera ni apoyar los talones.",
               "Sube estirando las rodillas y con los talones en alto hasta el final de la serie."
             ],
             "setupCues": [
               "Ponte de pie con los pies a la anchura de las caderas y los brazos cruzados sobre el pecho.",
-              "Si necesitas ayuda para el equilibrio, roza una pared o un marco con la punta de los dedos."
+              "Si necesitas ayuda para el equilibrio, apoya la punta de los dedos en una pared o en el marco de una puerta."
             ]
           },
           "sissy_squat__dumbbells": {
@@ -389,7 +389,8 @@
           "¿Los talones quedan más altos que los dedos y el peso en la parte delantera de los pies?",
           "¿Las rodillas están muy dobladas y por delante de los dedos de los pies, en el punto bajo?",
           "¿La cadera está estirada, sin que el atleta se siente hacia atrás?",
-          "¿Las manos hacen lo que pide el implemento, cruzadas sobre el pecho en la máquina o sin carga, o sujetando la carga contra el pecho o la barra sobre la espalda, sin que nada flote suelto?",
+          "¿En la máquina los brazos van cruzados sobre el pecho, y con carga las manos la sujetan contra el pecho o la barra va sobre la espalda, sin que nada flote suelto?",
+          "¿En Peso Corporal, los brazos están cruzados sobre el pecho, las manos vacías y los pies sobre un suelo plano?",
           "¿Los pies se apoyan en un suelo o en una plataforma visibles?"
         ]
       }

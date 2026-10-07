@@ -4597,7 +4597,7 @@
             ]
           },
           "sumo_squat__bodyweight": {
-            "description": "Con los dedos entrelazados a la altura del esternón, el peso del cuerpo hace de carga y la base ancha es lo que define el ejercicio. Sin nada colgando entre las piernas, el tronco queda erguido mientras las rodillas se abren hacia los lados y la cadera se hunde entre ellas.",
+            "description": "Con los dedos entrelazados a la altura del esternón, lo que define el ejercicio es la base ancha: las rodillas se abren hacia los lados, la cadera se hunde entre ellas y el tronco queda casi erguido.",
             "executionCues": [
               "Baja la cadera entre las rodillas, que se abren hacia donde apuntan los pies.",
               "Sube presionando con las plantas hasta enderezar rodillas y cadera."
@@ -4734,7 +4734,7 @@
       ],
       "status": "CURATED",
       "technique": {
-        "identity": "Sentadilla bilateral de base ancha: pies a casi el doble del ancho de los hombros, puntas giradas hacia fuera y cadera que baja entre las rodillas abiertas hasta dejar los muslos horizontales. La carga va sobre la espalda alta o cuelga entre las piernas, sujeta con los brazos estirados. La separan de la sumo frontal y de la sumo zercher la posición de la carga, y del peso muerto sumo las rodillas muy flexionadas con el tronco poco inclinado.",
+        "identity": "Sentadilla bilateral de base ancha: pies a casi el doble del ancho de los hombros, puntas giradas hacia fuera y cadera que baja entre las rodillas abiertas hasta dejar los muslos horizontales. La carga, si la hay, va sobre la espalda alta o cuelga entre las piernas, sujeta con los brazos estirados; en corporal las manos se juntan delante del pecho. La separan de la sumo frontal y de la sumo zercher la posición de la carga, y del peso muerto sumo las rodillas muy flexionadas con el tronco poco inclinado.",
         "keyPositions": [
           "Arriba: cadera y rodillas extendidas, carga centrada sobre el medio del pie y rodillas orientadas hacia las puntas.",
           "Punto bajo: muslos paralelos al suelo, rodillas sobre los dedos de los pies, tibias casi verticales y cadera entre las rodillas, con el tronco algo inclinado y la columna neutra.",
@@ -4771,8 +4771,8 @@
       "visual": {
         "base": {
           "camera": "Vista frontal en tres cuartos a la altura de la cadera, con el cuerpo entero, los dos pies y toda la carga dentro del encuadre.",
-          "contacts": "Las dos plantas enteras en el suelo con los talones abajo; la carga descansa sobre la espalda alta o cuelga de las manos, según el implemento.",
-          "load": "Carga centrada sobre la línea de los pies, sin tocar el suelo y nunca suelta: sostenida por las manos o apoyada en el cuerpo.",
+          "contacts": "Las dos plantas enteras en el suelo con los talones abajo; si hay carga, descansa sobre la espalda alta o cuelga de las manos según el implemento, y en corporal las manos se juntan delante del pecho.",
+          "load": "Si hay carga, centrada sobre la línea de los pies, sin tocar el suelo y nunca suelta, sostenida por las manos o apoyada en el cuerpo; en corporal no hay carga.",
           "orientation": "Atleta de pie de cara a la cámara, girado unos treinta grados, con la cabeza neutra y la mirada al frente.",
           "phase": "Punto bajo: muslos paralelos al suelo, rodillas abiertas sobre los pies y cadera hundida entre ellas, justo antes de subir.",
           "posture": "Pies a casi el doble del ancho de los hombros y puntas giradas unos cuarenta y cinco grados; rodillas en la línea de los pies, tronco erguido o algo inclinado y columna neutra."
@@ -4794,8 +4794,8 @@
         "forbidden": [
           "Pies a la anchura de la cadera o puntas al frente: eso es una sentadilla convencional, no una sumo.",
           "Tronco casi horizontal con poca flexión de rodillas y la carga por delante cerca del suelo: eso es un peso muerto sumo.",
-          "Carga abrazada contra el pecho con los codos doblados: eso es una sentadilla copa, no la sujeción descrita aquí.",
-          "Dos mancuernas o dos kettlebells, o carga colgando por fuera de los muslos: aquí es una sola pieza sujeta con las dos manos entre las piernas.",
+          "Carga abrazada contra el pecho con los codos doblados: eso es una sentadilla copa, no la sujeción de este ejercicio.",
+          "Dos mancuernas o dos kettlebells, o carga colgando por fuera de los muslos: con carga es una sola pieza sujeta con las dos manos entre las piernas.",
           "Barra delante del cuello o en el pliegue de los codos: eso es la sumo frontal o la sumo zercher.",
           "Rodillas hundidas hacia dentro o talones despegados del suelo.",
           "Carga flotando sin que las manos la sujeten, o apoyada en el suelo en el punto bajo."
@@ -4808,7 +4808,8 @@
         },
         "qa": [
           "¿Los pies están mucho más separados que los hombros y con las puntas giradas hacia fuera?",
-          "¿Las manos sujetan la carga, sea la barra sobre la espalda o la mancuerna o la kettlebell colgando entre las piernas, y nada flota suelto; o, en Peso Corporal, están juntas y vacías delante del pecho?",
+          "¿Si hay carga, las manos la sujetan, sea la barra sobre la espalda o la mancuerna o la kettlebell colgando entre las piernas, y nada flota suelto?",
+          "¿En Peso Corporal, las manos están juntas y vacías delante del pecho?",
           "¿Los muslos están casi paralelos al suelo, con la cadera entre las rodillas, en el punto bajo?",
           "¿Las rodillas apuntan hacia las puntas de los pies, sin caer hacia dentro?",
           "¿Los talones están apoyados en el suelo?"
@@ -4828,7 +4829,7 @@
               "marchetti2016",
               "statpearls_knee"
             ],
-            "why": "La rodilla es la articulación que trabaja: queda fija cerca de 90 grados mientras el cuádriceps impide que se flexione más. En la sentadilla isométrica, el ángulo de la rodilla cambió la activación de cuádriceps y glúteo mayor (Marchetti et al.)."
+            "why": "La rodilla es la articulación que trabaja: queda fija cerca de 90 grados mientras el cuádriceps impide que se flexione más. En la sentadilla trasera isométrica con barra, el ángulo de la rodilla cambió la activación de cuádriceps y glúteo mayor (Marchetti et al.); se extrapola a la sentadilla en pared."
           },
           {
             "actions": [
@@ -4863,7 +4864,7 @@
               "marchetti2016",
               "statpearls_quadriceps"
             ],
-            "why": "Sostiene la posición: impide que las rodillas se doblen más bajo el peso del cuerpo. En la sentadilla isométrica de Marchetti et al., la actividad de los tres cuádriceps medidos fue en general la más alta con la rodilla a 90 grados, que es el ángulo de este ejercicio."
+            "why": "Sostiene la posición: impide que las rodillas se doblen más bajo el peso del cuerpo. En la sentadilla trasera isométrica máxima con barra de Marchetti et al., la actividad de los tres cuádriceps medidos fue en general la más alta con la rodilla a 90 grados, que es el ángulo de este ejercicio; se extrapola a la sentadilla en pared, sin barra."
           },
           {
             "id": "gluteus_maximus",
@@ -4872,7 +4873,7 @@
               "marchetti2016",
               "statpearls_gluteus_maximus"
             ],
-            "why": "Sostiene la cadera flexionada. En la sentadilla isométrica de Marchetti et al. su actividad fue mayor a 20 y a 90 grados de rodilla que a 140. Aquí la pared sostiene el tronco y no hay carga externa, así que acompaña al cuádriceps sin liderar."
+            "why": "Sostiene la cadera flexionada. En la sentadilla trasera isométrica con barra de Marchetti et al. su actividad fue mayor a 20 y a 90 grados de rodilla que a 140; se extrapola a la pared. Aquí la pared sostiene el tronco y no hay carga externa, así que acompaña al cuádriceps sin liderar: a diferencia de la sentadilla sin carga, no hay recorrido en el que extender la cadera."
           },
           {
             "id": "hamstrings",
@@ -4881,14 +4882,14 @@
               "marchetti2016",
               "statpearls_hamstring"
             ],
-            "why": "Cruzan la cadera y la rodilla y se activan a la vez que el cuádriceps. En la sentadilla isométrica, el bíceps femoral y el semitendinoso mostraron una activación parecida en los tres ángulos medidos (Marchetti et al.), señal de un sostén constante más que de un motor."
+            "why": "Cruzan la cadera y la rodilla y se activan a la vez que el cuádriceps. En la sentadilla trasera isométrica con barra, el bíceps femoral y el semitendinoso mostraron una activación parecida en los tres ángulos medidos (Marchetti et al.), señal de un sostén constante más que de un motor; se extrapola a la pared."
           }
         ]
       },
       "public": {
         "configurations": {
           "wall_sit__default": {
-            "description": "Con la pared como único apoyo y sin implemento, las piernas sostienen el peso del cuerpo con las rodillas fijas. Subir un poco el cuerpo alivia el esfuerzo y bajarlo más lo endurece, y la distancia de los pies a la pared decide cuánto avanzan las rodillas.",
+            "description": "Con la espalda en la pared, las piernas sostienen el peso del cuerpo con las rodillas fijas. Subir un poco el cuerpo alivia el esfuerzo, y la distancia de los pies a la pared decide cuánto avanzan las rodillas.",
             "executionCues": [
               "Desliza la espalda hacia abajo hasta dejar los muslos horizontales.",
               "Aguanta con los talones en el suelo y los brazos cruzados, sin apoyar las manos en los muslos.",
@@ -4900,7 +4901,7 @@
             ]
           }
         },
-        "description": "La Sentadilla en Pared (wall sit) es una isometría de piernas: con la espalda apoyada en una pared y los muslos paralelos al suelo, la posición de sentadilla se sostiene sin moverse. El cuádriceps trabaja de forma continua para impedir que las rodillas se doblen más, mientras el glúteo mayor y los isquiosurales ayudan a sostener la cadera. Los pies quedan lo bastante lejos de la pared para que las espinillas estén casi verticales y las rodillas no pasen de la punta de los pies. Con la rodilla cerca de noventa grados, el cuádriceps registró su mayor actividad en una sentadilla isométrica. Sirve para trabajar las piernas sin material y sin mover las rodillas, aunque no practica el gesto de bajar y subir."
+        "description": "La Sentadilla en Pared (wall sit) es una isometría de piernas: con la espalda apoyada en una pared y los muslos paralelos al suelo, la posición de sentadilla se sostiene sin moverse. El cuádriceps trabaja de forma continua para impedir que las rodillas se doblen más, mientras el glúteo mayor y los isquiosurales ayudan a sostener la cadera. Los pies quedan lo bastante lejos de la pared para que las espinillas estén casi verticales y las rodillas no pasen de la punta de los pies. En una sentadilla trasera isométrica máxima con barra, el cuádriceps tuvo en general su mayor actividad con la rodilla cerca de noventa grados. Sirve para trabajar las piernas sin material y sin mover las rodillas, aunque no practica el gesto de bajar y subir."
       },
       "sources": [
         {

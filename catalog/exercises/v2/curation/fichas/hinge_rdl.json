@@ -534,7 +534,7 @@
             ]
           },
           "romanian_deadlift__unilateral__bodyweight": {
-            "description": "Sin carga, los brazos cuelgan largos delante del cuerpo o se cruzan sobre el pecho, y el torso que se inclina es la única resistencia sobre una sola pierna. La pierna libre se alarga detrás como contrapeso, de modo que el equilibrio del pie de apoyo pasa a formar parte del ejercicio.",
+            "description": "Los brazos cuelgan largos delante del cuerpo o se cruzan sobre el pecho, y el torso que se inclina es la única resistencia sobre una sola pierna. La pierna libre se alarga detrás como contrapeso, de modo que el equilibrio del pie de apoyo pasa a formar parte del ejercicio.",
             "executionCues": [
               "Echa la pelvis atrás mientras el torso se inclina y la pierna libre se estira detrás.",
               "Baja hasta notar que tira la parte posterior del muslo de apoyo, con la espalda recta.",
@@ -585,7 +585,7 @@
             ]
           }
         },
-        "description": "El Peso Muerto Rumano, conocido como RDL, carga los isquiosurales junto con el glúteo mayor mediante una bisagra que empieza de pie y alarga la parte posterior del muslo durante la bajada. La pelvis se aleja de las manos hacia atrás, las rodillas quedan algo flexionadas y la carga desciende cerca de las piernas hasta el límite que permite la espalda neutra. La vuelta nace al extender la cadera, sin buscar el suelo en cada repetición. Ofrece un recorrido repetible de cadera para entrenar esos extensores sin añadir un arranque desde el piso."
+        "description": "El Peso Muerto Rumano, conocido como RDL, carga los isquiosurales junto con el glúteo mayor mediante una bisagra que empieza de pie y alarga la parte posterior del muslo durante la bajada. La pelvis retrocede, las rodillas quedan algo flexionadas y el torso baja, con la carga cerca de las piernas si la hay, hasta el límite que permite la espalda neutra. La vuelta nace al extender la cadera, sin buscar el suelo en cada repetición. Ofrece un recorrido repetible de cadera para entrenar esos extensores sin añadir un arranque desde el piso."
       },
       "sources": [
         {
@@ -607,7 +607,7 @@
           "url": "https://pubmed.ncbi.nlm.nih.gov/38093908/"
         },
         {
-          "claim": "Un modelo informado por EMG situó el rumano cargado a una pierna en el primer grupo de fuerza estimada para glúteo mayor, medio y mínimo. La fuerza elevada del medio durante apoyo unilateral respalda su tarea de sostén pélvico, sin convertirla en abducciones dinámicas.",
+          "claim": "Un modelo informado por EMG, con 14 futbolistas, situó el rumano cargado a una pierna en el primer grupo de fuerza estimada para glúteo mayor, medio y mínimo; sin carga, el pico de fuerza glútea fue entre 28 y 150 N menor según el ejercicio. La fuerza elevada del medio durante apoyo unilateral respalda su tarea de sostén pélvico, sin convertirla en abducciones dinámicas.",
           "id": "collings2023",
           "title": "Gluteal Muscle Forces during Hip-Focused Injury Prevention and Rehabilitation Exercises",
           "url": "https://pubmed.ncbi.nlm.nih.gov/36918403/"
@@ -681,7 +681,7 @@
       ],
       "status": "CURATED",
       "technique": {
-        "identity": "Bisagra rumana iniciada erguido, con la carga sostenida en las manos, o sin carga y con los brazos colgando, una pequeña flexión fija de rodillas y descenso limitado por el giro de la cadera. No hay apoyo inferior de la carga entre repeticiones.",
+        "identity": "Bisagra rumana iniciada erguido, con una pequeña flexión fija de rodillas y descenso limitado por el giro de la cadera; la carga, si la hay, cuelga de las manos. No hay apoyo inferior de la carga entre repeticiones.",
         "keyPositions": [
           "Arriba: tórax sobre la pelvis, carga junto a los muslos y codos rectos.",
           "Abajo: cadera retrasada, torso inclinado con columna neutra y carga suspendida cerca de las piernas.",
@@ -709,16 +709,17 @@
         "setup": [
           "Ambos pies al ancho de las caderas para la base bilateral, o un único pie apoyado y la pierna libre detrás para la unilateral.",
           "Carga sostenida con brazos extendidos, cerca de las piernas, y atleta erguido antes de empezar.",
-          "Rodillas suavemente flexionadas sin convertir el descenso en una sentadilla."
+          "Rodillas suavemente flexionadas sin convertir el descenso en una sentadilla.",
+          "Peso corporal: sin carga, con los brazos colgando delante del cuerpo o cruzados sobre el pecho."
         ]
       },
       "visual": {
         "base": {
           "camera": "Vista lateral ligeramente oblicua a la altura de la cadera, con atleta entero, manos y piso visibles.",
-          "contacts": "Dos pies enteros en el piso en la base bilateral; las manos sostienen el peso, sin apoyo de la carga abajo.",
-          "load": "Carga junto a las piernas, debajo de las manos y los codos extendidos; no se eleva hacia el pecho.",
+          "contacts": "Dos pies enteros en el piso en la base bilateral, o un solo pie en la unilateral; si hay carga, las manos la sostienen sin apoyarla abajo, y sin carga cuelgan vacías.",
+          "load": "Si hay carga, queda junto a las piernas, debajo de las manos y los codos extendidos, sin elevarse hacia el pecho; sin carga, los brazos cuelgan vacíos.",
           "orientation": "Atleta mirando hacia la izquierda del encuadre; cabeza alineada con el torso inclinado y mirada hacia el piso.",
-          "phase": "Fotograma inferior del descenso, con cadera flexionada y peso suspendido antes de iniciar la subida.",
+          "phase": "Fotograma inferior del descenso, con cadera flexionada y el peso, si lo hay, suspendido antes de iniciar la subida.",
           "posture": "Pelvis retrasada, rodillas con flexión pequeña, brazos rectos, cuello neutro y columna sin redondeo."
         },
         "byImplement": {
@@ -770,10 +771,12 @@
         },
         "qa": [
           "¿Las rodillas están casi rectas o con una flexión pequeña, sin una sentadilla profunda?",
-          "¿Si hay carga, las manos la agarran físicamente y ninguna pieza flota suelta; y sin carga, los brazos cuelgan vacíos?",
-          "¿El torso está inclinado desde la cadera y la carga sigue suspendida en el punto inferior?",
+          "¿Si hay carga, las manos la agarran físicamente y ninguna pieza flota suelta?",
+          "¿Sin carga, los brazos cuelgan vacíos?",
+          "¿El torso está inclinado desde la cadera y, si hay carga, sigue suspendida abajo?",
           "¿La pelvis está detrás del apoyo y la columna conserva una línea neutra?",
-          "¿Los brazos cuelgan rectos junto a las piernas, sin llevar el peso al pecho?"
+          "¿Los brazos cuelgan rectos junto a las piernas, sin llevar nada al pecho?",
+          "¿En la variante a una pierna, un solo pie apoya y la otra pierna se extiende atrás sin tocar el suelo?"
         ]
       }
     },

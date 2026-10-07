@@ -128,7 +128,7 @@
             "sources": [
               "andersen2014"
             ],
-            "why": "El empeine elevado recibe apoyo en banco o rodillo, pero la espalda sigue libre del aparato. Los erectores mantienen el contorno vertebral mientras cambia la altura del tronco; Andersen registró esta musculatura en la búlgara y su sostén se extrapola a los seis implementos."
+            "why": "El empeine elevado recibe apoyo en banco o rodillo, pero la espalda sigue libre del aparato. Los erectores mantienen el contorno vertebral mientras cambia la altura del tronco; Andersen registró esta musculatura en la búlgara y su sostén se extrapola a los siete implementos."
           }
         ],
         "overrides": {
@@ -356,7 +356,7 @@
             ]
           },
           "bulgarian_split_squat__bodyweight": {
-            "description": "Sin carga, el peso del cuerpo ya basta para exigir mucho a la pierna de delante, porque el pie de atrás apenas empuja. Las manos van en la cintura o cruzadas sobre el pecho, y inclinar un poco el tronco hacia delante carga más el glúteo.",
+            "description": "El peso del cuerpo ya basta para exigir mucho a la pierna de delante, porque el pie de atrás apenas empuja. Las manos van en la cintura o cruzadas sobre el pecho, y inclinar un poco el tronco hacia delante carga más el glúteo.",
             "executionCues": [
               "Dobla la rodilla de delante hasta que la de atrás quede a pocos centímetros del suelo.",
               "Empuja con el pie de delante para subir, sin impulsarte con el de atrás.",
@@ -364,7 +364,7 @@
             ],
             "setupCues": [
               "Colócate de espaldas a un banco estable y apoya el empeine de un pie sobre él.",
-              "Adelanta el otro pie hasta poder bajar con el talón apoyado, con las manos en la cintura."
+              "Adelanta el otro pie hasta poder bajar con el talón apoyado y deja las manos en la cintura."
             ]
           },
           "bulgarian_split_squat__cable": {
@@ -578,7 +578,7 @@
         "base": {
           "camera": "Vista lateral o de tres cuartos a la altura de la cadera, con el banco, los dos pies y la cabeza dentro del encuadre.",
           "contacts": "Planta entera del pie delantero en el suelo; empeine del pie trasero apoyado encima del apoyo de detrás, un banco o un rodillo; la rodilla trasera no toca el suelo.",
-          "load": "La carga está sujeta por el atleta en todo momento y queda separada del suelo.",
+          "load": "Si hay carga, está sujeta por el atleta en todo momento y queda separada del suelo; en corporal no hay carga.",
           "orientation": "Atleta de espaldas al apoyo trasero, con la pierna de trabajo delante y la otra estirada hacia atrás hasta ese apoyo.",
           "phase": "Punto bajo: muslo delantero casi horizontal y rodilla trasera a pocos centímetros del suelo, justo antes de subir.",
           "posture": "Tronco erguido o algo inclinado hacia delante, columna neutra, rodilla delantera alineada con el pie y pelvis nivelada."
@@ -628,7 +628,8 @@
         "qa": [
           "¿El empeine del pie trasero está apoyado sobre el banco o el rodillo y el pie delantero entero en el suelo?",
           "¿El muslo delantero está cerca de la horizontal y la rodilla trasera cerca del suelo sin tocarlo?",
-          "¿Si hay carga, las manos la sujetan y nada flota suelto; y, en Peso Corporal, las manos están vacías en la cintura?",
+          "¿Si hay carga, las manos la sujetan y nada flota suelto?",
+          "¿En Peso Corporal, las manos están vacías, en la cintura?",
           "¿En polea, las torres quedan a izquierda y derecha del atleta y cada cable baja en diagonal, hacia fuera, hasta la polea baja de su propia torre, sin cruzarse?",
           "¿En Smith, la barra va dentro de los rieles y el banco es una pieza aparte?"
         ]
