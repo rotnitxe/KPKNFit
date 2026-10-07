@@ -7433,6 +7433,339 @@
           "sentadilla isometrica",
           "wall squat isometrico"
         ]
+      },
+      {
+        "canonicalName": "Sentadilla de Arranque",
+        "configurations": [
+          {
+            "displaySummary": "Barra",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "editorial:configuration:overhead_squat__barbell",
+                "plan:wizard-entreno-v2-ol1-20261007#overhead_squat"
+              ],
+              "reviewStatus": "APPROVED"
+            },
+            "id": "overhead_squat__barbell",
+            "profile": {
+              "articulationType": "MULTIARTICULAR",
+              "automationEligible": true,
+              "axialLoadFactor": 0.7,
+              "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-09-29-a",
+              "cnc": 2.2,
+              "description": "La barra parte de un soporte con los brazos ya estirados y baja con el cuerpo hasta el fondo de la sentadilla, siempre sobre el centro del pie. Con el peso arriba, cualquier inclinación del tronco se nota enseguida, y por eso se usa menos carga que en la sentadilla trasera.",
+              "efc": 2.8,
+              "equipmentId": "barbell",
+              "executionCues": [
+                "Baja la cadera entre los talones, con el pecho alto y la barra sobre el centro del pie.",
+                "Abre las rodillas siguiendo la línea de los pies y baja hasta donde llegue tu movilidad sin redondear la espalda.",
+                "Empuja el suelo para subir, con los brazos estirados y la barra sin salirse de su vertical."
+              ],
+              "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión profunda y extensión de la cadera"
+                  ],
+                  "jointId": "cadera",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión profunda y extensión de la rodilla"
+                  ],
+                  "jointId": "rodilla",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Dorsiflexión en el descenso",
+                    "Flexión plantar al subir"
+                  ],
+                  "jointId": "tobillo",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Extensión torácica con los brazos sobre la cabeza"
+                  ],
+                  "jointId": "columna-toracica",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Posición neutra con la carga sobre la cabeza"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén del brazo en flexión completa con rotación externa"
+                  ],
+                  "jointId": "glenohumeral",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Rotación superior mantenida de la escápula"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Bloqueo del codo bajo la barra"
+                  ],
+                  "jointId": "codo",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Extensión de la muñeca con la barra sobre la cabeza"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "knee_dominant",
+              "performanceProfileId": "overhead_squat__barbell__sentadilla_de_arranque",
+              "primaryMuscles": [
+                "quadriceps",
+                "gluteus_maximus"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Flexión profunda y extensión de la cadera",
+                    "Flexión profunda y extensión de la rodilla",
+                    "Dorsiflexión en el descenso",
+                    "Flexión plantar al subir",
+                    "Extensión torácica con los brazos sobre la cabeza",
+                    "Posición neutra con la carga sobre la cabeza",
+                    "Sostén del brazo en flexión completa con rotación externa",
+                    "Rotación superior mantenida de la escápula",
+                    "Bloqueo del codo bajo la barra",
+                    "Extensión de la muñeca con la barra sobre la cabeza"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión profunda y extensión de la cadera"
+                      ],
+                      "jointId": "cadera",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión profunda y extensión de la rodilla"
+                      ],
+                      "jointId": "rodilla",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Dorsiflexión en el descenso",
+                        "Flexión plantar al subir"
+                      ],
+                      "jointId": "tobillo",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión torácica con los brazos sobre la cabeza"
+                      ],
+                      "jointId": "columna-toracica",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Posición neutra con la carga sobre la cabeza"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del brazo en flexión completa con rotación externa"
+                      ],
+                      "jointId": "glenohumeral",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Rotación superior mantenida de la escápula"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Bloqueo del codo bajo la barra"
+                      ],
+                      "jointId": "codo",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Extensión de la muñeca con la barra sobre la cabeza"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "primaryMuscles": [
+                    "quadriceps",
+                    "gluteus_maximus"
+                  ],
+                  "secondaryMuscles": [
+                    "adductors",
+                    "hamstrings"
+                  ],
+                  "stabilizerMuscles": [
+                    "deltoid",
+                    "trapezius",
+                    "triceps",
+                    "erector_spinae",
+                    "abdominals",
+                    "forearm"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "barbell",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "knee_dominant",
+                  "relevantJoints": [
+                    "cadera",
+                    "rodilla",
+                    "tobillo",
+                    "columna-toracica",
+                    "columna-lumbar",
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "muñeca"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "display": {
+                  "displayName": "Sentadilla de Arranque",
+                  "displaySummary": "Barra",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.7,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 6.0,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Sentadilla de Arranque",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
+                  "configurationId": "overhead_squat__barbell",
+                  "definitionId": "overhead_squat",
+                  "familyId": "lower_knee_dominant",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "overhead_squat__barbell__sentadilla_de_arranque",
+                  "searchTerms": [
+                    "sentadilla de arranque",
+                    "overhead squat",
+                    "sentadilla overhead",
+                    "sentadilla con la barra sobre la cabeza",
+                    "sentadilla por encima de la cabeza",
+                    "sentadilla de snatch",
+                    "levantamiento olimpico",
+                    "halterofilia"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "requiredEquipment": [
+                    "barbell"
+                  ],
+                  "role": "accessory_compound"
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell"
+                  ],
+                  "preservesIntent": [
+                    "knee_dominant:quadriceps",
+                    "knee_dominant:gluteus_maximus"
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                }
+              },
+              "secondaryMuscles": [
+                "adductors",
+                "hamstrings"
+              ],
+              "setupCues": [
+                "Retira la barra del soporte con el agarre ancho de arranque y estira los brazos sobre la cabeza.",
+                "Da un paso atrás y coloca los pies algo más anchos que los hombros, con las puntas ligeramente abiertas.",
+                "Empuja la barra hacia el techo para activar los hombros y deja el abdomen firme."
+              ],
+              "setupTimeSeconds": 45,
+              "ssc": 0.5,
+              "stabilizerMuscles": [
+                "deltoid",
+                "trapezius",
+                "triceps",
+                "erector_spinae",
+                "abdominals",
+                "forearm"
+              ],
+              "technicalDifficulty": 6.0,
+              "ttc": 2.0
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "overhead_squat__barbell",
+        "description": "La Sentadilla de Arranque (overhead squat) es una sentadilla profunda con la barra sostenida a pulso sobre la cabeza, con los brazos bloqueados y un agarre ancho. Trabaja el cuádriceps y el glúteo mayor, con los aductores y los isquiosurales de apoyo, mientras el deltoides, el trapecio y el tríceps sostienen el peso arriba. Es la sentadilla que más pide al tronco: con poco peso, el oblicuo externo y el erector espinal se activan más con la barra sobre la cabeza que con ella delante o detrás. La barra, alta y siempre sobre el centro del pie, delata cualquier límite de recorrido en hombros, espalda alta, caderas y tobillos, por eso se usa con cargas ligeras como práctica del fondo del arranque.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:overhead_squat",
+            "plan:wizard-entreno-v2-ol1-20261007#overhead_squat"
+          ],
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "lower_knee_dominant",
+        "id": "overhead_squat",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "sentadilla de arranque",
+          "overhead squat",
+          "sentadilla overhead",
+          "sentadilla con la barra sobre la cabeza",
+          "sentadilla por encima de la cabeza",
+          "sentadilla de snatch",
+          "levantamiento olimpico",
+          "halterofilia"
+        ]
       }
     ],
     "evidence": {

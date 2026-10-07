@@ -975,6 +975,508 @@
           "farmer walk",
           "paseo del granjero con mancuernas"
         ]
+      },
+      {
+        "canonicalName": "Paseo del Maletín",
+        "configurations": [
+          {
+            "displaySummary": "Mancuernas",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "editorial:configuration:suitcase_carry__dumbbells",
+                "plan:wizard-entreno-v2-ol1-20261007#suitcase_carry"
+              ],
+              "reviewStatus": "APPROVED"
+            },
+            "id": "suitcase_carry__dumbbells",
+            "profile": {
+              "articulationType": "MULTIARTICULAR",
+              "automationEligible": true,
+              "axialLoadFactor": 0.3,
+              "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-09-29-a",
+              "cnc": 1.5,
+              "description": "Con una mancuerna, el peso cuelga junto al muslo y se agarra por la empuñadura, de modo que la carga puede subir en escalones pequeños. Es la opción que permite ajustar mejor el peso en cada serie.",
+              "efc": 2.0,
+              "equipmentId": "dumbbells",
+              "executionCues": [
+                "Camina en línea recta con pasos cortos y el tronco recto, sin dejar que el peso te incline hacia su lado.",
+                "Aprieta el abdomen y mantén la pelvis nivelada con cada paso.",
+                "Da la vuelta al final y cambia la pesa de mano para repetir el mismo recorrido."
+              ],
+              "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Sostén isométrico de la pesa con la mano"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Resistencia a la flexión lateral hacia la pesa"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad lateral de la cadera en apoyo",
+                    "Extensión y flexión de la cadera al caminar"
+                  ],
+                  "jointId": "cadera",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Sostén del brazo colgando con la carga"
+                  ],
+                  "jointId": "glenohumeral",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén de la escápula bajo la carga"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "UNILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "isometric_grip",
+              "performanceProfileId": "suitcase_carry__dumbbells__paseo_del_maletin",
+              "primaryMuscles": [
+                "forearm",
+                "abdominals"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Sostén isométrico de la pesa con la mano",
+                    "Resistencia a la flexión lateral hacia la pesa",
+                    "Estabilidad lateral de la cadera en apoyo",
+                    "Extensión y flexión de la cadera al caminar",
+                    "Sostén del brazo colgando con la carga",
+                    "Sostén de la escápula bajo la carga"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Sostén isométrico de la pesa con la mano"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Resistencia a la flexión lateral hacia la pesa"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad lateral de la cadera en apoyo",
+                        "Extensión y flexión de la cadera al caminar"
+                      ],
+                      "jointId": "cadera",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del brazo colgando con la carga"
+                      ],
+                      "jointId": "glenohumeral",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén de la escápula bajo la carga"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "primaryMuscles": [
+                    "forearm",
+                    "abdominals"
+                  ],
+                  "secondaryMuscles": [
+                    "erector_spinae",
+                    "gluteus_medius"
+                  ],
+                  "stabilizerMuscles": [
+                    "trapezius",
+                    "core"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "dumbbells",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "UNILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "isometric_grip",
+                  "relevantJoints": [
+                    "muñeca",
+                    "columna-lumbar",
+                    "cadera",
+                    "glenohumeral",
+                    "escapulotoracica"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "display": {
+                  "displayName": "Paseo del Maletín",
+                  "displaySummary": "Mancuernas",
+                  "selectedOptions": {
+                    "implement": "dumbbells"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.3,
+                  "cnc": 1.5,
+                  "efc": 2.0,
+                  "ssc": 0.2,
+                  "technicalDifficulty": 4.5,
+                  "ttc": 1.5
+                },
+                "identity": {
+                  "canonicalName": "Paseo del Maletín",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
+                  "configurationId": "suitcase_carry__dumbbells",
+                  "definitionId": "suitcase_carry",
+                  "familyId": "lower_isometric_grip",
+                  "kind": "PARENT",
+                  "performanceProfileId": "suitcase_carry__dumbbells__paseo_del_maletin",
+                  "searchTerms": [
+                    "paseo del maletin",
+                    "suitcase carry",
+                    "paseo con una mancuerna",
+                    "acarreo con una mano",
+                    "paseo a una mano",
+                    "caminata con maleta",
+                    "strongman"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 90,
+                    "min": 30
+                  },
+                  "requiredEquipment": [
+                    "dumbbells"
+                  ],
+                  "role": "accessory_compound"
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "dumbbells",
+                    "kettlebell"
+                  ],
+                  "preservesIntent": [
+                    "isometric_grip:forearm",
+                    "isometric_grip:abdominals"
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                }
+              },
+              "secondaryMuscles": [
+                "erector_spinae",
+                "gluteus_medius"
+              ],
+              "setupCues": [
+                "Elige una mancuerna pesada y colócala a un lado del cuerpo.",
+                "Agárrala por la empuñadura y ponte de pie con el peso colgando junto al muslo, sin que toque la pierna.",
+                "Saca el pecho, nivela los hombros y mira al frente."
+              ],
+              "setupTimeSeconds": 20,
+              "ssc": 0.2,
+              "stabilizerMuscles": [
+                "trapezius",
+                "core"
+              ],
+              "technicalDifficulty": 4.5,
+              "ttc": 1.5
+            },
+            "selectedOptions": {
+              "implement": "dumbbells"
+            }
+          },
+          {
+            "displaySummary": "Kettlebell",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "editorial:configuration:suitcase_carry__kettlebell",
+                "plan:wizard-entreno-v2-ol1-20261007#suitcase_carry"
+              ],
+              "reviewStatus": "APPROVED"
+            },
+            "id": "suitcase_carry__kettlebell",
+            "profile": {
+              "articulationType": "MULTIARTICULAR",
+              "automationEligible": true,
+              "axialLoadFactor": 0.3,
+              "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-09-29-a",
+              "cnc": 1.5,
+              "description": "Con una kettlebell, el asa gruesa se sostiene con toda la mano y la masa cuelga por debajo del agarre, de modo que la pesa roza el muslo si el paso es largo. La carga se concentra en un único punto bajo la mano, lo que cambia el tacto del agarre.",
+              "efc": 2.0,
+              "equipmentId": "kettlebell",
+              "executionCues": [
+                "Camina en línea recta con pasos cortos y el tronco recto, sin dejar que el peso te incline hacia su lado.",
+                "Aprieta el abdomen y mantén la pelvis nivelada con cada paso.",
+                "Da la vuelta al final y cambia la pesa de mano para repetir el mismo recorrido."
+              ],
+              "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Sostén isométrico de la pesa con la mano"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Resistencia a la flexión lateral hacia la pesa"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad lateral de la cadera en apoyo",
+                    "Extensión y flexión de la cadera al caminar"
+                  ],
+                  "jointId": "cadera",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Sostén del brazo colgando con la carga"
+                  ],
+                  "jointId": "glenohumeral",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén de la escápula bajo la carga"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "UNILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "isometric_grip",
+              "performanceProfileId": "suitcase_carry__kettlebell__paseo_del_maletin",
+              "primaryMuscles": [
+                "forearm",
+                "abdominals"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Sostén isométrico de la pesa con la mano",
+                    "Resistencia a la flexión lateral hacia la pesa",
+                    "Estabilidad lateral de la cadera en apoyo",
+                    "Extensión y flexión de la cadera al caminar",
+                    "Sostén del brazo colgando con la carga",
+                    "Sostén de la escápula bajo la carga"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Sostén isométrico de la pesa con la mano"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Resistencia a la flexión lateral hacia la pesa"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad lateral de la cadera en apoyo",
+                        "Extensión y flexión de la cadera al caminar"
+                      ],
+                      "jointId": "cadera",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del brazo colgando con la carga"
+                      ],
+                      "jointId": "glenohumeral",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén de la escápula bajo la carga"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "primaryMuscles": [
+                    "forearm",
+                    "abdominals"
+                  ],
+                  "secondaryMuscles": [
+                    "erector_spinae",
+                    "gluteus_medius"
+                  ],
+                  "stabilizerMuscles": [
+                    "trapezius",
+                    "core"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "kettlebell",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "UNILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "isometric_grip",
+                  "relevantJoints": [
+                    "muñeca",
+                    "columna-lumbar",
+                    "cadera",
+                    "glenohumeral",
+                    "escapulotoracica"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "display": {
+                  "displayName": "Paseo del Maletín",
+                  "displaySummary": "Kettlebell",
+                  "selectedOptions": {
+                    "implement": "kettlebell"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.3,
+                  "cnc": 1.5,
+                  "efc": 2.0,
+                  "ssc": 0.2,
+                  "technicalDifficulty": 4.5,
+                  "ttc": 1.5
+                },
+                "identity": {
+                  "canonicalName": "Paseo del Maletín",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
+                  "configurationId": "suitcase_carry__kettlebell",
+                  "definitionId": "suitcase_carry",
+                  "familyId": "lower_isometric_grip",
+                  "kind": "PARENT",
+                  "performanceProfileId": "suitcase_carry__kettlebell__paseo_del_maletin",
+                  "searchTerms": [
+                    "paseo del maletin",
+                    "suitcase carry",
+                    "paseo con una mancuerna",
+                    "acarreo con una mano",
+                    "paseo a una mano",
+                    "caminata con maleta",
+                    "strongman"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 90,
+                    "min": 30
+                  },
+                  "requiredEquipment": [
+                    "kettlebell"
+                  ],
+                  "role": "accessory_compound"
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "dumbbells",
+                    "kettlebell"
+                  ],
+                  "preservesIntent": [
+                    "isometric_grip:forearm",
+                    "isometric_grip:abdominals"
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                }
+              },
+              "secondaryMuscles": [
+                "erector_spinae",
+                "gluteus_medius"
+              ],
+              "setupCues": [
+                "Elige una kettlebell pesada y colócala a un lado del cuerpo.",
+                "Agárrala por el asa con toda la mano y ponte de pie con la pesa colgando junto al muslo, sin que roce la pierna.",
+                "Saca el pecho, nivela los hombros y mira al frente."
+              ],
+              "setupTimeSeconds": 20,
+              "ssc": 0.2,
+              "stabilizerMuscles": [
+                "trapezius",
+                "core"
+              ],
+              "technicalDifficulty": 4.5,
+              "ttc": 1.5
+            },
+            "selectedOptions": {
+              "implement": "kettlebell"
+            }
+          }
+        ],
+        "defaultConfigurationId": "suitcase_carry__dumbbells",
+        "description": "El Paseo del Maletín (suitcase carry) es una marcha con una sola pesa colgando de una mano, como quien lleva una maleta: el cuerpo avanza erguido mientras la carga intenta doblarlo hacia su lado. El antebrazo sostiene el peso y los oblicuos y los erectores del lado contrario frenan la inclinación, con el glúteo medio manteniendo la pelvis nivelada y el trapecio sujetando el hombro. Se hace por distancia o por tiempo y se repite con la otra mano. A diferencia del paseo del granjero, no hay un peso al otro lado que compense, así que la estabilidad la pone el propio tronco.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:suitcase_carry",
+            "plan:wizard-entreno-v2-ol1-20261007#suitcase_carry"
+          ],
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "lower_isometric_grip",
+        "id": "suitcase_carry",
+        "kind": "PARENT",
+        "optionAxes": [
+          "implement"
+        ],
+        "searchTerms": [
+          "paseo del maletin",
+          "suitcase carry",
+          "paseo con una mancuerna",
+          "acarreo con una mano",
+          "paseo a una mano",
+          "caminata con maleta",
+          "strongman"
+        ]
       }
     ],
     "evidence": {

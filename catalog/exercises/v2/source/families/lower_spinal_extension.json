@@ -713,6 +713,256 @@
           "zercher back extension",
           "hiperextension 45 zercher"
         ]
+      },
+      {
+        "canonicalName": "Paseo Zercher",
+        "configurations": [
+          {
+            "displaySummary": "Barra",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "editorial:configuration:zercher_carry__barbell",
+                "plan:wizard-entreno-v2-ol1-20261007#zercher_carry"
+              ],
+              "reviewStatus": "APPROVED"
+            },
+            "id": "zercher_carry__barbell",
+            "profile": {
+              "articulationType": "MULTIARTICULAR",
+              "automationEligible": true,
+              "axialLoadFactor": 0.4,
+              "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-09-29-a",
+              "cnc": 2.2,
+              "description": "La barra descansa en el pliegue de ambos codos, con las manos juntas o cruzadas sobre ella, y se camina sin soltarla ni dejar que ruede hacia las muñecas. Es un acarreo con la carga por delante del tronco, que obliga a llevar los codos pegados al cuerpo.",
+              "efc": 2.8,
+              "equipmentId": "barbell",
+              "executionCues": [
+                "Camina con pasos cortos y regulares, manteniendo el tórax abierto y la vista adelante.",
+                "Mantén los codos apretados contra el cuerpo para que la barra no ruede hacia las manos.",
+                "Sostén la tensión del abdomen y no dejes que el tronco se incline hacia delante.",
+                "Al terminar, agáchate con la espalda recta y deja la barra en el suelo."
+              ],
+              "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Resistencia a la flexión del tronco bajo la carga anterior"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Posición erguida de la columna torácica"
+                  ],
+                  "jointId": "columna-toracica",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén del codo flexionado bajo la barra"
+                  ],
+                  "jointId": "codo",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén de la escápula hacia atrás"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Transmisión de la carga entre el tronco y las piernas"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "spinal_extension",
+              "performanceProfileId": "zercher_carry__barbell__paseo_zercher",
+              "primaryMuscles": [
+                "erector_spinae"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Resistencia a la flexión del tronco bajo la carga anterior",
+                    "Posición erguida de la columna torácica",
+                    "Sostén del codo flexionado bajo la barra",
+                    "Sostén de la escápula hacia atrás",
+                    "Transmisión de la carga entre el tronco y las piernas"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Resistencia a la flexión del tronco bajo la carga anterior"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Posición erguida de la columna torácica"
+                      ],
+                      "jointId": "columna-toracica",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del codo flexionado bajo la barra"
+                      ],
+                      "jointId": "codo",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén de la escápula hacia atrás"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Transmisión de la carga entre el tronco y las piernas"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "primaryMuscles": [
+                    "erector_spinae"
+                  ],
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
+                    "core",
+                    "trapezius",
+                    "biceps"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "barbell",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "spinal_extension",
+                  "relevantJoints": [
+                    "columna-lumbar",
+                    "columna-toracica",
+                    "codo",
+                    "escapulotoracica",
+                    "sacroiliaca"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "display": {
+                  "displayName": "Paseo Zercher",
+                  "displaySummary": "Barra",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.4,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 5.0,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Paseo Zercher",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
+                  "configurationId": "zercher_carry__barbell",
+                  "definitionId": "zercher_carry",
+                  "familyId": "lower_spinal_extension",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "zercher_carry__barbell__paseo_zercher",
+                  "searchTerms": [
+                    "paseo zercher",
+                    "zercher carry",
+                    "acarreo zercher",
+                    "caminata zercher",
+                    "paseo con la barra en los codos",
+                    "paseo con la barra en el pliegue del codo",
+                    "strongman"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "requiredEquipment": [
+                    "barbell"
+                  ],
+                  "role": "accessory_compound"
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell"
+                  ],
+                  "preservesIntent": [
+                    "spinal_extension:erector_spinae"
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                }
+              },
+              "secondaryMuscles": [],
+              "setupCues": [
+                "Con la barra en el suelo, baja con la espalda recta y mete los pliegues de los codos bajo ella.",
+                "Junta las manos delante del pecho sin agarrar la barra y pégala al abdomen.",
+                "Levántate con la barra apoyada en los codos, saca el pecho y mira al frente."
+              ],
+              "setupTimeSeconds": 45,
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "core",
+                "trapezius",
+                "biceps"
+              ],
+              "technicalDifficulty": 5.0,
+              "ttc": 2.0
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "zercher_carry__barbell",
+        "description": "El Paseo Zercher (Zercher carry) es una marcha corta con la barra apoyada en el pliegue de los codos, delante del cuerpo y con las manos juntas sin agarrarla. La carga anterior tira del tronco hacia delante en cada paso y los erectores de la columna lo sostienen erguido, con el abdomen firme, el trapecio llevando los hombros hacia atrás y los bíceps manteniendo los codos flexionados bajo la barra. Es un ejercicio de strongman y de fuerza general que se mide en distancia o en tiempo. Se hace con pasos cortos y el pecho alto, y empieza por levantar la barra del suelo hasta los codos.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:zercher_carry",
+            "plan:wizard-entreno-v2-ol1-20261007#zercher_carry"
+          ],
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "lower_spinal_extension",
+        "id": "zercher_carry",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "paseo zercher",
+          "zercher carry",
+          "acarreo zercher",
+          "caminata zercher",
+          "paseo con la barra en los codos",
+          "paseo con la barra en el pliegue del codo",
+          "strongman"
+        ]
       }
     ],
     "evidence": {

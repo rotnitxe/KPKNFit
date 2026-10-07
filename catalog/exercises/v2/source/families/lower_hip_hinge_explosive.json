@@ -586,6 +586,2601 @@
         "searchTerms": [
           "swing con kettlebell a una mano"
         ]
+      },
+      {
+        "canonicalName": "Cargada de Potencia",
+        "configurations": [
+          {
+            "displaySummary": "Barra",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "editorial:configuration:power_clean__barbell",
+                "plan:wizard-entreno-v2-ol1-20261007#power_clean"
+              ],
+              "reviewStatus": "APPROVED"
+            },
+            "id": "power_clean__barbell",
+            "profile": {
+              "articulationType": "MULTIARTICULAR",
+              "automationEligible": true,
+              "axialLoadFactor": 0.7,
+              "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-09-29-a",
+              "cnc": 2.2,
+              "description": "Con la barra en el suelo se hace el tirón entero: la subida hasta la rodilla, el paso de las rodillas bajo la barra y la extensión final. La recepción sobre los hombros queda a un cuarto de sentadilla, así que la barra debe subir más alto que en la versión completa.",
+              "efc": 2.8,
+              "equipmentId": "barbell",
+              "executionCues": [
+                "Empuja el suelo con las piernas y sube la barra pegada al cuerpo hasta pasar las rodillas.",
+                "Con la barra en lo alto del muslo, estira cadera, rodillas y tobillos de golpe y encoge los hombros.",
+                "Lleva los codos arriba y adelante por debajo de la barra y recíbela sobre los hombros, en una sentadilla corta.",
+                "Ponte de pie con la barra apoyada y devuélvela al suelo con calma."
+              ],
+              "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Extensión explosiva de la cadera",
+                    "Flexión de la cadera al recibir la barra"
+                  ],
+                  "jointId": "cadera",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Extensión de la rodilla en la segunda tracción",
+                    "Flexión de la rodilla al recibir la barra"
+                  ],
+                  "jointId": "rodilla",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión plantar al final de la extensión"
+                  ],
+                  "jointId": "tobillo",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Posición neutra bajo la barra"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Elevación y adelantamiento del hombro al girar bajo la barra",
+                    "Sostén de la barra sobre el hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Elevación de la escápula en el encogimiento"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Flexión del codo al girar bajo la barra"
+                  ],
+                  "jointId": "codo",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Sostén de la barra en la mano",
+                    "Extensión de la muñeca en la recepción frontal"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "hip_hinge_explosive",
+              "performanceProfileId": "power_clean__barbell__cargada_de_potencia",
+              "primaryMuscles": [
+                "gluteus_maximus",
+                "quadriceps"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Extensión explosiva de la cadera",
+                    "Flexión de la cadera al recibir la barra",
+                    "Extensión de la rodilla en la segunda tracción",
+                    "Flexión de la rodilla al recibir la barra",
+                    "Flexión plantar al final de la extensión",
+                    "Posición neutra bajo la barra",
+                    "Elevación y adelantamiento del hombro al girar bajo la barra",
+                    "Sostén de la barra sobre el hombro",
+                    "Elevación de la escápula en el encogimiento",
+                    "Flexión del codo al girar bajo la barra",
+                    "Sostén de la barra en la mano",
+                    "Extensión de la muñeca en la recepción frontal"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Extensión explosiva de la cadera",
+                        "Flexión de la cadera al recibir la barra"
+                      ],
+                      "jointId": "cadera",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión de la rodilla en la segunda tracción",
+                        "Flexión de la rodilla al recibir la barra"
+                      ],
+                      "jointId": "rodilla",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión plantar al final de la extensión"
+                      ],
+                      "jointId": "tobillo",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Posición neutra bajo la barra"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Elevación y adelantamiento del hombro al girar bajo la barra",
+                        "Sostén de la barra sobre el hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Elevación de la escápula en el encogimiento"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión del codo al girar bajo la barra"
+                      ],
+                      "jointId": "codo",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Sostén de la barra en la mano",
+                        "Extensión de la muñeca en la recepción frontal"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "primaryMuscles": [
+                    "gluteus_maximus",
+                    "quadriceps"
+                  ],
+                  "secondaryMuscles": [
+                    "hamstrings",
+                    "trapezius",
+                    "calves"
+                  ],
+                  "stabilizerMuscles": [
+                    "deltoid",
+                    "biceps",
+                    "erector_spinae",
+                    "core",
+                    "forearm"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "barbell",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "hip_hinge_explosive",
+                  "relevantJoints": [
+                    "cadera",
+                    "rodilla",
+                    "tobillo",
+                    "columna-lumbar",
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "muñeca"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "display": {
+                  "displayName": "Cargada de Potencia",
+                  "displaySummary": "Barra",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.7,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 6.5,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Cargada de Potencia",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
+                  "configurationId": "power_clean__barbell",
+                  "definitionId": "power_clean",
+                  "familyId": "lower_hip_hinge_explosive",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "power_clean__barbell__cargada_de_potencia",
+                  "searchTerms": [
+                    "cargada de potencia",
+                    "power clean",
+                    "cargada",
+                    "clean",
+                    "cargada desde el suelo",
+                    "cargada olimpica",
+                    "levantamiento olimpico",
+                    "halterofilia"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 150,
+                    "min": 90
+                  },
+                  "requiredEquipment": [
+                    "barbell"
+                  ],
+                  "role": "accessory_compound"
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell"
+                  ],
+                  "preservesIntent": [
+                    "hip_hinge_explosive:gluteus_maximus",
+                    "hip_hinge_explosive:quadriceps"
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                }
+              },
+              "secondaryMuscles": [
+                "hamstrings",
+                "trapezius",
+                "calves"
+              ],
+              "setupCues": [
+                "Coloca los pies a la anchura de las caderas, con la barra sobre el centro del pie y rozando las espinillas.",
+                "Agarra la barra por fuera de las piernas, con los brazos estirados y los codos girados hacia fuera.",
+                "Lleva los hombros por delante de la barra, saca el pecho y mira al frente."
+              ],
+              "setupTimeSeconds": 45,
+              "ssc": 0.5,
+              "stabilizerMuscles": [
+                "deltoid",
+                "biceps",
+                "erector_spinae",
+                "core",
+                "forearm"
+              ],
+              "technicalDifficulty": 6.5,
+              "ttc": 2.0
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "power_clean__barbell",
+        "description": "La Cargada de Potencia (power clean) es un levantamiento olímpico explosivo: la barra viaja del suelo a los hombros en un solo gesto y se recibe en una sentadilla corta, con los muslos por encima de la horizontal. El glúteo mayor y el cuádriceps empujan el suelo, los isquiosurales y los gemelos completan la extensión y el trapecio encoge los hombros justo antes de que los codos giren bajo la barra. Los brazos van largos hasta el último instante y la barra queda pegada al cuerpo todo el recorrido. Es la manera habitual de entrenar la potencia de salto y de carrera sin la recepción profunda de la cargada completa, y pide técnica, discos que se puedan soltar y un suelo preparado para ello.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:power_clean",
+            "plan:wizard-entreno-v2-ol1-20261007#power_clean"
+          ],
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "lower_hip_hinge_explosive",
+        "id": "power_clean",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "cargada de potencia",
+          "power clean",
+          "cargada",
+          "clean",
+          "cargada desde el suelo",
+          "cargada olimpica",
+          "levantamiento olimpico",
+          "halterofilia"
+        ]
+      },
+      {
+        "canonicalName": "Cargada de Potencia desde Colgado",
+        "configurations": [
+          {
+            "displaySummary": "Barra",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "editorial:configuration:hang_power_clean__barbell",
+                "plan:wizard-entreno-v2-ol1-20261007#hang_power_clean"
+              ],
+              "reviewStatus": "APPROVED"
+            },
+            "id": "hang_power_clean__barbell",
+            "profile": {
+              "articulationType": "MULTIARTICULAR",
+              "automationEligible": true,
+              "axialLoadFactor": 0.7,
+              "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-09-29-a",
+              "cnc": 2.2,
+              "description": "La barra parte de la mitad del muslo, con el tronco inclinado y las rodillas algo flexionadas, así que todo el trabajo se concentra en la segunda tracción. Sin el despegue del suelo, cada repetición pide menos preparación y se puede encadenar a más velocidad.",
+              "efc": 2.8,
+              "equipmentId": "barbell",
+              "executionCues": [
+                "Empuja con las piernas y lleva la cadera adelante para lanzar la barra rozando el muslo.",
+                "Encoge los hombros al llegar arriba, con los brazos todavía estirados.",
+                "Gira los codos bajo la barra y recíbela sobre los hombros con una sentadilla corta.",
+                "Levántate y deja que la barra vuelva al muslo, lista para la siguiente repetición."
+              ],
+              "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Extensión explosiva de la cadera desde la posición colgada",
+                    "Flexión de la cadera al recibir la barra"
+                  ],
+                  "jointId": "cadera",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Extensión de la rodilla durante el empuje",
+                    "Flexión de la rodilla al recibir la barra"
+                  ],
+                  "jointId": "rodilla",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión plantar al final del empuje"
+                  ],
+                  "jointId": "tobillo",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Mantenimiento de la columna neutra con el tronco inclinado"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Elevación y adelantamiento del hombro bajo la barra",
+                    "Sostén de la barra sobre el hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Elevación de la escápula en el encogimiento final"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Flexión del codo al girar bajo la barra"
+                  ],
+                  "jointId": "codo",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Sostén de la barra colgando de la mano",
+                    "Extensión de la muñeca en la recepción frontal"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "hip_hinge_explosive",
+              "performanceProfileId": "hang_power_clean__barbell__cargada_de_potencia_desde_colgado",
+              "primaryMuscles": [
+                "gluteus_maximus",
+                "quadriceps"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Extensión explosiva de la cadera desde la posición colgada",
+                    "Flexión de la cadera al recibir la barra",
+                    "Extensión de la rodilla durante el empuje",
+                    "Flexión de la rodilla al recibir la barra",
+                    "Flexión plantar al final del empuje",
+                    "Mantenimiento de la columna neutra con el tronco inclinado",
+                    "Elevación y adelantamiento del hombro bajo la barra",
+                    "Sostén de la barra sobre el hombro",
+                    "Elevación de la escápula en el encogimiento final",
+                    "Flexión del codo al girar bajo la barra",
+                    "Sostén de la barra colgando de la mano",
+                    "Extensión de la muñeca en la recepción frontal"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Extensión explosiva de la cadera desde la posición colgada",
+                        "Flexión de la cadera al recibir la barra"
+                      ],
+                      "jointId": "cadera",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión de la rodilla durante el empuje",
+                        "Flexión de la rodilla al recibir la barra"
+                      ],
+                      "jointId": "rodilla",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión plantar al final del empuje"
+                      ],
+                      "jointId": "tobillo",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Mantenimiento de la columna neutra con el tronco inclinado"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Elevación y adelantamiento del hombro bajo la barra",
+                        "Sostén de la barra sobre el hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Elevación de la escápula en el encogimiento final"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión del codo al girar bajo la barra"
+                      ],
+                      "jointId": "codo",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Sostén de la barra colgando de la mano",
+                        "Extensión de la muñeca en la recepción frontal"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "primaryMuscles": [
+                    "gluteus_maximus",
+                    "quadriceps"
+                  ],
+                  "secondaryMuscles": [
+                    "hamstrings",
+                    "trapezius",
+                    "calves"
+                  ],
+                  "stabilizerMuscles": [
+                    "deltoid",
+                    "biceps",
+                    "erector_spinae",
+                    "core",
+                    "forearm"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "barbell",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "hip_hinge_explosive",
+                  "relevantJoints": [
+                    "cadera",
+                    "rodilla",
+                    "tobillo",
+                    "columna-lumbar",
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "muñeca"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "display": {
+                  "displayName": "Cargada de Potencia desde Colgado",
+                  "displaySummary": "Barra",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.7,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 6.0,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Cargada de Potencia desde Colgado",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
+                  "configurationId": "hang_power_clean__barbell",
+                  "definitionId": "hang_power_clean",
+                  "familyId": "lower_hip_hinge_explosive",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "hang_power_clean__barbell__cargada_de_potencia_desde_colgado",
+                  "searchTerms": [
+                    "cargada de potencia desde colgado",
+                    "cargada colgada",
+                    "hang power clean",
+                    "hang clean",
+                    "cargada desde el muslo",
+                    "cargada desde las rodillas",
+                    "cargada olimpica",
+                    "halterofilia"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 150,
+                    "min": 90
+                  },
+                  "requiredEquipment": [
+                    "barbell"
+                  ],
+                  "role": "accessory_compound"
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell"
+                  ],
+                  "preservesIntent": [
+                    "hip_hinge_explosive:gluteus_maximus",
+                    "hip_hinge_explosive:quadriceps"
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                }
+              },
+              "secondaryMuscles": [
+                "hamstrings",
+                "trapezius",
+                "calves"
+              ],
+              "setupCues": [
+                "Levanta la barra del suelo hasta quedar de pie y déjala colgando a media altura del muslo.",
+                "Retrasa la cadera, flexiona un poco las rodillas y adelanta el pecho sobre la barra.",
+                "Deja colgar los brazos sin doblarlos, con los codos hacia los lados y la vista al frente."
+              ],
+              "setupTimeSeconds": 45,
+              "ssc": 0.5,
+              "stabilizerMuscles": [
+                "deltoid",
+                "biceps",
+                "erector_spinae",
+                "core",
+                "forearm"
+              ],
+              "technicalDifficulty": 6.0,
+              "ttc": 2.0
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "hang_power_clean__barbell",
+        "description": "La Cargada de Potencia desde Colgado, conocida como hang power clean, es la cargada que arranca ya de pie, con la barra colgando a media altura del muslo y las caderas retrasadas. Desde esa posición, un empuje corto de piernas y cadera con un encogimiento de hombros lanza la barra hasta el pecho, y los codos giran bajo ella para recibirla sobre los hombros en una sentadilla corta. Trabaja sobre todo el glúteo mayor y el cuádriceps, con los isquiosurales, el trapecio y los gemelos de apoyo. Como el gesto parte del muslo y no del suelo, su ejecución es más simple y por eso se usa tanto como entrada a los levantamientos olímpicos y como ejercicio de potencia con cargas moderadas.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:hang_power_clean",
+            "plan:wizard-entreno-v2-ol1-20261007#hang_power_clean"
+          ],
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "lower_hip_hinge_explosive",
+        "id": "hang_power_clean",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "cargada de potencia desde colgado",
+          "cargada colgada",
+          "hang power clean",
+          "hang clean",
+          "cargada desde el muslo",
+          "cargada desde las rodillas",
+          "cargada olimpica",
+          "halterofilia"
+        ]
+      },
+      {
+        "canonicalName": "Cargada Completa",
+        "configurations": [
+          {
+            "displaySummary": "Barra",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "editorial:configuration:squat_clean__barbell",
+                "plan:wizard-entreno-v2-ol1-20261007#squat_clean"
+              ],
+              "reviewStatus": "APPROVED"
+            },
+            "id": "squat_clean__barbell",
+            "profile": {
+              "articulationType": "MULTIARTICULAR",
+              "automationEligible": true,
+              "axialLoadFactor": 0.7,
+              "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-09-29-a",
+              "cnc": 2.2,
+              "description": "La barra se recibe en el fondo de la sentadilla frontal, con la cadera bajo las rodillas y los codos altos, y de ahí hay que levantarse con la carga. Esa recepción profunda trabaja las rodillas más que la de potencia y obliga a tener movilidad suficiente para no perder la posición.",
+              "efc": 2.8,
+              "equipmentId": "barbell",
+              "executionCues": [
+                "Empuja el suelo y mantén los hombros sobre la barra mientras sube hasta las rodillas.",
+                "Salta con la extensión de las tres articulaciones y sube los hombros con los codos sin doblar.",
+                "Pasa los codos bajo la barra y desciende a la sentadilla mientras la recibes sobre los hombros.",
+                "Sal del fondo empujando con las piernas y los codos altos hasta quedar de pie, y devuelve la barra al suelo."
+              ],
+              "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Extensión explosiva de la cadera en el tirón",
+                    "Flexión profunda y extensión de la cadera en la sentadilla"
+                  ],
+                  "jointId": "cadera",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Extensión de la rodilla en el tirón",
+                    "Flexión profunda y extensión al salir del fondo"
+                  ],
+                  "jointId": "rodilla",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión plantar al final del tirón",
+                    "Dorsiflexión en el fondo de la sentadilla"
+                  ],
+                  "jointId": "tobillo",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Posición neutra bajo la barra en el tirón y la salida"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Elevación y adelantamiento del hombro bajo la barra",
+                    "Sostén de la barra sobre el hombro en el fondo"
+                  ],
+                  "jointId": "glenohumeral",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Elevación de la escápula en el encogimiento"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Flexión del codo al pasar bajo la barra",
+                    "Sostén del codo flexionado en el rack frontal"
+                  ],
+                  "jointId": "codo",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Sostén de la barra en la mano durante el tirón",
+                    "Extensión de la muñeca en el rack frontal"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "hip_hinge_explosive",
+              "performanceProfileId": "squat_clean__barbell__cargada_completa",
+              "primaryMuscles": [
+                "quadriceps",
+                "gluteus_maximus"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Extensión explosiva de la cadera en el tirón",
+                    "Flexión profunda y extensión de la cadera en la sentadilla",
+                    "Extensión de la rodilla en el tirón",
+                    "Flexión profunda y extensión al salir del fondo",
+                    "Flexión plantar al final del tirón",
+                    "Dorsiflexión en el fondo de la sentadilla",
+                    "Posición neutra bajo la barra en el tirón y la salida",
+                    "Elevación y adelantamiento del hombro bajo la barra",
+                    "Sostén de la barra sobre el hombro en el fondo",
+                    "Elevación de la escápula en el encogimiento",
+                    "Flexión del codo al pasar bajo la barra",
+                    "Sostén del codo flexionado en el rack frontal",
+                    "Sostén de la barra en la mano durante el tirón",
+                    "Extensión de la muñeca en el rack frontal"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Extensión explosiva de la cadera en el tirón",
+                        "Flexión profunda y extensión de la cadera en la sentadilla"
+                      ],
+                      "jointId": "cadera",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión de la rodilla en el tirón",
+                        "Flexión profunda y extensión al salir del fondo"
+                      ],
+                      "jointId": "rodilla",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión plantar al final del tirón",
+                        "Dorsiflexión en el fondo de la sentadilla"
+                      ],
+                      "jointId": "tobillo",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Posición neutra bajo la barra en el tirón y la salida"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Elevación y adelantamiento del hombro bajo la barra",
+                        "Sostén de la barra sobre el hombro en el fondo"
+                      ],
+                      "jointId": "glenohumeral",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Elevación de la escápula en el encogimiento"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión del codo al pasar bajo la barra",
+                        "Sostén del codo flexionado en el rack frontal"
+                      ],
+                      "jointId": "codo",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Sostén de la barra en la mano durante el tirón",
+                        "Extensión de la muñeca en el rack frontal"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "primaryMuscles": [
+                    "quadriceps",
+                    "gluteus_maximus"
+                  ],
+                  "secondaryMuscles": [
+                    "hamstrings",
+                    "adductors",
+                    "trapezius",
+                    "calves"
+                  ],
+                  "stabilizerMuscles": [
+                    "deltoid",
+                    "biceps",
+                    "erector_spinae",
+                    "core",
+                    "forearm"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "barbell",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "hip_hinge_explosive",
+                  "relevantJoints": [
+                    "cadera",
+                    "rodilla",
+                    "tobillo",
+                    "columna-lumbar",
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "muñeca"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "display": {
+                  "displayName": "Cargada Completa",
+                  "displaySummary": "Barra",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.7,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 7.0,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Cargada Completa",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
+                  "configurationId": "squat_clean__barbell",
+                  "definitionId": "squat_clean",
+                  "familyId": "lower_hip_hinge_explosive",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "squat_clean__barbell__cargada_completa",
+                  "searchTerms": [
+                    "cargada completa",
+                    "squat clean",
+                    "cargada en sentadilla",
+                    "cargada en cuclillas",
+                    "cargada profunda",
+                    "clean",
+                    "cargada olimpica",
+                    "halterofilia"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 150,
+                    "min": 90
+                  },
+                  "requiredEquipment": [
+                    "barbell"
+                  ],
+                  "role": "accessory_compound"
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell"
+                  ],
+                  "preservesIntent": [
+                    "hip_hinge_explosive:quadriceps",
+                    "hip_hinge_explosive:gluteus_maximus"
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                }
+              },
+              "secondaryMuscles": [
+                "hamstrings",
+                "adductors",
+                "trapezius",
+                "calves"
+              ],
+              "setupCues": [
+                "Pon los pies a la anchura de las caderas con la barra sobre el centro del pie, y agárrala por fuera de las rodillas.",
+                "Baja la cadera hasta que las espinillas rocen la barra, con los brazos rectos y la columna firme.",
+                "Respira hondo y deja el tronco rígido antes de despegar la barra."
+              ],
+              "setupTimeSeconds": 45,
+              "ssc": 0.5,
+              "stabilizerMuscles": [
+                "deltoid",
+                "biceps",
+                "erector_spinae",
+                "core",
+                "forearm"
+              ],
+              "technicalDifficulty": 7.0,
+              "ttc": 2.0
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "squat_clean__barbell",
+        "description": "La Cargada Completa (squat clean) lleva la barra del suelo a los hombros y la recibe en el fondo de una sentadilla frontal, con los muslos por debajo de la horizontal, para levantarse después con ella. Es la cargada de competición y la base de la cargada de potencia y de la cargada desde colgado: el mismo tirón explosivo, pero con una recepción profunda en la que el cuádriceps frena la barra y vuelve a empujar, y el glúteo mayor y los aductores sacan del fondo. Los isquiosurales, el trapecio y los gemelos acompañan la extensión del tirón. Pide tobillos, caderas y muñecas con buen rango para sostener el rack frontal en el fondo, y es de los ejercicios más técnicos de todo el catálogo.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:squat_clean",
+            "plan:wizard-entreno-v2-ol1-20261007#squat_clean"
+          ],
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "lower_hip_hinge_explosive",
+        "id": "squat_clean",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "cargada completa",
+          "squat clean",
+          "cargada en sentadilla",
+          "cargada en cuclillas",
+          "cargada profunda",
+          "clean",
+          "cargada olimpica",
+          "halterofilia"
+        ]
+      },
+      {
+        "canonicalName": "Arranque de Potencia",
+        "configurations": [
+          {
+            "displaySummary": "Barra",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "editorial:configuration:power_snatch__barbell",
+                "plan:wizard-entreno-v2-ol1-20261007#power_snatch"
+              ],
+              "reviewStatus": "APPROVED"
+            },
+            "id": "power_snatch__barbell",
+            "profile": {
+              "articulationType": "MULTIARTICULAR",
+              "automationEligible": true,
+              "axialLoadFactor": 0.7,
+              "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-09-29-a",
+              "cnc": 2.2,
+              "description": "Con un agarre ancho, la barra recorre todo el camino del suelo a la cabeza sin pasar por los hombros y se recibe sobre el centro del pie, a un cuarto de sentadilla. El agarre y el recorrido largo hacen que dependa de la velocidad más que de la carga.",
+              "efc": 2.8,
+              "equipmentId": "barbell",
+              "executionCues": [
+                "Despega la barra con las piernas y llévala pegada al cuerpo hasta lo alto del muslo.",
+                "Extiende cadera, rodillas y tobillos con fuerza y sube los hombros mientras la barra sigue rozando el cuerpo.",
+                "Pasa bajo la barra con los codos bloqueados y recíbela sobre la cabeza, encima del centro del pie, en una sentadilla corta.",
+                "Empuja la barra hacia el techo, ponte de pie y bájala con control hasta el suelo."
+              ],
+              "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Extensión explosiva de la cadera",
+                    "Flexión de la cadera al recibir la barra"
+                  ],
+                  "jointId": "cadera",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Extensión de la rodilla en la aceleración",
+                    "Flexión de la rodilla al recibir la barra"
+                  ],
+                  "jointId": "rodilla",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión plantar al final de la aceleración"
+                  ],
+                  "jointId": "tobillo",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Posición plana de la columna durante el tirón"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Elevación del brazo sobre la cabeza al recibir",
+                    "Sostén de la barra en rotación externa del hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Elevación y rotación superior de la escápula"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Extensión y bloqueo del codo sobre la cabeza"
+                  ],
+                  "jointId": "codo",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Sostén de la barra en la mano",
+                    "Extensión de la muñeca con la barra sobre la cabeza"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "hip_hinge_explosive",
+              "performanceProfileId": "power_snatch__barbell__arranque_de_potencia",
+              "primaryMuscles": [
+                "gluteus_maximus",
+                "quadriceps"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Extensión explosiva de la cadera",
+                    "Flexión de la cadera al recibir la barra",
+                    "Extensión de la rodilla en la aceleración",
+                    "Flexión de la rodilla al recibir la barra",
+                    "Flexión plantar al final de la aceleración",
+                    "Posición plana de la columna durante el tirón",
+                    "Elevación del brazo sobre la cabeza al recibir",
+                    "Sostén de la barra en rotación externa del hombro",
+                    "Elevación y rotación superior de la escápula",
+                    "Extensión y bloqueo del codo sobre la cabeza",
+                    "Sostén de la barra en la mano",
+                    "Extensión de la muñeca con la barra sobre la cabeza"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Extensión explosiva de la cadera",
+                        "Flexión de la cadera al recibir la barra"
+                      ],
+                      "jointId": "cadera",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión de la rodilla en la aceleración",
+                        "Flexión de la rodilla al recibir la barra"
+                      ],
+                      "jointId": "rodilla",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión plantar al final de la aceleración"
+                      ],
+                      "jointId": "tobillo",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Posición plana de la columna durante el tirón"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Elevación del brazo sobre la cabeza al recibir",
+                        "Sostén de la barra en rotación externa del hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Elevación y rotación superior de la escápula"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión y bloqueo del codo sobre la cabeza"
+                      ],
+                      "jointId": "codo",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Sostén de la barra en la mano",
+                        "Extensión de la muñeca con la barra sobre la cabeza"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "primaryMuscles": [
+                    "gluteus_maximus",
+                    "quadriceps"
+                  ],
+                  "secondaryMuscles": [
+                    "hamstrings",
+                    "trapezius",
+                    "deltoid",
+                    "triceps",
+                    "calves"
+                  ],
+                  "stabilizerMuscles": [
+                    "erector_spinae",
+                    "core",
+                    "forearm"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "barbell",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "hip_hinge_explosive",
+                  "relevantJoints": [
+                    "cadera",
+                    "rodilla",
+                    "tobillo",
+                    "columna-lumbar",
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "muñeca"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "display": {
+                  "displayName": "Arranque de Potencia",
+                  "displaySummary": "Barra",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.7,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 6.8,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Arranque de Potencia",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
+                  "configurationId": "power_snatch__barbell",
+                  "definitionId": "power_snatch",
+                  "familyId": "lower_hip_hinge_explosive",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "power_snatch__barbell__arranque_de_potencia",
+                  "searchTerms": [
+                    "arranque de potencia",
+                    "power snatch",
+                    "arranque",
+                    "snatch",
+                    "arrancada",
+                    "arranque desde el suelo",
+                    "levantamiento olimpico",
+                    "halterofilia"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 150,
+                    "min": 90
+                  },
+                  "requiredEquipment": [
+                    "barbell"
+                  ],
+                  "role": "accessory_compound"
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell"
+                  ],
+                  "preservesIntent": [
+                    "hip_hinge_explosive:gluteus_maximus",
+                    "hip_hinge_explosive:quadriceps"
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                }
+              },
+              "secondaryMuscles": [
+                "hamstrings",
+                "trapezius",
+                "deltoid",
+                "triceps",
+                "calves"
+              ],
+              "setupCues": [
+                "Agarra la barra muy abierto: de pie y con los brazos estirados, debe cruzar el pliegue de la cadera.",
+                "Baja hasta tener los hombros sobre la barra, con el pecho abierto y la espalda plana.",
+                "Fija la mirada al frente antes de despegar."
+              ],
+              "setupTimeSeconds": 45,
+              "ssc": 0.5,
+              "stabilizerMuscles": [
+                "erector_spinae",
+                "core",
+                "forearm"
+              ],
+              "technicalDifficulty": 6.8,
+              "ttc": 2.0
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "power_snatch__barbell",
+        "description": "El Arranque de Potencia (power snatch) lleva la barra del suelo a lo alto de la cabeza en un único gesto continuo, con un agarre muy ancho, y la recibe con los brazos bloqueados en una sentadilla corta. Las piernas y la cadera hacen casi todo el trabajo: el glúteo mayor y el cuádriceps generan el impulso desde el suelo, los isquiosurales, el trapecio y los gemelos redondean la aceleración y el deltoides y el tríceps sostienen la barra arriba. La barra recorre más camino que en la cargada, y por eso pide más velocidad y más movilidad de hombros, columna torácica y muñecas. Sirve para desarrollar potencia y para enseñar la mecánica del arranque antes de recibir la barra en una sentadilla profunda.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:power_snatch",
+            "plan:wizard-entreno-v2-ol1-20261007#power_snatch"
+          ],
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "lower_hip_hinge_explosive",
+        "id": "power_snatch",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "arranque de potencia",
+          "power snatch",
+          "arranque",
+          "snatch",
+          "arrancada",
+          "arranque desde el suelo",
+          "levantamiento olimpico",
+          "halterofilia"
+        ]
+      },
+      {
+        "canonicalName": "Arranque de Potencia desde Colgado",
+        "configurations": [
+          {
+            "displaySummary": "Barra",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "editorial:configuration:hang_power_snatch__barbell",
+                "plan:wizard-entreno-v2-ol1-20261007#hang_power_snatch"
+              ],
+              "reviewStatus": "APPROVED"
+            },
+            "id": "hang_power_snatch__barbell",
+            "profile": {
+              "articulationType": "MULTIARTICULAR",
+              "automationEligible": true,
+              "axialLoadFactor": 0.7,
+              "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-09-29-a",
+              "cnc": 2.2,
+              "description": "La barra cuelga a la altura del muslo con el agarre ancho de arranque, así que el trabajo empieza directamente en la extensión de cadera. Recorre menos camino que desde el suelo, de modo que las repeticiones se encadenan con más rapidez.",
+              "efc": 2.8,
+              "equipmentId": "barbell",
+              "executionCues": [
+                "Lanza la cadera hacia delante y estira las piernas para acelerar la barra pegada al muslo.",
+                "Sube los hombros al final del impulso, sin doblar los codos hasta entonces.",
+                "Mete el cuerpo bajo la barra y bloquea los codos con ella encima del centro del pie.",
+                "Ponte de pie, baja la barra otra vez al muslo y repite."
+              ],
+              "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Extensión explosiva de la cadera desde la posición colgada",
+                    "Flexión de la cadera al recibir la barra"
+                  ],
+                  "jointId": "cadera",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Extensión de la rodilla durante el impulso",
+                    "Flexión de la rodilla al recibir la barra"
+                  ],
+                  "jointId": "rodilla",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión plantar al final del impulso"
+                  ],
+                  "jointId": "tobillo",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Rigidez de la columna con el tronco inclinado"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Elevación del brazo sobre la cabeza",
+                    "Sostén de la barra en rotación externa del hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Elevación y rotación superior de la escápula"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Extensión y bloqueo del codo sobre la cabeza"
+                  ],
+                  "jointId": "codo",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Sostén de la barra colgando",
+                    "Extensión de la muñeca con la barra sobre la cabeza"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "hip_hinge_explosive",
+              "performanceProfileId": "hang_power_snatch__barbell__arranque_de_potencia_desde_colgado",
+              "primaryMuscles": [
+                "gluteus_maximus",
+                "quadriceps"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Extensión explosiva de la cadera desde la posición colgada",
+                    "Flexión de la cadera al recibir la barra",
+                    "Extensión de la rodilla durante el impulso",
+                    "Flexión de la rodilla al recibir la barra",
+                    "Flexión plantar al final del impulso",
+                    "Rigidez de la columna con el tronco inclinado",
+                    "Elevación del brazo sobre la cabeza",
+                    "Sostén de la barra en rotación externa del hombro",
+                    "Elevación y rotación superior de la escápula",
+                    "Extensión y bloqueo del codo sobre la cabeza",
+                    "Sostén de la barra colgando",
+                    "Extensión de la muñeca con la barra sobre la cabeza"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Extensión explosiva de la cadera desde la posición colgada",
+                        "Flexión de la cadera al recibir la barra"
+                      ],
+                      "jointId": "cadera",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión de la rodilla durante el impulso",
+                        "Flexión de la rodilla al recibir la barra"
+                      ],
+                      "jointId": "rodilla",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión plantar al final del impulso"
+                      ],
+                      "jointId": "tobillo",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Rigidez de la columna con el tronco inclinado"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Elevación del brazo sobre la cabeza",
+                        "Sostén de la barra en rotación externa del hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Elevación y rotación superior de la escápula"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión y bloqueo del codo sobre la cabeza"
+                      ],
+                      "jointId": "codo",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Sostén de la barra colgando",
+                        "Extensión de la muñeca con la barra sobre la cabeza"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "primaryMuscles": [
+                    "gluteus_maximus",
+                    "quadriceps"
+                  ],
+                  "secondaryMuscles": [
+                    "hamstrings",
+                    "trapezius",
+                    "deltoid",
+                    "triceps",
+                    "calves"
+                  ],
+                  "stabilizerMuscles": [
+                    "erector_spinae",
+                    "core",
+                    "forearm"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "barbell",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "hip_hinge_explosive",
+                  "relevantJoints": [
+                    "cadera",
+                    "rodilla",
+                    "tobillo",
+                    "columna-lumbar",
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "muñeca"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "display": {
+                  "displayName": "Arranque de Potencia desde Colgado",
+                  "displaySummary": "Barra",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.7,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 6.5,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Arranque de Potencia desde Colgado",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
+                  "configurationId": "hang_power_snatch__barbell",
+                  "definitionId": "hang_power_snatch",
+                  "familyId": "lower_hip_hinge_explosive",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "hang_power_snatch__barbell__arranque_de_potencia_desde_colgado",
+                  "searchTerms": [
+                    "arranque de potencia desde colgado",
+                    "arranque colgado",
+                    "hang power snatch",
+                    "hang snatch",
+                    "arranque desde el muslo",
+                    "arrancada colgada",
+                    "levantamiento olimpico",
+                    "halterofilia"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 150,
+                    "min": 90
+                  },
+                  "requiredEquipment": [
+                    "barbell"
+                  ],
+                  "role": "accessory_compound"
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell"
+                  ],
+                  "preservesIntent": [
+                    "hip_hinge_explosive:gluteus_maximus",
+                    "hip_hinge_explosive:quadriceps"
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                }
+              },
+              "secondaryMuscles": [
+                "hamstrings",
+                "trapezius",
+                "deltoid",
+                "triceps",
+                "calves"
+              ],
+              "setupCues": [
+                "Levanta la barra hasta ponerte de pie y déjala colgando a la altura del muslo, con el agarre ancho de arranque.",
+                "Lleva la cadera atrás y flexiona un poco las rodillas hasta notar tensos los isquiosurales.",
+                "Pon los hombros por encima de la barra y los codos hacia fuera."
+              ],
+              "setupTimeSeconds": 45,
+              "ssc": 0.5,
+              "stabilizerMuscles": [
+                "erector_spinae",
+                "core",
+                "forearm"
+              ],
+              "technicalDifficulty": 6.5,
+              "ttc": 2.0
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "hang_power_snatch__barbell",
+        "description": "El Arranque de Potencia desde Colgado (hang power snatch) parte de pie, con un agarre ancho y la barra colgando a la altura del muslo, y la sube hasta encima de la cabeza con un solo impulso de cadera, para recibirla con los codos bloqueados en una sentadilla corta. Como no hay subida desde el suelo, la serie empieza en la fase más explosiva: el glúteo mayor y el cuádriceps extienden de golpe, el trapecio, los gemelos y los isquiosurales completan la aceleración y el deltoides y el tríceps cierran el bloqueo. Sirve para practicar la velocidad de la barra y la recepción sobre la cabeza con cargas ligeras, y lo usan también atletas que no compiten en halterofilia.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:hang_power_snatch",
+            "plan:wizard-entreno-v2-ol1-20261007#hang_power_snatch"
+          ],
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "lower_hip_hinge_explosive",
+        "id": "hang_power_snatch",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "arranque de potencia desde colgado",
+          "arranque colgado",
+          "hang power snatch",
+          "hang snatch",
+          "arranque desde el muslo",
+          "arrancada colgada",
+          "levantamiento olimpico",
+          "halterofilia"
+        ]
+      },
+      {
+        "canonicalName": "Arranque Completo",
+        "configurations": [
+          {
+            "displaySummary": "Barra",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "editorial:configuration:squat_snatch__barbell",
+                "plan:wizard-entreno-v2-ol1-20261007#squat_snatch"
+              ],
+              "reviewStatus": "APPROVED"
+            },
+            "id": "squat_snatch__barbell",
+            "profile": {
+              "articulationType": "MULTIARTICULAR",
+              "automationEligible": true,
+              "axialLoadFactor": 0.7,
+              "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-09-29-a",
+              "cnc": 2.2,
+              "description": "La barra se recibe sobre la cabeza en el fondo de una sentadilla profunda, con la cadera bajo las rodillas y los codos bloqueados. Esa posición pide recorrido de hombro, columna torácica, cadera y tobillo, y la sentadilla de salida se hace con la carga a pulso arriba.",
+              "efc": 2.8,
+              "equipmentId": "barbell",
+              "executionCues": [
+                "Empuja el suelo con los pies y acelera la barra, siempre rozando el cuerpo, hasta superar las rodillas.",
+                "Cuando la barra cruce los muslos, salta con la cadera y encoge los hombros sin doblar los codos.",
+                "Desliza el cuerpo bajo la barra con los codos ya bloqueados y baja a una sentadilla profunda, con la barra sobre el centro del pie.",
+                "Levántate con la barra arriba, empujándola hacia el techo, y devuélvela al suelo al terminar."
+              ],
+              "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Extensión explosiva de la cadera",
+                    "Flexión profunda y extensión de la cadera en la sentadilla"
+                  ],
+                  "jointId": "cadera",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Extensión de la rodilla en el tirón",
+                    "Flexión profunda y extensión de la rodilla en la sentadilla"
+                  ],
+                  "jointId": "rodilla",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión plantar al final del tirón",
+                    "Dorsiflexión en el fondo de la sentadilla"
+                  ],
+                  "jointId": "tobillo",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Rigidez de la columna con la barra sobre la cabeza"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Extensión torácica con los brazos sobre la cabeza"
+                  ],
+                  "jointId": "columna-toracica",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Flexión del hombro por encima de la cabeza",
+                    "Sostén de la barra en rotación externa"
+                  ],
+                  "jointId": "glenohumeral",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Elevación y rotación superior de la escápula"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Extensión y bloqueo del codo sobre la cabeza"
+                  ],
+                  "jointId": "codo",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Sostén de la barra en la mano",
+                    "Extensión de la muñeca con la barra sobre la cabeza"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "hip_hinge_explosive",
+              "performanceProfileId": "squat_snatch__barbell__arranque_completo",
+              "primaryMuscles": [
+                "quadriceps",
+                "gluteus_maximus"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Extensión explosiva de la cadera",
+                    "Flexión profunda y extensión de la cadera en la sentadilla",
+                    "Extensión de la rodilla en el tirón",
+                    "Flexión profunda y extensión de la rodilla en la sentadilla",
+                    "Flexión plantar al final del tirón",
+                    "Dorsiflexión en el fondo de la sentadilla",
+                    "Rigidez de la columna con la barra sobre la cabeza",
+                    "Extensión torácica con los brazos sobre la cabeza",
+                    "Flexión del hombro por encima de la cabeza",
+                    "Sostén de la barra en rotación externa",
+                    "Elevación y rotación superior de la escápula",
+                    "Extensión y bloqueo del codo sobre la cabeza",
+                    "Sostén de la barra en la mano",
+                    "Extensión de la muñeca con la barra sobre la cabeza"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Extensión explosiva de la cadera",
+                        "Flexión profunda y extensión de la cadera en la sentadilla"
+                      ],
+                      "jointId": "cadera",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión de la rodilla en el tirón",
+                        "Flexión profunda y extensión de la rodilla en la sentadilla"
+                      ],
+                      "jointId": "rodilla",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión plantar al final del tirón",
+                        "Dorsiflexión en el fondo de la sentadilla"
+                      ],
+                      "jointId": "tobillo",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Rigidez de la columna con la barra sobre la cabeza"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Extensión torácica con los brazos sobre la cabeza"
+                      ],
+                      "jointId": "columna-toracica",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Flexión del hombro por encima de la cabeza",
+                        "Sostén de la barra en rotación externa"
+                      ],
+                      "jointId": "glenohumeral",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Elevación y rotación superior de la escápula"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión y bloqueo del codo sobre la cabeza"
+                      ],
+                      "jointId": "codo",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Sostén de la barra en la mano",
+                        "Extensión de la muñeca con la barra sobre la cabeza"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "primaryMuscles": [
+                    "quadriceps",
+                    "gluteus_maximus"
+                  ],
+                  "secondaryMuscles": [
+                    "hamstrings",
+                    "adductors",
+                    "trapezius",
+                    "deltoid",
+                    "triceps",
+                    "calves"
+                  ],
+                  "stabilizerMuscles": [
+                    "erector_spinae",
+                    "core",
+                    "forearm"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "barbell",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "hip_hinge_explosive",
+                  "relevantJoints": [
+                    "cadera",
+                    "rodilla",
+                    "tobillo",
+                    "columna-lumbar",
+                    "columna-toracica",
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "muñeca"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "display": {
+                  "displayName": "Arranque Completo",
+                  "displaySummary": "Barra",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.7,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 7.0,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Arranque Completo",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
+                  "configurationId": "squat_snatch__barbell",
+                  "definitionId": "squat_snatch",
+                  "familyId": "lower_hip_hinge_explosive",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "squat_snatch__barbell__arranque_completo",
+                  "searchTerms": [
+                    "arranque completo",
+                    "squat snatch",
+                    "arranque en sentadilla",
+                    "arranque en cuclillas",
+                    "arranque profundo",
+                    "snatch",
+                    "arrancada",
+                    "levantamiento olimpico",
+                    "halterofilia"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 150,
+                    "min": 90
+                  },
+                  "requiredEquipment": [
+                    "barbell"
+                  ],
+                  "role": "accessory_compound"
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell"
+                  ],
+                  "preservesIntent": [
+                    "hip_hinge_explosive:quadriceps",
+                    "hip_hinge_explosive:gluteus_maximus"
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                }
+              },
+              "secondaryMuscles": [
+                "hamstrings",
+                "adductors",
+                "trapezius",
+                "deltoid",
+                "triceps",
+                "calves"
+              ],
+              "setupCues": [
+                "Toma la barra con el agarre ancho de arranque, el mismo que usas en la sentadilla con la barra sobre la cabeza.",
+                "Colócate con los hombros sobre la barra, la espalda plana y las rodillas abiertas hacia las puntas de los pies.",
+                "Respira hondo y tensa el tronco antes de despegar."
+              ],
+              "setupTimeSeconds": 45,
+              "ssc": 0.5,
+              "stabilizerMuscles": [
+                "erector_spinae",
+                "core",
+                "forearm"
+              ],
+              "technicalDifficulty": 7.0,
+              "ttc": 2.0
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "squat_snatch__barbell",
+        "description": "El Arranque Completo (squat snatch) es el levantamiento de competición que lleva la barra del suelo a la vertical de la cabeza en un solo movimiento y la recibe en el fondo de una sentadilla, con los brazos bloqueados, para levantarse con ella arriba. El cuádriceps y el glúteo mayor aceleran la barra y después sacan al atleta del fondo, con los aductores, los isquiosurales y el trapecio de apoyo, mientras el deltoides y el tríceps aguantan el peso a pulso sobre la cabeza. Depende más de la movilidad, la coordinación y la velocidad que de la fuerza bruta, y reclama hombros, columna torácica, caderas y tobillos con recorrido de sobra. Es de los ejercicios más técnicos del catálogo y se aprende con los tirones, el arranque de potencia y la sentadilla de arranque como escalones.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:squat_snatch",
+            "plan:wizard-entreno-v2-ol1-20261007#squat_snatch"
+          ],
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "lower_hip_hinge_explosive",
+        "id": "squat_snatch",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "arranque completo",
+          "squat snatch",
+          "arranque en sentadilla",
+          "arranque en cuclillas",
+          "arranque profundo",
+          "snatch",
+          "arrancada",
+          "levantamiento olimpico",
+          "halterofilia"
+        ]
+      },
+      {
+        "canonicalName": "Tirón de Cargada",
+        "configurations": [
+          {
+            "displaySummary": "Barra",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "editorial:configuration:clean_pull__barbell",
+                "plan:wizard-entreno-v2-ol1-20261007#clean_pull"
+              ],
+              "reviewStatus": "APPROVED"
+            },
+            "id": "clean_pull__barbell",
+            "profile": {
+              "articulationType": "MULTIARTICULAR",
+              "automationEligible": true,
+              "axialLoadFactor": 1.0,
+              "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-09-29-a",
+              "cnc": 2.2,
+              "description": "La barra sale del suelo con el agarre de cargada y termina en la extensión, con los codos sin doblar y sin recepción. Como no hay que girar bajo ella ni levantarse con la carga, admite un peso superior al de las cargadas.",
+              "efc": 2.8,
+              "equipmentId": "barbell",
+              "executionCues": [
+                "Empuja el suelo con las piernas y deja la barra rozando el cuerpo hasta la altura de las rodillas.",
+                "Al pasar los muslos, lanza la cadera adelante y empuja con los pies a la máxima velocidad hasta ponerte de puntillas, y sube los hombros.",
+                "Termina de puntillas con los codos sin doblar y la barra a la altura del pecho bajo.",
+                "Deja bajar la barra por el mismo camino hasta el suelo, sin soltarla."
+              ],
+              "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Extensión explosiva de la cadera"
+                  ],
+                  "jointId": "cadera",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Extensión de la rodilla en la primera y la segunda tracción"
+                  ],
+                  "jointId": "rodilla",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión plantar al final del tirón"
+                  ],
+                  "jointId": "tobillo",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Posición plana de la columna bajo la barra pesada"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Elevación de la escápula en el encogimiento"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Brazos extendidos bajo la barra"
+                  ],
+                  "jointId": "codo",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén de la barra en la mano"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "hip_hinge_explosive",
+              "performanceProfileId": "clean_pull__barbell__tiron_de_cargada",
+              "primaryMuscles": [
+                "gluteus_maximus",
+                "quadriceps"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Extensión explosiva de la cadera",
+                    "Extensión de la rodilla en la primera y la segunda tracción",
+                    "Flexión plantar al final del tirón",
+                    "Posición plana de la columna bajo la barra pesada",
+                    "Elevación de la escápula en el encogimiento",
+                    "Brazos extendidos bajo la barra",
+                    "Sostén de la barra en la mano"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Extensión explosiva de la cadera"
+                      ],
+                      "jointId": "cadera",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión de la rodilla en la primera y la segunda tracción"
+                      ],
+                      "jointId": "rodilla",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión plantar al final del tirón"
+                      ],
+                      "jointId": "tobillo",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Posición plana de la columna bajo la barra pesada"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Elevación de la escápula en el encogimiento"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Brazos extendidos bajo la barra"
+                      ],
+                      "jointId": "codo",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén de la barra en la mano"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "primaryMuscles": [
+                    "gluteus_maximus",
+                    "quadriceps"
+                  ],
+                  "secondaryMuscles": [
+                    "hamstrings",
+                    "trapezius",
+                    "calves"
+                  ],
+                  "stabilizerMuscles": [
+                    "erector_spinae",
+                    "core",
+                    "forearm"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "barbell",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "hip_hinge_explosive",
+                  "relevantJoints": [
+                    "cadera",
+                    "rodilla",
+                    "tobillo",
+                    "columna-lumbar",
+                    "escapulotoracica",
+                    "codo",
+                    "muñeca"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "display": {
+                  "displayName": "Tirón de Cargada",
+                  "displaySummary": "Barra",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 1.0,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 1.0,
+                  "technicalDifficulty": 6.0,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Tirón de Cargada",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
+                  "configurationId": "clean_pull__barbell",
+                  "definitionId": "clean_pull",
+                  "familyId": "lower_hip_hinge_explosive",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "clean_pull__barbell__tiron_de_cargada",
+                  "searchTerms": [
+                    "tiron de cargada",
+                    "clean pull",
+                    "tiron desde el suelo",
+                    "tiron olimpico",
+                    "tiron de halterofilia",
+                    "levantamiento olimpico",
+                    "halterofilia"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 150,
+                    "min": 90
+                  },
+                  "requiredEquipment": [
+                    "barbell"
+                  ],
+                  "role": "accessory_compound"
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell"
+                  ],
+                  "preservesIntent": [
+                    "hip_hinge_explosive:gluteus_maximus",
+                    "hip_hinge_explosive:quadriceps"
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                }
+              },
+              "secondaryMuscles": [
+                "hamstrings",
+                "trapezius",
+                "calves"
+              ],
+              "setupCues": [
+                "Ponte como en la salida de la cargada, con las manos por fuera de las rodillas y el agarre de cargada.",
+                "Si el peso es alto, usa el agarre en gancho para que la mano no se abra durante el tirón.",
+                "Mira al frente y tensa el tronco antes de despegar la barra."
+              ],
+              "setupTimeSeconds": 45,
+              "ssc": 1.0,
+              "stabilizerMuscles": [
+                "erector_spinae",
+                "core",
+                "forearm"
+              ],
+              "technicalDifficulty": 6.0,
+              "ttc": 2.0
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "clean_pull__barbell",
+        "description": "El Tirón de Cargada (clean pull) repite la tracción de la cargada desde el suelo hasta la extensión total y se detiene ahí, sin girar los codos bajo la barra ni recibirla. Es un tirón explosivo en el que trabajan las piernas y la cadera, el glúteo mayor y el cuádriceps al despegar y los isquiosurales y los gemelos al rematar, mientras el trapecio sube los hombros con la barra a la altura del pecho bajo y los brazos estirados. Al no haber recepción, se trabaja con más peso que en la cargada y se separa el empuje de las piernas de la parte técnica del giro y la recepción, que es lo que lo hace más sencillo de aprender. La barra baja después con control hasta el suelo.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:clean_pull",
+            "plan:wizard-entreno-v2-ol1-20261007#clean_pull"
+          ],
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "lower_hip_hinge_explosive",
+        "id": "clean_pull",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "tiron de cargada",
+          "clean pull",
+          "tiron desde el suelo",
+          "tiron olimpico",
+          "tiron de halterofilia",
+          "levantamiento olimpico",
+          "halterofilia"
+        ]
+      },
+      {
+        "canonicalName": "Tirón de Arranque",
+        "configurations": [
+          {
+            "displaySummary": "Barra",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "editorial:configuration:snatch_pull__barbell",
+                "plan:wizard-entreno-v2-ol1-20261007#snatch_pull"
+              ],
+              "reviewStatus": "APPROVED"
+            },
+            "id": "snatch_pull__barbell",
+            "profile": {
+              "articulationType": "MULTIARTICULAR",
+              "automationEligible": true,
+              "axialLoadFactor": 1.0,
+              "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-09-29-a",
+              "cnc": 2.2,
+              "description": "Con el agarre ancho de arranque la barra sale del suelo y se acelera hasta la extensión total, a la altura del abdomen o del pecho bajo, sin giro bajo ella y sin recepción. El agarre abierto obliga a partir con la cadera más baja que en el tirón de cargada.",
+              "efc": 2.8,
+              "equipmentId": "barbell",
+              "executionCues": [
+                "Presiona el suelo con los pies y deja la barra rozando las espinillas y los muslos.",
+                "Cuando la barra llegue a lo alto del muslo, salta con la cadera y sube los hombros sin flexionar los codos.",
+                "Termina de puntillas con la barra a la altura del abdomen o del pecho bajo y los brazos todavía largos.",
+                "Baja la barra con calma por el mismo camino y apóyala en el suelo."
+              ],
+              "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Extensión explosiva de la cadera desde una salida baja"
+                  ],
+                  "jointId": "cadera",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Extensión de la rodilla en el despegue y en la aceleración"
+                  ],
+                  "jointId": "rodilla",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión plantar al final del tirón"
+                  ],
+                  "jointId": "tobillo",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Posición plana con el tronco más inclinado"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén de los brazos abiertos con el agarre de arranque"
+                  ],
+                  "jointId": "glenohumeral",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Elevación de la escápula en el encogimiento"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Brazos extendidos durante el tirón"
+                  ],
+                  "jointId": "codo",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén de la barra en la mano"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "hip_hinge_explosive",
+              "performanceProfileId": "snatch_pull__barbell__tiron_de_arranque",
+              "primaryMuscles": [
+                "gluteus_maximus",
+                "quadriceps"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Extensión explosiva de la cadera desde una salida baja",
+                    "Extensión de la rodilla en el despegue y en la aceleración",
+                    "Flexión plantar al final del tirón",
+                    "Posición plana con el tronco más inclinado",
+                    "Sostén de los brazos abiertos con el agarre de arranque",
+                    "Elevación de la escápula en el encogimiento",
+                    "Brazos extendidos durante el tirón",
+                    "Sostén de la barra en la mano"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Extensión explosiva de la cadera desde una salida baja"
+                      ],
+                      "jointId": "cadera",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión de la rodilla en el despegue y en la aceleración"
+                      ],
+                      "jointId": "rodilla",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión plantar al final del tirón"
+                      ],
+                      "jointId": "tobillo",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Posición plana con el tronco más inclinado"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén de los brazos abiertos con el agarre de arranque"
+                      ],
+                      "jointId": "glenohumeral",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Elevación de la escápula en el encogimiento"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Brazos extendidos durante el tirón"
+                      ],
+                      "jointId": "codo",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén de la barra en la mano"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "primaryMuscles": [
+                    "gluteus_maximus",
+                    "quadriceps"
+                  ],
+                  "secondaryMuscles": [
+                    "hamstrings",
+                    "trapezius",
+                    "calves"
+                  ],
+                  "stabilizerMuscles": [
+                    "erector_spinae",
+                    "core",
+                    "forearm"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "barbell",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "hip_hinge_explosive",
+                  "relevantJoints": [
+                    "cadera",
+                    "rodilla",
+                    "tobillo",
+                    "columna-lumbar",
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "muñeca"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "display": {
+                  "displayName": "Tirón de Arranque",
+                  "displaySummary": "Barra",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 1.0,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 1.0,
+                  "technicalDifficulty": 6.0,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Tirón de Arranque",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
+                  "configurationId": "snatch_pull__barbell",
+                  "definitionId": "snatch_pull",
+                  "familyId": "lower_hip_hinge_explosive",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "snatch_pull__barbell__tiron_de_arranque",
+                  "searchTerms": [
+                    "tiron de arranque",
+                    "snatch pull",
+                    "tiron con agarre ancho",
+                    "tiron olimpico",
+                    "tiron de halterofilia",
+                    "levantamiento olimpico",
+                    "halterofilia"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 150,
+                    "min": 90
+                  },
+                  "requiredEquipment": [
+                    "barbell"
+                  ],
+                  "role": "accessory_compound"
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell"
+                  ],
+                  "preservesIntent": [
+                    "hip_hinge_explosive:gluteus_maximus",
+                    "hip_hinge_explosive:quadriceps"
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                }
+              },
+              "secondaryMuscles": [
+                "hamstrings",
+                "trapezius",
+                "calves"
+              ],
+              "setupCues": [
+                "Agarra la barra con el ancho del arranque y los brazos estirados.",
+                "Baja la cadera más que en el tirón de cargada, con los hombros sobre la barra y el pecho abierto.",
+                "Respira, tensa el tronco y mira al frente."
+              ],
+              "setupTimeSeconds": 45,
+              "ssc": 1.0,
+              "stabilizerMuscles": [
+                "erector_spinae",
+                "core",
+                "forearm"
+              ],
+              "technicalDifficulty": 6.0,
+              "ttc": 2.0
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "snatch_pull__barbell",
+        "description": "El Tirón de Arranque (snatch pull) es la tracción del arranque con su agarre ancho: la barra sube del suelo hasta la extensión total y allí se detiene, sin que el atleta se meta bajo ella. El agarre abierto obliga a salir con la cadera más baja y a recorrer más espacio, así que el tronco trabaja inclinado durante más tiempo y el glúteo mayor, el cuádriceps y los isquiosurales empujan en un tramo más largo que en el tirón de cargada. Los gemelos rematan la extensión, el trapecio sube los hombros y el antebrazo sostiene una barra que cuelga muy abierta. Sirve para fortalecer la salida y la aceleración del arranque sin la exigencia de movilidad de la recepción sobre la cabeza.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:snatch_pull",
+            "plan:wizard-entreno-v2-ol1-20261007#snatch_pull"
+          ],
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "lower_hip_hinge_explosive",
+        "id": "snatch_pull",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "tiron de arranque",
+          "snatch pull",
+          "tiron con agarre ancho",
+          "tiron olimpico",
+          "tiron de halterofilia",
+          "levantamiento olimpico",
+          "halterofilia"
+        ]
       }
     ],
     "evidence": {

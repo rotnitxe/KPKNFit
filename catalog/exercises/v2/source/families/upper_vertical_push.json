@@ -655,6 +655,648 @@
           "flexiones en v invertida",
           "flexiones de hombro con el propio peso"
         ]
+      },
+      {
+        "canonicalName": "Envión de Empuje",
+        "configurations": [
+          {
+            "displaySummary": "Barra",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "editorial:configuration:push_jerk__barbell",
+                "plan:wizard-entreno-v2-ol1-20261007#push_jerk"
+              ],
+              "reviewStatus": "APPROVED"
+            },
+            "id": "push_jerk__barbell",
+            "profile": {
+              "articulationType": "MULTIARTICULAR",
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-09-29-a",
+              "cnc": 1.8,
+              "description": "La barra sale del rack frontal con una flexión corta de rodillas y se recibe con una segunda flexión bajo ella, con los pies planos a la misma anchura. Pide más velocidad y coordinación que el push press, que termina el recorrido solo con los brazos.",
+              "efc": 2.5,
+              "equipmentId": "barbell",
+              "executionCues": [
+                "Flexiona las rodillas un poco, con el tronco vertical, y detente un instante.",
+                "Extiende las piernas con fuerza para lanzar la barra hacia arriba.",
+                "Vuelve a flexionar las rodillas y mete el cuerpo bajo la barra mientras bloqueas los codos sobre la cabeza.",
+                "Estira las piernas hasta quedar de pie con la barra arriba y bájala con control a los hombros."
+              ],
+              "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión y abducción del hombro hasta el bloqueo sobre la cabeza",
+                    "Sostén de la barra por encima de la cabeza"
+                  ],
+                  "jointId": "glenohumeral",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Extensión y bloqueo del codo bajo la barra"
+                  ],
+                  "jointId": "codo",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Rotación superior y elevación de la escápula"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Extensión impulsiva de la cadera",
+                    "Flexión de la cadera en la segunda flexión"
+                  ],
+                  "jointId": "cadera",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Extensión de la rodilla en el impulso",
+                    "Flexión de la rodilla bajo la barra"
+                  ],
+                  "jointId": "rodilla",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Apoyo plano y extensión al final del impulso"
+                  ],
+                  "jointId": "tobillo",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Posición erguida de la columna con la barra arriba"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén de la barra en la mano",
+                    "Extensión de la muñeca en el rack frontal"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "vertical_push",
+              "performanceProfileId": "push_jerk__barbell__envion_de_empuje",
+              "primaryMuscles": [
+                "deltoid"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Flexión y abducción del hombro hasta el bloqueo sobre la cabeza",
+                    "Sostén de la barra por encima de la cabeza",
+                    "Extensión y bloqueo del codo bajo la barra",
+                    "Rotación superior y elevación de la escápula",
+                    "Extensión impulsiva de la cadera",
+                    "Flexión de la cadera en la segunda flexión",
+                    "Extensión de la rodilla en el impulso",
+                    "Flexión de la rodilla bajo la barra",
+                    "Apoyo plano y extensión al final del impulso",
+                    "Posición erguida de la columna con la barra arriba",
+                    "Sostén de la barra en la mano",
+                    "Extensión de la muñeca en el rack frontal"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión y abducción del hombro hasta el bloqueo sobre la cabeza",
+                        "Sostén de la barra por encima de la cabeza"
+                      ],
+                      "jointId": "glenohumeral",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión y bloqueo del codo bajo la barra"
+                      ],
+                      "jointId": "codo",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Rotación superior y elevación de la escápula"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión impulsiva de la cadera",
+                        "Flexión de la cadera en la segunda flexión"
+                      ],
+                      "jointId": "cadera",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión de la rodilla en el impulso",
+                        "Flexión de la rodilla bajo la barra"
+                      ],
+                      "jointId": "rodilla",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Apoyo plano y extensión al final del impulso"
+                      ],
+                      "jointId": "tobillo",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Posición erguida de la columna con la barra arriba"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén de la barra en la mano",
+                        "Extensión de la muñeca en el rack frontal"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "primaryMuscles": [
+                    "deltoid"
+                  ],
+                  "secondaryMuscles": [
+                    "quadriceps",
+                    "gluteus_maximus",
+                    "triceps",
+                    "trapezius"
+                  ],
+                  "stabilizerMuscles": [
+                    "calves",
+                    "core",
+                    "erector_spinae",
+                    "forearm"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "barbell",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "vertical_push",
+                  "relevantJoints": [
+                    "glenohumeral",
+                    "codo",
+                    "escapulotoracica",
+                    "cadera",
+                    "rodilla",
+                    "tobillo",
+                    "columna-lumbar",
+                    "muñeca"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "display": {
+                  "displayName": "Envión de Empuje",
+                  "displaySummary": "Barra",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.8,
+                  "efc": 2.5,
+                  "ssc": 0.3,
+                  "technicalDifficulty": 6.0,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "Envión de Empuje",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
+                  "configurationId": "push_jerk__barbell",
+                  "definitionId": "push_jerk",
+                  "familyId": "upper_vertical_push",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "push_jerk__barbell__envion_de_empuje",
+                  "searchTerms": [
+                    "envion de empuje",
+                    "push jerk",
+                    "jerk de empuje",
+                    "envion",
+                    "jerk",
+                    "levantamiento olimpico",
+                    "halterofilia"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 150,
+                    "min": 90
+                  },
+                  "requiredEquipment": [
+                    "barbell"
+                  ],
+                  "role": "accessory_compound"
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell"
+                  ],
+                  "preservesIntent": [
+                    "vertical_push:deltoid"
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                }
+              },
+              "secondaryMuscles": [
+                "quadriceps",
+                "gluteus_maximus",
+                "triceps",
+                "trapezius"
+              ],
+              "setupCues": [
+                "Descuelga la barra del soporte y déjala sobre los hombros, con los codos algo adelantados y las manos a la anchura de los hombros.",
+                "Coloca los pies a la anchura de las caderas, con el tronco erguido y la mirada al frente."
+              ],
+              "setupTimeSeconds": 45,
+              "ssc": 0.3,
+              "stabilizerMuscles": [
+                "calves",
+                "core",
+                "erector_spinae",
+                "forearm"
+              ],
+              "technicalDifficulty": 6.0,
+              "ttc": 1.6
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "push_jerk__barbell",
+        "description": "El Envión de Empuje (push jerk) lanza la barra desde los hombros hasta encima de la cabeza con un impulso de piernas y una segunda flexión de rodillas bajo la barra, y la recibe con los brazos bloqueados y los pies planos a la anchura de los hombros. El deltoides y el tríceps sujetan y bloquean la barra arriba, el cuádriceps y el glúteo mayor generan el impulso y el trapecio sube los hombros hacia ella. La diferencia con el push press está en esa segunda flexión: en el envión el atleta se mete bajo la barra en lugar de acabar de empujarla con los brazos. Es un ejercicio de potencia para el tren superior y el escalón previo al envión de tijera.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:push_jerk",
+            "plan:wizard-entreno-v2-ol1-20261007#push_jerk"
+          ],
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "upper_vertical_push",
+        "id": "push_jerk",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "envion de empuje",
+          "push jerk",
+          "jerk de empuje",
+          "envion",
+          "jerk",
+          "levantamiento olimpico",
+          "halterofilia"
+        ]
+      },
+      {
+        "canonicalName": "Envión de Tijera",
+        "configurations": [
+          {
+            "displaySummary": "Barra",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "editorial:configuration:split_jerk__barbell",
+                "plan:wizard-entreno-v2-ol1-20261007#split_jerk"
+              ],
+              "reviewStatus": "APPROVED"
+            },
+            "id": "split_jerk__barbell",
+            "profile": {
+              "articulationType": "MULTIARTICULAR",
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-09-29-a",
+              "cnc": 1.8,
+              "description": "Desde el rack frontal, la barra se recibe con un pie adelantado y otro atrasado, la pierna delantera flexionada y la trasera casi estirada, para recuperar después los pies hasta juntarlos. Esa base larga da más apoyo, pero añade el paso de la tijera y su recuperación.",
+              "efc": 2.5,
+              "equipmentId": "barbell",
+              "executionCues": [
+                "Dobla las rodillas un poco, con el tronco vertical, y empuja el suelo con fuerza.",
+                "Mientras la barra sube, lleva un pie adelante y el otro atrás y bloquea los codos sobre la cabeza.",
+                "Recibe con el pie de delante plano, la rodilla sobre el tobillo y la pierna de atrás casi estirada.",
+                "Recupera primero el pie de delante y luego el de atrás, y acaba erguido con los brazos aún estirados."
+              ],
+              "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión y abducción del hombro hasta el bloqueo sobre la cabeza",
+                    "Sostén de la barra por encima de la cabeza"
+                  ],
+                  "jointId": "glenohumeral",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Extensión y bloqueo del codo bajo la barra"
+                  ],
+                  "jointId": "codo",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Rotación superior y elevación de la escápula"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Extensión impulsiva de la cadera",
+                    "Cadera delantera flexionada y trasera extendida en la tijera"
+                  ],
+                  "jointId": "cadera",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Extensión de la rodilla en el impulso",
+                    "Rodilla delantera flexionada y trasera casi extendida en la tijera"
+                  ],
+                  "jointId": "rodilla",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Apoyo plano del pie delantero y talón elevado del trasero"
+                  ],
+                  "jointId": "tobillo",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Posición erguida de la columna con la barra arriba"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén de la barra en la mano",
+                    "Extensión de la muñeca en el rack frontal"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "vertical_push",
+              "performanceProfileId": "split_jerk__barbell__envion_de_tijera",
+              "primaryMuscles": [
+                "deltoid"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Flexión y abducción del hombro hasta el bloqueo sobre la cabeza",
+                    "Sostén de la barra por encima de la cabeza",
+                    "Extensión y bloqueo del codo bajo la barra",
+                    "Rotación superior y elevación de la escápula",
+                    "Extensión impulsiva de la cadera",
+                    "Cadera delantera flexionada y trasera extendida en la tijera",
+                    "Extensión de la rodilla en el impulso",
+                    "Rodilla delantera flexionada y trasera casi extendida en la tijera",
+                    "Apoyo plano del pie delantero y talón elevado del trasero",
+                    "Posición erguida de la columna con la barra arriba",
+                    "Sostén de la barra en la mano",
+                    "Extensión de la muñeca en el rack frontal"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión y abducción del hombro hasta el bloqueo sobre la cabeza",
+                        "Sostén de la barra por encima de la cabeza"
+                      ],
+                      "jointId": "glenohumeral",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión y bloqueo del codo bajo la barra"
+                      ],
+                      "jointId": "codo",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Rotación superior y elevación de la escápula"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión impulsiva de la cadera",
+                        "Cadera delantera flexionada y trasera extendida en la tijera"
+                      ],
+                      "jointId": "cadera",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión de la rodilla en el impulso",
+                        "Rodilla delantera flexionada y trasera casi extendida en la tijera"
+                      ],
+                      "jointId": "rodilla",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Apoyo plano del pie delantero y talón elevado del trasero"
+                      ],
+                      "jointId": "tobillo",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Posición erguida de la columna con la barra arriba"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén de la barra en la mano",
+                        "Extensión de la muñeca en el rack frontal"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "primaryMuscles": [
+                    "deltoid"
+                  ],
+                  "secondaryMuscles": [
+                    "quadriceps",
+                    "gluteus_maximus",
+                    "triceps",
+                    "trapezius"
+                  ],
+                  "stabilizerMuscles": [
+                    "gluteus_medius",
+                    "core",
+                    "erector_spinae",
+                    "forearm"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "barbell",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "vertical_push",
+                  "relevantJoints": [
+                    "glenohumeral",
+                    "codo",
+                    "escapulotoracica",
+                    "cadera",
+                    "rodilla",
+                    "tobillo",
+                    "columna-lumbar",
+                    "muñeca"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "display": {
+                  "displayName": "Envión de Tijera",
+                  "displaySummary": "Barra",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.8,
+                  "efc": 2.5,
+                  "ssc": 0.3,
+                  "technicalDifficulty": 6.5,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "Envión de Tijera",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
+                  "configurationId": "split_jerk__barbell",
+                  "definitionId": "split_jerk",
+                  "familyId": "upper_vertical_push",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "split_jerk__barbell__envion_de_tijera",
+                  "searchTerms": [
+                    "envion de tijera",
+                    "split jerk",
+                    "jerk de tijera",
+                    "envion",
+                    "jerk",
+                    "levantamiento olimpico",
+                    "halterofilia"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 150,
+                    "min": 90
+                  },
+                  "requiredEquipment": [
+                    "barbell"
+                  ],
+                  "role": "accessory_compound"
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell"
+                  ],
+                  "preservesIntent": [
+                    "vertical_push:deltoid"
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                }
+              },
+              "secondaryMuscles": [
+                "quadriceps",
+                "gluteus_maximus",
+                "triceps",
+                "trapezius"
+              ],
+              "setupCues": [
+                "Deja la barra sobre los hombros, con los codos algo adelantados y un agarre un poco más abierto que los hombros.",
+                "Decide antes de empezar con qué pie das el paso adelante y repítelo siempre igual."
+              ],
+              "setupTimeSeconds": 45,
+              "ssc": 0.3,
+              "stabilizerMuscles": [
+                "gluteus_medius",
+                "core",
+                "erector_spinae",
+                "forearm"
+              ],
+              "technicalDifficulty": 6.5,
+              "ttc": 1.6
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "split_jerk__barbell",
+        "description": "El Envión de Tijera (split jerk) es el envión que recibe la barra con las piernas abiertas en tijera: tras el impulso desde el rack frontal, un pie se adelanta y el otro retrocede mientras los brazos bloquean la barra sobre la cabeza. El deltoides y el tríceps sostienen el bloqueo, el cuádriceps y el glúteo mayor impulsan y frenan el cuerpo sobre la pierna adelantada, y el trapecio eleva los hombros bajo la barra. La base larga reparte el apoyo hacia delante y hacia atrás, a cambio de añadir un paso que hay que repetir con la misma pierna y de recuperar los pies al final. Es un ejercicio de potencia y de coordinación para el tren superior y las piernas.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:split_jerk",
+            "plan:wizard-entreno-v2-ol1-20261007#split_jerk"
+          ],
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "upper_vertical_push",
+        "id": "split_jerk",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "envion de tijera",
+          "split jerk",
+          "jerk de tijera",
+          "envion",
+          "jerk",
+          "levantamiento olimpico",
+          "halterofilia"
+        ]
       }
     ],
     "evidence": {
