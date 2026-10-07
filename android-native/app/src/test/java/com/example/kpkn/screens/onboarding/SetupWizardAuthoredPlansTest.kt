@@ -390,24 +390,34 @@ class SetupWizardAuthoredPlansTest {
 
     // ─── F-A2: razón tipada de los nativos v2 ────────────────────────────────
 
+    /**
+     * Cambió de sentido (Entreno v2): el escenario de F-A2 era Músculo corporal de 1 día a 20 min, que con la aproximación
+     * técnica por patrón exigía 21 min. Con la aproximación y movilidad obligatorias su piso es 19 min (un día de peso
+     * corporal fácil solo suma la movilidad breve del primer ejercicio; aritmética independiente en
+     * `SetupExecutableAvailabilityMatrixTest`, GRUPO A) y a 20 min cabe, así que ya no es un rechazo. El rechazo por tiempo de
+     * un nativo v2 que SIGUE sin caber a 20 min es Fuerza de 3 días, intermedio, con material de gimnasio: su primer
+     * ejercicio es un levantamiento pesado y lleva movilidad previa y la rampa larga. Aquí solo se guarda que el VM
+     * conserve la razón tipada y el mínimo del fitter; el mínimo exacto (24 min en Fuerza de 3 días intermedio con
+     * barra) lo fija `NativePlanFailureMapperTest` contra el fitter, no este recorrido.
+     */
     @Test
     fun nativeFitterTimeBudgetRejectionKeepsItsReasonCodeAndMinimumMinutes() = runTest(dispatcher.scheduler, timeout = 6.minutes) {
         val vm = newVm()
         val scenario = Scenario(
-            "f-a2-muscle-20", SetupExperience.NEW, SetupGoal.MUSCLE, 1, setOf(1), 20, AuthoredPlanFixtures.bodyweightOnly,
+            "f-a2-strength-20", SetupExperience.INTERMEDIATE, SetupGoal.STRENGTH, 3, setOf(1, 3, 5), 20, AuthoredPlanFixtures.fullGym,
         )
         val swept = settle(vm, scenario)
 
-        val muscle = checkNotNull(rejectionOf(swept, NativeProfileKind.MUSCLE.entryId)) {
-            "Músculo corporal de 1 día a 20 min debe rechazarse con motivo: ${stateDump(swept)}"
+        val strength = checkNotNull(rejectionOf(swept, NativeProfileKind.STRENGTH.entryId)) {
+            "Fuerza de 3 días a 20 min debe rechazarse con motivo: ${stateDump(swept)}"
         }
-        assertEquals(PlanRejectionReason.TIME_BUDGET, muscle.reasonCode)
-        assertEquals(SetupCandidateRejectionStage.DURATION, muscle.stage)
-        val required = muscle.requiredMinutes
-        assertNotNull("el fitter calculó el mínimo y el VM ya no lo pierde: ${muscle.reason}", required)
+        assertEquals(PlanRejectionReason.TIME_BUDGET, strength.reasonCode)
+        assertEquals(SetupCandidateRejectionStage.DURATION, strength.stage)
+        val required = strength.requiredMinutes
+        assertNotNull("el fitter calculó el mínimo y el VM ya no lo pierde: ${strength.reason}", required)
         assertTrue("el mínimo real supera los 20 min elegidos: $required", (required ?: 0) > 20)
-        assertTrue("la UI muestra «Este plan necesita N min»: ${muscle.reason}", muscle.reason.contains("min"))
-        assertTrue("un rechazo interno no se presenta como incompatibilidad de usuario", muscle.reasonCode != PlanRejectionReason.INTERNAL_MATERIALIZATION)
+        assertTrue("la UI muestra «Este plan necesita N min»: ${strength.reason}", strength.reason.contains("min"))
+        assertTrue("un rechazo interno no se presenta como incompatibilidad de usuario", strength.reasonCode != PlanRejectionReason.INTERNAL_MATERIALIZATION)
         if (swept.availablePlanCandidates.isEmpty()) {
             // Ningún candidato cabe: la explicación del tiempo viaja intacta hasta la pantalla
             // (CandidateIncompatibility muestra «Este plan necesita N min por sesión»).
