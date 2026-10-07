@@ -1,5 +1,7 @@
 package com.example.kpkn.screens.onboarding.design.entreno
 
+import android.content.Context
+import android.provider.Settings
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
@@ -18,6 +20,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipe
+import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.domain.onboarding.LiftMark
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -195,5 +198,19 @@ class LiftMarksPickerUiTest {
         assertEquals(400f, range.range.endInclusive, 0f)
         assertTrue(config.contains(SemanticsActions.SetProgress))
         assertEquals("142,5 kg", config[SemanticsProperties.StateDescription])
+    }
+
+    @Test
+    fun withReducedMotionTheRulerJumpsStraightToTheMarkWithoutIntermediateValues() {
+        // «Reducir movimiento» (escala de animaciones 0): nada de resorte, la regla salta a la marca y avisa una sola vez.
+        Settings.Global.putFloat(
+            ApplicationProvider.getApplicationContext<Context>().contentResolver,
+            Settings.Global.ANIMATOR_DURATION_SCALE,
+            0f,
+        )
+        show()
+        ruler(LiftMark.SQUAT).performSemanticsAction(SemanticsActions.SetProgress) { it(150f) }
+        rule.waitForIdle()
+        assertEquals(listOf<Pair<LiftMark, Double?>>(LiftMark.SQUAT to 150.0), emitted)
     }
 }
