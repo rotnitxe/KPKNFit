@@ -101,12 +101,18 @@ La ruta del bloque Entreno (`SetupStepGraph.nodes`) sale SOLO de datos del borra
 | `CAPABILITIES` | `EntrenoCapabilitiesStep` | `setCapability` | `withCapability` |
 | `PRIORITIES` | `EntrenoMusclesStep` | `toggleMuscle`, `clearMuscles` | `withMuscles`, `withMuscleToggled` |
 | `TRAINING_MAX` | `EntrenoMarksStep` | `setLiftMark`, `setMarksUnit` | `withLiftMark`, `withMarksUnit` |
-| `PLAN` | `EntrenoPlanStep` | `selectPlan` (candidatos actuales) | — |
-| `WEEK_LAYOUT` | `EntrenoWeekLayoutStep` | solo lectura por ahora | — |
+| `PLAN` | `EntrenoPlanStep` | `selectPlan`, `anotherPlanVersion`, `deferProgramUntilLater` | — (lee `planSweep` y `planReveals`) |
+| `WEEK_LAYOUT` | `EntrenoWeekLayoutStep` | `moveSession`, `adaptToSplit`, `resetWeekLayout` | `applyLayout` (`SetupWeekLayouts.kt`; lee `weekLayout`) |
 
 Reglas de dominio que viven fuera de la UI (`domain/onboarding/`): `EquipmentSymbols` (símbolos de material ↔ disponibilidad del motor, ida y vuelta exacta), `TrainingGoalRequirements` (qué material pide cada disciplina; un perfil incompatible se escribe pero no se puede confirmar), `MarksContext`, `CapabilityRules`, `MuscleSymbols`/`MuscleSuggestions` (las sugerencias solo se precargan si la persona no tocó el paso) y `EntrenoStepValues` (valores estables y alias antiguos). `GoalProfileMapping` (en `screens/onboarding/`) traduce el perfil al objetivo del motor, al estilo de calibración y al tipo de atleta.
 
 **Activación.** El perfil de objetivo escribe `Settings.athleteType` por `SetupSettingsPatch.athleteType`, solo si el paso GOAL se respondió en este alta (`athleteTypeToPersist`).
+
+**Programa y semana (PLAN, WEEK_LAYOUT).** El barrido arma los programas según el perfil (`GeneratedPlans.sourcesFor`): los tres generales reciben solo su programa «a medida» del generador de rutinas; Powerlifting, Powerbuilding y Culturismo, el «a medida» al frente y detrás los propios y de autor del planificador; Calistenia, Armwrestling, Strongman y Halterofilia, solo su «a medida» rotulado «versión inicial». Los programas «a medida» son entradas NATIVE sin listar del catálogo (`generated:<perfil>`, `PersonalizedPlanCatalog.GENERATED_IDS`), así que el nombre, el modo, la hoja del plan y el detalle del programa los tratan como a los propios. El pedido del generador sale solo del borrador (`routineRequest`: días desde el inicio de semana, día con más energía, minutos, nivel y calibraciones, material por lugar con `PlaceMaterial`, músculos, capacidades, cardio, marcas y `planVariantSeed`).
+
+- Estado publicado: `planSweep` (cargando / listo / fallido con el texto de COPY y «Reintentar») y `planReveals` (portada, detalle, semana tipo, razones y notas de cada programa viable, sacados del programa ya preparado). El paso abre el overlay «preparando…» mientras `planSweep` carga.
+- Los planes de autor caben con un 15 % más de tiempo del pedido (`timeBudgetWithTolerance`, con la nota «~N min por sesión») y los propios se arman con `min(minutos, 100)`.
+- La semana armada vive en `weekLayoutOverrides` (sesión → día) y `adaptedSplitId`; un único punto, `applyLayout(draft, program)`, la aplica al final de la vista previa (redistribuidor de repartos y `WeekAssignment`), y la activación guarda ese mismo programa. Cambiar respuestas, de plan o de versión la vacía (`withoutWeekLayout`).
 
 **Borradores antiguos** (`SetupDraftCompatibility.migrateEntrenoV2`, idempotente y sin confirmar nada): el entorno se lee como lugar, el objetivo como perfil (Salud y Fuerza + cardio quedan marcados para revisar), `powerliftingProfile` pasa a `liftMarks`, `daysPerWeek` es el número de días elegidos y un cursor sobre un paso retirado vuelve al primer paso pendiente de la ruta nueva (`SetupStepGraph.REVISION` = 4).
 
