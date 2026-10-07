@@ -266,15 +266,6 @@ class WeekMathTest {
     }
 
     @Test
-    fun theHintCoversOnlyTheEdgesOfTheRange() {
-        assertEquals("Con poco tiempo vamos a lo esencial.", sessionTimeHint(20))
-        assertEquals("Con poco tiempo vamos a lo esencial.", sessionTimeHint(30))
-        for (m in 35..85 step 5) assertNull("$m", sessionTimeHint(m))
-        assertEquals("Con más tiempo sumamos aproximaciones, movilidad y descansos más largos.", sessionTimeHint(90))
-        assertEquals("Con más tiempo sumamos aproximaciones, movilidad y descansos más largos.", sessionTimeHint(180))
-    }
-
-    @Test
     fun theShortcutsAreTheFiveOfTheCopyThatFitTheRange() {
         assertEquals(listOf(30, 45, 60, 90, 120), sessionShortcuts())
         assertEquals(listOf(30, 45, 60, 90), sessionShortcuts(20..100))

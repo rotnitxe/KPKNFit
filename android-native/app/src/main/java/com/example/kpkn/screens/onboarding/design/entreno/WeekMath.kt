@@ -35,11 +35,7 @@ fun orderedWeek(startDay: Int): List<Int> {
 }
 
 /** Ranura (0..6) que ocupa [day] en una semana que arranca en [startDay]. Un día inválido da −1. */
-fun weekSlotOf(day: Int, startDay: Int): Int {
-    if (!isWeekDay(day)) return -1
-    val start = if (isWeekDay(startDay)) startDay else 1
-    return (day - start + WEEK_DAY_COUNT) % WEEK_DAY_COUNT
-}
+fun weekSlotOf(day: Int, startDay: Int): Int = orderedWeek(startDay).indexOf(day)
 
 /** Inicial de un día: L M X J V S D (la X es el miércoles). Un día inválido da «». */
 fun dayInitial(day: Int): String = DAY_INITIALS.getOrElse(day - 1) { "" }
@@ -151,13 +147,6 @@ fun spokenDuration(minutes: Int): String {
         rest == 0 -> h()
         else -> "${h()} y ${m()}"
     }
-}
-
-/** Frase de ayuda del paso según el tiempo elegido (textos de `COPY.md`): con poco tiempo, con mucho o ninguna. */
-fun sessionTimeHint(minutes: Int): String? = when {
-    minutes <= 30 -> "Con poco tiempo vamos a lo esencial."
-    minutes >= 90 -> "Con más tiempo sumamos aproximaciones, movilidad y descansos más largos."
-    else -> null
 }
 
 // ─── Dial de reloj ───────────────────────────────────────────────────────────────────────────────────────────
