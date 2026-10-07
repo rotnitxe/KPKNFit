@@ -12,6 +12,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.text.style.TextAlign
 import com.example.kpkn.domain.onboarding.EntrenoStepValues
 import com.example.kpkn.screens.onboarding.SetupWizardState
 import com.example.kpkn.screens.onboarding.SetupWizardViewModel
@@ -71,7 +72,7 @@ internal fun EntrenoSessionTimeStep(state: SetupWizardState, vm: SetupWizardView
             range = EntrenoStepValues.SESSION_MINUTES_MIN..EntrenoStepValues.SESSION_MINUTES_MAX,
             step = EntrenoStepValues.SESSION_MINUTES_STEP,
         )
-        EntrenoStepNote(sessionTimeHint(pending ?: declared))
+        EntrenoStepNote(sessionTimeHint(pending ?: declared), textAlign = TextAlign.Center)
     }
 }
 
