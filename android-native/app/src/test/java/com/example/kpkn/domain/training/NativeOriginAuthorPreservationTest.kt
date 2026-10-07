@@ -96,16 +96,24 @@ class NativeOriginAuthorPreservationTest {
 
     // ─── La receta propia del plan nativo sí recibe la política nativa ────────
 
+    /**
+     * Entreno v2: el preset 40/60/80 por patrón dejó de ser la política nativa. La receta propia sigue recibiendo
+     * aproximación, pero la automática: movilidad obligatoria en el primer ejercicio y, si es un compuesto con carga a
+     * 8–12 repeticiones (no «cercano al 1RM»), una rampa corta de 2 pasos.
+     */
     @Test
-    fun native_program_materialized_with_its_own_recipe_keeps_native_warmups() {
+    fun native_program_materialized_with_its_own_recipe_keeps_the_automatic_approach() {
         val program = nativeProgram()
         val nativeRecipe = requireNotNull(program.sourceRecipe)
         val materialized = PlanMaterializer.materialize(program, nativeRecipe, metadata, SeqIds(), strict = false)
 
+        sessionsOf(materialized).forEach { session ->
+            assertTrue("${session.name}: movilidad previa en el primer ejercicio", session.allExercises().first().mobilitySeries.isNotEmpty())
+        }
         val withWarmups = exercisesOf(materialized).filter { it.warmupSets.isNotEmpty() }
-        assertTrue("La receta nativa RIR sí recibe el preset en el primer compuesto", withWarmups.isNotEmpty())
+        assertTrue("La receta nativa RIR sí se aproxima en el primer compuesto", withWarmups.isNotEmpty())
         withWarmups.forEach { exercise ->
-            assertEquals(listOf(40.0, 60.0, 80.0), exercise.warmupSets.map { it.percentageOfWorkingWeight })
+            assertEquals(listOf(50.0, 75.0), exercise.warmupSets.map { it.percentageOfWorkingWeight })
         }
         // La atribución de origen sigue intacta: la receta fuente es la nativa y
         // los bloques siguen curados por el motor nativo.
@@ -125,20 +133,24 @@ class NativeOriginAuthorPreservationTest {
 
     // ─── Receta de autor sobre programa nativo: base intacta ──────────────────
 
+    /**
+     * Cambió de sentido (Entreno v2): ya no hay una política de aproximación solo nativa que la receta de autor «no
+     * herede»; la política (automática por defecto) vale para todos los orígenes y COMPLETA lo que el autor no
+     * declaró. Lo que sigue intacto es la base: ejercicios, orden, series, RIR y atribución. La rampa que se ve aquí
+     * sale del planificador (sentadilla pesada primera: larga; press banca pesado y con articulaciones nuevas: corta),
+     * no del preset nativo ni de la receta fuente del programa.
+     */
     @Test
-    fun author_recipe_over_a_native_program_does_not_get_native_warmups() {
+    fun author_recipe_over_a_native_program_gets_the_automatic_approach_without_changing_its_base() {
         val native = nativeProgram()
         val author = authorRirRecipe("author-over-native")
         val materialized = PlanMaterializer.materialize(native, author, metadata, SeqIds(), strict = false)
 
         val exercises = exercisesOf(materialized)
         assertTrue(exercises.isNotEmpty())
-        exercises.forEach { exercise ->
-            assertTrue(
-                "La receta de autor (RIR sin %) no hereda el preset nativo",
-                exercise.warmupSets.isEmpty(),
-            )
-        }
+        assertEquals(listOf(40.0, 60.0, 80.0), exercises[0].warmupSets.map { it.percentageOfWorkingWeight })
+        assertEquals(listOf(50.0, 75.0), exercises[1].warmupSets.map { it.percentageOfWorkingWeight })
+        assertTrue("movilidad obligatoria en el primer ejercicio", exercises[0].mobilitySeries.isNotEmpty())
         // Orden, ejercicios y prescripción: los de la receta de autor.
         assertEquals(listOf(CatalogIds.SQ_LOW, CatalogIds.BP), exercises.map { it.catalogConfigurationId })
         assertEquals(listOf(4, 3), exercises.map { it.sets.size })
@@ -161,12 +173,16 @@ class NativeOriginAuthorPreservationTest {
         assertEquals(2, exercises.size)
         val first = exercises.first()
         assertEquals(
-            "Solo el calentamiento del autor, sin mezclar el preset del plan",
+            "Solo el calentamiento del autor, sin mezclar la rampa del plan",
             listOf(40.0),
             first.warmupSets.map { it.percentageOfWorkingWeight },
         )
         assertEquals(listOf(5), first.warmupSets.map { it.targetReps })
-        exercises.drop(1).forEach { exercise -> assertTrue(exercise.warmupSets.isEmpty()) }
+        // Cambió de sentido: el segundo ejercicio (press banca pesado con articulaciones nuevas) ya no queda sin
+        // aproximación; la completa el planificador con su rampa corta, sin tocar la del autor del primero.
+        assertEquals(listOf(50.0, 75.0), exercises[1].warmupSets.map { it.percentageOfWorkingWeight })
+        // La movilidad obligatoria del primer ejercicio se completa aunque el autor declarase su aproximación.
+        assertTrue(first.mobilitySeries.isNotEmpty())
     }
 
     @Test
@@ -179,7 +195,9 @@ class NativeOriginAuthorPreservationTest {
         val exercises = exercisesOf(rematerialized)
         assertTrue(exercises.isNotEmpty())
         assertEquals(listOf(CatalogIds.SQ_LOW, CatalogIds.BP), exercises.map { it.catalogConfigurationId })
-        exercises.forEach { exercise -> assertTrue(exercise.warmupSets.isEmpty()) }
+        // Cambió de sentido: la base es la del autor y la aproximación la pone el planificador (no el preset nativo).
+        assertEquals(listOf(40.0, 60.0, 80.0), exercises[0].warmupSets.map { it.percentageOfWorkingWeight })
+        assertEquals(listOf(50.0, 75.0), exercises[1].warmupSets.map { it.percentageOfWorkingWeight })
         // La receta fuente del programa no se sustituye por la ajena.
         assertEquals(native.sourceRecipe?.id, rematerialized.sourceRecipe?.id)
     }

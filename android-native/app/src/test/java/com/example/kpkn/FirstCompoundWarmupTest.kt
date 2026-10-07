@@ -15,9 +15,11 @@ import com.example.kpkn.data.protocols.SlotRecipe
 import com.example.kpkn.data.protocols.SlotRole
 import com.example.kpkn.data.protocols.TrainingPlanRecipe
 import com.example.kpkn.data.protocols.day
+import com.example.kpkn.data.protocols.firstCompoundWarmupPercentSets
 import com.example.kpkn.data.protocols.percentSets
 import com.example.kpkn.data.protocols.slot
 import com.example.kpkn.data.protocols.weekRecipe
+import com.example.kpkn.domain.onboarding.SetupTrainingOptions
 import com.example.kpkn.domain.training.CatalogCompositionTestSupport
 import com.example.kpkn.domain.training.IdProvider
 import com.example.kpkn.domain.training.PlanMaterializer
@@ -54,7 +56,10 @@ class FirstCompoundWarmupTest {
     private fun workSlot(id: String, role: SlotRole, configurationId: String, percent: Double = 75.0): SlotRecipe =
         slot(id, role, configurationId, percentSets(180, 5 to percent), restSeconds = 180)
 
-    private fun materialize(vararg slots: SlotRecipe): List<Exercise> {
+    private fun materialize(
+        vararg slots: SlotRecipe,
+        options: SetupTrainingOptions = SetupTrainingOptions(),
+    ): List<Exercise> {
         val recipe = TrainingPlanRecipe(
             id = "first-compound-warmup-test",
             weeks = listOf(
@@ -68,6 +73,7 @@ class FirstCompoundWarmupTest {
             SeqIds(),
             profile = PowerliftingProfile(squat1RM = 200.0, bench1RM = 140.0, deadlift1RM = 220.0),
             strict = false,
+            options = options,
         ).macrocycles.first().blocks.first().mesocycles.first().weeks.first().sessions.first().allExercises()
     }
 
@@ -82,8 +88,13 @@ class FirstCompoundWarmupTest {
         WarmupSetDefinition("w3", 80.0, 3),
     )
 
+    /**
+     * Entreno v2: el preset 40/60/80 «al primer compuesto de cada patrón» ya no es el valor por defecto
+     * (`warmup == null` = aproximación automática con `ApproachPlanner`). Con pasos EXPLÍCITOS la política de siempre
+     * sigue mandando, y este test fija exactamente eso (antes corría con las opciones por defecto).
+     */
     @Test
-    fun only_first_compound_of_each_movement_pattern_gets_the_preset() {
+    fun explicit_steps_go_only_to_the_first_compound_of_each_movement_pattern() {
         val exercises = materialize(
             // Primer compuesto del patrón SQUAT sin ser T1_MAIN: decide el catálogo.
             workSlot("sq-low", SlotRole.T2_SUPPLEMENTAL, CatalogIds.SQ_LOW),
@@ -91,6 +102,7 @@ class FirstCompoundWarmupTest {
             workSlot("sq-high", SlotRole.T1_MAIN, CatalogIds.SQ_HIGH),
             // Primer compuesto del patrón HORIZONTAL_PUSH, también sin ser T1.
             workSlot("bp", SlotRole.T3_ACCESSORY, CatalogIds.BP),
+            options = SetupTrainingOptions(warmup = firstCompoundWarmupPercentSets()),
         )
         fun byConfig(id: String): Exercise = exercises.first { it.catalogConfigurationId == id }
 
@@ -102,6 +114,49 @@ class FirstCompoundWarmupTest {
         assertEquals(listOf(8, 5, 3), firstSquat.warmupSets.map { it.targetReps })
         assertTrue("Solo el primer compuesto por patrón recibe el preset", secondSquat.warmupSets.isEmpty())
         assertEquals(listOf(40.0, 60.0, 80.0), bench.warmupSets.map { it.percentageOfWorkingWeight })
+        assertTrue("con pasos propios no hay movilidad automática", exercises.all { it.mobilitySeries.isEmpty() })
+    }
+
+    /**
+     * La regla nueva por defecto, sobre la misma sesión: aproximación solo en ejercicios pesados, obligatoria con
+     * movilidad en el primero; el segundo solo si es pesado y toca una articulación que el primero no cubrió.
+     * Cambió de sentido respecto al preset antiguo: el segundo compuesto del patrón SQUAT ya no recibe nada porque
+     * sus articulaciones están cubiertas, y el press banca accesorio (tercero, no pesado) tampoco.
+     */
+    @Test
+    fun by_default_only_heavy_exercises_are_approached_and_the_first_one_always_gets_mobility() {
+        val exercises = materialize(
+            workSlot("sq-low", SlotRole.T2_SUPPLEMENTAL, CatalogIds.SQ_LOW),
+            workSlot("sq-high", SlotRole.T1_MAIN, CatalogIds.SQ_HIGH),
+            workSlot("bp", SlotRole.T3_ACCESSORY, CatalogIds.BP),
+        )
+        fun byConfig(id: String): Exercise = exercises.first { it.catalogConfigurationId == id }
+
+        val firstSquat = byConfig(CatalogIds.SQ_LOW)
+        val secondSquat = byConfig(CatalogIds.SQ_HIGH)
+        val bench = byConfig(CatalogIds.BP)
+
+        // Primero y pesado (compuesto principal de 5 repeticiones): movilidad previa + rampa sobre la carga de trabajo.
+        assertEquals(listOf(40.0, 60.0, 80.0), firstSquat.warmupSets.map { it.percentageOfWorkingWeight })
+        assertEquals(listOf(8, 5, 3), firstSquat.warmupSets.map { it.targetReps })
+        assertTrue(firstSquat.mobilitySeries.isNotEmpty())
+        // Segundo, pesado, pero sus articulaciones ya las cubrió la sentadilla anterior.
+        assertTrue(secondSquat.warmupSets.isEmpty() && secondSquat.mobilitySeries.isEmpty())
+        // Tercero y accesorio (no es cercano al 1RM): nada.
+        assertTrue(bench.warmupSets.isEmpty() && bench.mobilitySeries.isEmpty())
+    }
+
+    @Test
+    fun a_heavy_second_exercise_on_new_joints_gets_its_own_short_ramp_by_default() {
+        val exercises = materialize(
+            workSlot("sq", SlotRole.T1_MAIN, CatalogIds.SQ_LOW),
+            workSlot("bp", SlotRole.T1_MAIN, CatalogIds.BP),
+        )
+        val squat = exercises.first { it.catalogConfigurationId == CatalogIds.SQ_LOW }
+        val bench = exercises.first { it.catalogConfigurationId == CatalogIds.BP }
+        assertEquals(3, squat.warmupSets.size)
+        assertEquals("rampa más corta: 1–2 pasos", listOf(50.0, 75.0), bench.warmupSets.map { it.percentageOfWorkingWeight })
+        assertTrue("movilidad de hombro antes del press", bench.mobilitySeries.isNotEmpty())
     }
 
     @Test

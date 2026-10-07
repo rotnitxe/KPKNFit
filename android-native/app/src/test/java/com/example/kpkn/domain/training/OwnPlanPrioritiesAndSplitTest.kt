@@ -376,6 +376,8 @@ class OwnPlanPrioritiesAndSplitTest {
         var comparedRejected = 0
         var reorderedPrograms = 0
         var cascadePrograms = 0
+        var fallbackPrograms = 0
+        val fallbackLabels = mutableListOf<String>()
         NativeProfileKind.entries.forEach { kind ->
             LEVELS.forEach { level ->
                 (1..6).forEach { days ->
@@ -412,7 +414,20 @@ class OwnPlanPrioritiesAndSplitTest {
                             }
                             comparedReady++
                             val problems = mutableListOf<String>()
-                            if (bagProgram.planOrderPriorities != normalized(bag)) {
+                            // Entreno v2: la aproximación y la movilidad dependen del orden (el primer ejercicio es el
+                            // que lleva la rampa larga y la movilidad más completa), así que el orden con bolsa puede
+                            // medir unos segundos más que el recomendado y, en un plan al borde del tiempo, no caber.
+                            // Ese es el respaldo documentado del generador (orden recomendado + aviso + bolsa SIN
+                            // registrar): no es un fallo, pero debe ser exactamente el programa recomendado.
+                            val fellBack = bagProgram.planOrderPriorities == null &&
+                                result.report.planNotes.any { "quedan en el orden recomendado" in it }
+                            if (fellBack) {
+                                fallbackPrograms++
+                                fallbackLabels += "${scenario.label} con $bag"
+                                if (sessionOrders(bagProgram) != sessionOrders(baseProgram)) {
+                                    problems += "el respaldo no deja el orden recomendado"
+                                }
+                            } else if (bagProgram.planOrderPriorities != normalized(bag)) {
                                 problems += "bolsa registrada=${bagProgram.planOrderPriorities} (¿revertida?: ${result.report.planNotes})"
                             }
                             if (prescriptions(bagProgram) != prescriptions(baseProgram)) problems += "la prescripción cambia"
@@ -424,12 +439,14 @@ class OwnPlanPrioritiesAndSplitTest {
                                 val duration = session.targetDurationMinutes
                                 if (duration == null || duration > minutes) problems += "sesión ${session.id} dura $duration > $minutes"
                             }
-                            requireNotNull(baseProgram.sourceRecipe).weeks.zip(bagRecipe.weeks).forEach { (baseWeek, bagWeek) ->
-                                baseWeek.days.zip(bagWeek.days).forEach { (baseDay, bagDay) ->
-                                    problems += dayProblems("s${baseWeek.weekNumber}/${baseDay.label}", baseDay, bagDay, normalized(bag))
+                            if (!fellBack) {
+                                requireNotNull(baseProgram.sourceRecipe).weeks.zip(bagRecipe.weeks).forEach { (baseWeek, bagWeek) ->
+                                    baseWeek.days.zip(bagWeek.days).forEach { (baseDay, bagDay) ->
+                                        problems += dayProblems("s${baseWeek.weekNumber}/${baseDay.label}", baseDay, bagDay, normalized(bag))
+                                    }
                                 }
                             }
-                            if (sessionOrders(bagProgram) != sessionOrders(baseProgram)) reorderedPrograms++
+                            if (!fellBack && sessionOrders(bagProgram) != sessionOrders(baseProgram)) reorderedPrograms++
                             // El fitter decide IGUAL con y sin bolsa: mismas retiradas, recortes y movimientos de
                             // accesorios (§12.3), en el mismo orden. Si la bolsa reordenara antes de ajustar, el
                             // accesorio priorizado iría el primero y sería el primero en retirarse.
@@ -447,9 +464,14 @@ class OwnPlanPrioritiesAndSplitTest {
         }
         println(
             "[A.E1][own-bag-matrix] comparados: viables=$comparedReady rechazados=$comparedRejected " +
-                "reordenados=$reorderedPrograms conAjusteDelFitter=$cascadePrograms",
+                "reordenados=$reorderedPrograms conAjusteDelFitter=$cascadePrograms " +
+                "conRespaldoPorTiempo=$fallbackPrograms $fallbackLabels",
         )
         assertTrue(failures.joinToString("\n"), failures.isEmpty())
+        assertTrue(
+            "el respaldo por tiempo es la excepción (movilidad/rampa cuentan segundos), no la regla: $fallbackLabels",
+            fallbackPrograms * 10 <= comparedReady,
+        )
         assertTrue("la matriz debe comparar programas viables", comparedReady > 0)
         assertTrue("la bolsa debe reordenar al menos un programa de la matriz", reorderedPrograms > 0)
         assertTrue("la matriz debe incluir programas en los que el fitter retira o recorta", cascadePrograms > 0)

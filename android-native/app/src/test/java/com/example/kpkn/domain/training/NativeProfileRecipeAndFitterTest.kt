@@ -967,6 +967,13 @@ class NativeProfileRecipeAndFitterTest {
         assertTrue("kinds=$kinds", RecipeSessionKind.STRENGTH in kinds && RecipeSessionKind.CARDIO_ACCESSORY in kinds)
     }
 
+    /**
+     * Cambió de sentido (Entreno v2): el día de Atleta corporal de 1 día mide ahora 39 min con 10 de cardio (antes 41):
+     * las dos aproximaciones técnicas por patrón (2 × 90 s) se sustituyeron por la regla nueva, que en un día de peso
+     * corporal fácil solo pide la movilidad breve del primer ejercicio (un movimiento de 40 s). Con el cardio por
+     * defecto de 15 min a partir de 45 el día mide 44 y ya cabe: el límite 44→45 sigue sumando exactamente 5 min de
+     * cardio, pero deja de verse como un rechazo (antes 46 > 45).
+     */
     @Test
     fun cardio_defaults_use_session_time_boundaries_44_and_45() {
         val result44 = generate(
@@ -979,7 +986,7 @@ class NativeProfileRecipeAndFitterTest {
         )
         val program44 = requireProgram(result44, "atleta a 44 min")
         val actual44 = requireNotNull(result44.report.maxSessionMinutes)
-        assertEquals("el día cabe en SESSION_TIME=44", 41, actual44)
+        assertEquals("el día cabe en SESSION_TIME=44", 39, actual44)
         val cardio44 = requireNotNull(program44.sourceRecipe).weeks.first().days
             .flatMap { it.cardioBlocks }
             .single()
@@ -993,10 +1000,13 @@ class NativeProfileRecipeAndFitterTest {
             45,
             programId = "np-athlete-boundary-45",
         )
-        assertNull("SESSION_TIME=45 no debe devolver un plan parcial", result45.program)
-        assertEquals("SESSION_TIME=45", "TIME_BUDGET", result45.report.reasonCode)
+        val program45 = requireProgram(result45, "atleta a 45 min")
         val actual45 = requireNotNull(result45.report.maxSessionMinutes)
-        assertTrue("SESSION_TIME=45 requiere $actual45 min", actual45 > 45)
+        assertTrue("SESSION_TIME=45 cabe con el cardio de 15 min: $actual45", actual45 <= 45)
+        val cardio45 = requireNotNull(program45.sourceRecipe).weeks.first().days
+            .flatMap { it.cardioBlocks }
+            .single()
+        assertEquals("45 min selecciona el default de cardio de 15 min", 15 * 60, cardio45.details.effectiveDurationSeconds())
         // El mismo día solo cambia el default de cardio: 44→10 min, 45→15.
         assertEquals("el límite 44→45 añade exactamente 5 min de cardio", 5, actual45 - actual44)
     }
@@ -1008,7 +1018,8 @@ class NativeProfileRecipeAndFitterTest {
      * SESSION_TIME o la elección del usuario, el estimador cuenta el bloque entero y, si el día
      * no cabe, el resultado es TIME_BUDGET con el mínimo real, no una sesión con el cardio acortado
      * (antes el «paso 4b» llegaba a dejar bloques de 9 min). Día base: Atleta corporal 1 día,
-     * principiante = 41 min con 10 min de cardio; cada escalón ofertado añade 5/10/20 min.
+     * principiante = 39 min con 10 min de cardio (41 antes de Entreno v2: la aproximación técnica por patrón se
+     * sustituyó por la movilidad breve del primer ejercicio); cada escalón ofertado añade 5/10/20 min.
      */
     @Test
     fun athlete_cardio_minutes_are_validated_whole_and_never_trimmed_to_fit() {
@@ -1020,7 +1031,7 @@ class NativeProfileRecipeAndFitterTest {
             budget,
             cardioPreference = CardioPreference(CardioType.WALK, cardioMinutes),
         )
-        listOf(10 to 41, 15 to 46, 20 to 51, 30 to 61).forEach { (cardioMinutes, floor) ->
+        listOf(10 to 39, 15 to 44, 20 to 49, 30 to 59).forEach { (cardioMinutes, floor) ->
             val exact = attempt(floor, cardioMinutes)
             val program = requireProgram(exact, "cardio de $cardioMinutes min en su mínimo de $floor min")
             assertEquals("el día mide su mínimo con cardio de $cardioMinutes", floor, exact.report.maxSessionMinutes)
@@ -1037,17 +1048,18 @@ class NativeProfileRecipeAndFitterTest {
      * Músculo corporal de 3 días alterna FA/FB/FA ↔ FB/FA/FB, así que una misma posición de día
      * la ocupan dos planes de día y W5 exige los mismos accesorios en todas las semanas del bloque.
      * El fitter debe retirar I y C «de la tabla» (en las dos apariciones de BFA y en BFB) y llegar al
-     * mismo piso que el día único: 3 H + 2 aproximaciones = 1260 s = 21 min. Antes quedaba
-     * atascado en 25 min (BFB sin ajustar) y sus 21–24 min "no cabían" aunque la receta mínima sí.
+     * mismo piso que el día único. Antes quedaba atascado en 25 min (BFB sin ajustar) y sus 21–24 min
+     * "no cabían" aunque la receta mínima sí.
+     *
+     * Cambió de sentido (Entreno v2): el piso era 21 min (3 H + 2 aproximaciones técnicas = 1260 s) y a 20 min
+     * había rechazo. Ahora el primer ejercicio de peso corporal fácil solo lleva una movilidad breve (40 s):
+     * 3 H + 40 s = 1120 s = 19 min, así que el presupuesto mínimo admitido (20 min) ya cabe y el mínimo informado
+     * es 19, por debajo de lo que se puede elegir: el rechazo de tiempo deja de existir para este plan.
      */
     @Test
     fun muscle_bodyweight_three_day_alternation_reports_and_reaches_its_real_floor() {
-        val below = generate(NativeProfileKind.MUSCLE.entryId, 3, CatalogLevel.BEGINNER, BODYWEIGHT, 20)
-        assertNull("a 20 min no cabe la receta mínima", below.program)
-        assertEquals("TIME_BUDGET", below.report.reasonCode)
-        assertEquals("el mínimo informado es el real, no el de un fitter atascado", 21, below.report.maxSessionMinutes)
-
-        val atFloor = generate(NativeProfileKind.MUSCLE.entryId, 3, CatalogLevel.BEGINNER, BODYWEIGHT, 21)
+        val atFloor = generate(NativeProfileKind.MUSCLE.entryId, 3, CatalogLevel.BEGINNER, BODYWEIGHT, 20)
+        assertEquals("el mínimo informado es el real, no el de un fitter atascado", 19, atFloor.report.maxSessionMinutes)
         val program = requireProgram(atFloor, "musculo corporal 3 días en su mínimo")
         val recipe = requireNotNull(program.sourceRecipe)
         assertTrue(
@@ -1056,7 +1068,7 @@ class NativeProfileRecipeAndFitterTest {
         )
         sessionsOf(program).forEach { session ->
             val measured = SessionDurationEstimator.estimate(session).totalMinutes
-            assertTrue("${session.id} mide $measured min con 21 de presupuesto", measured <= 21)
+            assertTrue("${session.id} mide $measured min con 20 de presupuesto", measured <= 20)
             assertEquals("${session.id} sella la medida real", measured, session.targetDurationMinutes)
         }
         val weeks = recipe.weeks
@@ -1118,6 +1130,12 @@ class NativeProfileRecipeAndFitterTest {
                 20,
                 null,
             ),
+            // Entreno v2: con la aproximación nueva el peso corporal y las máquinas bajan su piso (varias filas de
+            // arriba ya caben a 20 min y salen del oráculo); lo que sube es la barra: la movilidad y la rampa del
+            // primer ejercicio pesado. Estas filas mantienen el barrido con rechazos de tiempo reales.
+            Row("Fuerza 3d intermedio con barra, 20 min", NativeProfileKind.STRENGTH.entryId, 3, CatalogLevel.INTERMEDIATE, BARBELL, 20, null),
+            Row("Fuerza 4d intermedio con barra, 20 min", NativeProfileKind.STRENGTH.entryId, 4, CatalogLevel.INTERMEDIATE, BARBELL, 20, null),
+            Row("Fuerza y músculo 3d intermedio con barra, 20 min", NativeProfileKind.POWERBUILDING.entryId, 3, CatalogLevel.INTERMEDIATE, BARBELL, 20, null),
         )
         fun attempt(row: Row, minutes: Int) = generator.personalize(
             "exact-${row.entryId.removePrefix("native:")}-${row.days}-$minutes",
@@ -1158,7 +1176,7 @@ class NativeProfileRecipeAndFitterTest {
             }
         }
         assertTrue(failures.joinToString("\n"), failures.isEmpty())
-        assertTrue("al menos 8 de las 10 filas son rechazos de tiempo (fueron $checked)", checked >= 8)
+        assertTrue("al menos 8 de las 13 filas son rechazos de tiempo (fueron $checked)", checked >= 8)
     }
 
     @Test
@@ -1250,9 +1268,12 @@ class NativeProfileRecipeAndFitterTest {
 
     @Test
     fun fitter_can_reduce_fv_on_a_practice_day_with_an_unrelated_f_main() {
+        // Cambió de sentido (Entreno v2): la aproximación obligatoria (movilidad + rampa del primer ejercicio pesado)
+        // sube el piso de Fuerza 3 días intermedio con barra de ≤ 20 a 24 min, así que el presupuesto ajustado en el que
+        // el fitter recorta Fv 2→1 es ahora el de 24 min (antes 20).
         val program = requireProgram(
-            generate(NativeProfileKind.STRENGTH.entryId, 3, CatalogLevel.INTERMEDIATE, BARBELL, 20),
-            "fuerza3 intermedio a 20 min",
+            generate(NativeProfileKind.STRENGTH.entryId, 3, CatalogLevel.INTERMEDIATE, BARBELL, 24),
+            "fuerza3 intermedio a 24 min",
         )
         val recipe = requireNotNull(program.sourceRecipe)
         val week = recipe.weeks.first()
@@ -1274,7 +1295,7 @@ class NativeProfileRecipeAndFitterTest {
             "la exposición secundaria de banca debe seguir presente",
             week.days.count { day -> day.slots.any { it.id == "b" && it.workingSetsForTest().isNotEmpty() } } >= 2,
         )
-        assertTrue("todas las sesiones ajustadas caben en 20 min", sessionsOf(program).all { (it.targetDurationMinutes ?: 0) <= 20 })
+        assertTrue("todas las sesiones ajustadas caben en 24 min", sessionsOf(program).all { (it.targetDurationMinutes ?: 0) <= 24 })
 
         val isolated = reducedPracticeSlots.first()
         val invalidOneSetPractice = recipe.copy(
