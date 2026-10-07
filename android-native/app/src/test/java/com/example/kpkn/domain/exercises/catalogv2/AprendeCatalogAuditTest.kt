@@ -71,19 +71,22 @@ class AprendeCatalogAuditTest {
         // `deadlift_to_knees`, `close_grip_lat_pulldown` e `incline_biceps_curl`, cada una
         // una especialidad de una sola configuración) lo llevan a 206/527 con la misma revisión.
         // El retiro autorizado de las cuatro unilaterales de rumano sumo (2026-10-04) deja 206/523.
+        // El retiro de walking_lunge en Smith y polea (lote 6) deja 206/521. El lote BW-1 de peso corporal
+        // (2026-10-07: 9 definiciones nuevas y 8 configuraciones `__bodyweight` en definiciones existentes)
+        // lo lleva a 215/539 con la misma revisión.
         assertEquals("v2-approved-2026-09-29-a", report.catalogRevision)
         assertEquals("wikilab-v3-2026-08-08", report.ontologyRevision)
         assertEquals(96, report.familyCount)
-        assertEquals(206, report.definitionCount)
-        assertEquals(521, report.configurationCount)
-        assertEquals(521, report.richMetadataCount)
-        assertEquals(521, report.editorialCoverageCount)
-        assertEquals(521, report.jointCoverageCount)
+        assertEquals(215, report.definitionCount)
+        assertEquals(539, report.configurationCount)
+        assertEquals(539, report.richMetadataCount)
+        assertEquals(539, report.editorialCoverageCount)
+        assertEquals(539, report.jointCoverageCount)
         assertEquals(0, report.shortDescriptionCount)
         assertEquals(0, report.duplicateDescriptionCount)
         assertEquals(0, report.desynchronizedMetadataCount)
         assertEquals(0, report.reverseLinkConsistencyIssueCount)
-        assertEquals("c67eeb8ff6a8e68988fd3e0396fe8601920d3cdec7a05973fa95bf6085eb7566", report.sourceSha256)
+        assertEquals("a7405d2d753548f72f61c2cf464728a26feafeb47e2fb9ada099a55b9d28cc38", report.sourceSha256)
         assertTrue("músculos sin puente: ${report.unmappedMuscleIds}", report.unmappedMuscleIds.isEmpty())
         assertTrue("patrones sin puente: ${report.unmappedPatternIds}", report.unmappedPatternIds.isEmpty())
         assertTrue(report.unknownJointIds.isEmpty())
@@ -129,9 +132,9 @@ class AprendeCatalogAuditTest {
             .map { it.id }
             .toSet()
 
-        // 206 definiciones / 521 configuraciones tras retirar caminata Smith/polea (ver comentario de
+        // 215 definiciones / 539 configuraciones tras el lote BW-1 (ver comentario de
         // `approved_catalog_has_complete_aprende_ontology_and_editorial_coverage`).
-        assertEquals(521, runtime.size)
+        assertEquals(539, runtime.size)
         assertEquals(sourceConfigurationIds, runtime.keys)
         assertTrue(runtime.values.all {
             val configurationId = it.catalogConfigurationId

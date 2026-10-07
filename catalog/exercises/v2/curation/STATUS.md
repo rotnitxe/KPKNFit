@@ -15,7 +15,7 @@ vigente es esto:
   guardadas se remapean a `sissy_squat__smith_machine`; el 2026-10-03 se dieron de
   alta las cinco especialidades M1-M5, ver más abajo; el 2026-10-04 se retiraron
   las cuatro configuraciones unilaterales del rumano sumo). SHA-256 canónico compartido
-  `c67eeb8ff6a8e68988fd3e0396fe8601920d3cdec7a05973fa95bf6085eb7566`.
+  `a7405d2d753548f72f61c2cf464728a26feafeb47e2fb9ada099a55b9d28cc38`.
 - Fuente única de autoría: `curation/fichas/<familyId>.json` (una por familia,
   96). Se copia con `scripts/catalog_v2_apply_fichas.py`; el flujo completo y las
   reglas están en `EDITORIAL_GUIDE.md`. El gate falla si `source/` difiere de lo

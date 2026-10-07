@@ -133,7 +133,7 @@ class ExerciseCatalogV2BackendTest(unittest.TestCase):
     def test_editorial_android_ios_artifacts_have_one_hash_and_revision(self) -> None:
         self.assertEqual(
             verify_shared_catalog_artifacts(),
-            "c67eeb8ff6a8e68988fd3e0396fe8601920d3cdec7a05973fa95bf6085eb7566",
+            "a7405d2d753548f72f61c2cf464728a26feafeb47e2fb9ada099a55b9d28cc38",
         )
 
     def test_retired_decline_variants_are_absent_from_the_shared_catalog(self) -> None:
@@ -204,7 +204,8 @@ class ExerciseCatalogV2BackendTest(unittest.TestCase):
         self.assertEqual(definitions["good_morning"]["optionAxes"], ["implement", "laterality"])
         self.assertEqual(definitions["standing_lateral_raise"]["optionAxes"], ["implement"])
         self.assertEqual(definitions["seated_lateral_raise"]["optionAxes"], ["implement"])
-        self.assertEqual(len(definitions["romanian_deadlift"]["configurations"]), 8)
+        # 8 con implemento (barra, Smith, mancuernas y hex, de dos y de una pierna) + la de una pierna con el propio peso (BW-1).
+        self.assertEqual(len(definitions["romanian_deadlift"]["configurations"]), 9)
         self.assertEqual(len(definitions["romanian_sumo_deadlift"]["configurations"]), 4)
         self.assertEqual(len(definitions["rear_delt_raise"]["configurations"]), 3)
         self.assertEqual(definitions["conventional_deadlift"]["optionAxes"], ["implement", "laterality"])
