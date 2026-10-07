@@ -24,7 +24,8 @@ import org.junit.Test
  *
  * Lo que acreditan las anillas (`trx`, `rings`) y el cajón (`plyo_box`) lo fijan `SYMBOL_EQUIPMENT_KEYS` y
  * `EffectiveEquipmentResolverContractTest`; aquí solo se comprueba la parte de BW-1: el cajón es además un apoyo elevado
- * (`support`) y las anillas no lo son.
+ * (`support`) y las anillas no lo son. Eso vale en casa y en el gimnasio: en espacios públicos la llave del rack no se escribe
+ * y la categoría de soportes ya acredita `support` con cualquier símbolo de soporte (preexistente; informe de BW-1, sección 9).
  */
 class BodyweightLotEquipmentTest {
 
@@ -162,7 +163,7 @@ class BodyweightLotEquipmentTest {
             assertEquals("el implemento de «$id»", "trx", configurations.getValue(id).profile.equipmentId)
             assertTrue("«$id» debe ser alcanzable con anillas", reachable(id, availability))
         }
-        // Unas anillas colgadas no son un apoyo elevado.
+        // Unas anillas colgadas no son un apoyo elevado (en casa; en espacios públicos lo acredita la categoría de soportes).
         assertFalse(REQUIREMENT_SUPPORT in tokens)
         elevatedSupport.forEach { id -> assertFalse("«$id» no se alcanza solo con anillas", reachable(id, availability)) }
         // Y sin ellas no hay suspensión: ni el cajón, ni el banco, ni el parque la acreditan.
