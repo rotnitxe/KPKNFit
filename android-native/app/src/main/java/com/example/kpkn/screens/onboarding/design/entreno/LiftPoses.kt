@@ -23,6 +23,12 @@ internal object LiftPoses {
     /** Altura (y) del suelo en el lienzo. */
     const val GROUND = 70f
 
+    /** Donde se dibuja la línea del suelo (un punto por debajo de los pies: el trazo no los tapa). */
+    const val GROUND_LINE = GROUND + 1f
+
+    /** Alto del lienzo que se muestra: del suelo hacia arriba, lo que mide la figura más alta con el disco arriba. */
+    const val VIEW_H = 72f
+
     /** Radio del disco de la barra. */
     const val PLATE_R = 7.5f
 

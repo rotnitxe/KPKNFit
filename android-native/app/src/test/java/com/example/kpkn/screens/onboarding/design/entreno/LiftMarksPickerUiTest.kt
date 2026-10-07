@@ -143,13 +143,12 @@ class LiftMarksPickerUiTest {
     }
 
     @Test
-    fun iDontKnowAgainDeclaresTheMarkUnderTheCursor() {
+    fun iDontKnowWhileAlreadyUnknownDoesNotDeclareAnything() {
         show()
-        // Sin marca el interruptor está activo: tocarlo lo apaga y declara lo que muestra la regla.
+        // Sin marca el interruptor ya está activo: tocarlo no declara nada (declarar es mover o tocar la regla).
         rule.onNodeWithTag("setup-mark-SQUAT-unknown").performClick()
         rule.waitForIdle()
-        assertEquals(LiftMark.SQUAT, emitted.last().first)
-        assertEquals(LiftMarkDefaults.startKg(LiftMark.SQUAT), emitted.last().second!!, 1e-9)
+        assertTrue("no debe avisar: $emitted", emitted.isEmpty())
     }
 
     @Test

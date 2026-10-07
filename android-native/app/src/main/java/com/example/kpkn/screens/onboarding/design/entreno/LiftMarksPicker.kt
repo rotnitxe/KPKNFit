@@ -144,9 +144,8 @@ fun LiftMarksPicker(
         Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
             UnitSwitch(unit = u, onUnit = onUnit)
         }
-        lifts.forEachIndexed { index, lift ->
+        lifts.forEach { lift ->
             key(lift) {
-                if (index > 0) Hairline()
                 LiftRow(
                     lift = lift,
                     expanded = lift == expanded,
@@ -157,6 +156,8 @@ fun LiftMarksPicker(
                     onExpand = { expandedName = lift.name },
                     onValueKg = { onValueKg(lift, it) },
                 )
+                // La figura plegada se apoya en este filete: es su suelo.
+                Hairline()
             }
         }
         Text(
@@ -248,13 +249,15 @@ private fun LiftRow(
                     contentDescription = "${lift.label}, $valueText"
                     stateDescription = if (expanded) "Desplegada" else "Plegada"
                 }
-                .defaultMinSize(minHeight = 72.dp)
-                .padding(vertical = 2.dp),
+                .defaultMinSize(minHeight = 70.dp)
+                .padding(top = 2.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             LiftSymbol(
                 lift = lift,
                 running = expanded && !reducedMotion,
+                declared = declared,
+                ground = expanded,
                 clock = clock,
                 modifier = Modifier.width(symbolWidth).height(symbolHeight),
             )
@@ -344,9 +347,8 @@ private fun ExpandedMark(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
                     role = Role.Switch,
-                    onValueChange = { nowUnknown ->
-                        if (nowUnknown) onValueKg(null) else onValueKg(shownKg)
-                    },
+                    // Solo borra: con la marca ya borrada el interruptor no declara nada (declarar es mover o tocar la regla).
+                    onValueChange = { nowUnknown -> if (nowUnknown) onValueKg(null) },
                 )
                 .defaultMinSize(minWidth = 96.dp, minHeight = 48.dp)
                 .padding(horizontal = 16.dp, vertical = 12.dp),
@@ -594,12 +596,14 @@ private fun DrawScope.drawRuler(
 
 /**
  * El símbolo de un levantamiento: la figura con la barra (disco visto de lado). Con [running] hace las repeticiones
- * a partir del cuadro de reposo; si no, se queda en ese cuadro.
+ * a partir del cuadro de reposo; si no, se queda en ese cuadro. Con [declared] (ya hay marca) el disco lleva el acento.
  */
 @Composable
 private fun LiftSymbol(
     lift: LiftMark,
     running: Boolean,
+    declared: Boolean,
+    ground: Boolean,
     clock: State<Float>,
     modifier: Modifier = Modifier,
 ) {
@@ -608,26 +612,31 @@ private fun LiftSymbol(
     Canvas(modifier) {
         val u = if (running) LiftPoses.uAt(lift, clock.value) else LiftPoses.restU(lift)
         LiftPoses.solve(lift, u, pose)
-        // Misma escala en los seis (la figura mide lo mismo): el alto del lienzo manda y se centra el eje de las figuras.
-        val s = size.height / LiftPoses.CANVAS_H
+        // Misma escala en los seis (la figura mide lo mismo): el alto manda, el eje de las figuras va al centro y el suelo
+        // queda sobre el borde de abajo del símbolo (plegado, ese borde es el filete de la fila).
+        val s = size.height / LiftPoses.VIEW_H
         val ink = FigStyle.ink
         withTransform({
-            translate(size.width / 2f - LiftPoses.AXIS_X * s, 0f)
+            translate(size.width / 2f - LiftPoses.AXIS_X * s, size.height - LiftPoses.GROUND_LINE * s)
             scale(s, s, Offset.Zero)
         }) {
             pen.begin(this)
-            drawLiftStage(pen, pose, ink)
-            if (pose.bar.isSpecified) pen.plate(pose.bar, LiftPoses.PLATE_R, if (running) MuscleAccent else ink)
+            drawLiftStage(pen, pose, ink, ground)
+            // El disco toma el acento de músculo cuando el levantamiento se mueve o ya tiene marca: una señal discreta de «respondido».
+            if (pose.bar.isSpecified) {
+                val accented = running || declared
+                pen.plate(pose.bar, LiftPoses.PLATE_R, if (accented) MuscleAccent else ink, if (running) 0.9f else if (declared) 0.75f else FigStyle.PLATE)
+            }
             pen.figure(pose, ink)
         }
     }
 }
 
 /** El suelo y, en el press de banca, el banco. */
-private fun DrawScope.drawLiftStage(pen: FigPen, pose: FigPose, ink: Color) {
+private fun DrawScope.drawLiftStage(pen: FigPen, pose: FigPose, ink: Color, ground: Boolean) {
     val soft = ink.copy(alpha = FigStyle.SOFT)
-    val groundY = LiftPoses.GROUND + 1.6f
-    pen.line(Offset(6f, groundY), Offset(LiftPoses.CANVAS_W - 6f, groundY), soft, FigStyle.FINE)
+    val groundY = LiftPoses.GROUND_LINE
+    if (ground) pen.line(Offset(6f, groundY), Offset(LiftPoses.CANVAS_W - 6f, groundY), soft, FigStyle.FINE)
     if (!pose.bench.isNaN()) {
         pen.line(Offset(20f, pose.bench), Offset(68f, pose.bench), ink.copy(alpha = 0.9f), FigStyle.BAR)
         pen.line(Offset(23f, pose.bench), Offset(23f, groundY), soft, FigStyle.FINE)
