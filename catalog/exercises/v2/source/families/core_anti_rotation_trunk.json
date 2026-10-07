@@ -200,6 +200,242 @@
           "core press pallof",
           "press pallof"
         ]
+      },
+      {
+        "canonicalName": "Bird Dog",
+        "configurations": [
+          {
+            "displaySummary": "Peso Corporal",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "editorial:configuration:bird_dog__default",
+                "plan:wizard-entreno-v2-bw1-20261007#bird_dog"
+              ],
+              "reviewStatus": "APPROVED"
+            },
+            "id": "bird_dog__default",
+            "profile": {
+              "articulationType": "AISLADO",
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "CORE",
+              "catalogRevision": "v2-approved-2026-09-29-a",
+              "cnc": 1.5,
+              "description": "No hay implemento: se levanta el peso de un brazo y de una pierna mientras las otras dos extremidades sostienen el cuerpo. Estirar el brazo y la pierna contrarios, en vez de uno solo, es lo que obliga al tronco a no girar.",
+              "efc": 2.0,
+              "equipmentId": "bodyweight",
+              "executionCues": [
+                "Estira un brazo hacia delante y la pierna contraria hacia atrás hasta alinearlos con el tronco.",
+                "Detente un instante arriba sin girar la pelvis ni los hombros.",
+                "Vuelve despacio y repite con el otro lado."
+              ],
+              "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Sostén de la postura lumbar neutra",
+                    "Resistencia a la rotación"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Extensión de cadera"
+                  ],
+                  "jointId": "cadera",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Flexión del hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Control pélvico"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "bodyweight",
+              "movementPatternId": "anti_rotation_trunk",
+              "performanceProfileId": "bird_dog__default__bird_dog",
+              "primaryMuscles": [
+                "erector_spinae",
+                "abdominals"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Sostén de la postura lumbar neutra",
+                    "Resistencia a la rotación",
+                    "Extensión de cadera",
+                    "Flexión del hombro",
+                    "Control pélvico"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Sostén de la postura lumbar neutra",
+                        "Resistencia a la rotación"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión de cadera"
+                      ],
+                      "jointId": "cadera",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión del hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Control pélvico"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "primaryMuscles": [
+                    "erector_spinae",
+                    "abdominals"
+                  ],
+                  "secondaryMuscles": [
+                    "gluteus_maximus",
+                    "core"
+                  ],
+                  "stabilizerMuscles": [
+                    "deltoid"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "CORE",
+                  "equipmentId": "bodyweight",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "bodyweight",
+                  "movementPatternId": "anti_rotation_trunk",
+                  "relevantJoints": [
+                    "columna-lumbar",
+                    "cadera",
+                    "glenohumeral",
+                    "sacroiliaca"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "display": {
+                  "displayName": "Bird Dog",
+                  "displaySummary": "Peso Corporal",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.5,
+                  "efc": 2.0,
+                  "ssc": 0.2,
+                  "technicalDifficulty": 3.5,
+                  "ttc": 1.5
+                },
+                "identity": {
+                  "canonicalName": "Bird Dog",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
+                  "configurationId": "bird_dog__default",
+                  "definitionId": "bird_dog",
+                  "familyId": "core_anti_rotation_trunk",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "bird_dog__default__bird_dog",
+                  "searchTerms": [
+                    "bird dog",
+                    "bird-dog",
+                    "cuadrupedia brazo y pierna opuestos",
+                    "extension cruzada en cuadrupedia",
+                    "perro de caza"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 90,
+                    "min": 30
+                  },
+                  "requiredEquipment": [
+                    "bodyweight"
+                  ],
+                  "role": "accessory_isolation"
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "bodyweight"
+                  ],
+                  "preservesIntent": [
+                    "anti_rotation_trunk:erector_spinae",
+                    "anti_rotation_trunk:abdominals"
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                }
+              },
+              "secondaryMuscles": [
+                "gluteus_maximus",
+                "core"
+              ],
+              "setupCues": [
+                "Apoya las manos bajo los hombros y las rodillas bajo las caderas, con la espalda recta y el cuello alineado.",
+                "Mira al suelo, unos centímetros por delante de las manos."
+              ],
+              "setupTimeSeconds": 10,
+              "ssc": 0.2,
+              "stabilizerMuscles": [
+                "deltoid"
+              ],
+              "technicalDifficulty": 3.5,
+              "ttc": 1.5
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "bird_dog__default",
+        "description": "El Bird Dog es un ejercicio de estabilidad en cuadrupedia: sobre manos y rodillas, un brazo se estira hacia delante y la pierna contraria hacia atrás hasta quedar a la altura del tronco, sin que la pelvis ni los hombros giren. Los erectores de la espalda sostienen la columna, los oblicuos frenan la rotación y el glúteo mayor lleva hacia atrás la pierna que sube. Se hace una pausa breve arriba, se vuelve despacio y se cambia de lado. La carga es baja y la dificultad está en la coordinación; dibujar un cuadrado en el aire con la mano o con el pie la aumenta.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:bird_dog",
+            "plan:wizard-entreno-v2-bw1-20261007#bird_dog"
+          ],
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "core_anti_rotation_trunk",
+        "id": "bird_dog",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "bird dog",
+          "bird-dog",
+          "cuadrupedia brazo y pierna opuestos",
+          "extension cruzada en cuadrupedia",
+          "perro de caza"
+        ]
       }
     ],
     "evidence": {

@@ -1917,6 +1917,230 @@
               "implement": "hex_bar",
               "stance": "unilateral"
             }
+          },
+          {
+            "displaySummary": "bodyweight · unilateral",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "editorial:configuration:romanian_deadlift__unilateral__bodyweight",
+                "plan:wizard-entreno-v2-bw1-20261007#romanian_deadlift"
+              ],
+              "reviewStatus": "APPROVED"
+            },
+            "id": "romanian_deadlift__unilateral__bodyweight",
+            "profile": {
+              "articulationType": "MULTIARTICULAR",
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-09-29-a",
+              "cnc": 2.2,
+              "description": "Sin carga, los brazos cuelgan largos delante del cuerpo o se cruzan sobre el pecho, y el torso que se inclina es la única resistencia sobre una sola pierna. La pierna libre se alarga detrás como contrapeso, de modo que el equilibrio del pie de apoyo pasa a formar parte del ejercicio.",
+              "efc": 2.8,
+              "equipmentId": "bodyweight",
+              "executionCues": [
+                "Echa la pelvis atrás mientras el torso se inclina y la pierna libre se estira detrás.",
+                "Baja hasta notar que tira la parte posterior del muslo de apoyo, con la espalda recta.",
+                "Vuelve a la vertical extendiendo la cadera del pie de apoyo, sin tocar el suelo con el otro pie."
+              ],
+              "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión de cadera",
+                    "Extensión de cadera",
+                    "Estabilidad frontal de cadera"
+                  ],
+                  "jointId": "cadera",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad con rodilla poco flexionada"
+                  ],
+                  "jointId": "rodilla",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Resistencia a la flexión lumbar"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Transmisión de carga entre pelvis y tronco"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "UNILATERAL",
+              "loadMode": "bodyweight",
+              "movementPatternId": "romanian_deadlift",
+              "performanceProfileId": "romanian_deadlift__bodyweight__peso_muerto_rumano",
+              "primaryMuscles": [
+                "hamstrings",
+                "gluteus_maximus"
+              ],
+              "replacementGroup": "ham_rdl",
+              "replacementPriority": 1,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Flexión de cadera",
+                    "Extensión de cadera",
+                    "Estabilidad frontal de cadera",
+                    "Estabilidad con rodilla poco flexionada",
+                    "Resistencia a la flexión lumbar",
+                    "Transmisión de carga entre pelvis y tronco"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión de cadera",
+                        "Extensión de cadera",
+                        "Estabilidad frontal de cadera"
+                      ],
+                      "jointId": "cadera",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad con rodilla poco flexionada"
+                      ],
+                      "jointId": "rodilla",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Resistencia a la flexión lumbar"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Transmisión de carga entre pelvis y tronco"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "primaryMuscles": [
+                    "hamstrings",
+                    "gluteus_maximus"
+                  ],
+                  "secondaryMuscles": [
+                    "adductors"
+                  ],
+                  "stabilizerMuscles": [
+                    "erector_spinae",
+                    "core",
+                    "gluteus_medius",
+                    "tensor_fasciae_latae"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "bodyweight",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "UNILATERAL",
+                  "loadMode": "bodyweight",
+                  "movementPatternId": "romanian_deadlift",
+                  "relevantJoints": [
+                    "cadera",
+                    "rodilla",
+                    "columna-lumbar",
+                    "sacroiliaca"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "display": {
+                  "displayName": "Peso Muerto Rumano",
+                  "displaySummary": "bodyweight · unilateral",
+                  "selectedOptions": {
+                    "implement": "bodyweight",
+                    "stance": "unilateral"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 4.2,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Peso Muerto Rumano",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
+                  "configurationId": "romanian_deadlift__unilateral__bodyweight",
+                  "definitionId": "romanian_deadlift",
+                  "familyId": "hinge_rdl",
+                  "kind": "PARENT",
+                  "performanceProfileId": "romanian_deadlift__bodyweight__peso_muerto_rumano",
+                  "searchTerms": [
+                    "hams peso muerto rumano",
+                    "hams peso muerto rumano b stance",
+                    "hams peso muerto rumano sumo",
+                    "peso muerto rumano",
+                    "peso muerto rumano b-stance",
+                    "peso muerto rumano sumo"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "requiredEquipment": [
+                    "bodyweight"
+                  ],
+                  "role": "accessory_compound"
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "bodyweight"
+                  ],
+                  "preservesIntent": [
+                    "romanian_deadlift:hamstrings",
+                    "romanian_deadlift:gluteus_maximus"
+                  ],
+                  "replacementGroup": "ham_rdl",
+                  "replacementPriority": 1
+                }
+              },
+              "secondaryMuscles": [
+                "adductors"
+              ],
+              "setupCues": [
+                "Apóyate sobre una pierna con la rodilla algo flexionada y deja los brazos colgando delante de ti.",
+                "Fija la mirada en un punto del suelo, a un par de metros, y no la muevas durante la serie."
+              ],
+              "setupTimeSeconds": 15,
+              "ssc": 0.5,
+              "stabilizerMuscles": [
+                "erector_spinae",
+                "core",
+                "gluteus_medius",
+                "tensor_fasciae_latae"
+              ],
+              "technicalDifficulty": 4.2,
+              "ttc": 2.0
+            },
+            "selectedOptions": {
+              "implement": "bodyweight",
+              "stance": "unilateral"
+            }
           }
         ],
         "defaultConfigurationId": "romanian_deadlift__bilateral__barbell",

@@ -6496,6 +6496,223 @@
             "selectedOptions": {
               "implement": "kettlebell"
             }
+          },
+          {
+            "displaySummary": "bodyweight",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "editorial:configuration:sumo_squat__bodyweight",
+                "plan:wizard-entreno-v2-bw1-20261007#sumo_squat"
+              ],
+              "reviewStatus": "APPROVED"
+            },
+            "id": "sumo_squat__bodyweight",
+            "profile": {
+              "articulationType": "MULTIARTICULAR",
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-09-29-a",
+              "cnc": 2.2,
+              "description": "Con los dedos entrelazados a la altura del esternón, el peso del cuerpo hace de carga y la base ancha es lo que define el ejercicio. Sin nada colgando entre las piernas, el tronco queda erguido mientras las rodillas se abren hacia los lados y la cadera se hunde entre ellas.",
+              "efc": 2.8,
+              "equipmentId": "bodyweight",
+              "executionCues": [
+                "Baja la cadera entre las rodillas, que se abren hacia donde apuntan los pies.",
+                "Sube presionando con las plantas hasta enderezar rodillas y cadera."
+              ],
+              "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión de rodilla",
+                    "Extensión de rodilla"
+                  ],
+                  "jointId": "rodilla",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión de cadera",
+                    "Extensión de cadera",
+                    "Abducción y rotación externa sostenidas"
+                  ],
+                  "jointId": "cadera",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Dorsiflexión"
+                  ],
+                  "jointId": "tobillo",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Estabilidad en posición neutra"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "bodyweight",
+              "movementPatternId": "knee_hip_dominant",
+              "performanceProfileId": "sumo_squat__bodyweight__sentadilla_sumo",
+              "primaryMuscles": [
+                "quadriceps",
+                "gluteus_maximus"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Flexión de rodilla",
+                    "Extensión de rodilla",
+                    "Flexión de cadera",
+                    "Extensión de cadera",
+                    "Abducción y rotación externa sostenidas",
+                    "Dorsiflexión",
+                    "Estabilidad en posición neutra"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión de rodilla",
+                        "Extensión de rodilla"
+                      ],
+                      "jointId": "rodilla",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión de cadera",
+                        "Extensión de cadera",
+                        "Abducción y rotación externa sostenidas"
+                      ],
+                      "jointId": "cadera",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Dorsiflexión"
+                      ],
+                      "jointId": "tobillo",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad en posición neutra"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "primaryMuscles": [
+                    "quadriceps",
+                    "gluteus_maximus"
+                  ],
+                  "secondaryMuscles": [
+                    "adductors"
+                  ],
+                  "stabilizerMuscles": [
+                    "erector_spinae",
+                    "core"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "bodyweight",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "bodyweight",
+                  "movementPatternId": "knee_hip_dominant",
+                  "relevantJoints": [
+                    "rodilla",
+                    "cadera",
+                    "tobillo",
+                    "columna-lumbar"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "display": {
+                  "displayName": "Sentadilla Sumo",
+                  "displaySummary": "bodyweight",
+                  "selectedOptions": {
+                    "implement": "bodyweight"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 4.2,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Sentadilla Sumo",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
+                  "configurationId": "sumo_squat__bodyweight",
+                  "definitionId": "sumo_squat",
+                  "familyId": "lower_knee_dominant",
+                  "kind": "PARENT",
+                  "performanceProfileId": "sumo_squat__bodyweight__sentadilla_sumo",
+                  "searchTerms": [
+                    "sentadilla sumo",
+                    "sumo squat",
+                    "quads_sentadilla_sumo"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "requiredEquipment": [
+                    "bodyweight"
+                  ],
+                  "role": "accessory_compound"
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "bodyweight"
+                  ],
+                  "preservesIntent": [
+                    "knee_hip_dominant:quadriceps",
+                    "knee_hip_dominant:gluteus_maximus"
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                }
+              },
+              "secondaryMuscles": [
+                "adductors"
+              ],
+              "setupCues": [
+                "Abre los pies casi al doble del ancho de los hombros, con las puntas giradas hacia fuera.",
+                "Entrelaza los dedos a la altura del esternón."
+              ],
+              "setupTimeSeconds": 15,
+              "ssc": 0.5,
+              "stabilizerMuscles": [
+                "erector_spinae",
+                "core"
+              ],
+              "technicalDifficulty": 4.2,
+              "ttc": 2.0
+            },
+            "selectedOptions": {
+              "implement": "bodyweight"
+            }
           }
         ],
         "defaultConfigurationId": "sumo_squat__barbell",
@@ -7001,6 +7218,220 @@
           "paused back squat",
           "paused squat",
           "pause squat"
+        ]
+      },
+      {
+        "canonicalName": "Sentadilla en Pared",
+        "configurations": [
+          {
+            "displaySummary": "Peso Corporal",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "editorial:configuration:wall_sit__default",
+                "plan:wizard-entreno-v2-bw1-20261007#wall_sit"
+              ],
+              "reviewStatus": "APPROVED"
+            },
+            "id": "wall_sit__default",
+            "profile": {
+              "articulationType": "MULTIARTICULAR",
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-09-29-a",
+              "cnc": 2.2,
+              "description": "Con la pared como único apoyo y sin implemento, las piernas sostienen el peso del cuerpo con las rodillas fijas. Subir un poco el cuerpo alivia el esfuerzo y bajarlo más lo endurece, y la distancia de los pies a la pared decide cuánto avanzan las rodillas.",
+              "efc": 2.8,
+              "equipmentId": "bodyweight",
+              "executionCues": [
+                "Desliza la espalda hacia abajo hasta dejar los muslos horizontales.",
+                "Aguanta con los talones en el suelo y los brazos cruzados, sin apoyar las manos en los muslos.",
+                "Sube deslizando la espalda por la pared cuando acabe el tiempo."
+              ],
+              "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Sostén de la flexión de rodilla"
+                  ],
+                  "jointId": "rodilla",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Sostén de la flexión de cadera"
+                  ],
+                  "jointId": "cadera",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Sostén de la dorsiflexión del tobillo"
+                  ],
+                  "jointId": "tobillo",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "bodyweight",
+              "movementPatternId": "knee_dominant",
+              "performanceProfileId": "wall_sit__default__sentadilla_en_pared",
+              "primaryMuscles": [
+                "quadriceps"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Sostén de la flexión de rodilla",
+                    "Sostén de la flexión de cadera",
+                    "Sostén de la dorsiflexión del tobillo"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Sostén de la flexión de rodilla"
+                      ],
+                      "jointId": "rodilla",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Sostén de la flexión de cadera"
+                      ],
+                      "jointId": "cadera",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Sostén de la dorsiflexión del tobillo"
+                      ],
+                      "jointId": "tobillo",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "primaryMuscles": [
+                    "quadriceps"
+                  ],
+                  "secondaryMuscles": [
+                    "gluteus_maximus"
+                  ],
+                  "stabilizerMuscles": [
+                    "hamstrings"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "bodyweight",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "bodyweight",
+                  "movementPatternId": "knee_dominant",
+                  "relevantJoints": [
+                    "rodilla",
+                    "cadera",
+                    "tobillo"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "supported"
+                },
+                "display": {
+                  "displayName": "Sentadilla en Pared",
+                  "displaySummary": "Peso Corporal",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 3.5,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Sentadilla en Pared",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
+                  "configurationId": "wall_sit__default",
+                  "definitionId": "wall_sit",
+                  "familyId": "lower_knee_dominant",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "wall_sit__default__sentadilla_en_pared",
+                  "searchTerms": [
+                    "sentadilla en pared",
+                    "wall sit",
+                    "silla en la pared",
+                    "sentadilla isometrica en pared",
+                    "sentadilla isometrica",
+                    "wall squat isometrico"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "requiredEquipment": [
+                    "bodyweight"
+                  ],
+                  "role": "accessory_compound"
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "bodyweight"
+                  ],
+                  "preservesIntent": [
+                    "knee_dominant:quadriceps"
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                }
+              },
+              "secondaryMuscles": [
+                "gluteus_maximus"
+              ],
+              "setupCues": [
+                "Apoya toda la espalda en la pared y da un paso adelante con los pies, a la anchura de las caderas.",
+                "Ajusta la distancia para que las espinillas queden casi verticales al bajar."
+              ],
+              "setupTimeSeconds": 10,
+              "ssc": 0.5,
+              "stabilizerMuscles": [
+                "hamstrings"
+              ],
+              "technicalDifficulty": 3.5,
+              "ttc": 2.0
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "wall_sit__default",
+        "description": "La Sentadilla en Pared (wall sit) es una isometría de piernas: con la espalda apoyada en una pared y los muslos paralelos al suelo, la posición de sentadilla se sostiene sin moverse. El cuádriceps trabaja de forma continua para impedir que las rodillas se doblen más, mientras el glúteo mayor y los isquiosurales ayudan a sostener la cadera. Los pies quedan lo bastante lejos de la pared para que las espinillas estén casi verticales y las rodillas no pasen de la punta de los pies. Con la rodilla cerca de noventa grados, el cuádriceps registró su mayor actividad en una sentadilla isométrica. Sirve para trabajar las piernas sin material y sin mover las rodillas, aunque no practica el gesto de bajar y subir.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:wall_sit",
+            "plan:wizard-entreno-v2-bw1-20261007#wall_sit"
+          ],
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "lower_knee_dominant",
+        "id": "wall_sit",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "sentadilla en pared",
+          "wall sit",
+          "silla en la pared",
+          "sentadilla isometrica en pared",
+          "sentadilla isometrica",
+          "wall squat isometrico"
         ]
       }
     ],

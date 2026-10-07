@@ -845,6 +845,213 @@
             "selectedOptions": {
               "implement": "plate"
             }
+          },
+          {
+            "displaySummary": "bodyweight",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "editorial:configuration:sissy_squat__bodyweight",
+                "plan:wizard-entreno-v2-bw1-20261007#sissy_squat"
+              ],
+              "reviewStatus": "APPROVED"
+            },
+            "id": "sissy_squat__bodyweight",
+            "profile": {
+              "articulationType": "AISLADO",
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-09-29-a",
+              "cnc": 2.2,
+              "description": "El único peso es el del cuerpo: los brazos cruzados sobre el pecho o estirados al frente sirven de contrapeso mientras los talones suben y las rodillas avanzan. Sin carga añadida, ya basta con inclinar el cuerpo hacia atrás en una sola línea para que el cuádriceps trabaje a fondo.",
+              "efc": 2.8,
+              "equipmentId": "bodyweight",
+              "executionCues": [
+                "Eleva los talones y lleva las rodillas hacia delante mientras inclinas el cuerpo hacia atrás en una sola línea.",
+                "Baja todo lo que permitan las rodillas, sin doblar la cadera.",
+                "Sube estirando las rodillas y con los talones en alto hasta el final de la serie."
+              ],
+              "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión de la rodilla",
+                    "Extensión de la rodilla"
+                  ],
+                  "jointId": "rodilla",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Extensión sostenida de la cadera"
+                  ],
+                  "jointId": "cadera",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén del talón elevado"
+                  ],
+                  "jointId": "tobillo",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Estabilidad del tronco"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "bodyweight",
+              "movementPatternId": "knee_dominant_lengthened",
+              "performanceProfileId": "sissy_squat__bodyweight",
+              "primaryMuscles": [
+                "quadriceps"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": 999,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Flexión de la rodilla",
+                    "Extensión de la rodilla",
+                    "Extensión sostenida de la cadera",
+                    "Sostén del talón elevado",
+                    "Estabilidad del tronco"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión de la rodilla",
+                        "Extensión de la rodilla"
+                      ],
+                      "jointId": "rodilla",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión sostenida de la cadera"
+                      ],
+                      "jointId": "cadera",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del talón elevado"
+                      ],
+                      "jointId": "tobillo",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad del tronco"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "primaryMuscles": [
+                    "quadriceps"
+                  ],
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
+                    "hip_flexors",
+                    "core",
+                    "calves"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "bodyweight",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "bodyweight",
+                  "movementPatternId": "knee_dominant_lengthened",
+                  "relevantJoints": [
+                    "rodilla",
+                    "cadera",
+                    "tobillo",
+                    "columna-lumbar"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "display": {
+                  "displayName": "Sentadilla Sissy",
+                  "displaySummary": "bodyweight",
+                  "selectedOptions": {
+                    "implement": "bodyweight"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 5.2,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Sentadilla Sissy",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
+                  "configurationId": "sissy_squat__bodyweight",
+                  "definitionId": "sissy_squat",
+                  "familyId": "lower_sissy_squat",
+                  "kind": "PARENT",
+                  "performanceProfileId": "sissy_squat__bodyweight",
+                  "searchTerms": [
+                    "sentadilla sissy",
+                    "sissy squat",
+                    "quads_sentadilla_sissy"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "requiredEquipment": [
+                    "bodyweight"
+                  ],
+                  "role": "accessory_compound"
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "bodyweight"
+                  ],
+                  "preservesIntent": [
+                    "knee_dominant_lengthened:quadriceps"
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": 999
+                }
+              },
+              "secondaryMuscles": [],
+              "setupCues": [
+                "Ponte de pie con los pies a la anchura de las caderas y los brazos cruzados sobre el pecho.",
+                "Si necesitas ayuda para el equilibrio, roza una pared o un marco con la punta de los dedos."
+              ],
+              "setupTimeSeconds": 15,
+              "ssc": 0.5,
+              "stabilizerMuscles": [
+                "hip_flexors",
+                "core",
+                "calves"
+              ],
+              "technicalDifficulty": 5.2,
+              "ttc": 2.0
+            },
+            "selectedOptions": {
+              "implement": "bodyweight"
+            }
           }
         ],
         "defaultConfigurationId": "sissy_squat__machine",

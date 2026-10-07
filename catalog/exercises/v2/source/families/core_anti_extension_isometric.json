@@ -202,6 +202,218 @@
           "plancha",
           "plank"
         ]
+      },
+      {
+        "canonicalName": "Hollow Body Hold",
+        "configurations": [
+          {
+            "displaySummary": "Peso Corporal",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "editorial:configuration:hollow_body_hold__default",
+                "plan:wizard-entreno-v2-bw1-20261007#hollow_body_hold"
+              ],
+              "reviewStatus": "APPROVED"
+            },
+            "id": "hollow_body_hold__default",
+            "profile": {
+              "articulationType": "AISLADO",
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "CORE",
+              "catalogRevision": "v2-approved-2026-09-29-a",
+              "cnc": 1.5,
+              "description": "El peso de los brazos y de las piernas actúa como palanca sobre el abdomen, sin implemento. Bajar los pies hacia el suelo o estirar los brazos por encima de la cabeza alarga esa palanca y la hace más dura.",
+              "efc": 2.0,
+              "equipmentId": "bodyweight",
+              "executionCues": [
+                "Eleva a la vez los hombros y las piernas unos centímetros del suelo.",
+                "Aguanta con la zona lumbar pegada y respirando con calma.",
+                "Baja con control en cuanto la espalda baja se despegue."
+              ],
+              "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Resistencia a la extensión lumbar"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Sostén de la flexión de cadera"
+                  ],
+                  "jointId": "cadera",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Control pélvico"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "bodyweight",
+              "movementPatternId": "anti_extension_isometric",
+              "performanceProfileId": "hollow_body_hold__default__hollow_body_hold",
+              "primaryMuscles": [
+                "abdominals"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Resistencia a la extensión lumbar",
+                    "Sostén de la flexión de cadera",
+                    "Control pélvico"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Resistencia a la extensión lumbar"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Sostén de la flexión de cadera"
+                      ],
+                      "jointId": "cadera",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Control pélvico"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "primaryMuscles": [
+                    "abdominals"
+                  ],
+                  "secondaryMuscles": [
+                    "hip_flexors"
+                  ],
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "CORE",
+                  "equipmentId": "bodyweight",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "bodyweight",
+                  "movementPatternId": "anti_extension_isometric",
+                  "relevantJoints": [
+                    "columna-lumbar",
+                    "cadera",
+                    "sacroiliaca"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "display": {
+                  "displayName": "Hollow Body Hold",
+                  "displaySummary": "Peso Corporal",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.5,
+                  "efc": 2.0,
+                  "ssc": 0.2,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.5
+                },
+                "identity": {
+                  "canonicalName": "Hollow Body Hold",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
+                  "configurationId": "hollow_body_hold__default",
+                  "definitionId": "hollow_body_hold",
+                  "familyId": "core_anti_extension_isometric",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "hollow_body_hold__default__hollow_body_hold",
+                  "searchTerms": [
+                    "hollow body hold",
+                    "hollow body",
+                    "hollow hold",
+                    "posicion hollow",
+                    "posicion de barco hueco"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 90,
+                    "min": 30
+                  },
+                  "requiredEquipment": [
+                    "bodyweight"
+                  ],
+                  "role": "accessory_isolation"
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "bodyweight"
+                  ],
+                  "preservesIntent": [
+                    "anti_extension_isometric:abdominals"
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                }
+              },
+              "secondaryMuscles": [
+                "hip_flexors"
+              ],
+              "setupCues": [
+                "Túmbate boca arriba con las piernas juntas y estiradas y los brazos extendidos sobre la cabeza.",
+                "Pega la zona lumbar al suelo antes de elevar nada."
+              ],
+              "setupTimeSeconds": 10,
+              "ssc": 0.2,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.5
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "hollow_body_hold__default",
+        "description": "El Hollow Body Hold (posición hollow) es una isometría de abdomen heredada de la gimnasia: sobre la espalda, los brazos se estiran por encima de la cabeza y las piernas, juntas y estiradas, se elevan unos centímetros mientras los hombros se despegan del suelo y la zona lumbar sigue pegada a él. El recto abdominal y los oblicuos sostienen esa curva con la espalda baja plana, y los flexores de la cadera levantan las piernas. Cuanto más cerca del suelo quedan los pies, más larga es la palanca y más exige. Doblar las rodillas o dejar los brazos junto al cuerpo la hace asequible.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:hollow_body_hold",
+            "plan:wizard-entreno-v2-bw1-20261007#hollow_body_hold"
+          ],
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "core_anti_extension_isometric",
+        "id": "hollow_body_hold",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "hollow body hold",
+          "hollow body",
+          "hollow hold",
+          "posicion hollow",
+          "posicion de barco hueco"
+        ]
       }
     ],
     "evidence": {

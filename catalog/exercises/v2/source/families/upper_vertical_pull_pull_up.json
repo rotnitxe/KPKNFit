@@ -2310,6 +2310,251 @@
           "dominada inclinada",
           "dominada asistida barra"
         ]
+      },
+      {
+        "canonicalName": "Dominada Negativa",
+        "configurations": [
+          {
+            "displaySummary": "Peso Corporal",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "editorial:configuration:negative_pull_up__default",
+                "plan:wizard-entreno-v2-bw1-20261007#negative_pull_up"
+              ],
+              "reviewStatus": "APPROVED"
+            },
+            "id": "negative_pull_up__default",
+            "profile": {
+              "articulationType": "MULTIARTICULAR",
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-09-29-a",
+              "cnc": 2.0,
+              "description": "Se parte de arriba, con la barbilla sobre la barra y las manos en prono a la anchura de los hombros, y solo cuenta la bajada, que se alarga varios segundos hasta estirar los brazos. Subir con un salto o con un escalón ahorra fuerza para la fase que sí se entrena.",
+              "efc": 2.5,
+              "equipmentId": "bodyweight",
+              "executionCues": [
+                "Suelta el apoyo y baja despacio, sin balancear las piernas, hasta estirar los brazos.",
+                "Cuelga un instante abajo con los hombros activos.",
+                "Vuelve a la posición alta con el escalón o con un salto y repite."
+              ],
+              "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Frenado de la extensión del hombro",
+                    "Frenado de la aducción del hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Control de la elevación escapular"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Frenado de la extensión del codo"
+                  ],
+                  "jointId": "codo",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Sostén del agarre"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "bodyweight",
+              "movementPatternId": "vertical_pull",
+              "performanceProfileId": "negative_pull_up__default__dominada_negativa",
+              "primaryMuscles": [
+                "latissimus_dorsi"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "body_angle",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Frenado de la extensión del hombro",
+                    "Frenado de la aducción del hombro",
+                    "Control de la elevación escapular",
+                    "Frenado de la extensión del codo",
+                    "Sostén del agarre"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Frenado de la extensión del hombro",
+                        "Frenado de la aducción del hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Control de la elevación escapular"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Frenado de la extensión del codo"
+                      ],
+                      "jointId": "codo",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del agarre"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "primaryMuscles": [
+                    "latissimus_dorsi"
+                  ],
+                  "secondaryMuscles": [
+                    "biceps",
+                    "deltoid",
+                    "trapezius"
+                  ],
+                  "stabilizerMuscles": [
+                    "pectoralis",
+                    "core",
+                    "erector_spinae",
+                    "forearm"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "bodyweight",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "bodyweight",
+                  "movementPatternId": "vertical_pull",
+                  "relevantJoints": [
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "muñeca"
+                  ],
+                  "resistanceProfile": "body_angle",
+                  "stability": "self_stabilized"
+                },
+                "display": {
+                  "displayName": "Dominada Negativa",
+                  "displaySummary": "Peso Corporal",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Dominada Negativa",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
+                  "configurationId": "negative_pull_up__default",
+                  "definitionId": "negative_pull_up",
+                  "familyId": "upper_vertical_pull_pull_up",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "negative_pull_up__default__dominada_negativa",
+                  "searchTerms": [
+                    "dominada negativa",
+                    "dominadas negativas",
+                    "negative pull up",
+                    "negative pull-up",
+                    "dominada excentrica",
+                    "bajada de dominada",
+                    "dominada lenta de bajada"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "requiredEquipment": [
+                    "bodyweight"
+                  ],
+                  "role": "accessory_isolation"
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "bodyweight"
+                  ],
+                  "preservesIntent": [
+                    "vertical_pull:latissimus_dorsi"
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                }
+              },
+              "secondaryMuscles": [
+                "biceps",
+                "deltoid",
+                "trapezius"
+              ],
+              "setupCues": [
+                "Coloca un escalón bajo la barra, o prepárate para saltar, y agarra la barra en prono a la anchura de los hombros.",
+                "Sube hasta tener la barbilla por encima de la barra, con los hombros alejados de las orejas."
+              ],
+              "setupTimeSeconds": 20,
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "pectoralis",
+                "core",
+                "erector_spinae",
+                "forearm"
+              ],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "negative_pull_up__default",
+        "description": "La Dominada Negativa es una dominada en la que solo se trabaja la bajada: se llega arriba con un salto o con un escalón, con la barbilla sobre la barra, y se desciende despacio hasta colgar con los brazos estirados. El dorsal ancho frena la caída del cuerpo junto con el bíceps y el deltoides posterior, y el antebrazo sostiene el agarre durante todo el recorrido. Sirve a quien aún no sube su peso, porque la bajada exige menos al bíceps y al pectoral que la subida. En un estudio con escaladores avanzados, cinco semanas de dominadas con trabajo excéntrico mejoraron la fuerza máxima y la velocidad de la dominada.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:negative_pull_up",
+            "plan:wizard-entreno-v2-bw1-20261007#negative_pull_up"
+          ],
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "upper_vertical_pull_pull_up",
+        "id": "negative_pull_up",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "dominada negativa",
+          "dominadas negativas",
+          "negative pull up",
+          "negative pull-up",
+          "dominada excentrica",
+          "bajada de dominada",
+          "dominada lenta de bajada"
+        ]
       }
     ],
     "evidence": {
