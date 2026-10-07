@@ -22,5 +22,10 @@
             android:name="com.example.kpkn.debug.EntrenoMusclesPreviewActivity"
             android:exported="true"
             android:theme="@style/Theme.KPKN" />
+        <!-- SOLO DEPURACIÓN: el asistente de alta real (solo entreno) abierto en el paso que se pida, con un borrador de prueba; no se integra. -->
+        <activity
+            android:name="com.example.kpkn.debug.WizardHarnessActivity"
+            android:exported="true"
+            android:theme="@style/Theme.KPKN" />
     </application>
 </manifest>
