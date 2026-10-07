@@ -73,20 +73,21 @@ class AprendeCatalogAuditTest {
         // El retiro autorizado de las cuatro unilaterales de rumano sumo (2026-10-04) deja 206/523.
         // El retiro de walking_lunge en Smith y polea (lote 6) deja 206/521. El lote BW-1 de peso corporal
         // (2026-10-07: 9 definiciones nuevas y 8 configuraciones `__bodyweight` en definiciones existentes)
-        // lo lleva a 215/539 con la misma revisión.
+        // lo lleva a 215/539 con la misma revisión. El lote OL-1 de halterofilia y acarreos (2026-10-07: 13 definiciones
+        // nuevas con 14 configuraciones) lo lleva a 228/553, también con la misma revisión.
         assertEquals("v2-approved-2026-09-29-a", report.catalogRevision)
         assertEquals("wikilab-v3-2026-08-08", report.ontologyRevision)
         assertEquals(96, report.familyCount)
-        assertEquals(215, report.definitionCount)
-        assertEquals(539, report.configurationCount)
-        assertEquals(539, report.richMetadataCount)
-        assertEquals(539, report.editorialCoverageCount)
-        assertEquals(539, report.jointCoverageCount)
+        assertEquals(228, report.definitionCount)
+        assertEquals(553, report.configurationCount)
+        assertEquals(553, report.richMetadataCount)
+        assertEquals(553, report.editorialCoverageCount)
+        assertEquals(553, report.jointCoverageCount)
         assertEquals(0, report.shortDescriptionCount)
         assertEquals(0, report.duplicateDescriptionCount)
         assertEquals(0, report.desynchronizedMetadataCount)
         assertEquals(0, report.reverseLinkConsistencyIssueCount)
-        assertEquals("c30a5c2e61b9d2f7f7bae3d517104b93f5851e772339872badc025c6bc67f831", report.sourceSha256)
+        assertEquals("8e70937474a217c8314eb53f17a94456fee0ec3d93f9587695ec4727dd8f33f9", report.sourceSha256)
         assertTrue("músculos sin puente: ${report.unmappedMuscleIds}", report.unmappedMuscleIds.isEmpty())
         assertTrue("patrones sin puente: ${report.unmappedPatternIds}", report.unmappedPatternIds.isEmpty())
         assertTrue(report.unknownJointIds.isEmpty())
@@ -132,9 +133,9 @@ class AprendeCatalogAuditTest {
             .map { it.id }
             .toSet()
 
-        // 215 definiciones / 539 configuraciones tras el lote BW-1 (ver comentario de
+        // 228 definiciones / 553 configuraciones tras el lote OL-1 (ver comentario de
         // `approved_catalog_has_complete_aprende_ontology_and_editorial_coverage`).
-        assertEquals(539, runtime.size)
+        assertEquals(553, runtime.size)
         assertEquals(sourceConfigurationIds, runtime.keys)
         assertTrue(runtime.values.all {
             val configurationId = it.catalogConfigurationId
@@ -148,7 +149,7 @@ class AprendeCatalogAuditTest {
         val reverse = buildAprendeCatalogReverseIndex(catalog)
         // A configuration contributes to exactly one movement-pattern bucket;
         // this also guards against parent-name deduplication.
-        assertEquals(539, reverse.exerciseIdsByPattern.values.sumOf { it.size })
+        assertEquals(553, reverse.exerciseIdsByPattern.values.sumOf { it.size })
         catalog.families.flatMap { it.definitions }.flatMap { it.configurations }.forEach { configuration ->
             val profile = configuration.profile
             assertTrue(configuration.id in reverse.exerciseIdsByPattern[profile.movementPatternId].orEmpty())

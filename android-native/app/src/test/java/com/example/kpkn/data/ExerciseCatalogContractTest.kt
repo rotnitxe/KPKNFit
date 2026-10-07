@@ -51,10 +51,11 @@ class ExerciseCatalogContractTest {
         assertEquals(catalog.families.size, catalog.families.map { it.id }.distinct().size)
         assertEquals(definitions.size, definitions.map { it.id }.distinct().size)
         assertEquals(configurations.size, configurations.map { it.id }.distinct().size)
-        assertEquals(215, definitions.size)
+        assertEquals(228, definitions.size)
         // Retiro humano de walking_lunge en Smith y polea: 206 definiciones / 521 configuraciones. El lote BW-1
-        // de peso corporal (2026-10-07) añade 9 definiciones y 18 configuraciones: 215 / 539.
-        assertEquals(539, configurations.size)
+        // de peso corporal (2026-10-07) añade 9 definiciones y 18 configuraciones: 215 / 539. El lote OL-1 de
+        // halterofilia y acarreos (2026-10-07) añade 13 definiciones y 14 configuraciones: 228 / 553.
+        assertEquals(553, configurations.size)
     }
 
     @Test
