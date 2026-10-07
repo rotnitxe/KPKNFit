@@ -16,6 +16,225 @@
         "description": "El Dragon Flag es el ejercicio de abdomen que Bruce Lee puso de moda: el cuerpo entero sube rígido como una tabla y el abdomen frena la caída con una exigencia brutal. Se ejecuta boca arriba sujetando el banco por detrás de la cabeza, elevando el tronco y las piernas como una sola pieza hasta casi la vertical y descendiendo a cámara lenta. Trabaja el abdomen con el core entero asistiendo en cada grado del descenso. El nivel al que aspiran los que dominan los crunches y buscan algo serio."
       },
       "status": "LEGACY"
+    },
+    "dead_bug": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Sostén de la postura lumbar neutra"
+            ],
+            "id": "columna-lumbar",
+            "role": "PRIMARY",
+            "sources": [
+              "souza2001",
+              "kim2016"
+            ],
+            "why": "La columna lumbar no se mueve: lo que se pide es que no se arquee mientras brazos y piernas cambian de posición. En los registros de Souza et al. y de Kim et al., el trabajo se concentra en los flexores del tronco, que son los que la sostienen contra esa tendencia."
+          },
+          {
+            "actions": [
+              "Flexión de cadera",
+              "Extensión de cadera"
+            ],
+            "id": "cadera",
+            "role": "SECONDARY",
+            "sources": [
+              "haladay2015",
+              "statpearls_hip_joint"
+            ],
+            "why": "La pierna que baja pasa de la cadera muy flexionada a casi extendida y vuelve, así que la cadera sí se mueve, pero sin carga externa y despacio. En el descenso de piernas estiradas el momento de cadera crece con la longitud de la palanca (Haladay et al.)."
+          },
+          {
+            "actions": [
+              "Control pélvico"
+            ],
+            "id": "sacroiliaca",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_pelvic_joints"
+            ],
+            "why": "La pelvis debe quedar quieta sobre el suelo mientras la pierna se aleja; las articulaciones sacroilíacas transmiten el movimiento entre tronco y piernas sin moverse de forma apreciable."
+          },
+          {
+            "actions": [
+              "Sostén del brazo sobre la cabeza"
+            ],
+            "id": "glenohumeral",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_deltoid"
+            ],
+            "why": "El brazo pasa de la vertical a quedar junto a la oreja, un recorrido corto en el que el hombro solo sostiene el peso del brazo; el deltoides anterior es el flexor del hombro, sin carga que lo convierta en protagonista."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "abdominals",
+            "role": "PRIMARY",
+            "sources": [
+              "souza2001",
+              "kim2016",
+              "statpearls_abdominal_wall"
+            ],
+            "why": "El recto abdominal y los oblicuos son los que trabajan: en el Dying Bug estuvieron igual de activos y su actividad subió con la dificultad, aunque sin pasar del 41 % de la contracción máxima (Souza et al.). Evitan que la zona lumbar se arquee cuando brazo y pierna se alejan del tronco."
+          },
+          {
+            "id": "core",
+            "role": "SECONDARY",
+            "sources": [
+              "tsartsapakis2023",
+              "statpearls_abdominal_wall"
+            ],
+            "why": "El transverso del abdomen, la capa profunda de la pared abdominal, aumentó su grosor en ecografía más en el dead bug que en la plancha lateral y en otros tres ejercicios de Pilates (Tsartsapakis et al.). Es una medición de grosor, no de fuerza, por eso trabaja como apoyo del abdomen superficial."
+          },
+          {
+            "id": "hip_flexors",
+            "role": "STABILIZER",
+            "sources": [
+              "haladay2015",
+              "statpearls_iliopsoas"
+            ],
+            "why": "El iliopsoas sostiene la cadera flexionada de la pierna que no baja y frena el descenso de la otra. En una prueba de descenso de ambas piernas, el momento articular de la cadera se asoció de forma muy fuerte con el nivel de la prueba (Haladay et al.); el dead bug mueve una pierna cada vez, con menos exigencia."
+          }
+        ]
+      },
+      "public": {
+        "configurations": {
+          "dead_bug__default": {
+            "description": "No hay implemento: el único peso son los brazos y las piernas al alejarse del tronco. Cada repetición cambia el brazo y la pierna que bajan, y la dificultad sube al estirar más la pierna o al hacerlo más despacio.",
+            "executionCues": [
+              "Baja un brazo hacia atrás y estira la pierna contraria sin separar la zona lumbar del suelo.",
+              "Vuelve a la posición inicial con el mismo ritmo lento.",
+              "Cambia de lado en cada repetición y sigue respirando."
+            ],
+            "setupCues": [
+              "Túmbate boca arriba con los brazos estirados hacia el techo y las rodillas flexionadas sobre la cadera, con las espinillas paralelas al suelo.",
+              "Pega suavemente la zona lumbar al suelo antes de mover nada."
+            ]
+          }
+        },
+        "description": "El Dead Bug (bicho muerto) es un ejercicio de abdomen en el suelo: tumbado boca arriba, los brazos apuntan al techo y las rodillas se doblan sobre la cadera hasta dejar las espinillas paralelas al suelo. Un brazo baja hacia atrás mientras la pierna contraria se estira hacia delante, y el recto abdominal y los oblicuos impiden que la espalda baja se separe del suelo. Después brazo y pierna regresan y el siguiente movimiento cambia de lado. Estirar del todo la pierna alarga la palanca y lo hace más difícil, mientras que doblar la rodilla lo suaviza. Es un ejercicio de control más que de fuerza: enseña a mover las extremidades sin arquear la espalda."
+      },
+      "sources": [
+        {
+          "claim": "En 12 sanos, durante el Dying Bug el recto abdominal y el oblicuo abdominal estuvieron igual de activos y subieron de forma proporcional con la dificultad; ningún músculo medido pasó del 41 % de la contracción máxima.",
+          "id": "souza2001",
+          "title": "Electromyographic activity of selected trunk muscles during dynamic spine stabilization exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/11689975/"
+        },
+        {
+          "claim": "En diez varones sanos, con cuatro ejercicios de estabilización lumbar (entre ellos el dead bug) en cinco niveles de intensidad, la actividad de los músculos relacionados subió de forma significativa al aumentar el nivel.",
+          "id": "kim2016",
+          "title": "Electromyographic Changes in Trunk Muscles During Graded Lumbar Stabilization Exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/27317910/"
+        },
+        {
+          "claim": "El dead bug produjo un aumento de grosor del transverso del abdomen, medido por ecografía, mayor que la posición básica, el hundred, el hip roll y la plancha lateral.",
+          "id": "tsartsapakis2023",
+          "title": "Transversus Abdominis Ultrasound Thickness during Popular Trunk-Pilates Exercises in Young and Middle-Aged Women",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/37606405/"
+        },
+        {
+          "claim": "En la prueba de descenso de ambas piernas, la actividad del recto abdominal tuvo una asociación de moderada a fuerte con el nivel de la prueba y el momento resultante de la cadera, una asociación muy fuerte.",
+          "id": "haladay2015",
+          "title": "Electromyographic and kinetic analysis of two abdominal muscle performance tests",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/26467996/"
+        },
+        {
+          "claim": "Describe la pared abdominal como estructura capaz de generar presión intraabdominal y mover la columna vertebral; sustenta su papel de sostén del tronco.",
+          "id": "statpearls_abdominal_wall",
+          "title": "Anatomy, Abdomen and Pelvis: Abdominal Wall",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31869113/"
+        },
+        {
+          "claim": "El iliopsoas es el principal flexor del muslo y contribuye a estabilizar la cadera y la columna lumbar.",
+          "id": "statpearls_iliopsoas",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Iliopsoas Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30285403/"
+        },
+        {
+          "claim": "Describe la cadera como articulación que soporta dinámicamente el peso del tronco y transmite carga entre esqueleto axial y miembros inferiores.",
+          "id": "statpearls_hip_joint",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hip Joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29262200/"
+        },
+        {
+          "claim": "Describe la articulación sacroilíaca como la que transmite al miembro inferior buena parte del peso de los miembros superiores y del tronco, lo que explica su movilidad muy restringida.",
+          "id": "statpearls_pelvic_joints",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Pelvic Joints",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30860758/"
+        },
+        {
+          "claim": "Describe las porciones del deltoides como clave del movimiento y la estabilidad del hombro; la anterior flexiona el hombro.",
+          "id": "statpearls_deltoid",
+          "title": "Anatomy, Shoulder and Upper Limb, Deltoid Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725741/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Ejercicio de suelo, boca arriba, en el que brazos y piernas se mueven de forma alterna mientras la zona lumbar sigue en contacto con el suelo. Se separa de la plancha porque el tronco no sostiene el peso del cuerpo, y de los ejercicios de flexión de tronco porque no hay enrollamiento: lo que se trabaja es evitar que la columna se arquee.",
+        "keyPositions": [
+          "Inicio: brazos hacia el techo, muslos verticales sobre las caderas y zona lumbar apoyada en el suelo.",
+          "Punto bajo: un brazo estirado junto a la oreja y la pierna contraria estirada casi a ras del suelo, con el otro brazo hacia el techo y la otra rodilla sobre la cadera."
+        ],
+        "mistakes": [
+          "Arquear la zona lumbar cuando el brazo y la pierna se acercan al suelo.",
+          "Bajar con prisa y dejar caer el brazo o la pierna sin frenarlos.",
+          "Mover el brazo y la pierna del mismo lado a la vez en lugar de los contrarios.",
+          "Contener la respiración durante la bajada."
+        ],
+        "phases": [
+          {
+            "description": "Brazos hacia el techo, rodillas sobre la cadera y la zona lumbar pegada al suelo antes de iniciar el movimiento.",
+            "name": "Posición inicial"
+          },
+          {
+            "description": "Un brazo se aleja hacia atrás y la pierna contraria se estira hacia delante al mismo ritmo, sin que el abdomen deje que la espalda se arquee.",
+            "name": "Descenso"
+          },
+          {
+            "description": "Brazo y pierna vuelven a la vertical con la misma lentitud y el movimiento se repite hacia el otro lado.",
+            "name": "Regreso"
+          }
+        ],
+        "setup": [
+          "Boca arriba sobre un suelo firme, con la cabeza apoyada y el cuello relajado.",
+          "Brazos estirados hacia el techo y muslos verticales sobre las caderas, con las rodillas flexionadas y las espinillas paralelas al suelo."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral a la altura del suelo, con el cuerpo entero dentro del encuadre, de la cabeza a los pies.",
+          "contacts": "Cabeza, espalda, zona lumbar y pelvis apoyadas en el suelo; las manos y los pies no tocan nada.",
+          "load": "Solo el peso de los brazos y las piernas, sin ningún implemento a la vista.",
+          "orientation": "Atleta tumbado boca arriba, con la cabeza hacia la izquierda del encuadre y los pies hacia la derecha.",
+          "phase": "Punto bajo de la repetición: un brazo y la pierna contraria estirados, el otro brazo hacia el techo y la otra rodilla doblada sobre la cadera.",
+          "posture": "Zona lumbar pegada al suelo sin hueco visible, costillas bajas, cuello neutro y mirada al techo."
+        },
+        "byImplement": {
+          "bodyweight": {
+            "geometry": "Suelo plano y liso sin objetos a la vista; el brazo estirado queda junto a la oreja y la pierna contraria, estirada, a pocos centímetros del suelo."
+          }
+        },
+        "forbidden": [
+          "Zona lumbar arqueada, con un hueco visible entre la espalda y el suelo.",
+          "Brazo y pierna del mismo lado estirados a la vez.",
+          "Atleta apoyado sobre manos y rodillas: eso es un bird dog, no un dead bug.",
+          "Rodillas apoyadas en el suelo o pies sobre un banco."
+        ],
+        "promptCore": {
+          "bodyweight": "Side view of a muscular athlete lying on their back on a flat floor, frozen at the LOWEST point of a dead bug exercise. The left arm is stretched straight overhead beside the ear and hovers just above the floor, and the right leg is stretched straight out with the heel hovering a few centimeters above the floor. The right arm points straight up at the ceiling and the left knee is bent at 90 degrees directly over the hip with the shin parallel to the floor. The lower back is flat against the floor, the head rests on the floor and the neck is relaxed. The hands are empty and nothing else is in the scene."
+        },
+        "qa": [
+          "¿El atleta está tumbado boca arriba, con la espalda y la pelvis apoyadas en el suelo?",
+          "¿El brazo estirado hacia atrás y la pierna estirada son de lados contrarios?",
+          "¿La otra rodilla está flexionada sobre la cadera, con la espinilla paralela al suelo, y el otro brazo apunta al techo?",
+          "¿Las manos están vacías, sin ningún implemento en el encuadre?",
+          "¿La zona lumbar toca el suelo, sin un hueco visible bajo la espalda?"
+        ]
+      }
     }
   },
   "familyId": "core_anti_extension_pelvic_control",

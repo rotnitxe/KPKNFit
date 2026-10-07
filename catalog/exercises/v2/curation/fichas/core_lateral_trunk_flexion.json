@@ -16,6 +16,232 @@
         "description": "La Inclinación Lateral concentra el esfuerzo en los oblicuos con un gesto mínimo: el tronco se dobla de lado cargando una mancuerna y regresa a la vertical. Se ejecuta de pie con el peso en una sola mano, inclinándose sin girar el torso y volviendo despacio. El abdomen trabaja en su versión más lateral. Un detalle de cintura que solo funciona con cargas pacientes y técnica limpia."
       },
       "status": "LEGACY"
+    },
+    "side_plank": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Resistencia a la flexión lateral"
+            ],
+            "id": "columna-lumbar",
+            "role": "PRIMARY",
+            "sources": [
+              "garcia2012",
+              "mcgill2009"
+            ],
+            "why": "La columna lumbar no se mueve: el peso de la cadera y las piernas tira hacia el suelo y los músculos del costado la mantienen recta. Variantes más exigentes, como elevar una pierna, subieron la activación del tronco en García-Vaquero et al."
+          },
+          {
+            "actions": [
+              "Estabilidad lateral de la cadera"
+            ],
+            "id": "cadera",
+            "role": "SECONDARY",
+            "sources": [
+              "ekstrom2007",
+              "statpearls_hip_joint"
+            ],
+            "why": "La cadera de abajo sostiene el peso de la pelvis y de las piernas sobre el costado; el glúteo medio que la rodea fue uno de los músculos que Ekstrom et al. señalan para este ejercicio."
+          },
+          {
+            "actions": [
+              "Sostén del hombro de apoyo"
+            ],
+            "id": "glenohumeral",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_deltoid"
+            ],
+            "why": "El hombro del brazo de apoyo queda por debajo del peso del tronco y se sostiene sin moverse, con el codo justo bajo él."
+          },
+          {
+            "actions": [
+              "Control pélvico"
+            ],
+            "id": "sacroiliaca",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_pelvic_joints"
+            ],
+            "why": "La pelvis debe seguir alineada con el tronco mientras la cadera está en el aire; las sacroilíacas transmiten ese peso entre el tronco y las piernas con muy poco movimiento."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "abdominals",
+            "role": "PRIMARY",
+            "sources": [
+              "garcia2012",
+              "ekstrom2007",
+              "statpearls_abdominal_wall"
+            ],
+            "why": "Los oblicuos son los que impiden que la cadera caiga: en el estudio de García-Vaquero et al. el puente lateral activó sobre todo los músculos que sostienen el momento lateral, sobre todo los oblicuos, y Ekstrom et al. lo señalan como útil para reforzar el oblicuo externo."
+          },
+          {
+            "id": "core",
+            "role": "SECONDARY",
+            "sources": [
+              "statpearls_quadratus_lumborum",
+              "garcia2012"
+            ],
+            "why": "El cuadrado lumbar, un músculo lateral a la columna entre la cresta ilíaca y la duodécima costilla, y el transverso del abdomen apoyan a los oblicuos. Su acción exacta es difícil de aislar, así que se cuentan como apoyo y no como motor."
+          },
+          {
+            "id": "gluteus_medius",
+            "role": "SECONDARY",
+            "sources": [
+              "ekstrom2007",
+              "statpearls_gluteus_medius"
+            ],
+            "why": "El glúteo medio del lado apoyado abduce la cadera y sostiene la pelvis contra la gravedad. Ekstrom et al. señalan el puente lateral como útil para reforzarlo. Es secundario porque el reparto lo lidera el costado del abdomen, y aquí no mueve la pierna."
+          },
+          {
+            "id": "deltoid",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_deltoid"
+            ],
+            "why": "El hombro del antebrazo de apoyo soporta parte del peso del cuerpo; el deltoides, pieza clave de la estabilidad del hombro, lo sostiene en isometría sin llegar a mover el brazo."
+          }
+        ]
+      },
+      "public": {
+        "configurations": {
+          "side_plank__default": {
+            "description": "Solo cuenta el peso del cuerpo, apoyado en el antebrazo de abajo y en el borde externo del pie, con el codo justo bajo el hombro. Adelantar el pie de arriba ensancha la base y lo hace más fácil; apilar los dos pies la estrecha.",
+            "executionCues": [
+              "Levanta la cadera hasta alinear la cabeza, el tronco y los tobillos.",
+              "Aguanta sin hundir la cadera ni girar el pecho hacia el suelo o el techo.",
+              "Baja con calma y repite del otro lado."
+            ],
+            "setupCues": [
+              "Túmbate de lado con el codo justo bajo el hombro y las piernas estiradas, un pie sobre el otro.",
+              "Apoya todo el antebrazo en el suelo, con la mano abierta."
+            ]
+          }
+        },
+        "description": "La Plancha Lateral (side plank) es una isometría de abdomen que se hace de costado: el cuerpo se apoya en un antebrazo y en el borde del pie, y la cadera se eleva hasta formar una línea recta de la cabeza a los tobillos. Los oblicuos y el resto del costado impiden que la cadera caiga hacia el suelo, y el glúteo medio del lado apoyado sostiene la pelvis. Se aguanta el tiempo elegido y se repite del otro lado. Apoyar la rodilla en lugar del pie acorta la palanca y la hace asequible; elevar la pierna de arriba aumenta mucho la exigencia."
+      },
+      "sources": [
+        {
+          "claim": "En 29 sanos, el puente lateral activó sobre todo los músculos que sostienen el momento lateral, mayoritariamente los oblicuos; con una pierna elevada subió la activación del tronco, sobre todo en los oblicuos.",
+          "id": "garcia2012",
+          "title": "Trunk muscle activation during stabilization exercises with single and double leg support",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/22436839/"
+        },
+        {
+          "claim": "En 30 sanos con nueve ejercicios de rehabilitación, los autores señalan el puente lateral como útil para reforzar el glúteo medio y el oblicuo externo, y la elevación de brazo y pierna en cuadrupedia para el glúteo mayor; el resto quedó por debajo del 45 % de la contracción máxima.",
+          "id": "ekstrom2007",
+          "title": "Electromyographic analysis of core trunk, hip, and thigh muscles during 9 rehabilitation exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/18560185/"
+        },
+        {
+          "claim": "Con ocho varones sanos, cuantificó la actividad muscular y la posición de la columna en variantes del curl-up, el puente lateral y el bird dog, y concluyó que cada ejercicio admite progresiones justificables.",
+          "id": "mcgill2009",
+          "title": "Exercises for spine stabilization: motion/motor patterns, stability progressions, and clinical technique",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/19154838/"
+        },
+        {
+          "claim": "Describe la pared abdominal como estructura capaz de generar presión intraabdominal y mover la columna vertebral; sustenta su papel de sostén del tronco.",
+          "id": "statpearls_abdominal_wall",
+          "title": "Anatomy, Abdomen and Pelvis: Abdominal Wall",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31869113/"
+        },
+        {
+          "claim": "Sitúa el cuadrado lumbar lateral a la columna, entre la cresta ilíaca, las apófisis transversas lumbares y la duodécima costilla, y advierte de que su organización compleja dificulta precisar sus acciones.",
+          "id": "statpearls_quadratus_lumborum",
+          "title": "Anatomy, Abdomen and Pelvis, Quadratus Lumborum",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30571028/"
+        },
+        {
+          "claim": "Describe al glúteo medio y mínimo como abductores relevantes para la estabilidad de la extremidad inferior y la pelvis.",
+          "id": "statpearls_gluteus_medius",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Medius Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/32491441/"
+        },
+        {
+          "claim": "Describe las porciones del deltoides como clave del movimiento y la estabilidad del hombro.",
+          "id": "statpearls_deltoid",
+          "title": "Anatomy, Shoulder and Upper Limb, Deltoid Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725741/"
+        },
+        {
+          "claim": "Describe la cadera como articulación que soporta dinámicamente el peso del tronco y transmite carga entre esqueleto axial y miembros inferiores.",
+          "id": "statpearls_hip_joint",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hip Joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29262200/"
+        },
+        {
+          "claim": "Describe la articulación sacroilíaca como la que transmite al miembro inferior buena parte del peso de los miembros superiores y del tronco, lo que explica su movilidad muy restringida.",
+          "id": "statpearls_pelvic_joints",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Pelvic Joints",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30860758/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Isometría lateral sobre un antebrazo y el borde de los pies: el cuerpo forma una línea recta de la cabeza a los tobillos, con la cadera despegada del suelo. Se separa de la plancha frontal porque la carga cae sobre el costado, y de la flexión lateral con peso porque no hay recorrido: el tronco solo resiste la caída de la cadera.",
+        "keyPositions": [
+          "Inicio: tumbado de lado, antebrazo y borde externo del pie en el suelo, cadera todavía apoyada.",
+          "Posición sostenida: cadera elevada y cuerpo en línea recta de la cabeza a los tobillos, con la pelvis y el pecho mirando al frente."
+        ],
+        "mistakes": [
+          "Dejar caer la cadera hacia el suelo a medida que se acumula el cansancio.",
+          "Girar el pecho o la pelvis hacia el suelo o hacia el techo.",
+          "Encoger el hombro de apoyo hacia la oreja en lugar de empujar el suelo con el antebrazo.",
+          "Echar la cadera hacia delante, de modo que el cuerpo forme una V invertida en lugar de una línea."
+        ],
+        "phases": [
+          {
+            "description": "La cadera se despega del suelo hasta que el cuerpo queda en línea recta de la cabeza a los tobillos.",
+            "name": "Subida"
+          },
+          {
+            "description": "La posición se sostiene sin moverse, con el costado activo y la pelvis a la altura de los hombros.",
+            "name": "Sostén"
+          },
+          {
+            "description": "La cadera baja con calma hasta apoyarse; después se repite del otro lado.",
+            "name": "Bajada"
+          }
+        ],
+        "setup": [
+          "De lado sobre un suelo firme, con el codo justo bajo el hombro y el antebrazo apoyado entero.",
+          "Piernas estiradas con un pie sobre el otro, o el pie de arriba un poco adelantado para ganar base."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista frontal del costado del atleta, desde unos tres metros, con el cuerpo entero dentro del encuadre y el antebrazo de apoyo visible.",
+          "contacts": "Solo el antebrazo de abajo y el borde externo del pie de abajo tocan el suelo; la mano de arriba descansa sobre la cadera.",
+          "load": "Solo el peso del cuerpo, sin ningún implemento a la vista.",
+          "orientation": "Atleta de lado con la cabeza hacia la izquierda del encuadre y el pecho y la pelvis mirando a la cámara.",
+          "phase": "Posición sostenida con la cadera elevada y el cuerpo en línea recta de la cabeza a los tobillos.",
+          "posture": "Codo justo bajo el hombro, cuerpo recto de la cabeza a los tobillos, cadera sin hundir y cuello alineado con la columna."
+        },
+        "byImplement": {
+          "bodyweight": {
+            "geometry": "Suelo plano y liso sin objetos a la vista; el antebrazo de apoyo queda perpendicular al cuerpo y los pies, uno sobre otro, apoyados por su borde externo."
+          }
+        },
+        "forbidden": [
+          "Cadera apoyada en el suelo o hundida hacia él.",
+          "Apoyo sobre la mano con el brazo extendido en lugar del antebrazo.",
+          "Cuerpo boca abajo apoyado en los dos antebrazos: eso es una plancha frontal.",
+          "Pecho o pelvis girados hacia el suelo o hacia el techo."
+        ],
+        "promptCore": {
+          "bodyweight": "Front view of a muscular athlete holding a side plank on a flat floor, frozen in the held position. The body rests on the right forearm and the outer edge of the right foot, with the elbow directly under the shoulder and the left foot stacked on top of the right one. The left hand rests on the left hip. The hips are lifted so the body forms one straight line from head to ankles, the chest and pelvis face the camera and are not rotated, and the neck is neutral. No equipment at all."
+        },
+        "qa": [
+          "¿Solo el antebrazo de abajo y el borde externo del pie de abajo tocan el suelo?",
+          "¿La cadera está elevada y el cuerpo forma una línea recta de la cabeza a los tobillos?",
+          "¿El codo de apoyo queda justo bajo el hombro y el antebrazo está apoyado entero?",
+          "¿La mano de arriba descansa en la cadera, sin sostener ningún implemento?",
+          "¿El pecho y la pelvis miran a la cámara, sin girar hacia el suelo ni hacia el techo?"
+        ]
+      }
     }
   },
   "familyId": "core_lateral_trunk_flexion",

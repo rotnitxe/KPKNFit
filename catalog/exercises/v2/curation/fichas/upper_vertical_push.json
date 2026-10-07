@@ -16,6 +16,240 @@
         "description": "El Push Press roba impulso de las piernas para el press de hombros: una flexión rápida de rodillas lanza la barra y el deltoide y el tríceps terminan el bloqueo arriba. La barra parte de los hombros: se hunden ligeramente las caderas y todo el cuerpo se extiende en cadena. Permite mover más peso que el press estricto. El puente explosivo entre la fuerza de piernas y la potencia del tren superior."
       },
       "status": "LEGACY"
+    },
+    "pike_push_up": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Flexión del hombro"
+            ],
+            "id": "glenohumeral",
+            "role": "PRIMARY",
+            "sources": [
+              "campos2020",
+              "statpearls_deltoid"
+            ],
+            "why": "El brazo pasa de estar junto a la cabeza, con el hombro muy flexionado, a quedar más abierto al bajar la cabeza entre las manos; ese arco de flexión lo mueve el deltoides, el que más trabaja en los presses por encima de la cabeza (Campos et al.)."
+          },
+          {
+            "actions": [
+              "Extensión del codo"
+            ],
+            "id": "codo",
+            "role": "SECONDARY",
+            "sources": [
+              "youdas2010",
+              "statpearls_triceps"
+            ],
+            "why": "El codo se flexiona al bajar la cabeza y se extiende al empujar, el trabajo del tríceps. Acompaña al hombro sin ser la articulación que decide la serie."
+          },
+          {
+            "actions": [
+              "Rotación escapular superior"
+            ],
+            "id": "escapulotoracica",
+            "role": "SECONDARY",
+            "sources": [
+              "ekstrom2003",
+              "bull2001"
+            ],
+            "why": "Con los brazos por encima de la cabeza, la escápula rota hacia arriba y se desliza sobre el tórax para que el hombro llegue alto; trapecio y serrato se activaron mucho en ejercicios que exigen esa rotación (Ekstrom et al.)."
+          },
+          {
+            "actions": [
+              "Sostén del apoyo"
+            ],
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "sources": [
+              "ebben2011"
+            ],
+            "why": "La muñeca queda extendida bajo la palma y transmite al suelo el peso que cargan los brazos; en las flexiones con los pies elevados esa fuerza vertical sobre las manos fue mayor (Ebben et al.), y la pica la traslada aún más."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "deltoid",
+            "role": "PRIMARY",
+            "sources": [
+              "campos2020",
+              "bull2010",
+              "statpearls_deltoid"
+            ],
+            "why": "Es el músculo que empuja cuando los brazos trabajan por encima de la cabeza. En el press de hombros el deltoides anterior fue el más activo entre cuatro ejercicios (33 % de la contracción máxima) y el medio llegó casi al nivel de la elevación lateral (Campos et al.); en el press militar el anterior alcanzó niveles muy altos en todas las modalidades (Büll et al.). No hay electromiografía de la pica: se extrapola desde esos presses."
+          },
+          {
+            "id": "triceps",
+            "role": "SECONDARY",
+            "sources": [
+              "youdas2010",
+              "statpearls_triceps"
+            ],
+            "why": "Extiende los codos en la subida. En la flexión de brazos convencional su actividad llegó entre el 73 y el 109 % de la contracción máxima (Youdas et al.), y la pica pide la misma extensión de codo, con el hombro más flexionado."
+          },
+          {
+            "id": "trapezius",
+            "role": "SECONDARY",
+            "sources": [
+              "ekstrom2003",
+              "bull2001",
+              "statpearls_trapezius"
+            ],
+            "why": "Con los brazos cerca de la cabeza, la escápula debe girar hacia arriba: el serrato anterior se activó al máximo en ejercicios con mucha rotación superior de la escápula (Ekstrom et al.) y el trapecio actuó con altos potenciales en el press militar (Büll et al.). Acompaña al deltoides sin ser el motor del empuje."
+          }
+        ]
+      },
+      "public": {
+        "configurations": {
+          "pike_push_up__feet_elevated": {
+            "description": "Los pies suben a un banco o a un cajón y las caderas quedan aún más altas que en la versión plana, con el tronco más vertical y el peso desplazado hacia las manos. El empuje se acerca así al de un press por encima de la cabeza y exige más al hombro.",
+            "executionCues": [
+              "Baja la cabeza entre las manos con los codos hacia atrás, hasta casi tocar el suelo.",
+              "Empuja el suelo para estirar los codos sin bajar las caderas."
+            ],
+            "setupCues": [
+              "Apoya los empeines en un banco o en un cajón estable y las manos en el suelo, algo más abiertas que los hombros.",
+              "Camina con las manos hacia atrás hasta que el tronco quede casi vertical."
+            ]
+          },
+          "pike_push_up__flat": {
+            "description": "Manos y pies están en el suelo y las caderas suben hasta formar una V invertida, con el tronco casi vertical y la cabeza apuntando entre las manos. Cuanto más se acercan los pies a las manos, más vertical queda el empuje y más pesa el hombro.",
+            "executionCues": [
+              "Dobla los codos y baja la cabeza entre las manos, hasta casi tocar el suelo.",
+              "Empuja el suelo hasta estirar los codos, con las caderas altas."
+            ],
+            "setupCues": [
+              "Apoya las manos en el suelo, algo más abiertas que los hombros, y sube las caderas hasta formar una V invertida.",
+              "Acerca los pies a las manos hasta que el tronco quede casi vertical."
+            ]
+          }
+        },
+        "description": "Las Flexiones en Pica (pike push-up) son un empuje vertical con el propio peso: desde una V invertida, con las caderas altas y las manos y los pies en el suelo, la cabeza baja entre los brazos hasta casi tocar el suelo y los codos se estiran para volver arriba. El deltoides empuja el cuerpo, el tríceps extiende los codos y el trapecio gira la escápula para acompañar. Como en un press de hombros, los brazos empujan por encima de la cabeza, pero la resistencia es el propio cuerpo. Elevar los pies en un apoyo traslada más peso a las manos y endurece el ejercicio. Es la progresión habitual hacia la flexión en pino."
+      },
+      "sources": [
+        {
+          "claim": "En 13 hombres entrenados, el press de hombros dio la mayor activación del deltoides anterior (33,3 % de la contracción máxima) frente al press de banca, la apertura y la elevación lateral, y activó el deltoides medio (27,9 %) y el posterior (11,4 %) más que el press de banca.",
+          "id": "campos2020",
+          "title": "Different Shoulder Exercises Affect the Activation of Deltoid Portions in Resistance-Trained Individuals",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/33312291/"
+        },
+        {
+          "claim": "En 24 voluntarios y cuatro modalidades de press militar con agarre abierto, el deltoides anterior desarrolló niveles muy altos de potenciales de acción en todas, mientras la porción clavicular del pectoral mayor mostró poca actividad en casi todas.",
+          "id": "bull2010",
+          "title": "Electromyographic validation of the muscles deltoid (anterior portion) and pectoralis major (clavicular portion) in military press exercises with open grip",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/20718330/"
+        },
+        {
+          "claim": "En 24 voluntarios y cuatro modalidades de press militar con agarre medio, el trapecio y el serrato anterior actuaron con altos niveles de potenciales de acción.",
+          "id": "bull2001",
+          "title": "Electromyographic validation of the trapezius and serratus anterior muscles in military press exercises with middle grip",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/11572186/"
+        },
+        {
+          "claim": "En 30 sanos y diez ejercicios, el serrato anterior se activó al máximo en los que exigen mucha rotación superior de la escápula, como la abducción en el plano escapular por encima de 120 grados.",
+          "id": "ekstrom2003",
+          "title": "Surface electromyographic analysis of exercises for the trapezius and serratus anterior muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/12774999/"
+        },
+        {
+          "claim": "En la flexión convencional el pectoral mayor alcanzó del 95 al 105 por ciento de su máxima y el tríceps del 73 al 109. La porción posterior del deltoides se quedó en el 11 al 21 por ciento. Las manos juntas activaron más el tríceps.",
+          "id": "youdas2010",
+          "title": "Comparison of muscle-activation patterns during the conventional push-up and perfect pushup exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/20664364/"
+        },
+        {
+          "claim": "Elevar los pies produjo más fuerza vertical sobre las manos que el resto de flexiones. Elevar las manos produjo menos.",
+          "id": "ebben2011",
+          "title": "Kinetic analysis of several variations of push-ups",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/21873902/"
+        },
+        {
+          "claim": "Describe las porciones del deltoides como clave del movimiento y la estabilidad del hombro; la anterior flexiona el hombro.",
+          "id": "statpearls_deltoid",
+          "title": "Anatomy, Shoulder and Upper Limb, Deltoid Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725741/"
+        },
+        {
+          "claim": "La función primaria del tríceps braquial es extender el codo.",
+          "id": "statpearls_triceps",
+          "title": "Anatomy, Shoulder and Upper Limb, Triceps Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725681/"
+        },
+        {
+          "claim": "Describe las fibras superiores del trapecio como elevadoras y rotadoras superiores de la escápula y las inferiores como depresoras que ayudan a esa rotación, que junto con el deltoides es esencial para los gestos de lanzamiento.",
+          "id": "statpearls_trapezius",
+          "title": "Anatomy, Back, Trapezius",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30085536/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Empuje vertical con el peso del cuerpo desde una V invertida: manos y pies sostienen el cuerpo, las caderas quedan altas y la cabeza baja entre los brazos hasta casi tocar el suelo. Se separa de la flexión de brazos porque el tronco queda casi vertical y el empuje es hacia arriba, y de la flexión en pino porque los pies siguen apoyados.",
+        "keyPositions": [
+          "Arriba: codos estirados, caderas en el punto más alto y cuerpo en V invertida con la cabeza entre los brazos.",
+          "Abajo: codos flexionados, cabeza a pocos centímetros del suelo entre las manos y caderas todavía altas."
+        ],
+        "mistakes": [
+          "Bajar las caderas y convertir el movimiento en una flexión de brazos normal.",
+          "Abrir los codos hacia los lados en lugar de llevarlos algo hacia atrás.",
+          "Apoyar la cabeza en el suelo y empujar con el cuello.",
+          "Tocar el suelo con la frente y usar el impulso del golpe para subir."
+        ],
+        "phases": [
+          {
+            "description": "Cuerpo en V invertida, con los codos estirados y las caderas altas sobre los hombros.",
+            "name": "Posición alta"
+          },
+          {
+            "description": "Los codos se doblan y la cabeza desciende entre las manos, mientras las caderas siguen altas.",
+            "name": "Bajada"
+          },
+          {
+            "description": "Las palmas presionan el suelo, los codos se extienden y el cuerpo sube hasta formar de nuevo la V invertida.",
+            "name": "Empuje"
+          }
+        ],
+        "setup": [
+          "Palmas planas en el suelo, algo más separadas que los hombros, y brazos extendidos.",
+          "Piernas estiradas y caderas altas, con los pies lo bastante cerca de las manos para que el tronco quede casi vertical."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral a la altura de la cadera, con la cabeza, las manos y los pies dentro del encuadre.",
+          "contacts": "Las dos palmas planas en el suelo y las puntas de los pies apoyadas; la cabeza no toca el suelo.",
+          "load": "Solo el peso del cuerpo, transmitido por las palmas al suelo, sin ningún implemento en las manos.",
+          "orientation": "Cuerpo en V invertida con las manos a la izquierda del encuadre y los pies a la derecha, mirando hacia el suelo.",
+          "phase": "Punto bajo del empuje, con la cabeza a pocos centímetros del suelo entre las manos y los codos flexionados.",
+          "posture": "Piernas y espalda rectas, caderas como punto más alto del cuerpo, codos flexionados y algo hacia atrás, cuello neutro."
+        },
+        "byImplement": {
+          "bodyweight": {
+            "geometry": "Palmas abiertas en el suelo, algo más separadas que los hombros, con los dedos hacia delante, y los pies en el suelo a poca distancia de las manos."
+          }
+        },
+        "byVariant": {
+          "pike_push_up__feet_elevated": {
+            "difference": "Los empeines descansan sobre un banco o un cajón estable, con las caderas todavía más altas y el tronco casi vertical."
+          }
+        },
+        "forbidden": [
+          "Cuerpo recto en línea de la cabeza a los pies: eso es una flexión de brazos.",
+          "Atleta en pino con los pies en el aire: eso es una flexión en pino.",
+          "Cabeza apoyada en el suelo o pecho tumbado.",
+          "Rodillas apoyadas en el suelo."
+        ],
+        "promptCore": {
+          "bodyweight": "Side view of a muscular athlete frozen at the BOTTOM of a pike push-up on a flat floor. Both hands are planted flat on the floor, a little wider than the shoulders, fingers pointing forward, and the toes are on the floor. The hips are the highest point of the body and the legs and back are straight, so the body forms an inverted V. The elbows are bent about 90 degrees and angled slightly back, the top of the head hovers a few centimeters above the floor between the hands, and the neck is neutral. No bench, no bar and nothing in the hands."
+        },
+        "qa": [
+          "¿Las dos palmas están planas en el suelo, sin flotar?",
+          "¿Las caderas son el punto más alto del cuerpo, formando una V invertida?",
+          "¿La cabeza está entre las manos, cerca del suelo pero sin tocarlo, y los codos están flexionados?",
+          "¿Las rodillas están estiradas y no hay ningún implemento en las manos?"
+        ]
+      }
     }
   },
   "familyId": "upper_vertical_push",

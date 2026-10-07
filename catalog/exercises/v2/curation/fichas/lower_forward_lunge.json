@@ -377,6 +377,18 @@
               "Deja espacio delante para dar un paso y volver."
             ]
           },
+          "forward_lunge__bodyweight": {
+            "description": "Las manos descansan en la cintura y el único peso es el del cuerpo, que cae sobre la pierna adelantada al aterrizar. Sin una carga que tire del torso, este puede quedar erguido y el paso se centra en la recepción y el empuje de esa pierna.",
+            "executionCues": [
+              "Da un paso largo hacia delante y apoya toda la planta del pie.",
+              "Flexiona ambas rodillas y baja hasta casi rozar el suelo con la de atrás.",
+              "Empuja con la pierna adelantada para volver a la posición de salida."
+            ],
+            "setupCues": [
+              "Ponte de pie con las manos en la cintura y los pies paralelos, separados como las caderas.",
+              "Despeja el suelo por delante para poder dar el paso."
+            ]
+          },
           "forward_lunge__cable": {
             "description": "El cable sale del punto bajo de la estación posterior y llega al asa junto a la cadera. Su tirón hacia atrás acompaña el paso frontal; la mano sostiene el asa sin convertir el gesto en un remo.",
             "executionCues": [
@@ -581,6 +593,9 @@
           "barbell": {
             "geometry": "Eje transversal sobre los trapecios, por debajo del cuello, sujeto a ambos lados por las manos. Los discos quedan a los lados de los hombros y por encima del piso."
           },
+          "bodyweight": {
+            "geometry": "No hay carga externa ni asa: ambas manos descansan en la cintura y los pies son los únicos contactos con el suelo."
+          },
           "cable": {
             "geometry": "Polea baja con un asa individual junto a la cadera de un lado, agarrada por la mano de ese lado con el codo extendido. Cable visible, sin atravesar el cuerpo; la pierna contraria cambia de posición. La estación se encuentra detrás del atleta; el atleta mira en sentido opuesto a ella."
           },
@@ -602,6 +617,7 @@
         ],
         "promptCore": {
           "barbell": "Three-quarter side view of an athlete frozen at the BOTTOM of a forward lunge. Front knee is bent about 90 degrees, front foot flat on the floor; rear knee is close to the floor but not touching, rear toes planted and heel lifted. Torso upright, feet on separate tracks. A barbell rests across the upper back below the neck; both hands grip it outside the shoulders. Plates remain above the floor.",
+          "bodyweight": "Three-quarter side view of an athlete frozen at the BOTTOM of a forward lunge. Front knee is bent about 90 degrees, front foot flat on the floor; rear knee is close to the floor but not touching, rear toes planted and heel lifted. Torso upright, feet on separate tracks. There is no external load. Both hands rest on the waist. Neither hand holds a handle or weight; the two feet are the only contacts with the floor.",
           "cable": "Three-quarter side view of an athlete frozen at the BOTTOM of a forward lunge. Front knee is bent about 90 degrees, front foot flat on the floor; rear knee is close to the floor but not touching, rear toes planted and heel lifted. Torso upright, feet on separate tracks. One hand grips a single cable handle beside its hip with the elbow straight. A taut visible cable connects that hand to a low pulley; the other hand rests on the waist. The low pulley is behind the athlete, opposite the forward step.",
           "dumbbells": "Three-quarter side view of an athlete frozen at the BOTTOM of a forward lunge. Front knee is bent about 90 degrees, front foot flat on the floor; rear knee is close to the floor but not touching, rear toes planted and heel lifted. Torso upright, feet on separate tracks. Each hand grips one dumbbell with a neutral grip, arms hanging at the sides. Both dumbbells are clear of the floor beside the legs.",
           "kettlebell": "Three-quarter side view of an athlete frozen at the BOTTOM of a forward lunge. Front knee is bent about 90 degrees, front foot flat on the floor; rear knee is close to the floor but not touching, rear toes planted and heel lifted. Torso upright, feet on separate tracks. Both hands grip the sides of a single kettlebell handle at chest height. Elbows are bent downward; the bell hangs below its handle and remains far above the floor.",
@@ -617,7 +633,8 @@
           "¿En Polea, una sola mano agarra el asa junto a su cadera con el codo extendido, el cable visible sale de una polea baja detrás del atleta y no atraviesa el cuerpo?",
           "¿En Mancuernas, hay exactamente una pesa agarrada por cada mano con palmas hacia los muslos, brazos largos y ambas cargas suspendidas sin tocar el suelo?",
           "¿En Kettlebell, hay una sola pesa ante el esternón y las dos manos agarran los lados de su asa, con el cuerpo de la pesa debajo y los codos flexionados hacia abajo?",
-          "¿En Smith, la barra toca la espalda alta y ambas manos la agarran, con sus dos carros unidos a dos raíles reales visibles y los discos elevados sobre el suelo?"
+          "¿En Smith, la barra toca la espalda alta y ambas manos la agarran, con sus dos carros unidos a dos raíles reales visibles y los discos elevados sobre el suelo?",
+          "¿En Peso Corporal, no hay carga externa ni asa y ambas manos descansan en la cintura?"
         ]
       }
     }

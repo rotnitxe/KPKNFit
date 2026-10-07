@@ -220,6 +220,67 @@
               }
             ]
           },
+          "romanian_deadlift__unilateral__bodyweight": {
+            "joints": [
+              {
+                "actions": [
+                  "Flexión de cadera",
+                  "Extensión de cadera",
+                  "Estabilidad frontal de cadera"
+                ],
+                "id": "cadera",
+                "role": "PRIMARY",
+                "sources": [
+                  "hip_anatomy",
+                  "mo2023",
+                  "collings2023"
+                ],
+                "why": "La cadera del único pie apoyado flexiona y extiende para mover el torso, a la vez que resiste desviaciones laterales de pelvis. Mo y Collings sustentan la exigencia unilateral; se extrapola a la configuración cuando el implemento difiere del investigado."
+              },
+              {
+                "actions": [
+                  "Transmisión de carga entre pelvis y tronco"
+                ],
+                "id": "sacroiliaca",
+                "role": "STABILIZER",
+                "sources": [
+                  "pelvic_anatomy",
+                  "mo2023"
+                ],
+                "why": "Dirige el peso del tronco hacia una pelvis con un solo apoyo inferior y debe transmitirlo sin giro visible. La tarea se infiere de la movilidad y transferencia descritas en anatomía pélvica junto a la exigencia de tronco del rumano unilateral."
+              },
+              {
+                "id": "muñeca",
+                "role": "NONE",
+                "why": "Sin carga, los brazos cuelgan vacíos o se cruzan sobre el pecho y no hay un agarre que sostener; este perfil omite el sostén del agarre que sí declara el padre para las configuraciones con implemento."
+              }
+            ],
+            "muscles": [
+              {
+                "id": "gluteus_medius",
+                "role": "STABILIZER",
+                "sources": [
+                  "mo2023",
+                  "collings2023",
+                  "abductors2012"
+                ],
+                "why": "El apoyo único deja a este abductor sosteniendo la pelvis frente a la caída lateral durante la bisagra. Mo midió su actividad y Collings fuerza estimada en rumano unilateral; se conserva como estabilizador porque no se realizan abducciones, con extrapolación para implementos no medidos."
+              },
+              {
+                "id": "tensor_fasciae_latae",
+                "role": "STABILIZER",
+                "sources": [
+                  "abductors2012"
+                ],
+                "why": "Acompaña el sostén frontal de la pelvis sobre una pierna como integrante del grupo abductor descrito por Flack. Es una inferencia anatómica sin medida EMG específica del tensor en rumano, y no se le asigna producción de la extensión de cadera."
+              },
+              {
+                "id": "forearm",
+                "role": "NONE",
+                "why": "Sin carga, los brazos cuelgan vacíos o se cruzan sobre el pecho y no hay un agarre que sostener; este perfil omite el sostén del agarre que sí declara el padre para las configuraciones con implemento."
+              }
+            ]
+          },
           "romanian_deadlift__unilateral__dumbbells": {
             "joints": [
               {
@@ -472,6 +533,18 @@
               "Toma la barra en prono justo por fuera de las piernas y empieza con ella junto a los muslos."
             ]
           },
+          "romanian_deadlift__unilateral__bodyweight": {
+            "description": "Sin carga, los brazos cuelgan largos delante del cuerpo o se cruzan sobre el pecho, y el torso que se inclina es la única resistencia sobre una sola pierna. La pierna libre se alarga detrás como contrapeso, de modo que el equilibrio del pie de apoyo pasa a formar parte del ejercicio.",
+            "executionCues": [
+              "Echa la pelvis atrás mientras el torso se inclina y la pierna libre se estira detrás.",
+              "Baja hasta notar que tira la parte posterior del muslo de apoyo, con la espalda recta.",
+              "Vuelve a la vertical extendiendo la cadera del pie de apoyo, sin tocar el suelo con el otro pie."
+            ],
+            "setupCues": [
+              "Apóyate sobre una pierna con la rodilla algo flexionada y deja los brazos colgando delante de ti.",
+              "Fija la mirada en un punto del suelo, a un par de metros, y no la muevas durante la serie."
+            ]
+          },
           "romanian_deadlift__unilateral__dumbbells": {
             "description": "El cuerpo bascula sobre una pierna y las mancuernas cuelgan a los lados de su rodilla. Dos manos cargadas conservan una distribución simétrica; la pierna libre se alarga detrás para acompañar al torso sin abrir la pelvis.",
             "executionCues": [
@@ -608,7 +681,7 @@
       ],
       "status": "CURATED",
       "technique": {
-        "identity": "Bisagra rumana iniciada erguido, con la carga sostenida en las manos, una pequeña flexión fija de rodillas y descenso limitado por el giro de la cadera. No hay apoyo inferior de la carga entre repeticiones.",
+        "identity": "Bisagra rumana iniciada erguido, con la carga sostenida en las manos, o sin carga y con los brazos colgando, una pequeña flexión fija de rodillas y descenso limitado por el giro de la cadera. No hay apoyo inferior de la carga entre repeticiones.",
         "keyPositions": [
           "Arriba: tórax sobre la pelvis, carga junto a los muslos y codos rectos.",
           "Abajo: cadera retrasada, torso inclinado con columna neutra y carga suspendida cerca de las piernas.",
@@ -652,6 +725,9 @@
           "barbell": {
             "geometry": "Barra recta transversal delante de las tibias, discos a ambos lados y agarre prono simétrico con las dos manos."
           },
+          "bodyweight": {
+            "geometry": "Sin carga ni implemento: ambos brazos cuelgan largos delante de la pierna de apoyo y el único contacto con el suelo es ese pie."
+          },
           "dumbbells": {
             "geometry": "Una mancuerna en cada mano, a ambos lados de las tibias y en agarre neutro; sus cabezas no chocan contra las piernas."
           },
@@ -665,6 +741,9 @@
         "byVariant": {
           "romanian_deadlift__unilateral__barbell": {
             "difference": "Una pierna soporta el cuerpo y la otra se alarga detrás sin tocar el piso; la pelvis no se abre hacia la cámara. La carga sigue sujeta en las dos manos, cerca de la pierna de apoyo."
+          },
+          "romanian_deadlift__unilateral__bodyweight": {
+            "difference": "Una pierna soporta el cuerpo y la otra se alarga detrás sin tocar el piso; la pelvis no se abre hacia la cámara. Los brazos cuelgan largos delante del muslo de apoyo, con las manos vacías."
           },
           "romanian_deadlift__unilateral__dumbbells": {
             "difference": "Una pierna soporta el cuerpo y la otra se alarga detrás sin tocar el piso; la pelvis no se abre hacia la cámara. La carga sigue sujeta en las dos manos, cerca de la pierna de apoyo."
@@ -684,13 +763,14 @@
         ],
         "promptCore": {
           "barbell": "Oblique side view of an athlete. Frozen at the BOTTOM of a Romanian deadlift descent, hips pushed back, knees slightly bent, spine neutral and arms straight. Both feet are flat on the floor at hip width. Both hands physically grip the straight barbell with an overhand grip. The bar is close to the shins with plates on both ends. The weight is suspended clear of the floor. No text, logos or brands.",
+          "bodyweight": "Side view of an athlete frozen at the LOWEST point of a single-leg Romanian deadlift performed without any weight. The torso is hinged forward from the hip with a flat back, the supporting knee is slightly bent and the free leg extends straight back in line with the torso without touching the floor. Both arms hang straight down in front of the supporting leg with empty hands. The pelvis stays level and does not open toward the camera. There is no barbell, dumbbell or other equipment.",
           "dumbbells": "Oblique side view of an athlete. Frozen at the BOTTOM of a Romanian deadlift descent, hips pushed back, knees slightly bent, spine neutral and arms straight. Both feet are flat on the floor at hip width. Each hand physically grips one dumbbell with palms facing inward. The two dumbbells hang close to the lower legs. The weight is suspended clear of the floor. No text, logos or brands.",
           "hex_bar": "Oblique side view of an athlete. Frozen at the BOTTOM of a Romanian deadlift descent, hips pushed back, knees slightly bent, spine neutral and arms straight. Both feet are flat on the floor at hip width. Both hands physically grip the low side handles of a hex bar. The athlete stands inside its frame and the plates sit outside the feet. The weight is suspended clear of the floor. No text, logos or brands.",
           "smith_machine": "Oblique side view of an athlete. Frozen at the BOTTOM of a Romanian deadlift descent, hips pushed back, knees slightly bent, spine neutral and arms straight. Both feet are flat on the floor at hip width. Both hands physically grip the Smith machine bar with an overhand grip. The bar is close to the legs and remains attached to visible side rails. The weight is suspended clear of the floor. No text, logos or brands."
         },
         "qa": [
           "¿Las rodillas están casi rectas o con una flexión pequeña, sin una sentadilla profunda?",
-          "¿Las manos agarran físicamente la carga y ninguna pieza flota suelta?",
+          "¿Si hay carga, las manos la agarran físicamente y ninguna pieza flota suelta; y sin carga, los brazos cuelgan vacíos?",
           "¿El torso está inclinado desde la cadera y la carga sigue suspendida en el punto inferior?",
           "¿La pelvis está detrás del apoyo y la columna conserva una línea neutra?",
           "¿Los brazos cuelgan rectos junto a las piernas, sin llevar el peso al pecho?"

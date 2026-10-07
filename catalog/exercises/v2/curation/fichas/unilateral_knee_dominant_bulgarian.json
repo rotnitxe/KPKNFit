@@ -355,6 +355,18 @@
               "Apoya el empeine de un pie sobre el banco, con los cordones hacia abajo, y adelanta el otro una zancada larga."
             ]
           },
+          "bulgarian_split_squat__bodyweight": {
+            "description": "Sin carga, el peso del cuerpo ya basta para exigir mucho a la pierna de delante, porque el pie de atrás apenas empuja. Las manos van en la cintura o cruzadas sobre el pecho, y inclinar un poco el tronco hacia delante carga más el glúteo.",
+            "executionCues": [
+              "Dobla la rodilla de delante hasta que la de atrás quede a pocos centímetros del suelo.",
+              "Empuja con el pie de delante para subir, sin impulsarte con el de atrás.",
+              "Completa la serie con una pierna y repite con la otra."
+            ],
+            "setupCues": [
+              "Colócate de espaldas a un banco estable y apoya el empeine de un pie sobre él.",
+              "Adelanta el otro pie hasta poder bajar con el talón apoyado, con las manos en la cintura."
+            ]
+          },
           "bulgarian_split_squat__cable": {
             "description": "Cada mano sujeta el mango de una polea baja de una máquina de poleas, una a cada lado, y el peso de la torre sube por los cables al estirar la pierna. Los cables tiran hacia abajo y algo hacia fuera, hacia su torre, por eso los brazos sujetan los mangos pegados a los costados.",
             "executionCues": [
@@ -558,7 +570,8 @@
         "setup": [
           "Banco plano detrás del atleta, más o menos a la altura de la rodilla; el empeine trasero apoyado con los cordones hacia abajo.",
           "Pie delantero a una distancia que permita bajar con el talón apoyado y la rodilla sobre el pie.",
-          "Carga: mancuernas o mangos de polea colgando a los costados, barra libre o de Smith sobre la parte superior de la espalda, kettlebell delante del pecho o mangos de la máquina de palanca a los lados de la cadera."
+          "Carga: mancuernas o mangos de polea colgando a los costados, barra libre o de Smith sobre la parte superior de la espalda, kettlebell delante del pecho o mangos de la máquina de palanca a los lados de la cadera.",
+          "Peso corporal: sin carga, con las manos en la cintura o cruzadas sobre el pecho."
         ]
       },
       "visual": {
@@ -573,6 +586,9 @@
         "byImplement": {
           "barbell": {
             "geometry": "Barra olímpica cruzada sobre la parte superior de la espalda, con las dos manos agarrándola a los lados de los hombros; discos a ambos lados; banco plano detrás."
+          },
+          "bodyweight": {
+            "geometry": "Banco plano estable detrás del atleta; el empeine trasero descansa sobre él y las manos están en la cintura, sin ninguna carga."
           },
           "cable": {
             "geometry": "De pie entre las dos torres de una máquina de poleas, que quedan a izquierda y derecha del atleta, con ambas poleas en la posición más baja, en la base de cada torre; un mango en cada mano junto a la cadera y cada cable bajando en diagonal, hacia fuera, hasta la polea baja de su propia torre, sin cruzarse; banco plano detrás."
@@ -602,6 +618,7 @@
         ],
         "promptCore": {
           "barbell": "Side view of an athlete frozen at the BOTTOM of a barbell Bulgarian split squat. A loaded barbell rests across the upper back and both hands grip it beside the shoulders. The top of the rear foot rests on a flat bench behind; the front foot is flat on the floor with the heel down. The front thigh is nearly parallel to the floor and the rear knee hovers a few centimeters above the floor. Torso upright, front knee over the front foot. The plates are well clear of the floor.",
+          "bodyweight": "Side view of an athlete frozen at the BOTTOM of a bodyweight Bulgarian split squat. The top of the rear foot rests on a flat bench behind; the front foot is flat on the floor with the heel down. The front thigh is nearly parallel to the floor and the rear knee hovers a few centimeters above the floor. Torso upright, front knee over the front foot. Both hands rest on the waist and nothing is held.",
           "cable": "Three-quarter front view of an athlete standing between the two towers of a cable machine, frozen at the BOTTOM of a cable Bulgarian split squat. The towers stand to the left and right of the athlete, with both pulleys set at the lowest position at the base of each tower. Each hand grips a single handle beside the hip, and each cable runs diagonally down and outward to the low pulley of its own tower, without crossing. The top of the rear foot rests on a flat bench behind; the front foot is flat on the floor. The front thigh is nearly parallel to the floor, the rear knee is just above the floor and the torso is upright.",
           "dumbbells": "Side view of an athlete frozen at the BOTTOM of a dumbbell Bulgarian split squat. Each hand grips one dumbbell hanging at the side with straight arms. The top of the rear foot rests on a flat bench behind; the front foot is flat on the floor with the heel down. The front thigh is nearly parallel to the floor and the rear knee hovers a few centimeters above the floor. Torso upright, front knee over the front foot. The dumbbells hang beside the hips, clear of the floor.",
           "kettlebell": "Side view of an athlete frozen at the BOTTOM of a goblet kettlebell Bulgarian split squat. Both hands hold one kettlebell by the horns of the handle in front of the chest, bell facing down, elbows pointing to the floor. The top of the rear foot rests on a flat bench behind; the front foot is flat on the floor. The front thigh is nearly parallel to the floor and the rear knee hovers a few centimeters above the floor. Torso upright. The kettlebell stays against the chest, far above the floor.",
@@ -611,7 +628,7 @@
         "qa": [
           "¿El empeine del pie trasero está apoyado sobre el banco o el rodillo y el pie delantero entero en el suelo?",
           "¿El muslo delantero está cerca de la horizontal y la rodilla trasera cerca del suelo sin tocarlo?",
-          "¿Las manos sujetan la carga y nada flota suelto?",
+          "¿Si hay carga, las manos la sujetan y nada flota suelto; y, en Peso Corporal, las manos están vacías en la cintura?",
           "¿En polea, las torres quedan a izquierda y derecha del atleta y cada cable baja en diagonal, hacia fuera, hasta la polea baja de su propia torre, sin cruzarse?",
           "¿En Smith, la barra va dentro de los rieles y el banco es una pieza aparte?"
         ]

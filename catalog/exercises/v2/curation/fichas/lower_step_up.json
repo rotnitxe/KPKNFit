@@ -203,6 +203,32 @@
               }
             ]
           },
+          "step_up__bodyweight": {
+            "joints": [
+              {
+                "id": "muñeca",
+                "role": "NONE",
+                "why": "Las manos quedan libres, en la cintura o a los lados, y no reciben ninguna pesa colgante; no se atribuye al agarre el esfuerzo de transportar carga."
+              },
+              {
+                "id": "glenohumeral",
+                "role": "NONE",
+                "why": "Sin pesas que tiren de los brazos hacia abajo, el hombro no sostiene ninguna carga colgante; este perfil omite el sostén glenohumeral descrito para el contacto de mancuernas del padre."
+              }
+            ],
+            "muscles": [
+              {
+                "id": "forearm",
+                "role": "NONE",
+                "why": "Las manos quedan libres, en la cintura o a los lados, y no reciben ninguna pesa colgante; no se atribuye al agarre el esfuerzo de transportar carga."
+              },
+              {
+                "id": "deltoid",
+                "role": "NONE",
+                "why": "Sin pesas suspendidas que traccionen los brazos hacia abajo, el deltoides no tiene que resistir ningún desplazamiento del hombro; este perfil omite el sostén declarado en el perfil por defecto."
+              }
+            ]
+          },
           "step_up__cable": {
             "joints": [
               {
@@ -384,6 +410,18 @@
             "setupCues": [
               "Recibe el eje detrás de los hombros desde el soporte y ciérralo con las dos manos.",
               "Sitúa un cajón firme delante y apoya un pie entero, con la rodilla cerca de un ángulo recto."
+            ]
+          },
+          "step_up__bodyweight": {
+            "description": "Las manos quedan libres y la única resistencia es el cuerpo, de modo que la altura del cajón decide cuánto cuesta cada subida. Sin carga que ocupe los brazos, la atención va al pie apoyado entero sobre el cajón y a una bajada sin caída.",
+            "executionCues": [
+              "Presiona con el pie apoyado y sube hasta quedar de pie sobre el cajón.",
+              "Sube el pie libre hasta el cajón sin tomar impulso ni saltar.",
+              "Baja despacio por la misma pierna hasta tocar el suelo con el pie libre."
+            ],
+            "setupCues": [
+              "Sitúa un cajón o un banco estable delante y apoya todo el pie sobre él.",
+              "Deja las manos libres, en la cintura o a los lados, para equilibrarte."
             ]
           },
           "step_up__cable": {
@@ -600,6 +638,9 @@
           "barbell": {
             "geometry": "Barra transversal sobre espalda alta, por debajo del cuello; manos en prono a ambos lados de los hombros, discos fuera del ancho del torso y del cajón."
           },
+          "bodyweight": {
+            "geometry": "Cajón firme delante del atleta; las manos descansan en la cintura sin sostener nada, el pie de trabajo está entero sobre el cajón y el otro pie en el aire."
+          },
           "cable": {
             "geometry": "Cajón entre dos salidas de polea bajas y próximas; una asa en cada mano colgante y un cable tenso hacia cada salida, por fuera de las piernas, sin contacto con el borde."
           },
@@ -622,6 +663,7 @@
         ],
         "promptCore": {
           "barbell": "Oblique side view, frozen halfway through a forward barbell step-up. The entire left foot and heel are on a solid box; the left hip and knee are partly extending. The right foot is airborne behind the box. A straight bar rests across the upper back below the neck; both hands grip it overhand outside the shoulders. Plates remain clear of the box and floor. Pelvis level, spine neutral, no jump.",
+          "bodyweight": "Three-quarter side view of an athlete frozen in the second half of a step-up onto a sturdy box. The working foot is entirely on the box with the heel down and the working knee is still slightly bent; the other foot is lifted in the air behind it, touching neither the box nor the floor. Torso upright and pelvis level. Both hands rest on the waist and nothing is held.",
           "cable": "Oblique side view, frozen halfway through a forward cable step-up. Entire left foot and heel on a solid box, left knee partly extended, right foot airborne behind it. Each hand firmly grips one stirrup handle at its side with a straight arm. Two taut cables run outside the legs from the handles to two low pulleys close beside the box. No cable crosses the platform edge. Pelvis level, spine neutral, no rowing motion.",
           "dumbbells": "Oblique side view, frozen halfway through a forward dumbbell step-up. The entire left foot including the heel rests on a solid box. Left knee is still slightly bent, pelvis level, spine neutral. Right foot is airborne behind the box. Each hand firmly grips one dumbbell with a neutral grip; both arms hang straight beside the thighs. The dumbbells remain outside the box edges and above the floor.",
           "kettlebell": "Oblique side view, frozen halfway through a forward goblet kettlebell step-up. Entire left foot and heel on a solid box, left knee still partly bent, right foot airborne behind it. Both palms visibly cup and support the ROUND BODY of one kettlebell close to the sternum, with the fingers wrapped around it. Elbows stay bent near the ribs, handle visible and clear of the platform. The bell remains above the box and floor. Pelvis level, neutral spine.",
@@ -631,7 +673,7 @@
           "¿El pie de trabajo está entero sobre el cajón y el talón sigue apoyado?",
           "¿El pie libre está en el aire detrás de la plataforma durante el ascenso?",
           "¿La rodilla de apoyo aún está algo flexionada en el fotograma indicado?",
-          "¿Ambas manos sujetan de forma visible las pesas, asas o eje y ninguna carga flota?",
+          "¿Si hay carga, ambas manos la sujetan de forma visible y ninguna flota; y, en Peso Corporal, las manos están vacías en la cintura?",
           "¿La pelvis evita una caída lateral marcada y la espalda no forma un arco hacia atrás?",
           "¿En Barra, el eje toca la espalda alta, ambas manos lo agarran en prono por fuera de los hombros y los discos quedan separados del cajón y del suelo?",
           "¿En Smith, el eje toca la espalda alta con ambas manos agarrándolo y sus dos carros se unen visiblemente a dos carriles reales, con el cajón dentro de la estación y libre de la base?",
