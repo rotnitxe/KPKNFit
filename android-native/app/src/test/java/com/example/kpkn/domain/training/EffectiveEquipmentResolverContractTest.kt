@@ -5,6 +5,9 @@ import com.example.kpkn.data.models.EquipmentAvailability
 import com.example.kpkn.data.models.EquipmentCategory
 import com.example.kpkn.data.models.EquipmentInventory
 import com.example.kpkn.data.models.MachineLoadRange
+import com.example.kpkn.domain.onboarding.EquipmentSymbolId
+import com.example.kpkn.domain.onboarding.EquipmentSymbols
+import com.example.kpkn.domain.onboarding.TrainingPlace
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -525,5 +528,56 @@ class EffectiveEquipmentResolverContractTest {
         }
         // `low_bar_support` es un requisito del contrato de soportes.
         assertTrue(REQUIREMENT_LOW_BAR_SUPPORT in KNOWN_REQUIREMENTS)
+    }
+
+    /**
+     * La ruta de los planes de autor (`configurationAvailability`, la que adapta las recetas fijas) lee el MISMO equipo
+     * resuelto: lo que acreditan los símbolos deja de aparecer como material ausente en sus recetas (GHD, rueda
+     * abdominal, paseo con barra hexagonal, remo en T, anillas), y los implementos raros siguen ausentes.
+     */
+    @Test
+    fun the_authored_plan_path_reads_the_symbol_extras_from_the_same_resolver() {
+        fun verdict(id: String, selection: Set<EquipmentSymbolId>, places: Set<TrainingPlace>): ConfigurationAvailability {
+            val availability = EquipmentSymbols.availabilityOf(selection, places)
+            val equipment = TrainingOptions(availability = availability).resolveEffectiveEquipment(emptySet())
+            return configurationAvailability(id, equipment, availability, catalog)
+        }
+
+        val gym = setOf(TrainingPlace.GYM)
+        val home = setOf(TrainingPlace.HOME)
+        val gymSeed = EquipmentSymbols.seedFor(gym)
+        val absent = RequirementEvidence.ABSENT
+
+        listOf(
+            "glute_ham_raise__default",
+            "core_rueda_abdominal__default",
+            "forearms_paseo_del_granjero__hex_bar",
+            "t_bar_row__t_bar__medium",
+            "forearms_paseo_del_granjero__plate",
+        ).forEach { id -> assertEquals("$id con el gimnasio completo", ConfigurationAvailability.Available, verdict(id, gymSeed, gym)) }
+        assertEquals(ConfigurationAvailability.Available, verdict("biceps_curl_trx__supinated", setOf(EquipmentSymbolId.RINGS), home))
+
+        // Sin su símbolo madre, o fuera del gimnasio, siguen ausentes (y sin una pregunta que nunca los acreditaría).
+        assertEquals(
+            ConfigurationAvailability.Missing(absent, setOf("ghd")),
+            verdict("glute_ham_raise__default", gymSeed - EquipmentSymbolId.MACHINES, gym),
+        )
+        assertEquals(
+            ConfigurationAvailability.Missing(absent, setOf("hex_bar")),
+            verdict("forearms_paseo_del_granjero__hex_bar", setOf(EquipmentSymbolId.BARBELL), home),
+        )
+        assertEquals(
+            ConfigurationAvailability.Missing(absent, setOf("trx")),
+            verdict("biceps_curl_trx__supinated", setOf(EquipmentSymbolId.DUMBBELLS), home),
+        )
+        // Los raros: ni el gimnasio completo los acredita.
+        assertEquals(
+            ConfigurationAvailability.Missing(absent, setOf("safety_bar")),
+            verdict("high_bar_back_squat__safety_bar", gymSeed, gym),
+        )
+        assertEquals(
+            ConfigurationAvailability.Missing(absent, setOf("sliders")),
+            verdict("curl_isquios_con_sliders__default", gymSeed, gym),
+        )
     }
 }

@@ -57,6 +57,24 @@ class EquipmentSymbolsTest {
     }
 
     @Test
+    fun theRoundTripStaysExactForEverySelectionOfTheSymbolsThatCarryExtrasInEveryPlaceCombination() {
+        // Paquete E: los extras sin símbolo propio (discos, hexagonal, T, GHD, rueda abdominal y la barra baja del parque)
+        // cuelgan de estos símbolos; el barrido de arriba muestrea las combinaciones con espacios públicos, este es completo.
+        val carriers = listOf(
+            EquipmentSymbolId.BARBELL, EquipmentSymbolId.RACK, EquipmentSymbolId.BENCH, EquipmentSymbolId.MACHINES,
+            EquipmentSymbolId.PULL_UP_BAR, EquipmentSymbolId.PARALLEL_BARS, EquipmentSymbolId.RINGS, EquipmentSymbolId.BOX,
+        )
+        for (places in everyPlaceCombination) {
+            val visible = carriers.filter { it in visibleSymbols(places) }
+            for (mask in 0 until (1 shl visible.size)) {
+                val selection = visible.filterIndexed { index, _ -> mask and (1 shl index) != 0 }.toSet()
+                val expected = if (selection.isEmpty()) setOf(EquipmentSymbolId.BODYWEIGHT_ONLY) else selection
+                assertEquals("lugares=$places selección=$selection", expected, roundTrip(selection, places))
+            }
+        }
+    }
+
+    @Test
     fun bodyweightOnlyIsTheEmptySelectionInBothDirections() {
         for (places in everyPlaceCombination) {
             val viaExclusive = roundTrip(setOf(EquipmentSymbolId.BODYWEIGHT_ONLY), places)
