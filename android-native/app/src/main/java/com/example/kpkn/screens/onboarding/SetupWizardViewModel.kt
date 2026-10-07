@@ -289,6 +289,61 @@ class SetupWizardViewModel @JvmOverloads constructor(
     fun updateStep(step: SetupStepId, change: (SetupWizardDraft) -> SetupWizardDraft) =
         mutateDraft(step, change)
 
+    // ── Entreno v2: escritura por símbolos ───────────────────────────────────
+    //
+    // Envoltorios finos de [mutateDraft] (una sola vía de escritura, la misma de [setStepChoice] y [updateStep]):
+    // cada uno calcula su resultado sobre el borrador ÚLTIMO dentro del mutex, así dos toques seguidos no se pisan,
+    // marca el paso como declarado y NO navega. Los controles (provisionales o animados) solo llaman a estas
+    // funciones; la regla vive en los reductores puros de `SetupStepAnswers`.
+
+    /** Alterna un lugar (gimnasio, casa, espacios públicos); siempre queda al menos uno elegido. */
+    fun togglePlace(place: TrainingPlace) = mutateDraft(SetupStepId.EQUIPMENT) { latest ->
+        if (latest.trainingPlaces == setOf(place)) latest else latest.withPlaceToggled(place)
+    }
+
+    /** Alterna un implemento del material; «solo peso corporal» es exclusivo. */
+    fun toggleEquipmentSymbol(symbol: EquipmentSymbolId) =
+        mutateDraft(SetupStepId.AVAILABILITY) { latest -> latest.withMaterialToggled(symbol) }
+
+    /** Elige el perfil de objetivo (un perfil específico incompatible con el material se escribe pero no se puede confirmar). */
+    fun setGoalProfile(profile: TrainingGoalProfile) =
+        mutateDraft(SetupStepId.GOAL) { latest -> latest.withGoalProfile(profile) }
+
+    /** Día con más energía (1 = lunes … 7 = domingo); la semana empieza ese día mientras no se mueva el inicio. */
+    fun setFreshDay(day: Int) = mutateDraft(SetupStepId.FRESH_DAY) { latest -> latest.withFreshestDay(day) }
+
+    /** Alterna un día de entreno (de 1 a 7 días en total). */
+    fun toggleWeekday(day: Int) = mutateDraft(SetupStepId.WEEKDAYS) { latest -> latest.withWeekdayToggled(day) }
+
+    /** Primer día de la semana. */
+    fun setWeekStart(day: Int) = mutateDraft(SetupStepId.WEEKDAYS) { latest -> latest.withWeekStart(day) }
+
+    /** Lugar de un día de entreno (solo con dos o más lugares); null vuelve al lugar por defecto. */
+    fun setDayPlace(day: Int, place: TrainingPlace?) =
+        mutateDraft(SetupStepId.WEEKDAYS) { latest -> latest.withDayPlace(day, place) }
+
+    /** Minutos por sesión: se redondea al múltiplo de 5 más cercano dentro de 20..180. */
+    fun setSessionMinutes(minutes: Int) =
+        mutateDraft(SetupStepId.SESSION_TIME) { latest -> latest.withSessionMinutes(minutes) }
+
+    /** Nivel de un ejercicio de peso corporal; null retira la respuesta. */
+    fun setCapability(skill: CapabilitySkill, level: CapabilityLevel?) =
+        mutateDraft(SetupStepId.CAPABILITIES) { latest -> latest.withCapability(skill, level) }
+
+    /** Alterna un músculo a mejorar (hasta 5). */
+    fun toggleMuscle(symbol: MuscleSymbol) =
+        mutateDraft(SetupStepId.PRIORITIES) { latest -> latest.withMuscleToggled(symbol) }
+
+    /** «Omitir»: sin músculos elegidos (también las sugerencias), que es una respuesta válida. */
+    fun clearMuscles() = mutateDraft(SetupStepId.PRIORITIES) { latest -> latest.withMusclesCleared() }
+
+    /** Marca de un levantamiento en kg; null borra la marca («No la sé»). */
+    fun setLiftMark(mark: LiftMark, kg: Double?) =
+        mutateDraft(SetupStepId.TRAINING_MAX) { latest -> latest.withLiftMark(mark, kg) }
+
+    /** Unidad en que se muestran las marcas (`kg` o `lb`). */
+    fun setMarksUnit(unit: String) = mutateDraft(SetupStepId.TRAINING_MAX) { latest -> latest.withMarksUnit(unit) }
+
     /**
      * Omite el paso SOLO si su definición lo permite. Registra procedencia y
      * estado ausente sin fabricar ningún dato, y no avanza: la confirmación
@@ -1313,6 +1368,9 @@ class SetupWizardViewModel @JvmOverloads constructor(
         draft.volumeAnswers, draft.volumeRecommendations, draft.priorityMuscles, draft.lowerEmphasisMuscles,
         draft.selectedSplitId, draft.customSplitPattern, draft.customSplitName,
         draft.selectedCatalogId, draft.sessions, draft.powerliftingProfile, draft.catalogRevision,
+        // Entreno v2: todo dato nuevo que el motor (o el generador) pueda leer invalida candidatos y vista previa.
+        draft.trainingPlaces, draft.goalProfile, draft.freshestDay, draft.weekStartDay, draft.dayPlaces,
+        draft.capabilities, draft.liftMarks,
         PersonalizedPlanCatalog.REVISION,
     )
 
@@ -1458,7 +1516,11 @@ class SetupWizardViewModel @JvmOverloads constructor(
      *  - una cancelación nunca publica error.
      */
     private fun previewKey(draft: SetupWizardDraft): List<Any?> =
-        trainingKey(draft) + _state.value.planAdaptedToBodyweight
+        // La semana armada (colocación de sesiones, reparto adaptado, otra versión) cambia el programa preparado pero
+        // no el conjunto de candidatos: solo entra en la clave de la vista previa.
+        trainingKey(draft) + listOf(
+            _state.value.planAdaptedToBodyweight, draft.weekLayoutOverrides, draft.adaptedSplitId, draft.planVariantSeed,
+        )
 
     private fun bodyweightAdapted(draft: SetupWizardDraft): SetupWizardDraft = draft.copy(
         equipment = setOf(SetupEquipment.BODYWEIGHT),
@@ -1975,13 +2037,13 @@ class SetupWizardViewModel @JvmOverloads constructor(
         goalProfile = goalProfileOf(draft),
         level = draft.experience.toCatalogLevel(),
         focus = draft.focus.toTrainingFocus(),
-        reference = if (draft.goal == SetupGoal.COMPLETE_ATHLETE) null else draft.trainingReference(),
+        reference = draft.trainingReference(),
         daysPerWeek = requireNotNull(draft.daysPerWeek),
         weekdays = draft.selectedWeekdays,
         minutesPerSession = requireNotNull(draft.minutesPerSession),
         effectiveEquipment = equipment,
         cardioMinutes = draft.cardioMinutes,
-        requiresCardio = draft.goal == SetupGoal.MIXED || draft.goal == SetupGoal.COMPLETE_ATHLETE,
+        requiresCardio = draft.requiresCardio,
         selectedSplitId = draft.selectedSplitId,
         planCatalogRevision = PersonalizedPlanCatalog.REVISION,
         exerciseCatalogRevision = exerciseRevision,
@@ -2219,7 +2281,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
         val generation = ++candidateGeneration
         val equipmentIds = effectiveEquipmentIds(draft)
         // §15.1: Atleta completo también exige preferencias de cardio en la ruta.
-        val requiresCardio = draft.goal == SetupGoal.MIXED || draft.goal == SetupGoal.COMPLETE_ATHLETE
+        val requiresCardio = draft.requiresCardio
         val canPrepare = draft.includeTraining && draft.programRoute != SetupProgramRoute.LATER &&
             draft.trainingPath != SetupTrainingPath.FROM_SCRATCH && draft.daysPerWeek != null &&
             draft.minutesPerSession != null && draft.selectedWeekdays.size == draft.daysPerWeek && equipmentIds.isNotEmpty() &&
@@ -2284,7 +2346,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
                     // planner solo aplica el prefiltro BARATO de capacidades declaradas
                     // (fuerza + hipertrofia + potencia + cardio, DEC-w2-06): así los
                     // PROFILE_MISMATCH triviales de medio catálogo no encabezan los rechazos.
-                    val reference = if (draft.goal == SetupGoal.COMPLETE_ATHLETE) null else draft.trainingReference()
+                    val reference = draft.trainingReference()
                     val publishedEntries = SetupTrainingPlanner.candidates(SetupTrainingPlannerInput(reference, draft.daysPerWeek,
                         equipment, draft.experience.toCatalogLevel(),
                         draft.focus.toTrainingFocus(), protocolOnly = protocolOnly,
@@ -2625,7 +2687,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
      */
     private fun withoutStaleCandidatesError(state: SetupWizardState): SetupWizardState =
         state.copy(errors = state.errors - "candidates")
-    private fun previewInputsIncomplete(draft: SetupWizardDraft): Boolean { if (!draft.includeTraining || draft.programRoute == SetupProgramRoute.LATER) return false; val days = draft.daysPerWeek ?: return true; if (draft.minutesPerSession == null || draft.selectedWeekdays.size != days || (draft.goal == SetupGoal.MIXED || draft.goal == SetupGoal.COMPLETE_ATHLETE) && (draft.cardioType == null || draft.cardioMinutes == null)) return true; return if (draft.trainingPath == SetupTrainingPath.FROM_SCRATCH) { val selected = draft.sessions.filter { it.weekday in draft.selectedWeekdays }; selected.size != draft.selectedWeekdays.size || selected.any { it.exercises.isEmpty() } } else draft.selectedCatalogId == null }
+    private fun previewInputsIncomplete(draft: SetupWizardDraft): Boolean { if (!draft.includeTraining || draft.programRoute == SetupProgramRoute.LATER) return false; val days = draft.daysPerWeek ?: return true; if (draft.minutesPerSession == null || draft.selectedWeekdays.size != days || draft.requiresCardio && (draft.cardioType == null || draft.cardioMinutes == null)) return true; return if (draft.trainingPath == SetupTrainingPath.FROM_SCRATCH) { val selected = draft.sessions.filter { it.weekday in draft.selectedWeekdays }; selected.size != draft.selectedWeekdays.size || selected.any { it.exercises.isEmpty() } } else draft.selectedCatalogId == null }
 
     private suspend fun materializeProgram(draft: SetupWizardDraft): SetupPreview {
         if (!draft.includeTraining || draft.programRoute == SetupProgramRoute.LATER) return SetupPreview(null, null)
@@ -2669,7 +2731,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
                     equipment = effectiveEquipmentIds(draft),
                     level = draft.experience.toCatalogLevel(),
                     availableMinutes = draft.minutesPerSession ?: error("Indica el tiempo disponible"),
-                    cardio = if (draft.goal == SetupGoal.MIXED || draft.goal == SetupGoal.COMPLETE_ATHLETE) {
+                    cardio = if (draft.requiresCardio) {
                         CardioPreference(requireNotNull(draft.cardioType), requireNotNull(draft.cardioMinutes))
                     } else null,
                     calibration = if (draft.volumeRecommendations.isNotEmpty()) Calibration.CALIBRATED else Calibration.CONSERVATIVE,
@@ -3040,6 +3102,9 @@ class SetupWizardViewModel @JvmOverloads constructor(
                     _state.value.mode in setOf(SetupWizardMode.FULL, SetupWizardMode.RESUME),
             ),
             onboardingNameDone = setIf(true, declaredName != null),
+            // El tipo de atleta (capacidad de fatiga de AUGE) sale del perfil de objetivo, y solo cuando GOAL se
+            // respondió en este alta ([athleteTypeToPersist]).
+            athleteType = setOrKeep(draft.athleteTypeToPersist()),
             onboardingProgramDone = setIf(
                 true,
                 _state.value.mode in setOf(SetupWizardMode.FULL, SetupWizardMode.RESUME, SetupWizardMode.TRAINING_ONLY) &&
@@ -3326,9 +3391,13 @@ internal fun planGoalProfileOf(goal: SetupGoal?): PlanGoalProfile = when (goal) 
     SetupGoal.STRENGTH -> PlanGoalProfile.STRENGTH
     SetupGoal.MUSCLE -> PlanGoalProfile.MUSCLE
     SetupGoal.STRENGTH_MUSCLE -> PlanGoalProfile.STRENGTH_MUSCLE
-    SetupGoal.COMPLETE_ATHLETE -> PlanGoalProfile.COMPLETE_ATHLETE
+    // Funcional y saludable se sirve, de momento, con el plan propio de Atleta completo (fuerza, potencia y cardio).
+    SetupGoal.COMPLETE_ATHLETE, SetupGoal.FUNCTIONAL -> PlanGoalProfile.COMPLETE_ATHLETE
     SetupGoal.MIXED -> PlanGoalProfile.LEGACY_MIXED
-    SetupGoal.HEALTH, null -> PlanGoalProfile.LEGACY_HEALTH
+    // Las cuatro disciplinas nuevas no tienen plan propio hasta que las sirva el generador nuevo: sin disciplina que
+    // filtre (la referencia sale del estilo de calibración del perfil) y sin reparaciones de un toque.
+    SetupGoal.HEALTH, SetupGoal.CALISTHENICS, SetupGoal.WEIGHTLIFTING, SetupGoal.ARMWRESTLING,
+    SetupGoal.STRONGMAN, null -> PlanGoalProfile.LEGACY_HEALTH
 }
 
 /** Objetivo del borrador que ofrece el asistente para este perfil; null para los legacy, que nunca se ofrecen de nuevo. */
@@ -3378,7 +3447,8 @@ internal fun SetupWizardDraft.withRepair(
     repair: PlanRepair,
     nowEpochMs: Long = System.currentTimeMillis(),
 ): SetupWizardDraft = when (repair) {
-    is PlanRepair.SetMinutes -> withStepNumber(SetupStepId.SESSION_TIME, repair.minutes.toDouble(), nowEpochMs)
+    // Los minutos exactos que probó el asesor (no se redondean al reloj de 5 en 5).
+    is PlanRepair.SetMinutes -> withExactSessionMinutes(repair.minutes)
     is PlanRepair.SetCardioMinutes -> withStepChoice(SetupStepId.CARDIO_TIME, repair.minutes.toString(), nowEpochMs)
     is PlanRepair.ConfirmApparatus -> withConfirmedApparatus(repair)
     is PlanRepair.SwitchGoal -> withSwitchedGoal(repair, nowEpochMs)
@@ -3411,15 +3481,10 @@ internal fun SetupWizardDraft.withRecommendedSplit(
  */
 private fun SetupWizardDraft.withConfirmedApparatus(repair: PlanRepair.ConfirmApparatus): SetupWizardDraft {
     val confirmed = repair.applyTo(trainingOptions.availability ?: EquipmentAvailability())
-    val stored = stepSelections[SetupStepId.AVAILABILITY]
     return copy(
         trainingOptions = trainingOptions.copy(availability = confirmed),
-        stepSelections = if (stored.isNullOrEmpty()) {
-            stepSelections
-        } else {
-            val categories = repair.categories.map { it.name }
-            stepSelections + (SetupStepId.AVAILABILITY to (stored.filterNot { it == AVAILABILITY_BODYWEIGHT } + categories).distinct())
-        },
+        // La selección de material es la lectura inversa de la disponibilidad: ya no se guarda aparte.
+        stepSelections = stepSelections - SetupStepId.AVAILABILITY,
     )
 }
 
@@ -3432,7 +3497,7 @@ private fun SetupWizardDraft.withSwitchedGoal(repair: PlanRepair.SwitchGoal, now
     val value = goalChoiceValueOf(repair.goal) ?: return this
     val switched = withStepChoice(SetupStepId.GOAL, value, nowEpochMs)
     val timed = repair.alsoMinutes
-        ?.let { minutes -> switched.withStepNumber(SetupStepId.SESSION_TIME, minutes.toDouble(), nowEpochMs) }
+        ?.let { minutes -> switched.withExactSessionMinutes(minutes) }
         ?: switched
     return timed.withRecommendedSplit(nowEpochMs)
 }
@@ -3540,7 +3605,8 @@ internal fun synthesizedRejectionFor(entry: CatalogEntry, draft: SetupWizardDraf
  *  - El objetivo se prefija SIN confirmar cuando el plan sirve a UNO solo ([PlanGoalMatcher.matches]); un plan que
  *    casa con varios (PHUL: Músculo y Fuerza y músculo) no prefija nada y deja que la persona elija.
  *  - H2 (a): con el mismo criterio, los días por semana se prefijan SIN confirmar cuando el plan admite una sola
- *    frecuencia (los métodos y las plantillas con receta: «4 días»); los planes de 1 a 6 días no prefijan nada.
+ *    frecuencia (los métodos y las plantillas con receta: «4 días»: se siembra una semana repartida de esos días);
+ *    los planes de 1 a 6 días no prefijan nada.
  *  - H18: un paso que ya estaba CONFIRMADO (borrador restaurado) y cuyo valor cambia por la preselección —el objetivo,
  *    los días o el plan elegido— no se cambia en silencio: se deja marcado para revisar (`withPendingReview`) y su
  *    respuesta conserva el dato.
@@ -3561,15 +3627,16 @@ internal fun SetupWizardDraft.withPreselectedPlan(
         ?.let { goalChoiceValueOf(it) }
     val withGoal = if (goalValue != null) withStepChoice(SetupStepId.GOAL, goalValue, nowEpochMs) else this
     val fixedDays = entry.supportedFrequencies.takeIf { it.first == it.last }?.first
-    val changesDays = fixedDays != null && daysPerWeek != fixedDays
+    val changesDays = fixedDays != null && selectedWeekdays.size != fixedDays
+    // Los días ya no se preguntan por número: el plan de días fijos siembra una semana repartida (sin confirmarla).
     val withDays = if (fixedDays != null && changesDays) {
-        withGoal.withStepChoice(SetupStepId.DAYS, fixedDays.toString(), nowEpochMs)
+        withGoal.withWeekdays(EntrenoStepValues.defaultWeekdays(fixedDays))
     } else {
         withGoal
     }
     val confirmedAndChanged = buildSet {
         if (goalValue != null && SetupStepId.GOAL in stepProgress.answers) add(SetupStepId.GOAL)
-        if (changesDays && SetupStepId.DAYS in stepProgress.answers) add(SetupStepId.DAYS)
+        if (changesDays && SetupStepId.WEEKDAYS in stepProgress.answers) add(SetupStepId.WEEKDAYS)
         if (selectedCatalogId != entry.id && SetupStepId.PLAN in stepProgress.answers) add(SetupStepId.PLAN)
     }
     return withDays.copy(

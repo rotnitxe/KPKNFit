@@ -2,7 +2,7 @@ package com.example.kpkn.screens.onboarding
 
 import com.example.kpkn.data.models.CalibrationResponseState
 import com.example.kpkn.data.models.TrainingStyle
-import com.example.kpkn.domain.onboarding.SetupStepId
+import com.example.kpkn.domain.onboarding.TrainingGoalProfile
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -26,10 +26,10 @@ class VolumeCalibrationProvenanceTest {
         responseState = state,
     )
 
-    /** Recalcula vía la proyección real de estilo ([SetupStepAnswers.withVolumeStyle]). */
+    /** Recalcula vía la proyección real de estilo: elegir el perfil Powerlifting fija el estilo de calibración. */
     private fun recalculated(state: CalibrationResponseState, mobility: Int? = 2): SetupWizardDraft =
         SetupWizardDraft(volumeAnswers = completeAnswers(state).copy(mobility = mobility))
-            .withStepChoice(SetupStepId.STYLE, "powerlifter")
+            .withGoalProfile(TrainingGoalProfile.POWERLIFTING)
 
     @Test
     fun `UNKNOWN completo se conserva como UNKNOWN al recalcular`() {

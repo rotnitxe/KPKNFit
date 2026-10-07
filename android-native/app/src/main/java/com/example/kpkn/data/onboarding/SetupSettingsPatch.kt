@@ -1,5 +1,6 @@
 package com.example.kpkn.data.onboarding
 
+import com.example.kpkn.data.models.AthleteType
 import com.example.kpkn.data.models.InitialRecoveryEvidence
 import com.example.kpkn.data.models.NutritionTrackingChoice
 import com.example.kpkn.data.models.EquipmentAvailability
@@ -64,6 +65,11 @@ data class SetupSettingsPatch(
     val nutritionTrackingOnly: SetupPatchField<Boolean> = SetupPatchField.Unchanged,
     /** Categories are patched independently of numeric equipment stock. */
     val equipmentAvailability: SetupPatchField<EquipmentAvailability?> = SetupPatchField.Unchanged,
+    /**
+     * Tipo de atleta (capacidad de fatiga de AUGE) que el alta deriva del perfil de objetivo. Solo se escribe cuando el
+     * paso GOAL se respondió en este alta; Unchanged conserva el valor actual de Ajustes.
+     */
+    val athleteType: SetupPatchField<AthleteType> = SetupPatchField.Unchanged,
 ) {
     fun applyTo(base: Settings): Settings = base.copy(
         username = username.resolve(base.username),
@@ -84,6 +90,7 @@ data class SetupSettingsPatch(
         equipmentInventory = equipmentInventory.resolve(base.equipmentInventory),
         nutritionTrackingOnly = nutritionTrackingOnly.resolve(base.nutritionTrackingOnly),
         equipmentAvailability = equipmentAvailability.resolve(base.equipmentAvailability),
+        athleteType = athleteType.resolve(base.athleteType),
     )
 
     private fun <T> SetupPatchField<T>.resolve(previous: T): T = when (this) {

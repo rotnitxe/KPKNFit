@@ -1,5 +1,6 @@
 package com.example.kpkn.data.onboarding
 
+import com.example.kpkn.data.models.AthleteType
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.models.UserVitals
 import com.example.kpkn.data.models.Gender
@@ -38,5 +39,16 @@ class SetupSettingsPatchTest {
         val result = SetupSettingsPatch(weightUnit = SetupPatchField.Set(WeightUnit.LBS)).applyTo(current)
         assertEquals(WeightUnit.LBS, result.weightUnit)
         assertEquals(72.4, result.userVitals.weight)
+    }
+
+    @Test
+    fun theAthleteTypeIsOnlyWrittenWhenThePatchSetsIt() {
+        val current = Settings(athleteType = AthleteType.BODYBUILDER)
+        // Sin tocar el campo, Ajustes conserva el tipo que ya tenía.
+        assertEquals(AthleteType.BODYBUILDER, SetupSettingsPatch().applyTo(current).athleteType)
+        // Con el perfil de objetivo respondido en el alta, el parche lo sustituye y no toca nada más.
+        val result = SetupSettingsPatch(athleteType = SetupPatchField.Set(AthleteType.POWERLIFTER)).applyTo(current)
+        assertEquals(AthleteType.POWERLIFTER, result.athleteType)
+        assertEquals(current.copy(athleteType = AthleteType.POWERLIFTER), result)
     }
 }
