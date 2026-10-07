@@ -148,7 +148,7 @@ class AprendeCatalogAuditTest {
         val reverse = buildAprendeCatalogReverseIndex(catalog)
         // A configuration contributes to exactly one movement-pattern bucket;
         // this also guards against parent-name deduplication.
-        assertEquals(521, reverse.exerciseIdsByPattern.values.sumOf { it.size })
+        assertEquals(539, reverse.exerciseIdsByPattern.values.sumOf { it.size })
         catalog.families.flatMap { it.definitions }.flatMap { it.configurations }.forEach { configuration ->
             val profile = configuration.profile
             assertTrue(configuration.id in reverse.exerciseIdsByPattern[profile.movementPatternId].orEmpty())

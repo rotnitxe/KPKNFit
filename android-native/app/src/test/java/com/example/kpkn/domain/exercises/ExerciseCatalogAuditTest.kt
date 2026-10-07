@@ -200,7 +200,8 @@ class ExerciseCatalogAuditTest {
             byId.getValue("chest_supported_row").optionAxes,
         )
 
-        assertEquals(8, byId.getValue("romanian_deadlift").configurations.size)
+        // 8 con implemento (barra, Smith, mancuernas y hex, de dos y de una pierna) + la de una pierna con el propio peso (lote BW-1).
+        assertEquals(9, byId.getValue("romanian_deadlift").configurations.size)
         assertEquals(4, byId.getValue("romanian_sumo_deadlift").configurations.size)
         assertEquals(18, byId.getValue("chest_supported_row").configurations.size)
         assertEquals(9, byId.getValue("pull_up").configurations.size)
