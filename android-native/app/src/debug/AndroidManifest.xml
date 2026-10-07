@@ -22,5 +22,10 @@
             android:name="com.example.kpkn.debug.EntrenoMusclesPreviewActivity"
             android:exported="true"
             android:theme="@style/Theme.KPKN" />
+        <!-- SOLO DEPURACIÓN: vista previa del tablero de la semana («Así queda tu semana»); no se integra. -->
+        <activity
+            android:name="com.example.kpkn.debug.EntrenoLayoutPreviewActivity"
+            android:exported="true"
+            android:theme="@style/Theme.KPKN" />
     </application>
 </manifest>
