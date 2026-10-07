@@ -148,7 +148,7 @@ private fun CapabilityCell(
                 modifier = Modifier.padding(top = 6.dp),
             )
         }
-        LevelSegments(skill = skill, level = level, onLevel = onLevel)
+        LevelSegments(skill = skill, level = level, reducedMotion = reducedMotion, onLevel = onLevel)
         // El nombre del nivel: con color solo cuando se respondió; sin responder ocupa su sitio, vacío.
         Text(
             text = level?.label ?: " ",
@@ -162,16 +162,21 @@ private fun CapabilityCell(
 
 // ---------------------------------------------------------------- segmentos de nivel
 
-/** Tres segmentos: 1, 2 o 3 encendidos según el nivel; tocar uno fija ese nivel. Cada objetivo mide ≥ 48 dp. */
+/** Tres segmentos: 1, 2 o 3 encendidos según el nivel; tocar uno fija ese nivel. Cada objetivo mide 48 × 48 dp. */
 @Composable
-private fun LevelSegments(skill: CapabilitySkill, level: CapabilityLevel?, onLevel: (CapabilityLevel) -> Unit) {
+private fun LevelSegments(
+    skill: CapabilitySkill,
+    level: CapabilityLevel?,
+    reducedMotion: Boolean,
+    onLevel: (CapabilityLevel) -> Unit,
+) {
     val lit = CapabilityLevels.litSegments(level)
-    Row(horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.CenterVertically) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
         CapabilityLevel.entries.forEach { lvl ->
             val on = lvl.ordinal < lit
             val color by animateColorAsState(
                 if (on) MuscleAccent else WizardColors.text.copy(alpha = 0.22f),
-                tween(220),
+                tween(if (reducedMotion) 0 else 220),
                 label = "capability-segment",
             )
             Box(
@@ -186,7 +191,7 @@ private fun LevelSegments(skill: CapabilitySkill, level: CapabilityLevel?, onLev
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
                     ) { onLevel(lvl) }
-                    .size(width = 44.dp, height = 48.dp),
+                    .size(width = 48.dp, height = 48.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 Canvas(Modifier.size(width = 32.dp, height = 4.dp)) {
