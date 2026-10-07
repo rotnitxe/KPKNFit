@@ -221,7 +221,8 @@ private fun SplitSymbol(
             style = SplitNameStyle,
             color = if (lit) WizardColors.text else WizardColors.textMuted,
             textAlign = TextAlign.Center,
-            maxLines = 2,
+            // Tres líneas: «Cuerpo completo, 3 días» se quedaba en «Cuerpo / completo, 3 dí…» a 360 dp.
+            maxLines = 3,
             overflow = TextOverflow.Ellipsis,
         )
         Spacer(Modifier.height(2.dp))

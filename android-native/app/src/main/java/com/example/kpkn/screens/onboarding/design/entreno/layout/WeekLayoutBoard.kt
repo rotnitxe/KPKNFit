@@ -133,6 +133,13 @@ private val TEXT_SIDE_PAD = 2.dp
 /** Lo que el título de una ficha puede invadir a cada lado (el aire entre columnas) antes de partir una palabra larga («movilidad»). */
 private val TITLE_OVERFLOW = 6.dp
 
+/**
+ * La holgura de un título: solo los de UNA palabra la usan (es la palabra que, si no cupiera, se partiría a media palabra).
+ * Un título de varias palabras se parte entre palabras dentro de su columna: con la holgura, «Funcional A» y «Funcional B»
+ * (casi tan anchos como la columna) se tocaban y se leían «Funcional AFuncional B», y el primero se recortaba contra el borde.
+ */
+private fun titleSlack(title: String): Dp = if (title.trim().contains(' ')) 0.dp else TITLE_OVERFLOW
+
 /** Lo que puede separarse de su fila una ficha levantada, y lo que hay que apartarla para que soltarla cancele. */
 private val DRAG_RANGE = 12.dp
 private val DRAG_UP = 6.dp
@@ -386,14 +393,15 @@ private fun WeekStrip(
 
         // Cuántas líneas necesita el título más largo (1 o 2): fija el alto de todas las fichas para que no salten al moverse.
         val titles = remember(byId) { byId.values.map { it.title } }
-        val titleWidthPx = (colPx - with(density) { ((TEXT_SIDE_PAD - TITLE_OVERFLOW) * 2).toPx() }).toInt().coerceAtLeast(1)
-        val titleLines = remember(titles, titleWidthPx, density.density, density.fontScale) {
+        val titleLines = remember(titles, colPx, density.density, density.fontScale) {
             titles.maxOfOrNull { title ->
+                // El ancho de cada título es el que de verdad tendrá (con o sin holgura): si no, la ficha reservaría de menos.
+                val widthPx = (colPx - with(density) { ((TEXT_SIDE_PAD - titleSlack(title)) * 2).toPx() }).toInt().coerceAtLeast(1)
                 measurer.measure(
                     text = title,
                     style = FichaTitleStyle,
                     maxLines = 2,
-                    constraints = Constraints(maxWidth = titleWidthPx),
+                    constraints = Constraints(maxWidth = widthPx),
                 ).lineCount
             }?.coerceIn(1, 2) ?: 1
         }
@@ -688,7 +696,7 @@ private fun SessionFicha(
             textAlign = TextAlign.Center,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(horizontal = TEXT_SIDE_PAD).sideOverflow(TITLE_OVERFLOW),
+            modifier = Modifier.padding(horizontal = TEXT_SIDE_PAD).sideOverflow(titleSlack(session.title)),
         )
         Spacer(Modifier.height(2.dp))
         if (session.minutes > 0) {
