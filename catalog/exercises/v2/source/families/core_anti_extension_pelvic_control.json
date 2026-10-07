@@ -200,6 +200,235 @@
           "dragon flag",
           "bandera de dragon"
         ]
+      },
+      {
+        "canonicalName": "Dead Bug",
+        "configurations": [
+          {
+            "displaySummary": "Peso Corporal",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "editorial:configuration:dead_bug__default",
+                "plan:wizard-entreno-v2-bw1-20261007#dead_bug"
+              ],
+              "reviewStatus": "APPROVED"
+            },
+            "id": "dead_bug__default",
+            "profile": {
+              "articulationType": "AISLADO",
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "CORE",
+              "catalogRevision": "v2-approved-2026-09-29-a",
+              "cnc": 1.5,
+              "description": "El único peso son los brazos y las piernas al alejarse del tronco. Cada repetición cambia el brazo y la pierna que bajan, y la dificultad sube al estirar más la pierna o al hacerlo más despacio.",
+              "efc": 2.0,
+              "equipmentId": "bodyweight",
+              "executionCues": [
+                "Baja despacio un brazo por encima de la cabeza y estira la pierna contraria sin separar la zona lumbar del suelo.",
+                "Vuelve a la posición inicial con el mismo ritmo lento.",
+                "Cambia de lado en cada repetición y sigue respirando."
+              ],
+              "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Sostén de la postura lumbar neutra"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión de cadera",
+                    "Extensión de cadera"
+                  ],
+                  "jointId": "cadera",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Control pélvico"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén del brazo sobre la cabeza"
+                  ],
+                  "jointId": "glenohumeral",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "bodyweight",
+              "movementPatternId": "anti_extension_pelvic_control",
+              "performanceProfileId": "dead_bug__default__dead_bug",
+              "primaryMuscles": [
+                "abdominals"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Sostén de la postura lumbar neutra",
+                    "Flexión de cadera",
+                    "Extensión de cadera",
+                    "Control pélvico",
+                    "Sostén del brazo sobre la cabeza"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Sostén de la postura lumbar neutra"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión de cadera",
+                        "Extensión de cadera"
+                      ],
+                      "jointId": "cadera",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Control pélvico"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del brazo sobre la cabeza"
+                      ],
+                      "jointId": "glenohumeral",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "primaryMuscles": [
+                    "abdominals"
+                  ],
+                  "secondaryMuscles": [
+                    "core",
+                    "hip_flexors"
+                  ],
+                  "stabilizerMuscles": [],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "CORE",
+                  "equipmentId": "bodyweight",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "bodyweight",
+                  "movementPatternId": "anti_extension_pelvic_control",
+                  "relevantJoints": [
+                    "columna-lumbar",
+                    "cadera",
+                    "sacroiliaca",
+                    "glenohumeral"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "display": {
+                  "displayName": "Dead Bug",
+                  "displaySummary": "Peso Corporal",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.5,
+                  "efc": 2.0,
+                  "ssc": 0.2,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.5
+                },
+                "identity": {
+                  "canonicalName": "Dead Bug",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
+                  "configurationId": "dead_bug__default",
+                  "definitionId": "dead_bug",
+                  "familyId": "core_anti_extension_pelvic_control",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "dead_bug__default__dead_bug",
+                  "searchTerms": [
+                    "dead bug",
+                    "bicho muerto",
+                    "bicho muerto abdominal",
+                    "dead bug core",
+                    "dying bug"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 90,
+                    "min": 30
+                  },
+                  "requiredEquipment": [
+                    "bodyweight"
+                  ],
+                  "role": "accessory_isolation"
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "bodyweight"
+                  ],
+                  "preservesIntent": [
+                    "anti_extension_pelvic_control:abdominals"
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                }
+              },
+              "secondaryMuscles": [
+                "core",
+                "hip_flexors"
+              ],
+              "setupCues": [
+                "Túmbate boca arriba con los brazos estirados hacia el techo y las rodillas flexionadas sobre la cadera, con las espinillas paralelas al suelo.",
+                "Pega suavemente la zona lumbar al suelo antes de mover nada."
+              ],
+              "setupTimeSeconds": 10,
+              "ssc": 0.2,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.5
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "dead_bug__default",
+        "description": "El Dead Bug (bicho muerto) es un ejercicio de abdomen en el suelo: se empieza boca arriba, con los brazos hacia el techo y las rodillas dobladas sobre la cadera, las espinillas paralelas al suelo. Un brazo baja por encima de la cabeza mientras la pierna contraria se estira, y el recto abdominal y los oblicuos impiden que la espalda baja se separe del suelo. Después brazo y pierna regresan y el siguiente movimiento cambia de lado. Estirar del todo la pierna alarga la palanca y lo hace más difícil, mientras que doblar la rodilla lo suaviza. Es un ejercicio de control más que de fuerza: enseña a mover las extremidades sin arquear la espalda.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:dead_bug",
+            "plan:wizard-entreno-v2-bw1-20261007#dead_bug"
+          ],
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "core_anti_extension_pelvic_control",
+        "id": "dead_bug",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "dead bug",
+          "bicho muerto",
+          "bicho muerto abdominal",
+          "dead bug core",
+          "dying bug"
+        ]
       }
     ],
     "evidence": {

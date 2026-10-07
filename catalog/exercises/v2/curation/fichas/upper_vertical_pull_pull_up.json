@@ -1,5 +1,268 @@
 {
   "definitions": {
+    "negative_pull_up": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Frenado de la flexión del hombro",
+              "Frenado de la abducción del hombro"
+            ],
+            "id": "glenohumeral",
+            "role": "PRIMARY",
+            "sources": [
+              "youdas2010",
+              "statpearls_extrinsic_back"
+            ],
+            "why": "El húmero vuelve de estar junto al tronco a quedar por encima de la cabeza: flexión y abducción del hombro. Ese recorrido lo frena el dorsal, que al contraerse extiende y aduce el hombro y aquí cede alargándose; es el músculo que más trabaja en la dominada."
+          },
+          {
+            "actions": [
+              "Control de la elevación escapular"
+            ],
+            "id": "escapulotoracica",
+            "role": "SECONDARY",
+            "sources": [
+              "youdas2010",
+              "statpearls_trapezius"
+            ],
+            "why": "La escápula sube y rota hacia arriba a medida que los brazos se estiran; el trapecio inferior, que inicia la dominada, frena ese movimiento. Es secundaria y no principal como en la dominada completa porque aquí la escápula solo cede de forma controlada, sin la depresión que arranca el gesto."
+          },
+          {
+            "actions": [
+              "Frenado de la extensión del codo"
+            ],
+            "id": "codo",
+            "role": "SECONDARY",
+            "sources": [
+              "dickie2017",
+              "youdas2010"
+            ],
+            "why": "El codo recorre unos 93 grados entre la posición alta y colgado con agarre prono (Youdas et al.) y los flexores del codo trabajan menos en la bajada que en la subida (Dickie et al.), por eso acompaña sin ser la articulación principal."
+          },
+          {
+            "actions": [
+              "Sostén del agarre"
+            ],
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_forearm"
+            ],
+            "why": "La muñeca solo sostiene el agarre en prono mientras el cuerpo cuelga de la barra; no se mueve de forma apreciable."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "latissimus_dorsi",
+            "role": "PRIMARY",
+            "sources": [
+              "youdas2010",
+              "statpearls_extrinsic_back"
+            ],
+            "why": "Frena la flexión y la abducción del hombro mientras el cuerpo baja: el dorsal, que al contraerse extiende y aduce, aquí cede alargándose. En la dominada completa fue el músculo más activo, con el 117 al 130 % de su contracción máxima (Youdas et al.). No hay electromiografía del dorsal en la bajada aislada, así que conserva su papel de motor del patrón."
+          },
+          {
+            "id": "biceps",
+            "role": "SECONDARY",
+            "sources": [
+              "dickie2017",
+              "youdas2010",
+              "statpearls_biceps"
+            ],
+            "why": "Frena la extensión del codo. En todas las variantes trabajó menos en la bajada que en la subida (Dickie et al.), así que aquí asiste con menos exigencia que en la dominada completa, donde alcanzó entre el 78 y el 96 % de su contracción máxima (Youdas et al.)."
+          },
+          {
+            "id": "deltoid",
+            "role": "SECONDARY",
+            "sources": [
+              "rabello2024",
+              "statpearls_deltoid"
+            ],
+            "why": "La porción posterior del deltoides extiende el hombro junto con el dorsal: entre los ejercicios revisados, el grupo de las dominadas fue el que más la activó (Rabello et al.). En el descenso ayuda al dorsal a frenar la flexión del hombro; no se midió en la bajada por separado."
+          },
+          {
+            "id": "trapezius",
+            "role": "SECONDARY",
+            "sources": [
+              "youdas2010",
+              "dickie2017",
+              "statpearls_trapezius"
+            ],
+            "why": "El trapecio inferior inicia el gesto de la dominada deprimiendo la escápula, con el 45 al 56 % de la contracción máxima (Youdas et al.), y el medio se activó más con agarre prono que con neutro (Dickie et al.). En la bajada controla la elevación de la escápula."
+          },
+          {
+            "id": "pectoralis",
+            "role": "STABILIZER",
+            "sources": [
+              "youdas2010",
+              "dickie2017"
+            ],
+            "why": "El pectoral mayor acompaña la aducción del hombro con el 44 al 57 % de su contracción máxima en la dominada completa (Youdas et al.) y trabajó más en la subida que en la bajada (Dickie et al.), por eso aquí solo estabiliza."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "youdas2010"
+            ],
+            "why": "El oblicuo externo evita que el tronco se arquee o se balancee mientras el cuerpo baja, con el 31 al 35 % de la contracción máxima en la dominada completa (Youdas et al.); no mueve ninguna articulación del gesto."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "youdas2010"
+            ],
+            "why": "Sostiene la columna en posición neutra durante el descenso, con el 39 al 41 % de la contracción máxima en la dominada completa (Youdas et al.); su trabajo es postural."
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_forearm",
+              "dickie2017"
+            ],
+            "why": "Los flexores de los dedos y de la muñeca sostienen el agarre mientras el cuerpo cuelga y baja, y el braquiorradial ayuda a frenar el codo; este trabajó menos en la bajada que en la subida (Dickie et al.)."
+          }
+        ]
+      },
+      "public": {
+        "configurations": {
+          "negative_pull_up__default": {
+            "description": "Se parte de arriba, con la barbilla sobre la barra y las palmas al frente, a la anchura de los hombros, y solo cuenta la bajada, que se alarga varios segundos hasta estirar los brazos. Subir con un salto o con un escalón ahorra fuerza para la fase que sí se entrena.",
+            "executionCues": [
+              "Quita los pies del escalón, o deja de impulsarte, y baja despacio, sin balancear las piernas, hasta estirar los brazos.",
+              "Cuélgate un instante abajo con los hombros activos.",
+              "Vuelve arriba con el escalón o con un salto y repite."
+            ],
+            "setupCues": [
+              "Coloca un escalón bajo la barra, o prepárate para saltar, y toma la barra con las palmas hacia delante, a la anchura de los hombros.",
+              "Sube con el escalón o con un salto hasta tener la barbilla por encima de la barra, con los hombros alejados de las orejas."
+            ]
+          }
+        },
+        "description": "La Dominada Negativa es una dominada en la que solo se trabaja la bajada: se llega arriba con un salto o con un escalón, con la barbilla sobre la barra, y se desciende despacio hasta colgar con los brazos estirados. El dorsal ancho frena la caída del cuerpo junto con el bíceps y el deltoides posterior, y el antebrazo sostiene el agarre durante todo el recorrido. Sirve a quien todavía no consigue subir su peso: en la electromiografía de dominadas completas, el bíceps y el pectoral se activaron menos en la bajada que en la subida. No es solo un recurso de iniciación: en un estudio con escaladores avanzados, cinco semanas de dominadas con trabajo excéntrico mejoraron la fuerza máxima y la velocidad de la dominada."
+      },
+      "sources": [
+        {
+          "claim": "En 25 voluntarios, el dorsal alcanzó 117-130 % de su contracción máxima, el bíceps 78-96 % y el trapecio bajo 45-56 %; el pectoral mayor, el erector espinal y el oblicuo externo llegaron a 44-57 %, 39-41 % y 31-35 %. El codo recorrió unos 100 grados entre colgado y arriba.",
+          "id": "youdas2010",
+          "title": "Surface electromyographic activation patterns and elbow joint motion during a pull-up, chin-up, or perfect-pullup™ rotational exercise",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/21068680/"
+        },
+        {
+          "claim": "En 19 hombres entrenados, la activación del complejo hombro-brazo-antebrazo fue similar entre agarre supino, prono, neutro y cuerda. Solo el trapecio medio se activó más con agarre prono que con neutro, y el braquiorradial, el bíceps y el pectoral trabajaron más en la subida que en la bajada.",
+          "id": "dickie2017",
+          "title": "Electromyographic analysis of muscle activation during pull-up variations",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/28011412/"
+        },
+        {
+          "claim": "Para el deltoides posterior, el grupo de las dominadas dio la mayor activación, y la dominada estándar y el remo invertido en suspensión fueron los ejercicios individuales que más lo activaron.",
+          "id": "rabello2024",
+          "title": "Activation of the three deltoid muscle portions during common strengthening exercises: A systematic review",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/39593452/"
+        },
+        {
+          "claim": "En 30 escaladores avanzados y de élite, cinco semanas de dominadas con entrenamiento excéntrico, isométrico o pliométrico mejoraron la fuerza máxima; el grupo excéntrico además mejoró variables de velocidad y la amplitud.",
+          "id": "vigouroux2024",
+          "title": "Pull-Up Performance Is Affected Differently by the Muscle Contraction Regimens Practiced during Training among Climbers",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/38247962/"
+        },
+        {
+          "claim": "Describe la acción del dorsal ancho (extensión, aducción y rotación interna del hombro) y de los músculos extrínsecos de la espalda sobre la escápula y el húmero.",
+          "id": "statpearls_extrinsic_back",
+          "title": "Anatomy, Back, Extrinsic Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725901/"
+        },
+        {
+          "claim": "Describe al bíceps braquial como flexor del codo y supinador del antebrazo.",
+          "id": "statpearls_biceps",
+          "title": "Anatomy, Shoulder and Upper Limb, Biceps Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30137823/"
+        },
+        {
+          "claim": "Describe las porciones del deltoides como clave del movimiento y la estabilidad del hombro; la posterior extiende el brazo.",
+          "id": "statpearls_deltoid",
+          "title": "Anatomy, Shoulder and Upper Limb, Deltoid Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725741/"
+        },
+        {
+          "claim": "Describe las fibras superiores del trapecio como elevadoras y rotadoras superiores de la escápula y las inferiores como depresoras que ayudan a esa rotación, que junto con el deltoides es esencial para los gestos de lanzamiento.",
+          "id": "statpearls_trapezius",
+          "title": "Anatomy, Back, Trapezius",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30085536/"
+        },
+        {
+          "claim": "Describe los compartimentos del antebrazo y los flexores de dedos y muñeca que sostienen el agarre.",
+          "id": "statpearls_forearm",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Dominada en la que solo se hace la bajada: se parte de la posición alta, con la barbilla sobre la barra, y se desciende despacio hasta colgar con los brazos estirados. Se separa de la dominada porque la subida no la hacen los brazos, y de la suspensión pasiva porque el cuerpo desciende frenado durante todo el recorrido.",
+        "keyPositions": [
+          "Arriba: mentón sobre la barra, codos doblados hacia el suelo y escápulas hacia abajo.",
+          "Abajo: brazos totalmente estirados, colgando de la barra con los hombros activos y el cuerpo quieto."
+        ],
+        "mistakes": [
+          "Dejarse caer sin frenar la bajada.",
+          "Balancear las piernas o el tronco durante el descenso.",
+          "Encoger los hombros hacia las orejas al llegar abajo.",
+          "Acortar el recorrido sin estirar del todo los brazos en la parte baja."
+        ],
+        "phases": [
+          {
+            "description": "El cuerpo llega arriba con ayuda del salto o del escalón, con la barbilla sobre la barra y el cuerpo quieto.",
+            "name": "Posición alta"
+          },
+          {
+            "description": "Los codos se extienden poco a poco y el cuerpo baja frenado por la espalda y los brazos, durante varios segundos.",
+            "name": "Descenso"
+          },
+          {
+            "description": "Los brazos quedan estirados y el cuerpo cuelga un instante antes de volver al apoyo.",
+            "name": "Colgado"
+          }
+        ],
+        "setup": [
+          "Barra fija a una altura que obligue a saltar o a subirse a un escalón para alcanzarla.",
+          "Manos en prono, a la anchura de los hombros, con el cuerpo sin balanceo y las piernas juntas."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral desde un lado, a la altura del pecho, con la barra, las manos, la cabeza y los pies dentro del encuadre.",
+          "contacts": "Solo las dos manos sostienen el cuerpo, agarrando la barra; los pies cuelgan sin tocar el suelo ni ningún apoyo.",
+          "load": "Solo el peso del cuerpo, colgado de la barra por las manos.",
+          "orientation": "Atleta de perfil colgando de la barra, con la cara hacia la izquierda del encuadre.",
+          "phase": "Posición alta al empezar la bajada: barbilla por encima de la barra, codos flexionados y pies sin tocar el suelo.",
+          "posture": "Cuerpo recto y quieto, piernas juntas, escápulas hacia abajo, hombros lejos de las orejas y cuello neutro."
+        },
+        "byImplement": {
+          "bodyweight": {
+            "geometry": "Barra fija y horizontal sobre la cabeza, sujeta a dos soportes verticales; las manos la rodean en prono a la anchura de los hombros."
+          }
+        },
+        "forbidden": [
+          "Brazos estirados y cuerpo colgando: eso es el final de la bajada, no la posición alta.",
+          "Pies apoyados en el suelo, en un banco o en un escalón visible.",
+          "Agarre supino, con las palmas hacia la cara.",
+          "Barra flotando sin soportes o manos sin agarrarla."
+        ],
+        "promptCore": {
+          "bodyweight": "Side view of a muscular athlete frozen at the TOP of a negative pull-up, hanging from a fixed horizontal pull-up bar attached to two vertical posts. Both hands grip the bar with an overhand grip at shoulder width. The chin is above the bar, the elbows are bent and pointing down, the shoulder blades are pulled down and back, and the shoulders are away from the ears. The legs hang straight and together with both feet clear of the floor. No bench, box or step is visible and the body is still."
+        },
+        "qa": [
+          "¿Las dos manos agarran la barra con las palmas hacia delante y la barra está sujeta a sus soportes, sin flotar?",
+          "¿La barbilla está por encima de la barra y los codos están flexionados hacia el suelo?",
+          "¿Los pies cuelgan sin tocar el suelo ni ningún banco o escalón?",
+          "¿El cuerpo está recto y quieto, con los hombros lejos de las orejas?"
+        ]
+      }
+    },
     "pull_up": {
       "anatomy": {
         "joints": [

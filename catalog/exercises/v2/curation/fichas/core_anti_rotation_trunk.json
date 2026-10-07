@@ -1,5 +1,251 @@
 {
   "definitions": {
+    "bird_dog": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Sostén de la postura lumbar neutra",
+              "Resistencia a la rotación"
+            ],
+            "id": "columna-lumbar",
+            "role": "PRIMARY",
+            "sources": [
+              "souza2001",
+              "garcia2012"
+            ],
+            "why": "La columna lumbar no debe arquearse ni girar mientras brazo y pierna cambian de posición; los erectores y los oblicuos que la sostienen son los músculos que más se activaron en los registros de Souza et al. y de García-Vaquero et al."
+          },
+          {
+            "actions": [
+              "Extensión de cadera"
+            ],
+            "id": "cadera",
+            "role": "SECONDARY",
+            "sources": [
+              "ekstrom2007",
+              "statpearls_hip_joint"
+            ],
+            "why": "La cadera de la pierna que sube pasa de flexionada a extendida hasta alinearse con el tronco; es el movimiento que reclutó el glúteo mayor en el estudio de Ekstrom et al. La otra cadera sostiene el peso del tronco sobre la rodilla."
+          },
+          {
+            "actions": [
+              "Flexión del hombro"
+            ],
+            "id": "glenohumeral",
+            "role": "SECONDARY",
+            "sources": [
+              "statpearls_deltoid"
+            ],
+            "why": "El brazo que se estira pasa de la vertical a quedar junto a la oreja, un movimiento de flexión del hombro con la carga del propio brazo; el hombro de apoyo sostiene además parte del peso del cuerpo."
+          },
+          {
+            "actions": [
+              "Control pélvico"
+            ],
+            "id": "sacroiliaca",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_pelvic_joints"
+            ],
+            "why": "La pelvis debe seguir nivelada y sin girar mientras una pierna se eleva; las sacroilíacas transmiten el peso entre tronco y piernas sin moverse de forma apreciable."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "erector_spinae",
+            "role": "PRIMARY",
+            "sources": [
+              "souza2001",
+              "garcia2012",
+              "kim2016",
+              "statpearls_back_muscles"
+            ],
+            "why": "Sostienen la columna neutra contra la gravedad mientras brazo y pierna se alejan del apoyo. En el Quadruped de Souza et al. fueron, con el glúteo mayor, los más activos al elevar la pierna del mismo lado, aunque ningún músculo pasó del 41 % de la contracción máxima; y García-Vaquero et al. midieron su mayor actividad en el erector contrario al brazo elevado."
+          },
+          {
+            "id": "abdominals",
+            "role": "PRIMARY",
+            "sources": [
+              "souza2001",
+              "garcia2012"
+            ],
+            "why": "Los oblicuos frenan la rotación del tronco que provoca la asimetría de brazo y pierna: en el Quadruped el oblicuo abdominal estuvo más activo que el recto abdominal (Souza et al.) y el oblicuo interno del lado del brazo elevado fue, con el erector contrario, de los más activos del tronco en el bird dog (García-Vaquero et al.)."
+          },
+          {
+            "id": "gluteus_maximus",
+            "role": "SECONDARY",
+            "sources": [
+              "ekstrom2007",
+              "souza2001"
+            ],
+            "why": "Extiende la cadera de la pierna que sube. Ekstrom et al. señalan la elevación de brazo y pierna en cuadrupedia como útil para reforzar el glúteo mayor, y Souza et al. lo registraron entre los más activos con la pierna elevada. Es secundario porque solo levanta el peso de una pierna, sin carga añadida."
+          },
+          {
+            "id": "core",
+            "role": "SECONDARY",
+            "sources": [
+              "kim2016",
+              "statpearls_abdominal_wall"
+            ],
+            "why": "Los músculos profundos del tronco, como el multífido y el transverso del abdomen, acompañan a los erectores en la estabilización: en el bird dog graduado de Kim et al. el multífido aumentó su actividad al subir la intensidad. La pared abdominal fija el tronco al generar presión intraabdominal."
+          },
+          {
+            "id": "deltoid",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_deltoid"
+            ],
+            "why": "El deltoides anterior levanta el brazo hasta la altura del tronco y lo sostiene unos segundos, un esfuerzo corto y sin carga añadida; por eso solo estabiliza el hombro y no cuenta como motor del ejercicio."
+          }
+        ]
+      },
+      "public": {
+        "configurations": {
+          "bird_dog__default": {
+            "description": "Se levanta el peso de un brazo y de una pierna mientras una sola mano y la rodilla contraria sostienen el cuerpo. Con solo esos dos apoyos, el tronco tiene que resistir el giro que provoca el desequilibrio.",
+            "executionCues": [
+              "Estira un brazo hacia delante y la pierna contraria hacia atrás hasta alinearlos con el tronco.",
+              "Detente un instante arriba sin girar la pelvis ni los hombros.",
+              "Vuelve despacio y repite con el otro lado."
+            ],
+            "setupCues": [
+              "Apoya las manos bajo los hombros y las rodillas bajo las caderas, con la espalda neutra y el cuello alineado.",
+              "Mira al suelo, unos centímetros por delante de las manos."
+            ]
+          }
+        },
+        "description": "El Bird Dog es un ejercicio de estabilidad en cuadrupedia: sobre manos y rodillas, un brazo se estira hacia delante y la pierna contraria hacia atrás hasta quedar a la altura del tronco, sin que la pelvis ni los hombros giren. Los erectores de la espalda sostienen la columna, los oblicuos frenan la rotación y el glúteo mayor lleva hacia atrás la pierna que sube. Se hace una pausa breve arriba, se vuelve despacio y se cambia de lado. La carga es baja y la dificultad está en la coordinación; dibujar un cuadrado en el aire con la mano o con el pie la aumenta."
+      },
+      "sources": [
+        {
+          "claim": "En 12 sanos, en el ejercicio Quadruped el oblicuo abdominal estuvo más activo que el recto abdominal, y erectores y glúteo mayor fueron los más activos al elevar la pierna del mismo lado; ningún músculo pasó del 41 % de la contracción máxima.",
+          "id": "souza2001",
+          "title": "Electromyographic activity of selected trunk muscles during dynamic spine stabilization exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/11689975/"
+        },
+        {
+          "claim": "En 29 sanos, el bird-dog produjo la mayor actividad en el oblicuo interno del lado del brazo elevado y en el erector espinal contrario; los puentes con una pierna elevada subieron la activación del tronco, sobre todo en los oblicuos.",
+          "id": "garcia2012",
+          "title": "Trunk muscle activation during stabilization exercises with single and double leg support",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/22436839/"
+        },
+        {
+          "claim": "En 30 sanos, los autores señalan el puente lateral como útil para reforzar el glúteo medio y el oblicuo externo, y la elevación de brazo y pierna en cuadrupedia para el glúteo mayor; el resto de ejercicios quedó por debajo del 45 % de la contracción máxima.",
+          "id": "ekstrom2007",
+          "title": "Electromyographic analysis of core trunk, hip, and thigh muscles during 9 rehabilitation exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/18560185/"
+        },
+        {
+          "claim": "En diez varones sanos, con el bird dog en cinco niveles de intensidad, las amplitudes pico del multífido y de los erectores espinales aumentaron de forma significativa al subir el nivel.",
+          "id": "kim2016",
+          "title": "Electromyographic Changes in Trunk Muscles During Graded Lumbar Stabilization Exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/27317910/"
+        },
+        {
+          "claim": "Con ocho varones sanos, cuantificó la actividad muscular y la posición de la columna en variantes del curl-up, el puente lateral y el bird dog; dibujar cuadrados con la mano o el pie en la posición de bird dog aumentó la activación de muchos grupos musculares.",
+          "id": "mcgill2009",
+          "title": "Exercises for spine stabilization: motion/motor patterns, stability progressions, and clinical technique",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/19154838/"
+        },
+        {
+          "claim": "Describe los músculos intrínsecos o profundos de la espalda, unidos a la columna, como los músculos propios de la espalda.",
+          "id": "statpearls_back_muscles",
+          "title": "Anatomy, Back, Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725759/"
+        },
+        {
+          "claim": "Describe la pared abdominal como estructura capaz de generar presión intraabdominal y mover la columna vertebral.",
+          "id": "statpearls_abdominal_wall",
+          "title": "Anatomy, Abdomen and Pelvis: Abdominal Wall",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31869113/"
+        },
+        {
+          "claim": "Describe las porciones del deltoides como clave del movimiento y la estabilidad del hombro; la anterior flexiona el hombro.",
+          "id": "statpearls_deltoid",
+          "title": "Anatomy, Shoulder and Upper Limb, Deltoid Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725741/"
+        },
+        {
+          "claim": "Describe la cadera como articulación que soporta dinámicamente el peso del tronco y transmite carga entre esqueleto axial y miembros inferiores.",
+          "id": "statpearls_hip_joint",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hip Joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29262200/"
+        },
+        {
+          "claim": "Describe la articulación sacroilíaca como la que transmite al miembro inferior buena parte del peso de los miembros superiores y del tronco, lo que explica su movilidad muy restringida.",
+          "id": "statpearls_pelvic_joints",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Pelvic Joints",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30860758/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Ejercicio de estabilidad en cuadrupedia: sobre manos y rodillas se estiran a la vez un brazo y la pierna contraria hasta alinearlos con el tronco, con la columna neutra y la pelvis sin girar. Se separa del superman porque el torso no se tumba sobre el suelo: queda paralelo a él, sostenido por una mano y una rodilla.",
+        "keyPositions": [
+          "Inicio: manos bajo los hombros, rodillas bajo las caderas y columna sin arco ni hundimiento, con la mirada al suelo.",
+          "Punto alto: brazo estirado junto a la oreja y pierna contraria estirada, ambos a la altura del tronco, con la pelvis y los hombros paralelos al suelo."
+        ],
+        "mistakes": [
+          "Arquear la zona lumbar al subir la pierna por encima de la línea del tronco.",
+          "Girar la pelvis o los hombros hacia el lado de la pierna elevada.",
+          "Balancear el tronco para ganar altura con el brazo o la pierna.",
+          "Levantar el brazo y la pierna del mismo lado en lugar de los contrarios."
+        ],
+        "phases": [
+          {
+            "description": "Cuadrupedia con la espalda neutra y el peso repartido entre las dos manos y las dos rodillas.",
+            "name": "Posición base"
+          },
+          {
+            "description": "El brazo se estira hacia delante y la pierna contraria hacia atrás a la vez, sin que el tronco gire ni se arquee.",
+            "name": "Extensión"
+          },
+          {
+            "description": "Brazo y pierna llegan a la altura del tronco y se sostienen un instante con la pelvis nivelada.",
+            "name": "Pausa"
+          },
+          {
+            "description": "Brazo y pierna bajan al suelo con calma, y la serie continúa alternando los lados.",
+            "name": "Regreso"
+          }
+        ],
+        "setup": [
+          "Cuadrupedia con las manos bajo los hombros y las rodillas bajo las caderas, a la anchura de las caderas.",
+          "Espalda en posición neutra, cuello alineado con la columna y mirada al suelo."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral a la altura del tronco, con el cuerpo entero dentro del encuadre, de la mano a la rodilla de apoyo y a los pies.",
+          "contacts": "Una mano y la rodilla contraria apoyadas en el suelo; el otro brazo y la otra pierna estirados en el aire.",
+          "load": "Solo el peso del cuerpo; las manos no sostienen nada.",
+          "orientation": "Atleta en cuadrupedia con la cabeza hacia la izquierda del encuadre y la mirada al suelo.",
+          "phase": "Punto alto de la repetición: el brazo y la pierna contrarios estirados a la altura del tronco, en pausa.",
+          "posture": "Espalda recta y neutra, pelvis y hombros nivelados y sin giro, cuello alineado con la columna."
+        },
+        "byImplement": {
+          "bodyweight": {
+            "geometry": "Suelo plano y liso sin objetos a la vista; el brazo estirado queda junto a la oreja y la pierna contraria estirada, ambos a la altura del tronco."
+          }
+        },
+        "forbidden": [
+          "Zona lumbar arqueada, con la pierna elevada por encima de la línea del tronco.",
+          "Brazo y pierna del mismo lado estirados a la vez.",
+          "Atleta tumbado boca abajo con el pecho en el suelo: eso es un superman.",
+          "Pelvis o hombros girados hacia un lado."
+        ],
+        "promptCore": {
+          "bodyweight": "Side view of a muscular athlete on all fours on a flat floor, frozen at the TOP of a bird dog exercise. The left arm is stretched straight forward beside the ear and the right leg is stretched straight back, both level with the torso. The right hand is planted on the floor under the shoulder and the left knee rests on the floor under the hip. The back is flat and neutral, the pelvis and shoulders are level and not rotated, the neck is aligned and the eyes look down at the floor. Nothing is held in the hands."
+        },
+        "qa": [
+          "¿El atleta apoya solo una mano y la rodilla contraria, con el otro brazo y la otra pierna estirados en el aire?",
+          "¿El brazo y la pierna estirados quedan a la altura del tronco, sin que la pierna suba por encima de él?",
+          "¿La espalda está recta y la pelvis nivelada, sin arco lumbar ni giro?",
+          "¿Las manos están vacías, sin ningún implemento en el encuadre?"
+        ]
+      }
+    },
     "core_press_pallof": {
       "public": {
         "configurations": {

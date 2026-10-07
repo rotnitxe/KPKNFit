@@ -196,6 +196,237 @@
           "core inclinacion lateral",
           "inclinación lateral"
         ]
+      },
+      {
+        "canonicalName": "Plancha Lateral",
+        "configurations": [
+          {
+            "displaySummary": "Peso Corporal",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "editorial:configuration:side_plank__default",
+                "plan:wizard-entreno-v2-bw1-20261007#side_plank"
+              ],
+              "reviewStatus": "APPROVED"
+            },
+            "id": "side_plank__default",
+            "profile": {
+              "articulationType": "AISLADO",
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "CORE",
+              "catalogRevision": "v2-approved-2026-09-29-a",
+              "cnc": 1.5,
+              "description": "Solo cuenta el peso del cuerpo, apoyado en el antebrazo de abajo y en el borde externo del pie, con el codo justo bajo el hombro. Adelantar el pie de arriba ensancha la base y lo hace más fácil; apilar los dos pies la estrecha.",
+              "efc": 2.0,
+              "equipmentId": "bodyweight",
+              "executionCues": [
+                "Levanta la cadera hasta alinear la cabeza, el tronco y los tobillos.",
+                "Aguanta sin hundir la cadera ni girar el pecho hacia el suelo o el techo.",
+                "Baja con calma y repite del otro lado."
+              ],
+              "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Resistencia a la flexión lateral"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad lateral de la cadera"
+                  ],
+                  "jointId": "cadera",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Sostén del hombro de apoyo"
+                  ],
+                  "jointId": "glenohumeral",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Control pélvico"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "FULL",
+              "laterality": "UNILATERAL",
+              "loadMode": "bodyweight",
+              "movementPatternId": "lateral_trunk_flexion",
+              "performanceProfileId": "side_plank__default__plancha_lateral",
+              "primaryMuscles": [
+                "abdominals",
+                "gluteus_medius"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Resistencia a la flexión lateral",
+                    "Estabilidad lateral de la cadera",
+                    "Sostén del hombro de apoyo",
+                    "Control pélvico"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Resistencia a la flexión lateral"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad lateral de la cadera"
+                      ],
+                      "jointId": "cadera",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del hombro de apoyo"
+                      ],
+                      "jointId": "glenohumeral",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Control pélvico"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "primaryMuscles": [
+                    "abdominals",
+                    "gluteus_medius"
+                  ],
+                  "secondaryMuscles": [
+                    "core"
+                  ],
+                  "stabilizerMuscles": [
+                    "deltoid"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "CORE",
+                  "equipmentId": "bodyweight",
+                  "kineticChain": "FULL",
+                  "laterality": "UNILATERAL",
+                  "loadMode": "bodyweight",
+                  "movementPatternId": "lateral_trunk_flexion",
+                  "relevantJoints": [
+                    "columna-lumbar",
+                    "cadera",
+                    "glenohumeral",
+                    "sacroiliaca"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "display": {
+                  "displayName": "Plancha Lateral",
+                  "displaySummary": "Peso Corporal",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.5,
+                  "efc": 2.0,
+                  "ssc": 0.2,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.5
+                },
+                "identity": {
+                  "canonicalName": "Plancha Lateral",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
+                  "configurationId": "side_plank__default",
+                  "definitionId": "side_plank",
+                  "familyId": "core_lateral_trunk_flexion",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "side_plank__default__plancha_lateral",
+                  "searchTerms": [
+                    "plancha lateral",
+                    "side plank",
+                    "puente lateral",
+                    "side bridge",
+                    "plancha de costado"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 90,
+                    "min": 30
+                  },
+                  "requiredEquipment": [
+                    "bodyweight"
+                  ],
+                  "role": "accessory_isolation"
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "bodyweight"
+                  ],
+                  "preservesIntent": [
+                    "lateral_trunk_flexion:abdominals",
+                    "lateral_trunk_flexion:gluteus_medius"
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                }
+              },
+              "secondaryMuscles": [
+                "core"
+              ],
+              "setupCues": [
+                "Túmbate de lado con el codo justo bajo el hombro y las piernas estiradas, un pie sobre el otro.",
+                "Apoya todo el antebrazo en el suelo, con la mano abierta."
+              ],
+              "setupTimeSeconds": 10,
+              "ssc": 0.2,
+              "stabilizerMuscles": [
+                "deltoid"
+              ],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.5
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "side_plank__default",
+        "description": "La Plancha Lateral (side plank) es una isometría de abdomen que se hace de costado: el cuerpo se apoya en un antebrazo y en el borde del pie, y la cadera se eleva hasta formar una línea recta de la cabeza a los tobillos. Los oblicuos y el glúteo medio del lado apoyado impiden que la cadera caiga hacia el suelo, y el resto del costado los acompaña. Se aguanta el tiempo elegido y se repite del otro lado. Apoyar la rodilla en lugar del pie acorta la palanca y la hace asequible; elevar la pierna de arriba sube la exigencia, sobre todo en los oblicuos. Es el complemento lateral de la plancha frontal: la carga cae en el costado del tronco y no en el frente.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:side_plank",
+            "plan:wizard-entreno-v2-bw1-20261007#side_plank"
+          ],
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "core_lateral_trunk_flexion",
+        "id": "side_plank",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "plancha lateral",
+          "side plank",
+          "puente lateral",
+          "side bridge",
+          "plancha de costado"
+        ]
       }
     ],
     "evidence": {

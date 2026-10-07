@@ -30,7 +30,8 @@ import com.example.kpkn.domain.training.SymbolEquipmentKeys
  *   recibe categorías vacías (solo cuerpo).
  * - Los símbolos que el subpanel curado no pinta (anillas, cajón, cuerda de saltar, cardio) viajan como llaves propias
  *   ([RINGS_KEY], [BOX_KEY], [JUMP_ROPE_KEY], [CARDIO_MACHINE_KEY]) en `supports`. El resolutor acredita las tres
- *   primeras (`SYMBOL_EQUIPMENT_KEYS`: anillas = `trx` y `rings`, cajón, cuerda); la del cardio solo hace exacto el ida y
+ *   primeras (`SYMBOL_EQUIPMENT_KEYS`: anillas = `trx` y `rings`; cajón = `plyo_box` y, además, `support`, un apoyo
+ *   elevado; cuerda); la del cardio solo hace exacto el ida y
  *   vuelta: dos símbolos que comparten categoría (cardio y cuerda de saltar, o todos los de soporte) se distinguen por su
  *   llave, así que `selectedFrom(availabilityOf(S, lugares)) == S` para toda selección S de símbolos visibles (la
  *   selección vacía vuelve como «solo peso corporal»). Los extras de arriba nunca entran en esa lectura inversa.

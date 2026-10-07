@@ -3368,6 +3368,474 @@
           "incline converging press",
           "press convergente inclinado"
         ]
+      },
+      {
+        "canonicalName": "Flexiones Diamante",
+        "configurations": [
+          {
+            "displaySummary": "Peso Corporal",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "editorial:configuration:diamond_push_up__default",
+                "plan:wizard-entreno-v2-bw1-20261007#diamond_push_up"
+              ],
+              "reviewStatus": "APPROVED"
+            },
+            "id": "diamond_push_up__default",
+            "profile": {
+              "articulationType": "MULTIARTICULAR",
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-09-29-a",
+              "cnc": 3.0,
+              "description": "Las manos se juntan bajo el esternón con los pulgares y los índices tocándose, y los codos viajan pegados a las costillas. La base estrecha pide más al tríceps y al pectoral que la flexión con las manos a la anchura de los hombros.",
+              "efc": 3.5,
+              "equipmentId": "bodyweight",
+              "executionCues": [
+                "Baja el pecho hacia las manos con los codos cerca de las costillas.",
+                "Presiona el suelo hasta extender los codos, con la cadera alineada."
+              ],
+              "fatigueTier": "ALTA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Aducción horizontal",
+                    "Flexión del hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Extensión del codo"
+                  ],
+                  "jointId": "codo",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad escapular"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén del apoyo"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "bodyweight",
+              "movementPatternId": "horizontal_push",
+              "performanceProfileId": "diamond_push_up__default__flexiones_diamante",
+              "primaryMuscles": [
+                "triceps",
+                "pectoralis"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Aducción horizontal",
+                    "Flexión del hombro",
+                    "Extensión del codo",
+                    "Estabilidad escapular",
+                    "Sostén del apoyo"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Aducción horizontal",
+                        "Flexión del hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión del codo"
+                      ],
+                      "jointId": "codo",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad escapular"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del apoyo"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "primaryMuscles": [
+                    "triceps",
+                    "pectoralis"
+                  ],
+                  "secondaryMuscles": [
+                    "deltoid"
+                  ],
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "bodyweight",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "bodyweight",
+                  "movementPatternId": "horizontal_push",
+                  "relevantJoints": [
+                    "glenohumeral",
+                    "codo",
+                    "escapulotoracica",
+                    "muñeca"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "display": {
+                  "displayName": "Flexiones Diamante",
+                  "displaySummary": "Peso Corporal",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 3.0,
+                  "efc": 3.5,
+                  "ssc": 0.35,
+                  "technicalDifficulty": 6.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Flexiones Diamante",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
+                  "configurationId": "diamond_push_up__default",
+                  "definitionId": "diamond_push_up",
+                  "familyId": "upper_horizontal_push",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "diamond_push_up__default__flexiones_diamante",
+                  "searchTerms": [
+                    "flexiones diamante",
+                    "diamond push up",
+                    "diamond push-up",
+                    "flexiones con las manos juntas",
+                    "flexiones cerradas",
+                    "flexiones de triceps"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 150,
+                    "min": 90
+                  },
+                  "requiredEquipment": [
+                    "bodyweight"
+                  ],
+                  "role": "primary_compound"
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "bodyweight"
+                  ],
+                  "preservesIntent": [
+                    "horizontal_push:triceps",
+                    "horizontal_push:pectoralis"
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                }
+              },
+              "secondaryMuscles": [
+                "deltoid"
+              ],
+              "setupCues": [
+                "Coloca las manos juntas bajo el pecho, con los pulgares y los índices tocándose en forma de rombo.",
+                "Estira el cuerpo en línea recta desde los talones hasta la cabeza."
+              ],
+              "setupTimeSeconds": 20,
+              "ssc": 0.35,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 6.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "diamond_push_up__default",
+        "description": "Las Flexiones Diamante (diamond push-up) son una flexión de brazos con las manos juntas bajo el pecho, de modo que los pulgares y los índices dibujan un rombo. Con las manos tan juntas, el tríceps trabaja tanto como el pectoral mayor o más, y el deltoides anterior empuja con ellos. El pecho baja hacia las manos con los codos rozando las costillas. En electromiografía, las manos juntas activaron más el pectoral y el tríceps que las manos separadas. Es una forma de dar más trabajo al tríceps sin salir de la flexión de brazos.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:diamond_push_up",
+            "plan:wizard-entreno-v2-bw1-20261007#diamond_push_up"
+          ],
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "upper_horizontal_push",
+        "id": "diamond_push_up",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "flexiones diamante",
+          "diamond push up",
+          "diamond push-up",
+          "flexiones con las manos juntas",
+          "flexiones cerradas",
+          "flexiones de triceps"
+        ]
+      },
+      {
+        "canonicalName": "Flexiones Arquero",
+        "configurations": [
+          {
+            "displaySummary": "Peso Corporal",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "editorial:configuration:archer_push_up__default",
+                "plan:wizard-entreno-v2-bw1-20261007#archer_push_up"
+              ],
+              "reviewStatus": "APPROVED"
+            },
+            "id": "archer_push_up__default",
+            "profile": {
+              "articulationType": "MULTIARTICULAR",
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-09-29-a",
+              "cnc": 3.0,
+              "description": "Las manos quedan mucho más separadas que los hombros y el peso se desplaza hacia el brazo que se flexiona, mientras el otro se estira hacia el costado con la mano apoyada. Cada repetición carga un lado, así que se hace el mismo número por cada brazo.",
+              "efc": 3.5,
+              "equipmentId": "bodyweight",
+              "executionCues": [
+                "Dobla un codo y lleva el pecho hacia esa mano mientras el otro brazo se queda estirado.",
+                "Empuja el suelo con el brazo que trabaja hasta volver al centro.",
+                "Alterna los lados en cada repetición o cambia al terminar la serie."
+              ],
+              "fatigueTier": "ALTA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Aducción horizontal",
+                    "Flexión del hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Extensión del codo"
+                  ],
+                  "jointId": "codo",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad escapular"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén del apoyo"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "UNILATERAL",
+              "loadMode": "bodyweight",
+              "movementPatternId": "horizontal_push",
+              "performanceProfileId": "archer_push_up__default__flexiones_arquero",
+              "primaryMuscles": [
+                "pectoralis"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Aducción horizontal",
+                    "Flexión del hombro",
+                    "Extensión del codo",
+                    "Estabilidad escapular",
+                    "Sostén del apoyo"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Aducción horizontal",
+                        "Flexión del hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión del codo"
+                      ],
+                      "jointId": "codo",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad escapular"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del apoyo"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "primaryMuscles": [
+                    "pectoralis"
+                  ],
+                  "secondaryMuscles": [
+                    "triceps",
+                    "deltoid"
+                  ],
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "bodyweight",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "UNILATERAL",
+                  "loadMode": "bodyweight",
+                  "movementPatternId": "horizontal_push",
+                  "relevantJoints": [
+                    "glenohumeral",
+                    "codo",
+                    "escapulotoracica",
+                    "muñeca"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "display": {
+                  "displayName": "Flexiones Arquero",
+                  "displaySummary": "Peso Corporal",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 3.0,
+                  "efc": 3.5,
+                  "ssc": 0.35,
+                  "technicalDifficulty": 6.5,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Flexiones Arquero",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
+                  "configurationId": "archer_push_up__default",
+                  "definitionId": "archer_push_up",
+                  "familyId": "upper_horizontal_push",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "archer_push_up__default__flexiones_arquero",
+                  "searchTerms": [
+                    "flexiones arquero",
+                    "archer push up",
+                    "archer push-up",
+                    "flexiones con un brazo estirado",
+                    "flexiones unilaterales de arquero"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 150,
+                    "min": 90
+                  },
+                  "requiredEquipment": [
+                    "bodyweight"
+                  ],
+                  "role": "primary_compound"
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "bodyweight"
+                  ],
+                  "preservesIntent": [
+                    "horizontal_push:pectoralis"
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                }
+              },
+              "secondaryMuscles": [
+                "triceps",
+                "deltoid"
+              ],
+              "setupCues": [
+                "Coloca las manos en el suelo mucho más abiertas que los hombros, con el cuerpo recto de los talones a la cabeza.",
+                "Gira un poco las manos hacia fuera para que los codos apunten hacia atrás."
+              ],
+              "setupTimeSeconds": 20,
+              "ssc": 0.35,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 6.5,
+              "ttc": 1.8
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "archer_push_up__default",
+        "description": "Las Flexiones Arquero (archer push-up) llevan el cuerpo hacia un lado en cada repetición: las manos van muy separadas, un codo se flexiona hasta acercar el pecho a esa mano y el otro brazo queda estirado y apoyado en el suelo como un puntal. El brazo que se flexiona carga la mayor parte del empuje, de modo que cada repetición exige más a un lado que al otro y después se cambia. El pectoral lidera el empuje, con el tríceps y el deltoides anterior de apoyo, y el abdomen sostiene el cuerpo en línea frente al desequilibrio. Es el paso intermedio entre la flexión con dos brazos y la flexión a un brazo.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:archer_push_up",
+            "plan:wizard-entreno-v2-bw1-20261007#archer_push_up"
+          ],
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "upper_horizontal_push",
+        "id": "archer_push_up",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "flexiones arquero",
+          "archer push up",
+          "archer push-up",
+          "flexiones con un brazo estirado",
+          "flexiones unilaterales de arquero"
+        ]
       }
     ],
     "evidence": {
