@@ -76,6 +76,8 @@ internal fun PlaceSymbolRow(
                 artScale = PLACE_ART_SCALE,
                 badgeRadius = 9.dp,
                 labelGap = 4.dp,
+                // Con letra grande «En espacios públicos» no cabe en dos líneas en una columna de un tercio de pantalla.
+                labelMaxLines = 3,
                 modifier = Modifier.weight(1f),
             )
         }

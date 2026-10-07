@@ -238,6 +238,7 @@ internal fun symbolDescription(label: String, selected: Boolean): String =
 /**
  * Un símbolo tocable: dibujo + etiqueta, SIN tarjeta. Es una casilla (`Role.Checkbox`, `toggleable`) que se
  * anuncia con [symbolDescription] y lleva la marca de prueba [tag]. Mantener el dedo encima lo encoge un poco.
+ * La etiqueta cabe en [labelMaxLines] líneas (dos por defecto; «En espacios públicos» pide tres con la letra grande).
  */
 @Composable
 internal fun SymbolCell(
@@ -254,6 +255,7 @@ internal fun SymbolCell(
     badgeRadius: Dp,
     labelGap: Dp,
     modifier: Modifier = Modifier,
+    labelMaxLines: Int = 2,
 ) {
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
@@ -299,7 +301,7 @@ internal fun SymbolCell(
                 style = labelStyle.copy(fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium),
                 color = labelColor,
                 textAlign = TextAlign.Center,
-                maxLines = 2,
+                maxLines = labelMaxLines,
                 overflow = TextOverflow.Ellipsis,
             )
         }
