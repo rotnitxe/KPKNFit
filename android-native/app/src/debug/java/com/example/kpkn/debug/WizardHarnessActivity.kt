@@ -45,6 +45,7 @@ import com.example.kpkn.data.repository.WikiLabRepository
 import com.example.kpkn.data.repository.WorkoutMediaRepository
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.WizChatMachineState
+import com.example.kpkn.screens.onboarding.SetupPlanSweep
 import com.example.kpkn.screens.onboarding.SetupWizardMode
 import com.example.kpkn.screens.onboarding.SetupWizardScreen
 import com.example.kpkn.screens.onboarding.SetupWizardViewModel
@@ -76,7 +77,8 @@ import kotlinx.serialization.json.Json
  *  - `persona` (`gym` por defecto, `home`, `park`, `multi`, `all`): con qué datos se contestaron los pasos anteriores.
  *  - `answers` (`clave=valor/clave=valor`, sin espacios ni `;`): datos del paso activo ya elegidos, sin confirmarlo. Claves: `places=GYM,HOME`,
  *    `material=BARBELL,RACK` o `material=+RINGS,-BARBELL`, `goal=POWERLIFTING`, `fresh=4`, `days=1,3,5`, `startday=4`,
- *    `dayplaces=3:HOME,6:PUBLIC`, `minutes=75`.
+ *    `dayplaces=3:HOME,6:PUBLIC`, `minutes=75`, `caps=PULL_UP:SOME,PUSH_UP:MANY` (separadas por coma), `muscles=CHEST,BACK`,
+ *    `marks=SQUAT:140,BENCH:100` (kg) y `unit=lb`.
  *  - `width` o `widthDp` (dp): simula un teléfono de ese ancho escalando la densidad (360 reproduce el del usuario; el emulador mide 448).
  *  - `fontscale` o `fontScale` (decimal): escala de letra (1.3 = 130 %).
  *  - `reducedMotion` (booleano): fuerza «reducir movimiento» en el asistente (cuadro final estático, sin bucles) sin tocar los ajustes
@@ -87,7 +89,10 @@ import kotlinx.serialization.json.Json
  *    escribe lo que contestaría la persona (como si la persona lo eligiera) y al terminar el tiempo «pulsa Continuar»
  *    (`submitCurrentStep`, la misma función que el botón), hasta llegar a `until` (por defecto `MILESTONE_TRAINING`). Las capturas
  *    por tiempo enseñan cada paso vacío y lleno, plegado y asomando; sirve sobre todo en el teléfono, donde no se conduce con
- *    `uiautomator`. El medidor (`fps`) escribe el paso y la fase («vacío» / «lleno») para reconocer cada captura.
+ *    `uiautomator`. El medidor (`fps`) escribe el paso y la fase («vacío» / «lleno») para reconocer cada captura. En PLAN espera
+ *    a que el generador termine y elige el primer programa (el «a medida») antes de «Continuar», como al tocar «Elegir».
+ *  - `autoselect` (booleano): con el paso PLAN activo, cuando el barrido termina elige el primer programa; así WEEK_LAYOUT ya
+ *    tiene programa que enseñar sin recorrer el bloque entero (útil con `start PLAN`).
  *
  * Las marcas de prueba (`setup-continue`, `setup-place-GYM`, …) salen como `resource-id`, así `uiautomator` encuentra cada
  * control (en el emulador; en el teléfono real no se usa `uiautomator`).
@@ -147,6 +152,7 @@ private class HarnessConfig(
     val until: SetupStepId,
     val reducedMotion: Boolean,
     val fps: Boolean,
+    val autoSelect: Boolean,
 ) {
     companion object {
         fun from(intent: Intent): HarnessConfig = HarnessConfig(
@@ -164,6 +170,7 @@ private class HarnessConfig(
                 ?: SetupStepId.MILESTONE_TRAINING,
             reducedMotion = intent.getBooleanExtra("reducedMotion", false) || intent.getBooleanExtra("reduced", false),
             fps = intent.getBooleanExtra("fps", false),
+            autoSelect = intent.getBooleanExtra("autoselect", false) || intent.getBooleanExtra("autoSelect", false),
         )
     }
 }
@@ -185,6 +192,9 @@ private const val FILL_AT = 0.4
 
 /** Tope de «Continuar» automáticos: el arnés nunca da vueltas sin fin si un paso no se deja confirmar. */
 private const val MAX_AUTO_STEPS = 40
+
+/** Cuánto espera el recorrido a que el generador de programas termine (el barrido tarda en un teléfono real). */
+private const val PLAN_WAIT_MS = 90_000L
 
 /** Identificador del borrador del arnés: propio, para no tocar el borrador canónico del asistente. */
 private const val HARNESS_DRAFT_ID = "setup-harness-w"
@@ -211,6 +221,13 @@ private fun HarnessRoot(config: HarnessConfig, onClose: () -> Unit) {
             tourLabel = "$step · vacío"
             delay(fillAfter)
             viewModel.update { draft -> draft.answeredAs(step, config.persona).touchStep(step) }
+            if (step == SetupStepId.PLAN) {
+                // El generador tarda: se espera al barrido y se elige el primer programa (el «a medida»), como al tocar «Elegir».
+                val ready = withTimeoutOrNull(PLAN_WAIT_MS) {
+                    viewModel.state.first { it.planSweep == SetupPlanSweep.READY && it.planReveals.isNotEmpty() }
+                }
+                if (ready != null && ready.draft.selectedCatalogId == null) viewModel.selectPlan(ready.planReveals.first().planId)
+            }
             tourLabel = "$step · lleno"
             delay(config.autoNextMs - fillAfter)
             viewModel.submitCurrentStep()
@@ -218,6 +235,16 @@ private fun HarnessRoot(config: HarnessConfig, onClose: () -> Unit) {
             withTimeoutOrNull(3_000) { viewModel.state.first { it.currentStep != step } }
             FrameStats.endStep(step.name)
         }
+    }
+
+    // Con `autoselect`, cuando el barrido de programas termina el arnés elige el primero (el «a medida»): la semana armada del
+    // paso siguiente ya tiene programa que enseñar sin recorrer el bloque entero.
+    LaunchedEffect(viewModel, draftId, config) {
+        if (!config.autoSelect || draftId == null) return@LaunchedEffect
+        val ready = viewModel.state.first {
+            it.currentStep == SetupStepId.PLAN && it.planSweep == SetupPlanSweep.READY && it.planReveals.isNotEmpty()
+        }
+        if (ready.draft.selectedCatalogId == null) viewModel.selectPlan(ready.planReveals.first().planId)
     }
 
     // Para simular un teléfono más estrecho se escala la densidad: el mismo ancho en píxeles pasa a tener menos dp.
