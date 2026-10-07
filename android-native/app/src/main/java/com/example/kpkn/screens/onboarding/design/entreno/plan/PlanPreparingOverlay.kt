@@ -241,9 +241,9 @@ internal fun PreparingContent(
                 liveRegion = LiveRegionMode.Polite
             }
             .graphicsLayer { alpha = shown() }
-            // Sin desenfoque del sistema el fondo debe tapar casi todo: con menos opacidad el texto de la página
-            // de atrás se mezcla con el del overlay.
-            .background(OverlayScrim.copy(alpha = if (blur) 0.76f else 0.96f)),
+            // Sin desenfoque del sistema el fondo debe tapar TODO: con el 0,96 de antes el título de la página de atrás
+            // seguía asomando nítido (15 sobre 6 de 255) en el teléfono de pruebas, que lo tiene desactivado.
+            .background(OverlayScrim.copy(alpha = if (blur) 0.76f else 1f)),
         contentAlignment = Alignment.Center,
     ) {
         // La Torre cede si la pantalla es baja: debajo van el título, el nombre de la disciplina y la fila de etapas.
@@ -535,7 +535,9 @@ private fun DrawScope.drawStageRail(
         val greenTo = if (finished) span.toFloat() else head
         if (greenTo > 0f) drawLine(Ok, first, lerp(first, last, greenTo / span), lineW, StrokeCap.Round)
     }
-    val wait = if (finished) -1f else PreparingTimeline.waitGuide(t, count)
+    // Con movimiento reducido el reloj queda en SETTLED y no avisa de «terminado»: sin esto el destello de la espera se
+    // quedaba clavado a media altura del riel (cuatro puntos sueltos sobre el tramo verde).
+    val wait = if (finished || t >= PreparingTimeline.SETTLED) -1f else PreparingTimeline.waitGuide(t, count)
     val lit = PreparingTimeline.litCount(t, count)
     for (i in 0 until count) {
         val c = Offset(nx(i), ny(i))
