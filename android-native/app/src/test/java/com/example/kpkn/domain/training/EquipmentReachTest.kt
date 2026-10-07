@@ -18,9 +18,11 @@ import org.junit.Test
  *
  * - Escribe `build/reports/equipment-reach/reach.txt` (no juzga: solo falla si no puede escribirlo).
  * - Falla si una configuración cuyo `equipmentId` es un token que el resolutor sabe emitir queda inalcanzable sin estar en
- *   una lista de excepciones comentada ([knownButUnreachable] y [isUncuratedMachine]): así un id nuevo del catálogo, o un
- *   símbolo que deja de acreditar algo, no pasa desapercibido.
+ *   la lista de excepciones comentada ([knownButUnreachable]): así un id nuevo del catálogo, o un símbolo que deja de
+ *   acreditar algo, no pasa desapercibido.
  * - Fija a propósito los cuatro implementos raros que NO se acreditan ([rareEquipment]).
+ * - «Máquinas» es una sala de máquinas (paquete E2): abre las 73 configuraciones `machine`; el mismo material con las
+ *   llaves del subpanel antiguo y sin esa bandera sigue en el modo exacto (solo las curadas).
  */
 class EquipmentReachTest {
 
@@ -88,16 +90,7 @@ class EquipmentReachTest {
         "hams_curl_nordic_peso_corporal__default" to "exige un anclaje para los pies (`nordic_anchor`) sin símbolo ni llave",
     )
 
-    /**
-     * Las máquinas que el subpanel no cura (56 de 73): con cualquier máquina o polea declarada rige el modo «configuración
-     * exacta» (DEV-r2-06) y una máquina solo se aprueba por su token `machine_config:<id>`, que solo emiten las 17
-     * configuraciones curadas del subpanel. No es un hueco de los símbolos sino una decisión de las rondas anteriores.
-     */
-    private fun isUncuratedMachine(config: Config): Boolean = config.equipmentId == "machine" && config.id !in curatedMachines
-
     private fun reasonOf(config: Config): String = when {
-        isUncuratedMachine(config) ->
-            "máquina sin llave curada en el subpanel (modo configuración exacta, DEV-r2-06)"
         config.equipmentId !in everythingTokens ->
             "ningún símbolo acredita «${config.equipmentId}» (raro; fuera a propósito)"
         config.id in knownButUnreachable -> knownButUnreachable.getValue(config.id)
@@ -113,8 +106,7 @@ class EquipmentReachTest {
     fun every_configuration_with_a_known_equipment_is_reachable_unless_it_is_documented() {
         val emitted = everythingTokens
         val unexplained = configs.filter { config ->
-            config.equipmentId in emitted && config.id !in everything &&
-                config.id !in knownButUnreachable && !isUncuratedMachine(config)
+            config.equipmentId in emitted && config.id !in everything && config.id !in knownButUnreachable
         }
         assertTrue(
             "configuraciones con un implemento que el resolutor emite y que ningún símbolo alcanza (documenta el motivo o acredítalas):\n" +
@@ -130,10 +122,34 @@ class EquipmentReachTest {
             assertTrue("${config.id} ya es alcanzable: quítala de la lista de excepciones", config.id !in everything)
             assertTrue("«${config.equipmentId}» ya no es un token conocido: va a las raras", config.equipmentId in everythingTokens)
         }
-        val machines = configs.filter { it.equipmentId == "machine" }
-        assertTrue("las curadas del subpanel son alcanzables", machines.filter { it.id in curatedMachines }.all { it.id in everything })
-        assertTrue("las no curadas siguen fuera", machines.filter { isUncuratedMachine(it) }.none { it.id in everything })
+        // «Máquinas» es una sala: ya no queda ninguna máquina del catálogo fuera de alcance (antes, 56 de 73).
+        assertTrue("todas las máquinas son alcanzables", configs.filter { it.equipmentId == "machine" }.all { it.id in everything })
         assertTrue("la regla del subpanel solo dice algo de las máquinas del catálogo", curatedMachines.all { byId[it] != null })
+    }
+
+    @Test
+    fun machines_open_every_machine_configuration_as_a_room_and_the_panel_answers_only_the_curated_ones() {
+        val machines = idsOf("machine")
+        assertEquals("las 73 configuraciones de máquina", 73, machines.size)
+        val gym = setOf(TrainingPlace.GYM)
+        val home = setOf(TrainingPlace.HOME)
+        // Dos de ellas (el press de banca y el inclinado en máquina) piden además un banco, que no trae la sala.
+        val needBench = machines.filter { supportRequirementsFor(it).isNotEmpty() }.toSet()
+        assertTrue(needBench.isNotEmpty() && needBench.all { setOf("bench", "bench_incline").containsAll(supportRequirementsFor(it)) })
+        // El símbolo «Máquinas» abre las otras, en el gimnasio y en casa…
+        assertTrue(reachable(EquipmentProfile("máquinas en gimnasio", gym, setOf(EquipmentSymbolId.MACHINES))).containsAll(machines - needBench))
+        assertTrue(reachable(EquipmentProfile("máquinas en casa", home, setOf(EquipmentSymbolId.MACHINES))).containsAll(machines - needBench))
+        // …y con el banco, o dentro del gimnasio completo, las 73.
+        val machinesAndBench = EquipmentProfile("máquinas y banco en casa", home, setOf(EquipmentSymbolId.MACHINES, EquipmentSymbolId.BENCH))
+        assertTrue(reachable(machinesAndBench).containsAll(machines))
+        assertTrue(reachable(EquipmentProfiles.gymFull).containsAll(machines))
+        // Sin el símbolo no hay ninguna aunque haya poleas (sus llaves de máquina constan ausentes).
+        assertTrue(reachable(EquipmentProfiles.gymWithoutMachines).none { it in machines })
+        assertTrue(reachable(EquipmentProfiles.homeDumbbellsBench).none { it in machines })
+        // El mismo material con las llaves del subpanel antiguo y sin la bandera sigue en el modo exacto: solo las curadas.
+        val panel = reachable(EquipmentProfiles.gymWithPanelAnswers).filter { it in machines }.toSet()
+        assertEquals(machines.filter { it in curatedMachines }.toSet(), panel)
+        assertTrue("las curadas son una parte de las 73", panel.isNotEmpty() && panel.size < machines.size)
     }
 
     @Test
@@ -162,12 +178,26 @@ class EquipmentReachTest {
     }
 
     @Test
-    fun plates_come_with_the_barbell_at_home_and_at_the_gym() {
+    fun plates_come_with_the_barbell_at_home_and_at_the_gym_and_two_also_need_a_gym_bench() {
         val plates = idsOf("plate")
         assertEquals(9, plates.size)
+        // Paquete E2: el crunch con disco en banco declinado y la hiperextensión a 45° piden un aparato de gimnasio.
+        val withBench = setOf("core_crunch_banco_declinado_lastrado_disco__default", "glutes_hiperextension_45__plate")
+        assertTrue(plates.containsAll(withBench))
+        val others = plates - withBench
+        assertEquals(7, others.size)
         val barbellHome = EquipmentProfile("barra en casa", setOf(TrainingPlace.HOME), setOf(EquipmentSymbolId.BARBELL))
-        assertTrue(reachable(barbellHome).containsAll(plates))
+        assertTrue("los discos que no piden aparato vienen con la barra en casa", reachable(barbellHome).containsAll(others))
+        assertTrue("en casa, ni con banco, hay banco declinado ni de hiperextensión", reachable(barbellHome).none { it in withBench })
+        val barbellAndBenchHome = EquipmentProfile(
+            "barra y banco en casa", setOf(TrainingPlace.HOME), setOf(EquipmentSymbolId.BARBELL, EquipmentSymbolId.BENCH),
+        )
+        assertTrue(reachable(barbellAndBenchHome).none { it in withBench })
+        // En el gimnasio, con la barra y el banco, las nueve.
         assertTrue(reachable(EquipmentProfiles.gymFull).containsAll(plates))
+        // Sin el banco, en el gimnasio, las dos con aparato se pierden y las otras siete siguen; sin barra no hay discos.
+        assertTrue(reachable(EquipmentProfiles.gymWithoutBench).none { it in withBench })
+        assertTrue(reachable(EquipmentProfiles.gymWithoutBench).containsAll(others))
         assertTrue(reachable(EquipmentProfiles.homeDumbbellsBench).none { it in plates })
     }
 

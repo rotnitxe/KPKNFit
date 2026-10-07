@@ -43,7 +43,9 @@ internal object ConfigurationEquipmentFilter {
      * ¿Rige el modo «configuración exacta» de máquinas? Sí con una declaración CONCRETA de máquinas o poleas (presencia
      * por llave: los soportes, la barra de dominadas y la bici exterior no cuentan; paquete A · B3, DEV-r2-06) o, sin
      * disponibilidad nueva, con inventario declarado. Una disponibilidad solo categórica, con o sin soportes
-     * confirmados, sigue permitiendo las variantes de máquina nativas aprobadas.
+     * confirmados, sigue permitiendo las variantes de máquina nativas aprobadas; también la que declara «Máquinas» como
+     * una sala de máquinas ([com.example.kpkn.data.models.EquipmentAvailability.machinesAsCategory], paquete E2), aunque
+     * sus llaves consten `PRESENT`.
      */
     fun requiresExactMachineConfiguration(options: TrainingOptions): Boolean =
         options.availability?.hasExplicitMachinePresence() ?: (options.inventory != null)

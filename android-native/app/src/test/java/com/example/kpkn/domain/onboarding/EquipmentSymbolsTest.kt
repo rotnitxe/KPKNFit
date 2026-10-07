@@ -4,9 +4,11 @@ import com.example.kpkn.data.models.ApparatusPresence
 import com.example.kpkn.data.models.EquipmentAvailability
 import com.example.kpkn.data.models.EquipmentCategory
 import com.example.kpkn.domain.training.EFFECTIVE_EQUIPMENT_KEYS
+import com.example.kpkn.domain.training.EquipmentKeys
 import com.example.kpkn.domain.training.SYMBOL_EQUIPMENT_KEYS
 import com.example.kpkn.domain.training.TrainingOptions
 import com.example.kpkn.domain.training.effectiveEquipment
+import com.example.kpkn.domain.training.hasExplicitMachinePresence
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -35,6 +37,21 @@ class EquipmentSymbolsTest {
     private fun roundTrip(selection: Set<EquipmentSymbolId>, places: Set<TrainingPlace>): Set<EquipmentSymbolId> =
         EquipmentSymbols.selectedFrom(EquipmentSymbols.availabilityOf(selection, places))
 
+    /**
+     * El ida y vuelta de una selección en unos lugares, en los dos sentidos y con la igualdad completa de la disponibilidad
+     * (incluida la bandera de la sala de máquinas): lo elegido vuelve exacto (la selección vacía vuelve como «solo peso
+     * corporal») y lo leído vuelve a escribirse idéntico.
+     */
+    private fun assertRoundTrip(selection: Set<EquipmentSymbolId>, places: Set<TrainingPlace>) {
+        val label = "lugares=$places selección=$selection"
+        val availability = EquipmentSymbols.availabilityOf(selection, places)
+        val expected = if (selection.isEmpty()) setOf(EquipmentSymbolId.BODYWEIGHT_ONLY) else selection
+        val read = EquipmentSymbols.selectedFrom(availability)
+        assertEquals(label, expected, read)
+        assertEquals("$label: reescribir lo leído", availability, EquipmentSymbols.availabilityOf(read, places))
+        assertEquals("$label: sala de máquinas", EquipmentSymbolId.MACHINES in selection, availability.machinesAsCategory)
+    }
+
     // ── Ida y vuelta ───────────────────────────────────────────────────────────
 
     @Test
@@ -49,8 +66,7 @@ class EquipmentSymbolsTest {
             var mask = 0
             while (mask < total) {
                 val selection = visible.filterIndexed { index, _ -> mask and (1 shl index) != 0 }.toSet()
-                val expected = if (selection.isEmpty()) setOf(EquipmentSymbolId.BODYWEIGHT_ONLY) else selection
-                assertEquals("lugares=$places selección=$selection", expected, roundTrip(selection, places))
+                assertRoundTrip(selection, places)
                 mask += stride
             }
         }
@@ -58,8 +74,9 @@ class EquipmentSymbolsTest {
 
     @Test
     fun theRoundTripStaysExactForEverySelectionOfTheSymbolsThatCarryExtrasInEveryPlaceCombination() {
-        // Paquete E: los extras sin símbolo propio (discos, hexagonal, T, GHD, rueda abdominal y la barra baja del parque)
-        // cuelgan de estos símbolos; el barrido de arriba muestrea las combinaciones con espacios públicos, este es completo.
+        // Paquete E: los extras sin símbolo propio (discos, hexagonal, T, GHD, rueda abdominal, bancos de gimnasio y la barra
+        // baja del parque) y la sala de máquinas cuelgan de estos símbolos; el barrido de arriba muestrea las combinaciones
+        // con espacios públicos, este es completo.
         val carriers = listOf(
             EquipmentSymbolId.BARBELL, EquipmentSymbolId.RACK, EquipmentSymbolId.BENCH, EquipmentSymbolId.MACHINES,
             EquipmentSymbolId.PULL_UP_BAR, EquipmentSymbolId.PARALLEL_BARS, EquipmentSymbolId.RINGS, EquipmentSymbolId.BOX,
@@ -68,8 +85,7 @@ class EquipmentSymbolsTest {
             val visible = carriers.filter { it in visibleSymbols(places) }
             for (mask in 0 until (1 shl visible.size)) {
                 val selection = visible.filterIndexed { index, _ -> mask and (1 shl index) != 0 }.toSet()
-                val expected = if (selection.isEmpty()) setOf(EquipmentSymbolId.BODYWEIGHT_ONLY) else selection
-                assertEquals("lugares=$places selección=$selection", expected, roundTrip(selection, places))
+                assertRoundTrip(selection, places)
             }
         }
     }
@@ -289,12 +305,12 @@ class EquipmentSymbolsTest {
             "bodyweight", "barbell", "dumbbells", "kettlebell", "machine", "cable", "smith_machine", "band",
             "pull_up_bar", "ball", "cardio", "support", "bench", "bench_incline", "rack", "dip_bars",
             "low_bar_support", "ez_bar",
-            // Extras habituales de un gimnasio, cajón y cuerda (paquete E).
-            "plate", "hex_bar", "t_bar", "ghd", "ab_wheel", "plyo_box", "jump_rope",
+            // Extras habituales de un gimnasio, cajón y cuerda (paquete E) y sus bancos propios (paquete E2).
+            "plate", "hex_bar", "t_bar", "ghd", "ab_wheel", "plyo_box", "jump_rope", "decline_bench", "hyperextension_bench",
         )) {
             assertTrue("el motor no acredita «$token» con el material de gimnasio", token in tokens)
         }
-        // Las máquinas se acreditan por su configuración exacta, nunca por haber marcado «Máquinas».
+        // «Máquinas» es una sala, pero sus nueve llaves curadas siguen acreditando su `machine_config:` (lo leen las recetas).
         assertTrue(tokens.any { it.startsWith("machine_config:") })
         // Las anillas no son «habituales»: no vienen de serie y sin ellas no hay `trx`.
         assertFalse("trx" in tokens || "rings" in tokens)
@@ -357,6 +373,48 @@ class EquipmentSymbolsTest {
             assertEquals("$key con máquinas en casa", ApparatusPresence.ABSENT, presence(machines, home, key))
             assertEquals("$key sin máquinas", ApparatusPresence.ABSENT, presence(setOf(EquipmentSymbolId.DUMBBELLS), gym, key))
         }
+    }
+
+    @Test
+    fun theBenchBringsTheDeclineAndHyperextensionBenchesOnlyAtTheGym() {
+        val bench = setOf(EquipmentSymbolId.BENCH)
+        for (key in listOf("decline_bench", "hyperextension_bench")) {
+            assertEquals("$key con el banco en gimnasio", ApparatusPresence.PRESENT, presence(bench, gym, key))
+            assertEquals("$key con el banco en gimnasio y parque", ApparatusPresence.PRESENT, presence(bench, both, key))
+            assertEquals("$key con el banco en casa", ApparatusPresence.ABSENT, presence(bench, home, key))
+            assertEquals("$key con el banco en un parque", ApparatusPresence.ABSENT, presence(bench, park, key))
+            assertEquals("$key sin banco", ApparatusPresence.ABSENT, presence(setOf(EquipmentSymbolId.DUMBBELLS), gym, key))
+        }
+    }
+
+    @Test
+    fun machinesAreDeclaredAsAMachineRoomWithoutTheExactConfigurationMode() {
+        val machineKeys = EFFECTIVE_EQUIPMENT_KEYS.filter { it.category == EquipmentCategory.MACHINES }.map { it.key }
+        assertEquals("las nueve llaves de máquina del subpanel", 9, machineKeys.size)
+        val machines = setOf(EquipmentSymbolId.MACHINES)
+        for (places in listOf(gym, home, gym + home, gym + park, both + home)) {
+            val availability = EquipmentSymbols.availabilityOf(machines, places)
+            assertTrue("sala de máquinas en $places", availability.machinesAsCategory)
+            // Las nueve llaves curadas siguen `PRESENT`: las recetas de autor leen sus `machine_config:`…
+            assertTrue(machineKeys.all { availability.presenceOf(it) == ApparatusPresence.PRESENT })
+            // …pero no rige el modo exacto: la categoría basta para todas las variantes de máquina.
+            assertFalse(availability.hasExplicitMachinePresence())
+        }
+        // Sin el símbolo no hay máquinas: llaves ausentes, bandera apagada; las poleas siguen siendo una declaración por llave.
+        val cableOnly = EquipmentSymbols.availabilityOf(setOf(EquipmentSymbolId.CABLE), gym)
+        assertFalse(cableOnly.machinesAsCategory)
+        assertFalse(EquipmentCategory.MACHINES in cableOnly.categories)
+        assertTrue(machineKeys.all { cableOnly.presenceOf(it) == ApparatusPresence.ABSENT })
+        assertTrue(cableOnly.hasExplicitMachinePresence())
+        assertFalse(EquipmentSymbols.availabilityOf(setOf(EquipmentSymbolId.DUMBBELLS), gym).machinesAsCategory)
+        // Una disponibilidad sin la bandera (subpanel antiguo, datos guardados) se comporta como siempre.
+        val panelAnswer = EquipmentAvailability(
+            categories = setOf(EquipmentCategory.MACHINES),
+            apparatus = mapOf(EquipmentKeys.LEG_PRESS to ApparatusPresence.PRESENT),
+        )
+        assertFalse(panelAnswer.machinesAsCategory)
+        assertTrue(panelAnswer.hasExplicitMachinePresence())
+        assertFalse(panelAnswer.copy(machinesAsCategory = true).hasExplicitMachinePresence())
     }
 
     @Test

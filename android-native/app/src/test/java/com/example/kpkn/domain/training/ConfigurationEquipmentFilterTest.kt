@@ -86,8 +86,7 @@ class ConfigurationEquipmentFilterTest {
 
     @Test
     fun the_shared_filter_decides_like_the_frozen_legacy_filter_for_every_configuration() {
-        val equipments = EquipmentProfiles.all.map { it.name to tokensOf(it.availability) } +
-            ("solo categorías" to tokensOf(EquipmentProfiles.categoricalOnly)) +
+        val equipments = EquipmentProfiles.everyAvailability.map { (name, availability) -> name to tokensOf(availability) } +
             syntheticEquipment.flatMap { (name, tokens) ->
                 listOf(false, true).map { exact -> "$name (exacta=$exact)" to (tokens to exact) }
             }
@@ -112,8 +111,8 @@ class ConfigurationEquipmentFilterTest {
     fun the_precomputed_entry_point_is_the_same_filter() {
         val index = GeneratorCatalog.of(CatalogCompositionTestSupport.catalog)
         val mismatches = ArrayList<String>()
-        for (profile in EquipmentProfiles.all) {
-            val (tokens, exact) = tokensOf(profile.availability)
+        for ((name, availability) in EquipmentProfiles.everyAvailability) {
+            val (tokens, exact) = tokensOf(availability)
             for (entry in index.entries.values) {
                 val viaConfiguration = ConfigurationEquipmentFilter.allows(entry.configuration, tokens, null, exact)
                 val viaPieces = ConfigurationEquipmentFilter.allowsPrecomputed(
@@ -123,7 +122,7 @@ class ConfigurationEquipmentFilterTest {
                     tokens = tokens,
                     requireExactMachineConfiguration = exact,
                 )
-                if (viaConfiguration != viaPieces) mismatches += "${profile.name} · ${entry.id}"
+                if (viaConfiguration != viaPieces) mismatches += "$name · ${entry.id}"
             }
         }
         assertTrue("las dos entradas deben coincidir:\n${mismatches.take(10).joinToString("\n")}", mismatches.isEmpty())
@@ -137,18 +136,18 @@ class ConfigurationEquipmentFilterTest {
         val index = GeneratorCatalog.of(CatalogCompositionTestSupport.catalog)
         val mismatches = ArrayList<String>()
         var decisions = 0
-        for (profile in EquipmentProfiles.all) {
+        for ((name, availability) in EquipmentProfiles.everyAvailability) {
             // Cómo decide el planificador: `SimpleCyclePersonalizer` resuelve el equipo con las opciones (más `bodyweight`
             // en los planes propios) y llama al filtro con la familia del plan y el modo de máquinas.
-            val options = TrainingOptions(availability = profile.availability)
+            val options = TrainingOptions(availability = availability)
             val plannerEquipment = options.effectiveEquipment(emptySet()) + "bodyweight"
             val plannerExact = ConfigurationEquipmentFilter.requiresExactMachineConfiguration(options)
-            val generator = DayEquipment(profile.availability)
+            val generator = DayEquipment(availability)
             for (entry in index.entries.values) {
                 decisions++
                 val planner = ConfigurationEquipmentFilter.allows(entry.configuration, plannerEquipment, "native:strength", plannerExact)
                 val routine = generator.allows(entry, emptyList())
-                if (planner != routine) mismatches += "${profile.name} · ${entry.id}: planificador $planner, generador $routine"
+                if (planner != routine) mismatches += "$name · ${entry.id}: planificador $planner, generador $routine"
             }
         }
         assertTrue("planificador y generador deben coincidir; ${mismatches.size} de $decisions difieren:\n${mismatches.take(15).joinToString("\n")}", mismatches.isEmpty())
@@ -240,8 +239,15 @@ class ConfigurationEquipmentFilterTest {
     fun exact_machine_mode_follows_the_declared_machines_or_the_declared_inventory() {
         fun exactFor(options: TrainingOptions) = ConfigurationEquipmentFilter.requiresExactMachineConfiguration(options)
 
+        // «Máquinas» como sala de máquinas (paquete E2): el gimnasio completo no pide configuración exacta aunque sus nueve
+        // llaves de máquina consten `PRESENT`; el mismo material tal como lo dejaba el subpanel antiguo, sin la bandera, sí.
+        assertFalse(exactFor(TrainingOptions(availability = EquipmentProfiles.gymFull.availability)))
+        assertTrue(exactFor(TrainingOptions(availability = EquipmentProfiles.gymWithPanelAnswers)))
+        // Sin «Máquinas» las poleas siguen siendo una declaración por llave.
+        assertTrue(
+            exactFor(TrainingOptions(availability = EquipmentProfiles.gymWithoutMachines.availability)),
+        )
         // Con una máquina o polea declarada (Sí o No) rige; con solo soportes, barra de dominadas o bici exterior, no.
-        assertTrue(exactFor(TrainingOptions(availability = EquipmentProfiles.gymFull.availability)))
         assertTrue(exactFor(TrainingOptions(availability = EquipmentAvailability(
             categories = setOf(EquipmentCategory.CABLE),
             apparatus = mapOf(EquipmentKeys.CABLE_HIGH_LOW to ApparatusPresence.ABSENT),

@@ -17,5 +17,15 @@
             android:name="com.example.kpkn.debug.EntrenoPlanPreviewActivity"
             android:exported="true"
             android:theme="@style/Theme.KPKN" />
+        <!-- SOLO DEPURACIÓN: vista previa de los músculos, las marcas y las capacidades del módulo de Entreno v2 (no se integra). -->
+        <activity
+            android:name="com.example.kpkn.debug.EntrenoMusclesPreviewActivity"
+            android:exported="true"
+            android:theme="@style/Theme.KPKN" />
+        <!-- SOLO DEPURACIÓN: vista previa del tablero de la semana («Así queda tu semana»); no se integra. -->
+        <activity
+            android:name="com.example.kpkn.debug.EntrenoLayoutPreviewActivity"
+            android:exported="true"
+            android:theme="@style/Theme.KPKN" />
     </application>
 </manifest>
