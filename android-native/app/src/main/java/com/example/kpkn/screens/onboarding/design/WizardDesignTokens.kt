@@ -2,6 +2,7 @@ package com.example.kpkn.screens.onboarding.design
 
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.platform.LocalView
@@ -385,11 +386,17 @@ object WizardMotion {
 }
 
 /**
+ * Anula «reducir movimiento» (la escala de animaciones del sistema) solo desde el arnés de depuración y las pruebas, que no
+ * deben tocar los ajustes de un teléfono real. Sin valor, manda el sistema.
+ */
+val LocalWizardReducedMotion = compositionLocalOf<Boolean?> { null }
+
+/**
  * Política de movimiento del wizard. Nombres genéricos: ya no pertenecen al chat
  * retirado (`wizChatReducedMotion` se conserva mientras existan sus callers).
  */
 @Composable
-fun wizardReducedMotion(): Boolean = LocalView.current.context.contentResolver.let { resolver ->
+fun wizardReducedMotion(): Boolean = LocalWizardReducedMotion.current ?: LocalView.current.context.contentResolver.let { resolver ->
     runCatching {
         android.provider.Settings.Global.getFloat(
             resolver,
