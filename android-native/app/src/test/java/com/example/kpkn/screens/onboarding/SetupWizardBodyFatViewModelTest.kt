@@ -193,6 +193,7 @@ class SetupWizardBodyFatViewModelTest {
     fun switchingTheFigureNeverDeclaresThePercentage() = runTest {
         val vm = vm()
         walkToBodyFat(vm)
+        val equationSexBefore = bodyFatDraft(vm).nutritionDraft?.equationSex
 
         vm.updateStep(SetupStepId.BODY_FAT) { draft -> draft.copy(physiqueModel = "female") }
         advanceUntilIdle()
@@ -201,7 +202,7 @@ class SetupWizardBodyFatViewModelTest {
         assertNull("cambiar de figura no fija ningún porcentaje", bodyFatDraft(vm).bodyFatPercent)
         assertNull(bodyFatDraft(vm).bodyFatSource)
         assertFalse("y el check sigue bloqueado", vm.state.value.canConfirmStep)
-        assertNull("ni toca el sexo de cálculo", bodyFatDraft(vm).nutritionDraft?.equationSex)
+        assertEquals("ni toca el sexo de cálculo", equationSexBefore, bodyFatDraft(vm).nutritionDraft?.equationSex)
     }
 
     @Test
