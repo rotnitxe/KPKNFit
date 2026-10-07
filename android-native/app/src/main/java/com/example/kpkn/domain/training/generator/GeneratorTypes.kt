@@ -29,6 +29,13 @@ internal data class SlotSpec(
     val pairKey: Int? = null,
     val extra: Boolean = false,
     val boosted: Boolean = false,
+    /** Familia de movimiento que pide el hueco dentro del patrón (solo disciplinas; ver `PoolEntry.tag`). */
+    val tag: String? = null,
+    /**
+     * Un hueco extra que cuenta contra el techo DURO de volumen (MRV) y no contra el objetivo blando (MAV): el relleno que
+     * completa el mínimo de ejercicios de una sesión cuando los demás ya agotaron el objetivo semanal de sus músculos.
+     */
+    val hard: Boolean = false,
 )
 
 internal enum class CardioMode {
@@ -67,6 +74,8 @@ internal data class SessionPlan(
     val mobility: MobilitySpec? = null,
     val supersets: Boolean = false,
     val demand: Double = 0.0,
+    /** Patrones con los que se completa la sesión si sobra tiempo (null = los generales de su región). */
+    val fillers: List<RoutinePattern>? = null,
 )
 
 /** Músculos canónicos de volumen (los de `VolumeCalculator`). */

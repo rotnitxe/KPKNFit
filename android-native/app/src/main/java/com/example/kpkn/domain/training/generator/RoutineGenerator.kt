@@ -95,7 +95,9 @@ object RoutineGenerator {
         val name = RoutineNarrative.suggestedName(ctx)
         val oneLiner = RoutineNarrative.oneLiner(ctx, assembled)
         val missing = ctx.missing.keys.filter { it !in ctx.covered }.toSet()
-        val notes = (RoutineNarrative.gapNotes(ctx, missing) + ctx.notes + listOfNotNull(RoutineNarrative.timeNote(ctx))).distinct()
+        val usedIds = sessions.flatMap { it.allExercises() }.mapNotNull { it.catalogConfigurationId }.toSet()
+        val initial = RoutineNarrative.initialVersion(ctx, usedIds)
+        val notes = (listOfNotNull(initial?.second) + RoutineNarrative.gapNotes(ctx, missing) + ctx.notes + listOfNotNull(RoutineNarrative.timeNote(ctx))).distinct()
         val program = Program(
             id = programId,
             name = name,
@@ -147,6 +149,8 @@ object RoutineGenerator {
             mainExercises = assembled.flatMap { it.mainExerciseNames }.distinct().take(8),
             reasons = RoutineNarrative.reasons(ctx, assembled, mainDay),
             mainSessionDay = mainDay,
+            isInitialVersion = initial != null,
+            initialVersionMissing = initial?.first.orEmpty(),
         )
 
         val infos = sessions.flatMap { it.allExercises() }.mapNotNull { it.catalogConfigurationId }.distinct()
@@ -187,7 +191,7 @@ object RoutineGenerator {
 
     private fun feasibleSlots(ctx: GenContext, plan: SessionPlan, equipment: DayEquipment): Int =
         plan.slots.count { slot ->
-            ExerciseSelector.choose(slot.pattern, slot.role, ctx, equipment, SessionUse(), salt = 0, region = plan.region) != null
+            ExerciseSelector.choose(slot.pattern, slot.role, ctx, equipment, SessionUse(), salt = 0, region = plan.region, tag = slot.tag) != null
         }
 
     /**
@@ -197,7 +201,8 @@ object RoutineGenerator {
      */
     private fun repairIfInfeasible(ctx: GenContext, plan: SessionPlan, equipment: DayEquipment, index: Int, used: MutableSet<String>): SessionPlan {
         val specific = plan.region == SessionRegion.PUSH || plan.region == SessionRegion.PULL ||
-            plan.region == SessionRegion.LEGS || plan.region == SessionRegion.UPPER
+            plan.region == SessionRegion.LEGS || plan.region == SessionRegion.UPPER ||
+            (ctx.mode.isDiscipline && plan.kind == RoutineSessionKind.STRENGTH && plan.region == SessionRegion.FULL)
         if (!specific || plan.slots.isEmpty()) return plan
         val own = feasibleSlots(ctx, plan, equipment)
         if (own >= 3 && own * 2 >= plan.slots.size) return plan

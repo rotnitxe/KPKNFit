@@ -90,11 +90,28 @@ internal object ExerciseSelector {
             EquipmentTier.MACHINE -> 5.0
             EquipmentTier.OTHER -> 7.0
         }
+        // Calistenia: peso corporal y anillas; la banda solo como ayuda (el resto de material ni siquiera entra).
+        RankProfile.CALISTHENICS -> when (tier) {
+            EquipmentTier.BODYWEIGHT -> 0.0
+            EquipmentTier.RINGS -> 0.5
+            EquipmentTier.BAND -> 2.0
+            else -> 9.0
+        }
     }
 
     private fun ladderRank(ladder: Ladder, tier: LadderTier, profile: RankProfile): Double {
         val easy = tier == LadderTier.EASY
         return when (profile) {
+            RankProfile.CALISTHENICS -> when (ladder) {
+                BodyweightLadders.pullUp -> if (easy) 0.4 else 0.2
+                BodyweightLadders.pushUp -> if (easy) 0.5 else 0.2
+                BodyweightLadders.dips -> 0.3
+                BodyweightLadders.row -> if (easy) 0.6 else 0.4
+                BodyweightLadders.singleLeg -> if (easy) 0.7 else 0.3
+                BodyweightLadders.core -> 0.2
+                BodyweightLadders.glute, BodyweightLadders.hinge -> 0.8
+                else -> 1.0
+            }
             RankProfile.FUNCTIONAL -> when (ladder) {
                 BodyweightLadders.pullUp, BodyweightLadders.pushUp -> if (easy) 0.7 else 0.3
                 BodyweightLadders.row -> if (easy) 0.9 else 0.5
@@ -162,13 +179,16 @@ internal object ExerciseSelector {
         equipment: DayEquipment,
         use: SessionUse,
         region: SessionRegion = SessionRegion.FULL,
+        tag: String? = null,
     ): List<Candidate> {
         val result = ArrayList<Candidate>()
         val novice = ctx.level == RoutineLevel.NOVICE
         var order = 0
-        MovementPools.byPattern[pattern].orEmpty().forEachIndexed { groupIndex, group ->
+        ctx.groupsFor(pattern).forEachIndexed { groupIndex, group ->
             val allowed = group.entries.mapNotNull { poolEntry ->
+                if (tag != null && poolEntry.tag != tag) return@mapNotNull null
                 val entry = ctx.catalog.entry(poolEntry.id) ?: return@mapNotNull null
+                if (!ctx.tierAllowed(entry)) return@mapNotNull null
                 if (!levelAllows(ctx.level, poolEntry.minLevel)) return@mapNotNull null
                 if (novice && entry.difficulty > NOVICE_MAX_DIFFICULTY && !poolEntry.basic) return@mapNotNull null
                 if (entry.id in use.configs || entry.definitionId in use.definitions) return@mapNotNull null
@@ -196,7 +216,7 @@ internal object ExerciseSelector {
                 order++
             }
         }
-        val ladders = if (pattern == RoutinePattern.POWER && region != SessionRegion.NONE) {
+        val ladders = if ((pattern == RoutinePattern.POWER && region != SessionRegion.NONE) || tag != null) {
             emptyList()
         } else {
             BodyweightLadders.byPattern[pattern].orEmpty()
@@ -237,6 +257,7 @@ internal object ExerciseSelector {
             }
             for (rung in rungs) {
                 val entry = ctx.catalog.entry(rung.id) ?: continue
+                if (!ctx.tierAllowed(entry)) continue
                 if (novice && entry.difficulty > NOVICE_MAX_DIFFICULTY) continue
                 if (entry.id in use.configs || entry.definitionId in use.definitions) continue
                 if (!equipment.allows(entry, rung.requires)) continue
@@ -274,8 +295,9 @@ internal object ExerciseSelector {
         use: SessionUse,
         salt: Int,
         region: SessionRegion = SessionRegion.FULL,
+        tag: String? = null,
     ): Candidate? {
-        val all = candidates(pattern, role, ctx, equipment, use, region)
+        val all = candidates(pattern, role, ctx, equipment, use, region, tag)
         if (all.isEmpty()) return null
         val sorted = all.sortedBy { it.rank }
         val best = sorted.first()

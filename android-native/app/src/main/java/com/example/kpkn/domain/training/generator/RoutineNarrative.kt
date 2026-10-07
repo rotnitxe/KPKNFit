@@ -25,7 +25,17 @@ internal object RoutineNarrative {
     /** Reparto de la semana en una frase corta. */
     private fun splitDescription(ctx: GenContext): String {
         val n = ctx.days.size
+        DisciplineWeeks.describe(ctx.mode, n).takeIf { it.isNotEmpty() }?.let { return it }
         return when (ctx.mode) {
+            RoutineMode.CUSTOM_BODYBUILDING -> when (n) {
+                1 -> "cuerpo completo"
+                2 -> "torso y pierna"
+                3 -> "empuje, tirón y pierna"
+                4 -> "torso y pierna dos veces por semana"
+                5 -> "empuje, tirón y pierna, más torso y pierna"
+                6 -> "empuje, tirón y pierna dos veces por semana"
+                else -> "empuje, tirón y pierna dos veces, más un día de movilidad y cardio suave"
+            }
             RoutineMode.GENERAL_HYBRID -> when (n) {
                 1 -> "una sesión mixta de fuerza y cardio"
                 2 -> "fuerza de cuerpo completo y un día de cardio y potencia"
@@ -66,7 +76,11 @@ internal object RoutineNarrative {
         val out = ArrayList<String>()
         val n = ctx.days.size
         // 1) Días → reparto.
-        out += when (ctx.mode) {
+        out += when {
+            ctx.mode.isDiscipline && DisciplineWeeks.describe(ctx.mode, n).isNotEmpty() ->
+                "Con ${days(n)}: ${splitDescription(ctx)}. La semana sigue el reparto propio de ${ctx.mode.label.lowercase()}."
+            else -> null
+        } ?: when (ctx.mode) {
             RoutineMode.GENERAL_HYBRID -> "Con ${days(n)} repartimos ${splitDescription(ctx)}: el cardio no se recorta y la fuerza se concentra donde más rinde."
             RoutineMode.GENERAL_FUNCTIONAL -> "Con ${days(n)}, todas las sesiones son de cuerpo completo funcional: bisagra, sentadilla, empuje, tirón, acarreo y rotación."
             else -> when (n) {
@@ -148,6 +162,24 @@ internal object RoutineNarrative {
         RoutinePattern.CARRY to "acarreos",
     )
 
+    /**
+     * «Versión inicial» de una disciplina: lo que el catálogo aún no trae (y los levantamientos que tu material no permite) y con
+     * qué se sustituye. null = la disciplina está cubierta (modos generales, powerbuilding, culturismo y un powerlifting con barra,
+     * rack y banco). Devuelve la lista de lo que falta y la nota para el resumen.
+     */
+    fun initialVersion(ctx: GenContext, usedIds: Set<String>): Pair<List<String>, String>? {
+        val spec = ctx.discipline ?: return null
+        val noMaterial = spec.requiredLifts.filter { (_, ids) -> ids.none { it in usedIds } }.map { it.first }
+        if (spec.missing.isEmpty() && noMaterial.isEmpty()) return null
+        val missing = spec.missing + noMaterial.map { "$it (con tu material no se puede hacer)" }
+        val label = ctx.mode.label.lowercase()
+        val catalog = if (spec.missing.isEmpty()) "" else "el catálogo aún no trae ${spec.missing.joinToString(", ")}"
+        val material = if (noMaterial.isEmpty()) "" else "con tu material no hay ${noMaterial.joinToString(", ")}"
+        val gaps = listOf(catalog, material).filter { it.isNotEmpty() }.joinToString("; ")
+        val tail = spec.substitutes.ifEmpty { "Mientras tanto usa las variantes que sí permite tu material." }
+        return missing to "Versión inicial de $label: $gaps. $tail"
+    }
+
     /** Una sola nota con las sesiones que no entraron en la ventana de minutos y por qué. */
     fun timeNote(ctx: GenContext): String? {
         if (ctx.outside.isEmpty()) return null
@@ -162,14 +194,15 @@ internal object RoutineNarrative {
         patternAdvice.forEach { (pattern, text) -> if (pattern in missing) notes += text }
         if (RoutinePattern.HINGE in missing) {
             notes += "Sin carga no hay bisagra de cadera (peso muerto): unas mancuernas o una kettlebell la completan."
-        } else if ("hinge_bodyweight" in ctx.flags) {
+        } else if ("hinge_bodyweight" in ctx.flags && ctx.discipline?.allowedTiers == null) {
             notes += "Sin carga la bisagra de cadera se hace con puentes de glúteos (el catálogo no trae peso muerto a una pierna sin carga): unas mancuernas o una kettlebell la completan."
         }
         if ("pull_gap_compensation" in ctx.flags) {
             notes += "Como no hay tracción, la semana suma extensiones de espalda y trabajo escapular; no sustituyen a un remo ni a una dominada."
         }
         val isolation = isolationLabels.filterKeys { it in missing }.values.toList()
-        if (isolation.isNotEmpty()) {
+        // La calistenia no usa pesas, poleas ni bandas de aislamiento: el consejo de «unas mancuernas…» no le sirve.
+        if (isolation.isNotEmpty() && ctx.discipline?.allowedTiers == null) {
             notes += "Con tu material no hay ejercicio específico de ${isolation.joinToString(", ")}: unas mancuernas, unas poleas o unas bandas lo cubren."
         }
         return notes

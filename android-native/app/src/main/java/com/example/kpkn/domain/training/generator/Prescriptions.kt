@@ -47,6 +47,7 @@ internal object Prescriber {
         rungSeconds: Int? = null,
         entryReps: IntRange? = null,
     ): Rx {
+        DisciplineRx.rx(kind, role, level, mode, pattern, rungReps, rungSeconds, entryReps)?.let { return it }
         val functional = mode == RoutineMode.GENERAL_FUNCTIONAL
         val learning = level == RoutineLevel.NOVICE || level == RoutineLevel.RETURNING
         val isMain = role == ItemRole.MAIN
@@ -112,4 +113,112 @@ internal object Prescriber {
 
     /** Carga en kg a pasos de 2,5 kg. */
     fun roundLoad(kg: Double): Double = ((kg / 2.5).roundToInt() * 2.5).coerceAtLeast(2.5)
+}
+
+/**
+ * Prescripción propia de los modos de disciplina (Fase 2): series, repeticiones y descansos de la disciplina. Devuelve null
+ * cuando el tipo de ejercicio se prescribe como en el modo general (core, isométricos de peso corporal, escaleras…).
+ *
+ * - **Powerlifting**: levantamientos de competición de 2–6 repeticiones (5–6 para quien aprende), 4–6 series y descansos de
+ *   3–5 min; las variantes y los accesorios con menos peso y más repeticiones.
+ * - **Culturismo**: compuestos de 6–12 repeticiones a 1–2 de reserva, aislamientos de 10–15 con 4–5 series y descansos cortos.
+ * - **Strongman**: peso muerto, sentadilla y press de 3–5 repeticiones; acarreos de 30–45 s con descansos largos.
+ * - **Halterofilia (base)**: sentadilla y tirón de 3–5 repeticiones; push press y swing explosivos.
+ * - **Armwrestling**: trabajo de muñeca y antebrazo de 10–15 repeticiones con 4 series; agarres isométricos de 30–40 s.
+ */
+internal object DisciplineRx {
+
+    fun rx(
+        kind: ExKind,
+        role: ItemRole,
+        level: RoutineLevel,
+        mode: RoutineMode,
+        pattern: RoutinePattern,
+        rungReps: IntRange?,
+        rungSeconds: Int?,
+        entryReps: IntRange?,
+    ): Rx? {
+        val isMain = role == ItemRole.MAIN
+        val learning = level == RoutineLevel.NOVICE || level == RoutineLevel.RETURNING
+        return when (mode) {
+            RoutineMode.CUSTOM_POWERLIFTING -> powerlifting(kind, isMain, level, learning)
+            RoutineMode.CUSTOM_BODYBUILDING -> bodybuilding(kind, isMain, level, learning, pattern, rungReps)
+            RoutineMode.DISCIPLINE_STRONGMAN -> strongman(kind, isMain, learning, pattern, rungSeconds, entryReps)
+            RoutineMode.DISCIPLINE_WEIGHTLIFTING_BASE -> weightlifting(kind, isMain, learning, pattern, entryReps, rungReps)
+            RoutineMode.DISCIPLINE_ARMWRESTLING -> armwrestling(kind, learning, rungSeconds)
+            else -> null
+        }
+    }
+
+    private fun powerlifting(kind: ExKind, isMain: Boolean, level: RoutineLevel, learning: Boolean): Rx? = when (kind) {
+        ExKind.HEAVY -> {
+            val reps = when (level) {
+                RoutineLevel.NOVICE, RoutineLevel.RETURNING -> 5..6
+                RoutineLevel.INTERMEDIATE -> 3..5
+                RoutineLevel.ADVANCED -> 2..4
+            }
+            val base = if (isMain) (if (learning) 4 else 5) else (if (learning) 3 else 4)
+            Rx(reps.first, reps.last, null, if (learning) 3 else 2, base, 2, if (isMain) 6 else 5, if (isMain) 240 else 180, Prescriber.MIN_REST_HEAVY, 300, heavy = true)
+        }
+        ExKind.COMPOUND -> Rx(5, 8, null, 2, 3, 2, 5, 120, Prescriber.MIN_REST_COMPOUND, 180, heavy = false)
+        ExKind.ISOLATION -> Rx(8, 12, null, 2, if (learning) 2 else 3, 2, 4, 75, Prescriber.MIN_REST_ISOLATION, 90, heavy = false)
+        else -> null
+    }
+
+    private fun bodybuilding(kind: ExKind, isMain: Boolean, level: RoutineLevel, learning: Boolean, pattern: RoutinePattern, rungReps: IntRange?): Rx? = when (kind) {
+        ExKind.HEAVY -> {
+            val reps = if (isMain) 6..10 else 8..12
+            Rx(reps.first, reps.last, null, if (learning) 3 else 1, if (isMain) 4 else 3, 2, if (isMain) 5 else 4, 120, Prescriber.MIN_REST_COMPOUND, 180, heavy = false)
+        }
+        ExKind.COMPOUND -> {
+            val reps = rungReps ?: if (isMain) 6..10 else 8..12
+            Rx(reps.first, reps.last, null, if (learning) 3 else if (isMain) 1 else 2, if (isMain) 4 else 3, 2, if (isMain) 5 else 4, 105, Prescriber.MIN_REST_COMPOUND, 150, heavy = false)
+        }
+        ExKind.ISOLATION -> {
+            val reps = rungReps ?: if (pattern == RoutinePattern.CALF) 12..20 else 10..15
+            val rir = if (level == RoutineLevel.ADVANCED) 0 else if (learning) 2 else 1
+            Rx(reps.first, reps.last, null, rir, if (learning) 3 else 4, 2, if (learning) 4 else 5, 60, Prescriber.MIN_REST_ISOLATION, 90, heavy = false)
+        }
+        else -> null
+    }
+
+    private fun strongman(kind: ExKind, isMain: Boolean, learning: Boolean, pattern: RoutinePattern, rungSeconds: Int?, entryReps: IntRange?): Rx? = when (kind) {
+        ExKind.HEAVY -> {
+            val reps = if (learning) 5..6 else 3..5
+            Rx(reps.first, reps.last, null, 2, if (isMain) 4 else 3, 2, 5, if (isMain) 210 else 180, Prescriber.MIN_REST_HEAVY, 300, heavy = true)
+        }
+        ExKind.COMPOUND -> Rx(5, 8, null, 2, 3, 2, 5, 120, Prescriber.MIN_REST_COMPOUND, 180, heavy = false)
+        ExKind.BALLISTIC -> {
+            val reps = entryReps ?: 3..5
+            Rx(reps.first, reps.last, null, 4, 4, 2, 6, 150, Prescriber.MIN_REST_COMPOUND, 180, heavy = false)
+        }
+        ExKind.TIMED -> if (pattern == RoutinePattern.CARRY) {
+            Rx(0, 0, rungSeconds ?: if (learning) 30 else 40, 2, 4, 2, 6, 120, Prescriber.MIN_REST_COMPOUND, 150, heavy = false)
+        } else {
+            null
+        }
+        ExKind.ISOLATION -> Rx(8, 12, null, 2, 3, 2, 4, 75, Prescriber.MIN_REST_ISOLATION, 90, heavy = false)
+        else -> null
+    }
+
+    private fun weightlifting(kind: ExKind, isMain: Boolean, learning: Boolean, pattern: RoutinePattern, entryReps: IntRange?, rungReps: IntRange?): Rx? = when (kind) {
+        ExKind.HEAVY -> {
+            val reps = if (learning) 5..6 else 3..5
+            Rx(reps.first, reps.last, null, 2, if (isMain) 4 else 3, 2, 5, 180, Prescriber.MIN_REST_HEAVY, 240, heavy = true)
+        }
+        ExKind.COMPOUND -> Rx(5, 8, null, 2, 3, 2, 4, 120, Prescriber.MIN_REST_COMPOUND, 180, heavy = false)
+        ExKind.BALLISTIC -> {
+            val reps = entryReps ?: rungReps ?: 3..5
+            val explosive = reps.last <= 5
+            Rx(reps.first, reps.last, null, 4, if (explosive) 4 else 3, 2, 6, if (explosive) 120 else 75, if (explosive) Prescriber.MIN_REST_COMPOUND else 60, if (explosive) 180 else 120, heavy = false)
+        }
+        ExKind.ISOLATION -> Rx(8, 12, null, 2, 3, 2, 4, 75, Prescriber.MIN_REST_ISOLATION, 90, heavy = false)
+        else -> null
+    }
+
+    private fun armwrestling(kind: ExKind, learning: Boolean, rungSeconds: Int?): Rx? = when (kind) {
+        ExKind.ISOLATION -> Rx(10, 15, null, 1, if (learning) 3 else 4, 2, 5, 75, 60, 90, heavy = false)
+        ExKind.TIMED -> Rx(0, 0, rungSeconds ?: 35, 2, if (learning) 2 else 3, 2, 5, 75, 60, 90, heavy = false)
+        else -> null
+    }
 }

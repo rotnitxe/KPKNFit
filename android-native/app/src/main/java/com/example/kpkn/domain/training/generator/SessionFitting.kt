@@ -116,9 +116,15 @@ internal class VolumeRoom(private val ctx: GenContext, private val caps: Session
     private fun cap(muscle: String, soft: Boolean): Int =
         capMemo.getOrPut(muscle to soft) { caps.cap(sessionIndex, muscle, soft, ctx.ledger) }
 
+    /**
+     * ¿El bloque se mide contra el objetivo blando (MAV)? Sí cuando se piden series AÑADIDAS ([soft]) o cuando es un hueco extra
+     * (prioridad o relleno), salvo el relleno «duro» que completa el mínimo de ejercicios ([SlotSpec.hard]).
+     */
+    private fun softLimited(bundle: Bundle, soft: Boolean): Boolean = soft || bundle.items.any { it.spec.extra && !it.spec.hard }
+
     /** Series que el músculo admite en esta sesión para [bundle]: el menor entre lo que queda de la semana y el tope de la sesión. */
     private fun limit(bundle: Bundle, muscle: String, soft: Boolean): Double {
-        val limitSoft = soft || bundle.items.any { it.spec.extra }
+        val limitSoft = softLimited(bundle, soft)
         val remaining = if (limitSoft) ctx.ledger.remainingTarget(muscle) else ctx.ledger.remaining(muscle)
         return minOf(remaining, cap(muscle, limitSoft).toDouble())
     }
@@ -208,7 +214,7 @@ internal class VolumeRoom(private val ctx: GenContext, private val caps: Session
     fun maxSets(bundle: Bundle, bundles: List<Bundle>, soft: Boolean = false): Int {
         // Lo que se AÑADE al reparto base (un hueco extra que pide una prioridad o un relleno) solo llega al objetivo blando; el
         // techo duro es para los huecos del plan, cuyos compuestos cuentan como series directas de varios músculos a la vez.
-        val limitSoft = soft || bundle.items.any { it.spec.extra }
+        val limitSoft = softLimited(bundle, soft)
         val own = perSet(bundle)
         if (own.isEmpty()) return bundle.maxSets
         val used = HashMap<String, Double>()

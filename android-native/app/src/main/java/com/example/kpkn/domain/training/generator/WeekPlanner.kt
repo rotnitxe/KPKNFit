@@ -63,7 +63,7 @@ internal object WeekPlanner {
     private fun demandOf(slots: List<SlotSpec>): Double =
         slots.sumOf { PatternCatalog.of(it.pattern).demandWeight * roleWeight(it.role) }
 
-    private fun plan(
+    internal fun plan(
         key: String,
         title: String,
         focus: String,
@@ -73,7 +73,8 @@ internal object WeekPlanner {
         cardio: CardioMode? = null,
         mobility: MobilitySpec? = null,
         supersets: Boolean = false,
-    ) = SessionPlan(key, title, focus, kind, region, slots, cardio, mobility, supersets, demandOf(slots))
+        fillers: List<RoutinePattern>? = null,
+    ) = SessionPlan(key, title, focus, kind, region, slots, cardio, mobility, supersets, demandOf(slots), fillers)
 
     // ─── Bloques de fuerza y masa muscular ─────────────────────────────────────────────────────────────────
 
@@ -194,7 +195,7 @@ internal object WeekPlanner {
         ),
     )
 
-    private fun recovery(): SessionPlan = plan(
+    internal fun recovery(): SessionPlan = plan(
         "REC", "Movilidad y cardio suave", "Recuperación activa: movilidad y una caminata fácil",
         RoutineSessionKind.MOBILITY, SessionRegion.NONE, emptyList(),
         cardio = CardioMode.LIGHT_FILL,
@@ -328,13 +329,35 @@ internal object WeekPlanner {
 
     // ─── Entrada ───────────────────────────────────────────────────────────────────────────────────────────
 
+    /**
+     * Culturismo «a medida»: la semana se reparte por grupos musculares (cuerpo completo; torso/pierna; empuje, tirón y pierna)
+     * en vez de por patrones de fuerza, con más frecuencia por músculo que un reparto de fuerza.
+     */
+    private fun bodybuildingWeek(n: Int): List<SessionPlan> = when (n) {
+        1 -> listOf(fullBody())
+        2 -> listOf(torsoA("Torso"), legsA("Pierna"))
+        3 -> listOf(pushA("Empuje"), pullA("Tirón"), legsA("Pierna"))
+        4 -> listOf(torsoA("Torso A"), legsA("Pierna A"), torsoB("Torso B"), legsB("Pierna B"))
+        5 -> listOf(pushA("Empuje"), pullA("Tirón"), legsA("Pierna"), torsoB("Torso"), legsB("Pierna B"))
+        6 -> listOf(pushA("Empuje A"), pullA("Tirón A"), legsA("Pierna A"), pushB("Empuje B"), pullB("Tirón B"), legsB("Pierna B"))
+        else -> listOf(
+            pushA("Empuje A"), pullA("Tirón A"), legsA("Pierna A"), pushB("Empuje B"), pullB("Tirón B"), legsB("Pierna B"),
+            recovery(),
+        )
+    }
+
     /** Sesiones de la semana en orden CÍCLICO canónico (una por día de entreno). */
     fun plans(ctx: GenContext): List<SessionPlan> {
         val n = ctx.days.size
-        val raw = when (ctx.mode) {
+        val discipline = ctx.discipline
+        val raw = (DisciplineWeeks.plans(ctx.mode, n) ?: when (ctx.mode) {
             RoutineMode.GENERAL_HYBRID -> hybridWeek(ctx, n)
             RoutineMode.GENERAL_FUNCTIONAL -> functionalWeek(n)
+            RoutineMode.CUSTOM_BODYBUILDING -> bodybuildingWeek(n)
             else -> strengthWeek(ctx, n)
+        }).map { plan ->
+            // El relleno de la sesión sale de la disciplina (el antebrazo no se rellena con zancadas ni con elevaciones laterales).
+            if (plan.fillers == null && plan.slots.isNotEmpty() && discipline?.fillers != null) plan.copy(fillers = discipline.fillers) else plan
         }
         return applyPriorities(raw, ctx)
     }
@@ -346,6 +369,7 @@ internal object WeekPlanner {
     fun applyPriorities(plans: List<SessionPlan>, ctx: GenContext): List<SessionPlan> {
         val symbols = ctx.request.priorityMuscles.distinct().take(5)
         if (symbols.isEmpty()) return plans
+        val allowExtras = ctx.discipline?.priorityExtras ?: true
         val targets = symbols.map { PriorityTargets.of(it) }
         val boostedPatterns = targets.flatMap { it.patterns }.toSet()
         return plans.map { plan ->
@@ -354,7 +378,7 @@ internal object WeekPlanner {
                 if (slot.pattern in boostedPatterns && slot.role != ItemRole.POWER) slot.copy(boosted = true) else slot
             }
             val extras = ArrayList<SlotSpec>()
-            targets.forEach { target ->
+            if (allowExtras) targets.forEach { target ->
                 val inPlan = boosted.count { it.pattern in target.patterns }
                 val candidates = target.extra.filter { (pattern, _) -> PatternCatalog.accepts(plan.region, pattern) }
                 if (candidates.isEmpty()) return@forEach

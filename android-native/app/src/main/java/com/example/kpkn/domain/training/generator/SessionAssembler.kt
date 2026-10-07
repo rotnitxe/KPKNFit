@@ -102,8 +102,13 @@ internal object SessionAssembler {
         RoutinePattern.BACK_EXTENSION, RoutinePattern.CORE_ROTATION, RoutinePattern.GRIP,
     )
 
-    private fun fillerPatterns(region: SessionRegion): List<RoutinePattern> =
-        FILLER_ORDER.filter { PatternCatalog.accepts(region, it) }
+    /** Relleno de la sesión: los patrones propios del plan (disciplinas) o los generales que admite su región. */
+    private fun fillerPatterns(plan: SessionPlan): List<RoutinePattern> =
+        plan.fillers ?: FILLER_ORDER.filter { PatternCatalog.accepts(plan.region, it) }
+
+    /** Para llegar al mínimo de ejercicios: primero los propios de la disciplina y, si no alcanzan, los generales. */
+    private fun minimumFillerPatterns(plan: SessionPlan): List<RoutinePattern> =
+        (plan.fillers.orEmpty() + FILLER_ORDER.filter { PatternCatalog.accepts(plan.region, it) }).distinct()
 
     private val CORE_PATTERNS = setOf(RoutinePattern.CORE_STABILITY, RoutinePattern.CORE_ROTATION, RoutinePattern.BACK_EXTENSION)
 
@@ -163,7 +168,7 @@ internal object SessionAssembler {
         val drafts = ArrayList<DraftItem>()
         val strengthWanted = plan.slots.isNotEmpty()
         plan.slots.forEachIndexed { index, spec ->
-            val candidate = ExerciseSelector.choose(spec.pattern, spec.role, ctx, equipment, use, salt = sessionIndex * 17 + index, region = plan.region)
+            val candidate = ExerciseSelector.choose(spec.pattern, spec.role, ctx, equipment, use, salt = sessionIndex * 17 + index, region = plan.region, tag = spec.tag)
             if (candidate == null) {
                 ctx.missing[spec.pattern] = (ctx.missing[spec.pattern] ?: 0) + 1
                 return@forEachIndexed
@@ -172,12 +177,12 @@ internal object SessionAssembler {
             drafts += draftOf(ctx, spec, candidate, drafts.size)
         }
         if (strengthWanted && plan.kind != RoutineSessionKind.CARDIO && drafts.size < MIN_STRENGTH_ITEMS && plan.cardio != CardioMode.INTERVALS_FILL) {
-            for (pattern in fillerPatterns(plan.region)) {
+            for (pattern in minimumFillerPatterns(plan)) {
                 if (drafts.size >= MIN_STRENGTH_ITEMS) break
                 val role = defaultRole(pattern)
                 val candidate = ExerciseSelector.choose(pattern, role, ctx, equipment, use, salt = sessionIndex * 17 + 99, region = plan.region) ?: continue
                 use.add(candidate)
-                drafts += draftOf(ctx, SlotSpec(pattern, role, extra = true), candidate, drafts.size)
+                drafts += draftOf(ctx, SlotSpec(pattern, role, extra = true, hard = true), candidate, drafts.size)
             }
         }
 
@@ -416,20 +421,41 @@ internal object SessionAssembler {
         if (plan.region == SessionRegion.NONE || plan.kind == RoutineSessionKind.CARDIO) return
         var added = 0
         while (added < MAX_FILLERS && MinuteFitter.total(bundles, env) < env.targetSec - FILL_SLACK_SECONDS) {
-            val draft = pickFiller(ctx, plan, bundles, drafts, use, equipment, room, sessionIndex) ?: break
-            val bundle = Bundle(listOf(draft))
-            drafts += draft
-            bundles += bundle
-            use.add(draft.candidate)
-            MinuteFitter.fit(bundles, env)
+            if (!addFiller(ctx, plan, bundles, drafts, use, equipment, room, env, sessionIndex, hard = false)) break
             added++
-            if (!bundle.included) {
-                bundles.remove(bundle)
-                drafts.remove(draft)
-                MinuteFitter.fit(bundles, env)
-                break
-            }
         }
+        // Mínimo de ejercicios: si el objetivo semanal (MAV) de los músculos de relleno ya está agotado por las demás sesiones,
+        // se acepta el techo duro (MRV) antes que dejar una sesión de fuerza con menos de 3 ejercicios.
+        var guard = 0
+        while (MinuteFitter.itemCount(bundles) < MIN_STRENGTH_ITEMS && guard++ < MAX_FILLERS) {
+            if (!addFiller(ctx, plan, bundles, drafts, use, equipment, room, env, sessionIndex, hard = true)) break
+        }
+    }
+
+    /** Añade un ejercicio de relleno y reajusta; false si no hay ninguno posible o el ajuste no lo admite (entonces se retira). */
+    private fun addFiller(
+        ctx: GenContext,
+        plan: SessionPlan,
+        bundles: ArrayList<Bundle>,
+        drafts: ArrayList<DraftItem>,
+        use: SessionUse,
+        equipment: DayEquipment,
+        room: VolumeRoom,
+        env: FitEnv,
+        sessionIndex: Int,
+        hard: Boolean,
+    ): Boolean {
+        val draft = pickFiller(ctx, plan, bundles, drafts, use, equipment, room, sessionIndex, hard) ?: return false
+        val bundle = Bundle(listOf(draft))
+        drafts += draft
+        bundles += bundle
+        use.add(draft.candidate)
+        MinuteFitter.fit(bundles, env)
+        if (bundle.included) return true
+        bundles.remove(bundle)
+        drafts.remove(draft)
+        MinuteFitter.fit(bundles, env)
+        return false
     }
 
     /**
@@ -446,6 +472,7 @@ internal object SessionAssembler {
         equipment: DayEquipment,
         room: VolumeRoom,
         sessionIndex: Int,
+        hard: Boolean,
     ): DraftItem? {
         val inSession = HashMap<String, Double>()
         bundles.filter { it.included }.forEach { bundle ->
@@ -461,13 +488,13 @@ internal object SessionAssembler {
         // core (estabilidad, rotación y extensión de espalda) no pasa de dos ejercicios entre los del plan y los de relleno.
         val present = drafts.mapTo(HashSet()) { it.spec.pattern }
         val coreCount = drafts.count { it.spec.pattern in CORE_PATTERNS }
-        fillerPatterns(plan.region).forEachIndexed { order, pattern ->
+        (if (hard) minimumFillerPatterns(plan) else fillerPatterns(plan)).forEachIndexed { order, pattern ->
             if (pattern in present) return@forEachIndexed
             if (pattern in CORE_PATTERNS && coreCount >= 2) return@forEachIndexed
             val role = defaultRole(pattern)
             val candidate = ExerciseSelector.choose(pattern, role, ctx, equipment, use, salt = sessionIndex * 17 + 200 + order, region = plan.region)
                 ?: return@forEachIndexed
-            val draft = draftOf(ctx, SlotSpec(pattern, role, extra = true), candidate, drafts.size)
+            val draft = draftOf(ctx, SlotSpec(pattern, role, extra = true, hard = hard), candidate, drafts.size)
             val probe = Bundle(listOf(draft))
             if (room.maxSets(probe, bundles) < probe.minSets) return@forEachIndexed
             val deficit = PatternCatalog.of(pattern).muscles.sumOf { muscle ->

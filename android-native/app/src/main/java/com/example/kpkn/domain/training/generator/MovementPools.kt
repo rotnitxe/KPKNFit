@@ -56,6 +56,12 @@ internal data class PoolEntry(
     val variant: String? = null,
     /** Repeticiones propias del ejercicio (balísticos); null = las del tipo. */
     val reps: IntRange? = null,
+    /**
+     * Familia de movimiento dentro del patrón (solo las reservas de disciplina): un hueco con etiqueta (`SlotSpec.tag`) solo
+     * admite entradas con esa misma etiqueta. Así una sesión de antebrazo pide flexión de muñeca, extensión, pronación y
+     * supinación en vez de cuatro curls de muñeca con barra.
+     */
+    val tag: String? = null,
 )
 
 /** Alternativas equivalentes del mismo implemento. [bias] suma al rango de preferencia (más alto = más atrás). */
@@ -72,7 +78,8 @@ private fun e(
     factor: Double = 1.0,
     variant: String? = null,
     reps: IntRange? = null,
-): PoolEntry = PoolEntry(id, requires.toList(), kind, basic, minLevel, fitsRole, mark, factor, variant, reps)
+    tag: String? = null,
+): PoolEntry = PoolEntry(id, requires.toList(), kind, basic, minLevel, fitsRole, mark, factor, variant, reps, tag)
 
 private fun g(vararg entries: PoolEntry, bias: Double = 0.0): PoolGroup = PoolGroup(entries.toList(), bias)
 
@@ -422,5 +429,161 @@ internal object MovementPools {
     /** Todos los ids citados por las reservas (para la prueba de catálogo). */
     val allIds: Set<String> by lazy {
         byPattern.values.flatten().flatMap { it.entries }.map { it.id }.toSet()
+    }
+}
+
+/**
+ * Reservas propias de cada modo de disciplina (Fase 2). Se ANTEPONEN a la reserva general del patrón (`MovementPools`), que
+ * queda de recurso cuando falta el material (p. ej. sin barra, las sentadillas de strongman bajan a mancuernas). Salen del
+ * catálogo actual: lo que no tiene la disciplina va en `DisciplineSpec.missing`.
+ */
+internal object DisciplinePools {
+
+    private val INT = RoutineLevel.INTERMEDIATE
+    private val ADV = RoutineLevel.ADVANCED
+
+    // Familias de movimiento del antebrazo (armwrestling).
+    const val WRIST_FLEXION = "wrist_flexion"
+    const val WRIST_EXTENSION = "wrist_extension"
+    const val PRONATION = "pronation"
+    const val SUPINATION = "supination"
+    const val REVERSE_CURL = "reverse_curl"
+    const val HOLD = "hold"
+
+    /**
+     * Antebrazo y muñeca: las diez definiciones del catálogo con el antebrazo como músculo principal que se pueden
+     * ejecutar con barra, mancuernas, polea, barra EZ, banda y kettlebell, repartidas por familia de movimiento.
+     */
+    private val armwrestlingGrip = listOf(
+        g(
+            e("forearms_curl_muneca_sentado__barbell", kind = ExKind.ISOLATION, tag = WRIST_FLEXION),
+            e("forearms_curl_muneca_de_pie_tras_espalda_barra__default", kind = ExKind.ISOLATION, tag = WRIST_FLEXION),
+            e("forearms_curl_muneca_inverso_sentado__barbell", kind = ExKind.ISOLATION, tag = WRIST_EXTENSION),
+        ),
+        g(
+            e("forearms_curl_muneca_sentado__ez_bar", kind = ExKind.ISOLATION, tag = WRIST_FLEXION),
+            e("forearms_curl_muneca_inverso_sentado__ez_bar", kind = ExKind.ISOLATION, tag = WRIST_EXTENSION),
+        ),
+        g(
+            e("forearms_curl_muneca_sentado__dumbbells", kind = ExKind.ISOLATION, tag = WRIST_FLEXION),
+            e("forearms_curl_muneca_inverso_sentado__dumbbells", kind = ExKind.ISOLATION, tag = WRIST_EXTENSION),
+            e("pronation__dumbbells", kind = ExKind.ISOLATION, tag = PRONATION),
+            e("supination__dumbbells", kind = ExKind.ISOLATION, tag = SUPINATION),
+            e("reverse_curl__dumbbells", kind = ExKind.ISOLATION, tag = REVERSE_CURL),
+        ),
+        g(
+            e("forearms_curl_muneca_sentado__cable", kind = ExKind.ISOLATION, tag = WRIST_FLEXION),
+            e("forearms_curl_muneca_inverso_sentado__cable", kind = ExKind.ISOLATION, tag = WRIST_EXTENSION),
+            e("pronation__cable", kind = ExKind.ISOLATION, tag = PRONATION),
+            e("supination__cable", kind = ExKind.ISOLATION, tag = SUPINATION),
+            e("reverse_curl__cable", kind = ExKind.ISOLATION, tag = REVERSE_CURL),
+        ),
+        g(e("reverse_curl__kettlebell", kind = ExKind.ISOLATION, tag = REVERSE_CURL)),
+        g(e("reverse_curl__band", kind = ExKind.ISOLATION, tag = REVERSE_CURL)),
+        g(e("forearms_suspension_isometrica_barra_fija__default", "pull_up_bar", kind = ExKind.TIMED, tag = HOLD)),
+    )
+
+    /** Sentadilla y peso muerto del strongman: Zercher además de las de siempre, y peso muerto de piso con sus variantes. */
+    private val strongmanSquat = listOf(
+        g(
+            e("quads_sentadilla_zercher_barra_recta__default", "rack", kind = ExKind.HEAVY, minLevel = INT, fitsRole = ItemRole.SECONDARY, mark = LiftMark.SQUAT, factor = 0.8),
+        ),
+    )
+    private val strongmanHinge = listOf(
+        g(
+            e("conventional_deadlift__bilateral__barbell", kind = ExKind.HEAVY, basic = true, fitsRole = ItemRole.MAIN, mark = LiftMark.DEADLIFT),
+            e("sumo_deadlift__barbell", kind = ExKind.HEAVY, minLevel = INT, fitsRole = ItemRole.MAIN, mark = LiftMark.DEADLIFT),
+            e("deadlift_to_knees__barbell", kind = ExKind.HEAVY, minLevel = INT, fitsRole = ItemRole.SECONDARY, mark = LiftMark.DEADLIFT, factor = 0.85),
+            e("good_morning_zercher__default", minLevel = ADV, fitsRole = ItemRole.ACCESSORY),
+        ),
+    )
+    private val strongmanSingleLeg = listOf(
+        g(
+            e("quads_zancada_caminando_zercher_barra_recta__default", minLevel = INT),
+            e("quads_zancada_frontal_zercher__default", minLevel = INT),
+            e("quads_zancada_inversa_zercher__default", minLevel = INT),
+        ),
+    )
+    private val strongmanVerticalPush = listOf(
+        g(
+            e("military_press__barbell", kind = ExKind.HEAVY, basic = true, fitsRole = ItemRole.MAIN, mark = LiftMark.OVERHEAD_PRESS),
+            e("deltoides_push_press__default", kind = ExKind.BALLISTIC, minLevel = INT, fitsRole = ItemRole.MAIN, mark = LiftMark.OVERHEAD_PRESS, factor = 1.1, reps = 3..5),
+        ),
+    )
+
+    /** Halterofilia base: sentadilla frontal antes que la trasera, push press, y el peso muerto hasta la rodilla como tirón. */
+    private val weightliftingSquat = listOf(
+        g(
+            e("front_squat__barbell", "rack", kind = ExKind.HEAVY, basic = true, fitsRole = ItemRole.MAIN, mark = LiftMark.SQUAT, factor = 0.8),
+            e("high_bar_back_squat__barbell", "rack", kind = ExKind.HEAVY, basic = true, fitsRole = ItemRole.MAIN, mark = LiftMark.SQUAT),
+            e("paused_back_squat__barbell", "rack", kind = ExKind.HEAVY, minLevel = INT, fitsRole = ItemRole.SECONDARY, mark = LiftMark.SQUAT, factor = 0.85),
+        ),
+    )
+    private val weightliftingHinge = listOf(
+        g(
+            e("deadlift_to_knees__barbell", kind = ExKind.HEAVY, basic = true, fitsRole = ItemRole.MAIN, mark = LiftMark.DEADLIFT, factor = 0.85),
+            e("conventional_deadlift__bilateral__barbell", kind = ExKind.HEAVY, basic = true, fitsRole = ItemRole.MAIN, mark = LiftMark.DEADLIFT),
+            e("romanian_deadlift__bilateral__barbell", basic = true, fitsRole = ItemRole.SECONDARY, mark = LiftMark.DEADLIFT, factor = 0.7),
+        ),
+    )
+    private val weightliftingPower = listOf(
+        g(
+            e("deltoides_push_press__default", kind = ExKind.BALLISTIC, basic = true, reps = 3..5, mark = LiftMark.OVERHEAD_PRESS, factor = 1.1),
+        ),
+        g(e("hams_swing_kettlebell_dos_manos__default", kind = ExKind.BALLISTIC, basic = true, reps = 8..12)),
+    )
+
+    /** Powerlifting: los tres levantamientos de competición primero, y sus variantes (pausa, agarre cerrado, déficit parcial). */
+    private val powerliftingSquat = listOf(
+        g(
+            e("low_bar_back_squat__barbell", "rack", kind = ExKind.HEAVY, basic = true, fitsRole = ItemRole.MAIN, mark = LiftMark.SQUAT),
+            e("high_bar_back_squat__barbell", "rack", kind = ExKind.HEAVY, basic = true, fitsRole = ItemRole.MAIN, mark = LiftMark.SQUAT),
+            e("paused_back_squat__barbell", "rack", kind = ExKind.HEAVY, minLevel = INT, fitsRole = ItemRole.SECONDARY, mark = LiftMark.SQUAT, factor = 0.85),
+            e("front_squat__barbell", "rack", kind = ExKind.HEAVY, minLevel = INT, fitsRole = ItemRole.SECONDARY, mark = LiftMark.SQUAT, factor = 0.8),
+        ),
+    )
+    private val powerliftingBench = listOf(
+        g(
+            e("bench_press__barbell", "bench", "rack", kind = ExKind.HEAVY, basic = true, fitsRole = ItemRole.MAIN, mark = LiftMark.BENCH),
+            e("close_grip_bench_press__barbell", "bench", "rack", kind = ExKind.HEAVY, fitsRole = ItemRole.SECONDARY, mark = LiftMark.BENCH, factor = 0.9),
+            e("incline_bench_press__barbell", "bench", "bench_incline", "rack", kind = ExKind.HEAVY, minLevel = INT, fitsRole = ItemRole.SECONDARY, mark = LiftMark.BENCH, factor = 0.8),
+        ),
+    )
+    private val powerliftingHinge = listOf(
+        g(
+            e("conventional_deadlift__bilateral__barbell", kind = ExKind.HEAVY, basic = true, fitsRole = ItemRole.MAIN, mark = LiftMark.DEADLIFT),
+            e("sumo_deadlift__barbell", kind = ExKind.HEAVY, basic = true, fitsRole = ItemRole.MAIN, mark = LiftMark.DEADLIFT),
+            e("deadlift_to_knees__barbell", kind = ExKind.HEAVY, minLevel = INT, fitsRole = ItemRole.SECONDARY, mark = LiftMark.DEADLIFT, factor = 0.85),
+            e("romanian_deadlift__bilateral__barbell", fitsRole = ItemRole.SECONDARY, mark = LiftMark.DEADLIFT, factor = 0.7),
+            e("stiff_leg_deadlift__bilateral__barbell", minLevel = INT, fitsRole = ItemRole.ACCESSORY, mark = LiftMark.DEADLIFT, factor = 0.65),
+        ),
+    )
+
+    /** Reservas que cada modo antepone, por patrón. */
+    val byMode: Map<RoutineMode, Map<RoutinePattern, List<PoolGroup>>> = mapOf(
+        RoutineMode.DISCIPLINE_ARMWRESTLING to mapOf(RoutinePattern.GRIP to armwrestlingGrip),
+        RoutineMode.DISCIPLINE_STRONGMAN to mapOf(
+            RoutinePattern.SQUAT to strongmanSquat,
+            RoutinePattern.HINGE to strongmanHinge,
+            RoutinePattern.SINGLE_LEG to strongmanSingleLeg,
+            RoutinePattern.VERTICAL_PUSH to strongmanVerticalPush,
+        ),
+        RoutineMode.DISCIPLINE_WEIGHTLIFTING_BASE to mapOf(
+            RoutinePattern.SQUAT to weightliftingSquat,
+            RoutinePattern.HINGE to weightliftingHinge,
+            RoutinePattern.POWER to weightliftingPower,
+        ),
+        RoutineMode.CUSTOM_POWERLIFTING to mapOf(
+            RoutinePattern.SQUAT to powerliftingSquat,
+            RoutinePattern.HORIZONTAL_PUSH to powerliftingBench,
+            RoutinePattern.HINGE to powerliftingHinge,
+        ),
+    )
+
+    /** Todos los ids que citan las reservas de disciplina (para la prueba de catálogo). */
+    val allEntries: List<Pair<String, PoolEntry>> by lazy {
+        byMode.flatMap { (mode, patterns) ->
+            patterns.flatMap { (pattern, groups) -> groups.flatMap { group -> group.entries.map { "${mode.name}/${pattern.name}" to it } } }
+        }
     }
 }

@@ -33,6 +33,9 @@ import kotlin.math.floor
  *   se quedan en dos o tres ejercicios.
  * - **Funcional** ([FUNCTIONAL_CEILING_FACTOR] ×1,25 a todos): las series funcionales son submáximas (RIR 3–4, 8–15
  *   repeticiones) y el MRV de la literatura cuenta series «duras» (0–4 RIR); además cada sesión es de cuerpo completo.
+ *
+ * Las disciplinas escalan además los músculos que cargan de forma distinta (`DisciplineSpec.volumeScale`): el antebrazo del
+ * armwrestling, el agarre y la espalda alta del strongman.
  */
 internal class VolumeBudgets(
     val recommendations: List<VolumeRecommendation>,
@@ -120,6 +123,7 @@ internal class VolumeBudgets(
             val personal = calibration.recommendations.associateBy { VolumeCalculator.normalizeCanonicalMuscleGroup(it.muscleGroup) }
             val factor = levelFactor(request.level)
             val hardScale = if (request.mode == RoutineMode.GENERAL_FUNCTIONAL) FUNCTIONAL_CEILING_FACTOR else 1.0
+            val disciplineScale = Disciplines.of(request.mode)?.volumeScale.orEmpty()
             val ceilings = LinkedHashMap<String, Int>()
             val targets = LinkedHashMap<String, Int>()
             val floors = LinkedHashMap<String, Int>()
@@ -131,8 +135,9 @@ internal class VolumeBudgets(
                 val mev = (recommendation?.minEffectiveVolume ?: global.mev).coerceIn(0, minOf(mav, mrv))
                 val soft = minOf(mav, mrv)
                 val comover = if (muscle in COMOVERS) COMOVER_FACTOR else 1.0
-                ceilings[muscle] = maxOf(floor(mrv * factor * hardScale * comover).toInt(), minOf(mrv, 4))
-                targets[muscle] = maxOf(floor(soft * factor).toInt(), minOf(soft, 4))
+                val own = disciplineScale[muscle] ?: 1.0
+                ceilings[muscle] = maxOf(floor(mrv * factor * hardScale * comover * own).toInt(), minOf(mrv, 4))
+                targets[muscle] = maxOf(floor(soft * factor * own).toInt(), minOf(soft, 4))
                 floors[muscle] = mev
             }
             return VolumeBudgets(calibration.recommendations, ceilings, targets, floors, style)

@@ -51,8 +51,22 @@ internal class GenContext(
     /** Marcas de decisiones que alimentan las notas (p. ej. `hinge_bodyweight`). */
     val flags: MutableSet<String> = HashSet()
 
+    /** Lo que cambia el modo de disciplina (null en los modos generales). */
+    val discipline: DisciplineSpec? = Disciplines.of(request.mode)
+
+    private val groupsMemo = HashMap<RoutinePattern, List<PoolGroup>>()
+
+    /** Grupos de la reserva de [pattern]: los propios de la disciplina (si hay) y, detrás, los generales como recurso. */
+    fun groupsFor(pattern: RoutinePattern): List<PoolGroup> = groupsMemo.getOrPut(pattern) {
+        discipline?.pools?.get(pattern).orEmpty() + MovementPools.byPattern[pattern].orEmpty()
+    }
+
+    /** ¿El modo admite el material de esta configuración? (la calistenia no usa pesas aunque el lugar las tenga). */
+    fun tierAllowed(entry: CatalogEntry): Boolean = discipline?.allowedTiers?.let { entry.tier in it } ?: true
+
     /** Perfil de ranking de material según modo y nivel. */
     val rankProfile: RankProfile = when {
+        request.mode == RoutineMode.DISCIPLINE_CALISTHENICS -> RankProfile.CALISTHENICS
         request.mode == RoutineMode.GENERAL_FUNCTIONAL -> RankProfile.FUNCTIONAL
         request.level == RoutineLevel.NOVICE || request.level == RoutineLevel.RETURNING -> RankProfile.LEARNING
         else -> RankProfile.STANDARD
@@ -74,4 +88,4 @@ internal class GenContext(
     val preferredCardioType: CardioType? get() = request.cardio?.type
 }
 
-internal enum class RankProfile { STANDARD, LEARNING, FUNCTIONAL }
+internal enum class RankProfile { STANDARD, LEARNING, FUNCTIONAL, CALISTHENICS }
