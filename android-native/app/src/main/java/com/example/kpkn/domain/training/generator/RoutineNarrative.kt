@@ -136,7 +136,7 @@ internal object RoutineNarrative {
         RoutinePattern.HORIZONTAL_PULL to
             "Sin barra baja, bandas, mancuernas, poleas ni barra no hay remo: añadir unas bandas o unas mancuernas completa tu espalda.",
         RoutinePattern.VERTICAL_PUSH to
-            "Sin mancuernas, barra, kettlebell ni poleas no hay empuje vertical (press de hombros): unas mancuernas o una barra lo resuelven.",
+            "Sin mancuernas, barra, kettlebell ni poleas el empuje vertical es la flexión en pica, que pide antes una flexión estándar bien hecha: unas mancuernas o una barra lo cubren desde el primer día.",
         RoutinePattern.HORIZONTAL_PUSH to
             "Con tu material no hay empuje horizontal: unas mancuernas, una barra o simplemente suelo y manos (flexiones) lo cubren.",
         RoutinePattern.SQUAT to
@@ -146,6 +146,9 @@ internal object RoutineNarrative {
         RoutinePattern.POWER to
             "Sin kettlebell, mancuernas ni barra no hay trabajo de potencia (balanceos, press de impulso): una kettlebell lo resuelve; los saltos y lanzamientos aún no están en el catálogo.",
     )
+
+    private const val CALISTHENICS_VERTICAL_PUSH_ADVICE =
+        "Sin una base de flexiones estándar aún no hay empuje vertical: la pica entra en cuanto las flexiones salgan con soltura."
 
     private val isolationLabels: Map<RoutinePattern, String> = mapOf(
         RoutinePattern.BICEPS to "bíceps",
@@ -191,11 +194,15 @@ internal object RoutineNarrative {
     /** Notas por los patrones que ninguna sesión pudo cubrir (accionables) y por la bisagra sin carga. */
     fun gapNotes(ctx: GenContext, missing: Set<RoutinePattern>): List<String> {
         val notes = ArrayList<String>()
-        patternAdvice.forEach { (pattern, text) -> if (pattern in missing) notes += text }
+        patternAdvice.forEach { (pattern, text) ->
+            if (pattern !in missing) return@forEach
+            // La calistenia no usa pesas: su empuje vertical es la progresión de flexiones (la pica), no unas mancuernas.
+            notes += if (pattern == RoutinePattern.VERTICAL_PUSH && ctx.discipline?.allowedTiers != null) CALISTHENICS_VERTICAL_PUSH_ADVICE else text
+        }
         if (RoutinePattern.HINGE in missing) {
             notes += "Sin carga no hay bisagra de cadera (peso muerto): unas mancuernas o una kettlebell la completan."
         } else if ("hinge_bodyweight" in ctx.flags && ctx.discipline?.allowedTiers == null) {
-            notes += "Sin carga la bisagra de cadera se hace con puentes de glúteos (el catálogo no trae peso muerto a una pierna sin carga): unas mancuernas o una kettlebell la completan."
+            notes += "Sin carga la bisagra de cadera se queda en buenos días y peso muerto rumano a una pierna con tu peso corporal (más los puentes de glúteos): unas mancuernas o una kettlebell le dan la carga que le falta."
         }
         if ("pull_gap_compensation" in ctx.flags) {
             notes += "Como no hay tracción, la semana suma extensiones de espalda y trabajo escapular; no sustituyen a un remo ni a una dominada."
