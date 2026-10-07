@@ -7,5 +7,10 @@
             android:name="com.example.kpkn.debug.EntrenoSymbolsPreviewActivity"
             android:exported="true"
             android:theme="@style/Theme.KPKN" />
+        <!-- SOLO DEPURACIÓN: vista previa de la semana y el tiempo de Entreno (día de energía, calendario, dial); no se integra. -->
+        <activity
+            android:name="com.example.kpkn.debug.EntrenoWeekPreviewActivity"
+            android:exported="true"
+            android:theme="@style/Theme.KPKN" />
     </application>
 </manifest>
