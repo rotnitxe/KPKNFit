@@ -19,13 +19,23 @@ import com.example.kpkn.data.models.CalibrationResponseState
 import com.example.kpkn.data.models.InitialRecoveryAxialExposure
 import com.example.kpkn.data.models.InitialRecoveryMuscleScope
 import com.example.kpkn.data.models.VolumeCalibrationProfile
-import com.example.kpkn.data.models.AutoregulationMode
 import com.example.kpkn.data.models.TrainingStyle
 import com.example.kpkn.data.programs.toTrainingReference
 import com.example.kpkn.domain.nutrition.NutritionConfigurationMode
 import com.example.kpkn.domain.nutrition.parseLocalizedNumber
 import com.example.kpkn.domain.training.PersonalizationReport
 import com.example.kpkn.domain.training.TrainingValidation
+import com.example.kpkn.domain.onboarding.CapabilityLevel
+import com.example.kpkn.domain.onboarding.CapabilityRules
+import com.example.kpkn.domain.onboarding.CapabilitySkill
+import com.example.kpkn.domain.onboarding.EntrenoStepValues
+import com.example.kpkn.domain.onboarding.EquipmentSymbolId
+import com.example.kpkn.domain.onboarding.EquipmentSymbols
+import com.example.kpkn.domain.onboarding.LiftMark
+import com.example.kpkn.domain.onboarding.MarksContext
+import com.example.kpkn.domain.onboarding.TrainingGoalProfile
+import com.example.kpkn.domain.onboarding.TrainingGoalRequirements
+import com.example.kpkn.domain.onboarding.TrainingPlace
 import com.example.kpkn.domain.onboarding.RingsCoverage
 import com.example.kpkn.domain.onboarding.PlanRejectionReason
 import com.example.kpkn.domain.onboarding.PlanRepair
@@ -189,10 +199,13 @@ enum class SetupExperience(val label: String) { NEW("Estoy empezando"), RETURNIN
 enum class SetupTrainingPath(val label: String) { PERSONALIZE("Personaliza un plan"), FROM_SCRATCH("Crea desde cero") }
 
 /**
- * Exactly four visible profiles (§15.1 / P-104): Fuerza, Músculo, Fuerza y
- * músculo and Atleta completo. `HEALTH` and `MIXED` survive ONLY so legacy
- * drafts keep reading; they are never auto-converted (the repair marks GOAL for
- * review and suggests Atleta completo without selecting it).
+ * Objetivo que entiende el motor actual (candidatos, planes propios, cardio). Es el **derivado** del perfil que la
+ * persona elige en GOAL ([SetupWizardDraft.goalProfile], ver `GoalProfileMapping`): el paso ya no escribe estos valores
+ * directamente. `HEALTH` y `MIXED` sobreviven SOLO para leer borradores antiguos; el alta nuevo no los escribe.
+ *
+ * `FUNCTIONAL`, `CALISTHENICS`, `WEIGHTLIFTING`, `ARMWRESTLING` y `STRONGMAN` son los perfiles que añade Entreno v2: el
+ * motor actual los sirve con una asignación segura (los generales como Atleta completo; las disciplinas, sin plan
+ * propio y filtradas por el estilo de calibración) hasta que el generador nuevo los sirva por sí mismo.
  */
 @Serializable
 enum class SetupGoal(val label: String) {
@@ -201,34 +214,55 @@ enum class SetupGoal(val label: String) {
     STRENGTH_MUSCLE("Fuerza y músculo"),
     COMPLETE_ATHLETE("Atleta completo"),
     HEALTH("Salud y condición"),
-    MIXED("Fuerza + cardio");
+    MIXED("Fuerza + cardio"),
+    FUNCTIONAL("Funcional y saludable"),
+    CALISTHENICS("Calistenia"),
+    WEIGHTLIFTING("Halterofilia"),
+    ARMWRESTLING("Armwrestling"),
+    STRONGMAN("Strongman");
 
     /** Legacy values preserved for read compatibility; never offered anew. */
     val isLegacyOnly: Boolean
         get() = this == HEALTH || this == MIXED
+
+    /**
+     * Perfiles que combinan capacidades (fuerza, cardio, potencia…) en vez de una disciplina de las tres de
+     * catálogo: no heredan la elección de estilo/calibración como un filtro oculto de planes.
+     */
+    val isCombinedProfile: Boolean
+        get() = this == COMPLETE_ATHLETE || this == FUNCTIONAL
 }
 
-/** Fuerza → powerlifting, Músculo → hipertrofia, Fuerza y músculo → powerbuilding. */
+/**
+ * Estilo de referencia de cada objetivo cuando es una disciplina. Fuerza → powerlifting, Músculo → hipertrofia,
+ * Fuerza y músculo → powerbuilding; Calistenia y Armwrestling → hipertrofia, Halterofilia → powerlifting y Strongman →
+ * powerbuilding (la misma tabla que `GoalProfileMapping.trainingStyleOf`).
+ */
 val SetupGoal.inferredTrainingStyle: com.example.kpkn.data.models.TrainingStyle?
     get() = when (this) {
-        SetupGoal.STRENGTH -> com.example.kpkn.data.models.TrainingStyle.POWERLIFTER
-        SetupGoal.MUSCLE -> com.example.kpkn.data.models.TrainingStyle.BODYBUILDER
-        SetupGoal.STRENGTH_MUSCLE -> com.example.kpkn.data.models.TrainingStyle.POWERBUILDER
-        // Atleta completo es un perfil combinado (§15.1): no se disfraza de una
+        SetupGoal.STRENGTH, SetupGoal.WEIGHTLIFTING -> com.example.kpkn.data.models.TrainingStyle.POWERLIFTER
+        SetupGoal.MUSCLE, SetupGoal.CALISTHENICS, SetupGoal.ARMWRESTLING ->
+            com.example.kpkn.data.models.TrainingStyle.BODYBUILDER
+        SetupGoal.STRENGTH_MUSCLE, SetupGoal.STRONGMAN -> com.example.kpkn.data.models.TrainingStyle.POWERBUILDER
+        // Atleta completo y Funcional son perfiles combinados (§15.1): no se disfrazan de una
         // disciplina de tres; HEALTH/MIXED legacy conservan su lectura.
-        SetupGoal.COMPLETE_ATHLETE, SetupGoal.HEALTH, SetupGoal.MIXED -> null
+        SetupGoal.COMPLETE_ATHLETE, SetupGoal.FUNCTIONAL, SetupGoal.HEALTH, SetupGoal.MIXED -> null
     }
 
 /** True when the goal asks for the cardio branch of the wizard. */
 val SetupGoal.requiresCardio: Boolean
-    get() = this == SetupGoal.COMPLETE_ATHLETE || this == SetupGoal.MIXED
+    get() = this == SetupGoal.COMPLETE_ATHLETE || this == SetupGoal.FUNCTIONAL || this == SetupGoal.MIXED
+
+/** El objetivo del borrador pide las preferencias de cardio (null = sin objetivo todavía). */
+val SetupWizardDraft.requiresCardio: Boolean
+    get() = goal?.requiresCardio == true
 
 /** Reference used to pick candidates: inferred from the goal or asked in the brief focus question. */
 fun SetupWizardDraft.trainingReference(): com.example.kpkn.data.programs.TrainingReference? {
-    // Atleta completo es una combinación de capacidades, no una de las
+    // Atleta completo y Funcional son una combinación de capacidades, no una de las
     // disciplinas legacy. No heredar la elección de estilo/calibración como
     // un filtro oculto de catálogo.
-    if (goal == SetupGoal.COMPLETE_ATHLETE) return null
+    if (goal?.isCombinedProfile == true) return null
     val style = goal?.inferredTrainingStyle ?: volumeAnswers.style
     return style?.toTrainingReference()
 }
@@ -415,6 +449,33 @@ data class SetupWizardDraft(
      * no perder la intención al reanudar; null = avance normal.
      */
     val reviewReturnStep: SetupStepId? = null,
+    // ── Entreno v2 ──────────────────────────────────────────────────────────
+    // Datos reales de los pasos nuevos, todos con valor por defecto: el JSON antiguo sigue leyéndose. Los campos
+    // antiguos que el motor actual lee (`trainingEnvironment`, `equipment`, `trainingOptions.availability`, `goal`,
+    // `daysPerWeek`, `selectedWeekdays`, `knowsTrainingMarks`, `powerliftingProfile`) los mantiene el reductor como
+    // DERIVADOS de estos.
+    /** Dónde se entrena (uno o varios). Deriva `trainingEnvironment`, `equipment` y la disponibilidad de material. */
+    val trainingPlaces: Set<TrainingPlace> = emptySet(),
+    /** Perfil de objetivo del paso GOAL (diez perfiles). Deriva [goal], el estilo de calibración y el tipo de atleta. */
+    val goalProfile: TrainingGoalProfile? = null,
+    /** Primer día de la semana (1 = lunes … 7 = domingo); sigue al día de más energía mientras la persona no lo toque. */
+    val weekStartDay: Int? = null,
+    /** Día en que se llega con más energía: ahí cae la sesión más fuerte. */
+    val freshestDay: Int? = null,
+    /** Lugar elegido para cada día de entreno; solo existe con dos o más lugares (por defecto el primero de la lista). */
+    val dayPlaces: Map<Int, TrainingPlace> = emptyMap(),
+    /** Nivel que sale de cada ejercicio de peso corporal por el que se pregunta. */
+    val capabilities: Map<CapabilitySkill, CapabilityLevel> = emptyMap(),
+    /** Marcas declaradas (kg) por levantamiento; las de sentadilla, banca y peso muerto derivan `powerliftingProfile`. */
+    val liftMarks: Map<LiftMark, Double> = emptyMap(),
+    /** Unidad en la que se muestran las marcas (`kg` o `lb`); el valor canónico de [liftMarks] siempre es kg. */
+    val marksUnit: String = "kg",
+    /** Colocación de sesiones en la semana que movió la persona: clave de sesión → día (la usa la semana armada). */
+    val weekLayoutOverrides: Map<String, Int> = emptyMap(),
+    /** Reparto al que la persona adaptó el programa en la semana armada; null = el del programa. */
+    val adaptedSplitId: String? = null,
+    /** Semilla de «otra versión» del programa: cambia el programa generado sin cambiar ninguna respuesta. */
+    val planVariantSeed: Int = 0,
 )
 
 /** Whether a step value was declared by the user: touched here or recorded as DECLARED in the legacy mirror. */
@@ -437,47 +498,77 @@ fun SetupWizardDraft.touchStep(step: SetupStepId): SetupWizardDraft =
 fun SetupWizardDraft.withNextDraftRevision(previous: SetupWizardDraft): SetupWizardDraft =
     copy(revision = maxOf(revision, previous.revision + 1))
 
-/** Routing context derived from the draft; mirrors the legacy WizChat context. */
+/**
+ * Routing context derived from the draft. Las ramas (técnica, cardio, capacidades, marcas, semana armada) salen SOLO
+ * de datos del borrador (experiencia, perfil de objetivo, material y ruta del programa), nunca de `answered`: así la
+ * ruta es estable mientras el cursor está dentro de una rama.
+ */
 fun SetupWizardDraft.stepContext(): SetupStepContext = SetupStepContext(
     includeTraining = includeTraining,
     includeNutrition = includeNutrition,
     includeRings = draftScope in setOf("full", "resume", "rings_only"),
-    programRouteLater = programRoute == SetupProgramRoute.LATER,
-    homeEquipmentSelected = trainingEnvironment == "home" || trainingEnvironment == "Entreno en casa",
-    mixedTraining = goal == SetupGoal.MIXED,
-    completeAthleteGoal = goal == SetupGoal.COMPLETE_ATHLETE,
-    hasTrainingMarks = knowsTrainingMarks,
-    goalStyleInferred = goal?.inferredTrainingStyle != null || goal == SetupGoal.COMPLETE_ATHLETE,
     nutritionProfessional = nutritionDraft?.mode == "professional",
     nutritionStarted = includeNutrition && nutritionMode == "create",
     ringsAction = ringsAnswers?.startAction,
     recentTraining = ringsAnswers?.recentTraining,
-    // Ramas nuevas: derivadas SOLO de datos del borrador, nunca de `answered`
-    // (así la ruta es estable mientras el cursor está dentro de una rama).
     inventoryGroups = inventoryGroups(),
-    asksAvailability = asksEquipmentCategories(),
-    wantsCardio = cardioType != null || cardioMinutes != null,
     nutritionStartChoice = stepSelections[SetupStepId.NUTRITION_START]?.firstOrNull()
         ?: nutritionDraft?.configurationMode?.name?.lowercase(),
     nutritionDirection = stepSelections[SetupStepId.NUTRITION_DIRECTION]?.firstOrNull()
         ?: nutritionDraft?.direction?.name?.lowercase(),
-    // AUTO inserta el paso de confirmación; el paso se mantiene en la ruta
-    // mientras el modo siga siendo AUTO, nunca por estado de respuesta.
-    autoregulationOn = trainingOptions.autoregulationMode == AutoregulationMode.AUTO,
+    asksTechnique = experience != SetupExperience.NEW,
+    goalIncludesCardio = requiresCardio,
+    asksCapabilities = asksCapabilities(),
+    asksMarks = marksLifts().isNotEmpty(),
+    hasWeekLayout = programRoute != SetupProgramRoute.LATER,
 )
 
 /**
  * El alta ya no pregunta stock (kilos, discos, rangos). El material se declara
- * por categorías en [SetupStepId.AVAILABILITY]. Los pasos de inventario quedan
+ * por símbolos en [SetupStepId.AVAILABILITY]. Los pasos de inventario quedan
  * fuera de la ruta productiva; se conservan solo para borradores antiguos.
  */
 internal fun SetupWizardDraft.inventoryGroups(): Set<SetupInventoryGroup> = emptySet()
 
-/** Gimnasio, casa o máquinas: una sola pantalla de categorías. Sin material, no. */
-internal fun SetupWizardDraft.asksEquipmentCategories(): Boolean = when (trainingEnvironment) {
-    "gym", "Gimnasio completo", "home", "Entreno en casa", "machines", "Principalmente máquinas" -> true
-    else -> false
+/** Los símbolos de material que dice la disponibilidad declarada (vacío = nada declarado todavía). */
+internal fun SetupWizardDraft.selectedEquipmentSymbols(): Set<EquipmentSymbolId> =
+    EquipmentSymbols.selectedFrom(trainingOptions.availability)
+
+/** Quien empieza: no se le pregunta la técnica ni se le piden marcas. */
+internal val SetupWizardDraft.isNovice: Boolean get() = experience == SetupExperience.NEW
+
+/** Levantamientos cuya marca se pregunta con el objetivo, la experiencia y el material actuales (vacío = sin paso). */
+internal fun SetupWizardDraft.marksLifts(): List<LiftMark> = MarksContext.liftsFor(
+    profile = goalProfile,
+    novice = isNovice,
+    hasBarbell = EquipmentSymbolId.BARBELL in selectedEquipmentSymbols(),
+)
+
+/** ¿Entra CAPABILITIES en la ruta? Objetivo general o calistenia, y novato o material ligero. */
+internal fun SetupWizardDraft.asksCapabilities(): Boolean =
+    CapabilityRules.asks(goalProfile, isNovice, selectedEquipmentSymbols())
+
+/** Ejercicios de peso corporal por los que se pregunta con el material actual. */
+internal fun SetupWizardDraft.capabilitySkills(): List<CapabilitySkill> =
+    CapabilityRules.skillsFor(selectedEquipmentSymbols())
+
+/**
+ * Lugar de entreno de [day]: el elegido para ese día, o el primero de la lista (gimnasio, casa, espacios públicos) si
+ * no se ha elegido. Con un solo lugar es siempre ese; sin lugares, null.
+ */
+fun SetupWizardDraft.placeForDay(day: Int): TrainingPlace? {
+    val ordered = TrainingPlace.entries.filter { it in trainingPlaces }
+    if (ordered.size < 2) return ordered.firstOrNull()
+    return dayPlaces[day]?.takeIf { it in trainingPlaces } ?: ordered.first()
 }
+
+/** El lugar de cada día de entreno elegido (vacío mientras no haya lugares ni días). */
+fun SetupWizardDraft.effectiveDayPlaces(): Map<Int, TrainingPlace> =
+    selectedWeekdays.sorted().mapNotNull { day -> placeForDay(day)?.let { day to it } }.toMap()
+
+/** El perfil de objetivo es compatible con el material declarado (los generales siempre). Sin perfil: true. */
+internal fun SetupWizardDraft.goalFitsMaterial(): Boolean =
+    goalProfile?.let { TrainingGoalRequirements.isCompatible(it, trainingOptions.availability) } ?: true
 
 /** Fingerprint of the inputs that feed previews; pure navigation never changes it. */
 fun SetupWizardDraft.inputFootprint(): SetupInputFootprint = SetupInputFootprint(
@@ -489,6 +580,7 @@ fun SetupWizardDraft.inputFootprint(): SetupInputFootprint = SetupInputFootprint
     bodyFatPercent = bodyFatPercent,
     equipment = equipment.map { it.name }.toSet(),
     trainingEnvironment = trainingEnvironment,
+    trainingPlaces = trainingPlaces.mapTo(sortedSetOf()) { it.name },
     inventory = trainingOptions.inventory?.toString()?.let { setOf(it) }.orEmpty(),
     equipmentAvailability = trainingOptions.availability?.categories?.mapTo(linkedSetOf()) { it.name },
     equipmentApparatus = trainingOptions.availability?.apparatus
@@ -501,6 +593,7 @@ fun SetupWizardDraft.inputFootprint(): SetupInputFootprint = SetupInputFootprint
     programRoute = programRoute.name,
     trainingPath = trainingPath?.name,
     goal = goal?.name,
+    goalProfile = goalProfile?.name,
     focus = focus.name,
     experience = experience?.name,
     volumeStyle = volumeAnswers.style?.name,
@@ -509,6 +602,17 @@ fun SetupWizardDraft.inputFootprint(): SetupInputFootprint = SetupInputFootprint
     cardioMinutes = cardioMinutes,
     knowsTrainingMarks = knowsTrainingMarks,
     marks = listOf(powerliftingProfile?.squat1RM, powerliftingProfile?.bench1RM, powerliftingProfile?.deadlift1RM),
+    liftMarks = liftMarks.entries.sortedBy { it.key.name }.associate { (lift, kg) -> lift.name to kg },
+    capabilities = capabilities.entries.sortedBy { it.key.name }.associate { (skill, level) -> skill.name to level.name },
+    freshestDay = freshestDay,
+    weekStartDay = weekStartDay,
+    // Con un solo lugar no hay elección por día: no es una decisión que pueda cambiar.
+    dayPlaces = if (trainingPlaces.size >= 2) {
+        effectiveDayPlaces().toSortedMap().mapValues { (_, place) -> place.name }
+    } else {
+        emptyMap()
+    },
+    adaptedSplitId = adaptedSplitId,
     selectedCatalogId = selectedCatalogId,
     priorityMuscles = priorityMuscles,
     lowerEmphasisMuscles = lowerEmphasisMuscles,
@@ -639,7 +743,34 @@ enum class SetupRetryOperation { LOAD, SAVE, PREVIEW, CANDIDATES, RINGS_PREVIEW,
  * wizChat mirror keeps a coherent answer log for older readers and the commit
  * review gate.
  */
-fun SetupWizardDraft.confirmCurrentStep(step: SetupStepId): SetupWizardDraft {
+fun SetupWizardDraft.confirmCurrentStep(step: SetupStepId): SetupWizardDraft =
+    withDerivedOnConfirm(step).confirmStepRecord(step)
+
+/**
+ * Datos que se DERIVAN al confirmar un paso (nunca los inventa la persona; llevan procedencia `DERIVED`):
+ * - EXPERIENCE «Estoy empezando»: la técnica se responde sola como «1 · Aprendiendo» (el novato nunca ve esa pregunta).
+ *   Si la experiencia deja de ser «empezando», se retira esa respuesta derivada para que la técnica se pregunte de verdad.
+ */
+private fun SetupWizardDraft.withDerivedOnConfirm(step: SetupStepId): SetupWizardDraft = when (step) {
+    SetupStepId.EXPERIENCE -> when {
+        isNovice -> withDerivedTechnique(NOVICE_TECHNIQUE_POINTS).copy(
+            stepProgress = stepProgress.copy(
+                answers = stepProgress.answers + (SetupStepId.VOLUME_TECHNIQUE to SetupAnswerProvenance.DERIVED),
+            ),
+        )
+        stepProgress.answers[SetupStepId.VOLUME_TECHNIQUE] == SetupAnswerProvenance.DERIVED -> withDerivedTechnique(null).copy(
+            stepProgress = stepProgress.copy(answers = stepProgress.answers - SetupStepId.VOLUME_TECHNIQUE),
+            stepSelections = stepSelections - SetupStepId.VOLUME_TECHNIQUE,
+        )
+        else -> this
+    }
+    else -> this
+}
+
+/** «1 · Aprendiendo»: la técnica que se asume (y se rotula como derivada) para quien empieza. */
+internal const val NOVICE_TECHNIQUE_POINTS = 1
+
+private fun SetupWizardDraft.confirmStepRecord(step: SetupStepId): SetupWizardDraft {
     val atReview = step == SetupStepId.REVIEW_ACTIVATE
     val nextStep = SetupStepGraph.next(step, stepContext())
     val landedOnReview = atReview || nextStep == SetupStepId.REVIEW_ACTIVATE
@@ -1001,6 +1132,9 @@ typealias SetupWizardUiState = SetupWizardState
 
 data class SetupPreview(val program: Program?, val report: PersonalizationReport?)
 
+/** Rango (kg) que admite una marca de levantamiento. */
+internal val LIFT_MARK_RANGE_KG: ClosedFloatingPointRange<Double> = 1.0..1000.0
+
 object SetupWizardValidation {
     fun validate(draft: SetupWizardDraft, chapter: SetupWizardChapter): Map<String, String> = buildMap {
         when (chapter) {
@@ -1031,10 +1165,10 @@ object SetupWizardValidation {
             SetupWizardChapter.WEEK -> {
                 if (!draft.includeTraining) return@buildMap
                 if (draft.programRoute == SetupProgramRoute.LATER) return@buildMap
-                if (draft.daysPerWeek == null) put("days", "Elige los días que quieres entrenar")
+                if (draft.selectedWeekdays.isEmpty()) put("days", "Elige los días que quieres entrenar")
                 if (draft.minutesPerSession == null) put("minutes", "Indica el tiempo disponible")
-                if (draft.equipment.isEmpty()) put("equipment", "Elige al menos un perfil de equipo")
-                if (draft.selectedWeekdays.size != draft.daysPerWeek || draft.selectedWeekdays.any { it !in 1..7 }) put("week", "Selecciona ${SpanishPlurals.days(draft.daysPerWeek ?: 0)} en tu semana")
+                if (draft.trainingPlaces.isEmpty()) put("equipment", "Elige al menos un lugar")
+                if (draft.selectedWeekdays.any { it !in 1..7 }) put("week", "Elige entre 1 y 7 días")
                 if (draft.trainingPath == SetupTrainingPath.FROM_SCRATCH) {
                     val selected = draft.sessions.filter { it.weekday in draft.selectedWeekdays }
                     if (selected.size != draft.selectedWeekdays.size || selected.any { it.exercises.isEmpty() }) put("sessions", "Completa todas las sesiones que programaste")
@@ -1083,7 +1217,7 @@ object SetupWizardValidation {
             }
             if (!effective.isFinite()) return invalid(key, "Escribe un número válido")
             // Enteros exactos donde el decimal no significa nada.
-            if ((step == SetupStepId.AGE || step == SetupStepId.SESSION_TIME) && effective % 1.0 != 0.0) {
+            if (step == SetupStepId.AGE && effective % 1.0 != 0.0) {
                 return invalid(key, "Escribe un número entero sin decimales")
             }
             // Rangos: manda el catálogo ([SetupStepDefinitions]); la regla legacy
@@ -1146,10 +1280,24 @@ object SetupWizardValidation {
             SetupStepId.EXPERIENCE -> choice("experience", draft.experience?.label, "Elige tu experiencia")
             SetupStepId.MILESTONE_BASICS, SetupStepId.MILESTONE_TRAINING,
             SetupStepId.MILESTONE_NUTRITION, SetupStepId.MILESTONE_RINGS -> emptyList()
-            SetupStepId.ROUTE -> if (draft.isAnswered(step)) ok("programRoute") else absent("programRoute", "Elige cómo quieres empezar")
-            SetupStepId.GOAL -> if (draft.goal != null) ok("goal") else absent("goal", "Elige un objetivo")
-            SetupStepId.STYLE -> if (draft.volumeAnswers.style != null) ok("volumeStyle")
-                else absent("volumeStyle", "Elige el estilo de referencia")
+            // Pasos retirados de la ruta (solo se leen en borradores antiguos): fuera de la ruta no validan nada.
+            SetupStepId.ROUTE, SetupStepId.STYLE, SetupStepId.DAYS, SetupStepId.SPLIT, SetupStepId.TRAINING_MARKS,
+            SetupStepId.AUTOREGULATION, SetupStepId.AUTOREGULATION_CONFIRM, SetupStepId.WARMUPS,
+            SetupStepId.TRAINING_REVIEW -> emptyList()
+            // El perfil de objetivo manda: uno específico solo se confirma con el material que pide. Un objetivo
+            // antiguo sin perfil (borrador sin reparar) o legacy (Salud, Fuerza + cardio) obliga a elegir de nuevo.
+            SetupStepId.GOAL -> {
+                val profile = draft.goalProfile
+                when {
+                    profile == null || draft.goal == null || draft.goal.isLegacyOnly -> absent("goal", "Elige un objetivo.")
+                    !draft.goalFitsMaterial() -> invalid(
+                        "goal",
+                        "«${profile.label}» no encaja con tu material. " +
+                            TrainingGoalRequirements.missingText(profile, draft.trainingOptions.availability).orEmpty(),
+                    )
+                    else -> ok("goal")
+                }
+            }
             SetupStepId.VOLUME_TECHNIQUE -> if (draft.volumeAnswers.technique != null) ok("volumeTechnique")
                 else absent("volumeTechnique", "Indica tu técnica actual")
             SetupStepId.VOLUME_CONSISTENCY -> if (draft.volumeAnswers.consistency != null) ok("volumeConsistency")
@@ -1158,10 +1306,11 @@ object SetupWizardValidation {
                 else absent("volumeStrength", "Indica tu fuerza actual")
             SetupStepId.VOLUME_MOBILITY -> if (draft.volumeAnswers.mobility != null) ok("volumeMobility")
                 else absent("volumeMobility", "Indica tu movilidad actual")
-            SetupStepId.EQUIPMENT -> if (draft.trainingEnvironment.isNullOrBlank()) absent("equipment", "Elige dónde sueles entrenar")
-                else ok("equipment")
+            SetupStepId.EQUIPMENT -> if (draft.trainingPlaces.isEmpty()) absent("places", "Elige al menos un lugar.")
+                else ok("places")
+            // Una selección vacía es «solo peso corporal» y vale; lo único que bloquea es no haber declarado nada.
             SetupStepId.AVAILABILITY -> if (draft.trainingOptions.availability == null) {
-                absent("availability", "Elige el material que tienes o marca solo peso corporal")
+                absent("availability", "Marca tu material o elige solo peso corporal.")
             } else {
                 ok("availability")
             }
@@ -1173,19 +1322,37 @@ object SetupWizardValidation {
             SetupStepId.INVENTORY_MACHINES -> emptyList()
             SetupStepId.HOME_EQUIPMENT -> if (draft.equipment.isEmpty()) absent("equipment", "Elige al menos un perfil de equipo")
                 else ok("equipment")
-            SetupStepId.DAYS -> when {
-                draft.daysPerWeek == null -> absent("days", "Elige los días que quieres entrenar")
-                draft.daysPerWeek !in 1..6 -> invalid("days", "Elige entre 1 y 6 días")
-                else -> ok("days")
+            SetupStepId.FRESH_DAY -> {
+                val day = draft.freshestDay
+                when {
+                    day == null -> absent("freshestDay", "Elige el día en que llegas con más energía.")
+                    day !in 1..7 -> invalid("freshestDay", "Elige un día de la semana.")
+                    else -> ok("freshestDay")
+                }
             }
+            // De 1 a 7 días; el número de días ya no se pregunta aparte: es el de los días elegidos.
             SetupStepId.WEEKDAYS -> when {
-                draft.selectedWeekdays.isEmpty() -> absent("week", "Selecciona tus días de entrenamiento")
-                draft.daysPerWeek == null || draft.selectedWeekdays.size != draft.daysPerWeek ||
-                    draft.selectedWeekdays.any { it !in 1..7 } ->
-                    invalid("week", "Selecciona ${SpanishPlurals.days(draft.daysPerWeek ?: 0)} en tu semana")
+                draft.selectedWeekdays.isEmpty() -> absent("week", "Elige al menos un día para entrenar.")
+                draft.selectedWeekdays.any { it !in 1..7 } -> invalid("week", "Elige entre 1 y 7 días.")
                 else -> ok("week")
             }
-            SetupStepId.SESSION_TIME -> number("minutes", draft.minutesPerSession?.toDouble(), "Indica el tiempo disponible")
+            SetupStepId.SESSION_TIME -> {
+                val minutes = draft.minutesPerSession
+                when {
+                    minutes == null -> absent("minutes", "Elige cuánto tiempo tienes por sesión.")
+                    minutes !in EntrenoStepValues.SESSION_MINUTES_MIN..EntrenoStepValues.SESSION_MINUTES_MAX -> invalid(
+                        "minutes",
+                        "Elige entre ${EntrenoStepValues.SESSION_MINUTES_MIN} y ${EntrenoStepValues.SESSION_MINUTES_MAX} min.",
+                    )
+                    else -> ok("minutes")
+                }
+            }
+            // Cada ejercicio que se ofrece con el material necesita su nivel (nada se responde solo).
+            SetupStepId.CAPABILITIES -> if (draft.capabilitySkills().any { it !in draft.capabilities }) {
+                absent("capabilities", "Elige un nivel para cada ejercicio.")
+            } else {
+                ok("capabilities")
+            }
             SetupStepId.CARDIO_TYPE -> when (draft.cardioType) {
                 null -> absent("cardioType", "Elige el tipo de cardio")
                 // §15.1: BIKE_OUTDOOR exige acceso a bicicleta confirmado con
@@ -1219,54 +1386,22 @@ object SetupWizardValidation {
                     else -> ok("priorities")
                 }
             }
-            // La ruta de protocolo fija su propio reparto: no se bloquea un paso
-            // que la UI solo puede mostrar como informativo.
-            SetupStepId.SPLIT -> when {
-                draft.programRoute == SetupProgramRoute.PROTOCOL -> ok("split")
-                draft.isAnswered(step) -> ok("split")
-                else -> absent("split", "Elige tu reparto semanal")
-            }
-            SetupStepId.TRAINING_MAX -> if (draft.isAnswered(step)) ok("trainingMax") else absent("trainingMax", "Indica si conoces tus marcas")
-            SetupStepId.TRAINING_MARKS -> {
-                val marks = listOf(draft.powerliftingProfile?.squat1RM, draft.powerliftingProfile?.bench1RM, draft.powerliftingProfile?.deadlift1RM)
-                when {
-                    marks.all { it == null } -> absent("marks", "Añade al menos una marca, o vuelve y elige Todavía no")
-                    marks.any { it != null && it !in 1.0..1000.0 } -> invalid("marks", "Usa valores válidos entre 1 y 1000 kg")
-                    else -> ok("marks")
+            // Un paso hecho de marcas: cada una es opcional (sin marcas el programa sigue siendo válido);
+            // solo bloquea una marca fuera de rango.
+            SetupStepId.TRAINING_MAX ->
+                if (draft.liftMarks.values.any { !it.isFinite() || it !in LIFT_MARK_RANGE_KG }) {
+                    invalid("marks", "Usa marcas entre ${LIFT_MARK_RANGE_KG.start.toInt()} y ${LIFT_MARK_RANGE_KG.endInclusive.toInt()} kg.")
+                } else {
+                    ok("marks")
                 }
-            }
-            // PROPOSE (el default del contrato) es una decisión válida: se
-            // acepta al confirmar sin ningún touch sintético y nunca bloquea.
-            SetupStepId.AUTOREGULATION -> ok("autoregulation")
-            // AUTO exige confirmación explícita: un registro previo de
-            // respuesta (isAnswered) NO sustituye `automaticConfirmed`; solo
-            // salir de AUTO («Solo revisar») desbloquea sin confirmación.
-            SetupStepId.AUTOREGULATION_CONFIRM -> when {
-                draft.trainingOptions.autoregulationMode != AutoregulationMode.AUTO -> ok("autoregulationConfirm")
-                draft.trainingOptions.automaticConfirmed -> ok("autoregulationConfirm")
-                else -> absent("autoregulationConfirm", "Confirma el ajuste automático o elige Solo revisar")
-            }
-            // null = preset del plan, vacío = sin calentamiento explícito.
-            SetupStepId.WARMUPS -> {
-                val rows = draft.trainingOptions.warmup
-                when {
-                    rows == null || rows.isEmpty() -> ok("warmups")
-                    rows.any { recipe ->
-                        val percent = recipe.percent
-                        val reps = recipe.reps
-                        percent == null || !percent.isFinite() || percent <= 0.0 || percent > 100.0 ||
-                            reps == null || reps !in 1..60
-                    } -> invalid("warmups", "Cada paso necesita un porcentaje entre 1 y 100 y entre 1 y 60 repeticiones")
-                    else -> ok("warmups")
-                }
-            }
             SetupStepId.PLAN -> when {
                 draft.programRoute == SetupProgramRoute.LATER -> ok("plan")
                 draft.selectedCatalogId != null || draft.trainingPath == SetupTrainingPath.FROM_SCRATCH -> ok("plan")
-                else -> absent("plan", "Elige un plan")
+                else -> absent("plan", "Elige un programa.")
             }
-            SetupStepId.TRAINING_REVIEW, SetupStepId.NUTRITION_RESULT,
-            SetupStepId.RINGS_RESULT, SetupStepId.REVIEW_ACTIVATE -> emptyList()
+            // La semana armada es una decisión sobre el programa ya elegido: nunca bloquea por sí sola.
+            SetupStepId.WEEK_LAYOUT -> ok("weekLayout")
+            SetupStepId.NUTRITION_RESULT, SetupStepId.RINGS_RESULT, SetupStepId.REVIEW_ACTIVATE -> emptyList()
             SetupStepId.NUTRITION_START -> if (draft.isAnswered(step)) ok("nutritionStart") else absent("nutritionStart", "Elige una opción de nutrición")
             SetupStepId.NUTRITION_SEX -> if (draft.nutritionDraft?.equationSex != null) ok("equationSex")
                 else absent("equationSex", "Elige el sexo que usamos solo para calcular tu energía")

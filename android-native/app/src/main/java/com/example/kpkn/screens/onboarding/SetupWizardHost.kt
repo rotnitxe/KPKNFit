@@ -320,7 +320,7 @@ private fun WizardLongPage(
                                 index == currentIndex -> WizardPageMode.Active
                                 else -> WizardPageMode.Peek
                             }
-                            val copy = wizardPageCopy(page)
+                            val copy = wizardPageCopy(page, state.draft.goalProfile)
                             // El resumen se calcula UNA vez, cuando la página queda confirmada, y se guarda: recalcular
                             // todas las filas con cada pulsación sería caro (alguna consulta el catálogo de planes).
                             // Una página activa lo marca como caduco para que se recalcule al volver a confirmarse,
@@ -462,13 +462,13 @@ private fun WizardLongPage(
  *
  *  - PLAN pinta `candidates` (la búsqueda que falló o «ningún plan viable») y `preview` (el error del programa de la
  *    selección, encima de las tarjetas, con su «Reintentar»).
- *  - TRAINING_REVIEW y la revisión final (REVIEW_ACTIVATE) pintan `preview` (sin programa preparado).
+ *  - La semana armada (WEEK_LAYOUT) y la revisión final (REVIEW_ACTIVATE) pintan `preview` (sin programa preparado).
  *
  * Todo lo demás (guardado, activación, la clave `plan` de «Continuar»…) no lo pinta ningún paso y sigue en el aviso.
  */
 internal fun stepRendersError(step: SetupStepId, key: String): Boolean = when (step) {
     SetupStepId.PLAN -> key == "candidates" || key == "preview"
-    SetupStepId.TRAINING_REVIEW, SetupStepId.REVIEW_ACTIVATE -> key == "preview"
+    SetupStepId.WEEK_LAYOUT, SetupStepId.REVIEW_ACTIVATE -> key == "preview"
     else -> false
 }
 

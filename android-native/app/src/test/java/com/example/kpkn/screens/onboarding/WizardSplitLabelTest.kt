@@ -19,9 +19,9 @@ import org.junit.Test
  * C.P5 · La fila «Reparto semanal» de la revisión dice el nombre del reparto, nunca su id técnico («ul_x4»):
  * el mismo nombre que la persona vio al elegirlo en la lista de repartos (`splitDisplayName`). JVM puro.
  *
- * A.E2 (D6) · La lista de repartos del paso SPLIT recibe el objetivo: los repartos de powerlifting solo se ofrecen en
- * Fuerza, y el reparto destacado es el equivalente del calendario propio del objetivo (el único que su plan propio
- * acepta) cuando está en la lista. Al final de la clase.
+ * A.E2 (D6) · La lista de repartos compatibles recibe el objetivo: los repartos de powerlifting solo se ofrecen en
+ * Fuerza. Al final de la clase. (El paso SPLIT ya no existe: la semana la arma el programa, pero la lista pura de
+ * repartos compatibles se conserva para el reparto de la semana.)
  */
 class WizardSplitLabelTest {
 
@@ -173,35 +173,5 @@ class WizardSplitLabelTest {
                 witness.splitId in offeredIds(witness.days, goal),
             )
         }
-    }
-
-    @Test
-    fun theFeaturedSplitIsTheOneTheOwnPlanAcceptsWhenTheListHasIt() {
-        NativeProfileSplitWitness.allWitnesses().filter { it.pull != false }.forEach { witness ->
-            val goal = goalOf(witness.profile)
-            val featured = featuredSplitTemplate(compatibleSplitTemplates(witness.days, 1, goal), goal, witness.days)
-            assertEquals("$goal con ${witness.days} días destaca su reparto equivalente", witness.splitId, featured?.id)
-        }
-        // El caso que antes engañaba: en Fuerza con 3 días el destacado era «Cuerpo completo, 3 días», que el plan
-        // propio de Fuerza rechaza; ahora es el reparto de sentadilla, banca y peso muerto.
-        val strengthThree = featuredSplitTemplate(compatibleSplitTemplates(3, 1, SetupGoal.STRENGTH), SetupGoal.STRENGTH, 3)
-        assertEquals("pl_sbd_x3", strengthThree?.id)
-        assertEquals("SBD Full Body x3", strengthThree?.let { splitDisplayName(it) })
-    }
-
-    @Test
-    fun withoutAnEquivalentSplitTheFeaturedOneIsTheRecommendedOrTheFirst() {
-        // Atleta y Fuerza con 4 días no tienen reparto equivalente: se conserva el criterio de siempre.
-        listOf(SetupGoal.COMPLETE_ATHLETE, SetupGoal.STRENGTH).forEach { goal ->
-            val compatible = compatibleSplitTemplates(4, 1, goal)
-            val expected = compatible.firstOrNull { SplitTag.RECOMENDADO_KPKN in it.tags } ?: compatible.firstOrNull()
-            assertEquals("$goal con 4 días", expected?.id, featuredSplitTemplate(compatible, goal, 4)?.id)
-        }
-        // Sin objetivo, sin días o sin lista tampoco se inventa nada.
-        val compatible = compatibleSplitTemplates(4, 1, null)
-        val recommended = compatible.firstOrNull { SplitTag.RECOMENDADO_KPKN in it.tags }
-        assertEquals(recommended?.id, featuredSplitTemplate(compatible, null, 4)?.id)
-        assertEquals(recommended?.id, featuredSplitTemplate(compatible, SetupGoal.MUSCLE, null)?.id)
-        assertNull(featuredSplitTemplate(emptyList(), SetupGoal.MUSCLE, 4))
     }
 }

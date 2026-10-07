@@ -34,12 +34,22 @@ enum class SetupStepKind { QUESTION, MILESTONE, REVIEW }
 enum class SetupStepId {
     // Datos básicos (bloque siempre presente cuando hay entreno o nutrición)
     NAME, AGE, HEIGHT, WEIGHT, EQUATION_SEX, BODY_FAT, MILESTONE_BASICS,
-    // Entreno
+    // Entreno (v2). Ruta productiva: EXPERIENCE, EQUIPMENT, AVAILABILITY, GOAL, FRESH_DAY, WEEKDAYS, SESSION_TIME,
+    // [CARDIO_TYPE, CARDIO_TIME], [VOLUME_TECHNIQUE], VOLUME_CONSISTENCY, VOLUME_STRENGTH, VOLUME_MOBILITY,
+    // [CAPABILITIES], PRIORITIES, [TRAINING_MAX], PLAN, [WEEK_LAYOUT], MILESTONE_TRAINING.
+    // ROUTE, STYLE, DAYS, SPLIT, TRAINING_MARKS, AUTOREGULATION, AUTOREGULATION_CONFIRM, WARMUPS y TRAINING_REVIEW
+    // salieron de la ruta: solo siguen en el enum y en el catálogo para leer borradores antiguos.
     EXPERIENCE, ROUTE, GOAL, STYLE, VOLUME_TECHNIQUE, VOLUME_CONSISTENCY,
     VOLUME_STRENGTH, VOLUME_MOBILITY, EQUIPMENT, INVENTORY_BARBELL, INVENTORY_PLATES,
     INVENTORY_DUMBBELLS, INVENTORY_KETTLEBELLS, INVENTORY_MACHINES, DAYS, WEEKDAYS,
     SESSION_TIME, CARDIO_TYPE, CARDIO_TIME, PRIORITIES, SPLIT, PLAN, TRAINING_MAX,
     TRAINING_MARKS, AUTOREGULATION, AUTOREGULATION_CONFIRM, WARMUPS, TRAINING_REVIEW,
+    /** Día de la semana con más energía: la sesión más fuerte cae ahí y es el primer día de la semana. */
+    FRESH_DAY,
+    /** Ejercicios de peso corporal que ya salen (dominadas, flexiones, fondos, sentadilla a una pierna). */
+    CAPABILITIES,
+    /** La semana armada: sesiones colocadas en sus días, movibles. */
+    WEEK_LAYOUT,
     MILESTONE_TRAINING,
     // Nutrición
     NUTRITION_START, NUTRITION_ELIGIBILITY, NUTRITION_DIRECTION, NUTRITION_RHYTHM,
@@ -64,7 +74,7 @@ enum class SetupStepId {
     NUTRITION_SEX,
     @Deprecated("Acción de inicio de Rings legacy: el bloque RINGS es obligatorio")
     RINGS_START,
-    /** Material disponible por categorías, sin inventario de kilos ni cantidades. */
+    /** Material disponible (símbolos de implementos), sin inventario de kilos ni cantidades. */
     AVAILABILITY,
 }
 
@@ -77,18 +87,17 @@ data class SetupStepNode(
 /**
  * Minimal routing context; it deliberately contains no UI state. New routes are
  * derived from this context with compatible defaults, so a default context
- * produces the full normal sign-up (nothing is skipped).
+ * produces the full normal sign-up (nothing is skipped, except the optional
+ * branches that need data: cardio, capabilities and marks).
+ *
+ * Los campos de Entreno v2 se derivan SOLO de datos del borrador (experiencia,
+ * perfil de objetivo, material y ruta del programa), nunca de «respondido»:
+ * así la ruta es estable mientras el cursor está dentro de una rama.
  */
 data class SetupStepContext(
     val includeTraining: Boolean = true,
     val includeNutrition: Boolean = true,
     val includeRings: Boolean = true,
-    // Legacy read compatibility (still produced by old scopes/contexts).
-    val programRouteLater: Boolean = false,
-    val homeEquipmentSelected: Boolean = false,
-    val mixedTraining: Boolean = false,
-    val hasTrainingMarks: Boolean = false,
-    val goalStyleInferred: Boolean = false,
     val nutritionProfessional: Boolean = false,
     /**
      * false only hides the nutrition CHAIN until an explicit choice exists;
@@ -98,23 +107,23 @@ data class SetupStepContext(
     val ringsAction: String? = null,
     val recentTraining: Boolean? = null,
     // New minimal route data (defaults keep the normal FULL route intact).
-    /** Inventory groups whose steps are included, derived from the environment. */
+    /** Inventory groups whose steps are included (legacy: the wizard no longer asks stock). */
     val inventoryGroups: Set<SetupInventoryGroup> = emptySet(),
-    /** Categorías de material (gimnasio, casa o máquinas), sin cuestionario de stock. */
-    val asksAvailability: Boolean = false,
-    /** Cardio branch (goal mixto, Atleta completo o elección explícita de incluir cardio). */
-    val wantsCardio: Boolean = false,
-    /**
-     * GOAL = Atleta completo (§15.1): las preferencias de cardio forman parte
-     * de su ruta. HEALTH/MIXED legacy conserva [mixedTraining] sin convertirse.
-     */
-    val completeAthleteGoal: Boolean = false,
     /** NUTRITION_START: automatic | self_defined | tracking_only. */
     val nutritionStartChoice: String? = null,
     /** NUTRITION_DIRECTION: deficit | maintenance | surplus; drives NUTRITION_RHYTHM. */
     val nutritionDirection: String? = null,
-    /** AUTOREGULATION on → the explicit confirmation step is inserted. */
-    val autoregulationOn: Boolean = false,
+    // ── Entreno v2 ──────────────────────────────────────────────────────────
+    /** La técnica se pregunta salvo a quien empieza (su respuesta se deriva como «1 · Aprendiendo»). */
+    val asksTechnique: Boolean = true,
+    /** Fuerza y cardio, Funcional y saludable (y los legacy Fuerza + cardio y Atleta completo): preferencias de cardio. */
+    val goalIncludesCardio: Boolean = false,
+    /** CAPABILITIES: objetivo general o calistenia con novato o material ligero (ver `CapabilityRules.asks`). */
+    val asksCapabilities: Boolean = false,
+    /** TRAINING_MAX: hay levantamientos que preguntar (ver `MarksContext.liftsFor`). */
+    val asksMarks: Boolean = false,
+    /** WEEK_LAYOUT: la semana armada; no existe cuando el programa se aplaza («lo armaré más adelante»). */
+    val hasWeekLayout: Boolean = true,
 ) {
     /** Same skip rules the WizChat graph applied to the RINGS start action. */
     val ringsSkipsCalibration: Boolean
@@ -129,7 +138,7 @@ data class SetupStepContext(
 object SetupStepGraph {
 
     /** Persisted with [SetupStepProgress] so older cursors are repaired once. */
-    const val REVISION: Int = 3
+    const val REVISION: Int = 4
 
     private val blocks: Map<SetupStepId, SetupWizardBlock> = mapOf(
         SetupStepId.NAME to SetupWizardBlock.BASICS,
@@ -168,6 +177,9 @@ object SetupStepGraph {
         SetupStepId.AUTOREGULATION_CONFIRM to SetupWizardBlock.TRAINING,
         SetupStepId.WARMUPS to SetupWizardBlock.TRAINING,
         SetupStepId.TRAINING_REVIEW to SetupWizardBlock.TRAINING,
+        SetupStepId.FRESH_DAY to SetupWizardBlock.TRAINING,
+        SetupStepId.CAPABILITIES to SetupWizardBlock.TRAINING,
+        SetupStepId.WEEK_LAYOUT to SetupWizardBlock.TRAINING,
         SetupStepId.MILESTONE_TRAINING to SetupWizardBlock.TRAINING,
         SetupStepId.NUTRITION_START to SetupWizardBlock.NUTRITION,
         SetupStepId.NUTRITION_ELIGIBILITY to SetupWizardBlock.NUTRITION,
@@ -227,11 +239,14 @@ object SetupStepGraph {
         SetupStepId.INVENTORY_KETTLEBELLS to 1340,
         SetupStepId.INVENTORY_MACHINES to 1350,
         SetupStepId.AVAILABILITY to 1360,
+        SetupStepId.FRESH_DAY to 1590,
+        SetupStepId.CAPABILITIES to 1905,
         SetupStepId.PRIORITIES to 1910,
         SetupStepId.SPLIT to 1920,
         SetupStepId.AUTOREGULATION to 2150,
         SetupStepId.AUTOREGULATION_CONFIRM to 2160,
         SetupStepId.WARMUPS to 2170,
+        SetupStepId.WEEK_LAYOUT to 2250,
         SetupStepId.NUTRITION_RHYTHM to 2750,
         SetupStepId.NUTRITION_TARGET to 2760,
         SetupStepId.NUTRITION_HISTORY_CONTEXT to 2770,
@@ -330,51 +345,33 @@ object SetupStepGraph {
             ))
             add(SetupStepId.MILESTONE_BASICS)
         }
-        // Bloque 2: Entreno (§15.1): EXPERIENCE → EQUIPMENT (entorno,
-        // categorías y aparatos/soportes) → GOAL → DAYS → SESSION_TIME →
-        // cardio si Atleta → CALIBRATION → SPLIT → PLAN → ajustes → revisión.
-        // ROUTE desaparece de los recorridos nuevos: el enum y sus lecturas
-        // legacy (`programRoute`/`trainingPath`) siguen intactos, pero la
-        // creación unificada usa CUSTOMIZABLE + PERSONALIZE.
+        // Bloque 2: Entreno v2. Material (lugares y símbolos) ANTES del objetivo: la elegibilidad de
+        // GOAL depende del material. La semana se pregunta con su día más fuerte, sus días y su tiempo;
+        // el cardio, la técnica, las capacidades y las marcas solo entran cuando el borrador lo pide, y
+        // WEEK_LAYOUT solo existe si hay programa (no con «lo armaré más adelante»).
+        // ROUTE, STYLE, DAYS, SPLIT, AUTOREGULATION(_CONFIRM), WARMUPS, TRAINING_MARKS y TRAINING_REVIEW
+        // ya no son preguntas: el enum y sus lecturas legacy siguen intactos.
         if (context.includeTraining) {
             add(SetupStepId.EXPERIENCE)
-            // Material ANTES de perfiles: la elegibilidad de GOAL depende del
-            // material confirmado (P-106). El subpanel de aparatos vive dentro
-            // de AVAILABILITY (subpanel de EQUIPMENT, no pasos INVENTORY_*).
             add(SetupStepId.EQUIPMENT)
-            if (context.asksAvailability) add(SetupStepId.AVAILABILITY)
+            add(SetupStepId.AVAILABILITY)
             context.inventoryGroups.sortedBy(SetupStepDefinitions::stepOf).forEach { group ->
                 add(SetupStepDefinitions.stepOf(group))
             }
             add(SetupStepId.GOAL)
-            addAll(listOf(SetupStepId.DAYS, SetupStepId.WEEKDAYS, SetupStepId.SESSION_TIME))
-            if (context.wantsCardio || context.mixedTraining || context.completeAthleteGoal) {
+            addAll(listOf(SetupStepId.FRESH_DAY, SetupStepId.WEEKDAYS, SetupStepId.SESSION_TIME))
+            if (context.goalIncludesCardio) {
                 addAll(listOf(SetupStepId.CARDIO_TYPE, SetupStepId.CARDIO_TIME))
             }
-            // CALIBRATION comes after the schedule/cardio constraints (§15.1).
-            // El estilo solo se pregunta si el objetivo no lo infiere.
-            if (!context.goalStyleInferred) add(SetupStepId.STYLE)
+            if (context.asksTechnique) add(SetupStepId.VOLUME_TECHNIQUE)
             addAll(listOf(
-                SetupStepId.VOLUME_TECHNIQUE, SetupStepId.VOLUME_CONSISTENCY,
-                SetupStepId.VOLUME_STRENGTH, SetupStepId.VOLUME_MOBILITY,
+                SetupStepId.VOLUME_CONSISTENCY, SetupStepId.VOLUME_STRENGTH, SetupStepId.VOLUME_MOBILITY,
             ))
+            if (context.asksCapabilities) add(SetupStepId.CAPABILITIES)
             add(SetupStepId.PRIORITIES)
-            // Marcas refinan cargas; se preguntan después de la calibración de
-            // volumen y antes de SPLIT/PLAN, sin bloquear su disponibilidad.
-            add(SetupStepId.TRAINING_MAX)
-            if (context.hasTrainingMarks) add(SetupStepId.TRAINING_MARKS)
-            add(SetupStepId.SPLIT)
-            // El plan aparece antes de ajustes y marcas: un candidato es válido sin marcas completas.
+            if (context.asksMarks) add(SetupStepId.TRAINING_MAX)
             add(SetupStepId.PLAN)
-            // «Lo haré más adelante» no tiene programa que configurar: se saltan
-            // autorregulación, calentamientos y la revisión del programa. El hito
-            // del bloque se mantiene y el recorrido sigue a nutrición o a la revisión.
-            if (!context.programRouteLater) {
-                add(SetupStepId.AUTOREGULATION)
-                if (context.autoregulationOn) add(SetupStepId.AUTOREGULATION_CONFIRM)
-                add(SetupStepId.WARMUPS)
-                add(SetupStepId.TRAINING_REVIEW)
-            }
+            if (context.hasWeekLayout) add(SetupStepId.WEEK_LAYOUT)
             add(SetupStepId.MILESTONE_TRAINING)
         }
         // Bloque 3: Nutrición. El arranque es siempre explícito: un estado
@@ -685,6 +682,10 @@ data class SetupDependencyImpact(
  * T-005 / AC-T005-03: material, días, tiempo y split invalidan TODOS sus
  * dependientes (tarjetas de candidatos, split, receta y preview); ninguna
  * respuesta se borra y ninguna tarjeta obsoleta queda publicada.
+ *
+ * Entreno v2: el programa (PLAN) y la semana armada (WEEK_LAYOUT) dependen de todo lo anterior, así que cualquier
+ * cambio de lugares, material, objetivo, capacidades, marcas, días, inicio de semana o lugar por día los deja
+ * pendientes de revisión.
  */
 object SetupDependencyRules {
     fun impactOf(source: SetupChangeSource): SetupDependencyImpact = when (source) {
@@ -705,54 +706,54 @@ object SetupDependencyRules {
                 SetupPreviewKind.EXPENDITURE, SetupPreviewKind.NUTRITION_REFERENCES,
             ),
         )
-        // Equipo/inventario/aparatos → revalida candidatos, split, ejercicios,
-        // cargas y calentamientos; la selección actual queda por revisar.
+        // Lugares y material (símbolos, categorías, aparatos) → revalida candidatos, reparto, ejercicios,
+        // cargas y calentamientos; el programa y la semana armada quedan por revisar.
         SetupChangeSource.EQUIPMENT -> SetupDependencyImpact(
             stalePreviews = setOf(
                 SetupPreviewKind.PLAN_CANDIDATES, SetupPreviewKind.SPLIT,
                 SetupPreviewKind.RECIPE, SetupPreviewKind.EXERCISES,
                 SetupPreviewKind.LOADS, SetupPreviewKind.WARMUPS,
             ),
-            pendingSteps = setOf(SetupStepId.PLAN, SetupStepId.SPLIT),
+            pendingSteps = setOf(SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT),
         )
-        // Frecuencia → revalida días, candidato, split, receta y preview.
+        // Frecuencia → revalida días, candidato, reparto, receta y preview.
         SetupChangeSource.FREQUENCY -> SetupDependencyImpact(
             stalePreviews = setOf(
                 SetupPreviewKind.PLAN_CANDIDATES, SetupPreviewKind.SPLIT,
                 SetupPreviewKind.RECIPE, SetupPreviewKind.EXERCISES, SetupPreviewKind.LOADS,
             ),
-            pendingSteps = setOf(SetupStepId.WEEKDAYS, SetupStepId.PLAN, SetupStepId.SPLIT),
+            pendingSteps = setOf(SetupStepId.WEEKDAYS, SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT),
         )
-        // Protocolo (objetivo, experiencia, marcas, minutos…) → revalida
-        // candidatos, marcas, split, receta y preview.
+        // Protocolo (objetivo, capacidades, marcas, experiencia, minutos…) → revalida
+        // candidatos, marcas, reparto, receta y preview.
         SetupChangeSource.PROTOCOL -> SetupDependencyImpact(
             stalePreviews = setOf(
                 SetupPreviewKind.PLAN_CANDIDATES, SetupPreviewKind.MARKS,
                 SetupPreviewKind.SPLIT, SetupPreviewKind.RECIPE,
                 SetupPreviewKind.EXERCISES, SetupPreviewKind.LOADS,
             ),
-            pendingSteps = setOf(SetupStepId.TRAINING_MAX, SetupStepId.TRAINING_MARKS, SetupStepId.PLAN),
+            pendingSteps = setOf(SetupStepId.TRAINING_MAX, SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT),
         )
-        // Split (reparto elegido o patrón personalizado) → parejas (plan, split)
+        // Reparto (elegido, patrón personalizado o al que se adaptó la semana) → parejas (programa, reparto)
         // y preview dejan de estar vigentes hasta re-preparar.
         SetupChangeSource.SPLIT -> SetupDependencyImpact(
             stalePreviews = setOf(
                 SetupPreviewKind.PLAN_CANDIDATES, SetupPreviewKind.SPLIT,
                 SetupPreviewKind.RECIPE, SetupPreviewKind.EXERCISES, SetupPreviewKind.LOADS,
             ),
-            pendingSteps = setOf(SetupStepId.PLAN, SetupStepId.SPLIT),
+            pendingSteps = setOf(SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT),
         )
         // Prioridades → solo reordena ejercicios, nunca los cambia.
         SetupChangeSource.PRIORITIES -> SetupDependencyImpact(reorderOnly = true)
-        // Calendario → recalcula reparto nutricional y los elementos de
-        // entrenamiento que dependen de las fechas elegidas.
+        // Calendario (días, inicio de semana, día de más energía, lugar por día) → recalcula el reparto
+        // nutricional y los elementos de entrenamiento que dependen de las fechas elegidas.
         SetupChangeSource.CALENDAR -> SetupDependencyImpact(
             stalePreviews = setOf(
                 SetupPreviewKind.NUTRITION_DISTRIBUTION,
                 SetupPreviewKind.PLAN_CANDIDATES, SetupPreviewKind.SPLIT,
                 SetupPreviewKind.RECIPE, SetupPreviewKind.EXERCISES, SetupPreviewKind.LOADS,
             ),
-            pendingSteps = setOf(SetupStepId.PLAN, SetupStepId.SPLIT),
+            pendingSteps = setOf(SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT),
         )
         // Sensaciones → solo Rings.
         SetupChangeSource.SENSATIONS -> SetupDependencyImpact(
@@ -774,6 +775,8 @@ data class SetupInputFootprint(
     val bodyFatPercent: Double? = null,
     val equipment: Set<String> = emptySet(),
     val trainingEnvironment: String? = null,
+    /** Lugares donde se entrena (gimnasio, casa, espacios públicos), por nombre. */
+    val trainingPlaces: Set<String> = emptySet(),
     val inventory: Set<String> = emptySet(),
     /** Null = unanswered/legacy; empty = explicitly no declared categories. */
     val equipmentAvailability: Set<String>? = null,
@@ -787,6 +790,8 @@ data class SetupInputFootprint(
     val programRoute: String = "",
     val trainingPath: String? = null,
     val goal: String? = null,
+    /** Perfil de objetivo del paso GOAL (los diez perfiles); el legacy [goal] es solo su derivado. */
+    val goalProfile: String? = null,
     val focus: String? = null,
     val experience: String? = null,
     val volumeStyle: String? = null,
@@ -795,6 +800,17 @@ data class SetupInputFootprint(
     val cardioMinutes: Int? = null,
     val knowsTrainingMarks: Boolean = false,
     val marks: List<Double?> = emptyList(),
+    /** Marcas por levantamiento (kg), por nombre del levantamiento. */
+    val liftMarks: Map<String, Double> = emptyMap(),
+    /** Nivel declarado de cada ejercicio de peso corporal, por habilidad. */
+    val capabilities: Map<String, String> = emptyMap(),
+    /** Día de más energía y primer día de la semana (1 = lunes … 7 = domingo). */
+    val freshestDay: Int? = null,
+    val weekStartDay: Int? = null,
+    /** Lugar elegido para cada día de entreno cuando hay más de un lugar (día → lugar). */
+    val dayPlaces: Map<Int, String> = emptyMap(),
+    /** Reparto al que se adaptó el programa (decisión de la semana armada). */
+    val adaptedSplitId: String? = null,
     val selectedCatalogId: String? = null,
     val priorityMuscles: Set<String> = emptySet(),
     val lowerEmphasisMuscles: Set<String> = emptySet(),
@@ -829,19 +845,25 @@ object SetupChangeDetector {
             old.nutritionHistorySignature != new.nutritionHistorySignature
         ) add(SetupChangeSource.WEIGHT)
         if (old.bodyFatPercent != new.bodyFatPercent) add(SetupChangeSource.BODY_COMPOSITION)
+        // Lugares y material (símbolos, categorías y presencia de aparatos) → EQUIPMENT.
         if (old.equipment != new.equipment || old.trainingEnvironment != new.trainingEnvironment ||
+            old.trainingPlaces != new.trainingPlaces ||
             old.inventory != new.inventory || old.equipmentAvailability != new.equipmentAvailability ||
             old.equipmentApparatus != new.equipmentApparatus || old.equipmentSupports != new.equipmentSupports
         ) add(SetupChangeSource.EQUIPMENT)
         if (old.daysPerWeek != new.daysPerWeek) add(SetupChangeSource.FREQUENCY)
         if (old.selectedSplitId != new.selectedSplitId ||
             old.customSplitPattern != new.customSplitPattern ||
-            old.customSplitName != new.customSplitName
+            old.customSplitName != new.customSplitName ||
+            old.adaptedSplitId != new.adaptedSplitId
         ) add(SetupChangeSource.SPLIT)
+        // Objetivo (perfil y derivado), capacidades, marcas, experiencia, tiempo y cardio → PROTOCOL.
         if (old.programRoute != new.programRoute || old.trainingPath != new.trainingPath ||
             old.knowsTrainingMarks != new.knowsTrainingMarks || old.marks != new.marks ||
+            old.liftMarks != new.liftMarks || old.capabilities != new.capabilities ||
             old.selectedCatalogId != new.selectedCatalogId || old.minutesPerSession != new.minutesPerSession ||
-            old.goal != new.goal || old.focus != new.focus || old.experience != new.experience ||
+            old.goal != new.goal || old.goalProfile != new.goalProfile ||
+            old.focus != new.focus || old.experience != new.experience ||
             old.volumeStyle != new.volumeStyle || old.volumeResponses != new.volumeResponses ||
             old.cardioType != new.cardioType || old.cardioMinutes != new.cardioMinutes ||
             old.autoregulationMode != new.autoregulationMode ||
@@ -850,7 +872,10 @@ object SetupChangeDetector {
         if (old.priorityMuscles != new.priorityMuscles || old.lowerEmphasisMuscles != new.lowerEmphasisMuscles ||
             old.priorityPoints != new.priorityPoints
         ) add(SetupChangeSource.PRIORITIES)
-        if (old.selectedWeekdays != new.selectedWeekdays) add(SetupChangeSource.CALENDAR)
+        // Días, inicio de semana, día de más energía y lugar por día → CALENDAR.
+        if (old.selectedWeekdays != new.selectedWeekdays || old.weekStartDay != new.weekStartDay ||
+            old.freshestDay != new.freshestDay || old.dayPlaces != new.dayPlaces
+        ) add(SetupChangeSource.CALENDAR)
         if (old.ringsSignature != new.ringsSignature) add(SetupChangeSource.SENSATIONS)
     }
 }

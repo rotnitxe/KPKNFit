@@ -1,15 +1,17 @@
 package com.example.kpkn.screens.onboarding
 
-import com.example.kpkn.data.models.AutoregulationMode
 import com.example.kpkn.data.models.InitialRecoveryResponseState
 import com.example.kpkn.data.models.NutritionPlan
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.domain.nutrition.NutritionPlanPreparationStatus
 import com.example.kpkn.domain.nutrition.parseLocalizedNumber
+import com.example.kpkn.domain.onboarding.CapabilityLevel
+import com.example.kpkn.domain.onboarding.MuscleSymbols
 import com.example.kpkn.domain.onboarding.SetupEquationSexValues
 import com.example.kpkn.domain.onboarding.SetupStepDefinitions
 import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
+import com.example.kpkn.domain.onboarding.TrainingPlace
 import com.example.kpkn.domain.text.SpanishPlurals
 import com.example.kpkn.screens.onboarding.design.WizardHeightScale
 import com.example.kpkn.screens.onboarding.design.WizardHeightUnit
@@ -75,20 +77,15 @@ private const val SUMMARY_NOT_ANSWERED = "Sin responder"
 private const val SUMMARY_READY = "Listo"
 private const val SUMMARY_ACTIVATED = "Activado"
 private const val SUMMARY_UNCALIBRATED = "Sin calibrar"
-private const val SUMMARY_WHOLE_BODY = "Todo el cuerpo"
-private const val SUMMARY_PROTOCOL_SPLIT = "Según el protocolo"
-private const val SUMMARY_CHOSEN_PLAN = "Tu plan elegido"
+private const val SUMMARY_NO_PRIORITY = "Sin preferencia"
+private const val SUMMARY_NO_MARKS = "Sin marcas"
+private const val SUMMARY_NO_CAPABILITY = "Aún ninguno"
+private const val SUMMARY_CHOSEN_PLAN = "Tu programa elegido"
 private const val SUMMARY_PROFESSIONAL = "Pauta indicada por un profesional"
 private const val SUMMARY_BLOCKED_EQUATION = "Faltan datos de la ecuación"
-private const val SUMMARY_DEFAULT_WARMUPS = "Estándar del plan"
-private const val SUMMARY_NO_WARMUPS = "Sin calentamiento automático"
-private const val SUMMARY_CONFIRMED = "Confirmado"
-private const val SUMMARY_REVIEW_ONLY = "Solo revisar"
 
-/** Mismos títulos de tarjeta que ve la persona en el paso AUTORREGULACIÓN. */
-private const val SUMMARY_AUTOREGULATION_OFF = "No, lo controlo yo"
-private const val SUMMARY_AUTOREGULATION_PROPOSE = "Propuestas que yo confirmo"
-private const val SUMMARY_AUTOREGULATION_AUTO = "Ajuste automático cada semana"
+/** Nombres cortos de los días, de lunes (1) a domingo (7), para listar los días de entreno. */
+private val SUMMARY_WEEKDAYS_SHORT = listOf("", "lun", "mar", "mié", "jue", "vie", "sáb", "dom")
 
 /** Tendencia declarada del peso (el valor estable que guarda el paso de historia). */
 private val SUMMARY_TRENDS = mapOf(
@@ -118,34 +115,38 @@ private fun summaryLabel(page: SetupStepId): String = when (page) {
     SetupStepId.BODY_FAT -> "Grasa corporal"
 
     SetupStepId.EXPERIENCE -> "Experiencia"
-    SetupStepId.ROUTE -> "Cómo empezar"
+    SetupStepId.EQUIPMENT -> "Dónde entrenas"
+    SetupStepId.AVAILABILITY -> "Material"
     SetupStepId.GOAL -> "Objetivo"
-    SetupStepId.STYLE -> "Prefieres ganar"
+    SetupStepId.FRESH_DAY -> "Día con más energía"
+    SetupStepId.WEEKDAYS -> "Días de entreno"
+    SetupStepId.SESSION_TIME -> "Tiempo por sesión"
+    SetupStepId.CARDIO_TYPE -> "Tipo de cardio"
+    SetupStepId.CARDIO_TIME -> "Minutos de cardio"
     SetupStepId.VOLUME_TECHNIQUE -> "Técnica"
     SetupStepId.VOLUME_CONSISTENCY -> "Constancia"
     SetupStepId.VOLUME_STRENGTH -> "Fuerza actual"
     SetupStepId.VOLUME_MOBILITY -> "Movilidad"
-    SetupStepId.EQUIPMENT -> "Dónde entrenas"
-    SetupStepId.AVAILABILITY -> "Material disponible"
+    SetupStepId.CAPABILITIES -> "Ejercicios que te salen"
+    SetupStepId.PRIORITIES -> "Músculos a mejorar"
+    SetupStepId.TRAINING_MAX -> "Marcas"
+    SetupStepId.PLAN -> "Programa"
+    SetupStepId.WEEK_LAYOUT -> "Tu semana"
     SetupStepId.INVENTORY_BARBELL -> "Barra y rack"
     SetupStepId.INVENTORY_PLATES -> "Discos"
     SetupStepId.INVENTORY_DUMBBELLS -> "Mancuernas"
     SetupStepId.INVENTORY_KETTLEBELLS -> "Kettlebells"
     SetupStepId.INVENTORY_MACHINES -> "Máquinas y poleas"
+    // Pasos retirados de la ruta: solo se leen en borradores antiguos.
+    SetupStepId.ROUTE -> "Cómo empezar"
+    SetupStepId.STYLE -> "Prefieres ganar"
     SetupStepId.DAYS -> "Días por semana"
-    SetupStepId.WEEKDAYS -> "Días de entreno"
-    SetupStepId.SESSION_TIME -> "Tiempo por sesión"
-    SetupStepId.CARDIO_TYPE -> "Tipo de cardio"
-    SetupStepId.CARDIO_TIME -> "Minutos de cardio"
-    SetupStepId.PRIORITIES -> "Prioridades de orden"
     SetupStepId.SPLIT -> "Reparto de entreno"
-    SetupStepId.PLAN -> "Plan elegido"
-    SetupStepId.TRAINING_MAX -> "Conoces tus marcas"
-    SetupStepId.TRAINING_MARKS -> "Marcas"
+    SetupStepId.TRAINING_MARKS -> "Marcas guardadas"
     SetupStepId.AUTOREGULATION -> "Autorregulación"
     SetupStepId.AUTOREGULATION_CONFIRM -> "Ajuste automático"
     SetupStepId.WARMUPS -> "Calentamientos"
-    SetupStepId.TRAINING_REVIEW -> "Revisión del plan"
+    SetupStepId.TRAINING_REVIEW -> "Revisión del programa"
 
     SetupStepId.NUTRITION_START -> "Modo de nutrición"
     SetupStepId.NUTRITION_ELIGIBILITY -> "Condiciones de salud"
@@ -209,33 +210,38 @@ private fun summaryValue(page: SetupStepId, state: SetupWizardState): String {
 
         // ── Entreno ──────────────────────────────────────────────────────────
         SetupStepId.EXPERIENCE,
-        SetupStepId.ROUTE,
-        SetupStepId.STYLE,
         SetupStepId.VOLUME_TECHNIQUE,
         SetupStepId.VOLUME_CONSISTENCY,
         SetupStepId.VOLUME_STRENGTH,
         SetupStepId.VOLUME_MOBILITY,
-        SetupStepId.EQUIPMENT,
-        SetupStepId.DAYS,
-        SetupStepId.WEEKDAYS,
         SetupStepId.CARDIO_TYPE,
         SetupStepId.CARDIO_TIME,
-        SetupStepId.TRAINING_MAX,
         -> draft.summaryChoice(page)
-        // El objetivo legacy (Salud, Fuerza + cardio) no tiene opción en el catálogo: manda la etiqueta del dominio.
-        SetupStepId.GOAL -> draft.goal?.label ?: draft.summaryChoice(page)
-        // El material que un entorno siembra de entrada no es una respuesta hasta que se confirma el paso.
+        SetupStepId.EQUIPMENT -> summaryPlaces(draft)
+        // El material que un lugar siembra de entrada no es una respuesta hasta que se confirma el paso.
         SetupStepId.AVAILABILITY -> draft.summaryChoice(page, draft.summaryDeclared(page))
+        // El perfil elegido (diez) manda; el objetivo legacy (Salud, Fuerza + cardio) usa la etiqueta del dominio.
+        SetupStepId.GOAL -> draft.goalProfile?.label ?: draft.goal?.label ?: draft.summaryMissing(page)
+        SetupStepId.FRESH_DAY -> draft.freshestDay?.let { day -> summaryWeekdayName(day) } ?: draft.summaryMissing(page)
+        SetupStepId.WEEKDAYS -> summaryWeekdays(draft)
         SetupStepId.SESSION_TIME -> draft.minutesPerSession?.let { minutes -> summaryQuantity(page, minutes) }
             ?: draft.summaryMissing(page)
+        SetupStepId.CAPABILITIES -> summaryCapabilities(draft)
         SetupStepId.PRIORITIES -> summaryPriorities(draft)
-        SetupStepId.SPLIT -> summarySplit(state)
+        SetupStepId.TRAINING_MAX -> summaryMarks(draft)
         SetupStepId.PLAN -> summaryPlan(state)
-        SetupStepId.TRAINING_MARKS -> summaryMarks(draft)
-        SetupStepId.AUTOREGULATION -> summaryAutoregulation(draft)
-        SetupStepId.AUTOREGULATION_CONFIRM -> summaryAutoregulationConfirmation(draft)
-        SetupStepId.WARMUPS -> summaryWarmups(draft)
-        SetupStepId.TRAINING_REVIEW -> summaryTrainingReview(state)
+        SetupStepId.WEEK_LAYOUT -> summaryWeekLayout(state)
+        // Pasos retirados de la ruta: solo se leen en borradores antiguos.
+        SetupStepId.ROUTE,
+        SetupStepId.STYLE,
+        SetupStepId.DAYS,
+        SetupStepId.SPLIT,
+        SetupStepId.TRAINING_MARKS,
+        SetupStepId.AUTOREGULATION,
+        SetupStepId.AUTOREGULATION_CONFIRM,
+        SetupStepId.WARMUPS,
+        SetupStepId.TRAINING_REVIEW,
+        -> draft.summaryChoice(page)
 
         // ── Nutrición ────────────────────────────────────────────────────────
         SetupStepId.NUTRITION_START -> summaryNutritionStart(draft)
@@ -454,40 +460,65 @@ private fun SetupWizardDraft.summaryMissing(step: SetupStepId): String =
 
 // ─── Entreno ─────────────────────────────────────────────────────────────────
 
-/** Músculos con puntos, de más a menos puntos («Glúteos, Isquiosurales +1»); la bolsa vacía confirmada es «Todo el cuerpo». */
+/**
+ * «Gimnasio y casa», «Casa»: los lugares elegidos en el orden del contrato, el primero con mayúscula; null sin
+ * lugares. Lo comparten la fila-resumen y la revisión final.
+ */
+internal fun placesSummaryText(places: Set<TrainingPlace>): String? {
+    val ordered = TrainingPlace.entries.filter { it in places }
+    if (ordered.isEmpty()) return null
+    val names = ordered.map { place ->
+        when (place) {
+            TrainingPlace.GYM -> "gimnasio"
+            TrainingPlace.HOME -> "casa"
+            TrainingPlace.PUBLIC -> "espacios públicos"
+        }
+    }
+    val joined = if (names.size == 1) names.first() else names.dropLast(1).joinToString(", ") + " y " + names.last()
+    return joined.replaceFirstChar { it.titlecase() }
+}
+
+private fun summaryPlaces(draft: SetupWizardDraft): String =
+    placesSummaryText(draft.trainingPlaces) ?: draft.summaryMissing(SetupStepId.EQUIPMENT)
+
+/** Nombre completo del día (1 = lunes … 7 = domingo). */
+private fun summaryWeekdayName(day: Int): String =
+    SetupStepDefinitions.of(SetupStepId.WEEKDAYS)?.option(day.toString())?.label ?: "Día $day"
+
+/** «3 días · lun, mié, vie»; con los siete, «Todos los días»; null sin días. Lo comparten la fila-resumen y la revisión. */
+internal fun weekdaysSummaryText(selected: Set<Int>): String? {
+    val days = selected.filter { it in 1..7 }.sorted()
+    if (days.isEmpty()) return null
+    if (days.size == 7) return "Todos los días"
+    return SpanishPlurals.days(days.size) + " · " + days.joinToString(", ") { SUMMARY_WEEKDAYS_SHORT[it] }
+}
+
+private fun summaryWeekdays(draft: SetupWizardDraft): String =
+    weekdaysSummaryText(draft.selectedWeekdays) ?: draft.summaryMissing(SetupStepId.WEEKDAYS)
+
+/** Los ejercicios que ya salen («Dominadas, Flexiones +1»); si todos están en «Aún no», «Aún ninguno». */
+private fun summaryCapabilities(draft: SetupWizardDraft): String {
+    if (draft.capabilities.isEmpty()) return draft.summaryMissing(SetupStepId.CAPABILITIES)
+    val known = draft.capabilities.filterValues { level -> level != CapabilityLevel.NONE }.keys
+        .sortedBy { skill -> skill.ordinal }
+        .map { skill -> skill.label }
+    return if (known.isEmpty()) SUMMARY_NO_CAPABILITY else summaryJoin(known)
+}
+
+/** Los músculos que se quieren mejorar más («Pecho, Espalda +1»); la bolsa vacía confirmada es «Sin preferencia». */
 private fun summaryPriorities(draft: SetupWizardDraft): String {
     val step = SetupStepId.PRIORITIES
     val bag = draft.trainingOptions.orderPriorities.filterValues { points -> points > 0 }
     if (bag.isEmpty()) {
-        return if (step in draft.stepProgress.answers) SUMMARY_WHOLE_BODY else SUMMARY_NOT_ANSWERED
+        return if (step in draft.stepProgress.answers) SUMMARY_NO_PRIORITY else SUMMARY_NOT_ANSWERED
     }
     val muscles = bag.entries
         .sortedWith(compareByDescending<Map.Entry<String, Int>> { entry -> entry.value }.thenBy { entry -> entry.key })
-        .map { entry -> summaryOptionLabel(step, entry.key) }
+        .map { entry -> MuscleSymbols.fromCanonical(entry.key)?.label ?: summaryOptionLabel(step, entry.key) }
     return summaryJoin(muscles)
 }
 
-/**
- * El reparto con el nombre que la persona vio al elegirlo ([draftSplitLabel], el mismo de
- * la revisión); sin él, la etiqueta de la opción elegida («Recomendado para ti») o el nombre del
- * reparto cuyo id quedó guardado como selección ([splitDisplayName]). Un reparto que el catálogo
- * no conoce queda sin declarar, nunca como un id. La ruta de protocolo fija su propio reparto y lo dice.
- */
-private fun summarySplit(state: SetupWizardState): String {
-    val draft = state.draft
-    val step = SetupStepId.SPLIT
-    val chosen = draft.selectedValues(step)
-    if (chosen.isEmpty()) {
-        return if (draft.programRoute == SetupProgramRoute.PROTOCOL) SUMMARY_PROTOCOL_SPLIT else draft.summaryMissing(step)
-    }
-    draftSplitLabel(state)?.let { name -> return name }
-    val labels = chosen.mapNotNull { value ->
-        SetupStepDefinitions.of(step)?.option(value)?.label ?: splitDisplayName(value)
-    }
-    return if (labels.isEmpty()) draft.summaryMissing(step) else summaryJoin(labels)
-}
-
-/** El plan elegido por su nombre editorial (nunca el id); «más adelante» y «desde cero» se dicen tal cual. */
+/** El programa elegido por su nombre editorial (nunca el id); «más adelante» y «desde cero» se dicen tal cual. */
 private fun summaryPlan(state: SetupWizardState): String {
     val draft = state.draft
     if (draft.programRoute == SetupProgramRoute.LATER) return DEFER_PROGRAM_REVIEW_VALUE
@@ -500,58 +531,22 @@ private fun summaryPlan(state: SetupWizardState): String {
     return draft.summaryMissing(SetupStepId.PLAN)
 }
 
-/** «Sentadilla 100 kg, Banca 80 kg +1»: solo las marcas declaradas. */
-private fun summaryMarks(draft: SetupWizardDraft): String {
-    val step = SetupStepId.TRAINING_MARKS
-    val profile = draft.powerliftingProfile
-    val marks = listOf("squat" to profile?.squat1RM, "bench" to profile?.bench1RM, "deadlift" to profile?.deadlift1RM)
-        .mapNotNull { (lift, kg) ->
-            kg?.takeIf { it.isFinite() }?.let { value ->
-                "${summaryOptionLabel(step, lift)} ${WizardWeightScale.formatWithUnit(value, WizardMassUnit.KG)}"
-            }
-        }
-    return if (marks.isEmpty()) draft.summaryMissing(step) else summaryJoin(marks)
-}
-
-/** El modo de autorregulación (siempre tiene valor: «propuestas» es la decisión por defecto del contrato). */
-private fun summaryAutoregulation(draft: SetupWizardDraft): String =
-    when (draft.trainingOptions.autoregulationMode) {
-        AutoregulationMode.OFF -> SUMMARY_AUTOREGULATION_OFF
-        AutoregulationMode.PROPOSE -> SUMMARY_AUTOREGULATION_PROPOSE
-        AutoregulationMode.AUTO -> SUMMARY_AUTOREGULATION_AUTO
-    }
-
-/**
- * AUTO sin confirmar no es una respuesta: queda «Sin responder» hasta que se confirma. «Solo revisar»
- * (vuelve a proponer) solo se dice cuando el paso quedó registrado; el modo por defecto no lo declara.
- */
-private fun summaryAutoregulationConfirmation(draft: SetupWizardDraft): String {
-    val training = draft.trainingOptions
-    val auto = training.autoregulationMode == AutoregulationMode.AUTO
-    return when {
-        auto && training.automaticConfirmed -> SUMMARY_CONFIRMED
-        !auto && SetupStepId.AUTOREGULATION_CONFIRM in draft.stepProgress.answers -> SUMMARY_REVIEW_ONLY
-        else -> SUMMARY_NOT_ANSWERED
-    }
-}
-
-/** null = preset del plan, lista vacía = sin calentamiento, lista = pasos propios. */
-private fun summaryWarmups(draft: SetupWizardDraft): String {
-    val warmup = draft.trainingOptions.warmup
-    return when {
-        warmup == null -> SUMMARY_DEFAULT_WARMUPS
-        warmup.isEmpty() -> SUMMARY_NO_WARMUPS
-        else -> "Personalizado (${SpanishPlurals.steps(warmup.size)})"
-    }
-}
-
-/** La primera semana del programa preparado («1ª semana: 3 sesiones · 12 ejercicios»); sin preparar, «Listo». */
-private fun summaryTrainingReview(state: SetupWizardState): String {
+/** La semana armada: las sesiones de la primera semana del programa preparado; sin preparar, «Lista». */
+private fun summaryWeekLayout(state: SetupWizardState): String {
     val program = state.programPreview ?: return SUMMARY_READY
     val sessions = program.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }
         .firstOrNull()?.sessions.orEmpty()
     if (sessions.isEmpty()) return SUMMARY_READY
-    return "1ª semana: " + previewSessionsSummary(sessions.size, sessions.sumOf { session -> session.allExercises().size })
+    return SpanishPlurals.sessions(sessions.size) + " por semana"
+}
+
+/** «Sentadilla 100 kg, Press banca 80 kg +1»: solo las marcas declaradas, en la unidad en que se declararon. */
+private fun summaryMarks(draft: SetupWizardDraft): String {
+    val unit = if (draft.marksUnit == "lb") WizardMassUnit.LB else WizardMassUnit.KG
+    val marks = draft.liftMarks.entries.sortedBy { entry -> entry.key.ordinal }
+        .map { (lift, kg) -> "${lift.label} ${WizardWeightScale.formatWithUnit(kg, unit)}" }
+    if (marks.isNotEmpty()) return summaryJoin(marks)
+    return if (SetupStepId.TRAINING_MAX in draft.stepProgress.answers) SUMMARY_NO_MARKS else SUMMARY_NOT_ANSWERED
 }
 
 /** Material de un inventario legacy: solo dice si se declaró (los pasos INVENTORY_* ya no están en la ruta). */

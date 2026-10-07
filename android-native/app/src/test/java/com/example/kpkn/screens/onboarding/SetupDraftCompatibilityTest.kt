@@ -320,7 +320,7 @@ class SetupDraftCompatibilityTest {
     fun nonConvertibleDraftsArePreservedUntilTheUserDiscardsThem() {
         val broken = draft(
             scope = "nutrition_only",
-            current = WizChatQuestionId.T_DAYS,
+            current = WizChatQuestionId.T_WEEKDAYS,
             answers = listOf(answer(WizChatQuestionId.P_WEIGHT, 72.0)),
             age = null,
             height = null,
@@ -332,7 +332,7 @@ class SetupDraftCompatibilityTest {
         assertEquals(broken.wizChat, repaired.wizChat)
         assertEquals(broken.weightKg, repaired.weightKg)
         assertEquals("plan-legacy", repaired.selectedCatalogId)
-        assertEquals(SetupStepId.DAYS, repaired.stepProgress.currentStepId)
+        assertEquals(SetupStepId.WEEKDAYS, repaired.stepProgress.currentStepId)
         assertEquals(broken.stepProgress.answers, repaired.stepProgress.answers)
         assertEquals(broken.stepProgress.pendingReview, repaired.stepProgress.pendingReview)
         assertEquals(repaired, SetupDraftCompatibility.repair(repaired))
@@ -440,12 +440,12 @@ class SetupDraftCompatibilityTest {
     @Test
     fun nativeTypedVitalsCountAsDeclaredAndNeverRewindTheCursor() {
         val nativeBase = draft(
-            current = WizChatQuestionId.T_DAYS,
+            current = WizChatQuestionId.T_WEEKDAYS,
             answers = emptyList(),
         )
         val native = nativeBase.copy(
             stepProgress = progressAt(
-                SetupStepId.DAYS,
+                SetupStepId.WEEKDAYS,
                 nativeBase.stepContext(),
                 answerOverrides = mapOf(SetupStepId.WEIGHT to SetupAnswerProvenance.SUGGESTED),
             ),
@@ -456,7 +456,7 @@ class SetupDraftCompatibilityTest {
         assertEquals(emptyList<WizChatQuestionId>(), SetupDraftCompatibility.pendingMandatoryVitals(repaired))
         // Ni el espejo legacy ni el puntero nativo se tocan.
         assertEquals(native.wizChat.currentQuestionId, repaired.wizChat.currentQuestionId)
-        assertEquals(SetupStepId.DAYS, repaired.stepProgress.currentStepId)
+        assertEquals(SetupStepId.WEEKDAYS, repaired.stepProgress.currentStepId)
         assertEquals(SetupProgressOrigin.NATIVE, repaired.stepProgress.origin)
         assertEquals(native.stepProgress.answers, repaired.stepProgress.answers)
         assertEquals(native.stepProgress.revision, repaired.stepProgress.revision)
@@ -541,7 +541,7 @@ class SetupDraftCompatibilityTest {
     @Test
     fun nativeValuesWinOverTheStaleLegacyMirrorAndStayIdempotent() {
         val nativeDraft = draft(
-            current = WizChatQuestionId.T_DAYS,
+            current = WizChatQuestionId.T_WEEKDAYS,
             answers = listOf(
                 // Espejo viejo: peso 70 y textos crudos de la versión anterior.
                 answer(WizChatQuestionId.P_AGE, 30.0),
@@ -560,7 +560,7 @@ class SetupDraftCompatibilityTest {
         )
         val native = nativeDraft.copy(
             stepProgress = progressAt(
-                SetupStepId.DAYS,
+                SetupStepId.WEEKDAYS,
                 nativeDraft.stepContext(),
                 answerOverrides = mapOf(SetupStepId.WEIGHT to SetupAnswerProvenance.SUGGESTED),
             ),
@@ -577,7 +577,7 @@ class SetupDraftCompatibilityTest {
             it.questionId == WizChatQuestionId.P_NAME
         }?.textValue)
         assertEquals(native.wizChat.currentQuestionId, repaired.wizChat.currentQuestionId)
-        assertEquals(SetupStepId.DAYS, repaired.stepProgress.currentStepId)
+        assertEquals(SetupStepId.WEEKDAYS, repaired.stepProgress.currentStepId)
         assertEquals(native.stepProgress.answers, repaired.stepProgress.answers)
         assertEquals(SetupProgressOrigin.NATIVE, repaired.stepProgress.origin)
         assertEquals(emptyList<WizChatQuestionId>(), SetupDraftCompatibility.pendingMandatoryVitals(repaired))

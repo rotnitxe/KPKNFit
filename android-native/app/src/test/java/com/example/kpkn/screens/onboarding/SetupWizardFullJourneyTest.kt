@@ -12,14 +12,11 @@ import com.example.kpkn.data.db.toNutritionPlan
 import com.example.kpkn.data.db.toProgram
 import com.example.kpkn.data.db.toSettings
 import com.example.kpkn.data.exercises.catalogv2.CatalogV2ProcessCache
+import com.example.kpkn.data.models.AthleteType
 import com.example.kpkn.data.models.AutoregulationMode
 import com.example.kpkn.data.models.BodyMetric
 import com.example.kpkn.data.models.BodyObservationQuality
 import com.example.kpkn.data.models.CalculationOrigin
-import com.example.kpkn.data.models.DumbbellPairStock
-import com.example.kpkn.data.models.EquipmentCategory
-import com.example.kpkn.data.models.EquipmentInventory
-import com.example.kpkn.data.models.MachineLoadRange
 import com.example.kpkn.data.models.NutritionPlan
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Settings
@@ -40,11 +37,15 @@ import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.nutrition.EerSex
 import com.example.kpkn.domain.nutrition.NutritionConfigurationMode
 import com.example.kpkn.domain.nutrition.WizardPacePreset
+import com.example.kpkn.domain.onboarding.EquipmentSymbols
+import com.example.kpkn.domain.onboarding.MuscleSymbol
 import com.example.kpkn.domain.onboarding.SetupAnswerProvenance
 import com.example.kpkn.domain.onboarding.SetupRingsResponseMapping
 import com.example.kpkn.domain.onboarding.SetupStepDefinitions
 import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
+import com.example.kpkn.domain.onboarding.TrainingGoalProfile
+import com.example.kpkn.domain.onboarding.TrainingPlace
 import com.example.kpkn.domain.onboarding.WizChatMachineState
 import com.example.kpkn.domain.training.OrderPrioritiesContract
 import com.example.kpkn.domain.training.OrderPrioritiesStatus
@@ -411,6 +412,7 @@ class SetupWizardFullJourneyTest {
         assertEquals(true, settings.onboardingCompleted)
         assertEquals(true, settings.onboardingProgramDone)
         assertEquals(true, settings.onboardingNutritionDone)
+        assertEquals("el objetivo respondido escribe el tipo de atleta", AthleteType.BODYBUILDER, settings.athleteType)
         assertNull(settings.dailyCalorieGoal)
         assertNotNull(room { db.setupCommitReceiptDao().get(checkNotNull(receipt) { "recibo" }) })
         assertNull(room { db.setupDraftDao().getDraft(vm.state.value.draft.draftId) })
@@ -474,27 +476,35 @@ class SetupWizardFullJourneyTest {
         confirmStep(vm, SetupStepId.EXPERIENCE, SetupStepId.EQUIPMENT) {
             vm.setStepChoice(SetupStepId.EXPERIENCE, "intermediate")
         }
-        // §15.1 / AC-T005-01: material ANTES de perfiles. Entorno → categorías;
-        // el subpanel de aparatos (§13.2) queda en UNKNOWN al omitirlo, nunca
-        // PRESENT, y no pide kilos ni cantidades.
+        // Lugares y material ANTES del objetivo. El gimnasio siembra el material habitual (sin pedir kilos ni
+        // cantidades) y el subpanel de aparatos ya no existe: lo marcado es lo que se declara.
         confirmStep(vm, SetupStepId.EQUIPMENT, SetupStepId.AVAILABILITY) {
-            vm.setStepChoice(SetupStepId.EQUIPMENT, "machines")
+            vm.togglePlace(TrainingPlace.GYM)
         }
+        assertEquals(setOf(TrainingPlace.GYM), vm.state.value.draft.trainingPlaces)
+        assertEquals("gym", vm.state.value.draft.trainingEnvironment)
+        assertEquals(
+            "el gimnasio siembra el material habitual",
+            EquipmentSymbols.seedFor(setOf(TrainingPlace.GYM)),
+            vm.state.value.draft.selectedEquipmentSymbols(),
+        )
         confirmStep(vm, SetupStepId.AVAILABILITY, SetupStepId.GOAL)
-        // Músculo infiere el estilo: el paso STYLE no entra en la ruta. Días y
-        // tiempo se fijan antes de la calibración y de mostrar candidatos.
-        confirmStep(vm, SetupStepId.GOAL, SetupStepId.DAYS) {
-            vm.setStepChoice(SetupStepId.GOAL, "muscle")
+        // Culturismo infiere el estilo de calibración: no hay selector de estilo. El día con más energía, los
+        // días y el tiempo se fijan antes de la calibración y de mostrar el programa.
+        confirmStep(vm, SetupStepId.GOAL, SetupStepId.FRESH_DAY) {
+            vm.setGoalProfile(TrainingGoalProfile.BODYBUILDING)
         }
         assertEquals(TrainingStyle.BODYBUILDER, vm.state.value.draft.volumeAnswers.style)
-        confirmStep(vm, SetupStepId.DAYS, SetupStepId.WEEKDAYS) { vm.setStepChoice(SetupStepId.DAYS, "3") }
+        assertEquals(SetupGoal.MUSCLE, vm.state.value.draft.goal)
+        confirmStep(vm, SetupStepId.FRESH_DAY, SetupStepId.WEEKDAYS) { vm.setFreshDay(1) }
+        assertEquals("la semana empieza el día con más energía", 1, vm.state.value.draft.weekStartDay)
         confirmStep(vm, SetupStepId.WEEKDAYS, SetupStepId.SESSION_TIME) {
-            vm.setStepChoices(SetupStepId.WEEKDAYS, setOf("1", "3", "5"))
+            listOf(1, 3, 5).forEach(vm::toggleWeekday)
         }
-        confirmStep(vm, SetupStepId.SESSION_TIME, SetupStepId.VOLUME_TECHNIQUE) {
-            vm.setStepText(SetupStepId.SESSION_TIME, "60")
-            vm.setStepNumber(SetupStepId.SESSION_TIME, 60.0)
-        }
+        assertEquals(setOf(1, 3, 5), vm.state.value.draft.selectedWeekdays)
+        assertEquals("los días son los elegidos", 3, vm.state.value.draft.daysPerWeek)
+        confirmStep(vm, SetupStepId.SESSION_TIME, SetupStepId.VOLUME_TECHNIQUE) { vm.setSessionMinutes(60) }
+        assertEquals(60, vm.state.value.draft.minutesPerSession)
         confirmStep(vm, SetupStepId.VOLUME_TECHNIQUE, SetupStepId.VOLUME_CONSISTENCY) {
             vm.setStepChoice(SetupStepId.VOLUME_TECHNIQUE, "2")
         }
@@ -509,19 +519,13 @@ class SetupWizardFullJourneyTest {
         }
         assertNotNull("calibración de volumen real", vm.state.value.draft.volumeCalibrationProfile)
 
-        confirmStep(vm, SetupStepId.PRIORITIES, SetupStepId.TRAINING_MAX) {
-            vm.updateStep(SetupStepId.PRIORITIES) { draft ->
-                draft.copy(trainingOptions = draft.trainingOptions.copy(orderPriorities = priorityBag()))
-            }
+        // Prioridades: tres músculos (un punto cada uno); sin marcas ni capacidades en la ruta de Culturismo.
+        confirmStep(vm, SetupStepId.PRIORITIES, SetupStepId.PLAN) {
+            listOf(MuscleSymbol.CHEST, MuscleSymbol.BACK, MuscleSymbol.TRICEPS).forEach(vm::toggleMuscle)
         }
         assertEquals(priorityBag(), vm.state.value.draft.trainingOptions.orderPriorities)
-        // §15.1: CALIBRATION aplicable antes de SPLIT/PLAN.
-        confirmStep(vm, SetupStepId.TRAINING_MAX, SetupStepId.SPLIT) {
-            vm.setStepChoice(SetupStepId.TRAINING_MAX, "no")
-        }
-        // PROPOSE es el valor por defecto del contrato: el paso nunca bloquea.
+        // PROPOSE es el valor por defecto del contrato: ningún paso lo pregunta.
         assertEquals(AutoregulationMode.PROPOSE, vm.state.value.draft.trainingOptions.autoregulationMode)
-        confirmStep(vm, SetupStepId.SPLIT, SetupStepId.PLAN) { vm.setStepChoice(SetupStepId.SPLIT, "recommended") }
 
         // Candidatos reales del catálogo: se elige uno, nunca un plan inventado.
         awaitCondition(
@@ -543,14 +547,10 @@ class SetupWizardFullJourneyTest {
             "la tarjeta del plan propio explica la bolsa (plan=${native.id}, motivos=${native.reasons})",
             "Tus prioridades ordenan los ejercicios de cada día" in native.reasons,
         )
-        confirmStep(vm, SetupStepId.PLAN, SetupStepId.AUTOREGULATION) { vm.selectPlan(native.id) }
+        confirmStep(vm, SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT) { vm.selectPlan(native.id) }
         assertEquals("el plan elegido es el candidato real", native.id, vm.state.value.draft.selectedCatalogId)
-
-        // PROPOSE es el valor por defecto del contrato: el paso nunca bloquea.
-        assertEquals(AutoregulationMode.PROPOSE, vm.state.value.draft.trainingOptions.autoregulationMode)
-        confirmStep(vm, SetupStepId.AUTOREGULATION, SetupStepId.WARMUPS)
-        confirmStep(vm, SetupStepId.WARMUPS, SetupStepId.TRAINING_REVIEW)
-        confirmStep(vm, SetupStepId.TRAINING_REVIEW, SetupStepId.MILESTONE_TRAINING)
+        // La semana armada es una decisión sobre el programa elegido: se confirma tal cual.
+        confirmStep(vm, SetupStepId.WEEK_LAYOUT, SetupStepId.MILESTONE_TRAINING)
         confirmStep(vm, SetupStepId.MILESTONE_TRAINING, SetupStepId.NUTRITION_START)
     }
 
@@ -752,23 +752,26 @@ class SetupWizardFullJourneyTest {
         assertEquals(81.0, historical.valueSi, 0.001)
 
         // AC-T005-01: el recorrido nuevo no pide kilos ni cantidades (sin
-        // pasos INVENTORY_*): NO se persiste ningún inventario y las
-        // categorías confirmadas viajan como disponibilidad. El subpanel de
-        // aparatos §13.2 se omitió a propósito: presencia desconocida,
-        // nunca PRESENT.
+        // pasos INVENTORY_*): NO se persiste ningún inventario y el material
+        // que dejó el paso (el que el gimnasio siembra, ya confirmado) viaja
+        // como disponibilidad, exactamente la que dicen los símbolos.
         assertNull(
             "el wizard nuevo no inventaría kilos ni cantidades",
             settings.equipmentInventory,
         )
-        val availability = checkNotNull(settings.equipmentAvailability) { "categorías de material sin persistir" }
+        val availability = checkNotNull(settings.equipmentAvailability) { "material sin persistir" }
+        val gym = setOf(TrainingPlace.GYM)
         assertEquals(
-            "categorías del preset «Principalmente máquinas»",
-            setOf(EquipmentCategory.MACHINES, EquipmentCategory.CABLE, EquipmentCategory.DUMBBELLS),
-            availability.categories,
+            "el material que se persiste es el del gimnasio sembrado",
+            EquipmentSymbols.availabilityOf(EquipmentSymbols.seedFor(gym), gym),
+            availability,
         )
-        assertTrue(
-            "omitir el subpanel deja UNKNOWN (mapas vacíos), nunca PRESENT",
-            availability.apparatus.isEmpty() && availability.supports.isEmpty(),
+        assertEquals(EquipmentSymbols.seedFor(gym), EquipmentSymbols.selectedFrom(availability))
+        // El perfil de objetivo respondido en el alta escribe el tipo de atleta en Ajustes.
+        assertEquals(
+            "Culturismo → tipo de atleta Culturista",
+            AthleteType.BODYBUILDER,
+            settings.athleteType,
         )
 
         // Check-in de Rings escrito con la sensación muscular declarada.
@@ -950,13 +953,13 @@ class SetupWizardFullJourneyTest {
     private fun fullSelfDefinedRoute(): List<SetupStepId> = listOf(
         SetupStepId.NAME, SetupStepId.AGE, SetupStepId.HEIGHT, SetupStepId.WEIGHT,
         SetupStepId.EQUATION_SEX, SetupStepId.BODY_FAT, SetupStepId.MILESTONE_BASICS,
-        // §15.1: material antes de perfiles, CALIBRATION antes de SPLIT, sin ROUTE.
+        // Entreno v2: lugares y material antes del objetivo; día con más energía, días y tiempo; calibración;
+        // prioridades; programa y semana. Culturismo no pregunta capacidades ni marcas.
         SetupStepId.EXPERIENCE, SetupStepId.EQUIPMENT, SetupStepId.AVAILABILITY, SetupStepId.GOAL,
-        SetupStepId.DAYS, SetupStepId.WEEKDAYS, SetupStepId.SESSION_TIME,
+        SetupStepId.FRESH_DAY, SetupStepId.WEEKDAYS, SetupStepId.SESSION_TIME,
         SetupStepId.VOLUME_TECHNIQUE, SetupStepId.VOLUME_CONSISTENCY,
         SetupStepId.VOLUME_STRENGTH, SetupStepId.VOLUME_MOBILITY,
-        SetupStepId.PRIORITIES, SetupStepId.TRAINING_MAX, SetupStepId.SPLIT, SetupStepId.PLAN,
-        SetupStepId.AUTOREGULATION, SetupStepId.WARMUPS, SetupStepId.TRAINING_REVIEW,
+        SetupStepId.PRIORITIES, SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT,
         SetupStepId.MILESTONE_TRAINING,
         SetupStepId.NUTRITION_START, SetupStepId.NUTRITION_DIRECTION, SetupStepId.NUTRITION_RHYTHM,
         SetupStepId.NUTRITION_TARGET, SetupStepId.NUTRITION_HISTORY_CONTEXT,
@@ -973,11 +976,10 @@ class SetupWizardFullJourneyTest {
         SetupStepId.NAME, SetupStepId.AGE, SetupStepId.HEIGHT, SetupStepId.WEIGHT,
         SetupStepId.EQUATION_SEX, SetupStepId.BODY_FAT, SetupStepId.MILESTONE_BASICS,
         SetupStepId.EXPERIENCE, SetupStepId.EQUIPMENT, SetupStepId.AVAILABILITY, SetupStepId.GOAL,
-        SetupStepId.DAYS, SetupStepId.WEEKDAYS, SetupStepId.SESSION_TIME,
+        SetupStepId.FRESH_DAY, SetupStepId.WEEKDAYS, SetupStepId.SESSION_TIME,
         SetupStepId.VOLUME_TECHNIQUE, SetupStepId.VOLUME_CONSISTENCY,
         SetupStepId.VOLUME_STRENGTH, SetupStepId.VOLUME_MOBILITY,
-        SetupStepId.PRIORITIES, SetupStepId.TRAINING_MAX, SetupStepId.SPLIT, SetupStepId.PLAN,
-        SetupStepId.AUTOREGULATION, SetupStepId.WARMUPS, SetupStepId.TRAINING_REVIEW,
+        SetupStepId.PRIORITIES, SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT,
         SetupStepId.MILESTONE_TRAINING,
         SetupStepId.NUTRITION_START, SetupStepId.NUTRITION_RESULT, SetupStepId.MILESTONE_NUTRITION,
         SetupStepId.RINGS_RECENT, SetupStepId.RINGS_MUSCLE_FEELING, SetupStepId.RINGS_ENERGY_FEELING,
@@ -994,9 +996,10 @@ class SetupWizardFullJourneyTest {
     private fun expectedConfirmations(route: List<SetupStepId>): List<SetupStepId> =
         route.dropLast(1).toMutableList().apply { addAll(2, listOf(SetupStepId.NAME, SetupStepId.AGE)) }
 
+    /** Pecho, espalda y tríceps con un punto cada uno: los músculos canónicos del motor de orden. */
     private fun priorityBag(): Map<String, Int> = linkedMapOf(
-        "Pectorales" to 2,
-        "Dorsales" to 2,
+        "Pectorales" to 1,
+        "Dorsales" to 1,
         "Tríceps" to 1,
     )
 

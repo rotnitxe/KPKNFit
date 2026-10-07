@@ -2,18 +2,11 @@ package com.example.kpkn.screens.onboarding
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -22,24 +15,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.ApparatusPresence
-import com.example.kpkn.data.models.AutoregulationMode
 import com.example.kpkn.data.models.Exercise
-import com.example.kpkn.data.models.PowerliftingProfile
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.protocols.SetRecipe
-import com.example.kpkn.data.protocols.firstCompoundWarmupPercentSets
-import com.example.kpkn.data.protocols.definitions.NativeProfileKind
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.data.programs.TrainingReference
 import com.example.kpkn.data.splits.SPLIT_TEMPLATES
@@ -59,37 +44,43 @@ import com.example.kpkn.domain.onboarding.RejectionView
 import com.example.kpkn.domain.onboarding.SetupApparatusPanel
 import com.example.kpkn.domain.onboarding.SetupControlKind
 import com.example.kpkn.domain.onboarding.SetupStepDefinitions
-import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.text.SpanishPlurals
-import com.example.kpkn.domain.training.NativeProfileSplitWitness
 import com.example.kpkn.domain.training.SplitApplicationEngine
 import com.example.kpkn.screens.onboarding.design.WizardChoiceCard
 import com.example.kpkn.screens.onboarding.design.WizardColors
-import com.example.kpkn.screens.onboarding.design.WizardRadioMark
 import com.example.kpkn.screens.onboarding.design.WizardShapes
 import com.example.kpkn.screens.onboarding.design.WizardSpacing
 import com.example.kpkn.screens.onboarding.design.WizardTypography
+import com.example.kpkn.screens.onboarding.design.WizardMassUnit
+import com.example.kpkn.screens.onboarding.design.WizardWeightScale
+import com.example.kpkn.screens.onboarding.entreno.EntrenoFreshDayStep
+import com.example.kpkn.screens.onboarding.entreno.EntrenoGoalStep
+import com.example.kpkn.screens.onboarding.entreno.EntrenoMarksStep
+import com.example.kpkn.screens.onboarding.entreno.EntrenoMaterialStep
+import com.example.kpkn.screens.onboarding.entreno.EntrenoMusclesStep
+import com.example.kpkn.screens.onboarding.entreno.EntrenoPlacesStep
+import com.example.kpkn.screens.onboarding.entreno.EntrenoPlanStep
+import com.example.kpkn.screens.onboarding.entreno.EntrenoSessionTimeStep
+import com.example.kpkn.screens.onboarding.entreno.EntrenoCapabilitiesStep
+import com.example.kpkn.screens.onboarding.entreno.EntrenoWeekLayoutStep
+import com.example.kpkn.screens.onboarding.entreno.EntrenoWeekdaysStep
 import com.example.kpkn.screens.programs.PlanInfoMode
 import com.example.kpkn.screens.programs.PlanInfoSheet
 
 /**
  * Contenido de cada paso del bloque **Entreno** del wizard de configuración.
  *
- * Contrato de la capa raíz (`SetupStepScreen`): la raíz pinta la pregunta, el
- * subtítulo y el CTA del scaffold; aquí solo vive el control del paso, según
- * las definiciones actuales de `SetupStepDefinitions` (sin placeholders ni
- * pasos en blanco) y con el patrón de diseño compartido `WizardChoiceCard`.
+ * Contrato de la capa raíz (`SetupStepScreen`): la raíz pinta la pregunta, el subtítulo y el CTA del scaffold;
+ * aquí solo vive el control del paso, y **solo delega**: cada paso nuevo de Entreno v2 tiene su propio archivo
+ * `entreno/Entreno<Paso>Step.kt` con la firma `(state, vm)`. Es el punto de enganche de los controles de símbolos
+ * animados (cambiar UN solo archivo sustituye el control de un paso). Los controles provisionales solo escriben por
+ * la API del ViewModel (`togglePlace`, `setGoalProfile`, `toggleWeekday`, …; ningún setter navega: el avance es el
+ * CTA del host, `submitCurrentStep`).
  *
- * Escritura, siempre por la API nueva del ViewModel — y **ningún setter
- * navega**: el avance exclusivo es el CTA del host (`submitCurrentStep`):
- *  - opciones estables → `setStepChoice` / `setStepChoices` (el valor estable
- *    es el que recibe el motor; nunca `answerChoice`/`answerMulti` legacy);
- *  - un número por paso → `setStepNumber`, con el crudo en `setStepText`;
- *  - estados tipados del contrato de entrenamiento (`draft.trainingOptions`,
- *    `draft.powerliftingProfile`, split, …) → `updateStep(step) { … }`;
- *  - `selectPlan` solo selecciona candidatos; `skipStep` solo aparece si el
- *    paso lo permite; `editStep` mueve el cursor a un paso para editarlo.
+ * Los pasos de opción simples (experiencia, calibración, cardio) siguen siendo tarjetas del catálogo con
+ * `setStepChoice`; los pasos retirados de la ruta (reparto, autorregulación, calentamientos, revisión del plan…) ya
+ * no tienen control.
  */
 @Composable
 fun SetupTrainingStepContent(
@@ -98,40 +89,35 @@ fun SetupTrainingStepContent(
     vm: SetupWizardViewModel,
 ) {
     when (step) {
+        SetupStepId.EQUIPMENT -> EntrenoPlacesStep(state = state, vm = vm)
+        SetupStepId.AVAILABILITY -> EntrenoMaterialStep(state = state, vm = vm)
+        SetupStepId.GOAL -> EntrenoGoalStep(state = state, vm = vm)
+        SetupStepId.FRESH_DAY -> EntrenoFreshDayStep(state = state, vm = vm)
+        SetupStepId.WEEKDAYS -> EntrenoWeekdaysStep(state = state, vm = vm)
+        SetupStepId.SESSION_TIME -> EntrenoSessionTimeStep(state = state, vm = vm)
+        SetupStepId.CAPABILITIES -> EntrenoCapabilitiesStep(state = state, vm = vm)
+        SetupStepId.PRIORITIES -> EntrenoMusclesStep(state = state, vm = vm)
+        SetupStepId.TRAINING_MAX -> EntrenoMarksStep(state = state, vm = vm)
+        SetupStepId.PLAN -> EntrenoPlanStep(state = state, vm = vm)
+        SetupStepId.WEEK_LAYOUT -> EntrenoWeekLayoutStep(state = state, vm = vm)
+
         SetupStepId.EXPERIENCE,
         SetupStepId.ROUTE,
-        SetupStepId.GOAL,
-        SetupStepId.STYLE,
         SetupStepId.VOLUME_TECHNIQUE,
         SetupStepId.VOLUME_CONSISTENCY,
         SetupStepId.VOLUME_STRENGTH,
         SetupStepId.VOLUME_MOBILITY,
-        SetupStepId.EQUIPMENT,
         SetupStepId.CARDIO_TYPE,
         SetupStepId.CARDIO_TIME,
-        SetupStepId.DAYS,
-        SetupStepId.TRAINING_MAX,
         SetupStepId.HOME_EQUIPMENT,
         -> TrainingChoiceStep(step = step, state = state, vm = vm)
 
-        SetupStepId.AVAILABILITY -> TrainingAvailabilityStep(state = state, vm = vm)
-
-        SetupStepId.WEEKDAYS -> TrainingWeekdaysStep(state = state, vm = vm)
-        SetupStepId.SESSION_TIME -> TrainingSessionTimeStep(state = state, vm = vm)
-        SetupStepId.PRIORITIES -> TrainingPrioritiesStep(state = state, vm = vm)
-        SetupStepId.SPLIT -> TrainingSplitStep(state = state, vm = vm)
-        SetupStepId.PLAN -> TrainingPlanStep(state = state, vm = vm)
-        SetupStepId.TRAINING_MARKS -> TrainingMarksStep(state = state, vm = vm)
-        SetupStepId.AUTOREGULATION -> TrainingAutoregulationStep(state = state, vm = vm)
-        SetupStepId.AUTOREGULATION_CONFIRM -> TrainingAutoregulationConfirmStep(state = state, vm = vm)
-        SetupStepId.WARMUPS -> TrainingWarmupsStep(state = state, vm = vm)
-        SetupStepId.TRAINING_REVIEW -> TrainingReviewStep(state = state, vm = vm)
         // La raíz corta los hitos antes de delegar (StepQuestion + hitos), así
         // que este resumen solo pinta si el hito llega aquí: nunca duplica.
         SetupStepId.MILESTONE_TRAINING -> TrainingMilestoneSummary(state = state)
 
         // Pasos de otros bloques (datos básicos, nutrición, rings y revisión
-        // final): su contenido pertenece al dueño de ese bloque.
+        // final) y pasos retirados de la ruta de Entreno: sin control propio aquí.
         else -> Unit
     }
 }
@@ -165,29 +151,6 @@ internal fun isSplitOfferedForGoal(split: SplitTemplate, goal: SetupGoal?): Bool
     goal == null || goal == SetupGoal.STRENGTH || SplitTag.POWERLIFTING !in split.tags
 
 /**
- * El reparto que se destaca en la lista: el equivalente del calendario propio del objetivo con estos días
- * ([NativeProfileSplitWitness]) si está entre los [compatible]s, para que la propuesta destacada sea siempre una que
- * el plan propio acepta; si no, el recomendado de KPKN o el primero. En Fuerza con 3 días es «SBD Full Body x3», no
- * «Cuerpo completo, 3 días» (que el plan propio de Fuerza rechazaría con el motivo `SPLIT`).
- */
-internal fun featuredSplitTemplate(compatible: List<SplitTemplate>, goal: SetupGoal?, daysPerWeek: Int?): SplitTemplate? {
-    val witnessId = daysPerWeek?.let { days ->
-        ownPlanIdOf(planGoalProfileOf(goal))
-            ?.let { ownId -> NativeProfileKind.fromEntryId(ownId) }
-            ?.let { kind -> NativeProfileSplitWitness.witnessSplitId(kind, days) }
-    }
-    return compatible.firstOrNull { it.id == witnessId }
-        ?: compatible.firstOrNull { SplitTag.RECOMENDADO_KPKN in it.tags }
-        ?: compatible.firstOrNull()
-}
-
-/** Etiquetas del patrón personalizado hasta completar las siete posiciones. */
-internal fun customSplitPatternFromLabels(labels: List<String>): List<String> {
-    val kept = labels.take(7)
-    return kept + List((7 - kept.size).coerceAtLeast(0)) { "Descanso" }
-}
-
-/**
  * Filas crudas (porcentaje, repeticiones) → recetas reales. Una fila a medio
  * completar queda con el hueco a null: la validación la señala en lugar de
  * inventar un valor.
@@ -215,7 +178,6 @@ private fun TrainingChoiceStep(step: SetupStepId, state: SetupWizardState, vm: S
         return
     }
     val selected = state.draft.selectedValues(step)
-    LegacyGoalSuggestion(step = step, state = state)
     BikePresenceConfirmation(step = step, state = state, vm = vm)
     if (SetupStepDefinitions.control(step) == SetupControlKind.MULTI_CHOICE) {
         SetupBodyMultiChoiceCards(
@@ -232,22 +194,6 @@ private fun TrainingChoiceStep(step: SetupStepId, state: SetupWizardState, vm: S
         )
     }
     SetupBodySkipAction(step = step, vm = vm)
-}
-
-/**
- * T-005 / §15.4 — GOAL legacy (HEALTH/MIXED): se SUGIERE «Atleta completo»
- * sin seleccionarlo nunca; la respuesta original se conserva como dato.
- */
-@Composable
-private fun LegacyGoalSuggestion(step: SetupStepId, state: SetupWizardState) {
-    if (step != SetupStepId.GOAL) return
-    val goal = state.draft.goal
-    if (goal != SetupGoal.HEALTH && goal != SetupGoal.MIXED) return
-    TrainingNotice(
-        text = "Tu objetivo anterior «${goal.label}» corresponde hoy a «Atleta completo». " +
-            "Elígelo solo si quieres actualizarlo: tu respuesta se conserva hasta entonces.",
-        tone = TrainingNoticeTone.INFO,
-    )
 }
 
 /**
@@ -293,406 +239,6 @@ private fun BikePresenceConfirmation(step: SetupStepId, state: SetupWizardState,
     }
 }
 
-/** WEEKDAYS: multiselección con contador de días; tocar nunca avanza de paso. */
-@Composable
-private fun TrainingWeekdaysStep(state: SetupWizardState, vm: SetupWizardViewModel) {
-    val step = SetupStepId.WEEKDAYS
-    if (SetupStepDefinitions.options(step).isEmpty()) {
-        TrainingNotice("Este paso no tiene opciones disponibles.", TrainingNoticeTone.ERROR)
-        return
-    }
-    val selected = state.draft.selectedValues(step)
-    val target = state.draft.daysPerWeek
-    SetupBodyHint(text = weekdaysCounterText(target = target, selectedCount = selected.size))
-    SetupBodyMultiChoiceCards(
-        step = step,
-        selected = selected,
-        onSelect = { value -> vm.toggleStepChoice(step, value) },
-    )
-}
-
-/** Contador del paso WEEKDAYS; con un solo día el sustantivo y el participio van en singular. */
-internal fun weekdaysCounterText(target: Int?, selectedCount: Int): String =
-    if (target == null) {
-        "Días elegidos: $selectedCount"
-    } else {
-        "Elige ${SpanishPlurals.days(target)} · $selectedCount de $target " +
-            SpanishPlurals.choose(target, "elegido", "elegidos")
-    }
-
-/** SESSION_TIME: un número por paso; el crudo se conserva en `inputTexts`. */
-@Composable
-private fun TrainingSessionTimeStep(state: SetupWizardState, vm: SetupWizardViewModel) {
-    val step = SetupStepId.SESSION_TIME
-    val range = SetupStepDefinitions.of(step)?.range
-    var raw by remember(step) {
-        mutableStateOf(state.draft.rawInput(step) ?: state.draft.minutesPerSession?.toString().orEmpty())
-    }
-    val parsed = parseLocalizedNumber(raw)
-    val outOfRange = parsed != null && range != null && parsed !in range.min..range.max
-    val unit = range?.unit
-
-    TrainingNumberField(
-        label = if (unit != null) "Minutos por sesión ($unit)" else "Minutos por sesión",
-        value = raw,
-        onValueChange = { text ->
-            raw = text
-            vm.setStepText(step, text)
-            val value = parseLocalizedNumber(text)
-            vm.setStepNumber(step, value?.takeIf { v -> range == null || v in range.min..range.max })
-        },
-        isError = raw.isNotBlank() && (parsed == null || outOfRange),
-    )
-    if (raw.isNotBlank() && (parsed == null || outOfRange)) {
-        val message = if (range != null) {
-            "Usa un valor entre ${range.min.toInt()} y ${range.max.toInt()} ${range.unit.orEmpty()}.".trim()
-        } else {
-            "Escribe un número válido."
-        }
-        TrainingNotice(message, TrainingNoticeTone.ERROR)
-    }
-}
-
-/**
- * Crudo del único campo numérico del paso. `inputTexts` es
- * `Map<String, String>` con clave `step.name`: conserva lo que se escribió
- * aunque el valor parseado sea inválido o el borrador se restaure.
- */
-private fun SetupWizardDraft.rawInput(step: SetupStepId): String? = inputTexts[step.name]
-
-@Composable
-private fun TrainingAvailabilityStep(state: SetupWizardState, vm: SetupWizardViewModel) {
-    val step = SetupStepId.AVAILABILITY
-    val definition = SetupStepDefinitions.of(step) ?: return
-    val selected = state.draft.selectedValues(step)
-    val categories = definition.options.filter { it.value != AVAILABILITY_BODYWEIGHT }
-    TextButton(onClick = { vm.setStepChoices(step, categories.map { it.value }.toSet()) }) {
-        Text("Seleccionar todo", color = WizardColors.text)
-    }
-    categories.forEach { option ->
-        WizardChoiceCard(
-            title = option.label,
-            selected = option.value in selected,
-            onClick = { vm.toggleStepChoice(step, option.value) },
-        )
-    }
-    val bodyweight = definition.options.firstOrNull { it.value == AVAILABILITY_BODYWEIGHT }
-    WizardChoiceCard(
-        title = bodyweight?.label ?: "Solo peso corporal",
-        subtitle = "Sin mancuernas, barras ni máquinas.",
-        selected = AVAILABILITY_BODYWEIGHT in selected,
-        onClick = { vm.toggleStepChoice(step, AVAILABILITY_BODYWEIGHT) },
-    )
-    // §13.2: subpanel de aparatos DENTRO del paso de material (subpanel de
-    // EQUIPMENT), después de las categorías. Solo presencia Sí/No/No sé: aquí
-    // no hay kilos ni cantidades (AC-T005-01).
-    TrainingApparatusPanel(state = state, vm = vm)
-}
-
-/**
- * Subpanel «¿Qué tienes disponible?» (§13.2): presencia agrupada de las claves
- * curadas relevantes a las categorías elegidas. Omitir deja UNKNOWN (nunca
- * PRESENT) y «No tengo otros» marca ausentes los ítems visibles desconocidos.
- */
-@Composable
-private fun TrainingApparatusPanel(state: SetupWizardState, vm: SetupWizardViewModel) {
-    val availability = state.draft.trainingOptions.availability ?: return
-    if (availability.categories.isEmpty()) return
-    val items = remember(availability.categories) { SetupApparatusPanel.itemsFor(availability.categories) }
-    if (items.isEmpty()) return
-
-    Column(verticalArrangement = Arrangement.spacedBy(WizardSpacing.cardGap)) {
-        Text(
-            text = "¿Qué tienes disponible? (solo presencia, sin kilos ni cantidades)",
-            style = WizardTypography.cardTitle,
-            color = WizardColors.text,
-            modifier = Modifier.testTag("setup-apparatus-panel"),
-        )
-        Text(
-            text = "Puedes continuar con «No lo sé»: los planes te dirán qué falta confirmar.",
-            style = WizardTypography.bodySmall,
-            color = WizardColors.textMuted,
-        )
-        items.groupBy { it.group }.entries
-            .sortedBy { SetupApparatusPanel.groupOrder.indexOf(it.key).let { index -> if (index < 0) Int.MAX_VALUE else index } }
-            .forEach { (group, groupItems) ->
-                Text(text = group, style = WizardTypography.cardSubtitle, color = WizardColors.textMuted)
-                groupItems.forEach { item ->
-                    val presence = SetupApparatusPanel.presenceOf(availability, item.key)
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(WizardColors.cardFill, WizardShapes.card)
-                            .border(WizardColors.unselectedBorderWidth, WizardColors.cardBorder, WizardShapes.card)
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
-                            .testTag("setup-apparatus-${item.key}"),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = item.label,
-                            style = WizardTypography.cardSubtitle,
-                            color = WizardColors.text,
-                            modifier = Modifier.weight(1f),
-                        )
-                        PresenceButton("Sí", presence == ApparatusPresence.PRESENT) {
-                            vm.updateStep(SetupStepId.AVAILABILITY) { draft ->
-                                draft.withApparatusPresence(item.key, ApparatusPresence.PRESENT, item.isSupport)
-                            }
-                        }
-                        PresenceButton("No", presence == ApparatusPresence.ABSENT) {
-                            vm.updateStep(SetupStepId.AVAILABILITY) { draft ->
-                                draft.withApparatusPresence(item.key, ApparatusPresence.ABSENT, item.isSupport)
-                            }
-                        }
-                        PresenceButton("No sé", presence == ApparatusPresence.UNKNOWN) {
-                            vm.updateStep(SetupStepId.AVAILABILITY) { draft ->
-                                draft.withApparatusPresence(item.key, ApparatusPresence.UNKNOWN, item.isSupport)
-                            }
-                        }
-                    }
-                }
-            }
-        TextButton(
-            onClick = { vm.updateStep(SetupStepId.AVAILABILITY) { draft -> draft.markVisibleApparatusAbsent(items) } },
-            modifier = Modifier.testTag("setup-apparatus-none-others"),
-        ) {
-            Text("No tengo otros", color = WizardColors.text, style = WizardTypography.cardSubtitle)
-        }
-    }
-}
-
-@Composable
-private fun PresenceButton(label: String, selected: Boolean, onClick: () -> Unit) {
-    TextButton(onClick = onClick) {
-        Text(
-            text = label,
-            style = WizardTypography.bodySmall,
-            color = if (selected) WizardColors.text else WizardColors.textMuted,
-            fontWeight = if (selected) FontWeight.Bold else null,
-            modifier = Modifier.testTag("setup-apparatus-presence-$label"),
-        )
-    }
-}
-
-// ─── PRIORITIES: bolsa de orden (5 en total, 2 por músculo) ─────────────────
-
-@Composable
-private fun TrainingPrioritiesStep(state: SetupWizardState, vm: SetupWizardViewModel) {
-    val step = SetupStepId.PRIORITIES
-    val definition = SetupStepDefinitions.of(step)
-    val options = definition?.options.orEmpty()
-    if (options.isEmpty()) {
-        TrainingNotice("Este paso no tiene opciones disponibles.", TrainingNoticeTone.ERROR)
-        return
-    }
-    val budget = definition?.budget ?: 5
-    val maxPerItem = definition?.maxPerItem ?: 2
-    val bag = state.draft.trainingOptions.orderPriorities
-    val used = bag.values.sum()
-    val remaining = (budget - used).coerceAtLeast(0)
-
-    // Los chips leen la bolsa real para marcar la selección: `selected` es
-    // igualdad EXACTA entre la bolsa y el preset, no un remembers de "lo último
-    // tocado". Un ajuste manual que caiga en otro preset lo selecciona; uno que
-    // no coincide con ninguno deja la fila sin marcar.
-    PriorityPresetRow(current = bag, onApply = { preset ->
-        vm.updateStep(step) { draft ->
-            draft.copy(trainingOptions = draft.trainingOptions.copy(orderPriorities = preset))
-        }
-    })
-    Text(
-        text = if (used == 0) {
-            "Todo el cuerpo queda equilibrado. Si quieres un énfasis, usa hasta $budget puntos."
-        } else {
-            "Te quedan $remaining de $budget. Esto solo ordena los ejercicios."
-        },
-        style = WizardTypography.bodySmall,
-        color = WizardColors.textMuted,
-    )
-    options.forEach { option ->
-        val points = bag[option.value] ?: 0
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(WizardColors.cardFill, WizardShapes.card)
-                .border(WizardColors.unselectedBorderWidth, WizardColors.cardBorder, WizardShapes.card)
-                .padding(horizontal = 16.dp, vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = option.label,
-                style = WizardTypography.cardTitle,
-                color = WizardColors.text,
-                modifier = Modifier.weight(1f),
-            )
-            TextButton(
-                enabled = points > 0,
-                onClick = { writePriorities(vm, step, option.value, delta = -1, budget = budget, maxPerItem = maxPerItem) },
-                modifier = Modifier.testTag("$PRIORITY_REMOVE_TAG_PREFIX${option.value}"),
-            ) { Text("−", color = WizardColors.text) }
-            Text(
-                text = points.toString(),
-                style = WizardTypography.cardTitle,
-                color = if (points > 0) WizardColors.text else WizardColors.textFaint,
-                modifier = Modifier.padding(horizontal = 4.dp),
-            )
-            TextButton(
-                enabled = points < maxPerItem && remaining > 0,
-                onClick = { writePriorities(vm, step, option.value, delta = +1, budget = budget, maxPerItem = maxPerItem) },
-                modifier = Modifier.testTag("$PRIORITY_ADD_TAG_PREFIX${option.value}"),
-            ) { Text("+", color = WizardColors.text) }
-        }
-    }
-}
-
-private val PRIORITY_PRESETS = listOf(
-    "Todo el cuerpo" to emptyMap(),
-    "Quiero los mejores glúteos" to mapOf("Glúteos" to 2, "Isquiosurales" to 2),
-    "Espalda amplia" to mapOf("Dorsales" to 2),
-    "Espalda densa y fuerte" to mapOf("Trapecio" to 2, "Dorsales" to 2, "Erectores Espinales" to 1),
-    "Brazos" to mapOf("Bíceps" to 2, "Tríceps" to 2),
-    "Pecho y hombros" to mapOf("Pectorales" to 2, "Deltoides" to 2),
-    "Piernas fuertes" to mapOf("Cuádriceps" to 2, "Isquiosurales" to 2, "Glúteos" to 1),
-)
-
-/** Contenedor de los siete chips, para poder medirlo en la prueba. */
-private const val PRIORITY_PRESETS_TAG = "setup-priority-presets"
-
-/** Chip `i` del catálogo, con `i` = índice real en [PRIORITY_PRESETS]. */
-private const val PRIORITY_PRESET_TAG_PREFIX = "setup-priority-preset-"
-
-/** Ajustes manuales `+` / `−` por opción canónica de la bolsa. */
-private const val PRIORITY_ADD_TAG_PREFIX = "setup-priority-add-"
-private const val PRIORITY_REMOVE_TAG_PREFIX = "setup-priority-remove-"
-
-/**
- * Presets de la bolsa de orden como **chips** que fluyen en varias líneas.
- *
- * Antes eran botones de texto apilados a lo ancho; con etiquetas en español
- * largas y fuente grande no cabían y empujaban el resto del paso. El `FlowRow`
- * deja que cada chip mida su contenido y salte de línea, sin tarjetas de ancho
- * completo.
- *
- * Nada aquí decide la selección: se pinta la **bolsa real** que el ViewModel
- * publicó ([current]) y se marca el preset idéntico. El toque sigue llamando a
- * [onApply], que es el que escribe con `updateStep`; este composable no muta
- * estado ni calcula reducciones.
- */
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun PriorityPresetRow(
-    current: Map<String, Int>,
-    onApply: (Map<String, Int>) -> Unit,
-) {
-    FlowRow(
-        modifier = Modifier
-            .fillMaxWidth()
-            .testTag(PRIORITY_PRESETS_TAG),
-        horizontalArrangement = Arrangement.spacedBy(WizardSpacing.cardGap / 2),
-        verticalArrangement = Arrangement.spacedBy(WizardSpacing.cardGap / 2),
-    ) {
-        PRIORITY_PRESETS.forEachIndexed { index, (label, preset) ->
-            PriorityPresetChip(
-                label = label,
-                selected = current == preset,
-                onClick = { onApply(preset) },
-                modifier = Modifier.testTag(PRIORITY_PRESET_TAG_PREFIX + index),
-            )
-        }
-    }
-}
-
-/**
- * Chip compacto de preset: mide su contenido, envuelve la etiqueta y nunca
- * fuerza una altura fija.
- *
- * - El área interactiva es ≥ `touchTarget` (48 dp) en el eje vertical, pero
- *   **no** hay altura fija: con fuente al 2× la etiqueta salta de línea y el
- *   chip crece. La etiqueta no se recorta con elipsis.
- * - La selección no depende del color: además del borde blanco grueso hay
- *   radio relleno con punto, `selected` y `Role.RadioButton` para TalkBack, los
- *   mismos tres códigos que usa `WizardChoiceCard`.
- */
-@Composable
-private fun PriorityPresetChip(
-    label: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier = modifier
-            .defaultMinSize(minHeight = WizardSpacing.touchTarget)
-            .background(WizardColors.cardFill, WizardShapes.pill)
-            .border(
-                width = if (selected) WizardColors.selectedBorderWidth else WizardColors.unselectedBorderWidth,
-                color = if (selected) WizardColors.selectedBorder else WizardColors.cardBorder,
-                shape = WizardShapes.pill,
-            )
-            .semantics {
-                role = Role.RadioButton
-                this.selected = selected
-            }
-            .clickable(onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        WizardRadioMark(selected = selected)
-        Text(
-            text = label,
-            style = WizardTypography.bodySmall,
-            color = WizardColors.text,
-        )
-    }
-}
-
-/**
- * Aplica un **delta** (+1 / −1) a la bolsa de orden dentro de `updateStep`, es
- * decir, sobre el último borrador y no sobre el eco que la fila leyó al
- * componer: dos toques seguidos no se pisan y «−» resta de 2 a 1 en lugar de
- * borrar la entrada (2 → 0).
- *
- * El presupuesto (5) y el tope por músculo (2) se validan **aquí, en la
- * closure**, antes de escribir; un movimiento inválido devuelve la bolsa
- * intacta y no gasta revisión. Solo cambia `orderPriorities`: la bolsa reordena
- * ejercicios y nunca altera series, repeticiones ni ninguna dosis.
- */
-private fun writePriorities(
-    vm: SetupWizardViewModel,
-    step: SetupStepId,
-    option: String,
-    delta: Int,
-    budget: Int,
-    maxPerItem: Int,
-) {
-    vm.updateStep(step) { draft ->
-        val current = draft.trainingOptions.orderPriorities
-        val next = prioritiesAfterDelta(current, option, delta, budget, maxPerItem)
-        if (next == current) draft
-        else draft.copy(trainingOptions = draft.trainingOptions.copy(orderPriorities = next))
-    }
-}
-
-/**
- * Reductor puro de la bolsa de orden: `bag[option] + delta` con las reglas del
- * catálogo. Recibe SIEMPRE la bolsa última (el VM la lee dentro de su mutex).
- * Sin dato o con un movimiento que rompería presupuesto/tope, devuelve la
- * entrada sin tocar; a 0 puntos retira la clave en lugar de dejar un cero.
- */
-internal fun prioritiesAfterDelta(
-    bag: Map<String, Int>,
-    option: String,
-    delta: Int,
-    budget: Int,
-    maxPerItem: Int,
-): Map<String, Int> {
-    val next = (bag[option] ?: 0) + delta
-    if (next < 0 || next > maxPerItem) return bag
-    if (delta > 0 && bag.values.sum() >= budget) return bag
-    return if (next == 0) bag - option else bag + (option to next)
-}
-
 // ─── SPLIT ──────────────────────────────────────────────────────────────────
 
 /**
@@ -724,173 +270,6 @@ internal fun splitDisplayName(template: SplitTemplate): String = when (template.
 /** Nombre del reparto [splitId] en español llano; null si el catálogo de repartos no lo conoce (nunca el id). */
 internal fun splitDisplayName(splitId: String): String? =
     SPLIT_TEMPLATES.firstOrNull { template -> template.id == splitId }?.let { template -> splitDisplayName(template) }
-
-private const val SPLIT_RECOMMENDED = "recommended"
-private const val SPLIT_CUSTOM = "custom"
-
-/** Enfoques que el motor de splits entiende (`SimpleCyclePersonalizer`). */
-private val CUSTOM_SPLIT_LABELS = listOf(
-    "Empuje", "Tirón", "Pierna", "Cuerpo completo", "Torso", "Cadena anterior", "Cadena posterior",
-)
-
-/**
- * SPLIT: solo opciones reales del motor. La ruta de protocolo fija su propio
- * reparto y aquí se dice sin renombrar etiquetas ni simular un selector.
- */
-@Composable
-private fun TrainingSplitStep(state: SetupWizardState, vm: SetupWizardViewModel) {
-    val step = SetupStepId.SPLIT
-    val draft = state.draft
-    if (draft.programRoute == SetupProgramRoute.PROTOCOL) {
-        TrainingNotice(
-            text = "La ruta de protocolo mantiene el reparto propio del protocolo: aquí no se cambia ni se renombra. Lo verás al elegir el plan.",
-            tone = TrainingNoticeTone.INFO,
-        )
-        return
-    }
-
-    val options = SetupStepDefinitions.options(step)
-    val selected = draft.selectedValues(step)
-    val startDay = draft.selectedWeekdays.minOrNull() ?: 1
-    // D6 (A.E2): la lista recibe el objetivo; los repartos de powerlifting solo salen en Fuerza.
-    val compatible = compatibleSplitTemplates(draft.daysPerWeek, startDay, draft.goal)
-    var query by remember(step) { mutableStateOf("") }
-    val featured = featuredSplitTemplate(compatible, draft.goal, draft.daysPerWeek)
-    val rest = compatible.filter { it.id != featured?.id }
-    val filtered = if (query.isBlank()) rest else compatible.filter { split ->
-        val visible = splitDisplayName(split)
-        visible.contains(query, ignoreCase = true) || split.name.contains(query, ignoreCase = true) ||
-            split.description.contains(query, ignoreCase = true)
-    }
-
-    WizardChoiceCard(
-        title = options.firstOrNull { it.value == SPLIT_RECOMMENDED }?.label ?: "Recomendado para ti",
-        subtitle = "Sin reparto forzado: el motor ordena tus días como mejor encaje.",
-        selected = SPLIT_RECOMMENDED in selected,
-        onClick = { selectSplit(vm, step, SPLIT_RECOMMENDED, splitId = null) },
-    )
-    if (featured != null) {
-        WizardChoiceCard(
-            title = splitDisplayName(featured),
-            subtitle = featured.description,
-            selected = featured.id in selected,
-            onClick = { selectSplit(vm, step, featured.id, splitId = featured.id) },
-        )
-    }
-    OutlinedTextField(
-        value = query,
-        onValueChange = { query = it },
-        modifier = Modifier.fillMaxWidth(),
-        singleLine = true,
-        label = { Text("Buscar reparto") },
-    )
-    filtered.forEach { split ->
-        if (split.id == featured?.id && query.isBlank()) return@forEach
-        WizardChoiceCard(
-            title = splitDisplayName(split),
-            subtitle = split.description,
-            selected = split.id in selected,
-            onClick = { selectSplit(vm, step, split.id, splitId = split.id) },
-        )
-    }
-    WizardChoiceCard(
-        title = options.firstOrNull { it.value == SPLIT_CUSTOM }?.label ?: "Personalizado",
-        subtitle = "Tú repartes el foco de cada día de entrenamiento.",
-        selected = SPLIT_CUSTOM in selected,
-        onClick = { selectSplit(vm, step, SPLIT_CUSTOM, splitId = SPLIT_CUSTOM) },
-    )
-    if (SPLIT_CUSTOM in selected) {
-        CustomSplitEditor(step = step, state = state, vm = vm)
-    }
-    SetupBodySkipAction(step = step, vm = vm)
-}
-
-/**
- * Selección por valor estable (`setStepChoice`) y, en paralelo, el id real que
- * consume el motor (`updateStep`): ambas rutas escriben el mismo valor.
- */
-private fun selectSplit(vm: SetupWizardViewModel, step: SetupStepId, value: String, splitId: String?) {
-    vm.setStepChoice(step, value)
-    vm.updateStep(step) { draft ->
-        draft.copy(
-            selectedSplitId = splitId,
-            customSplitPattern = if (value == SPLIT_CUSTOM) draft.customSplitPattern else emptyList(),
-            customSplitName = if (value == SPLIT_CUSTOM) draft.customSplitName else null,
-        )
-    }
-}
-
-/** Editor del patrón personalizado: una fila por día real seleccionado. */
-@Composable
-private fun CustomSplitEditor(step: SetupStepId, state: SetupWizardState, vm: SetupWizardViewModel) {
-    val draft = state.draft
-    val weekdays = draft.selectedWeekdays.sorted().ifEmpty { (1..7).toList() }
-    val stored = draft.customSplitPattern.filter { label ->
-        label.isNotBlank() && !label.equals("Descanso", ignoreCase = true)
-    }
-    val labels = weekdays.mapIndexed { index, _ -> stored.getOrNull(index).orEmpty() }
-    val defined = labels.count { it.isNotBlank() }
-    val target = draft.daysPerWeek ?: weekdays.size
-
-    Column(verticalArrangement = Arrangement.spacedBy(WizardSpacing.cardGap)) {
-        if (defined < target) {
-            TrainingNotice(
-                text = customSplitPendingText(target = target, defined = defined),
-                tone = TrainingNoticeTone.ERROR,
-            )
-        }
-        weekdays.forEachIndexed { index, weekday ->
-            val current = labels[index]
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(WizardColors.cardFill, WizardShapes.card)
-                    .border(WizardColors.unselectedBorderWidth, WizardColors.cardBorder, WizardShapes.card)
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = weekdayLabel(weekday) ?: "Día ${index + 1}",
-                    style = WizardTypography.cardSubtitle,
-                    color = WizardColors.textMuted,
-                    modifier = Modifier.weight(1f),
-                )
-                TextButton(onClick = {
-                    writeCustomPattern(vm, step, labels.replaceAt(index, adjacentSplitLabel(current, -1)))
-                }) { Text("◀", color = WizardColors.text) }
-                Text(
-                    text = current.ifBlank { "Sin definir" },
-                    style = WizardTypography.cardTitle,
-                    color = if (current.isBlank()) WizardColors.textFaint else WizardColors.text,
-                )
-                TextButton(onClick = {
-                    writeCustomPattern(vm, step, labels.replaceAt(index, adjacentSplitLabel(current, +1)))
-                }) { Text("▶", color = WizardColors.text) }
-            }
-        }
-    }
-}
-
-/** Aviso del split personalizado; con un solo día no se escribe «tus 1 días». */
-internal fun customSplitPendingText(target: Int, defined: Int): String = SpanishPlurals.choose(
-    target,
-    "Define el foco de tu día ($defined de $target).",
-    "Define el foco de tus $target días ($defined de $target).",
-)
-
-private fun <T> List<T>.replaceAt(index: Int, value: T): List<T> =
-    toMutableList().also { rows -> if (index in rows.indices) rows[index] = value }
-
-private fun adjacentSplitLabel(current: String, delta: Int): String {
-    val index = CUSTOM_SPLIT_LABELS.indexOf(current)
-    if (index < 0) return CUSTOM_SPLIT_LABELS.first()
-    return CUSTOM_SPLIT_LABELS[(index + delta + CUSTOM_SPLIT_LABELS.size) % CUSTOM_SPLIT_LABELS.size]
-}
-
-private fun writeCustomPattern(vm: SetupWizardViewModel, step: SetupStepId, labels: List<String>) {
-    val pattern = customSplitPatternFromLabels(labels)
-    vm.updateStep(step) { draft -> draft.copy(customSplitPattern = pattern, customSplitName = draft.customSplitName ?: "Mi split") }
-}
 
 // ─── PLAN: candidatos reales ────────────────────────────────────────────────
 
@@ -1205,8 +584,9 @@ internal fun performRejectionAction(action: RejectionAction, vm: SetupWizardView
         RejectionAction.Retry -> vm.retryFailedOperation(SetupRetryOperation.CANDIDATES)
         RejectionAction.ChangeGoal -> vm.editStep(SetupStepId.GOAL)
         RejectionAction.SeeAlternatives -> onSeeAlternatives()
-        RejectionAction.ChangeDays -> vm.editStep(SetupStepId.DAYS)
-        RejectionAction.ChangeSplit -> vm.editStep(SetupStepId.SPLIT)
+        RejectionAction.ChangeDays -> vm.editStep(SetupStepId.WEEKDAYS)
+        // El reparto ya no es un paso: se cambia en la semana armada.
+        RejectionAction.ChangeSplit -> vm.editStep(SetupStepId.WEEK_LAYOUT)
         RejectionAction.ConfirmApparatus -> vm.editStep(SetupStepId.AVAILABILITY)
         is RejectionAction.SetMinutes -> vm.applyRepair(PlanRepair.SetMinutes(action.minutes))
     }
@@ -1239,7 +619,7 @@ private fun RejectionNoticeView(
  * las tarjetas, que siguen visibles para poder elegir otro plan.
  */
 @Composable
-private fun TrainingPlanStep(state: SetupWizardState, vm: SetupWizardViewModel) {
+internal fun TrainingPlanStep(state: SetupWizardState, vm: SetupWizardViewModel) {
     val step = SetupStepId.PLAN
     val draft = state.draft
     // C.P5: el plan cuya hoja «Cómo funciona» está abierta (su id). Sobrevive a girar la pantalla.
@@ -1482,364 +862,11 @@ private fun FromScratchSessions(state: SetupWizardState) {
 internal fun scratchExerciseLine(name: String, sets: Int?, reps: Int?): String =
     "$name · ${sets?.let(SpanishPlurals::sets) ?: "— series"} × ${reps?.let(SpanishPlurals::reps) ?: "— reps"}"
 
-// ─── TRAINING_MAX / TRAINING_MARKS ──────────────────────────────────────────
-
-/**
- * Marcas SBD en pestañas: un lift visible cada vez y **un** campo de entrada
- * (≤2 elementos relacionados en pantalla), con fila de resumen de las tres.
- */
-@Composable
-private fun TrainingMarksStep(state: SetupWizardState, vm: SetupWizardViewModel) {
-    val step = SetupStepId.TRAINING_MARKS
-    val options = SetupStepDefinitions.options(step)
-    if (options.isEmpty()) {
-        TrainingNotice("Este paso no tiene opciones disponibles.", TrainingNoticeTone.ERROR)
-        return
-    }
-    var activeLift by remember(step) { mutableStateOf(options.first().value) }
-    var rawLifts by remember(step) { mutableStateOf<Map<String, String>>(emptyMap()) }
-    val profile = state.draft.powerliftingProfile
-
-    options.forEach { option ->
-        val stored = liftValue(profile, option.value)
-        WizardChoiceCard(
-            title = option.label,
-            subtitle = stored?.let { "Marca actual: ${formatTrainingNumber(it)} kg" } ?: "Sin marca declarada",
-            selected = option.value == activeLift,
-            onClick = { activeLift = option.value },
-        )
-    }
-    val activeLabel = options.firstOrNull { it.value == activeLift }?.label ?: options.first().label
-    val raw = rawLifts[activeLift] ?: liftValue(profile, activeLift)?.let(::formatTrainingNumber).orEmpty()
-    val parsed = parseLocalizedNumber(raw)
-    val outOfRange = parsed != null && parsed !in 1.0..1000.0
-
-    TrainingNumberField(
-        label = "Marca en kg · $activeLabel",
-        value = raw,
-        onValueChange = { text ->
-            rawLifts = rawLifts + (activeLift to text)
-            val value = if (text.isBlank()) null else parseLocalizedNumber(text)?.takeIf { it in 1.0..1000.0 }
-            writeMark(vm, step, activeLift, value)
-        },
-        isError = raw.isNotBlank() && (parsed == null || outOfRange),
-    )
-    if (raw.isNotBlank() && (parsed == null || outOfRange)) {
-        TrainingNotice("Usa un valor entre 1 y 1000 kg.", TrainingNoticeTone.ERROR)
-    }
-}
-
-private fun liftValue(profile: PowerliftingProfile?, lift: String): Double? = when (lift) {
-    "squat" -> profile?.squat1RM
-    "bench" -> profile?.bench1RM
-    else -> profile?.deadlift1RM
-}
-
-private fun writeMark(vm: SetupWizardViewModel, step: SetupStepId, lift: String, value: Double?) {
-    vm.updateStep(step) { draft ->
-        val base = draft.powerliftingProfile ?: PowerliftingProfile()
-        draft.copy(
-            powerliftingProfile = when (lift) {
-                "squat" -> base.copy(squat1RM = value)
-                "bench" -> base.copy(bench1RM = value)
-                else -> base.copy(deadlift1RM = value)
-            },
-        )
-    }
-}
-
-// ─── AUTORREGULACIÓN ────────────────────────────────────────────────────────
-
-/**
- * OFF / PROPOSE / AUTO sobre `trainingOptions.autoregulationMode`. PROPOSE es
- * el estado por defecto del contrato; cambiar de modo exige confirmar AUTO en
- * el paso siguiente (el paso de confirmación solo existe con AUTO).
- */
-@Composable
-private fun TrainingAutoregulationStep(state: SetupWizardState, vm: SetupWizardViewModel) {
-    val step = SetupStepId.AUTOREGULATION
-    val mode = state.draft.trainingOptions.autoregulationMode
-    val modes = listOf(
-        Triple(AutoregulationMode.OFF, "No, lo controlo yo", "El plan no propone cambios de series ni de pesos."),
-        Triple(AutoregulationMode.PROPOSE, "Propuestas que yo confirmo", "KPKN propone ajustes y tú los aceptas antes de aplicarlos. Es la opción por defecto."),
-        Triple(AutoregulationMode.AUTO, "Ajuste automático cada semana", "Series y pesos se ajustan según tu respuesta; te pediremos confirmación."),
-    )
-    modes.forEach { (id, label, hint) ->
-        WizardChoiceCard(
-            title = label,
-            subtitle = hint,
-            selected = mode == id,
-            enabled = true,
-            onClick = {
-                if (mode != id) {
-                    vm.updateStep(step) { draft ->
-                        draft.copy(
-                            trainingOptions = draft.trainingOptions.copy(
-                                autoregulationMode = id,
-                                // Cualquier cambio de modo vuelve a pedir confirmación explícita.
-                                automaticConfirmed = false,
-                            ),
-                        )
-                    }
-                }
-            },
-        )
-    }
-    SetupBodySkipAction(step = step, vm = vm)
-}
-
-/**
- * Confirmación explícita de AUTO: sin `automaticConfirmed` el contrato rechaza
- * el modo. «Solo revisar» vuelve a PROPOSE y regresa al paso de modo para que
- * el cursor nunca quede apuntando a un paso fuera de la ruta.
- */
-@Composable
-private fun TrainingAutoregulationConfirmStep(state: SetupWizardState, vm: SetupWizardViewModel) {
-    val step = SetupStepId.AUTOREGULATION_CONFIRM
-    val options = SetupStepDefinitions.options(step)
-    val training = state.draft.trainingOptions
-    val confirmed = training.autoregulationMode == AutoregulationMode.AUTO && training.automaticConfirmed
-
-    WizardChoiceCard(
-        title = options.firstOrNull { it.value == "confirmed" }?.label ?: "Confirmar",
-        subtitle = "Mantener el ajuste automático: los cambios se aplican con esta confirmación y siempre puedes revertirlos.",
-        selected = confirmed,
-        onClick = {
-            if (!confirmed) {
-                vm.updateStep(step) { draft ->
-                    draft.copy(
-                        trainingOptions = draft.trainingOptions.copy(
-                            autoregulationMode = AutoregulationMode.AUTO,
-                            automaticConfirmed = true,
-                        ),
-                    )
-                }
-            }
-        },
-    )
-    WizardChoiceCard(
-        title = options.firstOrNull { it.value == "review_only" }?.label ?: "Solo revisar",
-        subtitle = "Volver a proponer cambios: nada se aplica sin que tú lo confirmes.",
-        selected = training.autoregulationMode != AutoregulationMode.AUTO,
-        onClick = {
-            vm.updateStep(step) { draft ->
-                draft.copy(
-                    trainingOptions = draft.trainingOptions.copy(
-                        autoregulationMode = AutoregulationMode.PROPOSE,
-                        automaticConfirmed = false,
-                    ),
-                )
-            }
-            vm.editStep(SetupStepId.AUTOREGULATION)
-        },
-    )
-}
-
-// ─── WARMUPS ────────────────────────────────────────────────────────────────
-
-/**
- * Calentamientos sobre la carga de trabajo: null = preset del plan
- * (40 % × 8, 60 % × 5, 80 % × 3, leído de `firstCompoundWarmupPercentSets`),
- * lista vacía = sin calentamiento, lista = filas editables (porcentaje +
- * repeticiones). No se mezclan con los calentamientos de recetas de autor.
- */
-@Composable
-private fun TrainingWarmupsStep(state: SetupWizardState, vm: SetupWizardViewModel) {
-    val step = SetupStepId.WARMUPS
-    val warmup = state.draft.trainingOptions.warmup
-    val preset = firstCompoundWarmupPercentSets()
-    var rawRows by remember(step) { mutableStateOf(rawRowsFor(warmup ?: preset)) }
-    val custom = warmup != null && warmup.isNotEmpty()
-
-    WizardChoiceCard(
-        title = "Estándar del plan",
-        subtitle = presetSummary(preset),
-        selected = warmup == null,
-        onClick = { writeWarmupMode(vm, step, null) },
-    )
-    WizardChoiceCard(
-        title = "Personalizado",
-        subtitle = "Editas porcentaje y repeticiones sobre la carga de trabajo.",
-        selected = custom,
-        onClick = {
-            val seed = rawRowsFor(warmup?.takeIf { it.isNotEmpty() } ?: preset)
-            rawRows = seed
-            writeWarmups(vm, step, seed)
-        },
-    )
-    WizardChoiceCard(
-        title = "Sin calentamiento automático",
-        subtitle = "No se añaden aproximaciones del plan; las recetas de autor se conservan intactas.",
-        selected = warmup?.isEmpty() == true,
-        onClick = { writeWarmupMode(vm, step, emptyList()) },
-    )
-
-    if (custom) {
-        Column(verticalArrangement = Arrangement.spacedBy(WizardSpacing.cardGap)) {
-            rawRows.forEachIndexed { index, (percentRaw, repsRaw) ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(WizardSpacing.cardGap),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    TrainingNumberField(
-                        label = "% de la carga",
-                        value = percentRaw,
-                        onValueChange = { text ->
-                            rawRows = rawRows.replaceAt(index, text to repsRaw)
-                            writeWarmups(vm, step, rawRows)
-                        },
-                        modifier = Modifier.weight(1f),
-                    )
-                    TrainingNumberField(
-                        label = "Reps",
-                        value = repsRaw,
-                        onValueChange = { text ->
-                            rawRows = rawRows.replaceAt(index, percentRaw to text)
-                            writeWarmups(vm, step, rawRows)
-                        },
-                        modifier = Modifier.weight(1f),
-                    )
-                    TextButton(
-                        onClick = {
-                            rawRows = rawRows.filterIndexed { i, _ -> i != index }
-                            writeWarmups(vm, step, rawRows)
-                        },
-                    ) { Text("Quitar", color = WizardColors.danger) }
-                }
-            }
-            TextButton(onClick = {
-                rawRows = rawRows + ("" to "")
-                writeWarmups(vm, step, rawRows)
-            }) { Text("Añadir paso", color = WizardColors.text) }
-
-            val recipes = warmupRecipesFromRaw(rawRows)
-            val invalid = recipes.any { recipe ->
-                val percent = recipe.percent
-                val reps = recipe.reps
-                percent == null || percent <= 0.0 || percent > 100.0 || reps == null || reps !in 1..60
-            }
-            if (invalid) {
-                TrainingNotice(
-                    text = "Cada paso necesita un porcentaje entre 1 y 100 y entre 1 y 60 repeticiones.",
-                    tone = TrainingNoticeTone.ERROR,
-                )
-            }
-        }
-    }
-    SetupBodySkipAction(step = step, vm = vm)
-}
-
-private fun rawRowsFor(recipes: List<SetRecipe>): List<Pair<String, String>> = recipes.map { recipe ->
-    (recipe.percent?.let(::formatTrainingNumber) ?: "") to (recipe.reps?.toString() ?: "")
-}
-
-private fun writeWarmups(vm: SetupWizardViewModel, step: SetupStepId, raw: List<Pair<String, String>>) {
-    val recipes = warmupRecipesFromRaw(raw)
-    vm.updateStep(step) { draft ->
-        draft.copy(trainingOptions = draft.trainingOptions.copy(warmup = recipes))
-    }
-}
-
-/** Política de calentamiento: null = preset del plan, lista vacía = sin calentamiento. */
-private fun writeWarmupMode(vm: SetupWizardViewModel, step: SetupStepId, warmup: List<SetRecipe>?) {
-    vm.updateStep(step) { draft ->
-        draft.copy(trainingOptions = draft.trainingOptions.copy(warmup = warmup))
-    }
-}
-
-private fun presetSummary(preset: List<SetRecipe>): String = preset.joinToString(" · ") { recipe ->
-    "${recipe.percent?.let(::formatTrainingNumber) ?: "—"} % × ${recipe.reps ?: "—"}"
-}
-
 // ─── TRAINING_REVIEW ────────────────────────────────────────────────────────
 
-/**
- * Revisión real: `programPreview` con sus sesiones, ejercicios, series y
- * días de la semana; error con reintento si no hay preview (nunca spinner
- * infinito) y confirmación genuina de la diferencia de la receta fija.
- */
+/** Las sesiones de la primera semana del programa preparado, por día (lectura: la usa la semana armada). */
 @Composable
-private fun TrainingReviewStep(state: SetupWizardState, vm: SetupWizardViewModel) {
-    val program = state.programPreview
-    val previewError = state.previewError
-    when {
-        state.isPreviewLoading -> TrainingLoading("Preparando tu programa con tus respuestas…")
-        previewError != null -> TrainingNotice(
-            text = previewError,
-            tone = TrainingNoticeTone.ERROR,
-            actionLabel = "Reintentar",
-            onAction = { vm.retryFailedOperation(SetupRetryOperation.PREVIEW) },
-        )
-
-        program == null -> TrainingNotice(
-            text = "Todavía no hay un programa preparado. Revisa días, tiempo disponible y el plan elegido; se preparará con tus respuestas.",
-            tone = TrainingNoticeTone.ERROR,
-        )
-
-        else -> {
-            FixedRecipeConfirmation(state = state, vm = vm)
-            ProgramSessions(program = program)
-            TrainingEditShortcuts(state = state, vm = vm)
-        }
-    }
-}
-
-/**
- * Diferencia real de una receta fija (días o minutos) con confirmación
- * explícita vía `acceptFixedRecipeDifference`: sin ella la activación queda
- * bloqueada en la revisión final.
- */
-@Composable
-private fun FixedRecipeConfirmation(state: SetupWizardState, vm: SetupWizardViewModel) {
-    val draft = state.draft
-    val fixedDays = state.fixedTrainingDays
-    val fixedMinutes = state.fixedSessionEstimateMinutes
-    val minutesLimit = draft.minutesPerSession ?: 100
-    val overTime = fixedMinutes != null && fixedMinutes > minutesLimit
-    val daysDiffer = fixedDays != null && fixedDays != draft.selectedWeekdays
-    if (!overTime && !daysDiffer) return
-
-    Column(verticalArrangement = Arrangement.spacedBy(WizardSpacing.cardGap)) {
-        TrainingNotice(
-            text = buildString {
-                append("La receta fija programa ")
-                if (fixedDays != null) {
-                    append(fixedDays.sorted().joinToString(", ") { weekdayLabel(it) ?: "$it" })
-                } else {
-                    append("otros días")
-                }
-                if (overTime && fixedMinutes != null) {
-                    append(" y dura hasta $fixedMinutes min por sesión (dispones de $minutesLimit min)")
-                }
-                append(".")
-            },
-            tone = TrainingNoticeTone.ERROR,
-        )
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(WizardColors.cardFill, WizardShapes.card)
-                .border(WizardColors.unselectedBorderWidth, WizardColors.cardBorder, WizardShapes.card)
-                .padding(horizontal = 12.dp, vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Checkbox(
-                checked = draft.acceptFixedRecipeDifference,
-                onCheckedChange = { accepted -> vm.acceptFixedRecipeDifference(accepted) },
-            )
-            Text(
-                text = "Confirmo que asumo la rotación y la duración reales de esta receta.",
-                style = WizardTypography.cardSubtitle,
-                color = WizardColors.text,
-                modifier = Modifier.weight(1f),
-            )
-        }
-    }
-}
-
-@Composable
-private fun ProgramSessions(program: Program) {
+internal fun ProgramSessions(program: Program) {
     val firstWeek = program.macrocycles
         .firstOrNull()?.blocks
         ?.firstOrNull()?.mesocycles
@@ -1893,30 +920,6 @@ internal fun exerciseSummary(exercise: Exercise): String = buildString {
     }
 }
 
-/** Accesos directos a los pasos del bloque para corregir una respuesta. */
-@Composable
-private fun TrainingEditShortcuts(state: SetupWizardState, vm: SetupWizardViewModel) {
-    val route = SetupStepGraph.stepIds(state.draft.stepContext()).toSet()
-    val shortcuts = listOf(
-        SetupStepId.EQUIPMENT to "Material",
-        SetupStepId.DAYS to "Días por semana",
-        SetupStepId.SESSION_TIME to "Tiempo por sesión",
-        SetupStepId.PRIORITIES to "Prioridades de orden",
-        SetupStepId.TRAINING_MAX to "Marcas",
-        SetupStepId.WARMUPS to "Calentamientos",
-    ).filter { (id, _) -> id in route }
-    if (shortcuts.isEmpty()) return
-
-    shortcuts.forEach { (id, label) ->
-        WizardChoiceCard(
-            title = label,
-            subtitle = "Tocar para cambiar esta respuesta",
-            selected = false,
-            onClick = { vm.editStep(id) },
-        )
-    }
-}
-
 // ─── MILESTONE_TRAINING ─────────────────────────────────────────────────────
 
 /** Resumen real de lo respondido en el bloque antes de cerrarlo. */
@@ -1929,66 +932,33 @@ private fun TrainingMilestoneSummary(state: SetupWizardState) {
 }
 
 /**
- * Las filas del resumen del hito del bloque Entreno (etiqueta, valor), sin pintar. La fila «Reparto» lleva el nombre
- * en español llano que la persona vio al elegirlo, el mismo de la revisión ([draftSplitLabel], que a su vez usa
- * [splitDisplayName]): nunca el nombre técnico de la plantilla ni el id. Un reparto que el catálogo no conoce no
- * añade fila.
+ * Las filas del resumen del hito del bloque Entreno (etiqueta, valor), sin pintar: lo que la persona eligió, con los
+ * mismos nombres de la revisión final (lugares, material, objetivo, días y tiempo, programa y, si las declaró, las
+ * marcas). Un dato sin declarar no añade fila; nunca se pinta un id ni un valor por defecto.
  */
 internal fun trainingMilestoneRows(state: SetupWizardState): List<Pair<String, String>> {
     val draft = state.draft
     return buildList {
         draft.experience?.let { add("Experiencia" to it.label) }
-        draft.goal?.let { add("Objetivo" to it.label) }
-        draft.daysPerWeek?.let { add("Días por semana" to it.toString()) }
-        if (draft.selectedWeekdays.isNotEmpty()) {
-            add("Semana" to draft.selectedWeekdays.sorted().joinToString(", ") { weekdayLabel(it) ?: "$it" })
-        }
-        draft.minutesPerSession?.let { add("Por sesión" to "$it min") }
-        if (draft.equipment.isNotEmpty()) {
-            add("Material" to draft.equipment.joinToString(", ") { it.label })
-        }
-        if (draft.selectedSplitId != null) {
-            draftSplitLabel(state)?.let { name -> add("Reparto" to name) }
-        }
+        placesSummaryText(draft.trainingPlaces)?.let { add("Lugares" to it) }
+        materialReviewValue(draft)?.let { add("Material" to it) }
+        (draft.goalProfile?.label ?: draft.goal?.label)?.let { add("Objetivo" to it) }
+        daysAndTimeReviewValue(draft)?.let { add("Días y tiempo" to it) }
         if (draft.programRoute == SetupProgramRoute.LATER) {
-            add("Plan" to DEFER_PROGRAM_REVIEW_VALUE)
+            add("Programa" to DEFER_PROGRAM_REVIEW_VALUE)
         } else {
             draft.selectedCatalogId?.let { id ->
                 // C.P6: el nombre de la ficha editorial; si el id ya no resuelve, nunca se pinta el id crudo.
-                add("Plan" to (PersonalizedPlanCatalog.find(id)?.displayName ?: "Tu plan elegido"))
+                add("Programa" to (PersonalizedPlanCatalog.find(id)?.displayName ?: "Tu programa elegido"))
             }
         }
-        if (draft.knowsTrainingMarks) {
-            val marks = listOfNotNull(
-                draft.powerliftingProfile?.squat1RM,
-                draft.powerliftingProfile?.bench1RM,
-                draft.powerliftingProfile?.deadlift1RM,
+        if (draft.liftMarks.isNotEmpty()) {
+            val unit = if (draft.marksUnit == "lb") WizardMassUnit.LB else WizardMassUnit.KG
+            add(
+                "Marcas" to draft.liftMarks.entries.sortedBy { it.key.ordinal }
+                    .joinToString(" / ") { (_, kg) -> WizardWeightScale.formatWithUnit(kg, unit) },
             )
-            add("Marcas" to if (marks.isEmpty()) "Sin marcas declaradas" else marks.joinToString(" / ") { "${formatTrainingNumber(it)} kg" })
         }
-        if (draft.programRoute != SetupProgramRoute.LATER) {
-            add("Autorregulación" to autoregulationSummary(draft))
-            add("Calentamientos" to warmupSummary(draft))
-        }
-    }
-}
-
-private fun autoregulationSummary(draft: SetupWizardDraft): String {
-    val training = draft.trainingOptions
-    return when (training.autoregulationMode) {
-        AutoregulationMode.OFF -> "Desactivada"
-        AutoregulationMode.PROPOSE -> "Propuestas (por defecto)"
-        AutoregulationMode.AUTO ->
-            if (training.automaticConfirmed) "Automática (confirmada)" else "Automática (pendiente de confirmación)"
-    }
-}
-
-private fun warmupSummary(draft: SetupWizardDraft): String {
-    val warmup = draft.trainingOptions.warmup
-    return when {
-        warmup == null -> "Estándar del plan"
-        warmup.isEmpty() -> "Sin calentamiento automático"
-        else -> "Personalizado (${SpanishPlurals.steps(warmup.size)})"
     }
 }
 

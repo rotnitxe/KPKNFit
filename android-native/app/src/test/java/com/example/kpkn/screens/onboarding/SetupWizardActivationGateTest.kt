@@ -180,30 +180,25 @@ class SetupWizardActivationGateTest {
             vm.updateStep(SetupStepId.BODY_FAT) { draft -> draft.withBodyFatRulerValue(20) }
         }
         confirm(vm, SetupStepId.MILESTONE_BASICS, SetupStepId.EXPERIENCE)
-        // §15.1: material antes de perfiles.
+        // Lugares y material antes del objetivo; el día con más energía antes de los días.
         confirm(vm, SetupStepId.EXPERIENCE, SetupStepId.EQUIPMENT) { vm.setStepChoice(SetupStepId.EXPERIENCE, "intermediate") }
         confirm(vm, SetupStepId.EQUIPMENT, SetupStepId.AVAILABILITY) { vm.setStepChoice(SetupStepId.EQUIPMENT, "gym") }
         confirm(vm, SetupStepId.AVAILABILITY, SetupStepId.GOAL)
-        confirm(vm, SetupStepId.GOAL, SetupStepId.DAYS) { vm.setStepChoice(SetupStepId.GOAL, "muscle") }
-        confirm(vm, SetupStepId.DAYS, SetupStepId.WEEKDAYS) { vm.setStepChoice(SetupStepId.DAYS, "3") }
+        confirm(vm, SetupStepId.GOAL, SetupStepId.FRESH_DAY) { vm.setStepChoice(SetupStepId.GOAL, "muscle") }
+        confirm(vm, SetupStepId.FRESH_DAY, SetupStepId.WEEKDAYS) { vm.setFreshDay(1) }
         confirm(vm, SetupStepId.WEEKDAYS, SetupStepId.SESSION_TIME) { vm.setStepChoices(SetupStepId.WEEKDAYS, setOf("1", "3", "5")) }
-        confirm(vm, SetupStepId.SESSION_TIME, SetupStepId.VOLUME_TECHNIQUE) {
-            vm.setStepText(SetupStepId.SESSION_TIME, "60")
-            vm.setStepNumber(SetupStepId.SESSION_TIME, 60.0)
-        }
+        confirm(vm, SetupStepId.SESSION_TIME, SetupStepId.VOLUME_TECHNIQUE) { vm.setSessionMinutes(60) }
         confirm(vm, SetupStepId.VOLUME_TECHNIQUE, SetupStepId.VOLUME_CONSISTENCY) { vm.setStepChoice(SetupStepId.VOLUME_TECHNIQUE, "2") }
         confirm(vm, SetupStepId.VOLUME_CONSISTENCY, SetupStepId.VOLUME_STRENGTH) { vm.setStepChoice(SetupStepId.VOLUME_CONSISTENCY, "2") }
         confirm(vm, SetupStepId.VOLUME_STRENGTH, SetupStepId.VOLUME_MOBILITY) { vm.setStepChoice(SetupStepId.VOLUME_STRENGTH, "2") }
         confirm(vm, SetupStepId.VOLUME_MOBILITY, SetupStepId.PRIORITIES) { vm.setStepChoice(SetupStepId.VOLUME_MOBILITY, "2") }
-        confirm(vm, SetupStepId.PRIORITIES, SetupStepId.TRAINING_MAX)
-        confirm(vm, SetupStepId.TRAINING_MAX, SetupStepId.SPLIT) { vm.setStepChoice(SetupStepId.TRAINING_MAX, "no") }
-        confirm(vm, SetupStepId.SPLIT, SetupStepId.PLAN) { vm.setStepChoice(SetupStepId.SPLIT, "recommended") }
+        confirm(vm, SetupStepId.PRIORITIES, SetupStepId.PLAN)
         awaitWall("candidatos reales") {
             !vm.state.value.isCandidateLoading && vm.state.value.availablePlanCandidates.isNotEmpty()
         }
         val candidate = vm.state.value.availablePlanCandidates.first()
         val callsBeforeSelection = materializationCalls?.get()
-        confirm(vm, SetupStepId.PLAN, SetupStepId.AUTOREGULATION) { vm.selectPlan(candidate.id) }
+        confirm(vm, SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT) { vm.selectPlan(candidate.id) }
         if (callsBeforeSelection != null) {
             awaitWall("preview reutilizado desde Ready") {
                 !vm.state.value.isCandidateLoading && !vm.state.value.isPreviewLoading &&
@@ -215,9 +210,7 @@ class SetupWizardActivationGateTest {
                 materializationCalls.get(),
             )
         }
-        confirm(vm, SetupStepId.AUTOREGULATION, SetupStepId.WARMUPS)
-        confirm(vm, SetupStepId.WARMUPS, SetupStepId.TRAINING_REVIEW)
-        confirm(vm, SetupStepId.TRAINING_REVIEW, SetupStepId.MILESTONE_TRAINING)
+        confirm(vm, SetupStepId.WEEK_LAYOUT, SetupStepId.MILESTONE_TRAINING)
         confirm(vm, SetupStepId.MILESTONE_TRAINING, SetupStepId.RINGS_RECENT)
         // Sin datos declarados de Rings no hay check-in real que exiger.
         confirm(vm, SetupStepId.RINGS_RECENT, SetupStepId.RINGS_MUSCLE_FEELING) { vm.setStepChoice(SetupStepId.RINGS_RECENT, "unknown") }
@@ -279,8 +272,8 @@ class SetupWizardActivationGateTest {
         blocked.set(true)
         vm.editStep(SetupStepId.SESSION_TIME)
         awaitWall("cursor en SESSION_TIME") { vm.state.value.draft.stepProgress.currentStepId == SetupStepId.SESSION_TIME }
-        vm.setStepNumber(SetupStepId.SESSION_TIME, 61.0)
-        awaitWall("minutos escritos") { vm.state.value.draft.minutesPerSession == 61 }
+        vm.setSessionMinutes(65)
+        awaitWall("minutos escritos") { vm.state.value.draft.minutesPerSession == 65 }
         confirm(vm, SetupStepId.SESSION_TIME, SetupStepId.REVIEW_ACTIVATE)
         assertTrue("la edición marca el preview obsoleto", vm.state.value.selectionStale)
         // El recálculo se lanza YA (candidatos y/o preview); con la puerta

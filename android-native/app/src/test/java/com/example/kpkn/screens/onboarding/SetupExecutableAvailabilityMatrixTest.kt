@@ -968,7 +968,7 @@ class SetupExecutableAvailabilityMatrixTest {
             // El borrador pasa a 6 días EN MEMORIA sin que `updateCandidates` se llame: es el
             // camino real de fallo de guardado y deja el job de A obsoleto SIN cancelarse.
             persistence.failing = true
-            vm.updateStep(SetupStepId.DAYS) {
+            vm.updateStep(SetupStepId.WEEKDAYS) {
                 it.copy(daysPerWeek = 6, selectedWeekdays = (1..6).toSet())
             }
             if (!awaitUntil(vm, SETTLE_BUDGET_MS) { matchesRequested(it.draft, rowX) }) {
@@ -1004,7 +1004,7 @@ class SetupExecutableAvailabilityMatrixTest {
             )
 
             // ABA intencional: la huella vuelve a ser A mientras el mismo job A sigue retenido.
-            vm.updateStep(SetupStepId.DAYS) {
+            vm.updateStep(SetupStepId.WEEKDAYS) {
                 it.copy(daysPerWeek = 3, selectedWeekdays = rowA.weekdays)
             }
             if (!awaitUntil(vm, SETTLE_BUDGET_MS) { matchesRequested(it.draft, rowA) }) {
@@ -1053,7 +1053,7 @@ class SetupExecutableAvailabilityMatrixTest {
             )
             // ── FASE 4: persistencia restaurada; la respuesta NUEVA recalcula y publica ─────
             persistence.failing = false
-            vm.updateStep(SetupStepId.DAYS) {
+            vm.updateStep(SetupStepId.WEEKDAYS) {
                 it.copy(daysPerWeek = 5, selectedWeekdays = (1..5).toSet())
             }
             if (!awaitUntil(vm, SETTLE_BUDGET_MS) { isIdle(it) }) {
@@ -1699,7 +1699,7 @@ class SetupExecutableAvailabilityMatrixTest {
                 val seeded = vm.state.value.draft
                 assertEquals(method, seeded.selectedCatalogId)
                 assertEquals("los días del método, sin confirmar", 4, seeded.daysPerWeek)
-                assertFalse(SetupStepId.DAYS in seeded.stepProgress.answers)
+                assertFalse(SetupStepId.WEEKDAYS in seeded.stepProgress.answers)
 
                 // La persona elige Músculo y 3 días: el planificador ya no ofrece un método de 4 días.
                 applyFixture(vm, t020Row("t022b", SetupGoal.MUSCLE, SetupExperience.NEW, allCategories, days = 3, minutes = 60))
@@ -1721,7 +1721,7 @@ class SetupExecutableAvailabilityMatrixTest {
 
                 // El botón lleva al paso de los días.
                 performNoticeEffect(checkNotNull(notice.primary).effect, vm)
-                requireSettled(vm, "cursor en el paso de los días") { it.currentStep == SetupStepId.DAYS }
+                requireSettled(vm, "cursor en el paso de los días") { it.currentStep == SetupStepId.WEEKDAYS }
             }
         }
 
@@ -2852,7 +2852,7 @@ class SetupExecutableAvailabilityMatrixTest {
         vm.updateStep(SetupStepId.AVAILABILITY) {
             it.copy(trainingOptions = it.trainingOptions.copy(availability = row.availability))
         }
-        vm.updateStep(SetupStepId.DAYS) {
+        vm.updateStep(SetupStepId.WEEKDAYS) {
             it.copy(daysPerWeek = row.daysPerWeek, selectedWeekdays = row.weekdays)
         }
         vm.updateStep(SetupStepId.SESSION_TIME) { it.copy(minutesPerSession = row.minutes) }

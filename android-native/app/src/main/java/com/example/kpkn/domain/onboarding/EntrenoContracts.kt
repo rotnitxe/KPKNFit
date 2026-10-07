@@ -18,7 +18,7 @@ import kotlinx.serialization.Serializable
 enum class TrainingPlace(val label: String) {
     GYM("Gimnasio"),
     HOME("En casa"),
-    PUBLIC("Espacios públicos"),
+    PUBLIC("En espacios públicos"),
 }
 
 /**

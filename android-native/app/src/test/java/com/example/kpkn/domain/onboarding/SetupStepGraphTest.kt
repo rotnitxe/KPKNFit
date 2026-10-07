@@ -18,15 +18,15 @@ class SetupStepGraphTest {
                 // Bloque 1: Datos básicos
                 SetupStepId.NAME, SetupStepId.AGE, SetupStepId.HEIGHT, SetupStepId.WEIGHT,
                 SetupStepId.EQUATION_SEX, SetupStepId.BODY_FAT, SetupStepId.MILESTONE_BASICS,
-                // Bloque 2: Entreno (§15.1: material antes de perfiles, sin ROUTE)
-                SetupStepId.EXPERIENCE, SetupStepId.EQUIPMENT, SetupStepId.GOAL,
-                SetupStepId.DAYS, SetupStepId.WEEKDAYS, SetupStepId.SESSION_TIME,
-                SetupStepId.STYLE, SetupStepId.VOLUME_TECHNIQUE, SetupStepId.VOLUME_CONSISTENCY,
+                // Bloque 2: Entreno v2 (material antes del objetivo; sin ROUTE, STYLE, DAYS, SPLIT, marcas
+                // sueltas, autorregulación, calentamientos ni revisión del plan). Sin datos del borrador, la ruta
+                // base no trae cardio, capacidades ni marcas, pero sí la técnica y la semana armada.
+                SetupStepId.EXPERIENCE, SetupStepId.EQUIPMENT, SetupStepId.AVAILABILITY, SetupStepId.GOAL,
+                SetupStepId.FRESH_DAY, SetupStepId.WEEKDAYS, SetupStepId.SESSION_TIME,
+                SetupStepId.VOLUME_TECHNIQUE, SetupStepId.VOLUME_CONSISTENCY,
                 SetupStepId.VOLUME_STRENGTH, SetupStepId.VOLUME_MOBILITY,
-                SetupStepId.PRIORITIES, SetupStepId.TRAINING_MAX,
-                SetupStepId.SPLIT, SetupStepId.PLAN,
-                SetupStepId.AUTOREGULATION,
-                SetupStepId.WARMUPS, SetupStepId.TRAINING_REVIEW, SetupStepId.MILESTONE_TRAINING,
+                SetupStepId.PRIORITIES, SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT,
+                SetupStepId.MILESTONE_TRAINING,
                 // Bloque 3: Nutrición
                 SetupStepId.NUTRITION_START, SetupStepId.NUTRITION_ELIGIBILITY,
                 SetupStepId.NUTRITION_DIRECTION, SetupStepId.NUTRITION_TARGET,
@@ -70,6 +70,14 @@ class SetupStepGraphTest {
         assertFalse(SetupStepId.HOME_EQUIPMENT in route)
         assertFalse(SetupStepId.NUTRITION_SEX in route)
         assertFalse(SetupStepId.RINGS_START in route)
+        // Los pasos de entreno retirados tampoco: el enum y sus definiciones solo sirven para leer borradores viejos.
+        for (retired in listOf(
+            SetupStepId.ROUTE, SetupStepId.STYLE, SetupStepId.DAYS, SetupStepId.SPLIT, SetupStepId.TRAINING_MARKS,
+            SetupStepId.AUTOREGULATION, SetupStepId.AUTOREGULATION_CONFIRM, SetupStepId.WARMUPS,
+            SetupStepId.TRAINING_REVIEW,
+        )) {
+            assertFalse("$retired", retired in route)
+        }
     }
 
     @Test
@@ -85,9 +93,9 @@ class SetupStepGraphTest {
         assertTrue(SetupStepId.INVENTORY_BARBELL in withInventory)
         assertTrue(SetupStepId.INVENTORY_DUMBBELLS in withInventory)
         assertTrue(SetupStepId.INVENTORY_MACHINES in withInventory)
-        // Orden estable por grupo, tras EQUIPMENT y antes de la semana.
-        assertTrue(withInventory.indexOf(SetupStepId.INVENTORY_BARBELL) > withInventory.indexOf(SetupStepId.EQUIPMENT))
-        assertTrue(withInventory.indexOf(SetupStepId.INVENTORY_BARBELL) < withInventory.indexOf(SetupStepId.DAYS))
+        // Orden estable por grupo, tras el material y antes del objetivo.
+        assertTrue(withInventory.indexOf(SetupStepId.INVENTORY_BARBELL) > withInventory.indexOf(SetupStepId.AVAILABILITY))
+        assertTrue(withInventory.indexOf(SetupStepId.INVENTORY_BARBELL) < withInventory.indexOf(SetupStepId.GOAL))
         assertTrue(withInventory.indexOf(SetupStepId.INVENTORY_BARBELL) < withInventory.indexOf(SetupStepId.INVENTORY_DUMBBELLS))
         assertTrue(withInventory.indexOf(SetupStepId.INVENTORY_DUMBBELLS) < withInventory.indexOf(SetupStepId.INVENTORY_MACHINES))
         // El resto de la ruta no cambia: solo se insertan los pasos nuevos.
@@ -98,98 +106,78 @@ class SetupStepGraphTest {
     }
 
     @Test
-    fun materialComesBeforeGoalsCalibrationBeforeSplitAndNoRouteInNewJourneys() {
+    fun materialComesBeforeTheGoalAndTheWeekQuestionsComeBeforeCalibration() {
         val route = SetupStepGraph.stepIds(fullContext)
-        // AC-T005-01: material (entorno + categorías) ANTES de perfiles.
-        assertTrue(route.indexOf(SetupStepId.EQUIPMENT) < route.indexOf(SetupStepId.GOAL))
-        // §15.1: EXPERIENCE → EQUIPMENT → GOAL → DAYS → SESSION_TIME →
-        // CALIBRATION → SPLIT → PLAN.
+        // Lugares y material ANTES del objetivo: la elegibilidad de los perfiles depende del material.
         assertTrue(route.indexOf(SetupStepId.EXPERIENCE) < route.indexOf(SetupStepId.EQUIPMENT))
-        assertTrue(route.indexOf(SetupStepId.GOAL) < route.indexOf(SetupStepId.DAYS))
-        assertTrue(route.indexOf(SetupStepId.SESSION_TIME) < route.indexOf(SetupStepId.TRAINING_MAX))
-        assertTrue(route.indexOf(SetupStepId.TRAINING_MAX) < route.indexOf(SetupStepId.SPLIT))
-        assertTrue(route.indexOf(SetupStepId.SPLIT) < route.indexOf(SetupStepId.PLAN))
-        assertTrue(route.indexOf(SetupStepId.PLAN) < route.indexOf(SetupStepId.AUTOREGULATION))
-        // ROUTE no es una pregunta de los recorridos nuevos (§15.1).
+        assertTrue(route.indexOf(SetupStepId.EQUIPMENT) < route.indexOf(SetupStepId.AVAILABILITY))
+        assertTrue(route.indexOf(SetupStepId.AVAILABILITY) < route.indexOf(SetupStepId.GOAL))
+        // Objetivo → día con más energía → días → tiempo → calibración → prioridades → programa → semana.
+        assertTrue(route.indexOf(SetupStepId.GOAL) < route.indexOf(SetupStepId.FRESH_DAY))
+        assertTrue(route.indexOf(SetupStepId.FRESH_DAY) < route.indexOf(SetupStepId.WEEKDAYS))
+        assertTrue(route.indexOf(SetupStepId.WEEKDAYS) < route.indexOf(SetupStepId.SESSION_TIME))
+        assertTrue(route.indexOf(SetupStepId.SESSION_TIME) < route.indexOf(SetupStepId.VOLUME_CONSISTENCY))
+        assertTrue(route.indexOf(SetupStepId.VOLUME_MOBILITY) < route.indexOf(SetupStepId.PRIORITIES))
+        assertTrue(route.indexOf(SetupStepId.PRIORITIES) < route.indexOf(SetupStepId.PLAN))
+        assertTrue(route.indexOf(SetupStepId.PLAN) < route.indexOf(SetupStepId.WEEK_LAYOUT))
+        assertEquals(SetupStepId.MILESTONE_TRAINING, SetupStepGraph.next(SetupStepId.WEEK_LAYOUT, fullContext))
+        // ROUTE, STYLE, DAYS y SPLIT ya no son preguntas.
         assertFalse(SetupStepId.ROUTE in route)
-        // Las reglas de prefijo de origen siguen para pasos de otra rama.
-        assertEquals(SetupStepId.STYLE, SetupStepGraph.next(SetupStepId.SESSION_TIME, fullContext))
-        assertEquals(SetupStepId.SPLIT, SetupStepGraph.next(SetupStepId.TRAINING_MAX, fullContext))
+        assertFalse(SetupStepId.STYLE in route)
+        assertFalse(SetupStepId.DAYS in route)
+        assertFalse(SetupStepId.SPLIT in route)
+        assertEquals(SetupStepId.VOLUME_TECHNIQUE, SetupStepGraph.next(SetupStepId.SESSION_TIME, fullContext))
+        assertEquals(SetupStepId.PLAN, SetupStepGraph.next(SetupStepId.PRIORITIES, fullContext))
     }
 
     @Test
-    fun prioritiesSplitAndPlanComeAfterCalibration() {
-        val route = SetupStepGraph.stepIds(fullContext)
-        assertTrue(route.indexOf(SetupStepId.PRIORITIES) < route.indexOf(SetupStepId.TRAINING_MAX))
-        assertTrue(route.indexOf(SetupStepId.TRAINING_MAX) < route.indexOf(SetupStepId.SPLIT))
-        assertTrue(route.indexOf(SetupStepId.SPLIT) < route.indexOf(SetupStepId.PLAN))
-        assertEquals(SetupStepId.AUTOREGULATION, SetupStepGraph.next(SetupStepId.PLAN, fullContext))
-    }
-
-    @Test
-    fun deferredProgramSkipsConfigurationAfterThePlanAndKeepsTheTrainingMilestone() {
-        val later = fullContext.copy(programRouteLater = true)
+    fun deferredProgramDropsTheWeekLayoutAndKeepsThePlanAndTheTrainingMilestone() {
+        val later = fullContext.copy(hasWeekLayout = false)
         val route = SetupStepGraph.stepIds(later)
-        assertFalse(SetupStepId.AUTOREGULATION in route)
-        assertFalse(SetupStepId.AUTOREGULATION_CONFIRM in route)
-        assertFalse(SetupStepId.WARMUPS in route)
-        assertFalse(SetupStepId.TRAINING_REVIEW in route)
+        assertFalse(SetupStepId.WEEK_LAYOUT in route)
         assertTrue(SetupStepId.PLAN in route)
         assertTrue(SetupStepId.MILESTONE_TRAINING in route)
         assertEquals(SetupStepId.MILESTONE_TRAINING, SetupStepGraph.next(SetupStepId.PLAN, later))
         assertEquals(SetupStepId.PLAN, SetupStepGraph.previous(SetupStepId.MILESTONE_TRAINING, later))
-        assertFalse(SetupStepId.AUTOREGULATION_CONFIRM in SetupStepGraph.stepIds(later.copy(autoregulationOn = true)))
+        // Con la semana armada, el programa va seguido de ella.
+        assertEquals(SetupStepId.WEEK_LAYOUT, SetupStepGraph.next(SetupStepId.PLAN, fullContext))
+        assertEquals(SetupStepId.PLAN, SetupStepGraph.previous(SetupStepId.WEEK_LAYOUT, fullContext))
     }
 
     @Test
-    fun marksBranchOnlyAddsTrainingMarksWhenTheUserKnowsThem() {
-        assertEquals(
-            SetupStepId.TRAINING_MARKS,
-            SetupStepGraph.next(SetupStepId.TRAINING_MAX, fullContext.copy(hasTrainingMarks = true)),
-        )
-        // §15.1: sin marcas, tras CALIBRATION sigue SPLIT.
-        assertEquals(
-            SetupStepId.SPLIT,
-            SetupStepGraph.next(SetupStepId.TRAINING_MAX, fullContext.copy(hasTrainingMarks = false)),
-        )
-        assertEquals(
-            SetupStepId.SPLIT,
-            SetupStepGraph.next(SetupStepId.TRAINING_MARKS, fullContext.copy(hasTrainingMarks = true)),
-        )
+    fun marksStepOnlyEntersWhenTheContextAsksForLifts() {
+        assertFalse(SetupStepId.TRAINING_MAX in SetupStepGraph.stepIds(fullContext))
+        val withMarks = fullContext.copy(asksMarks = true)
+        assertEquals(SetupStepId.TRAINING_MAX, SetupStepGraph.next(SetupStepId.PRIORITIES, withMarks))
+        assertEquals(SetupStepId.PLAN, SetupStepGraph.next(SetupStepId.TRAINING_MAX, withMarks))
+        // La rama vieja de marcas sueltas (TRAINING_MARKS) ya no existe en la ruta.
+        assertFalse(SetupStepId.TRAINING_MARKS in SetupStepGraph.stepIds(withMarks))
     }
 
     @Test
-    fun autoregulationInsertsItsExplicitConfirmationStepOnlyWhenEnabled() {
-        assertFalse(SetupStepId.AUTOREGULATION_CONFIRM in SetupStepGraph.stepIds(fullContext))
-        assertTrue(SetupStepId.AUTOREGULATION_CONFIRM in SetupStepGraph.stepIds(fullContext.copy(autoregulationOn = true)))
-        assertEquals(
-            SetupStepId.AUTOREGULATION_CONFIRM,
-            SetupStepGraph.next(SetupStepId.AUTOREGULATION, fullContext.copy(autoregulationOn = true)),
-        )
+    fun techniqueIsSkippedForBeginnersAndCapabilitiesComeAfterTheCalibration() {
+        val novice = SetupStepGraph.stepIds(fullContext.copy(asksTechnique = false))
+        assertFalse(SetupStepId.VOLUME_TECHNIQUE in novice)
+        assertEquals(SetupStepId.VOLUME_CONSISTENCY, SetupStepGraph.next(SetupStepId.SESSION_TIME, fullContext.copy(asksTechnique = false)))
+        val asks = SetupStepGraph.stepIds(fullContext.copy(asksCapabilities = true))
+        assertTrue(asks.indexOf(SetupStepId.VOLUME_MOBILITY) < asks.indexOf(SetupStepId.CAPABILITIES))
+        assertTrue(asks.indexOf(SetupStepId.CAPABILITIES) < asks.indexOf(SetupStepId.PRIORITIES))
+        assertFalse(SetupStepId.CAPABILITIES in SetupStepGraph.stepIds(fullContext))
     }
 
     @Test
-    fun cardioBranchOnlyAppearsWithAnExplicitWishOrMixedGoal() {
+    fun cardioBranchOnlyAppearsWhenTheGoalIncludesCardio() {
         val plain = SetupStepGraph.stepIds(fullContext)
-        val wished = SetupStepGraph.stepIds(fullContext.copy(wantsCardio = true))
-        val mixed = SetupStepGraph.stepIds(fullContext.copy(mixedTraining = true))
-        // §15.1: Atleta completo también pide sus preferencias de cardio.
-        val completeAthlete = SetupStepGraph.stepIds(fullContext.copy(completeAthleteGoal = true))
+        val withCardio = SetupStepGraph.stepIds(fullContext.copy(goalIncludesCardio = true))
 
         assertFalse(SetupStepId.CARDIO_TYPE in plain)
-        assertTrue(SetupStepId.CARDIO_TYPE in wished && SetupStepId.CARDIO_TIME in wished)
-        assertTrue(SetupStepId.CARDIO_TYPE in mixed && SetupStepId.CARDIO_TIME in mixed)
-        assertTrue(SetupStepId.CARDIO_TYPE in completeAthlete && SetupStepId.CARDIO_TIME in completeAthlete)
-        // Siempre después de SESSION_TIME y antes de CALIBRATION/SPLIT.
-        assertTrue(
-            completeAthlete.indexOf(SetupStepId.SESSION_TIME) < completeAthlete.indexOf(SetupStepId.CARDIO_TYPE),
-        )
-        assertTrue(
-            completeAthlete.indexOf(SetupStepId.CARDIO_TIME) < completeAthlete.indexOf(SetupStepId.TRAINING_MAX),
-        )
-        assertTrue(completeAthlete.indexOf(SetupStepId.CARDIO_TIME) < completeAthlete.indexOf(SetupStepId.VOLUME_TECHNIQUE))
-        assertTrue(completeAthlete.indexOf(SetupStepId.VOLUME_MOBILITY) < completeAthlete.indexOf(SetupStepId.PRIORITIES))
-        assertTrue(completeAthlete.indexOf(SetupStepId.TRAINING_MAX) < completeAthlete.indexOf(SetupStepId.SPLIT))
+        assertFalse(SetupStepId.CARDIO_TIME in plain)
+        assertTrue(SetupStepId.CARDIO_TYPE in withCardio && SetupStepId.CARDIO_TIME in withCardio)
+        // Siempre después del tiempo por sesión y antes de la calibración.
+        assertTrue(withCardio.indexOf(SetupStepId.SESSION_TIME) < withCardio.indexOf(SetupStepId.CARDIO_TYPE))
+        assertTrue(withCardio.indexOf(SetupStepId.CARDIO_TYPE) < withCardio.indexOf(SetupStepId.CARDIO_TIME))
+        assertTrue(withCardio.indexOf(SetupStepId.CARDIO_TIME) < withCardio.indexOf(SetupStepId.VOLUME_TECHNIQUE))
+        assertTrue(withCardio.indexOf(SetupStepId.VOLUME_MOBILITY) < withCardio.indexOf(SetupStepId.PRIORITIES))
     }
 
     @Test
@@ -382,9 +370,9 @@ class SetupStepGraphTest {
         val before = fullContext
         val progress = SetupStepProgress.initial(before).at(SetupStepId.WEEKDAYS, before)
         val after = before.copy(
-            hasTrainingMarks = true,
-            autoregulationOn = true,
-            wantsCardio = true,
+            asksMarks = true,
+            asksCapabilities = true,
+            goalIncludesCardio = true,
         )
         assertTrue(SetupStepId.WEEKDAYS in SetupStepGraph.stepIds(after))
         val restored = progress.at(progress.currentStepId, after)
@@ -394,38 +382,64 @@ class SetupStepGraphTest {
 
     @Test
     fun backNavigationFollowsTheVisitedOrderNeverFabricatedBranches() {
-        val context = SetupStepContext(hasTrainingMarks = true)
+        val context = SetupStepContext(asksMarks = true)
         val progress = SetupStepProgress.initial(context)
+            .at(SetupStepId.PRIORITIES, context)
             .at(SetupStepId.TRAINING_MAX, context)
-            .at(SetupStepId.TRAINING_MARKS, context)
-            .at(SetupStepId.AUTOREGULATION, context)
+            .at(SetupStepId.PLAN, context)
 
         assertEquals(
-            SetupStepId.TRAINING_MARKS,
-            SetupStepGraph.previous(SetupStepId.AUTOREGULATION, context, progress.visited),
+            SetupStepId.TRAINING_MAX,
+            SetupStepGraph.previous(SetupStepId.PLAN, context, progress.visited),
         )
-        // Sin visita previa, el back cae en la ruta del contexto.
-        val neverVisited = SetupStepProgress.initial(SetupStepContext(hasTrainingMarks = false))
-            .at(SetupStepId.TRAINING_MAX, SetupStepContext(hasTrainingMarks = false))
+        // Sin marcas en la ruta y con la visita a las marcas en el historial, atrás se salta las marcas.
+        val withoutMarks = SetupStepContext(asksMarks = false)
         assertEquals(
-            SetupStepId.NAME,
-            SetupStepGraph.previous(SetupStepId.TRAINING_MAX, SetupStepContext(hasTrainingMarks = false), neverVisited.visited),
+            SetupStepId.PRIORITIES,
+            SetupStepGraph.previous(SetupStepId.PLAN, withoutMarks, progress.visited),
+        )
+        // Sin visitas previas, el back cae en la ruta del contexto.
+        assertEquals(
+            SetupStepId.PRIORITIES,
+            SetupStepGraph.previous(SetupStepId.PLAN, withoutMarks, emptyList()),
         )
     }
 
     @Test
     fun migrateFromLegacyResumesExactlyAndCompletesNoBlock() {
         val migrated = SetupStepGraph.migrateFromLegacy(
-            WizChatQuestionId.T_DAYS,
+            WizChatQuestionId.T_WEEKDAYS,
             fullContext,
             mapOf(SetupStepId.WEIGHT to SetupAnswerProvenance.USER_DECLARED),
         )
 
-        assertEquals(SetupStepId.DAYS, migrated.currentStepId)
+        assertEquals(SetupStepId.WEEKDAYS, migrated.currentStepId)
         assertEquals(SetupWizardBlock.TRAINING, migrated.block)
         assertEquals(emptySet<SetupWizardBlock>(), migrated.completedBlocks)
         assertEquals(SetupProgressOrigin.MIGRATED_FROM_WIZCHAT, migrated.origin)
         assertEquals(SetupAnswerProvenance.USER_DECLARED, migrated.answers[SetupStepId.WEIGHT])
+    }
+
+    @Test
+    fun aLegacyDraftAtARetiredQuestionResumesInsideTheNewRouteAndCompletesNoBlock() {
+        // T_DAYS, T_STYLE, T_ROUTE, T_MARKS y T_REVIEW ya no son preguntas: el cursor cae en un paso pendiente de la
+        // ruta nueva (nunca en un paso retirado) y la migración no completa ningún bloque.
+        val retiredQuestions = listOf(
+            WizChatQuestionId.T_DAYS, WizChatQuestionId.T_STYLE, WizChatQuestionId.T_ROUTE,
+            WizChatQuestionId.T_MARKS, WizChatQuestionId.T_REVIEW,
+        )
+        val route = SetupStepGraph.stepIds(fullContext)
+        val retiredSteps = setOf(
+            SetupStepId.ROUTE, SetupStepId.STYLE, SetupStepId.DAYS, SetupStepId.SPLIT, SetupStepId.TRAINING_MARKS,
+            SetupStepId.AUTOREGULATION, SetupStepId.AUTOREGULATION_CONFIRM, SetupStepId.WARMUPS, SetupStepId.TRAINING_REVIEW,
+        )
+        retiredQuestions.forEach { question ->
+            val migrated = SetupStepGraph.migrateFromLegacy(question, fullContext)
+            assertTrue("$question -> ${migrated.currentStepId}", migrated.currentStepId in route)
+            assertFalse("$question -> ${migrated.currentStepId}", migrated.currentStepId in retiredSteps)
+            assertEquals("$question", SetupProgressOrigin.MIGRATED_FROM_WIZCHAT, migrated.origin)
+            assertEquals("$question", emptySet<SetupWizardBlock>(), migrated.completedBlocks)
+        }
     }
 
     @Test
@@ -450,11 +464,11 @@ class SetupStepGraphTest {
     @Test
     fun migrateFromLegacyMarksOutOfScopeQuestionsAsNotConvertible() {
         val ringsOnly = SetupStepContext(includeTraining = false, includeNutrition = false, includeRings = true)
-        val migrated = SetupStepGraph.migrateFromLegacy(WizChatQuestionId.T_DAYS, ringsOnly)
+        val migrated = SetupStepGraph.migrateFromLegacy(WizChatQuestionId.T_WEEKDAYS, ringsOnly)
 
         assertEquals(SetupProgressOrigin.NOT_CONVERTIBLE, migrated.origin)
         // La posición legacy se conserva para no perder nada.
-        assertEquals(SetupStepId.DAYS, migrated.currentStepId)
+        assertEquals(SetupStepId.WEEKDAYS, migrated.currentStepId)
         assertEquals(SetupWizardBlock.TRAINING, migrated.block)
     }
 
@@ -485,8 +499,11 @@ class SetupStepGraphTest {
         // Un número sin valor nunca cuenta como respuesta declarada.
         assertFalse(SetupStepGraph.isExplicitLegacy(
             WizChatQuestionId.P_AGE, record(WizChatQuestionId.P_AGE, WizChatAnswerKind.NUMBER)))
-        // Los valores mapeados de rutas productivas sí cuentan.
+        // Los valores mapeados de rutas productivas sí cuentan (T_TIME: el tiempo por sesión).
         assertTrue(SetupStepGraph.isExplicitLegacy(
+            WizChatQuestionId.T_TIME, record(WizChatQuestionId.T_TIME, WizChatAnswerKind.NUMBER, number = 45.0)))
+        // T_DAYS ya no es una pregunta: nunca es explícita aunque traiga un número.
+        assertFalse(SetupStepGraph.isExplicitLegacy(
             WizChatQuestionId.T_DAYS, record(WizChatQuestionId.T_DAYS, WizChatAnswerKind.NUMBER, number = 3.0)))
         assertTrue(SetupStepGraph.isExplicitLegacy(
             WizChatQuestionId.P_EXPERIENCE, record(WizChatQuestionId.P_EXPERIENCE, WizChatAnswerKind.CHOICE, text = "Tengo experiencia")))
@@ -509,9 +526,14 @@ class SetupStepGraphTest {
             WizChatQuestionId.T_STYLE, record(WizChatQuestionId.T_STYLE, WizChatAnswerKind.CHOICE, text = "Hipertrofia")))
         assertFalse(SetupStepGraph.isExplicitLegacy(
             WizChatQuestionId.T_DAYS, record(WizChatQuestionId.T_DAYS, WizChatAnswerKind.CHOICE, text = "7")))
-        // El mapa identidad de T_DAYS hace explícito un día real.
-        assertTrue(SetupStepGraph.isExplicitLegacy(
+        // Un día suelto de T_DAYS tampoco: la semana se declara con los días concretos (T_WEEKDAYS).
+        assertFalse(SetupStepGraph.isExplicitLegacy(
             WizChatQuestionId.T_DAYS, record(WizChatQuestionId.T_DAYS, WizChatAnswerKind.CHOICE, text = "3")))
+        // El objetivo antiguo sí migra: su etiqueta se lee como el perfil que hoy le corresponde.
+        assertTrue(SetupStepGraph.isExplicitLegacy(
+            WizChatQuestionId.T_GOAL, record(WizChatQuestionId.T_GOAL, WizChatAnswerKind.CHOICE, text = "Fuerza")))
+        assertFalse(SetupStepGraph.isExplicitLegacy(
+            WizChatQuestionId.T_GOAL, record(WizChatQuestionId.T_GOAL, WizChatAnswerKind.CHOICE, text = "Crossfit")))
         // MULTI_CHOICE: solo cuentan valores mapeados; etiquetas desconocidas se descartan.
         assertTrue(SetupStepGraph.isExplicitLegacy(
             WizChatQuestionId.T_WEEKDAYS, record(WizChatQuestionId.T_WEEKDAYS, WizChatAnswerKind.MULTI_CHOICE, values = listOf("Lunes"))))
@@ -584,14 +606,19 @@ class SetupStepGraphTest {
 
     @Test
     fun bareActionsAreOnlyExplicitWhereTheActionIsTheConfirmation() {
-        // Un T_MARKS sin payload no declara marcas.
+        // T_MARKS ya no es una pregunta: ni sola ni con su payload migra a ningún paso.
         assertFalse(SetupStepGraph.isExplicitLegacy(
             WizChatQuestionId.T_MARKS, record(WizChatQuestionId.T_MARKS, WizChatAnswerKind.ACTION)))
-        assertTrue(SetupStepGraph.isExplicitLegacy(
+        assertFalse(SetupStepGraph.isExplicitLegacy(
             WizChatQuestionId.T_MARKS,
             record(WizChatQuestionId.T_MARKS, WizChatAnswerKind.ACTION, values = listOf("100", "60", "120"))))
-        // En las vistas de resultado y el cierre la acción ES la confirmación.
+        // La acción del plan (T_PLAN) trae el id del candidato: sí es explícita.
         assertTrue(SetupStepGraph.isExplicitLegacy(
+            WizChatQuestionId.T_PLAN,
+            record(WizChatQuestionId.T_PLAN, WizChatAnswerKind.CHOICE, text = "plan-abc")))
+        // En las vistas de resultado y el cierre la acción ES la confirmación.
+        // T_REVIEW (la revisión del plan retirada) ya no migra: no hay nada que confirmar.
+        assertFalse(SetupStepGraph.isExplicitLegacy(
             WizChatQuestionId.T_REVIEW, record(WizChatQuestionId.T_REVIEW, WizChatAnswerKind.ACTION)))
         assertTrue(SetupStepGraph.isExplicitLegacy(
             WizChatQuestionId.N_RESULT, record(WizChatQuestionId.N_RESULT, WizChatAnswerKind.ACTION)))
@@ -632,30 +659,30 @@ class SetupStepGraphTest {
 
     @Test
     fun backNeverReturnsAStepThatTheCurrentBranchRemoved() {
-        val withMarks = SetupStepContext(hasTrainingMarks = true)
-        val withoutMarks = SetupStepContext(hasTrainingMarks = false)
-        // Historial real de una sesión que sí pasó por TRAINING_MARKS.
+        val withCardio = SetupStepContext(goalIncludesCardio = true)
+        val withoutCardio = SetupStepContext(goalIncludesCardio = false)
+        // Historial real de una sesión que sí pasó por el cardio.
         val trail = listOf(
-            SetupStepId.NAME, SetupStepId.SESSION_TIME, SetupStepId.TRAINING_MAX,
-            SetupStepId.TRAINING_MARKS, SetupStepId.AUTOREGULATION,
+            SetupStepId.NAME, SetupStepId.SESSION_TIME, SetupStepId.CARDIO_TYPE,
+            SetupStepId.CARDIO_TIME, SetupStepId.VOLUME_TECHNIQUE,
         )
 
         // Con la rama intacta el historial sigue mandando.
         assertEquals(
-            SetupStepId.TRAINING_MARKS,
-            SetupStepGraph.previous(SetupStepId.AUTOREGULATION, withMarks, trail),
+            SetupStepId.CARDIO_TIME,
+            SetupStepGraph.previous(SetupStepId.VOLUME_TECHNIQUE, withCardio, trail),
         )
-        // Con las marcas fuera de la ruta, atrás nunca aterriza en ese paso.
+        // Con el cardio fuera de la ruta, atrás nunca aterriza en esos pasos.
         assertEquals(
-            SetupStepId.TRAINING_MAX,
-            SetupStepGraph.previous(SetupStepId.AUTOREGULATION, withoutMarks, trail),
+            SetupStepId.SESSION_TIME,
+            SetupStepGraph.previous(SetupStepId.VOLUME_TECHNIQUE, withoutCardio, trail),
         )
         // Un paso eliminado de la ruta no genera navegación.
-        assertNull(SetupStepGraph.previous(SetupStepId.TRAINING_MARKS, withoutMarks, trail))
+        assertNull(SetupStepGraph.previous(SetupStepId.CARDIO_TYPE, withoutCardio, trail))
         // Sin visitas previas la ruta del contexto manda.
         assertEquals(
             SetupStepId.SESSION_TIME,
-            SetupStepGraph.previous(SetupStepId.TRAINING_MAX, withoutMarks, trail),
+            SetupStepGraph.previous(SetupStepId.VOLUME_TECHNIQUE, withoutCardio, emptyList()),
         )
     }
 

@@ -25,7 +25,7 @@ private const val PLACE_ASPECT = 120f / 170f
 private const val PLACE_ART_SCALE = 0.96f
 
 /**
- * «¿Dónde entrenas?»: tres escenas dibujadas en una fila, sin tarjeta (Gimnasio, En casa y Espacios públicos), de
+ * «¿Dónde entrenas?»: tres escenas dibujadas en una fila, sin tarjeta (Gimnasio, En casa y En espacios públicos), de
  * las que se puede marcar una, dos o las tres.
  *
  * Sin marcar, cada escena es un dibujo estático en tinta tenue. Marcada, pasa a tinta plena con el acento de su

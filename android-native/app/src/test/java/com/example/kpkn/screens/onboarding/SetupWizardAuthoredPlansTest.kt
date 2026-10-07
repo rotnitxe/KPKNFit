@@ -156,7 +156,7 @@ class SetupWizardAuthoredPlansTest {
         vm.updateStep(SetupStepId.AVAILABILITY) {
             it.copy(trainingOptions = it.trainingOptions.copy(availability = scenario.gear.availability))
         }
-        vm.updateStep(SetupStepId.DAYS) { it.copy(daysPerWeek = scenario.days, selectedWeekdays = scenario.weekdays) }
+        vm.updateStep(SetupStepId.WEEKDAYS) { it.copy(daysPerWeek = scenario.days, selectedWeekdays = scenario.weekdays) }
         vm.updateStep(SetupStepId.SESSION_TIME) { it.copy(minutesPerSession = scenario.minutes) }
     }
 

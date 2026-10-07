@@ -57,9 +57,9 @@ class SetupWizardStateTest {
             equipment = setOf(SetupEquipment.GYM),
             daysPerWeek = 3,
             selectedWeekdays = setOf(1, 3, 5),
-            stepProgress = SetupStepProgress.initial(context).at(SetupStepId.DAYS, context),
+            stepProgress = SetupStepProgress.initial(context).at(SetupStepId.WEEKDAYS, context),
             wizChat = WizChatProgress(
-                currentQuestionId = WizChatQuestionId.T_DAYS,
+                currentQuestionId = WizChatQuestionId.T_WEEKDAYS,
                 acceptedAnswers = listOf(
                     WizChatAnswerRecord(WizChatQuestionId.P_AGE, WizChatAnswerKind.NUMBER, numberValue = 30.0, revision = 1),
                     WizChatAnswerRecord(WizChatQuestionId.P_HEIGHT, WizChatAnswerKind.NUMBER, numberValue = 175.0, revision = 2),
@@ -77,7 +77,7 @@ class SetupWizardStateTest {
             // Un paso ya respondido: la marcha atrás no puede perder ni su
             // valor ni su procedencia.
             draft.copy(stepProgress = draft.stepProgress.recordAnswer(
-                SetupStepId.DAYS, SetupAnswerProvenance.USER_DECLARED, SetupValueState.DECLARED))
+                SetupStepId.WEEKDAYS, SetupAnswerProvenance.USER_DECLARED, SetupValueState.DECLARED))
         }
         val moved = SetupWizardSession(base).goBack()
 
@@ -125,12 +125,12 @@ class SetupWizardStateTest {
             ),
             changed.stepProgress.stalePreviews,
         )
-        // La selección que ya no tiene por qué ser compatible queda pendiente.
-        assertEquals(setOf(SetupStepId.PLAN, SetupStepId.SPLIT), changed.stepProgress.pendingReview)
+        // La selección que ya no tiene por qué ser compatible queda pendiente: el programa y la semana armada.
+        assertEquals(setOf(SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT), changed.stepProgress.pendingReview)
     }
 
     @Test
-    fun changingFrequencyRevalidatesDaysCandidateAndSplit() {
+    fun changingFrequencyRevalidatesWeekdaysCandidateAndWeekLayout() {
         val base = baseDraft()
         val changed = base.copy(daysPerWeek = 4).withChangeImpacts(base)
 
@@ -143,13 +143,13 @@ class SetupWizardStateTest {
             changed.stepProgress.stalePreviews,
         )
         assertEquals(
-            setOf(SetupStepId.WEEKDAYS, SetupStepId.PLAN, SetupStepId.SPLIT),
+            setOf(SetupStepId.WEEKDAYS, SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT),
             changed.stepProgress.pendingReview,
         )
     }
 
     @Test
-    fun changingProtocolRevalidatesMarksSplitAndRecipe() {
+    fun changingProtocolRevalidatesMarksProgramAndWeekLayout() {
         val base = baseDraft()
         val changed = base.copy(programRoute = SetupProgramRoute.PROTOCOL).withChangeImpacts(base)
 
@@ -160,10 +160,10 @@ class SetupWizardStateTest {
             ),
             changed.stepProgress.stalePreviews,
         )
-        // El cambio de protocolo revalida marcas, split y receta, y deja la
-        // pregunta "¿conoces tus marcas?" también para revisión.
+        // El cambio de protocolo revalida marcas, reparto y receta, y deja la pregunta «¿conoces tus marcas?», el
+        // programa y la semana armada para revisión.
         assertEquals(
-            setOf(SetupStepId.TRAINING_MAX, SetupStepId.TRAINING_MARKS, SetupStepId.PLAN),
+            setOf(SetupStepId.TRAINING_MAX, SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT),
             changed.stepProgress.pendingReview,
         )
     }
@@ -181,7 +181,7 @@ class SetupWizardStateTest {
             ),
             changed.stepProgress.stalePreviews,
         )
-        assertEquals(setOf(SetupStepId.PLAN, SetupStepId.SPLIT), changed.stepProgress.pendingReview)
+        assertEquals(setOf(SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT), changed.stepProgress.pendingReview)
         // Y la huella sí detecta el cambio (antes ni siquiera se comparaba).
         assertFalse(
             SetupChangeDetector.sourcesFor(base.inputFootprint(), changed.inputFootprint()).isEmpty(),
@@ -201,7 +201,7 @@ class SetupWizardStateTest {
         // AC-T005-03: el subpanel §13.2 forma parte del material.
         assertTrue(SetupChangeSource.EQUIPMENT in
             SetupChangeDetector.sourcesFor(withApparatus.inputFootprint(), changed.inputFootprint()))
-        assertEquals(setOf(SetupStepId.PLAN, SetupStepId.SPLIT), changed.stepProgress.pendingReview)
+        assertEquals(setOf(SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT), changed.stepProgress.pendingReview)
     }
 
     @Test
@@ -227,7 +227,50 @@ class SetupWizardStateTest {
             ),
             changed.stepProgress.stalePreviews,
         )
-        assertEquals(setOf(SetupStepId.PLAN, SetupStepId.SPLIT), changed.stepProgress.pendingReview)
+        assertEquals(setOf(SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT), changed.stepProgress.pendingReview)
+    }
+
+    @Test
+    fun everyNewEntrenoInputLeavesTheProgramAndTheWeekPendingOfReview() {
+        val base = baseDraft()
+        val expectedPending = setOf(SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT)
+        val changes = mapOf(
+            "lugares" to base.copy(trainingPlaces = setOf(com.example.kpkn.domain.onboarding.TrainingPlace.GYM)),
+            "perfil de objetivo" to base.copy(goalProfile = com.example.kpkn.domain.onboarding.TrainingGoalProfile.POWERLIFTING),
+            "capacidades" to base.copy(capabilities = mapOf(
+                com.example.kpkn.domain.onboarding.CapabilitySkill.PULL_UP to com.example.kpkn.domain.onboarding.CapabilityLevel.SOME,
+            )),
+            "marcas" to base.copy(liftMarks = mapOf(com.example.kpkn.domain.onboarding.LiftMark.SQUAT to 140.0)),
+            "día con más energía" to base.copy(freshestDay = 4),
+            "inicio de semana" to base.copy(weekStartDay = 2),
+            // El lugar por día solo existe con dos o más lugares: sin ellos no entra en la huella.
+            "lugares por día" to base.copy(
+                trainingPlaces = setOf(
+                    com.example.kpkn.domain.onboarding.TrainingPlace.GYM,
+                    com.example.kpkn.domain.onboarding.TrainingPlace.HOME,
+                ),
+                dayPlaces = mapOf(1 to com.example.kpkn.domain.onboarding.TrainingPlace.HOME),
+            ),
+            "reparto adaptado" to base.copy(adaptedSplitId = "ppl_x6"),
+        )
+        changes.forEach { (what, changed) ->
+            val impacted = changed.withChangeImpacts(base)
+            assertTrue(
+                "$what debe detectarse en la huella",
+                SetupChangeDetector.sourcesFor(base.inputFootprint(), changed.inputFootprint()).isNotEmpty(),
+            )
+            assertTrue(
+                "$what deja el programa y la semana por revisar: ${impacted.stepProgress.pendingReview}",
+                impacted.stepProgress.pendingReview.containsAll(expectedPending),
+            )
+            assertTrue("$what invalida los candidatos", SetupPreviewKind.PLAN_CANDIDATES in impacted.stepProgress.stalePreviews)
+            // Nunca se borra ninguna respuesta.
+            assertEquals(base.stepProgress.answers, impacted.stepProgress.answers)
+        }
+        // Lo que no afecta al programa no lo toca: la unidad de las marcas es solo de visualización.
+        val unit = base.copy(marksUnit = "lb").withChangeImpacts(base)
+        assertTrue(unit.stepProgress.pendingReview.isEmpty())
+        assertTrue(unit.stepProgress.stalePreviews.isEmpty())
     }
 
     @Test
@@ -334,7 +377,7 @@ class SetupWizardStateTest {
             nutritionDraft = NutritionWizardDraft(mode = "create", targetWeightText = "70"),
             // The cursor must have a confirmed prefix; otherwise §15.4 correctly
             // repairs an out-of-order persisted cursor to its first pending step.
-            stepProgress = progressAt(SetupStepId.DAYS, original.stepContext())
+            stepProgress = progressAt(SetupStepId.WEEKDAYS, original.stepContext())
                 .withPendingReview(setOf(SetupStepId.PLAN)),
         )
         val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
@@ -342,7 +385,7 @@ class SetupWizardStateTest {
         val restored = SetupDraftCompatibility.repair(json.decodeFromString(payload))
 
         // El paso exacto se restaura por identificador estable.
-        assertEquals(SetupStepId.DAYS, restored.stepProgress.currentStepId)
+        assertEquals(SetupStepId.WEEKDAYS, restored.stepProgress.currentStepId)
         assertEquals(SetupWizardBlock.TRAINING, restored.stepProgress.block)
         assertEquals(base.stepProgress.visited, restored.stepProgress.visited)
         assertEquals(base.stepProgress.pendingReview, restored.stepProgress.pendingReview)

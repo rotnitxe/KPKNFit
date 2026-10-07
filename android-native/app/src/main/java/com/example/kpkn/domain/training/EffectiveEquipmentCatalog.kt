@@ -88,6 +88,15 @@ internal const val REQUIREMENT_SUPPORT = "support"
 internal const val REQUIREMENT_NORDIC_ANCHOR = "nordic_anchor"
 
 /**
+ * Aparatos propios de un gimnasio que piden dos configuraciones con disco (paquete E2): el banco declinado del crunch
+ * lastrado y el banco de hiperextensión a 45°. Los acredita el símbolo «Banco» solo con gimnasio entre los lugares
+ * ([SYMBOL_EQUIPMENT_KEYS]); no son del subpanel §13.2 ni de [KNOWN_REQUIREMENTS], así que una receta que los pida sin
+ * ellos los ve ausentes, sin una pregunta que nunca los acreditaría.
+ */
+internal const val REQUIREMENT_DECLINE_BENCH = "decline_bench"
+internal const val REQUIREMENT_HYPEREXTENSION_BENCH = "hyperextension_bench"
+
+/**
  * Requisitos que el vocabulario del panel puede acreditar. La evidencia de
  * cada uno viaja en `EffectiveEquipmentResult.requirements` para que la UI
  * distinga «ausente» (negado o categoría sin esos ítems) de «desconocido»
@@ -182,6 +191,9 @@ internal fun supportRequirementsFor(configurationId: String): Set<String> = when
     "curl_isquios_con_balon__default" == configurationId -> setOf(REQUIREMENT_BALL)
     "hams_curl_nordic_peso_corporal__default" == configurationId -> setOf(REQUIREMENT_NORDIC_ANCHOR)
     "push_up__feet_elevated" == configurationId -> setOf(REQUIREMENT_SUPPORT)
+    // Discos con un aparato de gimnasio que el catálogo no declara: banco declinado e hiperextensión a 45° (paquete E2).
+    "core_crunch_banco_declinado_lastrado_disco__default" == configurationId -> setOf(REQUIREMENT_DECLINE_BENCH)
+    "glutes_hiperextension_45__plate" == configurationId -> setOf(REQUIREMENT_HYPEREXTENSION_BENCH)
     else -> emptySet()
 }
 
@@ -514,9 +526,13 @@ internal fun attestedTokensOf(key: String): Set<String> =
  * solo se admiten las máquinas cuyo token `machine_config:<id>` esté acreditado; con las máquinas
  * solo por categoría (aunque haya soportes confirmados), el plan propio puede usar las variantes de
  * máquina aprobadas sin afirmar una configuración. Ver DEV-r2-06 en `docs/WIZARD_PLAN_DEVIATIONS.md`.
+ *
+ * Con [EquipmentAvailability.machinesAsCategory] es siempre false: «Máquinas» como una sala de máquinas es una declaración
+ * por categoría aunque sus llaves consten `PRESENT` (esas llaves solo sirven para que las recetas de autor vean sus
+ * tokens `machine_config:`).
  */
 internal fun EquipmentAvailability.hasExplicitMachinePresence(): Boolean =
-    EFFECTIVE_EQUIPMENT_KEYS.any { spec ->
+    !machinesAsCategory && EFFECTIVE_EQUIPMENT_KEYS.any { spec ->
         (spec.category == EquipmentCategory.MACHINES || spec.category == EquipmentCategory.CABLE) &&
             presenceOf(spec.key) != ApparatusPresence.UNKNOWN
     }
@@ -529,3 +545,63 @@ internal fun configurationDeniedByAbsentKey(
     availability.presenceOf(spec.key) == ApparatusPresence.ABSENT &&
         configurationId in spec.machineConfigurations
 }
+
+// ─── Llaves de símbolo que el subpanel no pinta (paquete E) ─────────────────────
+
+/**
+ * Llaves que viajan desde `EquipmentSymbols` (el paso «¿Con qué material entrenas?») y que el subpanel §13.2 no pinta:
+ * anillas, cajón, cuerda de saltar y los extras habituales de un gimnasio sin símbolo propio. Es la fuente única de sus
+ * nombres: `EquipmentSymbols` los reexporta y el resolutor las acredita con [SYMBOL_EQUIPMENT_KEYS].
+ */
+internal object SymbolEquipmentKeys {
+    const val RINGS = "rings"
+    const val PLYO_BOX = "plyo_box"
+    const val JUMP_ROPE = "jump_rope"
+    const val PLATE = "plate"
+    const val HEX_BAR = "hex_bar"
+    const val T_BAR = "t_bar"
+    const val GHD = "ghd"
+    const val AB_WHEEL = "ab_wheel"
+    const val DECLINE_BENCH = REQUIREMENT_DECLINE_BENCH
+    const val HYPEREXTENSION_BENCH = REQUIREMENT_HYPEREXTENSION_BENCH
+}
+
+/**
+ * Una llave de símbolo: la categoría que la delimita (debe constar en la respuesta confirmada, como en
+ * [EffectiveEquipmentKey]) y los tokens que acredita al estar `PRESENT`. No habilita configuraciones por máquina concreta
+ * ni forma parte del subpanel: por eso vive en una lista aparte de [EFFECTIVE_EQUIPMENT_KEYS].
+ */
+internal data class SymbolEquipmentKey(
+    val key: String,
+    val category: EquipmentCategory,
+    val attestedTokens: Set<String>,
+)
+
+/**
+ * Acreditación de las llaves de símbolo en `resolveWithAvailability` (una sola implementación para el planificador, los
+ * planes de autor y el generador de rutinas). Regla STOP: cada token es un `equipmentId` que el catálogo ya declara, un
+ * requisito de [supportRequirementsFor] o un token que piden las reservas del generador; no se inventa ninguno.
+ *
+ * Quedan SIN acreditar a propósito (son raros): `safety_bar`, `h_bar`, `sliders` y `wrist_roller`.
+ */
+internal val SYMBOL_EQUIPMENT_KEYS: List<SymbolEquipmentKey> = listOf(
+    // Anillas o TRX: el catálogo llama `trx` al implemento de suspensión y las reservas del generador piden `rings`.
+    SymbolEquipmentKey(SymbolEquipmentKeys.RINGS, EquipmentCategory.SUPPORT, setOf("trx", "rings")),
+    SymbolEquipmentKey(SymbolEquipmentKeys.PLYO_BOX, EquipmentCategory.SUPPORT, setOf(SymbolEquipmentKeys.PLYO_BOX)),
+    SymbolEquipmentKey(SymbolEquipmentKeys.JUMP_ROPE, EquipmentCategory.CARDIO, setOf(SymbolEquipmentKeys.JUMP_ROPE)),
+    // Barra baja de un parque: la barra de dominadas de un parque suele traerla (`EquipmentSymbols` escribe la llave con
+    // `PUBLIC` entre los lugares y la barra de dominadas elegida). La categoría que consta ahí es la de la barra de
+    // dominadas, no la de soportes, así que esta entrada duplica la llave del subpanel con su otra puerta.
+    SymbolEquipmentKey(EquipmentKeys.LOW_BAR_SUPPORT, EquipmentCategory.PULL_UP_BAR, setOf(REQUIREMENT_LOW_BAR_SUPPORT)),
+    // Extras habituales de un gimnasio, con su símbolo madre elegido: discos, barra hexagonal y barra T con la barra;
+    // GHD y rueda abdominal con las máquinas.
+    SymbolEquipmentKey(SymbolEquipmentKeys.PLATE, EquipmentCategory.BARBELL, setOf(SymbolEquipmentKeys.PLATE)),
+    SymbolEquipmentKey(SymbolEquipmentKeys.HEX_BAR, EquipmentCategory.BARBELL, setOf(SymbolEquipmentKeys.HEX_BAR)),
+    SymbolEquipmentKey(SymbolEquipmentKeys.T_BAR, EquipmentCategory.BARBELL, setOf(SymbolEquipmentKeys.T_BAR)),
+    SymbolEquipmentKey(SymbolEquipmentKeys.GHD, EquipmentCategory.MACHINES, setOf(SymbolEquipmentKeys.GHD)),
+    SymbolEquipmentKey(SymbolEquipmentKeys.AB_WHEEL, EquipmentCategory.MACHINES, setOf(SymbolEquipmentKeys.AB_WHEEL)),
+    // Aparatos de gimnasio con banco (paquete E2): el banco declinado del crunch con disco y el de hiperextensión a 45°.
+    // Con el símbolo «Banco» y gimnasio entre los lugares; en casa un banco no los trae.
+    SymbolEquipmentKey(SymbolEquipmentKeys.DECLINE_BENCH, EquipmentCategory.SUPPORT, setOf(REQUIREMENT_DECLINE_BENCH)),
+    SymbolEquipmentKey(SymbolEquipmentKeys.HYPEREXTENSION_BENCH, EquipmentCategory.SUPPORT, setOf(REQUIREMENT_HYPEREXTENSION_BENCH)),
+)

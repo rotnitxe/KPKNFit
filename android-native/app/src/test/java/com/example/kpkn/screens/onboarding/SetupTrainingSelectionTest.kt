@@ -10,9 +10,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Lógica pura del bloque Entreno: qué splits ofrece el paso SPLIT (reales y
- * compatibles con la frecuencia), el patrón personalizado de siete posiciones
- * y la conversión de filas crudas de calentamiento a `SetRecipe`.
+ * Lógica pura del bloque Entreno que sobrevive a los pasos retirados: qué splits
+ * son reales y compatibles con la frecuencia y la conversión de filas crudas de
+ * calentamiento a `SetRecipe` (la usarán el reparto de la semana y la aproximación).
  *
  * Sin ejecución en esta rama (el build central manda); contratos puros, sin
  * Compose ni ViewModel. La selección canónica de pasos la cubre M1 en sus
@@ -39,15 +39,6 @@ class SetupTrainingSelectionTest {
         six.forEach { split ->
             assertEquals(6, SplitApplicationEngine.patternToTrainingDays(split.pattern, startDay = 1).size)
         }
-    }
-
-    @Test
-    fun `patrón personalizado completa siete posiciones con descanso`() {
-        val pattern = customSplitPatternFromLabels(listOf("Empuje", "Pierna"))
-        assertEquals(7, pattern.size)
-        assertEquals(listOf("Empuje", "Pierna"), pattern.take(2))
-        assertTrue(pattern.drop(2).all { it == "Descanso" })
-        assertEquals(7, customSplitPatternFromLabels(List(9) { "Empuje" }).size)
     }
 
     @Test

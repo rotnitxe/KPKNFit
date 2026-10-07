@@ -39,6 +39,7 @@ import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.domain.nutrition.EerSex
 import com.example.kpkn.domain.nutrition.NutritionDistributionStatus
 import com.example.kpkn.domain.nutrition.NutritionPlanPreparationStatus
+import com.example.kpkn.domain.onboarding.EquipmentSymbolId
 import com.example.kpkn.domain.onboarding.RingsCoverage
 import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
@@ -276,7 +277,13 @@ private fun TrainingSummary(
 ) {
     var expanded by rememberSaveable(state.draft.draftId, state.draft.commitId) { mutableStateOf(false) }
     var showPlanInfo by rememberSaveable(state.draft.draftId, state.draft.commitId) { mutableStateOf(false) }
-    // El plan elegido (la INTENCIÓN del borrador, §15.2): de ahí salen el título y «Ver cómo funciona».
+    val draft = state.draft
+    // Lo que la persona eligió antes del programa: lugares, material, objetivo, días y tiempo.
+    SetupDataLine(label = "Lugares", value = placesSummaryText(draft.trainingPlaces), onEdit = edit(SetupStepId.EQUIPMENT))
+    SetupDataLine(label = "Material", value = materialReviewValue(draft), onEdit = edit(SetupStepId.AVAILABILITY))
+    SetupDataLine(label = "Objetivo", value = draft.goalProfile?.label ?: draft.goal?.label, onEdit = edit(SetupStepId.GOAL))
+    SetupDataLine(label = "Días y tiempo", value = daysAndTimeReviewValue(draft), onEdit = edit(SetupStepId.WEEKDAYS))
+    // El programa elegido (la INTENCIÓN del borrador, §15.2): de ahí salen el título y «Ver cómo funciona».
     val planEntry = remember(state.draft.selectedCatalogId) {
         state.draft.selectedCatalogId?.let(PersonalizedPlanCatalog::find)
     }
@@ -300,7 +307,7 @@ private fun TrainingSummary(
     }
 
     SetupDataLine(
-        label = "Plan",
+        label = "Programa",
         value = planReviewValue(planEntry, program.name),
         onEdit = edit(SetupStepId.PLAN),
     )
@@ -322,11 +329,6 @@ private fun TrainingSummary(
             )
         }
     }
-    SetupDataLine(
-        label = "Reparto semanal",
-        value = draftSplitLabel(state),
-        onEdit = edit(SetupStepId.SPLIT),
-    )
     // B-03: solo lectura del informe ya calculado (planes propios); no cambia el programa.
     planReviewNotes(state.previewReport).forEach { note -> SetupFormCaption(note) }
 
@@ -337,7 +339,7 @@ private fun TrainingSummary(
     SetupDataLine(
         label = "Sesiones · muestra 1ª semana",
         value = previewSessionsSummary(previewSessions.size, previewExercises),
-        onEdit = edit(SetupStepId.TRAINING_REVIEW),
+        onEdit = edit(SetupStepId.WEEK_LAYOUT),
     )
     if (previewSessions.isEmpty()) {
         SetupFormCaption("La primera semana todavía no tiene sesiones prescritas.")
@@ -359,7 +361,7 @@ private fun TrainingSummary(
         SetupDataLine(
             label = "Sesiones por semana",
             value = allSessionsSummary(allSessions, weeks.size),
-            onEdit = edit(SetupStepId.TRAINING_REVIEW),
+            onEdit = edit(SetupStepId.WEEK_LAYOUT),
         )
         // Ocurrencias reales: cada semana se lista tal cual. Sin deduplicar:
         // un distinctBy borraría sesiones reales que comparten id, día o nombre.
@@ -416,6 +418,29 @@ private fun briefSetsReps(exercise: Exercise): String? {
         ?: first.targetDuration?.takeIf { it > 0 }?.let { "${it}s" }
     return if (reps != null) "${sets.size} × $reps" else SpanishPlurals.sets(sets.size)
 }
+
+/**
+ * El material en una línea para la revisión: «Solo peso corporal» o los tres primeros implementos y cuántos más
+ * («Barra y discos, Rack, Banco +12»); null mientras no se haya declarado.
+ */
+internal fun materialReviewValue(draft: SetupWizardDraft): String? {
+    if (draft.trainingOptions.availability == null) return null
+    val symbols = draft.selectedEquipmentSymbols()
+    val implements = symbols.filter { it != EquipmentSymbolId.BODYWEIGHT_ONLY }.sortedBy { it.ordinal }
+    if (implements.isEmpty()) return EquipmentSymbolId.BODYWEIGHT_ONLY.label
+    val shown = implements.take(MATERIAL_REVIEW_NAMES).joinToString(", ") { it.label }
+    val rest = implements.size - MATERIAL_REVIEW_NAMES
+    return if (rest > 0) "$shown +$rest" else shown
+}
+
+private const val MATERIAL_REVIEW_NAMES = 3
+
+/** «3 días · lun, mié, vie · 60 min»: los días elegidos y el tiempo por sesión; null mientras falten los dos. */
+internal fun daysAndTimeReviewValue(draft: SetupWizardDraft): String? =
+    listOfNotNull(
+        weekdaysSummaryText(draft.selectedWeekdays),
+        draft.minutesPerSession?.let { minutes -> "$minutes min" },
+    ).joinToString(" · ").ifEmpty { null }
 
 /**
  * El reparto semanal en palabras (C.P5): el nombre que la persona le puso si es propio; si no, el nombre del

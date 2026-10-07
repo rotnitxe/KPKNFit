@@ -58,6 +58,11 @@ class SetupTrainingPlannerAvailabilitySweepTest {
                 // (strength+hypertrofia+power+cardio). Este sweep no lo incluye.
                 SetupGoal.COMPLETE_ATHLETE ->
                     error("El sweep de referencias no cubre Atleta completo: capability por receta")
+                // Los perfiles que añade Entreno v2 (Funcional y las cuatro disciplinas nuevas) los sirve el
+                // generador nuevo; el planificador actual solo les da una asignación segura.
+                SetupGoal.FUNCTIONAL, SetupGoal.CALISTHENICS, SetupGoal.WEIGHTLIFTING,
+                SetupGoal.ARMWRESTLING, SetupGoal.STRONGMAN ->
+                    error("El sweep de referencias no cubre los perfiles de Entreno v2")
             }
     }
 

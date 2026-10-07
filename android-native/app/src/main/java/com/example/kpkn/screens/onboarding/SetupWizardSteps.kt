@@ -5,6 +5,7 @@ import com.example.kpkn.domain.onboarding.SetupStepDefinitions
 import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.SetupWizardBlock
+import com.example.kpkn.domain.onboarding.TrainingGoalProfile
 import com.example.kpkn.screens.onboarding.design.KpknModule
 import com.example.kpkn.screens.onboarding.design.OverlayStage
 import com.example.kpkn.screens.onboarding.design.OverlayStageState
@@ -63,13 +64,23 @@ internal fun SetupStepContent(
 /** Título y subtítulo de la sección de una página. Las páginas fusionadas tienen su propio texto. */
 internal data class WizardPageCopy(val title: String, val subtitle: String?)
 
-internal fun wizardPageCopy(page: SetupStepId): WizardPageCopy {
+/**
+ * Título y subtítulo de la página [page]. El paso PLAN cambia con el perfil de objetivo ([goalProfile]): con una
+ * disciplina se elige entre varios programas; con un perfil general (o sin perfil) se muestra el programa a medida.
+ */
+internal fun wizardPageCopy(page: SetupStepId, goalProfile: TrainingGoalProfile? = null): WizardPageCopy {
     val definition = SetupStepDefinitions.of(page)
     return when (page) {
         SetupStepId.NAME -> WizardPageCopy("Empecemos por ti", "Tu alias y tu fecha de nacimiento.")
         SetupStepId.HEIGHT -> WizardPageCopy("¿Cuánto mides y pesas?", "Desliza cada regla hasta tu medida.")
         // La figura y la regla se explican solas: este paso no lleva subtítulo.
         SetupStepId.BODY_FAT -> WizardPageCopy(definition?.title ?: page.name, null)
+        SetupStepId.PLAN ->
+            if (goalProfile?.isSpecific == true) {
+                WizardPageCopy("Elige tu programa", "Elige el que más te guste. Podrás modificarlo después.")
+            } else {
+                WizardPageCopy(definition?.title ?: page.name, definition?.subtitle)
+            }
         else -> WizardPageCopy(definition?.title ?: page.name, definition?.subtitle)
     }
 }

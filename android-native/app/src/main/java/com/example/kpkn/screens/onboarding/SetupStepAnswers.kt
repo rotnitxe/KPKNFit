@@ -3,12 +3,12 @@ package com.example.kpkn.screens.onboarding
 import com.example.kpkn.data.models.CalibrationResponseState
 import com.example.kpkn.data.models.CardioType
 import com.example.kpkn.data.models.EquipmentAvailability
-import com.example.kpkn.data.models.EquipmentCategory
 import com.example.kpkn.data.models.Gender
 import com.example.kpkn.data.models.InitialRecoveryActivityType
 import com.example.kpkn.data.models.InitialRecoveryIntensity
 import com.example.kpkn.data.models.InitialRecoveryResponseState
 import com.example.kpkn.data.models.PlanDirection
+import com.example.kpkn.data.models.PowerliftingProfile
 import com.example.kpkn.data.models.TrainingStyle
 import com.example.kpkn.data.models.VolumeCalibrationProfile
 import com.example.kpkn.data.models.VolumeCalibrationResponses
@@ -19,8 +19,19 @@ import com.example.kpkn.domain.nutrition.NutritionConfigurationMode
 import com.example.kpkn.domain.nutrition.NutritionWeeklyDistributionMode
 import com.example.kpkn.domain.nutrition.WizardPacePreset
 import com.example.kpkn.domain.nutrition.parseLocalizedNumber
-import com.example.kpkn.domain.onboarding.SetupApparatusItem
+import com.example.kpkn.domain.onboarding.CapabilityLevel
+import com.example.kpkn.domain.onboarding.CapabilitySkill
+import com.example.kpkn.domain.onboarding.EntrenoStepValues
+import com.example.kpkn.domain.onboarding.EquipmentSymbolId
+import com.example.kpkn.domain.onboarding.EquipmentSymbols
+import com.example.kpkn.domain.onboarding.LiftMark
+import com.example.kpkn.domain.onboarding.MarksContext
+import com.example.kpkn.domain.onboarding.MuscleSuggestions
+import com.example.kpkn.domain.onboarding.MuscleSymbol
+import com.example.kpkn.domain.onboarding.MuscleSymbols
 import com.example.kpkn.domain.onboarding.SetupApparatusPanel
+import com.example.kpkn.domain.onboarding.TrainingGoalProfile
+import com.example.kpkn.domain.onboarding.TrainingPlace
 import com.example.kpkn.domain.onboarding.SetupEquationSexValues
 import com.example.kpkn.domain.onboarding.SetupStepDefinitions
 import com.example.kpkn.domain.onboarding.SetupStepGraph
@@ -73,8 +84,7 @@ fun SetupWizardDraft.withStepChoice(
     nowEpochMs: Long = System.currentTimeMillis(),
 ): SetupWizardDraft {
     val normalized = normalizeExclusive(step, setOf(value))
-    val stored = copy(stepSelections = stepSelections + (step to normalized.toList()))
-    return stored.projectChoice(step, normalized.firstOrNull(), nowEpochMs)
+    return storedSelection(step, normalized).projectChoice(step, normalized.firstOrNull(), nowEpochMs)
 }
 
 /**
@@ -87,8 +97,7 @@ fun SetupWizardDraft.withStepChoices(
     nowEpochMs: Long = System.currentTimeMillis(),
 ): SetupWizardDraft {
     val normalized = normalizeExclusive(step, values)
-    val stored = copy(stepSelections = stepSelections + (step to normalized.toList()))
-    return stored.projectChoices(step, normalized, nowEpochMs)
+    return storedSelection(step, normalized).projectChoices(step, normalized, nowEpochMs)
 }
 
 /**
@@ -108,6 +117,8 @@ fun SetupWizardDraft.withStepText(
         copy(inputTexts = inputTexts + (step.name to value))
     }
     return when (step) {
+        // El tiempo por sesión es un dial: solo números (`withStepNumber`), nunca texto libre.
+        SetupStepId.SESSION_TIME -> this
         SetupStepId.NAME -> keyed.copy(name = WizChatValidation.cleanText(value))
         // Grasa corporal medida: el crudo se conserva (inválido incluido) y la
         // fuente manda. Con «No lo sé» se retiran número, fecha y texto
@@ -128,7 +139,7 @@ fun SetupWizardDraft.withStepText(
                 }
             }
         }
-        SetupStepId.AGE, SetupStepId.HEIGHT, SetupStepId.WEIGHT, SetupStepId.SESSION_TIME -> {
+        SetupStepId.AGE, SetupStepId.HEIGHT, SetupStepId.WEIGHT -> {
             val parsed = value.takeIf { it.isNotBlank() }?.let { parseLocalizedNumber(it) }
             when {
                 parsed != null -> keyed.projectNumber(step, parsed, nowEpochMs)
@@ -153,6 +164,10 @@ fun SetupWizardDraft.withStepNumber(
     value: Double?,
     nowEpochMs: Long = System.currentTimeMillis(),
 ): SetupWizardDraft {
+    // El dial de minutos no deja texto crudo: el valor redondeado es la única representación.
+    if (step == SetupStepId.SESSION_TIME) {
+        return copy(inputTexts = inputTexts - step.name).projectNumber(step, value, nowEpochMs)
+    }
     val current = inputTexts[step.name]
     val keyed = when {
         // Mismo número, otro formato («70,» / «70.» / «70.0» → 70): el crudo
@@ -173,6 +188,20 @@ fun SetupWizardDraft.withStepNumber(
 }
 
 // ─── Normalización ───────────────────────────────────────────────────────────
+
+/**
+ * Pasos de Entreno v2 cuya selección se LEE de los datos del borrador (lugares, material, perfil, día fuerte, días,
+ * músculos y marcas): su reductor retira cualquier selección guardada aparte, así que un valor que no se reconoce no deja
+ * rastro ni se confunde con una elección.
+ */
+private val DERIVED_SELECTION_STEPS: Set<SetupStepId> = setOf(
+    SetupStepId.EQUIPMENT, SetupStepId.AVAILABILITY, SetupStepId.GOAL, SetupStepId.FRESH_DAY,
+    SetupStepId.WEEKDAYS, SetupStepId.PRIORITIES, SetupStepId.TRAINING_MAX,
+)
+
+/** El borrador con la selección de [step] guardada, salvo en los pasos cuya selección sale de sus datos. */
+private fun SetupWizardDraft.storedSelection(step: SetupStepId, values: Set<String>): SetupWizardDraft =
+    if (step in DERIVED_SELECTION_STEPS) this else copy(stepSelections = stepSelections + (step to values.toList()))
 
 /** El valor exclusivo de la definición gana siempre; nunca se mezcla con otros. */
 private fun normalizeExclusive(step: SetupStepId, values: Set<String>): Set<String> {
@@ -203,9 +232,16 @@ private fun SetupWizardDraft.projectChoices(
     values: Set<String>,
     nowEpochMs: Long,
 ): SetupWizardDraft = when (step) {
-    SetupStepId.WEEKDAYS -> copy(
-        selectedWeekdays = values.mapNotNull { it.toIntOrNull() }.filter { it in 1..7 }.toSet(),
-    )
+    SetupStepId.WEEKDAYS -> withWeekdays(values.mapNotNullTo(linkedSetOf()) { EntrenoStepValues.weekdayOf(it) })
+
+    SetupStepId.EQUIPMENT -> withPlaces(values.mapNotNullTo(linkedSetOf()) { EntrenoStepValues.placeOf(it) })
+
+    // Los valores son los nombres de los símbolos de material; «solo peso corporal» es exclusivo y una selección
+    // vacía equivale a él (el motor recibe categorías vacías confirmadas).
+    SetupStepId.AVAILABILITY -> withMaterial(values.mapNotNullTo(linkedSetOf()) { EntrenoStepValues.symbolOf(it) })
+
+    // Músculos canónicos del motor de orden; cada uno puntúa 1 en la bolsa.
+    SetupStepId.PRIORITIES -> withMuscles(values.mapNotNullTo(linkedSetOf()) { MuscleSymbols.fromCanonical(it) })
 
     SetupStepId.NUTRITION_ELIGIBILITY -> withNutrition {
         it.copy(
@@ -226,26 +262,6 @@ private fun SetupWizardDraft.projectChoices(
     }
 
     SetupStepId.HOME_EQUIPMENT -> copy(equipment = values.mapNotNull { legacyEquipmentValue(it) }.toSet())
-
-    SetupStepId.AVAILABILITY -> {
-        val previous = trainingOptions.availability
-        val categories = if (AVAILABILITY_BODYWEIGHT in values) {
-            emptySet()
-        } else {
-            values.mapNotNull { token -> EquipmentCategory.entries.firstOrNull { it.name == token } }.toSet()
-        }
-        // §13.2: el subpanel de aparatos forma parte de ESTE paso; cambiar las
-        // categorías no borra ni reinterpreta las presencias ya confirmadas
-        // (solo peso corporal sí las retira, §13.1 regla 1).
-        val keepsPresence = AVAILABILITY_BODYWEIGHT !in values
-        copy(trainingOptions = trainingOptions.copy(
-            availability = EquipmentAvailability(
-                categories = categories,
-                apparatus = if (keepsPresence) previous?.apparatus.orEmpty() else emptyMap(),
-                supports = if (keepsPresence) previous?.supports.orEmpty() else emptyMap(),
-            ),
-        ))
-    }
 
     else -> projectChoice(step, values.firstOrNull(), nowEpochMs)
 }
@@ -331,132 +347,23 @@ private fun SetupWizardDraft.projectChoice(
         includeTraining = true,
     ) else this
 
-    SetupStepId.GOAL -> {
-        val resolved = when (value) {
-            "strength" -> SetupGoal.STRENGTH
-            "muscle" -> SetupGoal.MUSCLE
-            "strength_muscle" -> SetupGoal.STRENGTH_MUSCLE
-            "complete_athlete" -> SetupGoal.COMPLETE_ATHLETE
-            // Lectura legacy: HEALth/MIXED solo se reescriben si un borrador
-            // antiguo vuelve a declararlos; el wizard nuevo no los ofrece.
-            "health" -> SetupGoal.HEALTH
-            "mixed" -> SetupGoal.MIXED
-            else -> null
-        }
-        when (resolved) {
-            null -> this
-            else -> {
-                // Un cambio de perfil invalida resultados dependientes, pero no
-                // borra preferencias de cardio declaradas: pueden volver a ser
-                // relevantes si el usuario cambia el objetivo de nuevo. Sí retira
-                // el reparto que el objetivo nuevo ya no ofrece (D6/A.E2, H4).
-                val base = copy(goal = resolved).withoutSplitNotOfferedFor(resolved)
-                val inferred = resolved.inferredTrainingStyle
-                if (inferred != null) base.withVolumeStyle(inferred)
-                else base.copy(
-                    volumeAnswers = base.volumeAnswers.copy(style = null),
-                    volumeCalibrationProfile = null,
-                    volumeRecommendations = emptyList(),
-                    athleteProfileScore = null,
-                )
-            }
-        }
-    }
+    // El perfil de objetivo es el dato; el resto (objetivo del motor, estilo de calibración, sugerencia de músculos)
+    // se deriva de él. Los valores antiguos del paso se leen como el perfil que hoy les corresponde.
+    SetupStepId.GOAL -> value?.let(EntrenoStepValues::goalProfileOf)?.let { withGoalProfile(it) } ?: this
 
-    SetupStepId.STYLE -> when (value) {
-        "powerlifter" -> withVolumeStyle(TrainingStyle.POWERLIFTER)
-        "bodybuilder" -> withVolumeStyle(TrainingStyle.BODYBUILDER)
-        "powerbuilder" -> withVolumeStyle(TrainingStyle.POWERBUILDER)
-        else -> this
-    }
+    // Un valor suelto es «solo este lugar»; la selección de varios lugares entra por `withStepChoices`.
+    SetupStepId.EQUIPMENT -> value?.let(EntrenoStepValues::placeOf)?.let { withPlaces(setOf(it)) } ?: this
+
+    SetupStepId.FRESH_DAY -> withFreshestDay(value?.let(EntrenoStepValues::weekdayOf))
 
     SetupStepId.VOLUME_TECHNIQUE -> withVolumeResponse(1, value)
     SetupStepId.VOLUME_CONSISTENCY -> withVolumeResponse(2, value)
     SetupStepId.VOLUME_STRENGTH -> withVolumeResponse(3, value)
     SetupStepId.VOLUME_MOBILITY -> withVolumeResponse(4, value)
 
-    // Un SOLO inventario principal: cambiar de entorno NO borra lo declarado
-    // (inventory, selecciones ni filas a medias). Solo se retira el perfil
-    // LEGACY ajeno (`equipment` GYM/MACHINE del entorno anterior) y los grupos
-    // que el nuevo entorno pregunta quedan marcados para revisión; borrar un
-    // grupo concreto es la acción explícita «No tengo/Quitar» de M4.
-    SetupStepId.EQUIPMENT -> if (value == null) this else {
-        val environmentChanged = value != trainingEnvironment
-        val neededGroups = if (environmentChanged) {
-            copy(trainingEnvironment = value).inventoryGroups().map(SetupStepDefinitions::stepOf).toSet()
-        } else emptySet()
-        val preset = run {
-            val categories = when (value) {
-                "gym", "Gimnasio completo" -> EquipmentCategory.entries.toSet()
-                "machines", "Principalmente máquinas" -> setOf(
-                    EquipmentCategory.MACHINES, EquipmentCategory.CABLE, EquipmentCategory.DUMBBELLS,
-                )
-                "none", "Sin material" -> emptySet()
-                else -> null
-            }
-            if (categories == null) null else {
-                // §13.2: las presencias del subpanel viajan con las categorías.
-                // Un entorno NUEVO describe otro sitio (se retiran); «sin
-                // material» las retira siempre (§13.1 regla 1); repetir el mismo
-                // entorno conserva las confirmaciones hechas.
-                val keepsPresence = !environmentChanged && value != "none" && value != "Sin material"
-                EquipmentAvailability(
-                    categories = categories,
-                    apparatus = if (keepsPresence) trainingOptions.availability?.apparatus.orEmpty() else emptyMap(),
-                    supports = if (keepsPresence) trainingOptions.availability?.supports.orEmpty() else emptyMap(),
-                )
-            }
-        }
-        // Mismo entorno + material ya presente = NO es un entorno nuevo: el
-        // material declarado manda y re-pulsar la tarjeta no puede re-sembrar
-        // el preset (ni ampliar lo confirmado ni borrar un vacío explícito).
-        // El preset solo siembra cuando el entorno cambia de verdad o cuando
-        // aún no había material (el borrador restaurado sin valor).
-        val keepsDeclaredAvailability = !environmentChanged && trainingOptions.availability != null
-        val availability = if (keepsDeclaredAvailability) trainingOptions.availability else preset
-        // Si una semilla recién creada desde «sin material» produce un valor no
-        // nulo, la confirmación previa de AVAILABILITY queda obsoleta igual: un
-        // registro viejo nunca puede confirmar un valor que no describía.
-        val seedsFromMissing = !environmentChanged &&
-            trainingOptions.availability == null && availability != null
-        val availabilityInvalidated = environmentChanged || seedsFromMissing
-        copy(
-            trainingEnvironment = value,
-            equipment = when (value) {
-                "gym", "Gimnasio completo" -> setOf(SetupEquipment.GYM)
-                "machines", "Principalmente máquinas" -> setOf(SetupEquipment.MACHINE)
-                else -> emptySet()
-            },
-            trainingOptions = trainingOptions.copy(availability = availability),
-            stepSelections = if (availabilityInvalidated) stepSelections - SetupStepId.AVAILABILITY else stepSelections,
-            // La semilla de AVAILABILITY es de OTRO material: su confirmación
-            // queda obsoleta y, sin este retiro, la semilla nueva se guardaría
-            // como si el usuario la hubiera confirmado. Se retira solo ese paso
-            // (respuesta y marca de declaración); el resto del borrador intacto.
-            stepProgress = if (availabilityInvalidated) {
-                val withoutAvailability = stepProgress.copy(
-                    answers = stepProgress.answers - SetupStepId.AVAILABILITY,
-                )
-                if (neededGroups.isNotEmpty()) withoutAvailability.withPendingReview(neededGroups) else withoutAvailability
-            } else if (neededGroups.isNotEmpty()) {
-                stepProgress.withPendingReview(neededGroups)
-            } else {
-                stepProgress
-            },
-            declaredSteps = if (availabilityInvalidated) declaredSteps - SetupStepId.AVAILABILITY else declaredSteps,
-        )
-    }
-
-    SetupStepId.DAYS -> copy(daysPerWeek = value?.toIntOrNull())
-
     SetupStepId.CARDIO_TYPE -> copy(cardioType = CardioType.entries.firstOrNull { it.name == value })
 
     SetupStepId.CARDIO_TIME -> copy(cardioMinutes = value?.toIntOrNull())
-
-    SetupStepId.TRAINING_MAX -> copy(
-        knowsTrainingMarks = value == "yes",
-        powerliftingProfile = if (value == "yes") powerliftingProfile else null,
-    )
 
     SetupStepId.GENDER -> copy(profileGender = when (value) {
         "female" -> Gender.FEMALE
@@ -601,7 +508,10 @@ private fun SetupWizardDraft.projectNumber(
         },
     )
 
-    SetupStepId.SESSION_TIME -> copy(minutesPerSession = value?.takeIf { it.isFinite() }?.toInt())
+    // Siempre un múltiplo de 5 dentro del rango del dial (el valor llega ya redondeado a la UI y al motor).
+    SetupStepId.SESSION_TIME -> copy(
+        minutesPerSession = value?.takeIf { it.isFinite() }?.let(EntrenoStepValues::roundSessionMinutes),
+    )
 
     SetupStepId.BODY_FAT -> copy(
         bodyFatPercent = value?.takeIf { it.isFinite() },
@@ -733,17 +643,269 @@ fun SetupWizardDraft.withApparatusPresence(
     return copy(trainingOptions = trainingOptions.copy(availability = updated))
 }
 
+// ─── Entreno v2: lugares y material ──────────────────────────────────────────
+
 /**
- * T-005 / §13.2 — «No tengo otros»: marca `ABSENT` los ítems visibles que
- * todavía están desconocidos. Una respuesta previa (Sí/No) nunca se pisa.
+ * Lugares donde se entrena (uno o varios). Es el dato; el resto son derivados que el motor actual sigue leyendo:
+ * `trainingEnvironment` («gym» si hay gimnasio, si no «home»), `equipment` (gimnasio → `SetupEquipment.GYM`) y la
+ * disponibilidad de material, que se **resiembra** con [EquipmentSymbols.reseed]: se conserva lo ya elegido que
+ * sigue ofreciéndose y se añade lo habitual de los lugares NUEVOS (gimnasio trae lo de siempre, un parque su
+ * estructura y la casa nada).
+ *
+ * - Cambiar el material retira la confirmación de AVAILABILITY (un registro viejo no puede confirmar un valor
+ *   que no describía) y, si el perfil de objetivo elegido deja de ser compatible, marca GOAL para revisar (nunca
+ *   se borra la respuesta en silencio).
+ * - Re-escribir los mismos lugares no toca el material ni sus confirmaciones.
+ * - Sin lugares (estado intermedio) se conserva lo declarado: no hay material que recalcular.
+ * - El lugar por día solo existe con dos o más lugares: se descartan los que ya no están.
  */
-fun SetupWizardDraft.markVisibleApparatusAbsent(visible: List<SetupApparatusItem>): SetupWizardDraft {
-    val updated = SetupApparatusPanel.markVisibleAbsent(trainingOptions.availability, visible) ?: return this
-    return copy(trainingOptions = trainingOptions.copy(availability = updated))
+fun SetupWizardDraft.withPlaces(requested: Set<TrainingPlace>): SetupWizardDraft {
+    val before = trainingPlaces
+    val places = TrainingPlace.entries.filterTo(linkedSetOf()) { it in requested }
+    val derived = copy(
+        trainingPlaces = places,
+        trainingEnvironment = when {
+            places.isEmpty() -> null
+            TrainingPlace.GYM in places -> "gym"
+            else -> "home"
+        },
+        equipment = if (TrainingPlace.GYM in places) setOf(SetupEquipment.GYM) else emptySet(),
+        // La selección se lee de `trainingPlaces`: una guardada aparte se desfasaría.
+        stepSelections = stepSelections - SetupStepId.EQUIPMENT,
+        dayPlaces = if (places.size >= 2) dayPlaces.filterValues { it in places } else emptyMap(),
+    )
+    if (places == before || places.isEmpty()) return derived
+    val current = EquipmentSymbols.selectedFrom(trainingOptions.availability)
+    val selection = EquipmentSymbols.reseed(before, places, current)
+    return derived.withReseededAvailability(EquipmentSymbols.availabilityOf(selection, places))
+}
+
+/** Alterna [place]; se calcula sobre el borrador último (el VM lo llama dentro de su mutex). */
+fun SetupWizardDraft.withPlaceToggled(place: TrainingPlace): SetupWizardDraft =
+    withPlaces(if (place in trainingPlaces) trainingPlaces - place else trainingPlaces + place)
+
+/**
+ * Material declarado como símbolos de implementos. Una selección vacía (o solo «peso corporal», que es exclusivo)
+ * equivale a entrenar con el cuerpo: el motor recibe categorías vacías confirmadas. Los implementos que los lugares
+ * elegidos no ofrecen se ignoran; los visibles que no se eligen quedan explícitamente ausentes.
+ */
+fun SetupWizardDraft.withMaterial(requested: Set<EquipmentSymbolId>): SetupWizardDraft {
+    val offered = if (trainingPlaces.isEmpty()) {
+        EquipmentSymbolId.entries.toSet()
+    } else {
+        EquipmentSymbols.symbolsFor(trainingPlaces).toSet()
+    }
+    val selection = requested.filterTo(linkedSetOf()) { it in offered }.let { chosen ->
+        if (EquipmentSymbolId.BODYWEIGHT_ONLY in chosen) setOf(EquipmentSymbolId.BODYWEIGHT_ONLY) else chosen
+    }
+    val availability = EquipmentSymbols.availabilityOf(selection, trainingPlaces)
+    return copy(
+        trainingOptions = trainingOptions.copy(availability = availability),
+        // La selección es la lectura inversa de la disponibilidad: una guardada aparte se desfasaría.
+        stepSelections = stepSelections - SetupStepId.AVAILABILITY,
+    ).withGoalReviewIfIncompatible()
+}
+
+/** Alterna [symbol] respetando la exclusividad de «solo peso corporal» ([EquipmentSymbols.toggle]). */
+fun SetupWizardDraft.withMaterialToggled(symbol: EquipmentSymbolId): SetupWizardDraft =
+    withMaterial(EquipmentSymbols.toggle(selectedEquipmentSymbols(), symbol))
+
+/**
+ * El material cambió por una causa AJENA al paso AVAILABILITY (otros lugares): su confirmación queda obsoleta (respuesta y
+ * marca de declaración; el resto del borrador intacto) y, si el perfil de objetivo ya no encaja, GOAL se marca para revisar.
+ * Con la misma disponibilidad no se toca nada.
+ */
+private fun SetupWizardDraft.withReseededAvailability(availability: EquipmentAvailability): SetupWizardDraft {
+    if (availability == trainingOptions.availability) return this
+    return copy(
+        trainingOptions = trainingOptions.copy(availability = availability),
+        stepSelections = stepSelections - SetupStepId.AVAILABILITY,
+        stepProgress = stepProgress.copy(answers = stepProgress.answers - SetupStepId.AVAILABILITY),
+        declaredSteps = declaredSteps - SetupStepId.AVAILABILITY,
+    ).withGoalReviewIfIncompatible()
+}
+
+/** Con material nuevo un perfil específico puede dejar de encajar: se marca GOAL para revisar (la respuesta se conserva). */
+private fun SetupWizardDraft.withGoalReviewIfIncompatible(): SetupWizardDraft =
+    if (goalProfile != null && !goalFitsMaterial()) {
+        copy(stepProgress = stepProgress.withPendingReview(setOf(SetupStepId.GOAL)))
+    } else {
+        this
+    }
+
+// ─── Entreno v2: objetivo, semana y tiempo ───────────────────────────────────
+
+/**
+ * Perfil de objetivo: guarda [profile] y deriva lo que el motor actual lee (`goal`, vía `GoalProfileMapping`), el
+ * estilo de calibración (recalibra si las cuatro respuestas ya existen) y, solo si la persona aún no tocó
+ * PRIORITIES, las sugerencias de músculos del perfil (precargadas, nunca confirmadas solas). El tipo de atleta se
+ * deriva al activar. Un cambio de perfil no borra las preferencias de cardio, marcas ni capacidades ya declaradas.
+ *
+ * La compatibilidad con el material NO se decide aquí sino en la validación del paso: un perfil incompatible se
+ * escribe (el control lo muestra apagado) pero no se puede confirmar.
+ */
+fun SetupWizardDraft.withGoalProfile(profile: TrainingGoalProfile): SetupWizardDraft {
+    val goal = GoalProfileMapping.setupGoalOf(profile)
+    return copy(
+        goalProfile = profile,
+        goal = goal,
+        stepSelections = stepSelections - SetupStepId.GOAL,
+    )
+        .withoutSplitNotOfferedFor(goal)
+        .withVolumeStyle(GoalProfileMapping.trainingStyleOf(profile))
+        .withSuggestedMusclesFor(profile)
+}
+
+/** Día con más energía; mientras la persona no mueva el inicio de semana, la semana empieza ese día. */
+fun SetupWizardDraft.withFreshestDay(day: Int?): SetupWizardDraft {
+    val fresh = day?.takeIf { it in 1..7 }
+    val startFollowsFreshDay = weekStartDay == null || weekStartDay == freshestDay
+    return copy(
+        freshestDay = fresh,
+        weekStartDay = if (startFollowsFreshDay) fresh else weekStartDay,
+        stepSelections = stepSelections - SetupStepId.FRESH_DAY,
+    )
+}
+
+/**
+ * Días de entreno (de 1 a 7). El número de días es DERIVADO (`daysPerWeek` = días elegidos; el motor lo lee) y se
+ * descartan los lugares por día de los días que ya no están.
+ */
+fun SetupWizardDraft.withWeekdays(requested: Set<Int>): SetupWizardDraft {
+    val days = requested.filter { it in 1..7 }.sorted().toCollection(linkedSetOf())
+    return copy(
+        selectedWeekdays = days,
+        daysPerWeek = days.size.takeIf { it > 0 },
+        dayPlaces = dayPlaces.filterKeys { it in days },
+        stepSelections = stepSelections - SetupStepId.WEEKDAYS,
+    )
+}
+
+/** Alterna [day] sobre el borrador último. */
+fun SetupWizardDraft.withWeekdayToggled(day: Int): SetupWizardDraft =
+    withWeekdays(if (day in selectedWeekdays) selectedWeekdays - day else selectedWeekdays + day)
+
+/** Primer día de la semana (1 = lunes … 7 = domingo); null vuelve a seguir al día con más energía. */
+fun SetupWizardDraft.withWeekStart(day: Int?): SetupWizardDraft =
+    copy(weekStartDay = day?.takeIf { it in 1..7 } ?: freshestDay)
+
+/**
+ * Lugar de un día de entreno. Solo existe con dos o más lugares y para un día elegido; [place] null vuelve al
+ * lugar por defecto (el primero de la lista: gimnasio, casa, espacios públicos).
+ */
+fun SetupWizardDraft.withDayPlace(day: Int, place: TrainingPlace?): SetupWizardDraft {
+    if (trainingPlaces.size < 2 || day !in selectedWeekdays) return this
+    if (place == null) return copy(dayPlaces = dayPlaces - day)
+    if (place !in trainingPlaces) return this
+    return copy(dayPlaces = dayPlaces + (day to place))
+}
+
+/** Minutos por sesión: el valor más cercano dentro del rango del dial (múltiplo de 5); null retira el dato. */
+fun SetupWizardDraft.withSessionMinutes(minutes: Int?): SetupWizardDraft =
+    withStepNumber(SetupStepId.SESSION_TIME, minutes?.toDouble())
+
+/**
+ * Minutos EXACTOS que pide una reparación del programa («ajustar a 28 min»): el asesor probó justo ese valor, así que no
+ * se redondean al reloj de 5 en 5 (un 28 pasaría a 30 y el programa probado ya no sería el que se activa). Solo para
+ * reparaciones; el paso SESSION_TIME siempre pasa por [withSessionMinutes]. Se acota al rango del reloj.
+ */
+internal fun SetupWizardDraft.withExactSessionMinutes(minutes: Int): SetupWizardDraft = copy(
+    minutesPerSession = minutes.coerceIn(EntrenoStepValues.SESSION_MINUTES_MIN, EntrenoStepValues.SESSION_MINUTES_MAX),
+    inputTexts = inputTexts - SetupStepId.SESSION_TIME.name,
+)
+
+// ─── Entreno v2: capacidades, músculos y marcas ──────────────────────────────
+
+/** Nivel de un ejercicio de peso corporal; [level] null retira la respuesta. */
+fun SetupWizardDraft.withCapability(skill: CapabilitySkill, level: CapabilityLevel?): SetupWizardDraft =
+    copy(capabilities = if (level == null) capabilities - skill else capabilities + (skill to level))
+
+/**
+ * Músculos que se quieren mejorar más (hasta [MuscleSymbols.MAX_SELECTION]). Escribe el conjunto de músculos
+ * canónicos (`priorityMuscles`) y la bolsa de orden del motor con 1 punto por músculo (`orderPriorities`): solo
+ * reordena ejercicios. Vacío es una respuesta válida («omitir»).
+ */
+fun SetupWizardDraft.withMuscles(requested: Set<MuscleSymbol>): SetupWizardDraft {
+    val symbols = MuscleSymbol.entries.filterTo(linkedSetOf()) { it in requested }
+        .take(MuscleSymbols.MAX_SELECTION).toSet()
+    val canonical = MuscleSymbols.canonicalSet(symbols)
+    return copy(
+        priorityMuscles = canonical,
+        lowerEmphasisMuscles = lowerEmphasisMuscles - canonical,
+        trainingOptions = trainingOptions.copy(orderPriorities = MuscleSymbols.orderBagOf(symbols)),
+        stepSelections = stepSelections - SetupStepId.PRIORITIES,
+    )
+}
+
+/** Alterna [symbol] sobre la bolsa última; al llegar al tope no entra otro (la UI avisa «Máximo 5 músculos»). */
+fun SetupWizardDraft.withMuscleToggled(symbol: MuscleSymbol): SetupWizardDraft {
+    val current = MuscleSymbols.symbolsOf(trainingOptions.orderPriorities)
+    val next = when {
+        symbol in current -> current - symbol
+        current.size >= MuscleSymbols.MAX_SELECTION -> current
+        else -> current + symbol
+    }
+    return withMuscles(next)
+}
+
+/** «Omitir»: sin músculos elegidos (también las sugerencias), que es una respuesta válida. */
+fun SetupWizardDraft.withMusclesCleared(): SetupWizardDraft = withMuscles(emptySet())
+
+/**
+ * Las sugerencias del perfil sustituyen a la bolsa SOLO mientras la persona no ha tocado PRIORITIES: una elección
+ * suya (incluido «omitir») nunca se pisa.
+ */
+private fun SetupWizardDraft.withSuggestedMusclesFor(profile: TrainingGoalProfile): SetupWizardDraft =
+    if (SetupStepId.PRIORITIES in declaredSteps) this else withMuscles(MuscleSuggestions.forProfile(profile))
+
+/**
+ * Marca de un levantamiento (kg canónicos); [kg] null borra la marca («No la sé»). Un valor fuera de rango no
+ * cambia nada. Deriva `knowsTrainingMarks` (hay alguna marca) y `powerliftingProfile` (sentadilla, banca y peso muerto;
+ * las demás marcas solo viajan en `liftMarks`).
+ */
+fun SetupWizardDraft.withLiftMark(mark: LiftMark, kg: Double?): SetupWizardDraft {
+    if (kg != null && (!kg.isFinite() || kg !in LIFT_MARK_RANGE_KG)) return this
+    val marks = if (kg == null) liftMarks - mark else liftMarks + (mark to kg)
+    val bigThree = MarksContext.BIG_THREE.any { it in marks }
+    return copy(
+        liftMarks = marks,
+        knowsTrainingMarks = marks.isNotEmpty(),
+        powerliftingProfile = if (bigThree) {
+            (powerliftingProfile ?: PowerliftingProfile()).copy(
+                squat1RM = marks[LiftMark.SQUAT],
+                bench1RM = marks[LiftMark.BENCH],
+                deadlift1RM = marks[LiftMark.DEADLIFT],
+            )
+        } else {
+            null
+        },
+        stepSelections = stepSelections - SetupStepId.TRAINING_MAX,
+    )
+}
+
+/** Unidad en que se muestran las marcas (`kg` o `lb`); el valor canónico sigue en kg. */
+fun SetupWizardDraft.withMarksUnit(unit: String): SetupWizardDraft =
+    if (unit == "kg" || unit == "lb") copy(marksUnit = unit) else this
+
+/**
+ * La técnica que se DERIVA para quien empieza («1 · Aprendiendo»): no es una respuesta de la persona, así que no
+ * toca la procedencia de las otras tres respuestas de calibración. [points] null la retira (la técnica se vuelve a
+ * preguntar).
+ */
+internal fun SetupWizardDraft.withDerivedTechnique(points: Int?): SetupWizardDraft {
+    val answers = volumeAnswers.copy(technique = points)
+    val profile = rebuildVolumeProfile(answers)
+    return copy(
+        volumeAnswers = answers,
+        volumeCalibrationProfile = profile,
+        volumeRecommendations = profile?.recommendations.orEmpty(),
+        athleteProfileScore = profile?.athleteProfileScore,
+    )
 }
 
 /** Equipo legacy (T_HOME_EQUIPMENT) → valor estable del catálogo. */
-private fun legacyEquipmentValue(value: String): SetupEquipment? = when (value) {    "bodyweight" -> SetupEquipment.BODYWEIGHT
+private fun legacyEquipmentValue(value: String): SetupEquipment? = when (value) {
+    "bodyweight" -> SetupEquipment.BODYWEIGHT
     "bands" -> SetupEquipment.BANDS
     "dumbbells" -> SetupEquipment.DUMBBELLS
     "pull_up" -> SetupEquipment.PULL_UP
@@ -757,7 +919,7 @@ private fun legacyEquipmentValue(value: String): SetupEquipment? = when (value) 
 // ─── Proyección tipada → selección (borradores rehidratados) ─────────────────
 
 private fun SetupWizardDraft.typedSelections(step: SetupStepId): Set<String> = when (step) {
-    SetupStepId.GOAL -> goal?.name?.lowercase().let { setOfNotNull(it) }
+    SetupStepId.GOAL -> goalProfile?.let { setOf(EntrenoStepValues.goalValue(it)) }.orEmpty()
 
     SetupStepId.EXPERIENCE -> when (experience) {
         SetupExperience.NEW -> setOf("new")
@@ -784,8 +946,6 @@ private fun SetupWizardDraft.typedSelections(step: SetupStepId): Set<String> = w
 
     SetupStepId.BODY_FAT -> bodyFatSource?.name.let { setOfNotNull(it) }
 
-    SetupStepId.STYLE -> volumeAnswers.style?.name?.lowercase().let { setOfNotNull(it) }
-
     SetupStepId.VOLUME_TECHNIQUE -> volumeAnswers.technique?.toString().let { setOfNotNull(it) }
 
     SetupStepId.VOLUME_CONSISTENCY -> volumeAnswers.consistency?.toString().let { setOfNotNull(it) }
@@ -794,33 +954,25 @@ private fun SetupWizardDraft.typedSelections(step: SetupStepId): Set<String> = w
 
     SetupStepId.VOLUME_MOBILITY -> volumeAnswers.mobility?.toString().let { setOfNotNull(it) }
 
-    SetupStepId.AVAILABILITY -> when (val availability = trainingOptions.availability) {
-        null -> emptySet()
-        else -> if (availability.categories.isEmpty()) {
-            setOf(AVAILABILITY_BODYWEIGHT)
-        } else {
-            availability.categories.map { it.name }.toSet()
-        }
-    }
+    // La selección de material es la lectura inversa de la disponibilidad declarada (símbolos); sin nada declarado, vacía.
+    SetupStepId.AVAILABILITY -> selectedEquipmentSymbols().mapTo(linkedSetOf()) { it.name }
 
-    SetupStepId.EQUIPMENT -> trainingEnvironment?.let { env ->
-        SetupStepDefinitions.of(SetupStepId.EQUIPMENT)?.options
-            ?.firstOrNull { it.label == env }
-            ?.value ?: env
-    }.let { setOfNotNull(it) }
+    SetupStepId.EQUIPMENT -> TrainingPlace.entries.filter { it in trainingPlaces }
+        .mapTo(linkedSetOf()) { EntrenoStepValues.placeValue(it) }
 
     SetupStepId.HOME_EQUIPMENT -> equipment.map { it.name.lowercase() }.toSet()
 
-    SetupStepId.DAYS -> daysPerWeek?.toString().let { setOfNotNull(it) }
+    SetupStepId.FRESH_DAY -> freshestDay?.toString().let { setOfNotNull(it) }
 
-    SetupStepId.WEEKDAYS -> selectedWeekdays.map { it.toString() }.toSet()
+    SetupStepId.WEEKDAYS -> selectedWeekdays.sorted().mapTo(linkedSetOf()) { it.toString() }
+
+    SetupStepId.CAPABILITIES -> capabilities.keys.mapTo(linkedSetOf()) { it.name }
 
     SetupStepId.CARDIO_TYPE -> cardioType?.name.let { setOfNotNull(it) }
 
     SetupStepId.CARDIO_TIME -> cardioMinutes?.toString().let { setOfNotNull(it) }
 
-    SetupStepId.TRAINING_MAX ->
-        if (isAnsweredForSelection(step)) setOf(if (knowsTrainingMarks) "yes" else "no") else emptySet()
+    SetupStepId.TRAINING_MAX -> liftMarks.keys.mapTo(linkedSetOf()) { it.name }
 
     SetupStepId.GENDER -> profileGender?.name?.lowercase().let { setOfNotNull(it) }
 
@@ -903,8 +1055,6 @@ private fun SetupWizardDraft.typedSelections(step: SetupStepId): Set<String> = w
  * validación (registro, selección cruda o espejo legacy), nunca el default
  * de un campo tipado.
  */
-internal const val AVAILABILITY_BODYWEIGHT = "bodyweight_only"
-
 private fun SetupWizardDraft.isAnsweredForSelection(step: SetupStepId): Boolean =
     step in stepProgress.answers ||
         !stepSelections[step].isNullOrEmpty() ||

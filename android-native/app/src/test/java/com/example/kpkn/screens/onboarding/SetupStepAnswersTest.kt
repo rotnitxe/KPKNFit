@@ -6,12 +6,18 @@ import com.example.kpkn.data.models.Gender
 import com.example.kpkn.data.models.PlateStock
 import com.example.kpkn.domain.nutrition.EerSex
 import com.example.kpkn.domain.nutrition.NutritionWizardDraft
+import com.example.kpkn.domain.onboarding.CapabilityLevel
+import com.example.kpkn.domain.onboarding.EquipmentSymbolId
+import com.example.kpkn.domain.onboarding.CapabilitySkill
+import com.example.kpkn.domain.onboarding.LiftMark
 import com.example.kpkn.domain.onboarding.SetupAnswerProvenance
 import com.example.kpkn.domain.onboarding.SetupStepDefinitions
 import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.SetupStepProgress
 import com.example.kpkn.domain.onboarding.SetupValueState
+import com.example.kpkn.domain.onboarding.TrainingGoalProfile
+import com.example.kpkn.domain.onboarding.TrainingPlace
 import com.example.kpkn.domain.training.TrainingOptions
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -29,11 +35,12 @@ import java.time.LocalDate
  * - El crudo inválido se conserva y bloquea; el mismo número en otro formato
  *   no pisa lo que el usuario está escribiendo; un número realmente distinto
  *   sí reemplaza el crudo obsoleto.
- * - La validación numérica prioriza el crudo, exige enteros en edad/tiempo y
- *   usa los rangos del catálogo `SetupStepDefinitions`.
+ * - La validación numérica prioriza el crudo, exige enteros en la edad y usa los
+ *   rangos del catálogo `SetupStepDefinitions`. El tiempo por sesión es un reloj
+ *   (20..180, de 5 en 5): sin texto crudo.
  * - BODY_FAT sin percentil no vale ni respondido; «No lo sé» (omisión de un
  *   borrador antiguo) limpia número, fecha y texto y ya no valida: el paso es
- *   obligatorio. AUTO sin confirmación no se salta con un registro previo.
+ *   obligatorio. La autorregulación ya no es una pregunta: ningún estado suyo bloquea.
  * - Pesajes con fecha futura inválidos; inventario contra el contrato real.
  */
 class SetupStepAnswersTest {
@@ -86,12 +93,12 @@ class SetupStepAnswersTest {
     @Test
     fun nullNumberPreservesInvalidRawAndValidationFlagsIt() {
         val draft = SetupWizardDraft()
-            .withStepText(SetupStepId.SESSION_TIME, "abc", nowEpochMs = 1L)
-            .withStepNumber(SetupStepId.SESSION_TIME, null, nowEpochMs = 2L)
+            .withStepText(SetupStepId.WEIGHT, "abc", nowEpochMs = 1L)
+            .withStepNumber(SetupStepId.WEIGHT, null, nowEpochMs = 2L)
 
         // El texto inválido no se silencia con el retiro del dato.
-        assertEquals("abc", draft.inputTexts["SESSION_TIME"])
-        val checks = SetupWizardValidation.validateStep(draft, SetupStepId.SESSION_TIME)
+        assertEquals("abc", draft.inputTexts["WEIGHT"])
+        val checks = SetupWizardValidation.validateStep(draft, SetupStepId.WEIGHT)
         assertTrue(checks.any { it.state == SetupValueState.INVALID })
         assertTrue(checks.any { it.isBlocking })
     }
@@ -118,18 +125,21 @@ class SetupStepAnswersTest {
     }
 
     @Test
-    fun fractionalAgeAndSessionTimeAreRejected() {
+    fun fractionalAgeIsRejectedAndSessionTimeIsADialWithoutRawText() {
         val age = SetupWizardDraft().withStepText(SetupStepId.AGE, "19.5", nowEpochMs = 1L)
         assertTrue(
             SetupWizardValidation.validateStep(age, SetupStepId.AGE)
                 .any { it.state == SetupValueState.INVALID },
         )
 
-        val minutes = SetupWizardDraft().withStepText(SetupStepId.SESSION_TIME, "45.5", nowEpochMs = 1L)
-        assertTrue(
-            SetupWizardValidation.validateStep(minutes, SetupStepId.SESSION_TIME)
-                .any { it.state == SetupValueState.INVALID },
-        )
+        // El tiempo por sesión es un reloj: el texto libre no escribe nada y el número se redondea a múltiplos de 5.
+        val typed = SetupWizardDraft().withStepText(SetupStepId.SESSION_TIME, "45.5", nowEpochMs = 1L)
+        assertNull(typed.minutesPerSession)
+        assertNull(typed.inputTexts["SESSION_TIME"])
+        assertTrue(SetupWizardValidation.validateStep(typed, SetupStepId.SESSION_TIME).any { it.isBlocking })
+        val dial = SetupWizardDraft().withStepNumber(SetupStepId.SESSION_TIME, 47.0, nowEpochMs = 1L)
+        assertEquals(45, dial.minutesPerSession)
+        assertTrue(SetupWizardValidation.validateStep(dial, SetupStepId.SESSION_TIME).none { it.isBlocking })
     }
 
     // ─── BODY_FAT: percentil obligatorio con fuente real; UNKNOWN limpia y no valida ─────
@@ -226,25 +236,18 @@ class SetupStepAnswersTest {
     // ─── AUTO: isAnswered no sustituye la confirmación explícita ─────────────
 
     @Test
-    fun autoWithoutConfirmationBlocksDespiteRecordedAnswer() {
+    fun retiredAutoregulationStepsNeverBlockWhateverTheSavedDraftHolds() {
+        // La autorregulación ya no es una pregunta del alta («sugerir y confirmar» es la única modalidad): un borrador
+        // viejo con AUTO sin confirmar no bloquea ningún paso (la compatibilidad lo devuelve a PROPOSE).
         val auto = TrainingOptions(autoregulationMode = AutoregulationMode.AUTO, automaticConfirmed = false)
-        val draft = SetupWizardDraft(trainingOptions = auto).let { base ->
-            base.copy(
-                stepProgress = base.stepProgress.recordAnswer(
-                    SetupStepId.AUTOREGULATION_CONFIRM,
-                    SetupAnswerProvenance.USER_DECLARED,
-                    SetupValueState.DECLARED,
-                ),
-            )
+        val draft = SetupWizardDraft(trainingOptions = auto)
+        listOf(
+            SetupStepId.AUTOREGULATION, SetupStepId.AUTOREGULATION_CONFIRM, SetupStepId.WARMUPS,
+            SetupStepId.TRAINING_REVIEW, SetupStepId.SPLIT, SetupStepId.DAYS, SetupStepId.STYLE,
+            SetupStepId.ROUTE, SetupStepId.TRAINING_MARKS,
+        ).forEach { step ->
+            assertTrue("$step", SetupWizardValidation.validateStep(draft, step).none { it.isBlocking })
         }
-        assertTrue(
-            SetupWizardValidation.validateStep(draft, SetupStepId.AUTOREGULATION_CONFIRM).any { it.isBlocking },
-        )
-
-        val confirmed = draft.copy(trainingOptions = auto.copy(automaticConfirmed = true))
-        assertTrue(
-            SetupWizardValidation.validateStep(confirmed, SetupStepId.AUTOREGULATION_CONFIRM).none { it.isBlocking },
-        )
     }
 
     // ─── Pesajes: fecha futura inválida; pasada válida ───────────────────────
@@ -306,17 +309,21 @@ class SetupStepAnswersTest {
         )
     }
 
-    // ─── Entorno: categorías, no inventario de kilos ─────────────────────────
+    // ─── Lugares y material: símbolos, no inventario de kilos ────────────────
 
     @Test
-    fun homeEnvironmentAsksAllInventoryGroups() {
-        assertTrue(SetupWizardDraft(trainingEnvironment = "home").asksEquipmentCategories())
-        assertTrue(SetupWizardDraft(trainingEnvironment = "gym").asksEquipmentCategories())
-        assertTrue(SetupWizardDraft(trainingEnvironment = "home").stepContext().asksAvailability)
-        assertTrue(SetupWizardDraft(trainingEnvironment = "gym").inventoryGroups().isEmpty())
-        assertTrue(SetupWizardDraft(trainingEnvironment = "none").stepContext().inventoryGroups.isEmpty())
-        assertFalse(SetupWizardDraft(trainingEnvironment = "none").asksEquipmentCategories())
-        assertTrue(SetupWizardDraft().stepContext().inventoryGroups.isEmpty())
+    fun theRouteNeverAsksStockWhateverThePlaces() {
+        listOf(
+            emptySet(), setOf(TrainingPlace.GYM), setOf(TrainingPlace.HOME), setOf(TrainingPlace.PUBLIC),
+            setOf(TrainingPlace.GYM, TrainingPlace.HOME),
+        ).forEach { places ->
+            val draft = SetupWizardDraft().withPlaces(places)
+            assertTrue("$places", draft.inventoryGroups().isEmpty())
+            assertTrue("$places", draft.stepContext().inventoryGroups.isEmpty())
+            val route = SetupStepGraph.stepIds(draft.stepContext())
+            assertTrue("$places", SetupStepId.AVAILABILITY in route)
+            assertFalse("$places", SetupStepId.HOME_EQUIPMENT in route)
+        }
     }
 
     /**
@@ -329,7 +336,8 @@ class SetupStepAnswersTest {
      */
     @Test
     fun homeRouteNeverBlocksOnEmptyLegacyProfile() {
-        val home = SetupWizardDraft(trainingEnvironment = "home", equipment = emptySet())
+        val home = SetupWizardDraft().withPlaces(setOf(TrainingPlace.HOME))
+        assertTrue(home.equipment.isEmpty())
         assertTrue(SetupWizardValidation.validateStep(home, SetupStepId.EQUIPMENT).none { it.isBlocking })
         assertFalse(SetupStepId.HOME_EQUIPMENT in SetupStepGraph.stepIds(home.stepContext()))
 
@@ -354,33 +362,37 @@ class SetupStepAnswersTest {
     }
 
     @Test
-    fun environmentChangeKeepsInventoryAndMarksGroupsPending() {
+    fun placeChangeKeepsTheStoredInventoryAndReseedsOnlyTheAvailability() {
         val gym = SetupWizardDraft(
-            trainingEnvironment = "gym",
-            equipment = setOf(SetupEquipment.GYM),
             trainingOptions = TrainingOptions(
                 inventory = EquipmentInventory(barbellWeightKg = 20.0, plates = listOf(PlateStock(20.0, 2))),
             ),
             stepSelections = mapOf(SetupStepId.INVENTORY_PLATES to listOf("small_plates")),
             stepEditors = mapOf(SetupStepId.INVENTORY_PLATES to SetupStepEditorState(editing = true, itemIndex = 0)),
-        )
+        ).withPlaces(setOf(TrainingPlace.GYM))
+        assertEquals("gym", gym.trainingEnvironment)
+        assertEquals(setOf(SetupEquipment.GYM), gym.equipment)
 
         val home = gym.withStepChoice(SetupStepId.EQUIPMENT, "home", nowEpochMs = 1L)
+        assertEquals(setOf(TrainingPlace.HOME), home.trainingPlaces)
         assertEquals("home", home.trainingEnvironment)
-        // Un SOLO inventario principal: el cambio de entorno NO borra lo declarado
+        // Un SOLO inventario principal: el cambio de lugar NO borra lo declarado
         // ni las filas a medias; solo retira el perfil legacy ajeno.
         assertEquals(gym.trainingOptions.inventory, home.trainingOptions.inventory)
         assertEquals(listOf("small_plates"), home.stepSelections[SetupStepId.INVENTORY_PLATES])
         assertTrue(home.stepEditors.getValue(SetupStepId.INVENTORY_PLATES).editing)
         assertTrue(home.equipment.isEmpty())
-        // El alta ya no abre el inventario de kilos: cambiar de entorno no marca esos pasos.
+        // El alta ya no abre el inventario de kilos: cambiar de lugar no marca esos pasos.
         assertTrue(home.stepProgress.pendingReview.isEmpty())
-        assertNull(home.trainingOptions.availability)
+        // En casa se ofrece el mismo material que en el gimnasio: lo marcado se conserva (la persona puede apagarlo).
+        assertEquals(gym.selectedEquipmentSymbols(), home.selectedEquipmentSymbols())
+        assertTrue(EquipmentSymbolId.BARBELL in home.selectedEquipmentSymbols())
 
-        // Re-pulsar el MISMO entorno: conserva todo y no marca nada.
+        // Re-pulsar el MISMO lugar: conserva todo y no marca nada.
         val same = gym.withStepChoice(SetupStepId.EQUIPMENT, "gym", nowEpochMs = 2L)
         assertEquals(gym.trainingOptions.inventory, same.trainingOptions.inventory)
         assertEquals(setOf(SetupEquipment.GYM), same.equipment)
+        assertEquals(gym.trainingOptions.availability, same.trainingOptions.availability)
         assertTrue(same.stepProgress.pendingReview.isEmpty())
     }
 
@@ -582,6 +594,18 @@ class SetupStepAnswersTest {
                 ),
             ),
             reviewReturnStep = SetupStepId.NUTRITION_RESULT,
+            // Entreno v2
+            trainingPlaces = setOf(TrainingPlace.GYM, TrainingPlace.PUBLIC),
+            goalProfile = TrainingGoalProfile.POWERBUILDING,
+            weekStartDay = 2,
+            freshestDay = 3,
+            dayPlaces = mapOf(1 to TrainingPlace.GYM, 4 to TrainingPlace.PUBLIC),
+            capabilities = mapOf(CapabilitySkill.PULL_UP to CapabilityLevel.SOME),
+            liftMarks = mapOf(LiftMark.SQUAT to 140.0, LiftMark.OVERHEAD_PRESS to 60.0),
+            marksUnit = "lb",
+            weekLayoutOverrides = mapOf("session-a" to 5),
+            adaptedSplitId = "split-1",
+            planVariantSeed = 7,
         )
 
         val restored = json.decodeFromString<SetupWizardDraft>(json.encodeToString(original))
@@ -597,9 +621,26 @@ class SetupStepAnswersTest {
         assertEquals(SetupStepEditorState(editing = true, itemIndex = 1, phase = 2, values = mapOf("weightKg" to "20")), editor)
         // La intención de volver a la revisión también viaja en el borrador.
         assertEquals(SetupStepId.NUTRITION_RESULT, restored.reviewReturnStep)
+        assertEquals(setOf(TrainingPlace.GYM, TrainingPlace.PUBLIC), restored.trainingPlaces)
+        assertEquals(TrainingGoalProfile.POWERBUILDING, restored.goalProfile)
+        assertEquals(mapOf(LiftMark.SQUAT to 140.0, LiftMark.OVERHEAD_PRESS to 60.0), restored.liftMarks)
+        assertEquals(mapOf(1 to TrainingPlace.GYM, 4 to TrainingPlace.PUBLIC), restored.dayPlaces)
+        assertEquals(mapOf(CapabilitySkill.PULL_UP to CapabilityLevel.SOME), restored.capabilities)
+        assertEquals(7, restored.planVariantSeed)
         // Defaults compat: un payload sin los campos nuevos los rehidrata en null/vacío.
         val legacy = json.decodeFromString<SetupWizardDraft>(json.encodeToString(SetupWizardDraft()))
         assertNull(legacy.reviewReturnStep)
         assertTrue(legacy.stepEditors.isEmpty())
+        assertTrue(legacy.trainingPlaces.isEmpty())
+        assertNull(legacy.goalProfile)
+        assertTrue(legacy.liftMarks.isEmpty())
+        assertEquals("kg", legacy.marksUnit)
+        assertEquals(0, legacy.planVariantSeed)
+        // Un JSON viejo sin ninguno de los campos nuevos tampoco rompe la lectura.
+        val oldJson = """{"draftId":"setup-wizard:full","commitId":"commit-1","name":"Ana"}"""
+        val old = json.decodeFromString<SetupWizardDraft>(oldJson)
+        assertEquals("Ana", old.name)
+        assertTrue(old.trainingPlaces.isEmpty())
+        assertNull(old.freshestDay)
     }
 }

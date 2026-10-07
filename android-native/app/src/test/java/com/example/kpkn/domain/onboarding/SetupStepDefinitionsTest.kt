@@ -19,15 +19,80 @@ class SetupStepDefinitionsTest {
     }
 
     @Test
-    fun prioritiesIsAFivePointBagWithTwoPointsPerMuscle() {
+    fun prioritiesIsAFiveMuscleSelectionWithOnePointPerMuscle() {
         val priorities = requireNotNull(SetupStepDefinitions.of(SetupStepId.PRIORITIES))
-        assertEquals(SetupControlKind.POINT_BUDGET, priorities.control)
+        assertEquals(SetupControlKind.MUSCLE_SYMBOLS, priorities.control)
         assertEquals(ORDER_MUSCLE_OPTIONS, priorities.options)
-        assertEquals(12, priorities.options.size)
+        // Doce músculos con símbolo más «Erectores Espinales», que el motor conoce pero no tiene símbolo.
+        assertEquals(13, priorities.options.size)
         assertEquals(5, priorities.budget)
-        assertEquals(2, priorities.maxPerItem)
+        assertEquals(1, priorities.maxPerItem)
         // Only reorders exercises: the engine's canonical muscle names, stable.
         assertEquals(ORDER_MUSCLE_OPTIONS.map { it.value }, priorities.options.map { it.value })
+        assertTrue("Antebrazo", priorities.options.any { it.value == "Antebrazo" })
+        // Cada símbolo tiene su músculo canónico en la lista.
+        assertTrue(MuscleSymbol.entries.all { symbol -> priorities.option(MuscleSymbols.canonical(symbol)) != null })
+    }
+
+    @Test
+    fun everyNewEntrenoStepDeclaresItsSymbolControlAndANaturalCopy() {
+        val expected = mapOf(
+            SetupStepId.EQUIPMENT to SetupControlKind.PLACES,
+            SetupStepId.AVAILABILITY to SetupControlKind.EQUIPMENT_SYMBOLS,
+            SetupStepId.GOAL to SetupControlKind.GOAL_PROFILES,
+            SetupStepId.FRESH_DAY to SetupControlKind.FRESH_DAY,
+            SetupStepId.WEEKDAYS to SetupControlKind.WEEK_CALENDAR,
+            SetupStepId.SESSION_TIME to SetupControlKind.SESSION_DIAL,
+            SetupStepId.CAPABILITIES to SetupControlKind.CAPABILITIES,
+            SetupStepId.PRIORITIES to SetupControlKind.MUSCLE_SYMBOLS,
+            SetupStepId.TRAINING_MAX to SetupControlKind.LIFT_MARKS,
+            SetupStepId.PLAN to SetupControlKind.PLAN_REVEAL,
+            SetupStepId.WEEK_LAYOUT to SetupControlKind.WEEK_LAYOUT,
+        )
+        expected.forEach { (step, control) ->
+            val definition = requireNotNull(SetupStepDefinitions.of(step))
+            assertEquals("$step", control, definition.control)
+            assertFalse("$step ya no es solo lectura", definition.legacyOnly)
+        }
+        // Los textos finales de docs/entreno-v2/COPY.md (término «programa»).
+        assertEquals("¿Dónde entrenas?", SetupStepDefinitions.title(SetupStepId.EQUIPMENT))
+        assertEquals("Elige uno o varios lugares.", SetupStepDefinitions.subtitle(SetupStepId.EQUIPMENT))
+        assertEquals("¿Con qué material entrenas?", SetupStepDefinitions.title(SetupStepId.AVAILABILITY))
+        assertEquals("¿Qué día llegas con más energía?", SetupStepDefinitions.title(SetupStepId.FRESH_DAY))
+        assertEquals("¿Qué días puedes entrenar?", SetupStepDefinitions.title(SetupStepId.WEEKDAYS))
+        assertEquals("¿Cuánto tiempo tienes por sesión?", SetupStepDefinitions.title(SetupStepId.SESSION_TIME))
+        assertEquals("¿Qué ejercicios ya te salen?", SetupStepDefinitions.title(SetupStepId.CAPABILITIES))
+        assertEquals("¿Conoces tus marcas?", SetupStepDefinitions.title(SetupStepId.TRAINING_MAX))
+        assertEquals("Tu programa a medida", SetupStepDefinitions.title(SetupStepId.PLAN))
+        assertEquals("Así queda tu semana", SetupStepDefinitions.title(SetupStepId.WEEK_LAYOUT))
+        // El material ofrece un símbolo por implemento y «solo peso corporal» es exclusivo.
+        assertEquals(
+            EquipmentSymbolId.entries.map { it.name },
+            SetupStepDefinitions.options(SetupStepId.AVAILABILITY).map { it.value },
+        )
+        assertEquals(setOf("BODYWEIGHT_ONLY"), SetupStepDefinitions.of(SetupStepId.AVAILABILITY)?.exclusiveValues)
+        // Los lugares salen del contrato, en su orden.
+        assertEquals(
+            listOf("gym", "home", "public"),
+            SetupStepDefinitions.options(SetupStepId.EQUIPMENT).map { it.value },
+        )
+    }
+
+    @Test
+    fun retiredTrainingStepsKeepTheirDefinitionsOnlyToReadOldDrafts() {
+        val retired = listOf(
+            SetupStepId.ROUTE, SetupStepId.STYLE, SetupStepId.DAYS, SetupStepId.SPLIT, SetupStepId.TRAINING_MARKS,
+            SetupStepId.AUTOREGULATION, SetupStepId.AUTOREGULATION_CONFIRM, SetupStepId.WARMUPS, SetupStepId.TRAINING_REVIEW,
+        )
+        retired.forEach { step ->
+            val definition = requireNotNull(SetupStepDefinitions.of(step))
+            assertTrue("$step", definition.legacyOnly)
+            assertTrue("$step no es una pregunta del alta", SetupStepDefinitions.isLegacyOnly(step))
+        }
+        // Sus preguntas antiguas ya no migran ni se pintan como copia.
+        assertFalse(WizChatQuestionId.T_DAYS in SetupStepDefinitions.legacyMigrationTargets)
+        assertFalse(WizChatQuestionId.T_STYLE in SetupStepDefinitions.legacyMigrationTargets)
+        assertFalse(WizChatQuestionId.T_ROUTE in SetupStepDefinitions.legacyMigrationTargets)
     }
 
     @Test
@@ -41,7 +106,7 @@ class SetupStepDefinitionsTest {
         )
         assertEquals(setOf("on", "off"), SetupStepDefinitions.optionValues(SetupStepId.AUTOREGULATION))
         assertEquals(SetupControlKind.ROUTE_CHOICE, SetupStepDefinitions.control(SetupStepId.ROUTE))
-        assertEquals(SetupControlKind.POINT_BUDGET, SetupStepDefinitions.control(SetupStepId.PRIORITIES))
+        assertEquals(SetupControlKind.MUSCLE_SYMBOLS, SetupStepDefinitions.control(SetupStepId.PRIORITIES))
         assertEquals(SetupControlKind.MILESTONE, SetupStepDefinitions.control(SetupStepId.MILESTONE_RINGS))
         assertEquals(SetupControlKind.REVIEW, SetupStepDefinitions.control(SetupStepId.REVIEW_ACTIVATE))
     }
@@ -68,8 +133,11 @@ class SetupStepDefinitionsTest {
     fun questionStepsCarryNaturalQuestionTitlesExceptResultsAndMilestones() {
         for (definition in SetupStepDefinitions.definitions.values) {
             if (definition.legacyOnly) continue
+            // El programa y la semana armada son pantallas de resultado: llevan etiqueta, no pregunta.
             val isLabeledScreen = definition.kind != SetupStepKind.QUESTION ||
-                definition.control == SetupControlKind.RESULT_PREVIEW
+                definition.control == SetupControlKind.RESULT_PREVIEW ||
+                definition.control == SetupControlKind.PLAN_REVEAL ||
+                definition.control == SetupControlKind.WEEK_LAYOUT
             if (isLabeledScreen || definition.id == SetupStepId.NAME) continue
             assertTrue(
                 "${definition.id} should be a natural question, got «${definition.title}»",
@@ -157,43 +225,43 @@ class SetupStepDefinitionsTest {
             if (definition.legacyValueMap.isEmpty()) continue
             val optionValues = SetupStepDefinitions.optionValues(definition.id)
             for (value in definition.legacyValueMap.values) {
-                // §15.4 / AC-T005-02: GOAL conserva como LECTURA los valores
-                // legacy HEALTH/MIXED (nunca se ofrecen de nuevo ni se
-                // autoconvierten); el resto exige una opción real.
-                val legacyReadableGoal = definition.id == SetupStepId.GOAL &&
-                    (value == "health" || value == "mixed")
+                // Con los diez perfiles como opciones ya no hay valores de lectura sin opción: toda etiqueta antigua
+                // apunta a una opción real del paso.
                 assertTrue(
                     "${definition.id} maps to $value but that option does not exist",
-                    value in optionValues || legacyReadableGoal,
+                    value in optionValues,
                 )
             }
         }
     }
 
     @Test
-    fun goalOffersExactlyTheFourProfilesAndLegacyLabelsStayReadable() {
+    fun goalOffersTheTenProfilesAndLegacyLabelsStayReadable() {
         val goal = requireNotNull(SetupStepDefinitions.of(SetupStepId.GOAL))
-        // P-104 / §15.1: EXACTAMENTE cuatro perfiles visibles, sin etiquetas
-        // deportivas nuevas en la UI.
+        // Tres perfiles generales y siete disciplinas: el valor estable es el nombre del perfil en minúsculas.
+        assertEquals(TrainingGoalProfile.entries.map { it.name.lowercase() }, goal.options.map { it.value })
+        assertEquals(TrainingGoalProfile.entries.map { it.label }, goal.options.map { it.label })
+        assertEquals(10, goal.options.size)
         assertEquals(
-            listOf("strength", "muscle", "strength_muscle", "complete_athlete"),
-            goal.options.map { it.value },
+            TrainingGoalProfile.entries.map { it.tagline },
+            goal.options.map { it.description },
         )
-        assertEquals(
-            listOf("Fuerza", "Músculo", "Fuerza y músculo", "Atleta completo"),
-            goal.options.map { it.label },
-        )
-        assertFalse("health" in goal.options.map { it.value })
-        assertFalse("mixed" in goal.options.map { it.value })
-        // Legacy sigue resolviendo para leer borradores antiguos.
-        assertEquals("health", goal.migratedValue("Salud y condición"))
-        assertEquals("mixed", goal.migratedValue("Fuerza + cardio"))
-        assertEquals("complete_athlete", goal.migratedValue("Atleta completo"))
-        assertEquals("strength", goal.migratedValue("Fuerza"))
-        // El rango de minutos sigue siendo cada entero 20..100 (§15.1).
+        // Los valores antiguos (strength, muscle, health, mixed, complete_athlete) ya no son opciones: se leen
+        // con `EntrenoStepValues.goalProfileOf`.
+        listOf("strength", "muscle", "health", "mixed", "complete_athlete").forEach {
+            assertFalse(it, it in goal.options.map { option -> option.value })
+        }
+        // Las etiquetas del chat antiguo resuelven al perfil que hoy les corresponde.
+        assertEquals("functional_health", goal.migratedValue("Salud y condición"))
+        assertEquals("strength_cardio", goal.migratedValue("Fuerza + cardio"))
+        assertEquals("strength_cardio", goal.migratedValue("Atleta completo"))
+        assertEquals("powerlifting", goal.migratedValue("Fuerza"))
+        assertEquals("bodybuilding", goal.migratedValue("Músculo"))
+        assertEquals("strength_muscle", goal.migratedValue("Fuerza y músculo"))
+        // Los minutos por sesión son un reloj de 20 a 180 (múltiplos de 5).
         val sessionTime = requireNotNull(SetupStepDefinitions.of(SetupStepId.SESSION_TIME))
         assertEquals(20.0, sessionTime.range?.min ?: 0.0, 0.0001)
-        assertEquals(100.0, sessionTime.range?.max ?: 0.0, 0.0001)
+        assertEquals(180.0, sessionTime.range?.max ?: 0.0, 0.0001)
         // Cardio: tres modalidades actuales y los cuatro escalones 10/15/20/30.
         assertEquals(
             listOf("WALK", "RUN_OUTDOOR", "BIKE_OUTDOOR"),
@@ -204,7 +272,7 @@ class SetupStepDefinitionsTest {
             SetupStepDefinitions.options(SetupStepId.CARDIO_TIME).map { it.value },
         )
         // Los pasos de inventario (kg/cantidades) no vuelven a la ruta.
-        val route = SetupStepGraph.stepIds(SetupStepContext(asksAvailability = true))
+        val route = SetupStepGraph.stepIds(SetupStepContext())
         assertFalse(SetupStepId.INVENTORY_DUMBBELLS in route)
         assertFalse(SetupStepId.INVENTORY_MACHINES in route)
         assertTrue(SetupStepId.AVAILABILITY in route)
@@ -226,9 +294,8 @@ class SetupStepDefinitionsTest {
             SetupStepDefinitions.migratedValue(WizChatQuestionId.N_START, "Sí, preparar mis referencias"),
         )
         assertNull(SetupStepDefinitions.migratedValue(WizChatQuestionId.N_START, "Lo haré después"))
-        // Los días y semanas legacy usan el mismo valor estable: el label ES el id.
-        assertEquals("3", SetupStepDefinitions.migratedValue(WizChatQuestionId.T_DAYS, "3"))
-        assertNull(SetupStepDefinitions.migratedValue(WizChatQuestionId.T_DAYS, "7"))
+        // Los días como número ya no son una pregunta: sale de los días de la semana (T_DAYS no migra).
+        assertNull(SetupStepDefinitions.migratedValue(WizChatQuestionId.T_DAYS, "3"))
         assertEquals("1", SetupStepDefinitions.migratedValue(WizChatQuestionId.T_WEEKDAYS, "Lunes"))
         assertNull(SetupStepDefinitions.migratedValue(WizChatQuestionId.T_WEEKDAYS, "Finde"))
     }
@@ -240,7 +307,8 @@ class SetupStepDefinitionsTest {
         // Productive 1:1 copies are covered.
         assertEquals(SetupStepId.NAME, targets[WizChatQuestionId.P_NAME])
         assertEquals(SetupStepId.AGE, targets[WizChatQuestionId.P_AGE])
-        assertEquals(SetupStepId.DAYS, targets[WizChatQuestionId.T_DAYS])
+        assertEquals(SetupStepId.WEEKDAYS, targets[WizChatQuestionId.T_WEEKDAYS])
+        assertEquals(SetupStepId.GOAL, targets[WizChatQuestionId.T_GOAL])
         assertEquals(SetupStepId.PLAN, targets[WizChatQuestionId.T_PLAN])
         assertEquals(SetupStepId.RINGS_RECENT, targets[WizChatQuestionId.R_RECENT])
 
@@ -313,17 +381,19 @@ class SetupStepDefinitionsTest {
 
     @Test
     fun controlKindCatalogIsStableSoModelsCanBindEveryStep() {
-        // 17 controles de datos + 2 pantallas de estructura (MILESTONE/REVIEW).
+        // 14 controles de datos genéricos (algunos solo para leer pasos retirados), 2 pantallas de estructura
+        // (MILESTONE/REVIEW) y los 11 controles de símbolos de Entreno v2.
         assertEquals(
             setOf(
                 "TEXT", "NUMBER", "PHYSIQUE", "SINGLE_CHOICE", "MULTI_CHOICE", "ROUTE_CHOICE",
-                "ENVIRONMENT_CHOICE", "INVENTORY_PICKER", "POINT_BUDGET", "SPLIT_EDITOR",
-                "PLAN_PICKER", "MARKS_EDITOR", "TOGGLE", "AUTO_CONFIRM", "MANUAL_MACROS",
+                "INVENTORY_PICKER", "SPLIT_EDITOR", "MARKS_EDITOR", "TOGGLE", "AUTO_CONFIRM", "MANUAL_MACROS",
                 "EDITOR_ROWS", "RESULT_PREVIEW", "MILESTONE", "REVIEW",
+                "PLACES", "EQUIPMENT_SYMBOLS", "GOAL_PROFILES", "FRESH_DAY", "WEEK_CALENDAR", "SESSION_DIAL",
+                "CAPABILITIES", "MUSCLE_SYMBOLS", "LIFT_MARKS", "PLAN_REVEAL", "WEEK_LAYOUT",
             ),
             SetupControlKind.entries.mapTo(mutableSetOf()) { it.name },
         )
-        assertEquals(17, SetupControlKind.entries.size - 2)
+        assertEquals(27, SetupControlKind.entries.size)
         // Ningún paso usa un control desconocido: la capa de modelos no adivina.
         for (definition in SetupStepDefinitions.definitions.values) {
             assertEquals(definition.control, SetupStepDefinitions.control(definition.id))
@@ -456,6 +526,8 @@ class SetupStepDefinitionsTest {
         route.options.forEach { option ->
             assertEquals("etiqueta «${option.label}»", option.value, route.legacyValueMap[option.label])
         }
-        assertEquals("recommended", SetupStepDefinitions.migratedValue(WizChatQuestionId.T_ROUTE, "Recomiéndame un plan"))
+        // ROUTE ya no es una pregunta del alta: su pregunta antigua no migra a ninguna parte.
+        assertNull(SetupStepDefinitions.migratedValue(WizChatQuestionId.T_ROUTE, "Recomiéndame un plan"))
+        assertTrue(route.legacyOnly)
     }
 }

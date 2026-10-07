@@ -56,23 +56,17 @@ enum class SetupControlKind {
     SINGLE_CHOICE,
     /** Several options from a closed list (weekdays, eligibility, discomforts). */
     MULTI_CHOICE,
-    /** Plan route: recommended or protocol. No later/manual option. */
+    /** Plan route: recommended or protocol. No later/manual option (legacy-only step). */
     ROUTE_CHOICE,
-    /** Equipment environment picker; drives which inventory groups appear. */
-    ENVIRONMENT_CHOICE,
-    /** Inventory picker: max two related inputs per screen, sub-editor rows allowed. */
+    /** Inventory picker: max two related inputs per screen, sub-editor rows allowed (legacy-only steps). */
     INVENTORY_PICKER,
-    /** Points bag: 5 points total, max 2 per muscle; only reorders exercises. */
-    POINT_BUDGET,
-    /** Split picker/editor (recommended split plus editable pattern). */
+    /** Split picker/editor (legacy-only step: the week board replaced it). */
     SPLIT_EDITOR,
-    /** Plan candidates / protocol cards. */
-    PLAN_PICKER,
-    /** Marks editor rows (squat / bench / deadlift or sub-editor rows). */
+    /** Marks editor rows (legacy-only step: the marks live in [LIFT_MARKS]). */
     MARKS_EDITOR,
-    /** Yes/no toggle (knows marks, autoregulation on). */
+    /** Yes/no toggle (legacy-only autoregulation step). */
     TOGGLE,
-    /** Explicit confirmation of a derived behavior (autoregulation). */
+    /** Explicit confirmation of a derived behavior (legacy-only autoregulation step). */
     AUTO_CONFIRM,
     /** Manual macro editor: calories+protein and carbs+fat are separate screens. */
     MANUAL_MACROS,
@@ -84,6 +78,30 @@ enum class SetupControlKind {
     MILESTONE,
     /** Final editable review and activation. */
     REVIEW,
+
+    // ── Entreno v2: controles de símbolos (los dibujan los paquetes visuales; el dato lo escribe el VM) ──
+    /** Dónde se entrena: gimnasio, casa, espacios públicos (uno o varios). */
+    PLACES,
+    /** Material: un símbolo por implemento, con «solo peso corporal» exclusivo. */
+    EQUIPMENT_SYMBOLS,
+    /** Perfil de objetivo: tres generales y siete disciplinas condicionadas al material. */
+    GOAL_PROFILES,
+    /** Día de la semana con más energía (uno de siete). */
+    FRESH_DAY,
+    /** Calendario semanal: de 1 a 7 días, inicio de semana y lugar por día. */
+    WEEK_CALENDAR,
+    /** Reloj de tiempo por sesión: de 20 a 180 minutos. */
+    SESSION_DIAL,
+    /** Ejercicios de peso corporal que ya salen, con nivel (aún no / algunas / varias). */
+    CAPABILITIES,
+    /** Músculos que se quieren mejorar más (hasta 5; omitible). */
+    MUSCLE_SYMBOLS,
+    /** Marcas de los levantamientos que pregunta el objetivo (kg o lb; cada una opcional). */
+    LIFT_MARKS,
+    /** Programa: preparación animada y revelado (general) o carrusel de programas (disciplina). */
+    PLAN_REVEAL,
+    /** Semana armada: sesiones colocadas en sus días y movibles. */
+    WEEK_LAYOUT,
 }
 
 data class SetupNumericRange(
@@ -209,9 +227,13 @@ private fun discomfortLegacyMap(): Map<String, String> = buildMap {
     DISCOMFORT_CATALOG.filterNot { it.id == "none" }.forEach { put(it.label, it.id) }
 }
 
-/** Canonical muscles understood by the order engine (SimpleCyclePersonalizer). */
+/**
+ * Canonical muscles understood by the order engine (SimpleCyclePersonalizer). Cada [MuscleSymbol] del paso
+ * PRIORITIES tiene aquí su músculo canónico (`MuscleSymbols.canonical`); «Erectores Espinales» no tiene símbolo y se
+ * conserva para leer borradores antiguos. «Antebrazo» (singular) es el nombre que usan el catálogo y el volumen.
+ */
 val ORDER_MUSCLE_OPTIONS: List<SetupOptionDefinition> = listOf(
-    "Pectorales", "Dorsales", "Deltoides", "Bíceps", "Tríceps", "Cuádriceps",
+    "Pectorales", "Dorsales", "Deltoides", "Bíceps", "Tríceps", "Antebrazo", "Cuádriceps",
     "Isquiosurales", "Glúteos", "Pantorrillas", "Abdomen", "Trapecio", "Erectores Espinales",
 ).map { SetupOptionDefinition(it, it) }
 
@@ -311,7 +333,10 @@ object SetupStepDefinitions {
         ),
 
         // -------------------------------------------------------------------
-        // Bloque 2: Entreno
+        // Bloque 2: Entreno (v2). Textos finales en docs/entreno-v2/COPY.md.
+        // Ruta: EXPERIENCE, EQUIPMENT, AVAILABILITY, GOAL, FRESH_DAY, WEEKDAYS, SESSION_TIME, [CARDIO_*],
+        // [VOLUME_TECHNIQUE], VOLUME_CONSISTENCY, VOLUME_STRENGTH, VOLUME_MOBILITY, [CAPABILITIES], PRIORITIES,
+        // [TRAINING_MAX], PLAN, [WEEK_LAYOUT]. Programa/semana/material/lugar: los mismos nombres en todo el módulo.
         // -------------------------------------------------------------------
         SetupStepDefinition(
             id = SetupStepId.EXPERIENCE, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
@@ -329,52 +354,96 @@ object SetupStepDefinitions {
             ),
         ),
         SetupStepDefinition(
-            id = SetupStepId.ROUTE, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
-            title = "¿Cómo quieres empezar?",
-            subtitle = "Elige entre un plan recomendado o un protocolo de catálogo.",
-            control = SetupControlKind.ROUTE_CHOICE,
-            options = opt(
-                "recommended" to "Recomiéndame un plan",
-                "protocol" to "Elegir un protocolo",
-            ),
-            legacyQuestion = WizChatQuestionId.T_ROUTE,
+            id = SetupStepId.EQUIPMENT, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
+            title = "¿Dónde entrenas?",
+            subtitle = "Elige uno o varios lugares.",
+            control = SetupControlKind.PLACES,
+            options = TrainingPlace.entries.map { place -> SetupOptionDefinition(EntrenoStepValues.placeValue(place), place.label) },
+            legacyQuestion = WizChatQuestionId.T_EQUIPMENT,
+            // El material de cada respuesta antigua se conserva tal cual en la disponibilidad; aquí solo el lugar.
             legacyValueMap = mapOf(
-                "Recomiéndame un plan" to "recommended",
-                "Elegir un protocolo" to "protocol",
-                // "Crear desde cero" / "Lo decidiré después" NO migran (quedan pendientes).
+                "Gimnasio completo" to "gym", "Principalmente máquinas" to "gym",
+                "Entreno en casa" to "home", "Sin material" to "home",
             ),
+        ),
+        SetupStepDefinition(
+            id = SetupStepId.AVAILABILITY,
+            block = SetupWizardBlock.TRAINING,
+            kind = SetupStepKind.QUESTION,
+            title = "¿Con qué material entrenas?",
+            subtitle = "Marca lo que tienes y lo que quieres usar.",
+            control = SetupControlKind.EQUIPMENT_SYMBOLS,
+            // Un símbolo por implemento; cuáles se ofrecen depende de los lugares (`EquipmentSymbols.symbolsFor`).
+            options = EquipmentSymbolId.entries.map { symbol -> SetupOptionDefinition(symbol.name, symbol.label) },
+            exclusiveValues = setOf(EquipmentSymbolId.BODYWEIGHT_ONLY.name),
         ),
         SetupStepDefinition(
             id = SetupStepId.GOAL, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
-            title = "¿Cuál es tu objetivo?", control = SetupControlKind.SINGLE_CHOICE,
-            // §15.1 / P-104: EXACTAMENTE cuatro perfiles visibles. Los nombres
-            // deportivos internos (powerlifting, culturismo, powerbuilding,
-            // preparación combinada) no se añaden como etiquetas de UI.
-            options = opt(
-                "strength" to "Fuerza",
-                "muscle" to "Músculo",
-                "strength_muscle" to "Fuerza y músculo",
-                "complete_athlete" to "Atleta completo",
-            ),
+            title = "¿Cuál es tu objetivo?",
+            subtitle = "Elige un perfil general o una disciplina.",
+            control = SetupControlKind.GOAL_PROFILES,
+            // Tres perfiles generales y siete disciplinas (estas dependen del material: `TrainingGoalRequirements`).
+            options = TrainingGoalProfile.entries.map { profile ->
+                SetupOptionDefinition(EntrenoStepValues.goalValue(profile), profile.label, profile.tagline)
+            },
             legacyQuestion = WizChatQuestionId.T_GOAL,
-            // HEALTH/MIXED legacy sigue resolviendo (AC-T005-02) para leer
-            // borradores antiguos; nunca migran a un objetivo nuevo solos.
+            // Las respuestas antiguas se leen como el perfil que hoy les corresponde; nada se confirma solo.
             legacyValueMap = mapOf(
-                "Fuerza" to "strength", "Músculo" to "muscle", "Fuerza y músculo" to "strength_muscle",
-                "Salud y condición" to "health", "Fuerza + cardio" to "mixed",
-                "Atleta completo" to "complete_athlete",
+                "Fuerza" to EntrenoStepValues.goalValue(TrainingGoalProfile.POWERLIFTING),
+                "Músculo" to EntrenoStepValues.goalValue(TrainingGoalProfile.BODYBUILDING),
+                "Fuerza y músculo" to EntrenoStepValues.goalValue(TrainingGoalProfile.STRENGTH_MUSCLE),
+                "Salud y condición" to EntrenoStepValues.goalValue(TrainingGoalProfile.FUNCTIONAL_HEALTH),
+                "Fuerza + cardio" to EntrenoStepValues.goalValue(TrainingGoalProfile.STRENGTH_CARDIO),
+                "Atleta completo" to EntrenoStepValues.goalValue(TrainingGoalProfile.STRENGTH_CARDIO),
             ),
         ),
         SetupStepDefinition(
-            id = SetupStepId.STYLE, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
-            title = "¿Qué prefieres ganar?", control = SetupControlKind.SINGLE_CHOICE,
-            options = opt(
-                "powerlifter" to "Fuerza",
-                "bodybuilder" to "Músculo",
-                "powerbuilder" to "Ambos",
+            id = SetupStepId.FRESH_DAY, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
+            title = "¿Qué día llegas con más energía?",
+            subtitle = "Tu sesión más fuerte caerá ese día.",
+            control = SetupControlKind.FRESH_DAY,
+            options = weekdaysOptions,
+        ),
+        SetupStepDefinition(
+            id = SetupStepId.WEEKDAYS, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
+            title = "¿Qué días puedes entrenar?",
+            subtitle = "Entre 1 y 7. El programa se adapta a tu semana.",
+            control = SetupControlKind.WEEK_CALENDAR,
+            options = weekdaysOptions,
+            legacyQuestion = WizChatQuestionId.T_WEEKDAYS,
+            legacyValueMap = mapOf(
+                "Lunes" to "1", "Martes" to "2", "Miércoles" to "3", "Jueves" to "4",
+                "Viernes" to "5", "Sábado" to "6", "Domingo" to "7",
             ),
-            legacyQuestion = WizChatQuestionId.T_STYLE,
-            legacyValueMap = mapOf("Fuerza" to "powerlifter", "Músculo" to "bodybuilder", "Ambos" to "powerbuilder"),
+        ),
+        SetupStepDefinition(
+            id = SetupStepId.SESSION_TIME, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
+            title = "¿Cuánto tiempo tienes por sesión?",
+            subtitle = "Es un rango: el programa se ajusta a ti.",
+            control = SetupControlKind.SESSION_DIAL, unit = "min",
+            range = SetupNumericRange(EntrenoStepValues.SESSION_MINUTES_MIN.toDouble(), EntrenoStepValues.SESSION_MINUTES_MAX.toDouble(), "min"),
+            legacyQuestion = WizChatQuestionId.T_TIME,
+        ),
+        SetupStepDefinition(
+            id = SetupStepId.CARDIO_TYPE, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
+            title = "¿Qué cardio quieres incluir?", control = SetupControlKind.SINGLE_CHOICE,
+            options = opt(
+                "WALK" to "Caminar",
+                "RUN_OUTDOOR" to "Correr al aire libre",
+                "BIKE_OUTDOOR" to "Bicicleta al aire libre",
+            ),
+            legacyQuestion = WizChatQuestionId.T_CARDIO_TYPE,
+            legacyValueMap = mapOf(
+                "Caminar" to "WALK", "Correr al aire libre" to "RUN_OUTDOOR",
+                "Bicicleta al aire libre" to "BIKE_OUTDOOR",
+            ),
+        ),
+        SetupStepDefinition(
+            id = SetupStepId.CARDIO_TIME, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
+            title = "¿Cuántos minutos de cardio?", control = SetupControlKind.SINGLE_CHOICE,
+            options = opt("10" to "10 min", "15" to "15 min", "20" to "20 min", "30" to "30 min"),
+            legacyQuestion = WizChatQuestionId.T_CARDIO_TIME,
+            legacyValueMap = mapOf("10 min" to "10", "15 min" to "15", "20 min" to "20", "30 min" to "30"),
         ),
         SetupStepDefinition(
             id = SetupStepId.VOLUME_TECHNIQUE, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
@@ -405,21 +474,89 @@ object SetupStepDefinitions {
             legacyValueMap = mapOf("Limitada" to "1", "Suficiente" to "2", "Amplia" to "3"),
         ),
         SetupStepDefinition(
-            id = SetupStepId.EQUIPMENT, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
-            title = "¿Dónde entrenas?",
-            subtitle = "En el gimnasio no hace falta anotar discos ni máquinas; luego marcas solo lo que tienes a mano.",
-            control = SetupControlKind.ENVIRONMENT_CHOICE,
+            id = SetupStepId.CAPABILITIES, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
+            title = "¿Qué ejercicios ya te salen?",
+            subtitle = "Así elegimos variantes a tu medida.",
+            control = SetupControlKind.CAPABILITIES,
+            // Qué ejercicios se ofrecen depende del material (`CapabilityRules.skillsFor`); los niveles, de `CapabilityLevel`.
+            options = CapabilitySkill.entries.map { skill -> SetupOptionDefinition(skill.name, skill.label) },
+        ),
+        SetupStepDefinition(
+            id = SetupStepId.PRIORITIES, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
+            title = "¿Qué músculos quieres mejorar más?",
+            subtitle = "Elige hasta 5. Puedes omitir este paso.",
+            control = SetupControlKind.MUSCLE_SYMBOLS,
+            // Valores estables = músculos canónicos del motor de orden; cada símbolo escribe un punto en el suyo.
+            options = ORDER_MUSCLE_OPTIONS,
+            budget = MuscleSymbols.MAX_SELECTION,
+            maxPerItem = 1,
+        ),
+        SetupStepDefinition(
+            id = SetupStepId.TRAINING_MAX, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
+            title = "¿Conoces tus marcas?",
+            subtitle = "Con una basta. Sin marcas, el programa sigue siendo válido.",
+            control = SetupControlKind.LIFT_MARKS,
+            // Qué levantamientos se preguntan lo decide `MarksContext.liftsFor`; cada marca es opcional.
+            options = LiftMark.entries.map { lift -> SetupOptionDefinition(lift.name, lift.label) },
+            // «¿Conoces tus marcas?» antiguo (Sí / Todavía no): cualquier respuesta cuenta como declarada; las marcas
+            // que dio viajan de `powerliftingProfile` a `liftMarks` y la selección sale de ellas, no de un valor.
+            legacyQuestion = WizChatQuestionId.T_TRAINING_MAX,
+            legacyAcceptsIdValue = true,
+        ),
+        SetupStepDefinition(
+            id = SetupStepId.PLAN, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
+            // El título cambia con el perfil (`wizardPageCopy`): con una disciplina es «Elige tu programa».
+            title = "Tu programa a medida",
+            subtitle = "Armado con tu material, tus días y tu tiempo.",
+            control = SetupControlKind.PLAN_REVEAL,
+            legacyQuestion = WizChatQuestionId.T_PLAN,
+            // La respuesta legacy es el id del candidato generado, no una etiqueta mapeada.
+            legacyAcceptsIdValue = true,
+        ),
+        SetupStepDefinition(
+            id = SetupStepId.WEEK_LAYOUT, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
+            title = "Así queda tu semana",
+            subtitle = "Mueve las sesiones a los días que prefieras.",
+            control = SetupControlKind.WEEK_LAYOUT,
+        ),
+        SetupStepDefinition(
+            id = SetupStepId.MILESTONE_TRAINING, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.MILESTONE,
+            title = "Entreno", control = SetupControlKind.MILESTONE,
+        ),
+
+        // -------------------------------------------------------------------
+        // Entreno: pasos retirados de la ruta (solo lectura de borradores antiguos). El enum y estas definiciones
+        // se conservan; ya no son preguntas del alta: la semana, el material y el calentamiento los resuelve el
+        // programa (autorregulación «sugerir y confirmar» y aproximación obligatorias).
+        // -------------------------------------------------------------------
+        SetupStepDefinition(
+            id = SetupStepId.ROUTE, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
+            title = "¿Cómo quieres empezar?",
+            subtitle = "Elige entre un plan recomendado o un protocolo de catálogo.",
+            control = SetupControlKind.ROUTE_CHOICE,
             options = opt(
-                "gym" to "Gimnasio completo",
-                "machines" to "Principalmente máquinas",
-                "home" to "Entreno en casa",
-                "none" to "Sin material",
+                "recommended" to "Recomiéndame un plan",
+                "protocol" to "Elegir un protocolo",
             ),
-            legacyQuestion = WizChatQuestionId.T_EQUIPMENT,
+            legacyQuestion = WizChatQuestionId.T_ROUTE,
             legacyValueMap = mapOf(
-                "Gimnasio completo" to "gym", "Principalmente máquinas" to "machines",
-                "Entreno en casa" to "home", "Sin material" to "none",
+                "Recomiéndame un plan" to "recommended",
+                "Elegir un protocolo" to "protocol",
+                // "Crear desde cero" / "Lo decidiré después" NO migran (quedan pendientes).
             ),
+            legacyOnly = true,
+        ),
+        SetupStepDefinition(
+            id = SetupStepId.STYLE, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
+            title = "¿Qué prefieres ganar?", control = SetupControlKind.SINGLE_CHOICE,
+            options = opt(
+                "powerlifter" to "Fuerza",
+                "bodybuilder" to "Músculo",
+                "powerbuilder" to "Ambos",
+            ),
+            legacyQuestion = WizChatQuestionId.T_STYLE,
+            legacyValueMap = mapOf("Fuerza" to "powerlifter", "Músculo" to "bodybuilder", "Ambos" to "powerbuilder"),
+            legacyOnly = true,
         ),
         SetupStepDefinition(
             id = SetupStepId.INVENTORY_BARBELL, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
@@ -482,80 +619,13 @@ object SetupStepDefinitions {
             ),
         ),
         SetupStepDefinition(
-            id = SetupStepId.AVAILABILITY,
-            block = SetupWizardBlock.TRAINING,
-            kind = SetupStepKind.QUESTION,
-            title = "¿Qué material tienes disponible?",
-            subtitle = "Marca categorías, no kilos ni cantidades. Si no hay nada, el plan usa peso corporal.",
-            control = SetupControlKind.MULTI_CHOICE,
-            options = opt(
-                "BARBELL" to "Barras olímpicas",
-                "DUMBBELLS" to "Mancuernas",
-                "KETTLEBELL" to "Kettlebells",
-                "MACHINES" to "Máquinas",
-                "CABLE" to "Poleas",
-                "SMITH_MACHINE" to "Multipower",
-                "BAND" to "Bandas",
-                "PULL_UP_BAR" to "Barra de dominadas",
-                "SUPPORT" to "Bancos y soportes",
-                "BALL" to "Balón",
-                "CARDIO" to "Cardio",
-                "bodyweight_only" to "Solo peso corporal",
-            ),
-            exclusiveValues = setOf("bodyweight_only"),
-        ),
-        SetupStepDefinition(
             id = SetupStepId.DAYS, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
             title = "¿Cuántos días entrenas a la semana?", control = SetupControlKind.SINGLE_CHOICE,
             options = doorsOptions,
             legacyQuestion = WizChatQuestionId.T_DAYS,
             legacyValueMap = (1..6).associate { "$it" to "$it" },
-        ),
-        SetupStepDefinition(
-            id = SetupStepId.WEEKDAYS, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
-            title = "¿Qué días quieres entrenar?", control = SetupControlKind.MULTI_CHOICE,
-            options = weekdaysOptions,
-            legacyQuestion = WizChatQuestionId.T_WEEKDAYS,
-            legacyValueMap = mapOf(
-                "Lunes" to "1", "Martes" to "2", "Miércoles" to "3", "Jueves" to "4",
-                "Viernes" to "5", "Sábado" to "6", "Domingo" to "7",
-            ),
-        ),
-        SetupStepDefinition(
-            id = SetupStepId.SESSION_TIME, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
-            title = "¿Cuánto tiempo tienes por sesión?", control = SetupControlKind.NUMBER, unit = "min",
-            range = SetupNumericRange(20.0, 100.0, "min"),
-            legacyQuestion = WizChatQuestionId.T_TIME,
-        ),
-        SetupStepDefinition(
-            id = SetupStepId.CARDIO_TYPE, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
-            title = "¿Qué cardio quieres incluir?", control = SetupControlKind.SINGLE_CHOICE,
-            options = opt(
-                "WALK" to "Caminar",
-                "RUN_OUTDOOR" to "Correr al aire libre",
-                "BIKE_OUTDOOR" to "Bicicleta al aire libre",
-            ),
-            legacyQuestion = WizChatQuestionId.T_CARDIO_TYPE,
-            legacyValueMap = mapOf(
-                "Caminar" to "WALK", "Correr al aire libre" to "RUN_OUTDOOR",
-                "Bicicleta al aire libre" to "BIKE_OUTDOOR",
-            ),
-        ),
-        SetupStepDefinition(
-            id = SetupStepId.CARDIO_TIME, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
-            title = "¿Cuántos minutos de cardio?", control = SetupControlKind.SINGLE_CHOICE,
-            options = opt("10" to "10 min", "15" to "15 min", "20" to "20 min", "30" to "30 min"),
-            legacyQuestion = WizChatQuestionId.T_CARDIO_TIME,
-            legacyValueMap = mapOf("10 min" to "10", "15 min" to "15", "20 min" to "20", "30 min" to "30"),
-        ),
-        SetupStepDefinition(
-            id = SetupStepId.PRIORITIES, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
-            title = "¿Qué músculos quieres priorizar?",
-            subtitle = "Puedes elegir todo el cuerpo o un enfoque. Solo cambia el orden de los ejercicios.",
-            control = SetupControlKind.POINT_BUDGET,
-            options = ORDER_MUSCLE_OPTIONS,
-            budget = 5,
-            maxPerItem = 2,
+            // Ahora los días se derivan de los días elegidos del calendario (`selectedWeekdays.size`).
+            legacyOnly = true,
         ),
         SetupStepDefinition(
             id = SetupStepId.SPLIT, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
@@ -563,24 +633,7 @@ object SetupStepDefinitions {
             subtitle = "Una propuesta destacada, alternativas para mirar y el resto con buscador.",
             control = SetupControlKind.SPLIT_EDITOR,
             options = opt("recommended" to "Recomendado para ti", "custom" to "Personalizado"),
-        ),
-        SetupStepDefinition(
-            id = SetupStepId.PLAN, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
-            title = "¿Qué plan eliges?",
-            subtitle = "El candidato aparece sin necesidad de marcas completas: las marcas solo refinan cargas.",
-            control = SetupControlKind.PLAN_PICKER,
-            legacyQuestion = WizChatQuestionId.T_PLAN,
-            // La respuesta legacy es el id del candidato generado, no una etiqueta mapeada.
-            legacyAcceptsIdValue = true,
-        ),
-        SetupStepDefinition(
-            id = SetupStepId.TRAINING_MAX, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
-            title = "¿Conoces tus marcas?",
-            subtitle = "Con una basta; sin marcas el plan sigue siendo válido.",
-            control = SetupControlKind.TOGGLE,
-            options = opt("yes" to "Sí, conozco mis marcas", "no" to "Todavía no"),
-            legacyQuestion = WizChatQuestionId.T_TRAINING_MAX,
-            legacyValueMap = mapOf("Conozco mis marcas" to "yes", "Todavía no" to "no"),
+            legacyOnly = true,
         ),
         SetupStepDefinition(
             id = SetupStepId.TRAINING_MARKS, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
@@ -589,6 +642,8 @@ object SetupStepDefinitions {
             control = SetupControlKind.MARKS_EDITOR,
             options = opt("squat" to "Sentadilla", "bench" to "Banca", "deadlift" to "Peso muerto"),
             legacyQuestion = WizChatQuestionId.T_MARKS,
+            // Las marcas viven ahora en TRAINING_MAX (`liftMarks`).
+            legacyOnly = true,
         ),
         SetupStepDefinition(
             id = SetupStepId.AUTOREGULATION, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
@@ -596,6 +651,8 @@ object SetupStepDefinitions {
             subtitle = "Si lo activas, KPKN ajusta series y pesos cada semana según tu respuesta.",
             control = SetupControlKind.TOGGLE,
             options = opt("on" to "Sí, ajusta mi semana", "off" to "No, lo controlo yo"),
+            // Ahora siempre «sugerir y confirmar» (PROPOSE).
+            legacyOnly = true,
         ),
         SetupStepDefinition(
             id = SetupStepId.AUTOREGULATION_CONFIRM, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
@@ -603,6 +660,7 @@ object SetupStepDefinitions {
             subtitle = "Los cambios se aplican al confirmarlos, puedes revertirlos y tus marcas declaradas no cambian.",
             control = SetupControlKind.AUTO_CONFIRM,
             options = opt("confirmed" to "Confirmado", "review_only" to "Solo revisar"),
+            legacyOnly = true,
         ),
         SetupStepDefinition(
             id = SetupStepId.WARMUPS, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
@@ -614,15 +672,15 @@ object SetupStepDefinitions {
                 "light" to "Ligeros y cortos",
                 "none" to "Sin calentamiento extra",
             ),
+            // La aproximación y la movilidad son obligatorias y las arma el programa.
+            legacyOnly = true,
         ),
         SetupStepDefinition(
             id = SetupStepId.TRAINING_REVIEW, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
             title = "Revisión del plan", control = SetupControlKind.RESULT_PREVIEW,
             legacyQuestion = WizChatQuestionId.T_REVIEW,
-        ),
-        SetupStepDefinition(
-            id = SetupStepId.MILESTONE_TRAINING, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.MILESTONE,
-            title = "Entreno", control = SetupControlKind.MILESTONE,
+            // Sustituida por la semana armada (WEEK_LAYOUT) y la fila de programa de la revisión final.
+            legacyOnly = true,
         ),
 
         // -------------------------------------------------------------------

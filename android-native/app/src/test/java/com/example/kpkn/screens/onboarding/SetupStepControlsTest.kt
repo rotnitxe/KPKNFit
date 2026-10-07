@@ -77,30 +77,4 @@ class SetupStepControlsTest {
         }
         assertEquals(setOf("unknown"), chain)
     }
-
-    // ── Bolsa de orden (PRIORITIES): reductor puro de deltas ────────────────
-
-    @Test
-    fun `priorities minus takes two points to one instead of clearing the entry`() {
-        assertEquals(mapOf("Pecho" to 1), prioritiesAfterDelta(mapOf("Pecho" to 2), "Pecho", -1, 5, 2))
-        // Nunca baja de 0 ni deja claves a cero.
-        assertEquals(emptyMap<String, Int>(), prioritiesAfterDelta(mapOf("Pecho" to 1), "Pecho", -1, 5, 2))
-        assertEquals(emptyMap<String, Int>(), prioritiesAfterDelta(emptyMap(), "Pecho", -1, 5, 2))
-    }
-
-    @Test
-    fun `priorities increments accumulate back to back without losing any`() {
-        val accumulated = (1..3).fold(emptyMap<String, Int>()) { bag, _ ->
-            prioritiesAfterDelta(bag, "Pecho", +1, budget = 5, maxPerItem = 2)
-        }
-        // Tres incrementos encadenados sobre la bolsa última: dos entran y el
-        // tercero lo rechaza el tope por músculo (2) sin tocar la entrada.
-        assertEquals(mapOf("Pecho" to 2), accumulated)
-
-        // El presupuesto se valida también sobre la última bolsa.
-        val overBudget = (1..3).fold(emptyMap<String, Int>()) { bag, index ->
-            prioritiesAfterDelta(bag, "Músculo $index", +1, budget = 2, maxPerItem = 2)
-        }
-        assertEquals(mapOf("Músculo 1" to 1, "Músculo 2" to 1), overBudget)
-    }
 }

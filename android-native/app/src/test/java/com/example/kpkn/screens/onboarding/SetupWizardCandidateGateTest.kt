@@ -369,7 +369,7 @@ class SetupWizardCandidateGateTest {
         assertEquals("Elige un plan de la lista para continuar", PLAN_SELECTION_REQUIRED_MESSAGE)
         // Sin plan elegido habla la validación del paso; otros pasos y la ruta «desde cero» no usan la puerta.
         assertTrue(gate(selected = null).isEmpty())
-        assertTrue(gate(step = SetupStepId.SPLIT, selected = "native:zzz").isEmpty())
+        assertTrue(gate(step = SetupStepId.WEEK_LAYOUT, selected = "native:zzz").isEmpty())
         assertTrue(gate(path = SetupTrainingPath.FROM_SCRATCH, cards = emptyList()).isEmpty())
     }
 
@@ -388,7 +388,7 @@ class SetupWizardCandidateGateTest {
         assertTrue(planSelectionGate(state, SetupStepId.PLAN).isEmpty())
         assertTrue(SetupWizardValidation.validateStep(state.draft, SetupStepId.PLAN).none { it.isBlocking })
         val rows = trainingMilestoneRows(state)
-        assertTrue(rows.any { it.first == "Plan" && it.second == DEFER_PROGRAM_REVIEW_VALUE })
+        assertTrue(rows.any { it.first == "Programa" && it.second == DEFER_PROGRAM_REVIEW_VALUE })
         assertFalse(rows.any { it.first == "Autorregulación" || it.first == "Calentamientos" })
         assertEquals(
             "El programa lo armarás más adelante. El plan nutricional se activa al confirmar.",
@@ -438,22 +438,22 @@ class SetupWizardCandidateGateTest {
         // El paso PLAN pinta la búsqueda (`candidates`) y el preview de la selección (`preview`).
         assertTrue(stepRendersError(SetupStepId.PLAN, "candidates"))
         assertTrue(stepRendersError(SetupStepId.PLAN, "preview"))
-        // La revisión del entreno y la final pintan el preview.
-        assertTrue(stepRendersError(SetupStepId.TRAINING_REVIEW, "preview"))
+        // La semana armada y la revisión final pintan el preview.
+        assertTrue(stepRendersError(SetupStepId.WEEK_LAYOUT, "preview"))
         assertTrue(stepRendersError(SetupStepId.REVIEW_ACTIVATE, "preview"))
         // Lo demás no lo pinta ningún paso y sigue en el aviso flotante: guardado, activación, la puerta de «Continuar»…
         listOf("save", "commit", "plan", "initialize", "program", "review", "profile", "time", "schedule").forEach { key ->
             assertFalse("PLAN no pinta «$key»", stepRendersError(SetupStepId.PLAN, key))
-            assertFalse("TRAINING_REVIEW no pinta «$key»", stepRendersError(SetupStepId.TRAINING_REVIEW, key))
+            assertFalse("WEEK_LAYOUT no pinta «$key»", stepRendersError(SetupStepId.WEEK_LAYOUT, key))
             assertFalse("REVIEW_ACTIVATE no pinta «$key»", stepRendersError(SetupStepId.REVIEW_ACTIVATE, key))
         }
         // El preview y la búsqueda de planes solo los pinta su paso: en cualquier otro siguen en el aviso.
-        SetupStepId.entries.filter { it != SetupStepId.PLAN && it != SetupStepId.TRAINING_REVIEW && it != SetupStepId.REVIEW_ACTIVATE }
+        SetupStepId.entries.filter { it != SetupStepId.PLAN && it != SetupStepId.WEEK_LAYOUT && it != SetupStepId.REVIEW_ACTIVATE }
             .forEach { step ->
                 assertFalse("$step no pinta «preview»", stepRendersError(step, "preview"))
                 assertFalse("$step no pinta «candidates»", stepRendersError(step, "candidates"))
             }
-        assertFalse("la revisión del entreno no pinta la búsqueda", stepRendersError(SetupStepId.TRAINING_REVIEW, "candidates"))
+        assertFalse("la semana armada no pinta la búsqueda", stepRendersError(SetupStepId.WEEK_LAYOUT, "candidates"))
     }
 
     // ═════════════════════════════════════════════════════════════════════════
@@ -738,7 +738,7 @@ class SetupWizardCandidateGateTest {
             val accepted = vm.submitCurrentStep(SetupStepId.PLAN)
             assertEquals(SetupSubmitOutcome.ACCEPTED, accepted.outcome)
             val advanced = awaitUntil(vm, "cursor tras PLAN") { it.currentStep != SetupStepId.PLAN }
-            assertEquals(SetupStepId.AUTOREGULATION, advanced.currentStep)
+            assertEquals(SetupStepId.WEEK_LAYOUT, advanced.currentStep)
         }
 
     @Test

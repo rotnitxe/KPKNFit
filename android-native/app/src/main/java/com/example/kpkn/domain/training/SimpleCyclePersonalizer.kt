@@ -278,17 +278,13 @@ class SimpleCyclePersonalizer(
         val compositionMetadata = CatalogCompositionMetadataProvider.fromCatalog(ready.catalog)
         val pools = curatedPools()
         val allowedIds = pools.values.flatten().toSet()
-        // Exigencia de configuración exacta: hay una declaración CONCRETA de
-        // máquinas o poleas (presencia por clave; los soportes, la barra de
-        // dominadas y la bici exterior no cuentan, paquete A · B3) o inventario
-        // declarado sin disponibilidad nueva. Una disponibilidad categórica, con
-        // o sin soportes confirmados, sigue permitiendo variantes máquina
-        // nativas aprobadas.
-        val requireExactMachineConfiguration = options.availability?.hasExplicitMachinePresence() ?: (options.inventory != null)
+        // Filtro de material y exigencia de configuración exacta: los decide el filtro
+        // compartido con el generador de rutinas (ConfigurationEquipmentFilter).
+        val requireExactMachineConfiguration = ConfigurationEquipmentFilter.requiresExactMachineConfiguration(options)
         val candidates = ready.catalog.families.flatMap { it.definitions }.flatMap { definition ->
             definition.configurations.mapNotNull { configuration ->
                 if (configuration.id !in allowedIds || configuration.evidence.reviewStatus != CatalogReviewStatusV2.APPROVED) return@mapNotNull null
-                if (!equipmentAllows(configuration, equipment, entry.sourceId, requireExactMachineConfiguration)) return@mapNotNull null
+                if (!ConfigurationEquipmentFilter.allows(configuration, equipment, entry.sourceId, requireExactMachineConfiguration)) return@mapNotNull null
                 if (input.level == CatalogLevel.BEGINNER && (configuration.profile.technicalDifficulty > 5.2 || configuration.id in hardBodyweight)) return@mapNotNull null
                 val info = lookup[configuration.id.lowercase()] ?: return@mapNotNull null
                 val exercise = exercise(info, "probe", 1, input.level)
@@ -848,9 +844,8 @@ class SimpleCyclePersonalizer(
         // Paquete A · B3: la elección de configuraciones (`resolveConfiguration`) se declara ANTES de
         // elegir el calendario, porque el tirón disponible ya no es una lista de tokens sino «existe
         // alguna configuración de remo o de jalón que este material y este nivel permiten».
-        // Modo «configuración exacta» de máquinas: solo con presencia declarada de ALGUNA máquina o polea
-        // (los soportes, la barra de dominadas y la bici exterior no cuentan; DEV-r2-06).
-        val requireExactMachineConfiguration = options.availability?.hasExplicitMachinePresence() ?: (options.inventory != null)
+        // Modo «configuración exacta» de máquinas (DEV-r2-06): lo decide el filtro compartido.
+        val requireExactMachineConfiguration = ConfigurationEquipmentFilter.requiresExactMachineConfiguration(options)
         // §13.1: el peso corporal no necesita aparato y siempre está disponible.
         val nativeEquipment = equipment + "bodyweight"
         val approvedConfigurations = ready.catalog.families.flatMap { it.definitions }
@@ -876,7 +871,7 @@ class SimpleCyclePersonalizer(
                 ) {
                     return@firstNotNullOfOrNull null
                 }
-                if (!equipmentAllows(configuration, nativeEquipment, entry.sourceId, requireExactMachineConfiguration)) {
+                if (!ConfigurationEquipmentFilter.allows(configuration, nativeEquipment, entry.sourceId, requireExactMachineConfiguration)) {
                     return@firstNotNullOfOrNull null
                 }
                 configuration
@@ -1992,39 +1987,6 @@ class SimpleCyclePersonalizer(
     private fun indirectVolumeNote(muscle: String, direct: Double, total: Double): String =
         "$muscle: ${VolumeSoftBand.formatSets(total)} series en total " +
             "(${VolumeSoftBand.formatSets(direct)} principales); el resto es trabajo secundario o de estabilización."
-
-    /**
-     * Filtro real de material por configuración:
-     * - En **modo inventario legacy**, una máquina concreta solo se admite si su
-     *   token `machine_config:<id>` está en el set (leg curl ≠ chest press ≠
-     *   prensa); la presencia genérica `machine` no basta. `cable` y
-     *   `smith_machine` sí valen como estación multi-ejercicio declarada.
-     * - La disponibilidad categórica `machine` habilita variantes nativas
-     *   aprobadas sin afirmar una configuración concreta.
-     * - Con **inventario null** (perfil legacy) se conserva el comportamiento
-     *   anterior: `machine`/`general_gym` del perfil siguen valiendo.
-     * - Las dependencias de soporte usan la MISMA API que la guardia de recetas
-     *   fijas ([supportRequirementsFor]): un conjunto, sin duplicado divergente.
-     */
-    private fun equipmentAllows(
-        configuration: ExerciseConfigurationV2,
-        equipment: Set<String>,
-        family: String,
-        requireExactMachineConfiguration: Boolean,
-    ): Boolean {
-        val actual = configuration.profile.equipmentId
-        if (family == "machine-muscle" && actual != "machine") return false
-        if (family == "bodyweight" && actual != "bodyweight") return false
-        if (family == "home-training" && actual !in setOf("bodyweight", "band", "dumbbells")) return false
-        val machineConfigDeclared = machineConfigToken(configuration.id) in equipment
-        if (requireExactMachineConfiguration && actual == "machine" && !machineConfigDeclared) return false
-        if (!machineConfigDeclared && "general_gym" !in equipment && actual !in equipment) return false
-        // Requisitos de soporte de ESTA configuración (banco, rack, barra de
-        // dominadas, paralelas, barra baja, balón, anclaje de Nordic): todos
-        // declarados o el perfil legacy `general_gym`.
-        val extra = supportRequirementsFor(configuration.id)
-        return extra.isEmpty() || "general_gym" in equipment || extra.all { requirement -> requirement in equipment }
-    }
 
     private fun spacedIndices(days: List<Int>, count: Int): Set<Int> {
         if (count >= days.size) return days.indices.toSet()
