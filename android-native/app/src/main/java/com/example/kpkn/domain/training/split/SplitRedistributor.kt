@@ -534,7 +534,7 @@ object SplitRedistributor {
             }
         }
         if (report.unclassified.isNotEmpty()) {
-            add("No se pudo clasificar ${report.unclassified.joinToString(", ")}: quedó en el día más corto.")
+            add("No se pudo clasificar ${report.unclassified.distinct().joinToString(", ")}: quedó en el día más corto.")
         }
         val strengthTotal = units.sumOf { it.strengthExerciseCount }
         val shortDays = report.days.filter { it.exerciseCount < DayAssigner.MIN_EXERCISES }
@@ -548,7 +548,8 @@ object SplitRedistributor {
             }
         }
         if (assignment.misfits.isNotEmpty()) {
-            val names = assignment.misfits.flatMap { units[it].exercises.map { exercise -> exercise.name } }
+            // Un ejercicio que se repite en varias sesiones (la sentadilla de cada día) se nombra una sola vez.
+            val names = assignment.misfits.flatMap { units[it].exercises.map { exercise -> exercise.name } }.distinct()
             add("Para llenar todos los días, ${names.joinToString(", ")} no encaja del todo con su día.")
         }
         days.forEachIndexed { index, day ->

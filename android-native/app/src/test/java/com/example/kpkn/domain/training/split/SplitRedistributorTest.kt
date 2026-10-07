@@ -684,6 +684,26 @@ class SplitRedistributorTest {
     }
 
     @Test
+    fun an_exercise_repeated_across_sessions_is_named_once_in_the_notes() {
+        // El mismo ejercicio sin clasificar en dos sesiones (misma denominación, ids distintos): el informe conserva una
+        // entrada por ejercicio y la nota al lector lo nombra una sola vez.
+        val first = exerciseWithoutTraits("push-mystery")
+        val second = exerciseWithoutTraits("pull-mystery")
+        val original = SplitTestSupport.ppl().mapSessions { session ->
+            when (session.id) {
+                "push" -> session.copy(exercises = listOf(first))
+                "pull" -> session.copy(exercises = listOf(second))
+                else -> session
+            }
+        }
+        val result = redistribute(original, "ul_x4", listOf(1, 2, 4, 5))
+        assertTrue(result.compatible)
+        assertEquals("el informe: una entrada por ejercicio", listOf(first.name, second.name), result.report.unclassified)
+        val note = result.notes.single { it.startsWith("No se pudo clasificar") }
+        assertEquals("No se pudo clasificar ${first.name}: quedó en el día más corto.", note)
+    }
+
+    @Test
     fun a_day_that_would_stay_empty_takes_the_best_available_exercise_and_says_so() {
         // Solo hay un ejercicio de pierna para dos días de pierna: uno de los dos días quedaría vacío.
         val program = SplitTestSupport.program(
