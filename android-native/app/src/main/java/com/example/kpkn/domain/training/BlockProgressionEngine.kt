@@ -213,10 +213,11 @@ object BlockProgressionEngine {
         val cloned = SessionTemplateEngine.cloneSessionContent(source, SessionClonePurpose.PROGRESSION_SEED)
         fun mapExercise(exercise: Exercise): Exercise {
             // Cardio and mobility have their own prescribed timers/intervals.  A
-            // strength %RM progression must not corrupt those payloads.
-            if (exercise.cardioDetails != null || exercise.mobilitySeries.isNotEmpty() || exercise.mobilityConfig != null) {
-                return exercise
-            }
+            // strength %RM progression must not corrupt those payloads.  Only a pure
+            // mobility card (no strength sets) is skipped: a strength exercise that
+            // carries its mandatory pre-mobility (Entreno v2) still progresses, and the
+            // `copy` below leaves its mobilitySeries and warmupSets untouched.
+            if (exercise.cardioDetails != null) return exercise
             if (exercise.sets.isEmpty()) return exercise
             val baseSets = exercise.sets.size.coerceAtLeast(1)
             val baseReps = exercise.sets.mapNotNull { it.plannedRepAnchor() }.average().let { avg ->

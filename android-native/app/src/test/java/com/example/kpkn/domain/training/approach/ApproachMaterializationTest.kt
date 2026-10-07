@@ -38,7 +38,6 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.BeforeClass
-import org.junit.Ignore
 import org.junit.Test
 
 /**
@@ -366,14 +365,11 @@ class ApproachMaterializationTest {
     )
 
     /**
-     * La movilidad cuelga de `Exercise.mobilitySeries` y `missingFixedRecipeEquipment` se salta los ejercicios con
-     * `mobilitySeries`/`mobilityConfig` (los trata como tarjetas de movilidad). Resultado medido: en `smolov`,
-     * `texas-method-3d` y `body-16-4` el primer ejercicio (la sentadilla con barra) deja de pedir el rack. Lo detectan
-     * `FixedRecipeEquipmentCompatibilityTest` (2 pruebas) y esta. El arreglo es un parche de una línea en
-     * `FixedRecipeEquipmentCompatibility.kt` (fuera del paquete D3; ver el informe): solo saltarse una tarjeta de
-     * movilidad cuando NO es un ejercicio de fuerza con identidad de catálogo.
+     * La movilidad cuelga de `Exercise.mobilitySeries` y `missingFixedRecipeEquipment` se saltaba los ejercicios con
+     * `mobilitySeries`/`mobilityConfig` (los trataba como tarjetas de movilidad): en `smolov`, `texas-method-3d` y
+     * `body-16-4` el primer ejercicio (la sentadilla con barra) dejaba de pedir el rack. La guardia ahora solo se salta la
+     * tarjeta de movilidad pura (sin series de fuerza); esta prueba y `FixedRecipeEquipmentCompatibilityTest` lo fijan.
      */
-    @Ignore("Pendiente del parche de FixedRecipeEquipmentCompatibility descrito en el informe de D3")
     @Test
     fun the_material_guard_gives_the_same_answer_with_and_without_automatic_approach_on_real_plans() {
         samples.filter { it.authorOnly != null }.forEach { sample ->
@@ -388,7 +384,6 @@ class ApproachMaterializationTest {
     }
 
     /** El mismo hueco en su forma mínima: el único ejercicio con barra de la receta es el primero y lleva movilidad. */
-    @Ignore("Pendiente del parche de FixedRecipeEquipmentCompatibility descrito en el informe de D3")
     @Test
     fun the_material_guard_still_checks_a_lone_first_exercise_that_carries_mobility() {
         val recipe = TrainingPlanRecipe(
@@ -408,7 +403,7 @@ class ApproachMaterializationTest {
     }
 
     /**
-     * Lo que SÍ garantiza el planificador y permite el parche de la guardia: un ejercicio con movilidad prevista sigue
+     * Lo que garantiza el planificador y sostiene la guardia de material: un ejercicio con movilidad prevista sigue
      * siendo un ejercicio de fuerza con series y con identidad de catálogo (nunca una tarjeta de movilidad pura).
      */
     @Test
