@@ -26,14 +26,30 @@ class GeneratorEquipmentTest {
     private val home = setOf(TrainingPlace.HOME)
     private val park = setOf(TrainingPlace.PUBLIC)
 
-    private fun tokensOf(profile: EquipmentProfile): Set<String> =
-        TrainingOptions(availability = profile.availability).effectiveEquipment(emptySet())
-
     @Test
     fun the_day_equipment_adds_nothing_to_what_the_shared_resolver_credits() {
-        for (profile in EquipmentProfiles.all) {
-            assertEquals(profile.name, tokensOf(profile), DayEquipment(profile.availability).tokens)
+        for ((name, availability) in EquipmentProfiles.everyAvailability) {
+            val expected = TrainingOptions(availability = availability).effectiveEquipment(emptySet())
+            assertEquals(name, expected, DayEquipment(availability).tokens)
         }
+    }
+
+    /**
+     * «Máquinas» como sala (paquete E2): el generador y el planificador comparten el modo exacto, así que con la sala
+     * admiten todas las máquinas y con las llaves del subpanel antiguo (sin la bandera) solo las curadas.
+     */
+    @Test
+    fun a_machine_room_admits_every_machine_configuration_and_the_panel_answers_only_the_curated_ones() {
+        val room = DayEquipment(EquipmentProfiles.gymFull.availability)
+        val panel = DayEquipment(EquipmentProfiles.gymWithPanelAnswers)
+        val uncurated = requireNotNull(index.entry("chest_supported_row__machine__wide"))
+        val curated = requireNotNull(index.entry("lying_leg_curl__bilateral__machine"))
+        assertTrue(room.allows(uncurated, emptyList()) && room.allows(curated, emptyList()))
+        assertFalse("con el subpanel antiguo rige el modo exacto", panel.allows(uncurated, emptyList()))
+        assertTrue(panel.allows(curated, emptyList()))
+        // Sin «Máquinas» no hay ninguna aunque haya poleas.
+        val noMachines = DayEquipment(EquipmentProfiles.gymWithoutMachines.availability)
+        assertFalse(noMachines.allows(uncurated, emptyList()) || noMachines.allows(curated, emptyList()))
     }
 
     @Test
