@@ -70,6 +70,46 @@ Un hito (`MILESTONE_*`) **ya no es una página**: es el overlay de la guía de m
 2. Dale etiqueta y valor en `SetupStepSummaries.kt` (el `when` es exhaustivo: el build avisa si falta).
 3. Si el paso fusiona dos (como alias+edad o altura+peso), registra la fusión en `wizardPresentationSteps`/`wizardPageOf` y pon su texto en `wizardPageCopy`.
 
+## Entreno v2: ruta, datos y controles
+
+La ruta del bloque Entreno (`SetupStepGraph.nodes`) sale SOLO de datos del borrador, nunca de «respondido»:
+
+`EXPERIENCE, EQUIPMENT, AVAILABILITY, GOAL, FRESH_DAY, WEEKDAYS, SESSION_TIME, [CARDIO_TYPE, CARDIO_TIME], [VOLUME_TECHNIQUE], VOLUME_CONSISTENCY, VOLUME_STRENGTH, VOLUME_MOBILITY, [CAPABILITIES], PRIORITIES, [TRAINING_MAX], PLAN, [WEEK_LAYOUT], MILESTONE_TRAINING`
+
+| Rama | Entra cuando (`SetupStepContext`, derivado en `stepContext()`) |
+|---|---|
+| `CARDIO_*` | `goalIncludesCardio`: Fuerza y cardio, Funcional y saludable (y los objetivos antiguos Atleta completo / Fuerza + cardio). |
+| `VOLUME_TECHNIQUE` | `asksTechnique`: la experiencia no es «Estoy empezando». Quien empieza recibe «1 · Aprendiendo» con procedencia `DERIVED` al confirmar la experiencia. |
+| `CAPABILITIES` | `asksCapabilities` (`CapabilityRules.asks`): perfil general o Calistenia y, además, persona novata o material ligero. |
+| `TRAINING_MAX` | `asksMarks`: `MarksContext.liftsFor` devuelve algún levantamiento (nunca para novatos). |
+| `WEEK_LAYOUT` | `hasWeekLayout`: el programa no se aplaza («lo armaré más adelante»). |
+
+`ROUTE`, `STYLE`, `DAYS`, `SPLIT`, `AUTOREGULATION(_CONFIRM)`, `WARMUPS`, `TRAINING_MARKS` y `TRAINING_REVIEW` ya no son preguntas: el enum y sus definiciones (`legacyOnly`) siguen para leer borradores antiguos.
+
+**Datos del borrador y derivados.** Cada paso escribe un dato real (`trainingPlaces`, `trainingOptions.availability`, `goalProfile`, `freshestDay`/`weekStartDay`, `selectedWeekdays`, `dayPlaces`, `minutesPerSession`, `capabilities`, `priorityMuscles`/`orderPriorities`, `liftMarks`) y el reductor mantiene los campos que el motor actual todavía lee (`trainingEnvironment`, `equipment`, `goal`, `daysPerWeek`, `knowsTrainingMarks`, `powerliftingProfile`). Las selecciones de estos pasos se leen de los datos (no se guardan aparte en `stepSelections`).
+
+**Un archivo por control.** Cada paso es `@Composable internal fun EntrenoXxxStep(state, vm)` en `screens/onboarding/entreno/` y solo escribe por el ViewModel: sustituir el control provisional por el definitivo es cambiar el cuerpo de ESE archivo.
+
+| Paso | Archivo `entreno/` | VM | Reductor puro (`SetupStepAnswers.kt`) |
+|---|---|---|---|
+| `EQUIPMENT` | `EntrenoPlacesStep` | `togglePlace` | `withPlaces`, `withPlaceToggled` |
+| `AVAILABILITY` | `EntrenoMaterialStep` | `toggleEquipmentSymbol` | `withMaterial`, `withMaterialToggled` |
+| `GOAL` | `EntrenoGoalStep` | `setGoalProfile` | `withGoalProfile` |
+| `FRESH_DAY` | `EntrenoFreshDayStep` | `setFreshDay` | `withFreshestDay` |
+| `WEEKDAYS` | `EntrenoWeekdaysStep` | `toggleWeekday`, `setWeekStart`, `setDayPlace` | `withWeekdays`, `withWeekStart`, `withDayPlace` |
+| `SESSION_TIME` | `EntrenoSessionTimeStep` | `setSessionMinutes` | `withSessionMinutes` (20..180, de 5 en 5) |
+| `CAPABILITIES` | `EntrenoCapabilitiesStep` | `setCapability` | `withCapability` |
+| `PRIORITIES` | `EntrenoMusclesStep` | `toggleMuscle`, `clearMuscles` | `withMuscles`, `withMuscleToggled` |
+| `TRAINING_MAX` | `EntrenoMarksStep` | `setLiftMark`, `setMarksUnit` | `withLiftMark`, `withMarksUnit` |
+| `PLAN` | `EntrenoPlanStep` | `selectPlan` (candidatos actuales) | — |
+| `WEEK_LAYOUT` | `EntrenoWeekLayoutStep` | solo lectura por ahora | — |
+
+Reglas de dominio que viven fuera de la UI (`domain/onboarding/`): `EquipmentSymbols` (símbolos de material ↔ disponibilidad del motor, ida y vuelta exacta), `TrainingGoalRequirements` (qué material pide cada disciplina; un perfil incompatible se escribe pero no se puede confirmar), `MarksContext`, `CapabilityRules`, `MuscleSymbols`/`MuscleSuggestions` (las sugerencias solo se precargan si la persona no tocó el paso) y `EntrenoStepValues` (valores estables y alias antiguos). `GoalProfileMapping` (en `screens/onboarding/`) traduce el perfil al objetivo del motor, al estilo de calibración y al tipo de atleta.
+
+**Activación.** El perfil de objetivo escribe `Settings.athleteType` por `SetupSettingsPatch.athleteType`, solo si el paso GOAL se respondió en este alta (`athleteTypeToPersist`).
+
+**Borradores antiguos** (`SetupDraftCompatibility.migrateEntrenoV2`, idempotente y sin confirmar nada): el entorno se lee como lugar, el objetivo como perfil (Salud y Fuerza + cardio quedan marcados para revisar), `powerliftingProfile` pasa a `liftMarks`, `daysPerWeek` es el número de días elegidos y un cursor sobre un paso retirado vuelve al primer paso pendiente de la ruta nueva (`SetupStepGraph.REVISION` = 4).
+
 ## Plan de alimentación (`NUTRITION_RESULT`)
 
 El resultado de nutrición no es una lista de referencias: es un **panel visual** que se afina en vivo (título del paso: «Tu plan de alimentación»). Anillos con las kcal en grande, franja de días (solo con reparto variable), avisos, control de ritmo y un deslizador por macro. Sin tarjetas: secciones separadas por filetes.
