@@ -400,6 +400,13 @@
       "title": "An electromyographical comparison of trunk muscle activity during isometric trunk and dynamic strengthening exercises",
       "verifiedAt": "2026-10-03"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/21240030/": {
+      "foundTitle": "Lower extremity biomechanics during weightlifting exercise vary across joint and load.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Lower extremity biomechanics during weightlifting exercise vary across joint and load",
+      "verifiedAt": "2026-10-07"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/21659894/": {
       "foundTitle": "A biomechanical analysis of straight and hexagonal barbell deadlifts using submaximal loads.",
       "method": "pubmed-esummary",
@@ -526,12 +533,26 @@
       "title": "Low back loads while walking and carrying: comparing the load carried in one hand or in both hands",
       "verifiedAt": "2026-10-03"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/23442272/": {
+      "foundTitle": "Characteristics of lower extremity work during the impact phase of jumping and weightlifting.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Characteristics of lower extremity work during the impact phase of jumping and weightlifting",
+      "verifiedAt": "2026-10-07"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/23485733/": {
       "foundTitle": "The influence of varying hip angle and pelvis position on muscle recruitment patterns of the hip abductor muscles during the clam exercise.",
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "The influence of varying hip angle and pelvis position on muscle recruitment patterns of the hip abductor muscles during the clam exercise",
       "verifiedAt": "2026-10-01"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/23489349/": {
+      "foundTitle": "Motor control of the trunk during a modified clean and jerk lift.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Motor control of the trunk during a modified clean and jerk lift",
+      "verifiedAt": "2026-10-07"
     },
     "https://pubmed.ncbi.nlm.nih.gov/23809430/": {
       "foundTitle": "Kinematic and electromyographic analysis of the Nordic Hamstring Exercise.",
@@ -595,6 +616,13 @@
       "similarity": 1.0,
       "title": "Electromyographic and kinetic comparison of the back squat and overhead squat",
       "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/24738710/": {
+      "foundTitle": "A biomechanical comparison of the vertical jump, power clean, and jump squat.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "A biomechanical comparison of the vertical jump, power clean, and jump squat",
+      "verifiedAt": "2026-10-07"
     },
     "https://pubmed.ncbi.nlm.nih.gov/24978835/": {
       "foundTitle": "Regional differences in muscle activation during hamstrings exercise.",
@@ -665,6 +693,13 @@
       "similarity": 1.0,
       "title": "Magnitudes of muscle activation of spine stabilizers, gluteals, and hamstrings during supine bridge to neutral position",
       "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/25689955/": {
+      "foundTitle": "Weightlifting pulling derivatives: rationale for implementation and application.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Weightlifting pulling derivatives: rationale for implementation and application",
+      "verifiedAt": "2026-10-07"
     },
     "https://pubmed.ncbi.nlm.nih.gov/25799093/": {
       "foundTitle": "Influence of bench angle on upper extremity muscular activation during bench press exercise.",
@@ -925,6 +960,13 @@
       "title": "Gluteus Maximus and Hamstring Activation During Selected Weight-Bearing Resistance Exercises",
       "verifiedAt": "2026-10-03"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/29096180/": {
+      "foundTitle": "Influence of anterior load carriage on lumbar muscle activation while walking in stable and unstable shoes.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Influence of anterior load carriage on lumbar muscle activation while walking in stable and unstable shoes",
+      "verifiedAt": "2026-10-07"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/29262200/": {
       "foundTitle": "Anatomy, Bony Pelvis and Lower Limb, Hip Joint.",
       "method": "pubmed-esummary",
@@ -1029,6 +1071,13 @@
       "similarity": 1.0,
       "title": "Electromyographic Analysis of Gluteus Maximus, Gluteus Medius, and Tensor Fascia Latae During Therapeutic Exercises With and Without Elastic Resistance",
       "verifiedAt": "2026-10-01"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/30204518/": {
+      "foundTitle": "Improvement of Kinetic, Kinematic, and Qualitative Performance Variables of the Power Clean With the Hook Grip.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Improvement of Kinetic, Kinematic, and Qualitative Performance Variables of the Power Clean With the Hook Grip",
+      "verifiedAt": "2026-10-07"
     },
     "https://pubmed.ncbi.nlm.nih.gov/30252247/": {
       "foundTitle": "Anatomy, Thorax, Pectoralis Major Major.",
@@ -1170,6 +1219,13 @@
       "title": "Impact of Hip Flexion Angle on Unilateral and Bilateral Nordic Hamstring Exercise Torque and High-Density Electromyography Activity",
       "verifiedAt": "2026-10-03"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/30924081/": {
+      "foundTitle": "Weightlifting Overhead Pressing Derivatives: A Review of the Literature.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Weightlifting Overhead Pressing Derivatives: A Review of the Literature",
+      "verifiedAt": "2026-10-07"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/30969606/": {
       "foundTitle": "Anatomy, Shoulder and Upper Limb, Forearm Compartments.",
       "method": "pubmed-esummary",
@@ -1205,6 +1261,13 @@
       "title": "Anatomy, Shoulder and Upper Limb, Pectoral Muscles",
       "verifiedAt": "2026-10-02"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/31453932/": {
+      "foundTitle": "Characteristics of the Shrug Motion and Trapezius Muscle Activity During the Power Clean.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Characteristics of the Shrug Motion and Trapezius Muscle Activity During the Power Clean",
+      "verifiedAt": "2026-10-07"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/31469769/": {
       "foundTitle": "Different Knee and Ankle Positions Affect Force and Muscle Activation During Prone Leg Curl in Trained Subjects.",
       "method": "pubmed-esummary",
@@ -1232,6 +1295,13 @@
       "similarity": 1.0,
       "title": "Kinematic and electromyographic analysis of variations in Nordic hamstring exercise",
       "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/31827350/": {
+      "foundTitle": "Correlational Analysis between Joint-level Kinetics of Countermovement Jumps and Weightlifting Derivatives.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Correlational Analysis between Joint-level Kinetics of Countermovement Jumps and Weightlifting Derivatives",
+      "verifiedAt": "2026-10-07"
     },
     "https://pubmed.ncbi.nlm.nih.gov/31869113/": {
       "foundTitle": "Anatomy, Abdomen and Pelvis: Abdominal Wall.",
@@ -1345,12 +1415,33 @@
       "title": "Effect of Pause Versus Rebound Techniques on Neuromuscular and Functional Performance After a Prolonged Velocity-Based Training",
       "verifiedAt": "2026-10-03"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/33607358/": {
+      "foundTitle": "Electromyographic and kinematic analysis of females with excessive medial knee displacement in the overhead squat.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Electromyographic and kinematic analysis of females with excessive medial knee displacement in the overhead squat",
+      "verifiedAt": "2026-10-07"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/33666596/": {
+      "foundTitle": "Comparison of Joint Work During Load Absorption Between Weightlifting Derivatives.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Comparison of Joint Work During Load Absorption Between Weightlifting Derivatives",
+      "verifiedAt": "2026-10-07"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/33707987/": {
       "foundTitle": "Electromyographic Comparison of Five Lower-Limb Muscles between Single- and Multi-Joint Exercises among Trained Men.",
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "Electromyographic Comparison of Five Lower-Limb Muscles between Single- and Multi-Joint Exercises among Trained Men",
       "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/33803182/": {
+      "foundTitle": "Intermuscular Coordination in the Power Clean Exercise: Comparison between Olympic Weightlifters and Untrained Individuals-A Preliminary Study.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Intermuscular Coordination in the Power Clean Exercise: Comparison between Olympic Weightlifters and Untrained Individuals-A Preliminary Study",
+      "verifiedAt": "2026-10-07"
     },
     "https://pubmed.ncbi.nlm.nih.gov/33887761/": {
       "foundTitle": "Muscle Activation During Single-Legged Squat Is Affected by Position of the Nonstance Limb.",
@@ -1372,6 +1463,13 @@
       "similarity": 1.0,
       "title": "Partial range of motion training elicits favorable improvements in muscular adaptations when carried out at long muscle lengths",
       "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/34051700/": {
+      "foundTitle": "Hip and Trunk Muscle Activity and Mechanics During Walking With and Without Unilateral Weight.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Hip and Trunk Muscle Activity and Mechanics During Walking With and Without Unilateral Weight",
+      "verifiedAt": "2026-10-07"
     },
     "https://pubmed.ncbi.nlm.nih.gov/34055138/": {
       "foundTitle": "Influence of Trunk Position during Three Lunge Exercises on Muscular Activation in Trained Women.",
@@ -1428,6 +1526,13 @@
       "similarity": 1.0,
       "title": "Non-uniform excitation of the pectoralis major muscle during flat and inclined bench press exercises",
       "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/34704894/": {
+      "foundTitle": "No differences in weightlifting overhead pressing exercises kinetics.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "No differences in weightlifting overhead pressing exercises kinetics",
+      "verifiedAt": "2026-10-07"
     },
     "https://pubmed.ncbi.nlm.nih.gov/34743671/": {
       "foundTitle": "The role of exercise selection in regional Muscle Hypertrophy: A randomized controlled trial.",
@@ -1534,6 +1639,13 @@
       "title": "Greater Hip Moments in Rear-Foot-Elevated Split Squats Than in Conventional Back Squats With the Same Relative Intensity of Loads",
       "verifiedAt": "2026-10-03"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/36730990/": {
+      "foundTitle": "Comparison of Joint-Level Kinetics During Single-Leg and Double-Leg Weightlifting Derivatives.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Comparison of Joint-Level Kinetics During Single-Leg and Double-Leg Weightlifting Derivatives",
+      "verifiedAt": "2026-10-07"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/36918403/": {
       "foundTitle": "Gluteal Muscle Forces during Hip-Focused Injury Prevention and Rehabilitation Exercises.",
       "method": "pubmed-esummary",
@@ -1618,6 +1730,13 @@
       "title": "Hamstring-to-quadriceps activation ratio during lower-limb strengthening exercises",
       "verifiedAt": "2026-10-03"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/38045750/": {
+      "foundTitle": "Effects of Expertise on Muscle Activity during the Hang Power Clean and Hang Power Snatch Compared to Snatch and Clean Pulls - An Explorative Analysis.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Effects of Expertise on Muscle Activity during the Hang Power Clean and Hang Power Snatch Compared to Snatch and Clean Pulls - An Explorative Analysis",
+      "verifiedAt": "2026-10-07"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/38093908/": {
       "foundTitle": "Effects of loading positions on the activation of trunk and hip muscles during flywheel and dumbbell single-leg Romanian deadlift exercises.",
       "method": "pubmed-esummary",
@@ -1639,12 +1758,26 @@
       "title": "Comparative Electromyographic Study of Scapular Stabilizing Muscles During Five Main Rehabilitation Exercises",
       "verifiedAt": "2026-10-03"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/38408047/": {
+      "foundTitle": "The effect of rest redistribution on kinetic and kinematic variables during the hang pull.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "The effect of rest redistribution on kinetic and kinematic variables during the hang pull",
+      "verifiedAt": "2026-10-07"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/38595263/": {
       "foundTitle": "A Biomechanical Comparison Between the Safety-Squat Bar and Traditional Barbell Back Squat.",
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "A Biomechanical Comparison Between the Safety-Squat Bar and Traditional Barbell Back Squat",
       "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/38665162/": {
+      "foundTitle": "The Quantification of Muscle Activation During the Loaded Carry Movement Pattern.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "The Quantification of Muscle Activation During the Loaded Carry Movement Pattern",
+      "verifiedAt": "2026-10-07"
     },
     "https://pubmed.ncbi.nlm.nih.gov/38689585/": {
       "foundTitle": "High-Density Electromyography Excitation in Front vs. Back Lat Pull-Down Prime Movers.",
@@ -1660,12 +1793,33 @@
       "title": "Are Diminishing Potentiation and Large Extensor Moments the Cause for the Occurrence of the Sticking Region in Maximum Free-Weight Barbell Back Squats among Resistance-Trained Males?",
       "verifiedAt": "2026-10-03"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/38689589/": {
+      "foundTitle": "The Effects of Holistic, External, and Internal Attentional Focus Instructions on Power and Kinematics of the Hang Power Snatch in Highly Skilled Weightlifters.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "The Effects of Holistic, External, and Internal Attentional Focus Instructions on Power and Kinematics of the Hang Power Snatch in Highly Skilled Weightlifters",
+      "verifiedAt": "2026-10-07"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/39084328/": {
       "foundTitle": "Shoulder Rotation Affects Trapezius Muscle Activity During Shoulder Horizontal Abduction.",
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "Shoulder Rotation Affects Trapezius Muscle Activity During Shoulder Horizontal Abduction",
       "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/39160505/": {
+      "foundTitle": "Muscle activation in the lower limb muscles in individuals with dynamic knee valgus during single-leg and overhead squats: a meta-analysis study.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Muscle activation in the lower limb muscles in individuals with dynamic knee valgus during single-leg and overhead squats: a meta-analysis study",
+      "verifiedAt": "2026-10-07"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/39182264/": {
+      "foundTitle": "Biomechanical analysis of the snatch technique for elite and varsity weightlifters.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Biomechanical analysis of the snatch technique for elite and varsity weightlifters",
+      "verifiedAt": "2026-10-07"
     },
     "https://pubmed.ncbi.nlm.nih.gov/39214520/": {
       "foundTitle": "Reverse Nordic Curl Does Not Generate Superior Eccentric Activation of the Quadriceps Muscle Than Bodyweight Squat-Based Exercises.",
@@ -1702,6 +1856,13 @@
       "title": "The effects of hip flexion angle on quadriceps femoris muscle hypertrophy in the leg extension exercise",
       "verifiedAt": "2026-10-03"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/39882780/": {
+      "foundTitle": "A comparison of maximal isometric force in the first pull, transition and second pull of the clean and their contribution to predict performance in national and international level weightlifters.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "A comparison of maximal isometric force in the first pull, transition and second pull of the clean and their contribution to predict performance in national and international level weightlifters",
+      "verifiedAt": "2026-10-07"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/3988782/": {
       "foundTitle": "In vivo moment arm lengths for hip extensor muscles at different angles of hip flexion.",
       "method": "pubmed-esummary",
@@ -1722,6 +1883,13 @@
       "similarity": 1.0,
       "title": "Comparison Between Shoulder Flexed and Extended Positions in Elbow Flexion Resistance Training on Regional Hypertrophy and Maximum Strength: Preacher versus Bayesian Cable Curls",
       "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/40086252/": {
+      "foundTitle": "3-Dimensional kinematics and kinetics of the snatch in elite and varsity weightlifters.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "3-Dimensional kinematics and kinetics of the snatch in elite and varsity weightlifters",
+      "verifiedAt": "2026-10-07"
     },
     "https://pubmed.ncbi.nlm.nih.gov/40269203/": {
       "foundTitle": "Acute muscle excitation response across various bench press ranges of motion.",
@@ -1765,6 +1933,13 @@
       "title": "Electromyographic Analysis of Back Muscle Activation During Lat Pulldown Exercise: Effects of Grip Variations and Forearm Orientation",
       "verifiedAt": "2026-10-03"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/41245965/": {
+      "foundTitle": "Impact of Load Variation on Lower Limb Joint Torque during Overhead Squats.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Impact of Load Variation on Lower Limb Joint Torque during Overhead Squats",
+      "verifiedAt": "2026-10-07"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/41318473/": {
       "foundTitle": "Persistent neuromuscular deficits in the posterior kinetic chain following hamstring strain injury: EMG insights from nordic hamstring curl, kettlebell swing, and supine sliding leg curl.",
       "method": "pubmed-esummary",
@@ -1779,6 +1954,13 @@
       "title": "Regional Activation of the Latissimus Dorsi Muscle by High-Density Surface Electromyography During Isometric Shoulder and Trunk Exercises",
       "verifiedAt": "2026-10-03"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/41352184/": {
+      "foundTitle": "Biomechanical and neuromuscular differences between the snatch and clean in elite weightlifters.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Biomechanical and neuromuscular differences between the snatch and clean in elite weightlifters",
+      "verifiedAt": "2026-10-07"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/41612762/": {
       "foundTitle": "Heel elevation increases ankle and knee range of motion during squatting in healthy adults: a systematic review with meta-analysis.",
       "method": "pubmed-esummary",
@@ -1792,6 +1974,13 @@
       "similarity": 1.0,
       "title": "Hypertrophic Effects of Single- versus Multi-Joint Exercise: A Direct Comparison between Knee Extension and Leg Press",
       "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/41679289/": {
+      "foundTitle": "Kinematic Comparison of Successful Split Jerk and Unsuccessful Frontward Barbell Drop Among Japanese National-Level Male Weightlifters.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Kinematic Comparison of Successful Split Jerk and Unsuccessful Frontward Barbell Drop Among Japanese National-Level Male Weightlifters",
+      "verifiedAt": "2026-10-07"
     },
     "https://pubmed.ncbi.nlm.nih.gov/41766814/": {
       "foundTitle": "Effects of Barbell Squats with Asymmetric Loading on the Joint Moment and Muscle Activity of Lower Limbs.",
@@ -1848,6 +2037,13 @@
       "similarity": 1.0,
       "title": "Electromyographic Analysis of Latissimus Dorsi Activation During Common Resistance Training Exercises: A Narrative Review",
       "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/42713087/": {
+      "foundTitle": "High-Density Surface Electromyography Excitation in Front vs. Back Overhead Press Prime Movers.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "High-Density Surface Electromyography Excitation in Front vs. Back Overhead Press Prime Movers",
+      "verifiedAt": "2026-10-07"
     },
     "https://pubmed.ncbi.nlm.nih.gov/8775157/": {
       "foundTitle": "High- and low-bar squatting techniques during weight-training.",

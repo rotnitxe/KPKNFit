@@ -1038,6 +1038,403 @@
         ]
       }
     },
+    "overhead_squat": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Flexión profunda y extensión de la cadera"
+            ],
+            "id": "cadera",
+            "role": "PRIMARY",
+            "sources": [
+              "ikeda2025",
+              "anat_hip"
+            ],
+            "why": "La cadera se flexiona por debajo de las rodillas y se extiende al subir. Ikeda et al. midieron que su par relativo crece con la carga en la sentadilla con la barra sobre la cabeza, y que ese par depende de la inclinación del tronco en el fondo."
+          },
+          {
+            "actions": [
+              "Flexión profunda y extensión de la rodilla"
+            ],
+            "id": "rodilla",
+            "role": "PRIMARY",
+            "sources": [
+              "ikeda2025",
+              "dinis2021",
+              "anat_knee"
+            ],
+            "why": "La rodilla se flexiona a fondo y se extiende al subir. Ikeda et al. señalan que el par de la rodilla no aumentó con la carga en esta sentadilla, y Dinis et al. describen cómo se alinea con el pie en el fondo."
+          },
+          {
+            "actions": [
+              "Dorsiflexión en el descenso",
+              "Flexión plantar al subir"
+            ],
+            "id": "tobillo",
+            "role": "SECONDARY",
+            "sources": [
+              "anat_ankle"
+            ],
+            "why": "El tobillo se dobla hacia el empeine para que las rodillas avancen con el tronco erguido y se extiende al subir; es una deducción de la posición del fondo, sin medición de esta sentadilla en las fuentes."
+          },
+          {
+            "actions": [
+              "Extensión torácica con los brazos sobre la cabeza"
+            ],
+            "id": "columna-toracica",
+            "role": "STABILIZER",
+            "sources": [
+              "ikeda2025",
+              "anat_back"
+            ],
+            "why": "La columna torácica debe permanecer extendida para que los brazos queden verticales; es una deducción de la función de los músculos de la espalda, ya que Ikeda et al. no la midieron y solo relacionaron una mayor flexibilidad del hombro con más inclinación del tronco inferior en el fondo."
+          },
+          {
+            "actions": [
+              "Posición neutra con la carga sobre la cabeza"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "roth2020",
+              "anat_back"
+            ],
+            "why": "La columna lumbar resiste la tendencia de la barra alta a inclinar el tronco; la actividad del abdomen y de los erectores fue la mayor de las tres sentadillas con la barra encima de la cabeza en Roth et al."
+          },
+          {
+            "actions": [
+              "Sostén del brazo en elevación con abducción y rotación externa"
+            ],
+            "id": "glenohumeral",
+            "role": "STABILIZER",
+            "sources": [
+              "ikeda2025",
+              "anat_rotator_cuff"
+            ],
+            "why": "El hombro conserva su posición con el brazo vertical mientras el cuerpo baja y sube; Ikeda et al. ligaron la flexibilidad del hombro con la postura del fondo y el manguito rotador centra la cabeza del húmero."
+          },
+          {
+            "actions": [
+              "Rotación superior mantenida de la escápula"
+            ],
+            "id": "escapulotoracica",
+            "role": "STABILIZER",
+            "sources": [
+              "anat_trapezius"
+            ],
+            "why": "La escápula permanece rotada hacia arriba bajo la barra; el trapecio la sostiene, según la descripción anatómica de sus fibras."
+          },
+          {
+            "actions": [
+              "Bloqueo del codo bajo la barra"
+            ],
+            "id": "codo",
+            "role": "STABILIZER",
+            "sources": [
+              "anat_triceps"
+            ],
+            "why": "Los codos se mantienen extendidos durante todo el recorrido, sin cambiar de ángulo, con el tríceps sosteniéndolos."
+          },
+          {
+            "actions": [
+              "Extensión de la muñeca con la barra sobre la cabeza"
+            ],
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "sources": [
+              "anat_forearm",
+              "anat_wrist_ext"
+            ],
+            "why": "La muñeca queda extendida bajo la barra y la mano la sostiene con los dedos cerrados; es una deducción de la función del antebrazo."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "quadriceps",
+            "role": "PRIMARY",
+            "sources": [
+              "dinis2021",
+              "khou2024",
+              "anat_quadriceps"
+            ],
+            "why": "Extiende la rodilla para subir desde el fondo. Los vastos lateral y medial se registraron en la sentadilla de arranque en el trabajo de Dinis et al., y el metaanálisis posterior de Khou et al. los incluye entre los músculos que comparó en personas con valgo dinámico; es el primer músculo principal por ser una sentadilla profunda con el tronco casi vertical."
+          },
+          {
+            "id": "gluteus_maximus",
+            "role": "PRIMARY",
+            "sources": [
+              "ikeda2025",
+              "anat_glute_max"
+            ],
+            "why": "Extiende la cadera al salir del fondo. Ikeda et al. comprobaron que el par de cadera en la sentadilla con la barra sobre la cabeza aumentaba con la carga mientras el de la rodilla no lo hacía, lo que apunta a los extensores de la cadera como los que absorben el peso añadido."
+          },
+          {
+            "id": "adductors",
+            "role": "SECONDARY",
+            "sources": [
+              "dinis2021",
+              "kubo2019",
+              "anat_adductor_magnus"
+            ],
+            "why": "Ayudan a extender la cadera en la sentadilla profunda con las rodillas abiertas. Dinis et al. midieron el aductor mayor en la sentadilla de arranque y Kubo et al. vieron que la sentadilla completa aumentaba el volumen de los aductores más que la media."
+          },
+          {
+            "id": "deltoid",
+            "role": "STABILIZER",
+            "sources": [
+              "ikeda2025",
+              "anat_deltoid"
+            ],
+            "why": "Sostiene el brazo alzado con el peso arriba en isometría. Ikeda et al. relacionaron la flexibilidad del hombro con la inclinación del tronco en el fondo; no se cita electromiografía del deltoides en esta sentadilla."
+          },
+          {
+            "id": "trapezius",
+            "role": "STABILIZER",
+            "sources": [
+              "anat_trapezius"
+            ],
+            "why": "Gira la escápula hacia arriba y la fija para sostener la barra encima de la cabeza; es una deducción de la función de las fibras superiores e inferiores del trapecio, sin medición en esta sentadilla."
+          },
+          {
+            "id": "triceps",
+            "role": "STABILIZER",
+            "sources": [
+              "anat_triceps"
+            ],
+            "why": "Mantiene los codos bloqueados bajo el peso durante todo el recorrido; la función primaria del músculo es extender el codo, y aquí lo hace sin que el codo se mueva."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "roth2020",
+              "anat_back"
+            ],
+            "why": "Mantiene la espalda erguida con una carga que tira del tronco hacia delante desde lo alto. Roth et al. hallaron en la sentadilla con la barra sobre la cabeza la mayor actividad del erector espinal de las tres posiciones, con poco peso y en principiantes."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "roth2020",
+              "anat_abdominal"
+            ],
+            "why": "La pared abdominal frena que el tronco se incline hacia delante bajo la barra alta. Según Roth et al., la sentadilla con la barra sobre la cabeza dio la mayor actividad del oblicuo externo de las tres que compararon."
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "sources": [
+              "anat_forearm"
+            ],
+            "why": "Los dedos cierran la mano sobre la barra con un agarre ancho durante todo el recorrido; el papel se deduce de la anatomía del antebrazo, sin medición propia."
+          }
+        ]
+      },
+      "public": {
+        "configurations": {
+          "overhead_squat__barbell": {
+            "description": "La barra sube desde un soporte hasta quedar sobre la cabeza con los brazos estirados, y el cuerpo baja al fondo de la sentadilla, siempre sobre el centro del pie. Con el peso arriba, cualquier inclinación del tronco se nota enseguida, y por eso se usa menos carga que en la sentadilla trasera.",
+            "executionCues": [
+              "Baja la cadera entre los talones, con el pecho alto y la barra sobre el centro del pie.",
+              "Abre las rodillas siguiendo la línea de los pies y baja hasta donde llegue tu movilidad sin redondear la espalda.",
+              "Empuja el suelo para subir, con los brazos estirados y la barra sin salirse de su vertical."
+            ],
+            "setupCues": [
+              "Con el agarre ancho de arranque, descuelga la barra, llévala a los hombros y empújala sobre la cabeza hasta bloquear los codos.",
+              "Da un paso atrás con la barra arriba y coloca los pies algo más anchos que los hombros, con las puntas ligeramente abiertas.",
+              "Empuja la barra hacia el techo para activar los hombros y deja el abdomen firme."
+            ]
+          }
+        },
+        "description": "La Sentadilla de Arranque (overhead squat) es una sentadilla profunda con la barra sostenida a pulso sobre la cabeza, con los brazos bloqueados y un agarre ancho. Trabaja el cuádriceps y el glúteo mayor, con los aductores de apoyo, mientras el deltoides, el trapecio y el tríceps sostienen el peso arriba. En un estudio con principiantes y poco peso, el abdomen y el erector espinal se activaron más con la barra sobre la cabeza que con ella delante o detrás. La barra, alta y siempre sobre el centro del pie, delata cualquier límite de recorrido en hombros, espalda alta, caderas y tobillos, por eso se usa con cargas ligeras como práctica del fondo del arranque."
+      },
+      "sources": [
+        {
+          "claim": "En 12 adultos, comparó la sentadilla con poco peso con la barra detrás, delante y sobre la cabeza: la actividad de los músculos del tronco aumentaba con la dificultad de la carga delantera o elevada, con las mayores cifras del oblicuo externo y del erector espinal en la sentadilla con la barra sobre la cabeza.",
+          "id": "roth2020",
+          "title": "Trunk muscle activity during different types of low weighted squat exercises in normal and forefoot standing conditions",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/32746728/"
+        },
+        {
+          "claim": "En 14 estudiantes, la sentadilla con la barra sobre la cabeza con el 20 y el 40 % del peso corporal aumentó el par de la cadera sin aumentar el de la rodilla, y una mayor flexibilidad del hombro se relacionó con más inclinación hacia delante del tronco inferior en el fondo.",
+          "id": "ikeda2025",
+          "title": "Impact of Load Variation on Lower Limb Joint Torque during Overhead Squats",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/41245965/"
+        },
+        {
+          "claim": "En 22 mujeres que hicieron la sentadilla de arranque (overhead squat), registró electromiografía y cinemática del miembro inferior y halló más actividad del aductor mayor, el bíceps femoral y los vastos lateral y medial en las que mostraban desplazamiento medial de la rodilla durante la fase excéntrica.",
+          "id": "dinis2021",
+          "title": "Electromyographic and kinematic analysis of females with excessive medial knee displacement in the overhead squat",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/33607358/"
+        },
+        {
+          "claim": "El metaanálisis de cuatro estudios con 130 participantes halló más actividad del aductor mayor, los vastos medial y lateral, el bíceps femoral y el tibial anterior en personas con valgo dinámico de rodilla durante las sentadillas a una pierna y las de arranque (con los brazos sobre la cabeza).",
+          "id": "khou2024",
+          "title": "Muscle activation in the lower limb muscles in individuals with dynamic knee valgus during single-leg and overhead squats: a meta-analysis study",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/39160505/"
+        },
+        {
+          "claim": "Diez semanas de sentadilla completa aumentaron el volumen de los extensores de la rodilla, de los aductores (6,2 %) y del glúteo mayor (6,7 %); aductores y glúteo crecieron más que con media sentadilla.",
+          "id": "kubo2019",
+          "title": "Effects of squat training with different depths on lower limb muscle volumes",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31230110/"
+        },
+        {
+          "claim": "Describe el cuádriceps femoral como el músculo más voluminoso del cuerpo, con funciones sobre la rodilla y la cadera; su función extensora de rodilla es la base de su papel en las extensiones y los apoyos.",
+          "id": "anat_quadriceps",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Thigh Quadriceps Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30020706/"
+        },
+        {
+          "claim": "Describe la región glútea y al glúteo mayor como músculo superficial de gran tamaño relacionado con la extensión de la cadera, el movimiento dinámico y la estabilidad erguida.",
+          "id": "anat_glute_max",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Maximus Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30855781/"
+        },
+        {
+          "claim": "Describe los aductores, su sostén pélvico y las porciones del aductor mayor, entre ellas la isquiocondílea que ayuda a extender la cadera.",
+          "id": "anat_adductor_magnus",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Thigh Adductor Magnus Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30521263/"
+        },
+        {
+          "claim": "Describe las acciones y la estabilidad del deltoides; las porciones del músculo son clave para el movimiento y la estabilidad del hombro.",
+          "id": "anat_deltoid",
+          "title": "Anatomy, Shoulder and Upper Limb, Deltoid Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725741/"
+        },
+        {
+          "claim": "Describe las fibras superiores del trapecio como elevadoras y rotadoras superiores de la escápula, las medias como retractoras y las inferiores como depresoras; el músculo estabiliza y mueve la escápula.",
+          "id": "anat_trapezius",
+          "title": "Anatomy, Back, Trapezius",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30085536/"
+        },
+        {
+          "claim": "La función primaria del tríceps braquial es extender el codo.",
+          "id": "anat_triceps",
+          "title": "Anatomy, Shoulder and Upper Limb, Triceps Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725681/"
+        },
+        {
+          "claim": "Describe la pared abdominal como estructura capaz de generar presión intraabdominal y mover la columna; sustenta su capacidad de fijar el tronco.",
+          "id": "anat_abdominal",
+          "title": "Anatomy, Abdomen and Pelvis: Abdominal Wall",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31869113/"
+        },
+        {
+          "claim": "Describe los músculos intrínsecos o profundos de la espalda, unidos a la columna, como los músculos propios de la espalda; su anatomía sustenta la extensión y el sostén de la columna.",
+          "id": "anat_back",
+          "title": "Anatomy, Back, Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725759/"
+        },
+        {
+          "claim": "Describe los compartimentos del antebrazo y los flexores de dedos y muñeca que sostienen el agarre.",
+          "id": "anat_forearm",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/"
+        },
+        {
+          "claim": "Los extensores de la muñeca la mantienen en ligera extensión durante el agarre para que los flexores puedan hacer fuerza.",
+          "id": "anat_wrist_ext",
+          "title": "Anatomy, Shoulder and Upper Limb, Wrist Extensor Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30521226/"
+        },
+        {
+          "claim": "Describe la cadera como articulación que soporta dinámicamente el peso del tronco y transmite carga entre esqueleto axial y miembros inferiores.",
+          "id": "anat_hip",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hip Joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29262200/"
+        },
+        {
+          "claim": "Explica la flexión y la extensión de la rodilla y la importancia de su apoyo muscular para estabilizarla.",
+          "id": "anat_knee",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Knee",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29763193/"
+        },
+        {
+          "claim": "Describe la dorsiflexión y la flexión plantar de la articulación del tobillo y sus elementos estabilizadores.",
+          "id": "anat_ankle",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Ankle Joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31424742/"
+        },
+        {
+          "claim": "El manguito rotador está entre los estabilizadores dinámicos de la articulación glenohumeral, que es muy móvil pero tiene poca estabilidad propia.",
+          "id": "anat_rotator_cuff",
+          "title": "Anatomy, Rotator Cuff",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/28722874/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Sentadilla profunda con la barra sostenida con los brazos bloqueados sobre la cabeza y un agarre ancho de arranque: la carga permanece sobre el centro del pie durante todo el recorrido y el tronco se mantiene casi vertical. Se separa de las sentadillas frontal y trasera por la posición de la barra, y del arranque completo porque la barra parte de un soporte en lugar de subirla el atleta con un tirón.",
+        "keyPositions": [
+          "Inicio: erguido, con la carga alzada a pulso, el agarre abierto y la línea de la barra pasando por la mitad de los pies.",
+          "Fondo: pliegue de la cadera más bajo que las rodillas, torso casi recto, rodillas alineadas con los pies y la barra aún encima de la mitad del pie."
+        ],
+        "mistakes": [
+          "Dejar caer la barra por delante de la cabeza al bajar, con lo que el tronco se inclina para compensar.",
+          "Doblar los codos o dejar que los hombros se hundan bajo la barra.",
+          "Despegar los talones del suelo cuando falta movilidad de tobillo.",
+          "Cerrar las rodillas hacia el eje del cuerpo en el fondo de la sentadilla."
+        ],
+        "phases": [
+          {
+            "description": "De pie, con los brazos estirados sobre la cabeza, el agarre ancho y los pies algo más abiertos que los hombros.",
+            "name": "Posición de partida"
+          },
+          {
+            "description": "La cadera baja entre los talones mientras la barra se mantiene quieta sobre el centro del pie y el pecho sigue alto.",
+            "name": "Descenso"
+          },
+          {
+            "description": "El cuerpo llega a la mayor profundidad que permiten sus articulaciones, con los codos bloqueados y el tronco casi vertical.",
+            "name": "Fondo"
+          },
+          {
+            "description": "Las piernas empujan el suelo y el cuerpo se levanta con la barra todavía arriba hasta recuperar la posición de partida.",
+            "name": "Subida"
+          }
+        ],
+        "setup": [
+          "Barra sacada del soporte y empujada sobre la cabeza con un agarre ancho, con los brazos bloqueados.",
+          "Pies algo más anchos que los hombros, con las puntas ligeramente hacia fuera.",
+          "Tronco erguido, hombros activos empujando contra la barra y la mirada al frente."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral pura a la altura de la cadera, con el atleta entero de la cabeza a los pies y la barra sobre su cabeza dentro del encuadre.",
+          "contacts": "Pies planos en el suelo algo más anchos que los hombros; las manos agarran la barra muy abiertas con los brazos estirados sobre la cabeza.",
+          "load": "Barra cargada con discos a ambos lados, sostenida sobre la cabeza y sin tocar el suelo.",
+          "orientation": "Atleta de perfil con la cara hacia el lado derecho del encuadre, la barra sobre su cabeza y las rodillas siguiendo la línea de los pies.",
+          "phase": "Fondo de la sentadilla de arranque: sentadilla profunda con la barra sobre la cabeza y los brazos bloqueados, justo antes de subir.",
+          "posture": "Cadera por debajo de las rodillas, tronco erguido, codos bloqueados, hombros empujando hacia arriba y mirada al frente."
+        },
+        "byImplement": {
+          "barbell": {
+            "geometry": "Barra olímpica recta horizontal sobre la cabeza, alineada con la nuca y las orejas y sobre el centro de los pies, con las manos mucho más abiertas que los hombros; los discos cuelgan a ambos lados, separados del suelo."
+          }
+        },
+        "forbidden": [
+          "Barra sobre la espalda alta o sobre los hombros: eso es una sentadilla trasera o frontal.",
+          "Barra en el suelo o a media altura: eso es el tirón de un arranque.",
+          "Muslos por encima de la horizontal con el atleta a medio descenso.",
+          "Codos doblados o barra por delante de la cabeza sin bloquear.",
+          "Barra flotando sin que las manos la agarren."
+        ],
+        "promptCore": {
+          "barbell": "Side view of an athlete frozen at the BOTTOM of an overhead squat. The straight Olympic barbell is held directly overhead, above the middle of the feet, with both arms fully locked out and the hands gripping the bar tightly with a wide grip. The hips are below the knees, the torso is almost upright, the knees track over the toes and the eyes look forward. Both feet are flat on the floor, slightly wider than the shoulders with the toes turned out. Rubber bumper plates hang clear of the floor on both ends of the bar. No text or logos."
+        },
+        "qa": [
+          "¿Las manos agarran la barra y la carga no flota suelta?",
+          "¿La barra está sobre la cabeza y los codos están bloqueados?",
+          "¿La cadera está por debajo de las rodillas y el tronco erguido?",
+          "¿Los talones están apoyados y las rodillas siguen la línea de los pies?"
+        ]
+      }
+    },
     "paused_back_squat": {
       "anatomy": {
         "joints": [

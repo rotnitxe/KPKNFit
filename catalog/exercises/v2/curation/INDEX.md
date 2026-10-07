@@ -1,8 +1,8 @@
 # Índice del catálogo de ejercicios v2
 
 Revisión: `v2-approved-2026-09-29-a` · Ontología: `wikilab-v3-2026-08-08`
-96 familias · 215 definiciones · 539 configuraciones
-Hash canónico: `c30a5c2e61b9d2f7…`
+96 familias · 228 definiciones · 553 configuraciones
+Hash canónico: `8e70937474a217c8…`
 
 Artefacto informativo generado por `scripts/merge_catalog_v2_families.py`.
 No editar a mano: se regenera en cada merge.
@@ -88,9 +88,18 @@ No editar a mano: se regenera en cada merge.
 | lower_hip_hinge_deficit | hams_peso_muerto_sumo_deficit | Peso Muerto Sumo en Déficit |  | 1 |
 | lower_hip_hinge_explosive | hams_swing_kettlebell_dos_manos | Swing con Kettlebell a Dos Manos |  | 1 |
 | lower_hip_hinge_explosive | hams_swing_kettlebell_unilateral | Swing con Kettlebell a Una Mano |  | 1 |
+| lower_hip_hinge_explosive | power_clean | Cargada de Potencia |  | 1 |
+| lower_hip_hinge_explosive | hang_power_clean | Cargada de Potencia desde Colgado |  | 1 |
+| lower_hip_hinge_explosive | squat_clean | Cargada Completa |  | 1 |
+| lower_hip_hinge_explosive | power_snatch | Arranque de Potencia |  | 1 |
+| lower_hip_hinge_explosive | hang_power_snatch | Arranque de Potencia desde Colgado |  | 1 |
+| lower_hip_hinge_explosive | squat_snatch | Arranque Completo |  | 1 |
+| lower_hip_hinge_explosive | clean_pull | Tirón de Cargada |  | 1 |
+| lower_hip_hinge_explosive | snatch_pull | Tirón de Arranque |  | 1 |
 | lower_hip_hinge_lengthened | stiff_leg_deadlift | Peso Muerto Piernas Rígidas | implement, laterality | 8 |
 | lower_isometric_grip | forearms_suspension_isometrica_barra_fija | Suspensión Isométrica en Barra Fija (Dead Hang) |  | 1 |
 | lower_isometric_grip | forearms_paseo_del_granjero | Paseo del Granjero | implement | 4 |
+| lower_isometric_grip | suitcase_carry | Paseo del Maletín | implement | 2 |
 | lower_knee_dominant | front_squat | Sentadilla Frontal | implement | 5 |
 | lower_knee_dominant | high_bar_back_squat | Sentadilla Trasera con Barra Alta | implement | 3 |
 | lower_knee_dominant | low_bar_back_squat | Sentadilla Trasera con Barra Baja | implement | 2 |
@@ -109,6 +118,7 @@ No editar a mano: se regenera en cada merge.
 | lower_knee_dominant | quads_sentadilla_sin_carga | Sentadilla Sin Carga |  | 1 |
 | lower_knee_dominant | paused_back_squat | Sentadilla Trasera con Pausa |  | 1 |
 | lower_knee_dominant | wall_sit | Sentadilla en Pared |  | 1 |
+| lower_knee_dominant | overhead_squat | Sentadilla de Arranque |  | 1 |
 | lower_knee_dominant_asymmetric | quads_sentadilla_jefferson | Sentadilla Jefferson |  | 1 |
 | lower_knee_dominant_belt_squat | belt_squat | Sentadilla "Belt Squat" | laterality | 2 |
 | lower_knee_dominant_pendulum | pendulum_squat | Sentadilla en Máquina Pendular | laterality | 2 |
@@ -135,6 +145,7 @@ No editar a mano: se regenera en cada merge.
 | lower_spinal_extension | back_extension_lumbar | Hiperextensiones de Espalda Baja |  | 1 |
 | lower_spinal_extension | back_superman_suelo | Superman en Suelo |  | 1 |
 | lower_spinal_extension | back_hiperextension_45_zercher_espalda_baja | Hiperextensión a 45 Zercher para Espalda Baja |  | 1 |
+| lower_spinal_extension | zercher_carry | Paseo Zercher |  | 1 |
 | lower_spinal_flexion | back_jefferson_curl | Jefferson Curl | implement | 4 |
 | lower_step_up | step_up | Step-Up a Cajón | implement | 6 |
 | lower_unilateral_hip_dominant | glutes_step_up_gluteo | Step-Up de Glúteo |  | 1 |
@@ -222,5 +233,7 @@ No editar a mano: se regenera en cada merge.
 | upper_vertical_pull_pullover | seated_machine_pullover | Pull Over Sentado en Máquina |  | 1 |
 | upper_vertical_push | deltoides_push_press | Push Press |  | 1 |
 | upper_vertical_push | pike_push_up | Flexiones en Pica | support_angle | 2 |
+| upper_vertical_push | push_jerk | Envión de Empuje |  | 1 |
+| upper_vertical_push | split_jerk | Envión de Tijera |  | 1 |
 | upper_vertical_push_military_press | military_press | Press Militar | implement | 6 |
 | upper_vertical_push_seated_press | seated_shoulder_press | Press de Hombros Sentado | implement | 6 |

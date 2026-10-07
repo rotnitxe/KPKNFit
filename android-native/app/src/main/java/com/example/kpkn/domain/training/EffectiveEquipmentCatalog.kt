@@ -154,6 +154,13 @@ internal val LEGACY_SUPPORT_ATTESTED_REQUIREMENTS: Set<String> = setOf(
  * step-up y la sentadilla búlgara sin carga piden un apoyo elevado ([ELEVATED_SUPPORT_CONFIGURATIONS]). El resto de las
  * altas (dead bug, bird dog, plancha lateral, hollow body, sentadilla en pared, pica plana, flexiones diamante y
  * arquero y las zancadas, sumo, sissy, rumano a una pierna y buenos días sin carga) no necesita ningún soporte.
+ *
+ * Lote OL-1 (halterofilia y acarreos): los dos enviones y la sentadilla de arranque parten de un soporte (la barra se
+ * retira del rack, al hombro o sobre la cabeza), así que piden rack como las sentadillas con barra
+ * ([RACK_OVERHEAD_CONFIGURATIONS]). Las cargadas, los arranques y los tirones se levantan del suelo, y los paseos del
+ * maletín (una pesa en la mano) y Zercher (la barra se levanta del suelo hasta los codos) no piden nada: ningún soporte
+ * nuevo. Los discos de goma y la plataforma que piden las cargadas y los arranques para poder soltar la barra no tienen
+ * símbolo ni llave en el paso de material: ni se acreditan ni se exigen.
  */
 internal fun supportRequirementsFor(configurationId: String): Set<String> = when {
     // Banca: exige banco; la variante de barra exige además rack; las
@@ -178,6 +185,8 @@ internal fun supportRequirementsFor(configurationId: String): Set<String> = when
         setOf(REQUIREMENT_BENCH, REQUIREMENT_BENCH_INCLINE)
     // Sentadillas de barra descargadas de un soporte.
     configurationId in RACK_SQUAT_CONFIGURATIONS -> setOf(REQUIREMENT_RACK)
+    // Lote OL-1: enviones y sentadilla de arranque, que parten de un soporte.
+    configurationId in RACK_OVERHEAD_CONFIGURATIONS -> setOf(REQUIREMENT_RACK)
     // Hip thrust con banda: la espalda alta se apoya en un banco.
     configurationId.startsWith(HIP_THRUST_PREFIX) && configurationId.endsWith(BAND_SUFFIX) ->
         setOf(REQUIREMENT_BENCH)
@@ -262,6 +271,17 @@ private val RACK_SQUAT_CONFIGURATIONS = setOf(
     "high_bar_back_squat__safety_bar",
     "quads_sentadilla_cajon__default",
     "quads_sentadilla_anderson__default",
+)
+
+/**
+ * Lote OL-1: levantamientos con barra que arrancan desde un soporte, con la barra en el rack frontal o sobre la cabeza: el
+ * envión de empuje, el envión de tijera y la sentadilla de arranque. El resto de las altas del lote (cargadas, arranques, tirones y paseos)
+ * no pide rack: se levantan del suelo.
+ */
+private val RACK_OVERHEAD_CONFIGURATIONS = setOf(
+    "push_jerk__barbell",
+    "split_jerk__barbell",
+    "overhead_squat__barbell",
 )
 
 // ─── Mapeo curado clave → configuraciones (§13.2 «Habilita / no habilita») ───
