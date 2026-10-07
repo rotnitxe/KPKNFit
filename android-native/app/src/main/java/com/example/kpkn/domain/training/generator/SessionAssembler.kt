@@ -18,10 +18,8 @@ import com.example.kpkn.data.protocols.PlanLoadReferenceKind
 import com.example.kpkn.data.protocols.PlanLoadReferenceState
 import com.example.kpkn.data.protocols.SlotRole
 import com.example.kpkn.data.protocols.TechniqueModifier
-import com.example.kpkn.domain.exercises.catalogv2.JointRoleV2
 import com.example.kpkn.domain.onboarding.TrainingPlace
 import com.example.kpkn.domain.training.NativeLoadConventions
-import com.example.kpkn.domain.training.approach.ApproachExerciseInfo
 import com.example.kpkn.domain.training.approach.ApproachLevel
 import com.example.kpkn.domain.training.approach.ApproachOptions
 import com.example.kpkn.domain.training.approach.ApproachPlanner
@@ -64,7 +62,9 @@ internal data class AssembledSession(
  * - Con más tiempo del que la fuerza absorbe de forma útil (tope por nivel: 70/80/110/130 min) o cuando el material y los
  *   techos de volumen ya no dan más ejercicios, el sobrante va a movilidad y cardio suave. Un bloque de cardio no pasa de 40
  *   min en intervalos ni de 75 continuo (`CardioBuilder.split`).
- * - La aproximación la pone `ApproachPlanner` (D3) al final: su sobrecarga de tiempo se mide con el estimador y se descuenta.
+ * - La aproximación la pone `ApproachPlanner` (D3) al final, con el MISMO proveedor de datos del catálogo que el materializador de
+ *   planes (`GeneratorCatalog.approachInfoOf`): su sobrecarga de tiempo (rampa y movilidad) se mide con el estimador común y se
+ *   descuenta, y una segunda pasada del materializador no cambia nada.
  */
 internal object SessionAssembler {
 
@@ -120,17 +120,6 @@ internal object SessionAssembler {
         RoutineLevel.NOVICE, RoutineLevel.RETURNING -> ApproachLevel.NOVICE
         RoutineLevel.INTERMEDIATE -> ApproachLevel.INTERMEDIATE
         RoutineLevel.ADVANCED -> ApproachLevel.ADVANCED
-    }
-
-    private fun approachInfo(entry: CatalogEntry): ApproachExerciseInfo {
-        val joints = entry.configuration.profile.jointInvolvement
-            .filter { it.role == JointRoleV2.PRIMARY || it.role == JointRoleV2.SECONDARY }
-            .mapTo(LinkedHashSet()) { it.jointId }
-        if (entry.axialLoadFactor >= 0.5) joints += "columna-lumbar"
-        val loadable = entry.tier == EquipmentTier.BARBELL || entry.tier == EquipmentTier.DUMBBELL ||
-            entry.tier == EquipmentTier.MACHINE || entry.tier == EquipmentTier.CABLE ||
-            entry.tier == EquipmentTier.SMITH || entry.tier == EquipmentTier.KETTLEBELL
-        return ApproachExerciseInfo(joints = joints, isCompound = entry.isCompound, canBeHeavy = entry.isCompound && loadable)
     }
 
     // ─── Estado mutable de la sesión mientras se ajusta ──────────────────────────────────────────────────────
@@ -541,12 +530,7 @@ internal object SessionAssembler {
 
     private fun approach(ctx: GenContext, session: Session): Session {
         if (session.exercises.isEmpty()) return session
-        return ApproachPlanner.apply(
-            session,
-            ApproachOptions(level = approachLevel(ctx.level)),
-        ) { exercise ->
-            exercise.catalogConfigurationId?.let { ctx.catalog.entry(it) }?.let(::approachInfo)
-        }
+        return ApproachPlanner.apply(session, ApproachOptions(level = approachLevel(ctx.level)), ctx.catalog.approachInfoOf)
     }
 
     // ─── Prescripción ──────────────────────────────────────────────────────────────────────────────────────
