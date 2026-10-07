@@ -1,6 +1,7 @@
 package com.example.kpkn.domain.training.generator
 
 import java.io.File
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -203,5 +204,10 @@ class RoutineMatrixReportTest {
         file.writeText(out.toString())
         println(out.lines().take(40).joinToString("\n"))
         assertTrue(file.exists() && file.length() > 1000)
+        // Con 45 min o más la rampa y la movilidad del planificador real caben en la ventana: ninguna sesión fuera, en ningún perfil,
+        // modo, nivel ni número de días. Con 20 y 30 min los tres ejercicios mínimos (con sus descansos mínimos), el calentamiento y la
+        // aproximación pueden pasarse y la rutina lo dice en una nota «Tiempo:» (lo comprueba el barrido).
+        val outsideFrom45 = cells.filter { it.minutes >= 45 }.sumOf { it.routine.report.minutesMisses }
+        assertEquals("sesiones fuera de la ventana con 45 min o más", 0, outsideFrom45)
     }
 }

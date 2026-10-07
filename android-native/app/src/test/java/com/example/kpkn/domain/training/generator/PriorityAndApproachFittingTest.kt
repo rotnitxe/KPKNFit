@@ -134,6 +134,43 @@ class PriorityAndApproachFittingTest {
         assertFalse(plain.notes.any { it.contains("tus prioridades") })
     }
 
+    // ─── (4) El bloque de cardio que no cabe con la aproximación sale entero, con aviso ────────────────────
+
+    @Test
+    fun a_cardio_block_that_cannot_fit_with_the_approach_leaves_the_session_whole_and_says_so() {
+        // Con 30 min, un bloque de cardio de 10 min más tres ejercicios con su rampa y su movilidad pasaba de la ventana (hasta +11 min):
+        // el bloque no se recorta, así que si la fuerza ya está en su mínimo sale entero de ESA sesión y la rutina lo dice.
+        var omitted = 0
+        var kept = 0
+        val problems = ArrayList<String>()
+        for (profile in listOf(s.gym, s.homeBarbell, s.homeDumbbellsBand)) for (mode in listOf(RoutineMode.GENERAL_HYBRID, RoutineMode.GENERAL_FUNCTIONAL)) {
+            for (level in listOf(RoutineLevel.INTERMEDIATE, RoutineLevel.ADVANCED)) for (days in listOf(1, 2, 4)) {
+                val routine = RoutineGenerator.generate(s.request(profile, mode, level, days, 30))
+                val label = "${profile.id} ${mode.name} ${level.name} ${days}d"
+                val window = routine.report.minutesWindow
+                val above = routine.report.sessionMinutes.filter { it > window.last }
+                // Una sesión muy por encima de la ventana no puede conservar el bloque de cardio: quitarlo la acerca más (el bloque dura unos
+                // 11 min, así que hasta 2 min por encima de la ventana el bloque se queda porque sin él la sesión quedaría más lejos).
+                routine.report.sessions.forEachIndexed { position, session ->
+                    val minutes = routine.report.sessionMinutes[position]
+                    if (minutes > window.last + 2 && session.hasCardio && session.kind != RoutineSessionKind.CARDIO) {
+                        problems += "$label: ${session.title} dura $minutes min (ventana $window) y conserva el bloque de cardio"
+                    }
+                }
+                val hasNote = routine.notes.any { it.contains("no cabe un bloque de cardio") }
+                if (hasNote) omitted++ else kept++
+                if (above.isNotEmpty() && routine.notes.none { it.startsWith("Tiempo:") }) problems += "$label: sesiones por encima de la ventana sin nota de tiempo"
+            }
+        }
+        assertTrue("el bloque de cardio no sale cuando hace falta:\n${problems.joinToString("\n")}", problems.isEmpty())
+        assertTrue("la prueba no vio ninguna sesión sin cardio por falta de tiempo", omitted > 0)
+        println("Cardio a 30 min: $omitted rutinas sin el bloque en alguna sesión, $kept con todos sus bloques")
+        // Con tiempo de sobra (60 min) los bloques se conservan.
+        val roomy = RoutineGenerator.generate(s.request(s.gym, RoutineMode.GENERAL_FUNCTIONAL, RoutineLevel.INTERMEDIATE, 4, 60))
+        assertTrue(roomy.report.sessions.all { it.hasCardio })
+        assertTrue(roomy.notes.none { it.contains("no cabe un bloque de cardio") })
+    }
+
     // ─── (3) Una sola aproximación: la del generador es la del materializador ──────────────────────────────
 
     @Test
