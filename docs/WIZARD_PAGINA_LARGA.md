@@ -69,3 +69,27 @@ Un hito (`MILESTONE_*`) **ya no es una página**: es el overlay de la guía de m
 1. Añade la definición en `SetupStepDefinitions` (título ≤ 44, subtítulo ≤ 100) y el control en el `SetupXStepContent` de su bloque (sin título).
 2. Dale etiqueta y valor en `SetupStepSummaries.kt` (el `when` es exhaustivo: el build avisa si falta).
 3. Si el paso fusiona dos (como alias+edad o altura+peso), registra la fusión en `wizardPresentationSteps`/`wizardPageOf` y pon su texto en `wizardPageCopy`.
+
+## Plan de alimentación (`NUTRITION_RESULT`)
+
+El resultado de nutrición no es una lista de referencias: es un **panel visual** que se afina en vivo (título del paso: «Tu plan de alimentación»). Anillos con las kcal en grande, franja de días (solo con reparto variable), avisos, control de ritmo y un deslizador por macro. Sin tarjetas: secciones separadas por filetes.
+
+| Pieza | Archivo | Qué hace |
+|---|---|---|
+| Lógica pura | `domain/nutrition/NutritionPlanTuning.kt` | `PlanTuning`: macros ↔ kcal (Atwater 4/4/9), ritmo ↔ kcal (EER ± ajuste, 7700 kcal/kg), límites de los deslizadores, zonas de ritmo, avisos y `hardStop`. Sin textos. |
+| Panel | `design/WizardNutritionPlan.kt` | `WizardNutritionPlanPanel(model, callbacks)`: sin estado salvo animación. Lo componen `WizardMacroRings`, `WizardMacroSlider`, `WizardPaceGauge`, `WizardPlanWarnings` (`WizardPlanWarningChip`) y `WizardDayStrip`. |
+| Formato y textos | `design/WizardNutritionFormat.kt` | Cifras en español («2.300», «−0,45») y textos cortos de avisos y zonas. |
+| Estado en vivo | `design/WizardNutritionLive.kt` | Plan «en vivo» frente al confirmado: ni un arrastre ni una escritura sin confirmar se pisan. |
+| Cableado | `SetupNutritionSteps.kt` (bloque `NUTRITION_RESULT`) | Lee la preparación real, escribe el borrador y cierra «Continuar» con `nutritionResultGate`. |
+
+Reglas que no hay que romper:
+
+1. **Lo que se ve es lo que se activa.** El panel trabaja sobre un plan en vivo para que los anillos respondan al instante, pero **solo al soltar** escribe en el borrador los cuatro números manuales (`manualCalorieTargetText`, `manualProteinText`, `manualCarbsText`, `manualFatText`). El motor ([`NutritionPlanPreparation`]) los traduce a una base manual y devuelve exactamente esos números; el activar re-prepara desde el borrador. Si el plan vuelve a ser el que el motor recomienda solo, los cuatro campos se **vacían** y el plan sigue siendo automático.
+2. **El ritmo mostrado siempre sale de las kcal reales frente al EER** (`weeklyChangeFor`); nunca se guarda aparte. Mover un macro mueve el ritmo y mover el ritmo reescala los tres macros (`scaleMacrosToCalories`).
+3. **El motor no lee `pacePreset`**: `preparationInputOf` no lo pasa y solo «Medio» coincide con su ritmo por defecto. Al abrir el resultado en automático, si el ritmo elegido en el paso anterior difiere, el panel **siembra** el borrador con el plan de ese ritmo (`presetSeedValues`) para que lo visible y lo activado coincidan.
+4. **Umbrales de aviso = `buildNutritionRiskFlags`**: calorías < 1500/1200 (mujer 1200/1000), pérdida > 1,0 y > 1,5 kg/sem, ganancia > 0,5 y > 0,75 kg/sem; proteína < 1,2 g/kg en déficit y grasas < 20 % de la energía. Sexo desconocido: los umbrales estrictos. Hay `hardStop` con calorías duras o pérdida extrema (una ganancia extrema avisa pero no detiene, como en los avisos de riesgo).
+5. **Textos**: un aviso es un icono y como mucho seis palabras. Nada de párrafos ni de enlaces «Editar …»: las filas-resumen de los pasos anteriores ya permiten volver.
+6. **Marcas de prueba**: `setup-nutrition-rings`, `-protein`, `-carbs`, `-fat`, `-pace` (y `-pace-slider`), `-warning`, `-reset` y `-day-<n>`.
+7. **Anillos de 260 dp como mucho** (más estrechos en pantallas pequeñas). La letra de Syne es ancha: el número central parte de 44 sp y se achica lo justo para caber en el hueco de los anillos (≈ 30 sp con cuatro cifras), medido con las cifras más anchas para que no se salga mientras cuenta (`macroRingsHeroScale`). Si se tocan el tamaño o el trazo, hay que recalcular ese hueco.
+
+Vista previa de diseño (solo debug, sin recorrer el alta): `adb shell am start -n com.example.kpkn/com.example.kpkn.debug.NutritionPlanPreviewActivity --es scenario deficit_medio` (`deficit_extremo`, `ritmo_agresivo`, `superavit`, `mantenimiento`, `variable`, `propios_sin_eer`).
