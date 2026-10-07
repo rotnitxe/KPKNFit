@@ -1003,7 +1003,7 @@
               "hayashi2023",
               "anat_ankle"
             ],
-            "why": "El tobillo cierra la extensión de las tres articulaciones del miembro inferior. Hayashi et al. analizaron sus momentos en la cargada colgada con una y con dos piernas, se deja como secundario por decisión editorial, porque la rodilla suma el empuje y el frenado en la recepción y el tobillo solo el cierre de la extensión."
+            "why": "El tobillo cierra la extensión de las tres articulaciones del miembro inferior. Hayashi et al. analizaron sus momentos en la cargada colgada con una y con dos piernas; se deja como secundario por decisión editorial, porque la rodilla suma el empuje y el frenado en la recepción y el tobillo solo el cierre de la extensión."
           },
           {
             "actions": [
@@ -3676,7 +3676,7 @@
               "dinis2021",
               "anat_hamstring"
             ],
-            "why": "Acompañan al glúteo en la extensión de la cadera y se estiran al bajar. Dinis et al. registraron el bíceps femoral durante la sentadilla de arranque, sin comparar su peso con el del glúteo o el del cuádriceps."
+            "why": "Acompañan al glúteo en la extensión de la cadera, en el tirón y al levantarse. Dinis et al. registraron el bíceps femoral en la sentadilla de arranque, en un estudio de mujeres con y sin desplazamiento medial de la rodilla y sin comparar su peso con el del glúteo o el del cuádriceps; su rol de apoyo es una decisión editorial basada en la anatomía."
           },
           {
             "id": "adductors",
