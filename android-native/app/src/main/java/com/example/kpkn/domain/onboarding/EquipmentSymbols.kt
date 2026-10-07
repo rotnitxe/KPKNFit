@@ -21,15 +21,21 @@ import com.example.kpkn.domain.training.EquipmentKeys
  * - **Casa** no asume nada y **espacios públicos** asumen la estructura típica de un parque de calistenia.
  * - [BODYWEIGHT_ONLY][EquipmentSymbolId.BODYWEIGHT_ONLY] es exclusivo y equivale a «ningún implemento»: el motor
  *   recibe categorías vacías (solo cuerpo).
- * - Los símbolos que el vocabulario curado del motor aún no conoce (anillas, cajón, cuerda de saltar) viajan como
- *   llaves propias de este objeto ([RINGS_KEY], [BOX_KEY], [JUMP_ROPE_KEY]) en `supports`; el motor las ignora hasta
- *   que su catálogo las acredite, pero la selección se conserva y el generador las consulta.
+ * - Los símbolos que el vocabulario curado del motor aún no conoce (anillas, cajón, cuerda de saltar, cardio) viajan
+ *   como llaves propias de este objeto ([RINGS_KEY], [BOX_KEY], [JUMP_ROPE_KEY], [CARDIO_MACHINE_KEY]) en `supports`;
+ *   el motor las ignora hasta que su catálogo las acredite, pero la selección se conserva y el generador las consulta.
+ *   Además hacen exacto el ida y vuelta: dos símbolos que comparten categoría (cardio y cuerda de saltar, o todos los
+ *   de soporte) se distinguen por su llave, así que `selectedFrom(availabilityOf(S, lugares)) == S` para toda
+ *   selección S de símbolos visibles (la selección vacía vuelve como «solo peso corporal»).
  */
 object EquipmentSymbols {
 
     const val RINGS_KEY = "rings"
     const val BOX_KEY = "plyo_box"
     const val JUMP_ROPE_KEY = "jump_rope"
+
+    /** Cardio de gimnasio o de casa (cinta, bici, elíptica…): el símbolo comparte categoría con la cuerda de saltar. */
+    const val CARDIO_MACHINE_KEY = "cardio_machine"
 
     private data class Spec(
         val categories: Set<EquipmentCategory> = emptySet(),
@@ -76,6 +82,8 @@ object EquipmentSymbols {
             categories = setOf(EquipmentCategory.SUPPORT),
             // Un banco «a secas» se asume regulable: acredita plano e inclinado.
             supports = setOf(EquipmentKeys.BENCH_FLAT, EquipmentKeys.BENCH_ADJUSTABLE),
+            // El predicador es otro banco: su categoría en el motor es SUPPORT, y solo cuenta si ella está confirmada.
+            gymSupports = setOf(EquipmentKeys.PREACHER_BENCH),
             places = ANYWHERE, seededBy = setOf(GYM),
         ),
         EquipmentSymbolId.DUMBBELLS to Spec(
@@ -95,7 +103,6 @@ object EquipmentSymbols {
         EquipmentSymbolId.MACHINES to Spec(
             categories = setOf(EquipmentCategory.MACHINES),
             apparatus = machineKeys,
-            gymSupports = setOf(EquipmentKeys.PREACHER_BENCH),
             places = INDOORS, seededBy = setOf(GYM),
         ),
         EquipmentSymbolId.SMITH to Spec(
@@ -137,6 +144,7 @@ object EquipmentSymbols {
         ),
         EquipmentSymbolId.CARDIO to Spec(
             categories = setOf(EquipmentCategory.CARDIO),
+            supports = setOf(CARDIO_MACHINE_KEY),
             places = INDOORS, seededBy = setOf(GYM),
         ),
     )
@@ -230,9 +238,26 @@ object EquipmentSymbols {
     }
 
     /**
+     * Para cada categoría, el único símbolo que la reclama (null si la comparten varios: soportes y cardio). Una categoría
+     * que solo tiene un dueño basta para leer ese símbolo aunque sus llaves no consten.
+     */
+    private val categoryOwner: Map<EquipmentCategory, EquipmentSymbolId?> = specs.entries
+        .flatMap { (symbol, spec) -> spec.categories.map { category -> category to symbol } }
+        .groupBy({ it.first }, { it.second })
+        .mapValues { (_, owners) -> owners.singleOrNull() }
+
+    /**
      * Símbolos que representa una disponibilidad (lectura inversa, para pintar la selección). Un símbolo cuenta como
-     * elegido cuando todas sus categorías están confirmadas y todas sus llaves propias están `PRESENT`; las llaves
-     * de un símbolo sin llaves (barra, mancuernas…) se deciden solo por su categoría. `null` = nada declarado todavía.
+     * elegido cuando todas sus categorías están confirmadas y:
+     * - no tiene llaves propias (barra, mancuernas, kettlebell, Smith, bandas, balón): basta su categoría;
+     * - alguna de sus llaves está `PRESENT` (el rack con `squat_rack`, el banco con `bench_flat`…): la presencia de una
+     *   basta, así una confirmación parcial del asesor («sí, tengo rack y banco plano») ya se lee como rack y banco;
+     * - todas sus llaves constan como desconocidas (una disponibilidad antigua de solo categorías) y la categoría es
+     *   solo suya (máquinas, poleas, barra de dominadas): la categoría declarada manda. Si la comparte con otros
+     *   símbolos (soportes, cardio) no se adivina cuál es: queda sin elegir hasta que la persona lo marque.
+     *
+     * El ida y vuelta de [availabilityOf] es exacto: lo elegido tiene todas sus llaves `PRESENT` y lo visible sin elegir
+     * las tiene `ABSENT`. `null` = nada declarado todavía.
      */
     fun selectedFrom(availability: EquipmentAvailability?): Set<EquipmentSymbolId> {
         if (availability == null) return emptySet()
@@ -245,8 +270,14 @@ object EquipmentSymbols {
         }
         return selectable.filterTo(linkedSetOf()) { symbol ->
             val spec = specs.getValue(symbol)
-            spec.categories.all { it in availability.categories } &&
-                (spec.apparatus + spec.supports).all { key -> availability.presenceOf(key) == ApparatusPresence.PRESENT }
+            if (!spec.categories.all { it in availability.categories }) return@filterTo false
+            val presences = (spec.apparatus + spec.supports).map { key -> availability.presenceOf(key) }
+            when {
+                presences.isEmpty() -> true
+                presences.any { it == ApparatusPresence.PRESENT } -> true
+                presences.all { it == ApparatusPresence.UNKNOWN } -> spec.categories.all { categoryOwner[it] == symbol }
+                else -> false
+            }
         }
     }
 
