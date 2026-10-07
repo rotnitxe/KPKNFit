@@ -1576,9 +1576,12 @@ class SetupExecutableAvailabilityMatrixTest {
                     matchesRequested(state.draft, row) && state.availablePlanCandidates.any { it.id == own }
                 }
 
-                // 1. D6: la lista del paso SPLIT no ofrece los repartos de powerlifting fuera de Fuerza.
-                val startDay = row.weekdays.minOrNull() ?: 1
-                val offered = compatibleSplitTemplates(row.daysPerWeek, startDay, start.draft.goal).map { it.id }
+                // 1. D6: la lista de repartos (hoy la del tablero de la semana, en el dominio) no ofrece los de
+                // powerlifting fuera de Fuerza.
+                val offered = com.example.kpkn.domain.training.split.SplitCatalogRules.compatible(
+                    row.daysPerWeek,
+                    start.draft.goal?.let(GoalProfileMapping::profileOfLegacy),
+                ).map { it.id }
                 assertTrue("Músculo ofrece su reparto equivalente: $offered", "fullbody_x3" in offered)
                 assertFalse("Músculo no ofrece repartos de powerlifting: $offered", "texas_method" in offered || "pl_sbd_x3" in offered)
 
@@ -1610,7 +1613,11 @@ class SetupExecutableAvailabilityMatrixTest {
                 }
                 val program = checkNotNull(accepted.programPreview)
                 assertEquals(listOf("Cuerpo Completo A", "Cuerpo Completo B", "Cuerpo Completo C"), firstWeekDayNames(program))
-                assertEquals("la revisión dice el nombre del reparto, no su id", "Cuerpo completo, 3 días", draftSplitLabel(accepted))
+                assertEquals(
+                    "el reparto se nombra en español, no por su id",
+                    "Cuerpo completo, 3 días",
+                    com.example.kpkn.domain.training.split.SplitCatalogRules.displayName(checkNotNull(program.selectedSplitId)),
+                )
                 assertEquals("los días de entrenamiento son los que eligió la persona", row.weekdays, program.schedulePlan?.trainingDays)
                 val issues = ProgramExecutionContract.validate(program)
                 assertTrue("el programa con reparto es ejecutable: ${issues.joinToString("; ") { it.message }}", issues.isEmpty())

@@ -149,6 +149,11 @@ internal val LEGACY_SUPPORT_ATTESTED_REQUIREMENTS: Set<String> = setOf(
  * - Huecos de soporte: el rack chin, las dominadas escapulares, la suspensión en barra y el jalón con
  *   banda dependen de una barra (baja estable o de dominadas), y el hip thrust con banda y el curl
  *   inclinado dependen de un banco.
+ *
+ * Lote BW-1 (peso corporal): la dominada negativa pide la barra de dominadas; la pica con los pies elevados, el
+ * step-up y la sentadilla búlgara sin carga piden un apoyo elevado ([ELEVATED_SUPPORT_CONFIGURATIONS]). El resto de las
+ * altas (dead bug, bird dog, plancha lateral, hollow body, sentadilla en pared, pica plana, flexiones diamante y
+ * arquero y las zancadas, sumo, sissy, rumano a una pierna y buenos días sin carga) no necesita ningún soporte.
  */
 internal fun supportRequirementsFor(configurationId: String): Set<String> = when {
     // Banca: exige banco; la variante de barra exige además rack; las
@@ -183,6 +188,7 @@ internal fun supportRequirementsFor(configurationId: String): Set<String> = when
     "triceps_fondos_entre_bancos__default" == configurationId -> setOf(REQUIREMENT_BENCH)
     "tren_superior_fondos__default" == configurationId -> setOf(REQUIREMENT_DIP_BARS)
     configurationId.startsWith(PULL_UP_PREFIX) ||
+        configurationId.startsWith(NEGATIVE_PULL_UP_PREFIX) ||
         configurationId.startsWith(SCAPULAR_PULL_UP_PREFIX) ||
         configurationId.startsWith(DEAD_HANG_PREFIX) -> setOf(REQUIREMENT_PULL_UP_BAR)
     // Apoyos concretos
@@ -191,6 +197,9 @@ internal fun supportRequirementsFor(configurationId: String): Set<String> = when
     "curl_isquios_con_balon__default" == configurationId -> setOf(REQUIREMENT_BALL)
     "hams_curl_nordic_peso_corporal__default" == configurationId -> setOf(REQUIREMENT_NORDIC_ANCHOR)
     "push_up__feet_elevated" == configurationId -> setOf(REQUIREMENT_SUPPORT)
+    // Lote BW-1 (peso corporal): sin un apoyo elevado estas configuraciones no se pueden hacer, y como su implemento es
+    // `bodyweight` (siempre acreditado) nada más las bloquearía.
+    configurationId in ELEVATED_SUPPORT_CONFIGURATIONS -> setOf(REQUIREMENT_SUPPORT)
     // Discos con un aparato de gimnasio que el catálogo no declara: banco declinado e hiperextensión a 45° (paquete E2).
     "core_crunch_banco_declinado_lastrado_disco__default" == configurationId -> setOf(REQUIREMENT_DECLINE_BENCH)
     "glutes_hiperextension_45__plate" == configurationId -> setOf(REQUIREMENT_HYPEREXTENSION_BENCH)
@@ -203,6 +212,7 @@ private const val CLOSE_GRIP_BENCH_PRESS_PREFIX = "close_grip_bench_press__"
 private const val INCLINE_BENCH_PRESS_PREFIX = "incline_bench_press__"
 private const val DECLINE_BENCH_PRESS_PREFIX = "decline_bench_press__"
 private const val PULL_UP_PREFIX = "pull_up__"
+private const val NEGATIVE_PULL_UP_PREFIX = "negative_pull_up__"
 private const val SCAPULAR_PULL_UP_PREFIX = "back_dominadas_escapulares__"
 private const val DEAD_HANG_PREFIX = "forearms_suspension_isometrica_barra_fija__"
 private const val RACK_CHIN_PREFIX = "rack_chin__"
@@ -226,6 +236,18 @@ private val FLAT_BENCH_PRESS_PREFIXES = listOf(
 private val BARBELL_BENCH_VARIANT_CONFIGURATIONS = setOf(
     "tren_superior_press_spoto_barra__default",
     "tren_superior_press_banca_cadenas__default",
+)
+
+/**
+ * Configuraciones de peso corporal del lote BW-1 que necesitan un apoyo elevado estable (banco, cajón, escalón o sofá):
+ * la pica con los pies elevados, el step-up y la sentadilla búlgara sin carga. «Apoyo elevado» ([REQUIREMENT_SUPPORT]) es el
+ * mismo requisito que ya pide la flexión con los pies elevados; lo acredita cualquier símbolo de soporte del paso de
+ * material, y el cajón ([SymbolEquipmentKeys.PLYO_BOX], en [SYMBOL_EQUIPMENT_KEYS]) también.
+ */
+private val ELEVATED_SUPPORT_CONFIGURATIONS = setOf(
+    "pike_push_up__feet_elevated",
+    "step_up__bodyweight",
+    "bulgarian_split_squat__bodyweight",
 )
 
 /**
@@ -587,7 +609,13 @@ internal data class SymbolEquipmentKey(
 internal val SYMBOL_EQUIPMENT_KEYS: List<SymbolEquipmentKey> = listOf(
     // Anillas o TRX: el catálogo llama `trx` al implemento de suspensión y las reservas del generador piden `rings`.
     SymbolEquipmentKey(SymbolEquipmentKeys.RINGS, EquipmentCategory.SUPPORT, setOf("trx", "rings")),
-    SymbolEquipmentKey(SymbolEquipmentKeys.PLYO_BOX, EquipmentCategory.SUPPORT, setOf(SymbolEquipmentKeys.PLYO_BOX)),
+    // Cajón o step: además del token propio de las reservas del generador, es un apoyo elevado (`support`), el requisito
+    // de la pica con los pies elevados, el step-up y la búlgara sin carga (lote BW-1). Las anillas NO lo son.
+    SymbolEquipmentKey(
+        SymbolEquipmentKeys.PLYO_BOX,
+        EquipmentCategory.SUPPORT,
+        setOf(SymbolEquipmentKeys.PLYO_BOX, REQUIREMENT_SUPPORT),
+    ),
     SymbolEquipmentKey(SymbolEquipmentKeys.JUMP_ROPE, EquipmentCategory.CARDIO, setOf(SymbolEquipmentKeys.JUMP_ROPE)),
     // Barra baja de un parque: la barra de dominadas de un parque suele traerla (`EquipmentSymbols` escribe la llave con
     // `PUBLIC` entre los lugares y la barra de dominadas elegida). La categoría que consta ahí es la de la barra de

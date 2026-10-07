@@ -218,6 +218,443 @@
           "deltoides push press",
           "push press"
         ]
+      },
+      {
+        "canonicalName": "Flexiones en Pica",
+        "configurations": [
+          {
+            "displaySummary": "flat",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "editorial:configuration:pike_push_up__flat",
+                "plan:wizard-entreno-v2-bw1-20261007#pike_push_up"
+              ],
+              "reviewStatus": "APPROVED"
+            },
+            "id": "pike_push_up__flat",
+            "profile": {
+              "articulationType": "MULTIARTICULAR",
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-09-29-a",
+              "cnc": 1.8,
+              "description": "Manos y pies están en el suelo y las caderas suben hasta formar una V invertida, con la cabeza apuntando entre las manos. Cuanto más se acercan los pies a las manos, más vertical queda el tronco y más pesa el hombro.",
+              "efc": 2.5,
+              "equipmentId": "bodyweight",
+              "executionCues": [
+                "Dobla los codos y baja la cabeza entre las manos, hasta casi tocar el suelo.",
+                "Empuja el suelo hasta estirar los codos, con las caderas altas."
+              ],
+              "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión del hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Extensión del codo"
+                  ],
+                  "jointId": "codo",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Rotación escapular superior"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Sostén del apoyo"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "bodyweight",
+              "movementPatternId": "vertical_push",
+              "performanceProfileId": "pike_push_up__flat__flexiones_en_pica",
+              "primaryMuscles": [
+                "deltoid"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Flexión del hombro",
+                    "Extensión del codo",
+                    "Rotación escapular superior",
+                    "Sostén del apoyo"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión del hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión del codo"
+                      ],
+                      "jointId": "codo",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Rotación escapular superior"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del apoyo"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "primaryMuscles": [
+                    "deltoid"
+                  ],
+                  "secondaryMuscles": [
+                    "triceps",
+                    "trapezius"
+                  ],
+                  "stabilizerMuscles": [],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "bodyweight",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "bodyweight",
+                  "movementPatternId": "vertical_push",
+                  "relevantJoints": [
+                    "glenohumeral",
+                    "codo",
+                    "escapulotoracica",
+                    "muñeca"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "display": {
+                  "displayName": "Flexiones en Pica",
+                  "displaySummary": "flat",
+                  "selectedOptions": {
+                    "support_angle": "flat"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.8,
+                  "efc": 2.5,
+                  "ssc": 0.3,
+                  "technicalDifficulty": 4.8,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "Flexiones en Pica",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
+                  "configurationId": "pike_push_up__flat",
+                  "definitionId": "pike_push_up",
+                  "familyId": "upper_vertical_push",
+                  "kind": "PARENT",
+                  "performanceProfileId": "pike_push_up__flat__flexiones_en_pica",
+                  "searchTerms": [
+                    "flexiones en pica",
+                    "pike push up",
+                    "pike push-up",
+                    "flexiones pike",
+                    "flexiones en v invertida",
+                    "flexiones de hombro con el propio peso"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 105,
+                    "min": 45
+                  },
+                  "requiredEquipment": [
+                    "bodyweight"
+                  ],
+                  "role": "accessory_compound"
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "bodyweight"
+                  ],
+                  "preservesIntent": [
+                    "vertical_push:deltoid"
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                }
+              },
+              "secondaryMuscles": [
+                "triceps",
+                "trapezius"
+              ],
+              "setupCues": [
+                "Apoya las manos en el suelo, algo más abiertas que los hombros, y sube las caderas hasta formar una V invertida.",
+                "Acerca los pies a las manos hasta subir las caderas lo máximo que puedas con las piernas estiradas."
+              ],
+              "setupTimeSeconds": 20,
+              "ssc": 0.3,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.8,
+              "ttc": 1.6
+            },
+            "selectedOptions": {
+              "support_angle": "flat"
+            }
+          },
+          {
+            "displaySummary": "feet_elevated",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "editorial:configuration:pike_push_up__feet_elevated",
+                "plan:wizard-entreno-v2-bw1-20261007#pike_push_up"
+              ],
+              "reviewStatus": "APPROVED"
+            },
+            "id": "pike_push_up__feet_elevated",
+            "profile": {
+              "articulationType": "MULTIARTICULAR",
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-09-29-a",
+              "cnc": 1.8,
+              "description": "Los pies suben a un banco o a un cajón y las caderas quedan aún más altas que en la versión plana, con el tronco más vertical y el peso desplazado hacia las manos. El empuje se acerca así al de un press por encima de la cabeza y exige más al hombro.",
+              "efc": 2.5,
+              "equipmentId": "bodyweight",
+              "executionCues": [
+                "Baja la cabeza entre las manos con los codos hacia atrás, hasta casi tocar el suelo.",
+                "Empuja el suelo para estirar los codos sin bajar las caderas."
+              ],
+              "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión del hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Extensión del codo"
+                  ],
+                  "jointId": "codo",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Rotación escapular superior"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Sostén del apoyo"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "bodyweight",
+              "movementPatternId": "vertical_push",
+              "performanceProfileId": "pike_push_up__feet_elevated__flexiones_en_pica",
+              "primaryMuscles": [
+                "deltoid"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Flexión del hombro",
+                    "Extensión del codo",
+                    "Rotación escapular superior",
+                    "Sostén del apoyo"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión del hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión del codo"
+                      ],
+                      "jointId": "codo",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Rotación escapular superior"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del apoyo"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "primaryMuscles": [
+                    "deltoid"
+                  ],
+                  "secondaryMuscles": [
+                    "triceps",
+                    "trapezius"
+                  ],
+                  "stabilizerMuscles": [],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "bodyweight",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "bodyweight",
+                  "movementPatternId": "vertical_push",
+                  "relevantJoints": [
+                    "glenohumeral",
+                    "codo",
+                    "escapulotoracica",
+                    "muñeca"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "display": {
+                  "displayName": "Flexiones en Pica",
+                  "displaySummary": "feet_elevated",
+                  "selectedOptions": {
+                    "support_angle": "feet_elevated"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.8,
+                  "efc": 2.5,
+                  "ssc": 0.3,
+                  "technicalDifficulty": 5.0,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "Flexiones en Pica",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
+                  "configurationId": "pike_push_up__feet_elevated",
+                  "definitionId": "pike_push_up",
+                  "familyId": "upper_vertical_push",
+                  "kind": "PARENT",
+                  "performanceProfileId": "pike_push_up__feet_elevated__flexiones_en_pica",
+                  "searchTerms": [
+                    "flexiones en pica",
+                    "pike push up",
+                    "pike push-up",
+                    "flexiones pike",
+                    "flexiones en v invertida",
+                    "flexiones de hombro con el propio peso"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 105,
+                    "min": 45
+                  },
+                  "requiredEquipment": [
+                    "bodyweight"
+                  ],
+                  "role": "accessory_compound"
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "bodyweight"
+                  ],
+                  "preservesIntent": [
+                    "vertical_push:deltoid"
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                }
+              },
+              "secondaryMuscles": [
+                "triceps",
+                "trapezius"
+              ],
+              "setupCues": [
+                "Apoya los empeines en un banco o en un cajón estable y las manos en el suelo, algo más abiertas que los hombros.",
+                "Camina con las manos hacia atrás hasta que el tronco quede casi vertical."
+              ],
+              "setupTimeSeconds": 20,
+              "ssc": 0.3,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 5.0,
+              "ttc": 1.6
+            },
+            "selectedOptions": {
+              "support_angle": "feet_elevated"
+            }
+          }
+        ],
+        "defaultConfigurationId": "pike_push_up__flat",
+        "description": "Las Flexiones en Pica (pike push-up) son un empuje vertical con el propio peso: desde una V invertida, con las caderas altas y las manos y los pies en el suelo, la cabeza baja entre los brazos hasta casi tocar el suelo y los codos se estiran para volver arriba. El deltoides empuja el cuerpo, el tríceps extiende los codos y el trapecio gira la escápula para acompañar. Como en un press de hombros, los brazos empujan por encima de la cabeza, pero la resistencia es el propio cuerpo. Elevar los pies sobre un banco o un cajón traslada más peso a las manos y endurece el ejercicio. Es la progresión habitual hacia la flexión en pino.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:pike_push_up",
+            "plan:wizard-entreno-v2-bw1-20261007#pike_push_up"
+          ],
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "upper_vertical_push",
+        "id": "pike_push_up",
+        "kind": "PARENT",
+        "optionAxes": [
+          "support_angle"
+        ],
+        "searchTerms": [
+          "flexiones en pica",
+          "pike push up",
+          "pike push-up",
+          "flexiones pike",
+          "flexiones en v invertida",
+          "flexiones de hombro con el propio peso"
+        ]
       }
     ],
     "evidence": {

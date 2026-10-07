@@ -162,6 +162,18 @@
       },
       "public": {
         "configurations": {
+          "sissy_squat__bodyweight": {
+            "description": "Con los brazos cruzados sobre el pecho, o estirados al frente como contrapeso, los talones suben y las rodillas avanzan. Basta con inclinar el cuerpo hacia atrás en una sola línea para que el cuádriceps trabaje a fondo sin añadir carga.",
+            "executionCues": [
+              "Eleva los talones y lleva las rodillas hacia delante mientras inclinas el cuerpo hacia atrás en una sola línea.",
+              "Baja hasta donde controles el movimiento, sin doblar la cadera ni apoyar los talones.",
+              "Sube estirando las rodillas y con los talones en alto hasta el final de la serie."
+            ],
+            "setupCues": [
+              "Ponte de pie con los pies a la anchura de las caderas y los brazos cruzados sobre el pecho.",
+              "Si necesitas ayuda para el equilibrio, apoya la punta de los dedos en una pared o en el marco de una puerta."
+            ]
+          },
           "sissy_squat__dumbbells": {
             "description": "Una mancuerna en vertical, apoyada en el esternón y sujeta con las dos palmas bajo la cabeza superior, suma peso al tronco que se inclina. Con las dos manos ocupadas no queda ninguna para agarrarse, y sostenerse sobre la punta de los pies depende solo de las piernas.",
             "executionCues": [
@@ -322,7 +334,8 @@
         "setup": [
           "Máquina: pies trabados en la plataforma por los tobillos y los talones, brazos cruzados sobre el pecho.",
           "Smith: barra en lo alto de la espalda, manos a los lados de los hombros y pies justo debajo de la barra.",
-          "Mancuerna o disco: la carga se sujeta contra el esternón con las dos manos y los pies quedan a la anchura de la cadera, de puntillas."
+          "Mancuerna o disco: la carga se sujeta contra el esternón con las dos manos y los pies quedan a la anchura de la cadera, de puntillas.",
+          "Peso corporal: sin carga, con los brazos cruzados sobre el pecho y los talones elevados."
         ]
       },
       "visual": {
@@ -335,6 +348,9 @@
           "posture": "Cadera estirada o apenas doblada: el tronco continúa la línea de los muslos inclinado hacia atrás, o queda casi vertical bajo la carga, y nunca se pliega sobre ellos. Zona lumbar neutra y cuello alineado."
         },
         "byImplement": {
+          "bodyweight": {
+            "geometry": "Suelo plano y nada bajo el cuerpo; los talones elevados sobre las puntas, los brazos cruzados sobre el pecho y las manos vacías."
+          },
           "dumbbells": {
             "geometry": "Una sola mancuerna en vertical contra el esternón, sujeta con las dos palmas bajo la cabeza superior y los codos pegados al tronco."
           },
@@ -363,6 +379,7 @@
           "Carga colgando de los brazos estirados o sostenida por encima de la cabeza."
         ],
         "promptCore": {
+          "bodyweight": "Side view of an athlete standing on a flat floor, frozen at the BOTTOM of a bodyweight sissy squat. Heels are raised high and the weight rests on the balls of the feet. Knees are bent deeply and pushed far forward past the toes, close to the floor. The hips stay extended: thighs, hips and torso form one straight line leaning backward. Both arms are crossed over the chest and nothing is held. There is no weight and no machine.",
           "dumbbells": "Side view of an athlete standing on the gym floor, frozen at the BOTTOM of a dumbbell sissy squat. Both palms cup the upper head of one dumbbell held vertically against the sternum, elbows tucked to the ribs. Heels are raised high and the weight rests on the balls of the feet on the floor. Knees are bent deeply and pushed far forward past the toes, close to the floor. The hips stay extended: thighs, hips and torso form one straight line leaning backward. The dumbbell stays against the chest, well above the floor.",
           "machine": "Side view of an athlete on a low sissy squat stand, frozen at the BOTTOM of a sissy squat. Padded rollers on the platform lock both feet at the ankles and heels, with the heels raised higher than the toes so the weight rests on the balls of the feet. Knees are bent deeply and pushed far forward past the toes, close to the platform. The hips stay extended: thighs, hips and torso form one straight line leaning backward. Arms are crossed over the chest. Nothing supports the thighs or buttocks.",
           "plate": "Side view of an athlete standing on the gym floor, frozen at the BOTTOM of a weighted sissy squat. Both hands hold a weight plate by its rim, pressed flat against the chest. Heels are raised high and the weight rests on the balls of the feet on the floor. Knees are bent deeply and pushed far forward past the toes, close to the floor. The hips stay extended: thighs, hips and torso form one straight line leaning backward. The plate stays against the chest, well above the floor.",
@@ -372,7 +389,8 @@
           "¿Los talones quedan más altos que los dedos y el peso en la parte delantera de los pies?",
           "¿Las rodillas están muy dobladas y por delante de los dedos de los pies, en el punto bajo?",
           "¿La cadera está estirada, sin que el atleta se siente hacia atrás?",
-          "¿Las manos hacen lo que pide el implemento, cruzadas sobre el pecho en la máquina o sujetando la carga contra el pecho o la barra sobre la espalda, sin que nada flote suelto?",
+          "¿En la máquina los brazos van cruzados sobre el pecho, y con carga las manos la sujetan contra el pecho o la barra va sobre la espalda, sin que nada flote suelto?",
+          "¿En Peso Corporal, los brazos están cruzados sobre el pecho, las manos vacías y los pies sobre un suelo plano?",
           "¿Los pies se apoyan en un suelo o en una plataforma visibles?"
         ]
       }

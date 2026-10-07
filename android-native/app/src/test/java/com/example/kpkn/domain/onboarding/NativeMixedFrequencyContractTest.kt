@@ -249,8 +249,9 @@ class NativeMixedFrequencyContractTest {
             "powerbuilding-foundation" to (1..6),
             "complete-athlete" to (1..6),
         )
+        // Los programas «a medida» del generador (Entreno v2) son NATIVE pero no son familias del personalizador.
         val natives = PersonalizedPlanCatalog.entries()
-            .filter { it.source == CatalogSource.NATIVE }
+            .filter { it.source == CatalogSource.NATIVE && !it.isGenerated }
             .associateBy { it.sourceId }
         assertEquals(
             "no puede aparecer ni desaparecer ninguna familia nativa: ${natives.keys.sorted()}",

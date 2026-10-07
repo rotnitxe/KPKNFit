@@ -31,6 +31,16 @@ import com.example.kpkn.domain.nutrition.parseLocalizedNumber
 import com.example.kpkn.domain.onboarding.*
 import com.example.kpkn.domain.text.SpanishPlurals
 import com.example.kpkn.domain.training.*
+import com.example.kpkn.domain.training.generator.GeneratedRoutine
+import com.example.kpkn.domain.training.generator.RoutineGenerationException
+import com.example.kpkn.domain.training.generator.RoutineGenerator
+import com.example.kpkn.domain.training.generator.RoutineMode
+import com.example.kpkn.data.splits.SPLIT_TEMPLATES
+import com.example.kpkn.domain.training.split.CatalogExerciseTraitResolver
+import com.example.kpkn.domain.training.split.ExerciseTraitResolver
+import com.example.kpkn.domain.training.split.RedistributionOptions
+import com.example.kpkn.domain.training.split.SplitRedistributor
+import com.example.kpkn.domain.training.split.WeekAssignment
 import com.example.kpkn.screens.nutrition.NutritionWizardDraft
 import com.example.kpkn.screens.programs.ReadyWeekSnapshot
 import java.time.LocalDate
@@ -107,6 +117,12 @@ class SetupWizardViewModel @JvmOverloads constructor(
      */
     private val repairProbeCache = PlanCandidateSessionCache(maxSize = REPAIR_PROBE_CACHE_ENTRIES)
     /**
+     * Entreno v2 · las rutinas que el generador armó para los programas «a medida» (clave = la de su evaluación,
+     * `inputKey|planId`): de ellas sale el revelado (razones, notas, ejercicios principales). Si una ya no está, se
+     * vuelve a generar con el mismo pedido, que da la misma rutina (el generador es determinista).
+     */
+    private val generatedRoutines = GeneratedRoutineMemo(maxSize = GENERATED_ROUTINE_MEMO_ENTRIES)
+    /**
      * Generación del cálculo de preview. Cada lanzamiento (o liberación de
      * caché) la incrementa y se hace DUEÑO de `isPreviewLoading` y
      * `preparingTrainingKey`: sólo el job dueño publica o limpia, un job viejo
@@ -158,6 +174,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
             programPreview = null, planCandidates = emptyList(), availablePlanCandidates = emptyList(),
             candidateRejections = emptyList(), droppedSelection = null,
             isCandidateLoading = false,
+            planSweep = SetupPlanSweep.IDLE, planReveals = emptyList(), weekLayout = null,
             isPreviewLoading = false,
             nutritionPlanPreview = null, nutritionPreparation = null, ringsBatteriesPreview = null, ringsCoveragePreview = null,
             errors = emptyMap(), lastFailure = null)
@@ -418,7 +435,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 acceptFixedRecipeDifference = false,
                 programRoute = SetupProgramRoute.CUSTOMIZABLE,
                 trainingPath = SetupTrainingPath.PERSONALIZE,
-            )
+            ).let { chosen -> if (draft.selectedCatalogId == id) chosen else chosen.withoutWeekLayout() }
         }
     }
 
@@ -436,8 +453,111 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 acceptFixedRecipeDifference = false,
                 programRoute = SetupProgramRoute.LATER,
                 trainingPath = SetupTrainingPath.PERSONALIZE,
-            )
+            ).withoutWeekLayout()
         }
+    }
+
+    /**
+     * Entreno v2 · «Otra versión» del programa «a medida»: la misma persona, las mismas respuestas y otra elección entre
+     * ejercicios equivalentes (`planVariantSeed + 1`). La semilla entra en la clave del barrido, así que el programa se
+     * vuelve a generar (con su overlay «preparando…») y la semana armada vuelve a la del programa nuevo. No elige ni
+     * cambia de plan: si el «a medida» ya estaba elegido, sigue elegido con su versión nueva.
+     */
+    fun anotherPlanVersion() = updateStep(SetupStepId.PLAN) { draft ->
+        draft.copy(planVariantSeed = draft.planVariantSeed + 1).withoutWeekLayout()
+    }
+
+    // ── Entreno v2: la semana armada (paso WEEK_LAYOUT) ──────────────────────
+    //
+    // Las tres escrituras del tablero. Solo cambian `weekLayoutOverrides` / `adaptedSplitId` del borrador; el programa
+    // se re-arma solo (están en la clave de la vista previa) y [applyLayout] es el único que los aplica.
+
+    /**
+     * Suelta la sesión [sessionId] en el día [toDay] (1 = lunes … 7 = domingo): a un día libre se muda y a uno ocupado
+     * intercambia con su sesión ([WeekAssignment.move]). Se guarda la asignación completa de la semana resultante.
+     * Mientras la vista previa se recalcula no se mueve nada (la semana que se ve aún no es la vigente).
+     */
+    fun moveSession(sessionId: String, toDay: Int) {
+        val current = _state.value
+        if (current.isPreviewLoading || current.isCommitting || current.isSubmittingAnswer || current.isSavingAndExiting) return
+        val program = current.programPreview ?: return
+        // El tablero ve el movimiento al instante (si no, a los 700 ms vuelve a lo recibido); la vista previa re-armada
+        // con la asignación nueva lo confirma después.
+        current.weekLayout?.let { layout ->
+            val shown = WeekAssignment.move(layout.assignment, sessionId, toDay)
+            if (shown != layout.assignment) {
+                _state.value = current.copy(weekLayout = layout.copy(assignment = shown, canReset = true))
+            }
+        }
+        updateStep(SetupStepId.WEEK_LAYOUT) { draft ->
+            val assignment = if (draft.weekLayoutOverrides.isNotEmpty()) {
+                assignmentOf(draft.weekLayoutOverrides)
+            } else {
+                WeekAssignment.of(program)
+            }
+            val moved = WeekAssignment.move(assignment, sessionId, toDay)
+            if (moved == assignment) draft else draft.copy(weekLayoutOverrides = overridesOf(moved))
+        }
+    }
+
+    /**
+     * Adapta el programa al reparto [splitId] repartiendo sus ejercicios entre los días ([SplitRedistributor]). Antes de
+     * escribir nada comprueba que el reparto encaja con el programa y los días; si no, deja el motivo en
+     * `weekLayout.refusal` y no cambia el borrador. Un plan de autor solo se adapta con [authoredConfirmed] (la persona
+     * aceptó el aviso «Este programa trae su reparto de autor…»); sin él, el motivo es el del redistribuidor. Adaptar
+     * empieza la semana de cero (las sesiones movidas eran de la estructura anterior).
+     */
+    fun adaptToSplit(splitId: String, authoredConfirmed: Boolean = false) {
+        val current = _state.value
+        if (current.isPreviewLoading) return
+        val draft = current.draft
+        if (draft.adaptedSplitId == splitId) return
+        viewModelScope.launch {
+            val refusal = try {
+                withContext(Dispatchers.Default) { splitRefusalFor(draft, splitId, authoredConfirmed) }
+            } catch (cancel: CancellationException) {
+                throw cancel
+            } catch (error: Exception) {
+                Log.w(DIAG_TAG, "no se pudo comprobar el reparto: ${failureDetail(error).take(DIAG_REASON_MAX)}")
+                SPLIT_UNAVAILABLE
+            }
+            if (refusal != null) {
+                _state.value.weekLayout?.let { layout ->
+                    _state.value = _state.value.copy(weekLayout = layout.copy(refusal = refusal))
+                }
+                return@launch
+            }
+            updateStep(SetupStepId.WEEK_LAYOUT) { latest ->
+                // Solo si el programa sigue siendo el que se comprobó (mismo plan y mismas respuestas).
+                val sameProgram = latest.selectedCatalogId == draft.selectedCatalogId &&
+                    candidateSetKey(latest) == candidateSetKey(draft)
+                if (sameProgram) latest.copy(adaptedSplitId = splitId, weekLayoutOverrides = emptyMap()) else latest
+            }
+        }
+    }
+
+    /** «Restablecer»: la semana vuelve a ser la del programa (sin sesiones movidas ni reparto adaptado). */
+    fun resetWeekLayout() = updateStep(SetupStepId.WEEK_LAYOUT) { draft -> draft.withoutWeekLayout() }
+
+    /**
+     * Por qué el programa preparado del plan elegido no se puede adaptar a [splitId] (null = sí se puede): el mismo
+     * redistribuidor y los mismos días que usará [applyLayout], sobre el programa ANTES de la semana armada.
+     */
+    private suspend fun splitRefusalFor(draft: SetupWizardDraft, splitId: String, authoredConfirmed: Boolean): String? {
+        val split = SPLIT_TEMPLATES.firstOrNull { it.id == splitId } ?: return SPLIT_UNAVAILABLE
+        val source = if (_state.value.planAdaptedToBodyweight) bodyweightAdapted(draft) else draft
+        val base = materializeBase(source).program ?: return SPLIT_UNAVAILABLE
+        if (sessionPlacesOf(base).size > 1) return SPLIT_MIXED_PLACES
+        val resolver = traitResolver() ?: return SPLIT_UNAVAILABLE
+        val result = SplitRedistributor.redistribute(
+            program = base,
+            split = split,
+            weekdays = draft.orderedWeekdays(),
+            resolver = resolver,
+            allowAuthoredRecipes = authoredConfirmed,
+            options = RedistributionOptions(propagateToOtherWeeks = true, targetMinutes = draft.minutesPerSession),
+        )
+        return if (result.compatible) null else result.reason ?: SPLIT_UNAVAILABLE
     }
 
     /**
@@ -1214,9 +1334,12 @@ class SetupWizardViewModel @JvmOverloads constructor(
         // La navegación pura no cambia la huella y por eso no dispara nada.
         // Revisión monótona: models nunca toca draft.revision, así que la frontera
         // de persistencia siempre supera la fila guardada (guard de Room en 126).
-        val next = SetupDraftCompatibility.normalizeLegacyRouteAtPlan(draft)
+        val changed = SetupDraftCompatibility.normalizeLegacyRouteAtPlan(draft)
             .withNextDraftRevision(previous).withChangeImpacts(previous)
-        val candidateInputsChanged = previousCandidateKey != candidateSetKey(next)
+        val candidateInputsChanged = previousCandidateKey != candidateSetKey(changed)
+        // Entreno v2: la semana armada (sesiones movidas, reparto adaptado) es del programa de las respuestas
+        // anteriores; con respuestas nuevas el programa se vuelve a armar y su semana empieza de cero.
+        val next = if (candidateInputsChanged) changed.withoutWeekLayout() else changed
         if (candidateInputsChanged) candidateGeneration += 1
         val beforePersist = _state.value.copy(machineState = WizChatMachineState.PersistingAnswer, errors = emptyMap())
         _state.value = if (candidateInputsChanged) {
@@ -1227,6 +1350,8 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 candidateCounts = SetupCandidateCounts(),
                 isCandidateLoading = false,
                 planAdaptedToBodyweight = false,
+                planSweep = SetupPlanSweep.IDLE,
+                planReveals = emptyList(),
             ))
         } else beforePersist
         if (persistDraft(next)) {
@@ -1371,6 +1496,8 @@ class SetupWizardViewModel @JvmOverloads constructor(
         // Entreno v2: todo dato nuevo que el motor (o el generador) pueda leer invalida candidatos y vista previa.
         draft.trainingPlaces, draft.goalProfile, draft.freshestDay, draft.weekStartDay, draft.dayPlaces,
         draft.capabilities, draft.liftMarks,
+        // «Otra versión»: la semilla cambia el programa «a medida» (vuelve a barrer), nunca la lista de autores.
+        draft.planVariantSeed,
         PersonalizedPlanCatalog.REVISION,
     )
 
@@ -1433,6 +1560,8 @@ class SetupWizardViewModel @JvmOverloads constructor(
         val published: List<CatalogEntry>,
         val viable: List<CatalogEntry>,
         val rejections: List<SetupCandidateRejection>,
+        /** El `Ready` de cada viable (programa preparado): de él sale el revelado. */
+        val ready: Map<String, PlanCandidateEvaluation.Ready> = emptyMap(),
     ) {
         /** §15.2: evaluados = viables + no viables; NO «publicados» filtrados. */
         val counts: SetupCandidateCounts
@@ -1441,17 +1570,32 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 viable = viable.size,
                 nonViable = rejections.size,
             )
+
+        /** Entreno v2: el «a medida» delante y, detrás, los del planificador (sin repetir ninguno). */
+        operator fun plus(other: CandidateScan): CandidateScan = CandidateScan(
+            published = (published + other.published).distinctBy { it.id },
+            viable = (viable + other.viable).distinctBy { it.id },
+            rejections = rejections + other.rejections,
+            ready = other.ready + ready,
+        )
+
+        companion object {
+            val EMPTY = CandidateScan(emptyList(), emptyList(), emptyList())
+        }
     }
 
     /**
      * Resultado del cálculo de candidatos: el pase PEDIDO ([requested], el único que explica los rechazos y
      * los conteos que se publican), el pase que se MUESTRA ([scan]: el pedido o, si se activó, el de peso
-     * corporal) y si se usó el segundo pase adaptado (Paquete A · D4, B-07).
+     * corporal) y si se usó el segundo pase adaptado (Paquete A · D4, B-07). [cards] y [reveals] son las tarjetas y
+     * el revelado de los viables mostrados, ya calculados fuera del hilo principal.
      */
     private data class CandidateOutcome(
         val requested: CandidateScan,
         val scan: CandidateScan,
         val useAdapted: Boolean,
+        val cards: List<SetupPlanCandidate> = emptyList(),
+        val reveals: List<SetupPlanReveal> = emptyList(),
     )
 
     /**
@@ -1519,7 +1663,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
         // La semana armada (colocación de sesiones, reparto adaptado, otra versión) cambia el programa preparado pero
         // no el conjunto de candidatos: solo entra en la clave de la vista previa.
         trainingKey(draft) + listOf(
-            _state.value.planAdaptedToBodyweight, draft.weekLayoutOverrides, draft.adaptedSplitId, draft.planVariantSeed,
+            _state.value.planAdaptedToBodyweight, draft.weekLayoutOverrides, draft.adaptedSplitId,
         )
 
     private fun bodyweightAdapted(draft: SetupWizardDraft): SetupWizardDraft = draft.copy(
@@ -1543,6 +1687,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 fixedTrainingDays = null,
                 isPreviewLoading = false,
                 previewError = null,
+                weekLayout = null,
             )
             updateNutritionPreview(draft)
             return
@@ -1619,11 +1764,33 @@ class SetupWizardViewModel @JvmOverloads constructor(
     }
 
     /**
+     * Lo que publica la vista previa: el programa ya con la semana armada ([preview]), el mismo ANTES de ella ([base], de
+     * él cuelgan las decisiones del tablero) y el resultado de aplicarla ([layout]).
+     */
+    private data class PreparedPreview(val preview: SetupPreview, val base: Program?, val layout: LayoutOutcome?)
+
+    /**
+     * Materialización de la vista previa: el programa preparado del plan elegido ([materializeBase]) y, al final, la
+     * semana armada del borrador por el ÚNICO punto que la aplica ([applyLayout]). La activación guarda este mismo
+     * programa (`programPreview`), así lo que se ve es lo que se activa. La semana armada no entra en la evaluación de
+     * candidatos (su caché no depende de dónde caiga cada sesión): mover una sesión re-arma solo la vista previa.
+     */
+    private suspend fun materialize(draft: SetupWizardDraft): PreparedPreview {
+        val base = materializeBase(draft)
+        val program = base.program ?: return PreparedPreview(base, null, null)
+        if (!draft.hasWeekLayout) return PreparedPreview(base, program, LayoutOutcome(program))
+        val resolver = if (draft.adaptedSplitId != null) traitResolver() else null
+        val outcome = applyLayout(draft, program, resolver)
+        ProgramExecutionContract.requireExecutable(outcome.program)
+        return PreparedPreview(SetupPreview(outcome.program, base.report), program, outcome)
+    }
+
+    /**
      * Materialización real, salvo el puerto inyectado por las tests. El catálogo
      * es un PREREQUISITO del motor real: con override las tests controlan el
      * materializado completo sin cargar assets.
      */
-    private suspend fun materialize(draft: SetupWizardDraft): SetupPreview {
+    private suspend fun materializeBase(draft: SetupWizardDraft): SetupPreview {
         cachedReadyPreview(draft)?.let { return it }
         val override = materializeOverride
         if (override != null) return override.materialize(draft)
@@ -1633,6 +1800,38 @@ class SetupWizardViewModel @JvmOverloads constructor(
         if (draft.trainingPath == SetupTrainingPath.FROM_SCRATCH) return materializeProgram(draft)
         ensureCatalogLoaded()
         return evaluateSelectedCandidate(draft)
+    }
+
+    /**
+     * La semana del tablero (paso WEEK_LAYOUT) para la vista previa [prepared]. Sin catálogo de ejercicios cargado no se
+     * puede describir el foco de cada sesión, pero la semana se dibuja igual (sin foco): nunca tumba la vista previa.
+     */
+    private fun weekLayoutFor(draft: SetupWizardDraft, prepared: PreparedPreview): SetupWeekLayout? {
+        val program = prepared.preview.program ?: return null
+        if (draft.trainingPath == SetupTrainingPath.FROM_SCRATCH) return null
+        return weekLayoutOf(
+            draft = draft,
+            program = program,
+            base = prepared.base ?: program,
+            resolver = loadedTraitResolver() ?: ExerciseTraitResolver { null },
+            outcome = prepared.layout ?: LayoutOutcome(program),
+        )
+    }
+
+    /** Resolutor de rasgos de ejercicio del redistribuidor, uno por revisión del catálogo cargado (construirlo indexa todo). */
+    @Volatile private var traitResolverCache: Pair<String, ExerciseTraitResolver>? = null
+
+    /** El resolutor del catálogo ya cargado, o null si el catálogo todavía no está (nunca lo carga). */
+    private fun loadedTraitResolver(): ExerciseTraitResolver? {
+        val catalog = (catalogRepository.state.value as? ExerciseCatalogStateV2.Ready)?.catalog ?: return null
+        traitResolverCache?.takeIf { it.first == catalog.catalogRevision }?.let { return it.second }
+        return CatalogExerciseTraitResolver(catalog).also { traitResolverCache = catalog.catalogRevision to it }
+    }
+
+    /** El resolutor del catálogo, cargándolo si hace falta (lo necesita la adaptación a un reparto). */
+    private suspend fun traitResolver(): ExerciseTraitResolver? {
+        ensureCatalogLoaded()
+        return loadedTraitResolver()
     }
 
     /**
@@ -1684,7 +1883,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
             exerciseCatalogRevision = exerciseRevision,
         )
         val evaluation = PlanCandidateEvaluator.evaluate(
-            request = request,
+            request = evaluationRequestFor(request, planId),
             snapshot = snapshot,
             entryId = planId,
             engine = candidateEngine(draft, request),
@@ -1764,6 +1963,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
                     programPreview = null, previewReport = null,
                     fixedSessionEstimateMinutes = null, fixedTrainingDays = null,
                     isPreviewLoading = false,
+                    weekLayout = null,
                 )
                 updateNutritionPreview(draft)
             }
@@ -1785,7 +1985,9 @@ class SetupWizardViewModel @JvmOverloads constructor(
         }
         try {
             val source = if (_state.value.planAdaptedToBodyweight) bodyweightAdapted(draft) else draft
-            val result = withContext(Dispatchers.Default) { materialize(source) }
+            val prepared = withContext(Dispatchers.Default) { materialize(source) }
+            val result = prepared.preview
+            val layout = withContext(Dispatchers.Default) { weekLayoutFor(draft, prepared) }
             when {
                 // Dueño + clave vigente: publica y se retira.
                 ownsPreview(generation) && previewKey(_state.value.draft) == key -> {
@@ -1810,6 +2012,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
                         fixedTrainingDays = if (isFixed) result.program?.let(::fixedTrainingDays) else null,
                         isPreviewLoading = false, machineState = restoredMachine,
                         selectionStale = selectionStaleFor(_state.value.draft),
+                        weekLayout = layout,
                         requiresActivationConfirmation = activationConfirmation(draft, result.program))
                     updateNutritionPreview(_state.value.draft)
                 }
@@ -2050,6 +2253,22 @@ class SetupWizardViewModel @JvmOverloads constructor(
     )
 
     /**
+     * Entreno v2 · el pedido con el que el evaluador mide UN plan (la clave [PlanCandidateRequest.inputKey] no cambia: la
+     * caché y la puerta de activación siguen siendo las mismas).
+     *
+     * - Programa «a medida»: sin disciplina que filtrar (su modo ya es el del perfil) y sin tope de minutos: el generador
+     *   ajusta cada sesión a su ventana (85–110 % del tiempo pedido) y lo que se pase lo dice el revelado con una nota.
+     * - Plan del catálogo: el tiempo pedido con una tolerancia del 15 % ([timeBudgetWithTolerance]); el que cabe así es
+     *   viable con la nota «~N min por sesión». El resto de reglas de rechazo no cambia.
+     */
+    private fun evaluationRequestFor(request: PlanCandidateRequest, entryId: String): PlanCandidateRequest =
+        if (GeneratedPlans.isGenerated(entryId)) {
+            request.copy(reference = null, minutesPerSession = Int.MAX_VALUE)
+        } else {
+            request.copy(minutesPerSession = timeBudgetWithTolerance(request.minutesPerSession))
+        }
+
+    /**
      * Puerto real de materialización: el MISMO motor del preview, con el plan
      * candidato ya elegido. Traduce los fallos tipados del motor a los motivos
      * cerrados de §15.2; `CancellationException` se propaga y cualquier otro
@@ -2258,7 +2477,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
         val probeDraft = repairProbeDraft(source, probe, availability)
         val probeRequest = probe.copy(effectiveEquipment = effectiveEquipmentIds(probeDraft))
         val evaluation = PlanCandidateEvaluator.evaluate(
-            probeRequest,
+            evaluationRequestFor(probeRequest, ownId),
             snapshot,
             ownId,
             candidateEngine(probeDraft, probeRequest),
@@ -2302,6 +2521,8 @@ class SetupWizardViewModel @JvmOverloads constructor(
                     isCandidateLoading = false,
                     planAdaptedToBodyweight = false,
                     selectionStale = false,
+                    planSweep = SetupPlanSweep.IDLE,
+                    planReveals = emptyList(),
                 ),
             )
             return
@@ -2318,8 +2539,11 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 droppedSelection = null,
                 isCandidateLoading = true,
                 planAdaptedToBodyweight = false,
+                planSweep = SetupPlanSweep.LOADING,
+                planReveals = emptyList(),
             ),
         )
+        val sources = candidateSourcesOf(draft)
         candidateJob = viewModelScope.launch {
             try {
                 val sweepStats = CandidateSweepStats()
@@ -2380,7 +2604,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
                         val cached = candidateCache.get(cacheRevision, cacheKey)
                         if (cached != null) sweepStats.cacheHits.incrementAndGet() else sweepStats.evaluated.incrementAndGet()
                         val evaluation = cached
-                            ?: PlanCandidateEvaluator.evaluate(request, snapshot, entry.id, engine)
+                            ?: PlanCandidateEvaluator.evaluate(evaluationRequestFor(request, entry.id), snapshot, entry.id, engine)
                                 .also { result -> candidateCache.put(cacheRevision, cacheKey, result) }
                         when (evaluation) {
                             is PlanCandidateEvaluation.Ready -> {
@@ -2418,7 +2642,59 @@ class SetupWizardViewModel @JvmOverloads constructor(
                             candidateCache.put(cacheRevision, "${request.inputKey}|${entry.id}", ready)
                         }
                     }
-                    return CandidateScan(publishedEntries, viableEntries, publishedRejections)
+                    return CandidateScan(publishedEntries, viableEntries, publishedRejections, readySnapshots)
+                    }
+
+                    /**
+                     * Entreno v2 · el programa «a medida» del perfil: UNA evaluación (el generador nunca falla por
+                     * días, minutos ni material), por el mismo evaluador, la misma caché y la misma clave que los
+                     * demás candidatos, así la vista previa y la activación lo reutilizan tal cual.
+                     */
+                    suspend fun collectGenerated(profile: TrainingGoalProfile): CandidateScan {
+                        sweepStats.passes.incrementAndGet()
+                        val entry = PersonalizedPlanCatalog.find(GeneratedPlans.entryIdFor(profile))
+                            ?: return CandidateScan.EMPTY
+                        val request = candidateRequest(draft, equipmentIds, exerciseRevision)
+                        val snapshot = PlanCatalogSnapshot(
+                            entries = PersonalizedPlanCatalog.entries(),
+                            planRevision = PersonalizedPlanCatalog.REVISION,
+                            exerciseCatalogRevision = exerciseRevision,
+                        )
+                        val cacheRevision = "${PersonalizedPlanCatalog.REVISION}|$exerciseRevision"
+                        val cacheKey = "${request.inputKey}|${entry.id}"
+                        currentCoroutineContext().ensureActive()
+                        val cached = candidateCache.get(cacheRevision, cacheKey)
+                        if (cached != null) sweepStats.cacheHits.incrementAndGet() else sweepStats.evaluated.incrementAndGet()
+                        val evaluation = cached
+                            ?: PlanCandidateEvaluator.evaluate(
+                                evaluationRequestFor(request, entry.id),
+                                snapshot,
+                                entry.id,
+                                candidateEngine(draft, request),
+                            ).also { result -> candidateCache.put(cacheRevision, cacheKey, result) }
+                        return when (evaluation) {
+                            is PlanCandidateEvaluation.Ready ->
+                                CandidateScan(listOf(entry), listOf(entry), emptyList(), mapOf(entry.id to evaluation))
+                            is PlanCandidateEvaluation.Rejected -> {
+                                Log.w(DIAG_TAG, "programa a medida rechazado: ${evaluation.reasonCode} ${evaluation.details.orEmpty().take(DIAG_REASON_MAX)}")
+                                CandidateScan(listOf(entry), emptyList(), listOf(setupRejectionOf(evaluation)))
+                            }
+                            PlanCandidateEvaluation.CatalogLoading -> CandidateScan(listOf(entry), emptyList(), emptyList())
+                        }
+                    }
+
+                    val profile = draft.goalProfile
+                    if (profile != null && sources != PlanCandidateSources.CATALOG) {
+                        // Entreno v2: el «a medida» siempre existe, así que no hay pase a peso corporal (ese pase solo
+                        // servía para no dejar la lista vacía). Las disciplinas con autores conservan las reparaciones
+                        // de un toque de su plan propio (el aviso de la selección caída las ofrece).
+                        val generated = collectGenerated(profile)
+                        val scan = if (sources == PlanCandidateSources.GENERATED_AND_CATALOG) {
+                            generated + collectViable(equipmentIds, protocolOnly = false, attachOwnPlanRepairs = true)
+                        } else {
+                            generated
+                        }
+                        return@withContext candidateOutcomeWithViews(draft, CandidateOutcome(scan, scan, useAdapted = false))
                     }
                     val requested = collectViable(
                         equipmentIds,
@@ -2449,7 +2725,10 @@ class SetupWizardViewModel @JvmOverloads constructor(
                     // Se MUESTRAN los candidatos del pase corporal solo si hubo alguno; los rechazos y los
                     // conteos que se publican son SIEMPRE los del pase pedido (ver `CandidateOutcome`).
                     val adaptedScan = bodyweightScan?.takeIf { it.viable.isNotEmpty() }
-                    CandidateOutcome(requested, adaptedScan ?: requested, useAdapted = adaptedScan != null)
+                    candidateOutcomeWithViews(
+                        draft,
+                        CandidateOutcome(requested, adaptedScan ?: requested, useAdapted = adaptedScan != null),
+                    )
                 }
                 // C4: solo medición. Sin datos personales: milisegundos y contadores.
                 Log.i(
@@ -2487,33 +2766,8 @@ class SetupWizardViewModel @JvmOverloads constructor(
                             )
                         }
                     }
-                    val options = viable.map { entry ->
-                        SetupPlanCandidate(
-                            id = entry.id,
-                            // C.P5: la ficha editorial, no los alias heredados del catálogo. La tarjeta pinta
-                            // título, subtítulo y motivos; `description` y `details` no los pinta ninguna
-                            // pantalla (ver KDoc de `SetupPlanCandidate`).
-                            title = entry.displayName,
-                            subtitle = PlanLabels.subtitle(entry),
-                            description = entry.summary,
-                            source = entry.source.name,
-                            reasons = buildList {
-                                draft.daysPerWeek?.let { days ->
-                                    if (entry.supportedFrequencies.contains(days)) add(weekFitReason(days))
-                                }
-                                if (useAdapted) {
-                                    add("Plan KPKN adaptado a peso corporal: tu material no tenía una receta ejecutable")
-                                } else {
-                                    add("Se ejecuta con el equipo que has elegido")
-                                }
-                                if (entry.level == draft.experience.toCatalogLevel()) add("Su nivel coincide con tu experiencia")
-                                if (draft.goal == SetupGoal.MIXED && entry.schedulesCardio) add("Programa el cardio que has pedido")
-                                // A.E1 (D6): qué hace ESTA tarjeta con la bolsa de prioridades (si la hay).
-                                planOrderPriorityReason(entry, draft.trainingOptions.orderPriorities)?.let { add(it) }
-                            },
-                            details = entry.attributionLine?.takeIf { it.isNotBlank() },
-                        )
-                    }
+                    val options = outcome.cards
+                    check(options.map { it.id } == viable.map { it.id }) { "las tarjetas no son los viables mostrados" }
                     val current = _state.value
                     if (options.isEmpty()) {
                         // Estado explícito «no compatible» con motivo REAL (UDF):
@@ -2522,10 +2776,12 @@ class SetupWizardViewModel @JvmOverloads constructor(
                         // Sin la lista de tokens de material (`general_gym`, `barbell`…): son identificadores internos y
                         // este aviso lo lee la persona (C.P11: nada de ids ni códigos en los textos).
                         val frequency = draft.daysPerWeek?.let { "${SpanishPlurals.days(it)} por semana" } ?: "esta frecuencia"
-                        val reason = if (published.isEmpty()) {
-                            "No hay planes publicados compatibles con tu material y $frequency."
-                        } else {
-                            SpanishPlurals.choose(
+                        val reason = when {
+                            // Entreno v2: con un programa «a medida» en juego, quedarse sin nada es un fallo de
+                            // preparación (el generador no falla por días, minutos ni material): texto de COPY.
+                            sources != PlanCandidateSources.CATALOG -> PLAN_PREPARE_FAILED_MESSAGE
+                            published.isEmpty() -> "No hay planes publicados compatibles con tu material y $frequency."
+                            else -> SpanishPlurals.choose(
                                 published.size,
                                 "1 plan publicado, pero no es ejecutable con tu material y $frequency.",
                                 "${published.size} planes publicados; ninguno es ejecutable con tu material y $frequency.",
@@ -2544,6 +2800,8 @@ class SetupWizardViewModel @JvmOverloads constructor(
                             candidateCounts = outcome.requested.counts,
                             programPreview = null,
                             previewReport = null,
+                            planSweep = SetupPlanSweep.FAILED,
+                            planReveals = emptyList(),
                         )
                     } else {
                         // Éxito: sólo se retira la marca propia de candidatos;
@@ -2562,6 +2820,8 @@ class SetupWizardViewModel @JvmOverloads constructor(
                             // tarjetas salen del pase a peso corporal.
                             candidateRejections = outcome.requested.rejections,
                             candidateCounts = outcome.requested.counts,
+                            planSweep = SetupPlanSweep.READY,
+                            planReveals = outcome.reveals,
                         )
                         refreshPreviewAfterCandidates(options.map { it.id }.toSet(), outcome.requested.rejections)
                     }
@@ -2574,7 +2834,12 @@ class SetupWizardViewModel @JvmOverloads constructor(
                     // (clase + mensaje) solo en el rechazo estructurado.
                     val catalogNotReady = error is PlanMaterializationException &&
                         error.reason == PlanRejectionReason.CATALOG_NOT_READY
-                    val message = if (catalogNotReady) CATALOG_UNAVAILABLE_MESSAGE else "No pude comprobar los planes. Prueba de nuevo."
+                    val message = when {
+                        catalogNotReady -> CATALOG_UNAVAILABLE_MESSAGE
+                        // Entreno v2: el fallo del barrido de programas se dice con el texto de COPY.
+                        sources != PlanCandidateSources.CATALOG -> PLAN_PREPARE_FAILED_MESSAGE
+                        else -> "No pude comprobar los planes. Prueba de nuevo."
+                    }
                     val rejection = if (catalogNotReady) {
                         SetupCandidateRejection(
                             planId = null,
@@ -2595,6 +2860,8 @@ class SetupWizardViewModel @JvmOverloads constructor(
                         isCandidateLoading = false, planAdaptedToBodyweight = false,
                         errors = _state.value.errors + ("candidates" to message),
                         candidateRejections = listOf(rejection),
+                        planSweep = SetupPlanSweep.FAILED,
+                        planReveals = emptyList(),
                     )
                 }
             }
@@ -2602,6 +2869,134 @@ class SetupWizardViewModel @JvmOverloads constructor(
     }
 
     private fun ownsCandidateGeneration(generation: Long): Boolean = generation == candidateGeneration
+
+    // ─── Entreno v2: fuentes de candidatos, tarjetas y revelado ──────────────────────────────────────────
+
+    /**
+     * De dónde salen los programas del borrador: por perfil de objetivo ([GeneratedPlans.sourcesFor]). La ruta legacy de
+     * protocolo (solo recetas de autor) y un borrador sin perfil siguen con el planificador de siempre.
+     */
+    private fun candidateSourcesOf(draft: SetupWizardDraft): PlanCandidateSources =
+        if (draft.programRoute == SetupProgramRoute.PROTOCOL) PlanCandidateSources.CATALOG
+        else GeneratedPlans.sourcesFor(draft.goalProfile)
+
+    /** Las tarjetas y el revelado de los viables mostrados por [outcome] (fuera del hilo principal). */
+    private fun candidateOutcomeWithViews(draft: SetupWizardDraft, outcome: CandidateOutcome): CandidateOutcome {
+        val viable = outcome.scan.viable
+        val cards = viable.map { entry ->
+            if (entry.isGenerated) generatedCandidateCard(entry, generatedRoutineFor(draft, entry))
+            else catalogCandidateCard(entry, draft, outcome.useAdapted)
+        }
+        val reveals = viable.mapIndexedNotNull { index, entry ->
+            val ready = outcome.scan.ready[entry.id] ?: return@mapIndexedNotNull null
+            val program = ready.preparedPlan
+            if (entry.isGenerated) {
+                SetupPlanReveals.forGenerated(
+                    entry = entry,
+                    program = program,
+                    routine = generatedRoutineFor(draft, entry),
+                    profile = draft.goalProfile,
+                    level = draft.experience.toPlanLevel(),
+                    declaredMinutes = draft.minutesPerSession,
+                    // «Otra versión» también se ve en la portada: cada semilla mueve su degradado y su ilustración.
+                    coverSeed = index + draft.planVariantSeed,
+                )
+            } else {
+                SetupPlanReveals.forCatalog(
+                    entry = entry,
+                    program = program,
+                    reasons = cards[index].reasons,
+                    profile = draft.goalProfile,
+                    declaredMinutes = draft.minutesPerSession,
+                    coverSeed = index,
+                )
+            }
+        }
+        return outcome.copy(cards = cards, reveals = reveals)
+    }
+
+    /** Tarjeta de un plan del catálogo (C.P5): ficha editorial y motivos de encaje. */
+    private fun catalogCandidateCard(entry: CatalogEntry, draft: SetupWizardDraft, useAdapted: Boolean): SetupPlanCandidate =
+        SetupPlanCandidate(
+            id = entry.id,
+            // C.P5: la ficha editorial, no los alias heredados del catálogo. La tarjeta pinta
+            // título, subtítulo y motivos; `description` y `details` no los pinta ninguna
+            // pantalla (ver KDoc de `SetupPlanCandidate`).
+            title = entry.displayName,
+            subtitle = PlanLabels.subtitle(entry),
+            description = entry.summary,
+            source = entry.source.name,
+            reasons = buildList {
+                draft.daysPerWeek?.let { days ->
+                    if (entry.supportedFrequencies.contains(days)) add(weekFitReason(days))
+                }
+                if (useAdapted) {
+                    add("Plan KPKN adaptado a peso corporal: tu material no tenía una receta ejecutable")
+                } else {
+                    add("Se ejecuta con el equipo que has elegido")
+                }
+                if (entry.level == draft.experience.toCatalogLevel()) add("Su nivel coincide con tu experiencia")
+                if (draft.goal == SetupGoal.MIXED && entry.schedulesCardio) add("Programa el cardio que has pedido")
+                // A.E1 (D6): qué hace ESTA tarjeta con la bolsa de prioridades (si la hay).
+                planOrderPriorityReason(entry, draft.trainingOptions.orderPriorities)?.let { add(it) }
+            },
+            details = entry.attributionLine?.takeIf { it.isNotBlank() },
+        )
+
+    /** Tarjeta del programa «a medida»: sus razones son las del generador («por qué este programa»). */
+    private fun generatedCandidateCard(entry: CatalogEntry, routine: GeneratedRoutine?): SetupPlanCandidate =
+        SetupPlanCandidate(
+            id = entry.id,
+            title = entry.displayName,
+            subtitle = PlanLabels.subtitle(entry),
+            description = routine?.summary?.oneLiner ?: entry.summary,
+            source = entry.source.name,
+            reasons = routine?.summary?.reasons.orEmpty(),
+        )
+
+    /** Clave de la rutina generada para [draft] (la misma que la de su evaluación: `inputKey|planId`). */
+    private fun generatedRoutineKey(draft: SetupWizardDraft): String =
+        "${candidateInputKey(draft, effectiveEquipmentIds(draft), exerciseCatalogRevision())}|${draft.selectedCatalogId}"
+
+    /**
+     * La rutina que el generador armó para [entry] con las respuestas de [draft]: la de la memoria o, si ya no está,
+     * la misma vuelta a generar (determinista). Null sin catálogo cargado o si el generador rechaza el pedido.
+     */
+    private fun generatedRoutineFor(draft: SetupWizardDraft, entry: CatalogEntry): GeneratedRoutine? {
+        val chosen = draft.copy(selectedCatalogId = entry.id)
+        generatedRoutines.get(generatedRoutineKey(chosen))?.let { return it }
+        val mode = GeneratedPlans.modeOf(entry.id) ?: return null
+        val catalog = (catalogRepository.state.value as? ExerciseCatalogStateV2.Ready)?.catalog ?: return null
+        return runCatching { RoutineGenerator.generate(chosen.routineRequest(mode, catalog)) }
+            .onFailure { error -> if (error is CancellationException) throw error }
+            .getOrNull()
+            ?.also { routine -> generatedRoutines.put(generatedRoutineKey(chosen), routine) }
+    }
+
+    /**
+     * Entreno v2 · el programa «a medida» de [entry] para [draft]: el generador de rutinas con el pedido del borrador
+     * ([routineRequest], ids derivados del alta), así el barrido, la vista previa y la activación generan exactamente lo
+     * mismo. Lo que el generador no sabe del alta lo completa [generatedProgramOf].
+     */
+    private fun materializeGenerated(draft: SetupWizardDraft, entry: CatalogEntry, mode: RoutineMode): SetupPreview {
+        val catalog = (catalogRepository.state.value as? ExerciseCatalogStateV2.Ready)?.catalog
+            ?: throw PlanMaterializationException(
+                PlanEvaluationStage.CATALOG,
+                PlanRejectionReason.CATALOG_NOT_READY,
+                CATALOG_UNAVAILABLE_MESSAGE,
+            )
+        val routine = try {
+            RoutineGenerator.generate(draft.routineRequest(mode, catalog))
+        } catch (impossible: RoutineGenerationException) {
+            throw PlanMaterializationException(
+                PlanEvaluationStage.MATERIALIZATION,
+                PlanRejectionReason.INTERNAL_MATERIALIZATION,
+                impossible.message ?: "el generador rechazó el pedido",
+            )
+        }
+        generatedRoutines.put(generatedRoutineKey(draft), routine)
+        return SetupPreview(generatedProgramOf(routine, entry, draft), null)
+    }
 
     /**
      * Paquete A · D2 (B-01): relanza el programa SOLO cuando el plan elegido sigue entre los viables de la
@@ -2719,6 +3114,8 @@ class SetupWizardViewModel @JvmOverloads constructor(
         if (draft.programRoute == SetupProgramRoute.PROTOCOL && entry.source != CatalogSource.PROTOCOL) {
             error("Fuente equivocada para la ruta elegida: la ruta de protocolo solo acepta recetas de autor. Cambia de ruta de forma explícita para usar un plan nativo.")
         }
+        // Entreno v2: un programa «a medida» lo arma el generador de rutinas, nunca el personalizador nativo.
+        GeneratedPlans.modeOf(entry.id)?.let { mode -> return materializeGenerated(draft, entry, mode) }
         if (entry.source == CatalogSource.NATIVE) {
             val frequency = draft.daysPerWeek ?: error("Selecciona los días de entrenamiento")
             val result = OnboardingPlanGenerator(SimpleCyclePersonalizer(catalogRepository)).generate(
@@ -2730,7 +3127,11 @@ class SetupWizardViewModel @JvmOverloads constructor(
                     weekdays = draft.selectedWeekdays.sorted(),
                     equipment = effectiveEquipmentIds(draft),
                     level = draft.experience.toCatalogLevel(),
-                    availableMinutes = draft.minutesPerSession ?: error("Indica el tiempo disponible"),
+                    // Entreno v2: el alta acepta hasta 180 min, pero los planes propios no se estiran más allá de su
+                    // tope de 100 (el personalizador rechaza más): con más tiempo se arman con 100 y el «a medida»
+                    // es quien aprovecha el resto.
+                    availableMinutes = (draft.minutesPerSession ?: error("Indica el tiempo disponible"))
+                        .coerceAtMost(OWN_PLAN_MAX_MINUTES),
                     cardio = if (draft.requiresCardio) {
                         CardioPreference(requireNotNull(draft.cardioType), requireNotNull(draft.cardioMinutes))
                     } else null,
@@ -2988,7 +3389,9 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 put("programSource", "Fuente equivocada para la ruta elegida: la ruta de protocolo solo acepta recetas de autor. Cambia de ruta de forma explícita para usar un plan nativo.")
             }
         }
-        if (s.fixedSessionEstimateMinutes != null && s.fixedSessionEstimateMinutes > (d.minutesPerSession ?: 100)) put("time", "Esta receta supera los ${d.minutesPerSession ?: 100} minutos por sesión; elige otra o ajusta el tiempo")
+        // Entreno v2: la misma tolerancia del 15 % con la que el barrido da por viable un plan de autor (con su nota
+        // «~N min por sesión»); por encima de ella la receta no cabe en el tiempo pedido.
+        if (s.fixedSessionEstimateMinutes != null && s.fixedSessionEstimateMinutes > timeBudgetWithTolerance(d.minutesPerSession ?: 100)) put("time", "Esta receta supera los ${d.minutesPerSession ?: 100} minutos por sesión; elige otra o ajusta el tiempo")
         if (fixedRecipeDifference(d, s.programPreview, s.fixedSessionEstimateMinutes) && !d.acceptFixedRecipeDifference) put("schedule", "Confirma la rotación y la duración reales de la receta")
         // Solo registro = sin plan y sin metas; no se exige una preparación que
         // el modo rechaza explícitamente.
@@ -3219,6 +3622,10 @@ class SetupWizardViewModel @JvmOverloads constructor(
         private const val PRESELECTED_PLAN_KEY = "setup_wizard_preselected_plan_id"
         /** Veredictos de sondeo que guarda la caché aparte del asesor de reparaciones (cada uno ocupa casi nada). */
         private const val REPAIR_PROBE_CACHE_ENTRIES = 8
+        /** Rutinas «a medida» que se recuerdan para el revelado (una por perfil y respuestas; pocas bastan). */
+        private const val GENERATED_ROUTINE_MEMO_ENTRIES = 8
+        /** Minutos por sesión con los que se arma un plan propio (el personalizador no admite más). */
+        private const val OWN_PLAN_MAX_MINUTES = 100
         /**
          * Únicos valores de entorno que el reductor de EQUIPMENT acepta como
          * «Sin material». Lista positiva a propósito: un entorno nulo, en blanco
@@ -3409,8 +3816,20 @@ internal fun PlanGoalProfile.toSetupGoal(): SetupGoal? = when (this) {
     PlanGoalProfile.LEGACY_MIXED, PlanGoalProfile.LEGACY_HEALTH -> null
 }
 
-/** Valor estable de la opción del paso GOAL (`strength`, `muscle`, `strength_muscle`, `complete_athlete`). */
-internal fun goalChoiceValueOf(goal: PlanGoalProfile): String? = goal.toSetupGoal()?.name?.lowercase()
+/**
+ * Valor estable de la opción del paso GOAL que lleva a los planes de este objetivo. Entreno v2: es el perfil que ofrece
+ * su plan propio y los de autor (Fuerza → `powerlifting`, Músculo → `bodybuilding`, Fuerza y músculo → `powerbuilding`);
+ * «Fuerza y masa muscular» es un perfil general y solo ofrece su programa «a medida», así que una reparación o una
+ * preselección de la biblioteca nunca lleva ahí. Atleta completo → `strength_cardio` (el perfil general que lo
+ * sustituye). Null para los legacy, que nunca se ofrecen de nuevo.
+ */
+internal fun goalChoiceValueOf(goal: PlanGoalProfile): String? = when (goal) {
+    PlanGoalProfile.STRENGTH -> TrainingGoalProfile.POWERLIFTING
+    PlanGoalProfile.MUSCLE -> TrainingGoalProfile.BODYBUILDING
+    PlanGoalProfile.STRENGTH_MUSCLE -> TrainingGoalProfile.POWERBUILDING
+    PlanGoalProfile.COMPLETE_ATHLETE -> TrainingGoalProfile.STRENGTH_CARDIO
+    PlanGoalProfile.LEGACY_MIXED, PlanGoalProfile.LEGACY_HEALTH -> null
+}?.let(EntrenoStepValues::goalValue)
 
 /**
  * El plan PROPIO de un objetivo (el que la persona espera ver): `native:strength-foundation-v2`,

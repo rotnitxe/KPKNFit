@@ -71,8 +71,10 @@ class PersonalizedPlanCatalogTest {
     @Test
     fun nativeFamiliesArePublishedAndNamespaced() {
         val entries = PersonalizedPlanCatalog.entries()
-        // 8 familias históricas + los cuatro planes propios de §11.1 (T-004a).
-        assertEquals(12, entries.count { it.source == CatalogSource.NATIVE })
+        // 8 familias históricas + los cuatro planes propios de §11.1 (T-004a) que arma el personalizador nativo, y los
+        // diez programas «a medida» del generador de Entreno v2 (también NATIVE, sin listar).
+        assertEquals(12, entries.count { it.source == CatalogSource.NATIVE && !it.isGenerated })
+        assertEquals(PersonalizedPlanCatalog.GENERATED_IDS, entries.filter { it.isGenerated }.map { it.id })
         listOf(
             "native:full-body",
             "native:gym-muscle",
@@ -108,11 +110,12 @@ class PersonalizedPlanCatalogTest {
         val all = PersonalizedPlanCatalog.entries()
         val listed = PersonalizedPlanCatalog.listedEntries()
 
-        assertEquals("nativos en entries()", 12, all.count { it.source == CatalogSource.NATIVE })
+        // Los diez programas «a medida» del generador (Entreno v2) también son NATIVE sin listar: no cuentan aquí.
+        assertEquals("nativos en entries()", 12, all.count { it.source == CatalogSource.NATIVE && !it.isGenerated })
         assertEquals("nativos en listedEntries()", 7, listed.count { it.source == CatalogSource.NATIVE })
         assertEquals(
             "ocultos exactos",
-            hidden.sorted(),
+            (hidden + PersonalizedPlanCatalog.GENERATED_IDS).sorted(),
             all.filterNot { it.listed }.map { it.id }.sorted(),
         )
         assertEquals(
@@ -269,7 +272,8 @@ class PersonalizedPlanCatalogTest {
     fun everyNativeFamilyBuildsExecutableCanonicalSessions() {
         val planner = personalizer()
         val names = catalog.toLegacyConfigurationLookup()
-        PersonalizedPlanCatalog.entries().filter { it.source == CatalogSource.NATIVE }.forEach { entry ->
+        // Los programas «a medida» no son del personalizador nativo: los arma el generador (sus pruebas, aparte).
+        PersonalizedPlanCatalog.entries().filter { it.source == CatalogSource.NATIVE && !it.isGenerated }.forEach { entry ->
             val equipment = when (entry.sourceId) {
                 "machine-muscle" -> setOf("machine")
                 "home-training" -> setOf("bodyweight", "band", "dumbbells", "ball")
