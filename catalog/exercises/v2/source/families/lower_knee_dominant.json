@@ -7455,7 +7455,7 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "La barra parte de un soporte con los brazos ya estirados y baja con el cuerpo hasta el fondo de la sentadilla, siempre sobre el centro del pie. Con el peso arriba, cualquier inclinación del tronco se nota enseguida, y por eso se usa menos carga que en la sentadilla trasera.",
+              "description": "La barra sube desde un soporte hasta quedar sobre la cabeza con los brazos estirados, y el cuerpo baja al fondo de la sentadilla, siempre sobre el centro del pie. Con el peso arriba, cualquier inclinación del tronco se nota enseguida, y por eso se usa menos carga que en la sentadilla trasera.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -7503,7 +7503,7 @@
                 },
                 {
                   "actions": [
-                    "Sostén del brazo en flexión completa con rotación externa"
+                    "Sostén del brazo en elevación con abducción y rotación externa"
                   ],
                   "jointId": "glenohumeral",
                   "role": "STABILIZER"
@@ -7551,7 +7551,7 @@
                     "Flexión plantar al subir",
                     "Extensión torácica con los brazos sobre la cabeza",
                     "Posición neutra con la carga sobre la cabeza",
-                    "Sostén del brazo en flexión completa con rotación externa",
+                    "Sostén del brazo en elevación con abducción y rotación externa",
                     "Rotación superior mantenida de la escápula",
                     "Bloqueo del codo bajo la barra",
                     "Extensión de la muñeca con la barra sobre la cabeza"
@@ -7595,7 +7595,7 @@
                     },
                     {
                       "actions": [
-                        "Sostén del brazo en flexión completa con rotación externa"
+                        "Sostén del brazo en elevación con abducción y rotación externa"
                       ],
                       "jointId": "glenohumeral",
                       "role": "STABILIZER"
@@ -7627,15 +7627,14 @@
                     "gluteus_maximus"
                   ],
                   "secondaryMuscles": [
-                    "adductors",
-                    "hamstrings"
+                    "adductors"
                   ],
                   "stabilizerMuscles": [
                     "deltoid",
                     "trapezius",
                     "triceps",
                     "erector_spinae",
-                    "abdominals",
+                    "core",
                     "forearm"
                   ],
                   "volumeContribution": "indirect"
@@ -7718,12 +7717,11 @@
                 }
               },
               "secondaryMuscles": [
-                "adductors",
-                "hamstrings"
+                "adductors"
               ],
               "setupCues": [
-                "Retira la barra del soporte con el agarre ancho de arranque y estira los brazos sobre la cabeza.",
-                "Da un paso atrás y coloca los pies algo más anchos que los hombros, con las puntas ligeramente abiertas.",
+                "Con el agarre ancho de arranque, descuelga la barra, llévala a los hombros y empújala sobre la cabeza hasta bloquear los codos.",
+                "Da un paso atrás con la barra arriba y coloca los pies algo más anchos que los hombros, con las puntas ligeramente abiertas.",
                 "Empuja la barra hacia el techo para activar los hombros y deja el abdomen firme."
               ],
               "setupTimeSeconds": 45,
@@ -7733,7 +7731,7 @@
                 "trapezius",
                 "triceps",
                 "erector_spinae",
-                "abdominals",
+                "core",
                 "forearm"
               ],
               "technicalDifficulty": 6.0,
@@ -7743,7 +7741,7 @@
           }
         ],
         "defaultConfigurationId": "overhead_squat__barbell",
-        "description": "La Sentadilla de Arranque (overhead squat) es una sentadilla profunda con la barra sostenida a pulso sobre la cabeza, con los brazos bloqueados y un agarre ancho. Trabaja el cuádriceps y el glúteo mayor, con los aductores y los isquiosurales de apoyo, mientras el deltoides, el trapecio y el tríceps sostienen el peso arriba. Es la sentadilla que más pide al tronco: con poco peso, el oblicuo externo y el erector espinal se activan más con la barra sobre la cabeza que con ella delante o detrás. La barra, alta y siempre sobre el centro del pie, delata cualquier límite de recorrido en hombros, espalda alta, caderas y tobillos, por eso se usa con cargas ligeras como práctica del fondo del arranque.",
+        "description": "La Sentadilla de Arranque (overhead squat) es una sentadilla profunda con la barra sostenida a pulso sobre la cabeza, con los brazos bloqueados y un agarre ancho. Trabaja el cuádriceps y el glúteo mayor, con los aductores de apoyo, mientras el deltoides, el trapecio y el tríceps sostienen el peso arriba. En un estudio con principiantes y poco peso, el abdomen y el erector espinal se activaron más con la barra sobre la cabeza que con ella delante o detrás. La barra, alta y siempre sobre el centro del pie, delata cualquier límite de recorrido en hombros, espalda alta, caderas y tobillos, por eso se usa con cargas ligeras como práctica del fondo del arranque.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

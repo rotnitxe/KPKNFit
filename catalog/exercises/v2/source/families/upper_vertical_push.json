@@ -677,14 +677,14 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "description": "La barra sale del rack frontal con una flexión corta de rodillas y se recibe con una segunda flexión bajo ella, con los pies planos a la misma anchura. Pide más velocidad y coordinación que el push press, que termina el recorrido solo con los brazos.",
+              "description": "La barra sale de la posición de rack frontal con una flexión corta de rodillas y se recibe con una segunda flexión bajo ella, con los pies planos en el mismo sitio. Exige más coordinación que el push press, que termina el recorrido solo con los brazos.",
               "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
-                "Flexiona las rodillas un poco, con el tronco vertical, y detente un instante.",
-                "Extiende las piernas con fuerza para lanzar la barra hacia arriba.",
+                "Flexiona las rodillas un poco, con el tronco vertical y la barra apoyada en los hombros.",
+                "Sin pausa, empuja el suelo y extiende las piernas con fuerza para lanzar la barra hacia arriba.",
                 "Vuelve a flexionar las rodillas y mete el cuerpo bajo la barra mientras bloqueas los codos sobre la cabeza.",
-                "Estira las piernas hasta quedar de pie con la barra arriba y bájala con control a los hombros."
+                "Estira las piernas hasta quedar erguido con la barra arriba y bájala con control a los hombros."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
@@ -902,6 +902,8 @@
                     "push jerk",
                     "jerk de empuje",
                     "envion",
+                    "envion de fuerza",
+                    "power jerk",
                     "jerk",
                     "levantamiento olimpico",
                     "halterofilia"
@@ -936,7 +938,7 @@
                 "trapezius"
               ],
               "setupCues": [
-                "Descuelga la barra del soporte y déjala sobre los hombros, con los codos algo adelantados y las manos a la anchura de los hombros.",
+                "Descuelga la barra del soporte y déjala sobre los hombros, con los codos algo adelantados y las manos algo más abiertas que los hombros.",
                 "Coloca los pies a la anchura de las caderas, con el tronco erguido y la mirada al frente."
               ],
               "setupTimeSeconds": 45,
@@ -954,7 +956,7 @@
           }
         ],
         "defaultConfigurationId": "push_jerk__barbell",
-        "description": "El Envión de Empuje (push jerk) lanza la barra desde los hombros hasta encima de la cabeza con un impulso de piernas y una segunda flexión de rodillas bajo la barra, y la recibe con los brazos bloqueados y los pies planos a la anchura de los hombros. El deltoides y el tríceps sujetan y bloquean la barra arriba, el cuádriceps y el glúteo mayor generan el impulso y el trapecio sube los hombros hacia ella. La diferencia con el push press está en esa segunda flexión: en el envión el atleta se mete bajo la barra en lugar de acabar de empujarla con los brazos. Es un ejercicio de potencia para el tren superior y el escalón previo al envión de tijera.",
+        "description": "El Envión de Empuje (push jerk) lanza la barra desde los hombros hasta encima de la cabeza con un impulso de piernas y una segunda flexión de rodillas bajo la barra, y la recibe con los brazos bloqueados y los pies planos en el mismo sitio. El deltoides y el tríceps sujetan y bloquean la barra arriba, el cuádriceps y el glúteo mayor generan el impulso y el trapecio sube los hombros hacia ella. La diferencia con el push press está en esa segunda flexión: en el envión el atleta se mete bajo la barra en lugar de acabar de empujarla con los brazos. Es un ejercicio de potencia que parte de las piernas y termina en los hombros.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -972,6 +974,8 @@
           "push jerk",
           "jerk de empuje",
           "envion",
+          "envion de fuerza",
+          "power jerk",
           "jerk",
           "levantamiento olimpico",
           "halterofilia"
@@ -998,14 +1002,14 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "description": "Desde el rack frontal, la barra se recibe con un pie adelantado y otro atrasado, la pierna delantera flexionada y la trasera casi estirada, para recuperar después los pies hasta juntarlos. Esa base larga da más apoyo, pero añade el paso de la tijera y su recuperación.",
+              "description": "Desde la posición de rack frontal, la barra se recibe con un pie adelantado y otro atrasado, la pierna delantera flexionada y la trasera casi estirada, para recuperar después los pies hasta juntarlos. Esa base larga da más apoyo, pero añade el paso de la tijera y su recuperación.",
               "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
                 "Dobla las rodillas un poco, con el tronco vertical, y empuja el suelo con fuerza.",
                 "Mientras la barra sube, lleva un pie adelante y el otro atrás y bloquea los codos sobre la cabeza.",
                 "Recibe con el pie de delante plano, la rodilla sobre el tobillo y la pierna de atrás casi estirada.",
-                "Recupera primero el pie de delante y luego el de atrás, y acaba erguido con los brazos aún estirados."
+                "Recupera primero el pie de delante y luego el de atrás, ponte erguido y baja la barra con control a los hombros."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
@@ -1049,6 +1053,7 @@
                 },
                 {
                   "actions": [
+                    "Extensión del tobillo al final del impulso",
                     "Apoyo plano del pie delantero y talón elevado del trasero"
                   ],
                   "jointId": "tobillo",
@@ -1092,6 +1097,7 @@
                     "Cadera delantera flexionada y trasera extendida en la tijera",
                     "Extensión de la rodilla en el impulso",
                     "Rodilla delantera flexionada y trasera casi extendida en la tijera",
+                    "Extensión del tobillo al final del impulso",
                     "Apoyo plano del pie delantero y talón elevado del trasero",
                     "Posición erguida de la columna con la barra arriba",
                     "Sostén de la barra en la mano",
@@ -1138,6 +1144,7 @@
                     },
                     {
                       "actions": [
+                        "Extensión del tobillo al final del impulso",
                         "Apoyo plano del pie delantero y talón elevado del trasero"
                       ],
                       "jointId": "tobillo",
@@ -1169,6 +1176,7 @@
                     "trapezius"
                   ],
                   "stabilizerMuscles": [
+                    "calves",
                     "gluteus_medius",
                     "core",
                     "erector_spinae",
@@ -1263,6 +1271,7 @@
               "setupTimeSeconds": 45,
               "ssc": 0.3,
               "stabilizerMuscles": [
+                "calves",
                 "gluteus_medius",
                 "core",
                 "erector_spinae",
@@ -1275,7 +1284,7 @@
           }
         ],
         "defaultConfigurationId": "split_jerk__barbell",
-        "description": "El Envión de Tijera (split jerk) es el envión que recibe la barra con las piernas abiertas en tijera: tras el impulso desde el rack frontal, un pie se adelanta y el otro retrocede mientras los brazos bloquean la barra sobre la cabeza. El deltoides y el tríceps sostienen el bloqueo, el cuádriceps y el glúteo mayor impulsan y frenan el cuerpo sobre la pierna adelantada, y el trapecio eleva los hombros bajo la barra. La base larga reparte el apoyo hacia delante y hacia atrás, a cambio de añadir un paso que hay que repetir con la misma pierna y de recuperar los pies al final. Es un ejercicio de potencia y de coordinación para el tren superior y las piernas.",
+        "description": "El Envión de Tijera (split jerk) es el envión que recibe la barra con las piernas abiertas en tijera: tras el impulso desde la posición de rack frontal, un pie se adelanta y el otro retrocede mientras los brazos bloquean la barra sobre la cabeza. El deltoides y el tríceps sostienen el bloqueo, el cuádriceps y el glúteo mayor impulsan y frenan el cuerpo sobre la pierna adelantada, y el trapecio eleva los hombros bajo la barra. La base larga reparte el apoyo hacia delante y hacia atrás, a cambio de añadir un paso que hay que repetir con la misma pierna y de recuperar los pies al final. Es un ejercicio de potencia y de coordinación para el tren superior y las piernas.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

@@ -263,7 +263,6 @@
             "role": "PRIMARY",
             "sources": [
               "padovan2026",
-              "soriano2019",
               "anat_deltoid"
             ],
             "why": "El hombro es la articulación que termina de llevar la barra arriba y que la sostiene bloqueada; Padovan et al. muestran el trabajo del deltoides en el press por encima de la cabeza, que el envión comparte en su tramo final."
@@ -290,7 +289,7 @@
               "padovan2026",
               "anat_trapezius"
             ],
-            "why": "La escápula gira hacia arriba para acompañar el brazo sobre la cabeza, una acción del trapecio que Padovan et al. registraron en el press por encima de la cabeza."
+            "why": "La escápula gira hacia arriba para acompañar el brazo sobre la cabeza; Padovan et al. registraron la excitación del trapecio superior en el press por encima de la cabeza, no el giro de la escápula, que se deduce de la anatomía del trapecio."
           },
           {
             "actions": [
@@ -317,7 +316,7 @@
               "soriano2024b",
               "anat_knee"
             ],
-            "why": "La rodilla se flexiona dos veces y se extiende en el impulso; Soriano et al. no hallaron diferencias de fuerza ni de potencia entre las fases de flexión y de empuje del push press, el push jerk y el split jerk."
+            "why": "La rodilla se flexiona dos veces y se extiende en el impulso, así que trabaja como en el push press: Soriano et al. compararon el push press, el push jerk y el split jerk en las fases de flexión y de empuje y no hallaron diferencias de fuerza ni de potencia entre los tres."
           },
           {
             "actions": [
@@ -375,7 +374,7 @@
               "soriano2024b",
               "anat_quadriceps"
             ],
-            "why": "Genera con la cadera la extensión de rodillas del impulso y se flexiona de nuevo para meter el cuerpo bajo la barra. Soriano et al. describen estos ejercicios como una extensión impulsiva de cadera, rodillas y tobillos, y no encontraron diferencias cinéticas entre el push press y el envión con el 80 % de 1RM del push press."
+            "why": "Genera con la cadera la extensión de rodillas del impulso y frena la segunda flexión al meter el cuerpo bajo la barra. Soriano et al. describen estos ejercicios como una extensión impulsiva de cadera, rodillas y tobillos, y no encontraron diferencias cinéticas entre el push press y el envión con el 80 % de 1RM del push press."
           },
           {
             "id": "gluteus_maximus",
@@ -411,22 +410,22 @@
               "soriano2019",
               "anat_gastroc"
             ],
-            "why": "El tobillo se extiende al final del impulso y los gemelos acompañan esa extensión sin dirigirla. La revisión de Soriano et al. incluye el tobillo en la extensión impulsiva."
+            "why": "El tobillo se extiende al final del impulso y los músculos de la pantorrilla acompañan esa extensión sin dirigirla; con las rodillas flexionadas pesa más el sóleo, que el catálogo agrupa con los gemelos. La revisión de Soriano et al. incluye el tobillo en la extensión impulsiva."
           },
           {
             "id": "core",
             "role": "STABILIZER",
             "sources": [
+              "erikssoncrommert2014",
               "soriano2019",
               "anat_abdominal"
             ],
-            "why": "La pared abdominal sostiene el tronco vertical bajo una barra que sube y baja sobre el cuerpo. Soriano et al. destacan la exigencia de equilibrio y coordinación de estos ejercicios."
+            "why": "La pared abdominal sostiene el tronco vertical bajo una barra que sube y baja sobre el cuerpo. Eriksson Crommert et al. registraron en un envión modificado más actividad del transverso del abdomen en las dos posiciones más altas y poca del recto abdominal y del oblicuo interno, y Soriano et al. destacan la exigencia de equilibrio y coordinación de estos ejercicios."
           },
           {
             "id": "erector_spinae",
             "role": "STABILIZER",
             "sources": [
-              "soriano2019",
               "anat_back"
             ],
             "why": "Mantiene la columna erguida durante las dos flexiones de rodillas, de modo que el impulso de las piernas suba la barra en línea recta; es una inferencia de la mecánica y de la anatomía de la espalda."
@@ -444,20 +443,20 @@
       "public": {
         "configurations": {
           "push_jerk__barbell": {
-            "description": "La barra sale del rack frontal con una flexión corta de rodillas y se recibe con una segunda flexión bajo ella, con los pies planos a la misma anchura. Pide más velocidad y coordinación que el push press, que termina el recorrido solo con los brazos.",
+            "description": "La barra sale de la posición de rack frontal con una flexión corta de rodillas y se recibe con una segunda flexión bajo ella, con los pies planos en el mismo sitio. Exige más coordinación que el push press, que termina el recorrido solo con los brazos.",
             "executionCues": [
-              "Flexiona las rodillas un poco, con el tronco vertical, y detente un instante.",
-              "Extiende las piernas con fuerza para lanzar la barra hacia arriba.",
+              "Flexiona las rodillas un poco, con el tronco vertical y la barra apoyada en los hombros.",
+              "Sin pausa, empuja el suelo y extiende las piernas con fuerza para lanzar la barra hacia arriba.",
               "Vuelve a flexionar las rodillas y mete el cuerpo bajo la barra mientras bloqueas los codos sobre la cabeza.",
-              "Estira las piernas hasta quedar de pie con la barra arriba y bájala con control a los hombros."
+              "Estira las piernas hasta quedar erguido con la barra arriba y bájala con control a los hombros."
             ],
             "setupCues": [
-              "Descuelga la barra del soporte y déjala sobre los hombros, con los codos algo adelantados y las manos a la anchura de los hombros.",
+              "Descuelga la barra del soporte y déjala sobre los hombros, con los codos algo adelantados y las manos algo más abiertas que los hombros.",
               "Coloca los pies a la anchura de las caderas, con el tronco erguido y la mirada al frente."
             ]
           }
         },
-        "description": "El Envión de Empuje (push jerk) lanza la barra desde los hombros hasta encima de la cabeza con un impulso de piernas y una segunda flexión de rodillas bajo la barra, y la recibe con los brazos bloqueados y los pies planos a la anchura de los hombros. El deltoides y el tríceps sujetan y bloquean la barra arriba, el cuádriceps y el glúteo mayor generan el impulso y el trapecio sube los hombros hacia ella. La diferencia con el push press está en esa segunda flexión: en el envión el atleta se mete bajo la barra en lugar de acabar de empujarla con los brazos. Es un ejercicio de potencia para el tren superior y el escalón previo al envión de tijera."
+        "description": "El Envión de Empuje (push jerk) lanza la barra desde los hombros hasta encima de la cabeza con un impulso de piernas y una segunda flexión de rodillas bajo la barra, y la recibe con los brazos bloqueados y los pies planos en el mismo sitio. El deltoides y el tríceps sujetan y bloquean la barra arriba, el cuádriceps y el glúteo mayor generan el impulso y el trapecio sube los hombros hacia ella. La diferencia con el push press está en esa segunda flexión: en el envión el atleta se mete bajo la barra en lugar de acabar de empujarla con los brazos. Es un ejercicio de potencia que parte de las piernas y termina en los hombros."
       },
       "sources": [
         {
@@ -471,6 +470,12 @@
           "id": "soriano2024b",
           "title": "No differences in weightlifting overhead pressing exercises kinetics",
           "url": "https://pubmed.ncbi.nlm.nih.gov/34704894/"
+        },
+        {
+          "claim": "En nueve hombres activos con una barra de 30 kg, estudió la activación de los músculos del tronco y la presión intraabdominal en una versión modificada del envión: el transverso del abdomen aumentó su activación en las dos posiciones más altas, el erector espinal fue más activo en la posición más baja y el oblicuo interno y el recto abdominal mostraron poca activación.",
+          "id": "erikssoncrommert2014",
+          "title": "Motor control of the trunk during a modified clean and jerk lift",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/23489349/"
         },
         {
           "claim": "En 14 hombres entrenados con un 8RM, comparó con electromiografía de alta densidad el press por encima de la cabeza con la barra por delante y por detrás de la nuca: midió deltoides anterior, lateral y posterior, trapecio superior, pectoral mayor y tríceps, con mayor amplitud del deltoides anterior y del pectoral mayor por delante.",
@@ -559,7 +564,7 @@
       ],
       "status": "CURATED",
       "technique": {
-        "identity": "Envión sin desplazamiento de los pies: desde el rack frontal, una flexión corta de rodillas y una extensión explosiva lanzan la barra, y una segunda flexión mete al atleta bajo ella para recibirla con los brazos bloqueados y los pies planos a la misma anchura. Se separa del push press porque el atleta se desliza bajo la barra en lugar de acabar de empujarla, y del envión de tijera porque los pies no se separan en un paso.",
+        "identity": "Envión sin desplazamiento de los pies: desde el rack frontal, una flexión corta de rodillas y una extensión explosiva lanzan la barra, y una segunda flexión mete al atleta bajo ella para recibirla con los brazos bloqueados y los pies planos en el mismo sitio. Se separa del push press porque el atleta se desliza bajo la barra en lugar de acabar de empujarla, y del envión de tijera porque los pies no se separan en un paso.",
         "keyPositions": [
           "Rack frontal: barra sobre los hombros, codos delante, tronco vertical y pies a la anchura de las caderas.",
           "Fin del empuje de piernas: piernas estiradas y de puntillas, la barra ya despegada de los hombros y los brazos aún flexionados.",
@@ -581,7 +586,7 @@
             "name": "Impulso"
           },
           {
-            "description": "Las rodillas ceden otra vez y los brazos suben hasta bloquear los codos, con los pies planos y al mismo ancho.",
+            "description": "Las rodillas ceden otra vez y los brazos suben hasta bloquear los codos, con los pies planos y en el mismo sitio.",
             "name": "Segunda flexión bajo la barra"
           },
           {
@@ -590,39 +595,42 @@
           }
         ],
         "setup": [
-          "Barra sobre los hombros y las clavículas, manos a la anchura de los hombros y codos ligeramente por delante de la barra.",
+          "Barra sobre los hombros y las clavículas, manos algo más abiertas que los hombros y codos ligeramente por delante de la barra.",
           "Pies a la anchura de las caderas, tronco erguido, abdomen firme y vista al frente."
         ]
       },
       "visual": {
         "base": {
           "camera": "Vista de frente a la altura del pecho, con el atleta entero y la barra sobre su cabeza dentro del encuadre.",
-          "contacts": "Pies planos en el suelo a la anchura de los hombros; las manos agarran la barra algo más abiertas que los hombros y los brazos están estirados sobre la cabeza.",
+          "contacts": "Pies planos en el suelo a la anchura de las caderas; las manos agarran la barra algo más abiertas que los hombros y los brazos están estirados sobre la cabeza.",
           "load": "Barra cargada con discos a ambos lados, sostenida sobre la cabeza y sin tocar el suelo.",
           "orientation": "Atleta de frente a la cámara con la barra horizontal y los pies paralelos.",
-          "phase": "Recepción del envión: barra sobre la cabeza con los codos bloqueados, rodillas flexionadas y pies planos a la anchura de los hombros.",
-          "posture": "Rodillas flexionadas unos veinte grados, tronco erguido, codos bloqueados, hombros activos empujando hacia arriba y mirada al frente."
+          "phase": "Recepción del envión de empuje: barra sobre la cabeza con los codos bloqueados, en una sentadilla corta con los muslos claramente por encima de la horizontal y los pies planos a la anchura de las caderas.",
+          "posture": "Rodillas flexionadas en una sentadilla corta, con los muslos claramente por encima de la horizontal, tronco erguido, codos bloqueados, hombros activos empujando hacia arriba y mirada al frente."
         },
         "byImplement": {
           "barbell": {
-            "geometry": "Barra olímpica recta horizontal sobre la cabeza, alineada con las orejas y el centro de los pies, con las manos algo más abiertas que los hombros; los discos cuelgan a ambos lados, separados del suelo."
+            "geometry": "Barra olímpica recta horizontal sobre la cabeza, alineada con las orejas y el centro de los pies, con las manos algo más abiertas que los hombros y no con el agarre ancho del arranque; los discos cuelgan a ambos lados, separados del suelo."
           }
         },
         "forbidden": [
           "Pies separados en tijera, uno delante y otro detrás: eso es un envión de tijera.",
           "Barra apoyada sobre los hombros con los codos adelantados: es la posición de partida, no la recepción.",
           "Piernas totalmente estiradas y brazos doblados en pleno empuje: eso es un push press antes del bloqueo.",
+          "Agarre muy ancho de arranque con los brazos abiertos en V: eso es un arranque de potencia, no un envión.",
+          "Piernas estiradas con la barra ya bloqueada arriba: es el final de un push press, no la recepción del envión.",
           "Codos doblados o barra por delante de la cabeza sin bloquear.",
           "Barra flotando sin que las manos la agarren."
         ],
         "promptCore": {
-          "barbell": "Front view of an athlete frozen at the CATCH of a push jerk. The straight Olympic barbell is held directly overhead with both arms fully locked out and the hands gripping the bar just wider than the shoulders. The knees are slightly bent, the torso is upright, both feet are flat on the floor side by side at shoulder width and the eyes look forward. Rubber bumper plates hang clear of the floor on both ends of the bar. No text or logos."
+          "barbell": "Front view of an athlete frozen at the CATCH of a push jerk. The straight Olympic barbell is held directly overhead with both arms fully locked out and the hands gripping the bar just wider than the shoulders, not a wide snatch grip. The knees are bent into a shallow squat with the thighs clearly above parallel, the torso is upright, both feet are flat on the floor side by side at hip width and the eyes look forward. Rubber bumper plates hang clear of the floor on both ends of the bar. No text or logos."
         },
         "qa": [
           "¿Las manos agarran la barra y la carga no flota suelta?",
           "¿La barra está sobre la cabeza, con los codos bloqueados?",
-          "¿Los dos pies están planos y paralelos a la anchura de los hombros, sin separarse en tijera?",
-          "¿Las rodillas están ligeramente flexionadas y el tronco erguido?"
+          "¿Los dos pies están planos y paralelos a la anchura de las caderas, sin separarse en tijera?",
+          "¿Las rodillas están flexionadas en una sentadilla corta y el tronco erguido?",
+          "¿Las manos están algo más abiertas que los hombros, sin el agarre ancho del arranque?"
         ]
       }
     },
@@ -638,7 +646,6 @@
             "role": "PRIMARY",
             "sources": [
               "padovan2026",
-              "soriano2019",
               "anat_deltoid"
             ],
             "why": "El hombro sostiene la barra bloqueada mientras los pies se recolocan. El press por encima de la cabeza que estudiaron Padovan et al. implica al deltoides en el mismo gesto de elevar el brazo, y el envión lo comparte en su tramo final."
@@ -665,7 +672,7 @@
               "padovan2026",
               "anat_trapezius"
             ],
-            "why": "Al elevar el brazo, la escápula rota hacia arriba, una acción del trapecio superior que midieron Padovan et al. en su estudio del press."
+            "why": "Al elevar el brazo, la escápula rota hacia arriba; Padovan et al. midieron la excitación del trapecio superior en su estudio del press, no el giro de la escápula, que se deduce de la anatomía del trapecio."
           },
           {
             "actions": [
@@ -689,21 +696,22 @@
             "role": "SECONDARY",
             "sources": [
               "nagao2026",
-              "soriano2024b",
               "anat_knee"
             ],
             "why": "La rodilla se estira en el impulso y se reparte entre una pierna flexionada y otra casi recta en la recepción; Nagao et al. relacionaron una flexión de rodilla más lenta en la primera flexión con los intentos exitosos."
           },
           {
             "actions": [
+              "Extensión del tobillo al final del impulso",
               "Apoyo plano del pie delantero y talón elevado del trasero"
             ],
             "id": "tobillo",
             "role": "STABILIZER",
             "sources": [
+              "soriano2019",
               "anat_ankle"
             ],
-            "why": "El tobillo del pie delantero sostiene la espinilla casi vertical y el del trasero se apoya sobre el metatarso; es una deducción de la posición de la tijera."
+            "why": "El tobillo cierra la extensión del impulso y después el del pie delantero sostiene la espinilla casi vertical mientras el del trasero se apoya sobre el metatarso; Soriano et al. incluyen el tobillo en la extensión impulsiva de estos ejercicios, y el apoyo de la tijera es una deducción de la posición."
           },
           {
             "actions": [
@@ -780,21 +788,31 @@
             "why": "Gira hacia arriba la escápula para dejar el brazo sobre la cabeza y sostiene el hombro bajo la barra. Padovan et al. midieron el trapecio superior en el press por encima de la cabeza; en el envión se extrapola esa función."
           },
           {
+            "id": "calves",
+            "role": "STABILIZER",
+            "sources": [
+              "soriano2019",
+              "anat_gastroc"
+            ],
+            "why": "Los músculos de la pantorrilla completan la extensión del tobillo al final del impulso, cuando el cuerpo sube sobre las puntas, sin dirigirla; Soriano et al. incluyen el tobillo en la extensión impulsiva y el papel de cada músculo se deduce de esa acción."
+          },
+          {
             "id": "gluteus_medius",
             "role": "STABILIZER",
             "sources": [
               "anat_glute_med"
             ],
-            "why": "En la tijera la pelvis se apoya sobre dos pies a distinta altura y el glúteo medio controla su estabilidad lateral. Es una inferencia de la función de abductor y estabilizador de la pelvis, sin medición del envión."
+            "why": "En la tijera la pelvis se apoya sobre dos pies en posiciones distintas, uno delante y otro detrás, y el glúteo medio controla su estabilidad lateral. Es una inferencia de la función de abductor y estabilizador de la pelvis, sin medición del envión."
           },
           {
             "id": "core",
             "role": "STABILIZER",
             "sources": [
+              "erikssoncrommert2014",
               "soriano2019",
               "anat_abdominal"
             ],
-            "why": "La pared abdominal sostiene el tronco erguido mientras la base pasa de pies juntos a pies en tijera. Para Soriano et al., el envión exige equilibrio y coordinación además de fuerza."
+            "why": "La pared abdominal sostiene el tronco erguido mientras la base pasa de pies juntos a pies en tijera. En un envión modificado, el transverso del abdomen fue el más activo en las posiciones altas, según Eriksson Crommert et al., y el recto abdominal y el oblicuo interno casi no se activaron; para Soriano et al., el envión exige además equilibrio y coordinación."
           },
           {
             "id": "erector_spinae",
@@ -818,12 +836,12 @@
       "public": {
         "configurations": {
           "split_jerk__barbell": {
-            "description": "Desde el rack frontal, la barra se recibe con un pie adelantado y otro atrasado, la pierna delantera flexionada y la trasera casi estirada, para recuperar después los pies hasta juntarlos. Esa base larga da más apoyo, pero añade el paso de la tijera y su recuperación.",
+            "description": "Desde la posición de rack frontal, la barra se recibe con un pie adelantado y otro atrasado, la pierna delantera flexionada y la trasera casi estirada, para recuperar después los pies hasta juntarlos. Esa base larga da más apoyo, pero añade el paso de la tijera y su recuperación.",
             "executionCues": [
               "Dobla las rodillas un poco, con el tronco vertical, y empuja el suelo con fuerza.",
               "Mientras la barra sube, lleva un pie adelante y el otro atrás y bloquea los codos sobre la cabeza.",
               "Recibe con el pie de delante plano, la rodilla sobre el tobillo y la pierna de atrás casi estirada.",
-              "Recupera primero el pie de delante y luego el de atrás, y acaba erguido con los brazos aún estirados."
+              "Recupera primero el pie de delante y luego el de atrás, ponte erguido y baja la barra con control a los hombros."
             ],
             "setupCues": [
               "Deja la barra sobre los hombros, con los codos algo adelantados y un agarre un poco más abierto que los hombros.",
@@ -831,7 +849,7 @@
             ]
           }
         },
-        "description": "El Envión de Tijera (split jerk) es el envión que recibe la barra con las piernas abiertas en tijera: tras el impulso desde el rack frontal, un pie se adelanta y el otro retrocede mientras los brazos bloquean la barra sobre la cabeza. El deltoides y el tríceps sostienen el bloqueo, el cuádriceps y el glúteo mayor impulsan y frenan el cuerpo sobre la pierna adelantada, y el trapecio eleva los hombros bajo la barra. La base larga reparte el apoyo hacia delante y hacia atrás, a cambio de añadir un paso que hay que repetir con la misma pierna y de recuperar los pies al final. Es un ejercicio de potencia y de coordinación para el tren superior y las piernas."
+        "description": "El Envión de Tijera (split jerk) es el envión que recibe la barra con las piernas abiertas en tijera: tras el impulso desde la posición de rack frontal, un pie se adelanta y el otro retrocede mientras los brazos bloquean la barra sobre la cabeza. El deltoides y el tríceps sostienen el bloqueo, el cuádriceps y el glúteo mayor impulsan y frenan el cuerpo sobre la pierna adelantada, y el trapecio eleva los hombros bajo la barra. La base larga reparte el apoyo hacia delante y hacia atrás, a cambio de añadir un paso que hay que repetir con la misma pierna y de recuperar los pies al final. Es un ejercicio de potencia y de coordinación para el tren superior y las piernas."
       },
       "sources": [
         {
@@ -845,6 +863,12 @@
           "id": "soriano2024b",
           "title": "No differences in weightlifting overhead pressing exercises kinetics",
           "url": "https://pubmed.ncbi.nlm.nih.gov/34704894/"
+        },
+        {
+          "claim": "En nueve hombres activos con una barra de 30 kg, estudió la activación de los músculos del tronco y la presión intraabdominal en una versión modificada del envión: el transverso del abdomen aumentó su activación en las dos posiciones más altas, el erector espinal fue más activo en la posición más baja y el oblicuo interno y el recto abdominal mostraron poca activación.",
+          "id": "erikssoncrommert2014",
+          "title": "Motor control of the trunk during a modified clean and jerk lift",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/23489349/"
         },
         {
           "claim": "En 13 halterófilos nacionales japoneses, los intentos de envión de tijera exitosos mostraron un mayor desplazamiento de la barra hacia atrás en la recepción, más recorrido del tronco y mayor velocidad de extensión de cadera y de tronco en el impulso, y menor velocidad angular de flexión de rodilla en la primera flexión que los fallidos por caída de la barra hacia delante.",
@@ -881,6 +905,12 @@
           "id": "anat_glute_med",
           "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Medius Muscle",
           "url": "https://pubmed.ncbi.nlm.nih.gov/32491441/"
+        },
+        {
+          "claim": "Describe la flexión plantar y la participación del gastrocnemio en la postura y la propulsión.",
+          "id": "anat_gastroc",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Gastrocnemius Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30422541/"
         },
         {
           "claim": "La función primaria del tríceps braquial es extender el codo.",

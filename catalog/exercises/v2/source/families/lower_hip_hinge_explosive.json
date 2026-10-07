@@ -608,14 +608,14 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con la barra en el suelo se hace el tirón entero: la subida hasta la rodilla, el paso de las rodillas bajo la barra y la extensión final. La recepción sobre los hombros queda a un cuarto de sentadilla, así que la barra debe subir más alto que en la versión completa.",
+              "description": "Con la barra en el suelo se hace el tirón entero: la subida hasta la rodilla, la transición bajo la barra y la extensión final. La recepción sobre los hombros es en sentadilla corta, así que la barra debe subir más alto que en la versión completa.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Empuja el suelo con las piernas y sube la barra pegada al cuerpo hasta pasar las rodillas.",
                 "Con la barra en lo alto del muslo, estira cadera, rodillas y tobillos de golpe y encoge los hombros.",
-                "Lleva los codos arriba y adelante por debajo de la barra y recíbela sobre los hombros, en una sentadilla corta.",
-                "Ponte de pie con la barra apoyada y devuélvela al suelo con calma."
+                "Gira los codos arriba y adelante alrededor de la barra y recíbela sobre los hombros, en una sentadilla corta.",
+                "Ponte de pie con la barra apoyada y bájala con control hasta los muslos y de ahí al suelo."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
@@ -651,7 +651,7 @@
                 },
                 {
                   "actions": [
-                    "Elevación y adelantamiento del hombro al girar bajo la barra",
+                    "Flexión del hombro al girar los codos bajo la barra",
                     "Sostén de la barra sobre el hombro"
                   ],
                   "jointId": "glenohumeral",
@@ -701,7 +701,7 @@
                     "Flexión de la rodilla al recibir la barra",
                     "Flexión plantar al final de la extensión",
                     "Posición neutra bajo la barra",
-                    "Elevación y adelantamiento del hombro al girar bajo la barra",
+                    "Flexión del hombro al girar los codos bajo la barra",
                     "Sostén de la barra sobre el hombro",
                     "Elevación de la escápula en el encogimiento",
                     "Flexión del codo al girar bajo la barra",
@@ -741,7 +741,7 @@
                     },
                     {
                       "actions": [
-                        "Elevación y adelantamiento del hombro al girar bajo la barra",
+                        "Flexión del hombro al girar los codos bajo la barra",
                         "Sostén de la barra sobre el hombro"
                       ],
                       "jointId": "glenohumeral",
@@ -890,7 +890,7 @@
           }
         ],
         "defaultConfigurationId": "power_clean__barbell",
-        "description": "La Cargada de Potencia (power clean) es un levantamiento olímpico explosivo: la barra viaja del suelo a los hombros en un solo gesto y se recibe en una sentadilla corta, con los muslos por encima de la horizontal. El glúteo mayor y el cuádriceps empujan el suelo, los isquiosurales y los gemelos completan la extensión y el trapecio encoge los hombros justo antes de que los codos giren bajo la barra. Los brazos van largos hasta el último instante y la barra queda pegada al cuerpo todo el recorrido. Es la manera habitual de entrenar la potencia de salto y de carrera sin la recepción profunda de la cargada completa, y pide técnica, discos que se puedan soltar y un suelo preparado para ello.",
+        "description": "La Cargada de Potencia (power clean) es un derivado explosivo de los levantamientos olímpicos: la barra viaja del suelo a los hombros en un solo gesto y se recibe en una sentadilla corta, con los muslos por encima de la horizontal. El glúteo mayor y el cuádriceps empujan el suelo, los isquiosurales y los gemelos completan la extensión y el trapecio encoge los hombros justo antes de que los codos giren bajo la barra. Los brazos van largos hasta el último instante y la barra queda pegada al cuerpo todo el recorrido. Es una forma habitual de entrenar la potencia de salto sin la recepción profunda de la cargada completa, y pide técnica, discos de goma (bumpers) y un suelo preparado para soltar la barra.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -939,10 +939,10 @@
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
-                "Empuja con las piernas y lleva la cadera adelante para lanzar la barra rozando el muslo.",
+                "Empuja con las piernas y lleva la cadera adelante para subir la barra rozando el muslo.",
                 "Encoge los hombros al llegar arriba, con los brazos todavía estirados.",
                 "Gira los codos bajo la barra y recíbela sobre los hombros con una sentadilla corta.",
-                "Levántate y deja que la barra vuelva al muslo, lista para la siguiente repetición."
+                "Levántate y baja la barra con control hasta el muslo, lista para la siguiente repetición."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
@@ -978,7 +978,7 @@
                 },
                 {
                   "actions": [
-                    "Elevación y adelantamiento del hombro bajo la barra",
+                    "Flexión del hombro al girar los codos bajo la barra",
                     "Sostén de la barra sobre el hombro"
                   ],
                   "jointId": "glenohumeral",
@@ -1028,7 +1028,7 @@
                     "Flexión de la rodilla al recibir la barra",
                     "Flexión plantar al final del empuje",
                     "Mantenimiento de la columna neutra con el tronco inclinado",
-                    "Elevación y adelantamiento del hombro bajo la barra",
+                    "Flexión del hombro al girar los codos bajo la barra",
                     "Sostén de la barra sobre el hombro",
                     "Elevación de la escápula en el encogimiento final",
                     "Flexión del codo al girar bajo la barra",
@@ -1068,7 +1068,7 @@
                     },
                     {
                       "actions": [
-                        "Elevación y adelantamiento del hombro bajo la barra",
+                        "Flexión del hombro al girar los codos bajo la barra",
                         "Sostén de la barra sobre el hombro"
                       ],
                       "jointId": "glenohumeral",
@@ -1198,7 +1198,7 @@
               ],
               "setupCues": [
                 "Levanta la barra del suelo hasta quedar de pie y déjala colgando a media altura del muslo.",
-                "Retrasa la cadera, flexiona un poco las rodillas y adelanta el pecho sobre la barra.",
+                "Empuja la cadera atrás, dobla un poco las rodillas y adelanta el pecho sobre la barra.",
                 "Deja colgar los brazos sin doblarlos, con los codos hacia los lados y la vista al frente."
               ],
               "setupTimeSeconds": 45,
@@ -1217,7 +1217,7 @@
           }
         ],
         "defaultConfigurationId": "hang_power_clean__barbell",
-        "description": "La Cargada de Potencia desde Colgado, conocida como hang power clean, es la cargada que arranca ya de pie, con la barra colgando a media altura del muslo y las caderas retrasadas. Desde esa posición, un empuje corto de piernas y cadera con un encogimiento de hombros lanza la barra hasta el pecho, y los codos giran bajo ella para recibirla sobre los hombros en una sentadilla corta. Trabaja sobre todo el glúteo mayor y el cuádriceps, con los isquiosurales, el trapecio y los gemelos de apoyo. Como el gesto parte del muslo y no del suelo, su ejecución es más simple y por eso se usa tanto como entrada a los levantamientos olímpicos y como ejercicio de potencia con cargas moderadas.",
+        "description": "La Cargada de Potencia desde Colgado, conocida como hang power clean, es la cargada que arranca ya de pie, con la barra colgando a media altura del muslo y las caderas retrasadas. Desde esa posición, un empuje corto de piernas y cadera con un encogimiento de hombros sube la barra hasta la altura del pecho, y los codos giran bajo ella para recibirla sobre los hombros en una sentadilla corta. Trabaja sobre todo el glúteo mayor y el cuádriceps, con los isquiosurales, el trapecio y los gemelos de apoyo. Como el gesto parte del muslo y no del suelo, su ejecución es más simple y por eso se usa tanto como entrada a los levantamientos olímpicos y como ejercicio de potencia con cargas moderadas.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1267,9 +1267,9 @@
               "equipmentId": "barbell",
               "executionCues": [
                 "Empuja el suelo y mantén los hombros sobre la barra mientras sube hasta las rodillas.",
-                "Salta con la extensión de las tres articulaciones y sube los hombros con los codos sin doblar.",
+                "Salta estirando cadera, rodillas y tobillos, y sube los hombros con los codos sin doblar.",
                 "Pasa los codos bajo la barra y desciende a la sentadilla mientras la recibes sobre los hombros.",
-                "Sal del fondo empujando con las piernas y los codos altos hasta quedar de pie, y devuelve la barra al suelo."
+                "Sal del fondo con las piernas, con los codos altos, hasta quedar de pie, y baja la barra con control hasta los muslos y de ahí al suelo."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
@@ -1306,7 +1306,7 @@
                 },
                 {
                   "actions": [
-                    "Elevación y adelantamiento del hombro bajo la barra",
+                    "Flexión del hombro al girar los codos bajo la barra",
                     "Sostén de la barra sobre el hombro en el fondo"
                   ],
                   "jointId": "glenohumeral",
@@ -1358,7 +1358,7 @@
                     "Flexión plantar al final del tirón",
                     "Dorsiflexión en el fondo de la sentadilla",
                     "Posición neutra bajo la barra en el tirón y la salida",
-                    "Elevación y adelantamiento del hombro bajo la barra",
+                    "Flexión del hombro al girar los codos bajo la barra",
                     "Sostén de la barra sobre el hombro en el fondo",
                     "Elevación de la escápula en el encogimiento",
                     "Flexión del codo al pasar bajo la barra",
@@ -1400,7 +1400,7 @@
                     },
                     {
                       "actions": [
-                        "Elevación y adelantamiento del hombro bajo la barra",
+                        "Flexión del hombro al girar los codos bajo la barra",
                         "Sostén de la barra sobre el hombro en el fondo"
                       ],
                       "jointId": "glenohumeral",
@@ -1552,7 +1552,7 @@
           }
         ],
         "defaultConfigurationId": "squat_clean__barbell",
-        "description": "La Cargada Completa (squat clean) lleva la barra del suelo a los hombros y la recibe en el fondo de una sentadilla frontal, con los muslos por debajo de la horizontal, para levantarse después con ella. Es la cargada de competición y la base de la cargada de potencia y de la cargada desde colgado: el mismo tirón explosivo, pero con una recepción profunda en la que el cuádriceps frena la barra y vuelve a empujar, y el glúteo mayor y los aductores sacan del fondo. Los isquiosurales, el trapecio y los gemelos acompañan la extensión del tirón. Pide tobillos, caderas y muñecas con buen rango para sostener el rack frontal en el fondo, y es de los ejercicios más técnicos de todo el catálogo.",
+        "description": "La Cargada Completa (squat clean) lleva la barra del suelo a los hombros y la recibe en el fondo de una sentadilla frontal, con los muslos por debajo de la horizontal, para levantarse después con ella. Es la cargada de competición y la base de la cargada de potencia y de la cargada desde colgado: el mismo tirón explosivo, pero con una recepción profunda en la que el cuádriceps frena la barra y vuelve a empujar, y el glúteo mayor y los aductores sacan del fondo. Los isquiosurales, el trapecio y los gemelos acompañan la extensión del tirón. Pide tobillos, caderas y muñecas con buen rango para sostener el rack frontal en el fondo, y es de los ejercicios más técnicos que existen.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1597,14 +1597,14 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con un agarre ancho, la barra recorre todo el camino del suelo a la cabeza sin pasar por los hombros y se recibe sobre el centro del pie, a un cuarto de sentadilla. El agarre y el recorrido largo hacen que dependa de la velocidad más que de la carga.",
+              "description": "Con un agarre ancho, la barra recorre todo el camino del suelo a la cabeza sin pasar por los hombros y se recibe sobre el centro del pie, en una sentadilla corta. El agarre y el recorrido largo hacen que dependa de la velocidad más que de la carga.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Despega la barra con las piernas y llévala pegada al cuerpo hasta lo alto del muslo.",
                 "Extiende cadera, rodillas y tobillos con fuerza y sube los hombros mientras la barra sigue rozando el cuerpo.",
-                "Pasa bajo la barra con los codos bloqueados y recíbela sobre la cabeza, encima del centro del pie, en una sentadilla corta.",
-                "Empuja la barra hacia el techo, ponte de pie y bájala con control hasta el suelo."
+                "Pasa bajo la barra, bloquea los codos y recíbela sobre la cabeza, encima del centro del pie, en una sentadilla corta.",
+                "Con la barra arriba y las piernas estiradas, suéltala por delante sobre discos bumper y con espacio libre, o bájala con control si pesa poco."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
@@ -1636,6 +1636,13 @@
                     "Posición plana de la columna durante el tirón"
                   ],
                   "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Extensión de la columna torácica bajo la barra"
+                  ],
+                  "jointId": "columna-toracica",
                   "role": "STABILIZER"
                 },
                 {
@@ -1690,6 +1697,7 @@
                     "Flexión de la rodilla al recibir la barra",
                     "Flexión plantar al final de la aceleración",
                     "Posición plana de la columna durante el tirón",
+                    "Extensión de la columna torácica bajo la barra",
                     "Elevación del brazo sobre la cabeza al recibir",
                     "Sostén de la barra en rotación externa del hombro",
                     "Elevación y rotación superior de la escápula",
@@ -1726,6 +1734,13 @@
                         "Posición plana de la columna durante el tirón"
                       ],
                       "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Extensión de la columna torácica bajo la barra"
+                      ],
+                      "jointId": "columna-toracica",
                       "role": "STABILIZER"
                     },
                     {
@@ -1789,6 +1804,7 @@
                     "rodilla",
                     "tobillo",
                     "columna-lumbar",
+                    "columna-toracica",
                     "glenohumeral",
                     "escapulotoracica",
                     "codo",
@@ -1861,7 +1877,7 @@
                 "calves"
               ],
               "setupCues": [
-                "Agarra la barra muy abierto: de pie y con los brazos estirados, debe cruzar el pliegue de la cadera.",
+                "Agarra la barra con un agarre muy ancho, de modo que de pie y con los brazos estirados quede en el pliegue de la cadera.",
                 "Baja hasta tener los hombros sobre la barra, con el pecho abierto y la espalda plana.",
                 "Fija la mirada al frente antes de despegar."
               ],
@@ -1930,8 +1946,8 @@
               "executionCues": [
                 "Lanza la cadera hacia delante y estira las piernas para acelerar la barra pegada al muslo.",
                 "Sube los hombros al final del impulso, sin doblar los codos hasta entonces.",
-                "Mete el cuerpo bajo la barra y bloquea los codos con ella encima del centro del pie.",
-                "Ponte de pie, baja la barra otra vez al muslo y repite."
+                "Mete el cuerpo bajo la barra y bloquea los codos, con ella encima del centro del pie.",
+                "Termina de pie con la barra arriba y bájala con cuidado hasta el muslo, o déjala caer por delante sobre discos bumper si pesa mucho."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
@@ -1963,6 +1979,13 @@
                     "Rigidez de la columna con el tronco inclinado"
                   ],
                   "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Extensión de la columna torácica bajo la barra"
+                  ],
+                  "jointId": "columna-toracica",
                   "role": "STABILIZER"
                 },
                 {
@@ -2017,6 +2040,7 @@
                     "Flexión de la rodilla al recibir la barra",
                     "Flexión plantar al final del impulso",
                     "Rigidez de la columna con el tronco inclinado",
+                    "Extensión de la columna torácica bajo la barra",
                     "Elevación del brazo sobre la cabeza",
                     "Sostén de la barra en rotación externa del hombro",
                     "Elevación y rotación superior de la escápula",
@@ -2053,6 +2077,13 @@
                         "Rigidez de la columna con el tronco inclinado"
                       ],
                       "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Extensión de la columna torácica bajo la barra"
+                      ],
+                      "jointId": "columna-toracica",
                       "role": "STABILIZER"
                     },
                     {
@@ -2116,6 +2147,7 @@
                     "rodilla",
                     "tobillo",
                     "columna-lumbar",
+                    "columna-toracica",
                     "glenohumeral",
                     "escapulotoracica",
                     "codo",
@@ -2188,8 +2220,8 @@
                 "calves"
               ],
               "setupCues": [
-                "Levanta la barra hasta ponerte de pie y déjala colgando a la altura del muslo, con el agarre ancho de arranque.",
-                "Lleva la cadera atrás y flexiona un poco las rodillas hasta notar tensos los isquiosurales.",
+                "Levanta la barra del suelo con el agarre ancho de arranque hasta ponerte de pie, con la barra en el pliegue de la cadera.",
+                "Lleva la cadera atrás y flexiona un poco las rodillas hasta que la barra baje a media altura del muslo y notes tensos los isquiosurales.",
                 "Pon los hombros por encima de la barra y los codos hacia fuera."
               ],
               "setupTimeSeconds": 45,
@@ -2251,21 +2283,22 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "La barra se recibe sobre la cabeza en el fondo de una sentadilla profunda, con la cadera bajo las rodillas y los codos bloqueados. Esa posición pide recorrido de hombro, columna torácica, cadera y tobillo, y la sentadilla de salida se hace con la carga a pulso arriba.",
+              "description": "La barra se recibe sobre la cabeza en el fondo de una sentadilla profunda, con la cadera bajo las rodillas y los codos bloqueados. Esa posición pide recorrido de hombro, columna torácica, cadera y tobillo, y hay que levantarse desde ahí con la carga a pulso arriba.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Empuja el suelo con los pies y acelera la barra, siempre rozando el cuerpo, hasta superar las rodillas.",
-                "Cuando la barra cruce los muslos, salta con la cadera y encoge los hombros sin doblar los codos.",
-                "Desliza el cuerpo bajo la barra con los codos ya bloqueados y baja a una sentadilla profunda, con la barra sobre el centro del pie.",
-                "Levántate con la barra arriba, empujándola hacia el techo, y devuélvela al suelo al terminar."
+                "Cuando la barra cruce los muslos, extiende la cadera con fuerza y encoge los hombros sin doblar los codos.",
+                "Mete el cuerpo bajo la barra, bloquea los codos y baja a una sentadilla profunda, con la barra sobre el centro del pie.",
+                "Levántate con la barra arriba, empujándola hacia el techo, y déjala caer hacia delante sobre discos bumper, con sitio libre alrededor."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
                     "Extensión explosiva de la cadera",
-                    "Flexión profunda y extensión de la cadera en la sentadilla"
+                    "Flexión profunda y extensión de la cadera en la sentadilla",
+                    "Abducción y rotación externa de la cadera con las rodillas abiertas"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
@@ -2302,7 +2335,7 @@
                 },
                 {
                   "actions": [
-                    "Flexión del hombro por encima de la cabeza",
+                    "Elevación del brazo en abducción por encima de la cabeza",
                     "Sostén de la barra en rotación externa"
                   ],
                   "jointId": "glenohumeral",
@@ -2348,13 +2381,14 @@
                   "jointActions": [
                     "Extensión explosiva de la cadera",
                     "Flexión profunda y extensión de la cadera en la sentadilla",
+                    "Abducción y rotación externa de la cadera con las rodillas abiertas",
                     "Extensión de la rodilla en el tirón",
                     "Flexión profunda y extensión de la rodilla en la sentadilla",
                     "Flexión plantar al final del tirón",
                     "Dorsiflexión en el fondo de la sentadilla",
                     "Rigidez de la columna con la barra sobre la cabeza",
                     "Extensión torácica con los brazos sobre la cabeza",
-                    "Flexión del hombro por encima de la cabeza",
+                    "Elevación del brazo en abducción por encima de la cabeza",
                     "Sostén de la barra en rotación externa",
                     "Elevación y rotación superior de la escápula",
                     "Extensión y bloqueo del codo sobre la cabeza",
@@ -2365,7 +2399,8 @@
                     {
                       "actions": [
                         "Extensión explosiva de la cadera",
-                        "Flexión profunda y extensión de la cadera en la sentadilla"
+                        "Flexión profunda y extensión de la cadera en la sentadilla",
+                        "Abducción y rotación externa de la cadera con las rodillas abiertas"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
@@ -2402,7 +2437,7 @@
                     },
                     {
                       "actions": [
-                        "Flexión del hombro por encima de la cabeza",
+                        "Elevación del brazo en abducción por encima de la cabeza",
                         "Sostén de la barra en rotación externa"
                       ],
                       "jointId": "glenohumeral",
@@ -2444,6 +2479,7 @@
                     "calves"
                   ],
                   "stabilizerMuscles": [
+                    "gluteus_medius",
                     "erector_spinae",
                     "core",
                     "forearm"
@@ -2500,6 +2536,7 @@
                     "arranque en cuclillas",
                     "arranque profundo",
                     "snatch",
+                    "arranque",
                     "arrancada",
                     "levantamiento olimpico",
                     "halterofilia"
@@ -2537,13 +2574,14 @@
                 "calves"
               ],
               "setupCues": [
-                "Toma la barra con el agarre ancho de arranque, el mismo que usas en la sentadilla con la barra sobre la cabeza.",
+                "Toma la barra con el agarre ancho de arranque y los brazos estirados.",
                 "Colócate con los hombros sobre la barra, la espalda plana y las rodillas abiertas hacia las puntas de los pies.",
                 "Respira hondo y tensa el tronco antes de despegar."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [
+                "gluteus_medius",
                 "erector_spinae",
                 "core",
                 "forearm"
@@ -2555,7 +2593,7 @@
           }
         ],
         "defaultConfigurationId": "squat_snatch__barbell",
-        "description": "El Arranque Completo (squat snatch) es el levantamiento de competición que lleva la barra del suelo a la vertical de la cabeza en un solo movimiento y la recibe en el fondo de una sentadilla, con los brazos bloqueados, para levantarse con ella arriba. El cuádriceps y el glúteo mayor aceleran la barra y después sacan al atleta del fondo, con los aductores, los isquiosurales y el trapecio de apoyo, mientras el deltoides y el tríceps aguantan el peso a pulso sobre la cabeza. Depende más de la movilidad, la coordinación y la velocidad que de la fuerza bruta, y reclama hombros, columna torácica, caderas y tobillos con recorrido de sobra. Es de los ejercicios más técnicos del catálogo y se aprende con los tirones, el arranque de potencia y la sentadilla de arranque como escalones.",
+        "description": "El Arranque Completo (squat snatch) es el levantamiento de competición que lleva la barra del suelo a la vertical de la cabeza en un solo movimiento y la recibe en el fondo de una sentadilla, con los brazos bloqueados, para levantarse con ella arriba. El cuádriceps y el glúteo mayor aceleran la barra y después sacan al atleta del fondo, con los aductores, los isquiosurales y el trapecio de apoyo, mientras el deltoides y el tríceps aguantan el peso a pulso sobre la cabeza. Comparado con la cargada, depende más de la movilidad, la coordinación y la velocidad que de la fuerza bruta, y reclama hombros, columna torácica, caderas y tobillos con recorrido de sobra. Es de los ejercicios más técnicos que existen y se aprende con los tirones, el arranque de potencia y la sentadilla de arranque como escalones.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -2575,6 +2613,7 @@
           "arranque en cuclillas",
           "arranque profundo",
           "snatch",
+          "arranque",
           "arrancada",
           "levantamiento olimpico",
           "halterofilia"
@@ -2606,8 +2645,8 @@
               "equipmentId": "barbell",
               "executionCues": [
                 "Empuja el suelo con las piernas y deja la barra rozando el cuerpo hasta la altura de las rodillas.",
-                "Al pasar los muslos, lanza la cadera adelante y empuja con los pies a la máxima velocidad hasta ponerte de puntillas, y sube los hombros.",
-                "Termina de puntillas con los codos sin doblar y la barra a la altura del pecho bajo.",
+                "Cuando la barra llegue al muslo, lleva la cadera adelante y empuja el suelo a la máxima velocidad hasta quedar de puntillas.",
+                "Encoge los hombros y termina con los codos sin doblar y la barra a la altura del pecho bajo.",
                 "Deja bajar la barra por el mismo camino hasta el suelo, sin soltarla."
               ],
               "fatigueTier": "MEDIA",
@@ -2649,7 +2688,7 @@
                 },
                 {
                   "actions": [
-                    "Brazos extendidos bajo la barra"
+                    "Brazos extendidos durante el tirón"
                   ],
                   "jointId": "codo",
                   "role": "STABILIZER"
@@ -2682,7 +2721,7 @@
                     "Flexión plantar al final del tirón",
                     "Posición plana de la columna bajo la barra pesada",
                     "Elevación de la escápula en el encogimiento",
-                    "Brazos extendidos bajo la barra",
+                    "Brazos extendidos durante el tirón",
                     "Sostén de la barra en la mano"
                   ],
                   "jointInvolvement": [
@@ -2723,7 +2762,7 @@
                     },
                     {
                       "actions": [
-                        "Brazos extendidos bajo la barra"
+                        "Brazos extendidos durante el tirón"
                       ],
                       "jointId": "codo",
                       "role": "STABILIZER"
@@ -2832,8 +2871,8 @@
                 "calves"
               ],
               "setupCues": [
-                "Ponte como en la salida de la cargada, con las manos por fuera de las rodillas y el agarre de cargada.",
-                "Si el peso es alto, usa el agarre en gancho para que la mano no se abra durante el tirón.",
+                "Coloca la barra sobre el centro del pie y toma el agarre por fuera de las rodillas, algo más abierto que los hombros.",
+                "Si el peso es alto, usa el agarre en gancho, con el pulgar bajo los dedos, para que la mano no se abra durante el tirón.",
                 "Mira al frente y tensa el tronco antes de despegar la barra."
               ],
               "setupTimeSeconds": 45,
@@ -2850,7 +2889,7 @@
           }
         ],
         "defaultConfigurationId": "clean_pull__barbell",
-        "description": "El Tirón de Cargada (clean pull) repite la tracción de la cargada desde el suelo hasta la extensión total y se detiene ahí, sin girar los codos bajo la barra ni recibirla. Es un tirón explosivo en el que trabajan las piernas y la cadera, el glúteo mayor y el cuádriceps al despegar y los isquiosurales y los gemelos al rematar, mientras el trapecio sube los hombros con la barra a la altura del pecho bajo y los brazos estirados. Al no haber recepción, se trabaja con más peso que en la cargada y se separa el empuje de las piernas de la parte técnica del giro y la recepción, que es lo que lo hace más sencillo de aprender. La barra baja después con control hasta el suelo.",
+        "description": "El Tirón de Cargada (clean pull) repite la tracción de la cargada desde el suelo hasta la extensión total y se detiene ahí, sin girar los codos bajo la barra ni recibirla. Es un tirón explosivo en el que las piernas empujan desde el suelo con el glúteo mayor y el cuádriceps, los isquiosurales ayudan a extender la cadera y los gemelos rematan con los tobillos, mientras el trapecio sube los hombros con la barra a la altura del pecho bajo y los brazos estirados. Al no haber recepción, se trabaja con más peso que en la cargada y se separa el empuje de las piernas de la parte técnica del giro y la recepción, que es lo que lo hace más sencillo de aprender. La barra baja después con control hasta el suelo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -2899,7 +2938,7 @@
               "equipmentId": "barbell",
               "executionCues": [
                 "Presiona el suelo con los pies y deja la barra rozando las espinillas y los muslos.",
-                "Cuando la barra llegue a lo alto del muslo, salta con la cadera y sube los hombros sin flexionar los codos.",
+                "Cuando la barra llegue a lo alto del muslo, extiende la cadera con fuerza y sube los hombros sin flexionar los codos.",
                 "Termina de puntillas con la barra a la altura del abdomen o del pecho bajo y los brazos todavía largos.",
                 "Baja la barra con calma por el mismo camino y apóyala en el suelo."
               ],
@@ -3142,7 +3181,7 @@
               ],
               "setupCues": [
                 "Agarra la barra con el ancho del arranque y los brazos estirados.",
-                "Baja la cadera más que en el tirón de cargada, con los hombros sobre la barra y el pecho abierto.",
+                "Baja la cadera hasta una salida baja, con los hombros sobre la barra y el pecho abierto.",
                 "Respira, tensa el tronco y mira al frente."
               ],
               "setupTimeSeconds": 45,

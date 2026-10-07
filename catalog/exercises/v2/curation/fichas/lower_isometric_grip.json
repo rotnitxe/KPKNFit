@@ -74,7 +74,7 @@
               "anat_forearm",
               "ellestad2024"
             ],
-            "why": "La muñeca no se mueve: transmite el peso de la pesa a los flexores de los dedos, que lo sostienen durante todo el recorrido. Una persona del estudio de Ellestad et al. no pudo mantener el agarre necesario para los acarreos."
+            "why": "La muñeca no se mueve: se mantiene firme mientras los flexores de los dedos y de la muñeca sostienen el peso durante todo el recorrido. Una persona del estudio de Ellestad et al. no pudo mantener el agarre necesario para los acarreos."
           },
           {
             "actions": [
@@ -87,7 +87,7 @@
               "mcgill2009",
               "anat_back"
             ],
-            "why": "La columna lumbar resiste la flexión lateral que provoca el peso a un lado. Ellestad et al. midieron una gran actividad de erectores y oblicuos del lado contrario y McGill et al. documentaron la rigidez del tronco en los acarreos asimétricos."
+            "why": "La columna lumbar resiste la flexión lateral que provoca el peso a un lado. Ellestad et al. midieron una gran actividad de los erectores y del oblicuo externo del lado contrario y McGill et al. documentaron la rigidez del tronco en los acarreos de strongman."
           },
           {
             "actions": [
@@ -111,7 +111,7 @@
             "sources": [
               "anat_rotator_cuff"
             ],
-            "why": "El hombro del brazo cargado se mantiene centrado mientras la pesa tira de él hacia abajo; el manguito rotador es el estabilizador dinámico de la articulación, una deducción anatómica sin medición propia."
+            "why": "El hombro del brazo cargado se mantiene centrado mientras la pesa tira de él hacia abajo; el manguito rotador es uno de los estabilizadores dinámicos de la articulación, una deducción anatómica sin medición propia."
           },
           {
             "actions": [
@@ -133,14 +133,13 @@
               "anat_forearm",
               "ellestad2024"
             ],
-            "why": "La mano sostiene sola todo el peso, sin que la otra ayude, y los flexores de los dedos trabajan en isometría durante todo el recorrido. En el estudio de Ellestad et al. una persona no pudo mantener el agarre necesario para los acarreos y sus datos se excluyeron, señal de que el agarre limita el ejercicio; la actividad del antebrazo no se midió y el papel se deduce de la anatomía."
+            "why": "La mano sostiene sola todo el peso, sin que la otra ayude, y los flexores de los dedos trabajan en isometría durante todo el recorrido. En el estudio de Ellestad et al. una persona no pudo mantener el agarre necesario para los acarreos y sus datos se excluyeron, un caso aislado que apunta a que el agarre puede ser el límite; la actividad del antebrazo no se midió y el papel se deduce de la anatomía."
           },
           {
             "id": "abdominals",
             "role": "PRIMARY",
             "sources": [
               "ellestad2024",
-              "mcgill2009",
               "anat_abdominal"
             ],
             "why": "El oblicuo externo rigidiza la pelvis y evita que el tronco se doble hacia la pesa. En Ellestad et al., con una mancuerna de unos 25 kg, el oblicuo externo del lado contrario a la carga se activó tanto como en la plancha, y los autores concluyen que el ejercicio puede servir para entrenarlo; el recto abdominal quedó claramente por debajo de la plancha."
@@ -153,7 +152,7 @@
               "mcgill2009",
               "anat_back"
             ],
-            "why": "Los erectores del lado contrario a la pesa son los que más trabajan para sostener el tronco recto: Ellestad et al. midieron en el longissimus y el multifidus de ese lado una activación mayor que en la plancha y mayor que en el simple sostén de la pesa sin caminar. McGill et al. describen el mismo efecto de rigidez del tronco en los acarreos de strongman."
+            "why": "Los erectores del lado contrario a la pesa trabajan casi tanto como el oblicuo externo para sostener el tronco recto: Ellestad et al. midieron en el longissimus y el multifidus de ese lado una activación mayor que en la plancha y mayor que en el simple sostén de la pesa sin caminar. McGill et al. describen el mismo efecto de rigidez del tronco en los acarreos de strongman."
           },
           {
             "id": "gluteus_medius",
@@ -290,7 +289,7 @@
           "Paso: el pie contrario a la pesa avanza mientras la pelvis sigue nivelada y la pesa apenas se balancea."
         ],
         "mistakes": [
-          "Inclinar el tronco hacia el lado de la pesa para compensar su peso.",
+          "Dejar que la pesa doble el tronco hacia su lado.",
           "Elevar el hombro de la carga hacia la oreja o dejarlo caer hacia delante.",
           "Doblarse hacia el lado contrario para contrarrestar la carga y perder la línea del cuerpo.",
           "Dar pasos largos o rápidos hasta que la pesa se balancee y golpee el muslo."
@@ -310,7 +309,7 @@
           }
         ],
         "setup": [
-          "De pie con la pesa colgando de una mano junto al muslo, el brazo estirado y el hombro bajo.",
+          "De pie con la pesa colgando de una mano junto al muslo, el brazo estirado y el hombro firme, sin elevarse ni caer.",
           "Hombros a la misma altura, pecho abierto, pelvis neutra y la vista al frente."
         ]
       },

@@ -735,11 +735,11 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "La barra descansa en el pliegue de ambos codos, con las manos juntas o cruzadas sobre ella, y se camina sin soltarla ni dejar que ruede hacia las muñecas. Es un acarreo con la carga por delante del tronco, que obliga a llevar los codos pegados al cuerpo.",
+              "description": "La barra descansa en el pliegue de ambos codos, con las manos unidas ante el pecho y sin agarrarla, y se camina sin dejar que ruede hacia las muñecas. Es un acarreo con la carga por delante del tronco, que obliga a llevar los codos pegados al cuerpo.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
-                "Camina con pasos cortos y regulares, manteniendo el tórax abierto y la vista adelante.",
+                "Camina con pasos cortos y regulares, manteniendo el pecho abierto y la vista adelante.",
                 "Mantén los codos apretados contra el cuerpo para que la barra no ruede hacia las manos.",
                 "Sostén la tensión del abdomen y no dejes que el tronco se incline hacia delante.",
                 "Al terminar, agáchate con la espalda recta y deja la barra en el suelo."
@@ -758,6 +758,13 @@
                     "Posición erguida de la columna torácica"
                   ],
                   "jointId": "columna-toracica",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Transmisión del peso del tronco y de la barra a las piernas al caminar"
+                  ],
+                  "jointId": "cadera",
                   "role": "STABILIZER"
                 },
                 {
@@ -798,6 +805,7 @@
                   "jointActions": [
                     "Resistencia a la flexión del tronco bajo la carga anterior",
                     "Posición erguida de la columna torácica",
+                    "Transmisión del peso del tronco y de la barra a las piernas al caminar",
                     "Sostén del codo flexionado bajo la barra",
                     "Sostén de la escápula hacia atrás",
                     "Transmisión de la carga entre el tronco y las piernas"
@@ -815,6 +823,13 @@
                         "Posición erguida de la columna torácica"
                       ],
                       "jointId": "columna-toracica",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Transmisión del peso del tronco y de la barra a las piernas al caminar"
+                      ],
+                      "jointId": "cadera",
                       "role": "STABILIZER"
                     },
                     {
@@ -860,6 +875,7 @@
                   "relevantJoints": [
                     "columna-lumbar",
                     "columna-toracica",
+                    "cadera",
                     "codo",
                     "escapulotoracica",
                     "sacroiliaca"

@@ -14,7 +14,7 @@
               "suchomel2015",
               "anat_hip"
             ],
-            "why": "La cadera es una de las dos articulaciones que más par generan en la tracción de la cargada, según Kipp et al. (2011), y Suchomel et al. recomiendan los tirones para entrenar esa extensión de cadera."
+            "why": "La cadera es una de las dos articulaciones que más par generan, en general, en la tracción de la cargada, según Kipp et al. (2011), y Suchomel et al. piden completar la extensión de cadera en los tirones."
           },
           {
             "actions": [
@@ -26,7 +26,7 @@
               "kipp2011",
               "anat_knee"
             ],
-            "why": "La rodilla se extiende dos veces: en la primera tracción, para despegar la barra, y en la segunda, para acelerarla. Kipp et al. (2011) registraron su extensión rápida durante la tracción, aunque con menos par que cadera y tobillo."
+            "why": "La rodilla se extiende dos veces: en la primera tracción, para despegar la barra, y en la segunda, para acelerarla. Kipp et al. (2011) registraron su extensión rápida durante la tracción, aunque con menos par que cadera y tobillo; el rol principal se apoya en sus dos extensiones, la de despegue y la de aceleración, y no en el par."
           },
           {
             "actions": [
@@ -67,7 +67,7 @@
           },
           {
             "actions": [
-              "Brazos extendidos bajo la barra"
+              "Brazos extendidos durante el tirón"
             ],
             "id": "codo",
             "role": "STABILIZER",
@@ -87,7 +87,7 @@
               "anat_forearm",
               "meechan2024"
             ],
-            "why": "La muñeca sostiene una barra pesada con los dedos cerrados durante todo el tirón; la carga de 140 % del máximo de la power clean que usaron Meechan et al. en un tirón colgado indica lo exigente que es el agarre."
+            "why": "La muñeca sostiene una barra pesada con los dedos cerrados durante todo el tirón; Meechan et al. usaron en un tirón colgado el 140 % del máximo de la power clean, de modo que el peso puede superar el máximo de la cargada."
           }
         ],
         "muscles": [
@@ -99,7 +99,7 @@
               "suchomel2015",
               "anat_glute_max"
             ],
-            "why": "Extiende la cadera para acelerar la barra hasta la extensión total. Suchomel et al. recomiendan los tirones precisamente para completar la extensión de cadera, rodillas y tobillos de la segunda tracción, y Geisler et al. registraron el glúteo mayor en el tirón de cargada colgado."
+            "why": "Extiende la cadera para acelerar la barra hasta la extensión total. Suchomel et al. recomiendan insistir en completar la extensión de cadera, rodillas y tobillos de la segunda tracción al usar los tirones, y Geisler et al. registraron el glúteo mayor en el tirón de cargada colgado, que aquí se extrapola al tirón desde el suelo."
           },
           {
             "id": "quadriceps",
@@ -109,7 +109,7 @@
               "joffe2026",
               "anat_quadriceps"
             ],
-            "why": "Empuja el suelo en la primera tracción y estira la rodilla en la segunda. El vasto lateral fue otro de los músculos medidos por Geisler et al. en el tirón, y Joffe et al. hallaron que la fuerza isométrica en la posición de salida fue la única de las tres posiciones medidas que contribuyó de forma significativa a explicar el rendimiento en arranque y envión."
+            "why": "Empuja el suelo en la primera tracción y estira la rodilla en la segunda. El vasto lateral fue otro de los músculos medidos por Geisler et al. en el tirón, y Joffe et al. hallaron que la fuerza isométrica global en la posición de salida fue, en valores absolutos, la única de las tres posiciones medidas que contribuyó de forma significativa a explicar el rendimiento en arranque y envión; mide la fuerza de todo el cuerpo y no la del cuádriceps, así que es una extrapolación."
           },
           {
             "id": "hamstrings",
@@ -164,7 +164,7 @@
               "anat_forearm",
               "meechan2024"
             ],
-            "why": "Los flexores de los dedos sostienen una barra que puede superar el máximo de la cargada: Meechan et al. usaron el 140 % del máximo de la power clean en un tirón colgado, así que el agarre suele ser lo que limita el tirón. El papel muscular se deduce de la anatomía del antebrazo."
+            "why": "Los flexores de los dedos sostienen una barra que puede superar el máximo de la cargada: Meechan et al. usaron el 140 % del máximo de la power clean en un tirón colgado. El papel de los flexores se deduce de la anatomía del antebrazo, sin medición del agarre."
           }
         ]
       },
@@ -174,18 +174,18 @@
             "description": "La barra sale del suelo con el agarre de cargada y termina en la extensión, con los codos sin doblar y sin recepción. Como no hay que girar bajo ella ni levantarse con la carga, admite un peso superior al de las cargadas.",
             "executionCues": [
               "Empuja el suelo con las piernas y deja la barra rozando el cuerpo hasta la altura de las rodillas.",
-              "Al pasar los muslos, lanza la cadera adelante y empuja con los pies a la máxima velocidad hasta ponerte de puntillas, y sube los hombros.",
-              "Termina de puntillas con los codos sin doblar y la barra a la altura del pecho bajo.",
+              "Cuando la barra llegue al muslo, lleva la cadera adelante y empuja el suelo a la máxima velocidad hasta quedar de puntillas.",
+              "Encoge los hombros y termina con los codos sin doblar y la barra a la altura del pecho bajo.",
               "Deja bajar la barra por el mismo camino hasta el suelo, sin soltarla."
             ],
             "setupCues": [
-              "Ponte como en la salida de la cargada, con las manos por fuera de las rodillas y el agarre de cargada.",
-              "Si el peso es alto, usa el agarre en gancho para que la mano no se abra durante el tirón.",
+              "Coloca la barra sobre el centro del pie y toma el agarre por fuera de las rodillas, algo más abierto que los hombros.",
+              "Si el peso es alto, usa el agarre en gancho, con el pulgar bajo los dedos, para que la mano no se abra durante el tirón.",
               "Mira al frente y tensa el tronco antes de despegar la barra."
             ]
           }
         },
-        "description": "El Tirón de Cargada (clean pull) repite la tracción de la cargada desde el suelo hasta la extensión total y se detiene ahí, sin girar los codos bajo la barra ni recibirla. Es un tirón explosivo en el que trabajan las piernas y la cadera, el glúteo mayor y el cuádriceps al despegar y los isquiosurales y los gemelos al rematar, mientras el trapecio sube los hombros con la barra a la altura del pecho bajo y los brazos estirados. Al no haber recepción, se trabaja con más peso que en la cargada y se separa el empuje de las piernas de la parte técnica del giro y la recepción, que es lo que lo hace más sencillo de aprender. La barra baja después con control hasta el suelo."
+        "description": "El Tirón de Cargada (clean pull) repite la tracción de la cargada desde el suelo hasta la extensión total y se detiene ahí, sin girar los codos bajo la barra ni recibirla. Es un tirón explosivo en el que las piernas empujan desde el suelo con el glúteo mayor y el cuádriceps, los isquiosurales ayudan a extender la cadera y los gemelos rematan con los tobillos, mientras el trapecio sube los hombros con la barra a la altura del pecho bajo y los brazos estirados. Al no haber recepción, se trabaja con más peso que en la cargada y se separa el empuje de las piernas de la parte técnica del giro y la recepción, que es lo que lo hace más sencillo de aprender. La barra baja después con control hasta el suelo."
       },
       "sources": [
         {
@@ -195,25 +195,25 @@
           "url": "https://pubmed.ncbi.nlm.nih.gov/25689955/"
         },
         {
-          "claim": "En 27 halterófilos registró vasto lateral, glúteo mayor, erector espinal, recto abdominal y trapecio en la cargada colgada y en el tirón de cargada con el 50, el 70 y el 90 % de 1RM: el trapecio fue más activo en el tirón que en la cargada en los de élite con el 50 y el 70 %, y solo el recto abdominal y el erector espinal se tratan como estabilizadores.",
+          "claim": "En 27 halterófilos registró vasto lateral, glúteo mayor, erector espinal, recto abdominal y trapecio en la cargada colgada y en el tirón de cargada desde colgado (hang clean pull) con el 50, el 70 y el 90 % de 1RM: el trapecio fue más activo en el tirón que en la cargada en los de élite con el 50 y el 70 %, y solo el recto abdominal y el erector espinal se tratan como estabilizadores.",
           "id": "geisler2023",
           "title": "Effects of Expertise on Muscle Activity during the Hang Power Clean and Hang Power Snatch Compared to Snatch and Clean Pulls - An Explorative Analysis",
           "url": "https://pubmed.ncbi.nlm.nih.gov/38045750/"
         },
         {
-          "claim": "En 31 halterófilos nacionales e internacionales, la fuerza isométrica máxima en la posición de salida del tirón de cargada fue la única de las tres posiciones medidas (salida, transición y segunda tracción) que contribuyó de forma significativa a explicar el rendimiento en arranque y envión.",
+          "claim": "En 31 halterófilos nacionales e internacionales, la fuerza isométrica máxima en la posición de salida del tirón de cargada fue, en valores absolutos, la única de las tres posiciones medidas (salida, transición y segunda tracción) que contribuyó de forma significativa a explicar el rendimiento en arranque y envión; con los valores escalados solo lo hizo en el arranque.",
           "id": "joffe2026",
           "title": "A comparison of maximal isometric force in the first pull, transition and second pull of the clean and their contribution to predict performance in national and international level weightlifters",
           "url": "https://pubmed.ncbi.nlm.nih.gov/39882780/"
         },
         {
-          "claim": "Durante la tracción de la cargada con el 65, el 75 y el 85 % de 1RM, la cadera y la rodilla se extendieron más rápido que el tobillo y la cadera y el tobillo generaron pares significativamente mayores que la rodilla.",
+          "claim": "Durante la tracción de la cargada con el 65, el 75 y el 85 % de 1RM, la cadera y la rodilla se extendieron más rápido que el tobillo y la cadera y el tobillo generaron, en general, pares significativamente mayores que la rodilla.",
           "id": "kipp2011",
           "title": "Lower extremity biomechanics during weightlifting exercise vary across joint and load",
           "url": "https://pubmed.ncbi.nlm.nih.gov/21240030/"
         },
         {
-          "claim": "En 20 hombres entrenados con el 50, el 70 y el 90 % de 1RM, el trapecio superior mantenía la posición escapular en la primera tracción y la transición, y en la segunda tracción se contraía con fuerza para elevar la escápula y tirar de la barra durante la cargada de potencia.",
+          "claim": "En 20 hombres entrenados con el 50, el 70 y el 90 % de 1RM, el trapecio superior parecía mantener la posición escapular en la primera tracción y la transición, y en la segunda tracción se contraía con fuerza para elevar la escápula y tirar de la barra durante la cargada de potencia.",
           "id": "nagao2021",
           "title": "Characteristics of the Shrug Motion and Trapezius Muscle Activity During the Power Clean",
           "url": "https://pubmed.ncbi.nlm.nih.gov/31453932/"
@@ -309,7 +309,7 @@
           "Doblar los codos para subir más la barra, con lo que se pierde la extensión de las piernas.",
           "Quedarse sin completar la extensión: soltar el impulso con los talones aún apoyados.",
           "Dejar que la barra se separe del cuerpo al pasar las rodillas.",
-          "Soltar la barra desde arriba en lugar de acompañar su bajada."
+          "Dejar caer la barra desde arriba cuando el peso permite bajarla con control."
         ],
         "phases": [
           {
@@ -331,7 +331,7 @@
         ],
         "setup": [
           "Barra sobre el centro del pie, agarre de cargada por fuera de las rodillas y brazos estirados.",
-          "Caderas más altas que las rodillas, hombros alineados con la barra, columna plana y vista al frente.",
+          "Caderas más altas que las rodillas, hombros un poco por delante de la barra, columna plana y vista al frente.",
           "Tronco rígido antes de despegar, con el peso repartido entre el medio pie y el talón."
         ]
       },
@@ -354,6 +354,7 @@
           "Barra en el suelo o en las rodillas: es otro punto del recorrido.",
           "Codos doblados y la barra tirada con los brazos, con los talones todavía apoyados.",
           "Atleta agachado en una sentadilla de recepción.",
+          "Agarre muy ancho con los brazos abiertos en V invertida: eso es un tirón de arranque.",
           "Barra flotando sin que las manos la agarren."
         ],
         "promptCore": {
@@ -987,9 +988,10 @@
             "sources": [
               "kipp2019",
               "suchomel2021",
+              "moolyk2013",
               "anat_knee"
             ],
-            "why": "La rodilla se estira en el empuje y se flexiona para frenar la barra, con momentos articulares iguales o mayores que en el salto según Kipp et al. (2019) y con trabajo de absorción medido por Suchomel et al."
+            "why": "La rodilla se estira en el empuje y se flexiona para frenar la barra, con momentos articulares iguales o mayores que en el salto según Kipp et al. (2019) y con trabajo de absorción medido por Suchomel et al.; Moolyk et al. sitúan en la rodilla el mayor trabajo de absorción en la power clean y la cargada, y aquí se extrapola a la versión colgada."
           },
           {
             "actions": [
@@ -1001,7 +1003,7 @@
               "hayashi2023",
               "anat_ankle"
             ],
-            "why": "El tobillo cierra la extensión de las tres articulaciones del miembro inferior. Hayashi et al. analizaron sus momentos en la cargada colgada con una y con dos piernas, aunque la acción dominante sigue siendo la de la cadera."
+            "why": "El tobillo cierra la extensión de las tres articulaciones del miembro inferior. Hayashi et al. analizaron sus momentos en la cargada colgada con una y con dos piernas, se deja como secundario por decisión editorial, porque la rodilla suma el empuje y el frenado en la recepción y el tobillo solo el cierre de la extensión."
           },
           {
             "actions": [
@@ -1017,7 +1019,7 @@
           },
           {
             "actions": [
-              "Elevación y adelantamiento del hombro bajo la barra",
+              "Flexión del hombro al girar los codos bajo la barra",
               "Sostén de la barra sobre el hombro"
             ],
             "id": "glenohumeral",
@@ -1082,10 +1084,11 @@
             "role": "PRIMARY",
             "sources": [
               "geisler2023",
+              "moolyk2013",
               "suchomel2021",
               "anat_quadriceps"
             ],
-            "why": "Empuja la rodilla a la extensión en el salto del tirón y la flexiona al recibir la barra. El vasto lateral fue uno de los músculos registrados por Geisler et al. en la cargada colgada, y Suchomel et al. midieron en ella el trabajo articular de absorción de la carga en cadera, rodilla y tobillo."
+            "why": "Extiende la rodilla en el empuje y frena su flexión al recibir la barra. El vasto lateral fue uno de los músculos registrados por Geisler et al. en la cargada colgada, y Suchomel et al. midieron en ella el trabajo articular de absorción de la carga en cadera, rodilla y tobillo; Moolyk et al. hallaron en la power clean y la cargada que los extensores de la rodilla hacen el mayor trabajo del miembro inferior al absorber la barra, y aquí se extrapola a la versión colgada."
           },
           {
             "id": "hamstrings",
@@ -1094,7 +1097,7 @@
               "arauz2026",
               "anat_hamstring"
             ],
-            "why": "Con las caderas retrasadas en la posición colgada quedan estirados y devuelven esa tensión en la extensión de cadera. Arauz et al. midieron más actividad del bíceps femoral en la cargada que en el arranque; no hay registros de la versión colgada, por eso se dejan como apoyo del glúteo."
+            "why": "Con las caderas retrasadas en la posición colgada quedan estirados y ayudan a extender la cadera. Arauz et al. midieron más actividad del bíceps femoral en la cargada que en el arranque; no hay registros de la versión colgada, por eso se dejan como apoyo del glúteo."
           },
           {
             "id": "trapezius",
@@ -1131,7 +1134,7 @@
               "santos2021",
               "anat_biceps"
             ],
-            "why": "Flexiona el codo cuando la mano pasa bajo la barra y lo sostiene flexionado en la recepción. Santos et al. aíslan una fase de flexión del miembro superior en la power clean; la inferencia al bíceps es anatómica."
+            "why": "Flexiona el codo cuando la mano pasa bajo la barra y lo sostiene flexionado en la recepción. Santos et al. incluyen el bíceps braquial, junto al trapecio superior, el tríceps y los flexores y extensores de los dedos, en la sinergia de flexión del miembro superior que describen para la power clean; no cuantifican su aporte relativo."
           },
           {
             "id": "erector_spinae",
@@ -1167,19 +1170,19 @@
           "hang_power_clean__barbell": {
             "description": "La barra parte de la mitad del muslo, con el tronco inclinado y las rodillas algo flexionadas, así que todo el trabajo se concentra en la segunda tracción. Sin el despegue del suelo, cada repetición pide menos preparación y se puede encadenar a más velocidad.",
             "executionCues": [
-              "Empuja con las piernas y lleva la cadera adelante para lanzar la barra rozando el muslo.",
+              "Empuja con las piernas y lleva la cadera adelante para subir la barra rozando el muslo.",
               "Encoge los hombros al llegar arriba, con los brazos todavía estirados.",
               "Gira los codos bajo la barra y recíbela sobre los hombros con una sentadilla corta.",
-              "Levántate y deja que la barra vuelva al muslo, lista para la siguiente repetición."
+              "Levántate y baja la barra con control hasta el muslo, lista para la siguiente repetición."
             ],
             "setupCues": [
               "Levanta la barra del suelo hasta quedar de pie y déjala colgando a media altura del muslo.",
-              "Retrasa la cadera, flexiona un poco las rodillas y adelanta el pecho sobre la barra.",
+              "Empuja la cadera atrás, dobla un poco las rodillas y adelanta el pecho sobre la barra.",
               "Deja colgar los brazos sin doblarlos, con los codos hacia los lados y la vista al frente."
             ]
           }
         },
-        "description": "La Cargada de Potencia desde Colgado, conocida como hang power clean, es la cargada que arranca ya de pie, con la barra colgando a media altura del muslo y las caderas retrasadas. Desde esa posición, un empuje corto de piernas y cadera con un encogimiento de hombros lanza la barra hasta el pecho, y los codos giran bajo ella para recibirla sobre los hombros en una sentadilla corta. Trabaja sobre todo el glúteo mayor y el cuádriceps, con los isquiosurales, el trapecio y los gemelos de apoyo. Como el gesto parte del muslo y no del suelo, su ejecución es más simple y por eso se usa tanto como entrada a los levantamientos olímpicos y como ejercicio de potencia con cargas moderadas."
+        "description": "La Cargada de Potencia desde Colgado, conocida como hang power clean, es la cargada que arranca ya de pie, con la barra colgando a media altura del muslo y las caderas retrasadas. Desde esa posición, un empuje corto de piernas y cadera con un encogimiento de hombros sube la barra hasta la altura del pecho, y los codos giran bajo ella para recibirla sobre los hombros en una sentadilla corta. Trabaja sobre todo el glúteo mayor y el cuádriceps, con los isquiosurales, el trapecio y los gemelos de apoyo. Como el gesto parte del muslo y no del suelo, su ejecución es más simple y por eso se usa tanto como entrada a los levantamientos olímpicos y como ejercicio de potencia con cargas moderadas."
       },
       "sources": [
         {
@@ -1213,16 +1216,22 @@
           "url": "https://pubmed.ncbi.nlm.nih.gov/41352184/"
         },
         {
-          "claim": "En 20 hombres entrenados con el 50, el 70 y el 90 % de 1RM, la actividad del trapecio superior sostenía la posición escapular en la primera tracción y la transición, y en la segunda tracción se contraía con fuerza para elevar la escápula y tirar de la barra; el recorrido del encogimiento era mayor con el 50 % que con el 90 %.",
+          "claim": "En 20 hombres entrenados con el 50, el 70 y el 90 % de 1RM, la actividad del trapecio superior parecía sostener la posición escapular en la primera tracción y la transición, y en la segunda tracción se contraía con fuerza para elevar la escápula y tirar de la barra; el recorrido del encogimiento era mayor con el 50 % que con el 90 %.",
           "id": "nagao2021",
           "title": "Characteristics of the Shrug Motion and Trapezius Muscle Activity During the Power Clean",
           "url": "https://pubmed.ncbi.nlm.nih.gov/31453932/"
         },
         {
-          "claim": "Con electromiografía de 16 músculos en siete halterófilos y diez personas sin entrenar, describió tres sinergias en la power clean, la primera de extensión de cadera y la segunda de flexión del miembro superior.",
+          "claim": "Con electromiografía de 16 músculos (entre ellos el bíceps braquial) en siete halterófilos y diez personas sin entrenar, describió tres sinergias en la power clean, la primera de extensión de cadera y la segunda de flexión del miembro superior.",
           "id": "santos2021",
           "title": "Intermuscular Coordination in the Power Clean Exercise: Comparison between Olympic Weightlifters and Untrained Individuals-A Preliminary Study",
           "url": "https://pubmed.ncbi.nlm.nih.gov/33803182/"
+        },
+        {
+          "claim": "En diez mujeres, la cargada y la power clean mostraron que el trabajo de los extensores de la rodilla es el que más contribuye al trabajo del miembro inferior al absorber la barra, y que su momento de rodilla es mayor que en los aterrizajes de salto.",
+          "id": "moolyk2013",
+          "title": "Characteristics of lower extremity work during the impact phase of jumping and weightlifting",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/23442272/"
         },
         {
           "claim": "En once hombres entrenados, el agarre en gancho dio un máximo de power clean mayor que el agarre cerrado y una mayor sensación de agarre seguro con cargas submáximas.",
@@ -1326,18 +1335,18 @@
         "identity": "Cargada de potencia que empieza de pie, con la barra colgando a media altura del muslo y las caderas retrasadas: se suprimen la primera tracción y la transición, y el gesto arranca directamente en la extensión final. Se separa de la versión desde el suelo por esa salida desde el muslo, y de la cargada completa por una recepción que no baja de la sentadilla paralela.",
         "keyPositions": [
           "Posición colgada: barra a media altura del muslo, caderas atrás, tronco inclinado y brazos largos.",
-          "Punto alto del empuje: puntillas, hombros hacia las orejas y la barra a la altura del esternón.",
+          "Punto alto del empuje: puntillas, hombros hacia las orejas y la barra a la altura del pecho bajo.",
           "Recepción: barra sobre los hombros, codos altos y adelantados, muslos por encima de la horizontal."
         ],
         "mistakes": [
           "Empezar el gesto doblando los codos en lugar de empujar con las piernas.",
-          "Inclinar el tronco hacia atrás para subir la barra, sin completar la extensión de la cadera.",
-          "Bajar la barra por debajo de las rodillas al tomar la posición, con lo que la repetición pasa a ser una cargada desde el suelo.",
+          "Inclinar el tronco hacia atrás para subir la barra en lugar de empujar con las piernas y llevar la cadera adelante.",
+          "Bajar la barra por debajo de las rodillas al tomar la posición, con lo que se añade un tramo de tirón que este ejercicio no incluye.",
           "Recibir con los pies demasiado juntos o con los codos bajos, de modo que la barra queda inestable."
         ],
         "phases": [
           {
-            "description": "Desde de pie, las caderas se retrasan y las rodillas se flexionan un poco hasta que la barra queda colgando a media altura del muslo.",
+            "description": "De pie, las caderas se retrasan y las rodillas se flexionan un poco hasta que la barra queda colgando a media altura del muslo.",
             "name": "Carga de la cadera"
           },
           {
@@ -1345,7 +1354,7 @@
             "name": "Empuje"
           },
           {
-            "description": "Los codos rodean la barra, los pies se separan un poco y la barra aterriza sobre los hombros en una sentadilla corta.",
+            "description": "Los codos rodean la barra, los pies se separan un poco y la barra cae sobre los hombros en una sentadilla corta.",
             "name": "Giro y recepción"
           },
           {
@@ -1378,6 +1387,7 @@
           "Barra sobre los hombros con los codos adelantados: eso es la recepción, no la posición colgada.",
           "Atleta erguido con las caderas ya extendidas, cuando el fotograma es la carga previa al empuje.",
           "Espalda redondeada o brazos doblados antes del empuje.",
+          "Agarre muy ancho con los brazos abiertos en V invertida: eso es un arranque, no una cargada.",
           "Barra flotando sin que las manos la agarren."
         ],
         "promptCore": {
@@ -1418,7 +1428,7 @@
               "arauz2024",
               "anat_knee"
             ],
-            "why": "La rodilla acompaña al impulso y se flexiona al recibir la barra; las rodillas más flexionadas de los de élite en el punto más alto de la barra, que midieron Arauz et al., muestran que acompaña a la barra hasta la recepción."
+            "why": "La rodilla acompaña al impulso y se flexiona al recibir la barra; Arauz et al. midieron las rodillas más flexionadas de los de élite en el punto más alto de la barra, una diferencia entre niveles de la que no se deduce el peso de la articulación, que viene de su doble trabajo al empujar y frenar."
           },
           {
             "actions": [
@@ -1446,6 +1456,17 @@
           },
           {
             "actions": [
+              "Extensión de la columna torácica bajo la barra"
+            ],
+            "id": "columna-toracica",
+            "role": "STABILIZER",
+            "sources": [
+              "anat_back"
+            ],
+            "why": "La columna torácica se mantiene extendida bajo la barra mientras el cuerpo se mete bajo ella; es una deducción de la función de los músculos de la espalda y de la movilidad que pide el arranque, sin medición en esta variante."
+          },
+          {
+            "actions": [
               "Elevación del brazo sobre la cabeza",
               "Sostén de la barra en rotación externa del hombro"
             ],
@@ -1455,7 +1476,7 @@
               "arauz2025",
               "anat_rotator_cuff"
             ],
-            "why": "El hombro lleva el brazo sobre la cabeza y sostiene la barra; Arauz et al. midieron momentos de hombro mayores en los de élite en la subida del arranque, y el manguito rotador centra la cabeza del húmero."
+            "why": "El hombro lleva el brazo sobre la cabeza y sostiene la barra; Arauz et al. midieron momentos de hombro mayores en los de élite sobre los ejes de aducción-abducción y de rotación, y el manguito rotador centra la cabeza del húmero."
           },
           {
             "actions": [
@@ -1479,7 +1500,7 @@
               "arauz2025",
               "anat_triceps"
             ],
-            "why": "Los codos permanecen largos durante el impulso y se bloquean al recibir; los momentos de codo de los halterófilos de élite en la subida del arranque son mayores según Arauz et al."
+            "why": "Los codos permanecen largos durante el impulso y se bloquean al recibir; los momentos de codo de los halterófilos de élite durante la mayor parte de la fase de elevación de la barra son mayores según Arauz et al."
           },
           {
             "actions": [
@@ -1492,7 +1513,7 @@
               "arauz2025",
               "anat_wrist_ext"
             ],
-            "why": "La muñeca soporta la barra colgando y luego se extiende bajo ella sobre la cabeza; Arauz et al. midieron momentos de muñeca más altos en los de élite durante la subida del arranque."
+            "why": "La muñeca soporta la barra colgando y luego se extiende bajo ella sobre la cabeza; Arauz et al. midieron momentos de muñeca mayores en los de élite durante la mayor parte de la fase de elevación de la barra."
           }
         ],
         "muscles": [
@@ -1510,10 +1531,9 @@
             "role": "PRIMARY",
             "sources": [
               "geisler2023",
-              "sadowski2024",
               "anat_quadriceps"
             ],
-            "why": "Extiende la rodilla durante el impulso y frena la bajada del cuerpo bajo la barra. El vasto lateral figura entre los músculos registrados por Geisler et al.; Sadowski et al. estudiaron la potencia y la velocidad del arranque de potencia colgado en 12 halterófilos de alto nivel, aunque sin separar músculos."
+            "why": "Extiende la rodilla durante el impulso y frena la bajada del cuerpo bajo la barra. El vasto lateral figura entre los músculos registrados por Geisler et al. en el arranque de potencia colgado, que no tratan a este músculo como estabilizador."
           },
           {
             "id": "hamstrings",
@@ -1522,7 +1542,7 @@
               "arauz2026",
               "anat_hamstring"
             ],
-            "why": "En la posición colgada están estirados por la cadera retrasada y colaboran en la extensión. Arauz et al. vieron menos actividad del bíceps femoral en el arranque que en la cargada, de modo que su peso es de apoyo; no hay registros de la versión colgada."
+            "why": "En la posición colgada están estirados por la cadera retrasada y colaboran en la extensión. Arauz et al. vieron menos actividad del bíceps femoral en el arranque que en la cargada durante fases clave; su rol de apoyo es una decisión editorial basada en la anatomía y no hay registros de la versión colgada."
           },
           {
             "id": "trapezius",
@@ -1540,7 +1560,7 @@
               "arauz2025",
               "anat_deltoid"
             ],
-            "why": "Al bloquear la barra sobre la cabeza, el deltoides sostiene el brazo alzado y empuja contra el peso. Arauz et al. midieron en el arranque momentos de hombro mayores en los halterófilos de élite; no se cita electromiografía del deltoides."
+            "why": "Al bloquear la barra sobre la cabeza, el deltoides sostiene el brazo alzado y empuja contra el peso. Arauz et al. midieron en el arranque momentos de hombro mayores en los halterófilos de élite sobre los ejes de aducción-abducción y de rotación; no se cita electromiografía del deltoides."
           },
           {
             "id": "triceps",
@@ -1549,7 +1569,7 @@
               "arauz2025",
               "anat_triceps"
             ],
-            "why": "Extiende y bloquea los codos bajo la barra. Arauz et al. registraron momentos de codo mayores en los de élite durante la subida del arranque, y la función primaria del tríceps es extender el codo; es una inferencia sin electromiografía de esta variante."
+            "why": "Extiende y bloquea los codos bajo la barra. Arauz et al. registraron momentos de codo mayores en los de élite durante la mayor parte de la fase de elevación de la barra, y la función primaria del tríceps es extender el codo; es una inferencia sin electromiografía de esta variante."
           },
           {
             "id": "calves",
@@ -1596,12 +1616,12 @@
             "executionCues": [
               "Lanza la cadera hacia delante y estira las piernas para acelerar la barra pegada al muslo.",
               "Sube los hombros al final del impulso, sin doblar los codos hasta entonces.",
-              "Mete el cuerpo bajo la barra y bloquea los codos con ella encima del centro del pie.",
-              "Ponte de pie, baja la barra otra vez al muslo y repite."
+              "Mete el cuerpo bajo la barra y bloquea los codos, con ella encima del centro del pie.",
+              "Termina de pie con la barra arriba y bájala con cuidado hasta el muslo, o déjala caer por delante sobre discos bumper si pesa mucho."
             ],
             "setupCues": [
-              "Levanta la barra hasta ponerte de pie y déjala colgando a la altura del muslo, con el agarre ancho de arranque.",
-              "Lleva la cadera atrás y flexiona un poco las rodillas hasta notar tensos los isquiosurales.",
+              "Levanta la barra del suelo con el agarre ancho de arranque hasta ponerte de pie, con la barra en el pliegue de la cadera.",
+              "Lleva la cadera atrás y flexiona un poco las rodillas hasta que la barra baje a media altura del muslo y notes tensos los isquiosurales.",
               "Pon los hombros por encima de la barra y los codos hacia fuera."
             ]
           }
@@ -1622,7 +1642,7 @@
           "url": "https://pubmed.ncbi.nlm.nih.gov/38689589/"
         },
         {
-          "claim": "En 23 halterófilos, la cinética tridimensional del arranque mostró momentos de hombro, codo y muñeca mayores en los de élite durante la subida, mayores momentos extensores y abductores de la cadera en la recepción y la subida, y diferencias de dinámica en tobillo.",
+          "claim": "En 23 halterófilos (11 de élite y 12 universitarios), la cinética tridimensional del arranque mostró en los de élite mayores momentos de hombro sobre los ejes de aducción-abducción y de rotación, mayores momentos de codo y muñeca durante la mayor parte de la fase de elevación de la barra, mayores momentos extensores y abductores de la cadera en la recepción y en la subida, y diferencias de dinámica en hombro, muñeca y tobillo.",
           "id": "arauz2025",
           "title": "3-Dimensional kinematics and kinetics of the snatch in elite and varsity weightlifters",
           "url": "https://pubmed.ncbi.nlm.nih.gov/40086252/"
@@ -1747,7 +1767,7 @@
         "mistakes": [
           "Tirar de la barra con los brazos al empezar, en lugar de lanzar la cadera hacia delante.",
           "Separar la barra del muslo al subir, de modo que cae por delante en la recepción.",
-          "Recibir con los codos sin bloquear o con la barra por detrás de la línea de la cabeza.",
+          "Recibir con los codos sin bloquear o con la barra fuera de la vertical del centro del pie.",
           "Saltar con los pies muy abiertos y aterrizar fuera de equilibrio."
         ],
         "phases": [
@@ -1764,7 +1784,7 @@
             "name": "Giro y recepción sobre la cabeza"
           },
           {
-            "description": "El atleta se pone de pie con la barra arriba y la devuelve al muslo, lista para la siguiente repetición.",
+            "description": "El atleta se pone de pie con la barra arriba y la baja con control hasta el muslo para la siguiente repetición, o la suelta sobre discos bumper si pesa mucho.",
             "name": "Retorno"
           }
         ],
@@ -1776,10 +1796,10 @@
       },
       "visual": {
         "base": {
-          "camera": "Vista lateral pura a la altura del pecho, con el atleta entero y la barra a la altura del muslo dentro del encuadre.",
+          "camera": "Vista de tres cuartos frontal a la altura del pecho, con el atleta entero y la barra a la altura del muslo dentro del encuadre.",
           "contacts": "Pies planos en el suelo a la anchura de las caderas; las manos agarran la barra muy abiertas y la barra roza la parte delantera de los muslos sin tocar el suelo.",
           "load": "Barra cargada con discos a ambos lados, sujeta por las dos manos y separada del suelo.",
-          "orientation": "Atleta de perfil con la cara hacia el lado derecho del encuadre y la barra bajo los hombros.",
+          "orientation": "Atleta girado de tres cuartos respecto a la cámara, con el tronco inclinado hacia delante y la barra bajo los hombros.",
           "phase": "Posición colgada previa al impulso: de pie, con un agarre ancho y la barra a la altura del muslo, caderas retrasadas y tronco inclinado.",
           "posture": "Espalda recta con el tronco inclinado, hombros por encima de la barra, rodillas algo flexionadas, brazos estirados y mirada al frente."
         },
@@ -1796,7 +1816,7 @@
           "Barra flotando sin que las manos la agarren."
         ],
         "promptCore": {
-          "barbell": "Side view of an athlete frozen in the HANG position of a hang power snatch, standing with the barbell hanging at upper thigh height. Both hands grip the straight Olympic barbell with a very wide snatch grip, arms straight so the bar rests against the front of the thighs. The hips are pushed back, the knees are slightly bent, the torso leans forward with a flat back, the shoulders are above the bar and the eyes look forward. Both feet are flat on the floor at hip width. Rubber bumper plates hang clear of the floor. No text or logos."
+          "barbell": "Three-quarter front view of an athlete frozen in the HANG position of a hang power snatch, standing with the barbell hanging at upper thigh height. Both hands grip the straight Olympic barbell with a very wide snatch grip, arms straight in an inverted V so the bar rests against the front of the thighs. The hips are pushed back, the knees are slightly bent, the torso leans forward with a flat back, the shoulders are above the bar and the eyes look forward. Both feet are flat on the floor at hip width. Rubber bumper plates hang clear of the floor. No text or logos."
         },
         "qa": [
           "¿Las manos agarran la barra con un agarre muy ancho y la carga no flota suelta?",
@@ -1821,7 +1841,7 @@
               "kipp2019",
               "anat_hip"
             ],
-            "why": "Es una de las dos articulaciones que más par generan en la tracción: Kipp et al. (2011) hallaron en la cargada pares de cadera y tobillo mayores que los de la rodilla, y Kipp et al. (2019) midieron momentos de cadera en la cargada colgada iguales o mayores que en el salto con contramovimiento."
+            "why": "Es una de las dos articulaciones que más par generan en la tracción: Kipp et al. (2011) hallaron en la cargada, en general, pares de cadera y tobillo mayores que los de la rodilla, y Kipp et al. (2019) midieron momentos de cadera en la cargada colgada iguales o mayores que en el salto con contramovimiento."
           },
           {
             "actions": [
@@ -1835,7 +1855,7 @@
               "kipp2011",
               "anat_knee"
             ],
-            "why": "La rodilla se extiende para empujar el suelo y absorbe la barra al caer. Moolyk et al. señalan que el trabajo de los extensores de la rodilla es el que más aporta en la recepción de la power clean, y Kipp et al. (2011) registraron su extensión rápida durante la tracción."
+            "why": "La rodilla se extiende para empujar el suelo y absorbe la barra al caer. Moolyk et al. señalan que el trabajo de los extensores de la rodilla es el que más aporta en la recepción de la power clean, y Kipp et al. (2011) registraron su extensión rápida durante la tracción; el rol principal se apoya en su doble trabajo, empujar el suelo y frenar la barra al recibirla, más que en el par que genera."
           },
           {
             "actions": [
@@ -1847,7 +1867,7 @@
               "kipp2011",
               "anat_ankle"
             ],
-            "why": "El tobillo cierra la tercera extensión y levanta el cuerpo de puntillas. Kipp et al. (2011) midieron en él pares altos durante la tracción de la cargada, aunque la acción dominante sigue siendo la de la cadera."
+            "why": "El tobillo cierra la tercera extensión y levanta el cuerpo de puntillas. Kipp et al. (2011) midieron en él pares altos durante la tracción de la cargada, en general mayores que los de la rodilla; se deja como secundario por decisión editorial, porque la rodilla suma el empuje del suelo y el frenado en la recepción y el tobillo solo el cierre de la extensión."
           },
           {
             "actions": [
@@ -1859,11 +1879,11 @@
               "geisler2023",
               "anat_back"
             ],
-            "why": "La columna lumbar no se mueve: transmite la fuerza entre la pelvis y el tronco con los erectores y el abdomen activos como estabilizadores, tal como los clasifican Geisler et al."
+            "why": "La columna lumbar apenas se mueve: transmite la fuerza entre la pelvis y el tronco con los erectores y el abdomen activos como estabilizadores, tal como los clasifican Geisler et al."
           },
           {
             "actions": [
-              "Elevación y adelantamiento del hombro al girar bajo la barra",
+              "Flexión del hombro al girar los codos bajo la barra",
               "Sostén de la barra sobre el hombro"
             ],
             "id": "glenohumeral",
@@ -1921,7 +1941,7 @@
               "kipp2011",
               "anat_glute_max"
             ],
-            "why": "Extiende la cadera en la segunda tracción y la impulsa desde la primera. Geisler et al. lo midieron en la cargada colgada y en sus tirones y solo tratan como estabilizadores al recto abdominal y al erector espinal, así que el glúteo cuenta entre los músculos predominantes; Kipp et al. (2011) midieron en la cargada pares de cadera mayores que los de la rodilla."
+            "why": "Extiende la cadera en la segunda tracción y la impulsa desde la primera. Geisler et al. lo midieron en la cargada colgada y en sus tirones y solo tratan como estabilizadores al recto abdominal y al erector espinal, así que el glúteo cuenta entre los músculos predominantes; Kipp et al. (2011) midieron en la cargada, en general, pares de cadera mayores que los de la rodilla."
           },
           {
             "id": "quadriceps",
@@ -1942,7 +1962,7 @@
               "mackenzie2014",
               "anat_hamstring"
             ],
-            "why": "Ayudan a extender la cadera y sostienen la rodilla mientras la barra pasa por ella. Arauz et al. midieron más actividad del bíceps femoral en la cargada que en el arranque y MacKenzie et al. lo registraron en la power clean; ningún estudio los sitúa por encima del glúteo o del cuádriceps, por eso quedan como secundarios."
+            "why": "Ayudan a extender la cadera mientras la barra sube del suelo y pasa por los muslos. Arauz et al. midieron más actividad del bíceps femoral en la cargada que en el arranque y MacKenzie et al. lo registraron en la power clean; ningún estudio los sitúa por encima del glúteo o del cuádriceps, por eso quedan como secundarios."
           },
           {
             "id": "trapezius",
@@ -1952,7 +1972,7 @@
               "geisler2023",
               "anat_trapezius"
             ],
-            "why": "Sostiene la posición de la escápula durante la primera tracción y la transición, y en la segunda tracción se contrae con fuerza para elevarla y tirar de la barra, según Nagao e Ishii. Geisler et al. lo registraron también en la cargada colgada sin tratarlo como estabilizador."
+            "why": "Parece sostener la posición de la escápula durante la primera tracción y la transición, y en la segunda tracción se contrae con fuerza para elevarla y tirar de la barra, según Nagao e Ishii. Geisler et al. lo registraron también en la cargada colgada sin tratarlo como estabilizador."
           },
           {
             "id": "calves",
@@ -1962,7 +1982,7 @@
               "kipp2011",
               "anat_gastroc"
             ],
-            "why": "Completan la extensión del tobillo al final de la segunda tracción, cuando el cuerpo se pone de puntillas. Arauz et al. midieron más actividad del gastrocnemio en la cargada que en el arranque y Kipp et al. (2011) registraron pares de tobillo altos durante la tracción; ningún registro es de la power clean sola."
+            "why": "Completan la extensión del tobillo al final de la segunda tracción, cuando el cuerpo se pone de puntillas. Arauz et al. midieron más actividad del gastrocnemio en la cargada que en el arranque y Kipp et al. (2011) registraron pares de tobillo altos durante la tracción de la cargada; son datos de la cargada y de su tracción, así que aplicarlos a la power clean es una extrapolación."
           },
           {
             "id": "deltoid",
@@ -1980,7 +2000,7 @@
               "santos2021",
               "anat_biceps"
             ],
-            "why": "Al girar los codos bajo la barra el bíceps flexiona el codo y luego lo sostiene flexionado en la recepción frontal. Santos et al. describen una sinergia de flexión del miembro superior en la power clean; el papel del bíceps es una inferencia anatómica, sin electromiografía propia."
+            "why": "Al girar los codos bajo la barra el bíceps flexiona el codo y luego lo sostiene flexionado en la recepción frontal. Santos et al. registraron el bíceps braquial y lo incluyen, con el trapecio superior, el tríceps y los flexores y extensores de los dedos, en la sinergia de flexión del miembro superior de la power clean; el estudio no cuantifica su aporte frente al de otros músculos."
           },
           {
             "id": "erector_spinae",
@@ -2014,12 +2034,12 @@
       "public": {
         "configurations": {
           "power_clean__barbell": {
-            "description": "Con la barra en el suelo se hace el tirón entero: la subida hasta la rodilla, el paso de las rodillas bajo la barra y la extensión final. La recepción sobre los hombros queda a un cuarto de sentadilla, así que la barra debe subir más alto que en la versión completa.",
+            "description": "Con la barra en el suelo se hace el tirón entero: la subida hasta la rodilla, la transición bajo la barra y la extensión final. La recepción sobre los hombros es en sentadilla corta, así que la barra debe subir más alto que en la versión completa.",
             "executionCues": [
               "Empuja el suelo con las piernas y sube la barra pegada al cuerpo hasta pasar las rodillas.",
               "Con la barra en lo alto del muslo, estira cadera, rodillas y tobillos de golpe y encoge los hombros.",
-              "Lleva los codos arriba y adelante por debajo de la barra y recíbela sobre los hombros, en una sentadilla corta.",
-              "Ponte de pie con la barra apoyada y devuélvela al suelo con calma."
+              "Gira los codos arriba y adelante alrededor de la barra y recíbela sobre los hombros, en una sentadilla corta.",
+              "Ponte de pie con la barra apoyada y bájala con control hasta los muslos y de ahí al suelo."
             ],
             "setupCues": [
               "Coloca los pies a la anchura de las caderas, con la barra sobre el centro del pie y rozando las espinillas.",
@@ -2028,7 +2048,7 @@
             ]
           }
         },
-        "description": "La Cargada de Potencia (power clean) es un levantamiento olímpico explosivo: la barra viaja del suelo a los hombros en un solo gesto y se recibe en una sentadilla corta, con los muslos por encima de la horizontal. El glúteo mayor y el cuádriceps empujan el suelo, los isquiosurales y los gemelos completan la extensión y el trapecio encoge los hombros justo antes de que los codos giren bajo la barra. Los brazos van largos hasta el último instante y la barra queda pegada al cuerpo todo el recorrido. Es la manera habitual de entrenar la potencia de salto y de carrera sin la recepción profunda de la cargada completa, y pide técnica, discos que se puedan soltar y un suelo preparado para ello."
+        "description": "La Cargada de Potencia (power clean) es un derivado explosivo de los levantamientos olímpicos: la barra viaja del suelo a los hombros en un solo gesto y se recibe en una sentadilla corta, con los muslos por encima de la horizontal. El glúteo mayor y el cuádriceps empujan el suelo, los isquiosurales y los gemelos completan la extensión y el trapecio encoge los hombros justo antes de que los codos giren bajo la barra. Los brazos van largos hasta el último instante y la barra queda pegada al cuerpo todo el recorrido. Es una forma habitual de entrenar la potencia de salto sin la recepción profunda de la cargada completa, y pide técnica, discos de goma (bumpers) y un suelo preparado para soltar la barra."
       },
       "sources": [
         {
@@ -2038,7 +2058,7 @@
           "url": "https://pubmed.ncbi.nlm.nih.gov/38045750/"
         },
         {
-          "claim": "Durante la tracción de la cargada con el 65, el 75 y el 85 % de 1RM, la cadera y la rodilla se extendieron más rápido que el tobillo y la cadera y el tobillo generaron pares significativamente mayores que la rodilla.",
+          "claim": "Durante la tracción de la cargada con el 65, el 75 y el 85 % de 1RM, la cadera y la rodilla se extendieron más rápido que el tobillo y la cadera y el tobillo generaron, en general, pares significativamente mayores que la rodilla.",
           "id": "kipp2011",
           "title": "Lower extremity biomechanics during weightlifting exercise vary across joint and load",
           "url": "https://pubmed.ncbi.nlm.nih.gov/21240030/"
@@ -2056,13 +2076,13 @@
           "url": "https://pubmed.ncbi.nlm.nih.gov/24738710/"
         },
         {
-          "claim": "En 20 hombres entrenados con el 50, el 70 y el 90 % de 1RM, la actividad del trapecio superior sostenía la posición escapular en la primera tracción y la transición, y en la segunda tracción se contraía con fuerza para elevar la escápula y tirar de la barra.",
+          "claim": "En 20 hombres entrenados con el 50, el 70 y el 90 % de 1RM, la actividad del trapecio superior parecía sostener la posición escapular en la primera tracción y la transición, y en la segunda tracción se contraía con fuerza para elevar la escápula y tirar de la barra.",
           "id": "nagao2021",
           "title": "Characteristics of the Shrug Motion and Trapezius Muscle Activity During the Power Clean",
           "url": "https://pubmed.ncbi.nlm.nih.gov/31453932/"
         },
         {
-          "claim": "Con electromiografía de 16 músculos en siete halterófilos y diez personas sin entrenar, describió tres sinergias en la power clean, la primera de extensión de cadera y la segunda de flexión del miembro superior.",
+          "claim": "Con electromiografía de 16 músculos (entre ellos el bíceps braquial) en siete halterófilos y diez personas sin entrenar, describió tres sinergias en la power clean, la primera de extensión de cadera y la segunda de flexión del miembro superior.",
           "id": "santos2021",
           "title": "Intermuscular Coordination in the Power Clean Exercise: Comparison between Olympic Weightlifters and Untrained Individuals-A Preliminary Study",
           "url": "https://pubmed.ncbi.nlm.nih.gov/33803182/"
@@ -2178,11 +2198,11 @@
       ],
       "status": "CURATED",
       "technique": {
-        "identity": "Levantamiento olímpico desde el suelo con agarre de cargada y recepción a un cuarto de sentadilla: la barra sube pegada al cuerpo en una tracción con tres tiempos, se acelera con la extensión simultánea de cadera, rodillas y tobillos y cae sobre las clavículas y los hombros con los codos adelantados. Se separa de la versión desde colgado porque incluye la primera tracción desde el suelo, y de la cargada completa porque la recepción se queda por encima de la sentadilla paralela.",
+        "identity": "Cargada desde el suelo, derivada de los levantamientos olímpicos, con agarre de cargada y recepción en sentadilla corta: la barra sube pegada al cuerpo en una tracción con tres tiempos, se acelera con la extensión simultánea de cadera, rodillas y tobillos y cae sobre las clavículas y los hombros con los codos adelantados. Se separa de la versión desde colgado porque incluye la primera tracción desde el suelo, y de la cargada completa porque la recepción se queda por encima de la sentadilla paralela.",
         "keyPositions": [
           "Salida: barra en el suelo, caderas más altas que las rodillas y más bajas que los hombros, brazos largos.",
           "Posición de potencia: barra en lo alto del muslo, tronco casi vertical y rodillas flexionadas justo antes de la extensión final.",
-          "Extensión total: cadera, rodillas y tobillos extendidos, hombros encogidos y barra a media altura del pecho con los brazos aún estirados.",
+          "Extensión total: cadera, rodillas y tobillos extendidos, con los hombros encogidos y la barra en el pecho bajo y los brazos aún estirados.",
           "Recepción: barra sobre los hombros con los codos altos y adelantados, tronco erguido y muslos por encima de la horizontal."
         ],
         "mistakes": [
@@ -2206,7 +2226,7 @@
             "name": "Segunda tracción"
           },
           {
-            "description": "Los codos suben y rodean la barra, los pies se abren a la anchura de la sentadilla y la barra aterriza sobre los hombros a un cuarto de sentadilla.",
+            "description": "Los codos suben y rodean la barra, los pies se abren a la anchura de la sentadilla y la barra aterriza sobre los hombros en una recepción alta, sin bajar de la paralela.",
             "name": "Giro y recepción"
           },
           {
@@ -2226,7 +2246,7 @@
           "contacts": "Pies planos en el suelo a la anchura de los hombros; la barra descansa sobre los hombros y las clavículas y las manos la rodean por debajo y por fuera.",
           "load": "Barra cargada con discos a ambos lados, apoyada en la parte delantera de los hombros y sin tocar el suelo.",
           "orientation": "Atleta de perfil, con la cara hacia el lado derecho del encuadre y los codos adelantados hacia ese lado.",
-          "phase": "Recepción de la cargada: la barra recién caída sobre los hombros, el atleta a un cuarto de sentadilla con los muslos justo por encima de la horizontal.",
+          "phase": "Recepción de la cargada de potencia: la barra recién caída sobre los hombros, el atleta en una sentadilla corta con los muslos claramente por encima de la horizontal.",
           "posture": "Tronco erguido, pecho alto, codos altos y adelantados, rodillas flexionadas siguiendo la línea de los pies y mirada al frente."
         },
         "byImplement": {
@@ -2242,12 +2262,12 @@
           "Barra flotando sin que las manos la agarren."
         ],
         "promptCore": {
-          "barbell": "Side view of an athlete frozen at the CATCH of a power clean. The straight Olympic barbell rests on the front of the shoulders and collarbones, and both hands wrap around the bar from underneath with the elbows high and pointing forward. The athlete is in a shallow quarter squat with the thighs just above horizontal, the torso upright, the chest up and the eyes looking forward. Both feet are flat on the floor at shoulder width. Rubber bumper plates hang clear of the floor on both ends of the bar. No text or logos."
+          "barbell": "Side view of an athlete frozen at the CATCH of a power clean. The straight Olympic barbell rests on the front of the shoulders and collarbones, and both hands wrap around the bar from underneath with the elbows high and pointing forward. The athlete is in a shallow squat with the thighs clearly above horizontal and the hips well above the knees, the torso upright, the chest up and the eyes looking forward. Both feet are flat on the floor at shoulder width. Rubber bumper plates hang clear of the floor on both ends of the bar. No text or logos."
         },
         "qa": [
           "¿Las manos rodean la barra y la carga no flota suelta?",
           "¿La barra descansa sobre la parte delantera de los hombros, con los codos altos y adelantados?",
-          "¿El atleta está a un cuarto de sentadilla, con los muslos por encima de la horizontal y el tronco erguido?",
+          "¿El atleta está en una sentadilla corta, con los muslos claramente por encima de la horizontal y el tronco erguido?",
           "¿Los dos pies están planos en el suelo a la anchura de los hombros?"
         ]
       }
@@ -2267,7 +2287,7 @@
               "kipp2011",
               "anat_hip"
             ],
-            "why": "Es la articulación que más empuja: Arauz et al. midieron momentos extensores y abductores de cadera mayores en los de élite durante la recepción y la subida del arranque, y Kipp et al. (2011) registraron pares altos de cadera en la tracción de la cargada, un gesto afín."
+            "why": "Es una de las que más par genera: Arauz et al. midieron momentos extensores y abductores de cadera mayores en los de élite durante la recepción y la subida del arranque, y Kipp et al. (2011) registraron en general pares altos de cadera y de tobillo en la tracción de la cargada, un gesto afín; la rodilla aporta la velocidad de extensión y flexiona al recibir la barra."
           },
           {
             "actions": [
@@ -2281,7 +2301,7 @@
               "arauz2025",
               "anat_knee"
             ],
-            "why": "La rodilla se extiende en la aceleración y se flexiona en la recepción. Arauz et al. vieron que los halterófilos de élite tenían las rodillas más flexionadas al final de la segunda tracción y en el punto más alto de la barra, señal de que la rodilla acompaña a la barra hasta la recepción."
+            "why": "La rodilla se extiende en la aceleración y se flexiona en la recepción. Arauz et al. vieron que los halterófilos de élite tenían las rodillas más flexionadas al final de la segunda tracción y en el punto más alto de la barra, una diferencia entre niveles; el papel principal de la rodilla se deduce de su doble trabajo, empujar el suelo y frenar la barra al recibirla."
           },
           {
             "actions": [
@@ -2306,6 +2326,17 @@
               "anat_back"
             ],
             "why": "La columna lumbar transmite el empuje de las piernas al tronco sin flexionarse; los erectores y el abdomen la sostienen, tal como los clasifican Geisler et al."
+          },
+          {
+            "actions": [
+              "Extensión de la columna torácica bajo la barra"
+            ],
+            "id": "columna-toracica",
+            "role": "STABILIZER",
+            "sources": [
+              "anat_back"
+            ],
+            "why": "La columna torácica se mantiene extendida para que la barra quede sobre la cabeza y el centro del pie; es una deducción de la función de los músculos de la espalda y de la movilidad que pide el arranque, sin medición en esta variante."
           },
           {
             "actions": [
@@ -2343,7 +2374,7 @@
               "arauz2025",
               "anat_triceps"
             ],
-            "why": "Los codos se estiran y se bloquean al meter el cuerpo bajo la barra. Arauz et al. midieron momentos de codo mayores en los de élite durante la subida del arranque."
+            "why": "Los codos se estiran y se bloquean al meter el cuerpo bajo la barra. Arauz et al. midieron momentos de codo mayores en los de élite durante la mayor parte de la fase de elevación de la barra."
           },
           {
             "actions": [
@@ -2356,7 +2387,7 @@
               "arauz2025",
               "anat_wrist_ext"
             ],
-            "why": "Con la barra sobre la cabeza la muñeca se queda extendida y la mano la aguanta. Arauz et al. registraron momentos de muñeca más altos en los de élite durante la subida del arranque."
+            "why": "Con la barra sobre la cabeza la muñeca se queda extendida y la mano la aguanta. Arauz et al. registraron momentos de muñeca mayores en los de élite durante la mayor parte de la fase de elevación de la barra."
           }
         ],
         "muscles": [
@@ -2378,7 +2409,7 @@
               "arauz2025",
               "anat_quadriceps"
             ],
-            "why": "Extiende la rodilla para empujar el suelo y la flexiona de nuevo para recibir la barra. El vasto lateral fue uno de los músculos medidos por Geisler et al. en el arranque colgado de potencia, y los halterófilos de élite de Arauz et al. llegaron al punto más alto de la barra con las rodillas más flexionadas, lo que apunta, por inferencia, al trabajo de los extensores de la rodilla en la recepción."
+            "why": "Extiende la rodilla para empujar el suelo y frena su flexión al recibir la barra. El vasto lateral fue uno de los músculos medidos por Geisler et al. en el arranque colgado de potencia, y los halterófilos de élite de Arauz et al. llegaron al punto más alto de la barra con las rodillas más flexionadas, lo que apunta, por inferencia, al trabajo de los extensores de la rodilla en la recepción."
           },
           {
             "id": "hamstrings",
@@ -2387,7 +2418,7 @@
               "arauz2026",
               "anat_hamstring"
             ],
-            "why": "Ayudan a extender la cadera y estabilizan la rodilla mientras la barra recorre el muslo. Arauz et al. vieron menos actividad del bíceps femoral en el arranque que en la cargada, así que su papel es de apoyo."
+            "why": "Ayudan a extender la cadera mientras la barra recorre el muslo. Arauz et al. vieron menos actividad del bíceps femoral en el arranque que en la cargada durante fases clave; su rol de apoyo es una decisión editorial basada en su anatomía, no una medición."
           },
           {
             "id": "trapezius",
@@ -2406,7 +2437,7 @@
               "arauz2025",
               "anat_deltoid"
             ],
-            "why": "En la recepción el brazo está alzado y la barra pesa sobre el hombro: el deltoides lo sostiene en isometría y ayuda a empujar la barra hacia arriba. Arauz et al. midieron momentos de hombro más altos en los halterófilos de élite durante la subida; no se cita electromiografía del deltoides."
+            "why": "En la recepción el brazo está alzado y la barra pesa sobre el hombro: el deltoides lo sostiene en isometría y ayuda a empujar la barra hacia arriba. Arauz et al. midieron momentos de hombro mayores en los halterófilos de élite sobre los ejes de aducción-abducción y de rotación; no se cita electromiografía del deltoides."
           },
           {
             "id": "triceps",
@@ -2415,7 +2446,7 @@
               "arauz2025",
               "anat_triceps"
             ],
-            "why": "Mantiene los codos extendidos mientras la barra cae sobre ellos al recibirla. Arauz et al. midieron momentos de codo mayores en los de élite durante la subida y, según la anatomía del tríceps, su función es extender el codo; es una inferencia sin electromiografía propia."
+            "why": "Mantiene los codos extendidos mientras la barra cae sobre ellos al recibirla. Arauz et al. midieron momentos de codo mayores en los de élite durante la mayor parte de la fase de elevación de la barra y, según la anatomía del tríceps, su función es extender el codo; es una inferencia sin electromiografía propia."
           },
           {
             "id": "calves",
@@ -2433,7 +2464,7 @@
               "geisler2023",
               "anat_back"
             ],
-            "why": "Sostiene la espalda plana durante todo el tirón y evita que la barra tire del tronco hacia delante. En Geisler et al. el erector espinal fue de nuevo estabilizador, con más actividad en el arranque colgado que en su tirón con todas las cargas."
+            "why": "Sostiene la espalda plana durante todo el tirón y evita que la barra tire del tronco hacia delante. En Geisler et al. el erector espinal fue estabilizador, con más actividad en el arranque colgado que en su tirón con todas las cargas."
           },
           {
             "id": "core",
@@ -2458,15 +2489,15 @@
       "public": {
         "configurations": {
           "power_snatch__barbell": {
-            "description": "Con un agarre ancho, la barra recorre todo el camino del suelo a la cabeza sin pasar por los hombros y se recibe sobre el centro del pie, a un cuarto de sentadilla. El agarre y el recorrido largo hacen que dependa de la velocidad más que de la carga.",
+            "description": "Con un agarre ancho, la barra recorre todo el camino del suelo a la cabeza sin pasar por los hombros y se recibe sobre el centro del pie, en una sentadilla corta. El agarre y el recorrido largo hacen que dependa de la velocidad más que de la carga.",
             "executionCues": [
               "Despega la barra con las piernas y llévala pegada al cuerpo hasta lo alto del muslo.",
               "Extiende cadera, rodillas y tobillos con fuerza y sube los hombros mientras la barra sigue rozando el cuerpo.",
-              "Pasa bajo la barra con los codos bloqueados y recíbela sobre la cabeza, encima del centro del pie, en una sentadilla corta.",
-              "Empuja la barra hacia el techo, ponte de pie y bájala con control hasta el suelo."
+              "Pasa bajo la barra, bloquea los codos y recíbela sobre la cabeza, encima del centro del pie, en una sentadilla corta.",
+              "Con la barra arriba y las piernas estiradas, suéltala por delante sobre discos bumper y con espacio libre, o bájala con control si pesa poco."
             ],
             "setupCues": [
-              "Agarra la barra muy abierto: de pie y con los brazos estirados, debe cruzar el pliegue de la cadera.",
+              "Agarra la barra con un agarre muy ancho, de modo que de pie y con los brazos estirados quede en el pliegue de la cadera.",
               "Baja hasta tener los hombros sobre la barra, con el pecho abierto y la espalda plana.",
               "Fija la mirada al frente antes de despegar."
             ]
@@ -2482,7 +2513,7 @@
           "url": "https://pubmed.ncbi.nlm.nih.gov/39182264/"
         },
         {
-          "claim": "En 23 halterófilos, la cinética tridimensional del arranque mostró momentos de hombro, codo y muñeca mayores en los de élite durante la subida, mayores momentos extensores y abductores de la cadera en la recepción y la subida, y diferencias de dinámica en tobillo.",
+          "claim": "En 23 halterófilos (11 de élite y 12 universitarios), la cinética tridimensional del arranque mostró en los de élite mayores momentos de hombro sobre los ejes de aducción-abducción y de rotación, mayores momentos de codo y muñeca durante la mayor parte de la fase de elevación de la barra, mayores momentos extensores y abductores de la cadera en la recepción y en la subida, y diferencias de dinámica en hombro, muñeca y tobillo.",
           "id": "arauz2025",
           "title": "3-Dimensional kinematics and kinetics of the snatch in elite and varsity weightlifters",
           "url": "https://pubmed.ncbi.nlm.nih.gov/40086252/"
@@ -2500,13 +2531,13 @@
           "url": "https://pubmed.ncbi.nlm.nih.gov/38045750/"
         },
         {
-          "claim": "En 20 hombres entrenados con el 50, el 70 y el 90 % de 1RM, el trapecio superior mantenía la posición escapular en la primera tracción y se contraía con fuerza en la segunda para elevar la escápula y tirar de la barra durante la cargada de potencia.",
+          "claim": "En 20 hombres entrenados con el 50, el 70 y el 90 % de 1RM, el trapecio superior parecía mantener la posición escapular en la primera tracción y se contraía con fuerza en la segunda para elevar la escápula y tirar de la barra durante la cargada de potencia.",
           "id": "nagao2021",
           "title": "Characteristics of the Shrug Motion and Trapezius Muscle Activity During the Power Clean",
           "url": "https://pubmed.ncbi.nlm.nih.gov/31453932/"
         },
         {
-          "claim": "Durante la tracción de la cargada con el 65, el 75 y el 85 % de 1RM, la cadera y la rodilla se extendieron más rápido que el tobillo y la cadera y el tobillo generaron pares significativamente mayores que la rodilla.",
+          "claim": "Durante la tracción de la cargada con el 65, el 75 y el 85 % de 1RM, la cadera y la rodilla se extendieron más rápido que el tobillo y la cadera y el tobillo generaron, en general, pares significativamente mayores que la rodilla.",
           "id": "kipp2011",
           "title": "Lower extremity biomechanics during weightlifting exercise vary across joint and load",
           "url": "https://pubmed.ncbi.nlm.nih.gov/21240030/"
@@ -2610,11 +2641,11 @@
       ],
       "status": "CURATED",
       "technique": {
-        "identity": "Levantamiento olímpico desde el suelo con agarre ancho de arranque: la barra recorre en una sola trayectoria el espacio entre el suelo y la vertical de la cabeza, se acelera con la extensión de cadera, rodillas y tobillos y se recibe con los codos bloqueados en un cuarto de sentadilla. Se separa de la cargada porque la barra nunca se apoya en los hombros y el agarre es mucho más ancho, y del arranque completo porque la recepción termina antes de llegar a la horizontal de la sentadilla.",
+        "identity": "Derivado de los levantamientos olímpicos desde el suelo, con agarre ancho de arranque: la barra recorre en una sola trayectoria el espacio entre el suelo y la vertical de la cabeza, se acelera con la extensión de cadera, rodillas y tobillos y se recibe con los brazos bloqueados sobre la cabeza, en una sentadilla corta. Se separa de la cargada porque la barra nunca se apoya en los hombros y el agarre es mucho más ancho, y del arranque completo porque la recepción termina antes de llegar a la horizontal de la sentadilla.",
         "keyPositions": [
           "Salida: barra sobre el centro del pie, hombros sobre ella, brazos rectos y espalda plana.",
           "Final de la aceleración: las tres articulaciones del miembro inferior estiradas, hombros encogidos y barra a la altura del abdomen o del pecho bajo, aún con los brazos largos.",
-          "Recepción: barra sobre la cabeza con los codos bloqueados y la vertical pasando por el centro del pie, en un cuarto de sentadilla."
+          "Recepción: barra sobre la cabeza con los codos bloqueados y la vertical pasando por el centro del pie, en una sentadilla corta."
         ],
         "mistakes": [
           "Tirar con los brazos antes de acabar la extensión, con lo que la barra se queda baja y se separa del cuerpo.",
@@ -2636,7 +2667,7 @@
             "name": "Giro bajo la barra"
           },
           {
-            "description": "La barra queda sobre la cabeza con los codos bloqueados a un cuarto de sentadilla; el atleta se pone de pie y baja la barra con control.",
+            "description": "La barra queda sobre la cabeza con los codos bloqueados y el atleta flexiona poco las rodillas; después se incorpora y devuelve la barra con control o la suelta sobre discos bumper.",
             "name": "Recepción y cierre"
           }
         ],
@@ -2648,11 +2679,11 @@
       },
       "visual": {
         "base": {
-          "camera": "Vista de frente a la altura del pecho, con el atleta entero y la barra sobre su cabeza dentro del encuadre.",
+          "camera": "Vista de tres cuartos frontal a la altura del pecho, con el atleta entero y la barra sobre su cabeza dentro del encuadre.",
           "contacts": "Pies planos en el suelo a la anchura de los hombros; las manos agarran la barra muy abiertas y los brazos están estirados sobre la cabeza.",
           "load": "Barra cargada con discos a ambos lados, sostenida sobre la cabeza y sin tocar el suelo.",
-          "orientation": "Atleta de frente a la cámara, con los pies y las rodillas apuntando ligeramente hacia fuera y la barra horizontal.",
-          "phase": "Recepción del arranque: barra sobre la cabeza con los brazos bloqueados y el atleta a un cuarto de sentadilla con los muslos justo por encima de la horizontal.",
+          "orientation": "Atleta girado de tres cuartos respecto a la cámara, con los pies y las rodillas apuntando ligeramente hacia fuera y la barra horizontal.",
+          "phase": "Recepción del arranque de potencia: barra sobre la cabeza con los brazos bloqueados y el atleta en una sentadilla corta, con los muslos claramente por encima de la horizontal.",
           "posture": "Codos bloqueados, hombros activos empujando hacia arriba, tronco erguido, rodillas abiertas siguiendo la línea de los pies y mirada al frente."
         },
         "byImplement": {
@@ -2668,12 +2699,12 @@
           "Barra flotando sin que las manos la agarren."
         ],
         "promptCore": {
-          "barbell": "Front view of an athlete frozen at the CATCH of a power snatch. The straight Olympic barbell is held directly overhead with a very wide snatch grip, both arms fully locked out and the hands gripping the bar tightly. The athlete is in a shallow quarter squat with the thighs just above horizontal, the torso upright, the knees pointing slightly outward and the eyes looking forward. Both feet are flat on the floor at shoulder width. Rubber bumper plates hang clear of the floor on both ends of the bar. No text or logos."
+          "barbell": "Three-quarter front view of an athlete frozen at the CATCH of a power snatch. The straight Olympic barbell is held directly overhead with a very wide snatch grip, both arms fully locked out and the hands gripping the bar tightly. The athlete is in a shallow squat with the thighs clearly above horizontal and the hips well above the knees, the torso upright, the knees pointing slightly outward and the eyes looking forward. Both feet are flat on the floor at shoulder width. Rubber bumper plates hang clear of the floor on both ends of the bar. No text or logos."
         },
         "qa": [
           "¿Las manos agarran la barra con un agarre muy ancho y la carga no flota suelta?",
           "¿La barra está sobre la cabeza y los codos están bloqueados?",
-          "¿El atleta está a un cuarto de sentadilla, con los muslos por encima de la horizontal?",
+          "¿El atleta está en una sentadilla corta, con los muslos claramente por encima de la horizontal?",
           "¿Los pies están planos en el suelo y el tronco erguido?"
         ]
       }
@@ -2692,7 +2723,7 @@
               "suchomel2015",
               "anat_hip"
             ],
-            "why": "Con el agarre ancho la cadera sale más flexionada, y Arauz et al. describen mayor flexión de cadera en el arranque que en la cargada; Suchomel et al. recomiendan los tirones para entrenar la extensión de esa articulación."
+            "why": "Con el agarre ancho la cadera sale más flexionada, y Arauz et al. describen mayor flexión de cadera en el arranque que en la cargada; Suchomel et al. piden completar la extensión de la cadera en los tirones."
           },
           {
             "actions": [
@@ -2704,7 +2735,7 @@
               "arauz2026",
               "anat_knee"
             ],
-            "why": "La rodilla parte de una flexión mayor que en la cargada, según Arauz et al., y se extiende en el despegue y de nuevo en la aceleración final."
+            "why": "Arauz et al. describen en el arranque completo una flexión de rodilla mayor que en la cargada, sin separar fases; que la salida del tirón parta más flexionada es una deducción. La rodilla se extiende en el despegue y de nuevo en la aceleración final."
           },
           {
             "actions": [
@@ -2737,10 +2768,9 @@
             "id": "glenohumeral",
             "role": "STABILIZER",
             "sources": [
-              "arauz2026",
               "anat_rotator_cuff"
             ],
-            "why": "El hombro soporta la barra con los brazos muy abiertos y estirados; Arauz et al. describen una rotación externa marcada del hombro en el arranque, y el manguito rotador centra la cabeza del húmero."
+            "why": "El hombro soporta la barra con los brazos muy abiertos y estirados mientras el manguito rotador centra la cabeza del húmero; es una deducción de la anatomía, sin medición en el tirón."
           },
           {
             "actions": [
@@ -2773,8 +2803,7 @@
             "id": "muñeca",
             "role": "STABILIZER",
             "sources": [
-              "anat_forearm",
-              "meechan2024"
+              "anat_forearm"
             ],
             "why": "La muñeca soporta la barra con los dedos cerrados durante el tirón, como se deduce de la anatomía del antebrazo; es una inferencia sin medición propia."
           }
@@ -2788,7 +2817,7 @@
               "suchomel2015",
               "anat_glute_max"
             ],
-            "why": "Extiende la cadera durante todo el tirón, desde una salida más baja que la de la cargada. Geisler et al. midieron el glúteo mayor en el tirón de arranque con el 50, el 70 y el 90 % de 1RM, y Suchomel et al. incluyen el tirón de arranque entre los tirones que sirven para entrenar la extensión de la cadera."
+            "why": "Extiende la cadera durante todo el tirón, desde una salida más baja que la de la cargada. Geisler et al. midieron el glúteo mayor en el tirón de arranque con el 50, el 70 y el 90 % de 1RM, y Suchomel et al. incluyen el tirón de arranque entre los tirones y piden completar la extensión de cadera, rodillas y tobillos."
           },
           {
             "id": "quadriceps",
@@ -2798,7 +2827,7 @@
               "arauz2026",
               "anat_quadriceps"
             ],
-            "why": "Empuja el suelo al despegar y vuelve a extender la rodilla en la aceleración final. El vasto lateral fue uno de los músculos registrados en el tirón de arranque por Geisler et al.; los halterófilos de élite de Arauz et al. mostraron en el arranque una flexión de rodilla mayor que en la cargada, que se traduce en un recorrido más largo de extensión."
+            "why": "Empuja el suelo al despegar y vuelve a extender la rodilla en la aceleración final. El vasto lateral fue uno de los músculos registrados en el tirón de arranque por Geisler et al.; los halterófilos de élite de Arauz et al. mostraron en el arranque una flexión de rodilla mayor que en la cargada; que eso suponga un recorrido más largo de extensión en el tirón es una deducción."
           },
           {
             "id": "hamstrings",
@@ -2807,7 +2836,7 @@
               "suchomel2015",
               "anat_hamstring"
             ],
-            "why": "Con la cadera baja y el tronco inclinado trabajan alargados y ayudan a extender la cadera. No hay electromiografía de los isquiosurales en el tirón de arranque entre las fuentes; su papel se deduce de la mecánica descrita por Suchomel et al. y de su anatomía."
+            "why": "Con la cadera baja y el tronco inclinado trabajan alargados y ayudan a extender la cadera. No hay electromiografía de los isquiosurales en el tirón de arranque entre las fuentes; su papel se deduce de la extensión de cadera que piden completar Suchomel et al. y de su anatomía."
           },
           {
             "id": "trapezius",
@@ -2843,16 +2872,15 @@
               "geisler2023",
               "anat_abdominal"
             ],
-            "why": "El abdomen mantiene el tronco rígido mientras la barra sube lejos de las manos. El recto abdominal es el segundo músculo que Geisler et al. consideran estabilizador."
+            "why": "El abdomen mantiene el tronco rígido mientras la barra sube lejos del suelo. El recto abdominal es el segundo músculo que Geisler et al. consideran estabilizador."
           },
           {
             "id": "forearm",
             "role": "STABILIZER",
             "sources": [
-              "anat_forearm",
-              "meechan2024"
+              "anat_forearm"
             ],
-            "why": "Los flexores de los dedos sostienen una barra pesada colgando de un agarre muy abierto; la carga del 140 % del máximo de la power clean que usaron Meechan et al. en un tirón colgado ilustra lo exigente que es la mano en estos ejercicios."
+            "why": "Los flexores de los dedos sostienen una barra pesada colgando de un agarre muy abierto; el papel se deduce de la anatomía del antebrazo, sin medición del agarre."
           }
         ]
       },
@@ -2862,13 +2890,13 @@
             "description": "Con el agarre ancho de arranque la barra sale del suelo y se acelera hasta la extensión total, a la altura del abdomen o del pecho bajo, sin giro bajo ella y sin recepción. El agarre abierto obliga a partir con la cadera más baja que en el tirón de cargada.",
             "executionCues": [
               "Presiona el suelo con los pies y deja la barra rozando las espinillas y los muslos.",
-              "Cuando la barra llegue a lo alto del muslo, salta con la cadera y sube los hombros sin flexionar los codos.",
+              "Cuando la barra llegue a lo alto del muslo, extiende la cadera con fuerza y sube los hombros sin flexionar los codos.",
               "Termina de puntillas con la barra a la altura del abdomen o del pecho bajo y los brazos todavía largos.",
               "Baja la barra con calma por el mismo camino y apóyala en el suelo."
             ],
             "setupCues": [
               "Agarra la barra con el ancho del arranque y los brazos estirados.",
-              "Baja la cadera más que en el tirón de cargada, con los hombros sobre la barra y el pecho abierto.",
+              "Baja la cadera hasta una salida baja, con los hombros sobre la barra y el pecho abierto.",
               "Respira, tensa el tronco y mira al frente."
             ]
           }
@@ -2893,12 +2921,6 @@
           "id": "arauz2026",
           "title": "Biomechanical and neuromuscular differences between the snatch and clean in elite weightlifters",
           "url": "https://pubmed.ncbi.nlm.nih.gov/41352184/"
-        },
-        {
-          "claim": "En 21 deportistas, el tirón colgado con el 140 % del máximo de la power clean se hizo con tres estructuras de series y descansos; la redistribución del descanso no mejoró sustancialmente la cinética ni la cinemática del tirón.",
-          "id": "meechan2024",
-          "title": "The effect of rest redistribution on kinetic and kinematic variables during the hang pull",
-          "url": "https://pubmed.ncbi.nlm.nih.gov/38408047/"
         },
         {
           "claim": "Describe la región glútea y al glúteo mayor como músculo superficial de gran tamaño relacionado con la extensión de la cadera, el movimiento dinámico y la estabilidad erguida.",
@@ -2981,7 +3003,7 @@
       ],
       "status": "CURATED",
       "technique": {
-        "identity": "Tirón de arranque desde el suelo: la tracción del arranque con agarre ancho hasta la extensión total de las piernas y los hombros encogidos, sin giro bajo la barra ni recepción. Se separa del tirón de cargada por el agarre ancho, que baja la cadera en la salida y deja la barra más baja al final, y del arranque de potencia porque la barra no se recibe.",
+        "identity": "Tirón de arranque desde el suelo: la tracción del arranque con agarre ancho hasta la extensión total de las piernas y los hombros encogidos, sin giro bajo la barra ni recepción. Se separa del tirón de cargada por el agarre ancho, que obliga a salir con la cadera más baja, y del arranque de potencia porque la barra no se recibe.",
         "keyPositions": [
           "Salida: cadera baja, hombros sobre la barra, brazos rectos y agarre ancho.",
           "Paso por el muslo: la barra se acerca a la parte alta del muslo mientras el tronco casi se endereza y las rodillas siguen dobladas.",
@@ -2989,7 +3011,7 @@
         ],
         "mistakes": [
           "Tirar con los brazos abiertos para subir la barra, con lo que se acorta la extensión de las piernas.",
-          "Salir con las caderas demasiado altas, como en una cargada, y perder la ventaja del agarre ancho.",
+          "Salir con las caderas demasiado altas, como en una cargada, en lugar de ir bajas con el agarre ancho.",
           "Separar la barra del cuerpo y hacerla oscilar al llegar a las rodillas.",
           "Frenar el impulso antes de llegar a las puntillas."
         ],
@@ -3003,7 +3025,7 @@
             "name": "Transición"
           },
           {
-            "description": "El cuerpo salta con la cadera, los hombros suben y los brazos permanecen largos y abiertos mientras la barra recorre el abdomen.",
+            "description": "La cadera se extiende con fuerza, el cuerpo sube a las puntillas, los hombros suben y los brazos permanecen largos y abiertos mientras la barra recorre el abdomen.",
             "name": "Extensión final"
           },
           {
@@ -3106,7 +3128,7 @@
           },
           {
             "actions": [
-              "Elevación y adelantamiento del hombro bajo la barra",
+              "Flexión del hombro al girar los codos bajo la barra",
               "Sostén de la barra sobre el hombro en el fondo"
             ],
             "id": "glenohumeral",
@@ -3115,7 +3137,7 @@
               "anat_deltoid",
               "anat_rotator_cuff"
             ],
-            "why": "El hombro conduce los codos bajo la barra y la sostiene al descender. El deltoides y el manguito rotador explican ese doble papel; las fuentes de este lote no aportan cinemática de hombro de la cargada."
+            "why": "El hombro conduce los codos bajo la barra y la sostiene al descender. El deltoides y el manguito rotador explican ese doble papel; las fuentes citadas no aportan cinemática de hombro de la cargada."
           },
           {
             "actions": [
@@ -3127,7 +3149,7 @@
               "nagao2021",
               "anat_trapezius"
             ],
-            "why": "La escápula se eleva y se aduce al cierre del tirón, y el trapecio la sostiene cuando la barra baja con el cuerpo; Nagao e Ishii midieron ese encogimiento en la cargada de potencia."
+            "why": "La escápula se eleva y se aduce al cierre del tirón: Nagao e Ishii midieron ese encogimiento y la actividad del trapecio en la cargada de potencia; que el trapecio la sostenga cuando la barra baja con el cuerpo es una deducción de su anatomía."
           },
           {
             "actions": [
@@ -3175,7 +3197,7 @@
               "kipp2011",
               "anat_glute_max"
             ],
-            "why": "Extiende la cadera en el tirón y de nuevo para salir de la sentadilla. Arauz et al. midieron más actividad del glúteo en la cargada que en el arranque y Kipp et al. (2011) registraron en la tracción pares de cadera mayores que los de la rodilla."
+            "why": "Extiende la cadera en el tirón y de nuevo para salir de la sentadilla. Arauz et al. midieron más actividad del glúteo en la cargada que en el arranque y Kipp et al. (2011) registraron en la tracción pares de cadera, en general, mayores que los de la rodilla."
           },
           {
             "id": "hamstrings",
@@ -3230,7 +3252,7 @@
               "santos2021",
               "anat_biceps"
             ],
-            "why": "Flexiona el codo al pasar bajo la barra y lo sostiene flexionado en el rack frontal, de modo que los codos altos no se hundan. La fase de flexión del miembro superior en la cargada la describen Santos et al.; la función del bíceps se infiere de su anatomía."
+            "why": "Flexiona el codo al pasar bajo la barra y lo sostiene flexionado en el rack frontal. Santos et al. registraron el bíceps braquial y lo incluyen, con el trapecio superior, el tríceps y los flexores y extensores de los dedos, en la sinergia de flexión del miembro superior de la power clean; el estudio no cuantifica su aporte frente al de otros músculos y no es de la cargada completa."
           },
           {
             "id": "erector_spinae",
@@ -3239,7 +3261,7 @@
               "roth2020",
               "anat_back"
             ],
-            "why": "Mantiene el tronco casi vertical mientras la barra cuelga por delante del cuerpo en el fondo. Roth et al. vieron, con poco peso, que la sentadilla con la barra delante exige más actividad del tronco que la sentadilla con la barra detrás."
+            "why": "Mantiene el tronco casi vertical mientras la barra descansa sobre los hombros, por delante del tronco, en el fondo. Roth et al. vieron, con poco peso, que la sentadilla con la barra delante exige más actividad del tronco que la sentadilla con la barra detrás."
           },
           {
             "id": "core",
@@ -3248,7 +3270,7 @@
               "roth2020",
               "anat_abdominal"
             ],
-            "why": "La pared abdominal rigidiza el tronco para que la fuerza de las piernas llegue a la barra y para que el fondo no se desplome. En la comparación de Roth et al. la actividad del tronco creció con la carga delantera, con las cifras más altas del oblicuo externo y del erector espinal en la versión con la barra sobre la cabeza."
+            "why": "La pared abdominal rigidiza el tronco para que la fuerza de las piernas llegue a la barra y para que el fondo no se desplome. En la comparación de Roth et al., con poco peso, la actividad del tronco creció con la carga delante o encima de la cabeza; aplicarlo a la cargada completa es una extrapolación de la sentadilla."
           },
           {
             "id": "forearm",
@@ -3267,9 +3289,9 @@
             "description": "La barra se recibe en el fondo de la sentadilla frontal, con la cadera bajo las rodillas y los codos altos, y de ahí hay que levantarse con la carga. Esa recepción profunda trabaja las rodillas más que la de potencia y obliga a tener movilidad suficiente para no perder la posición.",
             "executionCues": [
               "Empuja el suelo y mantén los hombros sobre la barra mientras sube hasta las rodillas.",
-              "Salta con la extensión de las tres articulaciones y sube los hombros con los codos sin doblar.",
+              "Salta estirando cadera, rodillas y tobillos, y sube los hombros con los codos sin doblar.",
               "Pasa los codos bajo la barra y desciende a la sentadilla mientras la recibes sobre los hombros.",
-              "Sal del fondo empujando con las piernas y los codos altos hasta quedar de pie, y devuelve la barra al suelo."
+              "Sal del fondo con las piernas, con los codos altos, hasta quedar de pie, y baja la barra con control hasta los muslos y de ahí al suelo."
             ],
             "setupCues": [
               "Pon los pies a la anchura de las caderas con la barra sobre el centro del pie, y agárrala por fuera de las rodillas.",
@@ -3278,7 +3300,7 @@
             ]
           }
         },
-        "description": "La Cargada Completa (squat clean) lleva la barra del suelo a los hombros y la recibe en el fondo de una sentadilla frontal, con los muslos por debajo de la horizontal, para levantarse después con ella. Es la cargada de competición y la base de la cargada de potencia y de la cargada desde colgado: el mismo tirón explosivo, pero con una recepción profunda en la que el cuádriceps frena la barra y vuelve a empujar, y el glúteo mayor y los aductores sacan del fondo. Los isquiosurales, el trapecio y los gemelos acompañan la extensión del tirón. Pide tobillos, caderas y muñecas con buen rango para sostener el rack frontal en el fondo, y es de los ejercicios más técnicos de todo el catálogo."
+        "description": "La Cargada Completa (squat clean) lleva la barra del suelo a los hombros y la recibe en el fondo de una sentadilla frontal, con los muslos por debajo de la horizontal, para levantarse después con ella. Es la cargada de competición y la base de la cargada de potencia y de la cargada desde colgado: el mismo tirón explosivo, pero con una recepción profunda en la que el cuádriceps frena la barra y vuelve a empujar, y el glúteo mayor y los aductores sacan del fondo. Los isquiosurales, el trapecio y los gemelos acompañan la extensión del tirón. Pide tobillos, caderas y muñecas con buen rango para sostener el rack frontal en el fondo, y es de los ejercicios más técnicos que existen."
       },
       "sources": [
         {
@@ -3294,7 +3316,7 @@
           "url": "https://pubmed.ncbi.nlm.nih.gov/41352184/"
         },
         {
-          "claim": "Durante la tracción de la cargada con el 65, el 75 y el 85 % de 1RM, la cadera y la rodilla se extendieron más rápido que el tobillo y la cadera y el tobillo generaron pares significativamente mayores que la rodilla.",
+          "claim": "Durante la tracción de la cargada con el 65, el 75 y el 85 % de 1RM, la cadera y la rodilla se extendieron más rápido que el tobillo y la cadera y el tobillo generaron, en general, pares significativamente mayores que la rodilla.",
           "id": "kipp2011",
           "title": "Lower extremity biomechanics during weightlifting exercise vary across joint and load",
           "url": "https://pubmed.ncbi.nlm.nih.gov/21240030/"
@@ -3306,7 +3328,7 @@
           "url": "https://pubmed.ncbi.nlm.nih.gov/31230110/"
         },
         {
-          "claim": "En 20 hombres entrenados con el 50, el 70 y el 90 % de 1RM, la actividad del trapecio superior sostenía la posición escapular en la primera tracción y la transición, y en la segunda tracción se contraía con fuerza para elevar la escápula y tirar de la barra.",
+          "claim": "En 20 hombres entrenados con el 50, el 70 y el 90 % de 1RM, la actividad del trapecio superior parecía sostener la posición escapular en la primera tracción y la transición, y en la segunda tracción se contraía con fuerza para elevar la escápula y tirar de la barra.",
           "id": "nagao2021",
           "title": "Characteristics of the Shrug Motion and Trapezius Muscle Activity During the Power Clean",
           "url": "https://pubmed.ncbi.nlm.nih.gov/31453932/"
@@ -3318,7 +3340,7 @@
           "url": "https://pubmed.ncbi.nlm.nih.gov/38045750/"
         },
         {
-          "claim": "Con electromiografía de 16 músculos en siete halterófilos y diez personas sin entrenar, describió tres sinergias en la power clean, la primera de extensión de cadera y la segunda de flexión del miembro superior.",
+          "claim": "Con electromiografía de 16 músculos (entre ellos el bíceps braquial) en siete halterófilos y diez personas sin entrenar, describió tres sinergias en la power clean, la primera de extensión de cadera y la segunda de flexión del miembro superior.",
           "id": "santos2021",
           "title": "Intermuscular Coordination in the Power Clean Exercise: Comparison between Olympic Weightlifters and Untrained Individuals-A Preliminary Study",
           "url": "https://pubmed.ncbi.nlm.nih.gov/33803182/"
@@ -3434,7 +3456,7 @@
       ],
       "status": "CURATED",
       "technique": {
-        "identity": "Cargada de competición desde el suelo con recepción en sentadilla frontal profunda: tras un tirón explosivo que lleva la barra a la altura del pecho, el atleta se desliza bajo ella y la recibe sobre los hombros con los muslos por debajo de la horizontal, para levantarse después. Se separa de la cargada de potencia por la profundidad de la recepción, que añade una sentadilla frontal con la carga máxima al final del tirón.",
+        "identity": "Cargada de competición desde el suelo con recepción en sentadilla frontal profunda: tras un tirón explosivo que lleva la barra a la altura del pecho bajo, el atleta se desliza bajo ella y la recibe sobre los hombros con los muslos por debajo de la horizontal, para levantarse después. Se separa de la cargada de potencia por la profundidad de la recepción, que añade una sentadilla frontal con la carga máxima al final del tirón.",
         "keyPositions": [
           "Salida: cadera más alta que las rodillas, hombros sobre la barra y espalda recta.",
           "Fondo de la recepción: sentadilla frontal con la cadera por debajo de las rodillas, tronco casi vertical y codos altos que sostienen la barra sobre los hombros.",
@@ -3508,16 +3530,18 @@
           {
             "actions": [
               "Extensión explosiva de la cadera",
-              "Flexión profunda y extensión de la cadera en la sentadilla"
+              "Flexión profunda y extensión de la cadera en la sentadilla",
+              "Abducción y rotación externa de la cadera con las rodillas abiertas"
             ],
             "id": "cadera",
             "role": "PRIMARY",
             "sources": [
               "arauz2025",
+              "arauz2026",
               "ikeda2025",
               "anat_hip"
             ],
-            "why": "La cadera acelera la barra y se flexiona por debajo de la horizontal en la recepción. Arauz et al. midieron en el arranque mayores momentos extensores de cadera en la recepción y la subida de los de élite, y Ikeda et al. comprobaron que el par de cadera aumenta con la carga en la sentadilla con la barra sobre la cabeza."
+            "why": "La cadera acelera la barra y se flexiona por debajo de la horizontal en la recepción, con las rodillas abiertas. Arauz et al. midieron en el arranque mayores momentos extensores y abductores de cadera en la recepción y la subida de los de élite y, frente a la cargada, más flexión y abducción de cadera con rotación externa; Ikeda et al. comprobaron que el par de cadera aumenta con la carga en la sentadilla con la barra sobre la cabeza."
           },
           {
             "actions": [
@@ -3568,11 +3592,11 @@
               "ikeda2025",
               "anat_back"
             ],
-            "why": "Con los brazos arriba, la columna torácica debe estar extendida para que la barra quede sobre el centro del pie. Ikeda et al. relacionaron la inclinación del tronco en la sentadilla con la barra sobre la cabeza con la flexibilidad del hombro."
+            "why": "Con los brazos arriba, la columna torácica debe permanecer extendida para que la barra quede sobre el centro del pie; es una deducción de la función de los músculos de la espalda. Ikeda et al. no midieron la columna torácica: relacionaron una mayor flexibilidad del hombro con más inclinación hacia delante del tronco inferior en el fondo de la sentadilla con la barra sobre la cabeza."
           },
           {
             "actions": [
-              "Flexión del hombro por encima de la cabeza",
+              "Elevación del brazo en abducción por encima de la cabeza",
               "Sostén de la barra en rotación externa"
             ],
             "id": "glenohumeral",
@@ -3583,7 +3607,7 @@
               "ikeda2025",
               "anat_rotator_cuff"
             ],
-            "why": "El hombro sostiene la barra arriba y necesita recorrido suficiente. Arauz et al. midieron momentos de hombro mayores en los de élite y una rotación externa marcada del hombro al final del gesto, e Ikeda et al. relacionaron la flexibilidad del hombro con la postura en la sentadilla."
+            "why": "El hombro sostiene la barra arriba y necesita recorrido suficiente. Arauz et al. midieron momentos de hombro mayores en los de élite y una rotación externa marcada del hombro al final del gesto, e Ikeda et al. relacionaron la flexibilidad del hombro con la inclinación del tronco inferior en la sentadilla."
           },
           {
             "actions": [
@@ -3607,7 +3631,7 @@
               "arauz2025",
               "anat_triceps"
             ],
-            "why": "Los codos se bloquean al pasar bajo la barra y siguen así durante la sentadilla. Arauz et al. midieron momentos de codo mayores en los de élite durante la subida."
+            "why": "Los codos se bloquean al pasar bajo la barra y siguen así durante la sentadilla. En el arranque de Arauz et al., los de élite mostraron momentos de codo mayores durante gran parte de la fase de elevación de la barra."
           },
           {
             "actions": [
@@ -3620,7 +3644,7 @@
               "arauz2025",
               "anat_wrist_ext"
             ],
-            "why": "La muñeca queda extendida bajo la barra alta durante toda la sentadilla; los de élite de Arauz et al. mostraron momentos de muñeca mayores durante la subida del arranque."
+            "why": "La muñeca queda extendida bajo la barra alta durante toda la sentadilla; los de élite de Arauz et al. mostraron momentos de muñeca mayores durante la mayor parte de la fase de elevación de la barra."
           }
         ],
         "muscles": [
@@ -3633,7 +3657,7 @@
               "khou2024",
               "anat_quadriceps"
             ],
-            "why": "Empuja la rodilla a la extensión en el tirón y saca al atleta del fondo de la sentadilla con la barra arriba. Dinis et al. registraron el vasto lateral y el vasto medial durante la sentadilla de arranque, y el metaanálisis de Khou et al. confirma su actividad en esa sentadilla y en la de una pierna; Arauz et al. midieron en el arranque menos actividad del vasto lateral que en la cargada, lo que no lo saca del grupo principal. Encabeza la lista por la profundidad de la recepción."
+            "why": "Extiende la rodilla en el tirón y saca al atleta del fondo de la sentadilla con la barra arriba. Dinis et al. registraron el vasto lateral y el vasto medial durante la sentadilla de arranque, y el metaanálisis de Khou et al. los incluye entre los músculos que comparó en personas con valgo dinámico; Arauz et al. midieron en el arranque menos actividad del vasto lateral que en la cargada, y eso no lo saca del grupo principal. Encabeza la lista por la profundidad de la recepción."
           },
           {
             "id": "gluteus_maximus",
@@ -3681,7 +3705,7 @@
               "arauz2025",
               "anat_deltoid"
             ],
-            "why": "Sostiene el brazo sobre la cabeza con el peso a pulso durante la recepción y la salida. Arauz et al. midieron momentos de hombro mayores en los halterófilos de élite durante la subida; no hay electromiografía del deltoides en las fuentes."
+            "why": "Sostiene el brazo sobre la cabeza con el peso a pulso durante la recepción y la salida. Arauz et al. midieron momentos de hombro mayores en los halterófilos de élite sobre los ejes de aducción-abducción y de rotación; no hay electromiografía del deltoides en las fuentes."
           },
           {
             "id": "triceps",
@@ -3690,7 +3714,7 @@
               "arauz2025",
               "anat_triceps"
             ],
-            "why": "Mantiene los codos bloqueados mientras el cuerpo se hunde y se levanta bajo la barra. Los momentos de codo de los de élite fueron mayores en la subida del arranque de Arauz et al.; que sea el tríceps el que sostiene el bloqueo es una inferencia de su función."
+            "why": "Mantiene los codos bloqueados mientras el cuerpo se hunde y se levanta bajo la barra. Los momentos de codo de los de élite fueron mayores durante la mayor parte de la fase de elevación de la barra en el arranque de Arauz et al.; que sea el tríceps el que sostiene el bloqueo es una inferencia de su función."
           },
           {
             "id": "calves",
@@ -3702,6 +3726,15 @@
             "why": "Terminan la extensión del tobillo en el tirón y controlan el apoyo del pie en el fondo. El gastrocnemio fue más activo en la cargada que en el arranque según Arauz et al., sin que eso descarte su participación en el arranque."
           },
           {
+            "id": "gluteus_medius",
+            "role": "STABILIZER",
+            "sources": [
+              "arauz2025",
+              "anat_glute_med"
+            ],
+            "why": "Mantiene las rodillas abiertas sobre los pies en el fondo. Arauz et al. midieron mayores momentos abductores de cadera en la recepción y la subida de los halterófilos de élite, y el glúteo medio es el abductor principal de la cadera; que sea este músculo el que los produce es una deducción, sin electromiografía del arranque."
+          },
+          {
             "id": "erector_spinae",
             "role": "STABILIZER",
             "sources": [
@@ -3709,7 +3742,7 @@
               "geisler2023",
               "anat_back"
             ],
-            "why": "Mantiene el tronco firme bajo una barra que cuelga alta sobre la cabeza. Roth et al. vieron que la sentadilla con la barra sobre la cabeza daba la mayor actividad del erector espinal de las tres posiciones de barra que compararon, con poco peso; Geisler et al. lo clasifican como estabilizador en el arranque de potencia colgado."
+            "why": "Mantiene el tronco firme bajo una barra sostenida alta sobre la cabeza. Roth et al. vieron que la sentadilla con la barra sobre la cabeza daba la mayor actividad del erector espinal de las tres posiciones de barra que compararon, con poco peso; Geisler et al. lo clasifican como estabilizador en el arranque de potencia colgado."
           },
           {
             "id": "core",
@@ -3734,21 +3767,21 @@
       "public": {
         "configurations": {
           "squat_snatch__barbell": {
-            "description": "La barra se recibe sobre la cabeza en el fondo de una sentadilla profunda, con la cadera bajo las rodillas y los codos bloqueados. Esa posición pide recorrido de hombro, columna torácica, cadera y tobillo, y la sentadilla de salida se hace con la carga a pulso arriba.",
+            "description": "La barra se recibe sobre la cabeza en el fondo de una sentadilla profunda, con la cadera bajo las rodillas y los codos bloqueados. Esa posición pide recorrido de hombro, columna torácica, cadera y tobillo, y hay que levantarse desde ahí con la carga a pulso arriba.",
             "executionCues": [
               "Empuja el suelo con los pies y acelera la barra, siempre rozando el cuerpo, hasta superar las rodillas.",
-              "Cuando la barra cruce los muslos, salta con la cadera y encoge los hombros sin doblar los codos.",
-              "Desliza el cuerpo bajo la barra con los codos ya bloqueados y baja a una sentadilla profunda, con la barra sobre el centro del pie.",
-              "Levántate con la barra arriba, empujándola hacia el techo, y devuélvela al suelo al terminar."
+              "Cuando la barra cruce los muslos, extiende la cadera con fuerza y encoge los hombros sin doblar los codos.",
+              "Mete el cuerpo bajo la barra, bloquea los codos y baja a una sentadilla profunda, con la barra sobre el centro del pie.",
+              "Levántate con la barra arriba, empujándola hacia el techo, y déjala caer hacia delante sobre discos bumper, con sitio libre alrededor."
             ],
             "setupCues": [
-              "Toma la barra con el agarre ancho de arranque, el mismo que usas en la sentadilla con la barra sobre la cabeza.",
+              "Toma la barra con el agarre ancho de arranque y los brazos estirados.",
               "Colócate con los hombros sobre la barra, la espalda plana y las rodillas abiertas hacia las puntas de los pies.",
               "Respira hondo y tensa el tronco antes de despegar."
             ]
           }
         },
-        "description": "El Arranque Completo (squat snatch) es el levantamiento de competición que lleva la barra del suelo a la vertical de la cabeza en un solo movimiento y la recibe en el fondo de una sentadilla, con los brazos bloqueados, para levantarse con ella arriba. El cuádriceps y el glúteo mayor aceleran la barra y después sacan al atleta del fondo, con los aductores, los isquiosurales y el trapecio de apoyo, mientras el deltoides y el tríceps aguantan el peso a pulso sobre la cabeza. Depende más de la movilidad, la coordinación y la velocidad que de la fuerza bruta, y reclama hombros, columna torácica, caderas y tobillos con recorrido de sobra. Es de los ejercicios más técnicos del catálogo y se aprende con los tirones, el arranque de potencia y la sentadilla de arranque como escalones."
+        "description": "El Arranque Completo (squat snatch) es el levantamiento de competición que lleva la barra del suelo a la vertical de la cabeza en un solo movimiento y la recibe en el fondo de una sentadilla, con los brazos bloqueados, para levantarse con ella arriba. El cuádriceps y el glúteo mayor aceleran la barra y después sacan al atleta del fondo, con los aductores, los isquiosurales y el trapecio de apoyo, mientras el deltoides y el tríceps aguantan el peso a pulso sobre la cabeza. Comparado con la cargada, depende más de la movilidad, la coordinación y la velocidad que de la fuerza bruta, y reclama hombros, columna torácica, caderas y tobillos con recorrido de sobra. Es de los ejercicios más técnicos que existen y se aprende con los tirones, el arranque de potencia y la sentadilla de arranque como escalones."
       },
       "sources": [
         {
@@ -3758,7 +3791,7 @@
           "url": "https://pubmed.ncbi.nlm.nih.gov/39182264/"
         },
         {
-          "claim": "En 23 halterófilos, la cinética tridimensional del arranque mostró momentos de hombro, codo y muñeca mayores en los de élite durante la subida, mayores momentos extensores y abductores de la cadera en la recepción y la subida, y diferencias de dinámica en tobillo.",
+          "claim": "En 23 halterófilos (11 de élite y 12 universitarios), la cinética tridimensional del arranque mostró en los de élite mayores momentos de hombro sobre los ejes de aducción-abducción y de rotación, mayores momentos de codo y muñeca durante la mayor parte de la fase de elevación de la barra, mayores momentos extensores y abductores de la cadera en la recepción y en la subida, y diferencias de dinámica en hombro, muñeca y tobillo.",
           "id": "arauz2025",
           "title": "3-Dimensional kinematics and kinetics of the snatch in elite and varsity weightlifters",
           "url": "https://pubmed.ncbi.nlm.nih.gov/40086252/"
@@ -3788,7 +3821,7 @@
           "url": "https://pubmed.ncbi.nlm.nih.gov/32746728/"
         },
         {
-          "claim": "En 14 estudiantes, la sentadilla con la barra sobre la cabeza con el 20 y el 40 % del peso corporal aumentó el par de la cadera sin aumentar el de la rodilla, y la inclinación del tronco en el fondo se relacionó con la flexibilidad del hombro.",
+          "claim": "En 14 estudiantes, la sentadilla con la barra sobre la cabeza con el 20 y el 40 % del peso corporal aumentó el par de la cadera sin aumentar el de la rodilla, y una mayor flexibilidad del hombro se relacionó con más inclinación hacia delante del tronco inferior en el fondo.",
           "id": "ikeda2025",
           "title": "Impact of Load Variation on Lower Limb Joint Torque during Overhead Squats",
           "url": "https://pubmed.ncbi.nlm.nih.gov/41245965/"
@@ -3800,7 +3833,7 @@
           "url": "https://pubmed.ncbi.nlm.nih.gov/31230110/"
         },
         {
-          "claim": "En 20 hombres entrenados con el 50, el 70 y el 90 % de 1RM, el trapecio superior mantenía la posición escapular en la primera tracción y se contraía con fuerza en la segunda para elevar la escápula y tirar de la barra durante la cargada de potencia.",
+          "claim": "En 20 hombres entrenados con el 50, el 70 y el 90 % de 1RM, el trapecio superior parecía mantener la posición escapular en la primera tracción y se contraía con fuerza en la segunda para elevar la escápula y tirar de la barra durante la cargada de potencia.",
           "id": "nagao2021",
           "title": "Characteristics of the Shrug Motion and Trapezius Muscle Activity During the Power Clean",
           "url": "https://pubmed.ncbi.nlm.nih.gov/31453932/"
@@ -3846,6 +3879,12 @@
           "id": "anat_trapezius",
           "title": "Anatomy, Back, Trapezius",
           "url": "https://pubmed.ncbi.nlm.nih.gov/30085536/"
+        },
+        {
+          "claim": "Expone la función abductora y la estabilidad pélvica del glúteo medio.",
+          "id": "anat_glute_med",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Medius Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/32491441/"
         },
         {
           "claim": "Describe las acciones y la estabilidad del deltoides; las porciones del músculo son clave para el movimiento y la estabilidad del hombro.",
@@ -3934,7 +3973,7 @@
             "name": "Tirón"
           },
           {
-            "description": "Las caderas empujan hacia delante, el cuerpo se alarga y los hombros suben; a continuación los pies se abren y los brazos pasan bajo la barra.",
+            "description": "Las caderas empujan hacia delante, el cuerpo se alarga y los hombros suben; a continuación los pies se abren y el cuerpo pasa bajo la barra.",
             "name": "Extensión y giro"
           },
           {
@@ -3942,7 +3981,7 @@
             "name": "Recepción profunda"
           },
           {
-            "description": "Las piernas empujan para levantar al atleta con la barra a pulso hasta quedar de pie, y la barra vuelve al suelo.",
+            "description": "Las piernas empujan para levantar al atleta con la barra a pulso hasta quedar de pie, y la barra baja con control o se suelta sobre discos bumper.",
             "name": "Salida"
           }
         ],
@@ -3954,10 +3993,10 @@
       },
       "visual": {
         "base": {
-          "camera": "Vista de frente a la altura de la cadera, con el atleta entero de la cabeza a los pies y la barra sobre su cabeza dentro del encuadre.",
+          "camera": "Vista de tres cuartos frontal a la altura de la cadera, con el atleta entero de la cabeza a los pies y la barra sobre su cabeza dentro del encuadre.",
           "contacts": "Pies planos en el suelo, más anchos que los hombros y con las puntas hacia fuera; las manos agarran la barra muy abiertas y los brazos están estirados sobre la cabeza.",
           "load": "Barra cargada con discos a ambos lados, sostenida sobre la cabeza y sin tocar el suelo.",
-          "orientation": "Atleta de frente a la cámara, con los pies y las rodillas apuntando hacia fuera y la barra horizontal.",
+          "orientation": "Atleta girado de tres cuartos respecto a la cámara, con los pies y las rodillas apuntando hacia fuera y la barra horizontal.",
           "phase": "Fondo de la recepción del arranque completo: sentadilla profunda con la barra sobre la cabeza y los brazos bloqueados, justo antes de levantarse.",
           "posture": "Cadera por debajo de las rodillas, tronco erguido, codos bloqueados, hombros empujando hacia arriba y mirada al frente."
         },
@@ -3968,13 +4007,12 @@
         },
         "forbidden": [
           "Muslos por encima de la horizontal: eso es un arranque de potencia.",
-          "Barra sobre los hombros con los codos adelantados: eso es una cargada.",
-          "Barra sobre la espalda alta o sobre los hombros: eso es una sentadilla trasera.",
+          "Barra apoyada en los hombros, delante o detrás del cuello: eso es una cargada o una sentadilla trasera, no un arranque.",
           "Codos doblados o barra por delante de la cabeza sin bloquear.",
           "Barra flotando sin que las manos la agarren."
         ],
         "promptCore": {
-          "barbell": "Front view of an athlete frozen at the BOTTOM of a squat snatch catch, in a deep overhead squat. The straight Olympic barbell is held directly overhead with a very wide snatch grip, both arms fully locked out and the hands gripping the bar tightly. The hips are below the knees, the torso is upright, the knees point outward over the toes and the eyes look forward. Both feet are flat on the floor, wider than the shoulders with the toes turned out. Rubber bumper plates hang clear of the floor on both ends of the bar. No text or logos."
+          "barbell": "Three-quarter front view of an athlete frozen at the BOTTOM of a squat snatch catch, in a deep overhead squat. The straight Olympic barbell is held directly overhead with a very wide snatch grip, both arms fully locked out and the hands gripping the bar tightly. The hips are below the knees, the torso is upright, the knees point outward over the toes and the eyes look forward. Both feet are flat on the floor, wider than the shoulders with the toes turned out. Rubber bumper plates hang clear of the floor on both ends of the bar. No text or logos."
         },
         "qa": [
           "¿Las manos agarran la barra con un agarre muy ancho y la carga no flota suelta?",

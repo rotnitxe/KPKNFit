@@ -669,6 +669,17 @@
           },
           {
             "actions": [
+              "Transmisión del peso del tronco y de la barra a las piernas al caminar"
+            ],
+            "id": "cadera",
+            "role": "STABILIZER",
+            "sources": [
+              "anat_hip"
+            ],
+            "why": "La cadera soporta el peso del tronco y de la barra en cada apoyo mientras el paso corto la mueve poco; es una deducción de la función de la articulación, sin medición en este ejercicio."
+          },
+          {
+            "actions": [
               "Sostén del codo flexionado bajo la barra"
             ],
             "id": "codo",
@@ -708,7 +719,6 @@
             "sources": [
               "svenningsen2017",
               "ellestad2024",
-              "mcgill2009",
               "anat_back"
             ],
             "why": "Los erectores frenan la flexión que provoca la barra delante del tronco en cada paso. Svenningsen et al. midieron un aumento de la actividad del longissimus torácico y del iliocostal lumbar de alrededor del 55 al 58 % al caminar con una carga del 10 % de la masa corporal por delante, y Ellestad et al. hallaron más actividad del longissimus y del multifidus en los acarreos que en los mismos sostenes sin caminar; ninguno estudia el paseo Zercher, así que es una extrapolación."
@@ -721,7 +731,7 @@
               "ellestad2024",
               "anat_abdominal"
             ],
-            "why": "La pared abdominal coactiva con la espalda para dar rigidez al tronco. McGill et al. describen en los acarreos de strongman una gran cocontracción de la musculatura del tronco, y Ellestad et al. midieron en el paseo del granjero más actividad del recto abdominal y del oblicuo externo que en el sostén sin caminar; son datos de acarreos con otra carga, no de esta."
+            "why": "La pared abdominal coactiva con la espalda para dar rigidez al tronco. McGill et al. describen una cocontracción masiva de la musculatura del tronco en el paseo del yugo, y Ellestad et al. midieron en el paseo del granjero más actividad del recto abdominal y del oblicuo externo que en el sostén sin caminar; son datos de otros acarreos con otra carga, no de esta."
           },
           {
             "id": "trapezius",
@@ -737,16 +747,16 @@
             "sources": [
               "anat_biceps"
             ],
-            "why": "La barra reposa en la flexión del codo y el bíceps sostiene el ángulo en isometría para que no se abra. Es la misma función que cumple en las sentadillas Zercher del catálogo, y se infiere de la anatomía del bíceps, sin electromiografía específica del paseo."
+            "why": "La barra reposa en la flexión del codo y el bíceps sostiene el ángulo en isometría para que no se abra. Es la misma función que cumple en las sentadillas Zercher del catálogo, y se infiere de la anatomía del bíceps, sin electromiografía específica del paseo; el braquial, que el catálogo no lista, comparte esa función de flexionar el codo."
           }
         ]
       },
       "public": {
         "configurations": {
           "zercher_carry__barbell": {
-            "description": "La barra descansa en el pliegue de ambos codos, con las manos juntas o cruzadas sobre ella, y se camina sin soltarla ni dejar que ruede hacia las muñecas. Es un acarreo con la carga por delante del tronco, que obliga a llevar los codos pegados al cuerpo.",
+            "description": "La barra descansa en el pliegue de ambos codos, con las manos unidas ante el pecho y sin agarrarla, y se camina sin dejar que ruede hacia las muñecas. Es un acarreo con la carga por delante del tronco, que obliga a llevar los codos pegados al cuerpo.",
             "executionCues": [
-              "Camina con pasos cortos y regulares, manteniendo el tórax abierto y la vista adelante.",
+              "Camina con pasos cortos y regulares, manteniendo el pecho abierto y la vista adelante.",
               "Mantén los codos apretados contra el cuerpo para que la barra no ruede hacia las manos.",
               "Sostén la tensión del abdomen y no dejes que el tronco se incline hacia delante.",
               "Al terminar, agáchate con la espalda recta y deja la barra en el suelo."
@@ -774,7 +784,7 @@
           "url": "https://pubmed.ncbi.nlm.nih.gov/19528856/"
         },
         {
-          "claim": "En 18 adultos jóvenes sanos, los acarreos con el mismo peso activaron el longissimus y el multifidus de los dos lados más que los sostenes equivalentes sin caminar, y el paseo del granjero aumentó también la actividad del recto abdominal y del oblicuo externo, atribuido a la inestabilidad de caminar con la carga.",
+          "claim": "En 18 adultos jóvenes sanos, los acarreos con el mismo peso activaron el longissimus y el multifidus de los dos lados más que los sostenes equivalentes sin caminar, lo que los autores atribuyen a la inestabilidad de caminar con la carga, y el paseo del granjero aumentó también la actividad del recto abdominal y del oblicuo externo.",
           "id": "ellestad2024",
           "title": "The Quantification of Muscle Activation During the Loaded Carry Movement Pattern",
           "url": "https://pubmed.ncbi.nlm.nih.gov/38665162/"
@@ -808,6 +818,12 @@
           "id": "anat_pelvic",
           "title": "Anatomy, Bony Pelvis and Lower Limb: Pelvic Joints",
           "url": "https://pubmed.ncbi.nlm.nih.gov/30860758/"
+        },
+        {
+          "claim": "Describe la cadera como articulación que soporta dinámicamente el peso del tronco y transmite carga entre esqueleto axial y miembros inferiores.",
+          "id": "anat_hip",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hip Joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29262200/"
         }
       ],
       "status": "CURATED",
@@ -861,6 +877,7 @@
           "Barra sobre los hombros o la espalda: eso es una sentadilla trasera o frontal.",
           "Manos agarrando la barra con los brazos estirados: eso es un peso muerto o un paseo con la barra colgando.",
           "Barra en el suelo o apoyada en los muslos: es otro punto del recorrido.",
+          "Rodillas flexionadas en sentadilla o zancada: eso es una sentadilla o una zancada Zercher.",
           "Espalda redondeada o tronco muy inclinado hacia delante.",
           "Barra flotando sin que los codos la sostengan."
         ],
@@ -871,7 +888,8 @@
           "¿La barra descansa en el pliegue de los dos codos, sin flotar suelta?",
           "¿Las manos están juntas delante del pecho, sin agarrar la barra?",
           "¿El tronco está erguido, con el pecho alto y sin inclinarse hacia delante?",
-          "¿La barra queda delante del abdomen, separada del suelo?"
+          "¿La barra queda delante del abdomen, separada del suelo?",
+          "¿Las piernas están casi estiradas, sin flexionar las rodillas como en una sentadilla o una zancada?"
         ]
       }
     }
