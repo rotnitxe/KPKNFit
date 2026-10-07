@@ -222,7 +222,7 @@
               "bodyRegion": "CORE",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.5,
-              "description": "No hay implemento: se levanta el peso de un brazo y de una pierna mientras las otras dos extremidades sostienen el cuerpo. Estirar el brazo y la pierna contrarios, en vez de uno solo, es lo que obliga al tronco a no girar.",
+              "description": "Se levanta el peso de un brazo y de una pierna mientras una sola mano y la rodilla contraria sostienen el cuerpo. Con solo esos dos apoyos, el tronco tiene que resistir el giro que provoca el desequilibrio.",
               "efc": 2.0,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -401,7 +401,7 @@
                 "core"
               ],
               "setupCues": [
-                "Apoya las manos bajo los hombros y las rodillas bajo las caderas, con la espalda recta y el cuello alineado.",
+                "Apoya las manos bajo los hombros y las rodillas bajo las caderas, con la espalda neutra y el cuello alineado.",
                 "Mira al suelo, unos centímetros por delante de las manos."
               ],
               "setupTimeSeconds": 10,

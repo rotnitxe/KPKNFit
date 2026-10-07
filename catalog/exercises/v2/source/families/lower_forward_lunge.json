@@ -1350,7 +1350,7 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Las manos descansan en la cintura y el único peso es el del cuerpo, que cae sobre la pierna adelantada al aterrizar. Sin una carga que tire del torso, este puede quedar erguido y el paso se centra en la recepción y el empuje de esa pierna.",
+              "description": "Las manos descansan en la cintura y el único peso es el del cuerpo, que cae sobre la pierna adelantada al aterrizar. El paso se centra en frenar la recepción con esa pierna y en el empuje que devuelve el cuerpo a la salida.",
               "efc": 2.8,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -1555,7 +1555,7 @@
                 "adductors"
               ],
               "setupCues": [
-                "Ponte de pie con las manos en la cintura y los pies paralelos, separados como las caderas.",
+                "Ponte de pie con las manos en la cintura y los pies paralelos, al ancho de las caderas.",
                 "Despeja el suelo por delante para poder dar el paso."
               ],
               "setupTimeSeconds": 15,

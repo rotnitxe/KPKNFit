@@ -263,7 +263,8 @@
               "movementPatternId": "lateral_trunk_flexion",
               "performanceProfileId": "side_plank__default__plancha_lateral",
               "primaryMuscles": [
-                "abdominals"
+                "abdominals",
+                "gluteus_medius"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -307,11 +308,11 @@
                     }
                   ],
                   "primaryMuscles": [
-                    "abdominals"
+                    "abdominals",
+                    "gluteus_medius"
                   ],
                   "secondaryMuscles": [
-                    "core",
-                    "gluteus_medius"
+                    "core"
                   ],
                   "stabilizerMuscles": [
                     "deltoid"
@@ -380,15 +381,15 @@
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "lateral_trunk_flexion:abdominals"
+                    "lateral_trunk_flexion:abdominals",
+                    "lateral_trunk_flexion:gluteus_medius"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
-                "core",
-                "gluteus_medius"
+                "core"
               ],
               "setupCues": [
                 "Túmbate de lado con el codo justo bajo el hombro y las piernas estiradas, un pie sobre el otro.",
@@ -406,7 +407,7 @@
           }
         ],
         "defaultConfigurationId": "side_plank__default",
-        "description": "La Plancha Lateral (side plank) es una isometría de abdomen que se hace de costado: el cuerpo se apoya en un antebrazo y en el borde del pie, y la cadera se eleva hasta formar una línea recta de la cabeza a los tobillos. Los oblicuos y el resto del costado impiden que la cadera caiga hacia el suelo, y el glúteo medio del lado apoyado sostiene la pelvis. Se aguanta el tiempo elegido y se repite del otro lado. Apoyar la rodilla en lugar del pie acorta la palanca y la hace asequible; elevar la pierna de arriba aumenta mucho la exigencia.",
+        "description": "La Plancha Lateral (side plank) es una isometría de abdomen que se hace de costado: el cuerpo se apoya en un antebrazo y en el borde del pie, y la cadera se eleva hasta formar una línea recta de la cabeza a los tobillos. Los oblicuos y el glúteo medio del lado apoyado impiden que la cadera caiga hacia el suelo, y el resto del costado los acompaña. Se aguanta el tiempo elegido y se repite del otro lado. Apoyar la rodilla en lugar del pie acorta la palanca y la hace asequible; elevar la pierna de arriba sube la exigencia, sobre todo en los oblicuos. Es el complemento lateral de la plancha frontal: la carga cae en el costado del tronco y no en el frente.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

@@ -1529,7 +1529,7 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Sin carga, el peso del cuerpo ya basta para exigir mucho a la pierna de delante, porque el pie de atrás apenas empuja. Las manos van en la cintura o cruzadas sobre el pecho, y inclinar un poco el tronco hacia delante carga más el glúteo.",
+              "description": "El peso del cuerpo ya basta para exigir mucho a la pierna de delante, porque el pie de atrás apenas empuja. Las manos van en la cintura o cruzadas sobre el pecho, y inclinar un poco el tronco hacia delante carga más el glúteo.",
               "efc": 2.8,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -1719,9 +1719,9 @@
               ],
               "setupCues": [
                 "Colócate de espaldas a un banco estable y apoya el empeine de un pie sobre él.",
-                "Adelanta el otro pie hasta poder bajar con el talón apoyado, con las manos en la cintura."
+                "Adelanta el otro pie hasta poder bajar con el talón apoyado y deja las manos en la cintura."
               ],
-              "setupTimeSeconds": 15,
+              "setupTimeSeconds": 20,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",

@@ -2332,20 +2332,20 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "description": "Se parte de arriba, con la barbilla sobre la barra y las manos en prono a la anchura de los hombros, y solo cuenta la bajada, que se alarga varios segundos hasta estirar los brazos. Subir con un salto o con un escalón ahorra fuerza para la fase que sí se entrena.",
+              "description": "Se parte de arriba, con la barbilla sobre la barra y las palmas al frente, a la anchura de los hombros, y solo cuenta la bajada, que se alarga varios segundos hasta estirar los brazos. Subir con un salto o con un escalón ahorra fuerza para la fase que sí se entrena.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
-                "Suelta el apoyo y baja despacio, sin balancear las piernas, hasta estirar los brazos.",
-                "Cuelga un instante abajo con los hombros activos.",
-                "Vuelve a la posición alta con el escalón o con un salto y repite."
+                "Quita los pies del escalón, o deja de impulsarte, y baja despacio, sin balancear las piernas, hasta estirar los brazos.",
+                "Cuélgate un instante abajo con los hombros activos.",
+                "Vuelve arriba con el escalón o con un salto y repite."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Frenado de la extensión del hombro",
-                    "Frenado de la aducción del hombro"
+                    "Frenado de la flexión del hombro",
+                    "Frenado de la abducción del hombro"
                   ],
                   "jointId": "glenohumeral",
                   "role": "PRIMARY"
@@ -2386,8 +2386,8 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Frenado de la extensión del hombro",
-                    "Frenado de la aducción del hombro",
+                    "Frenado de la flexión del hombro",
+                    "Frenado de la abducción del hombro",
                     "Control de la elevación escapular",
                     "Frenado de la extensión del codo",
                     "Sostén del agarre"
@@ -2395,8 +2395,8 @@
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Frenado de la extensión del hombro",
-                        "Frenado de la aducción del hombro"
+                        "Frenado de la flexión del hombro",
+                        "Frenado de la abducción del hombro"
                       ],
                       "jointId": "glenohumeral",
                       "role": "PRIMARY"
@@ -2515,8 +2515,8 @@
                 "trapezius"
               ],
               "setupCues": [
-                "Coloca un escalón bajo la barra, o prepárate para saltar, y agarra la barra en prono a la anchura de los hombros.",
-                "Sube hasta tener la barbilla por encima de la barra, con los hombros alejados de las orejas."
+                "Coloca un escalón bajo la barra, o prepárate para saltar, y toma la barra con las palmas hacia delante, a la anchura de los hombros.",
+                "Sube con el escalón o con un salto hasta tener la barbilla por encima de la barra, con los hombros alejados de las orejas."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.4,
@@ -2533,7 +2533,7 @@
           }
         ],
         "defaultConfigurationId": "negative_pull_up__default",
-        "description": "La Dominada Negativa es una dominada en la que solo se trabaja la bajada: se llega arriba con un salto o con un escalón, con la barbilla sobre la barra, y se desciende despacio hasta colgar con los brazos estirados. El dorsal ancho frena la caída del cuerpo junto con el bíceps y el deltoides posterior, y el antebrazo sostiene el agarre durante todo el recorrido. Sirve a quien aún no sube su peso, porque la bajada exige menos al bíceps y al pectoral que la subida. En un estudio con escaladores avanzados, cinco semanas de dominadas con trabajo excéntrico mejoraron la fuerza máxima y la velocidad de la dominada.",
+        "description": "La Dominada Negativa es una dominada en la que solo se trabaja la bajada: se llega arriba con un salto o con un escalón, con la barbilla sobre la barra, y se desciende despacio hasta colgar con los brazos estirados. El dorsal ancho frena la caída del cuerpo junto con el bíceps y el deltoides posterior, y el antebrazo sostiene el agarre durante todo el recorrido. Sirve a quien todavía no consigue subir su peso: en la electromiografía de dominadas completas, el bíceps y el pectoral se activaron menos en la bajada que en la subida. No es solo un recurso de iniciación: en un estudio con escaladores avanzados, cinco semanas de dominadas con trabajo excéntrico mejoraron la fuerza máxima y la velocidad de la dominada.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

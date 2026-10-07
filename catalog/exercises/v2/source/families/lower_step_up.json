@@ -1352,12 +1352,12 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Las manos quedan libres y la única resistencia es el cuerpo, de modo que la altura del cajón decide cuánto cuesta cada subida. Sin carga que ocupe los brazos, la atención va al pie apoyado entero sobre el cajón y a una bajada sin caída.",
+              "description": "Las manos quedan libres y la altura del cajón decide cuánto cuesta cada subida: a más altura, más trabajo para la pierna. La atención va al pie apoyado entero sobre el cajón y a una bajada sin caída.",
               "efc": 2.8,
               "equipmentId": "bodyweight",
               "executionCues": [
-                "Presiona con el pie apoyado y sube hasta quedar de pie sobre el cajón.",
-                "Sube el pie libre hasta el cajón sin tomar impulso ni saltar.",
+                "Presiona con todo el pie apoyado y estira cadera y rodilla hasta quedar erguido sobre el cajón.",
+                "Acerca el pie libre arriba sin impulso, sin saltar y sin cargar el peso en él.",
                 "Baja despacio por la misma pierna hasta tocar el suelo con el pie libre."
               ],
               "fatigueTier": "MEDIA",
@@ -1557,10 +1557,10 @@
                 "adductors"
               ],
               "setupCues": [
-                "Sitúa un cajón o un banco estable delante y apoya todo el pie sobre él.",
+                "Sitúa delante un cajón, un banco o un escalón estable y apoya todo el pie sobre él.",
                 "Deja las manos libres, en la cintura o a los lados, para equilibrarte."
               ],
-              "setupTimeSeconds": 15,
+              "setupTimeSeconds": 20,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",

@@ -240,7 +240,7 @@
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "description": "Manos y pies están en el suelo y las caderas suben hasta formar una V invertida, con el tronco casi vertical y la cabeza apuntando entre las manos. Cuanto más se acercan los pies a las manos, más vertical queda el empuje y más pesa el hombro.",
+              "description": "Manos y pies están en el suelo y las caderas suben hasta formar una V invertida, con la cabeza apuntando entre las manos. Cuanto más se acercan los pies a las manos, más vertical queda el tronco y más pesa el hombro.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -414,7 +414,7 @@
               ],
               "setupCues": [
                 "Apoya las manos en el suelo, algo más abiertas que los hombros, y sube las caderas hasta formar una V invertida.",
-                "Acerca los pies a las manos hasta que el tronco quede casi vertical."
+                "Acerca los pies a las manos hasta subir las caderas lo máximo que puedas con las piernas estiradas."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.3,
@@ -632,7 +632,7 @@
           }
         ],
         "defaultConfigurationId": "pike_push_up__flat",
-        "description": "Las Flexiones en Pica (pike push-up) son un empuje vertical con el propio peso: desde una V invertida, con las caderas altas y las manos y los pies en el suelo, la cabeza baja entre los brazos hasta casi tocar el suelo y los codos se estiran para volver arriba. El deltoides empuja el cuerpo, el tríceps extiende los codos y el trapecio gira la escápula para acompañar. Como en un press de hombros, los brazos empujan por encima de la cabeza, pero la resistencia es el propio cuerpo. Elevar los pies en un apoyo traslada más peso a las manos y endurece el ejercicio. Es la progresión habitual hacia la flexión en pino.",
+        "description": "Las Flexiones en Pica (pike push-up) son un empuje vertical con el propio peso: desde una V invertida, con las caderas altas y las manos y los pies en el suelo, la cabeza baja entre los brazos hasta casi tocar el suelo y los codos se estiran para volver arriba. El deltoides empuja el cuerpo, el tríceps extiende los codos y el trapecio gira la escápula para acompañar. Como en un press de hombros, los brazos empujan por encima de la cabeza, pero la resistencia es el propio cuerpo. Elevar los pies sobre un banco o un cajón traslada más peso a las manos y endurece el ejercicio. Es la progresión habitual hacia la flexión en pino.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

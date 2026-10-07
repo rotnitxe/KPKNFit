@@ -1936,7 +1936,7 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Sin carga, los brazos cuelgan largos delante del cuerpo o se cruzan sobre el pecho, y el torso que se inclina es la única resistencia sobre una sola pierna. La pierna libre se alarga detrás como contrapeso, de modo que el equilibrio del pie de apoyo pasa a formar parte del ejercicio.",
+              "description": "Los brazos cuelgan largos delante del cuerpo o se cruzan sobre el pecho, y el torso que se inclina es la única resistencia sobre una sola pierna. La pierna libre se alarga detrás como contrapeso, de modo que el equilibrio del pie de apoyo pasa a formar parte del ejercicio.",
               "efc": 2.8,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -2144,7 +2144,7 @@
           }
         ],
         "defaultConfigurationId": "romanian_deadlift__bilateral__barbell",
-        "description": "El Peso Muerto Rumano, conocido como RDL, carga los isquiosurales junto con el glúteo mayor mediante una bisagra que empieza de pie y alarga la parte posterior del muslo durante la bajada. La pelvis se aleja de las manos hacia atrás, las rodillas quedan algo flexionadas y la carga desciende cerca de las piernas hasta el límite que permite la espalda neutra. La vuelta nace al extender la cadera, sin buscar el suelo en cada repetición. Ofrece un recorrido repetible de cadera para entrenar esos extensores sin añadir un arranque desde el piso.",
+        "description": "El Peso Muerto Rumano, conocido como RDL, carga los isquiosurales junto con el glúteo mayor mediante una bisagra que empieza de pie y alarga la parte posterior del muslo durante la bajada. La pelvis retrocede, las rodillas quedan algo flexionadas y el torso baja, con la carga cerca de las piernas si la hay, hasta el límite que permite la espalda neutra. La vuelta nace al extender la cadera, sin buscar el suelo en cada repetición. Ofrece un recorrido repetible de cadera para entrenar esos extensores sin añadir un arranque desde el piso.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

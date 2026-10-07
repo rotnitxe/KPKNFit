@@ -224,13 +224,13 @@
               "bodyRegion": "CORE",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.5,
-              "description": "El peso de los brazos y de las piernas actúa como palanca sobre el abdomen, sin implemento. Bajar los pies hacia el suelo o estirar los brazos por encima de la cabeza alarga esa palanca y la hace más dura.",
+              "description": "El peso de los brazos y de las piernas actúa como palanca sobre el abdomen, sin implemento. Con los brazos ya estirados sobre la cabeza, bajar los pies hacia el suelo es lo que alarga esa palanca y la hace más dura.",
               "efc": 2.0,
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Eleva a la vez los hombros y las piernas unos centímetros del suelo.",
                 "Aguanta con la zona lumbar pegada y respirando con calma.",
-                "Baja con control en cuanto la espalda baja se despegue."
+                "Baja en cuanto la zona lumbar empiece a despegarse."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
@@ -380,7 +380,7 @@
               ],
               "setupCues": [
                 "Túmbate boca arriba con las piernas juntas y estiradas y los brazos extendidos sobre la cabeza.",
-                "Pega la zona lumbar al suelo antes de elevar nada."
+                "Recoge el mentón y lleva las costillas hacia la pelvis antes de despegar nada."
               ],
               "setupTimeSeconds": 10,
               "ssc": 0.2,
@@ -394,7 +394,7 @@
           }
         ],
         "defaultConfigurationId": "hollow_body_hold__default",
-        "description": "El Hollow Body Hold (posición hollow) es una isometría de abdomen heredada de la gimnasia: sobre la espalda, los brazos se estiran por encima de la cabeza y las piernas, juntas y estiradas, se elevan unos centímetros mientras los hombros se despegan del suelo y la zona lumbar sigue pegada a él. El recto abdominal y los oblicuos sostienen esa curva con la espalda baja plana, y los flexores de la cadera levantan las piernas. Cuanto más cerca del suelo quedan los pies, más larga es la palanca y más exige. Doblar las rodillas o dejar los brazos junto al cuerpo la hace asequible.",
+        "description": "El Hollow Body Hold (posición hollow) es una isometría de abdomen heredada de la gimnasia: sobre la espalda, los brazos se estiran por encima de la cabeza y las piernas, juntas y estiradas, se elevan unos centímetros mientras los hombros se despegan del suelo y la zona lumbar sigue pegada a él. Los músculos del abdomen, con el recto abdominal y los oblicuos a la cabeza, sostienen esa curva con la zona lumbar plana, mientras los flexores de la cadera levantan las piernas. Cuanto más cerca del suelo quedan los pies, más larga es la palanca y más exige. Doblar las rodillas o dejar los brazos junto al cuerpo la hace asequible. Es una posición de resistencia, no de repeticiones: cuenta mientras la zona lumbar siga pegada al suelo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

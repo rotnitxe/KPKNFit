@@ -1744,7 +1744,7 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con las manos detrás de la cabeza o cruzadas sobre el pecho, la única resistencia es el peso del tronco al inclinarse. Sin carga que apoyar en la espalda ni que agarrar, el ejercicio enseña la bisagra o sirve de calentamiento.",
+              "description": "Con las manos detrás de la cabeza o cruzadas sobre el pecho, la única resistencia es el peso del tronco al inclinarse. Al no haber nada que apoyar en la espalda ni que agarrar, el ejercicio enseña la bisagra o sirve de calentamiento.",
               "efc": 2.8,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -1921,7 +1921,7 @@
               "secondaryMuscles": [],
               "setupCues": [
                 "Colócate de pie con las rodillas apenas flexionadas y los pies bajo las caderas.",
-                "Coloca las manos detrás de la cabeza con los codos abiertos, o cruza los brazos sobre el pecho."
+                "Lleva las manos detrás de la cabeza, con los codos abiertos y sin tirar del cuello, o cruza los brazos sobre el pecho."
               ],
               "setupTimeSeconds": 15,
               "ssc": 0.5,
@@ -1939,7 +1939,7 @@
           }
         ],
         "defaultConfigurationId": "good_morning__bilateral__barbell",
-        "description": "El Buenos Días, conocido como good morning, es una bisagra que carga los isquiosurales y el glúteo mayor al inclinar el torso con peso apoyado en la parte superior del cuerpo o, sin implemento, con el propio tronco como carga. La pelvis retrocede con las rodillas apenas dobladas; la espalda conserva su forma mientras el pecho baja y vuelve a erguirse. La barra libre permite acompañar el arco del torso, mientras una estación con recorrido fijo exige ajustar los apoyos a ese recorrido. Su rasgo es levantar la carga desde la cadera con las manos ocupadas en sujetar el apoyo superior o, sin carga, colocadas detrás de la cabeza.",
+        "description": "El Buenos Días, conocido como good morning, es una bisagra que carga los isquiosurales y el glúteo mayor al inclinar el torso con peso apoyado en la parte superior del cuerpo o, sin implemento, con el propio tronco como carga. La pelvis retrocede con las rodillas apenas dobladas; la espalda conserva su forma mientras el pecho baja y vuelve a erguirse. La barra libre permite acompañar el arco del torso, mientras una estación con recorrido fijo exige ajustar los apoyos a ese recorrido. Su rasgo es que el trabajo sale de la cadera y no de las manos: estas sujetan el apoyo superior o, sin carga, van detrás de la cabeza.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

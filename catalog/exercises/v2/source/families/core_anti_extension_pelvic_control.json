@@ -222,11 +222,11 @@
               "bodyRegion": "CORE",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.5,
-              "description": "No hay implemento: el único peso son los brazos y las piernas al alejarse del tronco. Cada repetición cambia el brazo y la pierna que bajan, y la dificultad sube al estirar más la pierna o al hacerlo más despacio.",
+              "description": "El único peso son los brazos y las piernas al alejarse del tronco. Cada repetición cambia el brazo y la pierna que bajan, y la dificultad sube al estirar más la pierna o al hacerlo más despacio.",
               "efc": 2.0,
               "equipmentId": "bodyweight",
               "executionCues": [
-                "Baja un brazo hacia atrás y estira la pierna contraria sin separar la zona lumbar del suelo.",
+                "Baja despacio un brazo por encima de la cabeza y estira la pierna contraria sin separar la zona lumbar del suelo.",
                 "Vuelve a la posición inicial con el mismo ritmo lento.",
                 "Cambia de lado en cada repetición y sigue respirando."
               ],
@@ -317,11 +317,10 @@
                     "abdominals"
                   ],
                   "secondaryMuscles": [
-                    "core"
-                  ],
-                  "stabilizerMuscles": [
+                    "core",
                     "hip_flexors"
                   ],
+                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -393,7 +392,8 @@
                 }
               },
               "secondaryMuscles": [
-                "core"
+                "core",
+                "hip_flexors"
               ],
               "setupCues": [
                 "Túmbate boca arriba con los brazos estirados hacia el techo y las rodillas flexionadas sobre la cadera, con las espinillas paralelas al suelo.",
@@ -401,9 +401,7 @@
               ],
               "setupTimeSeconds": 10,
               "ssc": 0.2,
-              "stabilizerMuscles": [
-                "hip_flexors"
-              ],
+              "stabilizerMuscles": [],
               "technicalDifficulty": 4.0,
               "ttc": 1.5
             },
@@ -411,7 +409,7 @@
           }
         ],
         "defaultConfigurationId": "dead_bug__default",
-        "description": "El Dead Bug (bicho muerto) es un ejercicio de abdomen en el suelo: tumbado boca arriba, los brazos apuntan al techo y las rodillas se doblan sobre la cadera hasta dejar las espinillas paralelas al suelo. Un brazo baja hacia atrás mientras la pierna contraria se estira hacia delante, y el recto abdominal y los oblicuos impiden que la espalda baja se separe del suelo. Después brazo y pierna regresan y el siguiente movimiento cambia de lado. Estirar del todo la pierna alarga la palanca y lo hace más difícil, mientras que doblar la rodilla lo suaviza. Es un ejercicio de control más que de fuerza: enseña a mover las extremidades sin arquear la espalda.",
+        "description": "El Dead Bug (bicho muerto) es un ejercicio de abdomen en el suelo: se empieza boca arriba, con los brazos hacia el techo y las rodillas dobladas sobre la cadera, las espinillas paralelas al suelo. Un brazo baja por encima de la cabeza mientras la pierna contraria se estira, y el recto abdominal y los oblicuos impiden que la espalda baja se separe del suelo. Después brazo y pierna regresan y el siguiente movimiento cambia de lado. Estirar del todo la pierna alarga la palanca y lo hace más difícil, mientras que doblar la rodilla lo suaviza. Es un ejercicio de control más que de fuerza: enseña a mover las extremidades sin arquear la espalda.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

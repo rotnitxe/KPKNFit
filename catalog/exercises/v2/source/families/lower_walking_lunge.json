@@ -1039,8 +1039,8 @@
                 "adductors"
               ],
               "setupCues": [
-                "Ponte de pie con las manos en la cintura y la mirada al frente.",
-                "Despeja un pasillo con espacio para varios pasos largos."
+                "Colócate de pie al inicio de un pasillo despejado, con las manos en la cintura y la mirada al frente.",
+                "Deja espacio para varios pasos largos."
               ],
               "setupTimeSeconds": 15,
               "ssc": 0.5,
@@ -1058,7 +1058,7 @@
           }
         ],
         "defaultConfigurationId": "walking_lunge__dumbbells",
-        "description": "La Zancada Caminando enlaza pasos que trabajan cuádriceps y glúteo mayor mientras el cuerpo avanza por el suelo. Una pierna recibe el descenso y extiende rodilla y cadera; la otra pasa hacia delante para iniciar la repetición siguiente. Los apoyos cambian de lugar y el tronco sostiene la carga durante esa transición. La distancia recorrida forma parte del ejercicio: cada subida termina preparando un apoyo nuevo, sin regresar al punto de salida.",
+        "description": "La Zancada Caminando enlaza pasos que trabajan cuádriceps y glúteo mayor mientras el cuerpo avanza por el suelo. Una pierna recibe el descenso y extiende rodilla y cadera; la otra pasa hacia delante para iniciar la repetición siguiente. Los apoyos cambian de lugar y el tronco queda estable en esa transición, con carga o sin ella. La distancia recorrida forma parte del ejercicio: cada subida termina preparando un apoyo nuevo, sin regresar al punto de salida.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
