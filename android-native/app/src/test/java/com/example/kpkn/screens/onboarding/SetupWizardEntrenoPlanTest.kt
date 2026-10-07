@@ -176,7 +176,13 @@ class SetupWizardEntrenoPlanTest {
         // Mover una sesión del lunes al miércoles (día libre).
         val mondaySession = adapted.weekLayout!!.assignment.getValue(1)
         vm.moveSession(mondaySession, 3)
-        val moved = await(vm, "sesión movida") { idle(it) && it.weekLayout?.assignment?.get(3) == mondaySession }
+        // El tablero lo ve al instante (sin esperar a que la vista previa se re-arme), y ya se puede restablecer.
+        assertEquals(mondaySession, vm.state.value.weekLayout?.assignment?.get(3))
+        assertNull(vm.state.value.weekLayout?.assignment?.get(1))
+        val moved = await(vm, "sesión movida y programa re-armado") {
+            idle(it) && it.weekLayout?.assignment?.get(3) == mondaySession &&
+                it.programPreview?.resolvedSchedulePlan()?.trainingDays == setOf(2, 3, 4, 5)
+        }
         val final = checkNotNull(moved.programPreview)
         assertEquals(setOf(2, 3, 4, 5), final.resolvedSchedulePlan().trainingDays)
         assertEquals(mapOf(mondaySession to 3), moved.draft.weekLayoutOverrides.filterKeys { it == mondaySession })

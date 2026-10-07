@@ -479,8 +479,16 @@ class SetupWizardViewModel @JvmOverloads constructor(
      */
     fun moveSession(sessionId: String, toDay: Int) {
         val current = _state.value
-        if (current.isPreviewLoading) return
+        if (current.isPreviewLoading || current.isCommitting || current.isSubmittingAnswer || current.isSavingAndExiting) return
         val program = current.programPreview ?: return
+        // El tablero ve el movimiento al instante (si no, a los 700 ms vuelve a lo recibido); la vista previa re-armada
+        // con la asignación nueva lo confirma después.
+        current.weekLayout?.let { layout ->
+            val shown = WeekAssignment.move(layout.assignment, sessionId, toDay)
+            if (shown != layout.assignment) {
+                _state.value = current.copy(weekLayout = layout.copy(assignment = shown, canReset = true))
+            }
+        }
         updateStep(SetupStepId.WEEK_LAYOUT) { draft ->
             val assignment = if (draft.weekLayoutOverrides.isNotEmpty()) {
                 assignmentOf(draft.weekLayoutOverrides)
