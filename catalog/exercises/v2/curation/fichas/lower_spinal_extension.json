@@ -639,6 +639,241 @@
           "¿La cabeza sigue la línea del torso y la elevación es pequeña?"
         ]
       }
+    },
+    "zercher_carry": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Resistencia a la flexión del tronco bajo la carga anterior"
+            ],
+            "id": "columna-lumbar",
+            "role": "PRIMARY",
+            "sources": [
+              "svenningsen2017",
+              "mcgill2009",
+              "anat_back"
+            ],
+            "why": "La columna lumbar es donde se aplica el brazo de palanca de la barra delante del tronco: Svenningsen et al. midieron más actividad de los extensores lumbares al caminar con carga anterior y McGill et al. documentaron las cargas sobre la columna en los acarreos de strongman."
+          },
+          {
+            "actions": [
+              "Posición erguida de la columna torácica"
+            ],
+            "id": "columna-toracica",
+            "role": "STABILIZER",
+            "sources": [
+              "anat_back"
+            ],
+            "why": "La columna torácica permanece extendida y el pecho alto para que la barra no la arrastre hacia delante; es una deducción de la función de los músculos de la espalda."
+          },
+          {
+            "actions": [
+              "Sostén del codo flexionado bajo la barra"
+            ],
+            "id": "codo",
+            "role": "STABILIZER",
+            "sources": [
+              "anat_biceps"
+            ],
+            "why": "El codo se mantiene flexionado sin moverse mientras la barra reposa en su pliegue; el papel se infiere de la función flexora del bíceps."
+          },
+          {
+            "actions": [
+              "Sostén de la escápula hacia atrás"
+            ],
+            "id": "escapulotoracica",
+            "role": "STABILIZER",
+            "sources": [
+              "anat_trapezius"
+            ],
+            "why": "Las escápulas se mantienen atrás y abajo para impedir que los hombros caigan hacia delante; el trapecio las sostiene, según su descripción anatómica."
+          },
+          {
+            "actions": [
+              "Transmisión de la carga entre el tronco y las piernas"
+            ],
+            "id": "sacroiliaca",
+            "role": "STABILIZER",
+            "sources": [
+              "anat_pelvic"
+            ],
+            "why": "En cada paso la articulación sacroilíaca transmite al miembro inferior el peso del tronco y de la barra, con muy poco movimiento propio."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "erector_spinae",
+            "role": "PRIMARY",
+            "sources": [
+              "svenningsen2017",
+              "ellestad2024",
+              "mcgill2009",
+              "anat_back"
+            ],
+            "why": "Los erectores frenan la flexión que provoca la barra delante del tronco en cada paso. Svenningsen et al. midieron un aumento de la actividad del longissimus torácico y del iliocostal lumbar de alrededor del 55 al 58 % al caminar con una carga del 10 % de la masa corporal por delante, y Ellestad et al. hallaron más actividad del longissimus y del multifidus en los acarreos que en los mismos sostenes sin caminar; ninguno estudia el paseo Zercher, así que es una extrapolación."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "mcgill2009",
+              "ellestad2024",
+              "anat_abdominal"
+            ],
+            "why": "La pared abdominal coactiva con la espalda para dar rigidez al tronco. McGill et al. describen en los acarreos de strongman una gran cocontracción de la musculatura del tronco, y Ellestad et al. midieron en el paseo del granjero más actividad del recto abdominal y del oblicuo externo que en el sostén sin caminar; son datos de acarreos con otra carga, no de esta."
+          },
+          {
+            "id": "trapezius",
+            "role": "STABILIZER",
+            "sources": [
+              "anat_trapezius"
+            ],
+            "why": "Las fibras medias retraen la escápula y las superiores y las inferiores la sostienen, de modo que los hombros no se vayan hacia delante tirados por la barra; es una deducción de la función del trapecio, sin medición en este ejercicio."
+          },
+          {
+            "id": "biceps",
+            "role": "STABILIZER",
+            "sources": [
+              "anat_biceps"
+            ],
+            "why": "La barra reposa en la flexión del codo y el bíceps sostiene el ángulo en isometría para que no se abra. Es la misma función que cumple en las sentadillas Zercher del catálogo, y se infiere de la anatomía del bíceps, sin electromiografía específica del paseo."
+          }
+        ]
+      },
+      "public": {
+        "configurations": {
+          "zercher_carry__barbell": {
+            "description": "La barra descansa en el pliegue de ambos codos, con las manos juntas o cruzadas sobre ella, y se camina sin soltarla ni dejar que ruede hacia las muñecas. Es un acarreo con la carga por delante del tronco, que obliga a llevar los codos pegados al cuerpo.",
+            "executionCues": [
+              "Camina con pasos cortos y regulares, manteniendo el tórax abierto y la vista adelante.",
+              "Mantén los codos apretados contra el cuerpo para que la barra no ruede hacia las manos.",
+              "Sostén la tensión del abdomen y no dejes que el tronco se incline hacia delante.",
+              "Al terminar, agáchate con la espalda recta y deja la barra en el suelo."
+            ],
+            "setupCues": [
+              "Con la barra en el suelo, baja con la espalda recta y mete los pliegues de los codos bajo ella.",
+              "Junta las manos delante del pecho sin agarrar la barra y pégala al abdomen.",
+              "Levántate con la barra apoyada en los codos, saca el pecho y mira al frente."
+            ]
+          }
+        },
+        "description": "El Paseo Zercher (Zercher carry) es una marcha corta con la barra apoyada en el pliegue de los codos, delante del cuerpo y con las manos juntas sin agarrarla. La carga anterior tira del tronco hacia delante en cada paso y los erectores de la columna lo sostienen erguido, con el abdomen firme, el trapecio llevando los hombros hacia atrás y los bíceps manteniendo los codos flexionados bajo la barra. Es un ejercicio de strongman y de fuerza general que se mide en distancia o en tiempo. Se hace con pasos cortos y el pecho alto, y empieza por levantar la barra del suelo hasta los codos."
+      },
+      "sources": [
+        {
+          "claim": "En 14 adultos que caminaban con y sin una carga del 10 % de su masa corporal llevada por delante, la carga anterior aumentó la electromiografía del longissimus torácico (58,5 %) y del iliocostal lumbar (55,1 %).",
+          "id": "svenningsen2017",
+          "title": "Influence of anterior load carriage on lumbar muscle activation while walking in stable and unstable shoes",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29096180/"
+        },
+        {
+          "claim": "Analizó siete eventos de strongman con electromiografía y un modelo de columna, entre ellos el paseo con barril (keg walk) y el yugo: los acarreos exigen rigidez del tronco y desafían capacidades distintas a las de los levantamientos, y el yugo produjo las mayores cargas sobre la columna.",
+          "id": "mcgill2009",
+          "title": "Comparison of different strongman events: trunk muscle activation and lumbar spine motion, load, and stiffness",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/19528856/"
+        },
+        {
+          "claim": "En 18 adultos jóvenes sanos, los acarreos con el mismo peso activaron el longissimus y el multifidus de los dos lados más que los sostenes equivalentes sin caminar, y el paseo del granjero aumentó también la actividad del recto abdominal y del oblicuo externo, atribuido a la inestabilidad de caminar con la carga.",
+          "id": "ellestad2024",
+          "title": "The Quantification of Muscle Activation During the Loaded Carry Movement Pattern",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/38665162/"
+        },
+        {
+          "claim": "Describe los músculos intrínsecos o profundos de la espalda, unidos a la columna, como los músculos propios de la espalda; su anatomía sustenta la extensión y el sostén de la columna.",
+          "id": "anat_back",
+          "title": "Anatomy, Back, Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725759/"
+        },
+        {
+          "claim": "Describe la pared abdominal como estructura capaz de generar presión intraabdominal y mover la columna; sustenta su capacidad de fijar el tronco.",
+          "id": "anat_abdominal",
+          "title": "Anatomy, Abdomen and Pelvis: Abdominal Wall",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31869113/"
+        },
+        {
+          "claim": "Describe las fibras superiores del trapecio como elevadoras y rotadoras superiores de la escápula, las medias como retractoras y las inferiores como depresoras; el músculo estabiliza y mueve la escápula.",
+          "id": "anat_trapezius",
+          "title": "Anatomy, Back, Trapezius",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30085536/"
+        },
+        {
+          "claim": "Describe al bíceps braquial como flexor del codo y supinador del antebrazo.",
+          "id": "anat_biceps",
+          "title": "Anatomy, Shoulder and Upper Limb, Biceps Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30137823/"
+        },
+        {
+          "claim": "Describe la articulación sacroilíaca como la que transmite al miembro inferior buena parte del peso de los miembros superiores y del tronco, lo que explica su movilidad muy restringida.",
+          "id": "anat_pelvic",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Pelvic Joints",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30860758/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Marcha con la barra apoyada en el pliegue de los codos, por delante del cuerpo y con las manos juntas sin agarrarla: la carga anterior tira del tronco hacia la flexión y la espalda y el abdomen la resisten en cada paso. Se separa de la sentadilla y de la zancada Zercher porque las rodillas casi no se flexionan, y del paseo del granjero porque el peso va delante y apoyado en los codos, no colgando de las manos.",
+        "keyPositions": [
+          "Postura de marcha: tronco erguido, barra en el pliegue de los codos a la altura del abdomen, codos pegados al cuerpo y hombros atrás.",
+          "Paso: la pierna avanza con un paso corto mientras el tronco permanece vertical y la barra apenas se mueve."
+        ],
+        "mistakes": [
+          "Dejar caer el pecho y redondear la espalda bajo el peso de la barra.",
+          "Abrir los codos hasta que la barra rueda hacia las manos o hacia el abdomen.",
+          "Dar pasos largos que balancean la barra y obligan al tronco a corregir en cada zancada.",
+          "Echar los hombros hacia delante para sostener la barra con los brazos y no con el tronco."
+        ],
+        "phases": [
+          {
+            "description": "El atleta baja con la espalda recta, mete los codos bajo la barra y se levanta con ella apoyada en los pliegues.",
+            "name": "Recogida"
+          },
+          {
+            "description": "Los pasos cortos llevan el cuerpo hacia delante mientras la espalda y el abdomen mantienen el tronco erguido frente al peso.",
+            "name": "Marcha"
+          },
+          {
+            "description": "Al acabar el recorrido el atleta se agacha con la espalda recta y deja la barra en el suelo.",
+            "name": "Descarga"
+          }
+        ],
+        "setup": [
+          "Barra en el suelo, pies a la anchura de las caderas y espalda recta, con los codos flexionados bajo la barra.",
+          "Manos juntas o cruzadas delante del pecho, sin cerrarlas sobre la barra, y la barra pegada al abdomen.",
+          "Pecho alto, hombros hacia atrás y la mirada al frente antes de dar el primer paso."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista de frente a la altura del pecho, con el atleta entero de la cabeza a los pies y la barra delante del abdomen dentro del encuadre.",
+          "contacts": "Pies planos en el suelo a la anchura de las caderas; la barra descansa en el pliegue de ambos codos y las manos se juntan sin agarrarla.",
+          "load": "Barra cargada con discos a ambos lados, apoyada en el pliegue de los codos y separada del suelo.",
+          "orientation": "Atleta de frente a la cámara con la barra horizontal delante de su abdomen y las manos juntas delante del pecho.",
+          "phase": "Postura de marcha con la barra apoyada en el pliegue de los codos, el tronco erguido y un pie ligeramente adelantado.",
+          "posture": "Tronco erguido sin inclinarse hacia delante, pecho alto, hombros atrás, codos pegados al cuerpo y mirada al frente."
+        },
+        "byImplement": {
+          "barbell": {
+            "geometry": "Barra olímpica recta horizontal delante del abdomen, apoyada en el pliegue de los dos codos flexionados con los antebrazos hacia arriba; los discos cuelgan a ambos lados, separados del suelo."
+          }
+        },
+        "forbidden": [
+          "Barra sobre los hombros o la espalda: eso es una sentadilla trasera o frontal.",
+          "Manos agarrando la barra con los brazos estirados: eso es un peso muerto o un paseo con la barra colgando.",
+          "Barra en el suelo o apoyada en los muslos: es otro punto del recorrido.",
+          "Espalda redondeada o tronco muy inclinado hacia delante.",
+          "Barra flotando sin que los codos la sostengan."
+        ],
+        "promptCore": {
+          "barbell": "Front view of a muscular athlete frozen mid carry, standing tall and carrying a loaded straight Olympic barbell held in the crook of both elbows in front of the abdomen, the forearms pointing up with the hands clasped together in front of the chest without gripping the bar. The torso is upright, the chest is up, the shoulders are back, the elbows are tucked in, one foot is slightly ahead in a short step and the eyes look forward. Rubber bumper plates hang clear of the floor on both ends of the bar. No text or logos."
+        },
+        "qa": [
+          "¿La barra descansa en el pliegue de los dos codos, sin flotar suelta?",
+          "¿Las manos están juntas delante del pecho, sin agarrar la barra?",
+          "¿El tronco está erguido, con el pecho alto y sin inclinarse hacia delante?",
+          "¿La barra queda delante del abdomen, separada del suelo?"
+        ]
+      }
     }
   },
   "familyId": "lower_spinal_extension",
