@@ -256,7 +256,11 @@ data class EffectiveEquipmentResult(
  *    una declaración de inventario.
  * 5. `bodyweight` se emite siempre en la ruta nueva (no necesita material) y
  *    `machine_config:<id>` SOLO desde el mapeo curado o desde el inventario
- *    exacto, jamás porque se marcó `MACHINES`.
+ *    exacto, jamás porque se marcó `MACHINES`. Que la categoría `MACHINES` abra
+ *    o no el resto de las variantes de máquina no lo decide este resolutor sino
+ *    el filtro ([ConfigurationEquipmentFilter]): lo abre cuando la declaración es
+ *    una sala de máquinas ([EquipmentAvailability.machinesAsCategory]) y no cuando
+ *    son llaves sueltas del subpanel.
  */
 fun TrainingOptions.resolveEffectiveEquipment(legacyEquipment: Set<String>): EffectiveEquipmentResult =
     availability?.let { resolveWithAvailability(it) } ?: resolveWithLegacy(legacyEquipment)
@@ -269,10 +273,12 @@ fun TrainingOptions.resolveEffectiveEquipment(legacyEquipment: Set<String>): Eff
  *
  * Contrato de los tokens:
  * - [TrainingOptions.availability] no nula → `bodyweight` + categorías
- *   confirmadas + mapeo curado de las claves `PRESENT`. No emite `general_gym`
- *   ni `free_weights`, y `machine_config:<id>` solo desde mapeo curado o
- *   inventario exacto. Las anillas del wizard acreditan `trx` y el cajón
- *   `support` (lote BW-1).
+ *   confirmadas + mapeo curado de las claves `PRESENT` (las del subpanel y las
+ *   de símbolo de [SYMBOL_EQUIPMENT_KEYS]: `trx`/`rings`, `plyo_box` —que además
+ *   es un apoyo elevado, `support`—, `jump_rope`, `plate`, `hex_bar`, `t_bar`,
+ *   `ghd`, `ab_wheel` y la barra baja de un parque). No emite `general_gym` ni
+ *   `free_weights`, y `machine_config:<id>` solo desde mapeo curado o
+ *   inventario exacto.
  * - [TrainingOptions.inventory] **null** (y sin availability) → perfil legacy
  *   intacto, solo normalizado (`bands`→`band`, `smith`→`smith_machine`).
  * - [TrainingOptions.inventory] **declarado** → manda lo que el material real
@@ -362,16 +368,13 @@ private fun TrainingOptions.resolveWithAvailability(declared: EquipmentAvailabil
         spec.machineConfigurations.forEach { put(machineConfigToken(it), origin) }
         spec.attestedTokens.forEach { put(it, origin) }
     }
-    // Símbolos del paso de material que el panel curado no lista pero el catálogo ya usa (lote BW-1): las anillas acreditan
-    // la suspensión (`trx`, el implemento de tres configuraciones) y el cajón, un apoyo elevado (`support`). Ambos viven en
-    // la categoría de soportes, igual que las demás llaves de soporte.
-    if (EquipmentCategory.SUPPORT in declared.categories) {
-        if (declared.presenceOf(SUPPORT_KEY_RINGS) == ApparatusPresence.PRESENT) {
-            put(IMPLEMENT_TRX, EffectiveEquipmentOrigin.CONFIRMED_SUPPORT)
-        }
-        if (declared.presenceOf(SUPPORT_KEY_PLYO_BOX) == ApparatusPresence.PRESENT) {
-            put(KIND_SUPPORT, EffectiveEquipmentOrigin.CONFIRMED_SUPPORT)
-        }
+    // Llaves de símbolo que el subpanel no pinta (anillas, cajón, cuerda de saltar, barra baja de un parque y extras de
+    // gimnasio): misma regla (presencia `PRESENT` con su categoría confirmada), con su propia lista. Es lo único que
+    // las acredita: el generador de rutinas ya no las añade por su cuenta.
+    SYMBOL_EQUIPMENT_KEYS.forEach { spec ->
+        if (declared.presenceOf(spec.key) != ApparatusPresence.PRESENT) return@forEach
+        if (spec.category !in declared.categories) return@forEach
+        spec.attestedTokens.forEach { put(it, EffectiveEquipmentOrigin.CONFIRMED_SUPPORT) }
     }
     return EffectiveEquipmentResult(
         tokens = origins.keys.toSet(),

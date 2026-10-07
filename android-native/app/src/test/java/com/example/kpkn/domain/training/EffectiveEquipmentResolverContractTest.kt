@@ -5,6 +5,9 @@ import com.example.kpkn.data.models.EquipmentAvailability
 import com.example.kpkn.data.models.EquipmentCategory
 import com.example.kpkn.data.models.EquipmentInventory
 import com.example.kpkn.data.models.MachineLoadRange
+import com.example.kpkn.domain.onboarding.EquipmentSymbolId
+import com.example.kpkn.domain.onboarding.EquipmentSymbols
+import com.example.kpkn.domain.onboarding.TrainingPlace
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -419,5 +422,218 @@ class EffectiveEquipmentResolverContractTest {
         assertFalse(
             machineConfigToken(closeGrip) in TrainingOptions(availability = deniedAvailability).resolveEffectiveEquipment(emptySet()).tokens,
         )
+    }
+
+    // ─── Paquete E: las llaves de símbolo llegan hasta los tokens del resolutor ───
+
+    private fun tokensOf(
+        categories: Set<EquipmentCategory>,
+        supports: Map<String, ApparatusPresence> = emptyMap(),
+        apparatus: Map<String, ApparatusPresence> = emptyMap(),
+    ): Set<String> = TrainingOptions(
+        availability = EquipmentAvailability(categories = categories, apparatus = apparatus, supports = supports),
+    ).resolveEffectiveEquipment(emptySet()).tokens
+
+    @Test
+    fun symbol_keys_attest_their_tokens_only_when_present_with_their_confirmed_category() {
+        val present = ApparatusPresence.PRESENT
+        val expected = mapOf(
+            // Anillas: `trx` (el implemento del catálogo) y `rings` (lo que piden las reservas del generador).
+            SymbolEquipmentKeys.RINGS to (EquipmentCategory.SUPPORT to setOf("trx", "rings")),
+            SymbolEquipmentKeys.PLYO_BOX to (EquipmentCategory.SUPPORT to setOf("plyo_box")),
+            SymbolEquipmentKeys.JUMP_ROPE to (EquipmentCategory.CARDIO to setOf("jump_rope")),
+            SymbolEquipmentKeys.PLATE to (EquipmentCategory.BARBELL to setOf("plate")),
+            SymbolEquipmentKeys.HEX_BAR to (EquipmentCategory.BARBELL to setOf("hex_bar")),
+            SymbolEquipmentKeys.T_BAR to (EquipmentCategory.BARBELL to setOf("t_bar")),
+            SymbolEquipmentKeys.GHD to (EquipmentCategory.MACHINES to setOf("ghd")),
+            SymbolEquipmentKeys.AB_WHEEL to (EquipmentCategory.MACHINES to setOf("ab_wheel")),
+            // Paquete E2: los bancos propios de un gimnasio que piden dos configuraciones con disco.
+            SymbolEquipmentKeys.DECLINE_BENCH to (EquipmentCategory.SUPPORT to setOf("decline_bench")),
+            SymbolEquipmentKeys.HYPEREXTENSION_BENCH to (EquipmentCategory.SUPPORT to setOf("hyperextension_bench")),
+        )
+        for ((key, spec) in expected) {
+            val (category, tokens) = spec
+            assertTrue(
+                "$key con $category debe acreditar $tokens",
+                tokensOf(setOf(category), supports = mapOf(key to present)).containsAll(tokens),
+            )
+            // La presencia vale venga en `apparatus` o en `supports`.
+            assertTrue(tokensOf(setOf(category), apparatus = mapOf(key to present)).containsAll(tokens))
+            // Con otra categoría confirmada la llave no acredita nada.
+            val other = EquipmentCategory.entries.first { it != category }
+            assertTrue("$key sin $category", tokensOf(setOf(other), mapOf(key to present)).none { it in tokens })
+            // Categorías vacías = solo cuerpo, aunque la llave conste.
+            assertEquals(setOf("bodyweight"), tokensOf(emptySet(), mapOf(key to present)))
+            // Negada o sin responder, tampoco.
+            assertTrue(tokensOf(setOf(category), mapOf(key to ApparatusPresence.ABSENT)).none { it in tokens })
+            assertTrue(tokensOf(setOf(category)).none { it in tokens })
+        }
+        assertEquals("las once llaves de símbolo", 11, SYMBOL_EQUIPMENT_KEYS.size)
+    }
+
+    @Test
+    fun the_low_bar_has_two_doors_the_supports_category_and_the_pull_up_bar_category() {
+        val lowBar = mapOf(EquipmentKeys.LOW_BAR_SUPPORT to ApparatusPresence.PRESENT)
+        // Puerta del subpanel: la barra baja de un rack de gimnasio.
+        assertTrue("low_bar_support" in tokensOf(setOf(EquipmentCategory.SUPPORT), lowBar))
+        // Puerta del parque: la barra de dominadas la trae aunque no haya más soportes confirmados.
+        assertTrue("low_bar_support" in tokensOf(setOf(EquipmentCategory.PULL_UP_BAR), lowBar))
+        assertFalse("low_bar_support" in tokensOf(setOf(EquipmentCategory.DUMBBELLS), lowBar))
+        assertFalse("low_bar_support" in tokensOf(emptySet(), lowBar))
+
+        val viaParkBar = TrainingOptions(
+            availability = EquipmentAvailability(categories = setOf(EquipmentCategory.PULL_UP_BAR), supports = lowBar),
+        ).resolveEffectiveEquipment(emptySet())
+        assertEquals(RequirementEvidence.PRESENT, viaParkBar.requirements["low_bar_support"])
+        assertEquals(EffectiveEquipmentOrigin.CONFIRMED_SUPPORT, viaParkBar.origins["low_bar_support"])
+        // La barra baja ausente sigue siendo ausente.
+        val denied = TrainingOptions(
+            availability = EquipmentAvailability(
+                categories = setOf(EquipmentCategory.SUPPORT, EquipmentCategory.PULL_UP_BAR),
+                supports = mapOf(EquipmentKeys.LOW_BAR_SUPPORT to ApparatusPresence.ABSENT),
+            ),
+        ).resolveEffectiveEquipment(emptySet())
+        assertFalse("low_bar_support" in denied.tokens)
+        assertEquals(RequirementEvidence.ABSENT, denied.requirements["low_bar_support"])
+    }
+
+    @Test
+    fun the_subpanel_vocabulary_stays_as_it_was_and_the_symbol_keys_live_in_their_own_list() {
+        val panelKeys = EFFECTIVE_EQUIPMENT_KEYS.map { it.key }
+        val symbolKeys = SYMBOL_EQUIPMENT_KEYS.map { it.key }
+        assertEquals("las 20 llaves del subpanel", 20, panelKeys.size)
+        assertEquals("sin llaves de símbolo repetidas", symbolKeys.size, symbolKeys.toSet().size)
+        // Solo la barra baja está en las dos listas (misma llave, otra puerta); el resto nunca pinta el subpanel.
+        assertEquals(setOf(EquipmentKeys.LOW_BAR_SUPPORT), symbolKeys.toSet().intersect(panelKeys.toSet()))
+        assertEquals(
+            "las llaves de símbolo no habilitan máquinas concretas",
+            emptySet<String>(),
+            SYMBOL_EQUIPMENT_KEYS.flatMap { it.attestedTokens }.filter { it.startsWith("machine_config:") }.toSet(),
+        )
+    }
+
+    @Test
+    fun the_new_tokens_never_invent_ids_the_catalog_does_not_declare() {
+        val catalogEquipment = catalog.families
+            .flatMap { it.definitions }
+            .flatMap { it.configurations }
+            .map { it.profile.equipmentId }
+            .toSet()
+        // Los que son `equipmentId` del catálogo existen como tales.
+        listOf("trx", "plate", "hex_bar", "t_bar", "ghd", "ab_wheel").forEach { token ->
+            assertTrue("«$token» no es un equipmentId del catálogo", token in catalogEquipment)
+            assertTrue("«$token» no lo acredita ninguna llave de símbolo", SYMBOL_EQUIPMENT_KEYS.any { token in it.attestedTokens })
+        }
+        // Los raros siguen sin acreditarse (decisión del paquete E: son raros).
+        listOf("safety_bar", "h_bar", "sliders", "wrist_roller").forEach { token ->
+            assertTrue("«$token» sigue siendo un equipmentId del catálogo", token in catalogEquipment)
+            assertFalse("«$token» no debe acreditarse", SYMBOL_EQUIPMENT_KEYS.any { token in it.attestedTokens })
+        }
+        // `low_bar_support` es un requisito del contrato de soportes.
+        assertTrue(REQUIREMENT_LOW_BAR_SUPPORT in KNOWN_REQUIREMENTS)
+        // Los bancos de gimnasio (paquete E2) son requisitos que `supportRequirementsFor` declara para configuraciones reales
+        // del catálogo; no son del vocabulario del subpanel, así que ninguna receta ve una pregunta que nunca los acreditaría.
+        val declaredRequirements = catalog.families
+            .flatMap { it.definitions }
+            .flatMap { it.configurations }
+            .flatMap { supportRequirementsFor(it.id) }
+            .toSet()
+        listOf(REQUIREMENT_DECLINE_BENCH, REQUIREMENT_HYPEREXTENSION_BENCH).forEach { token ->
+            assertTrue("«$token» no lo pide ninguna configuración del catálogo", token in declaredRequirements)
+            assertTrue("«$token» no lo acredita ninguna llave de símbolo", SYMBOL_EQUIPMENT_KEYS.any { token in it.attestedTokens })
+            assertFalse("«$token» no es del vocabulario del subpanel", token in KNOWN_REQUIREMENTS)
+            assertFalse("«$token» no es de ninguna llave del subpanel", EFFECTIVE_EQUIPMENT_KEYS.any { token in it.attestedTokens })
+        }
+        assertEquals(setOf(REQUIREMENT_DECLINE_BENCH), supportRequirementsFor("core_crunch_banco_declinado_lastrado_disco__default"))
+        assertEquals(setOf(REQUIREMENT_HYPEREXTENSION_BENCH), supportRequirementsFor("glutes_hiperextension_45__plate"))
+    }
+
+    /**
+     * La ruta de los planes de autor (`configurationAvailability`, la que adapta las recetas fijas) lee el MISMO equipo
+     * resuelto: lo que acreditan los símbolos deja de aparecer como material ausente en sus recetas (GHD, rueda
+     * abdominal, paseo con barra hexagonal, remo en T, anillas), y los implementos raros siguen ausentes.
+     */
+    @Test
+    fun the_authored_plan_path_reads_the_symbol_extras_from_the_same_resolver() {
+        fun verdict(id: String, selection: Set<EquipmentSymbolId>, places: Set<TrainingPlace>): ConfigurationAvailability {
+            val availability = EquipmentSymbols.availabilityOf(selection, places)
+            val equipment = TrainingOptions(availability = availability).resolveEffectiveEquipment(emptySet())
+            return configurationAvailability(id, equipment, availability, catalog)
+        }
+
+        val gym = setOf(TrainingPlace.GYM)
+        val home = setOf(TrainingPlace.HOME)
+        val gymSeed = EquipmentSymbols.seedFor(gym)
+        val absent = RequirementEvidence.ABSENT
+
+        listOf(
+            "glute_ham_raise__default",
+            "core_rueda_abdominal__default",
+            "forearms_paseo_del_granjero__hex_bar",
+            "t_bar_row__t_bar__medium",
+            "forearms_paseo_del_granjero__plate",
+        ).forEach { id -> assertEquals("$id con el gimnasio completo", ConfigurationAvailability.Available, verdict(id, gymSeed, gym)) }
+        assertEquals(ConfigurationAvailability.Available, verdict("biceps_curl_trx__supinated", setOf(EquipmentSymbolId.RINGS), home))
+
+        // Sin su símbolo madre, o fuera del gimnasio, siguen ausentes (y sin una pregunta que nunca los acreditaría).
+        assertEquals(
+            ConfigurationAvailability.Missing(absent, setOf("ghd")),
+            verdict("glute_ham_raise__default", gymSeed - EquipmentSymbolId.MACHINES, gym),
+        )
+        assertEquals(
+            ConfigurationAvailability.Missing(absent, setOf("hex_bar")),
+            verdict("forearms_paseo_del_granjero__hex_bar", setOf(EquipmentSymbolId.BARBELL), home),
+        )
+        assertEquals(
+            ConfigurationAvailability.Missing(absent, setOf("trx")),
+            verdict("biceps_curl_trx__supinated", setOf(EquipmentSymbolId.DUMBBELLS), home),
+        )
+        // Los raros: ni el gimnasio completo los acredita.
+        assertEquals(
+            ConfigurationAvailability.Missing(absent, setOf("safety_bar")),
+            verdict("high_bar_back_squat__safety_bar", gymSeed, gym),
+        )
+        assertEquals(
+            ConfigurationAvailability.Missing(absent, setOf("sliders")),
+            verdict("curl_isquios_con_sliders__default", gymSeed, gym),
+        )
+
+        // Paquete E2: los discos con aparato propio (banco declinado, hiperextensión a 45°) constan con «Banco» en el
+        // gimnasio; en casa o sin banco siguen ausentes aunque haya barra y discos.
+        val crunch = "core_crunch_banco_declinado_lastrado_disco__default"
+        val hyperextension = "glutes_hiperextension_45__plate"
+        listOf(crunch, hyperextension).forEach { id ->
+            assertEquals("$id con el gimnasio completo", ConfigurationAvailability.Available, verdict(id, gymSeed, gym))
+        }
+        assertEquals(
+            ConfigurationAvailability.Missing(absent, setOf("decline_bench")),
+            verdict(crunch, setOf(EquipmentSymbolId.BARBELL, EquipmentSymbolId.BENCH), home),
+        )
+        assertEquals(
+            ConfigurationAvailability.Missing(absent, setOf("hyperextension_bench")),
+            verdict(hyperextension, gymSeed - EquipmentSymbolId.BENCH, gym),
+        )
+    }
+
+    /**
+     * «Máquinas» como sala (paquete E2): la categoría deja de exigir el modo exacto, pero las nueve llaves curadas siguen
+     * `PRESENT` y las recetas de autor siguen viendo cada `machine_config:` del subpanel.
+     */
+    @Test
+    fun a_machine_room_keeps_the_curated_machine_tokens_and_drops_the_exact_configuration_mode() {
+        val room = EquipmentSymbols.availabilityOf(setOf(EquipmentSymbolId.MACHINES), setOf(TrainingPlace.GYM))
+        val tokens = TrainingOptions(availability = room).resolveEffectiveEquipment(emptySet()).tokens
+        assertTrue(room.machinesAsCategory)
+        assertTrue("machine" in tokens)
+        val curated = EFFECTIVE_EQUIPMENT_KEYS.filter { it.category == EquipmentCategory.MACHINES }.flatMap { it.machineConfigurations }
+        assertTrue("las máquinas del subpanel deben seguir acreditadas", curated.isNotEmpty() && curated.all { machineConfigToken(it) in tokens })
+        assertFalse(room.hasExplicitMachinePresence())
+        assertFalse(ConfigurationEquipmentFilter.requiresExactMachineConfiguration(TrainingOptions(availability = room)))
+        // La misma disponibilidad sin la bandera (subpanel antiguo, datos guardados) vuelve al modo exacto de siempre.
+        val panelAnswer = room.copy(machinesAsCategory = false)
+        assertTrue(panelAnswer.hasExplicitMachinePresence())
+        assertTrue(ConfigurationEquipmentFilter.requiresExactMachineConfiguration(TrainingOptions(availability = panelAnswer)))
+        // Los tokens que acredita el resolutor no dependen de la bandera.
+        assertEquals(tokens, TrainingOptions(availability = panelAnswer).resolveEffectiveEquipment(emptySet()).tokens)
     }
 }

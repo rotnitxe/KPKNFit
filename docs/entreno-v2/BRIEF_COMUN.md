@@ -27,6 +27,13 @@ Aplica a TODOS los paquetes de la ola. Cada paquete tiene además su brief propi
 - Vistas previas: `app/src/debug/AndroidManifest.xml` + actividades en `app/src/debug/java/com/example/kpkn/debug/`
   (patrón: `git show wiz/s9:android-native/app/src/debug/AndroidManifest.xml`). Van en un commit aparte `debug: …`.
 
+## Teléfono real (dispositivo PRINCIPAL de pruebas visuales; orden expresa del usuario, 2026-10-07)
+- **El usuario ordenó usar su teléfono para las pruebas** (Galaxy Z Flip5 por depuración inalámbrica, 1080×2640 a 480 dpi = 360 dp de ancho). El emulador se cae con frecuencia y queda solo como respaldo si el teléfono no está disponible (desconectado o con la batería baja); no inicies sesiones largas ahí. Es su teléfono personal: la app de producción `com.example.kpkn` tiene sus datos reales.
+- SOLO con `python C:\kw\tools\phone_run.py` (mismo formato que `emu_run.py`, candado `C:\kw\phone.lock`; lee su docstring). Solo instala y abre el APK debug con sufijo `.dbg` (`com.example.kpkn.dbg`), nunca toca la app de producción, despierta la pantalla y la vuelve a apagar al terminar si estaba apagada. Nada de `adb` directo, `pm clear`, `uninstall` ni ajustes del sistema.
+- **No cambies ajustes del teléfono** (ni `font_scale`, ni `animator_duration_scale`, ni tamaño o densidad de pantalla): para probar letra al 130 %, movimiento reducido o anchos distintos usa extras del arnés/actividad de depuración (`fontScale`, `reducedMotion`, `widthDp`, como ya hacen las vistas previas de U1–U5) o las pruebas de Robolectric.
+- Úsalo para TODAS las comprobaciones visuales (a 360 dp reales, fluidez, desenfoque, ritmo del scroll, gestos). Sesiones agrupadas y breves; la pantalla puede estar encendida y desbloqueada porque el usuario la está usando, así que no la dejes en un estado raro: termina siempre volviendo a una pantalla neutra (`--actions "key:3"` = Inicio) salvo que hayas de dejar algo abierto. Si el teléfono está bloqueado, las actividades de depuración deben pedir `setShowWhenLocked(true)` y `setTurnScreenOn(true)`. Capturas en `C:\kw\shots\<nombre>\phone\`.
+- Gestos largos (pulsación larga y arrastre): `phone_run.py` solo hace toques y deslizamientos; para arrastres con dedo mantenido usa `input motionevent DOWN/MOVE/UP` como `C:\kw\shots\u5\drag_probe.py`, adaptado al teléfono con su mismo serial y sin saltarte el candado `C:\kw\phone.lock`.
+
 ## Diseño (no negociable)
 1. **Símbolos e ilustraciones animadas sobre la página negra; nunca tarjetas** (ni cajas con borde, ni filas con radio, ni
    resplandores de color, ni degradados de borde, ni sombras de color). Se permite un disco de vidrio neutro muy tenue
