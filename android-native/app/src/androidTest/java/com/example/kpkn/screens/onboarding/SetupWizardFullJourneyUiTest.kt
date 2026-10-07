@@ -71,6 +71,7 @@ import com.example.kpkn.domain.nutrition.physiqueSliderPositionForBodyFat
 import com.example.kpkn.domain.onboarding.SetupAnswerProvenance
 import com.example.kpkn.domain.onboarding.SetupStepDefinitions
 import com.example.kpkn.domain.onboarding.SetupStepGraph
+import com.example.kpkn.screens.onboarding.design.formatKcalEs
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.WizChatMachineState
 import com.example.kpkn.domain.training.ProgramExecutionContract
@@ -791,8 +792,12 @@ class SetupWizardFullJourneyUiTest {
                 assertEquals("kcal propias", MANUAL_KCAL.toInt(), manual.calorieTarget)
                 assertEquals(CalculationOrigin.MANUAL, manual.calculationOrigin)
                 awaitCaloriesShownInUi(manual.calorieTarget)
-                // Resultado pinta UN solo Text («Referencia diaria: … kcal · P g proteína · …»).
-                assertInTree("${manual.proteinGoal} g proteína", substring = true)
+                // El resultado pinta los anillos con UN solo contentDescription
+                // («plan de 2.100 kilocalorías al día: 150 gramos de proteína, …»).
+                assertTrue(
+                    "los anillos no anuncian ${manual.proteinGoal} gramos de proteína",
+                    existsByContentDescription("${manual.proteinGoal} gramos de proteína", substring = true),
+                )
                 answerAndContinue(SetupStepId.NUTRITION_RESULT, SetupStepId.MILESTONE_NUTRITION)
             }
 
@@ -1726,22 +1731,21 @@ class SetupWizardFullJourneyUiTest {
 
     /**
      * Oráculo de UI para la cifra de calorías: el valor del VM es correcto, pero
-     * el Text REAL solo existe cuando se compone. En Resultado hay UN solo
-     * Text completo («Referencia diaria: 2100 kcal · 150 g proteína · …»), así
-     * que se ancla el fragmento entero con el numeral exacto; en Revisión sí
-     * existe el valor solitario. Nunca una subcadena suelta («210» no casa en
-     * «2100»). Si no llega, vuelca por qué no se compuso: días con objetivo
-     * publicados, el aviso de «sin objetivos» y el prefijo real en pantalla.
+     * el nodo REAL solo existe cuando se compone. En Resultado los anillos
+     * anuncian UN solo contentDescription («plan de 2.100 kilocalorías al día: …»),
+     * así que se ancla el fragmento entero con el numeral exacto (con punto de
+     * millar); en Revisión sí existe el valor solitario. Nunca una subcadena
+     * suelta («210» no casa en «2.100»). Si no llega, vuelca por qué no se
+     * compuso: días con objetivo publicados y el aviso de «sin objetivos».
      * La cifra exacta se sigue exigiendo en DOM y en Room por las aserciones.
      */
     private fun awaitCaloriesShownInUi(calorieTarget: Int) {
-        // Revisión: valor solitario EXACTO. Resultado: UN solo Text completo, así
-        // que el numeral va anclado entre «Referencia diaria: » y « kcal ·»
-        // (substring sobre el fragmento entero: «210» nunca casa en «2100»).
+        // Revisión: valor solitario EXACTO. Resultado: los anillos anuncian el plan completo, así
+        // que el numeral va anclado («plan de 2.100 kilocalorías»: «210» nunca casa en «2.100»).
         val standalone = listOf("$calorieTarget kcal", "$calorieTarget.0 kcal")
-        val caption = "Referencia diaria: $calorieTarget kcal ·"
+        val caption = "plan de ${formatKcalEs(calorieTarget)} kilocalorías"
         fun rendered(): Boolean =
-            standalone.any { needle -> existsInTree(needle) } || existsInTree(caption, substring = true)
+            standalone.any { needle -> existsInTree(needle) } || existsByContentDescription(caption, substring = true)
         val shown = runCatching {
             composeRule.waitUntil(STEP_TIMEOUT_MS) { rendered() }
             rendered()
@@ -1753,7 +1757,7 @@ class SetupWizardFullJourneyUiTest {
                 "«$calorieTarget.0 kcal», o el caption anclado «$caption») · " +
                 "días con objetivo=${state.nutritionPreparation?.days?.size} · " +
                 "aviso «$NO_DAYS_LABEL»=${existsInTree(NO_DAYS_LABEL)} · " +
-                "prefijo real en pantalla=${existsInTree(REFERENCE_PREFIX, substring = true)} · " +
+                "anillos en pantalla=${existsByContentDescription(RINGS_PREFIX, substring = true)} · " +
                 state.describe(),
         )
     }
@@ -1833,8 +1837,8 @@ class SetupWizardFullJourneyUiTest {
         false
     }
 
-    private fun existsByContentDescription(contentDescription: String): Boolean = try {
-        composeRule.onAllNodesWithContentDescription(contentDescription).fetchSemanticsNodes().isNotEmpty()
+    private fun existsByContentDescription(contentDescription: String, substring: Boolean = false): Boolean = try {
+        composeRule.onAllNodesWithContentDescription(contentDescription, substring).fetchSemanticsNodes().isNotEmpty()
     } catch (error: Throwable) {
         false
     }
@@ -1905,7 +1909,7 @@ class SetupWizardFullJourneyUiTest {
         const val MORE_CANDIDATES_LABEL = "Ver más opciones"
         const val NO_COMPATIBLE_PLAN_LABEL = "no hay un plan compatible"
         const val NO_DAYS_LABEL = "Todavía no hay objetivos por fecha."
-        const val REFERENCE_PREFIX = "Referencia diaria:"
+        const val RINGS_PREFIX = "kilocalorías al día"
         const val VM_STORE_KEY = "setup-wizard-full-journey"
 
         const val ACTIVATION_CONFIRM_LABEL = "Confirmo la activación"
