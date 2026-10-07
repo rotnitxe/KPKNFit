@@ -37,5 +37,11 @@ Comprueba en el teléfono (con `phone_run.py` y el arnés de W; lee `docs/entren
 ## Informe (≤ 400 palabras)
 Qué cambió por punto, símbolos borrados (cuántas líneas y archivos salen), qué quedó sin consumidor o sin probar, desviación del estimador, y los cambios que necesites en archivos compartidos.
 
-## Anexo (se completa con los hallazgos de W cuando entregue su informe)
-*(pendiente)*
+## Anexo · hallazgos de W en el teléfono (informe final de W; lo visual lo toma el paquete W2)
+Lo de abajo es lo que W dejó **sin resolver** en lo que es tuyo (el resto lo arregló en `ent/w` y ya está en la rama):
+- **Programa aplazado**: con «Lo haré más adelante» el título del paso sigue siendo «Tu programa a medida»; debe decir que no hay programa todavía (texto de COPY; añade la entrada si falta) y la revisión final debe coincidir.
+- **Nota del redistribuidor con ejercicios repetidos**: `domain/training/split/SplitRedistributor.kt` (~línea 551) arma la nota con el mismo ejercicio varias veces; necesita `distinct` (cambio mínimo permitido en ese archivo, con su prueba en `domain.training.split.*`).
+- **El dock tapa acciones al abrir PLAN**: al abrirse el paso, la barra inferior de continuar cubre las acciones de texto («Otra versión», «Lo haré más adelante»); cuida el relleno/inset del contenido del paso (sin mover estilos de `design/entreno/**`).
+- **Aviso «No pude guardar»**: W lo vio una vez y no lo reprodujo en 32 toques rápidos. Revisa la ruta de guardado del borrador (guardar-y-salir, `persist`, cancelaciones al pulsar deprisa) y escribe una prueba de toques rápidos con el reloj virtual; si no logras reproducirlo, documenta qué comprobaste.
+- **Marcas olímpicas**: `MarksContext.CATALOG_HAS_OLYMPIC_LIFTS = false` oculta las marcas de arranque, cargada y envión a Halterofilia. Con OL-1 en la rama el catálogo ya las tiene: decide con evidencia si pasa a `true` (qué levantamientos salen en `LiftMarksPicker`, a qué ids del catálogo se corresponden, si el generador las usa en las cargas) y deja pruebas. El generador es de D1b; si hace falta un cambio allí, descríbelo en el informe.
+- Para tu información (no es tuyo): los títulos de ficha con una palabra larga («Recuperación») se recortan a 360 dp, las siete celdas de día miden 44,6 dp, cada paso nuevo trae un cuadro de 100–170 ms (PLAN 142 ms) y el velo con desenfoque (rama 0,76) no se ha probado porque el teléfono tiene el desenfoque desactivado: eso es del paquete W2.
