@@ -223,7 +223,10 @@ private fun WizardLongPage(
         (state.draft.name.isNotBlank() && ageYears != null && ageYears in 13..100)
     val measuresReady = step != SetupStepId.HEIGHT ||
         (state.draft.heightCm != null && state.draft.weightKg != null)
-    val checkEnabled = state.canConfirmStep && aliasReady && measuresReady && !state.isSubmittingAnswer
+    // El plan de alimentación con calorías peligrosamente bajas o una pérdida extrema no se confirma: el aviso del
+    // panel ya dice por qué y el check se apaga hasta que el plan sea razonable (el ViewModel lo vuelve a exigir).
+    val nutritionPlanBlocked = nutritionResultGate(state, step).isNotEmpty()
+    val checkEnabled = state.canConfirmStep && aliasReady && measuresReady && !state.isSubmittingAnswer && !nutritionPlanBlocked
     val ctaLabel = if (step == SetupStepId.REVIEW_ACTIVATE) "Activar y entrar a KPKN" else "Continuar"
 
     // ── Geometría ────────────────────────────────────────────────────────────
