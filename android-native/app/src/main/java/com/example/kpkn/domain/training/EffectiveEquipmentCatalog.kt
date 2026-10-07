@@ -88,6 +88,15 @@ internal const val REQUIREMENT_SUPPORT = "support"
 internal const val REQUIREMENT_NORDIC_ANCHOR = "nordic_anchor"
 
 /**
+ * Aparatos propios de un gimnasio que piden dos configuraciones con disco (paquete E2): el banco declinado del crunch
+ * lastrado y el banco de hiperextensión a 45°. Los acredita el símbolo «Banco» solo con gimnasio entre los lugares
+ * ([SYMBOL_EQUIPMENT_KEYS]); no son del subpanel §13.2 ni de [KNOWN_REQUIREMENTS], así que una receta que los pida sin
+ * ellos los ve ausentes, sin una pregunta que nunca los acreditaría.
+ */
+internal const val REQUIREMENT_DECLINE_BENCH = "decline_bench"
+internal const val REQUIREMENT_HYPEREXTENSION_BENCH = "hyperextension_bench"
+
+/**
  * Requisitos que el vocabulario del panel puede acreditar. La evidencia de
  * cada uno viaja en `EffectiveEquipmentResult.requirements` para que la UI
  * distinga «ausente» (negado o categoría sin esos ítems) de «desconocido»
@@ -182,6 +191,9 @@ internal fun supportRequirementsFor(configurationId: String): Set<String> = when
     "curl_isquios_con_balon__default" == configurationId -> setOf(REQUIREMENT_BALL)
     "hams_curl_nordic_peso_corporal__default" == configurationId -> setOf(REQUIREMENT_NORDIC_ANCHOR)
     "push_up__feet_elevated" == configurationId -> setOf(REQUIREMENT_SUPPORT)
+    // Discos con un aparato de gimnasio que el catálogo no declara: banco declinado e hiperextensión a 45° (paquete E2).
+    "core_crunch_banco_declinado_lastrado_disco__default" == configurationId -> setOf(REQUIREMENT_DECLINE_BENCH)
+    "glutes_hiperextension_45__plate" == configurationId -> setOf(REQUIREMENT_HYPEREXTENSION_BENCH)
     else -> emptySet()
 }
 
@@ -550,6 +562,8 @@ internal object SymbolEquipmentKeys {
     const val T_BAR = "t_bar"
     const val GHD = "ghd"
     const val AB_WHEEL = "ab_wheel"
+    const val DECLINE_BENCH = REQUIREMENT_DECLINE_BENCH
+    const val HYPEREXTENSION_BENCH = REQUIREMENT_HYPEREXTENSION_BENCH
 }
 
 /**
@@ -586,4 +600,8 @@ internal val SYMBOL_EQUIPMENT_KEYS: List<SymbolEquipmentKey> = listOf(
     SymbolEquipmentKey(SymbolEquipmentKeys.T_BAR, EquipmentCategory.BARBELL, setOf(SymbolEquipmentKeys.T_BAR)),
     SymbolEquipmentKey(SymbolEquipmentKeys.GHD, EquipmentCategory.MACHINES, setOf(SymbolEquipmentKeys.GHD)),
     SymbolEquipmentKey(SymbolEquipmentKeys.AB_WHEEL, EquipmentCategory.MACHINES, setOf(SymbolEquipmentKeys.AB_WHEEL)),
+    // Aparatos de gimnasio con banco (paquete E2): el banco declinado del crunch con disco y el de hiperextensión a 45°.
+    // Con el símbolo «Banco» y gimnasio entre los lugares; en casa un banco no los trae.
+    SymbolEquipmentKey(SymbolEquipmentKeys.DECLINE_BENCH, EquipmentCategory.SUPPORT, setOf(REQUIREMENT_DECLINE_BENCH)),
+    SymbolEquipmentKey(SymbolEquipmentKeys.HYPEREXTENSION_BENCH, EquipmentCategory.SUPPORT, setOf(REQUIREMENT_HYPEREXTENSION_BENCH)),
 )

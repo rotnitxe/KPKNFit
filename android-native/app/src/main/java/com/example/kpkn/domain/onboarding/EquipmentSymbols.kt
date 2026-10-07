@@ -17,10 +17,10 @@ import com.example.kpkn.domain.training.SymbolEquipmentKeys
  *   no vuelven a preguntar «¿tienes rack?».
  * - **Gimnasio asume todo lo habitual** ([seedFor]): barra, rack, banco, mancuernas, kettlebells, poleas, máquinas,
  *   Smith/Multipower, barra de dominadas, paralelas, bandas, balón, cajón, cuerda y cardio. Nada exótico. Las llaves
- *   «de gimnasio» que no tienen símbolo propio (barra EZ, hexagonal y T, predicador, doble polea, cuerda de polea, barra
- *   baja, GHD y rueda abdominal) quedan presentes mientras haya gimnasio y su símbolo madre esté elegido. Los discos
- *   acompañan a la barra en cualquier lugar donde se ofrezca, y la barra de dominadas de un parque (espacios públicos
- *   entre los lugares) trae también su barra baja.
+ *   «de gimnasio» que no tienen símbolo propio (barra EZ, hexagonal y T, predicador, banco declinado y de hiperextensión,
+ *   doble polea, cuerda de polea, barra baja, GHD y rueda abdominal) quedan presentes mientras haya gimnasio y su símbolo
+ *   madre esté elegido. Los discos acompañan a la barra en cualquier lugar donde se ofrezca, y la barra de dominadas de
+ *   un parque (espacios públicos entre los lugares) trae también su barra baja.
  * - **«Máquinas» es una sala de máquinas**, no una lista de máquinas: [EquipmentAvailability.machinesAsCategory] se escribe
  *   `true` cuando está elegido, así la categoría basta para todas las variantes de máquina aprobadas (sin el modo de
  *   configuración exacta) mientras las nueve llaves curadas siguen `PRESENT` para las recetas de autor. Sin el símbolo,
@@ -95,8 +95,11 @@ object EquipmentSymbols {
             categories = setOf(EquipmentCategory.SUPPORT),
             // Un banco «a secas» se asume regulable: acredita plano e inclinado.
             supports = setOf(EquipmentKeys.BENCH_FLAT, EquipmentKeys.BENCH_ADJUSTABLE),
-            // El predicador es otro banco: su categoría en el motor es SUPPORT, y solo cuenta si ella está confirmada.
-            gymSupports = setOf(EquipmentKeys.PREACHER_BENCH),
+            // El predicador, el banco declinado y el de hiperextensión son otros bancos, propios de un gimnasio: su
+            // categoría en el motor es SUPPORT, y solo cuentan si ella está confirmada.
+            gymSupports = setOf(
+                EquipmentKeys.PREACHER_BENCH, SymbolEquipmentKeys.DECLINE_BENCH, SymbolEquipmentKeys.HYPEREXTENSION_BENCH,
+            ),
             places = ANYWHERE, seededBy = setOf(GYM),
         ),
         EquipmentSymbolId.DUMBBELLS to Spec(
