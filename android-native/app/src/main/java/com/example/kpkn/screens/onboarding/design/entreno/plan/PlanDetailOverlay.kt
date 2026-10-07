@@ -265,13 +265,22 @@ internal fun DetailSheet(
             Spacer(Modifier.height(with(density) { barPx.toDp() } + 24.dp))
         }
         // Un velo bajo la barra de estado: el contenido que sube no se mezcla con la hora ni con los iconos del sistema.
+        // Sólido por toda la barra y solo después se funde (antes se fundía desde arriba y, a la altura de la hora, dejaba
+        // pasar el 65 % del texto: «principales» se leía debajo de los iconos).
+        val statusFraction = statusTop.value / (statusTop.value + 18f)
         Box(
             Modifier
                 .align(Alignment.TopCenter)
                 .fillMaxWidth()
                 .height(statusTop + 18.dp)
                 .graphicsLayer { alpha = (scroll.value / 120f).coerceIn(0f, 1f) }
-                .background(Brush.verticalGradient(0f to OverlayScrim.copy(alpha = 0.97f), 1f to Color.Transparent)),
+                .background(
+                    Brush.verticalGradient(
+                        0f to OverlayScrim.copy(alpha = 0.97f),
+                        statusFraction to OverlayScrim.copy(alpha = 0.97f),
+                        1f to Color.Transparent,
+                    ),
+                ),
         )
         CloseButton(
             onClick = onClose,
