@@ -16,6 +16,198 @@
         "description": "La Plancha Abdominal es la prueba de estabilidad más desnuda que existe: el core sostiene el cuerpo en línea recta sin que nada se mueva, solo con el peso corporal. Se ejecuta apoyando antebrazos y puntas de los pies, con el abdomen firme y la cadera sin hundirse ni elevarse durante toda la serie. El abdomen trabaja en segundo plano aguantando la postura. Una medida honesta de la fortaleza de la zona media que cabe en cualquier rutina."
       },
       "status": "LEGACY"
+    },
+    "hollow_body_hold": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Resistencia a la extensión lumbar"
+            ],
+            "id": "columna-lumbar",
+            "role": "PRIMARY",
+            "sources": [
+              "willett2001",
+              "haladay2015"
+            ],
+            "why": "La zona lumbar no se mueve: el peso de piernas y brazos tira de ella hacia el arco y el abdomen la mantiene plana contra el suelo, que es lo que se evalúa en la prueba de descenso de piernas."
+          },
+          {
+            "actions": [
+              "Sostén de la flexión de cadera"
+            ],
+            "id": "cadera",
+            "role": "SECONDARY",
+            "sources": [
+              "haladay2015",
+              "statpearls_hip_joint"
+            ],
+            "why": "Las dos caderas sostienen las piernas estiradas unos centímetros por encima del suelo, en una flexión isométrica pequeña; el momento articular crece con la longitud de la palanca."
+          },
+          {
+            "actions": [
+              "Control pélvico"
+            ],
+            "id": "sacroiliaca",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_pelvic_joints"
+            ],
+            "why": "La pelvis debe seguir inclinada hacia atrás y pegada al suelo mientras las piernas pesan sobre ella; las sacroilíacas transmiten ese esfuerzo entre tronco y piernas con muy poco movimiento."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "abdominals",
+            "role": "PRIMARY",
+            "sources": [
+              "willett2001",
+              "haladay2015",
+              "statpearls_abdominal_wall"
+            ],
+            "why": "El recto abdominal y los oblicuos sostienen la curva e impiden que la zona lumbar se arquee bajo el peso de piernas y brazos. En el v-sit, que también eleva tronco y piernas a la vez, el oblicuo externo fue de los más activos y el recto superior igual que en los curls (Willett et al.); en el descenso de piernas estiradas, la actividad del recto abdominal se asoció con el nivel de la prueba (Haladay et al.)."
+          },
+          {
+            "id": "hip_flexors",
+            "role": "SECONDARY",
+            "sources": [
+              "haladay2015",
+              "statpearls_iliopsoas"
+            ],
+            "why": "El iliopsoas levanta las piernas estiradas y las sostiene en el aire; en el descenso de ambas piernas, el momento articular de la cadera tuvo una asociación muy fuerte con el nivel de la prueba (Haladay et al.). Por eso es un secundario de peso: cuanto más bajan los pies, más trabaja."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "haladay2015",
+              "statpearls_abdominal_wall"
+            ],
+            "why": "La capa profunda de la pared abdominal comprime el tronco y genera presión intraabdominal, lo que ayuda a sostener la columna mientras los extremos pesan hacia el suelo. En el descenso de ambas piernas, el oblicuo interno y el transverso del abdomen guardaron una asociación moderada con el nivel de la prueba (Haladay et al.); apoyan al abdomen superficial sin liderar el gesto."
+          }
+        ]
+      },
+      "public": {
+        "configurations": {
+          "hollow_body_hold__default": {
+            "description": "El peso de los brazos y de las piernas actúa como palanca sobre el abdomen, sin implemento. Con los brazos ya estirados sobre la cabeza, bajar los pies hacia el suelo es lo que alarga esa palanca y la hace más dura.",
+            "executionCues": [
+              "Eleva a la vez los hombros y las piernas unos centímetros del suelo.",
+              "Aguanta con la zona lumbar pegada y respirando con calma.",
+              "Baja en cuanto la zona lumbar empiece a despegarse."
+            ],
+            "setupCues": [
+              "Túmbate boca arriba con las piernas juntas y estiradas y los brazos extendidos sobre la cabeza.",
+              "Recoge el mentón y lleva las costillas hacia la pelvis antes de despegar nada."
+            ]
+          }
+        },
+        "description": "El Hollow Body Hold (posición hollow) es una isometría de abdomen heredada de la gimnasia: sobre la espalda, los brazos se estiran por encima de la cabeza y las piernas, juntas y estiradas, se elevan unos centímetros mientras los hombros se despegan del suelo y la zona lumbar sigue pegada a él. Los músculos del abdomen, con el recto abdominal y los oblicuos a la cabeza, sostienen esa curva con la zona lumbar plana, mientras los flexores de la cadera levantan las piernas. Cuanto más cerca del suelo quedan los pies, más larga es la palanca y más exige. Doblar las rodillas o dejar los brazos junto al cuerpo la hace asequible. Es una posición de resistencia, no de repeticiones: cuenta mientras la zona lumbar siga pegada al suelo."
+      },
+      "sources": [
+        {
+          "claim": "En 25 sanos, el v-sit y el reverse curl dieron la mayor actividad del oblicuo externo, y el trunk curl, el reverse curl, el trunk curl con giro y el v-sit dieron una actividad parecida del recto abdominal superior.",
+          "id": "willett2001",
+          "title": "Relative activity of abdominal muscles during commonly prescribed strengthening exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/11726260/"
+        },
+        {
+          "claim": "En la prueba de descenso de ambas piernas, la actividad del recto abdominal tuvo una asociación de moderada a fuerte con el nivel de la prueba y el momento resultante de la cadera, una asociación muy fuerte.",
+          "id": "haladay2015",
+          "title": "Electromyographic and kinetic analysis of two abdominal muscle performance tests",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/26467996/"
+        },
+        {
+          "claim": "Describe la pared abdominal como estructura capaz de generar presión intraabdominal y mover la columna vertebral.",
+          "id": "statpearls_abdominal_wall",
+          "title": "Anatomy, Abdomen and Pelvis: Abdominal Wall",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31869113/"
+        },
+        {
+          "claim": "El iliopsoas es el principal flexor del muslo y contribuye a estabilizar la cadera y la columna lumbar.",
+          "id": "statpearls_iliopsoas",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Iliopsoas Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30285403/"
+        },
+        {
+          "claim": "Describe la cadera como articulación que soporta dinámicamente el peso del tronco y transmite carga entre esqueleto axial y miembros inferiores.",
+          "id": "statpearls_hip_joint",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hip Joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29262200/"
+        },
+        {
+          "claim": "Describe la articulación sacroilíaca como la que transmite al miembro inferior buena parte del peso de los miembros superiores y del tronco, lo que explica su movilidad muy restringida.",
+          "id": "statpearls_pelvic_joints",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Pelvic Joints",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30860758/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Isometría boca arriba en forma de arco hueco: hombros y piernas estiradas quedan elevados unos centímetros mientras la zona lumbar sigue pegada al suelo. Se separa de la plancha porque el cuerpo está tumbado y la gravedad tira de los extremos, y de los ejercicios de enrollar el tronco porque no hay recorrido: lo que se sostiene es la curva.",
+        "keyPositions": [
+          "Inicio: tumbado, brazos y piernas estirados en el suelo y la zona lumbar plana contra él.",
+          "Posición sostenida: hombros y piernas despegados unos centímetros, con las costillas hacia la pelvis, el mentón recogido y la zona lumbar sin hueco."
+        ],
+        "mistakes": [
+          "Arquear la zona lumbar y dejar un hueco bajo la espalda para mantener las piernas arriba.",
+          "Subir las piernas más de lo necesario y perder la curva del cuerpo.",
+          "Tirar del cuello con las manos o adelantar la cabeza.",
+          "Contener la respiración durante todo el tiempo."
+        ],
+        "phases": [
+          {
+            "description": "Con el cuerpo tumbado, la zona lumbar se pega al suelo antes de elevar los extremos.",
+            "name": "Preparación"
+          },
+          {
+            "description": "Los hombros y las piernas se despegan a la vez unos centímetros, conservando la espalda baja plana.",
+            "name": "Elevación"
+          },
+          {
+            "description": "La curva se sostiene respirando con calma, con la zona lumbar siempre pegada.",
+            "name": "Sostén"
+          },
+          {
+            "description": "Hombros y piernas vuelven al suelo con calma al terminar el tiempo o cuando la espalda baja empieza a despegarse.",
+            "name": "Descenso"
+          }
+        ],
+        "setup": [
+          "Boca arriba sobre un suelo firme, con las piernas juntas y estiradas y los pies en punta.",
+          "Brazos estirados por encima de la cabeza, junto a las orejas, con las palmas hacia dentro."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral a la altura del suelo, con el cuerpo entero dentro del encuadre, de las manos a los pies.",
+          "contacts": "Solo la zona lumbar y la pelvis tocan el suelo; hombros, brazos, cabeza y piernas están en el aire.",
+          "load": "Solo el peso de los brazos y de las piernas, sin ningún implemento a la vista.",
+          "orientation": "Atleta tumbado boca arriba, con la cabeza hacia la izquierda del encuadre y los pies hacia la derecha.",
+          "phase": "Posición sostenida: hombros y piernas despegados unos centímetros del suelo, en forma de arco hueco.",
+          "posture": "Zona lumbar plana contra el suelo sin hueco, mentón recogido, costillas hacia la pelvis y pies en punta."
+        },
+        "byImplement": {
+          "bodyweight": {
+            "geometry": "Suelo plano y liso sin objetos a la vista; los brazos quedan estirados junto a las orejas y las piernas juntas, ambos a pocos centímetros del suelo."
+          }
+        },
+        "forbidden": [
+          "Zona lumbar arqueada, con un hueco visible bajo la espalda.",
+          "Hombros apoyados en el suelo: eso es la posición de partida, no la sostenida.",
+          "Rodillas flexionadas o piernas separadas.",
+          "Cuerpo boca abajo o sobre los antebrazos: eso es una plancha."
+        ],
+        "promptCore": {
+          "bodyweight": "Side view of a muscular athlete lying on their back on a flat floor, frozen in a hollow body hold. Both arms are stretched straight overhead beside the ears and both legs are straight and together with pointed toes, with the arms, shoulders and legs all hovering a few centimeters above the floor. Only the lower back and the pelvis press into the floor, with no gap under the lower back. The chin is tucked toward the chest. Nothing is held in the hands and there is no equipment."
+        },
+        "qa": [
+          "¿El atleta está tumbado boca arriba, con hombros y piernas despegados del suelo?",
+          "¿La zona lumbar está pegada al suelo, sin un hueco visible bajo la espalda?",
+          "¿Los brazos están estirados junto a las orejas y las piernas están juntas y estiradas?",
+          "¿Las manos están vacías, sin ningún implemento en el encuadre?"
+        ]
+      }
     }
   },
   "familyId": "core_anti_extension_isometric",

@@ -131,38 +131,13 @@ fun SetupTrainingStepContent(
 // ruta sin responder).
 
 /**
- * Splits aplicables hoy: visibles para aplicación, con el nº de días real y, desde A.E2 (D6), compatibles con el
- * objetivo: los repartos de powerlifting solo se ofrecen en Fuerza ([isSplitOfferedForGoal]). Sin objetivo
- * ([goal] null) no se filtra por él.
- */
-internal fun compatibleSplitTemplates(daysPerWeek: Int?, startDay: Int, goal: SetupGoal? = null): List<SplitTemplate> =
-    SPLIT_TEMPLATES.filter { split ->
-        if (!split.isVisibleForApplication) return@filter false
-        if (!isSplitOfferedForGoal(split, goal)) return@filter false
-        daysPerWeek == null ||
-            SplitApplicationEngine.patternToTrainingDays(split.pattern, startDay).size == daysPerWeek
-    }
-
-/**
  * D6 (A.E2): un reparto de powerlifting (etiqueta `POWERLIFTING` del catálogo de repartos) solo se ofrece en Fuerza;
- * Músculo, Fuerza y músculo y Atleta completo no lo listan. Sin objetivo ([goal] null) todo se ofrece.
+ * Músculo, Fuerza y músculo y Atleta completo no lo listan. Sin objetivo ([goal] null) todo se ofrece. Lo usa el reductor
+ * de GOAL para retirar un reparto que el objetivo nuevo ya no ofrece; la lista de repartos del tablero de la semana y sus
+ * nombres viven en el dominio (`domain/training/split/SplitCatalogRules`).
  */
 internal fun isSplitOfferedForGoal(split: SplitTemplate, goal: SetupGoal?): Boolean =
     goal == null || goal == SetupGoal.STRENGTH || SplitTag.POWERLIFTING !in split.tags
-
-/**
- * Filas crudas (porcentaje, repeticiones) → recetas reales. Una fila a medio
- * completar queda con el hueco a null: la validación la señala en lugar de
- * inventar un valor.
- */
-internal fun warmupRecipesFromRaw(raw: List<Pair<String, String>>): List<SetRecipe> =
-    raw.map { (percentRaw, repsRaw) ->
-        SetRecipe(
-            percent = parseLocalizedNumber(percentRaw),
-            reps = parseLocalizedNumber(repsRaw)?.toInt(),
-            isWarmup = true,
-        )
-    }
 
 // ─── Pasos de opción (defs actuales, valores estables) ──────────────────────
 
@@ -238,38 +213,6 @@ private fun BikePresenceConfirmation(step: SetupStepId, state: SetupWizardState,
         )
     }
 }
-
-// ─── SPLIT ──────────────────────────────────────────────────────────────────
-
-/**
- * Nombre en español llano de un reparto: el mismo en la lista de repartos y en la revisión (C.P5).
- * Los repartos sin nombre propio aquí conservan el `name` de su plantilla.
- */
-internal fun splitDisplayName(template: SplitTemplate): String = when (template.id) {
-    "ul_x4" -> "Torso y pierna, 4 días"
-    "ppl_ul" -> "Empuje, tirón, pierna y torso"
-    "fullbody_x3" -> "Cuerpo completo, 3 días"
-    "ppl_x6" -> "Empuje, tirón y pierna, 6 días"
-    "ul_x6" -> "Torso y pierna, 6 días"
-    "ppl_arnold" -> "Empuje, tirón y pierna con énfasis"
-    "phat_hybrid" -> "Torso, pierna y cuerpo completo"
-    "ant_post_x4" -> "Cadena anterior y posterior, 4 días"
-    "arnold_ul" -> "Estético y torso/pierna"
-    "ant_post_x6" -> "Cadena anterior y posterior, 6 días"
-    "bro_split" -> "Un grupo por día"
-    "hybrid_fb_ap" -> "Cuerpo completo y cadenas"
-    "minimalist_x2" -> "Dos días, lo esencial"
-    "weekend_warrior" -> "Fin de semana"
-    "glute_focus" -> "Énfasis en glúteos"
-    "beach_body" -> "Más torso"
-    "fullbody_x5" -> "Cuerpo completo, 5 días"
-    "push_pull_x4" -> "Empuje y tirón, 4 días"
-    else -> template.name
-}
-
-/** Nombre del reparto [splitId] en español llano; null si el catálogo de repartos no lo conoce (nunca el id). */
-internal fun splitDisplayName(splitId: String): String? =
-    SPLIT_TEMPLATES.firstOrNull { template -> template.id == splitId }?.let { template -> splitDisplayName(template) }
 
 // ─── PLAN: candidatos reales ────────────────────────────────────────────────
 
@@ -862,50 +805,7 @@ private fun FromScratchSessions(state: SetupWizardState) {
 internal fun scratchExerciseLine(name: String, sets: Int?, reps: Int?): String =
     "$name · ${sets?.let(SpanishPlurals::sets) ?: "— series"} × ${reps?.let(SpanishPlurals::reps) ?: "— reps"}"
 
-// ─── TRAINING_REVIEW ────────────────────────────────────────────────────────
-
-/** Las sesiones de la primera semana del programa preparado, por día (lectura: la usa la semana armada). */
-@Composable
-internal fun ProgramSessions(program: Program) {
-    val firstWeek = program.macrocycles
-        .firstOrNull()?.blocks
-        ?.firstOrNull()?.mesocycles
-        ?.firstOrNull()?.weeks
-        ?.firstOrNull()
-    val sessions = firstWeek?.sessions.orEmpty()
-    Column(verticalArrangement = Arrangement.spacedBy(WizardSpacing.cardGap)) {
-        TrainingSummaryRow(label = "Programa", value = program.name)
-        if (sessions.isEmpty()) {
-            TrainingNotice("El programa todavía no trae sesiones.", TrainingNoticeTone.ERROR)
-        } else {
-            sessions.sortedBy { session -> session.dayOfWeek ?: session.assignedDays.firstOrNull() ?: Int.MAX_VALUE }
-                .forEach { session ->
-                val day = session.dayOfWeek ?: session.assignedDays.firstOrNull()
-                val dayLabel = session.scheduleLabel?.takeIf { it.isNotBlank() }
-                    ?: weekdayLabel(day)
-                    ?: "Sin día asignado"
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(WizardColors.cardFill, WizardShapes.card)
-                        .border(WizardColors.unselectedBorderWidth, WizardColors.cardBorder, WizardShapes.card)
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    Text(dayLabel, style = WizardTypography.cardTitle, color = WizardColors.text)
-                    Text(session.name, style = WizardTypography.cardSubtitle, color = WizardColors.textMuted)
-                    session.allExercises().forEach { exercise ->
-                        Text(
-                            text = "${exercise.name} · ${exerciseSummary(exercise)}",
-                            style = WizardTypography.cardSubtitle,
-                            color = WizardColors.textMuted,
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
+// ─── Vista previa del programa ──────────────────────────────────────────────
 
 /** «1 serie × 1 rep» / «3 series × 8 rep» de la vista previa del programa. */
 internal fun exerciseSummary(exercise: Exercise): String = buildString {

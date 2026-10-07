@@ -95,9 +95,37 @@ class ProgramNamingTest {
     @Test
     fun the_historic_native_plans_stay_hypertrophy() {
         PersonalizedPlanCatalog.entries()
-            .filter { it.source == CatalogSource.NATIVE && NativeProfileKind.fromEntryId(it.id) == null }
+            .filter { it.source == CatalogSource.NATIVE && NativeProfileKind.fromEntryId(it.id) == null && !it.isGenerated }
             .also { assertEquals("los ocho nativos históricos", 8, it.size) }
             .forEach { entry -> assertEquals(entry.id, ProgramMode.HYPERTROPHY, programModeFor(entry)) }
+    }
+
+    /**
+     * Entreno v2: cada programa «a medida» se llama como su ficha y toma el modo que fija el generador de rutinas
+     * (`RoutineGenerator.programModeOf`): fuerza máxima para powerlifting, strongman y la base de halterofilia;
+     * powerbuilding para los dos de fuerza y músculo; hipertrofia para el resto.
+     */
+    @Test
+    fun the_generated_plans_take_the_name_of_their_card_and_the_mode_of_the_generator() {
+        val expected = mapOf(
+            "generated:strength-muscle" to ProgramMode.POWERBUILDING,
+            "generated:hybrid" to ProgramMode.HYPERTROPHY,
+            "generated:functional" to ProgramMode.HYPERTROPHY,
+            "generated:calisthenics" to ProgramMode.HYPERTROPHY,
+            "generated:armwrestling" to ProgramMode.HYPERTROPHY,
+            "generated:strongman" to ProgramMode.POWERLIFTING,
+            "generated:weightlifting-base" to ProgramMode.POWERLIFTING,
+            "generated:powerlifting" to ProgramMode.POWERLIFTING,
+            "generated:powerbuilding" to ProgramMode.POWERBUILDING,
+            "generated:bodybuilding" to ProgramMode.HYPERTROPHY,
+        )
+        assertEquals(expected.keys.toList(), PersonalizedPlanCatalog.GENERATED_IDS)
+        expected.forEach { (id, mode) ->
+            val generated = entry(id)
+            assertTrue("$id es NATIVE «a medida»", generated.isGenerated)
+            assertEquals(id, generated.displayName, programNameFor(generated))
+            assertEquals(id, mode, programModeFor(generated))
+        }
     }
 
     @Test

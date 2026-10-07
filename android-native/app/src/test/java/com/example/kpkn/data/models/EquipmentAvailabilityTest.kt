@@ -112,4 +112,34 @@ class EquipmentAvailabilityTest {
         assertTrue(json.encodeToString(declared).contains("\"apparatus\""))
         assertTrue(json.encodeToString(declared).contains("\"supports\""))
     }
+
+    /** Paquete E2: «Máquinas» como sala de máquinas; el JSON anterior, sin el campo, decodifica `false` y no cambia. */
+    @Test
+    fun the_machine_room_flag_round_trips_and_older_json_decodes_it_as_false() {
+        for (json in listOf(Json { encodeDefaults = true }, Json { encodeDefaults = false })) {
+            val room = EquipmentAvailability(
+                categories = setOf(EquipmentCategory.MACHINES),
+                apparatus = mapOf(EquipmentKeys.LEG_PRESS to ApparatusPresence.PRESENT),
+                machinesAsCategory = true,
+            )
+            val restored = json.decodeFromString<EquipmentAvailability>(json.encodeToString(room))
+            assertEquals(room, restored)
+            assertTrue(restored.machinesAsCategory)
+            assertTrue(json.encodeToString(room).contains("\"machinesAsCategory\":true"))
+
+            // Datos guardados antes del campo: sin la clave decodifican `false` y son iguales a lo que ya había.
+            val stored = """{"categories":["MACHINES"],"apparatus":{"leg_press":"PRESENT"}}"""
+            val old = json.decodeFromString<EquipmentAvailability>(stored)
+            assertFalse(old.machinesAsCategory)
+            assertEquals(room.copy(machinesAsCategory = false), old)
+            assertNotEquals("la bandera forma parte de la igualdad", room, old)
+            // Una disponibilidad sin bandera se escribe y se lee igual que siempre.
+            assertEquals(old, json.decodeFromString<EquipmentAvailability>(json.encodeToString(old)))
+        }
+        // Dentro de los ajustes (donde viaja de verdad), con el JSON de la base de datos.
+        val dbLike = Json { encodeDefaults = true; ignoreUnknownKeys = true; coerceInputValues = true }
+        val settings = Settings(equipmentAvailability = EquipmentAvailability(setOf(EquipmentCategory.MACHINES), machinesAsCategory = true))
+        assertEquals(settings, dbLike.decodeFromString<Settings>(dbLike.encodeToString(settings)))
+        assertFalse(dbLike.decodeFromString<Settings>("""{"equipmentAvailability":{"categories":["MACHINES"]}}""").equipmentAvailability!!.machinesAsCategory)
+    }
 }

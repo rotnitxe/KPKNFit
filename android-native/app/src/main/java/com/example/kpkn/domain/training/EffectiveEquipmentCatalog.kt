@@ -88,6 +88,15 @@ internal const val REQUIREMENT_SUPPORT = "support"
 internal const val REQUIREMENT_NORDIC_ANCHOR = "nordic_anchor"
 
 /**
+ * Aparatos propios de un gimnasio que piden dos configuraciones con disco (paquete E2): el banco declinado del crunch
+ * lastrado y el banco de hiperextensión a 45°. Los acredita el símbolo «Banco» solo con gimnasio entre los lugares
+ * ([SYMBOL_EQUIPMENT_KEYS]); no son del subpanel §13.2 ni de [KNOWN_REQUIREMENTS], así que una receta que los pida sin
+ * ellos los ve ausentes, sin una pregunta que nunca los acreditaría.
+ */
+internal const val REQUIREMENT_DECLINE_BENCH = "decline_bench"
+internal const val REQUIREMENT_HYPEREXTENSION_BENCH = "hyperextension_bench"
+
+/**
  * Requisitos que el vocabulario del panel puede acreditar. La evidencia de
  * cada uno viaja en `EffectiveEquipmentResult.requirements` para que la UI
  * distinga «ausente» (negado o categoría sin esos ítems) de «desconocido»
@@ -140,6 +149,11 @@ internal val LEGACY_SUPPORT_ATTESTED_REQUIREMENTS: Set<String> = setOf(
  * - Huecos de soporte: el rack chin, las dominadas escapulares, la suspensión en barra y el jalón con
  *   banda dependen de una barra (baja estable o de dominadas), y el hip thrust con banda y el curl
  *   inclinado dependen de un banco.
+ *
+ * Lote BW-1 (peso corporal): la dominada negativa pide la barra de dominadas; la pica con los pies elevados, el
+ * step-up y la sentadilla búlgara sin carga piden un apoyo elevado ([ELEVATED_SUPPORT_CONFIGURATIONS]). El resto de las
+ * altas (dead bug, bird dog, plancha lateral, hollow body, sentadilla en pared, pica plana, flexiones diamante y
+ * arquero y las zancadas, sumo, sissy, rumano a una pierna y buenos días sin carga) no necesita ningún soporte.
  */
 internal fun supportRequirementsFor(configurationId: String): Set<String> = when {
     // Banca: exige banco; la variante de barra exige además rack; las
@@ -174,6 +188,7 @@ internal fun supportRequirementsFor(configurationId: String): Set<String> = when
     "triceps_fondos_entre_bancos__default" == configurationId -> setOf(REQUIREMENT_BENCH)
     "tren_superior_fondos__default" == configurationId -> setOf(REQUIREMENT_DIP_BARS)
     configurationId.startsWith(PULL_UP_PREFIX) ||
+        configurationId.startsWith(NEGATIVE_PULL_UP_PREFIX) ||
         configurationId.startsWith(SCAPULAR_PULL_UP_PREFIX) ||
         configurationId.startsWith(DEAD_HANG_PREFIX) -> setOf(REQUIREMENT_PULL_UP_BAR)
     // Apoyos concretos
@@ -182,6 +197,12 @@ internal fun supportRequirementsFor(configurationId: String): Set<String> = when
     "curl_isquios_con_balon__default" == configurationId -> setOf(REQUIREMENT_BALL)
     "hams_curl_nordic_peso_corporal__default" == configurationId -> setOf(REQUIREMENT_NORDIC_ANCHOR)
     "push_up__feet_elevated" == configurationId -> setOf(REQUIREMENT_SUPPORT)
+    // Lote BW-1 (peso corporal): sin un apoyo elevado estas configuraciones no se pueden hacer, y como su implemento es
+    // `bodyweight` (siempre acreditado) nada más las bloquearía.
+    configurationId in ELEVATED_SUPPORT_CONFIGURATIONS -> setOf(REQUIREMENT_SUPPORT)
+    // Discos con un aparato de gimnasio que el catálogo no declara: banco declinado e hiperextensión a 45° (paquete E2).
+    "core_crunch_banco_declinado_lastrado_disco__default" == configurationId -> setOf(REQUIREMENT_DECLINE_BENCH)
+    "glutes_hiperextension_45__plate" == configurationId -> setOf(REQUIREMENT_HYPEREXTENSION_BENCH)
     else -> emptySet()
 }
 
@@ -191,6 +212,7 @@ private const val CLOSE_GRIP_BENCH_PRESS_PREFIX = "close_grip_bench_press__"
 private const val INCLINE_BENCH_PRESS_PREFIX = "incline_bench_press__"
 private const val DECLINE_BENCH_PRESS_PREFIX = "decline_bench_press__"
 private const val PULL_UP_PREFIX = "pull_up__"
+private const val NEGATIVE_PULL_UP_PREFIX = "negative_pull_up__"
 private const val SCAPULAR_PULL_UP_PREFIX = "back_dominadas_escapulares__"
 private const val DEAD_HANG_PREFIX = "forearms_suspension_isometrica_barra_fija__"
 private const val RACK_CHIN_PREFIX = "rack_chin__"
@@ -214,6 +236,18 @@ private val FLAT_BENCH_PRESS_PREFIXES = listOf(
 private val BARBELL_BENCH_VARIANT_CONFIGURATIONS = setOf(
     "tren_superior_press_spoto_barra__default",
     "tren_superior_press_banca_cadenas__default",
+)
+
+/**
+ * Configuraciones de peso corporal del lote BW-1 que necesitan un apoyo elevado estable (banco, cajón, escalón o sofá):
+ * la pica con los pies elevados, el step-up y la sentadilla búlgara sin carga. «Apoyo elevado» ([REQUIREMENT_SUPPORT]) es el
+ * mismo requisito que ya pide la flexión con los pies elevados; lo acredita cualquier símbolo de soporte del paso de
+ * material, y el cajón ([SymbolEquipmentKeys.PLYO_BOX], en [SYMBOL_EQUIPMENT_KEYS]) también.
+ */
+private val ELEVATED_SUPPORT_CONFIGURATIONS = setOf(
+    "pike_push_up__feet_elevated",
+    "step_up__bodyweight",
+    "bulgarian_split_squat__bodyweight",
 )
 
 /**
@@ -514,9 +548,13 @@ internal fun attestedTokensOf(key: String): Set<String> =
  * solo se admiten las máquinas cuyo token `machine_config:<id>` esté acreditado; con las máquinas
  * solo por categoría (aunque haya soportes confirmados), el plan propio puede usar las variantes de
  * máquina aprobadas sin afirmar una configuración. Ver DEV-r2-06 en `docs/WIZARD_PLAN_DEVIATIONS.md`.
+ *
+ * Con [EquipmentAvailability.machinesAsCategory] es siempre false: «Máquinas» como una sala de máquinas es una declaración
+ * por categoría aunque sus llaves consten `PRESENT` (esas llaves solo sirven para que las recetas de autor vean sus
+ * tokens `machine_config:`).
  */
 internal fun EquipmentAvailability.hasExplicitMachinePresence(): Boolean =
-    EFFECTIVE_EQUIPMENT_KEYS.any { spec ->
+    !machinesAsCategory && EFFECTIVE_EQUIPMENT_KEYS.any { spec ->
         (spec.category == EquipmentCategory.MACHINES || spec.category == EquipmentCategory.CABLE) &&
             presenceOf(spec.key) != ApparatusPresence.UNKNOWN
     }
@@ -546,6 +584,8 @@ internal object SymbolEquipmentKeys {
     const val T_BAR = "t_bar"
     const val GHD = "ghd"
     const val AB_WHEEL = "ab_wheel"
+    const val DECLINE_BENCH = REQUIREMENT_DECLINE_BENCH
+    const val HYPEREXTENSION_BENCH = REQUIREMENT_HYPEREXTENSION_BENCH
 }
 
 /**
@@ -569,7 +609,13 @@ internal data class SymbolEquipmentKey(
 internal val SYMBOL_EQUIPMENT_KEYS: List<SymbolEquipmentKey> = listOf(
     // Anillas o TRX: el catálogo llama `trx` al implemento de suspensión y las reservas del generador piden `rings`.
     SymbolEquipmentKey(SymbolEquipmentKeys.RINGS, EquipmentCategory.SUPPORT, setOf("trx", "rings")),
-    SymbolEquipmentKey(SymbolEquipmentKeys.PLYO_BOX, EquipmentCategory.SUPPORT, setOf(SymbolEquipmentKeys.PLYO_BOX)),
+    // Cajón o step: además del token propio de las reservas del generador, es un apoyo elevado (`support`), el requisito
+    // de la pica con los pies elevados, el step-up y la búlgara sin carga (lote BW-1). Las anillas NO lo son.
+    SymbolEquipmentKey(
+        SymbolEquipmentKeys.PLYO_BOX,
+        EquipmentCategory.SUPPORT,
+        setOf(SymbolEquipmentKeys.PLYO_BOX, REQUIREMENT_SUPPORT),
+    ),
     SymbolEquipmentKey(SymbolEquipmentKeys.JUMP_ROPE, EquipmentCategory.CARDIO, setOf(SymbolEquipmentKeys.JUMP_ROPE)),
     // Barra baja de un parque: la barra de dominadas de un parque suele traerla (`EquipmentSymbols` escribe la llave con
     // `PUBLIC` entre los lugares y la barra de dominadas elegida). La categoría que consta ahí es la de la barra de
@@ -582,4 +628,8 @@ internal val SYMBOL_EQUIPMENT_KEYS: List<SymbolEquipmentKey> = listOf(
     SymbolEquipmentKey(SymbolEquipmentKeys.T_BAR, EquipmentCategory.BARBELL, setOf(SymbolEquipmentKeys.T_BAR)),
     SymbolEquipmentKey(SymbolEquipmentKeys.GHD, EquipmentCategory.MACHINES, setOf(SymbolEquipmentKeys.GHD)),
     SymbolEquipmentKey(SymbolEquipmentKeys.AB_WHEEL, EquipmentCategory.MACHINES, setOf(SymbolEquipmentKeys.AB_WHEEL)),
+    // Aparatos de gimnasio con banco (paquete E2): el banco declinado del crunch con disco y el de hiperextensión a 45°.
+    // Con el símbolo «Banco» y gimnasio entre los lugares; en casa un banco no los trae.
+    SymbolEquipmentKey(SymbolEquipmentKeys.DECLINE_BENCH, EquipmentCategory.SUPPORT, setOf(REQUIREMENT_DECLINE_BENCH)),
+    SymbolEquipmentKey(SymbolEquipmentKeys.HYPEREXTENSION_BENCH, EquipmentCategory.SUPPORT, setOf(REQUIREMENT_HYPEREXTENSION_BENCH)),
 )

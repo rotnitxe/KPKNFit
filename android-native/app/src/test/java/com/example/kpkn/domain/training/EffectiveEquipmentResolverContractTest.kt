@@ -447,6 +447,9 @@ class EffectiveEquipmentResolverContractTest {
             SymbolEquipmentKeys.T_BAR to (EquipmentCategory.BARBELL to setOf("t_bar")),
             SymbolEquipmentKeys.GHD to (EquipmentCategory.MACHINES to setOf("ghd")),
             SymbolEquipmentKeys.AB_WHEEL to (EquipmentCategory.MACHINES to setOf("ab_wheel")),
+            // Paquete E2: los bancos propios de un gimnasio que piden dos configuraciones con disco.
+            SymbolEquipmentKeys.DECLINE_BENCH to (EquipmentCategory.SUPPORT to setOf("decline_bench")),
+            SymbolEquipmentKeys.HYPEREXTENSION_BENCH to (EquipmentCategory.SUPPORT to setOf("hyperextension_bench")),
         )
         for ((key, spec) in expected) {
             val (category, tokens) = spec
@@ -465,7 +468,7 @@ class EffectiveEquipmentResolverContractTest {
             assertTrue(tokensOf(setOf(category), mapOf(key to ApparatusPresence.ABSENT)).none { it in tokens })
             assertTrue(tokensOf(setOf(category)).none { it in tokens })
         }
-        assertEquals("las nueve llaves de símbolo", 9, SYMBOL_EQUIPMENT_KEYS.size)
+        assertEquals("las once llaves de símbolo", 11, SYMBOL_EQUIPMENT_KEYS.size)
     }
 
     @Test
@@ -528,6 +531,21 @@ class EffectiveEquipmentResolverContractTest {
         }
         // `low_bar_support` es un requisito del contrato de soportes.
         assertTrue(REQUIREMENT_LOW_BAR_SUPPORT in KNOWN_REQUIREMENTS)
+        // Los bancos de gimnasio (paquete E2) son requisitos que `supportRequirementsFor` declara para configuraciones reales
+        // del catálogo; no son del vocabulario del subpanel, así que ninguna receta ve una pregunta que nunca los acreditaría.
+        val declaredRequirements = catalog.families
+            .flatMap { it.definitions }
+            .flatMap { it.configurations }
+            .flatMap { supportRequirementsFor(it.id) }
+            .toSet()
+        listOf(REQUIREMENT_DECLINE_BENCH, REQUIREMENT_HYPEREXTENSION_BENCH).forEach { token ->
+            assertTrue("«$token» no lo pide ninguna configuración del catálogo", token in declaredRequirements)
+            assertTrue("«$token» no lo acredita ninguna llave de símbolo", SYMBOL_EQUIPMENT_KEYS.any { token in it.attestedTokens })
+            assertFalse("«$token» no es del vocabulario del subpanel", token in KNOWN_REQUIREMENTS)
+            assertFalse("«$token» no es de ninguna llave del subpanel", EFFECTIVE_EQUIPMENT_KEYS.any { token in it.attestedTokens })
+        }
+        assertEquals(setOf(REQUIREMENT_DECLINE_BENCH), supportRequirementsFor("core_crunch_banco_declinado_lastrado_disco__default"))
+        assertEquals(setOf(REQUIREMENT_HYPEREXTENSION_BENCH), supportRequirementsFor("glutes_hiperextension_45__plate"))
     }
 
     /**
@@ -579,5 +597,43 @@ class EffectiveEquipmentResolverContractTest {
             ConfigurationAvailability.Missing(absent, setOf("sliders")),
             verdict("curl_isquios_con_sliders__default", gymSeed, gym),
         )
+
+        // Paquete E2: los discos con aparato propio (banco declinado, hiperextensión a 45°) constan con «Banco» en el
+        // gimnasio; en casa o sin banco siguen ausentes aunque haya barra y discos.
+        val crunch = "core_crunch_banco_declinado_lastrado_disco__default"
+        val hyperextension = "glutes_hiperextension_45__plate"
+        listOf(crunch, hyperextension).forEach { id ->
+            assertEquals("$id con el gimnasio completo", ConfigurationAvailability.Available, verdict(id, gymSeed, gym))
+        }
+        assertEquals(
+            ConfigurationAvailability.Missing(absent, setOf("decline_bench")),
+            verdict(crunch, setOf(EquipmentSymbolId.BARBELL, EquipmentSymbolId.BENCH), home),
+        )
+        assertEquals(
+            ConfigurationAvailability.Missing(absent, setOf("hyperextension_bench")),
+            verdict(hyperextension, gymSeed - EquipmentSymbolId.BENCH, gym),
+        )
+    }
+
+    /**
+     * «Máquinas» como sala (paquete E2): la categoría deja de exigir el modo exacto, pero las nueve llaves curadas siguen
+     * `PRESENT` y las recetas de autor siguen viendo cada `machine_config:` del subpanel.
+     */
+    @Test
+    fun a_machine_room_keeps_the_curated_machine_tokens_and_drops_the_exact_configuration_mode() {
+        val room = EquipmentSymbols.availabilityOf(setOf(EquipmentSymbolId.MACHINES), setOf(TrainingPlace.GYM))
+        val tokens = TrainingOptions(availability = room).resolveEffectiveEquipment(emptySet()).tokens
+        assertTrue(room.machinesAsCategory)
+        assertTrue("machine" in tokens)
+        val curated = EFFECTIVE_EQUIPMENT_KEYS.filter { it.category == EquipmentCategory.MACHINES }.flatMap { it.machineConfigurations }
+        assertTrue("las máquinas del subpanel deben seguir acreditadas", curated.isNotEmpty() && curated.all { machineConfigToken(it) in tokens })
+        assertFalse(room.hasExplicitMachinePresence())
+        assertFalse(ConfigurationEquipmentFilter.requiresExactMachineConfiguration(TrainingOptions(availability = room)))
+        // La misma disponibilidad sin la bandera (subpanel antiguo, datos guardados) vuelve al modo exacto de siempre.
+        val panelAnswer = room.copy(machinesAsCategory = false)
+        assertTrue(panelAnswer.hasExplicitMachinePresence())
+        assertTrue(ConfigurationEquipmentFilter.requiresExactMachineConfiguration(TrainingOptions(availability = panelAnswer)))
+        // Los tokens que acredita el resolutor no dependen de la bandera.
+        assertEquals(tokens, TrainingOptions(availability = panelAnswer).resolveEffectiveEquipment(emptySet()).tokens)
     }
 }

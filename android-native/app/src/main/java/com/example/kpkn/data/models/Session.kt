@@ -58,6 +58,12 @@ data class Session(
     val cardioFirst: Boolean = false,
     /** Editor rule defaults that must survive save/reload and MESOCYCLE clones. */
     val persistedRuleDefaults: SessionPersistedRuleDefaults? = null,
+    /**
+     * Lugar para el que se armó la sesión (`TrainingPlace.name`: `GYM`, `HOME`, `PUBLIC`), cuando el alta lo sabe: el
+     * generador de rutinas arma cada sesión solo con el material de su lugar. null = sin lugar (programas anteriores,
+     * planes de autor y sesiones creadas a mano). Viaja en el JSON del programa: no necesita migración.
+     */
+    val placeId: String? = null,
 ) {
     fun allSupersetGroups(): List<SupersetGroup> {
         val local = supersetGroups.ifEmpty { legacySupersetGroups() }

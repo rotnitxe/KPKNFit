@@ -1333,6 +1333,246 @@
             "selectedOptions": {
               "implement": "cable"
             }
+          },
+          {
+            "displaySummary": "bodyweight",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "editorial:configuration:step_up__bodyweight",
+                "plan:wizard-entreno-v2-bw1-20261007#step_up"
+              ],
+              "reviewStatus": "APPROVED"
+            },
+            "id": "step_up__bodyweight",
+            "profile": {
+              "articulationType": "MULTIARTICULAR",
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-09-29-a",
+              "cnc": 2.2,
+              "description": "Las manos quedan libres y la altura del cajón decide cuánto cuesta cada subida: a más altura, más trabajo para la pierna. La atención va al pie apoyado entero sobre el cajón y a una bajada sin caída.",
+              "efc": 2.8,
+              "equipmentId": "bodyweight",
+              "executionCues": [
+                "Presiona con todo el pie apoyado y estira cadera y rodilla hasta quedar erguido sobre el cajón.",
+                "Acerca el pie libre arriba sin impulso, sin saltar y sin cargar el peso en él.",
+                "Baja despacio por la misma pierna hasta tocar el suelo con el pie libre."
+              ],
+              "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Extensión de rodilla",
+                    "Flexión de rodilla durante el descenso"
+                  ],
+                  "jointId": "rodilla",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Extensión de cadera",
+                    "Flexión de cadera durante el descenso"
+                  ],
+                  "jointId": "cadera",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Dorsiflexión de tobillo",
+                    "Flexión plantar de tobillo"
+                  ],
+                  "jointId": "tobillo",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Sostén postural lumbar"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Transferencia de carga entre pelvis y tronco"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "UNILATERAL",
+              "loadMode": "bodyweight",
+              "movementPatternId": "unilateral_knee_dominant",
+              "performanceProfileId": "step_up__bodyweight__zancada",
+              "primaryMuscles": [
+                "quadriceps",
+                "gluteus_maximus"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Extensión de rodilla",
+                    "Flexión de rodilla durante el descenso",
+                    "Extensión de cadera",
+                    "Flexión de cadera durante el descenso",
+                    "Dorsiflexión de tobillo",
+                    "Flexión plantar de tobillo",
+                    "Sostén postural lumbar",
+                    "Transferencia de carga entre pelvis y tronco"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Extensión de rodilla",
+                        "Flexión de rodilla durante el descenso"
+                      ],
+                      "jointId": "rodilla",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión de cadera",
+                        "Flexión de cadera durante el descenso"
+                      ],
+                      "jointId": "cadera",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Dorsiflexión de tobillo",
+                        "Flexión plantar de tobillo"
+                      ],
+                      "jointId": "tobillo",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Sostén postural lumbar"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Transferencia de carga entre pelvis y tronco"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "primaryMuscles": [
+                    "quadriceps",
+                    "gluteus_maximus"
+                  ],
+                  "secondaryMuscles": [
+                    "hamstrings",
+                    "calves",
+                    "adductors"
+                  ],
+                  "stabilizerMuscles": [
+                    "gluteus_medius",
+                    "erector_spinae",
+                    "core"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "bodyweight",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "UNILATERAL",
+                  "loadMode": "bodyweight",
+                  "movementPatternId": "unilateral_knee_dominant",
+                  "relevantJoints": [
+                    "rodilla",
+                    "cadera",
+                    "tobillo",
+                    "columna-lumbar",
+                    "sacroiliaca"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "display": {
+                  "displayName": "Step-Up a Cajón",
+                  "displaySummary": "bodyweight",
+                  "selectedOptions": {
+                    "implement": "bodyweight"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 4.2,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Step-Up a Cajón",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
+                  "configurationId": "step_up__bodyweight",
+                  "definitionId": "step_up",
+                  "familyId": "lower_step_up",
+                  "kind": "PARENT",
+                  "performanceProfileId": "step_up__bodyweight__zancada",
+                  "searchTerms": [
+                    "step up a cajón",
+                    "step up",
+                    "quads_step_up_cajon"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "requiredEquipment": [
+                    "bodyweight"
+                  ],
+                  "role": "accessory_isolation"
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "bodyweight"
+                  ],
+                  "preservesIntent": [
+                    "unilateral_knee_dominant:quadriceps",
+                    "unilateral_knee_dominant:gluteus_maximus"
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                }
+              },
+              "secondaryMuscles": [
+                "hamstrings",
+                "calves",
+                "adductors"
+              ],
+              "setupCues": [
+                "Sitúa delante un cajón, un banco o un escalón estable y apoya todo el pie sobre él.",
+                "Deja las manos libres, en la cintura o a los lados, para equilibrarte."
+              ],
+              "setupTimeSeconds": 20,
+              "ssc": 0.5,
+              "stabilizerMuscles": [
+                "gluteus_medius",
+                "erector_spinae",
+                "core"
+              ],
+              "technicalDifficulty": 4.2,
+              "ttc": 2.0
+            },
+            "selectedOptions": {
+              "implement": "bodyweight"
+            }
           }
         ],
         "defaultConfigurationId": "step_up__dumbbells",

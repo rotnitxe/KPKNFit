@@ -140,6 +140,13 @@ data class CatalogEntry(
     /** Only the plans that really schedule cardio qualify for a strength + cardio goal. */
     val schedulesCardio: Boolean
         get() = source == CatalogSource.NATIVE && sourceId == "strength-cardio"
+
+    /**
+     * Programa «a medida» del generador de rutinas (Entreno v2): entrada NATIVE sin listar cuyo programa NO sale de
+     * `SimpleCyclePersonalizer` sino de `RoutineGenerator` (el asistente ramifica por esto antes de la ruta nativa).
+     */
+    val isGenerated: Boolean
+        get() = source == CatalogSource.NATIVE && id.startsWith(PersonalizedPlanCatalog.GENERATED_PREFIX)
 }
 
 object PersonalizedPlanCatalog {
@@ -242,6 +249,78 @@ object PersonalizedPlanCatalog {
             capabilities = spec.capabilities,
             editorial = editorial,
             durationWeeks = NativeWeekBuilder.WEEKS,
+        )
+    }
+
+    // ─── Programas «a medida» del generador (Entreno v2) ─────────────────────
+
+    /** Prefijo de los ids de los programas que arma el generador de rutinas (`generated:strength-muscle`…). */
+    const val GENERATED_PREFIX = "generated:"
+
+    /**
+     * Un programa «a medida». [sourceId] es el sufijo del id y la clave con la que el asistente elige el modo del
+     * generador. [references] solo sirve para el modo del programa (`programModeFor`) y para que la hoja del plan
+     * hable de la disciplina correcta: la entrada no se lista, así que ningún filtro de disciplina la ve.
+     * [capabilities] declara lo que la semana trabaja de verdad (el evaluador exige las cuatro a los perfiles de
+     * fuerza con cardio y funcional).
+     */
+    private data class GeneratedSpec(
+        val sourceId: String,
+        val references: Set<TrainingReference>,
+        val capabilities: Set<TrainingCapability>,
+    )
+
+    private val generatedSpecs = listOf(
+        GeneratedSpec(
+            "strength-muscle",
+            setOf(TrainingReference.POWERBUILDING),
+            setOf(TrainingCapability.STRENGTH, TrainingCapability.HYPERTROPHY),
+        ),
+        GeneratedSpec("hybrid", emptySet(), TrainingCapability.entries.toSet()),
+        GeneratedSpec("functional", emptySet(), TrainingCapability.entries.toSet()),
+        GeneratedSpec("calisthenics", emptySet(), setOf(TrainingCapability.STRENGTH, TrainingCapability.HYPERTROPHY)),
+        GeneratedSpec("armwrestling", emptySet(), setOf(TrainingCapability.STRENGTH, TrainingCapability.HYPERTROPHY)),
+        GeneratedSpec("strongman", emptySet(), setOf(TrainingCapability.STRENGTH, TrainingCapability.POWER)),
+        GeneratedSpec("weightlifting-base", emptySet(), setOf(TrainingCapability.STRENGTH, TrainingCapability.POWER)),
+        GeneratedSpec("powerlifting", setOf(TrainingReference.POWERLIFTING), setOf(TrainingCapability.STRENGTH)),
+        GeneratedSpec(
+            "powerbuilding",
+            setOf(TrainingReference.POWERBUILDING),
+            setOf(TrainingCapability.STRENGTH, TrainingCapability.HYPERTROPHY),
+        ),
+        GeneratedSpec("bodybuilding", setOf(TrainingReference.HYPERTROPHY), setOf(TrainingCapability.HYPERTROPHY)),
+    )
+
+    /** Ids de los programas «a medida», en el orden de [generatedSpecs]. */
+    val GENERATED_IDS: List<String> = generatedSpecs.map { GENERATED_PREFIX + it.sourceId }
+
+    /**
+     * Entrada NATIVE sin listar (`listed = false` en su ficha): una semana que se repite, para cualquier día de 1 a 7,
+     * todos los niveles y cualquier material (el generador decide qué cabe; `requiredEquipment` vacío no filtra nada).
+     */
+    private fun generatedEntry(spec: GeneratedSpec): CatalogEntry {
+        val id = GENERATED_PREFIX + spec.sourceId
+        val editorial = PlanEditorialTable.forId(id)
+        return CatalogEntry(
+            id = id,
+            source = CatalogSource.NATIVE,
+            sourceId = spec.sourceId,
+            title = editorial.displayName,
+            technicalSubtitle = PlanLabels.subtitle(CatalogDuration.REPEATING_WEEK, 1, editorial.levels),
+            description = editorial.summary,
+            requiredEquipment = emptySet(),
+            supportedFrequencies = 1..7,
+            level = CatalogLevel.BEGINNER,
+            duration = CatalogDuration.REPEATING_WEEK,
+            supportedFocuses = TrainingFocus.entries.toSet(),
+            adaptation = AdaptationPolicy.CURATED_WEEKLY,
+            publication = PublicationState.PUBLISHED,
+            sourceAuthor = "KPKN",
+            sourceRevision = REVISION,
+            references = editorial.references ?: spec.references,
+            capabilities = spec.capabilities,
+            editorial = editorial,
+            durationWeeks = 1,
         )
     }
 
@@ -468,8 +547,11 @@ object PersonalizedPlanCatalog {
                 editorial = editorial, durationWeeks = weeks,
             )
         }
-        return nativeSpecs.map(::nativeEntry) + ownProfileEntries.map(::ownProfileEntry) + templates + protocols + authoredEntriesLazy
+        return nativeSpecs.map(::nativeEntry) + ownProfileEntries.map(::ownProfileEntry) + generatedEntriesLazy +
+            templates + protocols + authoredEntriesLazy
     }
+
+    private val generatedEntriesLazy: List<CatalogEntry> by lazy { generatedSpecs.map(::generatedEntry) }
 
     /**
      * Entradas que se ofrecen al usuario (planner y biblioteca): las de [entries] salvo las

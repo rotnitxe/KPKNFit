@@ -1,8 +1,8 @@
 # Índice del catálogo de ejercicios v2
 
 Revisión: `v2-approved-2026-09-29-a` · Ontología: `wikilab-v3-2026-08-08`
-96 familias · 206 definiciones · 521 configuraciones
-Hash canónico: `c67eeb8ff6a8e689…`
+96 familias · 215 definiciones · 539 configuraciones
+Hash canónico: `c30a5c2e61b9d2f7…`
 
 Artefacto informativo generado por `scripts/merge_catalog_v2_families.py`.
 No editar a mano: se regenera en cada merge.
@@ -26,11 +26,15 @@ No editar a mano: se regenera en cada merge.
 | chest_press | paused_bench_press | Press de Banca con Pausa |  | 1 |
 | chest_press | close_grip_bench_press | Press de Banca con Agarre Cerrado |  | 1 |
 | core_anti_extension_isometric | core_plancha | Plancha Abdominal |  | 1 |
+| core_anti_extension_isometric | hollow_body_hold | Hollow Body Hold |  | 1 |
 | core_anti_extension_pelvic_control | core_dragon_flag_banco_plano | Dragon Flag |  | 1 |
+| core_anti_extension_pelvic_control | dead_bug | Dead Bug |  | 1 |
 | core_anti_extension_trunk | core_rueda_abdominal | Rueda Abdominal |  | 1 |
 | core_anti_rotation_trunk | core_press_pallof | Press Pallof |  | 1 |
+| core_anti_rotation_trunk | bird_dog | Bird Dog |  | 1 |
 | core_hip_flexion | core_elevacion_piernas | Elevación de Piernas Colgado |  | 1 |
 | core_lateral_trunk_flexion | core_inclinacion_lateral | Inclinación Lateral |  | 1 |
+| core_lateral_trunk_flexion | side_plank | Plancha Lateral |  | 1 |
 | core_trunk_flexion | core_crunch_banco_declinado_lastrado_disco | Crunch Abdominal en Banco Declinado |  | 1 |
 | core_trunk_flexion | core_crunch_en_polea_alta | Crunch Abdominal de Rodillas en Polea Alta |  | 1 |
 | core_trunk_flexion | core_crunch_maquina | Crunch Abdominal en Máquina |  | 1 |
@@ -54,10 +58,10 @@ No editar a mano: se regenera en cada merge.
 | hinge_deadlift | conventional_deadlift | Peso Muerto Convencional | implement, laterality | 8 |
 | hinge_deadlift | sumo_deadlift | Peso Muerto Sumo | implement | 2 |
 | hinge_deadlift | deadlift_to_knees | Peso Muerto hasta la Rodilla |  | 1 |
-| hinge_good_morning | good_morning | Buenos Días | implement, laterality | 8 |
+| hinge_good_morning | good_morning | Buenos Días | implement, laterality | 9 |
 | hinge_good_morning | good_morning_seated | Buenos Días Sentado | implement | 3 |
 | hinge_good_morning | good_morning_zercher | Buenos Días/RDL Zercher |  | 1 |
-| hinge_rdl | romanian_deadlift | Peso Muerto Rumano | implement, stance | 8 |
+| hinge_rdl | romanian_deadlift | Peso Muerto Rumano | implement, stance | 9 |
 | hinge_rdl | romanian_sumo_deadlift | Peso Muerto Rumano Sumo | implement | 4 |
 | hip_abduction | hip_abduction | Abducciones de Pierna | implement, station, laterality | 8 |
 | hip_adduction | copenhagen_plank | Plancha Copenhague |  | 1 |
@@ -66,7 +70,7 @@ No editar a mano: se regenera en cada merge.
 | lower_ankle_dorsiflexion | calves_tibial_anterior | Tibial Anterior |  | 1 |
 | lower_biarticular_lengthened | quads_reverse_nordic_peso_corporal | Curl Nórdico Inverso (Reverse Nordic Curl) |  | 1 |
 | lower_eccentric_knee_flexion | hams_curl_nordic_peso_corporal | Curl Nórdico (Nordic Hamstring Curl) |  | 1 |
-| lower_forward_lunge | forward_lunge | Zancada Frontal | implement | 5 |
+| lower_forward_lunge | forward_lunge | Zancada Frontal | implement | 6 |
 | lower_hip_abduction_extension | glutes_patada_gluteo_lateral | Patada de Glúteo Lateral | implement | 3 |
 | lower_hip_abduction_external_rotation | glutes_clamshells_banda | Clamshells (Almejas) con Banda Elástica |  | 1 |
 | lower_hip_abduction_stability | glutes_monster_walk_banda | Caminata del Monstruo (Monster Walk) con Banda |  | 1 |
@@ -101,9 +105,10 @@ No editar a mano: se regenera en cada merge.
 | lower_knee_dominant | quads_sentadilla_v_squat | Sentadilla en "V-Squat" |  | 1 |
 | lower_knee_dominant | quads_sentadilla_v_squat_invertida_maquina | Sentadilla Invertida en Máquina V-Squat |  | 1 |
 | lower_knee_dominant | quads_sentadilla_zercher_barra_recta | Sentadilla Zercher con Barra Recta |  | 1 |
-| lower_knee_dominant | sumo_squat | Sentadilla Sumo | implement | 3 |
+| lower_knee_dominant | sumo_squat | Sentadilla Sumo | implement | 4 |
 | lower_knee_dominant | quads_sentadilla_sin_carga | Sentadilla Sin Carga |  | 1 |
 | lower_knee_dominant | paused_back_squat | Sentadilla Trasera con Pausa |  | 1 |
+| lower_knee_dominant | wall_sit | Sentadilla en Pared |  | 1 |
 | lower_knee_dominant_asymmetric | quads_sentadilla_jefferson | Sentadilla Jefferson |  | 1 |
 | lower_knee_dominant_belt_squat | belt_squat | Sentadilla "Belt Squat" | laterality | 2 |
 | lower_knee_dominant_pendulum | pendulum_squat | Sentadilla en Máquina Pendular | laterality | 2 |
@@ -126,12 +131,12 @@ No editar a mano: se regenera en cada merge.
 | lower_reverse_lunge | reverse_lunge | Zancada Inversa | implement | 6 |
 | lower_romanian_deadlift | hams_peso_muerto_rumano_deficit | Peso Muerto Rumano en Déficit |  | 1 |
 | lower_romanian_deadlift_deficit | hams_peso_muerto_rumano_sumo_deficit | Peso Muerto Rumano Sumo en Déficit |  | 1 |
-| lower_sissy_squat | sissy_squat | Sentadilla Sissy | implement | 4 |
+| lower_sissy_squat | sissy_squat | Sentadilla Sissy | implement | 5 |
 | lower_spinal_extension | back_extension_lumbar | Hiperextensiones de Espalda Baja |  | 1 |
 | lower_spinal_extension | back_superman_suelo | Superman en Suelo |  | 1 |
 | lower_spinal_extension | back_hiperextension_45_zercher_espalda_baja | Hiperextensión a 45 Zercher para Espalda Baja |  | 1 |
 | lower_spinal_flexion | back_jefferson_curl | Jefferson Curl | implement | 4 |
-| lower_step_up | step_up | Step-Up a Cajón | implement | 5 |
+| lower_step_up | step_up | Step-Up a Cajón | implement | 6 |
 | lower_unilateral_hip_dominant | glutes_step_up_gluteo | Step-Up de Glúteo |  | 1 |
 | lower_unilateral_hip_dominant | glutes_zancada_cruzada | Zancada Cruzada |  | 1 |
 | lower_unilateral_knee_dominant | quads_sentadilla_bulgara_somersault | Sentadilla Búlgara Somersault |  | 1 |
@@ -147,7 +152,7 @@ No editar a mano: se regenera en cada merge.
 | lower_unilateral_knee_dominant | quads_zancada_inversa_maquina_v_squat | Zancada Inversa en Máquina V-Squat |  | 1 |
 | lower_unilateral_knee_dominant | quads_zancada_inversa_zercher | Zancada Inversa Zercher |  | 1 |
 | lower_unilateral_knee_dominant_asymmetric | quads_sentadilla_bulgara_jefferson | Sentadilla Búlgara Jefferson |  | 1 |
-| lower_walking_lunge | walking_lunge | Zancada Caminando | implement | 3 |
+| lower_walking_lunge | walking_lunge | Zancada Caminando | implement | 4 |
 | lower_wrist_extension | forearms_curl_muneca_inverso_sentado | Extensión de Muñeca | implement | 4 |
 | lower_wrist_flexion | forearms_curl_muneca_de_pie_tras_espalda_barra | Curl de Muñeca de Pie Tras Espalda con Barra |  | 1 |
 | lower_wrist_flexion | forearms_curl_muneca_sentado | Curl de Muñeca | implement | 4 |
@@ -164,7 +169,7 @@ No editar a mano: se regenera en cada merge.
 | triceps_jm_press | jm_press | JM Press | implement | 5 |
 | triceps_katana_extension | katana_extension | Extensión Katana | laterality | 2 |
 | triceps_tate_press | tate_press | Tate Press |  | 1 |
-| unilateral_knee_dominant_bulgarian | bulgarian_split_squat | Sentadilla Búlgara | implement | 6 |
+| unilateral_knee_dominant_bulgarian | bulgarian_split_squat | Sentadilla Búlgara | implement | 7 |
 | unilateral_knee_dominant_bulgarian | bulgarian_zercher | Sentadilla Búlgara Zercher |  | 1 |
 | upper_diagonal_push | deltoides_press_landmine_unilateral | Press Landmine Unilateral |  | 1 |
 | upper_elbow_extension | triceps_extension | Extensión de Tríceps en TRX |  | 1 |
@@ -196,6 +201,8 @@ No editar a mano: se regenera en cada merge.
 | upper_horizontal_push | tren_superior_press_unilateral_polea | Press Unilateral en Polea |  | 1 |
 | upper_horizontal_push | tren_superior_squeeze_press_mancuernas | Squeeze Press con Mancuernas |  | 1 |
 | upper_horizontal_push | tren_superior_press_inclinado_maquina_convergente | Press Inclinado en Máquina Convergente |  | 1 |
+| upper_horizontal_push | diamond_push_up | Flexiones Diamante |  | 1 |
+| upper_horizontal_push | archer_push_up | Flexiones Arquero |  | 1 |
 | upper_pinch_grip | forearms_pinza_de_discos | Pinza de Discos |  | 1 |
 | upper_scapular_depression | back_dominadas_escapulares | Dominadas Escapulares |  | 1 |
 | upper_scapular_elevation | back_encogimientos | Encogimientos | implement | 5 |
@@ -209,9 +216,11 @@ No editar a mano: se regenera en cada merge.
 | upper_vertical_pull_lat_pulldown | close_grip_lat_pulldown | Jalón al Pecho con Agarre Cerrado |  | 1 |
 | upper_vertical_pull_pull_up | pull_up | Dominadas | grip_type, grip_width | 9 |
 | upper_vertical_pull_pull_up | rack_chin | Dominada en Rack |  | 1 |
+| upper_vertical_pull_pull_up | negative_pull_up | Dominada Negativa |  | 1 |
 | upper_vertical_pull_pullover | lying_pullover | Pull Over en Banca | implement | 4 |
 | upper_vertical_pull_pullover | pullover | Pull Over de Pie en Polea | laterality | 2 |
 | upper_vertical_pull_pullover | seated_machine_pullover | Pull Over Sentado en Máquina |  | 1 |
 | upper_vertical_push | deltoides_push_press | Push Press |  | 1 |
+| upper_vertical_push | pike_push_up | Flexiones en Pica | support_angle | 2 |
 | upper_vertical_push_military_press | military_press | Press Militar | implement | 6 |
 | upper_vertical_push_seated_press | seated_shoulder_press | Press de Hombros Sentado | implement | 6 |

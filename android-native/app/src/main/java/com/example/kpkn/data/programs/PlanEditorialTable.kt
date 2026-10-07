@@ -6,7 +6,8 @@ import com.example.kpkn.data.protocols.definitions.AuthoredSourceRecord
 import com.example.kpkn.data.protocols.definitions.AuthoredSources
 
 /**
- * Tabla editorial de las 55 entradas del catálogo (diseño editorial §2): la
+ * Tabla editorial de las 65 entradas del catálogo (diseño editorial §2; las diez últimas son los programas «a
+ * medida» del generador de Entreno v2, sin listar): la
  * ÚNICA fuente de texto de usuario, orden y niveles. `PersonalizedPlanCatalog`
  * no escribe títulos, subtítulos ni descripciones: los lee de aquí, y el test
  * `PlanCatalogEditorialContractTest` exige una correspondencia exacta entre los
@@ -217,6 +218,111 @@ internal object PlanEditorialTable {
                 rank = 670,
                 terms = setOf(PlanTerm.CYCLE),
                 references = emptySet(),
+            ),
+        )
+
+        // ── Programas «a medida» del generador de rutinas (Entreno v2) ──
+        // No se listan (ni planner ni biblioteca): los ofrece el asistente según el perfil de objetivo y se resuelven
+        // con `find(id)` para que el nombre, la hoja del plan y el detalle del programa los traten como los propios.
+        add(
+            "generated:strength-muscle",
+            generated(
+                displayName = "Fuerza y masa muscular a medida",
+                summary = "Una semana que repites, armada con tu material, tus días y tu tiempo: primero los " +
+                    "ejercicios básicos y después los accesorios. Tu sesión más exigente cae el día que llegas con " +
+                    "más energía y los músculos que elegiste reciben más series. Si tu material no alcanza para " +
+                    "algún movimiento, te lo decimos.",
+                rank = 700,
+            ),
+        )
+        add(
+            "generated:hybrid",
+            generated(
+                displayName = "Fuerza y cardio a medida",
+                summary = "Una semana que repites con días de fuerza, días de cardio y sesiones mixtas, repartidos " +
+                    "según los días que tienes. El cardio no se recorta para que quepa la fuerza: ajustamos los " +
+                    "accesorios a tu tiempo. Cada ejercicio sale de tu material y de tu nivel.",
+                rank = 701,
+            ),
+        )
+        add(
+            "generated:functional",
+            generated(
+                displayName = "Funcional y saludable a medida",
+                summary = "Una semana que repites con sesiones de cuerpo completo: empujar, tirar, agacharse, cargar " +
+                    "y girar, más ejercicios explosivos, cardio suave y movilidad en cada sesión. Se arma con tu " +
+                    "material, aunque sea solo tu peso corporal, para moverte mejor y sentirte bien.",
+                rank = 702,
+            ),
+        )
+        add(
+            "generated:calisthenics",
+            generated(
+                displayName = "Calistenia a medida",
+                summary = "Una semana que repites con progresiones de peso corporal: dominadas, fondos, flexiones, " +
+                    "sentadillas a una pierna y core, en la variante que hoy te sale. Es una versión inicial: aún " +
+                    "faltan progresiones avanzadas como el muscle-up o el equilibrio en manos.",
+                rank = 703,
+            ),
+        )
+        add(
+            "generated:armwrestling",
+            generated(
+                displayName = "Armwrestling a medida",
+                summary = "Una semana que repites centrada en antebrazo, agarre, bíceps y espalda, los músculos que " +
+                    "más trabajan en la mesa. Se arma con tu material y tu nivel. Es una versión inicial: todavía " +
+                    "no incluye trabajo de mesa.",
+                rank = 704,
+            ),
+        )
+        add(
+            "generated:strongman",
+            generated(
+                displayName = "Strongman a medida",
+                summary = "Una semana que repites con fuerza base y acarreos: peso muerto, sentadillas, press por " +
+                    "encima de la cabeza y paseos con carga, según tu material. Es una versión inicial: sin yugo, " +
+                    "piedras ni trineo, que todavía no están en el catálogo de ejercicios.",
+                rank = 705,
+            ),
+        )
+        add(
+            "generated:weightlifting-base",
+            generated(
+                displayName = "Base de halterofilia a medida",
+                summary = "Una semana que repites con la fuerza y la potencia que sostienen la halterofilia: " +
+                    "sentadilla trasera y frontal, push press, tirones y trabajo explosivo. Es una versión " +
+                    "inicial: todavía no incluye arranque ni dos tiempos.",
+                rank = 706,
+            ),
+        )
+        add(
+            "generated:powerlifting",
+            generated(
+                displayName = "Powerlifting a medida",
+                summary = "Sentadilla, banca y peso muerto en una semana que repites, armada con tus días, tu tiempo " +
+                    "y tu material. Sirve cuando ningún plan de autor encaja con tu semana. Si declaraste tus " +
+                    "marcas, las cargas de los básicos salen de ellas.",
+                rank = 707,
+            ),
+        )
+        add(
+            "generated:powerbuilding",
+            generated(
+                displayName = "Powerbuilding a medida",
+                summary = "Básicos pesados de pocas repeticiones y trabajo muscular en una semana que repites, " +
+                    "armada con tus días, tu tiempo y tu material. Sirve cuando ningún plan de autor encaja con " +
+                    "tu semana. Si declaraste tus marcas, las cargas de los básicos salen de ellas.",
+                rank = 708,
+            ),
+        )
+        add(
+            "generated:bodybuilding",
+            generated(
+                displayName = "Culturismo a medida",
+                summary = "Volumen para ganar músculo repartido en una semana que repites, con más series para los " +
+                    "músculos que elegiste. Se arma con tus días, tu tiempo y tu material, y sirve cuando ningún " +
+                    "plan de autor encaja con tu semana.",
+                rank = 709,
             ),
         )
 
@@ -904,6 +1010,19 @@ internal object PlanEditorialTable {
         references = references,
         listed = listed,
     )
+
+    /**
+     * Programa «a medida» del generador (Entreno v2): plan propio de KPKN para todos los niveles, una semana que se
+     * repite y sin listar (lo ofrece el asistente según el perfil de objetivo, nunca la biblioteca).
+     */
+    private fun generated(displayName: String, summary: String, rank: Int): PlanEditorial =
+        own(
+            displayName = displayName,
+            summary = summary,
+            rank = rank,
+            terms = setOf(PlanTerm.CYCLE),
+            listed = false,
+        )
 
     /**
      * Método de un tercero. `attributionLine` sigue §2.7: «Versión KPKN basada en

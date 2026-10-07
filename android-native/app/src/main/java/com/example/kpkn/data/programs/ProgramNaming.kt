@@ -26,9 +26,17 @@ fun programNameFor(entry: CatalogEntry): String = entry.displayName
  *
  * Coincide con el modo que el generador nativo fijaba por perfil (`NativeProfileKind`): Fuerza → powerlifting,
  * Fuerza y músculo → powerbuilding, Músculo y Atleta completo → hipertrofia.
+ *
+ * Los programas «a medida» del generador de rutinas (Entreno v2) llevan el modo que fija el propio generador: sus
+ * referencias ya lo dicen (powerlifting, powerbuilding, culturismo) salvo Strongman y la base de halterofilia, que no
+ * son una disciplina del catálogo de planes pero se entrenan como fuerza máxima (modo powerlifting).
  */
 fun programModeFor(entry: CatalogEntry): ProgramMode = when {
+    entry.isGenerated && entry.sourceId in GENERATED_MAX_STRENGTH_SOURCES -> ProgramMode.POWERLIFTING
     TrainingReference.POWERLIFTING in entry.references -> ProgramMode.POWERLIFTING
     TrainingReference.POWERBUILDING in entry.references -> ProgramMode.POWERBUILDING
     else -> ProgramMode.HYPERTROPHY
 }
+
+/** Programas «a medida» que el generador arma como fuerza máxima sin ser una disciplina del catálogo de planes. */
+private val GENERATED_MAX_STRENGTH_SOURCES = setOf("strongman", "weightlifting-base")

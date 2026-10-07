@@ -1725,10 +1725,221 @@
               "implement": "machine",
               "laterality": "unilateral"
             }
+          },
+          {
+            "displaySummary": "bodyweight · bilateral",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "editorial:configuration:good_morning__bilateral__bodyweight",
+                "plan:wizard-entreno-v2-bw1-20261007#good_morning"
+              ],
+              "reviewStatus": "APPROVED"
+            },
+            "id": "good_morning__bilateral__bodyweight",
+            "profile": {
+              "articulationType": "MULTIARTICULAR",
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-09-29-a",
+              "cnc": 2.2,
+              "description": "Con las manos detrás de la cabeza o cruzadas sobre el pecho, la única resistencia es el peso del tronco al inclinarse. Al no haber nada que apoyar en la espalda ni que agarrar, el ejercicio enseña la bisagra o sirve de calentamiento.",
+              "efc": 2.8,
+              "equipmentId": "bodyweight",
+              "executionCues": [
+                "Empuja la cadera hacia atrás y baja el pecho con la espalda recta.",
+                "Detente cuando notes que tira la parte posterior de los muslos.",
+                "Vuelve a la vertical extendiendo la cadera, sin doblar más las rodillas."
+              ],
+              "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión de cadera",
+                    "Extensión de cadera"
+                  ],
+                  "jointId": "cadera",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Sostén de la flexión ligera"
+                  ],
+                  "jointId": "rodilla",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Resistencia a la flexión lumbar"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Transferencia de carga entre pelvis y tronco"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "bodyweight",
+              "movementPatternId": "hip_hinge",
+              "performanceProfileId": "good_morning__bilateral__bodyweight",
+              "primaryMuscles": [
+                "hamstrings",
+                "gluteus_maximus"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Flexión de cadera",
+                    "Extensión de cadera",
+                    "Sostén de la flexión ligera",
+                    "Resistencia a la flexión lumbar",
+                    "Transferencia de carga entre pelvis y tronco"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión de cadera",
+                        "Extensión de cadera"
+                      ],
+                      "jointId": "cadera",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Sostén de la flexión ligera"
+                      ],
+                      "jointId": "rodilla",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Resistencia a la flexión lumbar"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Transferencia de carga entre pelvis y tronco"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "primaryMuscles": [
+                    "hamstrings",
+                    "gluteus_maximus"
+                  ],
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
+                    "erector_spinae",
+                    "core"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "bodyweight",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "bodyweight",
+                  "movementPatternId": "hip_hinge",
+                  "relevantJoints": [
+                    "cadera",
+                    "rodilla",
+                    "columna-lumbar",
+                    "sacroiliaca"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "display": {
+                  "displayName": "Buenos Días",
+                  "displaySummary": "bodyweight · bilateral",
+                  "selectedOptions": {
+                    "implement": "bodyweight",
+                    "laterality": "bilateral"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 4.2,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Buenos Días",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
+                  "configurationId": "good_morning__bilateral__bodyweight",
+                  "definitionId": "good_morning",
+                  "familyId": "hinge_good_morning",
+                  "kind": "PARENT",
+                  "performanceProfileId": "good_morning__bilateral__bodyweight",
+                  "searchTerms": [
+                    "buenos dias",
+                    "good morning",
+                    "buenos dias con barra",
+                    "safety bar"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "requiredEquipment": [
+                    "bodyweight"
+                  ],
+                  "role": "accessory_compound"
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "bodyweight"
+                  ],
+                  "preservesIntent": [
+                    "hip_hinge:hamstrings",
+                    "hip_hinge:gluteus_maximus"
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                }
+              },
+              "secondaryMuscles": [],
+              "setupCues": [
+                "Colócate de pie con las rodillas apenas flexionadas y los pies bajo las caderas.",
+                "Lleva las manos detrás de la cabeza, con los codos abiertos y sin tirar del cuello, o cruza los brazos sobre el pecho."
+              ],
+              "setupTimeSeconds": 15,
+              "ssc": 0.5,
+              "stabilizerMuscles": [
+                "erector_spinae",
+                "core"
+              ],
+              "technicalDifficulty": 4.2,
+              "ttc": 2.0
+            },
+            "selectedOptions": {
+              "implement": "bodyweight",
+              "laterality": "bilateral"
+            }
           }
         ],
         "defaultConfigurationId": "good_morning__bilateral__barbell",
-        "description": "El Buenos Días, conocido como good morning, es una bisagra que carga los isquiosurales y el glúteo mayor al inclinar el torso con peso apoyado en la parte superior del cuerpo. La pelvis retrocede con las rodillas apenas dobladas; la espalda conserva su forma mientras el pecho baja y vuelve a erguirse. La barra libre permite acompañar el arco del torso, mientras una estación con recorrido fijo exige ajustar los apoyos a ese recorrido. Su rasgo es levantar la carga desde la cadera con las manos dedicadas a sujetar el apoyo superior.",
+        "description": "El Buenos Días, conocido como good morning, es una bisagra que carga los isquiosurales y el glúteo mayor al inclinar el torso con peso apoyado en la parte superior del cuerpo o, sin implemento, con el propio tronco como carga. La pelvis retrocede con las rodillas apenas dobladas; la espalda conserva su forma mientras el pecho baja y vuelve a erguirse. La barra libre permite acompañar el arco del torso, mientras una estación con recorrido fijo exige ajustar los apoyos a ese recorrido. Su rasgo es que el trabajo sale de la cadera y no de las manos: estas sujetan el apoyo superior o, sin carga, van detrás de la cabeza.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

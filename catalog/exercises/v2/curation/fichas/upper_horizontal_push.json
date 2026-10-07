@@ -2148,6 +2148,449 @@
           "claim": "El tríceps participa en los empujes de tren superior y el pectoral y el deltoides anterior destacan cuando el apoyo es estable, como el banco."
         }
       ]
+    },
+    "diamond_push_up": {
+      "status": "CURATED",
+      "public": {
+        "configurations": {
+          "diamond_push_up__default": {
+            "description": "Las manos se juntan bajo el esternón con los pulgares y los índices tocándose, y los codos viajan pegados a las costillas. La base estrecha pide más al tríceps y al pectoral que la flexión con las manos a la anchura de los hombros.",
+            "executionCues": [
+              "Baja el pecho hacia las manos con los codos cerca de las costillas.",
+              "Presiona el suelo hasta extender los codos, con la cadera alineada."
+            ],
+            "setupCues": [
+              "Coloca las manos juntas bajo el pecho, con los pulgares y los índices tocándose en forma de rombo.",
+              "Estira el cuerpo en línea recta desde los talones hasta la cabeza."
+            ]
+          }
+        },
+        "description": "Las Flexiones Diamante (diamond push-up) son una flexión de brazos con las manos juntas bajo el pecho, de modo que los pulgares y los índices dibujan un rombo. Con las manos tan juntas, el tríceps trabaja tanto como el pectoral mayor o más, y el deltoides anterior empuja con ellos. El pecho baja hacia las manos con los codos rozando las costillas. En electromiografía, las manos juntas activaron más el pectoral y el tríceps que las manos separadas. Es una forma de dar más trabajo al tríceps sin salir de la flexión de brazos."
+      },
+      "technique": {
+        "identity": "Flexión de brazos con la base de manos estrecha: las manos se juntan bajo el esternón formando un rombo con pulgares e índices, y el pecho baja hacia ellas con los codos pegados al tronco. Se separa de la flexión estándar por la posición de las manos, y de los fondos entre bancos porque los dos apoyos están en el suelo.",
+        "keyPositions": [
+          "Arriba: brazos estirados, manos juntas bajo el pecho formando el rombo y cuerpo en tabla.",
+          "Abajo: pecho a pocos centímetros de las manos, codos flexionados cerca de las costillas y cadera alineada."
+        ],
+        "mistakes": [
+          "Abrir los codos hacia los lados al bajar, como en una flexión ancha.",
+          "Hundir la cadera o subirla para acortar el recorrido.",
+          "Separar las manos durante la serie y perder la base estrecha.",
+          "Adelantar la cabeza hacia las manos en lugar de bajar el pecho."
+        ],
+        "phases": [
+          {
+            "description": "Brazos extendidos bajo el pecho, manos juntas con el rombo formado y el cuerpo alineado de la cabeza a los pies.",
+            "name": "Posición alta"
+          },
+          {
+            "description": "Los codos se flexionan cerca de las costillas y el pecho desciende hacia las manos en un solo bloque.",
+            "name": "Bajada"
+          },
+          {
+            "description": "Las palmas presionan el suelo y los codos se extienden hasta volver arriba, con la cadera acompañando al tronco.",
+            "name": "Empuje"
+          }
+        ],
+        "setup": [
+          "Palmas en el suelo bajo el esternón, con pulgares e índices unidos formando un rombo y los dedos hacia delante.",
+          "Cuerpo alineado de la cabeza a los pies, apoyado en las puntas, con el cuello neutro y la mirada al suelo."
+        ]
+      },
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Aducción horizontal",
+              "Flexión del hombro"
+            ],
+            "id": "glenohumeral",
+            "role": "PRIMARY",
+            "sources": [
+              "calatayud2014",
+              "kim2016palmar"
+            ],
+            "why": "El húmero se acerca al tronco mientras el cuerpo sube; es el arco del pectoral y del deltoides anterior, los músculos que se activan mucho en el empuje estable. Con las manos juntas los codos quedan cerca del costado y el hombro se mueve menos en abducción."
+          },
+          {
+            "actions": [
+              "Extensión del codo"
+            ],
+            "id": "codo",
+            "role": "PRIMARY",
+            "sources": [
+              "intziegianni2026",
+              "statpearls_triceps"
+            ],
+            "why": "La base estrecha traslada el trabajo al codo: el tríceps, que lo extiende, fue más activo que el pectoral en la flexión diamante (Intziegianni et al.), por eso el codo comparte con el hombro la articulación principal."
+          },
+          {
+            "actions": [
+              "Estabilidad escapular"
+            ],
+            "id": "escapulotoracica",
+            "role": "STABILIZER",
+            "sources": [
+              "calatayud2014"
+            ],
+            "why": "La escápula debe quedarse fija en el tórax para que el húmero empuje; el serrato anterior, que la sujeta, se activa mucho en los empujes estables (Calatayud et al.)."
+          },
+          {
+            "actions": [
+              "Sostén del apoyo"
+            ],
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "sources": [
+              "youdas2010"
+            ],
+            "why": "Las muñecas quedan extendidas bajo las palmas y transmiten el peso al suelo, sin mover el cuerpo; los estudios de Youdas et al. midieron pectoral y tríceps, no un gesto de la muñeca."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "triceps",
+            "role": "PRIMARY",
+            "sources": [
+              "intziegianni2026",
+              "cogley2005",
+              "marcolin2015",
+              "statpearls_triceps"
+            ],
+            "why": "Extiende los codos para subir el cuerpo. En la flexión diamante registró más actividad que el pectoral y más que en la flexión estándar y en la de manos abiertas, en un solo estudio que normalizó la señal al pico de cada variante y no a una contracción máxima (Intziegianni et al.). Con la base estrecha también subió en los estudios de Cogley et al. y de Marcolin et al."
+          },
+          {
+            "id": "pectoralis",
+            "role": "PRIMARY",
+            "sources": [
+              "intziegianni2026",
+              "kim2016palmar",
+              "statpearls_pectoral"
+            ],
+            "why": "Acerca el húmero al tronco mientras el cuerpo sube y sigue siendo motor aunque la base sea estrecha: la flexión diamante dio su mayor activación relativa de las tres posiciones comparadas (Intziegianni et al.) y el pectoral mayor trabajó más con la separación estrecha de manos que con la amplia (Kim et al.)."
+          },
+          {
+            "id": "deltoid",
+            "role": "SECONDARY",
+            "sources": [
+              "calatayud2014",
+              "statpearls_deltoid"
+            ],
+            "why": "El deltoides anterior ayuda a empujar: se activa mucho en los empujes estables de tren superior (Calatayud et al.), y la flexión en el suelo es uno de ellos."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "marcolin2015",
+              "calatayud2014"
+            ],
+            "why": "El abdomen y los erectores sostienen el cuerpo en tabla sin empujar el suelo: en las variantes de flexión de Marcolin et al. sus diferencias entre fases fueron poco marcadas por su papel de estabilizadores."
+          }
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista de tres cuartos desde delante y algo por encima, con las dos manos juntas, el pecho y los pies dentro del encuadre.",
+          "contacts": "Las palmas, juntas bajo el pecho, y las puntas de los pies apoyan en el suelo; el pecho no toca nada.",
+          "load": "La única carga es el peso del cuerpo, transmitido por las palmas al suelo.",
+          "orientation": "Cuerpo horizontal, con la cabeza hacia la cámara y los pies al fondo del encuadre.",
+          "phase": "Posición baja de la flexión, con el pecho a pocos centímetros de las manos y los codos flexionados.",
+          "posture": "Cabeza, tronco y piernas en una línea, cadera ni hundida ni en pica, cuello neutro y codos cerca de las costillas."
+        },
+        "byImplement": {
+          "bodyweight": {
+            "geometry": "Las dos manos están juntas en el suelo bajo el esternón, con los pulgares y los índices tocándose y formando un rombo; las puntas de los pies apoyan en el suelo."
+          }
+        },
+        "forbidden": [
+          "Manos separadas a la anchura de los hombros o más: eso es una flexión estándar o ancha.",
+          "Rodillas apoyadas en el suelo.",
+          "Codos abiertos en cruz, lejos de las costillas.",
+          "Cadera hundida o levantada en pica, o pecho ya apoyado en las manos."
+        ],
+        "promptCore": {
+          "bodyweight": "Three-quarter front view, from slightly above, of a muscular athlete frozen at the BOTTOM of a diamond push-up on a flat floor. Both hands are planted on the floor directly under the chest with the thumbs and index fingers touching to form a clearly visible diamond shape. The elbows are bent and held close to the ribs, the chest hovers a few centimeters above the hands without touching them, and the toes press into the floor. The body is one straight line from head to heels, hips level, neck neutral. No bench, no bar and no weights."
+        },
+        "qa": [
+          "¿Las dos manos están juntas bajo el pecho, con los pulgares y los índices formando un rombo?",
+          "¿El pecho está cerca de las manos pero sin tocarlas, con los codos flexionados cerca de las costillas?",
+          "¿La cadera está alineada con el tronco, sin hundirse ni levantarse?",
+          "¿Los pies o las puntas apoyan y las rodillas no tocan el suelo?"
+        ]
+      },
+      "sources": [
+        {
+          "claim": "En 20 varones jóvenes, el tríceps registró más actividad que el pectoral en la flexión diamante, seguida de la estándar y la ancha, y la diamante dio la mayor activación relativa de ambos músculos.",
+          "id": "intziegianni2026",
+          "title": "Electromyographic Activation of the Pectoralis Major and Triceps Brachii Muscles During Standard, Diamond, and Wide Hand Position Push-Ups",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/41892990/"
+        },
+        {
+          "claim": "El pectoral mayor y el tríceps se activaron más con las manos juntas que con las manos separadas durante la flexión.",
+          "id": "cogley2005",
+          "title": "Comparison of muscle activation using various hand positions during the push-up exercise",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/16095413/"
+        },
+        {
+          "claim": "En ocho voluntarios, el tríceps y el pectoral mayor se activaron más con la base estrecha, y las variantes con las manos adelantadas o atrasadas dieron la mayor activación de abdomen y espalda; los músculos abdominales y los erectores actuaron como estabilizadores.",
+          "id": "marcolin2015",
+          "title": "Selective Activation of Shoulder, Trunk, and Arm Muscles: A Comparative Analysis of Different Push-Up Variants",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/26488636/"
+        },
+        {
+          "claim": "En 12 varones, con la separación de manos al 50, 100 y 150 %, el pectoral menor, el tríceps y el infraespinoso se activaron más con el 50 %, el pectoral mayor más con el 50 y el 100 % que con el 150 %, y el serrato anterior más con el 150 %.",
+          "id": "kim2016palmar",
+          "title": "Effect of the push-up exercise at different palmar width on muscle activities",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/27064571/"
+        },
+        {
+          "claim": "En empujes estables el pectoral mayor, el deltoides anterior y el serrato se activan mucho. El abdomen, el tríceps, el deltoides posterior y el trapecio superior suben cuando el apoyo es inestable.",
+          "id": "calatayud2014",
+          "title": "Muscle activity levels in upper-body push exercises with different loads and stability conditions",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/25419894/"
+        },
+        {
+          "claim": "En la flexión convencional el pectoral mayor alcanzó del 95 al 105 por ciento de su máxima y el tríceps del 73 al 109. La porción posterior del deltoides se quedó en el 11 al 21 por ciento. Las manos juntas activaron más el tríceps.",
+          "id": "youdas2010",
+          "title": "Comparison of muscle-activation patterns during the conventional push-up and perfect pushup exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/20664364/"
+        },
+        {
+          "claim": "El grupo pectoral flexiona, aduce y rota internamente el húmero, y participa en la estabilización de la escápula.",
+          "id": "statpearls_pectoral",
+          "title": "Anatomy, Shoulder and Upper Limb, Pectoral Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31424825/"
+        },
+        {
+          "claim": "La función primaria del tríceps braquial es extender el codo.",
+          "id": "statpearls_triceps",
+          "title": "Anatomy, Shoulder and Upper Limb, Triceps Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725681/"
+        },
+        {
+          "claim": "Describe las porciones del deltoides como clave del movimiento y la estabilidad del hombro; la anterior flexiona el hombro.",
+          "id": "statpearls_deltoid",
+          "title": "Anatomy, Shoulder and Upper Limb, Deltoid Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725741/"
+        }
+      ]
+    },
+    "archer_push_up": {
+      "status": "CURATED",
+      "public": {
+        "configurations": {
+          "archer_push_up__default": {
+            "description": "Las manos quedan mucho más separadas que los hombros y el peso se desplaza hacia el brazo que se flexiona, mientras el otro se estira hacia el costado con la mano apoyada. Cada repetición carga un lado, así que se hace el mismo número por cada brazo.",
+            "executionCues": [
+              "Dobla un codo y lleva el pecho hacia esa mano mientras el otro brazo se queda estirado.",
+              "Empuja el suelo con el brazo que trabaja hasta volver al centro.",
+              "Alterna los lados en cada repetición o cambia al terminar la serie."
+            ],
+            "setupCues": [
+              "Coloca las manos en el suelo mucho más abiertas que los hombros, con el cuerpo recto de los talones a la cabeza.",
+              "Gira un poco las manos hacia fuera para que los codos apunten hacia atrás."
+            ]
+          }
+        },
+        "description": "Las Flexiones Arquero (archer push-up) llevan el cuerpo hacia un lado en cada repetición: las manos van muy separadas, un codo se flexiona hasta acercar el pecho a esa mano y el otro brazo queda estirado y apoyado en el suelo como un puntal. El brazo que se flexiona carga la mayor parte del empuje, de modo que cada repetición exige más a un lado que al otro y después se cambia. El pectoral lidera el empuje, con el tríceps y el deltoides anterior de apoyo, y el abdomen sostiene el cuerpo en línea frente al desequilibrio. Es el paso intermedio entre la flexión con dos brazos y la flexión a un brazo."
+      },
+      "technique": {
+        "identity": "Flexión de brazos con las manos muy abiertas en la que el cuerpo desciende hacia una de ellas: un codo se flexiona hasta que el pecho queda junto a esa mano y el otro brazo se estira hacia el costado, apoyado como un puntal. Se separa de la flexión ancha porque la carga se concentra en un lado, y de la flexión a un brazo porque la mano estirada sigue apoyada y ayuda.",
+        "keyPositions": [
+          "Arriba: brazos estirados y muy abiertos, cuerpo en tabla centrado entre las dos manos.",
+          "Abajo: pecho junto a una mano, con ese codo flexionado y el otro brazo totalmente estirado hacia el costado."
+        ],
+        "mistakes": [
+          "Doblar el brazo que debe quedar estirado.",
+          "Girar el tronco hacia el brazo que trabaja en lugar de desplazar el cuerpo en bloque.",
+          "Hundir la cadera hacia el lado que baja.",
+          "Descender hacia delante, entre las dos manos, y perder el desplazamiento lateral."
+        ],
+        "phases": [
+          {
+            "description": "Brazos estirados y muy abiertos, con el cuerpo recto y centrado entre las manos.",
+            "name": "Posición alta"
+          },
+          {
+            "description": "El peso viaja hacia una mano: ese codo se flexiona y el pecho se acerca a ella mientras el otro brazo se queda estirado.",
+            "name": "Bajada lateral"
+          },
+          {
+            "description": "El brazo flexionado empuja el suelo y el cuerpo vuelve al centro; el siguiente movimiento repite el gesto hacia el otro lado.",
+            "name": "Empuje"
+          }
+        ],
+        "setup": [
+          "Palmas planas muy separadas, bastante más que los hombros, con los dedos hacia delante o un poco hacia fuera.",
+          "Cuerpo alineado, apoyado en las puntas de los pies, que quedan algo separadas para ganar base."
+        ]
+      },
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Aducción horizontal",
+              "Flexión del hombro"
+            ],
+            "id": "glenohumeral",
+            "role": "PRIMARY",
+            "sources": [
+              "calatayud2014",
+              "kim2016palmar"
+            ],
+            "why": "En el brazo que se flexiona el húmero se acerca al tronco al empujar, con un arco amplio por las manos abiertas; el brazo estirado sostiene parte del peso con el hombro en abducción."
+          },
+          {
+            "actions": [
+              "Extensión del codo"
+            ],
+            "id": "codo",
+            "role": "SECONDARY",
+            "sources": [
+              "cogley2005",
+              "statpearls_triceps"
+            ],
+            "why": "El codo del brazo que trabaja se flexiona al bajar y se extiende al subir; el otro codo permanece extendido. La extensión acompaña al hombro sin ser la articulación que decide la serie."
+          },
+          {
+            "actions": [
+              "Estabilidad escapular"
+            ],
+            "id": "escapulotoracica",
+            "role": "STABILIZER",
+            "sources": [
+              "kim2016palmar",
+              "calatayud2014"
+            ],
+            "why": "La escápula se mantiene fija en el tórax; el serrato anterior se activó más con la separación de manos del 150 % que con las otras en el estudio de Kim et al., y ayuda a sostener el hombro del brazo estirado."
+          },
+          {
+            "actions": [
+              "Sostén del apoyo"
+            ],
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "sources": [
+              "calatayud2014"
+            ],
+            "why": "Las muñecas quedan extendidas bajo las palmas y transmiten el peso al suelo; la del brazo estirado sostiene sin moverse y la del brazo flexionado empuja con el codo."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "pectoralis",
+            "role": "PRIMARY",
+            "sources": [
+              "kim2016palmar",
+              "cogley2005",
+              "statpearls_pectoral"
+            ],
+            "why": "Aduce el húmero del brazo que se flexiona y empuja el cuerpo de vuelta al centro. Con las manos muy separadas su actividad fue menor que con la base estrecha (Kim et al.; Cogley et al.), pero aquí el peso se concentra en un solo brazo en cada repetición. No hay electromiografía de la flexión arquero: se extrapola de la flexión con las manos abiertas."
+          },
+          {
+            "id": "triceps",
+            "role": "SECONDARY",
+            "sources": [
+              "cogley2005",
+              "statpearls_triceps"
+            ],
+            "why": "Extiende el codo del brazo que trabaja. Con la base ancha su activación fue menor que con la estrecha (Cogley et al.), por eso asiste en lugar de liderar."
+          },
+          {
+            "id": "deltoid",
+            "role": "SECONDARY",
+            "sources": [
+              "calatayud2014",
+              "statpearls_deltoid"
+            ],
+            "why": "El deltoides anterior ayuda a empujar y a sostener la posición del brazo que se flexiona; se activa mucho en los empujes estables (Calatayud et al.) y la flexión arquero es uno de ellos."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "marcolin2015"
+            ],
+            "why": "El abdomen y los erectores evitan que el tronco gire hacia el lado que baja. En el estudio de Marcolin et al., las flexiones con las manos adelantadas o atrasadas fueron las que más los activaron; se extrapola a este desplazamiento lateral."
+          }
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista frontal desde delante de la cabeza del atleta, a poca altura, con las dos manos, el pecho y los pies dentro del cuadro.",
+          "contacts": "Las dos palmas y las puntas de los pies apoyan en el suelo; el pecho no toca nada.",
+          "load": "La única carga es el peso del cuerpo, desplazado sobre el brazo que se flexiona.",
+          "orientation": "Atleta boca abajo, con la cabeza hacia la cámara y el pecho desplazado hacia la mano que queda a la izquierda del encuadre.",
+          "phase": "Posición baja de la flexión, con el pecho junto a una mano y el otro brazo estirado hacia el costado.",
+          "posture": "Cuerpo recto de la cabeza a los talones, cadera sin hundir, cuello neutro y el codo flexionado cerca del tronco."
+        },
+        "byImplement": {
+          "bodyweight": {
+            "geometry": "Manos muy separadas, con una palma a cada lado del cuerpo a más de una vez y media la anchura de los hombros; el brazo estirado queda recto sobre el suelo, con la palma apoyada."
+          }
+        },
+        "forbidden": [
+          "Los dos codos flexionados por igual: eso es una flexión ancha, no una arquero.",
+          "Brazo estirado levantado del suelo: eso es una flexión a un brazo.",
+          "Rodillas apoyadas en el suelo.",
+          "Manos juntas o a la anchura de los hombros."
+        ],
+        "promptCore": {
+          "bodyweight": "Front view from ahead of the athlete's head, low to the ground, of a muscular athlete frozen at the BOTTOM of an archer push-up on a flat floor. The hands are planted very wide apart. The arm on the left side of the image is bent and the chest hovers a few centimeters from that hand, while the arm on the right side of the image is fully straight out to the side with the palm flat on the floor. The body is one straight line from head to heels with the toes on the floor, hips level and neck neutral. No bench, no bar and no weights."
+        },
+        "qa": [
+          "¿Las manos están muy separadas, con una palma a cada lado, y las dos apoyadas en el suelo?",
+          "¿Un codo está flexionado con el pecho junto a esa mano y el otro brazo está totalmente estirado hacia el costado?",
+          "¿La cadera está alineada con el tronco, sin hundirse, y las rodillas no tocan el suelo?",
+          "¿Las manos están vacías, sin ningún implemento en el encuadre?"
+        ]
+      },
+      "sources": [
+        {
+          "claim": "En 12 varones, con la separación de manos al 50, 100 y 150 %, el pectoral menor, el tríceps y el infraespinoso se activaron más con el 50 %, el pectoral mayor más con el 50 y el 100 % que con el 150 %, y el serrato anterior más con el 150 %.",
+          "id": "kim2016palmar",
+          "title": "Effect of the push-up exercise at different palmar width on muscle activities",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/27064571/"
+        },
+        {
+          "claim": "El pectoral mayor y el tríceps se activaron más con las manos juntas que con las manos separadas durante la flexión.",
+          "id": "cogley2005",
+          "title": "Comparison of muscle activation using various hand positions during the push-up exercise",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/16095413/"
+        },
+        {
+          "claim": "En ocho voluntarios, el tríceps y el pectoral mayor se activaron más con la base estrecha, y las variantes con las manos adelantadas o atrasadas dieron la mayor activación de abdomen y espalda; los músculos abdominales y los erectores actuaron como estabilizadores.",
+          "id": "marcolin2015",
+          "title": "Selective Activation of Shoulder, Trunk, and Arm Muscles: A Comparative Analysis of Different Push-Up Variants",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/26488636/"
+        },
+        {
+          "claim": "En empujes estables el pectoral mayor, el deltoides anterior y el serrato se activan mucho. El abdomen, el tríceps, el deltoides posterior y el trapecio superior suben cuando el apoyo es inestable.",
+          "id": "calatayud2014",
+          "title": "Muscle activity levels in upper-body push exercises with different loads and stability conditions",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/25419894/"
+        },
+        {
+          "claim": "El grupo pectoral flexiona, aduce y rota internamente el húmero, y participa en la estabilización de la escápula.",
+          "id": "statpearls_pectoral",
+          "title": "Anatomy, Shoulder and Upper Limb, Pectoral Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31424825/"
+        },
+        {
+          "claim": "La función primaria del tríceps braquial es extender el codo.",
+          "id": "statpearls_triceps",
+          "title": "Anatomy, Shoulder and Upper Limb, Triceps Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725681/"
+        },
+        {
+          "claim": "Describe las porciones del deltoides como clave del movimiento y la estabilidad del hombro; la anterior flexiona el hombro.",
+          "id": "statpearls_deltoid",
+          "title": "Anatomy, Shoulder and Upper Limb, Deltoid Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725741/"
+        }
+      ]
     }
   }
 }

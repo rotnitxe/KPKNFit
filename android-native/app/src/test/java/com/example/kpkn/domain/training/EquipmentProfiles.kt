@@ -41,6 +41,12 @@ internal object EquipmentProfiles {
 
     val gymWithoutRack = EquipmentProfile("gimnasio sin rack", gym, EquipmentSymbols.seedFor(gym) - EquipmentSymbolId.RACK)
 
+    /** Gimnasio sin la sala de máquinas pero con poleas: sigue siendo una declaración por llave. */
+    val gymWithoutMachines = EquipmentProfile("gimnasio sin máquinas", gym, EquipmentSymbols.seedFor(gym) - EquipmentSymbolId.MACHINES)
+
+    /** Gimnasio sin banco: no hay banco declinado ni de hiperextensión. */
+    val gymWithoutBench = EquipmentProfile("gimnasio sin banco", gym, EquipmentSymbols.seedFor(gym) - EquipmentSymbolId.BENCH)
+
     /** Los seis materiales que pide el brief. */
     val required: List<EquipmentProfile> = listOf(bodyOnly, parkSeed, homeDumbbellsBench, homeRingsBox, gymFull, gymWithoutRack)
 
@@ -60,6 +66,10 @@ internal object EquipmentProfiles {
             EquipmentSymbols.seedFor(gym) - EquipmentSymbolId.MACHINES - EquipmentSymbolId.CABLE,
         ),
         EquipmentProfile("gimnasio sin barra", gym, EquipmentSymbols.seedFor(gym) - EquipmentSymbolId.BARBELL),
+        gymWithoutMachines,
+        gymWithoutBench,
+        profile("casa con barra y banco", home, EquipmentSymbolId.BARBELL, EquipmentSymbolId.BENCH),
+        profile("casa con máquinas", home, EquipmentSymbolId.MACHINES),
         profile("gimnasio solo con máquinas", gym, EquipmentSymbolId.MACHINES),
         profile("gimnasio solo con poleas", gym, EquipmentSymbolId.CABLE),
         EquipmentProfile("gimnasio y parque", gym + park, EquipmentSymbols.seedFor(gym + park)),
@@ -85,4 +95,19 @@ internal object EquipmentProfiles {
     val categoricalOnly: EquipmentAvailability = EquipmentAvailability(
         categories = setOf(EquipmentCategory.BARBELL, EquipmentCategory.MACHINES, EquipmentCategory.SUPPORT),
     )
+
+    /**
+     * El gimnasio completo tal como lo dejaba el subpanel antiguo: las nueve llaves de máquina `PRESENT` SIN la bandera de
+     * la sala de máquinas, o sea, con el modo «configuración exacta» (solo las máquinas curadas por su token).
+     */
+    val gymWithPanelAnswers: EquipmentAvailability = gymFull.availability.copy(machinesAsCategory = false)
+
+    /** Disponibilidades que no salen de los símbolos de hoy (borradores y datos guardados anteriores). */
+    val legacyAvailabilities: List<Pair<String, EquipmentAvailability>> = listOf(
+        "solo categorías" to categoricalOnly,
+        "gimnasio con el subpanel antiguo" to gymWithPanelAnswers,
+    )
+
+    /** Todo lo que recorren las pruebas diferenciales: los materiales de los símbolos y los de las disponibilidades antiguas. */
+    val everyAvailability: List<Pair<String, EquipmentAvailability>> = all.map { it.name to it.availability } + legacyAvailabilities
 }

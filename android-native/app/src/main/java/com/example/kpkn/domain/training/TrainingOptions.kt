@@ -256,7 +256,11 @@ data class EffectiveEquipmentResult(
  *    una declaración de inventario.
  * 5. `bodyweight` se emite siempre en la ruta nueva (no necesita material) y
  *    `machine_config:<id>` SOLO desde el mapeo curado o desde el inventario
- *    exacto, jamás porque se marcó `MACHINES`.
+ *    exacto, jamás porque se marcó `MACHINES`. Que la categoría `MACHINES` abra
+ *    o no el resto de las variantes de máquina no lo decide este resolutor sino
+ *    el filtro ([ConfigurationEquipmentFilter]): lo abre cuando la declaración es
+ *    una sala de máquinas ([EquipmentAvailability.machinesAsCategory]) y no cuando
+ *    son llaves sueltas del subpanel.
  */
 fun TrainingOptions.resolveEffectiveEquipment(legacyEquipment: Set<String>): EffectiveEquipmentResult =
     availability?.let { resolveWithAvailability(it) } ?: resolveWithLegacy(legacyEquipment)
@@ -270,10 +274,11 @@ fun TrainingOptions.resolveEffectiveEquipment(legacyEquipment: Set<String>): Eff
  * Contrato de los tokens:
  * - [TrainingOptions.availability] no nula → `bodyweight` + categorías
  *   confirmadas + mapeo curado de las claves `PRESENT` (las del subpanel y las
- *   de símbolo de [SYMBOL_EQUIPMENT_KEYS]: `trx`/`rings`, `plyo_box`,
- *   `jump_rope`, `plate`, `hex_bar`, `t_bar`, `ghd`, `ab_wheel` y la barra baja
- *   de un parque). No emite `general_gym` ni `free_weights`, y
- *   `machine_config:<id>` solo desde mapeo curado o inventario exacto.
+ *   de símbolo de [SYMBOL_EQUIPMENT_KEYS]: `trx`/`rings`, `plyo_box` —que además
+ *   es un apoyo elevado, `support`—, `jump_rope`, `plate`, `hex_bar`, `t_bar`,
+ *   `ghd`, `ab_wheel` y la barra baja de un parque). No emite `general_gym` ni
+ *   `free_weights`, y `machine_config:<id>` solo desde mapeo curado o
+ *   inventario exacto.
  * - [TrainingOptions.inventory] **null** (y sin availability) → perfil legacy
  *   intacto, solo normalizado (`bands`→`band`, `smith`→`smith_machine`).
  * - [TrainingOptions.inventory] **declarado** → manda lo que el material real

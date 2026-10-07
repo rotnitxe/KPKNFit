@@ -953,6 +953,21 @@ data class SetupWizardState(
     val ringsCoveragePreview: RingsCoverage? = null,
     /** Preparación nutricional REAL del alta (días, gastos y errores), cuando existe. */
     val nutritionPreparation: SetupNutritionPreparationResult? = null,
+    /**
+     * Entreno v2 · estado del barrido de programas del paso PLAN: cargando, listo o fallido (con «Reintentar»). Es lo
+     * que decide el overlay «preparando…» (`ready` = el barrido terminó) y el aviso de fallo.
+     */
+    val planSweep: SetupPlanSweep = SetupPlanSweep.IDLE,
+    /**
+     * Entreno v2 · lo que el revelado enseña de cada programa viable del barrido vigente, en el orden de la lista (el
+     * «a medida» primero): portada, detalle, semana tipo, razones y notas, sacados del programa YA materializado.
+     */
+    val planReveals: List<SetupPlanReveal> = emptyList(),
+    /**
+     * Entreno v2 · la semana del programa previsualizado para el paso WEEK_LAYOUT (sesiones, asignación a días,
+     * repartos a los que se puede adaptar y avisos); null mientras no haya programa.
+     */
+    val weekLayout: SetupWeekLayout? = null,
 ) {
     val showNutritionPreview: Boolean get() = nutritionDraft != null
     val nutritionDraft: NutritionWizardDraft? get() = draft.nutritionDraft
