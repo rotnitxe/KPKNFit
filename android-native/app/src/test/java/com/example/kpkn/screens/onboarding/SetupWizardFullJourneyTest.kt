@@ -534,9 +534,15 @@ class SetupWizardFullJourneyTest {
             timeoutMs = 40_000,
         ) { !it.isCandidateLoading && (it.availablePlanCandidates + it.planCandidates).isNotEmpty() }
         val candidates = vm.state.value.availablePlanCandidates.ifEmpty { vm.state.value.planCandidates }
-        val native = candidates.firstOrNull { it.source == "NATIVE" }
-        // C.P3 (DEC-w2-06): el orden de la lista sale de la ficha editorial; el primer nativo viable
-        // de Músculo es el plan propio.
+        // Entreno v2: Culturismo pone delante su programa «a medida» del generador y, detrás, los planes del catálogo.
+        assertEquals(
+            "el «a medida» de Culturismo va al frente",
+            com.example.kpkn.domain.onboarding.GeneratedPlans.entryIdFor(TrainingGoalProfile.BODYBUILDING),
+            candidates.first().id,
+        )
+        // C.P3 (DEC-w2-06): el orden del catálogo sale de la ficha editorial; el primer nativo viable detrás del «a
+        // medida» es el plan propio de Músculo, que es el que este recorrido activa.
+        val native = candidates.drop(1).firstOrNull { it.source == "NATIVE" }
         if (native == null) {
             fail("sin candidato nativo entre ${candidates.map { it.source }}")
             return

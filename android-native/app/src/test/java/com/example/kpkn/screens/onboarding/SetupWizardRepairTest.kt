@@ -195,9 +195,10 @@ class SetupWizardRepairTest {
         val switched = base.withRepair(PlanRepair.SwitchGoal(PlanGoalProfile.STRENGTH_MUSCLE, alsoMinutes = 45))
         assertEquals(SetupGoal.STRENGTH_MUSCLE, switched.goal)
         assertEquals(TrainingStyle.POWERBUILDER, switched.volumeAnswers.style)
-        // El dato es el perfil de objetivo; la selección del paso se lee de él.
-        assertEquals(TrainingGoalProfile.STRENGTH_MUSCLE, switched.goalProfile)
-        assertEquals(setOf("strength_muscle"), switched.selectedValues(SetupStepId.GOAL))
+        // El dato es el perfil de objetivo; la selección del paso se lee de él. Entreno v2: el plan propio de Fuerza y
+        // músculo vive en la disciplina Powerbuilding (el perfil general «Fuerza y masa muscular» solo tiene su «a medida»).
+        assertEquals(TrainingGoalProfile.POWERBUILDING, switched.goalProfile)
+        assertEquals(setOf("powerbuilding"), switched.selectedValues(SetupStepId.GOAL))
         assertEquals(45, switched.minutesPerSession)
         assertNull(switched.selectedSplitId)
         assertEquals(STRENGTH_OWN, switched.selectedCatalogId)
@@ -789,9 +790,10 @@ class SetupWizardRepairTest {
 
             assertEquals("la intención", POWERBUILDING_OWN, state.draft.selectedCatalogId)
             assertEquals("el objetivo del plan, prefijado", SetupGoal.STRENGTH_MUSCLE, state.draft.goal)
-            // El dato es el perfil de objetivo; la selección del paso se lee de él.
-            assertEquals(TrainingGoalProfile.STRENGTH_MUSCLE, state.draft.goalProfile)
-            assertEquals(setOf("strength_muscle"), state.draft.selectedValues(SetupStepId.GOAL))
+            // El dato es el perfil de objetivo; la selección del paso se lee de él. Entreno v2: el plan propio de Fuerza
+            // y músculo se ofrece en la disciplina Powerbuilding, que es la que se prefija.
+            assertEquals(TrainingGoalProfile.POWERBUILDING, state.draft.goalProfile)
+            assertEquals(setOf("powerbuilding"), state.draft.selectedValues(SetupStepId.GOAL))
             assertEquals(TrainingStyle.POWERBUILDER, state.draft.volumeAnswers.style)
             // Sin saltarse pasos: nada se confirma ni se marca como declarado.
             assertFalse(SetupStepId.GOAL in state.draft.stepProgress.answers)
