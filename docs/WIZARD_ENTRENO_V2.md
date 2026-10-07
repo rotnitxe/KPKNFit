@@ -88,8 +88,11 @@ fatiga, `articulationType`)
 - Disciplinas: calistenia 28 definiciones (faltan muscle-up, handstand, levers, L-sit); **halterofilia 0** (ni arranque ni dos tiempos);
   strongman: paseo del granjero ×4, Zercher ×10, sin yugo/piedras/log/trineo; armwrestling: 10 definiciones con antebrazo primario (faltan
   desviación radial/cubital, presión lateral, dedos, gripper); powerlifting completo.
-- Material del catálogo (`equipmentId`, 19 valores) ≠ material del wizard (11 categorías + 20 llaves): `trx`, `ab_wheel`, `sliders`, `ghd`,
-  `wrist_roller`, `plate`, `hex_bar`, `safety_bar`, `t_bar`, `h_bar` no se acreditan desde ninguna categoría (32 configuraciones inalcanzables).
+- Material del catálogo (`equipmentId`, 19 valores) ≠ material del wizard (11 categorías + 20 llaves del subpanel + 11 llaves de símbolo).
+  Medido con `EquipmentReachTest` (`app/build/reports/equipment-reach/reach.txt`): antes de los paquetes E y E2, **89 de 521 configuraciones eran
+  inalcanzables** desde cualquier símbolo (56 `machine` sin llave curada; 32 por implemento: `trx`, `plate`, `hex_bar`, `safety_bar`, `t_bar`,
+  `ab_wheel`, `h_bar`, `sliders`, `ghd`, `wrist_roller`; y el curl nórdico). **Hoy quedan 8**: los cuatro implementos raros que no se acreditan a
+  propósito (`safety_bar` ×4, `h_bar`, `sliders`, `wrist_roller`) y el curl nórdico (`nordic_anchor` no tiene símbolo ni llave).
 
 **Decisiones que de aquí se derivan**
 1. Los **objetivos generales** (y todo caso en que ningún plan de autor encaje) los resuelve un **generador nuevo** (`domain/training/generator`)
@@ -101,7 +104,12 @@ fatiga, `articulationType`)
    y Strongman quedan limitados hasta que el catálogo incorpore sus levantamientos (altas con el flujo de curaduría del catálogo, con OK del
    usuario). Ningún perfil se ofrece como si tuviera contenido que no existe.
 3. El **material** del paso se traduce con `EquipmentSymbols` (dominio) a categorías + llaves `PRESENT/ABSENT`; «gimnasio» marca presentes rack, banco,
-   poleas y máquinas, así que desaparecen las preguntas «¿tienes rack?».
+   poleas y máquinas, así que desaparecen las preguntas «¿tienes rack?». Un único resolutor (`resolveEffectiveEquipment`) y un único filtro
+   (`ConfigurationEquipmentFilter`) sirven al planificador, a los planes de autor y al generador. **«Máquinas» es una sala de máquinas**
+   (`EquipmentAvailability.machinesAsCategory`): la categoría basta para las 73 configuraciones `machine` (dos piden además banco), sin el modo de
+   configuración exacta (DEV-r2-06), y las nueve llaves curadas siguen presentes para las recetas de autor. Los extras sin símbolo propio los acreditan sus símbolos
+   madre: los discos con la barra (en cualquier lugar); barra hexagonal, barra T, GHD, rueda abdominal y bancos declinado y de hiperextensión
+   solo con gimnasio entre los lugares; la barra baja, con la barra de dominadas de un parque.
 4. `AthleteType` lo escribe la activación a partir del objetivo (afecta a AUGE).
 
 ## 2. Detalle por paso
