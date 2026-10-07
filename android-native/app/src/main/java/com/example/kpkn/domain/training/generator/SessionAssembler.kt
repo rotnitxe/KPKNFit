@@ -71,7 +71,7 @@ internal data class AssembledSession(
 internal object SessionAssembler {
 
     private const val MIN_STRENGTH_ITEMS = 3
-    private const val MAX_CORRECTIONS = 12
+    private const val MAX_CORRECTIONS = 20
 
     private fun strengthCapSeconds(level: RoutineLevel): Int = when (level) {
         RoutineLevel.NOVICE -> 70
@@ -133,6 +133,8 @@ internal object SessionAssembler {
         var cardioIntervals: Boolean,
         var fillerCardioSeconds: Int,
         val useMobilityPart: Boolean,
+        /** El bloque de cardio de una sesión de fuerza (no el cardio que ES la sesión) puede salir entero como último recurso. */
+        val canOmitCardio: Boolean = false,
     )
 
     // ─── Entrada ───────────────────────────────────────────────────────────────────────────────────────────
@@ -272,6 +274,7 @@ internal object SessionAssembler {
             cardioIntervals = cardioIntervals,
             fillerCardioSeconds = 0,
             useMobilityPart = mobilitySeconds > 0 || (mobilitySpec != null && mobilitySpec.fill),
+            canOmitCardio = plan.cardio == CardioMode.BLOCK,
         )
         var overhead = 0
         if (bundles.any { it.included }) {
@@ -329,6 +332,8 @@ internal object SessionAssembler {
         }
         val final = requireNotNull(best)
         restore(state, final.snapshot)
+        // Si el bloque de cardio tuvo que salir para no pasarse de la ventana (la fuerza ya estaba en su mínimo), se dice.
+        if (state.canOmitCardio && cardioSeconds > 0 && state.cardioSeconds == 0) ctx.notes += cardioOmittedNote(ctx)
         // Lo prioritario es lo último que el tiempo recorta; si aun así no cabe todo lo que se pidió, se dice (una sola nota por rutina).
         val squeezed = state.bundles.any { bundle ->
             if (!bundle.isPriority) return@any false
@@ -759,6 +764,13 @@ internal object SessionAssembler {
         val dropped = included.firstOrNull { itemCount - it.items.size >= minItems }
         if (dropped != null) {
             dropped.included = false
+            return true
+        }
+        // Último recurso: el bloque de cardio no se recorta (la mitad de un bloque no es el bloque que se pidió), pero si con la fuerza
+        // en su mínimo (tres ejercicios con sus series y descansos mínimos, más la aproximación) la sesión sigue pasándose de la
+        // ventana, el bloque entero sale de ESTA sesión: se avisa y el cardio va en otras sesiones o con más minutos.
+        if (state.canOmitCardio && state.cardioSeconds > 0) {
+            state.cardioSeconds = 0
             return true
         }
         return false
