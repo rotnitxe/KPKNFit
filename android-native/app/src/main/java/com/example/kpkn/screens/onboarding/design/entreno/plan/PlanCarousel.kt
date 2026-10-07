@@ -84,7 +84,7 @@ internal fun planChooseTag(id: String): String = "setup-plan-choose-$id"
 /**
  * El carrusel de programas.
  *
- * - [cards]: las tarjetas, en orden. Con una sola se muestra centrada, sin pager.
+ * - [cards]: las tarjetas, en orden; sus `id` deben ser únicos. Con una sola se muestra centrada, sin pager.
  * - [selectedId]: el programa elegido (lleva una marca de «hecho» sobre su portada); el carrusel arranca en él.
  * - [onSelect]: «Elegir» (con el id de la tarjeta central). [onOpen]: «Ver detalles», o tocar la tarjeta central.
  *   Tocar una vecina la trae al centro.
