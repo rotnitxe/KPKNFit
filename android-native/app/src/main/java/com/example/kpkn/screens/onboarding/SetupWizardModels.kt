@@ -893,7 +893,13 @@ data class SetupWizardState(
     val previewReport: PersonalizationReport? = null,
     val isPreviewLoading: Boolean = false,
     val previewError: String? = null,
-    val fixedSessionEstimateMinutes: Int? = null,
+    /**
+     * Minutos de la sesión más larga del programa previsualizado (ya con la semana armada, la aproximación y la
+     * movilidad), medidos con el estimador común ([longestSessionMinutes]); null sin programa. Sirve a TODOS los
+     * programas: la revisión final los compara con lo pedido con [SessionTimeFit].
+     */
+    val programSessionMinutes: Int? = null,
+    /** Días de entreno reales de la receta fija previsualizada (null en los programas propios y «a medida»). */
     val fixedTrainingDays: Set<Int>? = null,
     val requiresActivationConfirmation: Boolean = false,
     val machineState: WizChatMachineState = WizChatMachineState.Loading,

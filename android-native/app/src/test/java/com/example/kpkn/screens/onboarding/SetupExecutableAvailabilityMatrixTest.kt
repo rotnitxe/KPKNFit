@@ -139,8 +139,9 @@ import kotlin.time.Duration.Companion.minutes
  *     (`SessionDurationEstimator`, §12.2) aplicado AQUÍ a cada sesión del programa devuelto, no
  *     solo con lo que el generador sella en `Session.targetDurationMinutes` (que además debe
  *     coincidir con esa medida: un generador no puede pasar sellando su propia cifra); una receta
- *     fija usa SU propio `state.fixedSessionEstimateMinutes`. Son dos estimadores distintos y cada
- *     aserción se hace sobre su propia fuente: aquí no se finge que coincidan.
+ *     fija publica sus minutos en `state.programSessionMinutes`, medidos con ESE mismo estimador
+ *     sobre el programa ya armado, y cabe cuando lo dice la regla única del asistente
+ *     (`SessionTimeFit.fits`: la tolerancia del 15 % con la que el barrido la dio por viable).
  *  6. T-027 — sólo cuando `row.goal == MIXED`: el cardio tiene que ser CONTENIDO ESTRUCTURADO
  *     emitido por el motor —exactamente un bloque de cardio por día de entrenamiento, con el tipo
  *     y los minutos REALES declarados en el borrador (CAMINAR), sin cardio suelto, sin cardio
@@ -2523,7 +2524,7 @@ class SetupExecutableAvailabilityMatrixTest {
                 evidence["attempts"] = attempts.ifEmpty { listOf("-") }.joinToString(" ;; ")
                 evidence["selectedId"] = state.draft.selectedCatalogId ?: "-"
                 evidence["previewError"] = state.previewError ?: "-"
-                evidence["fixedEstimate"] = state.fixedSessionEstimateMinutes?.toString() ?: "-"
+                evidence["fixedEstimate"] = state.programSessionMinutes?.toString() ?: "-"
                 evidence["limitations"] = state.previewReport?.limitations?.joinToString(" | ")?.ifBlank { "-" } ?: "-"
 
                 assertTrue(
@@ -2697,14 +2698,22 @@ class SetupExecutableAvailabilityMatrixTest {
                 )
             }
         } else {
-            val estimate = state.fixedSessionEstimateMinutes
+            val estimate = state.programSessionMinutes
             assertTrue(
-                "${row.id}: una receta fija debe publicar su propia estimación de sesión",
+                "${row.id}: una receta fija debe publicar los minutos de su sesión más larga",
                 estimate != null,
             )
+            assertEquals(
+                "${row.id}: los minutos publicados son los del estimador común sobre el programa",
+                SessionDurationEstimator.estimate(
+                    sessions.filter { it.allExercises().isNotEmpty() }.maxByOrNull { SessionDurationEstimator.estimate(it).totalSeconds }!!,
+                ).totalMinutes,
+                estimate,
+            )
             assertTrue(
-                "${row.id}: la receta fija estima ${estimate} min y el presupuesto es ${row.minutes}",
-                estimate!! <= row.minutes,
+                "${row.id}: la receta fija estima ${estimate} min y el presupuesto es ${row.minutes} " +
+                    "(con la tolerancia del asistente caben ${SessionTimeFit.limit(row.minutes, generated = false)})",
+                SessionTimeFit.fits(row.minutes, estimate!!, generated = false),
             )
         }
 

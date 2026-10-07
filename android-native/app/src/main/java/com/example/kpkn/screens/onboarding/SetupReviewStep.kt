@@ -135,7 +135,7 @@ fun SetupReviewStep(
             onToggle = { vm.confirmActivation(!state.draft.confirmActivation) },
         )
     }
-    if (fixedRecipeDifference(state)) {
+    if (state.fixedRecipeDiffers()) {
         SetupConfirmationCard(
             title = "Confirmo la rotación y la duración reales",
             body = "La receta fija propone unos días y unos minutos distintos a los que declaraste.",
@@ -255,9 +255,10 @@ internal fun planReviewValue(entry: CatalogEntry?, programName: String): String?
     entry?.displayName ?: programName.ifBlank { null }
 
 /**
- * Entreno v2 · el programa que se activa en una línea: «4 días · ~60 min por sesión · Gimnasio y En casa». Los días y
- * los minutos salen de la primera semana de entreno del programa previsualizado (el estimador común); el lugar, del de
- * cada sesión (`Session.placeId`) o, si el programa no lo dice, de los lugares declarados. Null sin sesiones.
+ * Entreno v2 · el programa que se activa en una línea: «4 días · ~60 min por sesión · Gimnasio y En casa». Los días salen
+ * de la primera semana de entreno del programa previsualizado; los minutos, de su sesión más larga con el estimador común
+ * ([longestSessionMinutes]: el mismo número con el que la revisión decide si cabe); el lugar, del de cada sesión
+ * (`Session.placeId`) o, si el programa no lo dice, de los lugares declarados. Null sin sesiones.
  */
 internal fun programReviewDetail(program: Program, draft: SetupWizardDraft): String? {
     val week = SetupPlanReveals.weekOf(program)
@@ -267,7 +268,7 @@ internal fun programReviewDetail(program: Program, draft: SetupWizardDraft): Str
         .map { it.label }
     return listOfNotNull(
         SpanishPlurals.days(week.size),
-        week.maxOf { it.minutes }.takeIf { it > 0 }?.let { "~$it min por sesión" },
+        longestSessionMinutes(program)?.takeIf { it > 0 }?.let { "~$it min por sesión" },
         places.takeIf { it.isNotEmpty() }?.let { names ->
             if (names.size == 1) names.single() else names.dropLast(1).joinToString(", ") + " y " + names.last()
         },
@@ -333,6 +334,8 @@ private fun TrainingSummary(
     )
     // Entreno v2: lo que se activa en una línea (días, minutos y lugar del programa previsualizado).
     programReviewDetail(program, draft)?.let { detail -> SetupFormCaption(detail) }
+    // Si la sesión más larga pasa de lo pedido (con el margen que le toca a este programa), la revisión lo dice.
+    timeReviewNote(draft, state.programSessionMinutes)?.let { note -> SetupFormCaption(note) }
     // Una sesión que cae en un día cuyo lugar no tiene su material: el aviso del tablero se repite aquí, persistente,
     // porque lo que se activa es esa semana tal como la dejó la persona.
     state.weekLayout?.placeConflicts?.forEach { conflict ->
@@ -746,19 +749,6 @@ private fun SetupDataLine(
             Text(text = "›", style = WizardTypography.cardSubtitle, color = WizardColors.textMuted)
         }
     }
-}
-
-/**
- * Confirma que la receta fija se aparta de lo declarado (días o minutos). Es la
- * misma condición que valida el ViewModel para `acceptFixedRecipeDifference`.
- */
-private fun fixedRecipeDifference(state: SetupWizardState): Boolean {
-    val draft = state.draft
-    val days = state.fixedTrainingDays
-    val minutes = state.fixedSessionEstimateMinutes
-    val daysDiffer = days != null && days != draft.selectedWeekdays
-    val timeExceeds = minutes != null && minutes > (draft.minutesPerSession ?: 100)
-    return daysDiffer || timeExceeds
 }
 
 private fun formatPercent(value: Double): String =

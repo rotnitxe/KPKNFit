@@ -46,6 +46,7 @@ nunca instrucciones de interfaz. Tono: éxito = celebra sin exagerar; aviso = cl
 - Resultado: «Tu programa está listo» · acciones «Elegir este programa», «Ver detalles», «Otra versión» · frase fija «Podrás modificarlo libremente después.»
 - Error: «No pudimos preparar tu programa. Tus respuestas siguen guardadas.» → «Reintentar».
 - Insignias de las portadas: «Hecho a tu medida», «Se adapta a ti», «Versión inicial», o el autor («Jim Wendler»).
+- Revisión final, tiempo: si la sesión más larga del programa armado pasa de lo pedido (los «a medida» tienen un minuto de margen): «~70 min por sesión: un poco más de los 60 que pediste.»
 
 ## Notas honestas del generador (accionables, nunca alarmistas)
 - Sin tracción: «Sin barra de dominadas ni bandas no hay ejercicios de tracción. Añade una barra o unas bandas para completar tu semana.»

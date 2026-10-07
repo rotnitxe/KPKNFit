@@ -2,8 +2,15 @@ package com.example.kpkn.screens.onboarding
 
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.programs.CatalogEntry
+import com.example.kpkn.data.programs.CatalogSource
+import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.data.programs.programModeFor
 import com.example.kpkn.data.programs.programNameFor
+import com.example.kpkn.domain.onboarding.GeneratedPlans
+import com.example.kpkn.domain.onboarding.PlanCandidateEvaluator
+import com.example.kpkn.domain.onboarding.PlanCandidateSources
+import com.example.kpkn.domain.onboarding.SetupStepId
+import com.example.kpkn.domain.onboarding.TrainingGoalProfile
 import com.example.kpkn.domain.training.generator.GeneratedRoutine
 
 /*
@@ -18,6 +25,76 @@ internal const val TIME_BUDGET_TOLERANCE_PERCENT = 15
  * redondeado hacia arriba (60 → 69, 100 → 115). Un plan que cabe así es viable con la nota «~N min por sesión».
  */
 internal fun timeBudgetWithTolerance(minutes: Int): Int = (minutes * (100 + TIME_BUDGET_TOLERANCE_PERCENT) + 99) / 100
+
+// ─── Tiempo de la sesión: una sola medida y una sola regla de «¿cabe?» ──────────────────────────────────────────
+
+/**
+ * Tolerancia, en minutos, de un programa «a medida»: el generador ajusta cada sesión al tiempo pedido con el mismo
+ * estimador con el que se mide después, así que lo que pasa de ahí ya no es el programa que se pidió.
+ */
+internal const val GENERATED_TIME_TOLERANCE_MINUTES = 1
+
+/**
+ * Minutos de la sesión MÁS LARGA del programa ya armado (semana, aproximación y movilidad incluidas), medidos con el
+ * estimador común ([com.example.kpkn.domain.training.SessionDurationEstimator], el mismo que usa el barrido de programas
+ * y el revelado); null sin sesiones con contenido. Es LA medida de la revisión: nadie más estima minutos.
+ */
+internal fun longestSessionMinutes(program: Program?): Int? =
+    program?.let(PlanCandidateEvaluator::sessionMinutesOf)?.maxOrNull()
+
+/**
+ * La regla única de «¿cabe?» del asistente para los minutos por sesión. La usan la puerta de activación, la
+ * confirmación de la receta fija y las notas de tiempo de la revisión: ninguna compara minutos por su cuenta.
+ *
+ * - Un programa «a medida» (generado) puede pasarse [GENERATED_TIME_TOLERANCE_MINUTES] min del tiempo pedido.
+ * - Un plan del catálogo (propio o de autor) cabe con la tolerancia del barrido ([timeBudgetWithTolerance], 15 %); sin
+ *   pasarse del tiempo pedido sale lo que se pidió y entre el pedido y la tolerancia cabe con la nota «~N min por sesión».
+ */
+internal object SessionTimeFit {
+
+    /** Lo más largo que puede ser la sesión más larga para que el programa quepa. */
+    fun limit(requested: Int, generated: Boolean): Int =
+        if (generated) requested + GENERATED_TIME_TOLERANCE_MINUTES else timeBudgetWithTolerance(requested)
+
+    /** ¿Cabe la sesión más larga ([longest]) en lo pedido, con la tolerancia que le toca? */
+    fun fits(requested: Int, longest: Int, generated: Boolean): Boolean = longest <= limit(requested, generated)
+
+    /** ¿Sale lo que se pidió, sin pasarse? (Un programa «a medida» admite su minuto de margen; el catálogo, ninguno.) */
+    fun matches(requested: Int, longest: Int, generated: Boolean): Boolean =
+        longest <= if (generated) requested + GENERATED_TIME_TOLERANCE_MINUTES else requested
+}
+
+/** Tiempo pedido que mide la revisión: el declarado o, sin declarar, el tope de los planes propios. */
+internal fun SetupWizardDraft.requestedSessionMinutes(): Int = minutesPerSession ?: DEFAULT_REQUESTED_MINUTES
+
+private const val DEFAULT_REQUESTED_MINUTES = 100
+
+/** ¿El programa elegido es una receta fija (un plan de autor o una plantilla)? Los propios y los «a medida» son NATIVE. */
+internal fun isFixedRecipe(planId: String?): Boolean =
+    planId?.let(PersonalizedPlanCatalog::find)?.source?.let { it != CatalogSource.NATIVE } == true
+
+/**
+ * La receta fija elegida se aparta de lo declarado: trae otros días o su sesión más larga pasa de lo pedido. Es la
+ * condición de la confirmación «Confirmo la rotación y la duración reales» y la misma que exige la puerta de activación.
+ */
+internal fun SetupWizardState.fixedRecipeDiffers(): Boolean {
+    if (!isFixedRecipe(draft.selectedCatalogId)) return false
+    val daysDiffer = fixedTrainingDays != null && fixedTrainingDays != draft.selectedWeekdays
+    val longest = programSessionMinutes
+    val timeDiffers = longest != null && !SessionTimeFit.matches(draft.requestedSessionMinutes(), longest, generated = false)
+    return daysDiffer || timeDiffers
+}
+
+/**
+ * La nota de tiempo de la revisión final: el programa armado pasa de lo pedido («~70 min por sesión: un poco más de los 60
+ * que pediste.»). Null si sale lo que se pidió (con el margen que le toca) o aún no hay minutos medidos.
+ */
+internal fun timeReviewNote(draft: SetupWizardDraft, longestMinutes: Int?): String? {
+    val longest = longestMinutes ?: return null
+    val requested = draft.minutesPerSession ?: return null
+    if (SessionTimeFit.matches(requested, longest, generated = GeneratedPlans.isGenerated(draft.selectedCatalogId))) return null
+    return "~$longest min por sesión: un poco más de los $requested que pediste."
+}
 
 /**
  * El programa que se previsualiza y se activa a partir de la rutina del generador: lo que el generador no sabe del alta

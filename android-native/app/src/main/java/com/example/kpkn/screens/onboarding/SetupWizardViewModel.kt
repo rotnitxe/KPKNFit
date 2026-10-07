@@ -1683,7 +1683,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
             _state.value = _state.value.copy(
                 programPreview = null,
                 previewReport = null,
-                fixedSessionEstimateMinutes = null,
+                programSessionMinutes = null,
                 fixedTrainingDays = null,
                 isPreviewLoading = false,
                 previewError = null,
@@ -1976,7 +1976,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 preparingTrainingKey = null
                 _state.value = _state.value.copy(
                     programPreview = null, previewReport = null,
-                    fixedSessionEstimateMinutes = null, fixedTrainingDays = null,
+                    programSessionMinutes = null, fixedTrainingDays = null,
                     isPreviewLoading = false,
                     weekLayout = null,
                 )
@@ -2009,8 +2009,9 @@ class SetupWizardViewModel @JvmOverloads constructor(
                     lastSuccessfulTrainingKey = key
                     preparingTrainingKey = null
                     clearStalePreviews(trainingPreviewKinds)
-                    val isFixed = draft.selectedCatalogId?.let(PersonalizedPlanCatalog::find)?.source?.let { it != CatalogSource.NATIVE } == true
-                    val minutes = if (isFixed) result.program?.let(::estimateFixedSessionMinutes) else null
+                    val isFixed = isFixedRecipe(draft.selectedCatalogId)
+                    // Los minutos de la revisión: la sesión más larga del programa YA ARMADO, con el estimador común.
+                    val minutes = longestSessionMinutes(result.program)
                     val machine = _state.value.machineState
                     val restoredMachine = if (machine == WizChatMachineState.PreparingPreview) {
                         if (_state.value.draft.wizChat.currentQuestionId == WizChatQuestionId.REVIEW) {
@@ -2023,7 +2024,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
                         // publishDraft es quien la retira al terminar.
                         machine
                     }
-                    _state.value = _state.value.copy(programPreview = result.program, previewReport = result.report, fixedSessionEstimateMinutes = minutes,
+                    _state.value = _state.value.copy(programPreview = result.program, previewReport = result.report, programSessionMinutes = minutes,
                         fixedTrainingDays = if (isFixed) result.program?.let(::fixedTrainingDays) else null,
                         isPreviewLoading = false, machineState = restoredMachine,
                         selectionStale = selectionStaleFor(_state.value.draft),
@@ -2063,19 +2064,6 @@ class SetupWizardViewModel @JvmOverloads constructor(
     private fun fixedTrainingDays(program: Program): Set<Int> = program.resolvedSchedulePlan().trainingDays
         .ifEmpty { firstWeekSessions(program).mapNotNull { it.dayOfWeek }.toSet() }
 
-    private fun estimateFixedSessionMinutes(program: Program): Int? {
-        val sessions = program.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }
-            .flatMap { it.weeks }.flatMap { it.sessions }.filter { it.exercises.isNotEmpty() }
-        return sessions.maxOfOrNull { session ->
-            (session.exercises.sumOf { exercise -> exercise.sets.size * (45 + (exercise.restTime ?: 90).coerceIn(30, 300)) } + 59) / 60
-        }
-    }
-
-    private fun fixedRecipeDifference(draft: SetupWizardDraft, program: Program?, minutes: Int?): Boolean {
-        if (program == null || draft.selectedCatalogId?.let(PersonalizedPlanCatalog::find)?.source == CatalogSource.NATIVE) return false
-        val realDays = fixedTrainingDays(program)
-        return realDays != draft.selectedWeekdays || minutes != null && minutes > (draft.minutesPerSession ?: 100)
-    }
     private fun ringsKey(draft: SetupWizardDraft): List<Any?> = listOf(draft.ringsAnswers,
         draft.manualMuscleOverrides, draft.manualEnergyOverride, draft.manualStructureOverride)
 
@@ -2280,7 +2268,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
         if (GeneratedPlans.isGenerated(entryId)) {
             request.copy(reference = null, minutesPerSession = Int.MAX_VALUE)
         } else {
-            request.copy(minutesPerSession = timeBudgetWithTolerance(request.minutesPerSession))
+            request.copy(minutesPerSession = SessionTimeFit.limit(request.minutesPerSession, generated = false))
         }
 
     /**
@@ -3073,7 +3061,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
         _state.value = current.copy(
             droppedSelection = dropped,
             programPreview = null, previewReport = null,
-            fixedSessionEstimateMinutes = null, fixedTrainingDays = null,
+            programSessionMinutes = null, fixedTrainingDays = null,
             previewError = null, errors = current.errors - "preview",
         )
         mutateDraft { draft ->
@@ -3404,10 +3392,17 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 put("programSource", "Fuente equivocada para la ruta elegida: la ruta de protocolo solo acepta recetas de autor. Cambia de ruta de forma explícita para usar un plan nativo.")
             }
         }
-        // Entreno v2: la misma tolerancia del 15 % con la que el barrido da por viable un plan de autor (con su nota
-        // «~N min por sesión»); por encima de ella la receta no cabe en el tiempo pedido.
-        if (s.fixedSessionEstimateMinutes != null && s.fixedSessionEstimateMinutes > timeBudgetWithTolerance(d.minutesPerSession ?: 100)) put("time", "Esta receta supera los ${d.minutesPerSession ?: 100} minutos por sesión; elige otra o ajusta el tiempo")
-        if (fixedRecipeDifference(d, s.programPreview, s.fixedSessionEstimateMinutes) && !d.acceptFixedRecipeDifference) put("schedule", "Confirma la rotación y la duración reales de la receta")
+        // Entreno v2: los minutos son los del estimador común sobre el programa ya armado y «¿cabe?» es la regla única
+        // del asistente ([SessionTimeFit]: la misma tolerancia del 15 % con la que el barrido da por viable un plan de
+        // autor); por encima de ella la receta no cabe en el tiempo pedido. Entre lo pedido y la tolerancia se pide
+        // confirmar la duración real, igual que cuando la receta trae otros días.
+        val longest = s.programSessionMinutes
+        if (isFixedRecipe(d.selectedCatalogId) && longest != null &&
+            !SessionTimeFit.fits(d.requestedSessionMinutes(), longest, generated = false)
+        ) {
+            put("time", "Esta receta supera los ${d.requestedSessionMinutes()} minutos por sesión; elige otra o ajusta el tiempo")
+        }
+        if (s.fixedRecipeDiffers() && !d.acceptFixedRecipeDifference) put("schedule", "Confirma la rotación y la duración reales de la receta")
         // Solo registro = sin plan y sin metas; no se exige una preparación que
         // el modo rechaza explícitamente.
         if (d.includeNutrition && !isTrackingOnly(d) && (s.nutritionPlanPreview == null || s.nutritionErrors.isNotEmpty())) {
