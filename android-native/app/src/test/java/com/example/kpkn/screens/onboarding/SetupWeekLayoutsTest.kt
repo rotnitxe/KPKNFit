@@ -347,6 +347,35 @@ class SetupWeekLayoutsTest {
     }
 
     @Test
+    fun invalidating_the_week_marks_it_pending_only_when_there_was_something_to_lose_and_resetting_never_does() {
+        val base = draft(setOf(1, 3, 5))
+        fun SetupWizardDraft.withWeekAnswered() = copy(
+            stepProgress = stepProgress.recordAnswer(
+                com.example.kpkn.domain.onboarding.SetupStepId.WEEK_LAYOUT,
+                com.example.kpkn.domain.onboarding.SetupAnswerProvenance.USER_DECLARED,
+                com.example.kpkn.domain.onboarding.SetupValueState.DECLARED,
+            ),
+        )
+        val week = com.example.kpkn.domain.onboarding.SetupStepId.WEEK_LAYOUT
+        val moved = base.copy(weekLayoutOverrides = mapOf("s" to 2), adaptedSplitId = "ul_x4")
+
+        // Sin nada que perder (la semana no se tocó ni se confirmó) no hay nada que marcar.
+        assertFalse(week in base.withInvalidatedWeekLayout().stepProgress.pendingReview)
+        // Decisiones suyas (sesiones movidas, reparto adaptado): se vacían y el paso queda pendiente.
+        val lost = moved.withInvalidatedWeekLayout()
+        assertTrue(lost.weekLayoutOverrides.isEmpty() && lost.adaptedSplitId == null)
+        assertTrue(week in lost.stepProgress.pendingReview)
+        // Confirmada sin decisiones: también queda pendiente (el programa de debajo cambió).
+        val answered = base.withWeekAnswered().withInvalidatedWeekLayout()
+        assertTrue(week in answered.stepProgress.pendingReview)
+        assertTrue("la respuesta se conserva", week in answered.stepProgress.answers)
+        // «Restablecer» es de la propia persona: vacía la semana y no la marca como pendiente.
+        val reset = moved.withWeekAnswered().withoutWeekLayout()
+        assertTrue(reset.weekLayoutOverrides.isEmpty() && reset.adaptedSplitId == null)
+        assertFalse(week in reset.stepProgress.pendingReview)
+    }
+
+    @Test
     fun overrides_and_assignments_convert_both_ways() {
         val assignment = mapOf(1 to "a", 4 to "b", 6 to "c")
         assertEquals(mapOf("a" to 1, "b" to 4, "c" to 6), overridesOf(assignment))

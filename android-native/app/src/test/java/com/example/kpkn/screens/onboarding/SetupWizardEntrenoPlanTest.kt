@@ -43,6 +43,7 @@ import com.example.kpkn.domain.onboarding.PlanRejectionReason
 import com.example.kpkn.domain.onboarding.SetupAnswerProvenance
 import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupValueState
+import com.example.kpkn.domain.onboarding.SetupWizardBlock
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.TrainingGoalProfile
 import com.example.kpkn.domain.onboarding.TrainingPlace
@@ -618,6 +619,83 @@ class SetupWizardEntrenoPlanTest {
                 assertEquals("$planId sigue elegido", planId, ready.draft.selectedCatalogId)
                 assertEquals("el «a medida» va delante, el propio detrás", GeneratedPlans.entryIdFor(profile), ready.availablePlanCandidates.first().id)
             }
+        }
+
+    // ─── La semana armada invalidada queda pendiente de revisar ───────────────────────────────────────
+
+    @Test
+    fun changingDaysMaterialMinutesPlanPrioritiesOrVersionLeavesTheWeekPendingReviewInsteadOfClearingItInSilence() =
+        runTest(dispatcher.scheduler, timeout = 15.minutes) {
+            val vm = newVm()
+            vm.initialize(SetupWizardMode.TRAINING_ONLY)
+            await(vm, "wizard cargado") { !it.isLoading && it.currentStep == SetupStepId.NAME }
+            val answers = Answers(
+                profile = TrainingGoalProfile.POWERLIFTING,
+                places = setOf(TrainingPlace.GYM),
+                days = setOf(1, 2, 4, 5),
+                freshDay = 1,
+                minutes = 90,
+            )
+            walkUntil(vm, SetupStepId.PLAN, answers)
+            await(vm, "programas de powerlifting") { idle(it) && it.planSweep == SetupPlanSweep.READY }
+            val tailored = GeneratedPlans.entryIdFor(TrainingGoalProfile.POWERLIFTING)
+            confirm(vm, SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT) { vm.selectPlan(tailored) }
+            await(vm, "semana armada") { idle(it) && it.programPreview != null && it.weekLayout != null }
+
+            /** Una decisión de la persona sobre su semana, WEEK_LAYOUT confirmado y sin nada pendiente. */
+            fun TestScope.decideAndConfirmTheWeek() {
+                val layout = checkNotNull(vm.state.value.weekLayout)
+                val first = layout.assignment.entries.minBy { it.key }.value
+                val freeDay = (1..7).first { it !in layout.assignment.keys }
+                vm.moveSession(first, freeDay)
+                await(vm, "decisión sobre la semana") { idle(it) && it.draft.weekLayoutOverrides.isNotEmpty() && it.weekLayout?.assignment?.get(freeDay) == first }
+                vm.update { draft ->
+                    draft.copy(
+                        stepProgress = draft.stepProgress
+                            .recordAnswer(SetupStepId.WEEK_LAYOUT, SetupAnswerProvenance.USER_DECLARED, SetupValueState.DECLARED)
+                            .reviewDone(SetupStepId.WEEK_LAYOUT),
+                    )
+                }
+                val confirmed = await(vm, "semana confirmada") { idle(it) && SetupStepId.WEEK_LAYOUT in it.draft.stepProgress.answers }
+                assertFalse(SetupStepId.WEEK_LAYOUT in confirmed.draft.stepProgress.pendingReview)
+                assertTrue(confirmed.draft.weekLayoutOverrides.isNotEmpty())
+            }
+
+            fun TestScope.assertWeekPending(what: String, reached: (SetupWizardState) -> Boolean) {
+                val after = await(vm, "$what: barrido nuevo") { idle(it) && reached(it) && it.planSweep == SetupPlanSweep.READY && it.weekLayout != null }
+                assertTrue("$what: la semana queda pendiente de revisar", SetupStepId.WEEK_LAYOUT in after.draft.stepProgress.pendingReview)
+                assertTrue("$what: la semana de antes ya no está", after.draft.weekLayoutOverrides.isEmpty() && after.draft.adaptedSplitId == null)
+                assertTrue("$what: la respuesta se conserva, solo se revisa", SetupStepId.WEEK_LAYOUT in after.draft.stepProgress.answers)
+                assertFalse(
+                    "$what: el bloque de entreno ya no cuenta como completo",
+                    SetupWizardBlock.TRAINING in after.draft.stepProgress.completedBlocks,
+                )
+            }
+
+            // Primero el plan (con las respuestas de arranque el propio de fuerza es viable), después lo demás.
+            decideAndConfirmTheWeek()
+            vm.selectPlan(STRENGTH_OWN)
+            assertWeekPending("otro plan") { it.draft.selectedCatalogId == STRENGTH_OWN && it.programPreview != null }
+
+            decideAndConfirmTheWeek()
+            vm.toggleWeekday(6)
+            assertWeekPending("días") { it.draft.selectedWeekdays == setOf(1, 2, 4, 5, 6) && it.programPreview != null }
+
+            decideAndConfirmTheWeek()
+            vm.toggleEquipmentSymbol(EquipmentSymbolId.KETTLEBELL)
+            assertWeekPending("material") { EquipmentSymbolId.KETTLEBELL !in it.draft.selectedEquipmentSymbols() }
+
+            decideAndConfirmTheWeek()
+            vm.setSessionMinutes(75)
+            assertWeekPending("minutos") { it.draft.minutesPerSession == 75 }
+
+            decideAndConfirmTheWeek()
+            vm.toggleMuscle(MuscleSymbol.CHEST)
+            assertWeekPending("prioridades (solo reordenan, pero cambian el programa «a medida»)") { MuscleSymbol.CHEST in it.draft.priorityMuscleSymbols() }
+
+            decideAndConfirmTheWeek()
+            vm.anotherPlanVersion()
+            assertWeekPending("otra versión") { it.draft.planVariantSeed == 1 }
         }
 
     // ═════════════════════════════════════════════════════════════════════════════════════════

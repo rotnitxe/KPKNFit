@@ -171,6 +171,22 @@ internal fun SetupWizardDraft.withoutWeekLayout(): SetupWizardDraft =
     if (weekLayoutOverrides.isEmpty() && adaptedSplitId == null) this
     else copy(weekLayoutOverrides = emptyMap(), adaptedSplitId = null)
 
+/**
+ * El borrador con la semana armada INVALIDADA por un cambio anterior (días, material, minutos, plan, prioridades, otra
+ * versión…): la semana vuelve a ser la del programa nuevo ([withoutWeekLayout]) y, si la persona ya la había confirmado o
+ * llevaba decisiones suyas (sesiones movidas, reparto adaptado), WEEK_LAYOUT queda PENDIENTE de revisar (no «hecho»): nada
+ * se limpia en silencio. «Restablecer» no pasa por aquí: es una decisión de la propia persona sobre su semana.
+ */
+internal fun SetupWizardDraft.withInvalidatedWeekLayout(): SetupWizardDraft {
+    val lostDecisions = hasWeekLayout
+    val cleared = withoutWeekLayout()
+    return if (lostDecisions || SetupStepId.WEEK_LAYOUT in cleared.stepProgress.answers) {
+        cleared.copy(stepProgress = cleared.stepProgress.withPendingReview(setOf(SetupStepId.WEEK_LAYOUT)))
+    } else {
+        cleared
+    }
+}
+
 /** Memoria pequeña (la menos usada sale primero) de rutinas generadas, segura entre hilos. */
 internal class GeneratedRoutineMemo(private val maxSize: Int) {
     private val map = object : LinkedHashMap<String, GeneratedRoutine>(16, 0.75f, true) {

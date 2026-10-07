@@ -435,7 +435,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 acceptFixedRecipeDifference = false,
                 programRoute = SetupProgramRoute.CUSTOMIZABLE,
                 trainingPath = SetupTrainingPath.PERSONALIZE,
-            ).let { chosen -> if (draft.selectedCatalogId == id) chosen else chosen.withoutWeekLayout() }
+            ).let { chosen -> if (draft.selectedCatalogId == id) chosen else chosen.withInvalidatedWeekLayout() }
         }
     }
 
@@ -464,7 +464,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
      * cambia de plan: si el «a medida» ya estaba elegido, sigue elegido con su versión nueva.
      */
     fun anotherPlanVersion() = updateStep(SetupStepId.PLAN) { draft ->
-        draft.copy(planVariantSeed = draft.planVariantSeed + 1).withoutWeekLayout()
+        draft.copy(planVariantSeed = draft.planVariantSeed + 1).withInvalidatedWeekLayout()
     }
 
     // ── Entreno v2: la semana armada (paso WEEK_LAYOUT) ──────────────────────
@@ -1338,8 +1338,9 @@ class SetupWizardViewModel @JvmOverloads constructor(
             .withNextDraftRevision(previous).withChangeImpacts(previous)
         val candidateInputsChanged = previousCandidateKey != candidateSetKey(changed)
         // Entreno v2: la semana armada (sesiones movidas, reparto adaptado) es del programa de las respuestas
-        // anteriores; con respuestas nuevas el programa se vuelve a armar y su semana empieza de cero.
-        val next = if (candidateInputsChanged) changed.withoutWeekLayout() else changed
+        // anteriores; con respuestas nuevas el programa se vuelve a armar y su semana empieza de cero, y el paso
+        // WEEK_LAYOUT queda pendiente de revisar (nunca se limpia en silencio).
+        val next = if (candidateInputsChanged) changed.withInvalidatedWeekLayout() else changed
         if (candidateInputsChanged) candidateGeneration += 1
         val beforePersist = _state.value.copy(machineState = WizChatMachineState.PersistingAnswer, errors = emptyMap())
         _state.value = if (candidateInputsChanged) {
