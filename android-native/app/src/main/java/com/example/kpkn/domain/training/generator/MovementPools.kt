@@ -19,6 +19,15 @@ import com.example.kpkn.domain.onboarding.LiftMark
  * mismo contrato que usa el resto de la app; una prueba lo exige) y, además, lo que ese archivo no sabe (banco para el
  * hip thrust con barra, banco inclinado para el remo con apoyo de pecho, cajón o banco para el step-up…). Una entrada con
  * «a|b» se cumple con cualquiera de las dos llaves.
+ *
+ * Material de gimnasio (paquete D1b): el símbolo «Máquinas» abre una sala completa (las 73 configuraciones `machine`), la barra
+ * trae discos en cualquier lugar y, con gimnasio entre los lugares, barra hexagonal y barra T; las máquinas traen además el
+ * GHD y la rueda abdominal. Esos implementos NO se piden en `requires`: ya los decide el filtro compartido por el `equipmentId`
+ * de la configuración (`hex_bar`, `t_bar`, `plate`, `ghd`, `ab_wheel`). Los que el contrato de soportes pide aparte (banco
+ * declinado y de hiperextensión) sí van en `requires`. Las máquinas más raras de una sala (pendular, belt squat, V-squat, barra T
+ * en máquina…) comparten grupo con las de siempre cuando son equivalentes (así rotan con la semilla) o van en un grupo propio con
+ * `bias` cuando son otra cosa. Los implementos que `EquipmentTier` agrupa como `OTHER` (discos, GHD, rueda) llevan un `bias`
+ * negativo: sin él su rango (7,0) los dejaría siempre detrás de todo y nunca saldrían.
  */
 
 /** Naturaleza del ejercicio: decide repeticiones, descansos y cómo se prescribe. */
@@ -99,9 +108,14 @@ internal object MovementPools {
             e("front_squat__dumbbells"),
             e("sumo_squat__dumbbells"),
         ),
+        // Máquinas guiadas de la sala: la prensa y la hack son las de siempre; la V-squat, la pendular y la belt squat son la
+        // misma familia (rotan con la semilla).
         g(
             e("quads_prensa_piernas__bilateral", basic = true),
             e("quads_sentadilla_hack__machine", basic = true),
+            e("quads_sentadilla_v_squat__default"),
+            e("pendulum_squat__bilateral"),
+            e("belt_squat__bilateral"),
         ),
         g(
             e("high_bar_back_squat__smith_machine", basic = true),
@@ -110,6 +124,12 @@ internal object MovementPools {
         g(
             e("front_squat__kettlebell", basic = true),
             e("sumo_squat__kettlebell"),
+        ),
+        // Las versiones invertidas de la hack y la V-squat cargan más el glúteo: detrás de las anteriores.
+        g(
+            e("quads_sentadilla_hack_invertida_maquina__default"),
+            e("quads_sentadilla_v_squat_invertida_maquina__default"),
+            bias = 0.4,
         ),
     )
 
@@ -137,6 +157,16 @@ internal object MovementPools {
             e("walking_lunge__barbell", minLevel = INT),
             bias = 2.0,
         ),
+        // Una pierna en máquina: prensa unilateral, belt squat y pendular a una pierna, búlgara y zancada en la hack y la V-squat.
+        g(
+            e("quads_prensa_piernas__unilateral"),
+            e("belt_squat__unilateral"),
+            e("pendulum_squat__unilateral"),
+            e("bulgarian_split_squat__machine"),
+            e("quads_zancada_inversa_maquina_hack__default"),
+            e("quads_zancada_inversa_maquina_v_squat__default"),
+            bias = 0.8,
+        ),
     )
 
     private val hinge = listOf(
@@ -144,6 +174,11 @@ internal object MovementPools {
             e("conventional_deadlift__bilateral__barbell", kind = ExKind.HEAVY, basic = true, minLevel = RET, fitsRole = ItemRole.MAIN, mark = LiftMark.DEADLIFT),
             e("romanian_deadlift__bilateral__barbell", basic = true, fitsRole = ItemRole.SECONDARY, mark = LiftMark.DEADLIFT, factor = 0.7),
             e("stiff_leg_deadlift__bilateral__barbell", minLevel = INT, fitsRole = ItemRole.SECONDARY, mark = LiftMark.DEADLIFT, factor = 0.65),
+            // Barra hexagonal (con gimnasio entre los lugares): el peso muerto más cómodo de aprender y sus variantes. Con marca de
+            // peso muerto, el factor de la convencional queda del lado seguro (con la hexagonal se suele levantar algo más).
+            e("conventional_deadlift__bilateral__hex_bar", kind = ExKind.HEAVY, basic = true, minLevel = RET, fitsRole = ItemRole.MAIN, mark = LiftMark.DEADLIFT, factor = 0.9),
+            e("romanian_deadlift__bilateral__hex_bar", basic = true, fitsRole = ItemRole.SECONDARY, mark = LiftMark.DEADLIFT, factor = 0.7),
+            e("stiff_leg_deadlift__bilateral__hex_bar", minLevel = INT, fitsRole = ItemRole.SECONDARY, mark = LiftMark.DEADLIFT, factor = 0.65),
         ),
         g(
             e("romanian_deadlift__bilateral__dumbbells", basic = true, fitsRole = ItemRole.SECONDARY),
@@ -156,6 +191,7 @@ internal object MovementPools {
         ),
         g(e("hams_pull_through__default", fitsRole = ItemRole.ACCESSORY)),
         g(e("hams_swing_kettlebell_dos_manos__default", kind = ExKind.BALLISTIC, basic = true, reps = 10..15)),
+        g(e("good_morning__bilateral__machine"), bias = 0.8),
     )
 
     private val glute = listOf(
@@ -179,6 +215,19 @@ internal object MovementPools {
             e("hip_thrust__bilateral__band", "bench"),
             e("glutes_patada_gluteo__band", kind = ExKind.ISOLATION),
         ),
+        // Máquinas: hip thrust guiado, reverse hyper (5,0: no es de novatos) y abducción de cadera (glúteo medio).
+        g(
+            e("hip_thrust__bilateral__machine", basic = true),
+            e("hip_thrust__unilateral__machine"),
+        ),
+        g(e("reverse_hyper__machine", kind = ExKind.ISOLATION, minLevel = INT), bias = 0.6),
+        g(
+            e("hip_abduction__seated__machine__bilateral", kind = ExKind.ISOLATION),
+            e("hip_abduction__standing__machine__bilateral", kind = ExKind.ISOLATION),
+            bias = 0.4,
+        ),
+        // Hiperextensión a 45° con disco (banco de hiperextensión de gimnasio).
+        g(e("glutes_hiperextension_45__plate", "hyperextension_bench", kind = ExKind.ISOLATION), bias = -2.0),
     )
 
     private val horizontalPush = listOf(
@@ -196,13 +245,23 @@ internal object MovementPools {
             e("incline_bench_press__dumbbells", "bench", "bench_incline", fitsRole = ItemRole.SECONDARY),
         ),
         g(e("floor_press__dumbbells", basic = true), bias = 0.8),
-        g(e("tren_superior_press_pecho_maquina_convergente__default", basic = true)),
+        g(
+            e("tren_superior_press_pecho_maquina_convergente__default", basic = true),
+            e("tren_superior_press_inclinado_maquina_convergente__default"),
+        ),
         g(e("tren_superior_press_unilateral_polea__default")),
         g(
             e("bench_press__smith_machine", "bench", basic = true),
             e("incline_bench_press__smith_machine", "bench", "bench_incline", fitsRole = ItemRole.SECONDARY),
         ),
         g(e("tren_superior_press_banda_resistencia__default")),
+        // Press de banca y banca inclinada en máquina: el contrato de soportes pide además un banco y su dificultad en el
+        // catálogo (7,0) no es de novato.
+        g(
+            e("bench_press__machine", "bench", minLevel = INT),
+            e("incline_bench_press__machine", "bench", "bench_incline", minLevel = INT),
+            bias = 1.0,
+        ),
     )
 
     private val verticalPush = listOf(
@@ -221,12 +280,17 @@ internal object MovementPools {
             e("seated_shoulder_press__kettlebell", "bench"),
         ),
         g(e("military_press__cable")),
+        g(
+            e("seated_shoulder_press__machine", basic = true),
+            e("military_press__machine"),
+        ),
     )
 
     private val horizontalPull = listOf(
         g(
             e("conventional_row__barbell", basic = true),
             e("pendlay_row__barbell", minLevel = INT),
+            e("t_bar_row__t_bar__medium"),
         ),
         g(
             e("conventional_row__dumbbells", basic = true),
@@ -244,6 +308,25 @@ internal object MovementPools {
             e("conventional_row__kettlebell", basic = true),
             e("chest_supported_row__kettlebell__medium", "bench", "bench_incline"),
         ),
+        // Remos en máquina: con apoyo de pecho (tres agarres) y convencional.
+        g(
+            e("chest_supported_row__machine__medium", basic = true),
+            e("chest_supported_row__machine__wide"),
+            e("chest_supported_row__machine__close"),
+            e("conventional_row__machine", basic = true),
+        ),
+        // Remo en barra T en máquina y, con otros agarres, libre (la barra T acompaña a la barra con gimnasio entre los lugares).
+        g(
+            e("t_bar_row__machine__medium"),
+            e("t_bar_row__machine__wide"),
+            e("t_bar_row__machine__close"),
+            bias = 0.4,
+        ),
+        g(
+            e("t_bar_row__t_bar__wide"),
+            e("t_bar_row__t_bar__close"),
+            bias = 0.3,
+        ),
     )
 
     private val verticalPull = listOf(
@@ -252,6 +335,13 @@ internal object MovementPools {
             e("close_grip_lat_pulldown__cable"),
         ),
         g(e("lying_pullover__dumbbells", "bench", kind = ExKind.ISOLATION), bias = 3.0),
+        // Jalón en máquina (un poco detrás del de polea, que es el de siempre) y pullover sentado en máquina.
+        g(
+            e("lat_pulldown__bilateral__machine", basic = true),
+            e("lat_pulldown__unilateral__machine"),
+            bias = 0.3,
+        ),
+        g(e("seated_machine_pullover__machine", kind = ExKind.ISOLATION), bias = 1.5),
     )
 
     private val chestIsolation = listOf(
@@ -264,6 +354,10 @@ internal object MovementPools {
             e("flat_chest_fly__cable", "bench", kind = ExKind.ISOLATION),
             e("incline_chest_fly__cable", "bench", "bench_incline", kind = ExKind.ISOLATION),
         ),
+        g(
+            e("flat_chest_fly__machine", kind = ExKind.ISOLATION),
+            e("incline_chest_fly__machine", kind = ExKind.ISOLATION),
+        ),
     )
 
     private val shoulderLateral = listOf(
@@ -273,6 +367,12 @@ internal object MovementPools {
         ),
         g(e("standing_lateral_raise__cable", kind = ExKind.ISOLATION)),
         g(e("standing_lateral_raise__kettlebell", kind = ExKind.ISOLATION)),
+        g(
+            e("seated_lateral_raise__machine", kind = ExKind.ISOLATION),
+            e("standing_lateral_raise__machine", kind = ExKind.ISOLATION),
+            e("lateral_raise_super_rom__machine", kind = ExKind.ISOLATION),
+            bias = 0.3,
+        ),
     )
 
     private val rearDelt = listOf(
@@ -286,6 +386,11 @@ internal object MovementPools {
             e("rear_delt_raise__cable", kind = ExKind.ISOLATION),
         ),
         g(e("back_band_pull_apart__default", kind = ExKind.ISOLATION)),
+        g(
+            e("reverse_pec_fly__bilateral__machine", kind = ExKind.ISOLATION),
+            e("rear_delt_raise__machine", kind = ExKind.ISOLATION),
+            e("reverse_pec_fly__unilateral__machine", kind = ExKind.ISOLATION),
+        ),
     )
 
     private val biceps = listOf(
@@ -305,6 +410,9 @@ internal object MovementPools {
         g(e("hammer_curl__kettlebell", kind = ExKind.ISOLATION)),
         g(e("hammer_curl__band", kind = ExKind.ISOLATION)),
         g(e("biceps_curl_trx__supinated", "rings", kind = ExKind.ISOLATION)),
+        g(e("preacher_curl__machine", kind = ExKind.ISOLATION), bias = 0.4),
+        // Curl waiter con un disco (los discos acompañan a la barra).
+        g(e("biceps_curl_waiter__plate", kind = ExKind.ISOLATION), bias = -2.0),
     )
 
     private val triceps = listOf(
@@ -326,6 +434,12 @@ internal object MovementPools {
         g(e("triceps_extension__default", "rings", kind = ExKind.ISOLATION)),
         g(e("triceps_flexiones_esfinge__default", kind = ExKind.ISOLATION)),
         g(e("triceps_fondos_entre_bancos__default", "bench", kind = ExKind.ISOLATION)),
+        g(
+            e("triceps_pushdown__bilateral__machine", kind = ExKind.ISOLATION),
+            e("triceps_press_maquina__default", kind = ExKind.ISOLATION),
+            e("overhead_triceps__machine", kind = ExKind.ISOLATION),
+            bias = 0.3,
+        ),
     )
 
     private val traps = listOf(
@@ -334,28 +448,46 @@ internal object MovementPools {
         g(e("back_encogimientos__cable", kind = ExKind.ISOLATION)),
         g(e("back_encogimientos__smith_machine", kind = ExKind.ISOLATION)),
         g(e("back_encogimientos__kettlebell", kind = ExKind.ISOLATION)),
+        g(e("back_encogimientos_kelso__machine", kind = ExKind.ISOLATION)),
     )
 
     private val grip = listOf(
         g(e("forearms_curl_muneca_sentado__dumbbells", kind = ExKind.ISOLATION)),
         g(e("forearms_suspension_isometrica_barra_fija__default", "pull_up_bar", kind = ExKind.TIMED)),
+        // Pinza con discos: agarre isométrico, por tiempo.
+        g(e("forearms_pinza_de_discos__default", kind = ExKind.TIMED), bias = -2.0),
     )
 
     private val carry = listOf(
         g(e("forearms_paseo_del_granjero__dumbbells", kind = ExKind.TIMED)),
         g(e("forearms_paseo_del_granjero__kettlebell", kind = ExKind.TIMED)),
+        // Paseo del granjero con la barra hexagonal (gimnasio) y con discos: detrás de las mancuernas, que son las de siempre.
+        g(e("forearms_paseo_del_granjero__hex_bar", kind = ExKind.TIMED), bias = 1.2),
+        g(e("forearms_paseo_del_granjero__plate", kind = ExKind.TIMED), bias = -2.5),
     )
 
     private val quadIsolation = listOf(
-        g(e("quads_extension_cuadriceps__machine__bilateral", kind = ExKind.ISOLATION)),
+        g(
+            e("quads_extension_cuadriceps__machine__bilateral", kind = ExKind.ISOLATION),
+            e("quads_extension_cuadriceps__machine__unilateral", kind = ExKind.ISOLATION),
+        ),
         g(e("quads_extension_cuadriceps_pie_polea__bilateral", kind = ExKind.ISOLATION)),
         g(e("quads_reverse_nordic_peso_corporal__default", kind = ExKind.ISOLATION, minLevel = ADV)),
+        // La sissy (5,2: no es de novatos) en máquina y con disco, y sin material: la sissy y la sentadilla en pared, isométrica y
+        // por tiempo (la única que pueden hacer quienes empiezan).
+        g(e("sissy_squat__machine", kind = ExKind.ISOLATION, minLevel = INT), bias = 0.2),
+        g(e("sissy_squat__plate", kind = ExKind.ISOLATION, minLevel = INT), bias = -2.0),
+        g(
+            e("sissy_squat__bodyweight", kind = ExKind.ISOLATION, minLevel = INT),
+            e("wall_sit__default", kind = ExKind.TIMED),
+        ),
     )
 
     private val hamstringCurl = listOf(
         g(
             e("lying_leg_curl__bilateral__machine", kind = ExKind.ISOLATION),
             e("seated_leg_curl__bilateral__machine", kind = ExKind.ISOLATION),
+            e("standing_leg_curl__bilateral__machine", kind = ExKind.ISOLATION),
         ),
         g(
             e("seated_leg_curl__bilateral__cable", kind = ExKind.ISOLATION),
@@ -363,6 +495,8 @@ internal object MovementPools {
         ),
         g(e("lying_leg_curl__bilateral__dumbbells", "bench", kind = ExKind.ISOLATION)),
         g(e("curl_isquios_con_balon__default", "ball", kind = ExKind.ISOLATION)),
+        // Glute-ham raise en el GHD (5,2: no es de novatos).
+        g(e("glute_ham_raise__default", minLevel = INT), bias = -3.0),
     )
 
     private val calf = listOf(
@@ -370,6 +504,8 @@ internal object MovementPools {
             e("calf_raise__bilateral__machine", kind = ExKind.ISOLATION),
             e("calf_raise__bilateral__seated_machine", kind = ExKind.ISOLATION),
             e("calf_raise__bilateral__leg_press_machine", kind = ExKind.ISOLATION),
+            e("calf_raise__bilateral__donkey_machine", kind = ExKind.ISOLATION),
+            e("calf_raise__unilateral__machine", kind = ExKind.ISOLATION),
         ),
         g(e("calf_raise__bilateral__smith_machine", kind = ExKind.ISOLATION)),
         g(e("calf_raise__bilateral__barbell", kind = ExKind.ISOLATION)),
@@ -379,6 +515,10 @@ internal object MovementPools {
 
     private val coreStability = listOf(
         g(e("core_crunch_en_polea_alta__default", kind = ExKind.CORE_DYNAMIC)),
+        g(e("core_crunch_maquina__default", kind = ExKind.CORE_DYNAMIC), bias = 0.2),
+        // Rueda abdominal (3,5, pero es un ejercicio difícil: no es de novatos) y crunch con disco en banco declinado.
+        g(e("core_rueda_abdominal__default", kind = ExKind.CORE_DYNAMIC, minLevel = INT), bias = -3.5),
+        g(e("core_crunch_banco_declinado_lastrado_disco__default", "decline_bench", kind = ExKind.CORE_DYNAMIC), bias = -3.5),
     )
 
     private val coreRotation = listOf(
@@ -391,7 +531,12 @@ internal object MovementPools {
     )
 
     private val backExtension = listOf(
-        g(e("back_superman_suelo__default", kind = ExKind.CORE_DYNAMIC)),
+        // El bird dog es la alternativa más suave al superman (erectores como primer músculo principal).
+        g(
+            e("back_superman_suelo__default", kind = ExKind.CORE_DYNAMIC),
+            e("bird_dog__default", kind = ExKind.CORE_DYNAMIC),
+        ),
+        g(e("back_extension_lumbar__default", kind = ExKind.ISOLATION), bias = 0.3),
     )
 
     private val power = listOf(
