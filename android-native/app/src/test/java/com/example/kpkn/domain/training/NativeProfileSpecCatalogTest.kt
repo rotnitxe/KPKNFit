@@ -94,8 +94,9 @@ class NativeProfileSpecCatalogTest {
 
     @Test
     fun historical_native_families_are_untouched() {
+        // Los programas «a medida» del generador (Entreno v2) son NATIVE pero no son familias del personalizador.
         val natives = PersonalizedPlanCatalog.entries()
-            .filter { it.source == CatalogSource.NATIVE }
+            .filter { it.source == CatalogSource.NATIVE && !it.isGenerated }
             .associateBy { it.sourceId }
         val historical = mapOf(
             "full-body" to (2..3),

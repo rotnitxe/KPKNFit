@@ -69,7 +69,9 @@ class PlanGoalMatcherTest {
     @Test
     fun completeAthleteMatchesExactlyTheEntriesThatDeclareTheFourCapabilities() {
         val athletes = all.filter { PlanGoalMatcher.matches(it, PlanGoalProfile.COMPLETE_ATHLETE) }.map { it.id }
-        assertEquals(listOf("native:complete-athlete-v2"), athletes)
+        // Entreno v2: los programas «a medida» de fuerza y cardio y de funcional también programan las cuatro (no se
+        // listan: los ofrece solo el asistente a sus perfiles).
+        assertEquals(listOf("native:complete-athlete-v2", "generated:hybrid", "generated:functional"), athletes)
         all.forEach { entry ->
             assertEquals(
                 "${entry.id}: Atleta completo ⇔ las cuatro capacidades",
@@ -155,7 +157,10 @@ class PlanGoalMatcherTest {
         val unmatched = table.filterValues { it.isEmpty() }.keys
         println("[C.P3] entradas sin ningún objetivo de producto (caen en «Otros»): ${unmatched.sorted()}")
         assertEquals(
-            setOf("template:simple-1", "template:simple-ab", "template:simple-4", "native:strength-cardio"),
+            setOf("template:simple-1", "template:simple-ab", "template:simple-4", "native:strength-cardio") +
+                // Entreno v2: las cuatro disciplinas sin planes de autor solo existen como programa «a medida» de su
+                // perfil (sin listar); no son de ninguno de los objetivos del catálogo de planes.
+                setOf("generated:calisthenics", "generated:armwrestling", "generated:strongman", "generated:weightlifting-base"),
             unmatched,
         )
     }

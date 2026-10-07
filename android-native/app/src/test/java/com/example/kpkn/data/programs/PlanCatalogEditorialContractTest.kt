@@ -151,9 +151,10 @@ class PlanCatalogEditorialContractTest {
 
     @Test
     fun every_adaptive_plan_declares_all_the_levels() {
-        // Los cuatro planes propios, las ocho familias históricas y las plantillas simples se adaptan al nivel.
+        // Los cuatro planes propios, las ocho familias históricas, los diez programas «a medida» del generador y las
+        // plantillas simples se adaptan al nivel.
         val adaptive = entries.filter { it.source == CatalogSource.NATIVE || it.template?.recipe == null && it.source == CatalogSource.TEMPLATE }
-        assertEquals(12 + 3, adaptive.size)
+        assertEquals(12 + GENERATED.size + 3, adaptive.size)
         adaptive.forEach { assertEquals("${it.id}: debe valer para todos los niveles", CatalogLevel.entries.toSet(), it.levels) }
     }
 
@@ -463,9 +464,10 @@ class PlanCatalogEditorialContractTest {
 
     @Test
     fun only_the_five_hidden_historicals_are_unlisted_and_only_two_cards_override_the_references() {
-        // `listed = false` exactamente en los cinco nativos históricos que D2 oculta.
+        // `listed = false` exactamente en los cinco nativos históricos que D2 oculta y en los diez programas «a medida»
+        // del generador (Entreno v2), que solo ofrece el asistente.
         val unlisted = PlanEditorialTable.byId.filterValues { !it.listed }.keys
-        assertEquals("fichas con listed = false", HIDDEN_HISTORICALS, unlisted)
+        assertEquals("fichas con listed = false", HIDDEN_HISTORICALS + GENERATED, unlisted)
 
         // `references` no nulo exactamente en strength-cardio (∅) y en BBB (PL+PB).
         val overrides = PlanEditorialTable.byId.filterValues { it.references != null }
@@ -500,22 +502,24 @@ class PlanCatalogEditorialContractTest {
 
     @Test
     fun hidden_entries_stay_in_the_catalog_but_not_in_the_listed_entries() {
-        // `entries()` conserva las 55 (programas ya activados, `lookup`, ruta histórica del personalizador).
+        // `entries()` conserva las 65 (programas ya activados, `lookup`, ruta histórica del personalizador y los
+        // programas «a medida» del asistente).
         assertEquals(EXPECTED_ENTRIES, entries.size)
+        val hidden = HIDDEN_HISTORICALS + GENERATED
         assertEquals(
             "entradas ocultas en entries()",
-            HIDDEN_HISTORICALS,
+            hidden,
             entries.filterNot { it.listed }.map { it.id }.toSet(),
         )
 
-        // `listedEntries()` ofrece 50: las mismas sin las cinco ocultas, en el mismo orden.
+        // `listedEntries()` ofrece 50: las mismas sin las quince ocultas, en el mismo orden.
         val listed = PersonalizedPlanCatalog.listedEntries()
-        assertEquals(EXPECTED_ENTRIES - HIDDEN_HISTORICALS.size, listed.size)
-        assertEquals(entries.filter { it.id !in HIDDEN_HISTORICALS }.map { it.id }, listed.map { it.id })
+        assertEquals(EXPECTED_ENTRIES - hidden.size, listed.size)
+        assertEquals(entries.filter { it.id !in hidden }.map { it.id }, listed.map { it.id })
         assertTrue("listedEntries() solo contiene entradas con listed = true", listed.all { it.listed })
 
         // Cada oculto sigue resolviendo por id, por lookup y por el programa que lo guardó.
-        HIDDEN_HISTORICALS.forEach { id ->
+        hidden.forEach { id ->
             assertNotNull("find($id)", PersonalizedPlanCatalog.find(id))
             assertEquals("lookup($id)", id, PersonalizedPlanCatalog.lookup(id)?.entry?.id)
         }
@@ -604,7 +608,11 @@ class PlanCatalogEditorialContractTest {
     )
 
     private companion object {
-        const val EXPECTED_ENTRIES = 55
+        /** 55 del catálogo de planes + los 10 programas «a medida» del generador (Entreno v2). */
+        const val EXPECTED_ENTRIES = 65
+
+        /** Entreno v2: los programas «a medida» del generador, sin listar (los ofrece solo el asistente). */
+        val GENERATED = PersonalizedPlanCatalog.GENERATED_IDS.toSet()
         const val MAX_NAME_LENGTH = 48
         const val OWN_PLAN = "Plan propio de KPKN."
         const val STRENGTH_CARDIO = "native:strength-cardio"
