@@ -8,9 +8,11 @@ import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.db.toActiveProgramState
 import com.example.kpkn.data.db.toProgram
 import com.example.kpkn.data.db.toSettings
+import com.example.kpkn.data.exercises.catalogv2.CatalogCompositionMetadataProvider
 import com.example.kpkn.data.exercises.catalogv2.CatalogV2ProcessCache
 import com.example.kpkn.data.models.AthleteType
 import com.example.kpkn.data.models.AutoregulationMode
+import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.NutritionPlan
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Session
@@ -24,6 +26,7 @@ import com.example.kpkn.data.onboarding.SetupDraftCandidate
 import com.example.kpkn.data.onboarding.SetupDraftRepository
 import com.example.kpkn.data.onboarding.SetupDraftResolver
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
+import com.example.kpkn.data.protocols.definitions.AuthoredPhulPhatRecipes
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.onboarding.CapabilityLevel
@@ -45,6 +48,10 @@ import com.example.kpkn.domain.onboarding.TrainingGoalProfile
 import com.example.kpkn.domain.onboarding.TrainingPlace
 import com.example.kpkn.domain.onboarding.WizChatMachineState
 import com.example.kpkn.domain.training.ProgramExecutionContract
+import com.example.kpkn.domain.training.approach.ApproachInfoProvider
+import com.example.kpkn.domain.training.approach.ApproachLevel
+import com.example.kpkn.domain.training.approach.ApproachOptions
+import com.example.kpkn.domain.training.approach.ApproachPlanner
 import com.example.kpkn.domain.training.split.SplitRedistributor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -200,6 +207,12 @@ class SetupWizardEntrenoPlanTest {
         val commitId = vm.state.value.draft.commitId
         val saved = checkNotNull(room { db.programDao().getById(commitId) }) { "programa no guardado" }.toProgram()
         assertEquals("el programa activado es el previsualizado", weekShape(shown), weekShape(saved))
+        // Entreno v2 (D3): la aproximación y la movilidad obligatorias viajan con el programa. Lo activado lleva EXACTAMENTE las
+        // del previsualizado (el generador las pone una vez; la semana armada y la activación no las pierden ni las duplican) y la
+        // sesión principal, la del día con más energía, abre con movilidad previa y, si su primer ejercicio es un básico con
+        // carga, con su rampa de aproximación.
+        assertEquals("la aproximación y la movilidad activadas son las previsualizadas", approachShape(shown), approachShape(saved))
+        assertMainSessionOpensApproached("perfil general (generado)", saved, mainDay = 4)
         assertEquals(shown.id, saved.id)
         assertEquals(shown.name, saved.name)
         assertEquals(shown.structureTemplateId, saved.structureTemplateId)
@@ -222,6 +235,66 @@ class SetupWizardEntrenoPlanTest {
             EquipmentSymbols.availabilityOf(EquipmentSymbols.seedFor(gym), gym),
             settings.equipmentAvailability,
         )
+    }
+
+    // ─── Plan de autor: la aproximación viaja con lo activado ──────────────────────────────────
+
+    /**
+     * Entreno v2 (D3): un programa de AUTOR (PHUL, que sale de su receta por `PlanMaterializer`) se activa IGUAL que se previsualizó
+     * también en la aproximación y la movilidad: el materializador las pone una sola vez, la semana armada y la activación no las
+     * pierden ni las duplican, la sesión principal abre con movilidad y con la rampa de su básico pesado, y aplicar el planificador
+     * otra vez sobre lo activado no cambia nada (no falta nada y no hay nada repetido).
+     */
+    @Test
+    fun anAuthoredProgramIsActivatedAsPreviewedWithTheMandatoryApproachAndMobility() = runTest(dispatcher.scheduler, timeout = 10.minutes) {
+        val vm = newVm()
+        vm.initialize(SetupWizardMode.TRAINING_ONLY)
+        await(vm, "wizard cargado") { !it.isLoading && it.currentStep == SetupStepId.NAME }
+        val answers = Answers(
+            profile = TrainingGoalProfile.POWERBUILDING,
+            places = setOf(TrainingPlace.GYM),
+            days = setOf(1, 2, 4, 5),
+            freshDay = 1,
+            minutes = 100,
+            marks = mapOf(
+                LiftMark.SQUAT to 140.0,
+                LiftMark.BENCH to 100.0,
+                LiftMark.DEADLIFT to 170.0,
+                LiftMark.OVERHEAD_PRESS to 60.0,
+            ),
+        )
+        walkUntil(vm, SetupStepId.PLAN, answers)
+        val swept = await(vm, "planes de powerbuilding") { idle(it) && it.planSweep == SetupPlanSweep.READY }
+        val authoredId = AuthoredPhulPhatRecipes.PHUL_ORIGINAL_ID
+        assertTrue(
+            "PHUL original es candidato de Powerbuilding con 4 días y gimnasio: ${swept.availablePlanCandidates.map { it.id }}",
+            swept.availablePlanCandidates.any { it.id == authoredId },
+        )
+
+        confirm(vm, SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT) { vm.selectPlan(authoredId) }
+        val prepared = await(vm, "programa de autor previsualizado") { idle(it) && it.programPreview != null && it.weekLayout != null }
+        assertEquals(authoredId, prepared.draft.selectedCatalogId)
+        confirm(vm, SetupStepId.WEEK_LAYOUT, SetupStepId.MILESTONE_TRAINING)
+        confirm(vm, SetupStepId.MILESTONE_TRAINING, SetupStepId.REVIEW_ACTIVATE)
+        await(vm, "revisión en reposo") { idle(it) && it.programPreview != null }
+        val shown = checkNotNull(vm.state.value.programPreview)
+
+        assertNotNull("alta sin errores: ${vm.state.value.errors}", vm.commit())
+        assertEquals(WizChatMachineState.Committed, vm.state.value.machineState)
+
+        val commitId = vm.state.value.draft.commitId
+        val saved = checkNotNull(room { db.programDao().getById(commitId) }) { "programa no guardado" }.toProgram()
+        assertEquals("el programa activado es el previsualizado", weekShape(shown), weekShape(saved))
+        assertEquals("la aproximación y la movilidad activadas son las previsualizadas", approachShape(shown), approachShape(saved))
+        ProgramExecutionContract.requireExecutable(saved)
+        assertMainSessionOpensApproached("perfil de autor (PHUL)", saved, mainDay = 1)
+        sessionsOf(saved).forEach { session ->
+            assertEquals(
+                "«${session.name}»: aplicar el planificador otra vez no cambia la sesión activada",
+                session,
+                ApproachPlanner.apply(session, ApproachOptions(level = ApproachLevel.INTERMEDIATE), approachInfoOf),
+            )
+        }
     }
 
     // ─── Disciplinas ──────────────────────────────────────────────────────────────────────────
@@ -462,6 +535,37 @@ class SetupWizardEntrenoPlanTest {
 
     private fun sessionsOf(program: Program): List<Session> =
         program.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }.flatMap { it.sessions }
+
+    /** Lo que sabe el planificador de cada ejercicio (articulaciones, si es compuesto y si lleva carga), del catálogo real. */
+    private val approachInfoOf: (Exercise) -> com.example.kpkn.domain.training.approach.ApproachExerciseInfo? by lazy {
+        ApproachInfoProvider.fromMetadata(
+            CatalogCompositionMetadataProvider.fromCatalog(runBlocking { CatalogV2ProcessCache.getOrLoad(app) }.catalog),
+        )
+    }
+
+    /** La aproximación y la movilidad de cada ejercicio del programa (lo que [weekShape] no mira). */
+    private fun approachShape(program: Program): List<Triple<String, Any, Any>> =
+        sessionsOf(program).flatMap { it.allExercises() }.map { Triple(it.id, it.warmupSets, it.mobilitySeries) }
+
+    /**
+     * La regla del usuario sobre la sesión principal (el día con más energía): su primer ejercicio de fuerza lleva SIEMPRE
+     * movilidad previa y, si es un básico con carga (el primer ejercicio pesado), series de aproximación.
+     */
+    private fun assertMainSessionOpensApproached(label: String, program: Program, mainDay: Int) {
+        val sessions = sessionsOf(program)
+        val main = sessions.singleOrNull { it.isMainSession }
+            ?: sessions.first { it.dayOfWeek == mainDay || mainDay in it.assignedDays }
+        val first = main.allExercises().first { it.cardioDetails == null && it.sets.isNotEmpty() }
+        assertTrue("$label: '${first.name}' abre «${main.name}» y debe llevar movilidad previa", first.mobilitySeries.isNotEmpty())
+        val info = approachInfoOf(first)
+        assertNotNull("$label: '${first.name}' no está en el catálogo", info)
+        if (info!!.canBeHeavy) {
+            assertTrue(
+                "$label: '${first.name}' es un básico con carga y debe llevar series de aproximación",
+                first.warmupSets.isNotEmpty(),
+            )
+        }
+    }
 
     /** La forma de la semana: cada sesión con su día, su lugar y sus ejercicios (configuración y series). */
     private fun weekShape(program: Program): List<Any?> = sessionsOf(program).map { session ->

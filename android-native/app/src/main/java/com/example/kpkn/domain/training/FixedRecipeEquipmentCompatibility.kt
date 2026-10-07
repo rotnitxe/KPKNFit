@@ -101,7 +101,11 @@ fun fixedRecipeEquipmentAvailability(
             // Cardio y movilidad no cargan material de fuerza: otra puerta de
             // disponibilidad (el catálogo de cardio no es este guardia).
             if (exercise.cardioDetails != null) return@forEach
-            if (exercise.mobilitySeries.isNotEmpty() || exercise.mobilityConfig != null) return@forEach
+            // Solo la tarjeta de movilidad pura (sin series de fuerza) sale de la guardia. Un ejercicio de fuerza que
+            // lleva movilidad previa (Entreno v2: la movilidad es obligatoria en el primer ejercicio) sigue cargando su
+            // barra, su banco o su rack, y se comprueba como cualquier otro: si no, el primer ejercicio de cada
+            // sesión dejaría de verse y un plan de barra pasaría con solo mancuernas.
+            if (exercise.sets.isEmpty() && (exercise.mobilitySeries.isNotEmpty() || exercise.mobilityConfig != null)) return@forEach
             val configurationId = exercise.catalogConfigurationId
                 ?: exercise.canonicalExerciseId
                 ?: exercise.exerciseId

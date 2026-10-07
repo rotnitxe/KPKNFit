@@ -19,8 +19,8 @@ class OnboardingPlanGenerator(
      * el estado del onboarding, y por eso sobrevive a rematerializaciones):
      * - `autoregulationMode` (PROPOSE por defecto; AUTO solo con confirmación
      *   explícita, si no se rechaza el alta con el motivo).
-     * - `planWarmupConfig` (null = preset 40 % × 8 / 60 % × 5 / 80 % × 3,
-     *   vacío = sin aproximaciones, lista = pasos propios).
+     * - `planWarmupConfig` (null = aproximación y movilidad automáticas por
+     *   `ApproachPlanner`, vacío = sin aproximaciones, lista = pasos propios).
      * - `planOrderPriorities` (la bolsa de orden realmente aplicada; ver
      *   [OrderPrioritiesContract.capabilitiesOf] para contrastarla).
      * El inventario declarado no se copia al programa: se guarda en Settings y

@@ -249,24 +249,29 @@ class NativePlanFailureMapperTest {
         assertEquals(NativePlanFailureMapper.DEFAULT_MESSAGE, failure.message)
     }
 
+    /**
+     * Cambió de sentido (Entreno v2): el rechazo real de tiempo a 20 min ya no es el de Músculo corporal de 1 día
+     * (su piso bajó a 19 min con la aproximación nueva: solo una movilidad breve en el primer ejercicio de peso corporal
+     * fácil) sino el de Fuerza con barra: el primer ejercicio pesado lleva movilidad y rampa y el piso de Fuerza 3 días
+     * intermedio sube a 24 min.
+     */
     @Test
-    fun theRealFitterRejectionOfBodyweightMuscleInTwentyMinutesBecomesATypedTimeBudget() {
+    fun theRealFitterRejectionOfBarbellStrengthInTwentyMinutesBecomesATypedTimeBudget() {
         val catalog = CatalogCompositionTestSupport.catalog
         val personalizer = SimpleCyclePersonalizer(
             InMemoryExerciseCatalogRepositoryV2(catalog).also { runBlocking { it.load() } },
         )
         val result = personalizer.personalize(
-            programId = "f-a2-muscle-bodyweight-20",
+            programId = "f-a2-strength-barbell-20",
             input = PersonalizerInput(
-                catalogEntryId = NativeProfileKind.MUSCLE.entryId,
+                catalogEntryId = NativeProfileKind.STRENGTH.entryId,
                 focus = TrainingFocus.FULL_BODY,
-                frequency = 1,
-                weekdays = listOf(1),
-                equipment = emptySet(),
-                level = CatalogLevel.BEGINNER,
+                frequency = 3,
+                weekdays = listOf(1, 3, 5),
+                equipment = setOf("bodyweight", "barbell", "rack", "bench"),
+                level = CatalogLevel.INTERMEDIATE,
                 availableMinutes = 20,
             ),
-            options = TrainingOptions(availability = EquipmentAvailability()),
         )
 
         assertNull("el fitter no publica éxito parcial a 20 min", result.program)
@@ -283,6 +288,7 @@ class NativePlanFailureMapperTest {
             "el mínimo real supera el presupuesto: ${failure.requiredMinutes}",
             (failure.requiredMinutes ?: 0) > 20,
         )
+        assertEquals("el mínimo real de Fuerza 3 días intermedio con barra", 24, failure.requiredMinutes)
     }
 
     // ─── Generador HISTÓRICO: rechazo temporal tipado (consolidación 2026-10-02, fila F) ──────────
@@ -314,35 +320,52 @@ class NativePlanFailureMapperTest {
     )
 
     /**
-     * Fila F de la matriz: con las 11 categorías, 3 días y 20 min el generador histórico no
-     * completa una sesión equilibrada (dos compuestos con aproximaciones, 1224 s para el tercero).
-     * Antes salía sin razón tipada y la UI lo mostraba como «Falta confirmar material»; ahora es
-     * TIME_BUDGET con el mínimo real, que el mapeador convierte en SESSION_DURATION.
+     * Fila F de la matriz: el generador histórico con un rechazo de tiempo a 20 min (3 días y las 11 categorías).
+     * Antes salía sin razón tipada y la UI lo mostraba como «Falta confirmar material»; ahora es TIME_BUDGET
+     * con el mínimo real, que el mapeador convierte en SESSION_DURATION.
+     *
+     * Cambió de sentido (Entreno v2): el rechazo ya no es el de `native:full-body` (mínimo real de 21 min con el preset
+     * 40/60/80 por patrón), que con la aproximación nueva —movilidad breve y rampa corta en el primer ejercicio— cabe a
+     * 20 min igual que el resto de históricos de gimnasio. El único histórico que sigue rechazando por tiempo a 20 min
+     * es `native:strength-cardio` (cardio de 15 min por defecto + fuerza): su mínimo real es de 33 min.
      */
     @Test
-    fun theHistoricalFullBodyRejectionAtTwentyMinutesIsATypedTimeBudgetWithItsRealMinimum() {
-        val rejected = historicalThreeDays("native:full-body", 20, fullGym)
+    fun theHistoricalStrengthCardioRejectionAtTwentyMinutesIsATypedTimeBudgetWithItsRealMinimum() {
+        val rejected = historicalThreeDays("native:strength-cardio", 20, fullGym)
 
         assertNull("sin éxito parcial a 20 min", rejected.program)
         assertEquals("TIME_BUDGET", rejected.report.reasonCode)
-        assertEquals(21, rejected.report.maxSessionMinutes)
+        assertEquals(33, rejected.report.maxSessionMinutes)
         val failure = requireNotNull(NativePlanFailureMapper.typedFailure(rejected.report))
         assertEquals(PlanEvaluationStage.SESSION_DURATION, failure.stage)
         assertEquals(PlanRejectionReason.TIME_BUDGET, failure.reason)
-        assertEquals(21, failure.requiredMinutes)
-        assertTrue(failure.message.orEmpty(), failure.message.orEmpty().contains("21 min"))
+        assertEquals(33, failure.requiredMinutes)
+        assertTrue(failure.message.orEmpty(), failure.message.orEmpty().contains("33 min"))
 
-        // El mínimo es exacto y sale del mismo generador y estimador: con 21 min hay programa y
-        // cada sesión mide, con el estimador común, como mucho 21 min.
-        val viable = historicalThreeDays("native:full-body", 21, fullGym)
-        val program = requireNotNull(viable.program) { "a 21 min debe haber programa: ${viable.report.limitations}" }
+        // El mínimo es exacto y sale del mismo generador y estimador: con 33 min hay programa y
+        // cada sesión mide, con el estimador común, como mucho 33 min.
+        val viable = historicalThreeDays("native:strength-cardio", 33, fullGym)
+        val program = requireNotNull(viable.program) { "a 33 min debe haber programa: ${viable.report.limitations}" }
         assertNull("un resultado viable no lleva razón de rechazo", viable.report.reasonCode)
         val sessions = program.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }
             .flatMap { it.weeks }.flatMap { it.sessions }
         assertTrue(sessions.isNotEmpty())
         sessions.forEach { session ->
             val measured = SessionDurationEstimator.estimate(session).totalMinutes
-            assertTrue("${session.id} mide $measured min con 21 min de presupuesto", measured <= 21)
+            assertTrue("${session.id} mide $measured min con 33 min de presupuesto", measured <= 33)
+        }
+    }
+
+    /** El histórico de cuerpo completo ya cabe a 20 min con la aproximación nueva (antes era un rechazo de 21 min). */
+    @Test
+    fun theHistoricalFullBodyNowFitsTwentyMinutesWithTheNewApproach() {
+        val result = historicalThreeDays("native:full-body", 20, fullGym)
+        val program = requireNotNull(result.program) { "a 20 min debe haber programa: ${result.report.limitations}" }
+        assertNull("un resultado viable no lleva razón de rechazo", result.report.reasonCode)
+        program.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }.flatMap { it.sessions }.forEach { session ->
+            val measured = SessionDurationEstimator.estimate(session).totalMinutes
+            assertTrue("${session.id} mide $measured min con 20 min de presupuesto", measured <= 20)
+            assertTrue("la aproximación obligatoria cuenta: movilidad en el primer ejercicio", session.allExercises().first().mobilitySeries.isNotEmpty())
         }
     }
 

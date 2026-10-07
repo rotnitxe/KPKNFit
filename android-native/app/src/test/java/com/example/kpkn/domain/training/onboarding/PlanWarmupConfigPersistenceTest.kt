@@ -99,27 +99,35 @@ class PlanWarmupConfigPersistenceTest {
 
     // ─── Ruta nativa: la elección se persiste y sobrevive ─────────────────────
 
+    /** Entreno v2: `null` ya no significa «preset 40/60/80» sino aproximación automática (movilidad + rampa si pesa). */
     @Test
-    fun native_generation_persists_the_choice_null_means_preset() {
-        val preset = generate()
-        assertNull("Sin elección explícita no se guarda nada: rige el preset", preset.planWarmupConfig)
+    fun native_generation_persists_the_choice_null_means_automatic_approach() {
+        val automatic = generate()
+        assertNull("Sin elección explícita no se guarda nada: rige la aproximación automática", automatic.planWarmupConfig)
+        val sessions = sessionsOf(automatic)
         assertTrue(
-            "El preset por defecto 40/60/80 sigue activo en la ruta nativa",
-            warmupsOf(preset).isNotEmpty() && warmupsOf(preset).all { it == listOf(40.0, 60.0, 80.0) },
+            "La movilidad obligatoria del primer ejercicio está en la ruta nativa",
+            sessions.isNotEmpty() && sessions.all { it.allExercises().first().mobilitySeries.isNotEmpty() },
+        )
+        assertTrue(
+            "Ya no hay preset 40/60/80 en cada primer compuesto: solo rampas cortas en lo que abre la sesión",
+            warmupsOf(automatic).all { it == listOf(50.0, 75.0) },
         )
     }
 
     @Test
-    fun rematerializing_never_reintroduces_the_preset_after_an_empty_choice() {
+    fun rematerializing_never_reintroduces_the_automatic_approach_after_an_empty_choice() {
         val program = generate(SetupTrainingOptions(warmup = emptyList()))
         assertEquals(emptyList<SetRecipe>(), program.planWarmupConfig)
         assertTrue("Sin calentamientos en la generación", warmupsOf(program).isEmpty())
 
         val rematerialized = PlanMaterializer.rematerializeWeek(program, firstWeekId(program), metadata = metadata)
+        val exercises = sessionsOf(rematerialized).flatMap { it.allExercises() }
         assertTrue(
-            "La rematerialización respeta la elección vacía y no reintroduce el preset",
-            sessionsOf(rematerialized).flatMap { it.allExercises() }.all { it.warmupSets.isEmpty() },
+            "La rematerialización respeta la elección vacía y no reintroduce la aproximación",
+            exercises.all { it.warmupSets.isEmpty() },
         )
+        assertTrue("ni la movilidad automática", exercises.all { it.mobilitySeries.isEmpty() })
         assertEquals(emptyList<SetRecipe>(), rematerialized.planWarmupConfig)
     }
 
@@ -136,30 +144,39 @@ class PlanWarmupConfigPersistenceTest {
             assertEquals(listOf(35.0, 70.0), exercise.warmupSets.map { it.percentageOfWorkingWeight })
             assertEquals(listOf(6, 2), exercise.warmupSets.map { it.targetReps })
         }
-        // Nunca se mezclan con el preset del plan.
-        warmupsOf(rematerialized).forEach { steps -> assertTrue(steps.none { it == 40.0 || it == 60.0 || it == 80.0 }) }
+        // Con pasos propios no corre el planificador: ni la rampa automática ni la movilidad.
+        warmupsOf(rematerialized).forEach { steps -> assertTrue(steps.none { it == 50.0 || it == 75.0 || it == 40.0 || it == 60.0 || it == 80.0 }) }
+        assertTrue(sessionsOf(rematerialized).flatMap { it.allExercises() }.all { it.mobilitySeries.isEmpty() })
     }
 
     @Test
-    fun rematerializing_without_persisted_choice_keeps_the_preset() {
+    fun rematerializing_without_persisted_choice_keeps_the_automatic_approach() {
         val program = generate()
         val rematerialized = PlanMaterializer.rematerializeWeek(program, firstWeekId(program), metadata = metadata)
-        val steps = warmupsOf(rematerialized)
-        assertTrue(steps.isNotEmpty())
-        steps.forEach { assertEquals(listOf(40.0, 60.0, 80.0), it) }
+        val firstWeek = rematerialized.macrocycles.first().blocks.first().mesocycles.first().weeks.first()
+        assertTrue(firstWeek.sessions.isNotEmpty())
+        assertTrue(
+            "Sin elección persistida la rematerialización sigue aproximando el primer ejercicio",
+            firstWeek.sessions.all { it.allExercises().first().mobilitySeries.isNotEmpty() },
+        )
+        warmupsOf(rematerialized).forEach { assertEquals(listOf(50.0, 75.0), it) }
     }
 
     // ─── Materialización: legacy intacta + elección explícita persistida ──────
 
+    /**
+     * Cambió de sentido (Entreno v2): con las opciones por defecto una receta de autor ya no recibe el preset
+     * 40/60/80 en cada primer compuesto de patrón sino la aproximación automática: la sentadilla pesada que abre el
+     * día lleva la rampa larga y el press (pesado, articulaciones nuevas) la corta. Sigue sin persistirse nada.
+     */
     @Test
-    fun author_recipe_with_default_options_keeps_the_plan_preset_and_persists_nothing() {
+    fun author_recipe_with_default_options_gets_the_automatic_approach_and_persists_nothing() {
         val program = materializedAuthor()
         assertNull(program.planWarmupConfig)
-        val warmups = sessionsOf(program).flatMap { it.allExercises() }.map { it.warmupSets }
-        assertTrue(warmups.any { it.isNotEmpty() })
-        warmups.filter { it.isNotEmpty() }.forEach { steps ->
-            assertEquals(listOf(40.0, 60.0, 80.0), steps.map { it.percentageOfWorkingWeight })
-        }
+        val exercises = sessionsOf(program).flatMap { it.allExercises() }
+        assertEquals(listOf(40.0, 60.0, 80.0), exercises[0].warmupSets.map { it.percentageOfWorkingWeight })
+        assertEquals(listOf(50.0, 75.0), exercises[1].warmupSets.map { it.percentageOfWorkingWeight })
+        assertTrue(exercises[0].mobilitySeries.isNotEmpty())
     }
 
     @Test
@@ -171,8 +188,8 @@ class PlanWarmupConfigPersistenceTest {
         // options por defecto en la llamada siguiente: manda lo persistido.
         val again = PlanMaterializer.rematerializeWeek(first, firstWeekId(first), metadata = metadata)
         assertTrue(
-            "Options por defecto no puede devolver el preset tras una elección vacía guardada",
-            sessionsOf(again).flatMap { it.allExercises() }.all { it.warmupSets.isEmpty() },
+            "Options por defecto no puede devolver la aproximación tras una elección vacía guardada",
+            sessionsOf(again).flatMap { it.allExercises() }.all { it.warmupSets.isEmpty() && it.mobilitySeries.isEmpty() },
         )
     }
 

@@ -7,7 +7,6 @@ import com.example.kpkn.data.models.EquipmentCategory
 import com.example.kpkn.data.models.EquipmentInventory
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.protocols.SetRecipe
-import com.example.kpkn.data.protocols.firstCompoundWarmupPercentSets
 import kotlinx.serialization.Serializable
 import kotlin.math.abs
 
@@ -36,12 +35,18 @@ import kotlin.math.abs
  *   repeticiones, intensidades, frecuencia ni volumen.
  * - [autoregulationMode] nace en PROPOSE. AUTO solo es válido tras una
  *   confirmación explícita ([automaticConfirmed]) que la UI debe exponer.
- * - [warmup], cuando se declara, sustituye al preset del plan
- *   (40 % × 8, 60 % × 5, 80 % × 3 sobre la carga de trabajo) para el primer
- *   compuesto de cada patrón. Vacío = sin calentamientos automáticos. Los pasos
- *   efectivos quedan normalizados (orden ascendente y sin duplicados dentro de
- *   ±5 puntos porcentuales, nunca por encima del 100 %); las recetas de autor
- *   no se tocan.
+ * - [warmup] (Entreno v2: el calentamiento ya no es una opción del alta).
+ *   `null` (el valor por defecto) = **aproximación y movilidad automáticas**:
+ *   el materializador aplica `ApproachPlanner` a cada sesión (aproximación solo
+ *   en ejercicios pesados, obligatoria con movilidad en el primer ejercicio y
+ *   en el segundo o tercero solo si son pesados y tocan una articulación nueva).
+ *   Una lista con pasos manda como antes: ese preset (p. ej. 40 % × 8, 60 % × 5,
+ *   80 % × 3 sobre la carga de trabajo) va al primer compuesto de cada patrón y
+ *   no se aplica el planificador. Vacío = sin aproximaciones (solo borradores
+ *   viejos con «sin calentamiento»). Los pasos efectivos quedan normalizados
+ *   (orden ascendente y sin duplicados dentro de ±5 puntos porcentuales, nunca
+ *   por encima del 100 %). En cualquiera de los tres modos lo que traiga una
+ *   receta de autor (`isWarmup`) se conserva intacto. Ver [warmupPolicy].
  * - [availability], cuando no es null, es la fuente categórica del equipo para
  *   readiness, candidatos y el filtro real del motor. No afirma stock ni
  *   configuraciones exactas. Cuando es null, [effectiveEquipment] conserva las
@@ -107,15 +112,20 @@ data class TrainingOptions(
     fun applyTo(program: Program): Program = program.copy(autoregulationMode = autoregulationMode)
 
     /**
-     * Pasos de calentamiento efectivos: los declarados en [warmup] (vacío =
-     * sin calentamientos) o, si no se declaró nada, el preset del plan
-     * 40 % × 8, 60 % × 5, 80 % × 3 sobre la carga de trabajo. Siempre
-     * normalizados: orden ascendente por porcentaje y duplicados equivalentes
-     * (±5 puntos porcentuales) colapsados. La normalización solo aplica a los
-     * pasos del plan (preset/declarados): los calentamientos que traiga una
-     * receta de autor se conservan intactos en `PlanMaterializer.assignWarmups`.
+     * Cómo se aproxima este plan: [WarmupPolicy.Automatic] (`warmup == null`, el valor por defecto: lo decide
+     * `ApproachPlanner`), [WarmupPolicy.None] (lista vacía o sin pasos válidos: sin aproximaciones) o
+     * [WarmupPolicy.Explicit] (pasos propios, normalizados, para el primer compuesto de cada patrón).
      */
-    fun resolvedWarmupSteps(): List<SetRecipe> = normalizedWarmupSteps(warmup ?: firstCompoundWarmupPercentSets())
+    fun warmupPolicy(): WarmupPolicy = warmupPolicyOf(warmup)
+
+    /**
+     * Pasos de calentamiento **explícitos** y normalizados: los declarados en [warmup] (orden ascendente por
+     * porcentaje y duplicados equivalentes, ±5 puntos porcentuales, colapsados). Vacío con la aproximación
+     * automática (`warmup == null`, que ya no significa «preset») y con «sin calentamientos»: para distinguirlos
+     * está [warmupPolicy]. Los calentamientos que traiga una receta de autor se conservan intactos en
+     * `PlanMaterializer.assignWarmups`.
+     */
+    fun resolvedWarmupSteps(): List<SetRecipe> = normalizedWarmupSteps(warmup.orEmpty())
 
     /**
      * Inventario nuevo solo se acepta con cantidades explícitas y finitas: una
@@ -609,7 +619,27 @@ internal fun normalizeLegacyEquipmentKind(kind: String): String = when (kind) {
 }
 
 /**
- * Normalización de los pasos de calentamiento del plan (preset o declarados):
+ * Política de aproximación de un plan (Entreno v2), resuelta desde [TrainingOptions.warmup] o desde
+ * `Program.planWarmupConfig`:
+ * - [Automatic]: `null`. `ApproachPlanner` decide qué ejercicios se aproximan y qué movilidad llevan.
+ * - [None]: lista vacía (o sin pasos válidos). Sin aproximaciones; solo borradores viejos con «sin calentamiento».
+ * - [Explicit]: pasos propios ya normalizados; se aplican al primer compuesto de cada patrón como antes.
+ */
+sealed interface WarmupPolicy {
+    data object Automatic : WarmupPolicy
+    data object None : WarmupPolicy
+    data class Explicit(val steps: List<SetRecipe>) : WarmupPolicy
+}
+
+/** La política de una configuración persistida: `null` = automática; una lista sin pasos válidos = ninguna. */
+fun warmupPolicyOf(config: List<SetRecipe>?): WarmupPolicy {
+    if (config == null) return WarmupPolicy.Automatic
+    val steps = normalizedWarmupSteps(config)
+    return if (steps.isEmpty()) WarmupPolicy.None else WarmupPolicy.Explicit(steps)
+}
+
+/**
+ * Normalización de los pasos de calentamiento del plan (declarados):
  * solo pasos válidos (0 < % ≤ 100, 1..60 reps), orden ascendente por porcentaje
  * y colapso de pasos equivalentes dentro de ±5 puntos porcentuales (gana el más
  * liviano, igual que la política anti-redundancia del materializador). NO toca

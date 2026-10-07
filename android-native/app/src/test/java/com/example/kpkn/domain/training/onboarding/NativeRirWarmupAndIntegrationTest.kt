@@ -16,6 +16,7 @@ import com.example.kpkn.data.protocols.SetRecipe
 import com.example.kpkn.data.protocols.SlotRole
 import com.example.kpkn.data.protocols.TrainingPlanRecipe
 import com.example.kpkn.data.protocols.day
+import com.example.kpkn.data.protocols.firstCompoundWarmupPercentSets
 import com.example.kpkn.data.protocols.slot
 import com.example.kpkn.data.protocols.weekRecipe
 import com.example.kpkn.domain.exercises.catalogv2.InMemoryExerciseCatalogRepositoryV2
@@ -116,9 +117,14 @@ class NativeRirWarmupAndIntegrationTest {
 
     // ─── Calentamientos nativos ────────────────────────────────────────────────
 
+    /**
+     * Entreno v2: con las opciones por defecto (`warmup == null`) ya no hay preset 40/60/80 por patrón sino la
+     * aproximación automática; este test fija la política de PASOS PROPIOS, que sigue mandando como antes (el
+     * preset se pasa explícito, igual que el wizard antiguo).
+     */
     @Test
-    fun native_route_attaches_preset_warmups_to_first_compound_each_pattern_only() {
-        val result = generate()
+    fun native_route_attaches_explicit_steps_to_first_compound_each_pattern_only() {
+        val result = generate(options = SetupTrainingOptions(warmup = firstCompoundWarmupPercentSets()))
         val program = requireNotNull(result.program) { result.report.limitations.toString() }
         val sessions = sessionsOf(program)
         assertTrue("Con split Pecho/Brazos/Piernas debe haber sesiones", sessions.isNotEmpty())
@@ -148,6 +154,32 @@ class NativeRirWarmupAndIntegrationTest {
         }
     }
 
+    /**
+     * La regla nueva por defecto en la ruta nativa histórica (3×8–12, sin series pesadas): el primer ejercicio de cada
+     * sesión lleva movilidad previa (obligatoria) y, si es un compuesto con carga, una rampa corta; ningún ejercicio
+     * posterior se aproxima (ninguno es «cercano al 1RM») y nada lleva movilidad después del primero.
+     * Cambió de sentido: antes el preset 40/60/80 iba a CADA primer compuesto de patrón (6 min de descansos por patrón).
+     */
+    @Test
+    fun native_route_by_default_prepares_the_first_exercise_and_only_heavy_ones_after() {
+        val program = requireNotNull(generate().program)
+        val sessions = sessionsOf(program)
+        assertTrue(sessions.isNotEmpty())
+        sessions.forEach { session ->
+            val exercises = session.allExercises()
+            val first = exercises.first()
+            assertTrue("${session.name}: movilidad previa obligatoria en '${first.name}'", first.mobilitySeries.isNotEmpty())
+            if (first.warmupSets.isNotEmpty()) {
+                assertEquals(listOf(50.0, 75.0), first.warmupSets.map { it.percentageOfWorkingWeight })
+            }
+            exercises.drop(1).forEach { exercise ->
+                assertTrue("${session.name}: '${exercise.name}' no es pesado → sin aproximación", exercise.warmupSets.isEmpty())
+                assertTrue("${session.name}: '${exercise.name}' no es el primero → sin movilidad", exercise.mobilitySeries.isEmpty())
+            }
+        }
+        assertNull("Sin elección explícita no se guarda nada: rige la aproximación automática", program.planWarmupConfig)
+    }
+
     @Test
     fun empty_warmup_config_disables_automatic_approaches_everywhere() {
         val result = generate(options = SetupTrainingOptions(warmup = emptyList()))
@@ -155,6 +187,7 @@ class NativeRirWarmupAndIntegrationTest {
         val all = sessionsOf(program).flatMap { it.exercises }
         assertTrue(all.isNotEmpty())
         assertTrue(all.all { it.warmupSets.isEmpty() })
+        assertTrue("sin calentamientos tampoco hay movilidad automática", all.all { it.mobilitySeries.isEmpty() })
     }
 
     @Test
@@ -228,8 +261,8 @@ class NativeRirWarmupAndIntegrationTest {
     }
 
     @Test
-    fun rematerialized_native_week_keeps_preset_warmups() {
-        val program = requireNotNull(generate().program)
+    fun rematerialized_native_week_keeps_the_explicit_steps_policy() {
+        val program = requireNotNull(generate(options = SetupTrainingOptions(warmup = firstCompoundWarmupPercentSets())).program)
         val week = program.macrocycles.first().blocks.first().mesocycles.first().weeks.first()
         val rematerialized = PlanMaterializer.rematerializeWeek(
             program,
@@ -243,7 +276,7 @@ class NativeRirWarmupAndIntegrationTest {
             session.allExercises().forEach { exercise ->
                 if (exercise in targets) {
                     assertEquals(
-                        "El motor re-materializado conserva el preset 40/60/80 (nativeCurate)",
+                        "El motor re-materializado conserva los pasos propios persistidos (nativeCurate)",
                         listOf(40.0, 60.0, 80.0),
                         exercise.warmupSets.map { it.percentageOfWorkingWeight },
                     )
@@ -253,7 +286,32 @@ class NativeRirWarmupAndIntegrationTest {
     }
 
     @Test
-    fun plain_non_native_rir_recipe_does_not_get_presets() {
+    fun rematerialized_native_week_keeps_the_automatic_approach_by_default() {
+        val program = requireNotNull(generate().program)
+        val week = program.macrocycles.first().blocks.first().mesocycles.first().weeks.first()
+        val rematerialized = PlanMaterializer.rematerializeWeek(
+            program,
+            week.id,
+            metadata = CatalogCompositionTestSupport.metadata,
+        )
+        val firstWeek = rematerialized.macrocycles.first().blocks.first().mesocycles.first().weeks.first()
+        assertTrue(firstWeek.sessions.isNotEmpty())
+        firstWeek.sessions.forEach { session ->
+            assertTrue(
+                "${session.name}: la rematerialización conserva la movilidad obligatoria del primer ejercicio",
+                session.allExercises().first().mobilitySeries.isNotEmpty(),
+            )
+        }
+    }
+
+    /**
+     * Cambió de sentido (Entreno v2): antes una receta RIR sin porcentaje y sin bloque nativo NO recibía preset
+     * (`usesPercent || nativeCurate = false`). Ahora la aproximación no depende del porcentaje sino de que el
+     * ejercicio sea pesado: 5 repeticiones con RIR 2 en un compuesto principal lo es, así que el primer ejercicio
+     * lleva rampa y movilidad. Con la elección explícita «sin calentamientos» sigue sin llevar nada.
+     */
+    @Test
+    fun plain_non_native_rir_recipe_is_approached_by_default_because_it_is_heavy() {
         val recipe = TrainingPlanRecipe(
             id = "rir-only-recipe",
             weeks = listOf(
@@ -276,19 +334,26 @@ class NativeRirWarmupAndIntegrationTest {
                 ),
             ),
         )
-        val materialized = PlanMaterializer.materialize(
+        fun firstExerciseOf(options: SetupTrainingOptions): Exercise = PlanMaterializer.materialize(
             Program(id = "p", name = "T"),
             recipe,
             CatalogCompositionTestSupport.metadata,
             SeqIds(),
             strict = false,
-        )
-        val exercise = materialized.macrocycles.first().blocks.first().mesocycles.first().weeks.first()
+            options = options,
+        ).macrocycles.first().blocks.first().mesocycles.first().weeks.first()
             .sessions.first().allExercises().first()
-        assertTrue(
-            "Receta RIR sin % y sin bloque nativo → sin preset (usesPercent || nativeCurate = false)",
-            exercise.warmupSets.isEmpty(),
+
+        val automatic = firstExerciseOf(SetupTrainingOptions())
+        assertEquals(
+            "Receta RIR sin % → el compuesto principal pesado se aproxima: rampa larga (intermedio)",
+            listOf(40.0, 60.0, 80.0),
+            automatic.warmupSets.map { it.percentageOfWorkingWeight },
         )
+        assertTrue("y lleva movilidad previa", automatic.mobilitySeries.isNotEmpty())
+
+        val disabled = firstExerciseOf(SetupTrainingOptions(warmup = emptyList()))
+        assertTrue("«sin calentamientos» sigue sin llevar nada", disabled.warmupSets.isEmpty() && disabled.mobilitySeries.isEmpty())
     }
 
     // ─── Viabilidad honesta frente a inventario finito ─────────────────────────
