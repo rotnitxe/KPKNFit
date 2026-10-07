@@ -35,6 +35,13 @@ data class ExerciseCompositionMetadata(
     val articulationType: String?,
     /** `equipmentId` del catálogo v2 (barbell, dumbbells, machine, bodyweight...); null si el proveedor no lo conoce. */
     val equipmentId: String? = null,
+    /**
+     * Articulaciones principales (ids de `wikilab/joints.json`): las de `jointInvolvement` con rol PRIMARY y luego
+     * SECONDARY, en el orden del catálogo. Sin estabilizadores. Vacío si el proveedor no lo conoce. Las usa la
+     * aproximación y movilidad obligatorias (`domain/training/approach`) para saber qué articulaciones prepara cada
+     * ejercicio.
+     */
+    val principalJoints: List<String> = emptyList(),
 )
 
 fun interface ExerciseCompositionMetadataProvider {
