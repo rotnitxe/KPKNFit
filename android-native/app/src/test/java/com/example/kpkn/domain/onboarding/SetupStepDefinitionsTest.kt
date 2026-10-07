@@ -78,7 +78,7 @@ class SetupStepDefinitionsTest {
         }
         // Excepciones: bases, resultados y el review siguen siendo etiquetas.
         assertEquals("Datos básicos", SetupStepDefinitions.title(SetupStepId.MILESTONE_BASICS))
-        assertEquals("Tus referencias", SetupStepDefinitions.title(SetupStepId.NUTRITION_RESULT))
+        assertEquals("Tu plan de alimentación", SetupStepDefinitions.title(SetupStepId.NUTRITION_RESULT))
         assertEquals("Tus RINGS", SetupStepDefinitions.title(SetupStepId.RINGS_RESULT))
         assertEquals("Revisión del plan", SetupStepDefinitions.title(SetupStepId.TRAINING_REVIEW))
         assertEquals("Revisión y activación", SetupStepDefinitions.title(SetupStepId.REVIEW_ACTIVATE))

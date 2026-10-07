@@ -693,20 +693,36 @@ class SetupStepSummariesTest {
 
     @Test
     fun theNutritionResultSummarizesWhatTheStateAlreadyCalculated() {
-        assertEquals(SetupStepSummary("Tus referencias", "Listo"), summary(SetupStepId.NUTRITION_RESULT))
+        assertEquals(SetupStepSummary("Plan de alimentación", "Listo"), summary(SetupStepId.NUTRITION_RESULT))
 
         val draft = SetupWizardDraft()
+        // Un plan sin desglose de macros dice solo las kcal (con punto de millar).
         val withPlan = SetupWizardState(draft = draft, nutritionPlanPreview = NutritionPlan(calorieTarget = 2450))
-        assertEquals("2450 kcal diarias (media)", summary(SetupStepId.NUTRITION_RESULT, withPlan).value)
+        assertEquals("2.450 kcal", summary(SetupStepId.NUTRITION_RESULT, withPlan).value)
 
-        // La preparación manda sobre la vista previa antigua.
+        // La preparación manda sobre la vista previa antigua y dice kcal y macros en una línea corta.
         val prepared = withPlan.copy(
             nutritionPreparation = SetupNutritionPreparationResult(
-                plan = NutritionPlan(calorieTarget = 2100),
+                plan = NutritionPlan(calorieTarget = 2300, proteinGoal = 160, carbGoal = 250, fatGoal = 70),
                 status = NutritionPlanPreparationStatus.READY,
             ),
         )
-        assertEquals("2100 kcal diarias (media)", summary(SetupStepId.NUTRITION_RESULT, prepared).value)
+        assertEquals(
+            SetupStepSummary("Plan de alimentación", "2.300 kcal · P 160 · H 250 · G 70"),
+            summary(SetupStepId.NUTRITION_RESULT, prepared),
+        )
+        assertEquals(
+            "950 kcal · P 80 · H 40 · G 30",
+            summary(
+                SetupStepId.NUTRITION_RESULT,
+                prepared.copy(
+                    nutritionPreparation = SetupNutritionPreparationResult(
+                        plan = NutritionPlan(calorieTarget = 950, proteinGoal = 80, carbGoal = 40, fatGoal = 30),
+                        status = NutritionPlanPreparationStatus.READY,
+                    ),
+                ),
+            ).value,
+        )
 
         val blocked = SetupWizardState(
             draft = draft,
@@ -716,6 +732,20 @@ class SetupStepSummariesTest {
 
         assertEquals("Solo registrar comidas", value(SetupStepId.NUTRITION_RESULT, draft.choose(SetupStepId.NUTRITION_START, "tracking_only")))
         assertEquals("Pauta indicada por un profesional", value(SetupStepId.NUTRITION_RESULT, SetupWizardDraft(nutritionDraft = NutritionWizardDraft(mode = "professional"))))
+    }
+
+    @Test
+    fun theNutritionResultLineFitsTheRowEvenWithHugeNumbers() {
+        val huge = SetupWizardState(
+            draft = SetupWizardDraft(),
+            nutritionPreparation = SetupNutritionPreparationResult(
+                plan = NutritionPlan(calorieTarget = 12345, proteinGoal = 999, carbGoal = 999, fatGoal = 999),
+                status = NutritionPlanPreparationStatus.READY,
+            ),
+        )
+        val line = summary(SetupStepId.NUTRITION_RESULT, huge)
+        assertEquals("12.345 kcal · P 999 · H 999 · G 999", line.value)
+        assertTrue(line.value.length <= SETUP_SUMMARY_VALUE_MAX)
     }
 
     // ─── RINGS y revisión ────────────────────────────────────────────────────

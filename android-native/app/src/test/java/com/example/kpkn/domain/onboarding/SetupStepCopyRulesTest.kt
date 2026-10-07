@@ -72,7 +72,7 @@ class SetupStepCopyRulesTest {
             "Nutrición",
             "Rings",
             "Revisión del plan",
-            "Tus referencias",
+            "Tu plan de alimentación",
             "Tus RINGS",
             "Revisión y activación",
             "Pon tu alias",

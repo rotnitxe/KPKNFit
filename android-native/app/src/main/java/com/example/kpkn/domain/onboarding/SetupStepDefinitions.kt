@@ -751,7 +751,7 @@ object SetupStepDefinitions {
         ),
         SetupStepDefinition(
             id = SetupStepId.NUTRITION_RESULT, block = SetupWizardBlock.NUTRITION, kind = SetupStepKind.QUESTION,
-            title = "Tus referencias", control = SetupControlKind.RESULT_PREVIEW,
+            title = "Tu plan de alimentación", control = SetupControlKind.RESULT_PREVIEW,
             legacyQuestion = WizChatQuestionId.N_RESULT, legacyQuestionRenders = false,
         ),
         SetupStepDefinition(

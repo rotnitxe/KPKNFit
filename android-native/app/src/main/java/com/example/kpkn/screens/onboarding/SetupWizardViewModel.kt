@@ -722,6 +722,13 @@ class SetupWizardViewModel @JvmOverloads constructor(
             _state.value = current.copy(errors = planGate)
             return SetupSubmitResult(SetupSubmitOutcome.REJECTED)
         }
+        // El plan de alimentación con calorías peligrosamente bajas o una pérdida extrema no se confirma.
+        val nutritionGate = nutritionResultGate(current, step)
+        if (nutritionGate.isNotEmpty()) {
+            Log.w(DIAG_TAG, "submit $step → REJECT plan de nutrición con hardStop")
+            _state.value = current.copy(errors = nutritionGate)
+            return SetupSubmitResult(SetupSubmitOutcome.REJECTED)
+        }
         navigationInFlight = true
         Log.d(DIAG_TAG, "submit $step → ACCEPTED (encolado, cursor=${current.draft.stepProgress.currentStepId} rev=${current.draft.revision})")
         viewModelScope.launch {
@@ -802,6 +809,12 @@ class SetupWizardViewModel @JvmOverloads constructor(
         if (planGate.isNotEmpty()) {
             Log.w(DIAG_TAG, "submitLocked $expectedStep → REJECT selección no viable (candidatos=${current.availablePlanCandidates.size} cargando=${current.isCandidateLoading})")
             _state.value = _state.value.copy(errors = planGate)
+            return
+        }
+        val nutritionGate = nutritionResultGate(current, expectedStep)
+        if (nutritionGate.isNotEmpty()) {
+            Log.w(DIAG_TAG, "submitLocked $expectedStep → REJECT plan de nutrición con hardStop")
+            _state.value = _state.value.copy(errors = nutritionGate)
             return
         }
         val previous = current.draft

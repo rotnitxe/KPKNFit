@@ -1,56 +1,57 @@
 package com.example.kpkn.screens.onboarding
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.kpkn.data.models.NutritionPlan
 import com.example.kpkn.data.models.PlanDirection
 import com.example.kpkn.domain.nutrition.EerActivity
 import com.example.kpkn.domain.nutrition.NutritionConfigurationMode
 import com.example.kpkn.domain.nutrition.NutritionDistributionStatus
-import com.example.kpkn.domain.nutrition.NutritionEditorDayTarget
 import com.example.kpkn.domain.nutrition.NutritionPlanPreparationStatus
 import com.example.kpkn.domain.nutrition.NutritionWeeklyDistributionMode
+import com.example.kpkn.domain.nutrition.PlanTuning
+import com.example.kpkn.domain.nutrition.PlanTuningContext
+import com.example.kpkn.domain.nutrition.PlanValues
+import com.example.kpkn.domain.nutrition.PlanWarning
 import com.example.kpkn.domain.nutrition.WizardPacePreset
+import com.example.kpkn.domain.nutrition.automaticPlanValues
 import com.example.kpkn.domain.nutrition.parseLocalizedNumber
+import com.example.kpkn.domain.nutrition.presetSeedValues
+import com.example.kpkn.domain.nutrition.recommendedPlanValues
 import com.example.kpkn.domain.onboarding.SetupNutritionPreparationResult
-import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.screens.nutrition.NutritionWizardDraft
-import com.example.kpkn.screens.onboarding.design.WizardBlock
 import com.example.kpkn.screens.onboarding.design.WizardChoiceCard
 import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.WizardNutritionDay
+import com.example.kpkn.screens.onboarding.design.WizardNutritionLiveState
+import com.example.kpkn.screens.onboarding.design.WizardNutritionPlanCallbacks
+import com.example.kpkn.screens.onboarding.design.WizardNutritionPlanModel
+import com.example.kpkn.screens.onboarding.design.WizardNutritionPlanPanel
 import com.example.kpkn.screens.onboarding.design.WizardShapes
 import com.example.kpkn.screens.onboarding.design.WizardSpacing
 import com.example.kpkn.screens.onboarding.design.WizardTypography
+import kotlinx.coroutines.delay
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 /**
@@ -585,31 +586,34 @@ private fun WeighInDialog(
 
 // ─── NUTRITION_RESULT ───────────────────────────────────────────────────────
 
-private val macroDatePattern: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM")
-
+/**
+ * Tu plan de alimentación: anillos, ritmo y un deslizador por macro ([WizardNutritionPlanPanel]).
+ *
+ * Lo que se ve es exactamente lo que se activa: el panel trabaja sobre un plan «en vivo» (los anillos
+ * responden al instante) y SOLO al soltar escribe en el borrador los cuatro números manuales (kcal y
+ * gramos); la preparación real los recalcula y el activar usa esa misma preparación. Si el plan vuelve a
+ * ser el que el motor recomienda por sí solo, los campos manuales se vacían y el plan sigue siendo
+ * automático. Nada de «Editar …»: las filas de los pasos anteriores ya permiten volver.
+ */
 @Composable
 private fun NutritionResultContent(state: SetupWizardState, vm: SetupWizardViewModel) {
     val preparation = state.nutritionPreparation
     val trackingOnly = state.draft.nutritionDraft?.configurationMode == NutritionConfigurationMode.TRACKING_ONLY
 
     when {
-        trackingOnly -> SetupBodyInfoPanel(
-            title = "Solo registro de comidas",
-            body = "No hay objetivos ni plan: guardamos lo que comes y nada más.",
-        )
-
-        preparation == null -> SetupBodyHint(text = "Preparando tus referencias con tus respuestas…")
-        else -> NutritionPreparationSummary(preparation, state)
+        trackingOnly -> SetupBodyHint(text = "Solo registro: sin objetivos ni plan.")
+        preparation == null -> SetupBodyHint(text = "Preparando tu plan…")
+        else -> NutritionPlanBody(state, vm, preparation)
     }
 
     NutritionBlockedRemedies(state = state, vm = vm)
-    NutritionResultEditActions(state, vm)
 }
 
 /**
  * Ruta remedial cuando la ecuación EER no aplica con los datos del usuario
  * (`BLOCKED_EQUATION`): cambiar a **objetivos propios** o a **solo registro**
- * sin exigir la ruta profesional y sin avance automático.
+ * sin exigir la ruta profesional y sin avance automático. Los errores concretos ya los pinta
+ * [NutritionPlanBody] en rojo; aquí solo una frase corta y los dos caminos.
  *
  * El cambio usa el setter del paso (`setStepChoice(NUTRITION_START, …)`), que
  * solo escribe la respuesta y `configurationMode`; después `editStep` lleva
@@ -625,8 +629,7 @@ private fun NutritionBlockedRemedies(state: SetupWizardState, vm: SetupWizardVie
     val mode = state.draft.nutritionDraft?.configurationMode
 
     SetupBodyHint(
-        text = "El cálculo automático no puede aplicarse con tus datos todavía. " +
-            "Puedes cambiar de enfoque sin perder tus respuestas:",
+        text = "No podemos calcularlo con tus datos.",
         modifier = Modifier.padding(top = 4.dp),
     )
     if (mode != NutritionConfigurationMode.SELF_DEFINED) {
@@ -641,10 +644,6 @@ private fun NutritionBlockedRemedies(state: SetupWizardState, vm: SetupWizardVie
             onClick = { vm.editWithNutritionMode(SetupStepId.NUTRITION_START, "tracking_only") },
         )
     }
-    SetupBodyCaption(
-        text = "Al cambiar de enfoque conservas tu edad, tu sexo de cálculo y tus respuestas; " +
-            "el paso de inicio se confirma con Continuar y no se calcula nada por ti.",
-    )
 }
 
 /**
@@ -657,14 +656,14 @@ private fun SetupWizardViewModel.editWithNutritionMode(step: SetupStepId, stable
     editStep(step)
 }
 
+/** Errores reales de validación en rojo (una línea cada uno), el plan si lo hay y el aviso de reparto provisional. */
 @Composable
-private fun NutritionPreparationSummary(
-    preparation: SetupNutritionPreparationResult,
+private fun NutritionPlanBody(
     state: SetupWizardState,
+    vm: SetupWizardViewModel,
+    preparation: SetupNutritionPreparationResult,
 ) {
     val errors = if (preparation.errors.isNotEmpty()) preparation.errors else state.nutritionErrors
-    val plan: NutritionPlan? = preparation.plan ?: state.nutritionPlanPreview
-
     if (errors.isNotEmpty()) {
         Column(
             modifier = Modifier.fillMaxWidth(),
@@ -676,165 +675,221 @@ private fun NutritionPreparationSummary(
         }
     }
 
-    val days = preparation.days.take(7)
     when {
         errors.isNotEmpty() -> Unit
-        days.isEmpty() -> SetupBodyHint(text = "Todavía no hay objetivos por fecha.")
-        else -> Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(WizardSpacing.cardGap),
-        ) {
-            plan?.let {
-                SetupBodyCaption(
-                    text = "Referencia diaria: ${it.calorieTarget} kcal · ${it.proteinGoal} g proteína · " +
-                        "${it.carbGoal} g hidratos · ${it.fatGoal} g grasas",
-                )
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                days.forEach { day ->
-                    NutritionDayColumn(day = day, plan = plan, modifier = Modifier.weight(1f))
-                }
-            }
-            MacroLegend()
-        }
+        preparation.plan == null -> SetupBodyHint(text = "Todavía no hay un plan que mostrar.")
+        else -> NutritionPlanEditor(state, vm, preparation)
     }
 
-    if (errors.isEmpty()) {
-        SetupBodyHint(text = preparation.status.summary(), modifier = Modifier.padding(top = 4.dp))
-    }
     if (preparation.distributionStatus == NutritionDistributionStatus.PROVISIONAL_UNIFORM) {
         SetupBodyCaption(
-            text = "Reparto uniforme provisional: alguna sesión del periodo todavía no tiene gasto estimado " +
-                "y ese dato no se sustituye por 0.",
+            text = "Reparto uniforme provisional: falta estimar el gasto de alguna sesión.",
             modifier = Modifier.padding(top = 4.dp),
         )
     }
 }
 
-private fun NutritionPlanPreparationStatus.summary(): String = when (this) {
-    NutritionPlanPreparationStatus.READY -> "Referencias listas para activar."
-    NutritionPlanPreparationStatus.BLOCKED_EQUATION -> "Faltan datos válidos para calcular tu gasto energético."
-    NutritionPlanPreparationStatus.SELF_DEFINED_MANUAL -> "Revisa tus valores: alguno no es válido todavía."
-    NutritionPlanPreparationStatus.TRACKING_ONLY -> "Solo registro: sin objetivos que calcular."
-}
+/** Cuánto se espera a que el borrador confirme una escritura antes de volver a lo confirmado. */
+private const val PLAN_WRITE_TIMEOUT_MS = 2_000L
 
 @Composable
-private fun NutritionDayColumn(
-    day: NutritionEditorDayTarget,
-    plan: NutritionPlan?,
-    modifier: Modifier = Modifier,
+private fun NutritionPlanEditor(
+    state: SetupWizardState,
+    vm: SetupWizardViewModel,
+    preparation: SetupNutritionPreparationResult,
 ) {
-    val description = "${day.date.format(macroDatePattern)}: ${day.calorieTargetKcal} kcal, " +
-        "${day.proteinG} gramos de proteína, ${day.carbsG} gramos de hidratos, ${day.fatG} gramos de grasas"
-    Column(
-        modifier = modifier.semantics { contentDescription = description },
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-        Text(
-            text = day.date.format(macroDatePattern),
-            style = WizardTypography.caption.copy(fontSize = 10.sp),
-            color = WizardColors.textFaint,
-        )
-        Text(
-            text = day.calorieTargetKcal.toString(),
-            style = WizardTypography.header,
-            color = WizardColors.text,
-        )
-        MacroBar(grams = day.proteinG, base = plan?.proteinGoal, color = WizardBlock.NUTRITION.accent)
-        MacroBar(grams = day.carbsG, base = plan?.carbGoal, color = WizardColors.info)
-        MacroBar(grams = day.fatG, base = plan?.fatGoal, color = WizardBlock.RINGS.accent)
+    val step = SetupStepId.NUTRITION_RESULT
+    val nutrition = state.draft.nutritionDraft
+    val mode = nutrition?.configurationMode ?: NutritionConfigurationMode.AUTOMATIC
+    val active = state.currentStep == step
+
+    // Objetivos propios: no hay recomendación a la que volver; «restablecer» devuelve lo que había al abrir.
+    val plan = preparation.plan
+    val planValues = plan?.let { PlanValues(it.calorieTarget, it.proteinGoal, it.carbGoal, it.fatGoal) }
+    var arrival by remember { mutableStateOf<PlanValues?>(null) }
+    LaunchedEffect(planValues) { if (arrival == null) arrival = planValues }
+
+    val committed = remember(preparation, nutrition, arrival, state.draft.weightKg) {
+        nutritionPlanTuningOf(state, arrival)
+    } ?: return
+
+    val session = remember(state.draft.draftId) { WizardNutritionLiveState(committed) }
+    LaunchedEffect(committed) { session.adopt(committed) }
+    // Una escritura que el borrador no confirma (se descartó) no deja la pantalla enseñando otra cosa.
+    val latestCommitted by rememberUpdatedState(committed)
+    LaunchedEffect(session.pending) {
+        if (session.pending != null) {
+            delay(PLAN_WRITE_TIMEOUT_MS)
+            session.expirePending(latestCommitted)
+        }
     }
+
+    val write: (PlanTuning) -> Unit = remember(vm, mode) {
+        { tuning ->
+            val clear = mode == NutritionConfigurationMode.AUTOMATIC &&
+                tuning.values == automaticPlanValues(tuning.context)
+            vm.updateStep(step) { draft -> draft.withNutritionDraft { it.withPlanValues(tuning.values, clear) } }
+        }
+    }
+
+    // El motor no lee el ritmo del paso anterior: si difiere del que aplica por sí solo, se siembra al abrir
+    // para que lo que se ve y lo que se activa sean lo mismo.
+    val seed = remember(committed, nutrition) { nutritionPresetSeed(nutrition, committed) }
+    LaunchedEffect(active, seed) {
+        if (active && seed != null) {
+            vm.updateStep(step) { draft -> draft.withNutritionDraft { it.withPlanValues(seed, clearManual = false) } }
+        }
+    }
+
+    var selectedDay by remember { mutableStateOf<Int?>(null) }
+    val days = remember(preparation.days, nutrition?.weeklyDistribution) {
+        nutritionStripDays(preparation, nutrition?.weeklyDistribution, LocalDate.now())
+    }
+    LaunchedEffect(days.size) { if (selectedDay != null && selectedDay !in days.indices) selectedDay = null }
+
+    val callbacks = remember(session, write) {
+        WizardNutritionPlanCallbacks(
+            onProtein = { grams -> selectedDay = null; session.edit { it.withProtein(grams) } },
+            onCarbs = { grams -> selectedDay = null; session.edit { it.withCarbs(grams) } },
+            onFat = { grams -> selectedDay = null; session.edit { it.withFat(grams) } },
+            onPaceRate = { rate -> selectedDay = null; session.edit { it.withPaceRate(rate) } },
+            onPacePreset = { preset -> selectedDay = null; session.commitNow { it.withPreset(preset) }?.let(write) },
+            onChangeFinished = { session.finishDrag()?.let(write) },
+            onReset = { selectedDay = null; session.commitNow { it.reset() }?.let(write) },
+            onSelectDay = { index -> selectedDay = index },
+        )
+    }
+
+    WizardNutritionPlanPanel(
+        model = WizardNutritionPlanModel(
+            tuning = session.live,
+            days = days,
+            selectedDay = selectedDay,
+            editable = true,
+            active = active,
+            dragging = session.dragging,
+            resetLabel = if (mode == NutritionConfigurationMode.AUTOMATIC) {
+                "Restablecer a la recomendación"
+            } else {
+                "Restablecer a lo que traías"
+            },
+        ),
+        callbacks = callbacks,
+    )
+}
+
+// ─── Lógica pura del resultado (también la usa el ViewModel y las pruebas) ─────────────────────────
+
+/**
+ * Escribe un plan en el borrador. Con [clearManual] vacía los cuatro campos manuales (el plan vuelve a ser el
+ * automático del motor, con su procedencia); si no, los fija: el borrador los traduce a una base manual
+ * ([com.example.kpkn.domain.nutrition.editorDraftOf]) y la preparación real devuelve exactamente esos números.
+ */
+internal fun NutritionWizardDraft.withPlanValues(values: PlanValues, clearManual: Boolean): NutritionWizardDraft =
+    if (clearManual) {
+        copy(manualCalorieTargetText = "", manualProteinText = "", manualCarbsText = "", manualFatText = "")
+    } else {
+        copy(
+            manualCalorieTargetText = values.kcal.toString(),
+            manualProteinText = values.proteinG.toString(),
+            manualCarbsText = values.carbsG.toString(),
+            manualFatText = values.fatG.toString(),
+        )
+    }
+
+/**
+ * Datos del plan que no cambian al afinar. El peso es el que usó el motor (su foto de entradas) para que los
+ * g/kg y el ritmo cuadren con el plan que se ve; el sexo es el de la ecuación.
+ */
+internal fun nutritionTuningContextOf(
+    state: SetupWizardState,
+    preparation: SetupNutritionPreparationResult,
+    direction: PlanDirection?,
+): PlanTuningContext {
+    val recommendation = preparation.recommendation
+    val engineWeight = recommendation?.snapshot?.inputs?.get("weightKg")?.toDoubleOrNull()
+    return PlanTuningContext(
+        weightKg = engineWeight ?: state.draft.weightKg,
+        eerKcal = recommendation?.eerKcal,
+        direction = direction,
+        sex = state.draft.nutritionDraft?.equationSex,
+    )
 }
 
 /**
- * Barra de un macro contra la referencia diaria del plan. Sin referencia no se
- * pinta barra (nada de escalas inventadas): solo la cifra exacta en gramos.
+ * El plan afinable del estado, o null si no hay (solo registro, errores, sin preparación o pauta
+ * profesional, que no se afina aquí). [arrival] es lo que había al abrir: la base de «restablecer» en
+ * objetivos propios (sin recomendación a la que volver).
  */
-@Composable
-private fun MacroBar(grams: Int, base: Int?, color: Color) {
-    val reference = base?.takeIf { it > 0 }
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        if (reference != null) {
-            val fraction = (grams.toFloat() / reference).coerceIn(0f, 1f)
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(5.dp)
-                    .background(WizardColors.progressTrack, RoundedCornerShape(3.dp)),
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(fraction)
-                        .height(5.dp)
-                        .background(color, RoundedCornerShape(3.dp)),
-                )
-            }
-        }
-        Text(
-            text = "$grams g",
-            style = WizardTypography.caption.copy(fontSize = 10.sp),
-            color = WizardColors.textMuted,
+internal fun nutritionPlanTuningOf(state: SetupWizardState, arrival: PlanValues? = null): PlanTuning? {
+    val nutrition = state.draft.nutritionDraft ?: return null
+    if (nutrition.configurationMode == NutritionConfigurationMode.TRACKING_ONLY) return null
+    val preparation = state.nutritionPreparation ?: return null
+    val plan = preparation.plan ?: return null
+    val direction = plan.direction ?: nutrition.direction
+    if (direction == PlanDirection.PROFESSIONAL) return null
+    val context = nutritionTuningContextOf(state, preparation, direction)
+    val values = PlanValues(plan.calorieTarget, plan.proteinGoal, plan.carbGoal, plan.fatGoal)
+    val baseline = when (nutrition.configurationMode) {
+        NutritionConfigurationMode.AUTOMATIC -> recommendedPlanValues(context, nutrition.pacePreset)
+        else -> null
+    } ?: arrival ?: values
+    return PlanTuning(context, baseline, values)
+}
+
+/**
+ * Valores con los que sembrar el borrador al abrir el resultado: solo en automático, sin ediciones y cuando
+ * el ritmo elegido en el paso anterior no es el que el motor aplica por sí solo.
+ */
+internal fun nutritionPresetSeed(nutrition: NutritionWizardDraft?, committed: PlanTuning): PlanValues? {
+    if (nutrition == null || nutrition.configurationMode != NutritionConfigurationMode.AUTOMATIC) return null
+    val untouched = nutrition.manualCalorieTargetText.isBlank() && nutrition.manualProteinText.isBlank() &&
+        nutrition.manualCarbsText.isBlank() && nutrition.manualFatText.isBlank()
+    if (!untouched) return null
+    return presetSeedValues(committed.context, nutrition.pacePreset)
+}
+
+/** Franja de días: solo con reparto variable y objetivos distintos entre los días; 7 como mucho. */
+internal fun nutritionStripDays(
+    preparation: SetupNutritionPreparationResult,
+    distribution: NutritionWeeklyDistributionMode?,
+    today: LocalDate,
+): List<WizardNutritionDay> {
+    if (distribution != NutritionWeeklyDistributionMode.VARIABLE) return emptyList()
+    val days = preparation.days.sortedBy { it.date }.take(7)
+    if (days.size < 2 || days.map { it.calorieTargetKcal }.distinct().size < 2) return emptyList()
+    return days.map { day ->
+        WizardNutritionDay(
+            date = day.date,
+            kcal = day.calorieTargetKcal,
+            proteinG = day.proteinG,
+            carbsG = day.carbsG,
+            fatG = day.fatG,
+            isToday = day.date == today,
         )
     }
 }
 
-@Composable
-private fun MacroLegend() {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        LegendDot("Proteína", WizardBlock.NUTRITION.accent, Modifier.weight(1f))
-        LegendDot("Hidratos", WizardColors.info, Modifier.weight(1f))
-        LegendDot("Grasas", WizardBlock.RINGS.accent, Modifier.weight(1f))
-    }
-}
+/** Texto de «Continuar» rechazado por un plan con calorías peligrosamente bajas. */
+internal const val NUTRITION_LOW_CALORIES_MESSAGE = "Sube las calorías para poder continuar"
 
-@Composable
-private fun LegendDot(label: String, color: Color, modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box(
-            modifier = Modifier
-                .size(8.dp)
-                .background(color, RoundedCornerShape(2.dp)),
-        )
-        Text(label, style = WizardTypography.caption.copy(fontSize = 10.sp), color = WizardColors.textMuted)
-    }
-}
+/** Texto de «Continuar» rechazado por un ritmo de pérdida extremo. */
+internal const val NUTRITION_EXTREME_PACE_MESSAGE = "Elige un ritmo más suave para poder continuar"
 
-/** Acciones de edición del resultado: vuelven al paso sin borrar respuestas. */
-@Composable
-private fun NutritionResultEditActions(state: SetupWizardState, vm: SetupWizardViewModel) {
-    val route = SetupStepGraph.stepIds(state.draft.stepContext())
-    val targets = listOf(
-        SetupStepId.NUTRITION_START to "Editar modo de nutrición",
-        SetupStepId.NUTRITION_DIRECTION to "Editar dirección",
-        SetupStepId.NUTRITION_ACTIVITY to "Editar actividad",
-        SetupStepId.NUTRITION_MANUAL_CALORIES to "Editar calorías y proteína",
-        SetupStepId.NUTRITION_DISTRIBUTION to "Editar reparto semanal",
-        SetupStepId.NUTRITION_WEIGH_INS to "Editar pesajes",
-    ).filter { (step, _) -> step in route }
-    if (targets.isEmpty()) return
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 4.dp),
-        horizontalAlignment = Alignment.Start,
-    ) {
-        targets.forEach { (step, label) ->
-            SetupBodyEditAction(label = label, onClick = { vm.editStep(step) })
-        }
+/**
+ * Puerta de «Continuar» en el resultado de nutrición: con un plan que tiene `hardStop` (calorías por debajo del
+ * umbral duro o una pérdida extrema, los mismos criterios que [com.example.kpkn.domain.nutrition.buildNutritionRiskFlags])
+ * el paso no avanza. Función pura para probarla sin montar el ViewModel; sin plan afinable (solo registro,
+ * errores, pauta profesional) no añade nada.
+ */
+internal fun nutritionResultGate(state: SetupWizardState, step: SetupStepId): Map<String, String> {
+    if (step != SetupStepId.NUTRITION_RESULT) return emptyMap()
+    val tuning = nutritionPlanTuningOf(state) ?: return emptyMap()
+    if (!tuning.hardStop) return emptyMap()
+    val message = if (PlanWarning.LOW_CALORIES_HARD in tuning.warnings) {
+        NUTRITION_LOW_CALORIES_MESSAGE
+    } else {
+        NUTRITION_EXTREME_PACE_MESSAGE
     }
+    return mapOf("nutritionPlan" to message)
 }

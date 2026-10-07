@@ -2,6 +2,7 @@ package com.example.kpkn.screens.onboarding
 
 import com.example.kpkn.data.models.AutoregulationMode
 import com.example.kpkn.data.models.InitialRecoveryResponseState
+import com.example.kpkn.data.models.NutritionPlan
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.domain.nutrition.NutritionPlanPreparationStatus
 import com.example.kpkn.domain.nutrition.parseLocalizedNumber
@@ -14,6 +15,7 @@ import com.example.kpkn.screens.onboarding.design.WizardHeightScale
 import com.example.kpkn.screens.onboarding.design.WizardHeightUnit
 import com.example.kpkn.screens.onboarding.design.WizardMassUnit
 import com.example.kpkn.screens.onboarding.design.WizardWeightScale
+import com.example.kpkn.screens.onboarding.design.formatKcalEs
 
 /**
  * Textos de las filas-resumen de la página larga del alta: cada página ya
@@ -156,7 +158,7 @@ private fun summaryLabel(page: SetupStepId): String = when (page) {
     SetupStepId.NUTRITION_MANUAL_CARBS_FAT -> "Hidratos y grasas"
     SetupStepId.NUTRITION_DISTRIBUTION -> "Reparto de calorías"
     SetupStepId.NUTRITION_WEIGH_INS -> "Pesajes"
-    SetupStepId.NUTRITION_RESULT -> "Tus referencias"
+    SetupStepId.NUTRITION_RESULT -> "Plan de alimentación"
 
     SetupStepId.RINGS_RECENT -> "Entreno reciente"
     SetupStepId.RINGS_SESSIONS -> "Sesiones en 7 días"
@@ -614,9 +616,9 @@ private fun summaryMacro(raw: String?): String? =
         ?.let { value -> WizardWeightScale.format(value) }
 
 /**
- * Lo que la preparación ya calculó, como base diaria media (nunca «hoy»): las calorías del
- * plan; en solo registro o con pauta profesional, el modo. Sin plan calculado, «Listo»; con la
- * ecuación bloqueada, lo dice.
+ * Lo que la preparación ya calculó, como base diaria media (nunca «hoy»): las kcal y los macros del
+ * plan en una línea corta («2.300 kcal · P 160 · H 250 · G 70»); en solo registro o con pauta profesional,
+ * el modo. Sin plan calculado, «Listo»; con la ecuación bloqueada, lo dice.
  */
 private fun summaryNutritionResult(state: SetupWizardState): String {
     val context = state.draft.stepContext()
@@ -626,10 +628,17 @@ private fun summaryNutritionResult(state: SetupWizardState): String {
         context.nutritionStartChoice == "tracking_only" ->
             summaryOptionLabel(SetupStepId.NUTRITION_START, "tracking_only")
         context.nutritionProfessional -> SUMMARY_PROFESSIONAL
-        plan != null && plan.calorieTarget > 0 -> "${plan.calorieTarget} kcal diarias (media)"
+        plan != null && plan.calorieTarget > 0 -> summaryPlanLine(plan)
         preparation?.status == NutritionPlanPreparationStatus.BLOCKED_EQUATION -> SUMMARY_BLOCKED_EQUATION
         else -> SUMMARY_READY
     }
+}
+
+/** «2.300 kcal · P 160 · H 250 · G 70»; un plan sin desglose de macros dice solo las kcal. */
+private fun summaryPlanLine(plan: NutritionPlan): String {
+    val kcal = "${formatKcalEs(plan.calorieTarget)} kcal"
+    if (plan.proteinGoal <= 0 && plan.carbGoal <= 0 && plan.fatGoal <= 0) return kcal
+    return "$kcal · P ${plan.proteinGoal} · H ${plan.carbGoal} · G ${plan.fatGoal}"
 }
 
 // ─── RINGS ───────────────────────────────────────────────────────────────────
