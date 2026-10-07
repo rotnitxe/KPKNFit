@@ -4,6 +4,7 @@ import com.example.kpkn.data.models.ApparatusPresence
 import com.example.kpkn.data.models.EquipmentAvailability
 import com.example.kpkn.data.models.EquipmentCategory
 import com.example.kpkn.domain.training.EquipmentKeys
+import com.example.kpkn.domain.training.SymbolEquipmentKeys
 
 /**
  * Traducción pura entre los **símbolos de implemento** del paso de material ([EquipmentSymbolId]) y la disponibilidad
@@ -16,23 +17,30 @@ import com.example.kpkn.domain.training.EquipmentKeys
  *   no vuelven a preguntar «¿tienes rack?».
  * - **Gimnasio asume todo lo habitual** ([seedFor]): barra, rack, banco, mancuernas, kettlebells, poleas, máquinas,
  *   Smith/Multipower, barra de dominadas, paralelas, bandas, balón, cajón, cuerda y cardio. Nada exótico. Las llaves
- *   «de gimnasio» que no tienen símbolo propio (barra EZ, predicador, doble polea, cuerda de polea, barra baja) quedan
- *   presentes mientras haya gimnasio y su símbolo madre esté elegido.
+ *   «de gimnasio» que no tienen símbolo propio (barra EZ, hexagonal y T, predicador, banco declinado y de hiperextensión,
+ *   doble polea, cuerda de polea, barra baja, GHD y rueda abdominal) quedan presentes mientras haya gimnasio y su símbolo
+ *   madre esté elegido. Los discos acompañan a la barra en cualquier lugar donde se ofrezca, y la barra de dominadas de
+ *   un parque (espacios públicos entre los lugares) trae también su barra baja.
+ * - **«Máquinas» es una sala de máquinas**, no una lista de máquinas: [EquipmentAvailability.machinesAsCategory] se escribe
+ *   `true` cuando está elegido, así la categoría basta para todas las variantes de máquina aprobadas (sin el modo de
+ *   configuración exacta) mientras las nueve llaves curadas siguen `PRESENT` para las recetas de autor. Sin el símbolo,
+ *   las llaves quedan `ABSENT` y la bandera `false`: no hay máquinas.
  * - **Casa** no asume nada y **espacios públicos** asumen la estructura típica de un parque de calistenia.
  * - [BODYWEIGHT_ONLY][EquipmentSymbolId.BODYWEIGHT_ONLY] es exclusivo y equivale a «ningún implemento»: el motor
  *   recibe categorías vacías (solo cuerpo).
- * - Los símbolos que el vocabulario curado del motor aún no conoce (anillas, cajón, cuerda de saltar, cardio) viajan
- *   como llaves propias de este objeto ([RINGS_KEY], [BOX_KEY], [JUMP_ROPE_KEY], [CARDIO_MACHINE_KEY]) en `supports`;
- *   el motor las ignora hasta que su catálogo las acredite, pero la selección se conserva y el generador las consulta.
- *   Además hacen exacto el ida y vuelta: dos símbolos que comparten categoría (cardio y cuerda de saltar, o todos los
- *   de soporte) se distinguen por su llave, así que `selectedFrom(availabilityOf(S, lugares)) == S` para toda
- *   selección S de símbolos visibles (la selección vacía vuelve como «solo peso corporal»).
+ * - Los símbolos que el subpanel curado no pinta (anillas, cajón, cuerda de saltar, cardio) viajan como llaves propias
+ *   ([RINGS_KEY], [BOX_KEY], [JUMP_ROPE_KEY], [CARDIO_MACHINE_KEY]) en `supports`. El resolutor acredita las tres
+ *   primeras (`SYMBOL_EQUIPMENT_KEYS`: anillas = `trx` y `rings`; cajón = `plyo_box` y, además, `support`, un apoyo
+ *   elevado; cuerda); la del cardio solo hace exacto el ida y
+ *   vuelta: dos símbolos que comparten categoría (cardio y cuerda de saltar, o todos los de soporte) se distinguen por su
+ *   llave, así que `selectedFrom(availabilityOf(S, lugares)) == S` para toda selección S de símbolos visibles (la
+ *   selección vacía vuelve como «solo peso corporal»). Los extras de arriba nunca entran en esa lectura inversa.
  */
 object EquipmentSymbols {
 
-    const val RINGS_KEY = "rings"
-    const val BOX_KEY = "plyo_box"
-    const val JUMP_ROPE_KEY = "jump_rope"
+    const val RINGS_KEY = SymbolEquipmentKeys.RINGS
+    const val BOX_KEY = SymbolEquipmentKeys.PLYO_BOX
+    const val JUMP_ROPE_KEY = SymbolEquipmentKeys.JUMP_ROPE
 
     /** Cardio de gimnasio o de casa (cinta, bici, elíptica…): el símbolo comparte categoría con la cuerda de saltar. */
     const val CARDIO_MACHINE_KEY = "cardio_machine"
@@ -46,6 +54,10 @@ object EquipmentSymbols {
         /** Llaves que solo se acreditan con gimnasio en la lista de lugares (extras habituales sin símbolo propio). */
         val gymApparatus: Set<String> = emptySet(),
         val gymSupports: Set<String> = emptySet(),
+        /** Llaves de `supports` que acompañan al símbolo elegido en cualquier lugar donde se ofrezca (sin símbolo propio). */
+        val companionSupports: Set<String> = emptySet(),
+        /** Llaves de `supports` que solo se acreditan con espacios públicos en la lista de lugares (la barra baja del parque). */
+        val publicSupports: Set<String> = emptySet(),
         /** Lugares donde el símbolo se ofrece. */
         val places: Set<TrainingPlace>,
         /** Lugares que lo traen puesto de serie. */
@@ -69,7 +81,9 @@ object EquipmentSymbols {
         EquipmentSymbolId.BARBELL to Spec(
             categories = setOf(EquipmentCategory.BARBELL),
             supports = emptySet(),
-            gymSupports = setOf(EquipmentKeys.EZ_BAR),
+            // La barra EZ, la hexagonal y la T son extras de gimnasio; los discos van con la barra donde sea.
+            gymSupports = setOf(EquipmentKeys.EZ_BAR, SymbolEquipmentKeys.HEX_BAR, SymbolEquipmentKeys.T_BAR),
+            companionSupports = setOf(SymbolEquipmentKeys.PLATE),
             places = INDOORS, seededBy = setOf(GYM),
         ),
         EquipmentSymbolId.RACK to Spec(
@@ -82,8 +96,11 @@ object EquipmentSymbols {
             categories = setOf(EquipmentCategory.SUPPORT),
             // Un banco «a secas» se asume regulable: acredita plano e inclinado.
             supports = setOf(EquipmentKeys.BENCH_FLAT, EquipmentKeys.BENCH_ADJUSTABLE),
-            // El predicador es otro banco: su categoría en el motor es SUPPORT, y solo cuenta si ella está confirmada.
-            gymSupports = setOf(EquipmentKeys.PREACHER_BENCH),
+            // El predicador, el banco declinado y el de hiperextensión son otros bancos, propios de un gimnasio: su
+            // categoría en el motor es SUPPORT, y solo cuentan si ella está confirmada.
+            gymSupports = setOf(
+                EquipmentKeys.PREACHER_BENCH, SymbolEquipmentKeys.DECLINE_BENCH, SymbolEquipmentKeys.HYPEREXTENSION_BENCH,
+            ),
             places = ANYWHERE, seededBy = setOf(GYM),
         ),
         EquipmentSymbolId.DUMBBELLS to Spec(
@@ -103,6 +120,8 @@ object EquipmentSymbols {
         EquipmentSymbolId.MACHINES to Spec(
             categories = setOf(EquipmentCategory.MACHINES),
             apparatus = machineKeys,
+            // El GHD y la rueda abdominal son extras habituales del gimnasio, sin símbolo propio.
+            gymApparatus = setOf(SymbolEquipmentKeys.GHD, SymbolEquipmentKeys.AB_WHEEL),
             places = INDOORS, seededBy = setOf(GYM),
         ),
         EquipmentSymbolId.SMITH to Spec(
@@ -112,6 +131,8 @@ object EquipmentSymbols {
         EquipmentSymbolId.PULL_UP_BAR to Spec(
             categories = setOf(EquipmentCategory.PULL_UP_BAR),
             supports = setOf(EquipmentKeys.PULLUP_BAR),
+            // La barra de dominadas de un parque casi siempre trae una barra baja (remo invertido, rack chin).
+            publicSupports = setOf(EquipmentKeys.LOW_BAR_SUPPORT),
             places = ANYWHERE, seededBy = setOf(GYM, PUBLIC),
         ),
         EquipmentSymbolId.PARALLEL_BARS to Spec(
@@ -202,11 +223,17 @@ object EquipmentSymbols {
     /**
      * Disponibilidad del motor para los símbolos [selected] con los [places] declarados. Solo cuerpo (selección vacía o
      * «solo peso corporal») = categorías vacías CONFIRMADAS, que el motor lee como peso corporal.
+     *
+     * Los extras sin símbolo propio dependen de los lugares: los de gimnasio solo con `GYM` entre ellos, la barra baja de
+     * un parque solo con `PUBLIC`; los discos van con la barra donde sea. Ninguno entra en [selectedFrom], así que el ida
+     * y vuelta sigue siendo exacto. Con «Máquinas» elegido se escribe también [EquipmentAvailability.machinesAsCategory]
+     * (una sala de máquinas: sin modo de configuración exacta); tampoco entra en la lectura inversa.
      */
     fun availabilityOf(selected: Set<EquipmentSymbolId>, places: Set<TrainingPlace>): EquipmentAvailability {
         val chosen = selected.filterTo(linkedSetOf()) { it != EquipmentSymbolId.BODYWEIGHT_ONLY && it in specs }
         if (chosen.isEmpty()) return EquipmentAvailability()
         val withGym = GYM in places
+        val withPublic = PUBLIC in places
 
         val categories = chosen.flatMapTo(linkedSetOf()) { specs.getValue(it).categories }
         val apparatusPresent = chosen.flatMapTo(linkedSetOf()) { symbol ->
@@ -215,7 +242,9 @@ object EquipmentSymbols {
         }
         val supportsPresent = chosen.flatMapTo(linkedSetOf()) { symbol ->
             val spec = specs.getValue(symbol)
-            spec.supports + if (withGym) spec.gymSupports else emptySet()
+            spec.supports + spec.companionSupports +
+                (if (withGym) spec.gymSupports else emptySet()) +
+                (if (withPublic) spec.publicSupports else emptySet())
         }
         // Todo lo que se pudo ver y no se eligió queda explícitamente ausente.
         val visible = symbolsFor(places).filter { it in specs }.toSet().ifEmpty { selectable.toSet() }
@@ -225,7 +254,7 @@ object EquipmentSymbols {
         } - apparatusPresent
         val supportsAbsent = visible.flatMapTo(linkedSetOf()) { symbol ->
             val spec = specs.getValue(symbol)
-            spec.supports + spec.gymSupports
+            spec.supports + spec.companionSupports + spec.gymSupports + spec.publicSupports
         } - supportsPresent
 
         return EquipmentAvailability(
@@ -234,6 +263,7 @@ object EquipmentSymbols {
                 apparatusPresent.associateWith { ApparatusPresence.PRESENT },
             supports = supportsAbsent.associateWith { ApparatusPresence.ABSENT } +
                 supportsPresent.associateWith { ApparatusPresence.PRESENT },
+            machinesAsCategory = EquipmentSymbolId.MACHINES in chosen,
         )
     }
 

@@ -22,12 +22,19 @@ enum class ApparatusPresence { UNKNOWN, PRESENT, ABSENT }
  *
  * No introduce inventario de pesos: los mapas solo declaran presencia, sin
  * cantidades. [EquipmentInventory] y su stock no cambian aquí.
+ *
+ * [machinesAsCategory] marca que «Máquinas» se declaró como UNA SALA de máquinas y no máquina por máquina: la categoría
+ * `MACHINES` basta para las variantes de máquina aprobadas, así que no rige el modo «configuración exacta» (DEV-r2-06)
+ * aunque las llaves de las máquinas curadas consten `PRESENT` (siguen escritas para que las recetas de autor vean sus
+ * tokens `machine_config:`). Lo escribe `EquipmentSymbols.availabilityOf`; las disponibilidades sin el campo (subpanel
+ * antiguo, datos guardados) decodifican `false` y se comportan como siempre.
  */
 @Serializable
 data class EquipmentAvailability(
     val categories: Set<EquipmentCategory> = emptySet(),
     val apparatus: Map<String, ApparatusPresence> = emptyMap(),
     val supports: Map<String, ApparatusPresence> = emptyMap(),
+    val machinesAsCategory: Boolean = false,
 ) {
     /**
      * Presencia combinada de una clave: una ausencia explícita gana sobre una
