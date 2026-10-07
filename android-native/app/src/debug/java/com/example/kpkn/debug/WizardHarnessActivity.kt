@@ -215,6 +215,7 @@ private fun HarnessRoot(config: HarnessConfig, onClose: () -> Unit) {
             viewModel.submitCurrentStep()
             // El avance es asíncrono: se espera a que el cursor salga de este paso antes de leer cuál es el siguiente.
             withTimeoutOrNull(3_000) { viewModel.state.first { it.currentStep != step } }
+            FrameStats.endStep(step.name)
         }
     }
 
