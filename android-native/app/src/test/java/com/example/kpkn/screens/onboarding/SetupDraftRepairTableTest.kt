@@ -65,28 +65,32 @@ class SetupDraftRepairTableTest {
         assertEquals("repair debe ser idempotente", once, twice)
     }
 
-    // ─── HEALTH/MIXED: conservados, GOAL en revisión, sin autoconversión ────
+    // ─── HEALTH/MIXED: traducidos al perfil de hoy, GOAL en revisión, nada se confirma solo ────
 
     @Test
-    fun legacyHealthAndMixedGoalsArePreservedAndFlaggedForReviewWithoutAutoConversion() {
-        for (legacy in listOf(SetupGoal.HEALTH, SetupGoal.MIXED)) {
+    fun legacyHealthAndMixedGoalsBecomeTheProfileOfTodayAndAreFlaggedForReviewWithoutConfirmingAnything() {
+        val expected = mapOf(
+            SetupGoal.HEALTH to com.example.kpkn.domain.onboarding.TrainingGoalProfile.FUNCTIONAL_HEALTH,
+            SetupGoal.MIXED to com.example.kpkn.domain.onboarding.TrainingGoalProfile.STRENGTH_CARDIO,
+        )
+        for ((legacy, profile) in expected) {
             val draft = baseDraft().copy(goal = legacy)
 
             val repaired = SetupDraftCompatibility.repair(draft)
 
-            assertEquals("el valor legacy se conserva", legacy, repaired.goal)
-            assertFalse(
-                "nunca se autoconvierte a Atleta completo",
-                repaired.goal == SetupGoal.COMPLETE_ATHLETE,
-            )
+            // El objetivo antiguo se lee como el perfil que hoy le corresponde; la persona lo reconfirma al revisar.
+            assertEquals("$legacy", profile, repaired.goalProfile)
+            assertEquals("$legacy", GoalProfileMapping.setupGoalOf(profile), repaired.goal)
+            assertFalse("$legacy ya no es un objetivo legacy", repaired.goal?.isLegacyOnly == true)
             assertTrue(
                 "GOAL queda marcado para revisar",
                 SetupStepId.GOAL in repaired.stepProgress.pendingReview,
             )
-            assertFalse(
-                "no se selecciona la sugerencia Atleta completo",
-                "complete_athlete" in repaired.stepSelections[SetupStepId.GOAL].orEmpty(),
+            assertNull(
+                "ninguna selección del paso se confirma sola",
+                repaired.stepSelections[SetupStepId.GOAL],
             )
+            assertNull("GOAL no consta como respondido", repaired.stepProgress.answers[SetupStepId.GOAL])
             assertEquals(
                 "las respuestas del resto del bloque no se borran",
                 draft.stepProgress.answers,
@@ -103,7 +107,10 @@ class SetupDraftRepairTableTest {
 
             val repaired = SetupDraftCompatibility.repair(draft)
 
-            assertEquals(legacy, repaired.goal)
+            assertEquals(
+                GoalProfileMapping.profileOfLegacy(legacy),
+                repaired.goalProfile,
+            )
             assertEquals("la respuesta legacy debe revisarse antes de continuar", SetupStepId.GOAL,
                 repaired.stepProgress.currentStepId)
             assertTrue(SetupStepId.GOAL in repaired.stepProgress.pendingReview)
@@ -229,16 +236,16 @@ class SetupDraftRepairTableTest {
     fun aValidButOutOfOrderCursorRewindsToANewlyInsertedUnansweredPrerequisite() {
         val context = SetupStepContext()
         val route = SetupStepGraph.stepIds(context)
-        val daysIndex = route.indexOf(SetupStepId.DAYS)
-        val answersBeforeDaysExceptGoal = route.take(daysIndex)
+        val weekdaysIndex = route.indexOf(SetupStepId.WEEKDAYS)
+        val answersBeforeWeekdaysExceptGoal = route.take(weekdaysIndex)
             .filterNot { it == SetupStepId.GOAL }
             .associateWith { SetupAnswerProvenance.USER_DECLARED }
         val oldProgress = SetupStepProgress(
             block = SetupWizardBlock.TRAINING,
-            stepIndex = daysIndex,
-            currentStepId = SetupStepId.DAYS,
-            visited = route.take(daysIndex + 1),
-            answers = answersBeforeDaysExceptGoal,
+            stepIndex = weekdaysIndex,
+            currentStepId = SetupStepId.WEEKDAYS,
+            visited = route.take(weekdaysIndex + 1),
+            answers = answersBeforeWeekdaysExceptGoal,
             origin = SetupProgressOrigin.NATIVE,
             graphRevision = SetupStepGraph.REVISION,
         )
@@ -248,7 +255,7 @@ class SetupDraftRepairTableTest {
 
         assertEquals("el perfil va antes de los días incluso si el cursor era válido", SetupStepId.GOAL,
             repaired.stepProgress.currentStepId)
-        assertEquals(answersBeforeDaysExceptGoal, repaired.stepProgress.answers)
+        assertEquals(answersBeforeWeekdaysExceptGoal, repaired.stepProgress.answers)
         assertIdempotent(draft)
     }
 
@@ -308,7 +315,7 @@ class SetupDraftRepairTableTest {
         .id
 
     @Test
-    fun categoriesWithoutApparatusKeepEmptyUnknownMapsAndFlagEquipmentOnlyWhenThePlanNeedsPrecision() {
+    fun categoriesWithoutApparatusKeepEmptyUnknownMapsAndFlagMaterialOnlyWhenThePlanNeedsPrecision() {
         val inventory = EquipmentInventory(dumbbells = listOf(DumbbellPairStock(weightPerUnitKg = 16.0)))
         val categories = setOf(EquipmentCategory.MACHINES, EquipmentCategory.CABLE)
         val draft = baseDraft().copy(
@@ -327,14 +334,14 @@ class SetupDraftRepairTableTest {
             repaired.trainingOptions.availability?.apparatus.isNullOrEmpty() &&
                 repaired.trainingOptions.availability?.supports.isNullOrEmpty(),
         )
-        assertTrue("EQUIPMENT queda pendiente cuando el plan exige precisión",
-            SetupStepId.EQUIPMENT in repaired.stepProgress.pendingReview)
+        assertTrue("el material queda pendiente cuando el plan exige precisión",
+            SetupStepId.AVAILABILITY in repaired.stepProgress.pendingReview)
         assertEquals("nunca se borra el inventario guardado", inventory, repaired.trainingOptions.inventory)
         assertIdempotent(draft)
     }
 
     @Test
-    fun categoriesWithoutApparatusDoNotFlagEquipmentWhenThePlanNeedsNoPrecision() {
+    fun categoriesWithoutApparatusDoNotFlagMaterialWhenThePlanNeedsNoPrecision() {
         val draft = baseDraft().copy(
             trainingOptions = SetupTrainingOptions(
                 availability = EquipmentAvailability(setOf(EquipmentCategory.MACHINES)),
@@ -345,13 +352,13 @@ class SetupDraftRepairTableTest {
         val repaired = SetupDraftCompatibility.repair(draft)
 
         assertFalse(
-            SetupStepId.EQUIPMENT in repaired.stepProgress.pendingReview,
+            SetupStepId.AVAILABILITY in repaired.stepProgress.pendingReview,
         )
         assertIdempotent(draft)
     }
 
     @Test
-    fun confirmedApparatusPresenceOrMissingSelectionNeverFlagsEquipment() {
+    fun confirmedApparatusPresenceOrMissingSelectionNeverFlagsMaterial() {
         val withPresence = baseDraft().copy(
             trainingOptions = SetupTrainingOptions(
                 availability = EquipmentAvailability(
@@ -362,7 +369,7 @@ class SetupDraftRepairTableTest {
             selectedCatalogId = planRequiringPrecision(),
         )
         assertFalse(
-            SetupStepId.EQUIPMENT in SetupDraftCompatibility.repair(withPresence).stepProgress.pendingReview,
+            SetupStepId.AVAILABILITY in SetupDraftCompatibility.repair(withPresence).stepProgress.pendingReview,
         )
         assertIdempotent(withPresence)
 
@@ -372,7 +379,7 @@ class SetupDraftRepairTableTest {
             ),
         )
         assertFalse(
-            SetupStepId.EQUIPMENT in SetupDraftCompatibility.repair(withoutSelection).stepProgress.pendingReview,
+            SetupStepId.AVAILABILITY in SetupDraftCompatibility.repair(withoutSelection).stepProgress.pendingReview,
         )
         assertIdempotent(withoutSelection)
     }

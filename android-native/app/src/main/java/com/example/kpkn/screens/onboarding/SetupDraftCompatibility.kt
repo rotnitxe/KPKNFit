@@ -1,14 +1,18 @@
 package com.example.kpkn.screens.onboarding
 
+import com.example.kpkn.data.models.AutoregulationMode
 import com.example.kpkn.data.onboarding.SetupDraftResolver
 import com.example.kpkn.data.onboarding.SetupDraftScope
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
+import com.example.kpkn.domain.onboarding.EntrenoStepValues
+import com.example.kpkn.domain.onboarding.LiftMark
 import com.example.kpkn.domain.onboarding.SetupAnswerProvenance
 import com.example.kpkn.domain.onboarding.SetupPreviewKind
 import com.example.kpkn.domain.onboarding.SetupProgressOrigin
 import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.SetupStepProgress
+import com.example.kpkn.domain.onboarding.SetupWizardBlock
 import com.example.kpkn.domain.onboarding.WizChatAnswerSource
 import com.example.kpkn.domain.onboarding.WizChatGraph
 import com.example.kpkn.domain.onboarding.WizChatQuestionId
@@ -94,14 +98,108 @@ object SetupDraftCompatibility {
         repairStepProgress(
             repairMissingApparatus(
                 repairTrainingPath(
-                    repairLegacyGoalReview(
-                        normalizeLegacyRouteAtPlan(
-                            repairGoalStyleConflict(restoreMandatoryVitals(normalizeOrigin(draft))),
+                    migrateEntrenoV2(
+                        repairLegacyGoalReview(
+                            normalizeLegacyRouteAtPlan(
+                                repairGoalStyleConflict(restoreMandatoryVitals(normalizeOrigin(draft))),
+                            ),
                         ),
                     ),
                 ),
             ),
         )
+
+    /**
+     * Entreno v2 — lleva un borrador anterior a los datos nuevos SIN confirmar nada y sin perder respuestas (todo
+     * idempotente; el cursor lo recoloca [repairStepProgress] en el primer paso pendiente de la ruta nueva):
+     * - `trainingEnvironment` viejo → `trainingPlaces` (gimnasio y máquinas → gimnasio; casa y sin material → casa);
+     *   la disponibilidad de material existente se CONSERVA tal cual (no se resiembra ni se da por confirmada).
+     * - `goal` viejo → `goalProfile` (Fuerza → Powerlifting, Músculo → Culturismo, Fuerza y músculo → Fuerza y masa
+     *   muscular, Atleta completo y Fuerza + cardio → Fuerza y cardio, Salud → Funcional y saludable) y el `goal` queda
+     *   como su derivado. Quien venía de Salud o Fuerza + cardio ya tenía GOAL marcado para revisar
+     *   ([repairLegacyGoalReview]): la persona confirma el perfil nuevo, nunca se confirma solo.
+     * - `daysPerWeek` pasa a ser el número de días elegidos.
+     * - La marca de sentadilla, banca y peso muerto de `powerliftingProfile` pasa a `liftMarks`.
+     * - Quien empieza recibe la técnica derivada («1 · Aprendiendo», procedencia DERIVED): ya no la ve.
+     * - Los borradores anteriores a la ruta nueva dejan la autorregulación en «sugerir y confirmar» y el calentamiento
+     *   en el preset del programa (esos pasos salieron del alta).
+     * - Si el bloque de entreno ya estaba completo, sus pasos nuevos sin responder lo marcan como pendiente de revisión.
+     */
+    internal fun migrateEntrenoV2(draft: SetupWizardDraft): SetupWizardDraft {
+        if (!draft.includeTraining) return draft
+        var current = draft
+        // Lugares ← entorno.
+        if (current.trainingPlaces.isEmpty()) {
+            val place = current.trainingEnvironment?.let(EntrenoStepValues::placeOf)
+            if (place != null) {
+                current = current.copy(
+                    trainingPlaces = setOf(place),
+                    // La selección guardada del entorno viejo («machines», «none») ya no es un valor del paso.
+                    stepSelections = current.stepSelections - SetupStepId.EQUIPMENT,
+                )
+            }
+        }
+        // El material se lee de la disponibilidad: una selección guardada con categorías antiguas se desfasaría.
+        if (SetupStepId.AVAILABILITY in current.stepSelections) {
+            current = current.copy(stepSelections = current.stepSelections - SetupStepId.AVAILABILITY)
+        }
+        // Perfil ← objetivo.
+        val legacyGoal = current.goal
+        if (current.goalProfile == null && legacyGoal != null) {
+            val profile = GoalProfileMapping.profileOfLegacy(legacyGoal)
+            current = current.copy(
+                goalProfile = profile,
+                goal = GoalProfileMapping.setupGoalOf(profile),
+                stepSelections = current.stepSelections - SetupStepId.GOAL,
+            )
+        }
+        // Días derivados de los días elegidos.
+        val derivedDays = current.selectedWeekdays.size.takeIf { it > 0 }
+        if (current.daysPerWeek != derivedDays) current = current.copy(daysPerWeek = derivedDays)
+        // Marcas ← perfil de powerlifting.
+        if (current.liftMarks.isEmpty()) {
+            val profile = current.powerliftingProfile
+            val marks = buildMap {
+                profile?.squat1RM?.let { put(LiftMark.SQUAT, it) }
+                profile?.bench1RM?.let { put(LiftMark.BENCH, it) }
+                profile?.deadlift1RM?.let { put(LiftMark.DEADLIFT, it) }
+            }
+            if (marks.isNotEmpty()) current = current.copy(liftMarks = marks, knowsTrainingMarks = true)
+        }
+        // La técnica del novato se deriva.
+        if (current.isNovice && current.volumeAnswers.technique == null) {
+            current = current.withDerivedTechnique(NOVICE_TECHNIQUE_POINTS).copy(
+                stepProgress = current.stepProgress.copy(
+                    answers = current.stepProgress.answers + (SetupStepId.VOLUME_TECHNIQUE to SetupAnswerProvenance.DERIVED),
+                ),
+            )
+        }
+        // Un borrador anterior a la ruta nueva: sin autorregulación ni calentamiento a elegir.
+        if (current.stepProgress.graphRevision < SetupStepGraph.REVISION) {
+            val options = current.trainingOptions
+            if (options.autoregulationMode != AutoregulationMode.PROPOSE || options.automaticConfirmed || options.warmup != null) {
+                current = current.copy(
+                    trainingOptions = options.copy(
+                        autoregulationMode = AutoregulationMode.PROPOSE,
+                        automaticConfirmed = false,
+                        warmup = null,
+                    ),
+                )
+            }
+        }
+        // Bloque de entreno ya completo con pasos nuevos sin responder: queda por revisar hasta reconfirmar su hito.
+        if (SetupStepId.MILESTONE_TRAINING in current.stepProgress.answers) {
+            val newlyRequired = SetupStepGraph.stepIds(current.stepContext()).filter { step ->
+                SetupStepGraph.blockOf(step) == SetupWizardBlock.TRAINING &&
+                    !SetupStepGraph.isMilestone(step) &&
+                    step !in current.stepProgress.answers
+            }.toSet()
+            if (newlyRequired.isNotEmpty() && !current.stepProgress.pendingReview.containsAll(newlyRequired)) {
+                current = current.copy(stepProgress = current.stepProgress.withPendingReview(newlyRequired))
+            }
+        }
+        return current
+    }
 
     /**
      * A draft already resting on PLAN has crossed the old ROUTE question. Keep
@@ -120,11 +218,10 @@ object SetupDraftCompatibility {
     }
 
     /**
-     * T-005 / §15.4 — HEALTH/MIXED: el valor y sus datos se CONSERVAN; GOAL
-     * queda marcado para revisar y se sugiere «Atleta completo» en la UI sin
-     * seleccionarlo nunca. Idempotente: mientras el objetivo siga siendo
-     * legacy, la marca es el mismo conjunto; una elección real retira la
-     * regla (el nuevo objetivo ya no es legacy).
+     * T-005 / §15.4 — HEALTH/MIXED: GOAL queda marcado para revisar (la respuesta original sigue en el espejo
+     * legacy). Corre ANTES de [migrateEntrenoV2], que traduce el objetivo al perfil de hoy (Funcional y saludable /
+     * Fuerza y cardio) sin confirmarlo: la persona lo confirma al revisar. Idempotente: la marca se persiste y, una
+     * vez convertido, el objetivo ya no es legacy.
      */
     private fun repairLegacyGoalReview(draft: SetupWizardDraft): SetupWizardDraft {
         val goal = draft.goal ?: return draft
@@ -150,8 +247,8 @@ object SetupDraftCompatibility {
     /**
      * T-005 / §15.4 — categorías sin aparatos: se MANTIENEN las categorías y
      * los mapas vacíos (vacío = UNKNOWN, nunca PRESENT) y NO se borra ningún
-     * inventario guardado; EQUIPMENT queda por revisión solo cuando el plan
-     * elegido exige precisión de aparato/soporte. Idempotente.
+     * inventario guardado; AVAILABILITY (el material, ahora por símbolos) queda por
+     * revisión solo cuando el programa elegido exige precisión de aparato/soporte. Idempotente.
      */
     private fun repairMissingApparatus(draft: SetupWizardDraft): SetupWizardDraft {
         val availability = draft.trainingOptions.availability ?: return draft
@@ -163,7 +260,7 @@ object SetupDraftCompatibility {
             token.startsWith("machine_config:") || token in PRECISE_EQUIPMENT_TOKENS
         }
         if (!requiresPrecision) return draft
-        return draft.copy(stepProgress = draft.stepProgress.withPendingReview(setOf(SetupStepId.EQUIPMENT)))
+        return draft.copy(stepProgress = draft.stepProgress.withPendingReview(setOf(SetupStepId.AVAILABILITY)))
     }
 
     /** Tokens que exigen presencia concreta (§13.2), no solo una categoría. */
