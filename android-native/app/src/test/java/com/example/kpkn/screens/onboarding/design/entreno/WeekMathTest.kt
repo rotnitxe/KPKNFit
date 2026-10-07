@@ -1,6 +1,8 @@
 package com.example.kpkn.screens.onboarding.design.entreno
 
 import com.example.kpkn.domain.onboarding.TrainingPlace
+import kotlin.math.abs
+import kotlin.math.roundToInt
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -95,36 +97,29 @@ class WeekMathTest {
     // ─── Camino más corto y cinta ────────────────────────────────────────────
 
     @Test
-    fun theShortestShiftNeverTravelsMoreThanThreeSlots() {
-        assertEquals(0, shortestWeekShift(1, 1))
-        assertEquals(3, shortestWeekShift(1, 4))
-        assertEquals(-3, shortestWeekShift(4, 1))
-        assertEquals(-2, shortestWeekShift(1, 6))
-        assertEquals(-1, shortestWeekShift(1, 7))
-        assertEquals(1, shortestWeekShift(7, 1))
-        assertEquals(-3, shortestWeekShift(3, 7))
+    fun theShortestDeltaNeverTravelsMoreThanThreeSlotsAroundTheWeek() {
+        assertEquals(0f, circularShortestDelta(1f, 1f), 0f)
+        assertEquals(3f, circularShortestDelta(1f, 4f), 1e-6f)
+        assertEquals(-3f, circularShortestDelta(4f, 1f), 1e-6f)
+        assertEquals(-2f, circularShortestDelta(1f, 6f), 1e-6f)
+        assertEquals(-1f, circularShortestDelta(1f, 7f), 1e-6f)
+        assertEquals(1f, circularShortestDelta(7f, 1f), 1e-6f)
+        assertEquals(-3f, circularShortestDelta(3f, 7f), 1e-6f)
+        assertEquals(1.2f, circularShortestDelta(6.9f, 1.1f), 1e-5f)
         for (from in 1..7) for (to in 1..7) {
-            val shift = shortestWeekShift(from, to)
-            assertTrue("$from→$to = $shift", shift in -3..3)
+            val delta = circularShortestDelta(from.toFloat(), to.toFloat())
+            assertTrue("$from→$to = $delta", abs(delta) <= 3f)
             // Aplicar el desplazamiento lleva realmente al destino (módulo 7).
-            assertEquals(to, ((from - 1 + shift) % 7 + 7) % 7 + 1)
+            assertEquals(to, ((from - 1 + delta.roundToInt()) % 7 + 7) % 7 + 1)
         }
     }
 
     @Test
-    fun theContinuousShortestDeltaMatchesTheIntegerOneAndHandlesWrapAround() {
-        assertEquals(3f, circularShortestDelta(1f, 4f), 1e-6f)
-        assertEquals(-3f, circularShortestDelta(4f, 1f), 1e-6f)
-        assertEquals(-2f, circularShortestDelta(1f, 6f), 1e-6f)
-        assertEquals(1.2f, circularShortestDelta(6.9f, 1.1f), 1e-5f)
-        assertEquals(0f, circularShortestDelta(5f, 5f), 0f)
-        for (from in 1..7) for (to in 1..7) {
-            assertEquals(shortestWeekShift(from, to).toFloat(), circularShortestDelta(from.toFloat(), to.toFloat()), 1e-5f)
-        }
-        // Una posición «sin acotar» (varias vueltas acumuladas) también da el camino corto.
+    fun aPositionAccumulatedOverSeveralTurnsStillTakesTheShortWay() {
         assertEquals(2f, circularShortestDelta(-6f, -4f), 1e-5f)
         assertEquals(3f, circularShortestDelta(15f, 18f), 1e-5f)
         assertEquals(-3f, circularShortestDelta(-12f, -15f), 1e-4f)
+        assertEquals(0f, circularShortestDelta(5f, 5f), 0f)
     }
 
     @Test
@@ -170,11 +165,11 @@ class WeekMathTest {
                 var p = 0.01f
                 while (p <= 1.0001f) {
                     val now = weekConveyorSlot(day, from + shift * p)
-                    if (kotlin.math.abs(now - prev) > 1.5f) {
+                    if (abs(now - prev) > 1.5f) {
                         assertTrue("$from→$to día $day antes: ${weekConveyorAlpha(prev)}", weekConveyorAlpha(prev) <= 0.25f)
                         assertTrue("$from→$to día $day después: ${weekConveyorAlpha(now)}", weekConveyorAlpha(now) <= 0.25f)
                     } else {
-                        assertTrue("$from→$to día $day saltó ${now - prev}", kotlin.math.abs(now - prev) < 0.5f)
+                        assertTrue("$from→$to día $day saltó ${now - prev}", abs(now - prev) < 0.5f)
                     }
                     prev = now
                     p += 0.01f

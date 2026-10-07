@@ -67,21 +67,9 @@ fun dayChoiceDescription(day: Int, chosen: Boolean, strongest: Boolean = false):
 // ─── Reordenar la tira (la «cinta» de la semana) ─────────────────────────────────────────────────────────────
 
 /**
- * Pasos más cortos (de −3 a 3) para llevar el inicio de semana de [from] a [to] dando la vuelta a la semana: de lunes a
- * jueves son +3 (los días se corren tres huecos a la izquierda) y de lunes a sábado son −2 (dos huecos a la derecha),
- * en vez de recorrer cinco.
- */
-fun shortestWeekShift(from: Int, to: Int): Int {
-    val a = if (isWeekDay(from)) from else 1
-    val b = if (isWeekDay(to)) to else 1
-    val forward = ((b - a) % WEEK_DAY_COUNT + WEEK_DAY_COUNT) % WEEK_DAY_COUNT
-    return if (forward > WEEK_DAY_COUNT / 2) forward - WEEK_DAY_COUNT else forward
-}
-
-/**
  * Desplazamiento más corto de [from] a [to] sobre un círculo de [period] (por defecto la semana): el resultado cae en
- * `(−period/2, period/2]`. Sirve para animar el inicio de semana por el camino corto aunque la animación anterior no
- * hubiera terminado (la posición es continua).
+ * `(−period/2, period/2]`. Sirve para animar el inicio de semana por el camino corto (de lunes a jueves son +3 huecos y de
+ * lunes a sábado −2, en vez de cinco) aunque la animación anterior no hubiera terminado: la posición es continua.
  */
 fun circularShortestDelta(from: Float, to: Float, period: Float = WEEK_DAY_COUNT.toFloat()): Float {
     if (!(period > 0f) || !from.isFinite() || !to.isFinite()) return 0f
