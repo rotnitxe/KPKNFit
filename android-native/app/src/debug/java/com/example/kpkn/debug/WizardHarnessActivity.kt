@@ -31,6 +31,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.unit.Density
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.data.db.KpknDatabase
@@ -247,7 +248,13 @@ private fun HarnessRoot(config: HarnessConfig, onClose: () -> Unit) {
                         showIntro = false,
                     )
                 }
-                if (config.fps) FrameMeter(label = tourLabel, modifier = Modifier.align(Alignment.TopStart))
+                if (config.fps) {
+                    // El último fallo del asistente (p. ej. un guardado que no salió) sale con el medidor: sin logcat en el teléfono.
+                    val state by viewModel.state.collectAsStateWithLifecycle()
+                    val failure = state.lastFailure ?: state.errors.entries.firstOrNull()?.let { (key, message) -> "$key: $message" }
+                    val label = listOfNotNull(tourLabel.ifEmpty { null }, failure?.let { "ERR " + it.take(120) }).joinToString("\n")
+                    FrameMeter(label = label, modifier = Modifier.align(Alignment.TopStart))
+                }
             }
         }
     }
