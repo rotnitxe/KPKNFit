@@ -56,6 +56,7 @@ import com.example.kpkn.ui.components.LocalHazeState
 import com.example.kpkn.ui.components.kpknGlass
 import com.example.kpkn.ui.components.kpknGlassOrFallback
 import com.example.kpkn.ui.locale.LocaleManager
+import com.example.kpkn.ui.theme.MacroColors
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import java.time.LocalDate
@@ -66,10 +67,10 @@ import java.util.Locale
 /** Lado mínimo de una zona táctil (WP-U17): los controles de 24-36 dp se llevan a este tamaño. */
 private val MIN_TOUCH_TARGET = 40.dp
 
-private val PROTEIN_COLOR = Color(0xFFEF5350)
-private val CARBS_COLOR = Color(0xFF7E57C2)
-private val FATS_COLOR = Color(0xFF26A69A)
-private val CALORIES_COLOR = Color(0xFF42A5F5)
+private val PROTEIN_COLOR = MacroColors.protein
+private val CARBS_COLOR = MacroColors.carbs
+private val FATS_COLOR = MacroColors.fat
+private val CALORIES_COLOR = MacroColors.calories
 private val TEAL = Color(0xFF009688)
 
 private val MEAL_ICONS = mapOf(
