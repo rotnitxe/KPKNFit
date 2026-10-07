@@ -73,9 +73,10 @@ Base real sobre la que se construye; todo lo de abajo está verificado en el có
   (ENTHUSIAST, HYBRID, CALISTHENICS, BODYBUILDER, POWERBUILDER, POWERLIFTER, WEIGHTLIFTER, ZERCHER_LIFTER) alimenta la capacidad de fatiga del
   motor AUGE (`AugeFatigueEngine`) y **el alta nunca lo escribe**: el objetivo del wizard debe escribirlo.
 
-**Catálogo de ejercicios** (`assets/exercise_catalog_v2.json`: 96 familias, 206 definiciones, 521 configuraciones; metadatos medidos al 100 %:
-patrón de movimiento (63), región, cadena cinética, músculos primarios, articulaciones, dificultad técnica 3,5–7,0, tiempo de montaje 10–55 s,
-fatiga, `articulationType`)
+**Catálogo de ejercicios** (`assets/exercise_catalog_v2.json`; en la auditoría: 96 familias, 206 definiciones, 521 configuraciones; **hoy 96 / 228 / 553**
+tras los lotes BW-1 y OL-1; metadatos medidos al 100 %: patrón de movimiento (63), región, cadena cinética, músculos primarios, articulaciones,
+dificultad técnica 3,5–7,0, tiempo de montaje 10–55 s, fatiga, `articulationType`). Las cifras de las viñetas siguientes son las de la auditoría; lo que
+cambiaron los lotes está en «Estado tras los lotes BW-1 y OL-1», al final de esta sección.
 - Es de gimnasio: solo 38 de 521 configuraciones son `bodyweight`. **Con cero material hay 14 ejercicios reales, ninguno de tracción, empuje
   vertical, bisagra, bíceps ni hombros.** Con «parque de calistenia» (barra de dominadas, paralelas, barra baja, banco) hay 36 configuraciones / 26
   ejercicios; sigue sin empuje vertical, con core pobre.
@@ -93,6 +94,17 @@ fatiga, `articulationType`)
   inalcanzables** desde cualquier símbolo (56 `machine` sin llave curada; 32 por implemento: `trx`, `plate`, `hex_bar`, `safety_bar`, `t_bar`,
   `ab_wheel`, `h_bar`, `sliders`, `ghd`, `wrist_roller`; y el curl nórdico). **Hoy quedan 8**: los cuatro implementos raros que no se acreditan a
   propósito (`safety_bar` ×4, `h_bar`, `sliders`, `wrist_roller`) y el curl nórdico (`nordic_anchor` no tiene símbolo ni llave).
+
+**Estado tras los lotes BW-1 y OL-1** (aprobados por el usuario para la rama `feat/wizard-entreno-v2`; el paso a `master` sigue pendiente de su OK)
+- **BW-1** (`docs/entreno-v2/lote-bw1-report.md`): 9 definiciones nuevas (pica plana y con pies elevados, dominada negativa, flexiones diamante y arquero, hollow body, dead bug, plancha
+  lateral, bird dog, sentada en pared) y 8 configuraciones `__bodyweight` en definiciones ya curadas (zancada, zancada caminando, step-up, búlgara, sumo, sissy, buenos días y rumano a una
+  pierna sin carga). Catálogo 206 / 521 → 215 / 539; configuraciones de peso corporal 38 → 56. Alcance medido con `EquipmentReachTest`: solo cuerpo 20 → 34, parque 35 → 53, casa con anillas
+  y cajón 23 → 41, gimnasio completo 510 → 528.
+- **OL-1** (`docs/entreno-v2/lote-ol1-report.md`): 13 definiciones y 14 configuraciones de levantamientos olímpicos (cargadas y arranques de potencia, desde colgado y completos, tirones, envión de
+  empuje y de tijera, sentadilla de arranque) y de acarreos (maletín y Zercher). Catálogo 215 / 539 → 228 / 553; los enviones y la sentadilla de arranque piden rack
+  (`supportRequirementsFor`); gimnasio completo 528 → 542. Siguen sin existir yugo, piedras, tronco, eje, trineo, saco de arena, barril ni neumático: **Strongman** queda limitado a paseos y
+  Zercher hasta un lote posterior.
+- Inalcanzables desde cualquier símbolo: **8 de 553** (los mismos cuatro implementos raros y el curl nórdico).
 
 **Decisiones que de aquí se derivan**
 1. Los **objetivos generales** (y todo caso en que ningún plan de autor encaje) los resuelve un **generador nuevo** (`domain/training/generator`)
