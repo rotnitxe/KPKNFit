@@ -59,15 +59,13 @@ De las lagunas que D1 anota en `BodyweightLadders`, este lote cierra el empuje v
   `pull_up_bar`; `pike_push_up__feet_elevated`, `step_up__bodyweight` y `bulgarian_split_squat__bodyweight` piden `support`
   («Apoyo elevado»: banco, cajón, escalón o sofá). Como su implemento es `bodyweight` (siempre acreditado), sin ese requisito se
   ofrecerían a quien no tiene dónde apoyarse. Las otras 14 altas no piden nada.
-- Resolutor (`TrainingOptions.resolveWithAvailability`): el símbolo «Anillas o TRX» (llave `rings`) acredita ahora el implemento
-  `trx` y «Cajón o step» (llave `plyo_box`) acredita `support`, siempre con la categoría de soportes confirmada y la llave `PRESENT`
-  (ausente o sin confirmar no acredita). Antes el motor ignoraba esas dos llaves: las 3 configuraciones TRX
-  (`biceps_curl_trx__supinated`, `quads_sentadilla_pistola_asistida_trx__default`, `triceps_extension__default`) no se alcanzaban
-  con ningún material. Las anillas no acreditan `support`: no son un apoyo elevado.
-- El generador de D1 añade por su cuenta los tokens `trx`, `plyo_box` y `rings` (`DayEquipment`); con este cableado puede delegar en
-  `effectiveEquipment`. Conviene revisarlo al fusionar para no duplicar la regla.
-- La cabecera de `EquipmentSymbols.kt` aún dice que el motor ignora las llaves de anillas y cajón; ya no es cierto. No la toqué
-  (fuera de mi lista de archivos): basta una línea del dueño del paso de material.
+- Resolutor: tras fusionar con los paquetes E y E2 solo queda la vía de E (`SYMBOL_EQUIPMENT_KEYS` en `resolveWithAvailability`: las
+  anillas acreditan `trx` y `rings`, el cajón `plyo_box`, con la categoría confirmada y la llave `PRESENT`; el generador y el
+  planificador deciden con el mismo `ConfigurationEquipmentFilter`). De mi cableado queda una línea: la entrada `plyo_box` acredita
+  además `support` (un apoyo elevado). Las anillas no lo acreditan. Antes de E el motor ignoraba esas llaves y las 3
+  configuraciones TRX (`biceps_curl_trx__supinated`, `quads_sentadilla_pistola_asistida_trx__default`, `triceps_extension__default`)
+  no se alcanzaban con ningún material; hoy las abren las anillas.
+- La cabecera de `EquipmentSymbols.kt` ya la había corregido E; solo se añadió que el cajón es además un apoyo elevado.
 - No se tocó `NativeWorkoutProgressionRuntime`, cuya escalera en vivo solo conoce la flexión (rodillas → estándar → pies
   elevados). Que la pica plana pase a la elevada, o el diamante y el arquero entren tras la flexión estándar, es una decisión de
   entrenador y producto aparte; el lote deja los ids y sus soportes listos.
@@ -120,8 +118,8 @@ repositorio; `technicalDifficulty` es una **puntuación editorial modelada**, no
   `bulgarian_split_squat__dumbbells` siguen sin pedir `support` (preexistente): no se tocaron para no mover cifras de planes.
 - **Movilidad.** `MobilityExerciseCatalog` ya trae `mob_wall_sit` (sentadilla isométrica en pared) y `mob_dead_bug_reach`: es otro
   registro, con prefijo `mob_`, sin colisión de ids; se anota por si algún buscador los mezcla con `wall_sit` y `dead_bug`.
-- **Contrato compartido.** El resolutor es de todos los planes: el cableado es acotado (dos llaves, exige categoría y `PRESENT`) y
-  tiene pruebas propias, pero cualquier rama que cambie `resolveWithAvailability` choca con él.
+- **Contrato compartido.** El resolutor es de todos los planes. Tras la fusión con E y E2 el cableado de BW-1 en él es un solo
+  token (`support` en la entrada `plyo_box` de `SYMBOL_EQUIPMENT_KEYS`), con pruebas propias; el resto es de E.
 - **Revisión limpia aplicada.** Tres revisores sin contexto (solo lectura) leyeron las 17 definiciones contra sus fuentes: ningún
   bloqueante. Se corrigieron, entre otros, la dominada negativa (las acciones del hombro estaban invertidas: en la bajada el dorsal
   frena la flexión y la abducción), el diamante (ya no se afirma que el tríceps sea «el que más trabaja»: lo sostiene un solo estudio
@@ -141,34 +139,32 @@ repositorio; `technicalDifficulty` es una **puntuación editorial modelada**, no
 
 ## 7. Pruebas que cambian de cifras
 
-Pines movidos de 206 / 521 y del SHA `c67eeb8f…` a 215 / 539 y `c30a5c2e…`: `AprendeCatalogAuditTest.kt`,
-`ExerciseCatalogContractTest.kt`, `scripts/tests/test_catalog_v2_show.py` (206 → 215 filas) y `backend/tests/test_exercises_catalog_v2.py`
-(SHA y `romanian_deadlift` de 8 a 9 configuraciones). Prueba nueva: `BodyweightLotEquipmentTest` (soportes de las altas, `trx` y
-`support` desde anillas y cajón, y la coincidencia de llaves con `EquipmentSymbols`).
-
-Dos recuentos Kotlin que movían los 215 / 539 y que la primera ronda no cubrió: `ExerciseCatalogAuditTest` (el rumano pasa de 8 a 9
-configuraciones) y el índice inverso de patrones de `AprendeCatalogAuditTest` (suma 539 en vez de 521). Son recuentos del catálogo,
-no cifras de planes.
-
-**Kotlin (Base debug, `:app:testBaseDebugUnitTest` en una sola corrida por el envoltorio de ranuras):** filtrada por los paquetes que
-leen el catálogo o los planes (`domain.training.*`, `domain.onboarding.*`, `domain.exercises.*`, `domain.templates.*`,
-`data.protocols.*`, `data.programs.*`, `data.exercises.*`, `data.onboarding.*`, `ExerciseCatalogContractTest`, `SetupExecutable*`, los
-`SetupWizard*` que usan el catálogo, `SetupFixedWarmupOptionsTest`, `PlanInfoModelTest` y `ExerciseCatalogV2*` del editor): 200
-suites y 2071 pruebas; fallaron las 2 de los pines anteriores; ya corregidos y comprobados en una segunda corrida con esas dos clases,
-`ExerciseCatalogContractTest` y `BodyweightLotEquipmentTest` (4 suites, 34 pruebas, 0 fallos); 0 errores y 0 omitidas. La corrida previa
-al lote, con los filtros del catálogo y de equipo, tenía 23 suites y 132 pruebas sin fallos. `domain.training.generator.*` no existe
-en esta rama.
+Pines movidos de 206 / 521 y del SHA `c67eeb8f…` a 215 / 539 y `c30a5c2e…`: `AprendeCatalogAuditTest.kt` (incluido el índice inverso
+de patrones, que suma 539), `ExerciseCatalogContractTest.kt`, `ExerciseCatalogAuditTest.kt` (el rumano pasa de 8 a 9
+configuraciones), `scripts/tests/test_catalog_v2_show.py` (206 → 215 filas) y `backend/tests/test_exercises_catalog_v2.py` (SHA y
+`romanian_deadlift` de 8 a 9 configuraciones). Son recuentos del catálogo, no cifras de planes. Prueba nueva: `BodyweightLotEquipmentTest`
+(11 pruebas: soportes de las altas y alcanzabilidad con el filtro único; el cajón es además un apoyo elevado y las anillas no).
 
 **Tests de planes: no cambia ninguna cifra, no se re-baselinó nada.** Pasan sin tocar sus pines `PlanGenerationCoverageT006Test` (5),
 `T006PersistenceAndUseIntegrationTest` (7), `PlanCoverageContractTest` (2), `SetupExecutableAvailabilityMatrixTest` (27),
-`CompositionTaxonomyTest`, `NativeProfileRecipeAndFitterTest` (36), `EffectiveEquipmentResolverContractTest`,
-`EffectiveEquipmentContractTest`, `FixedRecipeEquipmentCompatibilityTest`, `PersonalizedPlanCatalogTest`, `EquipmentSymbolsTest`,
-`PlanRejectionPresenterTest` y `SetupWizardActivationGateTest` (estos dos mencionan `trx` como material sin confirmación posible: el
-resolutor lo acredita, pero ninguna llave curada del panel lo pide, así que siguen igual). Ninguna receta fija ni plantilla del
-código cita los ids nuevos; entran solo por la selección nativa, que no movió ninguno de esos pines.
+`NativeProfileRecipeAndFitterTest`, `PersonalizedPlanCatalogTest`, `EffectiveEquipmentContractTest`, `FixedRecipeEquipmentCompatibilityTest`,
+`PlanRejectionPresenterTest` y `SetupWizardActivationGateTest`. Ninguna receta fija ni plantilla del código cita los ids nuevos: entran
+solo por la selección nativa.
 
-**Python:** `pytest scripts/tests backend/tests/test_exercises_catalog_v2.py`: 214 aprobadas y 162 subtests, 0 fallos (con el catálogo
-final).
+**Fusión con `feat/wizard-entreno-v2` (paquetes E y E2).** Kotlin Base, una corrida de `:app:testBaseDebugUnitTest` por el envoltorio de
+ranuras, filtrada por `domain.training.*` (con `generator.*` y `split.*`), `domain.onboarding.*`, `domain.exercises.*`,
+`domain.templates.*`, `data.protocols.*`, `data.programs.*`, `data.exercises.*`, `data.onboarding.*`, `EquipmentAvailabilityTest`,
+`ExerciseCatalogContractTest`, `SetupExecutable*`, los `SetupWizard*` que usan el catálogo, `SetupFixedWarmupOptionsTest`,
+`PlanInfoModelTest` y `ExerciseCatalogV2*` del editor: **221 suites y 2278 pruebas, 0 fallos, 0 errores, 0 omitidas.** Entre ellas,
+`domain.training.generator.*` (7 suites, 49 pruebas: barridos, comportamiento, reservas y `GeneratorEquipmentTest`),
+`EquipmentReachTest` (10), `ConfigurationEquipmentFilterTest` (10), `EffectiveEquipmentResolverContractTest` (21),
+`EquipmentSymbolsTest` (29) y `ExerciseTraitResolverTest` (11, recorre las 539 configuraciones). Las 18 altas no rompen ningún
+barrido ni conteo del generador: la matriz que regenera `RoutineMatrixReportTest` es idéntica, línea a línea, a `matrix-d1.txt` de E
+(las reservas citan ids concretos y ninguno es nuevo). `EquipmentReachTest` no fija ninguna cifra del tamaño del catálogo (solo las de
+máquinas, discos, hexagonal/T, GHD y rueda, que no cambian): lo que cambia es el informe que escribe, en la sección 9.
+
+**Python (con la fusión):** `catalog_v2_gate --strict` READY, `compile --check` y pines ok, y
+`pytest scripts/tests backend/tests/test_exercises_catalog_v2.py`: 214 aprobadas y 162 subtests, 0 fallos.
 
 ## 8. Informe de lote (formato de `catalog_v2_lote_report.py`)
 
@@ -231,3 +227,61 @@ Configuraciones que ya existian en el catalogo base y se compararon con `configu
 | `negative_pull_up__default` | negative_pull_up | latissimus_dorsi | latissimus_dorsi | vertical_pull | bodyweight | 4.0 |
 | `pike_push_up__flat` | pike_push_up | deltoid | deltoid | vertical_push | bodyweight | 4.8 |
 | `pike_push_up__feet_elevated` | pike_push_up | deltoid | deltoid | vertical_push | bodyweight | 5.0 |
+
+## 9. Alcanzabilidad del material: antes → después
+
+Medida con las reglas de `EquipmentReachTest` (resolutor único y filtro único de E y E2; «alcanzable» = el planificador y el generador la
+aprueban con el equipo que acreditan los símbolos). **Antes** = el catálogo base de 521 configuraciones con el resolutor de E, que
+reproduce sus cifras publicadas (8 inalcanzables de 521). **Después** = el catálogo de 539 con la fusión; coincide fila a fila con lo que
+escribe `EquipmentReachTest` en `build/reports/equipment-reach/reach.txt` (51 filas comparadas, 0 diferencias).
+
+Qué sube y por qué: las 14 altas sin soporte suben todos los materiales (incluido «solo cuerpo»); cualquier símbolo de soporte (rack,
+banco, paralelas, cajón) suma las 3 que piden un apoyo elevado; la barra de dominadas suma la dominada negativa; el cajón suma además
+`push_up__feet_elevated`, la única configuración existente que cambia de alcance (antes solo la abría la categoría de soportes). Las
+anillas siguen abriendo las mismas 3 configuraciones TRX. Ninguna configuración deja de ser alcanzable, y las 18 altas lo son desde
+algún símbolo y lugar: los inalcanzables siguen siendo 8 (los cuatro implementos raros y el curl nórdico), ahora de 539.
+
+**Materiales de referencia**
+
+| material | antes | después |
+|---|---|---|
+| solo cuerpo | 20 | 34 |
+| parque (semilla) | 35 | 53 |
+| casa con mancuernas y banco | 110 | 127 |
+| casa con anillas y cajón | 23 | 41 |
+| gimnasio completo | 510 | 528 |
+| gimnasio sin rack | 495 | 513 |
+
+**Lugares** (solo cuerpo / con la semilla del lugar / con todo lo que ofrece)
+
+| lugar | antes | después |
+|---|---|---|
+| Gimnasio | 20 / 510 / 513 | 34 / 528 / 531 |
+| En casa | 20 / 20 / 487 | 34 / 34 / 505 |
+| En espacios públicos | 20 / 35 / 179 | 34 / 53 / 197 |
+| todos los lugares y todos los símbolos | 20 / – / 513 | 34 / – / 531 |
+
+**Símbolos** (solo: lo que abre por sí solo sobre solo cuerpo / imprescindible: lo que se pierde al quitarlo). Solo las filas que cambian;
+el resto (barra y discos, mancuernas, kettlebell, poleas, máquinas, Smith, bandas, balón, cuerda de saltar y cardio) queda igual.
+
+| símbolo | lugar | antes | después |
+|---|---|---|---|
+| Rack | Gimnasio | 3 / 15 | 6 / 15 |
+| Rack | En casa | 1 / 13 | 4 / 13 |
+| Banco | Gimnasio | 5 / 26 | 8 / 26 |
+| Banco | En casa | 2 / 24 | 5 / 24 |
+| Banco | En espacios públicos | 2 / 10 | 5 / 10 |
+| Barra de dominadas | Gimnasio | 11 / 13 | 12 / 14 |
+| Barra de dominadas | En casa | 11 / 13 | 12 / 14 |
+| Barra de dominadas | En espacios públicos | 13 / 15 | 14 / 16 |
+| Paralelas | Gimnasio, casa y espacios públicos | 2 / 1 | 5 / 1 |
+| Anillas o TRX | En espacios públicos | 4 / 3 | 7 / 3 |
+| Cajón o step | Gimnasio | 0 / 0 | 4 / 0 |
+| Cajón o step | En casa | 0 / 0 | 4 / 0 |
+| Cajón o step | En espacios públicos | 1 / 0 | 4 / 0 |
+
+Una rareza que BW-1 no crea pero hereda: en espacios públicos la llave del rack no se escribe (queda sin responder), así que cualquier
+símbolo de soporte, también las anillas solas, acredita `support` por la categoría; por eso las anillas suman ahí las 3 altas con apoyo
+elevado (4 → 7) y el cajón ya abría `push_up__feet_elevated` en el parque (1 → 4). En casa y en el gimnasio las anillas no acreditan
+`support`. Si se quiere que en el parque un símbolo de soporte sin banco ni cajón no ofrezca esos ejercicios, hay que escribir las
+llaves de soporte ausentes también en ese lugar: es una decisión de E, no de este lote.

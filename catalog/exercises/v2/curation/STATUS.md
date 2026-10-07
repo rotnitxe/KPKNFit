@@ -137,8 +137,8 @@ una aprobación; nada se aterrizó en el árbol principal. Informe completo en `
 - `efc/cnc/ssc/ttc` se heredan sin cambio del perfil aprobado más cercano (campos de significado no documentado:
   `fieldSemanticsGap`) y `technicalDifficulty` es una puntuación editorial modelada entre anclas aprobadas; ver la tabla del informe.
 - Soportes y Kotlin: la dominada negativa pide `pull_up_bar`; la pica con pies elevados, el step-up y la búlgara sin carga piden
-  `support`; el resto no pide nada. `TrainingOptions.resolveWithAvailability` acredita ahora `trx` con el símbolo «Anillas o TRX» y
-  `support` con «Cajón o step» (antes el motor ignoraba esas llaves y las tres configuraciones TRX no se alcanzaban).
+  `support`; el resto no pide nada. El resolutor es el de los paquetes E y E2 (`SYMBOL_EQUIPMENT_KEYS`: las anillas acreditan `trx`
+  y `rings`, y las tres configuraciones TRX ya se alcanzan); de BW-1 queda que «Cajón o step» (`plyo_box`) acredita además `support`.
 - Validación en el worktree: land de prueba (gate READY, auditoría 0/0, compile --check, pines), pytest de `scripts/tests` y del
   backend (214 aprobadas y 162 subtests) y Kotlin Base (200 suites, 2071 pruebas, filtradas por catálogo, equipo y planes). Los
   pines de cifras que se movieron son recuentos del catálogo (`AprendeCatalogAuditTest`, `ExerciseCatalogContractTest`,
