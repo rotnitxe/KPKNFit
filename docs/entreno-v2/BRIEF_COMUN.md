@@ -29,7 +29,7 @@ Aplica a TODOS los paquetes de la ola. Cada paquete tiene además su brief propi
 
 ## Teléfono real (comprobación visual final)
 - El usuario activó la depuración inalámbrica de su Galaxy Z Flip5 (1080×2640 a 480 dpi = 360 dp de ancho) para las pruebas. Es su teléfono personal: la app de producción `com.example.kpkn` tiene sus datos reales.
-- SOLO con `python C:\kw	ools\phone_run.py` (mismo formato que `emu_run.py`, candado `C:\kw\phone.lock`; lee su docstring). Solo instala y abre el APK debug con sufijo `.dbg` (`com.example.kpkn.dbg`), nunca toca la app de producción, despierta la pantalla y la vuelve a apagar al terminar. Nada de `adb` directo, `pm clear`, `uninstall` ni ajustes.
+- SOLO con `python C:\kw\tools\phone_run.py` (mismo formato que `emu_run.py`, candado `C:\kw\phone.lock`; lee su docstring). Solo instala y abre el APK debug con sufijo `.dbg` (`com.example.kpkn.dbg`), nunca toca la app de producción, despierta la pantalla y la vuelve a apagar al terminar. Nada de `adb` directo, `pm clear`, `uninstall` ni ajustes.
 - Úsalo para la verificación FINAL de cada paso (a 360 dp reales, fluidez, desenfoque, ritmo del scroll) tras iterar en el emulador; sesiones cortas y agrupadas (batería del usuario). El teléfono suele estar bloqueado: las actividades de depuración que quieras ver ahí deben pedir `setShowWhenLocked(true)` y `setTurnScreenOn(true)`. Capturas en `C:\kw\shots\<nombre>\phone\`.
 
 ## Diseño (no negociable)
