@@ -59,7 +59,7 @@ internal object WeekLayoutCopy {
     const val ADAPTING = "Adaptando tu semana…"
     const val SPLITS_LABEL = "Repartos para tu semana"
     const val REST = "Descanso"
-    const val HINT_IDLE = "Mantén pulsada una sesión y arrástrala a otro día."
+    const val HINT_IDLE = "Mantén pulsada una sesión y arrástrala, o tócala y elige un día."
     const val HINT_DRAGGING = "Suéltala sobre un día. Fuera de la semana se cancela."
     const val HINT_EMPTY = "Todavía no hay sesiones que colocar."
     const val CURRENT_SPLIT = "reparto actual"
@@ -93,15 +93,6 @@ internal fun sessionMinutesText(minutes: Int): String = "$minutes min"
 
 /** «6 ejercicios» / «1 ejercicio». */
 internal fun sessionExercisesText(count: Int): String = SpanishPlurals.exercises(count)
-
-/**
- * «60 min · 6 ejercicios». Si falta alguno de los dos datos (cero o menos) se omite, y sin ninguno queda vacío.
- */
-internal fun sessionSummaryText(minutes: Int, exerciseCount: Int): String =
-    listOfNotNull(
-        if (minutes > 0) sessionMinutesText(minutes) else null,
-        if (exerciseCount > 0) sessionExercisesText(exerciseCount) else null,
-    ).joinToString(" · ")
 
 /**
  * Lo que anuncia TalkBack de una sesión: «Torso A, sesión principal. Pecho y espalda. 60 minutos, 6 ejercicios. Lunes.»

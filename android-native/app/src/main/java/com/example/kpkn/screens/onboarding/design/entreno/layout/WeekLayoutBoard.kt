@@ -56,6 +56,7 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -129,8 +130,12 @@ private val DISC_TEXT_GAP = 8.dp
 private val HEADER_GAP = 4.dp
 private val TEXT_SIDE_PAD = 2.dp
 
+/** Lo que el título de una ficha puede invadir a cada lado (el aire entre columnas) antes de partir una palabra larga («movilidad»). */
+private val TITLE_OVERFLOW = 6.dp
+
 /** Lo que puede separarse de su fila una ficha levantada, y lo que hay que apartarla para que soltarla cancele. */
-private val DRAG_RANGE = 16.dp
+private val DRAG_RANGE = 12.dp
+private val DRAG_UP = 6.dp
 private val CANCEL_DISTANCE = 52.dp
 
 /** Auto-desplazamiento: ancho de la zona de borde, velocidad máxima (por segundo) y ancho del desvanecido. */
@@ -265,6 +270,8 @@ internal fun WeekLayoutBoardContent(
     }
 
     fun requestMove(id: String, day: Int) {
+        // Mientras se recalcula el programa no se mueve nada (tampoco por las acciones de TalkBack).
+        if (adapting) return
         val next = swapAssignment(shown, id, day)
         if (next == shown) return
         optimistic = OptimisticMove(base = placed, assignment = next)
@@ -272,6 +279,7 @@ internal fun WeekLayoutBoardContent(
     }
 
     fun tapDay(day: Int) {
+        if (adapting) return
         val selected = state.selectedId
         val here = shown[day]
         when {
@@ -313,10 +321,10 @@ internal fun WeekLayoutBoardContent(
                 onRequestMove = { id, day -> requestMove(id, day) },
             )
         }
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(12.dp))
         StatusLine(text = status, live = lifted == null)
         if (splitOptions.isNotEmpty()) {
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(6.dp))
             SplitSection(
                 options = splitOptions,
                 currentId = selectedSplitId,
@@ -378,7 +386,7 @@ private fun WeekStrip(
 
         // Cuántas líneas necesita el título más largo (1 o 2): fija el alto de todas las fichas para que no salten al moverse.
         val titles = remember(byId) { byId.values.map { it.title } }
-        val titleWidthPx = (colPx - with(density) { (TEXT_SIDE_PAD * 2).toPx() }).toInt().coerceAtLeast(1)
+        val titleWidthPx = (colPx - with(density) { ((TEXT_SIDE_PAD - TITLE_OVERFLOW) * 2).toPx() }).toInt().coerceAtLeast(1)
         val titleLines = remember(titles, titleWidthPx, density.density, density.fontScale) {
             titles.maxOfOrNull { title ->
                 measurer.measure(
@@ -406,6 +414,7 @@ private fun WeekStrip(
                     bodyHeight = metrics.bodyHeight.toPx(),
                     dragRange = DRAG_RANGE.toPx(),
                     cancelDistance = CANCEL_DISTANCE.toPx(),
+                    dragUp = DRAG_UP.toPx(),
                 )
             }
         }
@@ -564,7 +573,7 @@ private fun WeekSlot(
         with(density) { PathEffect.dashPathEffect(floatArrayOf(5.dp.toPx(), 4.dp.toPx())) }
     }
     // El riel de la semana: un hilo tenue entre un disco y el siguiente. Cada ranura pinta la mitad de su lado del hueco.
-    val railPx = with(density) { ((metrics.colWidth - DISC) / 2 + metrics.gap / 2).toPx() }
+    val railPx = with(density) { ((metrics.colWidth - DISC) / 2 + metrics.gap / 2 + 1.dp).toPx() }
     Column(
         modifier = Modifier
             .width(metrics.colWidth)
@@ -669,7 +678,7 @@ private fun SessionFicha(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Canvas(Modifier.size(DISC)) {
-            drawFichaGlyph(pen, spark, session.isMain, max(lift.value, pick.value))
+            drawFichaGlyph(pen, spark, session.isMain, pick.value, lift.value)
         }
         Spacer(Modifier.height(DISC_TEXT_GAP))
         Text(
@@ -679,7 +688,7 @@ private fun SessionFicha(
             textAlign = TextAlign.Center,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(horizontal = TEXT_SIDE_PAD),
+            modifier = Modifier.padding(horizontal = TEXT_SIDE_PAD).sideOverflow(TITLE_OVERFLOW),
         )
         Spacer(Modifier.height(2.dp))
         if (session.minutes > 0) {
@@ -701,6 +710,18 @@ private fun SessionFicha(
             )
         }
     }
+}
+
+/**
+ * Deja que un texto use hasta [extra] de más a cada lado de su hueco (el aire entre columnas) antes de partir una palabra
+ * larga, centrado en su hueco: con letra grande «movilidad» cabe entera en lugar de quedar «movilid / ad». Mide con ese
+ * ancho de más pero ocupa lo que cabe: no empuja a nadie.
+ */
+private fun Modifier.sideOverflow(extra: Dp): Modifier = layout { measurable, constraints ->
+    val slack = if (constraints.hasBoundedWidth) (extra * 2).roundToPx() else 0
+    val placeable = measurable.measure(constraints.copy(minWidth = 0, maxWidth = constraints.maxWidth + slack))
+    val width = min(placeable.width, constraints.maxWidth)
+    layout(width, placeable.height) { placeable.placeRelative((width - placeable.width) / 2, 0) }
 }
 
 // ---------------------------------------------------------------- texto de estado, repartos y acciones
@@ -760,6 +781,7 @@ private fun SplitSection(
                         tag = WEEK_LAYOUT_RESET_TAG,
                         enabled = !adapting,
                         onClick = onReset,
+                        quiet = true,
                     )
                 }
             }
@@ -810,7 +832,7 @@ private fun SplitSection(
     }
 }
 
-/** Un botón de texto: tinta, sin caja, con un objetivo táctil de 48 dp y, si se pide, una flecha. */
+/** Un botón de texto: tinta, sin caja, con un objetivo táctil de 48 dp y, si se pide, una flecha (o en tono discreto con [quiet]). */
 @Composable
 private fun WeekTextAction(
     text: String,
@@ -819,6 +841,7 @@ private fun WeekTextAction(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     arrow: Boolean = false,
+    quiet: Boolean = false,
 ) {
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
@@ -836,7 +859,11 @@ private fun WeekTextAction(
             ),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(text = text, style = WizardTypography.cta, color = WizardColors.text)
+        Text(
+            text = text,
+            style = if (quiet) WizardTypography.header else WizardTypography.cta,
+            color = if (quiet) WizardColors.textMuted else WizardColors.text,
+        )
         if (arrow) {
             Spacer(Modifier.width(8.dp))
             Canvas(Modifier.size(14.dp)) {

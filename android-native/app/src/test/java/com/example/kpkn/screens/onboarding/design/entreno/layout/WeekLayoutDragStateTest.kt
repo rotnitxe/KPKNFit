@@ -149,6 +149,21 @@ class WeekLayoutDragStateTest {
     }
 
     @Test
+    fun theFichaCanGoUpLessThanDownToKeepTheHeaderClear() {
+        val tight = WeekStripGeometry(slotOrder(1), 100f, 10f, 40f, 120f, dragRange = 18f, cancelDistance = 50f, dragUp = 6f)
+        val state = WeekLayoutDragState()
+        state.geometry = tight
+        state.occupants = mapOf(1 to "a")
+        val motion = state.motionFor("a", tight.home(1))
+        motion.target = tight.home(1)
+        assertTrue(state.lift("a", tight.home(1) + Offset(50f, 60f)))
+        state.dragTo(tight.home(1) + Offset(50f, -500f))
+        assertEquals(40f - 6f, motion.pos.y, 0f)
+        state.dragTo(tight.home(1) + Offset(50f, 500f))
+        assertEquals(40f + 18f, motion.pos.y, 0f)
+    }
+
+    @Test
     fun theDayUnderTheFichaIsWhereItsCenterIs() {
         val state = newState()
         state.lift("a", grabPoint(1))

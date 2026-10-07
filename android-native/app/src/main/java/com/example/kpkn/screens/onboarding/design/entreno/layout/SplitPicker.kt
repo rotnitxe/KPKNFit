@@ -58,7 +58,7 @@ import kotlin.math.max
 private val SPLIT_ITEM_WIDTH = 124.dp
 
 /** Alto del dibujo de la mini-semana y separación entre sus puntos. */
-private val MINI_WEEK_HEIGHT = 40.dp
+private val MINI_WEEK_HEIGHT = 36.dp
 private val MINI_WEEK_PITCH = 15.dp
 
 /** Los puntos de un título del reparto: un color de módulo por título distinto (el último, tinta). */
@@ -191,7 +191,7 @@ private fun SplitSymbol(
             val pitch = MINI_WEEK_PITCH.toPx()
             val startX = (size.width - pitch * (order.size - 1)) / 2f
             // Los puntos van abajo: arriba, a la derecha, queda sitio para la marca de «hecho» del reparto actual.
-            val cy = size.height - 12.dp.toPx()
+            val cy = size.height - 11.dp.toPx()
             val ink = SymbolPalette.ink
             // El riel de la semana: un hilo tenue que une los siete días (el mismo motivo que el riel de etapas del alta).
             drawLine(
@@ -202,8 +202,8 @@ private fun SplitSymbol(
                 val cx = startX + index * pitch
                 val dot = dots[day]
                 if (dot != null) {
-                    val base = ink.copy(alpha = 0.55f)
-                    drawCircle(lerpColor(base, dot, lit01), lerpF(4.6.dp.toPx(), 5.4.dp.toPx(), lit01), Offset(cx, cy))
+                    // Los colores del patrón se ven siempre (para comparar repartos); el elegido, a plena intensidad.
+                    drawCircle(lerpColor(dot.copy(alpha = 0.5f), dot, lit01), lerpF(4.6.dp.toPx(), 5.4.dp.toPx(), lit01), Offset(cx, cy))
                 } else {
                     drawCircle(ink.copy(alpha = 0.3f), 1.8.dp.toPx(), Offset(cx, cy))
                 }

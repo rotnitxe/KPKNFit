@@ -37,8 +37,9 @@ import kotlin.math.min
 /**
  * Medidas de la tira en píxeles de contenido: [order] son los días de izquierda a derecha, cada columna mide
  * [colWidth] y se separa [gap] de la siguiente; arriba va la cabecera del día ([headerHeight]) y debajo el cuerpo
- * ([bodyHeight]) donde descansa la ficha. [dragRange] es lo que puede separarse una ficha levantada de su fila (arriba o
- * abajo) y [cancelDistance] lo que hay que apartarla para que soltarla cancele.
+ * ([bodyHeight]) donde descansa la ficha. [dragRange] es lo que puede separarse una ficha levantada de su fila hacia abajo
+ * ([dragUp] hacia arriba: menos, para no tapar la cabecera del día) y [cancelDistance] lo que hay que apartarla para que
+ * soltarla cancele.
  */
 internal class WeekStripGeometry(
     val order: List<Int>,
@@ -48,6 +49,7 @@ internal class WeekStripGeometry(
     val bodyHeight: Float,
     val dragRange: Float,
     val cancelDistance: Float,
+    val dragUp: Float = dragRange,
 ) {
     val pitch: Float get() = colWidth + gap
     val height: Float get() = headerHeight + bodyHeight
@@ -71,8 +73,8 @@ internal class WeekStripGeometry(
 // ---------------------------------------------------------------- movimiento de una ficha
 
 /** Rigidez y amortiguación del resorte con que una ficha va a su ranura (ligeramente subamortiguado: llega con un pequeño rebote). */
-private const val SPRING_STIFFNESS = 420f
-private const val SPRING_DAMPING = 29f
+private const val SPRING_STIFFNESS = 380f
+private const val SPRING_DAMPING = 28f
 
 /** Paso de integración (s) y salto máximo que se acepta de un fotograma. */
 private const val SPRING_SUBSTEP = 1f / 120f
@@ -250,8 +252,8 @@ internal class WeekLayoutDragState {
     }
 
     /**
-     * Mueve el dedo a [at]. La ficha lo sigue (sin salirse de la tira por los lados ni más allá de [WeekStripGeometry.dragRange]
-     * por arriba o abajo) y el día de destino sale de dónde queda su centro; si se aparta más de
+     * Mueve el dedo a [at]. La ficha lo sigue (sin salirse de la tira por los lados ni más allá de [WeekStripGeometry.dragUp] y
+     * [WeekStripGeometry.dragRange] por arriba y por abajo) y el día de destino sale de dónde queda su centro; si se aparta más de
      * [WeekStripGeometry.cancelDistance] de su fila, no hay destino.
      */
     fun dragTo(at: Offset) {
@@ -261,7 +263,7 @@ internal class WeekLayoutDragState {
         finger = at
         val raw = at - grab
         val x = raw.x.coerceIn(0f, max(0f, g.contentWidth - g.colWidth))
-        val y = raw.y.coerceIn(g.headerHeight - g.dragRange, g.headerHeight + g.dragRange)
+        val y = raw.y.coerceIn(g.headerHeight - g.dragUp, g.headerHeight + g.dragRange)
         motion.dragTo(Offset(x, y))
         val away = abs(raw.y - g.headerHeight) > g.cancelDistance
         hoverDay = if (away) null else hitSlot(x + g.colWidth / 2f, g.height / 2f, g.slotRects, slopX = g.gap)

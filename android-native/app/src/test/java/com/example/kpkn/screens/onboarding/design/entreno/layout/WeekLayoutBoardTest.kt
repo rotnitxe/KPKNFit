@@ -425,6 +425,17 @@ class WeekLayoutBoardTest {
     }
 
     @Test
+    fun whileAdaptingTheMoveActionsDoNothingEither() {
+        loading = true
+        show()
+        val actions = sessionNode("a").fetchSemanticsNode().config[SemanticsActions.CustomActions]
+        rule.runOnUiThread { actions.first { it.label == "Mover a martes" }.action() }
+        rule.waitForIdle()
+        assertTrue(moves.isEmpty())
+        assertEquals(mapOf(1 to "a", 3 to "b", 5 to "c"), assignment)
+    }
+
+    @Test
     fun startingToAdaptDropsASelection() {
         show()
         sessionNode("a").performClick()
@@ -459,6 +470,23 @@ class WeekLayoutBoardTest {
         // Con letra al 130 % la columna ya no es de 92 dp: cabe «6 ejercicios».
         val a = sessionNode("a").fetchSemanticsNode().boundsInRoot
         assertTrue("columna de ${a.width / screenDensity} dp", a.width / screenDensity >= 110f)
+    }
+
+    @Test
+    fun theStripOpensWithTheFirstSessionInView() {
+        // Una sola sesión, el sábado: en 360 dp queda lejos del inicio de la semana (el lunes) y la tira arranca con ella a la vista.
+        assignment = mapOf(6 to "a")
+        var screenDensity = 1f
+        show(shown = listOf(sessions[0]), wrap = { content ->
+            screenDensity = LocalDensity.current.density
+            Box(Modifier.width(360.dp)) { content() }
+        })
+        rule.waitForIdle()
+        val ficha = sessionNode("a").fetchSemanticsNode().boundsInRoot
+        assertTrue(
+            "a la vista: ${ficha.left}..${ficha.right}",
+            ficha.left >= -1f && ficha.right <= 360f * screenDensity + 1f,
+        )
     }
 
     // ------------------------------------------------------------ repartos

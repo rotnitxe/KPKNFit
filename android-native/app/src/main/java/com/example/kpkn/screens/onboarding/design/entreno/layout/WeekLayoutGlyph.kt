@@ -59,16 +59,22 @@ private fun DrawScope.drawSpark(path: Path, cx: Float, cy: Float, radius: Float,
 }
 
 /**
- * El glifo de una ficha sobre un lienzo cuadrado: [ring] (0..1) dibuja su propio disco con filete de tinta (cuando está
- * levantada o elegida) y, si es la sesión principal, las chispas de energía en la esquina.
+ * El glifo de una ficha sobre un lienzo cuadrado y, si es la sesión principal, las chispas de energía en la esquina.
+ *  - [pick] (0..1): la sesión está elegida con un toque para moverla: su disco gana un filete del acento de músculo;
+ *  - [lift] (0..1): el dedo la lleva: sale de su ranura como un disco de vidrio (relleno y filete tenues, sin aro, para
+ *    no competir con el aro de la ranura que tiene debajo, que es la que dice adónde va).
  */
-internal fun DrawScope.drawFichaGlyph(pen: SymbolPen, sparkPath: Path, isMain: Boolean, ring: Float) {
+internal fun DrawScope.drawFichaGlyph(pen: SymbolPen, sparkPath: Path, isMain: Boolean, pick: Float, lift: Float) {
     val side = size.minDimension
     val c = center
-    if (ring > 0.01f) {
-        val r = side / 2f - 1.dp.toPx()
-        drawCircle(Color.White.copy(alpha = 0.08f * ring), r, c)
-        drawCircle(SymbolPalette.ink.copy(alpha = 0.78f * ring), r, c, style = Stroke(1.5.dp.toPx()))
+    val r = side / 2f - 1.dp.toPx()
+    if (lift > 0.01f) {
+        drawCircle(Color.White.copy(alpha = 0.13f * lift), r, c)
+        drawCircle(Color.White.copy(alpha = 0.30f * lift), r, c, style = Stroke(1.dp.toPx()))
+    }
+    if (pick > 0.01f) {
+        drawCircle(Color.White.copy(alpha = 0.05f * pick), r, c)
+        drawCircle(SymbolPalette.musculo.copy(alpha = 0.92f * pick), r, c, style = Stroke(1.5.dp.toPx()))
     }
     val k = side / SESSION_GLYPH_UNITS
     pen.begin(this, 1f, SymbolPalette.musculo)

@@ -355,15 +355,6 @@ class WeekLayoutMathTest {
     }
 
     @Test
-    fun theSessionSummaryJoinsMinutesAndExercises() {
-        assertEquals("60 min · 6 ejercicios", sessionSummaryText(60, 6))
-        assertEquals("45 min · 1 ejercicio", sessionSummaryText(45, 1))
-        assertEquals("30 min", sessionSummaryText(30, 0))
-        assertEquals("4 ejercicios", sessionSummaryText(0, 4))
-        assertEquals("", sessionSummaryText(0, 0))
-    }
-
-    @Test
     fun theDescriptionReadsTitleFocusAmountsAndDay() {
         val main = WeekLayoutSession("a", "Torso A", "Pecho y espalda", 60, 6, isMain = true)
         assertEquals(
