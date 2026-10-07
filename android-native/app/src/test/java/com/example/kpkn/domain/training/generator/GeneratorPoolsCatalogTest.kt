@@ -32,7 +32,8 @@ class GeneratorPoolsCatalogTest {
                 ladder.rungs(tier).map { Source("escalera ${ladder.pattern.name}/${ladder.skill?.name ?: "-"}/${tier.name}", it.id, it.requires) }
             }
         }
-        pool + ladders
+        val disciplines = DisciplinePools.allEntries.map { (origin, entry) -> Source("disciplina $origin", entry.id, entry.requires) }
+        pool + ladders + disciplines
     }
 
     @Test
@@ -51,10 +52,12 @@ class GeneratorPoolsCatalogTest {
 
     @Test
     fun a_group_never_mixes_equipment_tiers() {
-        val problems = MovementPools.byPattern.flatMap { (pattern, groups) ->
+        val all = MovementPools.byPattern.map { (pattern, groups) -> pattern.name to groups } +
+            DisciplinePools.byMode.flatMap { (mode, patterns) -> patterns.map { (pattern, groups) -> "${mode.name}/${pattern.name}" to groups } }
+        val problems = all.flatMap { (origin, groups) ->
             groups.mapNotNull { group ->
                 val tiers = group.entries.mapNotNull { index.entry(it.id)?.tier }.toSet()
-                if (tiers.size > 1) "${pattern.name}: ${group.entries.map { it.id }} mezcla $tiers" else null
+                if (tiers.size > 1) "$origin: ${group.entries.map { it.id }} mezcla $tiers" else null
             }
         }
         assertTrue("grupos con material mezclado:\n${problems.joinToString("\n")}", problems.isEmpty())

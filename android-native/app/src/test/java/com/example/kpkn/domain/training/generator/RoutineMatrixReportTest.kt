@@ -56,13 +56,12 @@ class RoutineMatrixReportTest {
         out.appendLine("Celdas: ${cells.size} = ${s.profiles.size} perfiles × ${s.generalModes.size} modos × 7 días × ${s.levels.size} niveles × ${s.minutes.size} minutos")
         out.appendLine()
         out.appendLine("## Resumen por perfil de material")
-        out.appendLine("perfil | patrones que NO se cubren nunca (en ningún modo) | patrones que faltan a veces | sesiones fuera de ventana | peor desvío (min)")
+        out.appendLine("perfil | patrones que NO se cubren nunca (modo fuerza y masa, todas las celdas) | patrones que faltan a veces (cualquier modo) | sesiones fuera de ventana | peor desvío (min)")
         s.profiles.forEach { profile ->
             val mine = cells.filter { it.profile == profile }
-            val alwaysByMode = s.generalModes.map { mode -> gaps(mine.filter { it.mode == mode }).first }
-            val neverInAnyMode = alwaysByMode.reduce { a, b -> a intersect b }
-            val everInAnyMode = alwaysByMode.flatten().toSet()
-            val sometimes = mine.flatMap { it.routine.report.patternsMissing }.toSet() - everInAnyMode
+            // El modo de fuerza y masa es el que más patrones pide: lo que no cubre NUNCA con ese material es lo que más falta hace.
+            val neverInAnyMode = gaps(mine.filter { it.mode == RoutineMode.GENERAL_STRENGTH_MUSCLE }).first
+            val sometimes = mine.flatMap { it.routine.report.patternsMissing }.toSet() - neverInAnyMode
             val sessions = mine.sumOf { it.routine.report.sessions.size }
             val misses = mine.sumOf { it.routine.report.minutesMisses }
             val worst = mine.maxOf { cell ->
