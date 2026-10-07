@@ -64,7 +64,7 @@ class ShowTest(unittest.TestCase):
         code, out, _ = run(["--list"])
         self.assertEqual(0, code)
         rows = [line.split("\t") for line in out.splitlines()]
-        self.assertEqual(215, len(rows))
+        self.assertEqual(228, len(rows))
         self.assertEqual(len({row[1] for row in rows}), len(rows))
         curated = [row for row in run(["--list", "--status", "CURATED"])[1].splitlines()]
         self.assertTrue(any("\tseal_row\tCURATED\t" in line for line in curated))
