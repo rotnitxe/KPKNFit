@@ -76,7 +76,7 @@ class PlaceSymbolRowTest {
         show(initial = setOf(TrainingPlace.HOME))
         rule.onNodeWithTag("setup-place-GYM").assertContentDescriptionEquals("Gimnasio, sin seleccionar")
         rule.onNodeWithTag("setup-place-HOME").assertContentDescriptionEquals("En casa, seleccionado")
-        rule.onNodeWithTag("setup-place-PUBLIC").assertContentDescriptionEquals("Espacios públicos, sin seleccionar")
+        rule.onNodeWithTag("setup-place-PUBLIC").assertContentDescriptionEquals("En espacios públicos, sin seleccionar")
     }
 
     @Test

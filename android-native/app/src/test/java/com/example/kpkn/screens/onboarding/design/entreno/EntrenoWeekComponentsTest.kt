@@ -268,7 +268,7 @@ class EntrenoWeekComponentsTest {
         rule.onNodeWithTag("setup-weekplace-5").performClick()
         rule.onNodeWithTag("setup-weekplace-5").performClick()
         assertEquals(listOf(5 to TrainingPlace.HOME, 5 to TrainingPlace.PUBLIC), s.placeCalls)
-        rule.onNodeWithTag("setup-weekplace-5").assertContentDescriptionEquals("Lugar del viernes: Espacios públicos")
+        rule.onNodeWithTag("setup-weekplace-5").assertContentDescriptionEquals("Lugar del viernes: En espacios públicos")
     }
 
     // ─── SessionClockDial ────────────────────────────────────────────────────
