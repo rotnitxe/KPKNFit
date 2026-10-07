@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -13,7 +14,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.screens.onboarding.SetupWizardState
 import com.example.kpkn.screens.onboarding.SetupWizardViewModel
@@ -24,6 +27,25 @@ import com.example.kpkn.screens.onboarding.performNoticeEffect
 
 /** Una acción de texto de un aviso de los pasos del programa: su etiqueta, su marca de prueba y qué hace. */
 internal data class EntrenoPlanNoticeAction(val label: String, val tag: String, val onClick: () -> Unit)
+
+/**
+ * Una acción de texto de los pasos del programa («Otra versión», «Lo haré más adelante», «Reintentar»…) ALINEADA con el texto
+ * del paso: el relleno lateral de 12 dp de Material la sangraba respecto a los párrafos de arriba. Conserva el objetivo
+ * táctil de 48 dp de alto.
+ */
+@Composable
+internal fun EntrenoTextAction(
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    color: Color = WizardColors.text,
+    style: TextStyle = WizardTypography.cardTitle,
+    enabled: Boolean = true,
+) {
+    TextButton(onClick = onClick, modifier = modifier, enabled = enabled, contentPadding = PaddingValues(horizontal = 0.dp, vertical = 8.dp)) {
+        Text(label, color = color, style = style)
+    }
+}
 
 /**
  * Entreno v2 · un aviso de los pasos PLAN y WEEK_LAYOUT sobre la página negra, sin caja ni borde (BRIEF_COMUN · Diseño):
@@ -48,9 +70,7 @@ internal fun EntrenoPlanNotice(
         if (actions.isNotEmpty()) {
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 actions.forEach { action ->
-                    TextButton(onClick = action.onClick, modifier = Modifier.testTag(action.tag)) {
-                        Text(action.label, color = WizardColors.text, style = WizardTypography.cardTitle)
-                    }
+                    EntrenoTextAction(label = action.label, onClick = action.onClick, modifier = Modifier.testTag(action.tag))
                 }
             }
         }

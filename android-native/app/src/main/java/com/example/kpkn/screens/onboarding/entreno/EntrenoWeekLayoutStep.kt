@@ -83,9 +83,13 @@ private fun WeekLayoutStepBoard(layout: SetupWeekLayout, busy: Boolean, vm: Setu
         // Sin repartos que ofrecer (p. ej. sesiones en varios lugares) el tablero no pinta su carril ni, con él,
         // «Restablecer»: las sesiones movidas se restablecen desde aquí.
         if (options.isEmpty() && layout.canReset) {
-            TextButton(onClick = { vm.resetWeekLayout() }, enabled = !busy, modifier = Modifier.testTag(WEEK_LAYOUT_RESET_TAG)) {
-                Text(WeekLayoutCopy.RESET, color = WizardColors.textMuted, style = WizardTypography.cardTitle)
-            }
+            EntrenoTextAction(
+                label = WeekLayoutCopy.RESET,
+                onClick = { vm.resetWeekLayout() },
+                modifier = Modifier.testTag(WEEK_LAYOUT_RESET_TAG),
+                color = WizardColors.textMuted,
+                enabled = !busy,
+            )
         }
     }
 

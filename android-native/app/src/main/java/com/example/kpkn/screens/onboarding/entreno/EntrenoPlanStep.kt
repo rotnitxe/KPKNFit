@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -139,9 +138,13 @@ internal fun EntrenoPlanStep(state: SetupWizardState, vm: SetupWizardViewModel) 
                     ),
                 )
             }
-            TextButton(onClick = { vm.deferProgramUntilLater() }, modifier = Modifier.testTag("setup-plan-defer")) {
-                Text(DEFER_LABEL, color = WizardColors.textMuted, style = WizardTypography.cardSubtitle)
-            }
+            EntrenoTextAction(
+                label = DEFER_LABEL,
+                onClick = { vm.deferProgramUntilLater() },
+                modifier = Modifier.testTag("setup-plan-defer"),
+                color = WizardColors.textMuted,
+                style = WizardTypography.cardSubtitle,
+            )
         }
     }
 
@@ -189,9 +192,7 @@ private fun GeneralReveal(
         reveal.reasons.take(MAX_REASONS).forEach { reason ->
             Text(text = reason, style = WizardTypography.bodySmall, color = WizardColors.textMuted)
         }
-        TextButton(onClick = onAnotherVersion, modifier = Modifier.testTag("setup-plan-another-version")) {
-            Text(ANOTHER_VERSION_LABEL, color = WizardColors.text, style = WizardTypography.cardTitle)
-        }
+        EntrenoTextAction(label = ANOTHER_VERSION_LABEL, onClick = onAnotherVersion, modifier = Modifier.testTag("setup-plan-another-version"))
         Text(text = PlanCopy.EDIT_FREELY, style = WizardTypography.note, color = WizardColors.textMuted)
     }
 }
@@ -200,9 +201,7 @@ private fun GeneralReveal(
 @Composable
 private fun DeferredPlan(onResume: () -> Unit) {
     Text(text = DEFERRED_NOTE, style = WizardTypography.bodySmall, color = WizardColors.textMuted)
-    TextButton(onClick = onResume, modifier = Modifier.testTag("setup-plan-resume")) {
-        Text(RESUME_LABEL, color = WizardColors.text, style = WizardTypography.cardTitle)
-    }
+    EntrenoTextAction(label = RESUME_LABEL, onClick = onResume, modifier = Modifier.testTag("setup-plan-resume"))
 }
 
 /** Razones de «por qué este programa» que caben en el revelado. */
