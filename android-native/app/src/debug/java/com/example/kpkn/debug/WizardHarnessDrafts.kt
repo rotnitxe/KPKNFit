@@ -29,6 +29,7 @@ import com.example.kpkn.screens.onboarding.withDayPlace
 import com.example.kpkn.screens.onboarding.withFreshestDay
 import com.example.kpkn.screens.onboarding.withGoalProfile
 import com.example.kpkn.screens.onboarding.withLiftMark
+import com.example.kpkn.screens.onboarding.withMarksUnit
 import com.example.kpkn.screens.onboarding.withMaterial
 import com.example.kpkn.screens.onboarding.withMuscles
 import com.example.kpkn.screens.onboarding.withPlaces
@@ -161,7 +162,10 @@ internal fun SetupWizardDraft.answeredAs(step: SetupStepId, persona: HarnessPers
     SetupStepId.BODY_FAT -> withStepChoice(step, "VISUAL_ESTIMATE").withStepNumber(step, 24.0)
     SetupStepId.EXPERIENCE -> withStepChoice(step, persona.experience)
     SetupStepId.EQUIPMENT -> withPlaces(persona.places)
-    SetupStepId.AVAILABILITY -> withMaterial((selectedEquipmentSymbols() + persona.addMaterial) - persona.dropMaterial)
+    // Una casa sin material se lee como «solo peso corporal» (exclusivo): se suelta antes de sumar implementos.
+    SetupStepId.AVAILABILITY -> withMaterial(
+        (selectedEquipmentSymbols() - EquipmentSymbolId.BODYWEIGHT_ONLY + persona.addMaterial) - persona.dropMaterial,
+    )
     SetupStepId.GOAL -> withGoalProfile(persona.goal)
     SetupStepId.FRESH_DAY -> withFreshestDay(persona.freshDay)
     SetupStepId.WEEKDAYS -> persona.dayPlaces.entries.fold(withWeekdays(persona.weekdays)) { draft, (day, place) ->
@@ -201,7 +205,8 @@ private fun markFor(lift: LiftMark): Double = when (lift) {
  * Escribe datos del paso activo (y los marca como declarados) SIN confirmarlo: `clave=valor/clave=valor` (la barra separa los
  * datos porque `;` lo interpretaría el intérprete de órdenes del teléfono al pasar por `adb shell`).
  *  - `places=GYM,HOME`; `material=BARBELL,RACK` (lista exacta) o `material=+RINGS,-BARBELL` (sobre lo que ya hay);
- *  - `goal=POWERLIFTING`; `fresh=4`; `days=1,3,5`; `startday=4`; `dayplaces=3:HOME,6:PUBLIC`; `minutes=75`.
+ *  - `goal=POWERLIFTING`; `fresh=4`; `days=1,3,5`; `startday=4`; `dayplaces=3:HOME,6:PUBLIC`; `minutes=75`;
+ *  - `caps=PULL_UP:SOME,PUSH_UP:MANY`; `muscles=CHEST,BACK`; `marks=SQUAT:140,BENCH:100`; `unit=lb`.
  */
 private fun SetupWizardDraft.withAnswers(spec: String): SetupWizardDraft =
     spec.split('/').filter { it.isNotBlank() }.fold(this) { draft, item ->
@@ -222,6 +227,19 @@ private fun SetupWizardDraft.withAnswers(spec: String): SetupWizardDraft =
                 if (day != null && place != null) d.withDayPlace(day, place) else d
             }.touchStep(SetupStepId.WEEKDAYS)
             "minutes" -> draft.withSessionMinutes(value.toIntOrNull()).touchStep(SetupStepId.SESSION_TIME)
+            "caps" -> list.fold(draft) { d, pair ->
+                val skill = CapabilitySkill.entries.firstOrNull { it.name == pair.substringBefore(':') }
+                val level = CapabilityLevel.entries.firstOrNull { it.name == pair.substringAfter(':', "") }
+                if (skill != null && level != null) d.withCapability(skill, level) else d
+            }.touchStep(SetupStepId.CAPABILITIES)
+            "muscles" -> draft.withMuscles(list.mapNotNull { name -> MuscleSymbol.entries.firstOrNull { it.name == name } }.toSet())
+                .touchStep(SetupStepId.PRIORITIES)
+            "marks" -> list.fold(draft) { d, pair ->
+                val lift = LiftMark.entries.firstOrNull { it.name == pair.substringBefore(':') }
+                val kg = pair.substringAfter(':', "").toDoubleOrNull()
+                if (lift != null && kg != null) d.withLiftMark(lift, kg) else d
+            }.touchStep(SetupStepId.TRAINING_MAX)
+            "unit" -> draft.withMarksUnit(value)
             else -> draft
         }
     }

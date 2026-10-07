@@ -55,6 +55,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -212,6 +213,8 @@ private fun HarnessRoot(config: HarnessConfig, onClose: () -> Unit) {
             tourLabel = "$step · lleno"
             delay(config.autoNextMs - fillAfter)
             viewModel.submitCurrentStep()
+            // El avance es asíncrono: se espera a que el cursor salga de este paso antes de leer cuál es el siguiente.
+            withTimeoutOrNull(3_000) { viewModel.state.first { it.currentStep != step } }
         }
     }
 
