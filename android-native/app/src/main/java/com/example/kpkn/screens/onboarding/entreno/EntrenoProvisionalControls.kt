@@ -153,3 +153,14 @@ internal fun EntrenoCaption(text: String, modifier: Modifier = Modifier, danger:
         modifier = modifier.fillMaxWidth(),
     )
 }
+
+/** Rótulo de un tramo de un control provisional (el nombre de un ejercicio, un grupo de opciones). */
+@Composable
+internal fun EntrenoSectionLabel(text: String, modifier: Modifier = Modifier) {
+    Text(
+        text = text,
+        style = WizardTypography.controlLabel,
+        color = WizardColors.text,
+        modifier = modifier.fillMaxWidth(),
+    )
+}
