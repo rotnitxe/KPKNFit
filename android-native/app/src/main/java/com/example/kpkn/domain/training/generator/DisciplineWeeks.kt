@@ -77,8 +77,11 @@ internal object DisciplineWeeks {
     // ─── Calistenia ────────────────────────────────────────────────────────────────────────────────────────
 
     private fun calPush(suffix: String = "") = session(
-        "CPU$suffix", "Empuje$suffix", "Flexiones, fondos y tríceps con peso corporal",
-        listOf(s(HORIZONTAL_PUSH, MAIN), s(HORIZONTAL_PUSH, SECONDARY), s(TRICEPS, ISOLATION), s(CORE_STABILITY, CORE_ROLE)),
+        "CPU$suffix", "Empuje$suffix", "Flexiones, pica, fondos y tríceps con peso corporal",
+        listOf(
+            s(HORIZONTAL_PUSH, MAIN), s(HORIZONTAL_PUSH, SECONDARY), s(VERTICAL_PUSH, SECONDARY), s(TRICEPS, ISOLATION),
+            s(CORE_STABILITY, CORE_ROLE),
+        ),
     )
 
     private fun calPull(suffix: String = "") = session(
@@ -101,7 +104,7 @@ internal object DisciplineWeeks {
         "CUP", "Torso", "Empuje y tirón con peso corporal",
         listOf(
             s(HORIZONTAL_PUSH, MAIN), s(VERTICAL_PULL, MAIN), s(HORIZONTAL_PUSH, SECONDARY), s(HORIZONTAL_PULL, SECONDARY),
-            s(TRICEPS, ISOLATION), s(BICEPS, ISOLATION), s(CORE_STABILITY, CORE_ROLE),
+            s(VERTICAL_PUSH, SECONDARY), s(TRICEPS, ISOLATION), s(BICEPS, ISOLATION), s(CORE_STABILITY, CORE_ROLE),
         ),
     )
 

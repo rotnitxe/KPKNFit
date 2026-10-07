@@ -55,7 +55,7 @@ internal object Disciplines {
                 "remo en anillas",
                 "saltos y trabajo pliométrico",
             ),
-            substitutes = "Mientras tanto usa las escaleras de flexión, dominada, fondo, remo invertido, pistol, core y glúteo del catálogo, con las anillas si las tienes.",
+            substitutes = "Mientras tanto usa las escaleras de flexión, pica (el paso hacia el pino), dominada, fondo, remo invertido, pistol, core y glúteo del catálogo, con las anillas si las tienes.",
             fillers = listOf(
                 RoutinePattern.CORE_STABILITY, RoutinePattern.TRICEPS, RoutinePattern.BICEPS, RoutinePattern.GLUTE,
                 RoutinePattern.CALF, RoutinePattern.BACK_EXTENSION, RoutinePattern.GRIP,
