@@ -6,17 +6,18 @@ import com.example.kpkn.data.models.EquipmentAvailability
 import com.example.kpkn.domain.onboarding.EquipmentSymbolId
 import com.example.kpkn.domain.onboarding.EquipmentSymbols
 import com.example.kpkn.domain.onboarding.SetupApparatusPanel
+import com.example.kpkn.domain.training.ConfigurationEquipmentFilter
 import com.example.kpkn.domain.training.TrainingOptions
-import com.example.kpkn.domain.training.hasExplicitMachinePresence
 import com.example.kpkn.domain.training.resolveEffectiveEquipment
 
 /**
  * Material de UN lugar (una sesión se arma solo con el material de su lugar).
  *
- * Usa el MISMO resolutor de equipo efectivo que el resto de la app (`TrainingOptions.resolveEffectiveEquipment`) y el
- * mismo filtro por configuración que el generador histórico (`equipmentAllows`: implemento, máquina concreta, soportes de
- * `supportRequirementsFor`), más lo que ese resolutor aún no acredita: anillas (`trx`), cajón y cuerda de saltar, que
- * viajan en `supports` con las llaves de [EquipmentSymbols].
+ * No tiene lógica de material propia: los tokens salen del MISMO resolutor de equipo efectivo que el resto de la app
+ * (`TrainingOptions.resolveEffectiveEquipment`, que ya acredita anillas, cajón, cuerda de saltar, barra baja de un parque
+ * y los extras de gimnasio) y cada configuración se decide con el MISMO filtro que el planificador
+ * ([ConfigurationEquipmentFilter]: implemento, máquina concreta, soportes de `supportRequirementsFor`). Solo se añaden
+ * los requisitos propios de la reserva (el parámetro `requires` de [allows]).
  */
 internal class DayEquipment(val availability: EquipmentAvailability) {
 
@@ -25,18 +26,11 @@ internal class DayEquipment(val availability: EquipmentAvailability) {
 
     val bodyweightOnly: Boolean = EquipmentSymbols.isBodyweightOnly(availability)
 
-    val tokens: Set<String> = buildSet {
-        addAll(TrainingOptions(availability = availability).resolveEffectiveEquipment(emptySet()).tokens)
-        if (availability.presenceOf(EquipmentSymbols.RINGS_KEY) == ApparatusPresence.PRESENT) {
-            add("rings")
-            // El catálogo llama `trx` al implemento de suspensión; el resolutor compartido no lo acredita desde ningún símbolo.
-            add("trx")
-        }
-        if (availability.presenceOf(EquipmentSymbols.BOX_KEY) == ApparatusPresence.PRESENT) add("plyo_box")
-        if (availability.presenceOf(EquipmentSymbols.JUMP_ROPE_KEY) == ApparatusPresence.PRESENT) add("jump_rope")
-    }
+    private val options = TrainingOptions(availability = availability)
 
-    private val exactMachines: Boolean = availability.hasExplicitMachinePresence()
+    val tokens: Set<String> = options.resolveEffectiveEquipment(emptySet()).tokens
+
+    private val exactMachines: Boolean = ConfigurationEquipmentFilter.requiresExactMachineConfiguration(options)
 
     /** ¿Se cumple un requisito? «a|b» = cualquiera de las llaves. */
     fun satisfied(requirement: String): Boolean = requirement.split('|').any { it in tokens }
@@ -44,18 +38,17 @@ internal class DayEquipment(val availability: EquipmentAvailability) {
     fun has(token: String): Boolean = token in tokens
 
     /**
-     * ¿Se puede ejecutar la configuración con este material? Replica `SimpleCyclePersonalizer.equipmentAllows` sobre el
-     * equipo efectivo compartido y añade los requisitos propios de la reserva ([requires]).
+     * ¿Se puede ejecutar la configuración con este material? El filtro compartido sobre el equipo efectivo (con las piezas
+     * que la entrada del catálogo ya trae calculadas) y, además, los requisitos propios de la reserva ([requires]).
      */
-    fun allows(entry: CatalogEntry, requires: List<String>): Boolean {
-        val actual = entry.equipmentId
-        val machineDeclared = entry.machineToken in tokens
-        if (exactMachines && actual == "machine" && !machineDeclared) return false
-        if (!machineDeclared && actual !in tokens) return false
-        val shared = entry.sharedRequirements
-        if (shared.isNotEmpty() && !shared.all { it in tokens }) return false
-        return requires.all { satisfied(it) }
-    }
+    fun allows(entry: CatalogEntry, requires: List<String>): Boolean =
+        ConfigurationEquipmentFilter.allowsPrecomputed(
+            equipmentId = entry.equipmentId,
+            machineToken = entry.machineToken,
+            supportRequirements = entry.sharedRequirements,
+            tokens = tokens,
+            requireExactMachineConfiguration = exactMachines,
+        ) && requires.all { satisfied(it) }
 
     /** Aparatos de cardio que este lugar permite (siempre caminar y correr al aire libre). */
     val cardioTypes: List<CardioType> = buildList {
