@@ -21,6 +21,10 @@ import com.example.kpkn.domain.training.SymbolEquipmentKeys
  *   baja, GHD y rueda abdominal) quedan presentes mientras haya gimnasio y su símbolo madre esté elegido. Los discos
  *   acompañan a la barra en cualquier lugar donde se ofrezca, y la barra de dominadas de un parque (espacios públicos
  *   entre los lugares) trae también su barra baja.
+ * - **«Máquinas» es una sala de máquinas**, no una lista de máquinas: [EquipmentAvailability.machinesAsCategory] se escribe
+ *   `true` cuando está elegido, así la categoría basta para todas las variantes de máquina aprobadas (sin el modo de
+ *   configuración exacta) mientras las nueve llaves curadas siguen `PRESENT` para las recetas de autor. Sin el símbolo,
+ *   las llaves quedan `ABSENT` y la bandera `false`: no hay máquinas.
  * - **Casa** no asume nada y **espacios públicos** asumen la estructura típica de un parque de calistenia.
  * - [BODYWEIGHT_ONLY][EquipmentSymbolId.BODYWEIGHT_ONLY] es exclusivo y equivale a «ningún implemento»: el motor
  *   recibe categorías vacías (solo cuerpo).
@@ -218,7 +222,8 @@ object EquipmentSymbols {
      *
      * Los extras sin símbolo propio dependen de los lugares: los de gimnasio solo con `GYM` entre ellos, la barra baja de
      * un parque solo con `PUBLIC`; los discos van con la barra donde sea. Ninguno entra en [selectedFrom], así que el ida
-     * y vuelta sigue siendo exacto.
+     * y vuelta sigue siendo exacto. Con «Máquinas» elegido se escribe también [EquipmentAvailability.machinesAsCategory]
+     * (una sala de máquinas: sin modo de configuración exacta); tampoco entra en la lectura inversa.
      */
     fun availabilityOf(selected: Set<EquipmentSymbolId>, places: Set<TrainingPlace>): EquipmentAvailability {
         val chosen = selected.filterTo(linkedSetOf()) { it != EquipmentSymbolId.BODYWEIGHT_ONLY && it in specs }
@@ -254,6 +259,7 @@ object EquipmentSymbols {
                 apparatusPresent.associateWith { ApparatusPresence.PRESENT },
             supports = supportsAbsent.associateWith { ApparatusPresence.ABSENT } +
                 supportsPresent.associateWith { ApparatusPresence.PRESENT },
+            machinesAsCategory = EquipmentSymbolId.MACHINES in chosen,
         )
     }
 

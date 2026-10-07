@@ -256,7 +256,11 @@ data class EffectiveEquipmentResult(
  *    una declaración de inventario.
  * 5. `bodyweight` se emite siempre en la ruta nueva (no necesita material) y
  *    `machine_config:<id>` SOLO desde el mapeo curado o desde el inventario
- *    exacto, jamás porque se marcó `MACHINES`.
+ *    exacto, jamás porque se marcó `MACHINES`. Que la categoría `MACHINES` abra
+ *    o no el resto de las variantes de máquina no lo decide este resolutor sino
+ *    el filtro ([ConfigurationEquipmentFilter]): lo abre cuando la declaración es
+ *    una sala de máquinas ([EquipmentAvailability.machinesAsCategory]) y no cuando
+ *    son llaves sueltas del subpanel.
  */
 fun TrainingOptions.resolveEffectiveEquipment(legacyEquipment: Set<String>): EffectiveEquipmentResult =
     availability?.let { resolveWithAvailability(it) } ?: resolveWithLegacy(legacyEquipment)

@@ -514,9 +514,13 @@ internal fun attestedTokensOf(key: String): Set<String> =
  * solo se admiten las máquinas cuyo token `machine_config:<id>` esté acreditado; con las máquinas
  * solo por categoría (aunque haya soportes confirmados), el plan propio puede usar las variantes de
  * máquina aprobadas sin afirmar una configuración. Ver DEV-r2-06 en `docs/WIZARD_PLAN_DEVIATIONS.md`.
+ *
+ * Con [EquipmentAvailability.machinesAsCategory] es siempre false: «Máquinas» como una sala de máquinas es una declaración
+ * por categoría aunque sus llaves consten `PRESENT` (esas llaves solo sirven para que las recetas de autor vean sus
+ * tokens `machine_config:`).
  */
 internal fun EquipmentAvailability.hasExplicitMachinePresence(): Boolean =
-    EFFECTIVE_EQUIPMENT_KEYS.any { spec ->
+    !machinesAsCategory && EFFECTIVE_EQUIPMENT_KEYS.any { spec ->
         (spec.category == EquipmentCategory.MACHINES || spec.category == EquipmentCategory.CABLE) &&
             presenceOf(spec.key) != ApparatusPresence.UNKNOWN
     }
