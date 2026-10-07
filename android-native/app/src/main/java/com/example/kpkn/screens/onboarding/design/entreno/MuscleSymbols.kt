@@ -87,8 +87,12 @@ private const val PULSE_LOW = 0.55f
 private const val PULSE_HIGH = 0.90f
 private const val PULSE_MILLIS = 800
 
-/** Opacidad de los músculos que ya no se pueden elegir (tope alcanzado). */
-private const val CAPPED_ALPHA = 0.38f
+/**
+ * Opacidad de lo que ya no se puede elegir (tope alcanzado): el dibujo se apaga más que el nombre, para que el nombre
+ * siga leyéndose con contraste suficiente.
+ */
+private const val CAPPED_ART_ALPHA = 0.38f
+private const val CAPPED_LABEL_ALPHA = 0.62f
 
 /** Sacudida del «no»: amplitud en dp y duración. */
 private const val SHAKE_DP = 6f
@@ -257,7 +261,8 @@ private fun MuscleCell(
     modifier: Modifier = Modifier,
 ) {
     val sel by animateFloatAsState(if (isSelected) 1f else 0f, tween(if (reducedMotion) 0 else 360), label = "muscle-sel")
-    val dim by animateFloatAsState(if (dimmed) CAPPED_ALPHA else 1f, tween(if (reducedMotion) 0 else 240), label = "muscle-dim")
+    // 0 = normal, 1 = atenuado (tope alcanzado).
+    val dim by animateFloatAsState(if (dimmed) 1f else 0f, tween(if (reducedMotion) 0 else 240), label = "muscle-dim")
     val shake = remember { Animatable(0f) }
     LaunchedEffect(shakeStamp) {
         if (shakeStamp > 0 && !reducedMotion) {
@@ -278,14 +283,12 @@ private fun MuscleCell(
     val fade = remember(muscle) { silhouetteFade(shape.spec.window) }
     val strokes = remember { MuscleStrokes() }
     val capDescription = if (dimmed) "Máximo de músculos alcanzado" else null
-    val labelColor = lerp(WizardColors.text, MuscleAccent, sel)
+    val labelAlpha = 1f - dim * (1f - CAPPED_LABEL_ALPHA)
+    val labelColor = lerp(WizardColors.text, MuscleAccent, sel).copy(alpha = labelAlpha)
 
     Column(
         modifier = modifier
-            .graphicsLayer {
-                alpha = dim
-                translationX = shake.value * density
-            }
+            .graphicsLayer { translationX = shake.value * density }
             .testTag("setup-muscle-${muscle.name}")
             .toggleable(
                 value = isSelected,
@@ -298,7 +301,13 @@ private fun MuscleCell(
             .defaultMinSize(minHeight = 48.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Canvas(Modifier.fillMaxWidth().padding(horizontal = 2.dp).aspectRatio(1f)) {
+        Canvas(
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 2.dp)
+                .aspectRatio(1f)
+                .graphicsLayer { alpha = 1f - dim * (1f - CAPPED_ART_ALPHA) },
+        ) {
             drawMuscle(shape, fade, strokes, sel, pulse, reducedMotion)
         }
         Text(
@@ -316,7 +325,7 @@ private fun MuscleCell(
                 Text(
                     text = "Sugerido",
                     style = WizardTypography.note,
-                    color = WizardColors.textFaint,
+                    color = WizardColors.textFaint.copy(alpha = labelAlpha),
                     maxLines = 1,
                     softWrap = false,
                     modifier = Modifier.wrapContentWidth(Alignment.CenterHorizontally, unbounded = true),
