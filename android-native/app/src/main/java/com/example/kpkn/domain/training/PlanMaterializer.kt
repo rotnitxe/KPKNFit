@@ -59,6 +59,11 @@ import com.example.kpkn.data.splits.SPLIT_TEMPLATES
 import com.example.kpkn.domain.calculations.PlateCalculator
 import com.example.kpkn.domain.exercises.stableRecipeElementId
 import com.example.kpkn.domain.onboarding.SetupTrainingOptions
+import com.example.kpkn.domain.training.approach.ApproachExerciseInfo
+import com.example.kpkn.domain.training.approach.ApproachInfoProvider
+import com.example.kpkn.domain.training.approach.ApproachOptions
+import com.example.kpkn.domain.training.approach.ApproachPlanner
+import com.example.kpkn.domain.training.approach.approachLevelOf
 import com.example.kpkn.domain.workout.BaseLoadPolicy
 import com.example.kpkn.domain.workout.WarmupCalibrationEngine
 import com.example.kpkn.domain.workout.WarmupEffortReport
@@ -162,7 +167,8 @@ object PlanMaterializer {
         val nativeCurate = program.isNativeCuratedRecipe(recipe)
         // Manda la elección persistida por el usuario (Program.planWarmupConfig);
         // options solo aporta configuración cuando el programa todavía no guarda nada.
-        val planWarmupSteps = effectivePlanWarmupSteps(program, options)
+        // null = aproximación y movilidad automáticas (ApproachPlanner en cada sesión).
+        val warmupPlan = effectiveWarmupPlan(program, options, recipe, metadata)
         val byBlock = recipe.weeks.groupBy { it.blockIndex }.toSortedMap()
         val scope = scopeOf(program, recipe, weekOccurrence)
         val blocks = byBlock.map { (_, weeks) ->
@@ -204,7 +210,7 @@ object PlanMaterializer {
                                 resolvedProfile,
                                 trainingDays,
                                 startDay,
-                                planWarmupSteps,
+                                warmupPlan,
                                 nativeCurate,
                                 scope,
                             )
@@ -233,7 +239,7 @@ object PlanMaterializer {
             // La elección de calentamientos se guarda en el JSON del programa para
             // que la rematerialización no dependa de la configuración del llamante:
             // lo ya persistido manda; si es la primera vez que llega una elección
-            // explícita, queda registrada aquí (null = preset del plan).
+            // explícita, queda registrada aquí (null = aproximación automática).
             planWarmupConfig = program.planWarmupConfig ?: options.warmup,
             runState = null,
             // H13: el run se reinicia, y con él la progresión del método. Las marcas idempotentes
@@ -345,15 +351,16 @@ object PlanMaterializer {
         // Receta ajena al programa (otro id que su receta fuente): su base sustituye a la
         // anterior y las sesiones pendientes de la receta previa no se mezclan con ella.
         val foreignRecipe = program.sourceRecipe?.let { it.id != recipe.id } == true
-        // Nunca se reintroduce el preset sobre la elección persistida del usuario:
-        // vacío = sin aproximaciones, lista = pasos propios, null = preset.
-        val planWarmupSteps = effectivePlanWarmupSteps(program, options)
+        // Nunca se reintroduce la aproximación automática sobre la elección persistida
+        // del usuario: vacío = sin aproximaciones, lista = pasos propios, null = automática.
+        val warmupPlan = effectiveWarmupPlan(program, options, recipe, metadata)
         // R-23: el calendario se resuelve igual que en `materialize` (inicio de semana del
         // programa y días del split); con `startDay = 1` y sin días, reconstruir rotaba los días.
         val schedule = resolveWeekSchedule(program)
         return program.copy(
             // La elección de calentamientos persiste en el JSON del programa (la
             // rematerialización no depende de la configuración del llamante).
+            // null = aproximación automática.
             planWarmupConfig = program.planWarmupConfig ?: options.warmup,
             macrocycles = program.macrocycles.map { macro ->
                 macro.copy(
@@ -375,7 +382,7 @@ object PlanMaterializer {
                                             val rebuilt = materializeWeek(
                                                 scaled, recipe, metadata, idProvider, profile,
                                                 schedule.trainingDays, schedule.startDay,
-                                                planWarmupSteps, nativeCurate, scope,
+                                                warmupPlan, nativeCurate, scope,
                                             )
                                             rebuilt.copy(
                                                 id = week.id,
@@ -847,7 +854,7 @@ object PlanMaterializer {
         profile: PowerliftingProfile?,
         trainingDays: List<Int>?,
         startDay: Int,
-        planWarmupSteps: List<SetRecipe>,
+        warmupPlan: WarmupPlan,
         nativeCurate: Boolean,
         scope: MaterializationScope,
     ): ProgramWeek {
@@ -855,7 +862,7 @@ object PlanMaterializer {
             val dayOfWeek = rotateWeekday(day.weekday, startDay)
                 ?: trainingDays?.getOrNull(index)
                 ?: ((startDay - 1 + index).mod(7) + 1)
-            materializeDay(day, dayOfWeek, week, recipe, metadata, idProvider, profile, planWarmupSteps, nativeCurate, scope)
+            materializeDay(day, dayOfWeek, week, recipe, metadata, idProvider, profile, warmupPlan, nativeCurate, scope)
         }
         return ProgramWeek(
             id = idProvider.newId(),
@@ -874,7 +881,7 @@ object PlanMaterializer {
         metadata: ExerciseCompositionMetadataProvider,
         idProvider: IdProvider,
         profile: PowerliftingProfile?,
-        planWarmupSteps: List<SetRecipe>,
+        warmupPlan: WarmupPlan,
         nativeCurate: Boolean,
         scope: MaterializationScope,
     ): Session {
@@ -892,7 +899,7 @@ object PlanMaterializer {
                 dayId = it,
             )
         }
-        val assignedWarmups = assignWarmups(day, metadata, idProvider, planWarmupSteps, nativeCurate, stableSessionId)
+        val assignedWarmups = assignWarmups(day, metadata, idProvider, warmupPlan.explicitSteps, nativeCurate, stableSessionId)
         val seenSlotIds = mutableSetOf<String>()
         val exercises = day.slots.mapIndexed { index, slot ->
             // Dos slots con el mismo id no comparten ejercicio: caen al
@@ -933,7 +940,7 @@ object PlanMaterializer {
             cardioFirst -> listOf(cardioPart) + parts
             else -> parts + cardioPart
         }
-        return Session(
+        val session = Session(
             id = stableSessionId ?: idProvider.newId(),
             name = day.label,
             scheduleLabel = day.label,
@@ -946,6 +953,10 @@ object PlanMaterializer {
             requirement = SessionRequirement.REQUIRED,
             cardioFirst = cardioFirst,
         )
+        // Aproximación y movilidad obligatorias (Entreno v2): con la política automática cada sesión pasa por el
+        // planificador, que completa lo que la receta de autor no declaró (nunca lo reemplaza).
+        val approach = warmupPlan.approach ?: return session
+        return ApproachPlanner.apply(session, approach.options, approach.infoOf)
     }
 
     /**
@@ -1370,21 +1381,22 @@ object PlanMaterializer {
     private const val LOAD_EPSILON = 0.01
 
     /**
-     * Aproximaciones por slot: las que trae la receta (autor, intactas) más el
-     * preset del plan (40 % × 8, 60 % × 5, 80 % × 3 sobre la carga de trabajo)
-     * solo en el primer compuesto de cada patrón de movimiento del día. El
-     * patrón se identifica con la composición real del catálogo
-     * ([CompositionTaxonomy]), no solo por [SlotRole.T1_MAIN]: los programas
+     * Aproximaciones por slot: las que trae la receta (autor, intactas) más, **solo cuando la persona declaró
+     * pasos propios** ([WarmupPolicy.Explicit]), esos pasos (p. ej. 40 % × 8, 60 % × 5, 80 % × 3 sobre la carga
+     * de trabajo) en el primer compuesto de cada patrón de movimiento del día. El patrón se identifica con la
+     * composición real del catálogo ([CompositionTaxonomy]), no solo por [SlotRole.T1_MAIN]: los programas
      * nativos no siempre etiquetan así.
      *
-     * El preset exige series con porcentaje ([usesPercent]) salvo en semanas
-     * curadas nativas ([nativeCurate], serie RIR de la ruta nativa) y sus
-     * rematerializaciones, que aplican la misma política de aproximaciones para
-     * no divergir del motor.
+     * Con la aproximación automática (`planWarmupSteps` vacío y [WarmupPlan.approach] presente) aquí solo salen
+     * las aproximaciones de la receta de autor; el resto lo decide `ApproachPlanner` sobre la sesión ya armada
+     * (`materializeDay`), que conserva lo que devuelve esta función y completa lo que falta.
      *
-     * Anti-redundancia: un paso del preset equivalente (±5 puntos porcentuales)
-     * a una aproximación ya presente no se duplica. El resultado queda ordenado
-     * por porcentaje ascendente; el usuario puede editar reps/% o quitar
+     * Los pasos propios exigen series con porcentaje ([usesPercent]) salvo en semanas curadas nativas
+     * ([nativeCurate], serie RIR de la ruta nativa) y sus rematerializaciones, que aplican la misma política de
+     * aproximaciones para no divergir del motor.
+     *
+     * Anti-redundancia: un paso propio equivalente (±5 puntos porcentuales) a una aproximación ya presente no se
+     * duplica. El resultado queda ordenado por porcentaje ascendente; el usuario puede editar reps/% o quitar
      * cualquier aproximación después.
      */
     private fun assignWarmups(
@@ -1452,19 +1464,43 @@ object PlanMaterializer {
     }
 
     /**
-     * Pasos de calentamiento efectivos de una materialización/rematerialización:
-     * manda la elección persistida en el programa ([Program.planWarmupConfig],
-     * la decisión real del usuario: null = preset del plan, vacío = sin
-     * aproximaciones, lista = pasos propios) para que una rematerialización nunca
-     * reintroduzca el preset sobre una elección ya guardada. Solo cuando el
-     * programa todavía no guarda nada se usa la configuración de esta llamada
-     * ([options]), que por defecto es el preset 40 % × 8 / 60 % × 5 / 80 % × 3
-     * sobre la carga de trabajo. Los pasos siempre salen normalizados (orden
-     * ascendente, sin duplicados ±5 puntos porcentuales, 0 < % ≤ 100).
+     * Lo que el materializador hace con los calentamientos de UNA (re)materialización:
+     * - [explicitSteps]: los pasos propios de la persona (preset por patrón del primer compuesto); vacío si la
+     *   política es automática o «sin aproximaciones».
+     * - [approach]: presente solo con la política automática; es el contexto con el que cada sesión pasa por
+     *   `ApproachPlanner`.
      */
-    private fun effectivePlanWarmupSteps(program: Program, options: SetupTrainingOptions): List<SetRecipe> {
-        val persisted = program.planWarmupConfig
-        return if (persisted != null) normalizedWarmupSteps(persisted) else options.resolvedWarmupSteps()
+    private class WarmupPlan(val explicitSteps: List<SetRecipe>, val approach: ApproachContext?)
+
+    private class ApproachContext(val options: ApproachOptions, val infoOf: (Exercise) -> ApproachExerciseInfo?)
+
+    /**
+     * Política de aproximación efectiva de una materialización/rematerialización: manda la elección persistida
+     * en el programa ([Program.planWarmupConfig], la decisión real del usuario: null = automática, vacío = sin
+     * aproximaciones, lista = pasos propios) para que una rematerialización nunca reintroduzca la aproximación
+     * automática sobre una elección ya guardada. Solo cuando el programa todavía no guarda nada se usa la
+     * configuración de esta llamada ([options]), que por defecto es la automática (Entreno v2: el calentamiento
+     * ya no es una opción; `warmup == null` ya no significa «preset 40/60/80»). Los pasos propios siempre salen
+     * normalizados (orden ascendente, sin duplicados ±5 puntos porcentuales, 0 < % ≤ 100).
+     *
+     * El nivel del planificador sale del que declara la receta (`claimedLevel`) y las articulaciones y la
+     * capacidad de carga de cada ejercicio, del catálogo cargado ([metadata]).
+     */
+    private fun effectiveWarmupPlan(
+        program: Program,
+        options: SetupTrainingOptions,
+        recipe: TrainingPlanRecipe,
+        metadata: ExerciseCompositionMetadataProvider,
+    ): WarmupPlan = when (val policy = warmupPolicyOf(program.planWarmupConfig ?: options.warmup)) {
+        WarmupPolicy.Automatic -> WarmupPlan(
+            explicitSteps = emptyList(),
+            approach = ApproachContext(
+                options = ApproachOptions(level = approachLevelOf(recipe.claimedLevel)),
+                infoOf = ApproachInfoProvider.fromMetadata(metadata),
+            ),
+        )
+        WarmupPolicy.None -> WarmupPlan(explicitSteps = emptyList(), approach = null)
+        is WarmupPolicy.Explicit -> WarmupPlan(explicitSteps = policy.steps, approach = null)
     }
 
     /**

@@ -46,6 +46,10 @@ import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogRepositoryV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogStateV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseConfigurationV2
 import com.example.kpkn.domain.text.SpanishPlurals
+import com.example.kpkn.domain.training.approach.ApproachInfoProvider
+import com.example.kpkn.domain.training.approach.ApproachLevel
+import com.example.kpkn.domain.training.approach.ApproachOptions
+import com.example.kpkn.domain.training.approach.ApproachPlanner
 import kotlinx.serialization.Serializable
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.math.ceil
@@ -330,23 +334,35 @@ class SimpleCyclePersonalizer(
             6 + ceil(daySlots.sumOf { it.sets * 2.25 + 1.5 } + extraSets * 2.25 + if (extraExercise) 1.5 else 0.0).toInt() + (cardio?.minutes ?: 0)
         // §12.2 (AC-T004-03): el tiempo que se promete es el del estimador común
         // sobre la sesión REAL —3 min generales, preparación por ejercicio, series,
-        // descansos, aproximaciones del preset y cardio—, no solo la cota rápida
+        // descansos, aproximación y movilidad previas y cardio—, no solo la cota rápida
         // `minutes`, que ignora casi todo eso. Sin este segundo filtro un día lleno
         // según la cota medía 61 o 67 min con un presupuesto de 60 y el evaluador
         // lo rechazaba con TIME_BUDGET aunque quitar una serie lo resolvía. El
         // filtro solo restringe y el estimador crece al añadir series/ejercicios,
         // así que un plan que ya cabía se genera exactamente igual.
-        val planWarmupSteps = options.resolvedWarmupSteps()
+        // Aproximación (Entreno v2): `warmup == null` = automática (ApproachPlanner decide qué ejercicios se
+        // aproximan y qué movilidad llevan, sobre la sesión ya ordenada); una lista con pasos manda como antes
+        // (preset por patrón del primer compuesto); vacía = ninguna. El estimador cuenta rampa y movilidad, así
+        // que el presupuesto de minutos ve la sesión REAL.
+        val warmupPolicy = options.warmupPolicy()
+        val explicitWarmupSteps = (warmupPolicy as? WarmupPolicy.Explicit)?.steps.orEmpty()
+        val approachOptions = ApproachOptions(
+            level = when (input.level) {
+                CatalogLevel.BEGINNER -> ApproachLevel.NOVICE
+                CatalogLevel.INTERMEDIATE -> ApproachLevel.INTERMEDIATE
+                CatalogLevel.ADVANCED -> ApproachLevel.ADVANCED
+            },
+        )
+        val approachInfo = ApproachInfoProvider.fromMetadata(compositionMetadata)
         fun buildDaySession(index: Int, daySlots: List<Slot>): Session {
             val baseOrder = daySlots.sortedWith(compareBy<Slot> { slot -> if (slot.candidate.primary.any { it in focused }) 0 else 1 }
                 .thenBy { if (it.candidate.configuration.profile.articulationType?.name == "MULTIARTICULAR") 0 else 1 })
             val ordered = prioritizeExerciseOrder(baseOrder, exerciseOrderPoints)
-            // Preset del plan (40 % × 8, 60 % × 5, 80 % × 3 sobre la carga de
-            // trabajo) en el primer compuesto de cada patrón, tal y como queda
-            // ordenado: la misma política de PlanMaterializer para la ruta nativa
-            // RIR. Vacío = sin aproximaciones automáticas y sin mezclarse con
-            // calentamientos que traiga la receta de autor (aquí no llegan).
-            val firstCompounds = if (planWarmupSteps.isEmpty()) {
+            // Pasos propios de la persona en el primer compuesto de cada patrón, tal y como queda
+            // ordenado: la misma política de PlanMaterializer para la ruta nativa RIR. Sin pasos propios
+            // no hay preset (automática o vacía) y nada se mezcla con calentamientos de receta de autor
+            // (aquí no llegan).
+            val firstCompounds = if (explicitWarmupSteps.isEmpty()) {
                 emptySet()
             } else {
                 firstCompoundConfigurationIds(ordered, compositionMetadata)
@@ -354,7 +370,7 @@ class SimpleCyclePersonalizer(
             val exercises = ordered.mapIndexed { exerciseIndex, slot ->
                 val base = exercise(slot.candidate.info, "$programId-s$index-e$exerciseIndex", slot.sets, input.level)
                 if (slot.candidate.configuration.id in firstCompounds) {
-                    base.copy(warmupSets = presetWarmupDefinitions(planWarmupSteps, base.id))
+                    base.copy(warmupSets = presetWarmupDefinitions(explicitWarmupSteps, base.id))
                 } else {
                     base
                 }
@@ -363,12 +379,13 @@ class SimpleCyclePersonalizer(
                 Exercise(id = "$programId-s$index-cardio", name = it.type.name.lowercase().replace('_', ' '),
                     cardioDetails = CardioDetails(type = it.type, intensity = it.intensity, targetDurationSeconds = it.minutes * 60))
             }
-            return Session(
+            val session = Session(
                 id = "$programId-session-$index", name = customLabelsByDay[days[index]] ?: "Día ${index + 1}", dayOfWeek = days[index], assignedDays = listOf(days[index]),
                 exercises = exercises,
                 parts = cardioExercise?.let { listOf(SessionPart("$programId-cardio-$index", "Cardio", exercises = listOf(it), isCardioGroup = true)) }.orEmpty(),
                 focus = input.focus.name, origin = SessionOrigin.USER_DRAFT,
             )
+            return if (warmupPolicy is WarmupPolicy.Automatic) ApproachPlanner.apply(session, approachOptions, approachInfo) else session
         }
         // El estimador solo depende de qué ejercicios hay y de cuántas series
         // llevan (no de su orden ni de los ids), así que se memoriza por contenido.
@@ -599,7 +616,7 @@ class SimpleCyclePersonalizer(
             // sobrevivir a la materialización.
             autoregulationMode = options.autoregulationMode,
             // La elección de calentamientos del usuario se persiste en el JSON del
-            // programa (null = preset; vacío = sin aproximaciones; lista = pasos
+            // programa (null = automática; vacío = sin aproximaciones; lista = pasos
             // propios) para que la rematerialización no dependa del onboarding.
             planWarmupConfig = options.warmup,
             // La bolsa de orden realmente aplicada se persiste igual: es el dato
@@ -669,7 +686,6 @@ class SimpleCyclePersonalizer(
         val repsMax: Int,
         /** RIR editorial fijo para fuerza relativa corporal de Atleta (§11.4). */
         val rirOverride: Int? = null,
-        var warmup: Boolean,
         val restSeconds: Int,
         var removed: Boolean = false,
     )
@@ -933,7 +949,6 @@ class SimpleCyclePersonalizer(
                 NativeCardioRole.DEDICATED_WITH_ACCESSORIES -> RecipeSessionKind.CARDIO_ACCESSORY
                 NativeCardioRole.ONLY -> RecipeSessionKind.CARDIO
             }
-            val claimedFamilies = mutableSetOf<String>()
             val slots = mutableListOf<NativeSlotPlan>()
             archetype.slots.forEach { spec ->
                 val configuration = resolveConfiguration(spec.key, spec.intent) ?: return@forEach
@@ -962,7 +977,6 @@ class SimpleCyclePersonalizer(
                     NativeDoseTable.doseFor(spec.intent, doseLevel, bodyweightRepRange)
                 }
                 val liftSlot = competitionLiftSlot(spec.key, configuration.id)
-                val family = COMPOUND_FAMILY_BY_SLOT[spec.key]
                 slots += NativeSlotPlan(
                     slotId = spec.key.name.lowercase(),
                     key = spec.key,
@@ -980,7 +994,6 @@ class SimpleCyclePersonalizer(
                     repsMin = dose.repsMin,
                     repsMax = dose.repsMax,
                     rirOverride = null,
-                    warmup = false,
                     restSeconds = dose.restSeconds,
                 )
             }
@@ -1002,10 +1015,6 @@ class SimpleCyclePersonalizer(
             // principales → compuestos → aislamientos → core/gemelo) con orden
             // estable: el arquetipo decide dentro de cada rango.
             slots.sortBy { slot -> h1Rank(slot, dayPriority, compositionMetadata) }
-            slots.forEach { slot ->
-                val family = COMPOUND_FAMILY_BY_SLOT[slot.key]
-                slot.warmup = family != null && claimedFamilies.add(family)
-            }
             val twoExerciseDay = slots.size == 2
             slots.forEach { slot ->
                 slot.essential = slot.intent in setOf(SlotIntent.F, SlotIntent.FV, SlotIntent.P) ||
@@ -1119,7 +1128,9 @@ class SimpleCyclePersonalizer(
         }
 
         fun attemptFit(): NativeFitAttempt? {
-            val recipe = assembleNativeRecipe(kind, doseLevel, dayPlans, includeWarmups = options.resolvedWarmupSteps().isNotEmpty())
+            // Sin aproximaciones dentro de la receta: las pone el materializador (rampa automática por sesión con
+            // ApproachPlanner o los pasos propios de la persona), así nada se duplica ni se bloquea.
+            val recipe = assembleNativeRecipe(kind, doseLevel, dayPlans)
             // MRV es un límite real, pero se entrega al fitter como una condición
             // corregible (§12.3), no como un rechazo anterior al primer ajuste.
             val hard = ProgramRecipeValidator.hardFindings(recipe, metadata)
@@ -1438,31 +1449,17 @@ class SimpleCyclePersonalizer(
                 orderPriorityPoints(slot.configurationId, exerciseOrderPoints, legacyLookup, input.level)
             }
             val recommendedOrders = dayPlans.map { day -> day.slots.toList() }
-            val recommendedWarmups = dayPlans.map { day -> day.slots.map { slot -> slot.warmup } }
-            /** Reordena un día y devuelve true si algún slot cambió de posición. */
+            /**
+             * Reordena un día y devuelve true si algún slot cambió de posición. La aproximación y la movilidad no
+             * viajan con el slot: las decide `ApproachPlanner` sobre el orden final al materializar (`attemptFit`).
+             */
             fun reorderDay(day: NativeDayPlan): Boolean {
                 val before = day.slots.toList()
-                val warmupsByFamily = day.slots.filter { slot -> slot.warmup }
-                    .mapNotNull { slot -> COMPOUND_FAMILY_BY_SLOT[slot.key] }
-                    .groupingBy { family -> family }
-                    .eachCount()
                 day.slots.sortWith(
                     compareBy<NativeSlotPlan> { slot -> h1Rank(slot, day.priority, metadata) }
                         .thenByDescending { slot -> priorityOf(slot) },
                 )
-                val changed = day.slots.indices.any { index -> day.slots[index] !== before[index] }
-                if (changed) {
-                    // La aproximación sigue al PRIMER compuesto de cada patrón en el orden que ve la persona
-                    // (igual que al armar el día); el número de aproximaciones por patrón no cambia.
-                    val seen = mutableMapOf<String, Int>()
-                    day.slots.forEach { slot ->
-                        val family = COMPOUND_FAMILY_BY_SLOT[slot.key] ?: return@forEach
-                        val position = seen.getOrDefault(family, 0)
-                        seen[family] = position + 1
-                        slot.warmup = position < (warmupsByFamily[family] ?: 0)
-                    }
-                }
-                return changed
+                return day.slots.indices.any { index -> day.slots[index] !== before[index] }
             }
             // `count` recorre TODOS los días (un `any` se detendría en el primero que cambia).
             val changedDays = dayPlans.count { day -> reorderDay(day) }
@@ -1474,7 +1471,6 @@ class SimpleCyclePersonalizer(
                 dayPlans.forEachIndexed { dayIndex, day ->
                     day.slots.clear()
                     day.slots.addAll(recommendedOrders[dayIndex])
-                    day.slots.forEachIndexed { slotIndex, slot -> slot.warmup = recommendedWarmups[dayIndex][slotIndex] }
                 }
                 notes += ORDER_PRIORITIES_NOT_APPLIED_NOTE
                 plainNotes += ORDER_PRIORITIES_NOT_APPLIED_NOTE
@@ -1683,7 +1679,6 @@ class SimpleCyclePersonalizer(
         kind: NativeProfileKind,
         level: NativeDoseLevel,
         dayPlans: List<NativeDayPlan>,
-        includeWarmups: Boolean,
     ): TrainingPlanRecipe {
         val weeks = (1..NativeWeekBuilder.WEEKS).map { weekNumber ->
             val deload = weekNumber == NativeWeekBuilder.DELOAD_WEEK
@@ -1706,7 +1701,7 @@ class SimpleCyclePersonalizer(
                 kind = if (deload) WeekExecutionKind.DELOAD else WeekExecutionKind.TRAINING,
                 weekName = "Semana $weekNumber",
                 days = plansForWeek.mapIndexed { dayIndex, plan ->
-                    assembleNativeDay(plan, dayIndex, weekNumber, level, deload, includeWarmups)
+                    assembleNativeDay(plan, dayIndex, weekNumber, level, deload)
                 },
             )
         }
@@ -1759,7 +1754,6 @@ class SimpleCyclePersonalizer(
         weekNumber: Int,
         level: NativeDoseLevel,
         deload: Boolean,
-        includeWarmups: Boolean,
     ): DayRecipe {
         val active = plan.slots.filter { !it.removed }
         val slots = active.map { slot ->
@@ -1774,11 +1768,8 @@ class SimpleCyclePersonalizer(
                 slot.rirOverride != null -> slot.rirOverride
                 else -> NativeWeekBuilder.trainingRir(level, weekNumber)
             }
-            val warmupSets = if (slot.warmup && includeWarmups) {
-                listOf(SetRecipe(reps = 5, isWarmup = true, loadBasis = LoadBasis.RPE))
-            } else {
-                emptyList()
-            }
+            // Sin aproximación técnica en la receta (Entreno v2): la rampa y la movilidad de cada sesión las
+            // decide `ApproachPlanner` al materializar, sobre el orden final del día.
             val workSets = List(setsCount) {
                 SetRecipe(
                     reps = slot.repsMin,
@@ -1793,7 +1784,7 @@ class SimpleCyclePersonalizer(
                 id = slot.slotId,
                 role = slot.role,
                 lift = LiftRef(slot.configurationId, slot.liftSlot),
-                sets = warmupSets + workSets,
+                sets = workSets,
                 restSeconds = slot.restSeconds,
                 technique = slot.technique,
                 supplementalOf = slot.supplementalOf,
@@ -1947,8 +1938,8 @@ class SimpleCyclePersonalizer(
     }
 
     /**
-     * Pasos declarados o preset (40 % × 8, 60 % × 5, 80 % × 3 sobre la carga
-     * de trabajo) convertidos en aproximaciones nativas editables, con descanso
+     * Pasos declarados por la persona (p. ej. 40 % × 8, 60 % × 5, 80 % × 3 sobre la
+     * carga de trabajo) convertidos en aproximaciones nativas editables, con descanso
      * según la cercanía a la serie de trabajo (misma decisión que
      * [PlanMaterializer.assignWarmups]).
      */
@@ -2351,25 +2342,6 @@ class SimpleCyclePersonalizer(
             return high
         }
 
-        /**
-         * Familia de patrón por clave de arquetipo: el primer compuesto de cada
-         * patrón del día recibe la aproximación técnica §12.2 (5 reps fáciles,
-         * 60 s), lo que además desactiva el preset del plan en ese slot. Las
-         * familias coinciden con [CompositionTaxonomy] para las variantes
-         * resolubles de cada clave.
-         */
-        private val COMPOUND_FAMILY_BY_SLOT = mapOf(
-            NativeSlotKey.S to "SQUAT",
-            NativeSlotKey.U to "SQUAT",
-            NativeSlotKey.PS to "SQUAT",
-            NativeSlotKey.D to "HINGE",
-            NativeSlotKey.SM to "HINGE",
-            NativeSlotKey.B to "HORIZONTAL_PUSH",
-            NativeSlotKey.PB to "HORIZONTAL_PUSH",
-            NativeSlotKey.O to "VERTICAL_PUSH",
-            NativeSlotKey.R to "HORIZONTAL_PULL",
-            NativeSlotKey.V to "VERTICAL_PULL",
-        )
         // El remo invertido con barra baja real es una regresión horizontal
         // adecuada para principiantes (difficulty 4.0, §13.3); la dificultad
         // del tirón vertical no debe excluirlo. Dominadas, Nordics y cossack
