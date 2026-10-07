@@ -98,6 +98,8 @@ internal fun EntrenoDroppedSelectionNotice(state: SetupWizardState, vm: SetupWiz
     EntrenoPlanNotice(
         text = notice.text,
         modifier = Modifier.testTag(DROPPED_NOTICE_TAG),
+        // Un plan de la biblioteca que se arma a medida no es un fallo: sin el rojo de aviso.
+        error = !notice.informational,
         actions = notice.buttons.mapIndexed { index, button ->
             EntrenoPlanNoticeAction(label = button.label, tag = "$DROPPED_NOTICE_TAG-$index") {
                 performNoticeEffect(button.effect, vm) { closed = true }

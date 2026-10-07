@@ -1021,11 +1021,15 @@ data class SetupPlanCandidate(
  * - [planId] es el plan elegido y [title] su nombre visible (nunca un id crudo).
  * - [rejection] es el rechazo de ESE plan en el barrido que lo dejó fuera; es null cuando el plan ni
  *   siquiera se evaluó (el planificador ya lo descartó por objetivo, nivel o días).
+ * - [tailoredId] (Entreno v2) es el programa «a medida» que ocupa su lugar cuando el perfil de objetivo es general (solo
+ *   ofrece su «a medida»): un plan propio de la biblioteca ya no se ofrece desde ahí pero el asistente lo arma a medida.
+ *   Con él, el aviso no es una alarma: dice qué pasó y deja ese programa a un toque ([tailoredReplacementOf]).
  */
 data class SetupDroppedSelection(
     val planId: String,
     val title: String,
     val rejection: SetupCandidateRejection?,
+    val tailoredId: String? = null,
 )
 
 /**

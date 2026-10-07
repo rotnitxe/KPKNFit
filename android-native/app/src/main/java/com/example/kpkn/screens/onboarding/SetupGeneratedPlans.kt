@@ -145,6 +145,25 @@ internal fun generatedProgramOf(routine: GeneratedRoutine, entry: CatalogEntry, 
 }
 
 /**
+ * El programa «a medida» que ocupa el lugar de un plan propio de la biblioteca cuando el perfil de objetivo es GENERAL
+ * ([PlanCandidateSources.GENERATED]: Fuerza y masa muscular, Fuerza y cardio, Funcional y saludable, que solo ofrecen su
+ * «a medida»). El caso real: «Configurar este plan» con `native:complete-athlete-v2` prefija «Fuerza y cardio», un perfil
+ * general que ya no ofrece ese plan sino su programa a medida; el plan elegido «cae» sin que nada haya cambiado. Con este
+ * programa el aviso es honesto y no una alarma («Este programa de la biblioteca ahora se arma a medida en el asistente»)
+ * y deja el candidato a un toque.
+ *
+ * Solo para los planes propios (NATIVE): el «a medida» es su continuación. Un plan de autor que no se ofrece desde un perfil
+ * general sigue con el aviso de siempre (no lo sustituye ningún programa «a medida»), y los perfiles de disciplina sin
+ * autores ofrecen una «versión inicial» que tampoco es el plan de la biblioteca. Null si no hay sustituto.
+ */
+internal fun tailoredReplacementOf(entry: CatalogEntry?, profile: TrainingGoalProfile?): String? {
+    if (entry == null || profile == null) return null
+    if (entry.source != CatalogSource.NATIVE || GeneratedPlans.isGenerated(entry.id)) return null
+    if (GeneratedPlans.sourcesFor(profile) != PlanCandidateSources.GENERATED) return null
+    return GeneratedPlans.entryIdFor(profile)
+}
+
+/**
  * El borrador sin semana armada (sin sesiones movidas ni reparto adaptado): la semana vuelve a ser la del programa.
  * Sirve cuando el programa cambia (otro plan, otra versión, otras respuestas) o al «Restablecer».
  */

@@ -3043,6 +3043,9 @@ class SetupWizardViewModel @JvmOverloads constructor(
             // elegiste 3 días.» → Cambiar días) en lugar del genérico «ya no está entre los planes…».
             rejection = rejections.firstOrNull { it.planId == planId }
                 ?: entry?.let { synthesizedRejectionFor(it, _state.value.draft) },
+            // Entreno v2: un plan propio de la biblioteca que un perfil GENERAL ya no ofrece (solo ofrece su «a medida»)
+            // no «cae» por culpa de nada: el asistente lo arma a medida y el aviso lo dice, sin alarma.
+            tailoredId = tailoredReplacementOf(entry, _state.value.draft.goalProfile),
         )
         // H2 (c): el plan que la persona trajo de la biblioteca es su INTENCIÓN mientras siga siendo la selección: no se
         // limpia aunque no encaje todavía (el aviso explica por qué) y, en cuanto vuelve a encajar, ya está elegido.

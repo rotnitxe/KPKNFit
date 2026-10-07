@@ -289,22 +289,38 @@ internal sealed interface NoticeEffect {
 
     /** Una acción del presentador: ir a un paso, reintentar o ver las alternativas. */
     data class Act(val action: RejectionAction) : NoticeEffect
+
+    /** Elegir el programa [planId] (el «a medida» que sustituye a un plan de la biblioteca): `selectPlan`. */
+    data class Choose(val planId: String) : NoticeEffect
 }
 
 /** Un botón del aviso: su texto y su efecto. */
 internal data class NoticeButton(val label: String, val effect: NoticeEffect)
 
-/** Un aviso de rechazo listo para pintar: un texto llano y hasta dos botones, el principal primero. */
+/**
+ * Un aviso listo para pintar: un texto llano y hasta dos botones, el principal primero. Con [informational] no es un
+ * fallo (no va en el rojo de aviso): dice qué pasó y deja la salida a un toque.
+ */
 internal data class RejectionNotice(
     val text: String,
     val primary: NoticeButton?,
     val secondary: NoticeButton? = null,
+    val informational: Boolean = false,
 ) {
     val buttons: List<NoticeButton> get() = listOfNotNull(primary, secondary)
 }
 
 /** Arranque común del aviso de la selección caída. */
 internal const val DROPPED_SELECTION_LEAD = "Tu plan elegido ya no encaja con tus respuestas."
+
+/**
+ * El aviso de un plan propio de la biblioteca que un perfil general ya no ofrece (COPY · Revelado del programa): no es una
+ * alarma, es lo que pasó. El asistente arma ese programa a medida y lo deja a un toque.
+ */
+internal const val LIBRARY_PLAN_NOW_TAILORED = "Este programa de la biblioteca ahora se arma a medida en el asistente."
+
+/** El botón de ese aviso: elige el programa «a medida». */
+internal const val CHOOSE_TAILORED_LABEL = "Elegir el programa a medida"
 
 /**
  * Frase que se añade al aviso de «Cambiar a Fuerza y músculo» (recomendación 2): con mancuernas, los ejercicios
@@ -467,6 +483,14 @@ internal fun rejectionNotice(
  * objetivo, nivel o días— explica eso y ofrece «Ver alternativas» y «Cambiar objetivo». El `reason` crudo no se pinta.
  */
 internal fun droppedSelectionNotice(dropped: SetupDroppedSelection, draft: SetupWizardDraft): RejectionNotice {
+    // Un plan propio que un perfil general ya no ofrece: el «a medida» lo sustituye. Sin alarma y a un toque.
+    dropped.tailoredId?.let { tailoredId ->
+        return RejectionNotice(
+            text = LIBRARY_PLAN_NOW_TAILORED,
+            primary = NoticeButton(CHOOSE_TAILORED_LABEL, NoticeEffect.Choose(tailoredId)),
+            informational = true,
+        )
+    }
     val rejection = dropped.rejection
         ?: return RejectionNotice(
             text = "$DROPPED_SELECTION_LEAD Ya no está entre los planes que corresponden a tus respuestas.",
@@ -518,6 +542,7 @@ internal fun performNoticeEffect(effect: NoticeEffect, vm: SetupWizardViewModel,
     when (effect) {
         is NoticeEffect.Apply -> vm.applyRepairs(effect.repairs)
         is NoticeEffect.Act -> performRejectionAction(effect.action, vm, onSeeAlternatives)
+        is NoticeEffect.Choose -> vm.selectPlan(effect.planId)
     }
 }
 

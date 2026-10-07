@@ -554,6 +554,72 @@ class SetupWizardEntrenoPlanTest {
             assertEquals("conserva el lugar con cuyo material se armó", TrainingPlace.GYM.name, savedMonday.placeId)
         }
 
+    // ─── «Configurar este plan» desde la biblioteca: sin «selección caída» espuria ───────────────────
+
+    @Test
+    fun aLibraryPlanThatAGeneralProfileNoLongerOffersIsExplainedWithoutAlarmAndTheTailoredProgramIsOneTapAway() =
+        runTest(dispatcher.scheduler, timeout = 10.minutes) {
+            val vm = newVm()
+            vm.initialize(SetupWizardMode.TRAINING_ONLY, preselectedPlanId = ATHLETE_OWN)
+            val loaded = await(vm, "wizard cargado con la intención de la biblioteca") { !it.isLoading }
+            // Atleta completo prefija «Fuerza y cardio», un perfil general que solo ofrece su programa a medida.
+            assertEquals(TrainingGoalProfile.STRENGTH_CARDIO, loaded.draft.goalProfile)
+            assertEquals(ATHLETE_OWN, loaded.draft.selectedCatalogId)
+
+            vm.update { it.withInputs(TrainingGoalProfile.STRENGTH_CARDIO, setOf(TrainingPlace.GYM), days = setOf(1, 3, 5), minutes = 60) }
+            val state = await(vm, "barrido listo y plan de la biblioteca sustituido") {
+                idle(it) && it.planSweep == SetupPlanSweep.READY && it.droppedSelection != null
+            }
+            val tailoredId = GeneratedPlans.entryIdFor(TrainingGoalProfile.STRENGTH_CARDIO)
+            assertEquals(listOf(tailoredId), state.availablePlanCandidates.map { it.id })
+            val dropped = checkNotNull(state.droppedSelection)
+            assertEquals(ATHLETE_OWN, dropped.planId)
+            assertEquals(tailoredId, dropped.tailoredId)
+
+            // El aviso dice qué pasó, no es una alarma y deja el programa a medida a un toque.
+            val notice = droppedSelectionNotice(dropped, state.draft)
+            assertEquals("Este programa de la biblioteca ahora se arma a medida en el asistente.", notice.text)
+            assertTrue("sin alarma", notice.informational)
+            assertEquals(NoticeButton(CHOOSE_TAILORED_LABEL, NoticeEffect.Choose(tailoredId)), notice.primary)
+            assertNull("sin segunda salida: no hace falta cambiar nada", notice.secondary)
+
+            // El aviso persiste mientras la persona responde lo demás (cada respuesta vuelve a barrer).
+            vm.update { it.withMuscles(setOf(MuscleSymbol.CHEST)) }
+            val again = await(vm, "otro barrido") { idle(it) && it.planSweep == SetupPlanSweep.READY && it.droppedSelection != null }
+            assertEquals(tailoredId, again.droppedSelection?.tailoredId)
+
+            performNoticeEffect(notice.primary!!.effect, vm)
+            val chosen = await(vm, "programa a medida elegido y preparado") {
+                idle(it) && it.draft.selectedCatalogId == tailoredId && it.programPreview != null
+            }
+            assertNull("elegir el programa a medida cierra el aviso", chosen.droppedSelection)
+            assertEquals(PersonalizedPlanCatalog.find(tailoredId)?.displayName, chosen.programPreview?.name)
+        }
+
+    @Test
+    fun theOwnPlansOfTheSpecificProfilesAreOfferedFromThemAndNeverFallForNothing() =
+        runTest(dispatcher.scheduler, timeout = 15.minutes) {
+            // Una prueba por perfil: el plan propio que prefija cada disciplina se ofrece desde ella, se queda elegido y no hay aviso.
+            listOf(
+                STRENGTH_OWN to TrainingGoalProfile.POWERLIFTING,
+                MUSCLE_OWN to TrainingGoalProfile.BODYBUILDING,
+                POWERBUILDING_OWN to TrainingGoalProfile.POWERBUILDING,
+            ).forEach { (planId, profile) ->
+                val vm = newVm()
+                vm.initialize(SetupWizardMode.TRAINING_ONLY, draftId = "biblioteca-${profile.name}", preselectedPlanId = planId)
+                val loaded = await(vm, "wizard cargado ($profile)") { !it.isLoading }
+                assertEquals("$planId prefija $profile", profile, loaded.draft.goalProfile)
+                vm.update { it.withInputs(profile, setOf(TrainingPlace.GYM), days = setOf(1, 2, 4, 5), minutes = 90) }
+                val ready = await(vm, "barrido y programa preparado ($profile)") {
+                    idle(it) && it.planSweep == SetupPlanSweep.READY && it.programPreview != null
+                }
+                assertTrue("$planId se ofrece desde $profile: ${ready.availablePlanCandidates.map { c -> c.id }}", ready.availablePlanCandidates.any { it.id == planId })
+                assertNull("$planId: ni aviso ni selección caída", ready.droppedSelection)
+                assertEquals("$planId sigue elegido", planId, ready.draft.selectedCatalogId)
+                assertEquals("el «a medida» va delante, el propio detrás", GeneratedPlans.entryIdFor(profile), ready.availablePlanCandidates.first().id)
+            }
+        }
+
     // ═════════════════════════════════════════════════════════════════════════════════════════
     // Arnés
     // ═════════════════════════════════════════════════════════════════════════════════════════
@@ -753,6 +819,13 @@ class SetupWizardEntrenoPlanTest {
         ).also { viewModelStore.put("entreno-plan-${vmCounter++}", it) }
 
     private fun <T> room(block: suspend () -> T): T = runBlocking { block() }
+
+    private companion object {
+        val STRENGTH_OWN: String = com.example.kpkn.data.protocols.definitions.NativeProfileKind.STRENGTH.entryId
+        val MUSCLE_OWN: String = com.example.kpkn.data.protocols.definitions.NativeProfileKind.MUSCLE.entryId
+        val POWERBUILDING_OWN: String = com.example.kpkn.data.protocols.definitions.NativeProfileKind.POWERBUILDING.entryId
+        val ATHLETE_OWN: String = com.example.kpkn.data.protocols.definitions.NativeProfileKind.COMPLETE_ATHLETE.entryId
+    }
 
     private class RoomPersistence(db: KpknDatabase) : SetupWizardPersistence {
         private val drafts = SetupDraftRepository(db)
