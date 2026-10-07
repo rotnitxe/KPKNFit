@@ -10,20 +10,22 @@ vigente es esto:
 - Revisión del catálogo `v2-approved-2026-09-29-a` (sin cambio; los ids tampoco
   cambian, el resolver rechaza ejercicios guardados con otra revisión) y
   ontología `wikilab-v3-2026-08-08`.
-- 96 familias, 215 definiciones, 539 configuraciones, 430 pares definición ×
+- 96 familias, 228 definiciones, 553 configuraciones, 444 pares definición ×
   implemento (el 2026-10-02 se retiró `sissy_squat__barbell`; las selecciones
   guardadas se remapean a `sissy_squat__smith_machine`; el 2026-10-03 se dieron de
   alta las cinco especialidades M1-M5, ver más abajo; el 2026-10-04 se retiraron
   las cuatro configuraciones unilaterales del rumano sumo; el 2026-10-07 el lote
   BW-1 de peso corporal añadió nueve definiciones y ocho configuraciones
-  `__bodyweight` en definiciones ya `CURATED`, ver «Lote BW-1»). SHA-256 canónico compartido
-  `c30a5c2e61b9d2f7f7bae3d517104b93f5851e772339872badc025c6bc67f831`.
+  `__bodyweight` en definiciones ya `CURATED`, ver «Lote BW-1»; ese mismo día el lote OL-1
+  de levantamientos olímpicos y acarreos añadió 13 definiciones y 14 configuraciones,
+  ver «Lote OL-1»). SHA-256 canónico compartido
+  `8e70937474a217c8314eb53f17a94456fee0ec3d93f9587695ec4727dd8f33f9`.
 - Fuente única de autoría: `curation/fichas/<familyId>.json` (una por familia,
   96). Se copia con `scripts/catalog_v2_apply_fichas.py`; el flujo completo y las
   reglas están en `EDITORIAL_GUIDE.md`. El gate falla si `source/` difiere de lo
   que producen las fichas.
-- Estado de las fichas: 82 definiciones `LEGACY` y **133 `CURATED`** (124 tras el lote
-  6 y nueve altas nuevas del lote BW-1, ya `CURATED`). Piloto
+- Estado de las fichas: 82 definiciones `LEGACY` y **146 `CURATED`** (124 tras el lote
+  6, nueve altas nuevas del lote BW-1 y 13 del lote OL-1, ya `CURATED`). Piloto
   (2026-10-01): `seal_row`, `pull_up` y `glutes_clamshells_banda`. Lote 1, pecho
   (2026-10-02, 20 definiciones, aplicado): `floor_press`, las aperturas
   (`decline_chest_fly`, `flat_chest_fly`, `incline_chest_fly`, `reverse_pec_fly`),
@@ -150,6 +152,45 @@ una aprobación; nada se aterrizó en el árbol principal. Informe completo en `
   completa y re-derivaría la anatomía aprobada de sus configuraciones.
 - Pendiente: los 17 pares definición × implemento nuevos no tienen PNG (`catalog_v2_visual_brief.py` ya arma su brief, con
   `promptCore` y QA) y la búsqueda de `core_crunch_suelo_peso_corporal` conserva el término heredado «dead bug / bicho muerto».
+
+### Lote OL-1 — altas de halterofilia y acarreos · 2026-10-07 (propuesto, rama `ent/d6`)
+
+Da al generador de rutinas lo que echaban en falta las disciplinas «Base de halterofilia» y «Strongman» (`Disciplines.kt` las rotula
+«versión inicial»). **Pendiente del OK del usuario:** `reviewStatus: APPROVED` en las 14 configuraciones es el estado propuesto para
+el corte, no una aprobación; nada se aterrizó en el árbol principal. Informe completo en `docs/entreno-v2/lote-ol1-report.md`.
+
+- **Trece definiciones nuevas, ya `CURATED`** (catorce configuraciones), en familias que ya existían: `power_clean`,
+  `hang_power_clean`, `squat_clean`, `power_snatch`, `hang_power_snatch`, `squat_snatch`, `clean_pull` y `snatch_pull`
+  (`lower_hip_hinge_explosive`, todas con barra); `push_jerk` y `split_jerk` (`upper_vertical_push`); `overhead_squat`
+  (`lower_knee_dominant`); `suitcase_carry` con mancuerna y con kettlebell (`lower_isometric_grip`) y `zercher_carry`
+  (`lower_spinal_extension`).
+- Cifras: 215 / 539 / 430 → **228 / 553 / 444** (definiciones / configuraciones / pares definición×implemento); `CURATED` 133 → 146;
+  revisión y ontología sin cambio; SHA `c30a5c2e…` → `8e70937474a2…`. Ninguna definición, configuración ni familia preexistente
+  cambia (comparación campo a campo del catálogo compilado antes y después).
+- Fuentes: de 9 a 28 por definición (de 3 a 11 estudios y el resto capítulos de anatomía), verificadas con
+  `catalog_v2_sources.py verify` (28 URLs nuevas en `sources_verified.json`). No hay electromiografía del envión ni del paseo Zercher:
+  los roles de los enviones se apoyan en el press de hombros y en una revisión de derivados olímpicos, y las variantes de potencia,
+  desde colgado y completas comparten la lectura de los estudios de la cargada o del arranque; cada `why` marca la inferencia.
+- Revisión limpia: tres revisores sin contexto (solo lectura) leyeron las 13 definiciones contra sus fuentes; sin citas infieles ni
+  roles claramente erróneos, y sus correcciones de redacción, atribución y seguridad de las pistas están aplicadas. Roles que quedan
+  para el OK del usuario: cuádriceps como primer PRIMARY en las completas y en la sentadilla de arranque, isquiosurales SECUNDARIOS en
+  todo lo olímpico, deltoides PRIMARY y piernas SECUNDARIAS en los enviones, abdominales PRIMARY junto al antebrazo en el maletín y
+  erectores como único PRIMARY del Zercher.
+- `efc/cnc/ssc/ttc` se heredan del perfil aprobado más cercano (campos de significado no documentado: `fieldSemanticsGap`) y
+  `technicalDifficulty` es una puntuación modelada de 4,5 a 7,0 entre anclas aprobadas: las 11 olímpicas (de 6,0 a 7,0) quedan fuera
+  de los planes de novatos (tope 5,2) mientras el generador no las marque `basic`.
+- Soportes y Kotlin: `push_jerk__barbell`, `split_jerk__barbell` y `overhead_squat__barbell` piden `rack` (`supportRequirementsFor`);
+  el resto no pide soporte y ninguna alta inventa uno. Los discos de goma y la plataforma para soltar la barra no tienen símbolo ni
+  llave en el paso de material.
+- Validación en el worktree: land de prueba (gate READY, auditoría 0/0, compile --check, pines), pytest de `scripts/tests` y del
+  backend (214 aprobadas y 162 subtests) y Kotlin Base (244 suites y 2435 pruebas, 0 fallos, filtradas por catálogo, equipo, generador y
+  planes). Los pines de cifras que se movieron son recuentos del catálogo (`AprendeCatalogAuditTest`, `ExerciseCatalogContractTest`, `test_catalog_v2_show.py` y el backend); ningún test de planes
+  (T006, cobertura, matriz ejecutable) cambió de cifras y la matriz del generador sale idéntica a `docs/entreno-v2/matrix-d1.txt`.
+- **No hecho:** el strongman que exige implementos fuera del vocabulario (yugo, piedras de atlas, tronco, eje, trineo, saco de arena,
+  neumático y barril: unas 21 configuraciones, con el recuento por implemento en el informe), el press de tronco o de eje y el peso
+  muerto de eje, el balance de arranque (sin evidencia) y las variantes desde bloques.
+- Pendiente: los 14 pares definición × implemento nuevos no tienen PNG (`catalog_v2_visual_brief.py` ya arma su brief) y el generador
+  (`MovementPools.kt`, `Disciplines.kt`) todavía no los cita: la tabla del final del informe dice dónde encajan.
 
 ### Campos retirados del esquema y prueba de no uso (F1)
 

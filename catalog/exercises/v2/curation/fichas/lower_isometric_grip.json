@@ -60,6 +60,299 @@
         "description": "La Suspensión Isométrica en Barra Fija, el dead hang, es el ejercicio de agarre más simple que existe: colgarse y aguantar. Se practica con los brazos rectos y los hombros lejos de las orejas, resistiendo el reloj con el peso corporal. El antebrazo se funde mientras el dorsal estira. La base de todo agarre fuerte y una descompresión de columna de regalo."
       },
       "status": "LEGACY"
+    },
+    "suitcase_carry": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Sostén isométrico de la pesa con la mano"
+            ],
+            "id": "muñeca",
+            "role": "PRIMARY",
+            "sources": [
+              "anat_forearm",
+              "ellestad2024"
+            ],
+            "why": "La muñeca no se mueve: se mantiene firme mientras los flexores de los dedos y de la muñeca sostienen el peso durante todo el recorrido. Una persona del estudio de Ellestad et al. no pudo mantener el agarre necesario para los acarreos."
+          },
+          {
+            "actions": [
+              "Resistencia a la flexión lateral hacia la pesa"
+            ],
+            "id": "columna-lumbar",
+            "role": "SECONDARY",
+            "sources": [
+              "ellestad2024",
+              "mcgill2009",
+              "anat_back"
+            ],
+            "why": "La columna lumbar resiste la flexión lateral que provoca el peso a un lado. Ellestad et al. midieron una gran actividad de los erectores y del oblicuo externo del lado contrario y McGill et al. documentaron la rigidez del tronco en los acarreos de strongman."
+          },
+          {
+            "actions": [
+              "Estabilidad lateral de la cadera en apoyo",
+              "Extensión y flexión de la cadera al caminar"
+            ],
+            "id": "cadera",
+            "role": "SECONDARY",
+            "sources": [
+              "graber2021",
+              "anat_hip"
+            ],
+            "why": "La cadera de la pierna en apoyo mantiene la pelvis nivelada con cada paso. Graber et al. midieron un aumento de la actividad abductora y del momento de cadera del lado contrario a una pesa llevada en una mano."
+          },
+          {
+            "actions": [
+              "Sostén del brazo colgando con la carga"
+            ],
+            "id": "glenohumeral",
+            "role": "STABILIZER",
+            "sources": [
+              "anat_rotator_cuff"
+            ],
+            "why": "El hombro del brazo cargado se mantiene centrado mientras la pesa tira de él hacia abajo; el manguito rotador es uno de los estabilizadores dinámicos de la articulación, una deducción anatómica sin medición propia."
+          },
+          {
+            "actions": [
+              "Sostén de la escápula bajo la carga"
+            ],
+            "id": "escapulotoracica",
+            "role": "STABILIZER",
+            "sources": [
+              "anat_trapezius"
+            ],
+            "why": "La escápula del lado cargado resiste que el peso la arrastre hacia abajo, con el trapecio como sostén; es una inferencia de la anatomía del músculo."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "forearm",
+            "role": "PRIMARY",
+            "sources": [
+              "anat_forearm",
+              "ellestad2024"
+            ],
+            "why": "La mano sostiene sola todo el peso, sin que la otra ayude, y los flexores de los dedos trabajan en isometría durante todo el recorrido. En el estudio de Ellestad et al. una persona no pudo mantener el agarre necesario para los acarreos y sus datos se excluyeron, un caso aislado que apunta a que el agarre puede ser el límite; la actividad del antebrazo no se midió y el papel se deduce de la anatomía."
+          },
+          {
+            "id": "abdominals",
+            "role": "PRIMARY",
+            "sources": [
+              "ellestad2024",
+              "anat_abdominal"
+            ],
+            "why": "El oblicuo externo rigidiza la pelvis y evita que el tronco se doble hacia la pesa. En Ellestad et al., con una mancuerna de unos 25 kg, el oblicuo externo del lado contrario a la carga se activó tanto como en la plancha, y los autores concluyen que el ejercicio puede servir para entrenarlo; el recto abdominal quedó claramente por debajo de la plancha."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "SECONDARY",
+            "sources": [
+              "ellestad2024",
+              "mcgill2009",
+              "anat_back"
+            ],
+            "why": "Los erectores del lado contrario a la pesa trabajan casi tanto como el oblicuo externo para sostener el tronco recto: Ellestad et al. midieron en el longissimus y el multifidus de ese lado una activación mayor que en la plancha y mayor que en el simple sostén de la pesa sin caminar. McGill et al. describen el mismo efecto de rigidez del tronco en los acarreos de strongman."
+          },
+          {
+            "id": "gluteus_medius",
+            "role": "SECONDARY",
+            "sources": [
+              "graber2021",
+              "anat_glute_med"
+            ],
+            "why": "En cada paso el glúteo medio de la pierna que queda en apoyo, del lado contrario a la carga, sostiene la pelvis para que no caiga hacia la pesa. Graber et al. midieron más actividad del abductor de cadera contralateral al caminar con una pesa en una mano, con una carga del 15 al 20 % del peso corporal."
+          },
+          {
+            "id": "trapezius",
+            "role": "STABILIZER",
+            "sources": [
+              "anat_trapezius"
+            ],
+            "why": "Las fibras superiores del trapecio sostienen la escápula del lado de la carga para que el hombro no se hunda bajo el peso; es una deducción de la función del músculo, sin medición en el paseo del maletín."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "mcgill2009",
+              "anat_ql"
+            ],
+            "why": "Los músculos profundos del tronco, entre ellos el cuadrado lumbar, generan par en el plano frontal para sostener el tronco y la pelvis. McGill et al. lo describieron en el paseo del yugo, donde el apoyo alterno de las piernas exige el mismo control en el plano frontal; aquí se extrapola esa función, ya que la acción exacta del cuadrado lumbar es difícil de aislar y no se midió en el paseo del maletín."
+          }
+        ]
+      },
+      "public": {
+        "configurations": {
+          "suitcase_carry__dumbbells": {
+            "description": "Con una mancuerna, el peso cuelga junto al muslo y se agarra por la empuñadura, de modo que la carga puede subir en escalones pequeños. Es la opción que permite ajustar mejor el peso en cada serie.",
+            "executionCues": [
+              "Camina en línea recta con pasos cortos y el tronco recto, sin dejar que el peso te incline hacia su lado.",
+              "Aprieta el abdomen y mantén la pelvis nivelada con cada paso.",
+              "Da la vuelta al final y cambia la pesa de mano para repetir el mismo recorrido."
+            ],
+            "setupCues": [
+              "Elige una mancuerna pesada y colócala a un lado del cuerpo.",
+              "Agárrala por la empuñadura y ponte de pie con el peso colgando junto al muslo, sin que toque la pierna.",
+              "Saca el pecho, nivela los hombros y mira al frente."
+            ]
+          },
+          "suitcase_carry__kettlebell": {
+            "description": "Con una kettlebell, el asa gruesa se sostiene con toda la mano y la masa cuelga por debajo del agarre, de modo que la pesa roza el muslo si el paso es largo. La carga se concentra en un único punto bajo la mano, lo que cambia el tacto del agarre.",
+            "executionCues": [
+              "Camina en línea recta con pasos cortos y el tronco recto, sin dejar que el peso te incline hacia su lado.",
+              "Aprieta el abdomen y mantén la pelvis nivelada con cada paso.",
+              "Da la vuelta al final y cambia la pesa de mano para repetir el mismo recorrido."
+            ],
+            "setupCues": [
+              "Elige una kettlebell pesada y colócala a un lado del cuerpo.",
+              "Agárrala por el asa con toda la mano y ponte de pie con la pesa colgando junto al muslo, sin que roce la pierna.",
+              "Saca el pecho, nivela los hombros y mira al frente."
+            ]
+          }
+        },
+        "description": "El Paseo del Maletín (suitcase carry) es una marcha con una sola pesa colgando de una mano, como quien lleva una maleta: el cuerpo avanza erguido mientras la carga intenta doblarlo hacia su lado. El antebrazo sostiene el peso y los oblicuos y los erectores del lado contrario frenan la inclinación, con el glúteo medio manteniendo la pelvis nivelada y el trapecio sujetando el hombro. Se hace por distancia o por tiempo y se repite con la otra mano. A diferencia del paseo del granjero, no hay un peso al otro lado que compense, así que la estabilidad la pone el propio tronco."
+      },
+      "sources": [
+        {
+          "claim": "En 18 adultos jóvenes sanos, comparó con electromiografía de superficie la plancha, el paseo del granjero y del maletín y los mismos sostenes sin caminar: el maletín con unos 25 kg activó el longissimus y el multifidus de los dos lados más que el sostén, el oblicuo externo del lado contrario a la carga no difirió del de la plancha, el recto abdominal quedó muy por debajo y una persona no pudo mantener el agarre necesario.",
+          "id": "ellestad2024",
+          "title": "The Quantification of Muscle Activation During the Loaded Carry Movement Pattern",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/38665162/"
+        },
+        {
+          "claim": "Analizó siete eventos de strongman con electromiografía y un modelo de columna, entre ellos el paseo del maletín: los acarreos exigen rigidez del tronco y, en el yugo, el cuadrado lumbar generó par en el plano frontal para sostener el tronco y la pelvis cuando la fuerza de abducción de la cadera no alcanzaba.",
+          "id": "mcgill2009",
+          "title": "Comparison of different strongman events: trunk muscle activation and lumbar spine motion, load, and stiffness",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/19528856/"
+        },
+        {
+          "claim": "En 26 adultos sanos que caminaron con una pesa en una mano (15 a 20 % del peso corporal), la actividad del abductor de cadera del lado contrario a la pesa aumentó, sin cambios en el lado de la pesa, junto con los momentos de cadera en el plano frontal.",
+          "id": "graber2021",
+          "title": "Hip and Trunk Muscle Activity and Mechanics During Walking With and Without Unilateral Weight",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/34051700/"
+        },
+        {
+          "claim": "Describe los compartimentos del antebrazo y los flexores de dedos y muñeca que sostienen el agarre.",
+          "id": "anat_forearm",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/"
+        },
+        {
+          "claim": "Describe la pared abdominal como estructura capaz de generar presión intraabdominal y mover la columna; sustenta su capacidad de fijar el tronco.",
+          "id": "anat_abdominal",
+          "title": "Anatomy, Abdomen and Pelvis: Abdominal Wall",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31869113/"
+        },
+        {
+          "claim": "Describe los músculos intrínsecos o profundos de la espalda, unidos a la columna, como los músculos propios de la espalda; su anatomía sustenta la extensión y el sostén de la columna.",
+          "id": "anat_back",
+          "title": "Anatomy, Back, Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725759/"
+        },
+        {
+          "claim": "Expone la función abductora y la estabilidad pélvica del glúteo medio.",
+          "id": "anat_glute_med",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Medius Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/32491441/"
+        },
+        {
+          "claim": "Describe las fibras superiores del trapecio como elevadoras y rotadoras superiores de la escápula, las medias como retractoras y las inferiores como depresoras; el músculo estabiliza y mueve la escápula.",
+          "id": "anat_trapezius",
+          "title": "Anatomy, Back, Trapezius",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30085536/"
+        },
+        {
+          "claim": "Sitúa el cuadrado lumbar lateral a la columna, entre la cresta ilíaca, las apófisis transversas lumbares y la duodécima costilla, y advierte de que su organización compleja dificulta precisar sus acciones.",
+          "id": "anat_ql",
+          "title": "Anatomy, Abdomen and Pelvis, Quadratus Lumborum",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30571028/"
+        },
+        {
+          "claim": "Describe la cadera como articulación que soporta dinámicamente el peso del tronco y transmite carga entre esqueleto axial y miembros inferiores.",
+          "id": "anat_hip",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hip Joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29262200/"
+        },
+        {
+          "claim": "El manguito rotador está entre los estabilizadores dinámicos de la articulación glenohumeral, que es muy móvil pero tiene poca estabilidad propia.",
+          "id": "anat_rotator_cuff",
+          "title": "Anatomy, Rotator Cuff",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/28722874/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Marcha con una sola carga que cuelga de una mano a un lado del cuerpo: el peso es asimétrico y el tronco debe resistir la flexión lateral hacia él mientras el atleta camina erguido con pasos cortos. Se separa del paseo del granjero porque la carga no está repartida entre las dos manos, y de la inclinación lateral con peso porque no hay recorrido: el tronco no se dobla, solo resiste.",
+        "keyPositions": [
+          "Postura de marcha: tronco vertical, hombros nivelados y pelvis horizontal, con la pesa colgando sin tocar el muslo.",
+          "Paso: el pie contrario a la pesa avanza mientras la pelvis sigue nivelada y la pesa apenas se balancea."
+        ],
+        "mistakes": [
+          "Dejar que la pesa doble el tronco hacia su lado.",
+          "Elevar el hombro de la carga hacia la oreja o dejarlo caer hacia delante.",
+          "Doblarse hacia el lado contrario para contrarrestar la carga y perder la línea del cuerpo.",
+          "Dar pasos largos o rápidos hasta que la pesa se balancee y golpee el muslo."
+        ],
+        "phases": [
+          {
+            "description": "El atleta se pone de pie con la pesa colgando de una mano, nivela hombros y pelvis y fija el abdomen antes de dar el primer paso.",
+            "name": "Salida"
+          },
+          {
+            "description": "Los pasos cortos y regulares avanzan con la pesa casi quieta, mientras el tronco resiste que la carga lo incline hacia su lado.",
+            "name": "Marcha"
+          },
+          {
+            "description": "Al final del recorrido el atleta se detiene, deja la pesa en el suelo o la pasa a la otra mano y repite el trayecto en sentido contrario.",
+            "name": "Giro y cambio de mano"
+          }
+        ],
+        "setup": [
+          "De pie con la pesa colgando de una mano junto al muslo, el brazo estirado y el hombro firme, sin elevarse ni caer.",
+          "Hombros a la misma altura, pecho abierto, pelvis neutra y la vista al frente."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista de frente a la altura del pecho, con el atleta entero de la cabeza a los pies y la pesa en su mano dentro del encuadre.",
+          "contacts": "Pies planos en el suelo a la anchura de las caderas; una mano agarra la pesa y la otra queda libre; la pesa no toca el muslo ni el suelo.",
+          "load": "Una sola pesa colgando de una mano a un lado del cuerpo, separada del suelo.",
+          "orientation": "Atleta de frente a la cámara, con la mano que sostiene la pesa a la izquierda del encuadre y la mano libre suelta junto al muslo.",
+          "phase": "Postura de marcha con una pesa colgando de la mano derecha, el tronco erguido y los hombros nivelados.",
+          "posture": "Tronco vertical sin inclinarse hacia la pesa, hombros y pelvis nivelados, pecho abierto y mirada al frente."
+        },
+        "byImplement": {
+          "dumbbells": {
+            "geometry": "Una mancuerna sujeta por la empuñadura con el brazo estirado a un lado del cuerpo, con la barra corta paralela al suelo y los discos o cabezas uno delante y otro detrás de la mano; separada del muslo y del suelo."
+          },
+          "kettlebell": {
+            "geometry": "Una kettlebell sujeta por el asa con el brazo estirado a un lado del cuerpo, con el cuerpo de la pesa colgando bajo la mano; separada del muslo y del suelo."
+          }
+        },
+        "byVariant": {
+          "suitcase_carry__kettlebell": {
+            "difference": "La pesa es una kettlebell cuya masa cuelga por debajo del asa agarrada, en lugar de una empuñadura recta con dos cabezas a los lados de la mano."
+          }
+        },
+        "forbidden": [
+          "Una pesa en cada mano: eso es un paseo del granjero.",
+          "Tronco inclinado hacia el lado de la pesa o con el hombro de ese lado caído.",
+          "Pesa sobre el hombro o apoyada en el pecho: eso es otro acarreo.",
+          "Las dos manos sosteniendo la misma pesa.",
+          "Pesa flotando sin que la mano la agarre."
+        ],
+        "promptCore": {
+          "dumbbells": "Front view of an athlete frozen in the carrying posture of a suitcase carry. One heavy dumbbell hangs from the right hand at the side of the body with the arm straight, the handle gripped tightly, and the dumbbell does not touch the thigh or the floor. The left hand hangs free at the left side. The torso is perfectly upright without leaning toward the weight, the shoulders and hips are level, the chest is open and the eyes look forward. Both feet are flat on the floor at hip width. No text or logos.",
+          "kettlebell": "Front view of an athlete frozen in the carrying posture of a suitcase carry. One heavy kettlebell hangs from the right hand at the side of the body with the arm straight, the handle gripped tightly, and the bell hangs below the hand without touching the thigh or the floor. The left hand hangs free at the left side. The torso is perfectly upright without leaning toward the weight, the shoulders and hips are level, the chest is open and the eyes look forward. Both feet are flat on the floor at hip width. No text or logos."
+        },
+        "qa": [
+          "¿La mano agarra la pesa y la carga no flota suelta?",
+          "¿Hay una sola pesa, colgando de una mano a un lado del cuerpo?",
+          "¿El tronco está vertical, con los hombros y la pelvis nivelados, sin inclinarse hacia la pesa?",
+          "¿La pesa cuelga separada del muslo y del suelo?"
+        ]
+      }
     }
   },
   "familyId": "lower_isometric_grip",
