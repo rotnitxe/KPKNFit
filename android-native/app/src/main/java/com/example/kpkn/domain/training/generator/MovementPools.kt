@@ -28,6 +28,18 @@ import com.example.kpkn.domain.onboarding.LiftMark
  * en máquina…) comparten grupo con las de siempre cuando son equivalentes (así rotan con la semilla) o van en un grupo propio con
  * `bias` cuando son otra cosa. Los implementos que `EquipmentTier` agrupa como `OTHER` (discos, GHD, rueda) llevan un `bias`
  * negativo: sin él su rango (7,0) los dejaría siempre detrás de todo y nunca saldrían.
+ *
+ * Halterofilia y acarreos (lote OL-1, paquete D1b): cargadas, arranques, tirones, enviones, sentadilla de arranque y los paseos
+ * del maletín y Zercher. Los levantamientos olímpicos miden de 6,0 a 7,0 de dificultad: el tope del novato (5,2) los deja fuera
+ * y, además, NINGUNO es `basic` (la exención del novato es solo de los básicos de fuerza) y todos piden nivel intermedio o
+ * avanzado. Los que se hacen sacando la barra de un soporte (enviones y sentadilla de arranque) declaran `requires = "rack"`.
+ * En las reservas generales solo entran, muy atrás, las cuatro de potencia (para quien tiene barra y no kettlebell) y los
+ * acarreos; las reservas de halterofilia y de strongman (`DisciplinePools`) los usan de verdad.
+ *
+ * Marcas: los levantamientos olímpicos cuelgan de las marcas del arranque (`LiftMark.SNATCH`) y de los dos tiempos
+ * (`LiftMark.CLEAN_AND_JERK`) con un `factor` que es la razón habitual entre cada variante y su levantamiento, TOMADA POR
+ * DEBAJO (lado seguro: 0,65–1,0). Son aproximaciones, no mediciones, y hoy el wizard no pregunta esas marcas
+ * (`MarksContext.CATALOG_HAS_OLYMPIC_LIFTS`): sin marca la serie sale con «carga pendiente», como el swing.
  */
 
 /** Naturaleza del ejercicio: decide repeticiones, descansos y cómo se prescribe. */
@@ -456,6 +468,10 @@ internal object MovementPools {
         g(e("forearms_suspension_isometrica_barra_fija__default", "pull_up_bar", kind = ExKind.TIMED)),
         // Pinza con discos: agarre isométrico, por tiempo.
         g(e("forearms_pinza_de_discos__default", kind = ExKind.TIMED), bias = -2.0),
+        // Paseo del maletín (una mano): el antebrazo es su primer músculo principal. Detrás del curl de muñeca con mancuernas, para
+        // que alternen a lo largo de la semana.
+        g(e("suitcase_carry__dumbbells", kind = ExKind.TIMED), bias = 0.6),
+        g(e("suitcase_carry__kettlebell", kind = ExKind.TIMED), bias = 0.6),
     )
 
     private val carry = listOf(
@@ -464,6 +480,13 @@ internal object MovementPools {
         // Paseo del granjero con la barra hexagonal (gimnasio) y con discos: detrás de las mancuernas, que son las de siempre.
         g(e("forearms_paseo_del_granjero__hex_bar", kind = ExKind.TIMED), bias = 1.2),
         g(e("forearms_paseo_del_granjero__plate", kind = ExKind.TIMED), bias = -2.5),
+        // Paseo del maletín (una mano, resiste la inclinación lateral): detrás del granjero, que es el de siempre, y alterna con él
+        // durante la semana (cada uso de un ejercicio retrasa al siguiente).
+        g(e("suitcase_carry__dumbbells", kind = ExKind.TIMED), bias = 0.4),
+        g(e("suitcase_carry__kettlebell", kind = ExKind.TIMED), bias = 0.4),
+        // Paseo Zercher (barra en los codos): erectores con carga. Un acarreo con la barra en los codos no es un primer ejercicio:
+        // solo desde el nivel intermedio y detrás del granjero y del maletín.
+        g(e("zercher_carry__barbell", kind = ExKind.TIMED, minLevel = INT), bias = 1.5),
     )
 
     private val quadIsolation = listOf(
@@ -528,6 +551,9 @@ internal object MovementPools {
         ),
         g(e("core_inclinacion_lateral__default", kind = ExKind.CORE_DYNAMIC)),
         g(e("copenhagen_plank__default", "bench", kind = ExKind.TIMED, minLevel = INT)),
+        // Paseo del maletín como alternativa lateral a la plancha: el abdomen resiste la inclinación hacia la carga (por tiempo).
+        g(e("suitcase_carry__dumbbells", kind = ExKind.TIMED), bias = 1.0),
+        g(e("suitcase_carry__kettlebell", kind = ExKind.TIMED), bias = 1.0),
     )
 
     private val backExtension = listOf(
@@ -537,11 +563,24 @@ internal object MovementPools {
             e("bird_dog__default", kind = ExKind.CORE_DYNAMIC),
         ),
         g(e("back_extension_lumbar__default", kind = ExKind.ISOLATION), bias = 0.3),
+        // Paseo Zercher: el único de la reserva con carga externa (erectores como primer músculo principal). Desde el nivel
+        // intermedio y detrás de la máquina y del peso corporal: solo sale cuando los demás ya se usaron esa semana.
+        g(e("zercher_carry__barbell", kind = ExKind.TIMED, minLevel = INT), bias = 6.5),
     )
 
     private val power = listOf(
         g(e("hams_swing_kettlebell_dos_manos__default", kind = ExKind.BALLISTIC, basic = true, reps = 10..15)),
         g(e("deltoides_push_press__default", kind = ExKind.BALLISTIC, minLevel = INT, reps = 3..5)),
+        // Cargadas y arranques de potencia (barra y discos, sin soporte): solo desde el nivel intermedio (los del suelo, desde el
+        // avanzado), nunca `basic`, y detrás del swing (rango 4,0 con kettlebell) y del push press: son para quien tiene barra y no
+        // kettlebell, o ya agotó esos dos esa semana. Los levantamientos completos (de sentadilla) solo viven en halterofilia.
+        g(
+            e("hang_power_clean__barbell", kind = ExKind.BALLISTIC, minLevel = INT, reps = 2..3, mark = LiftMark.CLEAN_AND_JERK, factor = 0.7),
+            e("hang_power_snatch__barbell", kind = ExKind.BALLISTIC, minLevel = INT, reps = 2..3, mark = LiftMark.SNATCH, factor = 0.65),
+            e("power_clean__barbell", kind = ExKind.BALLISTIC, minLevel = ADV, reps = 2..3, mark = LiftMark.CLEAN_AND_JERK, factor = 0.75),
+            e("power_snatch__barbell", kind = ExKind.BALLISTIC, minLevel = ADV, reps = 2..3, mark = LiftMark.SNATCH, factor = 0.7),
+            bias = 4.5,
+        ),
     )
 
     /** Reserva de cada patrón (sin las escaleras de peso corporal, que viven en [BodyweightLadders]). */
@@ -594,6 +633,10 @@ internal object DisciplinePools {
     const val SUPINATION = "supination"
     const val REVERSE_CURL = "reverse_curl"
     const val HOLD = "hold"
+
+    // Familias de la potencia en halterofilia: el hueco «olímpico» pide cargada o arranque; el «overhead», el empuje explosivo.
+    const val OLYMPIC = "olympic"
+    const val OVERHEAD = "overhead"
 
     /**
      * Antebrazo y muñeca: las diez definiciones del catálogo con el antebrazo como músculo principal que se pueden
@@ -654,6 +697,29 @@ internal object DisciplinePools {
             e("military_press__barbell", kind = ExKind.HEAVY, basic = true, fitsRole = ItemRole.MAIN, mark = LiftMark.OVERHEAD_PRESS),
             e("deltoides_push_press__default", kind = ExKind.BALLISTIC, minLevel = INT, fitsRole = ItemRole.MAIN, mark = LiftMark.OVERHEAD_PRESS, factor = 1.1, reps = 3..5),
         ),
+        // Envión (la barra se saca de un soporte): lo más cercano a un press de tronco o de eje que tiene el catálogo. Detrás del
+        // press y del push press en los huecos principales y delante de ellos en el de «press explosivo» (rol secundario).
+        g(
+            e("push_jerk__barbell", "rack", kind = ExKind.BALLISTIC, minLevel = INT, fitsRole = ItemRole.SECONDARY, reps = 2..4, mark = LiftMark.CLEAN_AND_JERK, factor = 1.0),
+            e("split_jerk__barbell", "rack", kind = ExKind.BALLISTIC, minLevel = ADV, fitsRole = ItemRole.SECONDARY, reps = 2..4, mark = LiftMark.CLEAN_AND_JERK, factor = 1.0),
+            bias = 0.4,
+        ),
+    )
+
+    /**
+     * Acarreos del strongman: el paseo del granjero (barra hexagonal, mancuernas, kettlebell y discos: hay cuatro configuraciones),
+     * el del maletín (una mano) y el Zercher. NO hay yugo, saco, piedras, tronco, eje ni trineo en el catálogo: no se citan. La barra
+     * hexagonal va primera (se carga más que con mancuernas) y el Zercher, detrás del granjero. El granjero y el maletín son
+     * definiciones distintas: una sesión con dos huecos de acarreo lleva el granjero y, en el otro, el maletín o el Zercher.
+     */
+    private val strongmanCarry = listOf(
+        g(e("forearms_paseo_del_granjero__hex_bar", kind = ExKind.TIMED)),
+        g(e("forearms_paseo_del_granjero__dumbbells", kind = ExKind.TIMED)),
+        g(e("forearms_paseo_del_granjero__kettlebell", kind = ExKind.TIMED)),
+        g(e("forearms_paseo_del_granjero__plate", kind = ExKind.TIMED), bias = -2.5),
+        g(e("zercher_carry__barbell", kind = ExKind.TIMED, minLevel = INT), bias = 1.5),
+        g(e("suitcase_carry__dumbbells", kind = ExKind.TIMED), bias = 0.4),
+        g(e("suitcase_carry__kettlebell", kind = ExKind.TIMED), bias = 0.4),
     )
 
     /** Halterofilia base: sentadilla frontal antes que la trasera, push press, y el peso muerto hasta la rodilla como tirón. */
@@ -663,19 +729,65 @@ internal object DisciplinePools {
             e("high_bar_back_squat__barbell", "rack", kind = ExKind.HEAVY, basic = true, fitsRole = ItemRole.MAIN, mark = LiftMark.SQUAT),
             e("paused_back_squat__barbell", "rack", kind = ExKind.HEAVY, minLevel = INT, fitsRole = ItemRole.SECONDARY, mark = LiftMark.SQUAT, factor = 0.85),
         ),
+        // Sentadilla de arranque (barra sobre la cabeza, sacada del rack): accesorio de movilidad y recepción con carga ligera, no
+        // el principal. Para un hueco de rol accesorio gana a las anteriores (que son de rol principal); para uno principal, no.
+        g(e("overhead_squat__barbell", "rack", kind = ExKind.COMPOUND, minLevel = INT, fitsRole = ItemRole.ACCESSORY, mark = LiftMark.SNATCH, factor = 0.9)),
     )
+
+    /**
+     * Bisagra de la halterofilia: peso muerto hasta la rodilla y convencional para el hueco principal, los tirones de cargada y de
+     * arranque (nivel intermedio) para el secundario y el rumano para el accesorio (y para quien aún no hace tirones). El rumano no
+     * declara rol para ganar el hueco accesorio sin quitarles el secundario a los tirones.
+     */
     private val weightliftingHinge = listOf(
         g(
             e("deadlift_to_knees__barbell", kind = ExKind.HEAVY, basic = true, fitsRole = ItemRole.MAIN, mark = LiftMark.DEADLIFT, factor = 0.85),
             e("conventional_deadlift__bilateral__barbell", kind = ExKind.HEAVY, basic = true, fitsRole = ItemRole.MAIN, mark = LiftMark.DEADLIFT),
-            e("romanian_deadlift__bilateral__barbell", basic = true, fitsRole = ItemRole.SECONDARY, mark = LiftMark.DEADLIFT, factor = 0.7),
+        ),
+        g(
+            e("clean_pull__barbell", kind = ExKind.HEAVY, minLevel = INT, fitsRole = ItemRole.SECONDARY, mark = LiftMark.CLEAN_AND_JERK, factor = 1.0),
+            e("snatch_pull__barbell", kind = ExKind.HEAVY, minLevel = INT, fitsRole = ItemRole.SECONDARY, mark = LiftMark.SNATCH, factor = 1.0),
+        ),
+        g(
+            e("romanian_deadlift__bilateral__barbell", basic = true, mark = LiftMark.DEADLIFT, factor = 0.7),
+            bias = 0.2,
         ),
     )
+
+    /**
+     * Empuje vertical de la halterofilia. En el hueco secundario (el del día de cuerpo completo) el push press y los enviones van
+     * antes que el press estricto; en el principal (el día de empuje sobre la cabeza) sigue mandando el press militar de la reserva
+     * general, que declara rol principal (aquí los tres declaran rol secundario: para un hueco principal pierden 1,2 de rango).
+     */
+    private val weightliftingVerticalPush = listOf(
+        g(
+            e("deltoides_push_press__default", kind = ExKind.BALLISTIC, basic = true, fitsRole = ItemRole.SECONDARY, reps = 3..5, mark = LiftMark.OVERHEAD_PRESS, factor = 1.1),
+            e("push_jerk__barbell", "rack", kind = ExKind.BALLISTIC, minLevel = INT, fitsRole = ItemRole.SECONDARY, reps = 2..4, mark = LiftMark.CLEAN_AND_JERK, factor = 1.0),
+            e("split_jerk__barbell", "rack", kind = ExKind.BALLISTIC, minLevel = ADV, fitsRole = ItemRole.SECONDARY, reps = 2..4, mark = LiftMark.CLEAN_AND_JERK, factor = 1.0),
+        ),
+    )
+
+    /**
+     * Potencia de la halterofilia, en dos familias (`SlotSpec.tag`): el hueco «olímpico» lleva cargada o arranque (de colgado desde el
+     * nivel intermedio; del suelo y completos, desde el avanzado) y el «overhead», el empuje explosivo (push press y envión). Sin
+     * barra, el swing con kettlebell es el único «overhead». Ningún levantamiento olímpico es `basic` (el push press y el swing sí
+     * lo eran y lo siguen siendo); los enviones piden rack.
+     */
     private val weightliftingPower = listOf(
         g(
-            e("deltoides_push_press__default", kind = ExKind.BALLISTIC, basic = true, reps = 3..5, mark = LiftMark.OVERHEAD_PRESS, factor = 1.1),
+            e("hang_power_clean__barbell", kind = ExKind.BALLISTIC, minLevel = INT, reps = 2..3, mark = LiftMark.CLEAN_AND_JERK, factor = 0.7, tag = OLYMPIC),
+            e("hang_power_snatch__barbell", kind = ExKind.BALLISTIC, minLevel = INT, reps = 2..3, mark = LiftMark.SNATCH, factor = 0.65, tag = OLYMPIC),
+            e("power_clean__barbell", kind = ExKind.BALLISTIC, minLevel = ADV, reps = 2..3, mark = LiftMark.CLEAN_AND_JERK, factor = 0.75, tag = OLYMPIC),
+            e("power_snatch__barbell", kind = ExKind.BALLISTIC, minLevel = ADV, reps = 2..3, mark = LiftMark.SNATCH, factor = 0.7, tag = OLYMPIC),
+            e("squat_clean__barbell", kind = ExKind.BALLISTIC, minLevel = ADV, reps = 2..3, mark = LiftMark.CLEAN_AND_JERK, factor = 0.95, tag = OLYMPIC),
+            e("squat_snatch__barbell", kind = ExKind.BALLISTIC, minLevel = ADV, reps = 2..3, mark = LiftMark.SNATCH, factor = 0.95, tag = OLYMPIC),
         ),
-        g(e("hams_swing_kettlebell_dos_manos__default", kind = ExKind.BALLISTIC, basic = true, reps = 8..12)),
+        g(
+            e("deltoides_push_press__default", kind = ExKind.BALLISTIC, basic = true, reps = 3..5, mark = LiftMark.OVERHEAD_PRESS, factor = 1.1, tag = OVERHEAD),
+            e("push_jerk__barbell", "rack", kind = ExKind.BALLISTIC, minLevel = INT, reps = 2..4, mark = LiftMark.CLEAN_AND_JERK, factor = 1.0, tag = OVERHEAD),
+            e("split_jerk__barbell", "rack", kind = ExKind.BALLISTIC, minLevel = ADV, reps = 2..4, mark = LiftMark.CLEAN_AND_JERK, factor = 1.0, tag = OVERHEAD),
+        ),
+        g(e("hams_swing_kettlebell_dos_manos__default", kind = ExKind.BALLISTIC, basic = true, reps = 8..12, tag = OVERHEAD)),
     )
 
     /** Powerlifting: los tres levantamientos de competición primero, y sus variantes (pausa, agarre cerrado, déficit parcial). */
@@ -712,10 +824,12 @@ internal object DisciplinePools {
             RoutinePattern.HINGE to strongmanHinge,
             RoutinePattern.SINGLE_LEG to strongmanSingleLeg,
             RoutinePattern.VERTICAL_PUSH to strongmanVerticalPush,
+            RoutinePattern.CARRY to strongmanCarry,
         ),
         RoutineMode.DISCIPLINE_WEIGHTLIFTING_BASE to mapOf(
             RoutinePattern.SQUAT to weightliftingSquat,
             RoutinePattern.HINGE to weightliftingHinge,
+            RoutinePattern.VERTICAL_PUSH to weightliftingVerticalPush,
             RoutinePattern.POWER to weightliftingPower,
         ),
         RoutineMode.CUSTOM_POWERLIFTING to mapOf(

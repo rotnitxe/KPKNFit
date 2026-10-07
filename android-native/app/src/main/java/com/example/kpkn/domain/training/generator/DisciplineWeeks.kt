@@ -31,9 +31,11 @@ import com.example.kpkn.domain.training.generator.RoutinePattern.VERTICAL_PUSH
  * - **Calistenia**: empuje, tirón, piernas y core con peso corporal (escaleras de progresión según las capacidades).
  * - **Armwrestling**: antebrazo y muñeca (flexión, extensión, pronación, supinación, curl inverso y agarre isométrico),
  *   espalda y bíceps, fuerza de base y una sesión de mesa y hombro.
- * - **Strongman**: peso muerto y espalda, sentadilla y press, acarreos y eventos, empuje y espalda alta, piernas.
- * - **Base de halterofilia**: sentadilla y tirones, empuje sobre la cabeza y potencia, sentadilla frontal y piernas, tirones y
- *   espalda alta; movilidad en cada sesión (los levantamientos olímpicos aún no están en el catálogo).
+ * - **Strongman**: peso muerto y espalda, sentadilla y press, acarreos y eventos (granjero, maletín y Zercher), empuje y espalda
+ *   alta, piernas.
+ * - **Base de halterofilia**: sentadilla y tirones, empuje sobre la cabeza y potencia (cargada o arranque de potencia, envión o
+ *   push press y sentadilla de arranque desde el nivel intermedio), sentadilla frontal y piernas, tirones y espalda alta; movilidad
+ *   en cada sesión. Cargada y arranque desde bloques y los complejos aún no están en el catálogo.
  * - **Powerlifting a medida**: sentadilla, banca y peso muerto (con sus variantes) y días de accesorios.
  */
 internal object DisciplineWeeks {
@@ -196,7 +198,7 @@ internal object DisciplineWeeks {
     )
 
     private fun smEvents(suffix: String = "") = session(
-        "SME$suffix", "Acarreos y eventos$suffix", "Paseo del granjero, bisagra, press explosivo y agarre",
+        "SME$suffix", "Acarreos y eventos$suffix", "Paseo del granjero, del maletín o Zercher, bisagra, envión o press explosivo y agarre",
         listOf(
             s(CARRY, CARRY_ROLE), s(HINGE, SECONDARY), s(VERTICAL_PUSH, SECONDARY), s(CARRY, CARRY_ROLE), s(GRIP, ISOLATION),
             s(CORE_ROTATION, CORE_ROLE),
@@ -237,7 +239,7 @@ internal object DisciplineWeeks {
     private val liftingMobility = MobilitySpec(MobilityFocus.FULL, seconds = 8 * 60)
 
     private fun wlSquat() = session(
-        "WLS", "Sentadilla y tirones", "Sentadilla, tirón desde la rodilla y remo",
+        "WLS", "Sentadilla y tirones", "Sentadilla, tirón (desde la rodilla o de cargada y arranque) y remo",
         listOf(
             s(SQUAT, MAIN), s(HINGE, SECONDARY), s(HORIZONTAL_PULL, SECONDARY), s(TRAPS, ISOLATION), s(CORE_STABILITY, CORE_ROLE),
             s(BACK_EXTENSION, CORE_ROLE),
@@ -245,11 +247,19 @@ internal object DisciplineWeeks {
         mobility = liftingMobility,
     )
 
+    /**
+     * Día de la técnica olímpica: primero el hueco «olímpico» (cargada o arranque de potencia, con el cuerpo fresco), después el empuje
+     * explosivo (envión o push press, o el swing sin barra), el press estricto, la sentadilla de arranque como accesorio de movilidad
+     * y la espalda alta. Sin barra o con nivel de novato el hueco olímpico queda vacío (no hay cargada ni arranque) y la sesión sigue
+     * con lo demás.
+     */
     private fun wlOverhead(suffix: String = "") = session(
-        "WLO$suffix", "Empuje sobre la cabeza y potencia$suffix", "Push press, press estricto, swing y espalda alta",
+        "WLO$suffix", "Empuje sobre la cabeza y potencia$suffix",
+        "Cargada o arranque de potencia, envión o push press, press estricto y espalda alta",
         listOf(
-            s(POWER, POWER_ROLE), s(VERTICAL_PUSH, MAIN), s(POWER, POWER_ROLE), s(VERTICAL_PULL, SECONDARY), s(REAR_DELT, ISOLATION),
-            s(TRICEPS, ISOLATION), s(CORE_ROTATION, CORE_ROLE),
+            s(POWER, POWER_ROLE, DisciplinePools.OLYMPIC), s(POWER, POWER_ROLE, DisciplinePools.OVERHEAD), s(VERTICAL_PUSH, MAIN),
+            s(SQUAT, ACCESSORY), s(VERTICAL_PULL, SECONDARY), s(REAR_DELT, ISOLATION), s(TRICEPS, ISOLATION),
+            s(CORE_ROTATION, CORE_ROLE),
         ),
         mobility = liftingMobility,
     )
@@ -270,11 +280,16 @@ internal object DisciplineWeeks {
         mobility = liftingMobility,
     )
 
+    /**
+     * Sesión de un solo día: cargada o arranque de potencia, sentadilla y empuje sobre la cabeza (push press o envión, que la reserva
+     * de empuje vertical de la halterofilia pone delante del press estricto en el hueco secundario). Con poco tiempo solo caben esos
+     * tres huecos, y juntos ya son cuerpo completo (pierna y empuje); el tirón, el remo y el empuje horizontal entran con más minutos.
+     */
     private fun wlFull() = session(
-        "WLB", "Cuerpo completo", "Sentadilla, push press, tirón y core",
+        "WLB", "Cuerpo completo", "Cargada o arranque de potencia, sentadilla, envión o push press, tirón y core",
         listOf(
-            s(SQUAT, MAIN), s(VERTICAL_PUSH, SECONDARY), s(POWER, POWER_ROLE), s(HINGE, SECONDARY), s(HORIZONTAL_PULL, SECONDARY),
-            s(HORIZONTAL_PUSH, SECONDARY), s(CORE_STABILITY, CORE_ROLE),
+            s(POWER, POWER_ROLE, DisciplinePools.OLYMPIC), s(SQUAT, MAIN), s(VERTICAL_PUSH, SECONDARY),
+            s(HINGE, SECONDARY), s(HORIZONTAL_PULL, SECONDARY), s(HORIZONTAL_PUSH, SECONDARY), s(CORE_STABILITY, CORE_ROLE),
         ),
         mobility = liftingMobility,
     )
@@ -398,7 +413,7 @@ internal object DisciplineWeeks {
                 else -> "peso muerto, sentadilla y press, acarreos y eventos, y trabajo de empuje y piernas$recovery"
             }
             RoutineMode.DISCIPLINE_WEIGHTLIFTING_BASE -> when (n) {
-                1 -> "una sesión de sentadilla, push press y tirones con movilidad"
+                1 -> "una sesión de sentadilla, potencia, empuje sobre la cabeza y tirones con movilidad"
                 2 -> "sentadilla y tirones, y empuje sobre la cabeza y potencia, con movilidad"
                 else -> "sentadilla, empuje sobre la cabeza y potencia, sentadilla frontal y tirones, con movilidad$recovery"
             }
