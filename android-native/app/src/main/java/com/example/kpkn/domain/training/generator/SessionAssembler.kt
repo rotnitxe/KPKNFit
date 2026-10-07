@@ -57,6 +57,8 @@ internal data class AssembledSession(
  *   la forma de meter más ejercicios sin acortar descansos de los compuestos. Si una pareja no entra (por tiempo o porque el
  *   presupuesto de volumen de uno de sus dos ejercicios está agotado) se intenta cada ejercicio por separado.
  * - Prioridades: tras un primer ajuste, cada hueco prioritario sube a +25 % de las series que consiguió (`Bundle.boostFloor`).
+ *   El tiempo nunca se lo quita antes que a lo demás: lo prioritario es lo último que se recorta (`MinuteFitter.trimOrder`) y, si ni
+ *   así cabe, la rutina lo dice en una nota.
  * - Si tras ajustar sobran más de 4 min, se añaden ejercicios de relleno (el patrón cuyo músculo está más lejos de su objetivo
  *   semanal, uno por patrón y como mucho dos de core) antes de alargar descansos, movilidad o cardio.
  * - Con más tiempo del que la fuerza absorbe de forma útil (tope por nivel: 70/80/110/130 min) o cuando el material y los
@@ -327,6 +329,13 @@ internal object SessionAssembler {
         }
         val final = requireNotNull(best)
         restore(state, final.snapshot)
+        // Lo prioritario es lo último que el tiempo recorta; si aun así no cabe todo lo que se pidió, se dice (una sola nota por rutina).
+        val squeezed = state.bundles.any { bundle ->
+            if (!bundle.isPriority) return@any false
+            val reachable = minOf(bundle.baseSets, room.maxSets(bundle, state.bundles))
+            reachable >= bundle.minSets && (if (bundle.included) bundle.sets else 0) < reachable
+        }
+        if (squeezed) ctx.notes += priorityTimeNote(ctx)
         val finalSession = final.session.copy(targetDurationMinutes = minutesOf(final.seconds))
         val inWindow = minutesOf(final.seconds) in ctx.windowMinutes
 
@@ -737,13 +746,15 @@ internal object SessionAssembler {
             if (state.fillerCardioSeconds < 8 * 60) state.fillerCardioSeconds = 0
             return true
         }
-        val included = state.bundles.filter { it.included }.sortedByDescending { it.priority }
+        // De atrás hacia delante y lo prioritario al final: solo se toca si no queda otra cosa.
+        val included = MinuteFitter.trimOrder(state.bundles)
         included.firstOrNull { it.rest > it.minRest }?.let { it.rest = (it.rest - 15).coerceAtLeast(it.minRest); return true }
-        included.firstOrNull { it.sets > it.minSets }?.let { it.sets--; return true }
+        included.firstOrNull { !it.isPriority && it.sets > it.minSets }?.let { it.sets--; return true }
         if (state.mobilitySeconds >= 120 && state.mobilitySeconds > 0) {
             state.mobilitySeconds -= 60
             return true
         }
+        included.firstOrNull { it.isPriority && it.sets > it.minSets }?.let { it.sets--; return true }
         val itemCount = included.sumOf { it.items.size }
         val dropped = included.firstOrNull { itemCount - it.items.size >= minItems }
         if (dropped != null) {
@@ -755,7 +766,8 @@ internal object SessionAssembler {
 
     /** Un paso para alargar la sesión; false si ya no queda ninguno. */
     private fun growOnce(state: State, ctx: GenContext, room: VolumeRoom, plan: SessionPlan): Boolean {
-        val included = state.bundles.filter { it.included }.sortedBy { it.priority }
+        // Lo prioritario recibe el tiempo sobrante primero.
+        val included = MinuteFitter.growOrder(state.bundles)
         included.firstOrNull { it.sets < minOf(it.maxSets, room.maxSets(it, state.bundles, soft = true)) }?.let { it.sets++; return true }
         included.firstOrNull { it.restExtendable && it.rest + 15 <= it.maxRest }?.let { it.rest += 15; return true }
         if (plan.cardio != CardioMode.INTERVALS_FILL && plan.cardio != CardioMode.ZONE2_FILL && state.mobilitySeconds < 20 * 60) {
@@ -770,6 +782,10 @@ internal object SessionAssembler {
     private fun cardioOmittedNote(ctx: GenContext): String =
         "Con ${ctx.targetMinutes} min por sesión no cabe un bloque de cardio y una sesión de fuerza completa: " +
             "el cardio no se recorta, así que va en otras sesiones. Con más minutos se suma al final de cada sesión de fuerza."
+
+    private fun priorityTimeNote(ctx: GenContext): String =
+        "Con ${ctx.targetMinutes} min por sesión no caben todas las series que piden tus prioridades en alguna sesión: " +
+            "con más minutos por sesión o con menos prioridades llegan completas."
 
     private fun longSessionNote(ctx: GenContext): String =
         "Con ${ctx.targetMinutes} min por sesión no hay más trabajo de fuerza útil con tu material y tus techos de volumen semanal: " +
