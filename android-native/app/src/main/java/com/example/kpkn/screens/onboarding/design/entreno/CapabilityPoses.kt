@@ -120,9 +120,10 @@ internal object CapabilityPoses {
     fun dip(d: Float, out: FigPose) {
         val k = FigGeo.clamp01(d)
         val hx = 42f
-        val reach = FigGeo.lerp(ARM - 0.4f, 8.5f, k)
-        val sh = Offset(hx - 0.5f + 2.5f * k, DIP_BAR_Y - reach)
-        val lean = FigGeo.lerp(0.20f, 0.40f, k)
+        val reach = FigGeo.lerp(ARM - 0.4f, 9.0f, k)
+        val sh = Offset(hx - 1.0f + 1.5f * k, DIP_BAR_Y - reach)
+        // El tronco se inclina hacia delante: así el brazo (vertical) y el tronco se ven como dos trazos y no uno solo.
+        val lean = FigGeo.lerp(0.45f, 0.75f, k)
         val hip = sh - FigGeo.up(lean) * FigGeo.TORSO
         out.solve(
             hip, lean,
