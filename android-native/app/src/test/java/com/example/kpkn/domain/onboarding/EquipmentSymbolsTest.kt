@@ -4,6 +4,7 @@ import com.example.kpkn.data.models.ApparatusPresence
 import com.example.kpkn.data.models.EquipmentAvailability
 import com.example.kpkn.data.models.EquipmentCategory
 import com.example.kpkn.domain.training.EFFECTIVE_EQUIPMENT_KEYS
+import com.example.kpkn.domain.training.SYMBOL_EQUIPMENT_KEYS
 import com.example.kpkn.domain.training.TrainingOptions
 import com.example.kpkn.domain.training.effectiveEquipment
 import org.junit.Assert.assertEquals
@@ -51,6 +52,24 @@ class EquipmentSymbolsTest {
                 val expected = if (selection.isEmpty()) setOf(EquipmentSymbolId.BODYWEIGHT_ONLY) else selection
                 assertEquals("lugares=$places selección=$selection", expected, roundTrip(selection, places))
                 mask += stride
+            }
+        }
+    }
+
+    @Test
+    fun theRoundTripStaysExactForEverySelectionOfTheSymbolsThatCarryExtrasInEveryPlaceCombination() {
+        // Paquete E: los extras sin símbolo propio (discos, hexagonal, T, GHD, rueda abdominal y la barra baja del parque)
+        // cuelgan de estos símbolos; el barrido de arriba muestrea las combinaciones con espacios públicos, este es completo.
+        val carriers = listOf(
+            EquipmentSymbolId.BARBELL, EquipmentSymbolId.RACK, EquipmentSymbolId.BENCH, EquipmentSymbolId.MACHINES,
+            EquipmentSymbolId.PULL_UP_BAR, EquipmentSymbolId.PARALLEL_BARS, EquipmentSymbolId.RINGS, EquipmentSymbolId.BOX,
+        )
+        for (places in everyPlaceCombination) {
+            val visible = carriers.filter { it in visibleSymbols(places) }
+            for (mask in 0 until (1 shl visible.size)) {
+                val selection = visible.filterIndexed { index, _ -> mask and (1 shl index) != 0 }.toSet()
+                val expected = if (selection.isEmpty()) setOf(EquipmentSymbolId.BODYWEIGHT_ONLY) else selection
+                assertEquals("lugares=$places selección=$selection", expected, roundTrip(selection, places))
             }
         }
     }
@@ -250,11 +269,10 @@ class EquipmentSymbolsTest {
 
     @Test
     fun everyKeyTheSymbolsWriteIsEitherACuratedEngineKeyOrAnOwnKey() {
-        val own = setOf(
-            EquipmentSymbols.RINGS_KEY, EquipmentSymbols.BOX_KEY,
-            EquipmentSymbols.JUMP_ROPE_KEY, EquipmentSymbols.CARDIO_MACHINE_KEY,
-        )
-        val curated = EFFECTIVE_EQUIPMENT_KEYS.map { it.key }.toSet()
+        // La del cardio es la única que solo existe para el ida y vuelta; las anillas, el cajón, la cuerda, los discos, la
+        // hexagonal, la T, el GHD y la rueda abdominal las acredita el resolutor con su lista de llaves de símbolo.
+        val own = setOf(EquipmentSymbols.CARDIO_MACHINE_KEY)
+        val curated = EFFECTIVE_EQUIPMENT_KEYS.map { it.key }.toSet() + SYMBOL_EQUIPMENT_KEYS.map { it.key }
         for (places in everyPlaceCombination) {
             val all = EquipmentSymbols.availabilityOf(visibleSymbols(places).toSet(), places)
             for (key in all.apparatus.keys + all.supports.keys) {
@@ -271,11 +289,129 @@ class EquipmentSymbolsTest {
             "bodyweight", "barbell", "dumbbells", "kettlebell", "machine", "cable", "smith_machine", "band",
             "pull_up_bar", "ball", "cardio", "support", "bench", "bench_incline", "rack", "dip_bars",
             "low_bar_support", "ez_bar",
+            // Extras habituales de un gimnasio, cajón y cuerda (paquete E).
+            "plate", "hex_bar", "t_bar", "ghd", "ab_wheel", "plyo_box", "jump_rope",
         )) {
             assertTrue("el motor no acredita «$token» con el material de gimnasio", token in tokens)
         }
         // Las máquinas se acreditan por su configuración exacta, nunca por haber marcado «Máquinas».
         assertTrue(tokens.any { it.startsWith("machine_config:") })
+        // Las anillas no son «habituales»: no vienen de serie y sin ellas no hay `trx`.
+        assertFalse("trx" in tokens || "rings" in tokens)
+    }
+
+    // ── Paquete E: lo que acreditan los símbolos más allá del subpanel ─────────────────────────────────────
+
+    private val both = setOf(TrainingPlace.GYM, TrainingPlace.PUBLIC)
+
+    private fun presence(selection: Set<EquipmentSymbolId>, places: Set<TrainingPlace>, key: String): ApparatusPresence =
+        EquipmentSymbols.availabilityOf(selection, places).presenceOf(key)
+
+    @Test
+    fun aParksPullUpBarCarriesALowBarOnlyWhenPublicSpacesAreAmongThePlaces() {
+        val pullUp = setOf(EquipmentSymbolId.PULL_UP_BAR)
+        val key = "low_bar_support"
+        // Con espacios públicos entre los lugares, la barra de dominadas acredita la barra baja…
+        assertEquals(ApparatusPresence.PRESENT, presence(pullUp, park, key))
+        assertEquals(ApparatusPresence.PRESENT, presence(pullUp, park + home, key))
+        assertEquals(ApparatusPresence.PRESENT, presence(pullUp, both, key))
+        // …en casa y en el gimnasio no (allí la barra baja la trae el rack del gimnasio)…
+        assertEquals(ApparatusPresence.ABSENT, presence(pullUp, home, key))
+        assertEquals(ApparatusPresence.ABSENT, presence(pullUp, gym, key))
+        // …y si en el parque no se elige la barra de dominadas, la barra baja se vio y quedó fuera.
+        assertEquals(ApparatusPresence.ABSENT, presence(setOf(EquipmentSymbolId.BENCH), park, key))
+        // El rack de gimnasio sigue acreditándola como antes.
+        assertEquals(ApparatusPresence.PRESENT, presence(setOf(EquipmentSymbolId.RACK), gym, key))
+        assertEquals(ApparatusPresence.ABSENT, presence(setOf(EquipmentSymbolId.RACK), home, key))
+        // La lectura inversa no cambia: la barra baja no es un símbolo.
+        assertEquals(pullUp, roundTrip(pullUp, park))
+        assertEquals(pullUp, roundTrip(pullUp, both))
+        assertEquals(setOf(EquipmentSymbolId.PULL_UP_BAR, EquipmentSymbolId.PARALLEL_BARS), roundTrip(EquipmentSymbols.seedFor(park), park))
+    }
+
+    @Test
+    fun theBarbellBringsItsPlatesAnywhereAndItsHexAndTBarsOnlyAtTheGym() {
+        val barbell = setOf(EquipmentSymbolId.BARBELL)
+        for (key in listOf("plate", "hex_bar", "t_bar")) {
+            assertEquals("$key con la barra en gimnasio", ApparatusPresence.PRESENT, presence(barbell, gym, key))
+        }
+        // Los discos acompañan a la barra también en casa; la hexagonal y la T son de gimnasio.
+        assertEquals(ApparatusPresence.PRESENT, presence(barbell, home, "plate"))
+        assertEquals(ApparatusPresence.ABSENT, presence(barbell, home, "hex_bar"))
+        assertEquals(ApparatusPresence.ABSENT, presence(barbell, home, "t_bar"))
+        // Sin la barra elegida, lo que se vio queda ausente.
+        for (key in listOf("plate", "hex_bar", "t_bar")) {
+            assertEquals("$key sin barra", ApparatusPresence.ABSENT, presence(setOf(EquipmentSymbolId.DUMBBELLS), gym, key))
+        }
+        // En un parque la barra no se ofrece: no se declara nada de ella.
+        assertEquals(ApparatusPresence.UNKNOWN, presence(setOf(EquipmentSymbolId.DUMBBELLS), park, "plate"))
+        // Gimnasio y casa a la vez: lo de gimnasio vale (el gimnasio está entre los lugares).
+        assertEquals(ApparatusPresence.PRESENT, presence(barbell, gym + home, "hex_bar"))
+    }
+
+    @Test
+    fun theGhdAndTheAbWheelComeWithTheMachinesOnlyAtTheGym() {
+        val machines = setOf(EquipmentSymbolId.MACHINES)
+        for (key in listOf("ghd", "ab_wheel")) {
+            assertEquals("$key con máquinas en gimnasio", ApparatusPresence.PRESENT, presence(machines, gym, key))
+            assertEquals("$key con máquinas en casa", ApparatusPresence.ABSENT, presence(machines, home, key))
+            assertEquals("$key sin máquinas", ApparatusPresence.ABSENT, presence(setOf(EquipmentSymbolId.DUMBBELLS), gym, key))
+        }
+    }
+
+    @Test
+    fun theRareImplementsAreNeverCredited() {
+        // Barra de seguridad, barra H, deslizadores y rodillo de muñeca no tienen símbolo ni extra: quedan fuera a propósito.
+        for (places in everyPlaceCombination) {
+            val everything = EquipmentSymbols.availabilityOf(visibleSymbols(places).toSet(), places)
+            for (key in listOf("safety_bar", "h_bar", "sliders", "wrist_roller")) {
+                assertEquals("«$key» no debe escribirse", ApparatusPresence.UNKNOWN, everything.presenceOf(key))
+            }
+        }
+    }
+
+    @Test
+    fun ringsBoxAndRopeReachTheEngineAsTokensOfTheSharedResolver() {
+        fun tokens(symbol: EquipmentSymbolId, places: Set<TrainingPlace>) =
+            TrainingOptions(availability = EquipmentSymbols.availabilityOf(setOf(symbol), places)).effectiveEquipment(emptySet())
+
+        val rings = tokens(EquipmentSymbolId.RINGS, home)
+        assertTrue("el catálogo llama `trx` a la suspensión y las reservas piden `rings`", "trx" in rings && "rings" in rings)
+        assertFalse("plyo_box" in rings || "jump_rope" in rings)
+        val box = tokens(EquipmentSymbolId.BOX, home)
+        assertTrue("plyo_box" in box)
+        assertFalse("trx" in box || "jump_rope" in box)
+        val rope = tokens(EquipmentSymbolId.JUMP_ROPE, home)
+        assertTrue("jump_rope" in rope)
+        assertFalse("trx" in rope || "plyo_box" in rope)
+        // Otros símbolos no los acreditan.
+        val dumbbells = tokens(EquipmentSymbolId.DUMBBELLS, home)
+        assertTrue(listOf("trx", "rings", "plyo_box", "jump_rope", "plate", "hex_bar", "t_bar", "ghd", "ab_wheel").none { it in dumbbells })
+    }
+
+    @Test
+    fun aParkPullUpBarReachesTheEngineWithItsLowBarEvenWithoutOtherSupports() {
+        // Antes la barra baja exigía la categoría de soportes; el parque con SOLO la barra de dominadas no la tenía.
+        val tokens = TrainingOptions(
+            availability = EquipmentSymbols.availabilityOf(setOf(EquipmentSymbolId.PULL_UP_BAR), park),
+        ).effectiveEquipment(emptySet())
+        assertTrue("pull_up_bar" in tokens)
+        assertTrue("el remo invertido y el rack chin dependen de la barra baja", "low_bar_support" in tokens)
+        assertFalse("la barra baja no inventa soportes: no hay banco ni paralelas", "bench" in tokens || "dip_bars" in tokens || "support" in tokens)
+    }
+
+    @Test
+    fun theGymAddsItsExtrasToTheEngineAndHomeOnlyThePlates() {
+        fun tokens(selection: Set<EquipmentSymbolId>, places: Set<TrainingPlace>) =
+            TrainingOptions(availability = EquipmentSymbols.availabilityOf(selection, places)).effectiveEquipment(emptySet())
+
+        val gymTokens = tokens(setOf(EquipmentSymbolId.BARBELL, EquipmentSymbolId.MACHINES), gym)
+        assertTrue(setOf("plate", "hex_bar", "t_bar", "ghd", "ab_wheel").all { it in gymTokens })
+        val homeTokens = tokens(setOf(EquipmentSymbolId.BARBELL, EquipmentSymbolId.MACHINES), home)
+        assertTrue("plate" in homeTokens)
+        assertTrue(setOf("hex_bar", "t_bar", "ghd", "ab_wheel").none { it in homeTokens })
+        val noParents = tokens(setOf(EquipmentSymbolId.DUMBBELLS, EquipmentSymbolId.BENCH), gym)
+        assertTrue(setOf("plate", "hex_bar", "t_bar", "ghd", "ab_wheel").none { it in noParents })
     }
 
     @Test
