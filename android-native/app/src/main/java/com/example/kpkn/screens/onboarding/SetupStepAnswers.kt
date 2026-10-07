@@ -252,15 +252,32 @@ private fun SetupWizardDraft.projectChoices(
 
 // ─── Proyección única ────────────────────────────────────────────────────────
 
+/**
+ * La figura de referencia del paso de grasa corporal parte de lo que la persona eligió en el género
+ * (mujer, mujer trans o estrógenos → figura femenina; hombre, hombre trans o andrógenos → masculina).
+ * «Equilibrio» y «No lo sé» no eligen figura: se queda la que había. Es solo una referencia visual y se
+ * puede cambiar con los botones ♀/♂ del paso, que no tocan la base de la ecuación. Con la grasa ya
+ * declarada la figura es parte de esa respuesta y no se mueve sola.
+ */
+private fun SetupWizardDraft.withReferenceFigureFor(value: String?): SetupWizardDraft {
+    val model = when (value) {
+        "female", "trans_female", SetupEquationSexValues.HORMONES_ESTROGEN -> "female"
+        "male", "trans_male", SetupEquationSexValues.HORMONES_ANDROGEN -> "male"
+        else -> return this
+    }
+    return if (bodyFatSource != null) this else copy(physiqueModel = model)
+}
+
 private fun SetupWizardDraft.projectChoice(
     step: SetupStepId,
     value: String?,
     nowEpochMs: Long,
 ): SetupWizardDraft = when (step) {
-    // La base de la ecuación vive en el borrador de nutrición y jamás toca `physiqueModel` ni el
-    // género. Elige la ecuación, no una identidad: los glifos y las respuestas hormonales que
-    // apuntan a lo mismo comparten base (estrógenos → femenina, andrógenos → masculina, equilibrio →
-    // promedio). «unknown» a solas la deja sin determinar: hay que contestar la consulta hormonal.
+    // La base de la ecuación vive en el borrador de nutrición y jamás toca el género de perfil.
+    // Elige la ecuación, no una identidad: los glifos y las respuestas hormonales que apuntan a lo
+    // mismo comparten base (estrógenos → femenina, andrógenos → masculina, equilibrio → promedio).
+    // «unknown» a solas la deja sin determinar: hay que contestar la consulta hormonal.
+    // La figura de referencia del paso de grasa parte de lo que se eligió ([withReferenceFigureFor]).
     SetupStepId.EQUATION_SEX, SetupStepId.NUTRITION_SEX -> withNutrition {
         it.copy(equationSex = when (value) {
             "female", "trans_female", SetupEquationSexValues.HORMONES_ESTROGEN -> EerSex.FEMALE
@@ -268,7 +285,7 @@ private fun SetupWizardDraft.projectChoice(
             SetupEquationSexValues.HORMONES_MIXED -> EerSex.AVERAGE
             else -> null
         })
-    }
+    }.let { draft -> if (step == SetupStepId.EQUATION_SEX) draft.withReferenceFigureFor(value) else draft }
 
     SetupStepId.BODY_FAT -> {
         val source = when (value?.uppercase()) {

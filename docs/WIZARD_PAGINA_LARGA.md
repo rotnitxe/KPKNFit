@@ -49,7 +49,7 @@ Un hito (`MILESTONE_*`) **ya no es una página**: es el overlay de la guía de m
 
 - **Declarar es mover**: la posición de arranque no es una respuesta (la lectura sale al 50 % de opacidad y el check sigue bloqueado). El primer contacto con la regla, arrastrar o tocar, declara el valor y habilita el check sin pulsar nada más.
 - La frase sale de `domain/nutrition/PhysiqueDescriptors.kt` (`bodyFatDescriptor`) y el fotograma, de `physiqueSliderPositionForBodyFat` (la inversa de `bodyFatForSliderPos`).
-- Cambiar de figura solo cambia `physiqueModel`: nunca el sexo de cálculo.
+- La figura parte de lo que se eligió en el género (mujer, mujer trans o estrógenos → ♀; hombre, hombre trans o andrógenos → ♂; «equilibrio» y «No lo sé» no la mueven) y es solo una referencia visual que se puede cambiar con ♀/♂. Cambiar de figura solo cambia `physiqueModel`: nunca el sexo de cálculo, y con la grasa ya declarada la figura no se mueve sola (`withReferenceFigureFor`).
 - Marca de prueba de la regla: `setup-bodyfat-ruler`.
 
 ## Reglas que no hay que romper

@@ -459,13 +459,40 @@ class SetupStepAnswersTest {
     }
 
     @Test
-    fun choosingTheEquationBaseNeverTouchesTheFigureModelNorTheProfileGender() {
-        val base = SetupWizardDraft(physiqueModel = "female", profileGender = Gender.MALE)
+    fun choosingTheEquationBaseNeverTouchesTheProfileGender() {
+        val base = SetupWizardDraft(profileGender = Gender.MALE)
         SetupStepDefinitions.optionValues(SetupStepId.EQUATION_SEX).forEach { value ->
-            val draft = base.chooseSex(value)
-            assertEquals("figura tras $value", "female", draft.physiqueModel)
-            assertEquals("género de perfil tras $value", Gender.MALE, draft.profileGender)
+            assertEquals("género de perfil tras $value", Gender.MALE, base.chooseSex(value).profileGender)
         }
+    }
+
+    @Test
+    fun theReferenceFigureStartsFromWhatWasChosenAndStaysChangeable() {
+        val fresh = SetupWizardDraft() // figura de arranque: «male»
+        mapOf(
+            "female" to "female", "trans_female" to "female", "hormones_estrogen" to "female",
+            "male" to "male", "trans_male" to "male", "hormones_androgen" to "male",
+        ).forEach { (value, figure) ->
+            // Parte de la figura contraria para comprobar que de verdad se mueve.
+            val start = fresh.copy(physiqueModel = if (figure == "female") "male" else "female")
+            assertEquals("figura tras $value", figure, start.chooseSex(value).physiqueModel)
+        }
+        // «Equilibrio» y «No lo sé» no eligen figura: se queda la que había.
+        listOf("hormones_mixed", "unknown").forEach { value ->
+            assertEquals("figura tras $value", "female", fresh.copy(physiqueModel = "female").chooseSex(value).physiqueModel)
+            assertEquals("figura tras $value", "male", fresh.chooseSex(value).physiqueModel)
+        }
+        // Cambiar la figura después es solo una referencia visual: la base de la ecuación no se mueve.
+        val chosen = fresh.chooseSex("female")
+        assertEquals("female", chosen.physiqueModel)
+        assertEquals(EerSex.FEMALE, chosen.copy(physiqueModel = "male").nutritionDraft?.equationSex)
+    }
+
+    @Test
+    fun theFigureStopsFollowingTheGenderOnceTheBodyFatIsDeclared() {
+        val declared = SetupWizardDraft(physiqueModel = "male").withBodyFatRulerValue(20)
+        assertEquals("male", declared.chooseSex("female").physiqueModel)
+        assertEquals("male", declared.chooseSex("hormones_estrogen").physiqueModel)
     }
 
     @Test
