@@ -9,7 +9,8 @@ Referencia de cómo se comporta y cómo se toca el wizard de alta (`screens/onbo
 - **Paso siguiente**: solo **asoma** bajo el activo y la página sigue hasta el borde inferior (etiqueta y título tenues, control desenfocado y desvaneciéndose hacia abajo). Está inerte: no recibe toques ni lo anuncia TalkBack.
 - **Check** (abajo): confirma y es lo único que genera el paso siguiente. La página se **desliza** hasta él (no hay página nueva) mientras el anterior se pliega.
 - **Scroll**: se puede volver atrás a ver lo respondido, pero no adelantarse a lo que el check no ha generado ([`WizardScrollLock`]).
-- **Cabecera**: atrás, progreso por bloques (un tramo por bloque del recorrido) y salir. No repite la pregunta. Es de cristal real: desenfoca lo que pasa por debajo.
+- **Cabecera**: atrás, progreso por bloques (un tramo por bloque del recorrido) y salir. No repite la pregunta: lleva la Torre de la marca, el bloque y cuánto llevas. Es de cristal real: desenfoca lo que pasa por debajo. El tramo de un bloque completo se pinta en verde de marca; el que se recorre, en tinta.
+- **Al terminar un bloque** sale el overlay de «bloque completado» (ver abajo) encima de su última pregunta, que ya está confirmada; **al abrir un borrador sin empezar** sale el mismo overlay sin nada completado.
 
 ## Piezas
 
@@ -20,9 +21,21 @@ Referencia de cómo se comporta y cómo se toca el wizard de alta (`screens/onbo
 | Cromo fijo | `design/WizardPageChrome.kt` | Cabecera de cristal, velo superior y botón de confirmar con su velo. |
 | Vidrio | `design/WizardGlass.kt` | Estilo `haze` de la cabecera y del botón. |
 | Geometría y bloqueo | `design/WizardPageMetrics.kt` | Fórmulas del deslizado y del límite de scroll, más `WizardScrollLock`. |
-| Textos y posiciones | `SetupWizardSteps.kt` | Título/subtítulo por página, etiquetas, progreso por bloque, contenido de hitos. |
+| Textos y posiciones | `SetupWizardSteps.kt` | Título/subtítulo por página, etiquetas, progreso por bloque y las etapas del overlay de hito (`milestoneStages`, `introStages`). |
+| Overlay de hito y de arranque | `design/ModuleCompleteOverlay.kt` | Animación propia por bloque (`KpknModule`), fila de etapas con la guía y la variante `INTRO`. |
 | Resúmenes | `SetupStepSummaries.kt` | Etiqueta corta y valor de una línea de cada paso confirmado. |
 | Tokens | `design/WizardDesignTokens.kt` | Roles tipográficos, espaciado y colores de cristal. |
+
+## Hitos entre bloques y pantalla de arranque
+
+Un hito (`MILESTONE_*`) **ya no es una página**: es el overlay de la guía de marca (`ModuleCompleteOverlay`) sobre la última pregunta del bloque.
+
+- **Qué muestra**: la animación del bloque (datos básicos, entreno, nutrición o rings), el título y una línea, y la **fila de etapas**: un riel con un nodo por bloque de la ruta (más la revisión final) y una guía luminosa que lo recorre de uno en uno desde el primero; los completos se encienden en verde con su check, el que acaba de cerrarse lanza una onda y la guía se detiene en el siguiente, señalado en tinta. Las etapas salen de la ruta efectiva del borrador (`milestoneStages`): un asistente solo de entreno no habla de Nutrición ni de Rings.
+- **Pantalla de arranque** (`KpknModule.INTRO`): la misma composición **sin nada completado ni color de «completado»** (torre neutra, solo la primera etapa señalada). Sale mientras el cursor nunca haya salido de la primera pregunta (`visited.size <= 1`; los valores que traen los ajustes no cuentan) y se omite en pruebas con `showIntro = false`.
+- **Página durante el hito**: `wizardCurrentPage` deja la página en la última pregunta del bloque, así volver atrás o terminar el overlay no la mueve y el deslizado al bloque siguiente ocurre **después**, al continuar. Continuar confirma el hito (`submitCurrentStep`); atrás (`goBack`) vuelve a la última pregunta.
+- **Atrás no se detiene en un hito** (ni en la edad): desde la primera pregunta de un bloque vuelve a la última del anterior, sin repetir la celebración.
+- **Robustez**: al pulsar, el overlay desvanece contenido y desenfoque antes de avisar y, si la acción no avanza, vuelve a mostrarse en lugar de quedar invisible. Sin desenfoque del sistema el fondo tapa casi todo (0,96). Con la escala de animaciones a 0 se ve el estado final.
+- **Pruebas**: el overlay del hito es `setup-step-MILESTONE_*` y su botón `setup-milestone-continue`; la pantalla de arranque, `setup-intro` y `setup-intro-start`. El botón se habilita al terminar la animación.
 
 ## Paso de grasa corporal: figura y regla vertical
 
@@ -45,7 +58,7 @@ Referencia de cómo se comporta y cómo se toca el wizard de alta (`screens/onbo
 2. **El contenido de un paso no repite su título ni su subtítulo**: los pinta la sección. Un paso nuevo solo aporta su control.
 3. **Títulos de pregunta ≤ 44 caracteres y subtítulos ≤ 100** (`SetupStepCopyRulesTest` lo exige).
 4. **Desenfoque solo donde corresponde**: el `RenderEffect` del paso que asoma se aplica únicamente a su control, nunca a la etiqueta ni al título; `haze` solo bajo la cabecera, y el fondo va dentro de la fuente de `haze` para que el cristal sea opaco. Nada de `Modifier.blur` suelto sobre una página entera.
-5. **Sin adornos**: nada de tarjetas por paso, resplandores de color, degradados de borde ni sombras de color. El color de bloque no tiñe la página; el progreso es blanco sobre gris.
+5. **Sin adornos**: nada de tarjetas por paso, resplandores de color, degradados de borde ni sombras de color. El color de bloque no tiñe la página; el progreso es tinta crema sobre gris y verde de marca cuando el bloque se completa. El texto y los controles usan la **tinta cálida de la marca** (`WizardColors.text` = #F2EEE6), no blanco puro.
 6. **Marcas de prueba**: la sección activa lleva `setup-step-<ID>`, la fila-resumen `setup-summary-<ID>` y el check `setup-continue` (con `Role.Button` y estado real de habilitado).
 7. **El deslizado sale de una fórmula cerrada** (`WizardPageMetrics.target`) porque todo lo anterior al paso activo son filas de alto fijo. Si una fila-resumen dejara de medir lo mismo, hay que medir posiciones en lugar de usar la fórmula.
 8. **El resumen se calcula una vez**, al confirmar la página, y se guarda; recalcular todas las filas en cada pulsación sería caro.
