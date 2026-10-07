@@ -93,3 +93,22 @@ Reglas que no hay que romper:
 7. **Anillos de 260 dp como mucho** (más estrechos en pantallas pequeñas). La letra de Syne es ancha: el número central parte de 44 sp y se achica lo justo para caber en el hueco de los anillos (≈ 30 sp con cuatro cifras), medido con las cifras más anchas para que no se salga mientras cuenta (`macroRingsHeroScale`). Si se tocan el tamaño o el trazo, hay que recalcular ese hueco.
 
 Vista previa de diseño (solo debug, sin recorrer el alta): `adb shell am start -n com.example.kpkn/com.example.kpkn.debug.NutritionPlanPreviewActivity --es scenario deficit_medio` (`deficit_extremo`, `ritmo_agresivo`, `superavit`, `mantenimiento`, `variable`, `propios_sin_eer`).
+
+## Bienvenida con escenas (antes del wizard)
+
+`SetupWelcomeScreen` es un carrusel de tres páginas (Entreno · Nutrición · Recuperación): un teléfono con la app simulada que se reproduce sola en bucle y, debajo, un mensaje breve. Mismo contrato de siempre: `SetupWelcomeScreen(onStart, actionLabel = "Comenzar", secondaryLabel, onSecondary, onDetails)`.
+
+| Pieza | Archivo (`screens/onboarding/`) | Qué hace |
+|---|---|---|
+| Anfitrión con estado | `SetupWelcomeScreen.kt` | Levanta el pager y el reloj; lee «reducir movimiento» y el ciclo de vida. |
+| Estructura | `welcome/WelcomeShell.kt` | Logo, carrusel, texto, indicador y botón; reparte el alto (`welcomePhoneHeight`: teléfono ≈ 60 % del alto útil, cede si abajo no cabe). |
+| Teléfono | `welcome/WelcomeShellPhone.kt` | Chasis y escala uniforme del lienzo de 300 × 620 dp al interior de la pantalla; el teléfono es UNA entidad semántica. |
+| Reloj | `welcome/WelcomeShellClock.kt` | `sceneTimeAt`, cuadro representativo, fundido opcional del bucle (≈ 0,5 s) y estado `WelcomeSceneClock`; corre solo en la página asentada y con la app en primer plano. |
+| Textos | `welcome/WelcomeShellCopy.kt` | `WelcomePages`: etiqueta, acento, título (≤ 40), mensaje (≤ 130), descripción para TalkBack y periodo. |
+| Escenas | `welcome/Welcome{Entreno,Nutricion,Rings}Scene.kt` | Funciones puras de `t` (contrato en `WelcomeScene.kt`). |
+
+- Las tres escenas cierran solas (un velo del color de la pantalla en cada cambio de ciclo, con la barra de estado a la vista), así que el marco no las vuelve a fundir: `WelcomePageCopy.shellFadesLoop = false`. Una escena nueva que no cierre sola lo pone en `true`.
+- El reloj usa `withInfiniteAnimationFrameNanos`: las pruebas de Compose cancelan el bucle y `waitForIdle()` sigue volviendo. Sin reloj (pruebas, app en segundo plano, movimiento reducido) cada escena muestra su cuadro representativo, `periodo × 0,7`.
+- El acento de cada apartado (músculo, ok, columna) solo tiñe la etiqueta sobre el título.
+- Etiquetas de prueba: `welcome-phone-<id>`, `welcome-text-<id>`, `welcome-cta`; los segmentos se anuncian «Vista N de 3».
+- Para añadir una página: una entrada en `WelcomePages`, su escena en `WelcomeSceneOf` y su periodo; el carrusel y el indicador salen de la lista.

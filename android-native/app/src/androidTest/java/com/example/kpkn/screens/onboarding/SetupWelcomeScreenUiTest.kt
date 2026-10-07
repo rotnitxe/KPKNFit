@@ -7,6 +7,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import com.example.kpkn.screens.onboarding.welcome.WelcomePages
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -24,7 +25,8 @@ class SetupWelcomeScreenUiTest {
     fun welcomeShowsThePhoneAndStartsOnlyOnExplicitTap() {
         var started = false
         composeRule.setContent { SetupWelcomeScreen(onStart = { started = true }) }
-        composeRule.onNodeWithContentDescription("Vista de un teléfono KPKN con pantalla blanca").assertIsDisplayed()
+        // Cada teléfono es una sola entidad con la descripción de su demostración; solo se anuncia el de la página actual.
+        composeRule.onNodeWithContentDescription(WelcomePages[0].demoDescription).assertIsDisplayed()
         composeRule.onNodeWithText("Comenzar").assertIsDisplayed().performClick()
         composeRule.waitForIdle()
         assertEquals(true, started)
@@ -37,5 +39,6 @@ class SetupWelcomeScreenUiTest {
         composeRule.onNodeWithContentDescription("Vista 3 de 3").performClick()
         composeRule.waitForIdle()
         composeRule.onNodeWithContentDescription("Vista 3 de 3").assertIsSelected()
+        composeRule.onNodeWithContentDescription(WelcomePages[2].demoDescription).assertIsDisplayed()
     }
 }
