@@ -1,6 +1,8 @@
 package com.example.kpkn.domain.training.generator
 
+import com.example.kpkn.data.exercises.catalogv2.CatalogCompositionMetadataProvider
 import com.example.kpkn.data.exercises.catalogv2.toLegacyInfo
+import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.InvolvedMuscle
 import com.example.kpkn.data.models.MuscleRole
@@ -11,6 +13,8 @@ import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseConfigurationV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseDefinitionV2
 import com.example.kpkn.domain.training.VolumeCalculator
+import com.example.kpkn.domain.training.approach.ApproachExerciseInfo
+import com.example.kpkn.domain.training.approach.ApproachInfoProvider
 import com.example.kpkn.domain.training.machineConfigToken
 import com.example.kpkn.domain.training.supportRequirementsFor
 
@@ -116,6 +120,15 @@ internal class GeneratorCatalog private constructor(val catalog: ExerciseCatalog
     }
 
     fun entry(id: String): CatalogEntry? = entries[id]
+
+    /**
+     * Lo que el planificador de aproximación sabe de cada ejercicio (articulaciones, compuesto, admite carga pesada): el MISMO
+     * proveedor, con los mismos metadatos del catálogo, que usa el materializador de planes. Así la aproximación que arma el
+     * generador y la que completaría el materializador deciden igual y una segunda pasada no cambia nada.
+     */
+    val approachInfoOf: (Exercise) -> ApproachExerciseInfo? by lazy {
+        ApproachInfoProvider.fromMetadata(CatalogCompositionMetadataProvider.fromCatalog(catalog))
+    }
 
     companion object {
         @Volatile

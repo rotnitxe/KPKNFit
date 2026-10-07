@@ -96,8 +96,13 @@ object RoutineGenerator {
         val oneLiner = RoutineNarrative.oneLiner(ctx, assembled)
         val missing = ctx.missing.keys.filter { it !in ctx.covered }.toSet()
         val usedIds = sessions.flatMap { it.allExercises() }.mapNotNull { it.catalogConfigurationId }.toSet()
-        val initial = RoutineNarrative.initialVersion(ctx, usedIds)
-        val notes = (listOfNotNull(initial?.second) + RoutineNarrative.gapNotes(ctx, missing) + ctx.notes + listOfNotNull(RoutineNarrative.timeNote(ctx))).distinct()
+        // «Con tu material no hay…» solo si ningún día permite el levantamiento; que el plan no lo lleve por nivel (un novato elige
+        // máquinas), por tiempo o por la rotación de la semana no es falta de material.
+        val initial = RoutineNarrative.initialVersion(ctx, usedIds + reachableLifts(ctx, normalized, days))
+        val notes = (
+            listOfNotNull(initial?.second) + RoutineNarrative.gapNotes(ctx, missing) + RoutineNarrative.olympicNotes(ctx, usedIds) + ctx.notes +
+                listOfNotNull(RoutineNarrative.timeNote(ctx))
+            ).distinct()
         val program = Program(
             id = programId,
             name = name,
@@ -185,6 +190,17 @@ object RoutineGenerator {
             minutesMisses = assembled.count { !it.inWindow },
         )
         return GeneratedRoutine(program = program, summary = summary, notes = notes, report = report)
+    }
+
+    /** Los ejercicios de los levantamientos que pide la disciplina que el material de ALGÚN día del plan permite hacer. */
+    private fun reachableLifts(ctx: GenContext, request: RoutineRequest, days: List<Int>): Set<String> {
+        val required = ctx.discipline?.requiredLifts.orEmpty().flatMap { it.second }.toSet()
+        if (required.isEmpty()) return emptySet()
+        val equipments = days.map { day -> equipmentOf(availabilityFor(request, placeOf(request, day))) }.distinct()
+        return required.filter { id ->
+            val entry = ctx.catalog.entry(id)
+            entry != null && ctx.tierAllowed(entry) && equipments.any { it.allows(entry, emptyList()) }
+        }.toSet()
     }
 
     // ─── Sesiones inviables con el material del día ────────────────────────────────────────────────────────

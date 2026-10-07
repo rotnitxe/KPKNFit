@@ -42,7 +42,8 @@ internal class SessionUse {
  * Reglas:
  * - El novato (y quien vuelve) nunca recibe un ejercicio de dificultad técnica > 5,2, salvo los básicos de la reserva
  *   (sentadilla, banca, peso muerto, press…: se aprenden con carga ligera y aproximaciones); las rungs de peso corporal
- *   NO tienen esa exención.
+ *   NO tienen esa exención. Además cada entrada y cada rung lleva su `minLevel`: el catálogo no ordena la dificultad por
+ *   dureza (la pica puntúa 4,8 y 5,0, el diamante 6,0), así que lo que no es de novatos se declara aquí, no en el catálogo.
  * - Un ejercicio no se repite en la sesión (ni su definición: nunca banca con barra y con mancuernas a la vez); en la
  *   semana, como mucho en 2 sesiones (3 los básicos). Pasado ese límite solo se repite si no hay otra opción (castigo
  *   de rango alto, no prohibición: el material mínimo no tiene tantas alternativas).
@@ -51,6 +52,9 @@ internal object ExerciseSelector {
 
     private const val NOVICE_MAX_DIFFICULTY = 5.2
     private const val REPEAT_OVER_LIMIT_PENALTY = 10.0
+
+    /** Candidatas que ofrece una escalera por hueco: las primeras ejecutables (con cuatro, una semana de 3–4 empujes ve variedad). */
+    private const val MAX_LADDER_CANDIDATES = 4
 
     /** Preferencia de material (rango menor = antes). */
     fun tierRank(profile: RankProfile, tier: EquipmentTier): Double = when (profile) {
@@ -109,6 +113,8 @@ internal object ExerciseSelector {
                 BodyweightLadders.row -> if (easy) 0.6 else 0.4
                 BodyweightLadders.singleLeg -> if (easy) 0.7 else 0.3
                 BodyweightLadders.core -> 0.2
+                BodyweightLadders.verticalPush -> if (easy) 0.6 else 0.3
+                BodyweightLadders.coreLateral -> 0.3
                 BodyweightLadders.glute, BodyweightLadders.hinge -> 0.8
                 else -> 1.0
             }
@@ -127,6 +133,8 @@ internal object ExerciseSelector {
                 BodyweightLadders.dips -> 4.4
                 BodyweightLadders.singleLeg -> if (easy) 5.0 else 4.5
                 BodyweightLadders.core -> 1.0
+                // El core lateral sin material va antes que la plancha de Copenhague (6,0) y detrás de lo que lleva carga.
+                BodyweightLadders.coreLateral -> 4.0
                 BodyweightLadders.glute, BodyweightLadders.calf -> 6.0
                 else -> 6.5
             }
@@ -137,6 +145,7 @@ internal object ExerciseSelector {
                 BodyweightLadders.dips -> 4.2
                 BodyweightLadders.singleLeg -> if (easy) 5.0 else 4.5
                 BodyweightLadders.core -> 1.0
+                BodyweightLadders.coreLateral -> 4.0
                 BodyweightLadders.glute, BodyweightLadders.calf -> 6.0
                 else -> 6.5
             }
@@ -258,6 +267,7 @@ internal object ExerciseSelector {
             for (rung in rungs) {
                 val entry = ctx.catalog.entry(rung.id) ?: continue
                 if (!ctx.tierAllowed(entry)) continue
+                if (!levelAllows(ctx.level, rung.minLevel)) continue
                 if (novice && entry.difficulty > NOVICE_MAX_DIFFICULTY) continue
                 if (entry.id in use.configs || entry.definitionId in use.definitions) continue
                 if (!equipment.allows(entry, rung.requires)) continue
@@ -278,7 +288,7 @@ internal object ExerciseSelector {
                     ladderKey = ladderKey,
                 )
                 firstInTier = false
-                if (out.size >= 3) return out
+                if (out.size >= MAX_LADDER_CANDIDATES) return out
             }
             // Lo que cae a un tramo más fácil va detrás del tramo pedido.
             if (tierIndex < tiers.lastIndex && out.isNotEmpty()) offset += 0.6

@@ -29,6 +29,12 @@ internal class Bundle(val items: List<DraftItem>) {
 
     val isPair: Boolean get() = items.size == 2
     val priority: Int = items.first().priority
+
+    /**
+     * ¿Algún hueco del bloque es prioritario (la persona pidió mejorar ese músculo)? Al recortar por tiempo es lo último que se
+     * toca y al repartir tiempo sobrante, lo primero que recibe (ver [MinuteFitter.trimOrder] y [MinuteFitter.growOrder]).
+     */
+    val isPriority: Boolean = items.any { it.spec.boosted }
     val minSets: Int = items.maxOf { it.rx.minSets }
     val maxSets: Int = items.minOf { it.rx.maxSets }.coerceAtLeast(minSets)
     val baseSets: Int = items.maxOf { it.baseSets }.coerceIn(minSets, maxSets)
@@ -259,6 +265,11 @@ internal class FitEnv(
  *    último, menos ejercicios (nunca por debajo del mínimo de ejercicios).
  * 3. Si sobra tiempo: series a los compuestos pesados, luego a los accesorios (hasta el objetivo blando de volumen); después
  *    descansos más largos, solo en lo pesado y en los principales con carga (`Bundle.restExtendable`).
+ *
+ * Lo prioritario (`Bundle.isPriority`) se protege del tiempo: un hueco prioritario que no llega a sus series base las consigue
+ * quitando series a lo NO prioritario (de atrás hacia delante y sin bajar de sus series mínimas); al recortar solo se toca lo
+ * prioritario si no queda otra cosa y con tiempo sobrante lo prioritario recibe las series primero. Sin músculos prioritarios
+ * nada de esto cambia el resultado.
  */
 internal object MinuteFitter {
 
@@ -307,6 +318,9 @@ internal object MinuteFitter {
             }
         }
 
+        // 1b) Lo prioritario no se queda sin sus series base por el tiempo: se las quita a lo que no lo es.
+        protectPriority(bundles, env, volume)
+
         // 2) Compresión si se pasa de la ventana.
         if (total(bundles, env) > env.hiSec) compress(bundles, env)
 
@@ -314,14 +328,63 @@ internal object MinuteFitter {
         expand(bundles, env)
     }
 
+    /** Orden en que se recorta: de atrás hacia delante y, al final, lo prioritario (solo se toca si no queda otra cosa). */
+    fun trimOrder(bundles: List<Bundle>): List<Bundle> {
+        val backwards = included(bundles).asReversed()
+        return backwards.filter { !it.isPriority } + backwards.filter { it.isPriority }
+    }
+
+    /** Orden en que se reparte el tiempo sobrante: primero lo prioritario y luego el resto, cada grupo por su orden de importancia. */
+    fun growOrder(bundles: List<Bundle>): List<Bundle> {
+        val forwards = included(bundles)
+        return forwards.filter { it.isPriority } + forwards.filter { !it.isPriority }
+    }
+
+    /**
+     * Un hueco prioritario que el tiempo dejó por debajo de sus series base (o fuera) las recupera quitándoselas a lo NO
+     * prioritario: de atrás hacia delante y sin bajar de las series mínimas de nadie. Si ni así cabe, se queda como estaba
+     * (lo avisa `SessionAssembler`). No toca nada cuando no hay huecos prioritarios.
+     */
+    private fun protectPriority(bundles: List<Bundle>, env: FitEnv, volume: Map<Bundle, Int>) {
+        for (target in bundles.filter { it.isPriority }.sortedBy { it.priority }) {
+            val goal = minOf(target.baseSets, target.maxSets, volume[target] ?: 0)
+            if (goal < target.minSets) continue
+            if (!target.included && !claim(target, target.minSets, bundles, env)) continue
+            while (target.sets < goal) {
+                if (!claim(target, target.sets + 1, bundles, env)) break
+            }
+        }
+    }
+
+    /** Lleva [target] a [sets] series (y lo incluye si hace falta) liberando tiempo de lo no prioritario; si no cabe, lo deja como estaba. */
+    private fun claim(target: Bundle, sets: Int, bundles: List<Bundle>, env: FitEnv): Boolean {
+        val wasIncluded = target.included
+        val before = target.sets
+        target.included = true
+        target.sets = sets
+        val taken = ArrayList<Bundle>()
+        while (total(bundles, env) > env.targetSec) {
+            val donor = included(bundles).asReversed().firstOrNull { !it.isPriority && it.sets > it.minSets }
+            if (donor == null) {
+                taken.forEach { it.sets++ }
+                target.sets = before
+                target.included = wasIncluded
+                return false
+            }
+            donor.sets--
+            taken += donor
+        }
+        return true
+    }
+
     private fun compress(bundles: List<Bundle>, env: FitEnv) {
         included(bundles).forEach { it.rest = it.minRest }
         if (total(bundles, env) <= env.hiSec) return
-        for (bundle in included(bundles).reversed()) {
+        for (bundle in trimOrder(bundles)) {
             while (bundle.sets > bundle.minSets && total(bundles, env) > env.hiSec) bundle.sets--
             if (total(bundles, env) <= env.hiSec) return
         }
-        for (bundle in included(bundles).reversed()) {
+        for (bundle in trimOrder(bundles)) {
             if (total(bundles, env) <= env.hiSec) return
             if (itemCount(bundles) - bundle.items.size >= env.minItems) bundle.included = false
         }
@@ -332,7 +395,7 @@ internal object MinuteFitter {
         var guard = 0
         while (progressed && guard++ < 60) {
             progressed = false
-            for (bundle in included(bundles)) {
+            for (bundle in growOrder(bundles)) {
                 val allowed = minOf(bundle.maxSets, env.room.maxSets(bundle, bundles, soft = true))
                 if (bundle.sets >= allowed) continue
                 val before = total(bundles, env)
@@ -357,7 +420,7 @@ internal object MinuteFitter {
         guard = 0
         while (again && guard++ < 20) {
             again = false
-            for (bundle in included(bundles)) {
+            for (bundle in growOrder(bundles)) {
                 val allowed = minOf(bundle.maxSets, env.room.maxSets(bundle, bundles, soft = true))
                 if (bundle.sets >= allowed) continue
                 val before = total(bundles, env)

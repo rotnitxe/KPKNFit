@@ -136,7 +136,7 @@ internal object RoutineNarrative {
         RoutinePattern.HORIZONTAL_PULL to
             "Sin barra baja, bandas, mancuernas, poleas ni barra no hay remo: añadir unas bandas o unas mancuernas completa tu espalda.",
         RoutinePattern.VERTICAL_PUSH to
-            "Sin mancuernas, barra, kettlebell ni poleas no hay empuje vertical (press de hombros): unas mancuernas o una barra lo resuelven.",
+            "Sin mancuernas, barra, kettlebell ni poleas el empuje vertical es la flexión en pica, que pide antes una flexión estándar bien hecha: unas mancuernas o una barra lo cubren desde el primer día.",
         RoutinePattern.HORIZONTAL_PUSH to
             "Con tu material no hay empuje horizontal: unas mancuernas, una barra o simplemente suelo y manos (flexiones) lo cubren.",
         RoutinePattern.SQUAT to
@@ -146,6 +146,9 @@ internal object RoutineNarrative {
         RoutinePattern.POWER to
             "Sin kettlebell, mancuernas ni barra no hay trabajo de potencia (balanceos, press de impulso): una kettlebell lo resuelve; los saltos y lanzamientos aún no están en el catálogo.",
     )
+
+    private const val CALISTHENICS_VERTICAL_PUSH_ADVICE =
+        "Sin una base de flexiones estándar aún no hay empuje vertical: la pica entra en cuanto las flexiones salgan con soltura."
 
     private val isolationLabels: Map<RoutinePattern, String> = mapOf(
         RoutinePattern.BICEPS to "bíceps",
@@ -165,11 +168,12 @@ internal object RoutineNarrative {
     /**
      * «Versión inicial» de una disciplina: lo que el catálogo aún no trae (y los levantamientos que tu material no permite) y con
      * qué se sustituye. null = la disciplina está cubierta (modos generales, powerbuilding, culturismo y un powerlifting con barra,
-     * rack y banco). Devuelve la lista de lo que falta y la nota para el resumen.
+     * rack y banco). Devuelve la lista de lo que falta y la nota para el resumen. [doableIds] son los ejercicios que el plan lleva o
+     * que el material de algún día permite: un levantamiento solo figura como imposible «con tu material» si no hay ni uno.
      */
-    fun initialVersion(ctx: GenContext, usedIds: Set<String>): Pair<List<String>, String>? {
+    fun initialVersion(ctx: GenContext, doableIds: Set<String>): Pair<List<String>, String>? {
         val spec = ctx.discipline ?: return null
-        val noMaterial = spec.requiredLifts.filter { (_, ids) -> ids.none { it in usedIds } }.map { it.first }
+        val noMaterial = spec.requiredLifts.filter { (_, ids) -> ids.none { it in doableIds } }.map { it.first }
         if (spec.missing.isEmpty() && noMaterial.isEmpty()) return null
         val missing = spec.missing + noMaterial.map { "$it (con tu material no se puede hacer)" }
         val label = ctx.mode.label.lowercase()
@@ -180,22 +184,70 @@ internal object RoutineNarrative {
         return missing to "Versión inicial de $label: $gaps. $tail"
     }
 
-    /** Una sola nota con las sesiones que no entraron en la ventana de minutos y por qué. */
+    /**
+     * Una sola nota con las sesiones que no entraron en la ventana de minutos y por qué. Si TODAS se pasan del rango, la causa no
+     * es el material ni los techos de volumen sino el mínimo de cada sesión (calentamiento, series de aproximación, movilidad y
+     * tres ejercicios de fuerza): se dice eso y qué lo arregla.
+     */
     fun timeNote(ctx: GenContext): String? {
         if (ctx.outside.isEmpty()) return null
         val detail = ctx.outside.joinToString("; ") { (title, minutes) -> "$title $minutes min" }
-        return "Tiempo: con ${ctx.targetMinutes} min por sesión, $detail quedan fuera del rango del ${ctx.windowMinutes.first}–${ctx.windowMinutes.last} min: " +
+        val window = ctx.windowMinutes
+        val allAbove = ctx.outside.all { (_, minutes) -> minutes > window.last }
+        if (allAbove) {
+            return "Tiempo: con ${ctx.targetMinutes} min por sesión, $detail quedan por encima del rango del ${window.first}–${window.last} min: " +
+                "el calentamiento, las series de aproximación y la movilidad de cada sesión, más el mínimo de tres ejercicios de fuerza, " +
+                "ya ocupan ese tiempo; con más minutos por sesión caben sin pasarse."
+        }
+        return "Tiempo: con ${ctx.targetMinutes} min por sesión, $detail quedan fuera del rango del ${window.first}–${window.last} min: " +
             "con tu material y tus techos de volumen es lo más cerca que se llega."
+    }
+
+    // ─── Halterofilia olímpica (lote OL-1) ───────────────────────────────────────────────────────────────────
+
+    /** Levantamientos que se SUELTAN desde arriba (cargadas, arranques y enviones): piden discos de goma y una plataforma. */
+    private val droppedLifts = setOf(
+        "hang_power_clean__barbell", "power_clean__barbell", "squat_clean__barbell",
+        "hang_power_snatch__barbell", "power_snatch__barbell", "squat_snatch__barbell",
+        "push_jerk__barbell", "split_jerk__barbell",
+    )
+
+    /** Cargadas y arranques (los que una base de halterofilia debería llevar desde el nivel intermedio). */
+    private val cleansAndSnatches = droppedLifts - setOf("push_jerk__barbell", "split_jerk__barbell")
+
+    /**
+     * Notas de la halterofilia olímpica. El paso de material no pregunta por discos de goma ni plataforma (quien marca «Barra y
+     * discos» recibe estos levantamientos aunque su gimnasio no deje soltar la barra): si el plan los lleva, se avisa. En la base
+     * de halterofilia, si la semana no lleva ni una cargada ni un arranque, se dice por qué en vez de callarlo.
+     */
+    fun olympicNotes(ctx: GenContext, usedIds: Set<String>): List<String> {
+        val notes = ArrayList<String>()
+        if (usedIds.any { it in droppedLifts }) {
+            notes += "Las cargadas, los arranques y los enviones se hacen soltando la barra: necesitan discos de goma y una plataforma, que la app no pregunta. " +
+                "Si tu gimnasio no te deja soltar la barra, quédate con los tirones, la sentadilla de arranque y el push press."
+        }
+        if (ctx.mode == RoutineMode.DISCIPLINE_WEIGHTLIFTING_BASE && usedIds.none { it in cleansAndSnatches }) {
+            notes += if (ctx.level == RoutineLevel.NOVICE || ctx.level == RoutineLevel.RETURNING) {
+                "La cargada y el arranque entran desde el nivel intermedio: antes conviene dominar la sentadilla frontal, el tirón desde la rodilla y el push press, que ya los preparan."
+            } else {
+                "Esta semana no entró ninguna cargada ni ningún arranque: piden una barra con discos."
+            }
+        }
+        return notes
     }
 
     /** Notas por los patrones que ninguna sesión pudo cubrir (accionables) y por la bisagra sin carga. */
     fun gapNotes(ctx: GenContext, missing: Set<RoutinePattern>): List<String> {
         val notes = ArrayList<String>()
-        patternAdvice.forEach { (pattern, text) -> if (pattern in missing) notes += text }
+        patternAdvice.forEach { (pattern, text) ->
+            if (pattern !in missing) return@forEach
+            // La calistenia no usa pesas: su empuje vertical es la progresión de flexiones (la pica), no unas mancuernas.
+            notes += if (pattern == RoutinePattern.VERTICAL_PUSH && ctx.discipline?.allowedTiers != null) CALISTHENICS_VERTICAL_PUSH_ADVICE else text
+        }
         if (RoutinePattern.HINGE in missing) {
             notes += "Sin carga no hay bisagra de cadera (peso muerto): unas mancuernas o una kettlebell la completan."
         } else if ("hinge_bodyweight" in ctx.flags && ctx.discipline?.allowedTiers == null) {
-            notes += "Sin carga la bisagra de cadera se hace con puentes de glúteos (el catálogo no trae peso muerto a una pierna sin carga): unas mancuernas o una kettlebell la completan."
+            notes += "Sin carga la bisagra de cadera se queda en buenos días y peso muerto rumano a una pierna con tu peso corporal (más los puentes de glúteos): unas mancuernas o una kettlebell le dan la carga que le falta."
         }
         if ("pull_gap_compensation" in ctx.flags) {
             notes += "Como no hay tracción, la semana suma extensiones de espalda y trabajo escapular; no sustituyen a un remo ni a una dominada."
