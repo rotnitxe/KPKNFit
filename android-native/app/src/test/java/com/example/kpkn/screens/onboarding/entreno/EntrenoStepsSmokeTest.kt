@@ -394,6 +394,33 @@ class EntrenoStepsSmokeTest {
         rule.onNodeWithText("220,5 lb").assertExists()
     }
 
+    @Test
+    fun weightliftingFromTheIntermediateLevelAsksTheSquatTheSnatchAndTheCleanAndJerk() {
+        // El generador de D1b programa cargadas, arranques y enviones desde el nivel intermedio y cuelga su carga de estas marcas.
+        val draft = SetupWizardDraft().withPlaces(gym)
+            .withGoalProfile(TrainingGoalProfile.WEIGHTLIFTING)
+            .copy(experience = SetupExperience.INTERMEDIATE)
+            .withLiftMark(LiftMark.SNATCH, 80.0)
+        show(draft) { s, v -> EntrenoMarksStep(s, v) }
+        rule.onNodeWithTag("setup-mark-SQUAT").assertExists()
+        rule.onNodeWithTag("setup-mark-SNATCH").assertExists()
+        rule.onNodeWithTag("setup-mark-CLEAN_AND_JERK").assertExists()
+        rule.onNodeWithTag("setup-mark-BENCH").assertDoesNotExist()
+        rule.onNodeWithTag("setup-mark-DEADLIFT").assertDoesNotExist()
+        rule.onNodeWithText("80 kg").assertExists()
+    }
+
+    @Test
+    fun someoneReturningToWeightliftingIsOnlyAskedForTheSquatBecauseTheirProgramNeverCarriesOlympicLifts() {
+        val draft = SetupWizardDraft().withPlaces(gym)
+            .withGoalProfile(TrainingGoalProfile.WEIGHTLIFTING)
+            .copy(experience = SetupExperience.RETURNING)
+        show(draft) { s, v -> EntrenoMarksStep(s, v) }
+        rule.onNodeWithTag("setup-mark-SQUAT").assertExists()
+        rule.onNodeWithTag("setup-mark-SNATCH").assertDoesNotExist()
+        rule.onNodeWithTag("setup-mark-CLEAN_AND_JERK").assertDoesNotExist()
+    }
+
     // ── PLAN / WEEK_LAYOUT ─────────────────────────────────────────────────────
 
     @Test

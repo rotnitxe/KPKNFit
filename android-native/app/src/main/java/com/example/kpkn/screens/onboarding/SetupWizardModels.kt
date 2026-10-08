@@ -542,6 +542,7 @@ internal fun SetupWizardDraft.marksLifts(): List<LiftMark> = MarksContext.liftsF
     profile = goalProfile,
     novice = isNovice,
     hasBarbell = EquipmentSymbolId.BARBELL in selectedEquipmentSymbols(),
+    hasOlympicLifts = MarksContext.readsOlympicMarks(experience.toRoutineLevel()),
 )
 
 /** ¿Entra CAPABILITIES en la ruta? Objetivo general o calistenia, y novato o material ligero. */

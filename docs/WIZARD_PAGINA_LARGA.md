@@ -81,7 +81,7 @@ La ruta del bloque Entreno (`SetupStepGraph.nodes`) sale SOLO de datos del borra
 | `CARDIO_*` | `goalIncludesCardio`: Fuerza y cardio, Funcional y saludable (y los objetivos antiguos Atleta completo / Fuerza + cardio). |
 | `VOLUME_TECHNIQUE` | `asksTechnique`: la experiencia no es «Estoy empezando». Quien empieza recibe «1 · Aprendiendo» con procedencia `DERIVED` al confirmar la experiencia. |
 | `CAPABILITIES` | `asksCapabilities` (`CapabilityRules.asks`): perfil general o Calistenia y, además, persona novata o material ligero. |
-| `TRAINING_MAX` | `asksMarks`: `MarksContext.liftsFor` devuelve algún levantamiento (nunca para novatos). |
+| `TRAINING_MAX` | `asksMarks`: `MarksContext.liftsFor` devuelve algún levantamiento (nunca para novatos). Halterofilia pregunta además el arranque y los dos tiempos, pero solo desde el nivel intermedio: las reservas del generador los programan (y leen esas marcas) a partir de ahí. |
 | `WEEK_LAYOUT` | `hasWeekLayout`: el programa no se aplaza («lo armaré más adelante»). |
 
 `ROUTE`, `STYLE`, `DAYS`, `SPLIT`, `AUTOREGULATION(_CONFIRM)`, `WARMUPS`, `TRAINING_MARKS` y `TRAINING_REVIEW` ya no son preguntas: el enum y sus definiciones (`legacyOnly`) siguen para leer borradores antiguos.
