@@ -60,7 +60,15 @@ internal object RoutineNarrative {
 
     fun oneLiner(ctx: GenContext, results: List<AssembledSession>): String {
         val avg = results.map { it.minutes }.average().let { if (it.isNaN()) ctx.targetMinutes else it.toInt() }
-        return "${days(ctx.days.size).replaceFirstChar { it.uppercase() }} de ${splitDescription(ctx)}, unos $avg min por sesión."
+        val split = splitDescription(ctx)
+        val head = days(ctx.days.size).replaceFirstChar { it.uppercase() }
+        // Una descripción que ya empieza por «una sesión» o «un día» no admite «de» delante: «1 día de una sesión de cuerpo completo» y
+        // «3 días de un día de sentadilla, uno de banca…» se leían mal en la portada (QP, teléfono real).
+        return when {
+            split.startsWith("una sesión") -> "${split.replaceFirstChar { it.uppercase() }}, unos $avg min."
+            split.startsWith("un día") -> "$head: $split, unos $avg min por sesión."
+            else -> "$head de $split, unos $avg min por sesión."
+        }
     }
 
     private fun priorityLabels(symbols: List<MuscleSymbol>): String {

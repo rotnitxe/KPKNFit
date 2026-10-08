@@ -415,6 +415,24 @@ class RoutineGeneratorBehaviorTest {
     }
 
     @Test
+    fun the_one_liner_never_says_days_of_one_session_or_days_of_a_day() {
+        // QP (teléfono real): la portada de Powerlifting con 3 días decía «3 días de un día de sentadilla, uno de banca…».
+        fun line(mode: RoutineMode, days: Int) = RoutineGenerator.generate(s.request(s.gym, mode, RoutineLevel.INTERMEDIATE, days, 90)).summary.oneLiner
+
+        val powerlifting3 = line(RoutineMode.CUSTOM_POWERLIFTING, 3)
+        assertTrue(powerlifting3, powerlifting3.startsWith("3 días: un día de sentadilla, uno de banca y uno de peso muerto, unos "))
+        assertTrue(powerlifting3, powerlifting3.endsWith(" min por sesión."))
+
+        val single = line(RoutineMode.DISCIPLINE_CALISTHENICS, 1)
+        assertTrue(single, single.startsWith("Una sesión de cuerpo completo con peso corporal, unos "))
+        assertTrue(single, single.endsWith(" min."))
+
+        // Las descripciones normales siguen con «N días de …».
+        val bodybuilding4 = line(RoutineMode.CUSTOM_BODYBUILDING, 4)
+        assertTrue(bodybuilding4, bodybuilding4.startsWith("4 días de torso y pierna dos veces por semana, unos "))
+    }
+
+    @Test
     fun the_summary_has_three_to_five_reasons_and_one_line_per_day() {
         s.profiles.forEach { profile ->
             val routine = RoutineGenerator.generate(s.request(profile, RoutineMode.GENERAL_STRENGTH_MUSCLE, RoutineLevel.INTERMEDIATE, 5, 60, priorities = listOf(MuscleSymbol.CHEST)))

@@ -17,9 +17,7 @@ import com.example.kpkn.domain.onboarding.GeneratedPlans
 import com.example.kpkn.domain.onboarding.TrainingGoalProfile
 import com.example.kpkn.domain.onboarding.TrainingPlace
 import com.example.kpkn.domain.training.CatalogCompositionTestSupport
-import com.example.kpkn.domain.training.generator.DisciplineWeeks
 import com.example.kpkn.domain.training.generator.RoutineGenerator
-import com.example.kpkn.domain.training.generator.RoutineMode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -139,21 +137,22 @@ class SetupPlanRevealsTest {
     }
 
     @Test
-    fun no_discipline_one_liner_is_ever_cut_in_the_middle_of_its_description() {
-        // La frase de cada disciplina con cualquier número de días, con la plantilla de `RoutineNarrative.oneLiner`.
-        val disciplines = listOf(
-            RoutineMode.DISCIPLINE_CALISTHENICS,
-            RoutineMode.DISCIPLINE_ARMWRESTLING,
-            RoutineMode.DISCIPLINE_STRONGMAN,
-            RoutineMode.DISCIPLINE_WEIGHTLIFTING_BASE,
-            RoutineMode.CUSTOM_POWERLIFTING,
-        )
-        for (mode in disciplines) {
-            for (days in 1..7) {
-                val line = "${SetupPlanReveals.daysLabel(days)} de ${DisciplineWeeks.describe(mode, days)}, unos 90 min por sesión."
+    fun no_generated_one_liner_reads_badly_or_is_cut_in_the_middle_of_its_description() {
+        // La frase de portada que de verdad arma el generador para cada perfil (general y de disciplina) con 1 a 7 días (QP, teléfono real):
+        // «3 días de un día de sentadilla…» y «1 día de una sesión de…» se leían mal, y la frase larga de halterofilia salía cortada.
+        for (profile in TrainingGoalProfile.entries) {
+            for (dayCount in 1..7) {
+                val days = (1..dayCount).toSet()
+                val routine = RoutineGenerator.generate(draft(profile, days).routineRequest(GeneratedPlans.modeFor(profile), catalog))
+                val line = routine.summary.oneLiner
+                val where = "$profile, $dayCount días: «$line»"
+                assertTrue("$where: «de una sesión» sobra", " de una sesión" !in line)
+                assertTrue("$where: «de un día de» sobra", " de un día de" !in line)
+                assertTrue("$where: empieza en mayúscula o con la cifra de días", line.first().let { it.isUpperCase() || it.isDigit() })
+                assertTrue("$where: cierra con punto", line.endsWith("."))
                 val blurb = SetupPlanReveals.blurbOf(line)
-                assertTrue("$mode $days días: «$blurb» ($line)", blurb.length <= SetupPlanReveals.BLURB_MAX)
-                assertTrue("$mode $days días: «$blurb» queda cortada con «…»", !blurb.endsWith("…"))
+                assertTrue("$where: blurb «$blurb» pasa del límite", blurb.length <= SetupPlanReveals.BLURB_MAX)
+                assertTrue("$where: blurb «$blurb» queda cortado con «…»", !blurb.endsWith("…"))
             }
         }
     }
