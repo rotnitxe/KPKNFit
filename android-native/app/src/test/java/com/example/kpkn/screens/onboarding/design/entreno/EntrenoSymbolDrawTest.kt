@@ -17,7 +17,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * Humo del dibujo: cada símbolo (3 escenas y 17 implementos) se pinta sobre un lienzo real en muchos instantes de su
+ * Humo del dibujo: cada símbolo (3 escenas y 16 implementos) se pinta sobre un lienzo real en muchos instantes de su
  * bucle y con la selección a medias, sin lanzar excepciones. No mira píxeles (eso son las capturas del emulador):
  * garantiza que ningún cuadro del bucle revienta con una geometría degenerada.
  */

@@ -71,9 +71,10 @@ class EquipmentSymbolGridTest {
     }
 
     @Test
-    fun allSeventeenSymbolsHaveTheirTestTag() {
+    fun allSixteenSymbolsHaveTheirTestTag() {
         show()
-        assertEquals(17, EquipmentSymbolId.entries.size)
+        // 15 implementos y «Solo peso corporal»: «Cuerda de saltar» salió de la cuadrícula (ningún ejercicio la usa).
+        assertEquals(16, EquipmentSymbolId.entries.size)
         for (id in EquipmentSymbolId.entries) {
             rule.onNodeWithTag("setup-equipment-${id.name}").assertExists()
             assertEquals("setup-equipment-${id.name}", equipmentSymbolTag(id))
