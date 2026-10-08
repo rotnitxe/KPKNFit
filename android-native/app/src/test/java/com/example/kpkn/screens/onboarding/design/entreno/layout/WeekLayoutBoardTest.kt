@@ -1,7 +1,12 @@
 package com.example.kpkn.screens.onboarding.design.entreno.layout
 
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -28,8 +33,11 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipe
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
+import com.example.kpkn.screens.onboarding.design.LocalWizardPageScroll
+import com.example.kpkn.screens.onboarding.design.WizardPageScroll
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -436,6 +444,99 @@ class WeekLayoutBoardTest {
         rule.mainClock.autoAdvance = true
         rule.waitForIdle()
         assertTrue(moves.isEmpty())
+    }
+
+    /** La lista dentro de una página que se desplaza (como en el asistente), con sitio de sobra por debajo. */
+    private fun scrollingPage(scroll: ScrollState): @Composable (@Composable () -> Unit) -> Unit = { content ->
+        Column(Modifier.verticalScroll(scroll)) {
+            content()
+            Spacer(Modifier.height(900.dp))
+        }
+    }
+
+    @Test
+    fun aDragFromTheHandleLiftsTheSessionInsteadOfScrollingThePage() {
+        val scroll = ScrollState(0)
+        show(wrap = scrollingPage(scroll))
+        rule.waitForIdle()
+        assertTrue("la página tiene por dónde desplazarse", scroll.maxValue > 0)
+        rule.mainClock.autoAdvance = false
+        val row = boundsOf(weekLayoutSlotTag(1))
+        val handle = Offset(row.right - 20f, row.center.y)
+        val moved = touchSlop * 2f + 2f
+        rule.onRoot().performTouchInput {
+            down(handle)
+            moveTo(Offset(handle.x, handle.y + moved))
+            moveTo(Offset(handle.x, handle.y + moved + 40f))
+        }
+        rule.mainClock.advanceTimeByFrame()
+        assertEquals("a", state.liftedId)
+        assertEquals("el movimiento que levanta la ficha no desplaza la página", 0, scroll.value)
+        rule.onRoot().performTouchInput { up() }
+        rule.mainClock.autoAdvance = true
+        rule.waitForIdle()
+        assertEquals(0, scroll.value)
+    }
+
+    @Test
+    fun aVerticalSwipeFromTheBodyOfARowStillScrollsThePageAndLiftsNothing() {
+        val scroll = ScrollState(0)
+        show(wrap = scrollingPage(scroll))
+        rule.waitForIdle()
+        val from = centerOf(weekLayoutSessionTag("c"))
+        rule.onRoot().performTouchInput { swipe(from, Offset(from.x, from.y - 200f), durationMillis = 250) }
+        rule.waitForIdle()
+        assertNull(state.liftedId)
+        assertTrue("la página se desplazó: ${scroll.value}", scroll.value > 0)
+        assertTrue(moves.isEmpty())
+    }
+
+    @Test
+    fun aLiftedSessionNearTheBottomEdgeOfTheVisibleBandMakesThePageScrollByItself() {
+        val scroll = ScrollState(0)
+        val band = WizardPageScroll(scroll = scroll, limit = { scroll.maxValue }, top = { 0f }, bottom = { 700f })
+        show(wrap = { content ->
+            CompositionLocalProvider(LocalWizardPageScroll provides band) { scrollingPage(scroll)(content) }
+        })
+        rule.waitForIdle()
+        // Con el reloj parado los bucles de fotogramas (el auto-desplazamiento) avanzan solo cuando la prueba los avanza.
+        rule.mainClock.autoAdvance = false
+        val from = centerOf(weekLayoutSessionTag("c"))
+        rule.onRoot().performTouchInput { down(from) }
+        rule.mainClock.advanceTimeBy(800)
+        assertEquals("c", state.liftedId)
+        assertEquals(0, scroll.value)
+        // El dedo a 20 px del borde inferior de la franja visible (zona de borde de 56 dp): tras el respiro, la página baja sola.
+        rule.onRoot().performTouchInput { moveTo(Offset(from.x, 680f)) }
+        rule.mainClock.advanceTimeBy(1000)
+        assertTrue("la página bajó sola: ${scroll.value}", scroll.value > 100)
+        // La ficha sigue bajo el dedo: lo que se desplazó la página se suma a la posición del dedo en el contenido.
+        assertEquals(680f + scroll.value, state.finger.y, 2f)
+        rule.onRoot().performTouchInput { up() }
+        rule.mainClock.autoAdvance = true
+        rule.waitForIdle()
+        assertNull(state.liftedId)
+    }
+
+    @Test
+    fun aLiftedSessionInTheMiddleOfTheBandDoesNotMakeThePageScroll() {
+        val scroll = ScrollState(0)
+        val band = WizardPageScroll(scroll = scroll, limit = { scroll.maxValue }, top = { 0f }, bottom = { 700f })
+        show(wrap = { content ->
+            CompositionLocalProvider(LocalWizardPageScroll provides band) { scrollingPage(scroll)(content) }
+        })
+        rule.waitForIdle()
+        rule.mainClock.autoAdvance = false
+        val from = centerOf(weekLayoutSessionTag("c"))
+        rule.onRoot().performTouchInput { down(from) }
+        rule.mainClock.advanceTimeBy(800)
+        assertEquals("c", state.liftedId)
+        rule.onRoot().performTouchInput { moveTo(Offset(from.x, from.y + 40f)) }
+        rule.mainClock.advanceTimeBy(1000)
+        assertEquals(0, scroll.value)
+        rule.onRoot().performTouchInput { up() }
+        rule.mainClock.autoAdvance = true
+        rule.waitForIdle()
     }
 
     @Test
