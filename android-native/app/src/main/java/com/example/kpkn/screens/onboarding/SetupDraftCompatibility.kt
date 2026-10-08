@@ -128,6 +128,9 @@ object SetupDraftCompatibility {
      * - «Cuerda de saltar» salió de la cuadrícula de material (ningún ejercicio ni tipo de cardio la usa): la llave que el
      *   símbolo escribía y la categoría de cardio que traía con ella (que por sí sola acredita las máquinas) no se quedan
      *   en el borrador; la disponibilidad se rehace desde los símbolos que sí existen y conserva la bicicleta.
+     * - El reloj de tiempo por sesión ya no baja de [EntrenoStepValues.SESSION_MINUTES_MIN] (30 min): un borrador con menos
+     *   (20 o 25) se lee como 30 y deja SESSION_TIME por revisar. No confirma nada (la respuesta que ya hubiera queda como
+     *   estaba, marcada por revisar) ni toca el resto de lo respondido; el cursor vuelve a ese paso para que la persona decida.
      * - Si el bloque de entreno ya estaba completo, sus pasos nuevos sin responder lo marcan como pendiente de revisión.
      */
     internal fun migrateEntrenoV2(draft: SetupWizardDraft): SetupWizardDraft {
@@ -169,6 +172,13 @@ object SetupDraftCompatibility {
         // Días derivados de los días elegidos.
         val derivedDays = current.selectedWeekdays.size.takeIf { it > 0 }
         if (current.daysPerWeek != derivedDays) current = current.copy(daysPerWeek = derivedDays)
+        // Tiempo por sesión: por debajo del mínimo del reloj se lee como el mínimo y el paso queda por revisar. Idempotente: con
+        // el valor ya en el rango no hace nada, y una vez reconfirmado el paso (que cierra su marca) no vuelve a abrirse.
+        current.minutesPerSession?.takeIf { it < EntrenoStepValues.SESSION_MINUTES_MIN }?.let {
+            current = current.withSessionMinutes(EntrenoStepValues.SESSION_MINUTES_MIN).copy(
+                stepProgress = current.stepProgress.withPendingReview(setOf(SetupStepId.SESSION_TIME)),
+            )
+        }
         // Marcas ← perfil de powerlifting.
         if (current.liftMarks.isEmpty()) {
             val profile = current.powerliftingProfile
