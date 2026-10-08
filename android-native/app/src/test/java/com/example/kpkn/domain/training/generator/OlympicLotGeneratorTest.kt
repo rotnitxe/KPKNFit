@@ -355,7 +355,7 @@ class OlympicLotGeneratorTest {
             assertTrue(exercise.name, entry.markFactor in 0.6..1.0)
             exercise.sets.forEach { set -> assertTrue("${exercise.name} ${set.targetPercentageRM}", set.targetPercentageRM!! in 50.0..95.0) }
         }
-        // Sin esas marcas (el wizard todavía no las pregunta) las series salen sin carga porcentual, como el swing.
+        // Sin esas marcas (el asistente las pregunta desde el nivel intermedio y la persona puede no saberlas) las series salen sin carga porcentual, como el swing.
         val without = generate(s.gym, weightlifting, RoutineLevel.ADVANCED, 4, 90, marks = mapOf(LiftMark.SQUAT to 140.0))
         exercisesOf(without).filter { it.catalogConfigurationId in cleansAndSnatches + jerks + pulls + overheadSquat }.forEach { exercise ->
             assertNull("${exercise.name} con 1RM sin marca declarada", exercise.reference1RM)

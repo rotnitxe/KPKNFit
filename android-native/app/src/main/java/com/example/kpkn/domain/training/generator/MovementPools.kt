@@ -38,8 +38,9 @@ import com.example.kpkn.domain.onboarding.LiftMark
  *
  * Marcas: los levantamientos olímpicos cuelgan de las marcas del arranque (`LiftMark.SNATCH`) y de los dos tiempos
  * (`LiftMark.CLEAN_AND_JERK`) con un `factor` que es la razón habitual entre cada variante y su levantamiento, TOMADA POR
- * DEBAJO (lado seguro: 0,65–1,0). Son aproximaciones, no mediciones, y hoy el wizard no pregunta esas marcas
- * (`MarksContext.CATALOG_HAS_OLYMPIC_LIFTS`): sin marca la serie sale con «carga pendiente», como el swing.
+ * DEBAJO (lado seguro: 0,65–1,0). Son aproximaciones, no mediciones. El asistente pregunta esas marcas desde el nivel
+ * intermedio (`MarksContext.OLYMPIC_MIN_LEVEL`, con `CATALOG_HAS_OLYMPIC_LIFTS = true`): sin marca declarada la serie sale
+ * con «carga pendiente», como el swing.
  */
 
 /** Naturaleza del ejercicio: decide repeticiones, descansos y cómo se prescribe. */

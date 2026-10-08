@@ -287,9 +287,7 @@ class SetupWizardCandidateGateTest {
         )
         assertTrue(planSelectionGate(state, SetupStepId.PLAN).isEmpty())
         assertTrue(SetupWizardValidation.validateStep(state.draft, SetupStepId.PLAN).none { it.isBlocking })
-        val rows = trainingMilestoneRows(state)
-        assertTrue(rows.any { it.first == "Programa" && it.second == DEFER_PROGRAM_REVIEW_VALUE })
-        assertFalse(rows.any { it.first == "Autorregulación" || it.first == "Calentamientos" })
+        assertEquals(DEFER_PROGRAM_REVIEW_VALUE, setupStepSummary(SetupStepId.PLAN, state).value)
         assertEquals(
             "El programa lo armarás más adelante. El plan nutricional se activa al confirmar.",
             activationBody(state),

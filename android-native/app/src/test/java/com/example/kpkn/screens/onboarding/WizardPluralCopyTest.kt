@@ -2,15 +2,14 @@ package com.example.kpkn.screens.onboarding
 
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.data.programs.PlanLabels
-import com.example.kpkn.domain.onboarding.LiftMark
 import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.SetupWizardBlock
-import com.example.kpkn.domain.onboarding.TrainingGoalProfile
 import com.example.kpkn.domain.onboarding.TrainingPlace
 import com.example.kpkn.screens.onboarding.design.entreno.daysPerWeekUnit
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -179,41 +178,17 @@ class WizardPluralCopyTest {
         assertEquals(listOf("Básicos", "Entreno", "Rings", "Revisión"), milestoneBlocks(route).map(::milestoneStageLabel))
     }
 
-    // ─── Resumen del hito de Entreno: lugares, material, objetivo, días y programa ──────────
-
-    private fun milestoneState(draft: SetupWizardDraft) = SetupWizardState(draft = draft)
+    // ─── Revisión final de Entreno: lugares y días con su tiempo ────────────────────────────
 
     @Test
-    fun theMilestoneSummaryUsesTheNamesOfTheFinalReview() {
+    fun theFinalReviewNamesThePlacesAndTheDaysWithTheTimeAndAgreesInNumber() {
         val draft = SetupWizardDraft(selectedWeekdays = setOf(1, 3, 5), minutesPerSession = 60)
             .withPlaces(setOf(TrainingPlace.GYM, TrainingPlace.HOME))
-            .withGoalProfile(TrainingGoalProfile.POWERLIFTING)
-            .withStepChoice(SetupStepId.EXPERIENCE, "intermediate")
-        val rows = trainingMilestoneRows(milestoneState(draft))
-
-        assertEquals("Experiencia" to "Ya entreno con constancia", rows.first())
-        assertTrue("$rows", rows.contains("Lugares" to "Gimnasio y casa"))
-        assertTrue("$rows", rows.contains("Objetivo" to "Powerlifting"))
-        assertTrue("$rows", rows.contains("Días y tiempo" to "3 días · lun, mié, vie · 60 min"))
-        // Ya no hay fila de reparto: la semana la arma el programa.
-        assertTrue("$rows", rows.none { (label, _) -> label == "Reparto" || label == "Split" })
-        // Sin plan elegido tampoco hay fila de programa y nunca se pinta un id.
-        assertTrue("$rows", rows.none { (label, _) -> label == "Programa" })
-    }
-
-    @Test
-    fun theMilestoneProgramRowNamesTheChosenPlanAndNeverShowsAnUnknownId() {
-        fun programRows(draft: SetupWizardDraft) =
-            trainingMilestoneRows(milestoneState(draft)).filter { (label, _) -> label == "Programa" }
-
-        val entry = PersonalizedPlanCatalog.listedEntries().first()
-        assertEquals(listOf("Programa" to entry.displayName), programRows(SetupWizardDraft(selectedCatalogId = entry.id)))
-        assertEquals(listOf("Programa" to "Tu programa elegido"), programRows(SetupWizardDraft(selectedCatalogId = "id_que_no_existe")))
-        assertEquals(listOf("Programa" to DEFER_PROGRAM_REVIEW_VALUE), programRows(SetupWizardDraft(programRoute = SetupProgramRoute.LATER)))
-        // Las marcas, solo si se declararon.
-        val marks = trainingMilestoneRows(milestoneState(SetupWizardDraft().withLiftMark(LiftMark.SQUAT, 140.0)))
-        assertTrue("$marks", marks.contains("Marcas" to "140 kg"))
-        assertTrue(trainingMilestoneRows(milestoneState(SetupWizardDraft())).none { (label, _) -> label == "Marcas" })
+        assertEquals("Gimnasio y casa", placesSummaryText(draft.trainingPlaces))
+        assertEquals("3 días · lun, mié, vie · 60 min", daysAndTimeReviewValue(draft))
+        assertEquals("1 día · mié · 45 min", daysAndTimeReviewValue(SetupWizardDraft(selectedWeekdays = setOf(3), minutesPerSession = 45)))
+        // Mientras falten los dos datos no hay línea que pintar.
+        assertNull(daysAndTimeReviewValue(SetupWizardDraft()))
     }
 
     private fun entry(id: String) =

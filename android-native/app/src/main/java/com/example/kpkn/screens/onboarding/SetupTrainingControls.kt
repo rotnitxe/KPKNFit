@@ -2,24 +2,21 @@ package com.example.kpkn.screens.onboarding
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardShapes
 import com.example.kpkn.screens.onboarding.design.WizardTypography
 
 /**
- * Controles compartidos del bloque Entreno: el aviso en línea de los pasos de opción, la fila de resumen del hito y la
- * revisión, y el abridor de «Conceptos clave». Los demás (campo numérico, carga, avisos con botones) salieron con las
- * pantallas antiguas del inventario y del plan; los avisos con botones viven en `entreno/EntrenoPlanNotices.kt`.
+ * Controles compartidos del bloque Entreno: el aviso en línea de los pasos de opción y el abridor de «Conceptos clave».
+ * Los demás (campo numérico, carga, fila de resumen del hito, avisos con botones) salieron con las pantallas antiguas del
+ * inventario y del plan; los avisos con botones viven en `entreno/EntrenoPlanNotices.kt`.
  */
 
 /** Tono de los avisos en línea del contenido (informativo o bloqueante). */
@@ -53,28 +50,4 @@ internal fun TrainingNotice(
             )
             .padding(horizontal = 16.dp, vertical = 12.dp),
     )
-}
-
-/** Fila de resumen no interactiva (revisión e hito). */
-@Composable
-internal fun TrainingSummaryRow(label: String, value: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(WizardColors.cardFill, WizardShapes.card)
-            .border(WizardColors.unselectedBorderWidth, WizardColors.cardBorder, WizardShapes.card)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        // La etiqueta ocupa lo que mide y el valor se reparte el resto: con un valor largo (el nombre de un
-        // programa) la etiqueta no puede quedarse sin ancho y partirse letra a letra.
-        Text(label, style = WizardTypography.cardSubtitle, color = WizardColors.textMuted)
-        Text(
-            value,
-            style = WizardTypography.cardTitle,
-            color = WizardColors.text,
-            textAlign = TextAlign.End,
-            modifier = Modifier.weight(1f).padding(start = 12.dp),
-        )
-    }
 }

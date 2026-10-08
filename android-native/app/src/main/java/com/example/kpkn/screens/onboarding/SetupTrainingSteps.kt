@@ -22,8 +22,6 @@ import com.example.kpkn.domain.onboarding.SetupStepDefinitions
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.screens.onboarding.design.WizardChoiceCard
 import com.example.kpkn.screens.onboarding.design.WizardSpacing
-import com.example.kpkn.screens.onboarding.design.WizardMassUnit
-import com.example.kpkn.screens.onboarding.design.WizardWeightScale
 import com.example.kpkn.screens.onboarding.entreno.EntrenoFreshDayStep
 import com.example.kpkn.screens.onboarding.entreno.EntrenoGoalStep
 import com.example.kpkn.screens.onboarding.entreno.EntrenoMarksStep
@@ -78,12 +76,8 @@ fun SetupTrainingStepContent(
         SetupStepId.CARDIO_TIME,
         -> TrainingChoiceStep(step = step, state = state, vm = vm)
 
-        // La raíz corta los hitos antes de delegar (StepQuestion + hitos), así
-        // que este resumen solo pinta si el hito llega aquí: nunca duplica.
-        SetupStepId.MILESTONE_TRAINING -> TrainingMilestoneSummary(state = state)
-
-        // Pasos de otros bloques (datos básicos, nutrición, rings y revisión
-        // final) y pasos retirados de la ruta de Entreno: sin control propio aquí.
+        // Pasos de otros bloques (datos básicos, nutrición, rings y revisión final), el hito de Entreno (lo pinta el
+        // anfitrión como overlay de «bloque completado», nunca un control) y los pasos retirados de la ruta: sin control propio.
         else -> Unit
     }
 }
@@ -410,47 +404,5 @@ internal fun performRejectionAction(action: RejectionAction, vm: SetupWizardView
     }
 }
 
-/** Lo que dicen el hito y la revisión cuando no se crea un programa ahora. */
+/** Lo que dicen la fila-resumen de PLAN y la revisión final cuando no se crea un programa ahora. */
 internal const val DEFER_PROGRAM_REVIEW_VALUE = "Lo armarás manualmente más adelante"
-
-// ─── MILESTONE_TRAINING ─────────────────────────────────────────────────────
-
-/** Resumen real de lo respondido en el bloque antes de cerrarlo. */
-@Composable
-private fun TrainingMilestoneSummary(state: SetupWizardState) {
-    val rows = trainingMilestoneRows(state)
-    Column(verticalArrangement = Arrangement.spacedBy(WizardSpacing.cardGap)) {
-        rows.forEach { (label, value) -> TrainingSummaryRow(label = label, value = value) }
-    }
-}
-
-/**
- * Las filas del resumen del hito del bloque Entreno (etiqueta, valor), sin pintar: lo que la persona eligió, con los
- * mismos nombres de la revisión final (lugares, material, objetivo, días y tiempo, programa y, si las declaró, las
- * marcas). Un dato sin declarar no añade fila; nunca se pinta un id ni un valor por defecto.
- */
-internal fun trainingMilestoneRows(state: SetupWizardState): List<Pair<String, String>> {
-    val draft = state.draft
-    return buildList {
-        draft.experience?.let { add("Experiencia" to it.label) }
-        placesSummaryText(draft.trainingPlaces)?.let { add("Lugares" to it) }
-        materialReviewValue(draft)?.let { add("Material" to it) }
-        (draft.goalProfile?.label ?: draft.goal?.label)?.let { add("Objetivo" to it) }
-        daysAndTimeReviewValue(draft)?.let { add("Días y tiempo" to it) }
-        if (draft.programRoute == SetupProgramRoute.LATER) {
-            add("Programa" to DEFER_PROGRAM_REVIEW_VALUE)
-        } else {
-            draft.selectedCatalogId?.let { id ->
-                // C.P6: el nombre de la ficha editorial; si el id ya no resuelve, nunca se pinta el id crudo.
-                add("Programa" to (PersonalizedPlanCatalog.find(id)?.displayName ?: "Tu programa elegido"))
-            }
-        }
-        if (draft.liftMarks.isNotEmpty()) {
-            val unit = if (draft.marksUnit == "lb") WizardMassUnit.LB else WizardMassUnit.KG
-            add(
-                "Marcas" to draft.liftMarks.entries.sortedBy { it.key.ordinal }
-                    .joinToString(" / ") { (_, kg) -> WizardWeightScale.formatWithUnit(kg, unit) },
-            )
-        }
-    }
-}

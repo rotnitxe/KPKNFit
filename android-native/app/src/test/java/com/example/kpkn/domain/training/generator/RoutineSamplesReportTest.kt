@@ -131,7 +131,7 @@ class RoutineSamplesReportTest {
         render("DISCIPLINA armwrestling intermedio 4d 75 min", s.request(s.gym, RoutineMode.DISCIPLINE_ARMWRESTLING, RoutineLevel.INTERMEDIATE, 4, 75), out)
         render("DISCIPLINA strongman intermedio 4d 90 min", s.request(s.gym, RoutineMode.DISCIPLINE_STRONGMAN, RoutineLevel.INTERMEDIATE, 4, 90, marks = marks), out)
         render("DISCIPLINA base de halterofilia intermedio 3d 60 min", s.request(s.gym, RoutineMode.DISCIPLINE_WEIGHTLIFTING_BASE, RoutineLevel.INTERMEDIATE, 3, 60, marks = marks), out)
-        // Paquete D1b · lote OL-1 (levantamientos olímpicos y acarreos): las marcas del arranque y de los dos tiempos aún no las pregunta el wizard.
+        // Paquete D1b · lote OL-1 (levantamientos olímpicos y acarreos): las marcas del arranque y de los dos tiempos se preguntan desde el nivel intermedio.
         val olympicMarks = marks + mapOf(LiftMark.SNATCH to 80.0, LiftMark.CLEAN_AND_JERK to 100.0)
         render("OL-1 base de halterofilia avanzado 4d 90 min con marcas de arranque y dos tiempos (gimnasio)", s.request(s.gym, RoutineMode.DISCIPLINE_WEIGHTLIFTING_BASE, RoutineLevel.ADVANCED, 4, 90, marks = olympicMarks), out)
         render("OL-1 base de halterofilia intermedio 1d 60 min (gimnasio)", s.request(s.gym, RoutineMode.DISCIPLINE_WEIGHTLIFTING_BASE, RoutineLevel.INTERMEDIATE, 1, 60), out)
