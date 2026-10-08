@@ -41,6 +41,14 @@ internal class MuscleShape(val spec: MuscleSpec) {
     val region: Path = MuscleArt.parse(spec.region)
     val detail: List<Path> = spec.detail.map(MuscleArt::parse)
     val context: List<Path> = spec.context.map(MuscleArt::parse)
+
+    /**
+     * Todas las marcas de contexto y todas las fibras en un solo trazo cada una: se pintan con el mismo estilo, así que una llamada de
+     * dibujo basta (antes eran hasta una veintena por celda, ciento sesenta entre los doce músculos). Un trazo único no acumula
+     * opacidad donde dos líneas se cruzan: se ve igual o algo más limpio.
+     */
+    val contextAll: Path = Path().also { all -> context.forEach { all.addPath(it) } }
+    val detailAll: Path = Path().also { all -> detail.forEach { all.addPath(it) } }
 }
 
 internal object MuscleArt {
