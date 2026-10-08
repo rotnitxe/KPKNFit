@@ -99,7 +99,7 @@ class EntrenoMusclesPreviewActivity : ComponentActivity() {
         val max = intent.getStringExtra("max")?.toIntOrNull() ?: 5
         var selected by remember { mutableStateOf(parseEnums<MuscleSymbol>(intent.getStringExtra("selected")).toSet()) }
         val suggested = remember { parseEnums<MuscleSymbol>(intent.getStringExtra("suggested")).toSet() }
-        Header("¿Qué músculos quieres mejorar más?", "Elige hasta 5. Puedes omitir este paso.")
+        Header("¿Qué músculos priorizas?", "Elige hasta 5. Puedes omitir este paso.")
         MuscleSymbolGrid(
             selected = selected,
             suggested = suggested,
