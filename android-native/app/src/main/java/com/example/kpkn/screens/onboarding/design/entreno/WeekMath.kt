@@ -18,7 +18,7 @@ import kotlin.math.roundToInt
 /** Días de la semana. */
 const val WEEK_DAY_COUNT = 7
 
-private val DAY_INITIALS = listOf("L", "M", "X", "J", "V", "S", "D")
+private val DAY_INITIALS = listOf("L", "M", "Mi", "J", "V", "S", "D")
 private val DAY_SHORT_NAMES = listOf("Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom")
 private val DAY_FULL_NAMES = listOf("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo")
 
@@ -37,7 +37,10 @@ fun orderedWeek(startDay: Int): List<Int> {
 /** Ranura (0..6) que ocupa [day] en una semana que arranca en [startDay]. Un día inválido da −1. */
 fun weekSlotOf(day: Int, startDay: Int): Int = orderedWeek(startDay).indexOf(day)
 
-/** Inicial de un día: L M X J V S D (la X es el miércoles). Un día inválido da «». */
+/**
+ * Inicial de un día: L M Mi J V S D. El miércoles es «Mi» (no «X»: una X suelta, sin su nombre al lado, no se lee como un día) y así no
+ * se confunde con el martes. Un día inválido da «».
+ */
 fun dayInitial(day: Int): String = DAY_INITIALS.getOrElse(day - 1) { "" }
 
 /** Nombre corto de tres letras: Lun Mar Mié Jue Vie Sáb Dom. Un día inválido da «». */

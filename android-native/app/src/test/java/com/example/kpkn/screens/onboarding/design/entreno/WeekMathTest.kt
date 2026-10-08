@@ -38,7 +38,9 @@ class WeekMathTest {
 
     @Test
     fun everyDayHasItsInitialShortAndFullName() {
-        assertEquals(listOf("L", "M", "X", "J", "V", "S", "D"), (1..7).map(::dayInitial))
+        // El miércoles es «Mi»: una X suelta, sin su nombre al lado, no se lee como un día.
+        assertEquals(listOf("L", "M", "Mi", "J", "V", "S", "D"), (1..7).map(::dayInitial))
+        assertEquals("todas las iniciales son distintas", 7, (1..7).map(::dayInitial).toSet().size)
         assertEquals(listOf("Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"), (1..7).map(::dayShortName))
         assertEquals(
             listOf("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"),

@@ -15,9 +15,13 @@ import androidx.compose.ui.text.drawText
  */
 internal class WeekLetter(val layout: TextLayoutResult, val anchor: Offset)
 
-/** Mide [text] (una letra) con [style] y calcula su centro óptico. */
+/** Cuánto se achica una inicial de dos letras («Mi») respecto a las de una: así cabe en el mismo disco, también con letra grande. */
+private const val LONG_INITIAL_SCALE = 0.74f
+
+/** Mide [text] (una inicial: una letra, o «Mi») con [style] y calcula su centro óptico. */
 internal fun TextMeasurer.measureWeekLetter(text: String, style: TextStyle): WeekLetter {
-    val layout = measure(text = text, style = style, softWrap = false, maxLines = 1)
+    val fitted = if (text.length > 1) style.copy(fontSize = style.fontSize * LONG_INITIAL_SCALE) else style
+    val layout = measure(text = text, style = fitted, softWrap = false, maxLines = 1)
     val anchor = if (text.isEmpty()) {
         Offset(layout.size.width / 2f, layout.size.height / 2f)
     } else {

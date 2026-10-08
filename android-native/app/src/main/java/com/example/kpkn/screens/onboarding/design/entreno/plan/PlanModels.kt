@@ -120,7 +120,7 @@ internal object PlanCopy {
     const val SECTION_REASONS = "Por qué este programa"
     const val SECTION_NOTES = "Ten en cuenta"
 
-    /** Iniciales de los días de la semana, de lunes a domingo. */
-    val WEEKDAY_INITIALS = listOf("L", "M", "X", "J", "V", "S", "D")
+    /** Iniciales de los días de la semana, de lunes a domingo (el miércoles es «Mi»: una X suelta no se lee como un día). */
+    val WEEKDAY_INITIALS = listOf("L", "M", "Mi", "J", "V", "S", "D")
     val WEEKDAY_NAMES = listOf("lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo")
 }
