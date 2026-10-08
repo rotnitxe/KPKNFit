@@ -279,7 +279,6 @@ class SetupWizardStateTest {
                 ),
                 dayPlaces = mapOf(1 to com.example.kpkn.domain.onboarding.TrainingPlace.HOME),
             ),
-            "reparto adaptado" to base.copy(adaptedSplitId = "ppl_x6"),
         )
         changes.forEach { (what, changed) ->
             val impacted = changed.withChangeImpacts(base)
@@ -299,6 +298,45 @@ class SetupWizardStateTest {
         val unit = base.copy(marksUnit = "lb").withChangeImpacts(base)
         assertTrue(unit.stepProgress.pendingReview.isEmpty())
         assertTrue(unit.stepProgress.stalePreviews.isEmpty())
+    }
+
+    /**
+     * La semana armada depende del programa elegido, nunca al revés: adaptar el programa a otro reparto (WEEK_LAYOUT) es una
+     * decisión sobre ESA semana. Invalida lo que se calculó con la semana anterior (reparto, ejercicios, cargas) pero no
+     * deja nada por revisar: antes contaba como un cambio de reparto del plan y reabría PLAN al volver a abrir el borrador.
+     */
+    @Test
+    fun adaptingTheWeekToASplitStalesThePreviewButReopensNothing() {
+        val base = baseDraft()
+        val adapted = base.copy(adaptedSplitId = "ppl_x6")
+        assertEquals(
+            "adaptar la semana es su propia fuente de cambio, no un cambio de reparto del plan",
+            setOf(SetupChangeSource.WEEK_LAYOUT),
+            SetupChangeDetector.sourcesFor(base.inputFootprint(), adapted.inputFootprint()),
+        )
+        val impacted = adapted.withChangeImpacts(base)
+        assertTrue("nada por revisar: ${impacted.stepProgress.pendingReview}", impacted.stepProgress.pendingReview.isEmpty())
+        assertEquals(
+            setOf(SetupPreviewKind.SPLIT, SetupPreviewKind.RECIPE, SetupPreviewKind.EXERCISES, SetupPreviewKind.LOADS),
+            impacted.stepProgress.stalePreviews,
+        )
+        // Los candidatos no cambian con la semana: no hay que volver a barrer programas.
+        assertFalse(SetupPreviewKind.PLAN_CANDIDATES in impacted.stepProgress.stalePreviews)
+        // «Restablecer» (volver al reparto del programa) es el mismo tipo de decisión.
+        val reset = base.copy(adaptedSplitId = null).withChangeImpacts(adapted)
+        assertTrue(reset.stepProgress.pendingReview.isEmpty())
+        // Mover una sesión de día no cambia la huella: ni siquiera es una fuente de cambio.
+        assertTrue(
+            SetupChangeDetector.sourcesFor(
+                base.inputFootprint(),
+                base.copy(weekLayoutOverrides = mapOf("sesion-1" to 3)).inputFootprint(),
+            ).isEmpty(),
+        )
+        // La dependencia sigue yendo en el otro sentido: el reparto del plan (borradores antiguos) sí reabre programa y semana.
+        assertEquals(
+            setOf(SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT),
+            base.copy(selectedSplitId = "ppl_x6").withChangeImpacts(base).stepProgress.pendingReview,
+        )
     }
 
     @Test

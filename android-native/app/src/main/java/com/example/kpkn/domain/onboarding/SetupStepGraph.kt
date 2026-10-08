@@ -664,8 +664,11 @@ enum class SetupPreviewKind {
     EXERCISES, LOADS, WARMUPS, PLAN_CANDIDATES, SPLIT, RECIPE, MARKS, RINGS_BATTERIES,
 }
 
-/** Physiological sources of change; navigation is intentionally not one of them. */
-enum class SetupChangeSource { WEIGHT, BODY_COMPOSITION, EQUIPMENT, FREQUENCY, PROTOCOL, PLAN_CHOICE, SPLIT, PRIORITIES, CALENDAR, SENSATIONS }
+/**
+ * Physiological sources of change; navigation is intentionally not one of them. [WEEK_LAYOUT] es la semana armada
+ * (el reparto al que se adaptó el programa ya elegido): una decisión sobre el programa, no una respuesta anterior a él.
+ */
+enum class SetupChangeSource { WEIGHT, BODY_COMPOSITION, EQUIPMENT, FREQUENCY, PROTOCOL, PLAN_CHOICE, SPLIT, WEEK_LAYOUT, PRIORITIES, CALENDAR, SENSATIONS }
 
 /** What has to be revalidated after one [SetupChangeSource]. */
 data class SetupDependencyImpact(
@@ -685,7 +688,8 @@ data class SetupDependencyImpact(
  *
  * Entreno v2: el programa (PLAN) y la semana armada (WEEK_LAYOUT) dependen de todo lo anterior, así que cualquier
  * cambio de lugares, material, objetivo, capacidades, marcas, días, inicio de semana o lugar por día los deja
- * pendientes de revisión.
+ * pendientes de revisión. La dependencia va en un solo sentido: la semana armada depende del programa elegido y no al
+ * revés, así que adaptar el reparto ([SetupChangeSource.WEEK_LAYOUT]) o mover una sesión no reabre PLAN.
  */
 object SetupDependencyRules {
     fun impactOf(source: SetupChangeSource): SetupDependencyImpact = when (source) {
@@ -745,7 +749,7 @@ object SetupDependencyRules {
             ),
             pendingSteps = setOf(SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT),
         )
-        // Reparto (elegido, patrón personalizado o al que se adaptó la semana) → parejas (programa, reparto)
+        // Reparto (elegido o patrón personalizado de un borrador antiguo) → parejas (programa, reparto)
         // y preview dejan de estar vigentes hasta re-preparar.
         SetupChangeSource.SPLIT -> SetupDependencyImpact(
             stalePreviews = setOf(
@@ -753,6 +757,15 @@ object SetupDependencyRules {
                 SetupPreviewKind.RECIPE, SetupPreviewKind.EXERCISES, SetupPreviewKind.LOADS,
             ),
             pendingSteps = setOf(SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT),
+        )
+        // Semana armada (el reparto al que se adaptó el programa en WEEK_LAYOUT) → la semana depende del programa
+        // elegido, nunca al revés: cambiarla deja obsoletos el reparto, los ejercicios y las cargas del preview (se
+        // re-arma con la semana nueva), pero no reabre PLAN ni el propio paso, que es justo donde se decide. Mover una
+        // sesión de día no es un cambio de huella: ni siquiera llega aquí.
+        SetupChangeSource.WEEK_LAYOUT -> SetupDependencyImpact(
+            stalePreviews = setOf(
+                SetupPreviewKind.SPLIT, SetupPreviewKind.RECIPE, SetupPreviewKind.EXERCISES, SetupPreviewKind.LOADS,
+            ),
         )
         // Prioridades → solo reordena ejercicios, nunca los cambia.
         SetupChangeSource.PRIORITIES -> SetupDependencyImpact(reorderOnly = true)
@@ -865,9 +878,10 @@ object SetupChangeDetector {
         if (old.daysPerWeek != new.daysPerWeek) add(SetupChangeSource.FREQUENCY)
         if (old.selectedSplitId != new.selectedSplitId ||
             old.customSplitPattern != new.customSplitPattern ||
-            old.customSplitName != new.customSplitName ||
-            old.adaptedSplitId != new.adaptedSplitId
+            old.customSplitName != new.customSplitName
         ) add(SetupChangeSource.SPLIT)
+        // El reparto al que se adaptó la semana armada es una decisión de WEEK_LAYOUT sobre el programa ya elegido.
+        if (old.adaptedSplitId != new.adaptedSplitId) add(SetupChangeSource.WEEK_LAYOUT)
         // Objetivo (perfil y derivado), capacidades, marcas, experiencia, tiempo y cardio → PROTOCOL.
         if (old.knowsTrainingMarks != new.knowsTrainingMarks || old.marks != new.marks ||
             old.liftMarks != new.liftMarks || old.capabilities != new.capabilities ||
