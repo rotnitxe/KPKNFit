@@ -151,22 +151,25 @@ private fun PlaceConflictNotice(conflict: SetupPlaceConflict) {
 }
 
 /**
- * Las sesiones como las dibuja el tablero. El foco lleva además el lugar solo cuando el programa reparte sus sesiones
- * entre varios lugares (con un único lugar sería ruido).
+ * Las sesiones como las dibuja el tablero. El lugar ([WeekLayoutSession.place], que pinta el glifo de la ficha) solo se dice
+ * cuando el programa reparte sus sesiones entre varios lugares (con un único lugar sería ruido); además el foco lo lleva al
+ * final («Pecho y espalda · En casa») porque es lo que lee TalkBack, que no ve el glifo.
  */
 internal fun boardSessionsOf(sessions: List<SetupLayoutSession>): List<WeekLayoutSession> {
     val severalPlaces = sessions.mapNotNull { it.place }.distinct().size > 1
     return sessions.map { session ->
+        val place = session.place.takeIf { severalPlaces }
         WeekLayoutSession(
             id = session.id,
             title = session.title,
             focus = listOfNotNull(
                 session.focus.takeIf { it.isNotBlank() },
-                session.place?.label?.takeIf { severalPlaces },
+                place?.label,
             ).joinToString(" · "),
             minutes = session.minutes,
             exerciseCount = session.exerciseCount,
             isMain = session.isMain,
+            place = place,
         )
     }
 }

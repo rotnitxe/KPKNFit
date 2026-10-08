@@ -168,7 +168,8 @@ grande las filas crecen —de 64 dp hasta ≈ 110 dp si el título ocupa dos lí
 
 Se conservan sin cambios de contrato el selector de repartos, las notas, el estado «adaptando» (la lista se atenúa y no deja tocar) y
 «Restablecer». La firma pública de `WeekLayoutBoard` no cambió (la usa `EntrenoWeekLayoutStep`); `WeekLayoutSession` ganó un campo opcional,
-`place`, y mientras `EntrenoWeekLayoutStep` no lo rellene el lugar se lee del final del foco («Pecho y espalda · En casa»).
+`place`: `EntrenoWeekLayoutStep` (`boardSessionsOf`) lo rellena solo cuando el programa reparte sus sesiones entre varios lugares y el foco sigue
+llevando el lugar al final («Pecho y espalda · En casa») porque es lo que lee TalkBack; si `place` falta, el tablero lo lee de ahí.
 
 ### 2.2 Cómo se revisa un paso en el teléfono
 

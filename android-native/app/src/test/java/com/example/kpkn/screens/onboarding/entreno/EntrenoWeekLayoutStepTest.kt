@@ -232,6 +232,20 @@ class EntrenoWeekLayoutStepTest {
         assertEquals(listOf("p-s0", "Torso", "60", "6", "true"), listOf(board.id, board.title, "${board.minutes}", "${board.exerciseCount}", "${board.isMain}"))
     }
 
+    /**
+     * El glifo del lugar de cada ficha sale del campo `place` de la sesión del tablero, no del texto del foco: con todas las
+     * sesiones en el mismo lugar no se dice (sería ruido) y con varios lugares cada ficha lleva el suyo, igual que `placeId`.
+     */
+    @Test
+    fun theBoardGetsThePlaceAsAFieldOnlyWhenTheWeekUsesSeveralPlaces() {
+        assertEquals(listOf<TrainingPlace?>(null, null, null), boardSessionsOf(sessions).map { it.place })
+        val mixed = sessions.mapIndexed { index, session -> if (index == 1) session.copy(place = TrainingPlace.HOME) else session }
+        assertEquals(listOf(TrainingPlace.GYM, TrainingPlace.HOME, TrainingPlace.GYM), boardSessionsOf(mixed).map { it.place })
+        // Sin lugar declarado en la sesión, tampoco hay glifo aunque haya otras con lugar.
+        val partial = mixed.mapIndexed { index, session -> if (index == 2) session.copy(place = null) else session }
+        assertEquals(listOf(TrainingPlace.GYM, TrainingPlace.HOME, null), boardSessionsOf(partial).map { it.place })
+    }
+
     private object NoPersistence : SetupWizardPersistence {
         override suspend fun load(draftId: String): SetupDraft? = null
         override suspend fun save(
