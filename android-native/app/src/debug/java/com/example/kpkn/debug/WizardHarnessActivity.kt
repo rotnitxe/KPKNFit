@@ -84,6 +84,9 @@ import kotlinx.serialization.json.Json
  *  - `reducedMotion` (booleano): fuerza «reducir movimiento» en el asistente (cuadro final estático, sin bucles) sin tocar los ajustes
  *    del teléfono; solo anula lo que lee `wizardReducedMotion()` (las animaciones propias de Compose siguen su escala del sistema).
  *  - `fps` (booleano): pinta encima el medidor de fluidez (`FrameMeter`): cuadros por segundo, el cuadro más largo y los lentos.
+ *  - `preselect` (id de un plan de la biblioteca, p. ej. `native:complete-athlete-v2`): abre el asistente como lo hace «Configurar este
+ *    plan» (`preselectedPlanId`): el plan entra como intención con su objetivo prefijado. Con un plan que el perfil elegido ya no ofrece
+ *    se ve el aviso de «Este programa de la biblioteca ahora se arma a medida».
  *  - `reset` (booleano, `true` por defecto): reconstruye el borrador en cada arranque; con `false` reabre el que hubiera.
  *  - `autonext` (milisegundos, 0 = apagado): recorre el bloque solo. En cada paso espera el 40 % de ese tiempo con el paso VACÍO,
  *    escribe lo que contestaría la persona (como si la persona lo eligiera) y al terminar el tiempo «pulsa Continuar»
@@ -153,6 +156,7 @@ private class HarnessConfig(
     val reducedMotion: Boolean,
     val fps: Boolean,
     val autoSelect: Boolean,
+    val preselect: String?,
 ) {
     companion object {
         fun from(intent: Intent): HarnessConfig = HarnessConfig(
@@ -171,6 +175,7 @@ private class HarnessConfig(
             reducedMotion = intent.getBooleanExtra("reducedMotion", false) || intent.getBooleanExtra("reduced", false),
             fps = intent.getBooleanExtra("fps", false),
             autoSelect = intent.getBooleanExtra("autoselect", false) || intent.getBooleanExtra("autoSelect", false),
+            preselect = intent.getStringExtra("preselect")?.trim()?.takeIf { it.isNotEmpty() },
         )
     }
 }
@@ -269,6 +274,7 @@ private fun HarnessRoot(config: HarnessConfig, onClose: () -> Unit) {
                     SetupWizardScreen(
                         mode = SetupWizardMode.TRAINING_ONLY,
                         draftId = id,
+                        preselectedPlanId = config.preselect,
                         viewModel = viewModel,
                         onDone = onClose,
                         onCancel = onClose,
