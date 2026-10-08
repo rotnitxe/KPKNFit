@@ -151,7 +151,7 @@ class SetupWizardStateTest {
     @Test
     fun changingProtocolRevalidatesMarksProgramAndWeekLayout() {
         val base = baseDraft()
-        val changed = base.copy(programRoute = SetupProgramRoute.PROTOCOL).withChangeImpacts(base)
+        val changed = base.copy(minutesPerSession = 75).withChangeImpacts(base)
 
         assertEquals(
             setOf(
@@ -166,6 +166,34 @@ class SetupWizardStateTest {
             setOf(SetupStepId.TRAINING_MAX, SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT),
             changed.stepProgress.pendingReview,
         )
+    }
+
+    /**
+     * Elegir el programa en PLAN invalida lo que viene detrás (el propio programa y la semana armada) y NO las marcas, que en
+     * Entreno v2 se preguntan antes del plan: si las marcara, reabrir el borrador con la semana a medias devolvería el cursor a
+     * ellas aunque la persona ya las hubiera pasado.
+     */
+    @Test
+    fun choosingTheProgramRevalidatesTheProgramAndTheWeekButNotTheMarksThatComeBeforeIt() {
+        val base = baseDraft()
+        val changes = mapOf(
+            "plan elegido" to base.copy(selectedCatalogId = "ppl_x6"),
+            "ruta del programa" to base.copy(programRoute = SetupProgramRoute.LATER),
+            "camino del programa" to base.copy(trainingPath = SetupTrainingPath.PERSONALIZE),
+        )
+        changes.forEach { (what, changed) ->
+            val impacted = changed.withChangeImpacts(base)
+            assertEquals(
+                "$what: es el cambio de programa elegido y nada más",
+                setOf(SetupChangeSource.PLAN_CHOICE),
+                SetupChangeDetector.sourcesFor(base.inputFootprint(), changed.inputFootprint()),
+            )
+            assertEquals("$what: solo el programa y la semana", setOf(SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT), impacted.stepProgress.pendingReview)
+            assertTrue("$what invalida los candidatos", SetupPreviewKind.PLAN_CANDIDATES in impacted.stepProgress.stalePreviews)
+            assertTrue("$what invalida los ejercicios y las cargas", impacted.stepProgress.stalePreviews.containsAll(
+                setOf(SetupPreviewKind.EXERCISES, SetupPreviewKind.LOADS, SetupPreviewKind.SPLIT, SetupPreviewKind.RECIPE),
+            ))
+        }
     }
 
     @Test

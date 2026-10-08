@@ -665,7 +665,7 @@ enum class SetupPreviewKind {
 }
 
 /** Physiological sources of change; navigation is intentionally not one of them. */
-enum class SetupChangeSource { WEIGHT, BODY_COMPOSITION, EQUIPMENT, FREQUENCY, PROTOCOL, SPLIT, PRIORITIES, CALENDAR, SENSATIONS }
+enum class SetupChangeSource { WEIGHT, BODY_COMPOSITION, EQUIPMENT, FREQUENCY, PROTOCOL, PLAN_CHOICE, SPLIT, PRIORITIES, CALENDAR, SENSATIONS }
 
 /** What has to be revalidated after one [SetupChangeSource]. */
 data class SetupDependencyImpact(
@@ -733,6 +733,17 @@ object SetupDependencyRules {
                 SetupPreviewKind.EXERCISES, SetupPreviewKind.LOADS,
             ),
             pendingSteps = setOf(SetupStepId.TRAINING_MAX, SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT),
+        )
+        // Programa elegido (el plan, la ruta y el camino de PLAN) → los mismos previews que el protocolo, pero solo el
+        // programa y la semana armada quedan por revisar. En la ruta de Entreno v2 las marcas van ANTES del plan: elegirlo
+        // no las invalida y, si las marcara, reabrir el borrador devolvería el cursor a ellas aunque ya se hubieran pasado.
+        SetupChangeSource.PLAN_CHOICE -> SetupDependencyImpact(
+            stalePreviews = setOf(
+                SetupPreviewKind.PLAN_CANDIDATES, SetupPreviewKind.MARKS,
+                SetupPreviewKind.SPLIT, SetupPreviewKind.RECIPE,
+                SetupPreviewKind.EXERCISES, SetupPreviewKind.LOADS,
+            ),
+            pendingSteps = setOf(SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT),
         )
         // Reparto (elegido, patrón personalizado o al que se adaptó la semana) → parejas (programa, reparto)
         // y preview dejan de estar vigentes hasta re-preparar.
@@ -858,10 +869,9 @@ object SetupChangeDetector {
             old.adaptedSplitId != new.adaptedSplitId
         ) add(SetupChangeSource.SPLIT)
         // Objetivo (perfil y derivado), capacidades, marcas, experiencia, tiempo y cardio → PROTOCOL.
-        if (old.programRoute != new.programRoute || old.trainingPath != new.trainingPath ||
-            old.knowsTrainingMarks != new.knowsTrainingMarks || old.marks != new.marks ||
+        if (old.knowsTrainingMarks != new.knowsTrainingMarks || old.marks != new.marks ||
             old.liftMarks != new.liftMarks || old.capabilities != new.capabilities ||
-            old.selectedCatalogId != new.selectedCatalogId || old.minutesPerSession != new.minutesPerSession ||
+            old.minutesPerSession != new.minutesPerSession ||
             old.goal != new.goal || old.goalProfile != new.goalProfile ||
             old.focus != new.focus || old.experience != new.experience ||
             old.volumeStyle != new.volumeStyle || old.volumeResponses != new.volumeResponses ||
@@ -869,6 +879,10 @@ object SetupChangeDetector {
             old.autoregulationMode != new.autoregulationMode ||
             old.warmupsPreference != new.warmupsPreference
         ) add(SetupChangeSource.PROTOCOL)
+        // El programa elegido en PLAN (plan, ruta y camino) → PLAN_CHOICE: solo invalida lo que viene detrás de PLAN.
+        if (old.programRoute != new.programRoute || old.trainingPath != new.trainingPath ||
+            old.selectedCatalogId != new.selectedCatalogId
+        ) add(SetupChangeSource.PLAN_CHOICE)
         if (old.priorityMuscles != new.priorityMuscles || old.lowerEmphasisMuscles != new.lowerEmphasisMuscles ||
             old.priorityPoints != new.priorityPoints
         ) add(SetupChangeSource.PRIORITIES)
@@ -963,7 +977,10 @@ data class SetupStepProgress(
                 "Solo una confirmación declarada o sugerida puede registrar un hito de bloque"
             }
         }
-        val updated = copy(answers = answers + (step to provenance), revision = revision + 1)
+        // Confirmar un paso es revisarlo: cierra SU marca de revisión. Sin esto, un paso confirmado después de haberse marcado (el de los
+        // días se marca con su propia primera respuesta, por el cambio de frecuencia; las marcas, con las suyas, por el protocolo)
+        // seguía «por revisar» y, al reabrir el borrador, el cursor volvía al primero de ellos en lugar de seguir donde se dejó.
+        val updated = copy(answers = answers + (step to provenance), pendingReview = pendingReview - step, revision = revision + 1)
         return if (SetupStepGraph.isMilestone(step)) {
             val block = SetupStepGraph.blockOf(step)
             updated.copy(

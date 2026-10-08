@@ -373,6 +373,40 @@ class SetupDraftCompatibilityTest {
         assertEquals(native, SetupDraftCompatibility.repair(native))
     }
 
+    /**
+     * Reabrir un borrador a mitad del bloque de Entreno deja el cursor donde estaba: los días se marcan «por revisar» con su propia
+     * primera respuesta y confirmarlos cierra esa marca. Un paso marcado y NO vuelto a confirmar (días cambiados por una reparación del
+     * plan) sí devuelve el cursor a él.
+     */
+    @Test
+    fun reopeningAMidBlockDraftKeepsTheCursorUnlessAnEarlierStepIsReallyPending() {
+        val base = draft(
+            scope = "training_only",
+            answers = listOf(
+                nameAnswer(),
+                answer(WizChatQuestionId.P_AGE, 30.0),
+                answer(WizChatQuestionId.P_HEIGHT, 175.0),
+                answer(WizChatQuestionId.P_WEIGHT, 72.0),
+            ),
+        ).copy(includeNutrition = false)
+        val context = base.stepContext()
+        val declared = com.example.kpkn.domain.onboarding.SetupValueState.DECLARED
+
+        // Días respondidos y confirmados después de marcarse: el cursor sigue en el tiempo por sesión.
+        val confirmedAfterFlag = progressAt(SetupStepId.WEEKDAYS, context)
+            .withPendingReview(setOf(SetupStepId.WEEKDAYS))
+            .recordAnswer(SetupStepId.WEEKDAYS, SetupAnswerProvenance.USER_DECLARED, declared)
+            .at(SetupStepId.SESSION_TIME, context)
+        val reopened = SetupDraftCompatibility.repair(base.copy(stepProgress = confirmedAfterFlag))
+        assertEquals(SetupStepId.SESSION_TIME, reopened.stepProgress.currentStepId)
+
+        // Un paso marcado que nadie ha vuelto a confirmar sí manda: el cursor vuelve a él.
+        val stillPending = progressAt(SetupStepId.SESSION_TIME, context).withPendingReview(setOf(SetupStepId.WEEKDAYS))
+        val resumed = SetupDraftCompatibility.repair(base.copy(stepProgress = stillPending))
+        assertEquals(SetupStepId.WEEKDAYS, resumed.stepProgress.currentStepId)
+        assertEquals(stillPending.answers, resumed.stepProgress.answers)
+    }
+
     @Test
     fun nativeDraftStrandedOnLegacyGenderCursorResumesKeepingAnswersAndOrigin() {
         val stranded = draft(

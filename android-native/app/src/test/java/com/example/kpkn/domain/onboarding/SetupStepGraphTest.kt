@@ -750,4 +750,17 @@ class SetupStepGraphTest {
         assertEquals(emptySet<SetupStepId>(), reconfirmed.pendingReview)
         assertEquals(progress.answers[SetupStepId.PLAN], reconfirmed.answers[SetupStepId.PLAN])
     }
+
+    /**
+     * Confirmar un paso es revisarlo: cierra SU marca de revisión y deja las demás. Los días se marcan «por revisar» con su propia
+     * primera respuesta (cambia la frecuencia) y, sin esto, seguían marcados después de confirmarlos.
+     */
+    @Test
+    fun confirmingAStepClosesItsOwnReviewFlagAndLeavesTheOthersPending() {
+        val flagged = SetupStepProgress.initial(fullContext)
+            .withPendingReview(setOf(SetupStepId.WEEKDAYS, SetupStepId.PLAN))
+        val confirmed = flagged.recordAnswer(SetupStepId.WEEKDAYS, SetupAnswerProvenance.USER_DECLARED, SetupValueState.DECLARED)
+        assertEquals(setOf(SetupStepId.PLAN), confirmed.pendingReview)
+        assertTrue(SetupStepId.WEEKDAYS in confirmed.answers)
+    }
 }
