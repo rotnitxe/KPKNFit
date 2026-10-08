@@ -22,6 +22,7 @@ import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.MesocycleGoal
 import com.example.kpkn.data.models.PowerliftingProfile
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.ProgramRunState
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.RepRange
@@ -235,13 +236,11 @@ object PlanMaterializer {
             // lo ya persistido manda; si es la primera vez que llega una elección
             // explícita, queda registrada aquí (null = preset del plan).
             planWarmupConfig = program.planWarmupConfig ?: options.warmup,
-            runState = null,
-            // H13: el run se reinicia, y con él la progresión del método. Las marcas idempotentes
-            // `author-cycle-c<N>` / `author-block-b<N>` y sus avisos de un run anterior suprimirían la
-            // primera subida de TM del plan nuevo; el resto de la receta efectiva y del registro de
-            // progresión nativa no se toca.
-            effectiveWeekRecipes = withoutAuthorMarkers(program.effectiveWeekRecipes),
-            nativeProgressionAudit = program.nativeProgressionAudit.filterNot { isAuthorProposalId(it.proposalId) },
+            runState = ProgramRunState(runId = ProgressionRunScope.nextRunId(program, idProvider.newId()), acceptLegacyEvidence = false),
+            // Archive the old execution without deleting its decisions or effective recipes.
+            effectiveWeekRecipes = ProgressionRunScope.archiveRecipes(program),
+            nativeProgressionAudit = ProgressionRunScope.archiveAudit(program),
+            nativeProgressionProposals = emptyList(),
             loops = emptyList(),
             loopState = null,
             loopOccurrences = emptyList(),
@@ -260,26 +259,6 @@ object PlanMaterializer {
             ),
         ).let { ProgramPersistNormalizer.forRoomStorage(it) }
     }
-
-    /** true si [proposalId] es la marca o el aviso de una subida de TM del método (`author-cycle-c<N>`, `author-block-b<N>`). */
-    private fun isAuthorProposalId(proposalId: String): Boolean =
-        proposalId.startsWith(AuthoredProgressionEngine.CYCLE_PROPOSAL_PREFIX) ||
-            proposalId.startsWith(AuthoredProgressionEngine.BLOCK_PROPOSAL_PREFIX)
-
-    /**
-     * Quita de las recetas efectivas las marcas idempotentes de la progresión del método. Una receta
-     * efectiva que solo existía para llevar esas marcas (sin semana efectiva ni cambios propios)
-     * desaparece; las demás conservan su semana efectiva y sus propuestas aprobadas.
-     */
-    private fun withoutAuthorMarkers(recipes: List<EffectiveWeekRecipe>): List<EffectiveWeekRecipe> =
-        recipes.mapNotNull { entry ->
-            val kept = entry.appliedProposals.filterNot { isAuthorProposalId(it.proposalId) }
-            when {
-                kept.size == entry.appliedProposals.size -> entry
-                kept.isEmpty() && entry.weekRecipe == null && entry.changes.isEmpty() -> null
-                else -> entry.copy(appliedProposals = kept)
-            }
-        }
 
     fun hydrateProfile(
         program: Program,
@@ -475,7 +454,7 @@ object PlanMaterializer {
     /** Receta efectiva aprobada para esta ocurrencia/ciclo (§14.1/§14.4), si existe. */
     fun effectiveWeekRecipeFor(program: Program, weekOccurrence: Int, cycleNumber: Int): EffectiveWeekRecipe? =
         program.effectiveWeekRecipes.firstOrNull {
-            it.weekOccurrence == weekOccurrence && it.cycleNumber == cycleNumber
+            it.weekOccurrence == weekOccurrence && it.cycleNumber == cycleNumber && ProgressionRunScope.matches(it, program)
         }
 
     /**
@@ -492,10 +471,10 @@ object PlanMaterializer {
         applied: List<AppliedRecipeProposal>,
     ): Program {
         if (weekRecipe == null && applied.isEmpty()) return program
-        val existing = program.effectiveWeekRecipes.firstOrNull {
-            it.weekOccurrence == weekOccurrence && it.cycleNumber == cycleNumber
-        }
-        val mergedApplied = (existing?.appliedProposals.orEmpty() + applied).distinctBy { it.proposalId }
+        val existing = effectiveWeekRecipeFor(program, weekOccurrence, cycleNumber)
+        val runId = program.runState?.runId
+        val mergedApplied = (existing?.appliedProposals.orEmpty() + applied).map { it.copy(programRunId = it.programRunId ?: runId) }
+            .distinctBy { it.programRunId to it.proposalId }
         val next = EffectiveWeekRecipe(
             weekOccurrence = weekOccurrence,
             cycleNumber = cycleNumber,
@@ -503,10 +482,11 @@ object PlanMaterializer {
             weekRecipe = weekRecipe ?: existing?.weekRecipe,
             changes = existing?.changes.orEmpty(),
             appliedProposals = mergedApplied,
+            programRunId = runId,
         )
         return program.copy(
             effectiveWeekRecipes = program.effectiveWeekRecipes.filterNot {
-                it.weekOccurrence == weekOccurrence && it.cycleNumber == cycleNumber
+                it.weekOccurrence == weekOccurrence && it.cycleNumber == cycleNumber && ProgressionRunScope.matches(it, program)
             } + next,
         )
     }

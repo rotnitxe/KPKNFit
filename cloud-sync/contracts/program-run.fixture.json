@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "operationId": "fixture-run-history",
+  "entityId": "fixture-program",
+  "sourceId": "fixture-program",
+  "deviceId": "android-fixture",
+  "accountGeneration": 1,
+  "baseRevision": 2,
+  "kind": "program",
+  "changedAtEpochMs": 1791396000000,
+  "zoneId": "America/Santiago",
+  "unitSystem": "METRIC",
+  "deleted": false,
+  "payload": {
+    "id": "fixture-program",
+    "name": "Fixture",
+    "runState": {"runId": "run-current", "cycleNumber": 1},
+    "effectiveWeekRecipes": [
+      {"weekOccurrence": 1, "cycleNumber": 2, "programRunId": "run-previous", "appliedProposals": [
+        {"proposalId": "author-cycle-c2", "kind": "AUTHOR_CYCLE_INCREMENT", "programRunId": "run-previous"}
+      ]}
+    ],
+    "nativeProgressionAudit": [
+      {"proposalId": "author-cycle-c2", "status": "NOTICE", "kind": "INCREASE_LOAD", "resolvedAtMs": 1000,
+        "reason": "Fixture", "programRunId": "run-previous", "sourceLogIds": ["prior-log"]}
+    ],
+    "futureRunMetadata": {"version": 2, "originalZone": "America/Santiago"}
+  }
+}

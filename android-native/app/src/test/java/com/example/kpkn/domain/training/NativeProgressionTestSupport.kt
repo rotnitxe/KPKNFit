@@ -88,6 +88,7 @@ internal object NativeProgressionTestSupport {
         return WorkoutLog(
             id = logId,
             programId = program.id,
+            programRunId = program.runState?.runId,
             sessionId = sessionId,
             sessionName = location.session.name,
             date = logDate(dayOffset),

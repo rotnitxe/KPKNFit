@@ -335,7 +335,7 @@ class MainActivity : ComponentActivity() {
                         onDeepLinkHandled = { pendingDeepLinkRoute.value = null },
                         pendingSharedNutritionText = pendingSharedNutritionText.value,
                         onSharedNutritionHandled = { pendingSharedNutritionText.value = null },
-                        onRequestRequiredPermissions = { requestRequiredPermissions() },
+                        onStartWorkoutNotifications = { requestWorkoutNotifications() },
                     ) } } } } else Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
                         if (startup == com.example.kpkn.data.backup.AppBootstrap.State.Preparing) CircularProgressIndicator()
                         Text(stringResource(if (startup == com.example.kpkn.data.backup.AppBootstrap.State.Recovery) R.string.data_session_error else R.string.data_session_preparing), Modifier.padding(24.dp))
@@ -424,7 +424,11 @@ class MainActivity : ComponentActivity() {
     private var hasResumedOnce = false
     private var locationPermissionRequestInFlight = false
 
-    private fun requestRequiredPermissions() {
+    private var workoutNotificationRequestMade = false
+
+    private fun requestWorkoutNotifications() {
+        if (workoutNotificationRequestMade) return
+        workoutNotificationRequestMade = true
         val shouldRequestNotifications =
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
@@ -497,7 +501,7 @@ fun KPKNApp(
     onDeepLinkHandled: () -> Unit = {},
     pendingSharedNutritionText: String? = null,
     onSharedNutritionHandled: () -> Unit = {},
-    onRequestRequiredPermissions: () -> Unit = {},
+    onStartWorkoutNotifications: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val cancellationScope = androidx.compose.runtime.rememberCoroutineScope()
@@ -515,29 +519,11 @@ fun KPKNApp(
     }
     val previousRoute = remember { mutableStateOf<String?>(null) }
     val lifecycleOwner = LocalLifecycleOwner.current
-    var showPermissionAlert by remember { mutableStateOf(false) }
-    var missingPermissions by remember { mutableStateOf(emptyList<String>()) }
-    var permissionsRequested by remember { mutableStateOf(false) }
     val settings by ProgramRepository.getInstance().settings.collectAsState()
-
     DisposableEffect(lifecycleOwner) {
         val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
             if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
                 ProgramRepository.getInstance().reconcileTemporalState()
-                if (!ProgramRepository.getInstance().settings.value.onboardingCompleted) {
-                    missingPermissions = emptyList()
-                    showPermissionAlert = false
-                } else {
-                    val missing = mutableListOf<String>()
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        val postNotifGranted = ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
-                        if (!postNotifGranted) {
-                            missing.add("Notificaciones (Recordatorios y Alertas de Descanso)")
-                        }
-                    }
-                    missingPermissions = missing
-                    showPermissionAlert = missing.isNotEmpty()
-                }
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -567,14 +553,6 @@ fun KPKNApp(
         }
     }
 
-    LaunchedEffect(currentRoute, settings.onboardingCompleted) {
-        val onboardingRoute = currentRoute?.startsWith(KpknRoute.SetupWizard.SETUP_ROUTES_BASE) == true
-        if (settings.onboardingCompleted && !onboardingRoute && !permissionsRequested) {
-            permissionsRequested = true
-            onRequestRequiredPermissions()
-        }
-    }
-    
     val isFullscreenWizard =
         currentRoute?.startsWith("session-editor") == true ||
         currentRoute?.startsWith("workout") == true ||
@@ -734,6 +712,7 @@ fun KPKNApp(
                     onThemeChange = onThemeChange,
                     primaryProgramId = primaryProgramId,
                     nutritionViewModel = nutritionViewModel,
+                    onStartWorkoutNotifications = onStartWorkoutNotifications,
                     onHomeGlassOverlayChange = onHomeGlassOverlayChange,
                     onHomeModalOverlayChange = onHomeModalOverlayChange,
                     onHomeOnboardingOverlayChange = onHomeOnboardingOverlayChange,
@@ -755,6 +734,7 @@ fun KPKNApp(
                     onThemeChange = onThemeChange,
                     primaryProgramId = primaryProgramId,
                     nutritionViewModel = nutritionViewModel,
+                    onStartWorkoutNotifications = onStartWorkoutNotifications,
                     onHomeGlassOverlayChange = onHomeGlassOverlayChange,
                     onHomeModalOverlayChange = onHomeModalOverlayChange,
                     onHomeOnboardingOverlayChange = onHomeOnboardingOverlayChange,
@@ -1060,100 +1040,6 @@ fun KPKNApp(
 
     }
 
-    if (showPermissionAlert) {
-        KpknAlertDialog(
-            onDismissRequest = { /* No se cierra al tocar fuera */ },
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.Warning,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(40.dp)
-                )
-            },
-            title = {
-                Text(
-                    text = "Permisos Recomendados",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            },
-            text = {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = "Para garantizar la mejor experiencia en KPKN, te recomendamos habilitar los siguientes permisos:",
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    
-                    missingPermissions.forEach { permissionName ->
-                        Card(
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.12f)
-                            ),
-                            shape = RoundedCornerShape(8.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(6.dp)
-                                        .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.primary)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = permissionName,
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                                )
-                            }
-                        }
-                    }
-                    
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Las notificaciones nos permiten enviarte tus recordatorios de entrenamiento diarios y alarmas de descanso en segundo plano, mientras que el micrófono habilita los comandos y controles por voz.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                    )
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                            data = android.net.Uri.fromParts("package", context.packageName, null)
-                        }
-                        context.startActivity(intent)
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Ir a Configuración", fontWeight = FontWeight.Bold)
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { showPermissionAlert = false },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Omitir por ahora", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-        )
-    }
     } // CompositionLocalProvider(LocalHazeState)
 }
 
@@ -1164,6 +1050,7 @@ private fun KPKNNavGraph(
     onThemeChange: (AppThemeMode) -> Unit,
     primaryProgramId: String?,
     nutritionViewModel: NutritionViewModel,
+    onStartWorkoutNotifications: () -> Unit = {},
     onHomeGlassOverlayChange: HomeGlassOverlayChange = { _, _ -> },
     onHomeModalOverlayChange: HomeGlassOverlayChange = { _, _ -> },
     onHomeOnboardingOverlayChange: HomeGlassOverlayChange = { _, _ -> },
@@ -1177,6 +1064,7 @@ private fun KPKNNavGraph(
         }
         composable(KpknRoute.SetupEntry.route) {
             com.example.kpkn.screens.onboarding.SetupEntryScreen(
+                onPro = { navController.navigate(KpknRoute.Account.route) },
                 onStart = { mode, draftId ->
                     navController.navigate(KpknRoute.SetupWizard.create(mode, draftId))
                 },
@@ -1192,7 +1080,9 @@ private fun KPKNNavGraph(
             val homeViewModel = rememberHomeViewModel()
             val openCreateProgram = {
                 val onboardingCompleted = ProgramRepository.getInstance().settings.value.onboardingCompleted
-                if (onboardingCompleted) {
+                if (com.example.kpkn.data.account.AccountGraph.entitlement.value.effectiveLevel == com.example.kpkn.domain.entitlements.PlanLevel.FREE) {
+                    navController.navigate(KpknRoute.Training.route)
+                } else if (onboardingCompleted) {
                     homeViewModel.openCreateProgramSheet()
                 } else {
                     createProgramAndOpen(navController)
@@ -1230,6 +1120,7 @@ private fun KPKNNavGraph(
                 },
                 onCreateProgram = openCreateProgram,
                 onStartWorkout = { session, program ->
+                    onStartWorkoutNotifications()
                     navController.navigate(KpknRoute.Workout.create(program.id, session.id))
                 },
                 onRegisterCompetition = { recordId ->
@@ -1560,7 +1451,12 @@ private fun KPKNNavGraph(
                 onDataControls = { navController.navigate(KpknRoute.Settings.route) })
         }
         composable(KpknRoute.NutritionCalibration.route) {
-            NutritionCalibrationScreen(onBack = { navController.popBackStack() })
+            com.example.kpkn.ui.entitlements.CapabilityGate(com.example.kpkn.domain.entitlements.Capability.NUTRITION,
+                onPro = { navController.navigate(KpknRoute.Account.route) },
+                onHistory = { navController.navigate(KpknRoute.MealHistory.route) },
+                onBack = { navController.popBackStack() }) {
+                NutritionCalibrationScreen(onBack = { navController.popBackStack() })
+            }
         }
         addHealthConnectRoute(navController)
         composable(KpknRoute.Profile.route) {
@@ -1617,6 +1513,7 @@ private fun KPKNNavGraph(
             val id = backStack.arguments?.getString(KpknRoute.ProgramDetail.ARG_PROGRAM_ID) ?: ""
             ProgramDetailScreen(
                 programId = id,
+                onPro = { navController.navigate(KpknRoute.Account.route) },
                 onBack = {
                     if (!navController.popBackStack(KpknRoute.Training.route, inclusive = false)) {
                         navController.navigate(KpknRoute.Training.route) {
@@ -1626,6 +1523,7 @@ private fun KPKNNavGraph(
                     }
                 },
                 onStartWorkout = { session, program ->
+                    onStartWorkoutNotifications()
                     navController.navigate(KpknRoute.Workout.create(program.id, session.id))
                 },
                 onEditSession = { sessionId ->

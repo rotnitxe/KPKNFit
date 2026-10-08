@@ -22,4 +22,18 @@ final class PersonalOperationTests: XCTestCase {
         XCTAssertEqual(payload["source"] as? String, "MANUAL")
         XCTAssertTrue(values.first { $0["deleted"] as? Bool == true }?["payload"] is NSNull)
     }
+    func testProgramRunHistoryAndFutureFieldsSurviveRoundTrip() throws {
+        let directory = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+            .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        let source = directory.appendingPathComponent("cloud-sync/contracts/program-run.fixture.json")
+        let fixture = try JSONDecoder().decode(PersonalOperation.self, from: Data(contentsOf: source))
+        XCTAssertNoThrow(try fixture.validateEnvelope())
+        let encoded = try JSONEncoder().encode(fixture)
+        XCTAssertEqual(fixture, try JSONDecoder().decode(PersonalOperation.self, from: encoded))
+        let value = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        let payload = try XCTUnwrap(value["payload"] as? [String: Any])
+        XCTAssertEqual((payload["runState"] as? [String: Any])?["runId"] as? String, "run-current")
+        XCTAssertEqual((payload["nativeProgressionAudit"] as? [[String: Any]])?.first?["programRunId"] as? String, "run-previous")
+        XCTAssertNotNil(payload["futureRunMetadata"])
+    }
 }

@@ -156,6 +156,7 @@ data class EffectiveWeekRecipe(
     val changes: List<PlanSlotChange> = emptyList(),
     /** Propuestas ya aplicadas a esta ocurrencia (el audit AUGE del run se conserva aparte). */
     val appliedProposals: List<AppliedRecipeProposal> = emptyList(),
+    val programRunId: String? = null,
 )
 
 /** Propuesta aceptada y ya aplicada sobre una ocurrencia de semana (§14.1). */
@@ -165,6 +166,7 @@ data class AppliedRecipeProposal(
     val kind: String,
     val summary: String = "",
     val acceptedAtMs: Long = 0L,
+    val programRunId: String? = null,
 )
 
 /** Alcance de una congelación por edición manual (§14.5). */

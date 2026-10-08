@@ -11,8 +11,11 @@ import java.net.URL
 class AccountServiceException(val code: String) : Exception(code)
 
 /** An immutable identity token prevents a delayed A request from being sent using B's SDK identity. */
-class AccountTransport(private val session: FirebaseSession) {
-    suspend fun call(uid: String, method: String, data: JsonObject = JsonObject(emptyMap()), freshAuthentication: Boolean = false): JsonObject = withContext(Dispatchers.IO) {
+interface AccountCalls {
+    suspend fun call(uid: String, method: String, data: JsonObject = JsonObject(emptyMap()), freshAuthentication: Boolean = false): JsonObject
+}
+class AccountTransport(private val session: FirebaseSession) : AccountCalls {
+    override suspend fun call(uid: String, method: String, data: JsonObject, freshAuthentication: Boolean): JsonObject = withContext(Dispatchers.IO) {
         require(method.matches(Regex("[A-Za-z][A-Za-z0-9]{1,64}")))
         val user = session.auth.currentUser?.takeIf { it.uid == uid } ?: throw AccountServiceException("UNAUTHENTICATED")
         val token = user.getIdToken(freshAuthentication).awaitResult().token ?: throw AccountServiceException("UNAUTHENTICATED")

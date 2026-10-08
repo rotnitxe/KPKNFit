@@ -29,7 +29,10 @@ def adb(*args, timeout=60):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--out', required=True)
+    parser.add_argument('--suite', choices=['food', 'performance'], default='food')
     args = parser.parse_args()
+    tests = TESTS if args.suite == 'food' else ['com.example.kpkn.data.repository.NutritionSearchBenchmarkTest']
+    expected_count = 8 if args.suite == 'food' else 1
     out = Path(args.out).resolve()
     if not out.is_relative_to(ROOT): raise SystemExit('Evidence must stay in this checkout')
     out.mkdir(parents=True, exist_ok=True)
@@ -61,7 +64,7 @@ def main():
             raise SystemExit('Instrumentation must target only the isolated stability app')
         start = adb('shell', 'date', '+%m-%d %H:%M:%S.000').stdout.decode().strip()
         with (out / 'instrumentation.txt').open('wb') as log:
-            process = subprocess.Popen([str(ADB), '-s', SERIAL, 'shell', 'am', 'instrument', '-w', '-r', '-e', 'class', ','.join(TESTS), runner],
+            process = subprocess.Popen([str(ADB), '-s', SERIAL, 'shell', 'am', 'instrument', '-w', '-r', '-e', 'class', ','.join(tests), runner],
                 stdout=log, stderr=subprocess.STDOUT, env=dict(os.environ, MSYS_NO_PATHCONV='1'))
             try:
                 return_code = process.wait(timeout=900)
@@ -75,10 +78,18 @@ def main():
                 return_code = 124
         text = (out / 'instrumentation.txt').read_text(encoding='utf-8', errors='replace')
         passed = re.search(r'OK \((\d+) tests?\)', text)
-        report = {'state': 'PASS' if return_code == 0 and passed and int(passed.group(1)) == 7 else 'FAIL_OR_INCOMPLETE',
-                  'testCount': int(passed.group(1)) if passed else None, 'classes': TESTS,
+        report = {'state': 'PASS' if return_code == 0 and passed and int(passed.group(1)) == expected_count else 'FAIL_OR_INCOMPLETE',
+                  'testCount': int(passed.group(1)) if passed else None, 'classes': tests,
                   'testApkSha256': hashlib.file_digest(apk.open('rb'), 'sha256').hexdigest(),
                   'api': adb('shell', 'getprop', 'ro.build.version.sdk').stdout.decode().strip()}
+        metrics = re.findall(r'^INSTRUMENTATION_STATUS: kpkn_search_result=(\{[^\r\n]+\})$', text, re.MULTILINE)
+        if args.suite == 'performance':
+            if len(metrics) != 1:
+                report['state'] = 'FAIL_OR_INCOMPLETE'
+            else:
+                report['search'] = json.loads(metrics[0])
+                if report['search'].get('samples') != 120 or report['search'].get('storage') != 'PROFILE_ROOM_FILE':
+                    report['state'] = 'FAIL_OR_INCOMPLETE'
         adb('shell', 'am', 'start', '-W', '-n', COMPONENT)
         time.sleep(5)
         activity = adb('shell', 'dumpsys', 'activity', 'activities').stdout

@@ -121,6 +121,10 @@ fun AccountScreen(onBack: () -> Unit, onDataControls: (() -> Unit)? = null,
                         }
                         TextButton(onClick = { viewModel.action { sync.resolveConflict(id, "KEEP_CURRENT"); val records = sync.conflicts(); kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { conflicts = records }; AccountGraph.refreshReaders(context) } }, enabled = !ui.busy && versions != null) { Text(stringResource(R.string.account_keep_current)) }
                         TextButton(onClick = { viewModel.action { sync.resolveConflict(id, "USE_INCOMING"); val records = sync.conflicts(); kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { conflicts = records }; AccountGraph.refreshReaders(context) } }, enabled = !ui.busy && versions != null) { Text(stringResource(R.string.account_use_incoming)) }
+                        if (versions?.second?.let { sync.canKeepBoth(conflict, it) } == true) {
+                            Text(stringResource(R.string.account_copy_reference_notice))
+                            TextButton(onClick = { viewModel.action { sync.resolveConflict(id, "KEEP_BOTH"); val records = sync.conflicts(); kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { conflicts = records }; AccountGraph.refreshReaders(context) } }, enabled = !ui.busy) { Text(stringResource(R.string.account_keep_both)) }
+                        }
                         if (conflict["reason"]?.toString()?.trim('"') == "ACTIVE_WORKOUT_OWNED_BY_ANOTHER_DEVICE") {
                             var cancel by remember(id) { mutableStateOf(false) }
                             Choice(cancel, { cancel = it }, stringResource(R.string.account_cancel_remote_confirm))

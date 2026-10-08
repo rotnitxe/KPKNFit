@@ -3,7 +3,7 @@ package com.example.kpkn.data.sync
 import android.content.Context
 import androidx.room.withTransaction
 import com.example.kpkn.data.account.AccountServiceException
-import com.example.kpkn.data.account.AccountTransport
+import com.example.kpkn.data.account.AccountCalls
 import com.example.kpkn.data.db.*
 import com.example.kpkn.domain.sync.*
 import kotlinx.coroutines.Dispatchers
@@ -18,8 +18,8 @@ import java.util.UUID
 
 /** Room remains the UI's store. Network completion changes only persisted receipts and owned rows. */
 class RoomSyncRepository(private val context: Context, private val uid: String,
-    private val database: KpknDatabase, private val transport: AccountTransport,
-    private val privateData: PrivateDataTransport, private val media: MediaTransfer) : SyncRepository {
+    private val database: KpknDatabase, private val transport: AccountCalls,
+    private val privateData: PrivatePayloadTransfer, private val media: SyncMediaTransfer) : SyncRepository {
     private val mutex = syncLocks.getOrPut(uid) { Mutex() }
     private val journal = database.syncJournalDao()
     private val codec = PersonalRecordCodec(context)
@@ -136,7 +136,7 @@ class RoomSyncRepository(private val context: Context, private val uid: String,
             sourceId = latest.rawKey, deviceId = configuration.deviceId, accountGeneration = configuration.accountGeneration,
             baseRevision = latest.baseRevision, kind = PersonalRecordCodec.kinds.getValue(latest.entityTable),
             changedAtEpochMs = System.currentTimeMillis(), zoneId = ZoneId.systemDefault().id,
-            unitSystem = if (com.example.kpkn.data.repository.ProgramRepository.getInstance().settings.value.weightUnit == com.example.kpkn.data.models.WeightUnit.LBS) "IMPERIAL" else "METRIC",
+            unitSystem = if (codec.snapshot(database.openHelper.readableDatabase, "settings", "1")?.get("weightUnit")?.jsonPrimitive?.content == "LBS") "IMPERIAL" else "METRIC",
             deleted = latest.deleted || payload == null, payload = payload)
         var encoded = json.encodeToString(PersonalOperation.serializer(), operation)
         if (encoded.toByteArray().size > 512 * 1024) {
@@ -186,7 +186,7 @@ class RoomSyncRepository(private val context: Context, private val uid: String,
         } while (more)
     }
     override suspend fun resolveConflict(id: String, resolution: String) {
-        require(resolution in setOf("KEEP_CURRENT", "USE_INCOMING"))
+        require(resolution in setOf("KEEP_CURRENT", "USE_INCOMING", "KEEP_BOTH"))
         withContext(Dispatchers.IO) { mutex.withLock {
             val configuration = journal.configuration() ?: error("Sync is unavailable")
             val marker = journal.conflicted(id) ?: run {
@@ -201,23 +201,40 @@ class RoomSyncRepository(private val context: Context, private val uid: String,
             }
             val original = json.decodeFromString(PersonalOperation.serializer(), requireNotNull(marker.operationJson))
             val shadow = journal.shadow(marker.entityTable, marker.rawKey) ?: error("Current remote version is unavailable")
-            val candidate = original.copy(operationId = UUID.randomUUID().toString(), baseRevision = shadow.serverRevision,
+            val candidate = if (resolution == "KEEP_BOTH") {
+                val preserved = original.payloadRef?.let { privateData.download(configuration.accountGeneration, it) }
+                    ?: requireNotNull(original.payload)
+                ConflictCopies.candidate(uid, id, original, preserved).let { copy ->
+                    if (json.encodeToString(PersonalOperation.serializer(), copy).toByteArray().size > 400 * 1024)
+                        copy.copy(payload = null, payloadRef = privateData.stage(requireNotNull(copy.payload))) else copy
+                }
+            } else original.copy(operationId = UUID.randomUUID().toString(), baseRevision = shadow.serverRevision,
                 guestImportId = null, changedAtEpochMs = System.currentTimeMillis())
+            if (resolution != "KEEP_CURRENT") candidate.payloadRef?.let { privateData.upload(configuration.accountGeneration, it) }
             val response = transport.call(uid, "resolveConflict", buildJsonObject {
                 put("generation", configuration.accountGeneration); put("conflictId", id); put("resolution", resolution)
                 put("expectedRevision", shadow.serverRevision)
-                if (resolution == "USE_INCOMING") put("operation", json.encodeToJsonElement(PersonalOperation.serializer(), candidate))
+                if (resolution != "KEEP_CURRENT") put("operation", json.encodeToJsonElement(PersonalOperation.serializer(), candidate))
             })
             if (response["status"]?.jsonPrimitive?.content == "CONFLICT") throw AccountServiceException("CONFLICT_CHANGED")
             val payload = if (resolution == "USE_INCOMING") candidate.payloadRef?.let { privateData.download(configuration.accountGeneration, it) } ?: candidate.payload
                 else shadowPayload(shadow.payloadJson, configuration.accountGeneration)
+            val duplicate = if (resolution == "KEEP_BOTH") candidate.payloadRef?.let { privateData.readStaged(it) } ?: candidate.payload else null
             database.withTransaction {
-                val latest = journal.mutation(marker.entityTable, marker.rawKey) ?: return@withTransaction
+                val latest = journal.mutation(marker.entityTable, marker.rawKey)
                 val deleted = if (resolution == "USE_INCOMING") candidate.deleted else shadow.deleted
-                val revision = response["revision"]?.jsonPrimitive?.long ?: shadow.serverRevision
+                val revision = if (resolution == "KEEP_BOTH") shadow.serverRevision else response["revision"]?.jsonPrimitive?.long ?: shadow.serverRevision
                 journal.configure(configuration.copy(applyingRemote = true))
                 try {
-                    if (latest.operationId != marker.operationId) { /* A newer local edit keeps its original base revision for an explicit subsequent conflict. */ }
+                    if (resolution == "KEEP_BOTH") {
+                        val copyKey = requireNotNull(candidate.sourceId)
+                        // A later edit to an already-recovered copy remains pending instead of being overwritten on retry.
+                        if (journal.mutation(marker.entityTable, copyKey) == null)
+                            codec.apply(database.openHelper.writableDatabase, candidate.kind, copyKey, duplicate, false)
+                        journal.confirm(SyncShadowEntity(marker.entityTable, copyKey, response.getValue("revision").jsonPrimitive.long,
+                            shadowJson(duplicate, candidate.payloadRef), false))
+                    }
+                    if (latest == null || latest.operationId != marker.operationId) { /* A newer local edit keeps its original base revision for an explicit subsequent conflict. */ }
                     else if (latest.dirtyVersion == marker.dirtyVersion) {
                         codec.apply(database.openHelper.writableDatabase, candidate.kind, marker.rawKey, payload, deleted)
                         journal.remove(marker.entityTable, marker.rawKey)
@@ -249,6 +266,8 @@ class RoomSyncRepository(private val context: Context, private val uid: String,
         val current = journal.shadow(table, key)
         shadowPayload(current?.payloadJson, generation) to (incoming.payloadRef?.let { privateData.download(generation, it) } ?: incoming.payload)
     }
+    fun canKeepBoth(conflict: JsonObject, incomingPayload: JsonObject?): Boolean =
+        ConflictCopies.supported(json.decodeFromJsonElement(PersonalOperation.serializer(), conflict.getValue("incoming")), incomingPayload)
     suspend fun cancelRemoteWorkout(conflict: JsonObject) = withContext(Dispatchers.IO) { mutex.withLock {
         val incoming = json.decodeFromJsonElement(PersonalOperation.serializer(), conflict.getValue("incoming"))
         require(incoming.kind == "ongoing_workout")

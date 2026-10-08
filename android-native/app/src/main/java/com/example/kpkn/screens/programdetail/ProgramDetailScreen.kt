@@ -74,6 +74,7 @@ fun ProgramDetailScreen(
     onCreateSession: (String, String, Int, Int, Int) -> Unit,
     onOpenProgram: (String) -> Unit = {},
     viewModel: ProgramDetailViewModel = viewModel(factory = ProgramDetailViewModel.factory(programId)),
+    onPro: () -> Unit = {},
 ) {
     val augeViewModel = rememberAugeViewModel()
     val program by viewModel.program.collectAsState()
@@ -297,6 +298,7 @@ fun ProgramDetailScreen(
                 onOpenSplitPage = { showSplitPage = true },
                 onOpenOneRmDialog = { showOneRmDialog = true },
                 onOpenTmEditor = { showTmEditor = true },
+                onPro = onPro,
             )
         }
         }
@@ -504,6 +506,7 @@ private fun TrainingPanel(
     onOpenSplitPage: () -> Unit = {},
     onOpenOneRmDialog: () -> Unit = {},
     onOpenTmEditor: () -> Unit = {},
+    onPro: () -> Unit = {},
 ) {
     val currentWeekId by viewModel.activeProgramState.collectAsState()
     val editorUiState by viewModel.uiState.collectAsState()
@@ -834,57 +837,63 @@ private fun TrainingPanel(
                 },
             )
             StructureSubTab.VOLUMEN -> {
-                val progLogs by viewModel.programLogs.collectAsState()
-                val isActiveProg by viewModel.isActiveProgram.collectAsState()
-                val muscleCdbs by viewModel.muscleCdbsStatus.collectAsState()
-                val discomforts by viewModel.programDiscomforts.collectAsState()
-                val exDiscomfortAssoc by viewModel.exerciseDiscomfortAssociations.collectAsState()
-                val analyticsReport = remember(program, progLogs) {
-                    ProgramAnalyticsEngine.analyze(
+                com.example.kpkn.ui.entitlements.CapabilityGate(
+                    capability = com.example.kpkn.domain.entitlements.Capability.MUSCLE_RING,
+                    onPro = onPro,
+                    onBack = { viewModel.setStructureSubTab(StructureSubTab.SEMANA) },
+                ) {
+                    val progLogs by viewModel.programLogs.collectAsState()
+                    val isActiveProg by viewModel.isActiveProgram.collectAsState()
+                    val muscleCdbs by viewModel.muscleCdbsStatus.collectAsState()
+                    val discomforts by viewModel.programDiscomforts.collectAsState()
+                    val exDiscomfortAssoc by viewModel.exerciseDiscomfortAssociations.collectAsState()
+                    val analyticsReport = remember(program, progLogs) {
+                        ProgramAnalyticsEngine.analyze(
+                            program = program,
+                            logs = progLogs,
+                            exerciseCatalog = exerciseCatalogSnapshot(),
+                        )
+                    }
+                    val hasCreatedSessions = remember(program) {
+                        program.macrocycles
+                            .flatMap { it.blocks }
+                            .flatMap { it.mesocycles }
+                            .flatMap { it.weeks }
+                            .any { it.sessions.isNotEmpty() }
+                    }
+                    VolumeView(
                         program = program,
-                        logs = progLogs,
-                        exerciseCatalog = exerciseCatalogSnapshot(),
+                        isProgramActive = isActiveProg,
+                        hasCreatedSessions = hasCreatedSessions,
+                        onActivateProgram = { viewModel.activateOrResume() },
+                        onGoCreateSession = {
+                            val firstBlock = program.macrocycles.firstOrNull()?.blocks?.firstOrNull()
+                            val firstWeek = firstBlock?.mesocycles?.firstOrNull()?.weeks?.firstOrNull()
+                            if (firstBlock != null && firstWeek != null) {
+                                viewModel.selectBlock(firstBlock.id)
+                                viewModel.selectWeek(firstWeek.id)
+                                viewModel.setStructureSubTab(StructureSubTab.SEMANA)
+                            } else {
+                                viewModel.setStructureSubTab(StructureSubTab.MACROCICLO)
+                            }
+                        },
+                        onApplyVolumeCalibration = { mode, athleteScore, recommendations ->
+                            viewModel.updateProgram(
+                                program.copy(
+                                    mode = mode,
+                                    volumeSystem = com.example.kpkn.data.models.VolumeSystem.KPNK,
+                                    athleteProfileScore = athleteScore,
+                                    volumeRecommendations = recommendations,
+                                )
+                            )
+                        },
+                        programDiscomforts = discomforts,
+                        exerciseDiscomfortAssociations = exDiscomfortAssoc,
+                        analyticsReport = analyticsReport,
+                        muscleCdbsStatus = muscleCdbs,
+                        programLogs = progLogs,
                     )
                 }
-                val hasCreatedSessions = remember(program) {
-                    program.macrocycles
-                        .flatMap { it.blocks }
-                        .flatMap { it.mesocycles }
-                        .flatMap { it.weeks }
-                        .any { it.sessions.isNotEmpty() }
-                }
-                VolumeView(
-                    program = program,
-                    isProgramActive = isActiveProg,
-                    hasCreatedSessions = hasCreatedSessions,
-                    onActivateProgram = { viewModel.activateOrResume() },
-                    onGoCreateSession = {
-                        val firstBlock = program.macrocycles.firstOrNull()?.blocks?.firstOrNull()
-                        val firstWeek = firstBlock?.mesocycles?.firstOrNull()?.weeks?.firstOrNull()
-                        if (firstBlock != null && firstWeek != null) {
-                            viewModel.selectBlock(firstBlock.id)
-                            viewModel.selectWeek(firstWeek.id)
-                            viewModel.setStructureSubTab(StructureSubTab.SEMANA)
-                        } else {
-                            viewModel.setStructureSubTab(StructureSubTab.MACROCICLO)
-                        }
-                    },
-                    onApplyVolumeCalibration = { mode, athleteScore, recommendations ->
-                        viewModel.updateProgram(
-                            program.copy(
-                                mode = mode,
-                                volumeSystem = com.example.kpkn.data.models.VolumeSystem.KPNK,
-                                athleteProfileScore = athleteScore,
-                                volumeRecommendations = recommendations,
-                            )
-                        )
-                    },
-                    programDiscomforts = discomforts,
-                    exerciseDiscomfortAssociations = exDiscomfortAssoc,
-                    analyticsReport = analyticsReport,
-                    muscleCdbsStatus = muscleCdbs,
-                    programLogs = progLogs,
-                )
             }
         }
 

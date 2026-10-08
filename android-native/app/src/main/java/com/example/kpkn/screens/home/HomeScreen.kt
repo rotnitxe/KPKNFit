@@ -112,7 +112,8 @@ fun HomeScreen(
 
     val programsVm: ProgramsViewModel = viewModel()
     val settings by ProgramRepository.getInstance().settings.collectAsState()
-    val showNutrition = settings.nutritionTrackingChoice != com.example.kpkn.data.models.NutritionTrackingChoice.SKIPPED
+    val pro = com.example.kpkn.ui.entitlements.LocalPlan.current == com.example.kpkn.domain.entitlements.PlanLevel.PRO
+    val showNutrition = pro && settings.nutritionTrackingChoice != com.example.kpkn.data.models.NutritionTrackingChoice.SKIPPED
     val showCreateProgramSheet by viewModel.showCreateProgramSheet.collectAsState()
     val pendingProgramName by viewModel.pendingProgramName.collectAsState()
     val pendingVolumeTemplateId by viewModel.pendingVolumeTemplateId.collectAsState()
@@ -137,6 +138,7 @@ fun HomeScreen(
     var showFoodLogger by rememberSaveable { mutableStateOf(false) }
     var showNutritionOverlay by remember { mutableStateOf(false) }
     var showAugeRecommendations by remember { mutableStateOf(false) }
+    LaunchedEffect(pro) { if (!pro) { showFoodLogger = false; showNutritionOverlay = false; showAugeRecommendations = false } }
     val nutritionLogs by nutritionRepo.nutritionLogs.collectAsState()
     val context = LocalContext.current
     LaunchedEffect(uiState.activeProgramId) {
@@ -243,6 +245,7 @@ fun HomeScreen(
             onNavigateToProfile = onNavigateToProfile,
             hazeState = rootHazeState,
             onBottomPositionChanged = { headerBottomY = it },
+            ringsCoverage = augeSnapshot.coverage ?: com.example.kpkn.domain.onboarding.RingsCoverage.NO_DATA,
         )
     }
     val latestHeaderOverlayChange by rememberUpdatedState(onHeaderOverlayChange)
@@ -308,7 +311,7 @@ fun HomeScreen(
                 onDismissAdvisory = augeViewModel::dismissAdvisory,
                 onModelNoticeShown = augeViewModel::markModelUpdateNoticeShown,
                 autoDeloadMessage = augeSnapshot.autoDeloadMessage,
-                overtrainedMuscles = uiState.overtrainedMuscles,
+                overtrainedMuscles = if (pro) uiState.overtrainedMuscles else emptyList(),
                  onAddMeal = { if (showNutrition) showFoodLogger = true },
                  onOpenNutritionOverlay = { if (showNutrition) showNutritionOverlay = true },
                  showNutrition = showNutrition,
@@ -317,7 +320,7 @@ fun HomeScreen(
                      .navigationBarsPadding(),
              )
 
-        if (showFoodLogger) {
+        if (showFoodLogger && pro) {
             // C12: la misma regla horaria que Nutrición, resuelta cada vez que se abre el logger. WP-U7: se guarda con el
             // resto del estado (la semilla del borrador manda de todos modos al restaurar).
             val loggerMeal by rememberSaveable(stateSaver = MealTypeSaver) {
@@ -329,7 +332,7 @@ fun HomeScreen(
                 onDismiss = { showFoodLogger = false },
             )
         }
-        if (showAugeRecommendations) {
+        if (showAugeRecommendations && pro) {
             KpknAlertDialog(
                 onDismissRequest = { showAugeRecommendations = false },
                 title = { Text("Recomendación de recuperación", fontWeight = FontWeight.Black) },
@@ -560,6 +563,7 @@ private fun HomeWithProgram(
 ) {
     val homeAdapt = LocalViewportAdapt.current
     val isCatalogReady by exerciseCatalogReady.collectAsState()
+    val pro = com.example.kpkn.ui.entitlements.LocalPlan.current == com.example.kpkn.domain.entitlements.PlanLevel.PRO
     val homeAdvisory = remember(augeSnapshot, todaySessions, isCatalogReady) {
         val raw = augeSnapshot?.advisories
             ?.filter { LoadAdvisoryEngine.rank(it.level) >= LoadAdvisoryEngine.rank(LoadAdvisoryLevel.ADJUST) }
@@ -614,7 +618,7 @@ private fun HomeWithProgram(
                 modifier = Modifier.onGloballyPositioned { onRingsAnchorPositionChanged(it.positionInRoot().y) },
             )
         }
-        if (homeAdvisory != null) {
+        if (homeAdvisory != null && pro) {
             item(key = "auto-deload") {
                 AlertActionCard(
                     title = homeAdvisory.title,
@@ -730,6 +734,7 @@ private fun HomeTopBar(
     onNavigateToProfile: () -> Unit,
     hazeState: HazeState,
     onBottomPositionChanged: (Float) -> Unit,
+    ringsCoverage: com.example.kpkn.domain.onboarding.RingsCoverage = com.example.kpkn.domain.onboarding.RingsCoverage.NO_DATA,
 ) {
     Box(
         modifier = modifier
@@ -840,6 +845,7 @@ private fun HomeTopBar(
                             sncProgress = sncProgress,
                             columnaProgress = columnaProgress,
                             hasActiveProgram = hasPrograms,
+                            coverage = ringsCoverage,
                             modifier = Modifier.graphicsLayer { alpha = ringsAlpha; translationY = ringsSlide },
                         )
                         MiniNutritionCard(
@@ -865,27 +871,29 @@ private fun MiniRingsWidget(
     columnaProgress: Float,
     modifier: Modifier = Modifier,
     hasActiveProgram: Boolean = true,
+    coverage: com.example.kpkn.domain.onboarding.RingsCoverage = com.example.kpkn.domain.onboarding.RingsCoverage.NO_DATA,
 ) {
-    val ringColors = if (hasActiveProgram) {
+    val free = com.example.kpkn.ui.entitlements.LocalPlan.current == com.example.kpkn.domain.entitlements.PlanLevel.FREE
+    val indices = if (free) listOf(1) else listOf(0, 1, 2)
+    val channels = listOf(RecoveryChannelId.MUSCULAR, RecoveryChannelId.SYSTEM, RecoveryChannelId.STRUCTURE)
+    val colors = if (hasActiveProgram) {
         listOf(RingRed, RingBlue, RingYellow)
     } else {
         listOf(Color(0xFF666666), Color(0xFF888888), Color(0xFFAAAAAA))
     }
-    val progressValues = listOf(muscularProgress, sncProgress, columnaProgress)
+    val ringColors = indices.map { colors[it] }
+    val allProgress = listOf(muscularProgress, sncProgress, columnaProgress)
+    val progressValues = indices.map { if (coverage.channel(channels[it]).hasData) allProgress[it].coerceIn(0f, 1f) else 0f }
     Canvas(modifier = modifier.fillMaxWidth().height(38.dp)) {
         val r = size.height * 0.38f
         val strokeW = r * 0.28f
         val gap = r * 0.35f
         val diameter = r * 2f
         val spacing = diameter - gap
-        val totalWidth = diameter + spacing * 2
+        val totalWidth = diameter + spacing * (indices.size - 1)
         val startX = (size.width - totalWidth) / 2f + r
         val cy = size.height / 2f
-        val centers = listOf(
-            Offset(startX, cy),
-            Offset(startX + spacing, cy),
-            Offset(startX + spacing * 2, cy),
-        )
+        val centers = indices.indices.map { Offset(startX + spacing * it, cy) }
         for (i in centers.indices) {
             val c = centers[i]
             val color = ringColors[i]

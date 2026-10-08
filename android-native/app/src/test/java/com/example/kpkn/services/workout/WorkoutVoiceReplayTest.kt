@@ -21,8 +21,9 @@ class WorkoutVoiceReplayTest {
         val explicitDir = System.getProperty("voice.replay.dir")?.let(::File)
         val dir = explicitDir
             ?: File("src/test/resources/voice-replay")
-        return if (dir.isDirectory) dir.listFiles { f -> f.extension == "jsonl" }?.toList().orEmpty()
-        else emptyList()
+        val files = if (dir.isDirectory) dir.listFiles { f -> f.extension == "jsonl" }?.toList().orEmpty() else emptyList()
+        require(files.size <= 100 && files.sumOf { it.length() } <= 64L * 1024 * 1024) { "Voice corpus exceeds its bounds" }
+        return files
     }
 
     @Test
@@ -89,22 +90,28 @@ class WorkoutVoiceReplayTest {
     fun replayTranscriptParserNeverThrows() {
         val files = resourceCorpus()
         assumeTrue("No hay corpus de replay de voz configurado.", files.isNotEmpty())
+        var replayed = 0
         files.forEach { file ->
             file.readLines().forEach { line ->
                 val obj = runCatching { JSONObject(line) }.getOrNull() ?: return@forEach
                 if (obj.optString("event") != "asr_final") return@forEach
                 val text = obj.optString("sanitized").takeIf { it.isNotBlank() } ?: return@forEach
-                WorkoutVoiceCommandParser.parseCommand(
-                    transcript = text,
-                    isTimeMode = false,
-                    isUnilateral = false,
-                    hasPendingConfirmation = false,
-                    isRestTimerActive = false,
-                )
-                parseWorkoutVoiceTranscript(text, isTimeMode = false, isUnilateral = false)
+                replayed++
+                try {
+                    WorkoutVoiceCommandParser.parseCommand(
+                        transcript = text,
+                        isTimeMode = false,
+                        isUnilateral = false,
+                        hasPendingConfirmation = false,
+                        isRestTimerActive = false,
+                    )
+                    parseWorkoutVoiceTranscript(text, isTimeMode = false, isUnilateral = false)
+                } catch (_: Exception) {
+                    // Parser exception messages may contain input; keep transcripts out of CI reports.
+                    throw AssertionError("Voice replay parser failed; input withheld")
+                }
             }
         }
-        // Llegar aquí sin excepción es el contrato.
-        assertTrue(true)
+        assertTrue("No se ejecutaron eventos asr_final del corpus.", replayed > 0)
     }
 }

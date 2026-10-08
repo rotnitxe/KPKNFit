@@ -73,5 +73,7 @@
     <string name="account_review_conflicts">Revisar cambios pendientes</string>
     <string name="account_keep_current">Conservar versión de la cuenta</string>
     <string name="account_use_incoming">Usar mi edición conservada</string>
+    <string name="account_keep_both">Conservar ambas versiones</string>
+    <string name="account_copy_reference_notice">Se crea una copia de tu edición. Sus referencias conservan los registros originales; no se traslada el historial.</string>
     <string name="account_conflict_description">%1$s · %2$s</string>
 </resources>

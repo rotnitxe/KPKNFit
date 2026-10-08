@@ -104,10 +104,14 @@ object MediaFiles {
     }
 }
 
-class MediaTransfer(private val context: Context, private val uid: String, private val session: FirebaseSession) {
+interface SyncMediaTransfer {
+    suspend fun upload(generation: Long, payload: JsonObject?)
+    suspend fun download(generation: Long, payload: JsonObject?)
+}
+class MediaTransfer(private val context: Context, private val uid: String, private val session: FirebaseSession) : SyncMediaTransfer {
     private val preferences = context.getSharedPreferences("sync_media_transfer", 0)
     private fun owned() = check(session.auth.currentUser?.uid == uid) { "Media account changed" }
-    suspend fun upload(generation: Long, payload: JsonObject?) = withContext(Dispatchers.IO) {
+    override suspend fun upload(generation: Long, payload: JsonObject?) = withContext(Dispatchers.IO) {
         for (reference in MediaFiles.references(payload)) {
             owned()
             val local = File(context.noBackupFilesDir, "sync-media/${reference.sha256}")
@@ -148,7 +152,7 @@ class MediaTransfer(private val context: Context, private val uid: String, priva
             check(preferences.edit().remove(key).commit())
         }
     }
-    suspend fun download(generation: Long, payload: JsonObject?) = withContext(Dispatchers.IO) {
+    override suspend fun download(generation: Long, payload: JsonObject?) = withContext(Dispatchers.IO) {
         for (reference in MediaFiles.references(payload)) {
             owned()
             val destination = MediaFiles.local(context, reference)

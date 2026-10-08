@@ -8,4 +8,8 @@
     <string name="capability_history">View history</string>
     <string name="capability_back">Back</string>
     <string name="capability_free_limit">Free supports one week with up to five sessions. Advanced programs require Pro.</string>
+    <string name="free_intro_start">Start training for free</string>
+    <string name="free_intro_pro">Advanced programs and nutrition with Pro</string>
+    <string name="free_intro_saving">Preparing your training…</string>
+    <string name="free_intro_error">Could not save your start. Please try again.</string>
 </resources>

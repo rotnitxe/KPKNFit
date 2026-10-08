@@ -46,7 +46,10 @@ class PersonalRecordCodec(private val context: Context) {
             val prior = database.query("SELECT payloadJson FROM sync_shadows WHERE entityTable=? AND rawKey=?", arrayOf(table, key)).use {
                 if (it.moveToFirst() && !it.isNull(0)) Json.parseToJsonElement(it.getString(0)).jsonObject else null
             }
-            JsonObject(prior.orEmpty().filterKeys { it !in known } + current)
+            val materialized = prior?.get("kpknPrivateDataReference")?.let {
+                PrivateDataFiles.read(context, Json.decodeFromJsonElement(com.example.kpkn.domain.sync.PrivateDataReference.serializer(), it))
+            } ?: prior
+            JsonObject(materialized.orEmpty().filterKeys { it !in known } + current)
         }
         return when (table) {
             "settings" -> JsonObject(payload.filterKeys { name ->

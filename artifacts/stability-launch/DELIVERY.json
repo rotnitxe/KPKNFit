@@ -5,27 +5,53 @@
   "healthConnectRemoved": true,
   "gpsPreserved": true,
   "jvm": {
-    "skipped": 2,
-    "suites": 776,
-    "tests": 6874,
-    "errors": 0,
-    "scope": "Before final Free UI adjustments",
-    "cohort": 37,
-    "passed": 6872,
-    "failures": 0
+    "state": "PASS_WITH_REAL_VOICE_OMISSIONS",
+    "totals": {
+      "tests": 6898,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2
+    },
+    "passed": 6896,
+    "nonemptySuites": 779,
+    "skipped": [
+      {
+        "class": "com.example.kpkn.services.workout.WorkoutVoiceReplayTest",
+        "test": "replayTranscriptParserNeverThrows"
+      },
+      {
+        "class": "com.example.kpkn.services.workout.WorkoutVoiceReplayTest",
+        "test": "fieldTranscriptsThatWorkedStillParseAsCommands"
+      }
+    ],
+    "apkSha256": "7bbbd1a36d7275b7d38407929cfb3390b6c9f87ab57a8a2e5231ff092b332757",
+    "scope": "Full JVM after round50 corrections; before final muscle-volume UI gate",
+    "log": "gradle-full-jvm-54.log"
   },
   "postUi": {
-    "tests": 96,
-    "skipped": 0,
-    "cohort": 38,
-    "passed": 96
+    "state": "PASS",
+    "scope": "Final muscle volume gate and program detail regression subset",
+    "totals": {
+      "tests": 87,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "apkSha256": "ca8c10d5d16560b40f8017cddb68501d6efeb04adc6cacab30b68da3297c822f",
+    "apkBytes": 437660875,
+    "releaseEvidence": "result-release-55.json"
   },
   "lint": {
-    "warnings": 610,
-    "hints": 39,
-    "errors": 0
+    "state": "PASS",
+    "cohort": 55,
+    "counts": {
+      "Warning": 610,
+      "Hint": 39
+    },
+    "sha256": "822f94036d09cfaa77aced257ca1de27328bf9bec73a0f07ed504e2ac414f197",
+    "source": "lint-release-55.xml"
   },
-  "r8": "COMPILATION_PASS_ONLY_COHORT_39",
+  "r8": "COMPILATION_PASS_ONLY_COHORT_55",
   "apk38Sha256": "dc72b6c850bbb54c3af5421a5cec3937a961c1710f379a22629036aa963745cd",
   "apk38Classes": 68497,
   "deviceEvidence": [
@@ -37,5 +63,22 @@
   "runtime16Kb": "INCONCLUSIVE_SYSTEM_EMULATOR_FAILURE",
   "cloud": "22_LOCAL_INTEGRATION_PASS_PLAY_FIXTURE_ONLY_COHORT_40",
   "push": false,
-  "productionDeployment": false
+  "productionDeployment": false,
+  "latestDebugApk": {
+    "cohort": 55,
+    "sha256": "ca8c10d5d16560b40f8017cddb68501d6efeb04adc6cacab30b68da3297c822f",
+    "bytes": 437660875,
+    "classes": 68516,
+    "healthClasses": 0
+  },
+  "currentDeviceEvidence": [
+    "API36 APK53 fresh Free entry and cold persistence; eight nutrition tests",
+    "API36 APK55 muscle-volume Pro gate, Back and account navigation",
+    "API36 APK49 warm search on profile Room file; p95 62.9928 ms"
+  ],
+  "outstanding": "Full A-J remains open in requirements.json",
+  "commitReceipt": "commit-receipt-final.json",
+  "testedBaseCommit": "f84e9194f5aab3a7f2f88123b1128d4fba4170d7",
+  "sourceStatus": "Prepared local correction; exact committed revision in the receipt",
+  "releaseEvidence": "result-release-55.json"
 }

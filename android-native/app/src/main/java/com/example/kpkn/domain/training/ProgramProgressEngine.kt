@@ -148,6 +148,7 @@ object ProgramProgressEngine {
         instanceId: String,
         cycleNumber: Int,
         programRunId: String? = null,
+        acceptLegacyEvidence: Boolean = true,
     ): List<WorkoutLog> {
         val templateWeekId = templateWeekIdFromInstance(instanceId) ?: return emptyList()
         return logs.filter { log ->
@@ -158,7 +159,7 @@ object ProgramProgressEngine {
                 when {
                     log.programRunId == programRunId -> Unit
                     // Legacy cyclic logs without run id only count for cycle 1 of the current run.
-                    log.programRunId == null && cycleNumber == 1 -> Unit
+                    acceptLegacyEvidence && log.programRunId == null && cycleNumber == 1 -> Unit
                     else -> return@filter false
                 }
             }
@@ -181,6 +182,7 @@ object ProgramProgressEngine {
         instanceId: String,
         cycleNumber: Int,
         programRunId: String? = null,
+        acceptLegacyEvidence: Boolean = true,
     ): Boolean {
         if (week.executionKind == WeekExecutionKind.REST) return true
         // Completion is declared at the session level.  "main" is a presentation
@@ -191,7 +193,7 @@ object ProgramProgressEngine {
             // transition.  REST is handled explicitly above.
             return false
         }
-        val instanceLogs = logsForInstance(logs, programId, instanceId, cycleNumber, programRunId)
+        val instanceLogs = logsForInstance(logs, programId, instanceId, cycleNumber, programRunId, acceptLegacyEvidence)
         return requiredSessions.all { session -> instanceLogs.any { it.sessionId == session.id } }
     }
     fun advanceAfterSessionComplete(
@@ -259,6 +261,7 @@ object ProgramProgressEngine {
             instanceId = canonicalInstance.instanceId,
             cycleNumber = cycleNumber,
             programRunId = runId,
+            acceptLegacyEvidence = program.runState?.acceptLegacyEvidence != false,
         )
 
         if (!weekComplete) {
@@ -286,7 +289,7 @@ object ProgramProgressEngine {
         while (nextIndex in instances.indices) {
             val candidate = instances[nextIndex]
             val candidateWeek = hierarchy.locateWeek(candidate.templateWeekId)?.week ?: break
-            if (!isWeekInstanceComplete(candidateWeek, logs, workingProgram.id, candidate.instanceId, cycleNumber, runId)) break
+            if (!isWeekInstanceComplete(candidateWeek, logs, workingProgram.id, candidate.instanceId, cycleNumber, runId, workingProgram.runState?.acceptLegacyEvidence != false)) break
             workingProgram = markLoopOccurrenceCompletedIfNeeded(workingProgram, candidateWeek, cycleNumber)
             nextIndex++
         }
@@ -684,7 +687,7 @@ object ProgramProgressEngine {
         val recipe = program.sourceRecipe ?: return program
         if (!AuthoredProgressionEngine.appliesAtBlockClose(recipe.progression)) return program
         val trainedSessionIds = logs
-            .filter { it.programId == program.id && (it.programRunId == null || it.programRunId == runId) }
+            .filter { it.programId == program.id && (it.programRunId == runId || program.runState?.acceptLegacyEvidence != false && it.programRunId == null) }
             .mapTo(mutableSetOf()) { it.sessionId }
         return AuthoredProgressionEngine.applyAtBlockClose(
             program = program,
@@ -793,6 +796,7 @@ object ProgramProgressEngine {
             instanceId = weekInstanceId,
             cycleNumber = cycleForInstance,
             programRunId = runId,
+            acceptLegacyEvidence = program.runState?.acceptLegacyEvidence != false,
         )
         if (!weekComplete) {
             val cycleNumber = program.runState?.cycleNumber ?: activeState?.currentCycleNumber ?: 1
@@ -1213,7 +1217,7 @@ object ProgramProgressEngine {
         val runId = program.runState?.runId ?: activeState?.programRunId
         val allRequiredComplete = currentInstances.isNotEmpty() && currentInstances.all { instance ->
             val week = hierarchy.locateWeek(instance.templateWeekId)?.week ?: return@all false
-            isWeekInstanceComplete(week, logs, program.id, instance.instanceId, cycleNumber, runId)
+            isWeekInstanceComplete(week, logs, program.id, instance.instanceId, cycleNumber, runId, program.runState?.acceptLegacyEvidence != false)
         }
         if (!allRequiredComplete) return ProgressAdvanceResult(program, activeState)
 
@@ -1247,6 +1251,7 @@ object ProgramProgressEngine {
         val updatedProgram = continued.copy(
             runState = ProgramRunState(
                 runId = stableRunId,
+                acceptLegacyEvidence = priorRun?.acceptLegacyEvidence ?: false,
                 cycleNumber = newCycle,
                 weekInstanceId = firstInstance?.instanceId,
                 weekId = firstInstance?.templateWeekId,
@@ -1476,7 +1481,7 @@ object ProgramProgressEngine {
         fun weekFullyLogged(location: ProgramHierarchyLocation): Boolean {
             val week = location.week
             val inst = instanceIdFor(cycle, week.id)
-            val instanceLogs = logsForInstance(logs, program.id, inst, cycle, runId)
+            val instanceLogs = logsForInstance(logs, program.id, inst, cycle, runId, run.acceptLegacyEvidence)
             val required = week.sessions.filter { it.requirement == SessionRequirement.REQUIRED }
             return when {
                 required.isNotEmpty() ->

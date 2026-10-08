@@ -1,0 +1,15 @@
+{
+  "state": "PASS",
+  "scope": "Regressions from round50 except massive T006; conflicts, run history, Free entry and quantity review",
+  "totals": {
+    "tests": 540,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "nonemptySuites": 29,
+  "apkSha256": "7bbbd1a36d7275b7d38407929cfb3390b6c9f87ab57a8a2e5231ff092b332757",
+  "apkBytes": 437660731,
+  "voiceRealReplay": "NOT_IN_THIS_SUBSET",
+  "log": "gradle-regressions-53.log"
+}

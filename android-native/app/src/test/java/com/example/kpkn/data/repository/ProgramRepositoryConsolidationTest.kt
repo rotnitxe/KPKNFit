@@ -59,6 +59,8 @@ import kotlinx.coroutines.test.setMain
 import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -402,6 +404,7 @@ class ProgramRepositoryConsolidationTest {
         val repository = runBlocking { newRepository() }
         val fixture = nativeFixture("lock-order", week1Sessions = 2)
         val identity = NativeProgressionIdentity(
+            programRunId = fixture.runId,
             recipeId = "lock-order-recipe",
             recipeContentVersion = 1,
             recipeDayId = "lock-order-day",
@@ -453,7 +456,8 @@ class ProgramRepositoryConsolidationTest {
 
         // Tras la tormenta, el lane sigue vivo y coherente.
         runBlocking {
-            val extra = proposal("lock-order-extra")
+            val currentRunId = repository.getProgramById(fixture.program.id)!!.runState!!.runId
+            val extra = proposal("lock-order-extra").copy(identity = identity.copy(programRunId = currentRunId))
             assertTrue(
                 repository.mutateProgramNow(fixture.program.id) {
                     it.copy(nativeProgressionProposals = it.nativeProgressionProposals + extra)
@@ -467,10 +471,48 @@ class ProgramRepositoryConsolidationTest {
     }
 
     @Test
+    fun replacingActiveAndInactivePlansStartsDistinctRunsAndRetainsPriorDecisions() = runBlocking {
+        for (active in listOf(false, true)) {
+            val repository = newRepository()
+            val fixture = nativeFixture("replacement-$active", week1Sessions = 2)
+            val identity = NativeProgressionIdentity(recipeId = "recipe", recipeContentVersion = 1,
+                recipeDayId = "day", recipeSlotId = "slot", configurationId = "bench_press__barbell",
+                loadMode = LoadModeV2.LOAD, unitMode = UnitModeV2.REPS, side = "bilateral",
+                execution = "standard", slotPurpose = "F", programRunId = fixture.runId)
+            val notice = com.example.kpkn.data.models.NativeProgressionResolution("prior-notice",
+                NativeProgressionResolutionStatus.NOTICE, NativeProgressionProposalKind.INCREASE_LOAD,
+                1L, "Previous decision", identity = identity)
+            val pending = NativeProgressionProposal("prior-pending", NativeProgressionProposalKind.INCREASE_LOAD,
+                identity, fixture.week1.sessions.first().id, listOf("prior-log"), explanation = "Previous proposal", createdAtMs = 2L)
+            val original = fixture.program.copy(nativeProgressionAudit = listOf(notice),
+                nativeProgressionProposals = listOf(pending),
+                effectiveWeekRecipes = listOf(com.example.kpkn.data.models.EffectiveWeekRecipe(1, programRunId = fixture.runId)))
+            repository.addProgram(original)
+            if (active) repository.updateActiveProgramState(activeStateOf(fixture))
+            repository.flushPendingWrites()
+            val candidate = fixture.program.copy(nativeProgressionAudit = emptyList(), effectiveWeekRecipes = emptyList())
+            repository.replaceProgramSafely(candidate)
+            val first = repository.getProgramById(original.id)!!
+            assertNotEquals(fixture.runId, first.runState!!.runId)
+            assertFalse(first.runState!!.acceptLegacyEvidence)
+            assertTrue(first.nativeProgressionProposals.isEmpty())
+            assertTrue(first.nativeProgressionAudit.any { it.proposalId == "prior-notice" && it.programRunId == fixture.runId })
+            assertTrue(first.nativeProgressionAudit.any { it.proposalId == "prior-pending" && it.status == NativeProgressionResolutionStatus.EXPIRED })
+            assertTrue(first.effectiveWeekRecipes.any { it.programRunId == fixture.runId })
+            repository.replaceProgramSafely(candidate)
+            val second = repository.getProgramById(original.id)!!
+            assertNotEquals(first.runState!!.runId, second.runState!!.runId)
+            assertTrue(second.nativeProgressionAudit.containsAll(first.nativeProgressionAudit))
+            if (active) assertEquals(second.runState!!.runId, repository.activeProgramState.value!!.programRunId)
+        }
+    }
+
+    @Test
     fun resolveNativeProgressionProposal_whileASessionIsInProgress_retriesAndNeverBlocksTheWorkoutLane() = runBlocking {
         val repository = newRepository()
         val fixture = nativeFixture("resolve-ongoing", week1Sessions = 2)
         val identity = NativeProgressionIdentity(
+            programRunId = fixture.runId,
             recipeId = "resolve-ongoing-recipe", recipeContentVersion = 1, recipeDayId = "day", recipeSlotId = "slot",
             configurationId = "bench_press__barbell", loadMode = LoadModeV2.LOAD, unitMode = UnitModeV2.REPS,
             side = "bilateral", execution = "standard", slotPurpose = "F",

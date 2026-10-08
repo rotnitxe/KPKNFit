@@ -146,7 +146,7 @@ internal fun HistoryAnalyticsCard(
     report: ProgramAnalyticsReport,
     modifier: Modifier = Modifier,
 ) {
-    AnalyticsCard(title = "Adherencia y diagnóstico", modifier = modifier) {
+    AnalyticsCard(title = "Adherencia y rendimiento", modifier = modifier) {
         AnalyticsMetricRow(
             label = "Sesiones cumplidas",
             value = "${(report.adherence.completedSessionRatio * 100).format1()}%",
@@ -165,7 +165,7 @@ internal fun HistoryAnalyticsCard(
         AnalyticsMetricRow(
             label = "Identidad del bloque",
             value = report.efficiency.blockIdentity,
-            detail = "Diagnóstico estructural desde patrones, básicos, accesorios y equipamiento.",
+            detail = "Análisis del programa a partir de patrones, básicos, accesorios y equipamiento.",
         )
         AnalyticsMetricRow(
             label = "Pareto estímulo",

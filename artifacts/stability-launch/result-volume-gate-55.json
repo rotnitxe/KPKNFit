@@ -1,0 +1,13 @@
+{
+  "state": "PASS",
+  "scope": "Final muscle volume gate and program detail regression subset",
+  "totals": {
+    "tests": 87,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "apkSha256": "ca8c10d5d16560b40f8017cddb68501d6efeb04adc6cacab30b68da3297c822f",
+  "apkBytes": 437660875,
+  "releaseEvidence": "result-release-55.json"
+}

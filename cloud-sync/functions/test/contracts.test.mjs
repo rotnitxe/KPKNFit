@@ -20,3 +20,12 @@ test('common fixtures preserve canonical units, original keys, origins, zones an
   assert.deepEqual(JSON.parse(canonicalJson(context)).payload.futureMetadata, context.payload.futureMetadata);
   assert.equal(fixtures.find(value => value.deleted).payload, null);
 });
+test('program run history and future metadata remain opaque in the shared envelope', async () => {
+  const fixture = JSON.parse(await readFile(new URL('../../contracts/program-run.fixture.json', import.meta.url), 'utf8'));
+  validateOperation(fixture);
+  const roundTrip = JSON.parse(canonicalJson(fixture));
+  assert.deepEqual(roundTrip.payload, fixture.payload);
+  assert.equal(roundTrip.payload.runState.runId, 'run-current');
+  assert.equal(roundTrip.payload.nativeProgressionAudit[0].programRunId, 'run-previous');
+  assert.equal(roundTrip.payload.effectiveWeekRecipes[0].appliedProposals[0].programRunId, 'run-previous');
+});

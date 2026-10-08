@@ -1271,7 +1271,7 @@ class ProgramRepository private constructor(
         val currentCycle = program.runState?.cycleNumber?.takeIf { cyclic }
         val logs = getLogsForProgram(program.id)
             .filter { it.calendarBreakId.isNullOrBlank() }
-            .filter { log -> runId == null || log.programRunId == null || log.programRunId == runId }
+            .filter { log -> runId == null || log.programRunId == runId || program.runState?.acceptLegacyEvidence != false && log.programRunId == null }
             .filter { log -> currentCycle == null || log.cycleNumber == null || log.cycleNumber == currentCycle }
         val sessionIds = logs.map { it.sessionId }.toMutableSet()
         _ongoingWorkout.value?.let { ongoing ->
@@ -1649,6 +1649,16 @@ class ProgramRepository private constructor(
         }
     }
 
+    /** Only publish completion after Room confirms it; concurrent profile edits remain in the cache. */
+    suspend fun finishFreeIntro() = withContext(Dispatchers.IO) {
+        PersistenceWriteCoordinator.mutex.withLock {
+            db.settingsDao().upsert(_settings.value.copy(onboardingCompleted = true).toEntity())
+            withContext(Dispatchers.Main.immediate) {
+                _settings.update { it.copy(onboardingCompleted = true) }
+            }
+        }
+    }
+
     /**
      * Publica en las cachés el resultado de un commit de setup (M12), igual que
      * `NutritionRepository.publishSetupCommit` publica el suyo.
@@ -1699,19 +1709,33 @@ class ProgramRepository private constructor(
                             "Termina o descarta la sesión en curso antes de reemplazar el plan."
                         }
                         val active = _activeProgramState.value?.takeIf { it.programId == replacement.id }
+                        val previous = _programs.value.first { it.id == replacement.id }
+                        val restarted = replacement.copy(
+                            nativeProgressionAudit = (
+                                com.example.kpkn.domain.training.ProgressionRunScope.archiveAudit(previous) +
+                                    com.example.kpkn.domain.training.ProgressionRunScope.archiveAudit(replacement)
+                                ).distinct(),
+                            effectiveWeekRecipes = (
+                                com.example.kpkn.domain.training.ProgressionRunScope.archiveRecipes(previous) +
+                                    com.example.kpkn.domain.training.ProgressionRunScope.archiveRecipes(replacement)
+                                ).distinct(),
+                            nativeProgressionProposals = emptyList(),
+                            runState = ProgramRunState(runId = ProgramProgressEngine.newRunId(), acceptLegacyEvidence = false),
+                        )
                         val replacementToStore: Program
                         val replacementActive: ActiveProgramState?
                         if (active == null) {
-                            replacementToStore = normalizeProgramWithCompetitions(replacement)
+                            replacementToStore = normalizeProgramWithCompetitions(restarted)
                             replacementActive = null
                         } else {
-                            val seedProgram = normalizeProgramWithCompetitions(replacement.copy(runState = null))
+                            val seedProgram = normalizeProgramWithCompetitions(restarted.copy(runState = null))
                             val seedState = ProgramActiveStateEngine.repairForProgram(
                                 seedProgram,
                                 ActiveProgramState(programId = seedProgram.id),
                             ) ?: ActiveProgramState(programId = seedProgram.id)
                             val run = ProgramRunState(
                                 runId = ProgramProgressEngine.newRunId(),
+                                acceptLegacyEvidence = false,
                                 cycleNumber = seedState.currentCycleNumber ?: 1,
                                 weekInstanceId = seedState.currentWeekInstanceId ?: seedState.currentWeekId.takeIf { it.isNotBlank() },
                                 weekId = seedState.currentWeekId.takeIf { it.isNotBlank() }

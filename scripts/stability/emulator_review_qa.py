@@ -10,11 +10,14 @@ from pathlib import Path
 from emulator_smoke import ROOT, LOCK, COMPONENT, PACKAGE, adb
 
 
-def capture(out, name, allow_picker=False):
+def capture(out, name, allow_picker=False, allow_permission=False):
     activity = adb('shell', 'dumpsys', 'activity', 'activities').stdout.decode(errors='replace')
     resumed = [line for line in activity.splitlines() if 'topResumedActivity' in line or 'mResumedActivity' in line]
     picker = any(re.search(r'com\.(?:google\.android|android)\.documentsui/', line) for line in resumed)
-    if not any(COMPONENT in line for line in resumed) and not (allow_picker and picker):
+    permission = any('permissioncontroller.permission.ui.GrantPermissionsActivity' in line for line in resumed)
+    owned_permission = permission and any('GrantPermissionsActivity' in block and
+        f'launchedFromPackage={PACKAGE}' in block for block in re.split(r'\* Hist #', activity))
+    if not any(COMPONENT in line for line in resumed) and not (allow_picker and picker) and not (allow_permission and owned_permission):
         raise SystemExit('The isolated app is not foreground; no interaction was performed')
     raw = adb('exec-out', 'uiautomator', 'dump', '/dev/tty').stdout
     start, end = raw.find(b'<?xml'), raw.find(b'</hierarchy>')
@@ -39,6 +42,7 @@ def main():
     parser.add_argument('--out', required=True)
     parser.add_argument('--within-text', help='Disambiguate a repeated action by its nearest shared row label')
     parser.add_argument('--allow-system-file-picker', action='store_true')
+    parser.add_argument('--allow-system-permission-dialog', action='store_true')
     parser.add_argument('--replace-with', help='Replace a tapped editable filename with bounded ASCII text')
     parser.add_argument('--press-ms', type=int, default=0, help='Hold a grounded control briefly when a short tap is missed')
     action = parser.add_mutually_exclusive_group()
@@ -67,7 +71,9 @@ def main():
             if result.returncode:
                 raise SystemExit('The isolated app did not open')
             time.sleep(3)
-        tree, visible = capture(out, 'before', args.allow_system_file_picker)
+        tree, visible = capture(out, 'before', args.allow_system_file_picker, args.allow_system_permission_dialog)
+        if args.allow_system_permission_dialog and not (args.back or args.tap_text in {'Allow', 'Don’t allow'}):
+            raise SystemExit('Only an observed permission choice or cancellation of the owned request is permitted')
         if args.link:
             if not args.link.startswith('kpkn://'):
                 raise SystemExit('Only this app custom links are accepted')
@@ -123,7 +129,7 @@ def main():
             if result.returncode:
                 raise SystemExit('UI action failed')
             time.sleep(3)
-            _, visible = capture(out, 'after', args.allow_system_file_picker)
+            _, visible = capture(out, 'after', args.allow_system_file_picker, args.allow_system_permission_dialog)
         print(json.dumps(visible, ensure_ascii=False))
     finally:
         if owner.exists() and f'ticket={ticket}' in owner.read_text():

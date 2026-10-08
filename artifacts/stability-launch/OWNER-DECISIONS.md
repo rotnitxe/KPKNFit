@@ -8,9 +8,10 @@ Fuente: respuestas humanas del 7 de octubre de 2026 en este chat.
 - Free: voz y sincronización sin multimedia, aprobadas expresamente.
 - Firebase: proyecto `kpkn-47b03`; configuración de aplicaciones y servicios de pruebas pendiente.
 - Play: KPKN aún no tiene empresa. El tipo de cuenta aplicable está pendiente de confirmar; no se convierte constituir una empresa u obtener D-U-N-S en un requisito técnico de esta implementación.
-- Aclaración posterior del propietario: cuestiona D-U-N-S para fitness. La ruta de organización del plan original se mantiene como interpretación de la política general, PENDIENTE de confirmación específica de Play para KPKN; no se presenta como una resolución individual de Google ni como bloqueo de la implementación técnica.
+- Aclaración posterior del propietario: cuestiona D-U-N-S para fitness. El tipo de cuenta aún debe confirmarse para las funciones restantes de KPKN. D-U-N-S corresponde a la verificación de una cuenta de organización; su necesidad no se deduce de integrar o retirar Health Connect. No existe una resolución individual de Google para esta app y no se usa esa cuestión para bloquear la implementación técnica.
 
 Fuentes revisadas el 7 de octubre de 2026: [Requisitos de Play Console](https://support.google.com/googleplay/android-developer/answer/10788890), [categorías de salud que incluyen fitness y nutrición](https://support.google.com/googleplay/android-developer/answer/13996367), [tipos de cuenta y D-U-N-S para organización](https://support.google.com/googleplay/android-developer/answer/13634885).
+Verificación del 8 de octubre: [formulario que incluye actividad física y nutrición](https://support.google.com/googleplay/android-developer/answer/14738291?hl=es) y [tipos de cuenta](https://support.google.com/googleplay/android-developer/answer/13634885?hl=en). La declaración de esas funciones es independiente del SDK retirado y del número D-U-N-S.
 - Precios mensual y anual: PENDIENTES. Prueba aprobada: 14 días para usuarios elegibles según Google Play.
 
 Propuestas pendientes de aprobación (no se convierten en restricciones por inferencia): límites de almacenamiento de multimedia; qué constituye exactamente el límite semanal al mantener varias rutinas. El acceso a datos existentes, su exportación y su eliminación permanece disponible, según el plan aprobado.

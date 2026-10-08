@@ -73,5 +73,7 @@
     <string name="account_review_conflicts">Review pending edits</string>
     <string name="account_keep_current">Keep the account version</string>
     <string name="account_use_incoming">Use my preserved edit</string>
+    <string name="account_keep_both">Keep both versions</string>
+    <string name="account_copy_reference_notice">A copy of your edit is created. Its references keep their original records; history is not moved.</string>
     <string name="account_conflict_description">%1$s · %2$s</string>
 </resources>

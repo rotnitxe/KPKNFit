@@ -333,7 +333,7 @@ fun FoodLoggerDrawer(
             ) {
                 // Resolution is read-only. Confirmed dimensions are committed after save.
             }
-        }, calibrationProfile = calibrationProfile)
+        }, calibrationProfile = calibrationProfile, requireEstimatedPortionConfirmation = true)
 
     }
 
@@ -359,7 +359,7 @@ fun FoodLoggerDrawer(
             // parse (and were enriched when they were created), so they stay as they are.
             val freshIds = newTags.mapTo(HashSet()) { it.id }
             result.second to merged.map {
-                if (it.id in freshIds || it.origin.isPinned) it else NutritionInterpretationBridge.enrich(it, parsed)
+                if (it.id in freshIds || it.origin.isPinned) it else NutritionInterpretationBridge.enrich(it, parsed, requireEstimatedPortionConfirmation = true)
             }
         }
         detectedContext = resolvedContext

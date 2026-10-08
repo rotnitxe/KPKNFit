@@ -35,6 +35,25 @@ class NativeCapabilityTest {
     private suspend fun repository(): ProgramRepository = ProgramRepository.initForTests(context) { level }.also {
         withTimeout(10_000) { it.isReady.first { ready -> ready } }
     }
+    @Test fun freeIntroCompletesDurablyWithoutPremiumData() = runBlocking {
+        val repo = repository()
+        val before = repo.settings.value
+        repo.finishFreeIntro()
+        val stored = repo.databaseForTests().settingsDao().get()?.toSettings()
+        assertTrue(repo.settings.value.onboardingCompleted)
+        assertTrue(stored!!.onboardingCompleted)
+        assertEquals(before.nutritionTrackingChoice, stored.nutritionTrackingChoice)
+        assertTrue(repo.programs.value.isEmpty())
+        repo.finishFreeIntro()
+        assertTrue(repo.settings.value.onboardingCompleted)
+    }
+    @Test fun failedFreeIntroDoesNotPublishCompletion() = runBlocking {
+        val repo = repository()
+        assertFalse(repo.settings.value.onboardingCompleted)
+        repo.databaseForTests().close()
+        assertTrue(runCatching { repo.finishFreeIntro() }.isFailure)
+        assertFalse(repo.settings.value.onboardingCompleted)
+    }
     @Test fun everyProgramSaveEntryRejectsFreeSixthSessionBeforePublishing() = runBlocking {
         val repo = repository()
         val allowed = program(5); val blocked = program(6)
