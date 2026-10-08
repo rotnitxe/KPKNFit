@@ -537,7 +537,11 @@ internal fun SetupWizardDraft.selectedEquipmentSymbols(): Set<EquipmentSymbolId>
 /** Quien empieza: no se le pregunta la técnica ni se le piden marcas. */
 internal val SetupWizardDraft.isNovice: Boolean get() = experience == SetupExperience.NEW
 
-/** Levantamientos cuya marca se pregunta con el objetivo, la experiencia y el material actuales (vacío = sin paso). */
+/**
+ * Levantamientos cuya marca se pregunta con el objetivo, la experiencia y el material actuales (vacío = sin paso). El
+ * arranque y los dos tiempos de Halterofilia solo se preguntan si el programa de ESTE nivel los lee: quien vuelve no recibe
+ * levantamientos olímpicos, así que sus marcas serían un control vacío ([MarksContext.readsOlympicMarks]).
+ */
 internal fun SetupWizardDraft.marksLifts(): List<LiftMark> = MarksContext.liftsFor(
     profile = goalProfile,
     novice = isNovice,
