@@ -1,0 +1,24 @@
+{
+  "apk": "791dd6fab9a734e0dfec8764f3e98c4308e990a91270c7d58dbcdbd3f2140a24",
+  "api": 36,
+  "verified": [
+    "mainVisible",
+    "wizardIntroAndFirstStep",
+    "foodParserMigrationDraft7Passed",
+    "freeWeekCreated",
+    "nutritionProGateWithHistory",
+    "portableV2ExportColdVoiceAbsent"
+  ],
+  "pendingUiFixes": [
+    "Free calibration prompt",
+    "selection after rejected second week",
+    "safe top inset on Pro gate"
+  ],
+  "scopeLimits": [
+    "No real Play purchase",
+    "No full sign-in/account switch/restore flow",
+    "No full wizard completion",
+    "No real GPS route/audio corpus"
+  ],
+  "ownedEmulatorStopped": true
+}

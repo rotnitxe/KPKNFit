@@ -55,10 +55,12 @@
         "tests-focused-3/",
         "tests-snapshot-final/",
         "gradle-snapshot-release-manifest.log",
-        "android-native/app/src/main/java/com/example/kpkn/data/backup/AppBootstrap.kt"
+        "android-native/app/src/main/java/com/example/kpkn/data/backup/AppBootstrap.kt",
+        "result-navigation-36.json",
+        "emulator-navigation-36/export/result.json"
       ],
       "dependencies": [
-        "Lectura de programas comprobada por contrato; falta QA de todos los repositorios"
+        "Exportación y reconstrucción de navegación comprobadas API36; restauración completa y todos los lectores todavía requieren QA."
       ]
     },
     {
@@ -74,7 +76,7 @@
         "tests-portable-28/"
       ],
       "dependencies": [
-        "Asociaciones añadidas; archivo portátil con medios pendiente"
+        "Respaldo portable v2 implementado con manifest/hashes, relaciones, avatar, multimedia y recuperación legado; lectura v1. QA completa de dispositivo/interrupciones sigue abierta."
       ]
     },
     {
@@ -163,7 +165,9 @@
         "tests-erasure-downloads-27/",
         "tests-full-jvm-29/"
       ],
-      "dependencies": []
+      "dependencies": [
+        "AUD01 corregido y regresiones API26/API34 aprobadas; QA real de cierre/cambio A-B e interrupciones todavía pendiente."
+      ]
     },
     {
       "id": "B03",
@@ -262,7 +266,7 @@
         "firebase-retired-operations-20.log"
       ],
       "dependencies": [
-        "Protocolo probado; no hay servicio desplegable ni pruebas Firestore aún"
+        "Servicio desplegable Auth/Firestore/Storage/Functions y 21 pruebas reales en emuladores locales implementados. Proyecto kpkn-47b03, App Check y dos dispositivos reales sin verificar."
       ]
     },
     {
@@ -307,7 +311,7 @@
         "firebase-retired-operations-20.log"
       ],
       "dependencies": [
-        "Preservación persistente y resolución en UI pendientes"
+        "Versiones persistentes y elecciones KEEP_CURRENT/USE_INCOMING en cliente; KEEP_BOTH nativo y QA completos pendientes."
       ]
     },
     {
@@ -322,7 +326,7 @@
         "firebase-retired-operations-20.log"
       ],
       "dependencies": [
-        "Lease real en servidor y cliente pendiente"
+        "Lease de entrenamiento implementado en servidor y cliente con expiración/propietario; falta QA de dos dispositivos y pérdida de proceso."
       ]
     },
     {
@@ -665,7 +669,7 @@
         "android-native/app/src/main/java/com/example/kpkn/domain/sync/SyncCapabilities.kt"
       ],
       "dependencies": [
-        "EntitlementRepository y matriz aplicada a funciones pendientes"
+        "Política nativa de programas/nutrición/commits y rechazos Free comprobados; pendientes otras entradas Pro, expiración con historial y compras reales."
       ]
     },
     {
@@ -678,7 +682,9 @@
         "android-native/app/src/main/java/com/example/kpkn/data/account/FirebaseEntitlementRepository.kt",
         "android-native/app/src/main/java/com/example/kpkn/data/account/PlaySubscriptionRepository.kt"
       ],
-      "dependencies": []
+      "dependencies": [
+        "Caché autenticada y reloj monotónico; nueva política de reinicio con ancla firmada y protección ante retroceso, pendiente de regresiones 32 y compra real."
+      ]
     },
     {
       "id": "F08",
@@ -702,7 +708,7 @@
         "android-native/app/src/main/assets/food_data/dataset_knowledge_report.json"
       ],
       "dependencies": [
-        "Gate publicación/CI pendiente"
+        "Dataset y gate de coherencia aprobados localmente; workflow los ejecuta. CI remota aún no ejecutada."
       ]
     },
     {
@@ -846,7 +852,7 @@
         "android-native/app/src/main/java/com/example/kpkn/screens/account/AdultAccessGate.kt"
       ],
       "dependencies": [
-        "Integración de onboarding protegida pendiente"
+        "Edad y fecha de nacimiento internas 18+ implementadas, regresiones aprobadas; primer paso de asistente visible en API36. QA completa y localización pendientes."
       ]
     },
     {
@@ -1065,8 +1071,8 @@
       "id": "J08",
       "package": "J",
       "requirement": "Resolver el tiempo de ejecución de lint y completar la compilación unificada antes de aceptar el paquete.",
-      "code": "PENDIENTE",
-      "verification": "PENDIENTE",
+      "code": "PARCIAL",
+      "verification": "PARCIAL",
       "evidence": [
         "gradle-full-lint-release-20.log",
         "lint-release-20.xml",
@@ -1078,7 +1084,9 @@
         "r8-31-result.json",
         "gradle-r8-31.log"
       ],
-      "dependencies": []
+      "dependencies": [
+        "Suite completa 29: 6831 PASS, 2 replay reales omitidos. Lint30: cero errores; R8 31 aprobado sin firma. Las nuevas correcciones 32 todavía están en validación; release firmado pendiente."
+      ]
     },
     {
       "id": "J09",
@@ -1214,5 +1222,77 @@
     "Storage source gate passed for 45 schema tables and 70 direct storage calls; 3 negative-probe tests passed. Arbitrary alias and device writer QA remain separate.",
     "No successful full lint, release/R8, runtime 16 KB, real billing, complete two-device native flow, or beta evidence.",
     "All original A-J packages remain required except the approved replacement of D."
+  ],
+  "auditCorrections": [
+    {
+      "id": "AUD01",
+      "state": "REGRESSION_JVM_PASS_REAL_FLOW_QA_PARTIAL",
+      "evidence": [
+        "result-audit-34.json",
+        "result-audit-35.json",
+        "result-navigation-36.json",
+        "result-full-37.json",
+        "result-ui-38.json",
+        "device-qa-38.json",
+        "result-release-39.json"
+      ],
+      "independentAcceptance": false
+    },
+    {
+      "id": "AUD02",
+      "state": "REGRESSION_JVM_PASS_REAL_FLOW_QA_PARTIAL",
+      "evidence": [
+        "result-audit-34.json",
+        "result-audit-35.json",
+        "result-navigation-36.json",
+        "result-full-37.json",
+        "result-ui-38.json",
+        "device-qa-38.json",
+        "result-release-39.json"
+      ],
+      "independentAcceptance": false
+    },
+    {
+      "id": "AUD03",
+      "state": "NATIVE_IMPLEMENTED_UI_AND_SERVICE_QA_PARTIAL",
+      "evidence": [
+        "result-audit-34.json",
+        "result-audit-35.json",
+        "result-navigation-36.json",
+        "result-full-37.json",
+        "result-ui-38.json",
+        "device-qa-38.json",
+        "result-release-39.json"
+      ],
+      "independentAcceptance": false
+    },
+    {
+      "id": "AUD04",
+      "state": "REGRESSION_JVM_PASS_REAL_FLOW_QA_PARTIAL",
+      "evidence": [
+        "result-audit-34.json",
+        "result-audit-35.json",
+        "result-navigation-36.json",
+        "result-full-37.json",
+        "result-ui-38.json",
+        "device-qa-38.json",
+        "result-release-39.json"
+      ],
+      "independentAcceptance": false
+    },
+    {
+      "id": "AUD05",
+      "state": "REGRESSION_JVM_PASS_REAL_FLOW_QA_PARTIAL",
+      "evidence": [
+        "result-audit-34.json",
+        "result-audit-35.json",
+        "result-navigation-36.json",
+        "result-full-37.json",
+        "result-ui-38.json",
+        "device-qa-38.json",
+        "result-release-39.json"
+      ],
+      "independentAcceptance": false
+    }
   ]
 }

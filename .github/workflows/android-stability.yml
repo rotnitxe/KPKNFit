@@ -3,8 +3,14 @@ on:
   pull_request:
     paths: ["android-native/**", "cloud-sync/**", "data/**", "scripts/**", ".github/workflows/android-stability.yml"]
   workflow_dispatch:
+    inputs:
+      voice_corpus_run_id:
+        description: "Run ID containing the authorized private kpkn-voice-field-corpus artifact"
+        required: false
+        type: string
 permissions:
   contents: read
+  actions: read
 concurrency:
   group: android-stability-${{ github.ref }}
   cancel-in-progress: true
@@ -31,6 +37,18 @@ jobs:
       - run: python scripts/stability/verify_storage_inventory.py --output storage-classification.json
       - run: python scripts/stability/test_storage_inventory.py
       - run: python scripts/stability/test_native_packaging.py
+      - run: python scripts/stability/test_voice_corpus_input.py
+      - name: Read the authorized private field corpus
+        if: github.event_name == 'workflow_dispatch' && inputs.voice_corpus_run_id != ''
+        uses: actions/download-artifact@v8
+        with:
+          name: kpkn-voice-field-corpus
+          run-id: ${{ inputs.voice_corpus_run_id }}
+          github-token: ${{ github.token }}
+          path: .ci-private/input
+      - name: Verify consent, bounds and hashes without logging transcripts
+        if: github.event_name == 'workflow_dispatch' && inputs.voice_corpus_run_id != ''
+        run: python scripts/stability/prepare_voice_corpus.py --source .ci-private/input --output .ci-private/voice-corpus
       - working-directory: android-native
         run: python scripts/process_dataset.py --check
       - run: python scripts/catalog_v2_ficha_lint.py
@@ -39,7 +57,7 @@ jobs:
         working-directory: android-native
         run: |
           chmod +x gradlew
-          ./gradlew --no-daemon --console=plain --max-workers=1 -Dorg.gradle.jvmargs=-Xmx5g testDebugUnitTest assembleDebug
+          ./gradlew --no-daemon --console=plain --max-workers=1 -Dorg.gradle.jvmargs=-Xmx5g -PKPKN_VOICE_REPLAY_DIR="$GITHUB_WORKSPACE/.ci-private/voice-corpus" testDebugUnitTest assembleDebug
       - name: Require executed real voice replay before release acceptance
         if: always()
         run: python scripts/stability/verify_voice_replay_execution.py --output voice-replay-gate.json
@@ -47,6 +65,9 @@ jobs:
         if: always()
         working-directory: android-native
         run: ./gradlew --no-daemon --console=plain --max-workers=1 -Dorg.gradle.jvmargs=-Xmx5g lintRelease
+      - name: Compile the release shrinker without publishing or using signing secrets
+        working-directory: android-native
+        run: ./gradlew --no-daemon --console=plain --max-workers=1 -Dorg.gradle.jvmargs=-Xmx5g minifyReleaseWithR8
       - name: Inspect native LOAD, RELRO and ZIP alignment
         if: always()
         run: python scripts/stability/verify_native_packaging.py --apk android-native/app/build/outputs/apk/debug/app-debug.apk --output native-packaging.json

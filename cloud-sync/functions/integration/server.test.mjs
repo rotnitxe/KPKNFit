@@ -200,6 +200,35 @@ test('keeping both assigns a distinct record identity without replacing the orig
   assert.equal(rows[1].payload.id, 'log-copy'); assert.equal(rows[1].payload.weightKg, 85);
 });
 
+test('keeping both supports large private JSON and rejects extra modifications', async () => {
+  const uid = await account();
+  const store = async payload => {
+    const bytes = Buffer.from(JSON.stringify(payload));
+    const sha256 = digest(bytes);
+    await bucket.file(`accounts/${uid}/1/data/${sha256}`).save(bytes, {
+      metadata: {contentType: 'application/json', metadata: {ownerUid: uid, fileId: sha256}}
+    });
+    return {sha256, bytes: bytes.length};
+  };
+  await sync.push(uid, operation('large-copy-first', 'large-source'));
+  const payload = {id: 'large-source', weightKg: 85, futureFields: {notes: 'x'.repeat(600000)}};
+  const incoming = {...operation('large-copy-edit', 'large-source'), payload: null, payloadRef: await store(payload)};
+  const conflict = await sync.push(uid, incoming);
+  const duplicate = {...incoming, operationId: 'large-copy-resolution', entityId: 'large-copy', sourceId: 'large-copy',
+    payloadRef: await store({...payload, id: 'large-copy'})};
+  const tampered = {...duplicate, operationId: 'tampered-copy', payloadRef: await store({...payload, id: 'large-copy', weightKg: 99})};
+  await assert.rejects(sync.resolveConflict(uid, 1, conflict.conflictId, tampered, 'KEEP_BOTH', 1), /preserved edit/);
+  const result = await sync.resolveConflict(uid, 1, conflict.conflictId, duplicate, 'KEEP_BOTH', 1);
+  assert.equal(result.status, 'APPLIED');
+  assert.deepEqual(await new SyncService(database, () => Date.now(), bucket).resolveConflict(uid, 1,
+    conflict.conflictId, duplicate, 'KEEP_BOTH', 1), result);
+  const rows = (await sync.changes(uid, 1)).records;
+  assert.equal(rows.length, 2);
+  assert.equal(rows[0].payload.weightKg, 70);
+  const materialized = await sync.materialize(uid, {...duplicate, payloadRef: rows[1].payloadRef});
+  assert.deepEqual(materialized.payload, {...payload, id: 'large-copy'});
+});
+
 test('guest incorporation is restart-safe, preserves legacy Pro records, and cannot cross accounts', async () => {
   const uid = await account(), other = await account();
   const op = {...operation('migration-op', 'legacy-meal'), kind: 'nutrition_log', guestImportId: 'migration-1',

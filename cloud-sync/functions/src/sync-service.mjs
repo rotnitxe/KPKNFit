@@ -292,16 +292,20 @@ export class SyncService {
         'custom_food', 'custom_exercise', 'session_template', 'meal_template']);
       if (!Number.isSafeInteger(expectedRevision) || expectedRevision < 0) fail('invalid-argument', 'A reviewed revision is required');
       let expectedPayload = original.payload;
+      let candidatePayload = operation?.payload;
       if (resolution === 'KEEP_BOTH') {
-        if (!duplicable.has(original.kind) || original.deleted || !original.payload?.id ||
+        const preserved = await this.materialize(uid, original);
+        if (!duplicable.has(original.kind) || original.deleted || !preserved.payload?.id ||
             !identifier.test(operation?.sourceId ?? '') || operation.sourceId === original.sourceId ||
             operation.entityId !== operation.sourceId) fail('invalid-argument', 'This record cannot be duplicated');
-        expectedPayload = {...original.payload, id: operation.sourceId};
+        validateOperation(operation);
+        expectedPayload = {...preserved.payload, id: operation.sourceId};
+        candidatePayload = (await this.materialize(uid, operation)).payload;
       }
       if (!operation || operation.kind !== original.kind || operation.accountGeneration !== generation ||
           operation.deleted !== original.deleted || operation.baseRevision !== (resolution === 'KEEP_BOTH' ? 0 : expectedRevision) ||
-          canonicalJson(operation.payload) !== canonicalJson(expectedPayload) ||
-          canonicalJson(operation.payloadRef ?? null) !== canonicalJson(original.payloadRef ?? null) ||
+          canonicalJson(candidatePayload) !== canonicalJson(expectedPayload) ||
+          (resolution === 'USE_INCOMING' && canonicalJson(operation.payloadRef ?? null) !== canonicalJson(original.payloadRef ?? null)) ||
           (resolution === 'USE_INCOMING' && operation.entityId !== original.entityId) ||
           (resolution === 'KEEP_BOTH' && operation.entityId === original.entityId)) fail('invalid-argument', 'Resolution does not match the preserved edit');
       let approvedLegacyResolution = false;

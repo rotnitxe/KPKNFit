@@ -20,6 +20,10 @@ Retirar Health Connect; conservar GPS exterior, voz, cámara, registro manual, n
 
 ## Límites de evidencia
 
+Comprobación actual del APK38 (8 de octubre): 68.497 clases inspeccionadas, cero clases Health Connect; GPS, micrófono y cámara conservados. Sin ubicación en segundo plano, acceso amplio a fotos/vídeos, acceso a todos los archivos ni foreground `dataSync`. El empaquetado ELF/ZIP pasó los criterios de 16 KB; la ejecución en un sistema de 16 KB continúa inconclusa. Ajustes API36 mantiene ubicación aproximada y no ofrece Health Connect. Estas comprobaciones están en `review-apk-verification-38.json`, `native-packaging-38.json` y `emulator-ui-38/settings/`.
+
+Google incluye expresamente actividad/forma física y nutrición/control del peso en su declaración de funciones de salud. Retirar Health Connect reduce permisos e integración, pero no autoriza declarar que KPKN carece de esas funciones. La clasificación de cuenta y el eventual D‑U‑N‑S se revisan por separado; no se condiciona el trabajo técnico a crear una empresa. [Formulario oficial de Play](https://support.google.com/googleplay/android-developer/answer/14738291?hl=es).
+
 Verificación propia de este cambio, el 7 de octubre de 2026:
 
 - Compilación debug aprobada (`gradle-snapshot-release-manifest.log`).

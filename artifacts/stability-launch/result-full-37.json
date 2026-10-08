@@ -1,0 +1,13 @@
+{
+  "state": "PASS",
+  "scope": "Full JVM and debug build before final UI rejection/inset adjustments",
+  "totals": {
+    "tests": 6874,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2
+  },
+  "suites": 776,
+  "apkSha256": "791dd6fab9a734e0dfec8764f3e98c4308e990a91270c7d58dbcdbd3f2140a24",
+  "realVoiceReplay": "SKIPPED_NO_AUTHORIZED_CORPUS"
+}

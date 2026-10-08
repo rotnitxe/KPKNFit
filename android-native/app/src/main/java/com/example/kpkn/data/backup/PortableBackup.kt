@@ -235,7 +235,7 @@ object PortableBackup {
         }
         return destination.absolutePath
     }
-    private fun preferences(context: Context, includeDeviceState: Boolean = false): JsonObject {
+    internal fun preferences(context: Context, includeDeviceState: Boolean = false): JsonObject {
         val profile = context as? ProfileContext ?: com.example.kpkn.data.account.ProfileStorage.context(context) as ProfileContext
         return buildJsonObject {
             profile.personalPreferenceNames().filter { includeDeviceState || it !in excludedPreferences }.forEach { name ->
@@ -276,7 +276,9 @@ object PortableBackup {
         }
     }
     fun copyMissingPreferences(source: Context, target: Context) {
-        val selected = preferences(source)
+        copyMissingPreferences(preferences(source), target)
+    }
+    internal fun copyMissingPreferences(selected: JsonObject, target: Context) {
         selected.forEach { (name, fields) ->
             val existing = target.getSharedPreferences(name, 0).all.keys
             val missing = JsonObject(fields.jsonObject.filterKeys { it !in existing })

@@ -130,6 +130,12 @@ class NutritionRepository private constructor(
 
     /** Solo para pruebas JVM: la base con la que trabaja este repositorio (mismo patrón que ProgramRepository). */
     internal fun databaseForTests(): KpknDatabase = db
+    internal var accessLevel: () -> com.example.kpkn.domain.entitlements.PlanLevel = {
+        if (ownsDatabase) com.example.kpkn.domain.entitlements.PlanLevel.PRO else
+            com.example.kpkn.data.account.AccountGraph.entitlement.value.effectiveLevel
+    }
+    internal fun requireNutritionWrite() = com.example.kpkn.domain.entitlements.ProgramAccessPolicy.requireCapability(
+        accessLevel(), com.example.kpkn.domain.entitlements.Capability.NUTRITION)
 
     // ─── IT3: utensilios configurables (ml por utensilio) ────────────────────
 
@@ -150,6 +156,7 @@ class NutritionRepository private constructor(
 
     /** Guarda el volumen de un utensilio y lo aplica de inmediato. */
     fun saveUtensilOverride(name: String, ml: Double) {
+        requireNutritionWrite()
         utensilPrefs.edit().putFloat("ml_$name", ml.toFloat()).apply()
         SubjectivePortionEngine.applyUtensilOverrides(SubjectivePortionEngine.currentUtensilOverrides() + (name to ml))
     }
@@ -201,6 +208,7 @@ class NutritionRepository private constructor(
     val dailyGoalSnapshots: StateFlow<List<DailyGoalSnapshot>> = _dailyGoalSnapshots.asStateFlow()
 
     fun addNutritionLog(log: NutritionLog) {
+        requireNutritionWrite()
         _nutritionLogs.update { it + log }
         scope.launch { db.nutritionDao().upsertLog(log.toEntity()) }
         captureDailyGoalSnapshot(log.date.take(10))
@@ -208,6 +216,7 @@ class NutritionRepository private constructor(
 
     /** Await durable storage before publishing success or teaching a confirmed habit. */
     suspend fun saveNutritionLog(log: NutritionLog, confirmations: List<FoodLearningConfirmation> = emptyList()) = foodSaveMutex.withLock {
+        requireNutritionWrite()
         require(log.foods.isNotEmpty()) { "A meal must contain every active food" }
         require(log.foods.all { food ->
             food.amount.isFinite() && food.amount > 0.0 &&
@@ -340,6 +349,7 @@ class NutritionRepository private constructor(
     private val _foodQueryLearning = MutableStateFlow<Map<String, FoodQueryLearningEntry>>(emptyMap())
 
     fun addCustomFood(food: FoodItem) {
+        requireNutritionWrite()
         val normalized = normalizeFoodItem(food)
         _foodDatabase.update { current ->
             val filtered = current.filterNot { it.id == normalized.id }
@@ -454,6 +464,7 @@ class NutritionRepository private constructor(
         }
 
     fun recordFoodSelection(query: String, food: FoodItem) {
+        requireNutritionWrite()
         val normalizedQuery = TextKeys.normalize(query)
         if (normalizedQuery.isBlank()) return
 
@@ -483,6 +494,7 @@ class NutritionRepository private constructor(
     }
 
     fun setActiveNutritionPlanId(planId: String?) {
+        if (planId != null) requireNutritionWrite()
         _activeNutritionPlanId.value = planId
         scope.launch {
             if (planId == null) db.nutritionDao().clearActiveState()
@@ -535,6 +547,7 @@ class NutritionRepository private constructor(
     }
 
     fun addNutritionPlan(plan: NutritionPlan) {
+        requireNutritionWrite()
         _nutritionPlans.update { plans ->
             val existingIndex = plans.indexOfFirst { it.id == plan.id }
             if (existingIndex >= 0) {
@@ -609,6 +622,7 @@ class NutritionRepository private constructor(
     }
 
     fun activatePlan(planId: String) {
+        requireNutritionWrite()
         _nutritionPlans.update { list -> list.map { it.copy(isActive = it.id == planId) } }
         _activeNutritionPlanId.value = planId
         scope.launch { db.nutritionDao().activatePlanAtomic(planId, _nutritionPlans.value.map { it.toEntity() }) }
@@ -720,6 +734,7 @@ class NutritionRepository private constructor(
         )
 
         override suspend fun storeForecastRevision(source: NutritionPlan, revised: NutritionPlan): Boolean {
+            if (!com.example.kpkn.domain.entitlements.CapabilityCatalog.permits(com.example.kpkn.domain.entitlements.Capability.NUTRITION, accessLevel())) return false
             val outcome = runCatching { lane.write(source, revised) }
             val failure = outcome.exceptionOrNull()
             if (failure != null) {
@@ -855,6 +870,7 @@ class NutritionRepository private constructor(
             .sortedBy { it.date }
 
     fun upsertMealTemplate(template: MealTemplate) {
+        requireNutritionWrite()
         _mealTemplates.update { current ->
             current.filterNot { it.id == template.id } + template
         }
@@ -982,6 +998,7 @@ class NutritionRepository private constructor(
         portionGrams: Double?,
         cookingMethod: String?,
     ) {
+        requireNutritionWrite()
         smartResolver.recordLearned(query, brandHint, foodId, portionGrams, cookingMethod)
     }
 

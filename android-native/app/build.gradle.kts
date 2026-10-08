@@ -115,6 +115,11 @@ android {
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
+            all { test ->
+                providers.gradleProperty("KPKN_VOICE_REPLAY_DIR").orNull?.let { directory ->
+                    test.systemProperty("voice.replay.dir", rootProject.file(directory).canonicalPath)
+                }
+            }
         }
     }
 

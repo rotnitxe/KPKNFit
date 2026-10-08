@@ -40,6 +40,7 @@ def main():
     parser.add_argument('--within-text', help='Disambiguate a repeated action by its nearest shared row label')
     parser.add_argument('--allow-system-file-picker', action='store_true')
     parser.add_argument('--replace-with', help='Replace a tapped editable filename with bounded ASCII text')
+    parser.add_argument('--press-ms', type=int, default=0, help='Hold a grounded control briefly when a short tap is missed')
     action = parser.add_mutually_exclusive_group()
     action.add_argument('--tap-text')
     action.add_argument('--tap-description')
@@ -48,6 +49,7 @@ def main():
     action.add_argument('--scroll', action='store_true')
     action.add_argument('--open-app', action='store_true')
     args = parser.parse_args()
+    if args.press_ms not in range(0, 1001): raise SystemExit('Invalid press duration')
     out = Path(args.out).resolve()
     if not out.is_relative_to(ROOT):
         raise SystemExit('Evidence must stay in this worktree')
@@ -94,7 +96,8 @@ def main():
             if not bounds:
                 raise SystemExit('Target bounds are unavailable')
             left, top, right, bottom = map(int, bounds.groups())
-            result = adb('shell', 'input', 'tap', str((left + right) // 2), str((top + bottom) // 2))
+            x, y = str((left + right) // 2), str((top + bottom) // 2)
+            result = adb('shell', 'input', 'swipe', x, y, x, y, str(args.press_ms)) if args.press_ms else adb('shell', 'input', 'tap', x, y)
             if args.replace_with:
                 target = targets[0]
                 if target.attrib.get('class') != 'android.widget.EditText' or not re.fullmatch(r'[A-Za-z0-9._-]{1,120}', args.replace_with):

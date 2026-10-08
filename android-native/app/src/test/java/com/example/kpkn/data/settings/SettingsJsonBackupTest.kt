@@ -37,7 +37,7 @@ class SettingsJsonBackupTest {
             Boolean::class.javaPrimitiveType,
         )
         ctor.isAccessible = true
-        return ctor.newInstance(context, db, false)
+        return ctor.newInstance(context, db, false).also { it.accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO } }
     }
 
     private fun minimalPayload(programId: String = "p1") = SettingsExportPayload(

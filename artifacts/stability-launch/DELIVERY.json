@@ -5,28 +5,37 @@
   "healthConnectRemoved": true,
   "gpsPreserved": true,
   "jvm": {
-    "tests": 6833,
-    "passed": 6831,
-    "failures": 0,
-    "errors": 0,
     "skipped": 2,
-    "suites": 769
+    "suites": 776,
+    "tests": 6874,
+    "errors": 0,
+    "scope": "Before final Free UI adjustments",
+    "cohort": 37,
+    "passed": 6872,
+    "failures": 0
+  },
+  "postUi": {
+    "tests": 96,
+    "skipped": 0,
+    "cohort": 38,
+    "passed": 96
   },
   "lint": {
-    "errors": 0,
     "warnings": 610,
-    "hints": 39
+    "hints": 39,
+    "errors": 0
   },
-  "r8": "COMPILATION_PASS_ONLY",
-  "apk29Sha256": "9ada9e8b60e59d546828b7b90223255aaab89828197dc18a0f4c00bb1b8752fd",
-  "apk29Classes": 68452,
+  "r8": "COMPILATION_PASS_ONLY_COHORT_39",
+  "apk38Sha256": "dc72b6c850bbb54c3af5421a5cec3937a961c1710f379a22629036aa963745cd",
+  "apk38Classes": 68497,
   "deviceEvidence": [
-    "API26 APK29 startup and cold voice export",
-    "API36 APK28 startup and cold voice export"
+    "API36 APK38 Free week/rejection and empty nutrition history",
+    "API36 APK36 wizard, seven real Android nutrition tests and portable v2 export",
+    "API26 APK29 startup and cold voice export"
   ],
   "voiceReplay": "INCOMPLETE_REAL_CORPUS_MISSING",
   "runtime16Kb": "INCONCLUSIVE_SYSTEM_EMULATOR_FAILURE",
-  "cloud": "21_LOCAL_INTEGRATION_PASS_PLAY_FIXTURE_ONLY",
+  "cloud": "22_LOCAL_INTEGRATION_PASS_PLAY_FIXTURE_ONLY_COHORT_40",
   "push": false,
   "productionDeployment": false
 }

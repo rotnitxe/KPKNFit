@@ -21,27 +21,39 @@ import javax.crypto.SecretKey
 
 /** Only authenticated server results can create a cache; portable backups never import it. */
 class FirebaseEntitlementRepository(private val context: Context, private val uid: String, private val transport: AccountTransport) : EntitlementRepository {
-    @Serializable private data class Receipt(val ownerUid: String, val confirmed: ConfirmedEntitlement, val elapsedMs: Long, val boot: Int, val serverEpochMs: Long)
+    @Serializable private data class Receipt(val ownerUid: String, val confirmed: ConfirmedEntitlement, val elapsedMs: Long, val boot: Int, val serverEpochMs: Long,
+        val wallEpochMs: Long = 0, val highWaterEpochMs: Long = 0, val clockUncertain: Boolean = false)
     private val mutex = Mutex()
     private val _state = MutableStateFlow(EntitlementState())
     override val state = _state.asStateFlow()
     private val json = Json { encodeDefaults = true; ignoreUnknownKeys = true }
     private val preferences by lazy { context.getSharedPreferences("kpkn_entitlement", 0) }
     private var receipt: Receipt? = null
-    suspend fun load() = withContext(Dispatchers.IO) {
+    suspend fun load() = withContext(Dispatchers.IO) { mutex.withLock {
         receipt = runCatching {
             val encoded = preferences.getString("receipt", null) ?: return@runCatching null
             val signature = preferences.getString("signature", null) ?: return@runCatching null
             require(encoded.toByteArray().size < 4096 && java.security.MessageDigest.isEqual(signature.toByteArray(), sign(encoded).toByteArray()))
             json.decodeFromString(Receipt.serializer(), encoded).also { require(it.ownerUid == uid) }
         }.getOrNull()
-        updateClock()
-    }
-    suspend fun updateClock() {
+        updateClockLocked()
+    } }
+    suspend fun updateClock() = withContext(Dispatchers.IO) { mutex.withLock { updateClockLocked() } }
+    private suspend fun updateClockLocked() {
         val value = receipt
-        val now = if (value != null && value.boot == boot() && SystemClock.elapsedRealtime() >= value.elapsedMs)
-            value.serverEpochMs + SystemClock.elapsedRealtime() - value.elapsedMs else null
-        withContext(Dispatchers.Main) { _state.value = _state.value.copy(confirmed = value?.confirmed ?: ConfirmedEntitlement(), effectiveLevel = value?.let { EntitlementPolicy.level(it.confirmed, now) } ?: PlanLevel.FREE) }
+        val elapsed = SystemClock.elapsedRealtime(); val currentBoot = boot(); val wall = System.currentTimeMillis()
+        val reading = value?.let { if (it.clockUncertain) OfflineEntitlementClock.Reading(null, "CLOCK_UNCERTAIN") else
+            OfflineEntitlementClock.read(it.serverEpochMs, it.elapsedMs, it.boot, it.wallEpochMs,
+                elapsed, currentBoot, wall, it.highWaterEpochMs) }
+        val now = reading?.epochMs
+        if (value != null) {
+            val checkpoint = if (now != null) value.copy(serverEpochMs = now, elapsedMs = elapsed, boot = currentBoot,
+                wallEpochMs = wall, highWaterEpochMs = now) else value.copy(clockUncertain = true)
+            persist(checkpoint)
+        }
+        withContext(Dispatchers.Main) { _state.value = _state.value.copy(confirmed = value?.confirmed ?: ConfirmedEntitlement(),
+            effectiveLevel = value?.let { EntitlementPolicy.level(it.confirmed, now) } ?: PlanLevel.FREE,
+            errorCode = reading?.errorCode ?: _state.value.errorCode) }
     }
     override suspend fun refresh() = verify("readEntitlement", JsonObject(emptyMap()))
     override suspend fun verifyPurchase(purchaseToken: String) = verify("validatePlayPurchase", buildJsonObject { put("purchaseToken", purchaseToken) })
@@ -51,17 +63,21 @@ class FirebaseEntitlementRepository(private val context: Context, private val ui
             val response = transport.call(uid, method, data)
             val confirmed = json.decodeFromJsonElement(ConfirmedEntitlement.serializer(), response)
             require(confirmed.confirmedAtEpochMs > 0 && confirmed.validUntilEpochMs >= 0)
-            val value = Receipt(uid, confirmed, SystemClock.elapsedRealtime(), boot(), response.getValue("serverTimeEpochMs").jsonPrimitive.long)
-            val encoded = json.encodeToString(Receipt.serializer(), value)
-            check(preferences.edit().putString("receipt", encoded).putString("signature", sign(encoded)).commit())
-            receipt = value
+            val serverTime = response.getValue("serverTimeEpochMs").jsonPrimitive.long
+            require(serverTime >= confirmed.confirmedAtEpochMs)
+            persist(Receipt(uid, confirmed, SystemClock.elapsedRealtime(), boot(), serverTime, System.currentTimeMillis(), serverTime))
         } catch (error: Exception) {
             withContext(Dispatchers.Main) { _state.value = _state.value.copy(errorCode = (error as? AccountServiceException)?.code ?: "UNAVAILABLE") }
             throw error
         } finally {
-            updateClock(); withContext(Dispatchers.Main) { _state.value = _state.value.copy(checking = false) }
+            updateClockLocked(); withContext(Dispatchers.Main) { _state.value = _state.value.copy(checking = false) }
         }
     } }
+    private fun persist(value: Receipt) {
+        val encoded = json.encodeToString(Receipt.serializer(), value)
+        check(preferences.edit().putString("receipt", encoded).putString("signature", sign(encoded)).commit())
+        receipt = value
+    }
     private fun boot() = Settings.Global.getInt(context.contentResolver, Settings.Global.BOOT_COUNT, -1)
     private fun sign(value: String): String = synchronized(FirebaseEntitlementRepository::class.java) {
         val store = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }

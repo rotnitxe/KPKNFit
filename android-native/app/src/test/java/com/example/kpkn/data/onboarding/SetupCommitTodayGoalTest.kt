@@ -47,7 +47,7 @@ class SetupCommitTodayGoalTest {
         runBlocking { db.nutritionDao().getDailyGoalSnapshot(date.toString()) }?.toDailyGoalSnapshot()
 
     private fun activate(commitId: String, planId: String, snapshot: DailyGoalSnapshot?) = runBlocking {
-        SetupCommitCoordinator(db).commit(
+        SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }).commit(
             SetupCommitRequest(
                 commitId = commitId,
                 draftId = null,

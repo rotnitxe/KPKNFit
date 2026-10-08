@@ -90,6 +90,10 @@ class NutritionPlanCommitCoordinator(
     private val db: KpknDatabase,
     private val nutritionRepository: NutritionRepository? = null,
     private val programRepository: ProgramRepository? = null,
+    private val accessLevel: () -> com.example.kpkn.domain.entitlements.PlanLevel = {
+        nutritionRepository?.accessLevel?.invoke() ?: programRepository?.planLevel() ?:
+            com.example.kpkn.data.account.AccountGraph.entitlement.value.effectiveLevel
+    },
 ) {
     private val mutex = Mutex()
 
@@ -115,6 +119,7 @@ class NutritionPlanCommitCoordinator(
                         )
                     }
 
+                    com.example.kpkn.domain.entitlements.ProgramAccessPolicy.requireCapability(accessLevel(), com.example.kpkn.domain.entitlements.Capability.NUTRITION)
                     val currentSettings = db.settingsDao().get()?.toSettings() ?: Settings()
                     val withMode = currentSettings.copy(nutritionTrackingOnly = request.trackingOnly)
                     val updatedSettings = request.settingsGoalMirror?.let { mirror ->

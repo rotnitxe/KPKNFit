@@ -95,7 +95,7 @@ import kotlin.math.floor
 
 enum class StructureSubTab { SEMANA, MACROCICLO, VOLUMEN }
 
-enum class VolumeAdjustmentResult { SUCCESS, REQUIRES_CALIBRATION, NO_WEEK_SELECTED, NO_ADJUSTABLE_VOLUME }
+enum class VolumeAdjustmentResult { SUCCESS, REQUIRES_CALIBRATION, NO_WEEK_SELECTED, NO_ADJUSTABLE_VOLUME, REQUIRES_PRO }
 
 data class ProgramDetailUiState(
     val structureSubTab: StructureSubTab = StructureSubTab.SEMANA,
@@ -162,13 +162,13 @@ class ProgramDetailViewModel(
     // ─── UI State ─────────────────────────────────────────────────────────
 
     private val _uiState = MutableStateFlow(ProgramDetailUiState())
-    val uiState: StateFlow<ProgramDetailUiState> = _uiState
+    val uiState: StateFlow<ProgramDetailUiState> = _uiState.asStateFlow()
 
     private val _blockTransitionBanner = MutableStateFlow<BlockTransitionBanner?>(null)
-    val blockTransitionBanner: StateFlow<BlockTransitionBanner?> = _blockTransitionBanner
+    val blockTransitionBanner: StateFlow<BlockTransitionBanner?> = _blockTransitionBanner.asStateFlow()
 
     private val _programSnapshots = MutableStateFlow<List<com.example.kpkn.domain.training.ProgramSnapshot>>(emptyList())
-    val programSnapshots: StateFlow<List<com.example.kpkn.domain.training.ProgramSnapshot>> = _programSnapshots
+    val programSnapshots: StateFlow<List<com.example.kpkn.domain.training.ProgramSnapshot>> = _programSnapshots.asStateFlow()
 
     private var snapshotStore: com.example.kpkn.domain.training.ProgramSnapshotStore? = null
 
@@ -661,8 +661,14 @@ class ProgramDetailViewModel(
         _uiState.update { it.copy(pendingOpenProgramId = null) }
     }
 
-    fun updateProgram(updated: Program) {
-        repository.updateProgram(updated)
+    fun updateProgram(updated: Program): Boolean {
+        return try {
+            repository.updateProgram(updated)
+            true
+        } catch (error: com.example.kpkn.domain.entitlements.CapabilityRequiredException) {
+            _uiState.update { it.copy(snackbarMessage = com.example.kpkn.ui.entitlements.capabilityErrorText(error.code)) }
+            false
+        }
     }
 
     /**
@@ -775,9 +781,9 @@ class ProgramDetailViewModel(
             result.fold(
                 onSuccess = { applied ->
                     if (applied.createdCopy) {
-                        addProgramCopy(applied.program)
+                        if (!addProgramCopy(applied.program)) return@fold
                     } else {
-                        updateProgram(applied.program)
+                        if (!updateProgram(applied.program)) return@fold
                         selectFirstRoadmapPosition(applied.program)
                     }
                     refreshProgramSnapshots(applied.program.id)
@@ -824,8 +830,12 @@ class ProgramDetailViewModel(
         updateProgram(cleared)
     }
 
-    fun addProgramCopy(copy: Program) {
+    fun addProgramCopy(copy: Program): Boolean = try {
         repository.addProgram(ProgramCalendarEngine.materializeWeekDates(copy))
+        true
+    } catch (error: com.example.kpkn.domain.entitlements.CapabilityRequiredException) {
+        _uiState.update { it.copy(snackbarMessage = com.example.kpkn.ui.entitlements.capabilityErrorText(error.code)) }
+        false
     }
 
     private var protocolApplyJob: kotlinx.coroutines.Job? = null
@@ -860,7 +870,7 @@ class ProgramDetailViewModel(
                     }
                     repository.replaceProgramSafely(applied)
                 } else {
-                    addProgramCopy(applied)
+                    if (!addProgramCopy(applied)) throw com.example.kpkn.domain.entitlements.CapabilityRequiredException("advanced_program_requires_pro")
                     repository.flushPendingWrites()
                 }
                 repository.getProgramById(applied.id) ?: applied
@@ -916,7 +926,7 @@ class ProgramDetailViewModel(
             val snapshot = withContext(kotlinx.coroutines.Dispatchers.IO) {
                 store.restore(current.id, snapshotId)
             } ?: return@launch
-            updateProgram(snapshot)
+            if (!updateProgram(snapshot)) return@launch
             selectFirstRoadmapPosition(snapshot)
             _uiState.update { it.copy(snackbarMessage = "Copia previa restaurada.") }
         }
@@ -940,12 +950,12 @@ class ProgramDetailViewModel(
 
     fun markVolumeSetupPromptSeen() {
         val current = program.value ?: return
-        repository.updateProgram(current.copy(volumeSetupPromptSeen = true))
+        updateProgram(current.copy(volumeSetupPromptSeen = true))
     }
 
     fun updateStartDay(day: Int) {
         val current = program.value ?: return
-        repository.updateProgram(current.copy(startDay = day))
+        updateProgram(current.copy(startDay = day))
     }
 
     fun updateStartDay(
@@ -954,7 +964,7 @@ class ProgramDetailViewModel(
         sessionMode: StartDaySessionMode,
     ) {
         val current = program.value ?: return
-        repository.updateProgram(
+        updateProgram(
             SplitApplicationEngine.applyStartDayChange(
                 program = current,
                 selectedWeekId = _uiState.value.selectedWeekId,
@@ -1023,7 +1033,7 @@ class ProgramDetailViewModel(
                 },
             ).normalizedTemporalStructure()
 
-            updateProgram(updated)
+            if (!updateProgram(updated)) return
             _uiState.update { it.copy(selectedBlockId = fallbackBlock.id, selectedWeekId = newWeek.id, structureSubTab = StructureSubTab.SEMANA) }
             return
         }
@@ -1053,7 +1063,7 @@ class ProgramDetailViewModel(
             }
         ).normalizedTemporalStructure()
 
-        updateProgram(updated)
+        if (!updateProgram(updated)) return
         _uiState.update { it.copy(selectedBlockId = block.id, selectedWeekId = newWeek.id) }
     }
 
@@ -1092,7 +1102,7 @@ class ProgramDetailViewModel(
             }
         ).normalizedTemporalStructure()
 
-        updateProgram(updated)
+        if (!updateProgram(updated)) return
         _uiState.update {
             it.copy(
                 selectedBlockId = target.id,
@@ -1121,7 +1131,7 @@ class ProgramDetailViewModel(
             }
         ).normalizedTemporalStructure()
 
-        updateProgram(updated)
+        if (!updateProgram(updated)) return
         _uiState.update {
             it.copy(
                 selectedBlockId = newBlock.id,
@@ -1205,7 +1215,7 @@ class ProgramDetailViewModel(
                 )
             }
         )
-        repository.updateProgram(updated)
+        updateProgram(updated)
     }
 
     fun replaceWeekSessions(weekId: String, sessions: List<Session>) {
@@ -1233,7 +1243,7 @@ class ProgramDetailViewModel(
                 )
             },
         )
-        repository.updateProgram(updated)
+        updateProgram(updated)
     }
 
     fun updateWeekTrainingDayDate(weekId: String, dayOfWeek: Int, isoDate: String?) {
@@ -1302,7 +1312,7 @@ class ProgramDetailViewModel(
                 )
             }
         )
-        repository.updateProgram(updated)
+        updateProgram(updated)
     }
 
     fun dismissBlockTransitionBanner() {
@@ -1657,7 +1667,7 @@ class ProgramDetailViewModel(
             inventory = currentEquipmentInventory(),
         )
         if (result.program == current) return
-        updateProgram(result.program)
+        if (!updateProgram(result.program)) return
         result.activeState?.let(repository::updateActiveProgramState)
         _blockTransitionBanner.value = null
     }
@@ -1692,7 +1702,7 @@ class ProgramDetailViewModel(
         } else {
             null
         }
-        updateProgram(rebuilt?.takeUnless { it.failed }?.program ?: result.program)
+        if (!updateProgram(rebuilt?.takeUnless { it.failed }?.program ?: result.program)) return
         result.activeState?.let(repository::updateActiveProgramState)
         _blockTransitionBanner.value = null
         if (profileChanged) {
@@ -1714,7 +1724,7 @@ class ProgramDetailViewModel(
             inventory = currentEquipmentInventory(),
         )
         if (result.program == current) return
-        updateProgram(result.program)
+        if (!updateProgram(result.program)) return
         result.activeState?.let(repository::updateActiveProgramState)
         _blockTransitionBanner.value = null
     }
@@ -1767,7 +1777,7 @@ class ProgramDetailViewModel(
             }.filter { macro -> macro.blocks.isNotEmpty() }
         ).normalizedTemporalStructure()
 
-        updateProgram(updated)
+        if (!updateProgram(updated)) return
         val blocks = ProgramDetailHelpers.buildRoadmapBlocks(updated)
         val selectedBlock = blocks.firstOrNull { it.id == _uiState.value.selectedBlockId } ?: blocks.firstOrNull()
         val nextWeek = ProgramDetailHelpers.getWeeksForBlock(selectedBlock?.id, blocks, updated).firstOrNull()
@@ -1797,7 +1807,7 @@ class ProgramDetailViewModel(
             }.filter { it.blocks.isNotEmpty() }
         ).normalizedTemporalStructure()
 
-        updateProgram(updated)
+        if (!updateProgram(updated)) return
         val blocks = ProgramDetailHelpers.buildRoadmapBlocks(updated)
         val selectedBlock = blocks.firstOrNull()
         val nextWeek = ProgramDetailHelpers.getWeeksForBlock(selectedBlock?.id, blocks, updated).firstOrNull()
@@ -1863,7 +1873,7 @@ class ProgramDetailViewModel(
         )
 
         if (!changed) return VolumeAdjustmentResult.NO_ADJUSTABLE_VOLUME
-        repository.updateProgram(updated)
+        if (!updateProgram(updated)) return VolumeAdjustmentResult.REQUIRES_PRO
         return VolumeAdjustmentResult.SUCCESS
     }
 
@@ -1911,7 +1921,7 @@ class ProgramDetailViewModel(
             }
         )
         if (!changed) return
-        repository.updateProgram(updated)
+        if (!updateProgram(updated)) return
         // Un record de competición nunca debe quedar apuntando a una sesión eliminada.
         // Se desvincula (no se borra) para preservar intentos/bitácora ya registrados: el
         // record sigue siendo consultable desde CompetitionScreen como historial standalone.
@@ -1958,7 +1968,7 @@ class ProgramDetailViewModel(
                 )
             }
         )
-        repository.updateProgram(updated)
+        updateProgram(updated)
     }
 
     fun reorderSessions(weekId: String, sessions: List<Session>) {
@@ -1981,7 +1991,7 @@ class ProgramDetailViewModel(
                 )
             }
         )
-        repository.updateProgram(updated)
+        updateProgram(updated)
     }
 
     fun previewWeekCopyConflicts(sourceWeekId: String, targetWeekIds: Set<String>): List<WeekCopyConflict> {
@@ -2039,8 +2049,7 @@ class ProgramDetailViewModel(
             }
         ).normalizedTemporalStructure()
 
-        updateProgram(updated)
-        return true
+        return updateProgram(updated)
     }
 
     private fun normalizeMainSessions(sessions: List<Session>): List<Session> {
@@ -2362,7 +2371,7 @@ class ProgramDetailViewModel(
                 idProvider = idProvider,
             )
         ).normalizedTemporalStructure()
-        repository.updateProgram(updated)
+        if (!updateProgram(updated)) return
 
         val newBlockId = updated.macrocycles.firstOrNull()?.blocks?.firstOrNull()?.id
         val newWeekId = updated.macrocycles
@@ -2389,7 +2398,7 @@ class ProgramDetailViewModel(
                 idProvider = idProvider,
             )
         ).normalizedTemporalStructure()
-        repository.updateProgram(updated)
+        if (!updateProgram(updated)) return
         selectFirstRoadmapPosition(updated)
         setShowSimpleCalendarizationSheet(false)
     }
@@ -2399,7 +2408,7 @@ class ProgramDetailViewModel(
         val updated = current.restorePausedCyclicProgram()
             .withFallbackSimpleWeekIfEmpty()
             .normalizedTemporalStructure()
-        repository.updateProgram(updated)
+        if (!updateProgram(updated)) return
         selectFirstRoadmapPosition(updated)
         setShowSimpleCalendarizationSheet(false)
     }
@@ -2409,7 +2418,7 @@ class ProgramDetailViewModel(
         val updated = current.startFreshSimpleCycle(idProvider)
             .withFallbackSimpleWeekIfEmpty()
             .normalizedTemporalStructure()
-        repository.updateProgram(updated)
+        if (!updateProgram(updated)) return
         selectFirstRoadmapPosition(updated)
         setShowSimpleCalendarizationSheet(false)
     }

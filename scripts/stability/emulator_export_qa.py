@@ -63,6 +63,15 @@ def main():
                 raise RuntimeError('Settings did not open')
             time.sleep(3)
             tree, visible = capture(out, 'controls')
+        for attempt in range(6):
+            if any(item['text'] in {'Export a complete backup', 'Exportar copia completa'} for item in visible): break
+            containers = [node for node in tree.iter('node') if node.attrib.get('scrollable') == 'true']
+            if len(containers) != 1: raise RuntimeError('Expected one observed data-control scroll container')
+            left, top, right, bottom = map(int, re.findall(r'\d+', containers[0].attrib['bounds']))
+            x, height = (left + right) // 2, bottom - top
+            adb('shell', 'input', 'swipe', str(x), str(top + height * 3 // 4), str(x), str(top + height // 4), '500')
+            time.sleep(2)
+            tree, visible = capture(out, f'controls-scroll-{attempt}')
         click(tree, {'Export', 'Exportar'}, {'Export a complete backup', 'Exportar copia completa'})
         tree, visible = capture(out, 'picker', allow_picker=True)
         if not any(item['text'] in {'Files in Downloads', 'Archivos en Descargas', 'Downloads', 'Descargas'} for item in visible):

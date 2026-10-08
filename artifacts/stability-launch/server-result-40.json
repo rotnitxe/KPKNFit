@@ -1,0 +1,13 @@
+{
+  "state": "LOCAL_INTEGRATION_PASS",
+  "projectId": "demo-kpkn-stability",
+  "services": ["Auth", "Firestore", "Storage", "Functions"],
+  "tests": 22,
+  "passed": 22,
+  "failures": 0,
+  "skipped": 0,
+  "newScope": "KEEP_BOTH for large private JSON with preserved unknown fields, immutable comparison, replay and rejection of modified content",
+  "pureContractTests": 10,
+  "limits": ["Play provider fixture only", "PubSub/RTDN delivery not exercised", "no production deployment", "native two-device flow not exercised"],
+  "log": "server-integration-40.log"
+}

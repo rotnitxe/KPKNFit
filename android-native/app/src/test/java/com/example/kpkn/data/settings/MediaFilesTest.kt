@@ -22,14 +22,16 @@ class MediaFilesTest {
     @Test fun immutableStages() {
         val base: Context = ApplicationProvider.getApplicationContext(); ProfileStorage.initialize(base)
         val context = ProfileStorage.context(base, LocalProfile(uid = UUID.randomUUID().toString()))
-        val original = File(context.filesDir, "workout_media/photo.jpg").also { it.parentFile!!.mkdirs(); it.writeText("first") }
+        val firstBytes = byteArrayOf(0xff.toByte(), 0xd8.toByte(), 0xff.toByte()) + "first".toByteArray()
+        val secondBytes = byteArrayOf(0xff.toByte(), 0xd8.toByte(), 0xff.toByte()) + "second".toByteArray()
+        val original = File(context.filesDir, "workout_media/photo.jpg").also { it.parentFile!!.mkdirs(); it.writeBytes(firstBytes) }
         try {
             val first = MediaFiles.stage(context, original.path, "main", false)!!
-            original.writeText("second")
+            original.writeBytes(secondBytes)
             val second = MediaFiles.stage(context, original.path, "main", false)!!
             assertNotEquals(first.sha256, second.sha256)
-            assertEquals("first", File(context.noBackupFilesDir, "sync-media/${first.sha256}").readText())
-            assertEquals("second", File(context.noBackupFilesDir, "sync-media/${second.sha256}").readText())
+            assertArrayEquals(firstBytes, File(context.noBackupFilesDir, "sync-media/${first.sha256}").readBytes())
+            assertArrayEquals(secondBytes, File(context.noBackupFilesDir, "sync-media/${second.sha256}").readBytes())
         } finally { context.filesDir.deleteRecursively(); context.noBackupFilesDir.deleteRecursively() }
     }
     @Test fun crossProfileRejected() {

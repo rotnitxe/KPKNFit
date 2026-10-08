@@ -42,16 +42,8 @@ object MediaFiles {
         val root = context.filesDir.canonicalFile
         require(original.toPath().startsWith(root.toPath()) && original.relativeTo(root).invariantSeparatorsPath.substringBefore('/') in PortableBackup.portableRoots)
         require(original.length() in 1..MAX_BYTES)
-        val header = original.inputStream().use { input -> ByteArray(12).also { input.read(it) } }
-        val type = when {
-            role == "pose" -> "application/json"
-            video -> "video/mp4"
-            header.copyOfRange(0, 8).contentEquals(byteArrayOf(0x89.toByte(), 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a)) -> "image/png"
-            header.copyOfRange(0, 4).toString(Charsets.US_ASCII) == "RIFF" && header.copyOfRange(8, 12).toString(Charsets.US_ASCII) == "WEBP" -> "image/webp"
-            original.extension.lowercase() == "png" -> "image/png"
-            original.extension.lowercase() == "webp" -> "image/webp"
-            else -> "image/jpeg"
-        }
+        val type = if (role == "pose") "application/json" else requireNotNull(detectedType(original)) { "Unsupported media format" }
+        require(if (video) type == "video/mp4" else role == "pose" || type.startsWith("image/"))
         val reference = MediaFileReference(role, hash(original), original.length(), type)
         val staged = File(context.noBackupFilesDir, "sync-media/${reference.sha256}")
         if (!staged.isFile || staged.length() != reference.bytes || hash(staged) != reference.sha256) {
@@ -70,7 +62,46 @@ object MediaFiles {
                 (reference.contentType != "application/json" || reference.role == "pose"))
         }
     }.also { require(it.size <= 3 && it.map(MediaFileReference::role).distinct().size == it.size) }
-    fun local(context: Context, reference: MediaFileReference): File = File(context.filesDir, "workout_media/cloud/${reference.sha256}")
+    fun extension(type: String): String = when (type) {
+        "image/jpeg" -> "jpg"; "image/png" -> "png"; "image/webp" -> "webp"
+        "video/mp4" -> "mp4"; "application/json" -> "json"
+        else -> error("Unsupported media format")
+    }
+    fun detectedType(file: File): String? {
+        val header = file.inputStream().use { input ->
+            val bytes = ByteArray(12)
+            var count = 0
+            while (count < bytes.size) {
+                val next = input.read(bytes, count, bytes.size - count)
+                if (next < 0) break
+                count += next
+            }
+            bytes.copyOf(count)
+        }
+        return when {
+            header.size >= 8 && header.copyOfRange(0, 8).contentEquals(byteArrayOf(0x89.toByte(), 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a)) -> "image/png"
+            header.size >= 12 && header.copyOfRange(0, 4).toString(Charsets.US_ASCII) == "RIFF" && header.copyOfRange(8, 12).toString(Charsets.US_ASCII) == "WEBP" -> "image/webp"
+            header.size >= 3 && header[0] == 0xff.toByte() && header[1] == 0xd8.toByte() && header[2] == 0xff.toByte() -> "image/jpeg"
+            header.size >= 12 && header.copyOfRange(4, 8).toString(Charsets.US_ASCII) == "ftyp" -> "video/mp4"
+            else -> null
+        }
+    }
+    fun verify(file: File, reference: MediaFileReference) {
+        require(file.isFile && file.length() == reference.bytes && hash(file) == reference.sha256)
+        if (reference.contentType == "application/json") {
+            require(reference.role == "pose")
+            Json.parseToJsonElement(file.inputStream().use { BoundedInput.bytes(it, 8L * 1024 * 1024).toString(Charsets.UTF_8) })
+        } else require(detectedType(file) == reference.contentType) { "Media content type mismatch" }
+    }
+    fun local(context: Context, reference: MediaFileReference): File = File(context.filesDir, "workout_media/cloud/${reference.sha256}.${extension(reference.contentType)}")
+    fun publish(context: Context, staged: File, reference: MediaFileReference): File {
+        verify(staged, reference)
+        val destination = local(context, reference)
+        destination.parentFile!!.mkdirs()
+        java.io.RandomAccessFile(staged, "rw").use { it.fd.sync() }
+        Files.move(staged.toPath(), destination.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
+        return destination
+    }
 }
 
 class MediaTransfer(private val context: Context, private val uid: String, private val session: FirebaseSession) {
@@ -121,17 +152,21 @@ class MediaTransfer(private val context: Context, private val uid: String, priva
         for (reference in MediaFiles.references(payload)) {
             owned()
             val destination = MediaFiles.local(context, reference)
-            if (destination.isFile && destination.length() == reference.bytes && MediaFiles.hash(destination) == reference.sha256) continue
+            if (destination.isFile && runCatching { MediaFiles.verify(destination, reference) }.isSuccess) continue
             destination.parentFile!!.mkdirs()
+            // Upgrade previously downloaded hash-only files without a network round trip.
+            val legacy = File(destination.parentFile, reference.sha256)
+            if (legacy.isFile && runCatching { MediaFiles.verify(legacy, reference) }.isSuccess) {
+                MediaFiles.publish(context, legacy, reference)
+                continue
+            }
             val staged = File(destination.parentFile, "${reference.sha256}.part")
             val remote = session.storage.reference.child("accounts/$uid/$generation/media/${reference.sha256}")
             val metadata = remote.metadata.awaitResult()
             require(metadata.sizeBytes == reference.bytes && metadata.contentType == reference.contentType && metadata.getCustomMetadata("ownerUid") == uid)
             FirebasePrivateDownloads(session, uid).download(remote.path, staged, reference.bytes, reference.sha256)
             owned()
-            require(staged.length() == reference.bytes && MediaFiles.hash(staged) == reference.sha256)
-            java.io.FileInputStream(staged).use { it.fd.sync() }
-            Files.move(staged.toPath(), destination.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
+            MediaFiles.publish(context, staged, reference)
         }
     }
 }

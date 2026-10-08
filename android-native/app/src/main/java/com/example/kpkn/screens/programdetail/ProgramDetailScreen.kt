@@ -149,10 +149,9 @@ fun ProgramDetailScreen(
         return
     }
 
-    LaunchedEffect(p.id, p.volumeSetupPromptSeen) {
-        if (!p.volumeSetupPromptSeen) {
-            showVolumeSetupNotice = true
-        }
+    val advancedAccess = com.example.kpkn.ui.entitlements.LocalPlan.current == com.example.kpkn.domain.entitlements.PlanLevel.PRO
+    LaunchedEffect(p.id, p.volumeSetupPromptSeen, advancedAccess) {
+        showVolumeSetupNotice = advancedAccess && !p.volumeSetupPromptSeen
     }
 
     Scaffold(
@@ -228,6 +227,10 @@ fun ProgramDetailScreen(
                                 "Primero calibra el volumen del programa.",
                                 SnackbarType.SUGGESTION,
                             )
+                            VolumeAdjustmentResult.REQUIRES_PRO -> snackbarHostState.showKpknSnackbar(
+                                com.example.kpkn.ui.entitlements.capabilityErrorText("advanced_program_requires_pro"),
+                                SnackbarType.SUGGESTION,
+                            )
                             VolumeAdjustmentResult.NO_WEEK_SELECTED -> snackbarHostState.showKpknSnackbar(
                                 "No encontramos una semana activa para ajustar.",
                                 SnackbarType.SUGGESTION,
@@ -249,6 +252,10 @@ fun ProgramDetailScreen(
                             )
                             VolumeAdjustmentResult.REQUIRES_CALIBRATION -> snackbarHostState.showKpknSnackbar(
                                 "Primero calibra el volumen del programa.",
+                                SnackbarType.SUGGESTION,
+                            )
+                            VolumeAdjustmentResult.REQUIRES_PRO -> snackbarHostState.showKpknSnackbar(
+                                com.example.kpkn.ui.entitlements.capabilityErrorText("advanced_program_requires_pro"),
                                 SnackbarType.SUGGESTION,
                             )
                             VolumeAdjustmentResult.NO_WEEK_SELECTED -> snackbarHostState.showKpknSnackbar(

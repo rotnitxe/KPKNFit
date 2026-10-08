@@ -4,7 +4,13 @@ El alcance autorizado sigue siendo el plan A–J completo de `APPROVED-PLAN.md`,
 
 Decisiones del propietario: conservar GPS, voz, cámara, registros manuales y datos históricos. Free: una semana reutilizable, cinco sesiones, ring de energía, voz y sincronización sin multimedia. Pro: programas avanzados, análisis muscular/de columna, alimentación y multimedia. Precios y contacto público pendientes. Firebase real `kpkn-47b03` sin acceso de CLI autenticado; las pruebas usan exclusivamente `demo-kpkn-stability`. El tipo de cuenta Play está pendiente de confirmar para la app; no se exige constituir una empresa como bloqueo técnico.
 
-## Evidencia vigente
+## Evidencia vigente después de la auditoría
+
+El estado actual está en `AUDIT-CORRECTIONS.md`. Suite completa 37: 6.872 aprobadas, cero fallos/errores, dos replays reales omitidos, 776 suites. Ajustes posteriores Free 38: 96 aprobadas sin omisiones y debug compilado; APK `dc72b6c850bbb54c3af5421a5cec3937a961c1710f379a22629036aa963745cd`. En API36 se verificó inicio del asistente, confirmación adulta, creación de una semana Free, rechazo de otra conservando la selección y acceso al historial desde nutrición. Siete pruebas Android de nutrición y exportación portable v2 real aprobadas en la ronda36. Servidor40: 22 pruebas de integración local y diez contratos aprobados, incluido KEEP_BOTH de JSON grande; el cliente nativo está en implementación. Lint/R8 39 aprobados: cero errores, 610 advertencias y 39 recomendaciones; sin firma ni QA de ejecución release. No se ha firmado/publicado un release ni aceptado el lanzamiento.
+
+Las notas de rondas anteriores que siguen debajo son evidencia histórica; sus estados «en curso» o «pendiente de corrección» quedan sustituidos por este párrafo cuando existe una comprobación posterior explícita. Los restantes requisitos A–J permanecen abiertos en `requirements.json`.
+
+## Evidencia histórica
 
 | Área | Evidencia y límites |
 |---|---|

@@ -3388,7 +3388,7 @@ class SetupExecutableAvailabilityMatrixTest {
 
     /** Coordinador REAL de altas (sin repos): esta matriz no confirma ninguna alta. */
     private class RoomWizardCommits(db: KpknDatabase) : SetupWizardCommits {
-        private val coordinator = SetupCommitCoordinator(db)
+        private val coordinator = SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO })
 
         override suspend fun commit(request: SetupCommitRequest): SetupCommitResult = coordinator.commit(request)
     }

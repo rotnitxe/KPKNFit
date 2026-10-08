@@ -1,0 +1,12 @@
+{
+  "state": "PASS",
+  "scope": "Final Free rejection UI and guest manifest/root regression; debug build",
+  "totals": {
+    "tests": 96,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "apkSha256": "dc72b6c850bbb54c3af5421a5cec3937a961c1710f379a22629036aa963745cd",
+  "apkBytes": 437021263
+}

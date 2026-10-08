@@ -49,7 +49,7 @@ class WorkoutVoiceReplayTest {
                     val isUnilateral = parsed.optBoolean("isUnilateral", false)
                     val transcript = parsed.optString("transcript").takeIf { it.isNotBlank() }
                         ?: parsed.optString("sanitized").takeIf { it.isNotBlank() }
-                        ?: events.asReversed()
+                        ?: events.take(events.indexOf(parsed)).asReversed()
                             .firstOrNull { it.optString("event") == "asr_final" }
                             ?.optString("sanitized")
                             ?.takeIf { it.isNotBlank() }
@@ -70,15 +70,17 @@ class WorkoutVoiceReplayTest {
                     )
                     if (command is VoiceSessionCommand.Unknown && interpretation == null) {
                         unexpectedUnknown++
-                        if (samples.size < 25) samples.add(transcript)
+                        if (samples.size < 25) samples.add(java.security.MessageDigest.getInstance("SHA-256")
+                            .digest(transcript.toByteArray()).take(8).joinToString("") { "%02x".format(it) })
                     }
                 }
         }
 
         assertTrue("No hubo command_parsed en el corpus para replay.", commandParsed > 0)
+        assertTrue("No se ejecutaron dictados reales del corpus.", replayed > 0)
         assertTrue(
             "$unexpectedUnknown de $replayed dictado(s) de campo ya no parsean. " +
-                "Muestras: ${samples.joinToString(" | ")}",
+                "Identificadores de muestra: ${samples.joinToString(" | ")}",
             unexpectedUnknown == 0,
         )
     }

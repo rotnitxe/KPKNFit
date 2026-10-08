@@ -21,7 +21,7 @@ object GuestSourceLedger {
     private fun file(context: Context) = AtomicFile(File(context.noBackupFilesDir, "owned-guest-sources.json"))
     private fun read(context: Context): List<OwnedGuest> {
         val atomic = file(context)
-        if (!atomic.baseFile.exists()) return emptyList()
+        if (!atomic.baseFile.exists() && !File(atomic.baseFile.path + ".bak").exists()) return emptyList()
         return atomic.openRead().use { json.decodeFromString(serializer, BoundedInput.bytes(it, 1024 * 1024).toString(Charsets.UTF_8)) }
     }
     fun record(context: Context, uid: String, importId: String, source: LocalProfile) {
@@ -40,7 +40,7 @@ object GuestSourceLedger {
             val planFile = File(source.noBackupFilesDir, "guest-import/plan.json")
             if (!planFile.exists()) continue // A previous interrupted erase already removed this source.
             val plan = planFile.inputStream().use { json.decodeFromString(GuestImportPlan.serializer(),
-                BoundedInput.bytes(it, 4L * 1024 * 1024).toString(Charsets.UTF_8)) }
+                BoundedInput.bytes(it, 16L * 1024 * 1024).toString(Charsets.UTF_8)) }
             require(plan.ownerUid == uid && plan.id == entry.importId && plan.source.key == source.profile.key)
             if (source.getDatabasePath("kpkn.db").exists()) check(source.deleteDatabase("kpkn.db"))
             PersonalStorageManifest.clearFilesAndPreferences(source)
@@ -56,7 +56,7 @@ object GuestSourceLedger {
             val planFile = File(source.noBackupFilesDir, "guest-import/plan.json")
             if (planFile.exists()) {
                 val plan = planFile.inputStream().use { json.decodeFromString(GuestImportPlan.serializer(),
-                    BoundedInput.bytes(it, 4L * 1024 * 1024).toString(Charsets.UTF_8)) }
+                    BoundedInput.bytes(it, 16L * 1024 * 1024).toString(Charsets.UTF_8)) }
                 require(plan.ownerUid == uid && plan.id == entry.importId && plan.source.key == entry.source.key)
             }
             entry.source

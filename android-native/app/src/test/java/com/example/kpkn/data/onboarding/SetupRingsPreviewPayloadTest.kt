@@ -78,7 +78,7 @@ class SetupRingsPreviewPayloadTest {
         // Mismo merge por campos que ejecuta la vista previa antes de pintar.
         val previewMerge = mergeSetupWellbeing(existing, incoming)
 
-        SetupCommitCoordinator(db).commit(
+        SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }).commit(
             SetupCommitRequest("commit-preview", null, Settings(), null, null, false, false,
                 initialWellbeing = incoming),
         )

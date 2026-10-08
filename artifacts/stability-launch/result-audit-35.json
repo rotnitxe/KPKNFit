@@ -1,0 +1,13 @@
+{
+  "state": "PASS",
+  "scope": "JVM audit regressions API26/API34, adult validators; debug and AndroidTest assembly",
+  "totals": {
+    "tests": 45,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2
+  },
+  "apkSha256": "12378787c578c77579268d120eb58aaf3697d296b77a309ae7f7cb3f6a895da9",
+  "apkBytes": 437021263,
+  "realVoiceReplay": "SKIPPED_NO_AUTHORIZED_CORPUS"
+}

@@ -40,7 +40,11 @@ object ProfileStorage {
         systemContext = base
         registry = AtomicFile(File(root, "profile-registry.json"))
         _recoveryNeeded.value = false
-        selected = if (registry.baseFile.exists()) try {
+        // AtomicFile on API 26 can leave ONLY .bak after a process dies between
+        // rename and opening the replacement. openRead() must perform recovery.
+        val hadRegistry = registry.baseFile.exists() ||
+            File(registry.baseFile.path + ".bak").exists() || File(registry.baseFile.path + ".new").exists()
+        selected = try {
             registry.openRead().use {
                 val bytes = com.example.kpkn.data.backup.BoundedInput.bytes(it, 2048)
                 json.decodeFromString<LocalProfile>(bytes.toString(Charsets.UTF_8)).also { profile ->
@@ -48,11 +52,15 @@ object ProfileStorage {
                     require(profile.guestId.matches(Regex("[A-Za-z0-9_-]{1,128}")))
                 }
             }
-        } catch (_: Exception) {
-            // A corrupt identity registry must never expose the legacy guest or another user's files.
-            _recoveryNeeded.value = true
-            LocalProfile(guestId = UUID.randomUUID().toString())
-        } else LocalProfile()
+        } catch (error: Exception) {
+            if (!hadRegistry && error is java.io.FileNotFoundException) {
+                LocalProfile()
+            } else {
+                // A corrupt identity registry must never expose the legacy guest or another user's files.
+                _recoveryNeeded.value = true
+                LocalProfile(guestId = UUID.randomUUID().toString())
+            }
+        }
     }
     fun current(): LocalProfile = selected
     fun initialized(): Boolean = ::systemContext.isInitialized

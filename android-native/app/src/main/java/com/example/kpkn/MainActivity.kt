@@ -503,7 +503,7 @@ fun KPKNApp(
     val cancellationScope = androidx.compose.runtime.rememberCoroutineScope()
     var cancellationPending by remember { mutableStateOf(false) }
     val telemetryHelper = remember { TelemetryHelper(context) }
-    val navController = rememberNavController()
+    val navController = com.example.kpkn.navigation.rememberProfileNavController()
     val programsViewModel: ProgramsViewModel = viewModel()
     val nutritionViewModel: NutritionViewModel = viewModel { NutritionViewModel() }
     val activeProgram by programsViewModel.activeProgram.collectAsState()
@@ -1378,6 +1378,9 @@ private fun KPKNNavGraph(
             )
         }
         composable(KpknRoute.Nutrition.route) {
+            com.example.kpkn.ui.entitlements.CapabilityGate(com.example.kpkn.domain.entitlements.Capability.NUTRITION,
+                onPro = { navController.navigate(KpknRoute.Account.route) },
+                onHistory = { navController.navigate(KpknRoute.MealHistory.route) }, onBack = { navController.popBackStack() }) {
             NutritionScreen(
                 viewModel = nutritionViewModel,
                 onNavigateToBodyProgress = {
@@ -1397,6 +1400,7 @@ private fun KPKNNavGraph(
                     }
                 },
             )
+            }
         }
 
         // Route de acciones rápidas internas para navegación directa desde widgets/atajos.
@@ -1459,6 +1463,9 @@ private fun KPKNNavGraph(
                 },
             ),
         ) { backStackEntry ->
+            com.example.kpkn.ui.entitlements.CapabilityGate(com.example.kpkn.domain.entitlements.Capability.NUTRITION,
+                onPro = { navController.navigate(KpknRoute.Account.route) },
+                onHistory = { navController.navigate(KpknRoute.MealHistory.route) }, onBack = { navController.popBackStack() }) {
             NutritionPlanEditorScreen(
                 planId = backStackEntry.arguments
                     ?.getString(KpknRoute.NutritionPlanEditor.ARG_PLAN_ID)
@@ -1469,6 +1476,7 @@ private fun KPKNNavGraph(
                 onDone = { navController.popBackStack() },
                 onBack = { navController.popBackStack() },
             )
+            }
         }
         composable(
             route = KpknRoute.SetupWizard.route,

@@ -1029,7 +1029,7 @@ class SetupWizardFullJourneyTest {
      * Room, que es lo que este test verifica.
      */
     private class RoomWizardCommits(db: KpknDatabase) : SetupWizardCommits {
-        private val coordinator = SetupCommitCoordinator(db)
+        private val coordinator = SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO })
 
         override suspend fun commit(request: SetupCommitRequest): SetupCommitResult = coordinator.commit(request)
     }

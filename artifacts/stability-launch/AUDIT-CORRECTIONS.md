@@ -1,0 +1,29 @@
+# Correcciones posteriores a la auditoría de 6a5e65b30
+
+Trabajo en curso. Health Connect permanece retirado; GPS, voz, cámara y datos manuales/históricos se conservan. Este archivo no acepta el lanzamiento ni sustituye el contrato A–J.
+
+| Hallazgo | Cambio en revisión | Evidencia requerida |
+|---|---|---|
+| AUD01 | `AtomicFile.openRead()` recupera registros `.bak` incluso sin archivo base. Un registro corrupto/incompleto bloquea el perfil legado. | API26/API36: interrupción de cierre/cambio, corrupción y primer arranque. |
+| AUD02 | Extensión por tipo de contenido comprobado, publicación atómica y detección por contenido en galería; actualización de archivos antiguos sin extensión. | PNG/WebP/JPEG/MP4/pose tras descarga y respaldo/restauración; galería en dispositivo pendiente. |
+| AUD03 | Política nativa común antes de guardados de programas/nutrición y commits de asistentes; reintentos confirmados y controles históricos conservados. | Creación, edición, sexta sesión, semanas avanzadas, repetición de días, caducidad, todas las entradas/UI. |
+| AUD04 | Snapshot autosuficiente: operaciones y hashes, archivos congelados, preferencias filtradas, avatar, rutas y multimedia. Destinos por importación; reintentos comprueban integridad. | Autenticación fallida/edición posterior, destino parcial/no disponible, reintentos, colisiones y cuentas reales. |
+| AUD05 | Hora confirmada y ancla firmada de reloj/arranque; Pro vigente tras reinicio ordinario offline. Retroceso de reloj entre arranques exige tiempo del servidor; marca máxima impide resucitar vigencia ya agotada. | Reinicio, caducidad, adelanto/retroceso, recibo antiguo y compra real. |
+
+Las pruebas sintéticas de archivos no acreditan una transferencia Firebase real ni reproducción de vídeo. Los errores de destino simulan fallo de escritura; no acreditan todavía un dispositivo físicamente sin espacio. El reloj de pared entre reinicios es una estimación acotada y autenticada mediante su ancla, no una fuente independiente de tiempo seguro; una modificación incoherente exige nueva confirmación del servidor.
+
+Regresiones 34: 66 pruebas aprobadas, cero fallos/omisiones y `assembleDebug` aprobado. Regresiones 35: 43 aprobadas, cero fallos y dos replays reales omitidos; `assembleDebug` y `assembleDebugAndroidTest` aprobados. Las pruebas JVM usan API26/API34: el Robolectric instalado no admite API36. APK35 SHA-256: `12378787c578c77579268d120eb58aaf3697d296b77a309ae7f7cb3f6a895da9`.
+
+QA35 Android16/API36: instalación y `MainActivity` visible comprobadas. Se encontró un cierre real al abrir el asistente: `CreationExtras must have an application by APPLICATION_KEY`, dos eventos `am_crash`. El contexto capturado devuelve otro contexto capturado desde `applicationContext`; la navegación necesita una instancia `Application` para sus modelos de pantalla. `NavigationApplicationContext` limita esa excepción al contexto usado por Navigation, conservando los contextos personales. **No se acepta el flujo de inicio con el APK35.** No se atribuye este cierre a la carga del catálogo ni se reemplaza la evidencia de navegación por el mero arranque.
+
+Corrección 36: 26 regresiones aprobadas API26/API34, debug/AndroidTest compilados. APK36 `791dd6fab9a734e0dfec8764f3e98c4308e990a91270c7d58dbcdbd3f2140a24`. En Android16/API36 se verificó «Comenzar» → introducción → primer paso del asistente. Las siete pruebas instrumentadas de parser, migración nutricional y restauración de borrador pasaron; `MainActivity` quedó visible. Exportación portable v2 real en el selector local: 844.758 bytes, archivo/manifest/base válidos y proceso `:voice` ausente. El emulador temporal propio se cerró sin guardar cambios al AVD original.
+
+La suite completa 37 terminó: 6.872 aprobadas, cero fallos/errores y dos replays reales omitidos por falta de corpus autorizado, en 776 suites. Esa ejecución precede los últimos ajustes de la interfaz Free.
+
+Corrección 38: 96 regresiones aprobadas, cero fallos/omisiones y debug compilado. APK38 `dc72b6c850bbb54c3af5421a5cec3937a961c1710f379a22629036aa963745cd`. En Android16/API36 se comprobó la confirmación de 18 años, creación/apertura de una semana manual, rechazo de la segunda manteniendo «S1 / Semana 1», ausencia del aviso de calibración avanzada en Free, pantalla Pro de alimentación sin superposición con la barra de estado y entrada al historial. El historial de este perfil de prueba estaba vacío: no acredita lectura de registros previos tras caducidad. Las capturas están en `emulator-ui-38/`; la instancia temporal propia se cerró sin guardar cambios al AVD original. AUD03 conserva pruebas pendientes de todas las entradas avanzadas y caducidad con datos reales.
+
+La clasificación de almacenamiento 38 aprobó 45 tablas; las tres pruebas negativas del inventario aprobaron. Las cinco pruebas del validador privado de corpus aprobaron usando fixtures sintéticos, sin acreditar un corpus real. La revisión release 39 terminó: lint con cero errores, 610 advertencias y 39 recomendaciones; R8 aprobado, BUILD SUCCESSFUL en 22 min 42 s. Es compilación/optimización sin firma ni ejecución de un release. No se acepta una publicación con estas comprobaciones.
+
+Se reconciliaron las notas obsoletas A04/C04/C08/J08 con la evidencia anterior. Se preparó la entrada privada de corpus autorizado en CI: manifiesto de consentimiento/procedencia, límites y hashes; ningún corpus real se inventó ni subió. La ejecución real continúa pendiente de su entrega autorizada.
+
+Pendientes técnicos A–J siguen en `requirements.json`, incluyendo KEEP_BOTH nativo, motores/casos alimentarios, progresión por ejecución, localización/voz inglesa y QA completa de persistencia/servicios. Precios y registro de Play no bloquean ese trabajo. Las verificaciones reales que requieren configuración Firebase/Play, firma, corpus, macOS/dispositivo/beta siguen separadas de las pruebas locales.
