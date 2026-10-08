@@ -53,6 +53,7 @@ import com.example.kpkn.screens.onboarding.SetupWizardViewModel
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
 import com.example.kpkn.screens.onboarding.design.entreno.EntrenoWarmup
 import com.example.kpkn.screens.onboarding.design.entreno.plan.LocalOverlayBlurOverride
+import com.example.kpkn.screens.onboarding.design.entreno.plan.LocalOverlayDensityOverride
 import com.example.kpkn.screens.onboarding.realSetupWizardPersistence
 import com.example.kpkn.screens.onboarding.touchStep
 import com.example.kpkn.ui.theme.KPKNTheme
@@ -83,7 +84,8 @@ import kotlinx.serialization.json.Json
  *    `dayplaces=3:HOME,6:PUBLIC`, `minutes=75`, `caps=PULL_UP:SOME,PUSH_UP:MANY` (separadas por coma), `muscles=CHEST,BACK`,
  *    `marks=SQUAT:140,BENCH:100` (kg) y `unit=lb`.
  *  - `width` o `widthDp` (dp): simula un teléfono de ese ancho escalando la densidad (360 reproduce el del usuario; el emulador mide 448).
- *  - `fontscale` o `fontScale` (decimal): escala de letra (1.3 = 130 %).
+ *  - `fontscale` o `fontScale` (decimal): escala de letra (1.3 = 130 %). Con `width`, llega también a los overlays del plan (diálogos
+ *    con su propia ventana y densidad).
  *  - `reducedMotion` (booleano): fuerza «reducir movimiento» en el asistente (cuadro final estático, sin bucles) sin tocar los ajustes
  *    del teléfono; solo anula lo que lee `wizardReducedMotion()` (las animaciones propias de Compose siguen su escala del sistema).
  *  - `fps` (booleano): pinta encima el medidor de fluidez (`FrameMeter`): cuadros por segundo, el cuadro más largo y los lentos.
@@ -294,6 +296,8 @@ private fun HarnessRoot(config: HarnessConfig, onClose: () -> Unit) {
         LocalDensity provides density,
         LocalWizardReducedMotion provides (if (config.reducedMotion) true else null),
         LocalOverlayBlurOverride provides config.blur,
+        // Los diálogos (overlays del plan) traen su propia densidad: sin esto `width` y `fontScale` no llegarían a ellos.
+        LocalOverlayDensityOverride provides (if (config.widthDp > 0f || config.fontScale > 0f) density else null),
     ) {
         KPKNTheme {
             Box(

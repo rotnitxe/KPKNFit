@@ -5,6 +5,7 @@ import android.view.WindowManager
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf
@@ -16,8 +17,10 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
@@ -42,6 +45,13 @@ internal val OverlayScrim = Color(0xFF060606)
  * `blur=on|off`) para ver las dos ramas en un teléfono que tiene el desenfoque desactivado.
  */
 internal val LocalOverlayBlurOverride = compositionLocalOf<Boolean?> { null }
+
+/**
+ * La densidad (y escala de letra) que simula el arnés de depuración (extras `width` y `fontScale`): una ventana de diálogo trae
+ * la suya, no hereda la que el arnés pone a la actividad, y sin esto los overlays se verían siempre a escala normal. `null` (lo
+ * normal): la del propio diálogo, que es la del sistema.
+ */
+internal val LocalOverlayDensityOverride = compositionLocalOf<Density?> { null }
 
 /**
  * Un overlay a pantalla completa. [shown] (0 a 1, se lee sin recomponer) lleva el desenfoque del sistema: entra y sale con
@@ -88,7 +98,12 @@ internal fun BlurOverlayDialog(
                 }
             }
         }
-        content(blur)
+        val simulatedDensity = LocalOverlayDensityOverride.current
+        if (simulatedDensity != null) {
+            CompositionLocalProvider(LocalDensity provides simulatedDensity) { content(blur) }
+        } else {
+            content(blur)
+        }
     }
 }
 
