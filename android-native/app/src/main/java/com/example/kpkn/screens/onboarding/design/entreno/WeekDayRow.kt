@@ -47,6 +47,7 @@ import com.example.kpkn.screens.onboarding.design.eOutCubic
 import com.example.kpkn.screens.onboarding.design.lerpF
 import com.example.kpkn.screens.onboarding.design.seg
 import kotlin.math.sin
+import androidx.compose.foundation.layout.Spacer
 
 /*
  * «¿Qué día llegas con más energía?»: siete días en fila, lunes a domingo, y uno encendido. Cada día es un símbolo
@@ -101,21 +102,29 @@ fun FreshDayRow(
         List(WEEK_DAY_COUNT) { measurer.measureWeekLetter(dayInitial(it + 1), WizardTypography.measure) }
     }
     Column(modifier.fillMaxWidth()) {
-        BoxWithConstraints(Modifier.fillMaxWidth()) {
-            // La celda mide ≥ 44 dp en un teléfono de 360 dp (312 dp útiles); el disco deja un hueco entre vecinos.
-            val disc = (maxWidth / WEEK_DAY_COUNT - 5.dp).coerceIn(36.dp, 48.dp)
+        // La fila sangra hacia los márgenes lo justo para que cada día sea un objetivo táctil de 48 dp (ver `weekBleed`).
+        BoxWithConstraints(Modifier.fillMaxWidth().weekBleed()) {
+            // La celda mide 48 dp en un teléfono de 360 dp (336 dp con el sangrado); el disco deja un hueco entre vecinos.
+            val disc = (maxWidth / WEEK_DAY_COUNT - 8.dp).coerceIn(34.dp, 42.dp)
+            // Los días se componen repartidos en cuadros (dos de golpe y dos más por cuadro; mientras llegan, un hueco): ver
+            // `rememberProgressiveCount`.
+            val shownDays = rememberProgressiveCount(total = WEEK_DAY_COUNT, first = 2, perFrame = 2)
             Row(Modifier.fillMaxWidth().selectableGroup()) {
                 for (day in 1..WEEK_DAY_COUNT) {
-                    FreshDayCell(
-                        day = day,
-                        selected = day == chosen,
-                        letter = letters[day - 1],
-                        disc = disc,
-                        clock = clock,
-                        reduced = reduced,
-                        onClick = { onSelect(day) },
-                        modifier = Modifier.weight(1f),
-                    )
+                    if (day <= shownDays) {
+                        FreshDayCell(
+                            day = day,
+                            selected = day == chosen,
+                            letter = letters[day - 1],
+                            disc = disc,
+                            clock = clock,
+                            reduced = reduced,
+                            onClick = { onSelect(day) },
+                            modifier = Modifier.weight(1f),
+                        )
+                    } else {
+                        Spacer(Modifier.weight(1f).height(FreshSunSlot + FreshDiscBox))
+                    }
                 }
             }
         }

@@ -57,11 +57,15 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.isTraversalGroup
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -94,8 +98,8 @@ private val WeekSunSlot = 22.dp
 /** Alto de la zona del disco. */
 private val WeekDiscBox = 48.dp
 
-/** Alto de la zona táctil del lugar de cada día. */
-private val WeekPlaceSlotHeight = 44.dp
+/** Alto de la zona táctil del lugar de cada día: el objetivo táctil de 48 dp. */
+private val WeekPlaceSlotHeight = 48.dp
 
 /** Tamaño del sol que marca el día más fuerte. */
 private val WeekSunSize = 18.dp
@@ -199,7 +203,11 @@ private fun WeekDaysCounter(count: Int, reduced: Boolean) {
         modifier = Modifier
             .fillMaxWidth()
             .testTag("setup-week-count")
-            .clearAndSetSemantics { contentDescription = "$count $unit" },
+            // Cada día que se elige o se quita cambia la cuenta: se anuncia sola (con cortesía).
+            .clearAndSetSemantics {
+                contentDescription = "$count $unit"
+                liveRegion = LiveRegionMode.Polite
+            },
         verticalAlignment = Alignment.Bottom,
     ) {
         AnimatedContent(
@@ -248,12 +256,13 @@ private fun WeekStrip(
     onToggle: (Int) -> Unit,
     onDayPlace: (Int, TrainingPlace) -> Unit,
 ) {
-    BoxWithConstraints(Modifier.fillMaxWidth()) {
+    // La tira sangra hacia los márgenes lo justo para que cada día sea un objetivo táctil de 48 dp (ver `weekBleed`).
+    BoxWithConstraints(Modifier.fillMaxWidth().weekBleed()) {
         val stripWidth = maxWidth
         val cellWidth = stripWidth / WEEK_DAY_COUNT
         val cellWidthPx = with(LocalDensity.current) { cellWidth.toPx() }
-        // La celda mide ≥ 44 dp en un teléfono de 360 dp; el disco deja un hueco entre vecinos.
-        val disc = (cellWidth - 5.dp).coerceIn(34.dp, 46.dp)
+        // La celda mide 48 dp en un teléfono de 360 dp (336 dp con el sangrado); el disco deja un hueco entre vecinos.
+        val disc = (cellWidth - 8.dp).coerceIn(34.dp, 42.dp)
 
         // Posición CONTINUA y circular del inicio de semana: al cambiar, recorre el camino más corto y cada día se coloca
         // con `weekConveyorSlot` (los que salen por un borde vuelven a entrar por el otro, ocultos por su opacidad).
@@ -269,13 +278,18 @@ private fun WeekStrip(
             }
         }
 
-        Box(Modifier.fillMaxWidth()) {
-            for (day in 1..WEEK_DAY_COUNT) {
+        val readingOrder = remember(start) { orderedWeek(start) }
+        // Los días se colocan por su posición (la semana empieza donde diga el inicio) pero se componen de lunes a domingo: TalkBack los
+        // lee en el orden en que se ven, así que la tira es un grupo de lectura y cada día lleva el índice de su posición.
+        val shownDays = rememberProgressiveCount(total = WEEK_DAY_COUNT, first = 2, perFrame = 2)
+        Box(Modifier.fillMaxWidth().semantics { isTraversalGroup = true }) {
+            for (day in 1..shownDays) {
                 key(day) {
                     val isChosen = day in chosen
                     val place = if (showPlaces && isChosen) placeOfDay(day, places, dayPlaces) else null
                     WeekDayCell(
                         day = day,
+                        readingSlot = readingOrder.indexOf(day),
                         selected = isChosen,
                         isSun = day == sunDay,
                         place = place,
@@ -376,6 +390,8 @@ private fun WeekStrongestNote(
 @Composable
 private fun WeekDayCell(
     day: Int,
+    /** Posición (0..6) del día en la semana que se ve: el orden en que se lee. */
+    readingSlot: Int,
     selected: Boolean,
     isSun: Boolean,
     place: TrainingPlace?,
@@ -419,7 +435,10 @@ private fun WeekDayCell(
                     onValueChange = { onToggle() },
                 )
                 // Va DESPUÉS de `toggleable`: conserva su rol y su estado y descarta el texto de la etiqueta.
-                .clearAndSetSemantics { contentDescription = description },
+                .clearAndSetSemantics {
+                    contentDescription = description
+                    traversalIndex = readingSlot * 2f
+                },
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Canvas(Modifier.fillMaxWidth().height(WeekSunSlot + WeekDiscBox)) {
@@ -462,14 +481,14 @@ private fun WeekDayCell(
             )
         }
         if (reservePlaceSlot) {
-            WeekPlaceSlot(day = day, place = place, reduced = reduced, onTap = onPlaceTap)
+            WeekPlaceSlot(day = day, readingSlot = readingSlot, place = place, reduced = reduced, onTap = onPlaceTap)
         }
     }
 }
 
 /** Bajo un día elegido, el glifo de su lugar; tocarlo pasa al siguiente. Sin día elegido, el hueco queda vacío (sin saltos). */
 @Composable
-private fun WeekPlaceSlot(day: Int, place: TrainingPlace?, reduced: Boolean, onTap: () -> Unit) {
+private fun WeekPlaceSlot(day: Int, readingSlot: Int, place: TrainingPlace?, reduced: Boolean, onTap: () -> Unit) {
     val dayName = dayFullName(day).lowercase()
     val interaction = remember { MutableInteractionSource() }
     Box(
@@ -487,7 +506,11 @@ private fun WeekPlaceSlot(day: Int, place: TrainingPlace?, reduced: Boolean, onT
                             onClickLabel = "Cambiar el lugar del $dayName",
                             onClick = onTap,
                         )
-                        .semantics { contentDescription = "Lugar del $dayName: ${place.label}" }
+                        // Se lee justo después de su día.
+                        .semantics {
+                            contentDescription = "Lugar del $dayName: ${place.label}"
+                            traversalIndex = readingSlot * 2f + 1f
+                        }
                 } else {
                     Modifier.clearAndSetSemantics { }
                 },
@@ -585,6 +608,8 @@ private fun WeekStartPicker(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    // Siete opciones de 48 dp: como la tira de días, sangra hacia los márgenes lo justo.
+                    .weekBleed()
                     .selectableGroup(),
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
