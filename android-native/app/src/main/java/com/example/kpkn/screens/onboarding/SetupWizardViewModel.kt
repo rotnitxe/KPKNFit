@@ -3484,6 +3484,13 @@ class SetupWizardViewModel @JvmOverloads constructor(
             it.isNotBlank() && provided(SetupStepId.NAME, WizChatQuestionId.P_NAME)
         }
         val goals = nutrition?.takeIf { draft.activateNutrition }
+        // La unidad de peso de la app: la que eligió la persona para su peso corporal o, si no la tocó, la de sus marcas (quien declara
+        // su sentadilla en libras ve las cargas de su programa en libras). La del peso corporal manda si las dos se tocaron.
+        val weightUnitField: SetupPatchField<WeightUnit> = when {
+            draft.weightUnitChanged -> SetupPatchField.Set(if (draft.weightUnit == "lb") WeightUnit.LBS else WeightUnit.KG)
+            draft.marksUnit == "lb" && draft.isStepDeclared(SetupStepId.TRAINING_MAX) -> SetupPatchField.Set(WeightUnit.LBS)
+            else -> SetupPatchField.Unchanged
+        }
         // SET/CLEAR/UNCHANGED decididos por el mapper: una calibración parcial deja
         // initialRecoveryEvidence sin tocar (Unchanged) y PRESERVE no rejuvenece nada.
         val evidence = rings.toEvidencePatchField()
@@ -3505,10 +3512,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 weight = setIf(draft.weightKg, provided(SetupStepId.WEIGHT, WizChatQuestionId.P_WEIGHT) && draft.weightKg != null),
                 gender = setIf(draft.profileGender, provided(SetupStepId.GENDER, WizChatQuestionId.P_GENDER) && draft.profileGender != null),
             ),
-            weightUnit = setIf(
-                if (draft.weightUnit == "lb") WeightUnit.LBS else WeightUnit.KG,
-                draft.weightUnitChanged,
-            ),
+            weightUnit = weightUnitField,
             dailyCalorieGoal = setIf(goals?.calorieTarget, goals != null),
             dailyProteinGoal = setIf(goals?.proteinGoal, goals != null),
             dailyCarbGoal = setIf(goals?.carbGoal, goals != null),

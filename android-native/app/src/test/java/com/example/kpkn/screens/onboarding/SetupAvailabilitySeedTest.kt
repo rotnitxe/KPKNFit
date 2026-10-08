@@ -14,6 +14,7 @@ import com.example.kpkn.data.models.NutritionPlan
 import com.example.kpkn.data.models.PlateStock
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Settings
+import com.example.kpkn.data.models.WeightUnit
 import com.example.kpkn.data.onboarding.SetupCommitCoordinator
 import com.example.kpkn.data.onboarding.SetupCommitRequest
 import com.example.kpkn.data.onboarding.SetupDraft
@@ -27,6 +28,7 @@ import com.example.kpkn.domain.onboarding.SetupChangeSource
 import com.example.kpkn.domain.onboarding.SetupPreviewKind
 import com.example.kpkn.domain.onboarding.EquipmentSymbolId
 import com.example.kpkn.domain.onboarding.EquipmentSymbols
+import com.example.kpkn.domain.onboarding.LiftMark
 import com.example.kpkn.domain.onboarding.RingsCompletion
 import com.example.kpkn.domain.onboarding.SetupRingsMapping
 import com.example.kpkn.domain.onboarding.SetupStepId
@@ -109,6 +111,25 @@ class SetupAvailabilitySeedTest {
             SetupPatchField.Unchanged,
             buildSettingsPatch(vm, draft, Settings(equipmentAvailability = suggested)).equipmentAvailability,
         )
+    }
+
+    /**
+     * Quien declara sus marcas en libras ve su programa en libras: la activación deja la unidad de peso de la app en LBS si el
+     * paso de marcas se declaró en «lb» y la persona no eligió otra unidad para su peso corporal (si la eligió, manda esa).
+     * Sin declarar el paso, o en kg, no se toca la unidad.
+     */
+    @Test
+    fun settings_patch_follows_the_marks_unit_unless_the_body_weight_unit_was_chosen() {
+        val vm = viewModel(Settings())
+        val inPounds = SetupWizardDraft().withLiftMark(LiftMark.SQUAT, 140.0).withMarksUnit("lb").touchStep(SetupStepId.TRAINING_MAX)
+
+        assertEquals(SetupPatchField.Set(WeightUnit.LBS), buildSettingsPatch(vm, inPounds, Settings()).weightUnit)
+        // Una unidad que nadie declaró (el paso sin tocar) no mueve nada, ni tampoco las marcas en kg.
+        assertEquals(SetupPatchField.Unchanged, buildSettingsPatch(vm, SetupWizardDraft().withMarksUnit("lb"), Settings()).weightUnit)
+        assertEquals(SetupPatchField.Unchanged, buildSettingsPatch(vm, inPounds.withMarksUnit("kg"), Settings()).weightUnit)
+        // Si la persona eligió la unidad de su peso corporal, manda esa.
+        val bodyInKg = inPounds.copy(weightUnit = "kg", weightUnitChanged = true)
+        assertEquals(SetupPatchField.Set(WeightUnit.KG), buildSettingsPatch(vm, bodyInKg, Settings()).weightUnit)
     }
 
     @Test
