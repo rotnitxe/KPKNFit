@@ -157,7 +157,7 @@ movimiento» (`wizardReducedMotion()`) cada símbolo queda en su cuadro final. L
 `WeekLayoutBoard` (`design/entreno/layout/`) es una **lista vertical de siete filas**, de la primera a la última de la semana de la persona.
 La tira horizontal anterior enseñaba tres días y medio a 360 dp y obligaba a deslizar de lado para llevar una sesión a otro día; ahora
 caben los siete a 360 y a 320 dp, con la letra normal y al 130 %, sin desplazarse de lado (la página sí se desplaza hacia abajo: con letra
-grande la lista mide ≈ 630 dp).
+grande las filas crecen —de 64 dp hasta ≈ 110 dp si el título ocupa dos líneas— y la lista llega a ≈ 760 dp).
 
 | Pieza | Qué es |
 |---|---|
