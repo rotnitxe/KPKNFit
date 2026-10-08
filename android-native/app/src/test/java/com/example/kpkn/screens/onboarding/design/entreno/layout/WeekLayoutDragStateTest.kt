@@ -16,14 +16,14 @@ import org.junit.Test
  */
 class WeekLayoutDragStateTest {
 
-    // Siete columnas de 100 con 10 de hueco, cabecera de 40 y cuerpo de 120.
-    private val geometry = WeekStripGeometry(
+    // Siete filas de 64 en una lista de 300 de ancho; la ficha empieza en 40 y su asa son los últimos 44.
+    private val geometry = WeekListGeometry(
         order = slotOrder(1),
-        colWidth = 100f,
-        gap = 10f,
-        headerHeight = 40f,
-        bodyHeight = 120f,
-        dragRange = 16f,
+        width = 300f,
+        rowHeight = 64f,
+        fichaLeft = 40f,
+        handleWidth = 44f,
+        dragRange = 12f,
         cancelDistance = 50f,
     )
 
@@ -35,37 +35,47 @@ class WeekLayoutDragStateTest {
         return state
     }
 
-    /** El dedo sobre el centro del glifo de la ficha en su ranura. */
-    private fun grabPoint(day: Int) = geometry.home(day) + Offset(50f, 60f)
+    /** El dedo sobre el glifo de la ficha en su fila (24 a la derecha del inicio de la ficha y a media altura). */
+    private fun grabPoint(day: Int) = geometry.home(day) + Offset(24f, 32f)
 
     // ------------------------------------------------------------ geometría
 
     @Test
-    fun theGeometryPlacesEachSlotOnItsColumn() {
-        assertEquals(110f, geometry.pitch, 0f)
-        assertEquals(760f, geometry.contentWidth, 0f)
-        assertEquals(160f, geometry.height, 0f)
-        assertEquals(Offset(0f, 40f), geometry.home(1))
-        assertEquals(Offset(220f, 40f), geometry.home(3))
-        assertEquals(Offset(660f, 40f), geometry.home(7))
+    fun theGeometryPlacesEachRowBelowThePreviousOne() {
+        assertEquals(448f, geometry.height, 0f)
+        assertEquals(260f, geometry.fichaWidth, 0f)
+        assertEquals(Offset(40f, 0f), geometry.home(1))
+        assertEquals(Offset(40f, 128f), geometry.home(3))
+        assertEquals(Offset(40f, 384f), geometry.home(7))
         assertEquals(7, geometry.slotRects.size)
-        assertEquals(100f, geometry.slotRects.getValue(2).left - geometry.slotRects.getValue(1).left - 10f, 0f)
+        assertEquals(64f, geometry.slotRects.getValue(2).top, 0f)
+        assertEquals(300f, geometry.slotRects.getValue(2).width, 0f)
+        assertEquals(64f, geometry.slotRects.getValue(2).height, 0f)
     }
 
     @Test
     fun theGeometryFollowsTheWeekStart() {
-        val thursday = WeekStripGeometry(slotOrder(4), 100f, 10f, 40f, 120f, 16f, 50f)
-        assertEquals(Offset(0f, 40f), thursday.home(4))
-        assertEquals(Offset(440f, 40f), thursday.home(1))
-        assertEquals(Offset(660f, 40f), thursday.home(3))
-        // Un día desconocido cae en la primera ranura (nunca fuera de la tira).
-        assertEquals(Offset(0f, 40f), thursday.home(99))
+        val thursday = WeekListGeometry(slotOrder(4), 300f, 64f, 40f, 44f, 12f, 50f)
+        assertEquals(Offset(40f, 0f), thursday.home(4))
+        assertEquals(Offset(40f, 256f), thursday.home(1))
+        assertEquals(Offset(40f, 384f), thursday.home(3))
+        // Un día desconocido cae en la primera fila (nunca fuera de la lista).
+        assertEquals(Offset(40f, 0f), thursday.home(99))
     }
 
     @Test
     fun anEmptyGeometryHasNothing() {
-        assertEquals(0f, WeekStripGeometry.Empty.contentWidth, 0f)
-        assertTrue(WeekStripGeometry.Empty.slotRects.isEmpty())
+        assertEquals(0f, WeekListGeometry.Empty.height, 0f)
+        assertTrue(WeekListGeometry.Empty.slotRects.isEmpty())
+        assertFalse(WeekListGeometry.Empty.isHandle(0f))
+    }
+
+    @Test
+    fun theHandleIsTheEndOfTheRow() {
+        assertTrue(geometry.isHandle(299f))
+        assertTrue(geometry.isHandle(256f))
+        assertFalse(geometry.isHandle(255f))
+        assertFalse(geometry.isHandle(0f))
     }
 
     // ------------------------------------------------------------ tocar
@@ -73,9 +83,11 @@ class WeekLayoutDragStateTest {
     @Test
     fun dayAtAndSessionAtDayTellWhoIsUnderTheFinger() {
         val state = newState()
-        assertEquals(3, state.dayAt(Offset(250f, 80f)))
-        assertNull(state.dayAt(Offset(105f, 80f)))
-        assertEquals("b", state.sessionAtDay(state.dayAt(Offset(250f, 80f))))
+        // El miércoles es la tercera fila (128..192).
+        assertEquals(3, state.dayAt(Offset(150f, 140f)))
+        assertEquals("b", state.sessionAtDay(state.dayAt(Offset(150f, 140f))))
+        assertNull("por debajo de la lista no hay día", state.dayAt(Offset(150f, 449f)))
+        assertNull("a la derecha de la lista tampoco", state.dayAt(Offset(301f, 10f)))
         assertNull(state.sessionAtDay(2))
         assertNull(state.sessionAtDay(null))
     }
@@ -116,89 +128,80 @@ class WeekLayoutDragStateTest {
     // ------------------------------------------------------------ arrastrar
 
     @Test
-    fun theFichaFollowsTheFingerKeepingTheGrabPoint() {
+    fun theFichaFollowsTheFingerDownTheListKeepingTheGrabPoint() {
         val state = newState()
         state.lift("a", grabPoint(1))
         val motion = state.motionFor("a", Offset.Zero)
-        // Un desplazamiento de 220 a la derecha lleva la ficha a la ranura 3.
-        state.dragTo(grabPoint(1) + Offset(220f, 0f))
+        // Un desplazamiento de 128 hacia abajo lleva la ficha a la fila 3.
+        state.dragTo(grabPoint(1) + Offset(0f, 128f))
         assertEquals(geometry.home(3), motion.pos)
-        assertEquals(grabPoint(1) + Offset(220f, 0f), state.finger)
+        assertEquals(grabPoint(1) + Offset(0f, 128f), state.finger)
     }
 
     @Test
-    fun theFichaStaysInsideTheStripSideways() {
+    fun theFichaOnlyMovesUpAndDownNeverSideways() {
         val state = newState()
         state.lift("a", grabPoint(1))
         val motion = state.motionFor("a", Offset.Zero)
-        state.dragTo(Offset(5000f, 100f))
-        assertEquals(660f, motion.pos.x, 0f)
-        state.dragTo(Offset(-5000f, 100f))
-        assertEquals(0f, motion.pos.x, 0f)
+        state.dragTo(grabPoint(1) + Offset(150f, 64f))
+        assertEquals(40f, motion.pos.x, 0f)
+        assertEquals(64f, motion.pos.y, 0f)
+        state.dragTo(grabPoint(1) + Offset(-500f, 64f))
+        assertEquals(40f, motion.pos.x, 0f)
     }
 
     @Test
-    fun theFichaOnlyLeavesItsRowByTheDragRange() {
+    fun theFichaOnlyLeavesTheListByTheDragRange() {
         val state = newState()
         state.lift("a", grabPoint(1))
         val motion = state.motionFor("a", Offset.Zero)
         state.dragTo(grabPoint(1) + Offset(0f, -500f))
-        assertEquals(40f - 16f, motion.pos.y, 0f)
-        state.dragTo(grabPoint(1) + Offset(0f, 500f))
-        assertEquals(40f + 16f, motion.pos.y, 0f)
-    }
-
-    @Test
-    fun theFichaCanGoUpLessThanDownToKeepTheHeaderClear() {
-        val tight = WeekStripGeometry(slotOrder(1), 100f, 10f, 40f, 120f, dragRange = 18f, cancelDistance = 50f, dragUp = 6f)
-        val state = WeekLayoutDragState()
-        state.geometry = tight
-        state.occupants = mapOf(1 to "a")
-        val motion = state.motionFor("a", tight.home(1))
-        motion.target = tight.home(1)
-        assertTrue(state.lift("a", tight.home(1) + Offset(50f, 60f)))
-        state.dragTo(tight.home(1) + Offset(50f, -500f))
-        assertEquals(40f - 6f, motion.pos.y, 0f)
-        state.dragTo(tight.home(1) + Offset(50f, 500f))
-        assertEquals(40f + 18f, motion.pos.y, 0f)
+        assertEquals(-12f, motion.pos.y, 0f)
+        state.dragTo(grabPoint(1) + Offset(0f, 5000f))
+        assertEquals(448f - 64f + 12f, motion.pos.y, 0f)
     }
 
     @Test
     fun theDayUnderTheFichaIsWhereItsCenterIs() {
         val state = newState()
         state.lift("a", grabPoint(1))
-        state.dragTo(grabPoint(1) + Offset(220f, 0f))
+        // El centro de la ficha queda a 100 + 32 = 132 → tercera fila (128..192).
+        state.dragTo(grabPoint(1) + Offset(0f, 100f))
         assertEquals(3, state.hoverDay)
-        // A medio camino entre dos columnas decide dónde queda el centro de la ficha.
-        state.dragTo(grabPoint(1) + Offset(110f * 3f - 40f, 0f))   // centro en 50 + 290 = 340 → columna 4 (330..430)
-        assertEquals(4, state.hoverDay)
-        state.dragTo(grabPoint(1) + Offset(110f * 3f - 70f, 0f))   // centro en 310 → columna 3 (220..320)
+        // A 90 + 32 = 122 → segunda fila (64..128).
+        state.dragTo(grabPoint(1) + Offset(0f, 90f))
+        assertEquals(2, state.hoverDay)
+        // Cerca del límite entre dos filas (128) gana la de centro más cercano.
+        state.dragTo(grabPoint(1) + Offset(0f, 95f))
+        assertEquals(2, state.hoverDay)
+        state.dragTo(grabPoint(1) + Offset(0f, 97f))
         assertEquals(3, state.hoverDay)
     }
 
     @Test
-    fun theGapBetweenColumnsStillHasADestination() {
-        val state = newState()
-        state.lift("a", grabPoint(1))
-        // Centro en 104 (el hueco entre la 1, 0..100, y la 2, 110..210): gana la columna más cercana.
-        state.dragTo(grabPoint(1) + Offset(54f, 0f))
+    fun theFirstAndLastRowsAreReachableAtTheEndsOfTheList() {
+        val state = newState(mapOf(1 to "a", 7 to "c"))
+        state.lift("c", grabPoint(7))
+        state.dragTo(Offset(64f, -10f))
         assertEquals(1, state.hoverDay)
-        state.dragTo(grabPoint(1) + Offset(59f, 0f))
-        assertEquals(2, state.hoverDay)
+        state.dragTo(Offset(64f, 460f))
+        assertEquals(7, state.hoverDay)
     }
 
     @Test
-    fun pullingAwayFromTheRowLeavesNoDestination() {
+    fun pullingAwayFromTheListLeavesNoDestination() {
         val state = newState()
         state.lift("a", grabPoint(1))
-        state.dragTo(grabPoint(1) + Offset(110f, 40f))
-        assertEquals(2, state.hoverDay)
-        state.dragTo(grabPoint(1) + Offset(110f, 51f))
+        // El dedo (que lleva la ficha por su centro) a más de la distancia de cancelación por encima de la lista.
+        state.dragTo(Offset(64f, -51f))
         assertNull("más allá de la distancia de cancelación", state.hoverDay)
-        state.dragTo(grabPoint(1) + Offset(110f, -51f))
+        state.dragTo(Offset(64f, -49f))
+        assertEquals(1, state.hoverDay)
+        // Y por debajo.
+        state.dragTo(Offset(64f, 448f + 51f))
         assertNull(state.hoverDay)
-        state.dragTo(grabPoint(1) + Offset(110f, -49f))
-        assertEquals(2, state.hoverDay)
+        state.dragTo(Offset(64f, 448f + 49f))
+        assertEquals(7, state.hoverDay)
     }
 
     @Test
@@ -214,15 +217,15 @@ class WeekLayoutDragStateTest {
     fun scrollingUnderAStillFingerKeepsTheFichaOnTheFinger() {
         val state = newState()
         state.lift("a", grabPoint(1))
-        // El contenido se desplazó 110 hacia la izquierda bajo el dedo quieto: el dedo está 110 más a la derecha en el contenido.
-        state.nudge(110f)
-        assertEquals(grabPoint(1) + Offset(110f, 0f), state.finger)
-        assertEquals(2, state.hoverDay)
-        assertEquals(geometry.home(2), state.motionFor("a", Offset.Zero).pos)
+        // La página se desplazó 128 hacia arriba bajo el dedo quieto: el dedo está 128 más abajo en la lista.
+        state.nudge(128f)
+        assertEquals(grabPoint(1) + Offset(0f, 128f), state.finger)
+        assertEquals(3, state.hoverDay)
+        assertEquals(geometry.home(3), state.motionFor("a", Offset.Zero).pos)
         // Sin ficha o sin desplazamiento no hace nada.
         state.cancel()
         state.nudge(500f)
-        assertEquals(grabPoint(1) + Offset(110f, 0f), state.finger)
+        assertEquals(grabPoint(1) + Offset(0f, 128f), state.finger)
     }
 
     // ------------------------------------------------------------ soltar y cancelar
@@ -231,7 +234,7 @@ class WeekLayoutDragStateTest {
     fun dropOnAnotherDayReportsIt() {
         val state = newState()
         state.lift("a", grabPoint(1))
-        state.dragTo(grabPoint(1) + Offset(220f, 0f))
+        state.dragTo(grabPoint(1) + Offset(0f, 128f))
         val result = state.drop()
         assertNotNull(result)
         assertEquals("a", result!!.sessionId)
@@ -248,11 +251,11 @@ class WeekLayoutDragStateTest {
     fun dropOnTheOwnDayOrOutsideReportsNoDestination() {
         val state = newState()
         state.lift("a", grabPoint(1))
-        state.dragTo(grabPoint(1) + Offset(10f, 5f))
+        state.dragTo(grabPoint(1) + Offset(5f, 8f))
         assertNull(state.drop()!!.toDay)
 
         state.lift("a", grabPoint(1))
-        state.dragTo(grabPoint(1) + Offset(220f, 90f))
+        state.dragTo(Offset(64f, -90f))
         assertNull(state.hoverDay)
         val outside = state.drop()
         assertEquals("a", outside!!.sessionId)
@@ -268,7 +271,7 @@ class WeekLayoutDragStateTest {
     fun cancelLetsGoOfTheFichaAndClearsTheDestination() {
         val state = newState()
         state.lift("a", grabPoint(1))
-        state.dragTo(grabPoint(1) + Offset(220f, 0f))
+        state.dragTo(grabPoint(1) + Offset(0f, 128f))
         state.cancel()
         assertNull(state.liftedId)
         assertNull(state.hoverDay)
@@ -311,19 +314,19 @@ class WeekLayoutDragStateTest {
 
     @Test
     fun theSpringArrivesAtItsTargetWithoutWildOvershoot() {
-        val motion = FichaMotion(Offset(0f, 40f))
-        motion.target = Offset(440f, 40f)
+        val motion = FichaMotion(Offset(40f, 0f))
+        motion.target = Offset(40f, 384f)
         var t = 0f
-        var maxX = 0f
+        var maxY = 0f
         while (!motion.atRest && t < 3f) {
             motion.step(1f / 60f)
-            maxX = maxOf(maxX, motion.pos.x)
+            maxY = maxOf(maxY, motion.pos.y)
             t += 1f / 60f
             assertTrue(motion.pos.x.isFinite() && motion.pos.y.isFinite())
         }
         assertTrue("llegó en $t s", t < 1.2f)
         assertEquals(motion.target, motion.pos)
-        assertTrue("rebote de $maxX", maxX < 440f * 1.12f)
+        assertTrue("rebote de $maxY", maxY < 384f * 1.12f)
         assertFalse(motion.raised)
     }
 
@@ -347,35 +350,35 @@ class WeekLayoutDragStateTest {
     @Test
     fun aDraggedFichaIsNotMovedByTheSpring() {
         val motion = FichaMotion(Offset(0f, 0f))
-        motion.target = Offset(300f, 0f)
+        motion.target = Offset(0f, 300f)
         motion.beginDrag()
-        motion.dragTo(Offset(40f, 5f))
+        motion.dragTo(Offset(5f, 40f))
         assertTrue("llevada por el dedo cuenta como en reposo", motion.atRest)
         motion.step(0.016f)
-        assertEquals(Offset(40f, 5f), motion.pos)
+        assertEquals(Offset(5f, 40f), motion.pos)
         motion.snapToTarget()
-        assertEquals("no se coloca mientras la lleva el dedo", Offset(40f, 5f), motion.pos)
+        assertEquals("no se coloca mientras la lleva el dedo", Offset(5f, 40f), motion.pos)
         motion.endDrag()
         assertFalse(motion.atRest)
         while (!motion.atRest) motion.step(1f / 60f)
-        assertEquals(Offset(300f, 0f), motion.pos)
+        assertEquals(Offset(0f, 300f), motion.pos)
     }
 
     @Test
     fun snapToTargetPlacesTheFichaAtOnce() {
         val motion = FichaMotion(Offset(0f, 0f))
-        motion.target = Offset(220f, 40f)
+        motion.target = Offset(40f, 128f)
         motion.snapToTarget()
-        assertEquals(Offset(220f, 40f), motion.pos)
+        assertEquals(Offset(40f, 128f), motion.pos)
         assertTrue(motion.atRest)
     }
 
     @Test
     fun aFichaStaysRaisedUntilItSettles() {
-        val motion = FichaMotion(Offset(0f, 40f))
+        val motion = FichaMotion(Offset(40f, 0f))
         motion.beginDrag()
-        motion.dragTo(Offset(150f, 50f))
-        motion.target = Offset(220f, 40f)
+        motion.dragTo(Offset(40f, 100f))
+        motion.target = Offset(40f, 128f)
         motion.endDrag()
         assertTrue(motion.raised)
         motion.step(1f / 60f)
@@ -383,6 +386,6 @@ class WeekLayoutDragStateTest {
         while (!motion.atRest) motion.step(1f / 60f)
         motion.settleIfIdle()
         assertFalse(motion.raised)
-        assertTrue(abs(motion.pos.x - 220f) < 0.01f)
+        assertTrue(abs(motion.pos.y - 128f) < 0.01f)
     }
 }

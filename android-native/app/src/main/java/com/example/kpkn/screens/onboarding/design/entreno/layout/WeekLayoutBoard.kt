@@ -14,8 +14,6 @@ import androidx.compose.animation.core.withInfiniteAnimationFrameNanos
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.scrollBy
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -25,9 +23,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -38,15 +36,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -56,8 +53,9 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.layout.layout
-import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
@@ -67,92 +65,102 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.semantics.traversalIndex
+import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import com.example.kpkn.domain.onboarding.TrainingPlace
+import com.example.kpkn.screens.onboarding.design.LocalWizardPageScroll
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardFonts
 import com.example.kpkn.screens.onboarding.design.WizardSpacing
 import com.example.kpkn.screens.onboarding.design.WizardTypography
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPen
+import com.example.kpkn.screens.onboarding.design.entreno.drawWeekPlaceGlyph
 import com.example.kpkn.screens.onboarding.design.entreno.plan.ComposeTitleMeasure
 import com.example.kpkn.screens.onboarding.design.entreno.plan.fitTitle
+import com.example.kpkn.screens.onboarding.design.entreno.rememberProgressiveCount
 import com.example.kpkn.screens.onboarding.design.lerpF
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.roundToInt
-import com.example.kpkn.screens.onboarding.design.entreno.rememberProgressiveCount
 
 /*
  * «Así queda tu semana»: el tablero donde se colocan las sesiones del programa en los días de la semana.
  *
  * ── Diseño ──────────────────────────────────────────────────────────────────────────────────────────────────────
- * Siete ranuras en una TIRA HORIZONTAL que se desplaza (en 360 dp caben tres y un asomo de la siguiente). Se eligió
- * sobre dos filas de cuatro y tres porque la ficha necesita ≈ 90 dp de ancho para «6 ejercicios» a 13 sp (con letra
- * al 130 % no cabe en 78) y sobre una lista vertical porque alargaría la página del alta con siete filas de lista.
- * En pantallas anchas las siete columnas caben y la tira no se desplaza. La tira se desvanece a negro en el borde
- * por el que sigue (no hay barra: el asomo y el desvanecido dicen «hay más»), y se desplaza sola al arrastrar una
- * ficha cerca de un borde.
+ * Una LISTA VERTICAL de siete filas, de la primera a la última de la semana: caben las siete sin desplazarse de lado (la
+ * tira horizontal anterior enseñaba tres y media a 360 dp y obligaba a deslizar para llevar una sesión a otro día). Cada fila
+ * es un día: a la izquierda su nombre corto, luego el disco de la ranura (vidrio neutro tenue con filete) y, sobre el disco,
+ * la ficha de la sesión: la mancuerna, el título, «60 min · 6 ejercicios» (con el glifo del lugar cuando el programa reparte
+ * sus sesiones entre varios) y, al final, el asa de seis puntos. La sesión principal lleva chispas de energía. Un día de
+ * descanso es un disco vacío con un guion y la palabra «Descanso». Filas separadas por un filete, nada de tarjetas.
  *
- * Cada día es una columna: arriba su inicial y su nombre corto, debajo el disco de la ranura (vidrio neutro tenue
- * con filete) y, encima del disco, la ficha de la sesión: la mancuerna, el título y «60 min · 6 ejercicios». La sesión
- * principal lleva chispas de energía. Un día de descanso es un disco vacío con un guion. Nada de tarjetas.
+ * El alto de las filas es el mismo en todas y sale de medir los textos reales (título en una o dos líneas, detalle en una o en
+ * dos según el ancho y la letra), así ninguna ficha salta de tamaño al cambiar de día. La lista no se desplaza por sí misma: es
+ * parte de la página larga, que sí lo hace.
  *
  * ── Mover una sesión ────────────────────────────────────────────────────────────────────────────────────────────
- *  - Pulsación larga: la ficha se levanta (escala 1,06, háptico) y el dedo la lleva; en su sitio queda la silueta tenue.
- *    La ranura bajo ella se enciende y, si está ocupada, su sesión ya se desliza al hueco (vista previa del intercambio).
- *    Al soltar, un resorte la lleva a la ranura y se avisa con `onMove`. Soltar fuera de la semana cancela y vuelve.
+ *  - Pulsación larga en la ficha, o arrastre vertical desde su asa: la ficha se levanta (escala 1,06, háptico) y el dedo la
+ *    lleva; en su sitio queda la silueta tenue. La fila bajo ella se enciende y, si está ocupada, su sesión ya se desliza al
+ *    hueco (vista previa del intercambio). Al soltar, un resorte la lleva a la fila y se avisa con `onMove`. Soltarla por
+ *    encima o por debajo de la lista cancela y vuelve. Cerca del borde visible de la página, esta se desplaza sola.
  *  - Tocar y tocar (alternativa sin arrastre): tocar una ficha la elige y enciende los días válidos; tocar un día la mueve.
- *  - TalkBack: cada ficha ofrece las acciones «Mover a <día>».
+ *  - TalkBack: cada ficha ofrece las acciones «Mover a <día>»; los días de descanso se leen en su orden.
  *
  * El tablero no guarda la colocación: la recibe en [assignment] y la anima cuando cambia. Mientras llega la respuesta
  * de quien lo usa, dibuja el movimiento pedido (y si no llega en un instante, vuelve a lo que se le dio).
  */
 
-/** Ancho de una columna de la tira con letra normal; con letra grande crece. */
-private val COLUMN_WIDTH = 92.dp
-private val COLUMN_GAP = 4.dp
+/** Ancho de la columna del nombre del día con letra normal; con letra grande crece. */
+private val DAY_COLUMN = 34.dp
+private val DAY_GAP = 8.dp
 
-/** Diámetro del disco de una ranura y del lienzo del glifo de la ficha. */
-private val DISC = 64.dp
-private val DISC_TEXT_GAP = 8.dp
-private val HEADER_GAP = 4.dp
-private val TEXT_SIDE_PAD = 2.dp
+/** Diámetro del disco de la ranura y del lienzo del glifo de la ficha, y aire entre el glifo y el texto. */
+private val DISC = 48.dp
+private val GLYPH_GAP = 12.dp
 
-/** Lo que el título de una ficha puede invadir a cada lado (el aire entre columnas) antes de partir una palabra larga («movilidad»). */
-private val TITLE_OVERFLOW = 6.dp
+/** Ancho del asa (zona táctil y dibujo) al final de la fila. */
+private val HANDLE_WIDTH = 44.dp
 
-/**
- * La holgura de un título: solo los de UNA palabra la usan (es la palabra que, si no cupiera, se partiría a media palabra).
- * Un título de varias palabras se parte entre palabras dentro de su columna: con la holgura, «Funcional A» y «Funcional B»
- * (casi tan anchos como la columna) se tocaban y se leían «Funcional AFuncional B», y el primero se recortaba contra el borde.
- */
-private fun titleSlack(title: String): Dp = if (title.trim().contains(' ')) 0.dp else TITLE_OVERFLOW
+/** Alto mínimo de una fila (objetivo táctil holgado) y aire sobre y bajo su contenido. */
+private val ROW_MIN = 64.dp
+private val ROW_PAD = 8.dp
+private val TITLE_DETAIL_GAP = 2.dp
 
-/** Lo que puede separarse de su fila una ficha levantada, y lo que hay que apartarla para que soltarla cancele. */
+/** El glifo del lugar junto al detalle de la sesión y su aire. */
+private val PLACE_GLYPH = 14.dp
+private val PLACE_GAP = 6.dp
+
+/** Lo que puede separarse de la lista una ficha levantada, y lo que hay que apartarla para que soltarla cancele. */
 private val DRAG_RANGE = 12.dp
-private val DRAG_UP = 6.dp
 private val CANCEL_DISTANCE = 52.dp
 
-/** Auto-desplazamiento: ancho de la zona de borde, velocidad máxima (por segundo) y ancho del desvanecido. */
+/** Auto-desplazamiento de la página: alto de la zona de borde y velocidad máxima (por segundo). */
 private val EDGE_ZONE = 56.dp
 private val EDGE_SPEED = 520.dp
+
+/** Ancho del desvanecido de los bordes de un carril horizontal (el de repartos). */
 private val EDGE_FADE = 16.dp
+
+/** Lo que se espera, tras levantar una ficha, antes de que la página pueda desplazarse sola. */
+private const val AUTO_SCROLL_GRACE_NANOS = 350_000_000L
 
 /** Cuánto se mantiene el movimiento pedido a la espera de la respuesta de quien usa el tablero, y cuánto la frase de confirmación. */
 private const val OPTIMISTIC_MILLIS = 700L
@@ -163,15 +171,18 @@ private const val LIFT_SCALE = 0.06f
 
 private const val STATE_FADE_MS = 220
 
-private val InitialStyle get() = WizardTypography.measure
-private val ShortDayStyle get() = WizardTypography.note
+private val DayStyle get() = WizardTypography.header
 private val FichaTitleStyle get() = WizardTypography.cardTitle.copy(fontFamily = WizardFonts.display, fontWeight = FontWeight.SemiBold)
 
-/** El título de una ficha baja de 16 a 13 sp (el mínimo del wizard) hasta que su palabra más larga cabe entera en su columna. */
+/** El título de una ficha baja de 16 a 13 sp (el mínimo del wizard) hasta que su palabra más larga cabe entera en su ancho. */
 private const val FICHA_TITLE_MAX_SP = 16f
 private const val FICHA_TITLE_MIN_SP = 13f
 
-/** Cuántas líneas ocupa, a lo sumo, el título de una ficha: con tres no se corta nada ni se pone «…». */
+/** El menor tamaño al que un título baja para quedarse en una línea (con menos, mejor dos líneas más grandes). */
+private const val FICHA_TITLE_ONE_LINE_MIN_SP = 14f
+
+/** En cuántas líneas se intenta que quepa un título, y cuántas ocupa, a lo sumo: con tres no se corta nada ni se pone «…». */
+private const val FICHA_TITLE_WANTED_LINES = 2
 private const val FICHA_TITLE_MAX_LINES = 3
 
 /** El estilo del título de las fichas a [sp]: el mismo con su interlineado proporcional. */
@@ -182,7 +193,7 @@ private const val FICHA_TITLE_LINE_HEIGHT = 21f / 16f
 private val FichaDetailStyle get() = WizardTypography.note
 
 /**
- * El tablero de la semana: siete ranuras desde [weekStartDay] con las sesiones colocadas, y debajo el carril de repartos.
+ * El tablero de la semana: siete filas desde [weekStartDay] con las sesiones colocadas, y debajo el carril de repartos.
  *
  * @param weekStartDay primer día de la semana (1 = lunes … 7 = domingo).
  * @param sessions las sesiones del programa.
@@ -334,7 +345,7 @@ internal fun WeekLayoutBoardContent(
 
     Column(modifier = modifier.fillMaxWidth().testTag(WEEK_LAYOUT_BOARD_TAG)) {
         Box(Modifier.graphicsLayer { alpha = dim.value }) {
-            WeekStrip(
+            WeekList(
                 order = order,
                 byId = byId,
                 shown = shown,
@@ -374,21 +385,96 @@ internal fun WeekLayoutBoardContent(
     }
 }
 
-// ---------------------------------------------------------------- la tira de la semana
+// ---------------------------------------------------------------- la lista de la semana
 
-/** Medidas de la tira en dp. */
-private class StripMetrics(
-    val colWidth: Dp,
-    val gap: Dp,
-    val headerHeight: Dp,
-    val bodyHeight: Dp,
+/** Medidas de la lista en dp, ya resueltas con los textos reales (ver [listMetricsFor]). */
+private class ListMetrics(
+    val dayColumn: Dp,
+    val rowHeight: Dp,
     /** El estilo común de los títulos de las fichas (su tamaño ya ajustado) y las líneas que ocupa el más largo. */
     val titleStyle: TextStyle,
     val titleLines: Int,
+    /** El detalle va en dos líneas («60 min» y «6 ejercicios») cuando en una no cabe en el ancho que queda. */
+    val twoLineDetail: Boolean,
+    /** Alguna sesión dice su lugar: se reserva el glifo en su línea de detalle. */
+    val placeGlyph: Boolean,
 )
 
+/**
+ * Mide los textos reales de [sessions] en una lista de [widthPx] píxeles y saca de ahí el alto común de las filas: el título
+ * baja de 16 a 13 sp hasta caber en dos líneas (o ocupa las que necesite, sin «…») y el detalle pasa a dos líneas si en una no
+ * cabe. El alto es el mismo en todas las filas: así ninguna ficha cambia de tamaño al moverse y los destinos del arrastre son
+ * una cuenta, no una medición.
+ */
+private fun listMetricsFor(
+    sessions: Collection<WeekLayoutSession>,
+    widthPx: Float,
+    measurer: TextMeasurer,
+    density: Density,
+): ListMetrics {
+    val fontFactor = density.fontScale.coerceIn(1f, 1.6f)
+    val dayColumn = DAY_COLUMN * fontFactor
+    val textWidthPx = with(density) {
+        (widthPx - (dayColumn + DAY_GAP + DISC + GLYPH_GAP + HANDLE_WIDTH).toPx()).coerceAtLeast(40.dp.toPx())
+    }
+    val measure = ComposeTitleMeasure(measurer, density, ::fichaTitleStyleAt)
+    // Primero se intenta que TODOS los títulos quepan en una línea sin bajar de 14 sp (filas compactas); si alguno no cabe, el título
+    // pasa a dos líneas (de 16 a 13 sp, hasta que su palabra más larga cabe entera) y, si ni así, a las que necesite.
+    val oneLine = sessions.map { fitTitle(it.title, textWidthPx, FICHA_TITLE_MAX_SP, FICHA_TITLE_ONE_LINE_MIN_SP, 1, measure) }
+    val sp: Float
+    val titleLines: Int
+    if (oneLine.all { it.wordsFit && it.lines <= 1 }) {
+        sp = oneLine.minOfOrNull { it.sp } ?: FICHA_TITLE_MAX_SP
+        titleLines = 1
+    } else {
+        var fitted = FICHA_TITLE_MAX_SP
+        for (session in sessions) {
+            fitted = min(fitted, fitTitle(session.title, textWidthPx, FICHA_TITLE_MAX_SP, FICHA_TITLE_MIN_SP, FICHA_TITLE_WANTED_LINES, measure).sp)
+        }
+        sp = fitted
+        titleLines = (sessions.maxOfOrNull { measure.lineCount(it.title, sp, textWidthPx) } ?: 1).coerceIn(1, FICHA_TITLE_MAX_LINES)
+    }
+    val titleStyle = fichaTitleStyleAt(sp)
+
+    val placeGlyph = sessions.any { it.shownPlace() != null }
+    val detailWidthPx = with(density) {
+        (textWidthPx - if (placeGlyph) (PLACE_GLYPH + PLACE_GAP).toPx() else 0f).coerceAtLeast(1f)
+    }
+    val detailLines = sessions.maxOfOrNull { session ->
+        val text = sessionDetailText(session)
+        if (text.isEmpty()) {
+            1
+        } else {
+            measurer.measure(
+                text = text,
+                style = FichaDetailStyle,
+                constraints = Constraints(maxWidth = detailWidthPx.toInt().coerceAtLeast(1)),
+                density = density,
+            ).lineCount
+        }
+    } ?: 1
+    val twoLineDetail = detailLines >= 2
+
+    val block = with(density) {
+        titleStyle.lineHeight.toDp() * titleLines + TITLE_DETAIL_GAP + FichaDetailStyle.lineHeight.toDp() * (if (twoLineDetail) 2 else 1)
+    }
+    return ListMetrics(
+        dayColumn = dayColumn,
+        rowHeight = maxOf(ROW_MIN, block + ROW_PAD * 2),
+        titleStyle = titleStyle,
+        titleLines = titleLines,
+        twoLineDetail = twoLineDetail,
+        placeGlyph = placeGlyph,
+    )
+}
+
+/** Quien sabe dónde está la lista en la ventana, sin que moverla recomponga nada. */
+private class ListAnchor {
+    var coordinates: LayoutCoordinates? = null
+}
+
 @Composable
-private fun WeekStrip(
+private fun WeekList(
     order: List<Int>,
     byId: Map<String, WeekLayoutSession>,
     shown: Map<Int, String>,
@@ -401,51 +487,25 @@ private fun WeekStrip(
     val density = LocalDensity.current
     val haptics = LocalHapticFeedback.current
     val measurer = rememberTextMeasurer()
-    val scroll = rememberScrollState()
-    var viewportWidth by remember { mutableIntStateOf(0) }
+    val pageScroll = LocalWizardPageScroll.current
+    val anchor = remember { ListAnchor() }
 
     BoxWithConstraints(Modifier.fillMaxWidth()) {
-        val fontFactor = density.fontScale.coerceIn(1f, 1.6f)
-        val baseColumn = COLUMN_WIDTH * fontFactor
-        // Si las siete caben, se reparten el ancho y la tira no se desplaza; si no, la siguiente columna asoma casi la mitad.
-        val colWidth = stripColumnWidth(maxWidth.value, baseColumn.value, COLUMN_GAP.value, order.size).dp
-        val colPx = with(density) { colWidth.toPx() }
-
-        // El tamaño común de los títulos (de 16 a 13 sp: el mayor en el que la palabra más larga de cada ficha cabe entera en su
-        // columna) y cuántas líneas necesita el más largo: fija el alto de todas las fichas para que no salten al moverse.
-        val titles = remember(byId) { byId.values.map { it.title } }
-        val titleFit = remember(titles, colPx, density.density, density.fontScale) {
-            val measure = ComposeTitleMeasure(measurer, density, ::fichaTitleStyleAt)
-            // El ancho de cada título es el que de verdad tendrá (con o sin holgura): si no, la ficha reservaría de menos.
-            fun widthOf(title: String): Float =
-                (colPx - with(density) { ((TEXT_SIDE_PAD - titleSlack(title)) * 2).toPx() }).coerceAtLeast(1f)
-            var sp = FICHA_TITLE_MAX_SP
-            for (title in titles) {
-                sp = min(sp, fitTitle(title, widthOf(title), FICHA_TITLE_MAX_SP, FICHA_TITLE_MIN_SP, 2, measure).sp)
-            }
-            val lines = titles.maxOfOrNull { title -> measure.lineCount(title, sp, widthOf(title)) } ?: 1
-            sp to lines.coerceIn(1, FICHA_TITLE_MAX_LINES)
+        val widthPx = constraints.maxWidth.toFloat()
+        val sessions = remember(byId) { byId.values.toList() }
+        val metrics = remember(sessions, widthPx, density.density, density.fontScale) {
+            listMetricsFor(sessions, widthPx, measurer, density)
         }
-        val titleStyle = remember(titleFit.first) { fichaTitleStyleAt(titleFit.first) }
-        val titleLines = titleFit.second
-
-        val metrics = with(density) {
-            val headerHeight = InitialStyle.lineHeight.toDp() + ShortDayStyle.lineHeight.toDp() + HEADER_GAP
-            val bodyHeight = DISC + DISC_TEXT_GAP + titleStyle.lineHeight.toDp() * titleLines + 2.dp +
-                FichaDetailStyle.lineHeight.toDp() * 2
-            StripMetrics(colWidth, COLUMN_GAP, headerHeight, bodyHeight, titleStyle, titleLines)
-        }
-        val geometry = remember(order, metrics.colWidth, metrics.headerHeight, metrics.bodyHeight, density.density, density.fontScale) {
+        val geometry = remember(order, widthPx, metrics, density.density) {
             with(density) {
-                WeekStripGeometry(
+                WeekListGeometry(
                     order = order,
-                    colWidth = metrics.colWidth.toPx(),
-                    gap = metrics.gap.toPx(),
-                    headerHeight = metrics.headerHeight.toPx(),
-                    bodyHeight = metrics.bodyHeight.toPx(),
+                    width = widthPx,
+                    rowHeight = metrics.rowHeight.toPx(),
+                    fichaLeft = (metrics.dayColumn + DAY_GAP).toPx(),
+                    handleWidth = HANDLE_WIDTH.toPx(),
                     dragRange = DRAG_RANGE.toPx(),
                     cancelDistance = CANCEL_DISTANCE.toPx(),
-                    dragUp = DRAG_UP.toPx(),
                 )
             }
         }
@@ -453,7 +513,7 @@ private fun WeekStrip(
         val lifted = state.liftedId
         val hover = state.hoverDay
         val selectedId = state.selectedId
-        // Lo que se dibuja: con una ficha encima de otra ranura, el intercambio ya se ve hecho (vista previa).
+        // Lo que se dibuja: con una ficha encima de otra fila, el intercambio ya se ve hecho (vista previa).
         val display = if (lifted != null && hover != null) swapAssignment(shown, lifted, hover) else shown
         val shownDayById = remember(shown) { shown.entries.associate { it.value to it.key } }
         val displayDayById = remember(display) { display.entries.associate { it.value to it.key } }
@@ -468,7 +528,7 @@ private fun WeekStrip(
             state.retainMotions(byId.keys)
         }
 
-        // Resortes: mientras alguna ficha no haya llegado a su ranura, un bucle de fotogramas las mueve; al llegar, se duerme.
+        // Resortes: mientras alguna ficha no haya llegado a su fila, un bucle de fotogramas las mueve; al llegar, se duerme.
         LaunchedEffect(state, targets, state.epoch, reduced) {
             val motions = state.allMotions
             if (reduced) {
@@ -488,28 +548,26 @@ private fun WeekStrip(
             for (m in motions) m.settleIfIdle()
         }
 
-        // Al abrir: si la primera sesión queda fuera de lo que se ve (días de descanso al principio de la semana), la tira
-        // arranca con ella a la vista. Solo si la persona aún no se ha desplazado.
-        LaunchedEffect(Unit) {
-            snapshotFlow { scroll.maxValue to viewportWidth }.first { (max, width) -> max != Int.MAX_VALUE && width > 0 }
-            val firstIndex = order.indexOfFirst { shown[it] != null }
-            if (scroll.value == 0 && firstIndex > 0 && (firstIndex * geometry.pitch + geometry.colWidth) > viewportWidth) {
-                scroll.scrollTo((firstIndex * geometry.pitch).roundToInt())
-            }
-        }
-
-        // Auto-desplazamiento: con la ficha levantada cerca de un borde, la tira se mueve sola y la ficha sigue al dedo.
+        // Auto-desplazamiento: con la ficha levantada cerca del borde visible de la página (bajo la cabecera o sobre el botón de
+        // confirmar), la página se mueve sola y la ficha sigue al dedo. Sin página que mover (pruebas, vistas previas) no hace nada.
         val edgePx = with(density) { EDGE_ZONE.toPx() }
         val speedPx = with(density) { EDGE_SPEED.toPx() }
-        LaunchedEffect(state, lifted != null) {
-            if (state.liftedId == null) return@LaunchedEffect
+        LaunchedEffect(state, lifted != null, pageScroll) {
+            if (state.liftedId == null || pageScroll == null) return@LaunchedEffect
             var last = withInfiniteAnimationFrameNanos { it }
+            val liftedAt = last
             while (state.liftedId != null) {
                 val now = withInfiniteAnimationFrameNanos { it }
                 val dt = (now - last) / 1_000_000_000f
                 last = now
-                val delta = autoScrollDelta(state.finger.x - scroll.value, viewportWidth.toFloat(), edgePx, speedPx, dt)
-                if (delta != 0f) state.nudge(scroll.scrollBy(delta))
+                // Un respiro tras levantar la ficha: una sesión de la primera o la última fila no debe mover la página sola al agarrarla.
+                if (now - liftedAt < AUTO_SCROLL_GRACE_NANOS) continue
+                val coordinates = anchor.coordinates?.takeIf { it.isAttached } ?: continue
+                val top = pageScroll.visibleTop()
+                val bottom = pageScroll.visibleBottom()
+                val fingerInWindow = coordinates.positionInWindow().y + state.finger.y
+                val delta = autoScrollDelta(fingerInWindow - top, bottom - top, edgePx, speedPx, dt)
+                if (delta != 0f) state.nudge(pageScroll.scrollBy(delta))
             }
         }
 
@@ -521,80 +579,76 @@ private fun WeekStrip(
             }
         }
 
-        val contentWidth = with(density) { geometry.contentWidth.toDp() }
-        val stripHeight = metrics.headerHeight + metrics.bodyHeight
+        val listHeight = with(density) { geometry.height.toDp() }
+        val fichaWidth = with(density) { geometry.fichaWidth.toDp() }
         Box(
             Modifier
                 .fillMaxWidth()
-                .testTag(WEEK_LAYOUT_STRIP_TAG)
-                .onSizeChanged { viewportWidth = it.width }
-                .horizontalEdgeFades(scroll, active = lifted == null)
-                .horizontalScroll(scroll),
+                .height(listHeight)
+                .testTag(WEEK_LAYOUT_LIST_TAG)
+                .onGloballyPositioned { anchor.coordinates = it }
+                // Las filas y las fichas se leen en el orden en que se ven: la lista es un grupo y cada una lleva el índice de su fila.
+                .semantics { isTraversalGroup = true }
+                .then(if (enabled) Modifier.weekLayoutGestures(state, haptics, onTapDay, onDrop) else Modifier),
         ) {
-            Box(
-                Modifier
-                    .width(contentWidth)
-                    .height(stripHeight)
-                    .then(if (enabled) Modifier.weekLayoutGestures(state, haptics, onTapDay, onDrop) else Modifier),
-            ) {
-                // Las ranuras y las fichas se componen repartidas en cuadros (cuatro de golpe y dos más por cuadro): ver
-                // `rememberProgressiveCount`.
-                val shownDays = order.take(rememberProgressiveCount(total = order.size, first = 4, perFrame = 2))
-                Row(horizontalArrangement = Arrangement.spacedBy(metrics.gap)) {
-                    for (day in shownDays) {
-                        WeekSlot(
-                            day = day,
-                            metrics = metrics,
-                            occupied = display[day] != null,
-                            hover = lifted != null && hover == day && hover != state.originDay,
-                            ready = selectedId != null && day != selectedDay,
-                            ghost = ghostDay == day,
-                            railBefore = day != order.first(),
-                            railAfter = day != order.last(),
-                            reduced = reduced,
-                        )
-                    }
+            // Las filas y las fichas se componen repartidas en cuadros (cuatro de golpe y dos más por cuadro): ver
+            // `rememberProgressiveCount`.
+            val shownDays = order.take(rememberProgressiveCount(total = order.size, first = 4, perFrame = 2))
+            Column(Modifier.fillMaxWidth()) {
+                for (day in shownDays) {
+                    WeekRow(
+                        day = day,
+                        rowIndex = order.indexOf(day),
+                        metrics = metrics,
+                        restingOccupied = shown[day] != null,
+                        occupied = display[day] != null,
+                        hover = lifted != null && hover == day && hover != state.originDay,
+                        ready = selectedId != null && day != selectedDay,
+                        ghost = ghostDay == day,
+                        reduced = reduced,
+                        onTap = { onTapDay(day) },
+                    )
                 }
-                // Las fichas van en una capa propia, por encima de las ranuras, y cada una se coloca con su movimiento.
-                Box(Modifier.offset(y = metrics.headerHeight)) {
-                    for (day in shownDays) {
-                        val id = shown[day] ?: continue
-                        val session = byId[id] ?: continue
-                        key(id) {
-                            val motion = state.motionFor(id, geometry.home(displayDayById[id] ?: day))
-                            SessionFicha(
-                                session = session,
-                                day = day,
-                                motion = motion,
-                                state = state,
-                                metrics = metrics,
-                                headerPx = geometry.headerHeight,
-                                selected = selectedId == id,
-                                otherDays = order.filter { it != day },
-                                reduced = reduced,
-                                onTap = { onTapDay(day) },
-                                onMoveTo = { target -> onRequestMove(id, target) },
-                            )
-                        }
-                    }
+            }
+            // Las fichas van en una capa propia, por encima de las filas, y cada una se coloca con su movimiento.
+            for (day in shownDays) {
+                val id = shown[day] ?: continue
+                val session = byId[id] ?: continue
+                key(id) {
+                    val motion = state.motionFor(id, geometry.home(displayDayById[id] ?: day))
+                    SessionFicha(
+                        session = session,
+                        day = day,
+                        rowIndex = order.indexOf(day),
+                        motion = motion,
+                        state = state,
+                        metrics = metrics,
+                        width = fichaWidth,
+                        selected = selectedId == id,
+                        otherDays = order.filter { it != day },
+                        reduced = reduced,
+                        onTap = { onTapDay(day) },
+                        onMoveTo = { target -> onRequestMove(id, target) },
+                    )
                 }
             }
         }
     }
 }
 
-/** Una ranura: la cabecera del día y el disco donde descansa su sesión (o el guion del descanso). */
+/** Una fila: el nombre corto del día, el disco donde descansa su sesión (o el guion del descanso) y un filete debajo. */
 @Composable
-private fun WeekSlot(
+private fun WeekRow(
     day: Int,
-    metrics: StripMetrics,
+    rowIndex: Int,
+    metrics: ListMetrics,
+    restingOccupied: Boolean,
     occupied: Boolean,
     hover: Boolean,
     ready: Boolean,
     ghost: Boolean,
-    railBefore: Boolean,
-    railAfter: Boolean,
     reduced: Boolean,
+    onTap: () -> Unit,
 ) {
     val density = LocalDensity.current
     val spec: AnimationSpec<Float> = if (reduced) snap() else tween(STATE_FADE_MS)
@@ -606,58 +660,71 @@ private fun WeekSlot(
     val dash = remember(density) {
         with(density) { PathEffect.dashPathEffect(floatArrayOf(5.dp.toPx(), 4.dp.toPx())) }
     }
-    // El riel de la semana: un hilo tenue entre un disco y el siguiente. Cada ranura pinta la mitad de su lado del hueco.
-    val railPx = with(density) { ((metrics.colWidth - DISC) / 2 + metrics.gap / 2 + 1.dp).toPx() }
-    Column(
+    val divider = WizardColors.divider
+    Row(
         modifier = Modifier
-            .width(metrics.colWidth)
+            .fillMaxWidth()
+            .height(metrics.rowHeight)
             .testTag(weekLayoutSlotTag(day))
-            // Las ranuras no se leen con TalkBack: la ficha ya dice su día y ofrece «Mover a…».
-            .clearAndSetSemantics { },
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Column(
-            modifier = Modifier
-                .height(metrics.headerHeight)
-                .graphicsLayer { alpha = lerpF(0.7f, 1f, occ.value) },
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(text = weekDayInitial(day), style = InitialStyle, color = WizardColors.text)
-            Text(text = weekDayShort(day), style = ShortDayStyle, color = WizardColors.textMuted)
-        }
-        Box(Modifier.fillMaxWidth().height(metrics.bodyHeight), contentAlignment = Alignment.TopCenter) {
-            Canvas(Modifier.size(DISC)) {
-                drawSlotDisc(
-                    pen, dash, occ.value, hov.value, rdy.value, gho.value,
-                    railBefore = if (railBefore) railPx else 0f,
-                    railAfter = if (railAfter) railPx else 0f,
-                )
+            .drawBehind {
+                val stroke = 1.dp.toPx()
+                if (rowIndex == 0) drawLine(divider, Offset(0f, stroke / 2f), Offset(size.width, stroke / 2f), stroke)
+                drawLine(divider, Offset(0f, size.height - stroke / 2f), Offset(size.width, size.height - stroke / 2f), stroke)
             }
+            // Con una sesión encima, su ficha ya dice el día y ofrece «Mover a…»; un día de descanso se lee como tal y, con una
+            // sesión elegida, ofrece recibirla.
+            .clearAndSetSemantics {
+                traversalIndex = rowIndex.toFloat()
+                if (!restingOccupied) {
+                    contentDescription = "${weekDayName(day)}, descanso"
+                    if (ready) {
+                        role = Role.Button
+                        onClick(label = "Mover aquí la sesión elegida") {
+                            onTap()
+                            true
+                        }
+                    }
+                }
+            },
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(Modifier.width(metrics.dayColumn), contentAlignment = Alignment.CenterStart) {
             Text(
-                text = WeekLayoutCopy.REST,
-                style = FichaDetailStyle,
-                color = WizardColors.textFaint,
-                modifier = Modifier
-                    .padding(top = DISC + DISC_TEXT_GAP)
-                    .graphicsLayer { alpha = (1f - occ.value) * (1f - gho.value) },
+                text = weekDayShort(day),
+                style = DayStyle,
+                color = WizardColors.text,
+                maxLines = 1,
+                modifier = Modifier.graphicsLayer { alpha = lerpF(0.55f, 1f, max(occ.value, hov.value)) },
             )
         }
+        Spacer(Modifier.width(DAY_GAP))
+        Canvas(Modifier.size(DISC)) {
+            drawSlotDisc(pen, dash, occ.value, hov.value, rdy.value, gho.value)
+        }
+        Spacer(Modifier.width(GLYPH_GAP))
+        Text(
+            text = WeekLayoutCopy.REST,
+            style = FichaDetailStyle,
+            color = WizardColors.textFaint,
+            modifier = Modifier.graphicsLayer { alpha = (1f - occ.value) * (1f - gho.value) },
+        )
     }
 }
 
 /**
- * La ficha de una sesión: la mancuerna, el título y «60 min · 6 ejercicios», sin tarjeta. Su posición es la de su
- * [motion] (un resorte hacia su ranura, o el dedo si está levantada) y se aplica como capa gráfica, así moverla no
- * recompone nada.
+ * La ficha de una sesión: la mancuerna, el título, «60 min · 6 ejercicios» y el asa, sin tarjeta. Su posición es la de su
+ * [motion] (un resorte hacia su fila, o el dedo si está levantada) y se aplica como capa gráfica, así moverla no recompone
+ * nada.
  */
 @Composable
 private fun SessionFicha(
     session: WeekLayoutSession,
     day: Int,
+    rowIndex: Int,
     motion: FichaMotion,
     state: WeekLayoutDragState,
-    metrics: StripMetrics,
-    headerPx: Float,
+    metrics: ListMetrics,
+    width: Dp,
     selected: Boolean,
     otherDays: List<Int>,
     reduced: Boolean,
@@ -665,7 +732,7 @@ private fun SessionFicha(
     onMoveTo: (Int) -> Unit,
 ) {
     val dragging = motion.dragging
-    // Fuera de la semana (más allá de su fila): soltar cancela, y la ficha lo avisa con una leve transparencia.
+    // Fuera de la semana (por encima o por debajo de la lista): soltar cancela, y la ficha lo avisa con una leve transparencia.
     val cancelling = dragging && state.hoverDay == null
     val spec: AnimationSpec<Float> = if (reduced) snap() else spring(dampingRatio = 0.62f, stiffness = 520f)
     val lift = animateFloatAsState(if (dragging) 1f else 0f, spec, label = "fichaLift")
@@ -677,17 +744,18 @@ private fun SessionFicha(
     val pen = remember { SymbolPen() }
     val spark = remember { buildSparkPath() }
     val description = remember(session, day) { sessionDescription(session, day) }
+    val place = remember(session) { session.shownPlace() }
 
-    Column(
+    Row(
         modifier = Modifier
-            .width(metrics.colWidth)
-            .height(metrics.bodyHeight)
+            .width(width)
+            .height(metrics.rowHeight)
             .zIndex(if (motion.raised) 1f else 0f)
             .graphicsLayer {
                 val p = motion.pos
                 translationX = p.x
-                translationY = p.y - headerPx
-                val s = 1f + LIFT_SCALE * lift.value + 0.03f * pick.value - 0.03f * cue.value - 0.04f * press.value
+                translationY = p.y
+                val s = 1f + LIFT_SCALE * lift.value + 0.02f * pick.value - 0.02f * cue.value - 0.03f * press.value
                 scaleX = s
                 scaleY = s
                 alpha = 1f - 0.3f * cue.value
@@ -695,6 +763,7 @@ private fun SessionFicha(
             .testTag(weekLayoutSessionTag(session.id))
             // Después de la marca: descarta el texto de los hijos y deja una sola cosa que leer, con su rol, su estado y sus acciones.
             .clearAndSetSemantics {
+                traversalIndex = rowIndex.toFloat() + 0.5f
                 role = Role.Button
                 contentDescription = description
                 if (selected) stateDescription = "Seleccionada"
@@ -709,53 +778,58 @@ private fun SessionFicha(
                     }
                 }
             },
-        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Canvas(Modifier.size(DISC)) {
             drawFichaGlyph(pen, spark, session.isMain, pick.value, lift.value)
         }
-        Spacer(Modifier.height(DISC_TEXT_GAP))
-        Text(
-            text = session.title,
-            style = metrics.titleStyle,
-            color = WizardColors.text,
-            textAlign = TextAlign.Center,
-            maxLines = metrics.titleLines,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(horizontal = TEXT_SIDE_PAD).sideOverflow(titleSlack(session.title)),
-        )
-        Spacer(Modifier.height(2.dp))
-        if (session.minutes > 0) {
+        Spacer(Modifier.width(GLYPH_GAP))
+        Column(Modifier.weight(1f)) {
             Text(
-                text = sessionMinutesText(session.minutes),
-                style = FichaDetailStyle,
-                color = WizardColors.textMuted,
-                textAlign = TextAlign.Center,
-                maxLines = 1,
+                text = session.title,
+                style = metrics.titleStyle,
+                color = WizardColors.text,
+                maxLines = metrics.titleLines,
+                overflow = TextOverflow.Ellipsis,
             )
+            Spacer(Modifier.height(TITLE_DETAIL_GAP))
+            FichaDetail(session = session, place = place, metrics = metrics)
         }
-        if (session.exerciseCount > 0) {
-            Text(
-                text = sessionExercisesText(session.exerciseCount),
-                style = FichaDetailStyle,
-                color = WizardColors.textMuted,
-                textAlign = TextAlign.Center,
-                maxLines = 1,
-            )
+        Canvas(Modifier.width(HANDLE_WIDTH).fillMaxHeight()) {
+            drawGrip(max(lift.value, pick.value))
         }
     }
 }
 
-/**
- * Deja que un texto use hasta [extra] de más a cada lado de su hueco (el aire entre columnas) antes de partir una palabra
- * larga, centrado en su hueco: con letra grande «movilidad» cabe entera en lugar de quedar «movilid / ad». Mide con ese
- * ancho de más pero ocupa lo que cabe: no empuja a nadie.
- */
-private fun Modifier.sideOverflow(extra: Dp): Modifier = layout { measurable, constraints ->
-    val slack = if (constraints.hasBoundedWidth) (extra * 2).roundToPx() else 0
-    val placeable = measurable.measure(constraints.copy(minWidth = 0, maxWidth = constraints.maxWidth + slack))
-    val width = min(placeable.width, constraints.maxWidth)
-    layout(width, placeable.height) { placeable.placeRelative((width - placeable.width) / 2, 0) }
+/** «60 min · 6 ejercicios» (o en dos líneas si en una no cabe), con el glifo del lugar delante cuando la sesión lo dice. */
+@Composable
+private fun FichaDetail(session: WeekLayoutSession, place: TrainingPlace?, metrics: ListMetrics) {
+    val muted = WizardColors.textMuted
+    Row(verticalAlignment = Alignment.Top) {
+        if (metrics.placeGlyph) {
+            // Todas las fichas reservan el sitio del glifo (también las que no lo llevan): los textos quedan alineados.
+            val lineHeight = with(LocalDensity.current) { FichaDetailStyle.lineHeight.toDp() }
+            Box(Modifier.width(PLACE_GLYPH + PLACE_GAP).padding(top = (lineHeight - PLACE_GLYPH) / 2)) {
+                if (place != null) {
+                    Canvas(Modifier.size(PLACE_GLYPH)) {
+                        drawWeekPlaceGlyph(place, center, size.minDimension, muted, 1.4.dp.toPx())
+                    }
+                }
+            }
+        }
+        if (metrics.twoLineDetail) {
+            Column {
+                if (session.minutes > 0) {
+                    Text(sessionMinutesText(session.minutes), style = FichaDetailStyle, color = muted, maxLines = 1)
+                }
+                if (session.exerciseCount > 0) {
+                    Text(sessionExercisesText(session.exerciseCount), style = FichaDetailStyle, color = muted, maxLines = 1)
+                }
+            }
+        } else {
+            Text(sessionDetailText(session), style = FichaDetailStyle, color = muted, maxLines = 1)
+        }
+    }
 }
 
 // ---------------------------------------------------------------- texto de estado, repartos y acciones

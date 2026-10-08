@@ -24,55 +24,57 @@ import kotlin.math.max
 import kotlin.math.min
 
 /*
- * Arrastrar y soltar del tablero de la semana: geometría de la tira, el movimiento con resorte de cada ficha, el estado
- * del arrastre (qué ficha está levantada, sobre qué día pasa, cuál está seleccionada para el «tocar y tocar») y el
- * gesto (toque, pulsación larga y arrastre).
+ * Arrastrar y soltar del tablero de la semana: geometría de la lista de los siete días, el movimiento con resorte de cada
+ * ficha, el estado del arrastre (qué ficha está levantada, sobre qué día pasa, cuál está seleccionada para el «tocar y
+ * tocar») y el gesto (toque, pulsación larga, arrastre desde el asa y desplazamiento de la página).
  *
- * Todo lo que pasa «bajo el dedo» vive aquí en píxeles de CONTENIDO de la tira (el origen es su esquina superior
- * izquierda y no depende de cuánto se haya desplazado), así el auto-desplazamiento y el arrastre no se estorban.
+ * Todo lo que pasa «bajo el dedo» vive aquí en píxeles de CONTENIDO de la lista (el origen es su esquina superior
+ * izquierda y no depende de cuánto se haya desplazado la página), así el auto-desplazamiento y el arrastre no se estorban.
  */
 
 // ---------------------------------------------------------------- geometría
 
 /**
- * Medidas de la tira en píxeles de contenido: [order] son los días de izquierda a derecha, cada columna mide
- * [colWidth] y se separa [gap] de la siguiente; arriba va la cabecera del día ([headerHeight]) y debajo el cuerpo
- * ([bodyHeight]) donde descansa la ficha. [dragRange] es lo que puede separarse una ficha levantada de su fila hacia abajo
- * ([dragUp] hacia arriba: menos, para no tapar la cabecera del día) y [cancelDistance] lo que hay que apartarla para que
- * soltarla cancele.
+ * Medidas de la lista en píxeles de contenido: [order] son los días de arriba abajo, cada fila mide [rowHeight] y ocupa los
+ * [width] píxeles de la lista. La ficha de una sesión empieza en [fichaLeft] (a la derecha de la columna del día) y su asa son
+ * los últimos [handleWidth] píxeles de la fila. [dragRange] es lo que puede salirse una ficha levantada por arriba y por abajo
+ * de la lista y [cancelDistance] lo que hay que apartarla de la lista para que soltarla cancele.
  */
-internal class WeekStripGeometry(
+internal class WeekListGeometry(
     val order: List<Int>,
-    val colWidth: Float,
-    val gap: Float,
-    val headerHeight: Float,
-    val bodyHeight: Float,
+    val width: Float,
+    val rowHeight: Float,
+    val fichaLeft: Float,
+    val handleWidth: Float,
     val dragRange: Float,
     val cancelDistance: Float,
-    val dragUp: Float = dragRange,
 ) {
-    val pitch: Float get() = colWidth + gap
-    val height: Float get() = headerHeight + bodyHeight
-    val contentWidth: Float get() = if (order.isEmpty()) 0f else order.size * colWidth + (order.size - 1) * gap
+    val height: Float get() = order.size * rowHeight
 
-    /** El rectángulo de cada ranura (cabecera y cuerpo), por día. */
+    /** El ancho de una ficha: de [fichaLeft] al borde derecho de la lista. */
+    val fichaWidth: Float get() = (width - fichaLeft).coerceAtLeast(0f)
+
+    /** El rectángulo de cada fila (todo el ancho de la lista), por día. */
     val slotRects: Map<Int, Rect> = order.withIndex().associate { (index, day) ->
-        day to Rect(index * (colWidth + gap), 0f, index * (colWidth + gap) + colWidth, headerHeight + bodyHeight)
+        day to Rect(0f, index * rowHeight, width, (index + 1) * rowHeight)
     }
 
     fun slotIndex(day: Int): Int = order.indexOf(day)
 
-    /** Esquina superior izquierda de una ficha en reposo en la ranura de [day] (un día desconocido cuenta como la primera). */
-    fun home(day: Int): Offset = Offset(max(0, slotIndex(day)) * pitch, headerHeight)
+    /** Esquina superior izquierda de una ficha en reposo en la fila de [day] (un día desconocido cuenta como el primero). */
+    fun home(day: Int): Offset = Offset(fichaLeft, max(0, slotIndex(day)) * rowHeight)
+
+    /** ¿Cae [x] (en píxeles de contenido) sobre el asa, a la derecha de la fila? */
+    fun isHandle(x: Float): Boolean = handleWidth > 0f && x >= width - handleWidth
 
     companion object {
-        val Empty = WeekStripGeometry(emptyList(), 0f, 0f, 0f, 0f, 0f, 0f)
+        val Empty = WeekListGeometry(emptyList(), 0f, 0f, 0f, 0f, 0f, 0f)
     }
 }
 
 // ---------------------------------------------------------------- movimiento de una ficha
 
-/** Rigidez y amortiguación del resorte con que una ficha va a su ranura (ligeramente subamortiguado: llega con un pequeño rebote). */
+/** Rigidez y amortiguación del resorte con que una ficha va a su fila (ligeramente subamortiguado: llega con un pequeño rebote). */
 private const val SPRING_STIFFNESS = 380f
 private const val SPRING_DAMPING = 28f
 
@@ -98,11 +100,11 @@ internal class FichaMotion(initial: Offset) {
     var dragging by mutableStateOf(false)
         private set
 
-    /** Verdadero desde que se levanta hasta que llega a su ranura: mantiene la ficha por encima de las demás. */
+    /** Verdadero desde que se levanta hasta que llega a su fila: mantiene la ficha por encima de las demás. */
     var raised by mutableStateOf(false)
         private set
 
-    /** Esquina superior izquierda de su ranura de destino. */
+    /** Esquina superior izquierda de su fila de destino. */
     var target: Offset = initial
 
     private var vx = 0f
@@ -178,8 +180,8 @@ internal class DragResult(val sessionId: String, val toDay: Int?)
  */
 @Stable
 internal class WeekLayoutDragState {
-    /** Medidas actuales de la tira (las pone el tablero en cada composición). */
-    var geometry: WeekStripGeometry = WeekStripGeometry.Empty
+    /** Medidas actuales de la lista (las pone el tablero en cada composición). */
+    var geometry: WeekListGeometry = WeekListGeometry.Empty
 
     /** Quién ocupa cada día en lo que se ve ahora (día → id de sesión). */
     var occupants: Map<Int, String> = emptyMap()
@@ -189,7 +191,7 @@ internal class WeekLayoutDragState {
     /** Todos los movimientos de fichas que se conocen. */
     val allMotions: Collection<FichaMotion> get() = motions.values
 
-    /** El movimiento de la ficha [id]; la primera vez nace en [initial] (su ranura, sin animación de entrada). */
+    /** El movimiento de la ficha [id]; la primera vez nace en [initial] (su fila, sin animación de entrada). */
     fun motionFor(id: String, initial: Offset): FichaMotion = motions.getOrPut(id) { FichaMotion(initial) }
 
     /** Olvida las fichas de sesiones que ya no existen. */
@@ -225,7 +227,7 @@ internal class WeekLayoutDragState {
 
     private var grab = Offset.Zero
 
-    /** La ranura que queda bajo [point] (en píxeles de contenido), sin tolerancia: es dónde se toca. */
+    /** La fila que queda bajo [point] (en píxeles de contenido), sin tolerancia: es dónde se toca. */
     fun dayAt(point: Offset): Int? = hitSlot(point.x, point.y, geometry.slotRects)
 
     /** La sesión que ocupa [day] ahora mismo. */
@@ -252,27 +254,33 @@ internal class WeekLayoutDragState {
     }
 
     /**
-     * Mueve el dedo a [at]. La ficha lo sigue (sin salirse de la tira por los lados ni más allá de [WeekStripGeometry.dragUp] y
-     * [WeekStripGeometry.dragRange] por arriba y por abajo) y el día de destino sale de dónde queda su centro; si se aparta más de
-     * [WeekStripGeometry.cancelDistance] de su fila, no hay destino.
+     * Mueve el dedo a [at]. La ficha lo sigue solo hacia arriba y abajo (sin salirse de la lista más allá de
+     * [WeekListGeometry.dragRange]) y el día de destino sale de dónde queda su centro; si se aparta de la lista más de
+     * [WeekListGeometry.cancelDistance], no hay destino.
      */
     fun dragTo(at: Offset) {
         val id = liftedId ?: return
         val motion = motions[id] ?: return
         val g = geometry
         finger = at
-        val raw = at - grab
-        val x = raw.x.coerceIn(0f, max(0f, g.contentWidth - g.colWidth))
-        val y = raw.y.coerceIn(g.headerHeight - g.dragUp, g.headerHeight + g.dragRange)
-        motion.dragTo(Offset(x, y))
-        val away = abs(raw.y - g.headerHeight) > g.cancelDistance
-        hoverDay = if (away) null else hitSlot(x + g.colWidth / 2f, g.height / 2f, g.slotRects, slopX = g.gap)
+        val rawTop = at.y - grab.y
+        val minY = -g.dragRange
+        val maxY = max(0f, g.height - g.rowHeight) + g.dragRange
+        val y = rawTop.coerceIn(minY, maxY)
+        motion.dragTo(Offset(g.fichaLeft, y))
+        val rawCenter = rawTop + g.rowHeight / 2f
+        val away = rawCenter < -g.cancelDistance || rawCenter > g.height + g.cancelDistance
+        hoverDay = if (away) {
+            null
+        } else {
+            hitSlot(g.width / 2f, (y + g.rowHeight / 2f).coerceIn(0f, max(0f, g.height - 1f)), g.slotRects)
+        }
     }
 
-    /** El contenido se desplazó [dx] bajo un dedo quieto: la ficha y el destino siguen al dedo. */
-    fun nudge(dx: Float) {
-        if (liftedId == null || dx == 0f) return
-        dragTo(finger + Offset(dx, 0f))
+    /** La página se desplazó [dy] píxeles bajo un dedo quieto: la ficha y el destino siguen al dedo. */
+    fun nudge(dy: Float) {
+        if (liftedId == null || dy == 0f) return
+        dragTo(finger + Offset(0f, dy))
     }
 
     /**
@@ -302,14 +310,15 @@ internal class WeekLayoutDragState {
 
 // ---------------------------------------------------------------- gesto
 
-private enum class PressOutcome { TAP, LONG_PRESS, CANCEL }
+private enum class PressOutcome { TAP, LONG_PRESS, DRAG_FROM_HANDLE, CANCEL }
 
 /**
  * Espera a ver qué es lo que se está haciendo con el dedo recién apoyado: un **toque** (lo levanta pronto sin moverlo),
  * una **pulsación larga** (lo mantiene quieto el tiempo del sistema) o **otra cosa** (lo mueve antes: es un desplazamiento
- * de la tira o de la página y no es cosa nuestra).
+ * de la página y no es cosa nuestra). Si el dedo cayó sobre el asa ([fromHandle]), moverlo hacia arriba o abajo es agarrar la
+ * ficha al momento, sin esperar la pulsación larga.
  */
-private suspend fun AwaitPointerEventScope.awaitPressOutcome(down: PointerInputChange): PressOutcome {
+private suspend fun AwaitPointerEventScope.awaitPressOutcome(down: PointerInputChange, fromHandle: Boolean): PressOutcome {
     val slop = viewConfiguration.touchSlop
     val outcome = withTimeoutOrNull(viewConfiguration.longPressTimeoutMillis) {
         var result: PressOutcome? = null
@@ -322,8 +331,18 @@ private suspend fun AwaitPointerEventScope.awaitPressOutcome(down: PointerInputC
                     change.consume()
                     PressOutcome.TAP
                 }
-                (change.position - down.position).getDistance() > slop -> PressOutcome.CANCEL
-                else -> null
+                else -> {
+                    val moved = change.position - down.position
+                    when {
+                        moved.getDistance() <= slop -> null
+                        fromHandle && abs(moved.y) >= abs(moved.x) -> {
+                            // Se consume ya: así la página no llega a empezar a desplazarse con este mismo movimiento.
+                            change.consume()
+                            PressOutcome.DRAG_FROM_HANDLE
+                        }
+                        else -> PressOutcome.CANCEL
+                    }
+                }
             }
         }
         result
@@ -332,11 +351,11 @@ private suspend fun AwaitPointerEventScope.awaitPressOutcome(down: PointerInputC
 }
 
 /**
- * El gesto del tablero, sobre el contenido de la tira (sus coordenadas son las de contenido):
- *  - un toque sobre una ranura avisa con [onTapDay];
- *  - una pulsación larga sobre una ficha la levanta (háptico) y el dedo la arrastra; al soltar, [onDrop] recibe el
- *    resultado; si el sistema cancela el gesto, la ficha vuelve a su sitio;
- *  - cualquier otro movimiento no se toca, así la tira (y la página) se desplazan como siempre.
+ * El gesto del tablero, sobre el contenido de la lista (sus coordenadas son las de contenido):
+ *  - un toque sobre una fila avisa con [onTapDay];
+ *  - una pulsación larga sobre una ficha, o un arrastre vertical desde su asa, la levanta (háptico) y el dedo la lleva; al
+ *    soltar, [onDrop] recibe el resultado; si el sistema cancela el gesto, la ficha vuelve a su sitio;
+ *  - cualquier otro movimiento no se toca, así la página se desplaza como siempre.
  */
 @Composable
 internal fun Modifier.weekLayoutGestures(
@@ -352,12 +371,14 @@ internal fun Modifier.weekLayoutGestures(
         awaitEachGesture {
             val down = awaitFirstDown(requireUnconsumed = false)
             val startDay = state.dayAt(down.position)
+            val startSession = state.sessionAtDay(startDay)
             // La ficha se hunde un poco desde que se toca: así se nota que el dedo está encima mientras se decide qué es.
-            state.pressedId = state.sessionAtDay(startDay)
+            state.pressedId = startSession
             try {
-                when (awaitPressOutcome(down)) {
+                val fromHandle = startSession != null && state.geometry.isHandle(down.position.x)
+                when (awaitPressOutcome(down, fromHandle)) {
                     PressOutcome.TAP -> if (startDay != null) currentTap(startDay)
-                    PressOutcome.LONG_PRESS -> {
+                    PressOutcome.LONG_PRESS, PressOutcome.DRAG_FROM_HANDLE -> {
                         val id = state.sessionAtDay(startDay)
                         val at = currentEvent.changes.firstOrNull { it.id == down.id }?.position ?: down.position
                         if (id != null && state.lift(id, at)) {

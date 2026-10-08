@@ -55,6 +55,7 @@ import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.WizChatMachineState
 import com.example.kpkn.screens.onboarding.design.KpknModule
+import com.example.kpkn.screens.onboarding.design.LocalWizardPageScroll
 import com.example.kpkn.screens.onboarding.design.ModuleCompleteOverlay
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardDarkSystemBars
@@ -66,6 +67,7 @@ import com.example.kpkn.screens.onboarding.design.WizardPageHeader
 import com.example.kpkn.screens.onboarding.design.WizardPageItem
 import com.example.kpkn.screens.onboarding.design.WizardPageMetrics
 import com.example.kpkn.screens.onboarding.design.WizardPageMode
+import com.example.kpkn.screens.onboarding.design.WizardPageScroll
 import com.example.kpkn.screens.onboarding.design.WizardProgressSegment
 import com.example.kpkn.screens.onboarding.design.WizardScrollLock
 import com.example.kpkn.screens.onboarding.design.WizardShapes
@@ -265,6 +267,13 @@ private fun WizardLongPage(
     )
     val lockMax by rememberUpdatedState(lockMaxPx)
     val lock = remember(scroll) { WizardScrollLock(scroll) { lockMax } }
+    // Quien arrastra algo hasta el borde visible (el tablero de la semana) puede pedirle a la página que se desplace, con el mismo
+    // límite que la persona y dentro de la franja que dejan la cabecera y el botón de confirmar.
+    val bandTop by rememberUpdatedState(headerBottomPx)
+    val bandBottom by rememberUpdatedState(viewportPx - clearancePx)
+    val pageScroll = remember(scroll) {
+        WizardPageScroll(scroll = scroll, limit = { lockMax }, top = { bandTop.toFloat() }, bottom = { bandBottom.toFloat() })
+    }
 
     // Primera vez: colocar la página en el paso del borrador sin animar (reabrir a mitad no
     // arranca arriba). Después: cada cambio de paso desliza hasta el nuevo, sea hacia delante
@@ -307,65 +316,67 @@ private fun WizardLongPage(
                     .nestedScroll(lock)
                     .onSizeChanged { viewportPx = it.height },
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(scroll),
-                ) {
-                    Spacer(Modifier.height(statusTopDp + WizardHeaderBlockHeight))
-                    pages.take(currentIndex + 2).forEachIndexed { index, page ->
-                        key(page) {
-                            val pageMode = when {
-                                index < currentIndex -> WizardPageMode.Completed
-                                index == currentIndex -> WizardPageMode.Active
-                                else -> WizardPageMode.Peek
-                            }
-                            val copy = wizardPageCopy(page, state.draft.goalProfile)
-                            // El resumen se calcula UNA vez, cuando la página queda confirmada, y se guarda: recalcular
-                            // todas las filas con cada pulsación sería caro (alguna consulta el catálogo de planes).
-                            // Una página activa lo marca como caduco para que se recalcule al volver a confirmarse,
-                            // pero conserva el texto anterior mientras la fila se despliega en sección.
-                            val summary = when (pageMode) {
-                                WizardPageMode.Completed -> {
-                                    if (page in staleSummaries || page !in summaries) {
-                                        summaries[page] = setupStepSummary(page, state)
-                                        staleSummaries.remove(page)
+                CompositionLocalProvider(LocalWizardPageScroll provides pageScroll) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(scroll),
+                    ) {
+                        Spacer(Modifier.height(statusTopDp + WizardHeaderBlockHeight))
+                        pages.take(currentIndex + 2).forEachIndexed { index, page ->
+                            key(page) {
+                                val pageMode = when {
+                                    index < currentIndex -> WizardPageMode.Completed
+                                    index == currentIndex -> WizardPageMode.Active
+                                    else -> WizardPageMode.Peek
+                                }
+                                val copy = wizardPageCopy(page, state.draft.goalProfile)
+                                // El resumen se calcula UNA vez, cuando la página queda confirmada, y se guarda: recalcular
+                                // todas las filas con cada pulsación sería caro (alguna consulta el catálogo de planes).
+                                // Una página activa lo marca como caduco para que se recalcule al volver a confirmarse,
+                                // pero conserva el texto anterior mientras la fila se despliega en sección.
+                                val summary = when (pageMode) {
+                                    WizardPageMode.Completed -> {
+                                        if (page in staleSummaries || page !in summaries) {
+                                            summaries[page] = setupStepSummary(page, state)
+                                            staleSummaries.remove(page)
+                                        }
+                                        summaries.getValue(page)
                                     }
-                                    summaries.getValue(page)
+                                    WizardPageMode.Active -> {
+                                        staleSummaries.add(page)
+                                        summaries[page] ?: EMPTY_SUMMARY
+                                    }
+                                    WizardPageMode.Peek -> summaries[page] ?: EMPTY_SUMMARY
                                 }
-                                WizardPageMode.Active -> {
-                                    staleSummaries.add(page)
-                                    summaries[page] ?: EMPTY_SUMMARY
+                                WizardPageItem(
+                                    mode = pageMode,
+                                    eyebrow = wizardEyebrow(page, pages),
+                                    title = copy.title,
+                                    subtitle = copy.subtitle,
+                                    summaryLabel = summary.label,
+                                    summaryValue = summary.value,
+                                    stepTag = "setup-step-${page.name}",
+                                    summaryTag = "setup-summary-${page.name}",
+                                    onEdit = if (pageMode == WizardPageMode.Completed) {
+                                        { viewModel.editStep(page) }
+                                    } else {
+                                        null
+                                    },
+                                    onNaturalHeight = { heights[page] = it },
+                                    reducedMotion = reducedMotion,
+                                    peekWindowPx = peekWindowPx,
+                                    // La última confirmada sigue compuesta (oculta): atrás despliega justo esa.
+                                    keepCard = index == currentIndex - 1,
+                                ) {
+                                    SetupStepContent(step = page, state = state, vm = viewModel)
                                 }
-                                WizardPageMode.Peek -> summaries[page] ?: EMPTY_SUMMARY
-                            }
-                            WizardPageItem(
-                                mode = pageMode,
-                                eyebrow = wizardEyebrow(page, pages),
-                                title = copy.title,
-                                subtitle = copy.subtitle,
-                                summaryLabel = summary.label,
-                                summaryValue = summary.value,
-                                stepTag = "setup-step-${page.name}",
-                                summaryTag = "setup-summary-${page.name}",
-                                onEdit = if (pageMode == WizardPageMode.Completed) {
-                                    { viewModel.editStep(page) }
-                                } else {
-                                    null
-                                },
-                                onNaturalHeight = { heights[page] = it },
-                                reducedMotion = reducedMotion,
-                                peekWindowPx = peekWindowPx,
-                                // La última confirmada sigue compuesta (oculta): atrás despliega justo esa.
-                                keepCard = index == currentIndex - 1,
-                            ) {
-                                SetupStepContent(step = page, state = state, vm = viewModel)
                             }
                         }
+                        // Hueco final: permite anclar arriba incluso un paso corto; el bloqueo de
+                        // scroll impide que el usuario llegue a él arrastrando.
+                        Spacer(Modifier.height(viewportDp))
                     }
-                    // Hueco final: permite anclar arriba incluso un paso corto; el bloqueo de
-                    // scroll impide que el usuario llegue a él arrastrando.
-                    Spacer(Modifier.height(viewportDp))
                 }
             }
         }
