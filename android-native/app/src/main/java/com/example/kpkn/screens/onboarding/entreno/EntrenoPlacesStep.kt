@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 import com.example.kpkn.screens.onboarding.SetupWizardState
 import com.example.kpkn.screens.onboarding.SetupWizardViewModel
 import com.example.kpkn.screens.onboarding.design.entreno.PlaceSymbolRow
+import com.example.kpkn.screens.onboarding.design.entreno.EntrenoWarmupEffect
 
 /**
  * EQUIPMENT · «¿Dónde entrenas?»: las tres escenas dibujadas (gimnasio, en casa, en espacios públicos), de las que se
@@ -19,6 +20,8 @@ import com.example.kpkn.screens.onboarding.design.entreno.PlaceSymbolRow
 @Composable
 internal fun EntrenoPlacesStep(state: SetupWizardState, vm: SetupWizardViewModel) {
     val selected = state.draft.trainingPlaces
+    // Los pasos siguientes arman dibujos y tipografías la primera vez: se prepara ya, en segundo plano.
+    EntrenoWarmupEffect()
     Column(modifier = Modifier.fillMaxWidth()) {
         PlaceSymbolRow(selected = selected, onToggle = vm::togglePlace)
         EntrenoStepNote(placesNote(selected.size))

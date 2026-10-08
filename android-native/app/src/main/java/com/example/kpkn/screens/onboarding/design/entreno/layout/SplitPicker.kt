@@ -47,6 +47,7 @@ import com.example.kpkn.screens.onboarding.design.entreno.SymbolPen
 import com.example.kpkn.screens.onboarding.design.lerpF
 import com.example.kpkn.screens.onboarding.design.seg
 import kotlin.math.max
+import com.example.kpkn.screens.onboarding.design.entreno.rememberProgressiveCount
 
 /*
  * El carril de repartos: un símbolo por reparto (su mini-semana de puntos, su nombre y su resumen), sin cajas. El que se
@@ -106,7 +107,9 @@ internal fun SplitPicker(
             .horizontalScroll(scroll),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        for (option in options) {
+        // Los símbolos se componen repartidos en cuadros (los tres que se ven de golpe y uno más por cuadro): ver `rememberProgressiveCount`.
+        val shownOptions = rememberProgressiveCount(total = options.size, first = 3)
+        for (option in options.take(shownOptions)) {
             key(option.id) {
                 SplitSymbol(
                     option = option,
