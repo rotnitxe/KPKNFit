@@ -82,7 +82,6 @@ class GeneratorPoolsCatalogTest {
         "rings", "trx" -> EquipmentSymbolId.RINGS
         "plyo_box" -> EquipmentSymbolId.BOX
         "ball" -> EquipmentSymbolId.BALL
-        "jump_rope" -> EquipmentSymbolId.JUMP_ROPE
         else -> null
     }
 

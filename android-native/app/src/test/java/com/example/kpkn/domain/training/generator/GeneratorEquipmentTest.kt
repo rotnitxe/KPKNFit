@@ -18,6 +18,7 @@ import org.junit.Test
 /**
  * Paquete E · el material del generador sale SOLO del resolutor compartido: `DayEquipment` no añade tokens por su cuenta
  * (antes parcheaba `trx`/`rings`, `plyo_box` y `jump_rope`) y todo lo que piden las reservas lo acredita algún símbolo.
+ * La cuerda de saltar ya no tiene símbolo (ningún ejercicio la usa); su llave interna sigue en el resolutor.
  */
 class GeneratorEquipmentTest {
 
@@ -53,13 +54,15 @@ class GeneratorEquipmentTest {
     }
 
     @Test
-    fun rings_box_and_rope_reach_the_generator_through_the_resolver() {
+    fun rings_and_box_reach_the_generator_through_the_resolver_and_no_symbol_credits_the_rope() {
         val rings = DayEquipment(EquipmentProfiles.homeRingsBox.availability)
         assertTrue("trx" in rings.tokens && "rings" in rings.tokens && "plyo_box" in rings.tokens)
         assertFalse(rings.hasJumpRope)
-        val rope = DayEquipment(EquipmentProfile("casa con cuerda", home, setOf(EquipmentSymbolId.JUMP_ROPE)).availability)
-        assertTrue(rope.hasJumpRope && rope.has("jump_rope"))
-        assertFalse("trx" in rope.tokens || "plyo_box" in rope.tokens)
+        // La llave sigue en el resolutor (la leerá el lote de catálogo que dé de alta la comba), pero ningún símbolo la escribe.
+        for (places in listOf(home, park, setOf(TrainingPlace.GYM), TrainingPlace.entries.toSet())) {
+            val everything = DayEquipment(EquipmentSymbols.availabilityOf(EquipmentSymbols.selectable.toSet(), places))
+            assertFalse("los símbolos no acreditan la cuerda en $places", everything.hasJumpRope || everything.has("jump_rope"))
+        }
 
         val trxCurl = requireNotNull(index.entry("biceps_curl_trx__supinated"))
         assertTrue("con anillas la configuración TRX se puede ejecutar", rings.allows(trxCurl, listOf("rings")))

@@ -6,12 +6,11 @@ import com.example.kpkn.screens.onboarding.design.clamp01
 import com.example.kpkn.screens.onboarding.design.lerpF
 import com.example.kpkn.screens.onboarding.design.seg
 import kotlin.math.PI
-import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
 
 /*
- * Símbolos de implemento de cuerpo y movimiento: paralelas, anillas, bandas, balón, cuerda, cajón, cardio y solo
+ * Símbolos de implemento de cuerpo y movimiento: paralelas, anillas, bandas, balón, cajón, cardio y solo
  * peso corporal. Misma familia que los de `EquipmentSymbolArt.kt` (lienzo de 64 × 64, línea fina, un acento).
  */
 
@@ -140,46 +139,6 @@ internal object BallArt : EquipmentArt(SymbolPalette.ok, period = 1.3f, restT = 
             line(32f - R, cy, 32f + R, cy, accent, 1.8f)
             curve(22f, cy - 9.8f, 29f, cy, 22f, cy + 9.8f, accent, 1.8f)
             curve(42f, cy - 9.8f, 35f, cy, 42f, cy + 9.8f, accent, 1.8f)
-        }
-    }
-}
-
-// ---------------------------------------------------------------- Cuerda de saltar
-
-private val ROPE_GRIPS = floatArrayOf(38f, 42f, 46f)
-
-/** La cuerda gira entre dos empuñaduras: pasa por encima y por debajo. Acento: columna. */
-internal object JumpRopeArt : EquipmentArt(SymbolPalette.columna, period = 1.1f, restT = 0.7f) {
-    private const val CX = 32f
-    private const val CY = 30f
-    private const val RX = 25.25f
-    private const val REACH = 26f
-
-    /** Posición de la cuerda: > 0 pasa por encima de las asas, < 0 por debajo (entre −1 y 1). */
-    internal fun ropeLift(t: Float, lagRad: Float = 0f): Float = sin(TAU * t / period - lagRad)
-
-    override fun drawStatic(pen: SymbolPen) = with(pen) {
-        box(4f, 30f, 9.5f, 52f, 2.4f, ink)
-        box(54.5f, 30f, 60f, 52f, 2.4f, ink)
-        // Rayas de agarre de las empuñaduras.
-        for (y in ROPE_GRIPS) {
-            line(5.8f, y, 7.7f, y, soft, SymbolStroke.FINE)
-            line(56.3f, y, 58.2f, y, soft, SymbolStroke.FINE)
-        }
-    }
-
-    override fun drawDynamic(pen: SymbolPen, t: Float) = with(pen) {
-        // Un rastro tenue detrás de la cuerda da sensación de velocidad.
-        rope(ropeLift(t, 0.55f), accent.fainter(0.3f))
-        rope(ropeLift(t), accent)
-    }
-
-    private fun SymbolPen.rope(s: Float, color: androidx.compose.ui.graphics.Color) {
-        val ry = REACH * abs(s)
-        if (ry < 0.8f) {
-            line(6.75f, CY, 57.25f, CY, color)
-        } else {
-            ovalArc(CX, CY, RX, ry, 180f, if (s > 0f) 180f else -180f, color)
         }
     }
 }

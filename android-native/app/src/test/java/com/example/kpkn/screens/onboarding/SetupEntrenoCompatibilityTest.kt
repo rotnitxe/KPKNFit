@@ -1,11 +1,15 @@
 package com.example.kpkn.screens.onboarding
 
+import com.example.kpkn.data.models.ApparatusPresence
 import com.example.kpkn.data.models.AutoregulationMode
 import com.example.kpkn.data.models.EquipmentAvailability
 import com.example.kpkn.data.models.EquipmentCategory
 import com.example.kpkn.data.models.PowerliftingProfile
 import com.example.kpkn.data.protocols.SetRecipe
+import com.example.kpkn.domain.onboarding.EquipmentSymbolId
+import com.example.kpkn.domain.onboarding.EquipmentSymbols
 import com.example.kpkn.domain.onboarding.LiftMark
+import com.example.kpkn.domain.onboarding.SetupApparatusPanel
 import com.example.kpkn.domain.onboarding.SetupAnswerProvenance
 import com.example.kpkn.domain.onboarding.SetupProgressOrigin
 import com.example.kpkn.domain.onboarding.SetupStepGraph
@@ -15,6 +19,7 @@ import com.example.kpkn.domain.onboarding.SetupWizardBlock
 import com.example.kpkn.domain.onboarding.TrainingGoalProfile
 import com.example.kpkn.domain.onboarding.TrainingPlace
 import com.example.kpkn.domain.training.TrainingOptions
+import com.example.kpkn.domain.training.effectiveEquipment
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -107,6 +112,60 @@ class SetupEntrenoCompatibilityTest {
         assertNull(repaired.stepSelections[SetupStepId.EQUIPMENT])
         assertNull(repaired.stepSelections[SetupStepId.AVAILABILITY])
         assertEquals(setOf("gym"), repaired.selectedValues(SetupStepId.EQUIPMENT))
+    }
+
+    // ── Material retirado: la cuerda de saltar ─────────────────────────────────
+
+    /** Lo que escribía el símbolo retirado: su llave y, con ella, la categoría de cardio (que por sí sola acredita las máquinas). */
+    private fun withTheRope(base: EquipmentAvailability, rope: ApparatusPresence = ApparatusPresence.PRESENT) = base.copy(
+        categories = base.categories + EquipmentCategory.CARDIO,
+        supports = base.supports + (EquipmentSymbols.RETIRED_JUMP_ROPE_KEY to rope) +
+            (EquipmentSymbols.CARDIO_MACHINE_KEY to ApparatusPresence.ABSENT),
+    )
+
+    private fun cardioToken(availability: EquipmentAvailability) =
+        "cardio" in TrainingOptions(availability = availability).effectiveEquipment(emptySet())
+
+    @Test
+    fun aDraftThatHadTheJumpRopeIsReadWithoutItAndWithoutTheMachinesItBroughtAlong() {
+        val home = setOf(TrainingPlace.HOME)
+        val chosen = setOf(EquipmentSymbolId.DUMBBELLS, EquipmentSymbolId.BENCH)
+        val old = withTheRope(EquipmentSymbols.availabilityOf(chosen, home))
+        assertTrue("el material de antes acreditaba máquinas por la categoría de cardio de la cuerda", cardioToken(old))
+
+        val repaired = SetupDraftCompatibility.repair(oldDraft(environment = "home", availability = old, graphRevision = 4))
+        val availability = checkNotNull(repaired.trainingOptions.availability)
+        assertEquals(chosen, EquipmentSymbols.selectedFrom(availability))
+        assertEquals("el resto del material sale igual", EquipmentSymbols.availabilityOf(chosen, home), availability)
+        assertFalse(EquipmentSymbols.RETIRED_JUMP_ROPE_KEY in availability.supports || EquipmentCategory.CARDIO in availability.categories)
+        assertFalse("sin la cuerda ya no hay máquinas", cardioToken(availability))
+        // Idempotente: volver a abrir el borrador no cambia nada.
+        assertEquals(availability, SetupDraftCompatibility.repair(repaired).trainingOptions.availability)
+    }
+
+    @Test
+    fun aDraftThatOnlyHadTheRopeBecomesBodyweightOnlyAndKeepsTheBikeItConfirmed() {
+        val rope = withTheRope(EquipmentAvailability())
+        val old = rope.copy(apparatus = rope.apparatus + (SetupApparatusPanel.OUTDOOR_BIKE_KEY to ApparatusPresence.PRESENT))
+        val repaired = SetupDraftCompatibility.repair(oldDraft(environment = "home", availability = old))
+        val availability = checkNotNull(repaired.trainingOptions.availability)
+        assertEquals(setOf(EquipmentSymbolId.BODYWEIGHT_ONLY), EquipmentSymbols.selectedFrom(availability))
+        assertTrue("la bicicleta que ya había confirmado se conserva", SetupApparatusPanel.hasBike(availability))
+        assertFalse(cardioToken(availability))
+    }
+
+    @Test
+    fun theKeyOfARopeTheyLeftOutIsCleanedToo_andTheCardioMachinesTheyDidChooseStay() {
+        val gym = setOf(TrainingPlace.GYM)
+        // Cualquier borrador que abrió el paso de material con la cuadrícula anterior trae la llave de la cuerda, también ausente.
+        val seeded = EquipmentSymbols.availabilityOf(EquipmentSymbols.seedFor(gym), gym)
+        val old = seeded.copy(supports = seeded.supports + (EquipmentSymbols.RETIRED_JUMP_ROPE_KEY to ApparatusPresence.ABSENT))
+        val repaired = SetupDraftCompatibility.repair(oldDraft(environment = "gym", availability = old)).trainingOptions.availability
+        assertEquals("el gimnasio sale igual (con su «Cardio»)", seeded, repaired)
+        assertTrue(EquipmentSymbolId.CARDIO in EquipmentSymbols.selectedFrom(repaired))
+        // Un borrador sin la llave no se toca.
+        val untouched = SetupDraftCompatibility.repair(oldDraft(environment = "gym", availability = seeded)).trainingOptions.availability
+        assertEquals(seeded, untouched)
     }
 
     // ── Objetivo ───────────────────────────────────────────────────────────────

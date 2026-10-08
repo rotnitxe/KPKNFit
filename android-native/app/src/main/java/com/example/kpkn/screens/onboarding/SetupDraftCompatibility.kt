@@ -5,8 +5,10 @@ import com.example.kpkn.data.onboarding.SetupDraftResolver
 import com.example.kpkn.data.onboarding.SetupDraftScope
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.domain.onboarding.EntrenoStepValues
+import com.example.kpkn.domain.onboarding.EquipmentSymbols
 import com.example.kpkn.domain.onboarding.LiftMark
 import com.example.kpkn.domain.onboarding.SetupAnswerProvenance
+import com.example.kpkn.domain.onboarding.SetupApparatusPanel
 import com.example.kpkn.domain.onboarding.SetupPreviewKind
 import com.example.kpkn.domain.onboarding.SetupProgressOrigin
 import com.example.kpkn.domain.onboarding.SetupStepGraph
@@ -123,6 +125,9 @@ object SetupDraftCompatibility {
      * - Quien empieza recibe la técnica derivada («1 · Aprendiendo», procedencia DERIVED): ya no la ve.
      * - Los borradores anteriores a la ruta nueva dejan la autorregulación en «sugerir y confirmar» y el calentamiento
      *   en el preset del programa (esos pasos salieron del alta).
+     * - «Cuerda de saltar» salió de la cuadrícula de material (ningún ejercicio ni tipo de cardio la usa): la llave que el
+     *   símbolo escribía y la categoría de cardio que traía con ella (que por sí sola acredita las máquinas) no se quedan
+     *   en el borrador; la disponibilidad se rehace desde los símbolos que sí existen y conserva la bicicleta.
      * - Si el bloque de entreno ya estaba completo, sus pasos nuevos sin responder lo marcan como pendiente de revisión.
      */
     internal fun migrateEntrenoV2(draft: SetupWizardDraft): SetupWizardDraft {
@@ -142,6 +147,14 @@ object SetupDraftCompatibility {
         // El material se lee de la disponibilidad: una selección guardada con categorías antiguas se desfasaría.
         if (SetupStepId.AVAILABILITY in current.stepSelections) {
             current = current.copy(stepSelections = current.stepSelections - SetupStepId.AVAILABILITY)
+        }
+        // Símbolo retirado: la cuerda de saltar. Se limpia SOLO si el borrador trae su llave (presente o ausente); el resto
+        // del material sale igual porque el ida y vuelta símbolos ↔ disponibilidad es exacto.
+        current.trainingOptions.availability?.takeIf { EquipmentSymbols.RETIRED_JUMP_ROPE_KEY in it.supports }?.let { availability ->
+            val rebuilt = EquipmentSymbols.availabilityOf(EquipmentSymbols.selectedFrom(availability), current.trainingPlaces)
+            current = current.copy(
+                trainingOptions = current.trainingOptions.copy(availability = SetupApparatusPanel.withBikeOf(availability, rebuilt)),
+            )
         }
         // Perfil ← objetivo.
         val legacyGoal = current.goal

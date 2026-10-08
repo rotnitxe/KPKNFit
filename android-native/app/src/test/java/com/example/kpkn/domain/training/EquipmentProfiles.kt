@@ -53,7 +53,7 @@ internal object EquipmentProfiles {
     /** Combinaciones que ejercitan lo que cada símbolo y cada lugar añaden. */
     val extra: List<EquipmentProfile> = listOf(
         profile("casa con barra, rack y banco", home, EquipmentSymbolId.BARBELL, EquipmentSymbolId.RACK, EquipmentSymbolId.BENCH),
-        profile("casa con cuerda de saltar", home, EquipmentSymbolId.JUMP_ROPE),
+        profile("casa con cardio", home, EquipmentSymbolId.CARDIO),
         profile(
             "parque con banco y anillas", park,
             EquipmentSymbolId.PULL_UP_BAR, EquipmentSymbolId.PARALLEL_BARS, EquipmentSymbolId.BENCH, EquipmentSymbolId.RINGS,

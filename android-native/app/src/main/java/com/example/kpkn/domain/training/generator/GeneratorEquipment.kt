@@ -64,5 +64,10 @@ internal class DayEquipment(val availability: EquipmentAvailability) {
     }
 
     val hasCardioMachines: Boolean get() = "cardio" in tokens
+
+    /**
+     * Sin símbolo ni ejercicio que la use (comba: pendiente de alta en el catálogo): lo único que acredita la llave
+     * `jump_rope` es un borrador o unos ajustes antiguos. Se deja para el lote de catálogo que dé de alta la comba.
+     */
     val hasJumpRope: Boolean get() = "jump_rope" in tokens
 }

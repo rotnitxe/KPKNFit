@@ -317,7 +317,7 @@ class EntrenoDeclarationEffectTest {
             table += "material:${symbol.name} · la base ${if (baseUses) "usa" else "no usa"} el implemento $equipmentId"
         }
         table += "material sin efecto en el programa de casa (STRENGTH_MUSCLE, 4 días, 60 min): ${withoutProgramEffect.joinToString { it.name }.ifEmpty { "ninguno" }}"
-        // Lo que no se nota en un programa de fuerza (la cuerda de saltar, el cardio de gimnasio) se nota en los que llevan cardio.
+        // Lo que no se nota en un programa de fuerza (el cardio de gimnasio) se nota en los que llevan cardio.
         withoutProgramEffect.toList().forEach { symbol ->
             val probes = listOf(TrainingGoalProfile.STRENGTH_CARDIO, TrainingGoalProfile.FUNCTIONAL_HEALTH)
             val effects = probes.map { profile ->
@@ -330,11 +330,11 @@ class EntrenoDeclarationEffectTest {
             }
         }
         table += "material sin efecto en ningún programa probado: ${withoutProgramEffect.joinToString { it.name }.ifEmpty { "ninguno" }}"
-        // Dos símbolos del paso de material no los lee ningún generador (la cuerda de saltar no tiene contenido en el catálogo y el
-        // cardio de gimnasio solo se usaría si la persona no hubiera elegido su cardio, que el asistente siempre pregunta). Es una
-        // decisión pendiente (quitarlos del paso o darles consumo); mientras tanto la lista exacta queda fijada aquí y en
-        // `WIZARD_ENTRENO_V2.md` §3: si se cablea uno, o se rompe otro símbolo, esta prueba lo dice.
-        val knownWithoutConsumer = setOf(EquipmentSymbolId.JUMP_ROPE, EquipmentSymbolId.CARDIO)
+        // La cuerda de saltar salió de la cuadrícula (ningún ejercicio la usa). Queda un símbolo que no cambia ningún programa por
+        // sí solo: el cardio de gimnasio solo se usaría si la persona no hubiera elegido su cardio, que el asistente siempre
+        // pregunta. La lista exacta queda fijada aquí y en `WIZARD_ENTRENO_V2.md` §3: si se cablea, o se rompe otro símbolo, esta
+        // prueba lo dice.
+        val knownWithoutConsumer = setOf(EquipmentSymbolId.CARDIO)
         if (withoutProgramEffect.toSet() != knownWithoutConsumer) {
             failures += "material: los símbolos que no cambian ningún programa son ${withoutProgramEffect.joinToString { it.name }.ifEmpty { "ninguno" }} " +
                 "y se esperaban ${knownWithoutConsumer.joinToString { it.name }}: actualiza esta lista y WIZARD_ENTRENO_V2.md §3"

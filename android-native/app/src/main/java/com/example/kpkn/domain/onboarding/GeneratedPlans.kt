@@ -97,7 +97,7 @@ object GeneratedPlans {
  * - cada lugar conserva lo que trae de serie ([EquipmentSymbols.seedFor]) y la persona dejó marcado;
  * - lo que la persona añadió por encima de las semillas de sus lugares («extras») va a casa si casa está entre los
  *   lugares y se ofrece allí; al gimnasio y a los espacios públicos solo llegan los extras que se llevan encima
- *   (bandas, cuerda de saltar, anillas o TRX);
+ *   (bandas, anillas o TRX);
  * - con un solo lugar no hay reparto: manda la disponibilidad declarada (mapa vacío).
  *
  * Ejemplo: gimnasio + casa con lo habitual del gimnasio y unas anillas → el día de gimnasio usa todo eso y el de casa,
@@ -106,7 +106,7 @@ object GeneratedPlans {
 object PlaceMaterial {
 
     /** Lo que se lleva encima de un lugar a otro. */
-    val PORTABLE: Set<EquipmentSymbolId> = setOf(EquipmentSymbolId.BANDS, EquipmentSymbolId.JUMP_ROPE, EquipmentSymbolId.RINGS)
+    val PORTABLE: Set<EquipmentSymbolId> = setOf(EquipmentSymbolId.BANDS, EquipmentSymbolId.RINGS)
 
     fun byPlace(
         selected: Set<EquipmentSymbolId>,

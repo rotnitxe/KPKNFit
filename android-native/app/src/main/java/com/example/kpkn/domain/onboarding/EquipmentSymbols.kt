@@ -16,7 +16,7 @@ import com.example.kpkn.domain.training.SymbolEquipmentKeys
  *   escriben `ABSENT` (nunca `UNKNOWN`): la persona los vio y los dejó fuera, así los planes dicen «te falta el rack» y
  *   no vuelven a preguntar «¿tienes rack?».
  * - **Gimnasio asume todo lo habitual** ([seedFor]): barra, rack, banco, mancuernas, kettlebells, poleas, máquinas,
- *   Smith/Multipower, barra de dominadas, paralelas, bandas, balón, cajón, cuerda y cardio. Nada exótico. Las llaves
+ *   Smith/Multipower, barra de dominadas, paralelas, bandas, balón, cajón y cardio. Nada exótico. Las llaves
  *   «de gimnasio» que no tienen símbolo propio (barra EZ, hexagonal y T, predicador, banco declinado y de hiperextensión,
  *   doble polea, cuerda de polea, barra baja, GHD y rueda abdominal) quedan presentes mientras haya gimnasio y su símbolo
  *   madre esté elegido. Los discos acompañan a la barra en cualquier lugar donde se ofrezca, y la barra de dominadas de
@@ -28,21 +28,29 @@ import com.example.kpkn.domain.training.SymbolEquipmentKeys
  * - **Casa** no asume nada y **espacios públicos** asumen la estructura típica de un parque de calistenia.
  * - [BODYWEIGHT_ONLY][EquipmentSymbolId.BODYWEIGHT_ONLY] es exclusivo y equivale a «ningún implemento»: el motor
  *   recibe categorías vacías (solo cuerpo).
- * - Los símbolos que el subpanel curado no pinta (anillas, cajón, cuerda de saltar, cardio) viajan como llaves propias
- *   ([RINGS_KEY], [BOX_KEY], [JUMP_ROPE_KEY], [CARDIO_MACHINE_KEY]) en `supports`. El resolutor acredita las tres
- *   primeras (`SYMBOL_EQUIPMENT_KEYS`: anillas = `trx` y `rings`; cajón = `plyo_box` y, además, `support`, un apoyo
- *   elevado; cuerda); la del cardio solo hace exacto el ida y
- *   vuelta: dos símbolos que comparten categoría (cardio y cuerda de saltar, o todos los de soporte) se distinguen por su
- *   llave, así que `selectedFrom(availabilityOf(S, lugares)) == S` para toda selección S de símbolos visibles (la
- *   selección vacía vuelve como «solo peso corporal»). Los extras de arriba nunca entran en esa lectura inversa.
+ * - Los símbolos que el subpanel curado no pinta (anillas, cajón, cardio) viajan como llaves propias
+ *   ([RINGS_KEY], [BOX_KEY], [CARDIO_MACHINE_KEY]) en `supports`. El resolutor acredita las dos primeras
+ *   (`SYMBOL_EQUIPMENT_KEYS`: anillas = `trx` y `rings`; cajón = `plyo_box` y, además, `support`, un apoyo elevado); la
+ *   del cardio solo hace exacto el ida y vuelta: los símbolos que comparten categoría (todos los de soporte) se
+ *   distinguen por su llave, así que `selectedFrom(availabilityOf(S, lugares)) == S` para toda selección S de símbolos
+ *   visibles (la selección vacía vuelve como «solo peso corporal»). Los extras de arriba nunca entran en esa lectura inversa.
+ * - **La bicicleta al aire libre no es un símbolo ni es de un lugar**: es de la persona
+ *   ([SetupApparatusPanel.OUTDOOR_BIKE_KEY], que escribe la casilla «Tengo bicicleta» del paso de cardio). Viaja en
+ *   `apparatus`, no cuenta como material para saber si se declaró algo ([selectedFrom]) y [availabilityOf] no la escribe:
+ *   quien rehace la disponibilidad desde los símbolos la conserva con [SetupApparatusPanel.withBikeOf].
+ * - **La cuerda de saltar salió de la cuadrícula**: ningún ejercicio del catálogo ni tipo de cardio la usa (comba:
+ *   pendiente de alta en el catálogo). Su llave interna (`jump_rope`, [RETIRED_JUMP_ROPE_KEY]) sigue en el resolutor y
+ *   solo la reconoce la migración de borradores antiguos para limpiarla.
  */
 object EquipmentSymbols {
 
     const val RINGS_KEY = SymbolEquipmentKeys.RINGS
     const val BOX_KEY = SymbolEquipmentKeys.PLYO_BOX
-    const val JUMP_ROPE_KEY = SymbolEquipmentKeys.JUMP_ROPE
 
-    /** Cardio de gimnasio o de casa (cinta, bici, elíptica…): el símbolo comparte categoría con la cuerda de saltar. */
+    /** Llave del símbolo retirado «Cuerda de saltar»: nadie la escribe ya; un borrador antiguo puede traerla y se limpia al abrirlo. */
+    const val RETIRED_JUMP_ROPE_KEY = SymbolEquipmentKeys.JUMP_ROPE
+
+    /** Cardio de gimnasio o de casa (cinta, bici, elíptica…): abre las máquinas del paso CARDIO_TYPE. */
     const val CARDIO_MACHINE_KEY = "cardio_machine"
 
     private data class Spec(
@@ -152,11 +160,6 @@ object EquipmentSymbols {
         EquipmentSymbolId.BALL to Spec(
             categories = setOf(EquipmentCategory.BALL),
             places = INDOORS, seededBy = setOf(GYM),
-        ),
-        EquipmentSymbolId.JUMP_ROPE to Spec(
-            categories = setOf(EquipmentCategory.CARDIO),
-            supports = setOf(JUMP_ROPE_KEY),
-            places = ANYWHERE, seededBy = setOf(GYM),
         ),
         EquipmentSymbolId.BOX to Spec(
             categories = setOf(EquipmentCategory.SUPPORT),
@@ -291,8 +294,10 @@ object EquipmentSymbols {
      */
     fun selectedFrom(availability: EquipmentAvailability?): Set<EquipmentSymbolId> {
         if (availability == null) return emptySet()
+        // La bicicleta de la persona no es material de ningún símbolo: no cuenta para saber si se declaró algo.
         if (availability.categories.isEmpty()) {
-            return if (availability.hasExplicitPresence || availability.apparatus.isNotEmpty() || availability.supports.isNotEmpty()) {
+            val material = SetupApparatusPanel.withoutBike(availability)
+            return if (material.hasExplicitPresence || material.apparatus.isNotEmpty() || material.supports.isNotEmpty()) {
                 emptySet()
             } else {
                 setOf(EquipmentSymbolId.BODYWEIGHT_ONLY)

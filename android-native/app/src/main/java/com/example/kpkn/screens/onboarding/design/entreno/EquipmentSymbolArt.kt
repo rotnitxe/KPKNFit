@@ -30,7 +30,6 @@ internal fun equipmentArt(id: EquipmentSymbolId): SymbolArt = when (id) {
     EquipmentSymbolId.RINGS -> RingsArt
     EquipmentSymbolId.BANDS -> BandsArt
     EquipmentSymbolId.BALL -> BallArt
-    EquipmentSymbolId.JUMP_ROPE -> JumpRopeArt
     EquipmentSymbolId.BOX -> BoxArt
     EquipmentSymbolId.CARDIO -> CardioArt
     EquipmentSymbolId.BODYWEIGHT_ONLY -> BodyweightArt

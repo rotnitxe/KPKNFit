@@ -37,8 +37,11 @@ object SetupApparatusPanel {
     /**
      * Clave de presencia de bicicleta al aire libre (§15.1: BIKE_OUTDOOR
      * exige confirmar acceso si no consta; no se hereda por marcar «Cardio»).
-     * No es una clave curada del panel de gimnasio: se confirma en el propio
+     * No es una clave curada del panel de gimnasio: se declara en el propio
      * paso de cardio, con presencia — nunca con kilos ni cantidades.
+     *
+     * La bicicleta es de la persona, no de un lugar ni de un símbolo de material: al rehacer la
+     * disponibilidad desde los símbolos (cambiar de material o de lugares) se conserva con [withBikeOf].
      */
     const val OUTDOOR_BIKE_KEY = "outdoor_bike"
 
@@ -110,6 +113,26 @@ object SetupApparatusPanel {
     /** Presencia de una clave; ausente = UNKNOWN (nunca PRESENT implícito). */
     fun presenceOf(availability: EquipmentAvailability?, key: String): ApparatusPresence =
         availability?.presenceOf(key) ?: ApparatusPresence.UNKNOWN
+
+    /** ¿La persona declaró que tiene bicicleta al aire libre? Solo [ApparatusPresence.PRESENT] lo afirma. */
+    fun hasBike(availability: EquipmentAvailability?): Boolean =
+        presenceOf(availability, OUTDOOR_BIKE_KEY) == ApparatusPresence.PRESENT
+
+    /** La misma disponibilidad sin la bicicleta: lo que queda es el material de los símbolos y nada más. */
+    fun withoutBike(availability: EquipmentAvailability): EquipmentAvailability = availability.copy(
+        apparatus = availability.apparatus - OUTDOOR_BIKE_KEY,
+        supports = availability.supports - OUTDOOR_BIKE_KEY,
+    )
+
+    /**
+     * La disponibilidad [rebuilt] (rehecha desde los símbolos de material) con la bicicleta que [previous] declaró: la
+     * bicicleta no es material de ningún símbolo, así que rehacer el material no la borra. Sin declaración previa no
+     * se escribe nada.
+     */
+    fun withBikeOf(previous: EquipmentAvailability?, rebuilt: EquipmentAvailability): EquipmentAvailability {
+        val presence = previous?.presenceOf(OUTDOOR_BIKE_KEY)?.takeIf { it != ApparatusPresence.UNKNOWN } ?: return rebuilt
+        return rebuilt.copy(apparatus = rebuilt.apparatus + (OUTDOOR_BIKE_KEY to presence))
+    }
 
     /**
      * Escritura pura de UNA presencia sobre la disponibilidad confirmada.

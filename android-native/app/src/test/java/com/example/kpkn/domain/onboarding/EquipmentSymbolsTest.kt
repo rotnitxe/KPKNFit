@@ -105,24 +105,67 @@ class EquipmentSymbolsTest {
     }
 
     @Test
-    fun jumpRopeAndCardioShareACategoryButTheRoundTripKeepsThemApart() {
-        // Antes de la llave propia del cardio, elegir solo la cuerda de saltar devolvía también «Cardio».
-        assertEquals(
-            setOf(EquipmentSymbolId.JUMP_ROPE),
-            roundTrip(setOf(EquipmentSymbolId.JUMP_ROPE), gym),
+    fun cardioIsTheOnlySymbolOfItsCategoryAndTheJumpRopeLeftTheGrid() {
+        // Solo «Cardio» escribe la categoría de cardio (que por sí sola acredita las máquinas) y su llave.
+        assertEquals(setOf(EquipmentSymbolId.CARDIO), roundTrip(setOf(EquipmentSymbolId.CARDIO), gym))
+        assertEquals(setOf(EquipmentSymbolId.CARDIO), roundTrip(setOf(EquipmentSymbolId.CARDIO), home))
+        val cardio = EquipmentSymbols.availabilityOf(setOf(EquipmentSymbolId.CARDIO), home)
+        assertEquals(setOf(EquipmentCategory.CARDIO), cardio.categories)
+        assertEquals(ApparatusPresence.PRESENT, cardio.presenceOf(EquipmentSymbols.CARDIO_MACHINE_KEY))
+        for (symbol in EquipmentSymbolId.entries.filter { it != EquipmentSymbolId.CARDIO && it != EquipmentSymbolId.BODYWEIGHT_ONLY }) {
+            assertFalse(
+                "«${symbol.label}» no puede traer la categoría de cardio",
+                EquipmentCategory.CARDIO in EquipmentSymbols.availabilityOf(setOf(symbol), gym + home + park).categories,
+            )
+        }
+        // «Cuerda de saltar» ya no es un símbolo: ningún ejercicio ni tipo de cardio la usa (comba: pendiente de alta en el catálogo).
+        assertTrue(EquipmentSymbolId.entries.none { it.name == "JUMP_ROPE" || it.label.contains("Cuerda de saltar") })
+        for (places in everyPlaceCombination) {
+            assertTrue(EquipmentSymbols.symbolsFor(places).none { it.label.contains("Cuerda") })
+            assertTrue("el gimnasio no trae la llave de la cuerda", EquipmentSymbols.RETIRED_JUMP_ROPE_KEY !in
+                EquipmentSymbols.availabilityOf(EquipmentSymbols.seedFor(places), places).supports)
+        }
+        // Y una disponibilidad antigua que la traía se lee sin ella: ni la cuerda ni, por ella, las máquinas.
+        val old = EquipmentAvailability(
+            categories = setOf(EquipmentCategory.CARDIO, EquipmentCategory.DUMBBELLS),
+            supports = mapOf(
+                EquipmentSymbols.RETIRED_JUMP_ROPE_KEY to ApparatusPresence.PRESENT,
+                EquipmentSymbols.CARDIO_MACHINE_KEY to ApparatusPresence.ABSENT,
+            ),
         )
-        assertEquals(
-            setOf(EquipmentSymbolId.CARDIO),
-            roundTrip(setOf(EquipmentSymbolId.CARDIO), gym),
-        )
-        assertEquals(
-            setOf(EquipmentSymbolId.CARDIO, EquipmentSymbolId.JUMP_ROPE),
-            roundTrip(setOf(EquipmentSymbolId.CARDIO, EquipmentSymbolId.JUMP_ROPE), home),
-        )
-        val ropeOnly = EquipmentSymbols.availabilityOf(setOf(EquipmentSymbolId.JUMP_ROPE), gym)
-        assertEquals(setOf(EquipmentCategory.CARDIO), ropeOnly.categories)
-        assertEquals(ApparatusPresence.PRESENT, ropeOnly.presenceOf(EquipmentSymbols.JUMP_ROPE_KEY))
-        assertEquals(ApparatusPresence.ABSENT, ropeOnly.presenceOf(EquipmentSymbols.CARDIO_MACHINE_KEY))
+        assertEquals(setOf(EquipmentSymbolId.DUMBBELLS), EquipmentSymbols.selectedFrom(old))
+    }
+
+    @Test
+    fun theBikeOfThePersonIsNotMaterialOfAnySymbolAndSurvivesRebuildingTheMaterial() {
+        val bike = mapOf(SetupApparatusPanel.OUTDOOR_BIKE_KEY to ApparatusPresence.PRESENT)
+        // Sola, la bicicleta no es material: sigue siendo «solo peso corporal».
+        val bodyOnly = EquipmentAvailability(apparatus = bike)
+        assertEquals(setOf(EquipmentSymbolId.BODYWEIGHT_ONLY), EquipmentSymbols.selectedFrom(bodyOnly))
+        assertTrue(EquipmentSymbols.isBodyweightOnly(bodyOnly))
+        // Con material, la lectura de los símbolos es la misma con o sin ella.
+        for (places in everyPlaceCombination) {
+            val seeded = EquipmentSymbols.availabilityOf(EquipmentSymbols.seedFor(places), places)
+            assertEquals(
+                "lugares=$places",
+                EquipmentSymbols.selectedFrom(seeded),
+                EquipmentSymbols.selectedFrom(seeded.copy(apparatus = seeded.apparatus + bike)),
+            )
+        }
+        // Otra llave de aparato sí cuenta como material declarado: sin categorías, no es «solo peso corporal».
+        val panelKey = EquipmentAvailability(apparatus = mapOf(EquipmentKeys.LEG_PRESS to ApparatusPresence.PRESENT))
+        assertEquals(emptySet<EquipmentSymbolId>(), EquipmentSymbols.selectedFrom(panelKey))
+        // Rehacer la disponibilidad desde los símbolos conserva la bicicleta declarada y no inventa una que no existía.
+        val rebuilt = EquipmentSymbols.availabilityOf(setOf(EquipmentSymbolId.DUMBBELLS), home)
+        val kept = SetupApparatusPanel.withBikeOf(bodyOnly, rebuilt)
+        assertTrue(SetupApparatusPanel.hasBike(kept))
+        assertEquals(setOf(EquipmentSymbolId.DUMBBELLS), EquipmentSymbols.selectedFrom(kept))
+        assertEquals(rebuilt, SetupApparatusPanel.withoutBike(kept))
+        assertEquals(rebuilt, SetupApparatusPanel.withBikeOf(null, rebuilt))
+        assertFalse(SetupApparatusPanel.hasBike(SetupApparatusPanel.withBikeOf(EquipmentAvailability(), rebuilt)))
+        // «No tengo» también es una respuesta y se conserva tal cual, pero no afirma nada.
+        val absent = EquipmentAvailability(apparatus = mapOf(SetupApparatusPanel.OUTDOOR_BIKE_KEY to ApparatusPresence.ABSENT))
+        assertFalse(SetupApparatusPanel.hasBike(SetupApparatusPanel.withBikeOf(absent, rebuilt)))
     }
 
     @Test
@@ -305,8 +348,8 @@ class EquipmentSymbolsTest {
             "bodyweight", "barbell", "dumbbells", "kettlebell", "machine", "cable", "smith_machine", "band",
             "pull_up_bar", "ball", "cardio", "support", "bench", "bench_incline", "rack", "dip_bars",
             "low_bar_support", "ez_bar",
-            // Extras habituales de un gimnasio, cajón y cuerda (paquete E) y sus bancos propios (paquete E2).
-            "plate", "hex_bar", "t_bar", "ghd", "ab_wheel", "plyo_box", "jump_rope", "decline_bench", "hyperextension_bench",
+            // Extras habituales de un gimnasio y cajón (paquete E) y sus bancos propios (paquete E2).
+            "plate", "hex_bar", "t_bar", "ghd", "ab_wheel", "plyo_box", "decline_bench", "hyperextension_bench",
         )) {
             assertTrue("el motor no acredita «$token» con el material de gimnasio", token in tokens)
         }
@@ -429,7 +472,7 @@ class EquipmentSymbolsTest {
     }
 
     @Test
-    fun ringsBoxAndRopeReachTheEngineAsTokensOfTheSharedResolver() {
+    fun ringsAndBoxReachTheEngineAsTokensOfTheSharedResolver() {
         fun tokens(symbol: EquipmentSymbolId, places: Set<TrainingPlace>) =
             TrainingOptions(availability = EquipmentSymbols.availabilityOf(setOf(symbol), places)).effectiveEquipment(emptySet())
 
@@ -439,9 +482,6 @@ class EquipmentSymbolsTest {
         val box = tokens(EquipmentSymbolId.BOX, home)
         assertTrue("plyo_box" in box)
         assertFalse("trx" in box || "jump_rope" in box)
-        val rope = tokens(EquipmentSymbolId.JUMP_ROPE, home)
-        assertTrue("jump_rope" in rope)
-        assertFalse("trx" in rope || "plyo_box" in rope)
         // Otros símbolos no los acreditan.
         val dumbbells = tokens(EquipmentSymbolId.DUMBBELLS, home)
         assertTrue(listOf("trx", "rings", "plyo_box", "jump_rope", "plate", "hex_bar", "t_bar", "ghd", "ab_wheel").none { it in dumbbells })

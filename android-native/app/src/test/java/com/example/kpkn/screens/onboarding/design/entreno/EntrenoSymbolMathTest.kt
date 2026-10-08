@@ -140,7 +140,6 @@ class EntrenoSymbolMathTest {
         closes("rings lagged", RingsArt.period) { RingsArt.swingDeg(it, 0.3f) / 13f }
         closes("bands", BandsArt.period) { BandsArt.stretch(it) }
         closes("ball", BallArt.period) { BallArt.height(it) / 20f }
-        closes("rope", JumpRopeArt.period) { JumpRopeArt.ropeLift(it) }
         closes("box ground", BoxArt.period) { BoxArt.groundAlpha(it) }
         closes("box top", BoxArt.period) { BoxArt.topAlpha(it) }
         closes("bodyweight open", BodyweightArt.period) { BodyweightArt.spread(it) }
@@ -285,14 +284,6 @@ class EntrenoSymbolMathTest {
         assertEquals(0f, BallArt.height(0f), 1e-6f)
         assertEquals(20f, BallArt.height(BallArt.period / 2f), 1e-4f)
         for (t in samples(BallArt.period)) assertTrue(BallArt.height(t) in 0f..20f)
-    }
-
-    @Test
-    fun theRopePassesAboveAndBelowTheHandles() {
-        val values = samples(JumpRopeArt.period).map { JumpRopeArt.ropeLift(it) }
-        assertTrue(values.any { it > 0.95f })
-        assertTrue(values.any { it < -0.95f })
-        assertTrue("el cuadro estático cuelga por debajo", JumpRopeArt.ropeLift(JumpRopeArt.restT) < -0.5f)
     }
 
     // ------------------------------------------------------------ pincel y reloj

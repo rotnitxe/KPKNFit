@@ -48,6 +48,10 @@ enum class TrainingGoalProfile(val label: String, val tagline: String, val isSpe
 /**
  * Implementos del selector de material. Un símbolo = un implemento reconocible; el motor sigue hablando en
  * categorías y llaves curadas (`EquipmentAvailability`), y `EquipmentSymbols` (dominio) traduce en los dos sentidos.
+ *
+ * Solo hay símbolo de lo que algún ejercicio o tipo de cardio consume: la cuerda de saltar salió de la cuadrícula
+ * (ningún ejercicio del catálogo la usa; comba: pendiente de alta en el catálogo) y «Cardio» abre las máquinas del
+ * paso CARDIO_TYPE.
  */
 @Serializable
 enum class EquipmentSymbolId(val label: String) {
@@ -64,7 +68,6 @@ enum class EquipmentSymbolId(val label: String) {
     RINGS("Anillas o TRX"),
     BANDS("Bandas elásticas"),
     BALL("Balón"),
-    JUMP_ROPE("Cuerda de saltar"),
     BOX("Cajón o step"),
     CARDIO("Cardio"),
 

@@ -592,8 +592,9 @@ internal fun configurationDeniedByAbsentKey(
 
 /**
  * Llaves que viajan desde `EquipmentSymbols` (el paso «¿Con qué material entrenas?») y que el subpanel §13.2 no pinta:
- * anillas, cajón, cuerda de saltar y los extras habituales de un gimnasio sin símbolo propio. Es la fuente única de sus
- * nombres: `EquipmentSymbols` los reexporta y el resolutor las acredita con [SYMBOL_EQUIPMENT_KEYS].
+ * anillas, cajón, cuerda de saltar —sin símbolo desde que ningún ejercicio la usa; la llave sigue para leer borradores y
+ * ajustes antiguos— y los extras habituales de un gimnasio sin símbolo propio. Es la fuente única de sus nombres:
+ * `EquipmentSymbols` los reexporta y el resolutor las acredita con [SYMBOL_EQUIPMENT_KEYS].
  */
 internal object SymbolEquipmentKeys {
     const val RINGS = "rings"

@@ -286,15 +286,6 @@ internal class SymbolPen {
         )
     }
 
-    /** Arco de elipse (la cuerda de saltar). */
-    fun ovalArc(cx: Float, cy: Float, rx: Float, ry: Float, startDeg: Float, sweepDeg: Float, color: Color, w: Float = SymbolStroke.LINE) {
-        if (rx <= 0f || ry <= 0f) return
-        ds.drawArc(
-            color = c(color), startAngle = startDeg, sweepAngle = sweepDeg, useCenter = false,
-            topLeft = Offset(cx - rx, cy - ry), size = Size(2f * rx, 2f * ry), style = stroke(w),
-        )
-    }
-
     fun oval(cx: Float, cy: Float, rx: Float, ry: Float, color: Color, w: Float = SymbolStroke.LINE) {
         if (rx <= 0f || ry <= 0f) return
         ds.drawOval(c(color), Offset(cx - rx, cy - ry), Size(2f * rx, 2f * ry), style = stroke(w))
