@@ -63,6 +63,7 @@ import com.example.kpkn.screens.onboarding.design.lerpF
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import kotlinx.coroutines.launch
 import kotlin.math.min
+import com.example.kpkn.screens.onboarding.design.entreno.rememberProgressiveCount
 
 /*
  * «¿Cuál es tu objetivo?»: diez filas de lista sin caja (tres perfiles generales y siete disciplinas), cada una con
@@ -81,6 +82,13 @@ private val ROW_MIN_HEIGHT = 76.dp
 private const val POP_GAIN = 0.16f
 private const val PRESS_SCALE = 0.97f
 private const val SYMBOL_FADE_MS = 300
+
+/** El ancho que tiene el nombre de un perfil en una fila de [rowWidthDp]: lo que dejan el símbolo, sus márgenes y la marca de «hecho». */
+internal fun goalNameWidthDp(rowWidthDp: Float): Float = rowWidthDp - SYMBOL_SIZE.value - NAME_START_PAD.value - NAME_END_PAD.value - DONE_SIZE.value
+
+/** Los márgenes del bloque de texto de una fila: a la izquierda del nombre (tras el símbolo) y a su derecha (antes de la marca). */
+private val NAME_START_PAD = 14.dp
+private val NAME_END_PAD = 4.dp
 
 /** Nombre del perfil: Syne 17 (baja hasta 13 sp si su palabra más larga no cabe), la tipografía de la marca. */
 private fun nameStyle(sp: Float) = TextStyle(
@@ -134,19 +142,27 @@ internal fun GoalProfileList(
     val foreground = rememberEntrenoForeground()
     var visible by remember { mutableStateOf(true) }
     val clock = rememberSymbolClock(active = !reduced && foreground && visible && selected != null)
+    // Las diez filas se componen repartidas en cuadros (la primera de golpe y una más por cuadro): ver `rememberProgressiveCount`.
+    val general = TrainingGoalProfile.general
+    val specific = TrainingGoalProfile.specific
+    val shown = rememberProgressiveCount(total = general.size + specific.size, first = 1)
     Column(
         modifier = modifier
             .fillMaxWidth()
             .onSymbolsVisible { visible = it },
     ) {
         GoalSectionHeader(PlanCopy.GOALS_GENERAL, note = null)
-        for (profile in TrainingGoalProfile.general) {
+        for (index in 0 until minOf(shown, general.size)) {
+            val profile = general[index]
             GoalRow(profile, selected == profile, blockedReasons[profile], clock, reduced, onSelect, onBlockedTap)
         }
-        Spacer(Modifier.height(28.dp))
-        GoalSectionHeader(PlanCopy.GOALS_SPECIFIC, note = PlanCopy.GOALS_SPECIFIC_NOTE)
-        for (profile in TrainingGoalProfile.specific) {
-            GoalRow(profile, selected == profile, blockedReasons[profile], clock, reduced, onSelect, onBlockedTap)
+        if (shown > general.size) {
+            Spacer(Modifier.height(28.dp))
+            GoalSectionHeader(PlanCopy.GOALS_SPECIFIC, note = PlanCopy.GOALS_SPECIFIC_NOTE)
+            for (index in 0 until shown - general.size) {
+                val profile = specific[index]
+                GoalRow(profile, selected == profile, blockedReasons[profile], clock, reduced, onSelect, onBlockedTap)
+            }
         }
     }
 }
@@ -258,7 +274,7 @@ private fun GoalRow(
         Column(
             modifier = Modifier
                 .weight(1f)
-                .padding(start = 14.dp, top = 12.dp, bottom = 12.dp, end = 4.dp),
+                .padding(start = NAME_START_PAD, top = 12.dp, bottom = 12.dp, end = NAME_END_PAD),
         ) {
             FittedDisplayText(profile.label, NAME_MAX_SP, NAME_MIN_SP, ::nameStyle, nameColor, maxLines = 3)
             if (blocked) {

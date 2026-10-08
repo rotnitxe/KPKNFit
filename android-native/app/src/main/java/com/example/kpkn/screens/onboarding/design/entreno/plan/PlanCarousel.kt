@@ -58,6 +58,7 @@ import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.min
+import com.example.kpkn.screens.onboarding.design.entreno.rememberProgressiveCount
 
 /*
  * «Elige tu programa»: el carrusel de los programas de autor de una disciplina. Un `HorizontalPager` con la portada
@@ -65,9 +66,20 @@ import kotlin.math.min
  * poco al deslizar (parallax suave). Debajo del centro van el blurb y dos acciones de texto, sin caja.
  */
 
-/** Ancho de la tarjeta central respecto al ancho disponible, y su tope. */
+/** Ancho de la tarjeta central respecto al ancho disponible con letra normal, con letra al 130 % y su tope. */
 private const val CARD_WIDTH_FRACTION = 0.66f
+private const val CARD_WIDTH_FRACTION_LARGE_TEXT = 0.74f
 private val CARD_MAX_WIDTH = 300.dp
+
+/**
+ * El ancho de la portada central en un carrusel de [availableDp] de ancho: dos tercios con letra normal, que crece hasta tres
+ * cuartos con la letra al 130 % (las vecinas siguen asomando) para que las palabras largas de un título («Powerbuilding»,
+ * «Complemento») quepan enteras en su portada, con un tope de 300 dp.
+ */
+internal fun carouselCardWidthDp(availableDp: Float, fontScale: Float): Float {
+    val t = ((fontScale - 1f) / 0.3f).coerceIn(0f, 1f)
+    return minOf(availableDp * lerpF(CARD_WIDTH_FRACTION, CARD_WIDTH_FRACTION_LARGE_TEXT, t), CARD_MAX_WIDTH.value)
+}
 
 /** Aire entre tarjetas, escala y opacidad de las vecinas. */
 private val PAGE_SPACING = 14.dp
@@ -115,7 +127,7 @@ internal fun PlanCarousel(
 ) {
     if (cards.isEmpty()) return
     BoxWithConstraints(modifier.fillMaxWidth()) {
-        val cardW = minOf(maxWidth * CARD_WIDTH_FRACTION, CARD_MAX_WIDTH)
+        val cardW = carouselCardWidthDp(maxWidth.value, LocalDensity.current.fontScale).dp
         val cardH = cardW * (4f / 3f)
         // Lo que sobra a cada lado de la tarjeta central: ahí asoman las vecinas.
         val sidePad = (maxWidth - cardW) / 2
@@ -139,6 +151,8 @@ internal fun PlanCarousel(
             val initial = remember { cards.indexOfFirst { it.id == selectedId }.coerceAtLeast(0) }
             val pager = rememberPagerState(initialPage = initial) { cards.size }
             val scope = rememberCoroutineScope()
+            // Las vecinas se componen un cuadro después de la central (cada portada es pesada de componer): ver `rememberProgressiveCount`.
+            val neighboursReady = rememberProgressiveCount(total = 1, first = 0) > 0
             Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
                 HorizontalPager(
                     state = pager,
@@ -149,25 +163,29 @@ internal fun PlanCarousel(
                     key = { cards[it].id },
                 ) { page ->
                     val card = cards[page]
-                    PlanCardFace(
-                        card = card,
-                        isSelected = card.id == selectedId,
-                        animate = page == pager.currentPage && !reduced,
-                        reduced = reduced,
-                        parallax = { (pager.currentPage + pager.currentPageOffsetFraction - page).coerceIn(-1f, 1f) },
-                        onClick = {
-                            if (page == pager.currentPage) onOpen(card.id) else scope.launch { pager.animateScrollToPage(page) }
-                        },
-                        modifier = Modifier
-                            .size(cardW, cardH)
-                            .graphicsLayer {
-                                val f = abs(pager.currentPage + pager.currentPageOffsetFraction - page).coerceIn(0f, 1f)
-                                val s = lerpF(1f, SIDE_SCALE, f)
-                                scaleX = s
-                                scaleY = s
-                                alpha = lerpF(1f, SIDE_ALPHA, f)
+                    if (page == pager.currentPage || neighboursReady) {
+                        PlanCardFace(
+                            card = card,
+                            isSelected = card.id == selectedId,
+                            animate = page == pager.currentPage && !reduced,
+                            reduced = reduced,
+                            parallax = { (pager.currentPage + pager.currentPageOffsetFraction - page).coerceIn(-1f, 1f) },
+                            onClick = {
+                                if (page == pager.currentPage) onOpen(card.id) else scope.launch { pager.animateScrollToPage(page) }
                             },
-                    )
+                            modifier = Modifier
+                                .size(cardW, cardH)
+                                .graphicsLayer {
+                                    val f = abs(pager.currentPage + pager.currentPageOffsetFraction - page).coerceIn(0f, 1f)
+                                    val s = lerpF(1f, SIDE_SCALE, f)
+                                    scaleX = s
+                                    scaleY = s
+                                    alpha = lerpF(1f, SIDE_ALPHA, f)
+                                },
+                        )
+                    } else {
+                        Spacer(Modifier.size(cardW, cardH))
+                    }
                 }
                 Spacer(Modifier.height(14.dp))
                 PageDots(
