@@ -2,6 +2,7 @@ package com.example.kpkn.domain.training.split
 
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.MuscleRole
+import com.example.kpkn.data.exercises.catalogv2.CatalogCompositionMetadataProvider
 import com.example.kpkn.data.programs.KpknMuscleGroup
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseConfigurationV2
@@ -9,8 +10,11 @@ import com.example.kpkn.domain.exercises.catalogv2.ExerciseDefinitionV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseKineticChainV2
 import com.example.kpkn.domain.exercises.catalogv2.JointRoleV2
 import com.example.kpkn.domain.training.CompositionTaxonomy
+import com.example.kpkn.domain.training.ExerciseCompositionMetadataProvider
 import com.example.kpkn.domain.training.PatternFamily
 import com.example.kpkn.domain.training.VolumeCalculator
+import com.example.kpkn.domain.training.approach.ApproachExerciseInfo
+import com.example.kpkn.domain.training.approach.ApproachInfoProvider
 
 /**
  * Clasifica un ejercicio para el redistribuidor de repartos: devuelve sus [ExerciseTraits] (músculos, patrón, región,
@@ -20,6 +24,17 @@ import com.example.kpkn.domain.training.VolumeCalculator
  */
 fun interface ExerciseTraitResolver {
     fun traitsOf(exercise: Exercise): ExerciseTraits?
+
+    /**
+     * Lo que la aproximación obligatoria necesita saber de [exercise] (articulaciones, compuesto, admite carga pesada) o
+     * `null` si no se sabe nada. Por defecto sale de sus rasgos; el resolutor del catálogo ([CatalogExerciseTraitResolver])
+     * se lo pide primero al proveedor que usan el materializador y el generador ([ApproachInfoProvider]), así los tres
+     * deciden igual la aproximación de un ejercicio del catálogo.
+     */
+    fun approachInfoOf(exercise: Exercise): ApproachExerciseInfo? =
+        traitsOf(exercise)?.let { traits ->
+            ApproachExerciseInfo(joints = traits.joints, isCompound = traits.isCompound, canBeHeavy = traits.canBeHeavy)
+        }
 }
 
 /**
@@ -27,9 +42,18 @@ fun interface ExerciseTraitResolver {
  * (configuración, definición) y, si no la trae, por su nombre; si tampoco hay nombre conocido usa los músculos que el
  * propio ejercicio declara y, como último recurso, palabras del nombre ([ExerciseNameTraits]).
  *
+ * Para la aproximación ([approachInfoOf]) un ejercicio con identidad de catálogo responde lo mismo que en el
+ * materializador y en el generador; solo los ejercicios sin ella (propios, de un borrador antiguo) se clasifican por sus
+ * rasgos.
+ *
  * Es inmutable tras construirse: se puede compartir entre llamadas y hilos.
  */
-class CatalogExerciseTraitResolver(catalog: ExerciseCatalogV2) : ExerciseTraitResolver {
+class CatalogExerciseTraitResolver(private val catalog: ExerciseCatalogV2) : ExerciseTraitResolver {
+
+    /** Metadatos de composición del catálogo, solo si alguien pide la aproximación (construirlos recorre todo el catálogo). */
+    private val approachMetadata: ExerciseCompositionMetadataProvider by lazy(LazyThreadSafetyMode.PUBLICATION) {
+        CatalogCompositionMetadataProvider.fromCatalog(catalog)
+    }
 
     private class Entry(val definition: ExerciseDefinitionV2, val configuration: ExerciseConfigurationV2) {
         val traits: ExerciseTraits by lazy(LazyThreadSafetyMode.PUBLICATION) {
@@ -84,6 +108,9 @@ class CatalogExerciseTraitResolver(catalog: ExerciseCatalogV2) : ExerciseTraitRe
         if (normalizedName.isNotEmpty()) byName[normalizedName]?.let { return it.traits }
         return ExerciseNameTraits.of(exercise)
     }
+
+    override fun approachInfoOf(exercise: Exercise): ApproachExerciseInfo? =
+        ApproachInfoProvider.infoOf(exercise, approachMetadata) ?: super.approachInfoOf(exercise)
 
     private fun defaultConfigurationOf(definition: ExerciseDefinitionV2): ExerciseConfigurationV2? =
         definition.configurations.firstOrNull { it.id == definition.defaultConfigurationId }

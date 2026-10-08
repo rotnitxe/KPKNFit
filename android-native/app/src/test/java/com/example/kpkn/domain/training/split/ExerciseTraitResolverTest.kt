@@ -1,12 +1,16 @@
 package com.example.kpkn.domain.training.split
 
+import com.example.kpkn.data.exercises.catalogv2.CatalogCompositionMetadataProvider
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.InvolvedMuscle
+import com.example.kpkn.data.models.LoadQuantityConvention
 import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.programs.KpknMuscleGroup
 import com.example.kpkn.data.protocols.CatalogIds
 import com.example.kpkn.domain.training.CatalogCompositionTestSupport
 import com.example.kpkn.domain.training.PatternFamily
+import com.example.kpkn.domain.training.approach.ApproachExerciseInfo
+import com.example.kpkn.domain.training.approach.ApproachInfoProvider
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -181,6 +185,49 @@ class ExerciseTraitResolverTest {
         assertEquals(PatternFamily.HORIZONTAL_PULL, pattern("Barbell row"))
         assertEquals(PatternFamily.ELBOW_FLEXION, pattern("Hammer curls"))
         assertNull("una máquina de remo no es un remo con peso", pattern("Rowing machine"))
+    }
+
+    // ─── Aproximación: la misma respuesta que el materializador y el generador ───────────────────────────────
+
+    @Test
+    fun the_approach_info_of_every_catalog_exercise_is_the_one_the_materializer_and_the_generator_use() {
+        val metadata = CatalogCompositionMetadataProvider.fromCatalog(SplitTestSupport.catalog)
+        val configurations = SplitTestSupport.catalog.families.flatMap { it.definitions }.flatMap { it.configurations }
+        assertTrue(configurations.size > 500)
+        val problems = configurations.mapNotNull { configuration ->
+            val exercise = Exercise(id = "x", name = "x", catalogConfigurationId = configuration.id)
+            val expected = ApproachInfoProvider.infoOf(exercise, metadata)
+            val actual = resolver.approachInfoOf(exercise)
+            if (expected != actual) "${configuration.id}: esperaba $expected y salió $actual" else null
+        }
+        assertEquals(emptyList<String>(), problems)
+    }
+
+    @Test
+    fun a_bodyweight_exercise_with_declared_ballast_can_be_heavy_for_the_redistributor_exactly_as_in_the_materializer() {
+        val id = "pull_up__pronated__medium"
+        val plain = Exercise(id = "x", name = "x", catalogConfigurationId = id)
+        assertFalse("la dominada sin lastre es peso corporal fácil", requireNotNull(resolver.approachInfoOf(plain)).canBeHeavy)
+        val ballasted = plain.copy(loadQuantityConvention = LoadQuantityConvention.ADDITIONAL_BODYWEIGHT)
+        assertTrue("con lastre declarado sí puede ser pesada", requireNotNull(resolver.approachInfoOf(ballasted)).canBeHeavy)
+    }
+
+    @Test
+    fun an_exercise_without_catalog_identity_still_gets_its_approach_info_from_its_traits() {
+        val declared = Exercise(
+            id = "x",
+            name = "Mi ejercicio especial",
+            effectiveMuscles = listOf(
+                InvolvedMuscle(muscle = "Pectorales", role = MuscleRole.PRIMARY),
+                InvolvedMuscle(muscle = "Tríceps", role = MuscleRole.SECONDARY),
+            ),
+        )
+        val traits = requireNotNull(resolver.traitsOf(declared))
+        assertEquals(
+            ApproachExerciseInfo(joints = traits.joints, isCompound = traits.isCompound, canBeHeavy = traits.canBeHeavy),
+            resolver.approachInfoOf(declared),
+        )
+        assertNull(resolver.approachInfoOf(Exercise(id = "x", name = "Ejercicio inventado xyz")))
     }
 
     @Test

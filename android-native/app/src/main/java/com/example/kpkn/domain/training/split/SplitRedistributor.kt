@@ -19,7 +19,6 @@ import com.example.kpkn.domain.training.PlanMaterializer
 import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.domain.training.SessionDurationEstimator
 import com.example.kpkn.domain.training.VolumeCalculator
-import com.example.kpkn.domain.training.approach.ApproachExerciseInfo
 import com.example.kpkn.domain.training.approach.ApproachOptions
 import com.example.kpkn.domain.training.approach.ApproachPlanner
 import java.util.Locale
@@ -255,9 +254,8 @@ object SplitRedistributor {
         val assignment = DayAssigner.assign(units, days)
         val dayIndexByKey = units.indices.associate { units[it].key to assignment.dayOfUnit[it] }
         val describe = { day: DayInfo -> SplitDayTexts.description(day.label, split.sessionDescriptions) }
-        val infoOf = { exercise: Exercise ->
-            resolver.traitsOf(exercise)?.let { ApproachExerciseInfo(joints = it.joints, isCompound = it.isCompound, canBeHeavy = it.canBeHeavy) }
-        }
+        // La aproximación de un ejercicio del catálogo la decide el mismo proveedor que en el materializador y el generador.
+        val infoOf = { exercise: Exercise -> resolver.approachInfoOf(exercise) }
 
         fun finish(sessions: List<Session>, origin: List<Session>): List<Session> {
             val completed = if (options.completeApproach) {
