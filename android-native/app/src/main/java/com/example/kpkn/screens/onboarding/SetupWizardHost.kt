@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -80,6 +81,7 @@ import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.math.abs
 
 /**
  * Host del wizard tradicional que sustituye a WizChat.
@@ -192,6 +194,12 @@ fun SetupWizardScreen(
 
 private val EMPTY_SUMMARY = SetupStepSummary(label = "", value = "")
 
+/** Lo que se puede haber movido la página desde donde la dejó el anfitrión y aún contar como «no tocada» (px). */
+private const val PIN_TOLERANCE_PX = 3
+
+/** Lo que tarda la página en subir lo justo para que el final del paso quede sobre el botón de confirmar. */
+private const val OPEN_EXTRA_MILLIS = 260
+
 /**
  * La página larga: fondo ambiental, secciones que se deslizan bajo una cabecera y un botón de
  * cristal fijos, y el aviso flotante de errores.
@@ -275,22 +283,58 @@ private fun WizardLongPage(
         WizardPageScroll(scroll = scroll, limit = { lockMax }, top = { bandTop.toFloat() }, bottom = { bandBottom.toFloat() })
     }
 
+    // Cuánto se sube la página al abrir un paso cuyo final quedaría bajo el botón de confirmar (con la letra grande, p. ej. «Ver
+    // detalles» en PLAN): lo que falta para que el final del paso quede por encima del botón y de su velo, y nunca más de una
+    // fila-resumen. Con el teclado abierto, o sin medidas todavía, no se toca.
+    val imeBottomPx = WindowInsets.ime.getBottom(density)
+    val openExtraPx = if (imeBottomPx > 0 || viewportPx <= 0 || (heights[currentPage] ?: 0) <= 0) {
+        0
+    } else {
+        WizardPageMetrics.openExtra(
+            focusLinePx = WizardPageMetrics.focusLine(currentIndex, headerBottomPx, chipPx, gapPx),
+            activeHeightPx = heights[currentPage] ?: 0,
+            clearancePx = clearancePx,
+            viewportPx = viewportPx,
+            chipPx = chipPx,
+        )
+    }
+    val openExtra by rememberUpdatedState(openExtraPx)
+
     // Primera vez: colocar la página en el paso del borrador sin animar (reabrir a mitad no
     // arranca arriba). Después: cada cambio de paso desliza hasta el nuevo, sea hacia delante
     // (check) o hacia atrás (atrás o tocar una fila-resumen), con la misma duración que el plegado.
     var restored by remember { mutableStateOf(false) }
     LaunchedEffect(currentIndex) {
+        // Dónde dejó la página este efecto la última vez: si la persona la movió, ya no se toca.
+        var pinnedAt: Int
         if (!restored) {
             withTimeoutOrNull(1_500) { snapshotFlow { scroll.maxValue }.first { it >= targetPx } }
             scroll.scrollTo(targetPx.coerceAtMost(scroll.maxValue))
+            pinnedAt = scroll.value
             restored = true
         } else if (reducedMotion) {
             scroll.scrollTo(targetPx.coerceAtMost(scroll.maxValue))
+            pinnedAt = scroll.value
         } else {
             scroll.animateScrollTo(
                 targetPx,
                 tween(durationMillis = WizardMotion.SlideMillis, easing = FastOutSlowInEasing),
             )
+            pinnedAt = scroll.value
+        }
+        // El final del paso, siempre por encima del botón: cuando el paso se compone del todo o crece (el control del paso
+        // que asoma llega tras la animación; PLAN se revela al terminar el barrido) la página sube lo justo, mientras la persona no
+        // la haya movido.
+        snapshotFlow { openExtra }.collect { extra ->
+            val wanted = (targetPx + extra).coerceAtMost(scroll.maxValue)
+            if (wanted != pinnedAt && abs(scroll.value - pinnedAt) <= PIN_TOLERANCE_PX && !scroll.isScrollInProgress) {
+                if (reducedMotion) {
+                    scroll.scrollTo(wanted)
+                } else {
+                    scroll.animateScrollTo(wanted, tween(durationMillis = OPEN_EXTRA_MILLIS, easing = FastOutSlowInEasing))
+                }
+                pinnedAt = scroll.value
+            }
         }
     }
     // Si el paso activo se encoge (o se cierra el teclado) y el scroll queda más allá del límite, volver.

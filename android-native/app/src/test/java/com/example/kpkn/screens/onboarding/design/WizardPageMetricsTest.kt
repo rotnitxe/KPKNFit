@@ -90,6 +90,46 @@ class WizardPageMetricsTest {
         assertTrue(WizardSpacing.summaryRowHeightFor(2f) > WizardSpacing.summaryRowHeightFor(1.4f))
     }
 
+    @Test
+    fun `un paso cuyo final queda bajo el boton sube la pagina lo justo y nunca mas de una fila-resumen`() {
+        // El final debe quedar sobre 2.900 − 330 = 2.570; la línea de foco (500) más un paso de 2.200 llega a 2.700: faltan 130.
+        assertEquals(130, WizardPageMetrics.openExtra(focusLinePx = 500, activeHeightPx = 2_200, clearancePx = 330, viewportPx = 2_900, chipPx = chip))
+        // Con un paso mucho más alto solo se sube una fila-resumen (la pregunta tiene que seguir a la vista).
+        assertEquals(chip, WizardPageMetrics.openExtra(500, 6_000, 330, 2_900, chip))
+    }
+
+    @Test
+    fun `un paso que ya cabe sobre el boton no sube nada`() {
+        assertEquals(0, WizardPageMetrics.openExtra(500, 1_000, 330, 2_900, chip))
+        // Justo en el límite (el final queda exactamente sobre el velo del botón): tampoco.
+        assertEquals(0, WizardPageMetrics.openExtra(500, 2_070, 330, 2_900, chip))
+        assertEquals(1, WizardPageMetrics.openExtra(500, 2_071, 330, 2_900, chip))
+    }
+
+    @Test
+    fun `al abrirse el paso su final deja el margen del boton si cabe subiendo una fila-resumen`() {
+        // Para cada alto de paso que se arregla subiendo una fila, el final queda a (al menos) la altura del botón del borde.
+        for (active in 1_000..2_900 step 37) {
+            val extra = WizardPageMetrics.openExtra(500, active, 330, 2_900, chip)
+            val bottom = 500 + active - extra
+            if (500 + active - 2_900 + 330 <= chip) {
+                assertTrue("alto $active: el final queda en $bottom y el límite es ${2_900 - 330}", bottom <= 2_900 - 330)
+            }
+            assertTrue(extra in 0..chip)
+        }
+    }
+
+    @Test
+    fun `lo que sube la pagina al abrir nunca pasa de lo que el bloqueo deja ver`() {
+        for (active in listOf(600, 1_200, 2_500, 3_500, 6_000)) {
+            val index = 3
+            val focusLine = WizardPageMetrics.focusLine(index, 200, chip, gap)
+            val extra = WizardPageMetrics.openExtra(focusLine, active, 330, 2_900, chip)
+            val limit = lockMax(index = index, activeHeight = active)
+            assertTrue("alto $active: ${WizardPageMetrics.target(index, chip, gap)} + $extra no cabe en $limit", WizardPageMetrics.target(index, chip, gap) + extra <= limit)
+        }
+    }
+
     private fun lockMax(index: Int, activeHeight: Int): Int = WizardPageMetrics.lockMax(
         index = index,
         headerBottomPx = 200,
