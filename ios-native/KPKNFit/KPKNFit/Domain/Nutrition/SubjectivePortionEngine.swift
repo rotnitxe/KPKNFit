@@ -443,6 +443,14 @@ enum SubjectivePortionEngine {
         return 1.0
     }
 
+    static func massFromVolumeMl(_ volumeMl: Double, foodTag: String) -> Double {
+        let normalized = foodTag.folding(options: .diacriticInsensitive, locale: Locale(identifier: "es")).lowercased()
+        let processedOats = normalized.range(of: #"\b(?:leche|bebida|galleta\w*|pan|barrita\w*|batido)\b"#, options: .regularExpression) != nil
+        let dryOats = normalized.contains("avena") && !processedOats && !normalized.contains("cocid") && !normalized.contains("hidrat")
+        let density = dryOats ? 81.0 / 240.0 : detectDensityCategory(foodName: normalized).densityGPerMl
+        return volumeMl * density
+    }
+
     static func detectDensityCategory(foodName: String) -> FoodDensityCategory {
         let lower = foodName.lowercased()
 

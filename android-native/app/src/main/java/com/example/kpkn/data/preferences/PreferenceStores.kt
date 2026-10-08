@@ -54,6 +54,7 @@ fun variantPreferenceStore(context: Context): VariantPreferenceStore =
 
 /** Instancia compartida de la app (misma semántica que el antiguo `getInstance`). */
 object PreferenceStores {
+    internal fun closeForDataSession() = synchronized(this) { snapshots = null; variants = null }
     @Volatile
     private var snapshots: ProgramSnapshotStore? = null
 

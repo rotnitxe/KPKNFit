@@ -10,7 +10,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
  */
 object BackupTableManifest {
 
-    const val JSON_BACKUP_SCHEMA_VERSION = 6
+    const val JSON_BACKUP_SCHEMA_VERSION = 7
 
     enum class Category { USER_DATA, REGENERABLE, CACHE }
 
@@ -47,6 +47,7 @@ object BackupTableManifest {
         "performance_range" to Category.USER_DATA,
         "performance_snapshot" to Category.USER_DATA,
         "workout_media" to Category.USER_DATA,
+        "workout_media_session_associations" to Category.USER_DATA,
         "setup_drafts" to Category.USER_DATA,
         "setup_commit_receipts" to Category.USER_DATA,
         "muscle_groups" to Category.REGENERABLE,
@@ -57,6 +58,9 @@ object BackupTableManifest {
         "global_foods" to Category.REGENERABLE,
         "global_foods_fts" to Category.REGENERABLE,
         "auge_pending" to Category.CACHE,
+        "sync_configuration" to Category.CACHE,
+        "sync_mutations" to Category.CACHE,
+        "sync_shadows" to Category.CACHE,
     )
 
     /** Tables always replaced from the core JSON payload (schema v1+). */
@@ -95,6 +99,7 @@ object BackupTableManifest {
         hasWorkoutMediaSection: Boolean,
         hasCalibrationSection: Boolean,
         hasSetupSection: Boolean = false,
+        hasMediaAssociationsSection: Boolean = false,
     ): List<String> {
         val tables = coreJsonBackedTables.filterNot { table ->
             (table == "setup_drafts" || table == "setup_commit_receipts") && !(schemaVersion >= 6 && hasSetupSection)
@@ -116,6 +121,7 @@ object BackupTableManifest {
             if (hasWorkoutMediaSection) tables += "workout_media"
             if (hasCalibrationSection) tables += "nutrition_calibration_profile"
         }
+        if (schemaVersion >= 7 && hasMediaAssociationsSection) tables.add(0, "workout_media_session_associations")
         return tables.distinct()
     }
 

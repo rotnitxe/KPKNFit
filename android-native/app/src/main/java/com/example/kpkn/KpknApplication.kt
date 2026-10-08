@@ -16,13 +16,25 @@ import kotlinx.coroutines.launch
 import com.example.kpkn.services.workout.WorkoutVoiceDiagnosticLogger
 import com.example.kpkn.services.workout.WorkoutVoiceExitInfoCollector
 import com.example.kpkn.ui.locale.LocaleManager
+import com.example.kpkn.data.account.ProfileStorage
+import android.content.SharedPreferences
+import java.io.File
 
 class KpknApplication : Application() {
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun attachBaseContext(base: Context) {
+        ProfileStorage.initialize(base)
         super.attachBaseContext(LocaleManager.wrapContext(base))
     }
+
+    // Platform SDK identity and WorkManager remain global; personal paths follow the selected profile.
+    override fun getFilesDir(): File = if (ProfileStorage.initialized()) ProfileStorage.context(baseContext).filesDir else super.getFilesDir()
+    override fun getCacheDir(): File = if (ProfileStorage.initialized()) ProfileStorage.context(baseContext).cacheDir else super.getCacheDir()
+    override fun getNoBackupFilesDir(): File = if (ProfileStorage.initialized()) ProfileStorage.context(baseContext).noBackupFilesDir else super.getNoBackupFilesDir()
+    override fun getDatabasePath(name: String): File = if (ProfileStorage.initialized()) ProfileStorage.context(baseContext).getDatabasePath(name) else super.getDatabasePath(name)
+    override fun getSharedPreferences(name: String, mode: Int): SharedPreferences =
+        if (ProfileStorage.initialized()) ProfileStorage.context(baseContext).getSharedPreferences(name, mode) else super.getSharedPreferences(name, mode)
 
     override fun onCreate() {
         super.onCreate()

@@ -1,0 +1,32 @@
+{
+  "branch": "codex/stability-launch-20261007",
+  "baseline": "f04578d3f9ffe3d7fc7c627d975ca4afd5df6d56",
+  "launchAccepted": false,
+  "healthConnectRemoved": true,
+  "gpsPreserved": true,
+  "jvm": {
+    "tests": 6833,
+    "passed": 6831,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "suites": 769
+  },
+  "lint": {
+    "errors": 0,
+    "warnings": 610,
+    "hints": 39
+  },
+  "r8": "COMPILATION_PASS_ONLY",
+  "apk29Sha256": "9ada9e8b60e59d546828b7b90223255aaab89828197dc18a0f4c00bb1b8752fd",
+  "apk29Classes": 68452,
+  "deviceEvidence": [
+    "API26 APK29 startup and cold voice export",
+    "API36 APK28 startup and cold voice export"
+  ],
+  "voiceReplay": "INCOMPLETE_REAL_CORPUS_MISSING",
+  "runtime16Kb": "INCONCLUSIVE_SYSTEM_EMULATOR_FAILURE",
+  "cloud": "21_LOCAL_INTEGRATION_PASS_PLAY_FIXTURE_ONLY",
+  "push": false,
+  "productionDeployment": false
+}

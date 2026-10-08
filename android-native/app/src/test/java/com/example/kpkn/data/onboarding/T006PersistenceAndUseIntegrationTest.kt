@@ -1,6 +1,8 @@
 package com.example.kpkn.data.onboarding
 
 import android.app.Application
+import android.content.Context
+import android.content.ContextWrapper
 import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.db.toActiveProgramState
@@ -85,10 +87,12 @@ import org.junit.BeforeClass
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
+import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.util.UUID
+import java.io.File
 
 /**
  * T-006 Q5 composition witnesses: prepared preview → real Room commit/receipt →
@@ -114,8 +118,12 @@ class T006PersistenceAndUseIntegrationTest {
     @get:Rule
     val testName = TestName()
 
+    @get:Rule
+    val databaseDirectory = TemporaryFolder()
+
     private val mainDispatcher = UnconfinedTestDispatcher()
     private lateinit var app: Application
+    private lateinit var databaseContext: Context
     private var workoutOrdinal = 0
 
     /** Archivo Room propio de cada test: ninguna corrida hereda ni comparte estado con otra. */
@@ -125,18 +133,26 @@ class T006PersistenceAndUseIntegrationTest {
     fun setUp() {
         Dispatchers.setMain(mainDispatcher)
         app = ApplicationProvider.getApplicationContext()
+        // The test method, package suffix and WAL sidecars together exceed Windows' path
+        // limit. Keep this fixture's real file database in its own short temporary directory.
+        databaseContext = object : ContextWrapper(app) {
+            override fun getApplicationContext(): Context = this
+            override fun getDatabasePath(name: String): File = File(databaseDirectory.root, name)
+            override fun deleteDatabase(name: String): Boolean =
+                android.database.sqlite.SQLiteDatabase.deleteDatabase(getDatabasePath(name))
+        }
         // Nombre corto: Robolectric ya incluye el nombre completo del método en el directorio de datos y
         // Windows rechaza rutas > 260 caracteres (SQLiteCantOpenDatabaseException).
         databaseName = "t006-${testName.methodName.hashCode().toUInt().toString(36)}-${UUID.randomUUID().toString().take(8)}.db"
         closePersistentRepository()
-        app.deleteDatabase(databaseName)
+        databaseContext.deleteDatabase(databaseName)
         workoutOrdinal = 0
     }
 
     @After
     fun tearDown() {
         closePersistentRepository()
-        app.deleteDatabase(databaseName)
+        databaseContext.deleteDatabase(databaseName)
         // Los repositorios singleton que tocan los commits no sobreviven al test.
         runCatching { CompetitionRepository.closeInstance() }
         runCatching { NutritionRepository.closeInstance() }
@@ -150,7 +166,7 @@ class T006PersistenceAndUseIntegrationTest {
     }
 
     private suspend fun openPersistentRepository(): ProgramRepository {
-        val repository = ProgramRepository.initForTestsWithDatabaseFile(app, databaseName)
+        val repository = ProgramRepository.initForTestsWithDatabaseFile(databaseContext, databaseName)
         withTimeout(10_000) { repository.isReady.first { it } }
         return repository
     }

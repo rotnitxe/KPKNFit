@@ -198,7 +198,7 @@ class WorkoutReminderReceiver : BroadcastReceiver() {
             .build()
 
         try {
-            NotificationManagerCompat.from(context).notify(WorkoutReminderManager.NOTIF_WORKOUT, notification)
+            com.example.kpkn.services.notifications.PermissionAwareNotifications.post(context, WorkoutReminderManager.NOTIF_WORKOUT, notification)
         } catch (_: Exception) {}
     }
 
@@ -214,7 +214,7 @@ class WorkoutReminderReceiver : BroadcastReceiver() {
             .build()
 
         try {
-            NotificationManagerCompat.from(context).notify(WorkoutReminderManager.NOTIF_SLEEP, notification)
+            com.example.kpkn.services.notifications.PermissionAwareNotifications.post(context, WorkoutReminderManager.NOTIF_SLEEP, notification)
         } catch (_: Exception) {}
     }
 

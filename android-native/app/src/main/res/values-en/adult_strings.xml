@@ -1,0 +1,8 @@
+<resources>
+    <string name="adult_access_title">KPKN for adults</string>
+    <string name="adult_access_notice">You must be at least 18 years old to use the training and nutrition features.</string>
+    <string name="adult_access_confirm">I confirm that I am 18 or older.</string>
+    <string name="adult_access_continue">Continue</string>
+    <string name="adult_legacy_notice">This profile has an age below the supported minimum. Your data is preserved and you can export or erase it using the data controls.</string>
+    <string name="adult_access_controls">Export or erase my data</string>
+</resources>

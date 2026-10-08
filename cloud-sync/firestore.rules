@@ -1,0 +1,21 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function ownsActive(uid) {
+      return request.auth != null && request.auth.uid == uid &&
+        get(/databases/$(database)/documents/accounts/$(uid)).data.state == 'ACTIVE';
+    }
+    match /accounts/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid;
+      allow list, write: if false;
+      match /entities/{id} { allow read: if ownsActive(uid); allow write: if false; }
+      match /conflicts/{id} { allow read: if ownsActive(uid); allow write: if false; }
+      match /{privateCollection}/{id} { allow read, write: if false; }
+    }
+    match /entitlements/{uid} {
+      allow get: if ownsActive(uid);
+      allow list, write: if false;
+    }
+    match /{document=**} { allow read, write: if false; }
+  }
+}

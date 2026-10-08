@@ -1,6 +1,6 @@
 {
   "formatVersion": 2,
-  "checksum": "1365eea5d988e6cf193c3037ca2f94fb17fb80c1c0caed4a12923f8f4f907737",
+  "checksum": "4674da0fb805b2a176833ad1bbc343ee156705733d3f75891d6a686944350bc8",
   "sourceEntries": 19405,
   "runtimeDocuments": 19405,
   "documentsWithMacros": 16679,
@@ -13,7 +13,7 @@
   "contextProfileCount": 11,
   "invalidPostingCount": 0,
   "rawBytes": 4404308,
-  "compressedBytes": 1333933,
+  "compressedBytes": 1333935,
   "typeCounts": {
     "DATABASE_LOOKUP": 3961,
     "DESCRIBE": 1791,

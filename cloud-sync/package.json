@@ -1,0 +1,12 @@
+{
+  "name": "kpkn-local-integration",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "firebase emulators:exec --project demo-kpkn-stability --only firestore,auth,storage,functions \"npm --prefix functions run test:integration\""
+  },
+  "devDependencies": {
+    "firebase-tools": "15.32.1",
+    "@firebase/rules-unit-testing": "6.0.0"
+  }
+}

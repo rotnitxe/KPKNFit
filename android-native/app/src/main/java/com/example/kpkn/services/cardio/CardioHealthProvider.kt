@@ -25,11 +25,7 @@ private class ManualCardioHealthProvider : CardioHealthProvider {
     override fun stop() { _state.value = CardioHealthState() }
 }
 
-/** Reflection keeps the base flavor free of Health Connect classes and dependencies. */
+/** The launch version uses KPKN's local records; no external health provider is loaded. */
 object CardioHealthProviderFactory {
-    fun create(context: Context): CardioHealthProvider = runCatching {
-        Class.forName("com.example.kpkn.features.healthconnect.HealthConnectCardioProvider")
-            .getConstructor(Context::class.java)
-            .newInstance(context.applicationContext) as CardioHealthProvider
-    }.getOrElse { ManualCardioHealthProvider() }
+    fun create(context: Context): CardioHealthProvider = ManualCardioHealthProvider()
 }

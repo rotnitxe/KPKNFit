@@ -71,6 +71,10 @@ fun HomeRingsSection(
     onModelNoticeShown: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
+    if (com.example.kpkn.ui.entitlements.LocalPlan.current == com.example.kpkn.domain.entitlements.PlanLevel.FREE) {
+        EnergyOnlyRing(sncProgress, isLoading, coverage ?: snapshot?.coverage ?: RingsCoverage.NO_DATA, modifier)
+        return
+    }
     val progressValues = remember(muscularProgress, sncProgress, columnaProgress, isLoading) {
         if (isLoading) listOf(0f, 0f, 0f)
         else listOf(muscularProgress, sncProgress, columnaProgress)
@@ -167,6 +171,27 @@ fun HomeRingsSection(
             onDismissAdvisory = onDismissAdvisory,
             onModelNoticeShown = onModelNoticeShown,
         )
+    }
+}
+
+@Composable private fun EnergyOnlyRing(progress: Float, loading: Boolean, coverage: RingsCoverage, modifier: Modifier) {
+    val label = androidx.compose.ui.res.stringResource(com.example.kpkn.R.string.free_energy_ring)
+    val noData = androidx.compose.ui.res.stringResource(com.example.kpkn.R.string.free_ring_no_data)
+    val estimated = androidx.compose.ui.res.stringResource(com.example.kpkn.R.string.free_ring_estimate)
+    val hasData = coverage.channel(RecoveryChannelId.SYSTEM).hasData
+    val score = if (!loading && hasData) progress.coerceIn(0f, 1f) else 0f
+    Column(modifier.fillMaxWidth().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(label, style = MaterialTheme.typography.titleMedium)
+        Box(Modifier.size(170.dp).semantics(mergeDescendants = true) { contentDescription = "$label: ${if (hasData) "${(score * 100).toInt()}%" else noData}" }, contentAlignment = Alignment.Center) {
+            Canvas(Modifier.fillMaxSize()) {
+                val stroke = 14.dp.toPx(); val color = RingColors[1]
+                drawCircle(color.copy(alpha = .18f), radius = size.minDimension / 2 - stroke, style = Stroke(stroke))
+                drawArc(color, startAngle = -90f, sweepAngle = score * 360, useCenter = false,
+                    topLeft = Offset(stroke, stroke), size = Size(size.width - stroke * 2, size.height - stroke * 2), style = Stroke(stroke, cap = StrokeCap.Round))
+            }
+            if (loading) CircularProgressIndicator() else Text(if (hasData) "${(score * 100).toInt()}%" else noData, style = MaterialTheme.typography.headlineSmall)
+        }
+        Text(estimated, style = MaterialTheme.typography.bodySmall)
     }
 }
 

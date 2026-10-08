@@ -402,9 +402,9 @@ interface NutritionDao {
         INNER JOIN global_foods_fts fts ON gf.rowid = fts.rowid
         WHERE global_foods_fts MATCH :query
         ORDER BY gf.usageCount DESC, gf.verifiedScore DESC, gf.sourcePriority DESC, gf.foodId ASC
-        LIMIT 100
+        LIMIT :limit
     """)
-    suspend fun searchGlobalFoodsWithFts(query: String): List<GlobalFoodEntity>
+    suspend fun searchGlobalFoodsWithFts(query: String, limit: Int = 100): List<GlobalFoodEntity>
 
 @Query("SELECT COUNT(*) FROM global_foods")
     suspend fun getGlobalFoodCount(): Int

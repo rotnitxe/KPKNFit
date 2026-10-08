@@ -31,6 +31,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.AtomicBoolean
 
 /** Durabilidad solicitada para un evento de telemetría. */
 enum class TelemetryPriority { NORMAL, CRITICAL }
@@ -41,6 +42,7 @@ data class DiagnosticWriterStatus(
     val lastFlushAt: Long?,
     val lastDurableSyncAt: Long?,
     val lastError: String?,
+    val droppedEvents: Long = 0,
 )
 
 /**
@@ -105,7 +107,7 @@ object KpknDiagnosticLogger {
     private const val FLUSH_INTERVAL_MS = 250L
     private const val FLUSH_BATCH_SIZE = 32
     private const val DURABLE_SYNC_INTERVAL_MS = 1_000L
-    private const val MAX_QUEUE_DEPTH = 16_384
+    private const val MAX_QUEUE_DEPTH = 512
 
     private val migrationJson = KotlinJson { isLenient = true; ignoreUnknownKeys = true }
     private val RESERVED_FIELDS = setOf(
@@ -129,7 +131,8 @@ object KpknDiagnosticLogger {
     )
 
     private val lock = Any()
-    private val queue = LinkedBlockingQueue<PendingEvent>()
+    private val queue = BoundedEventQueue<PendingEvent>(MAX_QUEUE_DEPTH) { it.priority == TelemetryPriority.CRITICAL }
+    private val flushScheduled = AtomicBoolean(false)
     private val writer = Executors.newSingleThreadScheduledExecutor { runnable ->
         Thread(runnable, "kpkn-jsonl-writer").apply { isDaemon = true }
     }
@@ -153,6 +156,8 @@ object KpknDiagnosticLogger {
     @Volatile private var lastDurableSyncAt: Long? = null
     @Volatile private var lastWriteError: String? = null
     @Volatile private var backpressureMarkerRecorded = false
+    @Volatile private var acceptingEvents = true
+    @Volatile private var minimumAcceptedGeneration = 0L
 
     init {
         writer.scheduleWithFixedDelay(
@@ -363,6 +368,7 @@ object KpknDiagnosticLogger {
         reportId: String?,
         priority: TelemetryPriority,
     ): String? {
+        if (!acceptingEvents) return null
         val pending = runCatching {
             synchronized(lock) {
                 val context = contextOverride ?: appContext ?: return@synchronized null
@@ -387,12 +393,12 @@ object KpknDiagnosticLogger {
                     "process" to processKind(context),
                 )
                 if (reportId != null) payload["legacyReportId"] = reportId
-                fields.forEach { (key, value) ->
+                fields.entries.take(64).forEach { (key, value) ->
                     if (key !in RESERVED_FIELDS) payload[key] = value
                 }
                 val line = JsonObject(
                     payload.mapValues { (key, value) ->
-                        if (key.isSensitiveKey()) JsonPrimitive("[REDACTED]") else value.toJsonElement()
+                        if (com.example.kpkn.BuildConfig.DEBUG) DiagnosticRedactor.field(key, value) else DiagnosticRedactor.productionField(key, value)
                     },
                 ).toString()
                 PendingEvent(
@@ -411,7 +417,7 @@ object KpknDiagnosticLogger {
             null
         } ?: return null
 
-        queue.offer(pending)
+        if (!acceptingEvents || pending.generation < minimumAcceptedGeneration || !queue.offer(pending)) return null
         if (queue.size > MAX_QUEUE_DEPTH && !backpressureMarkerRecorded) {
             backpressureMarkerRecorded = true
             Log.w(TAG, "Diagnostic writer queue depth is ${queue.size}")
@@ -441,8 +447,13 @@ object KpknDiagnosticLogger {
     }
 
     fun flushAsync() {
-        runCatching { writer.execute { drainAll(forceSync = false) } }
-            .onFailure { error -> Log.e(TAG, "Unable to schedule diagnostic flush", error) }
+        if (!flushScheduled.compareAndSet(false, true)) return
+        runCatching { writer.execute {
+            try { drainAll(forceSync = false) } finally { flushScheduled.set(false) }
+        } }.onFailure { error ->
+            flushScheduled.set(false)
+            Log.e(TAG, "Unable to schedule diagnostic flush", error)
+        }
     }
 
     /** Drains and durably syncs the writer. Call from IO/background or crash paths. */
@@ -468,12 +479,23 @@ object KpknDiagnosticLogger {
     }
 
     fun awaitIdle(timeoutMs: Long = 5_000L): Boolean = flushSync(timeoutMs)
+    fun pauseForDataSession() {
+        acceptingEvents = false
+        minimumAcceptedGeneration = initializeGeneration.get() + 1L
+        queue.clear()
+        check(flushSync()) { "Diagnostic writer did not stop" }
+    }
+    fun resumeForDataSession(context: Context) {
+        initialize(context)
+        acceptingEvents = true
+    }
 
     fun writerStatus(): DiagnosticWriterStatus = DiagnosticWriterStatus(
         queueDepth = queue.size,
         lastFlushAt = lastFlushAt,
         lastDurableSyncAt = lastDurableSyncAt,
         lastError = lastWriteError,
+        droppedEvents = queue.dropped.get(),
     )
 
     private fun drainIfDue() {
@@ -863,7 +885,7 @@ object KpknDiagnosticLogger {
         } else {
             parsed.forEach { (key, value) -> if (key !in base && key != "schemaVersion") base[key] = value }
         }
-        return JsonObject(base).toString()
+        return DiagnosticRedactor.field("legacy", JsonObject(base)).toString()
     }
 
     private fun processKind(context: Context): String = runCatching {

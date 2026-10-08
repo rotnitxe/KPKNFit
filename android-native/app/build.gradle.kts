@@ -1,8 +1,12 @@
 import java.security.MessageDigest
 import java.util.Properties
+import com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsExtension
+import org.gradle.api.tasks.options.Option
+import org.gradle.api.tasks.testing.Test
 
 plugins {
     alias(libs.plugins.android.application)
+    id("com.google.firebase.crashlytics")
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
@@ -10,6 +14,7 @@ plugins {
 
 // Where `generateFoodDataManifest` writes the assets it generates (WP-S10); registered below as an assets source of the main source set.
 val foodDataManifestDir = layout.buildDirectory.dir("generated/foodDataManifest")
+val optimizedResourcesDir = layout.buildDirectory.dir("generated/optimizedResources")
 
 android {
     namespace = "com.example.kpkn"
@@ -18,28 +23,32 @@ android {
 
     defaultConfig {
         applicationId = "com.example.kpkn"
-        minSdk = 24
-        targetSdk = 35
+        minSdk = 26
+        targetSdk = 36
         versionCode = 35
         versionName = "KPKN Pre Release 2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
-
-    flavorDimensions += "healthConnect"
-    productFlavors {
-        create("base") {
-            dimension = "healthConnect"
-        }
-        create("health") {
-            dimension = "healthConnect"
-            minSdk = 26
-        }
+        val publicFirebaseAppId = providers.gradleProperty("KPKN_FIREBASE_APP_ID").orNull.orEmpty()
+        val publicFirebaseApiKey = providers.gradleProperty("KPKN_FIREBASE_API_KEY").orNull.orEmpty()
+        fun javaString(value: String) = "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
+        buildConfigField("String", "FIREBASE_APP_ID", javaString(publicFirebaseAppId))
+        buildConfigField("String", "FIREBASE_API_KEY", javaString(publicFirebaseApiKey))
+        buildConfigField("String", "FIREBASE_PROJECT_ID", javaString("kpkn-47b03"))
+        buildConfigField("String", "GOOGLE_SIGN_IN_CLIENT_ID", javaString(providers.gradleProperty("KPKN_GOOGLE_CLIENT_ID").orNull.orEmpty()))
+        buildConfigField("String", "FUNCTIONS_REGION", javaString("us-central1"))
+        buildConfigField("String", "FIREBASE_STORAGE_BUCKET", javaString(providers.gradleProperty("KPKN_FIREBASE_STORAGE_BUCKET").orNull ?: "kpkn-47b03.firebasestorage.app"))
+        buildConfigField("boolean", "SALES_APPROVED", providers.gradleProperty("KPKN_SALES_APPROVED").orNull?.toBoolean()?.toString() ?: "false")
     }
 
     val releaseSigningProperties = Properties().apply {
-        rootProject.file("keystore.properties").takeIf { it.isFile }
-            ?.inputStream()?.use { load(it) }
+        // Credentials are consulted only for a release packaging invocation.
+        if (gradle.startParameter.taskNames.any { it.contains("Release", true) && !it.contains("lint", true) }) {
+            mapOf("storeFile" to "KPKN_RELEASE_STORE_FILE", "storePassword" to "KPKN_RELEASE_STORE_PASSWORD",
+                "keyAlias" to "KPKN_RELEASE_KEY_ALIAS", "keyPassword" to "KPKN_RELEASE_KEY_PASSWORD").forEach { (field, input) ->
+                providers.gradleProperty(input).orElse(providers.environmentVariable(input)).orNull?.let { setProperty(field, it) }
+            }
+        }
     }
     val releaseStoreFile = releaseSigningProperties.getProperty("storeFile")
         ?.let { rootProject.file(it) }
@@ -59,6 +68,8 @@ android {
 
     buildTypes {
         release {
+            configure<CrashlyticsExtension> { mappingFileUploadEnabled = providers.gradleProperty("KPKN_UPLOAD_CRASH_MAPPING").orNull?.toBoolean() ?: false }
+            buildConfigField("boolean", "FIREBASE_EMULATORS", "false")
             isMinifyEnabled = true
             isShrinkResources = true
             if (releaseStoreFile != null) {
@@ -75,11 +86,12 @@ android {
             }
         }
         debug {
-            // Misma firma que release cuando hay keystore local, para no pelear
-            // con una APK ya instalada. Sin keystore.properties, firma debug de Android.
-            if (releaseStoreFile != null) {
-                signingConfig = signingConfigs.getByName("release")
-            }
+            configure<CrashlyticsExtension> { mappingFileUploadEnabled = false }
+            buildConfigField("boolean", "FIREBASE_EMULATORS", "true")
+            // Isolated from production and from the Entreno team's .dbg package.
+            applicationIdSuffix = ".stability"
+            versionNameSuffix = "-stability-debug"
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     
@@ -108,12 +120,11 @@ android {
 
     // Esquemas Room exportados como assets para MigrationTestHelper (androidTest + JVM)
     sourceSets {
+        getByName("main").res.setSrcDirs(listOf(optimizedResourcesDir.get().asFile))
         // The manifest of the catalog CSV (generateFoodDataManifest, WP-S10) is an asset of every variant: food_data/manifest.json.
         getByName("main").assets.srcDir(foodDataManifestDir.get().asFile)
         getByName("androidTest").assets.srcDir("$projectDir/schemas")
         getByName("test").assets.srcDir("$projectDir/schemas")
-        maybeCreate("testBaseDebug").assets.srcDir("$projectDir/schemas")
-        maybeCreate("testBase").assets.srcDir("$projectDir/schemas")
         maybeCreate("testDebug").assets.srcDir("$projectDir/schemas")
     }
 }
@@ -176,12 +187,27 @@ val generateFoodDataManifest by tasks.registering(GenerateFoodDataManifest::clas
     outputDir.set(foodDataManifestDir)
 }
 
+val generateOptimizedResources by tasks.registering(Exec::class) {
+    group = "build"
+    description = "Generates resource images with lossless WebP and verifies every original RGBA pixel."
+    workingDir(rootProject.projectDir.parentFile)
+    val interpreter = providers.gradleProperty("KPKN_PYTHON_EXECUTABLE").orNull ?: if (System.getProperty("os.name").lowercase().contains("windows")) "python" else "python3"
+    commandLine(interpreter, "scripts/stability/optimize_resources.py", "--output", optimizedResourcesDir.get().asFile.absolutePath,
+        "--report", layout.buildDirectory.file("reports/resource-optimization.json").get().asFile.absolutePath)
+    inputs.dir("src/main/res")
+    inputs.file(rootProject.projectDir.parentFile.resolve("scripts/stability/optimize_resources.py"))
+    outputs.dir(optimizedResourcesDir)
+    outputs.file(layout.buildDirectory.file("reports/resource-optimization.json"))
+}
+
 // The importer's start gate reads that asset: it is built before anything else (preBuild), and the asset merges that read the directory
 // depend on it explicitly, so that Gradle never finds a task reading the output of one it does not wait for.
 tasks.configureEach {
     if (name == "preBuild" || (name.startsWith("merge") && name.endsWith("Assets"))) {
         dependsOn(generateFoodDataManifest)
     }
+    if (name != "generateOptimizedResources" && (name == "preBuild" || name.endsWith("Resources") || name.contains("SourceSetPaths") || name.startsWith("generate") && name.endsWith("ResValues")))
+        dependsOn(generateOptimizedResources)
 }
 
 val verifyDatasetKnowledge by tasks.registering(Exec::class) {
@@ -191,10 +217,9 @@ val verifyDatasetKnowledge by tasks.registering(Exec::class) {
     // On Windows the interpreter is `python` (no `python3` alias); elsewhere `python3`.
     val pythonCommand = if (System.getProperty("os.name").lowercase().contains("windows")) "python" else "python3"
     commandLine(pythonCommand, "scripts/process_dataset.py", "--check")
-    // The master JSON is an authoring input: a checkout that does not carry it has nothing to verify, so the task
-    // is skipped instead of failing `check`.
+    // Release verification must fail when the authoritative master is unavailable.
     val masterDataset = rootProject.file("DATASET_KPKN_TRINIDAD_MASTER.json")
-    onlyIf { masterDataset.isFile }
+    doFirst { check(masterDataset.isFile) { "The authoritative nutrition master is required for verification" } }
 }
 
 tasks.named("check").configure {
@@ -202,6 +227,15 @@ tasks.named("check").configure {
 }
 
 dependencies {
+    implementation(platform("com.google.firebase:firebase-bom:34.19.0"))
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-storage")
+    implementation("com.google.firebase:firebase-appcheck-playintegrity")
+    implementation("com.google.firebase:firebase-crashlytics")
+    implementation("androidx.credentials:credentials:1.3.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+    implementation("com.android.billingclient:billing:9.1.0")
     coreLibraryDesugaring(libs.desugar.jdk.libs)
     implementation(libs.androidx.core.ktx)
     // SplashScreen API (Theme.KPKN.Starting + installSplashScreen()): splash de marca en todas las versiones de Android.
@@ -234,7 +268,7 @@ dependencies {
     implementation("androidx.camera:camera-video:1.4.2")
     implementation("androidx.media3:media3-exoplayer:1.5.1")
     implementation("androidx.media3:media3-ui:1.5.1")
-    // Bundled base pose model; applies to both healthConnect flavors (base + health).
+    // Bundled pose model for optional workout-video feedback; runs on the device.
     implementation("com.google.mlkit:pose-detection:18.0.0-beta5")
     implementation(libs.vosk.android)
     ksp(libs.androidx.room.compiler)
@@ -244,8 +278,6 @@ dependencies {
     testImplementation("androidx.test:core:1.6.1")
     testImplementation(libs.androidx.room.testing)
     testImplementation(libs.androidx.compose.ui.test.junit4)
-    // Health Connect dependency - only for health flavor
-    "healthImplementation"(libs.androidx.health.connect.client)
     
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -259,4 +291,37 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     // LeakCanary: detects memory leaks in debug builds only (not included in release APK).
     debugImplementation("com.squareup.leakcanary:leakcanary-android:2.14")
+}
+
+// Existing automation may still request these names. There are only debug/release variants.
+abstract class LegacyUnitTestsAlias : DefaultTask() {
+    @Option(option = "tests", description = "Passes selected test patterns to the unified debug test task.")
+    fun selectTests(patterns: List<String>) {
+        project.tasks.named<Test>("testDebugUnitTest").configure {
+            patterns.forEach { filter.includeTestsMatching(it) }
+        }
+    }
+}
+tasks.register<LegacyUnitTestsAlias>("testBaseDebugUnitTest") {
+    group = "verification"
+    dependsOn("testDebugUnitTest")
+}
+mapOf(
+    "assembleBaseRelease" to "assembleRelease", "bundleBaseRelease" to "bundleRelease",
+    "assembleBaseDebug" to "assembleDebug", "installBaseDebug" to "installDebug",
+).forEach { (legacy, current) -> tasks.register(legacy) { dependsOn(current) } }
+
+val validateReleaseSigning by tasks.registering {
+    doLast {
+        check(releaseSigningConfigured()) { "Release requires an upload signing configuration; debug signing is separate." }
+    }
+}
+fun releaseSigningConfigured(): Boolean {
+    return listOf("KPKN_RELEASE_STORE_FILE", "KPKN_RELEASE_STORE_PASSWORD", "KPKN_RELEASE_KEY_ALIAS", "KPKN_RELEASE_KEY_PASSWORD")
+        .all { !providers.gradleProperty(it).orElse(providers.environmentVariable(it)).orNull.isNullOrBlank() }
+}
+tasks.configureEach {
+    if (name in setOf("packageRelease", "signReleaseBundle", "assembleRelease", "bundleRelease")) {
+        dependsOn(validateReleaseSigning)
+    }
 }

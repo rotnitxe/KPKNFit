@@ -252,9 +252,9 @@
     <string name="widget_volume_title">Calibrar volumen</string>
     <string name="widget_volume_subtitle">Configura el volumen recomendado por músculo para este programa.</string>
     <string name="widget_increase_title">Aumentar volumen</string>
-    <string name="widget_increase_subtitle">Sube 20% el volumen de la semana actual, músculo por músculo.</string>
+    <string name="widget_increase_subtitle" formatted="false">Sube 20% el volumen de la semana actual, músculo por músculo.</string>
     <string name="widget_reduce_title">Disminuir volumen</string>
-    <string name="widget_reduce_subtitle">Baja 20% el volumen de la semana actual, músculo por músculo.</string>
+    <string name="widget_reduce_subtitle" formatted="false">Baja 20% el volumen de la semana actual, músculo por músculo.</string>
     <string name="widget_verified">Verificado</string>
     <string name="widget_blocked">Bloqueado</string>
     <string name="widget_limit">Límite</string>
@@ -269,10 +269,10 @@
     <string name="widget_needs_calibration_body">Necesitamos una calibración base antes de aplicar automatizaciones sobre el volumen.</string>
     <string name="widget_calibrate_now">Calibrar ahora</string>
     <string name="widget_increase_confirm_title">Aumentar volumen semanal</string>
-    <string name="widget_increase_confirm_body">Esto aumentará en 20% el volumen de la semana actual, músculo por músculo. ¿Deseas continuar?</string>
+    <string name="widget_increase_confirm_body" formatted="false">Esto aumentará en 20% el volumen de la semana actual, músculo por músculo. ¿Deseas continuar?</string>
     <string name="widget_confirm_increase">Sí, aumentar</string>
     <string name="widget_decrease_confirm_title">Disminuir volumen semanal</string>
-    <string name="widget_decrease_confirm_body">Esto reducirá en 20% el volumen de la semana actual, músculo por músculo. ¿Deseas continuar?</string>
+    <string name="widget_decrease_confirm_body" formatted="false">Esto reducirá en 20% el volumen de la semana actual, músculo por músculo. ¿Deseas continuar?</string>
     <string name="widget_confirm_decrease">Sí, reducir</string>
 
     <!-- ═══════════════════════════════════════════════════════════════

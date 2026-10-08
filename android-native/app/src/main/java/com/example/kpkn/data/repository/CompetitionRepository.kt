@@ -127,7 +127,16 @@ class CompetitionRepository private constructor(context: Context, databaseOverri
             INSTANCE ?: error("CompetitionRepository not initialized - call init(context) first.")
 
         fun closeInstance() {
+            INSTANCE?.scope?.coroutineContext?.get(kotlinx.coroutines.Job)?.let { job ->
+                job.cancel(); kotlinx.coroutines.runBlocking { job.join() }
+            }
             INSTANCE = null
+        }
+        internal suspend fun closeForDataSession() {
+            INSTANCE?.let { instance -> kotlinx.coroutines.withTimeout(30_000) {
+                instance.scope.coroutineContext[kotlinx.coroutines.Job]?.children?.toList()?.forEach { it.join() }
+            } }
+            closeInstance()
         }
 
         fun competitionExerciseIds(records: List<CompetitionRecord>): Set<String> =

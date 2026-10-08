@@ -1,0 +1,23 @@
+{
+  "status": "PASS",
+  "scope": "R8_COMPILATION_ONLY",
+  "signedRelease": "NOT_BUILT",
+  "deviceReleaseQA": "NOT_RUN",
+  "records": [
+    {
+      "path": "android-native/app/build/outputs/mapping/release/seeds.txt",
+      "bytes": 10686040,
+      "sha256": "f6d5619d48ec1393f8a5d1382aa529f9a5da9e3144be3397588709dc903dc18a"
+    },
+    {
+      "path": "android-native/app/build/outputs/mapping/release/usage.txt",
+      "bytes": 10839599,
+      "sha256": "41138b449134c38e3b112d3da86698669c32c4115ae8c8d6ab4b8790c5bac0a0"
+    },
+    {
+      "path": "android-native/app/build/intermediates/mapping/release/minifyReleaseWithR8/mapping.txt",
+      "bytes": 412182321,
+      "sha256": "bd9bba50b245073523df43634a538abd7c5900eb126e33a31c46c78186ebab75"
+    }
+  ]
+}

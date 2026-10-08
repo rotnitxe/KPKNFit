@@ -34,6 +34,8 @@ object WorkoutVoiceRuntime {
 
     @Volatile
     private var engine: WorkoutVoiceEnginePort? = null
+    @Volatile internal var dataSessionPaused: Boolean = false
+        private set
 
     @Synchronized
     fun initialize(context: Context) {
@@ -59,6 +61,7 @@ object WorkoutVoiceRuntime {
     @Synchronized
     internal fun speechEngine(): WorkoutVoiceEnginePort {
         requireInitialized()
+        check(!dataSessionPaused) { "Voice is paused for data maintenance" }
         return engine ?: WorkoutRemoteVoiceEngineClient(appContext).also { engine = it }
     }
 
@@ -107,6 +110,25 @@ object WorkoutVoiceRuntime {
 
     suspend fun stopEngineAndAwaitWithoutUiCallback(): Boolean =
         engine?.stopAndAwait() ?: true
+
+    suspend fun quiesceForDataSession(context: Context) {
+        withContext(Dispatchers.Main.immediate) {
+            dataSessionPaused = true
+            (engine as? WorkoutRemoteVoiceEngineClient)?.disposeForDataSession()
+            engine = null
+            contextProvider.set(null)
+            actionSink.set(null)
+            stopCaptureHandler.set(null)
+            _state.value = VoiceSessionState()
+        }
+        VoiceProcessDataSession.stopAndAwait(context)
+    }
+
+    suspend fun resumeForDataSession(context: Context) = withContext(Dispatchers.Main.immediate) {
+        appContext = context.applicationContext
+        initialized = true
+        dataSessionPaused = false
+    }
 
     internal fun notifyRemoteStop() {
         notifyStopHandlerOnce()

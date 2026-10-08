@@ -46,6 +46,9 @@ object LocaleManager {
      */
     @Volatile
     private var cachedLanguage: String? = null
+    @Volatile private var cachedProfile: String? = null
+    private fun profile(context: Context): String = (context as? com.example.kpkn.data.account.ProfileContext)?.profile?.key
+        ?: if (com.example.kpkn.data.account.ProfileStorage.initialized()) com.example.kpkn.data.account.ProfileStorage.current().key else "platform"
 
     /**
      * Emite un evento cuando la Activity debe recrearse (solo API ≤ 32).
@@ -91,6 +94,7 @@ object LocaleManager {
             .putString(KEY_LANGUAGE, language)
             .apply()
         cachedLanguage = language
+        cachedProfile = profile(context)
     }
 
     /**
@@ -98,16 +102,18 @@ object LocaleManager {
      * Seguro de called desde [attachBaseContext] antes de que Room esté listo.
      */
     fun getSavedLanguage(context: Context): String {
-        cachedLanguage?.let { return it }
+        cachedLanguage?.takeIf { cachedProfile == profile(context) }?.let { return it }
         val saved = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             .getString(KEY_LANGUAGE, LANGUAGE_SYSTEM) ?: LANGUAGE_SYSTEM
         cachedLanguage = saved
+        cachedProfile = profile(context)
         return saved
     }
 
     /** Solo para tests: simula un proceso nuevo (sin idioma en memoria). */
     internal fun clearCachedLanguageForTests() {
         cachedLanguage = null
+        cachedProfile = null
     }
 
     /**
