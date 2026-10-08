@@ -280,7 +280,7 @@ private fun markFor(lift: LiftMark): Double = when (lift) {
  * Escribe datos del paso activo (y los marca como declarados) SIN confirmarlo: `clave=valor/clave=valor` (la barra separa los
  * datos porque `;` lo interpretaría el intérprete de órdenes del teléfono al pasar por `adb shell`).
  *  - `places=GYM,HOME`; `material=BARBELL,RACK` (lista exacta) o `material=+RINGS,-BARBELL` (sobre lo que ya hay);
- *  - `goal=POWERLIFTING`; `fresh=4`; `days=1,3,5`; `startday=4`; `dayplaces=3:HOME,6:PUBLIC`; `minutes=75`;
+ *  - `goal=POWERLIFTING`; `fresh=4`; `days=1,3,5`; `startday=4`; `dayplaces=3:HOME,6:PUBLIC`; `minutes=75` (el reloj va de 30 a 180: menos se lee como 30);
  *  - `caps=PULL_UP:SOME,PUSH_UP:MANY`; `muscles=CHEST,BACK`; `marks=SQUAT:140,BENCH:100`; `unit=lb`.
  */
 private fun SetupWizardDraft.withAnswers(spec: String): SetupWizardDraft =
