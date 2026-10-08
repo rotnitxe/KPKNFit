@@ -69,12 +69,12 @@ class EntrenoSymbolsPreviewActivity : ComponentActivity() {
 private val GYM_EQUIPMENT = EquipmentSymbolId.entries.filter { it != EquipmentSymbolId.BODYWEIGHT_ONLY }
 private val HOME_EQUIPMENT = listOf(
     EquipmentSymbolId.BENCH, EquipmentSymbolId.DUMBBELLS, EquipmentSymbolId.KETTLEBELL, EquipmentSymbolId.PULL_UP_BAR,
-    EquipmentSymbolId.RINGS, EquipmentSymbolId.BANDS, EquipmentSymbolId.BALL, EquipmentSymbolId.JUMP_ROPE,
+    EquipmentSymbolId.RINGS, EquipmentSymbolId.BANDS, EquipmentSymbolId.BALL,
     EquipmentSymbolId.BOX, EquipmentSymbolId.CARDIO, EquipmentSymbolId.BODYWEIGHT_ONLY,
 )
 private val PUBLIC_EQUIPMENT = listOf(
     EquipmentSymbolId.PULL_UP_BAR, EquipmentSymbolId.PARALLEL_BARS, EquipmentSymbolId.RINGS, EquipmentSymbolId.BANDS,
-    EquipmentSymbolId.BALL, EquipmentSymbolId.JUMP_ROPE, EquipmentSymbolId.BOX, EquipmentSymbolId.BODYWEIGHT_ONLY,
+    EquipmentSymbolId.BALL, EquipmentSymbolId.BOX, EquipmentSymbolId.BODYWEIGHT_ONLY,
 )
 
 @Composable
