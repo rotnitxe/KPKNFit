@@ -1,10 +1,7 @@
 package com.example.kpkn.screens.onboarding
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.semantics.selected
-import com.example.kpkn.data.models.ApparatusPresence
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.data.programs.TrainingReference
 import com.example.kpkn.domain.onboarding.PlanEvaluationStage
@@ -20,8 +17,7 @@ import com.example.kpkn.domain.onboarding.SetupApparatusPanel
 import com.example.kpkn.domain.onboarding.SetupControlKind
 import com.example.kpkn.domain.onboarding.SetupStepDefinitions
 import com.example.kpkn.domain.onboarding.SetupStepId
-import com.example.kpkn.screens.onboarding.design.WizardChoiceCard
-import com.example.kpkn.screens.onboarding.design.WizardSpacing
+import com.example.kpkn.screens.onboarding.entreno.EntrenoCardioTypeStep
 import com.example.kpkn.screens.onboarding.entreno.EntrenoFreshDayStep
 import com.example.kpkn.screens.onboarding.entreno.EntrenoGoalStep
 import com.example.kpkn.screens.onboarding.entreno.EntrenoMarksStep
@@ -44,9 +40,9 @@ import com.example.kpkn.screens.onboarding.entreno.EntrenoWeekdaysStep
  * la API del ViewModel (`togglePlace`, `setGoalProfile`, `toggleWeekday`, …; ningún setter navega: el avance es el
  * CTA del host, `submitCurrentStep`).
  *
- * Los pasos de opción simples (experiencia, calibración, cardio) siguen siendo tarjetas del catálogo con
- * `setStepChoice`; los pasos retirados de la ruta (reparto, autorregulación, calentamientos, revisión del plan…) ya
- * no tienen control.
+ * Los pasos de opción simples (experiencia, calibración y minutos de cardio) siguen siendo tarjetas del catálogo con
+ * `setStepChoice`; el tipo de cardio tiene su propio control porque lo que ofrece depende del material (`EntrenoCardioTypeStep`);
+ * los pasos retirados de la ruta (reparto, autorregulación, calentamientos, revisión del plan…) ya no tienen control.
  */
 @Composable
 fun SetupTrainingStepContent(
@@ -66,13 +62,13 @@ fun SetupTrainingStepContent(
         SetupStepId.TRAINING_MAX -> EntrenoMarksStep(state = state, vm = vm)
         SetupStepId.PLAN -> EntrenoPlanStep(state = state, vm = vm)
         SetupStepId.WEEK_LAYOUT -> EntrenoWeekLayoutStep(state = state, vm = vm)
+        SetupStepId.CARDIO_TYPE -> EntrenoCardioTypeStep(state = state, vm = vm)
 
         SetupStepId.EXPERIENCE,
         SetupStepId.VOLUME_TECHNIQUE,
         SetupStepId.VOLUME_CONSISTENCY,
         SetupStepId.VOLUME_STRENGTH,
         SetupStepId.VOLUME_MOBILITY,
-        SetupStepId.CARDIO_TYPE,
         SetupStepId.CARDIO_TIME,
         -> TrainingChoiceStep(step = step, state = state, vm = vm)
 
@@ -96,7 +92,6 @@ private fun TrainingChoiceStep(step: SetupStepId, state: SetupWizardState, vm: S
         return
     }
     val selected = state.draft.selectedValues(step)
-    BikePresenceConfirmation(step = step, state = state, vm = vm)
     if (SetupStepDefinitions.control(step) == SetupControlKind.MULTI_CHOICE) {
         SetupBodyMultiChoiceCards(
             step = step,
@@ -112,49 +107,6 @@ private fun TrainingChoiceStep(step: SetupStepId, state: SetupWizardState, vm: S
         )
     }
     SetupBodySkipAction(step = step, vm = vm)
-}
-
-/**
- * T-005 / §15.1 — BIKE_OUTDOOR exige confirmar acceso a bicicleta con
- * PRESENCIA si no consta: no se hereda de la categoría «Cardio» ni del resto
- * del material de gimnasio. Solo presencia, sin kilos ni cantidades.
- */
-@Composable
-private fun BikePresenceConfirmation(step: SetupStepId, state: SetupWizardState, vm: SetupWizardViewModel) {
-    if (step != SetupStepId.CARDIO_TYPE) return
-    if ("BIKE_OUTDOOR" !in state.draft.selectedValues(step)) return
-    val presence = SetupApparatusPanel.presenceOf(
-        state.draft.trainingOptions.availability,
-        SetupApparatusPanel.OUTDOOR_BIKE_KEY,
-    )
-    if (presence == ApparatusPresence.PRESENT) return
-
-    fun write(value: ApparatusPresence) {
-        vm.updateStep(SetupStepId.CARDIO_TYPE) { draft ->
-            draft.withApparatusPresence(SetupApparatusPanel.OUTDOOR_BIKE_KEY, value, isSupport = false)
-        }
-    }
-
-    Column(verticalArrangement = Arrangement.spacedBy(WizardSpacing.cardGap)) {
-        TrainingNotice(
-            text = if (presence == ApparatusPresence.ABSENT) {
-                "Confirmaste que no tienes bicicleta: elige otro tipo de cardio o corrige aquí."
-            } else {
-                "¿Tienes acceso a una bicicleta? Confírmalo para continuar con bicicleta al aire libre."
-            },
-            tone = TrainingNoticeTone.INFO,
-        )
-        WizardChoiceCard(
-            title = "Sí, tengo bicicleta",
-            selected = presence == ApparatusPresence.PRESENT,
-            onClick = { write(ApparatusPresence.PRESENT) },
-        )
-        WizardChoiceCard(
-            title = "No tengo bicicleta",
-            selected = presence == ApparatusPresence.ABSENT,
-            onClick = { write(ApparatusPresence.ABSENT) },
-        )
-    }
 }
 
 // ─── Avisos de rechazo (Paquete A · C3/C4 y Paquete C · C.P11) ─────────────────────────────────────────────────

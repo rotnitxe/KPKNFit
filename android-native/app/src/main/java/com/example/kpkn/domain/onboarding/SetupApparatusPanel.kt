@@ -118,6 +118,17 @@ object SetupApparatusPanel {
     fun hasBike(availability: EquipmentAvailability?): Boolean =
         presenceOf(availability, OUTDOOR_BIKE_KEY) == ApparatusPresence.PRESENT
 
+    /**
+     * Declara ([has] = true) o retira la bicicleta al aire libre. Retirarla borra la llave (no deja un «ausente» suelto: la
+     * persona no dijo «no tengo» a una pregunta, simplemente no la tiene). Sin disponibilidad declarada no se fabrica
+     * ninguna (null).
+     */
+    fun withBike(current: EquipmentAvailability?, has: Boolean): EquipmentAvailability? {
+        if (current == null) return null
+        val without = withoutBike(current)
+        return if (has) without.copy(apparatus = without.apparatus + (OUTDOOR_BIKE_KEY to ApparatusPresence.PRESENT)) else without
+    }
+
     /** La misma disponibilidad sin la bicicleta: lo que queda es el material de los símbolos y nada más. */
     fun withoutBike(availability: EquipmentAvailability): EquipmentAvailability = availability.copy(
         apparatus = availability.apparatus - OUTDOOR_BIKE_KEY,

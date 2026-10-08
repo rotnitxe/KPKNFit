@@ -53,8 +53,10 @@ import com.example.kpkn.screens.onboarding.withLiftMark
 import com.example.kpkn.screens.onboarding.withMaterial
 import com.example.kpkn.screens.onboarding.withMaterialToggled
 import com.example.kpkn.screens.onboarding.withMuscleToggled
+import com.example.kpkn.screens.onboarding.withOutdoorBike
 import com.example.kpkn.screens.onboarding.withPlaces
 import com.example.kpkn.screens.onboarding.withSessionMinutes
+import com.example.kpkn.screens.onboarding.withStepChoice
 import com.example.kpkn.screens.onboarding.withWeekdays
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -435,6 +437,87 @@ class EntrenoStepsSmokeTest {
         rule.onNodeWithTag("setup-mark-SQUAT").assertExists()
         rule.onNodeWithTag("setup-mark-SNATCH").assertDoesNotExist()
         rule.onNodeWithTag("setup-mark-CLEAN_AND_JERK").assertDoesNotExist()
+    }
+
+    // ── CARDIO_TYPE ────────────────────────────────────────────────────────────
+
+    /** Una persona con un objetivo de cardio que ya contestó sus lugares (y, si se pide, su material). */
+    private fun cardioPerson(places: Set<TrainingPlace>, material: Set<EquipmentSymbolId>? = null): SetupWizardDraft {
+        val base = SetupWizardDraft().withPlaces(places).withGoalProfile(TrainingGoalProfile.STRENGTH_CARDIO)
+        return if (material == null) base else base.withMaterial(material)
+    }
+
+    private val machineLabels = listOf("Cinta", "Bicicleta estática", "Elíptica", "Remo en máquina", "Lo que haya")
+
+    @Test
+    fun withoutMachinesOrABikeTheCardioOffersOnlyWalkingAndRunning() {
+        show(cardioPerson(setOf(TrainingPlace.HOME), setOf(EquipmentSymbolId.DUMBBELLS))) { s, v -> EntrenoCardioTypeStep(s, v) }
+        rule.onNodeWithText("Caminar").assertExists()
+        rule.onNodeWithText("Correr al aire libre").assertExists()
+        (machineLabels + "Bicicleta al aire libre").forEach { rule.onNodeWithText(it).assertDoesNotExist() }
+        // La casilla de la bicicleta siempre está: es la forma de decir que se tiene.
+        rule.onNodeWithText("Tengo bicicleta").assertExists().assertIsNotSelected()
+    }
+
+    @Test
+    fun theGymBringsItsMachinesAndWhateverThereIs() {
+        show(cardioPerson(gym)) { s, v -> EntrenoCardioTypeStep(s, v) }
+        (listOf("Caminar", "Correr al aire libre") + machineLabels).forEach { rule.onNodeWithText(it).assertExists() }
+        rule.onNodeWithText("Elegimos según el material de cada día.").assertExists()
+        // Las máquinas no traen bicicleta al aire libre.
+        rule.onNodeWithText("Bicicleta al aire libre").assertDoesNotExist()
+    }
+
+    @Test
+    fun theOutdoorBikeAppearsOnlyAfterSayingYouHaveOne() {
+        show(cardioPerson(setOf(TrainingPlace.HOME), setOf(EquipmentSymbolId.BODYWEIGHT_ONLY)).withOutdoorBike(true)) { s, v ->
+            EntrenoCardioTypeStep(s, v)
+        }
+        rule.onNodeWithText("Bicicleta al aire libre").assertExists()
+        rule.onNodeWithText("Tengo bicicleta").assertIsSelected()
+        machineLabels.forEach { rule.onNodeWithText(it).assertDoesNotExist() }
+    }
+
+    @Test
+    fun theChosenCardioIsMarkedAndTheOthersAreNot() {
+        show(cardioPerson(gym).withStepChoice(SetupStepId.CARDIO_TYPE, "ELLIPTICAL")) { s, v -> EntrenoCardioTypeStep(s, v) }
+        rule.onNodeWithText("Elíptica").assertIsSelected()
+        rule.onNodeWithText("Cinta").assertIsNotSelected()
+        rule.onNodeWithText("Caminar").assertIsNotSelected()
+        // Sola en un solo lugar, la máquina no necesita nota.
+        rule.onNodeWithText("Ese aparato solo está en el gimnasio.", substring = true).assertDoesNotExist()
+    }
+
+    @Test
+    fun withSeveralPlacesAMachineSaysWhereItAppliesAndWhateverThereIsNeedsNoNote() {
+        val places = setOf(TrainingPlace.GYM, TrainingPlace.PUBLIC)
+        show(cardioPerson(places).withStepChoice(SetupStepId.CARDIO_TYPE, "TREADMILL")) { s, v -> EntrenoCardioTypeStep(s, v) }
+        rule.onNodeWithText("Ese aparato solo está en el gimnasio. En espacios públicos, haremos otro cardio.").assertExists()
+        rule.onNodeWithText("Cinta").assertIsSelected()
+    }
+
+    @Test
+    fun whateverThereIsNeedsNoNoteEvenWithSeveralPlaces() {
+        val places = setOf(TrainingPlace.GYM, TrainingPlace.HOME)
+        show(cardioPerson(places).withStepChoice(SetupStepId.CARDIO_TYPE, "ANY")) { s, v -> EntrenoCardioTypeStep(s, v) }
+        rule.onNodeWithText("Lo que haya").assertIsSelected()
+        rule.onNodeWithText("Ese aparato solo está", substring = true).assertDoesNotExist()
+    }
+
+    @Test
+    fun aCardioTheMaterialNoLongerAllowsIsNotShownAsChosenAndTheNoteSaysWhatIsMissing() {
+        val noMachines = cardioPerson(gym).withStepChoice(SetupStepId.CARDIO_TYPE, "TREADMILL").withMaterialToggled(EquipmentSymbolId.CARDIO)
+        show(noMachines) { s, v -> EntrenoCardioTypeStep(s, v) }
+        machineLabels.forEach { rule.onNodeWithText(it).assertDoesNotExist() }
+        rule.onNodeWithText("Ese cardio necesita las máquinas de cardio de tu material: elige otro o añádelas.").assertExists()
+        rule.onNodeWithText("Caminar").assertIsNotSelected()
+    }
+
+    @Test
+    fun aBikeCardioWithoutTheBikeAsksToMarkIt() {
+        show(cardioPerson(gym).withStepChoice(SetupStepId.CARDIO_TYPE, "BIKE_OUTDOOR")) { s, v -> EntrenoCardioTypeStep(s, v) }
+        rule.onNodeWithText("Bicicleta al aire libre").assertDoesNotExist()
+        rule.onNodeWithText("Marca «Tengo bicicleta» o elige otro cardio.").assertExists()
     }
 
     // ── PLAN / WEEK_LAYOUT ─────────────────────────────────────────────────────

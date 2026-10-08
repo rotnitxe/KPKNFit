@@ -8,7 +8,9 @@ import com.example.kpkn.domain.onboarding.EquipmentSymbols
 import com.example.kpkn.domain.onboarding.LiftMark
 import com.example.kpkn.domain.onboarding.MuscleSymbol
 import com.example.kpkn.domain.onboarding.MuscleSymbols
+import com.example.kpkn.domain.onboarding.SetupApparatusPanel
 import com.example.kpkn.domain.onboarding.TrainingPlace
+import com.example.kpkn.domain.training.CardioPreference
 import com.example.kpkn.domain.training.CatalogCompositionTestSupport
 import com.example.kpkn.domain.training.generator.RoutineLevel
 import com.example.kpkn.domain.training.generator.RoutineMode
@@ -77,6 +79,38 @@ class SetupRoutineRequestTest {
         val cardio = hybrid.routineRequest(RoutineMode.GENERAL_HYBRID, catalog).cardio
         assertEquals(CardioType.RUN_OUTDOOR, cardio?.type)
         assertEquals(20, cardio?.minutes)
+    }
+
+    @Test
+    fun whatever_there_is_travels_as_a_cardio_without_a_type_and_the_bike_reaches_every_place() {
+        // «Lo que haya»: los minutos viajan, el tipo no (lo elige el generador con el material de cada día).
+        val whatever = base.copy(goal = SetupGoal.COMPLETE_ATHLETE, cardioNoPreference = true, cardioMinutes = 20)
+        assertEquals(CardioPreference(null, 20), whatever.routineRequest(RoutineMode.GENERAL_HYBRID, catalog).cardio)
+        // Sin respuesta de tipo o sin minutos no hay preferencia.
+        assertNull(base.copy(goal = SetupGoal.COMPLETE_ATHLETE, cardioMinutes = 20).routineRequest(RoutineMode.GENERAL_HYBRID, catalog).cardio)
+        assertNull(whatever.copy(cardioMinutes = null).routineRequest(RoutineMode.GENERAL_HYBRID, catalog).cardio)
+
+        // La bicicleta declarada es de la persona: llega a la disponibilidad de cada lugar, no solo a la unión.
+        val places = setOf(TrainingPlace.GYM, TrainingPlace.HOME)
+        val declared = checkNotNull(
+            SetupApparatusPanel.withBike(EquipmentSymbols.availabilityOf(EquipmentSymbols.seedFor(places), places), true),
+        )
+        val onTheBike = base.copy(
+            goal = SetupGoal.COMPLETE_ATHLETE,
+            trainingPlaces = places,
+            trainingOptions = base.trainingOptions.copy(availability = declared),
+            cardioType = CardioType.BIKE_OUTDOOR,
+            cardioMinutes = 20,
+        )
+        val request = onTheBike.routineRequest(RoutineMode.GENERAL_HYBRID, catalog)
+        assertEquals(CardioType.BIKE_OUTDOOR, request.cardio?.type)
+        assertTrue(SetupApparatusPanel.hasBike(request.availability))
+        assertEquals(places, request.availabilityByPlace.keys)
+        request.availabilityByPlace.forEach { (place, own) -> assertTrue("la bicicleta llega a $place", SetupApparatusPanel.hasBike(own)) }
+        // Sin declararla, ningún lugar la trae.
+        val without = onTheBike.copy(trainingOptions = base.trainingOptions.copy(availability = SetupApparatusPanel.withoutBike(declared)))
+        without.routineRequest(RoutineMode.GENERAL_HYBRID, catalog).availabilityByPlace.values
+            .forEach { assertTrue(!SetupApparatusPanel.hasBike(it)) }
     }
 
     @Test

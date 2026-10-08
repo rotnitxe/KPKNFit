@@ -11,6 +11,7 @@ import com.example.kpkn.data.db.toSettings
 import com.example.kpkn.data.exercises.catalogv2.CatalogV2ProcessCache
 import com.example.kpkn.data.models.AthleteType
 import com.example.kpkn.data.models.AutoregulationMode
+import com.example.kpkn.data.models.CardioType
 import com.example.kpkn.data.models.NutritionPlan
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Session
@@ -131,6 +132,8 @@ class EntrenoDeclarationEffectTest {
         val minutes: Int = 60,
         val cardioType: String = "WALK",
         val cardioMinutes: String = "20",
+        /** «Tengo bicicleta»: la bicicleta al aire libre de la persona (viaja a todos los lugares). */
+        val bike: Boolean = false,
         val technique: String = "2",
         val consistency: String = "2",
         val strength: String = "2",
@@ -322,22 +325,26 @@ class EntrenoDeclarationEffectTest {
             val probes = listOf(TrainingGoalProfile.STRENGTH_CARDIO, TrainingGoalProfile.FUNCTIONAL_HEALTH)
             val effects = probes.map { profile ->
                 val without = home.copy(profile = profile)
-                val with = without.copy(material = setOf(symbol))
-                change("material:${symbol.name}", "casa sin material → casa con «${symbol.label}» (${profile.name})", without, with, Channel.EQUIPMENT_AVAILABILITY)
+                // «Cardio» no cambia el programa por sí solo: abre las máquinas del paso CARDIO_TYPE. Quien lo marca puede elegir la
+                // cinta y el generador la prescribe; quien no lo marca no puede y camina.
+                val opensMachines = symbol == EquipmentSymbolId.CARDIO
+                val with = without.copy(material = setOf(symbol), cardioType = if (opensMachines) "TREADMILL" else without.cardioType)
+                change("material:${symbol.name}", "casa sin material → casa con «${symbol.label}» (${profile.name})", without, with, Channel.EQUIPMENT_AVAILABILITY) { _, v ->
+                    val types = cardioTypesOf(v)
+                    if (!opensMachines || types == setOf(CardioType.TREADMILL)) null
+                    else "con «Cardio» y la cinta elegida el cardio es $types"
+                }
             }
             if (effects.any { changed -> changed.any { it == Channel.EXERCISES || it == Channel.SETS || it == Channel.MINUTES || it == Channel.CARDIO } }) {
                 withoutProgramEffect -= symbol
             }
         }
         table += "material sin efecto en ningún programa probado: ${withoutProgramEffect.joinToString { it.name }.ifEmpty { "ninguno" }}"
-        // La cuerda de saltar salió de la cuadrícula (ningún ejercicio la usa). Queda un símbolo que no cambia ningún programa por
-        // sí solo: el cardio de gimnasio solo se usaría si la persona no hubiera elegido su cardio, que el asistente siempre
-        // pregunta. La lista exacta queda fijada aquí y en `WIZARD_ENTRENO_V2.md` §3: si se cablea, o se rompe otro símbolo, esta
-        // prueba lo dice.
-        val knownWithoutConsumer = setOf(EquipmentSymbolId.CARDIO)
-        if (withoutProgramEffect.toSet() != knownWithoutConsumer) {
-            failures += "material: los símbolos que no cambian ningún programa son ${withoutProgramEffect.joinToString { it.name }.ifEmpty { "ninguno" }} " +
-                "y se esperaban ${knownWithoutConsumer.joinToString { it.name }}: actualiza esta lista y WIZARD_ENTRENO_V2.md §3"
+        // Todo símbolo del paso de material tiene un consumidor: la cuerda de saltar salió de la cuadrícula (ningún ejercicio la usa) y
+        // «Cardio» abre las máquinas del paso CARDIO_TYPE (la cinta elegida se prescribe en los días de gimnasio).
+        if (withoutProgramEffect.isNotEmpty()) {
+            failures += "material: los símbolos que no cambian ningún programa son ${withoutProgramEffect.joinToString { it.name }}: " +
+                "dales consumo o retíralos de la cuadrícula, y actualiza WIZARD_ENTRENO_V2.md §3"
         }
         finish("material")
     }
@@ -453,6 +460,78 @@ class EntrenoDeclarationEffectTest {
             failures += "cardioMinutes: pedir más minutos de cardio no da más cardio a la semana: $weekly"
         }
         finish("cardio")
+    }
+
+    private val machineTypes = setOf(CardioType.TREADMILL, CardioType.BIKE_STATIONARY, CardioType.ELLIPTICAL, CardioType.ROW_MACHINE)
+
+    /** Los tipos de cardio de todo el programa activado. */
+    private fun cardioTypesOf(activated: Activated): Set<CardioType> =
+        activated.sessions.flatMap { s -> s.allExercises().mapNotNull { it.cardioDetails?.type } }.toSet()
+
+    /** Los tipos de cardio de las sesiones de cada lugar (`Session.placeId`). */
+    private fun cardioTypesByPlace(activated: Activated): Map<String?, Set<CardioType>> =
+        activated.sessions.groupBy({ it.placeId }, { s -> s.allExercises().mapNotNull { it.cardioDetails?.type } })
+            .mapValues { (_, types) -> types.flatten().toSet() }
+
+    @Test
+    fun theCardioMachinesOfTheStepReachTheGymDaysAndTheParkDaysGetAnotherType() = runTest(dispatcher.scheduler, timeout = 20.minutes) {
+        val hybridGym = noMarks.copy(profile = TrainingGoalProfile.STRENGTH_CARDIO)
+        listOf("TREADMILL" to CardioType.TREADMILL, "BIKE_STATIONARY" to CardioType.BIKE_STATIONARY).forEach { (value, type) ->
+            change("cardioType", "caminar → $value (gimnasio, símbolo «Cardio»)", hybridGym, hybridGym.copy(cardioType = value), Channel.CARDIO) { _, v ->
+                val types = cardioTypesOf(v)
+                if (types == setOf(type)) null else "el cardio es $types y se pidió $type"
+            }
+        }
+        // «Lo que haya»: sin preferencia, el generador elige entre las máquinas del día.
+        change("cardioType", "caminar → lo que haya (gimnasio)", hybridGym, hybridGym.copy(cardioType = "ANY"), Channel.CARDIO) { _, v ->
+            val types = cardioTypesOf(v)
+            if (types.isNotEmpty() && types.all { it in machineTypes }) null else "el cardio es $types y «Lo que haya» elige entre las máquinas del gimnasio"
+        }
+        // Gimnasio y espacios públicos, cada día en su lugar: la cinta en los días de gimnasio y caminar o correr en los del parque.
+        val gymAndPark = hybridGym.copy(
+            places = setOf(TrainingPlace.GYM, TrainingPlace.PUBLIC),
+            dayPlaces = mapOf(1 to TrainingPlace.GYM, 2 to TrainingPlace.PUBLIC, 4 to TrainingPlace.GYM, 5 to TrainingPlace.PUBLIC),
+            cardioType = "TREADMILL",
+        )
+        val byPlace = cardioTypesByPlace(activated(gymAndPark))
+        val atGym = byPlace[TrainingPlace.GYM.name].orEmpty()
+        val atPark = byPlace[TrainingPlace.PUBLIC.name].orEmpty()
+        table += "cardioType · gimnasio y espacios públicos con la cinta → gimnasio: $atGym · parque: $atPark"
+        if (atGym != setOf(CardioType.TREADMILL)) failures += "cardioType: los días de gimnasio llevan $atGym y se pidió la cinta"
+        if (atPark.isEmpty() || atPark.any { it in machineTypes }) failures += "cardioType: los días de parque llevan $atPark y ahí no hay máquinas"
+        // «Lo que haya» con los mismos lugares: máquinas en el gimnasio y nada de máquinas en el parque.
+        val anyByPlace = cardioTypesByPlace(activated(gymAndPark.copy(cardioType = "ANY")))
+        table += "cardioType · gimnasio y espacios públicos con lo que haya → gimnasio: ${anyByPlace[TrainingPlace.GYM.name]} · parque: ${anyByPlace[TrainingPlace.PUBLIC.name]}"
+        if (anyByPlace[TrainingPlace.GYM.name].orEmpty().let { it.isEmpty() || !it.all { type -> type in machineTypes } }) {
+            failures += "cardioType: «Lo que haya» en el gimnasio no elige máquinas: ${anyByPlace[TrainingPlace.GYM.name]}"
+        }
+        if (anyByPlace[TrainingPlace.PUBLIC.name].orEmpty().any { it in machineTypes }) {
+            failures += "cardioType: «Lo que haya» en el parque elige máquinas: ${anyByPlace[TrainingPlace.PUBLIC.name]}"
+        }
+        finish("cardio por material")
+    }
+
+    @Test
+    fun theBikeTheyDeclaredReachesTheCardioOfEveryDayInEveryPlace() = runTest(dispatcher.scheduler, timeout = 20.minutes) {
+        val hybridHome = noMarks.copy(profile = TrainingGoalProfile.STRENGTH_CARDIO, places = setOf(TrainingPlace.HOME), material = emptySet())
+        change("outdoor_bike", "casa → casa con bicicleta (bicicleta al aire libre)", hybridHome, hybridHome.copy(bike = true, cardioType = "BIKE_OUTDOOR"), Channel.CARDIO, Channel.EQUIPMENT_AVAILABILITY) { _, v ->
+            val types = cardioTypesOf(v)
+            if (types == setOf(CardioType.BIKE_OUTDOOR)) null else "el cardio es $types y se pidió la bicicleta al aire libre"
+        }
+        // La bicicleta es de la persona, no de un lugar: con gimnasio y casa la usan todos los días.
+        val gymAndHome = noMarks.copy(
+            profile = TrainingGoalProfile.STRENGTH_CARDIO,
+            places = setOf(TrainingPlace.GYM, TrainingPlace.HOME),
+            dayPlaces = mapOf(2 to TrainingPlace.HOME, 5 to TrainingPlace.HOME),
+            bike = true,
+            cardioType = "BIKE_OUTDOOR",
+        )
+        val byPlace = cardioTypesByPlace(activated(gymAndHome))
+        table += "outdoor_bike · gimnasio y casa con bicicleta → gimnasio: ${byPlace[TrainingPlace.GYM.name]} · casa: ${byPlace[TrainingPlace.HOME.name]}"
+        listOf(TrainingPlace.GYM, TrainingPlace.HOME).forEach { place ->
+            if (byPlace[place.name] != setOf(CardioType.BIKE_OUTDOOR)) failures += "outdoor_bike: los días de ${place.name} llevan ${byPlace[place.name]} y la bicicleta viaja con la persona"
+        }
+        finish("bicicleta")
     }
 
     @Test
@@ -721,7 +800,10 @@ class EntrenoDeclarationEffectTest {
                 d.dayPlaces.entries.fold(withStart) { current, (day, place) -> current.withDayPlace(day, place) }
             }
             SetupStepId.SESSION_TIME -> vm.setSessionMinutes(d.minutes)
-            SetupStepId.CARDIO_TYPE -> vm.setStepChoice(SetupStepId.CARDIO_TYPE, d.cardioType)
+            SetupStepId.CARDIO_TYPE -> {
+                if (d.bike) vm.setOutdoorBike(true)
+                vm.setStepChoice(SetupStepId.CARDIO_TYPE, d.cardioType)
+            }
             SetupStepId.CARDIO_TIME -> vm.setStepChoice(SetupStepId.CARDIO_TIME, d.cardioMinutes)
             SetupStepId.VOLUME_TECHNIQUE -> vm.setStepChoice(step, d.technique)
             SetupStepId.VOLUME_CONSISTENCY -> vm.setStepChoice(step, d.consistency)

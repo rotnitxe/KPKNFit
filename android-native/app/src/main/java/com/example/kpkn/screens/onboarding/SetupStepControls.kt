@@ -159,7 +159,7 @@ internal fun SetupBodyMultiChoiceCards(
 
 /** Tarjeta de casilla: mismo lenguaje visual que [WizardChoiceCard] con check y `Role.Checkbox`. */
 @Composable
-private fun SetupCheckCard(
+internal fun SetupCheckCard(
     title: String,
     subtitle: String?,
     checked: Boolean,

@@ -648,7 +648,10 @@ internal object SessionAssembler {
             }
         }
         if (state.fillerCardioSeconds > 0) {
-            val type = if (CardioType.WALK in equipment.cardioTypes) CardioType.WALK else equipment.cardioTypes.first()
+            // El cardio suave de relleno es caminar, salvo que la persona haya declarado otro tipo que este día permite
+            // (la cinta, la elíptica…): el tipo declarado gana también aquí.
+            val type = ctx.preferredCardioType?.takeIf { it in equipment.cardioTypes }
+                ?: if (CardioType.WALK in equipment.cardioTypes) CardioType.WALK else equipment.cardioTypes.first()
             cardioExercises += CardioBuilder.exercise(
                 "$sessionId-cardio-suave",
                 CardioBuilder.steady(type, state.fillerCardioSeconds, CardioIntensity.BAJA),

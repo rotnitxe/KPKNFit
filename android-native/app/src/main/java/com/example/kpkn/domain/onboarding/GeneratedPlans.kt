@@ -1,5 +1,6 @@
 package com.example.kpkn.domain.onboarding
 
+import com.example.kpkn.data.models.EquipmentAvailability
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.domain.training.generator.RoutineMode
 
@@ -108,10 +109,19 @@ object PlaceMaterial {
     /** Lo que se lleva encima de un lugar a otro. */
     val PORTABLE: Set<EquipmentSymbolId> = setOf(EquipmentSymbolId.BANDS, EquipmentSymbolId.RINGS)
 
+    /**
+     * El material de cada lugar a partir de la disponibilidad declarada [declared] (la unión de todos los lugares): el
+     * reparto por símbolos de [byPlace] más lo que es de la persona y no de un lugar, que viaja a todos ellos (la
+     * bicicleta al aire libre, [SetupApparatusPanel.OUTDOOR_BIKE_KEY]). Es la entrada que usan el pedido del generador, el
+     * contraste de las sesiones con los lugares y las opciones del paso de cardio.
+     */
+    fun byPlace(declared: EquipmentAvailability, places: Set<TrainingPlace>): Map<TrainingPlace, EquipmentAvailability> =
+        byPlace(EquipmentSymbols.selectedFrom(declared), places).mapValues { (_, own) -> SetupApparatusPanel.withBikeOf(declared, own) }
+
     fun byPlace(
         selected: Set<EquipmentSymbolId>,
         places: Set<TrainingPlace>,
-    ): Map<TrainingPlace, com.example.kpkn.data.models.EquipmentAvailability> {
+    ): Map<TrainingPlace, EquipmentAvailability> {
         if (places.size < 2) return emptyMap()
         val chosen = selected - EquipmentSymbolId.BODYWEIGHT_ONLY
         val seeded = places.flatMapTo(mutableSetOf()) { place -> EquipmentSymbols.seedFor(setOf(place)) }

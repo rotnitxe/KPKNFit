@@ -322,6 +322,12 @@ class SetupWizardViewModel @JvmOverloads constructor(
     fun toggleEquipmentSymbol(symbol: EquipmentSymbolId) =
         mutateDraft(SetupStepId.AVAILABILITY) { latest -> latest.withMaterialToggled(symbol) }
 
+    /**
+     * «Tengo bicicleta» (paso de cardio): la bicicleta al aire libre es de la persona, no de un lugar. Solo con ella se
+     * ofrece «Bicicleta al aire libre» y el generador la usa; quitarla deja por revisar un cardio de bicicleta ya elegido.
+     */
+    fun setOutdoorBike(has: Boolean) = mutateDraft(SetupStepId.CARDIO_TYPE) { latest -> latest.withOutdoorBike(has) }
+
     /** Elige el perfil de objetivo (un perfil específico incompatible con el material se escribe pero no se puede confirmar). */
     fun setGoalProfile(profile: TrainingGoalProfile) =
         mutateDraft(SetupStepId.GOAL) { latest -> latest.withGoalProfile(profile) }
@@ -1481,7 +1487,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
     private fun trainingKey(draft: SetupWizardDraft): List<Any?> = listOf(
         draft.commitId, draft.includeTraining, draft.programRoute, draft.trainingPath, draft.goal, draft.focus,
         draft.experience, draft.daysPerWeek, draft.selectedWeekdays, draft.minutesPerSession, draft.equipment,
-        draft.cardioType, draft.cardioMinutes,
+        draft.cardioType, draft.cardioNoPreference, draft.cardioMinutes,
         draft.ageYears, draft.heightCm, draft.weightKg, draft.profileGender,
         draft.trainingOptions,
         // Inventario declarado (P0): su cambio invalida candidatos y preview de
@@ -1667,9 +1673,12 @@ class SetupWizardViewModel @JvmOverloads constructor(
             _state.value.planAdaptedToBodyweight, draft.weekLayoutOverrides, draft.adaptedSplitId,
         )
 
+    // La bicicleta es de la persona, no del material: el segundo pase a peso corporal también la conserva.
     private fun bodyweightAdapted(draft: SetupWizardDraft): SetupWizardDraft = draft.copy(
         equipment = setOf(SetupEquipment.BODYWEIGHT),
-        trainingOptions = draft.trainingOptions.copy(availability = EquipmentAvailability()),
+        trainingOptions = draft.trainingOptions.copy(
+            availability = SetupApparatusPanel.withBikeOf(draft.trainingOptions.availability, EquipmentAvailability()),
+        ),
     )
 
     private fun preparePreview(draft: SetupWizardDraft) {
@@ -2508,7 +2517,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
         val canPrepare = draft.includeTraining && draft.programRoute != SetupProgramRoute.LATER &&
             draft.trainingPath != SetupTrainingPath.FROM_SCRATCH && draft.daysPerWeek != null &&
             draft.minutesPerSession != null && draft.selectedWeekdays.size == draft.daysPerWeek && equipmentIds.isNotEmpty() &&
-            (!requiresCardio || (draft.cardioType != null && draft.cardioMinutes != null))
+            (!requiresCardio || (draft.hasCardioAnswer && draft.cardioMinutes != null))
         if (!canPrepare) {
             // Entradas incompletas: se retira SOLO la marca de candidatos
             // (`errors["candidates"]`); los errores de otras operaciones (incluido el
@@ -3089,7 +3098,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
      */
     private fun withoutStaleCandidatesError(state: SetupWizardState): SetupWizardState =
         state.copy(errors = state.errors - "candidates")
-    private fun previewInputsIncomplete(draft: SetupWizardDraft): Boolean { if (!draft.includeTraining || draft.programRoute == SetupProgramRoute.LATER) return false; val days = draft.daysPerWeek ?: return true; if (draft.minutesPerSession == null || draft.selectedWeekdays.size != days || draft.requiresCardio && (draft.cardioType == null || draft.cardioMinutes == null)) return true; return if (draft.trainingPath == SetupTrainingPath.FROM_SCRATCH) { val selected = draft.sessions.filter { it.weekday in draft.selectedWeekdays }; selected.size != draft.selectedWeekdays.size || selected.any { it.exercises.isEmpty() } } else draft.selectedCatalogId == null }
+    private fun previewInputsIncomplete(draft: SetupWizardDraft): Boolean { if (!draft.includeTraining || draft.programRoute == SetupProgramRoute.LATER) return false; val days = draft.daysPerWeek ?: return true; if (draft.minutesPerSession == null || draft.selectedWeekdays.size != days || draft.requiresCardio && (!draft.hasCardioAnswer || draft.cardioMinutes == null)) return true; return if (draft.trainingPath == SetupTrainingPath.FROM_SCRATCH) { val selected = draft.sessions.filter { it.weekday in draft.selectedWeekdays }; selected.size != draft.selectedWeekdays.size || selected.any { it.exercises.isEmpty() } } else draft.selectedCatalogId == null }
 
     private suspend fun materializeProgram(draft: SetupWizardDraft): SetupPreview {
         if (!draft.includeTraining || draft.programRoute == SetupProgramRoute.LATER) return SetupPreview(null, null)
@@ -3139,9 +3148,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
                     // es quien aprovecha el resto.
                     availableMinutes = (draft.minutesPerSession ?: error("Indica el tiempo disponible"))
                         .coerceAtMost(OWN_PLAN_MAX_MINUTES),
-                    cardio = if (draft.requiresCardio) {
-                        CardioPreference(requireNotNull(draft.cardioType), requireNotNull(draft.cardioMinutes))
-                    } else null,
+                    cardio = if (draft.requiresCardio) requireNotNull(draft.cardioPreference()) else null,
                     calibration = if (draft.volumeRecommendations.isNotEmpty()) Calibration.CALIBRATED else Calibration.CONSERVATIVE,
                     volumeRecommendations = draft.volumeRecommendations,
                     priorityMuscles = draft.priorityMuscles,

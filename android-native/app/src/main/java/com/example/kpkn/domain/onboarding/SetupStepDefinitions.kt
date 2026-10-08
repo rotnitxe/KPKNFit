@@ -427,11 +427,8 @@ object SetupStepDefinitions {
         SetupStepDefinition(
             id = SetupStepId.CARDIO_TYPE, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
             title = "¿Qué cardio quieres incluir?", control = SetupControlKind.SINGLE_CHOICE,
-            options = opt(
-                "WALK" to "Caminar",
-                "RUN_OUTDOOR" to "Correr al aire libre",
-                "BIKE_OUTDOOR" to "Bicicleta al aire libre",
-            ),
+            // Todas las respuestas posibles; cuáles se ofrecen depende del material y los lugares (`CardioChoices.optionsFor`).
+            options = CardioChoice.entries.map { choice -> SetupOptionDefinition(choice.name, choice.label, choice.hint) },
             legacyQuestion = WizChatQuestionId.T_CARDIO_TYPE,
             legacyValueMap = mapOf(
                 "Caminar" to "WALK", "Correr al aire libre" to "RUN_OUTDOOR",

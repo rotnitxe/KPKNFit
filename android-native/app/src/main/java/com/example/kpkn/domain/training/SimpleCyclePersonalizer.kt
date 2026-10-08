@@ -58,9 +58,13 @@ import kotlin.math.roundToInt
 @Serializable
 enum class Calibration { UNCALIBRATED, CONSERVATIVE, CALIBRATED }
 
+/**
+ * El cardio que declara la persona. [type] nulo es «Lo que haya» (sin tipo preferido): el generador de rutinas elige entre
+ * los aparatos de cada día y el personalizador de planes propios usa caminar.
+ */
 @Serializable
 data class CardioPreference(
-    val type: CardioType,
+    val type: CardioType?,
     val minutes: Int,
     val intensity: CardioIntensity = CardioIntensity.MEDIA,
 )
@@ -255,7 +259,7 @@ class SimpleCyclePersonalizer(
                     (cardio.minutes >= input.availableMinutes && nativeKind != NativeProfileKind.COMPLETE_ATHLETE)
             )
         ) return unavailable("Reserva tiempo tanto para fuerza como para cardio.")
-        if (cardio != null && cardio.type !in setOf(CardioType.WALK, CardioType.RUN_OUTDOOR, CardioType.BIKE_OUTDOOR) && "general_gym" !in equipment && "cardio" !in equipment) return unavailable("El cardio seleccionado necesita un aparato que no has indicado.")
+        if (cardio?.type != null && cardio.type !in setOf(CardioType.WALK, CardioType.RUN_OUTDOOR, CardioType.BIKE_OUTDOOR) && "general_gym" !in equipment && "cardio" !in equipment) return unavailable("El cardio seleccionado necesita un aparato que no has indicado.")
         // ─── Los cuatro planes propios §11–§12 (paquete F, T-004a) ────────────
         // Su calendario, dosis y progresión salen de las tablas §11.1–§12.4; la
         // ruta de hipertrofia de abajo solo sigue para los nativos históricos.
@@ -372,8 +376,10 @@ class SimpleCyclePersonalizer(
                 }
             }
             val cardioExercise = cardio?.let {
-                Exercise(id = "$programId-s$index-cardio", name = it.type.name.lowercase().replace('_', ' '),
-                    cardioDetails = CardioDetails(type = it.type, intensity = it.intensity, targetDurationSeconds = it.minutes * 60))
+                // «Lo que haya» (sin tipo): el personalizador de planes propios camina.
+                val type = it.type ?: CardioType.WALK
+                Exercise(id = "$programId-s$index-cardio", name = type.name.lowercase().replace('_', ' '),
+                    cardioDetails = CardioDetails(type = type, intensity = it.intensity, targetDurationSeconds = it.minutes * 60))
             }
             val session = Session(
                 id = "$programId-session-$index", name = customLabelsByDay[days[index]] ?: "Día ${index + 1}", dayOfWeek = days[index], assignedDays = listOf(days[index]),

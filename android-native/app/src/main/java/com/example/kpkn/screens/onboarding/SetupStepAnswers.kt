@@ -21,6 +21,8 @@ import com.example.kpkn.domain.nutrition.WizardPacePreset
 import com.example.kpkn.domain.nutrition.parseLocalizedNumber
 import com.example.kpkn.domain.onboarding.CapabilityLevel
 import com.example.kpkn.domain.onboarding.CapabilitySkill
+import com.example.kpkn.domain.onboarding.CardioChoice
+import com.example.kpkn.domain.onboarding.CardioChoices
 import com.example.kpkn.domain.onboarding.EntrenoStepValues
 import com.example.kpkn.domain.onboarding.EquipmentSymbolId
 import com.example.kpkn.domain.onboarding.EquipmentSymbols
@@ -362,7 +364,12 @@ private fun SetupWizardDraft.projectChoice(
     SetupStepId.VOLUME_STRENGTH -> withVolumeResponse(3, value)
     SetupStepId.VOLUME_MOBILITY -> withVolumeResponse(4, value)
 
-    SetupStepId.CARDIO_TYPE -> copy(cardioType = CardioType.entries.firstOrNull { it.name == value })
+    // «Lo que haya» no es un tipo: es la respuesta «sin preferencia». Las dos respuestas nunca conviven.
+    SetupStepId.CARDIO_TYPE -> if (value == CardioChoice.ANY.name) {
+        copy(cardioType = null, cardioNoPreference = true)
+    } else {
+        copy(cardioType = CardioType.entries.firstOrNull { it.name == value }, cardioNoPreference = false)
+    }
 
     SetupStepId.CARDIO_TIME -> copy(cardioMinutes = value?.toIntOrNull())
 
@@ -678,7 +685,10 @@ fun SetupWizardDraft.withPlaces(requested: Set<TrainingPlace>): SetupWizardDraft
     if (places == before || places.isEmpty()) return derived
     val current = EquipmentSymbols.selectedFrom(trainingOptions.availability)
     val selection = EquipmentSymbols.reseed(before, places, current)
-    return derived.withReseededAvailability(EquipmentSymbols.availabilityOf(selection, places))
+    // La bicicleta es de la persona, no de un lugar: cambiar de lugares no la borra.
+    return derived.withReseededAvailability(
+        SetupApparatusPanel.withBikeOf(trainingOptions.availability, EquipmentSymbols.availabilityOf(selection, places)),
+    ).withCardioReviewIfUnavailable()
 }
 
 /** Alterna [place]; se calcula sobre el borrador último (el VM lo llama dentro de su mutex). */
@@ -699,12 +709,13 @@ fun SetupWizardDraft.withMaterial(requested: Set<EquipmentSymbolId>): SetupWizar
     val selection = requested.filterTo(linkedSetOf()) { it in offered }.let { chosen ->
         if (EquipmentSymbolId.BODYWEIGHT_ONLY in chosen) setOf(EquipmentSymbolId.BODYWEIGHT_ONLY) else chosen
     }
-    val availability = EquipmentSymbols.availabilityOf(selection, trainingPlaces)
+    // La bicicleta es de la persona, no de un símbolo: rehacer el material no la borra.
+    val availability = SetupApparatusPanel.withBikeOf(trainingOptions.availability, EquipmentSymbols.availabilityOf(selection, trainingPlaces))
     return copy(
         trainingOptions = trainingOptions.copy(availability = availability),
         // La selección es la lectura inversa de la disponibilidad: una guardada aparte se desfasaría.
         stepSelections = stepSelections - SetupStepId.AVAILABILITY,
-    ).withGoalReviewIfIncompatible()
+    ).withGoalReviewIfIncompatible().withCardioReviewIfUnavailable()
 }
 
 /** Alterna [symbol] respetando la exclusividad de «solo peso corporal» ([EquipmentSymbols.toggle]). */
@@ -733,6 +744,32 @@ private fun SetupWizardDraft.withGoalReviewIfIncompatible(): SetupWizardDraft =
     } else {
         this
     }
+
+/**
+ * Con otro material o con otros lugares, el cardio que se había elegido puede dejar de existir (la cinta sin «Cardio»,
+ * la bicicleta sin bicicleta): CARDIO_TYPE se marca para revisar y la respuesta se conserva, nunca se cambia en silencio.
+ * Solo cuando el objetivo pide cardio: sin él el paso no está en la ruta y una respuesta vieja no debe dejar el bloque
+ * de entreno por revisar.
+ */
+private fun SetupWizardDraft.withCardioReviewIfUnavailable(): SetupWizardDraft {
+    if (!requiresCardio) return this
+    val choice = cardioChoice() ?: return this
+    return if (CardioChoices.isOffered(choice, trainingPlaces, trainingOptions.availability)) {
+        this
+    } else {
+        copy(stepProgress = stepProgress.withPendingReview(setOf(SetupStepId.CARDIO_TYPE)))
+    }
+}
+
+/**
+ * «Tengo bicicleta»: declara ([has] = true) o retira la bicicleta al aire libre, que la persona tiene o no tiene sea cual
+ * sea el lugar. Sin material declarado no se fabrica ninguno (el paso de material va antes). Quitarla deja por revisar
+ * un cardio de bicicleta ya elegido (la respuesta se conserva).
+ */
+fun SetupWizardDraft.withOutdoorBike(has: Boolean): SetupWizardDraft {
+    val updated = SetupApparatusPanel.withBike(trainingOptions.availability, has) ?: return this
+    return copy(trainingOptions = trainingOptions.copy(availability = updated)).withCardioReviewIfUnavailable()
+}
 
 // ─── Entreno v2: objetivo, semana y tiempo ───────────────────────────────────
 
@@ -969,7 +1006,7 @@ private fun SetupWizardDraft.typedSelections(step: SetupStepId): Set<String> = w
 
     SetupStepId.CAPABILITIES -> capabilities.keys.mapTo(linkedSetOf()) { it.name }
 
-    SetupStepId.CARDIO_TYPE -> cardioType?.name.let { setOfNotNull(it) }
+    SetupStepId.CARDIO_TYPE -> (cardioType?.name ?: CardioChoice.ANY.name.takeIf { cardioNoPreference }).let { setOfNotNull(it) }
 
     SetupStepId.CARDIO_TIME -> cardioMinutes?.toString().let { setOfNotNull(it) }
 

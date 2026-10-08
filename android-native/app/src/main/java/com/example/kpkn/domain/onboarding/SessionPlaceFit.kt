@@ -49,7 +49,7 @@ internal class SessionPlaceFit internal constructor(
          */
         fun of(catalog: ExerciseCatalogV2, availability: EquipmentAvailability?, places: Set<TrainingPlace>): SessionPlaceFit {
             val declared = availability ?: EquipmentAvailability()
-            val byPlace = PlaceMaterial.byPlace(EquipmentSymbols.selectedFrom(declared), places)
+            val byPlace = PlaceMaterial.byPlace(declared, places)
             return SessionPlaceFit(GeneratorCatalog.of(catalog)) { place ->
                 byPlace[place]
                     ?: if (places.size <= 1) declared else EquipmentSymbols.availabilityOf(EquipmentSymbols.seedFor(setOf(place)), setOf(place))

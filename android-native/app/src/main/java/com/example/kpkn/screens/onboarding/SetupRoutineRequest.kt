@@ -3,7 +3,6 @@ package com.example.kpkn.screens.onboarding
 import com.example.kpkn.data.models.EquipmentAvailability
 import com.example.kpkn.data.programs.CatalogLevel
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2
-import com.example.kpkn.domain.onboarding.EquipmentSymbols
 import com.example.kpkn.domain.onboarding.MuscleSymbol
 import com.example.kpkn.domain.onboarding.MuscleSymbols
 import com.example.kpkn.domain.onboarding.PlaceMaterial
@@ -49,12 +48,18 @@ internal fun SetupWizardDraft.orderedWeekdays(): List<Int> {
 internal fun SetupWizardDraft.priorityMuscleSymbols(): List<MuscleSymbol> =
     MuscleSymbol.entries.filter { it in MuscleSymbols.symbolsOf(trainingOptions.orderPriorities) }
 
-/** La preferencia de cardio declarada, solo cuando el objetivo la pide y está completa. */
+/**
+ * La preferencia de cardio declarada, solo cuando el objetivo la pide y está completa. «Lo que haya» viaja sin tipo
+ * (`type` nulo): el generador elige entre los aparatos de cada día.
+ */
 internal fun SetupWizardDraft.cardioPreference(): CardioPreference? {
     if (!requiresCardio) return null
-    val type = cardioType ?: return null
     val minutes = cardioMinutes ?: return null
-    return CardioPreference(type, minutes)
+    return when {
+        cardioType != null -> CardioPreference(cardioType, minutes)
+        cardioNoPreference -> CardioPreference(null, minutes)
+        else -> null
+    }
 }
 
 /**
@@ -84,7 +89,7 @@ internal fun SetupWizardDraft.routineRequest(
         availability = availability,
         places = places,
         dayPlaces = if (places.size >= 2) effectiveDayPlaces() else emptyMap(),
-        availabilityByPlace = PlaceMaterial.byPlace(EquipmentSymbols.selectedFrom(availability), places),
+        availabilityByPlace = PlaceMaterial.byPlace(availability, places),
         priorityMuscles = priorityMuscleSymbols(),
         capabilities = capabilities,
         cardio = cardioPreference(),

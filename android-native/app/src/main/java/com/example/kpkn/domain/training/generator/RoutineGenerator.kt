@@ -300,7 +300,7 @@ object RoutineGenerator {
             append(request.availabilityByPlace.entries.sortedBy { it.key.name }.joinToString(";") { "${it.key.name}=${canonical(it.value)}" }).append('|')
             append(request.priorityMuscles.joinToString(",") { it.name }).append('|')
             append(request.capabilities.entries.sortedBy { it.key.name }.joinToString(",") { "${it.key.name}:${it.value.name}" }).append('|')
-            append(request.cardio?.let { "${it.type.name}:${it.minutes}:${it.intensity.name}" } ?: "-").append('|')
+            append(request.cardio?.let { "${it.type?.name ?: "any"}:${it.minutes}:${it.intensity.name}" } ?: "-").append('|')
             append(request.marks.entries.sortedBy { it.key.name }.joinToString(",") { "${it.key.name}:${it.value}" }).append('|')
             append(request.catalog.catalogRevision).append('|').append(request.variantSeed)
         }

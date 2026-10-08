@@ -446,8 +446,10 @@ class SetupStepSummariesTest {
 
     @Test
     fun aValueTheCatalogDoesNotKnowReadsHumanlyInsteadOfAsARawId() {
-        // El catálogo solo ofrece tres cardios, pero un borrador antiguo puede traer otro.
-        assertEquals("Bike stationary", value(SetupStepId.CARDIO_TYPE, SetupWizardDraft(cardioType = CardioType.BIKE_STATIONARY)))
+        // El catálogo ofrece ocho respuestas de cardio, pero un borrador antiguo puede traer otro tipo del modelo.
+        assertEquals("Stair climber", value(SetupStepId.CARDIO_TYPE, SetupWizardDraft(cardioType = CardioType.STAIR_CLIMBER)))
+        assertEquals("Bicicleta estática", value(SetupStepId.CARDIO_TYPE, SetupWizardDraft(cardioType = CardioType.BIKE_STATIONARY)))
+        assertEquals("Lo que haya", value(SetupStepId.CARDIO_TYPE, SetupWizardDraft().choose(SetupStepId.CARDIO_TYPE, "ANY")))
         assertEquals("Correr al aire libre", value(SetupStepId.CARDIO_TYPE, SetupWizardDraft().choose(SetupStepId.CARDIO_TYPE, "RUN_OUTDOOR")))
     }
 

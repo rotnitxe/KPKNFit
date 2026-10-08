@@ -262,9 +262,10 @@ class SetupStepDefinitionsTest {
         val sessionTime = requireNotNull(SetupStepDefinitions.of(SetupStepId.SESSION_TIME))
         assertEquals(20.0, sessionTime.range?.min ?: 0.0, 0.0001)
         assertEquals(180.0, sessionTime.range?.max ?: 0.0, 0.0001)
-        // Cardio: tres modalidades actuales y los cuatro escalones 10/15/20/30.
+        // Cardio: todas las respuestas posibles (cuáles se ofrecen lo decide `CardioChoices` con el material) y los cuatro
+        // escalones 10/15/20/30.
         assertEquals(
-            listOf("WALK", "RUN_OUTDOOR", "BIKE_OUTDOOR"),
+            listOf("WALK", "RUN_OUTDOOR", "BIKE_OUTDOOR", "TREADMILL", "BIKE_STATIONARY", "ELLIPTICAL", "ROW_MACHINE", "ANY"),
             SetupStepDefinitions.options(SetupStepId.CARDIO_TYPE).map { it.value },
         )
         assertEquals(

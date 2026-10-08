@@ -153,7 +153,7 @@ private fun TrainingPlace.materialOf(): String = when (this) {
 }
 
 /** Dónde se entrena, para una frase: «en el gimnasio», «en casa», «en espacios públicos». */
-private fun TrainingPlace.trainingAt(): String = when (this) {
+internal fun TrainingPlace.trainingAt(): String = when (this) {
     TrainingPlace.GYM -> "en el gimnasio"
     TrainingPlace.HOME -> "en casa"
     TrainingPlace.PUBLIC -> "en espacios públicos"

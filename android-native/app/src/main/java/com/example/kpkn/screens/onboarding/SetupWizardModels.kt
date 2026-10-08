@@ -12,7 +12,6 @@ import com.example.kpkn.data.models.GlobalBatteries
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.NutritionPlan
 import com.example.kpkn.data.models.AthleteProfileScore
-import com.example.kpkn.data.models.ApparatusPresence
 import com.example.kpkn.data.models.PowerliftingProfile
 import com.example.kpkn.data.models.VolumeRecommendation
 import com.example.kpkn.data.models.CalibrationResponseState
@@ -27,6 +26,8 @@ import com.example.kpkn.domain.training.PersonalizationReport
 import com.example.kpkn.domain.training.TrainingValidation
 import com.example.kpkn.domain.onboarding.CapabilityLevel
 import com.example.kpkn.domain.onboarding.CapabilityRules
+import com.example.kpkn.domain.onboarding.CardioChoice
+import com.example.kpkn.domain.onboarding.CardioChoices
 import com.example.kpkn.domain.onboarding.CapabilitySkill
 import com.example.kpkn.domain.onboarding.EntrenoStepValues
 import com.example.kpkn.domain.onboarding.EquipmentSymbolId
@@ -39,7 +40,6 @@ import com.example.kpkn.domain.onboarding.TrainingPlace
 import com.example.kpkn.domain.onboarding.RingsCoverage
 import com.example.kpkn.domain.onboarding.PlanRejectionReason
 import com.example.kpkn.domain.onboarding.PlanRepair
-import com.example.kpkn.domain.onboarding.SetupApparatusPanel
 import com.example.kpkn.domain.onboarding.SetupAnswerProvenance
 import com.example.kpkn.domain.onboarding.SetupChangeDetector
 import com.example.kpkn.domain.onboarding.SetupChangeSource
@@ -257,6 +257,20 @@ val SetupGoal.requiresCardio: Boolean
 val SetupWizardDraft.requiresCardio: Boolean
     get() = goal?.requiresCardio == true
 
+/** ¿Hay respuesta de tipo de cardio? Un tipo elegido o «Lo que haya» (sin preferencia). */
+internal val SetupWizardDraft.hasCardioAnswer: Boolean
+    get() = cardioType != null || cardioNoPreference
+
+/**
+ * La respuesta de CARDIO_TYPE que dice el borrador: el tipo elegido, «Lo que haya» o null si no hay respuesta (o es un tipo
+ * del modelo que el paso no ofrece).
+ */
+internal fun SetupWizardDraft.cardioChoice(): CardioChoice? = when {
+    cardioType != null -> CardioChoice.of(cardioType)
+    cardioNoPreference -> CardioChoice.ANY
+    else -> null
+}
+
 /** Reference used to pick candidates: inferred from the goal or asked in the brief focus question. */
 fun SetupWizardDraft.trainingReference(): com.example.kpkn.data.programs.TrainingReference? {
     // Atleta completo y Funcional son una combinación de capacidades, no una de las
@@ -359,6 +373,8 @@ data class SetupWizardDraft(
     val selectedWeekdays: Set<Int> = emptySet(),
     val minutesPerSession: Int? = null,
     val cardioType: CardioType? = null,
+    /** «Lo que haya» en CARDIO_TYPE: sin tipo preferido, el generador elige entre los aparatos de cada día. Excluyente con [cardioType]. */
+    val cardioNoPreference: Boolean = false,
     val cardioMinutes: Int? = null,
     val equipment: Set<SetupEquipment> = emptySet(),
     val trainingEnvironment: String? = null,
@@ -603,7 +619,7 @@ fun SetupWizardDraft.inputFootprint(): SetupInputFootprint = SetupInputFootprint
     experience = experience?.name,
     volumeStyle = volumeAnswers.style?.name,
     volumeResponses = listOf(volumeAnswers.technique, volumeAnswers.consistency, volumeAnswers.strength, volumeAnswers.mobility),
-    cardioType = cardioType?.name,
+    cardioType = cardioType?.name ?: CardioChoice.ANY.name.takeIf { cardioNoPreference },
     cardioMinutes = cardioMinutes,
     knowsTrainingMarks = knowsTrainingMarks,
     marks = listOf(powerliftingProfile?.squat1RM, powerliftingProfile?.bench1RM, powerliftingProfile?.deadlift1RM),
@@ -1383,26 +1399,17 @@ object SetupWizardValidation {
             } else {
                 ok("capabilities")
             }
-            SetupStepId.CARDIO_TYPE -> when (draft.cardioType) {
-                null -> absent("cardioType", "Elige el tipo de cardio")
-                // §15.1: BIKE_OUTDOOR exige acceso a bicicleta confirmado con
-                // presencia si no consta; no se hereda de «Cardio» ni del resto
-                // del material de gimnasio.
-                CardioType.BIKE_OUTDOOR -> when (SetupApparatusPanel.presenceOf(
-                    draft.trainingOptions.availability,
-                    SetupApparatusPanel.OUTDOOR_BIKE_KEY,
-                )) {
-                    ApparatusPresence.PRESENT -> ok("cardioType")
-                    ApparatusPresence.ABSENT -> invalid(
-                        "cardioType",
-                        "Elegiste bicicleta pero confirmaste que no tienes; elige otro cardio.",
-                    )
-                    ApparatusPresence.UNKNOWN -> invalid(
-                        "cardioType",
-                        "Confirma que tienes acceso a una bicicleta para elegir bicicleta al aire libre.",
-                    )
+            // El tipo de cardio vale si el material de ahora lo ofrece (`CardioChoices`, la misma regla que pinta el paso):
+            // caminar y correr siempre; la bicicleta al aire libre solo con «Tengo bicicleta» (§15.1: no se hereda del
+            // material de gimnasio ni de «Cardio»); las máquinas y «Lo que haya» si «Cardio» está en algún lugar.
+            SetupStepId.CARDIO_TYPE -> {
+                val choice = draft.cardioChoice()
+                when {
+                    !draft.hasCardioAnswer -> absent("cardioType", "Elige el tipo de cardio")
+                    choice != null &&
+                        CardioChoices.isOffered(choice, draft.trainingPlaces, draft.trainingOptions.availability) -> ok("cardioType")
+                    else -> invalid("cardioType", CardioChoices.unavailableReason(choice))
                 }
-                else -> ok("cardioType")
             }
             SetupStepId.CARDIO_TIME -> if (draft.cardioMinutes != null) ok("cardioMinutes") else absent("cardioMinutes", "Indica los minutos de cardio")
             // Bolsa de orden: ≤5 puntos en total, ≤2 por músculo y SIN límite
