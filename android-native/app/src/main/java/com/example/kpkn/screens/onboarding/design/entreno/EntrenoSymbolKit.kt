@@ -310,6 +310,19 @@ internal class SymbolPen {
         ds.drawPath(p, c(color), style = stroke(w))
     }
 
+    /**
+     * El relleno de una forma ya construida: sirve para tapar lo que pasa por detrás (una piedra delante de un brazo, el hueco
+     * de un brazo dibujado como tubo) con el negro de la página; nunca para colorear.
+     */
+    fun fillPath(p: Path, color: Color) {
+        ds.drawPath(p, c(color))
+    }
+
+    /** Un rectángulo de esquinas redondas relleno (ver [fillPath]). */
+    fun fillBox(l: Float, t: Float, r: Float, b: Float, rad: Float, color: Color) {
+        ds.drawRoundRect(c(color), Offset(l, t), Size(r - l, b - t), CornerRadius(rad, rad))
+    }
+
     /** Dibuja [block] con la opacidad de grupo multiplicada por [a] (aparecer y desaparecer una pieza). */
     inline fun fade(a: Float, block: () -> Unit) {
         val old = ga
