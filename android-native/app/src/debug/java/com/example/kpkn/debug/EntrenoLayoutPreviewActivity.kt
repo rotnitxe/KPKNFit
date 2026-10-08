@@ -1,6 +1,8 @@
 package com.example.kpkn.debug
 
+import android.os.Build
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -48,8 +50,8 @@ import kotlinx.coroutines.launch
  *    estado que usa el gesto), `board_selected` (la primera sesión elegida con un toque), `splits` (un reparto tocado, con
  *    el botón de adaptar, el aviso y «Restablecer») o `adapting` (el estado de carga).
  *  - `days` (entero, 1..7, por defecto 4): cuántos días de entreno. `start` (entero, 1..7, por defecto 1): primer día de la semana.
- *  - `offset` (entero, por defecto 0): desplaza las sesiones esa cantidad de ranuras (para ver cómo arranca la tira cuando
- *    la primera sesión queda lejos del inicio de la semana).
+ *  - `offset` (entero, por defecto 0): desplaza las sesiones esa cantidad de filas (para ver cómo quedan los días de descanso
+ *    del principio de la semana).
  *  - `to` (con `board_moving`): `next` (por defecto: el día de la segunda sesión, para ver el intercambio) o un día 1..7.
  *  - `widthDp` (decimal): ancho de la pantalla simulada (p. ej. 360). `fontScale` (decimal): escala de fuente (p. ej. 1.3).
  *  - `reducedMotion` (booleano): fuerza «reducir movimiento» (sin resortes ni bucles).
@@ -59,6 +61,14 @@ import kotlinx.coroutines.launch
 class EntrenoLayoutPreviewActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // El teléfono de pruebas suele estar bloqueado y con la pantalla apagada: la actividad se ve igualmente.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            setShowWhenLocked(true)
+            setTurnScreenOn(true)
+        } else {
+            @Suppress("DEPRECATION")
+            window.addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON)
+        }
         val scenario = intent.getStringExtra("scenario") ?: "board"
         val days = intent.getIntExtra("days", 4).coerceIn(1, 7)
         val start = intent.getIntExtra("start", 1)
@@ -196,9 +206,10 @@ private fun Board(scenario: String, days: Int, start: Int, moveTo: String, offse
                 val targetDay = moveTo.toIntOrNull()
                     ?: assignment.entries.firstOrNull { it.value == sessions.getOrNull(1)?.id }?.key
                     ?: order[(order.indexOf(fromDay) + 1) % order.size]
-                val glyphCenter = with(density) { 36.dp.toPx() }
-                val from = g.home(fromDay) + Offset(g.colWidth / 2f, glyphCenter)
-                val dest = g.home(targetDay) + Offset(g.colWidth / 2f, glyphCenter - with(density) { 10.dp.toPx() })
+                // El dedo sobre el glifo de la ficha (a 24 dp de su borde izquierdo y a media altura de la fila).
+                val glyphCenterX = with(density) { 24.dp.toPx() }
+                val from = g.home(fromDay) + Offset(glyphCenterX, g.rowHeight / 2f)
+                val dest = g.home(targetDay) + Offset(glyphCenterX, g.rowHeight / 2f - with(density) { 10.dp.toPx() })
                 state.lift(firstId, from)
                 for (i in 1..14) {
                     val t = i / 14f

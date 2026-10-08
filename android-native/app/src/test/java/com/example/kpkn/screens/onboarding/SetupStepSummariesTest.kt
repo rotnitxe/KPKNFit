@@ -419,7 +419,7 @@ class SetupStepSummariesTest {
     }
 
     @Test
-    fun aListThatDoesNotFitIsCutWithAnEllipsisOnOneLine() {
+    fun aListThatDoesNotFitIsCutAtTheLastWholeWordWithAnEllipsis() {
         val catalog = SetupStepDefinitions.options(SetupStepId.RINGS_DISCOMFORT)
         val longest = catalog.filter { it.value != "none" && it.value != "omit" }.sortedByDescending { it.label.length }.take(3)
         val draft = SetupWizardDraft().withStepChoices(SetupStepId.RINGS_DISCOMFORT, longest.map { it.value }.toSet(), NOW)
@@ -429,9 +429,19 @@ class SetupStepSummariesTest {
         val complete = inCatalogOrder.take(2).joinToString(", ") + " +1"
         assertTrue("el caso no estresa el tope: «$complete»", complete.length > SETUP_SUMMARY_VALUE_MAX)
 
+        // El corte cae en la última palabra entera que cabe (nunca a media palabra) y termina en «…».
         val shown = value(SetupStepId.RINGS_DISCOMFORT, draft)
-        assertEquals(complete.take(SETUP_SUMMARY_VALUE_MAX - 1) + "…", shown)
-        assertEquals(SETUP_SUMMARY_VALUE_MAX, shown.length)
+        assertTrue(shown, shown.endsWith("…"))
+        assertTrue(shown, shown.length <= SETUP_SUMMARY_VALUE_MAX)
+        val prefix = shown.removeSuffix("…")
+        assertTrue("«$shown» no es un prefijo de «$complete»", complete.startsWith(prefix))
+        assertTrue("«$shown» corta «$complete» a media palabra", complete.getOrNull(prefix.length)?.let { it.isWhitespace() || it in ",;:.-–—(" } ?: true)
+        // Y es el corte más largo que cabe: la palabra siguiente ya no entraba (acababa más allá del carácter que deja el «…»).
+        val nextWord = complete.drop(prefix.length).trimStart(' ', ',', ';', ':', '.', '-', '–', '—', '(').takeWhile { it != ' ' }
+        if (nextWord.isNotEmpty()) {
+            val endOfNext = complete.indexOf(nextWord, prefix.length) + nextWord.length
+            assertTrue("«$shown» pudo llevar «$nextWord»", endOfNext > SETUP_SUMMARY_VALUE_MAX - 1)
+        }
     }
 
     @Test
@@ -617,7 +627,13 @@ class SetupStepSummariesTest {
             .withLiftMark(LiftMark.SQUAT, 100.0)
             .withLiftMark(LiftMark.BENCH, 82.5)
             .withLiftMark(LiftMark.DEADLIFT, 120.0)
-        assertEquals(SetupStepSummary("Marcas", "Sentadilla 100 kg, Press banca 82,5 kg +1"), summary(SetupStepId.TRAINING_MAX, three))
+        // Con más de dos, solo los nombres: la lista con pesos no cabe en dos líneas y se cortaría.
+        assertEquals(SetupStepSummary("Marcas", "Sentadilla, Press banca +1"), summary(SetupStepId.TRAINING_MAX, three))
+        // Con una o dos, cada una con su peso.
+        assertEquals(
+            "Sentadilla 100 kg, Press banca 82,5 kg",
+            value(SetupStepId.TRAINING_MAX, SetupWizardDraft().withLiftMark(LiftMark.SQUAT, 100.0).withLiftMark(LiftMark.BENCH, 82.5)),
+        )
         assertEquals("Press banca 80 kg", value(SetupStepId.TRAINING_MAX, SetupWizardDraft().withLiftMark(LiftMark.BENCH, 80.0)))
         // Con otra unidad de visualización se dice en ella (el dato siempre vive en kg).
         assertEquals("Press banca 176,4 lb", value(SetupStepId.TRAINING_MAX, SetupWizardDraft().withLiftMark(LiftMark.BENCH, 80.0).withMarksUnit("lb")))

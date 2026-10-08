@@ -43,6 +43,18 @@ internal object WizardPageMetrics {
         maxOf(minPeekPx, viewportPx - focusLinePx - activeHeightPx)
 
     /**
+     * Cuánto se sube la página, por encima de [target], al abrir un paso cuyo final quedaría bajo el botón de confirmar (o su velo):
+     * lo que le falta al final del paso activo ([activeHeightPx] desde la línea de foco [focusLinePx]) para quedar por encima de
+     * [clearancePx] sobre el borde inferior de la pantalla ([viewportPx]). Nunca más de una fila-resumen ([chipPx]): esa fila
+     * es solo el contexto de arriba y es lo único que se puede esconder bajo la cabecera sin perder la pregunta. Un paso que ya
+     * cabe no sube nada.
+     */
+    fun openExtra(focusLinePx: Int, activeHeightPx: Int, clearancePx: Int, viewportPx: Int, chipPx: Int): Int {
+        val overflow = focusLinePx + activeHeightPx + clearancePx - viewportPx
+        return overflow.coerceIn(0, chipPx.coerceAtLeast(0))
+    }
+
+    /**
      * Hasta dónde puede llegar el scroll del usuario: lo que el check no ha generado no se
      * alcanza arrastrando. Una página corta queda fija en su línea de foco; una más alta que la
      * pantalla deja bajar hasta ver su final y el asomo del siguiente por encima del botón.

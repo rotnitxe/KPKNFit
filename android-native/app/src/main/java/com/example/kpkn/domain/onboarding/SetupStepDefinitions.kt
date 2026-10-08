@@ -483,7 +483,7 @@ object SetupStepDefinitions {
         ),
         SetupStepDefinition(
             id = SetupStepId.PRIORITIES, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
-            title = "¿Qué músculos quieres mejorar más?",
+            title = "¿Qué músculos priorizas?",
             subtitle = "Elige hasta 5. Puedes omitir este paso.",
             control = SetupControlKind.MUSCLE_SYMBOLS,
             // Valores estables = músculos canónicos del motor de orden; cada símbolo escribe un punto en el suyo.

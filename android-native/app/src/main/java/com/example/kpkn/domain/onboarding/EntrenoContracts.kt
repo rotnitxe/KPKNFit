@@ -73,7 +73,7 @@ enum class EquipmentSymbolId(val label: String) {
 }
 
 /**
- * Músculos del selector «¿Qué músculos quieres mejorar más?». Solo los populares: nada de «redondo mayor» ni
+ * Músculos del selector «¿Qué músculos priorizas?». Solo los populares: nada de «redondo mayor» ni
  * «multífidos». La traducción a los músculos canónicos del motor vive en `MuscleSymbols` (dominio).
  */
 @Serializable

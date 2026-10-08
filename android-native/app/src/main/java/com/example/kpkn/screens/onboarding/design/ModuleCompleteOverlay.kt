@@ -16,9 +16,7 @@ package com.example.kpkn.screens.onboarding.design
  */
 
 import android.graphics.BlurMaskFilter
-import android.os.Build
 import android.provider.Settings
-import android.view.WindowManager
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
@@ -51,7 +49,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -75,7 +72,6 @@ import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.platform.testTag
@@ -87,10 +83,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
-import androidx.compose.ui.window.DialogWindowProvider
 import com.example.kpkn.ui.theme.Syne
+import com.example.kpkn.screens.onboarding.design.entreno.plan.BlurOverlayDialog
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -104,7 +98,6 @@ import kotlin.math.hypot
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
-import kotlin.math.roundToInt
 import kotlin.math.sin
 
 enum class KpknModule(
@@ -174,28 +167,13 @@ fun ModuleCompleteOverlay(
         }
     }
 
-    Dialog(
+    // La misma ventana que los overlays del plan («preparando» y detalle): desenfoque del sistema detrás cuando el equipo lo permite
+    // (y se escucha si cambia con el overlay a la vista) y velo casi opaco cuando no.
+    BlurOverlayDialog(
         onDismissRequest = { leave(onDismiss) },
-        properties = DialogProperties(
-            usePlatformDefaultWidth = false,
-            decorFitsSystemWindows = false,
-            dismissOnClickOutside = false,
-        ),
-    ) {
-        val window = (LocalView.current.parent as? DialogWindowProvider)?.window
-        val blur = Build.VERSION.SDK_INT >= 31 && window?.windowManager?.isCrossWindowBlurEnabled == true
-        LaunchedEffect(window, blur) {
-            window ?: return@LaunchedEffect
-            window.setDimAmount(0f)
-            if (Build.VERSION.SDK_INT >= 31 && blur) {
-                window.addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND)
-                // El desenfoque entra y sale con el contenido: si no, desaparecería de golpe al cerrar.
-                snapshotFlow { shownAnim.value }.collect { v ->
-                    window.attributes = window.attributes.also { it.blurBehindRadius = (64 * v).roundToInt() }
-                }
-            }
-        }
-
+        dismissOnBack = true,
+        shown = { shownAnim.value },
+    ) { blur ->
         val context = LocalContext.current
         val reduceMotion = remember {
             Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f

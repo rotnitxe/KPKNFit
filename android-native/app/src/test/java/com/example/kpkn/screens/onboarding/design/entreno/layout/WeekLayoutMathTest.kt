@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.onboarding.design.entreno.layout
 
 import androidx.compose.ui.geometry.Rect
+import com.example.kpkn.domain.onboarding.TrainingPlace
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
@@ -285,73 +286,41 @@ class WeekLayoutMathTest {
         assertEquals(emptyList<Int>(), splitTitleColorIndexes(emptyList(), 6))
     }
 
-    // ------------------------------------------------------------ ancho de las columnas
-
-    @Test
-    fun whenAllSevenFitTheyShareTheWidth() {
-        // 1000 con base 92: caben de sobra, pero una columna no pasa de un 35 % más que la base.
-        assertEquals(92f * 1.35f, stripColumnWidth(1000f, 92f, 4f, 7), 1e-3f)
-        // 700: caben justo (96,57 por columna) y se reparten.
-        assertEquals((700f - 24f) / 7f, stripColumnWidth(700f, 92f, 4f, 7), 1e-3f)
-    }
-
-    @Test
-    fun aNarrowStripLetsTheNextColumnPeekAboutHalf() {
-        // 312 (un móvil de 360 con sus márgenes): con 92 asoma un 29 %; se estrechan lo justo para que asome un 40 %.
-        val width = stripColumnWidth(312f, 92f, 4f, 7)
-        assertEquals(316f / 3.4f - 4f, width, 1e-3f)
-        assertTrue(width < 92f && width > 92f * 0.92f)
-        val visible = (312f + 4f) / (width + 4f)
-        assertEquals(0.4f, visible - 3f, 1e-3f)
-    }
-
-    @Test
-    fun aStripThatAlreadyShowsEnoughOfTheNextColumnKeepsTheBaseWidth() {
-        // Con visible = 3,5 columnas asoma un 50 %: no se toca.
-        assertEquals(92f, stripColumnWidth(3.5f * 96f - 4f, 92f, 4f, 7), 1e-3f)
-        // Letra al 130 % (base 119,6): en 312 caben 2,56 columnas: tampoco se toca.
-        assertEquals(119.6f, stripColumnWidth(312f, 119.6f, 4f, 7), 1e-3f)
-    }
-
-    @Test
-    fun theColumnsNeverShrinkMoreThanEightPercent() {
-        // visible = 4,0 exactos: el 40 % pediría 83,3; el tope es 84,64.
-        assertEquals(92f * 0.92f, stripColumnWidth(4f * 96f - 4f, 92f, 4f, 7), 1e-3f)
-    }
-
-    @Test
-    fun theColumnWidthIsAlwaysUsable() {
-        for (viewport in listOf(200f, 280f, 312f, 360f, 400f, 448f, 600f, 700f, 900f, 1280f)) {
-            for (base in listOf(92f, 100f, 119.6f, 147.2f)) {
-                val width = stripColumnWidth(viewport, base, 4f, 7)
-                assertTrue("$viewport / $base → $width", width >= base * 0.92f - 1e-3f && width <= base * 1.35f + 1e-3f)
-            }
-        }
-    }
-
-    @Test
-    fun invalidMeasuresGiveTheBaseWidth() {
-        assertEquals(92f, stripColumnWidth(0f, 92f, 4f, 7), 0f)
-        assertEquals(92f, stripColumnWidth(-5f, 92f, 4f, 7), 0f)
-        assertEquals(92f, stripColumnWidth(Float.NaN, 92f, 4f, 7), 0f)
-        assertEquals(92f, stripColumnWidth(Float.POSITIVE_INFINITY, 92f, 4f, 7), 0f)
-        assertEquals(92f, stripColumnWidth(312f, 92f, 4f, 0), 0f)
-        assertEquals(0f, stripColumnWidth(312f, 0f, 4f, 7), 0f)
-        // Menos de una columna entera a la vista: se deja el ancho base.
-        assertEquals(92f, stripColumnWidth(60f, 92f, 4f, 7), 0f)
-    }
-
     // ------------------------------------------------------------ textos
 
     @Test
-    fun dayNamesInitialsAndShortNamesAreInSpanishAndDistinct() {
+    fun dayNamesAndShortNamesAreInSpanishAndDistinct() {
         assertEquals("Lunes", weekDayName(1))
         assertEquals("Domingo", weekDayName(7))
         assertEquals("Mié", weekDayShort(3))
-        assertEquals(listOf("L", "M", "X", "J", "V", "S", "D"), (1..7).map(::weekDayInitial))
-        assertEquals(7, (1..7).map(::weekDayInitial).toSet().size)
+        assertEquals(listOf("Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"), (1..7).map(::weekDayShort))
+        assertEquals(7, (1..7).map(::weekDayShort).toSet().size)
         assertEquals("Lunes", weekDayName(0))
         assertEquals("Lunes", weekDayName(9))
+    }
+
+    @Test
+    fun theDetailJoinsWhatTheSessionHasAndNothingElse() {
+        assertEquals("60 min · 6 ejercicios", sessionDetailText(WeekLayoutSession("a", "Torso", "", 60, 6, false)))
+        assertEquals("1 ejercicio", sessionDetailText(WeekLayoutSession("a", "Torso", "", 0, 1, false)))
+        assertEquals("45 min", sessionDetailText(WeekLayoutSession("a", "Torso", "", 45, 0, false)))
+        assertEquals("", sessionDetailText(WeekLayoutSession("a", "Torso", "", 0, 0, false)))
+    }
+
+    @Test
+    fun thePlaceComesFromTheSessionOrFromTheEndOfItsFocus() {
+        assertEquals(TrainingPlace.HOME, WeekLayoutSession("a", "T", "Pecho · En casa", 1, 1, false).shownPlace())
+        assertEquals(TrainingPlace.GYM, WeekLayoutSession("a", "T", "Gimnasio", 1, 1, false).shownPlace())
+        assertEquals(TrainingPlace.PUBLIC, WeekLayoutSession("a", "T", "Piernas · en espacios públicos", 1, 1, false).shownPlace())
+        // El lugar propio manda sobre lo que diga el foco.
+        assertEquals(
+            TrainingPlace.GYM,
+            WeekLayoutSession("a", "T", "Pecho · En casa", 1, 1, false, place = TrainingPlace.GYM).shownPlace(),
+        )
+        // Un foco que no acaba en un lugar no dice ninguno.
+        assertNull(WeekLayoutSession("a", "T", "Pecho y espalda", 1, 1, false).shownPlace())
+        assertNull(WeekLayoutSession("a", "T", "Casa de cambios · Pecho", 1, 1, false).shownPlace())
+        assertNull(WeekLayoutSession("a", "T", "", 1, 1, false).shownPlace())
     }
 
     @Test

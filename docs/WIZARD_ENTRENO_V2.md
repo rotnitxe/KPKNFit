@@ -38,7 +38,7 @@ datos escribe cada paso, qué lee el motor y qué se elimina. Los briefs de los 
 | 9 | `VOLUME_TECHNIQUE` | ¿Cómo sientes tu técnica? | opciones | **experiencia = «Estoy empezando»** |
 | 10 | `VOLUME_CONSISTENCY`, `VOLUME_STRENGTH`, `VOLUME_MOBILITY` | calibración | opciones | — |
 | 11 | `CAPABILITIES` *(nuevo)* | ¿Qué ejercicios ya te salen? | 3–4 símbolos con nivel (nada / pocos / varios) | el material no hace falta para peso corporal y no es calistenia ni novato |
-| 12 | `PRIORITIES` | ¿Qué músculos quieres mejorar más? | símbolos de músculo (los populares); «Omitir» claro arriba | — (omitible) |
+| 12 | `PRIORITIES` | ¿Qué músculos priorizas? | símbolos de músculo (los populares); «Omitir» claro arriba | — (omitible) |
 | 13 | `TRAINING_MAX` / `TRAINING_MARKS` | ¿Conoces tus marcas? | regla deslizante kg/lb por levantamiento | novato, o disciplina que no usa marcas |
 | 14 | `PLAN` | tu programa | overlay animado «preparando…» → revelado / carrusel | — |
 | 15 | `WEEK_LAYOUT` *(nuevo)* | Así queda tu semana | sesiones arrastrables entre días + «adaptar a un reparto» | — |
@@ -139,7 +139,7 @@ una línea (`EntrenoStepNote`: sin caja, con el texto cambiando por fundido y si
 | `AVAILABILITY` | `EquipmentSymbolGrid` | `toggleEquipmentSymbol` → disponibilidad de material | «Solo peso corporal» es exclusivo; en gimnasio lo habitual viene marcado; sin lugares elegidos solo hay la nota «Elige primero dónde entrenas.» |
 | `GOAL` | `GoalProfileList` | `setGoalProfile` → `goalProfile` | un perfil que el material no cumple sale atenuado con su razón en una línea; tocarlo ofrece «Cambiar mi material» (`editStep(AVAILABILITY)`) y al continuar desde allí se vuelve a este paso |
 | `FRESH_DAY` | `FreshDayRow` | `setFreshDay` → `freshestDay` | un solo día; el inicio de semana lo sigue mientras no se toque |
-| `WEEKDAYS` | `WeekCalendar` | `toggleWeekday`, `setWeekStart`, `setDayPlace` → `selectedWeekdays`, `weekStartDay`, `dayPlaces` | el contador grande muestra «–» cuando no hay días (`weekCounterText`; el cero de Syne se leía como «O»); el lugar de cada día solo aparece con dos o más lugares |
+| `WEEKDAYS` | `WeekCalendar` | `toggleWeekday`, `setWeekStart`, `setDayPlace` → `selectedWeekdays`, `weekStartDay`, `dayPlaces` | el contador grande muestra «–» cuando no hay días (`weekCounterText`; el cero de Syne se leía como «O»); el lugar de cada día solo aparece con dos o más lugares; si el día con más energía se quita de los de entreno, una nota dice adónde pasa la sesión más fuerte (`freshDayNote`: el primer día de entreno posterior, la misma cuenta que `WeekPlanner.mainDay` del generador) |
 | `SESSION_TIME` | `SessionClockDial` | `setSessionMinutes` → `minutesPerSession` | el dial avisa en cada muesca y cada escritura relanza el barrido de programas: se escribe una vez a los 220 ms de que el dedo se detiene (y al cerrar el paso si quedó algo sin escribir); sin valor arranca en 60 min atenuado y el check sigue apagado |
 | `CAPABILITIES` | `CapabilitySymbols` | `setCapability` → `capabilities` | la figura hace el movimiento con el ritmo del nivel («Aún no» quieta, «Algunas» tres repeticiones y pausa, «Varias» continuo); tocar la figura avanza el nivel y cada segmento lo fija |
 | `PRIORITIES` | `MuscleSymbolGrid` + «Omitir» | `toggleMuscle`, `clearMuscles` → `priorityMuscles` / `orderPriorities` | hasta 5; las sugerencias del perfil llegan precargadas y rotuladas «Sugerido» mientras no se toque el paso; «Omitir» (arriba a la derecha, 48 dp) limpia y confirma el paso, y el resumen dice «Sin preferencia» |
@@ -151,6 +151,24 @@ antes que cortarse (`fitTitle`: parten solo en espacios, hasta 13 sp y, si una p
 movimiento» (`wizardReducedMotion()`) cada símbolo queda en su cuadro final. La lectura y la escritura del paso se prueban en `EntrenoStepsSmokeTest` (Robolectric, marcas `setup-place-*`,
 `setup-equipment-*`, `setup-goal-*`, `setup-freshday-*`, `setup-weekday-*`, `setup-sessiontime-*`, `setup-capability-*`,
 `setup-muscle-*`, `setup-mark-*`).
+
+### 2.1b La semana armada (`WEEK_LAYOUT`): el tablero de siete filas
+
+`WeekLayoutBoard` (`design/entreno/layout/`) es una **lista vertical de siete filas**, de la primera a la última de la semana de la persona.
+La tira horizontal anterior enseñaba tres días y medio a 360 dp y obligaba a deslizar de lado para llevar una sesión a otro día; ahora
+caben los siete a 360 y a 320 dp, con la letra normal y al 130 %, sin desplazarse de lado (la página sí se desplaza hacia abajo: con letra
+grande las filas crecen —de 64 dp hasta ≈ 110 dp si el título ocupa dos líneas— y la lista llega a ≈ 760 dp).
+
+| Pieza | Qué es |
+|---|---|
+| Fila de un día | su nombre corto («Lun»), el disco de la ranura (vidrio neutro tenue; un guion si es de descanso), la palabra «Descanso» y un filete debajo. Todas miden lo mismo (≥ 64 dp, más con letra grande): el alto sale de **medir los textos reales** (título en una línea sin bajar de 14 sp o en dos, detalle en una o en dos líneas según el ancho que queda), así ninguna ficha cambia de tamaño al moverse. |
+| Ficha de una sesión | la mancuerna (chispas de energía en la sesión principal), el título, «60 min · 6 ejercicios» (con el glifo del lugar delante cuando el programa reparte sus sesiones entre varios) y el **asa** de seis puntos. Va en una capa propia sobre las filas y se coloca con un resorte (`FichaMotion`). |
+| Mover | **pulsación larga** en la ficha o **arrastre vertical desde su asa** (agarra al instante, sin esperar): la ficha se levanta, la fila bajo ella se enciende y, si está ocupada, su sesión ya se desliza al hueco (vista previa del intercambio); soltarla por encima o por debajo de la lista cancela. Cerca del borde visible de la página, esta se desplaza sola (`LocalWizardPageScroll`, con el mismo límite que la persona). |
+| Sin arrastre | tocar una sesión la elige y enciende los días válidos; tocar un día la mueve. TalkBack: cada ficha ofrece «Mover a <día>»; los días de descanso se leen como «Martes, descanso» y, con una sesión elegida, ofrecen «Mover aquí la sesión elegida». |
+
+Se conservan sin cambios de contrato el selector de repartos, las notas, el estado «adaptando» (la lista se atenúa y no deja tocar) y
+«Restablecer». La firma pública de `WeekLayoutBoard` no cambió (la usa `EntrenoWeekLayoutStep`); `WeekLayoutSession` ganó un campo opcional,
+`place`, y mientras `EntrenoWeekLayoutStep` no lo rellene el lugar se lee del final del foco («Pecho y espalda · En casa»).
 
 ### 2.2 Cómo se revisa un paso en el teléfono
 
@@ -171,6 +189,18 @@ minutos de cada sesión, y los Ajustes que escribió el alta (`summary`: `names`
 movilidad `mov.`; `only` reabre el resumen del programa activo). `rotate` (`landscape+5000,portrait+4000`) gira la actividad con
 `requestedOrientation` —la recreación real de un giro, sin tocar ningún ajuste del teléfono— y, al recrearse, el borrador NO se
 reconstruye; matar el proceso es volver a lanzar con `--ez reset false`.
+
+El medidor (`fps`) cuenta además, por paso, `s`: el cuadro más largo SOLO mientras la página se desliza (los primeros 0,62 s de la entrada),
+para distinguir lo que se ve moverse de lo que llega después de la animación (el control del paso que asoma se compone tras ella). Para
+varias actividades y gestos con el dedo mantenido (arrastrar una sesión) en una sola sesión del teléfono, `C:\kw\shots\w3\phone_probe.py`
+reutiliza el candado de `phone_run.py` y se corta si el teléfono está cerrado (con el Flip5 plegado la pantalla principal no enciende y las
+capturas salen negras), si su pantalla principal está encendida (la persona lo usa) o si la persona abre otra cosa.
+
+Sin teléfono (o para ver la composición antes de instalar nada): `WizardRenderSheetTest` (`src/test/.../render/`) dibuja el tablero de la
+semana y las filas-resumen con las tipografías reales a 360 dp y a 320 dp, con la letra al 100 y al 130 %, y escribe PNG en la carpeta de
+`KPKN_RENDER_DIR` (sin esa variable se salta entera): `KPKN_RENDER_DIR=C:/kw/shots/w3/render bash C:/kw/tools/gradle_slot.sh
+C:/kw/<worktree>/android-native :app:testBaseDebugUnitTest --tests "com.example.kpkn.render.*"`. No dibuja el desenfoque ni la GPU: sirve para
+ver medidas y textos, no para medir fluidez.
 
 ## 3. Qué lee cada dato declarado («declarado → efecto», auditoría Q)
 

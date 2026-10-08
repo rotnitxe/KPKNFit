@@ -262,6 +262,22 @@ class EntrenoStepsSmokeTest {
         rule.onNodeWithTag("setup-weekplace-3").assertContentDescriptionEquals("Lugar del miércoles: En casa")
     }
 
+    @Test
+    fun takingTheFreshDayOutOfTheTrainingDaysSaysWhereTheStrongestSessionGoes() {
+        // Martes con más energía pero se entrena lunes, jueves y sábado: la sesión más fuerte pasa al jueves (la regla del generador).
+        val draft = SetupWizardDraft().withPlaces(gym).withFreshestDay(2).withWeekdays(setOf(1, 4, 6))
+        show(draft) { s, v -> EntrenoWeekdaysStep(s, v) }
+        rule.onNodeWithText("Sin entrenar el martes, tu sesión más fuerte pasa al jueves.").assertExists()
+    }
+
+    @Test
+    fun trainingTheFreshDayNeedsNoNote() {
+        val draft = SetupWizardDraft().withPlaces(gym).withFreshestDay(2).withWeekdays(setOf(2, 4, 6))
+        show(draft) { s, v -> EntrenoWeekdaysStep(s, v) }
+        rule.onNodeWithText("Sin entrenar el martes, tu sesión más fuerte pasa al jueves.").assertDoesNotExist()
+        rule.onAllNodesWithText("tu sesión más fuerte pasa al", substring = true).assertCountEquals(0)
+    }
+
     // ── SESSION_TIME ───────────────────────────────────────────────────────────
 
     @Test

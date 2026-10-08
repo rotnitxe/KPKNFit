@@ -28,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -59,6 +60,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
+import com.example.kpkn.screens.onboarding.design.entreno.plan.ellipsizeAtWord
+import kotlinx.coroutines.delay
 
 /**
  * Cómo se muestra una página dentro de la página larga.
@@ -69,6 +72,15 @@ import androidx.compose.ui.util.lerp
  *    desvaneciéndose hacia abajo), inerte hasta que el check la active.
  */
 enum class WizardPageMode { Completed, Active, Peek }
+
+/** Cuánto tarda en componerse el control de un paso que asoma: lo que dura la llegada (el deslizado) y un respiro. */
+private const val PeekContentDelayMillis = WizardMotion.SlideMillis + 80L
+
+/** Con «reducir movimiento» no hay deslizado que esperar: basta un respiro para que el cuadro de la confirmación quede libre. */
+private const val PeekContentDelayReducedMillis = 120L
+
+/** Lo que tarda en aparecer el control que se compuso tarde. */
+private const val PeekContentFadeMillis = 260
 
 /**
  * Una página de la página larga. No es una tarjeta: es un tramo de la misma superficie negra,
@@ -142,6 +154,28 @@ fun WizardPageItem(
         label = "wizard-page-appear",
     )
 
+    // El control del paso que asoma se compone DESPUÉS de la animación de llegada, no en el mismo cuadro en que el paso anterior
+    // se confirma: ese cuadro ya lleva el deslizado de la página, el plegado de la fila y el enfoque del paso activo, y componer
+    // además un control entero (cuadrículas de decenas de símbolos, listas de objetivos) lo alargaba hasta 250–500 ms en una
+    // compilación de depuración. Mientras llega solo se ve la etiqueta, el título y el subtítulo; el control entra con un fundido
+    // corto. Si la persona confirma antes, el paso ya es el activo y se compone en el acto (nunca se hace esperar). Una vez
+    // compuesto, no vuelve a quitarse.
+    var contentReady by remember { mutableStateOf(mode != WizardPageMode.Peek) }
+    LaunchedEffect(mode) {
+        if (!contentReady) {
+            if (mode == WizardPageMode.Peek) {
+                delay(if (reducedMotion) PeekContentDelayReducedMillis else PeekContentDelayMillis)
+            }
+            contentReady = true
+        }
+    }
+    val composeContent = contentReady || mode != WizardPageMode.Peek
+    val contentReveal = animateFloatAsState(
+        targetValue = if (composeContent) 1f else 0f,
+        animationSpec = if (reducedMotion) snap() else tween(durationMillis = PeekContentFadeMillis),
+        label = "wizard-page-content",
+    )
+
     val density = LocalDensity.current
     val chipPx = with(density) { WizardSpacing.summaryRowHeightFor(density.fontScale).roundToPx() }
 
@@ -204,6 +238,8 @@ fun WizardPageItem(
                     subtitle = subtitle,
                     focus = { focus.value },
                     inert = inert,
+                    composeContent = composeContent,
+                    contentReveal = { contentReveal.value },
                     content = content,
                 )
             }
@@ -257,6 +293,8 @@ private fun WizardSectionBody(
     subtitle: String?,
     focus: () -> Float,
     inert: Boolean,
+    composeContent: Boolean,
+    contentReveal: () -> Float,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val density = LocalDensity.current
@@ -310,13 +348,14 @@ private fun WizardSectionBody(
                     .fillMaxWidth()
                     .graphicsLayer {
                         val f = focus()
-                        alpha = lerp(0.6f, 1f, f)
+                        alpha = lerp(0.6f, 1f, f) * contentReveal()
                         val radius = (1f - f) * maxBlurPx
                         renderEffect = if (radius > 0.5f) BlurEffect(radius, radius, TileMode.Decal) else null
                     },
                 verticalArrangement = Arrangement.spacedBy(WizardSpacing.cardGap),
-                content = content,
-            )
+            ) {
+                if (composeContent) content()
+            }
             Spacer(Modifier.height(WizardSpacing.sectionPadBottom))
         }
         // Filete superior: separa la página que asoma de la activa; desaparece al enfocarse
@@ -342,9 +381,12 @@ private fun WizardSectionBody(
 }
 
 /**
- * Fila-resumen de un paso confirmado: una marca, la etiqueta corta arriba, el valor en una línea
+ * Fila-resumen de un paso confirmado: una marca, la etiqueta corta arriba, el valor en hasta dos líneas
  * abajo y un lápiz si se puede volver a editar. Sin tarjeta: una fila de lista con un filete
  * inferior. Misma altura ([WizardSpacing.summaryRowHeightFor]) en todas.
+ *
+ * El valor nunca acaba a media palabra: si en dos líneas no cabe, se corta en la última palabra entera con «…» (ver
+ * [SummaryValue]). TalkBack lo oye entero.
  */
 @Composable
 fun WizardSummaryRow(
@@ -375,6 +417,8 @@ fun WizardSummaryRow(
                     Modifier
                 },
             )
+            // Va DESPUÉS de `clickable`: conserva su rol y su acción y descarta el texto de los hijos, que puede ir cortado.
+            .clearAndSetSemantics { contentDescription = "$label: $value" }
             .padding(horizontal = WizardSpacing.gutter),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(14.dp),
@@ -401,13 +445,7 @@ fun WizardSummaryRow(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            Text(
-                text = value,
-                style = WizardTypography.cardTitle,
-                color = WizardColors.text,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+            SummaryValue(value)
         }
         if (onClick != null) {
             Icon(
@@ -418,4 +456,33 @@ fun WizardSummaryRow(
             )
         }
     }
+}
+
+/**
+ * El valor de una fila-resumen: hasta [WizardSpacing.SUMMARY_VALUE_LINES] líneas y, si aun así no cabe, cortado en la última
+ * palabra entera que cabe más «…» ([ellipsizeAtWord]). El «…» de Compose parte palabras («Press banc…», «a me…»): aquí el
+ * recorte se mide, igual que la descripción del detalle del programa. Solo las filas que no caben pagan la segunda medida.
+ */
+@Composable
+private fun SummaryValue(value: String) {
+    val lines = WizardSpacing.SUMMARY_VALUE_LINES
+    // Cuántos caracteres del valor caben: baja, midiendo, hasta que entran en las líneas sin partir una palabra.
+    var keep by remember(value) { mutableIntStateOf(value.length) }
+    val shown = if (keep >= value.length) value else ellipsizeAtWord(value, keep)
+    Text(
+        text = shown,
+        style = WizardTypography.cardTitle,
+        color = WizardColors.text,
+        maxLines = lines,
+        // Lo que sobra no se pinta: el corte limpio lo hace `ellipsizeAtWord`, no el «…» de Compose.
+        overflow = TextOverflow.Clip,
+        onTextLayout = { layout ->
+            if (layout.hasVisualOverflow) {
+                val visibleEnd = layout.getLineEnd(lines - 1, visibleEnd = true)
+                // Con el «…» puesto, un corte justo en el borde de la línea lo empuja a la siguiente: se baja un carácter más.
+                val next = if (keep >= value.length) visibleEnd else minOf(visibleEnd, keep) - 1
+                if (next in 1 until keep) keep = next
+            }
+        },
+    )
 }

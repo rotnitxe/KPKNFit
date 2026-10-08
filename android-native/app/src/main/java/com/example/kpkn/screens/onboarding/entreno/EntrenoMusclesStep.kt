@@ -28,7 +28,7 @@ import com.example.kpkn.screens.onboarding.design.entreno.MuscleSymbolGrid
 internal const val MUSCLES_SKIP_TAG = "setup-muscles-skip"
 
 /**
- * PRIORITIES · «¿Qué músculos quieres mejorar más?»: la cuadrícula de los doce músculos dibujados, hasta 5; omitir es válido.
+ * PRIORITIES · «¿Qué músculos priorizas?»: la cuadrícula de los doce músculos dibujados, hasta 5; omitir es válido.
  *
  * Lee la bolsa de orden (`MuscleSymbols.symbolsOf(draft.trainingOptions.orderPriorities)`) y escribe SOLO con
  * `vm.toggleMuscle(symbol)` y `vm.clearMuscles()`. Las sugerencias del perfil (`MuscleSuggestions`) llegan precargadas

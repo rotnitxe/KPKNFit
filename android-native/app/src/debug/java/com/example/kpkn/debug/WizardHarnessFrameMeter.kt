@@ -49,6 +49,9 @@ private const val HISTORY_LINES = 14
 /** Lo que dura la «entrada» de un paso: desde que el cursor llega hasta que el arnés escribe la respuesta (40 % de 3,2 s ≈ 1,3 s). */
 private const val ENTRY_NANOS = 1_100_000_000L
 
+/** El tramo de la entrada en que la página se desliza (`SlideMillis` = 520 ms y un respiro): lo que la persona ve moverse. */
+private const val SLIDE_NANOS = 620_000_000L
+
 /**
  * Lo medido por paso durante el recorrido del arnés, en dos tramos: la ENTRADA (el primer 1,1 s desde que el cursor llegó al paso:
  * su deslizado, el paso siguiente que asoma y se compone, el desenfoque que se afloja) y el RESTO (el arnés escribe la respuesta y
@@ -86,6 +89,9 @@ internal object FrameStats {
     private var windowStartNanos = System.nanoTime()
     private var entry = Span()
     private var rest = Span()
+
+    /** Solo el deslizado (los primeros 0,62 s de la entrada, ya contados también en [entry]): `s`. */
+    private var slide = Span()
     private val lines = ArrayDeque<String>()
 
     /** El historial que pinta el medidor («GOAL e 41/38[a3 l9 …] 2/80 r …»). */
@@ -97,19 +103,36 @@ internal object FrameStats {
     @Synchronized
     fun onFrame(frameTimeNanos: Long) {
         if (lastFrame != 0L) {
-            val span = spanAt(frameTimeNanos)
             val gap = frameTimeNanos - lastFrame
-            span.frames++
-            if (gap > span.maxGapNanos) span.maxGapNanos = gap
-            if (gap > SLOW_NANOS) span.slow++
+            val since = frameTimeNanos - windowStartNanos
+            // Sin listas ni cierres: el medidor no debe ensuciar la medida con basura a 120 cuadros por segundo.
+            if (since >= ENTRY_NANOS) count(rest, gap) else {
+                count(entry, gap)
+                if (since < SLIDE_NANOS) count(slide, gap)
+            }
         }
         lastFrame = frameTimeNanos
+    }
+
+    private fun count(span: Span, gap: Long) {
+        span.frames++
+        if (gap > span.maxGapNanos) span.maxGapNanos = gap
+        if (gap > SLOW_NANOS) span.slow++
     }
 
     /** Un cuadro medido por el sistema (empezó en [intendedVsyncNanos]): si es el más largo de su tramo, guarda su desglose. */
     @Synchronized
     fun onMetrics(intendedVsyncNanos: Long, totalNanos: Long, detail: String) {
-        val span = spanAt(intendedVsyncNanos)
+        val since = intendedVsyncNanos - windowStartNanos
+        if (since >= ENTRY_NANOS) {
+            noteWorst(rest, totalNanos, detail)
+        } else {
+            noteWorst(entry, totalNanos, detail)
+            if (since < SLIDE_NANOS) noteWorst(slide, totalNanos, detail)
+        }
+    }
+
+    private fun noteWorst(span: Span, totalNanos: Long, detail: String) {
         if (totalNanos > span.worstTotalNanos) {
             span.worstTotalNanos = totalNanos
             span.worstDetail = detail
@@ -138,13 +161,16 @@ internal object FrameStats {
     @Synchronized
     fun endStep(name: String) {
         val submit = if (submitMs >= 0) " · sub $submitMs" else ""
-        lines.addLast("$name e ${entry.text()} · r ${rest.text()}$submit")
+        // `s`: lo mismo (cuadro más largo / hueco más largo) pero solo mientras la página se desliza; `e`, la entrada entera (1,1 s).
+        val slideText = String.format(java.util.Locale.ROOT, "%.0f/%.0f", slide.maxGapNanos / 1e6, slide.worstTotalNanos / 1e6)
+        lines.addLast("$name e ${entry.text()} · s $slideText · r ${rest.text()}$submit")
         if (entry.worstStall.isNotEmpty()) lines.addLast("  e⚠ ${entry.worstStall}")
         if (rest.worstStall.isNotEmpty()) lines.addLast("  r⚠ ${rest.worstStall}")
         while (lines.size > HISTORY_LINES) lines.removeFirst()
         history = lines.joinToString("\n")
         entry = Span()
         rest = Span()
+        slide = Span()
         submitMs = -1L
         windowStartNanos = System.nanoTime()
     }

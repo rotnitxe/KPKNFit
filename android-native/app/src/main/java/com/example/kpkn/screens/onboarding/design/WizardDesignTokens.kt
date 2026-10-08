@@ -148,15 +148,20 @@ object WizardSpacing {
     val sectionPadTop = 28.dp
     /** Aire bajo el control de cada sección de la página larga. */
     val sectionPadBottom = 32.dp
-    /** Alto base de la fila-resumen: el mismo en todos los pasos confirmados. */
-    val summaryRowHeight = 60.dp
+    /** Alto base de la fila-resumen: el mismo en todos los pasos confirmados. Lleva la etiqueta y hasta dos líneas de valor. */
+    val summaryRowHeight = 72.dp
+
+    /** Líneas del valor de una fila-resumen: lo que no cabe en ellas se corta en la última palabra entera. */
+    const val SUMMARY_VALUE_LINES = 2
 
     /**
      * Alto de la fila-resumen para una escala de fuente dada. Es una función SOLO de la escala (nunca
      * del contenido), así todas las filas siguen midiendo lo mismo y el deslizado puede usar una
      * fórmula cerrada; con letra grande la fila crece lo justo para que no recorte el texto.
+     * Etiqueta (18 dp de interlineado) y dos líneas de valor (21 dp cada una) crecen con la letra; el aire de arriba
+     * y de abajo, no.
      */
-    fun summaryRowHeightFor(fontScale: Float): Dp = maxOf(summaryRowHeight, (39f * fontScale + 12f).dp)
+    fun summaryRowHeightFor(fontScale: Float): Dp = maxOf(summaryRowHeight, (60f * fontScale + 12f).dp)
 
     /** Alto mínimo visible del paso siguiente bajo el activo; si sobra pantalla, asoma hasta el borde. */
     val peekHeight = 150.dp

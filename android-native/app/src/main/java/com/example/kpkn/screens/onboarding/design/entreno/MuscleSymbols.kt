@@ -73,7 +73,7 @@ import kotlin.math.hypot
 import kotlin.math.sin
 
 /*
- * «¿Qué músculos quieres mejorar más?»: la cuadrícula de músculos. Cada uno es el DIBUJO del músculo sobre una
+ * «¿Qué músculos priorizas?»: la cuadrícula de músculos. Cada uno es el DIBUJO del músculo sobre una
  * silueta de línea del cuerpo, encuadrada de cerca; sin cajas. Elegir enciende la región con el acento de músculo,
  * le da un latido suave y le pone una marca de «hecho». Ver [MuscleArt] para los trazos.
  */
