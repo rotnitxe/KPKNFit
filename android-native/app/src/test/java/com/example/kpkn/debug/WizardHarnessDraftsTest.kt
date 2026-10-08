@@ -137,6 +137,25 @@ class WizardHarnessDraftsTest {
         assertEquals("Sin programa activo en el repositorio", none.single().title)
     }
 
+    @Test
+    fun everyHarnessLaunchGetsItsOwnDraftIdSoTwoActivationsOnTheSameDayDoNotCollide() {
+        // La activación escribe observaciones con id «<borrador>/weight/<fecha>»: dos altas del mismo día con el mismo id de borrador
+        // chocan («ya existe y no fue creada por este alta»), así que cada arranque con `reset` usa un id nuevo.
+        val first = harnessDraftIdFor(reset = true, previous = null, nowMs = 1_760_000_000_000L)
+        val second = harnessDraftIdFor(reset = true, previous = first, nowMs = 1_760_000_240_000L)
+        assertTrue("lleva la base del arnés: $first", first.startsWith(HARNESS_DRAFT_BASE))
+        assertTrue("un arranque con reset no reutiliza el id anterior", first != second)
+        assertEquals("el mismo segundo da el mismo id (solo hay un arranque por vez)", first, harnessDraftIdFor(true, null, 1_760_000_000_999L))
+    }
+
+    @Test
+    fun aLaunchWithoutResetReopensTheLastDraftAndOnlyCreatesOneWhenThereIsNone() {
+        val last = "$HARNESS_DRAFT_BASE-1760000000"
+        assertEquals("matar el proceso o girar la pantalla reabre el borrador", last, harnessDraftIdFor(reset = false, previous = last, nowMs = 1_760_000_500_000L))
+        assertEquals("sin borrador recordado se crea uno", "$HARNESS_DRAFT_BASE-1760000500", harnessDraftIdFor(reset = false, previous = null, nowMs = 1_760_000_500_000L))
+        assertEquals("un id en blanco no cuenta como recordado", "$HARNESS_DRAFT_BASE-1760000500", harnessDraftIdFor(reset = false, previous = "  ", nowMs = 1_760_000_500_000L))
+    }
+
     /** Los nombres canónicos de los músculos de la persona (b): espalda y hombros. */
     private object MuscleSymbolsOf {
         val backAndShoulders: Set<String> = com.example.kpkn.domain.onboarding.MuscleSymbols

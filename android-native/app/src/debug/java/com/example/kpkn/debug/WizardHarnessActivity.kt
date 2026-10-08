@@ -265,8 +265,9 @@ private const val MAX_AUTO_STEPS = 40
 /** Cuánto espera el recorrido a que el generador de programas termine (el barrido tarda en un teléfono real). */
 private const val PLAN_WAIT_MS = 90_000L
 
-/** Identificador del borrador del arnés: propio, para no tocar el borrador canónico del asistente. */
-private const val HARNESS_DRAFT_ID = "setup-harness-w"
+/** Dónde recuerda el arnés el borrador del último arranque (para reabrirlo sin `reset`: giro de pantalla o proceso matado). */
+private const val HARNESS_PREFS = "kpkn-harness"
+private const val HARNESS_PREFS_DRAFT = "draftId"
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -411,16 +412,26 @@ private tailrec fun Context.findActivity(): Activity? = when (this) {
     else -> null
 }
 
-/** Deja el borrador del arnés escrito en la base y devuelve su id. Con `reset` lo reconstruye (descartando el anterior). */
+/**
+ * Deja el borrador del arnés escrito en la base y devuelve su id. Con `reset` crea uno NUEVO (ver [harnessDraftIdFor]: dos altas del
+ * mismo día no pueden compartir id de borrador) y descarta el anterior; sin `reset` reabre el último que el arnés recuerda.
+ */
 private suspend fun seedHarnessDraft(app: Application, config: HarnessConfig): String = withContext(Dispatchers.IO) {
     val persistence = realSetupWizardPersistence(app)
-    if (config.reset) persistence.discard(HARNESS_DRAFT_ID)
-    if (persistence.load(HARNESS_DRAFT_ID) == null) {
+    val prefs = app.getSharedPreferences(HARNESS_PREFS, Context.MODE_PRIVATE)
+    val previous = prefs.getString(HARNESS_PREFS_DRAFT, null)
+    val draftId = harnessDraftIdFor(config.reset, previous, System.currentTimeMillis())
+    if (config.reset) {
+        previous?.let { persistence.discard(it) }
+        persistence.discard(HARNESS_DRAFT_BASE) // el id fijo de las versiones anteriores del arnés
+    }
+    prefs.edit().putString(HARNESS_PREFS_DRAFT, draftId).commit()
+    if (persistence.load(draftId) == null) {
         // Revisión en segundos: siempre mayor que la de cualquier borrador anterior del arnés.
         val revision = (System.currentTimeMillis() / 1000L).toInt()
-        val draft = buildHarnessDraft(HARNESS_DRAFT_ID, config.persona, config.start, config.answers, revision)
+        val draft = buildHarnessDraft(draftId, config.persona, config.start, config.answers, revision)
         val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
-        persistence.save(HARNESS_DRAFT_ID, json.encodeToString(draft), revision.toLong(), PersonalizedPlanCatalog.REVISION)
+        persistence.save(draftId, json.encodeToString(draft), revision.toLong(), PersonalizedPlanCatalog.REVISION)
     }
-    HARNESS_DRAFT_ID
+    draftId
 }
