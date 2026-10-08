@@ -1,0 +1,86 @@
+{
+  "status": "VALIDATED_FOR_LOCAL_INTEGRATION",
+  "masterParent": "381123d0a59ed8b3afdafe3f6353f1f9b26a1424",
+  "sourceParent": "df7a1d8247096547a56546708674fad3638cd3eb",
+  "testedSourceFingerprint": "tested-source-fingerprint-3.json",
+  "testedSourceVerification": "tested-source-verification-3.json",
+  "jvm": {
+    "skipped": 0,
+    "tests": 420,
+    "failures": 0,
+    "errors": 0
+  },
+  "serverContracts": {
+    "mode": "LOCAL_WITH_STORAGE_DOUBLE",
+    "passed": 12
+  },
+  "androidGallery": {
+    "state": "PASS",
+    "testCount": 3,
+    "classes": [
+      "com.example.kpkn.data.media.MediaContainerGalleryInstrumentedTest"
+    ],
+    "testApkSha256": "ba6bdd9f7a41235d4e9fff3a0637cb453417c156c3e9bac79fb210bd9e3e7ed8",
+    "api": "36",
+    "mainVisible": true
+  },
+  "apk": {
+    "path": "android-native/app/build/outputs/apk/debug/app-debug.apk",
+    "package": "com.example.kpkn.stability",
+    "sha256": "cba38c9a3002ec4f534675126537125c1316924dbce76a7adaa826ec049267f4",
+    "permissions": [
+      "android.permission.ACCESS_COARSE_LOCATION",
+      "android.permission.ACCESS_FINE_LOCATION",
+      "android.permission.ACCESS_NETWORK_STATE",
+      "android.permission.BLUETOOTH",
+      "android.permission.BLUETOOTH_CONNECT",
+      "android.permission.CAMERA",
+      "android.permission.FOREGROUND_SERVICE",
+      "android.permission.FOREGROUND_SERVICE_LOCATION",
+      "android.permission.FOREGROUND_SERVICE_MICROPHONE",
+      "android.permission.INTERNET",
+      "android.permission.POST_NOTIFICATIONS",
+      "android.permission.READ_EXTERNAL_STORAGE",
+      "android.permission.RECEIVE_BOOT_COMPLETED",
+      "android.permission.RECORD_AUDIO",
+      "android.permission.SCHEDULE_EXACT_ALARM",
+      "android.permission.VIBRATE",
+      "android.permission.WAKE_LOCK",
+      "android.permission.WRITE_EXTERNAL_STORAGE",
+      "com.android.vending.BILLING",
+      "com.example.kpkn.stability.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
+      "com.google.android.providers.gsf.permission.READ_GSERVICES"
+    ],
+    "dexClassesChecked": 69626,
+    "healthProviderClassesFound": 0
+  },
+  "healthConnectRemoved": true,
+  "gpsPreserved": true,
+  "launchAccepted": false,
+  "releaseSigned": false,
+  "pushPerformed": false,
+  "sourceCandidateTreeBeforeEvidence": "4cd59ceb0b357627da65cc2c5b25d1c41eb0529e",
+  "freeUi": {
+    "state": "PASS",
+    "scope": "Synthetic read-only emulator API36; adult admission, Free entry, energy-only rings, persisted manual week, Pro volume gate and cold restart",
+    "homeEnergyOnly": true,
+    "manualWeekCreated": true,
+    "muscleVolumeGated": true,
+    "coldStartKeepsFreeEntryComplete": true,
+    "launchActivity": "com.example.kpkn.stability/com.example.kpkn.MainActivity",
+    "physicalDeviceTested": false
+  },
+  "integrationReceipt": "integration-receipt.json",
+  "build": {
+    "state": "PASS",
+    "tasks": [
+      "selected testDebugUnitTest",
+      "assembleDebug",
+      "assembleDebugAndroidTest"
+    ],
+    "log": "gradle-targeted-3.log",
+    "logSha256": "78dc385c8522467fbb9811055aea891102e7790a6ea352bf841ff452f0e71653",
+    "duration": "10m 54s",
+    "signedRelease": false
+  }
+}

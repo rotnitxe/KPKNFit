@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.generator.RoutineMatrixReportTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-08T23:07:15.989Z" hostname="VF" time="4.395">
+  <properties/>
+  <testcase name="writes_the_coverage_matrix_report" classname="com.example.kpkn.domain.training.generator.RoutineMatrixReportTest" time="4.395"/>
+  <system-out><![CDATA[KPKN · matriz de cobertura del generador de rutinas (routine-generator-v1, catálogo v2-approved-2026-09-29-a)
+Celdas: 4032 = 6 perfiles × 3 modos × 7 días × 4 niveles × 8 minutos
+
+## Resumen por perfil de material
+perfil | patrones que NO se cubren nunca (modo fuerza y masa, todas las celdas) | patrones que faltan a veces (cualquier modo) | sesiones fuera de ventana | peor desvío (min)
+solo cuerpo | Tracción horizontal, Tracción vertical, Hombro lateral, Bíceps | Empuje vertical, Pecho aislado, Hombro posterior, Femoral aislado, Acarreo, Potencia | 0 de 2688 | 0
+parque | Hombro lateral, Hombro posterior, Bíceps | Empuje vertical, Pecho aislado, Trapecio, Femoral aislado, Acarreo, Potencia | 2 de 2688 | 1
+casa mancuernas+banda | Tracción vertical | Pecho aislado, Femoral aislado, Potencia | 80 de 2688 | 6
+casa barra+rack+banco | Tracción vertical, Hombro lateral, Hombro posterior | Pecho aislado, Femoral aislado, Potencia | 96 de 2688 | 8
+gimnasio completo | ninguno | ninguno | 60 de 2688 | 8
+gimnasio+casa por día | ninguno | Tracción vertical, Pecho aislado, Femoral aislado, Potencia | 58 de 2688 | 8
+
+## Recuento de huecos por perfil (los tres modos)
+«siempre» = patrones que ninguna celda de ALGÚN modo cubre; «a veces» = el resto de los que fallan en alguna celda; huecos = suma de patrones sin cubrir de todas las celdas.
+perfil | siempre | a veces | huecos (celdas × patrones)
+solo cuerpo | 6 | 4 | 3860
+parque | 5 | 4 | 3096
+casa mancuernas+banda | 2 | 2 | 1496
+casa barra+rack+banco | 3 | 3 | 2540
+gimnasio completo | 0 | 0 | 0
+gimnasio+casa por día | 0 | 4 | 428
+
+## Ejercicios de fuerza por sesión (media de las sesiones de fuerza y mixtas; todos los niveles y días)
+perfil | modo | mínimo | media | 20 min | 30 min | 45 min | 60 min | 90 min | 120 min | 150 min | 180 min
+solo cuerpo | Fuerza y masa muscular | 3 | 5,51 | 3,0 | 4,0 | 5,6 | 6,1 | 6,3 | 6,3 | 6,3 | 6,3
+solo cuerpo | Fuerza y cardio | 3 | 6,05 | 3,0 | 3,6 | 5,4 | 6,5 | 7,3 | 7,5 | 7,5 | 7,5
+solo cuerpo | Funcional y saludable | 3 | 5,04 | 3,0 | 3,0 | 4,0 | 5,5 | 6,2 | 6,2 | 6,2 | 6,2
+solo cuerpo | los tres modos | 3 | 5,47 | 3,0 | 3,5 | 5,0 | 6,0 | 6,5 | 6,6 | 6,6 | 6,6
+parque | Fuerza y masa muscular | 3 | 5,78 | 3,0 | 3,7 | 5,4 | 6,4 | 6,8 | 7,0 | 7,0 | 7,0
+parque | Fuerza y cardio | 3 | 6,61 | 3,0 | 3,5 | 5,3 | 6,8 | 8,2 | 8,7 | 8,7 | 8,7
+parque | Funcional y saludable | 3 | 6,46 | 4,0 | 3,9 | 4,2 | 6,1 | 8,3 | 8,4 | 8,4 | 8,4
+parque | los tres modos | 3 | 6,24 | 3,4 | 3,7 | 4,9 | 6,4 | 7,7 | 7,9 | 8,0 | 8,0
+casa mancuernas+banda | Fuerza y masa muscular | 3 | 6,57 | 3,0 | 3,4 | 5,8 | 7,4 | 8,1 | 8,3 | 8,3 | 8,3
+casa mancuernas+banda | Fuerza y cardio | 3 | 7,04 | 3,0 | 3,1 | 4,9 | 6,9 | 9,0 | 9,7 | 9,8 | 9,8
+casa mancuernas+banda | Funcional y saludable | 3 | 7,02 | 3,8 | 3,8 | 4,0 | 6,2 | 9,3 | 9,7 | 9,7 | 9,7
+casa mancuernas+banda | los tres modos | 3 | 6,86 | 3,3 | 3,5 | 4,9 | 6,8 | 8,8 | 9,2 | 9,2 | 9,2
+casa barra+rack+banco | Fuerza y masa muscular | 3 | 6,01 | 3,0 | 3,2 | 5,4 | 6,7 | 7,3 | 7,5 | 7,5 | 7,5
+casa barra+rack+banco | Fuerza y cardio | 3 | 6,39 | 3,0 | 3,1 | 4,6 | 6,3 | 8,2 | 8,5 | 8,7 | 8,7
+casa barra+rack+banco | Funcional y saludable | 3 | 6,62 | 3,5 | 3,4 | 3,8 | 5,8 | 8,8 | 9,2 | 9,2 | 9,2
+casa barra+rack+banco | los tres modos | 3 | 6,33 | 3,2 | 3,2 | 4,6 | 6,3 | 8,1 | 8,4 | 8,5 | 8,5
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

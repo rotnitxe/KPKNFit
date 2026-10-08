@@ -1,0 +1,619 @@
+{
+  "status": "PASS",
+  "evidenceLevel": "SOURCE_CLASSIFICATION",
+  "databaseVersion": 30,
+  "tables": {
+    "programs": "USER_DATA",
+    "workout_logs": "USER_DATA",
+    "competition_records": "USER_DATA",
+    "settings": "USER_DATA",
+    "active_program": "USER_DATA",
+    "ongoing_workout": "USER_DATA",
+    "workout_context_performance": "USER_DATA",
+    "workout_global_performance": "USER_DATA",
+    "workout_context_profiles": "USER_DATA",
+    "workout_tags": "USER_DATA",
+    "workout_replacement_decisions": "USER_DATA",
+    "auge_wellbeing": "USER_DATA",
+    "auge_sleep": "USER_DATA",
+    "auge_sleep_extended": "USER_DATA",
+    "auge_feedback": "USER_DATA",
+    "auge_adaptive_cache": "USER_DATA",
+    "nutrition_logs": "USER_DATA",
+    "nutrition_plans": "USER_DATA",
+    "nutrition_active_state": "USER_DATA",
+    "body_observations": "USER_DATA",
+    "body_goals": "USER_DATA",
+    "nutrition_pantry": "USER_DATA",
+    "nutrition_templates": "USER_DATA",
+    "nutrition_custom_foods": "USER_DATA",
+    "learned_resolutions": "USER_DATA",
+    "nutrition_calibration_profile": "USER_DATA",
+    "daily_goal_snapshots": "USER_DATA",
+    "session_templates": "USER_DATA",
+    "custom_exercises": "USER_DATA",
+    "performance_range": "USER_DATA",
+    "performance_snapshot": "USER_DATA",
+    "workout_media": "USER_DATA",
+    "workout_media_session_associations": "USER_DATA",
+    "setup_drafts": "USER_DATA",
+    "setup_commit_receipts": "USER_DATA",
+    "muscle_groups": "REGENERABLE",
+    "joints": "REGENERABLE",
+    "tendons": "REGENERABLE",
+    "movement_patterns": "REGENERABLE",
+    "kinetic_chains": "REGENERABLE",
+    "global_foods": "REGENERABLE",
+    "global_foods_fts": "REGENERABLE",
+    "auge_pending": "CACHE",
+    "sync_configuration": "CACHE",
+    "sync_mutations": "CACHE",
+    "sync_shadows": "CACHE"
+  },
+  "portableRoots": [
+    "cardio-gps",
+    "competition_media",
+    "exercise_user_media",
+    "legacy-body-recovery.json",
+    "profile",
+    "workout_media",
+    "workout_media_pending",
+    "workout_photos"
+  ],
+  "storageCalls": [
+    {
+      "source": "data/account/AccountGraph.kt",
+      "line": 100,
+      "scope": "noBackupFilesDir",
+      "expression": "\"pending-guest-import.json\"",
+      "root": "pending-guest-import.json",
+      "category": "PROFILE_OPERATIONAL"
+    },
+    {
+      "source": "data/account/ProfileStorage.kt",
+      "line": 68,
+      "scope": "noBackupFilesDir",
+      "expression": "\"pending-profile-erasure.json\"",
+      "root": "pending-profile-erasure.json",
+      "category": "PROFILE_OPERATIONAL"
+    },
+    {
+      "source": "data/account/ProfileStorage.kt",
+      "line": 103,
+      "scope": "filesDir",
+      "expression": "\"profiles/${profile.key}/files\"",
+      "root": "profiles",
+      "category": "PROFILE_REGISTRY"
+    },
+    {
+      "source": "data/account/ProfileStorage.kt",
+      "line": 104,
+      "scope": "cacheDir",
+      "expression": "\"profiles/${profile.key}\"",
+      "root": null,
+      "category": "CACHE"
+    },
+    {
+      "source": "data/account/ProfileStorage.kt",
+      "line": 105,
+      "scope": "noBackupFilesDir",
+      "expression": "\"profiles/${profile.key}\"",
+      "root": "profiles",
+      "category": "PROFILE_REGISTRY"
+    },
+    {
+      "source": "data/backup/PersonalDataErasure.kt",
+      "line": 56,
+      "scope": "filesDir",
+      "expression": "it",
+      "root": "personalFileRoots",
+      "category": "REVIEWED_DYNAMIC_PERSONAL"
+    },
+    {
+      "source": "data/backup/PortableBackup.kt",
+      "line": 35,
+      "scope": "noBackupFilesDir",
+      "expression": "\"legacy-body-recovery.json\"",
+      "root": "legacy-body-recovery.json",
+      "category": "PERSONAL_PORTABLE"
+    },
+    {
+      "source": "data/backup/PortableBackup.kt",
+      "line": 35,
+      "scope": "filesDir",
+      "expression": "root",
+      "root": "portableRoots",
+      "category": "REVIEWED_DYNAMIC_PERSONAL"
+    },
+    {
+      "source": "data/backup/PortableBackup.kt",
+      "line": 42,
+      "scope": "cacheDir",
+      "expression": "\"portable-export/${UUID.randomUUID()}\"",
+      "root": null,
+      "category": "CACHE"
+    },
+    {
+      "source": "data/backup/PortableBackup.kt",
+      "line": 43,
+      "scope": "filesDir",
+      "expression": "\"snapshots/${DatabaseBackupHelper.createSnapshot(context)}\"",
+      "root": "snapshots",
+      "category": "PERSONAL_OPERATIONAL"
+    },
+    {
+      "source": "data/backup/PortableBackup.kt",
+      "line": 73,
+      "scope": "noBackupFilesDir",
+      "expression": "\"portable-stage/${UUID.randomUUID()}\"",
+      "root": "portable-stage",
+      "category": "PROFILE_OPERATIONAL"
+    },
+    {
+      "source": "data/backup/PortableBackup.kt",
+      "line": 97,
+      "scope": "noBackupFilesDir",
+      "expression": "\"maintenance\"",
+      "root": "maintenance",
+      "category": "PROFILE_OPERATIONAL"
+    },
+    {
+      "source": "data/backup/PortableBackup.kt",
+      "line": 99,
+      "scope": "filesDir",
+      "expression": "\"snapshots/${DatabaseBackupHelper.createSnapshot(context)}\"",
+      "root": "snapshots",
+      "category": "PERSONAL_OPERATIONAL"
+    },
+    {
+      "source": "data/backup/PortableBackup.kt",
+      "line": 122,
+      "scope": "noBackupFilesDir",
+      "expression": "\"maintenance\"",
+      "root": "maintenance",
+      "category": "PROFILE_OPERATIONAL"
+    },
+    {
+      "source": "data/backup/PortableBackup.kt",
+      "line": 185,
+      "scope": "filesDir",
+      "expression": "\"workout_media/cloud/${value.substringAfterLast(':')}-${column.name}.pending\"",
+      "root": "workout_media",
+      "category": "PERSONAL_PORTABLE"
+    },
+    {
+      "source": "data/backup/PortableBackup.kt",
+      "line": 232,
+      "scope": "filesDir",
+      "expression": "relative",
+      "root": "owned portable relative path",
+      "category": "REVIEWED_DYNAMIC_PERSONAL"
+    },
+    {
+      "source": "data/competitions/CompetitionMediaStore.kt",
+      "line": 18,
+      "scope": "filesDir",
+      "expression": "\"competition_media/$recordId\"",
+      "root": "competition_media",
+      "category": "PERSONAL_PORTABLE"
+    },
+    {
+      "source": "data/db/DatabaseBackupHelper.kt",
+      "line": 19,
+      "scope": "filesDir",
+      "expression": "\"snapshots\"",
+      "root": "snapshots",
+      "category": "PERSONAL_OPERATIONAL"
+    },
+    {
+      "source": "data/db/DatabaseBackupHelper.kt",
+      "line": 54,
+      "scope": "filesDir",
+      "expression": "\"snapshots\"",
+      "root": "snapshots",
+      "category": "PERSONAL_OPERATIONAL"
+    },
+    {
+      "source": "data/diagnostics/KpknDiagnosticLogger.kt",
+      "line": 187,
+      "scope": "filesDir",
+      "expression": "LOG_ROOT",
+      "root": "kpkn_logs",
+      "category": "PERSONAL_OPERATIONAL"
+    },
+    {
+      "source": "data/diagnostics/KpknDiagnosticLogger.kt",
+      "line": 534,
+      "scope": "filesDir",
+      "expression": "\"$LOG_ROOT/${pending.area}/${pending.day}\"",
+      "root": "kpkn_logs",
+      "category": "PERSONAL_OPERATIONAL"
+    },
+    {
+      "source": "data/diagnostics/KpknDiagnosticLogger.kt",
+      "line": 583,
+      "scope": "filesDir",
+      "expression": "LOG_ROOT",
+      "root": "kpkn_logs",
+      "category": "PERSONAL_OPERATIONAL"
+    },
+    {
+      "source": "data/diagnostics/KpknDiagnosticLogger.kt",
+      "line": 616,
+      "scope": "filesDir",
+      "expression": "LOG_ROOT",
+      "root": "kpkn_logs",
+      "category": "PERSONAL_OPERATIONAL"
+    },
+    {
+      "source": "data/diagnostics/KpknDiagnosticLogger.kt",
+      "line": 622,
+      "scope": "filesDir",
+      "expression": "legacyName",
+      "root": "legacy diagnostic roots",
+      "category": "REVIEWED_DYNAMIC_PERSONAL"
+    },
+    {
+      "source": "data/diagnostics/KpknDiagnosticLogger.kt",
+      "line": 650,
+      "scope": "filesDir",
+      "expression": "LOG_ROOT",
+      "root": "kpkn_logs",
+      "category": "PERSONAL_OPERATIONAL"
+    },
+    {
+      "source": "data/diagnostics/KpknDiagnosticLogger.kt",
+      "line": 703,
+      "scope": "filesDir",
+      "expression": "LOG_ROOT",
+      "root": "kpkn_logs",
+      "category": "PERSONAL_OPERATIONAL"
+    },
+    {
+      "source": "data/diagnostics/KpknDiagnosticLogger.kt",
+      "line": 716,
+      "scope": "filesDir",
+      "expression": "\"$LOG_ROOT/${area.safeNamespace()}\"",
+      "root": "kpkn_logs",
+      "category": "PERSONAL_OPERATIONAL"
+    },
+    {
+      "source": "data/diagnostics/KpknDiagnosticLogger.kt",
+      "line": 736,
+      "scope": "filesDir",
+      "expression": "\"$LOG_ROOT/$area\"",
+      "root": "kpkn_logs",
+      "category": "PERSONAL_OPERATIONAL"
+    },
+    {
+      "source": "data/diagnostics/KpknDiagnosticLogger.kt",
+      "line": 786,
+      "scope": "filesDir",
+      "expression": "rootName",
+      "root": "legacy diagnostic roots",
+      "category": "REVIEWED_DYNAMIC_PERSONAL"
+    },
+    {
+      "source": "data/diagnostics/KpknDiagnosticLogger.kt",
+      "line": 798,
+      "scope": "filesDir",
+      "expression": "\"$LOG_ROOT/$area/$date\"",
+      "root": "kpkn_logs",
+      "category": "PERSONAL_OPERATIONAL"
+    },
+    {
+      "source": "data/diagnostics/KpknDiagnosticLogger.kt",
+      "line": 824,
+      "scope": "filesDir",
+      "expression": "\"$LOG_ROOT/$legacyArea\"",
+      "root": "kpkn_logs",
+      "category": "PERSONAL_OPERATIONAL"
+    },
+    {
+      "source": "data/diagnostics/KpknDiagnosticLogger.kt",
+      "line": 830,
+      "scope": "filesDir",
+      "expression": "\"$LOG_ROOT/$area/$date\"",
+      "root": "kpkn_logs",
+      "category": "PERSONAL_OPERATIONAL"
+    },
+    {
+      "source": "data/media/WorkoutMediaCaptureJournal.kt",
+      "line": 49,
+      "scope": "filesDir",
+      "expression": "ROOT_DIR",
+      "root": "workout_media_pending",
+      "category": "PERSONAL_PORTABLE"
+    },
+    {
+      "source": "data/media/WorkoutMediaLegacyImporter.kt",
+      "line": 133,
+      "scope": "filesDir",
+      "expression": "WORKOUT_PHOTOS_DIR",
+      "root": "workout_photos",
+      "category": "PERSONAL_PORTABLE"
+    },
+    {
+      "source": "data/media/WorkoutMediaLegacyImporter.kt",
+      "line": 172,
+      "scope": "filesDir",
+      "expression": "EXERCISE_USER_MEDIA_DIR",
+      "root": "exercise_user_media",
+      "category": "PERSONAL_PORTABLE"
+    },
+    {
+      "source": "data/media/WorkoutMediaStore.kt",
+      "line": 19,
+      "scope": "filesDir",
+      "expression": "ROOT_DIR",
+      "root": "workout_media",
+      "category": "PERSONAL_PORTABLE"
+    },
+    {
+      "source": "data/profile/ProfilePhotoStore.kt",
+      "line": 53,
+      "scope": "filesDir",
+      "expression": "DIRECTORY",
+      "root": "profile",
+      "category": "PERSONAL_PORTABLE"
+    },
+    {
+      "source": "data/profile/ProfilePhotoStore.kt",
+      "line": 73,
+      "scope": "filesDir",
+      "expression": "DIRECTORY",
+      "root": "profile",
+      "category": "PERSONAL_PORTABLE"
+    },
+    {
+      "source": "data/profile/ProfilePhotoStore.kt",
+      "line": 115,
+      "scope": "filesDir",
+      "expression": "STORAGE_TOKEN",
+      "root": "profile",
+      "category": "PERSONAL_PORTABLE"
+    },
+    {
+      "source": "data/repository/BodyProgressRepository.kt",
+      "line": 261,
+      "scope": "noBackupFilesDir",
+      "expression": "\"legacy-body-recovery.json\"",
+      "root": "legacy-body-recovery.json",
+      "category": "PERSONAL_PORTABLE"
+    },
+    {
+      "source": "data/sync/GuestImportCoordinator.kt",
+      "line": 30,
+      "scope": "noBackupFilesDir",
+      "expression": "\"guest-import\"",
+      "root": "guest-import",
+      "category": "PROFILE_OPERATIONAL"
+    },
+    {
+      "source": "data/sync/GuestImportCoordinator.kt",
+      "line": 56,
+      "scope": "noBackupFilesDir",
+      "expression": "\"sync-media/${reference.sha256}\"",
+      "root": "sync-media",
+      "category": "PROFILE_OPERATIONAL"
+    },
+    {
+      "source": "data/sync/GuestImportCoordinator.kt",
+      "line": 98,
+      "scope": "noBackupFilesDir",
+      "expression": "\"sync-media/${entry.path}\"",
+      "root": "sync-media",
+      "category": "PROFILE_OPERATIONAL"
+    },
+    {
+      "source": "data/sync/GuestImportCoordinator.kt",
+      "line": 132,
+      "scope": "noBackupFilesDir",
+      "expression": "\"pending-guest-import.json\"",
+      "root": "pending-guest-import.json",
+      "category": "PROFILE_OPERATIONAL"
+    },
+    {
+      "source": "data/sync/GuestImportCoordinator.kt",
+      "line": 137,
+      "scope": "noBackupFilesDir",
+      "expression": "\"pending-guest-import.json\"",
+      "root": "pending-guest-import.json",
+      "category": "PROFILE_OPERATIONAL"
+    },
+    {
+      "source": "data/sync/GuestSnapshotFiles.kt",
+      "line": 45,
+      "scope": "filesDir",
+      "expression": "\"profile/guest-imported/$id/${entry.path}\"",
+      "root": "profile",
+      "category": "PERSONAL_PORTABLE"
+    },
+    {
+      "source": "data/sync/GuestSourceLedger.kt",
+      "line": 21,
+      "scope": "noBackupFilesDir",
+      "expression": "\"owned-guest-sources.json\"",
+      "root": "owned-guest-sources.json",
+      "category": "PROFILE_OPERATIONAL"
+    },
+    {
+      "source": "data/sync/GuestSourceLedger.kt",
+      "line": 40,
+      "scope": "noBackupFilesDir",
+      "expression": "\"guest-import/plan.json\"",
+      "root": "guest-import",
+      "category": "PROFILE_OPERATIONAL"
+    },
+    {
+      "source": "data/sync/GuestSourceLedger.kt",
+      "line": 56,
+      "scope": "noBackupFilesDir",
+      "expression": "\"guest-import/plan.json\"",
+      "root": "guest-import",
+      "category": "PROFILE_OPERATIONAL"
+    },
+    {
+      "source": "data/sync/MediaTransfer.kt",
+      "line": 48,
+      "scope": "noBackupFilesDir",
+      "expression": "\"sync-media/${reference.sha256}\"",
+      "root": "sync-media",
+      "category": "PROFILE_OPERATIONAL"
+    },
+    {
+      "source": "data/sync/MediaTransfer.kt",
+      "line": 96,
+      "scope": "filesDir",
+      "expression": "\"workout_media/cloud/${reference.sha256}.${extension(reference.contentType)}\"",
+      "root": "workout_media",
+      "category": "PERSONAL_PORTABLE"
+    },
+    {
+      "source": "data/sync/MediaTransfer.kt",
+      "line": 113,
+      "scope": "noBackupFilesDir",
+      "expression": "\"sync-media/${reference.sha256}\"",
+      "root": "sync-media",
+      "category": "PROFILE_OPERATIONAL"
+    },
+    {
+      "source": "data/sync/PersonalRecordCodec.kt",
+      "line": 90,
+      "scope": "filesDir",
+      "expression": "\"workout_media/cloud/${wireId(rawKey)}.pending\"",
+      "root": "workout_media",
+      "category": "PERSONAL_PORTABLE"
+    },
+    {
+      "source": "data/sync/PrivateDataTransport.kt",
+      "line": 66,
+      "scope": "noBackupFilesDir",
+      "expression": "\"sync-transfer/${reference.sha256}.download.part\"",
+      "root": "sync-transfer",
+      "category": "PROFILE_OPERATIONAL"
+    },
+    {
+      "source": "data/sync/PrivateDataTransport.kt",
+      "line": 84,
+      "scope": "noBackupFilesDir",
+      "expression": "\"sync-transfer/$hash.json\"",
+      "root": "sync-transfer",
+      "category": "PROFILE_OPERATIONAL"
+    },
+    {
+      "source": "screens/settings/SettingsViewModel.kt",
+      "line": 155,
+      "scope": "cacheDir",
+      "expression": "\"exports\"",
+      "root": null,
+      "category": "CACHE"
+    },
+    {
+      "source": "screens/settings/SettingsViewModel.kt",
+      "line": 373,
+      "scope": "filesDir",
+      "expression": "\"snapshots/$snapshotName\"",
+      "root": "snapshots",
+      "category": "PERSONAL_OPERATIONAL"
+    },
+    {
+      "source": "screens/settings/SettingsViewModel.kt",
+      "line": 394,
+      "scope": "filesDir",
+      "expression": "\"snapshots/$rollbackName\"",
+      "root": "snapshots",
+      "category": "PERSONAL_OPERATIONAL"
+    },
+    {
+      "source": "screens/settings/SettingsViewModel.kt",
+      "line": 395,
+      "scope": "cacheDir",
+      "expression": "\"import_snapshot_${System.currentTimeMillis()}.db\"",
+      "root": null,
+      "category": "CACHE"
+    },
+    {
+      "source": "screens/workout/components/ExerciseUserMediaStore.kt",
+      "line": 9,
+      "scope": "filesDir",
+      "expression": "\"exercise_user_media/$safe\"",
+      "root": "exercise_user_media",
+      "category": "PERSONAL_PORTABLE"
+    },
+    {
+      "source": "screens/workout/WorkoutShareService.kt",
+      "line": 71,
+      "scope": "cacheDir",
+      "expression": "\"shares\"",
+      "root": null,
+      "category": "CACHE"
+    },
+    {
+      "source": "services/cardio/CardioGpsPersistence.kt",
+      "line": 118,
+      "scope": "filesDir",
+      "expression": "\"cardio-gps\"",
+      "root": "cardio-gps",
+      "category": "PERSONAL_PORTABLE"
+    },
+    {
+      "source": "services/cardio/CardioGpsPersistence.kt",
+      "line": 125,
+      "scope": "filesDir",
+      "expression": "\"cardio-gps\"",
+      "root": "cardio-gps",
+      "category": "PERSONAL_PORTABLE"
+    },
+    {
+      "source": "services/diagnostics/KpknDiagnosticStorage.kt",
+      "line": 186,
+      "scope": "filesDir",
+      "expression": "KpknDiagnosticLogger.LOG_ROOT",
+      "root": "kpkn_logs",
+      "category": "REVIEWED_DYNAMIC_PERSONAL"
+    },
+    {
+      "source": "services/diagnostics/KpknDiagnosticStorage.kt",
+      "line": 190,
+      "scope": "filesDir",
+      "expression": "name",
+      "root": "diagnostic root list",
+      "category": "REVIEWED_DYNAMIC_PERSONAL"
+    },
+    {
+      "source": "services/diagnostics/KpknDiagnosticStorage.kt",
+      "line": 218,
+      "scope": "filesDir",
+      "expression": "name",
+      "root": "diagnostic root list",
+      "category": "REVIEWED_DYNAMIC_PERSONAL"
+    },
+    {
+      "source": "services/workout/WorkoutVoiceDiagnosticLogger.kt",
+      "line": 158,
+      "scope": "filesDir",
+      "expression": "\"voice_diagnostics\"",
+      "root": "voice_diagnostics",
+      "category": "PERSONAL_OPERATIONAL"
+    },
+    {
+      "source": "services/workout/WorkoutVoiceDiagnosticLogger.kt",
+      "line": 198,
+      "scope": "filesDir",
+      "expression": "\"voice_diagnostics\"",
+      "root": "voice_diagnostics",
+      "category": "PERSONAL_OPERATIONAL"
+    },
+    {
+      "source": "services/workout/WorkoutVoskModelStore.kt",
+      "line": 30,
+      "scope": "noBackupFilesDir",
+      "expression": "\"voice-models\"",
+      "root": "voice-models",
+      "category": "REGENERABLE"
+    }
+  ],
+  "errors": [],
+  "limits": "Direct private-root constructors and schema tables; device writer/barrier and arbitrary file alias analysis remain separate."
+}

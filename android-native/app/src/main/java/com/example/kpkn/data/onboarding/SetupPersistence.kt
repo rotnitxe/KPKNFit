@@ -157,6 +157,10 @@ class SetupCommitCoordinator(
     private val db: KpknDatabase,
     private val programRepository: ProgramRepository? = null,
     private val nutritionRepository: NutritionRepository? = null,
+    private val accessLevel: () -> com.example.kpkn.domain.entitlements.PlanLevel = {
+        programRepository?.planLevel() ?: nutritionRepository?.accessLevel?.invoke() ?:
+            com.example.kpkn.data.account.AccountGraph.entitlement.value.effectiveLevel
+    },
 ) {
     private val mutex = Mutex()
 
@@ -191,6 +195,9 @@ class SetupCommitCoordinator(
                     request.pendingNutritionDraft?.let { replayKeepsPendingNutritionDraft(it) }
                     shouldPublish = true
                 } else {
+                    request.program?.let { com.example.kpkn.domain.entitlements.ProgramAccessPolicy.requireWrite(accessLevel(), it) }
+                    if (request.nutritionPlan != null || request.activateNutrition || request.derivedBodyGoals.isNotEmpty() || request.dailyGoalSnapshot != null)
+                        com.example.kpkn.domain.entitlements.ProgramAccessPolicy.requireCapability(accessLevel(), com.example.kpkn.domain.entitlements.Capability.NUTRITION)
                     val currentSettings = db.settingsDao().get()?.toSettings() ?: request.settings
                     // Valida TODAS las observaciones antes de tocar nada: una fila
                     // inválida, futura o contradictoria rechaza el alta sin efectos

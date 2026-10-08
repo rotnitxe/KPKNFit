@@ -1,0 +1,329 @@
+{
+  "state": "PASS",
+  "totals": {
+    "skipped": 0,
+    "tests": 420,
+    "failures": 0,
+    "errors": 0
+  },
+  "suiteCount": 45,
+  "suites": [
+    {
+      "name": "com.example.kpkn.data.media.PoseTrajectoryAnalysisTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.data.media.WorkoutAlbumGroupingTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.data.media.WorkoutMediaCaptureJournalTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.data.media.WorkoutMediaFinalizePolicyTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.data.media.WorkoutMediaGallerySaverTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.data.media.WorkoutMediaLegacyImporterTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.data.media.WorkoutMediaPrFlagsTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.data.media.WorkoutMediaRepositoryRecoveryTest",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.data.repository.NativeCapabilityTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.data.settings.MediaContainerTypeTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.data.settings.MediaFilesTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.data.settings.MediaFormatRoundTripTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.domain.training.approach.ApproachGeneratedRoutineTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.domain.training.approach.ApproachInfoProviderTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.domain.training.approach.ApproachMaterializationTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.domain.training.approach.ApproachPlannerTest",
+      "tests": 34,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.domain.training.approach.JointMobilityTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.domain.training.AuthoredProgressionEngineTest",
+      "tests": 18,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.domain.training.generator.BodyweightLotGeneratorTest",
+      "tests": 17,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.domain.training.generator.CardioByMaterialGeneratorTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.domain.training.generator.DisciplineModesTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.domain.training.generator.GeneratorEquipmentTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.domain.training.generator.GeneratorPoolsCatalogTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.domain.training.generator.OlympicLotGeneratorTest",
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.domain.training.generator.PriorityAndApproachFittingTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.domain.training.generator.RoutineGeneratorBehaviorTest",
+      "tests": 24,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.domain.training.generator.RoutineGeneratorLowMinutesTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.domain.training.generator.RoutineGeneratorSweepTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.domain.training.generator.RoutineMatrixReportTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.domain.training.generator.RoutineSamplesReportTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest",
+      "tests": 44,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.domain.training.PlanMaterializerCardioIdentityTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.domain.training.PlanMaterializerDurationSealTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.domain.training.PlanMaterializerRematerializePreservationTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.domain.training.PlanMaterializerTest",
+      "tests": 25,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.domain.training.ProgramRunEvidenceTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.screens.onboarding.EntrenoDeclarationEffectTest",
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.screens.onboarding.EntrenoDraftRobustnessTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.screens.onboarding.EntrenoMaterialCoherenceSweepTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.screens.onboarding.EntrenoPlanSweepTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.screens.onboarding.EntrenoSessionTimeDraftTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.screens.onboarding.EntrenoWeekLayoutCursorTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.screens.onboarding.SetupAvailabilitySeedTest",
+      "tests": 25,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.screens.onboarding.SetupExecutableAvailabilityMatrixTest",
+      "tests": 24,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.example.kpkn.screens.onboarding.SetupWizardFullJourneyTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "scope": "Merged master and df7 plus authorized AUD06; all integration regressions repeated and media recovery, gallery retry, formats, backup and container regressions",
+  "sourceFingerprint": "tested-source-fingerprint-3.json"
+}

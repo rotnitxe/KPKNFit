@@ -230,7 +230,7 @@ private fun WizardLongPage(
 
     val ageYears = state.draft.ageYears
     val aliasReady = currentPage != SetupStepId.NAME ||
-        (state.draft.name.isNotBlank() && ageYears != null && ageYears in 13..100)
+        (state.draft.name.isNotBlank() && ageYears != null && ageYears in 18..100)
     val measuresReady = step != SetupStepId.HEIGHT ||
         (state.draft.heightCm != null && state.draft.weightKg != null)
     // El plan de alimentación con calorías peligrosamente bajas o una pérdida extrema no se confirma: el aviso del

@@ -178,6 +178,7 @@ class AugeRepository private constructor(context: Context) {
 
     companion object {
         @Volatile private var INSTANCE: AugeRepository? = null
+        internal fun closeForDataSession() { synchronized(this) { INSTANCE = null } }
 
         fun getInstance(context: Context): AugeRepository =
             INSTANCE ?: synchronized(this) {

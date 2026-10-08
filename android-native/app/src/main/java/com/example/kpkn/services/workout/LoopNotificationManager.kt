@@ -40,7 +40,7 @@ class LoopNotificationManager(context: Context) {
             .build()
 
         runCatching {
-            NotificationManagerCompat.from(appContext).notify(loopTitle.hashCode(), notification)
+            com.example.kpkn.services.notifications.PermissionAwareNotifications.post(appContext, loopTitle.hashCode(), notification)
         }
     }
 

@@ -21,8 +21,9 @@ class WorkoutVoiceReplayTest {
         val explicitDir = System.getProperty("voice.replay.dir")?.let(::File)
         val dir = explicitDir
             ?: File("src/test/resources/voice-replay")
-        return if (dir.isDirectory) dir.listFiles { f -> f.extension == "jsonl" }?.toList().orEmpty()
-        else emptyList()
+        val files = if (dir.isDirectory) dir.listFiles { f -> f.extension == "jsonl" }?.toList().orEmpty() else emptyList()
+        require(files.size <= 100 && files.sumOf { it.length() } <= 64L * 1024 * 1024) { "Voice corpus exceeds its bounds" }
+        return files
     }
 
     @Test
@@ -49,7 +50,7 @@ class WorkoutVoiceReplayTest {
                     val isUnilateral = parsed.optBoolean("isUnilateral", false)
                     val transcript = parsed.optString("transcript").takeIf { it.isNotBlank() }
                         ?: parsed.optString("sanitized").takeIf { it.isNotBlank() }
-                        ?: events.asReversed()
+                        ?: events.take(events.indexOf(parsed)).asReversed()
                             .firstOrNull { it.optString("event") == "asr_final" }
                             ?.optString("sanitized")
                             ?.takeIf { it.isNotBlank() }
@@ -70,15 +71,17 @@ class WorkoutVoiceReplayTest {
                     )
                     if (command is VoiceSessionCommand.Unknown && interpretation == null) {
                         unexpectedUnknown++
-                        if (samples.size < 25) samples.add(transcript)
+                        if (samples.size < 25) samples.add(java.security.MessageDigest.getInstance("SHA-256")
+                            .digest(transcript.toByteArray()).take(8).joinToString("") { "%02x".format(it) })
                     }
                 }
         }
 
         assertTrue("No hubo command_parsed en el corpus para replay.", commandParsed > 0)
+        assertTrue("No se ejecutaron dictados reales del corpus.", replayed > 0)
         assertTrue(
             "$unexpectedUnknown de $replayed dictado(s) de campo ya no parsean. " +
-                "Muestras: ${samples.joinToString(" | ")}",
+                "Identificadores de muestra: ${samples.joinToString(" | ")}",
             unexpectedUnknown == 0,
         )
     }
@@ -87,22 +90,28 @@ class WorkoutVoiceReplayTest {
     fun replayTranscriptParserNeverThrows() {
         val files = resourceCorpus()
         assumeTrue("No hay corpus de replay de voz configurado.", files.isNotEmpty())
+        var replayed = 0
         files.forEach { file ->
             file.readLines().forEach { line ->
                 val obj = runCatching { JSONObject(line) }.getOrNull() ?: return@forEach
                 if (obj.optString("event") != "asr_final") return@forEach
                 val text = obj.optString("sanitized").takeIf { it.isNotBlank() } ?: return@forEach
-                WorkoutVoiceCommandParser.parseCommand(
-                    transcript = text,
-                    isTimeMode = false,
-                    isUnilateral = false,
-                    hasPendingConfirmation = false,
-                    isRestTimerActive = false,
-                )
-                parseWorkoutVoiceTranscript(text, isTimeMode = false, isUnilateral = false)
+                replayed++
+                try {
+                    WorkoutVoiceCommandParser.parseCommand(
+                        transcript = text,
+                        isTimeMode = false,
+                        isUnilateral = false,
+                        hasPendingConfirmation = false,
+                        isRestTimerActive = false,
+                    )
+                    parseWorkoutVoiceTranscript(text, isTimeMode = false, isUnilateral = false)
+                } catch (_: Exception) {
+                    // Parser exception messages may contain input; keep transcripts out of CI reports.
+                    throw AssertionError("Voice replay parser failed; input withheld")
+                }
             }
         }
-        // Llegar aquí sin excepción es el contrato.
-        assertTrue(true)
+        assertTrue("No se ejecutaron eventos asr_final del corpus.", replayed > 0)
     }
 }

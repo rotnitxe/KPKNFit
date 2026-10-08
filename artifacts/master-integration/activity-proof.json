@@ -1,0 +1,7 @@
+{
+  "state": "PASS",
+  "topResumedActivity": "topResumedActivity=ActivityRecord{240237233 u0 com.example.kpkn.stability/com.example.kpkn.MainActivity t1184}",
+  "rawActivityDumpSha256": "98b332806815f5f6a7e3e1869318c900d055d8f508f2f16eedad96b8043dc38a",
+  "rawActivityDump": "artifacts\\master-integration\\emulator-free-3\\10-cold-open\\before-activity.txt",
+  "source": "ADB dumpsys on the isolated read-only emulator"
+}

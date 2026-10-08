@@ -51,6 +51,7 @@ class BodyProgressRepository private constructor(
     private val writeMutex = Mutex()
     private val dao: BodyProgressDao = db.bodyProgressDao()
     private val ready = CompletableDeferred<Unit>()
+    @Volatile private var pendingWriteError: Throwable? = null
 
     private val _observations = MutableStateFlow<List<BodyObservation>>(emptyList())
     val observations: StateFlow<List<BodyObservation>> = _observations.asStateFlow()
@@ -66,8 +67,7 @@ class BodyProgressRepository private constructor(
 
     init {
         scope.launch {
-            load()
-            ready.complete(Unit)
+            try { load(); ready.complete(Unit) } catch (error: Throwable) { ready.completeExceptionally(error) }
         }
     }
 
@@ -84,7 +84,7 @@ class BodyProgressRepository private constructor(
         }
         scope.launch {
             runCatching { writeMutex.withLock { dao.upsertObservation(observation.toEntity()) } }
-                .onFailure { _lastError.value = it.message ?: "No se pudo guardar la medición" }
+                .onFailure { pendingWriteError = it; _lastError.value = it.message ?: "No se pudo guardar la medición" }
         }
         return true
     }
@@ -234,8 +234,8 @@ class BodyProgressRepository private constructor(
 
     private suspend fun load() {
         runCatching {
-            val rows = dao.getAllObservations().mapNotNull { it.toBodyObservation() }
-            val goals = dao.getAllGoals().mapNotNull { it.toBodyGoal() }
+            val rows = dao.getAllObservations().map { requireNotNull(it.toBodyObservation()) { "A stored measurement requires recovery" } }
+            val goals = dao.getAllGoals().map { requireNotNull(it.toBodyGoal()) { "A stored goal requires recovery" } }
             val imported = importLegacyIfNeeded(rows)
             _observations.value = (rows + imported).distinctBy { it.id }.sortedBy { it.timestampEpochMs }
             _goals.value = goals
@@ -252,13 +252,18 @@ class BodyProgressRepository private constructor(
             }
         }.onFailure {
             _lastError.value = it.message ?: "No se pudieron cargar las mediciones"
-        }
+        }.getOrThrow()
     }
 
     private suspend fun importLegacyIfNeeded(existing: List<BodyObservation>): List<BodyObservation> {
         if (prefs.getBoolean(KEY_MIGRATED, false)) return emptyList()
         val json = prefs.getString(KEY_LEGACY_MEASUREMENTS, null) ?: return emptyList()
-        val legacy = runCatching { Json.decodeFromString<List<BodyMeasurementEntry>>(json) }.getOrDefault(emptyList())
+        val recovery = android.util.AtomicFile(java.io.File(appContext.noBackupFilesDir, "legacy-body-recovery.json"))
+        if (!recovery.baseFile.exists()) {
+            val output = recovery.startWrite()
+            try { output.write(json.toByteArray()); recovery.finishWrite(output) } catch (error: Throwable) { recovery.failWrite(output); throw error }
+        }
+        val legacy = Json.decodeFromString<List<BodyMeasurementEntry>>(json)
         if (legacy.isEmpty()) {
             prefs.edit().putBoolean(KEY_MIGRATED, true).remove(KEY_LEGACY_MEASUREMENTS).apply()
             return emptyList()
@@ -323,8 +328,17 @@ class BodyProgressRepository private constructor(
 
         fun closeInstance() {
             synchronized(this) {
+                INSTANCE?.scope?.coroutineContext?.get(kotlinx.coroutines.Job)?.let { job ->
+                    job.cancel(); kotlinx.coroutines.runBlocking { job.join() }
+                }
                 INSTANCE = null
             }
+        }
+        internal suspend fun closeForDataSession() {
+            val instance = INSTANCE ?: return
+            kotlinx.coroutines.withTimeout(30_000) { instance.scope.coroutineContext[kotlinx.coroutines.Job]?.children?.toList()?.forEach { it.join() } }
+            instance.pendingWriteError?.let { throw IllegalStateException("A pending body measurement could not be persisted", it) }
+            closeInstance()
         }
     }
 }

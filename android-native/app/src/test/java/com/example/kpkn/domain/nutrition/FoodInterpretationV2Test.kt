@@ -41,8 +41,45 @@ class FoodInterpretationV2Test {
     }
 
     /** The mentions of [text], resolved over the static catalog as the logger resolves them. */
-    private fun resolve(text: String): List<ResolvedTag> =
-        runBlocking { TagResolver(port).resolveAll(parseMealDescription(text)).first }
+    private fun resolve(text: String, reviewAmounts: Boolean = false): List<ResolvedTag> =
+        runBlocking { TagResolver(port, requireEstimatedPortionConfirmation = reviewAmounts).resolveAll(parseMealDescription(text)).first }
+
+    @Test fun `ambiguous amount requires confirmation and explicit acceptance retains uncertainty`() {
+        val tag = resolve("arroz cocido", reviewAmounts = true).single()
+        assertFalse(tag.isResolved)
+        assertTrue(tag.interpretationV2!!.pendingQuestions.any { it.requestId == "estimated_portion" })
+        assertFalse(tag.interpretationV2!!.canFinalize())
+        val accepted = NutritionInterpretationBridge.acceptEstimate(tag)
+        assertTrue(accepted.isResolved)
+        assertTrue(accepted.isUncertain)
+        assertTrue(accepted.interpretationV2!!.caloriesMin < accepted.interpretationV2!!.caloriesMax)
+        assertTrue(accepted.confirmedDimensions.isEmpty())
+        assertEquals(null, accepted.confirmedLearning())
+    }
+    @Test fun `declared or manually confirmed quantity never receives an inferred portion question`() {
+        val text = "200 g arroz cocido"
+        val explicit = resolve(text, reviewAmounts = true).single()
+        assertTrue(explicit.interpretationV2!!.pendingQuestions.none { it.requestId == "estimated_portion" })
+        val vague = resolve("arroz cocido", reviewAmounts = true).single().copy(confirmedDimensions = setOf("portion"))
+        assertTrue(NutritionInterpretationBridge.refresh(vague).interpretationV2!!.pendingQuestions.none { it.requestId == "estimated_portion" })
+    }
+
+    @Test fun `logger review keeps identified beverages pending until their assumed amount is accepted`() {
+        for (description in listOf("agua", "café con leche", "cerveza", "arroz cocido")) {
+            val preview = resolve(description).single()
+            val review = resolve(description, reviewAmounts = true).single()
+            assertEquals(description, preview.foodItem?.id, review.foodItem?.id)
+            assertEquals(description, preview.loggedFood!!.amount, review.loggedFood!!.amount, 0.0)
+            assertTrue(description, review.interpretationV2!!.pendingQuestions.any { it.requestId == "estimated_portion" })
+            assertFalse(description, review.interpretationV2!!.canFinalize())
+            val edited = NutritionInterpretationBridge.refresh(review)
+            assertTrue(description, edited.interpretationV2!!.pendingQuestions.any { it.requestId == "estimated_portion" })
+            val accepted = NutritionInterpretationBridge.acceptEstimate(edited)
+            assertTrue(description, accepted.interpretationV2!!.canFinalize())
+            assertEquals(description, preview.loggedFood!!.calories, accepted.loggedFood!!.calories, 0.00001)
+            assertEquals(null, accepted.confirmedLearning())
+        }
+    }
 
     @Test
     fun `explicit cooked chicken keeps its cooked row and is not converted again`() {

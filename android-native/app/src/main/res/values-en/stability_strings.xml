@@ -1,0 +1,5 @@
+<resources>
+    <string name="data_session_preparing">Preparing your data…</string>
+    <string name="data_session_error">The data operation could not be completed. You can try opening your data again.</string>
+    <string name="data_session_retry">Try again</string>
+</resources>

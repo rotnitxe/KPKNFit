@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.settings.MediaFilesTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-08T23:06:33.479Z" hostname="VF" time="0.226">
+  <properties/>
+  <testcase name="crossProfileRejected" classname="com.example.kpkn.data.settings.MediaFilesTest" time="0.057"/>
+  <testcase name="forgedReferencesRejected" classname="com.example.kpkn.data.settings.MediaFilesTest" time="0.042"/>
+  <testcase name="immutableStages" classname="com.example.kpkn.data.settings.MediaFilesTest" time="0.064"/>
+  <testcase name="cloudFilesWithoutExtensionsKeepTheirImageType" classname="com.example.kpkn.data.settings.MediaFilesTest" time="0.063"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -25,6 +25,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -44,9 +45,11 @@ class WorkoutVoiceForegroundService : Service() {
     private var stopping = false
     /** True while the UI client has an active voice session, even during a mic pause/reconnect. */
     private var sessionRequested = false
+    @Volatile private var dataMaintenanceRequested = false
 
     private val binder = object : IWorkoutVoiceEngineService.Stub() {
         override fun registerCallback(cb: IWorkoutVoiceEngineCallback?, generation: Long) {
+            if (dataMaintenanceRequested) return
             unlinkCallbackDeathRecipient()
             callback = cb
             cb?.asBinder()?.let { registeredBinder ->
@@ -73,7 +76,7 @@ class WorkoutVoiceForegroundService : Service() {
             noiseProfileOrdinal: Int,
             captureModeOrdinal: Int,
         ) {
-            if (generation != clientGeneration) return
+            if (dataMaintenanceRequested || generation != clientGeneration) return
             sessionRequested = true
             WorkoutVoiceDiagnosticLogger.start("voice-process", "generation-$generation")
             WorkoutVoiceDiagnosticLogger.event(
@@ -97,39 +100,39 @@ class WorkoutVoiceForegroundService : Service() {
         }
 
         override fun updateCaptureMode(generation: Long, captureModeOrdinal: Int) {
-            if (generation != clientGeneration) return
+            if (dataMaintenanceRequested || generation != clientGeneration) return
             engine.updateCaptureMode(
                 VoiceCaptureMode.entries.getOrElse(captureModeOrdinal) { VoiceCaptureMode.HANDS_FREE },
             )
         }
 
         override fun updateMusicAec(generation: Long, aecEnabled: Boolean) {
-            if (generation != clientGeneration) return
+            if (dataMaintenanceRequested || generation != clientGeneration) return
             engine.updateMusicAec(aecEnabled)
         }
 
         override fun pause(generation: Long, releaseMic: Boolean): Boolean {
-            if (generation != clientGeneration) return false
+            if (dataMaintenanceRequested || generation != clientGeneration) return false
             engine.pause(releaseMic)
             if (releaseMic) releaseWakeLock()
             return true
         }
 
         override fun resume(generation: Long, delayMs: Long) {
-            if (generation == clientGeneration) {
+            if (!dataMaintenanceRequested && generation == clientGeneration) {
                 acquireWakeLock()
                 engine.resumeDecoderAfterTts(delayMs)
             }
         }
 
         override fun updateGrammar(generation: Long, grammarJson: String?, stageOrdinal: Int) {
-            if (generation != clientGeneration || grammarJson == null) return
+            if (dataMaintenanceRequested || generation != clientGeneration || grammarJson == null) return
             val stage = VoicePipelineStage.entries.getOrElse(stageOrdinal) { VoicePipelineStage.LISTENING }
             engine.updateGrammarOverride(grammarJson, stage)
         }
 
         override fun stop(generation: Long): Boolean {
-            if (generation != clientGeneration) return false
+            if (dataMaintenanceRequested || generation != clientGeneration) return false
             sessionRequested = false
             WorkoutVoiceDiagnosticLogger.event(
                 "voice_stop_requested",
@@ -141,7 +144,7 @@ class WorkoutVoiceForegroundService : Service() {
         }
 
         override fun requestNativeFallback(generation: Long, transcript: String?): Boolean =
-            generation == clientGeneration &&
+            !dataMaintenanceRequested && generation == clientGeneration &&
                 transcript != null &&
                 engine.requestNativeFallbackForUnresolved(transcript)
 
@@ -152,6 +155,29 @@ class WorkoutVoiceForegroundService : Service() {
         /** Cuelgue detectado: muerte determinista del proceso para reiniciar limpio. */
         override fun forceKillSelf() {
             android.os.Process.killProcess(android.os.Process.myPid())
+        }
+
+        override fun quiesceForDataSession() {
+            if (dataMaintenanceRequested) return
+            dataMaintenanceRequested = true
+            sessionRequested = false
+            serviceScope.launch {
+                check(engine.stopAndAwait(5_000L)) { "Voice capture did not stop" }
+                WorkoutVoiceDiagnosticLogger.close("data_maintenance")
+                withContext(Dispatchers.IO) {
+                    com.example.kpkn.data.diagnostics.KpknDiagnosticLogger.pauseForDataSession()
+                    com.example.kpkn.services.diagnostics.KpknDiagnosticStorage.pauseForDataSession()
+                }
+                callback = null
+                unlinkCallbackDeathRecipient()
+                pendingPrompts.values.forEach(PromptSpeakRequest::complete)
+                pendingPrompts.clear()
+                releaseWakeLock()
+                stopForeground(STOP_FOREGROUND_REMOVE)
+                // The next bind initializes the profile registry and all process-local
+                // caches again. Binder death confirms that no delayed writer survives.
+                android.os.Process.killProcess(android.os.Process.myPid())
+            }
         }
     }
 
@@ -191,6 +217,7 @@ class WorkoutVoiceForegroundService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (dataMaintenanceRequested) return START_NOT_STICKY
         when (intent?.action) {
             ACTION_START -> {
                 startAsForeground()

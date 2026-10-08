@@ -13,6 +13,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.withTimeout
 import java.io.File
 import java.time.Instant
 import java.util.UUID
@@ -43,6 +46,11 @@ object WorkoutVoiceDiagnosticLogger {
 
     fun initialize(context: Context) = synchronized(lock) {
         appContext = context.applicationContext
+    }
+
+    suspend fun pauseForDataSession() {
+        synchronized(lock) { closeLocked("data_maintenance"); appContext = null; startGeneration++ }
+        withTimeout(10_000) { metadataScope.coroutineContext[Job]?.children?.toList()?.forEach { it.cancelAndJoin() } }
     }
 
     private data class StartMetadataRequest(

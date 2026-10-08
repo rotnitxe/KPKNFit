@@ -51,6 +51,7 @@ object DeepLinkRouter {
             "nutrition", "nutricion", "nutrición" -> resolveNutrition(second, third)
             "settings", "ajustes" -> resolveSettings(second)
             "profile", "perfil" -> ResolvedRoute(KpknRoute.Profile.route)
+            "account", "cuenta" -> ResolvedRoute(KpknRoute.Account.route)
             "program" -> segments.getOrNull(1)?.takeIf { it.isNotBlank() }
                 ?.let { ResolvedRoute(KpknRoute.ProgramDetail.create(it)) }
             "setup" -> when (second) {
@@ -123,7 +124,7 @@ object DeepLinkRouter {
 
     private fun resolveSettings(second: String): ResolvedRoute = when (second) {
         "profile", "perfil" -> ResolvedRoute(KpknRoute.Profile.route)
-        "health-connect", "healthconnect", "salud" -> ResolvedRoute(KpknRoute.HealthConnect.route)
+        "health-connect", "healthconnect", "salud" -> ResolvedRoute(KpknRoute.BodyProgress.route)
         else -> ResolvedRoute(KpknRoute.Settings.route)
     }
 }

@@ -236,7 +236,19 @@ fun ProgramsScreen(
         )
     }
 
-    if (showCreateSheet) {
+    if (showCreateSheet && com.example.kpkn.ui.entitlements.LocalPlan.current == com.example.kpkn.domain.entitlements.PlanLevel.FREE) {
+        AlertDialog(onDismissRequest = { showCreateSheet = false },
+            title = { Text(androidx.compose.ui.res.stringResource(com.example.kpkn.R.string.capability_weekly_title)) },
+            text = { Text(androidx.compose.ui.res.stringResource(com.example.kpkn.R.string.capability_weekly_body)) },
+            confirmButton = { TextButton(onClick = {
+                runCatching { viewModel.createBlankProgram() }.onSuccess { id ->
+                    showCreateSheet = false; onNavigateToProgram(id)
+                }.onFailure { error -> templateError = error.message }
+            }) { Text(androidx.compose.ui.res.stringResource(com.example.kpkn.R.string.capability_create_week)) } },
+            dismissButton = { TextButton(onClick = { showCreateSheet = false }) {
+                Text(androidx.compose.ui.res.stringResource(com.example.kpkn.R.string.capability_back))
+            } })
+    } else if (showCreateSheet) {
         CreateProgramTemplateSheet(
             onDismiss = { showCreateSheet = false },
             onCreateBlank = {

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.SetupAvailabilitySeedTest" tests="25" skipped="0" failures="0" errors="0" timestamp="2026-10-08T23:09:42.595Z" hostname="VF" time="1.207">
+  <properties/>
+  <testcase name="fresh_draft_seeds_stored_categories_as_an_undeclared_suggestion" classname="com.example.kpkn.screens.onboarding.SetupAvailabilitySeedTest" time="0.09"/>
+  <testcase name="restoring_a_null_availability_draft_does_not_merge_the_settings_suggestion" classname="com.example.kpkn.screens.onboarding.SetupAvailabilitySeedTest" time="0.043"/>
+  <testcase name="valid_legacy_only_home_equipment_still_persists_categories_after_resume" classname="com.example.kpkn.screens.onboarding.SetupAvailabilitySeedTest" time="0.042"/>
+  <testcase name="a_place_change_invalidates_only_the_stale_availability_confirmation" classname="com.example.kpkn.screens.onboarding.SetupAvailabilitySeedTest" time="0.043"/>
+  <testcase name="confirmed_bodyweight_only_persists_explicit_empty_and_not_null" classname="com.example.kpkn.screens.onboarding.SetupAvailabilitySeedTest" time="0.048"/>
+  <testcase name="reselecting_the_same_place_keeps_the_no_material_empty_and_confirmed" classname="com.example.kpkn.screens.onboarding.SetupAvailabilitySeedTest" time="0.043"/>
+  <testcase name="derived_or_engine_result_availability_record_is_not_a_confirmation" classname="com.example.kpkn.screens.onboarding.SetupAvailabilitySeedTest" time="0.039"/>
+  <testcase name="confirmed_bodyweight_only_reaches_real_settings_as_explicit_empty" classname="com.example.kpkn.screens.onboarding.SetupAvailabilitySeedTest" time="0.146"/>
+  <testcase name="settings_patch_follows_the_marks_unit_unless_the_body_weight_unit_was_chosen" classname="com.example.kpkn.screens.onboarding.SetupAvailabilitySeedTest" time="0.033"/>
+  <testcase name="confirming_an_empty_availability_suggestion_persists_explicit_empty" classname="com.example.kpkn.screens.onboarding.SetupAvailabilitySeedTest" time="0.038"/>
+  <testcase name="reselecting_the_same_place_keeps_an_accepted_suggestion_still_suggested" classname="com.example.kpkn.screens.onboarding.SetupAvailabilitySeedTest" time="0.036"/>
+  <testcase name="settings_patch_keeps_unanswered_null_and_persists_explicit_none" classname="com.example.kpkn.screens.onboarding.SetupAvailabilitySeedTest" time="0.032"/>
+  <testcase name="choosing_a_place_from_missing_material_seeds_it_without_confirming" classname="com.example.kpkn.screens.onboarding.SetupAvailabilitySeedTest" time="0.039"/>
+  <testcase name="stale_legacy_home_equipment_cannot_authorize_an_unconfirmed_current_seed" classname="com.example.kpkn.screens.onboarding.SetupAvailabilitySeedTest" time="0.034"/>
+  <testcase name="reselecting_the_same_place_preserves_the_confirmed_material_and_persists_it" classname="com.example.kpkn.screens.onboarding.SetupAvailabilitySeedTest" time="0.034"/>
+  <testcase name="confirmed_current_availability_persists_the_exact_declared_material" classname="com.example.kpkn.screens.onboarding.SetupAvailabilitySeedTest" time="0.036"/>
+  <testcase name="each_current_equipment_marker_disables_legacy_authorization" classname="com.example.kpkn.screens.onboarding.SetupAvailabilitySeedTest" time="0.034"/>
+  <testcase name="draft_json_and_equipment_footprint_keep_null_empty_and_change_impact_distinct" classname="com.example.kpkn.screens.onboarding.SetupAvailabilitySeedTest" time="0.032"/>
+  <testcase name="a_home_without_material_persists_the_explicit_empty_only_once_the_material_step_is_confirmed" classname="com.example.kpkn.screens.onboarding.SetupAvailabilitySeedTest" time="0.037"/>
+  <testcase name="confirming_an_untouched_availability_suggestion_persists_it_without_declaring_it" classname="com.example.kpkn.screens.onboarding.SetupAvailabilitySeedTest" time="0.034"/>
+  <testcase name="confirmed_gym_then_home_retires_the_gym_confirmation_and_leaves_the_patch_unchanged" classname="com.example.kpkn.screens.onboarding.SetupAvailabilitySeedTest" time="0.031"/>
+  <testcase name="confirmed_current_availability_reaches_real_settings_without_touching_numeric_stock" classname="com.example.kpkn.screens.onboarding.SetupAvailabilitySeedTest" time="0.15"/>
+  <testcase name="unknown_blank_or_unconfirmed_environment_never_persists_empty" classname="com.example.kpkn.screens.onboarding.SetupAvailabilitySeedTest" time="0.036"/>
+  <testcase name="reselecting_the_same_environment_keeps_explicit_bodyweight_only_empty" classname="com.example.kpkn.screens.onboarding.SetupAvailabilitySeedTest" time="0.035"/>
+  <testcase name="accepted_untouched_gym_seed_persists_the_usual_gym_material_without_declaring" classname="com.example.kpkn.screens.onboarding.SetupAvailabilitySeedTest" time="0.038"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

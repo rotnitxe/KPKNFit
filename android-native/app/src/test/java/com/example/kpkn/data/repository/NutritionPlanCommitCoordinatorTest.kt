@@ -40,7 +40,7 @@ class NutritionPlanCommitCoordinatorTest {
     @Before
     fun setUp() {
         db = KpknDatabase.createInMemory(androidx.test.core.app.ApplicationProvider.getApplicationContext())
-        coordinator = NutritionPlanCommitCoordinator(db)
+        coordinator = NutritionPlanCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO })
     }
 
     @After

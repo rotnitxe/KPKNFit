@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.EntrenoMaterialCoherenceSweepTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-08T23:09:26.239Z" hostname="VF" time="11.531">
+  <properties/>
+  <testcase name="theActivatableProgramOfEveryMaterialProfileAndGoalIsCoherentWithItsPlaceMaterialItsMinutesAndItsApproach" classname="com.example.kpkn.screens.onboarding.EntrenoMaterialCoherenceSweepTest" time="10.956"/>
+  <testcase name="everyMarkTheWizardAsksChangesTheLoadsOfTheProgramInSomeTypicalConfiguration" classname="com.example.kpkn.screens.onboarding.EntrenoMaterialCoherenceSweepTest" time="0.575"/>
+  <system-out><![CDATA[Barrido de coherencia: 3920 celdas (1400 con un objetivo que el material no cumple) en 10,9 s; sesiones que abren con un ejercicio pesado: 3460; sesión más larga por debajo del 85 % pedido: 0; por encima de +1 min: 34 (peor +4; por tiempo pedido: 30 min: 30/490, 45 min: 4/490, 60 min: 0/490, 75 min: 0/490, 90 min: 0/490, 120 min: 0/490, 150 min: 0/490, 180 min: 0/490); problemas: 0
+STRENGTH_MUSCLE · SQUAT: cambia las cargas en 12 de 12 configuraciones
+STRENGTH_MUSCLE · BENCH: cambia las cargas en 12 de 12 configuraciones
+STRENGTH_MUSCLE · DEADLIFT: cambia las cargas en 12 de 12 configuraciones
+POWERBUILDING · SQUAT: cambia las cargas en 12 de 12 configuraciones
+POWERBUILDING · BENCH: cambia las cargas en 12 de 12 configuraciones
+POWERBUILDING · DEADLIFT: cambia las cargas en 12 de 12 configuraciones
+POWERLIFTING · SQUAT: cambia las cargas en 12 de 12 configuraciones
+POWERLIFTING · BENCH: cambia las cargas en 12 de 12 configuraciones
+POWERLIFTING · DEADLIFT: cambia las cargas en 12 de 12 configuraciones
+STRONGMAN · DEADLIFT: cambia las cargas en 12 de 12 configuraciones
+STRONGMAN · SQUAT: cambia las cargas en 12 de 12 configuraciones
+STRONGMAN · OVERHEAD_PRESS: cambia las cargas en 12 de 12 configuraciones
+WEIGHTLIFTING · SQUAT: cambia las cargas en 12 de 12 configuraciones
+WEIGHTLIFTING · SNATCH: cambia las cargas en 12 de 12 configuraciones
+WEIGHTLIFTING · CLEAN_AND_JERK: cambia las cargas en 12 de 12 configuraciones
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

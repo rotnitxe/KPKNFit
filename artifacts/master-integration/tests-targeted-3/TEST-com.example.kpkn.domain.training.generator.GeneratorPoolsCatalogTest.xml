@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.generator.GeneratorPoolsCatalogTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-08T23:07:07.781Z" hostname="VF" time="0.021">
+  <properties/>
+  <testcase name="every_entry_is_executable_with_the_material_it_declares" classname="com.example.kpkn.domain.training.generator.GeneratorPoolsCatalogTest" time="0.019"/>
+  <testcase name="every_ladder_tier_has_at_least_one_rung_reachable_with_some_material_except_the_documented_empties" classname="com.example.kpkn.domain.training.generator.GeneratorPoolsCatalogTest" time="0.0"/>
+  <testcase name="declared_requirements_include_what_the_shared_support_contract_asks" classname="com.example.kpkn.domain.training.generator.GeneratorPoolsCatalogTest" time="0.001"/>
+  <testcase name="a_group_never_mixes_equipment_tiers" classname="com.example.kpkn.domain.training.generator.GeneratorPoolsCatalogTest" time="0.0"/>
+  <testcase name="every_cited_configuration_exists_approved_in_the_loaded_catalog" classname="com.example.kpkn.domain.training.generator.GeneratorPoolsCatalogTest" time="0.001"/>
+  <testcase name="mobility_ids_exist_in_the_mobility_catalog" classname="com.example.kpkn.domain.training.generator.GeneratorPoolsCatalogTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

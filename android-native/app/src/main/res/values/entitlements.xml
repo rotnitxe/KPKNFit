@@ -1,0 +1,15 @@
+<resources>
+    <string name="capability_pro_title">Disponible con Pro</string>
+    <string name="capability_pro_body">Pro incluye alimentación, programas avanzados y análisis muscular y de columna. Puedes seguir consultando, exportando y borrando tu historial.</string>
+    <string name="capability_weekly_title">Tu semana de entrenamiento</string>
+    <string name="capability_weekly_body">Free permite una semana reutilizable con hasta cinco sesiones, voz, sincronización y ring de energía.</string>
+    <string name="capability_create_week">Crear semana</string>
+    <string name="capability_view_pro">Ver Pro</string>
+    <string name="capability_history">Ver historial</string>
+    <string name="capability_back">Volver</string>
+    <string name="capability_free_limit">Free permite una semana de hasta cinco sesiones. Los programas avanzados requieren Pro.</string>
+    <string name="free_intro_start">Empezar a entrenar gratis</string>
+    <string name="free_intro_pro">Programas avanzados y alimentación con Pro</string>
+    <string name="free_intro_saving">Preparando tu entrenamiento…</string>
+    <string name="free_intro_error">No se pudo guardar el inicio. Vuelve a intentarlo.</string>
+</resources>

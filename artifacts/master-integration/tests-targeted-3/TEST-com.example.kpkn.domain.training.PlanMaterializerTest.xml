@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.PlanMaterializerTest" tests="25" skipped="0" failures="0" errors="0" timestamp="2026-10-08T23:06:42.887Z" hostname="VF" time="1.165">
+  <properties/>
+  <testcase name="materialize_persists_optional_slot_role_top_set_and_load_basis" classname="com.example.kpkn.domain.training.PlanMaterializerTest" time="0.004"/>
+  <testcase name="rematerializeWeek_keeps_the_split_training_days_when_the_recipe_declares_no_weekday" classname="com.example.kpkn.domain.training.PlanMaterializerTest" time="0.013"/>
+  <testcase name="percent_sets_preserve_load_basis" classname="com.example.kpkn.domain.training.PlanMaterializerTest" time="0.0"/>
+  <testcase name="materialize_is_deterministic_with_same_id_provider" classname="com.example.kpkn.domain.training.PlanMaterializerTest" time="0.71"/>
+  <testcase name="texas_4d_resolves_the_top_five_at_the_tm_and_the_volume_at_90_percent_of_it" classname="com.example.kpkn.domain.training.PlanMaterializerTest" time="0.005"/>
+  <testcase name="materialize_preserves_slot_order_across_role_changes" classname="com.example.kpkn.domain.training.PlanMaterializerTest" time="0.155"/>
+  <testcase name="weekly_kg_without_a_load_base_keeps_the_weight_null_and_the_recipe_percent" classname="com.example.kpkn.domain.training.PlanMaterializerTest" time="0.001"/>
+  <testcase name="texas_volume_is_90_percent_of_friday_top_and_recovery_is_80_percent_of_monday" classname="com.example.kpkn.domain.training.PlanMaterializerTest" time="0.003"/>
+  <testcase name="weekly_kg_offsets_squat_sets_by_week" classname="com.example.kpkn.domain.training.PlanMaterializerTest" time="0.002"/>
+  <testcase name="materialize_archives_all_previous_markers_and_notices" classname="com.example.kpkn.domain.training.PlanMaterializerTest" time="0.008"/>
+  <testcase name="madcow_week4_resolves_against_the_5rm_tm_and_never_exceeds_the_friday_triple" classname="com.example.kpkn.domain.training.PlanMaterializerTest" time="0.002"/>
+  <testcase name="rematerializing_the_same_program_lets_the_method_raise_the_tm_again_at_the_first_cycle_close" classname="com.example.kpkn.domain.training.PlanMaterializerTest" time="0.035"/>
+  <testcase name="materialize_does_not_duplicate_exercises_in_loose_list" classname="com.example.kpkn.domain.training.PlanMaterializerTest" time="0.001"/>
+  <testcase name="materialize_uses_verbatim_catalog_name_with_technique_as_chip" classname="com.example.kpkn.domain.training.PlanMaterializerTest" time="0.004"/>
+  <testcase name="materialize_copies_sets_reps_percent_and_amrap" classname="com.example.kpkn.domain.training.PlanMaterializerTest" time="0.001"/>
+  <testcase name="materialize_never_mirrors_exercises_loose_and_grouped" classname="com.example.kpkn.domain.training.PlanMaterializerTest" time="0.197"/>
+  <testcase name="rematerializeWeek_keeps_the_weekdays_of_a_program_with_a_start_day" classname="com.example.kpkn.domain.training.PlanMaterializerTest" time="0.002"/>
+  <testcase name="without_the_weekly_kg_rule_every_week_keeps_the_same_load" classname="com.example.kpkn.domain.training.PlanMaterializerTest" time="0.002"/>
+  <testcase name="hydrateProfile_uses_program_goals" classname="com.example.kpkn.domain.training.PlanMaterializerTest" time="0.001"/>
+  <testcase name="rematerializeWeek_does_not_rewrite_executed_weeks" classname="com.example.kpkn.domain.training.PlanMaterializerTest" time="0.001"/>
+  <testcase name="weekly_kg_never_touches_accessories_without_a_lift_slot" classname="com.example.kpkn.domain.training.PlanMaterializerTest" time="0.002"/>
+  <testcase name="texas_3d_deadlift_volume_and_recovery_press_resolve_against_the_5rm_training_max" classname="com.example.kpkn.domain.training.PlanMaterializerTest" time="0.004"/>
+  <testcase name="madcow_resolved_kg_never_exceed_tm_ceiling" classname="com.example.kpkn.domain.training.PlanMaterializerTest" time="0.005"/>
+  <testcase name="lilliebridge_heavy_deadlift_resolves_to_170_174_180_and_184_kg_with_a_200_kg_one_rm" classname="com.example.kpkn.domain.training.PlanMaterializerTest" time="0.003"/>
+  <testcase name="gzclp_t2_resolves_kilos_on_the_four_days_and_the_press_day_t2_uses_the_bench_tm" classname="com.example.kpkn.domain.training.PlanMaterializerTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

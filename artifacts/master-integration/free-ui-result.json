@@ -1,0 +1,10 @@
+{
+  "state": "PASS",
+  "scope": "Synthetic read-only emulator API36; adult admission, Free entry, energy-only rings, persisted manual week, Pro volume gate and cold restart",
+  "homeEnergyOnly": true,
+  "manualWeekCreated": true,
+  "muscleVolumeGated": true,
+  "coldStartKeepsFreeEntryComplete": true,
+  "launchActivity": "com.example.kpkn.stability/com.example.kpkn.MainActivity",
+  "physicalDeviceTested": false
+}

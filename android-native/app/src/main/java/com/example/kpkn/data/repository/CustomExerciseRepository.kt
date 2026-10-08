@@ -20,7 +20,7 @@ import kotlinx.coroutines.launch
 
 object CustomExerciseRepository {
 
-    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private var scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val _customExercises = MutableStateFlow<List<ExerciseMuscleInfo>>(emptyList())
     val customExercises: StateFlow<List<ExerciseMuscleInfo>> = _customExercises.asStateFlow()
 
@@ -67,8 +67,16 @@ object CustomExerciseRepository {
         if (!initialized) return
         _customExercises.update { list -> list.filterNot { it.id.equals(exerciseId, ignoreCase = true) } }
         removeCustomExerciseOverlay(exerciseId)
-        scope.launch(NonCancellable) {
+        scope.launch {
             runCatching { db.customExerciseDao().delete(exerciseId) }
         }
+    }
+    internal suspend fun closeForDataSession() {
+        initialized = false
+        kotlinx.coroutines.withTimeout(30_000) { scope.coroutineContext[kotlinx.coroutines.Job]?.children?.toList()?.forEach { it.join() } }
+        scope.coroutineContext[kotlinx.coroutines.Job]?.let { job -> job.cancel(); job.join() }
+        _customExercises.value = emptyList()
+        setCustomExerciseOverlay(emptyList())
+        scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     }
 }

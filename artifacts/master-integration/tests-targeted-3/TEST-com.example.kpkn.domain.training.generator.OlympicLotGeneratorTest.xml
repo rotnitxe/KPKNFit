@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.generator.OlympicLotGeneratorTest" tests="16" skipped="0" failures="0" errors="0" timestamp="2026-10-08T23:07:07.805Z" hostname="VF" time="0.407">
+  <properties/>
+  <testcase name="the_olympic_lifts_take_their_load_from_the_snatch_and_clean_and_jerk_marks_when_they_are_declared" classname="com.example.kpkn.domain.training.generator.OlympicLotGeneratorTest" time="0.008"/>
+  <testcase name="the_time_note_says_why_when_every_session_that_misses_the_window_is_above_it" classname="com.example.kpkn.domain.training.generator.OlympicLotGeneratorTest" time="0.047"/>
+  <testcase name="the_olympic_power_lifts_never_displace_the_swing_or_the_push_press_in_the_general_modes" classname="com.example.kpkn.domain.training.generator.OlympicLotGeneratorTest" time="0.005"/>
+  <testcase name="nobody_below_the_intermediate_level_is_offered_an_olympic_lift_a_pull_a_jerk_the_overhead_squat_or_the_zercher_carry" classname="com.example.kpkn.domain.training.generator.OlympicLotGeneratorTest" time="0.024"/>
+  <testcase name="the_suitcase_carry_reaches_beginners_with_dumbbells_or_a_kettlebell_in_the_grip_core_and_carry_slots" classname="com.example.kpkn.domain.training.generator.OlympicLotGeneratorTest" time="0.001"/>
+  <testcase name="the_overhead_squat_is_programmed_when_the_week_has_quadriceps_volume_left" classname="com.example.kpkn.domain.training.generator.OlympicLotGeneratorTest" time="0.009"/>
+  <testcase name="the_one_day_weightlifting_program_has_an_olympic_lift_and_a_push_press_or_jerk" classname="com.example.kpkn.domain.training.generator.OlympicLotGeneratorTest" time="0.008"/>
+  <testcase name="the_olympic_entries_are_never_basic_and_declare_their_level_kind_and_rack" classname="com.example.kpkn.domain.training.generator.OlympicLotGeneratorTest" time="0.002"/>
+  <testcase name="the_dropped_bar_warning_appears_exactly_when_the_plan_has_a_lift_that_is_dropped" classname="com.example.kpkn.domain.training.generator.OlympicLotGeneratorTest" time="0.169"/>
+  <testcase name="a_novice_weightlifting_program_has_no_olympic_lifts_and_says_when_they_arrive" classname="com.example.kpkn.domain.training.generator.OlympicLotGeneratorTest" time="0.004"/>
+  <testcase name="strongman_carries_the_farmer_walk_with_the_suitcase_and_the_zercher_carry_and_only_claims_what_is_missing" classname="com.example.kpkn.domain.training.generator.OlympicLotGeneratorTest" time="0.029"/>
+  <testcase name="weightlifting_base_trains_the_olympic_lifts_pulls_and_jerks_from_the_intermediate_level_and_says_what_is_still_missing" classname="com.example.kpkn.domain.training.generator.OlympicLotGeneratorTest" time="0.007"/>
+  <testcase name="the_jerks_and_the_overhead_squat_need_a_rack_and_the_rest_of_the_olympic_work_needs_only_a_barbell" classname="com.example.kpkn.domain.training.generator.OlympicLotGeneratorTest" time="0.023"/>
+  <testcase name="weightlifting_without_a_barbell_says_so_and_keeps_the_swing" classname="com.example.kpkn.domain.training.generator.OlympicLotGeneratorTest" time="0.001"/>
+  <testcase name="strongman_gets_the_jerk_as_its_explosive_press_only_with_a_rack" classname="com.example.kpkn.domain.training.generator.OlympicLotGeneratorTest" time="0.038"/>
+  <testcase name="carries_are_prescribed_by_time_in_every_mode" classname="com.example.kpkn.domain.training.generator.OlympicLotGeneratorTest" time="0.03"/>
+  <system-out><![CDATA[Nota de tiempo: 8 rutinas con todas las sesiones por encima, 0 con alguna por debajo
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

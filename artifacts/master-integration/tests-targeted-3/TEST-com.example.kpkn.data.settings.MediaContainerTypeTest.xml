@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.settings.MediaContainerTypeTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-08T23:06:33.433Z" hostname="VF" time="0.023">
+  <properties/>
+  <testcase name="unknownContainerIsNotGuessedAsVideo" classname="com.example.kpkn.data.settings.MediaContainerTypeTest" time="0.004"/>
+  <testcase name="avifStillImageIsNotVideo" classname="com.example.kpkn.data.settings.MediaContainerTypeTest" time="0.002"/>
+  <testcase name="completeStillImageFixturesRetainTheirFormat" classname="com.example.kpkn.data.settings.MediaContainerTypeTest" time="0.01"/>
+  <testcase name="mp4ControlRetainsVideoType" classname="com.example.kpkn.data.settings.MediaContainerTypeTest" time="0.001"/>
+  <testcase name="genericHeifStillImageIsNotVideo" classname="com.example.kpkn.data.settings.MediaContainerTypeTest" time="0.002"/>
+  <testcase name="compatibleImageBrandIsRead" classname="com.example.kpkn.data.settings.MediaContainerTypeTest" time="0.001"/>
+  <testcase name="dataOutsideFileTypeBoxCannotSmuggleAnImageBrand" classname="com.example.kpkn.data.settings.MediaContainerTypeTest" time="0.002"/>
+  <testcase name="heicStillImageIsNotVideo" classname="com.example.kpkn.data.settings.MediaContainerTypeTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

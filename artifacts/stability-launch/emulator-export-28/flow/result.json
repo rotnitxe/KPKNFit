@@ -1,0 +1,10 @@
+{
+  "status": "PASS",
+  "package": "com.example.kpkn.stability",
+  "scope": "NEW_LOCAL_BACKUP_ONLY",
+  "backupBytes": 843326,
+  "backupSha256": "ccc931e74491e7682afb5ef5ca5dafb35d30450563720d649b48118eed33acb2",
+  "manifestVersion": 2,
+  "voiceProcessAfterExport": "ABSENT",
+  "limits": "One export with a cold voice service; active recording, restore, identity switch and device erasure remain separate."
+}

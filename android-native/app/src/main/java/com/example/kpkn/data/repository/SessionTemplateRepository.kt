@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -47,9 +48,13 @@ class SessionTemplateRepository private constructor(context: Context) {
     private val appContext = context.applicationContext
     private var db = KpknDatabase.getInstance(appContext)
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val userWrites = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val _userTemplates = MutableStateFlow<List<SessionTemplate>>(emptyList())
     private val _isReady = MutableStateFlow(false)
+    private val _loadFailure = MutableStateFlow<Throwable?>(null)
+    val requiresRecovery: StateFlow<Boolean> = _loadFailure.map { it != null }
+        .stateIn(scope, SharingStarted.Eagerly, false)
     private val templateWriteMutex = Mutex()
     private val _corruptTemplateIds = MutableStateFlow<List<String>>(emptyList())
     val corruptTemplateIds: StateFlow<List<String>> = _corruptTemplateIds.asStateFlow()
@@ -84,12 +89,21 @@ class SessionTemplateRepository private constructor(context: Context) {
         .stateIn(scope, SharingStarted.Eagerly, emptyList())
 
     init {
-        scope.launch { refreshFromStorage() }
+        scope.launch {
+            try { refreshFromStorage() }
+            catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+            catch (failure: Exception) {
+                // A failed background hydration is a recovery state, never an uncaught
+                // process exception or a successful empty catalog. Explicit refresh still throws.
+                Log.w("SessionTemplateRepo", "User template hydration requires recovery: ${failure.javaClass.simpleName}")
+            }
+        }
     }
 
     suspend fun refreshFromStorage() {
-        db = KpknDatabase.getInstance(appContext)
         templateWriteMutex.withLock {
+            try {
+            db = KpknDatabase.getInstance(appContext)
             val corrupt = mutableListOf<String>()
             val persisted = db.sessionTemplateDao().getAll().mapNotNull {
                 it.toSessionTemplateOrNull() ?: run {
@@ -100,7 +114,14 @@ class SessionTemplateRepository private constructor(context: Context) {
             }
             _corruptTemplateIds.value = corrupt
             _userTemplates.value = persisted
+            _loadFailure.value = null
             _isReady.value = true
+            } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+            catch (failure: Exception) {
+                _isReady.value = false
+                _loadFailure.value = failure
+                throw failure
+            }
         }
     }
 
@@ -109,7 +130,8 @@ class SessionTemplateRepository private constructor(context: Context) {
             ?: _userTemplates.value.firstOrNull { it.id == id }
 
     suspend fun getByIdAfterReady(id: String): SessionTemplate? {
-        isReady.filter { it }.first()
+        combine(isReady, _loadFailure) { ready, failure -> ready to failure }.first { it.first || it.second != null }
+            .second?.let { throw IllegalStateException("User templates require recovery", it) }
         return getById(id) ?: db.sessionTemplateDao().getById(id)?.toSessionTemplateOrNull()
     }
 
@@ -124,7 +146,7 @@ class SessionTemplateRepository private constructor(context: Context) {
         require(template.sourceType == SessionTemplateSourceType.USER) {
             "Only USER templates can be saved via SessionTemplateRepository."
         }
-        scope.launch { saveUserTemplateNow(template) }
+        userWrites.launch { saveUserTemplateNow(template) }
     }
 
     /** Durable write used by editor commands before confirming success to the user. */
@@ -153,7 +175,7 @@ class SessionTemplateRepository private constructor(context: Context) {
      */
     fun deleteUserTemplate(id: String) {
         if (SESSION_TEMPLATES_SYSTEM.any { it.id == id }) return
-        scope.launch { deleteUserTemplateNow(id) }
+        userWrites.launch { deleteUserTemplateNow(id) }
     }
 
     suspend fun deleteUserTemplateNow(id: String): Result<Unit> = runCatching {
@@ -171,7 +193,7 @@ class SessionTemplateRepository private constructor(context: Context) {
      * Archived templates are hidden from [allTemplates] but remain in the database.
      */
     fun archiveUserTemplate(id: String) {
-        scope.launch { archiveUserTemplateNow(id) }
+        userWrites.launch { archiveUserTemplateNow(id) }
     }
 
     suspend fun archiveUserTemplateNow(id: String): Result<Unit> {
@@ -184,7 +206,7 @@ class SessionTemplateRepository private constructor(context: Context) {
      * Restores an archived user template so it shows up in [allTemplates] again.
      */
     fun restoreUserTemplate(id: String) {
-        scope.launch { restoreUserTemplateNow(id) }
+        userWrites.launch { restoreUserTemplateNow(id) }
     }
 
     suspend fun restoreUserTemplateNow(id: String): Result<Unit> {
@@ -228,9 +250,18 @@ class SessionTemplateRepository private constructor(context: Context) {
          */
         internal fun resetForTests() {
             synchronized(this) {
-                INSTANCE?.scope?.cancel()
+                INSTANCE?.scope?.coroutineContext?.get(kotlinx.coroutines.Job)?.let { job ->
+                    job.cancel(); kotlinx.coroutines.runBlocking { job.join() }
+                }
+                INSTANCE?.userWrites?.coroutineContext?.get(kotlinx.coroutines.Job)?.cancel()
                 INSTANCE = null
             }
+        }
+        internal suspend fun closeForDataSession() {
+            INSTANCE?.let { instance -> kotlinx.coroutines.withTimeout(30_000) {
+                instance.userWrites.coroutineContext[kotlinx.coroutines.Job]?.children?.toList()?.forEach { it.join() }
+            } }
+            resetForTests()
         }
     }
 }

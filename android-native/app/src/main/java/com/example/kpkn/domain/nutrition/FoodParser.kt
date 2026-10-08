@@ -762,7 +762,16 @@ private data class MeasuredAmount(
     val amountIsTrailing: Boolean = false,
 )
 
-private fun extractGramsFromFragment(text: String): MeasuredAmount {
+/** Search has an explicit identity; use its density instead of an abbreviated query. */
+internal fun measuredGramsForSearchPick(query: String, foodName: String): Double? =
+    measuredAmountForSearchPick(query, foodName)?.first
+
+internal fun measuredAmountForSearchPick(query: String, foodName: String): Pair<Double, String?>? {
+    val measured = extractGramsFromFragment(TextNormalizer.normalize(query), foodName)
+    return measured.grams?.takeIf { it.isFinite() && it > 0.0 }?.let { it to measured.unitId }
+}
+
+private fun extractGramsFromFragment(text: String, measuredFoodName: String? = null): MeasuredAmount {
     val match = GRAM_PATTERN.find(text) ?: return MeasuredAmount(null, text)
     val numMatch = GRAM_UNIT_PATTERN.find(match.value) ?: return MeasuredAmount(null, text)
 
@@ -780,7 +789,7 @@ private fun extractGramsFromFragment(text: String): MeasuredAmount {
     val isVolume = unit == "ml" || unit == "cc" || unit == "cm3" || unit == "l" || unit == "lt" || unit == "lts" ||
         unit.startsWith("mililitro") || unit.startsWith("litro")
     return MeasuredAmount(
-        grams = if (isVolume) SubjectivePortionEngine.massFromVolumeMl(value, cleaned) else value,
+        grams = if (isVolume) SubjectivePortionEngine.massFromVolumeMl(value, measuredFoodName ?: cleaned) else value,
         foodPart = cleaned,
         unitId = if (isVolume) "ml" else null,
         // The resolver can distinguish a branded package's suffix from eaten

@@ -15,6 +15,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.withTimeout
 
 /**
  * NutriTelemetry — telemetría exclusiva de nutrición.
@@ -47,6 +50,7 @@ object NutritionTelemetry {
 
     @Volatile private var application: Context? = null
     @Volatile private var initialized = false
+    @Volatile private var pausedForDataSession = false
     private val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val sessionId: String = newId()
@@ -64,6 +68,7 @@ object NutritionTelemetry {
 
     @Synchronized
     fun initialize(context: Context) {
+        if (pausedForDataSession) return
         val app = context.applicationContext
         application = app
         if (!initialized) {
@@ -76,6 +81,17 @@ object NutritionTelemetry {
     }
 
     fun isInitialized(): Boolean = initialized
+
+    suspend fun pauseForDataSession() {
+        pausedForDataSession = true
+        withTimeout(30_000) { ioScope.coroutineContext[Job]?.children?.toList()?.forEach { it.cancelAndJoin() } }
+        application = null
+        initialized = false
+    }
+    fun resumeForDataSession(context: Context) {
+        pausedForDataSession = false
+        initialize(context)
+    }
 
     /**
      * Nutrition diagnostics are mandatory so parser/crash evidence cannot be disabled: there is no switch, and [emit] has
@@ -133,6 +149,7 @@ object NutritionTelemetry {
         event("catalog_import_failed", mapOf("errorType" to errorType.take(120)))
 
     internal fun emit(name: String, fields: Map<String, Any?> = emptyMap(), traceId: String? = null) {
+        if (pausedForDataSession) return
         val merged = baseFields(name, traceId)
         merged.putAll(fields)
         val sanitized = NutritionTelemetrySanitizer.sanitize(merged)
@@ -331,7 +348,7 @@ object NutritionTelemetry {
     // ─── Utilidades internas ─────────────────────────────────────────────────
 
     private fun prefs(explicit: Context? = null): SharedPreferences? =
-        (explicit ?: application)?.applicationContext
+        (explicit ?: application)?.takeUnless { pausedForDataSession }?.applicationContext
             ?.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
     private fun newId(): String = UUID.randomUUID().toString().substring(0, 8)

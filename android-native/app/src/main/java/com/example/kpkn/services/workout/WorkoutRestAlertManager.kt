@@ -64,6 +64,11 @@ class WorkoutRestAlertManager(private val context: Context) {
         private const val KEY_SESSION_NAME = "active_session_name"
         private const val KEY_EXERCISE_NAME = "active_exercise_name"
         private const val KEY_END_AT = "active_end_at"
+        private const val KEY_STARTED_WALL = "active_started_wall"
+        private const val KEY_STARTED_ELAPSED = "active_started_elapsed"
+        private const val KEY_DURATION = "active_duration_ms"
+        private const val KEY_BOOT = "active_boot_count"
+        @Volatile private var monotonicDeadline: Pair<Long, MonotonicRestDeadline>? = null
         private const val KEY_LAST_AUDIO_FAILURE_AT = "last_audio_failure_at"
 
         private const val NOTIF_ID_ONGOING = 42041
@@ -91,9 +96,14 @@ class WorkoutRestAlertManager(private val context: Context) {
         withContext(Dispatchers.IO) {
             val readyPrefs = prefs
             val storedTimerId = readyPrefs.all[KEY_TIMER_ID] as? String
+            val storedEnd = readyPrefs.getLong(KEY_END_AT, 0)
+            val restoredDeadline = if (readyPrefs.contains(KEY_DURATION)) MonotonicRestDeadline(
+                readyPrefs.getLong(KEY_STARTED_WALL, 0), readyPrefs.getLong(KEY_STARTED_ELAPSED, 0),
+                readyPrefs.getLong(KEY_DURATION, 0), readyPrefs.getInt(KEY_BOOT, -1)) else null
             synchronized(timerPreferencesLock) {
                 if (!timerPreferencesLoaded) {
                     activeTimerId = storedTimerId
+                    monotonicDeadline = restoredDeadline?.let { storedEnd to it }
                     timerPreferencesLoaded = true
                     timerPreferencesRevision += 1L
                 }
@@ -104,6 +114,12 @@ class WorkoutRestAlertManager(private val context: Context) {
     internal fun launchOnPreferenceOwnerIo(block: suspend () -> Unit) {
         preferenceOwnerIoScope.launch { block() }
     }
+
+    /** Returns null only for a legacy timer that has no monotonic anchor. */
+    fun remainingMillisFor(endWallMs: Long): Long? = monotonicDeadline?.takeIf { it.first == endWallMs }?.second
+        ?.remainingMs(System.currentTimeMillis(), android.os.SystemClock.elapsedRealtime(), bootCount())
+
+    private fun bootCount(): Int = android.provider.Settings.Global.getInt(appContext.contentResolver, android.provider.Settings.Global.BOOT_COUNT, -1)
 
     fun ensureChannels() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
@@ -163,6 +179,7 @@ class WorkoutRestAlertManager(private val context: Context) {
         isAdjustment: Boolean = false,
     ): String {
         ensureChannels()
+        val restoredRemaining = endAtOverrideMs?.let(::remainingMillisFor)
         if (isAdjustment) {
             cancelAlarm(REQUEST_CODE_ALARM)
             cancelAlarm(REQUEST_CODE_PREALERT)
@@ -172,18 +189,25 @@ class WorkoutRestAlertManager(private val context: Context) {
 
         val timerId = UUID.randomUUID().toString()
         val now = System.currentTimeMillis()
-        val endAt = endAtOverrideMs?.takeIf { it > now } ?: (now + (durationSeconds * 1000L))
-        val remainingSeconds = ((endAt - now + 999L) / 1000L).toInt().coerceAtLeast(1)
+        val endAt = endAtOverrideMs ?: (now + (durationSeconds * 1000L))
+        val remainingMs = restoredRemaining ?: (endAt - now).coerceAtLeast(0)
+        val remainingSeconds = ((remainingMs + 999L) / 1000L).toInt().coerceAtLeast(1)
+        val deadline = MonotonicRestDeadline(now, android.os.SystemClock.elapsedRealtime(), remainingMs, bootCount())
 
         synchronized(timerPreferencesLock) {
             timerPreferencesLoaded = true
             activeTimerId = timerId
             timerPreferencesRevision += 1L
+            monotonicDeadline = endAt to deadline
             prefs.edit()
                 .putString(KEY_TIMER_ID, timerId)
                 .putString(KEY_SESSION_NAME, sessionName)
                 .putString(KEY_EXERCISE_NAME, exerciseName)
                 .putLong(KEY_END_AT, endAt)
+                .putLong(KEY_STARTED_WALL, deadline.startedWallMs)
+                .putLong(KEY_STARTED_ELAPSED, deadline.startedElapsedMs)
+                .putLong(KEY_DURATION, deadline.durationMs)
+                .putInt(KEY_BOOT, deadline.bootCount)
                 .apply()
         }
 
@@ -215,7 +239,7 @@ class WorkoutRestAlertManager(private val context: Context) {
                 exerciseName = exerciseName,
                 setInfo = setInfo,
                 exerciseImage = exerciseImage,
-                endAt = endAt,
+                endAt = System.currentTimeMillis() + remainingMs,
             )
         }.onFailure {
             postOngoingNotification(sessionName, exerciseName, endAt)
@@ -267,7 +291,7 @@ class WorkoutRestAlertManager(private val context: Context) {
 
         when (event) {
             EVENT_PREALERT -> {
-                if (endAtMs > System.currentTimeMillis()) {
+                if ((remainingMillisFor(endAtMs) ?: (endAtMs - System.currentTimeMillis())) > 0) {
                     deliverPrealertCue()
                 }
             }
@@ -302,25 +326,26 @@ class WorkoutRestAlertManager(private val context: Context) {
         try {
             when {
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && canScheduleExactAlarm() -> {
-                    alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMs, pending)
+                    alarmManager.setExactAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, elapsedTrigger(triggerAtMs, endAtMs), pending)
                 }
 
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.M -> {
-                    // API 23+: setAlarmClock is allowed without exact-alarm permission.
-                    alarmManager.setAlarmClock(
-                        AlarmManager.AlarmClockInfo(triggerAtMs, createOpenWorkoutPendingIntent(REQUEST_CODE_ALARM + requestCode)),
-                        pending,
-                    )
+                    alarmManager.setAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, elapsedTrigger(triggerAtMs, endAtMs), pending)
                 }
 
                 else -> {
-                    alarmManager.set(AlarmManager.RTC_WAKEUP, triggerAtMs, pending)
+                    alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, elapsedTrigger(triggerAtMs, endAtMs), pending)
                 }
             }
         } catch (_: SecurityException) {
             // Last-resort fallback: inexact alarm doesn't require any permission.
-            alarmManager.set(AlarmManager.RTC_WAKEUP, triggerAtMs, pending)
+            alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, elapsedTrigger(triggerAtMs, endAtMs), pending)
         }
+    }
+
+    private fun elapsedTrigger(triggerWallMs: Long, endWallMs: Long): Long {
+        val remaining = remainingMillisFor(endWallMs) ?: (endWallMs - System.currentTimeMillis()).coerceAtLeast(0)
+        return android.os.SystemClock.elapsedRealtime() + (remaining - (endWallMs - triggerWallMs)).coerceAtLeast(0)
     }
 
     private fun createOpenWorkoutPendingIntent(requestCode: Int): PendingIntent {
@@ -453,7 +478,7 @@ class WorkoutRestAlertManager(private val context: Context) {
             .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
             .build()
 
-        notificationManager.notify(NOTIF_ID_ONGOING, notification)
+        com.example.kpkn.services.notifications.PermissionAwareNotifications.post(appContext, NOTIF_ID_ONGOING, notification)
     }
 
     private fun postFinishedNotification(
@@ -492,7 +517,7 @@ class WorkoutRestAlertManager(private val context: Context) {
             }
         }
 
-        notificationManager.notify(NOTIF_ID_FINISHED, builder.build())
+        com.example.kpkn.services.notifications.PermissionAwareNotifications.post(appContext, NOTIF_ID_FINISHED, builder.build())
     }
 
     private fun canPostNotifications(): Boolean {
@@ -646,6 +671,10 @@ class WorkoutRestAlertManager(private val context: Context) {
                     .remove(KEY_SESSION_NAME)
                     .remove(KEY_EXERCISE_NAME)
                     .remove(KEY_END_AT)
+                .remove(KEY_STARTED_WALL)
+                .remove(KEY_STARTED_ELAPSED)
+                .remove(KEY_DURATION)
+                .remove(KEY_BOOT)
                     .apply()
             }
         }

@@ -1,0 +1,15 @@
+# Validación de estabilidad
+
+Estos scripts trabajan en este checkout y sus salidas. No publican, no activan compras y no modifican worktrees ajenos.
+
+- `verify_distribution_surface.py`: revisa permisos, SDK objetivo, retirada de Health Connect, manifiestos combinados y clases de un APK. `--apk` requiere las herramientas Android; sin ese argumento sirve como gate de fuentes multiplataforma.
+- `verify_storage_inventory.py`: bloquea tablas Room y raíces privadas sin clasificación, exige que cada raíz portátil participe en el borrado e identifica los sitios dinámicos revisados expresamente. Es una comprobación de fuentes; no sustituye la QA de escritores ni el seguimiento de todos los alias de archivos en ejecución.
+- `verify_voice_replay_execution.py`: comprueba en los XML que las dos pruebas reales de replay se ejecutaron y aprobaron. Ausencia u omisiones bloquean la aceptación de CI; no inventa un corpus ni demuestra su procedencia o consentimiento.
+- `emulator_smoke.py`: usa el candado compartido de `C:\kw`, instala únicamente `com.example.kpkn.stability` y exige que MainActivity esté visible. Conserva los datos del emulador y de otras aplicaciones.
+- `emulator_review_qa.py`: captura el árbol y la pantalla de la app aislada y obtiene de ese árbol las coordenadas de cada interacción. Rechaza otras identidades y un candado ocupado. Sus capturas no implican aceptación automática del recorrido.
+- `stop_owned_emulator.ps1`: solo permite cerrar el emulador temporal de un registro propio, comprobando launcher, QEMU, puerto y modo de solo lectura bajo el candado. No recupera candados ni detiene otros emuladores.
+- `verify_native_packaging.py --apk <apk> --output <json>`: inspecciona segmentos ELF y alineación ZIP de las bibliotecas de 64 bits. El resultado distingue empaquetado de ejecución real en 16 KB.
+- `fetch_english_voice_model.py --output artifacts/stability-launch/voice-model-preview`: prepara el modelo inglés oficial Vosk de 40 MB en staging, comprueba límites y rutas del ZIP y conserva origen, licencia y SHA256. No lo empaqueta ni demuestra reconocimiento correcto; la integración y el corpus deben verificarse después.
+- `optimize_resources.py --output android-native/app/build/generated/optimizedResources --report artifacts/stability-launch/resources.json`: crea un espejo de recursos. Convierte PNG estáticos a WebP sin pérdida solo cuando reduce tamaño. Conserva nombres de recursos, dimensiones, perfiles ICC y todos los píxeles RGBA; las imágenes de nueve parches y animadas mantienen su formato. No altera los originales. `--limit` permite una muestra inicial. La generación completa es el proceso autorizado de optimización de este paquete.
+
+Para reproducciones de imágenes se fija Pillow 12.3.0. El informe registra también libwebp. Cada conversión nueva verifica todos los píxeles; una salida anterior solo se reutiliza si coinciden versiones, hash del original y hash de la salida que ya fue comprobada. Los informes son evidencia del archivo examinado, no aprobación de funciones no probadas ni de la revisión de Google.

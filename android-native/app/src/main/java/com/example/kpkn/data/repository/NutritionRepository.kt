@@ -59,6 +59,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.withTimeout
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -129,6 +130,12 @@ class NutritionRepository private constructor(
 
     /** Solo para pruebas JVM: la base con la que trabaja este repositorio (mismo patrón que ProgramRepository). */
     internal fun databaseForTests(): KpknDatabase = db
+    internal var accessLevel: () -> com.example.kpkn.domain.entitlements.PlanLevel = {
+        if (ownsDatabase) com.example.kpkn.domain.entitlements.PlanLevel.PRO else
+            com.example.kpkn.data.account.AccountGraph.entitlement.value.effectiveLevel
+    }
+    internal fun requireNutritionWrite() = com.example.kpkn.domain.entitlements.ProgramAccessPolicy.requireCapability(
+        accessLevel(), com.example.kpkn.domain.entitlements.Capability.NUTRITION)
 
     // ─── IT3: utensilios configurables (ml por utensilio) ────────────────────
 
@@ -149,6 +156,7 @@ class NutritionRepository private constructor(
 
     /** Guarda el volumen de un utensilio y lo aplica de inmediato. */
     fun saveUtensilOverride(name: String, ml: Double) {
+        requireNutritionWrite()
         utensilPrefs.edit().putFloat("ml_$name", ml.toFloat()).apply()
         SubjectivePortionEngine.applyUtensilOverrides(SubjectivePortionEngine.currentUtensilOverrides() + (name to ml))
     }
@@ -200,6 +208,7 @@ class NutritionRepository private constructor(
     val dailyGoalSnapshots: StateFlow<List<DailyGoalSnapshot>> = _dailyGoalSnapshots.asStateFlow()
 
     fun addNutritionLog(log: NutritionLog) {
+        requireNutritionWrite()
         _nutritionLogs.update { it + log }
         scope.launch { db.nutritionDao().upsertLog(log.toEntity()) }
         captureDailyGoalSnapshot(log.date.take(10))
@@ -207,6 +216,7 @@ class NutritionRepository private constructor(
 
     /** Await durable storage before publishing success or teaching a confirmed habit. */
     suspend fun saveNutritionLog(log: NutritionLog, confirmations: List<FoodLearningConfirmation> = emptyList()) = foodSaveMutex.withLock {
+        requireNutritionWrite()
         require(log.foods.isNotEmpty()) { "A meal must contain every active food" }
         require(log.foods.all { food ->
             food.amount.isFinite() && food.amount > 0.0 &&
@@ -339,6 +349,7 @@ class NutritionRepository private constructor(
     private val _foodQueryLearning = MutableStateFlow<Map<String, FoodQueryLearningEntry>>(emptyMap())
 
     fun addCustomFood(food: FoodItem) {
+        requireNutritionWrite()
         val normalized = normalizeFoodItem(food)
         _foodDatabase.update { current ->
             val filtered = current.filterNot { it.id == normalized.id }
@@ -398,14 +409,17 @@ class NutritionRepository private constructor(
 
     private suspend fun searchPool(q: FoodSearchRanker.Query, normalizedQuery: String): List<FoodItem> {
         val dao = db.nutritionDao()
-        // The reads are independent LIKE scans of the same tables: they run side by side, and the rows are merged in the
-        // order of the terms so the pool never depends on which read finished first.
+        // The index covers normalized names, brands and declared aliases. Retrieval still merges in
+        // deterministic term order, followed by the existing identity-aware ranker.
         val (custom, retrievedBatches) = coroutineScope {
             val customRead = async {
                 searchRead<List<CustomFoodEntity>>(emptyList()) { dao.searchCustomFoods(normalizedQuery, SEARCH_CUSTOM_LIMIT) }
             }
             val globalReads = searchTerms(q, normalizedQuery).map { (term, termLimit) ->
-                async { searchRead<List<GlobalFoodEntity>>(emptyList()) { dao.searchGlobalFoodsNormalized(term, termLimit) } }
+                async { searchRead<List<GlobalFoodEntity>>(emptyList()) {
+                    val tokens = term.split(Regex("[^\\p{L}\\p{N}]+" )).filter(String::isNotBlank)
+                    if (tokens.isEmpty()) emptyList() else dao.searchGlobalFoodsWithFts(tokens.joinToString(" ") { "$it*" }, termLimit)
+                } }
             }
             customRead.await() to globalReads.awaitAll()
         }
@@ -418,10 +432,10 @@ class NutritionRepository private constructor(
 
     /**
      * What the DAO is asked for, as (term, row limit): the whole phrase first, then terms that widen retrieval to what
-     * the ranker can still match. Rows are retrieved with `LIKE '%term%'` (a superset of the ranker's whole-word and
-     * prefix hits, which then decide): the alias the catalog declares for the query ("banana" -> plátano), the family
+     * the ranker can still match. Normalized FTS terms retrieve whole-word and prefix matches; ranking then decides:
+     * the alias the catalog declares for the query ("banana" -> plátano), the family
      * aliases ("pan" -> hallulla, marraqueta...), and the stems / words of the query ("huevos" -> "huevo", "leche colun" ->
-     * "leche", "colun": a phrase LIKE alone never finds a product whose brand sits in another column). At most
+     * "leche", "colun": name and brand can be different indexed columns). At most
      * [MAX_SEARCH_TERMS] terms; words that only state a cooking state never widen the search.
      */
     private fun searchTerms(q: FoodSearchRanker.Query, normalizedQuery: String): List<Pair<String, Int>> {
@@ -450,6 +464,7 @@ class NutritionRepository private constructor(
         }
 
     fun recordFoodSelection(query: String, food: FoodItem) {
+        requireNutritionWrite()
         val normalizedQuery = TextKeys.normalize(query)
         if (normalizedQuery.isBlank()) return
 
@@ -479,6 +494,7 @@ class NutritionRepository private constructor(
     }
 
     fun setActiveNutritionPlanId(planId: String?) {
+        if (planId != null) requireNutritionWrite()
         _activeNutritionPlanId.value = planId
         scope.launch {
             if (planId == null) db.nutritionDao().clearActiveState()
@@ -531,6 +547,7 @@ class NutritionRepository private constructor(
     }
 
     fun addNutritionPlan(plan: NutritionPlan) {
+        requireNutritionWrite()
         _nutritionPlans.update { plans ->
             val existingIndex = plans.indexOfFirst { it.id == plan.id }
             if (existingIndex >= 0) {
@@ -605,6 +622,7 @@ class NutritionRepository private constructor(
     }
 
     fun activatePlan(planId: String) {
+        requireNutritionWrite()
         _nutritionPlans.update { list -> list.map { it.copy(isActive = it.id == planId) } }
         _activeNutritionPlanId.value = planId
         scope.launch { db.nutritionDao().activatePlanAtomic(planId, _nutritionPlans.value.map { it.toEntity() }) }
@@ -716,6 +734,7 @@ class NutritionRepository private constructor(
         )
 
         override suspend fun storeForecastRevision(source: NutritionPlan, revised: NutritionPlan): Boolean {
+            if (!com.example.kpkn.domain.entitlements.CapabilityCatalog.permits(com.example.kpkn.domain.entitlements.Capability.NUTRITION, accessLevel())) return false
             val outcome = runCatching { lane.write(source, revised) }
             val failure = outcome.exceptionOrNull()
             if (failure != null) {
@@ -748,6 +767,8 @@ class NutritionRepository private constructor(
     @Volatile
     private var calendarForecast: NutritionCalendarForecastCoordinator? = null
     private var forecastUpdatesStarted = false
+    private var forecastStartupJob: Job? = null
+    private var bodyProjectionJob: Job? = null
 
     /**
      * Arranca (UNA sola vez) la revisión de la previsión del plan activo cuando
@@ -759,7 +780,7 @@ class NutritionRepository private constructor(
         if (forecastUpdatesStarted) return
         val programRepository = runCatching { ProgramRepository.getInstance() }.getOrNull() ?: return
         forecastUpdatesStarted = true
-        scope.launch {
+        forecastStartupJob = scope.launch {
             runCatching { programRepository.isReady.first { it } }.getOrNull() ?: return@launch
             val coordinator = NutritionCalendarForecastCoordinator(
                 store = forecastStore,
@@ -796,7 +817,7 @@ class NutritionRepository private constructor(
     init {
         // Legacy consumers (Home/session editor) receive a compatibility
         // projection, while Room observations remain the only source of truth.
-        scope.launch {
+        bodyProjectionJob = scope.launch {
             normalizedBodyRepository.observations.collect { observations ->
                 _bodyMeasurements.value = observations.toLegacyMeasurementEntries()
                 _measurementSchedule.value = normalizedBodyRepository.measurementSchedule.value
@@ -849,6 +870,7 @@ class NutritionRepository private constructor(
             .sortedBy { it.date }
 
     fun upsertMealTemplate(template: MealTemplate) {
+        requireNutritionWrite()
         _mealTemplates.update { current ->
             current.filterNot { it.id == template.id } + template
         }
@@ -976,6 +998,7 @@ class NutritionRepository private constructor(
         portionGrams: Double?,
         cookingMethod: String?,
     ) {
+        requireNutritionWrite()
         smartResolver.recordLearned(query, brandHint, foodId, portionGrams, cookingMethod)
     }
 
@@ -1015,6 +1038,9 @@ class NutritionRepository private constructor(
     /** Última carga de arranque; las pruebas la esperan para observar el final de sus tres fases. */
     @Volatile
     private var startupLoadJob: Job? = null
+    @Volatile private var userStateReady: Deferred<Unit>? = null
+    @Volatile private var personalReadError: Throwable? = null
+    suspend fun awaitPersonalData() { userStateReady?.await(); personalReadError?.let { throw it } }
 
     /** Solo para pruebas JVM: espera a que terminen las tres fases de la última carga de arranque. */
     internal suspend fun awaitStartupLoadForTests() {
@@ -1037,6 +1063,8 @@ class NutritionRepository private constructor(
      */
     private fun loadFromDb(context: Context): Deferred<Unit> {
         val userStatePublished = CompletableDeferred<Unit>()
+        personalReadError = null
+        userStateReady = userStatePublished
         val load = scope.launch {
             try {
                 publishUserState(context)
@@ -1111,6 +1139,7 @@ class NutritionRepository private constructor(
             startCalendarForecastUpdates()
         } catch (t: Throwable) {
             if (t is CancellationException) throw t
+            personalReadError = t
             android.util.Log.e("NutritionRepository", "loadFromDb failed (OOM?): ${t.javaClass.simpleName}", t)
             _foodDatabase.value = runCatching { buildFoodDatabase(appContext) }.getOrDefault(emptyList())
             bumpCatalogGeneration()
@@ -1139,6 +1168,7 @@ class NutritionRepository private constructor(
             }
         } catch (t: Throwable) {
             if (t is CancellationException) throw t
+            personalReadError = t
             android.util.Log.e("NutritionRepository", "Body progress load failed: ${t.javaClass.simpleName}", t)
             _bodyMeasurements.value = emptyList()
             _measurementSchedule.value = MeasurementSchedule()
@@ -1401,6 +1431,16 @@ class NutritionRepository private constructor(
             INSTANCE?.let { runBlocking { it.repositoryJob.cancelAndJoin() } }
             INSTANCE?.takeIf { it.ownsDatabase }?.db?.close()
             INSTANCE = null
+        }
+        internal suspend fun closeForDataSession() {
+            INSTANCE?.let { instance ->
+                instance.forecastStartupJob?.cancelAndJoin()
+                instance.bodyProjectionJob?.cancelAndJoin()
+                instance.stopCalendarForecastUpdates()
+                instance.startupLoadJob?.cancelAndJoin()
+                withTimeout(30_000) { instance.repositoryJob.children.toList().forEach { it.join() } }
+            }
+            closeInstance()
         }
     }
 }

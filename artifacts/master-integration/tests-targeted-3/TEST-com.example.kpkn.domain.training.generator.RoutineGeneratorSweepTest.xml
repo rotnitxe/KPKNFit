@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.generator.RoutineGeneratorSweepTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-08T23:07:11.278Z" hostname="VF" time="4.708">
+  <properties/>
+  <testcase name="the_window_helper_matches_the_documented_rule" classname="com.example.kpkn.domain.training.generator.RoutineGeneratorSweepTest" time="0.001"/>
+  <testcase name="every_combination_is_executable_and_meets_the_contract" classname="com.example.kpkn.domain.training.generator.RoutineGeneratorSweepTest" time="4.707"/>
+  <system-out><![CDATA[Barrido: 4032 rutinas en 4,7 s (peor 6 ms); problemas: 0
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

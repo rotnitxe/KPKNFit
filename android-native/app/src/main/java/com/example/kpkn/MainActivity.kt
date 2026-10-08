@@ -76,7 +76,6 @@ import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import com.example.kpkn.navigation.DeepLinkRouter
 import com.example.kpkn.navigation.KpknRoute
 import com.example.kpkn.navigation.addHealthConnectRoute
-import com.example.kpkn.navigation.healthConnectRouteAvailable
 import com.example.kpkn.navigation.NavigationBus
 import com.example.kpkn.screens.sessioneditor.CatalogLaunchOrigin
 import com.example.kpkn.screens.sessioneditor.CatalogLaunchRequest
@@ -145,12 +144,16 @@ import kotlinx.serialization.json.Json
 import com.example.kpkn.ui.components.KpknAlertDialog
 
 class MainActivity : ComponentActivity() {
+    private var catalogStartupJob: kotlinx.coroutines.Job? = null
+    private var mediaStartupJob: kotlinx.coroutines.Job? = null
+    private var personalStartupJob: kotlinx.coroutines.Job? = null
     private val pendingDeepLinkRoute = mutableStateOf<String?>(null)
     private val pendingSharedNutritionText = mutableStateOf<String?>(null)
     private lateinit var telemetryHelper: TelemetryHelper
 
     override fun attachBaseContext(newBase: android.content.Context) {
-        super.attachBaseContext(LocaleManager.wrapContext(newBase))
+        if (!com.example.kpkn.data.account.ProfileStorage.initialized()) com.example.kpkn.data.account.ProfileStorage.initialize(newBase)
+        super.attachBaseContext(LocaleManager.wrapContext(com.example.kpkn.data.account.ProfileStorage.context(newBase)))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -181,23 +184,24 @@ class MainActivity : ComponentActivity() {
         pendingDeepLinkRoute.value = launchRequest?.route
         pendingSharedNutritionText.value = launchRequest?.sharedText
 
-        // Initialize repositories synchronously before setContent
-        runCatching {
-            ProgramRepository.init(this@MainActivity)
-            com.example.kpkn.data.repository.CompetitionRepository.init(this@MainActivity)
-            com.example.kpkn.data.repository.AugeRepository.getInstance(this@MainActivity)
-            com.example.kpkn.data.repository.NutritionRepository.init(this@MainActivity)
-            com.example.kpkn.data.repository.CustomExerciseRepository.initialize(this@MainActivity)
-            com.example.kpkn.data.repository.WorkoutMediaRepository.init(this@MainActivity)
-        }.onFailure { logKpknError("MainActivity", "Error initializing repositories", it) }
+        if (com.example.kpkn.data.backup.AppDataSessions.coordinator.state.value is com.example.kpkn.data.backup.DataSessionCoordinator.State.Ready) {
+        // Existing initialization is skipped during a profile handover; its coordinator reopens the new stores.
+        personalStartupJob = lifecycleScope.launch(Dispatchers.IO) {
+        try {
+            com.example.kpkn.data.backup.AppBootstrap.prepare(this@MainActivity)
+            com.example.kpkn.data.account.AccountGraph.attach(this@MainActivity)
+        } catch (error: Exception) {
+            logKpknError("MainActivity", "Personal data could not be prepared", error)
+            return@launch
+        }
 
-        lifecycleScope.launch(Dispatchers.IO) {
+        mediaStartupJob = lifecycleScope.launch(Dispatchers.IO) {
             runCatching {
                 com.example.kpkn.data.repository.WorkoutMediaRepository.getInstance().importLegacyIfNeeded()
             }.onFailure { logKpknError("MainActivity", "Error importing workout media", it) }
         }
 
-        lifecycleScope.launch(Dispatchers.IO) {
+        catalogStartupJob = lifecycleScope.launch(Dispatchers.IO) {
             // Retired Learn preferences are independent from Nutrition's Room learning table.
             // Keep the synchronous commit off Main and preserve cleanup-before-Wiki ordering.
             runCatching {
@@ -268,6 +272,14 @@ class MainActivity : ComponentActivity() {
                 com.example.kpkn.data.exercises.catalogv2.CatalogV2ProcessCache.getOrLoad(this@MainActivity)
             }.onFailure { logKpknError("MainActivity", "Error preloading Catalog V2 cache", it) }
         }
+        }
+        }
+
+        com.example.kpkn.data.backup.AppDataSessions.attach(this) {
+            personalStartupJob?.cancel(); personalStartupJob?.join()
+            catalogStartupJob?.cancel(); catalogStartupJob?.join()
+            mediaStartupJob?.cancel(); mediaStartupJob?.join()
+        }
 
         // API ≤ 32: observe locale change events emitted by SettingsViewModel
         lifecycleScope.launch {
@@ -284,20 +296,72 @@ class MainActivity : ComponentActivity() {
             var showBrandSplash by rememberSaveable { mutableStateOf(showBrandSplashOnLaunch) }
 
             KPKNTheme(themeMode = themeMode) {
+                androidx.compose.runtime.CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onSurface) {
                 Box(Modifier.fillMaxSize()) {
                     // La app se compone debajo mientras suena la animación: el arranque real no espera a nadie.
-                    KPKNApp(
+                    val dataSessionState by com.example.kpkn.data.backup.AppDataSessions.coordinator.state.collectAsState()
+                    val dataGeneration by com.example.kpkn.data.backup.AppDataSessions.generation.collectAsState()
+                    val startup by com.example.kpkn.data.backup.AppBootstrap.state.collectAsState()
+                    when (dataSessionState) {
+                        is com.example.kpkn.data.backup.DataSessionCoordinator.State.Maintaining -> {
+                            Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+                                CircularProgressIndicator()
+                                Text(stringResource(R.string.data_session_preparing), Modifier.padding(24.dp))
+                            }
+                        }
+                        is com.example.kpkn.data.backup.DataSessionCoordinator.State.Failed -> {
+                            Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(stringResource(R.string.data_session_error), Modifier.padding(24.dp))
+                                Button(onClick = { com.example.kpkn.data.backup.AppDataSessions.retry(this@MainActivity) }) {
+                                    Text(stringResource(R.string.data_session_retry))
+                                }
+                                com.example.kpkn.screens.account.EraseUnavailableProfileAction {
+                                    lifecycleScope.launch(Dispatchers.IO) { runCatching {
+                                        com.example.kpkn.data.account.AccountGraph.account(this@MainActivity).eraseUnavailableLocalProfile()
+                                    } }
+                                }
+                            }
+                        }
+                        com.example.kpkn.data.backup.DataSessionCoordinator.State.Ready -> if (startup == com.example.kpkn.data.backup.AppBootstrap.State.Ready) key(dataGeneration) {
+                        val accountState by com.example.kpkn.data.account.AccountGraph.account(this@MainActivity).state.collectAsState()
+                        if (accountState is com.example.kpkn.domain.account.AccountState.NeedsRecovery)
+                            com.example.kpkn.screens.account.AccountScreen(onBack = {})
+                        else {
+                        val entitlement by com.example.kpkn.data.account.AccountGraph.entitlement.collectAsState()
+                        com.example.kpkn.screens.account.AdultAccessGate { androidx.compose.runtime.CompositionLocalProvider(com.example.kpkn.ui.entitlements.LocalPlan provides entitlement.effectiveLevel) { KPKNApp(
                         themeMode = themeMode,
                         onThemeChange = { themeMode = it },
                         pendingDeepLinkRoute = pendingDeepLinkRoute.value,
                         onDeepLinkHandled = { pendingDeepLinkRoute.value = null },
                         pendingSharedNutritionText = pendingSharedNutritionText.value,
                         onSharedNutritionHandled = { pendingSharedNutritionText.value = null },
-                        onRequestRequiredPermissions = { requestRequiredPermissions() },
-                    )
+                        onStartWorkoutNotifications = { requestWorkoutNotifications() },
+                    ) } } } } else Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+                        if (startup == com.example.kpkn.data.backup.AppBootstrap.State.Preparing) CircularProgressIndicator()
+                        Text(stringResource(if (startup == com.example.kpkn.data.backup.AppBootstrap.State.Recovery) R.string.data_session_error else R.string.data_session_preparing), Modifier.padding(24.dp))
+                        if (startup == com.example.kpkn.data.backup.AppBootstrap.State.Recovery) Button(onClick = {
+                            personalStartupJob = lifecycleScope.launch(Dispatchers.IO) { runCatching { com.example.kpkn.data.backup.AppBootstrap.prepare(this@MainActivity) } }
+                        }) { Text(stringResource(R.string.data_session_retry)) }
+                        if (startup == com.example.kpkn.data.backup.AppBootstrap.State.Recovery) {
+                            com.example.kpkn.screens.account.EraseUnavailableProfileAction {
+                                lifecycleScope.launch(Dispatchers.IO) { runCatching {
+                                    com.example.kpkn.data.account.AccountGraph.account(this@MainActivity).eraseUnavailableLocalProfile()
+                                } }
+                            }
+                            TextButton(onClick = { lifecycleScope.launch(Dispatchers.IO) {
+                                runCatching { com.example.kpkn.data.account.AccountGraph.account(this@MainActivity).signOut() }
+                            } }) { Text(stringResource(R.string.account_guest)) }
+                            TextButton(onClick = { lifecycleScope.launch(Dispatchers.IO) {
+                                runCatching { com.example.kpkn.data.account.AccountGraph.account(this@MainActivity).recoverIdentity() }
+                            } }) { Text(stringResource(R.string.account_recover_profile)) }
+                        }
+                    }
+                    }
                     if (showBrandSplash) {
                         KpknBrandSplash(onFinished = { showBrandSplash = false })
                     }
+                    com.example.kpkn.screens.account.AccountDeletionNotice()
+                }
                 }
             }
         }
@@ -360,14 +424,16 @@ class MainActivity : ComponentActivity() {
     private var hasResumedOnce = false
     private var locationPermissionRequestInFlight = false
 
-    private fun requestRequiredPermissions() {
+    private var workoutNotificationRequestMade = false
+
+    private fun requestWorkoutNotifications() {
+        if (workoutNotificationRequestMade) return
+        workoutNotificationRequestMade = true
         val shouldRequestNotifications =
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
         if (shouldRequestNotifications) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1001)
-        } else {
-            requestLocationPermissionIfNeeded()
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -386,11 +452,6 @@ class MainActivity : ComponentActivity() {
         grantResults: IntArray,
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 1001) {
-            // Android only presents one runtime permission dialog at a time. Chain
-            // location after the notification result instead of racing two requests.
-            requestLocationPermissionIfNeeded()
-        }
     }
 
     private fun requestLocationPermissionIfNeeded() {
@@ -400,7 +461,7 @@ class MainActivity : ComponentActivity() {
             val alreadyRequested = ProgramRepository.getInstance().settings.value.locationPermissionRequestedOnce
             if (!alreadyRequested && !locationPermissionRequestInFlight) {
                 locationPermissionRequestInFlight = true
-                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1002)
+                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION), 1002)
                 lifecycleScope.launch(Dispatchers.IO) {
                     ProgramRepository.getInstance().updateSettings { it.copy(locationPermissionRequestedOnce = true) }
                 }
@@ -440,13 +501,13 @@ fun KPKNApp(
     onDeepLinkHandled: () -> Unit = {},
     pendingSharedNutritionText: String? = null,
     onSharedNutritionHandled: () -> Unit = {},
-    onRequestRequiredPermissions: () -> Unit = {},
+    onStartWorkoutNotifications: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val cancellationScope = androidx.compose.runtime.rememberCoroutineScope()
     var cancellationPending by remember { mutableStateOf(false) }
     val telemetryHelper = remember { TelemetryHelper(context) }
-    val navController = rememberNavController()
+    val navController = com.example.kpkn.navigation.rememberProfileNavController()
     val programsViewModel: ProgramsViewModel = viewModel()
     val nutritionViewModel: NutritionViewModel = viewModel { NutritionViewModel() }
     val activeProgram by programsViewModel.activeProgram.collectAsState()
@@ -458,29 +519,11 @@ fun KPKNApp(
     }
     val previousRoute = remember { mutableStateOf<String?>(null) }
     val lifecycleOwner = LocalLifecycleOwner.current
-    var showPermissionAlert by remember { mutableStateOf(false) }
-    var missingPermissions by remember { mutableStateOf(emptyList<String>()) }
-    var permissionsRequested by remember { mutableStateOf(false) }
     val settings by ProgramRepository.getInstance().settings.collectAsState()
-
     DisposableEffect(lifecycleOwner) {
         val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
             if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
                 ProgramRepository.getInstance().reconcileTemporalState()
-                if (!ProgramRepository.getInstance().settings.value.onboardingCompleted) {
-                    missingPermissions = emptyList()
-                    showPermissionAlert = false
-                } else {
-                    val missing = mutableListOf<String>()
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        val postNotifGranted = ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
-                        if (!postNotifGranted) {
-                            missing.add("Notificaciones (Recordatorios y Alertas de Descanso)")
-                        }
-                    }
-                    missingPermissions = missing
-                    showPermissionAlert = missing.isNotEmpty()
-                }
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -510,14 +553,6 @@ fun KPKNApp(
         }
     }
 
-    LaunchedEffect(currentRoute, settings.onboardingCompleted) {
-        val onboardingRoute = currentRoute?.startsWith(KpknRoute.SetupWizard.SETUP_ROUTES_BASE) == true
-        if (settings.onboardingCompleted && !onboardingRoute && !permissionsRequested) {
-            permissionsRequested = true
-            onRequestRequiredPermissions()
-        }
-    }
-    
     val isFullscreenWizard =
         currentRoute?.startsWith("session-editor") == true ||
         currentRoute?.startsWith("workout") == true ||
@@ -554,7 +589,8 @@ fun KPKNApp(
 
     LaunchedEffect(pendingDeepLinkRoute, settings.onboardingCompleted, currentRoute) {
         val route = pendingDeepLinkRoute ?: return@LaunchedEffect
-        if (currentRoute == null || !settings.onboardingCompleted || currentRoute.startsWith(KpknRoute.SetupWizard.SETUP_ROUTES_BASE)) return@LaunchedEffect
+        val dataControl = route == KpknRoute.Account.route || route == KpknRoute.Settings.route
+        if (currentRoute == null || !dataControl && (!settings.onboardingCompleted || currentRoute.startsWith(KpknRoute.SetupWizard.SETUP_ROUTES_BASE))) return@LaunchedEffect
         if (route != currentRoute) {
             navController.navigate(route) {
                 launchSingleTop = true
@@ -676,6 +712,7 @@ fun KPKNApp(
                     onThemeChange = onThemeChange,
                     primaryProgramId = primaryProgramId,
                     nutritionViewModel = nutritionViewModel,
+                    onStartWorkoutNotifications = onStartWorkoutNotifications,
                     onHomeGlassOverlayChange = onHomeGlassOverlayChange,
                     onHomeModalOverlayChange = onHomeModalOverlayChange,
                     onHomeOnboardingOverlayChange = onHomeOnboardingOverlayChange,
@@ -697,6 +734,7 @@ fun KPKNApp(
                     onThemeChange = onThemeChange,
                     primaryProgramId = primaryProgramId,
                     nutritionViewModel = nutritionViewModel,
+                    onStartWorkoutNotifications = onStartWorkoutNotifications,
                     onHomeGlassOverlayChange = onHomeGlassOverlayChange,
                     onHomeModalOverlayChange = onHomeModalOverlayChange,
                     onHomeOnboardingOverlayChange = onHomeOnboardingOverlayChange,
@@ -1002,100 +1040,6 @@ fun KPKNApp(
 
     }
 
-    if (showPermissionAlert) {
-        KpknAlertDialog(
-            onDismissRequest = { /* No se cierra al tocar fuera */ },
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.Warning,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(40.dp)
-                )
-            },
-            title = {
-                Text(
-                    text = "Permisos Recomendados",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            },
-            text = {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = "Para garantizar la mejor experiencia en KPKN, te recomendamos habilitar los siguientes permisos:",
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    
-                    missingPermissions.forEach { permissionName ->
-                        Card(
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.12f)
-                            ),
-                            shape = RoundedCornerShape(8.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(6.dp)
-                                        .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.primary)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = permissionName,
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                                )
-                            }
-                        }
-                    }
-                    
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Las notificaciones nos permiten enviarte tus recordatorios de entrenamiento diarios y alarmas de descanso en segundo plano, mientras que el micrófono habilita los comandos y controles por voz.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                    )
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                            data = android.net.Uri.fromParts("package", context.packageName, null)
-                        }
-                        context.startActivity(intent)
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Ir a Configuración", fontWeight = FontWeight.Bold)
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { showPermissionAlert = false },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Omitir por ahora", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-        )
-    }
     } // CompositionLocalProvider(LocalHazeState)
 }
 
@@ -1106,6 +1050,7 @@ private fun KPKNNavGraph(
     onThemeChange: (AppThemeMode) -> Unit,
     primaryProgramId: String?,
     nutritionViewModel: NutritionViewModel,
+    onStartWorkoutNotifications: () -> Unit = {},
     onHomeGlassOverlayChange: HomeGlassOverlayChange = { _, _ -> },
     onHomeModalOverlayChange: HomeGlassOverlayChange = { _, _ -> },
     onHomeOnboardingOverlayChange: HomeGlassOverlayChange = { _, _ -> },
@@ -1119,6 +1064,7 @@ private fun KPKNNavGraph(
         }
         composable(KpknRoute.SetupEntry.route) {
             com.example.kpkn.screens.onboarding.SetupEntryScreen(
+                onPro = { navController.navigate(KpknRoute.Account.route) },
                 onStart = { mode, draftId ->
                     navController.navigate(KpknRoute.SetupWizard.create(mode, draftId))
                 },
@@ -1134,7 +1080,9 @@ private fun KPKNNavGraph(
             val homeViewModel = rememberHomeViewModel()
             val openCreateProgram = {
                 val onboardingCompleted = ProgramRepository.getInstance().settings.value.onboardingCompleted
-                if (onboardingCompleted) {
+                if (com.example.kpkn.data.account.AccountGraph.entitlement.value.effectiveLevel == com.example.kpkn.domain.entitlements.PlanLevel.FREE) {
+                    navController.navigate(KpknRoute.Training.route)
+                } else if (onboardingCompleted) {
                     homeViewModel.openCreateProgramSheet()
                 } else {
                     createProgramAndOpen(navController)
@@ -1172,6 +1120,7 @@ private fun KPKNNavGraph(
                 },
                 onCreateProgram = openCreateProgram,
                 onStartWorkout = { session, program ->
+                    onStartWorkoutNotifications()
                     navController.navigate(KpknRoute.Workout.create(program.id, session.id))
                 },
                 onRegisterCompetition = { recordId ->
@@ -1320,6 +1269,9 @@ private fun KPKNNavGraph(
             )
         }
         composable(KpknRoute.Nutrition.route) {
+            com.example.kpkn.ui.entitlements.CapabilityGate(com.example.kpkn.domain.entitlements.Capability.NUTRITION,
+                onPro = { navController.navigate(KpknRoute.Account.route) },
+                onHistory = { navController.navigate(KpknRoute.MealHistory.route) }, onBack = { navController.popBackStack() }) {
             NutritionScreen(
                 viewModel = nutritionViewModel,
                 onNavigateToBodyProgress = {
@@ -1339,6 +1291,7 @@ private fun KPKNNavGraph(
                     }
                 },
             )
+            }
         }
 
         // Route de acciones rápidas internas para navegación directa desde widgets/atajos.
@@ -1401,6 +1354,9 @@ private fun KPKNNavGraph(
                 },
             ),
         ) { backStackEntry ->
+            com.example.kpkn.ui.entitlements.CapabilityGate(com.example.kpkn.domain.entitlements.Capability.NUTRITION,
+                onPro = { navController.navigate(KpknRoute.Account.route) },
+                onHistory = { navController.navigate(KpknRoute.MealHistory.route) }, onBack = { navController.popBackStack() }) {
             NutritionPlanEditorScreen(
                 planId = backStackEntry.arguments
                     ?.getString(KpknRoute.NutritionPlanEditor.ARG_PLAN_ID)
@@ -1411,6 +1367,7 @@ private fun KPKNNavGraph(
                 onDone = { navController.popBackStack() },
                 onBack = { navController.popBackStack() },
             )
+            }
         }
         composable(
             route = KpknRoute.SetupWizard.route,
@@ -1486,12 +1443,20 @@ private fun KPKNNavGraph(
         composable(KpknRoute.Settings.route) {
             SettingsScreen(
                 onBack = { navController.popBackStack() },
-                healthConnectAvailable = healthConnectRouteAvailable(),
-                onOpenHealthConnect = { navController.navigate(KpknRoute.HealthConnect.route) },
+                onAccount = { navController.navigate(KpknRoute.Account.route) },
             )
         }
+        composable(KpknRoute.Account.route) {
+            com.example.kpkn.screens.account.AccountScreen(onBack = { navController.popBackStack() },
+                onDataControls = { navController.navigate(KpknRoute.Settings.route) })
+        }
         composable(KpknRoute.NutritionCalibration.route) {
-            NutritionCalibrationScreen(onBack = { navController.popBackStack() })
+            com.example.kpkn.ui.entitlements.CapabilityGate(com.example.kpkn.domain.entitlements.Capability.NUTRITION,
+                onPro = { navController.navigate(KpknRoute.Account.route) },
+                onHistory = { navController.navigate(KpknRoute.MealHistory.route) },
+                onBack = { navController.popBackStack() }) {
+                NutritionCalibrationScreen(onBack = { navController.popBackStack() })
+            }
         }
         addHealthConnectRoute(navController)
         composable(KpknRoute.Profile.route) {
@@ -1548,6 +1513,7 @@ private fun KPKNNavGraph(
             val id = backStack.arguments?.getString(KpknRoute.ProgramDetail.ARG_PROGRAM_ID) ?: ""
             ProgramDetailScreen(
                 programId = id,
+                onPro = { navController.navigate(KpknRoute.Account.route) },
                 onBack = {
                     if (!navController.popBackStack(KpknRoute.Training.route, inclusive = false)) {
                         navController.navigate(KpknRoute.Training.route) {
@@ -1557,6 +1523,7 @@ private fun KPKNNavGraph(
                     }
                 },
                 onStartWorkout = { session, program ->
+                    onStartWorkoutNotifications()
                     navController.navigate(KpknRoute.Workout.create(program.id, session.id))
                 },
                 onEditSession = { sessionId ->

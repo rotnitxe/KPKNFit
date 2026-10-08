@@ -1,0 +1,82 @@
+TAP version 13
+# Subtest: the public schema and server share exactly the same entity kinds
+ok 1 - the public schema and server share exactly the same entity kinds
+  ---
+  duration_ms: 12.588
+  type: 'test'
+  ...
+# Subtest: common fixtures preserve canonical units, original keys, origins, zones and tombstones
+ok 2 - common fixtures preserve canonical units, original keys, origins, zones and tombstones
+  ---
+  duration_ms: 48.3733
+  type: 'test'
+  ...
+# Subtest: program run history and future metadata remain opaque in the shared envelope
+ok 3 - program run history and future metadata remain opaque in the shared envelope
+  ---
+  duration_ms: 7.9484
+  type: 'test'
+  ...
+# Subtest: complete HEIC HEIF AVIF photos pass verified server media references without changing their bytes
+ok 4 - complete HEIC HEIF AVIF photos pass verified server media references without changing their bytes
+  ---
+  duration_ms: 8.8624
+  type: 'test'
+  ...
+# Subtest: retry is idempotent and operation IDs cannot be reused for other data
+ok 5 - retry is idempotent and operation IDs cannot be reused for other data
+  ---
+  duration_ms: 59.5535
+  type: 'test'
+  ...
+# Subtest: a source identity cannot confirm a different record identity
+ok 6 - a source identity cannot confirm a different record identity
+  ---
+  duration_ms: 1.0682
+  type: 'test'
+  ...
+# Subtest: incompatible edits preserve a conflict instead of overwriting current data
+ok 7 - incompatible edits preserve a conflict instead of overwriting current data
+  ---
+  duration_ms: 0.9424
+  type: 'test'
+  ...
+# Subtest: deleted accounts and old generations reject disconnected-device writes
+ok 8 - deleted accounts and old generations reject disconnected-device writes
+  ---
+  duration_ms: 0.6147
+  type: 'test'
+  ...
+# Subtest: an active workout cannot move between devices without resolution
+ok 9 - an active workout cannot move between devices without resolution
+  ---
+  duration_ms: 0.2925
+  type: 'test'
+  ...
+# Subtest: Free accepts five sessions in one week; rejects six, advanced programs and nutrition writes
+ok 10 - Free accepts five sessions in one week; rejects six, advanced programs and nutrition writes
+  ---
+  duration_ms: 1.1119
+  type: 'test'
+  ...
+# Subtest: non-JSON payloads and sensitive credentials are rejected
+ok 11 - non-JSON payloads and sensitive credentials are rejected
+  ---
+  duration_ms: 0.4882
+  type: 'test'
+  ...
+# Subtest: server verifies purchase account binding, pending purchases and paid cancellation expiry
+ok 12 - server verifies purchase account binding, pending purchases and paid cancellation expiry
+  ---
+  duration_ms: 2.1832
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 8154.8359

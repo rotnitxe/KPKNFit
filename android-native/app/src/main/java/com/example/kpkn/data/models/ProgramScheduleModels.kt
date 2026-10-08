@@ -50,6 +50,8 @@ data class ProgramRunState(
     val oneRmAuditTrail: List<OneRmResolution> = emptyList(),
     /** Append-only trail of weekly AUGE proposals (applied or pending). */
     val autoregulationAudit: List<AutoregulationAuditEntry> = emptyList(),
+    /** Old untagged logs may complete only a legacy run; newly created runs disable this fallback. */
+    val acceptLegacyEvidence: Boolean = true,
 )
 
 /** Progression decision attached to one exact native recipe exercise identity (§12.4). */
@@ -68,6 +70,8 @@ data class NativeProgressionIdentity(
     val execution: String,
     val slotPurpose: String,
     val quantityConvention: LoadQuantityConvention = LoadQuantityConvention.UNSPECIFIED,
+    /** Execution owning the evidence; null is a readable legacy/unbound identity. */
+    val programRunId: String? = null,
 )
 
 @Serializable
@@ -117,6 +121,7 @@ data class NativeProgressionResolution(
     val sourceLogIds: List<String> = emptyList(),
     /** Variante a la que pasó el ejercicio cuando se aceptó un cambio de variante corporal (H-IDENT). */
     val targetConfigurationId: String? = null,
+    val programRunId: String? = identity?.programRunId,
 )
 
 enum class ProgramRunStatus { ACTIVE, PAUSED, BREAK, COMPLETED }

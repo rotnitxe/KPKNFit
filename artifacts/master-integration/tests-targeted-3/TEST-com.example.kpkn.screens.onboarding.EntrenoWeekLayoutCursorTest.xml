@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.EntrenoWeekLayoutCursorTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-08T23:09:39.202Z" hostname="VF" time="3.301">
+  <properties/>
+  <testcase name="whatTheWeekDependsOnStillReopensTheProgramAndTheWeek" classname="com.example.kpkn.screens.onboarding.EntrenoWeekLayoutCursorTest" time="1.096"/>
+  <testcase name="adaptingTheSplitInTheWeekDoesNotReopenThePlan" classname="com.example.kpkn.screens.onboarding.EntrenoWeekLayoutCursorTest" time="1.188"/>
+  <testcase name="movingASessionInTheWeekDoesNotReopenThePlan" classname="com.example.kpkn.screens.onboarding.EntrenoWeekLayoutCursorTest" time="1.015"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

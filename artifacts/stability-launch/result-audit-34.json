@@ -1,0 +1,12 @@
+{
+  "state": "PASS",
+  "scope": "Audit regression JVM API26/API34; debug build, no API36 JVM claim",
+  "totals": {
+    "tests": 66,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "apkSha256": "e04201a6dd4d5d677d7a3d3ed0e9b8e4c6ae93ec7fc3d5e8cf207d659c7da74d",
+  "apkBytes": 437021263
+}

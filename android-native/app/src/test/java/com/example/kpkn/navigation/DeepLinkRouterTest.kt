@@ -11,6 +11,14 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE, sdk = [34])
 class DeepLinkRouterTest {
+    @Test fun retiredProviderAliasesOpenManualProgress() {
+        listOf("health-connect", "healthconnect", "salud").forEach { alias ->
+            assertEquals(KpknRoute.BodyProgress.route,
+                DeepLinkRouter.resolve(Uri.parse("kpkn://settings/$alias"))?.route)
+            assertEquals(KpknRoute.BodyProgress.route,
+                DeepLinkRouter.resolve(Uri.parse("https://kpkn.fit/ajustes/$alias"))?.route)
+        }
+    }
 
     @Test
     fun resolvesTopLevelKpknRoutes() {
@@ -74,7 +82,7 @@ class DeepLinkRouterTest {
             DeepLinkRouter.resolve(Uri.parse("https://kpkn.fit/nutrition/calibration"))?.route,
         )
         assertEquals(
-            KpknRoute.HealthConnect.route,
+            KpknRoute.BodyProgress.route,
             DeepLinkRouter.resolve(Uri.parse("kpkn://settings/health-connect"))?.route,
         )
     }

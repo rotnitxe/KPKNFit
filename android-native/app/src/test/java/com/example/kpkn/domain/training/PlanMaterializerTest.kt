@@ -27,6 +27,7 @@ import com.example.kpkn.data.protocols.repeatPercentSets
 import com.example.kpkn.data.protocols.slot
 import com.example.kpkn.data.protocols.weekRecipe
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.BeforeClass
 import org.junit.Test
@@ -678,7 +679,7 @@ class PlanMaterializerTest {
         val last = weeks.last()
         val atEnd = materialized.copy(
             runState = ProgramRunState(
-                runId = "run_531",
+                runId = materialized.runState?.runId ?: "run_531",
                 cycleNumber = 1,
                 weekId = last.id,
                 weekInstanceId = ProgramProgressEngine.instanceIdFor(1, last.id),
@@ -689,6 +690,7 @@ class PlanMaterializerTest {
                 WorkoutLog(
                     id = "log_${session.id}",
                     programId = atEnd.id,
+                    programRunId = atEnd.runState?.runId,
                     sessionId = session.id,
                     sessionName = session.name,
                     date = "2026-01-01T10:00:00.000Z",
@@ -709,7 +711,8 @@ class PlanMaterializerTest {
     }
 
     private fun markersOf(program: Program, proposalId: String) =
-        program.effectiveWeekRecipes.flatMap { it.appliedProposals }.filter { it.proposalId == proposalId }
+        program.effectiveWeekRecipes.filter { it.programRunId == program.runState?.runId }
+            .flatMap { it.appliedProposals }.filter { it.proposalId == proposalId }
 
     @Test
     fun rematerializing_the_same_program_lets_the_method_raise_the_tm_again_at_the_first_cycle_close() {
@@ -733,8 +736,9 @@ class PlanMaterializerTest {
         // El run empieza de cero: ciclo 1 y cursor en la primera semana (no el ciclo 2 del run anterior).
         assertEquals(1 to weeksOf(again).first().id, again.runState?.cycleNumber to again.runState?.weekId)
         assertTrue("sin marca del ciclo anterior", markersOf(again, "author-cycle-c2").isEmpty())
-        assertTrue("la marca era lo único de esa receta efectiva", again.effectiveWeekRecipes.isEmpty())
-        assertTrue("sin aviso del ciclo anterior", again.nativeProgressionAudit.none { it.proposalId == "author-cycle-c2" })
+        assertTrue("la receta anterior se conserva fuera de la ejecución actual", again.effectiveWeekRecipes.all { it.programRunId == closed.runState?.runId })
+        assertTrue("el aviso anterior se conserva con su ejecución", again.nativeProgressionAudit.any { it.proposalId == "author-cycle-c2" && it.programRunId == closed.runState?.runId })
+        assertNotEquals(closed.runState?.runId, again.runState?.runId)
         assertEquals("el TM vuelve a empezar", 180.0, again.powerliftingProfile!!.squatTM!!, 1e-9)
 
         // Antes de H13 la marca vieja suprimía esta subida: el TM se quedaba en 180 y no había aviso.
@@ -742,11 +746,12 @@ class PlanMaterializerTest {
         assertEquals(185.0, closedAgain.powerliftingProfile!!.squatTM!!, 1e-9)
         assertEquals(110.5, closedAgain.powerliftingProfile!!.benchTM!!, 1e-9)
         assertEquals(1, markersOf(closedAgain, "author-cycle-c2").size)
-        assertEquals(1, closedAgain.nativeProgressionAudit.count { it.proposalId == "author-cycle-c2" && it.userFacingNotice })
+        assertEquals(2, closedAgain.nativeProgressionAudit.count { it.proposalId == "author-cycle-c2" && it.userFacingNotice })
+        assertEquals(1, closedAgain.nativeProgressionAudit.count { it.proposalId == "author-cycle-c2" && it.programRunId == closedAgain.runState?.runId })
     }
 
     @Test
-    fun materialize_drops_only_the_author_markers_and_notices_of_a_previous_run() {
+    fun materialize_archives_all_previous_markers_and_notices() {
         val recipe = sampleRecipe()
         fun applied(id: String, kind: String) = AppliedRecipeProposal(proposalId = id, kind = kind, summary = "x", acceptedAtMs = 1L)
         fun notice(id: String) = NativeProgressionResolution(
@@ -789,14 +794,16 @@ class PlanMaterializerTest {
         )
 
         assertEquals(
-            listOf(1 to 1, 1 to 3),
+            listOf(2 to 2, 3 to 1, 1 to 1, 1 to 3),
             program.effectiveWeekRecipes.map { it.weekOccurrence to it.cycleNumber },
         )
         val kept = program.effectiveWeekRecipes.first { it.weekOccurrence == 1 && it.cycleNumber == 1 }
-        assertEquals(listOf("auge-1"), kept.appliedProposals.map { it.proposalId })
+        assertEquals(listOf("auge-1", "author-cycle-c3"), kept.appliedProposals.map { it.proposalId })
         assertEquals("la semana efectiva y su versión no cambian", recipe.weeks.first(), kept.weekRecipe)
         assertEquals(4, kept.version)
-        assertEquals(listOf("native-cycle-c2", "p-1"), program.nativeProgressionAudit.map { it.proposalId })
+        assertEquals(dirty.nativeProgressionAudit.map { it.proposalId }, program.nativeProgressionAudit.map { it.proposalId })
+        assertTrue(program.nativeProgressionAudit.all { it.programRunId == "legacy_p" })
+        assertTrue(program.effectiveWeekRecipes.all { it.programRunId == "legacy_p" })
     }
 
     // ─── B.S6 parte 2b: los kg de las correcciones del revisor (H-04, H-06/L-07, H-07) ──────────

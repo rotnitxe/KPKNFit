@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.generator.DisciplineModesTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-08T23:07:01.662Z" hostname="VF" time="6.098">
+  <properties/>
+  <testcase name="strongman_has_deadlift_overhead_press_and_carries" classname="com.example.kpkn.domain.training.generator.DisciplineModesTest" time="0.008"/>
+  <testcase name="every_discipline_is_executable_and_meets_the_contract" classname="com.example.kpkn.domain.training.generator.DisciplineModesTest" time="6.049"/>
+  <testcase name="the_same_request_gives_the_same_discipline_routine" classname="com.example.kpkn.domain.training.generator.DisciplineModesTest" time="0.017"/>
+  <testcase name="weightlifting_base_has_squats_push_press_pulls_and_mobility_in_every_session" classname="com.example.kpkn.domain.training.generator.DisciplineModesTest" time="0.002"/>
+  <testcase name="powerlifting_without_a_barbell_says_what_the_material_cannot_do" classname="com.example.kpkn.domain.training.generator.DisciplineModesTest" time="0.001"/>
+  <testcase name="a_discipline_week_never_has_seven_lifting_days" classname="com.example.kpkn.domain.training.generator.DisciplineModesTest" time="0.012"/>
+  <testcase name="powerbuilding_and_bodybuilding_are_covered_and_prescribe_their_own_way" classname="com.example.kpkn.domain.training.generator.DisciplineModesTest" time="0.003"/>
+  <testcase name="armwrestling_loads_the_forearm_with_every_wrist_movement_the_catalog_has" classname="com.example.kpkn.domain.training.generator.DisciplineModesTest" time="0.002"/>
+  <testcase name="powerlifting_with_a_barbell_rack_and_bench_has_the_three_competition_lifts_with_percentages" classname="com.example.kpkn.domain.training.generator.DisciplineModesTest" time="0.002"/>
+  <testcase name="calisthenics_uses_only_bodyweight_even_in_a_full_gym" classname="com.example.kpkn.domain.training.generator.DisciplineModesTest" time="0.001"/>
+  <system-out><![CDATA[Disciplinas: 4410 rutinas en 6,0 s; problemas: 0
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

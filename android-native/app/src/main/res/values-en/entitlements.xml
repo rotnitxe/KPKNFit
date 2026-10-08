@@ -1,0 +1,15 @@
+<resources>
+    <string name="capability_pro_title">Available with Pro</string>
+    <string name="capability_pro_body">Pro includes nutrition, advanced programs, and muscle and spinal analysis. You can still read, export, and delete your history.</string>
+    <string name="capability_weekly_title">Your training week</string>
+    <string name="capability_weekly_body">Free includes one reusable week with up to five sessions, voice, sync, and the energy ring.</string>
+    <string name="capability_create_week">Create week</string>
+    <string name="capability_view_pro">View Pro</string>
+    <string name="capability_history">View history</string>
+    <string name="capability_back">Back</string>
+    <string name="capability_free_limit">Free supports one week with up to five sessions. Advanced programs require Pro.</string>
+    <string name="free_intro_start">Start training for free</string>
+    <string name="free_intro_pro">Advanced programs and nutrition with Pro</string>
+    <string name="free_intro_saving">Preparing your training…</string>
+    <string name="free_intro_error">Could not save your start. Please try again.</string>
+</resources>

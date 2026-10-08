@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>KPKN · Cuenta</title><link rel="stylesheet" href="account.css"></head>
+<body><main><header><a href="/" aria-label="KPKN">KPKN</a><button id="language" type="button">English</button></header>
+<h1 data-text="title">Eliminar mi cuenta KPKN</h1><p data-text="intro">Puedes eliminar tu cuenta aunque ya hayas desinstalado la app. Primero confirma tu identidad.</p>
+<form id="signin"><label for="email" data-text="email">Correo</label><input id="email" type="email" autocomplete="username" required maxlength="254">
+<label for="password" data-text="password">Contraseña</label><input id="password" type="password" autocomplete="current-password" required maxlength="256">
+<button type="submit" data-text="signin">Entrar</button><button id="google" type="button" class="secondary" data-text="google">Continuar con Google</button><button id="recover" type="button" class="secondary" data-text="recover">Recuperar contraseña</button></form>
+<section id="account" hidden><p id="identity"></p><p data-text="scope">Se retirarán tus datos sincronizados, archivos privados y acceso a la cuenta. Se detendrán las renovaciones de las suscripciones vinculadas. Conserva antes cualquier copia que necesites.</p>
+<p data-text="copies">Las copias que exportaste y los datos de un dispositivo sin conexión permanecen en ese dispositivo hasta que los borres allí. La eliminación impide que vuelva a cargar datos a esta cuenta.</p>
+<form id="delete"><label class="check"><input id="confirm" type="checkbox" required><span data-text="confirm">Entiendo y quiero eliminar mi cuenta y mis datos de KPKN.</span></label><button type="submit" class="danger" data-text="delete">Eliminar cuenta</button></form>
+<button id="signout" type="button" class="secondary" data-text="signout">Cerrar sesión</button></section>
+<form id="reauth" hidden><label for="reauth-password" data-text="password">Contraseña</label><input id="reauth-password" type="password" autocomplete="current-password" required maxlength="256"><button type="submit" data-text="delete">Eliminar cuenta</button><button id="cancel-reauth" type="button" class="secondary" data-text="cancel">Cancelar</button></form>
+<p id="status" role="status" aria-live="polite"></p><footer><a href="privacy.html" data-text="privacy">Privacidad</a><a href="terms.html" data-text="terms">Condiciones</a></footer></main><script type="module" src="account.js"></script></body></html>

@@ -97,7 +97,7 @@ object NativeWorkoutProgressionRuntime {
         val runId = program.runState?.runId
         return logs.asSequence()
             .filter { it.programId == program.id && it.calendarBreakId == null }
-            .filter { runId.isNullOrBlank() || it.programRunId.isNullOrBlank() || it.programRunId == runId }
+            .filter { if (runId.isNullOrBlank()) it.programRunId.isNullOrBlank() else it.programRunId == runId }
             .distinctBy { it.id }
             .sortedWith(compareBy<WorkoutLog>({ it.date }, { it.id }))
             .toList()
@@ -433,9 +433,12 @@ object NativeWorkoutProgressionRuntime {
         curatedExercises: Map<String, ExerciseMuscleInfo>,
         nowMs: Long = System.currentTimeMillis(),
     ): Program {
-        if (program.nativeProgressionAudit.any { it.proposalId == proposalId }) return program
+        if (program.nativeProgressionAudit.any { it.proposalId == proposalId && it.programRunId == program.runState?.runId }) return program
         val proposal = program.nativeProgressionProposals.firstOrNull { it.proposalId == proposalId } ?: return program
         val remaining = program.nativeProgressionProposals.filterNot { it.proposalId == proposalId }
+        if (proposal.identity.programRunId != program.runState?.runId) {
+            return expire(program, proposal, remaining, nowMs, "Propuesta de otra ejecución; el historial se conserva.", userFacingNotice = false)
+        }
         if (!accept) {
             return program.copy(
                 nativeProgressionProposals = remaining,
@@ -625,6 +628,7 @@ object NativeWorkoutProgressionRuntime {
                 summary = summary,
                 cycle = cycle,
                 nowMs = nowMs,
+                runId = program.runState?.runId,
             )
         }
         return recipes
@@ -647,9 +651,10 @@ object NativeWorkoutProgressionRuntime {
         summary: String,
         cycle: Int,
         nowMs: Long,
+        runId: String?,
     ): List<EffectiveWeekRecipe> {
         val occurrence = PlanMaterializer.weekOccurrenceOf(week, weekIndex)
-        val existing = recipes.firstOrNull { it.weekOccurrence == occurrence && it.cycleNumber == cycle }
+        val existing = recipes.firstOrNull { it.weekOccurrence == occurrence && it.cycleNumber == cycle && (it.programRunId == null || it.programRunId == runId) }
         val baseWeek: WeekRecipe = existing?.weekRecipe
             ?: recipe.weeks.firstOrNull { it.weekNumber == week.progressionIndex }
             ?: recipe.weeks.getOrNull(weekIndex)
@@ -686,6 +691,7 @@ object NativeWorkoutProgressionRuntime {
             kind = NATIVE_VARIANT_APPLIED_KIND,
             summary = summary,
             acceptedAtMs = nowMs,
+            programRunId = runId,
         )
         val updated = EffectiveWeekRecipe(
             weekOccurrence = occurrence,
@@ -694,8 +700,9 @@ object NativeWorkoutProgressionRuntime {
             weekRecipe = updatedWeek,
             changes = existing?.changes.orEmpty() + changes,
             appliedProposals = (existing?.appliedProposals.orEmpty() + applied).distinctBy { it.proposalId },
+            programRunId = runId,
         )
-        return recipes.filterNot { it.weekOccurrence == occurrence && it.cycleNumber == cycle } + updated
+        return recipes.filterNot { it.weekOccurrence == occurrence && it.cycleNumber == cycle && (it.programRunId == null || it.programRunId == runId) } + updated
     }
 
     /**
@@ -746,7 +753,7 @@ object NativeWorkoutProgressionRuntime {
      */
     private fun withNewBlockNotice(program: Program, newCycle: Int, hadPending: Boolean, nowMs: Long): Program {
         val noticeId = "$NEW_BLOCK_NOTICE_PREFIX$newCycle"
-        if (program.nativeProgressionAudit.any { it.proposalId == noticeId }) return program
+        if (program.nativeProgressionAudit.any { it.proposalId == noticeId && it.programRunId == program.runState?.runId }) return program
         val weeks = ProgramHierarchyIndex(program).orderedWeeks().size
         val duration = if (weeks > 0) " de $weeks semanas" else ""
         val tail = if (hadPending) " Las propuestas sin responder caducaron." else ""
@@ -758,6 +765,7 @@ object NativeWorkoutProgressionRuntime {
                 resolvedAtMs = nowMs,
                 reason = "Empiezas un nuevo bloque$duration con tus últimas cargas.$tail",
                 userFacingNotice = true,
+                programRunId = program.runState?.runId,
             ),
         )
     }
@@ -830,7 +838,7 @@ object NativeWorkoutProgressionRuntime {
         val latestTarget = LinkedHashMap<Pair<String, String>, String>()
         program.nativeProgressionAudit.asSequence()
             .filter {
-                it.status == NativeProgressionResolutionStatus.APPLIED &&
+                it.programRunId == program.runState?.runId && it.status == NativeProgressionResolutionStatus.APPLIED &&
                     (it.kind == NativeProgressionProposalKind.HARDER_BODYWEIGHT_VARIANT ||
                         it.kind == NativeProgressionProposalKind.EASIER_BODYWEIGHT_VARIANT)
             }
@@ -896,6 +904,7 @@ object NativeWorkoutProgressionRuntime {
                     summary = summary,
                     cycle = newCycle,
                     nowMs = nowMs,
+                    runId = program.runState?.runId,
                 )
             }
             next = next.copy(macrocycles = updatedMacros, effectiveWeekRecipes = recipes)
@@ -1051,6 +1060,7 @@ object NativeWorkoutProgressionRuntime {
                     execution = planned.selectedExecutionOption.orEmpty(),
                     slotPurpose = intent.name,
                     quantityConvention = convention,
+                    programRunId = program.runState?.runId,
                 )
                 val measurements = workIndices.zip(sideSets).mapNotNull { (index, actual) ->
                     val plannedSet = planned.sets[index]
@@ -1771,6 +1781,7 @@ object NativeWorkoutProgressionRuntime {
             identity.execution,
             identity.slotPurpose,
             identity.quantityConvention.name,
+            identity.programRunId,
             kind.name,
             logIds.sorted().joinToString(","),
         ).joinToString("|")

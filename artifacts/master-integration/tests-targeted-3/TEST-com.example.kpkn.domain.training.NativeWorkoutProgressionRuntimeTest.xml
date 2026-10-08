@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" tests="44" skipped="0" failures="0" errors="0" timestamp="2026-10-08T23:06:40.227Z" hostname="VF" time="2.252">
+  <properties/>
+  <testcase name="acceptingKnownLoadChangesOnlyUnexecutedFuturePrescriptions" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.183"/>
+  <testcase name="bodyweightSlotWithoutHarderCuratedVariant_inMixedRecipe_explainsTheLimit" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.036"/>
+  <testcase name="everyTerminalProposalConsumesAllOfItsSourceExposures" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.038"/>
+  <testcase name="mixedLoadsInsideWindow_doNotProposeIncrement" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.032"/>
+  <testcase name="rematerializationKeepsUnilateralSideLoadsSeparate" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.295"/>
+  <testcase name="ifOnlyTheDeloadWeekIsLeft_noProposalIsMadeAndTheAthleteIsToldWhy" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.031"/>
+  <testcase name="recipeConfigurationAndSlotIdentityDoNotPoolExposures" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.031"/>
+  <testcase name="liveDropSetExposure_isExcludedFromTheEvidence" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.03"/>
+  <testcase name="manuallyChosenLoadIsCapturedForFutureAndNeedsTwoFreshExposures" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.035"/>
+  <testcase name="failureSet_countsAsRirZero_andProposesReduction" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.074"/>
+  <testcase name="bodyweightVariantText_namesTheProposedVariant" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.037"/>
+  <testcase name="standardPushUpMovesToFeetElevatedOnlyWithAStableSupport" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.033"/>
+  <testcase name="cardioLadderUsesOnlyOfferedStepsAndHonorsLimits" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.029"/>
+  <testcase name="unresolvedCatalogLoadModeDoesNotHideMatchingFutureRecipeSlots" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.034"/>
+  <testcase name="lastSetDropDoesNotBecomeCapturedLoad" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.042"/>
+  <testcase name="reductionText_explainsTheShortfallAndTheLighterLoad" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.044"/>
+  <testcase name="bodyweightSlotInMixedRecipe_usesVariantEscalation" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.036"/>
+  <testcase name="assistedLoadProgressionMovesAssistanceInTheResistanceDirection" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.038"/>
+  <testcase name="feetElevatedPushUpCanStepBackToTheStandardOne" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.033"/>
+  <testcase name="rejectionIsTerminalAndRepeatedResolutionIsIdempotent" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.033"/>
+  <testcase name="untouchedReserveStillLetsAShortfallProposeALighterLoad" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.031"/>
+  <testcase name="acceptedIncrease_skipsTheDeloadWeekAndLandsOnTheNextTrainingWeek" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.028"/>
+  <testcase name="aSlotWithAnotherPurposeNeverReceivesTheProposal" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.03"/>
+  <testcase name="twoSlotsOfTheSameExerciseInOneWorkoutAreOneExposure" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.033"/>
+  <testcase name="bodyweightVariantReplacementClearsLoadReferencesAndPreservesSessionIdentity" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.029"/>
+  <testcase name="oldRunProposalOnlyExpires" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.033"/>
+  <testcase name="finalizeWorkoutPersistsNativeProposalAlongsideTheRealCompletedLogs" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.402"/>
+  <testcase name="sessionsTrainedInAnEarlierCycleAreEligibleAgainInTheCurrentCycle" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.029"/>
+  <testcase name="resolutionReasons_shownToTheAthleteAreFreeOfInternalJargon" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.031"/>
+  <testcase name="sameExerciseOnTwoDaysSharesOneProgression_andRaisesTogether" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.03"/>
+  <testcase name="firstManualLoadChosenOnOneDayIsKeptForTheSameExerciseOnTheOtherDays" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.028"/>
+  <testcase name="deloadWeekExposure_doesNotCountAsSuccess" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.032"/>
+  <testcase name="requiresTwoCompleteTopRangeExposuresBeforeProposal" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.028"/>
+  <testcase name="timedIdentity_isNeverProgressedByTheRepRangeLoadRule" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.027"/>
+  <testcase name="acceptedProposalExpiresWhenItsRecipeRevisionIsStale" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.03"/>
+  <testcase name="proposalText_isPlainSpanishWithTheEvidenceAndTheLoads" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.034"/>
+  <testcase name="evidenceBelongsToOneRun" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.03"/>
+  <testcase name="rematerializationRestoresBilateralCapturedAndPendingNativeLoads" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.031"/>
+  <testcase name="recipeFallbackCountsOnlyWorkSets_notTheWarmupThatHeadsTheSlot" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.031"/>
+  <testcase name="untouchedReserveDoesNotCountAsMetReserve_butAdjustedOneStillDoes" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.034"/>
+  <testcase name="logCycleReadsTheCycleScopedInstanceBecauseComplexPlansStampCycleOne" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.034"/>
+  <testcase name="executionErrorPayloadDoesNotCountAsACompleteProgressionExposure" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.027"/>
+  <testcase name="knownStockChoosesSmallestRealIncrementAndUnknownStockLeavesLoadPending" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.034"/>
+  <testcase name="legacySourceProgressionIsNotReplacedByNativeRuntime" classname="com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest" time="0.029"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

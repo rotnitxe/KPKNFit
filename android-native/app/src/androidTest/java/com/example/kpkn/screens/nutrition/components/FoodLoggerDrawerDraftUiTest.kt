@@ -30,6 +30,8 @@ import com.example.kpkn.data.repository.FoodCatalogImporter
 import com.example.kpkn.data.repository.NutritionCalibrationRepository
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.domain.nutrition.canFinalize
+import com.example.kpkn.domain.nutrition.confirmedLearning
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -185,6 +187,28 @@ class FoodLoggerDrawerDraftUiTest {
         assertEquals("the chosen meal survives the recreation", MealType.DINNER, draft.mealType)
         assertTrue("the interpreted foods survive the recreation", draft.tags.isNotEmpty())
         assertFalse("the interpretation is not started again", draft.isAnalyzing)
+    }
+
+    @Test
+    fun assumedAmountRequiresAUserDecisionAfterRestorationAndAcceptanceRetainsUncertainty() {
+        val restorationTester = StateRestorationTester(composeRule)
+        composeRule.mainClock.autoAdvance = false
+        restorationTester.setContent { LoggerUnderTest(initialDescription = "arroz cocido") }
+        awaitAnalysisDone()
+        val before = loggerViewModel().draft.tags.single()
+        assertTrue(before.interpretationV2!!.pendingQuestions.any { it.requestId == "estimated_portion" })
+        assertFalse(before.interpretationV2!!.canFinalize())
+        restorationTester.emulateSavedInstanceStateRestore()
+        assertFalse(loggerViewModel().draft.tags.single().interpretationV2!!.canFinalize())
+        scrollListTo(hasText("Seguir con esta estimación"))
+        tap("Seguir con esta estimación")
+        val accepted = loggerViewModel().draft.tags.single()
+        assertTrue(accepted.interpretationV2!!.canFinalize())
+        assertTrue(accepted.isUncertain)
+        assertEquals(before.loggedFood!!.calories, accepted.loggedFood!!.calories, 0.0001)
+        assertEquals(before.interpretationV2!!.caloriesMin, accepted.interpretationV2!!.caloriesMin, 0.0001)
+        assertEquals(before.interpretationV2!!.caloriesMax, accepted.interpretationV2!!.caloriesMax, 0.0001)
+        assertEquals(null, accepted.confirmedLearning())
     }
 
     @Test

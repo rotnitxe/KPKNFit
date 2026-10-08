@@ -43,7 +43,7 @@ class NutritionPlanActiveStateTest {
 
     @Test
     fun activatingASecondPlanLeavesOnlyThatPlanActiveAfterReload() = runBlocking {
-        val coordinator = SetupCommitCoordinator(db)
+        val coordinator = SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO })
         coordinator.commit(SetupCommitRequest("commit-a", null, Settings(), null, plan("plan-a"), false, true))
         coordinator.commit(SetupCommitRequest("commit-b", null, Settings(), null, plan("plan-b"), false, true))
 
@@ -91,7 +91,7 @@ class NutritionPlanActiveStateTest {
 
     @Test
     fun trackingOnlyDeactivationDecodesEveryPlanAsInactive() = runBlocking {
-        val coordinator = SetupCommitCoordinator(db)
+        val coordinator = SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO })
         coordinator.commit(SetupCommitRequest("commit-a", null, Settings(), null, plan("plan-a"), false, true))
         coordinator.commit(
             SetupCommitRequest(

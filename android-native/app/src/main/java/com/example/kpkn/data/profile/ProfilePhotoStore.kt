@@ -21,12 +21,15 @@ object ProfilePhotoStore {
     private val BASE64_PATTERN = Regex("^[A-Za-z0-9+/]*={0,2}$")
 
     fun saveFromUri(context: Context, uri: Uri): String {
-        val bytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+        val bytes = context.contentResolver.openInputStream(uri)?.use {
+            com.example.kpkn.data.backup.BoundedInput.bytes(it, com.example.kpkn.data.backup.BoundedInput.MAX_AVATAR_BYTES)
+        }
             ?: error("No se pudo leer la imagen")
         return saveNormalizedBytes(context, bytes)
     }
 
     fun saveBase64(context: Context, encoded: String): String {
+        require(encoded.length <= (MAX_ENCODED_BYTES * 16L * 4 / 3 + 16)) { "La imagen del respaldo es demasiado grande" }
         val normalized = encoded.filterNot(Char::isWhitespace)
         require(normalized.isNotEmpty() && BASE64_PATTERN.matches(normalized)) {
             "La imagen del respaldo no es válida"
@@ -59,6 +62,7 @@ object ProfilePhotoStore {
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         BitmapFactory.decodeByteArray(sourceBytes, 0, sourceBytes.size, bounds)
         require(bounds.outWidth > 0 && bounds.outHeight > 0) { "El archivo no contiene una imagen válida" }
+        require(bounds.outWidth <= 65_536 && bounds.outHeight <= 65_536) { "Las dimensiones de la imagen son demasiado grandes" }
         var sample = 1
         while (max(bounds.outWidth / sample, bounds.outHeight / sample) > MAX_DIMENSION * 2) sample *= 2
         val options = BitmapFactory.Options().apply { inSampleSize = sample }
@@ -69,11 +73,9 @@ object ProfilePhotoStore {
         val directory = File(context.applicationContext.filesDir, DIRECTORY).apply { mkdirs() }
         val target = File(directory, FILE_NAME)
         val temporary = File(directory, "$FILE_NAME.tmp")
-        FileOutputStream(temporary).use { it.write(encoded) }
-        if (!temporary.renameTo(target)) {
-            temporary.copyTo(target, overwrite = true)
-            temporary.delete()
-        }
+        FileOutputStream(temporary).use { it.write(encoded); it.fd.sync() }
+        java.nio.file.Files.move(temporary.toPath(), target.toPath(), java.nio.file.StandardCopyOption.ATOMIC_MOVE,
+            java.nio.file.StandardCopyOption.REPLACE_EXISTING)
         if (normalized !== source) normalized.recycle()
         source.recycle()
         return STORAGE_TOKEN

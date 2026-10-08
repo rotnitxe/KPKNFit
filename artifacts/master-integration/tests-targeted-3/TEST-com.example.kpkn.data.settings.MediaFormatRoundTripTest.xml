@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.settings.MediaFormatRoundTripTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-08T23:06:33.709Z" hostname="VF" time="6.347">
+  <properties/>
+  <testcase name="formatsRoundTrip[26]" classname="com.example.kpkn.data.settings.MediaFormatRoundTripTest" time="3.181"/>
+  <testcase name="formatsRoundTrip" classname="com.example.kpkn.data.settings.MediaFormatRoundTripTest" time="2.939"/>
+  <testcase name="wrongDeclaredTypeCannotBePublished[26]" classname="com.example.kpkn.data.settings.MediaFormatRoundTripTest" time="0.061"/>
+  <testcase name="wrongDeclaredTypeCannotBePublished" classname="com.example.kpkn.data.settings.MediaFormatRoundTripTest" time="0.049"/>
+  <testcase name="oldHashOnlyGalleryFileIsDetectedByContent[26]" classname="com.example.kpkn.data.settings.MediaFormatRoundTripTest" time="0.058"/>
+  <testcase name="oldHashOnlyGalleryFileIsDetectedByContent" classname="com.example.kpkn.data.settings.MediaFormatRoundTripTest" time="0.058"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[Oct 08, 2026 8:06:35 PM com.almworks.sqlite4java.Internal log
+WARNING: [sqlite] SQLite: cannot set library path, library already loaded
+]]></system-err>
+</testsuite>

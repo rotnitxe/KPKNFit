@@ -68,7 +68,12 @@ private const val NATIVE_RESOLVE_RETRY_DELAY_MS = 25L
 class ProgramRepository private constructor(
     private val db: KpknDatabase,
     private val ownsDatabase: Boolean = false,
+    private val accessLevel: () -> com.example.kpkn.domain.entitlements.PlanLevel = {
+        com.example.kpkn.data.account.AccountGraph.entitlement.value.effectiveLevel
+    },
 ) {
+    internal fun planLevel() = accessLevel()
+    internal fun requireProgramWrite(program: Program) = com.example.kpkn.domain.entitlements.ProgramAccessPolicy.requireWrite(planLevel(), program)
 
     /** Test-only read-back seam; production callers continue using repository APIs. */
     internal fun databaseForTests(): KpknDatabase = db
@@ -158,6 +163,7 @@ class ProgramRepository private constructor(
     val isReady: StateFlow<Boolean> = _isReady.asStateFlow()
 
     fun addProgram(program: Program) {
+        requireProgramWrite(program)
         val normalized = normalizeProgramWithCompetitions(program)
         // Reserva + publicación optimista atómicas entre sí (ver [programMutationLock]).
         val version = synchronized(programMutationLock) {
@@ -169,6 +175,7 @@ class ProgramRepository private constructor(
     }
 
     fun updateProgram(program: Program) {
+        requireProgramWrite(program)
         val normalized = normalizeProgramWithCompetitions(program)
         val version = synchronized(programMutationLock) {
             val reserved = reserveProgramWrite(normalized.id)
@@ -180,6 +187,7 @@ class ProgramRepository private constructor(
     }
 
     suspend fun updateProgramNow(program: Program) {
+        requireProgramWrite(program)
         val normalized = normalizeProgramWithCompetitions(program)
         val version = synchronized(programMutationLock) {
             val reserved = reserveProgramWrite(normalized.id)
@@ -218,6 +226,7 @@ class ProgramRepository private constructor(
      *   los locks (sin deadlocks contra hilos que se bloquean en Main).
      */
     suspend fun addProgramNow(program: Program): Result<Unit> {
+        runCatching { requireProgramWrite(program) }.exceptionOrNull()?.let { return Result.failure(it) }
         val normalized = normalizeProgramWithCompetitions(program)
         val version = synchronized(programMutationLock) { reserveProgramWrite(normalized.id) }
         return try {
@@ -345,6 +354,7 @@ class ProgramRepository private constructor(
                     val current = getProgramById(programId) ?: return@withLock false
                     val next = transform(current) ?: return@withLock false
                     if (next.id != programId) return@withLock false
+                    requireProgramWrite(next)
                     val normalized = normalizeProgramWithCompetitions(next)
                     val version = reserveProgramWrite(programId)
                     onVersionReserved?.invoke(version)
@@ -1261,7 +1271,7 @@ class ProgramRepository private constructor(
         val currentCycle = program.runState?.cycleNumber?.takeIf { cyclic }
         val logs = getLogsForProgram(program.id)
             .filter { it.calendarBreakId.isNullOrBlank() }
-            .filter { log -> runId == null || log.programRunId == null || log.programRunId == runId }
+            .filter { log -> runId == null || log.programRunId == runId || program.runState?.acceptLegacyEvidence != false && log.programRunId == null }
             .filter { log -> currentCycle == null || log.cycleNumber == null || log.cycleNumber == currentCycle }
         val sessionIds = logs.map { it.sessionId }.toMutableSet()
         _ongoingWorkout.value?.let { ongoing ->
@@ -1639,6 +1649,16 @@ class ProgramRepository private constructor(
         }
     }
 
+    /** Only publish completion after Room confirms it; concurrent profile edits remain in the cache. */
+    suspend fun finishFreeIntro() = withContext(Dispatchers.IO) {
+        PersistenceWriteCoordinator.mutex.withLock {
+            db.settingsDao().upsert(_settings.value.copy(onboardingCompleted = true).toEntity())
+            withContext(Dispatchers.Main.immediate) {
+                _settings.update { it.copy(onboardingCompleted = true) }
+            }
+        }
+    }
+
     /**
      * Publica en las cachés el resultado de un commit de setup (M12), igual que
      * `NutritionRepository.publishSetupCommit` publica el suyo.
@@ -1677,6 +1697,7 @@ class ProgramRepository private constructor(
     }
 
     suspend fun replaceProgramSafely(replacement: Program): ReplaceProgramResult {
+        requireProgramWrite(replacement)
         return withContext(Dispatchers.IO + NonCancellable) {
             PersistenceWriteCoordinator.mutex.withLock {
                 ongoingWorkoutMutex.withLock {
@@ -1688,19 +1709,33 @@ class ProgramRepository private constructor(
                             "Termina o descarta la sesión en curso antes de reemplazar el plan."
                         }
                         val active = _activeProgramState.value?.takeIf { it.programId == replacement.id }
+                        val previous = _programs.value.first { it.id == replacement.id }
+                        val restarted = replacement.copy(
+                            nativeProgressionAudit = (
+                                com.example.kpkn.domain.training.ProgressionRunScope.archiveAudit(previous) +
+                                    com.example.kpkn.domain.training.ProgressionRunScope.archiveAudit(replacement)
+                                ).distinct(),
+                            effectiveWeekRecipes = (
+                                com.example.kpkn.domain.training.ProgressionRunScope.archiveRecipes(previous) +
+                                    com.example.kpkn.domain.training.ProgressionRunScope.archiveRecipes(replacement)
+                                ).distinct(),
+                            nativeProgressionProposals = emptyList(),
+                            runState = ProgramRunState(runId = ProgramProgressEngine.newRunId(), acceptLegacyEvidence = false),
+                        )
                         val replacementToStore: Program
                         val replacementActive: ActiveProgramState?
                         if (active == null) {
-                            replacementToStore = normalizeProgramWithCompetitions(replacement)
+                            replacementToStore = normalizeProgramWithCompetitions(restarted)
                             replacementActive = null
                         } else {
-                            val seedProgram = normalizeProgramWithCompetitions(replacement.copy(runState = null))
+                            val seedProgram = normalizeProgramWithCompetitions(restarted.copy(runState = null))
                             val seedState = ProgramActiveStateEngine.repairForProgram(
                                 seedProgram,
                                 ActiveProgramState(programId = seedProgram.id),
                             ) ?: ActiveProgramState(programId = seedProgram.id)
                             val run = ProgramRunState(
                                 runId = ProgramProgressEngine.newRunId(),
+                                acceptLegacyEvidence = false,
                                 cycleNumber = seedState.currentCycleNumber ?: 1,
                                 weekInstanceId = seedState.currentWeekInstanceId ?: seedState.currentWeekId.takeIf { it.isNotBlank() },
                                 weekId = seedState.currentWeekId.takeIf { it.isNotBlank() }
@@ -2300,13 +2335,16 @@ class ProgramRepository private constructor(
             }
 
         /** Robolectric-friendly init with in-memory Room and isolated singleton. */
-        fun initForTests(context: Context): ProgramRepository = synchronized(this) {
+        fun initForTests(context: Context, accessLevel: () -> com.example.kpkn.domain.entitlements.PlanLevel = {
+            com.example.kpkn.domain.entitlements.PlanLevel.PRO
+        }): ProgramRepository = synchronized(this) {
             closeInstance()
             appContext = context.applicationContext
             KpknDatabase.closeInstance()
             ProgramRepository(
                 KpknDatabase.createInMemory(context.applicationContext),
                 ownsDatabase = true,
+                accessLevel = accessLevel,
             ).also { INSTANCE = it; it.loadFromDb() }
         }
 
@@ -2325,6 +2363,7 @@ class ProgramRepository private constructor(
                 ProgramRepository(
                     Room.databaseBuilder(context.applicationContext, KpknDatabase::class.java, databaseName).build(),
                     ownsDatabase = true,
+                    accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO },
                 ).also { INSTANCE = it; it.loadFromDb() }
             }
 

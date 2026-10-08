@@ -45,6 +45,7 @@ class NutritionCalibrationRepository private constructor(context: Context, priva
         private val updateMutex = Mutex()
         internal fun forDatabase(context: Context, db: KpknDatabase) = NutritionCalibrationRepository(context, db)
         @Volatile private var instance: NutritionCalibrationRepository? = null
+        internal suspend fun closeForDataSession() = updateMutex.withLock { instance = null }
 
         fun getInstance(context: Context): NutritionCalibrationRepository =
             instance ?: synchronized(this) {

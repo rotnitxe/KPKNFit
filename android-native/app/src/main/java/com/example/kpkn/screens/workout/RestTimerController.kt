@@ -23,6 +23,7 @@ internal interface RestTimerAlertSink {
     fun onTimerFinishedInApp(expectedTimerId: String?)
 
     fun cancelRestAlerts()
+    fun remainingMillisFor(endWallMs: Long): Long? = null
 }
 
 private class WorkoutRestAlertSinkAdapter(
@@ -49,6 +50,7 @@ private class WorkoutRestAlertSinkAdapter(
     override fun cancelRestAlerts() {
         manager.cancelRestAlerts()
     }
+    override fun remainingMillisFor(endWallMs: Long): Long? = manager.remainingMillisFor(endWallMs)
 }
 
 /**
@@ -203,12 +205,13 @@ class RestTimerController private constructor(
             while (true) {
                 delay(500L)
                 if (!ownsTimer(generation, scheduledId)) return@launch
-                val remainingNow = ((endMs - System.currentTimeMillis() + 500) / 1000L).toInt().coerceAtLeast(0)
+                val remainingMs = alertSink.remainingMillisFor(endMs) ?: (endMs - System.currentTimeMillis())
+                val remainingNow = ((remainingMs + 500) / 1000L).toInt().coerceAtLeast(0)
                 if (remainingNow != lastRemaining) {
                     lastRemaining = remainingNow
                     _remaining.value = remainingNow
                 }
-                val elapsed = ((System.currentTimeMillis() - restStartMs) / 1000L).toInt().coerceAtLeast(0)
+                val elapsed = initialElapsed + (seconds - remainingNow).coerceAtLeast(0)
                 if (elapsed != lastElapsedSecond) {
                     lastElapsedSecond = elapsed
                     _recovery.value = WorkoutRestRecoveryModel.fromLastSet(
