@@ -5,8 +5,13 @@ import android.view.WindowManager
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
@@ -16,6 +21,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
+import java.util.function.Consumer
 import kotlin.math.roundToInt
 
 /*
@@ -29,6 +35,13 @@ private const val BLUR_RADIUS_PX = 64
 
 /** Color del velo del overlay (casi negro, el de la página). */
 internal val OverlayScrim = Color(0xFF060606)
+
+/**
+ * Fuerza la rama del desenfoque de los overlays: `true` pide el desenfoque del sistema detrás de la ventana, `false` el velo
+ * casi opaco de los equipos sin él, y `null` (lo normal) deja que decida el sistema. Solo lo pone el arnés de depuración (extra
+ * `blur=on|off`) para ver las dos ramas en un teléfono que tiene el desenfoque desactivado.
+ */
+internal val LocalOverlayBlurOverride = compositionLocalOf<Boolean?> { null }
 
 /**
  * Un overlay a pantalla completa. [shown] (0 a 1, se lee sin recomponer) lleva el desenfoque del sistema: entra y sale con
@@ -51,8 +64,20 @@ internal fun BlurOverlayDialog(
             decorFitsSystemWindows = false,
         ),
     ) {
-        val window = (LocalView.current.parent as? DialogWindowProvider)?.window
-        val blur = Build.VERSION.SDK_INT >= 31 && window?.windowManager?.isCrossWindowBlurEnabled == true
+        val view = LocalView.current
+        val window = (view.parent as? DialogWindowProvider)?.window
+        // El permiso de desenfoque del sistema puede cambiar con el overlay a la vista (ahorro de batería, «reducir transparencias»):
+        // se escucha, y con el desenfoque apagado el velo vuelve a ser casi opaco en vez de dejar el texto de atrás medio visible.
+        var systemBlur by remember { mutableStateOf(Build.VERSION.SDK_INT >= 31 && window?.windowManager?.isCrossWindowBlurEnabled == true) }
+        if (Build.VERSION.SDK_INT >= 31) {
+            DisposableEffect(window) {
+                val manager = window?.windowManager
+                val listener = Consumer<Boolean> { enabled -> systemBlur = enabled }
+                runCatching { manager?.addCrossWindowBlurEnabledListener(view.context.mainExecutor, listener) }
+                onDispose { runCatching { manager?.removeCrossWindowBlurEnabledListener(listener) } }
+            }
+        }
+        val blur = LocalOverlayBlurOverride.current ?: systemBlur
         LaunchedEffect(window, blur) {
             window ?: return@LaunchedEffect
             window.setDimAmount(0f)

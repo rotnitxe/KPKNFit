@@ -188,8 +188,9 @@ internal fun DetailSheet(
             .testTag(PLAN_DETAIL_TAG)
             .semantics { paneTitle = card.title }
             .graphicsLayer { alpha = shown() }
-            // Sin desenfoque del sistema el fondo debe tapar casi todo; con él, bastante: aquí hay mucho texto.
-            .background(OverlayScrim.copy(alpha = if (blur) 0.84f else 0.985f)),
+            // Sin desenfoque del sistema el velo es del todo opaco (con 0,985 el texto de la página de atrás asomaba unos niveles
+            // de gris); con él, 0,84: aquí hay mucho texto.
+            .background(OverlayScrim.copy(alpha = if (blur) 0.84f else 1f)),
     ) {
         Column(
             Modifier
