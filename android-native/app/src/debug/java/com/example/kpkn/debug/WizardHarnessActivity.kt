@@ -312,6 +312,9 @@ private fun HarnessRoot(config: HarnessConfig, onClose: () -> Unit) {
                 if (config.activateAfterMs > 0 && step == SetupStepId.REVIEW_ACTIVATE) {
                     delay(config.activateAfterMs)
                     tourLabel = "$step · activando"
+                    // Con un programa ya activo (de un recorrido anterior) la revisión pide confirmar que se sustituye: la persona lo marcaría.
+                    viewModel.confirmActivation(true)
+                    withTimeoutOrNull(3_000) { viewModel.state.first { it.draft.confirmActivation } }
                     val receipt = viewModel.commit()
                     tourLabel = if (receipt != null) "$step · activado" else "$step · ERROR ${viewModel.state.value.errors}"
                     if (receipt != null) summaryShown = true
