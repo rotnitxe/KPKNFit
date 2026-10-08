@@ -84,9 +84,10 @@ internal fun EntrenoPlanLoadingLine(text: String, modifier: Modifier = Modifier)
 }
 
 /**
- * El plan que la persona tenía elegido (o el que trajo de la biblioteca) ya no encaja con sus respuestas: el mismo
- * texto y las mismas reparaciones de un toque del aviso clásico (`droppedSelectionNotice` + `performNoticeEffect`),
- * sin caja. «Ver otras opciones» lo cierra (las alternativas están justo debajo). Sin selección caída no pinta nada.
+ * El plan que la persona tenía elegido (o el que trajo de la biblioteca) ya no encaja con sus respuestas: el texto y las
+ * reparaciones de un toque salen de `droppedSelectionNotice` + `performNoticeEffect` (`SetupTrainingSteps.kt`, que decide
+ * el motivo y la acción), sin caja. «Ver otras opciones» lo cierra (las alternativas están justo debajo). Sin selección
+ * caída no pinta nada.
  */
 @Composable
 internal fun EntrenoDroppedSelectionNotice(state: SetupWizardState, vm: SetupWizardViewModel) {
@@ -98,6 +99,8 @@ internal fun EntrenoDroppedSelectionNotice(state: SetupWizardState, vm: SetupWiz
     EntrenoPlanNotice(
         text = notice.text,
         modifier = Modifier.testTag(DROPPED_NOTICE_TAG),
+        // Un plan de la biblioteca que se arma a medida no es un fallo: sin el rojo de aviso.
+        error = !notice.informational,
         actions = notice.buttons.mapIndexed { index, button ->
             EntrenoPlanNoticeAction(label = button.label, tag = "$DROPPED_NOTICE_TAG-$index") {
                 performNoticeEffect(button.effect, vm) { closed = true }

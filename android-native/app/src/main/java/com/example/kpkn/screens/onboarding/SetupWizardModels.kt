@@ -537,11 +537,16 @@ internal fun SetupWizardDraft.selectedEquipmentSymbols(): Set<EquipmentSymbolId>
 /** Quien empieza: no se le pregunta la técnica ni se le piden marcas. */
 internal val SetupWizardDraft.isNovice: Boolean get() = experience == SetupExperience.NEW
 
-/** Levantamientos cuya marca se pregunta con el objetivo, la experiencia y el material actuales (vacío = sin paso). */
+/**
+ * Levantamientos cuya marca se pregunta con el objetivo, la experiencia y el material actuales (vacío = sin paso). El
+ * arranque y los dos tiempos de Halterofilia solo se preguntan si el programa de ESTE nivel los lee: quien vuelve no recibe
+ * levantamientos olímpicos, así que sus marcas serían un control vacío ([MarksContext.readsOlympicMarks]).
+ */
 internal fun SetupWizardDraft.marksLifts(): List<LiftMark> = MarksContext.liftsFor(
     profile = goalProfile,
     novice = isNovice,
     hasBarbell = EquipmentSymbolId.BARBELL in selectedEquipmentSymbols(),
+    hasOlympicLifts = MarksContext.readsOlympicMarks(experience.toRoutineLevel()),
 )
 
 /** ¿Entra CAPABILITIES en la ruta? Objetivo general o calistenia, y novato o material ligero. */
@@ -893,7 +898,13 @@ data class SetupWizardState(
     val previewReport: PersonalizationReport? = null,
     val isPreviewLoading: Boolean = false,
     val previewError: String? = null,
-    val fixedSessionEstimateMinutes: Int? = null,
+    /**
+     * Minutos de la sesión más larga del programa previsualizado (ya con la semana armada, la aproximación y la
+     * movilidad), medidos con el estimador común ([longestSessionMinutes]); null sin programa. Sirve a TODOS los
+     * programas: la revisión final los compara con lo pedido con [SessionTimeFit].
+     */
+    val programSessionMinutes: Int? = null,
+    /** Días de entreno reales de la receta fija previsualizada (null en los programas propios y «a medida»). */
     val fixedTrainingDays: Set<Int>? = null,
     val requiresActivationConfirmation: Boolean = false,
     val machineState: WizChatMachineState = WizChatMachineState.Loading,
@@ -1015,11 +1026,15 @@ data class SetupPlanCandidate(
  * - [planId] es el plan elegido y [title] su nombre visible (nunca un id crudo).
  * - [rejection] es el rechazo de ESE plan en el barrido que lo dejó fuera; es null cuando el plan ni
  *   siquiera se evaluó (el planificador ya lo descartó por objetivo, nivel o días).
+ * - [tailoredId] (Entreno v2) es el programa «a medida» que ocupa su lugar cuando el perfil de objetivo es general (solo
+ *   ofrece su «a medida»): un plan propio de la biblioteca ya no se ofrece desde ahí pero el asistente lo arma a medida.
+ *   Con él, el aviso no es una alarma: dice qué pasó y deja ese programa a un toque ([tailoredReplacementOf]).
  */
 data class SetupDroppedSelection(
     val planId: String,
     val title: String,
     val rejection: SetupCandidateRejection?,
+    val tailoredId: String? = null,
 )
 
 /**

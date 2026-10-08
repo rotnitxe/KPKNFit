@@ -19,6 +19,7 @@ nunca instrucciones de interfaz. Tono: éxito = celebra sin exagerar; aviso = cl
 | `TRAINING_MAX` | ¿Conoces tus marcas? | Con una basta. Sin marcas, el programa sigue siendo válido. |
 | `PLAN` (general) | Tu programa a medida | Armado con tu material, tus días y tu tiempo. |
 | `PLAN` (disciplina) | Elige tu programa | Elige el que más te guste. Podrás modificarlo después. |
+| `PLAN` (aplazado: «Lo haré más adelante») | Sin programa por ahora | Lo armarás manualmente más adelante. |
 | `WEEK_LAYOUT` | Así queda tu semana | Mueve las sesiones a los días que prefieras. |
 
 ## Textos de los controles
@@ -36,6 +37,11 @@ nunca instrucciones de interfaz. Tono: éxito = celebra sin exagerar; aviso = cl
 - **Semana (tablero de siete filas)**: guía «Arrastra una sesión por su asa, o tócala y elige un día.» · mientras se lleva «Suéltala sobre un día. Fuera de la semana se cancela.» / «Suéltala en martes.» · con una elegida «Toca el día al que quieres mover «Torso A».» · día libre «Descanso» (TalkBack: «Martes, descanso»; con una sesión elegida ofrece «Mover aquí la sesión elegida»).
 - **Reparto**: «Adaptar mi programa a este reparto» · «Restablecer» · pie «Puedes cambiar todo esto cuando quieras desde tu programa.» Aviso en planes de autor: «Este programa trae su reparto de autor. Si lo adaptas, cambia su estructura original.»
   Confirmación: «¿Adaptar tu programa a «Torso y pierna»?» / «Reubicamos los ejercicios y mantenemos tu volumen semanal.» → «Adaptar» / «Mantener mi reparto».
+- **Sesión en un día de otro lugar** (la persona manda: el movimiento se permite y el aviso persiste en el tablero y en la revisión final hasta que se mueva otra vez o «Restablecer»):
+  «Esta sesión usa material del gimnasio; ese día entrenas en casa.» El lugar se dice «del gimnasio» · «de casa» · «de espacios públicos» y «en el gimnasio» · «en casa» · «en espacios públicos».
+  Si el programa no dice de qué lugar es el material y ningún lugar declarado lo cubre: «Esta sesión usa material que no hay en casa, donde entrenas ese día.»
+  En la revisión final la línea lleva por delante la sesión y su día: «Pierna A (miércoles): esta sesión usa material del gimnasio; ese día entrenas en casa.»
+  Si el material de la sesión cabe en el lugar de su nuevo día no hay aviso: la sesión pasa a ese lugar sin ruido.
 
 ## Revelado del programa
 - Overlay general: **«Estamos preparando tu programa personalizado»** — etapas «Tu material», «Tus días», «Tu tiempo», «Tus músculos», «Tus ejercicios».
@@ -43,13 +49,17 @@ nunca instrucciones de interfaz. Tono: éxito = celebra sin exagerar; aviso = cl
 - Resultado: «Tu programa está listo» · acciones «Elegir este programa», «Ver detalles», «Otra versión» · frase fija «Podrás modificarlo libremente después.»
 - Error: «No pudimos preparar tu programa. Tus respuestas siguen guardadas.» → «Reintentar».
 - Insignias de las portadas: «Hecho a tu medida», «Se adapta a ti», «Versión inicial», o el autor («Jim Wendler»).
+- Un plan propio de la biblioteca («Configurar este plan») que un perfil general ya no ofrece (solo ofrece su programa a medida): aviso sin alarma «Este programa de la biblioteca ahora se arma a medida en el asistente.» → «Elegir el programa a medida».
+- Revisión final, tiempo: si la sesión más larga del programa armado pasa de lo pedido (los «a medida» tienen un minuto de margen): «~70 min por sesión: un poco más de los 60 que pediste.»
+- Programa aplazado (PLAN y revisión final): «Sin programa por ahora» · «Lo armarás manualmente más adelante.»
+- Borrador antiguo que llega a PLAN sin objetivo: «Elige primero tu objetivo: de él sale tu programa.» → «Elegir mi objetivo». Por la ruta «desde cero» (que ya no se ofrece, pero cuyas sesiones se siguen activando): «Este borrador trae las sesiones que montaste a mano. Las verás en la revisión final.»
 
 ## Notas honestas del generador (accionables, nunca alarmistas)
 - Sin tracción: «Sin barra de dominadas ni bandas no hay ejercicios de tracción. Añade una barra o unas bandas para completar tu semana.»
 - Sin empuje vertical: «Con tu material no hay press por encima de la cabeza. Unas mancuernas o una barra lo completan.»
 - Poco tiempo: «Con {N} min vamos a lo esencial: los ejercicios principales y lo justo de accesorios.»
 - Mucho tiempo: «Con {N} min añadimos aproximaciones, movilidad y descansos más largos en los ejercicios pesados.»
-- Versión inicial por disciplina (se rotulan así hasta que el catálogo tenga sus levantamientos): Calistenia «Aún faltan progresiones avanzadas como el muscle-up o el equilibrio en manos.» · Halterofilia «Aún no incluimos arranque ni dos tiempos: trabajamos la fuerza y la potencia que los sostienen.» ·
+- Versión inicial por disciplina (se rotulan así hasta que el catálogo tenga sus levantamientos): Calistenia «Aún faltan progresiones avanzadas como el muscle-up o el equilibrio en manos.» · Halterofilia (con OL-1 ya lleva cargadas, arranques, tirones, enviones y sentadilla de arranque; la ficha dice «Es una versión inicial: sin cargada ni arranque desde bloques y sin complejos de varios levantamientos seguidos, como la cargada con envión. Soltar la barra pide discos de goma y plataforma, que la app no pregunta.») ·
   Strongman «Sin yugo, piedras ni trineo: trabajamos fuerza base y acarreos con tu material.» · Armwrestling «Sin trabajo de mesa: entrenamos antebrazo, agarre, bíceps y espalda.»
 
 ## Reglas de estilo

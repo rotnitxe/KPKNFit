@@ -435,7 +435,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 acceptFixedRecipeDifference = false,
                 programRoute = SetupProgramRoute.CUSTOMIZABLE,
                 trainingPath = SetupTrainingPath.PERSONALIZE,
-            ).let { chosen -> if (draft.selectedCatalogId == id) chosen else chosen.withoutWeekLayout() }
+            ).let { chosen -> if (draft.selectedCatalogId == id) chosen else chosen.withInvalidatedWeekLayout() }
         }
     }
 
@@ -464,7 +464,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
      * cambia de plan: si el «a medida» ya estaba elegido, sigue elegido con su versión nueva.
      */
     fun anotherPlanVersion() = updateStep(SetupStepId.PLAN) { draft ->
-        draft.copy(planVariantSeed = draft.planVariantSeed + 1).withoutWeekLayout()
+        draft.copy(planVariantSeed = draft.planVariantSeed + 1).withInvalidatedWeekLayout()
     }
 
     // ── Entreno v2: la semana armada (paso WEEK_LAYOUT) ──────────────────────
@@ -1338,8 +1338,9 @@ class SetupWizardViewModel @JvmOverloads constructor(
             .withNextDraftRevision(previous).withChangeImpacts(previous)
         val candidateInputsChanged = previousCandidateKey != candidateSetKey(changed)
         // Entreno v2: la semana armada (sesiones movidas, reparto adaptado) es del programa de las respuestas
-        // anteriores; con respuestas nuevas el programa se vuelve a armar y su semana empieza de cero.
-        val next = if (candidateInputsChanged) changed.withoutWeekLayout() else changed
+        // anteriores; con respuestas nuevas el programa se vuelve a armar y su semana empieza de cero, y el paso
+        // WEEK_LAYOUT queda pendiente de revisar (nunca se limpia en silencio).
+        val next = if (candidateInputsChanged) changed.withInvalidatedWeekLayout() else changed
         if (candidateInputsChanged) candidateGeneration += 1
         val beforePersist = _state.value.copy(machineState = WizChatMachineState.PersistingAnswer, errors = emptyMap())
         _state.value = if (candidateInputsChanged) {
@@ -1683,7 +1684,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
             _state.value = _state.value.copy(
                 programPreview = null,
                 previewReport = null,
-                fixedSessionEstimateMinutes = null,
+                programSessionMinutes = null,
                 fixedTrainingDays = null,
                 isPreviewLoading = false,
                 previewError = null,
@@ -1774,15 +1775,30 @@ class SetupWizardViewModel @JvmOverloads constructor(
      * semana armada del borrador por el ÚNICO punto que la aplica ([applyLayout]). La activación guarda este mismo
      * programa (`programPreview`), así lo que se ve es lo que se activa. La semana armada no entra en la evaluación de
      * candidatos (su caché no depende de dónde caiga cada sesión): mover una sesión re-arma solo la vista previa.
+     *
+     * Con dos o más lugares el mismo punto pone al día el lugar de cada sesión según el material de su día
+     * ([placeFitFor]), con o sin sesiones movidas: así el programa que se previsualiza y se activa nunca trae una sesión
+     * que no se pueda hacer en su día sin que la semana lo avise ([LayoutOutcome.placeConflicts]).
      */
     private suspend fun materialize(draft: SetupWizardDraft): PreparedPreview {
         val base = materializeBase(draft)
         val program = base.program ?: return PreparedPreview(base, null, null)
-        if (!draft.hasWeekLayout) return PreparedPreview(base, program, LayoutOutcome(program))
+        val placeFit = placeFitFor(draft)
+        if (!draft.hasWeekLayout && placeFit == null) return PreparedPreview(base, program, LayoutOutcome(program))
         val resolver = if (draft.adaptedSplitId != null) traitResolver() else null
-        val outcome = applyLayout(draft, program, resolver)
+        val outcome = applyLayout(draft, program, resolver, placeFit)
         ProgramExecutionContract.requireExecutable(outcome.program)
         return PreparedPreview(SetupPreview(outcome.program, base.report), program, outcome)
+    }
+
+    /**
+     * El contraste de las sesiones con el material de cada lugar ([SessionPlaceFit]); null con un solo lugar (no hay a
+     * qué contrastar) o sin catálogo de ejercicios cargado (no se puede saber qué pide cada ejercicio).
+     */
+    private fun placeFitFor(draft: SetupWizardDraft): SessionPlaceFit? {
+        if (draft.trainingPlaces.size < 2) return null
+        val catalog = (catalogRepository.state.value as? ExerciseCatalogStateV2.Ready)?.catalog ?: return null
+        return SessionPlaceFit.of(catalog, draft.trainingOptions.availability, draft.trainingPlaces)
     }
 
     /**
@@ -1961,7 +1977,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 preparingTrainingKey = null
                 _state.value = _state.value.copy(
                     programPreview = null, previewReport = null,
-                    fixedSessionEstimateMinutes = null, fixedTrainingDays = null,
+                    programSessionMinutes = null, fixedTrainingDays = null,
                     isPreviewLoading = false,
                     weekLayout = null,
                 )
@@ -1994,8 +2010,9 @@ class SetupWizardViewModel @JvmOverloads constructor(
                     lastSuccessfulTrainingKey = key
                     preparingTrainingKey = null
                     clearStalePreviews(trainingPreviewKinds)
-                    val isFixed = draft.selectedCatalogId?.let(PersonalizedPlanCatalog::find)?.source?.let { it != CatalogSource.NATIVE } == true
-                    val minutes = if (isFixed) result.program?.let(::estimateFixedSessionMinutes) else null
+                    val isFixed = isFixedRecipe(draft.selectedCatalogId)
+                    // Los minutos de la revisión: la sesión más larga del programa YA ARMADO, con el estimador común.
+                    val minutes = longestSessionMinutes(result.program)
                     val machine = _state.value.machineState
                     val restoredMachine = if (machine == WizChatMachineState.PreparingPreview) {
                         if (_state.value.draft.wizChat.currentQuestionId == WizChatQuestionId.REVIEW) {
@@ -2008,7 +2025,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
                         // publishDraft es quien la retira al terminar.
                         machine
                     }
-                    _state.value = _state.value.copy(programPreview = result.program, previewReport = result.report, fixedSessionEstimateMinutes = minutes,
+                    _state.value = _state.value.copy(programPreview = result.program, previewReport = result.report, programSessionMinutes = minutes,
                         fixedTrainingDays = if (isFixed) result.program?.let(::fixedTrainingDays) else null,
                         isPreviewLoading = false, machineState = restoredMachine,
                         selectionStale = selectionStaleFor(_state.value.draft),
@@ -2048,19 +2065,6 @@ class SetupWizardViewModel @JvmOverloads constructor(
     private fun fixedTrainingDays(program: Program): Set<Int> = program.resolvedSchedulePlan().trainingDays
         .ifEmpty { firstWeekSessions(program).mapNotNull { it.dayOfWeek }.toSet() }
 
-    private fun estimateFixedSessionMinutes(program: Program): Int? {
-        val sessions = program.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }
-            .flatMap { it.weeks }.flatMap { it.sessions }.filter { it.exercises.isNotEmpty() }
-        return sessions.maxOfOrNull { session ->
-            (session.exercises.sumOf { exercise -> exercise.sets.size * (45 + (exercise.restTime ?: 90).coerceIn(30, 300)) } + 59) / 60
-        }
-    }
-
-    private fun fixedRecipeDifference(draft: SetupWizardDraft, program: Program?, minutes: Int?): Boolean {
-        if (program == null || draft.selectedCatalogId?.let(PersonalizedPlanCatalog::find)?.source == CatalogSource.NATIVE) return false
-        val realDays = fixedTrainingDays(program)
-        return realDays != draft.selectedWeekdays || minutes != null && minutes > (draft.minutesPerSession ?: 100)
-    }
     private fun ringsKey(draft: SetupWizardDraft): List<Any?> = listOf(draft.ringsAnswers,
         draft.manualMuscleOverrides, draft.manualEnergyOverride, draft.manualStructureOverride)
 
@@ -2265,7 +2269,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
         if (GeneratedPlans.isGenerated(entryId)) {
             request.copy(reference = null, minutesPerSession = Int.MAX_VALUE)
         } else {
-            request.copy(minutesPerSession = timeBudgetWithTolerance(request.minutesPerSession))
+            request.copy(minutesPerSession = SessionTimeFit.limit(request.minutesPerSession, generated = false))
         }
 
     /**
@@ -3040,6 +3044,9 @@ class SetupWizardViewModel @JvmOverloads constructor(
             // elegiste 3 días.» → Cambiar días) en lugar del genérico «ya no está entre los planes…».
             rejection = rejections.firstOrNull { it.planId == planId }
                 ?: entry?.let { synthesizedRejectionFor(it, _state.value.draft) },
+            // Entreno v2: un plan propio de la biblioteca que un perfil GENERAL ya no ofrece (solo ofrece su «a medida»)
+            // no «cae» por culpa de nada: el asistente lo arma a medida y el aviso lo dice, sin alarma.
+            tailoredId = tailoredReplacementOf(entry, _state.value.draft.goalProfile),
         )
         // H2 (c): el plan que la persona trajo de la biblioteca es su INTENCIÓN mientras siga siendo la selección: no se
         // limpia aunque no encaje todavía (el aviso explica por qué) y, en cuanto vuelve a encajar, ya está elegido.
@@ -3058,7 +3065,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
         _state.value = current.copy(
             droppedSelection = dropped,
             programPreview = null, previewReport = null,
-            fixedSessionEstimateMinutes = null, fixedTrainingDays = null,
+            programSessionMinutes = null, fixedTrainingDays = null,
             previewError = null, errors = current.errors - "preview",
         )
         mutateDraft { draft ->
@@ -3389,10 +3396,17 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 put("programSource", "Fuente equivocada para la ruta elegida: la ruta de protocolo solo acepta recetas de autor. Cambia de ruta de forma explícita para usar un plan nativo.")
             }
         }
-        // Entreno v2: la misma tolerancia del 15 % con la que el barrido da por viable un plan de autor (con su nota
-        // «~N min por sesión»); por encima de ella la receta no cabe en el tiempo pedido.
-        if (s.fixedSessionEstimateMinutes != null && s.fixedSessionEstimateMinutes > timeBudgetWithTolerance(d.minutesPerSession ?: 100)) put("time", "Esta receta supera los ${d.minutesPerSession ?: 100} minutos por sesión; elige otra o ajusta el tiempo")
-        if (fixedRecipeDifference(d, s.programPreview, s.fixedSessionEstimateMinutes) && !d.acceptFixedRecipeDifference) put("schedule", "Confirma la rotación y la duración reales de la receta")
+        // Entreno v2: los minutos son los del estimador común sobre el programa ya armado y «¿cabe?» es la regla única
+        // del asistente ([SessionTimeFit]: la misma tolerancia del 15 % con la que el barrido da por viable un plan de
+        // autor); por encima de ella la receta no cabe en el tiempo pedido. Entre lo pedido y la tolerancia se pide
+        // confirmar la duración real, igual que cuando la receta trae otros días.
+        val longest = s.programSessionMinutes
+        if (isFixedRecipe(d.selectedCatalogId) && longest != null &&
+            !SessionTimeFit.fits(d.requestedSessionMinutes(), longest, generated = false)
+        ) {
+            put("time", "Esta receta supera los ${d.requestedSessionMinutes()} minutos por sesión; elige otra o ajusta el tiempo")
+        }
+        if (s.fixedRecipeDiffers() && !d.acceptFixedRecipeDifference) put("schedule", "Confirma la rotación y la duración reales de la receta")
         // Solo registro = sin plan y sin metas; no se exige una preparación que
         // el modo rechaza explícitamente.
         if (d.includeNutrition && !isTrackingOnly(d) && (s.nutritionPlanPreview == null || s.nutritionErrors.isNotEmpty())) {

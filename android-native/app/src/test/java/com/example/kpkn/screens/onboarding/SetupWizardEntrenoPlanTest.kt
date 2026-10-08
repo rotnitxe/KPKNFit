@@ -43,6 +43,7 @@ import com.example.kpkn.domain.onboarding.PlanRejectionReason
 import com.example.kpkn.domain.onboarding.SetupAnswerProvenance
 import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupValueState
+import com.example.kpkn.domain.onboarding.SetupWizardBlock
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.TrainingGoalProfile
 import com.example.kpkn.domain.onboarding.TrainingPlace
@@ -456,6 +457,247 @@ class SetupWizardEntrenoPlanTest {
         assertNull(recovered.errors["candidates"])
     }
 
+    // ─── Una sesión movida a un día de otro lugar ───────────────────────────────────────────────────
+
+    /** Gimnasio y casa: lunes y viernes en el gimnasio y el miércoles en casa (solo cuerpo: la casa no trae más). */
+    private val gymAndHomeAnswers = Answers(
+        profile = TrainingGoalProfile.STRENGTH_MUSCLE,
+        places = setOf(TrainingPlace.GYM, TrainingPlace.HOME),
+        days = setOf(1, 3, 5),
+        freshDay = 1,
+        minutes = 60,
+        dayPlaces = mapOf(3 to TrainingPlace.HOME),
+    )
+
+    private fun TestScope.reachWeekLayout(vm: SetupWizardViewModel, answers: Answers): SetupWizardState {
+        vm.initialize(SetupWizardMode.TRAINING_ONLY)
+        await(vm, "wizard cargado") { !it.isLoading && it.currentStep == SetupStepId.NAME }
+        walkUntil(vm, SetupStepId.PLAN, answers)
+        await(vm, "programa a medida listo") { idle(it) && it.planSweep == SetupPlanSweep.READY }
+        val generatedId = GeneratedPlans.entryIdFor(answers.profile)
+        confirm(vm, SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT) { vm.selectPlan(generatedId) }
+        return await(vm, "semana armada") { idle(it) && it.programPreview != null && it.weekLayout != null }
+    }
+
+    private fun placeOfSession(state: SetupWizardState, sessionId: String): TrainingPlace? =
+        state.weekLayout?.sessions?.firstOrNull { it.id == sessionId }?.place
+
+    @Test
+    fun aSessionMovedToADayOfAnotherPlaceTakesThatPlaceWhenItsMaterialFitsAndIsActivatedAsPreviewed() =
+        runTest(dispatcher.scheduler, timeout = 10.minutes) {
+            val vm = newVm()
+            val prepared = reachWeekLayout(vm, gymAndHomeAnswers)
+            val layout = checkNotNull(prepared.weekLayout)
+            val homeSession = layout.assignment.getValue(3)
+            assertEquals("el miércoles se arma con el material de casa", TrainingPlace.HOME, placeOfSession(prepared, homeSession))
+            assertTrue("sin nada movido no hay aviso", layout.placeConflicts.isEmpty())
+
+            // La sesión de casa (solo cuerpo) pasa al martes, que se entrena en el gimnasio: cabe, así que cambia de lugar.
+            vm.moveSession(homeSession, 2)
+            val moved = await(vm, "sesión movida y lugar puesto al día") {
+                idle(it) && it.weekLayout?.assignment?.get(2) == homeSession && placeOfSession(it, homeSession) == TrainingPlace.GYM
+            }
+            assertTrue("compatible: sin ruido", moved.weekLayout!!.placeConflicts.isEmpty())
+            assertEquals(TrainingPlace.GYM.name, sessionsOf(checkNotNull(moved.programPreview)).single { it.id == homeSession }.placeId)
+
+            confirm(vm, SetupStepId.WEEK_LAYOUT, SetupStepId.MILESTONE_TRAINING)
+            confirm(vm, SetupStepId.MILESTONE_TRAINING, SetupStepId.REVIEW_ACTIVATE)
+            await(vm, "revisión en reposo") { idle(it) && it.programPreview != null }
+            val shown = checkNotNull(vm.state.value.programPreview)
+            assertTrue("la revisión no avisa de nada", vm.state.value.weekLayout!!.placeConflicts.isEmpty())
+
+            assertNotNull("alta sin errores: ${vm.state.value.errors}", vm.commit())
+            val saved = checkNotNull(room { db.programDao().getById(vm.state.value.draft.commitId) }) { "programa no guardado" }.toProgram()
+            assertEquals("el programa activado es el previsualizado", weekShape(shown), weekShape(saved))
+            assertEquals(TrainingPlace.GYM.name, sessionsOf(saved).single { it.id == homeSession }.placeId)
+            assertEquals(2, sessionsOf(saved).single { it.id == homeSession }.dayOfWeek)
+        }
+
+    @Test
+    fun aSessionThatDoesNotFitTheNewDaysPlaceStaysWarnedInThePreviewTheReviewAndTheActivationUntilItIsUndone() =
+        runTest(dispatcher.scheduler, timeout = 10.minutes) {
+            val vm = newVm()
+            val prepared = reachWeekLayout(vm, gymAndHomeAnswers)
+            val original = checkNotNull(prepared.programPreview)
+            val mondaySession = checkNotNull(prepared.weekLayout).assignment.getValue(1)
+            assertEquals(TrainingPlace.GYM, placeOfSession(prepared, mondaySession))
+
+            // El lunes (gimnasio) cae en el miércoles (casa) e intercambia con la sesión de casa.
+            vm.moveSession(mondaySession, 3)
+            val warned = await(vm, "aviso de la sesión movida") { idle(it) && it.weekLayout?.placeConflicts?.isNotEmpty() == true }
+            val conflict = warned.weekLayout!!.placeConflicts.single()
+            assertEquals(mondaySession, conflict.sessionId)
+            assertEquals(3, conflict.day)
+            assertEquals(TrainingPlace.GYM, conflict.sessionPlace)
+            assertEquals(TrainingPlace.HOME, conflict.dayPlace)
+            assertEquals("conserva su lugar", TrainingPlace.GYM, placeOfSession(warned, mondaySession))
+            assertTrue(warned.weekLayout!!.canReset)
+
+            // «Restablecer» deshace el aviso y devuelve la semana preparada.
+            vm.resetWeekLayout()
+            val clean = await(vm, "semana restablecida") { idle(it) && it.weekLayout?.placeConflicts?.isEmpty() == true && !it.weekLayout!!.canReset }
+            assertEquals("la semana vuelve a ser la del programa", weekShape(original), weekShape(checkNotNull(clean.programPreview)))
+
+            // Se vuelve a mover y esta vez la persona sigue: la revisión y la activación llevan el mismo aviso.
+            vm.moveSession(mondaySession, 3)
+            await(vm, "aviso otra vez") { idle(it) && it.weekLayout?.placeConflicts?.isNotEmpty() == true }
+            confirm(vm, SetupStepId.WEEK_LAYOUT, SetupStepId.MILESTONE_TRAINING)
+            confirm(vm, SetupStepId.MILESTONE_TRAINING, SetupStepId.REVIEW_ACTIVATE)
+            val review = await(vm, "revisión en reposo") { idle(it) && it.programPreview != null && it.weekLayout != null }
+            assertEquals("el aviso persiste en la revisión", listOf(conflict), review.weekLayout!!.placeConflicts)
+            val shown = checkNotNull(review.programPreview)
+
+            assertNotNull("avisada, la persona sí puede activar: ${vm.state.value.errors}", vm.commit())
+            val saved = checkNotNull(room { db.programDao().getById(vm.state.value.draft.commitId) }) { "programa no guardado" }.toProgram()
+            assertEquals("el programa activado es el previsualizado", weekShape(shown), weekShape(saved))
+            val savedMonday = sessionsOf(saved).single { it.id == mondaySession }
+            assertEquals(3, savedMonday.dayOfWeek)
+            assertEquals("conserva el lugar con cuyo material se armó", TrainingPlace.GYM.name, savedMonday.placeId)
+        }
+
+    // ─── «Configurar este plan» desde la biblioteca: sin «selección caída» espuria ───────────────────
+
+    @Test
+    fun aLibraryPlanThatAGeneralProfileNoLongerOffersIsExplainedWithoutAlarmAndTheTailoredProgramIsOneTapAway() =
+        runTest(dispatcher.scheduler, timeout = 10.minutes) {
+            val vm = newVm()
+            vm.initialize(SetupWizardMode.TRAINING_ONLY, preselectedPlanId = ATHLETE_OWN)
+            val loaded = await(vm, "wizard cargado con la intención de la biblioteca") { !it.isLoading }
+            // Atleta completo prefija «Fuerza y cardio», un perfil general que solo ofrece su programa a medida.
+            assertEquals(TrainingGoalProfile.STRENGTH_CARDIO, loaded.draft.goalProfile)
+            assertEquals(ATHLETE_OWN, loaded.draft.selectedCatalogId)
+
+            vm.update { it.withInputs(TrainingGoalProfile.STRENGTH_CARDIO, setOf(TrainingPlace.GYM), days = setOf(1, 3, 5), minutes = 60) }
+            val state = await(vm, "barrido listo y plan de la biblioteca sustituido") {
+                idle(it) && it.planSweep == SetupPlanSweep.READY && it.droppedSelection != null
+            }
+            val tailoredId = GeneratedPlans.entryIdFor(TrainingGoalProfile.STRENGTH_CARDIO)
+            assertEquals(listOf(tailoredId), state.availablePlanCandidates.map { it.id })
+            val dropped = checkNotNull(state.droppedSelection)
+            assertEquals(ATHLETE_OWN, dropped.planId)
+            assertEquals(tailoredId, dropped.tailoredId)
+
+            // El aviso dice qué pasó, no es una alarma y deja el programa a medida a un toque.
+            val notice = droppedSelectionNotice(dropped, state.draft)
+            assertEquals("Este programa de la biblioteca ahora se arma a medida en el asistente.", notice.text)
+            assertTrue("sin alarma", notice.informational)
+            assertEquals(NoticeButton(CHOOSE_TAILORED_LABEL, NoticeEffect.Choose(tailoredId)), notice.primary)
+            assertNull("sin segunda salida: no hace falta cambiar nada", notice.secondary)
+
+            // El aviso persiste mientras la persona responde lo demás (cada respuesta vuelve a barrer).
+            vm.update { it.withMuscles(setOf(MuscleSymbol.CHEST)) }
+            val again = await(vm, "otro barrido") { idle(it) && it.planSweep == SetupPlanSweep.READY && it.droppedSelection != null }
+            assertEquals(tailoredId, again.droppedSelection?.tailoredId)
+
+            performNoticeEffect(notice.primary!!.effect, vm)
+            val chosen = await(vm, "programa a medida elegido y preparado") {
+                idle(it) && it.draft.selectedCatalogId == tailoredId && it.programPreview != null
+            }
+            assertNull("elegir el programa a medida cierra el aviso", chosen.droppedSelection)
+            assertEquals(PersonalizedPlanCatalog.find(tailoredId)?.displayName, chosen.programPreview?.name)
+        }
+
+    @Test
+    fun theOwnPlansOfTheSpecificProfilesAreOfferedFromThemAndNeverFallForNothing() =
+        runTest(dispatcher.scheduler, timeout = 15.minutes) {
+            // Una prueba por perfil: el plan propio que prefija cada disciplina se ofrece desde ella, se queda elegido y no hay aviso.
+            listOf(
+                STRENGTH_OWN to TrainingGoalProfile.POWERLIFTING,
+                MUSCLE_OWN to TrainingGoalProfile.BODYBUILDING,
+                POWERBUILDING_OWN to TrainingGoalProfile.POWERBUILDING,
+            ).forEach { (planId, profile) ->
+                val vm = newVm()
+                vm.initialize(SetupWizardMode.TRAINING_ONLY, draftId = "biblioteca-${profile.name}", preselectedPlanId = planId)
+                val loaded = await(vm, "wizard cargado ($profile)") { !it.isLoading }
+                assertEquals("$planId prefija $profile", profile, loaded.draft.goalProfile)
+                vm.update { it.withInputs(profile, setOf(TrainingPlace.GYM), days = setOf(1, 2, 4, 5), minutes = 90) }
+                val ready = await(vm, "barrido y programa preparado ($profile)") {
+                    idle(it) && it.planSweep == SetupPlanSweep.READY && it.programPreview != null
+                }
+                assertTrue("$planId se ofrece desde $profile: ${ready.availablePlanCandidates.map { c -> c.id }}", ready.availablePlanCandidates.any { it.id == planId })
+                assertNull("$planId: ni aviso ni selección caída", ready.droppedSelection)
+                assertEquals("$planId sigue elegido", planId, ready.draft.selectedCatalogId)
+                assertEquals("el «a medida» va delante, el propio detrás", GeneratedPlans.entryIdFor(profile), ready.availablePlanCandidates.first().id)
+            }
+        }
+
+    // ─── La semana armada invalidada queda pendiente de revisar ───────────────────────────────────────
+
+    @Test
+    fun changingDaysMaterialMinutesPlanPrioritiesOrVersionLeavesTheWeekPendingReviewInsteadOfClearingItInSilence() =
+        runTest(dispatcher.scheduler, timeout = 15.minutes) {
+            val vm = newVm()
+            vm.initialize(SetupWizardMode.TRAINING_ONLY)
+            await(vm, "wizard cargado") { !it.isLoading && it.currentStep == SetupStepId.NAME }
+            val answers = Answers(
+                profile = TrainingGoalProfile.POWERLIFTING,
+                places = setOf(TrainingPlace.GYM),
+                days = setOf(1, 2, 4, 5),
+                freshDay = 1,
+                minutes = 90,
+            )
+            walkUntil(vm, SetupStepId.PLAN, answers)
+            await(vm, "programas de powerlifting") { idle(it) && it.planSweep == SetupPlanSweep.READY }
+            val tailored = GeneratedPlans.entryIdFor(TrainingGoalProfile.POWERLIFTING)
+            confirm(vm, SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT) { vm.selectPlan(tailored) }
+            await(vm, "semana armada") { idle(it) && it.programPreview != null && it.weekLayout != null }
+
+            /** Una decisión de la persona sobre su semana, WEEK_LAYOUT confirmado y sin nada pendiente. */
+            fun TestScope.decideAndConfirmTheWeek() {
+                val layout = checkNotNull(vm.state.value.weekLayout)
+                val first = layout.assignment.entries.minBy { it.key }.value
+                val freeDay = (1..7).first { it !in layout.assignment.keys }
+                vm.moveSession(first, freeDay)
+                await(vm, "decisión sobre la semana") { idle(it) && it.draft.weekLayoutOverrides.isNotEmpty() && it.weekLayout?.assignment?.get(freeDay) == first }
+                vm.update { draft ->
+                    draft.copy(
+                        stepProgress = draft.stepProgress
+                            .recordAnswer(SetupStepId.WEEK_LAYOUT, SetupAnswerProvenance.USER_DECLARED, SetupValueState.DECLARED)
+                            .reviewDone(SetupStepId.WEEK_LAYOUT),
+                    )
+                }
+                val confirmed = await(vm, "semana confirmada") { idle(it) && SetupStepId.WEEK_LAYOUT in it.draft.stepProgress.answers }
+                assertFalse(SetupStepId.WEEK_LAYOUT in confirmed.draft.stepProgress.pendingReview)
+                assertTrue(confirmed.draft.weekLayoutOverrides.isNotEmpty())
+            }
+
+            fun TestScope.assertWeekPending(what: String, reached: (SetupWizardState) -> Boolean) {
+                val after = await(vm, "$what: barrido nuevo") { idle(it) && reached(it) && it.planSweep == SetupPlanSweep.READY && it.weekLayout != null }
+                assertTrue("$what: la semana queda pendiente de revisar", SetupStepId.WEEK_LAYOUT in after.draft.stepProgress.pendingReview)
+                assertTrue("$what: la semana de antes ya no está", after.draft.weekLayoutOverrides.isEmpty() && after.draft.adaptedSplitId == null)
+                assertTrue("$what: la respuesta se conserva, solo se revisa", SetupStepId.WEEK_LAYOUT in after.draft.stepProgress.answers)
+                assertFalse(
+                    "$what: el bloque de entreno ya no cuenta como completo",
+                    SetupWizardBlock.TRAINING in after.draft.stepProgress.completedBlocks,
+                )
+            }
+
+            // Primero el plan (con las respuestas de arranque el propio de fuerza es viable), después lo demás.
+            decideAndConfirmTheWeek()
+            vm.selectPlan(STRENGTH_OWN)
+            assertWeekPending("otro plan") { it.draft.selectedCatalogId == STRENGTH_OWN && it.programPreview != null }
+
+            decideAndConfirmTheWeek()
+            vm.toggleWeekday(6)
+            assertWeekPending("días") { it.draft.selectedWeekdays == setOf(1, 2, 4, 5, 6) && it.programPreview != null }
+
+            decideAndConfirmTheWeek()
+            vm.toggleEquipmentSymbol(EquipmentSymbolId.KETTLEBELL)
+            assertWeekPending("material") { EquipmentSymbolId.KETTLEBELL !in it.draft.selectedEquipmentSymbols() }
+
+            decideAndConfirmTheWeek()
+            vm.setSessionMinutes(75)
+            assertWeekPending("minutos") { it.draft.minutesPerSession == 75 }
+
+            decideAndConfirmTheWeek()
+            vm.toggleMuscle(MuscleSymbol.CHEST)
+            assertWeekPending("prioridades (solo reordenan, pero cambian el programa «a medida»)") { MuscleSymbol.CHEST in it.draft.priorityMuscleSymbols() }
+
+            decideAndConfirmTheWeek()
+            vm.anotherPlanVersion()
+            assertWeekPending("otra versión") { it.draft.planVariantSeed == 1 }
+        }
+
     // ═════════════════════════════════════════════════════════════════════════════════════════
     // Arnés
     // ═════════════════════════════════════════════════════════════════════════════════════════
@@ -469,6 +711,8 @@ class SetupWizardEntrenoPlanTest {
         val minutes: Int,
         val muscles: Set<MuscleSymbol> = emptySet(),
         val marks: Map<LiftMark, Double> = emptyMap(),
+        /** El lugar de cada día de entreno (solo con dos o más lugares); sin entrada, el primero de la lista. */
+        val dayPlaces: Map<Int, TrainingPlace> = emptyMap(),
     )
 
     /** Recorre la ruta REAL del alta (con sus ramas) respondiendo cada paso hasta llegar a [target]. */
@@ -496,7 +740,9 @@ class SetupWizardEntrenoPlanTest {
             SetupStepId.EQUIPMENT -> vm.updateStep(SetupStepId.EQUIPMENT) { it.withPlaces(answers.places) }
             SetupStepId.GOAL -> vm.setGoalProfile(answers.profile)
             SetupStepId.FRESH_DAY -> vm.setFreshDay(answers.freshDay)
-            SetupStepId.WEEKDAYS -> vm.updateStep(SetupStepId.WEEKDAYS) { it.withWeekdays(answers.days) }
+            SetupStepId.WEEKDAYS -> vm.updateStep(SetupStepId.WEEKDAYS) { draft ->
+                answers.dayPlaces.entries.fold(draft.withWeekdays(answers.days)) { current, (day, place) -> current.withDayPlace(day, place) }
+            }
             SetupStepId.SESSION_TIME -> vm.setSessionMinutes(answers.minutes)
             SetupStepId.CARDIO_TYPE -> vm.setStepChoice(SetupStepId.CARDIO_TYPE, "WALK")
             SetupStepId.CARDIO_TIME -> vm.setStepChoice(SetupStepId.CARDIO_TIME, "20")
@@ -651,6 +897,13 @@ class SetupWizardEntrenoPlanTest {
         ).also { viewModelStore.put("entreno-plan-${vmCounter++}", it) }
 
     private fun <T> room(block: suspend () -> T): T = runBlocking { block() }
+
+    private companion object {
+        val STRENGTH_OWN: String = com.example.kpkn.data.protocols.definitions.NativeProfileKind.STRENGTH.entryId
+        val MUSCLE_OWN: String = com.example.kpkn.data.protocols.definitions.NativeProfileKind.MUSCLE.entryId
+        val POWERBUILDING_OWN: String = com.example.kpkn.data.protocols.definitions.NativeProfileKind.POWERBUILDING.entryId
+        val ATHLETE_OWN: String = com.example.kpkn.data.protocols.definitions.NativeProfileKind.COMPLETE_ATHLETE.entryId
+    }
 
     private class RoomPersistence(db: KpknDatabase) : SetupWizardPersistence {
         private val drafts = SetupDraftRepository(db)

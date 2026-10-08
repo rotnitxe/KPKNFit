@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.screens.onboarding.SetupLayoutSession
+import com.example.kpkn.screens.onboarding.SetupPlaceConflict
 import com.example.kpkn.screens.onboarding.SetupRetryOperation
 import com.example.kpkn.screens.onboarding.SetupSplitOption
 import com.example.kpkn.screens.onboarding.SetupWeekLayout
@@ -28,6 +29,8 @@ import com.example.kpkn.screens.onboarding.design.entreno.layout.WEEK_LAYOUT_RES
 import com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutBoard
 import com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutCopy
 import com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutSession
+import com.example.kpkn.screens.onboarding.placeConflictDayName
+import com.example.kpkn.screens.onboarding.placeConflictSentence
 
 /**
  * WEEK_LAYOUT · «Así queda tu semana»: el tablero de la semana (`WeekLayoutBoard`) con las sesiones del programa
@@ -80,6 +83,9 @@ private fun WeekLayoutStepBoard(layout: SetupWeekLayout, busy: Boolean, vm: Setu
         )
         layout.refusal?.let { refusal -> EntrenoPlanNotice(text = refusal, modifier = Modifier.testTag(LAYOUT_REFUSAL_TAG)) }
         layout.notes.forEach { note -> Text(text = note, style = WizardTypography.note, color = WizardColors.textMuted) }
+        // Una sesión que cae en un día cuyo lugar no tiene su material: el movimiento se permite (la persona manda) y el
+        // aviso se queda mientras siga así; mover otra vez o «Restablecer» lo quita.
+        layout.placeConflicts.forEach { conflict -> PlaceConflictNotice(conflict) }
         // Sin repartos que ofrecer (p. ej. sesiones en varios lugares) el tablero no pinta su carril ni, con él,
         // «Restablecer»: las sesiones movidas se restablecen desde aquí.
         if (options.isEmpty() && layout.canReset) {
@@ -126,6 +132,25 @@ private fun WeekLayoutStepBoard(layout: SetupWeekLayout, busy: Boolean, vm: Setu
 }
 
 /**
+ * El aviso de una sesión que no cabe en el lugar de su día: la sesión y su día (el título lleva `heading` para TalkBack) y
+ * debajo la frase de COPY. Sin caja: texto sobre la página.
+ */
+@Composable
+private fun PlaceConflictNotice(conflict: SetupPlaceConflict) {
+    Column(
+        modifier = Modifier.fillMaxWidth().testTag("$LAYOUT_PLACE_CONFLICT_TAG-${conflict.sessionId}"),
+        verticalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
+        Text(
+            text = "${conflict.title} · ${placeConflictDayName(conflict.day)}",
+            style = WizardTypography.controlLabel,
+            color = WizardColors.text,
+        )
+        Text(text = placeConflictSentence(conflict), style = WizardTypography.bodySmall, color = WizardColors.danger)
+    }
+}
+
+/**
  * Las sesiones como las dibuja el tablero. El foco lleva además el lugar solo cuando el programa reparte sus sesiones
  * entre varios lugares (con un único lugar sería ruido).
  */
@@ -158,4 +183,7 @@ private const val PREPARING_WEEK = "Preparando tu semana…"
 internal const val LAYOUT_ADAPT_CONFIRM_TAG = "setup-layout-adapt-confirm"
 internal const val LAYOUT_ADAPT_KEEP_TAG = "setup-layout-adapt-keep"
 internal const val LAYOUT_REFUSAL_TAG = "setup-layout-refusal"
+
+/** Marca del aviso de una sesión que no cabe en el lugar de su día (sigue `-<id de la sesión>`). */
+internal const val LAYOUT_PLACE_CONFLICT_TAG = "setup-layout-place-conflict"
 internal const val LAYOUT_RETRY_TAG = "setup-layout-retry"

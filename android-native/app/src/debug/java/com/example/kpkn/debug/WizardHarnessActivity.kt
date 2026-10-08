@@ -102,6 +102,9 @@ import kotlinx.serialization.json.Json
  *    programa. `off` es el velo casi opaco que se usa sin desenfoque del sistema (el del teléfono de pruebas); `on` pide el
  *    desenfoque de la ventana, que solo se ve en un equipo que lo tenga activo (en uno sin él enseña el velo translúcido SIN
  *    desenfoque: el peor caso para el texto de la página de atrás).
+ *  - `preselect` (id de un plan de la biblioteca, p. ej. `native:complete-athlete-v2`): abre el asistente como lo hace «Configurar este
+ *    plan» (`preselectedPlanId`): el plan entra como intención con su objetivo prefijado. Con un plan que el perfil elegido ya no ofrece
+ *    se ve el aviso de «Este programa de la biblioteca ahora se arma a medida».
  *  - `reset` (booleano, `true` por defecto): reconstruye el borrador en cada arranque; con `false` reabre el que hubiera.
  *  - `autonext` (milisegundos, 0 = apagado): recorre el bloque solo. En cada paso espera el 40 % de ese tiempo con el paso VACÍO,
  *    escribe lo que contestaría la persona (como si la persona lo eligiera) y al terminar el tiempo «pulsa Continuar»
@@ -173,6 +176,7 @@ private class HarnessConfig(
     val sample: Boolean,
     val autoSelect: Boolean,
     val blur: Boolean?,
+    val preselect: String?,
 ) {
     companion object {
         fun from(intent: Intent): HarnessConfig = HarnessConfig(
@@ -197,6 +201,7 @@ private class HarnessConfig(
                 "off", "false", "0", "no" -> false
                 else -> if (intent.hasExtra("blur")) intent.getBooleanExtra("blur", false) else null
             },
+            preselect = intent.getStringExtra("preselect")?.trim()?.takeIf { it.isNotEmpty() },
         )
     }
 }
@@ -311,6 +316,7 @@ private fun HarnessRoot(config: HarnessConfig, onClose: () -> Unit) {
                     SetupWizardScreen(
                         mode = SetupWizardMode.TRAINING_ONLY,
                         draftId = id,
+                        preselectedPlanId = config.preselect,
                         viewModel = viewModel,
                         onDone = onClose,
                         onCancel = onClose,

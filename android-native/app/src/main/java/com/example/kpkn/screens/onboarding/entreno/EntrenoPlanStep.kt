@@ -23,7 +23,6 @@ import com.example.kpkn.screens.onboarding.SetupRetryOperation
 import com.example.kpkn.screens.onboarding.SetupTrainingPath
 import com.example.kpkn.screens.onboarding.SetupWizardState
 import com.example.kpkn.screens.onboarding.SetupWizardViewModel
-import com.example.kpkn.screens.onboarding.TrainingPlanStep
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardTypography
 import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanCarousel
@@ -51,14 +50,15 @@ import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanPreparingVari
  * Lee `state.planSweep`, `state.planReveals` (modelos ya calculados por el ViewModel), `state.draft`, `state.errors` y
  * `state.previewError`; escribe SOLO por el ViewModel. Lo que dura más allá de una recomposición (resultado ya revelado,
  * detalle abierto) se guarda con `rememberSaveable`; el plan elegido vive en el borrador (sobrevive a girar la pantalla
- * y a guardar y salir). Los borradores sin perfil de objetivo y la ruta «desde cero» conservan la lista clásica.
+ * y a guardar y salir). Un borrador antiguo sin perfil de objetivo o por la ruta «desde cero» (que ya no se ofrece) no tiene
+ * programa que revelar: [LegacyPlanFallback] lo dice en una línea.
  */
 @Composable
 internal fun EntrenoPlanStep(state: SetupWizardState, vm: SetupWizardViewModel) {
     val draft = state.draft
     val profile = draft.goalProfile
     if (draft.trainingPath == SetupTrainingPath.FROM_SCRATCH || profile == null) {
-        TrainingPlanStep(state = state, vm = vm)
+        LegacyPlanFallback(fromScratch = draft.trainingPath == SetupTrainingPath.FROM_SCRATCH, vm = vm)
         return
     }
     val active = state.currentStep == SetupStepId.PLAN
@@ -197,11 +197,35 @@ private fun GeneralReveal(
     }
 }
 
-/** El programa aplazado: lo que pasará y la vuelta atrás (volver a preparar el programa con las mismas respuestas). */
+/**
+ * El programa aplazado: la vuelta atrás (volver a preparar el programa con las mismas respuestas). Qué pasa lo dicen el
+ * título y el subtítulo de la sección («Sin programa por ahora» · «Lo armarás manualmente más adelante.»): el contenido
+ * del paso no los repite.
+ */
 @Composable
 private fun DeferredPlan(onResume: () -> Unit) {
-    Text(text = DEFERRED_NOTE, style = WizardTypography.bodySmall, color = WizardColors.textMuted)
     EntrenoTextAction(label = RESUME_LABEL, onClick = onResume, modifier = Modifier.testTag("setup-plan-resume"))
+}
+
+/**
+ * Un borrador antiguo que llega a PLAN sin perfil de objetivo, o por la ruta «desde cero» (que ya no se ofrece): no hay
+ * programa que revelar ni nada que inventar. Sin objetivo, una línea llana y su salida (elegir el objetivo, de donde sale el
+ * programa a medida); por la ruta «desde cero», una línea que dice dónde se ven las sesiones montadas a mano (la revisión
+ * final), porque el paso sigue pudiéndose confirmar. No escribe nada en el borrador.
+ */
+@Composable
+private fun LegacyPlanFallback(fromScratch: Boolean, vm: SetupWizardViewModel) {
+    if (fromScratch) {
+        EntrenoPlanNotice(text = LEGACY_FROM_SCRATCH_MESSAGE, modifier = Modifier.testTag(LEGACY_PLAN_TAG), error = false)
+        return
+    }
+    EntrenoPlanNotice(
+        text = CHOOSE_GOAL_FIRST_MESSAGE,
+        modifier = Modifier.testTag(LEGACY_PLAN_TAG),
+        actions = listOf(
+            EntrenoPlanNoticeAction(CHOOSE_GOAL_LABEL, "$LEGACY_PLAN_TAG-goal") { vm.editStep(SetupStepId.GOAL) },
+        ),
+    )
 }
 
 /** Razones de «por qué este programa» que caben en el revelado. */
@@ -211,10 +235,18 @@ private const val MAX_REASONS = 5
 private const val READY_TITLE = "Tu programa está listo"
 private const val ANOTHER_VERSION_LABEL = "Otra versión"
 private const val DEFER_LABEL = "Lo haré más adelante"
-private const val DEFERRED_NOTE = "Lo armarás manualmente más adelante."
 private const val RESUME_LABEL = "Preparar mi programa ahora"
 private const val RETRY_LABEL = "Reintentar"
+
+/** Textos del borrador antiguo sin objetivo o por la ruta «desde cero» (COPY.md, «Borradores antiguos»). */
+private const val LEGACY_FROM_SCRATCH_MESSAGE =
+    "Este borrador trae las sesiones que montaste a mano. Las verás en la revisión final."
+private const val CHOOSE_GOAL_FIRST_MESSAGE = "Elige primero tu objetivo: de él sale tu programa."
+private const val CHOOSE_GOAL_LABEL = "Elegir mi objetivo"
 
 /** Marcas de prueba de «Reintentar»: el barrido de programas y la vista previa del elegido. */
 internal const val RETRY_SWEEP_TAG = "setup-plan-retry"
 internal const val RETRY_PREVIEW_TAG = "setup-plan-retry-preview"
+
+/** Marca del aviso del borrador antiguo en PLAN (su acción: `-goal`). */
+internal const val LEGACY_PLAN_TAG = "setup-plan-legacy"

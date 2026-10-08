@@ -92,8 +92,8 @@ import kotlin.time.Duration.Companion.minutes
  * hogar, TIME_BUDGET, selección caída y reintento) vive en `SetupExecutableAvailabilityMatrixTest` (grupo T020).
  *
  *  1. `applyRepairs` escribe con la API de pasos y el asesor PRUEBA lo mismo que luego se aplica.
- *  2. Plan propio rechazado con reparación: aviso encima de la lista (hay otros viables) y aviso de «ninguno
- *     viable», con las etiquetas de D5 y el rechazo del plan propio antes que el de menos minutos.
+ *  2. Plan propio rechazado con reparación: el aviso del presentador único (`rejectionNotice`, el mismo que lleva la
+ *     selección caída) con las etiquetas de D5 y el rechazo del plan propio antes que el de menos minutos.
  *  3. Ningún texto que se pinta lleva ids, códigos ni el texto crudo del motor.
  *  4. E-18: el plan de la biblioteca entra como intención con el objetivo prefijado y sin confirmar ningún paso.
  */
@@ -336,51 +336,25 @@ class SetupWizardRepairTest {
         )
 
     @Test
-    fun theOwnPlanNoticeSitsAboveTheListWithTheRepairAsItsMainButton() {
+    fun theRepairOfTheOwnPlanRejectionIsTheMainButtonOfItsNotice() {
         val state = stateOf(SetupGoal.STRENGTH, cards = listOf("protocol:a", "protocol:b"), rejections = listOf(ownUnknownWithRepair))
 
-        val notice = checkNotNull(ownPlanNotice(state, droppedPlanId = null))
+        val notice = rejectionNotice(ownUnknownWithRepair, state.draft, keepSeeAlternatives = false)
 
-        assertEquals(
-            "No pudimos armar tu plan de fuerza con tus respuestas. " +
-                "Falta confirmar si tienes rack y banco.",
-            notice.text,
-        )
+        assertEquals("Falta confirmar si tienes rack y banco.", notice.text)
         assertEquals("Sí, tengo rack y banco", notice.primary?.label)
         assertEquals(NoticeEffect.Apply(listOf(confirm("squat_rack", "bench_flat"))), notice.primary?.effect)
         assertEquals("la navegación equivalente pasa a secundaria", "Confirmar material", notice.secondary?.label)
         assertEquals(NoticeEffect.Act(RejectionAction.ConfirmApparatus), notice.secondary?.effect)
         assertPlainLanguage(notice)
-        // La puerta de la lista lo entrega junto a las tarjetas.
-        val gate = candidateListGate(state)
-        assertTrue("$gate", gate is CandidateListGate.Candidates)
-        assertEquals(notice, (gate as CandidateListGate.Candidates).ownPlanNotice)
+        // El mismo rechazo, como selección caída, lleva el mismo texto tras la frase de arranque y los mismos botones.
+        val dropped = droppedSelectionNotice(SetupDroppedSelection(STRENGTH_OWN, "Fuerza", ownUnknownWithRepair), state.draft)
+        assertEquals("$DROPPED_SELECTION_LEAD ${notice.text}", dropped.text)
+        assertEquals(notice.primary, dropped.primary)
     }
 
     @Test
-    fun theOwnPlanNoticeOnlyAppearsWhenThereIsSomethingToRepair() {
-        val withRepair = listOf(ownUnknownWithRepair)
-        val cards = listOf("protocol:a")
-
-        // Sin reparación: el rechazo no tiene botón de un toque, no hay aviso encima de la lista.
-        val unrepairable = listOf(ownUnknownWithRepair.copy(repairs = emptyList()))
-        assertNull(ownPlanNotice(stateOf(SetupGoal.STRENGTH, cards, unrepairable), droppedPlanId = null))
-        // El propio ya es viable: nada que reparar aunque quede un rechazo de un barrido anterior.
-        assertNull(ownPlanNotice(stateOf(SetupGoal.STRENGTH, cards + STRENGTH_OWN, withRepair), droppedPlanId = null))
-        // Ya lo explica el aviso de la selección caída (con las mismas reparaciones).
-        assertNull(ownPlanNotice(stateOf(SetupGoal.STRENGTH, cards, withRepair), droppedPlanId = STRENGTH_OWN))
-        // Otro plan caído no lo tapa.
-        assertNotNull(ownPlanNotice(stateOf(SetupGoal.STRENGTH, cards, withRepair), droppedPlanId = "protocol:a"))
-        // Sin objetivo o con uno legacy no hay plan propio.
-        assertNull(ownPlanNotice(stateOf(null, cards, withRepair), droppedPlanId = null))
-        assertNull(ownPlanNotice(stateOf(SetupGoal.HEALTH, cards, withRepair), droppedPlanId = null))
-        // El rechazo de otro plan, aunque traiga reparaciones, no es el del plan propio del objetivo.
-        val other = listOf(ownUnknownWithRepair.copy(planId = "protocol:other"))
-        assertNull(ownPlanNotice(stateOf(SetupGoal.STRENGTH, cards, other), droppedPlanId = null))
-    }
-
-    @Test
-    fun withNoViablePlanTheNoticeSpeaksOfTheOwnPlanBeforeTheOneThatNeedsFewerMinutes() {
+    fun theNoticeSpeaksOfTheOwnPlanBeforeTheOneThatNeedsFewerMinutes() {
         // Antes se leía el primer rechazo de la lista, casi siempre el trivial de un plan que la persona ni pidió.
         val others = (1..3).map { rejection("protocol:o$it", PlanRejectionReason.TIME_BUDGET, requiredMinutes = 65) }
         val own = rejection(
@@ -391,7 +365,7 @@ class SetupWizardRepairTest {
         )
         val state = stateOf(SetupGoal.MUSCLE, rejections = others + own)
 
-        val notice = incompatibilityNotice(state)
+        val notice = primaryNoticeOf(state)
 
         assertEquals("Con las series mínimas este plan necesita 75 min por sesión y elegiste 60.", notice.text)
         assertEquals("Ajustar a 75 min", notice.primary?.label)
@@ -401,7 +375,7 @@ class SetupWizardRepairTest {
     }
 
     @Test
-    fun withNoViablePlanAndNoOwnPlanTheNoticePicksTheMostActionableRejection() {
+    fun withoutAnOwnPlanRejectionTheNoticePicksTheMostActionableOne() {
         val state = stateOf(
             SetupGoal.MUSCLE,
             rejections = listOf(
@@ -412,7 +386,7 @@ class SetupWizardRepairTest {
             ),
         )
 
-        val notice = incompatibilityNotice(state)
+        val notice = primaryNoticeOf(state)
 
         // Material por confirmar con llave antes que el tiempo; el texto nombra la llave con la etiqueta del panel.
         assertTrue(notice.text, notice.text.contains("Falta confirmar si tienes rack."))
@@ -422,28 +396,24 @@ class SetupWizardRepairTest {
     }
 
     @Test
-    fun withNoViablePlanThereAreNoAlternativesToSeeSoTheButtonFallsBackToRetry() {
+    fun withoutAListToSeeTheButtonFallsBackToRetry() {
         // El presentador solo ofrece «Ver alternativas» para estos motivos; sin lista no hay nada que ver.
         listOf(
             PlanRejectionReason.LEVEL_UNSUITABLE,
             PlanRejectionReason.RECIPE_UNAVAILABLE,
             PlanRejectionReason.NO_VALID_SUBSTITUTION,
         ).forEach { reason ->
-            val notice = incompatibilityNotice(stateOf(SetupGoal.MUSCLE, rejections = listOf(rejection("protocol:a", reason))))
+            val notice = primaryNoticeOf(stateOf(SetupGoal.MUSCLE, rejections = listOf(rejection("protocol:a", reason))))
             assertEquals("$reason", "Reintentar", notice.primary?.label)
             assertEquals("$reason", NoticeEffect.Act(RejectionAction.Retry), notice.primary?.effect)
             assertNull("$reason", notice.secondary)
         }
         // Profile: «Cambiar objetivo» sobrevive y «Ver alternativas» no.
-        val profile = incompatibilityNotice(
+        val profile = primaryNoticeOf(
             stateOf(SetupGoal.MUSCLE, rejections = listOf(rejection("protocol:a", PlanRejectionReason.PROFILE_MISMATCH))),
         )
         assertEquals("Cambiar objetivo", profile.primary?.label)
         assertNull(profile.secondary)
-        // Sin ningún rechazo por plan queda el resumen de la búsqueda y «Reintentar».
-        val empty = incompatibilityNotice(stateOf(SetupGoal.MUSCLE))
-        assertEquals("$RAW_ENGINE_TEXT resumen", empty.text)
-        assertEquals("Reintentar", empty.primary?.label)
     }
 
     @Test
@@ -455,7 +425,7 @@ class SetupWizardRepairTest {
         )
         val state = stateOf(SetupGoal.STRENGTH_MUSCLE, rejections = listOf(own))
 
-        val notice = incompatibilityNotice(state)
+        val notice = primaryNoticeOf(state)
 
         assertEquals(PlanRejectionPresenter.OWN_POWERBUILDING_TEXT, notice.text)
         assertEquals("Cambiar a Músculo", notice.primary?.label)
@@ -464,7 +434,7 @@ class SetupWizardRepairTest {
         assertPlainLanguage(notice)
         // El mismo motivo en un plan que no es el propio conserva la frase de disciplina del presentador.
         val other = rejection("protocol:phul-verified", PlanRejectionReason.PROFILE_MISMATCH)
-        val generic = incompatibilityNotice(stateOf(SetupGoal.MUSCLE, rejections = listOf(other)))
+        val generic = primaryNoticeOf(stateOf(SetupGoal.MUSCLE, rejections = listOf(other)))
         assertNotEquals(PlanRejectionPresenter.OWN_POWERBUILDING_TEXT, generic.text)
     }
 
@@ -477,7 +447,7 @@ class SetupWizardRepairTest {
             repairs = listOf(PlanRepair.SetCardioMinutes(15)),
         )
 
-        val notice = incompatibilityNotice(stateOf(SetupGoal.COMPLETE_ATHLETE, rejections = listOf(own), minutes = 20))
+        val notice = primaryNoticeOf(stateOf(SetupGoal.COMPLETE_ATHLETE, rejections = listOf(own), minutes = 20))
 
         assertEquals(
             "Con las series mínimas este plan no cabe en los 20 min que elegiste. Con 15 min de cardio sí cabe.",
@@ -522,14 +492,9 @@ class SetupWizardRepairTest {
             // Los demás rechazos no llevan reparaciones: solo el plan propio.
             assertTrue(before.candidateRejections.filter { it.planId != STRENGTH_OWN }.all { it.repairs.isEmpty() })
 
-            // Aviso encima de la lista con las etiquetas de D5.
-            val gate = candidateListGate(before) as CandidateListGate.Candidates
-            val notice = checkNotNull(gate.ownPlanNotice)
-            assertEquals(
-                "No pudimos armar tu plan de fuerza con tus respuestas. " +
-                    "Falta confirmar si tienes rack y banco.",
-                notice.text,
-            )
+            // El aviso del rechazo del plan propio, con las etiquetas de D5.
+            val notice = noticeShownFor(before)
+            assertEquals("Falta confirmar si tienes rack y banco.", notice.text)
             assertEquals("Sí, tengo rack y banco", notice.primary?.label)
             assertEquals("Confirmar material", notice.secondary?.label)
             assertPlainLanguage(notice)
@@ -544,7 +509,6 @@ class SetupWizardRepairTest {
             assertEquals(ApparatusPresence.PRESENT, availability.supports["bench_flat"])
             assertTrue("la persona tocó el paso de material", SetupStepId.AVAILABILITY in after.draft.declaredSteps)
             assertTrue(after.candidateRejections.none { it.planId == STRENGTH_OWN })
-            assertNull((candidateListGate(after) as CandidateListGate.Candidates).ownPlanNotice)
 
             // Y el plan propio se puede elegir y prepara su programa.
             vm.selectPlan(STRENGTH_OWN)
@@ -630,7 +594,7 @@ class SetupWizardRepairTest {
                     it.availablePlanCandidates.isEmpty()
             }
 
-            assertEquals(CandidateListGate.NoneViable, candidateListGate(before))
+            assertTrue("ninguno viable: no hay tarjetas", before.planCandidates.isEmpty())
             val own = before.candidateRejections.single { it.planId == MUSCLE_OWN }
             assertEquals(listOf<PlanRepair>(PlanRepair.SetMinutes(75)), own.repairs)
             // (e) La primaria que se cuenta es la del plan propio, no la del que pide menos minutos.
@@ -639,7 +603,7 @@ class SetupWizardRepairTest {
                 MUSCLE_OWN,
             )
             assertEquals(MUSCLE_OWN, primary?.planId)
-            val notice = incompatibilityNotice(before)
+            val notice = primaryNoticeOf(before)
             assertEquals("Con las series mínimas este plan necesita 75 min por sesión y elegiste 60.", notice.text)
             assertEquals("Ajustar a 75 min", notice.primary?.label)
             assertPlainLanguage(notice)
@@ -671,7 +635,7 @@ class SetupWizardRepairTest {
             }
             val own = before.candidateRejections.single { it.planId == ATHLETE_OWN }
             assertEquals(listOf<PlanRepair>(PlanRepair.SetCardioMinutes(15)), own.repairs)
-            val notice = incompatibilityNotice(before)
+            val notice = primaryNoticeOf(before)
             assertEquals("Cardio de 15 min", notice.primary?.label)
             assertTrue(notice.text, notice.text.endsWith("Con 15 min de cardio sí cabe."))
             assertPlainLanguage(notice)
@@ -701,7 +665,7 @@ class SetupWizardRepairTest {
                 listOf<PlanRepair>(PlanRepair.SetMinutes(85)),
                 beforeMinutes.candidateRejections.single { it.planId == ATHLETE_OWN }.repairs,
             )
-            assertEquals("Ajustar a 85 min", incompatibilityNotice(beforeMinutes).primary?.label)
+            assertEquals("Ajustar a 85 min", primaryNoticeOf(beforeMinutes).primary?.label)
         }
 
     @Test
@@ -931,7 +895,7 @@ class SetupWizardRepairTest {
             missing = listOf("barbell"),
             repairs = listOf(PlanRepair.SwitchGoal(PlanGoalProfile.STRENGTH_MUSCLE)),
         )
-        val notice = incompatibilityNotice(stateOf(SetupGoal.STRENGTH, rejections = listOf(toPowerbuilding)))
+        val notice = primaryNoticeOf(stateOf(SetupGoal.STRENGTH, rejections = listOf(toPowerbuilding)))
 
         assertEquals("Cambiar a Fuerza y músculo", notice.primary?.label)
         assertEquals(
@@ -944,10 +908,10 @@ class SetupWizardRepairTest {
 
         // Cambiar a Músculo no lo dice: el destino no se hace con las mancuernas del mismo modo.
         val toMuscle = toPowerbuilding.copy(repairs = listOf(PlanRepair.SwitchGoal(PlanGoalProfile.MUSCLE)))
-        val muscleNotice = incompatibilityNotice(stateOf(SetupGoal.STRENGTH, rejections = listOf(toMuscle)))
+        val muscleNotice = primaryNoticeOf(stateOf(SetupGoal.STRENGTH, rejections = listOf(toMuscle)))
         assertEquals("Cambiar a Músculo", muscleNotice.primary?.label)
         assertFalse(muscleNotice.text, muscleNotice.text.contains("mancuernas"))
-        // Y el aviso de la selección caída lo lleva igual que el de la lista.
+        // Y el aviso de la selección caída lo lleva igual.
         val dropped = droppedSelectionNotice(
             SetupDroppedSelection(STRENGTH_OWN, "Fuerza", toPowerbuilding),
             SetupWizardDraft(goal = SetupGoal.STRENGTH, daysPerWeek = 3, minutesPerSession = 60),
@@ -1337,10 +1301,7 @@ class SetupWizardRepairTest {
             )
             val notice = noticeShownFor(before)
             // Y el texto nombra el mismo banco que el botón.
-            assertEquals(
-                "No pudimos armar tu plan de fuerza con tus respuestas. Falta confirmar si tienes rack y banco regulable.",
-                notice.text,
-            )
+            assertEquals("Falta confirmar si tienes rack y banco regulable.", notice.text)
             assertEquals("Sí, tengo rack y banco regulable", notice.primary?.label)
             assertPlainLanguage(notice)
 
@@ -1541,11 +1502,28 @@ class SetupWizardRepairTest {
         exerciseCatalogRevision = "exercise-rev",
     )
 
-    /** El aviso que la pantalla del paso PLAN pinta para el plan propio, tal como lo decide la puerta de la lista. */
-    private fun noticeShownFor(state: SetupWizardState): RejectionNotice = when (val gate = candidateListGate(state)) {
-        is CandidateListGate.Candidates -> checkNotNull(gate.ownPlanNotice) { "la lista no explica el plan propio" }
-        CandidateListGate.NoneViable -> incompatibilityNotice(state)
-        else -> throw AssertionError("la puerta de la lista no explica ningún rechazo: $gate")
+    /**
+     * El aviso del plan propio del objetivo rechazado con reparación, tal como lo arma el presentador único
+     * ([rejectionNotice]) con el rechazo que dejó el barrido y sin «Ver alternativas» (aquí no hay lista que ver).
+     */
+    private fun noticeShownFor(state: SetupWizardState): RejectionNotice {
+        val ownId = checkNotNull(ownPlanIdOf(planGoalProfileOf(state.draft.goal))) { "el objetivo no tiene plan propio" }
+        val own = checkNotNull(state.candidateRejections.firstOrNull { it.planId == ownId && it.repairs.isNotEmpty() }) {
+            "el barrido no dejó un rechazo reparable del plan propio"
+        }
+        return rejectionNotice(own, state.draft, keepSeeAlternatives = false)
+    }
+
+    /**
+     * El aviso del rechazo que el presentador único elige como primario (el del plan propio, si lo hay; si no, el más
+     * accionable) y sin «Ver alternativas».
+     */
+    private fun primaryNoticeOf(state: SetupWizardState): RejectionNotice {
+        val views = state.candidateRejections.map { it.toRejectionView() }
+        val primary = checkNotNull(PlanRejectionPresenter.primary(views, ownPlanIdOf(planGoalProfileOf(state.draft.goal)))) {
+            "ningún rechazo que explicar"
+        }
+        return rejectionNotice(state.candidateRejections[views.indexOf(primary)], state.draft, keepSeeAlternatives = false)
     }
 
     /**

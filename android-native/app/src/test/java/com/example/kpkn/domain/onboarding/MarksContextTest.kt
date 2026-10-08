@@ -1,5 +1,6 @@
 package com.example.kpkn.domain.onboarding
 
+import com.example.kpkn.domain.training.generator.RoutineLevel
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -46,15 +47,28 @@ class MarksContextTest {
     }
 
     @Test
-    fun weightliftingAsksSquatPlusTheOlympicLiftsOnlyWhenTheCatalogHasThem() {
+    fun weightliftingAsksSquatPlusTheOlympicLiftsOnlyWhenTheProgramReadsThem() {
         assertEquals(listOf(LiftMark.SQUAT), lifts(TrainingGoalProfile.WEIGHTLIFTING))
         assertEquals(
             listOf(LiftMark.SQUAT, LiftMark.SNATCH, LiftMark.CLEAN_AND_JERK),
             lifts(TrainingGoalProfile.WEIGHTLIFTING, olympic = true),
         )
-        // Hoy el catálogo no trae arranque ni dos tiempos: el valor por defecto lo refleja.
-        assertEquals(false, MarksContext.CATALOG_HAS_OLYMPIC_LIFTS)
-        assertEquals(listOf(LiftMark.SQUAT), MarksContext.liftsFor(TrainingGoalProfile.WEIGHTLIFTING, novice = false))
+        // Las reservas de halterofilia de D1b leen el arranque y los dos tiempos (`OlympicMarksTest` lo mide con el generador):
+        // el valor por defecto las pregunta.
+        assertEquals(true, MarksContext.CATALOG_HAS_OLYMPIC_LIFTS)
+        assertEquals(
+            listOf(LiftMark.SQUAT, LiftMark.SNATCH, LiftMark.CLEAN_AND_JERK),
+            MarksContext.liftsFor(TrainingGoalProfile.WEIGHTLIFTING, novice = false),
+        )
+    }
+
+    @Test
+    fun theOlympicMarksAreReadOnlyFromTheIntermediateLevelOnWhichTheGeneratorProgramsThoseLifts() {
+        assertEquals(RoutineLevel.INTERMEDIATE, MarksContext.OLYMPIC_MIN_LEVEL)
+        assertEquals(false, MarksContext.readsOlympicMarks(RoutineLevel.NOVICE))
+        assertEquals(false, MarksContext.readsOlympicMarks(RoutineLevel.RETURNING))
+        assertEquals(true, MarksContext.readsOlympicMarks(RoutineLevel.INTERMEDIATE))
+        assertEquals(true, MarksContext.readsOlympicMarks(RoutineLevel.ADVANCED))
     }
 
     @Test

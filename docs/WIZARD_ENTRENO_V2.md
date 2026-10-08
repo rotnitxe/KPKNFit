@@ -86,7 +86,7 @@ cambiaron los lotes está en «Estado tras los lotes BW-1 y OL-1», al final de 
   hardcodeada en `NativeWorkoutProgressionRuntime.kt:28`.
 - No hay dato de nivel por ejercicio, de «ejercicio pesado/1RM» ni de soportes por configuración (viven en `supportRequirementsFor`). `role`
   no marca los básicos (la sentadilla es `accessory_compound`): los básicos están hardcodeados en `NativeCandidateTable`.
-- Disciplinas: calistenia 28 definiciones (faltan muscle-up, handstand, levers, L-sit); **halterofilia 0** (ni arranque ni dos tiempos);
+- Disciplinas: calistenia 28 definiciones (faltan muscle-up, handstand, levers, L-sit); **halterofilia 0** (ni arranque ni dos tiempos; OL-1 los añadió, ver «Estado tras los lotes» más abajo);
   strongman: paseo del granjero ×4, Zercher ×10, sin yugo/piedras/log/trineo; armwrestling: 10 definiciones con antebrazo primario (faltan
   desviación radial/cubital, presión lateral, dedos, gripper); powerlifting completo.
 - Material del catálogo (`equipmentId`, 19 valores) ≠ material del wizard (11 categorías + 20 llaves del subpanel + 11 llaves de símbolo).
@@ -104,6 +104,7 @@ cambiaron los lotes está en «Estado tras los lotes BW-1 y OL-1», al final de 
   empuje y de tijera, sentadilla de arranque) y de acarreos (maletín y Zercher). Catálogo 215 / 539 → 228 / 553; los enviones y la sentadilla de arranque piden rack
   (`supportRequirementsFor`); gimnasio completo 528 → 542. Siguen sin existir yugo, piedras, tronco, eje, trineo, saco de arena, barril ni neumático: **Strongman** queda limitado a paseos y
   Zercher hasta un lote posterior.
+- **Marcas olímpicas** (S-B2, con la evidencia de D1b): las reservas de halterofilia cuelgan cada levantamiento olímpico de la marca del arranque (`SNATCH`) o de los dos tiempos (`CLEAN_AND_JERK`) con una razón estimada de 0,65–1,0 y ninguno es «básico» (nivel intermedio o avanzado). Por eso `MarksContext.CATALOG_HAS_OLYMPIC_LIFTS = true`: Halterofilia pregunta sentadilla, arranque y dos tiempos, pero solo desde el nivel intermedio (`MarksContext.OLYMPIC_MIN_LEVEL`): quien empieza o vuelve no recibe esos levantamientos y no ve esos controles. `OlympicMarksTest` mide con el generador real a qué ids corresponde cada marca, que declararla cambia solo la carga de sus ejercicios (sin marca, «carga pendiente») y que se pregunta si y solo si el programa los lleva. Strongman lee la marca de los dos tiempos en su envión de empuje pero no la pregunta (ese envión sale con «carga pendiente»).
 - Inalcanzables desde cualquier símbolo: **8 de 553** (los mismos cuatro implementos raros y el curl nórdico).
 
 **Decisiones que de aquí se derivan**
@@ -142,7 +143,7 @@ una línea (`EntrenoStepNote`: sin caja, con el texto cambiando por fundido y si
 | `SESSION_TIME` | `SessionClockDial` | `setSessionMinutes` → `minutesPerSession` | el dial avisa en cada muesca y cada escritura relanza el barrido de programas: se escribe una vez a los 220 ms de que el dedo se detiene (y al cerrar el paso si quedó algo sin escribir); sin valor arranca en 60 min atenuado y el check sigue apagado |
 | `CAPABILITIES` | `CapabilitySymbols` | `setCapability` → `capabilities` | la figura hace el movimiento con el ritmo del nivel («Aún no» quieta, «Algunas» tres repeticiones y pausa, «Varias» continuo); tocar la figura avanza el nivel y cada segmento lo fija |
 | `PRIORITIES` | `MuscleSymbolGrid` + «Omitir» | `toggleMuscle`, `clearMuscles` → `priorityMuscles` / `orderPriorities` | hasta 5; las sugerencias del perfil llegan precargadas y rotuladas «Sugerido» mientras no se toque el paso; «Omitir» (arriba a la derecha, 48 dp) limpia y confirma el paso, y el resumen dice «Sin preferencia» |
-| `TRAINING_MAX` | `LiftMarksPicker` | `setLiftMark`, `setMarksUnit` → `liftMarks`, `marksUnit` | regla kg/lb por levantamiento; como el dial, escribe una vez cuando el dedo se detiene; «No la sé» borra la marca; qué levantamientos salen lo decide `MarksContext` (hoy nunca los olímpicos: `CATALOG_HAS_OLYMPIC_LIFTS = false`) |
+| `TRAINING_MAX` | `LiftMarksPicker` | `setLiftMark`, `setMarksUnit` → `liftMarks`, `marksUnit` | regla kg/lb por levantamiento; como el dial, escribe una vez cuando el dedo se detiene; «No la sé» borra la marca; qué levantamientos salen lo decide `MarksContext` (Halterofilia pregunta además el arranque y los dos tiempos desde el nivel intermedio: `CATALOG_HAS_OLYMPIC_LIFTS = true` desde que las reservas de D1b leen esas marcas, ver §1b) |
 
 Reglas comunes: ningún control lleva caja ni borde; los objetivos táctiles miden 48 dp (también los siete días del calendario: la tira
 sangra hasta 24 dp por lado hacia los márgenes, 48 dp a 360 dp y 45,7 dp a 320 dp); los títulos de ficha y de portada bajan de tamaño

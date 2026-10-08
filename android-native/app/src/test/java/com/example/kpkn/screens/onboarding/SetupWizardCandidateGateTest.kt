@@ -109,30 +109,11 @@ class SetupWizardCandidateGateTest {
     }
 
     // ═════════════════════════════════════════════════════════════════════════
-    // D2 · B-01 — la puerta de la lista (función pura)
+    // D2 · B-01 — datos de las pruebas de la selección caída
     // ═════════════════════════════════════════════════════════════════════════
 
     private fun card(id: String) = SetupPlanCandidate(
         id = id, title = "Plan $id", subtitle = "Subtítulo", description = "Descripción", source = "NATIVE",
-    )
-
-    private fun stateWith(
-        cards: List<SetupPlanCandidate> = emptyList(),
-        previewError: String? = null,
-        errors: Map<String, String> = emptyMap(),
-        rejections: List<SetupCandidateRejection> = emptyList(),
-        loading: Boolean = false,
-        selected: String? = null,
-        dropped: SetupDroppedSelection? = null,
-    ) = SetupWizardState(
-        draft = SetupWizardDraft(selectedCatalogId = selected, trainingPath = SetupTrainingPath.PERSONALIZE),
-        previewError = previewError,
-        errors = errors,
-        planCandidates = cards.take(3),
-        availablePlanCandidates = cards,
-        candidateRejections = rejections,
-        isCandidateLoading = loading,
-        droppedSelection = dropped,
     )
 
     private fun rejected(
@@ -151,87 +132,6 @@ class SetupWizardCandidateGateTest {
             reason == PlanRejectionReason.APPARATUS_ABSENT,
         apparatusKey = apparatusKey,
     )
-
-    @Test
-    fun theErrorOfTheSelectionPreviewDoesNotHideTheList() {
-        val gate = candidateListGate(
-            stateWith(
-                cards = listOf(card("a"), card("b"), card("c"), card("d")),
-                previewError = "No se pudo preparar la vista previa",
-                selected = "a",
-            ),
-        )
-
-        // Antes la puerta era `previewError`: este estado mostraba solo el aviso y ninguna tarjeta.
-        assertTrue("la lista se renderiza: $gate", gate is CandidateListGate.Candidates)
-        gate as CandidateListGate.Candidates
-        assertEquals(listOf("a", "b", "c"), gate.cards.map { it.id })
-        assertEquals("No se pudo preparar la vista previa", gate.previewError)
-        assertNull(gate.dropped)
-    }
-
-    @Test
-    fun aSearchFailureHidesTheListAndKeepsItsOwnMessage() {
-        val gate = candidateListGate(
-            stateWith(
-                errors = mapOf("candidates" to "No pude comprobar los planes. Prueba de nuevo."),
-                rejections = listOf(rejected(null, null, SetupCandidateRejectionStage.CATALOG)),
-            ),
-        )
-
-        assertEquals(CandidateListGate.SearchFailed("No pude comprobar los planes. Prueba de nuevo."), gate)
-    }
-
-    @Test
-    fun noViablePlanKeepsTheIncompatibilityExplanationInsteadOfAGenericDoor() {
-        // Con rechazos POR PLAN (planId) y `errors["candidates"]` publicado, la pantalla sigue siendo la
-        // explicación con acciones («Confirmar material», «Editar tiempo»), no el aviso genérico.
-        val gate = candidateListGate(
-            stateWith(
-                errors = mapOf("candidates" to "2 planes publicados; ninguno es ejecutable con tu material."),
-                rejections = listOf(
-                    rejected("native:a", PlanRejectionReason.APPARATUS_UNKNOWN),
-                    rejected("native:b", PlanRejectionReason.TIME_BUDGET, requiredMinutes = 40),
-                ),
-            ),
-        )
-
-        assertEquals(CandidateListGate.NoneViable, gate)
-    }
-
-    @Test
-    fun aPreviewErrorWithoutListIsNeverADoor() {
-        val gate = candidateListGate(stateWith(previewError = "Falla del preview"))
-
-        assertEquals(CandidateListGate.NoneViable, gate)
-    }
-
-    @Test
-    fun theLoadingStateWinsOverAnythingElse() {
-        val gate = candidateListGate(
-            stateWith(
-                cards = listOf(card("a")),
-                previewError = "Falla del preview",
-                errors = mapOf("candidates" to "Falla"),
-                loading = true,
-            ),
-        )
-
-        assertEquals(CandidateListGate.Loading, gate)
-    }
-
-    @Test
-    fun theDroppedSelectionNoticeOnlyAppliesWhileItMatchesTheCurrentSelection() {
-        val dropped = SetupDroppedSelection("native:a", "Plan a", rejected("native:a", PlanRejectionReason.APPARATUS_ABSENT))
-        val cards = listOf(card("native:b"), card("native:c"))
-
-        fun droppedOf(selected: String?): SetupDroppedSelection? =
-            (candidateListGate(stateWith(cards = cards, selected = selected, dropped = dropped)) as CandidateListGate.Candidates).dropped
-
-        assertEquals("selección limpia: el aviso se explica", dropped, droppedOf(null))
-        assertEquals("selección conservada (paso ya confirmado): el aviso se explica", dropped, droppedOf("native:a"))
-        assertNull("elegido otro plan: el aviso ya no corresponde", droppedOf("native:b"))
-    }
 
     // ── El aviso de la selección caída: texto llano y acción por motivo ──────
 
@@ -643,7 +543,6 @@ class SetupWizardCandidateGateTest {
             assertTrue(after.availablePlanCandidates.isNotEmpty())
             assertTrue(after.availablePlanCandidates.none { it.id == chosen })
             assertNull(after.draft.selectedCatalogId)
-            assertTrue(candidateListGate(after) is CandidateListGate.Candidates)
 
             // Sin preview relanzado: el programa del plan caído se retira, no hay error de preview y el
             // motor solo vio a ese plan UNA vez, en el barrido (no una segunda en un preview).
@@ -779,7 +678,6 @@ class SetupWizardCandidateGateTest {
         val after = awaitUntil(vm, "otro plan elegido") { isIdle(it) && it.draft.selectedCatalogId == other }
 
         assertNull(after.droppedSelection)
-        assertNull((candidateListGate(after) as CandidateListGate.Candidates).dropped)
     }
 
     @Test
@@ -841,7 +739,7 @@ class SetupWizardCandidateGateTest {
             assertTrue(state.candidateRejections.all { it.reasonCode == PlanRejectionReason.TIME_BUDGET })
             assertTrue(state.candidateRejections.all { it.requiredMinutes == 80 })
             assertFalse(state.errors["candidates"].isNullOrBlank())
-            assertEquals(CandidateListGate.NoneViable, candidateListGate(state))
+            assertTrue("sin planes viables no hay tarjetas que enseñar", state.planCandidates.isEmpty())
             assertEquals(state.candidateRejections.size, state.candidateCounts.nonViable)
             assertEquals(0, state.candidateCounts.viable)
         }
@@ -900,7 +798,7 @@ class SetupWizardCandidateGateTest {
             assertEquals(0, state.candidateCounts.viable)
             assertEquals(state.candidateRejections.size, state.candidateCounts.nonViable)
             assertEquals(state.candidateRejections.size, state.candidateCounts.evaluated)
-            assertTrue(candidateListGate(state) is CandidateListGate.Candidates)
+            assertTrue("las tarjetas siguen ahí", state.availablePlanCandidates.isNotEmpty())
         }
 
     // ═════════════════════════════════════════════════════════════════════════
@@ -928,7 +826,7 @@ class SetupWizardCandidateGateTest {
             assertEquals(CATALOG_UNAVAILABLE_MESSAGE, why.reason)
             assertTrue(failed.availablePlanCandidates.isEmpty())
             assertNull("la búsqueda no escribe previewError", failed.previewError)
-            assertEquals(CandidateListGate.SearchFailed(CATALOG_UNAVAILABLE_MESSAGE), candidateListGate(failed))
+            assertTrue("un fallo de búsqueda no enseña tarjetas", failed.planCandidates.isEmpty())
             // El catálogo sigue sin estar listo: ninguna revisión de catálogo y ninguna marca de «cargado».
             assertNull(vm.exerciseCatalogRevision())
             val loadsAfterFailure = flaky.loadCalls
@@ -944,7 +842,7 @@ class SetupWizardCandidateGateTest {
             assertNotNull(vm.exerciseCatalogRevision())
             assertNull(recovered.errors["candidates"])
             assertTrue(recovered.candidateRejections.none { it.planId == null })
-            assertTrue(candidateListGate(recovered) is CandidateListGate.Candidates)
+            assertTrue("la lista publicada enseña tarjetas", recovered.planCandidates.isNotEmpty())
         }
 
     // ═════════════════════════════════════════════════════════════════════════

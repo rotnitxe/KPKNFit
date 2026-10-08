@@ -419,8 +419,8 @@ class SetupWizardAuthoredPlansTest {
         assertTrue("la UI muestra «Este plan necesita N min»: ${strength.reason}", strength.reason.contains("min"))
         assertTrue("un rechazo interno no se presenta como incompatibilidad de usuario", strength.reasonCode != PlanRejectionReason.INTERNAL_MATERIALIZATION)
         if (swept.availablePlanCandidates.isEmpty()) {
-            // Ningún candidato cabe: la explicación del tiempo viaja intacta hasta la pantalla
-            // (CandidateIncompatibility muestra «Este plan necesita N min por sesión»).
+            // Ningún candidato cabe: la explicación del tiempo viaja intacta hasta el presentador de rechazos
+            // (`rejectionNotice` dice «Este plan necesita N min por sesión»).
             assertTrue(swept.candidateRejections.any { it.reasonCode == PlanRejectionReason.TIME_BUDGET && it.requiredMinutes != null })
         }
     }

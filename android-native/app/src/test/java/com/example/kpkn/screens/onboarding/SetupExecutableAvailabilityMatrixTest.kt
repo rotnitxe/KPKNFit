@@ -139,8 +139,9 @@ import kotlin.time.Duration.Companion.minutes
  *     (`SessionDurationEstimator`, §12.2) aplicado AQUÍ a cada sesión del programa devuelto, no
  *     solo con lo que el generador sella en `Session.targetDurationMinutes` (que además debe
  *     coincidir con esa medida: un generador no puede pasar sellando su propia cifra); una receta
- *     fija usa SU propio `state.fixedSessionEstimateMinutes`. Son dos estimadores distintos y cada
- *     aserción se hace sobre su propia fuente: aquí no se finge que coincidan.
+ *     fija publica sus minutos en `state.programSessionMinutes`, medidos con ESE mismo estimador
+ *     sobre el programa ya armado, y cabe cuando lo dice la regla única del asistente
+ *     (`SessionTimeFit.fits`: la tolerancia del 15 % con la que el barrido la dio por viable).
  *  6. T-027 — sólo cuando `row.goal == MIXED`: el cardio tiene que ser CONTENIDO ESTRUCTURADO
  *     emitido por el motor —exactamente un bloque de cardio por día de entrenamiento, con el tipo
  *     y los minutos REALES declarados en el borrador (CAMINAR), sin cardio suelto, sin cardio
@@ -1237,13 +1238,18 @@ class SetupExecutableAvailabilityMatrixTest {
     }
 
     /**
-     * El aviso que la persona ve para el plan propio, EXACTAMENTE como lo decide la pantalla del paso PLAN: el de
-     * encima de la lista cuando hay otros planes viables y el de «ningún plan viable» cuando no hay ninguno.
+     * El aviso del rechazo que explica el plan propio, EXACTAMENTE como lo arma el presentador único (`rejectionNotice`, el
+     * mismo texto y los mismos botones que lleva la selección caída): el del plan propio con reparación y, si no lo hay, el
+     * rechazo que el presentador elige como primario. Sin «Ver alternativas»: aquí no hay lista que ver.
      */
-    private fun t020Notice(state: SetupWizardState): RejectionNotice = when (val gate = candidateListGate(state)) {
-        is CandidateListGate.Candidates -> checkNotNull(gate.ownPlanNotice) { "T020: la lista no explica el plan propio" }
-        CandidateListGate.NoneViable -> incompatibilityNotice(state)
-        else -> throw AssertionError("T020: la puerta de la lista no explica ningún rechazo: $gate")
+    private fun t020Notice(state: SetupWizardState): RejectionNotice {
+        val ownId = ownPlanIdOf(planGoalProfileOf(state.draft.goal))
+        val rejections = state.candidateRejections
+        val views = rejections.map { it.toRejectionView() }
+        val chosen = rejections.firstOrNull { it.planId == ownId && it.repairs.isNotEmpty() }
+            ?: PlanRejectionPresenter.primary(views, ownId)?.let { view -> rejections[views.indexOf(view)] }
+            ?: throw AssertionError("T020: ningún rechazo que explicar")
+        return rejectionNotice(chosen, state.draft, keepSeeAlternatives = false)
     }
 
     /** Ningún texto del aviso lleva ids, tokens de material, códigos cerrados ni texto crudo del motor. */
@@ -1478,7 +1484,7 @@ class SetupExecutableAvailabilityMatrixTest {
                 val why = failed.candidateRejections.single()
                 assertNull("el rechazo es global: no hay candidato que evaluar", why.planId)
                 assertEquals(PlanRejectionReason.CATALOG_NOT_READY, why.reasonCode)
-                assertEquals(CandidateListGate.SearchFailed(CATALOG_UNAVAILABLE_MESSAGE), candidateListGate(failed))
+                assertTrue("un fallo de búsqueda no enseña tarjetas", failed.availablePlanCandidates.isEmpty())
                 // C.P11: el presentador lo dice en llano y su botón es «Reintentar».
                 val presented = PlanRejectionPresenter.present(why.toRejectionView(), presentationContextOf(failed.draft))
                 assertEquals(PlanRejectionPresenter.CATALOG_TEXT, presented.text)
@@ -1492,7 +1498,7 @@ class SetupExecutableAvailabilityMatrixTest {
 
                 assertNull(recovered.errors["candidates"])
                 assertTrue(recovered.candidateRejections.none { it.planId == null })
-                assertTrue(candidateListGate(recovered) is CandidateListGate.Candidates)
+                assertTrue("la lista publicada enseña tarjetas", recovered.planCandidates.isNotEmpty())
                 assertTrue("las respuestas siguen intactas", matchesRequested(recovered.draft, row))
             }
         }
@@ -2523,7 +2529,7 @@ class SetupExecutableAvailabilityMatrixTest {
                 evidence["attempts"] = attempts.ifEmpty { listOf("-") }.joinToString(" ;; ")
                 evidence["selectedId"] = state.draft.selectedCatalogId ?: "-"
                 evidence["previewError"] = state.previewError ?: "-"
-                evidence["fixedEstimate"] = state.fixedSessionEstimateMinutes?.toString() ?: "-"
+                evidence["fixedEstimate"] = state.programSessionMinutes?.toString() ?: "-"
                 evidence["limitations"] = state.previewReport?.limitations?.joinToString(" | ")?.ifBlank { "-" } ?: "-"
 
                 assertTrue(
@@ -2697,14 +2703,22 @@ class SetupExecutableAvailabilityMatrixTest {
                 )
             }
         } else {
-            val estimate = state.fixedSessionEstimateMinutes
+            val estimate = state.programSessionMinutes
             assertTrue(
-                "${row.id}: una receta fija debe publicar su propia estimación de sesión",
+                "${row.id}: una receta fija debe publicar los minutos de su sesión más larga",
                 estimate != null,
             )
+            assertEquals(
+                "${row.id}: los minutos publicados son los del estimador común sobre el programa",
+                SessionDurationEstimator.estimate(
+                    sessions.filter { it.allExercises().isNotEmpty() }.maxByOrNull { SessionDurationEstimator.estimate(it).totalSeconds }!!,
+                ).totalMinutes,
+                estimate,
+            )
             assertTrue(
-                "${row.id}: la receta fija estima ${estimate} min y el presupuesto es ${row.minutes}",
-                estimate!! <= row.minutes,
+                "${row.id}: la receta fija estima ${estimate} min y el presupuesto es ${row.minutes} " +
+                    "(con la tolerancia del asistente caben ${SessionTimeFit.limit(row.minutes, generated = false)})",
+                SessionTimeFit.fits(row.minutes, estimate!!, generated = false),
             )
         }
 
