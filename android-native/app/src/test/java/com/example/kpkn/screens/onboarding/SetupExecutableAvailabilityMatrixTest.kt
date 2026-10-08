@@ -46,6 +46,7 @@ import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogRepositoryV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogStateV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2Loader
 import com.example.kpkn.domain.onboarding.AuthoredPlanFixtures
+import com.example.kpkn.domain.onboarding.EntrenoStepValues
 import com.example.kpkn.domain.onboarding.PlanGoalMatcher
 import com.example.kpkn.domain.onboarding.PlanGoalProfile
 import com.example.kpkn.domain.onboarding.PlanRejectionReason
@@ -106,7 +107,7 @@ import kotlin.time.Duration.Companion.minutes
  *
  * Qué demuestra y qué NO demuestra:
  * - Evalúa perfiles VÁLIDOS y explícitos de principio a fin (los 24 originales A12, B6, C2,
- *   D2, E1 y F —que desde 2026-10-02 son F-m20 negativa + F-m28 positiva, ver GRUPO F—, más
+ *   D2, E1 y F —esta última, una sola fila positiva desde 2026-10-08, ver GRUPO F—, más
  *   los de T027 y la fila de bloqueo T-001) contra
  *   los motores de producción ([com.example.kpkn.domain.onboarding.SetupTrainingPlanner],
  *   `SimpleCyclePersonalizer` a través de `materializeProgram` del VM, y las recetas
@@ -155,7 +156,7 @@ import kotlin.time.Duration.Companion.minutes
  *     oráculo: si el producto la bloquea, FALLA y ese rojo es el baseline de T-001 (AC-T001-01),
  *     sin relajar la expectativa.
  *
- * GRUPO A (consolidación 2026-10-01; rediseñado en Entreno v2, 2026-10-07): el mínimo real de Músculo
+ * GRUPO A (consolidación 2026-10-01; rediseñado en Entreno v2, 2026-10-07 y 2026-10-08): el mínimo real de Músculo
  * corporal principiante era 21 min con la aproximación técnica por patrón (dos aproximaciones de 90 s en el
  * día más largo) y con la aproximación y movilidad obligatorias es 19 min en las cuatro frecuencias del
  * grupo (1, 3, 5 y 6 días): un día de peso corporal fácil no tiene ejercicios pesados, así que no lleva
@@ -166,28 +167,31 @@ import kotlin.time.Duration.Companion.minutes
  * corporal + la movilidad breve (más los accesorios que el suelo de dosis diaria obliga a conservar). El día
  * más largo de cada fila —BFA/BFB en 1 y 3 días, BL y BL_MRV en 5 y 6— son 3 H + la movilidad = 1110–1120 s
  * = 18,5–18,7 → 19 min (el mismo piso con 30 s que con 40 s de movilidad); BU (708 s + la movilidad = 12,3–12,5
- * → 13 min) queda por debajo. Como el asistente no admite menos de 20 min, ya no existe una fila negativa de
- * Músculo corporal: `rowsA()` conserva sus 12 positivos con {30,60,100} min y las 4 filas de 20 min
- * (`T019_A_…_20min_…`) son POSITIVAS con el plan PROPIO `native:muscle-foundation-v2` como testigo —no
- * cualquier otro candidato que también quepa— y su sesión más larga mide el piso independiente, 19 min, con
- * un minuto de margen. La antigua fila de suficiencia en el piso (`A21`) desaparece: no se puede pedir 19 min.
- * El negativo de presupuesto realmente insuficiente pasa a Atleta corporal de 1 día
- * ([independentAthleteBodyweightFloorMinutes]). Los contadores de A12, B6, C2, D2 y E1 no cambian (F pasa
- * de 1 a 2 filas: ver GRUPO F); las filas A20 y las de Atleta completo con material completo
+ * → 13 min) queda por debajo. Como el asistente no admite menos de 30 min (decisión del 2026-10-08; antes 20),
+ * el piso queda 11 min por debajo del mínimo y no existe una fila negativa de Músculo corporal: `rowsA()` son sus
+ * 12 positivos con {30,60,100} min y las 4 de 30 min —el mínimo del reloj— exigen además el plan PROPIO
+ * `native:muscle-foundation-v2` como testigo (no vale cualquier otro candidato que también quepa) y que su sesión
+ * más larga caiga entre el piso independiente de ESA fila (19 min) y los 30 pedidos (el motor mide 21 o 23). La
+ * antigua fila de suficiencia en el piso (`A21`) desapareció con el mínimo de 20 min, y con él las 4 filas de 20 min
+ * (`A20`): no se puede pedir menos de 30. El negativo de presupuesto realmente insuficiente es Atleta corporal de
+ * 1 día ([independentAthleteBodyweightFloorMinutes]). Los contadores de A12, B6, C2, D2 y E1 no cambian (F es ahora
+ * 1 fila: ver GRUPO F); las filas de Atleta completo con material completo
  * (`T006_Q4_completeAthlete_full_material_…`) se suman aparte. B y T027 siguen siendo la regresión del
  * generador HISTÓRICO `native:strength-cardio` (MIXED).
  *
  * GRUPO F (consolidación 2026-10-02; testigo cambiado en la curaduría 2026-10-03, C.P2b; rediseñado en
- * Entreno v2): la fila F-presupuesto-minimo (Músculo, principiante, 11 categorías declaradas, 3 días, 20 min)
- * era NEGATIVA porque los tres candidatos del planner —`native:machine-muscle`, `native:muscle-foundation-v2`
- * y `native:bodyweight`— rechazaban con TIME_BUDGET tipado (mínimos de 21, 28 y 21 min). Con la aproximación
- * nueva `native:machine-muscle` y `native:bodyweight` caben a 20 min (movilidad breve y, en el de máquina,
- * la rampa corta del primer ejercicio), así que ya no hay un presupuesto admitido en el que fallen los tres y
- * F-m20 pasa a ser una fila POSITIVA que, además, exige que el plan PROPIO se rechace por tiempo con el mínimo
- * tipado dentro del rango independiente de abajo (el mínimo exacto de cada candidato lo fija el oráculo del
- * dominio, `NativeProfileRecipeAndFitterTest.time_budget_reports_the_exact_first_viable_minute`). F-m28 queda
- * como suficiencia: con el extremo alto del rango ese plan llega a un programa ejecutable cuya sesión más
- * larga mide un valor del rango.
+ * Entreno v2 y de nuevo el 2026-10-08): la fila F-presupuesto-minimo (Músculo, principiante, 11 categorías
+ * declaradas, 3 días, 20 min) era NEGATIVA porque los tres candidatos del planner —`native:machine-muscle`,
+ * `native:muscle-foundation-v2` y `native:bodyweight`— rechazaban con TIME_BUDGET tipado (mínimos de 21, 28 y
+ * 21 min). Con la aproximación nueva `native:machine-muscle` y `native:bodyweight` cabían a 20 min y F-m20 pasó a
+ * ser una fila POSITIVA que exigía que el plan PROPIO se rechazara por tiempo con el mínimo dentro del rango
+ * independiente de abajo (F-m28 era la suficiencia). Con el mínimo del reloj en 30 min el plan propio ya cabe en
+ * ese escenario (su mínimo, 26–28 min, queda por debajo): la fila es F-m30, positiva, con el plan PROPIO como
+ * testigo y su sesión más larga entre el piso del rango (25 min) y los 30 pedidos (el motor mide 28). F-m20 y F-m28
+ * desaparecieron: la primera por no poder pedirse y la segunda porque 28 min es menos de lo que el reloj ofrece.
+ * Ya no hay un presupuesto admitido en el que el plan propio de Músculo se rechace por tiempo mientras otros caben
+ * (los de Músculo caben todos con 30 min); los rechazos de tiempo del reloj real son los de Fuerza y músculo con 1 o
+ * 2 días y los de Atleta completo, y los cubren T020_c (el aviso con «Ajustar a N min») y la fila negativa de Atleta.
  *
  * El rango del plan propio sale de [independentOwnMusclePlanFloorBounds] (no lee el motor): con material el
  * calendario de 3 días es FA/FB/FA (r2 §11.3: FA = S, B, R, D y core; FB = U, O, V, D y gemelo) y el paso 2
@@ -200,12 +204,10 @@ import kotlin.time.Duration.Companion.minutes
  * 8–12 repeticiones, no «cercano al 1RM», y lleva la rampa corta del novato (50 % × 6 y 75 % × 3 con 30 y
  * 45 s de descanso: 135 s) y su movilidad previa, de 30 s (un movimiento) a 240 s (el tope de 4 min de la
  * movilidad del primer ejercicio de un novato). Total: de 1449 s a 1659 s = de 24,2 → 25 a 27,7 → 28 min.
- * Medido con el motor el 2026-10-07: a 20 min el plan propio informa TIME_BUDGET con 26 min (dentro del rango)
- * y con 28 min las sesiones de la semana miden 27 y 28 min.
- * F-m20 exige que `native:muscle-foundation-v2` rechace con TIME_BUDGET TIPADO y un requiredMinutes dentro de
- * ese rango y que otro candidato llegue a un programa ejecutable; F-m28 exige que ESE plan llegue a un
- * programa ejecutable con 28 min y que su sesión más larga mida un valor del rango. Contadores sin cambios: las
- * 25 filas originales (A12, B6, C2, D2, E1 y F2).
+ * Medido con el motor el 2026-10-07: a 20 min el plan propio informaba TIME_BUDGET con 26 min (dentro del rango)
+ * y con 28 min las sesiones de la semana medían 27 y 28 min. F-m30 exige que `native:muscle-foundation-v2` llegue a un
+ * programa ejecutable con 30 min y que su sesión más larga caiga entre el extremo bajo de ese rango (25) y los 30
+ * pedidos. Contadores: A12, B6, C2, D2, E1 y F1.
  *
  * Las notas no fatales del motor (`previewReport.limitations`) NO son un fallo.
  *
@@ -757,26 +759,15 @@ class SetupExecutableAvailabilityMatrixTest {
 
     /**
      * A12: MÚSCULO, NEW→BEGINNER, material declarado explícitamente VACÍO (solo peso corporal),
-     * días {1,3,5,6} × minutos {30,60,100}. Los 20 min van aparte: el piso real es 19 min y esas
-     * cuatro filas son positivas con un minuto de margen
-     * ([T019_A_musculo_new_peso_corporal_20min_4_filas_con_margen]).
+     * días {1,3,5,6} × minutos {30,60,100}. Las de 30 min —el mínimo del reloj— son positivas con el plan PROPIO
+     * `native:muscle-foundation-v2` como testigo (otro candidato que también quepa no vale) y su sesión más larga entre el
+     * piso independiente de la fila (19 min, aritmética en [independentBodyweightMuscleFloorMinutes]) y los 30 pedidos. Con
+     * la aproximación y movilidad obligatorias el piso queda 11 min por debajo del mínimo del reloj, así que ya no hay un
+     * rechazo TIME_BUDGET que comprobar con estas entradas: el negativo de presupuesto insuficiente es ahora
+     * [T006_Q4_bodyweight_time_below_minimum_is_a_structured_negative].
      */
     @Test
     fun T019_A_musculo_new_peso_corporal_12_filas() = runGroup("A", rowsA(), 25.minutes)
-
-    /**
-     * A20 (positiva desde Entreno v2; antes negativa con 21 min): las mismas entradas de A con el
-     * presupuesto mínimo que admite el asistente, 20 min. Con la aproximación y movilidad obligatorias el
-     * piso de Músculo corporal es 19 min en cada una de las cuatro frecuencias (aritmética independiente
-     * por fila en [independentBodyweightMuscleFloorMinutes]), así que el plan PROPIO
-     * `native:muscle-foundation-v2` —el testigo: otro candidato que también quepa no vale— debe llegar a
-     * un programa ejecutable y su sesión más larga debe medir exactamente ese piso. Cambió de sentido: ya
-     * no hay un rechazo TIME_BUDGET que comprobar con estas entradas; el negativo de presupuesto
-     * insuficiente es ahora [T006_Q4_bodyweight_time_below_minimum_is_a_structured_negative].
-     */
-    @Test
-    fun T019_A_musculo_new_peso_corporal_20min_4_filas_con_margen() =
-        runGroup("A20", rowsAAtTheMinimumBudget(), 15.minutes)
 
     /** B6: MIXED, INTERMEDIATE, 11 categorías, cardio WALK 10 min, días dentro y fuera de 2..4. */
     @Test
@@ -796,22 +787,20 @@ class SetupExecutableAvailabilityMatrixTest {
         runGroup("E", rowsE(), 15.minutes)
 
     /**
-     * F2: MÚSCULO, NEW, 11 categorías, 3 días. F-m20 (presupuesto mínimo admitido) es POSITIVA desde
-     * Entreno v2 (antes negativa): caben otros candidatos (`native:machine-muscle`, `native:bodyweight`),
-     * pero el plan propio `native:muscle-foundation-v2` sigue rechazando con TIME_BUDGET tipado y un
-     * mínimo dentro del rango independiente (25..28 min, ver GRUPO F y
-     * [independentOwnMusclePlanFloorBounds]). F-m28 es la suficiencia: con el extremo alto del rango ese
-     * mismo plan llega a un programa ejecutable cuya sesión más larga cae dentro del rango.
+     * F1: MÚSCULO, NEW, 11 categorías, 3 días, 30 min (el mínimo del reloj). Positiva con el plan propio
+     * `native:muscle-foundation-v2` como testigo: su mínimo (25..28 min, ver GRUPO F y
+     * [independentOwnMusclePlanFloorBounds]) queda por debajo de los 30 y su sesión más larga cae entre el extremo bajo de ese
+     * rango y los 30 pedidos. Antes eran dos filas con 20 y 28 min (el rechazo del plan propio y su suficiencia en el rango).
      */
     @Test
-    fun T019_F_musculo_new_todo_el_material_3_dias_20min() = runGroup("F", rowsF(), 15.minutes)
+    fun T019_F_musculo_new_todo_el_material_3_dias_30min() = runGroup("F", rowsF(), 15.minutes)
 
     /**
      * T-027 — REGRESIÓN REAL DEL ViewModel para las frecuencias **dentro** de 2..4 del objetivo
      * MIXED (2, 3 y 4 días / 60 min, INTERMEDIATE, las 11 categorías, cardio CAMINAR 10 min).
      *
-     * Son TRES filas ADITIVAS: las originales (A12, B6, C2, D2, E1 y F, esta última desdoblada en
-     * F-m20/F-m28 por el GRUPO F) se conservan tal cual y este método NO las sustituye. Se reusan
+     * Son TRES filas ADITIVAS: las originales (A12, B6, C2, D2, E1 y F, esta última con una sola fila
+     * F-m30 desde el GRUPO F rediseñado) se conservan tal cual y este método NO las sustituye. Se reusan
      * `runGroup`/`evaluateRow` y TODO el oráculo de `assertProgramContract`, incluida la sección MIXED que exige cardio estructurado real. Su
      * propósito es que la ampliación de la familia nativa a 1..6 no rompa lo que ya funcionaba, y
      * que las frecuencias 2, 3 y 4 con cardio se comprueban por el mismo camino real que 1, 5 y 6.
@@ -1152,8 +1141,13 @@ class SetupExecutableAvailabilityMatrixTest {
     //
     //  a. Fuerza + gimnasio completo SIN confirmar soportes: falta confirmar, «Sí, tengo rack y banco».
     //  b. Fuerza en casa: con mancuernas «Cambiar a Fuerza y músculo»; sin resistencia «Cambiar a Músculo».
-    //  c. TIME_BUDGET (Músculo en 20 min): «Ajustar a N min» con el mínimo EXACTO del plan propio.
-    //  d. Selección caída: el plan elegido deja de caber al bajar el tiempo; el aviso lleva la reparación.
+    //  c. TIME_BUDGET (Fuerza y músculo, 1 día, en 30 min): «Ajustar a N min» con el mínimo EXACTO del plan propio.
+    //  d. (retirada el 2026-10-08) Selección caída por tiempo con el plan propio: con el reloj desde 30 min el motor real ya no
+    //     tiene un plan propio que no quepa mientras otro plan sí (los de Músculo caben todos con 30 min; los de Fuerza y músculo
+    //     de 1 o 2 días y los de Atleta completo son el único candidato que publica el planificador, así que sin otro que quepa
+    //     no hay lista ni plan «caído»). El contrato de la selección caída lo cubren `SetupWizardCandidateGateTest` y
+    //     `SetupWizardRepairTest` con el motor guionizado y `SetupWizardAuthoredPlansTest` con el real (un plan de autor que
+    //     deja de caber al bajar al mínimo).
     //  e. Reintento tras CATALOG_NOT_READY (repositorio que falla una vez).
     //  f. C.P6: un plan de autor o un método elegido en el asistente se llama como su ficha y toma el modo de su disciplina.
 
@@ -1396,25 +1390,27 @@ class SetupExecutableAvailabilityMatrixTest {
 
     @Test
     fun T020_c_time_budget_ofrece_ajustar_al_minimo_exacto_del_plan_propio() = runTest(timeout = 10.minutes) {
-        withT020Vm("c-musculo-20-min") { vm ->
-            val own = NativeProfileKind.MUSCLE.entryId
-            // Las mismas entradas que la fila F-m20: a 20 min ningún candidato cabe y el propio pide más que los demás.
-            val row = t020Row("c", SetupGoal.MUSCLE, SetupExperience.NEW, allCategories, days = 3, minutes = 20)
+        withT020Vm("c-fuerza-y-musculo-1-dia-30-min") { vm ->
+            val own = NativeProfileKind.POWERBUILDING.entryId
+            // El reloj no baja de 30 min y a 30 el plan propio de Músculo cabe con cualquier nivel y días; el que no cabe es el de
+            // Fuerza y músculo de 1 día (sus básicos con aproximación y movilidad piden 33 min a quien empieza): es el único
+            // candidato que publica el planificador con 1 día, así que el aviso habla de él y no hay otro que pida menos.
+            val row = t020Row("c", SetupGoal.STRENGTH_MUSCLE, SetupExperience.NEW, allCategories, days = 1, minutes = MINIMUM_SESSION_MINUTES)
             applyFixture(vm, row)
-            val before = requireSettled(vm, "plan propio de Músculo rechazado por tiempo") { state ->
+            val before = requireSettled(vm, "plan propio de Fuerza y músculo rechazado por tiempo") { state ->
                 matchesRequested(state.draft, row) &&
                     state.candidateRejections.any { it.planId == own && it.reasonCode == PlanRejectionReason.TIME_BUDGET }
             }
 
             val rejection = before.candidateRejections.single { it.planId == own }
             val required = checkNotNull(rejection.requiredMinutes) { "el rechazo de tiempo informa el mínimo exacto" }
-            assertTrue("el mínimo supera lo elegido y cabe en el wizard: $required", required in 21..100)
+            assertTrue("el mínimo supera lo elegido y cabe en el wizard: $required", required in (MINIMUM_SESSION_MINUTES + 1)..100)
             assertEquals(listOf<PlanRepair>(PlanRepair.SetMinutes(required)), rejection.repairs)
-            // El aviso habla del plan PROPIO (no del que pida menos minutos) y da el botón de ajuste.
+            // El aviso habla del plan PROPIO y da el botón de ajuste, con un N que el reloj ofrece (nunca menos de 30).
             val primary = PlanRejectionPresenter.primary(before.candidateRejections.map { it.toRejectionView() }, own)
             assertEquals(own, primary?.planId)
             val notice = t020Notice(before)
-            assertTrue(notice.text, notice.text.contains("necesita $required min por sesión y elegiste 20"))
+            assertTrue(notice.text, notice.text.contains("necesita $required min por sesión y elegiste $MINIMUM_SESSION_MINUTES"))
             assertEquals("Ajustar a $required min", notice.primary?.label)
             assertT020PlainLanguage(notice)
 
@@ -1427,46 +1423,6 @@ class SetupExecutableAvailabilityMatrixTest {
                 .flatMap { it.weeks }.flatMap { it.sessions }
                 .maxOf { SessionDurationEstimator.estimate(it).totalMinutes }
             assertTrue("la sesión más larga ($longest min) cabe en los $required min", longest <= required)
-        }
-    }
-
-    @Test
-    fun T020_d_seleccion_caida_al_bajar_el_tiempo_lleva_la_reparacion_en_su_aviso() = runTest(timeout = 10.minutes) {
-        withT020Vm("d-seleccion-caida") { vm ->
-            val own = NativeProfileKind.MUSCLE.entryId
-            val row = t020Row("d", SetupGoal.MUSCLE, SetupExperience.NEW, allCategories, days = 3, minutes = 60)
-            applyFixture(vm, row)
-            requireSettled(vm, "plan propio viable con 60 min") { state ->
-                matchesRequested(state.draft, row) && state.availablePlanCandidates.any { it.id == own }
-            }
-            vm.selectPlan(own)
-            if (!awaitPreviewFor(vm, own, PREVIEW_BUDGET_MS)) {
-                throw AssertionError("T020: la vista previa de $own no se asentó | ${stateDump(vm.state.value)}")
-            }
-            assertNotNull("el plan elegido prepara su programa", vm.state.value.programPreview)
-
-            // Entre el mínimo de los planes más cortos (19–20 min) y el del propio (26): el propio ya no cabe y los demás sí,
-            // así que la lista sigue ahí y el plan elegido cae con su aviso (si ninguno cupiera no habría lista).
-            vm.updateStep(SetupStepId.SESSION_TIME) { it.copy(minutesPerSession = 24) }
-            val dropped = requireSettled(vm, "selección caída") { it.droppedSelection != null }
-
-            val fallen = checkNotNull(dropped.droppedSelection)
-            assertEquals(own, fallen.planId)
-            val why = checkNotNull(fallen.rejection) { "el plan se evaluó: tiene rechazo" }
-            assertEquals(PlanRejectionReason.TIME_BUDGET, why.reasonCode)
-            val required = checkNotNull(why.requiredMinutes)
-            assertEquals(listOf<PlanRepair>(PlanRepair.SetMinutes(required)), why.repairs)
-            val notice = droppedSelectionNotice(fallen, dropped.draft)
-            assertTrue(notice.text, notice.text.startsWith(DROPPED_SELECTION_LEAD))
-            assertTrue(notice.text, notice.text.contains("necesita $required min por sesión y elegiste 24"))
-            assertEquals("Ajustar a $required min", notice.primary?.label)
-            assertT020PlainLanguage(notice)
-
-            performNoticeEffect(checkNotNull(notice.primary).effect, vm)
-            val fixed = requireSettled(vm, "plan propio viable otra vez") { state ->
-                state.draft.minutesPerSession == required && state.availablePlanCandidates.any { it.id == own }
-            }
-            assertNull("la búsqueda nueva retira el aviso de la selección caída", fixed.droppedSelection)
         }
     }
 
@@ -1739,12 +1695,22 @@ class SetupExecutableAvailabilityMatrixTest {
 
     private val allCategories: Set<EquipmentCategory> = EquipmentCategory.entries.toSet()
 
-    /** Días del grupo A: la misma lista para los 12 positivos y las 4 filas de 20 min. */
+    /** Días del grupo A: la misma lista para los 12 positivos. */
     private val groupADays = listOf(1, 3, 5, 6)
 
-    /** A12 positivos: 4 frecuencias × {30,60,100} min. Los 20 min van en [rowsAAtTheMinimumBudget]. */
+    /**
+     * A12 positivos: 4 frecuencias × {30,60,100} min. Las de [MINIMUM_SESSION_MINUTES] (el mínimo del reloj) exigen además el
+     * plan PROPIO `native:muscle-foundation-v2` como testigo y que su sesión más larga caiga entre el piso independiente de la
+     * fila ([independentBodyweightMuscleFloorMinutes], 19 min) y los 30 pedidos.
+     */
     private fun rowsA(): List<MatrixRow> = groupADays.flatMap { days ->
-        listOf(30, 60, 100).map { minutes ->
+        val floor = independentBodyweightMuscleFloorMinutes(days)
+        // Si el piso subiera por encima del mínimo del reloj estas filas serían negativas: habría que rediseñarlas, no relajarlas.
+        check(floor <= MINIMUM_SESSION_MINUTES) {
+            "El piso independiente de Músculo corporal ($floor min, $days días) supera el presupuesto mínimo ($MINIMUM_SESSION_MINUTES)"
+        }
+        listOf(MINIMUM_SESSION_MINUTES, 60, 100).map { minutes ->
+            val atTheMinimum = minutes == MINIMUM_SESSION_MINUTES
             MatrixRow(
                 id = "A-d$days-m$minutes",
                 group = "A",
@@ -1753,6 +1719,8 @@ class SetupExecutableAvailabilityMatrixTest {
                 categories = emptySet(),
                 daysPerWeek = days,
                 minutes = minutes,
+                requiredWitnessPlanId = NativeProfileKind.MUSCLE.entryId.takeIf { atTheMinimum },
+                expectedLongestMinutes = (floor..MINIMUM_SESSION_MINUTES).takeIf { atTheMinimum },
             )
         }
     }
@@ -1861,31 +1829,10 @@ class SetupExecutableAvailabilityMatrixTest {
     private val briefMobilitySeconds = 30..40
 
     /**
-     * A20 positivas (Entreno v2): las mismas entradas de A con el presupuesto mínimo que admite el
-     * asistente. El plan propio de Músculo (`native:muscle-foundation-v2`) es el testigo y su sesión
-     * más larga debe medir el piso independiente de ESA fila (19 min en 1, 3, 5 y 6 días).
+     * Presupuesto mínimo por sesión que admite el asistente: el del reloj (30 min desde el 2026-10-08; antes 20). El fitter de los
+     * planes propios acepta de 20 a 100 y el generador de 20 a 180, pero el asistente ya no ofrece menos de esto.
      */
-    private fun rowsAAtTheMinimumBudget(): List<MatrixRow> = groupADays.map { days ->
-        val floor = independentBodyweightMuscleFloorMinutes(days)
-        // Si el piso subiera por encima de 20 min estas filas serían negativas: habría que rediseñarlas, no relajarlas.
-        check(floor <= MINIMUM_SESSION_MINUTES) {
-            "El piso independiente de Músculo corporal ($floor min, $days días) supera el presupuesto mínimo ($MINIMUM_SESSION_MINUTES)"
-        }
-        MatrixRow(
-            id = "A-d$days-m$MINIMUM_SESSION_MINUTES",
-            group = "A20",
-            goal = SetupGoal.MUSCLE,
-            experience = SetupExperience.NEW,
-            categories = emptySet(),
-            daysPerWeek = days,
-            minutes = MINIMUM_SESSION_MINUTES,
-            requiredWitnessPlanId = NativeProfileKind.MUSCLE.entryId,
-            expectedLongestMinutes = floor..floor,
-        )
-    }
-
-    /** Presupuesto mínimo por sesión que admite el asistente (el fitter solo acepta 20..100). */
-    private val MINIMUM_SESSION_MINUTES = 20
+    private val MINIMUM_SESSION_MINUTES = EntrenoStepValues.SESSION_MINUTES_MIN
 
     private fun rowsB(): List<MatrixRow> = listOf(1, 5, 6).flatMap { days ->
         listOf(60, 100).map { minutes ->
@@ -2029,20 +1976,18 @@ class SetupExecutableAvailabilityMatrixTest {
     }
 
     /**
-     * F-m20 (positiva, presupuesto mínimo admitido) y F-m28 (suficiencia en el extremo alto del rango del
-     * plan propio; el número sale de [independentOwnMusclePlanFloorBounds]). El testigo de ambas es
-     * `native:muscle-foundation-v2`. F-m20 exige además que ESE plan se rechace por tiempo con un mínimo
-     * dentro del rango mientras otros candidatos caben; F-m28 exige que llegue a un programa con el
-     * extremo alto del rango, para que el rechazo no sea un cajón de sastre (mismo criterio que A20). Con
-     * `native:full-body` oculto (D2, DEC-w2-07) ya no hay un candidato histórico que pueda hacer pasar la
-     * fila en lugar del propio.
+     * F-m30 (positiva, presupuesto mínimo admitido): el testigo es el plan PROPIO `native:muscle-foundation-v2` (con
+     * `native:full-body` oculto, D2/DEC-w2-07, ya no hay un candidato histórico que pueda hacer pasar la fila en lugar del
+     * propio) y su sesión más larga cae entre el extremo bajo del rango independiente de [independentOwnMusclePlanFloorBounds]
+     * y los 30 pedidos. Antes eran F-m20 (el plan propio se rechazaba por tiempo) y F-m28 (suficiencia en el extremo alto del
+     * rango): con el reloj desde 30 min el plan propio cabe y ninguna de las dos se puede pedir.
      */
     private fun rowsF(): List<MatrixRow> {
         val bounds = independentOwnMusclePlanFloorBounds()
-        // F-m20 solo exige un rechazo del plan propio si 20 min no le alcanzan; si el rango bajara a 20 o
-        // menos, la fila dejaría de tener rechazo que comprobar y habría que rediseñarla, no relajarla.
-        check(bounds.first > MINIMUM_SESSION_MINUTES) {
-            "El piso independiente del plan propio ($bounds min) debe superar los $MINIMUM_SESSION_MINUTES min de F-m20"
+        // Si el rango subiera por encima del mínimo del reloj, la fila volvería a tener un rechazo que comprobar y habría que
+        // rediseñarla, no relajarla.
+        check(bounds.last <= MINIMUM_SESSION_MINUTES) {
+            "El piso independiente del plan propio ($bounds min) supera el presupuesto mínimo ($MINIMUM_SESSION_MINUTES)"
         }
         return listOf(
             MatrixRow(
@@ -2053,19 +1998,8 @@ class SetupExecutableAvailabilityMatrixTest {
                 categories = allCategories,
                 daysPerWeek = 3,
                 minutes = MINIMUM_SESSION_MINUTES,
-                rejectedWitnessPlanId = NativeProfileKind.MUSCLE.entryId,
-                rejectedWitnessMinutes = bounds,
-            ),
-            MatrixRow(
-                id = "F-m${bounds.last}",
-                group = "F",
-                goal = SetupGoal.MUSCLE,
-                experience = SetupExperience.NEW,
-                categories = allCategories,
-                daysPerWeek = 3,
-                minutes = bounds.last,
                 requiredWitnessPlanId = NativeProfileKind.MUSCLE.entryId,
-                expectedLongestMinutes = bounds,
+                expectedLongestMinutes = bounds.first..MINIMUM_SESSION_MINUTES,
             ),
         )
     }
@@ -2141,15 +2075,16 @@ class SetupExecutableAvailabilityMatrixTest {
     }
 
     /**
-     * Atleta completo, NEW, solo cuerpo, 1 día, cardio de 10 min y 20 min (el mismo perfil que la fila positiva
-     * `T006-Q4-athlete-bodyweight-d1-m60`): un presupuesto realmente insuficiente queda tipado antes de la
+     * Atleta completo, NEW, solo cuerpo, 1 día, cardio de 10 min y 30 min, el mínimo del reloj (el mismo perfil que la fila
+     * positiva `T006-Q4-athlete-bodyweight-d1-m60`): un presupuesto realmente insuficiente queda tipado antes de la
      * revisión, con el mínimo real calculado de forma independiente en
      * [independentAthleteBodyweightFloorMinutes]. Cambió de sentido (Entreno v2): el testigo era Músculo corporal
-     * de 1 día con 20 min (A-d1-m20, mínimo 21), que con la aproximación nueva cabe (piso 19) y ya no es negativo.
+     * de 1 día con 20 min (A-d1-m20, mínimo 21), que con la aproximación nueva cabe (piso 19) y ya no es negativo; con el
+     * reloj desde 30 min el presupuesto de la fila subió de 20 a 30 y el mínimo real (39) sigue por encima.
      */
     private fun rowsT006TimeNegative(): List<MatrixRow> = listOf(
         MatrixRow(
-            id = "T006-Q4-athlete-bodyweight-d1-m20-negative",
+            id = "T006-Q4-athlete-bodyweight-d1-m$MINIMUM_SESSION_MINUTES-negative",
             group = "T006-Q4-TimeNegative",
             goal = SetupGoal.COMPLETE_ATHLETE,
             experience = SetupExperience.NEW,
@@ -2159,7 +2094,12 @@ class SetupExecutableAvailabilityMatrixTest {
             cardioMinutes = 10,
             expectedNegativeReason = PlanRejectionReason.TIME_BUDGET,
             negativeWitnessPlanId = NativeProfileKind.COMPLETE_ATHLETE.entryId,
-            expectedRequiredMinutes = independentAthleteBodyweightFloorMinutes(),
+            expectedRequiredMinutes = independentAthleteBodyweightFloorMinutes().also { floor ->
+                // Si el piso bajara a 30 o menos, la fila dejaría de ser negativa: habría que rediseñarla, no relajarla.
+                check(floor > MINIMUM_SESSION_MINUTES) {
+                    "El piso independiente de Atleta corporal ($floor min) debe superar el presupuesto mínimo ($MINIMUM_SESSION_MINUTES)"
+                }
+            },
         ),
     )
 
@@ -2214,14 +2154,6 @@ class SetupExecutableAvailabilityMatrixTest {
          * ([requiredWitnessPlanId]). Sin rango debe medir EXACTAMENTE [minutes] (la fila está en el piso).
          */
         val expectedLongestMinutes: IntRange? = null,
-        /**
-         * Fila positiva que además exige que un plan concreto SE RECHACE por tiempo mientras otros caben (Entreno v2:
-         * con la aproximación nueva ya no existe un presupuesto admitido en el que fallen todos los candidatos de
-         * Músculo): TIME_BUDGET tipado, etapa de duración y un mínimo por encima de [minutes] que cae dentro de
-         * [rejectedWitnessMinutes] (calculado de forma independiente en el test).
-         */
-        val rejectedWitnessPlanId: String? = null,
-        val rejectedWitnessMinutes: IntRange? = null,
     ) {
         /** Disponibilidad EXPLÍCITA: vacía = solo peso corporal, nunca `null` (legacy). */
         val availability: EquipmentAvailability get() = EquipmentAvailability(categories)
@@ -2448,31 +2380,6 @@ class SetupExecutableAvailabilityMatrixTest {
                     "planCandidates vacía con availablePlanCandidates=${state.availablePlanCandidates.size}",
                     state.planCandidates.isNotEmpty(),
                 )
-
-                // Fila con un plan que DEBE rechazarse por tiempo mientras otros caben (F-m20): rechazo tipado, etapa de
-                // duración y un mínimo dentro del rango calculado de forma independiente.
-                val rejectedWitnessId = row.rejectedWitnessPlanId
-                if (rejectedWitnessId != null) {
-                    val rejection = state.candidateRejections.singleOrNull { it.planId == rejectedWitnessId }
-                    assertNotNull(
-                        "${row.id}: falta el rechazo de $rejectedWitnessId: " +
-                            state.candidateRejections.map { "${it.planId}=${it.reasonCode}/${it.requiredMinutes}" },
-                        rejection,
-                    )
-                    assertEquals("${row.id}: $rejectedWitnessId se rechaza por tiempo", PlanRejectionReason.TIME_BUDGET, rejection!!.reasonCode)
-                    assertEquals("${row.id}: etapa de rechazo temporal", SetupCandidateRejectionStage.DURATION, rejection.stage)
-                    val required = rejection.requiredMinutes
-                    assertTrue(
-                        "${row.id}: el mínimo tipado ($required) debe superar los ${row.minutes} min y caer dentro del " +
-                            "rango independiente ${row.rejectedWitnessMinutes}",
-                        required != null && required > row.minutes && required in requireNotNull(row.rejectedWitnessMinutes),
-                    )
-                    assertTrue(
-                        "${row.id}: $rejectedWitnessId no puede ser a la vez candidato viable",
-                        state.availablePlanCandidates.none { it.id == rejectedWitnessId },
-                    )
-                    evidence["rejectedWitnessRequiredMinutes"] = required.toString()
-                }
 
                 // Testigo: NATIVO primero; si no hay ninguno, cualquier KPKN genuino sirve de testigo.
                 // Una fila de suficiencia exige un plan concreto: otro candidato viable no cuenta.
