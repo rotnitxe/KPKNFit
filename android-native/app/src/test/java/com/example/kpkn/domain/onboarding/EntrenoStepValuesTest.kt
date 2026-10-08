@@ -9,9 +9,9 @@ class EntrenoStepValuesTest {
 
     @Test
     fun sessionMinutesRoundToTheNearestMultipleOfFiveWithinTheDialRange() {
-        assertEquals(20, EntrenoStepValues.roundSessionMinutes(20.0))
-        assertEquals(20, EntrenoStepValues.roundSessionMinutes(17.0))
-        assertEquals(20, EntrenoStepValues.roundSessionMinutes(-5.0))
+        assertEquals(30, EntrenoStepValues.roundSessionMinutes(30.0))
+        assertEquals(30, EntrenoStepValues.roundSessionMinutes(27.0))
+        assertEquals(30, EntrenoStepValues.roundSessionMinutes(-5.0))
         assertEquals(45, EntrenoStepValues.roundSessionMinutes(47.0))
         assertEquals(50, EntrenoStepValues.roundSessionMinutes(48.0))
         assertEquals(60, EntrenoStepValues.roundSessionMinutes(60.0))
@@ -20,8 +20,36 @@ class EntrenoStepValuesTest {
         assertEquals(180, EntrenoStepValues.roundSessionMinutes(500.0))
         for (value in 0..400) {
             val rounded = EntrenoStepValues.roundSessionMinutes(value.toDouble())
-            assertTrue("$value → $rounded", rounded in 20..180 && rounded % 5 == 0)
+            assertTrue("$value → $rounded", rounded in 30..180 && rounded % 5 == 0)
         }
+    }
+
+    @Test
+    fun theDialNeverOffersLessThanHalfAnHourNorTheTwentyAndTwentyFiveOfBefore() {
+        // Decisión del 2026-10-08: con 20 min el 58 % de las combinaciones se pasaba de lo pedido; el mínimo es 30.
+        assertEquals(30, EntrenoStepValues.SESSION_MINUTES_MIN)
+        assertEquals(180, EntrenoStepValues.SESSION_MINUTES_MAX)
+        assertEquals(5, EntrenoStepValues.SESSION_MINUTES_STEP)
+        // El mínimo cae en una muesca del reloj (múltiplo del paso) y los antiguos 20 y 25 se leen como el mínimo.
+        assertEquals(0, EntrenoStepValues.SESSION_MINUTES_MIN % EntrenoStepValues.SESSION_MINUTES_STEP)
+        for (old in listOf(20.0, 22.0, 25.0, 29.0)) {
+            assertEquals("$old", EntrenoStepValues.SESSION_MINUTES_MIN, EntrenoStepValues.roundSessionMinutes(old))
+        }
+    }
+
+    @Test
+    fun theLegacyChatQuestionNeverAcceptsLessThanTheDialMinimum() {
+        // La pregunta heredada del chat (T_TIME) valida con el mismo mínimo que el reloj del asistente.
+        val question = requireNotNull(WizChatGraph.question(WizChatQuestionId.T_TIME))
+        for (below in listOf(0.0, 20.0, 25.0, 29.0)) {
+            assertEquals(
+                "$below",
+                "El tiempo debe estar entre ${EntrenoStepValues.SESSION_MINUTES_MIN} y 100 minutos",
+                WizChatValidation.validate(question, number = below),
+            )
+        }
+        assertNull(WizChatValidation.validate(question, number = EntrenoStepValues.SESSION_MINUTES_MIN.toDouble()))
+        assertNull(WizChatValidation.validate(question, number = 100.0))
     }
 
     @Test

@@ -101,5 +101,11 @@ internal fun SetupWizardDraft.routineRequest(
 }
 
 private const val DEFAULT_SESSION_MINUTES = 60
+
+/**
+ * El rango de minutos que acepta el generador (`RoutineGenerator`: 20–180), no el del reloj del asistente
+ * ([com.example.kpkn.domain.onboarding.EntrenoStepValues.SESSION_MINUTES_MIN] = 30): el pedido solo se acota a lo que el
+ * generador soporta, así que nunca falla aunque un borrador traiga menos de lo que el reloj ofrece.
+ */
 private const val MIN_SESSION_MINUTES = 20
 private const val MAX_SESSION_MINUTES = 180

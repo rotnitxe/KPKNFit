@@ -51,9 +51,10 @@ class PlanRepairAdvisorTest {
         }
     }
 
+    /** El pedido por defecto parte del mínimo del reloj del asistente: ningún borrador pide menos de 30 min. */
     private fun request(
         goal: PlanGoalProfile,
-        minutes: Int = 20,
+        minutes: Int = EntrenoStepValues.SESSION_MINUTES_MIN,
         cardioMinutes: Int? = null,
         splitId: String? = null,
     ) = PlanCandidateRequest(
@@ -109,34 +110,82 @@ class PlanRepairAdvisorTest {
     @Test
     fun timeBudgetProposesSetMinutesWithTheExactRequiredMinutesWhenThePlanFitsThere() {
         val probe = Probe { probeRequest, _ ->
-            if (probeRequest.minutesPerSession >= 28) ready(probeRequest) else rejected(PlanRejectionReason.TIME_BUDGET, 28)
+            if (probeRequest.minutesPerSession >= 38) ready(probeRequest) else rejected(PlanRejectionReason.TIME_BUDGET, 38)
         }
-        val repairs = suggest(request(PlanGoalProfile.MUSCLE, minutes = 20), rejected(PlanRejectionReason.TIME_BUDGET, 28), probe = probe)
+        val repairs = suggest(request(PlanGoalProfile.MUSCLE, minutes = 30), rejected(PlanRejectionReason.TIME_BUDGET, 38), probe = probe)
 
-        assertEquals(listOf<PlanRepair>(PlanRepair.SetMinutes(28)), repairs)
-        assertEquals("se prueba exactamente con los minutos del rechazo", listOf(28), probe.calls.map { it.first.minutesPerSession })
+        assertEquals(listOf<PlanRepair>(PlanRepair.SetMinutes(38)), repairs)
+        assertEquals("se prueba exactamente con los minutos del rechazo", listOf(38), probe.calls.map { it.first.minutesPerSession })
         assertEquals("con el mismo material", everything, probe.calls.single().second)
     }
 
     @Test
     fun timeBudgetSetMinutesIsNotProposedWhenTheRequiredMinutesDoNotMakeThePlanReady() {
         val probe = Probe { _, _ -> rejected(PlanRejectionReason.TIME_BUDGET, 99) }
-        val repairs = suggest(request(PlanGoalProfile.MUSCLE, minutes = 20), rejected(PlanRejectionReason.TIME_BUDGET, 28), probe = probe)
+        val repairs = suggest(request(PlanGoalProfile.MUSCLE, minutes = 30), rejected(PlanRejectionReason.TIME_BUDGET, 38), probe = probe)
 
         assertEquals("un objetivo que no es Atleta no tiene otra reparación de tiempo", emptyList<PlanRepair>(), repairs)
     }
 
     @Test
     fun timeBudgetWithoutAMinuteCountThatTheWizardAcceptsProposesNoSetMinutes() {
-        listOf(null, 101, 20, 19).forEach { required ->
+        // Sin dato, por encima del techo de las reparaciones, sin pasar de lo pedido o por debajo del mínimo del reloj.
+        listOf(null, 101, 40, 39, 29, 20).forEach { required ->
             val probe = Probe { probeRequest, _ -> ready(probeRequest) }
             val repairs = suggest(
-                request(PlanGoalProfile.MUSCLE, minutes = 20),
+                request(PlanGoalProfile.MUSCLE, minutes = 40),
                 rejected(PlanRejectionReason.TIME_BUDGET, required),
                 probe = probe,
             )
             assertEquals("requiredMinutes=$required", emptyList<PlanRepair>(), repairs)
             assertTrue("requiredMinutes=$required: no se prueba un presupuesto que no es válido", probe.calls.isEmpty())
+        }
+    }
+
+    @Test
+    fun timeBudgetNeverProposesLessThanTheMinimumTheClockOffers() {
+        // Aunque un pedido (que el asistente ya no produce) traiga 20 o 25 min, una reparación nunca baja de los 30 min del reloj:
+        // el borrador no puede guardar 26 o 28 min tal cual y el programa probado no sería el que se activa.
+        listOf(20, 25).forEach { requested ->
+            listOf(21, 26, 28, 29).forEach { required ->
+                val probe = Probe { probeRequest, _ -> ready(probeRequest) }
+                val repairs = suggest(
+                    request(PlanGoalProfile.MUSCLE, minutes = requested),
+                    rejected(PlanRejectionReason.TIME_BUDGET, required),
+                    probe = probe,
+                )
+                assertEquals("pedido $requested, requiredMinutes=$required", emptyList<PlanRepair>(), repairs)
+                assertTrue("pedido $requested, requiredMinutes=$required: no se prueba un presupuesto que el reloj no ofrece", probe.calls.isEmpty())
+            }
+        }
+        // El propio mínimo sí vale.
+        val probe = Probe { probeRequest, _ -> ready(probeRequest) }
+        val repairs = suggest(request(PlanGoalProfile.MUSCLE, minutes = 25), rejected(PlanRejectionReason.TIME_BUDGET, 30), probe = probe)
+        assertEquals(listOf<PlanRepair>(PlanRepair.SetMinutes(30)), repairs)
+        assertEquals(listOf(30), probe.calls.map { it.first.minutesPerSession })
+    }
+
+    @Test
+    fun everyMinuteAnAdvisorRepairWritesIsOneTheDialCanHold() {
+        // Con un pedido del mínimo para arriba, ninguna reparación de tiempo (suelta o encadenada con material o con un cambio de
+        // objetivo) escribe menos del mínimo ni más del techo; los minutos exactos (sin redondear a 5) siguen valiendo.
+        val floor = EntrenoStepValues.SESSION_MINUTES_MIN
+        for (requested in listOf(floor, 35, 45, 60, 90)) {
+            for (required in 1..PlanRepairAdvisor.MAX_SESSION_MINUTES + 1) {
+                val timeProbe = Probe { probeRequest, _ -> ready(probeRequest) }
+                val loose = suggest(request(PlanGoalProfile.MUSCLE, minutes = requested), rejected(PlanRejectionReason.TIME_BUDGET, required), probe = timeProbe)
+                val switched = suggest(request(PlanGoalProfile.STRENGTH_MUSCLE, minutes = requested), rejected(PlanRejectionReason.PROFILE_MISMATCH), probe = Probe { probeRequest, _ ->
+                    if (probeRequest.minutesPerSession >= required) ready(probeRequest) else rejected(PlanRejectionReason.TIME_BUDGET, required)
+                })
+                (loose + switched).forEach { repair ->
+                    val minutes = when (repair) {
+                        is PlanRepair.SetMinutes -> repair.minutes
+                        is PlanRepair.SwitchGoal -> repair.alsoMinutes
+                        else -> null
+                    } ?: return@forEach
+                    assertTrue("pedido $requested, requiredMinutes=$required → $minutes", minutes in floor..PlanRepairAdvisor.MAX_SESSION_MINUTES && minutes > requested)
+                }
+            }
         }
     }
 
@@ -466,7 +515,7 @@ class PlanRepairAdvisorTest {
         assertFalse("el destino no lleva cardio", tried.requiresCardio)
         assertNull(tried.cardioMinutes)
         assertNull("el reparto era del objetivo anterior", tried.selectedSplitId)
-        assertEquals("el resto del pedido se conserva", 20, tried.minutesPerSession)
+        assertEquals("el resto del pedido se conserva", 30, tried.minutesPerSession)
         assertEquals(3, tried.daysPerWeek)
     }
 
@@ -521,22 +570,22 @@ class PlanRepairAdvisorTest {
     @Test
     fun switchGoalChainsTheExactMinutesWhenTheDestinationOnlyFailsOnTime() {
         val probe = Probe { probeRequest, _ ->
-            if (probeRequest.minutesPerSession >= 30) ready(probeRequest) else rejected(PlanRejectionReason.TIME_BUDGET, 30)
+            if (probeRequest.minutesPerSession >= 40) ready(probeRequest) else rejected(PlanRejectionReason.TIME_BUDGET, 40)
         }
         val repairs = suggest(
-            request(PlanGoalProfile.STRENGTH_MUSCLE, minutes = 20),
+            request(PlanGoalProfile.STRENGTH_MUSCLE, minutes = 30),
             rejected(PlanRejectionReason.PROFILE_MISMATCH),
             probe = probe,
         )
 
-        assertEquals(listOf<PlanRepair>(PlanRepair.SwitchGoal(PlanGoalProfile.MUSCLE, alsoMinutes = 30)), repairs)
-        assertEquals(listOf(20, 30), probe.calls.map { it.first.minutesPerSession })
+        assertEquals(listOf<PlanRepair>(PlanRepair.SwitchGoal(PlanGoalProfile.MUSCLE, alsoMinutes = 40)), repairs)
+        assertEquals(listOf(30, 40), probe.calls.map { it.first.minutesPerSession })
         assertTrue("ambos sondeos son del destino", probe.calls.all { it.first.goalProfile == PlanGoalProfile.MUSCLE })
     }
 
     @Test
     fun switchGoalWithATimeBudgetThatMoreMinutesDoNotFixHasNoRepair() {
-        val probe = Probe { _, _ -> rejected(PlanRejectionReason.TIME_BUDGET, 30) }
+        val probe = Probe { _, _ -> rejected(PlanRejectionReason.TIME_BUDGET, 40) }
         val repairs = suggest(request(PlanGoalProfile.STRENGTH_MUSCLE), rejected(PlanRejectionReason.PROFILE_MISMATCH), probe = probe)
 
         assertEquals(emptyList<PlanRepair>(), repairs)
@@ -598,20 +647,27 @@ class PlanRepairAdvisorTest {
         CoverageFixtures.snapshot(PersonalizedPlanCatalog.entries(), CatalogCompositionTestSupport.catalog)
     }
 
-    /** Pedido del plan propio de Músculo con 4 días, nivel intermedio y gimnasio completo confirmado. */
-    private fun realRequest(minutes: Int, splitId: String?): PlanCandidateRequest =
-        CoverageFixtures.request(CoverageFixtures.Profile.MUSCLE, SetupExperience.INTERMEDIATE, 4, minutes, gym)
+    /** Pedido del plan propio de [profile] (por defecto Músculo, 4 días, nivel intermedio) con gimnasio completo confirmado. */
+    private fun realRequest(
+        minutes: Int,
+        splitId: String?,
+        profile: CoverageFixtures.Profile = CoverageFixtures.Profile.MUSCLE,
+        days: Int = 4,
+    ): PlanCandidateRequest =
+        CoverageFixtures.request(profile, SetupExperience.INTERMEDIATE, days, minutes, gym)
             .let { base -> base.copy(selectedSplitId = splitId, inputKey = "${base.inputKey}|split=$splitId") }
 
-    /** El evaluador que pide el asesor, con el motor real: evalúa el plan propio de Músculo con el reparto del sondeo. */
-    private val realEvaluator: PlanRepairEvaluator = { probe, availability ->
+    /** El evaluador que pide el asesor, con el motor real: evalúa el plan propio de [kind] con el reparto del sondeo. */
+    private fun realEvaluatorOf(kind: NativeProfileKind): PlanRepairEvaluator = { probe, availability ->
         PlanCandidateEvaluator.evaluate(
             probe,
             snapshot,
-            NativeProfileKind.MUSCLE.entryId,
+            kind.entryId,
             splitAwareMaterializer(generator, availability),
         )
     }
+
+    private val realEvaluator: PlanRepairEvaluator = realEvaluatorOf(NativeProfileKind.MUSCLE)
 
     @Test
     fun theRealOwnPlanRejectedForItsSplitIsRepairedByClearingIt() {
@@ -635,22 +691,37 @@ class PlanRepairAdvisorTest {
     @Test
     fun theRealSplitRejectionHasNoOneTapRepairWhenThePlanDoesNotFitWithoutTheSplitEither() {
         runBlocking {
-            // A 20 min el plan propio no cabe ni sin reparto; con un reparto que no es el suyo el rechazo es de reparto
-            // (va antes del tiempo) pero quitarlo no deja el plan Ready: ClearSplit no se ofrece.
-            val request = realRequest(minutes = 20, splitId = "pl_sbd_x3")
-            val rejection = realEvaluator(request, gym.availability)
+            // Al mínimo del reloj (30 min) el plan propio de Músculo cabe con cualquier nivel y días, así que el testigo es el de
+            // Fuerza y músculo con 2 días y nivel intermedio, que pide 33 min. Con un reparto que no es el suyo el rechazo es de
+            // reparto (va antes del tiempo) pero quitarlo no deja el plan Ready: ClearSplit no se ofrece.
+            val minimum = EntrenoStepValues.SESSION_MINUTES_MIN
+            val evaluator = realEvaluatorOf(NativeProfileKind.POWERBUILDING)
+            val powerbuilding = CoverageFixtures.Profile.POWERBUILDING
+            val request = realRequest(minutes = minimum, splitId = "pl_sbd_x3", profile = powerbuilding, days = 2)
+            val rejection = evaluator(request, gym.availability)
             assertTrue("$rejection", rejection is PlanCandidateEvaluation.Rejected)
             rejection as PlanCandidateEvaluation.Rejected
             assertEquals(PlanRejectionReason.SPLIT, rejection.reasonCode)
 
-            val withoutSplit = realEvaluator(realRequest(20, null), gym.availability)
+            val withoutSplit = evaluator(realRequest(minimum, null, powerbuilding, days = 2), gym.availability)
             assertTrue("sin reparto tampoco cabe: $withoutSplit", withoutSplit is PlanCandidateEvaluation.Rejected)
             assertEquals(PlanRejectionReason.TIME_BUDGET, (withoutSplit as PlanCandidateEvaluation.Rejected).reasonCode)
+            assertTrue("pide más que el mínimo del reloj: ${withoutSplit.requiredMinutes}", (withoutSplit.requiredMinutes ?: 0) > minimum)
 
             assertEquals(
                 emptyList<PlanRepair>(),
-                PlanRepairAdvisor.suggest(request, rejection, gym.availability, realEvaluator),
+                PlanRepairAdvisor.suggest(request, rejection, gym.availability, evaluator),
             )
+        }
+    }
+
+    @Test
+    fun theRealOwnPlanOfMuscleWithFourDaysFitsTheMinimumOfTheClock() {
+        runBlocking {
+            // El escenario que esta clase usaba para «no cabe ni sin reparto» (Músculo, 4 días, intermedio, gimnasio completo) ya
+            // cabe con los 30 min del reloj: por eso el testigo de arriba es otro plan.
+            val minimum = EntrenoStepValues.SESSION_MINUTES_MIN
+            assertTrue(realEvaluator(realRequest(minimum, null), gym.availability) is PlanCandidateEvaluation.Ready)
         }
     }
 
@@ -680,9 +751,9 @@ class PlanRepairAdvisorTest {
 
     @Test
     fun everyProbeCarriesItsOwnInputKeyAndTheOriginalRequestIsNotTouched() {
-        val original = request(PlanGoalProfile.STRENGTH_MUSCLE, minutes = 20)
+        val original = request(PlanGoalProfile.STRENGTH_MUSCLE, minutes = 30)
         val probe = Probe { probeRequest, _ ->
-            if (probeRequest.minutesPerSession >= 30) ready(probeRequest) else rejected(PlanRejectionReason.TIME_BUDGET, 30)
+            if (probeRequest.minutesPerSession >= 40) ready(probeRequest) else rejected(PlanRejectionReason.TIME_BUDGET, 40)
         }
         suggest(original, rejected(PlanRejectionReason.PROFILE_MISMATCH), probe = probe)
 
@@ -690,7 +761,7 @@ class PlanRepairAdvisorTest {
         assertEquals("cada sondeo distinto tiene su huella", keys.size, keys.toSet().size)
         assertTrue(keys.none { it == original.inputKey })
         assertTrue(keys.all { it.startsWith("${original.inputKey}|repair=") })
-        assertEquals("el pedido original no cambia", request(PlanGoalProfile.STRENGTH_MUSCLE, minutes = 20), original)
+        assertEquals("el pedido original no cambia", request(PlanGoalProfile.STRENGTH_MUSCLE, minutes = 30), original)
     }
 
     @Test

@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.onboarding.design.entreno
 
+import com.example.kpkn.domain.onboarding.EntrenoStepValues
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -7,29 +8,44 @@ import org.junit.Test
 /**
  * El dial sin Compose: de minutos a ángulo de reloj y de vuelta, el ajuste a la muesca, la saturación en los extremos y en el
  * hueco de abajo, y el seguimiento de un arrastre completo (que nunca da la vuelta de golpe al cruzar el hueco).
+ *
+ * El rango por defecto es el del paso SESSION_TIME (30 a 180 min): el arco barre 300° en 150 min, así que cada muesca de 5
+ * minutos son 10° y los 30 min caen justo al inicio del arco.
  */
 class SessionDialMathTest {
 
-    private val notches = (20..180 step 5).toList()
+    private val notches = (30..180 step 5).toList()
 
     // ─── Ángulos ─────────────────────────────────────────────────────────────
 
     @Test
+    fun theDialRangeIsTheOneOfTheStep() {
+        // Una sola fuente: el reloj y el borrador nunca discrepan.
+        assertEquals(EntrenoStepValues.SESSION_MINUTES_MIN..EntrenoStepValues.SESSION_MINUTES_MAX, SESSION_DIAL_RANGE)
+        assertEquals(30..180, SESSION_DIAL_RANGE)
+        assertEquals(EntrenoStepValues.SESSION_MINUTES_STEP, SESSION_DIAL_STEP)
+        assertEquals(5, SESSION_DIAL_STEP)
+    }
+
+    @Test
     fun theArcRunsFromBottomLeftThroughTheTopToBottomRight() {
-        assertEquals(210f, angleForMinutes(20), 1e-4f)
-        assertEquals(0f, angleForMinutes(100), 1e-4f)
+        assertEquals(210f, angleForMinutes(30), 1e-4f)
+        assertEquals(0f, angleForMinutes(105), 1e-4f)
         assertEquals(150f, angleForMinutes(180), 1e-4f)
-        assertEquals(285f, angleForMinutes(60), 1e-4f)
-        assertEquals(228.75f, angleForMinutes(30), 1e-4f)
-        assertEquals(37.5f, angleForMinutes(120), 1e-4f)
-        assertEquals(93.75f, angleForMinutes(150), 1e-4f)
-        // Cada muesca de 5 minutos son 9,375°.
-        assertEquals(9.375f, angleForMinutes(25) - angleForMinutes(20), 1e-4f)
+        assertEquals(270f, angleForMinutes(60), 1e-4f)
+        assertEquals(240f, angleForMinutes(45), 1e-4f)
+        assertEquals(30f, angleForMinutes(120), 1e-4f)
+        assertEquals(90f, angleForMinutes(150), 1e-4f)
+        // Cada muesca de 5 minutos son 10°.
+        assertEquals(10f, angleForMinutes(35) - angleForMinutes(30), 1e-4f)
     }
 
     @Test
     fun anglesAreClampedToTheEndsOfTheArc() {
         assertEquals(210f, angleForMinutes(0), 1e-4f)
+        // Los 20 y 25 min de antes ya no tienen sitio en el arco: caen en el inicio.
+        assertEquals(210f, angleForMinutes(20), 1e-4f)
+        assertEquals(210f, angleForMinutes(25), 1e-4f)
         assertEquals(210f, angleForMinutes(-50f), 1e-4f)
         assertEquals(150f, angleForMinutes(500), 1e-4f)
         assertEquals(210f, angleForMinutes(Float.NaN), 1e-4f)
@@ -38,10 +54,11 @@ class SessionDialMathTest {
 
     @Test
     fun theFractionIsLinearAndClamped() {
-        assertEquals(0f, dialFraction(20f), 0f)
-        assertEquals(0.5f, dialFraction(100f), 1e-6f)
+        assertEquals(0f, dialFraction(30f), 0f)
+        assertEquals(0.5f, dialFraction(105f), 1e-6f)
         assertEquals(1f, dialFraction(180f), 0f)
         assertEquals(0f, dialFraction(5f), 0f)
+        assertEquals(0f, dialFraction(20f), 0f)
         assertEquals(1f, dialFraction(999f), 0f)
         assertEquals(0f, dialFraction(Float.NaN), 0f)
         assertEquals(0f, dialFraction(50f, 20..20), 0f)
@@ -93,11 +110,11 @@ class SessionDialMathTest {
             assertEquals("$m +", m, minutesForAngle(angle + 4.5f))
             assertEquals("$m −", m, minutesForAngle(angle - 4.5f))
         }
-        // Pasada la mitad de la muesca (4,6875°) manda la vecina.
-        for (m in 25..175 step 5) {
+        // Pasada la mitad de la muesca (5°) manda la vecina.
+        for (m in 35..175 step 5) {
             val angle = angleForMinutes(m)
-            assertEquals("$m +", m + 5, minutesForAngle(angle + 4.9f))
-            assertEquals("$m −", m - 5, minutesForAngle(angle - 4.9f))
+            assertEquals("$m +", m + 5, minutesForAngle(angle + 5.1f))
+            assertEquals("$m −", m - 5, minutesForAngle(angle - 5.1f))
         }
     }
 
@@ -109,11 +126,11 @@ class SessionDialMathTest {
         assertEquals(180, minutesForAngle(165f))
         assertEquals(180, minutesForAngle(179.9f))
         // Centro exacto del hueco y mitad izquierda: el mínimo.
-        assertEquals(20, minutesForAngle(180f))
-        assertEquals(20, minutesForAngle(180.1f))
-        assertEquals(20, minutesForAngle(195f))
-        assertEquals(20, minutesForAngle(209f))
-        assertEquals(20, minutesForAngle(210f))
+        assertEquals(30, minutesForAngle(180f))
+        assertEquals(30, minutesForAngle(180.1f))
+        assertEquals(30, minutesForAngle(195f))
+        assertEquals(30, minutesForAngle(209f))
+        assertEquals(30, minutesForAngle(210f))
     }
 
     @Test
@@ -126,9 +143,9 @@ class SessionDialMathTest {
 
     @Test
     fun nonsenseAnglesFallBackToTheMinimum() {
-        assertEquals(20, minutesForAngle(Float.NaN))
-        assertEquals(20, minutesForAngle(Float.POSITIVE_INFINITY))
-        assertEquals(20, minutesForAngle(Float.NEGATIVE_INFINITY))
+        assertEquals(30, minutesForAngle(Float.NaN))
+        assertEquals(30, minutesForAngle(Float.POSITIVE_INFINITY))
+        assertEquals(30, minutesForAngle(Float.NEGATIVE_INFINITY))
     }
 
     @Test
@@ -146,14 +163,17 @@ class SessionDialMathTest {
 
     @Test
     fun minutesSnapToTheNearestNotchAndHalfWayGoesUp() {
-        assertEquals(20, snapMinutes(22.4f))
-        assertEquals(25, snapMinutes(22.5f))
-        assertEquals(25, snapMinutes(22.6f))
+        assertEquals(30, snapMinutes(32.4f))
+        assertEquals(35, snapMinutes(32.5f))
+        assertEquals(35, snapMinutes(32.6f))
         assertEquals(180, snapMinutes(179.9f))
         assertEquals(75, snapMinutes(75f))
-        assertEquals(20, snapMinutes(-5f))
+        assertEquals(30, snapMinutes(-5f))
+        // Por debajo del mínimo del reloj (los 20 y 25 min de antes) se acota al mínimo.
+        assertEquals(30, snapMinutes(20f))
+        assertEquals(30, snapMinutes(25f))
         assertEquals(180, snapMinutes(500f))
-        assertEquals(20, snapMinutes(Float.NaN))
+        assertEquals(30, snapMinutes(Float.NaN))
     }
 
     @Test
@@ -170,12 +190,14 @@ class SessionDialMathTest {
         assertEquals(65, stepMinutes(60, +1))
         assertEquals(55, stepMinutes(60, -1))
         assertEquals(180, stepMinutes(180, +1))
-        assertEquals(20, stepMinutes(20, -1))
+        assertEquals(30, stepMinutes(30, -1))
         // Fuera de una muesca salta a la contigua en esa dirección.
         assertEquals(65, stepMinutes(62, +1))
         assertEquals(60, stepMinutes(62, -1))
-        // Por debajo del rango se cuenta desde el mínimo.
-        assertEquals(25, stepMinutes(17, +1))
+        // Por debajo del rango (los 20 y 25 min de antes) se cuenta desde el mínimo y nunca baja de él.
+        assertEquals(35, stepMinutes(17, +1))
+        assertEquals(35, stepMinutes(25, +1))
+        assertEquals(30, stepMinutes(25, -1))
         assertEquals(60, stepMinutes(62, 0))
     }
 
@@ -188,14 +210,14 @@ class SessionDialMathTest {
         }
         // En el hueco, el extremo más cercano.
         assertEquals(180, DialDragTracker().begin(160f))
-        assertEquals(20, DialDragTracker().begin(200f))
+        assertEquals(30, DialDragTracker().begin(200f))
     }
 
     @Test
     fun draggingClockwiseAllTheWayRoundNeverJumpsAndStaysAtTheMaximum() {
         val tracker = DialDragTracker()
         var previous = tracker.begin(210f)
-        assertEquals(20, previous)
+        assertEquals(30, previous)
         for (k in 1..360) {
             val value = tracker.move((210f + k) % 360f)
             assertTrue("k=$k: $previous → $value", value >= previous)
@@ -217,16 +239,16 @@ class SessionDialMathTest {
             assertTrue("k=$k: $previous → $value", value <= previous)
             assertTrue("k=$k saltó ${previous - value}", previous - value <= 5)
             previous = value
-            if (k >= 300) assertEquals("k=$k", 20, value)
+            if (k >= 300) assertEquals("k=$k", 30, value)
         }
-        assertEquals(20, previous)
+        assertEquals(30, previous)
     }
 
     @Test
     fun theKnobWaitsAtTheEndWhileTheFingerGoesAroundTheGapAndRejoinsWhenItComesBack() {
         val tracker = DialDragTracker()
         assertEquals(180, tracker.begin(150f))
-        // El dedo cruza el hueco hasta el otro lado: el pomo no se va a 20.
+        // El dedo cruza el hueco hasta el otro lado: el pomo no se va a 30.
         for (angle in listOf(160f, 175f, 185f, 200f, 210f, 225f, 240f)) {
             assertEquals("ida a $angle", 180, tracker.move(angle))
         }
@@ -242,15 +264,15 @@ class SessionDialMathTest {
     @Test
     fun startingInTheLeftHalfOfTheGapKeepsTheMinimumUntilTheFingerReachesTheArc() {
         val tracker = DialDragTracker()
-        assertEquals(20, tracker.begin(200f))
-        assertEquals(20, tracker.move(211f))
-        assertEquals(25, tracker.move(220f))
+        assertEquals(30, tracker.begin(200f))
+        assertEquals(30, tracker.move(211f))
+        assertEquals(35, tracker.move(220f))
     }
 
     @Test
     fun aSmallStepAcrossNorthWrapsTheShortWay() {
         val tracker = DialDragTracker()
-        assertEquals(95, tracker.begin(350f))
+        assertEquals(100, tracker.begin(350f))
         val before = tracker.rawPosition()
         tracker.move(10f)
         // Del 350° al 10° son 20° en sentido horario, no −340°.

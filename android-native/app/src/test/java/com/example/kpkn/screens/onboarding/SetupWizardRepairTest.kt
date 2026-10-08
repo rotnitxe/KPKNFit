@@ -151,7 +151,7 @@ class SetupWizardRepairTest {
             "Cambiar a Fuerza y músculo",
             repairLabelOf(listOf(PlanRepair.SwitchGoal(PlanGoalProfile.STRENGTH_MUSCLE))),
         )
-        assertEquals("Ajustar a 28 min", repairLabelOf(listOf(PlanRepair.SetMinutes(28))))
+        assertEquals("Ajustar a 38 min", repairLabelOf(listOf(PlanRepair.SetMinutes(38))))
         assertEquals("Cardio de 20 min", repairLabelOf(listOf(PlanRepair.SetCardioMinutes(20))))
         assertEquals("Quitar el reparto", repairLabelOf(listOf(PlanRepair.ClearSplit)))
         assertNull(repairLabelOf(emptyList()))
@@ -181,10 +181,15 @@ class SetupWizardRepairTest {
         val minutes = base.withRepair(PlanRepair.SetMinutes(75))
         assertEquals(75, minutes.minutesPerSession)
         // El tiempo por sesión es un reloj: sin texto crudo. Una reparación escribe los minutos EXACTOS que probó el
-        // asesor (28 son 28, no 30): el programa probado es el que se activa.
+        // asesor (38 son 38, no 40): el programa probado es el que se activa.
         assertNull(minutes.inputTexts[SetupStepId.SESSION_TIME.name])
-        assertEquals(28, base.withRepair(PlanRepair.SetMinutes(28)).minutesPerSession)
-        assertEquals(26, base.withRepair(PlanRepair.SetMinutes(26)).minutesPerSession)
+        assertEquals(38, base.withRepair(PlanRepair.SetMinutes(38)).minutesPerSession)
+        assertEquals(36, base.withRepair(PlanRepair.SetMinutes(36)).minutesPerSession)
+        assertEquals(31, base.withRepair(PlanRepair.SetMinutes(31)).minutesPerSession)
+        // Nunca por debajo del mínimo del reloj: el asesor no propone menos de 30, y si algo lo hiciera se escribiría el mínimo.
+        assertEquals(30, base.withRepair(PlanRepair.SetMinutes(30)).minutesPerSession)
+        assertEquals(30, base.withRepair(PlanRepair.SetMinutes(28)).minutesPerSession)
+        assertEquals(30, base.withRepair(PlanRepair.SetMinutes(20)).minutesPerSession)
 
         val cardio = base.withRepair(PlanRepair.SetCardioMinutes(15))
         assertEquals(15, cardio.cardioMinutes)
@@ -447,10 +452,10 @@ class SetupWizardRepairTest {
             repairs = listOf(PlanRepair.SetCardioMinutes(15)),
         )
 
-        val notice = primaryNoticeOf(stateOf(SetupGoal.COMPLETE_ATHLETE, rejections = listOf(own), minutes = 20))
+        val notice = primaryNoticeOf(stateOf(SetupGoal.COMPLETE_ATHLETE, rejections = listOf(own), minutes = 30))
 
         assertEquals(
-            "Con las series mínimas este plan no cabe en los 20 min que elegiste. Con 15 min de cardio sí cabe.",
+            "Con las series mínimas este plan no cabe en los 30 min que elegiste. Con 15 min de cardio sí cabe.",
             notice.text,
         )
         assertEquals("Cardio de 15 min", notice.primary?.label)
@@ -620,7 +625,7 @@ class SetupWizardRepairTest {
     @Test
     fun theAthleteLowersTheCardioOnlyWhenMoreMinutesDoNotFitAndKeepsItWhenTheyDo() =
         runTest(dispatcher.scheduler, timeout = 8.minutes) {
-            // Cardio de 30 min en una sesión de 20: el plan necesita más de lo que el asistente admite (120 > 100) y solo
+            // Cardio de 30 min en una sesión de 30: el plan necesita más de lo que el asistente admite (120 > 100) y solo
             // cabe con 15 min de cardio o menos. El asesor prefiere el mayor cardio que cabe (20 no cabe, 15 sí).
             val lowerCardio = Script()
             lowerCardio.verdict = { draft ->
@@ -629,7 +634,7 @@ class SetupWizardRepairTest {
             val vm = newVm(lowerCardio)
             vm.initialize(SetupWizardMode.TRAINING_ONLY)
             awaitUntil(vm, "wizard cargado") { !it.isLoading }
-            vm.update { it.withCandidateInputs(SetupGoal.COMPLETE_ATHLETE, GYM_UNCONFIRMED, minutes = 20, cardio = 30) }
+            vm.update { it.withCandidateInputs(SetupGoal.COMPLETE_ATHLETE, GYM_UNCONFIRMED, minutes = 30, cardio = 30) }
             val before = awaitUntil(vm, "Atleta rechazado por tiempo") {
                 isIdle(it) && it.candidateRejections.any { r -> r.planId == ATHLETE_OWN }
             }
@@ -646,7 +651,7 @@ class SetupWizardRepairTest {
             }
             assertEquals(15, after.draft.cardioMinutes)
             assertEquals(listOf("15"), after.draft.stepSelections[SetupStepId.CARDIO_TIME])
-            assertEquals("los minutos de sesión no se tocan", 20, after.draft.minutesPerSession)
+            assertEquals("los minutos de sesión no se tocan", 30, after.draft.minutesPerSession)
             store.clear()
 
             // Si más minutos bastan (85 ≤ 100), el cardio no se toca: solo «Ajustar a N min».
@@ -657,7 +662,7 @@ class SetupWizardRepairTest {
             val second = newVm(moreMinutes)
             second.initialize(SetupWizardMode.TRAINING_ONLY)
             awaitUntil(second, "segundo wizard cargado") { !it.isLoading }
-            second.update { it.withCandidateInputs(SetupGoal.COMPLETE_ATHLETE, GYM_UNCONFIRMED, minutes = 20, cardio = 30) }
+            second.update { it.withCandidateInputs(SetupGoal.COMPLETE_ATHLETE, GYM_UNCONFIRMED, minutes = 30, cardio = 30) }
             val beforeMinutes = awaitUntil(second, "Atleta rechazado por tiempo (minutos)") {
                 isIdle(it) && it.candidateRejections.any { r -> r.planId == ATHLETE_OWN }
             }

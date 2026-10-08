@@ -258,9 +258,9 @@ class SetupStepDefinitionsTest {
         assertEquals("powerlifting", goal.migratedValue("Fuerza"))
         assertEquals("bodybuilding", goal.migratedValue("Músculo"))
         assertEquals("strength_muscle", goal.migratedValue("Fuerza y músculo"))
-        // Los minutos por sesión son un reloj de 20 a 180 (múltiplos de 5).
+        // Los minutos por sesión son un reloj de 30 a 180 (múltiplos de 5).
         val sessionTime = requireNotNull(SetupStepDefinitions.of(SetupStepId.SESSION_TIME))
-        assertEquals(20.0, sessionTime.range?.min ?: 0.0, 0.0001)
+        assertEquals(30.0, sessionTime.range?.min ?: 0.0, 0.0001)
         assertEquals(180.0, sessionTime.range?.max ?: 0.0, 0.0001)
         // Cardio: todas las respuestas posibles (cuáles se ofrecen lo decide `CardioChoices` con el material) y los cuatro
         // escalones 10/15/20/30.

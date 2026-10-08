@@ -345,7 +345,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
     fun setDayPlace(day: Int, place: TrainingPlace?) =
         mutateDraft(SetupStepId.WEEKDAYS) { latest -> latest.withDayPlace(day, place) }
 
-    /** Minutos por sesión: se redondea al múltiplo de 5 más cercano dentro de 20..180. */
+    /** Minutos por sesión: se redondea al múltiplo de 5 más cercano dentro del reloj (30..180). */
     fun setSessionMinutes(minutes: Int) =
         mutateDraft(SetupStepId.SESSION_TIME) { latest -> latest.withSessionMinutes(minutes) }
 

@@ -281,7 +281,9 @@ object PlanRejectionPresenter {
     }
 
     private fun timeBudget(rejection: RejectionView, context: PresentationContext): RejectionPresentation {
-        val required = rejection.requiredMinutes?.takeIf { it in 1..PlanRepairAdvisor.MAX_SESSION_MINUTES }
+        // Solo se promete «Ajustar a N min» con un N que el reloj del asistente ofrece (de su mínimo al techo de las reparaciones).
+        val required = rejection.requiredMinutes
+            ?.takeIf { it in EntrenoStepValues.SESSION_MINUTES_MIN..PlanRepairAdvisor.MAX_SESSION_MINUTES }
         if (required == null) {
             val chosen = context.userMinutes?.let { "los $it min que elegiste" } ?: "el tiempo que elegiste"
             return RejectionPresentation(

@@ -33,20 +33,21 @@ private const val UNDECLARED_ALPHA = 0.5f
 internal const val SESSION_WRITE_DEBOUNCE_MS = 220L
 
 /**
- * SESSION_TIME · «¿Cuánto tiempo tienes por sesión?»: el dial de reloj, de 20 a 180 minutos de 5 en 5.
+ * SESSION_TIME · «¿Cuánto tiempo tienes por sesión?»: el dial de reloj, de 30 a 180 minutos de 5 en 5.
  *
  * Lee `state.draft.minutesPerSession` y escribe SOLO con `vm.setSessionMinutes(minutes)`, que redondea al múltiplo de 5
  * más cercano dentro del rango. No hay campo de texto: el valor llega siempre del dial. Mientras no hay valor declarado el
  * dial arranca en [DEFAULT_DIAL_MINUTES] atenuado: es una posición de salida, no una respuesta, y el check sigue
  * apagado hasta que la persona lo mueve o toca un atajo. La pista de COPY («Con poco tiempo…», «Con más tiempo…») sigue
- * al valor.
+ * al valor. Un valor por debajo del mínimo (un borrador anterior que el asistente aún no ha reparado) se muestra en el
+ * mínimo: el reloj nunca enseña una posición que no ofrece.
  */
 @Composable
 internal fun EntrenoSessionTimeStep(state: SetupWizardState, vm: SetupWizardViewModel) {
     val declared = state.draft.minutesPerSession
     // Lo que el dial acaba de pedir y el borrador todavía no tiene; mientras exista, es lo que se ve (el dedo manda).
     var pending by remember { mutableStateOf<Int?>(null) }
-    val shown = pending ?: declared ?: DEFAULT_DIAL_MINUTES
+    val shown = (pending ?: declared ?: DEFAULT_DIAL_MINUTES).coerceIn(EntrenoStepValues.SESSION_MINUTES_MIN, EntrenoStepValues.SESSION_MINUTES_MAX)
 
     // Una escritura cuando el dedo se detiene, no una por muesca.
     LaunchedEffect(pending) {

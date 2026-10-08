@@ -307,6 +307,21 @@ class EntrenoStepsSmokeTest {
     }
 
     @Test
+    fun theDialStartsAtThirtyAndAValueBelowItIsShownAtTheMinimum() {
+        // Un borrador que aún trae los 20 min de antes (el asistente lo repara al abrirlo): el reloj nunca enseña una posición
+        // que no ofrece ni un atajo de 20.
+        show(SetupWizardDraft(minutesPerSession = 20)) { s, v -> EntrenoSessionTimeStep(s, v) }
+        val config = rule.onNodeWithTag(SESSION_DIAL_TAG).fetchSemanticsNode().config
+        val range = config[SemanticsProperties.ProgressBarRangeInfo]
+        assertEquals(30f, range.range.start, 0f)
+        assertEquals(180f, range.range.endInclusive, 0f)
+        assertEquals(30f, range.current, 0f)
+        assertEquals("30 minutos", config[SemanticsProperties.StateDescription])
+        rule.onNodeWithTag("setup-sessiontime-30").assertIsSelected()
+        rule.onNodeWithTag("setup-sessiontime-20").assertDoesNotExist()
+    }
+
+    @Test
     fun aLongSessionExplainsItAddsWarmupsAndLongerRests() {
         show(SetupWizardDraft().withSessionMinutes(120)) { s, v -> EntrenoSessionTimeStep(s, v) }
         rule.onNodeWithTag("setup-sessiontime-120").assertIsSelected()
