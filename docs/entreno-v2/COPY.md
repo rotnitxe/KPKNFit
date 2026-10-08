@@ -15,7 +15,7 @@ nunca instrucciones de interfaz. Tono: éxito = celebra sin exagerar; aviso = cl
 | `WEEKDAYS` | ¿Qué días puedes entrenar? | Entre 1 y 7. El programa se adapta a tu semana. |
 | `SESSION_TIME` | ¿Cuánto tiempo tienes por sesión? | Es un rango: el programa se ajusta a ti. |
 | `CAPABILITIES` | ¿Qué ejercicios ya te salen? | Así elegimos variantes a tu medida. |
-| `PRIORITIES` | ¿Qué músculos quieres mejorar más? | Elige hasta 5. Puedes omitir este paso. |
+| `PRIORITIES` | ¿Qué músculos priorizas? | Elige hasta 5. Puedes omitir este paso. |
 | `TRAINING_MAX` | ¿Conoces tus marcas? | Con una basta. Sin marcas, el programa sigue siendo válido. |
 | `PLAN` (general) | Tu programa a medida | Armado con tu material, tus días y tu tiempo. |
 | `PLAN` (disciplina) | Elige tu programa | Elige el que más te guste. Podrás modificarlo después. |
@@ -28,10 +28,12 @@ nunca instrucciones de interfaz. Tono: éxito = celebra sin exagerar; aviso = cl
   Calistenia «Necesita barra de dominadas o anillas.» · Halterofilia «Necesita barra y rack.» · Strongman «Necesita barra y mancuernas o kettlebell.» · Armwrestling «Necesita mancuernas, poleas, bandas, barra o kettlebell.» Acción al tocar un perfil bloqueado: «Cambiar mi material».
 - **Día con más energía**: nota «También será el primer día de tu semana.»
 - **Calendario**: contador «1 día por semana» / «N días por semana»; «La semana empieza el jueves»; marca del día fuerte «Tu sesión más fuerte»; con varios lugares «¿Dónde entrenas ese día?».
+  Aviso cuando el día con más energía se quita de los de entreno (una nota bajo el calendario): «Sin entrenar el martes, tu sesión más fuerte pasa al jueves.» La sesión más fuerte cae en el primer día de entreno posterior de la semana (dando la vuelta); es la regla del generador (`WeekPlanner.mainDay`), y los planes de autor no usan el día con más energía. Iniciales de los días: L M Mi J V S D (el miércoles es «Mi»: una X suelta no se lee como un día).
 - **Tiempo**: lectura «75 min» y «1 h 15 min»; atajos 30 · 45 · 60 · 90 · 120; pista dinámica: ≤ 30 min «Con poco tiempo vamos a lo esencial.» · ≥ 90 min «Con más tiempo sumamos aproximaciones, movilidad y descansos más largos.»
 - **Capacidades**: niveles «Aún no» · «Algunas» · «Varias»; pie «Sin presión: siempre podrás cambiarlo.»
 - **Músculos**: «Omitir» arriba a la derecha (texto discreto, no botón); etiqueta de preselección «Sugerido»; tope «Máximo 5 músculos.»
 - **Marcas**: «No la sé»; unidad «kg · lb»; ayuda «Tu mejor levantamiento de una repetición, o una estimación.»
+- **Semana (tablero de siete filas)**: guía «Arrastra una sesión por su asa, o tócala y elige un día.» · mientras se lleva «Suéltala sobre un día. Fuera de la semana se cancela.» / «Suéltala en martes.» · con una elegida «Toca el día al que quieres mover «Torso A».» · día libre «Descanso» (TalkBack: «Martes, descanso»; con una sesión elegida ofrece «Mover aquí la sesión elegida»).
 - **Reparto**: «Adaptar mi programa a este reparto» · «Restablecer» · pie «Puedes cambiar todo esto cuando quieras desde tu programa.» Aviso en planes de autor: «Este programa trae su reparto de autor. Si lo adaptas, cambia su estructura original.»
   Confirmación: «¿Adaptar tu programa a «Torso y pierna»?» / «Reubicamos los ejercicios y mantenemos tu volumen semanal.» → «Adaptar» / «Mantener mi reparto».
 

@@ -5,10 +5,11 @@ Referencia de cómo se comporta y cómo se toca el wizard de alta (`screens/onbo
 ## Qué ve la persona
 
 - **Paso activo**: tramo desplegado con etiqueta («PASO 2 DE 5 · DATOS BÁSICOS»), título, subtítulo y control. Siempre esa anatomía y siempre los mismos tamaños, alineado a la izquierda.
-- **Pasos ya confirmados**: se pliegan en una **fila de lista** (marca, etiqueta corta, valor de una línea y un filete). Tocarla edita ese paso (`vm.editStep`).
-- **Paso siguiente**: solo **asoma** bajo el activo y la página sigue hasta el borde inferior (etiqueta y título tenues, control desenfocado y desvaneciéndose hacia abajo). Está inerte: no recibe toques ni lo anuncia TalkBack.
+- **Pasos ya confirmados**: se pliegan en una **fila de lista** (marca, etiqueta corta, valor en hasta dos líneas y un filete). Tocarla edita ese paso (`vm.editStep`). El valor nunca acaba a media palabra: si no cabe en dos líneas se corta en la última palabra entera con «…» (`SummaryValue`), y las listas largas se acortan en el texto («Sentadilla, Press banca +1» en lugar de los pesos).
+- **Paso siguiente**: solo **asoma** bajo el activo y la página sigue hasta el borde inferior (etiqueta y título tenues, control desenfocado y desvaneciéndose hacia abajo). Está inerte: no recibe toques ni lo anuncia TalkBack. Su **control se compone tras la animación de llegada** (`SlideMillis` + un respiro) y entra con un fundido corto; la etiqueta, el título y el subtítulo sí están desde el primer cuadro. Si la persona confirma antes, el paso ya es el activo y se compone en el acto.
 - **Check** (abajo): confirma y es lo único que genera el paso siguiente. La página se **desliza** hasta él (no hay página nueva) mientras el anterior se pliega.
 - **Scroll**: se puede volver atrás a ver lo respondido, pero no adelantarse a lo que el check no ha generado ([`WizardScrollLock`]).
+- **El final del paso, sobre el botón**: al abrirse un paso cuyo final quedaría bajo el botón de confirmar y su velo (con la letra al 130 %, «Ver detalles» de PLAN), la página sube lo justo para que quede por encima (`WizardPageMetrics.openExtra`: nunca más de una fila-resumen, de modo que la pregunta sigue a la vista; nunca con el teclado abierto; y solo mientras la persona no haya movido la página). Se hace una vez en el anfitrión, no paso por paso, y se repite si el paso crece después de abrirse (PLAN se revela al terminar el barrido).
 - **Cabecera**: atrás, progreso por bloques (un tramo por bloque del recorrido) y salir. No repite la pregunta: lleva la Torre de la marca, el bloque y cuánto llevas. Es de cristal real: desenfoca lo que pasa por debajo. El tramo de un bloque completo se pinta en verde de marca; el que se recorre, en tinta.
 - **Al terminar un bloque** sale el overlay de «bloque completado» (ver abajo) encima de su última pregunta, que ya está confirmada; **al abrir un borrador sin empezar** sale el mismo overlay sin nada completado.
 
@@ -21,6 +22,7 @@ Referencia de cómo se comporta y cómo se toca el wizard de alta (`screens/onbo
 | Cromo fijo | `design/WizardPageChrome.kt` | Cabecera de cristal, velo superior y botón de confirmar con su velo. |
 | Vidrio | `design/WizardGlass.kt` | Estilo `haze` de la cabecera y del botón. |
 | Geometría y bloqueo | `design/WizardPageMetrics.kt` | Fórmulas del deslizado y del límite de scroll, más `WizardScrollLock`. |
+| Desplazamiento a petición | `design/WizardPageScroll.kt` | `LocalWizardPageScroll`: deja que un control que arrastra algo hasta el borde visible (el tablero de la semana) desplace la página, con el mismo límite que la persona (`pageScrollStep`) y dentro de la franja que dejan la cabecera y el botón de confirmar. |
 | Textos y posiciones | `SetupWizardSteps.kt` | Título/subtítulo por página, etiquetas, progreso por bloque y las etapas del overlay de hito (`milestoneStages`, `introStages`). |
 | Overlay de hito y de arranque | `design/ModuleCompleteOverlay.kt` | Animación propia por bloque (`KpknModule`), fila de etapas con la guía y la variante `INTRO`. |
 | Resúmenes | `SetupStepSummaries.kt` | Etiqueta corta y valor de una línea de cada paso confirmado. |
@@ -60,9 +62,9 @@ Un hito (`MILESTONE_*`) **ya no es una página**: es el overlay de la guía de m
 4. **Desenfoque solo donde corresponde**: el `RenderEffect` del paso que asoma se aplica únicamente a su control, nunca a la etiqueta ni al título; `haze` solo bajo la cabecera, y el fondo va dentro de la fuente de `haze` para que el cristal sea opaco. Nada de `Modifier.blur` suelto sobre una página entera.
 5. **Sin adornos**: nada de tarjetas por paso, resplandores de color, degradados de borde ni sombras de color. El color de bloque no tiñe la página; el progreso es tinta crema sobre gris y verde de marca cuando el bloque se completa. El texto y los controles usan la **tinta cálida de la marca** (`WizardColors.text` = #F2EEE6), no blanco puro.
 6. **Marcas de prueba**: la sección activa lleva `setup-step-<ID>`, la fila-resumen `setup-summary-<ID>` y el check `setup-continue` (con `Role.Button` y estado real de habilitado).
-7. **El deslizado sale de una fórmula cerrada** (`WizardPageMetrics.target`) porque todo lo anterior al paso activo son filas de alto fijo. Si una fila-resumen dejara de medir lo mismo, hay que medir posiciones en lugar de usar la fórmula.
+7. **El deslizado sale de una fórmula cerrada** (`WizardPageMetrics.target`) porque todo lo anterior al paso activo son filas de alto fijo. El alto de la fila-resumen es función SOLO de la escala de letra (`WizardSpacing.summaryRowHeightFor`: etiqueta y dos líneas de valor, 72 dp con letra normal y 90 dp al 130 %), nunca del texto. Si una fila-resumen dejara de medir lo mismo, hay que medir posiciones en lugar de usar la fórmula.
 8. **El resumen se calcula una vez**, al confirmar la página, y se guarda; recalcular todas las filas en cada pulsación sería caro.
-9. Se compone solo lo que se ve: una página plegada no compone su paso.
+9. Se compone solo lo que se ve: una página plegada no compone su paso, y la que asoma no compone su control hasta que termina la animación de llegada (el cuadro de la confirmación ya lleva el deslizado, el plegado de la fila y el enfoque del activo; componer además un control entero lo alargaba hasta 250–500 ms en el APK debug).
 
 ## Cómo añadir un paso
 
