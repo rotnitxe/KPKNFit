@@ -45,7 +45,7 @@ import com.example.kpkn.screens.onboarding.design.entreno.rememberSymbolClock
  * SOLO DEPURACIÓN (no se integra): vista previa de los símbolos de Entreno sobre la página negra.
  *
  * Extras (`adb shell am start … --es scenario places`), siempre a través de `emu_run.py`:
- *  - `scenario`: `places` (por defecto), `equipment` (los 17), `equipment_gym`, `equipment_home`,
+ *  - `scenario`: `places` (por defecto), `equipment` (los 16), `equipment_gym`, `equipment_home`,
  *    `equipment_public` (los que ofrece cada lugar) o `big` (un solo símbolo ampliado, con `--es id GYM|BARBELL|…`).
  *  - `selectAll` (booleano): arranca con todo marcado. `select` (texto «GYM,PUBLIC» / «BARBELL,RACK»): arranca con esos.
  *  - `widthDp` (decimal): ancho del contenido (p. ej. 360). `fontScale` (decimal): escala de fuente (p. ej. 1.3).
