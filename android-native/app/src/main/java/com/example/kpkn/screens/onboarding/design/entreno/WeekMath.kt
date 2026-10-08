@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.onboarding.design.entreno
 
+import com.example.kpkn.domain.onboarding.EntrenoStepValues
 import com.example.kpkn.domain.onboarding.TrainingPlace
 import kotlin.math.abs
 import kotlin.math.atan2
@@ -160,16 +161,16 @@ fun spokenDuration(minutes: Int): String {
 
 // ─── Dial de reloj ───────────────────────────────────────────────────────────────────────────────────────────
 
-/** Rango del dial del alta: de 20 a 180 minutos. */
-val SESSION_DIAL_RANGE: IntRange = 20..180
+/** Rango del dial del alta: el del paso (de 30 a 180 minutos), para que el reloj y el borrador nunca discrepen. */
+val SESSION_DIAL_RANGE: IntRange = EntrenoStepValues.SESSION_MINUTES_MIN..EntrenoStepValues.SESSION_MINUTES_MAX
 
 /** El valor salta de 5 en 5 minutos. */
-const val SESSION_DIAL_STEP = 5
+const val SESSION_DIAL_STEP = EntrenoStepValues.SESSION_MINUTES_STEP
 
-/** Dónde empieza el arco (20 min): ángulo de reloj en grados desde las 12 en sentido horario; 210° = abajo a la izquierda. */
+/** Dónde empieza el arco (el mínimo del rango): ángulo de reloj en grados desde las 12 en sentido horario; 210° = abajo a la izquierda. */
 const val DIAL_START_DEG = 210f
 
-/** Lo que barre el arco de 20 a 180 minutos; los 60° que faltan (abajo) son el hueco. */
+/** Lo que barre el arco de mínimo a máximo (30 a 180 minutos); los 60° que faltan (abajo) son el hueco. */
 const val DIAL_SWEEP_DEG = 300f
 
 private const val FULL_TURN_DEG = 360f
@@ -195,8 +196,8 @@ fun dialFraction(minutes: Float, range: IntRange = SESSION_DIAL_RANGE): Float {
 }
 
 /**
- * Ángulo de reloj (grados, `[0, 360)`) en el que cae [minutes]: 20 min a 210° (abajo a la izquierda), 100 min a 0° (arriba)
- * y 180 min a 150° (abajo a la derecha). Fuera de [range] se acota al extremo.
+ * Ángulo de reloj (grados, `[0, 360)`) en el que cae [minutes]: con el rango del alta, 30 min a 210° (abajo a la izquierda),
+ * 105 min a 0° (arriba) y 180 min a 150° (abajo a la derecha). Fuera de [range] se acota al extremo.
  */
 fun angleForMinutes(minutes: Float, range: IntRange = SESSION_DIAL_RANGE): Float =
     normalizeDialAngle(DIAL_START_DEG + dialFraction(minutes, range) * DIAL_SWEEP_DEG)

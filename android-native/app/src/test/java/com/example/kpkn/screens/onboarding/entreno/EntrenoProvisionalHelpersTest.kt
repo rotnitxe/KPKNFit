@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.onboarding.entreno
 
+import com.example.kpkn.domain.onboarding.EntrenoStepValues
 import com.example.kpkn.domain.onboarding.EquipmentSymbolId
 import com.example.kpkn.domain.onboarding.TrainingPlace
 import org.junit.Assert.assertEquals
@@ -12,8 +13,8 @@ class EntrenoProvisionalHelpersTest {
     @Test
     fun theSessionTimeHintGoesToTheEssentialWithLittleTimeAndAddsWorkWithMuch() {
         assertNull(sessionTimeHint(null))
-        assertEquals("Con poco tiempo vamos a lo esencial.", sessionTimeHint(20))
-        assertEquals("Con poco tiempo vamos a lo esencial.", sessionTimeHint(30))
+        // El reloj arranca en 30 min: ahí está la pista de «poco tiempo» (el 20 de antes ya no se ofrece).
+        assertEquals("Con poco tiempo vamos a lo esencial.", sessionTimeHint(EntrenoStepValues.SESSION_MINUTES_MIN))
         assertNull(sessionTimeHint(31))
         assertNull(sessionTimeHint(60))
         assertNull(sessionTimeHint(89))

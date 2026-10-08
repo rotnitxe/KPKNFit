@@ -5,6 +5,7 @@ import com.example.kpkn.data.models.EquipmentAvailability
 import com.example.kpkn.data.programs.CatalogLevel
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.data.programs.TrainingFocus
+import com.example.kpkn.domain.onboarding.EntrenoStepValues
 import com.example.kpkn.domain.onboarding.EquipmentSymbolId
 import com.example.kpkn.domain.onboarding.EquipmentSymbols
 import com.example.kpkn.domain.onboarding.GeneratedPlans
@@ -24,7 +25,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Entreno v2 · barrido de integración del paso PLAN (rápido, sin ViewModel): para 1–7 días × 20–180 min × 3 perfiles
+ * Entreno v2 · barrido de integración del paso PLAN (rápido, sin ViewModel): para 1–7 días × 30–180 min × 3 perfiles
  * de material × los 10 perfiles de objetivo, el programa «a medida» del perfil SIEMPRE existe, sale del pedido del
  * borrador ([routineRequest]), se completa como en el asistente ([generatedProgramOf]), es ejecutable
  * (`ProgramExecutionContract.requireExecutable`) y el evaluador de candidatos lo da por viable con el mismo pedido que
@@ -42,7 +43,7 @@ class EntrenoPlanSweepTest {
         Material("solo cuerpo", setOf(TrainingPlace.HOME), setOf(EquipmentSymbolId.BODYWEIGHT_ONLY)),
     )
 
-    private val minutes = listOf(20, 60, 120, 180)
+    private val minutes = listOf(EntrenoStepValues.SESSION_MINUTES_MIN, 60, 120, 180)
 
     private fun weekdays(count: Int): Set<Int> = when (count) {
         1 -> setOf(3)

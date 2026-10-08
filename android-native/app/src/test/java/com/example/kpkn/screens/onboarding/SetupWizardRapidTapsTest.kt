@@ -172,7 +172,7 @@ class SetupWizardRapidTapsTest {
             4, 5 -> vm.toggleWeekday(1 + random.nextInt(7))
             6 -> vm.setWeekStart(1 + random.nextInt(7))
             7 -> vm.setDayPlace(1 + random.nextInt(7), TrainingPlace.entries.random(random))
-            8, 9 -> vm.setSessionMinutes(20 + random.nextInt(161))
+            8, 9 -> vm.setSessionMinutes(30 + random.nextInt(151))
             10 -> vm.setCapability(CapabilitySkill.entries.random(random), CapabilityLevel.entries.random(random))
             11 -> vm.toggleMuscle(MuscleSymbol.entries.random(random))
             12 -> vm.setLiftMark(LiftMark.entries.random(random), 40.0 + random.nextInt(160))

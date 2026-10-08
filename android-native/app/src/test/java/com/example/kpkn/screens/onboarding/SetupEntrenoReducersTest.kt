@@ -385,9 +385,14 @@ class SetupEntrenoReducersTest {
     }
 
     @Test
-    fun sessionMinutesAreAMultipleOfFiveWithinTwentyAndOneHundredEighty() {
+    fun sessionMinutesAreAMultipleOfFiveWithinThirtyAndOneHundredEighty() {
         assertEquals(45, SetupWizardDraft().withStepNumber(SetupStepId.SESSION_TIME, 47.0).minutesPerSession)
-        assertEquals(20, SetupWizardDraft().withSessionMinutes(5).minutesPerSession)
+        // El reloj ya no ofrece menos de 30: los 5, 20 y 25 min de antes se escriben como el mínimo.
+        assertEquals(30, SetupWizardDraft().withSessionMinutes(5).minutesPerSession)
+        assertEquals(30, SetupWizardDraft().withSessionMinutes(20).minutesPerSession)
+        assertEquals(30, SetupWizardDraft().withSessionMinutes(25).minutesPerSession)
+        assertEquals(30, SetupWizardDraft().withStepNumber(SetupStepId.SESSION_TIME, 22.0).minutesPerSession)
+        assertEquals(30, SetupWizardDraft().withSessionMinutes(30).minutesPerSession)
         assertEquals(180, SetupWizardDraft().withSessionMinutes(500).minutesPerSession)
         assertEquals(75, SetupWizardDraft().withSessionMinutes(75).minutesPerSession)
         assertNull(SetupWizardDraft().withSessionMinutes(75).withSessionMinutes(null).minutesPerSession)
@@ -397,8 +402,9 @@ class SetupEntrenoReducersTest {
         assertEquals(60, dial.withStepText(SetupStepId.SESSION_TIME, "90").minutesPerSession)
         assertTrue(SetupWizardValidation.validateStep(dial, SetupStepId.SESSION_TIME).none { it.isBlocking })
         assertTrue(SetupWizardValidation.validateStep(SetupWizardDraft(), SetupStepId.SESSION_TIME).single().isBlocking)
-        // Un valor de un borrador antiguo fuera del rango nuevo es inválido; los antiguos de 20..100 siguen valiendo.
+        // Un valor de un borrador antiguo fuera del rango nuevo es inválido (más de 180 o menos de 30); los de 30..100 siguen valiendo.
         assertTrue(SetupWizardValidation.validateStep(SetupWizardDraft(minutesPerSession = 200), SetupStepId.SESSION_TIME).single().isBlocking)
+        assertTrue(SetupWizardValidation.validateStep(SetupWizardDraft(minutesPerSession = 25), SetupStepId.SESSION_TIME).single().isBlocking)
         assertTrue(SetupWizardValidation.validateStep(SetupWizardDraft(minutesPerSession = 32), SetupStepId.SESSION_TIME).none { it.isBlocking })
     }
 

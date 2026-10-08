@@ -6,6 +6,7 @@ import com.example.kpkn.data.models.EquipmentAvailability
 import com.example.kpkn.data.models.EquipmentCategory
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
+import com.example.kpkn.domain.onboarding.EntrenoStepValues
 import com.example.kpkn.domain.onboarding.PlanCandidateEvaluation
 import com.example.kpkn.domain.onboarding.PlanCandidateEvaluator
 import com.example.kpkn.domain.onboarding.PlanCandidateRequest
@@ -57,6 +58,8 @@ private val VIOLATION_CEILING: Map<String, Int> = mapOf(
     // semántica de las simulaciones que sustituye (smoke 110 → 8, ci/0–ci/3 → 30 cada uno).
     // cierre A3 (gate48, 2026-10-04): corrida `full` de 25 650 filas = 0 violaciones tras resolver E13;
     // el ratchet queda en 0 para smoke, los cuatro shards ci y full.
+    // 2026-10-08: la rejilla pierde las filas de 20 min (el reloj del asistente parte de 30): 20 520 filas, las mismas de
+    // antes con 30, 45, 60 y 90 min, así que el techo sigue en 0.
     "smoke" to 0,
     "ci/0" to 0,
     "ci/1" to 0,
@@ -65,8 +68,11 @@ private val VIOLATION_CEILING: Map<String, Int> = mapOf(
     "full" to 0,
 )
 
-/** Filas de la rejilla C1: 3 objetivos x 3 niveles x 6 días x 5 duraciones x 19 fixtures + Atleta x 12 (cardio). */
-private const val EXPECTED_GRID_ROWS = 25_650
+/**
+ * Filas de la rejilla C1: 3 objetivos x 3 niveles x 6 días x 4 duraciones x 19 fixtures + Atleta x 12 (cardio) = 20 520.
+ * Eran 25 650 con 5 duraciones: la de 20 min salió de la rejilla cuando el reloj del asistente pasó a empezar en 30 (2026-10-08).
+ */
+private const val EXPECTED_GRID_ROWS = 20_520
 
 /** Tope de minutos por sesión que el wizard admite (el fitter solo acepta 20..100). */
 private const val MAX_SESSION_MINUTES = 100
@@ -75,7 +81,12 @@ private const val EXAMPLES_PER_KIND = 25
 
 /** RETURNING ≡ NEW (mismo nivel de catálogo), así que no se duplica en la rejilla. */
 private val GRID_EXPERIENCES = listOf(SetupExperience.NEW, SetupExperience.INTERMEDIATE, SetupExperience.ADVANCED)
-private val GRID_MINUTES = listOf(20, 30, 45, 60, 90)
+
+/**
+ * Duraciones de la rejilla: desde el mínimo del reloj del asistente. «Para todo input alcanzable»: con 20 o 25 min ya no se pide
+ * nada (el reloj parte de 30) y el asesor tampoco propone ajustar a menos de eso, así que esas filas no son inputs alcanzables.
+ */
+private val GRID_MINUTES = listOf(EntrenoStepValues.SESSION_MINUTES_MIN, 45, 60, 90)
 private val GRID_CARDIO_MINUTES = listOf(10, 15, 20, 30)
 
 /** Fixtures con material «utilizable» y los `equipmentId` del catálogo que C5 exige usar (solo Músculo/Atleta). */

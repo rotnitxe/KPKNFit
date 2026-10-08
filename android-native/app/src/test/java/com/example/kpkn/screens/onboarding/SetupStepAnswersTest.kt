@@ -37,7 +37,7 @@ import java.time.LocalDate
  *   sí reemplaza el crudo obsoleto.
  * - La validación numérica prioriza el crudo, exige enteros en la edad y usa los
  *   rangos del catálogo `SetupStepDefinitions`. El tiempo por sesión es un reloj
- *   (20..180, de 5 en 5): sin texto crudo.
+ *   (30..180, de 5 en 5): sin texto crudo.
  * - BODY_FAT sin percentil no vale ni respondido; «No lo sé» (omisión de un
  *   borrador antiguo) limpia número, fecha y texto y ya no valida: el paso es
  *   obligatorio. La autorregulación ya no es una pregunta: ningún estado suyo bloquea.

@@ -13,7 +13,13 @@ import kotlin.math.roundToInt
 object EntrenoStepValues {
 
     // ── Tiempo por sesión ──────────────────────────────────────────────────────
-    const val SESSION_MINUTES_MIN = 20
+    /**
+     * Menos de media hora no se ofrece (decisión del 2026-10-08): un ejercicio pesado con su aproximación y su movilidad ya pide
+     * ~30 min, así que con 20 el 58 % de las combinaciones del barrido se pasaba de lo pedido (hasta +10 min); con 30, solo 30 de 490
+     * pasan de +1 min y desde 60 ninguna. El generador de rutinas conserva su contrato para cualquier minuto de 20 a 180
+     * (`RoutineGenerator`); este es el mínimo del reloj del asistente, no el suyo.
+     */
+    const val SESSION_MINUTES_MIN = 30
     const val SESSION_MINUTES_MAX = 180
     const val SESSION_MINUTES_STEP = 5
 

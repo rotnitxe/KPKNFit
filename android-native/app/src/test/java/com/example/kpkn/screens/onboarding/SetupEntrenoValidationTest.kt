@@ -117,12 +117,17 @@ class SetupEntrenoValidationTest {
         assertTrue(blocking(SetupWizardDraft().withWeekdays(setOf(2)), SetupStepId.WEEKDAYS).isEmpty())
         assertTrue(blocking(SetupWizardDraft().withWeekdays((1..7).toSet()), SetupStepId.WEEKDAYS).isEmpty())
         assertTrue(blocking(SetupWizardDraft(), SetupStepId.SESSION_TIME).isNotEmpty())
-        listOf(20, 60, 180).forEach { minutes ->
+        listOf(30, 60, 180).forEach { minutes ->
             assertTrue("$minutes", blocking(SetupWizardDraft().withSessionMinutes(minutes), SetupStepId.SESSION_TIME).isEmpty())
         }
-        // Un dato antiguo fuera del reloj nuevo no se da por bueno.
-        assertTrue(blocking(SetupWizardDraft(minutesPerSession = 19), SetupStepId.SESSION_TIME).isNotEmpty())
-        assertTrue(blocking(SetupWizardDraft(minutesPerSession = 181), SetupStepId.SESSION_TIME).isNotEmpty())
+        // Un dato antiguo fuera del reloj nuevo no se da por bueno: ni los 20 y 25 min de antes (el mínimo es 30) ni lo que pasa de 180.
+        listOf(0, 19, 20, 25, 29, 181).forEach { minutes ->
+            assertTrue("$minutes", blocking(SetupWizardDraft(minutesPerSession = minutes), SetupStepId.SESSION_TIME).isNotEmpty())
+        }
+        assertEquals(
+            "Elige entre 30 y 180 min.",
+            blocking(SetupWizardDraft(minutesPerSession = 25), SetupStepId.SESSION_TIME).single().message,
+        )
     }
 
     @Test

@@ -19,7 +19,14 @@ object WizChatValidation {
         WizChatQuestionId.P_AGE -> range(number, 13.0, 100.0, "La edad debe estar entre 13 y 100 años", false)
         WizChatQuestionId.P_HEIGHT -> range(number, 100.0, 250.0, "La estatura debe estar entre 100 y 250 cm", false)
         WizChatQuestionId.P_WEIGHT -> range(number, 20.0, 500.0, "El peso debe estar entre 20 y 500 kg", false)
-        WizChatQuestionId.T_TIME -> range(number, 20.0, 100.0, "El tiempo debe estar entre 20 y 100 minutos", false)
+        // Pregunta heredada del chat: nunca acepta menos del mínimo del reloj del asistente (el mismo que valida SESSION_TIME).
+        WizChatQuestionId.T_TIME -> range(
+            number,
+            EntrenoStepValues.SESSION_MINUTES_MIN.toDouble(),
+            100.0,
+            "El tiempo debe estar entre ${EntrenoStepValues.SESSION_MINUTES_MIN} y 100 minutos",
+            false,
+        )
         WizChatQuestionId.N_ELIGIBILITY, WizChatQuestionId.R_DISCOMFORT -> {
             if (values.isEmpty() && !question.allowSkip) "Elige al menos una opción" else if (values.contains("Sin material") && values.size > 1) "Sin material es una opción exclusiva" else if (values.contains("Ninguna de estas") && values.size > 1) "Ninguna de estas es exclusiva" else null
         }

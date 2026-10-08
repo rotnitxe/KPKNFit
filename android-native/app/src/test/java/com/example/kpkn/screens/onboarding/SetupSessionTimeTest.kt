@@ -11,6 +11,7 @@ import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.WarmupSetDefinition
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
+import com.example.kpkn.domain.onboarding.EntrenoStepValues
 import com.example.kpkn.domain.onboarding.EquipmentSymbols
 import com.example.kpkn.domain.onboarding.GeneratedPlans
 import com.example.kpkn.domain.onboarding.TrainingGoalProfile
@@ -36,8 +37,8 @@ class SetupSessionTimeTest {
 
     @Test
     fun a_catalog_plan_fits_with_the_fifteen_percent_of_the_sweep_and_a_generated_one_with_one_minute() {
-        // La misma tolerancia con la que el barrido da por viable un plan del catálogo.
-        (20..180).forEach { requested ->
+        // La misma tolerancia con la que el barrido da por viable un plan del catálogo, en todo el rango del reloj (30–180).
+        (EntrenoStepValues.SESSION_MINUTES_MIN..EntrenoStepValues.SESSION_MINUTES_MAX).forEach { requested ->
             assertEquals(timeBudgetWithTolerance(requested), SessionTimeFit.limit(requested, generated = false))
             assertEquals(requested + 1, SessionTimeFit.limit(requested, generated = true))
         }
@@ -56,7 +57,7 @@ class SetupSessionTimeTest {
         assertTrue(SessionTimeFit.matches(60, 61, generated = true))
         assertFalse(SessionTimeFit.matches(60, 62, generated = true))
         // «Cabe» nunca es más estricto que «sale lo pedido».
-        (20..180 step 5).forEach { requested ->
+        (EntrenoStepValues.SESSION_MINUTES_MIN..EntrenoStepValues.SESSION_MINUTES_MAX step EntrenoStepValues.SESSION_MINUTES_STEP).forEach { requested ->
             (requested - 3..requested + 30).forEach { longest ->
                 listOf(true, false).forEach { generated ->
                     if (SessionTimeFit.matches(requested, longest, generated)) {

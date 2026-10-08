@@ -90,7 +90,7 @@ enum class SetupControlKind {
     FRESH_DAY,
     /** Calendario semanal: de 1 a 7 días, inicio de semana y lugar por día. */
     WEEK_CALENDAR,
-    /** Reloj de tiempo por sesión: de 20 a 180 minutos. */
+    /** Reloj de tiempo por sesión: de 30 a 180 minutos. */
     SESSION_DIAL,
     /** Ejercicios de peso corporal que ya salen, con nivel (aún no / algunas / varias). */
     CAPABILITIES,

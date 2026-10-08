@@ -28,7 +28,9 @@ typealias PlanRepairEvaluator = suspend (PlanCandidateRequest, EquipmentAvailabi
  *
  * Reglas (cada una se PRUEBA con [PlanRepairEvaluator] antes de proponerse):
  *  - `TIME_BUDGET` → [PlanRepair.SetMinutes] con `requiredMinutes` (exacto desde A.C2) si con esos minutos queda
- *    `Ready`. Solo para Atleta completo, si no, [PlanRepair.SetCardioMinutes] con el mayor valor de los que el plan
+ *    `Ready`. Nunca propone menos del mínimo del reloj del asistente ([EntrenoStepValues.SESSION_MINUTES_MIN]): el
+ *    borrador no puede guardar esos minutos tal cual, así que ni se prueban ni se ofrecen.
+ *    Solo para Atleta completo, si no, [PlanRepair.SetCardioMinutes] con el mayor valor de los que el plan
  *    ofrece (10, 15, 20, 30) que sea menor que el actual y deje el plan `Ready`: el cardio solo baja por decisión
  *    de la persona, nunca dentro del generador (DEC-w1-01).
  *  - `APPARATUS_UNKNOWN` → [PlanRepair.ConfirmApparatus] con las llaves del panel que resuelven los
@@ -51,7 +53,10 @@ typealias PlanRepairEvaluator = suspend (PlanCandidateRequest, EquipmentAvailabi
  */
 object PlanRepairAdvisor {
 
-    /** Techo de minutos por sesión que admite el wizard (el generador acepta de 20 a 100). */
+    /**
+     * Techo de minutos por sesión que el asesor propone (el fitter de los planes propios acepta de 20 a 100; el reloj del
+     * asistente va de [EntrenoStepValues.SESSION_MINUTES_MIN] a 180, pero ninguna reparación pasa de aquí).
+     */
     const val MAX_SESSION_MINUTES: Int = 100
 
     /**
@@ -170,9 +175,9 @@ object PlanRepairAdvisor {
 
     /**
      * Minutos con los que [first] —un rechazo de [probe]— deja de ser un `TIME_BUDGET`: los `requiredMinutes` del
-     * rechazo, siempre que sean un presupuesto que el wizard admite (por encima del de [probe] y hasta
-     * [MAX_SESSION_MINUTES]) y que con ellos el plan quede `Ready`. Null si [first] no es de tiempo o no se arregla
-     * con un solo `SetMinutes`.
+     * rechazo, siempre que sean un presupuesto que el wizard admite (por encima del de [probe], desde el mínimo del
+     * reloj [EntrenoStepValues.SESSION_MINUTES_MIN] y hasta [MAX_SESSION_MINUTES]) y que con ellos el plan quede
+     * `Ready`. Null si [first] no es de tiempo o no se arregla con un solo `SetMinutes`.
      */
     private suspend fun minutesThatFix(
         probe: PlanCandidateRequest,
@@ -182,7 +187,9 @@ object PlanRepairAdvisor {
     ): Int? {
         if (first.reasonCode != PlanRejectionReason.TIME_BUDGET) return null
         val required = first.requiredMinutes ?: return null
-        if (required <= probe.minutesPerSession || required > MAX_SESSION_MINUTES) return null
+        if (required < EntrenoStepValues.SESSION_MINUTES_MIN || required <= probe.minutesPerSession || required > MAX_SESSION_MINUTES) {
+            return null
+        }
         val roomier = probe.copy(
             inputKey = "${probe.inputKey}|repair=minutes:$required",
             minutesPerSession = required,

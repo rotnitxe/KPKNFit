@@ -15,11 +15,15 @@ import com.example.kpkn.domain.onboarding.SetupProgressOrigin
 import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.SetupStepProgress
+import com.example.kpkn.domain.onboarding.SetupValueState
 import com.example.kpkn.domain.onboarding.SetupWizardBlock
 import com.example.kpkn.domain.onboarding.TrainingGoalProfile
 import com.example.kpkn.domain.onboarding.TrainingPlace
 import com.example.kpkn.domain.training.TrainingOptions
 import com.example.kpkn.domain.training.effectiveEquipment
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -324,6 +328,100 @@ class SetupEntrenoCompatibilityTest {
         val modern = SetupDraftCompatibility.repair(oldDraft(graphRevision = SetupStepGraph.REVISION, options = options))
         assertEquals(AutoregulationMode.AUTO, modern.trainingOptions.autoregulationMode)
         assertEquals(warm, modern.trainingOptions.warmup)
+    }
+
+    // ── Tiempo por sesión: el reloj ya no baja de 30 min ───────────────────────
+
+    /** Lo respondido hasta la constancia, con el tiempo por sesión ya confirmado (la ruta nueva, sin pasos pendientes antes). */
+    private val throughTheTimeStep = earlyAnswers + listOf(
+        SetupStepId.AVAILABILITY, SetupStepId.FRESH_DAY, SetupStepId.SESSION_TIME,
+        SetupStepId.VOLUME_TECHNIQUE, SetupStepId.VOLUME_CONSISTENCY,
+    )
+
+    private fun draftWithMinutes(minutes: Int?, cursor: SetupStepId = SetupStepId.VOLUME_CONSISTENCY) =
+        oldDraft(answered = throughTheTimeStep, cursor = cursor, graphRevision = SetupStepGraph.REVISION)
+            .copy(minutesPerSession = minutes)
+
+    @Test
+    fun aDraftWithTwentyOrTwentyFiveMinutesIsReadAsThirtyAndLeavesTheTimeStepForReview() {
+        val reference = SetupDraftCompatibility.repair(draftWithMinutes(60))
+        assertEquals(60, reference.minutesPerSession)
+        assertFalse(SetupStepId.SESSION_TIME in reference.stepProgress.pendingReview)
+        assertEquals("el borrador de 60 min sigue donde se dejó", SetupStepId.VOLUME_CONSISTENCY, reference.stepProgress.currentStepId)
+
+        for (old in listOf(20, 25)) {
+            val repaired = SetupDraftCompatibility.repair(draftWithMinutes(old))
+            assertEquals("$old min se lee como 30", 30, repaired.minutesPerSession)
+            // El paso queda por revisar y el cursor vuelve a él para que la persona decida.
+            assertTrue(SetupStepId.SESSION_TIME in repaired.stepProgress.pendingReview)
+            assertEquals(SetupStepId.SESSION_TIME, repaired.stepProgress.currentStepId)
+            // No se confirma nada ni se pierde nada: las respuestas son exactamente las mismas (la del tiempo sigue siendo la
+            // que la persona dio, solo marcada por revisar)…
+            assertEquals(reference.stepProgress.answers, repaired.stepProgress.answers)
+            assertEquals(SetupAnswerProvenance.USER_DECLARED, repaired.stepProgress.answers[SetupStepId.SESSION_TIME])
+            assertEquals(reference.stepProgress.pendingReview + SetupStepId.SESSION_TIME, repaired.stepProgress.pendingReview)
+            // Salvo los minutos y el progreso, el borrador es el de siempre (días, material, objetivo, calibración…).
+            assertEquals(reference.copy(minutesPerSession = 30, stepProgress = repaired.stepProgress), repaired)
+        }
+    }
+
+    @Test
+    fun aStaleRawTextOfTheTimeStepDoesNotSurviveTheRepair() {
+        val old = draftWithMinutes(25).copy(inputTexts = mapOf(SetupStepId.SESSION_TIME.name to "25"))
+        val repaired = SetupDraftCompatibility.repair(old)
+        assertEquals(30, repaired.minutesPerSession)
+        assertNull(repaired.inputTexts[SetupStepId.SESSION_TIME.name])
+    }
+
+    @Test
+    fun aTimeBelowTheMinimumReopensFromALaterCursorToo() {
+        // Con el cursor ya más adelante (la constancia, la fuerza o las prioridades), la persona vuelve al tiempo.
+        for (cursor in listOf(SetupStepId.VOLUME_CONSISTENCY, SetupStepId.VOLUME_STRENGTH, SetupStepId.PRIORITIES)) {
+            val repaired = SetupDraftCompatibility.repair(draftWithMinutes(20, cursor = cursor))
+            assertEquals("cursor en $cursor", SetupStepId.SESSION_TIME, repaired.stepProgress.currentStepId)
+            assertEquals(30, repaired.minutesPerSession)
+        }
+    }
+
+    @Test
+    fun aTimeFromThirtyUpIsLeftAsItIsAndNoTimeMeansNothingToRead() {
+        for (minutes in listOf(30, 31, 45, 90, 180)) {
+            val repaired = SetupDraftCompatibility.repair(draftWithMinutes(minutes))
+            assertEquals(minutes, repaired.minutesPerSession)
+            assertFalse("$minutes", SetupStepId.SESSION_TIME in repaired.stepProgress.pendingReview)
+            assertEquals("$minutes", SetupStepId.VOLUME_CONSISTENCY, repaired.stepProgress.currentStepId)
+        }
+        val none = SetupDraftCompatibility.repair(draftWithMinutes(null, cursor = SetupStepId.SESSION_TIME))
+        assertNull(none.minutesPerSession)
+        assertFalse(SetupStepId.SESSION_TIME in none.stepProgress.pendingReview)
+    }
+
+    @Test
+    fun reconfirmingTheTimeStepClosesItsReviewAndTheRepairNeverReopensIt() {
+        val repaired = SetupDraftCompatibility.repair(draftWithMinutes(25))
+        val confirmed = repaired.copy(
+            stepProgress = repaired.stepProgress.recordAnswer(
+                SetupStepId.SESSION_TIME, SetupAnswerProvenance.USER_DECLARED, SetupValueState.DECLARED,
+            ),
+        )
+        assertFalse(SetupStepId.SESSION_TIME in confirmed.stepProgress.pendingReview)
+        val reopened = SetupDraftCompatibility.repair(confirmed)
+        assertEquals(30, reopened.minutesPerSession)
+        assertFalse(SetupStepId.SESSION_TIME in reopened.stepProgress.pendingReview)
+    }
+
+    @Test
+    fun theTimeRepairIsIdempotentAndGivesTheSameResultFromTheStoredJson() {
+        val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
+        for (old in listOf(20, 25)) {
+            val stored = json.encodeToString(draftWithMinutes(old))
+            val once = SetupDraftCompatibility.repair(json.decodeFromString<SetupWizardDraft>(stored))
+            assertEquals(once, SetupDraftCompatibility.repair(once))
+            // Y lo que se guarda ya reparado vuelve a leerse igual.
+            assertEquals(once, SetupDraftCompatibility.repair(json.decodeFromString<SetupWizardDraft>(json.encodeToString(once))))
+            assertEquals(30, once.minutesPerSession)
+            assertTrue(SetupStepId.SESSION_TIME in once.stepProgress.pendingReview)
+        }
     }
 
     // ── Bloque completo ────────────────────────────────────────────────────────

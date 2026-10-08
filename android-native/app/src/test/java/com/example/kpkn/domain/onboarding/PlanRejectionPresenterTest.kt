@@ -45,7 +45,7 @@ class PlanRejectionPresenterTest {
     fun theRejectionOfTheProfilesOwnPlanWinsOverEverythingElse() {
         val unknownWithKey = view(PlanRejectionReason.APPARATUS_UNKNOWN, "native:a", apparatusKey = "squat_rack")
         val own = view(PlanRejectionReason.FREQUENCY, "native:own")
-        val timeBudget = view(PlanRejectionReason.TIME_BUDGET, "native:c", requiredMinutes = 25)
+        val timeBudget = view(PlanRejectionReason.TIME_BUDGET, "native:c", requiredMinutes = 35)
         val rejections = listOf(unknownWithKey, timeBudget, own)
 
         assertSame(own, PlanRejectionPresenter.primary(rejections, ownPlanId = "native:own"))
@@ -63,7 +63,7 @@ class PlanRejectionPresenterTest {
 
     @Test
     fun anUnknownApparatusWithAConfirmableKeyComesBeforeTimeBudget() {
-        val timeBudget = view(PlanRejectionReason.TIME_BUDGET, "native:a", requiredMinutes = 22)
+        val timeBudget = view(PlanRejectionReason.TIME_BUDGET, "native:a", requiredMinutes = 32)
         val unknownWithKey = view(PlanRejectionReason.APPARATUS_UNKNOWN, "native:b", apparatusKey = "bench_flat")
 
         assertSame(unknownWithKey, PlanRejectionPresenter.primary(listOf(timeBudget, unknownWithKey), ownPlanId = null))
@@ -81,8 +81,8 @@ class PlanRejectionPresenterTest {
     fun amongTimeBudgetRejectionsTheOneNeedingTheFewestMinutesWins() {
         val slow = view(PlanRejectionReason.TIME_BUDGET, "native:slow", requiredMinutes = 61)
         val unknownMinutes = view(PlanRejectionReason.TIME_BUDGET, "native:none", requiredMinutes = null)
-        val fast = view(PlanRejectionReason.TIME_BUDGET, "native:fast", requiredMinutes = 28)
-        val tie = view(PlanRejectionReason.TIME_BUDGET, "native:tie", requiredMinutes = 28)
+        val fast = view(PlanRejectionReason.TIME_BUDGET, "native:fast", requiredMinutes = 38)
+        val tie = view(PlanRejectionReason.TIME_BUDGET, "native:tie", requiredMinutes = 38)
 
         assertSame(fast, PlanRejectionPresenter.primary(listOf(slow, unknownMinutes, fast, tie), ownPlanId = null))
         assertSame(
@@ -128,7 +128,7 @@ class PlanRejectionPresenterTest {
     // ─── present: tabla de C.P11 ───────────────────────────────────────────────────────────────
 
     private val context = PresentationContext(
-        userMinutes = 20,
+        userMinutes = 30,
         goalLabel = "Músculo",
         daysChosen = 3,
         disciplineLabelOf = { planId -> if (planId == "native:strength-foundation-v2") "Powerlifting" else null },
@@ -303,7 +303,7 @@ class PlanRejectionPresenterTest {
     fun timeBudgetSaysTheExactMinutesAndOffersToAdjustToThem() {
         val presentation = present(view(PlanRejectionReason.TIME_BUDGET, requiredMinutes = 31))
         presentation.assertIs(
-            "Con las series mínimas este plan necesita 31 min por sesión y elegiste 20.",
+            "Con las series mínimas este plan necesita 31 min por sesión y elegiste 30.",
             RejectionAction.SetMinutes(31),
         )
         assertEquals("Ajustar a 31 min", presentation.primary?.label)
@@ -314,16 +314,21 @@ class PlanRejectionPresenterTest {
             RejectionAction.SetMinutes(31),
         )
         present(view(PlanRejectionReason.TIME_BUDGET, requiredMinutes = 100)).assertIs(
-            "Con las series mínimas este plan necesita 100 min por sesión y elegiste 20.",
+            "Con las series mínimas este plan necesita 100 min por sesión y elegiste 30.",
             RejectionAction.SetMinutes(100),
+        )
+        // El propio mínimo del reloj vale como destino del ajuste.
+        present(view(PlanRejectionReason.TIME_BUDGET, requiredMinutes = EntrenoStepValues.SESSION_MINUTES_MIN), PresentationContext()).assertIs(
+            "Con las series mínimas este plan necesita 30 min por sesión.",
+            RejectionAction.SetMinutes(30),
         )
     }
 
     @Test
     fun timeBudgetWithoutAMinuteCountThatTheWizardAcceptsDoesNotPromiseAnAdjustment() {
-        listOf(null, 101, 0).forEach { required ->
+        listOf(null, 101, 0, 29, 25).forEach { required ->
             present(view(PlanRejectionReason.TIME_BUDGET, requiredMinutes = required)).assertIs(
-                "Con las series mínimas este plan no cabe en los 20 min que elegiste.",
+                "Con las series mínimas este plan no cabe en los 30 min que elegiste.",
                 RejectionAction.SeeAlternatives,
             )
         }
@@ -509,7 +514,7 @@ class PlanRejectionPresenterTest {
         assertNotEquals(PlanRejectionPresenter.OWN_POWERBUILDING_TEXT, withoutOwnPlan.text)
         // Los demás motivos del plan propio conservan su texto.
         present(view(PlanRejectionReason.TIME_BUDGET, own, requiredMinutes = 31), ownContext).assertIs(
-            "Con las series mínimas este plan necesita 31 min por sesión y elegiste 20.",
+            "Con las series mínimas este plan necesita 31 min por sesión y elegiste 30.",
             RejectionAction.SetMinutes(31),
         )
     }

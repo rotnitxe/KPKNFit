@@ -18,7 +18,9 @@ import com.example.kpkn.data.protocols.definitions.AuthoredPhulPhatRecipes
 import com.example.kpkn.data.protocols.definitions.NativeProfileKind
 import com.example.kpkn.domain.onboarding.AuthoredPlanFixtures
 import com.example.kpkn.domain.onboarding.AuthoredPlanFixtures.Gear
+import com.example.kpkn.domain.onboarding.EntrenoStepValues
 import com.example.kpkn.domain.onboarding.PlanRejectionReason
+import com.example.kpkn.domain.onboarding.PlanRepairAdvisor
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.WizChatMachineState
 import com.example.kpkn.domain.training.ProgramExecutionContract
@@ -56,7 +58,9 @@ import kotlin.time.Duration.Companion.minutes
  *    receta de la propia entrada, con procedencia;
  *  - sin material cada uno se rechaza con motivo TIPADO y no hay preview;
  *  - el rechazo por tiempo de un nativo v2 conserva `reasonCode` y los minutos
- *    mínimos del fitter (F-A2).
+ *    mínimos del fitter (F-A2);
+ *  - un plan de autor elegido con tiempo de sobra que deja de caber al bajar al mínimo del reloj (30 min) pasa a selección
+ *    caída con su motivo de tiempo, mientras el plan propio sigue viable.
  *
  * La igualdad "preview == programa activado" a nivel de Room la prueba
  * `AuthoredPlansActivationParityTest` con el mismo `Ready`; aquí `commit()`
@@ -391,39 +395,95 @@ class SetupWizardAuthoredPlansTest {
     // ─── F-A2: razón tipada de los nativos v2 ────────────────────────────────
 
     /**
-     * Cambió de sentido (Entreno v2): el escenario de F-A2 era Músculo corporal de 1 día a 20 min, que con la aproximación
-     * técnica por patrón exigía 21 min. Con la aproximación y movilidad obligatorias su piso es 19 min (un día de peso
-     * corporal fácil solo suma la movilidad breve del primer ejercicio; aritmética independiente en
-     * `SetupExecutableAvailabilityMatrixTest`, GRUPO A) y a 20 min cabe, así que ya no es un rechazo. El rechazo por tiempo de
-     * un nativo v2 que SIGUE sin caber a 20 min es Fuerza de 3 días, intermedio, con material de gimnasio: su primer
-     * ejercicio es un levantamiento pesado y lleva movilidad previa y la rampa larga. Aquí solo se guarda que el VM
-     * conserve la razón tipada y el mínimo del fitter; el mínimo exacto (24 min en Fuerza de 3 días intermedio con
-     * barra) lo fija `NativePlanFailureMapperTest` contra el fitter, no este recorrido.
+     * Cambió de sentido dos veces. En Entreno v2 el escenario de F-A2 pasó de Músculo corporal de 1 día a 20 min (que exigía
+     * 21 min con la aproximación técnica por patrón) a Fuerza de 3 días, intermedio, con gimnasio, que con la aproximación y
+     * movilidad obligatorias pedía 24 min. Con el reloj desde 30 min (decisión del 2026-10-08) también eso cabe, y el rechazo
+     * por tiempo de un nativo v2 que SIGUE sin caber en el mínimo es el de Fuerza y músculo de 1 día, intermedio, con gimnasio:
+     * sus básicos con aproximación y movilidad piden 32 min (33 a quien empieza). Aquí solo se guarda que el VM conserve la
+     * razón tipada y el mínimo del fitter; el mínimo exacto lo fija el dominio (`PlanCoverageContractTest`,
+     * `NativePlanFailureMapperTest`) contra el fitter, no este recorrido.
      */
     @Test
     fun nativeFitterTimeBudgetRejectionKeepsItsReasonCodeAndMinimumMinutes() = runTest(dispatcher.scheduler, timeout = 6.minutes) {
         val vm = newVm()
+        val minimum = EntrenoStepValues.SESSION_MINUTES_MIN
         val scenario = Scenario(
-            "f-a2-strength-20", SetupExperience.INTERMEDIATE, SetupGoal.STRENGTH, 3, setOf(1, 3, 5), 20, AuthoredPlanFixtures.fullGym,
+            "f-a2-powerbuilding-1d-$minimum", SetupExperience.INTERMEDIATE, SetupGoal.STRENGTH_MUSCLE, 1, setOf(3), minimum,
+            AuthoredPlanFixtures.fullGym,
         )
         val swept = settle(vm, scenario)
 
-        val strength = checkNotNull(rejectionOf(swept, NativeProfileKind.STRENGTH.entryId)) {
-            "Fuerza de 3 días a 20 min debe rechazarse con motivo: ${stateDump(swept)}"
+        val powerbuilding = checkNotNull(rejectionOf(swept, NativeProfileKind.POWERBUILDING.entryId)) {
+            "Fuerza y músculo de 1 día a $minimum min debe rechazarse con motivo: ${stateDump(swept)}"
         }
-        assertEquals(PlanRejectionReason.TIME_BUDGET, strength.reasonCode)
-        assertEquals(SetupCandidateRejectionStage.DURATION, strength.stage)
-        val required = strength.requiredMinutes
-        assertNotNull("el fitter calculó el mínimo y el VM ya no lo pierde: ${strength.reason}", required)
-        assertTrue("el mínimo real supera los 20 min elegidos: $required", (required ?: 0) > 20)
-        assertTrue("la UI muestra «Este plan necesita N min»: ${strength.reason}", strength.reason.contains("min"))
-        assertTrue("un rechazo interno no se presenta como incompatibilidad de usuario", strength.reasonCode != PlanRejectionReason.INTERNAL_MATERIALIZATION)
+        assertEquals(PlanRejectionReason.TIME_BUDGET, powerbuilding.reasonCode)
+        assertEquals(SetupCandidateRejectionStage.DURATION, powerbuilding.stage)
+        val required = powerbuilding.requiredMinutes
+        assertNotNull("el fitter calculó el mínimo y el VM ya no lo pierde: ${powerbuilding.reason}", required)
+        assertTrue("el mínimo real supera los $minimum min elegidos: $required", (required ?: 0) > minimum)
+        assertTrue("la UI muestra «Este plan necesita N min»: ${powerbuilding.reason}", powerbuilding.reason.contains("min"))
+        assertTrue(
+            "un rechazo interno no se presenta como incompatibilidad de usuario",
+            powerbuilding.reasonCode != PlanRejectionReason.INTERNAL_MATERIALIZATION,
+        )
         if (swept.availablePlanCandidates.isEmpty()) {
             // Ningún candidato cabe: la explicación del tiempo viaja intacta hasta el presentador de rechazos
             // (`rejectionNotice` dice «Este plan necesita N min por sesión»).
             assertTrue(swept.candidateRejections.any { it.reasonCode == PlanRejectionReason.TIME_BUDGET && it.requiredMinutes != null })
         }
     }
+
+    // ─── Selección caída por tiempo ──────────────────────────────────────────
+
+    /**
+     * PHUL original (de autor, 4 días) elegido con 100 min deja de caber al bajar al mínimo del reloj (30 min): su sesión más
+     * larga mide 58. El plan propio de Fuerza y músculo SÍ cabe con 30 min en 4 días, así que la lista sigue ahí y el plan
+     * elegido pasa a «selección caída» con su motivo de tiempo y el mínimo que pide; el aviso lo dice con esos minutos y ofrece
+     * ajustarlos (la reparación del asesor es solo del plan propio: el botón sale del presentador), y tocarlo devuelve a PHUL
+     * entre los viables. Es el equivalente con el motor real de lo que antes probaba la fila T020_d de la matriz con el plan
+     * propio de Músculo, que con el reloj desde 30 min ya no puede dejar de caber mientras otro plan sí.
+     */
+    @Test
+    fun anAuthoredPlanThatNoLongerFitsTheMinimumOfTheClockDropsWithItsTimeReasonAndAdjustingTheMinutesBringsItBack() =
+        runTest(dispatcher.scheduler, timeout = 6.minutes) {
+            val vm = newVm()
+            val minimum = EntrenoStepValues.SESSION_MINUTES_MIN
+            val original = AuthoredPhulPhatRecipes.PHUL_ORIGINAL_ID
+            settle(vm, phulScenario(AuthoredPlanFixtures.fullGym))
+            selectAndAwait(vm, original)
+
+            vm.updateStep(SetupStepId.SESSION_TIME) { it.copy(minutesPerSession = minimum) }
+            assertTrue(
+                "la selección no cayó al bajar a $minimum min: ${stateDump(vm.state.value)}",
+                awaitUntil(vm, SETTLE_BUDGET_MS) { isIdle(it) && it.draft.minutesPerSession == minimum && it.droppedSelection != null },
+            )
+            val dropped = vm.state.value
+            val fallen = checkNotNull(dropped.droppedSelection)
+            assertEquals(original, fallen.planId)
+            val why = checkNotNull(fallen.rejection) { "el plan se evaluó: tiene rechazo" }
+            assertEquals(PlanRejectionReason.TIME_BUDGET, why.reasonCode)
+            val required = checkNotNull(why.requiredMinutes) { "el rechazo de tiempo informa el mínimo: ${why.reason}" }
+            assertTrue(
+                "pide más que el mínimo del reloj y cabe en los ajustes que el asistente ofrece: $required",
+                required in (minimum + 1)..PlanRepairAdvisor.MAX_SESSION_MINUTES,
+            )
+            assertTrue(
+                "el plan propio de Fuerza y músculo sigue viable con $minimum min: ${stateDump(dropped)}",
+                NativeProfileKind.POWERBUILDING.entryId in dropped.availablePlanCandidates.map { it.id },
+            )
+
+            val notice = droppedSelectionNotice(fallen, dropped.draft)
+            assertTrue(notice.text, notice.text.contains("necesita $required min por sesión y elegiste $minimum"))
+            assertEquals("Ajustar a $required min", notice.primary?.label)
+            performNoticeEffect(checkNotNull(notice.primary).effect, vm)
+            assertTrue(
+                "PHUL no volvió a ser viable con $required min: ${stateDump(vm.state.value)}",
+                awaitUntil(vm, SETTLE_BUDGET_MS) {
+                    isIdle(it) && it.draft.minutesPerSession == required && it.availablePlanCandidates.any { c -> c.id == original }
+                },
+            )
+            assertNull("la búsqueda nueva retira el aviso de la selección caída", vm.state.value.droppedSelection)
+        }
 
     private companion object {
         const val SETTLE_BUDGET_MS = 90_000L

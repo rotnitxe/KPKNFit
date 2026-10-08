@@ -99,7 +99,7 @@ La ruta del bloque Entreno (`SetupStepGraph.nodes`) sale SOLO de datos del borra
 | `GOAL` | `EntrenoGoalStep` | `setGoalProfile` | `withGoalProfile` |
 | `FRESH_DAY` | `EntrenoFreshDayStep` | `setFreshDay` | `withFreshestDay` |
 | `WEEKDAYS` | `EntrenoWeekdaysStep` | `toggleWeekday`, `setWeekStart`, `setDayPlace` | `withWeekdays`, `withWeekStart`, `withDayPlace` |
-| `SESSION_TIME` | `EntrenoSessionTimeStep` | `setSessionMinutes` | `withSessionMinutes` (20..180, de 5 en 5) |
+| `SESSION_TIME` | `EntrenoSessionTimeStep` | `setSessionMinutes` | `withSessionMinutes` (30..180, de 5 en 5) |
 | `CARDIO_TYPE` | `EntrenoCardioTypeStep` | `setStepChoice`, `setOutdoorBike` | proyección de `SetupStepAnswers` (`cardioType` / `cardioNoPreference`), `withOutdoorBike`; las opciones, de `CardioChoices` |
 | `CAPABILITIES` | `EntrenoCapabilitiesStep` | `setCapability` | `withCapability` |
 | `PRIORITIES` | `EntrenoMusclesStep` | `toggleMuscle`, `clearMuscles` | `withMuscles`, `withMuscleToggled` |

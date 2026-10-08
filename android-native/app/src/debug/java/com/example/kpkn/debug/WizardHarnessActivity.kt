@@ -87,7 +87,7 @@ import kotlinx.serialization.json.Json
  *  - `persona` (`gym` por defecto, `home`, `park`, `multi`, `all`): con qué datos se contestaron los pasos anteriores.
  *  - `answers` (`clave=valor/clave=valor`, sin espacios ni `;`): datos del paso activo ya elegidos, sin confirmarlo. Claves: `places=GYM,HOME`,
  *    `material=BARBELL,RACK` o `material=+RINGS,-BARBELL`, `goal=POWERLIFTING`, `fresh=4`, `days=1,3,5`, `startday=4`,
- *    `dayplaces=3:HOME,6:PUBLIC`, `minutes=75`, `caps=PULL_UP:SOME,PUSH_UP:MANY` (separadas por coma), `muscles=CHEST,BACK`,
+ *    `dayplaces=3:HOME,6:PUBLIC`, `minutes=75` (de 30 a 180: menos se lee como 30), `caps=PULL_UP:SOME,PUSH_UP:MANY` (separadas por coma), `muscles=CHEST,BACK`,
  *    `marks=SQUAT:140,BENCH:100` (kg) y `unit=lb`.
  *  - `width` o `widthDp` (dp): simula un teléfono de ese ancho escalando la densidad (360 reproduce el del usuario; el emulador mide 448).
  *  - `fontscale` o `fontScale` (decimal): escala de letra (1.3 = 130 %). Con `width`, llega también a los overlays del plan (diálogos

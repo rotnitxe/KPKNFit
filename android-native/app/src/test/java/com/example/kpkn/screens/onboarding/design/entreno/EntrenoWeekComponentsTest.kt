@@ -298,9 +298,10 @@ class EntrenoWeekComponentsTest {
         assertEquals("1 hora y 15 minutos", config[SemanticsProperties.StateDescription])
         val range = config[SemanticsProperties.ProgressBarRangeInfo]
         assertEquals(75f, range.current, 0f)
-        assertEquals(20f, range.range.start, 0f)
+        assertEquals(30f, range.range.start, 0f)
         assertEquals(180f, range.range.endInclusive, 0f)
-        assertEquals(31, range.steps)
+        // De 30 a 180 de 5 en 5 son 31 posiciones, así que 29 pasos entre los extremos.
+        assertEquals(29, range.steps)
         assertTrue(config.contains(SemanticsActions.SetProgress))
         val labels = config[SemanticsActions.CustomActions].map { it.label }
         assertEquals(listOf("Aumentar 5 minutos", "Disminuir 5 minutos"), labels)
@@ -315,7 +316,13 @@ class EntrenoWeekComponentsTest {
         rule.onNodeWithTag(SESSION_DIAL_TAG).performSemanticsAction(SemanticsActions.SetProgress) { it(500f) }
         assertEquals(180, s.minutes)
         rule.onNodeWithTag(SESSION_DIAL_TAG).performSemanticsAction(SemanticsActions.SetProgress) { it(-4f) }
-        assertEquals(20, s.minutes)
+        assertEquals(30, s.minutes)
+        // Los 20 y 25 min de antes tampoco: TalkBack nunca fija un valor por debajo del mínimo.
+        rule.onNodeWithTag(SESSION_DIAL_TAG).performSemanticsAction(SemanticsActions.SetProgress) { it(120f) }
+        assertEquals(120, s.minutes)
+        rule.onNodeWithTag(SESSION_DIAL_TAG).performSemanticsAction(SemanticsActions.SetProgress) { it(25f) }
+        assertEquals(30, s.minutes)
+        assertTrue("ningún valor por debajo del mínimo", s.calls.all { it >= 30 })
     }
 
     @Test

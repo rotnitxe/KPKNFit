@@ -9,6 +9,7 @@ import com.example.kpkn.data.models.AutoregulationMode
 import com.example.kpkn.data.models.effectiveRepRange
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseConfigurationV2
+import com.example.kpkn.domain.onboarding.EntrenoStepValues
 import com.example.kpkn.domain.onboarding.EquipmentSymbolId
 import com.example.kpkn.domain.onboarding.EquipmentSymbols
 import com.example.kpkn.domain.onboarding.GeneratedPlans
@@ -42,7 +43,7 @@ import org.junit.Test
 /**
  * Entreno v2 (Q) · barrido de coherencia material ↔ ejercicios sobre el programa ACTIVABLE, no sobre la salida cruda del
  * generador: 7 perfiles de material (solo cuerpo, parque, casa con mancuernas y banco, casa con anillas y cajón, gimnasio
- * completo, gimnasio sin rack y multi-lugar) × los 10 perfiles de objetivo × 1–7 días × 20–180 min, con la experiencia y el
+ * completo, gimnasio sin rack y multi-lugar) × los 10 perfiles de objetivo × 1–7 días × 30–180 min (el rango del reloj), con la experiencia y el
  * día con más energía rotando de forma determinista. Cada celda arma el borrador con los reductores reales del asistente,
  * genera con el pedido del borrador ([routineRequest]), completa el programa como la activación ([generatedProgramOf]) y, con
  * varios lugares, aplica la semana armada ([applyLayout] con el contraste de lugares), y exige:
@@ -87,7 +88,8 @@ class EntrenoMaterialCoherenceSweepTest {
         ),
     )
 
-    private val minutesGrid = listOf(20, 30, 45, 60, 75, 90, 120, 150, 180)
+    /** Los tiempos que el reloj del asistente ofrece como atajos y puntos de control: de su mínimo (30) a su máximo (180). */
+    private val minutesGrid = listOf(30, 45, 60, 75, 90, 120, 150, 180)
 
     /**
      * Desde cuántos minutos pedidos el programa «a medida» cabe SIEMPRE en la tolerancia del contrato (+1 min). Por debajo, lo que
@@ -96,8 +98,14 @@ class EntrenoMaterialCoherenceSweepTest {
      * series prioritarias que el ajuste fino no sacrifica por uno o dos minutos. Ahí el generador deja la sesión dentro de su
      * ventana (85–110 %, que `RoutineContractChecks` sí exige) y la revisión lo dice con la nota de tiempo («~47 min por sesión: un
      * poco más de los 45 que pediste»). El informe cuenta cuántas celdas pasan de +1 min en cada tiempo pedido.
+     *
+     * Por eso el reloj no baja de 30 min (decisión del 2026-10-08): con 20 min (que el barrido medía antes) 284 de 490 celdas, el 58 %,
+     * se pasaban de lo pedido, hasta +10 min, porque un ejercicio pesado con su aproximación y su movilidad ya pide ~30 min.
      */
     private val STRICT_MINUTES_FROM = 60
+
+    /** Columnas de tiempo que el reloj retiró de la rejilla (la de 20 min) y que la rotación determinista de las celdas sigue contando. */
+    private val RETIRED_MINUTES_COLUMNS = 1
 
     private fun isStrictAboutMinutes(cell: Cell): Boolean = cell.minutes >= STRICT_MINUTES_FROM
 
@@ -405,6 +413,11 @@ class EntrenoMaterialCoherenceSweepTest {
             for (material in materials) {
                 for (dayCount in 1..7) {
                     val days = RoutineTestSupport.weekdays(dayCount)
+                    // La rotación de experiencias y días con más energía cuenta también la columna de 20 min que el reloj retiró: así
+                    // cada celda de 30 a 180 min conserva la experiencia y el día de siempre (las cifras del informe siguen siendo las
+                    // de la auditoría) y la rotación no se alinea con los tiempos (con 8 columnas, múltiplo de 4, cada tiempo tendría
+                    // siempre la misma experiencia y los 30 min solo se medirían con quien empieza).
+                    counter += RETIRED_MINUTES_COLUMNS
                     for (minutes in minutesGrid) {
                         val cell = Cell(
                             profile = profile,
@@ -442,11 +455,16 @@ class EntrenoMaterialCoherenceSweepTest {
             stats.lowTimeOvershoots.sortedByDescending { it.second }.joinToString("\n") { (cell, extra, breakdown) -> "+$extra · $cell · $breakdown" },
         )
         assertEquals("celdas recorridas", TrainingGoalProfile.entries.size * materials.size * 7 * minutesGrid.size, stats.cells)
+        // La rejilla va de un extremo a otro del reloj del asistente: si el rango cambia, el barrido cambia con él.
+        assertEquals("el barrido parte del mínimo del reloj", EntrenoStepValues.SESSION_MINUTES_MIN, minutesGrid.first())
+        assertEquals("el barrido llega al máximo del reloj", EntrenoStepValues.SESSION_MINUTES_MAX, minutesGrid.last())
+        assertTrue("ningún tiempo de la rejilla queda fuera del reloj", minutesGrid.all { it in EntrenoStepValues.SESSION_MINUTES_MIN..EntrenoStepValues.SESSION_MINUTES_MAX })
         assertTrue("el barrido debe ejercitar sesiones con un ejercicio inicial pesado (${stats.heavyOpeners})", stats.heavyOpeners > 100)
-        // Por debajo de 60 min la estructura puede pesar más que el último minuto, pero sigue siendo la excepción mientras no sea el
-        // mínimo físico: con 45 min pasan de +1 min menos de 3 de cada 100 celdas (hoy 4 de 490: el bloque de cardio que no se recorta
-        // y una sesión de cuerpo completo con series prioritarias) y con 30 min menos de 12 de cada 100 (hoy 30 de 490). Con 20 min una
-        // sesión con un ejercicio pesado mide ~30 min (calentamiento fijo, aproximación y movilidad) y el informe lo cuenta.
+        // Por debajo de 60 min la estructura puede pesar más que el último minuto, pero sigue siendo la excepción: con 45 min pasan de
+        // +1 min menos de 3 de cada 100 celdas (hoy 4 de 490, hasta +4: el bloque de cardio que no se recorta y una sesión de cuerpo
+        // completo con series prioritarias) y con 30 min, el mínimo del reloj, menos de 12 de cada 100 (hoy 30 de 490, hasta +3).
+        // Con 20 min, que el reloj ya no ofrece, eran 284 de 490: una sesión con un ejercicio pesado mide ~30 min (calentamiento
+        // fijo, aproximación y movilidad) y no cabe en 20.
         listOf(45 to 0.03, 30 to 0.12).forEach { (requested, share) ->
             val over = stats.overshootByRequested[requested] ?: 0
             val total = stats.cellsByRequested.getValue(requested)

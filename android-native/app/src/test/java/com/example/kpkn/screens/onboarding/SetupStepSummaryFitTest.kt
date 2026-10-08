@@ -133,7 +133,7 @@ class SetupStepSummaryFitTest {
         }
         add("WEEKDAYS miércoles a sábado y lunes", valueOf(SetupStepId.WEEKDAYS, SetupWizardDraft().withWeekdays(setOf(1, 3, 4, 5, 6, 7))))
         // Tiempo por sesión: lo más largo («125 min»).
-        for (minutes in listOf(20, 75, 125, 180)) add("SESSION_TIME $minutes", valueOf(SetupStepId.SESSION_TIME, SetupWizardDraft().withSessionMinutes(minutes)))
+        for (minutes in listOf(30, 75, 125, 180)) add("SESSION_TIME $minutes", valueOf(SetupStepId.SESSION_TIME, SetupWizardDraft().withSessionMinutes(minutes)))
         // Capacidades: todas las habilidades que salen (primeras dos más «+N»).
         val skills = CapabilitySkill.entries
         add(
