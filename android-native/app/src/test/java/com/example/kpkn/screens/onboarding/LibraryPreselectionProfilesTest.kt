@@ -46,13 +46,13 @@ class LibraryPreselectionProfilesTest {
         SetupWizardDraft(includeTraining = true, experience = SetupExperience.INTERMEDIATE).withGoalProfile(profile)
 
     /** Lo que el barrido del asistente le pide al planificador para el perfil (las mismas entradas que `updateCandidates`). */
-    private fun offeredBySweep(draft: SetupWizardDraft, days: Int): Set<String> =
+    private fun offeredBySweep(draft: SetupWizardDraft, days: Int, level: CatalogLevel = CatalogLevel.INTERMEDIATE): Set<String> =
         SetupTrainingPlanner.candidates(
             SetupTrainingPlannerInput(
                 reference = draft.trainingReference(),
                 frequency = days,
                 equipment = setOf("general_gym"),
-                level = CatalogLevel.INTERMEDIATE,
+                level = level,
                 focus = TrainingFocus.valueOf(draft.focus.name),
                 protocolOnly = false,
                 mixedTraining = draft.goal == SetupGoal.MIXED,
@@ -102,6 +102,24 @@ class LibraryPreselectionProfilesTest {
             } else {
                 assertNull("${kind.entryId} se ofrece desde $profile", replacement)
             }
+        }
+    }
+
+    /**
+     * Los recorridos de `SetupWizardFullJourneyUiTest` (androidTest, que no se ejecuta aquí) eligen un plan de la biblioteca en
+     * PLAN: el planificador, con las mismas entradas del barrido, tiene que ofrecérselo a ese perfil, nivel y frecuencia.
+     */
+    @Test
+    fun theWitnessPlansOfTheDeviceJourneysAreOfferedByThePlannerToTheirProfile() {
+        val journeys = listOf(
+            Triple(TrainingGoalProfile.POWERBUILDING, SetupExperience.INTERMEDIATE to 5, "native:powerbuilding-foundation-v2"),
+            Triple(TrainingGoalProfile.POWERLIFTING, SetupExperience.ADVANCED to 1, "protocol:coan-phillipi-dl"),
+        )
+        journeys.forEach { (profile, experienceAndDays, plan) ->
+            val (experience, days) = experienceAndDays
+            val draft = SetupWizardDraft(includeTraining = true, experience = experience).withGoalProfile(profile)
+            val offered = offeredBySweep(draft, days, level = experience.toPlanLevel())
+            assertTrue("$profile ($experience, $days días) debe ofrecer $plan, ofrece $offered", plan in offered)
         }
     }
 

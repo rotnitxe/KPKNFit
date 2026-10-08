@@ -50,6 +50,7 @@ nunca instrucciones de interfaz. Tono: éxito = celebra sin exagerar; aviso = cl
 - Un plan propio de la biblioteca («Configurar este plan») que un perfil general ya no ofrece (solo ofrece su programa a medida): aviso sin alarma «Este programa de la biblioteca ahora se arma a medida en el asistente.» → «Elegir el programa a medida».
 - Revisión final, tiempo: si la sesión más larga del programa armado pasa de lo pedido (los «a medida» tienen un minuto de margen): «~70 min por sesión: un poco más de los 60 que pediste.»
 - Programa aplazado (PLAN y revisión final): «Sin programa por ahora» · «Lo armarás manualmente más adelante.»
+- Borrador antiguo que llega a PLAN sin objetivo: «Elige primero tu objetivo: de él sale tu programa.» → «Elegir mi objetivo». Por la ruta «desde cero» (que ya no se ofrece, pero cuyas sesiones se siguen activando): «Este borrador trae las sesiones que montaste a mano. Las verás en la revisión final.»
 
 ## Notas honestas del generador (accionables, nunca alarmistas)
 - Sin tracción: «Sin barra de dominadas ni bandas no hay ejercicios de tracción. Añade una barra o unas bandas para completar tu semana.»

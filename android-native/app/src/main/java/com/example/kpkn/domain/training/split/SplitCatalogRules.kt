@@ -24,8 +24,10 @@ data class SplitChoice(
 )
 
 /**
- * Reglas del catálogo de repartos que hoy viven en la pantalla del wizard (`compatibleSplitTemplates`,
- * `isSplitOfferedForGoal`, `splitDisplayName`), copiadas al dominio para que el redistribuidor no dependa de `screens/`.
+ * Reglas del catálogo de repartos: qué repartos se ofrecen a cada perfil de objetivo, cuántos días de entreno tiene cada uno
+ * y cómo se llaman. Son la única fuente: las que tenía la pantalla antigua del reparto (`compatibleSplitTemplates`,
+ * `isSplitOfferedForGoal`, `splitDisplayName`) se retiraron con ella, y el reductor de GOAL del wizard y el tablero de la
+ * semana armada leen estas.
  */
 object SplitCatalogRules {
 

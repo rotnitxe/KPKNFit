@@ -38,6 +38,7 @@ import com.example.kpkn.screens.onboarding.SetupPlanRevealDay
 import com.example.kpkn.screens.onboarding.SetupPlanSweep
 import com.example.kpkn.screens.onboarding.SetupPreview
 import com.example.kpkn.screens.onboarding.SetupProgramRoute
+import com.example.kpkn.screens.onboarding.SetupTrainingPath
 import com.example.kpkn.screens.onboarding.SetupWizardDraft
 import com.example.kpkn.screens.onboarding.SetupWizardEnvironment
 import com.example.kpkn.screens.onboarding.SetupWizardMaterializer
@@ -380,6 +381,31 @@ class EntrenoPlanStepTest {
         rule.onNodeWithText("Lo armarás manualmente más adelante.").assertDoesNotExist()
         rule.onNodeWithTag("setup-plan-resume").assertExists()
         rule.onNodeWithTag(DEFER_TAG).assertDoesNotExist()
+    }
+
+    @Test
+    fun anOldDraftWithoutAGoalProfileSaysSoAndLeadsToTheGoalInsteadOfInventingAProgram() {
+        state = SetupWizardState(draft = SetupWizardDraft().copy(stepProgress = SetupStepProgress(block = SetupWizardBlock.TRAINING, currentStepId = SetupStepId.PLAN)))
+        rule.setContent { Page() }
+        rule.onNodeWithTag(PLAN_PREPARING_TAG).assertDoesNotExist()
+        rule.onNodeWithTag(REVEAL_TAG).assertDoesNotExist()
+        rule.onNodeWithText("Elige primero tu objetivo: de él sale tu programa.").assertExists()
+        // Su salida es el paso del objetivo (`editStep(GOAL)`, que cubren las pruebas del ViewModel): no escribe nada.
+        rule.onNodeWithTag("$LEGACY_PLAN_TAG-goal").assertExists()
+        rule.onNodeWithText("Elegir mi objetivo").assertExists()
+    }
+
+    @Test
+    fun aDraftOnTheFromScratchRouteSaysWhereItsHandMadeSessionsAreSeen() {
+        state = SetupWizardState(
+            draft = draftFor(TrainingGoalProfile.STRENGTH_MUSCLE).copy(trainingPath = SetupTrainingPath.FROM_SCRATCH),
+        )
+        rule.setContent { Page() }
+        rule.onNodeWithTag(PLAN_PREPARING_TAG).assertDoesNotExist()
+        rule.onNodeWithTag(REVEAL_TAG).assertDoesNotExist()
+        rule.onNodeWithText("Este borrador trae las sesiones que montaste a mano. Las verás en la revisión final.").assertExists()
+        // No tiene objetivo que elegir: el paso sigue pudiéndose confirmar con esas sesiones.
+        rule.onNodeWithTag("$LEGACY_PLAN_TAG-goal").assertDoesNotExist()
     }
 
     private object NoPersistence : SetupWizardPersistence {

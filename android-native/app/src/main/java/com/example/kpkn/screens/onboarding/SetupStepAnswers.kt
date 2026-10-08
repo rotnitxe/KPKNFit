@@ -38,6 +38,7 @@ import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.WizChatValidation
 import com.example.kpkn.domain.training.VolumeCalibrationEngine
+import com.example.kpkn.domain.training.split.SplitCatalogRules
 import com.example.kpkn.screens.nutrition.NutritionWizardDraft
 import java.util.Locale
 
@@ -560,17 +561,17 @@ private fun SetupWizardDraft.withRings(
 }
 
 /**
- * D6 (A.E2): un reparto de powerlifting solo se ofrece en Fuerza ([isSplitOfferedForGoal]). Si el objetivo nuevo
- * [goal] ya no ofrece el reparto elegido, se retira como lo haría la tarjeta «Recomendado» ([withRecommendedSplit]):
- * sin él, el plan propio del objetivo nuevo no lo rechazaría por `SPLIT` (el rechazo que solo repara «Quitar el
- * reparto») y el paso SPLIT no conservaría marcado un reparto que su lista ya no muestra. El reparto propio
- * («custom») y los repartos que el objetivo sí ofrece no se tocan; un id que el catálogo de repartos no conoce
- * tampoco (la lista tampoco lo decide).
+ * D6 (A.E2): un reparto de powerlifting solo se ofrece al perfil Powerlifting
+ * ([SplitCatalogRules.isOfferedForProfile], la regla de dominio que también filtra la lista de repartos de la semana
+ * armada). Si el perfil nuevo [profile] ya no ofrece el reparto elegido, se retira como lo haría la tarjeta
+ * «Recomendado» ([withRecommendedSplit]): sin él, el plan propio del perfil nuevo no lo rechazaría por `SPLIT` (el
+ * rechazo que solo repara «Quitar el reparto»). El reparto propio («custom») y los repartos que el perfil sí ofrece no
+ * se tocan; un id que el catálogo de repartos no conoce tampoco.
  */
-private fun SetupWizardDraft.withoutSplitNotOfferedFor(goal: SetupGoal): SetupWizardDraft {
+private fun SetupWizardDraft.withoutSplitNotOfferedFor(profile: TrainingGoalProfile): SetupWizardDraft {
     val splitId = selectedSplitId ?: return this
     val template = SPLIT_TEMPLATES.firstOrNull { split -> split.id == splitId } ?: return this
-    return if (isSplitOfferedForGoal(template, goal)) this else withRecommendedSplit()
+    return if (SplitCatalogRules.isOfferedForProfile(template, profile)) this else withRecommendedSplit()
 }
 
 /** Cambio de estilo con recalibración completa cuando las cuatro respuestas existen. */
@@ -751,7 +752,7 @@ fun SetupWizardDraft.withGoalProfile(profile: TrainingGoalProfile): SetupWizardD
         goal = goal,
         stepSelections = stepSelections - SetupStepId.GOAL,
     )
-        .withoutSplitNotOfferedFor(goal)
+        .withoutSplitNotOfferedFor(profile)
         .withVolumeStyle(GoalProfileMapping.trainingStyleOf(profile))
         .withSuggestedMusclesFor(profile)
 }

@@ -3,7 +3,9 @@ package com.example.kpkn.domain.training.split
 import com.example.kpkn.data.splits.SPLIT_TEMPLATES
 import com.example.kpkn.data.splits.SplitTag
 import com.example.kpkn.data.splits.isVisibleForApplication
+import com.example.kpkn.data.protocols.definitions.NativeProfileKind
 import com.example.kpkn.domain.onboarding.TrainingGoalProfile
+import com.example.kpkn.domain.training.NativeProfileSplitWitness
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -61,6 +63,53 @@ class SplitCatalogRulesTest {
             val offered = SplitRedistributor.optionsFor(4, profile).map { it.id }.toSet()
             assertTrue("$profile no ve repartos de powerlifting", offered.none { it in powerliftingIds })
             assertTrue("$profile sigue viendo los generales", "ul_x4" in offered && "ant_post_x4" in offered)
+        }
+    }
+
+    @Test
+    fun the_profile_only_takes_away_the_powerlifting_splits_and_nothing_else() {
+        (listOf<Int?>(null) + (1..7)).forEach { days ->
+            val unfiltered = SplitCatalogRules.compatible(days, null)
+            TrainingGoalProfile.entries.forEach { profile ->
+                val expected = if (profile == TrainingGoalProfile.POWERLIFTING) {
+                    unfiltered
+                } else {
+                    unfiltered.filter { SplitTag.POWERLIFTING !in it.tags }
+                }
+                assertEquals("$profile con $days días", expected.map { it.id }, SplitCatalogRules.compatible(days, profile).map { it.id })
+            }
+        }
+    }
+
+    @Test
+    fun a_muscle_list_with_three_days_keeps_the_general_splits_and_drops_every_powerlifting_one() {
+        val muscle = SplitCatalogRules.compatible(3, TrainingGoalProfile.BODYBUILDING).map { it.id }
+        listOf("fullbody_x3", "heavy_light", "ppl_x3", "ul_fb_x3").forEach { assertTrue("Culturismo ofrece $it", it in muscle) }
+        listOf("pl_sbd_x3", "texas_method", "madcow_5x5", "sheiko_3day", "korte_3x3").forEach {
+            assertFalse("Culturismo no debe ofrecer $it", it in muscle)
+        }
+        val strength = SplitCatalogRules.compatible(3, TrainingGoalProfile.POWERLIFTING).map { it.id }
+        listOf("fullbody_x3", "pl_sbd_x3", "texas_method", "madcow_5x5", "sheiko_3day", "korte_3x3").forEach {
+            assertTrue("Powerlifting ofrece $it", it in strength)
+        }
+    }
+
+    @Test
+    fun the_profile_filter_never_hides_the_split_the_own_plan_of_that_profile_accepts() {
+        // El perfil que sirve a cada plan propio en Entreno v2: Fuerza → Powerlifting, Músculo → Culturismo, Fuerza y músculo →
+        // Powerbuilding y Atleta completo → Fuerza y cardio.
+        val profileOf = mapOf(
+            NativeProfileKind.STRENGTH to TrainingGoalProfile.POWERLIFTING,
+            NativeProfileKind.MUSCLE to TrainingGoalProfile.BODYBUILDING,
+            NativeProfileKind.POWERBUILDING to TrainingGoalProfile.POWERBUILDING,
+            NativeProfileKind.COMPLETE_ATHLETE to TrainingGoalProfile.STRENGTH_CARDIO,
+        )
+        NativeProfileSplitWitness.allWitnesses().forEach { witness ->
+            val profile = profileOf.getValue(witness.profile)
+            assertTrue(
+                "$profile con ${witness.days} días debe ofrecer ${witness.splitId}",
+                witness.splitId in SplitCatalogRules.compatible(witness.days, profile).map { it.id },
+            )
         }
     }
 
