@@ -15,6 +15,9 @@ android/app/src/main/assets/models/kpkn-food-fg270m-v1.litertlm
 
 __pycache__/
 *.pyc
+# Python virtualenvs (created by Cloud Agent install)
+.venv/
+backend/.venv/
 # Debug audit logs (local-only, never commit)
 debug-9ba5f2.log
 **/debug-9ba5f2.log
