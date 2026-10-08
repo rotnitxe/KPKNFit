@@ -72,13 +72,14 @@ import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardFonts
@@ -86,6 +87,8 @@ import com.example.kpkn.screens.onboarding.design.WizardSpacing
 import com.example.kpkn.screens.onboarding.design.WizardTypography
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPen
+import com.example.kpkn.screens.onboarding.design.entreno.plan.ComposeTitleMeasure
+import com.example.kpkn.screens.onboarding.design.entreno.plan.fitTitle
 import com.example.kpkn.screens.onboarding.design.lerpF
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import kotlinx.coroutines.delay
@@ -93,6 +96,7 @@ import kotlinx.coroutines.flow.first
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
+import com.example.kpkn.screens.onboarding.design.entreno.rememberProgressiveCount
 
 /*
  * «Así queda tu semana»: el tablero donde se colocan las sesiones del programa en los días de la semana.
@@ -162,6 +166,19 @@ private const val STATE_FADE_MS = 220
 private val InitialStyle get() = WizardTypography.measure
 private val ShortDayStyle get() = WizardTypography.note
 private val FichaTitleStyle get() = WizardTypography.cardTitle.copy(fontFamily = WizardFonts.display, fontWeight = FontWeight.SemiBold)
+
+/** El título de una ficha baja de 16 a 13 sp (el mínimo del wizard) hasta que su palabra más larga cabe entera en su columna. */
+private const val FICHA_TITLE_MAX_SP = 16f
+private const val FICHA_TITLE_MIN_SP = 13f
+
+/** Cuántas líneas ocupa, a lo sumo, el título de una ficha: con tres no se corta nada ni se pone «…». */
+private const val FICHA_TITLE_MAX_LINES = 3
+
+/** El estilo del título de las fichas a [sp]: el mismo con su interlineado proporcional. */
+private fun fichaTitleStyleAt(sp: Float): TextStyle =
+    FichaTitleStyle.copy(fontSize = sp.sp, lineHeight = (sp * FICHA_TITLE_LINE_HEIGHT).sp)
+
+private const val FICHA_TITLE_LINE_HEIGHT = 21f / 16f
 private val FichaDetailStyle get() = WizardTypography.note
 
 /**
@@ -365,6 +382,9 @@ private class StripMetrics(
     val gap: Dp,
     val headerHeight: Dp,
     val bodyHeight: Dp,
+    /** El estilo común de los títulos de las fichas (su tamaño ya ajustado) y las líneas que ocupa el más largo. */
+    val titleStyle: TextStyle,
+    val titleLines: Int,
 )
 
 @Composable
@@ -391,26 +411,29 @@ private fun WeekStrip(
         val colWidth = stripColumnWidth(maxWidth.value, baseColumn.value, COLUMN_GAP.value, order.size).dp
         val colPx = with(density) { colWidth.toPx() }
 
-        // Cuántas líneas necesita el título más largo (1 o 2): fija el alto de todas las fichas para que no salten al moverse.
+        // El tamaño común de los títulos (de 16 a 13 sp: el mayor en el que la palabra más larga de cada ficha cabe entera en su
+        // columna) y cuántas líneas necesita el más largo: fija el alto de todas las fichas para que no salten al moverse.
         val titles = remember(byId) { byId.values.map { it.title } }
-        val titleLines = remember(titles, colPx, density.density, density.fontScale) {
-            titles.maxOfOrNull { title ->
-                // El ancho de cada título es el que de verdad tendrá (con o sin holgura): si no, la ficha reservaría de menos.
-                val widthPx = (colPx - with(density) { ((TEXT_SIDE_PAD - titleSlack(title)) * 2).toPx() }).toInt().coerceAtLeast(1)
-                measurer.measure(
-                    text = title,
-                    style = FichaTitleStyle,
-                    maxLines = 2,
-                    constraints = Constraints(maxWidth = widthPx),
-                ).lineCount
-            }?.coerceIn(1, 2) ?: 1
+        val titleFit = remember(titles, colPx, density.density, density.fontScale) {
+            val measure = ComposeTitleMeasure(measurer, density, ::fichaTitleStyleAt)
+            // El ancho de cada título es el que de verdad tendrá (con o sin holgura): si no, la ficha reservaría de menos.
+            fun widthOf(title: String): Float =
+                (colPx - with(density) { ((TEXT_SIDE_PAD - titleSlack(title)) * 2).toPx() }).coerceAtLeast(1f)
+            var sp = FICHA_TITLE_MAX_SP
+            for (title in titles) {
+                sp = min(sp, fitTitle(title, widthOf(title), FICHA_TITLE_MAX_SP, FICHA_TITLE_MIN_SP, 2, measure).sp)
+            }
+            val lines = titles.maxOfOrNull { title -> measure.lineCount(title, sp, widthOf(title)) } ?: 1
+            sp to lines.coerceIn(1, FICHA_TITLE_MAX_LINES)
         }
+        val titleStyle = remember(titleFit.first) { fichaTitleStyleAt(titleFit.first) }
+        val titleLines = titleFit.second
 
         val metrics = with(density) {
             val headerHeight = InitialStyle.lineHeight.toDp() + ShortDayStyle.lineHeight.toDp() + HEADER_GAP
-            val bodyHeight = DISC + DISC_TEXT_GAP + FichaTitleStyle.lineHeight.toDp() * titleLines + 2.dp +
+            val bodyHeight = DISC + DISC_TEXT_GAP + titleStyle.lineHeight.toDp() * titleLines + 2.dp +
                 FichaDetailStyle.lineHeight.toDp() * 2
-            StripMetrics(colWidth, COLUMN_GAP, headerHeight, bodyHeight)
+            StripMetrics(colWidth, COLUMN_GAP, headerHeight, bodyHeight, titleStyle, titleLines)
         }
         val geometry = remember(order, metrics.colWidth, metrics.headerHeight, metrics.bodyHeight, density.density, density.fontScale) {
             with(density) {
@@ -514,8 +537,11 @@ private fun WeekStrip(
                     .height(stripHeight)
                     .then(if (enabled) Modifier.weekLayoutGestures(state, haptics, onTapDay, onDrop) else Modifier),
             ) {
+                // Las ranuras y las fichas se componen repartidas en cuadros (cuatro de golpe y dos más por cuadro): ver
+                // `rememberProgressiveCount`.
+                val shownDays = order.take(rememberProgressiveCount(total = order.size, first = 4, perFrame = 2))
                 Row(horizontalArrangement = Arrangement.spacedBy(metrics.gap)) {
-                    for (day in order) {
+                    for (day in shownDays) {
                         WeekSlot(
                             day = day,
                             metrics = metrics,
@@ -531,7 +557,7 @@ private fun WeekStrip(
                 }
                 // Las fichas van en una capa propia, por encima de las ranuras, y cada una se coloca con su movimiento.
                 Box(Modifier.offset(y = metrics.headerHeight)) {
-                    for (day in order) {
+                    for (day in shownDays) {
                         val id = shown[day] ?: continue
                         val session = byId[id] ?: continue
                         key(id) {
@@ -691,10 +717,10 @@ private fun SessionFicha(
         Spacer(Modifier.height(DISC_TEXT_GAP))
         Text(
             text = session.title,
-            style = FichaTitleStyle,
+            style = metrics.titleStyle,
             color = WizardColors.text,
             textAlign = TextAlign.Center,
-            maxLines = 2,
+            maxLines = metrics.titleLines,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.padding(horizontal = TEXT_SIDE_PAD).sideOverflow(titleSlack(session.title)),
         )

@@ -1,22 +1,22 @@
 package com.example.kpkn.screens.onboarding.design.entreno.plan
 
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
 import com.example.kpkn.screens.onboarding.design.entreno.DEG
 import com.example.kpkn.screens.onboarding.design.entreno.FrontPose
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPen
 import com.example.kpkn.screens.onboarding.design.entreno.TAU
 import com.example.kpkn.screens.onboarding.design.entreno.dumbbell
+import com.example.kpkn.screens.onboarding.design.entreno.fainter
 import com.example.kpkn.screens.onboarding.design.entreno.frontFigure
 import com.example.kpkn.screens.onboarding.design.entreno.ik
 import com.example.kpkn.screens.onboarding.design.entreno.riseHoldFall
 import com.example.kpkn.screens.onboarding.design.entreno.smooth
 import com.example.kpkn.screens.onboarding.design.lerpF
 import com.example.kpkn.screens.onboarding.design.seg
+import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -98,25 +98,39 @@ internal class WeightliftingArt(lk: Float) : GoalArt(SymbolPalette.columna, peri
 
 // ---------------------------------------------------------------- Armwrestling
 
+/** Alto del tablero de la mesa, y dónde van las clavijas de sus extremos. */
+private const val TABLE_Y = 57.2f
+private const val PEG_LEFT = 2.8f
+private const val PEG_RIGHT = 61.2f
+
+/** Dónde están los codos, apoyados en la mesa, y por dónde entra cada brazo al lienzo (el brazo descansa a lo largo del tablero). */
+private val ARM_ELBOW_LEFT = Offset(19f, 52.5f)
+private val ARM_ELBOW_RIGHT = Offset(45f, 52.5f)
+private val ARM_START_LEFT = Offset(9f, 52.5f)
+private val ARM_START_RIGHT = Offset(55f, 52.5f)
+
+/** Ancho del brazo (entre los dos trazos de su contorno). */
+private const val ARM_TUBE = 6f
+
 /**
- * Dos brazos de palitos que forman una W sobre la mesa: los codos apoyados, los antebrazos subiendo a un puño unido en el
- * centro y los brazos entrando desde los lados del lienzo (se desvanecen hacia fuera). El pulso se inclina a un lado y a
- * otro. Acento: músculo.
+ * Pulso sobre la mesa, de lado: dos brazos dibujados como tubos —el brazo descansa a lo largo de la mesa, el codo se apoya en ella y
+ * el antebrazo sube— que se unen en un puño de dos manos, entre las clavijas del tablero. El pulso se inclina a un lado y a otro
+ * (el puño y los antebrazos lo siguen) y unas rayas de esfuerzo parpadean sobre las manos. El brazo de la derecha y la unión de las
+ * manos llevan el acento (músculo).
  */
-internal class ArmwrestlingArt(lk: Float) : GoalArt(SymbolPalette.musculo, period = 2.4f, restT = 0.5f, lk = lk) {
-    private val elbowL = Offset(14.5f, 51.6f)
-    private val elbowR = Offset(49.5f, 51.6f)
+internal class ArmwrestlingArt(lk: Float) : GoalArt(SymbolPalette.musculo, period = 2.4f, restT = 1.2f, lk = lk) {
+    private val arm = Path()
 
     /** Desplazamiento lateral del puño unido (unidades): el pulso se inclina a un lado y a otro, nunca del todo. */
-    internal fun sway(t: Float): Float = 4.2f * sin(TAU * t / period) + 1.1f * sin(TAU * 3f * t / period + 0.7f)
+    internal fun sway(t: Float): Float = 4.0f * sin(TAU * t / period) + 0.9f * sin(TAU * 3f * t / period + 0.7f)
 
     override fun drawStatic(pen: SymbolPen) {
         with(pen) {
-            // La mesa y, debajo, su canto; los brazos entran por los lados y se pierden fuera del lienzo.
-            line(1.5f, 57.8f, 62.5f, 57.8f, ink, bold)
-            line(8f, 61.4f, 56f, 61.4f, soft, fine)
-            fadedLine(elbowL, Offset(0.5f, 31f), ink)
-            fadedLine(elbowR, Offset(63.5f, 31f), accent)
+            // El tablero, su canto y las clavijas de los extremos de la mesa.
+            line(1.5f, TABLE_Y, 62.5f, TABLE_Y, ink, bold)
+            line(11f, TABLE_Y + 3.6f, 53f, TABLE_Y + 3.6f, soft, fine)
+            line(PEG_LEFT, TABLE_Y - 9.5f, PEG_LEFT, TABLE_Y, soft, mid)
+            line(PEG_RIGHT, TABLE_Y - 9.5f, PEG_RIGHT, TABLE_Y, soft, mid)
         }
     }
 
@@ -124,18 +138,18 @@ internal class ArmwrestlingArt(lk: Float) : GoalArt(SymbolPalette.musculo, perio
         with(pen) {
             val s = sway(t)
             val ax = 32f + s
-            val ay = 20.5f - 0.35f * kotlin.math.abs(s)
-            // Los antebrazos: del codo a las esquinas de abajo del puño; el de la derecha, en el acento.
-            line(elbowL.x, elbowL.y, ax - 5.4f, ay + 5.4f, ink, bold)
-            line(elbowR.x, elbowR.y, ax + 5.4f, ay + 5.4f, accent, bold)
-            // Los codos, apoyados en la mesa.
-            dot(elbowL.x, elbowL.y, dotR(1.9f), ink)
-            dot(elbowR.x, elbowR.y, dotR(1.9f), accent)
-            // El puño: dos manos unidas, con la línea donde se juntan y los nudillos.
+            val ay = 19.5f - 0.35f * abs(s)
+            // Los brazos: de la mesa al codo y del codo a la muñeca, que cae bajo el puño.
+            tube(ARM_START_LEFT, ARM_ELBOW_LEFT, Offset(ax - 4.6f, ay + 7f), ink)
+            tube(ARM_START_RIGHT, ARM_ELBOW_RIGHT, Offset(ax + 4.6f, ay + 7f), accent)
+            // El puño: dos manos unidas, con la línea donde se juntan y los dedos de una sobre la otra.
             rotated(s * 1.5f, ax, ay) {
+                fillBox(ax - FIST_RX, ay - FIST_RY, ax + FIST_RX, ay + FIST_RY, FIST_R, Color.Black)
                 box(ax - FIST_RX, ay - FIST_RY, ax + FIST_RX, ay + FIST_RY, FIST_R, ink, mid)
-                curve(ax - 0.4f, ay - FIST_RY, ax + 2.2f, ay, ax - 0.4f, ay + FIST_RY, accent, fine)
-                for (k in 0..2) arc(ax - 5.6f + k * 2.5f, ay - FIST_RY, 1.25f, 180f, 180f, soft, fine)
+                curve(ax - 0.6f, ay - FIST_RY, ax + 2.6f, ay, ax - 0.6f, ay + FIST_RY, accent, mid)
+                for (k in 0..2) {
+                    line(ax + 2.4f + k * 2.3f, ay - 3.4f, ax + 1.2f + k * 2.3f, ay + 3.6f, if (k == 1) accent else soft, fine)
+                }
             }
             // El esfuerzo: unas rayas que parpadean sobre el puño (solo seleccionado).
             for (i in 0..3) {
@@ -143,7 +157,7 @@ internal class ArmwrestlingArt(lk: Float) : GoalArt(SymbolPalette.musculo, perio
                 val flick = 0.45f + 0.55f * (0.5f + 0.5f * sin(t * 13f + i * 1.9f))
                 fade(flick) {
                     line(
-                        ax + cos(a) * 11.5f, ay + sin(a) * 9.5f, ax + cos(a) * 15f, ay + sin(a) * 12.6f,
+                        ax + cos(a) * 13.8f, ay + sin(a) * 11.2f, ax + cos(a) * 17.2f, ay + sin(a) * 14.2f,
                         motion, fine,
                     )
                 }
@@ -152,136 +166,122 @@ internal class ArmwrestlingArt(lk: Float) : GoalArt(SymbolPalette.musculo, perio
     }
 
     /**
-     * Un trazo que se va desvaneciendo de [a] a [b] (el brazo se pierde fuera del lienzo): UN solo trazo con un degradado de
-     * opacidad a lo largo. Con varios tramos translúcidos, los remates redondos dejan una cuenta en cada unión (se montan o
-     * se tocan de punta); con un degradado no hay uniones.
+     * Un brazo como tubo hueco: el recorrido ([from] → [elbow] → [wrist]) trazado dos veces, ancho con el color del brazo y, encima,
+     * más estrecho con el negro de la página. El codo y el extremo salen redondos; el contorno es de línea fina.
      */
-    private fun SymbolPen.fadedLine(a: Offset, b: Offset, color: Color) {
-        val head = color.copy(alpha = color.alpha * ga)
-        val tail = head.copy(alpha = head.alpha * ARM_FADE_END)
-        ds.drawLine(
-            brush = Brush.linearGradient(listOf(head, tail), start = a, end = b),
-            start = a,
-            end = b,
-            strokeWidth = bold,
-            cap = StrokeCap.Round,
-        )
+    private fun SymbolPen.tube(from: Offset, elbow: Offset, wrist: Offset, color: Color) {
+        arm.reset()
+        arm.moveTo(from.x, from.y)
+        arm.lineTo(elbow.x, elbow.y)
+        arm.lineTo(wrist.x, wrist.y)
+        path(arm, color, ARM_TUBE + fine)
+        path(arm, Color.Black, ARM_TUBE - fine)
     }
 
     private companion object {
-        const val FIST_RX = 7.8f
-        const val FIST_RY = 5.8f
-        const val FIST_R = 4.4f
-
-        /** Cuánta opacidad le queda al brazo en el borde del lienzo. */
-        const val ARM_FADE_END = 0.18f
+        const val FIST_RX = 9f
+        const val FIST_RY = 6.6f
+        const val FIST_R = 5f
     }
 }
 
 // ---------------------------------------------------------------- Strongman
 
-/** La forma de la piedra: nueve puntos a distinta distancia del centro, unidos con curvas (una roca, no una pelota). */
-private val STONE_RADII = floatArrayOf(1.0f, 0.93f, 1.04f, 0.95f, 1.02f, 0.91f, 1.05f, 0.96f, 1.0f)
+/** La forma de la roca: ocho puntos a distinta distancia del centro, unidos con rectas (una roca angulosa, no una pelota). */
+private val STONE_RADII = floatArrayOf(1.02f, 0.86f, 1.07f, 0.9f, 1.04f, 0.85f, 1.08f, 0.93f)
+
+/** Radio de la roca, suelo del lienzo y medidas de la figura (piernas, tronco, brazos y cabeza) del cargador. */
+private const val STONE_R = 11f
+private const val STRONG_GROUND = 59f
+private const val STRONG_THIGH = 9.6f
+private const val STRONG_TORSO = 13.5f
+private const val STRONG_ARM = 7.2f
+private const val STRONG_HEAD_R = 3.3f
 
 /**
- * Una piedra de atlas que se levanta y vuelve a caer, y un cargador con un yugo a los hombros que avanza a pasos.
- * Acento: energía.
+ * Una piedra de atlas que se levanta del suelo hasta el pecho y se baja otra vez: la figura de perfil se agacha, la abraza,
+ * se endereza echándose hacia atrás con ella y la deja caer en el polvo. La roca tapa el brazo lejano. En reposo muestra el
+ * momento más reconocible, con la piedra arriba. Acento: energía (la roca).
  */
-internal class StrongmanArt(lk: Float) : GoalArt(SymbolPalette.energia, period = 3.0f, restT = 0.9f, lk = lk) {
-    private val stoneX = 17f
-    private val stoneR = 13f
-    private val ground = 58.8f
+internal class StrongmanArt(lk: Float) : GoalArt(SymbolPalette.energia, period = 3.2f, restT = 1.55f, lk = lk) {
     private val stone = Path()
 
     init {
-        // El contorno de la piedra, con el centro en el origen: se traslada y se gira al dibujarla.
+        // El contorno de la roca, con el centro en el origen: se traslada y se gira al dibujarla.
         val n = STONE_RADII.size
-        fun px(i: Int) = cos(TAU * (i % n) / n) * stoneR * STONE_RADII[i % n]
-        fun py(i: Int) = sin(TAU * (i % n) / n) * stoneR * STONE_RADII[i % n]
-        stone.moveTo((px(0) + px(1)) / 2f, (py(0) + py(1)) / 2f)
-        for (i in 1..n) {
-            stone.quadraticTo(px(i), py(i), (px(i) + px(i + 1)) / 2f, (py(i) + py(i + 1)) / 2f)
+        for (i in 0 until n) {
+            val a = TAU * i / n + 0.35f
+            val x = cos(a) * STONE_R * STONE_RADII[i]
+            val y = sin(a) * STONE_R * STONE_RADII[i]
+            if (i == 0) stone.moveTo(x, y) else stone.lineTo(x, y)
         }
         stone.close()
     }
 
-    /** 0 = la piedra en el suelo, 1 = arriba. */
-    internal fun lift(t: Float): Float = riseHoldFall(t, 0.3f, 1.2f, 1.7f, 2.5f)
+    /** 0 = la piedra en el suelo, 1 = arriba, a la altura del pecho. */
+    internal fun lift(t: Float): Float = riseHoldFall(t, 0.4f, 1.3f, 1.75f, 2.55f)
 
-    /** El paso del cargador, de −1 a 1: positivo levanta el pie izquierdo y negativo el derecho (tres pasos por bucle). */
-    internal fun step(t: Float): Float = sin(TAU * t / (period / 3f))
+    /** El centro de la piedra: del suelo (a la derecha) a lo alto del pecho (algo más cerca de la figura). */
+    internal fun stoneCenter(t: Float): Offset {
+        val k = lift(t)
+        val low = STRONG_GROUND - 0.3f - STONE_R
+        return Offset(38f - 4f * k, low - (low - 29f) * k)
+    }
 
     override fun drawStatic(pen: SymbolPen) {
-        with(pen) { line(1.5f, ground, 62.5f, ground, soft, fine) }
+        with(pen) { line(1.5f, STRONG_GROUND, 62.5f, STRONG_GROUND, soft, fine) }
     }
 
     override fun drawDynamic(pen: SymbolPen, t: Float) {
         with(pen) {
-            val l = lift(t)
-            // Piedra: sombra, contorno en el acento, brillo y grietas que giran un poco al subir, y polvo al caer.
-            val cy = ground - 0.3f - stoneR - 9.5f * l
-            oval(stoneX, ground + 0.6f, 11.5f - 4.5f * l, 1.4f, soft, fine)
-            drawStone(cy, l)
+            val k = lift(t)
+            val c = stoneCenter(t)
+            // La figura: de cuclillas con el tronco casi tumbado hacia la piedra a erguida y echada hacia atrás.
+            val hip = Offset(lerpF(12f, 15.5f, k), lerpF(48.5f, 41f, k))
+            val lean = lerpF(0.95f, -0.10f, k)
+            val shoulder = hip + Offset(sin(lean), -cos(lean)) * STRONG_TORSO
+            val head = shoulder + Offset(sin(lean + 0.12f), -cos(lean + 0.12f)) * 5.6f
+            val footN = Offset(hip.x + lerpF(6.5f, 3.5f, k), STRONG_GROUND - 0.4f)
+            val footF = Offset(hip.x - lerpF(2f, 4.5f, k), STRONG_GROUND - 0.4f)
+            val kneeN = ik(hip, footN, STRONG_THIGH, STRONG_THIGH, -1f)
+            val kneeF = ik(hip, footF, STRONG_THIGH, STRONG_THIGH, -1f)
+            // Las manos abrazan la piedra por abajo y por el lado de la figura.
+            val handN = Offset(c.x - STONE_R * 0.62f, c.y + STONE_R * 0.52f)
+            val handF = Offset(c.x - STONE_R * 0.30f, c.y + STONE_R * 0.86f)
+            val elbowN = ik(shoulder, handN, STRONG_ARM, STRONG_ARM, 1f)
+            val elbowF = ik(shoulder, handF, STRONG_ARM, STRONG_ARM, 1f)
+            val far = ink.fainter(SymbolPalette.FAR_LIMB)
+            // Lado lejano, tronco, lado cercano y cabeza (con el negro de la página detrás, como las demás figuras).
+            poly(shoulder, elbowF, handF, far, bold)
+            poly(hip, kneeF, footF, far, bold)
+            line(hip, shoulder, ink, bold)
+            poly(hip, kneeN, footN, ink, bold)
+            dot(head.x, head.y, STRONG_HEAD_R + 0.3f, Color.Black)
+            ring(head.x, head.y, STRONG_HEAD_R, ink, bold * 0.9f)
+            // La roca (tapa el brazo lejano): contorno en el acento, brillo y dos grietas; gira un poco al subir.
+            shifted(c.x, c.y) {
+                rotated(34f * k, 0f, 0f) {
+                    fillPath(stone, Color.Black)
+                    path(stone, accent, mid)
+                    arc(0f, 0f, STONE_R * 0.68f, 195f, 55f, ink, fine)
+                    poly3(STONE_R * 0.95f, -2.4f, 4.4f, 0.6f, 6.6f, 5.4f, ink, fine)
+                    poly3(-2.2f, STONE_R * 0.9f, -1.6f, 4.8f, -6.4f, 2.6f, ink, fine)
+                }
+            }
+            // El brazo cercano va por delante de la roca, con la mano agarrándola.
+            poly(shoulder, elbowN, handN, ink, bold)
+            dot(handN.x, handN.y, dotR(1.6f), ink)
+            // Polvo al caer.
             val dust = seg(t, 2.45f, 3.0f)
             if (dust > 0f && dust < 1f) {
                 fade(1f - dust) {
-                    for (m in floatArrayOf(-1f, 1f)) {
-                        dot(stoneX + m * (stoneR + 3f + 6f * dust), ground - 1.5f - 4f * dust, dotR(1.2f), soft)
-                        dot(stoneX + m * (stoneR + 1f + 4f * dust), ground - 0.9f - 1.4f * dust, dotR(0.9f), soft)
-                    }
+                    val reach = STONE_R + 3f + 6f * dust
+                    val y = STRONG_GROUND - 1.5f - 4f * dust
+                    dot(c.x - reach, y, dotR(1.2f), soft)
+                    dot(c.x + reach, y, dotR(1.2f), soft)
                 }
             }
-            carrier(step(t))
         }
-    }
-
-    private fun SymbolPen.drawStone(cy: Float, l: Float) {
-        shifted(stoneX, cy) {
-            rotated(38f * l, 0f, 0f) {
-                path(stone, accent, mid)
-                // Brillo (un arco corto paralelo al borde) y dos grietas.
-                arc(0f, 0f, stoneR * 0.7f, 195f, 55f, ink, fine)
-                poly3(stoneR * 0.95f, -2.4f, 4.4f, 0.6f, 6.6f, 5.4f, ink, fine)
-                poly3(-2.2f, stoneR * 0.9f, -1.6f, 4.8f, -6.4f, 2.6f, ink, fine)
-                dot(-5.6f, -3.4f, dotR(0.9f), soft)
-                dot(2.4f, -7.4f, dotR(0.9f), soft)
-            }
-        }
-    }
-
-    /** El cargador (de frente, con el yugo a los hombros y las manos en los postes) y el marco del yugo. */
-    private fun SymbolPen.carrier(st: Float) {
-        val bob = 0.7f * kotlin.math.abs(st)
-        val cx = 49f
-        val beamY = 25.2f - bob
-        // Yugo: dos postes que se abren hacia el suelo y el travesaño, que apoya en los hombros.
-        line(40.6f, beamY, 38.8f, ground, ink, mid)
-        line(57.4f, beamY, 59.2f, ground, ink, mid)
-        line(36.4f, ground, 41.4f, ground, ink, mid)
-        line(56.6f, ground, 61.6f, ground, ink, mid)
-        line(35.4f, beamY, 62.6f, beamY, accent, bold)
-        dot(35.4f, beamY, dotR(1.5f), accent)
-        dot(62.6f, beamY, dotR(1.5f), accent)
-        // Figura: cabeza sobre el travesaño, brazos a los postes y piernas que dan pasos alternos.
-        val shL = Offset(cx - 4.2f, 27.4f - bob)
-        val shR = Offset(cx + 4.2f, 27.4f - bob)
-        val hip = Offset(cx, 41.6f - bob)
-        val ftL = Offset(cx - 3.4f, ground - 0.8f - 3.6f * maxOf(0f, st))
-        val ftR = Offset(cx + 3.4f, ground - 0.8f - 3.6f * maxOf(0f, -st))
-        val haL = Offset(40.6f + 0.6f, 32.4f - 0.5f * bob)
-        val haR = Offset(57.4f - 0.6f, 32.4f - 0.5f * bob)
-        frontFigure(
-            FrontPose(
-                head = Offset(cx, 18.6f - bob),
-                shL = shL, shR = shR,
-                elL = ik(shL, haL, 5.2f, 5.2f, 1f), haL = haL,
-                elR = ik(shR, haR, 5.2f, 5.2f, -1f), haR = haR,
-                hip = hip,
-                knL = ik(hip, ftL, 8.9f, 8.9f, 1f), ftL = ftL,
-                knR = ik(hip, ftR, 8.9f, 8.9f, -1f), ftR = ftR,
-            ),
-            3.3f, ink, mid * 1.15f,
-        )
     }
 }
 

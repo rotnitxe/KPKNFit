@@ -145,9 +145,10 @@ una línea (`EntrenoStepNote`: sin caja, con el texto cambiando por fundido y si
 | `PRIORITIES` | `MuscleSymbolGrid` + «Omitir» | `toggleMuscle`, `clearMuscles` → `priorityMuscles` / `orderPriorities` | hasta 5; las sugerencias del perfil llegan precargadas y rotuladas «Sugerido» mientras no se toque el paso; «Omitir» (arriba a la derecha, 48 dp) limpia y confirma el paso, y el resumen dice «Sin preferencia» |
 | `TRAINING_MAX` | `LiftMarksPicker` | `setLiftMark`, `setMarksUnit` → `liftMarks`, `marksUnit` | regla kg/lb por levantamiento; como el dial, escribe una vez cuando el dedo se detiene; «No la sé» borra la marca; qué levantamientos salen lo decide `MarksContext` (Halterofilia pregunta además el arranque y los dos tiempos desde el nivel intermedio: `CATALOG_HAS_OLYMPIC_LIFTS = true` desde que las reservas de D1b leen esas marcas, ver §1b) |
 
-Reglas comunes: ningún control lleva caja ni borde; los objetivos táctiles miden 48 dp (salvo los siete días del calendario a 360 dp,
-~44,6 dp de ancho: decisión de diseño de `WeekCalendar`); con «reducir movimiento» (`wizardReducedMotion()`) cada símbolo queda en su
-cuadro final. La lectura y la escritura del paso se prueban en `EntrenoStepsSmokeTest` (Robolectric, marcas `setup-place-*`,
+Reglas comunes: ningún control lleva caja ni borde; los objetivos táctiles miden 48 dp (también los siete días del calendario: la tira
+sangra hasta 24 dp por lado hacia los márgenes, 48 dp a 360 dp y 45,7 dp a 320 dp); los títulos de ficha y de portada bajan de tamaño
+antes que cortarse (`fitTitle`: parten solo en espacios, hasta 13 sp y, si una palabra suelta no cabe, 11–12 sp); con «reducir
+movimiento» (`wizardReducedMotion()`) cada símbolo queda en su cuadro final. La lectura y la escritura del paso se prueban en `EntrenoStepsSmokeTest` (Robolectric, marcas `setup-place-*`,
 `setup-equipment-*`, `setup-goal-*`, `setup-freshday-*`, `setup-weekday-*`, `setup-sessiontime-*`, `setup-capability-*`,
 `setup-muscle-*`, `setup-mark-*`).
 
@@ -156,5 +157,7 @@ cuadro final. La lectura y la escritura del paso se prueban en `EntrenoStepsSmok
 `WizardHarnessActivity` (solo `src/debug`) abre el asistente REAL (modo solo entreno) ya colocado en el paso que se pida, con un
 borrador construido caminando la ruta de verdad. Extras (`--es start GOAL --es persona home …`): `start`, `persona`
 (`gym`/`home`/`park`/`multi`/`all`), `answers` (`places=GYM,HOME/minutes=75`…), `width`, `fontScale`, `reducedMotion`, `fps` (medidor de
-fluidez), `autonext` (recorre el bloque solo: paso vacío, respuesta, «Continuar») con `until`, y `autoselect` (elige el primer programa
+fluidez: por paso, la ENTRADA —el primer 1,1 s— y el resto), `sample` (con `fps`: dónde estaba el hilo principal en cada bache),
+`blur` (`on`|`off`: fuerza la rama con o sin desenfoque de los overlays; el teléfono de pruebas lo tiene desactivado), `autonext`
+(recorre el bloque solo: paso vacío, respuesta, «Continuar») con `until`, y `autoselect` (elige el primer programa
 cuando PLAN termina). Se conduce SIEMPRE con `C:\kw\tools\phone_run.py` (candado del teléfono, solo el applicationId `.dbg`).

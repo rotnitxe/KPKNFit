@@ -74,8 +74,10 @@ internal fun EquipmentSymbolGrid(
     ) {
         val columns = if (maxWidth >= WIDE_GRID) 4 else 3
         val rows = remember(symbols, columns) { symbols.chunked(columns) }
+        // Las filas se componen repartidas en cuadros (la primera de golpe y una más por cuadro): ver `rememberProgressiveCount`.
+        val shownRows = rememberProgressiveCount(total = rows.size, first = 1)
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            for (row in rows) {
+            for (row in rows.take(shownRows)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(4.dp),

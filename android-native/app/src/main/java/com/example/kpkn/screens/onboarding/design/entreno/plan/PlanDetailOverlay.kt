@@ -188,8 +188,9 @@ internal fun DetailSheet(
             .testTag(PLAN_DETAIL_TAG)
             .semantics { paneTitle = card.title }
             .graphicsLayer { alpha = shown() }
-            // Sin desenfoque del sistema el fondo debe tapar casi todo; con él, bastante: aquí hay mucho texto.
-            .background(OverlayScrim.copy(alpha = if (blur) 0.84f else 0.985f)),
+            // Sin desenfoque del sistema el velo es del todo opaco (con 0,985 el texto de la página de atrás asomaba unos niveles
+            // de gris); con él, 0,84: aquí hay mucho texto.
+            .background(OverlayScrim.copy(alpha = if (blur) 0.84f else 1f)),
     ) {
         Column(
             Modifier
@@ -424,19 +425,34 @@ private fun SectionTitle(text: String) {
     )
 }
 
-/** La descripción: hasta cuatro líneas y, si hay más, «Ver más» que la despliega. */
+/**
+ * La descripción: hasta cuatro líneas y, si hay más, «Ver más» que la despliega. Plegada nunca acaba en una palabra partida
+ * («muert…» con letra grande): se mide y se corta en la última palabra entera que cabe, con «…».
+ */
 @Composable
 private fun DescriptionBlock(text: String, accent: Color) {
     var expanded by remember { mutableStateOf(false) }
-    var overflows by remember { mutableStateOf(false) }
+    var overflows by remember(text) { mutableStateOf(false) }
+    // Cuántos caracteres del texto caben plegado: baja, midiendo, hasta que entran en las líneas sin partir una palabra.
+    var keep by remember(text) { mutableIntStateOf(text.length) }
+    val shown = if (expanded || keep >= text.length) text else ellipsizeAtWord(text, keep)
     Column(Modifier.animateContentSize()) {
         Text(
-            text = text,
+            text = shown,
             style = WizardTypography.body,
             color = WizardColors.text.copy(alpha = 0.88f),
             maxLines = if (expanded) Int.MAX_VALUE else DESCRIPTION_LINES,
-            overflow = TextOverflow.Ellipsis,
-            onTextLayout = { if (!expanded) overflows = it.hasVisualOverflow },
+            // Lo que sobra no se pinta: el corte limpio lo hace `ellipsizeAtWord`, no el «…» de Compose, que parte palabras.
+            overflow = TextOverflow.Clip,
+            onTextLayout = { layout ->
+                if (!expanded && layout.hasVisualOverflow) {
+                    overflows = true
+                    val visibleEnd = layout.getLineEnd(DESCRIPTION_LINES - 1, visibleEnd = true)
+                    // Con el «…» puesto, un corte justo en el borde de la línea lo empuja a una quinta: se baja un carácter más.
+                    val next = if (keep >= text.length) visibleEnd else minOf(visibleEnd, keep) - 1
+                    if (next in 1 until keep) keep = next
+                }
+            },
         )
         if (overflows || expanded) {
             Box(
@@ -453,6 +469,18 @@ private fun DescriptionBlock(text: String, accent: Color) {
             }
         }
     }
+}
+
+/**
+ * [text] cortado en [end] sin partir una palabra y terminado en «…»: si el corte cae justo antes de un espacio la última palabra
+ * está entera; si no, se descarta la que quedó a medias (y los signos sueltos de antes del corte). Un texto que ya cabe, igual.
+ */
+internal fun ellipsizeAtWord(text: String, end: Int): String {
+    val limit = end.coerceIn(0, text.length)
+    if (limit >= text.length) return text
+    val head = text.substring(0, limit)
+    val whole = if (text[limit].isWhitespace()) head else head.substringBeforeLast(' ', head)
+    return whole.trimEnd(' ', '\n', ',', ';', ':', '.', '-', '–', '—', '(') + "…"
 }
 
 /** Los ejercicios principales: una lista de línea, cada uno con el pictograma de su patrón y un filete debajo. */

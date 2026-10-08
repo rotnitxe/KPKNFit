@@ -69,6 +69,31 @@ private val SPANISH: java.util.Locale = java.util.Locale.forLanguageTag("es")
 /** A partir de esta razón ancho/alto la portada se organiza como banda (texto a la izquierda, ilustración a la derecha). */
 private const val BANNER_RATIO = 1.2f
 
+/** El margen de la portada: un 7,5 % de su ancho, entre 16 y 26 dp. */
+internal fun coverPadDp(widthDp: Float): Float = (widthDp * 0.075f).coerceIn(16f, 26f)
+
+/** Hasta qué tamaño sube el título en un cartel de [widthDp] de ancho (el título baja solo si no cabe). */
+internal fun posterTitleMaxSp(widthDp: Float): Float = (widthDp * 0.108f).coerceIn(21f, 30f)
+
+/** El ancho que tiene el título en un cartel de [widthDp] de ancho: lo que deja el margen a cada lado. */
+internal fun posterTitleWidthDp(widthDp: Float): Float = widthDp - 2f * coverPadDp(widthDp)
+
+/** Hueco entre la columna de texto y la ilustración de la banda. */
+private val BANNER_GAP = 8.dp
+
+/**
+ * Peso de la columna de texto de la banda frente al de la ilustración (1): crece con la letra grande (de 1,25 a 1,9 entre el
+ * 100 % y el 130 %) para que las palabras largas de un título («Powerbuilding») quepan enteras junto a ella.
+ */
+internal fun bannerTextWeight(fontScale: Float): Float = 1.25f + 0.65f * ((fontScale - 1f) / 0.3f).coerceIn(0f, 1f)
+
+/** El ancho que tiene el título en una banda de [widthDp] de ancho: su parte de lo que deja el margen y el hueco. */
+internal fun bannerTitleWidthDp(widthDp: Float, fontScale: Float): Float {
+    val inner = widthDp - 2f * coverPadDp(widthDp) - BANNER_GAP.value
+    val weight = bannerTextWeight(fontScale)
+    return inner * weight / (weight + 1f)
+}
+
 /** Cómo se organiza la portada: según la proporción de su caja, o forzada (la cabecera del detalle es siempre una banda). */
 internal enum class CoverLayout { AUTO, POSTER, BANNER }
 
@@ -127,24 +152,24 @@ internal fun PlanCover(
             CoverLayout.AUTO -> maxWidth.value / maxHeight.value > BANNER_RATIO
         }
         val widthDp = maxWidth.value
-        val pad = (widthDp * 0.075f).coerceIn(16f, 26f).dp
+        val pad = coverPadDp(widthDp).dp
         val artModifier = Modifier
         if (banner) {
             Row(
                 Modifier
                     .fillMaxSize()
                     .padding(start = pad, end = pad, bottom = pad, top = pad + topInset),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(BANNER_GAP),
             ) {
                 Column(
                     Modifier
-                        .weight(1.25f)
+                        .weight(bannerTextWeight(LocalDensity.current.fontScale))
                         .fillMaxHeight(),
                     verticalArrangement = Arrangement.SpaceBetween,
                 ) {
                     CoverHeader(model, accent)
                     Column {
-                        CoverTitle(model.title, maxSp = 25f, minSp = TITLE_MIN_SP)
+                        CoverTitle(model.title, maxSp = 25f, minSp = COVER_TITLE_MIN_SP)
                         Spacer(Modifier.height(8.dp))
                         CoverFacts(model)
                     }
@@ -160,7 +185,7 @@ internal fun PlanCover(
                 // La esquina de arriba a la derecha queda libre para la marca de «hecho» del carrusel.
                 CoverHeader(model, accent, Modifier.padding(end = HEADER_STAMP_GAP))
                 CoverArtCanvas(art, variant, pen, run, clock, running, parallax, artModifier.weight(1f).fillMaxWidth())
-                CoverTitle(model.title, maxSp = (widthDp * 0.108f).coerceIn(21f, 30f), minSp = TITLE_MIN_SP)
+                CoverTitle(model.title, maxSp = posterTitleMaxSp(widthDp), minSp = COVER_TITLE_MIN_SP)
                 Spacer(Modifier.height(8.dp))
                 CoverFacts(model)
             }
@@ -200,7 +225,7 @@ private fun CoverHeader(model: PlanCardModel, accent: Color, modifier: Modifier 
 }
 
 /** El título en Syne ExtraBold a [sizeSp]. */
-private fun coverTitleStyle(sizeSp: Float) = TextStyle(
+internal fun coverTitleStyle(sizeSp: Float) = TextStyle(
     fontFamily = WizardFonts.display,
     fontWeight = FontWeight.ExtraBold,
     fontSize = sizeSp.sp,
@@ -209,10 +234,10 @@ private fun coverTitleStyle(sizeSp: Float) = TextStyle(
     lineBreak = LineBreak.Heading,
 )
 
-/** El tamaño más pequeño al que baja el título para que su palabra más larga quepa (Syne es muy ancha). */
-private const val TITLE_MIN_SP = 14f
+/** El tamaño más pequeño al que baja el título para que su palabra más larga quepa (Syne es muy ancha): el mínimo del wizard. */
+internal const val COVER_TITLE_MIN_SP = 13f
 
-/** El título, hasta tres líneas, ajustado a su palabra más larga (ver [FittedDisplayText]). */
+/** El título, preferiblemente en tres líneas, ajustado a su palabra más larga y sin cortes ni «…» (ver [FittedDisplayText]). */
 @Composable
 private fun CoverTitle(title: String, maxSp: Float, minSp: Float, modifier: Modifier = Modifier) {
     FittedDisplayText(

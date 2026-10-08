@@ -144,7 +144,9 @@ fun LiftMarksPicker(
         Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
             UnitSwitch(unit = u, onUnit = onUnit)
         }
-        lifts.forEach { lift ->
+        // Las filas se componen repartidas en cuadros (la primera, la desplegada, de golpe): ver `rememberProgressiveCount`.
+        val shown = rememberProgressiveCount(total = lifts.size, first = 1)
+        lifts.take(shown).forEach { lift ->
             key(lift) {
                 LiftRow(
                     lift = lift,
@@ -238,12 +240,19 @@ private fun LiftRow(
             modifier = Modifier
                 .fillMaxWidth()
                 .testTag(markTag(lift))
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null,
-                    role = Role.Button,
-                    onClickLabel = if (expanded) null else "Mostrar la regla de ${lift.label}",
-                    onClick = onExpand,
+                // Solo la fila plegada es un botón: la desplegada ya tiene su regla a la vista y un botón que no hace nada confunde a TalkBack.
+                .then(
+                    if (expanded) {
+                        Modifier
+                    } else {
+                        Modifier.clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            role = Role.Button,
+                            onClickLabel = "Mostrar la regla de ${lift.label}",
+                            onClick = onExpand,
+                        )
+                    },
                 )
                 .semantics(mergeDescendants = true) {
                     contentDescription = "${lift.label}, $valueText"
@@ -317,12 +326,22 @@ private fun ExpandedMark(
             softWrap = false,
             textAlign = TextAlign.Center,
             modifier = Modifier
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null,
-                    role = Role.Button,
-                    onClickLabel = if (declared) null else "Usar el valor mostrado",
-                ) { if (!declared) onValueKg(shownKg) }
+                // Con la marca ya declarada el valor es solo una lectura: sin marca, tocarlo declara el que se ve.
+                .then(
+                    if (declared) {
+                        Modifier
+                    } else {
+                        Modifier
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null,
+                                role = Role.Button,
+                                onClickLabel = "Usar el valor mostrado",
+                            ) { onValueKg(shownKg) }
+                            // El objetivo táctil mide 48 dp aunque la cifra sea corta («5 kg»).
+                            .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
+                    },
+                )
                 .padding(horizontal = 16.dp, vertical = 4.dp)
                 .testTag("${markTag(lift)}-value"),
         )

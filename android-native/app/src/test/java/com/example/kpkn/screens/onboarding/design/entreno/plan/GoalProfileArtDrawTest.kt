@@ -143,25 +143,26 @@ class GoalProfileArtDrawTest {
     }
 
     @Test
-    fun theStrongmanCarrierAlternatesItsSteps() {
+    fun theStrongmanStoneRisesToTheChestAndStaysInsideTheCanvas() {
         val art = goalArt(TrainingGoalProfile.STRONGMAN) as StrongmanArt
-        var positive = 0
-        var negative = 0
-        var prev = art.step(0.0001f)
-        var crossings = 0
-        for (i in 1..600) {
-            val s = art.step(art.period * i / 600f)
-            assertTrue(s in -1.0001f..1.0001f)
-            if (s > 0f) positive++ else if (s < 0f) negative++
-            if ((s > 0f) != (prev > 0f)) crossings++
-            prev = s
+        var highest = 99f
+        var lowest = 0f
+        for (i in 0..320) {
+            val c = art.stoneCenter(art.period * i / 320f)
+            // La roca mide ~11 de radio: ninguna parte se sale del lienzo de 64.
+            assertTrue("izquierda ${c.x}", c.x - 12.5f >= 0f)
+            assertTrue("derecha ${c.x}", c.x + 12.5f <= 64f)
+            assertTrue("arriba ${c.y}", c.y - 12.5f >= 0f)
+            assertTrue("abajo ${c.y}", c.y + 12.5f <= 64f)
+            highest = minOf(highest, c.y)
+            lowest = maxOf(lowest, c.y)
         }
-        assertTrue(positive > 250 && negative > 250)
-        // Tres pasos por bucle: seis cambios de pie.
-        assertTrue("cambios de pie: $crossings", crossings in 5..7)
-        // La piedra sube y baja dentro del bucle.
+        // Sube al menos 15 unidades desde el suelo.
+        assertTrue("recorrido ${lowest - highest}", lowest - highest > 15f)
+        // En el suelo al empezar y arriba en su punto más alto; en reposo se ve arriba (lo más reconocible).
         assertEquals(0f, art.lift(0f), 0.0001f)
         assertEquals(1f, art.lift(1.5f), 0.0001f)
+        assertTrue("reposo con la piedra arriba", art.lift(art.restT) > 0.95f)
     }
 
     @Test

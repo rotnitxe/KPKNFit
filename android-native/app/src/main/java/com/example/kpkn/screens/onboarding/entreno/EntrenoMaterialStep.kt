@@ -11,6 +11,7 @@ import com.example.kpkn.screens.onboarding.SetupWizardState
 import com.example.kpkn.screens.onboarding.SetupWizardViewModel
 import com.example.kpkn.screens.onboarding.design.entreno.EquipmentSymbolGrid
 import com.example.kpkn.screens.onboarding.selectedEquipmentSymbols
+import com.example.kpkn.screens.onboarding.design.entreno.EntrenoWarmupEffect
 
 /**
  * AVAILABILITY · «¿Con qué material entrenas?»: un símbolo dibujado por implemento, con «Solo peso corporal» exclusivo.
@@ -23,6 +24,8 @@ import com.example.kpkn.screens.onboarding.selectedEquipmentSymbols
 @Composable
 internal fun EntrenoMaterialStep(state: SetupWizardState, vm: SetupWizardViewModel) {
     val places = state.draft.trainingPlaces
+    // Si el bloque se abrió en este paso (se reabre un borrador), también se preparan los dibujos de los siguientes.
+    EntrenoWarmupEffect()
     val offered = EquipmentSymbols.symbolsFor(places)
     val selected = state.draft.selectedEquipmentSymbols()
     Column(modifier = Modifier.fillMaxWidth()) {

@@ -81,7 +81,10 @@ fun CapabilitySymbols(
     val clock = rememberFigClock(active = !reduced && anyMoving)
 
     Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-        skills.chunked(2).forEach { rowSkills ->
+        // Las filas se componen repartidas en cuadros (la primera de golpe y una más por cuadro): ver `rememberProgressiveCount`.
+        val rows = remember(skills) { skills.chunked(2) }
+        val shownRows = rememberProgressiveCount(total = rows.size, first = 1)
+        rows.take(shownRows).forEach { rowSkills ->
             // Si algún nombre de la fila ocupa dos líneas, todos reservan dos: los segmentos quedan alineados.
             val nameLines = if (rowSkills.any { it.label.length > 14 }) 2 else 1
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {

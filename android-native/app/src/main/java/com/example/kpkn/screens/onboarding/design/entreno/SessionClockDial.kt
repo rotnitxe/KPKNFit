@@ -108,6 +108,9 @@ private const val DEAD_CENTER = 0.48f
 /** Y los de más allá del borde de la esfera (con un margen) tampoco. */
 private const val OUTER_REACH = 1.06f
 
+/** Alto de la fila de atajos (30 · 45 · …): lo que se reserva mientras se compone. */
+private val DIAL_SHORTCUTS_HEIGHT = 48.dp
+
 /** Una vuelta de la segundera cada tantos segundos. */
 private const val SECOND_HAND_PERIOD = 12f
 
@@ -116,6 +119,12 @@ private val NumeralSize = 13.dp
 
 /** Tamaño de la cifra grande del centro, en dp con la esfera de referencia (no crece con la letra del sistema). */
 private val HeroDesignSize = 40.dp
+
+/**
+ * Cuánto del hueco del centro ocupan, como mucho, la cifra y «min»: con el 96 % de antes, «75 min» llegaba a 4 dp de los numerales
+ * de las 3 y las 9 («150» y «60») y se leía «75 min 150»; con el 80 % queda aire entre la lectura y la corona de numerales.
+ */
+private const val READOUT_FILL = 0.80f
 
 /**
  * Dial de reloj para elegir los minutos de una sesión. [minutes] es el valor actual y [onMinutesChange] se llama con cada
@@ -166,7 +175,12 @@ fun SessionClockDial(
             )
         }
         Spacer(Modifier.height(6.dp))
-        DialShortcuts(minutes = shown, range = range, step = step, reduced = reduced, onMinutesChange = onMinutesChange)
+        // Los atajos se componen un cuadro después de la esfera (con su sitio ya reservado): ver `rememberProgressiveCount`.
+        if (rememberProgressiveCount(total = 1, first = 0) > 0) {
+            DialShortcuts(minutes = shown, range = range, step = step, reduced = reduced, onMinutesChange = onMinutesChange)
+        } else {
+            Spacer(Modifier.height(DIAL_SHORTCUTS_HEIGHT))
+        }
     }
 }
 
@@ -298,7 +312,7 @@ private fun DialReadout(minutes: Int, side: Dp, range: IntRange, reduced: Boolea
     val designScale = side / DialMaxSide
     val maxSp = with(density) { (HeroDesignSize * designScale).toSp() }
     val unitStyle = WizardTypography.controlLabel
-    val hole = side * (2f * HOLE_RADIUS / (2f * DESIGN_RADIUS)) * 0.96f
+    val hole = side * (2f * HOLE_RADIUS / (2f * DESIGN_RADIUS)) * READOUT_FILL
     val maxDigits = range.last.toString().length.coerceAtLeast(1)
     // Escala (≤ 1) de la cifra para 1, 2 … maxDigits cifras: la que deja la cifra más ancha (todo «8») junto a «min» dentro del hueco.
     val fits = remember(measurer, density, maxSp, unitStyle, hole, maxDigits) {
