@@ -151,6 +151,9 @@ internal object SetupPlanReveals {
     const val KICKER_KPKN = "Plan KPKN"
     const val BADGE_ADAPTIVE = "Se adapta a ti"
     const val BLURB_MAX = 110
+
+    /** Lo mínimo que debe quedar de una frase cortada en una coma para que se lea como frase (si no, se corta en una palabra). */
+    const val BLURB_MIN_CLAUSE = 40
     const val MAX_MAIN_EXERCISES = 6
 
     /** Etiqueta de la estructura de una semana que se repite. */
@@ -244,7 +247,9 @@ internal object SetupPlanReveals {
 
     /**
      * Una o dos frases de hasta [BLURB_MAX] caracteres: las frases enteras que caben y, si ni la primera cabe, la
-     * primera recortada en una palabra con «…».
+     * primera cortada en su última coma que cabe y cerrada con punto (lo que se pierde suele ser el inciso final, como
+     * «, unos 90 min por sesión», que la portada ya dice: así no queda «…con movilidad, unos…»); sin una coma que deje
+     * un trozo con sentido ([BLURB_MIN_CLAUSE]), recortada en una palabra con «…».
      */
     fun blurbOf(text: String): String {
         val clean = text.trim().replace(Regex("""\s+"""), " ")
@@ -257,7 +262,10 @@ internal object SetupPlanReveals {
             out = next
         }
         if (out.isNotEmpty()) return out
-        val cut = clean.take(BLURB_MAX - 1).substringBeforeLast(' ').trimEnd(',', ';', ':', ' ')
+        val head = clean.take(BLURB_MAX - 1)
+        val lastComma = head.lastIndexOf(',')
+        if (lastComma >= BLURB_MIN_CLAUSE) return head.take(lastComma).trimEnd(',', ';', ':', ' ') + "."
+        val cut = head.substringBeforeLast(' ').trimEnd(',', ';', ':', ' ')
         return "$cut…"
     }
 

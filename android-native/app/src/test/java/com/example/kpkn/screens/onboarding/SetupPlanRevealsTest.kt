@@ -17,7 +17,9 @@ import com.example.kpkn.domain.onboarding.GeneratedPlans
 import com.example.kpkn.domain.onboarding.TrainingGoalProfile
 import com.example.kpkn.domain.onboarding.TrainingPlace
 import com.example.kpkn.domain.training.CatalogCompositionTestSupport
+import com.example.kpkn.domain.training.generator.DisciplineWeeks
 import com.example.kpkn.domain.training.generator.RoutineGenerator
+import com.example.kpkn.domain.training.generator.RoutineMode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -114,6 +116,40 @@ class SetupPlanRevealsTest {
         val cut = SetupPlanReveals.blurbOf(endless)
         assertTrue(cut.length <= SetupPlanReveals.BLURB_MAX)
         assertTrue(cut.endsWith("…"))
+    }
+
+    @Test
+    fun a_long_single_sentence_is_cut_on_its_last_comma_that_fits_and_closed_with_a_period() {
+        // Halterofilia con 4 días (QP, teléfono real): antes salía «…con movilidad, unos…»; ahora pierde el inciso final.
+        val weightlifting = "4 días de sentadilla, empuje sobre la cabeza y potencia, sentadilla frontal y tirones, con movilidad, unos 90 min por sesión."
+        assertEquals(
+            "4 días de sentadilla, empuje sobre la cabeza y potencia, sentadilla frontal y tirones, con movilidad.",
+            SetupPlanReveals.blurbOf(weightlifting),
+        )
+        // Sin una coma que deje un trozo con sentido, se sigue cortando en una palabra con «…».
+        val shortClause = "Frase, " + "palabra ".repeat(30).trim()
+        val cut = SetupPlanReveals.blurbOf(shortClause)
+        assertTrue("«$cut»", cut.endsWith("…") && cut.length <= SetupPlanReveals.BLURB_MAX)
+    }
+
+    @Test
+    fun no_discipline_one_liner_is_ever_cut_in_the_middle_of_its_description() {
+        // La frase de cada disciplina con cualquier número de días, con la plantilla de `RoutineNarrative.oneLiner`.
+        val disciplines = listOf(
+            RoutineMode.DISCIPLINE_CALISTHENICS,
+            RoutineMode.DISCIPLINE_ARMWRESTLING,
+            RoutineMode.DISCIPLINE_STRONGMAN,
+            RoutineMode.DISCIPLINE_WEIGHTLIFTING_BASE,
+            RoutineMode.CUSTOM_POWERLIFTING,
+        )
+        for (mode in disciplines) {
+            for (days in 1..7) {
+                val line = "${SetupPlanReveals.daysLabel(days)} de ${DisciplineWeeks.describe(mode, days)}, unos 90 min por sesión."
+                val blurb = SetupPlanReveals.blurbOf(line)
+                assertTrue("$mode $days días: «$blurb» ($line)", blurb.length <= SetupPlanReveals.BLURB_MAX)
+                assertTrue("$mode $days días: «$blurb» queda cortada con «…»", !blurb.endsWith("…"))
+            }
+        }
     }
 
     @Test
