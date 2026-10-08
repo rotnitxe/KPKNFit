@@ -293,7 +293,12 @@ private fun DoneStamp(visible: Boolean, reduced: Boolean, modifier: Modifier = M
 
 // ---------------------------------------------------------------- debajo de la tarjeta central
 
-/** El blurb de la tarjeta central y sus dos acciones de texto: «Ver detalles» y «Elegir» (o «Elegido»). */
+/**
+ * Las dos acciones de texto de la tarjeta central («Ver detalles» y «Elegir», o «Elegido») y, debajo, su blurb. Las acciones van
+ * primero, pegadas a la tarjeta: con letra grande el blurb ocupa cuatro o cinco líneas y, puesto delante, las empujaba al borde
+ * inferior de la pantalla, bajo el degradado del botón de Continuar (se leían como apagadas y la decisión del paso quedaba fuera
+ * de la vista).
+ */
 @Composable
 private fun PlanCardInfo(
     card: PlanCardModel,
@@ -308,6 +313,8 @@ private fun PlanCardInfo(
             .padding(horizontal = 28.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        PlanActions(card, isSelected, onOpen, onSelect)
+        Spacer(Modifier.height(2.dp))
         Text(
             text = card.blurb,
             style = WizardTypography.bodySmall,
@@ -316,8 +323,6 @@ private fun PlanCardInfo(
             maxLines = 5,
             overflow = TextOverflow.Ellipsis,
         )
-        Spacer(Modifier.height(4.dp))
-        PlanActions(card, isSelected, onOpen, onSelect)
     }
 }
 

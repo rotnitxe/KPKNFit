@@ -70,6 +70,19 @@ class PlanCarouselTest {
     }
 
     @Test
+    fun theActionsSitRightBelowTheCardAndAboveItsBlurb() {
+        // Con letra grande el blurb ocupa cuatro o cinco líneas: puesto delante empujaba «Ver detalles» y «Elegir» al borde inferior
+        // de la pantalla, bajo el botón de Continuar (a 360 dp y 130 % quedaban fuera de la vista).
+        show()
+        val card = rule.onNodeWithTag("setup-plan-card-a").fetchSemanticsNode().boundsInRoot
+        val open = rule.onNodeWithTag("setup-plan-open-a").fetchSemanticsNode().boundsInRoot
+        val choose = rule.onNodeWithTag("setup-plan-choose-a").fetchSemanticsNode().boundsInRoot
+        val blurb = rule.onNodeWithText("Blurb de Programa A.").fetchSemanticsNode().boundsInRoot
+        assertTrue("las acciones van bajo la tarjeta", open.top >= card.bottom && choose.top >= card.bottom)
+        assertTrue("el texto de la tarjeta, bajo las acciones", blurb.top >= open.bottom - 1f && blurb.top >= choose.bottom - 1f)
+    }
+
+    @Test
     fun theSelectedCardIsAnnouncedAsSelectedAndTheCarouselStartsOnIt() {
         show(selectedId = "b")
         rule.onNodeWithTag("setup-plan-card-b").assertIsSelected()
