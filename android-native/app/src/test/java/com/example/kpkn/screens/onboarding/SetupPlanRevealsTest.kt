@@ -126,7 +126,13 @@ class SetupPlanRevealsTest {
             "4 días de sentadilla, empuje sobre la cabeza y potencia, sentadilla frontal y tirones, con movilidad.",
             SetupPlanReveals.blurbOf(weightlifting),
         )
-        // Sin una coma que deje un trozo con sentido, se sigue cortando en una palabra con «…».
+        // «Músculo KPKN» (carrusel de Culturismo): su primera frase de autor pasa de 110 y antes salía «…siempre dejas…».
+        val muscle = requireNotNull(PersonalizedPlanCatalog.find("native:muscle-foundation-v2")).summary
+        assertEquals(
+            "Entrenamiento para ganar músculo con rangos de repeticiones y esfuerzo controlado.",
+            SetupPlanReveals.blurbOf(muscle),
+        )
+        // Sin una pausa que deje un trozo con sentido, se sigue cortando en una palabra con «…».
         val shortClause = "Frase, " + "palabra ".repeat(30).trim()
         val cut = SetupPlanReveals.blurbOf(shortClause)
         assertTrue("«$cut»", cut.endsWith("…") && cut.length <= SetupPlanReveals.BLURB_MAX)

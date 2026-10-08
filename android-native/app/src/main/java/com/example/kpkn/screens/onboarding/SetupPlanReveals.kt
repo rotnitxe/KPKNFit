@@ -247,9 +247,10 @@ internal object SetupPlanReveals {
 
     /**
      * Una o dos frases de hasta [BLURB_MAX] caracteres: las frases enteras que caben y, si ni la primera cabe, la
-     * primera cortada en su última coma que cabe y cerrada con punto (lo que se pierde suele ser el inciso final, como
-     * «, unos 90 min por sesión», que la portada ya dice: así no queda «…con movilidad, unos…»); sin una coma que deje
-     * un trozo con sentido ([BLURB_MIN_CLAUSE]), recortada en una palabra con «…».
+     * primera cortada en su último signo de pausa (coma, punto y coma o dos puntos) que cabe y cerrada con punto (lo que
+     * se pierde suele ser el inciso final, como «, unos 90 min por sesión», que la portada ya dice: así no queda
+     * «…con movilidad, unos…» ni «…siempre dejas…»); sin una pausa que deje un trozo con sentido ([BLURB_MIN_CLAUSE]),
+     * recortada en una palabra con «…».
      */
     fun blurbOf(text: String): String {
         val clean = text.trim().replace(Regex("""\s+"""), " ")
@@ -263,8 +264,8 @@ internal object SetupPlanReveals {
         }
         if (out.isNotEmpty()) return out
         val head = clean.take(BLURB_MAX - 1)
-        val lastComma = head.lastIndexOf(',')
-        if (lastComma >= BLURB_MIN_CLAUSE) return head.take(lastComma).trimEnd(',', ';', ':', ' ') + "."
+        val lastPause = head.lastIndexOfAny(charArrayOf(',', ';', ':'))
+        if (lastPause >= BLURB_MIN_CLAUSE) return head.take(lastPause).trimEnd(',', ';', ':', ' ') + "."
         val cut = head.substringBeforeLast(' ').trimEnd(',', ';', ':', ' ')
         return "$cut…"
     }
