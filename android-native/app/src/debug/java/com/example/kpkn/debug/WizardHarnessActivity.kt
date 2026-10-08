@@ -93,7 +93,8 @@ import kotlinx.serialization.json.Json
  *    tramos: `e`, la ENTRADA (el primer 1,1 s desde que el cursor llega al paso) y `r`, el resto. De cada uno: el hueco más largo
  *    entre cuadros y el cuadro más largo (ms), el desglose de ese cuadro por fases (a animación y recomposición, d medir, colocar y
  *    dibujar, s sincronizar, c comandos de GPU, g GPU, u retraso antes de empezar el cuadro: el hilo principal estaba con algo que
- *    no es un cuadro) y los cuadros lentos sobre el total. `sub` es lo que tardó `submitCurrentStep` en el hilo principal.
+ *    no es un cuadro) y los cuadros lentos sobre el total. `s` es, dentro de la entrada, solo el tramo en que la página se desliza (los
+ *    primeros 0,62 s): hueco más largo / cuadro más largo. `sub` es lo que tardó `submitCurrentStep` en el hilo principal.
  *  - `sample` (booleano, junto a `fps`): un muestreador del hilo principal (`MainStallSampler`) añade, bajo cada paso, el mensaje
  *    más largo de cada tramo y dónde estaba el hilo («e⚠ 291 ms M[Handler/DispatchedContinuation]: 60% Clase.función · …»).
  *    Frena el hilo un instante por muestra: sirve para saber de quién es un bache, no para medirlo.
