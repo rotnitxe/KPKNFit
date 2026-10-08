@@ -14,6 +14,8 @@ import com.example.kpkn.data.protocols.TechniqueModifier
 import com.example.kpkn.data.protocols.TrainingPlanRecipe
 import com.example.kpkn.data.protocols.WeekRecipe
 import com.example.kpkn.data.protocols.definitions.NativeWeekBuilder
+import com.example.kpkn.domain.training.generator.DisciplinePools
+import com.example.kpkn.domain.training.generator.RoutineMode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -125,6 +127,32 @@ class PlanCatalogEditorialContractTest {
                 }
             }
         }
+    }
+
+    @Test
+    fun the_weightlifting_summary_says_what_the_generator_programs_and_what_still_makes_it_an_initial_version() {
+        val summary = entry("generated:weightlifting-base").summary
+        // El lote OL-1 trajo los levantamientos olímpicos y D1b los programa: el resumen ya no puede decir que faltan…
+        val pools = DisciplinePools.byMode.getValue(RoutineMode.DISCIPLINE_WEIGHTLIFTING_BASE).values
+            .flatten().flatMap { group -> group.entries }.map { it.id }.toSet()
+        assertTrue(
+            "las reservas de halterofilia llevan cargadas, arranques, tirones, enviones y sentadilla de arranque: $pools",
+            pools.containsAll(
+                listOf(
+                    "power_clean__barbell", "power_snatch__barbell", "clean_pull__barbell", "snatch_pull__barbell",
+                    "push_jerk__barbell", "split_jerk__barbell", "squat_snatch__barbell",
+                ),
+            ),
+        )
+        listOf("cargadas", "arranques", "tirones", "enviones", "sentadilla de arranque").forEach { word ->
+            assertTrue("el resumen de halterofilia no cita «$word»: «$summary»", summary.contains(word))
+        }
+        assertFalse("el resumen dice que faltan el arranque y los dos tiempos: «$summary»", summary.contains("no incluye arranque"))
+        // …pero sigue siendo una versión inicial y dice sus límites reales (lo que el generador declara que falta).
+        assertTrue("el resumen conserva el rótulo «versión inicial»: «$summary»", summary.contains("versión inicial"))
+        assertTrue("el resumen dice que no hay bloques: «$summary»", summary.contains("desde bloques"))
+        assertTrue("el resumen dice que no hay complejos: «$summary»", summary.contains("complejos de varios levantamientos"))
+        assertTrue("el resumen avisa de los discos de goma: «$summary»", summary.contains("discos de goma"))
     }
 
     // ─── 4 · Niveles ──────────────────────────────────────────────────────────

@@ -86,7 +86,7 @@ cambiaron los lotes está en «Estado tras los lotes BW-1 y OL-1», al final de 
   hardcodeada en `NativeWorkoutProgressionRuntime.kt:28`.
 - No hay dato de nivel por ejercicio, de «ejercicio pesado/1RM» ni de soportes por configuración (viven en `supportRequirementsFor`). `role`
   no marca los básicos (la sentadilla es `accessory_compound`): los básicos están hardcodeados en `NativeCandidateTable`.
-- Disciplinas: calistenia 28 definiciones (faltan muscle-up, handstand, levers, L-sit); **halterofilia 0** (ni arranque ni dos tiempos);
+- Disciplinas: calistenia 28 definiciones (faltan muscle-up, handstand, levers, L-sit); **halterofilia 0** (ni arranque ni dos tiempos; OL-1 los añadió, ver «Estado tras los lotes» más abajo);
   strongman: paseo del granjero ×4, Zercher ×10, sin yugo/piedras/log/trineo; armwrestling: 10 definiciones con antebrazo primario (faltan
   desviación radial/cubital, presión lateral, dedos, gripper); powerlifting completo.
 - Material del catálogo (`equipmentId`, 19 valores) ≠ material del wizard (11 categorías + 20 llaves del subpanel + 11 llaves de símbolo).

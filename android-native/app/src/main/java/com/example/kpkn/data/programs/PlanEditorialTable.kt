@@ -289,9 +289,11 @@ internal object PlanEditorialTable {
             "generated:weightlifting-base",
             generated(
                 displayName = "Base de halterofilia a medida",
-                summary = "Una semana que repites con la fuerza y la potencia que sostienen la halterofilia: " +
-                    "sentadilla trasera y frontal, push press, tirones y trabajo explosivo. Es una versión " +
-                    "inicial: todavía no incluye arranque ni dos tiempos.",
+                summary = "Una semana que repites con la fuerza y la potencia de la halterofilia: cargadas, " +
+                    "arranques, tirones, enviones y sentadilla de arranque, además de sentadilla frontal y push " +
+                    "press, según tu material y tu nivel. Es una versión inicial: sin cargada ni arranque desde " +
+                    "bloques y sin complejos de varios levantamientos seguidos, como la cargada con envión. " +
+                    "Soltar la barra pide discos de goma y plataforma, que la app no pregunta.",
                 rank = 706,
             ),
         )

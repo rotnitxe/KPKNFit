@@ -56,7 +56,7 @@ nunca instrucciones de interfaz. Tono: éxito = celebra sin exagerar; aviso = cl
 - Sin empuje vertical: «Con tu material no hay press por encima de la cabeza. Unas mancuernas o una barra lo completan.»
 - Poco tiempo: «Con {N} min vamos a lo esencial: los ejercicios principales y lo justo de accesorios.»
 - Mucho tiempo: «Con {N} min añadimos aproximaciones, movilidad y descansos más largos en los ejercicios pesados.»
-- Versión inicial por disciplina (se rotulan así hasta que el catálogo tenga sus levantamientos): Calistenia «Aún faltan progresiones avanzadas como el muscle-up o el equilibrio en manos.» · Halterofilia «Aún no incluimos arranque ni dos tiempos: trabajamos la fuerza y la potencia que los sostienen.» ·
+- Versión inicial por disciplina (se rotulan así hasta que el catálogo tenga sus levantamientos): Calistenia «Aún faltan progresiones avanzadas como el muscle-up o el equilibrio en manos.» · Halterofilia (con OL-1 ya lleva cargadas, arranques, tirones, enviones y sentadilla de arranque; la ficha dice «Es una versión inicial: sin cargada ni arranque desde bloques y sin complejos de varios levantamientos seguidos, como la cargada con envión. Soltar la barra pide discos de goma y plataforma, que la app no pregunta.») ·
   Strongman «Sin yugo, piedras ni trineo: trabajamos fuerza base y acarreos con tu material.» · Armwrestling «Sin trabajo de mesa: entrenamos antebrazo, agarre, bíceps y espalda.»
 
 ## Reglas de estilo
