@@ -1,7 +1,11 @@
 package com.example.kpkn.debug
 
+import android.app.Activity
 import android.app.Application
+import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.graphics.Color as AndroidColor
 import android.graphics.drawable.ColorDrawable
 import android.os.Build
@@ -19,8 +23,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Alignment
@@ -73,7 +79,7 @@ import kotlinx.serialization.json.Json
  * El borrador se construye caminando la ruta de verdad (ver `buildHarnessDraft`): los pasos anteriores quedan confirmados y
  * plegados en su fila-resumen, el paso pedido queda activo y el siguiente asoma. Todo lo demás es el asistente de siempre:
  * se toca, se desliza y se confirma como en la app. Corre con el applicationId `.dbg`, así que su base de datos no es la
- * de la app real; aun así NUNCA llega a «Activar» (el alta de solo entreno termina en un hito antes de la revisión).
+ * de la app real: por eso puede llegar hasta «Activar» (ver `activate` y `summary` más abajo) sin tocar los datos de la persona.
  *
  * Extras (`adb shell am start … --es start AVAILABILITY`), siempre a través de `emu_run.py` o `phone_run.py`:
  *  - `start` (nombre de `SetupStepId`, por defecto `EXPERIENCE`): el paso activo. Los pasos anteriores se dan por contestados
@@ -113,6 +119,21 @@ import kotlinx.serialization.json.Json
  *    a que el generador termine y elige el primer programa (el «a medida») antes de «Continuar», como al tocar «Elegir».
  *  - `autoselect` (booleano): con el paso PLAN activo, cuando el barrido termina elige el primer programa; así WEEK_LAYOUT ya
  *    tiene programa que enseñar sin recorrer el bloque entero (útil con `start PLAN`).
+ *  - `persona` también admite los seis recorridos de la auditoría Q (`qa` … `qf`): (a) gimnasio, Fuerza y masa muscular, 4 días × 60
+ *    min; (b) casa con mancuernas y banco, Culturismo, 3 días × 75 min con dos músculos; (c) espacios públicos, Calistenia con pocas
+ *    dominadas, 5 días × 45 min; (d) gimnasio y casa, Powerlifting con marcas en kg, 3 días; (e) solo peso corporal, Funcional y
+ *    saludable, 7 días × 180 min; (f) Halterofilia en gimnasio, 4 días × 90 min.
+ *  - Hasta ACTIVAR: con `autonext` y `until REVIEW_ACTIVATE` el recorrido llega a la revisión final (el último paso del alta de solo
+ *    entreno) y se detiene con el botón «Activar y entrar a KPKN» a la vista; ese botón es el de siempre (guarda en Room y
+ *    publica en el repositorio) y, al activar, el arnés enseña el RESUMEN de lo que quedó. `activate` (milisegundos, 0 = apagado)
+ *    lo pulsa solo (`commit()`, la misma función que el botón) tras esa espera, para recorridos sin dedo.
+ *  - `summary` (`names`, `only` o `only,names`): el resumen de la activación (nombre, días, minutos, lugar y número de ejercicios de
+ *    cada sesión, sesión principal y Ajustes que escribió el alta) se lee del `ProgramRepository`, no del estado del asistente.
+ *    `names` añade los ejercicios de cada sesión (con `aprox.` y `mov.` si llevan aproximación o movilidad); `only` abre el resumen
+ *    del programa activo sin recorrer el asistente (para releerlo tras matar el proceso).
+ *  - `rotate` (`landscape+5000,portrait+4000`): gira la actividad con `requestedOrientation` (la rotación real: se recrea la actividad
+ *    como al girar el teléfono, sin tocar ningún ajuste del sistema). Cada par es «orientación + milisegundos de espera desde el
+ *    giro anterior». Al recrearse la actividad NO se reconstruye el borrador (solo en un arranque nuevo con `reset`).
  *
  * Las marcas de prueba (`setup-continue`, `setup-place-GYM`, …) salen como `resource-id`, así `uiautomator` encuentra cada
  * control (en el emulador; en el teléfono real no se usa `uiautomator`).
@@ -138,7 +159,8 @@ class WizardHarnessActivity : ComponentActivity() {
             navigationBarStyle = SystemBarStyle.dark(AndroidColor.TRANSPARENT),
         )
         initRepositories()
-        val config = HarnessConfig.from(intent)
+        // Al recrearse la actividad (giro de pantalla) el borrador NO se reconstruye: se sigue con el que hay en la base.
+        val config = HarnessConfig.from(intent, recreated = savedInstanceState != null)
         setContent { HarnessRoot(config = config, onClose = { finish() }) }
     }
 
@@ -176,9 +198,17 @@ private class HarnessConfig(
     val autoSelect: Boolean,
     val blur: Boolean?,
     val preselect: String?,
+    /** Milisegundos que espera el recorrido en la revisión antes de activar solo (0 = no activa: lo pulsa la persona). */
+    val activateAfterMs: Long,
+    /** El resumen de la activación sin recorrer el asistente (para releer lo activado). */
+    val summaryOnly: Boolean,
+    /** El resumen lista también los ejercicios de cada sesión. */
+    val summaryNames: Boolean,
+    /** Giros de pantalla: `true` = horizontal; cada uno con los milisegundos de espera desde el giro anterior. */
+    val rotate: List<Pair<Boolean, Long>>,
 ) {
     companion object {
-        fun from(intent: Intent): HarnessConfig = HarnessConfig(
+        fun from(intent: Intent, recreated: Boolean = false): HarnessConfig = HarnessConfig(
             start = intent.getStringExtra("start")
                 ?.let { name -> SetupStepId.entries.firstOrNull { it.name.equals(name, ignoreCase = true) } }
                 ?: SetupStepId.EXPERIENCE,
@@ -186,7 +216,7 @@ private class HarnessConfig(
             answers = intent.getStringExtra("answers").orEmpty(),
             widthDp = intent.numberExtra("width", "widthDp"),
             fontScale = intent.numberExtra("fontscale", "fontScale"),
-            reset = intent.getBooleanExtra("reset", true),
+            reset = intent.getBooleanExtra("reset", true) && !recreated,
             autoNextMs = intent.numberExtra("autonext", "autoNext").toLong(),
             until = intent.getStringExtra("until")
                 ?.let { name -> SetupStepId.entries.firstOrNull { it.name.equals(name, ignoreCase = true) } }
@@ -201,6 +231,14 @@ private class HarnessConfig(
                 else -> if (intent.hasExtra("blur")) intent.getBooleanExtra("blur", false) else null
             },
             preselect = intent.getStringExtra("preselect")?.trim()?.takeIf { it.isNotEmpty() },
+            activateAfterMs = intent.numberExtra("activate").toLong(),
+            summaryOnly = intent.getStringExtra("summary").orEmpty().contains("only", ignoreCase = true),
+            summaryNames = intent.getStringExtra("summary").orEmpty().contains("names", ignoreCase = true),
+            rotate = intent.getStringExtra("rotate").orEmpty().split(',').mapNotNull { item ->
+                val orientation = item.substringBefore('+').trim().lowercase()
+                val wait = item.substringAfter('+', "").trim().toLongOrNull()
+                if (wait == null || orientation !in setOf("landscape", "portrait")) null else (orientation == "landscape") to wait
+            },
         )
     }
 }
@@ -235,7 +273,21 @@ private fun HarnessRoot(config: HarnessConfig, onClose: () -> Unit) {
     val context = LocalContext.current
     val viewModel: SetupWizardViewModel = viewModel()
     var draftId by remember { mutableStateOf<String?>(null) }
-    LaunchedEffect(config) { draftId = seedHarnessDraft(context.applicationContext as Application, config) }
+    // El resumen de lo activado sustituye al asistente cuando se activa (o desde el principio con `summary only`); sobrevive a un giro.
+    var summaryShown by rememberSaveable { mutableStateOf(config.summaryOnly) }
+    LaunchedEffect(config) { if (!config.summaryOnly) draftId = seedHarnessDraft(context.applicationContext as Application, config) }
+    // Giros de pantalla (`rotate`): el índice del siguiente giro se guarda, así al recrearse la actividad no se repite el primero.
+    var nextRotation by rememberSaveable { mutableIntStateOf(0) }
+    LaunchedEffect(config.rotate) {
+        val activity = context.findActivity() ?: return@LaunchedEffect
+        while (nextRotation < config.rotate.size) {
+            val (landscape, waitMs) = config.rotate[nextRotation]
+            delay(waitMs)
+            nextRotation += 1
+            activity.requestedOrientation =
+                if (landscape) ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE else ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        }
+    }
     // El calentamiento de los dibujos del bloque (`EntrenoWarmup`) arranca en los primeros pasos de Entreno, muchos antes que el de los
     // músculos: con `start` en mitad del bloque se hace al abrir, para medir lo que vería la persona y no el primer dibujo en frío.
     LaunchedEffect(Unit) { withContext(Dispatchers.Default) { runCatching { EntrenoWarmup.prepareArt() } } }
@@ -255,6 +307,15 @@ private fun HarnessRoot(config: HarnessConfig, onClose: () -> Unit) {
             val step = viewModel.state.value.currentStep
             if (step == config.until) {
                 tourLabel = "$step · fin"
+                // Hasta ACTIVAR: en la revisión final, con el botón «Activar y entrar a KPKN» a la vista, se espera (para la captura) y
+                // se activa con la misma función que el botón. Sin `activate`, lo pulsa la persona.
+                if (config.activateAfterMs > 0 && step == SetupStepId.REVIEW_ACTIVATE) {
+                    delay(config.activateAfterMs)
+                    tourLabel = "$step · activando"
+                    val receipt = viewModel.commit()
+                    tourLabel = if (receipt != null) "$step · activado" else "$step · ERROR ${viewModel.state.value.errors}"
+                    if (receipt != null) summaryShown = true
+                }
                 return@LaunchedEffect
             }
             val fillAfter = (config.autoNextMs * FILL_AT).toLong()
@@ -311,16 +372,21 @@ private fun HarnessRoot(config: HarnessConfig, onClose: () -> Unit) {
                     .background(Color.Black)
                     .semantics { testTagsAsResourceId = true },
             ) {
-                draftId?.let { id ->
-                    SetupWizardScreen(
-                        mode = SetupWizardMode.TRAINING_ONLY,
-                        draftId = id,
-                        preselectedPlanId = config.preselect,
-                        viewModel = viewModel,
-                        onDone = onClose,
-                        onCancel = onClose,
-                        showIntro = false,
-                    )
+                if (summaryShown) {
+                    HarnessActivationSummary(withExercises = config.summaryNames)
+                } else {
+                    draftId?.let { id ->
+                        SetupWizardScreen(
+                            mode = SetupWizardMode.TRAINING_ONLY,
+                            draftId = id,
+                            preselectedPlanId = config.preselect,
+                            viewModel = viewModel,
+                            // Activar de verdad (el botón de la revisión guarda en Room y publica) y enseñar lo que quedó.
+                            onDone = { summaryShown = true },
+                            onCancel = onClose,
+                            showIntro = false,
+                        )
+                    }
                 }
                 if (config.fps) {
                     // El último fallo del asistente (p. ej. un guardado que no salió) sale con el medidor: sin logcat en el teléfono.
@@ -332,6 +398,13 @@ private fun HarnessRoot(config: HarnessConfig, onClose: () -> Unit) {
             }
         }
     }
+}
+
+/** La actividad que contiene [this] (el contexto de Compose puede venir envuelto). */
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
 }
 
 /** Deja el borrador del arnés escrito en la base y devuelve su id. Con `reset` lo reconstruye (descartando el anterior). */

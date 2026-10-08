@@ -62,6 +62,16 @@ internal enum class HarnessPersona(
     val dayPlaces: Map<Int, TrainingPlace>,
     val minutes: Int,
     val experience: String,
+    /** Material EXACTO (en lugar de lo habitual de los lugares más `addMaterial` menos `dropMaterial`); vacío = solo peso corporal. */
+    val exactMaterial: Set<EquipmentSymbolId>? = null,
+    /** Los músculos que quiere mejorar (vacío = «Omitir»; null = acepta lo que el perfil sugiere). */
+    val muscles: Set<MuscleSymbol>? = setOf(MuscleSymbol.CHEST, MuscleSymbol.BACK),
+    /** Nivel de cada ejercicio por el que se pregunta; los que falten, «Algunas». */
+    val capabilities: Map<CapabilitySkill, CapabilityLevel> = emptyMap(),
+    /** Marcas (kg) de los levantamientos que se preguntan; las que falten usan [markFor]. */
+    val marks: Map<LiftMark, Double> = emptyMap(),
+    /** Unidad en que declara las marcas (`kg` o `lb`). */
+    val marksUnit: String = "kg",
 ) {
     /** Gimnasio: lo habitual ya viene marcado; Powerlifting; martes, jueves y sábado, con el jueves como día fuerte y de arranque. */
     GYM(
@@ -97,11 +107,67 @@ internal enum class HarnessPersona(
         goal = TrainingGoalProfile.FUNCTIONAL_HEALTH, freshDay = 3, weekdays = (1..7).toSet(), dayPlaces = emptyMap(),
         minutes = 120, experience = "advanced",
     ),
+
+    // ── Los seis recorridos de la auditoría Q («declarado → efecto»): cada uno declara solo lo que dice su nombre. ──
+
+    /** (a) Gimnasio, «Fuerza y masa muscular», 4 días × 60 min (lunes, martes, jueves y viernes; el jueves es el día fuerte). */
+    QA(
+        places = setOf(TrainingPlace.GYM), addMaterial = emptySet(), dropMaterial = emptySet(),
+        goal = TrainingGoalProfile.STRENGTH_MUSCLE, freshDay = 4, weekdays = setOf(1, 2, 4, 5), dayPlaces = emptyMap(),
+        minutes = 60, experience = "intermediate", muscles = null,
+        marks = mapOf(LiftMark.SQUAT to 120.0, LiftMark.BENCH to 80.0, LiftMark.DEADLIFT to 150.0),
+    ),
+
+    /** (b) Casa con mancuernas y banco, Culturismo, 3 días × 75 min, con dos músculos prioritarios (espalda y hombros). */
+    QB(
+        places = setOf(TrainingPlace.HOME), addMaterial = emptySet(), dropMaterial = emptySet(),
+        goal = TrainingGoalProfile.BODYBUILDING, freshDay = 1, weekdays = setOf(1, 3, 5), dayPlaces = emptyMap(),
+        minutes = 75, experience = "intermediate",
+        exactMaterial = setOf(EquipmentSymbolId.DUMBBELLS, EquipmentSymbolId.BENCH),
+        muscles = setOf(MuscleSymbol.BACK, MuscleSymbol.SHOULDERS),
+    ),
+
+    /** (c) Espacios públicos, Calistenia, «pocas dominadas», 5 días × 45 min. */
+    QC(
+        places = setOf(TrainingPlace.PUBLIC), addMaterial = emptySet(), dropMaterial = emptySet(),
+        goal = TrainingGoalProfile.CALISTHENICS, freshDay = 2, weekdays = setOf(1, 2, 3, 5, 6), dayPlaces = emptyMap(),
+        minutes = 45, experience = "intermediate", muscles = null,
+        capabilities = mapOf(
+            CapabilitySkill.PULL_UP to CapabilityLevel.SOME, CapabilitySkill.PUSH_UP to CapabilityLevel.MANY,
+            CapabilitySkill.DIP to CapabilityLevel.SOME, CapabilitySkill.PISTOL_SQUAT to CapabilityLevel.NONE,
+        ),
+    ),
+
+    /** (d) Gimnasio y casa, Powerlifting con marcas en kg, 3 días × 90 min (lunes y viernes en el gimnasio, miércoles en casa). */
+    QD(
+        places = setOf(TrainingPlace.GYM, TrainingPlace.HOME), addMaterial = emptySet(), dropMaterial = emptySet(),
+        goal = TrainingGoalProfile.POWERLIFTING, freshDay = 1, weekdays = setOf(1, 3, 5),
+        dayPlaces = mapOf(3 to TrainingPlace.HOME), minutes = 90, experience = "intermediate", muscles = null,
+        marks = mapOf(LiftMark.SQUAT to 160.0, LiftMark.BENCH to 110.0, LiftMark.DEADLIFT to 200.0), marksUnit = "kg",
+    ),
+
+    /** (e) Solo peso corporal, «Funcional y saludable», 7 días × 180 min. */
+    QE(
+        places = setOf(TrainingPlace.HOME), addMaterial = emptySet(), dropMaterial = emptySet(),
+        goal = TrainingGoalProfile.FUNCTIONAL_HEALTH, freshDay = 3, weekdays = (1..7).toSet(), dayPlaces = emptyMap(),
+        minutes = 180, experience = "returning", exactMaterial = emptySet(), muscles = null,
+    ),
+
+    /** (f) Halterofilia en gimnasio, 4 días × 90 min (con sus tres marcas: sentadilla, arranque y dos tiempos). */
+    QF(
+        places = setOf(TrainingPlace.GYM), addMaterial = emptySet(), dropMaterial = emptySet(),
+        goal = TrainingGoalProfile.WEIGHTLIFTING, freshDay = 2, weekdays = setOf(1, 2, 4, 5), dayPlaces = emptyMap(),
+        minutes = 90, experience = "intermediate", muscles = null,
+        marks = mapOf(LiftMark.SQUAT to 140.0, LiftMark.SNATCH to 80.0, LiftMark.CLEAN_AND_JERK to 100.0),
+    ),
     ;
 
     companion object {
-        fun of(name: String?): HarnessPersona =
-            entries.firstOrNull { it.name.equals(name, ignoreCase = true) } ?: GYM
+        /** `gym`, `home`, `park`, `multi`, `all` o uno de los seis casos de la auditoría (`qa`…`qf`, también `q-a`). */
+        fun of(name: String?): HarnessPersona {
+            val key = name?.replace("-", "")
+            return entries.firstOrNull { it.name.equals(key, ignoreCase = true) } ?: GYM
+        }
     }
 }
 
@@ -165,7 +231,8 @@ internal fun SetupWizardDraft.answeredAs(step: SetupStepId, persona: HarnessPers
     SetupStepId.EQUIPMENT -> withPlaces(persona.places)
     // Una casa sin material se lee como «solo peso corporal» (exclusivo): se suelta antes de sumar implementos.
     SetupStepId.AVAILABILITY -> withMaterial(
-        (selectedEquipmentSymbols() - EquipmentSymbolId.BODYWEIGHT_ONLY + persona.addMaterial) - persona.dropMaterial,
+        persona.exactMaterial
+            ?: ((selectedEquipmentSymbols() - EquipmentSymbolId.BODYWEIGHT_ONLY + persona.addMaterial) - persona.dropMaterial),
     )
     SetupStepId.GOAL -> withGoalProfile(persona.goal)
     SetupStepId.FRESH_DAY -> withFreshestDay(persona.freshDay)
@@ -180,9 +247,14 @@ internal fun SetupWizardDraft.answeredAs(step: SetupStepId, persona: HarnessPers
     SetupStepId.VOLUME_STRENGTH,
     SetupStepId.VOLUME_MOBILITY,
     -> middleOption(step)
-    SetupStepId.CAPABILITIES -> capabilitySkills().fold(this) { draft, skill -> draft.withCapability(skill, CapabilityLevel.SOME) }
-    SetupStepId.PRIORITIES -> withMuscles(setOf(MuscleSymbol.CHEST, MuscleSymbol.BACK))
-    SetupStepId.TRAINING_MAX -> marksLifts().fold(this) { draft, lift -> draft.withLiftMark(lift, markFor(lift)) }
+    SetupStepId.CAPABILITIES -> capabilitySkills().fold(this) { draft, skill ->
+        draft.withCapability(skill, persona.capabilities[skill] ?: CapabilityLevel.SOME)
+    }
+    // null = acepta lo que el perfil sugiere (queda como declarado al confirmar el paso).
+    SetupStepId.PRIORITIES -> persona.muscles?.let { withMuscles(it) } ?: this
+    SetupStepId.TRAINING_MAX -> marksLifts()
+        .fold(this) { draft, lift -> draft.withLiftMark(lift, persona.marks[lift] ?: markFor(lift)) }
+        .withMarksUnit(persona.marksUnit)
     else -> this
 }
 

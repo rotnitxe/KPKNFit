@@ -161,3 +161,13 @@ fluidez: por paso, la ENTRADA —el primer 1,1 s— y el resto), `sample` (con `
 `blur` (`on`|`off`: fuerza la rama con o sin desenfoque de los overlays; el teléfono de pruebas lo tiene desactivado), `autonext`
 (recorre el bloque solo: paso vacío, respuesta, «Continuar») con `until`, y `autoselect` (elige el primer programa
 cuando PLAN termina). Se conduce SIEMPRE con `C:\kw\tools\phone_run.py` (candado del teléfono, solo el applicationId `.dbg`).
+
+Hasta «Activar» (auditoría Q): `persona` admite también los seis recorridos de la auditoría (`qa` … `qf`: gimnasio y fuerza y masa muscular,
+casa con mancuernas y banco y culturismo, espacios públicos y calistenia, gimnasio y casa con powerlifting, solo cuerpo y funcional, y
+halterofilia); con `autonext` y `until REVIEW_ACTIVATE` el recorrido llega a la revisión final con el botón «Activar y entrar a KPKN» a
+la vista (`activate` en milisegundos lo pulsa solo con la misma función, `commit()`), y al activar el arnés enseña el RESUMEN de lo que
+quedó, leído de `ProgramRepository` y no del estado del asistente: nombre del programa, días, sesión principal, lugar, ejercicios y
+minutos de cada sesión, y los Ajustes que escribió el alta (`summary`: `names` añade los ejercicios con su aproximación `aprox.` y
+movilidad `mov.`; `only` reabre el resumen del programa activo). `rotate` (`landscape+5000,portrait+4000`) gira la actividad con
+`requestedOrientation` —la recreación real de un giro, sin tocar ningún ajuste del teléfono— y, al recrearse, el borrador NO se
+reconstruye; matar el proceso es volver a lanzar con `--ez reset false`.
