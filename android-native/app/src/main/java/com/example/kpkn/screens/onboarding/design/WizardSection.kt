@@ -61,6 +61,7 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import com.example.kpkn.screens.onboarding.design.entreno.plan.ellipsizeAtWord
+import kotlinx.coroutines.delay
 
 /**
  * Cómo se muestra una página dentro de la página larga.
@@ -71,6 +72,15 @@ import com.example.kpkn.screens.onboarding.design.entreno.plan.ellipsizeAtWord
  *    desvaneciéndose hacia abajo), inerte hasta que el check la active.
  */
 enum class WizardPageMode { Completed, Active, Peek }
+
+/** Cuánto tarda en componerse el control de un paso que asoma: lo que dura la llegada (el deslizado) y un respiro. */
+private const val PeekContentDelayMillis = WizardMotion.SlideMillis + 80L
+
+/** Con «reducir movimiento» no hay deslizado que esperar: basta un respiro para que el cuadro de la confirmación quede libre. */
+private const val PeekContentDelayReducedMillis = 120L
+
+/** Lo que tarda en aparecer el control que se compuso tarde. */
+private const val PeekContentFadeMillis = 260
 
 /**
  * Una página de la página larga. No es una tarjeta: es un tramo de la misma superficie negra,
@@ -144,6 +154,28 @@ fun WizardPageItem(
         label = "wizard-page-appear",
     )
 
+    // El control del paso que asoma se compone DESPUÉS de la animación de llegada, no en el mismo cuadro en que el paso anterior
+    // se confirma: ese cuadro ya lleva el deslizado de la página, el plegado de la fila y el enfoque del paso activo, y componer
+    // además un control entero (cuadrículas de decenas de símbolos, listas de objetivos) lo alargaba hasta 250–500 ms en una
+    // compilación de depuración. Mientras llega solo se ve la etiqueta, el título y el subtítulo; el control entra con un fundido
+    // corto. Si la persona confirma antes, el paso ya es el activo y se compone en el acto (nunca se hace esperar). Una vez
+    // compuesto, no vuelve a quitarse.
+    var contentReady by remember { mutableStateOf(mode != WizardPageMode.Peek) }
+    LaunchedEffect(mode) {
+        if (!contentReady) {
+            if (mode == WizardPageMode.Peek) {
+                delay(if (reducedMotion) PeekContentDelayReducedMillis else PeekContentDelayMillis)
+            }
+            contentReady = true
+        }
+    }
+    val composeContent = contentReady || mode != WizardPageMode.Peek
+    val contentReveal = animateFloatAsState(
+        targetValue = if (composeContent) 1f else 0f,
+        animationSpec = if (reducedMotion) snap() else tween(durationMillis = PeekContentFadeMillis),
+        label = "wizard-page-content",
+    )
+
     val density = LocalDensity.current
     val chipPx = with(density) { WizardSpacing.summaryRowHeightFor(density.fontScale).roundToPx() }
 
@@ -206,6 +238,8 @@ fun WizardPageItem(
                     subtitle = subtitle,
                     focus = { focus.value },
                     inert = inert,
+                    composeContent = composeContent,
+                    contentReveal = { contentReveal.value },
                     content = content,
                 )
             }
@@ -259,6 +293,8 @@ private fun WizardSectionBody(
     subtitle: String?,
     focus: () -> Float,
     inert: Boolean,
+    composeContent: Boolean,
+    contentReveal: () -> Float,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val density = LocalDensity.current
@@ -312,13 +348,14 @@ private fun WizardSectionBody(
                     .fillMaxWidth()
                     .graphicsLayer {
                         val f = focus()
-                        alpha = lerp(0.6f, 1f, f)
+                        alpha = lerp(0.6f, 1f, f) * contentReveal()
                         val radius = (1f - f) * maxBlurPx
                         renderEffect = if (radius > 0.5f) BlurEffect(radius, radius, TileMode.Decal) else null
                     },
                 verticalArrangement = Arrangement.spacedBy(WizardSpacing.cardGap),
-                content = content,
-            )
+            ) {
+                if (composeContent) content()
+            }
             Spacer(Modifier.height(WizardSpacing.sectionPadBottom))
         }
         // Filete superior: separa la página que asoma de la activa; desaparece al enfocarse
