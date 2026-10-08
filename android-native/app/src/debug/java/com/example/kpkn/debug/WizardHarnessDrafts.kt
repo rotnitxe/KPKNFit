@@ -3,6 +3,7 @@ package com.example.kpkn.debug
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.domain.onboarding.CapabilityLevel
 import com.example.kpkn.domain.onboarding.CapabilitySkill
+import com.example.kpkn.domain.onboarding.CardioChoice
 import com.example.kpkn.domain.onboarding.EquipmentSymbolId
 import com.example.kpkn.domain.onboarding.LiftMark
 import com.example.kpkn.domain.onboarding.MuscleSymbol
@@ -240,7 +241,8 @@ internal fun SetupWizardDraft.answeredAs(step: SetupStepId, persona: HarnessPers
         draft.withDayPlace(day, place)
     }
     SetupStepId.SESSION_TIME -> withSessionMinutes(persona.minutes)
-    SetupStepId.CARDIO_TYPE,
+    // Caminar siempre está entre las opciones del cardio; las máquinas y la bicicleta dependen del material de cada persona.
+    SetupStepId.CARDIO_TYPE -> withStepChoice(step, CardioChoice.WALK.name)
     SetupStepId.CARDIO_TIME,
     SetupStepId.VOLUME_TECHNIQUE,
     SetupStepId.VOLUME_CONSISTENCY,
