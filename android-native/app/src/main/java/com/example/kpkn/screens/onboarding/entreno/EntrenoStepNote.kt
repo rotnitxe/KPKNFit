@@ -13,6 +13,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.screens.onboarding.design.WizardColors
@@ -50,7 +53,8 @@ internal fun EntrenoStepNote(text: String?, modifier: Modifier = Modifier, textA
                 style = WizardTypography.note,
                 color = WizardColors.textMuted,
                 textAlign = textAlign,
-                modifier = Modifier.fillMaxWidth().padding(top = NOTE_GAP),
+                // La nota es la respuesta del paso a lo que la persona acaba de elegir: se anuncia al aparecer o al cambiar.
+                modifier = Modifier.fillMaxWidth().padding(top = NOTE_GAP).semantics { liveRegion = LiveRegionMode.Polite },
             )
         }
     }

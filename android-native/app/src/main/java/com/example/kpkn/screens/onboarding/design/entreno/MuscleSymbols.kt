@@ -51,7 +51,10 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.TextStyle
@@ -159,7 +162,10 @@ fun MuscleSymbolGrid(
     BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
         val labelStyle = rememberGridLabelStyle(constraints.maxWidth)
         Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            MuscleGridLogic.gridOrder.chunked(MuscleGridLogic.COLUMNS).forEach { rowItems ->
+            // Las filas se componen repartidas en cuadros (la primera de golpe y una más por cuadro): ver `rememberProgressiveCount`.
+            val rows = remember { MuscleGridLogic.gridOrder.chunked(MuscleGridLogic.COLUMNS) }
+            val shownRows = rememberProgressiveCount(total = rows.size, first = 1)
+            rows.take(shownRows).forEach { rowItems ->
                 // Se reserva la línea «Sugerido» solo en las filas que traen algún sugerido (es fija: no cambia al tocar).
                 val reserveTag = rowItems.any { it in suggested }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(GRID_GAP)) {
@@ -197,6 +203,9 @@ fun MuscleSymbolGrid(
 /** Separación entre celdas de una fila. */
 private val GRID_GAP = 8.dp
 
+/** Cuántos de los nombres más largos se miden para elegir el tamaño de las etiquetas (los demás son más cortos y caben). */
+private const val LONGEST_LABELS = 4
+
 /**
  * El tamaño de letra de los doce nombres, el mismo para todos: 16 sp y, si con letra grande o una pantalla estrecha el
  * nombre más largo no cabe en la celda, baja de a un punto hasta 13 sp (el mínimo del wizard). Así ninguna etiqueta
@@ -210,10 +219,12 @@ private fun rememberGridLabelStyle(gridWidthPx: Int): TextStyle {
     return remember(gridWidthPx, measurer, base, density) {
         val gapPx = with(density) { GRID_GAP.toPx() }
         val cellPx = (gridWidthPx - gapPx * (MuscleGridLogic.COLUMNS - 1)) / MuscleGridLogic.COLUMNS
+        // Basta medir los nombres más largos: con doce nombres y cuatro tamaños eran hasta cuarenta y ocho mediciones de texto.
+        val longest = MuscleSymbol.entries.sortedByDescending { it.label.length }.take(LONGEST_LABELS)
         listOf(16, 15, 14, 13)
             .map { base.copy(fontSize = it.sp) }
             .firstOrNull { style ->
-                MuscleSymbol.entries.all { measurer.measure(it.label, style, maxLines = 1, softWrap = false).size.width <= cellPx }
+                longest.all { measurer.measure(it.label, style, maxLines = 1, softWrap = false).size.width <= cellPx }
             }
             ?: base.copy(fontSize = 13.sp)
     }
@@ -228,7 +239,10 @@ private fun CapNote(visible: Boolean, text: String) {
             text = text,
             style = WizardTypography.note,
             color = WizardColors.textFaint,
-            modifier = Modifier.graphicsLayer { alpha = a },
+            modifier = Modifier
+                .graphicsLayer { alpha = a }
+                // Oculta (alfa 0) no se lee; al llegar al tope se anuncia sola.
+                .then(if (visible) Modifier.semantics { liveRegion = LiveRegionMode.Polite } else Modifier.clearAndSetSemantics { }),
         )
     }
 }
@@ -399,12 +413,12 @@ private fun DrawScope.drawMuscle(
         translate(-window.cx, -window.cy)
     }) {
         drawPath(MuscleArt.silhouette(shape.spec.view), fade, OUTLINE_ALPHA, strokes.thin)
-        shape.context.forEach { drawPath(it, fade, CONTEXT_ALPHA, strokes.hair) }
+        drawPath(shape.contextAll, fade, CONTEXT_ALPHA, strokes.hair)
         if (sel > 0.001f) {
             val a = sel * (if (reducedMotion) 0.80f else pulse.value)
             drawPath(shape.region, MuscleAccent, a)
         }
-        shape.detail.forEach { drawPath(it, fade, DETAIL_ALPHA + 0.12f * sel, strokes.fiber) }
+        drawPath(shape.detailAll, fade, DETAIL_ALPHA + 0.12f * sel, strokes.fiber)
         drawPath(shape.region, lerp(ink.copy(alpha = REGION_ALPHA), MuscleAccent, sel), style = strokes.edge)
     }
     // La marca de «hecho» va fuera de la transformación: mide lo mismo en todos los músculos.
