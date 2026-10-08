@@ -7,6 +7,7 @@ import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -50,6 +51,8 @@ import com.example.kpkn.screens.onboarding.SetupWizardMode
 import com.example.kpkn.screens.onboarding.SetupWizardScreen
 import com.example.kpkn.screens.onboarding.SetupWizardViewModel
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
+import com.example.kpkn.screens.onboarding.design.entreno.EntrenoWarmup
+import com.example.kpkn.screens.onboarding.design.entreno.plan.LocalOverlayBlurOverride
 import com.example.kpkn.screens.onboarding.realSetupWizardPersistence
 import com.example.kpkn.screens.onboarding.touchStep
 import com.example.kpkn.ui.theme.KPKNTheme
@@ -84,6 +87,18 @@ import kotlinx.serialization.json.Json
  *  - `reducedMotion` (booleano): fuerza «reducir movimiento» en el asistente (cuadro final estático, sin bucles) sin tocar los ajustes
  *    del teléfono; solo anula lo que lee `wizardReducedMotion()` (las animaciones propias de Compose siguen su escala del sistema).
  *  - `fps` (booleano): pinta encima el medidor de fluidez (`FrameMeter`): cuadros por segundo, el cuadro más largo y los lentos.
+ *    Con `autonext`, cada paso deja una línea («GOAL e 150/175[a10 d9 s0 c3 g2 u147] 12/57 · r 50/72[…] 7/195 · sub 61») con dos
+ *    tramos: `e`, la ENTRADA (el primer 1,1 s desde que el cursor llega al paso) y `r`, el resto. De cada uno: el hueco más largo
+ *    entre cuadros y el cuadro más largo (ms), el desglose de ese cuadro por fases (a animación y recomposición, d medir, colocar y
+ *    dibujar, s sincronizar, c comandos de GPU, g GPU, u retraso antes de empezar el cuadro: el hilo principal estaba con algo que
+ *    no es un cuadro) y los cuadros lentos sobre el total. `sub` es lo que tardó `submitCurrentStep` en el hilo principal.
+ *  - `sample` (booleano, junto a `fps`): un muestreador del hilo principal (`MainStallSampler`) añade, bajo cada paso, el mensaje
+ *    más largo de cada tramo y dónde estaba el hilo («e⚠ 291 ms M[Handler/DispatchedContinuation]: 60% Clase.función · …»).
+ *    Frena el hilo un instante por muestra: sirve para saber de quién es un bache, no para medirlo.
+ *  - `blur` (`on` | `off`; sin él manda el sistema): fuerza la rama del desenfoque de los overlays «preparando» y del detalle del
+ *    programa. `off` es el velo casi opaco que se usa sin desenfoque del sistema (el del teléfono de pruebas); `on` pide el
+ *    desenfoque de la ventana, que solo se ve en un equipo que lo tenga activo (en uno sin él enseña el velo translúcido SIN
+ *    desenfoque: el peor caso para el texto de la página de atrás).
  *  - `reset` (booleano, `true` por defecto): reconstruye el borrador en cada arranque; con `false` reabre el que hubiera.
  *  - `autonext` (milisegundos, 0 = apagado): recorre el bloque solo. En cada paso espera el 40 % de ese tiempo con el paso VACÍO,
  *    escribe lo que contestaría la persona (como si la persona lo eligiera) y al terminar el tiempo «pulsa Continuar»
@@ -152,7 +167,9 @@ private class HarnessConfig(
     val until: SetupStepId,
     val reducedMotion: Boolean,
     val fps: Boolean,
+    val sample: Boolean,
     val autoSelect: Boolean,
+    val blur: Boolean?,
 ) {
     companion object {
         fun from(intent: Intent): HarnessConfig = HarnessConfig(
@@ -170,7 +187,13 @@ private class HarnessConfig(
                 ?: SetupStepId.MILESTONE_TRAINING,
             reducedMotion = intent.getBooleanExtra("reducedMotion", false) || intent.getBooleanExtra("reduced", false),
             fps = intent.getBooleanExtra("fps", false),
+            sample = intent.getBooleanExtra("sample", false),
             autoSelect = intent.getBooleanExtra("autoselect", false) || intent.getBooleanExtra("autoSelect", false),
+            blur = when (intent.getStringExtra("blur")?.trim()?.lowercase()) {
+                "on", "true", "1", "si", "sí" -> true
+                "off", "false", "0", "no" -> false
+                else -> if (intent.hasExtra("blur")) intent.getBooleanExtra("blur", false) else null
+            },
         )
     }
 }
@@ -206,6 +229,16 @@ private fun HarnessRoot(config: HarnessConfig, onClose: () -> Unit) {
     val viewModel: SetupWizardViewModel = viewModel()
     var draftId by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(config) { draftId = seedHarnessDraft(context.applicationContext as Application, config) }
+    // El calentamiento de los dibujos del bloque (`EntrenoWarmup`) arranca en los primeros pasos de Entreno, muchos antes que el de los
+    // músculos: con `start` en mitad del bloque se hace al abrir, para medir lo que vería la persona y no el primer dibujo en frío.
+    LaunchedEffect(Unit) { withContext(Dispatchers.Default) { runCatching { EntrenoWarmup.prepareArt() } } }
+    // Con `blur`, un aviso del sistema (sale por encima de los overlays) dice qué se forzó y qué dice el equipo: sin logcat en el
+    // teléfono es la única forma de dejar en la captura si el desenfoque de ventana está permitido.
+    LaunchedEffect(config.blur) {
+        val forced = config.blur ?: return@LaunchedEffect
+        val system = Build.VERSION.SDK_INT >= 31 && context.getSystemService(WindowManager::class.java)?.isCrossWindowBlurEnabled == true
+        Toast.makeText(context, "blur forzado: ${if (forced) "on" else "off"} · del sistema: ${if (system) "on" else "off"}", Toast.LENGTH_LONG).show()
+    }
     // Con `autonext`, el arnés recorre el bloque: paso vacío, respuesta de la persona y «Continuar» (ver la documentación).
     var tourLabel by remember { mutableStateOf("") }
     LaunchedEffect(viewModel, draftId, config) {
@@ -230,7 +263,10 @@ private fun HarnessRoot(config: HarnessConfig, onClose: () -> Unit) {
             }
             tourLabel = "$step · lleno"
             delay(config.autoNextMs - fillAfter)
+            // Lo que tarda la parte del ViewModel que corre en el hilo principal (validar, serializar el borrador, publicarlo).
+            val submitStartNanos = System.nanoTime()
             viewModel.submitCurrentStep()
+            FrameStats.noteSubmit((System.nanoTime() - submitStartNanos) / 1_000_000L)
             // El avance es asíncrono: se espera a que el cursor salga de este paso antes de leer cuál es el siguiente.
             withTimeoutOrNull(3_000) { viewModel.state.first { it.currentStep != step } }
             FrameStats.endStep(step.name)
@@ -257,6 +293,7 @@ private fun HarnessRoot(config: HarnessConfig, onClose: () -> Unit) {
     CompositionLocalProvider(
         LocalDensity provides density,
         LocalWizardReducedMotion provides (if (config.reducedMotion) true else null),
+        LocalOverlayBlurOverride provides config.blur,
     ) {
         KPKNTheme {
             Box(
@@ -280,7 +317,7 @@ private fun HarnessRoot(config: HarnessConfig, onClose: () -> Unit) {
                     val state by viewModel.state.collectAsStateWithLifecycle()
                     val failure = state.lastFailure ?: state.errors.entries.firstOrNull()?.let { (key, message) -> "$key: $message" }
                     val label = listOfNotNull(tourLabel.ifEmpty { null }, failure?.let { "ERR " + it.take(120) }).joinToString("\n")
-                    FrameMeter(label = label, modifier = Modifier.align(Alignment.TopStart))
+                    FrameMeter(label = label, sample = config.sample, modifier = Modifier.align(Alignment.TopStart))
                 }
             }
         }
