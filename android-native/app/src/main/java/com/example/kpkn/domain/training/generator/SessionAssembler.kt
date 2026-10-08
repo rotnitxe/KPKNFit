@@ -155,6 +155,8 @@ internal object SessionAssembler {
         val hiMin = ctx.windowMinutes.last
         val loSec = (loMin - 1) * 60 + 1
         val hiSec = hiMin * 60
+        val toleratedMin = ctx.toleratedMaxMinutes
+        val toleratedSec = toleratedMin * 60
 
         // 1) Huecos → ejercicios con el material del día.
         val use = SessionUse()
@@ -317,16 +319,26 @@ internal object SessionAssembler {
                 minutes > hiMin -> minutes - hiMin
                 else -> 0
             }
-            val current = Built(planned, seconds, distance, snapshot(state))
+            // Minutos por encima de la tolerancia (dentro de la ventana todavía es una sesión válida, pero no «lo que se pidió»).
+            val beyond = (minutes - toleratedMin).coerceAtLeast(0)
+            val current = Built(planned, seconds, distance, beyond, snapshot(state))
             if (best == null || current.distance < best.distance ||
-                (current.distance == best.distance && abs(current.seconds - targetSec) < abs(best.seconds - targetSec))
+                (current.distance == best.distance && current.beyond < best.beyond) ||
+                (current.distance == best.distance && current.beyond == best.beyond &&
+                    abs(current.seconds - targetSec) < abs(best.seconds - targetSec))
             ) {
                 best = current
             }
-            if (distance == 0 && abs(seconds - targetSec) <= 90) break
+            if (distance == 0 && beyond == 0 && abs(seconds - targetSec) <= 90) break
             if (iteration >= MAX_CORRECTIONS) break
-            val changed = if (seconds > hiSec) reduceOnce(state, ctx, MIN_STRENGTH_ITEMS.coerceAtMost(bundles.sumOf { it.items.size }))
-            else if (seconds < targetSec) growOnce(state, ctx, room, plan) else false
+            val minItemsKept = MIN_STRENGTH_ITEMS.coerceAtMost(bundles.sumOf { it.items.size })
+            val changed = when {
+                seconds > hiSec -> reduceOnce(state, ctx, minItemsKept)
+                // Dentro de la ventana pero más largo de lo tolerado: solo recortes baratos (nunca un ejercicio ni el cardio).
+                seconds > toleratedSec -> reduceOnce(state, ctx, minItemsKept, cheapOnly = true)
+                seconds < targetSec -> growOnce(state, ctx, room, plan)
+                else -> false
+            }
             if (!changed) break
             iteration++
         }
@@ -353,6 +365,7 @@ internal object SessionAssembler {
         }
         val includedItems = state.bundles.filter { it.included }.flatMap { it.items }
         includedItems.forEach { ctx.covered += it.spec.pattern }
+        includedItems.forEach { item -> item.candidate.mark?.let { mark -> ctx.weeklyMarkUse[mark] = (ctx.weeklyMarkUse[mark] ?: 0) + 1 } }
         val hasCardio = finalSession.parts.any { it.isCardioGroup }
         val hasMobility = finalSession.parts.any { it.isMobilityGroup && it.mobilitySeries.isNotEmpty() }
         if (hasCardio) ctx.covered += RoutinePattern.CARDIO
@@ -519,7 +532,7 @@ internal object SessionAssembler {
         val fillerCardioSeconds: Int,
     )
 
-    private class Built(val session: Session, val seconds: Int, val distance: Int, val snapshot: Snapshot)
+    private class Built(val session: Session, val seconds: Int, val distance: Int, val beyond: Int, val snapshot: Snapshot)
 
     private fun snapshot(state: State) = Snapshot(
         bundles = state.bundles.map { Triple(it.included, it.sets, it.rest) },
@@ -745,7 +758,7 @@ internal object SessionAssembler {
     // ─── Corrección fina con el estimador ──────────────────────────────────────────────────────────────────
 
     /** Un paso para acortar la sesión; false si ya no queda ninguno. */
-    private fun reduceOnce(state: State, ctx: GenContext, minItems: Int): Boolean {
+    private fun reduceOnce(state: State, ctx: GenContext, minItems: Int, cheapOnly: Boolean = false): Boolean {
         if (state.fillerCardioSeconds > 0) {
             state.fillerCardioSeconds = (state.fillerCardioSeconds - 120).coerceAtLeast(0)
             if (state.fillerCardioSeconds < 8 * 60) state.fillerCardioSeconds = 0
@@ -759,6 +772,8 @@ internal object SessionAssembler {
             state.mobilitySeconds -= 60
             return true
         }
+        // Para entrar en la tolerancia de minutos no se toca lo prioritario, ni se quita un ejercicio, ni el bloque de cardio.
+        if (cheapOnly) return false
         included.firstOrNull { it.isPriority && it.sets > it.minSets }?.let { it.sets--; return true }
         val itemCount = included.sumOf { it.items.size }
         val dropped = included.firstOrNull { itemCount - it.items.size >= minItems }

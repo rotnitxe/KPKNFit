@@ -27,10 +27,14 @@ internal class SessionUse {
     /** Escaleras de peso corporal ya usadas: la misma escalera no da dos ejercicios en una sesión (flexión y flexión con rodillas). */
     val ladders: HashSet<String> = HashSet()
 
+    /** Cuántos ejercicios de cada marca (1RM declarado) lleva ya la sesión en curso. */
+    val marks: HashMap<LiftMark, Int> = HashMap()
+
     fun add(candidate: Candidate) {
         configs += candidate.entry.id
         definitions += candidate.entry.definitionId
         candidate.ladderKey?.let { ladders += it }
+        candidate.mark?.let { mark -> marks[mark] = (marks[mark] ?: 0) + 1 }
     }
 }
 
@@ -313,6 +317,24 @@ internal object ExerciseSelector {
         val best = sorted.first()
         val ties = sorted.filter { it.groupId == best.groupId && kotlin.math.abs(it.rank - best.rank) < 1e-4 }
         if (ties.size <= 1) return best
-        return ties[Math.floorMod(ctx.seed + salt, ties.size)]
+        val pool = leastUsedMark(ties, ctx, use)
+        return pool[Math.floorMod(ctx.seed + salt, pool.size)]
+    }
+
+    /**
+     * Entre alternativas empatadas que cuelgan de marcas DISTINTAS (la cargada cuelga de los dos tiempos y el arranque de sí mismo en
+     * la halterofilia), las de la marca que menos se ha usado esta semana y en esta sesión. Sin esto la rotación por semilla podía
+     * dejar a una marca que la persona declaró sin ningún ejercicio que la lea (los dos tiempos, con cuatro días y una hora). Con
+     * marcas iguales o alguna alternativa sin marca no cambia nada.
+     */
+    private fun leastUsedMark(ties: List<Candidate>, ctx: GenContext, use: SessionUse): List<Candidate> {
+        if (ties.any { it.mark == null }) return ties
+        if (ties.map { it.mark }.distinct().size < 2) return ties
+        fun uses(candidate: Candidate): Int {
+            val mark = candidate.mark ?: return 0
+            return (ctx.weeklyMarkUse[mark] ?: 0) + (use.marks[mark] ?: 0)
+        }
+        val fewest = ties.minOf { uses(it) }
+        return ties.filter { uses(it) == fewest }
     }
 }

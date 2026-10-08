@@ -32,7 +32,7 @@ internal fun timeBudgetWithTolerance(minutes: Int): Int = (minutes * (100 + TIME
  * Tolerancia, en minutos, de un programa «a medida»: el generador ajusta cada sesión al tiempo pedido con el mismo
  * estimador con el que se mide después, así que lo que pasa de ahí ya no es el programa que se pidió.
  */
-internal const val GENERATED_TIME_TOLERANCE_MINUTES = 1
+internal const val GENERATED_TIME_TOLERANCE_MINUTES = com.example.kpkn.domain.training.generator.RoutineGenerator.TIME_TOLERANCE_MINUTES
 
 /**
  * Minutos de la sesión MÁS LARGA del programa ya armado (semana, aproximación y movilidad incluidas), medidos con el

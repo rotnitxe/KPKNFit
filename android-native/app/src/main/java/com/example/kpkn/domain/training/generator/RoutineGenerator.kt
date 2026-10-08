@@ -38,6 +38,14 @@ object RoutineGenerator {
     /** Revisión del algoritmo; viaja en el bloque del programa generado. */
     const val REVISION = "routine-generator-v1"
 
+    /**
+     * Minutos de más que se toleran sobre el tiempo pedido para dar la sesión por «lo que se pidió» (el asistente mide con el mismo
+     * estimador y avisa de lo que pasa de ahí): el ajuste fino de [SessionAssembler] recorta lo barato (descansos, series sueltas,
+     * movilidad) hasta entrar en `pedido + tolerancia` y, si no se puede sin quitar un ejercicio o el bloque de cardio, deja la
+     * sesión dentro de su ventana (85–110 %) y la nota de tiempo lo dice.
+     */
+    const val TIME_TOLERANCE_MINUTES = 1
+
     private val deviceCache = ConcurrentHashMap<EquipmentAvailability, DayEquipment>()
 
     private fun equipmentOf(availability: EquipmentAvailability): DayEquipment {

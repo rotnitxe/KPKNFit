@@ -2,6 +2,7 @@ package com.example.kpkn.domain.training.generator
 
 import com.example.kpkn.data.models.CardioIntensity
 import com.example.kpkn.data.models.CardioType
+import com.example.kpkn.domain.onboarding.LiftMark
 import com.example.kpkn.domain.training.CardioPreference
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -31,11 +32,18 @@ internal class GenContext(
         lo..maxOf(lo, hi)
     }
 
+    /** Lo más largo que puede medir una sesión para ser «lo que se pidió»: el tiempo pedido más la tolerancia, sin pasar de la ventana. */
+    val toleratedMaxMinutes: Int =
+        (request.targetMinutes + RoutineGenerator.TIME_TOLERANCE_MINUTES).coerceIn(windowMinutes.first, windowMinutes.last)
+
     /** Notas honestas que se acumulan durante la generación (sin repetidos, en orden). */
     val notes: LinkedHashSet<String> = LinkedHashSet()
 
     /** Cuántas sesiones de la semana usan cada configuración. */
     val weeklyUse: HashMap<String, Int> = HashMap()
+
+    /** Cuántos ejercicios de la semana cuelgan de cada marca declarada (para repartir las alternativas empatadas entre marcas). */
+    val weeklyMarkUse: HashMap<LiftMark, Int> = HashMap()
 
     /** Patrones que alguna sesión pidió y no pudo cubrir (y en cuántas sesiones ocurrió). */
     val missing: HashMap<RoutinePattern, Int> = HashMap()
