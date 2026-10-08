@@ -16,12 +16,13 @@ import androidx.compose.ui.semantics.SemanticsNode
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasInsertTextAtCursorAction
 import androidx.compose.ui.test.hasTestTag
-import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -37,8 +38,13 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.domain.onboarding.MuscleSuggestions
+import com.example.kpkn.domain.onboarding.MuscleSymbol
+import com.example.kpkn.domain.onboarding.MuscleSymbols
 import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
+import com.example.kpkn.domain.onboarding.TrainingGoalProfile
+import com.example.kpkn.domain.onboarding.TrainingPlace
 import com.example.kpkn.domain.onboarding.WizChatMachineState
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
@@ -50,6 +56,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -369,7 +376,7 @@ class SetupWizardJourneyUiTest {
         assertEquals("no activa nada", 0, done.get())
     }
 
-    // ─── Multiselección: tocar nunca avanza; avanza solo el CTA ──────────────
+    // ─── Días de entreno: tocar nunca avanza; avanza solo el CTA ──────────────
 
     @Test
     fun multiWeekdayPicksNeverAdvanceUntilTheContinueCta() {
@@ -381,10 +388,8 @@ class SetupWizardJourneyUiTest {
         // Semilla legítima sobre el borrador real: se edita con la API pública
         // `update`, que persiste en Room sin confirmar ni mover el cursor por sí sola.
         vm.update { draft ->
-            draft.copy(
-                daysPerWeek = 3,
-                stepProgress = draft.stepProgress.at(SetupStepId.WEEKDAYS, draft.stepContext()),
-            )
+            val seeded = draft.withPlaces(setOf(TrainingPlace.GYM))
+            seeded.copy(stepProgress = seeded.stepProgress.at(SetupStepId.WEEKDAYS, seeded.stepContext()))
         }
         composeRule.waitUntil(TIMEOUT_MS) { vm.state.value.currentStep == SetupStepId.WEEKDAYS }
 
@@ -401,56 +406,56 @@ class SetupWizardJourneyUiTest {
         composeRule.waitForIdle()
 
         composeRule.onNodeWithTag("setup-step-WEEKDAYS").assertIsDisplayed()
+        // Sin ningún día el check sigue apagado: la semana necesita al menos uno.
         composeRule.onNodeWithTag(CTA).assertIsNotEnabled()
 
-        composeRule.onNodeWithText(WEEKDAY_1).performClick()
-        composeRule.waitUntil(TIMEOUT_MS) { 1 in vm.state.value.draft.selectedWeekdays }
-        assertEquals(SetupStepId.WEEKDAYS, vm.state.value.currentStep)
+        // El calendario de la semana: cada toque alterna un día (1 = lunes) y el número de días es el de los elegidos.
+        listOf(WEEKDAY_1, WEEKDAY_2, WEEKDAY_3).forEachIndexed { index, day ->
+            composeRule.onNodeWithTag(weekdayTag(day)).performScrollTo()
+            composeRule.onNodeWithTag(weekdayTag(day)).performClick()
+            composeRule.waitUntil(TIMEOUT_MS) { day in vm.state.value.draft.selectedWeekdays }
+            assertEquals(SetupStepId.WEEKDAYS, vm.state.value.currentStep)
+            assertEquals(index + 1, vm.state.value.draft.daysPerWeek)
+        }
+        assertEquals(setOf(WEEKDAY_1, WEEKDAY_2, WEEKDAY_3), vm.state.value.draft.selectedWeekdays)
 
-        composeRule.onNodeWithText(WEEKDAY_2).performClick()
-        composeRule.waitUntil(TIMEOUT_MS) { 2 in vm.state.value.draft.selectedWeekdays }
+        // Tocar un día elegido lo quita, y tampoco avanza.
+        composeRule.onNodeWithTag(weekdayTag(WEEKDAY_3)).performClick()
+        composeRule.waitUntil(TIMEOUT_MS) { WEEKDAY_3 !in vm.state.value.draft.selectedWeekdays }
         assertEquals(SetupStepId.WEEKDAYS, vm.state.value.currentStep)
+        composeRule.onNodeWithTag(weekdayTag(WEEKDAY_3)).performClick()
+        composeRule.waitUntil(TIMEOUT_MS) { WEEKDAY_3 in vm.state.value.draft.selectedWeekdays }
 
-        composeRule.onNodeWithText(WEEKDAY_3).performClick()
-        composeRule.waitUntil(TIMEOUT_MS) { vm.state.value.draft.selectedWeekdays.size == 3 }
-        assertEquals(SetupStepId.WEEKDAYS, vm.state.value.currentStep)
-
-        // Con la semana completa el CTA habilita y solo él mueve el cursor.
+        // Con la semana elegida el CTA habilita y solo él mueve el cursor.
         composeRule.onNodeWithTag(CTA).assertIsEnabled()
         composeRule.onNodeWithTag(CTA).performClick()
         composeRule.waitUntil(TIMEOUT_MS) { vm.state.value.currentStep == SetupStepId.SESSION_TIME }
         composeRule.onNodeWithTag("setup-step-SESSION_TIME").assertIsDisplayed()
     }
 
-    // ─── Chips de prioridad: presets, ajuste manual y viewport estrecho ────────
+    // ─── Músculos a mejorar: la cuadrícula de símbolos ────────────────────────
     //
-    // Estas tres pruebas usan el host real (`SetupWizardScreen`) y el ViewModel
-    // real sobre un borrador `setup-qa-<UUID>` propio. Nada aquí fabrica estados
-    // ni reimplementa el catálogo: se lee la bolsa que el motor publicó y los
-    // testTags reales de la pantalla.
+    // Estas tres pruebas usan el host real (`SetupWizardScreen`) y el ViewModel real sobre un borrador `setup-qa-<UUID>` propio.
+    // Nada aquí fabrica estados ni reimplementa el catálogo: se lee la bolsa de orden que el motor publicó y las marcas de
+    // prueba reales de la pantalla (`setup-muscle-<MÚSCULO>` y `setup-muscles-skip`).
 
     /**
-     * Deja el cursor real en PRIORITIES con un perfil de entrenamiento plausible
-     * y verificable. Se hace con la API pública `update`, que persiste en Room
-     * sin confirmar ni avanzar por sí sola (mismo patrón que la prueba de
-     * weekdays).
+     * Deja el cursor real en PRIORITIES con un perfil de entrenamiento plausible y verificable. Se hace con la API pública
+     * `update`, que persiste en Room sin confirmar ni avanzar por sí sola (mismo patrón que la prueba de días).
      */
-    private fun seedPrioritiesStep(vm: SetupWizardViewModel) {
+    private fun seedMusclesStep(vm: SetupWizardViewModel, profile: TrainingGoalProfile) {
         vm.update { draft ->
-            draft.copy(
-                daysPerWeek = 3,
-                selectedWeekdays = setOf(1, 3, 5),
-                minutesPerSession = 60,
-                equipment = setOf(SetupEquipment.GYM, SetupEquipment.BARBELL),
-                includeNutrition = true,
-                nutritionMode = "create",
-                stepProgress = draft.stepProgress.at(SetupStepId.PRIORITIES, draft.stepContext()),
-            )
+            val seeded = draft.withPlaces(setOf(TrainingPlace.GYM))
+                .withGoalProfile(profile)
+                .withWeekdays(setOf(1, 3, 5))
+                .withSessionMinutes(60)
+                .copy(experience = SetupExperience.INTERMEDIATE)
+            seeded.copy(stepProgress = seeded.stepProgress.at(SetupStepId.PRIORITIES, seeded.stepContext()))
         }
     }
 
     /** Espera a que el borrador real quede en PRIORITIES y compone el host. */
-    private fun showPriorities(vm: SetupWizardViewModel, draftId: String) {
+    private fun showMuscles(vm: SetupWizardViewModel, draftId: String) {
         awaitStepOrDump(vm, draftId, SetupStepId.PRIORITIES)
         composeRule.setContent {
             SetupWizardScreen(
@@ -485,40 +490,27 @@ class SetupWizardJourneyUiTest {
         }
     }
 
-    private fun chipTag(index: Int): String = PRIORITY_CHIP_PREFIX + index
-    private fun addTag(option: String): String = PRIORITY_ADD_PREFIX + option
-    private fun removeTag(option: String): String = PRIORITY_REMOVE_PREFIX + option
+    private fun muscleTag(muscle: MuscleSymbol): String = MUSCLE_PREFIX + muscle.name
 
     /** Tag real del nodo, o `null` si no lo publica. */
     private fun SemanticsNode.testTagOrNull(): String? =
         if (config.contains(SemanticsProperties.TestTag)) config[SemanticsProperties.TestTag] else null
 
-    /** Índice de catálogo a partir del tag real `setup-priority-preset-<i>`. */
-    private fun SemanticsNode.chipIndex(): Int {
-        val tag = requireNotNull(testTagOrNull()) { "el nodo del chip no publica testTag" }
-        return requireNotNull(tag.removePrefix(PRIORITY_CHIP_PREFIX).toIntOrNull()) {
-            "tag de chip inesperado: $tag"
-        }
+    /** Músculo de una celda a partir de su tag real `setup-muscle-<NOMBRE>`. */
+    private fun SemanticsNode.muscle(): MuscleSymbol {
+        val tag = requireNotNull(testTagOrNull()) { "el nodo de la celda no publica testTag" }
+        return MuscleSymbol.valueOf(tag.removePrefix(MUSCLE_PREFIX))
     }
-
-    /** `Selected` real del nodo, leído de la semántica y no del color. */
-    private fun SemanticsNode.isSelected(): Boolean =
-        config.contains(SemanticsProperties.Selected) && config[SemanticsProperties.Selected] == true
 
     /**
      * Caja de LAYOUT real del nodo, sin recorte.
      *
-     * `boundsInRoot` **no** sirve aquí: en Compose es
-     * `coordinates.localBoundingBoxOf(root)`, que **intersecta con el recorte de
-     * cada nodo intermedio**. Los chips viven dentro del `verticalScroll` del
-     * andamiaje, cuya capa recorta: un chip bajo el pliegue salía como caja
-     * vacía (`top = 0` en los siete) y las comparaciones de filas se volvían
-     * triviales.
+     * `boundsInRoot` **no** sirve aquí: en Compose es `coordinates.localBoundingBoxOf(root)`, que **intersecta con el recorte
+     * de cada nodo intermedio**. Las celdas viven dentro del `verticalScroll` del andamiaje, cuya capa recorta: una celda bajo
+     * el pliegue saldría como caja vacía y las comparaciones de filas se volverían triviales.
      *
-     * `positionInRoot` es `localToRoot(Offset.Zero)` — una transformación de
-     * coordenadas pura, sin recorte — y `size` es el tamaño de layout sin
-     * recortar. Con las dos, en el MISMO marco que el nodo, se reconstruye la
-     * caja verdadera. Nada de esto depende de un hook de producción.
+     * `positionInRoot` es `localToRoot(Offset.Zero)` — una transformación de coordenadas pura, sin recorte — y `size` es el
+     * tamaño de layout sin recortar. Con las dos, en el MISMO marco que el nodo, se reconstruye la caja verdadera.
      */
     private fun SemanticsNode.rawLayoutRect(): Rect {
         val origin = positionInRoot
@@ -531,243 +523,113 @@ class SetupWizardJourneyUiTest {
         )
     }
 
-    /** Los siete chips, por prefijo de tag: no depende de su orden en pantalla. */
-    private val chipMatcher = SemanticsMatcher("chip de preset de prioridad") { node ->
-        node.testTagOrNull()?.startsWith(PRIORITY_CHIP_PREFIX) == true
+    /** Las doce celdas, por prefijo de tag: no depende de su orden en pantalla. */
+    private val muscleMatcher = SemanticsMatcher("celda de músculo") { node ->
+        node.testTagOrNull()?.startsWith(MUSCLE_PREFIX) == true
     }
 
-    /** Índices marcados, leídos de la semántica real (`Selected`), no del color. */
-    private fun selectedChipIndexes(): Set<Int> =
-        composeRule.onAllNodes(chipMatcher).fetchSemanticsNodes()
-            .filter { it.isSelected() }
-            .map { it.chipIndex() }
-            .toSet()
-
-    /** Clic real sobre un chip, con scroll hasta el nodo (puede estar bajo el pliegue). */
-    private fun clickChip(index: Int) {
-        val tag = chipTag(index)
+    /** Clic real sobre una celda, con scroll hasta el nodo (puede estar bajo el pliegue). */
+    private fun clickMuscle(muscle: MuscleSymbol) {
+        val tag = muscleTag(muscle)
         composeRule.onNodeWithTag(tag).performScrollTo()
         composeRule.onNodeWithTag(tag).performClick()
     }
 
-    /** Clic real sobre un ajuste manual `+` / `−`. */
-    private fun clickManual(tag: String) {
-        composeRule.onNodeWithTag(tag).performScrollTo()
-        composeRule.onNodeWithTag(tag).performClick()
-    }
-
+    /** La bolsa de orden que el motor lee: un punto por músculo canónico. */
     private fun bag(vm: SetupWizardViewModel): Map<String, Int> =
         vm.state.value.draft.trainingOptions.orderPriorities
 
     /**
-     * A: la pregunta aprobada, los siete presets exactos y que tocar un chip
-     * escriba EXACTAMENTE su bolsa sin avanzar y sin tocar el resto del perfil.
+     * A: tocar un músculo lo añade a la bolsa (un punto, en su nombre canónico), tocarlo otra vez lo quita, nada de eso avanza
+     * y con cinco elegidos el sexto no entra y la pantalla lo dice.
      */
     @Test
-    fun approvedPriorityQuestionAndEveryPresetChipWritesItsExactBagWithoutAdvancing() {
+    fun tappingMusclesTogglesTheOrderBagWithoutAdvancingAndTheCapStopsAtFive() {
         val draftId = newDraftId()
         val vm = newViewModel()
         vm.initialize(SetupWizardMode.FULL, draftId = draftId)
         prepareBlankName(vm)
-        seedPrioritiesStep(vm)
-        showPriorities(vm, draftId)
+        // Un perfil general no sugiere músculos: la cuadrícula parte vacía.
+        seedMusclesStep(vm, TrainingGoalProfile.STRENGTH_MUSCLE)
+        showMuscles(vm, draftId)
 
-        // La pregunta es la aprobada, no la anterior.
-        composeRule.onNodeWithText(APPROVED_PRIORITY_QUESTION).assertIsDisplayed()
-        composeRule.onNodeWithTag(PRIORITY_PRESETS_TAG).assertExists()
+        assertEquals("los doce músculos", MuscleSymbol.entries.size, composeRule.onAllNodes(muscleMatcher).fetchSemanticsNodes().size)
+        assertTrue("sin sugerencias la bolsa parte vacía", bag(vm).isEmpty())
 
-        // Los siete chips existen, con la etiqueta exacta del catálogo vivo.
-        PRIORITY_PRESET_LABELS.forEachIndexed { index, label ->
-            composeRule.onNodeWithTag(chipTag(index)).assertExists()
-            composeRule.onNode(
-                hasTestTag(chipTag(index)) and
-                    SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.RadioButton),
-            ).assertExists()
-            composeRule.onNode(
-                hasTestTag(chipTag(index)) and hasText(label),
-            ).assertExists()
-        }
-        assertEquals("los siete chips del catálogo", 7, composeRule.onAllNodes(chipMatcher).fetchSemanticsNodes().size)
-
-        // Perfil de referencia: nada de esto puede cambiar al aplicar presets.
-        val before = vm.state.value.draft
-        val beforeAutoregulation = before.trainingOptions.autoregulationMode
-        val beforeWarmup = before.trainingOptions.warmup
-        val beforeInventory = before.trainingOptions.inventory
-        val beforeAvailability = before.trainingOptions.availability
-        val beforeCardioType = before.cardioType
-        val beforeCardioMinutes = before.cardioMinutes
-        val beforeNutrition = before.nutritionDraft
-        val beforeNutritionMode = before.nutritionMode
-        val beforeNutritionPlan = before.nutritionPlanId
-        val beforeNutritionIndex = before.nutritionStepIndex
-
-        PRIORITY_PRESET_BAGS.forEachIndexed { index, expected ->
-            val label = PRIORITY_PRESET_LABELS[index]
-            val revisionBefore = vm.state.value.draft.revision
-            clickChip(index)
-            composeRule.waitUntil(TIMEOUT_MS) { bag(vm) == expected }
-
-            // Bolsa exacta del preset, incluido el de glúteos y el vacío.
-            assertEquals("bolsa exacta de «$label»", expected, bag(vm))
-            composeRule.waitForIdle()
-            // Solo el chip aplicado queda marcado.
-            assertEquals("solo «$label» marcado", setOf(index), selectedChipIndexes())
-            // Un preset es solo orden: no avanza y sí escribe una revisión nueva.
-            assertEquals("«$label» no auto-avanza", SetupStepId.PRIORITIES, vm.state.value.currentStep)
-            assertTrue(
-                "«$label» debe persistir una revisión nueva",
-                vm.state.value.draft.revision > revisionBefore,
-            )
-        }
-
-        // El perfil ajeno a las preferencias queda intacto (salvo bookkeeping
-        // legítimo de revisión/procedencia).
-        val after = vm.state.value.draft
-        assertEquals(3, after.daysPerWeek)
-        assertEquals(setOf(1, 3, 5), after.selectedWeekdays)
-        assertEquals(60, after.minutesPerSession)
-        assertEquals(setOf(SetupEquipment.GYM, SetupEquipment.BARBELL), after.equipment)
-        assertEquals(beforeCardioType, after.cardioType)
-        assertEquals(beforeCardioMinutes, after.cardioMinutes)
-        assertTrue("nutrición sigue incluida", after.includeNutrition)
-        assertEquals(beforeNutritionMode, after.nutritionMode)
-        assertEquals(beforeNutrition, after.nutritionDraft)
-        assertEquals(beforeNutritionPlan, after.nutritionPlanId)
-        assertEquals(beforeNutritionIndex, after.nutritionStepIndex)
-        assertEquals(beforeAutoregulation, after.trainingOptions.autoregulationMode)
-        assertEquals(beforeWarmup, after.trainingOptions.warmup)
-        assertEquals(beforeInventory, after.trainingOptions.inventory)
-        assertEquals(beforeAvailability, after.trainingOptions.availability)
-    }
-
-    /**
-     * B: el ajuste manual `+`/`−` real después de un preset. Comprueba la
-     * igualdad EXACTA bolsa↔preset (no un remembers del último toque), los
-     * topes 2 por músculo y 5 en total, que un cero se retira y que una bolsa
-     * vacía es válida sin gastar el presupuesto.
-     */
-    @Test
-    fun manualPriorityAdjustmentsResistTweaksCapsAndDropsZeroWhileSelectionFollowsTheBag() {
-        val draftId = newDraftId()
-        val vm = newViewModel()
-        vm.initialize(SetupWizardMode.FULL, draftId = draftId)
-        prepareBlankName(vm)
-
-        // Bolsa propia que NO coincide con ningún preset.
-        vm.update { draft ->
-            draft.copy(
-                daysPerWeek = 3,
-                selectedWeekdays = setOf(1, 3, 5),
-                minutesPerSession = 60,
-                equipment = setOf(SetupEquipment.GYM, SetupEquipment.BARBELL),
-                stepProgress = draft.stepProgress.at(SetupStepId.PRIORITIES, draft.stepContext()),
-                trainingOptions = draft.trainingOptions.copy(orderPriorities = mapOf("Pectorales" to 1)),
-            )
-        }
-        showPriorities(vm, draftId)
-
-        // Una bolsa ajena a los presets deja la fila sin marcar.
-        assertEquals(mapOf("Pectorales" to 1), bag(vm))
-        assertEquals("ningún chip marcado sin coincidencia exacta", emptySet<Int>(), selectedChipIndexes())
-
-        // Quitar el único punto deja la bolsa vacía: presupuesto sin gastar es
-        // válido y es la única bolsa que marca «Todo el cuerpo».
-        clickManual(removeTag("Pectorales"))
-        composeRule.waitUntil(TIMEOUT_MS) { bag(vm).isEmpty() }
-        composeRule.waitForIdle()
-        assertEquals("bolsa vacía marca «Todo el cuerpo»", setOf(0), selectedChipIndexes())
-        assertTrue(
-            "una bolsa vacía no bloquea el paso",
-            vm.state.value.stepValidation.none { it.isBlocking },
-        )
-        assertTrue("el CTA sigue operable sin gastar los 5 puntos", vm.state.value.canConfirmStep)
-
-        // Volver a añadir y quitar NO es una bandera que se apaga: la selección
-        // se recupera cuando la bolsa vuelve a coincidir exactamente.
-        clickManual(addTag("Pectorales"))
+        val revisionBefore = vm.state.value.draft.revision
+        clickMuscle(MuscleSymbol.CHEST)
         composeRule.waitUntil(TIMEOUT_MS) { bag(vm) == mapOf("Pectorales" to 1) }
-        composeRule.waitForIdle()
-        assertEquals("«Pectorales 1» no es ningún preset", emptySet<Int>(), selectedChipIndexes())
+        assertEquals("elegir un músculo no avanza", SetupStepId.PRIORITIES, vm.state.value.currentStep)
+        assertTrue("elegir un músculo persiste una revisión nueva", vm.state.value.draft.revision > revisionBefore)
 
-        // El punto de Pectorales se retira con SU BOTÓN real, no con un reset
-        // del ViewModel: `writePriorities` es estrictamente aditivo, así que el
-        // caso aislado de Dorsales tiene que empezar de una bolsa vacía.
-        clickManual(removeTag("Pectorales"))
+        // Tocarlo otra vez lo quita.
+        clickMuscle(MuscleSymbol.CHEST)
         composeRule.waitUntil(TIMEOUT_MS) { bag(vm).isEmpty() }
-        composeRule.waitForIdle()
-        assertTrue("la bolsa debe quedar vacía antes del caso aislado", bag(vm).isEmpty())
-        assertEquals("bolsa vacía vuelve a marcar «Todo el cuerpo»", setOf(0), selectedChipIndexes())
 
-        // Dos Dorsales: exactamente el preset «Espalda amplia».
-        clickManual(addTag("Dorsales"))
-        composeRule.waitUntil(TIMEOUT_MS) { bag(vm) == mapOf("Dorsales" to 1) }
-        clickManual(addTag("Dorsales"))
-        composeRule.waitUntil(TIMEOUT_MS) { bag(vm) == mapOf("Dorsales" to 2) }
-        composeRule.waitForIdle()
-        assertEquals("«Espalda amplia» marcado por igualdad exacta", setOf(2), selectedChipIndexes())
-        assertEquals(SetupStepId.PRIORITIES, vm.state.value.currentStep)
+        // Cinco músculos llenan la bolsa, con un punto cada uno.
+        val five = listOf(MuscleSymbol.CHEST, MuscleSymbol.BACK, MuscleSymbol.SHOULDERS, MuscleSymbol.BICEPS, MuscleSymbol.TRICEPS)
+        five.forEach { muscle -> clickMuscle(muscle) }
+        composeRule.waitUntil(TIMEOUT_MS) { bag(vm).size == five.size }
+        assertEquals(five.associate { MuscleSymbols.canonical(it) to 1 }, bag(vm))
+        composeRule.onNodeWithText(CAP_NOTE).assertExists()
 
-        // Tope por músculo: el `+` de un músculo ya en 2 está deshabilitado.
-        composeRule.onNodeWithTag(addTag("Dorsales")).assertIsNotEnabled()
+        // El sexto no entra: la bolsa y la revisión quedan como estaban.
         val revisionAtCap = vm.state.value.draft.revision
-        clickManual(addTag("Dorsales"))
+        clickMuscle(MuscleSymbol.ABS)
         composeRule.waitForIdle()
-        assertEquals("el tope de 2 por músculo no se rebasa", mapOf("Dorsales" to 2), bag(vm))
-        assertEquals("un movimiento inválido no gasta revisión", revisionAtCap, vm.state.value.draft.revision)
-
-        // Tope global: 2 + 2 + 1 = 5 y el sexto punto no entra.
-        clickManual(addTag("Pectorales"))
-        composeRule.waitUntil(TIMEOUT_MS) { bag(vm)["Pectorales"] == 1 }
-        clickManual(addTag("Pectorales"))
-        composeRule.waitUntil(TIMEOUT_MS) { bag(vm)["Pectorales"] == 2 }
-        clickManual(addTag("Bíceps"))
-        composeRule.waitUntil(TIMEOUT_MS) { bag(vm)["Bíceps"] == 1 }
-        composeRule.waitForIdle()
-        assertEquals(5, bag(vm).values.sum())
-        composeRule.onNodeWithTag(addTag("Bíceps")).assertIsNotEnabled()
-        val revisionAtBudget = vm.state.value.draft.revision
-        clickManual(addTag("Bíceps"))
-        composeRule.waitForIdle()
-        assertEquals("el presupuesto de 5 no se rebasa", 5, bag(vm).values.sum())
-        assertEquals(1, bag(vm)["Bíceps"])
-        assertEquals("un movimiento inválido no gasta revisión", revisionAtBudget, vm.state.value.draft.revision)
-        assertTrue(
-            "5 puntos repartidos siguen siendo válidos",
-            vm.state.value.stepValidation.none { it.isBlocking },
-        )
-
-        // Un 1 a 0 retira la clave: no queda un cero fantasma.
-        clickManual(removeTag("Bíceps"))
-        composeRule.waitUntil(TIMEOUT_MS) { "Bíceps" !in bag(vm) }
-        assertEquals(mapOf("Dorsales" to 2, "Pectorales" to 2), bag(vm))
-        composeRule.waitForIdle()
-        assertEquals("la bolsa ya no es ningún preset", emptySet<Int>(), selectedChipIndexes())
-        assertTrue(
-            "quedan 4 de 5 puntos sin bloquear",
-            vm.state.value.stepValidation.none { it.isBlocking },
-        )
-        // 2 → 1 resta un punto, no borra la entrada de golpe.
-        clickManual(removeTag("Dorsales"))
-        composeRule.waitUntil(TIMEOUT_MS) { bag(vm)["Dorsales"] == 1 }
-        assertEquals(1, bag(vm)["Dorsales"])
-        clickManual(removeTag("Dorsales"))
-        composeRule.waitUntil(TIMEOUT_MS) { bag(vm)["Dorsales"] == null }
-        assertEquals(mapOf("Pectorales" to 2), bag(vm))
+        assertEquals("el tope de cinco no se rebasa", five.associate { MuscleSymbols.canonical(it) to 1 }, bag(vm))
+        assertEquals("un toque rechazado no gasta revisión", revisionAtCap, vm.state.value.draft.revision)
         assertEquals(SetupStepId.PRIORITIES, vm.state.value.currentStep)
+
+        // Quitar uno libera el sitio.
+        clickMuscle(MuscleSymbol.TRICEPS)
+        composeRule.waitUntil(TIMEOUT_MS) { bag(vm).size == five.size - 1 }
+        assertTrue(vm.state.value.stepValidation.none { it.isBlocking })
     }
 
     /**
-     * C: viewport estrecho real (360 dp) y `fontScale` 2.0 sobre el host real.
+     * B: las sugerencias del perfil llegan marcadas («Sugerido») pero no confirmadas, y «Omitir» las quita todas y confirma
+     * el paso con la bolsa vacía.
+     */
+    @Test
+    fun suggestedMusclesArriveMarkedAndSkipClearsThemAndConfirmsTheStepWithAnEmptyBag() {
+        val draftId = newDraftId()
+        val vm = newViewModel()
+        vm.initialize(SetupWizardMode.FULL, draftId = draftId)
+        prepareBlankName(vm)
+        seedMusclesStep(vm, TrainingGoalProfile.POWERBUILDING)
+        showMuscles(vm, draftId)
+
+        val suggested = MuscleSuggestions.forProfile(TrainingGoalProfile.POWERBUILDING)
+        assertEquals("las sugerencias del perfil llegan precargadas", suggested, MuscleSymbols.symbolsOf(bag(vm)))
+        composeRule.onAllNodesWithText(SUGGESTED_TAG).assertCountEquals(suggested.size)
+        assertFalse(
+            "las sugerencias nunca se confirman solas",
+            SetupStepId.PRIORITIES in vm.state.value.draft.stepProgress.answers,
+        )
+
+        val next = checkNotNull(SetupStepGraph.next(SetupStepId.PRIORITIES, vm.state.value.draft.stepContext()))
+        composeRule.onNodeWithTag(MUSCLES_SKIP_TAG).performClick()
+        awaitStepOrDump(vm, draftId, next)
+        assertTrue("omitir quita también las sugerencias", bag(vm).isEmpty())
+        assertTrue(
+            "omitir confirma el paso: es una respuesta válida",
+            SetupStepId.PRIORITIES in vm.state.value.draft.stepProgress.answers,
+        )
+    }
+
+    /**
+     * C: viewport estrecho real (360 dp) y `fontScale` 2.0 sobre el host real. La cuadrícula conserva sus tres columnas,
+     * sus objetivos táctiles de 48 dp y sus doce celdas dentro de la ventana, y el check sigue siendo operable.
      * Mide la geometría **relativa al contenedor**, no offsets absolutos.
      */
     @Test
-    fun priorityChipsWrapInANarrowViewportAtDoubleFontAndStayOperable() {
+    fun theMuscleGridKeepsItsTouchTargetsInANarrowViewportAtDoubleFontAndStaysOperable() {
         val draftId = newDraftId()
         val vm = newViewModel()
         vm.initialize(SetupWizardMode.FULL, draftId = draftId)
         prepareBlankName(vm)
-        seedPrioritiesStep(vm)
+        seedMusclesStep(vm, TrainingGoalProfile.STRENGTH_MUSCLE)
 
         composeRule.setContent {
             NarrowViewport(fontScale = DOUBLE_FONT_SCALE) {
@@ -785,122 +647,53 @@ class SetupWizardJourneyUiTest {
         composeRule.waitForIdle()
 
         // ── Medición única, en un estado idle estable, ANTES de desplazar ──
-        //
-        // `boundsInRoot` queda descartado para la geometría de layout: interseca
-        // con el recorte de la capa del `verticalScroll` y devolvía cajas vacías
-        // para los chips bajo el pliegue. Se usa `positionInRoot` + `size`
-        // (transformación pura + tamaño de layout), en el mismo marco para el
-        // wrapper, el contenedor y los siete chips. Solo geometría y tags: aquí
-        // no se imprime ningún dato del usuario.
         val wrapperNode = composeRule.onNodeWithTag(VIEWPORT_TAG).fetchSemanticsNode()
-        val containerNode = composeRule.onNodeWithTag(PRIORITY_PRESETS_TAG).fetchSemanticsNode()
-        val chips = composeRule.onAllNodes(chipMatcher).fetchSemanticsNodes()
-        assertEquals("los siete chips se componen", PRIORITY_PRESET_LABELS.size, chips.size)
-        val chipNodes = chips.associate { node -> node.chipIndex() to node }
+        val cells = composeRule.onAllNodes(muscleMatcher).fetchSemanticsNodes()
+        assertEquals("las doce celdas se componen", MuscleSymbol.entries.size, cells.size)
         val wrapper = wrapperNode.rawLayoutRect()
-        val container = containerNode.rawLayoutRect()
-        val chipBounds = chipNodes.mapValues { (_, node) -> node.rawLayoutRect() }
-        val diag = buildString {
-            append("wrapper=$wrapper clipped=${wrapperNode.boundsInRoot}")
-            append(" container=$container clipped=${containerNode.boundsInRoot}")
-            append(" chips=")
-            append(
-                chipBounds.entries.sortedBy { it.key }.joinToString(" ") { (index, box) ->
-                    "$index:$box clipped=${chipNodes.getValue(index).boundsInRoot}"
-                },
-            )
-        }
+        val bounds = cells.associate { node -> node.muscle() to node.rawLayoutRect() }
+        val diag = "wrapper=$wrapper celdas=" + bounds.entries.sortedBy { it.key.ordinal }.joinToString(" ") { (muscle, box) -> "${muscle.name}:$box" }
 
-        // 0) Puerta anti-degeneración: tamaños crudos positivos ANTES de comparar
-        //    nada. Con ceros la comprobación de filas pasaría por vacuocidad.
-        val degenerate = chipBounds.filterValues { it.width <= 0f || it.height <= 0f }
-        assertTrue("geometría de chips degenerada ($degenerate) — $diag", degenerate.isEmpty())
+        // 0) Puerta anti-degeneración: tamaños crudos positivos ANTES de comparar nada.
         assertTrue("wrapper sin área ($wrapper) — $diag", wrapper.width > 0f && wrapper.height > 0f)
-        assertTrue("contenedor sin área ($container) — $diag", container.width > 0f && container.height > 0f)
+        val degenerate = bounds.filterValues { it.width <= 0f || it.height <= 0f }
+        assertTrue("geometría de celdas degenerada ($degenerate) — $diag", degenerate.isEmpty())
 
         // El wrapper mide lo pedido: de ahí sale la escala px/dp de la prueba.
         val pxPerDp = wrapper.width / NARROW_VIEWPORT_WIDTH
         assertTrue("el wrapper no tiene el ancho pedido ($wrapper) — $diag", pxPerDp > 0f)
         val minTouchHeight = TOUCH_TARGET_DP * pxPerDp
 
-        // 1) Los chips ocupan AL MENOS dos filas. Dos pruebas independientes sobre
-        //    las cajas crudas: `top` distintos y un par de bandas verticales
-        //    disjuntas (orden de flujo libre, no solo vecinos ordenados).
-        val distinctTops = chipBounds.values.map { it.top }.distinct()
-        assertTrue(
-            "se esperan 2+ filas distintas, hubo ${distinctTops.size} — $diag",
-            distinctTops.size >= 2,
-        )
-        val disjointPair = chipBounds.entries.any { (ai, a) ->
-            chipBounds.entries.any { (bi, b) -> ai != bi && a.bottom <= b.top }
-        }
-        assertTrue("no hay dos chips en filas disjuntas — $diag", disjointPair)
+        // 1) Tres columnas y cuatro filas: no se apilan ni se parten con la letra grande.
+        val distinctLefts = bounds.values.map { it.left }.distinct()
+        val distinctTops = bounds.values.map { it.top }.distinct()
+        assertEquals("tres columnas — $diag", MUSCLE_COLUMNS, distinctLefts.size)
+        assertEquals("cuatro filas — $diag", MuscleSymbol.entries.size / MUSCLE_COLUMNS, distinctTops.size)
 
-        // 2) No es una pila de tarjetas de ancho completo.
-        assertTrue(
-            "al menos un chip debe ser más estrecho que el contenedor " +
-                "(contenedor=${container.width}) — $diag",
-            chipBounds.values.any { it.width < container.width - 1f },
-        )
-
-        // 3) Objetivo táctil ≥ 48 dp y nada se sale horizontalmente.
-        chipBounds.forEach { (index, box) ->
-            assertTrue(
-                "chip $index con altura real ${box.height}px < ${minTouchHeight}px (48 dp) — $diag",
-                box.height >= minTouchHeight - 0.5f,
-            )
-            assertTrue(
-                "chip $index se sale por la izquierda (${box.left} < ${container.left}) — $diag",
-                box.left >= container.left - 1f,
-            )
-            assertTrue(
-                "chip $index se sale por la derecha (${box.right} > ${container.right}) — $diag",
-                box.right <= container.right + 1f,
-            )
+        // 2) Objetivo táctil ≥ 48 dp y nada se sale horizontalmente de la ventana.
+        bounds.forEach { (muscle, box) ->
+            assertTrue("${muscle.name} con altura real ${box.height}px < ${minTouchHeight}px (48 dp) — $diag", box.height >= minTouchHeight - 0.5f)
+            assertTrue("${muscle.name} se sale por la izquierda (${box.left} < ${wrapper.left}) — $diag", box.left >= wrapper.left - 1f)
+            assertTrue("${muscle.name} se sale por la derecha (${box.right} > ${wrapper.right}) — $diag", box.right <= wrapper.right + 1f)
         }
 
-        // 4) La etiqueta larga CRECE el chip: envuelve en varias líneas en vez
-        //    de recortarse con elipsis ni de usar una altura fija.
-        val longLabel = chipBounds.getValue(GLUTES_CHIP_INDEX).height
-        val shortLabel = chipBounds.getValue(SHORT_LABEL_CHIP_INDEX).height
-        assertTrue(
-            "con fuente al 2x la etiqueta larga debe ocupar más alto que la corta " +
-                "(larga=$longLabel, corta=$shortLabel) — $diag",
-            longLabel > shortLabel,
-        )
+        // 3) Visibilidad e interacción REALES: la celda se alcanza con `performScrollTo`, se afirma displayed y se pulsa de verdad.
+        val tag = muscleTag(MuscleSymbol.QUADS)
+        composeRule.onNodeWithTag(tag).performScrollTo()
+        composeRule.onNodeWithTag(tag).assertIsDisplayed()
+        composeRule.onNodeWithTag(tag).performClick()
+        composeRule.waitUntil(TIMEOUT_MS) { bag(vm) == mapOf("Cuádriceps" to 1) }
 
-        // 5) Visibilidad e interacción REALES. La geometría fuera de pantalla no
-        //    prueba visibilidad: el chip se alcanza con `performScrollTo` (el
-        //    contenido puede desplazarse de forma legítima; no se exige ver los
-        //    siete a la vez), se afirma displayed y se pulsa de verdad.
-        val gluteTag = chipTag(GLUTES_CHIP_INDEX)
-        composeRule.onNodeWithTag(gluteTag).performScrollTo()
-        composeRule.onNodeWithTag(gluteTag).assertIsDisplayed()
-        composeRule.onNodeWithTag(gluteTag).performClick()
-        composeRule.waitUntil(TIMEOUT_MS) { bag(vm) == GLUTE_BAG }
-        composeRule.waitForIdle()
-        assertEquals("el chip de glúteos escribe su bolsa exacta — $diag", GLUTE_BAG, bag(vm))
-        assertEquals("solo el chip de glúteos queda marcado — $diag", setOf(GLUTES_CHIP_INDEX), selectedChipIndexes())
-
-        // 6) El CTA es operable de verdad: se alcanza, se pulsa y el cursor
-        //    avanza en el ViewModel real. Existir el nodo no lo demuestra.
-        //    Destino vigente del contrato de ruta: `SetupStepGraph.nodes` añade
-        //    TRAINING_MAX, sin condición, justo después de PRIORITIES y antes de
-        //    SPLIT (la misma ruta PRIORITIES → TRAINING_MAX → SPLIT que recorre
-        //    `SetupWizardFullJourneyUiTest.walkTraining`), así que con este
-        //    borrador sembrado (sin meta ni experiencia) el siguiente paso es
-        //    TRAINING_MAX, no SPLIT. Se fija contra el grafo real antes de pulsar.
-        assertEquals(
-            "el grafo vigente coloca TRAINING_MAX tras PRIORITIES — $diag",
-            SetupStepId.TRAINING_MAX,
-            SetupStepGraph.next(SetupStepId.PRIORITIES, vm.state.value.draft.stepContext()),
-        )
+        // 4) El CTA es operable de verdad: se alcanza, se pulsa y el cursor avanza en el ViewModel real.
+        val next = checkNotNull(SetupStepGraph.next(SetupStepId.PRIORITIES, vm.state.value.draft.stepContext()))
         composeRule.onNodeWithTag(CTA).assertIsDisplayed()
         composeRule.onNodeWithTag(CTA).assertIsEnabled()
         composeRule.onNodeWithTag(CTA).performClick()
-        awaitStepOrDump(vm, draftId, SetupStepId.TRAINING_MAX)
-        assertEquals(GLUTE_BAG, bag(vm))
+        awaitStepOrDump(vm, draftId, next)
+        assertEquals(mapOf("Cuádriceps" to 1), bag(vm))
     }
+
+    private fun weekdayTag(day: Int): String = "setup-weekday-$day"
 
     private companion object {
         const val CTA = "setup-continue"
@@ -914,21 +707,18 @@ class SetupWizardJourneyUiTest {
         const val QA10_NAME = "QA10 Descarte"
         const val TYPED_NAME = "QA M11"
         const val RESUME_NAME = "QA Resume 7"
-        const val WEEKDAY_1 = "Lunes"
-        const val WEEKDAY_2 = "Martes"
-        const val WEEKDAY_3 = "Miércoles"
+        const val WEEKDAY_1 = 1
+        const val WEEKDAY_2 = 2
+        const val WEEKDAY_3 = 3
         const val TIMEOUT_MS = 15_000L
         const val SETUP_TIMEOUT_MS = 60_000L
 
-        /** Pregunta de prioridades, literal (copy corto de la página larga: título de hasta 40 caracteres). */
-        const val APPROVED_PRIORITY_QUESTION =
-            "¿Qué músculos quieres priorizar?"
-
-        /** Tags reales publicados por la rama de prioridades. */
-        const val PRIORITY_PRESETS_TAG = "setup-priority-presets"
-        const val PRIORITY_CHIP_PREFIX = "setup-priority-preset-"
-        const val PRIORITY_ADD_PREFIX = "setup-priority-add-"
-        const val PRIORITY_REMOVE_PREFIX = "setup-priority-remove-"
+        /** Marcas y textos reales de la cuadrícula de músculos (`MuscleSymbolGrid` y su «Omitir»). */
+        const val MUSCLE_PREFIX = "setup-muscle-"
+        const val MUSCLES_SKIP_TAG = "setup-muscles-skip"
+        const val CAP_NOTE = "Máximo 5 músculos."
+        const val SUGGESTED_TAG = "Sugerido"
+        const val MUSCLE_COLUMNS = 3
 
         /** Viewport de la prueba C. */
         const val VIEWPORT_TAG = "qa-viewport-360x520"
@@ -936,33 +726,5 @@ class SetupWizardJourneyUiTest {
         const val NARROW_VIEWPORT_HEIGHT = 520
         const val DOUBLE_FONT_SCALE = 2.0f
         const val TOUCH_TARGET_DP = 48
-
-        /** Índice de la etiqueta más corta («Brazos») y de la de glúteos. */
-        const val SHORT_LABEL_CHIP_INDEX = 4
-        const val GLUTES_CHIP_INDEX = 1
-
-        /** Etiquetas del catálogo vivo, en el orden real de los chips. */
-        val PRIORITY_PRESET_LABELS = listOf(
-            "Todo el cuerpo",
-            "Quiero los mejores glúteos",
-            "Espalda amplia",
-            "Espalda densa y fuerte",
-            "Brazos",
-            "Pecho y hombros",
-            "Piernas fuertes",
-        )
-
-        /** Bolsas exactas que cada preset debe escribir, en el mismo orden. */
-        val PRIORITY_PRESET_BAGS = listOf<Map<String, Int>>(
-            emptyMap(),
-            mapOf("Glúteos" to 2, "Isquiosurales" to 2),
-            mapOf("Dorsales" to 2),
-            mapOf("Trapecio" to 2, "Dorsales" to 2, "Erectores Espinales" to 1),
-            mapOf("Bíceps" to 2, "Tríceps" to 2),
-            mapOf("Pectorales" to 2, "Deltoides" to 2),
-            mapOf("Cuádriceps" to 2, "Isquiosurales" to 2, "Glúteos" to 1),
-        )
-
-        val GLUTE_BAG = PRIORITY_PRESET_BAGS[GLUTES_CHIP_INDEX]
     }
 }

@@ -11,10 +11,13 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.getOrNull
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.click
@@ -38,6 +41,7 @@ import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextInputSelection
 import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeLeft
 import androidx.compose.ui.test.swipeUp
 import androidx.compose.ui.text.TextRange
 import androidx.lifecycle.SavedStateHandle
@@ -55,7 +59,6 @@ import com.example.kpkn.data.models.ApparatusPresence
 import com.example.kpkn.data.models.BodyMetric
 import com.example.kpkn.data.models.BodyObservationQuality
 import com.example.kpkn.data.models.CalculationOrigin
-import com.example.kpkn.data.models.EquipmentAvailability
 import com.example.kpkn.data.models.EquipmentCategory
 import com.example.kpkn.data.models.NutritionPlan
 import com.example.kpkn.data.models.Program
@@ -68,11 +71,19 @@ import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogStateV2
 import com.example.kpkn.domain.nutrition.NutritionConfigurationMode
 import com.example.kpkn.domain.nutrition.NutritionPlanPreparationStatus
 import com.example.kpkn.domain.nutrition.physiqueSliderPositionForBodyFat
+import com.example.kpkn.domain.onboarding.CapabilityLevel
+import com.example.kpkn.domain.onboarding.CapabilitySkill
+import com.example.kpkn.domain.onboarding.EquipmentSymbolId
+import com.example.kpkn.domain.onboarding.EquipmentSymbols
+import com.example.kpkn.domain.onboarding.GeneratedPlans
+import com.example.kpkn.domain.onboarding.LiftMark
 import com.example.kpkn.domain.onboarding.SetupAnswerProvenance
 import com.example.kpkn.domain.onboarding.SetupStepDefinitions
 import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.screens.onboarding.design.formatKcalEs
 import com.example.kpkn.domain.onboarding.SetupStepId
+import com.example.kpkn.domain.onboarding.TrainingGoalProfile
+import com.example.kpkn.domain.onboarding.TrainingPlace
 import com.example.kpkn.domain.onboarding.WizChatMachineState
 import com.example.kpkn.domain.training.ProgramExecutionContract
 import com.example.kpkn.data.models.resolvedSchedulePlan
@@ -92,6 +103,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.math.abs
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
@@ -112,10 +124,12 @@ import org.junit.runner.RunWith
  * Entreno → Nutrición → Rings → Revisión y activación, con la activación REAL
  * (Room del dispositivo) al final.
  *
- * Recorridos actuales — plan nativo Fuerza y músculo a cinco días, Músculo E0
- * de principiante a tres días y protocolo autorado del catálogo unificado,
- * cruzados con automática/manual/solo registro. Ningún recorrido nuevo responde
- * ROUTE: empieza por material y elige después uno de los cuatro perfiles.
+ * Recorridos actuales (Entreno v2) — Powerbuilding a cinco días con su plan propio,
+ * Fuerza y masa muscular con solo peso corporal de principiante a tres días (programa
+ * «a medida» del generador) y Powerlifting con un protocolo de autor, cruzados con
+ * automática/manual/solo registro. La ruta es la real: experiencia → lugares → material →
+ * objetivo → día con más energía → días → tiempo → calibración → [capacidades] → músculos →
+ * [marcas] → PLAN → WEEK_LAYOUT; ningún paso retirado (ROUTE, DAYS, SPLIT, AUTOREGULATION…).
  *
  * Reglas de esta prueba:
  *  - Solo interacción de UI: clic, tecleo y scroll (semántica o arrastre). Nunca
@@ -267,11 +281,11 @@ class SetupWizardFullJourneyUiTest {
     // ─── Matriz: perfil/fuente unificados × automática/manual/solo registro ──
 
     @Test
-    fun fiveDayPowerbuildingAutomaticActivatesNativeProgramAndPlan() =
+    fun fiveDayPowerbuildingAutomaticActivatesOwnProgramAndPlan() =
         runJourney(PlanScenario.POWERBUILDING_FIVE_DAY, NutritionFlavor.AUTOMATIC, captureQ6Screenshots = true)
 
     @Test
-    fun fiveDayPowerbuildingSelfDefinedActivatesNativeProgramAndManualTargets() =
+    fun fiveDayPowerbuildingSelfDefinedActivatesOwnProgramAndManualTargets() =
         runJourney(PlanScenario.POWERBUILDING_FIVE_DAY, NutritionFlavor.SELF_DEFINED)
 
     @Test
@@ -279,8 +293,8 @@ class SetupWizardFullJourneyUiTest {
         runJourney(PlanScenario.POWERBUILDING_FIVE_DAY, NutritionFlavor.TRACKING_ONLY)
 
     @Test
-    fun e0BodyweightMuscleBeginnerThreeDayThirtyMinuteJourneyActivatesNativePlan() =
-        runJourney(PlanScenario.MUSCLE_E0_THREE_DAY, NutritionFlavor.TRACKING_ONLY, captureQ6Screenshots = true)
+    fun e0BodyweightStrengthMuscleBeginnerThreeDayThirtyMinuteJourneyActivatesTheTailoredProgram() =
+        runJourney(PlanScenario.STRENGTH_MUSCLE_E0_THREE_DAY, NutritionFlavor.TRACKING_ONLY, captureQ6Screenshots = true)
 
     @Test
     fun unifiedCatalogAutomaticStillActivatesAuthoredProtocolAndPlan() =
@@ -294,63 +308,81 @@ class SetupWizardFullJourneyUiTest {
     fun unifiedCatalogTrackingOnlyStillActivatesAuthoredProtocolWithoutNutritionPlan() =
         runJourney(PlanScenario.AUTHORED_STRENGTH_PROTOCOL, NutritionFlavor.TRACKING_ONLY)
 
-    /** Perfil, calendario y testigo real elegido dentro de la biblioteca unificada. */
+    /**
+     * Perfil de objetivo, calendario y testigo real que se elige en el paso PLAN. El recorrido es el de Entreno v2:
+     * experiencia → lugares → material → objetivo → día con más energía → días → tiempo → calibración → [capacidades] →
+     * músculos → [marcas] → PLAN → WEEK_LAYOUT. El perfil decide qué ofrece PLAN: los generales, solo su programa «a medida»;
+     * Powerlifting, Powerbuilding y Culturismo, el «a medida» al frente y detrás los propios y de autor.
+     */
     private enum class PlanScenario(
-        val goalLabel: String,
         val experienceLabel: String,
+        val novice: Boolean,
+        val materialProfile: MaterialProfile,
+        val goalProfile: TrainingGoalProfile,
         val candidateSource: String,
         val expectedCandidateId: String,
-        val materialProfile: MaterialProfile,
-        val daysPerWeek: Int,
-        val minutesPerSession: Int,
-        val weekdayLabels: List<String>,
+        val freshDay: Int,
         val weekdayIds: Set<Int>,
+        val minutesPerSession: Int,
+        /** CAPABILITIES entra en la ruta: objetivo general con quien empieza o material ligero. */
+        val asksCapabilities: Boolean,
+        /** TRAINING_MAX entra en la ruta: hay levantamientos que preguntar (nunca a quien empieza). */
+        val asksMarks: Boolean,
         val assertExactWeeklySessions: Boolean = false,
     ) {
         POWERBUILDING_FIVE_DAY(
-            goalLabel = "Fuerza y músculo",
             experienceLabel = "Ya entreno con constancia",
+            novice = false,
+            materialProfile = MaterialProfile.GYM,
+            goalProfile = TrainingGoalProfile.POWERBUILDING,
             candidateSource = "NATIVE",
             expectedCandidateId = "native:powerbuilding-foundation-v2",
-            materialProfile = MaterialProfile.GYM,
-            daysPerWeek = 5,
-            minutesPerSession = 60,
-            weekdayLabels = listOf("Lunes", "Martes", "Jueves", "Viernes", "Sábado"),
+            freshDay = 1,
             weekdayIds = setOf(1, 2, 4, 5, 6),
+            minutesPerSession = 60,
+            asksCapabilities = false,
+            asksMarks = true,
             assertExactWeeklySessions = true,
         ),
-        MUSCLE_E0_THREE_DAY(
-            goalLabel = "Músculo",
+        STRENGTH_MUSCLE_E0_THREE_DAY(
             experienceLabel = "Estoy empezando",
-            candidateSource = "NATIVE",
-            expectedCandidateId = "native:muscle-foundation-v2",
+            novice = true,
             materialProfile = MaterialProfile.E0_BODYWEIGHT,
-            daysPerWeek = 3,
-            minutesPerSession = 30,
-            weekdayLabels = listOf("Lunes", "Miércoles", "Viernes"),
+            goalProfile = TrainingGoalProfile.STRENGTH_MUSCLE,
+            candidateSource = "NATIVE",
+            expectedCandidateId = GeneratedPlans.entryIdFor(TrainingGoalProfile.STRENGTH_MUSCLE),
+            freshDay = 1,
             weekdayIds = setOf(1, 3, 5),
+            minutesPerSession = 30,
+            asksCapabilities = true,
+            asksMarks = false,
             assertExactWeeklySessions = true,
         ),
         AUTHORED_STRENGTH_PROTOCOL(
-            goalLabel = "Fuerza",
             experienceLabel = "Tengo experiencia",
+            novice = false,
+            materialProfile = MaterialProfile.GYM,
+            goalProfile = TrainingGoalProfile.POWERLIFTING,
             candidateSource = "PROTOCOL",
             expectedCandidateId = "protocol:coan-phillipi-dl",
-            materialProfile = MaterialProfile.GYM,
-            daysPerWeek = 1,
-            minutesPerSession = 60,
-            weekdayLabels = listOf("Jueves"),
+            freshDay = 4,
             weekdayIds = setOf(4),
+            minutesPerSession = 60,
+            asksCapabilities = false,
+            asksMarks = true,
         ),
+        ;
+
+        val daysPerWeek: Int get() = weekdayIds.size
     }
 
-    /** UI route into the material declarations used by a fresh draft. */
-    private enum class MaterialProfile(
-        val environmentChoiceLabel: String,
-        val availabilityChoiceLabel: String?,
-    ) {
-        GYM("Gimnasio completo", null),
-        E0_BODYWEIGHT("Entreno en casa", "Solo peso corporal"),
+    /**
+     * Lugar y material con los que arranca el recorrido: el gimnasio trae marcado lo habitual (barra, rack, banco, poleas,
+     * máquinas…) y en casa no se da nada por supuesto («Solo peso corporal» ya viene marcado).
+     */
+    private enum class MaterialProfile(val place: TrainingPlace, val bodyweightOnly: Boolean) {
+        GYM(TrainingPlace.GYM, bodyweightOnly = false),
+        E0_BODYWEIGHT(TrainingPlace.HOME, bodyweightOnly = true),
     }
 
     /** Modo de nutrición declarado en NUTRITION_START. */
@@ -559,169 +591,185 @@ class SetupWizardFullJourneyUiTest {
         answerAndContinue(SetupStepId.MILESTONE_BASICS, SetupStepId.EXPERIENCE)
     }
 
-    // ─── Bloque 2: Entreno ───────────────────────────────────────────────────
+    // ─── Bloque 2: Entreno (v2) ──────────────────────────────────────────────
 
+    /**
+     * La ruta de Entreno v2: experiencia → lugares → material → objetivo → día con más energía → días → tiempo →
+     * [técnica] → constancia → fuerza → movilidad → [capacidades] → músculos → [marcas] → PLAN → WEEK_LAYOUT. Cada paso se
+     * responde con los controles de símbolos (marcas `setup-place-*`, `setup-equipment-*`, `setup-goal-*`,
+     * `setup-freshday-*`, `setup-weekday-*`, `setup-sessiontime-*`, `setup-capability-*`, `setup-muscles-skip`,
+     * `setup-plan-choose-*`) o con las tarjetas de opción de los pasos de calibración.
+     */
     private fun walkTraining(scenario: PlanScenario, screenshotDirectory: File?) {
+        val initialRoute = SetupStepGraph.stepIds(vm.state.value.draft.stepContext())
+        assertTrue(
+            "la ruta nueva no contiene los pasos retirados: ${initialRoute.filter { it in RETIRED_TRAINING_STEPS }}",
+            initialRoute.none { it in RETIRED_TRAINING_STEPS },
+        )
+
         answerAndContinue(SetupStepId.EXPERIENCE, SetupStepId.EQUIPMENT) {
             clickOption(SetupStepId.EXPERIENCE, scenario.experienceLabel)
         }
-        assertTrue(
-            "el recorrido productivo nuevo no contiene ROUTE",
-            SetupStepId.ROUTE !in SetupStepGraph.stepIds(vm.state.value.draft.stepContext()),
-        )
 
+        // Lugares → material: el material va ANTES del objetivo porque la elegibilidad de GOAL depende de él.
         answerAndContinue(SetupStepId.EQUIPMENT, SetupStepId.AVAILABILITY) {
-            clickOption(SetupStepId.EQUIPMENT, scenario.materialProfile.environmentChoiceLabel)
+            clickTag(SetupStepId.EQUIPMENT, placeTag(scenario.materialProfile.place))
+            awaitState("lugar «${scenario.materialProfile.place.label}» declarado") {
+                it.draft.trainingPlaces == setOf(scenario.materialProfile.place)
+            }
         }
         assertCurrentStep(SetupStepId.AVAILABILITY)
-        if (scenario.materialProfile == MaterialProfile.E0_BODYWEIGHT) {
-            assertInTree("Solo peso corporal")
-        } else {
-            assertInTree("¿Qué tienes disponible?", substring = true)
-        }
         captureQ6Screenshot(screenshotDirectory, "material-options")
+        val routeAtMaterial = vm.state.value.draft.stepContext()
         assertTrue(
             "el paso GOAL aparece después del material",
-            SetupStepGraph.indexOf(SetupStepId.AVAILABILITY, vm.state.value.draft.stepContext()) <
-                SetupStepGraph.indexOf(SetupStepId.GOAL, vm.state.value.draft.stepContext()),
+            SetupStepGraph.indexOf(SetupStepId.AVAILABILITY, routeAtMaterial) < SetupStepGraph.indexOf(SetupStepId.GOAL, routeAtMaterial),
         )
-
         answerAndContinue(SetupStepId.AVAILABILITY, SetupStepId.GOAL) {
-            when (scenario.materialProfile) {
-                MaterialProfile.GYM -> {
-                    // «Gimnasio completo» confirma categorías, no aparatos concretos.
-                    // Confirmar solo los soportes/configuraciones que este testigo usa.
-                    confirmApparatus("bench_flat", isSupport = true)
-                    confirmApparatus("squat_rack", isSupport = true)
-                    confirmApparatus("pullup_bar", isSupport = true)
-                    confirmApparatus("cable_high_low", isSupport = false)
+            if (scenario.materialProfile.bodyweightOnly) {
+                // En casa no se da nada por supuesto: «Solo peso corporal» ya viene marcado y el recorrido lo confirma tal cual.
+                if (EquipmentSymbolId.BODYWEIGHT_ONLY !in vm.state.value.draft.selectedEquipmentSymbols()) {
+                    clickTag(SetupStepId.AVAILABILITY, equipmentTag(EquipmentSymbolId.BODYWEIGHT_ONLY))
+                    awaitState("solo peso corporal declarado") {
+                        EquipmentSymbolId.BODYWEIGHT_ONLY in it.draft.selectedEquipmentSymbols()
+                    }
                 }
-                MaterialProfile.E0_BODYWEIGHT -> clickOption(
-                    SetupStepId.AVAILABILITY,
-                    checkNotNull(scenario.materialProfile.availabilityChoiceLabel),
-                )
+                composeRule.onNodeWithTag(equipmentTag(EquipmentSymbolId.BODYWEIGHT_ONLY)).assertIsOn()
+            } else {
+                // El gimnasio trae marcado lo habitual (barra, rack, banco, poleas, máquinas…): se acepta sin tocar ningún símbolo.
+                composeRule.onNodeWithTag(equipmentTag(EquipmentSymbolId.BARBELL)).assertIsOn()
+                composeRule.onNodeWithTag(equipmentTag(EquipmentSymbolId.RACK)).assertIsOn()
             }
             captureQ6Screenshot(screenshotDirectory, "material-declared")
         }
         val declaredAvailability = checkNotNull(vm.state.value.draft.trainingOptions.availability)
-        when (scenario.materialProfile) {
-            MaterialProfile.GYM -> {
-                assertEquals(
-                    "el aparato no declarado sigue desconocido aunque se eligió categoría Máquinas",
-                    ApparatusPresence.UNKNOWN,
-                    declaredAvailability.apparatus["hack_squat"] ?: ApparatusPresence.UNKNOWN,
-                )
-            }
-            MaterialProfile.E0_BODYWEIGHT -> {
-                assertEquals("E0: categorías vacías confirmadas", emptySet<EquipmentCategory>(), declaredAvailability.categories)
-                assertTrue("E0: sin presencias inventadas", declaredAvailability.apparatus.isEmpty() && declaredAvailability.supports.isEmpty())
-                assertTrue("E0: sin perfiles legacy de equipo", vm.state.value.draft.equipment.isEmpty())
-            }
+        if (scenario.materialProfile.bodyweightOnly) {
+            assertEquals("E0: categorías vacías confirmadas", emptySet<EquipmentCategory>(), declaredAvailability.categories)
+            assertTrue("E0: sin presencias inventadas", declaredAvailability.apparatus.isEmpty() && declaredAvailability.supports.isEmpty())
+            assertTrue("E0: sin perfiles legacy de equipo", vm.state.value.draft.equipment.isEmpty())
+        } else {
+            assertEquals(
+                "el gimnasio declara lo habitual y nada más",
+                EquipmentSymbols.seedFor(setOf(TrainingPlace.GYM)),
+                EquipmentSymbols.selectedFrom(declaredAvailability),
+            )
         }
 
-        // La vuelta al material conserva respuestas/presencias; volver a avanzar
-        // llega de nuevo a GOAL sin pasar por ninguna ruta legacy.
+        // La vuelta al material conserva lo declarado; volver a avanzar llega de nuevo a GOAL sin pasar por ninguna ruta legacy.
         composeRule.onNodeWithContentDescription(BACK_LABEL).performClick()
-        awaitState("Atrás desde perfiles vuelve al material", STEP_TIMEOUT_MS) {
-            it.currentStep == SetupStepId.AVAILABILITY
-        }
-        when (scenario.materialProfile) {
-            MaterialProfile.GYM -> assertEquals(
-                ApparatusPresence.PRESENT,
-                vm.state.value.draft.trainingOptions.availability?.supports?.get("bench_flat"),
-            )
-            MaterialProfile.E0_BODYWEIGHT -> assertEquals(
-                EquipmentAvailability(emptySet()),
-                vm.state.value.draft.trainingOptions.availability,
-            )
-        }
+        awaitState("Atrás desde el objetivo vuelve al material", STEP_TIMEOUT_MS) { it.currentStep == SetupStepId.AVAILABILITY }
+        assertEquals(declaredAvailability, vm.state.value.draft.trainingOptions.availability)
         continueTo(SetupStepId.AVAILABILITY, SetupStepId.GOAL)
 
-        val visibleGoals = listOf("Fuerza", "Músculo", "Fuerza y músculo", "Atleta completo")
-        visibleGoals.forEach { assertInTree(it) }
-        assertFalse("no se ofrecen etiquetas legacy de meta", existsInTree("Salud y condición"))
-        assertFalse("no se ofrece Fuerza + cardio como quinta meta", existsInTree("Fuerza + cardio"))
         captureQ6Screenshot(screenshotDirectory, "goal-profiles")
-        answerAndContinue(SetupStepId.GOAL, SetupStepId.DAYS) {
-            clickOption(SetupStepId.GOAL, scenario.goalLabel)
+        answerAndContinue(SetupStepId.GOAL, SetupStepId.FRESH_DAY) {
+            clickTag(SetupStepId.GOAL, goalTag(scenario.goalProfile))
+            awaitState("perfil «${scenario.goalProfile.label}» declarado") { it.draft.goalProfile == scenario.goalProfile }
         }
-        if (scenario == PlanScenario.MUSCLE_E0_THREE_DAY) {
-            assertEquals("E0 selecciona Músculo", "Músculo", vm.state.value.draft.goal?.label)
-            assertEquals("E0 selecciona nivel principiante", "Estoy empezando", vm.state.value.draft.experience?.label)
-        }
+        assertEquals("el perfil elegido es el que se activa", scenario.goalProfile, vm.state.value.draft.goalProfile)
 
-        answerAndContinue(SetupStepId.DAYS, SetupStepId.WEEKDAYS) {
-            clickOption(SetupStepId.DAYS, "${scenario.daysPerWeek} ${if (scenario.daysPerWeek == 1) "día" else "días"}")
-            captureQ6Screenshot(screenshotDirectory, "schedule-frequency")
+        // La semana: el día con más energía (es también el primer día de la semana), los días y el tiempo por sesión.
+        answerAndContinue(SetupStepId.FRESH_DAY, SetupStepId.WEEKDAYS) {
+            clickTag(SetupStepId.FRESH_DAY, freshDayTag(scenario.freshDay))
+            awaitState("día con más energía declarado") { it.draft.freshestDay == scenario.freshDay }
         }
         answerAndContinue(SetupStepId.WEEKDAYS, SetupStepId.SESSION_TIME) {
-            scenario.weekdayLabels.forEach { weekday -> clickOption(SetupStepId.WEEKDAYS, weekday) }
+            scenario.weekdayIds.sorted().forEach { day -> clickWeekday(day) }
             captureQ6Screenshot(screenshotDirectory, "schedule-weekdays")
         }
+        assertEquals("días declarados", scenario.weekdayIds, vm.state.value.draft.selectedWeekdays)
+        assertEquals("sesiones semanales = días elegidos", scenario.daysPerWeek, vm.state.value.draft.daysPerWeek)
+
         assertCurrentStep(SetupStepId.SESSION_TIME)
+        // El reloj arranca en una posición de salida que NO es una respuesta: hasta tocar un atajo el check sigue apagado.
         composeRule.onNodeWithTag(CTA).assertIsNotEnabled()
-        answerAndContinue(SetupStepId.SESSION_TIME, SetupStepId.VOLUME_TECHNIQUE) {
-            typeInto(SetupStepId.SESSION_TIME, sessionTimeFieldLabel() to scenario.minutesPerSession.toString())
+        val afterTime = if (scenario.novice) SetupStepId.VOLUME_CONSISTENCY else SetupStepId.VOLUME_TECHNIQUE
+        answerAndContinue(SetupStepId.SESSION_TIME, afterTime) {
+            clickTag(SetupStepId.SESSION_TIME, sessionShortcutTag(scenario.minutesPerSession))
+            awaitState("minutos por sesión declarados") { it.draft.minutesPerSession == scenario.minutesPerSession }
             captureQ6Screenshot(screenshotDirectory, "session-time")
         }
-        assertEquals("sesiones semanales declaradas", scenario.daysPerWeek, vm.state.value.draft.daysPerWeek)
-        assertEquals("días declarados", scenario.weekdayIds, vm.state.value.draft.selectedWeekdays)
         assertEquals("minutos explícitos", scenario.minutesPerSession, vm.state.value.draft.minutesPerSession)
 
-        // El objetivo infiere el estilo, así que no se recorre STYLE.
-        answerAndContinue(SetupStepId.VOLUME_TECHNIQUE, SetupStepId.VOLUME_CONSISTENCY) {
-            clickOption(
-                SetupStepId.VOLUME_TECHNIQUE,
-                if (scenario == PlanScenario.MUSCLE_E0_THREE_DAY) "Aprendiendo" else "Bastante estable",
+        // Calibración: a quien empieza no se le pregunta la técnica (se deriva como «Aprendiendo»).
+        if (scenario.novice) {
+            assertTrue(
+                "a quien empieza no se le pregunta la técnica",
+                SetupStepId.VOLUME_TECHNIQUE !in SetupStepGraph.stepIds(vm.state.value.draft.stepContext()),
             )
+        } else {
+            answerAndContinue(SetupStepId.VOLUME_TECHNIQUE, SetupStepId.VOLUME_CONSISTENCY) {
+                clickOption(SetupStepId.VOLUME_TECHNIQUE, "Bastante estable")
+            }
         }
         answerAndContinue(SetupStepId.VOLUME_CONSISTENCY, SetupStepId.VOLUME_STRENGTH) {
-            clickOption(
-                SetupStepId.VOLUME_CONSISTENCY,
-                if (scenario == PlanScenario.MUSCLE_E0_THREE_DAY) "Irregular" else "Bastante constante",
-            )
+            clickOption(SetupStepId.VOLUME_CONSISTENCY, if (scenario.novice) "Irregular" else "Bastante constante")
         }
         answerAndContinue(SetupStepId.VOLUME_STRENGTH, SetupStepId.VOLUME_MOBILITY) {
-            clickOption(
-                SetupStepId.VOLUME_STRENGTH,
-                if (scenario == PlanScenario.MUSCLE_E0_THREE_DAY) "Inicial" else "Intermedia",
-            )
+            clickOption(SetupStepId.VOLUME_STRENGTH, if (scenario.novice) "Inicial" else "Intermedia")
         }
-        answerAndContinue(SetupStepId.VOLUME_MOBILITY, SetupStepId.PRIORITIES) {
+        val afterMobility = if (scenario.asksCapabilities) SetupStepId.CAPABILITIES else SetupStepId.PRIORITIES
+        answerAndContinue(SetupStepId.VOLUME_MOBILITY, afterMobility) {
             clickOption(SetupStepId.VOLUME_MOBILITY, "Suficiente")
         }
-        // Bolsa de orden vacía: válida y sin puntos fabricados.
-        answerAndContinue(SetupStepId.PRIORITIES, SetupStepId.TRAINING_MAX)
-        answerAndContinue(SetupStepId.TRAINING_MAX, SetupStepId.SPLIT) {
-            clickOption(SetupStepId.TRAINING_MAX, "Todavía no")
+
+        // Capacidades: solo con un objetivo general y quien empieza o material ligero. Cada ejercicio que se ofrece con el
+        // material necesita su nivel para confirmar el paso (sin barra de dominadas ni paralelas: flexiones y sentadilla a una pierna).
+        if (scenario.asksCapabilities) {
+            answerAndContinue(SetupStepId.CAPABILITIES, SetupStepId.PRIORITIES) {
+                val skills = vm.state.value.draft.capabilitySkills()
+                assertEquals(
+                    "solo peso corporal: se ofrecen flexiones y sentadilla a una pierna",
+                    listOf(CapabilitySkill.PUSH_UP, CapabilitySkill.PISTOL_SQUAT),
+                    skills,
+                )
+                composeRule.onNodeWithTag(CTA).assertIsNotEnabled()
+                skills.forEach { skill -> clickCapability(skill, CapabilityLevel.SOME) }
+            }
         }
-        answerAndContinue(SetupStepId.SPLIT, SetupStepId.PLAN) {
-            clickOption(SetupStepId.SPLIT, "Recomendado para ti")
+
+        // Músculos: «Omitir» (arriba a la derecha) deja el paso sin músculos, también sin las sugerencias del perfil, y lo
+        // confirma. La bolsa de orden queda vacía: válida y sin puntos fabricados.
+        assertCurrentStep(SetupStepId.PRIORITIES)
+        val afterPriorities = if (scenario.asksMarks) SetupStepId.TRAINING_MAX else SetupStepId.PLAN
+        clickTag(SetupStepId.PRIORITIES, MUSCLES_SKIP_TAG)
+        awaitState("cursor en ${afterPriorities.name} tras omitir los músculos") { it.currentStep == afterPriorities }
+        assertTrue("omitir no fabrica puntos de prioridad", vm.state.value.draft.trainingOptions.orderPriorities.isEmpty())
+        composeRule.onNodeWithTag(stepTag(afterPriorities)).assertIsDisplayed()
+
+        // Marcas: cada una es opcional; sin ninguna el programa sigue siendo válido.
+        if (scenario.asksMarks) {
+            assertCurrentStep(SetupStepId.TRAINING_MAX)
+            composeRule.onNodeWithTag(markTag(LiftMark.SQUAT)).assertExists()
+            answerAndContinue(SetupStepId.TRAINING_MAX, SetupStepId.PLAN)
+            assertTrue("sin marcas declaradas no se fabrica ninguna", vm.state.value.draft.liftMarks.isEmpty())
         }
-        awaitPlanCandidates()
-        composeRule.onNodeWithTag("setup-candidate-counts").assertIsDisplayed()
-        assertTrue("la evaluación local terminó con candidatos evaluados", vm.state.value.candidateCounts.evaluated > 0)
-        assertTrue("el candidato nativo publicado es viable", vm.state.value.candidateCounts.viable > 0)
+
+        // PLAN: el barrido arma los programas del perfil y el «preparando…» corre mientras trabaja; después la página los revela.
+        assertCurrentStep(SetupStepId.PLAN)
+        awaitPlanReveal()
         assertNull("PLAN requiere una selección explícita", vm.state.value.draft.selectedCatalogId)
         composeRule.onNodeWithTag(CTA).assertIsNotEnabled()
-        captureQ6Screenshot(screenshotDirectory, "plan-candidates")
-        answerAndContinue(SetupStepId.PLAN, SetupStepId.AUTOREGULATION) {
-            selectPlanCandidate(scenario)
+        captureQ6Screenshot(screenshotDirectory, "plan-reveal")
+        answerAndContinue(SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT) {
+            choosePlan(scenario)
         }
         assertEquals(
             "selección exacta publicada en el catálogo unificado",
             scenario.expectedCandidateId,
             vm.state.value.draft.selectedCatalogId,
         )
-        // PROPOSE es el valor por defecto YA visible en pantalla y es la única
-        // opción que el contrato acepta sin confirmación: Continuar es la
-        // respuesta real, no se fabrica una confirmación de AUTO.
-        answerAndContinue(SetupStepId.AUTOREGULATION, SetupStepId.WARMUPS)
-        // «Estándar del plan» es también el estado por defecto (warmup == null):
-        // se deja tal cual y se confirma con el CTA, sin escrituras no-op.
-        answerAndContinue(SetupStepId.WARMUPS, SetupStepId.TRAINING_REVIEW)
         awaitTrainingPreviewReady()
-        answerAndContinue(SetupStepId.TRAINING_REVIEW, SetupStepId.MILESTONE_TRAINING)
+
+        // WEEK_LAYOUT: la semana armada cae en los días declarados; aceptarla tal cual es la respuesta.
+        awaitState("semana armada") { it.weekLayout != null }
+        val layout = checkNotNull(vm.state.value.weekLayout)
+        if (scenario.assertExactWeeklySessions) {
+            assertEquals("la semana armada cae en los días declarados", scenario.weekdayIds, layout.assignment.keys)
+        }
+        assertTrue("sin respuestas contradictorias no hay avisos de lugar", layout.placeConflicts.isEmpty())
+        captureQ6Screenshot(screenshotDirectory, "week-layout")
+        answerAndContinue(SetupStepId.WEEK_LAYOUT, SetupStepId.MILESTONE_TRAINING)
         answerAndContinue(SetupStepId.MILESTONE_TRAINING, SetupStepId.NUTRITION_START)
     }
 
@@ -1234,22 +1282,30 @@ class SetupWizardFullJourneyUiTest {
         val availability = checkNotNull(settings.equipmentAvailability) { "disponibilidad confirmada en Room" }
         when (scenario.materialProfile) {
             MaterialProfile.GYM -> {
-                assertEquals("categorías declaradas desde la UI", EquipmentCategory.entries.toSet(), availability.categories)
+                // Lo habitual del gimnasio, tal como lo marcó el paso de material (nada se tocó): lo que se activa es lo declarado.
+                assertEquals(
+                    "el material activado es el que el gimnasio trae marcado",
+                    EquipmentSymbols.seedFor(setOf(TrainingPlace.GYM)),
+                    EquipmentSymbols.selectedFrom(availability),
+                )
                 assertEquals("banco confirmado", ApparatusPresence.PRESENT, availability.supports["bench_flat"])
                 assertEquals("rack confirmado", ApparatusPresence.PRESENT, availability.supports["squat_rack"])
                 assertEquals("barra de dominadas confirmada", ApparatusPresence.PRESENT, availability.supports["pullup_bar"])
                 assertEquals("polea alta/baja confirmada", ApparatusPresence.PRESENT, availability.apparatus["cable_high_low"])
                 assertEquals(
-                    "máquinas genéricas no confirman hack squat",
-                    ApparatusPresence.UNKNOWN,
-                    availability.apparatus["hack_squat"] ?: ApparatusPresence.UNKNOWN,
+                    "«Máquinas» es una sala de máquinas: el hack squat consta presente",
+                    ApparatusPresence.PRESENT,
+                    availability.apparatus["hack_squat"],
                 )
             }
-            MaterialProfile.E0_BODYWEIGHT -> assertEquals(
-                "E0 confirmado por la opción de UI Solo peso corporal",
-                EquipmentAvailability(emptySet()),
-                availability,
-            )
+            MaterialProfile.E0_BODYWEIGHT -> {
+                assertTrue("E0 confirmado: solo el cuerpo", EquipmentSymbols.isBodyweightOnly(availability))
+                assertEquals(
+                    "E0: el único símbolo declarado es «Solo peso corporal»",
+                    setOf(EquipmentSymbolId.BODYWEIGHT_ONLY),
+                    EquipmentSymbols.selectedFrom(availability),
+                )
+            }
         }
 
         if (flavor == NutritionFlavor.TRACKING_ONLY) {
@@ -1391,20 +1447,51 @@ class SetupWizardFullJourneyUiTest {
         awaitState("respuesta «$label» persistida en ${step.name}") { it.draft.revision > before }
     }
 
-    /** Confirm one exact apparatus through its real presence button in the UI. */
-    private fun confirmApparatus(key: String, isSupport: Boolean) {
-        val rowTag = "setup-apparatus-$key"
+    // ─── Controles de símbolos de Entreno v2 (se pulsan por su marca de prueba) ───────────────────────────
+
+    private fun placeTag(place: TrainingPlace): String = "setup-place-${place.name}"
+    private fun equipmentTag(symbol: EquipmentSymbolId): String = "setup-equipment-${symbol.name}"
+    private fun goalTag(profile: TrainingGoalProfile): String = "setup-goal-${profile.name}"
+    private fun freshDayTag(day: Int): String = "setup-freshday-$day"
+    private fun sessionShortcutTag(minutes: Int): String = "setup-sessiontime-$minutes"
+    private fun capabilityTag(skill: CapabilitySkill, level: CapabilityLevel): String = "setup-capability-${skill.name}-${level.name}"
+    private fun markTag(lift: LiftMark): String = "setup-mark-${lift.name}"
+
+    /** Muestra un nodo por su marca antes de pulsarlo: scroll semántico y, si no, arrastre del paso. */
+    private fun ensureTagVisible(step: SetupStepId, tag: String) {
+        fun displayed(): Boolean = try {
+            composeRule.onNodeWithTag(tag).assertIsDisplayed()
+            true
+        } catch (error: Throwable) {
+            false
+        }
+        if (displayed()) return
+        runCatching { composeRule.onNodeWithTag(tag).performScrollTo() }
+        if (displayed()) return
+        repeat(MAX_SWIPES) {
+            composeRule.onNodeWithTag(stepTag(step)).performTouchInput { swipeUp() }
+            if (displayed()) return
+        }
+        fail("No pude mostrar la marca «$tag» en el paso ${step.name} · ${vm.state.value.describe()}")
+    }
+
+    /** Clic real sobre un control de símbolos por su marca de prueba. */
+    private fun clickTag(step: SetupStepId, tag: String) {
+        ensureTagVisible(step, tag)
+        composeRule.onNodeWithTag(tag).performClick()
+    }
+
+    /** Alterna un día del calendario y espera a que llegue al borrador (cada toque escribe una revisión nueva). */
+    private fun clickWeekday(day: Int) {
         val before = vm.state.value.draft.revision
-        composeRule.onNodeWithTag(rowTag).performScrollTo()
-        val yesInRow = composeRule.onAllNodes(
-            hasText("Sí") and hasAnyAncestor(hasTestTag(rowTag)),
-        )
-        assertEquals("un botón Sí en la fila $key", 1, yesInRow.fetchSemanticsNodes().size)
-        yesInRow[0].performClick()
-        awaitState("presencia de $key guardada en el borrador") { it.draft.revision > before }
-        val availability = checkNotNull(vm.state.value.draft.trainingOptions.availability)
-        val presence = if (isSupport) availability.supports[key] else availability.apparatus[key]
-        assertEquals("presencia explícita de $key", ApparatusPresence.PRESENT, presence)
+        clickTag(SetupStepId.WEEKDAYS, "setup-weekday-$day")
+        awaitState("día $day elegido en el borrador") { day in it.draft.selectedWeekdays && it.draft.revision > before }
+    }
+
+    /** Fija el nivel de un ejercicio de peso corporal tocando su segmento y espera a que llegue al borrador. */
+    private fun clickCapability(skill: CapabilitySkill, level: CapabilityLevel) {
+        clickTag(SetupStepId.CAPABILITIES, capabilityTag(skill, level))
+        awaitState("nivel «${level.label}» de ${skill.label}") { it.draft.capabilities[skill] == level }
     }
 
     /**
@@ -1646,76 +1733,82 @@ class SetupWizardFullJourneyUiTest {
     }
 
     /**
-     * Espera los candidatos reales. Si no llegan, distingue el aviso REAL de la
-     * UI («no hay un plan compatible…») de un simple tiempo de espera: nunca se
-     * fabrica material para forzar un candidato.
+     * Espera el barrido de programas del paso PLAN y a que el «preparando…» termine su animación: solo entonces la página
+     * revela el resultado (la portada del programa «a medida» o el carrusel de programas). Si el barrido falla, distingue el
+     * aviso REAL de la UI de un simple tiempo de espera: nunca se fabrica material para forzar un candidato.
      */
-    private fun awaitPlanCandidates() {
+    private fun awaitPlanReveal() {
         try {
             composeRule.waitUntil(CANDIDATE_TIMEOUT_MS) {
-                val state = vm.state.value
-                !state.isCandidateLoading && (
-                    state.availablePlanCandidates.isNotEmpty() ||
-                        state.previewError != null ||
-                        state.errors.containsKey("candidates")
-                    )
+                val sweep = vm.state.value.planSweep
+                sweep == SetupPlanSweep.READY || sweep == SetupPlanSweep.FAILED
             }
             composeRule.waitForIdle()
         } catch (error: Throwable) {
-            if (existsInTree(NO_COMPATIBLE_PLAN_LABEL, substring = true)) {
-                fail(
-                    "Sin candidatos: la UI confirma «no hay un plan compatible con tus respuestas» con el " +
-                        "material declarado (${vm.state.value.describe()})",
-                )
-            }
-            fail("Timeout esperando candidatos de plan · ${vm.state.value.describe()} (${error.message})")
+            fail("Timeout esperando el barrido de programas · ${vm.state.value.describe()} (${error.message})")
+        }
+        val state = vm.state.value
+        if (state.planSweep == SetupPlanSweep.FAILED) {
+            fail("El barrido de programas falló con el error REAL: ${state.errors["candidates"] ?: state.previewError} (${state.describe()})")
+        }
+        awaitUi("el «preparando…» se retira y la página revela los programas", PREVIEW_TIMEOUT_MS) {
+            composeRule.onAllNodes(hasTestTag(PLAN_PREPARING_TAG)).fetchSemanticsNodes().isEmpty() &&
+                (
+                    composeRule.onAllNodes(hasTestTag(PLAN_REVEAL_TAG)).fetchSemanticsNodes().isNotEmpty() ||
+                        composeRule.onAllNodes(planCardMatcher).fetchSemanticsNodes().isNotEmpty()
+                    )
         }
     }
 
-    /** Candidato exacto del catálogo real; paginar solo expande la UI, no recalcula. */
-    private fun selectPlanCandidate(scenario: PlanScenario) {
-        awaitPlanCandidates()
+    /**
+     * Elige el programa exacto del escenario con la acción «Elegir» de su portada (`setup-plan-choose-<id>`). Un perfil general
+     * enseña una sola portada; el carrusel de una disciplina enseña la central y, para llegar a otra, se desliza hasta ella.
+     * El programa tiene que estar entre los viables que publicó el barrido real: si no, falla con la lista (no se fabrica nada).
+     */
+    private fun choosePlan(scenario: PlanScenario) {
         val state = vm.state.value
         val problem = state.previewError ?: state.errors["candidates"]
         if (problem != null) {
-            fail("La generación de candidatos falló con el error REAL: $problem (${state.describe()})")
+            fail("La generación de programas falló con el error REAL: $problem (${state.describe()})")
             return
         }
-        val all = state.availablePlanCandidates.ifEmpty { state.planCandidates }
-        val chosen = all.firstOrNull { it.id == scenario.expectedCandidateId }
+        val offered = state.availablePlanCandidates
+        val chosen = offered.firstOrNull { it.id == scenario.expectedCandidateId }
         if (chosen == null) {
             fail(
-                "No está publicado/viable ${scenario.expectedCandidateId} entre " +
-                    "${all.map { "${it.source}=${it.id}:${it.title}" }}; " +
+                "No está ofrecido/viable ${scenario.expectedCandidateId} entre " +
+                    "${offered.map { "${it.source}=${it.id}:${it.title}" }}; " +
                     "no se fabrica material para forzar uno (${state.describe()})",
             )
             return
         }
         assertEquals("procedencia técnica del testigo", scenario.candidateSource, chosen.source)
-        var pageCount = 0
-        while (chosen.id !in vm.state.value.planCandidates.map { candidate -> candidate.id }) {
-            if (!existsInTree(MORE_CANDIDATES_LABEL, substring = true)) {
-                fail(
-                    "El candidato ${chosen.id} «${chosen.title}» no está visible y la UI no ofrece " +
-                        "«$MORE_CANDIDATES_LABEL»",
-                )
+        val chooseTag = PLAN_CHOOSE_PREFIX + chosen.id
+        var swipes = 0
+        while (composeRule.onAllNodes(hasTestTag(chooseTag)).fetchSemanticsNodes().isEmpty()) {
+            if (swipes >= offered.size) {
+                fail("El carrusel no llega a «${chosen.title}» (${chosen.id}) tras $swipes deslizamientos · ${state.describe()}")
                 return
             }
-            val visibleCount = vm.state.value.planCandidates.size
-            composeRule.onNodeWithText(MORE_CANDIDATES_LABEL, substring = true).performClick()
-            awaitState("candidato «${chosen.title}» visible") { current ->
-                chosen.id in current.planCandidates.map { candidate -> candidate.id } ||
-                    current.planCandidates.size > visibleCount
-            }
-            pageCount += 1
-            assertTrue("la paginación alcanza un candidato del catálogo completo", pageCount <= all.size)
+            swipes += 1
+            // Se desliza sobre la portada central (la más cercana al centro de la pantalla): las vecinas asoman a medias.
+            val cards = composeRule.onAllNodes(planCardMatcher).fetchSemanticsNodes()
+            val rootCenterX = composeRule.onRoot().fetchSemanticsNode().boundsInRoot.center.x
+            val centerIndex = cards.indices.minByOrNull { abs(cards[it].boundsInRoot.center.x - rootCenterX) } ?: 0
+            composeRule.onAllNodes(planCardMatcher)[centerIndex].performTouchInput { swipeLeft() }
+            composeRule.waitForIdle()
         }
         val before = vm.state.value.draft.revision
-        ensureVisible(SetupStepId.PLAN, chosen.title)
-        composeRule.onNodeWithText(chosen.title).performClick()
-        awaitState("plan «${chosen.title}» elegido") {
+        ensureTagVisible(SetupStepId.PLAN, chooseTag)
+        composeRule.onNodeWithTag(chooseTag).performClick()
+        awaitState("programa «${chosen.title}» elegido") {
             it.draft.selectedCatalogId == chosen.id && it.draft.revision > before
         }
+    }
+
+    /** Las portadas del carrusel (`setup-plan-card-<id>`): solo están compuestas la central y sus vecinas. */
+    private val planCardMatcher = SemanticsMatcher("portada de un programa") { node ->
+        node.config.getOrNull(SemanticsProperties.TestTag)?.startsWith(PLAN_CARD_PREFIX) == true
     }
 
     private fun awaitTrainingPreviewReady() {
@@ -1776,11 +1869,6 @@ class SetupWizardFullJourneyUiTest {
 
     private fun ageFieldLabel(): String =
         SetupStepDefinitions.of(SetupStepId.AGE)?.unit?.let { "Edad ($it)" } ?: "Edad"
-
-    private fun sessionTimeFieldLabel(): String =
-        SetupStepDefinitions.of(SetupStepId.SESSION_TIME)?.range?.unit
-            ?.let { "Minutos por sesión ($it)" }
-            ?: "Minutos por sesión"
 
     /** Muestra un nodo antes de pulsarlo: scroll semántico y, si no, arrastre. */
     private fun ensureVisible(step: SetupStepId, label: String) {
@@ -1906,11 +1994,22 @@ class SetupWizardFullJourneyUiTest {
         // Regla de peso: misma en ambos layouts (paso WEIGHT o mitad inferior del par).
         const val WEIGHT_VALUE_TAG = "setup-weight-value"
         const val RULE_CONTENT_DESCRIPTION = "Regla de peso en kilogramos"
-        const val MORE_CANDIDATES_LABEL = "Ver más opciones"
-        const val NO_COMPATIBLE_PLAN_LABEL = "no hay un plan compatible"
         const val NO_DAYS_LABEL = "Todavía no hay objetivos por fecha."
         const val RINGS_PREFIX = "kilocalorías al día"
         const val VM_STORE_KEY = "setup-wizard-full-journey"
+
+        // Marcas de prueba del paso PLAN y de los músculos (los demás controles de Entreno v2 las derivan de su símbolo).
+        const val PLAN_PREPARING_TAG = "setup-plan-preparing"
+        const val PLAN_REVEAL_TAG = "setup-plan-reveal"
+        const val PLAN_CARD_PREFIX = "setup-plan-card-"
+        const val PLAN_CHOOSE_PREFIX = "setup-plan-choose-"
+        const val MUSCLES_SKIP_TAG = "setup-muscles-skip"
+
+        /** Pasos que salieron de la ruta de Entreno: solo siguen en el enum para leer borradores antiguos. */
+        val RETIRED_TRAINING_STEPS = setOf(
+            SetupStepId.ROUTE, SetupStepId.STYLE, SetupStepId.DAYS, SetupStepId.SPLIT, SetupStepId.TRAINING_MARKS,
+            SetupStepId.AUTOREGULATION, SetupStepId.AUTOREGULATION_CONFIRM, SetupStepId.WARMUPS, SetupStepId.TRAINING_REVIEW,
+        )
 
         const val ACTIVATION_CONFIRM_LABEL = "Confirmo la activación"
         const val RECIPE_CONFIRM_LABEL = "Confirmo la rotación y la duración reales"
