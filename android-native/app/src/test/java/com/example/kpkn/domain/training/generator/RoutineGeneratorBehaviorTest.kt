@@ -392,6 +392,29 @@ class RoutineGeneratorBehaviorTest {
     }
 
     @Test
+    fun the_variants_reason_only_claims_to_follow_what_you_can_do_when_the_person_answered_it() {
+        // QP (teléfono real): el gimnasio no pregunta capacidades y la portada decía «según lo que ya te sale».
+        val asked = mapOf(CapabilitySkill.PULL_UP to CapabilityLevel.SOME, CapabilitySkill.PUSH_UP to CapabilityLevel.MANY)
+        var checked = 0
+        for (profile in s.profiles) {
+            for (capabilities in listOf(emptyMap(), asked)) {
+                val routine = RoutineGenerator.generate(
+                    s.request(profile, RoutineMode.GENERAL_STRENGTH_MUSCLE, RoutineLevel.INTERMEDIATE, 4, 60, capabilities = capabilities),
+                )
+                val line = routine.summary.reasons.firstOrNull { it.startsWith("Elegimos variantes a tu medida") } ?: continue
+                checked++
+                assertEquals(
+                    "capacidades=${capabilities.keys}: «$line»",
+                    capabilities.isNotEmpty(),
+                    line.endsWith("según lo que ya te sale."),
+                )
+                assertTrue("la frase cierra con punto: «$line»", line.endsWith("."))
+            }
+        }
+        assertTrue("al menos un caso con variantes sin capacidades y otro con ellas", checked >= 2)
+    }
+
+    @Test
     fun the_summary_has_three_to_five_reasons_and_one_line_per_day() {
         s.profiles.forEach { profile ->
             val routine = RoutineGenerator.generate(s.request(profile, RoutineMode.GENERAL_STRENGTH_MUSCLE, RoutineLevel.INTERMEDIATE, 5, 60, priorities = listOf(MuscleSymbol.CHEST)))

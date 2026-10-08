@@ -121,7 +121,10 @@ internal object RoutineNarrative {
         val variants = results.flatMap { it.session.allExercises() }.mapNotNull { it.variantName }.distinct()
         val bodyweightOnly = ctx.request.availability.categories.isEmpty()
         if (variants.isNotEmpty()) {
-            out += "Elegimos variantes a tu medida (${variants.take(3).joinToString(", ") { it.replaceFirstChar { c -> c.lowercase() } }}) según lo que ya te sale."
+            val shown = variants.take(3).joinToString(", ") { it.replaceFirstChar { c -> c.lowercase() } }
+            // «Según lo que ya te sale» solo si la persona contestó el paso de capacidades: sin él (un perfil de gimnasio no lo
+            // pregunta) ese dato no se usó y la frase no puede decirlo.
+            out += "Elegimos variantes a tu medida ($shown)" + if (ctx.request.capabilities.isNotEmpty()) " según lo que ya te sale." else "."
         } else if (bodyweightOnly) {
             out += "Sin material, el plan usa tu peso corporal con progresiones que puedes subir o bajar según te salgan."
         }
