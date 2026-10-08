@@ -60,7 +60,15 @@ internal object RoutineNarrative {
 
     fun oneLiner(ctx: GenContext, results: List<AssembledSession>): String {
         val avg = results.map { it.minutes }.average().let { if (it.isNaN()) ctx.targetMinutes else it.toInt() }
-        return "${days(ctx.days.size).replaceFirstChar { it.uppercase() }} de ${splitDescription(ctx)}, unos $avg min por sesión."
+        val split = splitDescription(ctx)
+        val head = days(ctx.days.size).replaceFirstChar { it.uppercase() }
+        // Una descripción que ya empieza por «una sesión» o «un día» no admite «de» delante: «1 día de una sesión de cuerpo completo» y
+        // «3 días de un día de sentadilla, uno de banca…» se leían mal en la portada (QP, teléfono real).
+        return when {
+            split.startsWith("una sesión") -> "${split.replaceFirstChar { it.uppercase() }}, unos $avg min."
+            split.startsWith("un día") -> "$head: $split, unos $avg min por sesión."
+            else -> "$head de $split, unos $avg min por sesión."
+        }
     }
 
     private fun priorityLabels(symbols: List<MuscleSymbol>): String {
@@ -121,7 +129,10 @@ internal object RoutineNarrative {
         val variants = results.flatMap { it.session.allExercises() }.mapNotNull { it.variantName }.distinct()
         val bodyweightOnly = ctx.request.availability.categories.isEmpty()
         if (variants.isNotEmpty()) {
-            out += "Elegimos variantes a tu medida (${variants.take(3).joinToString(", ") { it.replaceFirstChar { c -> c.lowercase() } }}) según lo que ya te sale."
+            val shown = variants.take(3).joinToString(", ") { it.replaceFirstChar { c -> c.lowercase() } }
+            // «Según lo que ya te sale» solo si la persona contestó el paso de capacidades: sin él (un perfil de gimnasio no lo
+            // pregunta) ese dato no se usó y la frase no puede decirlo.
+            out += "Elegimos variantes a tu medida ($shown)" + if (ctx.request.capabilities.isNotEmpty()) " según lo que ya te sale." else "."
         } else if (bodyweightOnly) {
             out += "Sin material, el plan usa tu peso corporal con progresiones que puedes subir o bajar según te salgan."
         }

@@ -117,6 +117,47 @@ class SetupPlanRevealsTest {
     }
 
     @Test
+    fun a_long_single_sentence_is_cut_on_its_last_comma_that_fits_and_closed_with_a_period() {
+        // Halterofilia con 4 días (QP, teléfono real): antes salía «…con movilidad, unos…»; ahora pierde el inciso final.
+        val weightlifting = "4 días de sentadilla, empuje sobre la cabeza y potencia, sentadilla frontal y tirones, con movilidad, unos 90 min por sesión."
+        assertEquals(
+            "4 días de sentadilla, empuje sobre la cabeza y potencia, sentadilla frontal y tirones, con movilidad.",
+            SetupPlanReveals.blurbOf(weightlifting),
+        )
+        // «Músculo KPKN» (carrusel de Culturismo): su primera frase de autor pasa de 110 y antes salía «…siempre dejas…».
+        val muscle = requireNotNull(PersonalizedPlanCatalog.find("native:muscle-foundation-v2")).summary
+        assertEquals(
+            "Entrenamiento para ganar músculo con rangos de repeticiones y esfuerzo controlado.",
+            SetupPlanReveals.blurbOf(muscle),
+        )
+        // Sin una pausa que deje un trozo con sentido, se sigue cortando en una palabra con «…».
+        val shortClause = "Frase, " + "palabra ".repeat(30).trim()
+        val cut = SetupPlanReveals.blurbOf(shortClause)
+        assertTrue("«$cut»", cut.endsWith("…") && cut.length <= SetupPlanReveals.BLURB_MAX)
+    }
+
+    @Test
+    fun no_generated_one_liner_reads_badly_or_is_cut_in_the_middle_of_its_description() {
+        // La frase de portada que de verdad arma el generador para cada perfil (general y de disciplina) con 1 a 7 días (QP, teléfono real):
+        // «3 días de un día de sentadilla…» y «1 día de una sesión de…» se leían mal, y la frase larga de halterofilia salía cortada.
+        for (profile in TrainingGoalProfile.entries) {
+            for (dayCount in 1..7) {
+                val days = (1..dayCount).toSet()
+                val routine = RoutineGenerator.generate(draft(profile, days).routineRequest(GeneratedPlans.modeFor(profile), catalog))
+                val line = routine.summary.oneLiner
+                val where = "$profile, $dayCount días: «$line»"
+                assertTrue("$where: «de una sesión» sobra", " de una sesión" !in line)
+                assertTrue("$where: «de un día de» sobra", " de un día de" !in line)
+                assertTrue("$where: empieza en mayúscula o con la cifra de días", line.first().let { it.isUpperCase() || it.isDigit() })
+                assertTrue("$where: cierra con punto", line.endsWith("."))
+                val blurb = SetupPlanReveals.blurbOf(line)
+                assertTrue("$where: blurb «$blurb» pasa del límite", blurb.length <= SetupPlanReveals.BLURB_MAX)
+                assertTrue("$where: blurb «$blurb» queda cortado con «…»", !blurb.endsWith("…"))
+            }
+        }
+    }
+
+    @Test
     fun the_author_of_a_method_is_the_kicker() {
         val phul = requireNotNull(PersonalizedPlanCatalog.find("original:phul-ms-2021-r1"))
         assertTrue("«${SetupPlanReveals.kickerOf(phul)}»", SetupPlanReveals.kickerOf(phul).contains("Campbell"))

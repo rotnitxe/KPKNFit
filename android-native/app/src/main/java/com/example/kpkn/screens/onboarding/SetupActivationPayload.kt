@@ -17,8 +17,11 @@ import java.time.ZoneId
  * cualquier inválida revierte el alta completa, así que aquí NO se filtra en
  * silencio: un dato inválido se rechaza con un error explícito):
  *
- * - IDs estables `draftId/tipo/fecha`: repetir el commit con el mismo borrador
- *   produce exactamente las mismas filas (idempotencia).
+ * - IDs estables `commitId/tipo/fecha`: repetir el commit con el mismo borrador
+ *   produce exactamente las mismas filas (idempotencia). La clave es el `commitId`
+ *   (único por asistente) y no el `draftId`: el borrador tiene un id canónico por
+ *   alcance que se borra al activar y se reutiliza en el siguiente asistente, así
+ *   que dos altas del mismo día chocarían («ya existe y no fue creada por este alta»).
  * - Solo datos reales y fechados: peso actual declarado, grasa corporal medida
  *   o estimada y pesajes históricos con fecha no futura.
  * - La TENDENCIA y el MÁXIMO PREVIO son contexto, jamás observaciones.
@@ -35,7 +38,7 @@ object SetupActivationPayload {
     ): List<BodyObservation> {
         val zone = ZoneId.systemDefault()
         val today = LocalDate.now(zone)
-        val draftKey = draft.draftId.ifBlank { draft.commitId }.ifBlank { "draft" }
+        val draftKey = draft.commitId.ifBlank { draft.draftId }.ifBlank { "draft" }
         val rows = mutableListOf<BodyObservation>()
 
         // 1. Peso actual: SOLO declarado en este wizard.

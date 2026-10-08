@@ -220,6 +220,19 @@ internal fun buildHarnessDraft(
 
 private const val MAX_STEPS = 80
 
+/** Base del identificador del borrador del arnés: propio, para no tocar el borrador canónico del asistente. */
+internal const val HARNESS_DRAFT_BASE = "setup-harness-w"
+
+/**
+ * El identificador del borrador del arnés para un arranque. Con [reset] (lo normal) es UNO NUEVO (`setup-harness-w-<segundos>`): la
+ * activación escribe observaciones corporales con id `<borrador>/weight/<fecha>` y una segunda alta del mismo día con el mismo id
+ * falla con «La observación … ya existe y no fue creada por este alta», así que los seis recorridos de la auditoría Q (que activan
+ * uno tras otro en el teléfono, sin poder limpiar su base de datos) solo caben con un id distinto cada vez. Sin `reset` (matar el
+ * proceso, giro de pantalla) se reabre el último ([previous], que el arnés recuerda) y, si no hubiera ninguno, se crea uno nuevo.
+ */
+internal fun harnessDraftIdFor(reset: Boolean, previous: String?, nowMs: Long): String =
+    if (!reset && !previous.isNullOrBlank()) previous else "$HARNESS_DRAFT_BASE-${nowMs / 1000L}"
+
 /** Los datos que contesta [persona] en [step] (los pasos sin datos propios, como el plan, no cambian nada). */
 internal fun SetupWizardDraft.answeredAs(step: SetupStepId, persona: HarnessPersona): SetupWizardDraft = when (step) {
     SetupStepId.NAME -> withStepText(step, "Valentina").withStepNumber(SetupStepId.AGE, 29.0)

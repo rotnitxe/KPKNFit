@@ -392,6 +392,47 @@ class RoutineGeneratorBehaviorTest {
     }
 
     @Test
+    fun the_variants_reason_only_claims_to_follow_what_you_can_do_when_the_person_answered_it() {
+        // QP (teléfono real): el gimnasio no pregunta capacidades y la portada decía «según lo que ya te sale».
+        val asked = mapOf(CapabilitySkill.PULL_UP to CapabilityLevel.SOME, CapabilitySkill.PUSH_UP to CapabilityLevel.MANY)
+        var checked = 0
+        for (profile in s.profiles) {
+            for (capabilities in listOf(emptyMap(), asked)) {
+                val routine = RoutineGenerator.generate(
+                    s.request(profile, RoutineMode.GENERAL_STRENGTH_MUSCLE, RoutineLevel.INTERMEDIATE, 4, 60, capabilities = capabilities),
+                )
+                val line = routine.summary.reasons.firstOrNull { it.startsWith("Elegimos variantes a tu medida") } ?: continue
+                checked++
+                assertEquals(
+                    "capacidades=${capabilities.keys}: «$line»",
+                    capabilities.isNotEmpty(),
+                    line.endsWith("según lo que ya te sale."),
+                )
+                assertTrue("la frase cierra con punto: «$line»", line.endsWith("."))
+            }
+        }
+        assertTrue("al menos un caso con variantes sin capacidades y otro con ellas", checked >= 2)
+    }
+
+    @Test
+    fun the_one_liner_never_says_days_of_one_session_or_days_of_a_day() {
+        // QP (teléfono real): la portada de Powerlifting con 3 días decía «3 días de un día de sentadilla, uno de banca…».
+        fun line(mode: RoutineMode, days: Int) = RoutineGenerator.generate(s.request(s.gym, mode, RoutineLevel.INTERMEDIATE, days, 90)).summary.oneLiner
+
+        val powerlifting3 = line(RoutineMode.CUSTOM_POWERLIFTING, 3)
+        assertTrue(powerlifting3, powerlifting3.startsWith("3 días: un día de sentadilla, uno de banca y uno de peso muerto, unos "))
+        assertTrue(powerlifting3, powerlifting3.endsWith(" min por sesión."))
+
+        val single = line(RoutineMode.DISCIPLINE_CALISTHENICS, 1)
+        assertTrue(single, single.startsWith("Una sesión de cuerpo completo con peso corporal, unos "))
+        assertTrue(single, single.endsWith(" min."))
+
+        // Las descripciones normales siguen con «N días de …».
+        val bodybuilding4 = line(RoutineMode.CUSTOM_BODYBUILDING, 4)
+        assertTrue(bodybuilding4, bodybuilding4.startsWith("4 días de torso y pierna dos veces por semana, unos "))
+    }
+
+    @Test
     fun the_summary_has_three_to_five_reasons_and_one_line_per_day() {
         s.profiles.forEach { profile ->
             val routine = RoutineGenerator.generate(s.request(profile, RoutineMode.GENERAL_STRENGTH_MUSCLE, RoutineLevel.INTERMEDIATE, 5, 60, priorities = listOf(MuscleSymbol.CHEST)))
