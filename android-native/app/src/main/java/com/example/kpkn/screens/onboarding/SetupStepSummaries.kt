@@ -540,12 +540,18 @@ private fun summaryWeekLayout(state: SetupWizardState): String {
     return SpanishPlurals.sessions(sessions.size) + " por semana"
 }
 
-/** «Sentadilla 100 kg, Press banca 80 kg +1»: solo las marcas declaradas, en la unidad en que se declararon. */
+/**
+ * Las marcas declaradas, en la unidad en que se declararon. Con una o dos, cada una con su peso («Sentadilla 100 kg, Press
+ * banca 80 kg»); con más, solo los nombres («Sentadilla, Press banca +1»): la lista con pesos no cabe en dos líneas y se cortaría,
+ * y los pesos se ven al editar el paso.
+ */
 private fun summaryMarks(draft: SetupWizardDraft): String {
     val unit = if (draft.marksUnit == "lb") WizardMassUnit.LB else WizardMassUnit.KG
-    val marks = draft.liftMarks.entries.sortedBy { entry -> entry.key.ordinal }
-        .map { (lift, kg) -> "${lift.label} ${WizardWeightScale.formatWithUnit(kg, unit)}" }
-    if (marks.isNotEmpty()) return summaryJoin(marks)
+    val declared = draft.liftMarks.entries.sortedBy { entry -> entry.key.ordinal }
+    if (declared.size > SUMMARY_MAX_LABELS) return summaryJoin(declared.map { (lift, _) -> lift.label })
+    if (declared.isNotEmpty()) {
+        return declared.joinToString(", ") { (lift, kg) -> "${lift.label} ${WizardWeightScale.formatWithUnit(kg, unit)}" }
+    }
     return if (SetupStepId.TRAINING_MAX in draft.stepProgress.answers) SUMMARY_NO_MARKS else SUMMARY_NOT_ANSWERED
 }
 
@@ -655,13 +661,17 @@ private fun summaryRingsResult(state: SetupWizardState): String {
 // ─── Una línea ───────────────────────────────────────────────────────────────
 
 /**
- * Una sola línea de como máximo [max] caracteres: colapsa espacios y saltos y, si no cabe,
- * recorta y termina en «…». No parte un par suplente (emoji) por la mitad.
+ * Una sola línea de como máximo [max] caracteres: colapsa espacios y saltos y, si no cabe, recorta y termina en «…». El corte
+ * cae en la última palabra entera que cabe: nunca a media palabra (solo una palabra suelta más larga que el tope se parte). No
+ * parte un par suplente (emoji) por la mitad.
  */
 private fun summaryFit(text: String, max: Int): String {
     val line = text.replace(SUMMARY_WHITESPACE, " ").trim()
     if (line.length <= max) return line
     var end = (max - 1).coerceAtLeast(0)
     if (end > 0 && line[end - 1].isHighSurrogate()) end -= 1
-    return line.take(end).trimEnd() + "…"
+    val head = line.take(end)
+    // Si el corte cae justo antes de un espacio, la última palabra está entera; si no, se descarta la que quedó a medias.
+    val whole = if (line.getOrNull(end)?.isWhitespace() == true) head else head.substringBeforeLast(' ', head)
+    return whole.trimEnd(' ', ',', ';', ':', '.', '-', '–', '—', '(') + "…"
 }
