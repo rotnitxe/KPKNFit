@@ -63,7 +63,11 @@ import java.io.FileOutputStream
 class WizardRenderSheetTest {
 
     companion object {
-        /** Sin `KPKN_RENDER_DIR` la clase entera se salta ANTES de arrancar el entorno de Robolectric con gráficos nativos. */
+        /**
+         * Sin `KPKN_RENDER_DIR` la clase se salta ANTES de arrancar el entorno de Robolectric con gráficos nativos. Con el ejecutor de
+         * Robolectric esta suposición solo salta la primera prueba que corre y las demás siguen: por eso cada prueba empieza con
+         * [onlyWhenAsked].
+         */
         @JvmStatic
         @BeforeClass
         fun onlyWhenAskedFor() {
@@ -73,6 +77,9 @@ class WizardRenderSheetTest {
 
     @get:Rule
     val rule = createComposeRule()
+
+    /** Lo primero de cada prueba: sin `KPKN_RENDER_DIR` no se dibuja nada y la prueba se salta (no falla). */
+    private fun onlyWhenAsked() = assumeTrue("sin KPKN_RENDER_DIR no se dibuja nada", System.getenv("KPKN_RENDER_DIR") != null)
 
     private data class Case(
         val name: String,
@@ -147,7 +154,7 @@ class WizardRenderSheetTest {
 
     @Test
     fun renderTheBoardSheets() {
-        assumeTrue("sin KPKN_RENDER_DIR no se dibuja nada", System.getenv("KPKN_RENDER_DIR") != null)
+        onlyWhenAsked()
         val cases = buildList {
             for (days in listOf(3, 4, 5, 7)) {
                 add(Case("board_d${days}_s100", days = days))
@@ -234,7 +241,7 @@ class WizardRenderSheetTest {
 
     @Test
     fun renderTheSummaryRowSheets() {
-        assumeTrue("sin KPKN_RENDER_DIR no se dibuja nada", System.getenv("KPKN_RENDER_DIR") != null)
+        onlyWhenAsked()
         rule.setContent {
             val base = LocalDensity.current
             hostView = LocalView.current
@@ -259,6 +266,7 @@ class WizardRenderSheetTest {
 
     @Test
     fun renderTheCalendarSheets() {
+        onlyWhenAsked()
         rule.setContent {
             val base = LocalDensity.current
             hostView = LocalView.current
@@ -294,6 +302,7 @@ class WizardRenderSheetTest {
 
     @Test
     fun renderTheTitleSheets() {
+        onlyWhenAsked()
         val steps = listOf(
             SetupStepId.EQUIPMENT, SetupStepId.AVAILABILITY, SetupStepId.GOAL, SetupStepId.FRESH_DAY, SetupStepId.WEEKDAYS,
             SetupStepId.SESSION_TIME, SetupStepId.CAPABILITIES, SetupStepId.PRIORITIES, SetupStepId.TRAINING_MAX, SetupStepId.WEEK_LAYOUT,
