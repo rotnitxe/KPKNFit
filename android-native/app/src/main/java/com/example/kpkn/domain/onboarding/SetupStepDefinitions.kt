@@ -995,7 +995,7 @@ object SetupStepDefinitions {
             id = SetupStepId.RINGS_INTENSITY, block = SetupWizardBlock.RINGS, kind = SetupStepKind.QUESTION,
             title = "¿Cómo sentiste la intensidad?", control = SetupControlKind.SINGLE_CHOICE,
             options = opt(
-                "EASY" to "Fácil", "MODERATE" to "Moderada", "HARD" to "Exigente", "VERY_HARD" to "Muy exigente",
+                "EASY" to "Suave", "MODERATE" to "Moderada", "HARD" to "Dura", "VERY_HARD" to "Muy dura",
             ),
             legacyQuestion = WizChatQuestionId.R_INTENSITY,
             legacyValueMap = mapOf(
