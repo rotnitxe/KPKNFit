@@ -52,6 +52,9 @@ sealed class KpknRoute(val route: String) {
         }
     }
 
+    /** Programas → Nuevo programa → Importar: traer un programa desde Excel, CSV o texto pegado. */
+    object ImportProgram : KpknRoute("program-import")
+
     object SessionEditor : KpknRoute("session-editor/{programId}/{sessionId}?weekId={weekId}&macroIndex={macroIndex}&mesoIndex={mesoIndex}&dayOfWeek={dayOfWeek}") {
         fun create(
             programId: String,
