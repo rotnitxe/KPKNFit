@@ -178,7 +178,7 @@ class SplitRadicalConversionTest {
                 val minutes = SessionDurationEstimator.estimate(day).totalMinutes
                 val declared = trims.any { it.dayTitle == day.name } || merges.any { it.dayTitle == day.name }
                 if (declared) declaredDays++
-                if (minutes > target * SessionTimeFit.TOLERANCE && !declared) {
+                if (minutes > target * DayTimeFit.TOLERANCE && !declared) {
                     failures += "${t.label} · ${day.name}: $minutes min sin recorte declarado"
                 }
             }
@@ -193,7 +193,7 @@ class SplitRadicalConversionTest {
                 val gained = merges.count { it.keptExerciseId == id }
                 val now = after[id]?.sets?.size ?: return@forEach
                 if (now != before - cut + gained) failures += "${t.label} · $id: $before − $cut + $gained ≠ $now series"
-                if (cut > 0 && now < SessionTimeFit.MIN_SETS) failures += "${t.label} · $id: recortado por debajo de 2 series"
+                if (cut > 0 && now < DayTimeFit.MIN_SETS) failures += "${t.label} · $id: recortado por debajo de 2 series"
             }
         }
         assertEquals(emptyList<String>(), failures)
