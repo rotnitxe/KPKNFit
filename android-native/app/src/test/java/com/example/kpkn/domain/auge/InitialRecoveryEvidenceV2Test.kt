@@ -98,7 +98,7 @@ class InitialRecoveryEvidenceV2Test {
     }
 
     @Test
-    fun noTrainingGivesHundredOnEveryChannel() {
+    fun noTrainingWithoutSensationsGivesHundredOnEveryChannel() {
         val evidence = InitialRecoveryEvidenceFactory.fromInputsV2(
             capturedAtMs = capture,
             zone = zone,
@@ -106,7 +106,6 @@ class InitialRecoveryEvidenceV2Test {
             intensity = InitialRecoveryIntensity.HARD,
             lifts = emptySet(),
             groupSets = emptyMap(),
-            sensations = InitialRecoverySensations(muscular = 5, energy = 5, structure = 5),
         )
         assertEquals(100, evidence.muscularScore)
         assertEquals(100, evidence.systemScore)
@@ -115,6 +114,30 @@ class InitialRecoveryEvidenceV2Test {
         assertEquals(100, result.muscular)
         assertEquals(100, result.system)
         assertEquals(100, result.structure)
+    }
+
+    @Test
+    fun noTrainingSensationsLowerEachChannelByItsPenalty() {
+        val evidence = InitialRecoveryEvidenceFactory.fromInputsV2(
+            capturedAtMs = capture,
+            zone = zone,
+            trainedDays = emptySet(),
+            intensity = InitialRecoveryIntensity.HARD,
+            lifts = emptySet(),
+            groupSets = emptyMap(),
+            sensations = InitialRecoverySensations(muscular = 5, energy = 4),
+        )
+        val muscularExpected = 100 - InitialRecoveryEvidenceFactory.sensationPenalty(5)
+        val systemExpected = 100 - InitialRecoveryEvidenceFactory.sensationPenalty(4)
+        assertEquals(muscularExpected, evidence.muscularScore)
+        assertEquals(systemExpected, evidence.systemScore)
+        assertEquals(100, evidence.structureScore)
+        val atCapture = resolve(evidence, capture)
+        assertEquals(muscularExpected, atCapture.muscular)
+        assertEquals(systemExpected, atCapture.system)
+        assertEquals(100, atCapture.structure)
+        // La sensación se recupera con las curvas del motor, como con días entrenados.
+        assertTrue(resolve(evidence, capture + 36 * hour).muscular!! > muscularExpected)
     }
 
     @Test

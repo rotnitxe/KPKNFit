@@ -4,6 +4,7 @@ import com.example.kpkn.data.models.InitialRecoveryActivityType
 import com.example.kpkn.data.models.InitialRecoveryEvidence
 import com.example.kpkn.data.models.InitialRecoveryEvidenceFactory
 import com.example.kpkn.data.models.InitialRecoveryIntensity
+import com.example.kpkn.data.models.InitialRecoverySensations
 import com.example.kpkn.data.models.MuscleRecoveryStatus
 import com.example.kpkn.data.models.RingsLiftPattern
 import com.example.kpkn.data.models.RingsMuscleGroup
@@ -121,5 +122,23 @@ class AugePerMuscleInitialEvidenceTest {
         // Ley v1: 100 − 23 = 77, en ambos caminos (la v1 no entra en los pilares).
         assertEquals(77, withPillars.muscular)
         assertEquals(77, withoutPillars.muscular)
+    }
+
+    @Test
+    fun noTrainingSensationLowersEveryPillarByItsPenalty() {
+        val evidence = InitialRecoveryEvidenceFactory.fromInputsV2(
+            capturedAtMs = capture,
+            zone = zone,
+            trainedDays = emptySet(),
+            intensity = InitialRecoveryIntensity.HARD,
+            lifts = emptySet(),
+            groupSets = emptyMap(),
+            sensations = InitialRecoverySensations(muscular = 5),
+        )
+        val expected = 100 - InitialRecoveryEvidenceFactory.sensationPenalty(5)
+        val muscles = perMuscle(evidence)
+        for (pillar in InitialRecoveryEvidenceFactory.INITIAL_RECOVERY_MUSCLE_PILLARS) {
+            assertEquals(expected, muscles.getValue(pillar).recoveryScore)
+        }
     }
 }

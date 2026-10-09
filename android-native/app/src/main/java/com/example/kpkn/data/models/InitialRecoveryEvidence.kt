@@ -214,7 +214,7 @@ object InitialRecoveryEvidenceFactory {
      * Evidencia v2 de RINGS (puntos 20–22). Cada día entrenado (0 = hoy … 6) se fecha a las 12:00 de ese día en
      * [zone]: supuesto, la hora exacta no se pregunta. Las cargas están en unidades del motor (ver
      * [InitialRecoveryV2Model]). Las puntuaciones guardadas son el estado a la hora de captura. Sin días entrenados
-     * no hay cargas y todas las puntuaciones valen 100.
+     * no hay cargas: cada canal baja solo por sus sensaciones (100 − penalización de [sensationPenalty]).
      */
     fun fromInputsV2(
         capturedAtMs: Long,

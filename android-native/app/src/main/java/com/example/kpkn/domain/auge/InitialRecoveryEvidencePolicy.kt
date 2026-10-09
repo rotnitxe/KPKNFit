@@ -104,13 +104,14 @@ object InitialRecoveryEvidencePolicy {
 
     /**
      * Batería v2 de cada pilar pedido, con los días que ya tienen registro real descartados. Vacío si no hay
-     * evidencia v2 vigente con días entrenados, o si todos esos días quedan descartados.
+     * evidencia v2 vigente, o si todos los días declarados quedan descartados. Sin días, cuentan las sensaciones.
      */
     internal fun v2PillarBatteries(input: InitialRecoveryPolicyInput, pillars: Collection<String>): Map<String, Int> {
         val evidence = input.evidence?.normalized()?.takeIf { it.estimatorVersion >= 2 } ?: return emptyMap()
         if (input.nowMs >= evidence.expiresAtMs) return emptyMap()
         val kept = keptDayLoads(evidence.dayLoads, input.workoutLogs, input.zone)
-        if (kept.isEmpty()) return emptyMap()
+        // Todos los días declarados tienen registro real: la evidencia queda sustituida y no se aplica.
+        if (evidence.dayLoads.isNotEmpty() && kept.isEmpty()) return emptyMap()
         return pillars.associateWith { pillar ->
             InitialRecoveryV2Model.pillarBattery(pillar, kept, evidence.sensations, evidence.capturedAtMs, input.nowMs)
                 .roundToInt()
@@ -405,8 +406,8 @@ internal object InitialRecoveryV2Model {
     }
 
     /**
-     * Batería 0–100 de un pilar en [nowMs]. La sensación muscular se suma como carga en la hora de captura y solo
-     * cuenta si hay días entrenados.
+     * Batería 0–100 de un pilar en [nowMs]. La sensación muscular se suma como carga en la hora de captura, también
+     * sin días entrenados.
      */
     fun pillarBattery(
         pillar: String,
@@ -420,9 +421,7 @@ internal object InitialRecoveryV2Model {
         dayLoads.forEach { day ->
             load += (day.muscular[pillar] ?: 0.0) * muscleDecay(hoursBetween(day.dayStartMs, nowMs), tau)
         }
-        if (dayLoads.isNotEmpty()) {
-            load += sensationLoad(sensations.muscular, C_MUSCLE) * muscleDecay(hoursBetween(capturedAtMs, nowMs), tau)
-        }
+        load += sensationLoad(sensations.muscular, C_MUSCLE) * muscleDecay(hoursBetween(capturedAtMs, nowMs), tau)
         return 100.0 * exp(-load / C_MUSCLE)
     }
 
@@ -442,9 +441,7 @@ internal object InitialRecoveryV2Model {
     ): Double {
         var load = 0.0
         dayLoads.forEach { day -> load += day.energy * energyDecay(hoursBetween(day.dayStartMs, nowMs)) }
-        if (dayLoads.isNotEmpty()) {
-            load += sensationLoad(sensations.energy, C_ENERGY) * energyDecay(hoursBetween(capturedAtMs, nowMs))
-        }
+        load += sensationLoad(sensations.energy, C_ENERGY) * energyDecay(hoursBetween(capturedAtMs, nowMs))
         return 100.0 * exp(-load / C_ENERGY)
     }
 
@@ -456,9 +453,7 @@ internal object InitialRecoveryV2Model {
     ): Double {
         var load = 0.0
         dayLoads.forEach { day -> load += day.spinal * spinalDecay(hoursBetween(day.dayStartMs, nowMs)) }
-        if (dayLoads.isNotEmpty()) {
-            load += sensationLoad(sensations.structure, C_SPINAL) * spinalDecay(hoursBetween(capturedAtMs, nowMs))
-        }
+        load += sensationLoad(sensations.structure, C_SPINAL) * spinalDecay(hoursBetween(capturedAtMs, nowMs))
         return 100.0 * exp(-load / C_SPINAL)
     }
 
