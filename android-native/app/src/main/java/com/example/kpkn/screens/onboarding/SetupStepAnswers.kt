@@ -794,15 +794,26 @@ fun SetupWizardDraft.withGoalProfile(profile: TrainingGoalProfile): SetupWizardD
         .withSuggestedMusclesFor(profile)
 }
 
-/** Día con más energía; mientras la persona no mueva el inicio de semana, la semana empieza ese día. */
+/**
+ * Día con más energía; mientras la persona no mueva el inicio de semana, la semana empieza ese día. Si los días de
+ * entreno están vacíos o solo son el día fuerte anterior (la preselección automática), pasan a ser solo el nuevo; unos
+ * días elegidos a mano no se tocan.
+ */
 fun SetupWizardDraft.withFreshestDay(day: Int?): SetupWizardDraft {
     val fresh = day?.takeIf { it in 1..7 }
     val startFollowsFreshDay = weekStartDay == null || weekStartDay == freshestDay
-    return copy(
+    // Preselección automática: sin días, o exactamente el día fuerte anterior.
+    val autoPreselected = selectedWeekdays.isEmpty() || (freshestDay != null && selectedWeekdays == setOf(freshestDay))
+    val moved = copy(
         freshestDay = fresh,
         weekStartDay = if (startFollowsFreshDay) fresh else weekStartDay,
         stepSelections = stepSelections - SetupStepId.FRESH_DAY,
     )
+    return if (fresh != null && autoPreselected && moved.selectedWeekdays != setOf(fresh)) {
+        moved.withWeekdays(setOf(fresh))
+    } else {
+        moved
+    }
 }
 
 /**

@@ -79,15 +79,21 @@ object EntrenoStepValues {
 
     /**
      * Una semana repartida de [count] días (de 1 a 7), con descanso entre ellos mientras se pueda: lo que se siembra
-     * cuando un programa de días fijos pide esa frecuencia. Es una sugerencia; la persona confirma sus días.
+     * cuando un programa de días fijos pide esa frecuencia. Es una sugerencia; la persona confirma sus días. [anchor]
+     * (1 = lunes … 7 = domingo) es el día que abre el patrón, normalmente el día con más energía: el reparto entero se
+     * desplaza módulo 7 para empezar ahí.
      */
-    fun defaultWeekdays(count: Int): Set<Int> = when (count.coerceIn(1, 7)) {
-        1 -> setOf(1)
-        2 -> setOf(1, 4)
-        3 -> setOf(1, 3, 5)
-        4 -> setOf(1, 2, 4, 5)
-        5 -> setOf(1, 2, 3, 4, 5)
-        6 -> setOf(1, 2, 3, 4, 5, 6)
-        else -> setOf(1, 2, 3, 4, 5, 6, 7)
+    fun defaultWeekdays(count: Int, anchor: Int = 1): Set<Int> {
+        val shift = (anchor.takeIf { it in 1..7 } ?: 1) - 1
+        val base = when (count.coerceIn(1, 7)) {
+            1 -> setOf(1)
+            2 -> setOf(1, 4)
+            3 -> setOf(1, 3, 5)
+            4 -> setOf(1, 2, 4, 5)
+            5 -> setOf(1, 2, 3, 4, 5)
+            6 -> setOf(1, 2, 3, 4, 5, 6)
+            else -> setOf(1, 2, 3, 4, 5, 6, 7)
+        }
+        return base.mapTo(linkedSetOf<Int>()) { day -> Math.floorMod(day - 1 + shift, 7) + 1 }
     }
 }
