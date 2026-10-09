@@ -175,6 +175,11 @@ import com.example.kpkn.screens.workout.components.RestTimerOverlay
 import com.example.kpkn.screens.workout.components.RestTimerPill
 import com.example.kpkn.screens.workout.components.VolumeAdvanceModal
 import com.example.kpkn.screens.workout.components.WorkoutReadinessSheet
+import com.example.kpkn.ui.components.LocalKpknOverlayHost
+import com.example.kpkn.ui.tour.TourAnchors
+import com.example.kpkn.ui.tour.TourIds
+import com.example.kpkn.ui.tour.TourScripts
+import com.example.kpkn.ui.tour.tourAnchor
 import com.example.kpkn.screens.workout.components.WorkoutRecordFab
 import com.example.kpkn.screens.workout.components.AdjustableRingCompact
 import com.example.kpkn.screens.workout.components.MinimalMuscleSlider
@@ -441,6 +446,12 @@ fun WorkoutScreen(
             }
         }
         return
+    }
+
+    // Recorrido de la primera sesión: cuando ya cargó y la hoja de preparación se cerró (si no, taparía el recorrido).
+    val tourHost = LocalKpknOverlayHost.current
+    LaunchedEffect(showReadinessSheet) {
+        if (!showReadinessSheet) tourHost?.startTour(TourIds.FIRST_WORKOUT, TourScripts.firstWorkout)
     }
 
     val modeSession = remember(session, uiState.activeMode) {
@@ -1205,6 +1216,7 @@ fun WorkoutScreen(
                             val stepper = liveSetStepperHolder.snapshot
                             if (stepper != null) {
                                 WorkoutSetPager(
+                                    modifier = Modifier.tourAnchor(TourAnchors.WORKOUT_SIGUIENTE),
                                     elements = stepper.elements,
                                     activeElementIndex = stepper.activeElementIndex,
                                     completedCount = stepper.completedCount,

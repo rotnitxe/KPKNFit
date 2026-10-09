@@ -1,6 +1,7 @@
 package com.example.kpkn
 
 import com.example.kpkn.BuildConfig
+import com.example.kpkn.ui.tour.*
 
 import android.Manifest
 import android.app.AlarmManager
@@ -908,7 +909,7 @@ fun KPKNApp(
                     contentColor = MaterialTheme.colorScheme.onSurface,
                     tonalElevation = 0.dp,
                     windowInsets = WindowInsets(0, 0, 0, 0),
-                    modifier = Modifier.height(80.dp),
+                    modifier = Modifier.height(80.dp).tourAnchor(TourAnchors.HOME_BARRA),
                 ) {
                     val homeSel = currentTab == KpknRoute.Home.route
                     NavigationBarItem(

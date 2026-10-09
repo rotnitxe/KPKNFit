@@ -17,6 +17,11 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.example.kpkn.ui.components.LocalKpknOverlayHost
+import com.example.kpkn.ui.tour.TourAnchors
+import com.example.kpkn.ui.tour.TourIds
+import com.example.kpkn.ui.tour.TourScripts
+import com.example.kpkn.ui.tour.tourAnchor
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -124,6 +129,9 @@ fun BodyProgressScreen(
     val settings by ProgramRepository.getInstance().settings.collectAsState()
     val vitals = settings.userVitals
     val plans by nutritionRepo.nutritionPlans.collectAsState()
+    // Recorrido de Cuerpo: se lanza al montar la pantalla (no hay señal de carga en el ViewModel). Visto = no arranca.
+    val tourHost = LocalKpknOverlayHost.current
+    LaunchedEffect(Unit) { tourHost?.startTour(TourIds.BODY, TourScripts.body) }
     val activePlanId by nutritionRepo.activeNutritionPlanId.collectAsState()
     val activePlan = plans.find { it.id == activePlanId }
     val bodyMeasurements by bodyViewModel.legacyEntries.collectAsState()
@@ -335,6 +343,7 @@ fun BodyProgressScreen(
                             editingEntry = null
                             showAddMeasurement = true
                         },
+                        modifier = Modifier.tourAnchor(TourAnchors.BODY_PESAJES),
                     ) {
                         Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(6.dp))
@@ -445,16 +454,18 @@ fun BodyProgressScreen(
             }
 
             item {
-                BodyMetricTrendChartCard(
-                    title = "Peso corporal",
-                    subtitle = "Evolución según tus registros",
-                    points = weightSeries,
-                    trend = weightTrendSeries,
-                    unit = "kg",
-                    color = WEIGHT_COLOR,
-                    targetValue = targetWeight,
-                    emptyMessage = "Registra peso para ver su evolución en el tiempo.",
-                )
+                Box(Modifier.fillMaxWidth().tourAnchor(TourAnchors.BODY_TENDENCIA)) {
+                    BodyMetricTrendChartCard(
+                        title = "Peso corporal",
+                        subtitle = "Evolución según tus registros",
+                        points = weightSeries,
+                        trend = weightTrendSeries,
+                        unit = "kg",
+                        color = WEIGHT_COLOR,
+                        targetValue = targetWeight,
+                        emptyMessage = "Registra peso para ver su evolución en el tiempo.",
+                    )
+                }
             }
 
             item {

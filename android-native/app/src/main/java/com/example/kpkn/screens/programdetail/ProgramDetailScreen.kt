@@ -63,6 +63,11 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.ui.components.LocalKpknOverlayHost
+import com.example.kpkn.ui.tour.TourAnchors
+import com.example.kpkn.ui.tour.TourIds
+import com.example.kpkn.ui.tour.TourScripts
+import com.example.kpkn.ui.tour.tourAnchor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -154,6 +159,9 @@ fun ProgramDetailScreen(
     LaunchedEffect(p.id, p.volumeSetupPromptSeen, advancedAccess) {
         showVolumeSetupNotice = advancedAccess && !p.volumeSetupPromptSeen
     }
+    // Recorrido de Entreno: la primera vez que se entra en un programa ya cargado (visto = el controlador no arranca).
+    val tourHost = LocalKpknOverlayHost.current
+    LaunchedEffect(p.id) { tourHost?.startTour(TourIds.TRAINING, TourScripts.training) }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) { KpknSnackbar(it) } },
@@ -466,6 +474,7 @@ private fun CompactStructureSubTabs(
                     modifier = Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(14.dp))
+                        .then(if (value == StructureSubTab.MACROCICLO) Modifier.tourAnchor(TourAnchors.TRAINING_ESTRUCTURA) else Modifier)
                         .clickable { onStructureSubTabChange(value) },
                     shape = RoundedCornerShape(14.dp),
                     color = if (selected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.74f) else Color.White.copy(alpha = 0.05f),
@@ -736,6 +745,7 @@ private fun TrainingPanel(
             StructureSubTab.SEMANA -> {
                 DayView(
                     program = program,
+                    modifier = Modifier.tourAnchor(TourAnchors.TRAINING_SEMANA),
                     isSimpleProgram = program.isSimpleTemporalProgram,
                     isCalendarized = ProgramCalendarEngine.isCalendarized(program),
                     selectedWeek = selectedWeekMeta,

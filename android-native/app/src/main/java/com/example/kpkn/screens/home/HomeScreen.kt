@@ -71,6 +71,11 @@ import com.example.kpkn.ui.components.rings.RingChannel
 import com.example.kpkn.ui.components.rings.TowerRingValues
 import com.example.kpkn.ui.components.KpknGlass
 import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.ui.components.LocalKpknOverlayHost
+import com.example.kpkn.ui.tour.TourAnchors
+import com.example.kpkn.ui.tour.TourIds
+import com.example.kpkn.ui.tour.TourScripts
+import com.example.kpkn.ui.tour.tourAnchor
 import kotlinx.coroutines.launch
 import com.example.kpkn.ui.components.kpknGlass
 import dev.chrisbanes.haze.HazeState
@@ -140,6 +145,11 @@ fun HomeScreen(
     var showNutritionOverlay by remember { mutableStateOf(false) }
     var showAugeRecommendations by remember { mutableStateOf(false) }
     LaunchedEffect(pro) { if (!pro) { showFoodLogger = false; showNutritionOverlay = false; showAugeRecommendations = false } }
+    // Recorrido de Inicio: solo cuando los RINGS ya cargaron (si no, esperaría a sus anclas). Lo decide el controlador: visto = no arranca.
+    val tourHost = LocalKpknOverlayHost.current
+    LaunchedEffect(augeLoading) {
+        if (!augeLoading) tourHost?.startTour(TourIds.HOME, TourScripts.home(conTorre = pro))
+    }
     val nutritionLogs by nutritionRepo.nutritionLogs.collectAsState()
     val context = LocalContext.current
     LaunchedEffect(uiState.activeProgramId) {
@@ -657,6 +667,7 @@ private fun HomeWithProgram(
                 activeProgramId = activeProgramId,
                 onProgramClick = onNavigateToProgram,
                 onCreateProgram = onCreateProgram,
+                modifier = Modifier.tourAnchor(TourAnchors.HOME_PROGRAMAS),
             )
         }
         item(key = "wikilab") {

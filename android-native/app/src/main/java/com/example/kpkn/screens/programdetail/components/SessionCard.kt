@@ -28,6 +28,8 @@ import com.example.kpkn.R
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.domain.exercises.exerciseDisplayName
+import com.example.kpkn.ui.tour.TourAnchors
+import com.example.kpkn.ui.tour.tourAnchor
 
 @Composable
 fun SessionCard(
@@ -114,7 +116,8 @@ fun SessionCard(
 
             // Exercise preview
             if (exercises.isNotEmpty()) {
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.clickable { isExpanded = !isExpanded }) {
+                // Ancla del recorrido solo en la primera tarjeta: la fila despliega los ejercicios (acción inocua).
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.then(if (index == 0) Modifier.tourAnchor(TourAnchors.TRAINING_SESION) else Modifier).clickable { isExpanded = !isExpanded }) {
                     items(exercises.take(if (isExpanded) exercises.size else 4)) { exercise ->
                         Box(Modifier.clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)).padding(horizontal = 10.dp, vertical = 6.dp)) {
                             Text(exerciseDisplayName(exercise, exerciseLookup), fontSize = 9.sp, fontWeight = FontWeight.Bold, maxLines = 1, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f))
@@ -208,7 +211,7 @@ fun SessionCard(
                     Icon(Icons.Default.Edit, stringResource(R.string.common_edit), tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
                 }
                 Spacer(Modifier.width(4.dp))
-                FilledTonalButton(onClick = onStart, shape = RoundedCornerShape(10.dp)) {
+                FilledTonalButton(onClick = onStart, shape = RoundedCornerShape(10.dp), modifier = if (index == 0) Modifier.tourAnchor(TourAnchors.TRAINING_EMPEZAR) else Modifier) {
                     Icon(Icons.Default.PlayArrow, null, Modifier.size(16.dp))
                     Spacer(Modifier.width(4.dp))
                     Text(stringResource(R.string.common_start), fontSize = 10.sp, fontWeight = FontWeight.Bold)
