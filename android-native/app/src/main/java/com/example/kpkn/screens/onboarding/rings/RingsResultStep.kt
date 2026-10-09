@@ -314,6 +314,7 @@ private fun MusclesToggle(expanded: Boolean, onClick: () -> Unit) {
             text = "Quiero ajustar yo mismo mis músculos",
             style = WizardTypography.controlLabel,
             color = WizardColors.text,
+            modifier = Modifier.weight(1f),
         )
         Spacer(Modifier.width(12.dp))
         Chevron(expanded)
