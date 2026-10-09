@@ -98,6 +98,7 @@ internal fun planChooseTag(id: String): String = "setup-plan-choose-$id"
  *
  * - [cards]: las tarjetas, en orden; sus `id` deben ser únicos. Con una sola se muestra centrada, sin pager.
  * - [selectedId]: el programa elegido (lleva una marca de «hecho» sobre su portada); el carrusel arranca en él.
+ * - [initialId]: dónde arranca si no hay ninguno elegido (la recomendación). Centra la tarjeta pero no elige nada.
  * - [onSelect]: «Elegir» (con el id de la tarjeta central). [onOpen]: «Ver detalles», o tocar la tarjeta central.
  *   Tocar una vecina la trae al centro.
  *
@@ -111,8 +112,9 @@ fun PlanCarousel(
     onSelect: (String) -> Unit,
     onOpen: (String) -> Unit,
     modifier: Modifier = Modifier,
+    initialId: String? = null,
 ) {
-    PlanCarousel(cards, selectedId, onSelect, onOpen, wizardReducedMotion(), modifier)
+    PlanCarousel(cards, selectedId, onSelect, onOpen, wizardReducedMotion(), modifier, initialId)
 }
 
 /** El carrusel con el «reducir movimiento» decidido por quien llama (pruebas y vista previa de depuración). */
@@ -124,6 +126,7 @@ internal fun PlanCarousel(
     onOpen: (String) -> Unit,
     reduced: Boolean,
     modifier: Modifier = Modifier,
+    initialId: String? = null,
 ) {
     if (cards.isEmpty()) return
     BoxWithConstraints(modifier.fillMaxWidth()) {
@@ -148,7 +151,7 @@ internal fun PlanCarousel(
                 PlanCardInfo(card, isSelected, onOpen, onSelect)
             }
         } else {
-            val initial = remember { cards.indexOfFirst { it.id == selectedId }.coerceAtLeast(0) }
+            val initial = remember { cards.indexOfFirst { it.id == (selectedId ?: initialId) }.coerceAtLeast(0) }
             val pager = rememberPagerState(initialPage = initial) { cards.size }
             val scope = rememberCoroutineScope()
             // Las vecinas se componen un cuadro después de la central (cada portada es pesada de componer): ver `rememberProgressiveCount`.

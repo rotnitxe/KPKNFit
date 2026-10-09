@@ -2,11 +2,17 @@ package com.example.kpkn.screens.onboarding.entreno
 
 import com.example.kpkn.data.programs.PlanEditorialTable
 import com.example.kpkn.data.programs.PlanOrigin
+import com.example.kpkn.domain.onboarding.GeneratedPlans
+import com.example.kpkn.domain.onboarding.TrainingGoalProfile
+import com.example.kpkn.domain.training.periodization.ProgramVariant
+import com.example.kpkn.screens.onboarding.SetupExperience
+import com.example.kpkn.screens.onboarding.SetupPlanPhase
 import com.example.kpkn.screens.onboarding.SetupPlanReveal
 import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanBlockModel
 import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanCardModel
 import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanDayModel
 import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanDetailModel
+import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanPhaseModel
 
 /*
  * Entreno v2 · del revelado que publica el ViewModel ([SetupPlanReveal], sacado del programa ya preparado) a los modelos
@@ -41,12 +47,18 @@ internal fun SetupPlanReveal.toDetailModel(): PlanDetailModel = PlanDetailModel(
     attribution = attribution,
 )
 
+/** La fase de la franja del detalle (1:1, sin texto propio). */
+internal fun SetupPlanPhase.toPhaseModel(): PlanPhaseModel = PlanPhaseModel(label = label, weeks = weeks, goal = goal)
+
 /**
  * Las portadas del carrusel, una por programa: el carrusel exige ids únicos (el barrido ya los deduplica; esto solo
- * blinda la pantalla).
+ * blinda la pantalla). [recommendedId] lleva la insignia «Para ti».
  */
-internal fun cardModelsOf(reveals: List<SetupPlanReveal>): List<PlanCardModel> =
-    reveals.distinctBy { it.planId }.map { it.toCardModel() }
+internal fun cardModelsOf(reveals: List<SetupPlanReveal>, recommendedId: String? = null): List<PlanCardModel> =
+    reveals.distinctBy { it.planId }.map { reveal ->
+        val card = reveal.toCardModel()
+        if (reveal.planId == recommendedId) card.copy(badge = RECOMMENDED_BADGE) else card
+    }
 
 /**
  * Huella ESTABLE de un resultado del barrido (la misma tras girar la pantalla o tras la muerte del proceso, a
@@ -123,3 +135,60 @@ internal fun shownSelectedIdOf(selectedId: String?, shown: List<SetupPlanReveal>
 private fun changesExercises(adapted: SetupPlanReveal, original: SetupPlanReveal): Boolean =
     adapted.mainExercises != original.mainExercises ||
         adapted.week.map { it.exerciseCount } != original.week.map { it.exerciseCount }
+
+// ─── Oferta de PLAN (D2c): orden, «Ver más» y recomendación ─────────────────────────────────────────────
+
+/** La insignia de la recomendación en la portada. */
+internal const val RECOMMENDED_BADGE = "Para ti"
+
+/** Cuántos programas enseña PLAN de entrada; los demás se abren con «Ver más programas (N)». */
+internal const val PLAN_OFFER_LIMIT = 6
+
+/** Lo que enseña PLAN: las fichas visibles y cuántos programas quedan tras «Ver más programas». */
+internal data class PlanOffer(val shown: List<SetupPlanReveal>, val hidden: Int)
+
+/**
+ * La forma que se recomienda según la experiencia: quien empieza o vuelve, la simple (una semana que se repite); con experiencia
+ * intermedia, la de bloques; con experiencia avanzada, la periodizada. Sin experiencia, la simple.
+ */
+internal fun recommendedVariantOf(experience: SetupExperience?): ProgramVariant = when (experience) {
+    SetupExperience.INTERMEDIATE -> ProgramVariant.BLOCKS
+    SetupExperience.ADVANCED -> ProgramVariant.PERIODIZED
+    SetupExperience.NEW, SetupExperience.RETURNING, null -> ProgramVariant.SIMPLE
+}
+
+/**
+ * El programa recomendado entre [reveals]: la forma de [recommendedVariantOf] del perfil; si no está entre los viables, la
+ * simple y, si tampoco, el primero a medida. Null si no hay ningún programa a medida.
+ */
+internal fun recommendedIdOf(
+    reveals: List<SetupPlanReveal>,
+    profile: TrainingGoalProfile?,
+    experience: SetupExperience?,
+): String? {
+    val byForm = profile?.let { GeneratedPlans.entryIdFor(it, recommendedVariantOf(experience)) }
+    val simple = profile?.let { GeneratedPlans.entryIdFor(it) }
+    return reveals.firstOrNull { it.planId == byForm }?.planId
+        ?: reveals.firstOrNull { it.planId == simple }?.planId
+        ?: reveals.firstOrNull { it.generated }?.planId
+}
+
+/**
+ * El orden de la oferta: primero los programas a medida del perfil (simple, en bloques y periodizada, en su orden) y, detrás, los de
+ * autor y propios, tal como los deja el barrido. Una sola ficha por familia de autor (PHUL, PHAT).
+ */
+internal fun orderedOfferOf(reveals: List<SetupPlanReveal>): List<SetupPlanReveal> =
+    planCardRevealsOf(reveals.sortedBy { if (it.generated) 0 else 1 })
+
+/**
+ * Lo que enseña PLAN: todo el orden si está abierto o si caben en [PLAN_OFFER_LIMIT]; si no, los primeros y cuántos quedan. Si lo
+ * elegido quedaría escondido, se enseña todo: nunca se oculta la elección.
+ */
+internal fun planOfferOf(reveals: List<SetupPlanReveal>, expanded: Boolean, selectedId: String?): PlanOffer {
+    val all = orderedOfferOf(reveals)
+    if (expanded || all.size <= PLAN_OFFER_LIMIT) return PlanOffer(all, hidden = 0)
+    val shown = all.take(PLAN_OFFER_LIMIT)
+    val chosen = shownSelectedIdOf(selectedId, all)
+    val chosenHidden = chosen != null && all.any { it.planId == chosen } && shown.none { it.planId == chosen }
+    return if (chosenHidden) PlanOffer(all, hidden = 0) else PlanOffer(shown, hidden = all.size - shown.size)
+}
