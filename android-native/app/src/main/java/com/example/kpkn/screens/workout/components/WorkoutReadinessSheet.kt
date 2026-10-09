@@ -9,7 +9,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -78,11 +77,12 @@ import com.example.kpkn.domain.auge.RecoveryBands
 import com.example.kpkn.domain.auge.SessionMuscleFilter
 import com.example.kpkn.domain.auge.getAugeMusclePillarId
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
-import com.example.kpkn.screens.home.AugeRingsCanvas
-import com.example.kpkn.screens.home.AugeRingBloomFar
 import com.example.kpkn.screens.home.RingColors
 import com.example.kpkn.screens.home.augeRingsHostHeightDp
-import com.example.kpkn.screens.home.augeRingsLayout
+import com.example.kpkn.ui.components.rings.KpknTowerRings
+import com.example.kpkn.ui.components.rings.RingChannel
+import com.example.kpkn.ui.components.rings.TowerRingValues
+import com.example.kpkn.ui.components.rings.towerRingCenter
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -357,6 +357,19 @@ fun WorkoutReadinessSheet(
 
 private enum class ReadinessAdjustTarget { MUSCULAR, ENERGY, SPINE }
 
+/** Anillo de la torre que se toca para cada ajuste de la preparación. */
+private fun ReadinessAdjustTarget.toRingChannel(): RingChannel = when (this) {
+    ReadinessAdjustTarget.MUSCULAR -> RingChannel.MUSCULOS
+    ReadinessAdjustTarget.ENERGY -> RingChannel.ENERGIA
+    ReadinessAdjustTarget.SPINE -> RingChannel.COLUMNA
+}
+
+private fun RingChannel.toReadinessTarget(): ReadinessAdjustTarget = when (this) {
+    RingChannel.MUSCULOS -> ReadinessAdjustTarget.MUSCULAR
+    RingChannel.ENERGIA -> ReadinessAdjustTarget.ENERGY
+    RingChannel.COLUMNA -> ReadinessAdjustTarget.SPINE
+}
+
 @Composable
 private fun InterlacedRingsBlock(
     muscular: Int,
@@ -386,52 +399,21 @@ private fun InterlacedRingsBlock(
                     .height(hostHeight)
                     .onSizeChanged { ringsSize = it },
             ) {
-                AugeRingsCanvas(
-                    mp = muscular / 100f,
-                    sp = neural / 100f,
-                    cp = spinal / 100f,
+                // Sin animación: al ajustar con el deslizador la torre sigue el valor al instante.
+                KpknTowerRings(
+                    values = TowerRingValues(columna = spinal, musculos = muscular, energia = neural),
+                    modifier = Modifier.fillMaxSize(),
+                    onRingTap = { channel -> onRingTap(channel.toReadinessTarget()) },
+                    animate = false,
                 )
 
                 if (ringsSize != IntSize.Zero) {
-                    val bloomPx = with(density) { AugeRingBloomFar.toPx() }
-                    val layout = augeRingsLayout(
+                selectedTarget?.let { selected ->
+                    val c = towerRingCenter(
+                        channel = selected.toRingChannel(),
                         width = ringsSize.width.toFloat(),
                         height = ringsSize.height.toFloat(),
-                        bloomPx = bloomPx,
                     )
-                    val radius = layout.radius
-                    val centers = layout.centers
-                val targets = listOf(
-                    ReadinessAdjustTarget.MUSCULAR,
-                    ReadinessAdjustTarget.ENERGY,
-                    ReadinessAdjustTarget.SPINE,
-                )
-                val hitRadius = radius + with(density) { 12.dp.toPx() }
-
-                targets.forEachIndexed { i, target ->
-                    val c = centers[i]
-                    Box(
-                        modifier = Modifier
-                            .offset { IntOffset((c.x - hitRadius).toInt(), (c.y - hitRadius).toInt()) }
-                            .size(with(density) { (hitRadius * 2).toInt().toDp() })
-                            .clip(CircleShape)
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null,
-                            ) { onRingTap(target) }
-                            .semantics {
-                                contentDescription = when (target) {
-                                    ReadinessAdjustTarget.MUSCULAR -> "Ring de músculos. Toca para ajustar."
-                                    ReadinessAdjustTarget.ENERGY -> "Ring de energía. Toca para ajustar."
-                                    ReadinessAdjustTarget.SPINE -> "Ring de columna. Toca para ajustar."
-                                }
-                            },
-                    )
-                }
-
-                selectedTarget?.let { selected ->
-                    val selectedIndex = targets.indexOf(selected)
-                    val c = centers[selectedIndex]
                     val cardWidthPx = with(density) { 264.dp.toPx() }
                     Popup(
                         alignment = Alignment.TopStart,

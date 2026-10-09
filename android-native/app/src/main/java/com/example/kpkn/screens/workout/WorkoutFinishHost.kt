@@ -107,7 +107,8 @@ import com.example.kpkn.domain.auge.SessionDiscomfortSummary
 import com.example.kpkn.domain.auge.SessionIntensityResult
 import com.example.kpkn.domain.auge.getAugeMusclePillarId
 import com.example.kpkn.domain.training.VolumeCalculator
-import com.example.kpkn.screens.home.AugeRingsCanvas
+import com.example.kpkn.ui.components.rings.KpknTowerRings
+import com.example.kpkn.ui.components.rings.TowerRingValues
 import com.example.kpkn.screens.home.RingColors
 import com.example.kpkn.screens.home.augeRingsHostHeightDp
 import com.example.kpkn.screens.workout.components.AdjustableRingCompact
@@ -1227,11 +1228,19 @@ private fun FinishDrainRingsBlock(
                         }
                     },
             ) {
-                AugeRingsCanvas(
-                    mp = muscular.coerceIn(0, 100) / 100f,
-                    sp = neural.coerceIn(0, 100) / 100f,
-                    cp = spinal.coerceIn(0, 100) / 100f,
-                    drainFractions = drains.map { it.coerceIn(0, 100) / 100f },
+                // Antes → después: cada anillo parte de lo que tenía antes del entreno (valor actual más desgaste) y baja al actual.
+                KpknTowerRings(
+                    values = TowerRingValues(
+                        columna = spinal.coerceIn(0, 100),
+                        musculos = muscular.coerceIn(0, 100),
+                        energia = neural.coerceIn(0, 100),
+                    ),
+                    from = TowerRingValues(
+                        columna = (spinal + spinalDrain).coerceIn(0, 100),
+                        musculos = (muscular + muscularDrain).coerceIn(0, 100),
+                        energia = (neural + neuralDrain).coerceIn(0, 100),
+                    ),
+                    modifier = Modifier.fillMaxSize(),
                 )
             }
         }
