@@ -29,7 +29,7 @@ import kotlin.math.roundToInt
  * - [resolved] asocia cada nombre importado a una configuración del catálogo (o null). Con [catalog], un ejercicio
  *   resuelto lleva la identidad v2 que pone el editor; sin catálogo, o si la configuración no existe, se guarda con
  *   su nombre libre y sin identidad de catálogo.
- * - Procedencia: `planProvenance` con planId «imported:<programId>» y clase LEGACY (no se atribuye autoría).
+ * - Procedencia: `planProvenance` con planId «imported:<programId>» y clase IMPORTED («Programa importado»; no se atribuye autoría).
  */
 object ImportedProgramBuilder {
     const val DEFAULT_TITLE = "Mi programa importado"
@@ -79,7 +79,7 @@ object ImportedProgramBuilder {
             } else {
                 ProgramSchedulePlan(weekStartDay = trainingDays.first(), trainingDays = trainingDays.toSet())
             },
-            planProvenance = PlanProvenance(planId = "imported:$programId", category = PlanProvenanceClass.LEGACY),
+            planProvenance = PlanProvenance(planId = "imported:$programId", category = PlanProvenanceClass.IMPORTED),
         )
     }
 

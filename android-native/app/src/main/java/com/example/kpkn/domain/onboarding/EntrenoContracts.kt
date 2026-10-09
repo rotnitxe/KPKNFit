@@ -172,6 +172,6 @@ enum class ProgramSource(val label: String) {
 
 /** Opciones del paso de programa que están disponibles en esta versión del asistente. */
 internal object ProgramSourceOptions {
-    /** La importación (lector, vista previa y constructor) llega en C3c: hasta entonces la opción queda oculta. */
-    const val IMPORT_ENABLED = false
+    /** La importación (lector, vista previa y constructor) está encendida desde C3c; apagarla oculta la opción «Importar». */
+    const val IMPORT_ENABLED = true
 }

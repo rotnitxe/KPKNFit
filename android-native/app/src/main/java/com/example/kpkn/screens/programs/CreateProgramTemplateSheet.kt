@@ -185,6 +185,8 @@ private data class LibrarySheet(val entry: CatalogEntry, val primary: LibraryPri
 fun CreateProgramTemplateSheet(
     onDismiss: () -> Unit,
     onCreateBlank: (() -> Unit)?,
+    /** Abre «Importar» (Excel, CSV o texto) junto a «Desde cero»; null = sin esa entrada. */
+    onImport: (() -> Unit)? = null,
     onCreateFromTemplate: (ProgramTemplateOption) -> Unit,
     onSelectProtocol: (Protocol) -> Unit = {},
     /**
@@ -296,6 +298,23 @@ fun CreateProgramTemplateSheet(
                             Text("Desde cero", fontWeight = FontWeight.Black, color = KpknSheetTokens.ControlLabel)
                             Text(
                                 "Programa vacío. Lo armas tú.",
+                                color = KpknSheetTokens.ControlLabel.copy(alpha = 0.72f),
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                        }
+                    }
+                }
+                onImport?.let { importProgram ->
+                    Surface(
+                        onClick = importProgram,
+                        modifier = Modifier.fillMaxWidth().testTag("import-program-card"),
+                        shape = RoundedCornerShape(16.dp),
+                        color = KpknSheetTokens.ControlFill,
+                    ) {
+                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text("Importar (Excel, CSV o texto)", fontWeight = FontWeight.Black, color = KpknSheetTokens.ControlLabel)
+                            Text(
+                                "Trae tu programa desde un archivo o pégalo.",
                                 color = KpknSheetTokens.ControlLabel.copy(alpha = 0.72f),
                                 style = MaterialTheme.typography.bodySmall,
                             )

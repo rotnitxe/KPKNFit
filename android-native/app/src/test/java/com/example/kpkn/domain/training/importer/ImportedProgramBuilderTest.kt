@@ -89,7 +89,7 @@ class ImportedProgramBuilderTest {
         val program = ImportedProgramBuilder.build(draft, resolved = emptyMap(), weekdays = listOf(1, 3, 5), programId = "imp-3")
 
         assertEquals("imported:imp-3", program.planProvenance?.planId)
-        assertEquals(PlanProvenanceClass.LEGACY, program.planProvenance?.category)
+        assertEquals(PlanProvenanceClass.IMPORTED, program.planProvenance?.category)
         assertNull(program.author)
     }
 

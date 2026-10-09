@@ -159,6 +159,7 @@ private fun provenanceLabelWithoutEntry(program: Program, provenance: PlanProven
         PlanProvenanceClass.ORIGINAL -> "Original fiel"
         PlanProvenanceClass.ADAPTED -> "Adaptación KPKN"
         PlanProvenanceClass.KPKN -> "Plan KPKN"
+        PlanProvenanceClass.IMPORTED -> "Programa importado"
         PlanProvenanceClass.LEGACY, null -> when {
             // Viene de un método (protocolo o plantilla) que el catálogo ya no ofrece.
             !program.sourceProtocolId.isNullOrBlank() || !program.structureTemplateId.isNullOrBlank() ->
