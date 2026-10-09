@@ -104,28 +104,6 @@ fun WikiIcon(tint: Color) {
     )
 }
 
-// ─── Intertwined Rings (toggle: vista combinada) ─────────────────────────────
-@Composable
-fun IntertwinedRingsIcon(tint: Color, size: Dp = 24.dp) {
-    Canvas(Modifier.size(size)) {
-        val r = size.toPx() / 5f
-        val center = Offset(this.size.width / 2, this.size.height / 2)
-        val sw = 2.dp.toPx()
-        drawCircle(tint, r, Offset(center.x - r * 0.6f, center.y), style = Stroke(sw))
-        drawCircle(tint, r, Offset(center.x + r * 0.6f, center.y), style = Stroke(sw))
-    }
-}
-
-// ─── Single Ring (toggle: vista individual) ──────────────────────────────────
-@Composable
-fun SingleRingIcon(tint: Color, size: Dp = 24.dp) {
-    Canvas(Modifier.size(size)) {
-        val r = minOf(this.size.width, this.size.height) / 2f - 3.dp.toPx()
-        drawCircle(tint, r, style = Stroke(2.dp.toPx()))
-        drawCircle(tint, r * 0.5f)
-    }
-}
-
 // ─── Powerlifter corner placeholder icon ─────────────────────────────────────
 @Composable
 fun PowerlifterCornerIcon(

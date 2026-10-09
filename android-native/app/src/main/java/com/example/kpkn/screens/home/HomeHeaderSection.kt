@@ -1,6 +1,5 @@
 package com.example.kpkn.screens.home
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -26,9 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -51,47 +48,3 @@ fun HomeHeaderSection(
     }
 }
 
-// ─── Header Icons ──────────────────────────────────────────────────────────
-
-@Composable
-private fun ThreeRingsHeaderIcon(modifier: Modifier = Modifier) {
-    Canvas(modifier.fillMaxSize()) {
-        val size = this.size
-        val r = size.minDimension / 6f
-        val s = r * 1.6f
-        val cy = size.height / 2f
-        val cx = size.width / 2f
-
-        val colors = listOf(com.example.kpkn.ui.theme.RingRed, com.example.kpkn.ui.theme.RingBlue, com.example.kpkn.ui.theme.RingYellow)
-        val positions = listOf(
-            Offset(cx - s, cy),
-            Offset(cx, cy),
-            Offset(cx + s, cy),
-        )
-
-        positions.forEachIndexed { i, center ->
-            drawCircle(
-                colors[i],
-                r,
-                center,
-                style = Stroke(1.2f),
-            )
-        }
-    }
-}
-
-@Composable
-private fun SingleRingHeaderIcon(modifier: Modifier = Modifier) {
-    Canvas(modifier.fillMaxSize()) {
-        val size = this.size
-        val r = size.minDimension / 2.5f
-        val center = Offset(size.width / 2f, size.height / 2f)
-
-        drawCircle(
-            com.example.kpkn.ui.theme.RingBlue,
-            r,
-            center,
-            style = Stroke(1.2f),
-        )
-    }
-}
