@@ -17,7 +17,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.InitialRecoveryActivityType
 import com.example.kpkn.data.models.InitialRecoveryAxialExposure
-import com.example.kpkn.data.models.InitialRecoveryIntensity
 import com.example.kpkn.data.models.InitialRecoveryResponseState
 import com.example.kpkn.domain.onboarding.RingsChannelCoverage
 import com.example.kpkn.domain.onboarding.RingsCoverage
@@ -27,7 +26,12 @@ import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardShapes
 import com.example.kpkn.screens.onboarding.design.WizardSpacing
 import com.example.kpkn.screens.onboarding.design.WizardTypography
+import com.example.kpkn.screens.onboarding.rings.RingsFeelingsStep
+import com.example.kpkn.screens.onboarding.rings.RingsGroupSetsStep
+import com.example.kpkn.screens.onboarding.rings.RingsIntensityStep
 import com.example.kpkn.screens.onboarding.rings.RingsIntroStep
+import com.example.kpkn.screens.onboarding.rings.RingsMainLiftsStep
+import com.example.kpkn.screens.onboarding.rings.RingsSessionDaysStep
 
 /**
  * Cuerpo de los pasos del bloque RINGS.
@@ -58,11 +62,15 @@ fun SetupRingsStepContent(
 ) {
     when (step) {
         SetupStepId.RINGS_INTRO -> RingsIntroStep()
+        SetupStepId.RINGS_SESSION_DAYS -> RingsSessionDaysStep(state, vm)
+        SetupStepId.RINGS_MAIN_LIFTS -> RingsMainLiftsStep(state, vm)
+        SetupStepId.RINGS_GROUP_SETS -> RingsGroupSetsStep(state, vm)
+        SetupStepId.RINGS_INTENSITY -> RingsIntensityStep(state, vm)
+        SetupStepId.RINGS_FEELINGS -> RingsFeelingsStep(state, vm)
         SetupStepId.RINGS_RECENT -> RingsRecentContent(state, vm)
         SetupStepId.RINGS_SESSIONS -> RingsSessionsContent(state, vm)
         SetupStepId.RINGS_RECENCY -> RingsRecencyContent(state, vm)
         SetupStepId.RINGS_ACTIVITY -> RingsActivityContent(state, vm)
-        SetupStepId.RINGS_INTENSITY -> RingsIntensityContent(state, vm)
         SetupStepId.RINGS_AXIAL -> RingsAxialContent(state, vm)
         SetupStepId.RINGS_MUSCLE_FEELING -> RingsFeelingContent(state, vm, SetupStepId.RINGS_MUSCLE_FEELING)
         SetupStepId.RINGS_ENERGY_FEELING -> RingsFeelingContent(state, vm, SetupStepId.RINGS_ENERGY_FEELING)
@@ -201,27 +209,6 @@ private fun RingsActivityContent(state: SetupWizardState, vm: SetupWizardViewMod
                     draft.withRingsAnswers {
                         it.copy(activityType = activity, activityTypeState = InitialRecoveryResponseState.DECLARED, capturedAtMs = null)
                     }
-                }
-            }
-            vm.setStepChoice(step, value)
-        },
-    )
-}
-
-// ─── RINGS_INTENSITY ────────────────────────────────────────────────────────
-
-@Composable
-private fun RingsIntensityContent(state: SetupWizardState, vm: SetupWizardViewModel) {
-    val step = SetupStepId.RINGS_INTENSITY
-    val fallback = state.draft.ringsAnswers?.intensityLevel?.name
-    val selected = state.draft.setupSelectionOf(step, fallback)
-    SetupBodyChoiceCards(
-        step = step,
-        selected = selected,
-        onSelect = { value ->
-            setupEnumValueOrNull<InitialRecoveryIntensity>(value)?.let { intensity ->
-                vm.updateStep(step) { draft ->
-                    draft.withRingsAnswers { it.copy(intensityLevel = intensity, capturedAtMs = null) }
                 }
             }
             vm.setStepChoice(step, value)
@@ -419,9 +406,10 @@ private fun RingsChannelRow(label: String, coverage: RingsChannelCoverage) {
 @Composable
 private fun RingsResultEditActions(state: SetupWizardState, vm: SetupWizardViewModel) {
     val route = SetupStepGraph.stepIds(state.draft.stepContext())
+    // Los pasos de RINGS vigentes (E3b): los retirados ya no están en la ruta y estas acciones no aparecerían.
     val targets = listOf(
-        SetupStepId.RINGS_RECENT to "Editar entrenamiento reciente",
-        SetupStepId.RINGS_MUSCLE_FEELING to "Editar sensaciones",
+        SetupStepId.RINGS_SESSION_DAYS to "Editar días entrenados",
+        SetupStepId.RINGS_FEELINGS to "Editar sensaciones",
         SetupStepId.RINGS_DISCOMFORT to "Editar molestias",
     ).filter { (step, _) -> step in route }
     if (targets.isEmpty()) return
