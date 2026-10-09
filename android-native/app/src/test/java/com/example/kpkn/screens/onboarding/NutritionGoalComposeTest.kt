@@ -156,12 +156,12 @@ class NutritionGoalComposeTest {
         rule.onNodeWithTag("setup-weight-value").assertTextEquals("74 kg")
         // Arrastres largos en los dos sentidos: la regla se para en 72 y en 74 sin pasarse.
         repeat(3) {
-            ruleNode.performTouchInput { swipeRight(startX = centerX - 200f, endX = centerX + 200f, startY = bottom - 30f) }
+            ruleNode.performTouchInput { swipeRight(startX = centerX - 200f, endX = centerX + 200f, y = bottom - 30f) }
         }
         rule.waitForIdle()
         rule.onNodeWithTag("setup-weight-value").assertTextEquals("72 kg")
         repeat(3) {
-            ruleNode.performTouchInput { swipeLeft(startX = centerX + 200f, endX = centerX - 200f, startY = bottom - 30f) }
+            ruleNode.performTouchInput { swipeLeft(startX = centerX + 200f, endX = centerX - 200f, y = bottom - 30f) }
         }
         rule.waitForIdle()
         rule.onNodeWithTag("setup-weight-value").assertTextEquals("74 kg")
