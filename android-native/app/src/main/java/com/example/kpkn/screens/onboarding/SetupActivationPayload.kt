@@ -5,8 +5,13 @@ import com.example.kpkn.data.models.BodyMetricSource
 import com.example.kpkn.data.models.BodyObservation
 import com.example.kpkn.data.models.BodyObservationMethod
 import com.example.kpkn.data.models.BodyObservationQuality
+import com.example.kpkn.data.models.KeyDateType
+import com.example.kpkn.data.models.Program
 import com.example.kpkn.domain.body.validateBodyValue
+import com.example.kpkn.domain.onboarding.CompetitionRules
 import com.example.kpkn.domain.onboarding.SetupStepId
+import com.example.kpkn.domain.training.ProgramCalendarEngine
+import com.example.kpkn.domain.training.ProgramKeyDateEngine
 import java.time.LocalDate
 import java.time.ZoneId
 
@@ -115,6 +120,29 @@ object SetupActivationPayload {
 
         // 4. weightTrend / previousMaximumWeightKg: contexto declarado aparte.
         return rows.distinct()
+    }
+
+    /**
+     * Programa a guardar al activar con fecha de competición (C4c): fecha clave COMPETITION con el nombre del evento o
+     * «Competición», calendario desde hoy (alineado al día de inicio de la semana) hasta la semana de la competición.
+     * Usa el mismo camino que la edición de fechas clave ([ProgramKeyDateEngine.applyAdvancedCalendarSave]). El registro
+     * PLANNED y sus recordatorios salen del guardado del programa. Sin fecha válida, devuelve el mismo programa.
+     */
+    fun programForActivation(program: Program, draft: SetupWizardDraft, today: LocalDate): Program {
+        val meet = CompetitionRules.parseMeetDate(draft.activeMeetDate()) ?: return program
+        val weekStartDay = draft.effectiveWeekStart()
+        val start = ProgramCalendarEngine.alignToWeekStart(today, weekStartDay)
+        val end = ProgramCalendarEngine.alignToWeekStart(meet, weekStartDay).plusDays(6)
+        val saved = ProgramKeyDateEngine.applyAdvancedCalendarSave(
+            program = program,
+            timelineStartDate = start.toString(),
+            competitionDate = meet.toString(),
+            manualEndDate = end.toString(),
+        ).program
+        val title = draft.activeMeetName().trim().ifBlank { "Competición" }
+        return saved.copy(
+            keyDates = saved.keyDates.map { if (it.type == KeyDateType.COMPETITION) it.copy(title = title) else it },
+        )
     }
 
     /**
