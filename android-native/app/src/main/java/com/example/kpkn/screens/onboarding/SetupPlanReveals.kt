@@ -1,10 +1,12 @@
 package com.example.kpkn.screens.onboarding
 
 import com.example.kpkn.data.models.BlockGoal
+import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.WeekExecutionKind
+import com.example.kpkn.data.models.effectiveRepRange
 import com.example.kpkn.data.programs.CatalogEntry
 import com.example.kpkn.data.programs.CatalogLevel
 import com.example.kpkn.data.programs.CatalogSource
@@ -51,6 +53,21 @@ data class SetupPlanRevealDay(
     val exerciseCount: Int,
     val isMain: Boolean,
     val place: TrainingPlace? = null,
+    /** Los ejercicios de la sesión, en su orden (el detalle los despliega al tocar el día). */
+    val exercises: List<SetupPlanRevealExercise> = emptyList(),
+)
+
+/**
+ * Un ejercicio de un día de la semana tipo: [instanceId] es su identidad en el programa (la que usan las sustituciones),
+ * [name] el que se ve y [setsLabel] «4 × 6–8» (null sin datos). [swappable] dice si tiene identidad de catálogo y no es cardio;
+ * [swappedConfigId] es la configuración que lo sustituye, si la persona lo cambió (`exerciseOverrides`).
+ */
+data class SetupPlanRevealExercise(
+    val instanceId: String,
+    val name: String,
+    val setsLabel: String?,
+    val swappable: Boolean,
+    val swappedConfigId: String? = null,
 )
 
 /** Un tramo de la estructura del programa («Acumulación · Semanas 1–5 · …»). */
@@ -362,12 +379,49 @@ internal object SetupPlanReveals {
                 exerciseCount = session.allExercises().size,
                 isMain = singleMain && session.isMainSession,
                 place = session.placeId?.let { id -> TrainingPlace.entries.firstOrNull { it.name == id } },
+                exercises = session.allExercises().map { exerciseOf(it) },
             )
         }.sortedBy { Math.floorMod(it.day - inicio, 7) }
     }
 
     fun dayOf(session: Session): Int? =
         session.dayOfWeek?.takeIf { it in 1..7 } ?: session.assignedDays.firstOrNull { it in 1..7 }
+
+    /** Un ejercicio de la semana tipo: se puede cambiar si tiene identidad de catálogo y no es cardio. */
+    fun exerciseOf(exercise: Exercise): SetupPlanRevealExercise = SetupPlanRevealExercise(
+        instanceId = exercise.id,
+        name = exercise.name,
+        setsLabel = setsLabelOf(exercise),
+        swappable = exercise.catalogConfigurationId != null && exercise.cardioDetails == null,
+    )
+
+    /** «4 × 6–8» con las series y las repeticiones del primer set, como la revisión final; null si no hay cifras que dar. */
+    fun setsLabelOf(exercise: Exercise): String? {
+        val sets = exercise.sets.filterNot { it.isEmptySlot }
+        val first = sets.firstOrNull() ?: return null
+        val reps = first.effectiveRepRange()?.format()
+            ?: first.targetReps?.takeIf { it > 0 }?.toString()
+            ?: first.targetDuration?.takeIf { it > 0 }?.let { "${it}s" }
+            ?: return null
+        return "${sets.size} × $reps"
+    }
+
+    /**
+     * Los ejercicios de cada día de la semana tipo de [reveal], con las sustituciones de la persona: [swaps] (instancia →
+     * configuración) cambia el nombre por el de su configuración ([nameOf]) y marca el ejercicio como cambiado. Sin nombre
+     * que resolver, el ejercicio queda como estaba.
+     */
+    fun exercisesByDay(
+        reveal: SetupPlanReveal,
+        swaps: Map<String, String>,
+        nameOf: (String) -> String?,
+    ): Map<Int, List<SetupPlanRevealExercise>> = reveal.week.associate { day ->
+        day.day to day.exercises.map { exercise ->
+            val configId = swaps[exercise.instanceId]?.takeIf { exercise.swappable }
+            val name = configId?.let(nameOf)
+            if (configId != null && name != null) exercise.copy(name = name, swappedConfigId = configId) else exercise
+        }
+    }
 
     /** El primer ejercicio de cada sesión de la semana tipo (los principales), sin repetir. */
     fun mainExercisesOf(program: Program): List<String> =

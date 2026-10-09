@@ -1,10 +1,15 @@
 package com.example.kpkn.screens.onboarding
 
+import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.LoadQuantityConvention
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.splits.SPLIT_TEMPLATES
+import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2
+import com.example.kpkn.domain.exercises.replacedWithCatalogExercise
 import com.example.kpkn.domain.onboarding.SessionPlaceFit
 import com.example.kpkn.domain.onboarding.TrainingPlace
+import com.example.kpkn.domain.training.generator.GeneratorCatalog
 import com.example.kpkn.domain.training.split.AuthoredPlans
 import com.example.kpkn.domain.training.split.ExerciseTraitResolver
 import com.example.kpkn.domain.training.split.ProgramWeeks
@@ -38,6 +43,8 @@ internal val SetupWizardDraft.hasWeekLayout: Boolean
  * plan elegido). Puro y determinista; la vista previa lo llama al final de la materialización y la activación guarda
  * exactamente ese programa.
  *
+ * 0. `exerciseOverrides`: las sustituciones de ejercicios que la persona pidió en el detalle ([applyExerciseOverrides]), antes
+ *    que el reparto y la colocación: así el reparto y la semana ven ya los ejercicios cambiados.
  * 1. `adaptedSplitId`: adapta el programa a ese reparto repartiendo los ejercicios ([SplitRedistributor.redistribute]) en
  *    los días de entreno en el orden de la semana, en todas las semanas que tienen la misma estructura. El permiso para
  *    los planes de autor (`allowAuthoredRecipes`) va siempre: el asistente solo escribe `adaptedSplitId` en un plan de
@@ -55,10 +62,12 @@ internal fun applyLayout(
     program: Program,
     resolver: ExerciseTraitResolver?,
     placeFit: SessionPlaceFit? = null,
+    catalog: ExerciseCatalogV2? = null,
 ): LayoutOutcome {
     val checksPlaces = placeFit != null && draft.trainingPlaces.size >= 2
-    if (!draft.hasWeekLayout && !checksPlaces) return LayoutOutcome(program)
-    var current = program
+    val swaps = catalog != null && draft.exerciseOverrides.isNotEmpty()
+    if (!draft.hasWeekLayout && !checksPlaces && !swaps) return LayoutOutcome(program)
+    var current = if (catalog != null && swaps) applyExerciseOverrides(program, draft.exerciseOverrides, catalog) else program
     val notes = mutableListOf<String>()
     var refusal: String? = null
     draft.adaptedSplitId?.let { splitId ->
@@ -97,6 +106,53 @@ internal fun applyLayout(
     val placed = if (checksPlaces && placeFit != null) reconcileSessionPlaces(draft, current, placeFit) else null
     return LayoutOutcome(placed?.program ?: current, notes.distinct(), refusal, placed?.conflicts.orEmpty())
 }
+
+/**
+ * Las sustituciones de la persona ([overrides]: id de la instancia del ejercicio → id de la configuración del catálogo)
+ * aplicadas a todas las semanas del programa. Cada ejercicio cambiado toma la identidad y los músculos de su configuración
+ * ([replacedWithCatalogExercise], el mismo camino que el editor de sesiones): sus series, repeticiones, RIR y descansos se
+ * conservan; la carga y las referencias de 1RM no, porque eran de otro levantamiento. Una instancia que ya no está en el
+ * programa o una configuración que el catálogo no tiene se ignoran: el ejercicio queda como estaba.
+ */
+internal fun applyExerciseOverrides(program: Program, overrides: Map<String, String>, catalog: ExerciseCatalogV2): Program {
+    if (overrides.isEmpty()) return program
+    val index = GeneratorCatalog.of(catalog)
+    val swap: (Exercise) -> Exercise = { exercise ->
+        val configId = overrides[exercise.id]
+        val info = configId?.takeIf { it != exercise.catalogConfigurationId }?.let { index.entry(it)?.legacy }
+        if (info == null) {
+            exercise
+        } else {
+            exercise.replacedWithCatalogExercise(info).copy(
+                loadReference = null,
+                loadQuantityConvention = LoadQuantityConvention.UNSPECIFIED,
+            )
+        }
+    }
+    return program.copy(
+        macrocycles = program.macrocycles.map { macro ->
+            macro.copy(
+                blocks = macro.blocks.map { block ->
+                    block.copy(
+                        mesocycles = block.mesocycles.map { meso ->
+                            meso.copy(
+                                weeks = meso.weeks.map { week ->
+                                    week.copy(sessions = week.sessions.map { session -> session.withExercises(swap) })
+                                },
+                            )
+                        },
+                    )
+                },
+            )
+        },
+    )
+}
+
+/** La sesión con cada uno de sus ejercicios (los de la lista principal y los de sus partes) transformado por [transform]. */
+private fun Session.withExercises(transform: (Exercise) -> Exercise): Session = copy(
+    exercises = exercises.map(transform),
+    parts = parts.map { part -> part.copy(exercises = part.exercises.map(transform)) },
+)
 
 /** El programa con el lugar de cada sesión puesto al día y las sesiones que no caben en el lugar de su día. */
 internal data class PlaceReconciliation(val program: Program, val conflicts: List<SetupPlaceConflict>)

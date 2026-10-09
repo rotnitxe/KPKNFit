@@ -445,6 +445,12 @@ data class SetupWizardDraft(
     val customSplitPattern: List<String> = emptyList(),
     val customSplitName: String? = null,
     val selectedCatalogId: String? = null,
+    /**
+     * Sustituciones de ejercicios del programa elegido («Cambiar» en el detalle): id de la instancia del ejercicio en el
+     * programa → id de la configuración del catálogo que lo reemplaza. No entra en la huella ni en `trainingKey`: se aplica
+     * después de generar el programa ([applyLayout]). Se vacía al cambiar de programa o al invalidar la semana armada.
+     */
+    val exerciseOverrides: Map<String, String> = emptyMap(),
     val sessions: List<SetupSessionDraft> = emptyList(),
     val includeTraining: Boolean = true,
     val includeNutrition: Boolean = true,
@@ -699,6 +705,10 @@ internal fun SetupWizardDraft.activeMeetDate(): String? =
 /** El nombre del evento que cuenta para el programa: solo con «Sí, tengo fecha» dentro de la ruta. */
 internal fun SetupWizardDraft.activeMeetName(): String =
     meetName.takeIf { activeCompetition() == CompetitionAnswer.WITH_DATE }.orEmpty()
+
+/** El borrador sin sustituciones de ejercicios: el programa vuelve a ser el generado (otro plan, otra versión o respuestas nuevas). */
+internal fun SetupWizardDraft.withoutExerciseSwaps(): SetupWizardDraft =
+    if (exerciseOverrides.isEmpty()) this else copy(exerciseOverrides = emptyMap())
 
 /**
  * La ruta de peso corporal de CAPABILITIES: calistenia o material solo de peso corporal. Es la que cambia el paso (repeticiones
