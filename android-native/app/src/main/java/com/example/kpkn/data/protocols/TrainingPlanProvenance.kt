@@ -13,6 +13,8 @@ enum class PlanProvenanceClass {
     ADAPTED,
     KPKN,
     LEGACY,
+    /** Programa leído de un archivo o de texto pegado por la persona (C3c): nunca se atribuye a KPKN ni a un autor. */
+    IMPORTED,
 }
 
 /** Alcance de un default operativo KPKN aplicado porque el autor no lo define (§10.1 regla 5). */
