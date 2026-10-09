@@ -2,6 +2,7 @@ package com.example.kpkn.screens.onboarding
 
 import com.example.kpkn.domain.onboarding.ArmStyle
 import com.example.kpkn.domain.onboarding.ProgramSource
+import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -53,5 +54,34 @@ class ProgramSourceReducerTest {
         val chosen = SetupWizardDraft(programSource = ProgramSource.LATER)
         assertFalse(SetupWizardValidation.validateStep(chosen, SetupStepId.PROGRAM_SOURCE).any { it.isBlocking })
         assertTrue(SetupWizardValidation.validateStep(chosen, SetupStepId.PROGRAM_IMPORT).any { it.isBlocking })
+    }
+
+    @Test
+    fun leavingAdvancedUndoesALaterProgramAndPutThePlanBackInTheRoute() {
+        // Avanzado con «lo armaré yo» confirmado: al pasar a intermedio, el programa vuelve a la ruta de siempre.
+        val later = SetupWizardDraft(
+            includeTraining = true,
+            experience = SetupExperience.ADVANCED,
+            programSource = ProgramSource.LATER,
+            programRoute = SetupProgramRoute.LATER,
+        )
+        assertFalse(SetupStepId.PLAN in SetupStepGraph.stepIds(later.stepContext()))
+        val intermediate = later.withStepChoice(SetupStepId.EXPERIENCE, "intermediate", 0L)
+        assertNull(intermediate.programSource)
+        assertEquals(SetupProgramRoute.CUSTOMIZABLE, intermediate.programRoute)
+        assertTrue(SetupStepId.PLAN in SetupStepGraph.stepIds(intermediate.stepContext()))
+        assertTrue(SetupStepId.WEEK_LAYOUT in SetupStepGraph.stepIds(intermediate.stepContext()))
+    }
+
+    @Test
+    fun leavingAdvancedAlsoRetiresAnImportedChoice() {
+        val imported = SetupWizardDraft(
+            includeTraining = true,
+            experience = SetupExperience.ADVANCED,
+            programSource = ProgramSource.IMPORT,
+        )
+        val beginner = imported.withStepChoice(SetupStepId.EXPERIENCE, "new", 0L)
+        assertNull(beginner.programSource)
+        assertEquals(SetupProgramRoute.CUSTOMIZABLE, beginner.programRoute)
     }
 }

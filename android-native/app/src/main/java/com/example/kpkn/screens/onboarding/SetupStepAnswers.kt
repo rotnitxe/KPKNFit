@@ -348,13 +348,14 @@ private fun SetupWizardDraft.projectChoice(
         }
     }
 
+    // Dejar de ser avanzado retira la elección del programa (y deshace «lo armaré yo»): ya no aplica a esa experiencia.
     SetupStepId.EXPERIENCE -> copy(experience = when (value) {
         "new" -> SetupExperience.NEW
         "returning" -> SetupExperience.RETURNING
         "intermediate" -> SetupExperience.INTERMEDIATE
         "advanced" -> SetupExperience.ADVANCED
         else -> null
-    })
+    }).let { updated -> if (updated.experience == SetupExperience.ADVANCED) updated else updated.withProgramSource(null) }
 
     // Sin opción «después»/manual: ambas rutas implican entrenamiento activo.
     SetupStepId.ROUTE -> if (value == "recommended" || value == "protocol") copy(
@@ -978,9 +979,10 @@ fun SetupWizardDraft.withArmStyle(style: ArmStyle?): SetupWizardDraft = copy(arm
 
 /**
  * Cómo se tiene el programa (paso PROGRAM_SOURCE). Salir de «lo armaré yo» deshace el aplazamiento: el programa vuelve a la
- * ruta con las respuestas intactas. Solo cambia la elección, nunca las demás respuestas.
+ * ruta con las respuestas intactas. Solo cambia la elección, nunca las demás respuestas. Con `null` (la experiencia ya no es
+ * «Tengo experiencia») se retira la elección y el mismo deshacer se aplica.
  */
-fun SetupWizardDraft.withProgramSource(source: ProgramSource): SetupWizardDraft = copy(
+fun SetupWizardDraft.withProgramSource(source: ProgramSource?): SetupWizardDraft = copy(
     programSource = source,
     programRoute = if (programSource == ProgramSource.LATER && source != ProgramSource.LATER &&
         programRoute == SetupProgramRoute.LATER
