@@ -240,6 +240,21 @@ fun SettingsScreen(
                     )
                 }
             }
+            if (!dataControlsOnly) item {
+                SettingsBlockTitle("Recorridos")
+                SettingsCard {
+                    SettingsActionRow(
+                        icon = Icons.Default.Restore,
+                        title = "Repetir el recorrido",
+                        description = "Vuelve a mostrar las explicaciones de cada pantalla la próxima vez que entres.",
+                        actionLabel = "Repetir",
+                        onClick = {
+                            viewModel.resetTours()
+                            Toast.makeText(context, "Recorridos restablecidos", Toast.LENGTH_SHORT).show()
+                        },
+                    )
+                }
+            }
             item {
                 SettingsBlockTitle(stringResource(R.string.settings_data))
                 SettingsCard {
