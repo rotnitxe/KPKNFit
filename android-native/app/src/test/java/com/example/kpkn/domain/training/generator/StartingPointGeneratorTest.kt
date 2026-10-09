@@ -237,26 +237,76 @@ class StartingPointGeneratorTest {
 
     // ─── Estilo de mesa ──────────────────────────────────────────────────────────────────────────────────────
 
-    @Test
-    fun theTableStylesWriteTheirEmphasisAndNeverTakeSetsAwayFromTheirHoles() {
-        fun table(style: ArmStyle?): Session =
-            sessionsOf(RoutineGenerator.generate(gymRequest(RoutineMode.DISCIPLINE_ARMWRESTLING, RoutineLevel.INTERMEDIATE, 4, 90).copy(armStyle = style)))
-                .single { it.name == "Mesa y hombro" }
-        fun sets(session: Session, ids: Set<String>): Int =
-            session.allExercises().filter { (it.catalogConfigurationId ?: "") in ids }.sumOf { ex -> ex.sets.count { !it.isEmptySlot } }
+    private val tricepsIds: Set<String> =
+        MovementPools.byPattern[RoutinePattern.TRICEPS].orEmpty().flatMap { it.entries }.mapTo(HashSet()) { it.id }
 
-        val plain = table(null)
-        val topRoll = table(ArmStyle.TOP_ROLL)
-        val hook = table(ArmStyle.HOOK)
-        // La serie más se pide como hueco prioritario: el presupuesto semanal de antebrazo puede no concederla (se mide y se informa).
-        println("ARMWRESTLING pronation sets plain=${sets(plain, pronations)} topRoll=${sets(topRoll, pronations)}")
-        println("ARMWRESTLING flexion sets plain=${sets(plain, wristFlexions)} hook=${sets(hook, wristFlexions)}")
-        assertTrue("top roll no quita series a la pronación", sets(topRoll, pronations) >= sets(plain, pronations))
-        assertTrue("hook no quita series a la flexión de muñeca", sets(hook, wristFlexions) >= sets(plain, wristFlexions))
-        assertTrue("hook no quita series a la supinación", sets(hook, supinations) >= sets(plain, supinations))
-        assertTrue(topRoll.focus.orEmpty().contains("Énfasis en pronación (top roll)"))
-        assertTrue(hook.focus.orEmpty().contains("Énfasis en flexión de muñeca y supinación (hook)"))
-        assertEquals("sin estilo, el texto de siempre", "Pronación, supinación, bíceps y hombro", plain.focus)
+    private fun armWeek(days: Int, minutes: Int, style: ArmStyle?): GeneratedRoutine =
+        RoutineGenerator.generate(gymRequest(RoutineMode.DISCIPLINE_ARMWRESTLING, RoutineLevel.INTERMEDIATE, days, minutes).copy(armStyle = style))
+
+    /** Series por familia (antebrazo y tríceps) en toda la semana: lo que reparte el estilo de mesa. */
+    private fun armDistribution(routine: GeneratedRoutine): Map<String, Int> {
+        val byFamily = sortedMapOf<String, Int>()
+        sessionsOf(routine).forEach { session ->
+            session.allExercises().forEach { exercise ->
+                val id = exercise.catalogConfigurationId ?: return@forEach
+                val family = when (id) {
+                    in pronations -> "pronación"
+                    in supinations -> "supinación"
+                    in wristFlexions -> "flexión de muñeca"
+                    in tricepsIds -> "tríceps"
+                    else -> return@forEach
+                }
+                byFamily[family] = (byFamily[family] ?: 0) + exercise.sets.count { !it.isEmptySlot }
+            }
+        }
+        return byFamily
+    }
+
+    /** Series de cada sesión (nombre y total): el total que no debe cambiar con ningún estilo. */
+    private fun setTotals(routine: GeneratedRoutine): List<Pair<String, Int>> =
+        sessionsOf(routine).map { session -> session.name to session.allExercises().sumOf { ex -> ex.sets.count { !it.isEmptySlot } } }
+
+    @Test
+    fun theTableStylesMoveSetsInsideEachSessionAndKeepItsTotal() {
+        for (days in listOf(3, 4, 5)) for (minutes in listOf(60, 90)) {
+            val label = "$days días, $minutes min"
+            val plain = armWeek(days, minutes, null)
+            val plainShare = armDistribution(plain)
+            val plainTotals = setTotals(plain)
+            val byStyle = listOf(ArmStyle.TOP_ROLL, ArmStyle.HOOK, ArmStyle.PRESS).associateWith { armWeek(days, minutes, it) }
+            byStyle.forEach { (style, routine) ->
+                assertEquals("$style: el total de series de cada sesión no cambia ($label)", plainTotals, setTotals(routine))
+                assertTrue(
+                    "$style: ningún ejercicio se queda sin series ($label)",
+                    sessionsOf(routine).flatMap { it.allExercises() }.all { it.sets.isNotEmpty() || it.cardioDetails != null },
+                )
+                println("ARM $label $style=${armDistribution(routine)} sin estilo=$plainShare")
+            }
+            val top = armDistribution(byStyle.getValue(ArmStyle.TOP_ROLL))
+            val hook = armDistribution(byStyle.getValue(ArmStyle.HOOK))
+            val press = armDistribution(byStyle.getValue(ArmStyle.PRESS))
+            assertTrue("TOP_ROLL cambia el reparto ($label)", top != plainShare)
+            assertTrue("HOOK cambia el reparto ($label)", hook != plainShare)
+            // Sin «Mesa y hombro» (3 días) no hay tríceps junto al antebrazo: PRESS no tiene de dónde mover.
+            if (days >= 4) assertTrue("PRESS cambia el reparto con «Mesa y hombro» ($label)", press != plainShare)
+            assertTrue("TOP_ROLL y HOOK reparten distinto ($label)", top != hook)
+            assertTrue("TOP_ROLL y PRESS reparten distinto ($label)", top != press)
+            assertTrue("HOOK y PRESS reparten distinto ($label)", hook != press)
+        }
+    }
+
+    @Test
+    fun theTableStylesWriteTheirEmphasisInTheSessionsTheyMove() {
+        val topRoll = sessionsOf(armWeek(4, 60, ArmStyle.TOP_ROLL))
+        assertTrue(topRoll.filter { it.name.startsWith("Antebrazo") }.all { it.focus.orEmpty().contains("Énfasis en pronación (top roll)") })
+        assertTrue(topRoll.single { it.name == "Mesa y hombro" }.focus.orEmpty().contains("Énfasis en pronación (top roll)"))
+        val press = sessionsOf(armWeek(4, 60, ArmStyle.PRESS))
+        assertTrue(press.single { it.name == "Mesa y hombro" }.focus.orEmpty().contains("Énfasis en tríceps y empuje (press)"))
+        assertEquals(
+            "sin estilo, el texto de siempre",
+            "Pronación, supinación, bíceps y hombro",
+            sessionsOf(armWeek(4, 60, null)).single { it.name == "Mesa y hombro" }.focus,
+        )
     }
 
     // ─── Repeticiones seguidas ───────────────────────────────────────────────────────────────────────────────

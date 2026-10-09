@@ -22,6 +22,7 @@ import com.example.kpkn.domain.training.generator.RoutinePattern.TRAPS
 import com.example.kpkn.domain.training.generator.RoutinePattern.TRICEPS
 import com.example.kpkn.domain.training.generator.RoutinePattern.VERTICAL_PULL
 import com.example.kpkn.domain.training.generator.RoutinePattern.VERTICAL_PUSH
+import com.example.kpkn.data.models.Session
 import com.example.kpkn.domain.onboarding.ArmStyle
 
 /**
@@ -131,66 +132,39 @@ internal object DisciplineWeeks {
 
     // ─── Armwrestling ──────────────────────────────────────────────────────────────────────────────────────
 
-    /** Grupo de sesiones de la mesa: el estilo cambia el antebrazo y «Mesa y hombro», y la fuerza solo con el press. */
-    private enum class ArmGroup { FOREARM, TABLE, STRENGTH }
+    /** Grupo de sesiones de la mesa: el estilo reparte series en el antebrazo de cada sesión y escribe su énfasis donde actúa. */
+    private enum class ArmGroup { FOREARM, TABLE, FULL, STRENGTH }
 
     /*
-     * Tabla de énfasis por estilo de mesa. PROPUESTA: la validará el usuario antes de darla por buena.
-     * - TOP_ROLL: una serie más de pronación en el antebrazo y en «Mesa y hombro»; la supinación se queda como está.
-     * - HOOK: una serie más de flexión de muñeca y de supinación en las mismas sesiones, y el bíceps primero.
-     * - PRESS: tríceps a secundario en «Fuerza» (el empuje horizontal ya lo es); la pronación se mantiene.
+     * Énfasis por estilo de mesa (tabla PROPUESTA; la validará el usuario). El reparto de series lo hace el motor al final
+     * (`moveArmSets`), dentro de los huecos de antebrazo de cada sesión y sin cambiar el total de series de la sesión:
+     * - TOP_ROLL: una serie pasa de supinación a pronación.
+     * - HOOK: una serie pasa de pronación a flexión de muñeca y otra de pronación a supinación (la pronación queda en una como mínimo).
+     * - PRESS: una serie del antebrazo de menos prioridad pasa al tríceps (en «Mesa y hombro», donde está el tríceps).
      * - UNSURE o sin dato: como hoy.
-     * La serie más es un hueco prioritario (`boosted`): admite una serie más y el ajuste a minutos la concede cuando el presupuesto
-     * semanal del músculo lo permite. No se añade otro hueco de pronación: las dos pronaciones del catálogo son de una misma definición.
      */
-    private val TOP_ROLL_MORE_SETS = listOf(DisciplinePools.PRONATION)
-    private val HOOK_MORE_SETS = listOf(DisciplinePools.WRIST_FLEXION, DisciplinePools.SUPINATION)
     private const val TOP_ROLL_EMPHASIS = "Énfasis en pronación (top roll)"
     private const val HOOK_EMPHASIS = "Énfasis en flexión de muñeca y supinación (hook)"
     private const val PRESS_EMPHASIS = "Énfasis en tríceps y empuje (press)"
 
-    private fun armSlots(group: ArmGroup, base: List<SlotSpec>, style: ArmStyle?): List<SlotSpec> = when (style) {
-        ArmStyle.TOP_ROLL -> if (group == ArmGroup.STRENGTH) base else base.withMoreSetsOf(TOP_ROLL_MORE_SETS)
-        ArmStyle.HOOK -> if (group == ArmGroup.STRENGTH) base else base.withMoreSetsOf(HOOK_MORE_SETS).bicepsFirst()
-        ArmStyle.PRESS -> if (group != ArmGroup.STRENGTH) base else
-            base.map { if (it.pattern == TRICEPS) it.copy(role = SECONDARY) else it }
-        ArmStyle.UNSURE, null -> base
-    }
-
-    /** Escribe el énfasis del estilo en el texto de la sesión (el subtítulo que ve la persona). */
+    /** Escribe el énfasis del estilo en el subtítulo de las sesiones donde su reparto actúa. */
     private fun armFocus(group: ArmGroup, focus: String, style: ArmStyle?): String {
         val emphasis = when (style) {
             ArmStyle.TOP_ROLL -> TOP_ROLL_EMPHASIS.takeIf { group != ArmGroup.STRENGTH }
             ArmStyle.HOOK -> HOOK_EMPHASIS.takeIf { group != ArmGroup.STRENGTH }
-            ArmStyle.PRESS -> PRESS_EMPHASIS.takeIf { group == ArmGroup.STRENGTH }
+            ArmStyle.PRESS -> PRESS_EMPHASIS.takeIf { group == ArmGroup.TABLE }
             ArmStyle.UNSURE, null -> null
         } ?: return focus
         return "$focus. $emphasis"
     }
 
-    /** Marca como prioritario el primer hueco de cada etiqueta de [tags]: admite una serie más (ver la tabla de arriba). */
-    private fun List<SlotSpec>.withMoreSetsOf(tags: List<String>): List<SlotSpec> {
-        val first = tags.mapNotNull { tag -> indexOfFirst { it.tag == tag }.takeIf { it >= 0 } }.toSet()
-        return mapIndexed { index, slot -> if (index in first) slot.copy(boosted = true) else slot }
-    }
-
-    /** El bíceps, primero: es el primer hueco en entrar y el último que el tiempo recorta. */
-    private fun List<SlotSpec>.bicepsFirst(): List<SlotSpec> {
-        val biceps = firstOrNull { it.pattern == BICEPS } ?: return this
-        return listOf(biceps) + (this - biceps)
-    }
-
     private fun awForearm(suffix: String = "", style: ArmStyle? = null) = session(
         "AAF$suffix", "Antebrazo y muñeca$suffix", armFocus(ArmGroup.FOREARM, "Flexión, extensión, pronación, supinación y agarre", style),
-        armSlots(
-            ArmGroup.FOREARM,
-            listOf(
-                s(GRIP, ISOLATION, DisciplinePools.WRIST_FLEXION), s(GRIP, ISOLATION, DisciplinePools.PRONATION),
-                s(GRIP, ISOLATION, DisciplinePools.SUPINATION), s(GRIP, ISOLATION, DisciplinePools.WRIST_EXTENSION),
-                s(BICEPS, ISOLATION), s(GRIP, ISOLATION, DisciplinePools.REVERSE_CURL), s(CARRY, CARRY_ROLE),
-                s(GRIP, ISOLATION, DisciplinePools.HOLD),
-            ),
-            style,
+        listOf(
+            s(GRIP, ISOLATION, DisciplinePools.WRIST_FLEXION), s(GRIP, ISOLATION, DisciplinePools.PRONATION),
+            s(GRIP, ISOLATION, DisciplinePools.SUPINATION), s(GRIP, ISOLATION, DisciplinePools.WRIST_EXTENSION),
+            s(BICEPS, ISOLATION), s(GRIP, ISOLATION, DisciplinePools.REVERSE_CURL), s(CARRY, CARRY_ROLE),
+            s(GRIP, ISOLATION, DisciplinePools.HOLD),
         ),
         flagship = suffix.isEmpty(),
     )
@@ -203,33 +177,25 @@ internal object DisciplineWeeks {
         ),
     )
 
-    private fun awStrength(style: ArmStyle? = null) = session(
-        "AAS", "Fuerza de base", armFocus(ArmGroup.STRENGTH, "Sentadilla, peso muerto y empuje para el apoyo de piernas y espalda", style),
-        armSlots(
-            ArmGroup.STRENGTH,
-            listOf(
-                s(SQUAT, MAIN), s(HINGE, SECONDARY), s(HORIZONTAL_PUSH, SECONDARY), s(VERTICAL_PUSH, ACCESSORY),
-                s(TRICEPS, ISOLATION), s(CORE_STABILITY, CORE_ROLE), s(CORE_ROTATION, CORE_ROLE),
-            ),
-            style,
+    private fun awStrength() = session(
+        "AAS", "Fuerza de base", "Sentadilla, peso muerto y empuje para el apoyo de piernas y espalda",
+        listOf(
+            s(SQUAT, MAIN), s(HINGE, SECONDARY), s(HORIZONTAL_PUSH, SECONDARY), s(VERTICAL_PUSH, ACCESSORY),
+            s(TRICEPS, ISOLATION), s(CORE_STABILITY, CORE_ROLE), s(CORE_ROTATION, CORE_ROLE),
         ),
     )
 
     private fun awTable(style: ArmStyle? = null) = session(
         "AAT", "Mesa y hombro", armFocus(ArmGroup.TABLE, "Pronación, supinación, bíceps y hombro", style),
-        armSlots(
-            ArmGroup.TABLE,
-            listOf(
-                s(GRIP, ISOLATION, DisciplinePools.PRONATION), s(GRIP, ISOLATION, DisciplinePools.SUPINATION),
-                s(GRIP, ISOLATION, DisciplinePools.WRIST_FLEXION), s(BICEPS, ISOLATION), s(SHOULDER_LATERAL, ISOLATION),
-                s(REAR_DELT, ISOLATION), s(TRICEPS, ISOLATION),
-            ),
-            style,
+        listOf(
+            s(GRIP, ISOLATION, DisciplinePools.PRONATION), s(GRIP, ISOLATION, DisciplinePools.SUPINATION),
+            s(GRIP, ISOLATION, DisciplinePools.WRIST_FLEXION), s(BICEPS, ISOLATION), s(SHOULDER_LATERAL, ISOLATION),
+            s(REAR_DELT, ISOLATION), s(TRICEPS, ISOLATION),
         ),
     )
 
-    private fun awFull() = session(
-        "AAB", "Cuerpo completo", "Espalda, antebrazo, bíceps y base de fuerza",
+    private fun awFull(style: ArmStyle? = null) = session(
+        "AAB", "Cuerpo completo", armFocus(ArmGroup.FULL, "Espalda, antebrazo, bíceps y base de fuerza", style),
         listOf(
             s(HORIZONTAL_PULL, MAIN), s(HINGE, SECONDARY), s(HORIZONTAL_PUSH, SECONDARY), s(GRIP, ISOLATION, DisciplinePools.PRONATION),
             s(GRIP, ISOLATION, DisciplinePools.SUPINATION), s(BICEPS, ISOLATION), s(GRIP, ISOLATION, DisciplinePools.WRIST_FLEXION),
@@ -238,9 +204,64 @@ internal object DisciplineWeeks {
     )
 
     private fun armwrestling(n: Int, style: ArmStyle?): List<SessionPlan> = cycle(
-        n, awFull(), listOf(awForearm(style = style), awPull(), awStrength(style), awTable(style)),
+        n, awFull(style), listOf(awForearm(style = style), awPull(), awStrength(), awTable(style)),
         listOf(awForearm(" B", style), awPull(" B")),
     )
+
+    /** Familias de las series de antebrazo que reparte el estilo (la isometría colgada va por tiempo: no entra). */
+    private val ARM_SET_TAGS: Set<String> = setOf(
+        DisciplinePools.WRIST_FLEXION, DisciplinePools.WRIST_EXTENSION, DisciplinePools.PRONATION,
+        DisciplinePools.SUPINATION, DisciplinePools.REVERSE_CURL,
+    )
+
+    /** Familia de movimiento de cada configuración del armwrestling (de los pools de disciplina). */
+    private val armTagOf: Map<String, String> by lazy {
+        DisciplinePools.allEntries.mapNotNull { (_, entry) -> entry.tag?.let { entry.id to it } }.toMap()
+    }
+
+    /** Configuraciones de tríceps (su patrón en el pool general). */
+    private val tricepsIds: Set<String> by lazy {
+        MovementPools.byPattern[RoutinePattern.TRICEPS].orEmpty().flatMap { it.entries }.mapTo(HashSet()) { it.id }
+    }
+
+    /**
+     * El reparto de series del estilo de mesa sobre una sesión ya armada (ver la tabla de arriba). Cada movimiento deja el hueco de
+     * origen con una serie como mínimo, y el total de series de la sesión no cambia. Devuelve la sesión con los movimientos, o null
+     * si no hay nada que mover en ella.
+     */
+    fun moveArmSets(session: Session, style: ArmStyle): Session? {
+        val exercises = session.exercises.toMutableList()
+        fun tagAt(index: Int): String? = exercises[index].catalogConfigurationId?.let { armTagOf[it] }
+        fun firstWith(tag: String): Int = exercises.indices.firstOrNull { tagAt(it) == tag } ?: -1
+        fun move(from: Int, to: Int): Boolean {
+            if (from < 0 || to < 0 || exercises[from].sets.size < 2 || exercises[to].sets.isEmpty()) return false
+            val donor = exercises[from]
+            val recipient = exercises[to]
+            val added = recipient.sets.last().copy(id = "${recipient.id}-set-${recipient.sets.size}")
+            exercises[from] = donor.copy(sets = donor.sets.dropLast(1))
+            exercises[to] = recipient.copy(sets = recipient.sets + added)
+            return true
+        }
+        val moved = when (style) {
+            ArmStyle.TOP_ROLL -> move(firstWith(DisciplinePools.SUPINATION), firstWith(DisciplinePools.PRONATION))
+            ArmStyle.HOOK -> {
+                val pronation = firstWith(DisciplinePools.PRONATION)
+                val toFlexion = move(pronation, firstWith(DisciplinePools.WRIST_FLEXION))
+                val toSupination = move(pronation, firstWith(DisciplinePools.SUPINATION))
+                toFlexion || toSupination
+            }
+            ArmStyle.PRESS -> {
+                val triceps = exercises.indices.firstOrNull { exercises[it].catalogConfigurationId?.let { id -> id in tricepsIds } == true } ?: -1
+                // El antebrazo de menos prioridad (el último en el orden de ejecución) que aún tenga una serie que dar.
+                val donor = exercises.indices.lastOrNull { i ->
+                    tagAt(i)?.let { tag -> tag in ARM_SET_TAGS } == true && exercises[i].sets.size >= 2
+                } ?: -1
+                move(donor, triceps)
+            }
+            ArmStyle.UNSURE -> false
+        }
+        return if (moved) session.copy(exercises = exercises) else null
+    }
 
     // ─── Strongman ─────────────────────────────────────────────────────────────────────────────────────────
 

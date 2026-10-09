@@ -16,6 +16,7 @@ import com.example.kpkn.domain.onboarding.TrainingPlace
 import com.example.kpkn.domain.training.ProgramExecutionContract
 import com.example.kpkn.domain.training.VolumeCalculator
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.math.ceil
 
 /**
  * Generador de rutinas «a medida» (Entreno v2): arma una SEMANA CÍCLICA ejecutable a partir de lo que la persona
@@ -96,7 +97,7 @@ object RoutineGenerator {
             )
             caps.markBuilt(index)
         }
-        val assembled = results.map { requireNotNull(it) }
+        val assembled = results.map { requireNotNull(it) }.map { styleArmSets(normalized, ctx, it) }
         val sessions = assembled.map { it.session }
 
         val week = ProgramWeek(id = "$programId-week", name = "Semana repetible", sessions = sessions)
@@ -198,6 +199,27 @@ object RoutineGenerator {
             minutesMisses = assembled.count { !it.inWindow },
         )
         return GeneratedRoutine(program = program, summary = summary, notes = notes, report = report)
+    }
+
+    /**
+     * El estilo de mesa (armwrestling) reparte series dentro de cada sesión ya armada (ver `DisciplineWeeks.moveArmSets`). Va después del
+     * ajuste de todas las sesiones: el total de series de cada una no cambia y ninguna otra sesión se ve afectada. Si el reparto sacara
+     * la sesión de su ventana de minutos, se queda como estaba.
+     */
+    private fun styleArmSets(request: RoutineRequest, ctx: GenContext, item: AssembledSession): AssembledSession {
+        val style = request.armStyle ?: return item
+        if (request.mode != RoutineMode.DISCIPLINE_ARMWRESTLING) return item
+        val moved = DisciplineWeeks.moveArmSets(item.session, style) ?: return item
+        val seconds = TimeModel.sessionSeconds(moved)
+        val minutes = ceil(seconds / 60.0).toInt().coerceAtLeast(1)
+        val inWindow = minutes in ctx.windowMinutes
+        if (item.inWindow && !inWindow) return item
+        return item.copy(
+            session = moved.copy(targetDurationMinutes = minutes),
+            seconds = seconds,
+            minutes = minutes,
+            inWindow = inWindow,
+        )
     }
 
     /** Los ejercicios de los levantamientos que pide la disciplina que el material de ALGÚN día del plan permite hacer. */
