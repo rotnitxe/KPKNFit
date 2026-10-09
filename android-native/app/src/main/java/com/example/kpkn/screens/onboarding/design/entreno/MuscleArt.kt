@@ -15,8 +15,9 @@ import kotlin.math.sin
  * el estilo de la silueta de contexto, las marcas del cuerpo y el grosor de trazo; no el encuadre.
  *
  * Todo vive en el ESPACIO DEL CUERPO (x hacia la derecha de quien mira, eje en x = 0, y hacia abajo; cabeza = 50,
- * cuerpo = 400). La silueta es la misma para todos (un trazo de cuerpo completo de frente y otro de espalda), salvo el brazo
- * flexionado del bíceps y el antebrazo con puño, que llevan su propio contorno. Los trazos de datos están en [MuscleArtPaths].
+ * cuerpo = 400). La silueta es la misma para todos (un trazo de cuerpo completo de frente y otro de espalda), salvo los gestos
+ * del brazo (bíceps de perfil, tríceps colgado y antebrazo con puño), que llevan su propio contorno. Los trazos de datos están
+ * en [MuscleArtPaths]. Los gestos del brazo van en las mismas unidades del lienzo de 64, que fijan su encuadre.
  */
 
 /** Desde dónde se ve el cuerpo. */
@@ -127,17 +128,18 @@ internal object MuscleArt {
                 MuscleArtPaths.SHOULDERS_REGION, MuscleArtPaths.SHOULDERS_DETAIL, fiberAngleDeg = 80f, origin = Offset(0f, 78f),
             ),
             MuscleSymbol.BICEPS to spec(
-                MuscleFamily.ARM, MuscleArtPaths.BICEPS_BACK, MuscleWindow(50.55f, 126.25f, 108f),
-                MuscleArtPaths.BICEPS_REGION, MuscleArtPaths.BICEPS_DETAIL, fiberAngleDeg = 76f, origin = Offset(45f, 102f),
+                MuscleFamily.ARM, MuscleArtPaths.BICEPS_BACK, MuscleWindow(28f, 32f, 58f),
+                MuscleArtPaths.BICEPS_REGION, MuscleArtPaths.BICEPS_DETAIL, fiberAngleDeg = 0f, origin = Offset(16f, 35f),
                 outline = MuscleArtPaths.BICEPS_OUTLINE,
             ),
             MuscleSymbol.TRICEPS to spec(
-                MuscleFamily.ARM, MuscleArtPaths.TRICEPS_BACK, MuscleWindow(50.95f, 128.35f, 80f),
-                MuscleArtPaths.TRICEPS_REGION, MuscleArtPaths.TRICEPS_DETAIL, fiberAngleDeg = 90f, origin = Offset(51f, 100f),
+                MuscleFamily.ARM, MuscleArtPaths.TRICEPS_BACK, MuscleWindow(32f, 23.75f, 62f),
+                MuscleArtPaths.TRICEPS_REGION, MuscleArtPaths.TRICEPS_DETAIL, fiberAngleDeg = 90f, origin = Offset(32f, 9.5f),
+                outline = MuscleArtPaths.TRICEPS_OUTLINE,
             ),
             MuscleSymbol.FOREARMS to spec(
-                MuscleFamily.ARM, MuscleArtPaths.FOREARMS_BACK, MuscleWindow(56.2f, 186.15f, 100f),
-                MuscleArtPaths.FOREARMS_REGION, MuscleArtPaths.FOREARMS_DETAIL, fiberAngleDeg = 90f, origin = Offset(56f, 160f),
+                MuscleFamily.ARM, MuscleArtPaths.FOREARMS_BACK, MuscleWindow(32f, 39.5f, 72f),
+                MuscleArtPaths.FOREARMS_REGION, MuscleArtPaths.FOREARMS_DETAIL, fiberAngleDeg = 90f, origin = Offset(32f, 58f),
                 outline = MuscleArtPaths.FOREARMS_OUTLINE,
             ),
             MuscleSymbol.ABS to spec(

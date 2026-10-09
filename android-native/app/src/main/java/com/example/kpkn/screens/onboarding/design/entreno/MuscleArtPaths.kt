@@ -79,11 +79,8 @@ internal object MuscleArtPaths {
         "M-22 108 C-20.7 108.3 -16.3 112.2 -14 110 C-11.7 107.8 -9 97.5 -8 95",
     )
 
-    /** Brazo: codo y muñeca (la silueta del cuerpo ya enseña el hombro y el brazo separado del torso). */
-    val ARM_CONTEXT: List<String> = listOf(
-        "M44.4 159 C45.5 159.6 48.6 162.5 51 162.5 C53.4 162.5 57.5 159.6 58.8 159",
-        "M56 217 C58 217.8 61.6 217.8 63.6 217",
-    )
+    /** Brazo: sin marcas comunes; cada gesto lleva su propio contorno. */
+    val ARM_CONTEXT: List<String> = listOf()
 
     /** Pierna de frente: rótulas. */
     val LEG_FRONT_CONTEXT: List<String> = listOf(
@@ -166,50 +163,50 @@ internal object MuscleArtPaths {
         "M-51.2 84.6 C-54.4 92.6 -56.4 101 -56.8 110",
     )
 
-    // ---- BICEPS (de frente, brazo flexionado con el puño arriba: el bíceps abultado en la parte alta del brazo)
+    // ---- BICEPS (de perfil, gesto clásico de sacar bíceps: brazo casi horizontal, antebrazo vertical con el puño arriba)
     const val BICEPS_BACK = false
-    /** Contorno del brazo flexionado (codo en ~90°, puño arriba): sustituye a la silueta del cuerpo en esta celda. */
+    /** Contorno del brazo flexionado, con el hombro y el pecho a la izquierda. Sustituye a la silueta del cuerpo. */
     const val BICEPS_OUTLINE =
-        "M34.75 98.06 C 35.45 88.06 44 85 51.25 93.94 L 62.31 138.2 L 85.28 115.23 L 85.3 108.5 C " +
-        "85.3 106.2 86.8 104.5 89 104.5 L 99.6 104.5 C 101.8 104.5 103.3 106.2 103.3 108.5 L 103.3 " +
-        "118.3 C 103.3 120.6 101.7 122.3 99.5 122.3 L 93.9 122.3 L 61.24 156.24 C 58 161 53 160.5 " +
-        "48.75 154.06 L 34.75 98.06 Z"
+        "M12 35 L39.8 38.5 L41.5 15 C41.5 9.5 43.5 5 46 5 C48.5 5 50.5 9.5 50.5 15 L48.4 45 C48.6 " +
+        "47.5 48.5 49 46.5 49 L12 45 C8.5 45 6 42.5 6 40 C6 37.5 8.5 35 12 35 Z M15 12 C8 20 4 30 4 " +
+        "40 C4 50 8 56 15 62"
     const val BICEPS_REGION =
-        "M44.5 102 C49.5 100.8 53.8 110 54.6 121 C55.3 131 56.6 143 56.6 150 C52 151.8 48 146 47 136 " +
-        "C46 127 45.8 110 44.5 102 Z"
+        "M16 35 C16 31.13 21.37 28 28 28 C34.63 28 40 31.13 40 35 C40 38.87 34.63 42 28 42 C21.37 42 " +
+        "16 38.87 16 35 Z"
 
     val BICEPS_DETAIL: List<String> = listOf(
-        "M47.8 110 C49.4 119 50.4 131 51.2 142.6",
-        "M51.6 110.6 C52.6 119 53.4 130 53.8 141.2",
+        "M19 35 C22 33.5 34 33.5 37 35",
     )
 
-    // ---- TRICEPS (de espalda, brazo extendido: la herradura del tríceps que baja del hombro al codo)
+    // ---- TRICEPS (de espalda, brazo colgado recto: la herradura con la abertura hacia el codo)
     const val TRICEPS_BACK = true
+    /** Contorno del brazo colgado visto de espalda. */
+    const val TRICEPS_OUTLINE =
+        "M26 14 C26 8 29 5.5 32 5.5 C35 5.5 38 8 38 14 L38 40 C38 44 37 46 35.5 47 L36 58 C36 60 34 " +
+        "62 32 62 C30 62 28 60 28 58 L28.5 47 C27 46 26 44 26 40 Z"
     const val TRICEPS_REGION =
-        "M43.2 100 C43.0 118 43.6 136 46.4 150 C47.0 153.2 48.8 155.6 51.0 156.4 C53.6 157.2 56.0 " +
-        "156.2 57.4 154 C58.6 147 58.8 124 58.6 100 L53.2 100 C53.0 118 53.0 138 53.4 150 C52.2 152.4 " +
-        "49.4 152.4 48.2 150 C48.4 138 48.0 118 48.2 100 Z"
+        "M23 38 C22.5 24 25.5 9.5 32 9.5 C38.5 9.5 41.5 24 41 38 L35.5 38 C35.5 28 34 17 32 17 C30 17 " +
+        "28.5 28 28.5 38 L23 38 Z"
 
     val TRICEPS_DETAIL: List<String> = listOf(
-        "M46.8 108 C47.0 120 47.4 134 48.6 146",
-        "M56.0 108 C55.8 120 55.6 136 55.2 150",
+        "M31 19 C31.2 25 31.2 32 31 38",
+        "M33 19 C32.8 25 32.8 32 33 38",
     )
 
-    // ---- FOREARMS (de frente: antebrazo con el puño cerrado y el vientre muscular marcado)
+    // ---- FOREARMS (de frente: antebrazo vertical con el puño cerrado arriba y el vientre en huso)
     const val FOREARMS_BACK = false
-    /** Contorno del antebrazo con el puño cerrado (y una línea de nudillos). */
+    /** Contorno del antebrazo con el puño cerrado. */
     const val FOREARMS_OUTLINE =
-        "M47.8 161 C49 157.5 53 156 56.2 156.2 C60.5 156.4 63.6 158.4 64.6 161.5 L63.4 186 L61.6 206 " +
-        "C61.4 208.3 61.1 210.2 60.8 212 C63.8 214.5 65.6 219 65.6 225 C65.6 230.6 62 234.8 57 234.8 " +
-        "C52 234.8 49.4 231.4 49.4 225.4 C49.4 219.5 50.6 215.8 53.2 212.4 C52.8 209.8 52.2 207.4 " +
-        "51.8 204.5 L49.2 186 L47.8 161 Z M52.8 224.6 C55.4 225.9 59.6 225.9 62.2 224.2"
+        "M24 60 C23 52 23 46 23.5 42 C24 34 27 27 27.5 19 L26 17 L26 12 C26 8.34 27.34 7 29 7 L35 7 " +
+        "C36.66 7 38 8.34 38 10 L38 17 L36.5 19 C37 27 40.5 34 40.5 42 C40.5 46 40.5 52 40 60 C35 62 " +
+        "29 62 24 60 Z"
     const val FOREARMS_REGION =
-        "M55.4 163.6 C58.8 165.2 61.6 172.4 62.0 181.2 C62.4 190.2 61.0 199.8 59.0 206.6 C58.0 209.2 " +
-        "55.0 209.4 53.8 207.0 C51.2 199.6 50.0 190.0 50.4 181.2 C50.8 172.0 52.2 165.2 55.4 163.6 Z"
+        "M25 44 C25 36 28 25 28 22 L36 22 C36 25 39 36 39 44 C39 50 36 56 32 58 C28 56 25 50 25 44 Z"
 
     val FOREARMS_DETAIL: List<String> = listOf(
-        "M55.2 168 C56.6 176 57.0 190 56.4 202",
-        "M58.6 170 C59.2 180 59.4 192 58.8 202",
+        "M29 40 C30 34 30.5 28 31 25",
+        "M35 40 C34 34 33.5 28 33 25",
+        "M28.5 13.5 C30.5 14.6 33.5 14.6 35.5 13.5",
     )
 
     // ---- ABS
