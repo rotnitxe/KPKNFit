@@ -111,10 +111,23 @@ class RingsResultV2Test {
     }
 
     @Test
-    fun `sin entrenos declarados la línea dice que llegas descansado`() {
+    fun `sin entrenos declarados cada línea dice que llegas con el cuerpo descansado`() {
         val answers = SetupRingsAnswers(sessionDaysState = RingsSessionDaysState.DECLARED)
         val lines = ringsExplanations(answers, coverage(muscular = 60, system = 70, structure = 60), today)
-        assertEquals("No entrenaste esta semana: llegas descansado.", lines[RecoveryChannelId.MUSCULAR])
+        val expected = "No entrenaste esta semana: llegas con el cuerpo descansado."
+        assertEquals(expected, lines[RecoveryChannelId.MUSCULAR])
+        assertEquals(expected, lines[RecoveryChannelId.SYSTEM])
+        assertEquals(expected, lines[RecoveryChannelId.STRUCTURE])
+    }
+
+    @Test
+    fun `las etiquetas de pilar llevan mayúscula solo al inicio`() {
+        assertEquals("Erectores espinales", ringsPillarLabel("Erectores Espinales"))
+        InitialRecoveryEvidenceFactory.INITIAL_RECOVERY_MUSCLE_PILLARS.forEach { pillar ->
+            val label = ringsPillarLabel(pillar)
+            assertTrue(label, label.first().isUpperCase())
+            assertEquals(label, label.take(1) + label.drop(1).lowercase())
+        }
     }
 
     @Test

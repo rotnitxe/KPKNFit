@@ -181,10 +181,17 @@ internal fun RingsResultBody(
                 onCommitChannel("columna", value)
             },
         )
-        SetupBodyCaption(
-            text = "«Sin calibrar» significa que todavía no hay datos de ese canal: no afirma un porcentaje " +
-                "ni dice que no hayas entrenado.",
-        )
+        // La nota solo aparece si algún anillo o algún deslizador todavía no tiene dato.
+        val someUncalibrated = coverage == null ||
+            coverage.muscular.score == null || coverage.system.score == null || coverage.structure.score == null ||
+            (energyPerson == null && energyEstimate == null) ||
+            (columnaPerson == null && columnaEstimate == null) ||
+            RINGS_MUSCLE_GROUPS.flatMap { it.second }.any { pillar ->
+                manualMuscles[pillar] == null && muscleEstimates[pillar] == null
+            }
+        if (someUncalibrated) {
+            SetupBodyCaption(text = RINGS_UNCALIBRATED_NOTE)
+        }
 
         RingsQuestionDivider()
 
@@ -238,7 +245,7 @@ internal fun RingsResultBody(
 private fun MuscleAdjustRow(pillar: String, manual: Int?, estimate: Int?, onCommit: (Int) -> Unit) {
     var drag by remember(pillar) { mutableStateOf<Int?>(null) }
     AdjustRow(
-        name = pillar,
+        name = ringsPillarLabel(pillar),
         accent = KpknRingColors.musculos,
         tag = "rings-result-muscle-$pillar",
         person = drag ?: manual,
@@ -311,7 +318,7 @@ private fun MusclesToggle(expanded: Boolean, onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text = "Quiero ajustar yo mismo mis músculos",
+            text = "Quiero ajustar mis músculos a mano",
             style = WizardTypography.controlLabel,
             color = WizardColors.text,
             modifier = Modifier.weight(1f),
@@ -380,7 +387,7 @@ internal fun ringsExplanations(
         RecoveryChannelId.SYSTEM to when {
             "energia" in a.manualRings -> "Ajustado por ti."
             coverage.system.score == null -> "Sin datos de tu energía: queda sin calibrar."
-            restedAll -> "No entrenaste esta semana: llegas descansado."
+            restedAll -> "No entrenaste esta semana: llegas con el cuerpo descansado."
             training == null -> "Por lo que nos contaste."
             a.intensityLevel != null -> "Por $training y la intensidad que elegiste."
             else -> "Por $training."
@@ -388,7 +395,7 @@ internal fun ringsExplanations(
         RecoveryChannelId.MUSCULAR to when {
             a.manualMusclesV2.isNotEmpty() -> "Ajustado por ti."
             coverage.muscular.score == null -> "Sin datos de tus músculos: queda sin calibrar."
-            restedAll -> "No entrenaste esta semana: llegas descansado."
+            restedAll -> "No entrenaste esta semana: llegas con el cuerpo descansado."
             training == null -> "Por lo que nos contaste."
             seriesTotal > 0 -> "Por $training y ${seriesPhrase(seriesTotal)}${since?.let { " $it" }.orEmpty()}."
             else -> "Por $training."
@@ -396,7 +403,7 @@ internal fun ringsExplanations(
         RecoveryChannelId.STRUCTURE to when {
             "columna" in a.manualRings -> "Ajustado por ti."
             coverage.structure.score == null -> "Sin datos de tu columna: queda sin calibrar."
-            restedAll -> "No entrenaste esta semana: llegas descansado."
+            restedAll -> "No entrenaste esta semana: llegas con el cuerpo descansado."
             training == null -> "Por lo que nos contaste."
             a.mainLifts.isNotEmpty() -> "Por $training y ${liftsPhrase(a.mainLifts.size)}."
             else -> "Por $training."
@@ -407,3 +414,9 @@ internal fun ringsExplanations(
 private fun seriesPhrase(sets: Int): String = if (sets == 1) "1 serie" else "$sets series"
 
 private fun liftsPhrase(count: Int): String = if (count == 1) "tu ejercicio principal" else "tus $count ejercicios principales"
+
+/** Etiqueta visible de un pilar: solo la primera letra en mayúscula («Erectores espinales»). La clave del motor no cambia. */
+internal fun ringsPillarLabel(pillar: String): String = pillar.lowercase().replaceFirstChar { it.uppercase() }
+
+/** Nota del resultado: solo se pinta cuando algún anillo o deslizador todavía no tiene dato. */
+internal const val RINGS_UNCALIBRATED_NOTE = "«Sin calibrar» quiere decir que aún no hay datos para ese anillo."

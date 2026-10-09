@@ -40,12 +40,17 @@ class RingsResultStepTest {
         var resets = 0
     }
 
-    private fun show(record: Record, answers: SetupRingsAnswers = SetupRingsAnswers(), expanded: Boolean = false) {
+    private fun show(
+        record: Record,
+        answers: SetupRingsAnswers = SetupRingsAnswers(),
+        expanded: Boolean = false,
+        coverage: RingsCoverage = COVERAGE,
+    ) {
         rule.setContent {
             // Como en el wizard, el paso va dentro de una página desplazable: así los toques llegan aunque queden bajo el borde.
             Column(Modifier.verticalScroll(rememberScrollState())) {
                 RingsResultBody(
-                    coverage = COVERAGE,
+                    coverage = coverage,
                     muscleEstimates = PILLARS.associateWith { 60 },
                     answers = answers,
                     error = null,
@@ -100,9 +105,27 @@ class RingsResultStepTest {
         assertEquals(listOf("Dorsales" to 55), record.muscles)
     }
 
+    @Test
+    fun `sin canales por calibrar no aparece la nota de sin calibrar`() {
+        show(Record(), coverage = CALIBRATED)
+        rule.onNodeWithText(RINGS_UNCALIBRATED_NOTE).assertDoesNotExist()
+    }
+
+    @Test
+    fun `con un canal sin calibrar aparece la nota de sin calibrar`() {
+        show(Record())
+        rule.onNodeWithText(RINGS_UNCALIBRATED_NOTE).assertExists()
+    }
+
     private companion object {
         val TODAY: LocalDate = LocalDate.of(2026, 10, 9)
         val PILLARS: List<String> = InitialRecoveryEvidenceFactory.INITIAL_RECOVERY_MUSCLE_PILLARS
+
+        val CALIBRATED: RingsCoverage = RingsCoverage(
+            muscular = channel(RecoveryChannelId.MUSCULAR, 62),
+            system = channel(RecoveryChannelId.SYSTEM, 74),
+            structure = channel(RecoveryChannelId.STRUCTURE, 58),
+        )
 
         val COVERAGE: RingsCoverage = RingsCoverage(
             muscular = channel(RecoveryChannelId.MUSCULAR, 62),

@@ -363,7 +363,7 @@ data class SetupRingsAnswers(
      * que mueve. Viven aquí y NO en la huella (`ringsSignature`): un ajuste del resultado no marca nada por revisar.
      */
     val manualRings: Map<String, Int> = emptyMap(),
-    /** Ajustes 0–100 por pilar muscular (pilar → valor), de «Quiero ajustar yo mismo mis músculos». Fuera de la huella. */
+    /** Ajustes 0–100 por pilar muscular (pilar → valor), de «Quiero ajustar mis músculos a mano». Fuera de la huella. */
     val manualMusclesV2: Map<String, Int> = emptyMap(),
 )
 
