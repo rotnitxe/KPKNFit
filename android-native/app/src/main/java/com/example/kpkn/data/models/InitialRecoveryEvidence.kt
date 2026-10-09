@@ -1,5 +1,8 @@
 package com.example.kpkn.data.models
 
+import com.example.kpkn.domain.auge.InitialRecoveryV2Model
+import java.time.Instant
+import java.time.ZoneId
 import kotlinx.serialization.Serializable
 import kotlin.math.roundToInt
 
@@ -36,6 +39,31 @@ data class InitialRecoverySensations(
     )
 }
 
+/** Patrones principales de la pregunta «¿Qué ejercicios principales hiciste?» de RINGS. */
+@Serializable
+enum class RingsLiftPattern { SQUAT, DEADLIFT, HINGE_ROW, BENCH, OVERHEAD, PULL_UP, LUNGE, CARDIO_LONG, INTERVALS }
+
+/** Grupos de la pregunta «¿Cuántas series hiciste por grupo?» de RINGS. */
+@Serializable
+enum class RingsMuscleGroup(val label: String) {
+    CHEST("Pecho"), BACK("Espalda"), SHOULDERS("Hombros"), ARMS("Brazos"), LEGS("Piernas"), CORE("Core"),
+}
+
+/** Carga de un día entrenado, en unidades del motor, por pilar muscular. Sin dato, vale 0. */
+@Serializable
+data class InitialRecoveryDayLoad(
+    val dayStartMs: Long = 0L,
+    val muscular: Map<String, Double> = emptyMap(),
+    val energy: Double = 0.0,
+    val spinal: Double = 0.0,
+) {
+    fun normalized(): InitialRecoveryDayLoad = copy(
+        muscular = muscular.mapValues { (_, value) -> if (value.isFinite()) value.coerceAtLeast(0.0) else 0.0 },
+        energy = if (energy.isFinite()) energy.coerceAtLeast(0.0) else 0.0,
+        spinal = if (spinal.isFinite()) spinal.coerceAtLeast(0.0) else 0.0,
+    )
+}
+
 @Serializable
 data class InitialRecoveryEvidence(
     val capturedAtMs: Long,
@@ -59,6 +87,12 @@ data class InitialRecoveryEvidence(
     val contractRevision: String = "initial-recovery-v2",
     val adjustmentSource: String? = null,
     val activityTypeState: InitialRecoveryResponseState = InitialRecoveryResponseState.DECLARED,
+    /** Cargas por día entrenado (solo estimatorVersion ≥ 2). Vacío en la evidencia v1. */
+    val dayLoads: List<InitialRecoveryDayLoad> = emptyList(),
+    /** false si no hay patrones axiales ni sensación de columna: la Columna queda «Sin calibrar». */
+    val structureKnown: Boolean = true,
+    /** true si no hubo series por grupo y la carga muscular sale de la intensidad y los patrones. */
+    val muscleGeneric: Boolean = false,
 ) {
     fun normalized(): InitialRecoveryEvidence = copy(
         coveredFromMs = minOf(coveredFromMs, coveredToMs),
@@ -77,11 +111,15 @@ data class InitialRecoveryEvidence(
             sessions = axialExposure.sessions?.coerceIn(0, 14),
             recencyDays = axialExposure.recencyDays?.coerceIn(0, 14),
         ),
+        dayLoads = dayLoads.map { it.normalized() },
     )
 }
 
 object InitialRecoveryEvidenceFactory {
     private const val DAY_MS = 24L * 60L * 60L * 1_000L
+
+    /** Las series por grupo se piden solo para los días de las últimas 72 h (hoy, ayer y anteayer). */
+    private const val RECENT_GROUP_DAYS_BACK = 2
 
     fun fromInputs(
         capturedAtMs: Long,
@@ -126,13 +164,6 @@ object InitialRecoveryEvidenceFactory {
             axialExposure.state == InitialRecoveryResponseState.DECLARED &&
             (axialExposure.sessions ?: 0) > 0
         val structureLoad = if (axialLoad) trainingLoad else 0
-        fun sensationPenalty(value: Int?): Int = when (value) {
-            null, 1 -> 0
-            2 -> 4
-            3 -> 8
-            4 -> 15
-            else -> 24
-        }
         val sensationCount = normalizedSensations.run {
             listOf(muscular, energy, structure).count { it != null }
         }
@@ -167,6 +198,108 @@ object InitialRecoveryEvidenceFactory {
             perMuscleScores = perMuscle,
             axialExposure = axialExposure,
             activityTypeState = activityTypeState,
+        ).normalized()
+    }
+
+    /** Penalización en puntos de una sensación (1–5). Sin dato o 1 = sin penalización. */
+    internal fun sensationPenalty(value: Int?): Int = when (value) {
+        null, 1 -> 0
+        2 -> 4
+        3 -> 8
+        4 -> 15
+        else -> 24
+    }
+
+    /**
+     * Evidencia v2 de RINGS (puntos 20–22). Cada día entrenado (0 = hoy … 6) se fecha a las 12:00 de ese día en
+     * [zone]: supuesto, la hora exacta no se pregunta. Las cargas están en unidades del motor (ver
+     * [InitialRecoveryV2Model]). Las puntuaciones guardadas son el estado a la hora de captura. Sin días entrenados
+     * no hay cargas y todas las puntuaciones valen 100.
+     */
+    fun fromInputsV2(
+        capturedAtMs: Long,
+        zone: ZoneId,
+        trainedDays: Set<Int>,
+        intensity: InitialRecoveryIntensity,
+        lifts: Set<RingsLiftPattern>,
+        groupSets: Map<RingsMuscleGroup, Int>,
+        sensations: InitialRecoverySensations = InitialRecoverySensations(),
+        sourceId: String = "initial-recovery",
+    ): InitialRecoveryEvidence {
+        val normalizedSensations = sensations.normalized()
+        val today = Instant.ofEpochMilli(capturedAtMs).atZone(zone).toLocalDate()
+        val days = trainedDays.filter { it in 0..6 }.distinct().sorted()
+        val recentDays = days.filter { it <= RECENT_GROUP_DAYS_BACK }
+        // Sin series por grupo, la carga muscular se estima con los patrones y la intensidad (muscleGeneric).
+        val setsByGroup = if (groupSets.isNotEmpty()) {
+            groupSets.filterValues { it > 0 }
+        } else {
+            InitialRecoveryV2Model.genericGroupSets(lifts)
+        }
+        val recentMuscular = InitialRecoveryV2Model.muscularShare(setsByGroup, intensity, recentDays.size)
+        val energy = InitialRecoveryV2Model.energyLoad(intensity, lifts)
+        val spinal = InitialRecoveryV2Model.spinalLoad(intensity, lifts)
+        val dayLoads = days.map { back ->
+            InitialRecoveryDayLoad(
+                dayStartMs = today.minusDays(back.toLong()).atTime(12, 0).atZone(zone).toInstant().toEpochMilli(),
+                muscular = if (back <= RECENT_GROUP_DAYS_BACK) recentMuscular else emptyMap(),
+                energy = energy,
+                spinal = spinal,
+            )
+        }
+        val pillarValues = INITIAL_RECOVERY_MUSCLE_PILLARS.map { pillar ->
+            InitialRecoveryV2Model.pillarBattery(pillar, dayLoads, normalizedSensations, capturedAtMs, capturedAtMs)
+        }
+        val axial = lifts.any { it in InitialRecoveryV2Model.AXIAL_LIFTS }
+        val cardio = lifts.any { it in InitialRecoveryV2Model.CARDIO_LIFTS }
+        val strength = lifts.any { it !in InitialRecoveryV2Model.CARDIO_LIFTS }
+        val sensationCount = listOf(normalizedSensations.muscular, normalizedSensations.energy, normalizedSensations.structure)
+            .count { it != null }
+        val confidence = (
+            20 +
+                days.size * 5 +
+                (if (recentDays.isNotEmpty()) 12 else 0) +
+                sensationCount * 8
+            ).coerceIn(0, 82)
+        val coveredFromMs = days.lastOrNull()
+            ?.let { today.minusDays(it.toLong()).atStartOfDay(zone).toInstant().toEpochMilli() }
+            ?: capturedAtMs
+        return InitialRecoveryEvidence(
+            capturedAtMs = capturedAtMs,
+            coveredFromMs = coveredFromMs,
+            coveredToMs = capturedAtMs,
+            expiresAtMs = capturedAtMs + 14L * DAY_MS,
+            sessions = days.size,
+            activityType = when {
+                strength && cardio -> InitialRecoveryActivityType.MIXED
+                cardio -> InitialRecoveryActivityType.CARDIO
+                else -> InitialRecoveryActivityType.STRENGTH
+            },
+            intensity = intensity,
+            zones = if (axial) listOf("axial") else emptyList(),
+            sensations = normalizedSensations,
+            muscularScore = InitialRecoveryV2Model.muscularBattery(pillarValues).roundToInt(),
+            systemScore = InitialRecoveryV2Model.energyBattery(dayLoads, normalizedSensations, capturedAtMs, capturedAtMs)
+                .roundToInt(),
+            structureScore = InitialRecoveryV2Model.spinalBattery(dayLoads, normalizedSensations, capturedAtMs, capturedAtMs)
+                .roundToInt(),
+            confidence = confidence,
+            estimatorVersion = 2,
+            sourceId = sourceId,
+            muscleScope = InitialRecoveryMuscleScope.FULL_BODY,
+            perMuscleScores = INITIAL_RECOVERY_MUSCLE_PILLARS.zip(pillarValues)
+                .associate { (pillar, value) -> pillar to value.roundToInt() },
+            axialExposure = InitialRecoveryAxialExposure(
+                state = if (axial) InitialRecoveryResponseState.DECLARED else InitialRecoveryResponseState.UNKNOWN,
+                sessions = days.size,
+                intensity = intensity,
+                recencyDays = days.firstOrNull(),
+            ),
+            contractRevision = "initial-recovery-v3",
+            activityTypeState = InitialRecoveryResponseState.DECLARED,
+            dayLoads = dayLoads,
+            structureKnown = days.isEmpty() || axial || normalizedSensations.structure != null,
+            muscleGeneric = groupSets.isEmpty() && recentDays.isNotEmpty(),
         ).normalized()
     }
 
