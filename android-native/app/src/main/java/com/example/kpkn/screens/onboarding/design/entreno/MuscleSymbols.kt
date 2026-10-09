@@ -1,13 +1,8 @@
 package com.example.kpkn.screens.onboarding.design.entreno
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.keyframes
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
@@ -28,9 +23,8 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.State
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,9 +32,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Matrix
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -74,22 +70,24 @@ import kotlin.math.hypot
 import kotlin.math.sin
 
 /*
- * «¿Qué músculos priorizas?»: la cuadrícula de músculos. Cada uno es el DIBUJO del músculo sobre una
- * silueta de línea del cuerpo, encuadrada de cerca; sin cajas. Elegir enciende la región con el acento de músculo,
- * le da un latido suave y le pone una marca de «hecho». Ver [MuscleArt] para los trazos.
+ * «¿Qué músculos priorizas?»: la cuadrícula de músculos. Cada uno es el DIBUJO del músculo dentro del encuadre de su
+ * familia (torso, brazo, pierna), sobre una silueta tenue del cuerpo con marcas; sin cajas. Sin elegir, contorno en tinta y
+ * un relleno muy suave; elegido, relleno con el acento de músculo y una contracción en bucle. Ver [MuscleArt].
  */
-
-/** Acento del módulo músculo. */
-private val MuscleAccent = Color(0xFFF49A6E)
 
 /** Verde de «hecho» y la tinta de la marca sobre él. */
 private val DoneGreen = Color(0xFF43D18C)
 private val OnDone = Color(0xFF08130D)
 
-/** Latido de los elegidos: la región oscila entre estas dos opacidades en [PULSE_MILLIS] × 2 (ida y vuelta ≈ 1,6 s). */
-private const val PULSE_LOW = 0.55f
-private const val PULSE_HIGH = 0.90f
-private const val PULSE_MILLIS = 800
+/**
+ * Bucle de la contracción de un músculo elegido: 2,4 s. Reposo, subida (0,7–1,3 s), pausa contraída, bajada (1,5–2,1 s) y
+ * reposo final: el reposo se reconoce entre una contracción y otra.
+ */
+private const val CONTRACT_LOOP_SECONDS = 2.4f
+private const val CONTRACT_RISE_FROM = 0.7f
+private const val CONTRACT_RISE_TO = 1.3f
+private const val CONTRACT_FALL_FROM = 1.5f
+private const val CONTRACT_FALL_TO = 2.1f
 
 /**
  * Opacidad de lo que ya no se puede elegir (tope alcanzado): el dibujo se apaga más que el nombre, para que el nombre
@@ -141,7 +139,7 @@ internal object MuscleGridLogic {
  * tocarlos, hacen un breve «no» sin llamar a [onToggle]. [onToggle] se llama al elegir o quitar un músculo.
  *
  * Marcas de prueba: `setup-muscle-<NAME>` (un `toggleable` con `Role.Checkbox`, objetivo ≥ 48 dp).
- * Con «reducir movimiento» no hay latido ni sacudida: la región elegida queda a una opacidad fija.
+ * Con «reducir movimiento» no hay bucle ni sacudida: la región elegida queda contraída y fija.
  */
 @Composable
 fun MuscleSymbolGrid(
@@ -154,7 +152,9 @@ fun MuscleSymbolGrid(
     val reducedMotion = wizardReducedMotion()
     val haptics = LocalHapticFeedback.current
     val capped = MuscleGridLogic.isCapped(selected, maxSelected)
-    val pulse = rememberMusclePulse(active = selected.isNotEmpty() && !reducedMotion)
+    // Un solo reloj para la cuadrícula: corre solo con algo elegido, con la app en primer plano y sin «reducir movimiento».
+    val foreground = rememberEntrenoForeground()
+    val clock = rememberSymbolClock(active = selected.isNotEmpty() && !reducedMotion && foreground)
     // Los músculos que la persona ya tocó (sale de ahí la etiqueta «Sugerido»). Una lista de nombres sobrevive al giro.
     var touchedNames by rememberSaveable { mutableStateOf(listOf<String>()) }
     val touched = remember(touchedNames) { touchedNames.mapNotNull { n -> MuscleSymbol.entries.firstOrNull { it.name == n } }.toSet() }
@@ -182,7 +182,7 @@ fun MuscleSymbolGrid(
                             showTag = MuscleGridLogic.showSuggestedTag(m, suggested, touched),
                             reserveTag = reserveTag,
                             labelStyle = labelStyle,
-                            pulse = pulse,
+                            clock = clock,
                             shakeStamp = shakes[m] ?: 0,
                             reducedMotion = reducedMotion,
                             onTap = {
@@ -252,19 +252,6 @@ private fun CapNote(visible: Boolean, text: String) {
     }
 }
 
-/** Latido compartido de todos los músculos elegidos: una sola animación infinita. Inactivo: opacidad fija. */
-@Composable
-private fun rememberMusclePulse(active: Boolean): State<Float> {
-    if (!active) return remember { mutableFloatStateOf((PULSE_LOW + PULSE_HIGH) / 2f + 0.05f) }
-    val transition = rememberInfiniteTransition(label = "muscle-pulse")
-    return transition.animateFloat(
-        initialValue = PULSE_LOW,
-        targetValue = PULSE_HIGH,
-        animationSpec = infiniteRepeatable(tween(PULSE_MILLIS, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-        label = "muscle-pulse-alpha",
-    )
-}
-
 @Composable
 private fun MuscleCell(
     muscle: MuscleSymbol,
@@ -273,7 +260,7 @@ private fun MuscleCell(
     showTag: Boolean,
     reserveTag: Boolean,
     labelStyle: TextStyle,
-    pulse: State<Float>,
+    clock: SymbolClock,
     shakeStamp: Int,
     reducedMotion: Boolean,
     onTap: () -> Unit,
@@ -299,11 +286,15 @@ private fun MuscleCell(
         }
     }
     val shape = remember(muscle) { MuscleArt.shape(muscle) }
-    val fade = remember(muscle) { silhouetteFade(shape.spec.window) }
-    val strokes = remember { MuscleStrokes() }
+    val art = remember(muscle) {
+        MuscleDrawState(contextFade(shape.spec.window, SILHOUETTE_FADE), contextFade(shape.spec.window, MARKS_FADE))
+    }
+    val run = remember { SymbolRun() }
+    // Anota desde cuándo corre la contracción (o dónde se quedó): el bucle de cada celda arranca desde su reposo.
+    SideEffect { run.update(isSelected, clock.peek()) }
     val capDescription = if (dimmed) "Máximo de músculos alcanzado" else null
     val labelAlpha = 1f - dim * (1f - CAPPED_LABEL_ALPHA)
-    val labelColor = lerp(WizardColors.text, MuscleAccent, sel).copy(alpha = labelAlpha)
+    val labelColor = lerp(WizardColors.text, SymbolPalette.musculo, sel).copy(alpha = labelAlpha)
 
     Column(
         modifier = modifier
@@ -325,9 +316,10 @@ private fun MuscleCell(
                 .fillMaxWidth()
                 .padding(horizontal = 2.dp)
                 .aspectRatio(1f)
+                .clipToBounds()
                 .graphicsLayer { alpha = 1f - dim * (1f - CAPPED_ART_ALPHA) },
         ) {
-            drawMuscle(shape, fade, strokes, sel, pulse, reducedMotion)
+            drawMuscle(shape, art, sel, muscleContraction(sel, reducedMotion, clock, run))
         }
         Text(
             text = muscle.label,
@@ -364,9 +356,9 @@ private val WizardTagLineHeight = 18.dp
 /** Los trazos de una celda, creados una sola vez (cambian solo si cambia la escala): nada de reservar por cuadro. */
 private class MuscleStrokes {
     private var unit = -1f
-    var thin: Stroke = Stroke(1f)
-        private set
-    var hair: Stroke = Stroke(1f)
+
+    /** Silueta y marcas: el trazo FINE de la familia (1,5 dp). */
+    var fine: Stroke = Stroke(1f)
         private set
     var fiber: Stroke = Stroke(1f)
         private set
@@ -376,55 +368,89 @@ private class MuscleStrokes {
     fun update(u: Float) {
         if (u == unit) return
         unit = u
-        thin = Stroke(width = 1.1f * u, cap = StrokeCap.Round)
-        hair = Stroke(width = 1.0f * u, cap = StrokeCap.Round)
+        fine = Stroke(width = SymbolStroke.FINE * u, cap = StrokeCap.Round)
         fiber = Stroke(width = 0.9f * u, cap = StrokeCap.Round)
         edge = Stroke(width = 1.15f * u, cap = StrokeCap.Round, join = StrokeJoin.Round)
     }
 }
 
-/** Pincel de la silueta: tinta que se desvanece hacia el borde del encuadre (el cuerpo «sigue» fuera de la celda). */
-private fun silhouetteFade(w: MuscleWindow): Brush {
-    val ink = WizardColors.text
+/** Lo que una celda reutiliza en cada cuadro: los dos pinceles del contexto, los trazos y el Matrix de la contracción. */
+private class MuscleDrawState(val silhouette: Brush, val marks: Brush) {
+    val strokes = MuscleStrokes()
+    val contraction = Matrix()
+}
+
+/**
+ * Radios del desvanecido, en lados del encuadre. La silueta se apaga cerca del borde para no dejar trazos cortados en él;
+ * las marcas, más cerca del centro, se apagan algo más tarde para que se sigan leyendo (rótulas, pliegues).
+ */
+private const val SILHOUETTE_FADE = 0.5f
+private const val MARKS_FADE = 0.56f
+
+/** Pincel de la silueta o de las marcas: tinta tenue (`textFaint`) que se desvanece hacia el borde del encuadre. */
+private fun contextFade(w: MuscleWindow, radiusFactor: Float): Brush {
+    val ink = WizardColors.textFaint
     return Brush.radialGradient(
         colorStops = arrayOf(0f to ink, 0.62f to ink, 1f to ink.copy(alpha = 0f)),
         center = Offset(w.cx, w.cy),
-        radius = w.size * 0.56f,
+        radius = w.size * radiusFactor,
     )
 }
 
-private const val OUTLINE_ALPHA = 0.50f
-private const val CONTEXT_ALPHA = 0.34f
-private const val DETAIL_ALPHA = 0.28f
-private const val REGION_ALPHA = 0.86f
+/**
+ * Un músculo suelto, pintado como en la cuadrícula, con una contracción fija (0 a 1). Lo usa la hoja de render para los
+ * fotogramas: no corre ningún reloj.
+ */
+@Composable
+internal fun MuscleArtCanvas(muscle: MuscleSymbol, selected: Boolean, contraction: Float, modifier: Modifier = Modifier) {
+    val shape = remember(muscle) { MuscleArt.shape(muscle) }
+    val state = remember(muscle) {
+        MuscleDrawState(contextFade(shape.spec.window, SILHOUETTE_FADE), contextFade(shape.spec.window, MARKS_FADE))
+    }
+    Canvas(modifier.aspectRatio(1f).clipToBounds()) {
+        drawMuscle(shape, state, if (selected) 1f else 0f, contraction)
+    }
+}
 
-private fun DrawScope.drawMuscle(
-    shape: MuscleShape,
-    fade: Brush,
-    strokes: MuscleStrokes,
-    sel: Float,
-    pulse: State<Float>,
-    reducedMotion: Boolean,
-) {
-    val window = shape.spec.window
+/**
+ * Cuánto se contrae un músculo en este cuadro (0 = reposo, 1 = contraído). Elegido y con movimiento: el bucle del reloj
+ * compartido, contado desde el reposo en que empezó a correr. Con «reducir movimiento» queda contraído y fijo al elegirlo.
+ */
+private fun muscleContraction(sel: Float, reducedMotion: Boolean, clock: SymbolClock, run: SymbolRun): Float = when {
+    sel <= 0.001f -> 0f
+    reducedMotion -> sel
+    else -> riseHoldFall(
+        loopTime(0f, clock.seconds - run.startAt, CONTRACT_LOOP_SECONDS),
+        CONTRACT_RISE_FROM, CONTRACT_RISE_TO, CONTRACT_FALL_FROM, CONTRACT_FALL_TO,
+    ) * sel
+}
+
+/**
+ * Pinta un músculo dentro de su encuadre. [sel] (0 a 1) es cuánto está elegido: el relleno pasa de tinta al 8 % al acento
+ * al 85 %, el contorno de tinta al 60 % a tinta plena y las fibras suben. [k] (0 a 1) es cuánto se contrae: la región y sus
+ * fibras se transforman con el mismo Matrix; la silueta y las marcas quedan quietas.
+ */
+private fun DrawScope.drawMuscle(shape: MuscleShape, state: MuscleDrawState, sel: Float, k: Float) {
+    val spec = shape.spec
+    val window = spec.window
     val s = size.minDimension / window.size
-    val ink = WizardColors.text
     // Anchos en dp convertidos al espacio del cuerpo (el lienzo está escalado por `s`).
-    strokes.update(1.dp.toPx() / s)
+    state.strokes.update(1.dp.toPx() / s)
+    val ink = WizardColors.text
     val bump = 1f + 0.05f * sin(PI.toFloat() * sel.coerceIn(0f, 1f)) // un «pop» al elegir
+    MuscleArt.contractInto(spec, k, state.contraction)
     withTransform({
         translate(size.width / 2f, size.height / 2f)
         scale(s * bump, s * bump, Offset.Zero)
         translate(-window.cx, -window.cy)
     }) {
-        drawPath(MuscleArt.silhouette(shape.spec.view), fade, OUTLINE_ALPHA, strokes.thin)
-        drawPath(shape.contextAll, fade, CONTEXT_ALPHA, strokes.hair)
-        if (sel > 0.001f) {
-            val a = sel * (if (reducedMotion) 0.80f else pulse.value)
-            drawPath(shape.region, MuscleAccent, a)
+        drawPath(shape.silhouette, state.silhouette, style = state.strokes.fine)
+        drawPath(shape.contextAll, state.marks, style = state.strokes.fine)
+        withTransform({ transform(state.contraction) }) {
+            drawPath(shape.region, lerp(ink.copy(alpha = 0.08f), SymbolPalette.musculo.copy(alpha = 0.85f), sel))
+            drawPath(shape.detailAll, lerp(ink.copy(alpha = 0.25f), ink.copy(alpha = 0.5f), sel), style = state.strokes.fiber)
+            drawPath(shape.region, lerp(ink.copy(alpha = 0.6f), ink, sel), style = state.strokes.edge)
         }
-        drawPath(shape.detailAll, fade, DETAIL_ALPHA + 0.12f * sel, strokes.fiber)
-        drawPath(shape.region, lerp(ink.copy(alpha = REGION_ALPHA), MuscleAccent, sel), style = strokes.edge)
     }
     // La marca de «hecho» va fuera de la transformación: mide lo mismo en todos los músculos.
     val p = seg(sel, 0.25f, 1f)
