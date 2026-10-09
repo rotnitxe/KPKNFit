@@ -60,6 +60,14 @@ internal data class MovableUnit(
     val isHeavy: Boolean,
     val sets: Int,
     val seconds: Int,
+    /** Patrones pesados de la unidad (sentadilla, bisagra, empuje o tirón con carga); vacío si no es pesada. */
+    val heavyPatterns: Set<PatternFamily> = emptySet(),
+    /** Patrón de cada ejercicio de fuerza compuesto (una entrada por ejercicio): cuenta para el máximo por familia. */
+    val compoundPatterns: List<PatternFamily> = emptyList(),
+    /** Músculo primario dominante de cada ejercicio de fuerza clasificado: cuenta para el máximo por músculo. */
+    val dominantMuscles: List<KpknMuscleGroup> = emptyList(),
+    /** Fatiga de la unidad: series × fatiga por serie de cada ejercicio de fuerza (ver [WeekGather.fatigueOf]). */
+    val fatigue: Double = 0.0,
 ) {
     val exerciseCount: Int get() = if (block != null) block.exercises.size else exercises.size
 
@@ -75,11 +83,28 @@ internal object WeekGather {
     /** Tiempo general de calentamiento que el estimador suma una vez por sesión con fuerza (se resta de cada unidad). */
     const val GENERAL_WARMUP_SECONDS = 180
 
+    /** Fatiga por serie cuando el catálogo no la trae: la mediana de `efc + cnc` del catálogo v2. */
+    const val DEFAULT_FATIGUE_PER_SET = 4.5
+
     private val HEAVY_PATTERNS = setOf(
         PatternFamily.SQUAT, PatternFamily.HINGE, PatternFamily.HORIZONTAL_PUSH, PatternFamily.VERTICAL_PUSH,
         PatternFamily.HORIZONTAL_PULL, PatternFamily.VERTICAL_PULL,
     )
     private val BARBELL_LIKE = setOf("barbell", "smith_machine", "safety_bar", "hex_bar", "t_bar", "ez_bar")
+
+    /**
+     * Patrones pesados de unos rasgos de fuerza: un compuesto de sentadilla, bisagra o empuje/tirón con barra, carga axial
+     * o pocas repeticiones (≤ 6). Los dos tirones son patrones distintos aquí.
+     */
+    internal fun heavyPatternsOf(traits: List<ExerciseTraits>, minReps: Int?): Set<PatternFamily> =
+        traits.filter { t ->
+            t.isCompound && t.pattern in HEAVY_PATTERNS &&
+                (t.equipmentId in BARBELL_LIKE || t.axialLoad >= 0.5 || (minReps != null && minReps <= 6))
+        }.mapNotNullTo(linkedSetOf()) { it.pattern }
+
+    /** Fatiga por serie de un ejercicio: `efc + cnc` del catálogo (o la mediana si no lo sabemos), con el factor axial como recargo. */
+    fun fatigueOf(traits: ExerciseTraits?): Double =
+        (traits?.fatigue ?: DEFAULT_FATIGUE_PER_SET) * (1.0 + (traits?.axialLoad ?: 0.0))
 
     private class Entry(val exercise: Exercise, val origin: PartOrigin?, val position: Int)
 
@@ -205,12 +230,14 @@ internal object WeekGather {
         val minReps = exercises.flatMap { it.sets }
             .mapNotNull { set -> set.targetRepsRange?.max ?: set.targetReps }
             .minOrNull()
-        val isHeavy = kind == UnitKind.STRENGTH && strengthTraits.any { t ->
-            t.isCompound && t.pattern in HEAVY_PATTERNS &&
-                (t.equipmentId in BARBELL_LIKE || t.axialLoad >= 0.5 || (minReps != null && minReps <= 6))
-        }
+        val heavyPatterns = if (kind == UnitKind.STRENGTH) heavyPatternsOf(strengthTraits, minReps) else emptySet()
+        val isHeavy = heavyPatterns.isNotEmpty()
         val roles = exercises.mapNotNull { it.slotRole }
-        val tier = tierOf(kind, roles, lead, isHeavy)
+        // Una superserie sube de nivel por su primer ejercicio de fuerza: si ese es de aislamiento, un T1 de otro miembro no la eleva.
+        val leadIndex = exercises.indices.firstOrNull { isStrength(exercises[it]) && traits[it] != null }
+        val principalRoles = leadIndex?.takeIf { traits[it]?.isCompound == false }
+            ?.let { listOfNotNull(exercises[it].slotRole) } ?: roles
+        val tier = tierOf(kind, roles, principalRoles, lead, isHeavy)
         val first = members.first()
         val configurationKey = first.exercise.catalogConfigurationId ?: first.exercise.name
         return MovableUnit(
@@ -247,6 +274,12 @@ internal object WeekGather {
             isHeavy = isHeavy,
             sets = exercises.sumOf { VolumeCalculator.countEffectiveSets(it.sets) },
             seconds = secondsOf(exercises, group, null, warmup),
+            heavyPatterns = heavyPatterns,
+            compoundPatterns = strengthTraits.filter { it.isCompound }.mapNotNull { it.pattern },
+            dominantMuscles = strengthTraits.mapNotNull { it.primaryMuscles.firstOrNull() },
+            fatigue = exercises.indices.filter { isStrength(exercises[it]) }.sumOf { i ->
+                fatigueOf(traits[i]) * VolumeCalculator.countEffectiveSets(exercises[i].sets)
+            },
         )
     }
 
@@ -297,13 +330,20 @@ internal object WeekGather {
         return merged
     }
 
-    private fun tierOf(kind: UnitKind, roles: List<SlotRole>, lead: ExerciseTraits?, isHeavy: Boolean): Int {
+    /** [principalRoles]: los roles que pueden subir la unidad a principal (en una superserie de aislamiento, solo el suyo). */
+    private fun tierOf(
+        kind: UnitKind,
+        roles: List<SlotRole>,
+        principalRoles: List<SlotRole>,
+        lead: ExerciseTraits?,
+        isHeavy: Boolean,
+    ): Int {
         when (kind) {
             UnitKind.CARDIO -> return 5
             UnitKind.MOBILITY -> return -1
             UnitKind.STRENGTH -> Unit
         }
-        if (SlotRole.T1_MAIN in roles || SlotRole.SPEED in roles) return 0
+        if (SlotRole.T1_MAIN in principalRoles || SlotRole.SPEED in principalRoles) return 0
         val supplemental = SlotRole.T2_SUPPLEMENTAL in roles || SlotRole.TECHNIQUE in roles
         if (lead == null) return if (supplemental) 1 else 2
         return when {
