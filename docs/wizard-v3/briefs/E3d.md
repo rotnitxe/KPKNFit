@@ -44,6 +44,16 @@ Regla del usuario: **símbolos, nunca tarjetas** (hoy estas preguntas usan `Setu
 - Accesibilidad: cada escala como grupo con `selectableGroup`; cada opción `Role.RadioButton` con «Músculos: Cargados»; objetivos ≥ 48 dp.
 - Movimiento: solo el símbolo elegido se anima; reloj compartido; con movimiento reducido, cuadro final.
 
+## API real y restos que dejó E3b (integrado)
+- Pasos: `RINGS_INTRO`, `RINGS_SESSION_DAYS`, `RINGS_MAIN_LIFTS`, `RINGS_GROUP_SETS`, `RINGS_FEELINGS`. Campos en `SetupRingsAnswers`:
+  `trainedDayOffsets`, `sessionDaysState` (`RingsSessionDaysState`), `mainLifts`, `mainLiftsState` (`RingsMainLiftsState`), `groupSets`,
+  `groupSetsUnknown`. Setters: `toggleTrainedDay`, `setNoTraining`, `setTrainingUnknown`, `toggleMainLift`, `setNoMainLifts`,
+  `setMainLiftsUnknown`, `setGroupSets`, `setFeelings` (lee sus firmas exactas).
+- El subtítulo de `RINGS_GROUP_SETS` no lleva el día: la pantalla antepone «Desde el <día>.» (o «Desde ayer.», «Desde hoy.»).
+- **Autorizado además**: `app/src/debug/.../WizardHarnessDrafts.kt` (`answeredAs`: responde los pasos nuevos con datos válidos, para que el
+  arnés de depuración y `WizardHarnessDraftsTest` sigan funcionando; añade esa prueba al filtro) y, en `SetupReviewStep.kt` (~586-598), las filas
+  de sensaciones apuntan a `RINGS_FEELINGS` en lugar de los ids retirados.
+
 ## Archivos permitidos
 Nuevos en `screens/onboarding/rings/` y su arte en `design/entreno/RingsQuestionArts.kt`; `SetupRingsSteps.kt` (solo las ramas de estos
 pasos y borrar los `Rings*Content` que queden sin uso); y pruebas. Nada de dominio ni del ViewModel.
