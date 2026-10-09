@@ -101,18 +101,16 @@ class GoalProfileArtDrawTest {
     }
 
     @Test
-    fun thePowerliftingBarRisesSlowlyAndStaysInsideTheCanvas() {
+    fun theThreeLiftsWeighAddUpAndTheJudgesLightUpAtTheRest() {
         val art = goalArt(TrainingGoalProfile.POWERLIFTING) as PowerliftingArt
-        var maxY = 0f
-        var minY = 99f
-        for (i in 0..200) {
-            val y = art.barY(art.period * i / 200f)
-            maxY = maxOf(maxY, y)
-            minY = minOf(minY, y)
+        val w = FloatArray(3)
+        for (i in 0..120) {
+            art.weights(art.period * i / 120f, w)
+            assertEquals(1f, w[0] + w[1] + w[2], 0.0001f)
         }
-        // Los discos miden ±25 alrededor de la barra: no se salen del lienzo de 64.
-        assertTrue("arriba $minY", minY - 25f >= 0f)
-        assertTrue("abajo $maxY", maxY + 25f <= 64f)
+        // En reposo (sentadilla arriba, 1,5 s) las luces de los jueces ya están encendidas; antes de la primera repetición, apagadas.
+        assertTrue("luces en reposo ${art.judgeLit(art.restT)}", art.judgeLit(art.restT) > 0.9f)
+        assertEquals(0f, art.judgeLit(0.5f), 0.0001f)
     }
 
     @Test
@@ -192,9 +190,9 @@ class GoalProfileArtDrawTest {
         }
         // Sube al menos 15 unidades desde el suelo.
         assertTrue("recorrido ${lowest - highest}", lowest - highest > 15f)
-        // En el suelo al empezar y arriba en su punto más alto; en reposo se ve arriba (lo más reconocible).
+        // En el suelo al empezar y sobre la plataforma al terminar el empuje (2,6 s); en reposo se ve arriba (lo más reconocible).
         assertEquals(0f, art.lift(0f), 0.0001f)
-        assertEquals(1f, art.lift(1.5f), 0.0001f)
+        assertEquals(1f, art.lift(2.6f), 0.0001f)
         assertTrue("reposo con la piedra arriba", art.lift(art.restT) > 0.95f)
     }
 
