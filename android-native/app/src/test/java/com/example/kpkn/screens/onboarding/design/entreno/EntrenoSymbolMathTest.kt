@@ -252,10 +252,10 @@ class EntrenoSymbolMathTest {
             assertInside("jumper@$t", joints(p), 64f, 64f)
         }
         // El salto empieza en el suelo y acaba sobre el cajón.
-        assertEquals(8f, BoxArt.flightRoot(0f).x, 1e-4f)
+        assertEquals(16f, BoxArt.flightRoot(0f).x, 1e-4f)
         assertEquals(58f, BoxArt.flightRoot(0f).y, 1e-4f)
-        assertEquals(37f, BoxArt.flightRoot(1f).x, 1e-4f)
-        assertEquals(28.4f, BoxArt.flightRoot(1f).y, 1e-4f)
+        assertEquals(44f, BoxArt.flightRoot(1f).x, 1e-4f)
+        assertEquals(45.5f, BoxArt.flightRoot(1f).y, 1e-4f)
         // En el vuelo hay una figura a la vez: ni la del suelo ni la de arriba; fuera de él, siempre hay una a la vista.
         for (t in samples(BoxArt.period, 340)) {
             if (t > 0.76f && t < 1.44f) {
