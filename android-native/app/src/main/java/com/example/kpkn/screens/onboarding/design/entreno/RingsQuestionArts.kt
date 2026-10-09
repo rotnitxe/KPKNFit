@@ -236,7 +236,7 @@ private fun DrawScope.drawRingsMuscle(shape: MuscleShape) {
         translate(-window.cx, -window.cy)
     }) {
         // La silueta se desvanece hacia el borde de la ventana, como en la cuadrícula de músculos: el músculo llena la pieza.
-        drawPath(MuscleArt.silhouette(shape.spec.view), silhouetteFade(window), alpha = 0.6f, style = thin)
+        drawPath(shape.silhouette, silhouetteFade(window), alpha = 0.6f, style = thin)
         drawPath(shape.region, SymbolPalette.musculo.copy(alpha = 0.86f))
         drawPath(shape.detailAll, WizardColors.text.copy(alpha = 0.28f), style = fiber)
     }
