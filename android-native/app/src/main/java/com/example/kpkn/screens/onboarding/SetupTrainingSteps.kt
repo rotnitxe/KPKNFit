@@ -30,6 +30,9 @@ import com.example.kpkn.screens.onboarding.entreno.EntrenoCapabilitiesStep
 import com.example.kpkn.screens.onboarding.entreno.EntrenoWeekLayoutStep
 import com.example.kpkn.screens.onboarding.entreno.EntrenoWeekdaysStep
 import com.example.kpkn.screens.onboarding.entreno.EntrenoVariantsStep
+import com.example.kpkn.screens.onboarding.entreno.EntrenoAvoidStep
+import com.example.kpkn.screens.onboarding.entreno.EntrenoCardioBaseStep
+import com.example.kpkn.screens.onboarding.entreno.EntrenoArmStyleStep
 
 /**
  * Contenido de cada paso del bloque **Entreno** del wizard de configuración.
@@ -65,6 +68,9 @@ fun SetupTrainingStepContent(
         SetupStepId.PLAN -> EntrenoPlanStep(state = state, vm = vm)
         SetupStepId.WEEK_LAYOUT -> EntrenoWeekLayoutStep(state = state, vm = vm)
         SetupStepId.CARDIO_TYPE -> EntrenoCardioTypeStep(state = state, vm = vm)
+        SetupStepId.AVOIDED_EXERCISES -> EntrenoAvoidStep(state = state, vm = vm)
+        SetupStepId.CARDIO_BASE -> EntrenoCardioBaseStep(state = state, vm = vm)
+        SetupStepId.ARM_STYLE -> EntrenoArmStyleStep(state = state, vm = vm)
 
         SetupStepId.EXPERIENCE,
         SetupStepId.VOLUME_TECHNIQUE,
