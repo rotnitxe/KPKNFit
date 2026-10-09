@@ -75,6 +75,8 @@ data class PersonalizerInput(
     val focus: TrainingFocus,
     val frequency: Int,
     val weekdays: List<Int> = emptyList(),
+    /** Primer día de la semana del programa (1 = lunes … 7 = domingo); sin valor, el primer día elegido. */
+    val weekStartDay: Int? = null,
     val equipment: Set<String> = setOf("general_gym"),
     val level: CatalogLevel = CatalogLevel.BEGINNER,
     val availableMinutes: Int = 60,
@@ -909,7 +911,7 @@ class SimpleCyclePersonalizer(
                 selectedDays.size, pullAvailable, horizontalPullAvailable = horizontalPull != null,
             )
         }
-        val startDay = selectedDays.first()
+        val startDay = nativeWeekStart(input, selectedDays)
         // Identidad de calendario (§14.3): el día de receta rota con la misma
         // regla de `PlanMaterializer.rotateWeekday` para caer en el día elegido.
         fun recipeWeekday(day: Int) = ((day - startDay).mod(7)) + 1
@@ -1862,14 +1864,21 @@ class SimpleCyclePersonalizer(
                 ),
             ),
         ),
-        startDay = days.first(),
+        startDay = nativeWeekStart(input, days),
         volumeRecommendations = input.volumeRecommendations,
-        schedulePlan = ProgramSchedulePlan(weekStartDay = days.first(), trainingDays = days.toSet()),
+        schedulePlan = ProgramSchedulePlan(weekStartDay = nativeWeekStart(input, days), trainingDays = days.toSet()),
         autoregulationMode = options.autoregulationMode,
         planWarmupConfig = options.warmup,
         tags = listOf("KPKN_NATIVE", input.focus.name),
         sourceRecipe = recipe,
     )
+
+    /**
+     * Primer día de la semana de un plan propio: el que pide el alta (el día con más energía mientras no se mueva) o, sin
+     * él, el primer día elegido. La rotación de la receta y el `startDay` del programa salen de este mismo valor.
+     */
+    private fun nativeWeekStart(input: PersonalizerInput, days: List<Int>): Int =
+        input.weekStartDay?.takeIf { it in 1..7 } ?: days.first()
 
     /** Shared §12.2 estimate; fitter and persisted target use identical minutes. */
     private fun estimateNativeSessionMinutes(session: Session): Int =
