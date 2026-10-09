@@ -1481,6 +1481,8 @@ class SetupWizardViewModel @JvmOverloads constructor(
         draft.liftMarkReps, draft.liftVariants, draft.avoidedExercises, draft.cardioBase, draft.armStyle, draft.maxReps,
         // «Otra versión»: la semilla cambia el programa «a medida» (vuelve a barrer), nunca la lista de autores.
         draft.planVariantSeed,
+        // ¿Compites?: respuesta y fecha que cuentan para el programa (fuera de la ruta no cuentan). El nombre no cambia el programa.
+        draft.activeCompetition(), draft.activeMeetDate(),
         PersonalizedPlanCatalog.REVISION,
     )
 
@@ -3847,6 +3849,20 @@ class SetupWizardViewModel @JvmOverloads constructor(
             }
         }
     }
+
+    // ── ¿Compites? (paso COMPETITION): solo escriben el dato; la validación y el programa lo leen del borrador. ──
+
+    /** «Sí, tengo fecha», «Compito, pero sin fecha» o «No compito». Pasar a una opción sin fecha retira la fecha y el nombre. */
+    fun setCompetition(answer: CompetitionAnswer) =
+        mutateDraft(SetupStepId.COMPETITION) { latest -> latest.withCompetition(answer) }
+
+    /** Fecha de la competición (`yyyy-MM-dd`), elegida en el calendario; null la retira. */
+    fun setMeetDate(iso: String?) =
+        mutateDraft(SetupStepId.COMPETITION) { latest -> latest.withMeetDate(iso) }
+
+    /** Nombre opcional del evento (hasta 40 caracteres). */
+    fun setMeetName(name: String) =
+        mutateDraft(SetupStepId.COMPETITION) { latest -> latest.withMeetName(name) }
 
     companion object {
         private const val DRAFT_ID_KEY = "setup_wizard_draft_id"

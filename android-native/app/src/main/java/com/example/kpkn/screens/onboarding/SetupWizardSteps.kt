@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.onboarding
 
 import androidx.compose.runtime.Composable
+import com.example.kpkn.domain.onboarding.CompetitionRules
 import com.example.kpkn.domain.onboarding.SetupStepDefinitions
 import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
@@ -89,6 +90,13 @@ internal fun wizardPageCopy(
                 goalProfile?.isSpecific == true ->
                     WizardPageCopy("Elige tu programa", "Elige el que más te guste. Podrás modificarlo después.")
                 else -> WizardPageCopy(definition?.title ?: page.name, definition?.subtitle)
+            }
+        // «¿Compites en powerlifting?»: la disciplina en minúsculas; sin disciplina de competición, el título del catálogo.
+        SetupStepId.COMPETITION ->
+            if (goalProfile != null && goalProfile in CompetitionRules.disciplines) {
+                WizardPageCopy("¿Compites en ${goalProfile.label.lowercase()}?", definition?.subtitle)
+            } else {
+                WizardPageCopy(definition?.title ?: page.name, definition?.subtitle)
             }
         // Powerlifting pide sus tres básicos como tales; powerbuilding, el título del catálogo («¿Cuáles son tus variantes…?»).
         SetupStepId.TRAINING_VARIANTS ->
