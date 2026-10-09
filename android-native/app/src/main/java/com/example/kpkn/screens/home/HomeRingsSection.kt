@@ -25,11 +25,14 @@ import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import kotlin.math.*
 import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.ui.tour.TourAnchors
+import com.example.kpkn.ui.tour.tourAnchor
 import com.example.kpkn.ui.components.rings.KpknRingColors
 import com.example.kpkn.ui.components.rings.KpknTowerRings
 import com.example.kpkn.ui.components.rings.RingChannel
@@ -235,7 +238,9 @@ private fun CombinedRingsView(
                     Modifier
                         .height(hostHeight)
                         .fillMaxWidth()
-                        .semantics(mergeDescendants = isLoading) {
+                        .tourAnchor(TourAnchors.HOME_RINGS)
+                        // Una sola lectura de los RINGS: la descripción del contenedor sustituye a la de la torre y sus bandas (TalkBack no las repite).
+                        .clearAndSetSemantics {
                             val desc = if (isLoading) {
                                 "Calculando recuperación"
                             } else {
