@@ -29,10 +29,12 @@ def adb(*args, timeout=60):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--out', required=True)
-    parser.add_argument('--suite', choices=['food', 'performance', 'media'], default='food')
+    parser.add_argument('--suite', choices=['food', 'performance', 'media', 'free'], default='food')
     args = parser.parse_args()
     suites = {'food': (TESTS, 8), 'performance': (['com.example.kpkn.data.repository.NutritionSearchBenchmarkTest'], 1),
-              'media': (['com.example.kpkn.data.media.MediaContainerGalleryInstrumentedTest'], 3)}
+              'media': (['com.example.kpkn.data.media.MediaContainerGalleryInstrumentedTest'], 3),
+              'free': (['com.example.kpkn.screens.programdetail.FreeProgramDetailUiTest',
+                         'com.example.kpkn.data.repository.ExpiredProDataControlsTest'], 3)}
     tests, expected_count = suites[args.suite]
     out = Path(args.out).resolve()
     if not out.is_relative_to(ROOT): raise SystemExit('Evidence must stay in this checkout')

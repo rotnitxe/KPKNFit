@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.exercises.SmartExerciseCreatorRegressionTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:10.826Z" hostname="VF" time="0.004">
+  <properties/>
+  <testcase name="automatic_creation_takes_chips_from_reference" classname="com.example.kpkn.domain.exercises.SmartExerciseCreatorRegressionTest" time="0.001"/>
+  <testcase name="aperturas_planas_keeps_real_muscle_volume_even_with_mismatched_implemento" classname="com.example.kpkn.domain.exercises.SmartExerciseCreatorRegressionTest" time="0.0"/>
+  <testcase name="automatic_creation_finds_reference_by_english_synonym" classname="com.example.kpkn.domain.exercises.SmartExerciseCreatorRegressionTest" time="0.0"/>
+  <testcase name="automatic_creation_finds_reference_with_typo_and_accent" classname="com.example.kpkn.domain.exercises.SmartExerciseCreatorRegressionTest" time="0.001"/>
+  <testcase name="auto_generates_description_when_name_is_clear" classname="com.example.kpkn.domain.exercises.SmartExerciseCreatorRegressionTest" time="0.0"/>
+  <testcase name="unknown_name_recommends_manual_input_and_has_no_auto_description" classname="com.example.kpkn.domain.exercises.SmartExerciseCreatorRegressionTest" time="0.0"/>
+  <testcase name="automatic_creation_uses_search_name_and_reference_equipment" classname="com.example.kpkn.domain.exercises.SmartExerciseCreatorRegressionTest" time="0.001"/>
+  <testcase name="keeps_user_description_when_provided" classname="com.example.kpkn.domain.exercises.SmartExerciseCreatorRegressionTest" time="0.0"/>
+  <testcase name="manual_muscle_override_is_respected" classname="com.example.kpkn.domain.exercises.SmartExerciseCreatorRegressionTest" time="0.0"/>
+  <testcase name="editing_preserves_existing_id" classname="com.example.kpkn.domain.exercises.SmartExerciseCreatorRegressionTest" time="0.0"/>
+  <testcase name="custom_press_inherits_catalog_muscles_not_core" classname="com.example.kpkn.domain.exercises.SmartExerciseCreatorRegressionTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

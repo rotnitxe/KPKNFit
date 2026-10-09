@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.auge.InitialRecoveryEvidencePolicyTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:08.516Z" hostname="VF" time="0.026">
+  <properties/>
+  <testcase name="noEvidenceIsUncalibratedAndDoesNotInventBaseline" classname="com.example.kpkn.domain.auge.InitialRecoveryEvidencePolicyTest" time="0.0"/>
+  <testcase name="explicitOverridesWinOverEvidenceAndSettingsKeepsOptionalField" classname="com.example.kpkn.domain.auge.InitialRecoveryEvidencePolicyTest" time="0.02"/>
+  <testcase name="selectedMuscleScopeOnlyContainsTheMusclesTheUserDeclared" classname="com.example.kpkn.domain.auge.InitialRecoveryEvidencePolicyTest" time="0.001"/>
+  <testcase name="structureUsesDeclaredAxialLoadOrStructureSensationOnly" classname="com.example.kpkn.domain.auge.InitialRecoveryEvidencePolicyTest" time="0.0"/>
+  <testcase name="factoryIsSerializableAndBoundsScores" classname="com.example.kpkn.domain.auge.InitialRecoveryEvidencePolicyTest" time="0.002"/>
+  <testcase name="coveredRealLogDeduplicatesOnlyCoveredInterval" classname="com.example.kpkn.domain.auge.InitialRecoveryEvidencePolicyTest" time="0.0"/>
+  <testcase name="evidenceDecaysFromStableAnchorAndExpires" classname="com.example.kpkn.domain.auge.InitialRecoveryEvidencePolicyTest" time="0.0"/>
+  <testcase name="engineKeepsLegacyNoEvidenceMetadataAndAppliesBootstrapAsAnchor" classname="com.example.kpkn.domain.auge.InitialRecoveryEvidencePolicyTest" time="0.0"/>
+  <testcase name="muscleScopeAndActivityProvenanceDoNotInventPerMuscleHistory" classname="com.example.kpkn.domain.auge.InitialRecoveryEvidencePolicyTest" time="0.0"/>
+  <testcase name="factoryKeepsScoresAndConfidenceBounded" classname="com.example.kpkn.domain.auge.InitialRecoveryEvidencePolicyTest" time="0.001"/>
+  <testcase name="recentEffortDecaysWithRecencyAndHigherIntensityAddsDebt" classname="com.example.kpkn.domain.auge.InitialRecoveryEvidencePolicyTest" time="0.0"/>
+  <testcase name="engineManualOverrideIsAnchoredAndNotReportedAsVerified" classname="com.example.kpkn.domain.auge.InitialRecoveryEvidencePolicyTest" time="0.0"/>
+  <testcase name="noSessionsCreateNoTrainingDebtButKeepDeclaredSensations" classname="com.example.kpkn.domain.auge.InitialRecoveryEvidencePolicyTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.exercises.ExerciseTechniqueImageLookupTest" tests="32" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:16:02.782Z" hostname="VF" time="0.026">
+  <properties/>
+  <testcase name="arm_lote_c_forearms_maps_catalog_implement" classname="com.example.kpkn.data.exercises.ExerciseTechniqueImageLookupTest" time="0.008"/>
+  <testcase name="missing_catalog_implements_do_not_inherit_another_implement_image" classname="com.example.kpkn.data.exercises.ExerciseTechniqueImageLookupTest" time="0.001"/>
+  <testcase name="front_squat_resolves_all_implement_variants" classname="com.example.kpkn.data.exercises.ExerciseTechniqueImageLookupTest" time="0.001"/>
+  <testcase name="belt_squat_has_exactly_one_variant_and_resolves_image" classname="com.example.kpkn.data.exercises.ExerciseTechniqueImageLookupTest" time="0.0"/>
+  <testcase name="unknown_exercise_has_no_technique_photo" classname="com.example.kpkn.data.exercises.ExerciseTechniqueImageLookupTest" time="0.0"/>
+  <testcase name="hinge_lote_maps_each_catalog_implement_to_one_drawable" classname="com.example.kpkn.data.exercises.ExerciseTechniqueImageLookupTest" time="0.002"/>
+  <testcase name="sumo_squat_resolves_distinct_implement_images" classname="com.example.kpkn.data.exercises.ExerciseTechniqueImageLookupTest" time="0.0"/>
+  <testcase name="sissy_squat_resolves_all_implement_variants" classname="com.example.kpkn.data.exercises.ExerciseTechniqueImageLookupTest" time="0.0"/>
+  <testcase name="conventional_deadlift_catalog_implements_exclude_kettlebell" classname="com.example.kpkn.data.exercises.ExerciseTechniqueImageLookupTest" time="0.0"/>
+  <testcase name="arm_lote_b_triceps_maps_catalog_implement_and_ignores_laterality" classname="com.example.kpkn.data.exercises.ExerciseTechniqueImageLookupTest" time="0.002"/>
+  <testcase name="bulgarian_split_squat_resolves_image" classname="com.example.kpkn.data.exercises.ExerciseTechniqueImageLookupTest" time="0.0"/>
+  <testcase name="hack_squat_resolves_distinct_smith_image" classname="com.example.kpkn.data.exercises.ExerciseTechniqueImageLookupTest" time="0.0"/>
+  <testcase name="approved_shoulder_batch_six_images_map_to_their_own_implement" classname="com.example.kpkn.data.exercises.ExerciseTechniqueImageLookupTest" time="0.001"/>
+  <testcase name="squat_resolves_from_configuration_prefix" classname="com.example.kpkn.data.exercises.ExerciseTechniqueImageLookupTest" time="0.0"/>
+  <testcase name="bench_press_resolves_barbell_variant" classname="com.example.kpkn.data.exercises.ExerciseTechniqueImageLookupTest" time="0.001"/>
+  <testcase name="approved_chest_and_back_batch_images_map_to_their_catalog_implement" classname="com.example.kpkn.data.exercises.ExerciseTechniqueImageLookupTest" time="0.001"/>
+  <testcase name="goblet_squat_has_exactly_one_variant_and_resolves_image" classname="com.example.kpkn.data.exercises.ExerciseTechniqueImageLookupTest" time="0.0"/>
+  <testcase name="bulgarian_split_squat_resolves_distinct_implement_images" classname="com.example.kpkn.data.exercises.ExerciseTechniqueImageLookupTest" time="0.0"/>
+  <testcase name="pendulum_squat_has_exactly_one_variant_and_resolves_image" classname="com.example.kpkn.data.exercises.ExerciseTechniqueImageLookupTest" time="0.0"/>
+  <testcase name="approved_chest_batch_three_images_map_to_catalog_implement" classname="com.example.kpkn.data.exercises.ExerciseTechniqueImageLookupTest" time="0.001"/>
+  <testcase name="laterality_token_is_not_treated_as_implement" classname="com.example.kpkn.data.exercises.ExerciseTechniqueImageLookupTest" time="0.0"/>
+  <testcase name="approved_back_batch_four_images_map_only_to_the_correct_implement" classname="com.example.kpkn.data.exercises.ExerciseTechniqueImageLookupTest" time="0.0"/>
+  <testcase name="belt_and_pendulum_unilateral_reuse_same_drawable" classname="com.example.kpkn.data.exercises.ExerciseTechniqueImageLookupTest" time="0.001"/>
+  <testcase name="approved_back_batch_four_remainder_maps_without_substituting_missing_implements" classname="com.example.kpkn.data.exercises.ExerciseTechniqueImageLookupTest" time="0.001"/>
+  <testcase name="approved_shoulder_batch_five_images_map_to_their_own_implement" classname="com.example.kpkn.data.exercises.ExerciseTechniqueImageLookupTest" time="0.0"/>
+  <testcase name="arm_lote_a_biceps_maps_catalog_implement_and_ignores_grip" classname="com.example.kpkn.data.exercises.ExerciseTechniqueImageLookupTest" time="0.001"/>
+  <testcase name="batch8_approved_images_resolve_only_for_their_catalog_implement" classname="com.example.kpkn.data.exercises.ExerciseTechniqueImageLookupTest" time="0.0"/>
+  <testcase name="hack_squat_resolves_machine_and_barbell_images" classname="com.example.kpkn.data.exercises.ExerciseTechniqueImageLookupTest" time="0.0"/>
+  <testcase name="sumo_squat_resolves_image" classname="com.example.kpkn.data.exercises.ExerciseTechniqueImageLookupTest" time="0.0"/>
+  <testcase name="approved_batch_seven_images_map_to_catalog_definitions_and_implements" classname="com.example.kpkn.data.exercises.ExerciseTechniqueImageLookupTest" time="0.003"/>
+  <testcase name="batch9_approved_images_resolve_only_for_their_equipment" classname="com.example.kpkn.data.exercises.ExerciseTechniqueImageLookupTest" time="0.001"/>
+  <testcase name="new_squat_definitions_resolve_their_drawables" classname="com.example.kpkn.data.exercises.ExerciseTechniqueImageLookupTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

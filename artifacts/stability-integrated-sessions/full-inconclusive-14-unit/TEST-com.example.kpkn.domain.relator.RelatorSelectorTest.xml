@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.relator.RelatorSelectorTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:20:07.460Z" hostname="VF" time="0.0">
+  <properties/>
+  <testcase name="does_not_repeat_topic_unless_reaction" classname="com.example.kpkn.domain.relator.RelatorSelectorTest" time="0.0"/>
+  <testcase name="reaction_can_repeat_topic" classname="com.example.kpkn.domain.relator.RelatorSelectorTest" time="0.0"/>
+  <testcase name="seed_is_deterministic" classname="com.example.kpkn.domain.relator.RelatorSelectorTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

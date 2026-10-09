@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.food.StaticCatalogProvenanceTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:16:10.144Z" hostname="VF" time="0.021">
+  <properties/>
+  <testcase name="no name repeats with the same state except the known twin" classname="com.example.kpkn.data.food.StaticCatalogProvenanceTest" time="0.002"/>
+  <testcase name="a per 100 g basis is declared only on a row measured in g ml or units" classname="com.example.kpkn.data.food.StaticCatalogProvenanceTest" time="0.001"/>
+  <testcase name="no id repeats" classname="com.example.kpkn.data.food.StaticCatalogProvenanceTest" time="0.0"/>
+  <testcase name="no row is a per serving row of exactly 100 g or 100 ml" classname="com.example.kpkn.data.food.StaticCatalogProvenanceTest" time="0.0"/>
+  <testcase name="every static food declares a source a dataset version and a nutrition basis" classname="com.example.kpkn.data.food.StaticCatalogProvenanceTest" time="0.001"/>
+  <testcase name="a row that says nothing is curated by KPKN and a row that says something keeps it" classname="com.example.kpkn.data.food.StaticCatalogProvenanceTest" time="0.0"/>
+  <testcase name="the resolver index keeps calling a row without provenance of its own LOCAL" classname="com.example.kpkn.data.food.StaticCatalogProvenanceTest" time="0.016"/>
+  <testcase name="a per 100 g row that is eaten by the unit declares its unit" classname="com.example.kpkn.data.food.StaticCatalogProvenanceTest" time="0.0"/>
+  <testcase name="the helper fills a blank source and release and never overrides a declared one" classname="com.example.kpkn.data.food.StaticCatalogProvenanceTest" time="0.0"/>
+  <testcase name="Charquican is one row and the merged id still answers" classname="com.example.kpkn.data.food.StaticCatalogProvenanceTest" time="0.001"/>
+  <testcase name="the redirects of deleted ids point at live rows and shadow no live id" classname="com.example.kpkn.data.food.StaticCatalogProvenanceTest" time="0.0"/>
+  <testcase name="the helper writes the basis only on a row that said none" classname="com.example.kpkn.data.food.StaticCatalogProvenanceTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

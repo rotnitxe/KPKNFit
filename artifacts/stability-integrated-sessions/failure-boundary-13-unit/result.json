@@ -1,0 +1,10 @@
+{
+  "tests": 2,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "suites": 1,
+  "files": {
+    "TEST-com.example.kpkn.data.backup.DataWriterFailureBoundaryTest.xml": "93833544f68a1779e02547f35515bad70e66e75fcd71a6dc843ee16405cde0ac"
+  }
+}

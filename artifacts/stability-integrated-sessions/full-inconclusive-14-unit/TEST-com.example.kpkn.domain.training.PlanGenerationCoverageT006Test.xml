@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.PlanGenerationCoverageT006Test" tests="3" skipped="1" failures="0" errors="0" timestamp="2026-10-09T13:23:02.596Z" hostname="VF" time="109.275">
+  <properties/>
+  <testcase name="Q1_pure_planner_coverage_62208_inputs" classname="com.example.kpkn.domain.training.PlanGenerationCoverageT006Test" time="2.635"/>
+  <testcase name="Q2_required_positives" classname="com.example.kpkn.domain.training.PlanGenerationCoverageT006Test" time="1.855"/>
+  <testcase name="Q2_calibrated_pass_changes_no_viable_row" classname="com.example.kpkn.domain.training.PlanGenerationCoverageT006Test" time="104.784">
+    <skipped/>
+  </testcase>
+  <system-out><![CDATA[[T006][Q1] totalInputs=62208 publishedCandidates=194400 evaluatedCandidates=0 viableCandidates=0 rejectedByReason={} emptyPublishedRows=0 previewPassed=0 activationPassed=0 reopenPassed=0 postWorkoutPassed=0
+[T006][Q2-required] totalInputs=58 publishedCandidates=58 evaluatedCandidates=58 viableCandidates=58 rejectedByReason={} rowsByWitness={#1=8, #2=6, #3=8, #4=6, #5=12, #8=18} readyByWitness={#1=8, #2=6, #3=8, #4=6, #5=12, #8=18} (fuera de las 2.304 filas de Q2) elapsedMs=1658
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

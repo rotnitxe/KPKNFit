@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.FoodSearchRankerTest" tests="23" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:29.835Z" hostname="VF" time="0.019">
+  <properties/>
+  <testcase name="collapseDuplicates keeps the anchor, then the curated lowest id, then the highest id of the rest" classname="com.example.kpkn.domain.nutrition.FoodSearchRankerTest" time="0.005"/>
+  <testcase name="stem folds Spanish plurals and keeps the words that only look plural" classname="com.example.kpkn.domain.nutrition.FoodSearchRankerTest" time="0.0"/>
+  <testcase name="the learned selection adds exactly 0 22 and shows in the trace" classname="com.example.kpkn.domain.nutrition.FoodSearchRankerTest" time="0.001"/>
+  <testcase name="a row whose state differs from the declared one loses 0 20 and an equal state loses nothing" classname="com.example.kpkn.domain.nutrition.FoodSearchRankerTest" time="0.0"/>
+  <testcase name="nothing hits, nothing is returned" classname="com.example.kpkn.domain.nutrition.FoodSearchRankerTest" time="0.0"/>
+  <testcase name="a row that neither carries nor spells the named brand loses exactly 0 25" classname="com.example.kpkn.domain.nutrition.FoodSearchRankerTest" time="0.001"/>
+  <testcase name="a row whose brand holds the named brand and more carries it" classname="com.example.kpkn.domain.nutrition.FoodSearchRankerTest" time="0.001"/>
+  <testcase name="a row with no brand whose name spells the brand is a Coca-Cola row, not an outsider or a claim" classname="com.example.kpkn.domain.nutrition.FoodSearchRankerTest" time="0.0"/>
+  <testcase name="a pack-sized name is demoted unless the query asks for a pack" classname="com.example.kpkn.domain.nutrition.FoodSearchRankerTest" time="0.001"/>
+  <testcase name="a state word qualifies the food but never identifies it" classname="com.example.kpkn.domain.nutrition.FoodSearchRankerTest" time="0.0"/>
+  <testcase name="a brand that only shares a word with the query, or is just a food word, is not named" classname="com.example.kpkn.domain.nutrition.FoodSearchRankerTest" time="0.001"/>
+  <testcase name="the score is the sum of its documented parts" classname="com.example.kpkn.domain.nutrition.FoodSearchRankerTest" time="0.001"/>
+  <testcase name="leche colun ranks the Colun SKU above gen016 but leche ranks gen016 above it" classname="com.example.kpkn.domain.nutrition.FoodSearchRankerTest" time="0.0"/>
+  <testcase name="equal scores break by name length then id and the order never depends on the pool order" classname="com.example.kpkn.domain.nutrition.FoodSearchRankerTest" time="0.0"/>
+  <testcase name="a generic row that does not even hit the named brand is an outsider, not an alias claim" classname="com.example.kpkn.domain.nutrition.FoodSearchRankerTest" time="0.001"/>
+  <testcase name="pan ranks the curated white bread above an OFF pan integral and never matches empanaditas" classname="com.example.kpkn.domain.nutrition.FoodSearchRankerTest" time="0.0"/>
+  <testcase name="an OFF row named exactly like the query does not outrank the curated plain food" classname="com.example.kpkn.domain.nutrition.FoodSearchRankerTest" time="0.001"/>
+  <testcase name="the anchor only counts when its row hits the head word the person typed" classname="com.example.kpkn.domain.nutrition.FoodSearchRankerTest" time="0.0"/>
+  <testcase name="sprite answers with the generic soda while the pool holds no Sprite and yields once it does" classname="com.example.kpkn.domain.nutrition.FoodSearchRankerTest" time="0.001"/>
+  <testcase name="bebida and gaseosa answer with the generic soda because nobody asked for a brand" classname="com.example.kpkn.domain.nutrition.FoodSearchRankerTest" time="0.001"/>
+  <testcase name="coca cola puts the Coca-Cola rows above the generic soda that only claims the name through an alias" classname="com.example.kpkn.domain.nutrition.FoodSearchRankerTest" time="0.001"/>
+  <testcase name="coca cola zero puts the Coca-Cola Zero row above the generic zero soda" classname="com.example.kpkn.domain.nutrition.FoodSearchRankerTest" time="0.001"/>
+  <testcase name="loggerFilter drops LOW_QUALITY and mismatched identities BEFORE the limit" classname="com.example.kpkn.domain.nutrition.FoodSearchRankerTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

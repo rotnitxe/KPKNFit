@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.NativeProfileRecipeAndFitterTest" tests="36" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:20:35.785Z" hostname="VF" time="10839.967">
+  <properties/>
+  <testcase name="low_bar_support_completes_one_day_athlete_hypertrophy_floor" classname="com.example.kpkn.domain.training.NativeProfileRecipeAndFitterTest" time="0.701"/>
+  <testcase name="pullup_bar_only_completes_one_day_athlete_at_both_trained_levels_without_cutting_cardio" classname="com.example.kpkn.domain.training.NativeProfileRecipeAndFitterTest" time="1.359"/>
+  <testcase name="athlete_bodyweight_f_and_fv_are_relative_strength_at_rir_three" classname="com.example.kpkn.domain.training.NativeProfileRecipeAndFitterTest" time="0.345"/>
+  <testcase name="section_17_2_muscle_e0_six_day_30_remains_a_required_positive" classname="com.example.kpkn.domain.training.NativeProfileRecipeAndFitterTest" time="0.333"/>
+  <testcase name="progression_contracts_expose_double_bodyweight_and_cardio_rules" classname="com.example.kpkn.domain.training.NativeProfileRecipeAndFitterTest" time="0.689"/>
+  <testcase name="muscle_three_day_calendar_alternates_in_even_weeks" classname="com.example.kpkn.domain.training.NativeProfileRecipeAndFitterTest" time="0.479"/>
+  <testcase name="discipline_material_gates_explain_what_is_missing" classname="com.example.kpkn.domain.training.NativeProfileRecipeAndFitterTest" time="2.021"/>
+  <testcase name="matrix_materializes_feasible_programs_without_exceeding_glute_mrv" classname="com.example.kpkn.domain.training.NativeProfileRecipeAndFitterTest" time="50.194"/>
+  <testcase name="no_pull_athlete_six_day_calendar_has_a_real_glute_mrv_minimum_counterexample" classname="com.example.kpkn.domain.training.NativeProfileRecipeAndFitterTest" time="0.001"/>
+  <testcase name="fitter_returns_time_budget_with_required_minutes" classname="com.example.kpkn.domain.training.NativeProfileRecipeAndFitterTest" time="0.318"/>
+  <testcase name="section_17_2_athlete_e0_six_day_60_is_a_materialized_positive_at_every_level" classname="com.example.kpkn.domain.training.NativeProfileRecipeAndFitterTest" time="1.474"/>
+  <testcase name="extra_secondary_glute_total_is_allowed_without_consuming_the_primary_band" classname="com.example.kpkn.domain.training.NativeProfileRecipeAndFitterTest" time="1.405"/>
+  <testcase name="native_fitter_preserves_stabilizer_total_but_refuses_personal_primary_overflow" classname="com.example.kpkn.domain.training.NativeProfileRecipeAndFitterTest" time="0.986"/>
+  <testcase name="shared_policy_group_does_not_assign_another_muscles_work_to_a_personal_limit" classname="com.example.kpkn.domain.training.NativeProfileRecipeAndFitterTest" time="0.538"/>
+  <testcase name="lift_slots_follow_the_sbd_vs_empty_rule" classname="com.example.kpkn.domain.training.NativeProfileRecipeAndFitterTest" time="2.171"/>
+  <testcase name="athlete_cardio_minutes_are_validated_whole_and_never_trimmed_to_fit" classname="com.example.kpkn.domain.training.NativeProfileRecipeAndFitterTest" time="10687.525"/>
+  <testcase name="strength_does_not_treat_generic_gym_as_confirmed_sbd_equipment" classname="com.example.kpkn.domain.training.NativeProfileRecipeAndFitterTest" time="0.446"/>
+  <testcase name="athlete_explicit_cardio_at_session_limit_returns_precise_time_budget" classname="com.example.kpkn.domain.training.NativeProfileRecipeAndFitterTest" time="0.559"/>
+  <testcase name="fitter_reduces_weekly_mrv_on_a_day_that_already_fits_time" classname="com.example.kpkn.domain.training.NativeProfileRecipeAndFitterTest" time="0.931"/>
+  <testcase name="muscle_bodyweight_three_day_alternation_reports_and_reaches_its_real_floor" classname="com.example.kpkn.domain.training.NativeProfileRecipeAndFitterTest" time="0.599"/>
+  <testcase name="fitter_can_reduce_fv_on_a_practice_day_with_an_unrelated_f_main" classname="com.example.kpkn.domain.training.NativeProfileRecipeAndFitterTest" time="0.886"/>
+  <testcase name="weeks_deload_and_rir_follow_section_12_1" classname="com.example.kpkn.domain.training.NativeProfileRecipeAndFitterTest" time="1.553"/>
+  <testcase name="no_pull_muscle_five_and_six_day_recipes_fit_real_glute_mrv_at_every_level" classname="com.example.kpkn.domain.training.NativeProfileRecipeAndFitterTest" time="4.787"/>
+  <testcase name="fitter_keeps_daily_minimums_and_the_two_exercise_fuerza_rule" classname="com.example.kpkn.domain.training.NativeProfileRecipeAndFitterTest" time="0.986"/>
+  <testcase name="the_soft_band_is_never_wider_than_what_the_policy_tolerates" classname="com.example.kpkn.domain.training.NativeProfileRecipeAndFitterTest" time="0.434"/>
+  <testcase name="primary_glutes_above_the_soft_ceiling_are_rejected_with_composition" classname="com.example.kpkn.domain.training.NativeProfileRecipeAndFitterTest" time="1.072"/>
+  <testcase name="matrix_at_20_and_60_minutes_never_returns_composition_or_exceeds_glute_mrv" classname="com.example.kpkn.domain.training.NativeProfileRecipeAndFitterTest" time="66.147"/>
+  <testcase name="same_day_duplicate_configurations_merge_h_to_h_up_to_four_sets" classname="com.example.kpkn.domain.training.NativeProfileRecipeAndFitterTest" time="0.302"/>
+  <testcase name="cardio_defaults_use_session_time_boundaries_44_and_45" classname="com.example.kpkn.domain.training.NativeProfileRecipeAndFitterTest" time="0.419"/>
+  <testcase name="time_budget_reports_the_exact_first_viable_minute" classname="com.example.kpkn.domain.training.NativeProfileRecipeAndFitterTest" time="8.623"/>
+  <testcase name="native_block_dispatch_checks_the_six_week_split_without_changing_legacy" classname="com.example.kpkn.domain.training.NativeProfileRecipeAndFitterTest" time="0.327"/>
+  <testcase name="native_fitter_persists_the_shared_full_session_estimate" classname="com.example.kpkn.domain.training.NativeProfileRecipeAndFitterTest" time="0.214"/>
+  <testcase name="athlete_has_real_speed_and_cardio_components" classname="com.example.kpkn.domain.training.NativeProfileRecipeAndFitterTest" time="0.223"/>
+  <testcase name="low_bar_row_fills_beginner_five_and_six_day_muscle_pull_days" classname="com.example.kpkn.domain.training.NativeProfileRecipeAndFitterTest" time="0.468"/>
+  <testcase name="no_pull_muscle_calendar_has_a_real_glute_mrv_minimum_counterexample" classname="com.example.kpkn.domain.training.NativeProfileRecipeAndFitterTest" time="0.004"/>
+  <testcase name="low_bar_support_supplies_beginner_horizontal_pull_for_four_day_muscle" classname="com.example.kpkn.domain.training.NativeProfileRecipeAndFitterTest" time="0.441"/>
+  <system-out><![CDATA[[NativeProfileMatrix] 20/60 min programs=115 timeBudgets=65
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -59,6 +59,8 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
         private const val MAX_HOURS_FOR_TAU_LEARNING = 14.0 * 24.0
     }
 
+    private val dataWriter = com.example.kpkn.data.backup.DataSessionWriter("auge-view-model")
+    private val dataScope = com.example.kpkn.data.backup.DataSessionWriterScope(viewModelScope, dataWriter)
     private val augeRepo = AugeRepository.getInstance(application)
     private val programRepo = ProgramRepository.getInstance()
     private val nutritionRepo = NutritionRepository.getInstance()
@@ -160,7 +162,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         // Recompute whenever history or settings change
-        viewModelScope.launch {
+        dataScope.launch {
             programRepo.history.combine(programRepo.settings) { h, s -> Pair(h, s) }
                 .distinctUntilChanged()
                 .collectLatest { (history, settings) ->
@@ -170,7 +172,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
 
         // Periodic recovery timer: rings degrade/recover over time,
         // so recompute every 5 minutes to let exponential decay formulas take effect.
-        recoveryTimerJob = viewModelScope.launch {
+        recoveryTimerJob = dataScope.launch {
             while (isActive) {
                 delay(300_000L)
                 refresh()
@@ -408,7 +410,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
 
     /** Call when user submits the daily wellbeing log (from ReadinessSheet). */
     fun saveWellbeing(log: DailyWellbeingLog) {
-        viewModelScope.launch {
+        dataScope.launch {
             augeWriteMutex.lock()
             try {
             // Stamp anchor only when real manual overrides are present (not auto-filled predictions)
@@ -461,7 +463,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
 
     /** Call when user submits post-session feedback. */
     fun savePostSessionFeedback(fb: PostSessionFeedback) {
-        viewModelScope.launch {
+        dataScope.launch {
             augeRepo.savePostSessionFeedback(fb)
             recompute(programRepo.history.value, programRepo.settings.value)
         }
@@ -469,7 +471,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
 
     /** Force recompute (e.g. after a new workout log is added). */
     fun refresh() {
-        viewModelScope.launch {
+        dataScope.launch {
             recompute(programRepo.history.value, programRepo.settings.value)
         }
     }
@@ -607,7 +609,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
         predictedSpinalBattery: Int? = null,
         predictedMuscleBatteries: Map<String, Int> = emptyMap(),
     ) {
-        viewModelScope.launch {
+        dataScope.launch {
             augeWriteMutex.lock()
             try {
             val base = augeRepo.getTodayWellbeing()
@@ -1056,7 +1058,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun dismissAdvisory(id: String) {
-        viewModelScope.launch {
+        dataScope.launch {
             augeWriteMutex.lock()
             try {
                 val cache = augeRepo.getAdaptiveCache()
@@ -1071,7 +1073,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun markModelUpdateNoticeShown() {
-        viewModelScope.launch {
+        dataScope.launch {
             augeWriteMutex.lock()
             try {
                 val cache = augeRepo.getAdaptiveCache()
@@ -1131,7 +1133,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
 
     /** Clears manual battery overrides and recomputes rings from engine only. */
     fun clearManualBatteryOverrides() {
-        viewModelScope.launch {
+        dataScope.launch {
             augeWriteMutex.lock()
             try {
                 augeRepo.clearManualBatteryOverrides()
@@ -1144,7 +1146,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
 
     /** Resets adaptive learning cache to defaults. */
     fun resetAdaptiveCache() {
-        viewModelScope.launch {
+        dataScope.launch {
             augeWriteMutex.lock()
             try {
                 augeRepo.resetAdaptiveCache()

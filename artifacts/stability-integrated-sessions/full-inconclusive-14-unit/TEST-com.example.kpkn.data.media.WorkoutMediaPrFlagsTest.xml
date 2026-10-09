@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.media.WorkoutMediaPrFlagsTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:16:11.460Z" hostname="VF" time="0.008">
+  <properties/>
+  <testcase name="marksSetLinkedMediaWhenHomologatedIsGlobalPr" classname="com.example.kpkn.data.media.WorkoutMediaPrFlagsTest" time="0.006"/>
+  <testcase name="doesNotMarkWarmupOrUnrelatedMilestone" classname="com.example.kpkn.data.media.WorkoutMediaPrFlagsTest" time="0.001"/>
+  <testcase name="marksWhenContextPrOrMatchingPrE1rmMilestone" classname="com.example.kpkn.data.media.WorkoutMediaPrFlagsTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

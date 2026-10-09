@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.food.FoodAliasConsistencyTest" tests="20" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:16:02.900Z" hostname="VF" time="0.666">
+  <properties/>
+  <testcase name="a target that declares a state is never answered by the other state" classname="com.example.kpkn.data.food.FoodAliasConsistencyTest" time="0.086"/>
+  <testcase name="huevo huevos and huevo cocido are the cooked egg" classname="com.example.kpkn.data.food.FoodAliasConsistencyTest" time="0.007"/>
+  <testcase name="the static anchor ignores what the source text of a row says" classname="com.example.kpkn.data.food.FoodAliasConsistencyTest" time="0.009"/>
+  <testcase name="a target that names no state is the state a person eats" classname="com.example.kpkn.data.food.FoodAliasConsistencyTest" time="0.001"/>
+  <testcase name="plurals fold in the exact lookup" classname="com.example.kpkn.data.food.FoodAliasConsistencyTest" time="0.0"/>
+  <testcase name="pechuga poyo and pechuga de pollo are the cooked breast" classname="com.example.kpkn.data.food.FoodAliasConsistencyTest" time="0.0"/>
+  <testcase name="a declared alias wins over a search alias of another row" classname="com.example.kpkn.data.food.FoodAliasConsistencyTest" time="0.0"/>
+  <testcase name="aliases that share a key name the same food" classname="com.example.kpkn.data.food.FoodAliasConsistencyTest" time="0.009"/>
+  <testcase name="an index built from a few rows only gets the aliases of those rows" classname="com.example.kpkn.data.food.FoodAliasConsistencyTest" time="0.183"/>
+  <testcase name="branded aliases resolve to their curated row but are no static food" classname="com.example.kpkn.data.food.FoodAliasConsistencyTest" time="0.001"/>
+  <testcase name="banana is the platano in the table the ranker and the index" classname="com.example.kpkn.data.food.FoodAliasConsistencyTest" time="0.182"/>
+  <testcase name="the index takes declared aliases in the form of the table and in the form of ids alike" classname="com.example.kpkn.data.food.FoodAliasConsistencyTest" time="0.123"/>
+  <testcase name="every alias id is a row of the catalog" classname="com.example.kpkn.data.food.FoodAliasConsistencyTest" time="0.001"/>
+  <testcase name="an approximation is a declared alias" classname="com.example.kpkn.data.food.FoodAliasConsistencyTest" time="0.0"/>
+  <testcase name="an alias key is accent free lower case and singular" classname="com.example.kpkn.data.food.FoodAliasConsistencyTest" time="0.001"/>
+  <testcase name="tamal and queque are aliases backed by a row of their own" classname="com.example.kpkn.data.food.FoodAliasConsistencyTest" time="0.0"/>
+  <testcase name="every declared alias names a food and the allow-list of dead aliases is empty" classname="com.example.kpkn.data.food.FoodAliasConsistencyTest" time="0.004"/>
+  <testcase name="a target is never resolved by containment" classname="com.example.kpkn.data.food.FoodAliasConsistencyTest" time="0.0"/>
+  <testcase name="an index holds every word together with its singular" classname="com.example.kpkn.data.food.FoodAliasConsistencyTest" time="0.053"/>
+  <testcase name="nuggets are not raw chicken breast and galletas are not bread" classname="com.example.kpkn.data.food.FoodAliasConsistencyTest" time="0.005"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

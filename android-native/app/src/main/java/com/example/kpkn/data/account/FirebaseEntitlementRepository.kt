@@ -23,13 +23,14 @@ import javax.crypto.SecretKey
 class FirebaseEntitlementRepository(private val context: Context, private val uid: String, private val transport: AccountTransport) : EntitlementRepository {
     @Serializable private data class Receipt(val ownerUid: String, val confirmed: ConfirmedEntitlement, val elapsedMs: Long, val boot: Int, val serverEpochMs: Long,
         val wallEpochMs: Long = 0, val highWaterEpochMs: Long = 0, val clockUncertain: Boolean = false)
+    private val writeOwner = com.example.kpkn.data.backup.DataSessionWriter("entitlement-cache")
     private val mutex = Mutex()
     private val _state = MutableStateFlow(EntitlementState())
     override val state = _state.asStateFlow()
     private val json = Json { encodeDefaults = true; ignoreUnknownKeys = true }
     private val preferences by lazy { context.getSharedPreferences("kpkn_entitlement", 0) }
     private var receipt: Receipt? = null
-    suspend fun load() = withContext(Dispatchers.IO) { mutex.withLock {
+    suspend fun load() = writeOwner.write withContext@ { mutex.withLock {
         receipt = runCatching {
             val encoded = preferences.getString("receipt", null) ?: return@runCatching null
             val signature = preferences.getString("signature", null) ?: return@runCatching null
@@ -38,7 +39,7 @@ class FirebaseEntitlementRepository(private val context: Context, private val ui
         }.getOrNull()
         updateClockLocked()
     } }
-    suspend fun updateClock() = withContext(Dispatchers.IO) { mutex.withLock { updateClockLocked() } }
+    suspend fun updateClock() = writeOwner.write withContext@ { mutex.withLock { updateClockLocked() } }
     private suspend fun updateClockLocked() {
         val value = receipt
         val elapsed = SystemClock.elapsedRealtime(); val currentBoot = boot(); val wall = System.currentTimeMillis()
@@ -57,7 +58,7 @@ class FirebaseEntitlementRepository(private val context: Context, private val ui
     }
     override suspend fun refresh() = verify("readEntitlement", JsonObject(emptyMap()))
     override suspend fun verifyPurchase(purchaseToken: String) = verify("validatePlayPurchase", buildJsonObject { put("purchaseToken", purchaseToken) })
-    private suspend fun verify(method: String, data: JsonObject) = withContext(Dispatchers.IO) { mutex.withLock {
+    private suspend fun verify(method: String, data: JsonObject) = writeOwner.write withContext@ { mutex.withLock {
         withContext(Dispatchers.Main) { _state.value = _state.value.copy(checking = true, errorCode = null) }
         try {
             val response = transport.call(uid, method, data)

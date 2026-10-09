@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.onboarding.MuscleSymbolsTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:56.885Z" hostname="VF" time="0.002">
+  <properties/>
+  <testcase name="forearmsCountForRealInTheOrderBag" classname="com.example.kpkn.domain.onboarding.MuscleSymbolsTest" time="0.0"/>
+  <testcase name="theBagHasOnePointPerMuscleAndNeverExceedsTheEngineBudget" classname="com.example.kpkn.domain.onboarding.MuscleSymbolsTest" time="0.0"/>
+  <testcase name="theMappingUsesTheNamesTheOrderEngineAlreadyKnows" classname="com.example.kpkn.domain.onboarding.MuscleSymbolsTest" time="0.0"/>
+  <testcase name="synonymsTheEngineNormalizesResolveToTheirSymbol" classname="com.example.kpkn.domain.onboarding.MuscleSymbolsTest" time="0.001"/>
+  <testcase name="bodybuildingAndTheGeneralProfilesSuggestNothingAndEverySuggestionFitsTheCap" classname="com.example.kpkn.domain.onboarding.MuscleSymbolsTest" time="0.0"/>
+  <testcase name="suggestionsFollowTheProfile" classname="com.example.kpkn.domain.onboarding.MuscleSymbolsTest" time="0.0"/>
+  <testcase name="everySymbolMapsToAnEngineCanonicalMuscleAndBack" classname="com.example.kpkn.domain.onboarding.MuscleSymbolsTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

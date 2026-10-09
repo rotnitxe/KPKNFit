@@ -109,6 +109,7 @@ data class ProfileUiState(
 )
 
 class ProfileViewModel : ViewModel() {
+    private val mediaWrites = com.example.kpkn.data.backup.DataSessionWriter("profile-photo-view-model")
     private val programRepository = ProgramRepository.getInstance()
     private val nutritionRepository = NutritionRepository.getInstance()
 
@@ -162,7 +163,7 @@ class ProfileViewModel : ViewModel() {
     }
 
     fun savePhoto(context: android.content.Context, uri: android.net.Uri, onError: (String) -> Unit) {
-        viewModelScope.launch(Dispatchers.IO) {
+        mediaWrites.launch(viewModelScope, Dispatchers.IO) {
             runCatching { ProfilePhotoStore.saveFromUri(context, uri) }
                 .onSuccess { token ->
                     programRepository.updateSettings { it.copy(profilePicture = token) }
@@ -174,9 +175,11 @@ class ProfileViewModel : ViewModel() {
     }
 
     fun removePhoto(context: android.content.Context) {
-        viewModelScope.launch(Dispatchers.IO) {
-            ProfilePhotoStore.delete(context)
-            programRepository.updateSettings { it.copy(profilePicture = null) }
+        mediaWrites.launch(viewModelScope, Dispatchers.IO) {
+            runCatching {
+                ProfilePhotoStore.delete(context)
+                programRepository.updateSettings { it.copy(profilePicture = null) }
+            }
         }
     }
 

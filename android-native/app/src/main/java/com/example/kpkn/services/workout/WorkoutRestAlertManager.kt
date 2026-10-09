@@ -25,6 +25,7 @@ import com.example.kpkn.R
 import com.example.kpkn.data.models.HapticIntensity
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.navigation.KpknDeepLinks
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -50,6 +51,17 @@ class WorkoutRestAlertManager(private val context: Context) {
     companion object {
         const val CHANNEL_REST_ONGOING = "workout_rest_ongoing"
         const val CHANNEL_REST_FINISHED = "workout_rest_finished"
+        private val restWrites = com.example.kpkn.data.media.MediaWriteBarrier()
+        internal suspend fun pauseForDataSession() = restWrites.pauseAndAwait()
+        internal fun resumeForDataSession() {
+            synchronized(timerPreferencesLock) {
+                timerPreferencesLoaded = false
+                activeTimerId = null
+                monotonicDeadline = null
+                timerPreferencesRevision += 1
+            }
+            restWrites.resume()
+        }
         private const val PREFS = "workout_rest_alerts"
         private val playExecutor = java.util.concurrent.Executors.newSingleThreadExecutor()
         @OptIn(ExperimentalCoroutinesApi::class)
@@ -86,14 +98,15 @@ class WorkoutRestAlertManager(private val context: Context) {
         internal const val EVENT_FINISH = "finish"
     }
 
-    private val appContext = context.applicationContext
+    private val restSession = restWrites.session()
+    private val appContext = com.example.kpkn.data.backup.capturedPersonalContext(context)
     private val alarmManager = appContext.getSystemService(Context.ALARM_SERVICE) as AlarmManager
     private val notificationManager = NotificationManagerCompat.from(appContext)
     private val prefs by lazy { appContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE) }
 
     /** Loads SharedPreferences before a workout can use the rest-alert path on Main. */
     suspend fun preloadPreferences() {
-        withContext(Dispatchers.IO) {
+        restWrites.write(restSession) {
             val readyPrefs = prefs
             val storedTimerId = readyPrefs.all[KEY_TIMER_ID] as? String
             val storedEnd = readyPrefs.getLong(KEY_END_AT, 0)
@@ -111,9 +124,8 @@ class WorkoutRestAlertManager(private val context: Context) {
         }
     }
 
-    internal fun launchOnPreferenceOwnerIo(block: suspend () -> Unit) {
-        preferenceOwnerIoScope.launch { block() }
-    }
+    internal fun launchOnPreferenceOwnerIo(block: suspend () -> Unit): kotlinx.coroutines.Job =
+        restWrites.launchOn(preferenceOwnerIoScope, restSession) { block() }
 
     /** Returns null only for a legacy timer that has no monotonic anchor. */
     fun remainingMillisFor(endWallMs: Long): Long? = monotonicDeadline?.takeIf { it.first == endWallMs }?.second
@@ -177,7 +189,7 @@ class WorkoutRestAlertManager(private val context: Context) {
         exerciseImage: ByteArray? = null,
         endAtOverrideMs: Long? = null,
         isAdjustment: Boolean = false,
-    ): String {
+    ): String = restWrites.immediate(restSession) accepted@ {
         ensureChannels()
         val restoredRemaining = endAtOverrideMs?.let(::remainingMillisFor)
         if (isAdjustment) {
@@ -209,6 +221,7 @@ class WorkoutRestAlertManager(private val context: Context) {
                 .putLong(KEY_DURATION, deadline.durationMs)
                 .putInt(KEY_BOOT, deadline.bootCount)
                 .apply()
+            launchOnPreferenceOwnerIo { prefs.edit().commit() }
         }
 
         scheduleAlarm(
@@ -244,22 +257,22 @@ class WorkoutRestAlertManager(private val context: Context) {
         }.onFailure {
             postOngoingNotification(sessionName, exerciseName, endAt)
         }
-        return timerId
+        return@accepted timerId
     }
 
-    fun onTimerFinishedInApp(expectedTimerId: String?) {
-        val activeId = synchronized(timerPreferencesLock) { activeTimerId } ?: return
-        if (!shouldDeliverInAppRestCompletion(activeId, expectedTimerId)) return
+    fun onTimerFinishedInApp(expectedTimerId: String?) = restWrites.immediate(restSession) accepted@ {
+        val activeId = synchronized(timerPreferencesLock) { activeTimerId } ?: return@accepted
+        if (!shouldDeliverInAppRestCompletion(activeId, expectedTimerId)) return@accepted
         val sessionName = prefs.getString(KEY_SESSION_NAME, "Entrenamiento") ?: "Entrenamiento"
         val exerciseName = prefs.getString(KEY_EXERCISE_NAME, "Siguiente serie") ?: "Siguiente serie"
         val revision = synchronized(timerPreferencesLock) {
-            if (activeTimerId != activeId) return
+            if (activeTimerId != activeId) return@accepted
             timerPreferencesRevision
         }
         deliverCompletionAlert(sessionName, exerciseName, activeId, revision)
     }
 
-    fun cancelRestAlerts(cancelFinished: Boolean = false) {
+    fun cancelRestAlerts(cancelFinished: Boolean = false) = restWrites.immediate(restSession) accepted@ {
         synchronized(timerPreferencesLock) {
             WorkoutRestForegroundService.stop(appContext)
             cancelAlarm(REQUEST_CODE_ALARM)
@@ -278,14 +291,14 @@ class WorkoutRestAlertManager(private val context: Context) {
         exerciseName: String?,
         event: String?,
         endAtMs: Long,
-    ) {
+    ) = restWrites.immediate(restSession) accepted@ {
         val activeId = synchronized(timerPreferencesLock) { activeTimerId }
-        if (timerId == null || activeId == null || timerId != activeId) return
+        if (timerId == null || activeId == null || timerId != activeId) return@accepted
 
         val safeSession = sessionName ?: (prefs.getString(KEY_SESSION_NAME, "Entrenamiento") ?: "Entrenamiento")
         val safeExercise = exerciseName ?: (prefs.getString(KEY_EXERCISE_NAME, "Siguiente serie") ?: "Siguiente serie")
         val revision = synchronized(timerPreferencesLock) {
-            if (activeTimerId != activeId) return
+            if (activeTimerId != activeId) return@accepted
             timerPreferencesRevision
         }
 
@@ -371,7 +384,8 @@ class WorkoutRestAlertManager(private val context: Context) {
     }
 
     private fun playToneSequenceAsync(steps: List<WorkoutRestToneStep>, onComplete: () -> Unit = {}) {
-        playExecutor.execute {
+        restWrites.launchOn(preferenceOwnerIoScope, restSession,
+            playExecutor.asCoroutineDispatcher()) {
             val wakeLock = (appContext.getSystemService(Context.POWER_SERVICE) as? PowerManager)
                 ?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "kpkn:workoutRestAlertTone")
             runCatching { wakeLock?.acquire(10_000L) }
@@ -640,11 +654,11 @@ class WorkoutRestAlertManager(private val context: Context) {
     private fun lastAudioFailureAt(): Long = prefs.getLong(KEY_LAST_AUDIO_FAILURE_AT, 0L)
 
     private fun markAudioFailure() {
-        prefs.edit().putLong(KEY_LAST_AUDIO_FAILURE_AT, System.currentTimeMillis()).apply()
+        restWrites.immediate(restSession) { prefs.edit().putLong(KEY_LAST_AUDIO_FAILURE_AT, System.currentTimeMillis()).commit() }
     }
 
     private fun clearAudioFailure() {
-        prefs.edit().remove(KEY_LAST_AUDIO_FAILURE_AT).apply()
+        restWrites.immediate(restSession) { prefs.edit().remove(KEY_LAST_AUDIO_FAILURE_AT).commit() }
     }
 
     private fun enqueueTimerPreferenceClear(expectedTimerId: String? = null) {
@@ -658,7 +672,7 @@ class WorkoutRestAlertManager(private val context: Context) {
     }
 
     private fun enqueueTimerPreferenceClear(revision: Long, expectedTimerId: String?) {
-        preferenceOwnerIoScope.launch {
+        launchOnPreferenceOwnerIo {
             val readyPrefs = prefs
             readyPrefs.all
             synchronized(timerPreferencesLock) {
@@ -675,7 +689,7 @@ class WorkoutRestAlertManager(private val context: Context) {
                 .remove(KEY_STARTED_ELAPSED)
                 .remove(KEY_DURATION)
                 .remove(KEY_BOOT)
-                    .apply()
+                    .commit()
             }
         }
     }
@@ -686,14 +700,15 @@ class RestTimerFinishedReceiver : BroadcastReceiver() {
         val wakeLock = (context.getSystemService(Context.POWER_SERVICE) as? PowerManager)
             ?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "kpkn:workoutRestAlert")
         runCatching { wakeLock?.acquire(10_000L) }
-        val manager = WorkoutRestAlertManager(context)
+        val manager = runCatching { WorkoutRestAlertManager(context) }.getOrNull()
+        if (manager == null) { if (wakeLock?.isHeld == true) wakeLock.release(); return }
         val pendingResult = goAsync()
         val timerId = intent.getStringExtra(WorkoutRestAlertManager.EXTRA_TIMER_ID)
         val sessionName = intent.getStringExtra(WorkoutRestAlertManager.EXTRA_SESSION_NAME)
         val exerciseName = intent.getStringExtra(WorkoutRestAlertManager.EXTRA_EXERCISE_NAME)
         val event = intent.getStringExtra(WorkoutRestAlertManager.EXTRA_EVENT)
         val endAtMs = intent.getLongExtra(WorkoutRestAlertManager.EXTRA_END_AT, 0L)
-        manager.launchOnPreferenceOwnerIo {
+        val work = manager.launchOnPreferenceOwnerIo {
             try {
                 manager.preloadPreferences()
                 manager.onAlarmFromReceiver(
@@ -707,8 +722,8 @@ class RestTimerFinishedReceiver : BroadcastReceiver() {
                 if (wakeLock?.isHeld == true) {
                     wakeLock.release()
                 }
-                pendingResult.finish()
             }
         }
+        work.invokeOnCompletion { if (wakeLock?.isHeld == true) wakeLock.release(); pendingResult?.finish() }
     }
 }

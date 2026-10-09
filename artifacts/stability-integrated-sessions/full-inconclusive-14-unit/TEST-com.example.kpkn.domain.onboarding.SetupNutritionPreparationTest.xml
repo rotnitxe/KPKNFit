@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.onboarding.SetupNutritionPreparationTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:20:04.505Z" hostname="VF" time="0.018">
+  <properties/>
+  <testcase name="body fat goal keeps current composition as start value and target as goal" classname="com.example.kpkn.domain.onboarding.SetupNutritionPreparationTest" time="0.016"/>
+  <testcase name="eligibilityUnknown blocks the equation but expenditures are still resolved" classname="com.example.kpkn.domain.onboarding.SetupNutritionPreparationTest" time="0.0"/>
+  <testcase name="self-defined manual plan is READY with exact weekly budget and variable split" classname="com.example.kpkn.domain.onboarding.SetupNutritionPreparationTest" time="0.001"/>
+  <testcase name="tracking only returns no plan no days and keeps the calendar expenditure" classname="com.example.kpkn.domain.onboarding.SetupNutritionPreparationTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

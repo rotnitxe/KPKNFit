@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.PeriodizationEngineTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-09T13:22:22.667Z" hostname="VF" time="0.001">
+  <properties/>
+  <testcase name="scaleSets_applies_protocol_volumeModifier" classname="com.example.kpkn.domain.training.PeriodizationEngineTest" time="0.001"/>
+  <testcase name="scaleSets_increases_for_accumulation_and_shrinks_for_deload" classname="com.example.kpkn.domain.training.PeriodizationEngineTest" time="0.0"/>
+  <testcase name="scaleSets_never_returns_less_than_one" classname="com.example.kpkn.domain.training.PeriodizationEngineTest" time="0.0"/>
+  <testcase name="percentageForWeek_ramps_from_min_to_max_across_the_block" classname="com.example.kpkn.domain.training.PeriodizationEngineTest" time="0.0"/>
+  <testcase name="prescriptionFor_varies_reps_and_rpe_by_goal" classname="com.example.kpkn.domain.training.PeriodizationEngineTest" time="0.0"/>
+  <testcase name="percentageForWeek_returns_midpoint_for_single_week_block" classname="com.example.kpkn.domain.training.PeriodizationEngineTest" time="0.0"/>
+  <testcase name="percentageForWeek_can_unload_from_peak_to_taper" classname="com.example.kpkn.domain.training.PeriodizationEngineTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

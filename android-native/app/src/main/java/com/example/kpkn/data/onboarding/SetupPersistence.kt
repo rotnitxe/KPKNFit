@@ -113,14 +113,15 @@ data class SetupCommitResult(
 )
 
 class SetupDraftRepository(private val db: KpknDatabase) {
+    private val writeOwner = com.example.kpkn.data.backup.DataSessionWriter("setup-draft-repository")
     private val writeMutex = Mutex()
 
-    suspend fun load(draftId: String): SetupDraft? = withContext(Dispatchers.IO) {
+    suspend fun load(draftId: String): SetupDraft? = writeOwner.write withContext@ {
         db.setupDraftDao().getDraft(draftId)?.toModel()
     }
 
     suspend fun save(draftId: String, payloadJson: String, revision: Long, catalogRevision: String? = null): SetupDraft = writeMutex.withLock {
-        withContext(Dispatchers.IO) {
+        writeOwner.write withContext@ {
             require(draftId.isNotBlank())
             require(revision >= 0)
             db.withTransaction {
@@ -149,7 +150,7 @@ class SetupDraftRepository(private val db: KpknDatabase) {
     }
 
     suspend fun discard(draftId: String) = writeMutex.withLock {
-        withContext(Dispatchers.IO) { db.setupDraftDao().deleteDraft(draftId) }
+        writeOwner.write withContext@ { db.setupDraftDao().deleteDraft(draftId) }
     }
 }
 
@@ -162,13 +163,16 @@ class SetupCommitCoordinator(
             com.example.kpkn.data.account.AccountGraph.entitlement.value.effectiveLevel
     },
 ) {
+    private val writeOwner = com.example.kpkn.data.backup.DataSessionWriter("setup-commit-coordinator")
     private val mutex = Mutex()
 
-    suspend fun commit(request: SetupCommitRequest): SetupCommitResult = mutex.withLock {
+    suspend fun commit(request: SetupCommitRequest): SetupCommitResult = writeOwner.write { commitAccepted(request) }
+
+    private suspend fun commitAccepted(request: SetupCommitRequest): SetupCommitResult = mutex.withLock {
         PersistenceWriteCoordinator.mutex.withLock {
             require(request.commitId.isNotBlank())
             programRepository?.isReady?.first { it }
-            withContext(Dispatchers.IO) {
+            writeOwner.write withContext@ {
             var result: SetupCommitResult? = null
             var shouldPublish = false
             var committedSettings: Settings? = null

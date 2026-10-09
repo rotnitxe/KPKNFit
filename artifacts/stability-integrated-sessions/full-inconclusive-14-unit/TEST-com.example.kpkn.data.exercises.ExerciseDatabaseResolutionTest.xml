@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.exercises.ExerciseDatabaseResolutionTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:16:02.773Z" hostname="VF" time="0.004">
+  <properties/>
+  <testcase name="returns_null_when_id_and_name_do_not_match" classname="com.example.kpkn.data.exercises.ExerciseDatabaseResolutionTest" time="0.003"/>
+  <testcase name="public_resolver_reads_the_current_custom_overlay" classname="com.example.kpkn.data.exercises.ExerciseDatabaseResolutionTest" time="0.001"/>
+  <testcase name="does_not_resolve_by_name_when_id_is_stale" classname="com.example.kpkn.data.exercises.ExerciseDatabaseResolutionTest" time="0.0"/>
+  <testcase name="does_not_resolve_by_alias_when_id_is_stale" classname="com.example.kpkn.data.exercises.ExerciseDatabaseResolutionTest" time="0.0"/>
+  <testcase name="resolves_custom_exercise_by_id" classname="com.example.kpkn.data.exercises.ExerciseDatabaseResolutionTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

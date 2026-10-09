@@ -52,8 +52,9 @@ object WorkoutShareService {
         previousBestEstimated1RM: Double? = null,
         currentBestEstimated1RM: Double? = null,
     ) {
-        val appContext = context.applicationContext
-        val prepared = withContext(Dispatchers.IO) {
+        val owner = com.example.kpkn.data.backup.DataSessionWriter("workout-story-export")
+        val appContext = com.example.kpkn.data.backup.capturedPersonalContext(context)
+        val prepared = owner.write {
             runCatching {
                 val bitmap = renderMinimalStoryCard(
                     context = appContext,

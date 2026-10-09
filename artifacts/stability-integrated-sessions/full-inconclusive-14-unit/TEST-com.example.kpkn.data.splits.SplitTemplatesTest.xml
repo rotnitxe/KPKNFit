@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.splits.SplitTemplatesTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:06.813Z" hostname="VF" time="0.001">
+  <properties/>
+  <testcase name="arnold_ul_exists" classname="com.example.kpkn.data.splits.SplitTemplatesTest" time="0.0"/>
+  <testcase name="fullbody_x3_is_high_frequency_not_low_frequency" classname="com.example.kpkn.data.splits.SplitTemplatesTest" time="0.001"/>
+  <testcase name="recommended_kpkn_contains_exact_expected_ids" classname="com.example.kpkn.data.splits.SplitTemplatesTest" time="0.0"/>
+  <testcase name="normal_templates_do_not_use_personalizado_tag" classname="com.example.kpkn.data.splits.SplitTemplatesTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

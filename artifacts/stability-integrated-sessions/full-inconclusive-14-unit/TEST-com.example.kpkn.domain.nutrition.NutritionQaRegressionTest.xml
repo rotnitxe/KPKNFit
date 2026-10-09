@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.NutritionQaRegressionTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:37.652Z" hostname="VF" time="2.303">
+  <properties/>
+  <testcase name="exact mass does not certify an unknown nutrient density" classname="com.example.kpkn.domain.nutrition.NutritionQaRegressionTest" time="0.049"/>
+  <testcase name="real lunch salad uses referenced vegetables and asks composition" classname="com.example.kpkn.domain.nutrition.NutritionQaRegressionTest" time="0.079"/>
+  <testcase name="milk constraints apply to every actual catalog candidate not ingredient mentions" classname="com.example.kpkn.domain.nutrition.NutritionQaRegressionTest" time="1.087"/>
+  <testcase name="positive breakfast keeps each component household prior" classname="com.example.kpkn.domain.nutrition.NutritionQaRegressionTest" time="0.058"/>
+  <testcase name="generic tortilla asks composition while declared wheat stays specific" classname="com.example.kpkn.domain.nutrition.NutritionQaRegressionTest" time="0.083"/>
+  <testcase name="plain oats cannot become a product whose malformed brand is Avena" classname="com.example.kpkn.domain.nutrition.NutritionQaRegressionTest" time="0.608"/>
+  <testcase name="declared tortilla composition replaces identity and only preserves declared amount" classname="com.example.kpkn.domain.nutrition.NutritionQaRegressionTest" time="0.122"/>
+  <testcase name="negated ingredients do not inflate context portions or later combination scaling" classname="com.example.kpkn.domain.nutrition.NutritionQaRegressionTest" time="0.185"/>
+  <testcase name="unsure generic tortilla never restores wheat preview" classname="com.example.kpkn.domain.nutrition.NutritionQaRegressionTest" time="0.032"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

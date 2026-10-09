@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.NativeProgressionEquipmentAndVariantTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-09T13:21:15.842Z" hostname="VF" time="0.097">
+  <properties/>
+  <testcase name="barbellReduction_respectsTheEmptyBarFloor" classname="com.example.kpkn.domain.training.NativeProgressionEquipmentAndVariantTest" time="0.031"/>
+  <testcase name="proposalText_usesTheRealUnitOfEachEquipmentAndHidesInternalIds" classname="com.example.kpkn.domain.training.NativeProgressionEquipmentAndVariantTest" time="0.013"/>
+  <testcase name="equipmentDecidesTheConvention_notASubstringOfTheConfigurationId" classname="com.example.kpkn.domain.training.NativeProgressionEquipmentAndVariantTest" time="0.001"/>
+  <testcase name="bodyweightVariant_carriesToCycleTwoSessionsAndRecipes_idempotently" classname="com.example.kpkn.domain.training.NativeProgressionEquipmentAndVariantTest" time="0.026"/>
+  <testcase name="noDeclaredStock_leavesTheNextLoadForTheAthlete_butDeclaredLimitsAreReported" classname="com.example.kpkn.domain.training.NativeProgressionEquipmentAndVariantTest" time="0.004"/>
+  <testcase name="recipeWithoutNativeProgression_keepsEveryConventionUnspecified" classname="com.example.kpkn.domain.training.NativeProgressionEquipmentAndVariantTest" time="0.001"/>
+  <testcase name="barbellIncrement_requiresAchievablePlateCombination" classname="com.example.kpkn.domain.training.NativeProgressionEquipmentAndVariantTest" time="0.007"/>
+  <testcase name="conventionPolicyMapsEquipmentFamilies" classname="com.example.kpkn.domain.training.NativeProgressionEquipmentAndVariantTest" time="0.001"/>
+  <testcase name="bodyweightVariantReplacement_survivesRematerializeWeek" classname="com.example.kpkn.domain.training.NativeProgressionEquipmentAndVariantTest" time="0.004"/>
+  <testcase name="knownIncrement_usesTheCatalogEquipment_forDumbbellBarbellAndCable" classname="com.example.kpkn.domain.training.NativeProgressionEquipmentAndVariantTest" time="0.005"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

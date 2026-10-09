@@ -1,0 +1,52 @@
+{
+  "state": "FAIL_OR_INCOMPLETE",
+  "runId": "24f95c70-51fd-4353-8654-a99f982b8fb6",
+  "phases": [
+    {
+      "method": "com.example.kpkn.data.repository.WorkoutMediaUriDurabilityInstrumentedTest",
+      "returnCode": 0,
+      "passed": true,
+      "expectedCount": 5,
+      "priorPid": "",
+      "absentAfterStop": true,
+      "coldPid": null
+    },
+    {
+      "method": "com.example.kpkn.screens.workout.WorkoutExternalCameraCaptureInstrumentedTest",
+      "returnCode": 0,
+      "passed": true,
+      "expectedCount": 4,
+      "priorPid": "",
+      "absentAfterStop": true,
+      "coldPid": null
+    },
+    {
+      "method": "com.example.kpkn.data.repository.WorkoutMediaLateRetryInstrumentedTest",
+      "returnCode": 0,
+      "passed": true,
+      "expectedCount": 4,
+      "priorPid": "",
+      "absentAfterStop": true,
+      "coldPid": null
+    },
+    {
+      "method": "com.example.kpkn.data.repository.DataIsolationColdProcessTest#phase1SeedAndExport",
+      "returnCode": 0,
+      "passed": true,
+      "expectedCount": 1,
+      "priorPid": "",
+      "absentAfterStop": true,
+      "coldPid": 5831
+    },
+    {
+      "method": "com.example.kpkn.data.repository.DataIsolationColdProcessTest#phase2RestoreInNewProcess",
+      "returnCode": 0,
+      "passed": false,
+      "expectedCount": 1,
+      "priorPid": "",
+      "absentAfterStop": true,
+      "coldPid": null
+    }
+  ],
+  "limits": "Core backup/profile controls; not account UI, live Firebase, or real Play Billing."
+}

@@ -21,6 +21,7 @@ import kotlinx.coroutines.launch
 object CustomExerciseRepository {
 
     private var scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private var writeOwner: com.example.kpkn.data.backup.DataSessionWriter? = null
     private val _customExercises = MutableStateFlow<List<ExerciseMuscleInfo>>(emptyList())
     val customExercises: StateFlow<List<ExerciseMuscleInfo>> = _customExercises.asStateFlow()
 
@@ -29,16 +30,22 @@ object CustomExerciseRepository {
     private lateinit var db: KpknDatabase
     private lateinit var appContext: Context
 
-    fun initialize(context: Context) {
-        appContext = context.applicationContext
-        db = KpknDatabase.getInstance(appContext)
-        if (initialized) return
-        initialized = true
-        scope.launch { refreshFromStorage() }
+    fun initialize(context: Context): Unit = synchronized(this) {
+        if (initialized) return@synchronized
+        val owner = com.example.kpkn.data.backup.DataSessionWriter("custom-exercise-repository")
+        owner.immediate {
+            appContext = if (com.example.kpkn.data.account.ProfileStorage.initialized())
+                com.example.kpkn.data.account.ProfileStorage.context(context.applicationContext) else context.applicationContext
+            db = KpknDatabase.getInstance(appContext)
+            writeOwner = owner
+            scope = com.example.kpkn.data.backup.DataSessionWriterScope(CoroutineScope(Dispatchers.IO + SupervisorJob()), owner)
+            initialized = true
+            owner.launch(scope) { refreshFromStorage() }
+        }
     }
 
-    suspend fun refreshFromStorage() {
-        if (!::appContext.isInitialized) return
+    suspend fun refreshFromStorage() = requireNotNull(writeOwner).write accepted@ {
+        if (!::appContext.isInitialized) return@accepted
         db = KpknDatabase.getInstance(appContext)
         val saved = runCatching {
             db.customExerciseDao().getAll().map { it.toExerciseMuscleInfo().copy(isCustom = true) }
@@ -55,7 +62,7 @@ object CustomExerciseRepository {
             (filtered + normalized).sortedBy { it.name.lowercase() }
         }
         upsertCustomExerciseOverlay(normalized)
-        scope.launch {
+        requireNotNull(writeOwner).launch(scope) {
             runCatching {
                 val existing = db.customExerciseDao().getById(normalized.id)
                 db.customExerciseDao().upsert(normalized.toEntity(createdAt = existing?.createdAt))
@@ -67,16 +74,17 @@ object CustomExerciseRepository {
         if (!initialized) return
         _customExercises.update { list -> list.filterNot { it.id.equals(exerciseId, ignoreCase = true) } }
         removeCustomExerciseOverlay(exerciseId)
-        scope.launch {
+        requireNotNull(writeOwner).launch(scope) {
             runCatching { db.customExerciseDao().delete(exerciseId) }
         }
     }
     internal suspend fun closeForDataSession() {
+        writeOwner?.closeAdmission()
         initialized = false
         kotlinx.coroutines.withTimeout(30_000) { scope.coroutineContext[kotlinx.coroutines.Job]?.children?.toList()?.forEach { it.join() } }
         scope.coroutineContext[kotlinx.coroutines.Job]?.let { job -> job.cancel(); job.join() }
         _customExercises.value = emptyList()
         setCustomExerciseOverlay(emptyList())
-        scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+        writeOwner = null
     }
 }

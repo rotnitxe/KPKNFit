@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.onboarding.AuthoredPlansActivationParityTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:50.172Z" hostname="VF" time="2.177">
+  <properties/>
+  <testcase name="anOriginalMissingMaterialIsRejectedWithTheMissingTokensAndNeverModified" classname="com.example.kpkn.domain.onboarding.AuthoredPlansActivationParityTest" time="0.275"/>
+  <testcase name="theReadyAdaptationKeepsItsSlotChangesThroughActivationAndReopen" classname="com.example.kpkn.domain.onboarding.AuthoredPlansActivationParityTest" time="0.964"/>
+  <testcase name="anAdaptationWithoutASubstituteIsRejectedBeforeAnythingCanBePublished" classname="com.example.kpkn.domain.onboarding.AuthoredPlansActivationParityTest" time="0.371"/>
+  <testcase name="theReadyOriginalIsExactlyWhatRoomActivatesAndReopens" classname="com.example.kpkn.domain.onboarding.AuthoredPlansActivationParityTest" time="0.567"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

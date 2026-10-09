@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.PlanCoverageContractTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-09T13:22:23.015Z" hostname="VF" time="39.572">
+  <properties/>
+  <testcase name="C1_own_plan_is_ready_or_honestly_rejected_with_one_tap_repair" classname="com.example.kpkn.domain.training.PlanCoverageContractTest" time="39.57"/>
+  <testcase name="fixtures_have_unique_ids_and_expected_evidence" classname="com.example.kpkn.domain.training.PlanCoverageContractTest" time="0.001"/>
+  <system-out><![CDATA[== PlanCoverageContractTest · tier=smoke ==
+filas de la rejilla C1: 20520 · filas evaluadas en este tier: 1273
+Ready: 859
+rechazos honestos (antes de reparar): 414 por motivo {APPARATUS_ABSENT=52, APPARATUS_UNKNOWN=20, PROFILE_MISMATCH=41, TIME_BUDGET=301}
+reparaciones que dejaron el plan Ready (primera que lo logra): {ConfirmApparatus=18, ConfirmApparatus+SetMinutes=2, SetMinutes=301, SwitchGoal=93}
+violaciones: 0
+
+-- Violaciones por clase --
+  NOT_HONEST: 0
+  DISHONEST_ABSENT: 0
+  TIME_BUDGET_OUT_OF_RANGE: 0
+  TIME_BUDGET_INEXACT: 0
+  NO_REPAIR: 0
+  MATERIAL_UNUSED: 0
+  EXCEPTION: 0
+
+-- Violaciones por clase y motivo --
+
+-- Desglose por (objetivo, fixture): filas / Ready / rechazos honestos / violaciones --
+  STRENGTH/E6  filas=6 ready=5 honestos=1 violaciones=0
+  STRENGTH/E17  filas=6 ready=0 honestos=6 violaciones=0
+  STRENGTH/E13  filas=4 ready=0 honestos=4 violaciones=0
+  STRENGTH/E3  filas=5 ready=0 honestos=5 violaciones=0
+  STRENGTH/E0  filas=5 ready=0 honestos=5 violaciones=0
+  STRENGTH/E5  filas=4 ready=4 honestos=0 violaciones=0
+  STRENGTH/E18  filas=4 ready=4 honestos=0 violaciones=0
+  STRENGTH/E9  filas=4 ready=0 honestos=4 violaciones=0
+  STRENGTH/E14  filas=4 ready=0 honestos=4 violaciones=0
+  STRENGTH/E2  filas=5 ready=0 honestos=5 violaciones=0
+  STRENGTH/E4  filas=4 ready=4 honestos=0 violaciones=0
+  STRENGTH/E8  filas=4 ready=0 honestos=4 violaciones=0
+  STRENGTH/E15  filas=4 ready=0 honestos=4 violaciones=0
+  STRENGTH/E1  filas=5 ready=0 honestos=5 violaciones=0
+  STRENGTH/E7  filas=5 ready=0 honestos=5 violaciones=0
+  STRENGTH/E16  filas=5 ready=0 honestos=5 violaciones=0
+  STRENGTH/E10  filas=4 ready=0 honestos=4 violaciones=0
+  STRENGTH/E11  filas=3 ready=0 honestos=3 violaciones=0
+  STRENGTH/E12  filas=4 ready=0 honestos=4 violaciones=0
+  MUSCLE/E6  filas=6 ready=6 honestos=0 violaciones=0
+  MUSCLE/E17  filas=6 ready=6 honestos=0 violaciones=0
+  MUSCLE/E13  filas=4 ready=4 honestos=0 violaciones=0
+  MUSCLE/E3  filas=5 ready=5 honestos=0 violaciones=0
+  MUSCLE/E0  filas=5 ready=5 honestos=0 violaciones=0
+  MUSCLE/E5  filas=4 ready=4 honestos=0 violaciones=0
+  MUSCLE/E18  filas=4 ready=4 honestos=0 violaciones=0
+  MUSCLE/E9  filas=4 ready=4 honestos=0 violaciones=0
+  MUSCLE/E14  filas=4 ready=4 honestos=0 violaciones=0
+  MUSCLE/E2  filas=5 ready=5 honestos=0 violaciones=0
+  MUSCLE/E4  filas=4 ready=4 honestos=0 violaciones=0
+  MUSCLE/E8  filas=4 ready=4 honestos=0 violaciones=0
+  MUSCLE/E15  filas=4 ready=4 honestos=0 violaciones=0
+  MUSCLE/E1  filas=5 ready=5 honestos=0 violaciones=0
+  MUSCLE/E7  filas=5 ready=5 honestos=0 violaciones=0
+  MUSCLE/E16  filas=5 ready=5 honestos=0 violaciones=0
+  MUSCLE/E10  filas=4 ready=4 honestos=0 violaciones=0
+  MUSCLE/E11  filas=3 ready=3 honestos=0 violaciones=0
+  MUSCLE/E12  filas=4 ready=4 honestos=0 violaciones=0
+  POWERBUILDING/E2  filas=4 ready=4 honestos=0 violaciones=0
+  POWERBUILDING/E12  filas=5 ready=0 honestos=5 violaciones=0
+  POWERBUILDING/E8  filas=5 ready=5 honestos=0 violaciones=0
+  POWERBUILDING/E15  filas=5 ready=5 honestos=0 violaciones=0
+  POWERBUILDING/E10  filas=4 ready=0 honestos=4 violaciones=0
+  POWERBUILDING/E1  filas=4 ready=0 honestos=4 violaciones=0
+  POWERBUILDING/E13  filas=5 ready=0 honestos=5 violaciones=0
+  POWERBUILDING/E7  filas=5 ready=0 honestos=5 violaciones=0
+  POWERBUILDING/E16  filas=5 ready=0 honestos=5 violaciones=0
+  POWERBUILDING/E11  filas=4 ready=0 honestos=4 violaciones=0
+  POWERBUILDING/E0  filas=4 ready=0 honestos=4 violaciones=0
+  POWERBUILDING/E9  filas=5 ready=0 honestos=5 violaciones=0
+  POWERBUILDING/E14  filas=5 ready=0 honestos=5 violaciones=0
+  POWERBUILDING/E6  filas=5 ready=5 honestos=0 violaciones=0
+  POWERBUILDING/E17  filas=5 ready=5 honestos=0 violaciones=0
+  POWERBUILDING/E5  filas=4 ready=4 honestos=0 violaciones=0
+  POWERBUILDING/E18  filas=4 ready=4 honestos=0 violaciones=0
+  POWERBUILDING/E4  filas=3 ready=3 honestos=0 violaciones=0
+  POWERBUILDING/E3  filas=4 ready=4 honestos=0 violaciones=0
+  COMPLETE_ATHLETE/E1  filas=50 ready=35 honestos=15 violaciones=0
+  COMPLETE_ATHLETE/E2  filas=52 ready=34 honestos=18 violaciones=0
+  COMPLETE_ATHLETE/E3  filas=54 ready=41 honestos=13 violaciones=0
+  COMPLETE_ATHLETE/E4  filas=57 ready=47 honestos=10 violaciones=0
+  COMPLETE_ATHLETE/E5  filas=58 ready=45 honestos=13 violaciones=0
+  COMPLETE_ATHLETE/E12  filas=58 ready=49 honestos=9 violaciones=0
+  COMPLETE_ATHLETE/E13  filas=58 ready=52 honestos=6 violaciones=0
+  COMPLETE_ATHLETE/E14  filas=56 ready=44 honestos=12 violaciones=0
+  COMPLETE_ATHLETE/E15  filas=53 ready=39 honestos=14 violaciones=0
+  COMPLETE_ATHLETE/E16  filas=51 ready=33 honestos=18 violaciones=0
+  COMPLETE_ATHLETE/E0  filas=49 ready=36 honestos=13 violaciones=0
+  COMPLETE_ATHLETE/E6  filas=56 ready=39 honestos=17 violaciones=0
+  COMPLETE_ATHLETE/E7  filas=54 ready=44 honestos=10 violaciones=0
+  COMPLETE_ATHLETE/E8  filas=52 ready=26 honestos=26 violaciones=0
+  COMPLETE_ATHLETE/E9  filas=51 ready=30 honestos=21 violaciones=0
+  COMPLETE_ATHLETE/E10  filas=53 ready=37 honestos=16 violaciones=0
+  COMPLETE_ATHLETE/E11  filas=56 ready=35 honestos=21 violaciones=0
+  COMPLETE_ATHLETE/E17  filas=49 ready=26 honestos=23 violaciones=0
+  COMPLETE_ATHLETE/E18  filas=51 ready=26 honestos=25 violaciones=0
+
+-- Baseline para el ratchet (calculado a partir de las claves de las violaciones) --
+  smoke=0 ci/0=0 ci/1=0 ci/2=0 ci/3=0 full=0  (solo es completo en tier=full; en smoke/ci vale su propia rebanada)
+
+-- Ejemplos (hasta 25 por clase) --
+
+tiempo total: 38.417 s con 4 hilo(s) (evaluaciones reales=1960, resueltas por memo=331; memoria máxima del JVM de pruebas = 512 MB)
+
+[C1] informe escrito en C:\kw\msi\android-native\app\build\reports\coverage-contract\smoke.txt
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

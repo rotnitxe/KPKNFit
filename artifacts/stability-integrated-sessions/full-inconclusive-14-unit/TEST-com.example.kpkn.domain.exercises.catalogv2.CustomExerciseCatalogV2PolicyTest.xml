@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.exercises.catalogv2.CustomExerciseCatalogV2PolicyTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:11.456Z" hostname="VF" time="0.002">
+  <properties/>
+  <testcase name="automation_requires_minimum_metadata_and_static_collisions_are_rejected" classname="com.example.kpkn.domain.exercises.catalogv2.CustomExerciseCatalogV2PolicyTest" time="0.002"/>
+  <testcase name="custom_ids_are_namespaced_and_normalized" classname="com.example.kpkn.domain.exercises.catalogv2.CustomExerciseCatalogV2PolicyTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

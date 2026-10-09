@@ -1,0 +1,29 @@
+{
+  "tests": 113,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "suites": 20,
+  "files": {
+    "TEST-com.example.kpkn.data.backup.DataSessionWritersTest.xml": "a325a6042d792f59af4b0d4370cad6da0ae7ab3a398482d5a8c3d53b4ded497e",
+    "TEST-com.example.kpkn.data.backup.DataWriterFailureBoundaryTest.xml": "4c841d2a813965641c284ed1f72fa9f40871fd3537494812cdbf42c94d6b60e5",
+    "TEST-com.example.kpkn.data.backup.RetiredPersonalStoreTest.xml": "54e846cded37128c97e784157bc9fb43d3a08ff6ff815e00f8f12618fc7f5bd1",
+    "TEST-com.example.kpkn.data.backup.RoomWriterDrainTest.xml": "04e2e7b952cc049503ffdfdec21c922a68fbb4f64a66d2bacbd87222b112fc61",
+    "TEST-com.example.kpkn.data.onboarding.SetupDraftResolverTest.xml": "0a53950112ff062da7a47c48147004b6df23b520600de1f1e006550cc4ed098d",
+    "TEST-com.example.kpkn.data.onboarding.SetupPersistenceTest.xml": "835425ea4883ebb1da517e541ea91eb9f97903fd2a98b1acef32f90145882f7e",
+    "TEST-com.example.kpkn.data.repository.NutritionForecastWriteLaneTest.xml": "24384246dba6bf8f92e9aaadec4237d5d9b2cdebf6736bbbc89eeb779c9ef555",
+    "TEST-com.example.kpkn.data.repository.NutritionRepositoryStartupTest.xml": "dd05062318036f1755208bc7dc96962a070e81149bbb609bfcd099b862325525",
+    "TEST-com.example.kpkn.data.repository.RetiredCalibrationWriterTest.xml": "6aa56e334a70bcc6c54a51822ca4c041d34f9a26407eae39fc9dc856a975d5d4",
+    "TEST-com.example.kpkn.data.repository.RetiredCompetitionWriterTest.xml": "625068e9cc6e87c7f39d0d164f6b6a4441bad7cca996bd7c4c6aa66a0d53b5cc",
+    "TEST-com.example.kpkn.data.sessions.SessionTemplateRepositoryTest.xml": "6145f6821749e0b1b3b46d536613a843297a9a18004c82fc111ae4e9214ecf14",
+    "TEST-com.example.kpkn.data.settings.DatabaseSnapshotTest.xml": "b5d2e93425028367213321f1f7aff4a0560125bfa96ce4fe74085213853d4dbd",
+    "TEST-com.example.kpkn.data.settings.DataSessionCoordinatorTest.xml": "068a41aeb777c94b7feae1b7b4bdf7f419211a5bf4cd981428dabf71683f7fd2",
+    "TEST-com.example.kpkn.data.settings.PortableBackupTest.xml": "0ff9206b7b5b3875da441e7594ed7daa7a64aa2563355cb91a5ed9fe939869f5",
+    "TEST-com.example.kpkn.data.settings.ProfileContextCallbacksTest.xml": "82d704d9b529bd7e4efeeb702fc27536d9968bcbccda1998c17c638f0c181d8f",
+    "TEST-com.example.kpkn.data.settings.ProfileRegistryRecoveryTest.xml": "239ed58c17b078e97b08d4cfac0ee47d60ad4931af4c1910fa1bfbfc21a8a622",
+    "TEST-com.example.kpkn.data.settings.ProfileStorageTest.xml": "9e4c9199b7317a11d84bad7fa4e5508226ed1ad0472dcc072f3156d556b6eee0",
+    "TEST-com.example.kpkn.screens.sessioneditor.SessionEditorDraftPersistenceTest.xml": "54e6622a2a7f86ab8b1f23148dee8f2ce1c2148623b991b492b2452982086992",
+    "TEST-com.example.kpkn.services.workout.WorkoutRestAlertManagerPreferenceIoTest.xml": "ae5c1148b5f9852c7138c013d66950294d856d9224b05ddd515dd5dafb936fb1",
+    "TEST-com.example.kpkn.ui.locale.LocaleManagerTest.xml": "f5c30972bf2486cdcb395be3ada906c88d5a973fda87fb834657d2113dbe05b0"
+  }
+}

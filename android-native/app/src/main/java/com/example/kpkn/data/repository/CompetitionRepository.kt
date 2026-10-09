@@ -26,8 +26,9 @@ import kotlinx.coroutines.withContext
  */
 class CompetitionRepository private constructor(context: Context, databaseOverride: KpknDatabase? = null) {
 
+    private val writeOwner = com.example.kpkn.data.backup.DataSessionWriter("competition-repository")
     private val db = databaseOverride ?: KpknDatabase.getInstance(context)
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val scope = com.example.kpkn.data.backup.DataSessionWriterScope(CoroutineScope(SupervisorJob() + Dispatchers.IO), writeOwner)
     private val reminderManager = CompetitionReminderManager(context)
 
     private val _records = MutableStateFlow<List<CompetitionRecord>>(emptyList())
@@ -54,7 +55,7 @@ class CompetitionRepository private constructor(context: Context, databaseOverri
     fun activeCompetitionExerciseIds(): Set<String> =
         competitionExerciseIds(_records.value.filterNot { it.status == CompetitionRecordStatus.ARCHIVED })
 
-    fun upsert(record: CompetitionRecord) {
+    fun upsert(record: CompetitionRecord) = writeOwner.immediate {
         val normalized = record.withFreshTimestamps()
         _records.update { current ->
             val next = if (current.any { it.id == normalized.id }) {
@@ -68,7 +69,7 @@ class CompetitionRepository private constructor(context: Context, databaseOverri
         syncReminders(normalized)
     }
 
-    suspend fun upsertNow(record: CompetitionRecord) {
+    suspend fun upsertNow(record: CompetitionRecord) = writeOwner.write {
         val normalized = record.withFreshTimestamps()
         _records.update { current ->
             val next = if (current.any { it.id == normalized.id }) {
@@ -82,7 +83,7 @@ class CompetitionRepository private constructor(context: Context, databaseOverri
         syncReminders(normalized)
     }
 
-    fun delete(id: String) {
+    fun delete(id: String) = writeOwner.immediate {
         _records.update { it.filterNot { record -> record.id == id } }
         scope.launch { db.competitionRecordDao().delete(id) }
         reminderManager.cancel(id)
@@ -127,12 +128,18 @@ class CompetitionRepository private constructor(context: Context, databaseOverri
             INSTANCE ?: error("CompetitionRepository not initialized - call init(context) first.")
 
         fun closeInstance() {
-            INSTANCE?.scope?.coroutineContext?.get(kotlinx.coroutines.Job)?.let { job ->
-                job.cancel(); kotlinx.coroutines.runBlocking { job.join() }
+            INSTANCE?.let { instance ->
+                instance.writeOwner.closeAdmission()
+                instance.scope.coroutineContext[kotlinx.coroutines.Job]?.cancel()
+                kotlinx.coroutines.runBlocking {
+                    instance.scope.coroutineContext[kotlinx.coroutines.Job]?.join()
+                    instance.writeOwner.awaitStopped()
+                }
             }
             INSTANCE = null
         }
         internal suspend fun closeForDataSession() {
+            INSTANCE?.writeOwner?.closeAdmission()
             INSTANCE?.let { instance -> kotlinx.coroutines.withTimeout(30_000) {
                 instance.scope.coroutineContext[kotlinx.coroutines.Job]?.children?.toList()?.forEach { it.join() }
             } }

@@ -1,0 +1,2 @@
+--------- beginning of main
+10-09 05:26:00.042  6751  6757 I .kpkn.stability: NativeAlloc concurrent mark compact GC freed 28MB AllocSpace bytes, 27(484KB) LOS objects, 40% free, 34MB/58MB, paused 1.645ms,3.567ms total 158.526ms

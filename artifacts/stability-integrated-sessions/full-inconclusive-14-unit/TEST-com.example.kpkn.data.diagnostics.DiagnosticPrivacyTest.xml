@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.diagnostics.DiagnosticPrivacyTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:16:02.517Z" hostname="VF" time="0.012">
+  <properties/>
+  <testcase name="boundedQueueKeepsCriticalEventsAndCountsLoss" classname="com.example.kpkn.data.diagnostics.DiagnosticPrivacyTest" time="0.002"/>
+  <testcase name="recursiveAndUnboundedPayloadsAreLimited" classname="com.example.kpkn.data.diagnostics.DiagnosticPrivacyTest" time="0.007"/>
+  <testcase name="encodedPayloadsAndProductionDataCannotBypassPrivacy" classname="com.example.kpkn.data.diagnostics.DiagnosticPrivacyTest" time="0.0"/>
+  <testcase name="nestedJsonCannotBypassRedaction" classname="com.example.kpkn.data.diagnostics.DiagnosticPrivacyTest" time="0.0"/>
+  <testcase name="exceptionSanitizationDoesNotRetainMessagesOrCauses" classname="com.example.kpkn.data.diagnostics.DiagnosticPrivacyTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

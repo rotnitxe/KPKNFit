@@ -556,12 +556,13 @@ private fun TrainingPanel(
         viewModel.setStructureSubTab(StructureSubTab.SEMANA)
         val sessionId = java.util.UUID.randomUUID().toString()
         val session = createBlankRoadmapSession(sessionId, suggestedDay)
-        viewModel.addSession(
+        val created = viewModel.addSession(
             macroIndex = located.macroIndex,
             mesoIndex = located.mesoIndex,
             weekId = located.weekId,
             session = session,
         )
+        if (!created) return
         onCreateSession(
             sessionId,
             located.weekId,
@@ -757,19 +758,21 @@ private fun TrainingPanel(
                         val weekId = selectedWeekId
                         if (block != null && weekMeta != null && weekId != null) {
                             val sessionId = java.util.UUID.randomUUID().toString()
-                            viewModel.addSession(
+                            val created = viewModel.addSession(
                                 macroIndex = block.macroIndex,
                                 mesoIndex = weekMeta.mesoIndex,
                                 weekId = weekId,
                                 session = createBlankRoadmapSession(sessionId, dayId),
                             )
-                            onCreateSession(
-                                sessionId,
-                                weekId,
-                                block.macroIndex,
-                                weekMeta.mesoIndex,
-                                dayId,
-                            )
+                            if (created) {
+                                onCreateSession(
+                                    sessionId,
+                                    weekId,
+                                    block.macroIndex,
+                                    weekMeta.mesoIndex,
+                                    dayId,
+                                )
+                            }
                         }
                     },
                     onDeleteSession = { sessionId ->

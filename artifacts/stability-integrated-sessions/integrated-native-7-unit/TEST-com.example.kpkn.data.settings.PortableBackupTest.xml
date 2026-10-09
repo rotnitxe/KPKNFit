@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.settings.PortableBackupTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-09T09:03:27.899Z" hostname="VF" time="50.557">
+  <properties/>
+  <testcase name="rejectInvalid" classname="com.example.kpkn.data.settings.PortableBackupTest" time="0.3"/>
+  <testcase name="rollback" classname="com.example.kpkn.data.settings.PortableBackupTest" time="2.293"/>
+  <testcase name="roundTrip" classname="com.example.kpkn.data.settings.PortableBackupTest" time="38.518"/>
+  <testcase name="recoverInterrupted" classname="com.example.kpkn.data.settings.PortableBackupTest" time="2.163"/>
+  <testcase name="pendingPreferencesAndConsent" classname="com.example.kpkn.data.settings.PortableBackupTest" time="3.539"/>
+  <testcase name="recoveryFile" classname="com.example.kpkn.data.settings.PortableBackupTest" time="3.744"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

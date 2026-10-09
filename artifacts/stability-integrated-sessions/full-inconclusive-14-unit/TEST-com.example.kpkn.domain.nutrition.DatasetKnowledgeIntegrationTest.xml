@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.DatasetKnowledgeIntegrationTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:22.084Z" hostname="VF" time="1.658">
+  <properties/>
+  <testcase name="warm retrieval p95 remains below ten milliseconds" classname="com.example.kpkn.domain.nutrition.DatasetKnowledgeIntegrationTest" time="0.181"/>
+  <testcase name="context detector uses dataset medians with bounded adjustments" classname="com.example.kpkn.domain.nutrition.DatasetKnowledgeIntegrationTest" time="0.156"/>
+  <testcase name="retrieval returns absolute scored examples and structured macros" classname="com.example.kpkn.domain.nutrition.DatasetKnowledgeIntegrationTest" time="0.18"/>
+  <testcase name="portion priors do not override anchored staple household grams" classname="com.example.kpkn.domain.nutrition.DatasetKnowledgeIntegrationTest" time="0.16"/>
+  <testcase name="compiled asset contains every source document and valid postings" classname="com.example.kpkn.domain.nutrition.DatasetKnowledgeIntegrationTest" time="0.146"/>
+  <testcase name="dataset warnings never overwrite verified macros" classname="com.example.kpkn.domain.nutrition.DatasetKnowledgeIntegrationTest" time="0.111"/>
+  <testcase name="golden Chilean and typo queries retrieve useful examples" classname="com.example.kpkn.domain.nutrition.DatasetKnowledgeIntegrationTest" time="0.124"/>
+  <testcase name="typo pechga repairs against real Chilean vocabulary" classname="com.example.kpkn.domain.nutrition.DatasetKnowledgeIntegrationTest" time="0.145"/>
+  <testcase name="context matching uses real documents without synthetic IDs" classname="com.example.kpkn.domain.nutrition.DatasetKnowledgeIntegrationTest" time="0.199"/>
+  <testcase name="a subjective portion resolves to grams with a retrieval at hand" classname="com.example.kpkn.domain.nutrition.DatasetKnowledgeIntegrationTest" time="0.155"/>
+  <testcase name="dataset still returns priors for non-staple dishes" classname="com.example.kpkn.domain.nutrition.DatasetKnowledgeIntegrationTest" time="0.101"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

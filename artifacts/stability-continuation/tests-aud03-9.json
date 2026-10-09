@@ -1,0 +1,90 @@
+{
+  "skipped": 0,
+  "tests": 124.0,
+  "state": "PASS",
+  "suites": 10,
+  "failed": 0,
+  "errors": 0,
+  "details": [
+    {
+      "skipped": 0,
+      "tests": 5,
+      "failed": 0,
+      "errors": 0,
+      "suite": "com.example.kpkn.data.repository.FreeProgramMutationTest",
+      "timestamp": "2026-10-09T00:55:29.184Z"
+    },
+    {
+      "skipped": 0,
+      "tests": 7,
+      "failed": 0,
+      "errors": 0,
+      "suite": "com.example.kpkn.data.repository.NativeCapabilityTest",
+      "timestamp": "2026-10-09T00:55:34.174Z"
+    },
+    {
+      "skipped": 0,
+      "tests": 4,
+      "failed": 0,
+      "errors": 0,
+      "suite": "com.example.kpkn.domain.entitlements.AccountIdentityPolicyTest",
+      "timestamp": "2026-10-09T00:55:35.414Z"
+    },
+    {
+      "skipped": 0,
+      "tests": 1,
+      "failed": 0,
+      "errors": 0,
+      "suite": "com.example.kpkn.domain.entitlements.AdultEligibilityTest",
+      "timestamp": "2026-10-09T00:55:35.420Z"
+    },
+    {
+      "skipped": 0,
+      "tests": 2,
+      "failed": 0,
+      "errors": 0,
+      "suite": "com.example.kpkn.domain.entitlements.CapabilityCatalogTest",
+      "timestamp": "2026-10-09T00:55:35.423Z"
+    },
+    {
+      "skipped": 0,
+      "tests": 2,
+      "failed": 0,
+      "errors": 0,
+      "suite": "com.example.kpkn.domain.entitlements.EntitlementPolicyTest",
+      "timestamp": "2026-10-09T00:55:35.428Z"
+    },
+    {
+      "skipped": 0,
+      "tests": 6,
+      "failed": 0,
+      "errors": 0,
+      "suite": "com.example.kpkn.domain.entitlements.OfflineEntitlementClockTest",
+      "timestamp": "2026-10-09T00:55:35.434Z"
+    },
+    {
+      "skipped": 0,
+      "tests": 3,
+      "failed": 0,
+      "errors": 0,
+      "suite": "com.example.kpkn.domain.entitlements.SyncCapabilitiesTest",
+      "timestamp": "2026-10-09T00:55:35.440Z"
+    },
+    {
+      "skipped": 0,
+      "tests": 14,
+      "failed": 0,
+      "errors": 0,
+      "suite": "com.example.kpkn.navigation.DeepLinkRouterTest",
+      "timestamp": "2026-10-09T00:55:35.526Z"
+    },
+    {
+      "skipped": 0,
+      "tests": 80,
+      "failed": 0,
+      "errors": 0,
+      "suite": "com.example.kpkn.screens.programdetail.ProgramDetailViewModelTest",
+      "timestamp": "2026-10-09T00:55:36.474Z"
+    }
+  ]
+}

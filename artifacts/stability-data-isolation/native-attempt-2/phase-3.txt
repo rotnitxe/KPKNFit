@@ -1,0 +1,62 @@
+INSTRUMENTATION_STATUS: class=com.example.kpkn.data.repository.DataIsolationColdProcessTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+com.example.kpkn.data.repository.DataIsolationColdProcessTest:
+INSTRUMENTATION_STATUS: test=phase1SeedAndExport
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.example.kpkn.data.repository.DataIsolationColdProcessTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stack=java.lang.IllegalStateException: A profile switch must close the previous data session first
+	at com.example.kpkn.data.db.KpknDatabase$Companion.getInstance(KpknDatabase.kt:774)
+	at com.example.kpkn.data.repository.DataIsolationColdProcessTest$phase1SeedAndExport$1.invokeSuspend(DataIsolationColdProcessTest.kt:63)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:101)
+	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:113)
+	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:89)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:589)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:823)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:720)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:707)
+
+INSTRUMENTATION_STATUS: stream=
+Error in phase1SeedAndExport(com.example.kpkn.data.repository.DataIsolationColdProcessTest):
+java.lang.IllegalStateException: A profile switch must close the previous data session first
+	at com.example.kpkn.data.db.KpknDatabase$Companion.getInstance(KpknDatabase.kt:774)
+	at com.example.kpkn.data.repository.DataIsolationColdProcessTest$phase1SeedAndExport$1.invokeSuspend(DataIsolationColdProcessTest.kt:63)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:101)
+	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:113)
+	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:89)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:589)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:823)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:720)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:707)
+
+INSTRUMENTATION_STATUS: test=phase1SeedAndExport
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_RESULT: stream=
+
+Time: 0.87
+There was 1 failure:
+1) phase1SeedAndExport(com.example.kpkn.data.repository.DataIsolationColdProcessTest)
+java.lang.IllegalStateException: A profile switch must close the previous data session first
+	at com.example.kpkn.data.db.KpknDatabase$Companion.getInstance(KpknDatabase.kt:774)
+	at com.example.kpkn.data.repository.DataIsolationColdProcessTest$phase1SeedAndExport$1.invokeSuspend(DataIsolationColdProcessTest.kt:63)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:101)
+	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:113)
+	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:89)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:589)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:823)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:720)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:707)
+
+FAILURES!!!
+Tests run: 1,  Failures: 1
+
+
+INSTRUMENTATION_CODE: -1

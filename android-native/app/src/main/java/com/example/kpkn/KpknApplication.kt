@@ -45,8 +45,10 @@ class KpknApplication : Application() {
         val isMainProcess = Build.VERSION.SDK_INT < Build.VERSION_CODES.P ||
             Application.getProcessName() == packageName
         if (isMainProcess) {
-            applicationScope.launch {
-                LegacyAiCredentialCleanup.clear(this@KpknApplication)
+            val writer = com.example.kpkn.data.backup.DataSessionWriter("application-cleanup")
+            val capturedContext = ProfileStorage.context(this)
+            writer.launch(applicationScope) {
+                LegacyAiCredentialCleanup.clear(capturedContext)
                 KpknDiagnosticLogger.recordHealthChecks(this@KpknApplication)
             }
         }

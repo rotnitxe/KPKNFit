@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.exercises.MuscleHeadResolutionTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:10.819Z" hostname="VF" time="0.004">
+  <properties/>
+  <testcase name="emphasis_keywords_normalize_legacy_strings" classname="com.example.kpkn.domain.exercises.MuscleHeadResolutionTest" time="0.003"/>
+  <testcase name="matches_head_uses_normalized_keyword" classname="com.example.kpkn.domain.exercises.MuscleHeadResolutionTest" time="0.0"/>
+  <testcase name="deltoid_legacy_emphasis_resolves_to_correct_head" classname="com.example.kpkn.domain.exercises.MuscleHeadResolutionTest" time="0.0"/>
+  <testcase name="glute_legacy_emphasis_resolves_to_correct_head" classname="com.example.kpkn.domain.exercises.MuscleHeadResolutionTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

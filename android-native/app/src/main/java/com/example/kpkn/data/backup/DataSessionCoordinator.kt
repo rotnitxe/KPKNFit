@@ -7,6 +7,12 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
+class ActiveDataUseException(val operation: String) : IllegalStateException(
+    "Finish or explicitly cancel the active workout before changing data")
+
+data class MaintenanceWorkout(val programId: String, val sessionId: String)
+data class BlockedDataUse(val operation: String, val workout: MaintenanceWorkout?)
+
 /** A maintenance operation must have exclusive ownership of every participating writer. */
 class DataSessionCoordinator {
     interface Participant {
@@ -25,7 +31,7 @@ class DataSessionCoordinator {
     fun register(participant: Participant) { synchronized(participants) { participants += participant } }
 
     suspend fun <T> maintenance(operation: String, activeWorkout: suspend () -> Boolean, action: suspend () -> T): T = mutex.withLock {
-        check(!activeWorkout()) { "Finish or explicitly cancel the active workout before changing data" }
+        if (activeWorkout()) throw ActiveDataUseException(operation)
         val snapshot = synchronized(participants) { participants.toList() }
         _state.value = State.Maintaining(operation)
         var actionError: Throwable? = null

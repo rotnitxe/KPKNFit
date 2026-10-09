@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.protocols.TrainingPlanRecipeJsonCompatTest" tests="16" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:16:42.356Z" hostname="VF" time="0.046">
+  <properties/>
+  <testcase name="recipe_json_with_the_old_top_set_pr_object_decodes_and_round_trips" classname="com.example.kpkn.data.protocols.TrainingPlanRecipeJsonCompatTest" time="0.022"/>
+  <testcase name="pending_action_legacy_and_new_enum_decode" classname="com.example.kpkn.data.protocols.TrainingPlanRecipeJsonCompatTest" time="0.003"/>
+  <testcase name="top_set_pr_old_object_json_decodes_with_default_increments_and_custom_values_round_trip" classname="com.example.kpkn.data.protocols.TrainingPlanRecipeJsonCompatTest" time="0.0"/>
+  <testcase name="legacy_recipe_json_decodes_with_defaulted_new_contracts" classname="com.example.kpkn.data.protocols.TrainingPlanRecipeJsonCompatTest" time="0.001"/>
+  <testcase name="program_new_contract_fields_round_trip_with_and_without_values" classname="com.example.kpkn.data.protocols.TrainingPlanRecipeJsonCompatTest" time="0.008"/>
+  <testcase name="recipe_new_contract_fields_round_trip_with_values" classname="com.example.kpkn.data.protocols.TrainingPlanRecipeJsonCompatTest" time="0.002"/>
+  <testcase name="the_room_codec_writes_the_new_defaults_and_still_reads_what_was_stored_before" classname="com.example.kpkn.data.protocols.TrainingPlanRecipeJsonCompatTest" time="0.0"/>
+  <testcase name="observed_working_set_reference_never_leaks_into_reference1rm" classname="com.example.kpkn.data.protocols.TrainingPlanRecipeJsonCompatTest" time="0.0"/>
+  <testcase name="recipe_without_new_fields_keeps_stable_defaults_and_null_vs_empty" classname="com.example.kpkn.data.protocols.TrainingPlanRecipeJsonCompatTest" time="0.0"/>
+  <testcase name="legacy_session_json_decodes_with_defaulted_rebuild_identity_fields" classname="com.example.kpkn.data.protocols.TrainingPlanRecipeJsonCompatTest" time="0.0"/>
+  <testcase name="legacy_program_json_decodes_without_source_recipe" classname="com.example.kpkn.data.protocols.TrainingPlanRecipeJsonCompatTest" time="0.001"/>
+  <testcase name="legacy_protocol_json_decodes_with_null_recipe" classname="com.example.kpkn.data.protocols.TrainingPlanRecipeJsonCompatTest" time="0.004"/>
+  <testcase name="cycle_increment_json_without_scope_decodes_by_cycle_and_the_block_scope_round_trips" classname="com.example.kpkn.data.protocols.TrainingPlanRecipeJsonCompatTest" time="0.002"/>
+  <testcase name="session_exercise_and_set_new_contract_fields_round_trip" classname="com.example.kpkn.data.protocols.TrainingPlanRecipeJsonCompatTest" time="0.001"/>
+  <testcase name="legacy_program_json_keeps_reference1rm_and_prescription_origin_semantics" classname="com.example.kpkn.data.protocols.TrainingPlanRecipeJsonCompatTest" time="0.0"/>
+  <testcase name="without_encode_defaults_the_default_rules_write_the_json_the_old_code_wrote" classname="com.example.kpkn.data.protocols.TrainingPlanRecipeJsonCompatTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

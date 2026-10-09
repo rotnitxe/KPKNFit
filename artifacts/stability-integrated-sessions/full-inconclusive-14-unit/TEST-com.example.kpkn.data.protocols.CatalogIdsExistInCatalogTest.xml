@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.protocols.CatalogIdsExistInCatalogTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:16:39.190Z" hostname="VF" time="0.699">
+  <properties/>
+  <testcase name="every_catalog_ids_constant_exists_in_both_assets" classname="com.example.kpkn.data.protocols.CatalogIdsExistInCatalogTest" time="0.139"/>
+  <testcase name="every_native_candidate_table_id_exists_in_both_assets" classname="com.example.kpkn.data.protocols.CatalogIdsExistInCatalogTest" time="0.342"/>
+  <testcase name="every_authored_binding_configuration_exists_in_both_assets" classname="com.example.kpkn.data.protocols.CatalogIdsExistInCatalogTest" time="0.217"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

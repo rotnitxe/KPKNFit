@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.programs.PlanGlossaryTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:16:38.474Z" hostname="VF" time="0.023">
+  <properties/>
+  <testcase name="terms_link_to_the_expected_concepts_and_the_rest_have_none" classname="com.example.kpkn.data.programs.PlanGlossaryTest" time="0.003"/>
+  <testcase name="tier_labels_appear_only_in_the_tiers_entry" classname="com.example.kpkn.data.programs.PlanGlossaryTest" time="0.001"/>
+  <testcase name="every_plan_term_has_exactly_one_entry_in_enum_order" classname="com.example.kpkn.data.programs.PlanGlossaryTest" time="0.0"/>
+  <testcase name="texts_carry_no_internal_ids" classname="com.example.kpkn.data.programs.PlanGlossaryTest" time="0.001"/>
+  <testcase name="every_concept_link_points_to_an_existing_concept" classname="com.example.kpkn.data.programs.PlanGlossaryTest" time="0.015"/>
+  <testcase name="an_acronym_used_outside_its_own_entry_is_a_declared_dependency" classname="com.example.kpkn.data.programs.PlanGlossaryTest" time="0.001"/>
+  <testcase name="definitions_are_one_or_two_plain_sentences" classname="com.example.kpkn.data.programs.PlanGlossaryTest" time="0.001"/>
+  <testcase name="entries_for_returns_the_requested_terms_in_enum_order" classname="com.example.kpkn.data.programs.PlanGlossaryTest" time="0.0"/>
+  <testcase name="titles_are_present_and_unique" classname="com.example.kpkn.data.programs.PlanGlossaryTest" time="0.0"/>
+  <testcase name="an_entry_rejects_blank_text" classname="com.example.kpkn.data.programs.PlanGlossaryTest" time="0.001"/>
+  <testcase name="every_acronym_is_explained_in_its_own_entry" classname="com.example.kpkn.data.programs.PlanGlossaryTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

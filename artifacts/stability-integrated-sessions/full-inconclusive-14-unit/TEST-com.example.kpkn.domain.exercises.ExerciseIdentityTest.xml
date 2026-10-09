@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.exercises.ExerciseIdentityTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:10.805Z" hostname="VF" time="0.002">
+  <properties/>
+  <testcase name="bodyweight_replacement_defaults_to_bodyweight_load_mode" classname="com.example.kpkn.domain.exercises.ExerciseIdentityTest" time="0.0"/>
+  <testcase name="replacement_resets_incompatible_load_and_context_data" classname="com.example.kpkn.domain.exercises.ExerciseIdentityTest" time="0.002"/>
+  <testcase name="assisted_replacement_defaults_to_assisted_without_rm_mode" classname="com.example.kpkn.domain.exercises.ExerciseIdentityTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

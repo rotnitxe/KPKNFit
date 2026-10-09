@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.food.StaticCatalogCoverageTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:16:10.117Z" hostname="VF" time="0.024">
+  <properties/>
+  <testcase name="at least 150 of the 174 terms have a card and none that had one loses it" classname="com.example.kpkn.data.food.StaticCatalogCoverageTest" time="0.023"/>
+  <testcase name="the probe holds 174 distinct terms" classname="com.example.kpkn.data.food.StaticCatalogCoverageTest" time="0.0"/>
+  <testcase name="the terms of the withoutCard list are real probe terms" classname="com.example.kpkn.data.food.StaticCatalogCoverageTest" time="0.001"/>
+  <testcase name="every other term of the list that the audit found without a card resolves to a static row" classname="com.example.kpkn.data.food.StaticCatalogCoverageTest" time="0.0"/>
+  <testcase name="terms that only matched inside another word now have a card of their own" classname="com.example.kpkn.data.food.StaticCatalogCoverageTest" time="0.0"/>
+  <system-out><![CDATA[STATIC CATALOG COVERAGE: 169/174; terms without a card: [mate, tallarines, negrita, pre entreno, pap]
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

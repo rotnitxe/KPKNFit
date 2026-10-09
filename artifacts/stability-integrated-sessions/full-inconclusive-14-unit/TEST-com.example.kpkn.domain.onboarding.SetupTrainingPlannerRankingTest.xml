@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.onboarding.SetupTrainingPlannerRankingTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:20:07.162Z" hostname="VF" time="0.104">
+  <properties/>
+  <testcase name="theOwnPlanOfEachDisciplineLeadsItsListAtEveryFrequencyAndLevel" classname="com.example.kpkn.domain.onboarding.SetupTrainingPlannerRankingTest" time="0.004"/>
+  <testcase name="strengthMuscleAdvancedAtFiveDaysOrdersOwnThenOriginalThenAdaptedThenLegacy" classname="com.example.kpkn.domain.onboarding.SetupTrainingPlannerRankingTest" time="0.001"/>
+  <testcase name="theFocusExemptionDoesNotLeakToOtherEntries" classname="com.example.kpkn.domain.onboarding.SetupTrainingPlannerRankingTest" time="0.003"/>
+  <testcase name="strengthMuscleIntermediateAtFourDaysOrdersOwnThenOriginalThenAdaptedThenLegacy" classname="com.example.kpkn.domain.onboarding.SetupTrainingPlannerRankingTest" time="0.0"/>
+  <testcase name="templatesWithAFixedRecipeAreNotHiddenByAFocusAndSimpleTemplatesAre" classname="com.example.kpkn.domain.onboarding.SetupTrainingPlannerRankingTest" time="0.01"/>
+  <testcase name="withoutRequiredCapabilitiesTheDisciplineFiltersBehaveAsBefore" classname="com.example.kpkn.domain.onboarding.SetupTrainingPlannerRankingTest" time="0.007"/>
+  <testcase name="muscleListsTheOwnPlanBeforeTheKeptHistoricalsAndNeverOffersTheHiddenOnes" classname="com.example.kpkn.domain.onboarding.SetupTrainingPlannerRankingTest" time="0.006"/>
+  <testcase name="everyListIsInEditorialOrderAndNeverOffersAHiddenHistorical" classname="com.example.kpkn.domain.onboarding.SetupTrainingPlannerRankingTest" time="0.052"/>
+  <testcase name="strengthAdvancedKeepsSpecializationsAfterTheAdvancedPlansButBeforeOtherLevels" classname="com.example.kpkn.domain.onboarding.SetupTrainingPlannerRankingTest" time="0.001"/>
+  <testcase name="strengthBeginnerListsTheOwnPlanThenTheBeginnerTemplateAndLeavesSpecializationsLast" classname="com.example.kpkn.domain.onboarding.SetupTrainingPlannerRankingTest" time="0.0"/>
+  <testcase name="completeAthletePrefilterLeavesOnlyTheOwnAthletePlanAtEveryFrequency" classname="com.example.kpkn.domain.onboarding.SetupTrainingPlannerRankingTest" time="0.008"/>
+  <testcase name="withoutThePrefilterAthleteStillSeesTheWholeCatalogAndTheOwnPlanAmongIt" classname="com.example.kpkn.domain.onboarding.SetupTrainingPlannerRankingTest" time="0.001"/>
+  <testcase name="theLevelOnlyOrdersAndNeverChangesTheMembership" classname="com.example.kpkn.domain.onboarding.SetupTrainingPlannerRankingTest" time="0.011"/>
+  <testcase name="theEditorialKeyPutsPlansBeforeSpecializationsComplementsAndStructuresWithinTheSameLevelGroup" classname="com.example.kpkn.domain.onboarding.SetupTrainingPlannerRankingTest" time="0.0"/>
+  <system-out><![CDATA[[C.P3] Fuerza y músculo · avanzado · 5 días: [native:powerbuilding-foundation-v2, original:phat-biolayne-2016-r1, adapted:phat-kpkn-r1, protocol:phat-verified]
+[C.P3] Fuerza y músculo · intermedio · 4 días: [native:powerbuilding-foundation-v2, original:phul-ms-2021-r1, adapted:phul-kpkn-r1, protocol:wendler-531-bbb, protocol:phul-verified, template:powerbuild-16-4]
+[C.P3] Músculo · principiante · 3 días: [native:muscle-foundation-v2, native:machine-muscle, native:bodyweight]
+[C.P3] Fuerza · avanzado · sin filtro de días: [native:strength-foundation-v2, template:power-20-5, protocol:kpkn-rts-style, protocol:korte-3x3, protocol:lilliebridge, protocol:sheiko-29-32, protocol:cube-method, protocol:westside-conjugate, protocol:juggernaut-2, protocol:nsuns-531-lp-4d, protocol:gzcl-jt-2, protocol:gzcl-uhf-9, protocol:smolov, protocol:smolov-jr, protocol:coan-phillipi-dl, protocol:kpkn-native-sbd-4, template:power-12-3, template:power-16-4, protocol:kpkn-sbs-rtf, protocol:texas-method-3d, protocol:texas-method-4d, protocol:wendler-531-bbb, protocol:wendler-531-fsl, protocol:madcow-5x5, protocol:gzclp, protocol:candito-6, protocol:calgary-16, protocol:tsa-9, protocol:gzcl-rippler]
+[C.P3] Fuerza · principiante · sin filtro de días: [native:strength-foundation-v2, template:power-12-3, protocol:kpkn-native-sbd-4, template:power-16-4, template:power-20-5, protocol:kpkn-rts-style, protocol:kpkn-sbs-rtf, protocol:texas-method-3d, protocol:texas-method-4d, protocol:wendler-531-bbb, protocol:wendler-531-fsl, protocol:madcow-5x5, protocol:gzclp, protocol:candito-6, protocol:calgary-16, protocol:tsa-9, protocol:korte-3x3, protocol:lilliebridge, protocol:sheiko-29-32, protocol:cube-method, protocol:westside-conjugate, protocol:juggernaut-2, protocol:nsuns-531-lp-4d, protocol:gzcl-jt-2, protocol:gzcl-rippler, protocol:gzcl-uhf-9, protocol:smolov, protocol:smolov-jr, protocol:coan-phillipi-dl]
+[C.P3] Atleta sin prefiltro por días: 1d=9, 2d=10, 3d=16, 4d=35, 5d=14, 6d=10 (suma=94; con el prefiltro: 6)
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

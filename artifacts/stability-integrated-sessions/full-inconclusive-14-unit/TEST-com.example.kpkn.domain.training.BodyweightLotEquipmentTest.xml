@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.BodyweightLotEquipmentTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:20:09.776Z" hostname="VF" time="0.009">
+  <properties/>
+  <testcase name="the_bench_symbol_also_reaches_the_elevated_support_additions" classname="com.example.kpkn.domain.training.BodyweightLotEquipmentTest" time="0.002"/>
+  <testcase name="the_box_is_an_elevated_support_and_reaches_the_three_additions_that_ask_for_one" classname="com.example.kpkn.domain.training.BodyweightLotEquipmentTest" time="0.002"/>
+  <testcase name="the_elevated_support_additions_ask_for_the_elevated_support" classname="com.example.kpkn.domain.training.BodyweightLotEquipmentTest" time="0.0"/>
+  <testcase name="the_other_bw1_additions_ask_for_no_support" classname="com.example.kpkn.domain.training.BodyweightLotEquipmentTest" time="0.001"/>
+  <testcase name="the_negative_pull_up_needs_the_pull_up_bar" classname="com.example.kpkn.domain.training.BodyweightLotEquipmentTest" time="0.0"/>
+  <testcase name="the_gym_seed_brings_the_box_and_so_the_elevated_support_but_not_the_rings" classname="com.example.kpkn.domain.training.BodyweightLotEquipmentTest" time="0.001"/>
+  <testcase name="every_bw1_addition_exists_as_an_approved_bodyweight_configuration" classname="com.example.kpkn.domain.training.BodyweightLotEquipmentTest" time="0.001"/>
+  <testcase name="a_person_with_only_the_body_reaches_the_floor_additions_but_not_the_support_dependent_ones" classname="com.example.kpkn.domain.training.BodyweightLotEquipmentTest" time="0.001"/>
+  <testcase name="the_box_key_needs_the_support_category_and_a_present_answer_to_be_an_elevated_support" classname="com.example.kpkn.domain.training.BodyweightLotEquipmentTest" time="0.0"/>
+  <testcase name="the_pull_up_bar_symbol_reaches_the_negative_pull_up" classname="com.example.kpkn.domain.training.BodyweightLotEquipmentTest" time="0.0"/>
+  <testcase name="the_rings_open_the_three_suspension_configurations_but_are_not_an_elevated_support" classname="com.example.kpkn.domain.training.BodyweightLotEquipmentTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

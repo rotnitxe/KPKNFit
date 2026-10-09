@@ -88,13 +88,17 @@ object LocaleManager {
      * Útil al inicializar desde Room antes de que la UI cargue.
      */
     fun persist(context: Context, language: String) {
-        context.applicationContext
-            .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .edit()
-            .putString(KEY_LANGUAGE, language)
-            .apply()
-        cachedLanguage = language
-        cachedProfile = profile(context)
+        val owner = com.example.kpkn.data.backup.DataSessionWriter("locale-preference")
+        val fixed = com.example.kpkn.data.backup.capturedPersonalContext(context)
+        owner.immediate {
+            val prefs = fixed.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            prefs.edit().putString(KEY_LANGUAGE, language).apply()
+            owner.launch(kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.IO)) {
+                prefs.edit().commit()
+            }
+            cachedLanguage = language
+            cachedProfile = profile(fixed)
+        }
     }
 
     /**

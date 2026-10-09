@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.GlobalSkuClassificationTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:29.857Z" hostname="VF" time="0.001">
+  <properties/>
+  <testcase name="a row is a global SKU by the prefix of its id and by its source only when it has no id" classname="com.example.kpkn.domain.nutrition.GlobalSkuClassificationTest" time="0.0"/>
+  <testcase name="no static row reads as a supermarket SKU whatever its source cites" classname="com.example.kpkn.domain.nutrition.GlobalSkuClassificationTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

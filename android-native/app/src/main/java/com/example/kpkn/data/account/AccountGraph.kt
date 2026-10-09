@@ -39,11 +39,11 @@ object AccountGraph {
         check(ProfileStorage.current().uid == uid)
         currentEntitlement?.refresh()
     }
-    suspend fun stop() {
+    suspend fun stop(resetEntitlement: Boolean = true) {
         if (attachedProfileKey != null) com.example.kpkn.data.diagnostics.CrashReportingController.setEnabled(false)
         attachedProfileKey = null
         profileJob?.cancelAndJoin(); profileJob = null; foregroundSync = null; currentEntitlement = null
-        withContext(Dispatchers.Main) { _entitlement.value = EntitlementState() }
+        if (resetEntitlement) withContext(Dispatchers.Main) { _entitlement.value = EntitlementState() }
     }
     @OptIn(FlowPreview::class)
     suspend fun attach(context: Context) {
@@ -60,7 +60,8 @@ object AccountGraph {
         currentEntitlement = entitlements
         foregroundSync = RoomSyncRepository(fixed, uid, database, transport, PrivateDataTransport(fixed, uid, runtime), MediaTransfer(fixed, uid, runtime))
         runCatching { entitlements.load() }
-        profileJob = scope.launch {
+        val writer = com.example.kpkn.data.backup.DataSessionWriter("account-profile-observers")
+        profileJob = writer.launch(scope) {
             launch {
                 var wasPro = false
                 entitlements.state.collect { value ->

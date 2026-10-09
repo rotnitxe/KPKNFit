@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.HomeSessionResolverTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:20:14.112Z" hostname="VF" time="0.013">
+  <properties/>
+  <testcase name="logMatchesSession requires weekId when present" classname="com.example.kpkn.domain.training.HomeSessionResolverTest" time="0.004"/>
+  <testcase name="logMatchesSession rejects previous cycle template logs for cycle 2 instance" classname="com.example.kpkn.domain.training.HomeSessionResolverTest" time="0.0"/>
+  <testcase name="resolveTodaySessions marks today by dayOfWeek" classname="com.example.kpkn.domain.training.HomeSessionResolverTest" time="0.007"/>
+  <testcase name="completed session in current week is marked completed" classname="com.example.kpkn.domain.training.HomeSessionResolverTest" time="0.001"/>
+  <testcase name="selectPrimarySession returns null on rest day with only other weekdays" classname="com.example.kpkn.domain.training.HomeSessionResolverTest" time="0.0"/>
+  <testcase name="selectPrimarySession prefers ongoing then today incomplete" classname="com.example.kpkn.domain.training.HomeSessionResolverTest" time="0.0"/>
+  <testcase name="calendarized competition day is today and preferred over earlier weekday" classname="com.example.kpkn.domain.training.HomeSessionResolverTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -19,10 +19,12 @@ class WorkoutReminderBootReceiver : BroadcastReceiver() {
             return
         }
 
+        val writer = runCatching { com.example.kpkn.data.backup.DataSessionWriter("workout-reminder-receiver") }.getOrNull() ?: return
+        val capturedContext = if (com.example.kpkn.data.account.ProfileStorage.initialized()) com.example.kpkn.data.account.ProfileStorage.context(context.applicationContext) else context.applicationContext
         val pendingResult = goAsync()
-        CoroutineScope(Dispatchers.IO).launch {
+        val work = writer.launch(CoroutineScope(Dispatchers.IO)) {
             try {
-                val appContext = context.applicationContext
+                val appContext = capturedContext
                 val settings = KpknDatabase.getInstance(appContext)
                     .settingsDao()
                     .get()
@@ -45,9 +47,8 @@ class WorkoutReminderBootReceiver : BroadcastReceiver() {
                 }
             } catch (t: Throwable) {
                 Log.e("WorkoutReminderBoot", "Failed to restore reminders after boot", t)
-            } finally {
-                pendingResult.finish()
             }
         }
+        work.invokeOnCompletion { pendingResult?.finish() }
     }
 }

@@ -1,0 +1,95 @@
+{
+  "state": "LOCAL_PROGRESS_ONLY_PLAN_REMAINS_OPEN",
+  "sourcePlan": "artifacts/stability-launch/requirements.json",
+  "sourcePlanSha256": "78c5a905501404ce565b0275f752229a6448316754a1ba892e18a074b823fff6",
+  "rows": [
+    {
+      "id": "A01",
+      "checkedLocalScope": "Admisión y drenado coordinados de productores locales",
+      "previousCode": "PARCIAL",
+      "previousVerification": "PARCIAL",
+      "checkpoint": "PARCIAL",
+      "newEvidence": [
+        "DELIVERY.json",
+        "directed-final-17-unit/result.json",
+        "native-final-17/result.json"
+      ],
+      "pending": "Integral closure of all participating writers, live SDK/account flows, interruption/full-disk and full device matrix remains open."
+    },
+    {
+      "id": "A02",
+      "checkedLocalScope": "Respaldo y restauración local coherentes; interrupción interna todavía pendiente",
+      "previousCode": "PARCIAL",
+      "previousVerification": "PARCIAL",
+      "checkpoint": "PARCIAL",
+      "newEvidence": [
+        "DELIVERY.json",
+        "directed-final-17-unit/result.json",
+        "native-final-17/result.json"
+      ],
+      "pending": "Integral closure of all participating writers, live SDK/account flows, interruption/full-disk and full device matrix remains open."
+    },
+    {
+      "id": "A03",
+      "checkedLocalScope": "Reconstrucción del grafo y lectura de los datos restaurados",
+      "previousCode": "PARCIAL",
+      "previousVerification": "PARCIAL",
+      "checkpoint": "PARCIAL",
+      "newEvidence": [
+        "DELIVERY.json",
+        "directed-final-17-unit/result.json",
+        "native-final-17/result.json"
+      ],
+      "pending": "Integral closure of all participating writers, live SDK/account flows, interruption/full-disk and full device matrix remains open."
+    },
+    {
+      "id": "A04",
+      "checkedLocalScope": "Respaldo portable y conservación del avatar y el historial de QA",
+      "previousCode": "PARCIAL",
+      "previousVerification": "PARCIAL",
+      "checkpoint": "PARCIAL",
+      "newEvidence": [
+        "DELIVERY.json",
+        "directed-final-17-unit/result.json",
+        "native-final-17/result.json"
+      ],
+      "pending": "Integral closure of all participating writers, live SDK/account flows, interruption/full-disk and full device matrix remains open."
+    },
+    {
+      "id": "B01",
+      "checkedLocalScope": "Borrado coordinado y comprobación después de otro proceso",
+      "previousCode": "PARCIAL",
+      "previousVerification": "PARCIAL",
+      "checkpoint": "PARCIAL",
+      "newEvidence": [
+        "DELIVERY.json",
+        "directed-final-17-unit/result.json",
+        "native-final-17/result.json"
+      ],
+      "pending": "Integral closure of all participating writers, live SDK/account flows, interruption/full-disk and full device matrix remains open."
+    },
+    {
+      "id": "B02",
+      "checkedLocalScope": "Referencias antiguas denegadas y cambio local sintético de invitado",
+      "previousCode": "PARCIAL",
+      "previousVerification": "PARCIAL",
+      "checkpoint": "PARCIAL",
+      "newEvidence": [
+        "DELIVERY.json",
+        "directed-final-17-unit/result.json",
+        "native-final-17/result.json"
+      ],
+      "pending": "Integral closure of all participating writers, live SDK/account flows, interruption/full-disk and full device matrix remains open."
+    }
+  ],
+  "allAJApproved": false,
+  "retainedProductDecisions": [
+    "GPS and voice retained",
+    "Health Connect removed in earlier integrated commit"
+  ],
+  "pendingExternalInputs": [
+    "Real Firebase auth session",
+    "Play account type",
+    "Monthly and annual prices"
+  ]
+}

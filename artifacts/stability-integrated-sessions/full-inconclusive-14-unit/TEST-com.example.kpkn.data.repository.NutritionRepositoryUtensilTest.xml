@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.repository.NutritionRepositoryUtensilTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:16:58.667Z" hostname="VF" time="2.065">
+  <properties/>
+  <testcase name="saved volumes come back after the engine loses its state" classname="com.example.kpkn.data.repository.NutritionRepositoryUtensilTest" time="0.361"/>
+  <testcase name="clearing a utensil removes it from the engine and from storage" classname="com.example.kpkn.data.repository.NutritionRepositoryUtensilTest" time="0.358"/>
+  <testcase name="clearing a utensil that was never saved changes nothing" classname="com.example.kpkn.data.repository.NutritionRepositoryUtensilTest" time="0.417"/>
+  <testcase name="a saved utensil volume reaches the portion engine and is persisted" classname="com.example.kpkn.data.repository.NutritionRepositoryUtensilTest" time="0.379"/>
+  <testcase name="a restarted repository reapplies the saved volumes by itself" classname="com.example.kpkn.data.repository.NutritionRepositoryUtensilTest" time="0.55"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

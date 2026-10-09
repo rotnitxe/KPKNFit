@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.NativeMaterialEvidenceTest" tests="22" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:20:29.162Z" hostname="VF" time="5.169">
+  <properties/>
+  <testcase name="a_bench_is_absent_only_when_every_key_that_attests_it_is_denied" classname="com.example.kpkn.domain.training.NativeMaterialEvidenceTest" time="0.001"/>
+  <testcase name="a_flat_bench_denied_with_the_adjustable_one_unanswered_is_unknown_not_absent" classname="com.example.kpkn.domain.training.NativeMaterialEvidenceTest" time="0.0"/>
+  <testcase name="strength_without_a_declared_barbell_is_an_explicit_absence_and_lists_only_what_was_denied" classname="com.example.kpkn.domain.training.NativeMaterialEvidenceTest" time="0.252"/>
+  <testcase name="powerbuilding_with_a_barbell_alone_asks_to_confirm_rack_and_bench" classname="com.example.kpkn.domain.training.NativeMaterialEvidenceTest" time="0.249"/>
+  <testcase name="strength_with_rack_and_bench_explicitly_denied_is_an_absence_with_evidence" classname="com.example.kpkn.domain.training.NativeMaterialEvidenceTest" time="0.26"/>
+  <testcase name="every_rejection_token_of_the_own_plans_resolves_to_a_confirmable_key_or_to_a_category" classname="com.example.kpkn.domain.training.NativeMaterialEvidenceTest" time="0.406"/>
+  <testcase name="legacy_profile_keeps_its_old_gate_without_inventing_unknowns" classname="com.example.kpkn.domain.training.NativeMaterialEvidenceTest" time="0.437"/>
+  <testcase name="powerbuilding_with_dumbbells_is_never_blocked_by_unconfirmed_rack_and_bench" classname="com.example.kpkn.domain.training.NativeMaterialEvidenceTest" time="0.248"/>
+  <testcase name="powerbuilding_with_neither_barbell_nor_dumbbells_stays_a_profile_mismatch" classname="com.example.kpkn.domain.training.NativeMaterialEvidenceTest" time="0.19"/>
+  <testcase name="explicit_machine_presence_counts_only_machine_and_cable_keys" classname="com.example.kpkn.domain.training.NativeMaterialEvidenceTest" time="0.0"/>
+  <testcase name="strength_with_supports_still_unconfirmed_asks_to_confirm_instead_of_blaming_the_user" classname="com.example.kpkn.domain.training.NativeMaterialEvidenceTest" time="0.178"/>
+  <testcase name="powerbuilding_with_a_barbell_but_rack_or_bench_denied_and_no_dumbbells_is_a_profile_mismatch" classname="com.example.kpkn.domain.training.NativeMaterialEvidenceTest" time="0.22"/>
+  <testcase name="key_for_token_maps_the_vocabulary_to_the_curated_panel_keys" classname="com.example.kpkn.domain.training.NativeMaterialEvidenceTest" time="0.001"/>
+  <testcase name="the_gate_groups_classify_every_fixture_of_the_grid_exactly_once" classname="com.example.kpkn.domain.training.NativeMaterialEvidenceTest" time="0.0"/>
+  <testcase name="powerbuilding_with_dumbbells_or_the_full_barbell_triple_gets_a_program" classname="com.example.kpkn.domain.training.NativeMaterialEvidenceTest" time="0.313"/>
+  <testcase name="a_missing_barbell_is_reported_as_absent_even_when_rack_and_bench_are_also_unknown" classname="com.example.kpkn.domain.training.NativeMaterialEvidenceTest" time="0.215"/>
+  <testcase name="strength_with_barbell_rack_and_bench_confirmed_gets_a_program" classname="com.example.kpkn.domain.training.NativeMaterialEvidenceTest" time="0.282"/>
+  <testcase name="machines_by_category_feed_the_pull_of_own_plans_unless_a_concrete_machine_is_declared" classname="com.example.kpkn.domain.training.NativeMaterialEvidenceTest" time="0.323"/>
+  <testcase name="pull_is_resolved_from_the_real_configurations_of_each_material" classname="com.example.kpkn.domain.training.NativeMaterialEvidenceTest" time="0.375"/>
+  <testcase name="calf_moves_to_the_machine_by_category_when_only_supports_were_confirmed" classname="com.example.kpkn.domain.training.NativeMaterialEvidenceTest" time="1.0"/>
+  <testcase name="categories_for_keys_returns_the_categories_that_make_them_visible" classname="com.example.kpkn.domain.training.NativeMaterialEvidenceTest" time="0.001"/>
+  <testcase name="powerbuilding_with_a_barbell_and_rack_but_the_bench_unanswered_asks_only_for_the_bench" classname="com.example.kpkn.domain.training.NativeMaterialEvidenceTest" time="0.217"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

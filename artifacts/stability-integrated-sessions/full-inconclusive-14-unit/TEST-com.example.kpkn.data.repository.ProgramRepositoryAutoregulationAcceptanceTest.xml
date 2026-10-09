@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.repository.ProgramRepositoryAutoregulationAcceptanceTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:17:01.482Z" hostname="VF" time="0.341">
+  <properties/>
+  <testcase name="advance_then_accept_changes_the_future_week_and_keeps_the_trained_week_byte_identical" classname="com.example.kpkn.data.repository.ProgramRepositoryAutoregulationAcceptanceTest" time="0.178"/>
+  <testcase name="reject_by_repository_records_a_terminal_state_and_keeps_the_plan_unchanged" classname="com.example.kpkn.data.repository.ProgramRepositoryAutoregulationAcceptanceTest" time="0.163"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

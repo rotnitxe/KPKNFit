@@ -1,0 +1,12 @@
+{
+  "tests": 6,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "suites": 3,
+  "files": {
+    "TEST-com.example.kpkn.data.backup.DataSessionWritersTest.xml": "edf95ce8c46e7a71c68498bc35b33403976954870125d70bd394d0d9041d8bf0",
+    "TEST-com.example.kpkn.data.backup.RoomWriterDrainTest.xml": "0b8162e6dcd4bfff169dbf6e893ec6ecf0655d160ba8f6b62b115f860d5a9855",
+    "TEST-com.example.kpkn.data.media.MediaWriteBarrierTest.xml": "f73d947aca6acd5384c4a554581eb4d5975e07b00883400f9697018757b7f566"
+  }
+}

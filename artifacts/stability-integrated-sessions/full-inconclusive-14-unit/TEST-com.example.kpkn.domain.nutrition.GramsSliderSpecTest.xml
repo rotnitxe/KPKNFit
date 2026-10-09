@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.GramsSliderSpecTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:30.477Z" hostname="VF" time="0.002">
+  <properties/>
+  <testcase name="small anchors keep the 600 g floor" classname="com.example.kpkn.domain.nutrition.GramsSliderSpecTest" time="0.001"/>
+  <testcase name="parseGrams clamps absurd amounts to the typed maximum" classname="com.example.kpkn.domain.nutrition.GramsSliderSpecTest" time="0.0"/>
+  <testcase name="larger anchors double and round up to the next 100 g" classname="com.example.kpkn.domain.nutrition.GramsSliderSpecTest" time="0.0"/>
+  <testcase name="floating point noise does not add an extra 100 g step" classname="com.example.kpkn.domain.nutrition.GramsSliderSpecTest" time="0.0"/>
+  <testcase name="anchor is the base mass when present and the current grams otherwise" classname="com.example.kpkn.domain.nutrition.GramsSliderSpecTest" time="0.0"/>
+  <testcase name="the range is the same whatever value is being dragged" classname="com.example.kpkn.domain.nutrition.GramsSliderSpecTest" time="0.0"/>
+  <testcase name="parseGrams returns whole grams or null for an unusable text" classname="com.example.kpkn.domain.nutrition.GramsSliderSpecTest" time="0.001"/>
+  <testcase name="whole grams round half up and never drop below one gram" classname="com.example.kpkn.domain.nutrition.GramsSliderSpecTest" time="0.0"/>
+  <testcase name="an invalid anchor leaves the floor instead of throwing" classname="com.example.kpkn.domain.nutrition.GramsSliderSpecTest" time="0.0"/>
+  <testcase name="typed text keeps digits and a single decimal separator" classname="com.example.kpkn.domain.nutrition.GramsSliderSpecTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

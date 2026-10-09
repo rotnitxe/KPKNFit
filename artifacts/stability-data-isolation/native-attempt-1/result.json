@@ -1,0 +1,43 @@
+{
+  "state": "FAIL_OR_INCOMPLETE",
+  "runId": "c396b3b9-1b85-46b9-824c-3b8163f47ed0",
+  "phases": [
+    {
+      "method": "com.example.kpkn.data.repository.WorkoutMediaUriDurabilityInstrumentedTest",
+      "returnCode": 0,
+      "passed": true,
+      "expectedCount": 5,
+      "priorPid": "4772",
+      "absentAfterStop": true,
+      "coldPid": null
+    },
+    {
+      "method": "com.example.kpkn.screens.workout.WorkoutExternalCameraCaptureInstrumentedTest",
+      "returnCode": 0,
+      "passed": true,
+      "expectedCount": 4,
+      "priorPid": "",
+      "absentAfterStop": true,
+      "coldPid": null
+    },
+    {
+      "method": "com.example.kpkn.data.repository.WorkoutMediaLateRetryInstrumentedTest",
+      "returnCode": 0,
+      "passed": true,
+      "expectedCount": 4,
+      "priorPid": "",
+      "absentAfterStop": true,
+      "coldPid": null
+    },
+    {
+      "method": "com.example.kpkn.data.repository.DataIsolationColdProcessTest#phase1SeedAndExport",
+      "returnCode": 0,
+      "passed": false,
+      "expectedCount": 1,
+      "priorPid": "",
+      "absentAfterStop": true,
+      "coldPid": null
+    }
+  ],
+  "limits": "Core backup/profile controls; not account UI, live Firebase, or real Play Billing."
+}

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.auge.ExerciseReadinessEngineTest" tests="15" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:08.489Z" hostname="VF" time="0.014">
+  <properties/>
+  <testcase name="coaching secondary pattern is fine when high band" classname="com.example.kpkn.domain.auge.ExerciseReadinessEngineTest" time="0.011"/>
+  <testcase name="penalty 0_90 when two overlapping articulations" classname="com.example.kpkn.domain.auge.ExerciseReadinessEngineTest" time="0.0"/>
+  <testcase name="coaching mentions secondary pattern when it weighs at least 25 percent" classname="com.example.kpkn.domain.auge.ExerciseReadinessEngineTest" time="0.0"/>
+  <testcase name="penalty 0_95 when three discomforts with only one overlapping" classname="com.example.kpkn.domain.auge.ExerciseReadinessEngineTest" time="0.0"/>
+  <testcase name="penalty 0_95 when one overlapping articulation" classname="com.example.kpkn.domain.auge.ExerciseReadinessEngineTest" time="0.0"/>
+  <testcase name="penalty 1_0 when no unresolved discomforts" classname="com.example.kpkn.domain.auge.ExerciseReadinessEngineTest" time="0.0"/>
+  <testcase name="coaching amber warns about first sets" classname="com.example.kpkn.domain.auge.ExerciseReadinessEngineTest" time="0.001"/>
+  <testcase name="penalty 1_0 when no overlapping articulations" classname="com.example.kpkn.domain.auge.ExerciseReadinessEngineTest" time="0.0"/>
+  <testcase name="coaching selects dominant pattern by sets percentage" classname="com.example.kpkn.domain.auge.ExerciseReadinessEngineTest" time="0.0"/>
+  <testcase name="penalty 1_0 when discomfort not in catalog" classname="com.example.kpkn.domain.auge.ExerciseReadinessEngineTest" time="0.0"/>
+  <testcase name="coaching red recommends lower loads with exercise name" classname="com.example.kpkn.domain.auge.ExerciseReadinessEngineTest" time="0.0"/>
+  <testcase name="coaching null when no patterns" classname="com.example.kpkn.domain.auge.ExerciseReadinessEngineTest" time="0.0"/>
+  <testcase name="penalty 1_0 when exercise has no muscular articular mapping" classname="com.example.kpkn.domain.auge.ExerciseReadinessEngineTest" time="0.0"/>
+  <testcase name="coaching green names the two main exercises of the session" classname="com.example.kpkn.domain.auge.ExerciseReadinessEngineTest" time="0.001"/>
+  <testcase name="coaching green when dominant pattern fully fresh" classname="com.example.kpkn.domain.auge.ExerciseReadinessEngineTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

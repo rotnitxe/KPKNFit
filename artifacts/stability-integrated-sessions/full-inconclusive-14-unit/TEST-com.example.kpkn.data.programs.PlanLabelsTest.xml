@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.programs.PlanLabelsTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:16:38.499Z" hostname="VF" time="0.004">
+  <properties/>
+  <testcase name="provenanceLabelFollowsTheOriginOfEachPlan" classname="com.example.kpkn.data.programs.PlanLabelsTest" time="0.001"/>
+  <testcase name="aHandBuiltEntryGetsADerivedEditorialWithoutChangingItsConstructor" classname="com.example.kpkn.data.programs.PlanLabelsTest" time="0.0"/>
+  <testcase name="levelLabelNeverShowsEnumNamesEvenForANonContiguousPair" classname="com.example.kpkn.data.programs.PlanLabelsTest" time="0.0"/>
+  <testcase name="levelLabelNamesOneLevelTwoContiguousLevelsOrAll" classname="com.example.kpkn.data.programs.PlanLabelsTest" time="0.001"/>
+  <testcase name="durationLabelNamesTheRepeatingWeekTheRepeatingCycleAndTheFiniteCycle" classname="com.example.kpkn.data.programs.PlanLabelsTest" time="0.0"/>
+  <testcase name="subtitleIsDurationDotLevelWithoutDays" classname="com.example.kpkn.data.programs.PlanLabelsTest" time="0.0"/>
+  <testcase name="catalogLevelLabelsAreInSpanish" classname="com.example.kpkn.data.programs.PlanLabelsTest" time="0.0"/>
+  <testcase name="durationLabelAgreesInNumberForASingleWeek" classname="com.example.kpkn.data.programs.PlanLabelsTest" time="0.0"/>
+  <testcase name="noEntryEverShowsOneWithAPluralNounInItsLabels" classname="com.example.kpkn.data.programs.PlanLabelsTest" time="0.001"/>
+  <testcase name="metaLineIsFrequencyDurationLevel" classname="com.example.kpkn.data.programs.PlanLabelsTest" time="0.0"/>
+  <testcase name="frequencyLabelWritesRangesWithAnEnDashAndAlwaysInThePlural" classname="com.example.kpkn.data.programs.PlanLabelsTest" time="0.0"/>
+  <testcase name="everyEntryHasAProvenanceLabelWithoutEnumNames" classname="com.example.kpkn.data.programs.PlanLabelsTest" time="0.001"/>
+  <testcase name="frequencyLabelUsesTheSingularForOneDay" classname="com.example.kpkn.data.programs.PlanLabelsTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

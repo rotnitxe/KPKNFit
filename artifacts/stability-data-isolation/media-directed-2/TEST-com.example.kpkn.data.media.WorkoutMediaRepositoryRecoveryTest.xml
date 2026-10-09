@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.media.WorkoutMediaRepositoryRecoveryTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-10-09T04:21:52.129Z" hostname="VF" time="4.53">
+  <properties/>
+  <testcase name="ready_room_retry_preserves_png_extension_when_uri_mime_becomes_unavailable" classname="com.example.kpkn.data.media.WorkoutMediaRepositoryRecoveryTest" time="0.717"/>
+  <testcase name="picker_image_wildcard_preserves_supported_photo_formats_and_safe_extensions" classname="com.example.kpkn.data.media.WorkoutMediaRepositoryRecoveryTest" time="0.534"/>
+  <testcase name="ready_room_retry_preserves_generic_video_wildcard_kind_and_safe_extension" classname="com.example.kpkn.data.media.WorkoutMediaRepositoryRecoveryTest" time="0.272"/>
+  <testcase name="photo_dimension_decoder_failure_keeps_ready_uuid_and_bytes_until_room_commit" classname="com.example.kpkn.data.media.WorkoutMediaRepositoryRecoveryTest" time="0.322"/>
+  <testcase name="unfinished_camera_marker_waits_for_explicit_retry_before_ingest" classname="com.example.kpkn.data.media.WorkoutMediaRepositoryRecoveryTest" time="0.23"/>
+  <testcase name="legacy_ready_pending_photo_formats_recover_without_provider_mime" classname="com.example.kpkn.data.media.WorkoutMediaRepositoryRecoveryTest" time="0.39"/>
+  <testcase name="picker_heic_heif_avif_mimes_preserve_ready_identity_bytes_and_room_retry" classname="com.example.kpkn.data.media.WorkoutMediaRepositoryRecoveryTest" time="0.464"/>
+  <testcase name="null_mime_keeps_same_uuid_pending_and_explicit_retry_resolves_video" classname="com.example.kpkn.data.media.WorkoutMediaRepositoryRecoveryTest" time="0.249"/>
+  <testcase name="png_uri_is_committed_with_png_extension_and_cleans_source_after_room_commit" classname="com.example.kpkn.data.media.WorkoutMediaRepositoryRecoveryTest" time="0.231"/>
+  <testcase name="legacy_ready_pending_png_without_extension_is_recovered_from_source_bytes" classname="com.example.kpkn.data.media.WorkoutMediaRepositoryRecoveryTest" time="0.291"/>
+  <testcase name="failed_ingest_keeps_journal_and_retry_with_same_uuid_upserts_once" classname="com.example.kpkn.data.media.WorkoutMediaRepositoryRecoveryTest" time="0.27"/>
+  <testcase name="legacy_ready_ftyp_headers_infer_heic_heif_avif_identity_and_bytes" classname="com.example.kpkn.data.media.WorkoutMediaRepositoryRecoveryTest" time="0.326"/>
+  <testcase name="ready_room_retry_preserves_webp_extension_when_uri_mime_becomes_unavailable" classname="com.example.kpkn.data.media.WorkoutMediaRepositoryRecoveryTest" time="0.233"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

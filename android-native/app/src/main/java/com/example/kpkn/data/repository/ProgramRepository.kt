@@ -72,14 +72,19 @@ class ProgramRepository private constructor(
         com.example.kpkn.data.account.AccountGraph.entitlement.value.effectiveLevel
     },
 ) {
+    private val writeOwner = com.example.kpkn.data.backup.DataSessionWriter("program-repository")
+    private suspend fun <T> withDataSessionIo(block: suspend () -> T): T = writeOwner.write(block)
+    private suspend fun <T> withDurableWrite(block: suspend () -> T): T = writeOwner.durableWrite(block)
+    private fun <T> withBlockingDataWrite(block: suspend () -> T): T = runBlocking { writeOwner.durableWrite(block) }
+
     internal fun planLevel() = accessLevel()
-    internal fun requireProgramWrite(program: Program) = com.example.kpkn.domain.entitlements.ProgramAccessPolicy.requireWrite(planLevel(), program)
+    internal fun requireProgramWrite(program: Program) = writeOwner.immediate { com.example.kpkn.domain.entitlements.ProgramAccessPolicy.requireWrite(planLevel(), program) }
 
     /** Test-only read-back seam; production callers continue using repository APIs. */
     internal fun databaseForTests(): KpknDatabase = db
 
     private val repositoryJob = SupervisorJob()
-    private val scope = CoroutineScope(Dispatchers.IO + repositoryJob)
+    private val scope = com.example.kpkn.data.backup.DataSessionWriterScope(CoroutineScope(Dispatchers.IO + repositoryJob), writeOwner)
 
     // ─── Programs ─────────────────────────────────────────────────────────────
 
@@ -195,7 +200,7 @@ class ProgramRepository private constructor(
             reserved
         }
         repairActiveStateIfNeeded(normalized)
-        withContext(Dispatchers.IO) { persistProgramIfNewest(normalized, version) }
+        withDataSessionIo withContext@ { persistProgramIfNewest(normalized, version) }
     }
 
     /**
@@ -310,7 +315,7 @@ class ProgramRepository private constructor(
         repairActiveState: Boolean = false,
     ): Boolean {
         val callerJob = currentCoroutineContext()[Job]
-        return withContext(NonCancellable + Dispatchers.IO) {
+        return withDurableWrite withContext@ {
             try {
                 commitProgramDurable(program, version, repairActiveState)
             } catch (cancelled: CancellationException) {
@@ -348,7 +353,7 @@ class ProgramRepository private constructor(
         onVersionReserved: ((Long) -> Unit)?,
         transform: (Program) -> Program?,
     ): Boolean =
-        withContext(Dispatchers.IO) {
+        withDataSessionIo withContext@ {
             programRmwMutex.withLock {
                 val prepared = synchronized(programMutationLock) {
                     val current = getProgramById(programId) ?: return@withLock false
@@ -607,7 +612,7 @@ class ProgramRepository private constructor(
 
     /** Synchronous wipe for Robolectric tests — avoids SQLite races between async clears and writes. */
     internal fun resetAllStateSync() {
-        runBlocking(Dispatchers.IO + NonCancellable) {
+        withBlockingDataWrite {
             val activeVersion = reserveActiveStateWrite()
             _programs.value = emptyList()
             _programQueue.value = emptyList()
@@ -624,7 +629,7 @@ class ProgramRepository private constructor(
 
     /** Room-only recovery read; it must not confuse an unpublished cache with a failed commit. */
     internal suspend fun readPersistedProgramForEditorRecovery(programId: String): Program? =
-        withContext(Dispatchers.IO) {
+        withDataSessionIo withContext@ {
             val header = db.programDao().getAllHeaders().firstOrNull { it.id == programId }
                 ?: return@withContext null
             val data = buildString {
@@ -660,7 +665,7 @@ class ProgramRepository private constructor(
         programId: String,
         expectedWriteVersion: Long,
         matchesCommitted: (Program) -> Boolean,
-    ): Program? = withContext(NonCancellable + Dispatchers.IO) {
+    ): Program? = withDurableWrite withContext@ {
         programRmwMutex.withLock {
             PersistenceWriteCoordinator.mutex.withLock {
                 programWriteMutex.withLock {
@@ -863,7 +868,7 @@ class ProgramRepository private constructor(
         retainedOngoingTransform: ((OngoingWorkoutState) -> OngoingWorkoutState)? = null,
         expectedExecutionStartTimeMs: Long? = null,
     ) {
-        withContext(Dispatchers.IO + NonCancellable) {
+        withDurableWrite withContext@ {
             ongoingWorkoutMutex.withLock {
                 val prior = _history.value.firstOrNull { it.id == log.id }
                     ?: db.workoutLogDao().getById(log.id)?.toWorkoutLog()?.normalizedIdentityFields()
@@ -1426,7 +1431,7 @@ class ProgramRepository private constructor(
         state: OngoingWorkoutState,
         replaceExisting: Boolean = false,
     ): StartWorkoutResult {
-        return withContext(Dispatchers.IO + NonCancellable) {
+        return withDurableWrite withContext@ {
             ongoingWorkoutMutex.withLock {
                 if (_ongoingWorkoutCorrupt.value && !replaceExisting) {
                     val existing = _ongoingWorkout.value
@@ -1471,7 +1476,7 @@ class ProgramRepository private constructor(
      * Use for structural session events (recorded set, skip, pause, finish prep).
      */
     suspend fun updateOngoingWorkoutAndFlush(update: (OngoingWorkoutState) -> OngoingWorkoutState): com.example.kpkn.screens.workout.WorkoutPersistResult {
-        return withContext(Dispatchers.IO + NonCancellable) {
+        return withDurableWrite withContext@ {
             writeOngoingLocked(update)
         }
     }
@@ -1526,7 +1531,7 @@ class ProgramRepository private constructor(
     }
 
     private fun clearOngoingWorkoutForProgram(programId: String) {
-        runBlocking(Dispatchers.IO + NonCancellable) {
+        withBlockingDataWrite {
             ongoingWorkoutMutex.withLock {
                 if (_ongoingWorkout.value?.programId != programId) return@withLock
                 _ongoingWorkout.value = null
@@ -1538,7 +1543,7 @@ class ProgramRepository private constructor(
 
     /** Clears ongoing in memory and waits for Room delete. */
     suspend fun clearOngoingWorkoutAndFlush(expected: OngoingWorkoutState? = null) {
-        withContext(Dispatchers.IO + NonCancellable) {
+        withDurableWrite withContext@ {
             ongoingWorkoutMutex.withLock {
                 if (expected != null) {
                     val current = _ongoingWorkout.value ?: return@withLock
@@ -1558,7 +1563,7 @@ class ProgramRepository private constructor(
      * before the background write coroutine completes.
      */
     suspend fun flushPendingWrites() {
-        withContext(Dispatchers.IO + NonCancellable) {
+        withDurableWrite withContext@ {
             // Finalization acquires ongoing→program; keep the same order here
             // so a lifecycle flush cannot deadlock a concurrent completion.
             val snapshot = ongoingWorkoutMutex.withLock {
@@ -1650,7 +1655,7 @@ class ProgramRepository private constructor(
     }
 
     /** Only publish completion after Room confirms it; concurrent profile edits remain in the cache. */
-    suspend fun finishFreeIntro() = withContext(Dispatchers.IO) {
+    suspend fun finishFreeIntro() = withDataSessionIo withContext@ {
         PersistenceWriteCoordinator.mutex.withLock {
             db.settingsDao().upsert(_settings.value.copy(onboardingCompleted = true).toEntity())
             withContext(Dispatchers.Main.immediate) {
@@ -1673,7 +1678,7 @@ class ProgramRepository private constructor(
      * el committedDB ya es el resultado de ese flag.
      */
     suspend fun publishSetupCommit(settings: Settings, program: Program?, activateProgram: Boolean) {
-        val committedActive = withContext(Dispatchers.IO) {
+        val committedActive = withDataSessionIo withContext@ {
             db.stateDao().getActiveProgram()?.toActiveProgramState()
         }
         withContext(Dispatchers.Main.immediate) {
@@ -1722,7 +1727,7 @@ class ProgramRepository private constructor(
 
     suspend fun replaceProgramSafely(replacement: Program): ReplaceProgramResult {
         requireProgramWrite(replacement)
-        return withContext(Dispatchers.IO + NonCancellable) {
+        return withDurableWrite withContext@ {
             PersistenceWriteCoordinator.mutex.withLock {
                 ongoingWorkoutMutex.withLock {
                     programWriteMutex.withLock {
@@ -2396,6 +2401,7 @@ class ProgramRepository private constructor(
             INSTANCE ?: error("ProgramRepository not initialized — call init(context) first.")
 
         internal fun closeInstance() {
+            INSTANCE?.writeOwner?.closeAdmission()
             INSTANCE?.let { runBlocking { it.repositoryJob.cancelAndJoin() } }
             INSTANCE?.takeIf { it.ownsDatabase }?.db?.close()
             INSTANCE = null

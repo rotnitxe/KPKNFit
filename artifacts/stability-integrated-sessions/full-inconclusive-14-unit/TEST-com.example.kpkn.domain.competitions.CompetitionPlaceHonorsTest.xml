@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.competitions.CompetitionPlaceHonorsTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:09.025Z" hostname="VF" time="0.002">
+  <properties/>
+  <testcase name="fourth_or_worse_requires_catalog_trophy" classname="com.example.kpkn.domain.competitions.CompetitionPlaceHonorsTest" time="0.002"/>
+  <testcase name="first_three_map_to_medals_without_trophy" classname="com.example.kpkn.domain.competitions.CompetitionPlaceHonorsTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.PhysiqueSliderPositionTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:40.264Z" hostname="VF" time="0.008">
+  <properties/>
+  <testcase name="itUndoesBodyFatForSliderPosOverTheIllustratedRange" classname="com.example.kpkn.domain.nutrition.PhysiqueSliderPositionTest" time="0.001"/>
+  <testcase name="everyWholePercentOfTheRulerMapsToAFrameOfTheSixtyOneDrawablesInOrder" classname="com.example.kpkn.domain.nutrition.PhysiqueSliderPositionTest" time="0.0"/>
+  <testcase name="itIsClampedToOneAndSevenOutsideTheIllustratedRange" classname="com.example.kpkn.domain.nutrition.PhysiqueSliderPositionTest" time="0.0"/>
+  <testcase name="somethingThatIsNotANumberFallsBackToTheStartingPosition" classname="com.example.kpkn.domain.nutrition.PhysiqueSliderPositionTest" time="0.001"/>
+  <testcase name="itNeverDecreasesAsThePercentageGrows" classname="com.example.kpkn.domain.nutrition.PhysiqueSliderPositionTest" time="0.006"/>
+  <testcase name="theMidpointOfEveryGroupIsItsOwnPosition" classname="com.example.kpkn.domain.nutrition.PhysiqueSliderPositionTest" time="0.0"/>
+  <testcase name="itIsLinearBetweenTheMidpointsOfNeighbouringGroups" classname="com.example.kpkn.domain.nutrition.PhysiqueSliderPositionTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

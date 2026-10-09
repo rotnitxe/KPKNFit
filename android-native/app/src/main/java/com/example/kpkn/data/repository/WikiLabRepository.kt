@@ -24,6 +24,15 @@ object WikiLabRepository {
 
     private lateinit var dao: WikiLabDao
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private var currentWriter: com.example.kpkn.data.backup.DataSessionWriter? = null
+    private var preparation: kotlinx.coroutines.Job? = null
+
+    internal suspend fun closeForDataSession() {
+        currentWriter?.closeAdmission()
+        preparation?.let { it.cancel(); it.join() }
+        currentWriter = null
+        preparation = null
+    }
 
     // ─── StateFlow Caches ───────────────────────────────────────────────
 
@@ -51,12 +60,15 @@ object WikiLabRepository {
     fun initialize(context: Context, db: KpknDatabase) {
         dao = db.wikiLabDao()
 
-        scope.launch {
+        val writer = com.example.kpkn.data.backup.DataSessionWriter("wiki-catalog-preparation")
+        currentWriter = writer
+        val capturedDao = db.wikiLabDao()
+        preparation = writer.launch(scope) {
             prepopulateWikiLabAssets(context, db)
 
-            val muscles = dao.getAllMuscles().first()
-            val joints = dao.getAllJoints().first()
-            val patterns = dao.getAllPatterns().first()
+            val muscles = capturedDao.getAllMuscles().first()
+            val joints = capturedDao.getAllJoints().first()
+            val patterns = capturedDao.getAllPatterns().first()
             _muscles.value = muscles
             _joints.value = joints
             _patterns.value = patterns

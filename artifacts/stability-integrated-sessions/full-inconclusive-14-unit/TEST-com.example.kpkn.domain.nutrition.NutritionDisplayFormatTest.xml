@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.NutritionDisplayFormatTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:33.573Z" hostname="VF" time="0.003">
+  <properties/>
+  <testcase name="labels built from computed daily totals" classname="com.example.kpkn.domain.nutrition.NutritionDisplayFormatTest" time="0.002"/>
+  <testcase name="a single log day and its log agree on the mark and the range" classname="com.example.kpkn.domain.nutrition.NutritionDisplayFormatTest" time="0.0"/>
+  <testcase name="an estimated total gets the approximation mark" classname="com.example.kpkn.domain.nutrition.NutritionDisplayFormatTest" time="0.0"/>
+  <testcase name="a planned log is summarized with its own foods" classname="com.example.kpkn.domain.nutrition.NutritionDisplayFormatTest" time="0.0"/>
+  <testcase name="range label shows the stored band only when it has width" classname="com.example.kpkn.domain.nutrition.NutritionDisplayFormatTest" time="0.001"/>
+  <testcase name="a band compares and shows its bounds after rounding" classname="com.example.kpkn.domain.nutrition.NutritionDisplayFormatTest" time="0.0"/>
+  <testcase name="there is no range label for a zero-width or missing band" classname="com.example.kpkn.domain.nutrition.NutritionDisplayFormatTest" time="0.0"/>
+  <testcase name="an uncertain log without a range shows the mark only" classname="com.example.kpkn.domain.nutrition.NutritionDisplayFormatTest" time="0.0"/>
+  <testcase name="an empty log summary is zero kcal" classname="com.example.kpkn.domain.nutrition.NutritionDisplayFormatTest" time="0.0"/>
+  <testcase name="an uncertain log with a range shows the mark and the range" classname="com.example.kpkn.domain.nutrition.NutritionDisplayFormatTest" time="0.0"/>
+  <testcase name="an exact log summary has neither mark nor range" classname="com.example.kpkn.domain.nutrition.NutritionDisplayFormatTest" time="0.0"/>
+  <testcase name="numbers keep the existing convention of a rounded integer without thousands separator" classname="com.example.kpkn.domain.nutrition.NutritionDisplayFormatTest" time="0.0"/>
+  <testcase name="an exact total keeps the plain label without the approximation mark" classname="com.example.kpkn.domain.nutrition.NutritionDisplayFormatTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
