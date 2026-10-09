@@ -56,7 +56,8 @@ class SetupPlanRevealsTest {
         assertEquals(entry.id, reveal.planId)
         assertEquals(entry.displayName, reveal.title)
         assertTrue(reveal.generated)
-        assertEquals(SetupPlanReveals.KICKER_TAILORED, reveal.kicker)
+        // D1: un programa «a medida» de una semana lleva el kicker de estructura, no «Hecho a tu medida».
+        assertEquals("1 SEMANA · SE REPITE", reveal.kicker)
         assertEquals("3 días", reveal.daysLabel)
         assertEquals("Intermedio", reveal.levelLabel)
         assertTrue("blurb de 110 caracteres como mucho: «${reveal.blurb}»", reveal.blurb.length <= SetupPlanReveals.BLURB_MAX)
@@ -91,7 +92,8 @@ class SetupPlanRevealsTest {
     fun a_catalog_plan_shows_its_blocks_deloads_kicker_and_a_time_note_when_it_runs_long() {
         val entry = requireNotNull(PersonalizedPlanCatalog.find("native:muscle-foundation-v2"))
         val reveal = SetupPlanReveals.forCatalog(entry, sixWeekProgram(), listOf("Encaja con tus 3 días por semana"), TrainingGoalProfile.BODYBUILDING, 45, coverSeed = 2)
-        assertEquals(SetupPlanReveals.KICKER_KPKN, reveal.kicker)
+        // Seis semanas en un bloque sin objetivo y sin receta que se repita: estructura de seis semanas, sin «Plan KPKN».
+        assertEquals("6 SEMANAS", reveal.kicker)
         assertEquals("los planes propios se adaptan", SetupPlanReveals.BADGE_ADAPTIVE, reveal.badge)
         assertEquals(
             listOf("Acumulación" to "Semanas 1–5", "Descarga" to "Semana 6"),
@@ -125,7 +127,7 @@ class SetupPlanRevealsTest {
             "4 días de sentadilla, empuje sobre la cabeza y potencia, sentadilla frontal y tirones, con movilidad.",
             SetupPlanReveals.blurbOf(weightlifting),
         )
-        // «Músculo KPKN» (carrusel de Culturismo): su primera frase de autor pasa de 110 y antes salía «…siempre dejas…».
+        // «Fundamentos de músculo» (carrusel de Culturismo): su primera frase de autor pasa de 110 y antes salía «…siempre dejas…».
         val muscle = requireNotNull(PersonalizedPlanCatalog.find("native:muscle-foundation-v2")).summary
         assertEquals(
             "Entrenamiento para ganar músculo con rangos de repeticiones y esfuerzo controlado.",
@@ -161,8 +163,10 @@ class SetupPlanRevealsTest {
     @Test
     fun the_author_of_a_method_is_the_kicker() {
         val phul = requireNotNull(PersonalizedPlanCatalog.find("original:phul-ms-2021-r1"))
-        assertTrue("«${SetupPlanReveals.kickerOf(phul)}»", SetupPlanReveals.kickerOf(phul).contains("Campbell"))
-        assertEquals(SetupPlanReveals.KICKER_KPKN, SetupPlanReveals.kickerOf(requireNotNull(PersonalizedPlanCatalog.find("template:power-12-3"))))
+        assertTrue("«${SetupPlanReveals.kickerOf(phul, sixWeekProgram())}»", SetupPlanReveals.kickerOf(phul, sixWeekProgram()).contains("Campbell"))
+        // Un plan propio de KPKN sin autor muestra su estructura (D1), no «Plan KPKN».
+        val template = requireNotNull(PersonalizedPlanCatalog.find("template:power-12-3"))
+        assertEquals("6 SEMANAS", SetupPlanReveals.kickerOf(template, sixWeekProgram()))
     }
 
     /** Seis semanas (cinco de acumulación y una de descarga) con una sesión de banca por día de entreno. */

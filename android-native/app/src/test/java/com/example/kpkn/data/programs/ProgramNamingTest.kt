@@ -29,7 +29,7 @@ class ProgramNamingTest {
     // ─── Nombre ──────────────────────────────────────────────────────────────
 
     @Test
-    fun the_fifty_listed_entries_are_named_by_their_editorial_card_without_ids_or_english() {
+    fun the_listed_entries_are_named_by_their_editorial_card_without_ids_or_english() {
         assertEquals(EXPECTED_LISTED, listed.size)
         listed.forEach { entry ->
             val name = programNameFor(entry)
@@ -163,7 +163,8 @@ class ProgramNamingTest {
     }
 
     private companion object {
-        const val EXPECTED_LISTED = 50
+        /** 65 entradas menos las 18 ocultas (D2 y D1): los cinco nativos, strength-cardio, PHUL/PHAT anteriores y los diez «a medida». */
+        const val EXPECTED_LISTED = 47
         const val MAX_NAME = 48
 
         val ENGLISH_LEVEL = Regex("""\b(beginner|intermediate|advanced)\b""", RegexOption.IGNORE_CASE)

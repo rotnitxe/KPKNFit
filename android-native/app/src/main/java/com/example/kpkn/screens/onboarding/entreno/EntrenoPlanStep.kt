@@ -68,6 +68,8 @@ internal fun EntrenoPlanStep(state: SetupWizardState, vm: SetupWizardViewModel) 
     val sweep = state.planSweep
     val deferred = draft.programRoute == SetupProgramRoute.LATER
     val selectedId = draft.selectedCatalogId?.takeIf { !deferred }
+    // Una ficha por familia de autor (PHUL, PHAT); la otra versión se alcanza desde el detalle.
+    val shownReveals = remember(reveals) { planCardRevealsOf(reveals) }
 
     val revealKey = remember(reveals) { revealKeyOf(reveals) }
     // La huella del último resultado revelado y si, con el paso activo, se vio un barrido en curso: con un barrido visto
@@ -116,8 +118,8 @@ internal fun EntrenoPlanStep(state: SetupWizardState, vm: SetupWizardViewModel) 
                     if (discipline) "${PlanCopy.PREPARING_DISCIPLINE}…" else "${PlanCopy.PREPARING_GENERAL}…",
                 )
                 discipline -> PlanCarousel(
-                    cards = cardModelsOf(reveals),
-                    selectedId = selectedId,
+                    cards = cardModelsOf(shownReveals),
+                    selectedId = shownSelectedIdOf(selectedId, shownReveals),
                     onSelect = { id -> vm.selectPlan(id) },
                     onOpen = { id -> detailId = id },
                 )
@@ -157,6 +159,8 @@ internal fun EntrenoPlanStep(state: SetupWizardState, vm: SetupWizardViewModel) 
     if (detailReveal != null && !preparing && !deferred) {
         val id = detailReveal.planId
         val model = remember(detailReveal) { detailReveal.toDetailModel() }
+        // La otra versión de la familia (PHUL original ↔ adaptada) se abre desde aquí; elegirla selecciona su id.
+        val sibling = siblingRevealOf(reveals, id)
         PlanDetailOverlay(
             model = model,
             selected = selectedId == id,
@@ -167,6 +171,8 @@ internal fun EntrenoPlanStep(state: SetupWizardState, vm: SetupWizardViewModel) 
             onClose = { detailId = null },
             // «Tu semana» del detalle empieza en el día de inicio del alta (el día con más energía mientras no se mueva).
             weekStartDay = draft.effectiveWeekStart(),
+            siblingLabel = sibling?.let { siblingActionLabelOf(id) },
+            onSibling = sibling?.let { other -> { detailId = other.planId } },
         )
     }
 }

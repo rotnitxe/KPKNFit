@@ -128,6 +128,9 @@ data class CatalogEntry(
     val notes: List<String> get() = editorial.notes
     val listed: Boolean get() = editorial.listed
 
+    /** Familia de un plan de autor con dos versiones (PHUL, PHAT); null en el resto. Ver [PlanEditorial.familyId]. */
+    val familyId: String? get() = editorial.familyId
+
     /**
      * Términos del glosario: los editoriales más los que se deducen de la receta
      * (la de la propia entrada o, en las plantillas, la de la plantilla).

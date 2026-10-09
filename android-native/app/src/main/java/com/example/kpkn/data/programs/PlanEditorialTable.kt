@@ -27,6 +27,9 @@ import com.example.kpkn.data.protocols.definitions.AuthoredSources
  *   porque `schedulesCardio` no depende de las referencias) y `protocol:wendler-531-bbb`
  *   con powerlifting y powerbuilding. El resto de fichas llevan `references = null`
  *   y conservan la disciplina que calcula `PersonalizedPlanCatalog`.
+ * D1 (punto 12): `listed = false` también en `native:strength-cardio` y en las versiones anteriores de PHUL y PHAT
+ *   (`protocol:phul-verified`, `protocol:phat-verified`); siguen resolviendo por id para los programas ya activados.
+ *   PHUL y PHAT comparten `familyId` en sus dos versiones (original y adaptada).
  */
 internal object PlanEditorialTable {
     private const val OWN_PLAN = "Plan propio de KPKN."
@@ -76,7 +79,7 @@ internal object PlanEditorialTable {
         add(
             "native:strength-foundation-v2",
             own(
-                displayName = "Fuerza KPKN",
+                displayName = "Fundamentos de fuerza",
                 summary = "Sentadilla, banca y peso muerto con barra todas las semanas, con series de técnica y de " +
                     "fuerza. Son seis semanas, la última más ligera para recuperarte; cuando completas el " +
                     "máximo de repeticiones dos veces, el plan te propone subir la carga. Necesitas barra con " +
@@ -88,7 +91,7 @@ internal object PlanEditorialTable {
         add(
             "native:muscle-foundation-v2",
             own(
-                displayName = "Músculo KPKN",
+                displayName = "Fundamentos de músculo",
                 summary = "Entrenamiento para ganar músculo con rangos de repeticiones y esfuerzo controlado: " +
                     "siempre dejas repeticiones en reserva. Son seis semanas, la última más ligera. Funciona " +
                     "con mancuernas, bandas o solo tu peso corporal; si no tienes nada para tirar (remos, " +
@@ -100,7 +103,7 @@ internal object PlanEditorialTable {
         add(
             "native:powerbuilding-foundation-v2",
             own(
-                displayName = "Fuerza y músculo KPKN",
+                displayName = "Fundamentos de powerbuilding",
                 summary = "Ejercicios principales de pocas repeticiones para ganar fuerza y trabajo muscular para " +
                     "ganar volumen, durante seis semanas con la última más ligera. Con barra, rack y banco " +
                     "entrenas sentadilla, banca y peso muerto; con mancuernas haces versiones equivalentes, " +
@@ -112,7 +115,7 @@ internal object PlanEditorialTable {
         add(
             "native:complete-athlete-v2",
             own(
-                displayName = "Atleta completo KPKN",
+                displayName = "Atleta completo",
                 summary = "Cada semana combina fuerza, músculo, ejercicios explosivos y cardio, repartidos según " +
                     "tus días disponibles. La fuerza puede trabajarse con tu peso corporal y los ejercicios " +
                     "explosivos se hacen rápido de verdad, sin series pesadas y lentas. Son seis semanas, la " +
@@ -214,10 +217,11 @@ internal object PlanEditorialTable {
                 displayName = "Músculo y cardio (versión anterior)",
                 summary = "Una semana que repites con series de trabajo muscular y un bloque de cardio moderado en " +
                     "cada sesión; tú eliges el tipo y los minutos. Se mantiene por compatibilidad: para " +
-                    "combinar fuerza, músculo y cardio es mejor Atleta completo KPKN.",
+                    "combinar fuerza, músculo y cardio es mejor Atleta completo.",
                 rank = 670,
                 terms = setOf(PlanTerm.CYCLE),
                 references = emptySet(),
+                listed = false,
             ),
         )
 
@@ -227,7 +231,7 @@ internal object PlanEditorialTable {
         add(
             "generated:strength-muscle",
             generated(
-                displayName = "Fuerza y masa muscular a medida",
+                displayName = "Base sólida",
                 summary = "Una semana que repites, armada con tu material, tus días y tu tiempo: primero los " +
                     "ejercicios básicos y después los accesorios. Tu sesión más exigente cae el día que llegas con " +
                     "más energía y los músculos que elegiste reciben más series. Si tu material no alcanza para " +
@@ -238,7 +242,7 @@ internal object PlanEditorialTable {
         add(
             "generated:hybrid",
             generated(
-                displayName = "Fuerza y cardio a medida",
+                displayName = "Semana híbrida",
                 summary = "Una semana que repites con días de fuerza, días de cardio y sesiones mixtas, repartidos " +
                     "según los días que tienes. El cardio no se recorta para que quepa la fuerza: ajustamos los " +
                     "accesorios a tu tiempo. Cada ejercicio sale de tu material y de tu nivel.",
@@ -248,7 +252,7 @@ internal object PlanEditorialTable {
         add(
             "generated:functional",
             generated(
-                displayName = "Funcional y saludable a medida",
+                displayName = "Semana en movimiento",
                 summary = "Una semana que repites con sesiones de cuerpo completo: empujar, tirar, agacharse, cargar " +
                     "y girar, más ejercicios explosivos, cardio suave y movilidad en cada sesión. Se arma con tu " +
                     "material, aunque sea solo tu peso corporal, para moverte mejor y sentirte bien.",
@@ -258,7 +262,7 @@ internal object PlanEditorialTable {
         add(
             "generated:calisthenics",
             generated(
-                displayName = "Calistenia a medida",
+                displayName = "Dominio del cuerpo",
                 summary = "Una semana que repites con progresiones de peso corporal: dominadas, fondos, flexiones, " +
                     "sentadillas a una pierna y core, en la variante que hoy te sale. Es una versión inicial: aún " +
                     "faltan progresiones avanzadas como el muscle-up o el equilibrio en manos.",
@@ -268,7 +272,7 @@ internal object PlanEditorialTable {
         add(
             "generated:armwrestling",
             generated(
-                displayName = "Armwrestling a medida",
+                displayName = "Mesa y antebrazo",
                 summary = "Una semana que repites centrada en antebrazo, agarre, bíceps y espalda, los músculos que " +
                     "más trabajan en la mesa. Se arma con tu material y tu nivel. Es una versión inicial: todavía " +
                     "no incluye trabajo de mesa.",
@@ -278,7 +282,7 @@ internal object PlanEditorialTable {
         add(
             "generated:strongman",
             generated(
-                displayName = "Strongman a medida",
+                displayName = "Fuerza de evento",
                 summary = "Una semana que repites con fuerza base y acarreos: peso muerto, sentadillas, press por " +
                     "encima de la cabeza y paseos con carga, según tu material. Es una versión inicial: sin yugo, " +
                     "piedras ni trineo, que todavía no están en el catálogo de ejercicios.",
@@ -288,7 +292,7 @@ internal object PlanEditorialTable {
         add(
             "generated:weightlifting-base",
             generated(
-                displayName = "Base de halterofilia a medida",
+                displayName = "Técnica y potencia",
                 summary = "Una semana que repites con la fuerza y la potencia de la halterofilia: cargadas, " +
                     "arranques, tirones, enviones y sentadilla de arranque, además de sentadilla frontal y push " +
                     "press, según tu material y tu nivel. Es una versión inicial: sin cargada ni arranque desde " +
@@ -300,7 +304,7 @@ internal object PlanEditorialTable {
         add(
             "generated:powerlifting",
             generated(
-                displayName = "Powerlifting a medida",
+                displayName = "Semana de los tres básicos",
                 summary = "Sentadilla, banca y peso muerto en una semana que repites, armada con tus días, tu tiempo " +
                     "y tu material. Sirve cuando ningún plan de autor encaja con tu semana. Si declaraste tus " +
                     "marcas, las cargas de los básicos salen de ellas.",
@@ -310,7 +314,7 @@ internal object PlanEditorialTable {
         add(
             "generated:powerbuilding",
             generated(
-                displayName = "Powerbuilding a medida",
+                displayName = "Fuerza y estética",
                 summary = "Básicos pesados de pocas repeticiones y trabajo muscular en una semana que repites, " +
                     "armada con tus días, tu tiempo y tu material. Sirve cuando ningún plan de autor encaja con " +
                     "tu semana. Si declaraste tus marcas, las cargas de los básicos salen de ellas.",
@@ -320,7 +324,7 @@ internal object PlanEditorialTable {
         add(
             "generated:bodybuilding",
             generated(
-                displayName = "Culturismo a medida",
+                displayName = "Volumen esencial",
                 summary = "Volumen para ganar músculo repartido en una semana que repites, con más series para los " +
                     "músculos que elegiste. Se arma con tus días, tu tiempo y tu material, y sirve cuando ningún " +
                     "plan de autor encaja con tu semana.",
@@ -395,7 +399,7 @@ internal object PlanEditorialTable {
         add(
             "template:body-16-4",
             own(
-                displayName = "Empuje, tirón y pierna",
+                displayName = "Empuje, tirón y pierna avanzado",
                 summary = "16 semanas, 6 días por semana: empuje, tirón y pierna, cada uno dos veces. El esfuerzo " +
                     "cambia por fases, dejando entre 1 y 3 repeticiones en reserva en las semanas de trabajo. " +
                     "Las semanas 4, 8, 12 y 16 son de descarga, con menos series y más repeticiones en reserva.",
@@ -807,12 +811,13 @@ internal object PlanEditorialTable {
                 displayName = "PHUL (versión anterior)",
                 summary = "Versión anterior de PHUL, con porcentajes de tu máximo y ciclos de 4 semanas que se " +
                     "repiten. Sigue disponible para quien ya la usa; para empezar de nuevo elige PHUL " +
-                    "original o PHUL adaptado KPKN.",
+                    "o PHUL adaptado.",
                 rank = 990,
                 level = CatalogLevel.INTERMEDIATE,
                 methodName = "PHUL",
                 authors = "Brandon Campbell",
                 legacy = true,
+                listed = false,
                 notes = listOf(NOTE_LEGACY),
                 terms = setOf(PlanTerm.POWERBUILDING, PlanTerm.UL_PPL, PlanTerm.CYCLE),
             ),
@@ -823,12 +828,13 @@ internal object PlanEditorialTable {
                 displayName = "PHAT (versión anterior)",
                 summary = "Versión anterior de PHAT, con porcentajes de tu máximo y ciclos de 4 semanas que se " +
                     "repiten. Sigue disponible para quien ya la usa; para empezar de nuevo elige PHAT " +
-                    "original o PHAT adaptado KPKN.",
+                    "o PHAT adaptado.",
                 rank = 991,
                 level = CatalogLevel.ADVANCED,
                 methodName = "PHAT",
                 authors = "Layne Norton",
                 legacy = true,
+                listed = false,
                 notes = listOf(NOTE_LEGACY),
                 terms = setOf(PlanTerm.POWERBUILDING, PlanTerm.CYCLE),
             ),
@@ -838,7 +844,7 @@ internal object PlanEditorialTable {
         add(
             "protocol:kpkn-native-sbd-4",
             own(
-                displayName = "Sentadilla, banca y peso muerto KPKN",
+                displayName = "Bloque de los tres básicos",
                 summary = "11 semanas, 4 días por semana: sentadilla el lunes, banca de volumen el martes, peso " +
                     "muerto el jueves y banca pesada el viernes. Cuatro semanas de base, cuatro de " +
                     "intensificación, dos de pico (series de 2 y de 1 repeticiones hasta cerca del 90 % de " +
@@ -853,7 +859,7 @@ internal object PlanEditorialTable {
         add(
             "protocol:kpkn-ppl-6",
             own(
-                displayName = "Empuje, tirón y pierna KPKN",
+                displayName = "Empuje, tirón y pierna en 12 semanas",
                 summary = "12 semanas, 6 días por semana: empuje, tirón y pierna, cada uno dos veces. A lo largo " +
                     "de las semanas te acercas más al fallo (de 3 repeticiones en reserva a 1) y la segunda " +
                     "sesión de cada grupo va un punto más cerca, sin bajar nunca de 1. Las dos últimas " +
@@ -926,7 +932,8 @@ internal object PlanEditorialTable {
             "original:phul-ms-2021-r1",
             authored(
                 planId = AuthoredPhulPhatRecipes.PHUL_ORIGINAL_ID,
-                displayName = "PHUL original",
+                displayName = "PHUL",
+                familyId = "phul",
                 summary = "PHUL (Power Hypertrophy Upper Lower: fuerza e hipertrofia de torso y pierna) tal como lo " +
                     "publica Brandon Campbell en Muscle & Strength. Cuatro días por semana, dos de fuerza " +
                     "(3–5 repeticiones) y dos de músculo (8–12), repetidos 12 semanas y sin porcentajes: " +
@@ -942,7 +949,8 @@ internal object PlanEditorialTable {
             "original:phat-biolayne-2016-r1",
             authored(
                 planId = AuthoredPhulPhatRecipes.PHAT_ORIGINAL_ID,
-                displayName = "PHAT original",
+                displayName = "PHAT",
+                familyId = "phat",
                 summary = "PHAT (Power Hypertrophy Adaptive Training) de Layne Norton, como lo publicó en Biolayne " +
                     "en 2016. Cinco días por semana, dos de fuerza y tres de músculo, con series rápidas " +
                     "ligeras (6×3 al 65 % de tu carga habitual) al inicio de cada día de músculo; son seis " +
@@ -957,7 +965,8 @@ internal object PlanEditorialTable {
             "adapted:phul-kpkn-r1",
             authored(
                 planId = AuthoredPhulPhatRecipes.PHUL_ADAPTED_ID,
-                displayName = "PHUL adaptado KPKN",
+                displayName = "PHUL adaptado",
+                familyId = "phul",
                 summary = "El mismo PHUL de cuatro días, pero si te falta algún aparato sustituimos ese ejercicio " +
                     "por otro equivalente y te lo mostramos. Mantiene días y series; si algo no tiene " +
                     "sustituto válido, el plan no se ofrece en lugar de recortarse.",
@@ -971,10 +980,11 @@ internal object PlanEditorialTable {
             "adapted:phat-kpkn-r1",
             authored(
                 planId = AuthoredPhulPhatRecipes.PHAT_ADAPTED_ID,
-                displayName = "PHAT adaptado KPKN",
+                displayName = "PHAT adaptado",
+                familyId = "phat",
                 summary = "El mismo PHAT de cinco días con sustituciones elegidas ejercicio por ejercicio cuando te " +
                     "falta material. Si el volumen no cabe en tu tiempo por sesión, no lo recortamos: puedes " +
-                    "elegir Fuerza y músculo KPKN.",
+                    "elegir Fundamentos de powerbuilding.",
                 rank = 230,
                 level = CatalogLevel.ADVANCED,
                 source = AuthoredSources.phat,
@@ -1043,6 +1053,7 @@ internal object PlanEditorialTable {
         notes: List<String> = emptyList(),
         terms: Set<PlanTerm> = emptySet(),
         references: Set<TrainingReference>? = null,
+        listed: Boolean = true,
     ): PlanEditorial = PlanEditorial(
         displayName = displayName,
         summary = summary,
@@ -1058,6 +1069,7 @@ internal object PlanEditorialTable {
         notes = notes,
         terms = terms,
         references = references,
+        listed = listed,
     )
 
     /**
@@ -1073,6 +1085,7 @@ internal object PlanEditorialTable {
         level: CatalogLevel,
         source: AuthoredSourceRecord,
         terms: Set<PlanTerm> = emptySet(),
+        familyId: String? = null,
     ): PlanEditorial {
         val (origin, lead) = when (AuthoredPhulPhatRecipes.recipeFor(planId)?.provenance?.category) {
             PlanProvenanceClass.ORIGINAL -> PlanOrigin.ORIGINAL to "Original fiel de"
@@ -1088,6 +1101,7 @@ internal object PlanEditorialTable {
             attributionLine = "$lead ${source.author} (${source.sourceTitle}, ${source.edition}). " +
                 "No afiliado a ${source.author}.",
             terms = terms,
+            familyId = familyId,
         )
     }
 }

@@ -81,6 +81,11 @@ data class PlanEditorial(
     val references: Set<TrainingReference>? = null,
     /** false = oculto de las listas. En este paso SIEMPRE true (C.P2b oculta los históricos). */
     val listed: Boolean = true,
+    /**
+     * Familia de un plan de autor con dos versiones («phul», «phat»): la original y la adaptada a tu material comparten
+     * familia. La biblioteca lista solo la original y el paso PLAN muestra una sola ficha por familia.
+     */
+    val familyId: String? = null,
 ) {
     init {
         require(levels.isNotEmpty()) { "PlanEditorial.levels no puede estar vacío: «$displayName»" }

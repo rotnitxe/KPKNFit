@@ -30,12 +30,14 @@ import org.junit.Test
  *   MÚSCULO infiere), nivel INTERMEDIATE, enfoque FULL_BODY, las 11 categorías.
  * - NO materializa programas: eso lo prueba la matriz real del ViewModel
  *   ([com.example.kpkn.screens.onboarding.SetupExecutableAvailabilityMatrixTest]). Aquí sólo se
- *   afirma que la familia canónica se PUBLICA para cada frecuencia admitida y que ninguna otra
- *   familia nativa cambia de rango.
+ *   afirma el rango canónico de la familia y que ninguna otra familia nativa cambia de rango.
+ *
+ * D1 (punto 12): `strength-cardio` es una versión anterior (`listed = false`). El planificador ya no
+ * publica la familia mixta a ninguna frecuencia; sigue resolviendo por id y programando cardio para
+ * los programas ya activos. Los casos que afirmaban su publicación ahora fijan que no se publica.
  *
  * LO QUE ESTE ARCHIVO NO HACE: no relaja recetas de autor, no fuerza elegibilidad de ninguna
- * receta fija, no inventa material y no afirma nada sobre frecuencias fuera del 1..6 del wizard
- * más allá de que la familia `strength-cardio` NO se publique para ellas.
+ * receta fija y no inventa material.
  */
 class NativeMixedFrequencyContractTest {
 
@@ -91,52 +93,45 @@ class NativeMixedFrequencyContractTest {
 
     // ─── 2. Las 6 frecuencias admitidas publican la familia ───────────────────
 
+    /** D1: con la familia oculta, el planificador no la publica a ninguna frecuencia admitida (1..6). */
     @Test
-    fun t027_02_everyAdmittedFrequencyPublishesTheNativeMixedFamily() {
+    fun t027_02_theHiddenMixedFamilyIsNotPublishedAtAnyAdmittedFrequency() {
         (1..6).forEach { frequency ->
-            val candidates = mixedCandidates(frequency)
-            val mixed = candidates.filter { it.id == mixedId }
-            assertEquals(
-                "con $frequency día(s) el planificador debe publicar exactamente una entrada $mixedId, " +
-                    "y lo publica como ${candidates.map { it.id }}",
-                1,
-                mixed.size,
-            )
-            assertEquals(
-                "la entrada publicada para $frequency día(s) debe conservar su rango canónico 1..6",
-                1..6,
-                mixed.single().supportedFrequencies,
+            assertTrue(
+                "con $frequency día(s) el planificador no publica $mixedId (versión anterior, listed = false): " +
+                    "publica ${mixedCandidates(frequency).map { it.id }}",
+                mixedCandidates(frequency).none { it.id == mixedId },
             )
         }
     }
 
-    /** 1 día NO puede degenerar en cero: el wizard admite 1 y la familia debe responder. */
+    /** D1: con 1 día el modo mixto no publica nada listado; la familia sigue resolviendo por id. */
     @Test
-    fun t027_03_singleDayIsNotSilentlyEmpty() {
-        val candidates = mixedCandidates(1)
+    fun t027_03_singleDayPublishesNoMixedPlanButTheIdStillResolves() {
         assertTrue(
-            "con 1 día el planificador no puede devolver una lista vacía (devuelve ${candidates.map { it.id }})",
-            candidates.isNotEmpty(),
+            "con 1 día el modo mixto no publica ninguna familia listada: ${mixedCandidates(1).map { it.id }}",
+            mixedCandidates(1).isEmpty(),
         )
-        assertTrue(
-            "con 1 día debe seguir apareciendo $mixedId, no una lista sin cardio",
-            candidates.any { it.id == mixedId },
-        )
+        assertNotNull("$mixedId sigue resolviendo por id", PersonalizedPlanCatalog.find(mixedId))
     }
 
-    /** 5 y 6 días NO pueden truncarse a 2..4 ni recortarse. */
+    /** 5 y 6 días: el rango canónico de la familia (1..6) se conserva aunque esté oculta. */
     @Test
-    fun t027_04_fiveAndSixDaysAreNotTruncated() {
+    fun t027_04_fiveAndSixDaysKeepTheCanonicalRangeOfTheHiddenFamily() {
+        val mixed = requireNotNull(PersonalizedPlanCatalog.find(mixedId))
+        assertEquals(
+            "el rango canónico de $mixedId no puede encogerse: ${mixed.supportedFrequencies}",
+            1..6,
+            mixed.supportedFrequencies,
+        )
         listOf(5, 6).forEach { frequency ->
-            val mixed = mixedCandidates(frequency).single { it.id == mixedId }
             assertTrue(
-                "la frecuencia pedida ($frequency) debe caer dentro del rango publicado (${mixed.supportedFrequencies})",
+                "la frecuencia pedida ($frequency) cae dentro del rango canónico (${mixed.supportedFrequencies})",
                 frequency in mixed.supportedFrequencies,
             )
-            assertEquals(
-                "con $frequency día(s) el rango no puede encogerse: ${mixed.supportedFrequencies}",
-                1..6,
-                mixed.supportedFrequencies,
+            assertTrue(
+                "con $frequency día(s) el modo mixto no publica ninguna familia listada",
+                mixedCandidates(frequency).isEmpty(),
             )
         }
     }
@@ -157,61 +152,23 @@ class NativeMixedFrequencyContractTest {
 
     // ─── 4. La prefiltración mixta sigue en pie (no se sortea la puerta) ─────
 
+    /** D1: el prefijo mixto no publica ninguna familia listada mientras la única que programa cardio está oculta. */
     @Test
-    fun t027_06_mixedPrefilterKeepsOnlyNativeCardioSchedulingFamilies() {
+    fun t027_06_mixedPrefilterPublishesNothingWhileTheOnlyCardioFamilyIsHidden() {
         val candidates = mixedCandidates(3)
-        assertTrue("el prefijo mixto no puede devolver una lista vacía", candidates.isNotEmpty())
-        candidates.forEach { entry ->
-            assertTrue(
-                "con mixedTraining=true sólo pueden pasar planes que programen cardio de verdad; " +
-                    "${entry.id} no cumple schedulesCardio",
-                entry.schedulesCardio,
-            )
-        }
-        assertEquals(
-            "con mixedTraining=true la única familia que programa cardio es la mixta",
-            listOf(mixedId),
-            candidates.filter { it.source == CatalogSource.NATIVE }.map { it.id },
+        assertTrue("el prefijo mixto no publica familias listadas: ${candidates.map { it.id }}", candidates.isEmpty())
+        assertTrue(
+            "la familia oculta sigue programando cardio por id (programas ya activos)",
+            requireNotNull(PersonalizedPlanCatalog.find(mixedId)).schedulesCardio,
         )
     }
 
-    /** La segunda puerta (frecuencia) sigue consumiendo el catálogo canónico actualizado. */
+    /** D1: ninguna otra familia ocupa el lugar de la oculta en el modo mixto, a ninguna frecuencia de las probadas. */
     @Test
-    fun t027_07_frequencyGateIsNotBypassedForNativeEntries() {
-        // Una entrada nativa que NO admita la frecuencia pedida se excluye igual que
-        // cualquier otra: se lee del catálogo, no de un rango reescrito en el test.
-        val excluded = mixedCandidates(6).map { it.id }.filter { it != mixedId }
-        assertTrue(
-            "con 6 días el resto de familias nativas no son candidatas mixtas por rango: $excluded",
-            excluded.isEmpty(),
-        )
-        // Y la frecuencia pedida se sigue leyendo del catálogo canónico: cada entrada
-        // DEVUELTA tiene que admitir la frecuencia que se pidió. Ésta es la invariante real
-        // de la segunda puerta (SetupTrainingPlanner.kt:32), y no se reimplementa aquí.
-        //
-        // Por qué 1 día y 4 días publican el MISMO conjunto de ids: con `mixedTraining = true`
-        // el prefiltrado mixto (SetupTrainingPlanner.kt:50) sólo deja pasar entradas que
-        // programen cardio de verdad, y hoy eso es exactamente la familia mixta nativa, que
-        // cubre 1..6. La IDENTIDAD de la entrada es por tanto la misma a 1 y a 4 días; lo que
-        // cambia al materializar es el CALENDARIO y las sesiones (días, slots, duración), no el
-        // id. Exigir que los ids difieran sería inventar una obligación que el contrato original
-        // nunca pidió y que contradice el prefiltrado real. Lo que sí es una obligación es que
-        // la frecuencia pedida quepa en el rango publicado: eso se comprueba abajo.
-        listOf(1, 4).forEach { frequency ->
-            val candidates = mixedCandidates(frequency)
-            assertEquals(
-                "con $frequency día(s) el objetivo MIXED debe publicar exactamente la familia " +
-                    "mixta nativa y nada más, pero publica ${candidates.map { it.id }}",
-                setOf(mixedId),
-                candidates.map { it.id }.toSet(),
-            )
-            candidates.forEach { entry ->
-                assertTrue(
-                    "la frecuencia pedida ($frequency) debe estar dentro del rango publicado " +
-                        "por ${entry.id} (${entry.supportedFrequencies})",
-                    frequency in entry.supportedFrequencies,
-                )
-            }
+    fun t027_07_noOtherFamilyTakesTheMixedPlaceAtAnyFrequency() {
+        listOf(1, 4, 6).forEach { frequency ->
+            val ids = mixedCandidates(frequency).map { it.id }
+            assertTrue("con $frequency día(s) el modo mixto no publica otra familia: $ids", ids.isEmpty())
         }
     }
 

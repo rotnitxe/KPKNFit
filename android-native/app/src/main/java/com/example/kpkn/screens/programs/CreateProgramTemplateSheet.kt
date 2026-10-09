@@ -170,6 +170,13 @@ internal fun libraryTapFor(
     return LibraryTap.OpenSheet(null)
 }
 
+/**
+ * Una familia de autor con dos versiones (PHUL, PHAT) tiene una sola tarjeta en la biblioteca: la original. La adaptada a tu
+ * material se alcanza desde el paso PLAN y su detalle.
+ */
+internal fun isLibraryFamilyEntry(entry: CatalogEntry): Boolean =
+    entry.familyId == null || entry.origin == PlanOrigin.ORIGINAL
+
 /** La hoja de una tarjeta abierta y lo que hace su botón principal. */
 private data class LibrarySheet(val entry: CatalogEntry, val primary: LibraryPrimary?)
 
@@ -196,9 +203,13 @@ fun CreateProgramTemplateSheet(
     var openSheet by remember { mutableStateOf<LibrarySheet?>(null) }
 
     // Solo lo listado: los históricos ocultos (C.P2b) siguen resolviéndose por id, pero no se ofrecen. En el
-    // orden editorial (rank y nombre), no en el natural del catálogo.
+    // orden editorial (rank y nombre), no en el natural del catálogo. Una familia de dos versiones (PHUL, PHAT)
+    // se lista por su original (D1).
     val entries = remember {
-        libraryOrder(PersonalizedPlanCatalog.listedEntries().filter { it.publication == PublicationState.PUBLISHED })
+        libraryOrder(
+            PersonalizedPlanCatalog.listedEntries()
+                .filter { it.publication == PublicationState.PUBLISHED && isLibraryFamilyEntry(it) },
+        )
     }
     val visible = entries.filter { entry ->
         (daysFilter == null || daysFilter in entry.supportedFrequencies) &&

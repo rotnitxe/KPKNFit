@@ -147,7 +147,7 @@ class SetupWizardEntrenoPlanTest {
         val reveal = swept.planReveals.single()
         assertEquals(generatedId, reveal.planId)
         assertTrue(reveal.generated)
-        assertEquals(SetupPlanReveals.KICKER_TAILORED, reveal.kicker)
+        assertEquals("1 SEMANA · SE REPITE", reveal.kicker)
         // La semana empieza en el día con más energía (jueves): el revelado ordena sus días desde ahí.
         assertEquals("la semana del revelado son los días elegidos, desde el día con más energía", listOf(4, 5, 1, 2), reveal.week.map { it.day })
         assertEquals("la principal cae el día con más energía", listOf(4), reveal.week.filter { it.isMain }.map { it.day })
@@ -313,7 +313,7 @@ class SetupWizardEntrenoPlanTest {
         assertTrue("y detrás los planes propios y de autor: $ids", ids.size > 1)
         assertTrue("el propio de fuerza sigue en la lista: $ids", "native:strength-foundation-v2" in ids)
         assertEquals(ids, swept.planReveals.map { it.planId })
-        assertEquals(SetupPlanReveals.KICKER_TAILORED, swept.planReveals.first().kicker)
+        assertEquals("1 SEMANA · SE REPITE", swept.planReveals.first().kicker)
         assertTrue("los demás no son «a medida»", swept.planReveals.drop(1).none { it.generated })
     }
 

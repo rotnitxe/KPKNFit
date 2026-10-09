@@ -168,9 +168,9 @@ class LibraryCardModelTest {
         }
         assertEquals("están todos los grupos", GROUP_SIZES.keys, groups.toSet())
         GROUP_SIZES.forEach { (group, size) -> assertEquals("tamaño del grupo $group", size, groups.count { it == group }) }
-        // Las especializaciones, los complementos, las estructuras y las versiones anteriores cierran la lista.
-        assertEquals("protocol:phat-verified", ordered.last().id)
-        assertTrue(ordered.takeLast(8).all { entry -> group(entry) >= 6 })
+        // Las especializaciones, los complementos y las estructuras cierran la lista; las versiones anteriores ya no se listan (D1).
+        assertEquals("template:simple-4", ordered.last().id)
+        assertTrue(ordered.takeLast(6).all { entry -> group(entry) >= 6 })
     }
 
     // ─── 3 · Procedencia: el filtro coincide con la etiqueta de la tarjeta ───
@@ -214,15 +214,15 @@ class LibraryCardModelTest {
     }
 
     @Test
-    fun the_origin_filters_split_the_fifty_entries_as_the_editorial_table_does() {
+    fun the_origin_filters_split_the_listed_entries_as_the_editorial_table_does() {
         fun count(filter: LibraryOriginFilter) = listed.count { originMatches(it, filter) }
         assertEquals(EXPECTED_LISTED, count(LibraryOriginFilter.ALL))
-        // Cuatro propios + tres nativos históricos + diez plantillas + cinco planes KPKN de receta fija.
-        assertEquals(22, count(LibraryOriginFilter.KPKN))
+        // Cuatro propios + dos nativos históricos (strength-cardio ya no se lista, D1) + diez plantillas + cinco planes KPKN.
+        assertEquals(21, count(LibraryOriginFilter.KPKN))
         assertEquals(2, count(LibraryOriginFilter.ORIGINAL))
         assertEquals(2, count(LibraryOriginFilter.ADAPTED))
-        // Veintidós métodos de terceros y las dos versiones anteriores de PHUL y PHAT.
-        assertEquals(24, count(LibraryOriginFilter.LEGACY))
+        // Veintidós métodos de terceros; las dos versiones anteriores de PHUL y PHAT ya no se listan (D1).
+        assertEquals(22, count(LibraryOriginFilter.LEGACY))
     }
 
     // ─── 4 · Qué hace el tap de cada tarjeta ─────────────────────────────────
@@ -276,7 +276,7 @@ class LibraryCardModelTest {
     }
 
     @Test
-    fun the_previous_muscle_and_cardio_version_opens_a_read_only_sheet_because_no_goal_of_the_assistant_offers_it() {
+    fun the_hidden_previous_muscle_and_cardio_version_is_read_only_because_no_goal_of_the_assistant_offers_it() {
         // H1: `native:strength-cardio` declara `references = ∅` (C.P2b): ningún objetivo del asistente lo sirve.
         val legacy = entry("native:strength-cardio")
         assertFalse(servesSomeWizardGoal(legacy))
@@ -288,9 +288,9 @@ class LibraryCardModelTest {
             LibraryTap.OpenSheet(LibraryPrimary.ConfigurePlan),
             libraryTapFor(entry("native:muscle-foundation-v2"), hasPlanAction = true),
         )
-        // «Otros» del filtro de perfil es justo lo que ningún objetivo sirve: la versión anterior y las tres estructuras.
+        // «Otros» del filtro de perfil es justo lo que ningún objetivo sirve: las tres estructuras (la versión anterior ya no se lista).
         assertEquals(
-            setOf("native:strength-cardio", "template:simple-1", "template:simple-ab", "template:simple-4"),
+            setOf("template:simple-1", "template:simple-ab", "template:simple-4"),
             listed.filterNot(::servesSomeWizardGoal).map { it.id }.toSet(),
         )
     }
@@ -298,8 +298,8 @@ class LibraryCardModelTest {
     @Test
     fun a_library_method_follows_the_assistant_when_there_is_one_and_is_handed_to_the_caller_when_there_is_not() {
         val protocols = listed.filter { visibleProtocolOf(it) != null }
-        // 22 métodos de terceros, 5 planes KPKN de receta fija y las dos versiones anteriores.
-        assertEquals(29, protocols.size)
+        // 22 métodos de terceros y 5 planes KPKN de receta fija (las dos versiones anteriores ya no se listan, D1).
+        assertEquals(27, protocols.size)
         protocols.forEach { entry ->
             // C.P6 (D8): con asistente el método tampoco crea el programa directo (antes: TM wizard en dos toques).
             assertEquals(
@@ -327,9 +327,9 @@ class LibraryCardModelTest {
     @Test
     fun own_and_authored_plans_configure_the_plan_when_there_is_an_assistant_and_are_read_only_when_there_is_not() {
         val withoutProtocol = listed.filter { it.template == null && visibleProtocolOf(it) == null }
-        // Los siete nativos y los cuatro de autor.
-        assertEquals(11, withoutProtocol.size)
-        // Con asistente, todos se configuran salvo la versión anterior «Músculo y cardio», que ningún objetivo sirve (H1).
+        // Los seis nativos listados y los cuatro de autor.
+        assertEquals(10, withoutProtocol.size)
+        // Con asistente, todos se configuran (la versión anterior «Músculo y cardio» ya no se lista, D1).
         val configurable = withoutProtocol.filter(::servesSomeWizardGoal)
         assertEquals(10, configurable.size)
         configurable.forEach { entry ->
@@ -338,7 +338,7 @@ class LibraryCardModelTest {
             assertEquals("Configurar este plan", (configure as LibraryTap.OpenSheet).primary?.label)
         }
         assertEquals(
-            listOf("native:strength-cardio"),
+            emptyList<String>(),
             withoutProtocol.filterNot(::servesSomeWizardGoal).map { it.id },
         )
         withoutProtocol.forEach { entry ->
@@ -396,7 +396,7 @@ class LibraryCardModelTest {
     }
 
     private companion object {
-        const val EXPECTED_LISTED = 50
+        const val EXPECTED_LISTED = 47
         const val MAX_TITLE = 48
 
         val OWN_PROFILES = setOf(
@@ -408,10 +408,10 @@ class LibraryCardModelTest {
 
         /**
          * 0 propios (4) · 1 originales (2) · 2 adaptados (2) · 3 plantillas con receta y planes KPKN de receta
-         * fija (7 + 5) · 4 terceros (19) · 5 históricos (3) · 6 especializaciones y complemento (3) ·
-         * 7 estructuras en blanco (3) · 8 versiones anteriores (2).
+         * fija (7 + 5) · 4 terceros (19) · 5 históricos (2) · 6 especializaciones y complemento (3) ·
+         * 7 estructuras en blanco (3). Las versiones anteriores (grupo 8) ya no se listan (D1).
          */
-        val GROUP_SIZES: Map<Int, Int> = mapOf(0 to 4, 1 to 2, 2 to 2, 3 to 12, 4 to 19, 5 to 3, 6 to 3, 7 to 3, 8 to 2)
+        val GROUP_SIZES: Map<Int, Int> = mapOf(0 to 4, 1 to 2, 2 to 2, 3 to 12, 4 to 19, 5 to 2, 6 to 3, 7 to 3)
 
         val ENGLISH_LEVEL = Regex("""\b(beginner|intermediate|advanced)\b""", RegexOption.IGNORE_CASE)
         val ID_WITH_PREFIX = Regex("""\b(native|template|protocol|original|adapted):[a-z0-9]""")

@@ -101,15 +101,16 @@ class LibraryReachabilityTest {
     @Test
     fun what_the_planner_never_offers_is_left_out_of_the_button_by_design() {
         val neverOffered = listed.filterNot { it.id in reachable }
-        // Las tres estructuras en blanco y la versión anterior «Músculo y cardio»: ni objetivo ni capacidades las sirven.
+        // Las tres estructuras en blanco: ningún objetivo ni capacidad las sirve. La versión anterior «Músculo y cardio»
+        // ya no se lista (D1) y no entra en esta cuenta.
         assertEquals(
-            setOf("native:strength-cardio", "template:simple-1", "template:simple-ab", "template:simple-4"),
+            setOf("template:simple-1", "template:simple-ab", "template:simple-4"),
             neverOffered.map { it.id }.toSet(),
         )
         neverOffered.forEach { entry ->
             assertFalse("${entry.id}: no puede traer «Configurar este plan»", isConfigurePlan(entry))
         }
-        // Las estructuras van por el camino directo y la versión anterior abre la hoja de solo lectura.
+        // Las estructuras van por el camino directo; la versión anterior, oculta, abre la hoja de solo lectura si un programa la trae.
         neverOffered.filter { it.kind == PlanKind.ESTRUCTURA }.forEach { entry ->
             assertEquals(
                 "${entry.id}: camino directo",
