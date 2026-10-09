@@ -52,6 +52,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.kpkn.domain.onboarding.CapabilitySkill
 import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.WizChatMachineState
@@ -389,6 +390,8 @@ private fun WizardLongPage(
                                     page,
                                     state.draft.goalProfile,
                                     programDeferred = state.draft.programRoute == SetupProgramRoute.LATER,
+                                    bodyweightRoute = state.draft.capabilitiesBodyweightRoute(),
+                                    pullUpsRequired = CapabilitySkill.PULL_UP in state.draft.capabilitiesRequired(),
                                 )
                                 // El resumen se calcula UNA vez, cuando la página queda confirmada, y se guarda: recalcular
                                 // todas las filas con cada pulsación sería caro (alguna consulta el catálogo de planes).
