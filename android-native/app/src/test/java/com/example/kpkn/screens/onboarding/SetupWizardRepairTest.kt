@@ -1365,7 +1365,9 @@ class SetupWizardRepairTest {
             confirmStep(vm, SetupStepId.VOLUME_CONSISTENCY, SetupStepId.VOLUME_STRENGTH) { vm.setStepChoice(SetupStepId.VOLUME_CONSISTENCY, "2") }
             confirmStep(vm, SetupStepId.VOLUME_STRENGTH, SetupStepId.VOLUME_MOBILITY) { vm.setStepChoice(SetupStepId.VOLUME_STRENGTH, "2") }
             confirmStep(vm, SetupStepId.VOLUME_MOBILITY, SetupStepId.PRIORITIES) { vm.setStepChoice(SetupStepId.VOLUME_MOBILITY, "2") }
-            confirmStep(vm, SetupStepId.PRIORITIES, SetupStepId.PLAN)
+            confirmStep(vm, SetupStepId.PRIORITIES, SetupStepId.AVOIDED_EXERCISES)
+            // Culturismo pregunta qué ejercicios evitar: «Ninguno» no cambia el programa de la biblioteca.
+            confirmStep(vm, SetupStepId.AVOIDED_EXERCISES, SetupStepId.PLAN)
             // El plan de la biblioteca sigue elegido: es viable y se confirma sin tocarlo.
             awaitUntil(vm, "plan de la biblioteca viable en la lista") {
                 isIdle(it) && it.availablePlanCandidates.any { card -> card.id == MUSCLE_OWN } && it.programPreview != null
