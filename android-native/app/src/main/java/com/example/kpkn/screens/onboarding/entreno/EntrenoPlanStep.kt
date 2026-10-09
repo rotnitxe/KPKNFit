@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.screens.onboarding.PLAN_PREPARE_FAILED_MESSAGE
 import com.example.kpkn.screens.onboarding.SetupPlanReveal
+import com.example.kpkn.screens.onboarding.SetupPlanReveals
 import com.example.kpkn.screens.onboarding.SetupPlanSweep
 import com.example.kpkn.screens.onboarding.SetupProgramRoute
 import com.example.kpkn.screens.onboarding.SetupRetryOperation
@@ -193,6 +194,11 @@ internal fun EntrenoPlanStep(state: SetupWizardState, vm: SetupWizardViewModel) 
             siblingLabel = sibling?.let { siblingActionLabelOf(id) },
             onSibling = sibling?.let { other -> { detailId = other.planId } },
             phases = phases,
+            // «Cambiar» solo en el plan elegido: sus sustituciones viven en el borrador de ese programa.
+            exercises = SetupPlanReveals.exercisesByDay(detailReveal, if (selectedId == id) draft.exerciseOverrides else emptyMap(), vm::configNameOf),
+            swapOptionsOf = vm::swapOptionsOf,
+            onSwap = vm::swapExercise,
+            onUndoSwap = vm::undoSwap,
         )
     }
 }
