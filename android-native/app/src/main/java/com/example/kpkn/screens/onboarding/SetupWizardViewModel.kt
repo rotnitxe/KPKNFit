@@ -2958,7 +2958,8 @@ class SetupWizardViewModel @JvmOverloads constructor(
     /**
      * Entreno v2 · el programa «a medida» de [entry] para [draft]: el generador de rutinas con el pedido del borrador
      * ([routineRequest], ids derivados del alta), así el barrido, la vista previa y la activación generan exactamente lo
-     * mismo. Lo que el generador no sabe del alta lo completa [generatedProgramOf].
+     * mismo. Lo que el generador no sabe del alta lo completa [generatedProgramOf]; la variante en bloques o periodizada
+     * de [entry] la arma [generatedVariantProgram] con el periodizador, a partir de ese mismo pedido.
      */
     private fun materializeGenerated(draft: SetupWizardDraft, entry: CatalogEntry, mode: RoutineMode): SetupPreview {
         val catalog = (catalogRepository.state.value as? ExerciseCatalogStateV2.Ready)?.catalog
@@ -2967,8 +2968,9 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 PlanRejectionReason.CATALOG_NOT_READY,
                 CATALOG_UNAVAILABLE_MESSAGE,
             )
+        val request = draft.routineRequest(mode, catalog)
         val routine = try {
-            RoutineGenerator.generate(draft.routineRequest(mode, catalog))
+            RoutineGenerator.generate(request)
         } catch (impossible: RoutineGenerationException) {
             throw PlanMaterializationException(
                 PlanEvaluationStage.MATERIALIZATION,
@@ -2977,7 +2979,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
             )
         }
         generatedRoutines.put(generatedRoutineKey(draft), routine)
-        return SetupPreview(generatedProgramOf(routine, entry, draft), null)
+        return SetupPreview(generatedVariantProgram(routine, entry, draft, request), null)
     }
 
     /**
