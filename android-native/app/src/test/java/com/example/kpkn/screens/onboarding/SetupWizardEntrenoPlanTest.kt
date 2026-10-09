@@ -29,6 +29,7 @@ import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.data.protocols.definitions.AuthoredPhulPhatRecipes
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.domain.entitlements.PlanLevel
 import com.example.kpkn.domain.onboarding.CapabilityLevel
 import com.example.kpkn.domain.onboarding.CapabilitySkill
 import com.example.kpkn.domain.onboarding.EquipmentSymbolId
@@ -297,6 +298,45 @@ class SetupWizardEntrenoPlanTest {
                 ApproachPlanner.apply(session, ApproachOptions(level = ApproachLevel.INTERMEDIATE), approachInfoOf),
             )
         }
+    }
+
+    /**
+     * T1 · con el plan Free, activar un programa de autor de varias semanas se rechaza con `advanced_program_requires_pro`
+     * y no escribe ni el programa ni el estado de activo: el mismo recorrido de arriba, con el nivel de cuenta Free.
+     */
+    @Test
+    fun anAuthoredMultiWeekProgramIsRefusedOnFreeAndNothingIsWritten() = runTest(dispatcher.scheduler, timeout = 10.minutes) {
+        val vm = newVm(level = PlanLevel.FREE)
+        vm.initialize(SetupWizardMode.TRAINING_ONLY)
+        await(vm, "wizard cargado") { !it.isLoading && it.currentStep == SetupStepId.NAME }
+        val answers = Answers(
+            profile = TrainingGoalProfile.POWERBUILDING,
+            places = setOf(TrainingPlace.GYM),
+            days = setOf(1, 2, 4, 5),
+            freshDay = 1,
+            minutes = 100,
+            marks = mapOf(
+                LiftMark.SQUAT to 140.0,
+                LiftMark.BENCH to 100.0,
+                LiftMark.DEADLIFT to 170.0,
+                LiftMark.OVERHEAD_PRESS to 60.0,
+            ),
+        )
+        walkUntil(vm, SetupStepId.PLAN, answers)
+        await(vm, "planes de powerbuilding") { idle(it) && it.planSweep == SetupPlanSweep.READY }
+        val authoredId = AuthoredPhulPhatRecipes.PHUL_ORIGINAL_ID
+        confirm(vm, SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT) { vm.selectPlan(authoredId) }
+        await(vm, "programa de autor previsualizado") { idle(it) && it.programPreview != null && it.weekLayout != null }
+        confirm(vm, SetupStepId.WEEK_LAYOUT, SetupStepId.MILESTONE_TRAINING)
+        confirm(vm, SetupStepId.MILESTONE_TRAINING, SetupStepId.REVIEW_ACTIVATE)
+        await(vm, "revisión en reposo") { idle(it) && it.programPreview != null }
+        val commitId = vm.state.value.draft.commitId
+
+        assertNull("en Free el programa de varias semanas no se activa", vm.commit())
+        assertEquals("el error de activación es el de Pro", "advanced_program_requires_pro", vm.state.value.errors["commit"])
+        assertNotEquals(WizChatMachineState.Committed, vm.state.value.machineState)
+        assertNull("no se escribe el programa", room { db.programDao().getById(commitId) })
+        assertNull("no se marca ningún programa como activo", room { db.stateDao().getActiveProgram() })
     }
 
     // ─── Disciplinas ──────────────────────────────────────────────────────────────────────────
@@ -887,13 +927,13 @@ class SetupWizardEntrenoPlanTest {
         }
     }
 
-    private fun newVm(materializer: SetupWizardMaterializer? = null): SetupWizardViewModel =
+    private fun newVm(materializer: SetupWizardMaterializer? = null, level: PlanLevel = PlanLevel.PRO): SetupWizardViewModel =
         SetupWizardViewModel(
             app,
             SavedStateHandle(),
             persistence = RoomPersistence(db),
             environment = FixedSettingsEnvironment(Settings()),
-            commits = RoomCommits(db),
+            commits = RoomCommits(db, level),
             materializeOverride = materializer,
         ).also { viewModelStore.put("entreno-plan-${vmCounter++}", it) }
 
@@ -916,8 +956,9 @@ class SetupWizardEntrenoPlanTest {
         override suspend fun listRecoverable(): List<SetupDraftCandidate> = resolver.listRecoverable()
     }
 
-    private class RoomCommits(db: KpknDatabase) : SetupWizardCommits {
-        private val coordinator = SetupCommitCoordinator(db)
+    /** El coordinador de altas con el nivel de cuenta de la prueba: Pro por defecto, como el resto de pruebas del alta. */
+    private class RoomCommits(db: KpknDatabase, level: PlanLevel = PlanLevel.PRO) : SetupWizardCommits {
+        private val coordinator = SetupCommitCoordinator(db, accessLevel = { level })
         override suspend fun commit(request: SetupCommitRequest): SetupCommitResult = coordinator.commit(request)
     }
 
