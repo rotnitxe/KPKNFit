@@ -60,7 +60,8 @@ class SetupPlanRevealsTest {
         assertEquals("3 días", reveal.daysLabel)
         assertEquals("Intermedio", reveal.levelLabel)
         assertTrue("blurb de 110 caracteres como mucho: «${reveal.blurb}»", reveal.blurb.length <= SetupPlanReveals.BLURB_MAX)
-        assertEquals("la semana tipo son los días elegidos", listOf(1, 3, 5), reveal.week.map { it.day })
+        // La semana empieza en el día con más energía (miércoles): el revelado ordena sus días desde ahí.
+        assertEquals("la semana tipo son los días elegidos, desde el día con más energía", listOf(3, 5, 1), reveal.week.map { it.day })
         assertEquals("la sesión principal cae el día con más energía", listOf(3), reveal.week.filter { it.isMain }.map { it.day })
         assertTrue("cada día dice dónde se entrena", reveal.week.all { it.place == TrainingPlace.GYM })
         assertTrue("3 a 5 razones: ${reveal.reasons}", reveal.reasons.size in 3..5)

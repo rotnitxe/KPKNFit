@@ -79,6 +79,7 @@ import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardFonts
 import com.example.kpkn.screens.onboarding.design.WizardTypography
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
+import com.example.kpkn.screens.onboarding.design.entreno.layout.slotOrder
 import com.example.kpkn.screens.onboarding.design.lerpF
 import com.example.kpkn.screens.onboarding.design.seg
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
@@ -119,10 +120,17 @@ private val SECTION_STYLE = TextStyle(
  * - [selected]: si es el programa elegido; el botón pasa a «Programa elegido» (en verde).
  * - [onChoose]: «Elegir este programa» (quien llama elige y suele cerrar la hoja).
  * - [onClose]: la X de arriba y «atrás»; la hoja se desvanece antes de avisar.
+ * - [weekStartDay]: primer día de la semana de la persona (1 = lunes); «Tu semana» empieza ahí.
  */
 @Composable
-fun PlanDetailOverlay(model: PlanDetailModel, selected: Boolean, onChoose: () -> Unit, onClose: () -> Unit) {
-    PlanDetailOverlay(model, selected, onChoose, onClose, wizardReducedMotion())
+fun PlanDetailOverlay(
+    model: PlanDetailModel,
+    selected: Boolean,
+    onChoose: () -> Unit,
+    onClose: () -> Unit,
+    weekStartDay: Int = 1,
+) {
+    PlanDetailOverlay(model, selected, onChoose, onClose, wizardReducedMotion(), weekStartDay)
 }
 
 /** La hoja con el «reducir movimiento» decidido por quien llama (pruebas y vista previa de depuración). */
@@ -133,6 +141,7 @@ internal fun PlanDetailOverlay(
     onChoose: () -> Unit,
     onClose: () -> Unit,
     reduced: Boolean,
+    weekStartDay: Int = 1,
 ) {
     val scope = rememberCoroutineScope()
     val shown = remember { Animatable(if (reduced) 1f else 0f) }
@@ -154,7 +163,7 @@ internal fun PlanDetailOverlay(
     }
     BlurOverlayDialog(onDismissRequest = leave, dismissOnBack = true, shown = { shown.value }) { blur ->
         LaunchedEffect(Unit) { if (!reduced) shown.animateTo(1f, tween(460)) }
-        DetailSheet(model, selected, reduced, blur, { shown.value }, onChoose, leave)
+        DetailSheet(model, selected, reduced, blur, { shown.value }, onChoose, leave, weekStartDay = weekStartDay)
     }
 }
 
@@ -171,6 +180,7 @@ internal fun DetailSheet(
     shown: () -> Float,
     onChoose: () -> Unit,
     onClose: () -> Unit,
+    weekStartDay: Int = 1,
     modifier: Modifier = Modifier,
 ) {
     val card = model.card
@@ -248,7 +258,7 @@ internal fun DetailSheet(
                 }
                 if (model.week.isNotEmpty()) {
                     SectionTitle(PlanCopy.SECTION_WEEK)
-                    WeekStrip(model.week, accent)
+                    WeekStrip(model.week, accent, weekStartDay)
                 }
                 if (model.reasons.isNotEmpty()) {
                     SectionTitle(PlanCopy.SECTION_REASONS)
@@ -700,13 +710,15 @@ private fun NoteList(notes: List<String>) {
 // ---------------------------------------------------------------- la semana
 
 /**
- * Tu semana: los siete días como círculos con su inicial. Los de entreno van en el acento (el principal, con un punto).
- * Si los títulos caben bajo su círculo, cada día de entreno lleva debajo su título corto y sus minutos; si no (pantalla
- * estrecha o letra grande), los círculos van solos y las sesiones se enumeran debajo, una por fila.
+ * Tu semana: los siete días como círculos con su inicial, desde [weekStartDay] (1 = lunes) y dando la vuelta. Los de
+ * entreno van en el acento (el principal, con un punto). Si los títulos caben bajo su círculo, cada día de entreno lleva
+ * debajo su título corto y sus minutos; si no (pantalla estrecha o letra grande), los círculos van solos y las sesiones
+ * se enumeran debajo, una por fila, en ese mismo orden.
  */
 @Composable
-private fun WeekStrip(week: List<PlanDayModel>, accent: Color) {
+private fun WeekStrip(week: List<PlanDayModel>, accent: Color, weekStartDay: Int = 1) {
     val byDay = remember(week) { week.filter { it.day in 1..7 }.associateBy { it.day } }
+    val order = remember(weekStartDay) { slotOrder(weekStartDay) }
     val measurer = rememberTextMeasurer()
     val density = LocalDensity.current
     BoxWithConstraints(Modifier.fillMaxWidth()) {
@@ -726,11 +738,11 @@ private fun WeekStrip(week: List<PlanDayModel>, accent: Color) {
                     .then(if (captions) Modifier else Modifier.clearAndSetSemantics { }),
                 horizontalArrangement = Arrangement.spacedBy(gap),
             ) {
-                for (d in 1..7) DayColumn(d, byDay[d], accent, captions, Modifier.weight(1f))
+                for (d in order) DayColumn(d, byDay[d], accent, captions, Modifier.weight(1f))
             }
             if (!captions) {
                 Spacer(Modifier.height(14.dp))
-                for (day in byDay.values.sortedBy { it.day }) SessionRow(day, accent)
+                for (day in byDay.values.sortedBy { order.indexOf(it.day) }) SessionRow(day, accent)
             }
             if (byDay.values.any { it.isMain }) {
                 Row(Modifier.padding(top = 10.dp), verticalAlignment = Alignment.CenterVertically) {

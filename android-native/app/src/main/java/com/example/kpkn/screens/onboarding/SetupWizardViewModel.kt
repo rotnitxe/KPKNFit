@@ -3112,11 +3112,11 @@ class SetupWizardViewModel @JvmOverloads constructor(
             val block = Block("$id-block", "Bloque inicial", mesocycles = listOf(mesocycle))
             val macrocycle = Macrocycle("$id-macro", "Mi programa", blocks = listOf(block))
             val program = Program(id = id, name = "Mi plan de entrenamiento",
-                startDay = draft.selectedWeekdays.minOrNull(), weekDays = draft.daysPerWeek,
+                startDay = draft.effectiveWeekStart(), weekDays = draft.daysPerWeek,
                 macrocycles = listOf(macrocycle), volumeRecommendations = draft.volumeRecommendations,
                 athleteProfileScore = draft.athleteProfileScore,
                 schedulePlan = ProgramSchedulePlan(
-                    weekStartDay = draft.selectedWeekdays.minOrNull(),
+                    weekStartDay = draft.effectiveWeekStart(),
                     trainingDays = draft.selectedWeekdays.toSet(),
                 ))
             ProgramExecutionContract.requireExecutable(program)
@@ -3141,6 +3141,8 @@ class SetupWizardViewModel @JvmOverloads constructor(
                     focus = draft.focus.toTrainingFocus(),
                     frequency = frequency,
                     weekdays = draft.selectedWeekdays.sorted(),
+                    // Inicio de semana del alta: el programa propio empieza ahí y su rotación sale de él.
+                    weekStartDay = draft.effectiveWeekStart(),
                     equipment = effectiveEquipmentIds(draft),
                     level = draft.experience.toCatalogLevel(),
                     // Entreno v2: el alta acepta hasta 180 min, pero los planes propios no se estiran más allá de su
@@ -3192,7 +3194,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 id = draft.commitId,
                 name = programNameFor(entry),
                 mode = programModeFor(entry),
-                startDay = draft.selectedWeekdays.minOrNull(),
+                startDay = draft.effectiveWeekStart(),
                 powerliftingProfile = draft.powerliftingProfile,
             ),
         )
@@ -4074,7 +4076,7 @@ internal fun SetupWizardDraft.withPreselectedPlan(
     val changesDays = fixedDays != null && selectedWeekdays.size != fixedDays
     // Los días ya no se preguntan por número: el plan de días fijos siembra una semana repartida (sin confirmarla).
     val withDays = if (fixedDays != null && changesDays) {
-        withGoal.withWeekdays(EntrenoStepValues.defaultWeekdays(fixedDays))
+        withGoal.withWeekdays(EntrenoStepValues.defaultWeekdays(fixedDays, anchor = freshestDay ?: 1))
     } else {
         withGoal
     }

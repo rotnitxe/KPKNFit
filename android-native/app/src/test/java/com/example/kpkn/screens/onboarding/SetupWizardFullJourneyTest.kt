@@ -499,7 +499,8 @@ class SetupWizardFullJourneyTest {
         confirmStep(vm, SetupStepId.FRESH_DAY, SetupStepId.WEEKDAYS) { vm.setFreshDay(1) }
         assertEquals("la semana empieza el día con más energía", 1, vm.state.value.draft.weekStartDay)
         confirmStep(vm, SetupStepId.WEEKDAYS, SetupStepId.SESSION_TIME) {
-            listOf(1, 3, 5).forEach(vm::toggleWeekday)
+            // El lunes (día con más energía) ya viene encendido: solo se añaden el miércoles y el viernes.
+            listOf(3, 5).forEach(vm::toggleWeekday)
         }
         assertEquals(setOf(1, 3, 5), vm.state.value.draft.selectedWeekdays)
         assertEquals("los días son los elegidos", 3, vm.state.value.draft.daysPerWeek)
