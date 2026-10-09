@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.onboarding.design.entreno
 
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import com.example.kpkn.domain.onboarding.ProgramSource
@@ -70,10 +71,13 @@ private fun SymbolPen.ellipseArc(arc: Path, cx: Float, cy: Float, rx: Float, ry:
 }
 
 /**
- * Una hoja en blanco inclinada y un lápiz que traza dos renglones y se detiene. Sin elegir, la hoja vacía y el lápiz al inicio
- * del primer renglón; elegida, traza el primero, pasa al segundo y se queda al final de los dos.
+ * Una hoja en blanco inclinada, con dos renglones escritos (el segundo, a medias en reposo) y un lápiz de verdad sobre ella. En
+ * la pasada, el lápiz termina el segundo renglón y se detiene. Con movimiento reducido, el cuadro final.
  */
 internal class ProgramSheetArt(lit: Boolean) : EquipmentArt(SymbolPalette.mente, HOLD_PERIOD, if (lit) PENCIL_END else 0f) {
+    /** Un solo trazo reutilizado por el lápiz en cada cuadro (sin reservar memoria por cuadro). */
+    private val shape = Path()
+
     override fun drawStatic(pen: SymbolPen) {
         pen.rotated(SHEET_TILT, SHEET_PIVOT_X, SHEET_PIVOT_Y) {
             pen.box(14f, 8f, 46f, 56f, 3f, pen.soft, SymbolStroke.LINE)
@@ -81,25 +85,13 @@ internal class ProgramSheetArt(lit: Boolean) : EquipmentArt(SymbolPalette.mente,
     }
 
     override fun drawDynamic(pen: SymbolPen, t: Float) {
-        val first = smooth(seg(t, 0.1f, 0.8f))
-        val second = smooth(seg(t, 1.0f, PENCIL_END))
-        // La punta: sigue el primer renglón, salta al inicio del segundo y sigue el segundo hasta que se detiene.
-        val tipX: Float
-        val tipY: Float
-        when {
-            t < 0.8f -> { tipX = 22f + 16f * first; tipY = 24f }
-            t < 1f -> {
-                val move = seg(t, 0.8f, 1f)
-                tipX = lerpF(38f, 22f, move)
-                tipY = lerpF(24f, 34f, move)
-            }
-            else -> { tipX = 22f + 12f * second; tipY = 34f }
-        }
+        // El segundo renglón está a medias en reposo y el lápiz lo termina en la pasada, donde se detiene.
+        val progress = lerpF(SECOND_REST, 1f, smooth(seg(t, 0f, PENCIL_END)))
+        val tipX = SHEET_LINE_X0 + (SHEET_LINE_X1 - SHEET_LINE_X0) * progress
         pen.rotated(SHEET_TILT, SHEET_PIVOT_X, SHEET_PIVOT_Y) {
-            if (first > 0f) pen.line(22f, 24f, 22f + 16f * first, 24f, pen.accent, SymbolStroke.LINE)
-            if (second > 0f) pen.line(22f, 34f, 22f + 12f * second, 34f, pen.accent, SymbolStroke.LINE)
-            pen.line(tipX, tipY, tipX + 6f, tipY - 6f, pen.accent, SymbolStroke.BODY)
-            pen.dot(tipX, tipY, 1.4f, pen.ink)
+            pen.line(SHEET_LINE_X0, SHEET_FIRST_Y, SHEET_LINE_X1, SHEET_FIRST_Y, pen.soft, SymbolStroke.FINE)
+            pen.line(SHEET_LINE_X0, SHEET_SECOND_Y, tipX, SHEET_SECOND_Y, pen.soft, SymbolStroke.FINE)
+            drawPencil(pen, shape, tipX, SHEET_SECOND_Y)
         }
     }
 }
@@ -107,6 +99,52 @@ internal class ProgramSheetArt(lit: Boolean) : EquipmentArt(SymbolPalette.mente,
 private const val SHEET_TILT = -6f
 private const val SHEET_PIVOT_X = 30f
 private const val SHEET_PIVOT_Y = 32f
+
+/** Renglones de la hoja en su marco inclinado: el primero, entero; el segundo, hasta donde marca el progreso. */
+private const val SHEET_LINE_X0 = 18f
+private const val SHEET_LINE_X1 = 36f
+private const val SHEET_FIRST_Y = 24f
+private const val SHEET_SECOND_Y = 34f
+
+/** Hasta dónde llega el segundo renglón en reposo: a la mitad. */
+private const val SECOND_REST = 0.5f
+
+/** Lápiz: 22 unidades desde la punta hasta la goma, 4 de ancho, cono de 3 y cuerpo hasta la unidad 19; 40° hacia arriba. */
+private const val PENCIL_LENGTH = 22f
+private const val PENCIL_CONE = 3f
+private const val PENCIL_BODY_END = 19f
+private const val PENCIL_HALF_WIDTH = 2f
+private val PENCIL_AX = cos(-40f * DEG)
+private val PENCIL_AY = sin(-40f * DEG)
+
+/** El punto del eje del lápiz a [d] unidades de la punta y [w] hacia uno de sus lados (la punta toca la hoja). */
+private fun pencilPoint(tipX: Float, tipY: Float, d: Float, w: Float): Offset =
+    Offset(tipX + PENCIL_AX * d - PENCIL_AY * w, tipY + PENCIL_AY * d + PENCIL_AX * w)
+
+/** Un cuadrilátero relleno con [shape] (reutilizado: no reserva memoria por cuadro). */
+private fun fillQuad(pen: SymbolPen, shape: Path, a: Offset, b: Offset, c: Offset, d: Offset, color: Color) {
+    shape.reset()
+    shape.moveTo(a.x, a.y)
+    shape.lineTo(b.x, b.y)
+    shape.lineTo(c.x, c.y)
+    shape.lineTo(d.x, d.y)
+    shape.close()
+    pen.fillPath(shape, color)
+}
+
+/** El lápiz con la punta en ([tipX], [tipY]): cono de grafito, cuerpo en el acento de módulo y goma en el otro extremo. */
+private fun drawPencil(pen: SymbolPen, shape: Path, tipX: Float, tipY: Float) {
+    val tip = Offset(tipX, tipY)
+    val coneA = pencilPoint(tipX, tipY, PENCIL_CONE, PENCIL_HALF_WIDTH)
+    val coneB = pencilPoint(tipX, tipY, PENCIL_CONE, -PENCIL_HALF_WIDTH)
+    val bodyA = pencilPoint(tipX, tipY, PENCIL_BODY_END, PENCIL_HALF_WIDTH)
+    val bodyB = pencilPoint(tipX, tipY, PENCIL_BODY_END, -PENCIL_HALF_WIDTH)
+    val eraserA = pencilPoint(tipX, tipY, PENCIL_LENGTH, PENCIL_HALF_WIDTH)
+    val eraserB = pencilPoint(tipX, tipY, PENCIL_LENGTH, -PENCIL_HALF_WIDTH)
+    fillQuad(pen, shape, tip, coneA, coneB, tip, pen.ink)
+    fillQuad(pen, shape, coneA, bodyA, bodyB, coneB, pen.accent)
+    fillQuad(pen, shape, bodyA, eraserA, eraserB, bodyB, pen.soft)
+}
 
 /**
  * Una hoja con cuadrícula de hoja de cálculo que se desliza dentro del contorno de un teléfono (bucle de 3,2 s). Solo se ofrece
