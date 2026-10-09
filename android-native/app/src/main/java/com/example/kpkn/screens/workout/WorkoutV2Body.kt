@@ -1,5 +1,7 @@
 package com.example.kpkn.screens.workout
 
+import com.example.kpkn.ui.tour.TourAnchors
+import com.example.kpkn.ui.tour.tourAnchor
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
@@ -2085,7 +2087,8 @@ internal fun WorkoutV2Body(
                                 } else {
                                     Box(
                                         modifier = Modifier
-                                            .fillMaxWidth(),
+                                            .fillMaxWidth()
+                                            .tourAnchor(TourAnchors.WORKOUT_SERIE),
                                     ) {
                                         SetInputCardV2(
                                     exercise = targetExercise,
