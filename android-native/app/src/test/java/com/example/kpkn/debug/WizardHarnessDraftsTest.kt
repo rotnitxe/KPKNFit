@@ -73,7 +73,10 @@ class WizardHarnessDraftsTest {
         assertEquals(TrainingGoalProfile.STRENGTH_MUSCLE, qa.goalProfile)
         assertEquals(setOf(1, 2, 4, 5), qa.selectedWeekdays)
         assertEquals(60, qa.minutesPerSession)
-        assertEquals(mapOf(LiftMark.SQUAT to 120.0, LiftMark.BENCH to 80.0, LiftMark.DEADLIFT to 150.0), qa.liftMarks)
+        assertEquals(
+            mapOf(LiftMark.SQUAT to 120.0, LiftMark.BENCH to 80.0, LiftMark.DEADLIFT to 150.0, LiftMark.OVERHEAD_PRESS to 50.0),
+            qa.liftMarks,
+        )
 
         val qb = reviewDraftOf(HarnessPersona.QB)
         assertEquals(setOf(EquipmentSymbolId.DUMBBELLS, EquipmentSymbolId.BENCH), qb.selectedEquipmentSymbols())
