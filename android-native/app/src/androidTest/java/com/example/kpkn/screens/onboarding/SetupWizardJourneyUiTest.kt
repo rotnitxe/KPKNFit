@@ -523,7 +523,7 @@ class SetupWizardJourneyUiTest {
         )
     }
 
-    /** Las doce celdas, por prefijo de tag: no depende de su orden en pantalla. */
+    /** Las once celdas, por prefijo de tag: no depende de su orden en pantalla. */
     private val muscleMatcher = SemanticsMatcher("celda de músculo") { node ->
         node.testTagOrNull()?.startsWith(MUSCLE_PREFIX) == true
     }
@@ -553,7 +553,7 @@ class SetupWizardJourneyUiTest {
         seedMusclesStep(vm, TrainingGoalProfile.STRENGTH_MUSCLE)
         showMuscles(vm, draftId)
 
-        assertEquals("los doce músculos", MuscleSymbol.entries.size, composeRule.onAllNodes(muscleMatcher).fetchSemanticsNodes().size)
+        assertEquals("los once músculos", MuscleSymbol.entries.size, composeRule.onAllNodes(muscleMatcher).fetchSemanticsNodes().size)
         assertTrue("sin sugerencias la bolsa parte vacía", bag(vm).isEmpty())
 
         val revisionBefore = vm.state.value.draft.revision
@@ -620,7 +620,7 @@ class SetupWizardJourneyUiTest {
 
     /**
      * C: viewport estrecho real (360 dp) y `fontScale` 2.0 sobre el host real. La cuadrícula conserva sus tres columnas,
-     * sus objetivos táctiles de 48 dp y sus doce celdas dentro de la ventana, y el check sigue siendo operable.
+     * sus objetivos táctiles de 48 dp y sus once celdas dentro de la ventana, y el check sigue siendo operable.
      * Mide la geometría **relativa al contenedor**, no offsets absolutos.
      */
     @Test
@@ -649,7 +649,7 @@ class SetupWizardJourneyUiTest {
         // ── Medición única, en un estado idle estable, ANTES de desplazar ──
         val wrapperNode = composeRule.onNodeWithTag(VIEWPORT_TAG).fetchSemanticsNode()
         val cells = composeRule.onAllNodes(muscleMatcher).fetchSemanticsNodes()
-        assertEquals("las doce celdas se componen", MuscleSymbol.entries.size, cells.size)
+        assertEquals("las once celdas se componen", MuscleSymbol.entries.size, cells.size)
         val wrapper = wrapperNode.rawLayoutRect()
         val bounds = cells.associate { node -> node.muscle() to node.rawLayoutRect() }
         val diag = "wrapper=$wrapper celdas=" + bounds.entries.sortedBy { it.key.ordinal }.joinToString(" ") { (muscle, box) -> "${muscle.name}:$box" }
@@ -664,11 +664,13 @@ class SetupWizardJourneyUiTest {
         assertTrue("el wrapper no tiene el ancho pedido ($wrapper) — $diag", pxPerDp > 0f)
         val minTouchHeight = TOUCH_TARGET_DP * pxPerDp
 
-        // 1) Tres columnas y cuatro filas: no se apilan ni se parten con la letra grande.
-        val distinctLefts = bounds.values.map { it.left }.distinct()
+        // 1) Tres columnas y cuatro filas: no se apilan ni se parten con la letra grande. La última fila (de dos) va centrada,
+        // así que las columnas se cuentan por la primera fila.
         val distinctTops = bounds.values.map { it.top }.distinct()
-        assertEquals("tres columnas — $diag", MUSCLE_COLUMNS, distinctLefts.size)
-        assertEquals("cuatro filas — $diag", MuscleSymbol.entries.size / MUSCLE_COLUMNS, distinctTops.size)
+        val firstRowTop = bounds.values.minOf { it.top }
+        val firstRowLefts = bounds.values.filter { it.top == firstRowTop }.map { it.left }.distinct()
+        assertEquals("tres columnas — $diag", MUSCLE_COLUMNS, firstRowLefts.size)
+        assertEquals("cuatro filas — $diag", (MuscleSymbol.entries.size + MUSCLE_COLUMNS - 1) / MUSCLE_COLUMNS, distinctTops.size)
 
         // 2) Objetivo táctil ≥ 48 dp y nada se sale horizontalmente de la ventana.
         bounds.forEach { (muscle, box) ->
