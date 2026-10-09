@@ -114,10 +114,10 @@ private val WizardGlassNotePadding = 20.dp
 
 /**
  * Velo sobre el cristal y bajo el contenido: con desenfoque (Android 12+) deja ver la página difuminada; sin él (Android < 12,
- * minSdk 24) es casi opaco, para que el texto de la página de atrás no se lea dentro del bloque.
+ * minSdk 24) es opaco, así el texto de la página de atrás no asoma dentro del bloque.
  */
 private val WizardGlassNoteVeilBlur = Color(0xFF141414).copy(alpha = 0.55f)
-private val WizardGlassNoteVeilPlain = Color(0xFF141414).copy(alpha = 0.94f)
+private val WizardGlassNoteVeilPlain = Color(0xFF141414)
 
 /** Dónde cae la nota en la última medida: la escala crece desde el borde del enlace. Lo escribe la medida y lo lee el dibujo. */
 private class WizardGlassNotePlacement {
@@ -157,7 +157,7 @@ internal fun WizardGlassNoteLayer(controller: WizardGlassNoteController, hazeSta
     val gapPx = with(density) { WizardGlassNoteGap.roundToPx() }
     val bottomPx = with(density) { WizardDockClearance.roundToPx() }
     val topPx = WindowInsets.statusBars.getTop(density) + with(density) { WizardHeaderBlockHeight.roundToPx() }
-    // Con desenfoque (Android 12+) el velo deja ver la página difuminada; sin él, casi opaco.
+    // Con desenfoque (Android 12+) el velo deja ver la página difuminada; sin él, opaco.
     val blur = LocalWizardGlassBlur.current ?: (Build.VERSION.SDK_INT >= 31)
 
     Box(modifier = Modifier.fillMaxSize().onGloballyPositioned { layerOrigin = it.positionInRoot() }) {
