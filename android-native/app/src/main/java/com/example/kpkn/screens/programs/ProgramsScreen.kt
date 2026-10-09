@@ -51,6 +51,7 @@ object ProgramCreationRequests {
 fun ProgramsScreen(
     onNavigateToProgram: (String) -> Unit,
     onCreateProgram: () -> Unit,
+    onImportProgram: () -> Unit,
     onEditProgram: (String) -> Unit,
     viewModel: ProgramsViewModel = viewModel(),
     openCreateSheetOnStart: Boolean = false,
@@ -255,6 +256,10 @@ fun ProgramsScreen(
                 val id = viewModel.createBlankProgram()
                 showCreateSheet = false
                 onNavigateToProgram(id)
+            },
+            onImport = {
+                showCreateSheet = false
+                onImportProgram()
             },
             onCreateFromTemplate = { template ->
                 createScope.launch {

@@ -104,6 +104,7 @@ import com.example.kpkn.screens.programs.ProgramCreationRequests
 import com.example.kpkn.screens.programs.ProgramEditorScreen
 import com.example.kpkn.screens.programs.ProgramsScreen
 import com.example.kpkn.screens.programs.ProgramsViewModel
+import com.example.kpkn.screens.programs.importer.ImportProgramScreen
 import com.example.kpkn.screens.sessioneditor.SessionEditorScreen
 import com.example.kpkn.screens.settings.SettingsScreen
 import com.example.kpkn.screens.workout.WorkoutScreen
@@ -573,6 +574,7 @@ fun KPKNApp(
         currentRoute?.startsWith("program/") == true -> KpknRoute.Training.route
         currentRoute?.startsWith("program-metric-") == true -> KpknRoute.Training.route
         currentRoute?.startsWith("program-editor") == true -> KpknRoute.Training.route
+        currentRoute?.startsWith("program-import") == true -> KpknRoute.Training.route
         currentRoute?.startsWith("session-editor") == true -> KpknRoute.Training.route
         currentRoute?.startsWith("workout") == true -> KpknRoute.Training.route
         currentRoute?.startsWith(KpknRoute.Competitions.route) == true -> KpknRoute.Training.route
@@ -1231,6 +1233,7 @@ private fun KPKNNavGraph(
                     navController.navigate(KpknRoute.ProgramDetail.create(programId))
                 },
                 onCreateProgram = { createProgramAndOpen(navController) },
+                onImportProgram = { navController.navigate(KpknRoute.ImportProgram.route) { launchSingleTop = true } },
                 // Edición: ruta real del editor con programaId existente.
                 onEditProgram = { programId ->
                     navController.navigate(KpknRoute.ProgramEditor.create(programId)) {
@@ -1242,6 +1245,17 @@ private fun KPKNNavGraph(
                 onSelectPlan = { entry -> openLibraryPlanInWizard(navController, entry.id) },
                 onOpenConcept = { conceptId ->
                     navController.navigate(KpknRoute.Concepts.create(conceptId))
+                },
+            )
+        }
+        composable(KpknRoute.ImportProgram.route) {
+            ImportProgramScreen(
+                onBack = { navController.popBackStack() },
+                onSaved = { savedProgramId ->
+                    navController.navigate(KpknRoute.ProgramDetail.create(savedProgramId)) {
+                        popUpTo(KpknRoute.ImportProgram.route) { inclusive = true }
+                        launchSingleTop = true
+                    }
                 },
             )
         }
