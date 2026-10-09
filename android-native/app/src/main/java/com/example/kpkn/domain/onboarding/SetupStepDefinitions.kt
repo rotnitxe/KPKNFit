@@ -1,6 +1,7 @@
 package com.example.kpkn.domain.onboarding
 
 import com.example.kpkn.data.models.DISCOMFORT_CATALOG
+import com.example.kpkn.data.models.RingsLiftPattern
 import kotlinx.serialization.Serializable
 
 /**
@@ -116,6 +117,18 @@ enum class SetupControlKind {
     PROGRAM_SOURCE,
     /** Importación del programa (archivo o texto); lo pinta la pantalla de importación. */
     PROGRAM_IMPORT,
+
+    // ── RINGS del alta (v2): los dibuja la pantalla de RINGS (E3c); el dato lo escribe el VM ──
+    /** Intro de RINGS: torre, demostración y «Empezar». No escribe ningún dato. */
+    RINGS_INTRO,
+    /** Días de la última semana (calendario de siete días), con «No entrené» y «No lo recuerdo». */
+    RINGS_DAYS,
+    /** Ejercicios principales en símbolos de patrón, con «Ninguno de estos» y «No lo sé». */
+    RINGS_LIFTS,
+    /** Series de los seis grupos (0 a 20 por grupo), cada uno con «No lo sé». */
+    RINGS_GROUP_SETS,
+    /** Las tres sensaciones en una sola pantalla (escalas de símbolos). */
+    RINGS_FEELINGS,
 }
 
 data class SetupNumericRange(
@@ -250,6 +263,19 @@ val ORDER_MUSCLE_OPTIONS: List<SetupOptionDefinition> = listOf(
     "Pectorales", "Dorsales", "Deltoides", "Bíceps", "Tríceps", "Antebrazo", "Cuádriceps",
     "Isquiosurales", "Glúteos", "Pantorrillas", "Abdomen", "Trapecio", "Erectores Espinales",
 ).map { SetupOptionDefinition(it, it) }
+
+/** Patrones de «¿Qué ejercicios principales hiciste?» (RINGS v2), en el orden en que se muestran. */
+private val ringsLiftOptions: List<SetupOptionDefinition> = listOf(
+    RingsLiftPattern.SQUAT to "Sentadilla",
+    RingsLiftPattern.DEADLIFT to "Peso muerto",
+    RingsLiftPattern.HINGE_ROW to "Rumano o remo",
+    RingsLiftPattern.BENCH to "Press banca",
+    RingsLiftPattern.OVERHEAD to "Press militar",
+    RingsLiftPattern.PULL_UP to "Dominadas",
+    RingsLiftPattern.LUNGE to "Zancadas",
+    RingsLiftPattern.CARDIO_LONG to "Cardio largo",
+    RingsLiftPattern.INTERVALS to "Intervalos",
+).map { (pattern, label) -> SetupOptionDefinition(pattern.name, label) }
 
 object SetupStepDefinitions {
 
@@ -881,12 +907,59 @@ object SetupStepDefinitions {
         // Bloque 4: RINGS
         // -------------------------------------------------------------------
         SetupStepDefinition(
+            id = SetupStepId.RINGS_INTRO, block = SetupWizardBlock.RINGS, kind = SetupStepKind.QUESTION,
+            title = "Tus RINGS, tu recuperación de un vistazo",
+            subtitle = "Mira cómo funcionan antes de calcular los tuyos.",
+            control = SetupControlKind.RINGS_INTRO,
+        ),
+        SetupStepDefinition(
+            id = SetupStepId.RINGS_SESSION_DAYS, block = SetupWizardBlock.RINGS, kind = SetupStepKind.QUESTION,
+            title = "¿Qué días entrenaste?",
+            subtitle = "Marca los días de la última semana en los que entrenaste.",
+            control = SetupControlKind.RINGS_DAYS,
+            // Hoy y ayer tienen nombre propio; el resto, cuántos días atrás. La UI del calendario pone la fecha de cada día.
+            options = listOf(
+                SetupOptionDefinition("0", "Hoy"), SetupOptionDefinition("1", "Ayer"),
+            ) + (2..6).map { SetupOptionDefinition("$it", "Hace $it días") } + listOf(
+                SetupOptionDefinition("none", "No entrené"),
+                SetupOptionDefinition("unknown", "No lo recuerdo"),
+            ),
+            exclusiveValues = setOf("none", "unknown"),
+        ),
+        SetupStepDefinition(
+            id = SetupStepId.RINGS_MAIN_LIFTS, block = SetupWizardBlock.RINGS, kind = SetupStepKind.QUESTION,
+            title = "¿Qué ejercicios principales hiciste?",
+            subtitle = "Así sabemos cuánto cargaron tus músculos y tu columna.",
+            control = SetupControlKind.RINGS_LIFTS,
+            options = ringsLiftOptions + listOf(
+                SetupOptionDefinition("none", "Ninguno de estos"),
+                SetupOptionDefinition("unknown", "No lo sé"),
+            ),
+            exclusiveValues = setOf("none", "unknown"),
+        ),
+        SetupStepDefinition(
+            id = SetupStepId.RINGS_GROUP_SETS, block = SetupWizardBlock.RINGS, kind = SetupStepKind.QUESTION,
+            title = "¿Cuántas series hiciste por grupo?",
+            // La ventana («Desde el martes») la pone la pantalla, que sabe qué día es hoy.
+            subtitle = "Si no lo sabes, déjalo en «No lo sé».",
+            control = SetupControlKind.RINGS_GROUP_SETS,
+            allowSkip = true,
+        ),
+        SetupStepDefinition(
+            id = SetupStepId.RINGS_FEELINGS, block = SetupWizardBlock.RINGS, kind = SetupStepKind.QUESTION,
+            title = "¿Cómo te sientes hoy?",
+            subtitle = "Tu sensación también cuenta para calcular tus RINGS.",
+            control = SetupControlKind.RINGS_FEELINGS,
+            allowSkip = true,
+        ),
+        SetupStepDefinition(
             id = SetupStepId.RINGS_RECENT, block = SetupWizardBlock.RINGS, kind = SetupStepKind.QUESTION,
             title = "¿Entrenaste en los últimos 7 días?",
             subtitle = "«No lo sé» no es lo mismo que no haber entrenado.",
             control = SetupControlKind.SINGLE_CHOICE,
             options = opt("yes" to "Sí", "no" to "No", "unknown" to "No lo sé"),
             legacyQuestion = WizChatQuestionId.R_RECENT,
+            legacyOnly = true,
             legacyValueMap = mapOf("Sí" to "yes", "No" to "no", "No lo sé" to "unknown"),
         ),
         SetupStepDefinition(
@@ -894,6 +967,7 @@ object SetupStepDefinitions {
             title = "¿Cuántas sesiones hiciste?", control = SetupControlKind.SINGLE_CHOICE,
             options = (1..7).map { SetupOptionDefinition("$it", "$it") },
             legacyQuestion = WizChatQuestionId.R_SESSIONS,
+            legacyOnly = true,
             legacyValueMap = (1..7).associate { "$it" to "$it" },
         ),
         SetupStepDefinition(
@@ -903,6 +977,7 @@ object SetupStepDefinitions {
                 SetupOptionDefinition("0", "Hoy"), SetupOptionDefinition("1", "Ayer"),
             ) + (2..6).map { SetupOptionDefinition("$it", "Hace $it días") },
             legacyQuestion = WizChatQuestionId.R_RECENCY,
+            legacyOnly = true,
             legacyValueMap = buildMap {
                 put("Hoy", "0"); put("Ayer", "1")
                 (2..6).forEach { put("Hace $it días", "$it") }
@@ -913,6 +988,7 @@ object SetupStepDefinitions {
             title = "¿Qué predominó en tus sesiones?", control = SetupControlKind.SINGLE_CHOICE,
             options = opt("STRENGTH" to "Fuerza", "CARDIO" to "Cardio", "MIXED" to "Mixta"),
             legacyQuestion = WizChatQuestionId.R_ACTIVITY,
+            legacyOnly = true,
             legacyValueMap = mapOf("Fuerza" to "STRENGTH", "Cardio" to "CARDIO", "Mixta" to "MIXED"),
         ),
         SetupStepDefinition(
@@ -933,6 +1009,7 @@ object SetupStepDefinitions {
             control = SetupControlKind.SINGLE_CHOICE,
             options = opt("yes" to "Sí", "no" to "No", "unknown" to "No lo sé"),
             legacyQuestion = WizChatQuestionId.R_AXIAL,
+            legacyOnly = true,
             legacyValueMap = mapOf("Sí" to "yes", "No" to "no", "No lo sé" to "unknown"),
         ),
         SetupStepDefinition(
@@ -943,6 +1020,7 @@ object SetupStepDefinitions {
             options = intensityLevels + feelingsUnknown,
             allowSkip = true,
             legacyQuestion = WizChatQuestionId.R_FEELINGS_MUSCLE,
+            legacyOnly = true,
             legacyValueMap = intensityLevels.associate { it.label to it.value },
         ),
         SetupStepDefinition(
@@ -953,6 +1031,7 @@ object SetupStepDefinitions {
             options = energyLevels + feelingsUnknown,
             allowSkip = true,
             legacyQuestion = WizChatQuestionId.R_FEELINGS_ENERGY,
+            legacyOnly = true,
             legacyValueMap = energyLevels.associate { it.label to it.value },
         ),
         SetupStepDefinition(
@@ -963,6 +1042,7 @@ object SetupStepDefinitions {
             options = structureLevels + feelingsUnknown,
             allowSkip = true,
             legacyQuestion = WizChatQuestionId.R_FEELINGS_STRUCTURE,
+            legacyOnly = true,
             legacyValueMap = structureLevels.associate { it.label to it.value },
         ),
         SetupStepDefinition(
