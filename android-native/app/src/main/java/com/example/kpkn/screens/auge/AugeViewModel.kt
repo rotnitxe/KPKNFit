@@ -30,6 +30,7 @@ import com.example.kpkn.domain.auge.PerformanceTauLearner
 import com.example.kpkn.domain.auge.PerformanceTauManualTouches
 import com.example.kpkn.domain.auge.RecoveryBands
 import com.example.kpkn.domain.auge.SystemicLoadMonitor
+import com.example.kpkn.domain.auge.mergeWellbeingForSave
 import com.example.kpkn.domain.auge.remapMuscleIntMapToPillars
 import com.example.kpkn.domain.auge.remapMuscleMultiplierMapToPillars
 import com.example.kpkn.domain.auge.toAugeAdaptiveMuscleKey
@@ -423,7 +424,10 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             } else {
                 remappedLog.copy(manualBatteryAnchorMs = null)
             }
-            augeRepo.saveWellbeingLog(anchoredLog)
+            // El chequeo previo reconstruye la fila sin las anclas V2 del alta y del final
+            // del entreno: se fusiona con lo que ya guarda hoy antes de persistir.
+            val storedToday = augeRepo.getTodayWellbeing()?.takeIf { it.date == anchoredLog.date }
+            augeRepo.saveWellbeingLog(mergeWellbeingForSave(storedToday, anchoredLog))
 
             // Learn τ only when the sensation differs from the live prediction.
             // Finish-near-zero hours is rejected inside learnFromManualAdjustment.
