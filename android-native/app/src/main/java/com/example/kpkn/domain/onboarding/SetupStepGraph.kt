@@ -56,6 +56,10 @@ enum class SetupStepId {
     TRAINING_VARIANTS,
     /** Base de cardio de hoy: fija la intensidad y la duración del cardio del alta (sigue al tipo de cardio). */
     CARDIO_BASE,
+    /** Cómo se tiene el programa (solo «Tengo experiencia»): que KPKN lo recomiende, armarlo después o importarlo. */
+    PROGRAM_SOURCE,
+    /** Importación del programa (archivo o texto); solo entra en la ruta con la importación disponible. */
+    PROGRAM_IMPORT,
     /** La semana armada: sesiones colocadas en sus días, movibles. */
     WEEK_LAYOUT,
     MILESTONE_TRAINING,
@@ -140,6 +144,12 @@ data class SetupStepContext(
     val asksCardioBase: Boolean = false,
     /** ARM_STYLE: Armwrestling. */
     val asksArmStyle: Boolean = false,
+    /** PROGRAM_SOURCE: experiencia «Tengo experiencia» (ver `stepContext()`). */
+    val asksProgramSource: Boolean = false,
+    /** Cómo se tiene el programa; null = sin responder, que sigue la ruta de siempre. Solo cuenta con [asksProgramSource]. */
+    val programSource: ProgramSource? = null,
+    /** La importación está disponible (`ProgramSourceOptions.IMPORT_ENABLED`; las pruebas la fuerzan aquí). */
+    val programImportEnabled: Boolean = ProgramSourceOptions.IMPORT_ENABLED,
 ) {
     /** Same skip rules the WizChat graph applied to the RINGS start action. */
     val ringsSkipsCalibration: Boolean
@@ -202,6 +212,8 @@ object SetupStepGraph {
         SetupStepId.ARM_STYLE to SetupWizardBlock.TRAINING,
         SetupStepId.TRAINING_VARIANTS to SetupWizardBlock.TRAINING,
         SetupStepId.CARDIO_BASE to SetupWizardBlock.TRAINING,
+        SetupStepId.PROGRAM_SOURCE to SetupWizardBlock.TRAINING,
+        SetupStepId.PROGRAM_IMPORT to SetupWizardBlock.TRAINING,
         SetupStepId.WEEK_LAYOUT to SetupWizardBlock.TRAINING,
         SetupStepId.MILESTONE_TRAINING to SetupWizardBlock.TRAINING,
         SetupStepId.NUTRITION_START to SetupWizardBlock.NUTRITION,
@@ -263,6 +275,8 @@ object SetupStepGraph {
         SetupStepId.INVENTORY_MACHINES to 1350,
         SetupStepId.AVAILABILITY to 1360,
         SetupStepId.FRESH_DAY to 1590,
+        SetupStepId.PROGRAM_SOURCE to 1900,
+        SetupStepId.PROGRAM_IMPORT to 1901,
         SetupStepId.CAPABILITIES to 1905,
         SetupStepId.PRIORITIES to 1910,
         SetupStepId.AVOIDED_EXERCISES to 1912,
@@ -395,16 +409,30 @@ object SetupStepGraph {
             addAll(listOf(
                 SetupStepId.VOLUME_CONSISTENCY, SetupStepId.VOLUME_STRENGTH, SetupStepId.VOLUME_MOBILITY,
             ))
-            if (context.asksCapabilities) add(SetupStepId.CAPABILITIES)
-            add(SetupStepId.PRIORITIES)
-            // Punto de partida: ejercicios a evitar, estilo de mesa y variantes de los básicos van antes de las marcas.
-            if (context.asksAvoid) add(SetupStepId.AVOIDED_EXERCISES)
-            if (context.asksArmStyle) add(SetupStepId.ARM_STYLE)
-            if (context.asksVariants) add(SetupStepId.TRAINING_VARIANTS)
-            if (context.asksMarks) add(SetupStepId.TRAINING_MAX)
-            add(SetupStepId.PLAN)
-            if (context.hasWeekLayout) add(SetupStepId.WEEK_LAYOUT)
-            add(SetupStepId.MILESTONE_TRAINING)
+            // Experiencia avanzada: cómo se tiene el programa. «Lo armaré yo» cierra el bloque en su hito (sin programa ni
+            // semana); «importar» lleva al paso de importación y a la semana; «recomendar» o sin responder siguen la ruta de siempre.
+            if (context.asksProgramSource) add(SetupStepId.PROGRAM_SOURCE)
+            val programSource = context.programSource.takeIf { context.asksProgramSource }
+            when {
+                programSource == ProgramSource.LATER -> add(SetupStepId.MILESTONE_TRAINING)
+                programSource == ProgramSource.IMPORT && context.programImportEnabled -> {
+                    add(SetupStepId.PROGRAM_IMPORT)
+                    if (context.hasWeekLayout) add(SetupStepId.WEEK_LAYOUT)
+                    add(SetupStepId.MILESTONE_TRAINING)
+                }
+                else -> {
+                    if (context.asksCapabilities) add(SetupStepId.CAPABILITIES)
+                    add(SetupStepId.PRIORITIES)
+                    // Punto de partida: ejercicios a evitar, estilo de mesa y variantes de los básicos van antes de las marcas.
+                    if (context.asksAvoid) add(SetupStepId.AVOIDED_EXERCISES)
+                    if (context.asksArmStyle) add(SetupStepId.ARM_STYLE)
+                    if (context.asksVariants) add(SetupStepId.TRAINING_VARIANTS)
+                    if (context.asksMarks) add(SetupStepId.TRAINING_MAX)
+                    add(SetupStepId.PLAN)
+                    if (context.hasWeekLayout) add(SetupStepId.WEEK_LAYOUT)
+                    add(SetupStepId.MILESTONE_TRAINING)
+                }
+            }
         }
         // Bloque 3: Nutrición. El arranque es siempre explícito: un estado
         // "sin iniciar" (nutritionStarted=false) NUNCA desmonta el bloque

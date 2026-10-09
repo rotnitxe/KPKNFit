@@ -158,3 +158,20 @@ enum class ArmStyle(val label: String) {
     PRESS("Press"),
     UNSURE("Aún no lo sé"),
 }
+
+/**
+ * Cómo se tiene el programa («¿Cómo quieres tu programa?», solo con experiencia «Tengo experiencia»): que KPKN recomiende uno,
+ * armarlo más adelante o importar el tuyo. El texto es el de su símbolo.
+ */
+@Serializable
+enum class ProgramSource(val label: String) {
+    RECOMMEND("Que KPKN me recomiende uno"),
+    LATER("Lo armaré yo más adelante"),
+    IMPORT("Importar mi programa"),
+}
+
+/** Opciones del paso de programa que están disponibles en esta versión del asistente. */
+internal object ProgramSourceOptions {
+    /** La importación (lector, vista previa y constructor) llega en C3c: hasta entonces la opción queda oculta. */
+    const val IMPORT_ENABLED = false
+}

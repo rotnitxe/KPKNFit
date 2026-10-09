@@ -8,6 +8,7 @@ import com.example.kpkn.domain.nutrition.parseLocalizedNumber
 import com.example.kpkn.domain.onboarding.CapabilityLevel
 import com.example.kpkn.domain.onboarding.LiftVariants
 import com.example.kpkn.domain.onboarding.MuscleSymbols
+import com.example.kpkn.domain.onboarding.ProgramSource
 import com.example.kpkn.domain.onboarding.SetupEquationSexValues
 import com.example.kpkn.domain.onboarding.SetupStepDefinitions
 import com.example.kpkn.domain.onboarding.SetupStepGraph
@@ -138,6 +139,8 @@ private fun summaryLabel(page: SetupStepId): String = when (page) {
     SetupStepId.AVOIDED_EXERCISES -> "Evitar"
     SetupStepId.ARM_STYLE -> "Estilo de mesa"
     SetupStepId.CARDIO_BASE -> "Base de cardio"
+    SetupStepId.PROGRAM_SOURCE -> "Tu programa"
+    SetupStepId.PROGRAM_IMPORT -> "Programa importado"
     SetupStepId.PLAN -> "Programa"
     SetupStepId.WEEK_LAYOUT -> "Tu semana"
     SetupStepId.INVENTORY_BARBELL -> "Barra y rack"
@@ -240,6 +243,15 @@ private fun summaryValue(page: SetupStepId, state: SetupWizardState): String {
         SetupStepId.ARM_STYLE -> draft.armStyle?.label ?: draft.summaryMissing(page)
         SetupStepId.TRAINING_VARIANTS -> summaryVariants(draft, page)
         SetupStepId.CARDIO_BASE -> draft.cardioBase?.label ?: draft.summaryMissing(page)
+        // La importación pondrá después el título del programa («Importado: <título>»); hasta entonces, solo «Importado».
+        SetupStepId.PROGRAM_SOURCE -> when (draft.programSource) {
+            ProgramSource.RECOMMEND -> "Te recomendamos uno"
+            ProgramSource.LATER -> "Lo armarás más adelante"
+            ProgramSource.IMPORT -> "Importado"
+            null -> draft.summaryMissing(page)
+        }
+        // Sin programa importado en el borrador (lo guardará C3c) no hay nada que resumir: se muestra el marcador de siempre.
+        SetupStepId.PROGRAM_IMPORT -> draft.summaryMissing(page)
         SetupStepId.TRAINING_MAX -> summaryMarks(draft)
         SetupStepId.PLAN -> summaryPlan(state)
         SetupStepId.WEEK_LAYOUT -> summaryWeekLayout(state)

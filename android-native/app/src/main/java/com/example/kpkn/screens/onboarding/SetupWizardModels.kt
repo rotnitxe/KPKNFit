@@ -29,6 +29,7 @@ import com.example.kpkn.domain.onboarding.AvoidGroup
 import com.example.kpkn.domain.onboarding.CapabilityLevel
 import com.example.kpkn.domain.onboarding.CapabilityRules
 import com.example.kpkn.domain.onboarding.CardioBase
+import com.example.kpkn.domain.onboarding.ProgramSource
 import com.example.kpkn.domain.onboarding.CardioChoice
 import com.example.kpkn.domain.onboarding.CardioChoices
 import com.example.kpkn.domain.onboarding.CapabilitySkill
@@ -509,6 +510,8 @@ data class SetupWizardDraft(
     val adaptedSplitId: String? = null,
     /** Semilla de «otra versión» del programa: cambia el programa generado sin cambiar ninguna respuesta. */
     val planVariantSeed: Int = 0,
+    /** Cómo se tiene el programa (paso PROGRAM_SOURCE, solo con experiencia «Tengo experiencia»); null = sin responder. */
+    val programSource: ProgramSource? = null,
 )
 
 /** Whether a step value was declared by the user: touched here or recorded as DECLARED in the legacy mirror. */
@@ -558,6 +561,8 @@ fun SetupWizardDraft.stepContext(): SetupStepContext = SetupStepContext(
     asksAvoid = goalProfile == TrainingGoalProfile.BODYBUILDING,
     asksCardioBase = requiresCardio,
     asksArmStyle = goalProfile == TrainingGoalProfile.ARMWRESTLING,
+    asksProgramSource = experience == SetupExperience.ADVANCED,
+    programSource = programSource,
 )
 
 /**
@@ -1334,6 +1339,9 @@ internal val LIFT_MARK_RANGE_KG: ClosedFloatingPointRange<Double> = 1.0..1000.0
 /** Repeticiones de una marca «kg × reps»: la fórmula híbrida solo es fiable hasta 10 (el PR va de 2 a 10). */
 internal val LIFT_MARK_REPS_RANGE: IntRange = 1..10
 
+/** TODO(C3c): cuando la importación guarde el programa en el borrador, esta regla pasa a comprobarlo. Hasta entonces, falso. */
+private const val IMPORTED_PROGRAM_READY = false
+
 object SetupWizardValidation {
     fun validate(draft: SetupWizardDraft, chapter: SetupWizardChapter): Map<String, String> = buildMap {
         when (chapter) {
@@ -1558,6 +1566,11 @@ object SetupWizardValidation {
             SetupStepId.AVOIDED_EXERCISES -> ok("avoided")
             SetupStepId.CARDIO_BASE -> ok("cardioBase")
             SetupStepId.ARM_STYLE -> ok("armStyle")
+            // Cómo se tiene el programa es obligatorio con experiencia avanzada: sin elección, el paso no se confirma.
+            SetupStepId.PROGRAM_SOURCE -> if (draft.programSource != null) ok("programSource")
+                else absent("programSource", "Elige cómo quieres tu programa.")
+            SetupStepId.PROGRAM_IMPORT -> if (IMPORTED_PROGRAM_READY) ok("programImport")
+                else absent("programImport", "Importa un programa para continuar.")
             // El tipo de cardio vale si el material de ahora lo ofrece (`CardioChoices`, la misma regla que pinta el paso):
             // caminar y correr siempre; la bicicleta al aire libre solo con «Tengo bicicleta» (§15.1: no se hereda del
             // material de gimnasio ni de «Cardio»); las máquinas y «Lo que haya» si «Cardio» está en algún lugar.

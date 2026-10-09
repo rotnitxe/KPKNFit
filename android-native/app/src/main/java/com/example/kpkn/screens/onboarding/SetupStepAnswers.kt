@@ -25,6 +25,7 @@ import com.example.kpkn.domain.onboarding.AvoidGroup
 import com.example.kpkn.domain.onboarding.CapabilityLevel
 import com.example.kpkn.domain.onboarding.CapabilitySkill
 import com.example.kpkn.domain.onboarding.CardioBase
+import com.example.kpkn.domain.onboarding.ProgramSource
 import com.example.kpkn.domain.onboarding.CardioChoice
 import com.example.kpkn.domain.onboarding.CardioChoices
 import com.example.kpkn.domain.onboarding.EntrenoStepValues
@@ -207,6 +208,8 @@ private val DERIVED_SELECTION_STEPS: Set<SetupStepId> = setOf(
     SetupStepId.WEEKDAYS, SetupStepId.PRIORITIES, SetupStepId.TRAINING_MAX,
     // Punto de partida: su selección sale de las variantes, los grupos a evitar, la base de cardio y el estilo de mesa.
     SetupStepId.TRAINING_VARIANTS, SetupStepId.AVOIDED_EXERCISES, SetupStepId.CARDIO_BASE, SetupStepId.ARM_STYLE,
+    // Cómo se tiene el programa: sale de `programSource`.
+    SetupStepId.PROGRAM_SOURCE,
 )
 
 /** El borrador con la selección de [step] guardada, salvo en los pasos cuya selección sale de sus datos. */
@@ -974,6 +977,30 @@ fun SetupWizardDraft.withCardioBase(base: CardioBase?): SetupWizardDraft = copy(
 fun SetupWizardDraft.withArmStyle(style: ArmStyle?): SetupWizardDraft = copy(armStyle = style)
 
 /**
+ * Cómo se tiene el programa (paso PROGRAM_SOURCE). Salir de «lo armaré yo» deshace el aplazamiento: el programa vuelve a la
+ * ruta con las respuestas intactas. Solo cambia la elección, nunca las demás respuestas.
+ */
+fun SetupWizardDraft.withProgramSource(source: ProgramSource): SetupWizardDraft = copy(
+    programSource = source,
+    programRoute = if (programSource == ProgramSource.LATER && source != ProgramSource.LATER &&
+        programRoute == SetupProgramRoute.LATER
+    ) SetupProgramRoute.CUSTOMIZABLE else programRoute,
+)
+
+/**
+ * El aplazamiento del programa («lo armaré yo más adelante»): sin programa elegido ni semana. Lo usan PLAN
+ * (`deferProgramUntilLater`) y la confirmación de PROGRAM_SOURCE con esa opción, para no duplicar la regla.
+ */
+internal fun SetupWizardDraft.withProgramDeferred(): SetupWizardDraft =
+    if (trainingPath == SetupTrainingPath.FROM_SCRATCH) this
+    else copy(
+        selectedCatalogId = null,
+        acceptFixedRecipeDifference = false,
+        programRoute = SetupProgramRoute.LATER,
+        trainingPath = SetupTrainingPath.PERSONALIZE,
+    ).withoutWeekLayout()
+
+/**
  * Repeticiones seguidas de una habilidad de peso corporal, recortadas a 0..[MAX_SEQUENCE_REPS]; null retira la respuesta. Deriva
  * el nivel de [capabilities] para que el motor siga funcionando (ver [capabilityLevelOfReps]). La sentadilla a una pierna no
  * tiene regla de repeticiones: sigue con su nivel.
@@ -1133,6 +1160,8 @@ private fun SetupWizardDraft.typedSelections(step: SetupStepId): Set<String> = w
     SetupStepId.CARDIO_BASE -> cardioBase?.name.let { setOfNotNull(it) }
 
     SetupStepId.ARM_STYLE -> armStyle?.name.let { setOfNotNull(it) }
+
+    SetupStepId.PROGRAM_SOURCE -> programSource?.name.let { setOfNotNull(it) }
 
     SetupStepId.GENDER -> profileGender?.name?.lowercase().let { setOfNotNull(it) }
 
