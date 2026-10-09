@@ -2,6 +2,7 @@ package com.example.kpkn.screens.programdetail.components
 
 import android.app.Activity
 import android.graphics.Color as AndroidColor
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -34,6 +35,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import com.example.kpkn.ui.components.KpknSheet
+import com.example.kpkn.ui.components.rememberProgramCover
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -51,9 +53,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -61,9 +66,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.example.kpkn.data.models.AthleteProfileScore
+import com.example.kpkn.data.programs.programCoverEntryIdOf
 import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.data.models.VolumeRecommendation
 private data class CoverGradient(
@@ -114,7 +118,9 @@ fun CompactHeroBanner(
     modifier: Modifier = Modifier,
 ) {
     val coverGradient = remember(coverValue) { resolveGradient(coverValue) }
-    val usesGradient = remember(coverValue) { isGradientCover(coverValue) }
+    // Portada propia (`kpkn-cover://`): la foto si hay archivo; si no, el degradado de siempre (también para esquemas desconocidos).
+    val coverPhoto = rememberProgramCover(programCoverEntryIdOf(coverValue), screenWidthPx())
+    val usesGradient = coverPhoto == null
     val darkIcons = remember(coverGradient, usesGradient) {
         usesGradient && coverGradient.colors.firstOrNull()?.luminance()?.let { it > 0.72f } == true
     }
@@ -154,7 +160,7 @@ fun CompactHeroBanner(
             .background(Color.Transparent),
     ) {
         HeroBackground(
-            coverValue = coverValue,
+            coverPhoto = coverPhoto,
             coverGradient = coverGradient,
             usesGradient = usesGradient,
         )
@@ -403,20 +409,19 @@ private fun InlineHeroTextField(
 
 @Composable
 private fun BoxScope.HeroBackground(
-    coverValue: String?,
+    coverPhoto: ImageBitmap?,
     coverGradient: CoverGradient,
     usesGradient: Boolean,
 ) {
-    val context = LocalContext.current
-    val coverRequest = remember(coverValue, context, usesGradient) {
-        if (usesGradient || coverValue.isNullOrBlank()) return@remember null
-        ImageRequest.Builder(context)
-            .data(coverValue)
-            .size(1280, 720)
-            .build()
-    }
     Box(modifier = Modifier.matchParentSize()) {
-        if (usesGradient) {
+        if (coverPhoto != null) {
+            Image(
+                bitmap = coverPhoto,
+                contentDescription = "Portada del programa",
+                modifier = Modifier.matchParentSize(),
+                contentScale = ContentScale.Crop,
+            )
+        } else {
             Box(
                 modifier = Modifier
                     .matchParentSize()
@@ -427,13 +432,6 @@ private fun BoxScope.HeroBackground(
                             end = Offset(960f, 640f),
                         ),
                     ),
-            )
-        } else {
-            AsyncImage(
-                model = coverRequest,
-                contentDescription = "Portada del programa",
-                modifier = Modifier.matchParentSize(),
-                contentScale = ContentScale.Crop,
             )
         }
 
@@ -546,9 +544,9 @@ private fun resolveGradient(coverValue: String?): CoverGradient {
     return heroCoverGradients.firstOrNull { it.id == coverValue } ?: heroCoverGradients.first()
 }
 
-private fun isGradientCover(coverValue: String?): Boolean {
-    return coverValue.isNullOrBlank() || coverValue.startsWith("gradient://")
-}
+/** El ancho de la pantalla en píxeles: la foto de la cabecera ocupa todo el ancho. */
+@Composable
+private fun screenWidthPx(): Int = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.roundToPx() }
 
 private tailrec fun android.content.Context.findActivity(): Activity? = when (this) {
     is Activity -> this
