@@ -24,6 +24,7 @@ import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipe
 import androidx.compose.ui.unit.dp
 import androidx.test.core.app.ApplicationProvider
+import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.onboarding.LiftMark
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -48,14 +49,20 @@ class LiftMarksPickerUiTest {
     private val units = mutableListOf<String>()
     private val values = mutableStateMapOf<LiftMark, Double>()
     private var unit by mutableStateOf("kg")
+    private val reps = mutableStateMapOf<LiftMark, Int>()
+    private val repEvents = mutableListOf<Pair<LiftMark, Int?>>()
 
     private fun show(
         lifts: List<LiftMark> = listOf(LiftMark.SQUAT, LiftMark.BENCH, LiftMark.DEADLIFT),
         marks: Map<LiftMark, Double> = emptyMap(),
         startUnit: String = "kg",
+        repsMarks: Map<LiftMark, Int> = emptyMap(),
+        variants: Map<LiftMark, String> = emptyMap(),
     ) {
         values.clear()
         values.putAll(marks)
+        reps.clear()
+        reps.putAll(repsMarks)
         unit = startUnit
         rule.setContent {
             LiftMarksPicker(
@@ -70,11 +77,19 @@ class LiftMarksPickerUiTest {
                     units += it
                     unit = it
                 },
+                repsByLift = reps.toMap(),
+                onReps = { lift, count ->
+                    repEvents += lift to count
+                    if (count == null) reps.remove(lift) else reps[lift] = count
+                },
+                variantLabels = variants,
             )
         }
     }
 
     private fun ruler(lift: LiftMark) = rule.onNodeWithTag("setup-mark-${lift.name}-ruler")
+
+    private fun repsRuler(lift: LiftMark) = rule.onNodeWithTag("setup-mark-${lift.name}-reps")
 
     @Test
     fun onlyTheFirstRulerIsUnfolded() {
@@ -227,9 +242,70 @@ class LiftMarksPickerUiTest {
             "setup-mark-DEADLIFT",
             "setup-mark-SQUAT-unknown",
             "setup-mark-SQUAT-ruler",
+            "setup-mark-SQUAT-mode",
         )
         for (tag in tags) {
             rule.onNodeWithTag(tag).assertWidthIsAtLeast(48.dp).assertHeightIsAtLeast(48.dp)
         }
+    }
+
+    @Test
+    fun theModeSwitchShowsAndHidesTheRepsRuler() {
+        show(marks = mapOf(LiftMark.SQUAT to 100.0))
+        repsRuler(LiftMark.SQUAT).assertDoesNotExist()
+        rule.onNodeWithTag("setup-mark-SQUAT-mode").performClick()
+        rule.waitForIdle()
+        repsRuler(LiftMark.SQUAT).assertExists()
+        rule.onNodeWithTag("setup-mark-SQUAT-mode").performClick()
+        rule.waitForIdle()
+        repsRuler(LiftMark.SQUAT).assertDoesNotExist()
+    }
+
+    @Test
+    fun choosingFiveWritesFiveRepsAndBackToOneRmWritesNull() {
+        show(marks = mapOf(LiftMark.SQUAT to 100.0))
+        rule.onNodeWithTag("setup-mark-SQUAT-mode").performClick()
+        rule.waitForIdle()
+        repsRuler(LiftMark.SQUAT).performSemanticsAction(SemanticsActions.SetProgress) { it(5f) }
+        rule.waitForIdle()
+        assertEquals(LiftMark.SQUAT to 5, repEvents.last())
+        rule.onNodeWithText("100 kg × 5").assertExists()
+        rule.onNodeWithTag("setup-mark-SQUAT-mode").performClick()
+        rule.waitForIdle()
+        assertEquals(LiftMark.SQUAT to null, repEvents.last())
+        rule.onNodeWithText("100 kg").assertExists()
+    }
+
+    @Test
+    fun aFoldedRowShowsTheSetAsKgTimesReps() {
+        show(lifts = listOf(LiftMark.SQUAT, LiftMark.BENCH), marks = mapOf(LiftMark.BENCH to 100.0), repsMarks = mapOf(LiftMark.BENCH to 5))
+        rule.onNodeWithText("100 kg × 5").assertExists()
+    }
+
+    @Test
+    fun theEstimateLineMatchesTheHybridFormula() {
+        show(marks = mapOf(LiftMark.SQUAT to 100.0), repsMarks = mapOf(LiftMark.SQUAT to 5))
+        val expected = "≈ 1RM estimado: ${MarksMath.formatMark(calculateHybrid1RM(100.0, 5), "kg")}"
+        assertEquals("≈ 1RM estimado: 112,5 kg", expected)
+        rule.onNodeWithText(expected).assertExists()
+    }
+
+    @Test
+    fun declaringRepsWithoutAWeightDeclaresTheShownWeightToo() {
+        show(lifts = listOf(LiftMark.SQUAT))
+        rule.onNodeWithTag("setup-mark-SQUAT-mode").performClick()
+        rule.waitForIdle()
+        // El centro de 2 a 10 es 6: tocarlo declara 6 repeticiones y el kg que se ve (el de arranque, 100 kg).
+        repsRuler(LiftMark.SQUAT).performTouchInput { click(Offset(width / 2f, height / 2f)) }
+        rule.waitForIdle()
+        assertEquals(LiftMark.SQUAT to 6, repEvents.last())
+        assertTrue("el kg que se ve no se declaró: $emitted", emitted.any { it.first == LiftMark.SQUAT && it.second == 100.0 })
+        rule.onNodeWithText("100 kg × 6").assertExists()
+    }
+
+    @Test
+    fun theVariantGoesIntoTheRowName() {
+        show(lifts = listOf(LiftMark.SQUAT), marks = mapOf(LiftMark.SQUAT to 100.0), variants = mapOf(LiftMark.SQUAT to "Frontal"))
+        rule.onNodeWithText("Sentadilla · Frontal").assertExists()
     }
 }
