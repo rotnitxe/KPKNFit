@@ -33,10 +33,9 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
-import androidx.compose.material3.TextButton
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -70,6 +69,8 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
@@ -91,6 +92,7 @@ import com.example.kpkn.domain.onboarding.SetupOptionDefinition
 import com.example.kpkn.domain.onboarding.SetupStepDefinition
 import com.example.kpkn.domain.onboarding.SetupStepDefinitions
 import com.example.kpkn.domain.onboarding.SetupStepId
+import com.example.kpkn.screens.onboarding.design.LocalWizardGlassNote
 import com.example.kpkn.screens.onboarding.design.WizardBodyFatPicker
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardAnthropometryLayout
@@ -337,19 +339,16 @@ private fun BirthDateField(state: SetupWizardState, vm: SetupWizardViewModel) {
 // ─── Género (sexo de cálculo) ────────────────────────────────────────────────
 
 /**
- * Por qué se pregunta el género. Es el párrafo largo que antes era el subtítulo
- * del paso: ahora vive detrás de «Por qué lo preguntamos» (diálogo) y el
- * subtítulo del catálogo se queda en una frase corta.
- *
- * Explica la razón científica (el gasto de energía depende sobre todo de la masa libre de grasa y del
- * entorno hormonal, no de cómo se identifica la persona) y deja claro que las opciones solo sirven
- * para elegir la ecuación más adecuada.
+ * Cuerpo de la nota de vidrio «¿Por qué lo preguntamos?» que abre [GenderWhyButton]. Dice qué decide la ecuación (el músculo y
+ * las hormonas, no la identidad), que la opción solo elige la fórmula y cómo salir de la duda. Breve a propósito.
  */
 private const val GENDER_WHY_TEXT =
-    "El gasto de energía de tu cuerpo depende sobre todo de tu masa libre de grasa (músculo, huesos y órganos) y de tu entorno hormonal, no de cómo te identificas. " +
-        "Por eso lo preguntamos: para elegir la ecuación que mejor se ajusta a tu cuerpo y calcular unas calorías más acertadas para tu plan de nutrición. " +
-        "Las opciones solo sirven para eso; ninguna te define, así que elige la que más se acerque a tu caso. " +
-        "Si no lo tienes claro, toca «No lo sé» y cuéntanos qué hormonas predominan en tu cuerpo."
+    "Tus calorías dependen sobre todo de tu músculo y de tus hormonas, no de cómo te identificas. " +
+        "Solo lo usamos para elegir la fórmula que mejor calcula tu gasto. " +
+        "Si dudas, toca «No lo sé»."
+
+/** Título de la nota de vidrio que abre el enlace. */
+private const val GENDER_WHY_TITLE = "¿Por qué lo preguntamos?"
 
 private data class GenderChoice(val value: String, val label: String, val mark: WizardGenderMark)
 
@@ -505,16 +504,20 @@ private fun DrawScope.drawGenderGlow(color: Color, alpha: Float) {
 }
 
 /**
- * Botón «Por qué lo preguntamos»: abre el diálogo con la explicación larga.
- * Mide al menos 48 dp de alto y se anuncia como botón.
+ * Enlace «Por qué lo preguntamos»: abre la nota de vidrio bajo sí mismo. La capa del anfitrión la pinta (el vidrio necesita la
+ * página desenfocada detrás); el enlace solo le manda sus límites y su texto. Mide al menos 48 dp de alto y se anuncia como botón.
  */
 @Composable
-private fun GenderWhyButton(onClick: () -> Unit) {
+internal fun GenderWhyButton() {
+    val glassNote = LocalWizardGlassNote.current
+    // Dónde está el enlace en la raíz: la nota se ancla a esos límites.
+    var bounds by remember { mutableStateOf(Rect.Zero) }
     Row(
         modifier = Modifier
             .heightIn(min = WizardSpacing.touchTarget)
             .clip(WizardShapes.pill)
-            .clickable(role = Role.Button, onClick = onClick)
+            .onGloballyPositioned { bounds = it.boundsInRoot() }
+            .clickable(role = Role.Button) { glassNote.show(bounds, GENDER_WHY_TITLE, GENDER_WHY_TEXT) }
             .padding(horizontal = 4.dp)
             .testTag(GENDER_WHY_TAG),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -532,16 +535,6 @@ private fun GenderWhyButton(onClick: () -> Unit) {
 
 /** Marca de prueba del botón «Por qué lo preguntamos». */
 internal const val GENDER_WHY_TAG = "setup-gender-why"
-
-@Composable
-private fun GenderWhyDialog(onDismiss: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Por qué lo preguntamos", style = WizardTypography.cardTitle, color = WizardColors.text) },
-        text = { Text(GENDER_WHY_TEXT, style = WizardTypography.bodySmall, color = WizardColors.textMuted) },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Entendido", color = WizardColors.text) } },
-    )
-}
 
 private object BirthDateVisualTransformation : VisualTransformation {
     override fun filter(text: AnnotatedString): TransformedText {
@@ -773,7 +766,7 @@ fun SetupStepUnitToggle(step: SetupStepId, state: SetupWizardState, vm: SetupWiz
  * - Escribe solo por `setStepChoice`; no se pregunta ni se guarda una identidad aparte.
  *
  * El subtítulo corto lo pinta el Host; el porqué largo vive detrás de
- * «Por qué lo preguntamos» (diálogo), no como párrafo sobre las opciones.
+ * «Por qué lo preguntamos» (nota de vidrio), no como párrafo sobre las opciones.
  */
 @Composable
 private fun SetupEquationSexControl(
@@ -788,8 +781,7 @@ private fun SetupEquationSexControl(
     val unknownOption = definition.option(SetupEquationSexValues.UNKNOWN)
         ?: SetupOptionDefinition(SetupEquationSexValues.UNKNOWN, "No lo sé")
     val hormonalOptions = SetupEquationSexValues.HORMONAL.mapNotNull { value -> definition.option(value) }
-    var whyOpen by rememberSaveable { mutableStateOf(false) }
-    GenderWhyButton(onClick = { whyOpen = true })
+    GenderWhyButton()
     GenderSymbolRow(selected = selected, onSelect = { value -> vm.setStepChoice(step, value) })
     // Sin separación entre la tarjeta y el panel: el aire de arriba del panel va dentro de lo que se
     // anima, así el hueco crece y se cierra con él en vez de aparecer de golpe.
@@ -807,7 +799,6 @@ private fun SetupEquationSexControl(
             onSelect = { value -> vm.setStepChoice(step, value) },
         )
     }
-    if (whyOpen) GenderWhyDialog(onDismiss = { whyOpen = false })
 }
 
 /** Pregunta del panel hormonal. */
