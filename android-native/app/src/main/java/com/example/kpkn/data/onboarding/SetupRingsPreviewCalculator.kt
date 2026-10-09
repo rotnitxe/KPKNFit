@@ -201,14 +201,14 @@ class SetupRingsPreviewCalculator(private val context: Context) {
                 val (floor, guards) = AugeRecoveryEngine.structureInputs(first.muscles, first.articular)
                 AugeRecoveryEngine.invertStructureRingScore(desired, floor, guards)
             }
-            val final = if (columnaBattery == null) first else proposalFor(
+            val settled = if (columnaBattery == null) first else proposalFor(
                 SetupRingsResponseMapping.withRingAdjustments(withoutColumna, null, columnaBattery, emptyMap()),
             )
-            val batteries = AugeRecoveryEngine.calculateGlobalBatteries(history, final.normalized, candidateSettings,
-                catalog, sleep, nutrition, feedbacks, cache, precomputedMuscles = final.muscles,
-                articularBatteries = final.articular, nowOverrideMs = nowMs)
+            val batteries = AugeRecoveryEngine.calculateGlobalBatteries(history, settled.normalized, candidateSettings,
+                catalog, sleep, nutrition, feedbacks, cache, precomputedMuscles = settled.muscles,
+                articularBatteries = settled.articular, nowOverrideMs = nowMs)
             // Columna de Inicio: el mismo blend (`structureRingScore`) sobre la batería cruda, no la cruda sola.
-            val (artFloor, guardScores) = AugeRecoveryEngine.structureInputs(final.muscles, final.articular)
+            val (artFloor, guardScores) = AugeRecoveryEngine.structureInputs(settled.muscles, settled.articular)
             val structure = AugeRecoveryEngine.structureRingScore(batteries.spinal, artFloor, guardScores)
             // Cobertura honesta por canal reutilizando la política de evidencia
             // (mismo cálculo que consume el motor, sin estimadores paralelos).
@@ -221,7 +221,7 @@ class SetupRingsPreviewCalculator(private val context: Context) {
             )
             val coverage = RingsCoverage.evaluate(
                 historyIsEmpty = history.isEmpty(),
-                wellbeing = final.normalized,
+                wellbeing = settled.normalized,
                 contribution = contribution,
                 subjective = checkIn,
                 score = { channel ->
@@ -234,7 +234,7 @@ class SetupRingsPreviewCalculator(private val context: Context) {
             )
             SetupRingsPreview(
                 batteries = batteries,
-                stagedWellbeing = final.incoming,
+                stagedWellbeing = settled.incoming,
                 coverage = coverage,
                 muscleEstimates = autoMuscles.mapValues { (_, status) -> status.recoveryScore },
             )
