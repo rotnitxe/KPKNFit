@@ -17,6 +17,7 @@ import com.example.kpkn.data.onboarding.SetupDraftRepository
 import com.example.kpkn.data.onboarding.SetupDraftResolver
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.domain.onboarding.CompetitionAnswer
 import com.example.kpkn.domain.onboarding.GeneratedPlans
 import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
@@ -262,6 +263,7 @@ class EntrenoWeekLayoutCursorTest {
             SetupStepId.EXPERIENCE -> vm.setStepChoice(SetupStepId.EXPERIENCE, "intermediate")
             SetupStepId.EQUIPMENT -> vm.updateStep(SetupStepId.EQUIPMENT) { it.withPlaces(setOf(TrainingPlace.GYM)) }
             SetupStepId.GOAL -> vm.setGoalProfile(profile)
+            SetupStepId.COMPETITION -> vm.setCompetition(CompetitionAnswer.NO)
             SetupStepId.FRESH_DAY -> vm.setFreshDay(4)
             SetupStepId.WEEKDAYS -> vm.updateStep(SetupStepId.WEEKDAYS) { it.withWeekdays(days) }
             SetupStepId.SESSION_TIME -> vm.setSessionMinutes(60)

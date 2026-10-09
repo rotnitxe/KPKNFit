@@ -31,6 +31,7 @@ import com.example.kpkn.domain.exercises.catalogv2.ExerciseConfigurationV2
 import com.example.kpkn.domain.onboarding.CapabilityLevel
 import com.example.kpkn.domain.onboarding.CapabilityRules
 import com.example.kpkn.domain.onboarding.CapabilitySkill
+import com.example.kpkn.domain.onboarding.CompetitionAnswer
 import com.example.kpkn.domain.onboarding.EquipmentSymbolId
 import com.example.kpkn.domain.onboarding.EquipmentSymbols
 import com.example.kpkn.domain.onboarding.GeneratedPlans
@@ -793,6 +794,7 @@ class EntrenoDeclarationEffectTest {
             SetupStepId.EQUIPMENT -> vm.updateStep(SetupStepId.EQUIPMENT) { it.withPlaces(d.places) }
             SetupStepId.AVAILABILITY -> d.material?.let { material -> vm.updateStep(SetupStepId.AVAILABILITY) { it.withMaterial(material) } }
             SetupStepId.GOAL -> vm.setGoalProfile(d.profile)
+            SetupStepId.COMPETITION -> vm.setCompetition(CompetitionAnswer.NO)
             SetupStepId.FRESH_DAY -> vm.setFreshDay(d.freshDay)
             SetupStepId.WEEKDAYS -> vm.updateStep(SetupStepId.WEEKDAYS) { draft ->
                 val withDays = draft.withWeekdays(d.weekdays)

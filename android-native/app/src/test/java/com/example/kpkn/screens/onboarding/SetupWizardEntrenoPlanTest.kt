@@ -32,6 +32,7 @@ import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.entitlements.PlanLevel
 import com.example.kpkn.domain.onboarding.CapabilityLevel
 import com.example.kpkn.domain.onboarding.CapabilitySkill
+import com.example.kpkn.domain.onboarding.CompetitionAnswer
 import com.example.kpkn.domain.onboarding.EquipmentSymbolId
 import com.example.kpkn.domain.onboarding.EquipmentSymbols
 import com.example.kpkn.domain.onboarding.GeneratedPlans
@@ -817,6 +818,7 @@ class SetupWizardEntrenoPlanTest {
             SetupStepId.EXPERIENCE -> vm.setStepChoice(SetupStepId.EXPERIENCE, "intermediate")
             SetupStepId.EQUIPMENT -> vm.updateStep(SetupStepId.EQUIPMENT) { it.withPlaces(answers.places) }
             SetupStepId.GOAL -> vm.setGoalProfile(answers.profile)
+            SetupStepId.COMPETITION -> vm.setCompetition(CompetitionAnswer.NO)
             SetupStepId.FRESH_DAY -> vm.setFreshDay(answers.freshDay)
             SetupStepId.WEEKDAYS -> vm.updateStep(SetupStepId.WEEKDAYS) { draft ->
                 answers.dayPlaces.entries.fold(draft.withWeekdays(answers.days)) { current, (day, place) -> current.withDayPlace(day, place) }
