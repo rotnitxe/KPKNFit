@@ -21,8 +21,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -35,6 +40,7 @@ import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.data.models.VolumeSystem
 import com.example.kpkn.data.programs.CatalogEntry
+import com.example.kpkn.data.programs.programCoverEntryIdOf
 import com.example.kpkn.screens.programdetail.components.VolumeCalibrationSheet
 import com.example.kpkn.screens.programs.ProgramStats
 import com.example.kpkn.screens.programs.ProgramsViewModel
@@ -42,6 +48,7 @@ import com.example.kpkn.ui.components.EmptyStateView
 import com.example.kpkn.ui.components.SwipeToDeleteCard
 import com.example.kpkn.ui.components.icons.DumbbellIcon
 import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.ui.components.rememberProgramCover
 import kotlinx.coroutines.launch
 
 object ProgramCreationRequests {
@@ -414,6 +421,10 @@ private fun ActiveProgramCard(
     onResume: () -> Unit,
 ) {
     val stats = viewModel.getProgramStats(program)
+    // Portada propia (`assets/program_covers/`) si el programa la tiene: va debajo del contenido de la tarjeta.
+    val coverWidthPx = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.roundToPx() }
+    val cover = rememberProgramCover(programCoverEntryIdOf(program.coverImage), coverWidthPx)
+    val coverPainter = remember(cover) { cover?.let { BitmapPainter(it) } }
 
     val pulseAlpha by rememberInfiniteTransition(label = "pulse").animateFloat(
         initialValue = 0.4f,
@@ -443,6 +454,16 @@ private fun ActiveProgramCard(
             Column(
                 modifier = Modifier
                     .background(programCoverBrush(program.coverImage))
+                    .then(
+                        if (coverPainter == null) {
+                            Modifier
+                        } else {
+                            // Foto recortada y, encima, un velo negro del 35 % al 85 % para leer el texto.
+                            Modifier
+                                .paint(coverPainter, sizeToIntrinsics = false, contentScale = ContentScale.Crop)
+                                .background(Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.35f), Color.Black.copy(alpha = 0.85f))))
+                        },
+                    )
                     .padding(24.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
