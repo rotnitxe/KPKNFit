@@ -6,8 +6,8 @@ import com.example.kpkn.data.protocols.definitions.AuthoredSourceRecord
 import com.example.kpkn.data.protocols.definitions.AuthoredSources
 
 /**
- * Tabla editorial de las 65 entradas del catálogo (diseño editorial §2; las diez últimas son los programas «a
- * medida» del generador de Entreno v2, sin listar): la
+ * Tabla editorial de las 85 entradas del catálogo (diseño editorial §2; las treinta últimas son los programas «a
+ * medida» del generador de Entreno v2, sin listar: diez semanas simples y veinte variantes en bloques o periodizadas): la
  * ÚNICA fuente de texto de usuario, orden y niveles. `PersonalizedPlanCatalog`
  * no escribe títulos, subtítulos ni descripciones: los lee de aquí, y el test
  * `PlanCatalogEditorialContractTest` exige una correspondencia exacta entre los
@@ -329,6 +329,208 @@ internal object PlanEditorialTable {
                     "músculos que elegiste. Se arma con tus días, tu tiempo y tu material, y sirve cuando ningún " +
                     "plan de autor encaja con tu semana.",
                 rank = 709,
+            ),
+        )
+
+        // ── Variantes «en bloques» (6 semanas) y «periodizada» (12) de los «a medida» (punto 12) ──
+        // Rangos: la variante en bloques de cada perfil va en 710–719 y la periodizada en 720–729, en el orden de la simple.
+        add(
+            "generated:strength-muscle:blocks",
+            generatedVariant(
+                displayName = "Escalera de carga",
+                summary = "Seis semanas en dos bloques: tres de acumulación con más volumen, dos de intensificación con " +
+                    "cargas más altas y una de descarga para llegar fresco. Se arma con tu material, tus días y tu tiempo.",
+                rank = 710,
+            ),
+        )
+        add(
+            "generated:strength-muscle:periodized",
+            generatedVariant(
+                displayName = "Temporada de fuerza y masa",
+                summary = "Doce semanas: cinco de acumulación con más volumen, tres de intensificación con cargas más " +
+                    "altas, dos de realización con menos series y más intensidad, una de descarga y una de prueba con " +
+                    "los principales a una serie. Se arma con tu material, tus días y tu tiempo.",
+                rank = 720,
+            ),
+        )
+        add(
+            "generated:hybrid:blocks",
+            generatedVariant(
+                displayName = "Motor y fuerza",
+                summary = "Seis semanas en dos bloques: tres de acumulación con más volumen, dos de intensificación con " +
+                    "cargas más altas y una de descarga en la que el cardio baja a la mitad. Se arma con tu material, " +
+                    "tus días y tu tiempo.",
+                rank = 711,
+            ),
+        )
+        add(
+            "generated:hybrid:periodized",
+            generatedVariant(
+                displayName = "Temporada híbrida",
+                summary = "Doce semanas: cinco de acumulación, tres de intensificación, dos de realización con menos " +
+                    "series y más intensidad, una de descarga en la que el cardio baja a la mitad y una de prueba con " +
+                    "los principales a una serie. Se arma con tu material, tus días y tu tiempo.",
+                rank = 721,
+            ),
+        )
+        add(
+            "generated:functional:blocks",
+            generatedVariant(
+                displayName = "Fuerza para la vida",
+                summary = "Seis semanas en dos bloques: tres de acumulación con más repeticiones, dos de intensificación " +
+                    "con cargas más altas y una de descarga para llegar fresco. Se arma con tu material, tus días y tu " +
+                    "tiempo.",
+                rank = 712,
+            ),
+        )
+        add(
+            "generated:functional:periodized",
+            generatedVariant(
+                displayName = "Temporada funcional",
+                summary = "Doce semanas de cuerpo completo: cinco de acumulación, cinco de intensificación sin llegar al " +
+                    "fallo, una de descarga y una de prueba con los principales a una serie. Se arma con tu material, " +
+                    "tus días y tu tiempo.",
+                rank = 722,
+            ),
+        )
+        add(
+            "generated:calisthenics:blocks",
+            generatedVariant(
+                displayName = "Progresiones en bloques",
+                summary = "Seis semanas en dos bloques: tres de acumulación con más series donde cabe, dos de " +
+                    "intensificación con las series de la semana base y una de descarga con menos series. Solo cambian " +
+                    "las series; la progresión de cada ejercicio se mantiene.",
+                rank = 713,
+            ),
+        )
+        add(
+            "generated:calisthenics:periodized",
+            generatedVariant(
+                displayName = "Ruta de habilidades",
+                summary = "Doce semanas: cinco de acumulación con más series donde cabe, tres de intensificación, dos de " +
+                    "realización con menos series, una de descarga y una de prueba con los principales a una serie. " +
+                    "Solo cambian las series; la progresión de cada ejercicio se mantiene.",
+                rank = 723,
+            ),
+        )
+        add(
+            "generated:armwrestling:blocks",
+            generatedVariant(
+                displayName = "Bloques de mesa",
+                summary = "Seis semanas en dos bloques: tres de acumulación con más series donde cabe, dos de " +
+                    "intensificación con las series de la semana base y una de descarga con menos series. Solo cambian " +
+                    "las series; las repeticiones de cada ejercicio se mantienen.",
+                rank = 714,
+            ),
+        )
+        add(
+            "generated:armwrestling:periodized",
+            generatedVariant(
+                displayName = "Camino a la mesa",
+                summary = "Doce semanas: cinco de acumulación con más series donde cabe, tres de intensificación, dos de " +
+                    "realización con menos series, una de descarga y una de prueba con los principales a una serie. " +
+                    "Solo cambian las series de cada semana.",
+                rank = 724,
+            ),
+        )
+        add(
+            "generated:strongman:blocks",
+            generatedVariant(
+                displayName = "Carga y acarreo",
+                summary = "Seis semanas en dos bloques: tres de acumulación con más volumen de básicos y acarreos, dos de " +
+                    "intensificación con cargas más altas y una de descarga para llegar fresco. Se arma con tu material, " +
+                    "tus días y tu tiempo.",
+                rank = 715,
+            ),
+        )
+        add(
+            "generated:strongman:periodized",
+            generatedVariant(
+                displayName = "Temporada de strongman",
+                summary = "Doce semanas de básicos y acarreos: cinco de acumulación, tres de intensificación, dos de " +
+                    "realización solo con los principales, una de descarga y una de prueba a una serie. Se arma con tu " +
+                    "material, tus días y tu tiempo.",
+                rank = 725,
+            ),
+        )
+        add(
+            "generated:weightlifting-base:blocks",
+            generatedVariant(
+                displayName = "Ondas olímpicas",
+                summary = "Seis semanas en dos bloques: tres de acumulación con más volumen de levantamientos olímpicos, " +
+                    "dos de intensificación con cargas más altas y una de descarga para llegar fresco. Se arma con tu " +
+                    "material, tus días y tu tiempo.",
+                rank = 716,
+            ),
+        )
+        add(
+            "generated:weightlifting-base:periodized",
+            generatedVariant(
+                displayName = "Ciclo de halterofilia",
+                summary = "Doce semanas: cinco de acumulación, tres de intensificación, dos de realización con menos " +
+                    "series y solo con los principales, una de descarga y una de prueba a una serie. Se arma con tu " +
+                    "material, tus días y tu tiempo.",
+                rank = 726,
+            ),
+        )
+        add(
+            "generated:powerlifting:blocks",
+            generatedVariant(
+                displayName = "Ondas de fuerza",
+                summary = "Seis semanas en dos bloques: tres de acumulación con más volumen, dos de intensificación con " +
+                    "cargas más altas y una de descarga para llegar fresco. Si declaraste tus marcas, las cargas de los " +
+                    "básicos salen de ellas.",
+                rank = 717,
+            ),
+        )
+        add(
+            "generated:powerlifting:periodized",
+            generatedVariant(
+                displayName = "Camino al pico",
+                summary = "Doce semanas de sentadilla, banca y peso muerto: cinco de acumulación, tres de intensificación, " +
+                    "dos de realización solo con los básicos, una de descarga y una de prueba a una serie. Si declaraste " +
+                    "tus marcas, las cargas de los básicos salen de ellas.",
+                rank = 727,
+            ),
+        )
+        add(
+            "generated:powerbuilding:blocks",
+            generatedVariant(
+                displayName = "Pesado y bombeado",
+                summary = "Seis semanas en dos bloques: tres de acumulación con más volumen, dos de intensificación con " +
+                    "cargas más altas y una de descarga. Los básicos y el trabajo muscular están en todas las semanas, " +
+                    "aunque la descarga tenga menos series.",
+                rank = 718,
+            ),
+        )
+        add(
+            "generated:powerbuilding:periodized",
+            generatedVariant(
+                displayName = "Temporada powerbuilding",
+                summary = "Doce semanas: cinco de acumulación con más volumen, tres de intensificación con cargas más " +
+                    "altas, dos de realización con menos series y más intensidad, una de descarga y una de prueba con " +
+                    "los principales a una serie. El trabajo muscular sigue en todas las semanas, salvo la de prueba.",
+                rank = 728,
+            ),
+        )
+        add(
+            "generated:bodybuilding:blocks",
+            generatedVariant(
+                displayName = "Bloques de hipertrofia",
+                summary = "Seis semanas en dos bloques: tres de acumulación con más volumen y hasta 15 repeticiones, dos " +
+                    "de intensificación con el volumen de la semana base y una de descarga con menos series. Se arma " +
+                    "con tu material, tus días y tu tiempo.",
+                rank = 719,
+            ),
+        )
+        add(
+            "generated:bodybuilding:periodized",
+            generatedVariant(
+                displayName = "Temporada de culturismo",
+                summary = "Doce semanas: cinco de acumulación con más volumen y hasta 15 repeticiones, cinco de " +
+                    "intensificación con más repeticiones hacia el final, una de descarga y una de prueba con los " +
+                    "principales a una serie. Se arma con tu material, tus días y tu tiempo.",
+                rank = 729,
             ),
         )
 
@@ -1033,6 +1235,20 @@ internal object PlanEditorialTable {
             summary = summary,
             rank = rank,
             terms = setOf(PlanTerm.CYCLE),
+            listed = false,
+        )
+
+    /**
+     * Variante en bloques o periodizada de un programa «a medida» (punto 12): plan propio de KPKN, sin listar. No es un
+     * ciclo que se repite como la semana simple, así que no lleva [PlanTerm.CYCLE]; su término de método es la descarga que
+     * tiene. El término BLOCKS del glosario aún no existe: le falta su entrada en `PlanGlossary`.
+     */
+    private fun generatedVariant(displayName: String, summary: String, rank: Int): PlanEditorial =
+        own(
+            displayName = displayName,
+            summary = summary,
+            rank = rank,
+            terms = setOf(PlanTerm.DELOAD),
             listed = false,
         )
 

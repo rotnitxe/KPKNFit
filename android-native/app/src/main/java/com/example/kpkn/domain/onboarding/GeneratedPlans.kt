@@ -3,6 +3,7 @@ package com.example.kpkn.domain.onboarding
 import com.example.kpkn.data.models.EquipmentAvailability
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.domain.training.generator.RoutineMode
+import com.example.kpkn.domain.training.periodization.ProgramVariant
 
 /**
  * De dónde salen los programas que el paso PLAN ofrece a un perfil de objetivo (Entreno v2).
@@ -29,7 +30,8 @@ enum class PlanCandidateSources {
 
 /**
  * Traducción pura entre el perfil de objetivo, la entrada del catálogo de su programa «a medida»
- * (`generated:<sourceId>`, ver [PersonalizedPlanCatalog.GENERATED_IDS]) y el modo del generador de rutinas.
+ * (`generated:<sourceId>`, ver [PersonalizedPlanCatalog.GENERATED_IDS]; sus variantes `:blocks` y `:periodized`, ver
+ * [PersonalizedPlanCatalog.GENERATED_VARIANT_IDS]) y el modo del generador de rutinas.
  */
 object GeneratedPlans {
 
@@ -62,18 +64,44 @@ object GeneratedPlans {
         TrainingGoalProfile.BODYBUILDING -> RoutineMode.CUSTOM_BODYBUILDING
     }
 
-    /** Id del catálogo del programa «a medida» de [profile] (`generated:strength-muscle`…). */
-    fun entryIdFor(profile: TrainingGoalProfile): String = PersonalizedPlanCatalog.GENERATED_PREFIX + sourceIdOf(modeFor(profile))
+    /**
+     * Id del catálogo del programa «a medida» de [profile] en la variante [variant]: la semana simple sin sufijo
+     * (`generated:strength-muscle`), `…:blocks` o `…:periodized`.
+     */
+    fun entryIdFor(profile: TrainingGoalProfile, variant: ProgramVariant = ProgramVariant.SIMPLE): String =
+        PersonalizedPlanCatalog.generatedIdOf(sourceIdOf(modeFor(profile)), suffixOf(variant))
 
-    /** Modo del generador de la entrada [entryId], o null si no es un programa «a medida». */
-    fun modeOf(entryId: String?): RoutineMode? {
-        val sourceId = entryId?.takeIf { it.startsWith(PersonalizedPlanCatalog.GENERATED_PREFIX) }
-            ?.removePrefix(PersonalizedPlanCatalog.GENERATED_PREFIX) ?: return null
-        return RoutineMode.entries.firstOrNull { sourceIdOf(it) == sourceId }
+    /** Modo del generador de la entrada [entryId] (también de sus variantes), o null si no es un programa «a medida» válido. */
+    fun modeOf(entryId: String?): RoutineMode? = parse(entryId)?.first
+
+    /** Variante de la entrada [entryId]: la simple, sin sufijo, o `:blocks` y `:periodized`. Null si no es un «a medida» válido. */
+    fun variantOf(entryId: String?): ProgramVariant? = parse(entryId)?.second
+
+    /** ¿[entryId] es un programa «a medida» del generador, en cualquiera de sus variantes? */
+    fun isGenerated(entryId: String?): Boolean = modeOf(entryId) != null
+
+    /** Sufijo del id de cada variante; la semana simple no lleva sufijo. */
+    private fun suffixOf(variant: ProgramVariant): String? = when (variant) {
+        ProgramVariant.SIMPLE -> null
+        ProgramVariant.BLOCKS -> PersonalizedPlanCatalog.GENERATED_BLOCKS_SUFFIX
+        ProgramVariant.PERIODIZED -> PersonalizedPlanCatalog.GENERATED_PERIODIZED_SUFFIX
     }
 
-    /** ¿[entryId] es un programa «a medida» del generador? */
-    fun isGenerated(entryId: String?): Boolean = modeOf(entryId) != null
+    /** Modo y variante de un id `generated:<sourceId>[:<sufijo>]`; null si el id no es un programa «a medida» válido. */
+    private fun parse(entryId: String?): Pair<RoutineMode, ProgramVariant>? {
+        val rest = entryId?.takeIf { it.startsWith(PersonalizedPlanCatalog.GENERATED_PREFIX) }
+            ?.removePrefix(PersonalizedPlanCatalog.GENERATED_PREFIX) ?: return null
+        val parts = rest.split(':')
+        if (parts.size > 2) return null
+        val mode = RoutineMode.entries.firstOrNull { sourceIdOf(it) == parts[0] } ?: return null
+        val variant = when (parts.getOrNull(1)) {
+            null -> ProgramVariant.SIMPLE
+            PersonalizedPlanCatalog.GENERATED_BLOCKS_SUFFIX -> ProgramVariant.BLOCKS
+            PersonalizedPlanCatalog.GENERATED_PERIODIZED_SUFFIX -> ProgramVariant.PERIODIZED
+            else -> return null
+        }
+        return mode to variant
+    }
 
     /** Sufijo del id de catálogo de cada modo (el `sourceId` de su entrada). */
     fun sourceIdOf(mode: RoutineMode): String = when (mode) {

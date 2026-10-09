@@ -72,8 +72,10 @@ class GeneratedPlansTest {
             assertTrue("$id: no exige material (el generador decide)", entry.requiredEquipment.isEmpty())
             assertEquals(id, PersonalizedPlanCatalog.lookup(id)?.entry?.id)
         }
-        // Nada que no sea «a medida» se marca como tal.
-        PersonalizedPlanCatalog.entries().filterNot { it.id in PersonalizedPlanCatalog.GENERATED_IDS }.forEach { entry ->
+        // Nada que no sea «a medida» (ni sus variantes en bloques y periodizada) se marca como tal.
+        PersonalizedPlanCatalog.entries()
+            .filterNot { it.id in PersonalizedPlanCatalog.GENERATED_IDS || it.id in PersonalizedPlanCatalog.GENERATED_VARIANT_IDS }
+            .forEach { entry ->
             assertFalse("${entry.id} no es «a medida»", entry.isGenerated)
         }
     }
