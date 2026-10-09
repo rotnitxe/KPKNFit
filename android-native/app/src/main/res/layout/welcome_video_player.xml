@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Reproductor del vídeo de la bienvenida (WelcomeVideoPlayer). La superficie es un TextureView y no la SurfaceView por
+  defecto: un TextureView recibe el recorte redondeado del chasis, la inclinación del carrusel y la opacidad de la
+  página; una SurfaceView se dibuja aparte y las ignora. Sin controles y en zoom se fijan en código.
+-->
+<androidx.media3.ui.PlayerView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:surface_type="texture_view" />

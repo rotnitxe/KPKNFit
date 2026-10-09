@@ -330,7 +330,8 @@ private fun WelcomeScenePane(page: Int, clock: WelcomeSceneClock) {
     val copy = WelcomePages[page]
     val frame = clock.frameOf(page, copy.period, copy.shellFadesLoop)
     WelcomeScaledScene(Modifier.fillMaxSize().graphicsLayer { alpha = frame.alpha }) {
-        WelcomeSceneOf(page, frame.t)
+        // El vídeo de la página corre solo si es la del reloj y el reloj corre (asentada, en primer plano, sin movimiento reducido).
+        WelcomeSceneOf(page, frame.t, playing = clock.page == page && clock.playing)
     }
 }
 

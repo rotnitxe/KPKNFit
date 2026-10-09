@@ -32,5 +32,10 @@
             android:name="com.example.kpkn.debug.WizardHarnessActivity"
             android:exported="true"
             android:theme="@style/Theme.KPKN" />
+        <!-- SOLO DEPURACIÓN: siembra los datos de demostración («Alex») sobre la persona QA ya activada y abre Inicio; no se integra. -->
+        <activity
+            android:name="com.example.kpkn.debug.DemoSeedActivity"
+            android:exported="true"
+            android:theme="@style/Theme.KPKN" />
     </application>
 </manifest>
