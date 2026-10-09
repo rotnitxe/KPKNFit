@@ -33,6 +33,10 @@ Aplica a TODOS los paquetes de la ola «Wizard v3» (24 correcciones del wizard)
   leyendo o editando. Las herramientas de shell expiran a los 10 min: por eso Gradle va en segundo plano. Para saber si terminó, mira
   el final del log (`BUILD SUCCESSFUL` / `BUILD FAILED`), sin sondeos en bucle con `sleep`.
 - Si una prueba ajena a tu cambio falla, no la persigas: anótala en el informe.
+- **Pruebas Compose (Robolectric)**: copia los imports de una prueba que ya exista (p. ej. `screens/onboarding/entreno/EntrenoStepsSmokeTest.kt`).
+  `createComposeRule()` viene de `androidx.compose.ui.test.junit4`. `assertExists()`, `assertDoesNotExist()`, `onAllNodes()` y
+  `onNodeWithTag()` son métodos de la regla o del nodo: se llaman sobre ellos y NO se importan como funciones sueltas (importarlos da
+  «Unresolved reference» y cuesta una compilación entera). `SemanticsMatcher` es `androidx.compose.ui.test.SemanticsMatcher`.
 
 ## Hojas de render (paquetes visuales)
 - Para ver dibujos sin teléfono: pruebas Robolectric con `@GraphicsMode(NATIVE)` que escriben PNG en la carpeta de la variable
