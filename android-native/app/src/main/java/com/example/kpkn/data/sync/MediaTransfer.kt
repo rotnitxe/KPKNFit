@@ -133,6 +133,7 @@ interface SyncMediaTransfer {
     suspend fun download(generation: Long, payload: JsonObject?)
 }
 class MediaTransfer(private val context: Context, private val uid: String, private val session: FirebaseSession) : SyncMediaTransfer {
+    private val mediaWriteSession = com.example.kpkn.data.repository.MediaPersistenceOwner.writes.session()
     private val preferences = context.getSharedPreferences("sync_media_transfer", 0)
     private fun owned() = check(session.auth.currentUser?.uid == uid) { "Media account changed" }
     override suspend fun upload(generation: Long, payload: JsonObject?) = withContext(Dispatchers.IO) {
@@ -158,7 +159,10 @@ class MediaTransfer(private val context: Context, private val uid: String, priva
                     check(preferences.edit().putString(key, uri.toString()).commit())
                 }
             }
-            val executor = java.util.concurrent.Executor { runnable -> com.example.kpkn.data.repository.MediaPersistenceOwner.scope.launch { runnable.run() } }
+            val executor = java.util.concurrent.Executor { runnable ->
+                com.example.kpkn.data.repository.MediaPersistenceOwner.writes.submit(mediaWriteSession) { runnable.run() }
+                Unit
+            }
             var task: UploadTask? = null
             try {
                 OwnedStorageTasks.run {

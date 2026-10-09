@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.settings.DatabaseSnapshotTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-09T04:21:56.723Z" hostname="VF" time="5.437">
+  <properties/>
+  <testcase name="everyRoomTableHasADataClassification" classname="com.example.kpkn.data.settings.DatabaseSnapshotTest" time="0.18"/>
+  <testcase name="invalidFileLeavesAllCurrentDataReadable" classname="com.example.kpkn.data.settings.DatabaseSnapshotTest" time="0.258"/>
+  <testcase name="writeFailureRollsBackRestorationAcrossTables" classname="com.example.kpkn.data.settings.DatabaseSnapshotTest" time="1.261"/>
+  <testcase name="importedProviderHistoryRemainsReadableAndRestorableWithoutTheProvider" classname="com.example.kpkn.data.settings.DatabaseSnapshotTest" time="1.346"/>
+  <testcase name="restorePreservesTheDaoConnectionAndReplacesDataDurably" classname="com.example.kpkn.data.settings.DatabaseSnapshotTest" time="2.391"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[Oct 09, 2026 1:21:57 AM com.almworks.sqlite4java.Internal log
+WARNING: [sqlite] [PRAGMA user_version;]DB[29][C]: exception when clearing
+com.almworks.sqlite4java.SQLiteException: [26] DB[29] reset [file is encrypted or is not a database]
+	at com.almworks.sqlite4java.SQLiteConnection.throwResult(SQLiteConnection.java:1436)
+	at com.almworks.sqlite4java.SQLiteConnection.throwResult(SQLiteConnection.java:1409)
+	at com.almworks.sqlite4java.SQLiteConnection.cacheStatementHandle(SQLiteConnection.java:1338)
+	at com.almworks.sqlite4java.SQLiteConnection.access$900(SQLiteConnection.java:51)
+	at com.almworks.sqlite4java.SQLiteConnection$CachedController.dispose(SQLiteConnection.java:1733)
+	at com.almworks.sqlite4java.SQLiteStatement.dispose(SQLiteStatement.java:187)
+	at org.robolectric.shadows.ShadowLegacySQLiteConnection$Connections.lambda$finalizeStmt$3(ShadowLegacySQLiteConnection.java:554)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+
+]]></system-err>
+</testsuite>

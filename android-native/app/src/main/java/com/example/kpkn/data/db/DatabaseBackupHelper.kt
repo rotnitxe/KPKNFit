@@ -68,7 +68,9 @@ object DatabaseBackupHelper {
             snapshotFile.inputStream().use { input -> java.io.FileOutputStream(stage).use { output ->
                 BoundedInput.copy(input, output, BoundedInput.MAX_DATABASE_BYTES); output.fd.sync()
             } }
-            SQLiteDatabase.openDatabase(stage.absolutePath, null, SQLiteDatabase.OPEN_READONLY).use(::validate)
+            // Native SQLite integrity_check validates FTS4 using internal writes.
+            // Permit those writes only on our isolated copy, never on the import source.
+            SQLiteDatabase.openDatabase(stage.absolutePath, null, SQLiteDatabase.OPEN_READWRITE).use(::validate)
             val imported = KpknDatabase.openIsolated(context, stageName)
             try {
                 val source = imported.openHelper.readableDatabase // migrates and validates Room identity

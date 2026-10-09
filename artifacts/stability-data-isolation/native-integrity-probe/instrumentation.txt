@@ -1,0 +1,25 @@
+INSTRUMENTATION_STATUS: class=com.example.kpkn.data.repository.DataIsolationColdProcessTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+com.example.kpkn.data.repository.DataIsolationColdProcessTest:
+INSTRUMENTATION_STATUS: test=inspectNativeIntegrity
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: kpkn_integrity_probe=before=unable to validate the inverted index for FTS4 table main.global_foods_fts: attempt to write a readonly database; after=unable to validate the inverted index for FTS4 table main.global_foods_fts: attempt to write a readonly database; rollback=unable to validate the inverted index for FTS4 table main.global_foods_fts: attempt to write a readonly database; checkpoint=0,-1,-1; afterCheckpoint=unable to validate the inverted index for FTS4 table main.global_foods_fts: attempt to write a readonly database
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.example.kpkn.data.repository.DataIsolationColdProcessTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=inspectNativeIntegrity
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+
+Time: 1.354
+
+OK (1 test)
+
+
+INSTRUMENTATION_CODE: -1

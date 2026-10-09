@@ -47,8 +47,9 @@ object AppDataSessions {
                 com.example.kpkn.services.diagnostics.KpknDiagnosticStorage.pauseForDataSession()
                 WorkManager.getInstance(context).cancelAllWork().result.get(10, java.util.concurrent.TimeUnit.SECONDS)
                 com.example.kpkn.data.account.AccountSyncWorker.awaitStopped()
-                withTimeout(30_000) {
-                    MediaPersistenceOwner.scope.coroutineContext[Job]?.children?.toList()?.joinAll()
+                MediaPersistenceOwner.writes.pauseAndAwait()
+                check(MediaPersistenceOwner.activeCameraCaptures.isEmpty()) {
+                    "La captura de cámara debe terminar antes de cambiar los datos."
                 }
                 if (coordinator.state.value.let { (it as? DataSessionCoordinator.State.Maintaining)?.operation?.startsWith("export") != true })
                     com.example.kpkn.services.workout.WorkoutRestAlertManager(context).cancelRestAlerts(cancelFinished = true)
@@ -66,6 +67,10 @@ object AppDataSessions {
             }
             override suspend fun reopen() {
                 val context = requireNotNull(currentContext)
+                // Also retire the old singleton when an earlier quiesce step failed.
+                WorkoutMediaRepository.closeInstance()
+                MediaPersistenceOwner.writes.resume()
+                MediaPersistenceOwner.pendingCaptureRetryState.value = com.example.kpkn.data.media.WorkoutMediaPendingCaptureState()
                 AppBootstrap.prepare(context)
                 com.example.kpkn.data.account.AccountGraph.attach(context)
                 withContext(Dispatchers.Main) { _generation.value += 1 }

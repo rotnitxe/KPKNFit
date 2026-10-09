@@ -19,10 +19,14 @@
         "tests-capability-transfer-settings-12/",
         "tests-full-jvm-29/",
         "emulator-export-28/flow/result.json",
-        "android-native/app/src/main/java/com/example/kpkn/services/workout/VoiceProcessDataSession.kt"
+        "android-native/app/src/main/java/com/example/kpkn/services/workout/VoiceProcessDataSession.kt",
+        "../stability-data-isolation/DELIVERY.json",
+        "../stability-data-isolation/fts-final-jvm/result.json",
+        "../stability-data-isolation/native-final/result.json"
       ],
       "dependencies": [
-        "Aislamiento y cambio de cuentas pendientes; falta QA de todos los escritores"
+        "Aislamiento y cambio de cuentas pendientes; falta QA de todos los escritores",
+        "Barrera multimedia y controles de almacenamiento verificados con 42 JVM y 17 pruebas API36; cuatro etapas en PID distintos. El cierre integral del requisito y de todos los escritores/pantallas sigue pendiente."
       ]
     },
     {
@@ -38,10 +42,14 @@
         "gradle-snapshot-release-manifest.log",
         "tests-portable-writers-5/",
         "android-native/app/src/main/java/com/example/kpkn/data/backup/PortableBackup.kt",
-        "tests-deletion-recovery-alias-13/"
+        "tests-deletion-recovery-alias-13/",
+        "../stability-data-isolation/DELIVERY.json",
+        "../stability-data-isolation/fts-final-jvm/result.json",
+        "../stability-data-isolation/native-final/result.json"
       ],
       "dependencies": [
-        "Pruebas de interrupciÃ³n/disco lleno y archivos personales pendientes"
+        "Pruebas de interrupciÃ³n/disco lleno y archivos personales pendientes",
+        "Barrera multimedia y controles de almacenamiento verificados con 42 JVM y 17 pruebas API36; cuatro etapas en PID distintos. El cierre integral del requisito y de todos los escritores/pantallas sigue pendiente."
       ]
     },
     {
@@ -57,10 +65,14 @@
         "gradle-snapshot-release-manifest.log",
         "android-native/app/src/main/java/com/example/kpkn/data/backup/AppBootstrap.kt",
         "result-navigation-36.json",
-        "emulator-navigation-36/export/result.json"
+        "emulator-navigation-36/export/result.json",
+        "../stability-data-isolation/DELIVERY.json",
+        "../stability-data-isolation/fts-final-jvm/result.json",
+        "../stability-data-isolation/native-final/result.json"
       ],
       "dependencies": [
-        "ExportaciÃ³n y reconstrucciÃ³n de navegaciÃ³n comprobadas API36; restauraciÃ³n completa y todos los lectores todavÃ­a requieren QA."
+        "ExportaciÃ³n y reconstrucciÃ³n de navegaciÃ³n comprobadas API36; restauraciÃ³n completa y todos los lectores todavÃ­a requieren QA.",
+        "Barrera multimedia y controles de almacenamiento verificados con 42 JVM y 17 pruebas API36; cuatro etapas en PID distintos. El cierre integral del requisito y de todos los escritores/pantallas sigue pendiente."
       ]
     },
     {
@@ -68,15 +80,19 @@
       "package": "A",
       "requirement": "Respaldo portÃ¡til versionado que incluya todos los datos personales, relaciones, avatar y multimedia mediante identificadores portÃ¡tiles.",
       "code": "PARCIAL",
-      "verification": "PENDIENTE",
+      "verification": "PARCIAL",
       "evidence": [
         "android-native/app/src/main/java/com/example/kpkn/data/settings/SettingsJsonBackup.kt",
         "tests-portable-writers-5/",
         "android-native/app/src/main/java/com/example/kpkn/data/backup/PortableBackup.kt",
-        "tests-portable-28/"
+        "tests-portable-28/",
+        "../stability-data-isolation/DELIVERY.json",
+        "../stability-data-isolation/fts-final-jvm/result.json",
+        "../stability-data-isolation/native-final/result.json"
       ],
       "dependencies": [
-        "Respaldo portable v2 implementado con manifest/hashes, relaciones, avatar, multimedia y recuperaciÃ³n legado; lectura v1. QA completa de dispositivo/interrupciones sigue abierta."
+        "Respaldo portable v2 implementado con manifest/hashes, relaciones, avatar, multimedia y recuperaciÃ³n legado; lectura v1. QA completa de dispositivo/interrupciones sigue abierta.",
+        "Barrera multimedia y controles de almacenamiento verificados con 42 JVM y 17 pruebas API36; cuatro etapas en PID distintos. El cierre integral del requisito y de todos los escritores/pantallas sigue pendiente."
       ]
     },
     {
@@ -137,17 +153,21 @@
       "package": "B",
       "requirement": "Borrado coordinado de base local, preferencias personales, multimedia, snapshots, registros, archivos temporales y trabajos pendientes.",
       "code": "PARCIAL",
-      "verification": "PENDIENTE",
+      "verification": "PARCIAL",
       "evidence": [
         "android-native/app/src/main/java/com/example/kpkn/data/backup/PersonalStorageManifest.kt",
         "android-native/app/src/main/java/com/example/kpkn/data/sync/GuestSourceLedger.kt",
         "tests-gps-maintenance-10/",
         "tests-deletion-recovery-alias-13/",
         "tests-erasure-downloads-27/",
-        "android-native/app/src/main/java/com/example/kpkn/data/backup/PersonalDataErasure.kt"
+        "android-native/app/src/main/java/com/example/kpkn/data/backup/PersonalDataErasure.kt",
+        "../stability-data-isolation/DELIVERY.json",
+        "../stability-data-isolation/fts-final-jvm/result.json",
+        "../stability-data-isolation/native-final/result.json"
       ],
       "dependencies": [
-        "QA de borrado y escritores tardÃ­os pendiente"
+        "QA de borrado y escritores tardÃ­os pendiente",
+        "Barrera multimedia y controles de almacenamiento verificados con 42 JVM y 17 pruebas API36; cuatro etapas en PID distintos. El cierre integral del requisito y de todos los escritores/pantallas sigue pendiente."
       ]
     },
     {
@@ -163,10 +183,14 @@
         "tests-deletion-recovery-alias-13/",
         "tests-api26-callbacks-23/",
         "tests-erasure-downloads-27/",
-        "tests-full-jvm-29/"
+        "tests-full-jvm-29/",
+        "../stability-data-isolation/DELIVERY.json",
+        "../stability-data-isolation/fts-final-jvm/result.json",
+        "../stability-data-isolation/native-final/result.json"
       ],
       "dependencies": [
-        "AUD01 corregido y regresiones API26/API34 aprobadas; QA real de cierre/cambio A-B e interrupciones todavÃ­a pendiente."
+        "AUD01 corregido y regresiones API26/API34 aprobadas; QA real de cierre/cambio A-B e interrupciones todavÃ­a pendiente.",
+        "Barrera multimedia y controles de almacenamiento verificados con 42 JVM y 17 pruebas API36; cuatro etapas en PID distintos. El cierre integral del requisito y de todos los escritores/pantallas sigue pendiente."
       ]
     },
     {
@@ -1131,10 +1155,11 @@
         "../master-integration/result-targeted-3.json",
         "../master-integration/emulator-gallery-3/result.json",
         "../master-integration/node-media-contracts-4-exit.json",
-        "../stability-continuation/validation-final.json"
+        "../stability-continuation/validation-final.json",
+        "../stability-data-isolation/DELIVERY.json"
       ],
       "dependencies": [
-        "Entrega fuente df7: suite54 con 6896 PASS y dos replay reales omitidos; ronda55 con 87 PASS, lint Release sin errores y R8 aprobado sin firma. Arbol combinado con AUD06: 420 PASS JVM dirigidos, 12 contratos Node locales, build debug/AndroidTest aprobado y tres pruebas de galeria en API36. El nuevo arbol no tiene lint/R8 Release propio ni release firmado; aceptacion integral pendiente."
+        "c10 tuvo lint Release con 0 errores, 611 warnings y 39 hints, y minifyReleaseWithR8 aprobado sin firma. La corrección multimedia posterior tiene build Debug/AndroidTest, 42 JVM y 17 pruebas API36 propias; lint/R8 Release de este nuevo árbol y release firmado pendientes."
       ]
     },
     {
@@ -1178,10 +1203,11 @@
         "result-full-jvm-54.json",
         "result-volume-gate-55.json",
         "../stability-continuation/tests-full-13.json",
-        "../stability-continuation/tests-fixture-14.json"
+        "../stability-continuation/tests-fixture-14.json",
+        "../stability-data-isolation/DELIVERY.json"
       ],
       "dependencies": [
-        "Suite completa54: 6896 aprobadas, cero fallos y dos omisiones reales de voz; último ajuste UI55 con 87 regresiones aprobadas. CI remota y corpus real pendientes."
+        "Suite completa del árbol previo a la corrección del fixture Pro: 8061 pruebas, 4 fallos y 6 omisiones. Las 13 pruebas del fixture se aprobaron tras corregirlo, sin nueva ejecución completa. La corrección multimedia posterior cuenta con 42 JVM dirigidas y 17 nativas propias; suite completa del árbol nuevo, corpus real de voz, CI remota y release pendientes."
       ]
     },
     {

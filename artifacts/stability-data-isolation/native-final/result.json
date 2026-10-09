@@ -1,0 +1,80 @@
+{
+  "state": "PASS",
+  "runId": "e49fbd08-f33c-4c44-8008-268caf93054e",
+  "phases": [
+    {
+      "method": "com.example.kpkn.data.repository.WorkoutMediaUriDurabilityInstrumentedTest",
+      "returnCode": 0,
+      "passed": true,
+      "expectedCount": 5,
+      "priorPid": "6198",
+      "absentAfterStop": true,
+      "coldPid": null
+    },
+    {
+      "method": "com.example.kpkn.screens.workout.WorkoutExternalCameraCaptureInstrumentedTest",
+      "returnCode": 0,
+      "passed": true,
+      "expectedCount": 4,
+      "priorPid": "",
+      "absentAfterStop": true,
+      "coldPid": null
+    },
+    {
+      "method": "com.example.kpkn.data.repository.WorkoutMediaLateRetryInstrumentedTest",
+      "returnCode": 0,
+      "passed": true,
+      "expectedCount": 4,
+      "priorPid": "",
+      "absentAfterStop": true,
+      "coldPid": null
+    },
+    {
+      "method": "com.example.kpkn.data.repository.DataIsolationColdProcessTest#phase1SeedAndExport",
+      "returnCode": 0,
+      "passed": true,
+      "expectedCount": 1,
+      "priorPid": "",
+      "absentAfterStop": true,
+      "coldPid": 6542
+    },
+    {
+      "method": "com.example.kpkn.data.repository.DataIsolationColdProcessTest#phase2RestoreInNewProcess",
+      "returnCode": 0,
+      "passed": true,
+      "expectedCount": 1,
+      "priorPid": "",
+      "absentAfterStop": true,
+      "coldPid": 6604
+    },
+    {
+      "method": "com.example.kpkn.data.repository.DataIsolationColdProcessTest#phase3VerifyRestoreExportAndErase",
+      "returnCode": 0,
+      "passed": true,
+      "expectedCount": 1,
+      "priorPid": "",
+      "absentAfterStop": true,
+      "coldPid": 6657
+    },
+    {
+      "method": "com.example.kpkn.data.repository.DataIsolationColdProcessTest#phase4VerifyErasureAndIsolationInNewProcess",
+      "returnCode": 0,
+      "passed": true,
+      "expectedCount": 1,
+      "priorPid": "",
+      "absentAfterStop": true,
+      "coldPid": 6716
+    }
+  ],
+  "limits": "Core backup/profile controls; not account UI, live Firebase, or real Play Billing.",
+  "mainVisible": true,
+  "testCount": 17,
+  "testApkSha256": "ffe43c592eb06f1bae4247c1ec94bf2fbbacf6a55d38c22f0140115ba3bfc91e",
+  "api": "36",
+  "coldPids": [
+    6542,
+    6604,
+    6657,
+    6716
+  ]
+}
