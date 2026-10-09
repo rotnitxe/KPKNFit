@@ -2,6 +2,7 @@ package com.example.kpkn.domain.training.generator
 
 import com.example.kpkn.data.models.CardioIntensity
 import com.example.kpkn.data.models.CardioType
+import com.example.kpkn.domain.onboarding.AvoidGroup
 import com.example.kpkn.domain.onboarding.LiftMark
 import com.example.kpkn.domain.training.CardioPreference
 import kotlin.math.ceil
@@ -93,7 +94,15 @@ internal class GenContext(
 
     val cardioPreference: CardioPreference? get() = request.cardio
     val cardioIntensityOrNull: CardioIntensity? get() = request.cardio?.intensity
-    val preferredCardioType: CardioType? get() = request.cardio?.type
+
+    /** ¿La persona evita correr? El catálogo no tiene definiciones de carrera: se evita el cardio de tipo carrera. */
+    val avoidsRunning: Boolean get() = AvoidGroup.RUNNING in request.avoided
+
+    /** Tipo de cardio declarado; el de carrera no se usa si la persona evita correr. */
+    val preferredCardioType: CardioType? get() = request.cardio?.type?.takeUnless { avoidsRunning && it in RUNNING_CARDIO }
 }
 
 internal enum class RankProfile { STANDARD, LEARNING, FUNCTIONAL, CALISTHENICS }
+
+/** Cardio de tipo carrera (el que «evitar correr» quita de las sesiones). */
+internal val RUNNING_CARDIO: Set<CardioType> = setOf(CardioType.RUN_OUTDOOR)

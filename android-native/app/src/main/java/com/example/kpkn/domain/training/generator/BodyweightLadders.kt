@@ -2,6 +2,7 @@ package com.example.kpkn.domain.training.generator
 
 import com.example.kpkn.domain.onboarding.CapabilityLevel
 import com.example.kpkn.domain.onboarding.CapabilitySkill
+import kotlin.math.roundToInt
 
 /*
  * Escaleras de progresión de peso corporal (dato nuevo, en Kotlin; el catálogo no las trae).
@@ -374,6 +375,23 @@ internal object BodyweightLadders {
             else -> CapabilityLevel.MANY
         }
     }
+
+    /**
+     * Repeticiones objetivo de un peldaño cuando la persona dijo cuántas seguidas le salen (el máximo de su habilidad): el 50–70 %
+     * de ese máximo, redondeado, con mínimo 1 y sin pasar del techo del peldaño (dominadas con máximo 8 → 4–6, aunque el peldaño
+     * pida 5–10). Sin máximo, o sin repeticiones (los isométricos), el peldaño queda como está.
+     */
+    fun repsWithMax(reps: IntRange?, maxReps: Int?): IntRange? {
+        if (reps == null || maxReps == null || maxReps < 1) return reps
+        val top = reps.last
+        val low = (maxReps * MAX_REPS_LOW_SHARE).roundToInt().coerceIn(1, top)
+        val high = (maxReps * MAX_REPS_HIGH_SHARE).roundToInt().coerceIn(low, top)
+        return low..high
+    }
+
+    /** Parte del máximo seguido que marca el tramo de repeticiones de un peldaño: del 50 % al 70 % (propuesta a validar con el usuario). */
+    const val MAX_REPS_LOW_SHARE = 0.5
+    const val MAX_REPS_HIGH_SHARE = 0.7
 
     /** Tramo pedido: la capacidad declarada o, si falta, la que el nivel deja suponer. */
     fun tierFor(ladder: Ladder, capabilities: Map<CapabilitySkill, CapabilityLevel>, level: RoutineLevel): LadderTier {

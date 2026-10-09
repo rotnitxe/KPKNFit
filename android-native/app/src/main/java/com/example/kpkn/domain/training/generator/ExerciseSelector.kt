@@ -1,5 +1,7 @@
 package com.example.kpkn.domain.training.generator
 
+import com.example.kpkn.domain.onboarding.AvoidGroup
+import com.example.kpkn.domain.onboarding.AvoidGroups
 import com.example.kpkn.domain.onboarding.LiftMark
 
 /** Un ejercicio elegido para un hueco, con todo lo que la prescripción y el ensamblado necesitan. */
@@ -193,9 +195,13 @@ internal object ExerciseSelector {
         use: SessionUse,
         region: SessionRegion = SessionRegion.FULL,
         tag: String? = null,
+        honourAvoided: Boolean = true,
     ): List<Candidate> {
         val result = ArrayList<Candidate>()
         val novice = ctx.level == RoutineLevel.NOVICE
+        // «Evitar» se aplica siempre salvo cuando el propio ensamblado pregunta qué bloquea un hueco (`honourAvoided = false`).
+        val avoided: Set<AvoidGroup> = if (honourAvoided) ctx.request.avoided else emptySet()
+        val principal = VariantPools.markedVerticalPushId(ctx, pattern)
         var order = 0
         ctx.groupsFor(pattern).forEachIndexed { groupIndex, group ->
             val allowed = group.entries.mapNotNull { poolEntry ->
@@ -206,13 +212,16 @@ internal object ExerciseSelector {
                 if (novice && entry.difficulty > NOVICE_MAX_DIFFICULTY && !poolEntry.basic) return@mapNotNull null
                 if (entry.id in use.configs || entry.definitionId in use.definitions) return@mapNotNull null
                 if (!equipment.allows(entry, poolEntry.requires)) return@mapNotNull null
+                if (avoidedGroupOf(avoided, entry.definitionId, poolEntry.kind) != null) return@mapNotNull null
                 poolEntry to entry
             }
             if (allowed.isEmpty()) return@forEachIndexed
             val groupBase = tierRank(ctx.rankProfile, allowed.first().second.tier) + group.bias +
                 setupAdjust(allowed.first().second.setupSeconds, ctx.targetMinutes)
             allowed.forEach { (poolEntry, entry) ->
-                val rank = groupBase + roleMismatch(poolEntry.fitsRole, role) + usagePenalty(ctx, entry.id, poolEntry.basic)
+                // El press con barra declarado es el empuje vertical principal: no le pesa el rol de su hueco (ver VariantPools).
+                val mismatch = if (entry.id == principal) 0.0 else roleMismatch(poolEntry.fitsRole, role)
+                val rank = groupBase + mismatch + usagePenalty(ctx, entry.id, poolEntry.basic)
                 result += Candidate(
                     entry = entry,
                     label = poolEntry.variant,
@@ -235,12 +244,33 @@ internal object ExerciseSelector {
             BodyweightLadders.byPattern[pattern].orEmpty()
         }
         ladders.forEachIndexed { ladderIndex, ladder ->
-            ladderCandidates(ladder, ladderIndex, ctx, equipment, use).forEach { candidate ->
+            ladderCandidates(ladder, ladderIndex, ctx, equipment, use, avoided).forEach { candidate ->
                 result += candidate.copy(rank = candidate.rank + order * 1e-7)
                 order++
             }
         }
+        // La variante elegida de un básico va primera en su hueco principal, aunque no esté en el pool del patrón.
+        if (tag == null) VariantPools.mainCandidate(ctx, pattern, role, equipment, use, avoided)?.let { main ->
+            result.removeAll { it.entry.id == main.entry.id }
+            result.add(0, main)
+        }
         return result
+    }
+
+    /**
+     * El grupo de «evitar» que descarta una entrada, o null. Las definiciones del catálogo se comparan con `AvoidGroups`; los saltos
+     * son los ejercicios balísticos o explosivos del selector (el catálogo no trae saltos). Correr no se filtra aquí: es cardio
+     * (ver `GenContext.avoidsRunning`). Se recorren los grupos en su orden para que la nota sea siempre la misma.
+     */
+    internal fun avoidedGroupOf(avoided: Set<AvoidGroup>, definitionId: String, kind: ExKind): AvoidGroup? {
+        if (avoided.isEmpty()) return null
+        return AvoidGroup.entries.firstOrNull { group ->
+            group in avoided && when (group) {
+                AvoidGroup.JUMPS -> kind == ExKind.BALLISTIC
+                AvoidGroup.RUNNING -> false
+                else -> definitionId in AvoidGroups.definitionIdsOf(group)
+            }
+        }
     }
 
     private fun ladderCandidates(
@@ -249,9 +279,12 @@ internal object ExerciseSelector {
         ctx: GenContext,
         equipment: DayEquipment,
         use: SessionUse,
+        avoided: Set<AvoidGroup>,
     ): List<Candidate> {
         val ladderKey = "${ladder.pattern.name}/${ladder.skill?.name}"
         if (ladderKey in use.ladders) return emptyList()
+        // Si la persona dijo cuántas seguidas le salen, sus peldaños llevan el 50–70 % de ese máximo (ver BodyweightLadders).
+        val skillMax = ladder.skill?.let { ctx.request.maxReps[it] }
         val requested = BodyweightLadders.tierFor(ladder, ctx.request.capabilities, ctx.level)
         val tiers = when (requested) {
             LadderTier.HARD -> listOf(LadderTier.HARD, LadderTier.STANDARD, LadderTier.EASY)
@@ -275,6 +308,7 @@ internal object ExerciseSelector {
                 if (novice && entry.difficulty > NOVICE_MAX_DIFFICULTY) continue
                 if (entry.id in use.configs || entry.definitionId in use.definitions) continue
                 if (!equipment.allows(entry, rung.requires)) continue
+                if (avoidedGroupOf(avoided, entry.definitionId, rung.kind) != null) continue
                 val base = ladderRank(ladder, tier, ctx.rankProfile) + offset + (if (firstInTier) 0.0 else 0.15) +
                     usagePenalty(ctx, entry.id, basic = false)
                 out += Candidate(
@@ -284,7 +318,7 @@ internal object ExerciseSelector {
                     basic = false,
                     mark = null,
                     markFactor = 1.0,
-                    reps = rung.reps,
+                    reps = BodyweightLadders.repsWithMax(rung.reps, skillMax),
                     seconds = rung.seconds,
                     rank = base,
                     groupId = "l$ladderIndex${tier.name}",
