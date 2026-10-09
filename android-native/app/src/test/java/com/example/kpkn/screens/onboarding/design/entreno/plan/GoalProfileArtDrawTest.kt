@@ -93,6 +93,12 @@ class GoalProfileArtDrawTest {
     }
 
     @Test
+    fun thePowerbuildingSymbolIsTheFlexSceneInListAndCover() {
+        assertTrue(goalArt(TrainingGoalProfile.POWERBUILDING) is PowerbuildingFlexArt)
+        assertTrue(goalCoverArt(TrainingGoalProfile.POWERBUILDING) is PowerbuildingFlexArt)
+    }
+
+    @Test
     fun theWeightliftingPoseKeepsTheBarOverheadAtTheLockout() {
         val art = goalArt(TrainingGoalProfile.WEIGHTLIFTING) as WeightliftingArt
         assertTrue(art.barY(art.restT) < 15f)
