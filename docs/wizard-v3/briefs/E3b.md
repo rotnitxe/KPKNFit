@@ -5,6 +5,12 @@ Worktree indicado en tu encargo, rama `v3/e3b` (sale de `feat/wizard-v3` con C1 
 `InitialRecoveryEvidenceFactory.fromInputsV2`, `RingsLiftPattern`, `RingsMuscleGroup`). Las pantallas son de E3c: aquí solo datos, ruta,
 reductores, validación, resúmenes, mapeo y setters.
 
+**API real que dejó E3a** (integrado): `InitialRecoveryEvidenceFactory.fromInputsV2(capturedAtMs, zone: ZoneId, trainedDays: Set<Int>,
+intensity, lifts: Set<RingsLiftPattern>, groupSets: Map<RingsMuscleGroup, Int>, sensations = InitialRecoverySensations(), sourceId =
+"initial-recovery")`; enums `RingsLiftPattern { SQUAT, DEADLIFT, HINGE_ROW, BENCH, OVERHEAD, PULL_UP, LUNGE, CARDIO_LONG, INTERVALS }` y
+`RingsMuscleGroup(label) { CHEST, BACK, SHOULDERS, ARMS, LEGS, CORE }` en `data/models/InitialRecoveryEvidence.kt`. Sin días entrenados, las
+sensaciones declaradas se aplican como penalización por canal (no las ocultes en «No entrené»: siguen preguntándose).
+
 ## Contexto (verificado)
 - Ruta de RINGS: `domain/onboarding/SetupStepGraph.kt:422-439` (hoy `RINGS_RECENT` → [`SESSIONS`, `RECENCY`, `ACTIVITY`, `INTENSITY`, `AXIAL`]
   → tres pantallas de sensaciones → `DISCOMFORT` → `RESULT` → hito).
