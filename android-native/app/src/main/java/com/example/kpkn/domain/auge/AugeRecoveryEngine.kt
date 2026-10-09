@@ -1238,8 +1238,17 @@ object AugeRecoveryEngine {
         val estimated = muscularEstimated || systemEstimated || structureEstimated
         fun combine(real: Int, initial: Int?, enabled: Boolean, minimum: Int): Int =
             if (enabled && initial != null) (real - (100 - initial)).coerceIn(minimum, 100) else real
+        // Con evidencia v2 y los pilares de precomputedMuscles (getPerMuscleBatteries), la parte muscular ya está
+        // dentro de los pilares: no restarla otra vez.
+        val initialInPillars = precomputedMuscles != null &&
+            PILLAR_MUSCLES.all { it in precomputedMuscles } &&
+            (settings.initialRecoveryEvidence?.estimatorVersion ?: 0) >= 2
         return GlobalBatteries(
-            muscular = combine(finalMuscular, initialContribution.muscular, muscularEstimated, floor.muscular),
+            muscular = if (initialInPillars) {
+                finalMuscular
+            } else {
+                combine(finalMuscular, initialContribution.muscular, muscularEstimated, floor.muscular)
+            },
             cnc = combine(finalCnc, initialContribution.system, systemEstimated, floor.cns),
             spinal = combine(finalSpinal, initialContribution.structure, structureEstimated, floor.spinal),
             sourceLabel = when {

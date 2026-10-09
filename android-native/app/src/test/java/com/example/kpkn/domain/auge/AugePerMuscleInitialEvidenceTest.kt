@@ -10,9 +10,11 @@ import com.example.kpkn.data.models.RingsMuscleGroup
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.models.WorkoutLog
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.LocalDate
 import java.time.ZoneId
+import kotlin.math.abs
 
 class AugePerMuscleInitialEvidenceTest {
     private val zone = ZoneId.of("Europe/Madrid")
@@ -71,5 +73,53 @@ class AugePerMuscleInitialEvidenceTest {
         )
         assertEquals(100, perMuscle(legsEvidenceV2(), history = listOf(log)).getValue("Cuádriceps").recoveryScore)
         assertEquals(88, perMuscle(legsEvidenceV2()).getValue("Cuádriceps").recoveryScore)
+    }
+
+    @Test
+    fun v2GlobalMuscularCountsOnceWithOrWithoutPrecomputedMuscles() {
+        val settings = Settings(initialRecoveryEvidence = legsEvidenceV2())
+        val withPillars = AugeRecoveryEngine.calculateGlobalBatteries(
+            history = emptyList(),
+            wellbeing = null,
+            settings = settings,
+            precomputedMuscles = perMuscle(legsEvidenceV2()),
+            nowOverrideMs = capture,
+        )
+        val withoutPillars = AugeRecoveryEngine.calculateGlobalBatteries(
+            history = emptyList(),
+            wellbeing = null,
+            settings = settings,
+            nowOverrideMs = capture,
+        )
+        // Si la evidencia se restara dos veces con precomputedMuscles, daría 97 frente a 99.
+        assertTrue(abs(withPillars.muscular - withoutPillars.muscular) <= 1)
+    }
+
+    @Test
+    fun v1GlobalMuscularKeepsItsCombinationWithOrWithoutPrecomputedMuscles() {
+        val v1 = InitialRecoveryEvidenceFactory.fromInputs(
+            capturedAtMs = capture,
+            recencyDays = 1,
+            sessions = 3,
+            type = InitialRecoveryActivityType.STRENGTH,
+            intensity = InitialRecoveryIntensity.HARD,
+        )
+        val settings = Settings(initialRecoveryEvidence = v1)
+        val withPillars = AugeRecoveryEngine.calculateGlobalBatteries(
+            history = emptyList(),
+            wellbeing = null,
+            settings = settings,
+            precomputedMuscles = perMuscle(v1),
+            nowOverrideMs = capture,
+        )
+        val withoutPillars = AugeRecoveryEngine.calculateGlobalBatteries(
+            history = emptyList(),
+            wellbeing = null,
+            settings = settings,
+            nowOverrideMs = capture,
+        )
+        // Ley v1: 100 − 23 = 77, en ambos caminos (la v1 no entra en los pilares).
+        assertEquals(77, withPillars.muscular)
+        assertEquals(77, withoutPillars.muscular)
     }
 }
