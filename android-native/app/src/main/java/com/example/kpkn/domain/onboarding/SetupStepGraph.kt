@@ -68,7 +68,10 @@ enum class SetupStepId {
     NUTRITION_TARGET, NUTRITION_HISTORY_CONTEXT, NUTRITION_ACTIVITY,
     NUTRITION_MANUAL_CALORIES, NUTRITION_MANUAL_CARBS_FAT,
     NUTRITION_DISTRIBUTION, NUTRITION_WEIGH_INS, NUTRITION_RESULT, MILESTONE_NUTRITION,
-    // Rings
+    // Rings (v2): intro, días, ejercicios principales, series por grupo, intensidad, sensaciones en una pantalla y molestias.
+    // RINGS_RECENT, RINGS_SESSIONS, RINGS_RECENCY, RINGS_ACTIVITY, RINGS_AXIAL y las tres sensaciones sueltas salieron de la
+    // ruta: solo siguen para leer borradores antiguos.
+    RINGS_INTRO, RINGS_SESSION_DAYS, RINGS_MAIN_LIFTS, RINGS_GROUP_SETS, RINGS_FEELINGS,
     RINGS_RECENT, RINGS_SESSIONS, RINGS_RECENCY, RINGS_ACTIVITY, RINGS_INTENSITY,
     RINGS_AXIAL, RINGS_MUSCLE_FEELING, RINGS_ENERGY_FEELING, RINGS_STRUCTURE_FEELING,
     RINGS_DISCOMFORT, RINGS_RESULT, MILESTONE_RINGS,
@@ -118,6 +121,13 @@ data class SetupStepContext(
     val nutritionStarted: Boolean = true,
     val ringsAction: String? = null,
     val recentTraining: Boolean? = null,
+    /**
+     * RINGS: hubo días entrenados declarados. Solo entonces la ruta pregunta los ejercicios principales y la intensidad
+     * («No entrené» y «No lo recuerdo» no preguntan detalle).
+     */
+    val ringsTrainedDays: Boolean = false,
+    /** RINGS: hubo un día entrenado en las últimas 72 h (hoy, ayer o anteayer); solo entonces se preguntan las series por grupo. */
+    val ringsTrainedLast72h: Boolean = false,
     // New minimal route data (defaults keep the normal FULL route intact).
     /** Inventory groups whose steps are included (legacy: the wizard no longer asks stock). */
     val inventoryGroups: Set<SetupInventoryGroup> = emptySet(),
@@ -229,6 +239,11 @@ object SetupStepGraph {
         SetupStepId.NUTRITION_WEIGH_INS to SetupWizardBlock.NUTRITION,
         SetupStepId.NUTRITION_RESULT to SetupWizardBlock.NUTRITION,
         SetupStepId.MILESTONE_NUTRITION to SetupWizardBlock.NUTRITION,
+        SetupStepId.RINGS_INTRO to SetupWizardBlock.RINGS,
+        SetupStepId.RINGS_SESSION_DAYS to SetupWizardBlock.RINGS,
+        SetupStepId.RINGS_MAIN_LIFTS to SetupWizardBlock.RINGS,
+        SetupStepId.RINGS_GROUP_SETS to SetupWizardBlock.RINGS,
+        SetupStepId.RINGS_FEELINGS to SetupWizardBlock.RINGS,
         SetupStepId.RINGS_RECENT to SetupWizardBlock.RINGS,
         SetupStepId.RINGS_SESSIONS to SetupWizardBlock.RINGS,
         SetupStepId.RINGS_RECENCY to SetupWizardBlock.RINGS,
@@ -479,21 +494,18 @@ object SetupStepGraph {
                 add(SetupStepId.MILESTONE_NUTRITION)
             }
         }
-        // Bloque 4: Rings (obligatorio; se pregunta siempre, sin salto inicial)
+        // Bloque 4: Rings (obligatorio; se pregunta siempre). Primero la intro y los días; con días entrenados, los ejercicios
+        // principales y la intensidad, y las series por grupo solo si hubo un día en las últimas 72 h. Las sensaciones y las
+        // molestias SIEMPRE: desconocer el historial no es no entrenar.
         if (context.includeRings) {
-            add(SetupStepId.RINGS_RECENT)
-            // Evidencia de historial SOLO si el entrenamiento reciente es conocido("sí").
-            if (context.recentTraining == true) {
-                addAll(listOf(
-                    SetupStepId.RINGS_SESSIONS, SetupStepId.RINGS_RECENCY, SetupStepId.RINGS_ACTIVITY,
-                    SetupStepId.RINGS_INTENSITY, SetupStepId.RINGS_AXIAL,
-                ))
+            add(SetupStepId.RINGS_INTRO)
+            add(SetupStepId.RINGS_SESSION_DAYS)
+            if (context.ringsTrainedDays) {
+                add(SetupStepId.RINGS_MAIN_LIFTS)
+                if (context.ringsTrainedLast72h) add(SetupStepId.RINGS_GROUP_SETS)
+                add(SetupStepId.RINGS_INTENSITY)
             }
-            // Sensaciones y molestias SIEMPRE: desconocer el historial no es no entrenar.
-            addAll(listOf(
-                SetupStepId.RINGS_MUSCLE_FEELING, SetupStepId.RINGS_ENERGY_FEELING,
-                SetupStepId.RINGS_STRUCTURE_FEELING, SetupStepId.RINGS_DISCOMFORT,
-            ))
+            addAll(listOf(SetupStepId.RINGS_FEELINGS, SetupStepId.RINGS_DISCOMFORT))
             add(SetupStepId.RINGS_RESULT)
             add(SetupStepId.MILESTONE_RINGS)
         }

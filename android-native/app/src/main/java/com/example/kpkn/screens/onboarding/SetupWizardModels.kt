@@ -16,6 +16,8 @@ import com.example.kpkn.data.models.PowerliftingProfile
 import com.example.kpkn.data.models.VolumeRecommendation
 import com.example.kpkn.data.models.CalibrationResponseState
 import com.example.kpkn.data.models.InitialRecoveryAxialExposure
+import com.example.kpkn.data.models.RingsLiftPattern
+import com.example.kpkn.data.models.RingsMuscleGroup
 import com.example.kpkn.data.models.InitialRecoveryMuscleScope
 import com.example.kpkn.data.models.VolumeCalibrationProfile
 import com.example.kpkn.data.models.TrainingStyle
@@ -43,6 +45,11 @@ import com.example.kpkn.domain.onboarding.TrainingGoalProfile
 import com.example.kpkn.domain.onboarding.TrainingGoalRequirements
 import com.example.kpkn.domain.onboarding.TrainingPlace
 import com.example.kpkn.domain.onboarding.RingsCoverage
+import com.example.kpkn.domain.onboarding.RingsDiscomfortResponse
+import com.example.kpkn.domain.onboarding.RingsMainLiftsState
+import com.example.kpkn.domain.onboarding.RingsSessionDaysState
+import com.example.kpkn.domain.onboarding.SetupRingsInput
+import com.example.kpkn.domain.onboarding.SetupRingsMapper
 import com.example.kpkn.domain.onboarding.PlanRejectionReason
 import com.example.kpkn.domain.onboarding.PlanRepair
 import com.example.kpkn.domain.onboarding.SetupAnswerProvenance
@@ -340,9 +347,55 @@ data class SetupRingsAnswers(
     val discomfortIds: List<String> = emptyList(),
     val discomfortState: SetupDiscomfortState = SetupDiscomfortState.NOT_ANSWERED,
     val activityTypeState: com.example.kpkn.data.models.InitialRecoveryResponseState = com.example.kpkn.data.models.InitialRecoveryResponseState.UNKNOWN,
+    // ── RINGS v2 («¿Qué días?», «¿Qué ejercicios?», series por grupo). Todo con valor por defecto: los borradores viejos
+    // no traen estos campos y se mapean con la ley v1 (ver `toMapperInput`).
+    /** Días entrenados de la última semana, 0 = hoy … 6. Solo tiene sentido con [sessionDaysState] DECLARED. */
+    val trainedDayOffsets: Set<Int> = emptySet(),
+    val sessionDaysState: RingsSessionDaysState = RingsSessionDaysState.NOT_ANSWERED,
+    val mainLifts: Set<RingsLiftPattern> = emptySet(),
+    val mainLiftsState: RingsMainLiftsState = RingsMainLiftsState.NOT_ANSWERED,
+    /** Series por grupo (0–20); los grupos con «No lo sé» no figuran aquí y van en [groupSetsUnknown]. */
+    val groupSets: Map<RingsMuscleGroup, Int> = emptyMap(),
+    val groupSetsUnknown: Set<RingsMuscleGroup> = emptySet(),
 )
 
 typealias InitialRingsAnswers = SetupRingsAnswers
+
+/**
+ * Entrada del mapeo de RINGS (dominio) desde las respuestas del borrador. Un borrador sin la pregunta de días
+ * ([RingsSessionDaysState.NOT_ANSWERED]) llega con los mismos campos de siempre y se mapea con la ley v1.
+ */
+internal fun SetupRingsAnswers.toMapperInput(): SetupRingsInput = SetupRingsInput(
+    startAction = startAction,
+    recentTraining = recentTraining,
+    recentTrainingUnknown = recentTrainingState == SetupRecentTrainingState.UNKNOWN,
+    sessions = sessionsLastSevenDays,
+    // Dato de la última sesión; el campo antiguo de recencia solo queda para borradores anteriores.
+    recencyDays = lastSessionRecencyDays ?: recencyDays,
+    activityType = activityType,
+    intensity = intensityLevel,
+    muscleFeeling = muscleFeeling,
+    energy = energy,
+    structureFeeling = structureFeeling,
+    axialState = axialExposure.state,
+    axialSessions = axialExposure.sessions,
+    axialIntensity = intensityLevel,
+    muscleScope = muscleScope,
+    selectedMuscles = recentMuscles.toList(),
+    discomfortIds = discomfortIds,
+    capturedAtMs = capturedAtMs,
+    // NONE (lista vacía explícita) es distinto de no informado/omitido.
+    discomfortResponse = when (discomfortState) {
+        SetupDiscomfortState.NONE -> RingsDiscomfortResponse.NONE
+        SetupDiscomfortState.DECLARED -> RingsDiscomfortResponse.DECLARED
+        SetupDiscomfortState.OMITTED -> RingsDiscomfortResponse.OMITTED
+        SetupDiscomfortState.NOT_ANSWERED -> RingsDiscomfortResponse.NOT_ANSWERED
+    },
+    daysState = sessionDaysState,
+    trainedDays = trainedDayOffsets,
+    mainLifts = mainLifts,
+    groupSets = groupSets,
+)
 
 @Serializable
 data class SetupWizardDraft(
@@ -547,6 +600,10 @@ fun SetupWizardDraft.stepContext(): SetupStepContext = SetupStepContext(
     nutritionStarted = includeNutrition && nutritionMode == "create",
     ringsAction = ringsAnswers?.startAction,
     recentTraining = ringsAnswers?.recentTraining,
+    ringsTrainedDays = ringsAnswers?.sessionDaysState == RingsSessionDaysState.DECLARED &&
+        ringsAnswers?.trainedDayOffsets.orEmpty().isNotEmpty(),
+    ringsTrainedLast72h = ringsAnswers?.sessionDaysState == RingsSessionDaysState.DECLARED &&
+        ringsAnswers?.trainedDayOffsets.orEmpty().any { it <= SetupRingsMapper.GROUP_SETS_MAX_DAYS_BACK },
     inventoryGroups = inventoryGroups(),
     nutritionStartChoice = stepSelections[SetupStepId.NUTRITION_START]?.firstOrNull()
         ?: nutritionDraft?.configurationMode?.name?.lowercase(),
@@ -1685,6 +1742,24 @@ object SetupWizardValidation {
                     else -> ok("weighIns")
                 }
             }
+            // RINGS v2: la intro no declara nada; los días y los ejercicios piden su respuesta («No entrené», «No lo recuerdo»,
+            // «Ninguno de estos» y «No lo sé» la valen); las series y las sensaciones son omitibles.
+            SetupStepId.RINGS_INTRO -> ok("intro")
+            SetupStepId.RINGS_SESSION_DAYS -> when (draft.ringsAnswers?.sessionDaysState) {
+                RingsSessionDaysState.DECLARED -> if (draft.ringsAnswers?.trainedDayOffsets.orEmpty().isNotEmpty()) ok("sessionDays")
+                    else absent("sessionDays", "Marca los días que entrenaste, «No entrené» o «No lo recuerdo»")
+                RingsSessionDaysState.NONE, RingsSessionDaysState.UNKNOWN -> ok("sessionDays")
+                RingsSessionDaysState.NOT_ANSWERED, null ->
+                    absent("sessionDays", "Marca los días que entrenaste, «No entrené» o «No lo recuerdo»")
+            }
+            SetupStepId.RINGS_MAIN_LIFTS -> when (draft.ringsAnswers?.mainLiftsState) {
+                RingsMainLiftsState.DECLARED -> if (draft.ringsAnswers?.mainLifts.orEmpty().isNotEmpty()) ok("mainLifts")
+                    else absent("mainLifts", "Elige un ejercicio, «Ninguno de estos» o «No lo sé»")
+                RingsMainLiftsState.NONE, RingsMainLiftsState.UNKNOWN -> ok("mainLifts")
+                RingsMainLiftsState.NOT_ANSWERED, null -> absent("mainLifts", "Elige un ejercicio, «Ninguno de estos» o «No lo sé»")
+            }
+            SetupStepId.RINGS_GROUP_SETS -> ok("groupSets")
+            SetupStepId.RINGS_FEELINGS -> ok("feelings")
             SetupStepId.RINGS_START -> if (draft.isAnswered(step)) ok("startAction") else absent("startAction", "Elige cómo situar tus RINGS")
             SetupStepId.RINGS_RECENT -> when (draft.ringsAnswers?.recentTrainingState) {
                 null, SetupRecentTrainingState.NOT_ANSWERED ->

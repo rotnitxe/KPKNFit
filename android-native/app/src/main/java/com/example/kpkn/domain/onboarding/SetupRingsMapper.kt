@@ -10,9 +10,24 @@ import com.example.kpkn.data.models.InitialRecoveryMuscleScope
 import com.example.kpkn.data.models.InitialRecoveryResponseState
 import com.example.kpkn.data.models.InitialRecoverySensations
 import com.example.kpkn.data.models.ManualMuscleBatteryOverride
+import com.example.kpkn.data.models.RingsLiftPattern
+import com.example.kpkn.data.models.RingsMuscleGroup
 import com.example.kpkn.data.models.WellbeingSource
+import java.time.ZoneId
+import kotlinx.serialization.Serializable
 
 enum class RingsCompletion { INCOMPLETE, UNKNOWN, PRESERVE, OMITTED, VALID }
+
+/**
+ * Respuesta a «¿Qué días entrenaste?» (RINGS v2). [NOT_ANSWERED] es el borrador sin esa pregunta (o sin responder): se mapea
+ * con la ley de siempre. [NONE] es «No entrené»; [UNKNOWN], «No lo recuerdo».
+ */
+@Serializable
+enum class RingsSessionDaysState { NOT_ANSWERED, DECLARED, NONE, UNKNOWN }
+
+/** Respuesta a «¿Qué ejercicios principales hiciste?» (RINGS v2). [NONE] es «Ninguno de estos»; [UNKNOWN], «No lo sé». */
+@Serializable
+enum class RingsMainLiftsState { NOT_ANSWERED, DECLARED, NONE, UNKNOWN }
 
 /**
  * Evidencia histórica declarada en el alta. [UNKNOWN] es desconocimiento:
@@ -84,6 +99,14 @@ data class SetupRingsInput(
     val discomfortIds: List<String> = emptyList(),
     val capturedAtMs: Long? = null,
     val discomfortResponse: RingsDiscomfortResponse = RingsDiscomfortResponse.NOT_ANSWERED,
+    /** RINGS v2: respuesta de días. [RingsSessionDaysState.NOT_ANSWERED] (borrador v1) mapea con la ley de siempre. */
+    val daysState: RingsSessionDaysState = RingsSessionDaysState.NOT_ANSWERED,
+    /** RINGS v2: días entrenados, 0 = hoy … 6. */
+    val trainedDays: Set<Int> = emptySet(),
+    /** RINGS v2: ejercicios principales (vacío con «Ninguno de estos» o «No lo sé»). */
+    val mainLifts: Set<RingsLiftPattern> = emptySet(),
+    /** RINGS v2: series por grupo; los grupos con «No lo sé» no figuran. */
+    val groupSets: Map<RingsMuscleGroup, Int> = emptyMap(),
 )
 
 data class SetupRingsMapping(
@@ -111,13 +134,26 @@ data class SetupRingsMapping(
 }
 
 object SetupRingsMapper {
-    fun map(input: SetupRingsInput, nowMs: Long): SetupRingsMapping {
+    /** Días hacia atrás (0 = hoy) que cuentan como «últimas 72 h» para pedir las series por grupo: hoy, ayer y anteayer. */
+    const val GROUP_SETS_MAX_DAYS_BACK: Int = 2
+
+    /**
+     * [zone] fecha los días declarados de RINGS v2 (ver `InitialRecoveryEvidenceFactory.fromInputsV2`); el ViewModel pasa la
+     * del sistema y el núcleo no lee el reloj del dispositivo. Sin respuesta de días ([RingsSessionDaysState.NOT_ANSWERED])
+     * el mapeo es exactamente el de siempre (ley v1).
+     */
+    fun map(input: SetupRingsInput, nowMs: Long, zone: ZoneId = ZoneId.systemDefault()): SetupRingsMapping {
         val action = input.startAction?.trim()?.lowercase()
         val checkIn = SetupRingsCheckIn(input.muscleFeeling, input.energy, input.structureFeeling)
-        val historyState = when {
-            input.recentTrainingUnknown || input.recentTraining == null -> RingsHistoryState.UNKNOWN
-            input.recentTraining == false -> RingsHistoryState.DECLARED_ABSENT
-            else -> RingsHistoryState.DECLARED
+        val historyState = when (input.daysState) {
+            RingsSessionDaysState.DECLARED -> RingsHistoryState.DECLARED
+            RingsSessionDaysState.NONE -> RingsHistoryState.DECLARED_ABSENT
+            RingsSessionDaysState.UNKNOWN -> RingsHistoryState.UNKNOWN
+            RingsSessionDaysState.NOT_ANSWERED -> when {
+                input.recentTrainingUnknown || input.recentTraining == null -> RingsHistoryState.UNKNOWN
+                input.recentTraining == false -> RingsHistoryState.DECLARED_ABSENT
+                else -> RingsHistoryState.DECLARED
+            }
         }
         val discomfortIds = input.discomfortIds.distinct()
         val discomfortResponse = when {
@@ -178,6 +214,47 @@ object SetupRingsMapper {
             evidenceHandling = RingsEvidenceHandling.UNCHANGED,
             capturedAtMs = if (checkIn.isDeclared) input.capturedAtMs ?: nowMs else input.capturedAtMs,
         )
+        // RINGS v2: días declarados o «No entrené» → evidencia por días con las curvas del motor. Las sensaciones penalizan
+        // cada canal también sin días. «No lo recuerdo» ya salió arriba como historial desconocido.
+        if (input.daysState == RingsSessionDaysState.DECLARED || input.daysState == RingsSessionDaysState.NONE) {
+            val capturedAt = input.capturedAtMs ?: nowMs
+            val sensations = InitialRecoverySensations(input.muscleFeeling, input.energy, input.structureFeeling)
+            val evidence = if (input.daysState == RingsSessionDaysState.NONE) {
+                InitialRecoveryEvidenceFactory.fromInputsV2(
+                    capturedAtMs = capturedAt,
+                    zone = zone,
+                    trainedDays = emptySet(),
+                    intensity = InitialRecoveryIntensity.MODERATE,
+                    lifts = emptySet(),
+                    groupSets = emptyMap(),
+                    sensations = sensations,
+                )
+            } else {
+                // Con días hacen falta la intensidad y al menos un día; si no, el alta queda incompleta (el check-in se conserva).
+                val intensity = input.intensity ?: return incompleteHistory()
+                if (input.trainedDays.isEmpty()) return incompleteHistory()
+                InitialRecoveryEvidenceFactory.fromInputsV2(
+                    capturedAtMs = capturedAt,
+                    zone = zone,
+                    trainedDays = input.trainedDays,
+                    intensity = intensity,
+                    lifts = input.mainLifts,
+                    groupSets = input.groupSets,
+                    sensations = sensations,
+                )
+            }
+            return SetupRingsMapping(
+                completion = RingsCompletion.VALID,
+                evidence = evidence,
+                discomfortIds = discomfortIds,
+                historyState = historyState,
+                checkIn = checkIn,
+                discomfortResponse = discomfortResponse,
+                calibration = RingsCalibration.FULL_EVIDENCE,
+                evidenceHandling = RingsEvidenceHandling.SET,
+                capturedAtMs = capturedAt,
+            )
+        }
         val recent = input.recentTraining
         val sessions = if (recent == false) 0 else input.sessions?.takeIf { it in 1..7 } ?: return incompleteHistory()
         val recency = if (recent == false) 0 else input.recencyDays?.takeIf { it in 0..6 } ?: return incompleteHistory()
