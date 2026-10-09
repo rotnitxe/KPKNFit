@@ -35,6 +35,7 @@ import com.example.kpkn.domain.training.generator.GeneratedRoutine
 import com.example.kpkn.domain.training.generator.RoutineGenerationException
 import com.example.kpkn.domain.training.generator.RoutineGenerator
 import com.example.kpkn.domain.training.generator.RoutineMode
+import com.example.kpkn.domain.training.periodization.ProgramVariant
 import com.example.kpkn.data.splits.SPLIT_TEMPLATES
 import com.example.kpkn.domain.training.split.CatalogExerciseTraitResolver
 import com.example.kpkn.domain.training.split.ExerciseTraitResolver
@@ -1538,6 +1539,8 @@ class SetupWizardViewModel @JvmOverloads constructor(
         val rejections: List<SetupCandidateRejection>,
         /** El `Ready` de cada viable (programa preparado): de él sale el revelado. */
         val ready: Map<String, PlanCandidateEvaluation.Ready> = emptyMap(),
+        /** D2c: las notas que trajo el periodizador para cada variante viable (las enseña el detalle de la variante). */
+        val notes: Map<String, List<String>> = emptyMap(),
     ) {
         /** §15.2: evaluados = viables + no viables; NO «publicados» filtrados. */
         val counts: SetupCandidateCounts
@@ -1553,6 +1556,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
             viable = (viable + other.viable).distinctBy { it.id },
             rejections = rejections + other.rejections,
             ready = other.ready + ready,
+            notes = other.notes + notes,
         )
 
         companion object {
@@ -2631,11 +2635,17 @@ class SetupWizardViewModel @JvmOverloads constructor(
                      * Entreno v2 · el programa «a medida» del perfil: UNA evaluación (el generador nunca falla por
                      * días, minutos ni material), por el mismo evaluador, la misma caché y la misma clave que los
                      * demás candidatos, así la vista previa y la activación lo reutilizan tal cual.
+                     *
+                     * D2c: las tres formas del perfil (simple, en bloques y periodizada) salen de ESA evaluación
+                     * ([generatedVariantsScan]), en su orden.
                      */
                     suspend fun collectGenerated(profile: TrainingGoalProfile): CandidateScan {
                         sweepStats.passes.incrementAndGet()
                         val entry = PersonalizedPlanCatalog.find(GeneratedPlans.entryIdFor(profile))
                             ?: return CandidateScan.EMPTY
+                        // TODO(C4b): con fecha de competición el programa simple no se ofrece (no tiene pico). El borrador
+                        // aún no tiene `competition` en esta rama: cuando C4a lo añada, filtrar aquí la variante SIMPLE.
+                        val variants = ProgramVariant.entries.mapNotNull { PersonalizedPlanCatalog.find(GeneratedPlans.entryIdFor(profile, it)) }
                         val request = candidateRequest(draft, equipmentIds, exerciseRevision)
                         val snapshot = PlanCatalogSnapshot(
                             entries = PersonalizedPlanCatalog.entries(),
@@ -2655,13 +2665,12 @@ class SetupWizardViewModel @JvmOverloads constructor(
                                 candidateEngine(draft, request),
                             ).also { result -> candidateCache.put(cacheRevision, cacheKey, result) }
                         return when (evaluation) {
-                            is PlanCandidateEvaluation.Ready ->
-                                CandidateScan(listOf(entry), listOf(entry), emptyList(), mapOf(entry.id to evaluation))
+                            is PlanCandidateEvaluation.Ready -> generatedVariantsScan(entry, variants, evaluation, draft)
                             is PlanCandidateEvaluation.Rejected -> {
                                 Log.w(DIAG_TAG, "programa a medida rechazado: ${evaluation.reasonCode} ${evaluation.details.orEmpty().take(DIAG_REASON_MAX)}")
-                                CandidateScan(listOf(entry), emptyList(), listOf(setupRejectionOf(evaluation)))
+                                CandidateScan(variants, emptyList(), listOf(setupRejectionOf(evaluation)))
                             }
-                            PlanCandidateEvaluation.CatalogLoading -> CandidateScan(listOf(entry), emptyList(), emptyList())
+                            PlanCandidateEvaluation.CatalogLoading -> CandidateScan(variants, emptyList(), emptyList())
                         }
                     }
 
@@ -2882,6 +2891,8 @@ class SetupWizardViewModel @JvmOverloads constructor(
                     declaredMinutes = draft.minutesPerSession,
                     // «Otra versión» también se ve en la portada: cada semilla mueve su degradado y su ilustración.
                     coverSeed = index + draft.planVariantSeed,
+                    // D2c: las notas que trajo el periodizador para esta variante (vacías en la semana simple).
+                    periodNotes = outcome.scan.notes[entry.id].orEmpty(),
                 )
             } else {
                 SetupPlanReveals.forCatalog(
@@ -2936,23 +2947,71 @@ class SetupWizardViewModel @JvmOverloads constructor(
             reasons = routine?.summary?.reasons.orEmpty(),
         )
 
-    /** Clave de la rutina generada para [draft] (la misma que la de su evaluación: `inputKey|planId`). */
-    private fun generatedRoutineKey(draft: SetupWizardDraft): String =
-        "${candidateInputKey(draft, effectiveEquipmentIds(draft), exerciseCatalogRevision())}|${draft.selectedCatalogId}"
+    /**
+     * Clave de la rutina generada para [draft] y [mode]: los inputs del alta y el modo del generador. La rutina no depende de
+     * la variante elegida (simple, en bloques o periodizada), así que las tres comparten una sola generación (D2c).
+     */
+    private fun generatedRoutineKey(draft: SetupWizardDraft, mode: RoutineMode): String =
+        "${candidateInputKey(draft, effectiveEquipmentIds(draft), exerciseCatalogRevision())}|${mode.name}"
 
     /**
      * La rutina que el generador armó para [entry] con las respuestas de [draft]: la de la memoria o, si ya no está,
      * la misma vuelta a generar (determinista). Null sin catálogo cargado o si el generador rechaza el pedido.
      */
     private fun generatedRoutineFor(draft: SetupWizardDraft, entry: CatalogEntry): GeneratedRoutine? {
-        val chosen = draft.copy(selectedCatalogId = entry.id)
-        generatedRoutines.get(generatedRoutineKey(chosen))?.let { return it }
         val mode = GeneratedPlans.modeOf(entry.id) ?: return null
+        generatedRoutines.get(generatedRoutineKey(draft, mode))?.let { return it }
         val catalog = (catalogRepository.state.value as? ExerciseCatalogStateV2.Ready)?.catalog ?: return null
-        return runCatching { RoutineGenerator.generate(chosen.routineRequest(mode, catalog)) }
+        return runCatching { RoutineGenerator.generate(draft.routineRequest(mode, catalog)) }
             .onFailure { error -> if (error is CancellationException) throw error }
             .getOrNull()
-            ?.also { routine -> generatedRoutines.put(generatedRoutineKey(chosen), routine) }
+            ?.also { routine -> generatedRoutines.put(generatedRoutineKey(draft, mode), routine) }
+    }
+
+    /**
+     * D2c · las formas del programa «a medida» de un perfil ([variants], en el orden simple, en bloques y periodizada) con el
+     * veredicto de su semana base ([evaluation] de [base]): una sola generación, el mismo material y el mismo tiempo. La simple
+     * es la evaluación tal cual; las otras, su programa armado por el periodizador sobre esa misma rutina, con sus notas. Una
+     * variante que el periodizador no arme no se ofrece.
+     */
+    private fun generatedVariantsScan(
+        base: CatalogEntry,
+        variants: List<CatalogEntry>,
+        evaluation: PlanCandidateEvaluation.Ready,
+        draft: SetupWizardDraft,
+    ): CandidateScan {
+        val routine = generatedRoutineFor(draft, base)
+        val mode = GeneratedPlans.modeOf(base.id)
+        val catalog = (catalogRepository.state.value as? ExerciseCatalogStateV2.Ready)?.catalog
+        val request = if (mode != null && catalog != null) draft.routineRequest(mode, catalog) else null
+        val ready = linkedMapOf<String, PlanCandidateEvaluation.Ready>()
+        val notes = linkedMapOf<String, List<String>>()
+        for (variant in variants) {
+            if (variant.id == base.id) {
+                ready[variant.id] = evaluation
+                continue
+            }
+            val built = if (routine != null && request != null) {
+                runCatching { generatedVariantOf(routine, variant, draft, request) }
+                    .onFailure { error -> if (error is CancellationException) throw error }
+                    .getOrNull()
+            } else {
+                null
+            }
+            if (built == null) {
+                Log.w(DIAG_TAG, "variante a medida no armada: ${variant.id}")
+                continue
+            }
+            ready[variant.id] = evaluation.copy(planId = variant.id, preparedPlan = built.program)
+            notes[variant.id] = built.notes
+        }
+        return CandidateScan(
+            published = variants,
+            viable = variants.filter { it.id in ready },
+            rejections = emptyList(),
+            ready = ready,
+            notes = notes,
+        )
     }
 
     /**
@@ -2978,7 +3037,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 impossible.message ?: "el generador rechazó el pedido",
             )
         }
-        generatedRoutines.put(generatedRoutineKey(draft), routine)
+        generatedRoutines.put(generatedRoutineKey(draft, mode), routine)
         return SetupPreview(generatedVariantProgram(routine, entry, draft, request), null)
     }
 
