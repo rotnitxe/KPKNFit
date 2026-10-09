@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.onboarding.SetupPersistenceMigration26To27Test" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:16:17.690Z" hostname="VF" time="0.038">
+  <properties/>
+  <testcase name="migrateExportedV26ShapeToV27KeepsRowsAndCreatesSetupTables" classname="com.example.kpkn.data.onboarding.SetupPersistenceMigration26To27Test" time="0.038"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

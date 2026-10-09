@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.NutritionPlanPreparationTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:37.440Z" hostname="VF" time="0.002">
+  <properties/>
+  <testcase name="professionalCaloriesWithThreeZeroMacrosAreStillIncomplete" classname="com.example.kpkn.domain.nutrition.NutritionPlanPreparationTest" time="0.001"/>
+  <testcase name="aCompleteProfessionalPlanKeepsItsExplicitCalories" classname="com.example.kpkn.domain.nutrition.NutritionPlanPreparationTest" time="0.0"/>
+  <testcase name="preparationStatusSeparatesEquationBlockingFromUserValueProblems" classname="com.example.kpkn.domain.nutrition.NutritionPlanPreparationTest" time="0.0"/>
+  <testcase name="selfDefinedGoalsWorkWithoutTheProfessionalShortcut" classname="com.example.kpkn.domain.nutrition.NutritionPlanPreparationTest" time="0.0"/>
+  <testcase name="missingBodyGoalDoesNotBlockAutomaticReferences" classname="com.example.kpkn.domain.nutrition.NutritionPlanPreparationTest" time="0.001"/>
+  <testcase name="invalidOptionalTargetsAndNegativeMacrosNeverBecomePlans" classname="com.example.kpkn.domain.nutrition.NutritionPlanPreparationTest" time="0.0"/>
+  <testcase name="automaticPlanRequiresExplicitEligibleInputsAndDoesNotInventComposition" classname="com.example.kpkn.domain.nutrition.NutritionPlanPreparationTest" time="0.0"/>
+  <testcase name="professionalPlanNeedsAllExplicitMacros" classname="com.example.kpkn.domain.nutrition.NutritionPlanPreparationTest" time="0.0"/>
+  <testcase name="unknownEligibilityCannotBecomeAnAutomaticRecommendation" classname="com.example.kpkn.domain.nutrition.NutritionPlanPreparationTest" time="0.0"/>
+  <testcase name="trackingOnlyProducesNoPlanAndNoDefaults" classname="com.example.kpkn.domain.nutrition.NutritionPlanPreparationTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

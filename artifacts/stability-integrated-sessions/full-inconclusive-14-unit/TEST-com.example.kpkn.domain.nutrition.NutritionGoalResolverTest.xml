@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.NutritionGoalResolverTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:33.616Z" hostname="VF" time="0.001">
+  <properties/>
+  <testcase name="past snapshot stays immutable and a retroactive record never captures the current plan" classname="com.example.kpkn.domain.nutrition.NutritionGoalResolverTest" time="0.001"/>
+  <testcase name="explicit zero goals persist as zero instead of null" classname="com.example.kpkn.domain.nutrition.NutritionGoalResolverTest" time="0.0"/>
+  <testcase name="today fixes the current forecast into a snapshot before using it as the day goal" classname="com.example.kpkn.domain.nutrition.NutritionGoalResolverTest" time="0.0"/>
+  <testcase name="tracking only resolves with nothing to fix or fabricate" classname="com.example.kpkn.domain.nutrition.NutritionGoalResolverTest" time="0.0"/>
+  <testcase name="past date without snapshot resolves to NoGoal with no default calories" classname="com.example.kpkn.domain.nutrition.NutritionGoalResolverTest" time="0.0"/>
+  <testcase name="future date resolves to the plan forecast without fixing a snapshot" classname="com.example.kpkn.domain.nutrition.NutritionGoalResolverTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.backup.RetiredPersonalStoreTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-09T13:53:30.432Z" hostname="VF" time="0.721">
+  <properties/>
+  <testcase name="retiredTemplateStoreCannotDeleteOrRenameNewTemplates" classname="com.example.kpkn.data.backup.RetiredPersonalStoreTest" time="0.458"/>
+  <testcase name="lateDurableAndAsynchronousPreferenceWritesCannotReplaceRestoredValue" classname="com.example.kpkn.data.backup.RetiredPersonalStoreTest" time="0.104"/>
+  <testcase name="retiredTrainedVersionStoreCannotAppendToRestoredHistory" classname="com.example.kpkn.data.backup.RetiredPersonalStoreTest" time="0.159"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

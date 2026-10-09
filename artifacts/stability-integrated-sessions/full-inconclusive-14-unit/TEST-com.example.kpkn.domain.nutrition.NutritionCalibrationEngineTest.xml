@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.NutritionCalibrationEngineTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:33.516Z" hostname="VF" time="0.004">
+  <properties/>
+  <testcase name="calibration reports ready and caps adjustment at 150 kcal" classname="com.example.kpkn.domain.nutrition.NutritionCalibrationEngineTest" time="0.004"/>
+  <testcase name="calibration waits after a recent plan change" classname="com.example.kpkn.domain.nutrition.NutritionCalibrationEngineTest" time="0.0"/>
+  <testcase name="calibration remains incomplete before all minimum gates" classname="com.example.kpkn.domain.nutrition.NutritionCalibrationEngineTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

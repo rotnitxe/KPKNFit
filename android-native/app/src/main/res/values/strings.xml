@@ -389,4 +389,11 @@
     <!-- %1$d = número de semana -->
     <string name="macro_default_week_n_name">Semana %1$d</string>
 
+    <string name="data_session_active_title">Hay una actividad en curso</string>
+    <string name="data_session_active_workout_description">Termina y guarda el entrenamiento, o descártalo expresamente. Después vuelve para confirmar la operación de datos.</string>
+    <string name="data_session_active_capture_description">Finaliza el registro de ubicación o la captura antes de cambiar los datos.</string>
+    <string name="data_session_finish_workout">Finalizar entrenamiento</string>
+    <string name="data_session_discard_workout">Descartar entrenamiento</string>
+    <string name="data_session_discard_title">¿Descartar el entrenamiento?</string>
+    <string name="data_session_discard_description">Se descartarán las series de esta sesión sin guardarlas. Tus entrenamientos anteriores se conservan.</string>
 </resources>

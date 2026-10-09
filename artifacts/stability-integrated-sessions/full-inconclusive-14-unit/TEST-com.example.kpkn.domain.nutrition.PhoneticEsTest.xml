@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.PhoneticEsTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:40.249Z" hostname="VF" time="0.001">
+  <properties/>
+  <testcase name="uva huevo ave and haba are four different words" classname="com.example.kpkn.domain.nutrition.PhoneticEsTest" time="0.001"/>
+  <testcase name="h is silent" classname="com.example.kpkn.domain.nutrition.PhoneticEsTest" time="0.0"/>
+  <testcase name="diacritics stripped" classname="com.example.kpkn.domain.nutrition.PhoneticEsTest" time="0.0"/>
+  <testcase name="only a run of the same vowel collapses" classname="com.example.kpkn.domain.nutrition.PhoneticEsTest" time="0.0"/>
+  <testcase name="ll and y collapse" classname="com.example.kpkn.domain.nutrition.PhoneticEsTest" time="0.0"/>
+  <testcase name="a different vowel is a different word" classname="com.example.kpkn.domain.nutrition.PhoneticEsTest" time="0.0"/>
+  <testcase name="variant spellings of one sound still meet through their consonants" classname="com.example.kpkn.domain.nutrition.PhoneticEsTest" time="0.0"/>
+  <testcase name="b and v collapse to B" classname="com.example.kpkn.domain.nutrition.PhoneticEsTest" time="0.0"/>
+  <testcase name="c before e i is S, otherwise K" classname="com.example.kpkn.domain.nutrition.PhoneticEsTest" time="0.0"/>
+  <testcase name="empty or short input handled" classname="com.example.kpkn.domain.nutrition.PhoneticEsTest" time="0.0"/>
+  <testcase name="qu maps to K" classname="com.example.kpkn.domain.nutrition.PhoneticEsTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

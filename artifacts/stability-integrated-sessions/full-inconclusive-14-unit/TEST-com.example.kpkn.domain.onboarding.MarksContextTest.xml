@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.onboarding.MarksContextTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:56.882Z" hostname="VF" time="0.001">
+  <properties/>
+  <testcase name="powerliftingAndPowerbuildingAskTheBigThree" classname="com.example.kpkn.domain.onboarding.MarksContextTest" time="0.0"/>
+  <testcase name="theRestOfTheProfilesAskNothing" classname="com.example.kpkn.domain.onboarding.MarksContextTest" time="0.0"/>
+  <testcase name="strongmanAsksDeadliftSquatAndOverheadPress" classname="com.example.kpkn.domain.onboarding.MarksContextTest" time="0.0"/>
+  <testcase name="aNoviceIsNeverAskedForMarks" classname="com.example.kpkn.domain.onboarding.MarksContextTest" time="0.0"/>
+  <testcase name="weightliftingAsksSquatPlusTheOlympicLiftsOnlyWhenTheProgramReadsThem" classname="com.example.kpkn.domain.onboarding.MarksContextTest" time="0.0"/>
+  <testcase name="theOlympicMarksAreReadOnlyFromTheIntermediateLevelOnWhichTheGeneratorProgramsThoseLifts" classname="com.example.kpkn.domain.onboarding.MarksContextTest" time="0.0"/>
+  <testcase name="withoutAGoalNothingIsAsked" classname="com.example.kpkn.domain.onboarding.MarksContextTest" time="0.0"/>
+  <testcase name="theBigThreeAreTheOnlyMarksTheEngineReadsFromThePowerliftingProfile" classname="com.example.kpkn.domain.onboarding.MarksContextTest" time="0.001"/>
+  <testcase name="strengthAndMuscleAsksTheBigThreeOnlyWithABarbell" classname="com.example.kpkn.domain.onboarding.MarksContextTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.db.DailyGoalSnapshotTodayPinTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:15:47.451Z" hostname="VF" time="1.839">
+  <properties/>
+  <testcase name="keepsTodaysGoalWhenTheSamePlanAlreadyFixedIt" classname="com.example.kpkn.data.db.DailyGoalSnapshotTodayPinTest" time="0.511"/>
+  <testcase name="insertsTodaysGoalWhenThereIsNoRow" classname="com.example.kpkn.data.db.DailyGoalSnapshotTodayPinTest" time="0.277"/>
+  <testcase name="replacesTodaysGoalWhenTheExistingRowBelongsToNoPlan" classname="com.example.kpkn.data.db.DailyGoalSnapshotTodayPinTest" time="0.297"/>
+  <testcase name="replacesTodaysGoalWhenAnotherPlanFixedIt" classname="com.example.kpkn.data.db.DailyGoalSnapshotTodayPinTest" time="0.224"/>
+  <testcase name="replacementTouchesOnlyTodaysRow" classname="com.example.kpkn.data.db.DailyGoalSnapshotTodayPinTest" time="0.198"/>
+  <testcase name="aDayWithoutRowStillGetsItsFirstSnapshotOutsideToday" classname="com.example.kpkn.data.db.DailyGoalSnapshotTodayPinTest" time="0.179"/>
+  <testcase name="neverReplacesAPastOrFutureDayEvenForAnotherPlan" classname="com.example.kpkn.data.db.DailyGoalSnapshotTodayPinTest" time="0.152"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

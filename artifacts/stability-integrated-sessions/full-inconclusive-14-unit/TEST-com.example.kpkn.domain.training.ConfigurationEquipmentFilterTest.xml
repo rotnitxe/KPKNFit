@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.ConfigurationEquipmentFilterTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:20:09.808Z" hostname="VF" time="0.286">
+  <properties/>
+  <testcase name="exact_machine_mode_needs_the_concrete_machine_but_the_category_alone_admits_native_variants" classname="com.example.kpkn.domain.training.ConfigurationEquipmentFilterTest" time="0.002"/>
+  <testcase name="general_gym_opens_every_equipment_and_every_support" classname="com.example.kpkn.domain.training.ConfigurationEquipmentFilterTest" time="0.002"/>
+  <testcase name="a_family_restricts_the_equipment_it_admits" classname="com.example.kpkn.domain.training.ConfigurationEquipmentFilterTest" time="0.001"/>
+  <testcase name="the_generator_adds_only_the_requirements_of_its_own_reserves" classname="com.example.kpkn.domain.training.ConfigurationEquipmentFilterTest" time="0.008"/>
+  <testcase name="exact_machine_mode_follows_the_declared_machines_or_the_declared_inventory" classname="com.example.kpkn.domain.training.ConfigurationEquipmentFilterTest" time="0.002"/>
+  <testcase name="the_support_requirements_of_the_shared_contract_must_all_be_in_the_equipment" classname="com.example.kpkn.domain.training.ConfigurationEquipmentFilterTest" time="0.001"/>
+  <testcase name="the_planner_and_the_routine_generator_decide_the_same_for_every_configuration_and_material" classname="com.example.kpkn.domain.training.ConfigurationEquipmentFilterTest" time="0.058"/>
+  <testcase name="the_precomputed_entry_point_is_the_same_filter" classname="com.example.kpkn.domain.training.ConfigurationEquipmentFilterTest" time="0.036"/>
+  <testcase name="an_implement_that_only_a_symbol_key_credits_needs_that_key" classname="com.example.kpkn.domain.training.ConfigurationEquipmentFilterTest" time="0.001"/>
+  <testcase name="the_shared_filter_decides_like_the_frozen_legacy_filter_for_every_configuration" classname="com.example.kpkn.domain.training.ConfigurationEquipmentFilterTest" time="0.172"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

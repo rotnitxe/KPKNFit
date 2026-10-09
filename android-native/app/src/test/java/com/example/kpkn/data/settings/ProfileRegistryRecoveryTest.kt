@@ -15,7 +15,7 @@ import org.robolectric.annotation.Config
 import java.io.File
 
 @RunWith(RobolectricTestRunner::class)
-@Config(application = Application::class, manifest = Config.NONE, sdk = [26, 34])
+@Config(application = Application::class, manifest = Config.NONE, sdk = [26, 34], shadows = [PosixAtomicFileRenameShadow::class])
 class ProfileRegistryRecoveryTest {
     private val platform: Context = ApplicationProvider.getApplicationContext()
     private val registry get() = File(platform.filesDir, "profile-registry.json")

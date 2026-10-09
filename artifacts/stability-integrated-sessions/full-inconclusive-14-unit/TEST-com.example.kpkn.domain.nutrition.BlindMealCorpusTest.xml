@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.BlindMealCorpusTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:15.593Z" hostname="VF" time="4.198">
+  <properties/>
+  <testcase name="an earlier history that agrees with the references changes no result" classname="com.example.kpkn.domain.nutrition.BlindMealCorpusTest" time="2.448"/>
+  <testcase name="control cases keep their identity and their question in every mode" classname="com.example.kpkn.domain.nutrition.BlindMealCorpusTest" time="0.001"/>
+  <testcase name="pass rates meet the thresholds in every mode" classname="com.example.kpkn.domain.nutrition.BlindMealCorpusTest" time="0.001"/>
+  <testcase name="report is written with one entry per mode and per description" classname="com.example.kpkn.domain.nutrition.BlindMealCorpusTest" time="0.018"/>
+  <testcase name="corpus is well formed" classname="com.example.kpkn.domain.nutrition.BlindMealCorpusTest" time="0.044"/>
+  <testcase name="the calibrated history channel is live" classname="com.example.kpkn.domain.nutrition.BlindMealCorpusTest" time="0.042"/>
+  <testcase name="no description is copied from the semantic dataset" classname="com.example.kpkn.domain.nutrition.BlindMealCorpusTest" time="1.644"/>
+  <system-out><![CDATA[
+=== BlindMealCorpus (WP-N12): 60 descriptions, 83 mentions, 4 modes; indexed foods=546; pass B: no snapshot (SemanticPortionRetriever.knowledge reset to null by reflection) ===
+mode                              tag identity (>=90)    coverage (>=90)    grams (>=95)       kcal (>=90)        question (>=90)  
+snapshot, empty history           SE  83/83 100.0%       60/60 100.0%       80/83 96.4%        75/83 90.4%        81/83 97.6%      
+snapshot, calibrated history      SH  83/83 100.0%       60/60 100.0%       80/83 96.4%        75/83 90.4%        81/83 97.6%      
+no snapshot, empty history        NE  83/83 100.0%       60/60 100.0%       80/83 96.4%        75/83 90.4%        81/83 97.6%      
+no snapshot, calibrated history   NH  83/83 100.0%       60/60 100.0%       80/83 96.4%        75/83 90.4%        81/83 97.6%      
+snapshot, empty history           SE  grams by basis MASS 15/15 MEASURE 40/42 TYPICAL 25/26 | kcal by basis MASS 14/15 MEASURE 39/42 TYPICAL 22/26 | energy density (informational) 78/83 94.0%
+snapshot, calibrated history      SH  grams by basis MASS 15/15 MEASURE 40/42 TYPICAL 25/26 | kcal by basis MASS 14/15 MEASURE 39/42 TYPICAL 22/26 | energy density (informational) 78/83 94.0%
+no snapshot, empty history        NE  grams by basis MASS 15/15 MEASURE 40/42 TYPICAL 25/26 | kcal by basis MASS 14/15 MEASURE 39/42 TYPICAL 22/26 | energy density (informational) 78/83 94.0%
+no snapshot, calibrated history   NH  grams by basis MASS 15/15 MEASURE 40/42 TYPICAL 25/26 | kcal by basis MASS 14/15 MEASURE 39/42 TYPICAL 22/26 | energy density (informational) 78/83 94.0%
+suggested thresholds (worst mode, down to 5; identity, coverage and question capped at the plan minimum): identity 90, coverage 90, grams 95, kcal 90, question 90
+plan minimums: identity 90, coverage 90, grams 80, kcal 80, question 90
+
+--- identity: 0 failing (S = snapshot, N = no snapshot, E = empty history, H = calibrated history) ---
+
+--- coverage: 0 failing (S = snapshot, N = no snapshot, E = empty history, H = calibrated history) ---
+
+--- grams: 3 failing (S = snapshot, N = no snapshot, E = empty history, H = calibrated history) ---
+  #25 wevos (plural): ref 100 g (MEASURE, +-25 %); got 50 g [SE SH NE NH]
+  #27 tres leches: ref 150 g (TYPICAL, +-25 %); got 100 g [SE SH NE NH]
+  #32 huevos revueltos (plural): ref 100 g (MEASURE, +-25 %); got 50 g [SE SH NE NH]
+
+--- kcal: 8 failing (S = snapshot, N = no snapshot, E = empty history, H = calibrated history) ---
+  #1 plato de porotos con riendas: ref 355.6 kcal (+-71.1); got 450 kcal [SE SH NE NH]  <= plate of 400 g: 150 g white beans cooked (FDC 175203 139 kcal/100 g) + 80 g pasta cooked (FDC 169737 158 kcal~
+  #10 helado de vainilla y chocolate: ref 279.2 kcal (+-55.8); got 207 kcal [SE SH NE NH]  <= two flavours = two scoops of 66 g (USDA 1/2 cup): 66 g vanilla (FDC 167575 207 kcal/100 g) + 66 g chocolate (~
+  #25 wevos (plural): ref 155 kcal (+-31); got 77 kcal [SE SH NE NH]  <= FDC 173424 155 kcal/100 g; a bare plural is at least two eggs of 50 g (USDA SR Legacy)
+  #27 tres leches: ref 445.5 kcal (+-89.1); got 280 kcal [SE SH NE NH]  <= FDC 172707 297 kcal/100 g; one slice of 150 g; sponge cake (prepared from recipe) as the nearest USDA entry, ~
+  #32 huevos revueltos (plural): ref 185 kcal (+-37); got 95 kcal [SE SH NE NH]  <= FDC 2707198 185 kcal/100 g; a bare plural is at least two eggs of 50 g; FNDDS scrambled egg, fat not specified
+  #33 100 g champiñones salteados: ref 70 kcal (+-14); got 101 kcal [SE SH NE NH]  <= FDC 2709941 70 kcal/100 g; FNDDS: fresh mushrooms cooked with oil, as eaten; the amount of oil is not said
+  #40 porotos con riendas: ref 355.6 kcal (+-71.1); got 450 kcal [SE SH NE NH]  <= plate of 400 g: 150 g white beans cooked (FDC 175203 139 kcal/100 g) + 80 g pasta cooked (FDC 169737 158 kcal~
+  #48 un arroz con leche: ref 292 kcal (+-58.4); got 220 kcal [SE SH NE NH]  <= FDC 168063 146 kcal/100 g; one dessert cup of 200 g; Latino arroz con leche entry
+
+--- question: 2 failing (S = snapshot, N = no snapshot, E = empty history, H = calibrated history) ---
+  #11 arroz (mitad del plato): ref question=false; got question=true [SE SH NE NH]
+  #27 tres leches: ref question=false; got question=true [SE SH NE NH]
+
+--- references (case | mention | expected | grams reference | kcal reference | question | kcalSource) ---
+#1 almorcé un plato de porotos con riendas y un pan con palta, después un café con leche
+    plato de porotos con riendas | cl029 | 350 g TYPICAL | 355.6 kcal | question=false | plate of 400 g: 150 g white beans cooked (FDC 175203 139 kcal/100 g) + 80 g pasta cooked (FDC 169737 158 kcal/100 g) + 50 g squash cooked (FDC 170490 37 kcal/100 g) + 20 g chard (FDC 169991 19 kcal/100 g) + 5 g olive oil sofrito (FDC 171413 884 kcal/100 g) + 100 g broth (5 kcal/100 g) = 101.6 kcal/100 g (recipe of the 400 g plate: beans, pasta strips, squash, greens, broth); plate = 350 g (1.5 cups); cross-check arise-app.com: 90 kcal/100 g and 360 kcal per 400 g portion
+    un pan con palta | cl025 | 140 g MEASURE | 336 kcal | question=false | one bread unit 100 g x 272 kcal/100 g (INTA 2018 marraqueta, secondary copy) + 40 g avocado (FDC 171705 160 kcal/100 g)
+    un café con leche | gen145 | 237 g MEASURE | 101.9 kcal | question=false | FDC 2710386 43 kcal/100 g; 1 cup = 237 g (USDA); latte as the nearest milk-coffee entry
+#2 2 yogures y 3 tomates
+    2 yogures | gen087 | 250 g MEASURE | 152.5 kcal | question=false | FDC 171284 61 kcal/100 g; 2 single-serve pots of 125 g (Chile)
+    3 tomates | gen026 | 369 g MEASURE | 66.4 kcal | question=false | FDC 170457 18 kcal/100 g; 3 medium tomatoes of 123 g (USDA SR Legacy household weight)
+#3 un vaso de agua
+    un vaso de agua | gen143 | 237 g MEASURE | 0 kcal | question=false | FDC 173647 0 kcal/100 g; 1 cup = 237 g (USDA household weight of water)
+#4 150 g salmón a la parrilla
+    150 g salmón a la parrilla | gen009 or gen009h/gen009p | 150 g MASS | 309 kcal | question=false | FDC 175168 206 kcal/100 g; cooked weight as eaten (the raw entry FDC 175167 gives 208 kcal/100 g, the same energy per gram)
+#5 una lata de coca cola
+    una lata de coca cola | off_coca_cola_original_350ml | 368 g MEASURE | 154.6 kcal | question=false | FDC 174852 42 kcal/100 g; 1 can (12 fl oz) = 368 g (USDA household weight)
+#6 al menos 2 huevos
+    2 huevos | gen007 | 100 g MEASURE | 155 kcal | question=false | FDC 173424 155 kcal/100 g; 2 large eggs of 50 g (USDA SR Legacy)
+#7 Desayuno: 2 huevos. Almuerzo: arroz con pollo.
+    2 huevos | gen007 | 100 g MEASURE | 155 kcal | question=false | FDC 173424 155 kcal/100 g; 2 large eggs of 50 g (USDA SR Legacy)
+    arroz (del arroz con pollo) | gen005 | 200 g TYPICAL | 260 kcal | question=false | FDC 168878 130 kcal/100 g; rice on a lunch plate = 200 g (1.27 USDA cups of 158 g)
+    pollo (del arroz con pollo) | gen004 or gen003c/gen003h/gen003p/gen003v | 130 g TYPICAL | 215.8 kcal | question=true | FDC 331960 166 kcal/100 g; one cooked presa = 130 g (between USDA half breast 86 g and whole breast 172 g); no cut named, no mass given
+#8 pollo a la plancha y papas a lo pobre
+    pollo a la plancha | gen003c or gen003h/gen003p/gen003v/gen004 | 130 g TYPICAL | 214.5 kcal | question=true | FDC 171477 165 kcal/100 g; one cooked presa = 130 g (between USDA half breast 86 g and whole breast 172 g); no cut named, no mass given
+    papas a lo pobre | ~a lo pobre | 250 g TYPICAL | 630.2 kcal | question=true | plate: 150 g french fries (FDC 170698 312 kcal/100 g) + 50 g fried egg (FDC 173423 196 kcal/100 g) + 50 g onion (FDC 170000 40 kcal/100 g) + 5 g olive oil for the onion (FDC 171413 884 kcal/100 g) (fries topped with fried onion and a fried egg; no catalog dish)
+#9 agua con gas
+    agua con gas | gen151 | 237 g MEASURE | 0 kcal | question=false | FDC 174842 0 kcal/100 g; 1 cup = 237 g; club soda is the USDA entry for carbonated water
+#10 helado de vainilla y chocolate
+    helado de vainilla y chocolate | gen193 | 132 g MEASURE | 279.2 kcal | question=false | two flavours = two scoops of 66 g (USDA 1/2 cup): 66 g vanilla (FDC 167575 207 kcal/100 g) + 66 g chocolate (FDC 168809 216 kcal/100 g)
+#11 200 g de arroz con pollo
+    arroz (mitad del plato) | gen005 | 100 g MASS | 130 kcal | question=false | FDC 168878 130 kcal/100 g; half of the 200 g cooked dish
+    pollo (mitad del plato) | gen004 or gen003c/gen003h/gen003p/gen003v | 100 g MASS | 166 kcal | question=false | FDC 331960 166 kcal/100 g; half of the 200 g cooked dish
+#12 asado
+    asado | gen093c | 150 g TYPICAL | 528 kcal | question=false | FDC 168676 352 kcal/100 g; a grilled beef rib serving of 150 g cooked (broiled whole rib, choice)
+#13 [control] un guiso de lentejas
+    un guiso de lentejas | gen012 or gen012h | 198 g MEASURE | 229.7 kcal | question=false | FDC 172421 116 kcal/100 g; 1 cup = 198 g (USDA household weight of cooked lentils)
+#14 500 cc de leche
+    500 cc de leche | gen016 | 515 g MASS | 314.2 kcal (+-0.5) | question=false | FDC 171265 61 kcal/100 g; 500 mL x 1.03 g/mL (USDA 1 cup = 244 g); whole milk is the default leche
+#15 medio litro de jugo de naranja
+    medio litro de jugo de naranja | gen103 | 524 g MASS | 235.8 kcal | question=false | FDC 169098 45 kcal/100 g; 500 mL x 1.048 g/mL (USDA 1 cup = 248 g)
+#16 cuarto de kilo de carne molida
+    250 g de carne molida | gen010 or gen010p | 250 g MASS | 537.5 kcal | question=false | FDC 171796 215 kcal/100 g; sold by the kilo, so the raw ground beef 85/15 entry
+#17 1 lt de agua
+    1 lt de agua | gen143 | 1000 g MASS | 0 kcal (+-0.5) | question=false | FDC 173647 0 kcal/100 g; 1 L of water = 1000 g
+#18 una botella de agua
+    una botella de agua | gen143 | 500 g MEASURE | 0 kcal | question=false | FDC 173647 0 kcal/100 g; single-serve bottle of 500 mL
+#19 un jugo de naranja
+    un jugo de naranja | gen103 | 248 g MEASURE | 111.6 kcal | question=false | FDC 169098 45 kcal/100 g; 1 cup = 248 g (USDA household weight of orange juice)
+#20 plato grande de arroz
+    plato grande de arroz | gen005 | 296.3 g TYPICAL | 385.1 kcal | question=false | FDC 168878 130 kcal/100 g; a plate is 1.5 cups of 158 g and "grande" is x1.25
+#21 un plato de arroz
+    un plato de arroz | gen005 | 237 g TYPICAL | 308.1 kcal | question=false | FDC 168878 130 kcal/100 g; a plate is 1.5 cups of 158 g (USDA household weight)
+#22 2 manzanas grandes
+    2 manzanas grandes | gen001 | 484 g MEASURE | 251.7 kcal | question=false | FDC 171688 52 kcal/100 g; 2 large apples of 242 g (USDA SR Legacy household weight)
+#23 pollo
+    pollo | gen004 or gen003c/gen003h/gen003p/gen003v | 130 g TYPICAL | 215.8 kcal | question=true | FDC 331960 166 kcal/100 g; one cooked presa = 130 g (between USDA half breast 86 g and whole breast 172 g); no cut named, no mass given
+#24 uva
+    uva | gen053 | 140 g MEASURE | 96.6 kcal | question=false | FDC 174683 69 kcal/100 g; FDA reference amount for fruit (21 CFR 101.12) = 140 g (USDA 1 cup = 151 g)
+#25 wevos
+    wevos (plural) | gen007 | 100 g MEASURE | 155 kcal | question=false | FDC 173424 155 kcal/100 g; a bare plural is at least two eggs of 50 g (USDA SR Legacy)
+#26 ensalada de repollo
+    ensalada de repollo | ~ensalada de repollo or gen067 | 150 g TYPICAL | 77.3 kcal | question=true | salad: 150 g cabbage (FDC 169975 25 kcal/100 g) + 4.5 g olive oil (1 tsp) (FDC 171413 884 kcal/100 g); side salad of 150 g
+#27 tres leches
+    tres leches | sn_cr_tresleches | 150 g TYPICAL | 445.5 kcal | question=false | FDC 172707 297 kcal/100 g; one slice of 150 g; sponge cake (prepared from recipe) as the nearest USDA entry, the milk soak is not counted
+#28 un sandwich de jamón y queso y una coca cola
+    pan del sándwich | gen019 or cl010/cl013/cl014/gen089 | 60 g TYPICAL | 159.6 kcal | question=false | FDC 174924 266 kcal/100 g; two slices of sandwich bread = 60 g
+    jamón | gen094 | 40 g TYPICAL | 42.8 kcal | question=false | FDC 173863 107 kcal/100 g; two slices = 40 g; deli ham 96% fat free
+    queso | gen088 or gen047/gen157 | 30 g TYPICAL | 106.8 kcal | question=false | FDC 171241 356 kcal/100 g; one slice = 30 g; gouda is the usual sandwich cheese in Chile
+    una coca cola | off_coca_cola_original_350ml | 368 g MEASURE | 154.6 kcal | question=false | FDC 174852 42 kcal/100 g; 1 can (12 fl oz) = 368 g (USDA household weight)
+#29 pechuga de pollo frita sin aceite 150 g
+    150 g de pechuga frita sin acei~ | gen003c or gen003/gen003p/gen004 | 150 g MASS | 247.5 kcal | question=false | FDC 171477 165 kcal/100 g; dry pan: no oil, so the plain cooked breast entry
+#30 150 g de pechuga cruda frita
+    150 g de pechuga cruda frita | gen003 | 150 g MASS | 259.6 kcal | question=true | 150 g raw (FDC 171077 120 kcal/100 g) + about 9 g absorbed frying oil (FDC 171413 884 kcal/100 g)
+#31 [control] papas fritas 150 g
+    150 g de papas fritas | gen021f | 150 g MASS | 468 kcal (+-0.5) | question=false | FDC 170698 312 kcal/100 g; deep-fried potatoes (fast-food fries) as served
+#32 huevos revueltos
+    huevos revueltos (plural) | gen007r | 100 g MEASURE | 185 kcal | question=false | FDC 2707198 185 kcal/100 g; a bare plural is at least two eggs of 50 g; FNDDS scrambled egg, fat not specified
+#33 100 g champiñones salteados
+    100 g champiñones salteados | gen038 | 100 g MASS | 70 kcal | question=true | FDC 2709941 70 kcal/100 g; FNDDS: fresh mushrooms cooked with oil, as eaten; the amount of oil is not said
+#34 huevo poché
+    huevo poché | gen007 | 50 g MEASURE | 71.5 kcal | question=false | FDC 172186 143 kcal/100 g; 1 large egg of 50 g, poached
+#35 ajá, un café
+    un café | gen059 | 237 g MEASURE | 2.4 kcal | question=false | FDC 171890 1 kcal/100 g; 1 cup = 237 g (USDA household weight of brewed coffee)
+#36 brocolí al vapor
+    brocolí al vapor | gen022 | 85 g MEASURE | 29.8 kcal | question=false | FDC 169967 35 kcal/100 g; FDA reference amount for vegetables (21 CFR 101.12) = 85 g (USDA 1 cup chopped = 156 g)
+#37 tres tomates
+    3 tomates | gen026 | 369 g MEASURE | 66.4 kcal | question=false | FDC 170457 18 kcal/100 g; 3 medium tomatoes of 123 g (USDA SR Legacy household weight)
+#38 huevos x2
+    2 huevos | gen007 | 100 g MEASURE | 155 kcal | question=false | FDC 173424 155 kcal/100 g; 2 large eggs of 50 g (USDA SR Legacy)
+#39 porotos granados
+    porotos granados | cl007 | 350 g TYPICAL | 347.2 kcal | question=false | plate of 350 g: 150 g cranberry beans cooked (FDC 173736 136 kcal/100 g) + 80 g corn kernels cooked (FDC 169999 96 kcal/100 g) + 60 g squash cooked (FDC 170490 37 kcal/100 g) + 5 g olive oil sofrito (FDC 171413 884 kcal/100 g); cross-check 350 g / 340 kcal (nutrola.app)
+#40 porotos con riendas
+    porotos con riendas | cl029 | 350 g TYPICAL | 355.6 kcal | question=false | plate of 400 g: 150 g white beans cooked (FDC 175203 139 kcal/100 g) + 80 g pasta cooked (FDC 169737 158 kcal/100 g) + 50 g squash cooked (FDC 170490 37 kcal/100 g) + 20 g chard (FDC 169991 19 kcal/100 g) + 5 g olive oil sofrito (FDC 171413 884 kcal/100 g) + 100 g broth (5 kcal/100 g) = 101.6 kcal/100 g; plate = 350 g (1.5 cups)
+#41 lentejas con arroz
+    lentejas | gen012 or gen012h | 198 g MEASURE | 229.7 kcal | question=false | FDC 172421 116 kcal/100 g; 1 cup = 198 g (USDA household weight of cooked lentils)
+    arroz | gen005 | 200 g TYPICAL | 260 kcal | question=false | FDC 168878 130 kcal/100 g; rice on a lunch plate = 200 g (1.27 USDA cups of 158 g)
+#42 una taza de té sin azúcar
+    una taza de té sin azúcar | gen144 or gen060 | 237 g MEASURE | 2.4 kcal | question=false | FDC 173227 1 kcal/100 g; 1 cup = 237 g (USDA household weight of brewed tea)
+#43 café sin azúcar
+    café sin azúcar | gen059 | 237 g MEASURE | 2.4 kcal | question=false | FDC 171890 1 kcal/100 g; 1 cup = 237 g (USDA household weight of brewed coffee)
+#44 coca cola zero
+    coca cola zero | off_coca_cola_zero | 355 g MEASURE | 0 kcal | question=false | FDC 171876 0 kcal/100 g; 1 can (12 fl oz) = 355 g (USDA household weight of diet cola)
+#45 2 litros de agua
+    2 litros de agua | gen143 | 2000 g MASS | 0 kcal (+-0.5) | question=false | FDC 173647 0 kcal/100 g; 2 L of water = 2000 g
+#46 me comí dos marraquetas con mantequilla
+    dos marraquetas | cl010 | 200 g MEASURE | 544 kcal | question=false | 2 x 100 g x 272 kcal/100 g (INTA 2018 marraqueta, secondary copy; the same table lists 1/2 unit = 50 g)
+    mantequilla | gen049 | 10 g MEASURE | 71.7 kcal | question=false | FDC 173410 717 kcal/100 g; two pats of 5 g (USDA household weight), one per bread
+#47 anoche cené una cazuela de vacuno
+    una cazuela de vacuno | cl030 | 450 g TYPICAL | 409.2 kcal | question=false | bowl of 450 g: 80 g lean beef braised (FDC 169444 216 kcal/100 g) + 100 g potato boiled (FDC 170438 87 kcal/100 g) + 80 g corn cooked (FDC 169999 96 kcal/100 g) + 80 g squash cooked (FDC 170490 37 kcal/100 g) + 30 g rice cooked (FDC 168878 130 kcal/100 g) + 80 g broth (5 kcal/100 g); cross-check 450 g / 380 kcal (nutrola.app)
+#48 comí arroz con pollo y ensalada chilena, de postre un arroz con leche
+    arroz | gen005 | 200 g TYPICAL | 260 kcal | question=false | FDC 168878 130 kcal/100 g; rice on a lunch plate = 200 g (1.27 USDA cups of 158 g)
+    pollo | gen004 or gen003c/gen003h/gen003p/gen003v | 130 g TYPICAL | 215.8 kcal | question=true | FDC 331960 166 kcal/100 g; one cooked presa = 130 g (between USDA half breast 86 g and whole breast 172 g); no cut named, no mass given
+    ensalada chilena | cl028 | 100 g TYPICAL | 48.2 kcal | question=false | side salad of 100 g: 65 g tomato (FDC 170457 18 kcal/100 g) + 25 g onion (FDC 170000 40 kcal/100 g) + 3 g olive oil (FDC 171413 884 kcal/100 g); tomato and onion salad
+    un arroz con leche | cl023 | 200 g TYPICAL | 292 kcal | question=false | FDC 168063 146 kcal/100 g; one dessert cup of 200 g; Latino arroz con leche entry
+#49 una empanada de pino al horno y una de queso
+    empanada de pino al horno | cl001 | 180 g MEASURE | 430 kcal | question=false | published: baked pino empanada 150-180 g and 400-520 kcal (vidarecetas.com table with sources), 220 g / 420 kcal (nutrola.app); 430 kcal is the middle of 344 (nutrola scaled to 180 g) and 520
+    empanada de queso | ~empanada de queso | 180 g MEASURE | 380 kcal | question=true | published: cheese empanada 180 g / 380 kcal (nutrola.app); no Chilean catalog row
+#50 pan con palta y un té
+    pan con palta | cl025 | 140 g MEASURE | 336 kcal | question=false | one bread unit 100 g x 272 kcal/100 g (INTA 2018 marraqueta, secondary copy) + 40 g avocado (FDC 171705 160 kcal/100 g)
+    un té | gen060 or gen144 | 237 g MEASURE | 2.4 kcal | question=false | FDC 173227 1 kcal/100 g; 1 cup = 237 g (USDA household weight of brewed tea)
+#51 [control] un completo italiano sin mayo
+    un completo italiano sin mayo | ~completo italiano | 260 g MEASURE | 384 kcal | question=true | published: completo italiano 280 g / 520 kcal with mayonnaise (nutrola.app) minus about 20 g mayonnaise (FDC 171009 680 kcal/100 g); a modified recipe is not a catalog dish
+#52 150 gr de pollo al horno con 100 g de arroz
+    150 g de pollo al horno | gen003h or gen003c/gen003p/gen003v/gen004 | 150 g MASS | 247.5 kcal | question=false | FDC 171477 165 kcal/100 g; roasted breast as eaten
+    100 g de arroz | gen005 | 100 g MASS | 130 kcal | question=true | FDC 168878 130 kcal/100 g; cooked rice; raw or cooked is not said (raw is 365 kcal/100 g, FDC 169756)
+#53 avena con leche y plátano
+    avena | gen011 | 40 g MEASURE | 151.6 kcal | question=false | FDC 173904 379 kcal/100 g; 1/2 cup of dry rolled oats = 40 g (USDA 1 cup = 81 g)
+    leche | gen016 | 244 g MEASURE | 148.8 kcal | question=false | FDC 171265 61 kcal/100 g; 1 cup = 244 g (USDA household weight of whole milk)
+    plátano | gen002 | 118 g MEASURE | 105.0 kcal | question=false | FDC 173944 89 kcal/100 g; 1 medium banana of 118 g (USDA SR Legacy household weight)
+#54 un pan con queso y tomate
+    un pan con queso | cl026 | 130 g MEASURE | 378.8 kcal | question=false | one bread unit 100 g x 272 kcal/100 g (INTA 2018 marraqueta, secondary copy) + 30 g gouda (FDC 171241 356 kcal/100 g)
+    tomate | gen026 | 40 g MEASURE | 7.2 kcal | question=false | FDC 170457 18 kcal/100 g; 2 slices of 20 g (USDA SR Legacy household weight)
+#55 jugo natural de naranja grande
+    jugo natural de naranja grande | gen103 | 310 g MEASURE | 139.5 kcal | question=false | FDC 169098 45 kcal/100 g; "grande" = 1.25 x one cup of 248 g (USDA household weight)
+#56 dos vasos de leche descremada
+    dos vasos de leche descremada | gen046 | 490 g MEASURE | 166.6 kcal | question=false | FDC 171269 34 kcal/100 g; 2 cups of 245 g (USDA household weight of skim milk)
+#57 pollo frito
+    pollo frito | gen003f | 150 g TYPICAL | 333 kcal | question=true | FDC 171476 222 kcal/100 g; one fried portion of 150 g, meat and skin, flour coated; no cut named, no mass given
+#58 100 g de atún en aceite
+    100 g de atún en aceite | gen029e | 100 g MASS | 198 kcal | question=false | FDC 173708 198 kcal/100 g; light tuna canned in oil, drained solids
+#59 un yogur griego con granola
+    yogur griego | gen017 | 125 g MEASURE | 121.3 kcal | question=false | FDC 171304 97 kcal/100 g; 1 single-serve pot of 125 g (Chile)
+    granola | gen091 | 30 g TYPICAL | 146.7 kcal | question=false | FDC 171646 489 kcal/100 g; a 30 g topping; homemade granola entry
+#60 polloooo con arros
+    pollo | gen004 or gen003c/gen003h/gen003p/gen003v | 130 g TYPICAL | 215.8 kcal | question=true | FDC 331960 166 kcal/100 g; one cooked presa = 130 g (between USDA half breast 86 g and whole breast 172 g); no cut named, no mass given
+    arroz | gen005 | 200 g TYPICAL | 260 kcal | question=false | FDC 168878 130 kcal/100 g; rice on a lunch plate = 200 g (1.27 USDA cups of 158 g)
+report: C:\kw\msi\android-native\app\build\reports\nutrition-reliability\blind-corpus.json
+descriptions found inside a dataset instruction, shorter than 7 words (not asserted): [3, 9, 12, 13, 19, 21, 22, 23, 24, 26, 27, 32, 34, 36, 39, 40, 41, 43, 44, 51, 54, 57]
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

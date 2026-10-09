@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.settings.GuestSnapshotTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:17:19.916Z" hostname="VF" time="2.94">
+  <properties/>
+  <testcase name="failedLoginThenEditedOrDeletedGuestKeepsOriginalRowsFilesPreferences[26]" classname="com.example.kpkn.data.settings.GuestSnapshotTest" time="0.66"/>
+  <testcase name="failedLoginThenEditedOrDeletedGuestKeepsOriginalRowsFilesPreferences" classname="com.example.kpkn.data.settings.GuestSnapshotTest" time="1.41"/>
+  <testcase name="interruptedCopyIsVerifiedOnRetryAndExistingAccountFilesSurvive[26]" classname="com.example.kpkn.data.settings.GuestSnapshotTest" time="0.128"/>
+  <testcase name="interruptedCopyIsVerifiedOnRetryAndExistingAccountFilesSurvive" classname="com.example.kpkn.data.settings.GuestSnapshotTest" time="0.091"/>
+  <testcase name="legacyRecoveryRemainsInsidePortableFiles[26]" classname="com.example.kpkn.data.settings.GuestSnapshotTest" time="0.105"/>
+  <testcase name="legacyRecoveryRemainsInsidePortableFiles" classname="com.example.kpkn.data.settings.GuestSnapshotTest" time="0.106"/>
+  <testcase name="preferenceSnapshotExcludesSecretsAndCannotOverwriteExistingChoices[26]" classname="com.example.kpkn.data.settings.GuestSnapshotTest" time="0.127"/>
+  <testcase name="preferenceSnapshotExcludesSecretsAndCannotOverwriteExistingChoices" classname="com.example.kpkn.data.settings.GuestSnapshotTest" time="0.098"/>
+  <testcase name="unavailableDestinationFailsWithoutPublishingPartialSuccessThenRetries[26]" classname="com.example.kpkn.data.settings.GuestSnapshotTest" time="0.125"/>
+  <testcase name="unavailableDestinationFailsWithoutPublishingPartialSuccessThenRetries" classname="com.example.kpkn.data.settings.GuestSnapshotTest" time="0.089"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

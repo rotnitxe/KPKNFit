@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.NutritionTrackingOnlyModeTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:40.215Z" hostname="VF" time="0.001">
+  <properties/>
+  <testcase name="skippedChoiceKeepsItsCurrentSemantics" classname="com.example.kpkn.domain.nutrition.NutritionTrackingOnlyModeTest" time="0.001"/>
+  <testcase name="trackingOnlyModeProducesNoDeficitAlerts" classname="com.example.kpkn.domain.nutrition.NutritionTrackingOnlyModeTest" time="0.0"/>
+  <testcase name="trackingOnlyModeKeepsHistoricalSnapshotGoalsForPastDates" classname="com.example.kpkn.domain.nutrition.NutritionTrackingOnlyModeTest" time="0.0"/>
+  <testcase name="trackingOnlyModeKeepsFoodLoggingAndMealRemindersAvailable" classname="com.example.kpkn.domain.nutrition.NutritionTrackingOnlyModeTest" time="0.0"/>
+  <testcase name="goalsModeKeepsShowingRealGoals" classname="com.example.kpkn.domain.nutrition.NutritionTrackingOnlyModeTest" time="0.0"/>
+  <testcase name="trackingOnlyModeSuppressesGoalsEvenWithAnActivePlan" classname="com.example.kpkn.domain.nutrition.NutritionTrackingOnlyModeTest" time="0.0"/>
+  <testcase name="trackingOnlyModeSuppressesGoalsEvenWithResidualSettingsGoals" classname="com.example.kpkn.domain.nutrition.NutritionTrackingOnlyModeTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

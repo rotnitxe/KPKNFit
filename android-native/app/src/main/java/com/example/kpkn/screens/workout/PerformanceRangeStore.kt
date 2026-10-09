@@ -20,6 +20,7 @@ import kotlinx.coroutines.launch
  * Encapsulates performance-range / snapshot DAO access and in-memory cache.
  */
 class PerformanceRangeStore(appContext: Context) {
+    private val writeOwner = com.example.kpkn.data.backup.DataSessionWriter("performance-range-store")
     private val performanceRangeDao = KpknDatabase.getInstance(appContext).performanceRangeDao()
     private val performanceSnapshotDao = KpknDatabase.getInstance(appContext).performanceSnapshotDao()
     private val cache = mutableMapOf<String, PerformanceRangeData>()
@@ -32,12 +33,12 @@ class PerformanceRangeStore(appContext: Context) {
     }
 
     suspend fun loadFromDb(contextKey: String): PerformanceRangeData? =
-        performanceRangeDao.getByContextKey(contextKey)?.toPerformanceRangeData()
+        writeOwner.write { performanceRangeDao.getByContextKey(contextKey)?.toPerformanceRangeData() }
 
     fun prefetchIfMissing(contextKey: String, scope: CoroutineScope) {
         if (contextKey.isBlank() || cache.containsKey(contextKey)) return
         if (!prefetchInFlight.add(contextKey)) return
-        scope.launch(Dispatchers.IO) {
+        writeOwner.launch(scope, Dispatchers.IO) {
             runCatching { loadFromDb(contextKey) }.getOrNull()?.let { cache[contextKey] = it }
             prefetchInFlight.remove(contextKey)
         }
@@ -47,7 +48,7 @@ class PerformanceRangeStore(appContext: Context) {
         completedExercises: List<CompletedExercise>,
         sessionId: String,
         postExerciseFeedbackByExerciseId: Map<String, PostExerciseFeedback>,
-    ) {
+    ) = writeOwner.write {
         for (completedEx in completedExercises) {
             val canonicalId = completedEx.canonicalExerciseId ?: completedEx.exerciseDbId ?: continue
             if (canonicalId.isBlank()) continue

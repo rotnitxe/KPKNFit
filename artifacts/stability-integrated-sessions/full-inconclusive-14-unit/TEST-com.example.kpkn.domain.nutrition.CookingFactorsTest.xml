@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.CookingFactorsTest" tests="17" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:19.858Z" hostname="VF" time="0.001">
+  <properties/>
+  <testcase name="horno concentrates macros" classname="com.example.kpkn.domain.nutrition.CookingFactorsTest" time="0.0"/>
+  <testcase name="cocido reduces kcal and protein from water dilution" classname="com.example.kpkn.domain.nutrition.CookingFactorsTest" time="0.0"/>
+  <testcase name="IT3 aceite poco y abundante escalan sobre la categoria" classname="com.example.kpkn.domain.nutrition.CookingFactorsTest" time="0.0"/>
+  <testcase name="waterChange negative for dry methods" classname="com.example.kpkn.domain.nutrition.CookingFactorsTest" time="0.001"/>
+  <testcase name="vapor slight kcal drop" classname="com.example.kpkn.domain.nutrition.CookingFactorsTest" time="0.0"/>
+  <testcase name="IT3 aceite medio por categoria de alimento" classname="com.example.kpkn.domain.nutrition.CookingFactorsTest" time="0.0"/>
+  <testcase name="guisado adds fat" classname="com.example.kpkn.domain.nutrition.CookingFactorsTest" time="0.0"/>
+  <testcase name="asado parrilla fat drips off" classname="com.example.kpkn.domain.nutrition.CookingFactorsTest" time="0.0"/>
+  <testcase name="plancha fat loss from rendering" classname="com.example.kpkn.domain.nutrition.CookingFactorsTest" time="0.0"/>
+  <testcase name="waterChange positive for wet methods" classname="com.example.kpkn.domain.nutrition.CookingFactorsTest" time="0.0"/>
+  <testcase name="empanizado frito applies water loss and breading carbs" classname="com.example.kpkn.domain.nutrition.CookingFactorsTest" time="0.0"/>
+  <testcase name="crudo is baseline" classname="com.example.kpkn.domain.nutrition.CookingFactorsTest" time="0.0"/>
+  <testcase name="IT3 adjust oil por nombre de alimento" classname="com.example.kpkn.domain.nutrition.CookingFactorsTest" time="0.0"/>
+  <testcase name="WP-N10 fritura nunca multiplica kcal y el horno concentra una sola vez" classname="com.example.kpkn.domain.nutrition.CookingFactorsTest" time="0.0"/>
+  <testcase name="IT3 strip y reapply con categoria son consistentes" classname="com.example.kpkn.domain.nutrition.CookingFactorsTest" time="0.0"/>
+  <testcase name="frito water loss concentrates" classname="com.example.kpkn.domain.nutrition.CookingFactorsTest" time="0.0"/>
+  <testcase name="all 11 methods have factors" classname="com.example.kpkn.domain.nutrition.CookingFactorsTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

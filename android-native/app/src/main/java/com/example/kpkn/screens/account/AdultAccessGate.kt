@@ -32,6 +32,7 @@ import kotlinx.coroutines.withContext
     var busy by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    val owner = remember { com.example.kpkn.data.backup.DataSessionWriter("adult-admission") }
     LaunchedEffect(profile) { accepted = withContext(Dispatchers.IO) {
         profile.getSharedPreferences("adult_admission", 0).getBoolean("confirmed_18", false)
     } }
@@ -54,7 +55,7 @@ import kotlinx.coroutines.withContext
                 Button(enabled = confirm && !busy, onClick = { scope.launch {
                     busy = true; error = false
                     try {
-                        withContext(Dispatchers.IO) { check(profile.getSharedPreferences("adult_admission", 0).edit().putBoolean("confirmed_18", true).commit()) }
+                        owner.write { check(profile.getSharedPreferences("adult_admission", 0).edit().putBoolean("confirmed_18", true).commit()) }
                         accepted = true
                     } catch (_: Exception) { error = true }
                     finally { busy = false }

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.SandwichFillingMentionTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:42.902Z" hostname="VF" time="0.541">
+  <properties/>
+  <testcase name="a sandwich of one filling and a drink is the bread, the filling and the drink" classname="com.example.kpkn.domain.nutrition.SandwichFillingMentionTest" time="0.049"/>
+  <testcase name="a sandwich whose row the resolver accepts for the whole mention is not taken apart" classname="com.example.kpkn.domain.nutrition.SandwichFillingMentionTest" time="0.046"/>
+  <testcase name="a filling that is a prepared dish is no ingredient" classname="com.example.kpkn.domain.nutrition.SandwichFillingMentionTest" time="0.042"/>
+  <testcase name="every sandwich of a description is a mention" classname="com.example.kpkn.domain.nutrition.SandwichFillingMentionTest" time="0.001"/>
+  <testcase name="a sandwich that has a row of its own is that row and keeps its serving" classname="com.example.kpkn.domain.nutrition.SandwichFillingMentionTest" time="0.042"/>
+  <testcase name="the parse of a mention is the bread and each of its fillings" classname="com.example.kpkn.domain.nutrition.SandwichFillingMentionTest" time="0.001"/>
+  <testcase name="a list of fillings is the bread and each filling once" classname="com.example.kpkn.domain.nutrition.SandwichFillingMentionTest" time="0.153"/>
+  <testcase name="a known dish still ends where its name ends" classname="com.example.kpkn.domain.nutrition.SandwichFillingMentionTest" time="0.0"/>
+  <testcase name="a mayo that is only a filling is not the sandwich ave mayo" classname="com.example.kpkn.domain.nutrition.SandwichFillingMentionTest" time="0.068"/>
+  <testcase name="every sandwich of a description is expanded" classname="com.example.kpkn.domain.nutrition.SandwichFillingMentionTest" time="0.021"/>
+  <testcase name="one filling ends before a quantified mention, a drink, an addition or punctuation" classname="com.example.kpkn.domain.nutrition.SandwichFillingMentionTest" time="0.001"/>
+  <testcase name="a drink next to a sandwich keeps its own portion" classname="com.example.kpkn.domain.nutrition.SandwichFillingMentionTest" time="0.077"/>
+  <testcase name="a list of fillings is one mention, whichever way it is separated" classname="com.example.kpkn.domain.nutrition.SandwichFillingMentionTest" time="0.0"/>
+  <testcase name="what is said after a comma and is a drink or a fruit is not a filling" classname="com.example.kpkn.domain.nutrition.SandwichFillingMentionTest" time="0.04"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

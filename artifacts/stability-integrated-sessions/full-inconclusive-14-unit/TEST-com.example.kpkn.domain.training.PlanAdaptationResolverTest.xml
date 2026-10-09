@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.PlanAdaptationResolverTest" tests="33" skipped="0" failures="0" errors="0" timestamp="2026-10-09T13:22:22.867Z" hostname="VF" time="0.113">
+  <properties/>
+  <testcase name="pull_up_substitutes_to_band_row_with_documented_vertical_to_horizontal_change" classname="com.example.kpkn.domain.training.PlanAdaptationResolverTest" time="0.005"/>
+  <testcase name="barbell_bench_substitutes_to_dumbbells_keeping_push_and_dropping_bar_load" classname="com.example.kpkn.domain.training.PlanAdaptationResolverTest" time="0.003"/>
+  <testcase name="adapted_recipe_materializes_with_derived_identity_and_without_bar_load" classname="com.example.kpkn.domain.training.PlanAdaptationResolverTest" time="0.014"/>
+  <testcase name="unknown_configuration_is_unresolved" classname="com.example.kpkn.domain.training.PlanAdaptationResolverTest" time="0.002"/>
+  <testcase name="band_pull_apart_substitutes_to_superman_with_documented_pattern_change" classname="com.example.kpkn.domain.training.PlanAdaptationResolverTest" time="0.002"/>
+  <testcase name="fully_available_recipe_passes_through_unchanged" classname="com.example.kpkn.domain.training.PlanAdaptationResolverTest" time="0.006"/>
+  <testcase name="load_reference_for_another_configuration_is_unrepresentable" classname="com.example.kpkn.domain.training.PlanAdaptationResolverTest" time="0.001"/>
+  <testcase name="a_longer_prescribed_rest_is_kept_and_slots_that_do_not_change_keep_theirs" classname="com.example.kpkn.domain.training.PlanAdaptationResolverTest" time="0.003"/>
+  <testcase name="bench_falls_back_to_push_up_with_movement_change_and_rir_prescription" classname="com.example.kpkn.domain.training.PlanAdaptationResolverTest" time="0.004"/>
+  <testcase name="the_four_bodyweight_catalog_gap_cases_resolve_to_the_published_reserves" classname="com.example.kpkn.domain.training.PlanAdaptationResolverTest" time="0.008"/>
+  <testcase name="complete_athlete_profile_requires_real_cardio_blocks" classname="com.example.kpkn.domain.training.PlanAdaptationResolverTest" time="0.01"/>
+  <testcase name="bodyweight_calf_closes_the_catalog_gap_and_substitutes_instead_of_dropping" classname="com.example.kpkn.domain.training.PlanAdaptationResolverTest" time="0.002"/>
+  <testcase name="row_without_rowing_apparatus_fails_typed_and_never_becomes_superman" classname="com.example.kpkn.domain.training.PlanAdaptationResolverTest" time="0.003"/>
+  <testcase name="incline_biceps_curl_without_an_adjustable_bench_falls_to_the_seated_flat_bench_curl" classname="com.example.kpkn.domain.training.PlanAdaptationResolverTest" time="0.003"/>
+  <testcase name="paused_back_squat_falls_to_goblet_then_smith_then_bodyweight_in_that_order" classname="com.example.kpkn.domain.training.PlanAdaptationResolverTest" time="0.008"/>
+  <testcase name="missing_material_api_exposes_typed_verdicts" classname="com.example.kpkn.domain.training.PlanAdaptationResolverTest" time="0.001"/>
+  <testcase name="session_time_budget_reports_required_minutes" classname="com.example.kpkn.domain.training.PlanAdaptationResolverTest" time="0.0"/>
+  <testcase name="hack_squat_on_unconfirmed_machines_is_apparatus_unknown" classname="com.example.kpkn.domain.training.PlanAdaptationResolverTest" time="0.0"/>
+  <testcase name="adapted_recipe_gets_derived_id_and_adapted_provenance_without_mutating_original" classname="com.example.kpkn.domain.training.PlanAdaptationResolverTest" time="0.003"/>
+  <testcase name="powerlifting_profile_requires_barbell_bench_and_rack" classname="com.example.kpkn.domain.training.PlanAdaptationResolverTest" time="0.001"/>
+  <testcase name="recipe_level_above_user_is_level_unsuitable" classname="com.example.kpkn.domain.training.PlanAdaptationResolverTest" time="0.001"/>
+  <testcase name="unconfirmed_support_is_apparatus_unknown_even_when_substitute_exists" classname="com.example.kpkn.domain.training.PlanAdaptationResolverTest" time="0.001"/>
+  <testcase name="lastre_and_assistance_are_never_interchanged_in_adaptation" classname="com.example.kpkn.domain.training.PlanAdaptationResolverTest" time="0.001"/>
+  <testcase name="leg_press_substitutes_to_goblet_and_hack_to_bodyweight_squat_by_achievable_range" classname="com.example.kpkn.domain.training.PlanAdaptationResolverTest" time="0.002"/>
+  <testcase name="legacy_route_without_answers_keeps_material_unknown" classname="com.example.kpkn.domain.training.PlanAdaptationResolverTest" time="0.001"/>
+  <testcase name="the_same_slot_in_two_days_is_recorded_once_with_the_detail_of_each_day" classname="com.example.kpkn.domain.training.PlanAdaptationResolverTest" time="0.002"/>
+  <testcase name="droppable_t3_without_alternative_is_recorded_as_drop_not_silent_weakening" classname="com.example.kpkn.domain.training.PlanAdaptationResolverTest" time="0.0"/>
+  <testcase name="substituted_slot_is_raised_to_the_h9_floor_of_its_role_and_the_change_records_the_rest" classname="com.example.kpkn.domain.training.PlanAdaptationResolverTest" time="0.006"/>
+  <testcase name="competition_lift_missing_material_never_substituted_silently" classname="com.example.kpkn.domain.training.PlanAdaptationResolverTest" time="0.001"/>
+  <testcase name="lying_leg_curl_without_pattern_equivalent_is_no_valid_substitution" classname="com.example.kpkn.domain.training.PlanAdaptationResolverTest" time="0.001"/>
+  <testcase name="close_grip_bench_press_falls_to_dumbbells_then_smith_then_push_up_in_that_order" classname="com.example.kpkn.domain.training.PlanAdaptationResolverTest" time="0.005"/>
+  <testcase name="essential_slot_without_alternative_fails_typed_instead_of_dropping" classname="com.example.kpkn.domain.training.PlanAdaptationResolverTest" time="0.001"/>
+  <testcase name="close_grip_lat_pulldown_falls_to_the_machine_then_pull_up_then_dumbbell_row_in_that_order" classname="com.example.kpkn.domain.training.PlanAdaptationResolverTest" time="0.007"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

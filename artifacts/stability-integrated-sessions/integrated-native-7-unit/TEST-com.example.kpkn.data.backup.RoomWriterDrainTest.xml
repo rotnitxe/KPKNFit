@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.backup.RoomWriterDrainTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-09T09:03:23.508Z" hostname="VF" time="0.863">
+  <properties/>
+  <testcase name="admittedRoomMutationMustFinishBeforeMaintenanceCanComplete" classname="com.example.kpkn.data.backup.RoomWriterDrainTest" time="0.863"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.AuthoredRecipeCompositionTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:20:09.612Z" hostname="VF" time="0.088">
+  <properties/>
+  <testcase name="authored_recipes_have_no_uncovered_hard_composition_findings" classname="com.example.kpkn.domain.training.AuthoredRecipeCompositionTest" time="0.041"/>
+  <testcase name="materializer_non_strict_path_materializes_the_phat_table_with_pending_speed_loads" classname="com.example.kpkn.domain.training.AuthoredRecipeCompositionTest" time="0.026"/>
+  <testcase name="authored_recipes_declare_authored_exact_with_scoped_source_exemptions" classname="com.example.kpkn.domain.training.AuthoredRecipeCompositionTest" time="0.004"/>
+  <testcase name="materializer_non_strict_path_materializes_the_phul_table" classname="com.example.kpkn.domain.training.AuthoredRecipeCompositionTest" time="0.016"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

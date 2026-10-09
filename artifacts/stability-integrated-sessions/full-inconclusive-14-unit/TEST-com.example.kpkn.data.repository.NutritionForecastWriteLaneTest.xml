@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.repository.NutritionForecastWriteLaneTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:16:44.946Z" hostname="VF" time="0.017">
+  <properties/>
+  <testcase name="interleaved editor write after our commit is never clobbered and cache converges to db" classname="com.example.kpkn.data.repository.NutritionForecastWriteLaneTest" time="0.007"/>
+  <testcase name="cache publish only applies while the entry is still the source" classname="com.example.kpkn.data.repository.NutritionForecastWriteLaneTest" time="0.0"/>
+  <testcase name="production mutex keeps an editor write outside the write-publish section" classname="com.example.kpkn.data.repository.NutritionForecastWriteLaneTest" time="0.01"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

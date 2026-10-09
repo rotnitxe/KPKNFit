@@ -20,6 +20,7 @@ import java.util.UUID
 class RoomSyncRepository(private val context: Context, private val uid: String,
     private val database: KpknDatabase, private val transport: AccountCalls,
     private val privateData: PrivatePayloadTransfer, private val media: SyncMediaTransfer) : SyncRepository {
+    private val writeOwner = com.example.kpkn.data.backup.DataSessionWriter("room-sync-repository")
     private val mutex = syncLocks.getOrPut(uid) { Mutex() }
     private val journal = database.syncJournalDao()
     private val codec = PersonalRecordCodec(context)
@@ -27,7 +28,7 @@ class RoomSyncRepository(private val context: Context, private val uid: String,
     private val _status = MutableStateFlow<SyncStatus>(SyncStatus.Disabled)
     override val status = _status.asStateFlow()
 
-    override suspend fun enable() = withContext(Dispatchers.IO) {
+    override suspend fun enable() = writeOwner.write withContext@ {
         val server = transport.call(uid, "openAccount")
         val configuration = journal.configuration() ?: SyncConfigurationEntity()
         val device = configuration.deviceId.ifBlank { UUID.randomUUID().toString() }
@@ -42,13 +43,13 @@ class RoomSyncRepository(private val context: Context, private val uid: String,
         }
         publish(SyncStatus.Ready(journal.pendingCount(), configuration.confirmedAtEpochMs))
     }
-    override suspend fun disable() = withContext(Dispatchers.IO) {
+    override suspend fun disable() = writeOwner.write withContext@ {
         mutex.withLock {
             journal.configuration()?.let { journal.configure(it.copy(enabled = false)) }
             publish(SyncStatus.Disabled)
         }
     }
-    override suspend fun synchronize() = withContext(Dispatchers.IO) {
+    override suspend fun synchronize() = writeOwner.write withContext@ {
         mutex.withLock {
             val configuration = journal.configuration() ?: return@withLock
             if (!configuration.enabled) { publish(SyncStatus.Disabled); return@withLock }
@@ -187,7 +188,7 @@ class RoomSyncRepository(private val context: Context, private val uid: String,
     }
     override suspend fun resolveConflict(id: String, resolution: String) {
         require(resolution in setOf("KEEP_CURRENT", "USE_INCOMING", "KEEP_BOTH"))
-        withContext(Dispatchers.IO) { mutex.withLock {
+        writeOwner.write withContext@ { mutex.withLock {
             val configuration = journal.configuration() ?: error("Sync is unavailable")
             val marker = journal.conflicted(id) ?: run {
                 val remote = conflicts().firstOrNull { it.getValue("id").jsonPrimitive.content == id } ?: error("Conflict is unavailable")
@@ -253,12 +254,12 @@ class RoomSyncRepository(private val context: Context, private val uid: String,
         val payload = value?.let { Json.parseToJsonElement(it).jsonObject } ?: return null
         return payload["kpknPrivateDataReference"]?.let { privateData.download(generation, json.decodeFromJsonElement(PrivateDataReference.serializer(), it)) } ?: payload
     }
-    suspend fun conflicts(): List<JsonObject> = withContext(Dispatchers.IO) {
+    suspend fun conflicts(): List<JsonObject> = writeOwner.write withContext@ {
         val configuration = journal.configuration() ?: return@withContext emptyList()
         transport.call(uid, "listConflicts", buildJsonObject { put("generation", configuration.accountGeneration) })
             .getValue("conflicts").jsonArray.map { it.jsonObject }
     }
-    suspend fun conflictVersions(conflict: JsonObject): Pair<JsonObject?, JsonObject?> = withContext(Dispatchers.IO) {
+    suspend fun conflictVersions(conflict: JsonObject): Pair<JsonObject?, JsonObject?> = writeOwner.write withContext@ {
         val incoming = json.decodeFromJsonElement(PersonalOperation.serializer(), conflict.getValue("incoming"))
         val table = PersonalRecordCodec.kinds.entries.first { it.value == incoming.kind }.key
         val key = incoming.sourceId ?: incoming.entityId
@@ -268,7 +269,7 @@ class RoomSyncRepository(private val context: Context, private val uid: String,
     }
     fun canKeepBoth(conflict: JsonObject, incomingPayload: JsonObject?): Boolean =
         ConflictCopies.supported(json.decodeFromJsonElement(PersonalOperation.serializer(), conflict.getValue("incoming")), incomingPayload)
-    suspend fun cancelRemoteWorkout(conflict: JsonObject) = withContext(Dispatchers.IO) { mutex.withLock {
+    suspend fun cancelRemoteWorkout(conflict: JsonObject) = writeOwner.write withContext@ { mutex.withLock {
         val incoming = json.decodeFromJsonElement(PersonalOperation.serializer(), conflict.getValue("incoming"))
         require(incoming.kind == "ongoing_workout")
         val configuration = requireNotNull(journal.configuration())

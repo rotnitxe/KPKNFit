@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.repository.NutritionCalendarForecastCoordinatorTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:16:44.016Z" hostname="VF" time="0.457">
+  <properties/>
+  <testcase name="switching to another plan with the same calendar and day reforecasts it" classname="com.example.kpkn.data.repository.NutritionCalendarForecastCoordinatorTest" time="0.064"/>
+  <testcase name="program edit persists a reforecast without opening the editor" classname="com.example.kpkn.data.repository.NutritionCalendarForecastCoordinatorTest" time="0.005"/>
+  <testcase name="confirming a future optional reforecasts from tomorrow keeping today and the exact budget" classname="com.example.kpkn.data.repository.NutritionCalendarForecastCoordinatorTest" time="0.007"/>
+  <testcase name="collection reacts once to a program edit and never loops on its own writes" classname="com.example.kpkn.data.repository.NutritionCalendarForecastCoordinatorTest" time="0.38"/>
+  <testcase name="without an active plan nothing is written" classname="com.example.kpkn.data.repository.NutritionCalendarForecastCoordinatorTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

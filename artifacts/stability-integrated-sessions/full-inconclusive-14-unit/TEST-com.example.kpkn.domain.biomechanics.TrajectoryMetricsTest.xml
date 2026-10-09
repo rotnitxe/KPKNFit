@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.biomechanics.TrajectoryMetricsTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:08.868Z" hostname="VF" time="0.012">
+  <properties/>
+  <testcase name="pressTracksWristsAndCountsReps" classname="com.example.kpkn.domain.biomechanics.TrajectoryMetricsTest" time="0.007"/>
+  <testcase name="squatTrackingPointAveragesHipsAndKnees" classname="com.example.kpkn.domain.biomechanics.TrajectoryMetricsTest" time="0.0"/>
+  <testcase name="driftingSquatRaisesHorizontalVsVerticalRatio" classname="com.example.kpkn.domain.biomechanics.TrajectoryMetricsTest" time="0.001"/>
+  <testcase name="frameAtAndTrailFollowPlaybackPosition" classname="com.example.kpkn.domain.biomechanics.TrajectoryMetricsTest" time="0.001"/>
+  <testcase name="hysteresisDoesNotSkipFirstRepFromLongOverflow" classname="com.example.kpkn.domain.biomechanics.TrajectoryMetricsTest" time="0.0"/>
+  <testcase name="hingeRepsSegmentOnTrunkAngle" classname="com.example.kpkn.domain.biomechanics.TrajectoryMetricsTest" time="0.001"/>
+  <testcase name="pullTracksElbows" classname="com.example.kpkn.domain.biomechanics.TrajectoryMetricsTest" time="0.0"/>
+  <testcase name="verticalSquatHasNearZeroHorizontalDeviation" classname="com.example.kpkn.domain.biomechanics.TrajectoryMetricsTest" time="0.0"/>
+  <testcase name="uprightTrunkAngleNearZeroFoldedHingeNearFortyFive" classname="com.example.kpkn.domain.biomechanics.TrajectoryMetricsTest" time="0.0"/>
+  <testcase name="centimetersOnlyWithReferenceScale" classname="com.example.kpkn.domain.biomechanics.TrajectoryMetricsTest" time="0.002"/>
+  <testcase name="lowLikelihoodLandmarksAreIgnored" classname="com.example.kpkn.domain.biomechanics.TrajectoryMetricsTest" time="0.0"/>
+  <testcase name="trackingJointsMatchRelatorFamilies" classname="com.example.kpkn.domain.biomechanics.TrajectoryMetricsTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

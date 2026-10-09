@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.db.GlobalFoodsFtsTriggerHygieneTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:15:49.320Z" hostname="VF" time="7.799">
+  <properties/>
+  <testcase name="a_failed_rebuild_rolls_back_the_trigger_drops_and_does_not_block_the_open" classname="com.example.kpkn.data.db.GlobalFoodsFtsTriggerHygieneTest" time="1.126"/>
+  <testcase name="legacy_triggers_are_dropped_on_open_and_the_fts_index_is_rebuilt_without_duplicates" classname="com.example.kpkn.data.db.GlobalFoodsFtsTriggerHygieneTest" time="1.979"/>
+  <testcase name="fresh_databases_without_legacy_triggers_are_left_untouched" classname="com.example.kpkn.data.db.GlobalFoodsFtsTriggerHygieneTest" time="1.48"/>
+  <testcase name="upgrade_path_recreates_room_triggers_before_the_cleanup_runs" classname="com.example.kpkn.data.db.GlobalFoodsFtsTriggerHygieneTest" time="1.206"/>
+  <testcase name="legacy_triggers_are_kept_when_room_sync_triggers_are_missing" classname="com.example.kpkn.data.db.GlobalFoodsFtsTriggerHygieneTest" time="1.001"/>
+  <testcase name="after_the_cleanup_updates_and_deletes_work_and_keep_the_index_in_sync" classname="com.example.kpkn.data.db.GlobalFoodsFtsTriggerHygieneTest" time="1.006"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

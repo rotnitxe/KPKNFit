@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.auge.AugeFatigueEngineEffectiveSetTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:07.997Z" hostname="VF" time="0.001">
+  <properties/>
+  <testcase name="plankTimeOnlyIsEffectiveWithoutCardioDetails" classname="com.example.kpkn.domain.auge.AugeFatigueEngineEffectiveSetTest" time="0.0"/>
+  <testcase name="failedEmptySetIsNotEffective" classname="com.example.kpkn.domain.auge.AugeFatigueEngineEffectiveSetTest" time="0.0"/>
+  <testcase name="workingSetWithDefaultRpeIsEffective" classname="com.example.kpkn.domain.auge.AugeFatigueEngineEffectiveSetTest" time="0.0"/>
+  <testcase name="warmupWithDefaultRpeIsNotEffective" classname="com.example.kpkn.domain.auge.AugeFatigueEngineEffectiveSetTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

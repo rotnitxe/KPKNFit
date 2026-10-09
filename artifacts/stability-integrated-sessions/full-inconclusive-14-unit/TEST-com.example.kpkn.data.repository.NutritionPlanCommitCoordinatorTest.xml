@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.repository.NutritionPlanCommitCoordinatorTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:16:44.968Z" hostname="VF" time="1.024">
+  <properties/>
+  <testcase name="replayWithSameCommitIdWritesNothingNew" classname="com.example.kpkn.data.repository.NutritionPlanCommitCoordinatorTest" time="0.113"/>
+  <testcase name="trackingOnlyCommitKeepsPreviousPlansAndDeactivatesThem" classname="com.example.kpkn.data.repository.NutritionPlanCommitCoordinatorTest" time="0.133"/>
+  <testcase name="editingTheSamePlanKeepsTodaysGoalAndTheChangeAppliesFromTomorrow" classname="com.example.kpkn.data.repository.NutritionPlanCommitCoordinatorTest" time="0.116"/>
+  <testcase name="doubleTapAndRetryDoNotDuplicatePlanBodyGoalsOrSnapshots" classname="com.example.kpkn.data.repository.NutritionPlanCommitCoordinatorTest" time="0.109"/>
+  <testcase name="trackingOnlyCommitLeavesTodaysGoalUntouched" classname="com.example.kpkn.data.repository.NutritionPlanCommitCoordinatorTest" time="0.123"/>
+  <testcase name="newEditOperationReplacesTheSamePlanWithoutDuplicating" classname="com.example.kpkn.data.repository.NutritionPlanCommitCoordinatorTest" time="0.105"/>
+  <testcase name="pendingDraftIsConsumedInTheSameTransaction" classname="com.example.kpkn.data.repository.NutritionPlanCommitCoordinatorTest" time="0.11"/>
+  <testcase name="replayOfAnOlderCommitDoesNotFlipTodaysGoalBack" classname="com.example.kpkn.data.repository.NutritionPlanCommitCoordinatorTest" time="0.11"/>
+  <testcase name="activatingADifferentPlanReplacesTodaysGoalAndKeepsPastDaysIntact" classname="com.example.kpkn.data.repository.NutritionPlanCommitCoordinatorTest" time="0.105"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

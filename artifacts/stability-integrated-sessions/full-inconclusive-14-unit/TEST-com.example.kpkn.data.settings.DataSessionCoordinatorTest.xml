@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.settings.DataSessionCoordinatorTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:17:14.245Z" hostname="VF" time="0.034">
+  <properties/>
+  <testcase name="reopenFailureCannotProduceSuccess" classname="com.example.kpkn.data.settings.DataSessionCoordinatorTest" time="0.017"/>
+  <testcase name="activeWorkoutPreventsQuiescingAndReplacement" classname="com.example.kpkn.data.settings.DataSessionCoordinatorTest" time="0.008"/>
+  <testcase name="participantsReopenInReverseOrderAfterFailure" classname="com.example.kpkn.data.settings.DataSessionCoordinatorTest" time="0.009"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

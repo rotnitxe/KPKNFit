@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" tests="58" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:44.029Z" hostname="VF" time="2.156">
+  <properties/>
+  <testcase name="37 red bull finds the OFF product because the curated energy drinks are not verified" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.041"/>
+  <testcase name="32 banana finds the curated banana" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.009"/>
+  <testcase name="two runs return the same rows in the same order with the same scores" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.836"/>
+  <testcase name="13 pan shows no empanaditas, panchitos, pancakes or biopan" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.008"/>
+  <testcase name="36 coca cola finds the Coca-Cola products" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.005"/>
+  <testcase name="19 pollo ranks the cooked breast above the raw one" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.005"/>
+  <testcase name="46 aceite de oliva extra virgen finds the USDA row because the curated oil does not claim it" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.012"/>
+  <testcase name="24 arroz puts the curated cooked rice first" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.004"/>
+  <testcase name="44 xyzq finds nothing" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.008"/>
+  <testcase name="35 galletas shows curated cookies and never bread" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.008"/>
+  <testcase name="28 tomates folds the plural" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.007"/>
+  <testcase name="skipping rows that lack a required word never changes what the full identity rules return" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.569"/>
+  <testcase name="the fixture is the committed slice of OFF" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.013"/>
+  <testcase name="08 huevo puts the curated egg first" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.007"/>
+  <testcase name="04 leche colun shows Colun products first" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.008"/>
+  <testcase name="47 aceite de canola, maravilla and girasol are answered by the USDA oils the curated catalog lacks" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.021"/>
+  <testcase name="23 nuggets de pollo finds the chicken nuggets SKU" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.013"/>
+  <testcase name="41 sopaipilla finds the sopaipillas" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.005"/>
+  <testcase name="every logger result has verified nutrients and the identity that was asked for" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.261"/>
+  <testcase name="42 cazuela finds the plain cazuela first and the variants right after" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.004"/>
+  <testcase name="39 empanada finds the empanada de pino" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.003"/>
+  <testcase name="11 huevo frito finds the fried egg" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.004"/>
+  <testcase name="09 huevos folds the plural" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.004"/>
+  <testcase name="22 nuggets finds the curated row and supermarket SKUs and never raw chicken" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.004"/>
+  <testcase name="16 hallulla finds the Chilean bread and never a pack first" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.004"/>
+  <testcase name="01 leche puts the curated whole milk first" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.005"/>
+  <testcase name="06 leche descremada finds the curated skim milk and the Colun SKU" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.005"/>
+  <testcase name="15 marraqueta finds the Chilean bread" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.003"/>
+  <testcase name="bebida, gaseosa and sprite answer with the generic soda, the pool holds no brand they name" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.011"/>
+  <testcase name="18 pollo puts the household chicken first" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.004"/>
+  <testcase name="48 mantequilla keeps the curated butter first and sin sal and con sal find their own USDA stick" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.01"/>
+  <testcase name="27 tomate puts the curated tomato first" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.004"/>
+  <testcase name="33 lentejas finds the curated lentils" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.004"/>
+  <testcase name="07 dulce de leche is its own query and answers with the manjar and its rows" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.007"/>
+  <testcase name="12 pan puts the curated white bread first" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.008"/>
+  <testcase name="30 aguacate finds the same avocado ahead of the OFF row named Aguacate" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.006"/>
+  <testcase name="49 pechuga de pollo con piel finds the USDA chicken whose negative carbohydrate was clamped" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.015"/>
+  <testcase name="10 huevos fritos finds the fried egg" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.007"/>
+  <testcase name="38 completo finds the Chilean hot dog" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.006"/>
+  <testcase name="21 pechuga de pollo finds the cooked breast" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.008"/>
+  <testcase name="14 pan ranks curated breads before every OFF row" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.005"/>
+  <testcase name="40 empanadas folds the plural" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.005"/>
+  <testcase name="31 platano finds the curated banana" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.005"/>
+  <testcase name="the verified and identity filter runs before the limit" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.082"/>
+  <testcase name="26 papas folds the plural" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.005"/>
+  <testcase name="25 papas fritas finds the fried potato" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.005"/>
+  <testcase name="45 aceite de oliva keeps the curated oil first and shows the USDA olive oils before any OFF row" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.004"/>
+  <testcase name="17 pan integral finds the curated wholemeal bread and the Bauducco one" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.004"/>
+  <testcase name="34 yogurt shows both curated yogurts before any OFF row" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.004"/>
+  <testcase name="05 leche colun never ranks the generic milk above a Colun SKU" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.004"/>
+  <testcase name="50 the USDA rows never take the lead from a curated row the query names" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.022"/>
+  <testcase name="coca cola zero finds the generic zero soda while the pool holds no Zero row" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.004"/>
+  <testcase name="03 leche never offers dulce de leche as milk" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.009"/>
+  <testcase name="43 whey finds the curated protein powder first" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.006"/>
+  <testcase name="02 leche shows several curated milks before the first OFF row" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.007"/>
+  <testcase name="20 pechuga de pollo cruda finds the raw breast" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.007"/>
+  <testcase name="29 palta puts the curated avocado first" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.004"/>
+  <testcase name="the USDA fixture is the committed extract as the importer stores it and every row is verified for the logger" classname="com.example.kpkn.domain.nutrition.SearchGoldenCorpusTest" time="0.006"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

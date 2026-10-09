@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.onboarding.CardioChoicesTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:52.360Z" hostname="VF" time="0.031">
+  <properties/>
+  <testcase name="theAnswersHaveStableValuesAndLabels" classname="com.example.kpkn.domain.onboarding.CardioChoicesTest" time="0.001"/>
+  <testcase name="theBikeBelongsToThePersonAndTravelsToEveryPlace" classname="com.example.kpkn.domain.onboarding.CardioChoicesTest" time="0.001"/>
+  <testcase name="withSeveralPlacesTheMachinesAreOfferedWhenAnyPlaceHasThemAndThePlacesWithoutAreNamed" classname="com.example.kpkn.domain.onboarding.CardioChoicesTest" time="0.004"/>
+  <testcase name="theOutdoorBikeIsOfferedOnlyWhenThePersonSaysTheyHaveOne" classname="com.example.kpkn.domain.onboarding.CardioChoicesTest" time="0.002"/>
+  <testcase name="isOfferedAgreesWithTheOptionsAndEveryUnavailableAnswerHasAReason" classname="com.example.kpkn.domain.onboarding.CardioChoicesTest" time="0.001"/>
+  <testcase name="withoutMachinesOrABikeOnlyWalkingAndRunningAreOffered" classname="com.example.kpkn.domain.onboarding.CardioChoicesTest" time="0.001"/>
+  <testcase name="withTheCardioSymbolTheMachinesAndWhateverThereIsAreOffered" classname="com.example.kpkn.domain.onboarding.CardioChoicesTest" time="0.001"/>
+  <testcase name="onlyTheCardioSymbolOpensTheMachines" classname="com.example.kpkn.domain.onboarding.CardioChoicesTest" time="0.02"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

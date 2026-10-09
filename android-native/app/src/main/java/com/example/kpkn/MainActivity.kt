@@ -586,6 +586,22 @@ fun KPKNApp(
     }
 
     val ongoingWorkout by ProgramRepository.getInstance().ongoingWorkout.collectAsState()
+    val blockedDataUse by com.example.kpkn.data.backup.AppDataSessions.blockedUse.collectAsState()
+    blockedDataUse?.let { blocked ->
+        fun openWorkoutExit(action: String) {
+            val workout = blocked.workout ?: return
+            com.example.kpkn.data.backup.AppDataSessions.dismissBlockedUse()
+            navController.navigate(KpknRoute.Workout.create(workout.programId, workout.sessionId)) { launchSingleTop = true }
+            navController.currentBackStackEntry?.savedStateHandle?.apply {
+                set("maintenance_workout_exit", action)
+                set("maintenance_return", true)
+            }
+        }
+        com.example.kpkn.screens.settings.ActiveDataUsePrompt(blocked,
+            onFinish = { openWorkoutExit("FINISH") }, onDiscard = { openWorkoutExit("DISCARD") },
+            onDismiss = { com.example.kpkn.data.backup.AppDataSessions.dismissBlockedUse() })
+    }
+
 
     LaunchedEffect(pendingDeepLinkRoute, settings.onboardingCompleted, currentRoute) {
         val route = pendingDeepLinkRoute ?: return@LaunchedEffect
@@ -746,7 +762,8 @@ fun KPKNApp(
             // ─── Session in progress banner ─────────────────────────────────
             // Glass overlays must be siblings drawn after hazeSource.
             val isHomeOrTrainingTab = currentTab == KpknRoute.Home.route || currentTab == KpknRoute.Training.route
-            val showOngoingFloatingCard = ongoingWorkout != null && isHomeOrTrainingTab && !isFullscreenWizard
+            val showOngoingFloatingCard = ongoingWorkout != null && isHomeOrTrainingTab && !isFullscreenWizard &&
+                !currentRoute.orEmpty().startsWith(KpknRoute.Settings.route)
 
             val density = LocalDensity.current
             val bottomBarHeightDp = remember(bottomBarHeightPx, density) {
@@ -1678,12 +1695,17 @@ private fun KPKNNavGraph(
             val catalogResult = catalogResultJson?.let { encoded ->
                 runCatching { Json.decodeFromString<CatalogResult>(encoded) }.getOrNull()
             }
+            val maintenanceExit by backStack.savedStateHandle.getStateFlow<String?>("maintenance_workout_exit", null).collectAsState()
+            val maintenanceReturn by backStack.savedStateHandle.getStateFlow("maintenance_return", false).collectAsState()
             WorkoutScreen(
                 programId = programId,
                 sessionId = sessionId,
+                maintenanceExitAction = maintenanceExit,
+                onMaintenanceExitConsumed = { backStack.savedStateHandle.set<String?>("maintenance_workout_exit", null) },
                 onBack = { navController.popBackStack() },
                 onComplete = {
-                    navController.navigate(KpknRoute.Home.route) {
+                    if (maintenanceReturn) navController.popBackStack()
+                    else navController.navigate(KpknRoute.Home.route) {
                         popUpTo(KpknRoute.Home.route) { inclusive = false }
                         launchSingleTop = true
                     }

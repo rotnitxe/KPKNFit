@@ -1,0 +1,44 @@
+[
+  {
+    "text": "KPKN for adults",
+    "content-desc": "",
+    "bounds": "[72,1143][806,1244]",
+    "clickable": "false",
+    "enabled": "true"
+  },
+  {
+    "text": "You must be at least 18 years old to use the training and nutrition features.",
+    "content-desc": "",
+    "bounds": "[72,1292][1272,1418]",
+    "clickable": "false",
+    "enabled": "true"
+  },
+  {
+    "text": "",
+    "content-desc": "I confirm that I am 18 or older.",
+    "bounds": "[72,1418][216,1562]",
+    "clickable": "true",
+    "enabled": "true"
+  },
+  {
+    "text": "I confirm that I am 18 or older.",
+    "content-desc": "",
+    "bounds": "[216,1459][1272,1522]",
+    "clickable": "false",
+    "enabled": "true"
+  },
+  {
+    "text": "Continue",
+    "content-desc": "",
+    "bounds": "[144,1610][306,1658]",
+    "clickable": "false",
+    "enabled": "true"
+  },
+  {
+    "text": "Export or erase my data",
+    "content-desc": "",
+    "bounds": "[108,1754][532,1802]",
+    "clickable": "false",
+    "enabled": "true"
+  }
+]

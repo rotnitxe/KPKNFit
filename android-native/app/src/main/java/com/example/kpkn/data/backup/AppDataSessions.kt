@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.activity.ComponentActivity
 import androidx.work.WorkManager
 import com.example.kpkn.data.db.KpknDatabase
+import com.example.kpkn.data.db.toOngoingWorkoutState
 import com.example.kpkn.data.repository.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,6 +15,16 @@ import java.lang.ref.WeakReference
 /** Process-owned maintenance survives disposal of the Settings ViewModel that requested it. */
 object AppDataSessions {
     val coordinator = DataSessionCoordinator()
+    private val _blockedUse = MutableStateFlow<BlockedDataUse?>(null)
+    val blockedUse = _blockedUse.asStateFlow()
+    fun dismissBlockedUse() { _blockedUse.value = null }
+    private suspend fun publishBlockedUse(context: Context, operation: String) {
+        val ongoing = runCatching {
+            KpknDatabase.getInstance(context).stateDao().getOngoingWorkout()?.toOngoingWorkoutState()
+        }.getOrNull()
+        _blockedUse.value = BlockedDataUse(operation, ongoing?.let { MaintenanceWorkout(it.programId, it.session.id) })
+    }
+
     private val owner = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val _generation = MutableStateFlow(0L)
     val generation = _generation.asStateFlow()
@@ -34,6 +45,7 @@ object AppDataSessions {
                 com.example.kpkn.services.workout.ActiveWorkoutHolder.get()?.flushOngoingForBackgroundAndAwait()
                 com.example.kpkn.services.cardio.CardioGpsTracker.pausePersonalWrites()
                 runCatching { ProgramRepository.getInstance() }.getOrNull()?.flushPendingWrites()
+                DataSessionWriters.closeAdmission()
                 withContext(Dispatchers.Main) { activity.get()?.viewModelStore?.clear() }
                 stopStartup()
                 com.example.kpkn.services.workout.WorkoutVoiceRuntime.quiesceForDataSession(requireNotNull(currentContext))
@@ -41,7 +53,7 @@ object AppDataSessions {
                 com.example.kpkn.services.workout.WorkoutVoiceExitInfoCollector.pauseForDataSession()
                 com.example.kpkn.telemetry.nutrition.NutritionTelemetry.pauseForDataSession()
                 com.example.kpkn.data.sync.OwnedStorageTasks.pauseAndAwait()
-                com.example.kpkn.data.account.AccountGraph.stop()
+                com.example.kpkn.data.account.AccountGraph.stop(resetEntitlement = false)
                 val context = requireNotNull(currentContext)
                 com.example.kpkn.data.diagnostics.KpknDiagnosticLogger.pauseForDataSession()
                 com.example.kpkn.services.diagnostics.KpknDiagnosticStorage.pauseForDataSession()
@@ -53,22 +65,21 @@ object AppDataSessions {
                 }
                 if (coordinator.state.value.let { (it as? DataSessionCoordinator.State.Maintaining)?.operation?.startsWith("export") != true })
                     com.example.kpkn.services.workout.WorkoutRestAlertManager(context).cancelRestAlerts(cancelFinished = true)
-                NutritionRepository.closeForDataSession()
-                BodyProgressRepository.closeForDataSession()
-                CompetitionRepository.closeForDataSession()
-                ProgramRepository.closeInstance()
-                CustomExerciseRepository.closeForDataSession()
-                SessionTemplateRepository.closeForDataSession()
-                WorkoutMediaRepository.closeInstance()
-                AugeRepository.closeForDataSession()
-                NutritionCalibrationRepository.closeForDataSession()
-                com.example.kpkn.data.preferences.PreferenceStores.closeForDataSession()
+                com.example.kpkn.services.workout.WorkoutRestAlertManager.pauseForDataSession()
+                retireRepositories()
                 com.example.kpkn.services.cardio.CardioGpsTracker.pausePersonalWrites()
+                DataSessionWriters.awaitStopped()
+                com.example.kpkn.data.account.AccountGraph.stop()
             }
             override suspend fun reopen() {
                 val context = requireNotNull(currentContext)
-                // Also retire the old singleton when an earlier quiesce step failed.
-                WorkoutMediaRepository.closeInstance()
+                // A failed early quiesce must not reuse an owner whose admission was retired.
+                stopStartup()
+                com.example.kpkn.services.workout.WorkoutRestAlertManager.pauseForDataSession()
+                retireRepositories()
+                DataSessionWriters.awaitStopped()
+                DataSessionWriters.reopenAdmission()
+                com.example.kpkn.services.workout.WorkoutRestAlertManager.resumeForDataSession()
                 MediaPersistenceOwner.writes.resume()
                 MediaPersistenceOwner.pendingCaptureRetryState.value = com.example.kpkn.data.media.WorkoutMediaPendingCaptureState()
                 AppBootstrap.prepare(context)
@@ -86,6 +97,23 @@ object AppDataSessions {
         })
     }
 
+    private suspend fun retireRepositories() {
+        WikiLabRepository.closeForDataSession()
+        NutritionRepository.closeForDataSession()
+        BodyProgressRepository.closeForDataSession()
+        CompetitionRepository.closeForDataSession()
+        ProgramRepository.closeInstance()
+        CustomExerciseRepository.closeForDataSession()
+        SessionTemplateRepository.closeForDataSession()
+        WorkoutMediaRepository.closeInstance()
+        AugeRepository.closeForDataSession()
+        NutritionCalibrationRepository.closeForDataSession()
+        com.example.kpkn.screens.sessioneditor.SessionEditorDraftStore.closeForDataSession()
+        com.example.kpkn.screens.sessioneditor.RuleTemplateStore.closeForDataSession()
+        com.example.kpkn.screens.sessioneditor.TrainedSessionVersionStore.closeForDataSession()
+        com.example.kpkn.data.preferences.PreferenceStores.closeForDataSession()
+    }
+
     fun launch(context: Context, operation: String, onSuccess: () -> Unit, onError: (String) -> Unit,
         requiresInactiveWorkout: Boolean = true, action: suspend () -> Unit) {
         owner.launch {
@@ -99,15 +127,18 @@ object AppDataSessions {
                     action()
                 }
                 withContext(Dispatchers.Main) { onSuccess() }
+            } catch (blocked: ActiveDataUseException) {
+                publishBlockedUse(context, operation)
             } catch (error: Exception) {
                 withContext(Dispatchers.Main) { onError(error.message ?: "Data operation failed") }
             }
         }
     }
-    fun retry(context: Context) = launch(context, "recover", {}, {}) { }
+    fun retry(context: Context) = launch(context, "recover", {}, {}, requiresInactiveWorkout = false) { }
 
     /** Identity changes execute in the process owner, beyond the disposed caller ViewModel. */
     suspend fun changeIdentity(context: Context, discardOngoing: Boolean = false, action: suspend () -> String?) = withContext(NonCancellable + Dispatchers.IO) {
+        try {
         coordinator.maintenance("account", activeWorkout = {
             currentContext = context.applicationContext
             (!discardOngoing && (KpknDatabase.getInstance(context).stateDao().getOngoingWorkout() != null || hasActiveGpsRoute())) || MediaPersistenceOwner.activeCameraCaptures.isNotEmpty()
@@ -120,6 +151,10 @@ object AppDataSessions {
             val prior = attached.value
             withContext(Dispatchers.Main) { activity.get()?.recreate() }
             withTimeout(30_000) { attached.first { it > prior } }
+        }
+        } catch (blocked: ActiveDataUseException) {
+            publishBlockedUse(context, "account")
+            throw blocked
         }
     }
     private fun hasActiveGpsRoute(): Boolean = com.example.kpkn.services.cardio.CardioGpsTracker.state.value.let {

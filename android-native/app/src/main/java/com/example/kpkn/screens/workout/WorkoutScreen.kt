@@ -214,6 +214,8 @@ fun WorkoutScreen(
     catalogResult: CatalogResult? = null,
     onCatalogResultConsumed: () -> Unit = {},
     onOpenExistingWorkout: (programId: String, sessionId: String) -> Unit = { _, _ -> },
+    maintenanceExitAction: String? = null,
+    onMaintenanceExitConsumed: () -> Unit = {},
 ) {
     val augeViewModel = rememberAugeViewModel()
     val context = LocalContext.current
@@ -302,6 +304,30 @@ fun WorkoutScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val snackbarScope = rememberCoroutineScope()
     var showExitDialog by rememberSaveable { mutableStateOf(false) }
+    var showMaintenanceDiscard by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(maintenanceExitAction, uiState.session?.id, uiState.isStartingWorkout, uiState.startTimeMs) {
+        if (maintenanceExitAction == null || uiState.session?.id != sessionId || uiState.isStartingWorkout ||
+            uiState.startTimeMs <= 0 || uiState.startPersistenceError != null || uiState.pendingOngoingConflict != null || uiState.pendingOngoingCorrupt) return@LaunchedEffect
+        when (maintenanceExitAction) {
+            "FINISH" -> viewModel.finishUpToCurrentPoint()
+            "DISCARD" -> showMaintenanceDiscard = true
+        }
+        onMaintenanceExitConsumed()
+    }
+    if (showMaintenanceDiscard) {
+        KpknAlertDialog(
+            onDismissRequest = { if (!uiState.isCancellingWorkout) showMaintenanceDiscard = false },
+            title = { Text(androidx.compose.ui.res.stringResource(com.example.kpkn.R.string.data_session_discard_title)) },
+            text = { Text(androidx.compose.ui.res.stringResource(com.example.kpkn.R.string.data_session_discard_description)) },
+            confirmButton = { TextButton(enabled = !uiState.isCancellingWorkout, onClick = { viewModel.cancelWorkout() }) {
+                Text(androidx.compose.ui.res.stringResource(com.example.kpkn.R.string.data_session_discard_workout))
+            } },
+            dismissButton = { TextButton(enabled = !uiState.isCancellingWorkout, onClick = { showMaintenanceDiscard = false }) {
+                Text(androidx.compose.ui.res.stringResource(com.example.kpkn.R.string.common_back))
+            } },
+        )
+    }
+
     var roadmapMode by rememberSaveable(programId, sessionId) { mutableStateOf(RoadmapMode.COMPACT) }
     var roadmapSelecting by remember { mutableStateOf(false) }
     val chromeScale = LocalViewportAdapt.current.uniformScale

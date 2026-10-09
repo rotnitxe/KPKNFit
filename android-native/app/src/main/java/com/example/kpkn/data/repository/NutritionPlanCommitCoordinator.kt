@@ -95,9 +95,12 @@ class NutritionPlanCommitCoordinator(
             com.example.kpkn.data.account.AccountGraph.entitlement.value.effectiveLevel
     },
 ) {
+    private val writeOwner = com.example.kpkn.data.backup.DataSessionWriter("nutrition-plan-commit-coordinator")
     private val mutex = Mutex()
 
-    suspend fun commit(request: NutritionPlanCommitRequest): NutritionPlanCommitResult = mutex.withLock {
+    suspend fun commit(request: NutritionPlanCommitRequest): NutritionPlanCommitResult = writeOwner.write { commitAccepted(request) }
+
+    private suspend fun commitAccepted(request: NutritionPlanCommitRequest): NutritionPlanCommitResult = mutex.withLock {
         PersistenceWriteCoordinator.mutex.withLock {
             require(request.commitId.isNotBlank()) { "Falta el identificador de idempotencia del guardado" }
             programRepository?.isReady?.first { it }

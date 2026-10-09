@@ -119,9 +119,11 @@ class NutritionRepository private constructor(
     val bodyProgressRepository: BodyProgressRepository
         get() = normalizedBodyRepository
 
-    private val appContext = context.applicationContext
+    private val writeOwner = com.example.kpkn.data.backup.DataSessionWriter("nutrition-repository")
+    private suspend fun <T> withDataSessionIo(block: suspend () -> T): T = writeOwner.write(block)
+    private val appContext = com.example.kpkn.data.backup.capturedPersonalContext(context)
     private val repositoryJob = SupervisorJob()
-    private val scope = CoroutineScope(Dispatchers.IO + repositoryJob)
+    private val scope = com.example.kpkn.data.backup.DataSessionWriterScope(CoroutineScope(Dispatchers.IO + repositoryJob), writeOwner)
     private val foodSaveMutex = Mutex()
     /** Serializa las importaciones del catálogo global (el arranque y un `refreshData` pueden solaparse). */
     private val catalogImportMutex = Mutex()
@@ -134,15 +136,15 @@ class NutritionRepository private constructor(
         if (ownsDatabase) com.example.kpkn.domain.entitlements.PlanLevel.PRO else
             com.example.kpkn.data.account.AccountGraph.entitlement.value.effectiveLevel
     }
-    internal fun requireNutritionWrite() = com.example.kpkn.domain.entitlements.ProgramAccessPolicy.requireCapability(
-        accessLevel(), com.example.kpkn.domain.entitlements.Capability.NUTRITION)
+    internal fun requireNutritionWrite() = writeOwner.immediate { com.example.kpkn.domain.entitlements.ProgramAccessPolicy.requireCapability(
+        accessLevel(), com.example.kpkn.domain.entitlements.Capability.NUTRITION) }
 
     // ─── IT3: utensilios configurables (ml por utensilio) ────────────────────
 
     private val utensilPrefs by lazy { appContext.getSharedPreferences("nutrition_utensils", Context.MODE_PRIVATE) }
 
     /** Aplica los overrides persistidos al motor de porciones (una vez al iniciar). */
-    fun loadUtensilOverrides() {
+    fun loadUtensilOverrides() = writeOwner.immediate {
         val overrides = utensilPrefs.all
             .filterKeys { it.startsWith("ml_") }
             .mapNotNull { (key, value) ->
@@ -155,9 +157,10 @@ class NutritionRepository private constructor(
     }
 
     /** Guarda el volumen de un utensilio y lo aplica de inmediato. */
-    fun saveUtensilOverride(name: String, ml: Double) {
+    fun saveUtensilOverride(name: String, ml: Double) = writeOwner.immediate {
         requireNutritionWrite()
         utensilPrefs.edit().putFloat("ml_$name", ml.toFloat()).apply()
+        scope.launch { utensilPrefs.edit().commit() }
         SubjectivePortionEngine.applyUtensilOverrides(SubjectivePortionEngine.currentUtensilOverrides() + (name to ml))
     }
 
@@ -165,8 +168,9 @@ class NutritionRepository private constructor(
      * Devuelve un utensilio a su volumen base (WP-U12, C11): quita el override guardado y el del motor de porciones.
      * Un valor que el usuario no cambió no debe quedar fijado como si lo hubiera elegido (congelaría la base).
      */
-    fun clearUtensilOverride(name: String) {
+    fun clearUtensilOverride(name: String) = writeOwner.immediate {
         utensilPrefs.edit().remove("ml_$name").apply()
+        scope.launch { utensilPrefs.edit().commit() }
         SubjectivePortionEngine.applyUtensilOverrides(SubjectivePortionEngine.currentUtensilOverrides() - name)
     }
 
@@ -186,7 +190,7 @@ class NutritionRepository private constructor(
     )
 
     /** Backup hooks: custom foods and catalog provenance are user data, not UI-only cache. */
-    suspend fun getCustomFoodsForBackup(): List<FoodItem> = withContext(Dispatchers.IO) {
+    suspend fun getCustomFoodsForBackup(): List<FoodItem> = withDataSessionIo {
         db.nutritionDao().getAllCustomFoods().mapNotNull { entity ->
             runCatching { entity.toFoodItem() }.getOrNull()
         }
@@ -222,7 +226,7 @@ class NutritionRepository private constructor(
             food.amount.isFinite() && food.amount > 0.0 &&
                 listOf(food.calories, food.protein, food.carbs, food.fats).all { it.isFinite() && it >= 0.0 }
         }) { "Invalid food amount or nutrients" }
-        withContext(Dispatchers.IO) {
+        withDataSessionIo {
             val alreadyStored = db.nutritionDao().getLogsForDate(log.date).any { it.id == log.id }
             // El objetivo histórico pasa por el resolvedor canónico: un registro
             // retroactivo (o su edición/borrado) jamás captura el plan activo
@@ -288,7 +292,7 @@ class NutritionRepository private constructor(
      * base se propaga: nunca se informa de un borrado que no ocurrió.
      */
     suspend fun deleteNutritionLogAndAwait(logId: String): NutritionLog? = foodSaveMutex.withLock {
-        withContext(Dispatchers.IO) {
+        withDataSessionIo {
             // La fila que el usuario vio es la que vuelve al deshacer: primero la lista publicada, si no la guardada.
             val existing = _nutritionLogs.value.firstOrNull { it.id == logId }
                 ?: db.nutritionDao().getAllLogs().firstOrNull { it.id == logId }
@@ -377,14 +381,14 @@ class NutritionRepository private constructor(
         query: String,
         limit: Int = 50,
         loggerFilter: Boolean = false,
-    ): List<FoodCandidate> = withContext(Dispatchers.IO) {
+    ): List<FoodCandidate> = withDataSessionIo {
         val normalizedQuery = TextKeys.normalize(query)
-        if (normalizedQuery.isBlank()) return@withContext emptyList()
+        if (normalizedQuery.isBlank()) return@withDataSessionIo emptyList()
 
         // The ranker's anchor: the alias table (by id, WP-S6) first, then the household default of the query.
         val anchor = staticFoodForAlias(query) ?: HouseholdPortions.householdStaticFood(query)
         val q = FoodSearchRanker.query(query, anchor?.id)
-        if (q.tokens.isEmpty()) return@withContext emptyList()
+        if (q.tokens.isEmpty()) return@withDataSessionIo emptyList()
 
         FoodSearchRanker.rank(
             q = q,
@@ -530,13 +534,13 @@ class NutritionRepository private constructor(
      * también para el modo de solo registro, en el que no hay plan que publicar.
      */
     suspend fun publishNutritionPlanCommit() {
-        val committedPlans = withContext(Dispatchers.IO) {
+        val committedPlans = withDataSessionIo {
             db.nutritionDao().getAllPlans().map { it.toNutritionPlan() }
         }
-        val committedActiveId = withContext(Dispatchers.IO) {
+        val committedActiveId = withDataSessionIo {
             db.nutritionDao().getActiveState()?.activePlanId
         }
-        val committedSnapshots = withContext(Dispatchers.IO) {
+        val committedSnapshots = withDataSessionIo {
             db.nutritionDao().getAllDailyGoalSnapshots().mapNotNull { it.toDailyGoalSnapshot() }
         }
         withContext(Dispatchers.Main.immediate) {
@@ -714,12 +718,12 @@ class NutritionRepository private constructor(
 
         private val lane = NutritionForecastWriteLane(
             readCurrent = { planId ->
-                withContext(Dispatchers.IO) {
+                withDataSessionIo {
                     db.nutritionDao().getAllPlans().firstOrNull { it.id == planId }?.toNutritionPlan()
                 }
             },
             commitRevision = { revised ->
-                withContext(Dispatchers.IO) {
+                withDataSessionIo {
                     db.withTransaction { db.nutritionDao().upsertPlan(revised.toEntity()) }
                 }
             },
@@ -965,7 +969,7 @@ class NutritionRepository private constructor(
 
     private suspend fun rebuildFoodIndex(generation: Int) {
         try {
-            val globalFoods = withContext(Dispatchers.IO) {
+            val globalFoods = withDataSessionIo {
                 db.nutritionDao().getAllGlobalFoods()
             }
             val staticFoods = _foodDatabase.value
@@ -997,14 +1001,14 @@ class NutritionRepository private constructor(
         foodId: String,
         portionGrams: Double?,
         cookingMethod: String?,
-    ) {
+    ) = writeOwner.write {
         requireNutritionWrite()
         smartResolver.recordLearned(query, brandHint, foodId, portionGrams, cookingMethod)
     }
 
     /** E16/IT2: invalidación del aprendizaje desde la UI. */
     suspend fun clearLearnedResolutions() = foodSaveMutex.withLock {
-        withContext(Dispatchers.IO) {
+        withDataSessionIo {
             smartResolver.clearLearned()
             foodCalibration.update { profile -> profile.copy(
                 habitualPortionsGrams = emptyMap(), maturePortionsGrams = emptyMap(), confirmedPortions = emptyMap(),
@@ -1020,7 +1024,7 @@ class NutritionRepository private constructor(
     /**
      * Look up a food by ID across all sources: static, custom, and global.
      */
-    suspend fun getFoodById(foodId: String): FoodItem? = withContext(Dispatchers.IO) {
+    suspend fun getFoodById(foodId: String): FoodItem? = withDataSessionIo {
         val cached = _foodDatabase.value.find { it.id == foodId }
         val global = if (cached == null) {
             // Check global foods (USDA/OFF)
@@ -1348,11 +1352,13 @@ class NutritionRepository private constructor(
         )
     }
 
-    private fun persistFoodLearning() {
+    private fun persistFoodLearning() = writeOwner.immediate {
         val payload = runCatching {
             Json.encodeToString(_foodQueryLearning.value.values.toList())
         }.getOrDefault("[]")
         foodPrefs.edit().putString("food_query_learning_v2", payload).apply()
+        scope.launch { foodPrefs.edit().commit() }
+        Unit
     }
 
     private fun loadFoodLearning(): Map<String, FoodQueryLearningEntry> {
@@ -1363,9 +1369,11 @@ class NutritionRepository private constructor(
         return list.associateBy { it.query }
     }
 
-    private fun saveFoodCatalogMeta(meta: FoodCatalogMeta) {
+    private fun saveFoodCatalogMeta(meta: FoodCatalogMeta) = writeOwner.immediate {
         val encoded = runCatching { Json.encodeToString(meta) }.getOrDefault("")
         foodPrefs.edit().putString("food_catalog_meta", encoded).apply()
+        scope.launch { foodPrefs.edit().commit() }
+        Unit
     }
 
     private fun loadFoodCatalogMeta(): FoodCatalogMeta? {
@@ -1428,11 +1436,13 @@ class NutritionRepository private constructor(
         }
         fun getInstance(): NutritionRepository = INSTANCE ?: error("Not initialized")
         internal fun closeInstance() {
+            INSTANCE?.writeOwner?.closeAdmission()
             INSTANCE?.let { runBlocking { it.repositoryJob.cancelAndJoin() } }
             INSTANCE?.takeIf { it.ownsDatabase }?.db?.close()
             INSTANCE = null
         }
         internal suspend fun closeForDataSession() {
+            INSTANCE?.writeOwner?.closeAdmission()
             INSTANCE?.let { instance ->
                 instance.forecastStartupJob?.cancelAndJoin()
                 instance.bodyProjectionJob?.cancelAndJoin()

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.exercises.catalogv2.AprendeOntologyTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:11.211Z" hostname="VF" time="0.002">
+  <properties/>
+  <testcase name="legacy_ids_are_decisions_and_never_name_fallbacks" classname="com.example.kpkn.domain.exercises.catalogv2.AprendeOntologyTest" time="0.0"/>
+  <testcase name="every_catalog_axis_and_anatomy_id_has_an_explicit_bridge" classname="com.example.kpkn.domain.exercises.catalogv2.AprendeOntologyTest" time="0.001"/>
+  <testcase name="aggregate_atlas_entities_have_explicit_reverse_muscle_membership" classname="com.example.kpkn.domain.exercises.catalogv2.AprendeOntologyTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

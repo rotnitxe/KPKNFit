@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.NutritionEditCommitIdsTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:33.580Z" hostname="VF" time="0.002">
+  <properties/>
+  <testcase name="eachEditOperationGetsItsOwnIdAndTheCreationIdIsNotReusedForever" classname="com.example.kpkn.domain.nutrition.NutritionEditCommitIdsTest" time="0.001"/>
+  <testcase name="retryOfTheSameEditOperationReusesItsOwnId" classname="com.example.kpkn.domain.nutrition.NutritionEditCommitIdsTest" time="0.0"/>
+  <testcase name="freshEditorSessionNeverReusesAnotherSessionsId" classname="com.example.kpkn.domain.nutrition.NutritionEditCommitIdsTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

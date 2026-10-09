@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.protocols.ProtocolAuditTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:16:40.377Z" hostname="VF" time="0.126">
+  <properties/>
+  <testcase name="goalRank_recognizes_spanish_and_english_goals" classname="com.example.kpkn.data.protocols.ProtocolAuditTest" time="0.001"/>
+  <testcase name="no_deload_whitelist_covers_every_visible_recipe_that_needs_a_deload" classname="com.example.kpkn.data.protocols.ProtocolAuditTest" time="0.012"/>
+  <testcase name="intensityVolumeAndDefaultSplitInvariants" classname="com.example.kpkn.data.protocols.ProtocolAuditTest" time="0.001"/>
+  <testcase name="uniqueProtocolIdsAndNonEmptyBlocks" classname="com.example.kpkn.data.protocols.ProtocolAuditTest" time="0.0"/>
+  <testcase name="blocksTrendTowardPeakThenDeloadWhenPresent" classname="com.example.kpkn.data.protocols.ProtocolAuditTest" time="0.001"/>
+  <testcase name="visible_recipe_lifts_resolve_to_catalog_v2" classname="com.example.kpkn.data.protocols.ProtocolAuditTest" time="0.002"/>
+  <testcase name="visible_protocols_have_exact_recipes_and_attribution" classname="com.example.kpkn.data.protocols.ProtocolAuditTest" time="0.002"/>
+  <system-out><![CDATA[WHITELIST en visibles (24): [calgary-16, candito-6, coan-phillipi-dl, cube-method, gzcl-jt-2, gzcl-rippler, gzcl-uhf-9, gzclp, juggernaut-2, korte-3x3, kpkn-rts-style, kpkn-sbs-rtf, lilliebridge, madcow-5x5, nsuns-531-lp-4d, phat-verified, phul-verified, sheiko-29-32, texas-method-3d, texas-method-4d, tsa-9, wendler-531-bbb, wendler-531-fsl, westside-conjugate]
+WHITELIST objetivo = C5 + repeats (18): [calgary-16, coan-phillipi-dl, cube-method, gzcl-jt-2, gzcl-rippler, gzcl-uhf-9, gzclp, korte-3x3, madcow-5x5, nsuns-531-lp-4d, phat-verified, phul-verified, sheiko-29-32, texas-method-3d, texas-method-4d, wendler-531-bbb, wendler-531-fsl, westside-conjugate]
+WHITELIST exigen descarga y faltan en la lista: []
+WHITELIST sobran (ni exigen descarga ni se repiten): [candito-6, juggernaut-2, kpkn-rts-style, kpkn-sbs-rtf, lilliebridge, tsa-9]
+WHITELIST objetivo que la lista aún no trae: []
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

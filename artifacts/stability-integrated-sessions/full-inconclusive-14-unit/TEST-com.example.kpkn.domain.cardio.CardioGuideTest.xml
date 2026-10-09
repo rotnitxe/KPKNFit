@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.cardio.CardioGuideTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:08.939Z" hostname="VF" time="0.009">
+  <properties/>
+  <testcase name="veryHighRpeIsMaximumGuide" classname="com.example.kpkn.domain.cardio.CardioGuideTest" time="0.009"/>
+  <testcase name="altaRpeIsHardGuide" classname="com.example.kpkn.domain.cardio.CardioGuideTest" time="0.0"/>
+  <testcase name="hiitUsesExactConfiguredRpe" classname="com.example.kpkn.domain.cardio.CardioGuideTest" time="0.0"/>
+  <testcase name="mediaRpeHasNoFatLossZoneLabel" classname="com.example.kpkn.domain.cardio.CardioGuideTest" time="0.0"/>
+  <testcase name="bajaRpeIsSubjectiveEasyGuide" classname="com.example.kpkn.domain.cardio.CardioGuideTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.exercises.SmartExerciseCreatorTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:10.832Z" hostname="VF" time="0.003">
+  <properties/>
+  <testcase name="laterality_and_station_are_recorded_as_chips" classname="com.example.kpkn.domain.exercises.SmartExerciseCreatorTest" time="0.001"/>
+  <testcase name="empty_catalog_falls_back_to_structural_inference" classname="com.example.kpkn.domain.exercises.SmartExerciseCreatorTest" time="0.0"/>
+  <testcase name="emphasis_is_propagated_from_the_best_match" classname="com.example.kpkn.domain.exercises.SmartExerciseCreatorTest" time="0.0"/>
+  <testcase name="derives_from_best_name_match_for_variant" classname="com.example.kpkn.domain.exercises.SmartExerciseCreatorTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

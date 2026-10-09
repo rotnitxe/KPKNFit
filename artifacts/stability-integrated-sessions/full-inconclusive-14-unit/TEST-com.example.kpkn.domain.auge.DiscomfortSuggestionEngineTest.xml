@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.auge.DiscomfortSuggestionEngineTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:08.448Z" hostname="VF" time="0.005">
+  <properties/>
+  <testcase name="search with multiple terms narrows results" classname="com.example.kpkn.domain.auge.DiscomfortSuggestionEngineTest" time="0.002"/>
+  <testcase name="display head matches pillar of related muscle" classname="com.example.kpkn.domain.auge.DiscomfortSuggestionEngineTest" time="0.001"/>
+  <testcase name="pectoral session suggests shoulder anterior and not knee" classname="com.example.kpkn.domain.auge.DiscomfortSuggestionEngineTest" time="0.0"/>
+  <testcase name="search finds by description and is case insensitive" classname="com.example.kpkn.domain.auge.DiscomfortSuggestionEngineTest" time="0.0"/>
+  <testcase name="empty muscles produce no suggestions" classname="com.example.kpkn.domain.auge.DiscomfortSuggestionEngineTest" time="0.0"/>
+  <testcase name="leg session suggests knee and hip discomforts" classname="com.example.kpkn.domain.auge.DiscomfortSuggestionEngineTest" time="0.0"/>
+  <testcase name="search finds by label" classname="com.example.kpkn.domain.auge.DiscomfortSuggestionEngineTest" time="0.001"/>
+  <testcase name="blank search returns empty" classname="com.example.kpkn.domain.auge.DiscomfortSuggestionEngineTest" time="0.0"/>
+  <testcase name="suggestions never include none" classname="com.example.kpkn.domain.auge.DiscomfortSuggestionEngineTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

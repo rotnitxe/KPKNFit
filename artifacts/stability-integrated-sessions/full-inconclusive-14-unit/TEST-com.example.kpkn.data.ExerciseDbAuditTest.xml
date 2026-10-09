@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.ExerciseDbAuditTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:15:42.293Z" hostname="VF" time="0.121">
+  <properties/>
+  <testcase name="auditExerciseDatabase" classname="com.example.kpkn.data.ExerciseDbAuditTest" time="0.121"/>
+  <system-out><![CDATA[=== KPKN Exercise DB Audit ===
+Ejercicios analizados: 257
+Warnings: 31
+
+1. [quads_sentadilla_trasera] "Sentadilla Trasera" ? glúteos SECONDARY (revisar si PRIMARY es más apropiado)
+2. [quads_sentadilla_frontal] "Sentadilla Frontal" ? glúteos SECONDARY (revisar si PRIMARY es más apropiado)
+3. [quads_sentadilla_bazuca] "Sentadilla Bazuca" ? glúteos SECONDARY (revisar si PRIMARY es más apropiado)
+4. [quads_sentadilla_somersault] "Sentadilla Somersault" ? glúteos SECONDARY (revisar si PRIMARY es más apropiado)
+5. [quads_sentadilla_zercher_barra_recta] "Sentadilla Zercher con Barra Recta" ? glúteos SECONDARY (revisar si PRIMARY es más apropiado)
+6. [quads_sentadilla_copa] "Sentadilla Copa" ? glúteos SECONDARY (revisar si PRIMARY es más apropiado)
+7. [quads_sentadilla_hack] "Sentadilla Hack" ? glúteos SECONDARY (revisar si PRIMARY es más apropiado)
+8. [quads_sentadilla_hack_invertida_maquina] "Sentadilla Invertida en Máquina Hack" ? glúteos SECONDARY (revisar si PRIMARY es más apropiado)
+9. [quads_sentadilla_pendulo_maquina] "Sentadilla en Máquina Péndulo" ? glúteos SECONDARY (revisar si PRIMARY es más apropiado)
+10. [quads_sentadilla_belt_squat_maquina] "Sentadilla en Máquina Belt Squat" ? glúteos SECONDARY (revisar si PRIMARY es más apropiado)
+11. [quads_sentadilla_bulgara] "Sentadilla Búlgara" ? glúteos SECONDARY (revisar si PRIMARY es más apropiado)
+12. [quads_sentadilla_pistola] "Sentadilla Pistola" ? glúteos SECONDARY (revisar si PRIMARY es más apropiado)
+13. [quads_sentadilla_pistola_asistida_trx] "Sentadilla Pistola Asistida en TRX" ? glúteos SECONDARY (revisar si PRIMARY es más apropiado)
+14. [quads_sentadilla_sumo] "Sentadilla Sumo" ? glúteos SECONDARY (revisar si PRIMARY es más apropiado)
+15. [quads_sentadilla_v_squat] "Sentadilla en V-Squat" ? glúteos SECONDARY (revisar si PRIMARY es más apropiado)
+16. [quads_sentadilla_v_squat_invertida_maquina] "Sentadilla Invertida en Máquina V-Squat" ? glúteos SECONDARY (revisar si PRIMARY es más apropiado)
+17. [quads_sentadilla_jefferson] "Sentadilla Jefferson" ? glúteos SECONDARY (revisar si PRIMARY es más apropiado)
+18. [quads_sentadilla_anderson] "Sentadilla Anderson" ? glúteos SECONDARY (revisar si PRIMARY es más apropiado)
+19. [quads_sentadilla_cajon] "Sentadilla a Cajón" ? glúteos SECONDARY (revisar si PRIMARY es más apropiado)
+20. [quads_sentadilla_pendulo_unilateral_maquina] "Sentadilla Unilateral en Máquina Péndulo" ? glúteos SECONDARY (revisar si PRIMARY es más apropiado)
+21. [quads_sentadilla_belt_squat_unilateral_maquina] "Sentadilla Unilateral en Máquina Belt Squat" ? glúteos SECONDARY (revisar si PRIMARY es más apropiado)
+22. [quads_zancada_inversa_maquina_v_squat] "Zancada Inversa en Máquina V-Squat" ? glúteos SECONDARY (revisar si PRIMARY es más apropiado)
+23. [quads_sentadilla_bulgara_frontal] "Sentadilla Búlgara Frontal" ? glúteos SECONDARY (revisar si PRIMARY es más apropiado)
+24. [quads_sentadilla_bulgara_zercher] "Sentadilla Búlgara Zercher" ? glúteos SECONDARY (revisar si PRIMARY es más apropiado)
+25. [quads_sentadilla_bulgara_somersault] "Sentadilla Búlgara Somersault" ? glúteos SECONDARY (revisar si PRIMARY es más apropiado)
+26. [quads_sentadilla_bulgara_jefferson] "Sentadilla Búlgara Jefferson" ? glúteos SECONDARY (revisar si PRIMARY es más apropiado)
+27. [quads_sentadilla_sumo_frontal] "Sentadilla Sumo Frontal" ? glúteos SECONDARY (revisar si PRIMARY es más apropiado)
+28. [quads_sentadilla_sumo_zercher] "Sentadilla Sumo Zercher" ? glúteos SECONDARY (revisar si PRIMARY es más apropiado)
+29. [core_dragon_flag_banco_plano] "Dragon Flag en Banco Plano" declara Core Y Abdomen simultáneamente — verificar si es correcto o duplicado
+30. [core_press_pallof] "Press Pallof" declara Core Y Abdomen simultáneamente — verificar si es correcto o duplicado
+31. [core_rueda_abdominal] "Rueda Abdominal" declara Core Y Abdomen simultáneamente — verificar si es correcto o duplicado
+
+? 31 warnings encontrados. Ver build/reports/exercise_audit.txt
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

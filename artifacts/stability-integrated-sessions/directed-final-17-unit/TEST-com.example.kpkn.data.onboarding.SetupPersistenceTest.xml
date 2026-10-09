@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.onboarding.SetupPersistenceTest" tests="16" skipped="0" failures="0" errors="0" timestamp="2026-10-09T13:53:32.581Z" hostname="VF" time="4.864">
+  <properties/>
+  <testcase name="savingAPlanInactiveLeavesThePreviousActivePlanAndGoalsIntact" classname="com.example.kpkn.data.onboarding.SetupPersistenceTest" time="0.719"/>
+  <testcase name="roomTransactionRollsBackAndDoesNotLeavePartialDraft" classname="com.example.kpkn.data.onboarding.SetupPersistenceTest" time="0.447"/>
+  <testcase name="idempotentCommitKeepsPendingNutritionDraft" classname="com.example.kpkn.data.onboarding.SetupPersistenceTest" time="0.256"/>
+  <testcase name="pendingProfessionalNutritionDraftIsPreservedWithMainDraftDelete" classname="com.example.kpkn.data.onboarding.SetupPersistenceTest" time="0.258"/>
+  <testcase name="draftSurvivesRepositoryRestartAndRevisionIsMonotonic" classname="com.example.kpkn.data.onboarding.SetupPersistenceTest" time="0.278"/>
+  <testcase name="editedNutritionPlanReplacesOnlyItsDerivedGoal" classname="com.example.kpkn.data.onboarding.SetupPersistenceTest" time="0.28"/>
+  <testcase name="commitIsIdempotent" classname="com.example.kpkn.data.onboarding.SetupPersistenceTest" time="0.329"/>
+  <testcase name="globalVolumeCalibrationAndInitialWellbeingPersistWithoutAProgram" classname="com.example.kpkn.data.onboarding.SetupPersistenceTest" time="0.346"/>
+  <testcase name="equalRevisionWithSamePayloadIsIdempotentAcrossRepositoryInstances" classname="com.example.kpkn.data.onboarding.SetupPersistenceTest" time="0.322"/>
+  <testcase name="pendingNutritionDraftRollsBackWithFailedSettingsWrite" classname="com.example.kpkn.data.onboarding.SetupPersistenceTest" time="0.217"/>
+  <testcase name="equalRevisionWithDifferentPayloadIsRejectedAcrossRepositoryInstances" classname="com.example.kpkn.data.onboarding.SetupPersistenceTest" time="0.185"/>
+  <testcase name="activatingSetupUsesReplacementProgramAndDeactivatesPreviousNutrition" classname="com.example.kpkn.data.onboarding.SetupPersistenceTest" time="0.438"/>
+  <testcase name="setupCommitPersistsAcrossDiskReopen" classname="com.example.kpkn.data.onboarding.SetupPersistenceTest" time="0.167"/>
+  <testcase name="corruptReceiptIsNotSilentlyCoerced" classname="com.example.kpkn.data.onboarding.SetupPersistenceTest" time="0.189"/>
+  <testcase name="sameDayCheckInKeepsSleepAndReceivesTheManualV2Anchor" classname="com.example.kpkn.data.onboarding.SetupPersistenceTest" time="0.226"/>
+  <testcase name="failedSettingsWriteRollsBackProgramAndReceipt" classname="com.example.kpkn.data.onboarding.SetupPersistenceTest" time="0.207"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

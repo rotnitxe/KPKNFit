@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.FatMarkerAndDrinkPortionTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:26.632Z" hostname="VF" time="0.136">
+  <properties/>
+  <testcase name="ave mayo with a juice is the sandwich of 180 g and the juice a glass" classname="com.example.kpkn.domain.nutrition.FatMarkerAndDrinkPortionTest" time="0.03"/>
+  <testcase name="a branded drink next to a plate is its can and a food in water is no drink" classname="com.example.kpkn.domain.nutrition.FatMarkerAndDrinkPortionTest" time="0.072"/>
+  <testcase name="the condiments themselves are still a spoonful" classname="com.example.kpkn.domain.nutrition.FatMarkerAndDrinkPortionTest" time="0.009"/>
+  <testcase name="the cup is for the drinks of a drinks-only meal and every other food keeps its portion" classname="com.example.kpkn.domain.nutrition.FatMarkerAndDrinkPortionTest" time="0.024"/>
+  <testcase name="a fat marker is a whole word" classname="com.example.kpkn.domain.nutrition.FatMarkerAndDrinkPortionTest" time="0.0"/>
+  <testcase name="a prepared dish that has a fat in its name keeps its serving, and a fat row stays a fat" classname="com.example.kpkn.domain.nutrition.FatMarkerAndDrinkPortionTest" time="0.0"/>
+  <testcase name="a drink is named by a drink word and milk by being the first word" classname="com.example.kpkn.domain.nutrition.FatMarkerAndDrinkPortionTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -354,4 +354,11 @@
     <string name="macro_default_week1_name">Week 1</string>
     <string name="macro_default_week_n_name">Week %1$d</string>
 
+    <string name="data_session_active_title">An activity is still in progress</string>
+    <string name="data_session_active_workout_description">Finish and save the workout, or explicitly discard it. Then return to confirm the data operation.</string>
+    <string name="data_session_active_capture_description">Finish the location recording or capture before changing your data.</string>
+    <string name="data_session_finish_workout">Finish workout</string>
+    <string name="data_session_discard_workout">Discard workout</string>
+    <string name="data_session_discard_title">Discard this workout?</string>
+    <string name="data_session_discard_description">The sets in this session will be discarded without saving. Your previous workouts are kept.</string>
 </resources>

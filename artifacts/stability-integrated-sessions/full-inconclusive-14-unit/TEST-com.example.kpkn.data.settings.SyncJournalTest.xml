@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.settings.SyncJournalTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:04.117Z" hostname="VF" time="1.909">
+  <properties/>
+  <testcase name="everyPersonalTableParticipatesAndCatalogsDoNot" classname="com.example.kpkn.data.settings.SyncJournalTest" time="0.153"/>
+  <testcase name="editingNormalizedObservationRetainsFutureFieldsAndCanClearKnownOptionalFields" classname="com.example.kpkn.data.settings.SyncJournalTest" time="0.209"/>
+  <testcase name="dirtyEditKeepsItsOriginalBaseWhenANewerShadowIsPulled" classname="com.example.kpkn.data.settings.SyncJournalTest" time="0.194"/>
+  <testcase name="mutationAndPendingMarkerRollBackTogether" classname="com.example.kpkn.data.settings.SyncJournalTest" time="1.009"/>
+  <testcase name="remoteApplicationDoesNotEchoAndChangesDuringSendingRemainPending" classname="com.example.kpkn.data.settings.SyncJournalTest" time="0.162"/>
+  <testcase name="paidQueueDoesNotBlockFreeDataAndDeletionCanLeaveTheWait" classname="com.example.kpkn.data.settings.SyncJournalTest" time="0.182"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -14,17 +14,19 @@ import kotlinx.serialization.encodeToString
 
 class NutritionCalibrationRepository private constructor(context: Context, private val db: KpknDatabase = KpknDatabase.getInstance(context.applicationContext)) {
 
-    suspend fun get(): NutritionCalibrationProfile? = withContext(Dispatchers.IO) {
+    private val writeOwner = com.example.kpkn.data.backup.DataSessionWriter("nutrition-calibration")
+
+    suspend fun get(): NutritionCalibrationProfile? = writeOwner.write {
         db.nutritionDao().getCalibrationProfile()?.let { entity ->
             runCatching { dbJson.decodeFromString<NutritionCalibrationProfile>(entity.data) }.getOrNull()
         }
     }
 
-    suspend fun save(profile: NutritionCalibrationProfile) = updateMutex.withLock { write(profile) }
+    suspend fun save(profile: NutritionCalibrationProfile) = writeOwner.durableWrite { updateMutex.withLock { write(profile) } }
 
     /** Read-modify-write serialized across every logger and calibration caller. */
-    suspend fun update(transform: (NutritionCalibrationProfile) -> NutritionCalibrationProfile) = updateMutex.withLock {
-        write(transform(get() ?: NutritionCalibrationProfile()))
+    suspend fun update(transform: (NutritionCalibrationProfile) -> NutritionCalibrationProfile) = writeOwner.durableWrite {
+        updateMutex.withLock { write(transform(get() ?: NutritionCalibrationProfile())) }
     }
 
     private suspend fun write(profile: NutritionCalibrationProfile) = withContext(Dispatchers.IO) {
@@ -37,15 +39,15 @@ class NutritionCalibrationRepository private constructor(context: Context, priva
         )
     }
 
-    suspend fun clear() = updateMutex.withLock {
-        withContext(Dispatchers.IO) { db.nutritionDao().clearCalibrationProfile() }
+    suspend fun clear() = writeOwner.durableWrite {
+        updateMutex.withLock { db.nutritionDao().clearCalibrationProfile() }
     }
 
     companion object {
         private val updateMutex = Mutex()
         internal fun forDatabase(context: Context, db: KpknDatabase) = NutritionCalibrationRepository(context, db)
         @Volatile private var instance: NutritionCalibrationRepository? = null
-        internal suspend fun closeForDataSession() = updateMutex.withLock { instance = null }
+        internal suspend fun closeForDataSession() = updateMutex.withLock { instance?.writeOwner?.closeAdmission(); instance = null }
 
         fun getInstance(context: Context): NutritionCalibrationRepository =
             instance ?: synchronized(this) {

@@ -58,13 +58,16 @@ private suspend fun isTourSeen(context: Context, programId: String): Boolean {
 
 private fun markTourSeen(context: Context, programId: String) {
     val prefs = context.getSharedPreferences("kpkn_tour", Context.MODE_PRIVATE)
-    prefs.edit().putBoolean("tour_seen_$programId", true).apply()
+    prefs.edit().putBoolean("tour_seen_$programId", true).commit()
 }
 
 @Composable
 fun rememberTourState(programId: String): TourState {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val owner = remember { com.example.kpkn.data.backup.DataSessionWriter("program-tour") }
+    val capturedContext = remember { if (com.example.kpkn.data.account.ProfileStorage.initialized())
+        com.example.kpkn.data.account.ProfileStorage.context(context) else context }
     var tourStep by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(programId) {
@@ -80,12 +83,12 @@ fun rememberTourState(programId: String): TourState {
             onNext = {
                 if (tourStep < 2) tourStep++ else {
                     tourStep = 0
-                    scope.launch { markTourSeen(context, programId) }
+                    owner.launch(scope, kotlinx.coroutines.Dispatchers.IO) { markTourSeen(capturedContext, programId) }
                 }
             },
             onDismiss = {
                 tourStep = 0
-                scope.launch { markTourSeen(context, programId) }
+                owner.launch(scope, kotlinx.coroutines.Dispatchers.IO) { markTourSeen(capturedContext, programId) }
             },
         )
     }

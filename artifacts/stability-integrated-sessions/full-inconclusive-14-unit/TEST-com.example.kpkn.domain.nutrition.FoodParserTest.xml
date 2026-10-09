@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.FoodParserTest" tests="56" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:29.672Z" hostname="VF" time="0.152">
+  <properties/>
+  <testcase name="parse plus connector" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.002"/>
+  <testcase name="parse with literal quantity" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.001"/>
+  <testcase name="the mass after an exclusion does not leak into the next mention" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.005"/>
+  <testcase name="parse puñado" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.002"/>
+  <testcase name="parse media taza" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.001"/>
+  <testcase name="parse plato grande de pollo con arroz" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.002"/>
+  <testcase name="papas con mayo is a protected dish and papas con carne is a list" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.004"/>
+  <testcase name="parse adjetivo grande suelto es LARGE" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.003"/>
+  <testcase name="the cooking word is kept as the person typed it" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.005"/>
+  <testcase name="a mass in front of the food or with no food to weigh stays where it was" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.007"/>
+  <testcase name="parse with cooking method" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.001"/>
+  <testcase name="IT3 guiso detecta GUISADO" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.003"/>
+  <testcase name="parse simple food name" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.001"/>
+  <testcase name="a flavour pair after de is one food" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.006"/>
+  <testcase name="a staple keeps its singular tag and a count reads the singular of any food" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.002"/>
+  <testcase name="parse empanada de pino protected entity" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.002"/>
+  <testcase name="IT3 huevo duro detecta COCIDO" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.002"/>
+  <testcase name="parse literal twelve" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.002"/>
+  <testcase name="parse literal twenty" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.002"/>
+  <testcase name="parse with kg converts to grams" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.001"/>
+  <testcase name="parse arroz con pollo splits into two foods" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.002"/>
+  <testcase name="B7 cucharadita no se convierte en cucharada" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.001"/>
+  <testcase name="B6 multi measure estilo B 100g arroz 50g pollo" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.002"/>
+  <testcase name="raw description preserved" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.003"/>
+  <testcase name="C12 idempotencia mismo input mismo output" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.018"/>
+  <testcase name="parse comma separated items" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.003"/>
+  <testcase name="a mass after an exclusion weighs the food it is excluded from" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.003"/>
+  <testcase name="parse hamburguesa con queso as protected" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.002"/>
+  <testcase name="B6 multi measure estilo A arroz 100g pollo 50g" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.002"/>
+  <testcase name="B9 papas fritas detecta metodo FRITO" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.001"/>
+  <testcase name="IT3 aceite por categoria en pipeline completo" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.0"/>
+  <testcase name="parse range quantity" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.002"/>
+  <testcase name="parse literal fifteen" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.002"/>
+  <testcase name="parse cucharada de aceite" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.001"/>
+  <testcase name="parse y connector" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.002"/>
+  <testcase name="the mass after a list of exclusions weighs the food too" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.009"/>
+  <testcase name="parse taza de arroz" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.001"/>
+  <testcase name="IT3 guisado y guisito tambien detectan GUISADO" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.005"/>
+  <testcase name="B9 papa frita singular tambien detecta FRITO" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.001"/>
+  <testcase name="a mass in front of a named dish is shared by its parts" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.002"/>
+  <testcase name="parse salsa de tomate stays protected" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.001"/>
+  <testcase name="parse papas fritas con mayonesa as protected" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.002"/>
+  <testcase name="parse complex meal" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.004"/>
+  <testcase name="parse arroz con leche stays a single dish" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.001"/>
+  <testcase name="parse with grams" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.002"/>
+  <testcase name="porotos con riendas stays one dish in the plural and in the singular" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.001"/>
+  <testcase name="parse empty string" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.0"/>
+  <testcase name="B8 mil hojas no se convierte en 1000 hojas" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.003"/>
+  <testcase name="parse pequeño portion" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.002"/>
+  <testcase name="parse sandwich de pollo con mayonesa as protected" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.004"/>
+  <testcase name="parse horneado" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.002"/>
+  <testcase name="parse con connector" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.002"/>
+  <testcase name="parse with quantity" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.001"/>
+  <testcase name="parse mediano portion" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.003"/>
+  <testcase name="parse plato grande portion es LARGE no EXTRA" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.002"/>
+  <testcase name="B8 tres leches no se rompe por numeros palabra" classname="com.example.kpkn.domain.nutrition.FoodParserTest" time="0.004"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

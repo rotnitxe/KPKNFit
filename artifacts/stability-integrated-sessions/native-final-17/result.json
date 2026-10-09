@@ -1,0 +1,38 @@
+{
+  "state": "PASS",
+  "runId": "6495b3ad-3908-40fb-b69a-ed57f39fe446",
+  "phases": [
+    {
+      "method": "phase1FinishDiscardAndRestoreThroughActualCoordinator",
+      "returnCode": 0,
+      "passed": true,
+      "priorPid": "",
+      "coldPid": 10343
+    },
+    {
+      "method": "phase2ColdRestoreThenExplicitErase",
+      "returnCode": 0,
+      "passed": true,
+      "priorPid": "",
+      "coldPid": 10558
+    },
+    {
+      "method": "phase3ColdEraseAndSyntheticGuestHandover",
+      "returnCode": 0,
+      "passed": true,
+      "priorPid": "",
+      "coldPid": 10685
+    }
+  ],
+  "limits": "Real MainActivity/local maintenance and synthetic guest handover; no live Firebase, Play or interruption inside restore.",
+  "appApkSha256": "4ba6038edb7e8f6cbbb68bfecc1232d0c80fd3b3e5d9bdea0e5ab2d6d3d10d31",
+  "testApkSha256": "fafca1b3bb30f283f70124ae1442c1a350f313d708c1c82290ee777e344a779a",
+  "registryPlatformRecovery": {
+    "returnCode": 0,
+    "passed": true,
+    "committedOwnerRecovered": true
+  },
+  "mainVisible": true,
+  "testCount": 3,
+  "api": "36"
+}

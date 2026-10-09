@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.LanguageBindingCorpusTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:32.434Z" hostname="VF" time="0.276">
+  <properties/>
+  <testcase name="platoDeArrozConPolloYChoclo_threeMentionsOneVessel" classname="com.example.kpkn.domain.nutrition.LanguageBindingCorpusTest" time="0.003"/>
+  <testcase name="mixPolloArrozLaminas_keepsPlateGramsAndLockedCheese" classname="com.example.kpkn.domain.nutrition.LanguageBindingCorpusTest" time="0.038"/>
+  <testcase name="galletasDeChocolate_oneItemNotADrink" classname="com.example.kpkn.domain.nutrition.LanguageBindingCorpusTest" time="0.04"/>
+  <testcase name="identityMapping_cannotChangeDeclaredCheeseVariety" classname="com.example.kpkn.domain.nutrition.LanguageBindingCorpusTest" time="0.032"/>
+  <testcase name="laminasDeQuesoGouda_areTheGoudaRowLockedToTheSlices" classname="com.example.kpkn.domain.nutrition.LanguageBindingCorpusTest" time="0.035"/>
+  <testcase name="torrijaAndTorrada_areLexiconTerms" classname="com.example.kpkn.domain.nutrition.LanguageBindingCorpusTest" time="0.001"/>
+  <testcase name="papasFritas_staysOneFriedPotato" classname="com.example.kpkn.domain.nutrition.LanguageBindingCorpusTest" time="0.036"/>
+  <testcase name="twoTajadasDeJamonYQueso_cheeseDoesNotInheritSlices" classname="com.example.kpkn.domain.nutrition.LanguageBindingCorpusTest" time="0.048"/>
+  <testcase name="identityMapping_toCheddar_cannotReplaceTheGoudaRow" classname="com.example.kpkn.domain.nutrition.LanguageBindingCorpusTest" time="0.043"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -21,6 +21,7 @@ class AccountViewModel(private val context: Context) : ViewModel() {
             _ui.value = AccountUiState(busy = true)
             try { withContext(Dispatchers.IO) { operation() }; _ui.value = _ui.value.copy(busy = false, error = false) }
             catch (cancelled: CancellationException) { throw cancelled }
+            catch (_: com.example.kpkn.data.backup.ActiveDataUseException) { _ui.value = AccountUiState() }
             catch (_: Exception) { _ui.value = AccountUiState(error = true) }
         }
     }

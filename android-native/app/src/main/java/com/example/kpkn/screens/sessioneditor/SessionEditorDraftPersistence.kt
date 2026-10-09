@@ -104,6 +104,7 @@ internal interface DraftKeyValueStorage {
 internal class SerialDraftWriter<T>(
     private val scope: CoroutineScope,
     private val storage: DraftKeyValueStorage,
+    private val dataWriter: com.example.kpkn.data.backup.DataSessionWriter? = null,
     private val encode: (T) -> String,
 ) {
     private val queue = Mutex()
@@ -147,7 +148,7 @@ internal class SerialDraftWriter<T>(
     ): CompletableDeferred<DraftWriteOutcome> {
         val result = CompletableDeferred<DraftWriteOutcome>()
         latestOperations[key] = result
-        val job = scope.launch {
+        val operationBlock: suspend kotlinx.coroutines.CoroutineScope.() -> Unit = {
             queue.withLock {
                 if (currentGeneration(key) != generation) {
                     result.complete(DraftWriteOutcome(DraftWriteStatus.STALE))
@@ -162,6 +163,7 @@ internal class SerialDraftWriter<T>(
                 result.complete(outcome)
             }
         }
+        val job = dataWriter?.launch(scope, block = operationBlock) ?: scope.launch(block = operationBlock)
         job.invokeOnCompletion { cause ->
             if (cause != null) {
                 result.complete(DraftWriteOutcome(DraftWriteStatus.FAILED, cause))
@@ -176,20 +178,22 @@ internal class SerialDraftWriter<T>(
 
 /** Application-lifetime owner: writes keep running after an editor ViewModel is cleared. */
 internal class SessionEditorDraftStore private constructor(context: Context) {
-    private val appContext = context.applicationContext
+    private val writeOwner = com.example.kpkn.data.backup.DataSessionWriter("session-editor-draft-store")
+    private suspend fun <T> withDataSessionIo(block: suspend () -> T): T = writeOwner.write(block)
+    private val appContext = com.example.kpkn.data.backup.capturedPersonalContext(context)
     private val codec = sessionEditorStoreJson
-    private val writerScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val writerScope = com.example.kpkn.data.backup.DataSessionWriterScope(CoroutineScope(SupervisorJob() + Dispatchers.IO), writeOwner)
     private val draftPreferences = CompletableDeferred<SharedPreferences>()
     private val settingsPreferences = CompletableDeferred<SharedPreferences>()
     private val rulePreferences = CompletableDeferred<SharedPreferences>()
     private val rulePreferencesMutex = Mutex()
     private val rulePreferenceWriteRevisions = ConcurrentHashMap<String, AtomicLong>()
     private val storage = object : DraftKeyValueStorage {
-        override suspend fun write(key: String, value: String): Boolean = withContext(Dispatchers.IO) {
+        override suspend fun write(key: String, value: String): Boolean = withDataSessionIo withContext@ {
             draftPreferences.await().edit().putString(key, value).commit()
         }
 
-        override suspend fun remove(key: String): Boolean = withContext(Dispatchers.IO) {
+        override suspend fun remove(key: String): Boolean = withDataSessionIo withContext@ {
             draftPreferences.await().edit().remove(key).commit()
         }
     }
@@ -212,15 +216,14 @@ internal class SessionEditorDraftStore private constructor(context: Context) {
         }
     }
 
-    val writer = SerialDraftWriter<PersistedSessionEditorDraft>(writerScope, storage) { draft ->
-        codec.encodeToString(draft)
-    }
+    val writer = SerialDraftWriter<PersistedSessionEditorDraft>(writerScope, storage,
+        encode = { draft -> codec.encodeToString(draft) }, dataWriter = writeOwner)
 
-    suspend fun readRaw(key: String): String? = withContext(Dispatchers.IO) {
+    suspend fun readRaw(key: String): String? = withDataSessionIo withContext@ {
         draftPreferences.await().getString(key, null)
     }
 
-    suspend fun autoSaveEnabled(): Boolean = withContext(Dispatchers.IO) {
+    suspend fun autoSaveEnabled(): Boolean = withDataSessionIo withContext@ {
         val settings = settingsPreferences.await()
         if (settings.contains(SESSION_EDITOR_AUTOSAVE_KEY)) {
             return@withContext settings.getBoolean(SESSION_EDITOR_AUTOSAVE_KEY, true)
@@ -235,7 +238,7 @@ internal class SessionEditorDraftStore private constructor(context: Context) {
     }
 
     suspend fun setAutoSaveEnabled(enabled: Boolean) {
-        withContext(Dispatchers.IO) {
+        withDataSessionIo withContext@ {
             settingsPreferences.await().edit().putBoolean(SESSION_EDITOR_AUTOSAVE_KEY, enabled).commit()
         }
     }
@@ -244,7 +247,7 @@ internal class SessionEditorDraftStore private constructor(context: Context) {
         rulePreferenceWriteRevisions.computeIfAbsent(key) { AtomicLong(0L) }.incrementAndGet()
 
     /** Distinguishes an absent record from an unreadable one (which callers must not overwrite implicitly). */
-    suspend fun readRulePreferencesResult(key: String): RulePreferencesRead = withContext(Dispatchers.IO) {
+    suspend fun readRulePreferencesResult(key: String): RulePreferencesRead = withDataSessionIo withContext@ {
         rulePreferencesMutex.withLock {
             val raw = rulePreferences.await().getString(key, null)
             if (raw == null) {
@@ -261,13 +264,13 @@ internal class SessionEditorDraftStore private constructor(context: Context) {
 
     /** Test hook: stores an arbitrary raw payload (e.g. corrupt JSON) under a record's key. */
     internal suspend fun writeRawRulePreferencesForTests(key: String, raw: String): Boolean =
-        withContext(Dispatchers.IO) {
+        withDataSessionIo withContext@ {
             rulePreferencesMutex.withLock { rulePreferences.await().edit().putString(key, raw).commit() }
         }
 
     /** Test hook: the exact stored payload of a record, undecoded. */
     internal suspend fun readRawRulePreferencesForTests(key: String): String? =
-        withContext(Dispatchers.IO) {
+        withDataSessionIo withContext@ {
             rulePreferencesMutex.withLock { rulePreferences.await().getString(key, null) }
         }
 
@@ -279,7 +282,7 @@ internal class SessionEditorDraftStore private constructor(context: Context) {
         val writeRevision = revision ?: nextRulePreferencesWriteRevision(key)
         val latestRevision = rulePreferenceWriteRevisions.computeIfAbsent(key) { AtomicLong(0L) }
         latestRevision.accumulateAndGet(writeRevision) { current, requested -> maxOf(current, requested) }
-        return withContext(Dispatchers.IO) {
+        return withDataSessionIo withContext@ {
             rulePreferencesMutex.withLock {
                 if (latestRevision.get() != writeRevision) return@withLock false
                 val raw = codec.encodeToString(value)
@@ -301,12 +304,19 @@ internal class SessionEditorDraftStore private constructor(context: Context) {
 
         private val initializationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
+        internal suspend fun closeForDataSession() {
+            val old = synchronized(this) { instance?.also { it.writeOwner.closeAdmission(); instance = null } }
+            old?.writeOwner?.awaitStopped()
+            old?.writerScope?.coroutineContext?.get(kotlinx.coroutines.Job)?.let { it.cancel(); it.join() }
+        }
+
         fun getInstance(context: Context): SessionEditorDraftStore = instance ?: synchronized(this) {
             instance ?: SessionEditorDraftStore(context.applicationContext).also { instance = it }
         }
 
         fun clearLater(context: Context, key: String) {
-            initializationScope.launch { getInstance(context).writer.clear(key) }
+            val store = getInstance(context)
+            store.writeOwner.launch(initializationScope) { store.writer.clear(key) }
         }
     }
 }

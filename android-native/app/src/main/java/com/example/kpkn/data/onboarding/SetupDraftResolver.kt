@@ -17,9 +17,10 @@ data class SetupDraftCandidate(
 
 /** Resolves the real persisted draft before navigation; RESUME is not a storage scope. */
 class SetupDraftResolver(private val db: KpknDatabase) {
+    private val owner = com.example.kpkn.data.backup.DataSessionWriter("setup-draft-reader")
     private val json = Json { ignoreUnknownKeys = true }
 
-    suspend fun listRecoverable(): List<SetupDraftCandidate> = db.setupDraftDao().getAllDrafts()
+    suspend fun listRecoverable(): List<SetupDraftCandidate> = owner.write { db.setupDraftDao().getAllDrafts()
         .map { entity ->
             val scopeText = runCatching {
                 json.parseToJsonElement(entity.payloadJson).jsonObject["draftScope"]?.jsonPrimitive?.content
@@ -33,6 +34,7 @@ class SetupDraftResolver(private val db: KpknDatabase) {
             )
         }
         .sortedByDescending { it.updatedAtEpochMs }
+    }
 
     suspend fun resolve(draftId: String?): SetupDraftCandidate? = listRecoverable().firstOrNull { it.draftId == draftId }
 

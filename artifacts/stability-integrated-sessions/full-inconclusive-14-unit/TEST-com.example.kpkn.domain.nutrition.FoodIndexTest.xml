@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.FoodIndexTest" tests="16" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:28.221Z" hostname="VF" time="0.008">
+  <properties/>
+  <testcase name="a rebuild replaces the previous contents instead of keeping the first build" classname="com.example.kpkn.domain.nutrition.FoodIndexTest" time="0.001"/>
+  <testcase name="generateTrigrams for short token" classname="com.example.kpkn.domain.nutrition.FoodIndexTest" time="0.0"/>
+  <testcase name="build can run again and the same instance serves the rebuilt data" classname="com.example.kpkn.domain.nutrition.FoodIndexTest" time="0.001"/>
+  <testcase name="a build never exposes a partial index and keeps foods added while it runs" classname="com.example.kpkn.domain.nutrition.FoodIndexTest" time="0.002"/>
+  <testcase name="tokenize removes stopwords" classname="com.example.kpkn.domain.nutrition.FoodIndexTest" time="0.001"/>
+  <testcase name="tokenize filters short tokens" classname="com.example.kpkn.domain.nutrition.FoodIndexTest" time="0.0"/>
+  <testcase name="a build without an explicit generation takes the next one and a negative generation is rejected" classname="com.example.kpkn.domain.nutrition.FoodIndexTest" time="0.0"/>
+  <testcase name="addStaticFood no rompe alimentos ya indexados" classname="com.example.kpkn.domain.nutrition.FoodIndexTest" time="0.001"/>
+  <testcase name="the brand hint follows the rebuilt index" classname="com.example.kpkn.domain.nutrition.FoodIndexTest" time="0.0"/>
+  <testcase name="addStaticFood es idempotente y reemplaza por id" classname="com.example.kpkn.domain.nutrition.FoodIndexTest" time="0.0"/>
+  <testcase name="search retains an OFF pack for ranking alongside the household candidate" classname="com.example.kpkn.domain.nutrition.FoodIndexTest" time="0.001"/>
+  <testcase name="normalizeSearch strips diacritics" classname="com.example.kpkn.domain.nutrition.FoodIndexTest" time="0.0"/>
+  <testcase name="retrieval keeps local exact and other candidates for compatibility filtering" classname="com.example.kpkn.domain.nutrition.FoodIndexTest" time="0.0"/>
+  <testcase name="addStaticFood after a rebuild lands on the new index and earlier additions do not survive it" classname="com.example.kpkn.domain.nutrition.FoodIndexTest" time="0.0"/>
+  <testcase name="generateTrigrams creates correct trigrams" classname="com.example.kpkn.domain.nutrition.FoodIndexTest" time="0.0"/>
+  <testcase name="addStaticFood indexa un custom food y lo encuentra por alias" classname="com.example.kpkn.domain.nutrition.FoodIndexTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,35 @@
+{
+  "baseline": "C:\\kw\\msi\\artifacts\\stability-continuation\\lint-results-release-13.xml",
+  "final": "C:\\kw\\msi\\android-native\\app\\build\\reports\\lint-results-release.xml",
+  "comparisonIgnoresMovedLineNumbers": true,
+  "added": [
+    {
+      "id": "ApplySharedPref",
+      "severity": "Warning",
+      "message": "Consider using `apply()` instead; `commit` writes its data to persistent storage immediately, whereas `apply` will handle it in the background",
+      "files": [
+        "app/src/main/java/com/example/kpkn/screens/programdetail/components/WelcomeTourDialog.kt"
+      ],
+      "count": 1
+    },
+    {
+      "id": "UnusedResources",
+      "severity": "Warning",
+      "message": "The resource `R.string.common_error_unknown` appears to be unused",
+      "files": [
+        "app/build/generated/optimizedResources/values/strings.xml"
+      ],
+      "count": 1
+    },
+    {
+      "id": "UseKtx",
+      "severity": "Warning",
+      "message": "Use the KTX extension function `SharedPreferences.edit` instead?",
+      "files": [
+        "app/src/main/java/com/example/kpkn/screens/sessioneditor/TrainedSessionVersionStore.kt"
+      ],
+      "count": 1
+    }
+  ],
+  "removed": []
+}

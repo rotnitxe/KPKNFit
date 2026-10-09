@@ -174,14 +174,17 @@ class CompetitionReminderBootReceiver : BroadcastReceiver() {
             intent.action != Intent.ACTION_MY_PACKAGE_REPLACED
         ) return
 
+        val writer = runCatching { com.example.kpkn.data.backup.DataSessionWriter("competition-reminder-receiver") }.getOrNull() ?: return
+        val capturedContext = if (com.example.kpkn.data.account.ProfileStorage.initialized()) com.example.kpkn.data.account.ProfileStorage.context(context.applicationContext) else context.applicationContext
         val pendingResult = goAsync()
-        CoroutineScope(Dispatchers.IO).launch {
+        val work = writer.launch(CoroutineScope(Dispatchers.IO)) {
             try {
-                reschedulePersistedRecords(context)
-            } finally {
-                pendingResult.finish()
+                reschedulePersistedRecords(capturedContext)
+            } catch (error: Exception) {
+                android.util.Log.e("CompetitionReminderBoot", "Unable to restore reminders", error)
             }
         }
+        work.invokeOnCompletion { pendingResult?.finish() }
     }
 
     companion object {

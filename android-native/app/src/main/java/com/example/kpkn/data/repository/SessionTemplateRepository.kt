@@ -45,10 +45,12 @@ import java.time.Instant
  */
 class SessionTemplateRepository private constructor(context: Context) {
 
-    private val appContext = context.applicationContext
+    private val writeOwner = com.example.kpkn.data.backup.DataSessionWriter("session-template-repository")
+    private suspend fun <T> withDurableWrite(block: suspend () -> T): T = writeOwner.durableWrite(block)
+    private val appContext = com.example.kpkn.data.backup.capturedPersonalContext(context)
     private var db = KpknDatabase.getInstance(appContext)
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private val userWrites = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val scope = com.example.kpkn.data.backup.DataSessionWriterScope(CoroutineScope(SupervisorJob() + Dispatchers.IO), writeOwner)
+    private val userWrites = com.example.kpkn.data.backup.DataSessionWriterScope(CoroutineScope(SupervisorJob() + Dispatchers.IO), writeOwner)
 
     private val _userTemplates = MutableStateFlow<List<SessionTemplate>>(emptyList())
     private val _isReady = MutableStateFlow(false)
@@ -100,7 +102,7 @@ class SessionTemplateRepository private constructor(context: Context) {
         }
     }
 
-    suspend fun refreshFromStorage() {
+    suspend fun refreshFromStorage() = writeOwner.write {
         templateWriteMutex.withLock {
             try {
             db = KpknDatabase.getInstance(appContext)
@@ -129,10 +131,10 @@ class SessionTemplateRepository private constructor(context: Context) {
         SESSION_TEMPLATES_SYSTEM.firstOrNull { it.id == id }
             ?: _userTemplates.value.firstOrNull { it.id == id }
 
-    suspend fun getByIdAfterReady(id: String): SessionTemplate? {
+    suspend fun getByIdAfterReady(id: String): SessionTemplate? = writeOwner.write {
         combine(isReady, _loadFailure) { ready, failure -> ready to failure }.first { it.first || it.second != null }
             .second?.let { throw IllegalStateException("User templates require recovery", it) }
-        return getById(id) ?: db.sessionTemplateDao().getById(id)?.toSessionTemplateOrNull()
+        getById(id) ?: db.sessionTemplateDao().getById(id)?.toSessionTemplateOrNull()
     }
 
     // ─── Write ────────────────────────────────────────────────────────────────
@@ -155,7 +157,7 @@ class SessionTemplateRepository private constructor(context: Context) {
             "Only USER templates can be saved via SessionTemplateRepository."
         }
         return runCatching {
-            withContext(NonCancellable) {
+            withDurableWrite withContext@ {
                 templateWriteMutex.withLock {
                     db.sessionTemplateDao().upsert(template.toEntity())
                     // Publish only after durable success; a failed DAO write must
@@ -180,7 +182,7 @@ class SessionTemplateRepository private constructor(context: Context) {
 
     suspend fun deleteUserTemplateNow(id: String): Result<Unit> = runCatching {
         if (SESSION_TEMPLATES_SYSTEM.any { it.id == id }) return@runCatching
-        withContext(NonCancellable) {
+        withDurableWrite withContext@ {
             templateWriteMutex.withLock {
                 db.sessionTemplateDao().delete(id)
                 _userTemplates.update { it.filterNot { template -> template.id == id } }
@@ -249,6 +251,7 @@ class SessionTemplateRepository private constructor(context: Context) {
          * this repository too so its StateFlow never points at a closed DAO.
          */
         internal fun resetForTests() {
+            INSTANCE?.writeOwner?.closeAdmission()
             synchronized(this) {
                 INSTANCE?.scope?.coroutineContext?.get(kotlinx.coroutines.Job)?.let { job ->
                     job.cancel(); kotlinx.coroutines.runBlocking { job.join() }
@@ -258,6 +261,7 @@ class SessionTemplateRepository private constructor(context: Context) {
             }
         }
         internal suspend fun closeForDataSession() {
+            INSTANCE?.writeOwner?.closeAdmission()
             INSTANCE?.let { instance -> kotlinx.coroutines.withTimeout(30_000) {
                 instance.userWrites.coroutineContext[kotlinx.coroutines.Job]?.children?.toList()?.forEach { it.join() }
             } }

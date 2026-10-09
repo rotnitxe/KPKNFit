@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.models.EquipmentAvailabilityTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:16:14.392Z" hostname="VF" time="0.026">
+  <properties/>
+  <testcase name="presence_fields_round_trip_and_absent_fields_decode_to_empty_maps" classname="com.example.kpkn.data.models.EquipmentAvailabilityTest" time="0.01"/>
+  <testcase name="null_and_explicit_empty_settings_availability_are_distinct_in_json" classname="com.example.kpkn.data.models.EquipmentAvailabilityTest" time="0.008"/>
+  <testcase name="categorical_projection_is_closed_exhaustive_and_never_invents_inventory_tokens" classname="com.example.kpkn.data.models.EquipmentAvailabilityTest" time="0.005"/>
+  <testcase name="presence_of_a_key_is_tri_state_and_absence_beats_presence" classname="com.example.kpkn.data.models.EquipmentAvailabilityTest" time="0.0"/>
+  <testcase name="the_machine_room_flag_round_trips_and_older_json_decodes_it_as_false" classname="com.example.kpkn.data.models.EquipmentAvailabilityTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

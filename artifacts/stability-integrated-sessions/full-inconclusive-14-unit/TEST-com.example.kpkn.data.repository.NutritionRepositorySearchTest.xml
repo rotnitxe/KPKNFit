@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.repository.NutritionRepositorySearchTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:16:46.436Z" hostname="VF" time="6.026">
+  <properties/>
+  <testcase name="leche colun finds the Colun SKUs although no row holds the phrase" classname="com.example.kpkn.data.repository.NutritionRepositorySearchTest" time="0.835"/>
+  <testcase name="searchFood is the same ranking without the candidates" classname="com.example.kpkn.data.repository.NutritionRepositorySearchTest" time="0.817"/>
+  <testcase name="identical OFF rows collapse into one result" classname="com.example.kpkn.data.repository.NutritionRepositorySearchTest" time="0.674"/>
+  <testcase name="huevos retrieves the OFF rows named huevo through the stem term and ranks the curated egg first" classname="com.example.kpkn.data.repository.NutritionRepositorySearchTest" time="0.664"/>
+  <testcase name="leche puts the curated milk first, keeps dulce de leche out and shows curated rows before OFF" classname="com.example.kpkn.data.repository.NutritionRepositorySearchTest" time="0.655"/>
+  <testcase name="the food a person picked for a query moves up for that query" classname="com.example.kpkn.data.repository.NutritionRepositorySearchTest" time="0.58"/>
+  <testcase name="pan finds no substring decoys and every row passes the logger rules" classname="com.example.kpkn.data.repository.NutritionRepositorySearchTest" time="0.639"/>
+  <testcase name="a broken database never fails the search, the static catalog still answers" classname="com.example.kpkn.data.repository.NutritionRepositorySearchTest" time="0.566"/>
+  <testcase name="a blank query and a query of stop words return nothing" classname="com.example.kpkn.data.repository.NutritionRepositorySearchTest" time="0.596"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
