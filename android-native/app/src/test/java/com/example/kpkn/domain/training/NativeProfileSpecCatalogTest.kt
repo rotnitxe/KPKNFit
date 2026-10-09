@@ -108,9 +108,9 @@ class NativeProfileSpecCatalogTest {
             "one-day" to (1..1),
             "strength-cardio" to (1..6),
         )
-        // C.P2b (D2): estas cinco familias se siguen resolviendo (programas ya activados, ids antiguos)
-        // pero ya no se listan; machine-muscle, bodyweight y strength-cardio siguen listadas.
-        val hiddenFamilies = setOf("full-body", "gym-muscle", "return-training", "one-day", "home-training")
+        // C.P2b (D2) y D1: estas familias se siguen resolviendo (programas ya activados, ids antiguos) pero ya no se
+        // listan; machine-muscle y bodyweight siguen listadas. strength-cardio pasa a versión anterior (D1).
+        val hiddenFamilies = setOf("full-body", "gym-muscle", "return-training", "one-day", "home-training", "strength-cardio")
         historical.forEach { (sourceId, range) ->
             val entry = requireNotNull(natives[sourceId]) { "falta la familia histórica $sourceId" }
             assertEquals("rango de $sourceId", range, entry.supportedFrequencies)
@@ -130,7 +130,7 @@ class NativeProfileSpecCatalogTest {
         val cardioScheduling = PersonalizedPlanCatalog.entries().filter { it.schedulesCardio }.map { it.id }
         assertEquals(listOf("native:strength-cardio"), cardioScheduling)
         assertEquals(12, natives.size)
-        assertEquals("nativos listados", 7, natives.values.count { it.listed })
+        assertEquals("nativos listados", 6, natives.values.count { it.listed })
     }
 
     @Test

@@ -157,8 +157,9 @@ class PlanFitTest {
 
     @Test
     fun theCatalogHasTheTitlesTheBriefSpeaksAbout() {
-        assertTrue("65 fichas, 10 de ellas «a medida»", titles.size >= 60)
-        assertTrue(titles.any { it.startsWith("Powerbuilding") })
+        assertTrue("65 fichas en el catálogo", titles.size >= 60)
+        // D1 (punto 12): el powerbuilding a medida se llama «Fuerza y estética»; el título con «powerbuilding» es el propio.
+        assertTrue(titles.any { it.contains("powerbuilding", ignoreCase = true) })
         assertTrue(titles.any { it.startsWith("Complemento") })
     }
 
@@ -189,9 +190,20 @@ class PlanFitTest {
         // Con la letra normal, solo el título más largo del catálogo baja del mínimo.
         val below = posterFits(320f, 1f).filter { it.fit.sp < COVER_TITLE_MIN_SP }
         assertTrue("bajan del mínimo: ${below.map { it.title }}", below.size <= 1)
-        // Y con el 130 %, a lo sumo tres («Powerbuilding a medida», «Armwrestling a medida» y el complemento de peso muerto).
+        // Y con el 130 %, a lo sumo cuatro títulos. Con los nombres de D1 (punto 12) bajan «Fundamentos de fuerza»,
+        // «Fundamentos de músculo», «Fundamentos de powerbuilding» y el complemento de peso muerto: el conjunto queda fijado
+        // aquí y cualquier cambio de nombre o de tamaño de letra lo hace visible (pendiente de decisión: acortar o aceptar).
         val belowLarge = posterFits(320f, 1.3f).filter { it.fit.sp < COVER_TITLE_MIN_SP }
-        assertTrue("bajan del mínimo con letra grande: ${belowLarge.map { it.title }}", belowLarge.size <= 3)
+        assertEquals(
+            "bajan del mínimo con letra grande",
+            setOf(
+                "Fundamentos de fuerza",
+                "Fundamentos de músculo",
+                "Fundamentos de powerbuilding",
+                "Complemento de peso muerto (Coan y Philippi)",
+            ),
+            belowLarge.map { it.title }.toSet(),
+        )
     }
 
     @Test

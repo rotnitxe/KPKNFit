@@ -89,7 +89,7 @@ class PlanCatalogEditorialContractTest {
         assertEquals("Texas Method", entry("protocol:texas-method-3d").shortName)
         assertEquals("Smolov", entry("protocol:smolov").shortName)
         assertEquals("PHUL", entry("protocol:phul-verified").shortName)
-        assertEquals("Fuerza KPKN", entry("native:strength-foundation-v2").shortName)
+        assertEquals("Fundamentos de fuerza", entry("native:strength-foundation-v2").shortName)
         entries.forEach { assertFalse("${it.id}: shortName con paréntesis", it.shortName.contains("(")) }
     }
 
@@ -491,9 +491,9 @@ class PlanCatalogEditorialContractTest {
     // ─── 11 · Ocultar históricos y override de disciplina (C.P2b, D2) ─────────
 
     @Test
-    fun only_the_five_hidden_historicals_are_unlisted_and_only_two_cards_override_the_references() {
-        // `listed = false` exactamente en los cinco nativos históricos que D2 oculta y en los diez programas «a medida»
-        // del generador (Entreno v2), que solo ofrece el asistente.
+    fun only_the_hidden_historicals_are_unlisted_and_only_two_cards_override_the_references() {
+        // `listed = false` exactamente en los históricos ocultos (D2: cinco nativos; D1: strength-cardio y las versiones
+        // anteriores de PHUL y PHAT) y en los diez programas «a medida» del generador (Entreno v2), que solo ofrece el asistente.
         val unlisted = PlanEditorialTable.byId.filterValues { !it.listed }.keys
         assertEquals("fichas con listed = false", HIDDEN_HISTORICALS + GENERATED, unlisted)
 
@@ -540,7 +540,7 @@ class PlanCatalogEditorialContractTest {
             entries.filterNot { it.listed }.map { it.id }.toSet(),
         )
 
-        // `listedEntries()` ofrece 50: las mismas sin las quince ocultas, en el mismo orden.
+        // `listedEntries()` ofrece 47: las mismas sin las dieciocho ocultas, en el mismo orden.
         val listed = PersonalizedPlanCatalog.listedEntries()
         assertEquals(EXPECTED_ENTRIES - hidden.size, listed.size)
         assertEquals(entries.filter { it.id !in hidden }.map { it.id }, listed.map { it.id })
@@ -646,13 +646,19 @@ class PlanCatalogEditorialContractTest {
         const val STRENGTH_CARDIO = "native:strength-cardio"
         const val BBB = "protocol:wendler-531-bbb"
 
-        /** D2 (2026-10-03): los cinco nativos históricos que dejan de listarse. */
+        /**
+         * Históricos que no se listan: D2 (2026-10-03) los cinco nativos; D1 (2026-10-08), además `native:strength-cardio`
+         * y las dos versiones anteriores de PHUL y PHAT.
+         */
         val HIDDEN_HISTORICALS = setOf(
             "native:full-body",
             "native:gym-muscle",
             "native:one-day",
             "native:return-training",
             "native:home-training",
+            STRENGTH_CARDIO,
+            "protocol:phul-verified",
+            "protocol:phat-verified",
         )
 
         val ENGLISH_WORDS = listOf(

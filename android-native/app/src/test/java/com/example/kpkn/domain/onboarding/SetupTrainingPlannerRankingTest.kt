@@ -173,17 +173,17 @@ class SetupTrainingPlannerRankingTest {
                 "original:phul-ms-2021-r1",
                 "adapted:phul-kpkn-r1",
                 "protocol:wendler-531-bbb",
-                "protocol:phul-verified",
             ),
-            ids.take(5),
+            ids.take(4),
         )
-        // Lo que no declara el nivel intermedio (la plantilla avanzada) va después, sin ocultarse.
-        list.drop(5).forEach { assertFalse("${it.id} declara nivel intermedio", CatalogLevel.INTERMEDIATE in it.levels) }
+        // La versión anterior de PHUL ya no se lista (D1). Lo que no declara el nivel intermedio va después, sin ocultarse.
+        assertFalse("la versión anterior de PHUL no se lista", "protocol:phul-verified" in ids)
+        list.drop(4).forEach { assertFalse("${it.id} declara nivel intermedio", CatalogLevel.INTERMEDIATE in it.levels) }
         assertTrue("la plantilla avanzada sigue disponible", "template:powerbuild-16-4" in ids)
     }
 
     @Test
-    fun strengthMuscleAdvancedAtFiveDaysOrdersOwnThenOriginalThenAdaptedThenLegacy() {
+    fun strengthMuscleAdvancedAtFiveDaysOrdersOwnThenOriginalThenAdaptedAndHidesThePreviousVersion() {
         val ids = idsOf(input(reference = TrainingReference.POWERBUILDING, frequency = 5, level = CatalogLevel.ADVANCED))
         println("[C.P3] Fuerza y músculo · avanzado · 5 días: $ids")
         assertEquals(
@@ -191,10 +191,10 @@ class SetupTrainingPlannerRankingTest {
                 ownPowerbuilding,
                 "original:phat-biolayne-2016-r1",
                 "adapted:phat-kpkn-r1",
-                "protocol:phat-verified",
             ),
-            ids.take(4),
+            ids.take(3),
         )
+        assertFalse("la versión anterior de PHAT no se lista (D1)", "protocol:phat-verified" in ids)
     }
 
     // ─── (d) Atleta completo ──────────────────────────────────────────────────
@@ -254,9 +254,9 @@ class SetupTrainingPlannerRankingTest {
                 }
             }
         }
-        // El modo mixto sigue sirviendo solo lo que programa cardio, con cualquier disciplina.
+        // El modo mixto no tiene candidatos listados: su única familia de cardio (strength-cardio) es versión anterior (D1).
         TrainingReference.entries.forEach { reference ->
-            assertEquals(listOf("native:strength-cardio"), idsOf(input(reference = reference, frequency = 3, mixedTraining = true)))
+            assertEquals(emptyList<String>(), idsOf(input(reference = reference, frequency = 3, mixedTraining = true)))
         }
         assertTrue("el valor por defecto no exige capacidades", input().requiredCapabilities.isEmpty())
     }

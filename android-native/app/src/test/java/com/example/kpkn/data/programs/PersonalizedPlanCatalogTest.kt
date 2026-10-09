@@ -94,25 +94,28 @@ class PersonalizedPlanCatalogTest {
     }
 
     /**
-     * C.P2b (D2): `entries()` conserva los 12 nativos, pero solo 7 se ofrecen. Los cinco ocultos
-     * son los históricos que ya no se listan; `machine-muscle`, `bodyweight` y `strength-cardio`
-     * siguen listados (relegados) y los cuatro planes propios también.
+     * C.P2b (D2) y D1 (punto 12): `entries()` conserva los 12 nativos, pero solo 6 se ofrecen. Ocultos: los cinco
+     * históricos de D2, `strength-cardio` (versión anterior, D1) y las dos versiones anteriores de PHUL y PHAT. Siguen
+     * listados `machine-muscle`, `bodyweight` y los cuatro planes propios.
      */
     @Test
-    fun listedEntriesOfferSevenNativesAndHideTheFiveHistoricals() {
+    fun listedEntriesOfferSixNativesAndHideTheHistoricals() {
         val hidden = listOf(
             "native:full-body",
             "native:gym-muscle",
             "native:one-day",
             "native:return-training",
             "native:home-training",
+            "native:strength-cardio",
+            "protocol:phul-verified",
+            "protocol:phat-verified",
         )
         val all = PersonalizedPlanCatalog.entries()
         val listed = PersonalizedPlanCatalog.listedEntries()
 
         // Los diez programas «a medida» del generador (Entreno v2) también son NATIVE sin listar: no cuentan aquí.
         assertEquals("nativos en entries()", 12, all.count { it.source == CatalogSource.NATIVE && !it.isGenerated })
-        assertEquals("nativos en listedEntries()", 7, listed.count { it.source == CatalogSource.NATIVE })
+        assertEquals("nativos en listedEntries()", 6, listed.count { it.source == CatalogSource.NATIVE })
         assertEquals(
             "ocultos exactos",
             (hidden + PersonalizedPlanCatalog.GENERATED_IDS).sorted(),
@@ -126,15 +129,15 @@ class PersonalizedPlanCatalogTest {
                 "native:machine-muscle",
                 "native:muscle-foundation-v2",
                 "native:powerbuilding-foundation-v2",
-                "native:strength-cardio",
                 "native:strength-foundation-v2",
             ),
             listed.filter { it.source == CatalogSource.NATIVE }.map { it.id }.sorted(),
         )
-        // Lo que no es nativo no se oculta: plantillas y métodos están completos en ambas listas.
+        // Plantillas y métodos: solo se ocultan las dos versiones anteriores de PHUL y PHAT.
         assertEquals(
-            all.count { it.source != CatalogSource.NATIVE },
-            listed.count { it.source != CatalogSource.NATIVE },
+            "plantillas y métodos ocultos",
+            setOf("protocol:phul-verified", "protocol:phat-verified"),
+            all.filter { it.source != CatalogSource.NATIVE && !it.listed }.map { it.id }.toSet(),
         )
         // Ocultar no borra: cada histórico sigue resolviendo y sigue siendo ejecutable por id.
         hidden.forEach { id ->
@@ -145,20 +148,13 @@ class PersonalizedPlanCatalogTest {
     }
 
     /**
-     * C.P2b (D2): el planner no devuelve nunca ninguno de los cinco ocultos, sea cual sea la
-     * referencia, la frecuencia (1..6 y sin frecuencia), el nivel, el material o el modo.
-     * BBB aparece en Fuerza y músculo a 4 días; `strength-cardio` ya no cuenta como Músculo
-     * pero sigue siendo el único candidato del modo mixto.
+     * C.P2b (D2) y D1: el planner no devuelve nunca ninguno de los ocultos, sea cual sea la referencia, la frecuencia
+     * (1..6 y sin frecuencia), el nivel, el material o el modo. BBB aparece en Fuerza y músculo a 4 días;
+     * `strength-cardio` ya no cuenta como Músculo y, oculto (versión anterior), tampoco es candidato del modo mixto.
      */
     @Test
-    fun plannerNeverOffersTheHiddenHistoricalsAndStillServesTheMixedGoal() {
-        val hidden = setOf(
-            "native:full-body",
-            "native:gym-muscle",
-            "native:one-day",
-            "native:return-training",
-            "native:home-training",
-        )
+    fun plannerNeverOffersTheHiddenHistoricalsAndTheMixedGoalHasNoListedPlan() {
+        val hidden = PersonalizedPlanCatalog.entries().filterNot { it.listed }.map { it.id }.toSet()
         val references = listOf<TrainingReference?>(null) + TrainingReference.entries
         val frequencies = listOf<Int?>(null) + (1..6).toList()
         val materials = listOf(setOf("general_gym"), setOf("bodyweight"), emptySet())
@@ -223,23 +219,20 @@ class PersonalizedPlanCatalogTest {
             "protocol:wendler-531-fsl" !in plan(TrainingReference.POWERBUILDING, 4),
         )
 
-        // strength-cardio: fuera de Músculo, dentro del modo mixto con cualquier frecuencia 1..6.
+        // strength-cardio (versión anterior, D1): fuera de Músculo y, oculto, fuera también del modo mixto.
         val strengthCardio = "native:strength-cardio"
         (1..6).forEach { days ->
             assertFalse(
                 "strength-cardio ya no es Músculo ($days días)",
                 strengthCardio in plan(TrainingReference.HYPERTROPHY, days),
             )
-            assertTrue(
-                "strength-cardio sigue sirviendo el modo mixto ($days días)",
-                strengthCardio in plan(TrainingReference.HYPERTROPHY, days, mixed = true),
-            )
             assertEquals(
-                "en el modo mixto es el único candidato ($days días)",
-                listOf(strengthCardio),
+                "el modo mixto no tiene candidato listado ($days días)",
+                emptyList<String>(),
                 plan(TrainingReference.HYPERTROPHY, days, mixed = true),
             )
         }
+        assertTrue("strength-cardio sigue resolviendo por id", PersonalizedPlanCatalog.find(strengthCardio) != null)
         // Los históricos que se conservan listados siguen ofreciéndose en Músculo.
         val muscleAtThreeDays = plan(TrainingReference.HYPERTROPHY, 3, CatalogLevel.BEGINNER)
         assertTrue("machine-muscle sigue listado", "native:machine-muscle" in muscleAtThreeDays)
@@ -518,7 +511,7 @@ class PersonalizedPlanCatalogTest {
     }
 
     @Test
-    fun recommendations_offer_the_authored_entries_and_keep_the_legacy_protocols() {
+    fun recommendations_offer_the_authored_entries_and_hide_the_legacy_versions() {
         val base = SetupTrainingPlannerInput(
             reference = TrainingReference.POWERBUILDING,
             frequency = 4,
@@ -529,12 +522,12 @@ class PersonalizedPlanCatalogTest {
         val fourDays = SetupTrainingPlanner.candidates(base).map { it.id }
         assertTrue("PHUL original recomendable: $fourDays", AuthoredPhulPhatRecipes.PHUL_ORIGINAL_ID in fourDays)
         assertTrue("PHUL adaptado recomendable", AuthoredPhulPhatRecipes.PHUL_ADAPTED_ID in fourDays)
-        assertTrue("el PHUL histórico sigue disponible", "protocol:phul-verified" in fourDays)
+        assertFalse("el PHUL histórico ya no se ofrece (versión anterior)", "protocol:phul-verified" in fourDays)
 
         val fiveDays = SetupTrainingPlanner.candidates(base.copy(frequency = 5)).map { it.id }
         assertTrue("PHAT original recomendable: $fiveDays", AuthoredPhulPhatRecipes.PHAT_ORIGINAL_ID in fiveDays)
         assertTrue("PHAT adaptado recomendable", AuthoredPhulPhatRecipes.PHAT_ADAPTED_ID in fiveDays)
-        assertTrue("el PHAT histórico sigue disponible", "protocol:phat-verified" in fiveDays)
+        assertFalse("el PHAT histórico ya no se ofrece (versión anterior)", "protocol:phat-verified" in fiveDays)
     }
 
     // ─── C.P1 · niveles de plantillas, tercera duración y findForProgram ─────

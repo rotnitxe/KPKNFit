@@ -103,16 +103,13 @@ class SetupTrainingPlannerTest {
     }
 
     @Test
-    fun mixedTrainingKeepsOnlyPlansThatScheduleCardio() {
+    fun mixedTrainingHasNoListedPlanNowThatTheOnlyCardioFamilyIsAPreviousVersion() {
         val candidates = SetupTrainingPlanner.candidates(
             input(reference = TrainingReference.POWERLIFTING, frequency = 3, mixedTraining = true),
         )
-        assertTrue(candidates.isNotEmpty())
-        assertTrue(candidates.all { it.schedulesCardio })
-        // C.P2b: strength-cardio ya no declara disciplina (references = ∅) y sigue siendo el candidato
-        // del modo mixto, porque `schedulesCardio` no depende de las referencias.
-        val strengthCardio = candidates.single { it.id == "native:strength-cardio" }
-        assertTrue(strengthCardio.references.isEmpty())
+        // D1: `native:strength-cardio` es una versión anterior (listed = false). Era la única familia que programa cardio,
+        // así que el modo mixto ya no tiene candidatos listados; el id sigue resolviendo para los programas activos.
+        assertTrue("sin candidatos listados en el modo mixto: ${candidates.map { it.id }}", candidates.isEmpty())
     }
 
     @Test
