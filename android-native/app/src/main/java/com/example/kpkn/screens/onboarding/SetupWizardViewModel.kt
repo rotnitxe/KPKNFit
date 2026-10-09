@@ -187,7 +187,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
             isCandidateLoading = false,
             planSweep = SetupPlanSweep.IDLE, planReveals = emptyList(), weekLayout = null,
             isPreviewLoading = false,
-            nutritionPlanPreview = null, nutritionPreparation = null, ringsBatteriesPreview = null, ringsCoveragePreview = null,
+            nutritionPlanPreview = null, nutritionPreparation = null, ringsBatteriesPreview = null, ringsCoveragePreview = null, ringsMuscleEstimates = emptyMap(),
             errors = emptyMap(), lastFailure = null)
         initializeJob = viewModelScope.launch {
             try {
@@ -1238,7 +1238,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
             val bodyGoals = typed?.targetValueSi?.let { target -> listOf(BodyGoal("plan:${nutrition.id}:${typed.metric.name}", typed.metric.toBodyMetric(), target, typed.unitSi, typed.origin, nutrition.id, System.currentTimeMillis(), System.currentTimeMillis())) }.orEmpty()
             // Check-in real: evidencia completa, calibración parcial o solo
             // molestias declaradas. Nunca se fabrican sesiones sintéticas.
-            val wellbeing = if (rings.savesRealCheckIn) {
+            val wellbeing = if (rings.savesRealCheckIn || ringsHasManual(draft)) {
                 calculateRingsPreview(draft, rings, ringsNow).stagedWellbeing
             } else null
             val pendingNutritionDraft = if (SetupPendingNutrition.shouldPreserve(draft)) {
@@ -2087,13 +2087,13 @@ class SetupWizardViewModel @JvmOverloads constructor(
         val now = System.currentTimeMillis()
         val mapping = ringsMapping(draft, now)
         val key = ringsKey(draft)
-        if (!mapping.savesRealCheckIn) {
+        if (!mapping.savesRealCheckIn && !ringsHasManual(draft)) {
             ringsPreviewJob?.cancel()
             // Sin check-in real no hay baterías NI cobertura: nunca se muestra
             // una cobertura calculada sobre datos que no existen.
             lastRingsPreviewKey = null
             ringsPreviewNow = null
-            _state.value = _state.value.copy(ringsBatteriesPreview = null, ringsCoveragePreview = null,
+            _state.value = _state.value.copy(ringsBatteriesPreview = null, ringsCoveragePreview = null, ringsMuscleEstimates = emptyMap(),
                 ringsPreviewLoading = false, ringsPreviewError = null,
                 errors = _state.value.errors - "rings_preview",
                 // Tampoco queda un diagnóstico de RINGS que ya no aplica.
@@ -2125,6 +2125,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
                     _state.value = _state.value.copy(
                         ringsBatteriesPreview = result.batteries,
                         ringsCoveragePreview = result.coverage,
+                        ringsMuscleEstimates = result.muscleEstimates,
                         ringsPreviewLoading = false,
                         lastFailure = stillFailed,
                     )
@@ -2174,6 +2175,11 @@ class SetupWizardViewModel @JvmOverloads constructor(
             settings, evidenceInput, draft.commitId,
             selected, draft.manualEnergyOverride, draft.manualStructureOverride, discomforts,
             nowEpochMs, checkIn = mapping.previewCheckIn(),
+            manual = SetupRingsManualValues(
+                energia = a.manualRings["energia"],
+                columna = a.manualRings["columna"],
+                musculos = a.manualMusclesV2,
+            ),
         )
     }
     private fun updateNutritionPreview(draft: SetupWizardDraft) {
@@ -3493,7 +3499,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
         if (d.includeNutrition && !isTrackingOnly(d) && (s.nutritionPlanPreview == null || s.nutritionErrors.isNotEmpty())) {
             put("nutrition", s.nutritionErrors.values.firstOrNull() ?: "Completa la nutrición")
         }
-        if (ringsMapping(d).savesRealCheckIn && (s.ringsBatteriesPreview == null || s.ringsPreviewLoading || s.ringsPreviewError != null || lastRingsPreviewKey != ringsKey(d))) {
+        if ((ringsMapping(d).savesRealCheckIn || ringsHasManual(d)) && (s.ringsBatteriesPreview == null || s.ringsPreviewLoading || s.ringsPreviewError != null || lastRingsPreviewKey != ringsKey(d))) {
             // Causa real de RINGS primero (clase+mensaje del último fallo de
             // este cálculo): nunca un genérico cuando existe diagnóstico, ni el
             // fallo de otra operación colado bajo esta clave.
@@ -3653,6 +3659,10 @@ class SetupWizardViewModel @JvmOverloads constructor(
      */
     private fun <T> setIf(value: T, present: Boolean): SetupPatchField<T> =
         if (present) SetupPatchField.Set(value) else SetupPatchField.Unchanged
+
+    /** Hay ajustes 0–100 de «Tus RINGS» que guardar aunque el mapeo no declare check-in (p. ej. sensaciones omitidas). */
+    private fun ringsHasManual(draft: SetupWizardDraft): Boolean =
+        draft.ringsAnswers?.let { it.manualRings.isNotEmpty() || it.manualMusclesV2.isNotEmpty() } == true
 
     /** Mapeo de RINGS para la vista previa y el guardado: la zona del sistema fecha los días declarados (v2). */
     private fun ringsMapping(draft: SetupWizardDraft, nowEpochMs: Long = System.currentTimeMillis()): SetupRingsMapping {
@@ -3874,6 +3884,32 @@ class SetupWizardViewModel @JvmOverloads constructor(
     /** Nombre opcional del evento (hasta 40 caracteres). */
     fun setMeetName(name: String) =
         mutateDraft(SetupStepId.COMPETITION) { latest -> latest.withMeetName(name) }
+
+    /**
+     * RINGS: ajuste 0–100 de «Energía» (`energia`) o «Columna» (`columna`) con el valor que la persona ve; `null` lo quita.
+     * El deslizador lo llama al SOLTAR: mientras se arrastra solo cambia lo que se ve.
+     */
+    fun setRingsManual(channel: String, value: Int?) = mutateDraft { draft ->
+        val answers = draft.ringsAnswers ?: SetupRingsAnswers()
+        val next = if (value == null) answers.manualRings - channel
+        else answers.manualRings + (channel to value.coerceIn(0, 100))
+        draft.copy(ringsAnswers = answers.copy(manualRings = next))
+    }
+
+    /** RINGS: ajuste 0–100 de un pilar muscular (nombre de `INITIAL_RECOVERY_MUSCLE_PILLARS`); `null` lo quita. */
+    fun setMuscleManual(pillar: String, value: Int?) = mutateDraft { draft ->
+        val answers = draft.ringsAnswers ?: SetupRingsAnswers()
+        val next = if (value == null) answers.manualMusclesV2 - pillar
+        else answers.manualMusclesV2 + (pillar to value.coerceIn(0, 100))
+        draft.copy(ringsAnswers = answers.copy(manualMusclesV2 = next))
+    }
+
+    /** RINGS: «Restablecer» quita todos los ajustes de músculos; vuelven las estimaciones. */
+    fun resetMuscleManual() = mutateDraft { draft ->
+        val answers = draft.ringsAnswers
+        if (answers == null || answers.manualMusclesV2.isEmpty()) draft
+        else draft.copy(ringsAnswers = answers.copy(manualMusclesV2 = emptyMap()))
+    }
 
     companion object {
         private const val DRAFT_ID_KEY = "setup_wizard_draft_id"

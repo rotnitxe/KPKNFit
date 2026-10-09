@@ -378,4 +378,25 @@ object SetupRingsResponseMapping {
             capturedFields = fields,
         )
     }
+
+    /**
+     * Pone sobre el check-in lo que la persona mueve en «Tus RINGS», con el valor que ve (0–100, sin la escala 1–5): un 80
+     * se guarda como 80. [energia] y [columnaBattery] (la batería cruda de la Columna, ya invertida) sustituyen el ancla de
+     * [base] solo si vienen; [musculos] (pilar → 0–100) se suma a los de [base].
+     */
+    fun withRingAdjustments(
+        base: StagedRingsCheckIn,
+        energia: Int?,
+        columnaBattery: Int?,
+        musculos: Map<String, Int>,
+    ): StagedRingsCheckIn = base.copy(
+        manualNeuralBattery = energia?.coerceIn(0, 100) ?: base.manualNeuralBattery,
+        manualSpinalBattery = columnaBattery?.coerceIn(0, 100) ?: base.manualSpinalBattery,
+        manualMuscleBatteries = base.manualMuscleBatteries + musculos.mapValues { (_, value) -> value.coerceIn(0, 100) },
+        capturedFields = base.capturedFields + buildSet {
+            if (energia != null) add("energy")
+            if (columnaBattery != null) add("structure")
+            if (musculos.isNotEmpty()) add("muscle_batteries")
+        },
+    )
 }
