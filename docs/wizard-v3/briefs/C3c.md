@@ -4,6 +4,12 @@ Worktree indicado en tu encargo, rama `v3/c3c` (sale de `feat/wizard-v3` con C3a
 `docs/wizard-v3/BRIEF_COMUN.md`, del plan «Punto 11», y los briefs `C3a.md` (ruta y paso) y `C3b.md` (lector, analizador, emparejador y
 constructor ya existen: `XlsxReader`, `CsvReader`, `ProgramImportParser`, `ExerciseNameMatcher`, `ImportedProgramBuilder`).
 
+**API real que dejó C3a** (integrado): `ProgramSource { RECOMMEND, LATER, IMPORT }` e `internal object ProgramSourceOptions { const val
+IMPORT_ENABLED = false }` en `EntrenoContracts.kt`; `SetupStepId.PROGRAM_SOURCE` y `PROGRAM_IMPORT`; `SetupStepContext.programImportEnabled`
+(por defecto `IMPORT_ENABLED`; las pruebas lo pueden encender); `draft.programSource`; `withProgramSource(source?)` y `withProgramDeferred()` en
+`SetupStepAnswers.kt`; `vm.setProgramSource(source)`; arte `programSourceArtOf(source, reduced)` en `design/entreno/ProgramSourceArts.kt`.
+`PROGRAM_IMPORT` aún no tiene composable (rama `else -> Unit`) y su validación está preparada en `false`.
+
 ## 1. Lectura de archivo (capa `data/`)
 - `data/importer/ProgramImportSource.kt`: `suspend fun readSheets(contentResolver, uri, mime): Result<List<ImportSheet>>` en `Dispatchers.IO`
   (xlsx → `XlsxReader`, csv/texto → `CsvReader`; tope 5 MB; errores con texto claro: «El archivo es demasiado grande (máx. 5 MB).», «No pudimos
