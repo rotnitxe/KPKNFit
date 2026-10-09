@@ -1238,8 +1238,17 @@ object AugeRecoveryEngine {
         val estimated = muscularEstimated || systemEstimated || structureEstimated
         fun combine(real: Int, initial: Int?, enabled: Boolean, minimum: Int): Int =
             if (enabled && initial != null) (real - (100 - initial)).coerceIn(minimum, 100) else real
+        // Con evidencia v2 y los pilares de precomputedMuscles (getPerMuscleBatteries), la parte muscular ya está
+        // dentro de los pilares: no restarla otra vez.
+        val initialInPillars = precomputedMuscles != null &&
+            PILLAR_MUSCLES.all { it in precomputedMuscles } &&
+            (settings.initialRecoveryEvidence?.estimatorVersion ?: 0) >= 2
         return GlobalBatteries(
-            muscular = combine(finalMuscular, initialContribution.muscular, muscularEstimated, floor.muscular),
+            muscular = if (initialInPillars) {
+                finalMuscular
+            } else {
+                combine(finalMuscular, initialContribution.muscular, muscularEstimated, floor.muscular)
+            },
             cnc = combine(finalCnc, initialContribution.system, systemEstimated, floor.cns),
             spinal = combine(finalSpinal, initialContribution.structure, structureEstimated, floor.spinal),
             sourceLabel = when {
@@ -1267,6 +1276,7 @@ object AugeRecoveryEngine {
         feedbacks: List<PostSessionFeedback> = emptyList(),
         adaptiveCache: AugeAdaptiveCache = AugeAdaptiveCache(),
         nowOverrideMs: Long? = null,
+        zone: ZoneId = ZoneId.systemDefault(),
     ): Map<String, MuscleRecoveryStatus> {
         val stressLevel = wellbeing?.stressLevel ?: 3
         val nutritionMultiplier = getNutritionMultiplier(settings, nutritionLogs, stressLevel)
@@ -1297,8 +1307,28 @@ object AugeRecoveryEngine {
             )
         }
 
+        // Evidencia v2 de RINGS (E3a): cada pilar con carga resta su parte con la misma combinación del global.
+        // Se omite con ajustes manuales musculares, como calculateGlobalBatteries, para no contar dos veces.
+        val hasManualMuscularAnchors = wellbeing?.manualMuscularBattery != null ||
+            !wellbeing?.manualMuscleOverridesV2.isNullOrEmpty() ||
+            !wellbeing?.manualMuscleBatteries.isNullOrEmpty()
+        val initialByPillar = if (hasManualMuscularAnchors) {
+            emptyMap<String, Int>()
+        } else {
+            InitialRecoveryEvidencePolicy.v2PillarBatteries(
+                InitialRecoveryPolicyInput(
+                    evidence = settings.initialRecoveryEvidence,
+                    nowMs = evaluationNow,
+                    workoutLogs = history,
+                    zone = zone,
+                ),
+                InitialRecoveryEvidenceFactory.INITIAL_RECOVERY_MUSCLE_PILLARS,
+            )
+        }
+        val muscularFloor = physiologicalFloor(settings).muscular
+
         return BATTERY_MUSCLES.associateWith { muscle ->
-            calculateMuscleBattery(
+            val status = calculateMuscleBattery(
                 muscleName = muscle,
                 history = historyForBatteries,
                 wellbeing = wellbeing,
@@ -1311,7 +1341,27 @@ object AugeRecoveryEngine {
                 precomputedCapacity = precomputedCapacities[muscle],
                 nowOverride = evaluationNow,
             )
+            val initial = initialByPillar[muscle] ?: return@associateWith status
+            combineWithInitialEvidence(status, initial, muscularFloor)
         }
+    }
+
+    /** Combinación de calculateGlobalBatteries para un pilar: real − (100 − inicial), con suelo. */
+    private fun combineWithInitialEvidence(
+        status: MuscleRecoveryStatus,
+        initial: Int,
+        floor: Int,
+    ): MuscleRecoveryStatus {
+        if (initial >= 100) return status
+        val score = (status.recoveryScore - (100 - initial)).coerceIn(floor, 100)
+        return status.copy(recoveryScore = score, status = recoveryStatusFor(score))
+    }
+
+    private fun recoveryStatusFor(battery: Int): RecoveryStatus = when {
+        battery >= 95 -> RecoveryStatus.FRESH
+        battery >= 85 -> RecoveryStatus.OPTIMAL
+        battery >= 40 -> RecoveryStatus.RECOVERING
+        else -> RecoveryStatus.EXHAUSTED
     }
 
     // ─── 6. DASHBOARD Y READINESS DIARIA ─────────────────────────────────────
