@@ -248,7 +248,7 @@ private fun WizardLongPage(
     // panel ya dice por qué y el check se apaga hasta que el plan sea razonable (el ViewModel lo vuelve a exigir).
     val nutritionPlanBlocked = nutritionResultGate(state, step).isNotEmpty()
     val checkEnabled = state.canConfirmStep && aliasReady && measuresReady && !state.isSubmittingAnswer && !nutritionPlanBlocked
-    val ctaLabel = if (step == SetupStepId.REVIEW_ACTIVATE) "Activar y entrar a KPKN" else "Continuar"
+    val ctaLabel = if (step == SetupStepId.REVIEW_ACTIVATE) "Activar y entrar a KPKN" else if (step == SetupStepId.RINGS_INTRO) "Empezar" else "Continuar"
     // Editando antes de la intención de regreso: confirmar guarda el cambio y devuelve a donde estaba. El botón lo dice y una línea lo explica.
     val keepsLaterAnswers = state.draft.keepsLaterAnswers()
 
