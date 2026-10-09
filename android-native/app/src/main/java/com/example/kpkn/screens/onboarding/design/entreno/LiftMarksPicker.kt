@@ -651,14 +651,23 @@ private fun LiftSymbol(
     }
 }
 
-/** El suelo y, en el press de banca, el banco. */
-private fun DrawScope.drawLiftStage(pen: FigPen, pose: FigPose, ink: Color, ground: Boolean) {
+/** Postes del banco: caen al suelo dentro de la tabla, que va de la cadera a la cabeza. */
+private const val BENCH_POST_LEFT = 34f
+private const val BENCH_POST_RIGHT = 64f
+
+/** El suelo y, en el press de banca, el banco (tabla desde la cadera hacia la cabeza). */
+internal fun DrawScope.drawLiftStage(pen: FigPen, pose: FigPose, ink: Color, ground: Boolean) {
     val soft = ink.copy(alpha = FigStyle.SOFT)
     val groundY = LiftPoses.GROUND_LINE
     if (ground) pen.line(Offset(6f, groundY), Offset(LiftPoses.CANVAS_W - 6f, groundY), soft, FigStyle.FINE)
     if (!pose.bench.isNaN()) {
-        pen.line(Offset(20f, pose.bench), Offset(68f, pose.bench), ink.copy(alpha = 0.9f), FigStyle.BAR)
-        pen.line(Offset(23f, pose.bench), Offset(23f, groundY), soft, FigStyle.FINE)
-        pen.line(Offset(65f, pose.bench), Offset(65f, groundY), soft, FigStyle.FINE)
+        pen.line(
+            Offset(LiftPoses.BENCH_TABLE_LEFT, pose.bench),
+            Offset(LiftPoses.BENCH_TABLE_RIGHT, pose.bench),
+            ink.copy(alpha = 0.9f),
+            FigStyle.BAR,
+        )
+        pen.line(Offset(BENCH_POST_LEFT, pose.bench), Offset(BENCH_POST_LEFT, groundY), soft, FigStyle.FINE)
+        pen.line(Offset(BENCH_POST_RIGHT, pose.bench), Offset(BENCH_POST_RIGHT, groundY), soft, FigStyle.FINE)
     }
 }

@@ -14,9 +14,12 @@ import com.example.kpkn.domain.onboarding.WizChatAnswerSource
 import com.example.kpkn.domain.onboarding.WizChatProgress
 import com.example.kpkn.domain.onboarding.WizChatQuestionId
 import com.example.kpkn.domain.onboarding.WizChatStage
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -695,5 +698,60 @@ class SetupDraftCompatibilityTest {
         assertEquals("plan-v1", kept.selectedCatalogId)
         assertTrue(SetupStepId.PLAN in kept.stepProgress.pendingReview)
         assertEquals(base.wizChat.acceptedAnswers, kept.wizChat.acceptedAnswers)
+    }
+
+    // ── Trapecio retirado de los músculos priorizados ──────────────────────────
+
+    /** Un borrador de entreno con las prioridades y la bolsa de orden que se le pasen. */
+    private fun withPriorities(priorities: Set<String>, bag: Map<String, Int>): SetupWizardDraft {
+        val base = draft(answers = emptyList())
+        return base.copy(priorityMuscles = priorities, trainingOptions = base.trainingOptions.copy(orderPriorities = bag))
+    }
+
+    @Test
+    fun aDraftThatChoseTheRetiredTrapeziusMovesItToBackWithoutDuplicatingIt() {
+        val old = withPriorities(setOf("Trapecio", "Pectorales"), mapOf("Trapecio" to 1, "Pectorales" to 1))
+        val repaired = SetupDraftCompatibility.repair(old)
+        assertEquals(setOf("Dorsales", "Pectorales"), repaired.priorityMuscles)
+        assertEquals(mapOf("Dorsales" to 1, "Pectorales" to 1), repaired.trainingOptions.orderPriorities)
+
+        // Si ya estaba Espalda, no se duplica: queda un solo punto.
+        val both = withPriorities(setOf("Dorsales", "Trapecio"), mapOf("Dorsales" to 1, "Trapecio" to 1))
+        val merged = SetupDraftCompatibility.repair(both)
+        assertEquals(setOf("Dorsales"), merged.priorityMuscles)
+        assertEquals(mapOf("Dorsales" to 1), merged.trainingOptions.orderPriorities)
+        // Idempotente: volver a abrir el borrador no cambia nada.
+        assertEquals(merged.priorityMuscles, SetupDraftCompatibility.repair(merged).priorityMuscles)
+        assertEquals(merged.trainingOptions.orderPriorities, SetupDraftCompatibility.repair(merged).trainingOptions.orderPriorities)
+    }
+
+    @Test
+    fun theBagKeepsTheLargerPointWhenTrapeziusAndBackMerge_andTheEnumNameIsMigratedToo() {
+        // Se toma el MAYOR de los puntos, nunca la suma: el tope de 2 por músculo se mantiene.
+        val bag = withPriorities(setOf("TRAPS", "Dorsales"), mapOf("Trapecio" to 2, "Dorsales" to 1))
+        val migrated = SetupDraftCompatibility.migrateRetiredTrapezius(bag)
+        assertEquals(setOf("Dorsales"), migrated.priorityMuscles)
+        assertEquals(mapOf("Dorsales" to 2), migrated.trainingOptions.orderPriorities)
+        val fromEnumName = SetupDraftCompatibility.migrateRetiredTrapezius(withPriorities(setOf("TRAPS"), mapOf("TRAPS" to 1)))
+        assertEquals(mapOf("Dorsales" to 1), fromEnumName.trainingOptions.orderPriorities)
+    }
+
+    @Test
+    fun aRealDraftJsonWithTheRetiredValueDecodesAndIsMigrated() {
+        // La misma configuración que el ViewModel al guardar y al restaurar el borrador.
+        val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
+        for (legacy in listOf("Trapecio", "TRAPS")) {
+            val text = json.encodeToString(SetupWizardDraft.serializer(), withPriorities(setOf(legacy), mapOf(legacy to 1)))
+            assertTrue("el valor viejo «$legacy» viaja en el JSON", text.contains("\"$legacy\""))
+            val repaired = SetupDraftCompatibility.repair(json.decodeFromString<SetupWizardDraft>(text))
+            assertEquals(setOf("Dorsales"), repaired.priorityMuscles)
+            assertEquals(mapOf("Dorsales" to 1), repaired.trainingOptions.orderPriorities)
+        }
+    }
+
+    @Test
+    fun aDraftWithoutTheRetiredTrapeziusIsNotTouched() {
+        val clean = withPriorities(setOf("Pectorales"), mapOf("Pectorales" to 1))
+        assertSame(clean, SetupDraftCompatibility.migrateRetiredTrapezius(clean))
     }
 }

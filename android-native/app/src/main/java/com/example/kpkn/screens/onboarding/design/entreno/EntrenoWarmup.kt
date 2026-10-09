@@ -13,7 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /*
- * Lo que los pasos de Entreno arman la primera vez que se pintan (los doce músculos como trazos SVG que hay que leer, los
+ * Lo que los pasos de Entreno arman la primera vez que se pintan (los once músculos como trazos SVG que hay que leer, los
  * dibujos de cada implemento, lugar y objetivo, y las tipografías de la marca) cuesta decenas de milisegundos, y con el paso
  * siguiente asomando bajo el activo esa primera vez caía en el cuadro en que la persona pulsaba «Continuar». Se prepara en un
  * hilo de fondo, una sola vez por proceso, en cuanto aparece el primer paso del bloque: de ahí al de los músculos pasan

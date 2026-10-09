@@ -7,6 +7,8 @@ import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.domain.onboarding.EntrenoStepValues
 import com.example.kpkn.domain.onboarding.EquipmentSymbols
 import com.example.kpkn.domain.onboarding.LiftMark
+import com.example.kpkn.domain.onboarding.MuscleSymbol
+import com.example.kpkn.domain.onboarding.MuscleSymbols
 import com.example.kpkn.domain.onboarding.SetupAnswerProvenance
 import com.example.kpkn.domain.onboarding.SetupApparatusPanel
 import com.example.kpkn.domain.onboarding.SetupPreviewKind
@@ -131,11 +133,14 @@ object SetupDraftCompatibility {
      * - El reloj de tiempo por sesión ya no baja de [EntrenoStepValues.SESSION_MINUTES_MIN] (30 min): un borrador con menos
      *   (20 o 25) se lee como 30 y deja SESSION_TIME por revisar. No confirma nada (la respuesta que ya hubiera queda como
      *   estaba, marcada por revisar) ni toca el resto de lo respondido; el cursor vuelve a ese paso para que la persona decida.
+     * - «Trapecio» salió de la cuadrícula de músculos: pasa a «Dorsales» ([migrateRetiredTrapezius]).
      * - Si el bloque de entreno ya estaba completo, sus pasos nuevos sin responder lo marcan como pendiente de revisión.
      */
     internal fun migrateEntrenoV2(draft: SetupWizardDraft): SetupWizardDraft {
-        if (!draft.includeTraining) return draft
-        var current = draft
+        // Antes del interruptor de entreno: la bolsa de prioridades no depende de que el bloque esté incluido.
+        val withoutTrapezius = migrateRetiredTrapezius(draft)
+        if (!withoutTrapezius.includeTraining) return withoutTrapezius
+        var current = withoutTrapezius
         // Lugares ← entorno.
         if (current.trainingPlaces.isEmpty()) {
             val place = current.trainingEnvironment?.let(EntrenoStepValues::placeOf)
@@ -222,6 +227,32 @@ object SetupDraftCompatibility {
             }
         }
         return current
+    }
+
+    /** Nombres con los que un borrador puede traer el trapecio retirado: el canónico que guarda hoy y el del enum («TRAPS»), por si acaso. */
+    private val RETIRED_TRAPEZIUS_KEYS: Set<String> = setOf(MuscleSymbols.RETIRED_TRAPS_KEY, "TRAPS")
+
+    /**
+     * «Trapecio» salió de los símbolos de PRIORITIES (va incluido en Espalda). Un borrador que lo trae en `priorityMuscles`
+     * o en la bolsa de orden pasa a «Dorsales»: sin duplicarlo si ya estaba, y en la bolsa con el MAYOR de los puntos de
+     * los dos (nunca la suma), así no se pasa del tope de 2 puntos por músculo ni de 5 en total. Idempotente.
+     */
+    internal fun migrateRetiredTrapezius(draft: SetupWizardDraft): SetupWizardDraft {
+        val bag = draft.trainingOptions.orderPriorities
+        if (draft.priorityMuscles.none { it in RETIRED_TRAPEZIUS_KEYS } && bag.keys.none { it in RETIRED_TRAPEZIUS_KEYS }) {
+            return draft
+        }
+        val back = MuscleSymbols.canonical(MuscleSymbol.BACK)
+        val priorities = draft.priorityMuscles.mapTo(linkedSetOf<String>()) { if (it in RETIRED_TRAPEZIUS_KEYS) back else it }
+        val migratedBag = linkedMapOf<String, Int>()
+        for ((muscle, points) in bag) {
+            val target = if (muscle in RETIRED_TRAPEZIUS_KEYS) back else muscle
+            migratedBag[target] = maxOf(migratedBag[target] ?: 0, points)
+        }
+        return draft.copy(
+            priorityMuscles = priorities,
+            trainingOptions = draft.trainingOptions.copy(orderPriorities = migratedBag),
+        )
     }
 
     /**

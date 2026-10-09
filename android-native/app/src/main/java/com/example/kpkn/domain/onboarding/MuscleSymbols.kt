@@ -12,6 +12,12 @@ object MuscleSymbols {
     /** Cuántos músculos se pueden priorizar a la vez (la bolsa del motor admite 5 puntos en total). */
     const val MAX_SELECTION = 5
 
+    /**
+     * «Trapecio» salió de los símbolos (va incluido en Espalda), pero sigue siendo un músculo de la bolsa del motor:
+     * es el nombre que traen los borradores antiguos. `SetupDraftCompatibility` lo pasa a Espalda al abrirlos.
+     */
+    const val RETIRED_TRAPS_KEY = "Trapecio"
+
     /** Nombre canónico del motor para [symbol]; es una clave de `ORDER_MUSCLE_OPTIONS`. */
     fun canonical(symbol: MuscleSymbol): String = when (symbol) {
         MuscleSymbol.CHEST -> "Pectorales"
@@ -26,7 +32,6 @@ object MuscleSymbols {
         MuscleSymbol.QUADS -> "Cuádriceps"
         MuscleSymbol.HAMSTRINGS -> "Isquiosurales"
         MuscleSymbol.CALVES -> "Pantorrillas"
-        MuscleSymbol.TRAPS -> "Trapecio"
     }
 
     private val byCanonical: Map<String, MuscleSymbol> = MuscleSymbol.entries.associateBy { canonical(it) }
@@ -68,11 +73,12 @@ object MuscleSuggestions {
         TrainingGoalProfile.CALISTHENICS -> linkedSetOf(
             MuscleSymbol.BACK, MuscleSymbol.CHEST, MuscleSymbol.ABS, MuscleSymbol.SHOULDERS,
         )
+        // El trapecio que sugerían estos dos perfiles va ahora en Espalda (sin duplicarla en Strongman).
         TrainingGoalProfile.WEIGHTLIFTING -> linkedSetOf(
-            MuscleSymbol.SHOULDERS, MuscleSymbol.QUADS, MuscleSymbol.GLUTES, MuscleSymbol.TRAPS, MuscleSymbol.ABS,
+            MuscleSymbol.SHOULDERS, MuscleSymbol.QUADS, MuscleSymbol.GLUTES, MuscleSymbol.BACK, MuscleSymbol.ABS,
         )
         TrainingGoalProfile.STRONGMAN -> linkedSetOf(
-            MuscleSymbol.BACK, MuscleSymbol.TRAPS, MuscleSymbol.ABS, MuscleSymbol.QUADS, MuscleSymbol.FOREARMS,
+            MuscleSymbol.BACK, MuscleSymbol.ABS, MuscleSymbol.QUADS, MuscleSymbol.FOREARMS,
         )
         TrainingGoalProfile.BODYBUILDING,
         TrainingGoalProfile.STRENGTH_MUSCLE,

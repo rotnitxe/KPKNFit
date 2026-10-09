@@ -132,7 +132,6 @@ class RoutineGeneratorBehaviorTest {
             MuscleSymbol.CALVES to "Pantorrillas",
             MuscleSymbol.QUADS to "Cuádriceps",
             MuscleSymbol.ABS to "Abdomen",
-            MuscleSymbol.TRAPS to "Trapecio",
             MuscleSymbol.BACK to "Dorsales",
         )
         val base = RoutineGenerator.generate(s.request(s.gym, RoutineMode.GENERAL_STRENGTH_MUSCLE, RoutineLevel.INTERMEDIATE, 4, 60))
@@ -147,6 +146,23 @@ class RoutineGeneratorBehaviorTest {
             // Con margen hasta su objetivo semanal (MAV) la prioridad tiene que notarse.
             if (before <= target - 2) assertTrue("$muscle no subió ($before → $after) con margen hasta su objetivo $target", after > before)
         }
+    }
+
+    @Test
+    fun back_priority_gives_the_two_pull_extras_first_and_the_trapezius_as_third_hole() {
+        // Ningún escenario llega a tres huecos extra (`applyPriorities` añade como mucho dos por objetivo): se comprueban
+        // los datos del objetivo, que es donde vive la decisión.
+        val back = PriorityTargets.of(MuscleSymbol.BACK)
+        assertTrue(Muscles.TRAPS in back.muscles)
+        assertTrue(RoutinePattern.TRAPS in back.patterns)
+        assertEquals(
+            listOf(
+                RoutinePattern.VERTICAL_PULL to ItemRole.ACCESSORY,
+                RoutinePattern.HORIZONTAL_PULL to ItemRole.ACCESSORY,
+                RoutinePattern.TRAPS to ItemRole.ISOLATION,
+            ),
+            back.extra,
+        )
     }
 
     @Test

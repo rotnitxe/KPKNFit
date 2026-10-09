@@ -111,6 +111,46 @@ class FigurePosesTest {
         }
     }
 
+    /** ¿Se cortan los segmentos [a, b] y [c, d]? Las tangencias cuentan como cruce. */
+    private fun crosses(a: Offset, b: Offset, c: Offset, d: Offset): Boolean {
+        fun side(p: Offset, q: Offset, r: Offset) = (q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x)
+        return side(c, d, a) * side(c, d, b) <= 0f && side(a, b, c) * side(a, b, d) <= 0f
+    }
+
+    @Test
+    fun `en el press de banca ninguna pierna cruza la tabla y los pies pisan el suelo`() {
+        val p = FigPose()
+        val tableL = Offset(LiftPoses.BENCH_TABLE_LEFT, LiftPoses.BENCH_Y)
+        val tableR = Offset(LiftPoses.BENCH_TABLE_RIGHT, LiftPoses.BENCH_Y)
+        for (u in steps) {
+            LiftPoses.solve(LiftMark.BENCH, u, p)
+            val tag = "BENCH u=$u"
+            assertEquals("$tag pie cercano en el suelo", LiftPoses.GROUND, p.footN.y, 0.001f)
+            assertEquals("$tag pie lejano en el suelo", LiftPoses.GROUND, p.footF.y, 0.001f)
+            assertFalse("$tag muslo cercano cruza la tabla", crosses(p.hip, p.kneeN, tableL, tableR))
+            assertFalse("$tag espinilla cercana cruza la tabla", crosses(p.kneeN, p.footN, tableL, tableR))
+            assertFalse("$tag muslo lejano cruza la tabla", crosses(p.hip, p.kneeF, tableL, tableR))
+            assertFalse("$tag espinilla lejana cruza la tabla", crosses(p.kneeF, p.footF, tableL, tableR))
+        }
+    }
+
+    @Test
+    fun `en el press de banca la tabla empieza en la cadera y las rodillas quedan por encima de la linea cadera-pie`() {
+        val p = FigPose()
+        for (u in steps) {
+            LiftPoses.solve(LiftMark.BENCH, u, p)
+            val tag = "BENCH u=$u"
+            assertEquals("$tag la tabla empieza en cadera − 2", p.hip.x - 2f, LiftPoses.BENCH_TABLE_LEFT, 0.01f)
+            assertEquals("$tag pie cercano a cadera − 15", p.hip.x - 15f, p.footN.x, 0.01f)
+            assertEquals("$tag pie lejano a cadera − 13", p.hip.x - 13f, p.footF.x, 0.01f)
+            // En la vertical de la rodilla, la línea cadera-pie queda más abajo: la rodilla está por encima de ella.
+            for ((knee, foot) in listOf(p.kneeN to p.footN, p.kneeF to p.footF)) {
+                val lineY = p.hip.y + (foot.y - p.hip.y) * (knee.x - p.hip.x) / (foot.x - p.hip.x)
+                assertTrue("$tag rodilla (${knee.x}, ${knee.y}) bajo la línea cadera-pie (y=$lineY)", knee.y < lineY)
+            }
+        }
+    }
+
     @Test
     fun `el cuadro de reposo y el bucle empiezan en el mismo sitio`() {
         for (lift in LiftMark.entries) {
