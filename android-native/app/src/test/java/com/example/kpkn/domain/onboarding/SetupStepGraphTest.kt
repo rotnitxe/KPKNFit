@@ -145,6 +145,68 @@ class SetupStepGraphTest {
     }
 
     @Test
+    fun programSourceOnlyAppearsForAdvancedExperienceRightAfterTheCalibration() {
+        val advanced = fullContext.copy(asksProgramSource = true)
+        assertEquals(SetupStepId.PROGRAM_SOURCE, SetupStepGraph.next(SetupStepId.VOLUME_MOBILITY, advanced))
+        assertEquals(SetupStepId.PRIORITIES, SetupStepGraph.next(SetupStepId.PROGRAM_SOURCE, advanced))
+        // Intermedio y principiantes (asksProgramSource = false) no lo ven nunca.
+        assertFalse(SetupStepId.PROGRAM_SOURCE in SetupStepGraph.stepIds(fullContext))
+        assertFalse(SetupStepId.PROGRAM_IMPORT in SetupStepGraph.stepIds(fullContext))
+    }
+
+    @Test
+    fun recommendedOrUnansweredProgramKeepsTheUsualRouteWithTheSourceInserted() {
+        // Un borrador avanzado viejo (sin programSource) y uno que elige «recomendar» siguen en la ruta de siempre.
+        val usual = SetupStepGraph.stepIds(fullContext)
+        val expected = usual.toMutableList().apply {
+            add(indexOf(SetupStepId.VOLUME_MOBILITY) + 1, SetupStepId.PROGRAM_SOURCE)
+        }
+        assertEquals(expected, SetupStepGraph.stepIds(fullContext.copy(asksProgramSource = true)))
+        assertEquals(
+            expected,
+            SetupStepGraph.stepIds(fullContext.copy(asksProgramSource = true, programSource = ProgramSource.RECOMMEND)),
+        )
+    }
+
+    @Test
+    fun laterProgramEndsTheTrainingBlockRightAfterTheSource() {
+        val later = fullContext.copy(asksProgramSource = true, programSource = ProgramSource.LATER, hasWeekLayout = false)
+        val route = SetupStepGraph.stepIds(later)
+        val from = route.indexOf(SetupStepId.VOLUME_MOBILITY)
+        assertEquals(
+            listOf(SetupStepId.VOLUME_MOBILITY, SetupStepId.PROGRAM_SOURCE, SetupStepId.MILESTONE_TRAINING),
+            route.subList(from, from + 3),
+        )
+        for (step in listOf(SetupStepId.CAPABILITIES, SetupStepId.PRIORITIES, SetupStepId.TRAINING_MAX, SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT)) {
+            assertFalse("$step no entra con «lo armaré yo»", step in route)
+        }
+        assertEquals(SetupStepId.NUTRITION_START, SetupStepGraph.next(SetupStepId.MILESTONE_TRAINING, later))
+        assertEquals(SetupStepId.PROGRAM_SOURCE, SetupStepGraph.previous(SetupStepId.MILESTONE_TRAINING, later))
+    }
+
+    @Test
+    fun importedProgramRoutesThroughTheImportStepAndTheWeekWhenImportIsEnabled() {
+        val imported = fullContext.copy(
+            asksProgramSource = true,
+            programSource = ProgramSource.IMPORT,
+            programImportEnabled = true,
+        )
+        val route = SetupStepGraph.stepIds(imported)
+        val from = route.indexOf(SetupStepId.VOLUME_MOBILITY)
+        assertEquals(
+            listOf(
+                SetupStepId.VOLUME_MOBILITY, SetupStepId.PROGRAM_SOURCE, SetupStepId.PROGRAM_IMPORT,
+                SetupStepId.WEEK_LAYOUT, SetupStepId.MILESTONE_TRAINING,
+            ),
+            route.subList(from, from + 5),
+        )
+        // Con la importación apagada, la elección no lleva a PROGRAM_IMPORT: la ruta es la de siempre.
+        val hidden = imported.copy(programImportEnabled = false)
+        assertFalse(SetupStepId.PROGRAM_IMPORT in SetupStepGraph.stepIds(hidden))
+        assertEquals(SetupStepGraph.stepIds(fullContext.copy(asksProgramSource = true)), SetupStepGraph.stepIds(hidden))
+    }
+
+    @Test
     fun marksStepOnlyEntersWhenTheContextAsksForLifts() {
         assertFalse(SetupStepId.TRAINING_MAX in SetupStepGraph.stepIds(fullContext))
         val withMarks = fullContext.copy(asksMarks = true)

@@ -67,6 +67,8 @@ class SetupStepCopyRulesTest {
 
         /** Nombres de bloque, vistas previas, revisión y el alias: etiquetas, no preguntas. */
         val LABEL_TITLES = setOf(
+            // Pantalla de importación del programa: título de herramienta, no pregunta.
+            "Importa tu programa",
             "Datos básicos",
             "Entreno",
             "Nutrición",

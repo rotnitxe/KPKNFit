@@ -23,6 +23,7 @@ import com.example.kpkn.domain.onboarding.EquipmentSymbolId
 import com.example.kpkn.domain.onboarding.EquipmentSymbols
 import com.example.kpkn.domain.onboarding.LiftMark
 import com.example.kpkn.domain.onboarding.MuscleSymbol
+import com.example.kpkn.domain.onboarding.ProgramSource
 import com.example.kpkn.domain.onboarding.RingsChannelCoverage
 import com.example.kpkn.domain.onboarding.RingsCoverage
 import com.example.kpkn.domain.onboarding.RingsCoverageSource
@@ -113,6 +114,10 @@ class SetupStepSummariesTest {
         SetupStepContext(nutritionStartChoice = "tracking_only"),
         SetupStepContext(nutritionProfessional = true),
         SetupStepContext(hasWeekLayout = false, asksTechnique = false),
+        // Tengo experiencia: sin elegir, «lo armaré yo» (cierra el bloque) y «importar» (con la importación disponible).
+        SetupStepContext(asksProgramSource = true),
+        SetupStepContext(asksProgramSource = true, programSource = ProgramSource.LATER, hasWeekLayout = false),
+        SetupStepContext(asksProgramSource = true, programSource = ProgramSource.IMPORT, programImportEnabled = true),
     )
 
     // ─── Cobertura y límites ─────────────────────────────────────────────────
