@@ -14,6 +14,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.zIndex
+import com.example.kpkn.ui.tour.KpknTourOverlay
+import com.example.kpkn.ui.tour.SettingsTourSeenStore
+import com.example.kpkn.ui.tour.TourAnchorRegistry
+import com.example.kpkn.ui.tour.TourController
+import com.example.kpkn.ui.tour.TourSeenStore
+import com.example.kpkn.ui.tour.TourStep
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+
+/** Clave del overlay del recorrido guiado dentro del anfitrión (solo puede haber uno). */
+private val KpknTourOverlayKey = Any()
 
 /**
  * Host for glass sheets/dialogs rendered as siblings of MainActivity's [hazeSource].
@@ -21,9 +33,20 @@ import androidx.compose.ui.zIndex
  * Mirrors the Home overlay registration pattern: entries live in observable state that
  * MainActivity reads directly, so presenting a sheet always triggers a visible recomposition.
  */
-class KpknOverlayHostController {
+class KpknOverlayHostController(tourSeen: TourSeenStore = SettingsTourSeenStore) {
     var entries by mutableStateOf<Map<Any, @Composable () -> Unit>>(emptyMap())
         private set
+
+    /** Anclas de los recorridos guiados: lo que `Modifier.tourAnchor` registra bajo este anfitrión. */
+    val tourAnchors = TourAnchorRegistry()
+
+    /** Recorrido guiado: su overlay se monta mientras hay uno activo (ver [startTour]). */
+    val tour = TourController(
+        scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate),
+        seen = tourSeen,
+        hasAnchor = { id -> tourAnchors.contains(id) },
+        onFinished = { dismiss(KpknTourOverlayKey) },
+    )
 
     fun present(key: Any, content: @Composable () -> Unit) {
         entries = entries + (key to content)
@@ -33,6 +56,16 @@ class KpknOverlayHostController {
         if (key in entries) {
             entries = entries - key
         }
+    }
+
+    /**
+     * Arranca el recorrido [tourId] si no se ha visto y lo monta sobre el resto de overlays.
+     * Devuelve false si no arrancó (ya visto, sin pasos o con otro recorrido activo).
+     */
+    fun startTour(tourId: String, steps: List<TourStep>): Boolean {
+        if (!tour.start(tourId, steps)) return false
+        present(KpknTourOverlayKey) { KpknTourOverlay(tour = tour, anchors = tourAnchors) }
+        return true
     }
 }
 

@@ -8,6 +8,8 @@ data class Settings(
     val hasSeenHomeTour: Boolean = false,
     /** Ensayo del overlay de etiquetas de workout: solo la primera vez real. */
     val hasSeenWorkoutTagEducation: Boolean = false,
+    /** Recorridos guiados ya vistos o saltados (ids de `ui/tour`). JSON con valor por defecto: sin migración de Room. */
+    val tourSeen: Set<String> = emptySet(),
 
     /** Onboarding de bienvenida (primera vez): fases y finalización. */
     val onboardingCompleted: Boolean = false,

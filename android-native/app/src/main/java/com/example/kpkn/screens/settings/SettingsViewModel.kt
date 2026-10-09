@@ -145,6 +145,11 @@ class SettingsViewModel : ViewModel() {
         }
     }
 
+    /** Vacía los recorridos vistos: cada pantalla vuelve a mostrar su recorrido la próxima vez. */
+    fun resetTours() {
+        programRepository.updateSettings { current -> current.copy(tourSeen = emptySet()) }
+    }
+
     /** Legacy share entry point kept for old callers; the new Settings UI uses SAF below. */
     fun exportData(context: Context) {
         viewModelScope.launch {
