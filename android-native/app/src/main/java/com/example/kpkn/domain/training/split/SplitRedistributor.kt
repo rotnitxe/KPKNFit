@@ -623,11 +623,10 @@ object SplitRedistributor {
             val baseTrims = report.setTrims.filter { it.weekIndex == weekIndex }
             val baseMerges = report.exerciseMerges.filter { it.weekIndex == weekIndex }
             report.days.forEach { day ->
-                val trims = baseTrims.filter { it.dayTitle == day.title }
-                val merged = baseMerges.filter { it.dayTitle == day.title }
-                if (trims.isNotEmpty() || merged.isNotEmpty()) {
-                    add(fitSentence(targetMinutes, day.title, trims.sumOf { it.removedSets }, merged))
-                }
+                val removed = baseTrims.filter { it.dayTitle == day.title }.sumOf { it.removedSets }
+                val merged = baseMerges.count { it.dayTitle == day.title }
+                if (removed > 0) add(trimSentence(targetMinutes, day.weekday, removed))
+                if (merged > 0) add(mergeSentence(targetMinutes, day.weekday, merged))
             }
             if (report.setTrims.any { it.weekIndex != weekIndex } || report.exerciseMerges.any { it.weekIndex != weekIndex }) {
                 add("En las demás semanas que se adaptaron también se recortaron series para que quepa en $targetMinutes min.")
@@ -644,17 +643,15 @@ object SplitRedistributor {
     /** Si el día más largo supera al más corto en más de esta proporción se avisa de que los días quedan desparejos. */
     private const val IMBALANCE_RATIO = 1.4
 
-    /** Frase de un día recortado: lo que se quitó y lo que se fusionó para que quepa en el tiempo pedido. */
-    private fun fitSentence(targetMinutes: Int, title: String, removedSets: Int, merged: List<ExerciseMerge>): String {
-        val cut = if (removedSets > 0) {
-            SpanishPlurals.withNoun(removedSets, "serie menos de accesorios", "series menos de accesorios")
-        } else {
-            null
-        }
-        val join = merged.joinToString(", ") { "«${it.removedName}» en «${it.keptName}»" }
-        val action = listOfNotNull(cut, if (merged.isNotEmpty()) "fusiona $join" else null).joinToString(" y ")
-        return "Para que quepa en $targetMinutes min, «$title» lleva $action."
-    }
+    /** «Para que quepa en 60 min, el jueves lleva 2 series menos de accesorios.» (una frase por día y tipo de cambio). */
+    private fun trimSentence(targetMinutes: Int, weekday: Int, removedSets: Int): String =
+        "Para que quepa en $targetMinutes min, ${SplitDayTexts.onWeekday(weekday)} lleva " +
+            SpanishPlurals.withNoun(removedSets, "serie menos de accesorios", "series menos de accesorios") + "."
+
+    /** «Para que quepa en 60 min, el jueves fusiona 1 aislamiento del mismo músculo.» */
+    private fun mergeSentence(targetMinutes: Int, weekday: Int, merged: Int): String =
+        "Para que quepa en $targetMinutes min, ${SplitDayTexts.onWeekday(weekday)} fusiona " +
+            SpanishPlurals.withNoun(merged, "aislamiento del mismo músculo", "aislamientos del mismo músculo") + "."
 }
 
 /** ¿El programa trae su reparto de autor? (planes de autor, plantillas y protocolos con receta fija). */
@@ -716,6 +713,11 @@ internal object FocusSummary {
 
 /** Texto de la descripción de una sesión nueva: el del reparto si lo trae; si no, uno según la etiqueta. */
 internal object SplitDayTexts {
+
+    private val WEEKDAYS = listOf("lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo")
+
+    /** El día de la semana con su artículo, para una frase: «el jueves» (1 = lunes … 7 = domingo). */
+    fun onWeekday(weekday: Int): String = WEEKDAYS.getOrNull(weekday - 1)?.let { "el $it" } ?: "ese día"
 
     fun description(label: String, custom: Map<String, String>): String {
         custom[label]?.let { return it }
