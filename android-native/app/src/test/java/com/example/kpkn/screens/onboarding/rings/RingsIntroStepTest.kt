@@ -23,6 +23,8 @@ import com.example.kpkn.data.models.NutritionPlan
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.onboarding.SetupDraft
 import com.example.kpkn.data.onboarding.SetupDraftCandidate
+import com.example.kpkn.domain.auge.RingsIntroSimulator
+import com.example.kpkn.domain.auge.RingsIntroState
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.screens.onboarding.SetupPreview
 import com.example.kpkn.screens.onboarding.SetupRingsStepContent
@@ -102,7 +104,11 @@ class RingsIntroStepTest {
         rule.setContent { RingsIntroStep() }
         rule.onNodeWithTag("rings-intro-simulate").performClick()
         rule.waitForIdle()
-        rule.onNodeWithContentDescription("Columna 55 %, Músculos 45 %, Energía 70 %").assertExists()
+        // Los valores que muestra la torre son los del motor para la sesión de referencia (ver RingsIntroSimulatorTest).
+        val values = RingsIntroSimulator.valuesAt(RingsIntroState(heavySession = true))
+        rule.onNodeWithContentDescription(
+            "Columna ${values.columna} %, Músculos ${values.musculos} %, Energía ${values.energia} %",
+        ).assertExists()
         rule.onNodeWithText("Quitar el entreno").assertExists()
     }
 
@@ -145,7 +151,8 @@ class RingsIntroStepTest {
         val before = vm.state.value.draft
         rule.onNodeWithTag("rings-intro-simulate").performClick()
         rule.waitForIdle()
-        rule.onNodeWithContentDescription("Músculos 45 %").performClick()
+        val musculos = RingsIntroSimulator.valuesAt(RingsIntroState(heavySession = true)).musculos
+        rule.onNodeWithContentDescription("Músculos $musculos %").performClick()
         rule.waitForIdle()
         rule.onNodeWithTag("rings-intro-slider").performSemanticsAction(SemanticsActions.SetProgress) { it(20f) }
         rule.waitForIdle()

@@ -3,9 +3,11 @@ package com.example.kpkn.domain.auge
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import kotlin.math.abs
 
-/** La demostración de RINGS usa la ley de E3a: sin sesión todo vale 100 y la sesión baja y se recupera con sus curvas. */
+/**
+ * La demostración de RINGS sale del motor: la sesión de referencia pasa por `fromInputsV2` y sus baterías de E3a. Los valores
+ * fijos son los que da el motor hoy para esa sesión; si el motor cambia, cambian aquí.
+ */
 class RingsIntroSimulatorTest {
 
     private val session = RingsIntroSimulator.toggleSession(RingsIntroState())
@@ -21,11 +23,16 @@ class RingsIntroSimulatorTest {
     }
 
     @Test
-    fun sesionRecienTerminadaDaMusculos45ColumnaCerca55EnergiaCerca70() {
+    fun sesionDeReferenciaDaLosValoresDelMotorRecienTerminada() {
+        assertEquals(RingsIntroValues(columna = 84, musculos = 89, energia = 77), valuesAt(session, 0f))
+    }
+
+    @Test
+    fun sesionDeReferenciaBajaLosTresCanalesRespectoDeCien() {
         val values = valuesAt(session, 0f)
-        assertTrue("Músculos ${values.musculos}", abs(values.musculos - 45) <= 2)
-        assertTrue("Columna ${values.columna}", abs(values.columna - 55) <= 2)
-        assertTrue("Energía ${values.energia}", abs(values.energia - 70) <= 2)
+        assertTrue("Columna ${values.columna}", values.columna < 100)
+        assertTrue("Músculos ${values.musculos}", values.musculos < 100)
+        assertTrue("Energía ${values.energia}", values.energia < 100)
     }
 
     @Test
@@ -38,6 +45,11 @@ class RingsIntroSimulatorTest {
             assertTrue("Energía baja a las $hour h", now.energia >= previous.energia)
             previous = now
         }
+    }
+
+    @Test
+    fun a36HorasLaRecuperacionEstaCasiCompleta() {
+        assertEquals(RingsIntroValues(columna = 99, musculos = 96, energia = 99), valuesAt(session, 36f))
     }
 
     @Test
@@ -58,6 +70,16 @@ class RingsIntroSimulatorTest {
         assertEquals(60, valuesAt(adjusted, 0f).musculos)
         assertTrue(valuesAt(adjusted, 24f).musculos > 60)
         assertTrue(valuesAt(adjusted, 72f).musculos > valuesAt(adjusted, 24f).musculos)
+    }
+
+    @Test
+    fun ajusteManualMandaSobreLaSesionEnSuHora() {
+        val adjusted = RingsIntroSimulator.withAdjustment(session, RingChannelId.MUSCULOS, 60)
+        val atZero = valuesAt(adjusted, 0f)
+        // El ajuste sustituye a la sesión en su canal (89 → 60) y los otros dos canales siguen igual.
+        assertEquals(60, atZero.musculos)
+        assertEquals(valuesAt(session, 0f).columna, atZero.columna)
+        assertEquals(valuesAt(session, 0f).energia, atZero.energia)
     }
 
     @Test
