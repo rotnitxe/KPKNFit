@@ -44,6 +44,8 @@ data class ExerciseTraits(
     /** Admite carga externa significativa: un aislamiento ligero o un peso corporal fácil no. */
     val canBeHeavy: Boolean,
     val axialLoad: Double = 0.0,
+    /** Fatiga por serie del catálogo (`efc + cnc`); null si el rasgo no sale del catálogo. */
+    val fatigue: Double? = null,
     val equipmentId: String? = null,
     /** Definición del catálogo a la que pertenece (varias configuraciones comparten una: barra y polea del mismo remo); null si no sale del catálogo. */
     val definitionId: String? = null,

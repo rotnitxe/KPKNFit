@@ -158,6 +158,7 @@ internal object CatalogTraits {
             isCompound = isCompound,
             canBeHeavy = isCompound && profile.equipmentId in LOADABLE_EQUIPMENT,
             axialLoad = profile.axialLoadFactor,
+            fatigue = profile.efc + profile.cnc,
             equipmentId = profile.equipmentId,
             definitionId = definitionId,
             source = TraitSource.CATALOG,

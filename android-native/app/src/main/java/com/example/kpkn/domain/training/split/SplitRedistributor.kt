@@ -34,7 +34,10 @@ data class RedistributionOptions(
      * deja como estaba y se avisa en las notas. Por defecto solo se redistribuye la semana pedida.
      */
     val propagateToOtherWeeks: Boolean = false,
-    /** Tiempo por sesión que la persona dijo tener: solo para avisar de los días que lo superan (no recorta nada). */
+    /**
+     * Tiempo por sesión que la persona dijo tener: un día que pasa el 110 % se recorta (series de accesorios y, si hace
+     * falta, aislamientos fusionados; ver [SessionTimeFit]) y lo recortado va al informe. Un día que sobra no gana volumen.
+     */
     val targetMinutes: Int? = null,
     /**
      * Al terminar, vuelve a pasar cada sesión por la aproximación y movilidad obligatorias ([ApproachPlanner]): el primer
@@ -82,6 +85,27 @@ data class ExerciseMove(
     val moved: Boolean get() = fromTitle != toTitle || fromWeekday != toWeekday
 }
 
+/** Series quitadas a un accesorio de un día para que quepa en el tiempo pedido. */
+data class SetTrim(
+    /** Posición de la semana entre las de entreno del programa (la base o una que se adapta a la vez). */
+    val weekIndex: Int,
+    /** Título del día («Torso A»). */
+    val dayTitle: String,
+    val exerciseId: String,
+    val exerciseName: String,
+    val removedSets: Int,
+)
+
+/** Aislamiento quitado de un día porque otro del mismo músculo recibe una serie más (para que quepa en el tiempo pedido). */
+data class ExerciseMerge(
+    val weekIndex: Int,
+    val dayTitle: String,
+    val removedExerciseId: String,
+    val removedName: String,
+    val keptExerciseId: String,
+    val keptName: String,
+)
+
 /**
  * Qué hizo el redistribuidor: sesiones y minutos antes y después, qué se movió y el volumen semanal por músculo
  * (series, con el mismo criterio que el volumen de la app: primario 1, secundario 0,5) antes y después.
@@ -95,10 +119,14 @@ data class RedistributionReport(
     val moves: List<ExerciseMove>,
     val volumeBefore: Map<String, Double>,
     val volumeAfter: Map<String, Double>,
-    /** La mayor diferencia, en series, de un músculo entre antes y después. Mover ejercicios enteros la deja en 0. */
+    /** La mayor diferencia, en series, de un músculo entre antes y después. Mover ejercicios enteros la deja en 0 (los recortes por tiempo sí la cambian: van en [setTrims]). */
     val maxVolumeDeviation: Double,
     /** Ejercicios que el resolutor no pudo clasificar (se colocaron en el día más corto). */
     val unclassified: List<String>,
+    /** Series quitadas para que los días quepan en el tiempo pedido, de todas las semanas que se adaptaron. */
+    val setTrims: List<SetTrim> = emptyList(),
+    /** Aislamientos fusionados para que los días quepan en el tiempo pedido, de todas las semanas que se adaptaron. */
+    val exerciseMerges: List<ExerciseMerge> = emptyList(),
 ) {
     /** Lo parejos que quedan los minutos: el día más corto entre el más largo (1 = idénticos). Sin días, 1. */
     val minutesRatio: Double
@@ -143,13 +171,17 @@ data class RedistributionResult(
     val diagnostic: String? = null,
 )
 
+/** Una semana rehecha: sus sesiones y lo que se recortó en ella para que quepa en el tiempo pedido. */
+private class RebuiltWeek(val sessions: List<Session>, val trims: List<SetTrim>, val merges: List<ExerciseMerge>)
+
 /**
  * Adapta un programa a un reparto del catálogo **repartiendo sus ejercicios** entre los días del reparto (el motor
  * anterior solo reasignaba sesiones enteras a días). Puro y determinista: misma entrada, mismo programa.
  *
  * Qué conserva y qué decide:
  * - **Volumen**: los ejercicios se mueven enteros (con sus series, repeticiones, descansos, aproximaciones y movilidad),
- *   así que las series semanales por músculo quedan exactamente iguales (0 de diferencia; el brief admitía ±1).
+ *   así que las series semanales por músculo quedan iguales, salvo los recortes por tiempo que declara el informe
+ *   (`targetMinutes`, ver [SessionTimeFit]).
  * - **Superseries** juntas; el cardio y la movilidad de una parte viajan como bloques; el calentamiento general de una
  *   sesión viaja con su primer ejercicio de fuerza.
  * - **Reparto**: cada ejercicio va al día cuyo foco encaja mejor, repartiendo los de un mismo músculo entre los días que
@@ -257,37 +289,52 @@ object SplitRedistributor {
         // La aproximación de un ejercicio del catálogo la decide el mismo proveedor que en el materializador y el generador.
         val infoOf = { exercise: Exercise -> resolver.approachInfoOf(exercise) }
 
-        fun finish(sessions: List<Session>, origin: List<Session>): List<Session> {
+        /** Aproximación, ajuste al tiempo pedido y duración sellada de una semana recién armada. */
+        fun finish(sessions: List<Session>, origin: List<Session>, weekIndex: Int): RebuiltWeek {
             val completed = if (options.completeApproach) {
                 sessions.map { ApproachPlanner.apply(it, options.approach, infoOf) }
             } else {
                 sessions
             }
-            return if (origin.any { it.targetDurationMinutes != null }) {
-                completed.map { it.copy(targetDurationMinutes = SessionDurationEstimator.estimate(it).totalMinutes) }
+            val trims = mutableListOf<SetTrim>()
+            val merges = mutableListOf<ExerciseMerge>()
+            val fitted = options.targetMinutes?.let { target ->
+                completed.map { session ->
+                    val outcome = SessionTimeFit.fit(session, target, weekIndex, resolver)
+                    trims += outcome.trims
+                    merges += outcome.merges
+                    outcome.session
+                }
+            } ?: completed
+            val resealed = if (origin.any { it.targetDurationMinutes != null }) {
+                fitted.map { it.copy(targetDurationMinutes = SessionDurationEstimator.estimate(it).totalMinutes) }
             } else {
-                completed
+                fitted
             }
+            return RebuiltWeek(resealed, trims, merges)
         }
 
-        fun buildWeek(week: ProgramWeek, weekUnits: List<MovableUnit>, dayOfUnit: IntArray): List<Session> {
+        fun buildWeek(week: ProgramWeek, weekUnits: List<MovableUnit>, dayOfUnit: IntArray, weekIndex: Int): RebuiltWeek {
             val byDay = days.map { day -> weekUnits.filterIndexed { index, _ -> dayOfUnit[index] == day.index } }
             val mainDays = mainDaysOf(week.sessions, weekUnits, dayOfUnit, days.size)
-            return finish(WeekBuilder.build(week.sessions, week.id, days, byDay, mainDays, describe), week.sessions)
+            return finish(WeekBuilder.build(week.sessions, week.id, days, byDay, mainDays, describe), week.sessions, weekIndex)
         }
 
         val trainingDays = weekdays.toSet()
         fun adapted(week: ProgramWeek, sessions: List<Session>): ProgramWeek =
             week.copy(sessions = sessions, trainingDayDates = week.trainingDayDates.filterKeys { it in trainingDays })
 
-        val newSessions = buildWeek(baseRef.week, units, assignment.dayOfUnit)
+        val rebuilt = buildWeek(baseRef.week, units, assignment.dayOfUnit, weekIndex)
+        val newSessions = rebuilt.sessions
         val replacements = linkedMapOf(baseRef.position to adapted(baseRef.week, newSessions))
+        val setTrims = rebuilt.trims.toMutableList()
+        val exerciseMerges = rebuilt.merges.toMutableList()
         val covered = mutableListOf(baseRef)
         val skipped = mutableListOf<WeekRef>()
         var independentWeeks = 0
         if (options.propagateToOtherWeeks) {
             val foci = definitions.flatMap { it.foci }.distinct()
-            effectiveWeeks.filter { it.position != baseRef.position }.forEach { other ->
+            effectiveWeeks.withIndex().filter { it.value.position != baseRef.position }.forEach { (effectiveIndex, other) ->
                 val otherUnits = WeekGather.gather(other.week, resolver)
                 val usable = weekProblem(other.week) == null &&
                     otherUnits.sumOf { it.exerciseCount } > 0 &&
@@ -308,7 +355,10 @@ object SplitRedistributor {
                     independentWeeks++
                     DayAssigner.assign(otherUnits, days).dayOfUnit
                 }
-                replacements[other.position] = adapted(other.week, buildWeek(other.week, otherUnits, dayOfOther))
+                val rebuiltOther = buildWeek(other.week, otherUnits, dayOfOther, effectiveIndex)
+                replacements[other.position] = adapted(other.week, rebuiltOther.sessions)
+                setTrims += rebuiltOther.trims
+                exerciseMerges += rebuiltOther.merges
                 covered += other
             }
         }
@@ -359,7 +409,8 @@ object SplitRedistributor {
             units = units,
             assignment = assignment,
             resolver = resolver,
-        )
+            removedIds = rebuilt.merges.mapTo(hashSetOf()) { it.removedExerciseId },
+        ).copy(setTrims = setTrims, exerciseMerges = exerciseMerges)
         val notes = notesOf(
             program = program,
             splitName = splitName,
@@ -372,6 +423,7 @@ object SplitRedistributor {
             skippedWeeks = skipped.size,
             independentWeeks = independentWeeks,
             baseWeekNumber = weekIndex + 1,
+            weekIndex = weekIndex,
             targetMinutes = options.targetMinutes,
         )
         return RedistributionResult(compatible = true, reason = null, program = result, report = report, notes = notes)
@@ -445,6 +497,7 @@ object SplitRedistributor {
         units: List<MovableUnit>,
         assignment: Assignment,
         resolver: ExerciseTraitResolver,
+        removedIds: Set<String>,
     ): RedistributionReport {
         val before = originals.map { session ->
             SessionMinutes(
@@ -482,7 +535,7 @@ object SplitRedistributor {
                     toWeekday = day.weekday,
                 )
             }
-        }
+        }.filter { it.exerciseId !in removedIds }
         val volumeBefore = MuscleVolume.of(originals, resolver)
         val volumeAfter = MuscleVolume.of(newSessions, resolver)
         val deviation = (volumeBefore.keys + volumeAfter.keys).maxOfOrNull { muscle ->
@@ -516,6 +569,7 @@ object SplitRedistributor {
         skippedWeeks: Int,
         independentWeeks: Int,
         baseWeekNumber: Int,
+        weekIndex: Int,
         targetMinutes: Int?,
     ): List<String> = buildList {
         if (program.sourceRecipe != null || AuthoredPlans.hasFixedRecipe(program)) {
@@ -566,7 +620,18 @@ object SplitRedistributor {
             add("Los días quedan de $shortest a $longest min: «${longestDay.title}» concentra más trabajo porque cada día conserva su foco.")
         }
         if (targetMinutes != null) {
-            report.days.filter { it.minutes > targetMinutes * OVER_TARGET_RATIO }.forEach { day ->
+            val baseTrims = report.setTrims.filter { it.weekIndex == weekIndex }
+            val baseMerges = report.exerciseMerges.filter { it.weekIndex == weekIndex }
+            report.days.forEach { day ->
+                val removed = baseTrims.filter { it.dayTitle == day.title }.sumOf { it.removedSets }
+                val merged = baseMerges.count { it.dayTitle == day.title }
+                if (removed > 0) add(trimSentence(targetMinutes, day.weekday, removed))
+                if (merged > 0) add(mergeSentence(targetMinutes, day.weekday, merged))
+            }
+            if (report.setTrims.any { it.weekIndex != weekIndex } || report.exerciseMerges.any { it.weekIndex != weekIndex }) {
+                add("En las demás semanas que se adaptaron también se recortaron series para que quepa en $targetMinutes min.")
+            }
+            report.days.filter { it.minutes > targetMinutes * SessionTimeFit.TOLERANCE }.forEach { day ->
                 add("«${day.title}» dura unos ${day.minutes} min y tu tiempo por sesión es de $targetMinutes min.")
             }
         }
@@ -578,8 +643,15 @@ object SplitRedistributor {
     /** Si el día más largo supera al más corto en más de esta proporción se avisa de que los días quedan desparejos. */
     private const val IMBALANCE_RATIO = 1.4
 
-    /** Un día que supera el tiempo por sesión pedido en más de esta proporción se avisa. */
-    private const val OVER_TARGET_RATIO = 1.15
+    /** «Para que quepa en 60 min, el jueves lleva 2 series menos de accesorios.» (una frase por día y tipo de cambio). */
+    private fun trimSentence(targetMinutes: Int, weekday: Int, removedSets: Int): String =
+        "Para que quepa en $targetMinutes min, ${SplitDayTexts.onWeekday(weekday)} lleva " +
+            SpanishPlurals.withNoun(removedSets, "serie menos de accesorios", "series menos de accesorios") + "."
+
+    /** «Para que quepa en 60 min, el jueves fusiona 1 aislamiento del mismo músculo.» */
+    private fun mergeSentence(targetMinutes: Int, weekday: Int, merged: Int): String =
+        "Para que quepa en $targetMinutes min, ${SplitDayTexts.onWeekday(weekday)} fusiona " +
+            SpanishPlurals.withNoun(merged, "aislamiento del mismo músculo", "aislamientos del mismo músculo") + "."
 }
 
 /** ¿El programa trae su reparto de autor? (planes de autor, plantillas y protocolos con receta fija). */
@@ -641,6 +713,11 @@ internal object FocusSummary {
 
 /** Texto de la descripción de una sesión nueva: el del reparto si lo trae; si no, uno según la etiqueta. */
 internal object SplitDayTexts {
+
+    private val WEEKDAYS = listOf("lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo")
+
+    /** El día de la semana con su artículo, para una frase: «el jueves» (1 = lunes … 7 = domingo). */
+    fun onWeekday(weekday: Int): String = WEEKDAYS.getOrNull(weekday - 1)?.let { "el $it" } ?: "ese día"
 
     fun description(label: String, custom: Map<String, String>): String {
         custom[label]?.let { return it }
