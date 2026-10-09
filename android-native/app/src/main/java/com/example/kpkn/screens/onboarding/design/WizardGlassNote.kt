@@ -37,6 +37,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -100,13 +101,23 @@ private val NoWizardGlassNote = WizardGlassNoteController()
 /** El controlador de la nota de vidrio, publicado por el anfitrión del wizard. */
 internal val LocalWizardGlassNote = staticCompositionLocalOf { NoWizardGlassNote }
 
+/**
+ * Fuerza si la nota tiene desenfoque: `null` (lo normal) lo decide la versión de Android; lo pone la hoja de render para dibujar
+ * el camino sin desenfoque, que Robolectric no dibuja.
+ */
+internal val LocalWizardGlassBlur = compositionLocalOf<Boolean?> { null }
+
 /** Radio del bloque, separación con el enlace y relleno interior. */
 private val WizardGlassNoteShape = RoundedCornerShape(24.dp)
 private val WizardGlassNoteGap = 8.dp
 private val WizardGlassNotePadding = 20.dp
 
-/** Respaldo sin desenfoque (Android < 12): casi opaco, para que el texto de la página de atrás no se mezcle con el de la nota. */
-private val WizardGlassNoteFallback = Color(0xFF141414).copy(alpha = 0.94f)
+/**
+ * Velo sobre el cristal y bajo el contenido: con desenfoque (Android 12+) deja ver la página difuminada; sin él (Android < 12,
+ * minSdk 24) es casi opaco, para que el texto de la página de atrás no se lea dentro del bloque.
+ */
+private val WizardGlassNoteVeilBlur = Color(0xFF141414).copy(alpha = 0.55f)
+private val WizardGlassNoteVeilPlain = Color(0xFF141414).copy(alpha = 0.94f)
 
 /** Dónde cae la nota en la última medida: la escala crece desde el borde del enlace. Lo escribe la medida y lo lee el dibujo. */
 private class WizardGlassNotePlacement {
@@ -146,7 +157,8 @@ internal fun WizardGlassNoteLayer(controller: WizardGlassNoteController, hazeSta
     val gapPx = with(density) { WizardGlassNoteGap.roundToPx() }
     val bottomPx = with(density) { WizardDockClearance.roundToPx() }
     val topPx = WindowInsets.statusBars.getTop(density) + with(density) { WizardHeaderBlockHeight.roundToPx() }
-    val hazeBlur = Build.VERSION.SDK_INT >= 31
+    // Con desenfoque (Android 12+) el velo deja ver la página difuminada; sin él, casi opaco.
+    val blur = LocalWizardGlassBlur.current ?: (Build.VERSION.SDK_INT >= 31)
 
     Box(modifier = Modifier.fillMaxSize().onGloballyPositioned { layerOrigin = it.positionInRoot() }) {
         // El velo: transparente, solo recoge el toque fuera de la nota. Mientras se cierra, la página vuelve a recibir toques.
@@ -180,11 +192,9 @@ internal fun WizardGlassNoteLayer(controller: WizardGlassNoteController, hazeSta
                     transformOrigin = TransformOrigin(placement.pivotX, placement.pivotY)
                 }
                 .clip(WizardGlassNoteShape)
-                .then(
-                    // Cristal real: el desenfoque de la página que hay detrás. Sin él, un fondo casi opaco.
-                    if (hazeBlur) Modifier.hazeEffect(state = hazeState, style = wizardHazeStyle())
-                    else Modifier.background(WizardGlassNoteFallback),
-                )
+                // Cristal: el desenfoque de la página que hay detrás y, encima, el velo (debajo del contenido).
+                .hazeEffect(state = hazeState, style = wizardHazeStyle())
+                .background(if (blur) WizardGlassNoteVeilBlur else WizardGlassNoteVeilPlain)
                 .border(1.dp, WizardColors.glassBorder, WizardGlassNoteShape)
                 // Un toque dentro de la nota no llega al velo: solo cierra «Entendido», atrás o tocar fuera.
                 .pointerInput(Unit) { detectTapGestures() }

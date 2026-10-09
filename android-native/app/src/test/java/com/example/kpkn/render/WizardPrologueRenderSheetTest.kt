@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.screens.onboarding.GENDER_WHY_TAG
 import com.example.kpkn.screens.onboarding.GenderWhyButton
+import com.example.kpkn.screens.onboarding.design.LocalWizardGlassBlur
 import com.example.kpkn.screens.onboarding.design.LocalWizardGlassNote
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardGlassNoteController
@@ -129,6 +130,8 @@ class WizardPrologueRenderSheetTest {
             CompositionLocalProvider(
                 LocalDensity provides Density(base.density, fontScale = fontScale),
                 LocalWizardGlassNote provides glassController,
+                // Robolectric no dibuja el desenfoque: esta hoja muestra el camino sin él (velo 0,94), como en Android < 12.
+                LocalWizardGlassBlur provides false,
             ) {
                 Box(Modifier.testTag("glass").size(360.dp, 780.dp)) {
                     // La página de atrás: el paso que la nota explica, con su enlace y sus opciones.
