@@ -70,6 +70,8 @@ data class SetupSettingsPatch(
      * paso GOAL se respondió en este alta; Unchanged conserva el valor actual de Ajustes.
      */
     val athleteType: SetupPatchField<AthleteType> = SetupPatchField.Unchanged,
+    /** ¿Compites? «Sí, sin fecha» (true); con fecha o «No compito» (false). Unchanged si el alta no preguntó. */
+    val competesWithoutDate: SetupPatchField<Boolean> = SetupPatchField.Unchanged,
 ) {
     fun applyTo(base: Settings): Settings = base.copy(
         username = username.resolve(base.username),
@@ -91,6 +93,7 @@ data class SetupSettingsPatch(
         nutritionTrackingOnly = nutritionTrackingOnly.resolve(base.nutritionTrackingOnly),
         equipmentAvailability = equipmentAvailability.resolve(base.equipmentAvailability),
         athleteType = athleteType.resolve(base.athleteType),
+        competesWithoutDate = competesWithoutDate.resolve(base.competesWithoutDate),
     )
 
     private fun <T> SetupPatchField<T>.resolve(previous: T): T = when (this) {

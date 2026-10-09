@@ -68,6 +68,18 @@ object HomeCompetitionResolver {
         )
     }
 
+    /**
+     * «Sí, sin fecha» (C4c): compite, pero el programa activo aún no tiene fecha clave de competición. Inicio ofrece
+     * «Añadir la fecha de tu competición». Los programas simples no llevan fechas clave.
+     */
+    fun needsCompetitionDate(program: Program?, competesWithoutDate: Boolean): Boolean =
+        competesWithoutDate && program != null && !program.isSimpleTemporalProgram &&
+            program.keyDates.none { it.type == KeyDateType.COMPETITION }
+
+    /** Id del programa activo al que Inicio pide la fecha de competición (C4c); null si no debe pedirla. */
+    fun competitionDatePromptProgramId(program: Program?, competesWithoutDate: Boolean): String? =
+        program?.takeIf { needsCompetitionDate(it, competesWithoutDate) }?.id
+
     private fun parseDate(raw: String?): LocalDate? {
         if (raw.isNullOrBlank()) return null
         return try {

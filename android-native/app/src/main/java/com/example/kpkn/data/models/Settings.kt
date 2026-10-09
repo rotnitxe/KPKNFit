@@ -27,6 +27,11 @@ data class Settings(
      * elección persistida y reversible, y nunca borra los planes anteriores.
      */
     val nutritionTrackingOnly: Boolean = false,
+    /**
+     * ¿Compites? «Sí, sin fecha»: compite, pero aún no tiene la fecha. Inicio pide añadirla en las fechas clave del programa.
+     * JSON con valor por defecto: sin migración de Room.
+     */
+    val competesWithoutDate: Boolean = false,
 
     val username: String = "Usuario",
     val profilePicture: String? = null,

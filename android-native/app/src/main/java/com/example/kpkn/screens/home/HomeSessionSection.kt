@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -67,6 +68,9 @@ fun HomeSessionSection(
     loadAdvisory: LoadAdvisory? = null,
     onStartWorkout: (Session, Program) -> Unit,
     onRegisterCompetition: (String) -> Unit = {},
+    /** Programa activo al que pedir la fecha de competición («Sí, sin fecha»); null si no toca (C4c). */
+    competitionDatePromptProgramId: String? = null,
+    onOpenProgramForCompetitionDate: (String) -> Unit = {},
     onResumeWorkout: () -> Unit,
     onEditSession: (Session, Program) -> Unit = { _, _ -> },
     onCreateProgram: () -> Unit = {},
@@ -138,6 +142,7 @@ fun HomeSessionSection(
                 homeCompetition?.takeIf { it.phase == CompetitionHomePhase.UPCOMING }?.let {
                     CompetitionCountdownCanvas(it, Modifier.align(Alignment.TopCenter))
                 }
+                CompetitionDatePromptSlot(competitionDatePromptProgramId, onOpenProgramForCompetitionDate)
             }
         } else {
             val currentItem = sessions.getOrElse(activeIndex) { sessions.first() }
@@ -178,6 +183,7 @@ fun HomeSessionSection(
                             onEdit = { onEditSession(pageItem.session, pageItem.program) },
                         )
                         upcoming?.let { CompetitionCountdownCanvas(it, Modifier.align(Alignment.TopCenter)) }
+                        CompetitionDatePromptSlot(competitionDatePromptProgramId, onOpenProgramForCompetitionDate)
                     }
                 }
             } else {
@@ -192,8 +198,34 @@ fun HomeSessionSection(
                         onEdit = { onEditSession(currentItem.session, currentItem.program) },
                     )
                     upcoming?.let { CompetitionCountdownCanvas(it, Modifier.align(Alignment.TopCenter)) }
+                    CompetitionDatePromptSlot(competitionDatePromptProgramId, onOpenProgramForCompetitionDate)
                 }
             }
+        }
+    }
+}
+
+/** Tag de prueba de la acción «Añadir la fecha de tu competición» (C4c). */
+internal const val COMPETITION_DATE_PROMPT_TAG = "home-competition-date-prompt"
+
+/** La acción «Añadir la fecha de tu competición» en el sitio de la cuenta atrás (C4c): solo si [programId] no es null. */
+@Composable
+private fun BoxScope.CompetitionDatePromptSlot(programId: String?, onOpenProgram: (String) -> Unit) {
+    programId?.let { id ->
+        TextButton(
+            onClick = { onOpenProgram(id) },
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .defaultMinSize(minHeight = 48.dp)
+                .testTag(COMPETITION_DATE_PROMPT_TAG),
+        ) {
+            Text(
+                "Añadir la fecha de tu competición",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                fontSize = 13.sp,
+                maxLines = 1,
+            )
         }
     }
 }

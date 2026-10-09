@@ -1220,7 +1220,9 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 return@withLock null
             }
             val draft = _state.value.draft
-            val program = if (draft.includeTraining && draft.programRoute != SetupProgramRoute.LATER) _state.value.programPreview ?: error("La vista previa del programa no es ejecutable") else null
+            // C4c: con fecha de competición, el programa que se guarda lleva la fecha clave y su calendario (hasta la semana de la competición).
+            val program = (if (draft.includeTraining && draft.programRoute != SetupProgramRoute.LATER) _state.value.programPreview ?: error("La vista previa del programa no es ejecutable") else null)
+                ?.let { SetupActivationPayload.programForActivation(it, draft, LocalDate.now()) }
             val trackingOnly = isTrackingOnly(draft)
             // Se reutiliza la preparación revisada del preview (planId estable
             // derivado del commitId); nunca se fabrica un EER ni un objetivo.
@@ -3613,6 +3615,8 @@ class SetupWizardViewModel @JvmOverloads constructor(
             // El tipo de atleta (capacidad de fatiga de AUGE) sale del perfil de objetivo, y solo cuando GOAL se
             // respondió en este alta ([athleteTypeToPersist]).
             athleteType = setOrKeep(draft.athleteTypeToPersist()),
+            // ¿Compites? (C4c): cada activación escribe si compite sin fecha; fuera de la ruta o con otra respuesta, false.
+            competesWithoutDate = SetupPatchField.Set(SetupActivationPayload.competesWithoutDateOf(draft)),
             onboardingProgramDone = setIf(
                 true,
                 _state.value.mode in setOf(SetupWizardMode.FULL, SetupWizardMode.RESUME, SetupWizardMode.TRAINING_ONLY) &&

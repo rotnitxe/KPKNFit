@@ -1690,9 +1690,33 @@ class ProgramRepository private constructor(
                     }
                 }
             }
+            // Competición del alta (C4c): el registro PLANNED y sus recordatorios salen del mismo camino que el guardado normal.
+            if (program != null) publishCompetitionRecordsOf(program)
             // Commiteado en DB => publicado en memoria, con o sin programa y
             // con cualquier valor del flag de activación.
             _activeProgramState.value = committedActive
+        }
+    }
+
+    /**
+     * Registro PLANNED y recordatorios de la fecha clave COMPETITION de un programa ya guardado (alta). Mismo cálculo que
+     * [normalizeProgramWithCompetitions]; sin fecha clave no hace nada. Un fallo se registra en el log y no revierte el alta.
+     */
+    private fun publishCompetitionRecordsOf(program: Program) {
+        try {
+            val repo = CompetitionRepository.getInstance()
+            val weekId = ProgramKeyDateEngine.competitionKeyDate(program)
+                ?.let { ProgramKeyDateEngine.locateCompetitionWeekDay(program, it)?.first }
+            com.example.kpkn.domain.training.CompetitionKeyDateSync
+                .migrate(program = program, existingRecords = repo.records.value, competitionWeekId = weekId)
+                .recordsToUpsert
+                .forEach(repo::upsert)
+        } catch (error: Throwable) {
+            android.util.Log.w(
+                "ProgramRepository",
+                "publishSetupCommit: el registro de competición del alta no se guardó (${error.message})",
+                error,
+            )
         }
     }
 

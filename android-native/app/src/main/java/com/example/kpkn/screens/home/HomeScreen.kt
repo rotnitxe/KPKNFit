@@ -564,6 +564,8 @@ private fun HomeWithProgram(
 ) {
     val homeAdapt = LocalViewportAdapt.current
     val isCatalogReady by exerciseCatalogReady.collectAsState()
+    // «Añadir la fecha de tu competición» (C4c): id del programa activo que aún no tiene fecha clave, o null.
+    val competitionDatePromptProgramId by viewModel.competitionDatePromptProgramId.collectAsState()
     val pro = com.example.kpkn.ui.entitlements.LocalPlan.current == com.example.kpkn.domain.entitlements.PlanLevel.PRO
     val homeAdvisory = remember(augeSnapshot, todaySessions, isCatalogReady) {
         val raw = augeSnapshot?.advisories
@@ -600,6 +602,8 @@ private fun HomeWithProgram(
                 onResumeWorkout = onResumeWorkout,
                 onEditSession = onEditSession,
                 onCreateProgram = onCreateProgram,
+                competitionDatePromptProgramId = competitionDatePromptProgramId,
+                onOpenProgramForCompetitionDate = onNavigateToProgram,
                 modifier = Modifier.onGloballyPositioned { onSessionAnchorPositionChanged(it.positionInRoot().y) },
             )
         }

@@ -4,6 +4,7 @@ import com.example.kpkn.data.models.ActiveProgramState
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.BlockGoal
 import com.example.kpkn.data.models.BlockProgressionScheme
+import com.example.kpkn.data.models.KeyDateType
 import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.MesocycleGoal
 import com.example.kpkn.data.models.Program
@@ -16,6 +17,9 @@ import com.example.kpkn.domain.auge.OvertrainingDetector
 import com.example.kpkn.domain.templates.SessionClonePurpose
 import com.example.kpkn.domain.templates.SessionTemplateEngine
 import kotlin.math.ceil
+import java.time.DayOfWeek
+import java.time.LocalDate
+import java.time.temporal.TemporalAdjusters
 import java.util.UUID
 
 /**
@@ -37,6 +41,8 @@ object BlockTransitionEngine {
         val settings: Settings = Settings(),
         val mesocycleStressEma: Double = 0.0,
         val overtrainedMuscles: List<String> = emptyList(),
+        /** Día de referencia: una competición futura o de esta semana quita el test de 1RM tras el pico y tras el taper. */
+        val today: LocalDate = LocalDate.now(),
     )
 
     data class TransitionDecision(
@@ -140,7 +146,9 @@ object BlockTransitionEngine {
         val next = blocks.getOrNull(blockPos + 1)
 
         val goal = block.goal ?: block.mesocycles.firstOrNull()?.goal?.toBlockGoal()
-        if (goal == BlockGoal.REALIZATION || goal == BlockGoal.PEAK) {
+        // Con competición futura o de esta semana, el pico y el taper llevan a ella: no hay test de 1RM tras ellos.
+        val competitionAhead = hasCompetitionAhead(program, context.today)
+        if (!competitionAhead && (goal == BlockGoal.REALIZATION || goal == BlockGoal.PEAK)) {
             // A taper/deload is the recovery runway for a peak/realization
             // block.  Do not gate before it: the final 1RM decision belongs
             // after that unload has actually been completed.
@@ -160,7 +168,7 @@ object BlockTransitionEngine {
         // surprise 1RM gate.
         val previous = blocks.getOrNull(blockPos - 1)
         val previousGoal = previous?.goal ?: previous?.mesocycles?.firstOrNull()?.goal?.toBlockGoal()
-        if ((goal == BlockGoal.TAPER || goal == BlockGoal.DELOAD) &&
+        if (!competitionAhead && (goal == BlockGoal.TAPER || goal == BlockGoal.DELOAD) &&
             (previousGoal == BlockGoal.REALIZATION || previousGoal == BlockGoal.PEAK)
         ) {
             return TransitionDecision(
@@ -258,6 +266,20 @@ object BlockTransitionEngine {
             else macro.copy(blocks = macro.blocks.take(idx + 1) + deload + macro.blocks.drop(idx + 1))
         }
         return program.copy(macrocycles = macros) to deloadId
+    }
+
+    /**
+     * Hay una fecha clave COMPETITION futura o de esta semana (desde el lunes de [today]). Una competición pasada
+     * no cuenta: el test de 1RM vuelve a proponerse como hasta ahora.
+     */
+    private fun hasCompetitionAhead(program: Program, today: LocalDate): Boolean {
+        val weekStart = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+        return program.keyDates
+            .filter { it.type == KeyDateType.COMPETITION }
+            .any { keyDate ->
+                val meet = runCatching { LocalDate.parse(keyDate.eventDate ?: keyDate.startDate) }.getOrNull()
+                meet != null && !meet.isBefore(weekStart)
+            }
     }
 
     private fun Block.hasExecutableSessions(): Boolean = mesocycles

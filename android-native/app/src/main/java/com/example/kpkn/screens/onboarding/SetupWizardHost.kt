@@ -1,6 +1,12 @@
 package com.example.kpkn.screens.onboarding
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
@@ -46,13 +52,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.domain.onboarding.CapabilitySkill
+import com.example.kpkn.domain.onboarding.CompetitionAnswer
 import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.WizChatMachineState
@@ -124,6 +133,9 @@ fun SetupWizardScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     var navigatedAfterCommit by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    // C4c: al activar con fecha de competición se pide el permiso de notificaciones (recordatorios). Si se niega, el alta sigue.
+    val notificationsLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
     // La nota de vidrio «¿Por qué lo preguntamos?»: la publica el anfitrión y la pinta la capa de la página.
     val glassNote = remember { WizardGlassNoteController() }
 
@@ -190,8 +202,12 @@ fun SetupWizardScreen(
                 showPrologue = mode == SetupWizardMode.FULL,
                 onLeave = { leaveNow() },
                 onActivate = {
+                    val withDate = state.draft.activeCompetition() == CompetitionAnswer.WITH_DATE
                     scope.launch {
                         if (viewModel.commit() != null && !navigatedAfterCommit) {
+                            if (withDate && notificationsPermissionMissing(context)) {
+                                notificationsLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            }
                             navigatedAfterCommit = true
                             onDone()
                         }
@@ -201,6 +217,11 @@ fun SetupWizardScreen(
         }
     }
 }
+
+/** Android 13+ con el permiso de notificaciones todavía sin conceder: los recordatorios de competición lo necesitan. */
+private fun notificationsPermissionMissing(context: Context): Boolean =
+    Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+        ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
 
 private val EMPTY_SUMMARY = SetupStepSummary(label = "", value = "")
 

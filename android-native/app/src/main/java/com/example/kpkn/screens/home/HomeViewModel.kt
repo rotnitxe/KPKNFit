@@ -168,6 +168,16 @@ import java.util.UUID
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
+    /** «Añadir la fecha de tu competición» (C4c): id del programa activo si quien compite aún no tiene fecha clave; si no, null. */
+    val competitionDatePromptProgramId: StateFlow<String?> = combine(
+        activeProgram,
+        repository.settings,
+    ) { program, settings ->
+        HomeCompetitionResolver.competitionDatePromptProgramId(program, settings.competesWithoutDate)
+    }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
+
     fun loadFeedbacks(context: Context) {
         loadFeedbacksJob?.cancel()
         loadFeedbacksJob = viewModelScope.launch(Dispatchers.IO) {
