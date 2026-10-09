@@ -58,6 +58,9 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import com.example.kpkn.ui.components.rings.KpknRingColors
+import com.example.kpkn.ui.components.rings.KpknTowerRings
+import com.example.kpkn.ui.components.rings.TowerRingValues
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.text.font.FontWeight
@@ -720,9 +723,8 @@ internal fun EstimatedRingsRow(
 }
 
 /**
- * Estimated session drain rings (same channels as live workout rings).
- * Fill = predicted drain cost. Olympic-style zigzag overlap:
- * Músculos (left-up) → Energía (center-down) → Columna (right-up).
+ * Drenaje estimado de la sesión en la torre de tres anillos del logo (mismos canales que los anillos en vivo).
+ * El relleno es el coste previsto de cada canal; sin animación, porque cambia en cada edición de la sesión.
  */
 @Composable
 internal fun SessionEstimatedRings(
@@ -731,16 +733,9 @@ internal fun SessionEstimatedRings(
     muscleDrain: Int,
     modifier: Modifier = Modifier,
 ) {
-    val muscleProgress = muscleDrain.coerceIn(0, 100) / 100f
-    val energyProgress = energyDrain.coerceIn(0, 100) / 100f
-    val spineProgress = spineDrain.coerceIn(0, 100) / 100f
-    val muscleColor = com.example.kpkn.ui.theme.RingRed
-    val energyColor = com.example.kpkn.ui.theme.RingBlue
-    val spineColor = com.example.kpkn.ui.theme.RingYellow
-
-    val muscleAnim by animateFloatAsState(muscleProgress, label = "muscleRing")
-    val energyAnim by animateFloatAsState(energyProgress, label = "energyRing")
-    val spineAnim by animateFloatAsState(spineProgress, label = "spineRing")
+    val muscleColor = KpknRingColors.musculos
+    val energyColor = KpknRingColors.energia
+    val spineColor = KpknRingColors.columna
 
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -753,57 +748,15 @@ internal fun SessionEstimatedRings(
                 .height(176.dp),
             contentAlignment = Alignment.Center,
         ) {
-            Canvas(modifier = Modifier.fillMaxSize()) {
-                val stroke = 5.dp.toPx()
-                val r = min(size.width / 5.4f, size.height * 0.36f)
-                val cx = size.width / 2f
-                val cy = size.height / 2f
-                // Balanced spacing + zigzag stagger (Olympic)
-                val dx = r * 1.28f
-                val dy = r * 0.48f
-                val centers = listOf(
-                    Offset(cx - dx, cy - dy),  // Músculos (left-up)
-                    Offset(cx, cy + dy),       // Energía (center-down)
-                    Offset(cx + dx, cy - dy),  // Columna (right-up)
-                )
-                val colors = listOf(muscleColor, energyColor, spineColor)
-                val progresses = listOf(muscleAnim, energyAnim, spineAnim)
-
-                // Pass 1: visible track circles
-                centers.forEachIndexed { i, c ->
-                    drawCircle(
-                        color = colors[i].copy(alpha = 0.28f),
-                        radius = r,
-                        center = c,
-                        style = Stroke(width = stroke),
-                    )
-                }
-                // Pass 2: soft glow + progress (menos capas = abrir Asistente más fluido)
-                centers.forEachIndexed { i, c ->
-                    val color = colors[i]
-                    val sweep = 360f * progresses[i].coerceIn(0f, 1f)
-                    val topLeft = Offset(c.x - r, c.y - r)
-                    val arcSize = Size(r * 2, r * 2)
-                    drawArc(
-                        color = color.copy(alpha = 0.28f),
-                        startAngle = -90f,
-                        sweepAngle = sweep,
-                        useCenter = false,
-                        topLeft = topLeft,
-                        size = arcSize,
-                        style = Stroke(width = 11.dp.toPx(), cap = StrokeCap.Round),
-                    )
-                    drawArc(
-                        color = color,
-                        startAngle = -90f,
-                        sweepAngle = sweep,
-                        useCenter = false,
-                        topLeft = topLeft,
-                        size = arcSize,
-                        style = Stroke(width = stroke, cap = StrokeCap.Round),
-                    )
-                }
-            }
+            KpknTowerRings(
+                values = TowerRingValues(
+                    columna = spineDrain.coerceIn(0, 100),
+                    musculos = muscleDrain.coerceIn(0, 100),
+                    energia = energyDrain.coerceIn(0, 100),
+                ),
+                modifier = Modifier.fillMaxSize(),
+                animate = false,
+            )
         }
         Row(
             modifier = Modifier.fillMaxWidth(),
