@@ -25,6 +25,7 @@ import com.example.kpkn.data.programs.toTrainingReference
 import com.example.kpkn.domain.nutrition.NutritionConfigurationMode
 import com.example.kpkn.domain.nutrition.parseLocalizedNumber
 import com.example.kpkn.domain.training.PersonalizationReport
+import com.example.kpkn.domain.training.importer.ImportedProgramDraft
 import com.example.kpkn.domain.training.TrainingValidation
 import com.example.kpkn.domain.onboarding.ArmStyle
 import com.example.kpkn.domain.onboarding.AvoidGroup
@@ -565,6 +566,15 @@ data class SetupWizardDraft(
     val planVariantSeed: Int = 0,
     /** Cómo se tiene el programa (paso PROGRAM_SOURCE, solo con experiencia «Tengo experiencia»); null = sin responder. */
     val programSource: ProgramSource? = null,
+    /** Programa leído del archivo o del texto pegado (paso PROGRAM_IMPORT); null = nada importado todavía. */
+    val importedProgram: ImportedProgramDraft? = null,
+    /**
+     * Decisión por nombre importado: la configuración del catálogo elegida, o null = dejarlo como ejercicio propio.
+     * Un nombre sin clave tiene dudas y bloquea el paso hasta decidir.
+     */
+    val importResolutions: Map<String, String?> = emptyMap(),
+    /** Título editable del programa importado; vacío = «Mi programa importado». */
+    val importTitle: String = "",
 )
 
 /** Whether a step value was declared by the user: touched here or recorded as DECLARED in the legacy mirror. */
@@ -1207,6 +1217,10 @@ data class SetupWizardState(
      * repartos a los que se puede adaptar y avisos); null mientras no haya programa.
      */
     val weekLayout: SetupWeekLayout? = null,
+    /** Importación (paso PROGRAM_IMPORT): ocupado mientras se lee y se analiza el archivo o el texto. */
+    val importBusy: Boolean = false,
+    /** Por qué no se pudo leer o analizar lo importado; null = sin error. */
+    val importError: String? = null,
 ) {
     val showNutritionPreview: Boolean get() = nutritionDraft != null
     val nutritionDraft: NutritionWizardDraft? get() = draft.nutritionDraft
@@ -1396,8 +1410,29 @@ internal val LIFT_MARK_RANGE_KG: ClosedFloatingPointRange<Double> = 1.0..1000.0
 /** Repeticiones de una marca «kg × reps»: la fórmula híbrida solo es fiable hasta 10 (el PR va de 2 a 10). */
 internal val LIFT_MARK_REPS_RANGE: IntRange = 1..10
 
-/** TODO(C3c): cuando la importación guarde el programa en el borrador, esta regla pasa a comprobarlo. Hasta entonces, falso. */
-private const val IMPORTED_PROGRAM_READY = false
+/** Nombres del programa importado sin decidir: los que no tienen clave en [SetupWizardDraft.importResolutions]. */
+internal fun SetupWizardDraft.importUndecidedNames(): List<String> {
+    val imported = importedProgram ?: return emptyList()
+    return imported.weeks.flatMap { week -> week.days.flatMap { day -> day.exercises } }
+        .map { it.rawName }
+        .distinct()
+        .filterNot { importResolutions.containsKey(it) }
+}
+
+/** Qué le falta al programa importado para seguir; null si hay al menos un ejercicio y todos están decididos. */
+internal fun SetupWizardDraft.importProblem(): String? {
+    val imported = importedProgram ?: return "Importa un programa para continuar."
+    val hasExercises = imported.weeks.any { week -> week.days.any { it.exercises.isNotEmpty() } }
+    // Una sesión por día de entreno: con más sesiones por semana que días elegidos, dos caerían el mismo día.
+    val sessionsPerWeek = imported.weeks.maxOfOrNull { it.days.size } ?: 0
+    val days = selectedWeekdays.size
+    return when {
+        !hasExercises -> "No encontramos ejercicios en lo que importaste."
+        importUndecidedNames().isNotEmpty() -> "Elige o deja como está los ejercicios con dudas."
+        sessionsPerWeek > days -> "Tu programa tiene $sessionsPerWeek sesiones por semana y elegiste $days días. Cambia los días."
+        else -> null
+    }
+}
 
 object SetupWizardValidation {
     fun validate(draft: SetupWizardDraft, chapter: SetupWizardChapter): Map<String, String> = buildMap {
@@ -1626,8 +1661,7 @@ object SetupWizardValidation {
             // Cómo se tiene el programa es obligatorio con experiencia avanzada: sin elección, el paso no se confirma.
             SetupStepId.PROGRAM_SOURCE -> if (draft.programSource != null) ok("programSource")
                 else absent("programSource", "Elige cómo quieres tu programa.")
-            SetupStepId.PROGRAM_IMPORT -> if (IMPORTED_PROGRAM_READY) ok("programImport")
-                else absent("programImport", "Importa un programa para continuar.")
+            SetupStepId.PROGRAM_IMPORT -> draft.importProblem()?.let { absent("programImport", it) } ?: ok("programImport")
             // El tipo de cardio vale si el material de ahora lo ofrece (`CardioChoices`, la misma regla que pinta el paso):
             // caminar y correr siempre; la bicicleta al aire libre solo con «Tengo bicicleta» (§15.1: no se hereda del
             // material de gimnasio ni de «Cardio»); las máquinas y «Lo que haya» si «Cardio» está en algún lugar.

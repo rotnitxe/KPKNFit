@@ -33,6 +33,7 @@ import com.example.kpkn.screens.onboarding.entreno.EntrenoVariantsStep
 import com.example.kpkn.screens.onboarding.entreno.EntrenoAvoidStep
 import com.example.kpkn.screens.onboarding.entreno.EntrenoCardioBaseStep
 import com.example.kpkn.screens.onboarding.entreno.EntrenoArmStyleStep
+import com.example.kpkn.screens.onboarding.entreno.EntrenoProgramImportStep
 import com.example.kpkn.screens.onboarding.entreno.EntrenoProgramSourceStep
 
 /**
@@ -73,6 +74,7 @@ fun SetupTrainingStepContent(
         SetupStepId.CARDIO_BASE -> EntrenoCardioBaseStep(state = state, vm = vm)
         SetupStepId.ARM_STYLE -> EntrenoArmStyleStep(state = state, vm = vm)
         SetupStepId.PROGRAM_SOURCE -> EntrenoProgramSourceStep(state = state, vm = vm)
+        SetupStepId.PROGRAM_IMPORT -> EntrenoProgramImportStep(state = state, vm = vm)
 
         SetupStepId.EXPERIENCE,
         SetupStepId.VOLUME_TECHNIQUE,

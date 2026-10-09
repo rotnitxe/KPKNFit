@@ -31,6 +31,13 @@ import com.example.kpkn.domain.nutrition.parseLocalizedNumber
 import com.example.kpkn.domain.onboarding.*
 import com.example.kpkn.domain.text.SpanishPlurals
 import com.example.kpkn.domain.training.*
+import com.example.kpkn.domain.training.importer.ExerciseNameCandidate
+import com.example.kpkn.domain.training.importer.ExerciseNameMatcher
+import com.example.kpkn.domain.training.importer.ImportSheet
+import com.example.kpkn.domain.training.importer.ImportedProgramBuilder
+import com.example.kpkn.domain.training.importer.ImportedProgramDraft
+import com.example.kpkn.domain.training.importer.ProgramImportParser
+import com.example.kpkn.screens.programs.importer.ImportCatalogLookup
 import com.example.kpkn.domain.training.generator.GeneratedRoutine
 import com.example.kpkn.domain.training.generator.RoutineGenerationException
 import com.example.kpkn.domain.training.generator.RoutineGenerator
@@ -1643,6 +1650,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
         // no el conjunto de candidatos: solo entra en la clave de la vista previa.
         trainingKey(draft) + listOf(
             _state.value.planAdaptedToBodyweight, draft.weekLayoutOverrides, draft.adaptedSplitId,
+            draft.importedProgram, draft.importResolutions, draft.importTitle,
         )
 
     // La bicicleta es de la persona, no del material: el segundo pase a peso corporal también la conserva.
@@ -1787,7 +1795,29 @@ class SetupWizardViewModel @JvmOverloads constructor(
      * es un PREREQUISITO del motor real: con override las tests controlan el
      * materializado completo sin cargar assets.
      */
+    /** La ruta de importación está activa: la elección es IMPORT y la opción está encendida (la misma regla que el grafo). */
+    private fun importRouteActive(draft: SetupWizardDraft): Boolean =
+        draft.programSource == ProgramSource.IMPORT && draft.stepContext().programImportEnabled
+
+    /**
+     * El programa importado del borrador, armado con los días de entreno del alta y el título editable. Las decisiones
+     * con configuración del catálogo llevan su identidad; las de «ejercicio propio», su nombre libre. Carga el catálogo.
+     */
+    private suspend fun importedProgramOf(draft: SetupWizardDraft): Program {
+        val imported = draft.importedProgram ?: error("Importa un programa para continuar.")
+        ensureCatalogLoaded()
+        val catalog = (catalogRepository.state.value as? ExerciseCatalogStateV2.Ready)?.catalog
+        return ImportedProgramBuilder.build(
+            draft = imported.copy(title = draft.importTitle),
+            resolved = draft.importResolutions,
+            weekdays = draft.selectedWeekdays.sorted(),
+            programId = "import-${draft.commitId}",
+            catalog = catalog,
+        )
+    }
+
     private suspend fun materializeBase(draft: SetupWizardDraft): SetupPreview {
+        if (importRouteActive(draft)) return SetupPreview(importedProgramOf(draft), null)
         cachedReadyPreview(draft)?.let { return it }
         val override = materializeOverride
         if (override != null) return override.materialize(draft)
@@ -2486,7 +2516,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
         val equipmentIds = effectiveEquipmentIds(draft)
         // §15.1: Atleta completo también exige preferencias de cardio en la ruta.
         val requiresCardio = draft.requiresCardio
-        val canPrepare = draft.includeTraining && draft.programRoute != SetupProgramRoute.LATER &&
+        val canPrepare = draft.includeTraining && draft.programRoute != SetupProgramRoute.LATER && !importRouteActive(draft) &&
             draft.trainingPath != SetupTrainingPath.FROM_SCRATCH && draft.daysPerWeek != null &&
             draft.minutesPerSession != null && draft.selectedWeekdays.size == draft.daysPerWeek && equipmentIds.isNotEmpty() &&
             (!requiresCardio || (draft.hasCardioAnswer && draft.cardioMinutes != null))
@@ -3127,7 +3157,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
      */
     private fun withoutStaleCandidatesError(state: SetupWizardState): SetupWizardState =
         state.copy(errors = state.errors - "candidates")
-    private fun previewInputsIncomplete(draft: SetupWizardDraft): Boolean { if (!draft.includeTraining || draft.programRoute == SetupProgramRoute.LATER) return false; val days = draft.daysPerWeek ?: return true; if (draft.minutesPerSession == null || draft.selectedWeekdays.size != days || draft.requiresCardio && (!draft.hasCardioAnswer || draft.cardioMinutes == null)) return true; return if (draft.trainingPath == SetupTrainingPath.FROM_SCRATCH) { val selected = draft.sessions.filter { it.weekday in draft.selectedWeekdays }; selected.size != draft.selectedWeekdays.size || selected.any { it.exercises.isEmpty() } } else draft.selectedCatalogId == null }
+    private fun previewInputsIncomplete(draft: SetupWizardDraft): Boolean { if (!draft.includeTraining || draft.programRoute == SetupProgramRoute.LATER) return false; if (importRouteActive(draft)) return draft.importedProgram == null || draft.selectedWeekdays.isEmpty(); val days = draft.daysPerWeek ?: return true; if (draft.minutesPerSession == null || draft.selectedWeekdays.size != days || draft.requiresCardio && (!draft.hasCardioAnswer || draft.cardioMinutes == null)) return true; return if (draft.trainingPath == SetupTrainingPath.FROM_SCRATCH) { val selected = draft.sessions.filter { it.weekday in draft.selectedWeekdays }; selected.size != draft.selectedWeekdays.size || selected.any { it.exercises.isEmpty() } } else draft.selectedCatalogId == null }
 
     private suspend fun materializeProgram(draft: SetupWizardDraft): SetupPreview {
         if (!draft.includeTraining || draft.programRoute == SetupProgramRoute.LATER) return SetupPreview(null, null)
@@ -3725,6 +3755,97 @@ class SetupWizardViewModel @JvmOverloads constructor(
     /** Las tres sensaciones de RINGS; cada una puede quedar sin responder (null). */
     fun setFeelings(muscular: Int?, energy: Int?, structure: Int?) = mutateDraft(SetupStepId.RINGS_FEELINGS) { latest ->
         latest.withFeelings(muscular, energy, structure, System.currentTimeMillis())
+    }
+
+    // ── Importación de programa (C3c): lectura, emparejado y decisiones del paso PROGRAM_IMPORT ──
+
+    /** Trabajo de importación en curso: una lectura nueva cancela la anterior. */
+    private var importJob: kotlinx.coroutines.Job? = null
+
+    /** Importa las hojas ya leídas de un archivo (xlsx o csv); el título es el nombre del archivo. */
+    fun importFromSheets(sheets: List<ImportSheet>, title: String) =
+        startImport { ProgramImportParser.parseSheets(sheets, title.ifBlank { ImportedProgramBuilder.DEFAULT_TITLE }) }
+
+    /** Importa el texto pegado («Día 1 — Pierna» y «Sentadilla 4x6 @120kg»). */
+    fun importFromText(text: String) =
+        startImport { ProgramImportParser.parseText(text, ImportedProgramBuilder.DEFAULT_TITLE) }
+
+    /** Decide un ejercicio importado: [configId] es su configuración del catálogo, o null = dejarlo como ejercicio propio. */
+    fun resolveImportedExercise(rawName: String, configId: String?) =
+        mutateDraft(SetupStepId.PROGRAM_IMPORT) { latest ->
+            latest.copy(importResolutions = latest.importResolutions + (rawName to configId))
+        }
+
+    /** Título editable del programa importado. */
+    fun setImportTitle(title: String) =
+        mutateDraft(SetupStepId.PROGRAM_IMPORT) { latest -> latest.copy(importTitle = title) }
+
+    /** Quita lo importado: el paso vuelve a quedar sin programa. */
+    fun clearImport() {
+        importJob?.cancel()
+        _state.value = _state.value.copy(importBusy = false, importError = null)
+        mutateDraft(SetupStepId.PROGRAM_IMPORT) { latest ->
+            latest.copy(importedProgram = null, importResolutions = emptyMap(), importTitle = "")
+        }
+    }
+
+    /** Lo que muestra el aviso de un paso importado que no se pudo leer (p. ej. un archivo demasiado grande). */
+    fun reportImportError(message: String) {
+        _state.value = _state.value.copy(importError = message, importBusy = false)
+    }
+
+    /** Las tres mejores configuraciones del catálogo para un nombre importado (las del panel «Elegir»). */
+    suspend fun importSuggestions(rawName: String): List<ExerciseNameCandidate> {
+        ensureCatalogLoaded()
+        val catalog = (catalogRepository.state.value as? ExerciseCatalogStateV2.Ready)?.catalog ?: return emptyList()
+        return withContext(Dispatchers.Default) { ImportCatalogLookup.suggestions(catalog, rawName) }
+    }
+
+    /** Búsqueda libre en el catálogo para «Elegir»: hasta ocho ejercicios, cada uno con su configuración sugerida. */
+    suspend fun searchImportCatalog(query: String): List<ExerciseNameCandidate> {
+        ensureCatalogLoaded()
+        val catalog = (catalogRepository.state.value as? ExerciseCatalogStateV2.Ready)?.catalog ?: return emptyList()
+        return withContext(Dispatchers.Default) { ImportCatalogLookup.search(catalog, query) }
+    }
+
+    /** Nombre canónico de las configuraciones ya decididas, para mostrar el ejercicio reconocido. */
+    suspend fun importNamesOf(configIds: Set<String>): Map<String, String> {
+        ensureCatalogLoaded()
+        val catalog = (catalogRepository.state.value as? ExerciseCatalogStateV2.Ready)?.catalog ?: return emptyMap()
+        return withContext(Dispatchers.Default) { ImportCatalogLookup.namesOf(catalog, configIds) }
+    }
+
+    /**
+     * Lee y empareja lo importado fuera del hilo principal. Lo que el emparejador reconoce con confianza queda decidido
+     * solo; lo dudoso espera a que la persona elija o lo deje como está.
+     */
+    private fun startImport(parse: () -> ImportedProgramDraft) {
+        importJob?.cancel()
+        _state.value = _state.value.copy(importBusy = true, importError = null)
+        importJob = viewModelScope.launch {
+            try {
+                val parsed = withContext(Dispatchers.Default) { parse() }
+                val names = parsed.weeks.flatMap { week -> week.days.flatMap { day -> day.exercises } }
+                    .map { it.rawName }
+                    .distinct()
+                ensureCatalogLoaded()
+                val catalog = (catalogRepository.state.value as? ExerciseCatalogStateV2.Ready)?.catalog
+                    ?: error("El catálogo de ejercicios todavía no está disponible")
+                val confident = withContext(Dispatchers.Default) {
+                    ExerciseNameMatcher(catalog).matchAll(names)
+                        .filterValues { it.isConfident }
+                        .mapValues { (_, match) -> match.best?.configurationId }
+                }
+                mutateDraft(SetupStepId.PROGRAM_IMPORT) { latest ->
+                    latest.copy(importedProgram = parsed, importTitle = parsed.title, importResolutions = confident)
+                }
+                _state.value = _state.value.copy(importBusy = false)
+            } catch (cancel: CancellationException) {
+                throw cancel
+            } catch (error: Throwable) {
+                _state.value = _state.value.copy(importBusy = false, importError = error.message ?: "No pudimos leer el programa.")
+            }
+        }
     }
 
     companion object {

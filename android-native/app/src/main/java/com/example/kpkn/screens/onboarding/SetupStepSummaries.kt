@@ -6,6 +6,7 @@ import com.example.kpkn.data.models.RingsMuscleGroup
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.domain.nutrition.NutritionPlanPreparationStatus
 import com.example.kpkn.domain.nutrition.parseLocalizedNumber
+import com.example.kpkn.domain.training.importer.ImportedProgramBuilder
 import com.example.kpkn.domain.onboarding.CapabilityLevel
 import com.example.kpkn.domain.onboarding.LiftVariants
 import com.example.kpkn.domain.onboarding.MuscleSymbols
@@ -257,8 +258,12 @@ private fun summaryValue(page: SetupStepId, state: SetupWizardState): String {
             ProgramSource.IMPORT -> "Importado"
             null -> draft.summaryMissing(page)
         }
-        // Sin programa importado en el borrador (lo guardará C3c) no hay nada que resumir: se muestra el marcador de siempre.
-        SetupStepId.PROGRAM_IMPORT -> draft.summaryMissing(page)
+        // Sin programa importado en el borrador no hay nada que resumir: se muestra el marcador de siempre.
+        SetupStepId.PROGRAM_IMPORT -> if (draft.importedProgram != null) {
+            "Importado: ${draft.importTitle.trim().ifEmpty { ImportedProgramBuilder.DEFAULT_TITLE }}"
+        } else {
+            draft.summaryMissing(page)
+        }
         SetupStepId.TRAINING_MAX -> summaryMarks(draft)
         SetupStepId.PLAN -> summaryPlan(state)
         SetupStepId.WEEK_LAYOUT -> summaryWeekLayout(state)
