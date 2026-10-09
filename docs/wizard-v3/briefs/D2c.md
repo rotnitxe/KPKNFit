@@ -3,6 +3,9 @@
 Worktree indicado en tu encargo, rama `v3/d2c` (sale de `feat/wizard-v3` con D1, D2a y D2b integrados). Lee antes
 `docs/wizard-v3/BRIEF_COMUN.md`, del plan «Punto 12», y los briefs `D1.md` y `D2b.md`.
 
+**Primero, T1** (`docs/wizard-v3/briefs/T1.md`): declara Pro en `SetupWizardEntrenoPlanTest` (y la prueba Free nueva) en un commit propio;
+así esa clase sirve para verificar este paquete. Inclúyela en tu filtro.
+
 ## Contexto (verificado)
 - El barrido de PLAN: `SetupWizardViewModel.kt` ~2680-2745; para un perfil con fuentes GENERATED o GENERATED_DISCIPLINE solo entra
   `collectGenerated(profile)` (UNA entrada); con GENERATED_AND_CATALOG, el generado + los de autor (`collectViable`). La rutina base se evalúa con
