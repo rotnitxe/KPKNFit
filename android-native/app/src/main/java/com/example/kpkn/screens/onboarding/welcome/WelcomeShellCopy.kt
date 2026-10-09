@@ -49,8 +49,8 @@ internal val WelcomePages: List<WelcomePageCopy> = listOf(
         label = "ENTRENO",
         accent = WelcomeScenePalette.musculo,
         title = "Entrenar, sin complicarte",
-        message = "Arma tu sesión en segundos y registra cada serie mientras entrenas. KPKN lleva la cuenta por ti.",
-        demoDescription = "Demostración animada: armas una sesión de entreno y registras tus series una a una.",
+        message = "Empieza la sesión de hoy y registra cada serie con kilos y repeticiones. KPKN lleva la cuenta por ti.",
+        demoDescription = "Demostración animada: empiezas la sesión de hoy, registras una serie con kilos y repeticiones y ves el descanso.",
         period = WelcomeEntrenoPeriod,
     ),
     WelcomePageCopy(
@@ -58,8 +58,8 @@ internal val WelcomePages: List<WelcomePageCopy> = listOf(
         label = "NUTRICIÓN",
         accent = WelcomeScenePalette.ok,
         title = "Cuenta lo que comes, a tu manera",
-        message = "Escribe tu comida con tus propias palabras y KPKN calcula calorías y macros por ti.",
-        demoDescription = "Demostración animada: escribes una comida con tus palabras y KPKN calcula sus calorías y macros.",
+        message = "Escribe lo que comiste con tus palabras y KPKN calcula calorías y macros por ti.",
+        demoDescription = "Demostración animada: escribes una comida con tus palabras, KPKN la entiende y los anillos del día suben.",
         period = WelcomeNutricionPeriod,
     ),
     WelcomePageCopy(
@@ -67,16 +67,29 @@ internal val WelcomePages: List<WelcomePageCopy> = listOf(
         label = "RECUPERACIÓN",
         accent = WelcomeScenePalette.columna,
         title = "Cuándo apretar y cuándo descansar",
-        message = "Tus Rings muestran cómo están tu músculo, tu energía y tu columna, y se recuperan mientras descansas.",
-        demoDescription = "Demostración animada: tus Rings de músculo, energía y columna bajan al entrenar y suben mientras duermes.",
+        message = "Tus RINGS muestran cómo se recuperan tus músculos, tu energía y tu columna, y los ajustas a cómo te sientes.",
+        demoDescription = "Demostración animada: tocas uno de tus RINGS para ver su detalle y lo ajustas con el deslizador.",
         period = WelcomeRingsPeriod,
     ),
 )
 
-/** Dibuja la escena de la página [page] en el lienzo lógico [WelcomeSceneSize]; es el único sitio que las conoce. */
+/**
+ * Dibuja la escena de la página [page] en el lienzo lógico [WelcomeSceneSize]; es el único sitio que las conoce. Si la
+ * página tiene su vídeo y su póster grabados, muestra el vídeo (corre solo con [playing]); si no, su escena Canvas en [t].
+ */
 @Composable
-internal fun WelcomeSceneOf(page: Int, t: Float, modifier: Modifier = Modifier) {
+internal fun WelcomeSceneOf(
+    page: Int,
+    t: Float,
+    playing: Boolean,
+    modifier: Modifier = Modifier,
+    video: WelcomeVideoAssets? = rememberWelcomeVideoAssets(WelcomePages[page].id),
+) {
     val fill = modifier.fillMaxSize()
+    if (video != null) {
+        WelcomeVideoPlayer(video = video.video, poster = video.poster, playing = playing, modifier = fill)
+        return
+    }
     when (WelcomePages[page].id) {
         WelcomePageIds.Entreno -> WelcomeEntrenoScene(t, fill)
         WelcomePageIds.Nutricion -> WelcomeNutricionScene(t, fill)
