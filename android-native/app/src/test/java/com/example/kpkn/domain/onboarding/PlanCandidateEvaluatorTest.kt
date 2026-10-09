@@ -25,6 +25,7 @@ import com.example.kpkn.data.programs.PublicationState
 import com.example.kpkn.data.programs.TrainingCapability
 import com.example.kpkn.data.programs.TrainingFocus
 import com.example.kpkn.data.programs.TrainingReference
+import com.example.kpkn.data.programs.programCoverValueOf
 import com.example.kpkn.data.protocols.LiftRef
 import com.example.kpkn.data.protocols.RecipeCardioBlock
 import com.example.kpkn.data.protocols.SlotIntent
@@ -440,7 +441,8 @@ class PlanCandidateEvaluatorTest {
         )
         assertTrue(result is PlanCandidateEvaluation.Ready)
         result as PlanCandidateEvaluation.Ready
-        assertEquals(prepared, result.preparedPlan)
+        // La portada de catálogo de la entrada se añade al activar: el programa preparado la lleva.
+        assertEquals(prepared.copy(coverImage = programCoverValueOf("native:test")), result.preparedPlan)
         assertEquals("input-key", result.inputKey)
         assertTrue(result.durationBreakdown.sessionMinutes.isNotEmpty())
         assertTrue(result.durationBreakdown.fitsInto(60))
