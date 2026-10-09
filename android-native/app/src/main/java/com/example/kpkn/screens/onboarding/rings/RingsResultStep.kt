@@ -111,10 +111,11 @@ internal fun RingsResultBody(
     var dragEnergy by remember { mutableStateOf<Int?>(null) }
     var dragColumna by remember { mutableStateOf<Int?>(null) }
     var expanded by rememberSaveable { mutableStateOf(initiallyExpanded) }
+    val preview = ringsTowerValues(coverage)
     val tower = TowerRingValues(
-        columna = dragColumna ?: coverage?.structure?.score,
-        musculos = coverage?.muscular?.score,
-        energia = dragEnergy ?: coverage?.system?.score,
+        columna = dragColumna ?: preview.columna,
+        musculos = preview.musculos,
+        energia = dragEnergy ?: preview.energia,
     )
     val explanations = ringsExplanations(answers, coverage, today)
     val dragging = dragEnergy != null || dragColumna != null
@@ -239,6 +240,16 @@ internal fun RingsResultBody(
         }
     }
 }
+
+/**
+ * La torre de «Tus RINGS» desde la cobertura de la vista previa: Columna = estructura, Músculos = muscular y Energía = sistema.
+ * Sin dato, null («Sin calibrar»); nunca un 100 % inventado. La usan este resultado y la revisión final, para enseñar los mismos valores.
+ */
+internal fun ringsTowerValues(coverage: RingsCoverage?): TowerRingValues = TowerRingValues(
+    columna = coverage?.structure?.score,
+    musculos = coverage?.muscular?.score,
+    energia = coverage?.system?.score,
+)
 
 /** Un deslizador por pilar: su arrastre en curso vive aquí y no toca el borrador hasta soltar. */
 @Composable
