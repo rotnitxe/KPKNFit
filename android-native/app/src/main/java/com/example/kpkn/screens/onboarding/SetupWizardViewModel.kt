@@ -3615,12 +3615,8 @@ class SetupWizardViewModel @JvmOverloads constructor(
             // El tipo de atleta (capacidad de fatiga de AUGE) sale del perfil de objetivo, y solo cuando GOAL se
             // respondió en este alta ([athleteTypeToPersist]).
             athleteType = setOrKeep(draft.athleteTypeToPersist()),
-            // ¿Compites? (C4c): «Sí, sin fecha» lo guarda; con fecha o «No compito» lo quita. Si el alta no preguntó, no se toca.
-            competesWithoutDate = when (draft.activeCompetition()) {
-                CompetitionAnswer.NO_DATE -> SetupPatchField.Set(true)
-                CompetitionAnswer.WITH_DATE, CompetitionAnswer.NO -> SetupPatchField.Set(false)
-                null -> SetupPatchField.Unchanged
-            },
+            // ¿Compites? (C4c): cada activación escribe si compite sin fecha; fuera de la ruta o con otra respuesta, false.
+            competesWithoutDate = SetupPatchField.Set(SetupActivationPayload.competesWithoutDateOf(draft)),
             onboardingProgramDone = setIf(
                 true,
                 _state.value.mode in setOf(SetupWizardMode.FULL, SetupWizardMode.RESUME, SetupWizardMode.TRAINING_ONLY) &&

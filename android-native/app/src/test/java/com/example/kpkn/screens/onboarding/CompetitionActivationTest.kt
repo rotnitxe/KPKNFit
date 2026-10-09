@@ -135,11 +135,18 @@ class CompetitionActivationTest {
     }
 
     @Test
-    fun sin_fecha_el_ajuste_guarda_que_compite_y_con_fecha_o_no_compito_lo_quita() {
-        assertTrue(SetupSettingsPatch(competesWithoutDate = SetupPatchField.Set(true)).applyTo(Settings()).competesWithoutDate)
-        val cleared = SetupSettingsPatch(competesWithoutDate = SetupPatchField.Set(false))
-            .applyTo(Settings(competesWithoutDate = true))
-        assertFalse(cleared.competesWithoutDate)
+    fun competesWithoutDate_se_escribe_en_cada_activacion() {
+        // Solo «Sí, sin fecha» cuenta; con fecha, «No compito» y fuera de la ruta (sin objetivo de competición), false.
+        assertTrue(SetupActivationPayload.competesWithoutDateOf(draft(CompetitionAnswer.NO_DATE)))
+        assertFalse(SetupActivationPayload.competesWithoutDateOf(draft(CompetitionAnswer.WITH_DATE)))
+        assertFalse(SetupActivationPayload.competesWithoutDateOf(draft(CompetitionAnswer.NO)))
+        val fueraDeRuta = draft(CompetitionAnswer.NO_DATE).copy(goalProfile = null)
+        assertFalse(SetupActivationPayload.competesWithoutDateOf(fueraDeRuta))
+        // Se escribe siempre (Set): un true anterior se corrige al cambiar de objetivo.
+        val patch = SetupSettingsPatch(
+            competesWithoutDate = SetupPatchField.Set(SetupActivationPayload.competesWithoutDateOf(fueraDeRuta)),
+        )
+        assertFalse(patch.applyTo(Settings(competesWithoutDate = true)).competesWithoutDate)
     }
 
     @Test

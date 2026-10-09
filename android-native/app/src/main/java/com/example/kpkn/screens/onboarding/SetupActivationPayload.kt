@@ -8,6 +8,7 @@ import com.example.kpkn.data.models.BodyObservationQuality
 import com.example.kpkn.data.models.KeyDateType
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.domain.body.validateBodyValue
+import com.example.kpkn.domain.onboarding.CompetitionAnswer
 import com.example.kpkn.domain.onboarding.CompetitionRules
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.training.ProgramCalendarEngine
@@ -144,6 +145,12 @@ object SetupActivationPayload {
             keyDates = saved.keyDates.map { if (it.type == KeyDateType.COMPETITION) it.copy(title = title) else it },
         )
     }
+
+    /**
+     * ¿Compites? «Sí, sin fecha» (C4c): se escribe en cada activación. Solo cuenta si el paso está en la ruta y la respuesta
+     * es esa; fuera de la ruta o con otra respuesta, false.
+     */
+    fun competesWithoutDateOf(draft: SetupWizardDraft): Boolean = draft.activeCompetition() == CompetitionAnswer.NO_DATE
 
     /**
      * Fila válida; un valor fuera de rango o una fecha inválida RECHAZA el
