@@ -341,7 +341,7 @@ private fun TourBubble(
         modifier = modifier
             .then(surface)
             .border(1.dp, WizardColors.glassBorder, TourBubbleShape)
-            .padding(20.dp)
+            .padding(start = 20.dp, top = 20.dp, end = 20.dp, bottom = 8.dp)
             .semantics { paneTitle = step.title }
             .testTag("tour_bubble"),
     ) {
@@ -357,25 +357,20 @@ private fun TourBubble(
         Spacer(Modifier.height(6.dp))
         Text(text = step.body, style = TourBodyStyle, color = WizardColors.textMuted)
         Spacer(Modifier.height(14.dp))
-        TourDots(count = ui.steps.size, current = ui.index)
-        Spacer(Modifier.height(8.dp))
+        // Fila 1: progreso y la acción principal. Fila 2: «Saltar recorrido». Así, con letra grande, ninguna acción se parte.
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.End,
         ) {
-            TourAction(label = "Saltar recorrido", color = WizardColors.textMuted, tag = "tour_skip", onClick = onSkip)
+            TourDots(count = ui.steps.size, current = ui.index)
+            Spacer(Modifier.weight(1f))
             if (step.kind == TourStepKind.NEXT) {
                 TourAction(label = "Siguiente", color = WizardColors.text, tag = "tour_next", onClick = onNext)
             } else {
-                Text(
-                    text = "Pruébalo",
-                    style = WizardTypography.controlLabel,
-                    color = WizardColors.text,
-                    modifier = Modifier.padding(horizontal = 12.dp),
-                )
+                Text(text = "Pruébalo", style = WizardTypography.controlLabel, color = WizardColors.text)
             }
         }
+        TourAction(label = "Saltar recorrido", color = WizardColors.textMuted, tag = "tour_skip", onClick = onSkip)
     }
 }
 
@@ -402,8 +397,7 @@ private fun TourAction(label: String, color: Color, tag: String, onClick: () -> 
         modifier = Modifier
             .testTag(tag)
             .defaultMinSize(minWidth = WizardSpacing.touchTarget, minHeight = WizardSpacing.touchTarget)
-            .clickable(role = Role.Button, onClick = onClick)
-            .padding(horizontal = 12.dp),
+            .clickable(role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Text(text = label, style = WizardTypography.controlLabel, color = color)
