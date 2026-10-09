@@ -41,14 +41,15 @@ internal fun equipmentArt(id: EquipmentSymbolId): SymbolArt = when (id) {
 // ---------------------------------------------------------------- Barra y discos
 
 /**
- * La barra con dos discos: al seleccionarla, los discos entran rodando desde fuera y se asientan; después la barra
- * entera sube 6 u y baja. En reposo, montada en el suelo. Acento: músculo.
+ * La barra con dos discos en ligera perspectiva: al seleccionarla, los discos entran deslizándose por las mangas de la
+ * barra hasta su sitio; después la barra entera sube 6 u y baja. Acento: músculo.
  */
 internal object BarbellArt : EquipmentArt(SymbolPalette.musculo, period = 2.6f, restT = 0.7f) {
     private const val BAR_Y = 34f
-    private const val LEFT_X = 17f
-    private const val RIGHT_X = 47f
-    private const val DISC_R = 11f
+    private const val LEFT_X = 19f
+    private const val RIGHT_X = 45f
+    private const val DISC_RX = 5.5f
+    private const val DISC_RY = 11f
 
     /** 0 = barra en el suelo, 1 = arriba (sube 6 u). */
     internal fun lift(t: Float): Float = riseHoldFall(t, 0.8f, 1.4f, 1.7f, 2.3f)
@@ -57,26 +58,25 @@ internal object BarbellArt : EquipmentArt(SymbolPalette.musculo, period = 2.6f, 
     internal fun seat(t: Float): Float = eOutCubic(seg(t, 0f, 0.6f))
 
     override fun drawStatic(pen: SymbolPen) = with(pen) {
-        line(8f, 46f, 56f, 46f, soft, SymbolStroke.FINE)
+        line(8f, 48f, 56f, 48f, soft, SymbolStroke.FINE)
     }
 
     override fun drawDynamic(pen: SymbolPen, t: Float) = with(pen) {
         val y = BAR_Y - 6f * lift(t)
         val s = seat(t)
-        // Cada disco viene desde 10 u fuera y da un cuarto de vuelta mientras entra.
-        val turn = 90f * s * DEG
-        line(6f, y, 58f, y, ink)
-        line(24.5f, y - 3.5f, 24.5f, y + 3.5f, ink)
-        line(39.5f, y - 3.5f, 39.5f, y + 3.5f, ink)
-        plate(LEFT_X - 10f * (1f - s), y, turn)
-        plate(RIGHT_X + 10f * (1f - s), y, turn)
+        // La barra asoma por fuera de cada disco (las mangas); los discos vienen desde 10 u fuera por ella.
+        line(3f, y, 61f, y, ink)
+        // Topes justo por dentro de cada disco.
+        line(25.5f, y - 3f, 25.5f, y + 3f, ink)
+        line(38.5f, y - 3f, 38.5f, y + 3f, ink)
+        plate(LEFT_X - 10f * (1f - s), y)
+        plate(RIGHT_X + 10f * (1f - s), y)
     }
 
-    /** Un disco de frente: aro, buje y una marca que gira con él. */
-    private fun SymbolPen.plate(cx: Float, cy: Float, rad: Float) {
-        ring(cx, cy, DISC_R, accent, SymbolStroke.BODY)
-        line(cx + 4.4f * cos(rad), cy + 4.4f * sin(rad), cx + 8.4f * cos(rad), cy + 8.4f * sin(rad), ink, SymbolStroke.FINE)
-        ring(cx, cy, 2.6f, ink, SymbolStroke.FINE)
+    /** Un disco en ligera perspectiva: elipse de borde y buje concéntrico. */
+    private fun SymbolPen.plate(cx: Float, cy: Float) {
+        oval(cx, cy, DISC_RX, DISC_RY, accent, SymbolStroke.BODY)
+        oval(cx, cy, 2.2f, 4.4f, ink, SymbolStroke.FINE)
     }
 }
 
@@ -185,7 +185,7 @@ internal object DumbbellsArt : EquipmentArt(SymbolPalette.columna, period = 2.6f
 
 /**
  * La kettlebell cuelga de un asa en arco y se balancea como un péndulo desde la mano (un punto de movimiento en el
- * agarre). Asa en tinta; campana y base, en el acento. Acento: mente.
+ * agarre). Asa maciza en tinta; campana y base, en el acento. Acento: mente.
  */
 internal object KettlebellArt : EquipmentArt(SymbolPalette.mente, period = 1.8f, restT = 0f) {
     /** Radio de la campana: centro en (32, 38), base plana en y = 50. */
@@ -199,13 +199,21 @@ internal object KettlebellArt : EquipmentArt(SymbolPalette.mente, period = 1.8f,
     private const val BASE_DY = 12f
     private const val SWING_DEG = 28f
 
-    /** Asa: arco exterior de un hombro al otro por el agarre, y ventana interior más baja. */
+    // Las patas acaban sobre el contorno de la campana (círculo de radio 14 con centro en (0, 26)).
+    private const val OUTER_LEG_Y = 15.72f
+    private const val INNER_LEG_Y = 13.35f
+    private const val INNER_HALF = 6f
+    private const val OUTER_CTRL_Y = -5.24f
+    private const val INNER_CTRL_Y = 1.72f
+
+    /** Asa maciza: el área entre el arco exterior (cima en el agarre) y el interior, cerrada sobre la campana. */
     private val handle: Path by lazy {
         Path().apply {
-            moveTo(-HANDLE_HALF, 17f)
-            cubicTo(-HANDLE_HALF, -5.7f, HANDLE_HALF, -5.7f, HANDLE_HALF, 17f)
-            moveTo(-6f, 17f)
-            cubicTo(-6f, 0.5f, 6f, 0.5f, 6f, 17f)
+            moveTo(-HANDLE_HALF, OUTER_LEG_Y)
+            cubicTo(-HANDLE_HALF, OUTER_CTRL_Y, HANDLE_HALF, OUTER_CTRL_Y, HANDLE_HALF, OUTER_LEG_Y)
+            lineTo(INNER_HALF, INNER_LEG_Y)
+            cubicTo(INNER_HALF, INNER_CTRL_Y, -INNER_HALF, INNER_CTRL_Y, -INNER_HALF, INNER_LEG_Y)
+            close()
         }
     }
 
@@ -219,7 +227,7 @@ internal object KettlebellArt : EquipmentArt(SymbolPalette.mente, period = 1.8f,
         dot(32f, 12f, 1.8f, motion)
         shifted(32f, 12f) {
             rotated(-swingDeg(t), 0f, 0f) {
-                path(handle, ink)
+                fillPath(handle, ink)
                 val half = acosDeg(BASE_DY / BELL_R)
                 arc(0f, BODY_CY, BELL_R, 90f + half, 360f - 2f * half, accent, SymbolStroke.BODY)
                 val chord = BELL_R * sin(half * DEG)
