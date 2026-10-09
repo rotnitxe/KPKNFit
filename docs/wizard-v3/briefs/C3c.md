@@ -10,6 +10,16 @@ IMPORT_ENABLED = false }` en `EntrenoContracts.kt`; `SetupStepId.PROGRAM_SOURCE`
 `SetupStepAnswers.kt`; `vm.setProgramSource(source)`; arte `programSourceArtOf(source, reduced)` en `design/entreno/ProgramSourceArts.kt`.
 `PROGRAM_IMPORT` aún no tiene composable (rama `else -> Unit`) y su validación está preparada en `false`.
 
+**Lo que dejó C3b** (integrado): `XlsxReader.read(input)`, `CsvReader.read(input, name)`/`parse(text, name)`, `ImportFileException`,
+`ImportLimits`, `ImportSheet`, `ProgramImportParser.parseSheets(sheets, title)`/`parseText(text, title)` → `ImportedProgramDraft(title, weeks,
+warnings)`, `ExerciseNameMatcher(catalog).match(rawName)`/`matchAll(names)` → `ExerciseNameMatch(rawName, candidates)` con `best` e
+`isConfident`, `ImportedProgramBuilder.build(draft, resolved, weekdays, programId, catalog)`. Además, en este paquete:
+- **Procedencia «importado»** (autorizado `data/models/` donde vive `PlanProvenanceClass` y donde se pinta su etiqueta, p. ej.
+  `PlanDetailsSummary`): añade `PlanProvenanceClass.IMPORTED` y su etiqueta «Programa importado»; el constructor de C3b hoy usa `LEGACY`
+  (se leería «Programa creado a mano»). Cámbialo a `IMPORTED`.
+- **Días**: si el importado tiene más sesiones por semana que días de entreno elegidos, la vista previa lo dice («Tu programa tiene 5 sesiones
+  por semana y elegiste 4 días») y ofrece «Cambiar días» (`vm.editStep(WEEKDAYS)`); no se activa con dos sesiones el mismo día.
+
 ## 1. Lectura de archivo (capa `data/`)
 - `data/importer/ProgramImportSource.kt`: `suspend fun readSheets(contentResolver, uri, mime): Result<List<ImportSheet>>` en `Dispatchers.IO`
   (xlsx → `XlsxReader`, csv/texto → `CsvReader`; tope 5 MB; errores con texto claro: «El archivo es demasiado grande (máx. 5 MB).», «No pudimos
