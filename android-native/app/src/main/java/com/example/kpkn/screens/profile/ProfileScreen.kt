@@ -53,6 +53,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -61,6 +62,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.example.kpkn.ui.components.LocalKpknOverlayHost
+import com.example.kpkn.ui.tour.TourAnchors
+import com.example.kpkn.ui.tour.TourIds
+import com.example.kpkn.ui.tour.TourScripts
+import com.example.kpkn.ui.tour.tourAnchor
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -194,6 +200,9 @@ fun ProfileScreen(
     onOpenAlbums: () -> Unit = {},
     viewModel: ProfileViewModel = viewModel { ProfileViewModel() },
 ) {
+    // Recorrido de Perfil: la primera vez que se abre. El icono de ajustes y la competición están en esta pantalla.
+    val tourHost = LocalKpknOverlayHost.current
+    LaunchedEffect(Unit) { tourHost?.startTour(TourIds.PROFILE, TourScripts.profile) }
     val context = LocalContext.current
     val state by viewModel.uiState.collectAsState()
     var editMode by remember { mutableStateOf(false) }
@@ -235,7 +244,10 @@ fun ProfileScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = onNavigateToSettings) {
+                    IconButton(
+                        onClick = onNavigateToSettings,
+                        modifier = Modifier.tourAnchor(TourAnchors.PROFILE_AJUSTES),
+                    ) {
                         Icon(Icons.Default.Settings, contentDescription = "Ajustes")
                     }
                 },
@@ -293,10 +305,12 @@ fun ProfileScreen(
 
             StarredExercisesCard(state.starredExercises)
             ProfileAlbumsCard(onOpenAlbums = onOpenAlbums)
-            ProfileCompetitionsArchive(
-                onOpenCompetition = onOpenCompetition,
-                onCreateCompetition = onCreateCompetition,
-            )
+            Box(Modifier.fillMaxWidth().tourAnchor(TourAnchors.PROFILE_COMPETICION)) {
+                ProfileCompetitionsArchive(
+                    onOpenCompetition = onOpenCompetition,
+                    onCreateCompetition = onCreateCompetition,
+                )
+            }
             NutritionProgressCard(state.nutritionGoal)
             Spacer(Modifier.height(64.dp))
         }

@@ -21,6 +21,11 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.example.kpkn.ui.components.LocalKpknOverlayHost
+import com.example.kpkn.ui.tour.TourAnchors
+import com.example.kpkn.ui.tour.TourIds
+import com.example.kpkn.ui.tour.TourScripts
+import com.example.kpkn.ui.tour.tourAnchor
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
@@ -103,6 +108,9 @@ fun NutritionScreen(
     val dailyTotals by viewModel.dailyTotals.collectAsState()
     val goals by viewModel.goals.collectAsState()
     val macroRingPct by viewModel.macroRingPct.collectAsState()
+    // Recorrido de Nutrición: se lanza al montar la pantalla (su ViewModel no expone señal de carga). Visto = no arranca.
+    val tourHost = LocalKpknOverlayHost.current
+    LaunchedEffect(Unit) { tourHost?.startTour(TourIds.NUTRITION, TourScripts.nutrition) }
     val mealGroups by viewModel.mealGroups.collectAsState()
     val selectedDate by viewModel.selectedDate.collectAsState()
     val today by viewModel.today.collectAsState()
@@ -339,7 +347,7 @@ fun NutritionScreen(
                     item {
                         TextButton(
                             onClick = onNavigateToMealHistory,
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp.adapt(nutritionAdapt)),
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp.adapt(nutritionAdapt)).tourAnchor(TourAnchors.NUTRITION_HISTORIAL),
                         ) {
                             Icon(Icons.Default.History, null, modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(6.dp))
@@ -368,6 +376,7 @@ fun NutritionScreen(
                 .navigationBarsPadding()
                 .padding(end = 16.dp, bottom = 106.dp)
                 .kpknGlass(hazeState = nutritionHazeState, shape = pillShape)
+                .tourAnchor(TourAnchors.NUTRITION_REGISTRO)
                 .clickable(role = Role.Button) {
                     // En modo «solo registro» el registro de alimentos sigue
                     // disponible aunque no haya plan activo.
@@ -559,7 +568,7 @@ private fun NutritionHeroHeader(
                     )
                 }
                 if (hasActivePlan) {
-                    IconButton(onClick = if (hasActivePlan) onEditPlan else onCreatePlan, modifier = Modifier.size(MIN_TOUCH_TARGET)) {
+                    IconButton(onClick = if (hasActivePlan) onEditPlan else onCreatePlan, modifier = Modifier.size(MIN_TOUCH_TARGET).tourAnchor(TourAnchors.NUTRITION_PLAN)) {
                         Icon(
                             if (hasActivePlan) Icons.Default.Edit else Icons.Default.Add,
                             if (hasActivePlan) "Editar plan" else "Crear plan",
@@ -580,7 +589,7 @@ private fun NutritionHeroHeader(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Box(modifier = Modifier.size(130.dp)) {
+                        Box(modifier = Modifier.size(130.dp).tourAnchor(TourAnchors.NUTRITION_ANILLOS)) {
                             // Sin metas no hay anillo de objetivos: 0.0 y
                             // nunca un porcentaje fabricado.
                             AnimatedMacroRing(
