@@ -6,6 +6,7 @@ import com.example.kpkn.data.programs.CatalogSource
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.data.programs.programModeFor
 import com.example.kpkn.data.programs.programNameFor
+import com.example.kpkn.data.programs.withCatalogCover
 import com.example.kpkn.domain.onboarding.GeneratedPlans
 import com.example.kpkn.domain.onboarding.PlanCandidateEvaluator
 import com.example.kpkn.domain.onboarding.PlanCandidateSources
@@ -198,7 +199,7 @@ private fun presentGenerated(
         structureTemplateId = entry.id,
         powerliftingProfile = draft.powerliftingProfile,
         planOrderPriorities = appliedBag.takeIf { it.isNotEmpty() },
-    )
+    ).withCatalogCover(entry.id)
 }
 
 /**

@@ -9,6 +9,7 @@ import com.example.kpkn.data.programs.PublicationState
 import com.example.kpkn.data.programs.TrainingCapability
 import com.example.kpkn.data.programs.TrainingFocus
 import com.example.kpkn.data.programs.TrainingReference
+import com.example.kpkn.data.programs.withCatalogCover
 import com.example.kpkn.data.protocols.PlanProvenance
 import com.example.kpkn.data.protocols.RecipeSessionKind
 import com.example.kpkn.data.protocols.SlotIntent
@@ -359,7 +360,8 @@ object PlanCandidateEvaluator {
 
         return PlanCandidateEvaluation.Ready(
             planId = planId,
-            preparedPlan = program,
+            // Con la portada de la entrada: el alta la guarda tal cual al activar (`kpkn-cover://<id>`).
+            preparedPlan = program.withCatalogCover(planId),
             // Receta EFECTIVA del motor cuando la aporta (plan de autor adaptado: la
             // derivada del resolver y su procedencia con slotChanges); si no, la
             // del catálogo. Preview, activación y reapertura leen la misma.
