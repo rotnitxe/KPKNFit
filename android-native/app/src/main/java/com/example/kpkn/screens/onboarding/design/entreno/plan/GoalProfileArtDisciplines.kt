@@ -3,27 +3,34 @@ package com.example.kpkn.screens.onboarding.design.entreno.plan
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import com.example.kpkn.domain.onboarding.LiftMark
 import com.example.kpkn.screens.onboarding.design.entreno.DEG
+import com.example.kpkn.screens.onboarding.design.entreno.FigGeo
+import com.example.kpkn.screens.onboarding.design.entreno.FigPose
 import com.example.kpkn.screens.onboarding.design.entreno.FrontPose
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPen
 import com.example.kpkn.screens.onboarding.design.entreno.TAU
-import com.example.kpkn.screens.onboarding.design.entreno.dumbbell
 import com.example.kpkn.screens.onboarding.design.entreno.fainter
 import com.example.kpkn.screens.onboarding.design.entreno.frontFigure
 import com.example.kpkn.screens.onboarding.design.entreno.ik
+import com.example.kpkn.screens.onboarding.design.entreno.plateFace
 import com.example.kpkn.screens.onboarding.design.entreno.riseHoldFall
 import com.example.kpkn.screens.onboarding.design.entreno.smooth
 import com.example.kpkn.screens.onboarding.design.lerpF
 import com.example.kpkn.screens.onboarding.design.seg
+import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos
+import kotlin.math.max
 import kotlin.math.sin
+import kotlin.math.sqrt
 
 /*
- * Los siete símbolos de disciplina que faltan: halterofilia, armwrestling, strongman, culturismo y powerlifting
- * (el powerbuilding y la calistenia están en `GoalProfileArt.kt`). Misma familia: línea fina, UN acento y un
- * movimiento que explica la disciplina.
+ * Los símbolos de disciplina del paso «¿Cuál es tu objetivo?»: halterofilia, armwrestling, strongman, culturismo,
+ * powerlifting y powerbuilding (la versión nueva, [PowerbuildingFlexArt]; la antigua vive en `GoalProfileArt.kt`).
+ * Misma familia: línea fina, UN acento y un movimiento que explica la disciplina. Las poses y la geometría compartida
+ * están en `DisciplinePoses.kt`.
  */
 
 // ---------------------------------------------------------------- Halterofilia
@@ -185,193 +192,395 @@ internal class ArmwrestlingArt(lk: Float) : GoalArt(SymbolPalette.musculo, perio
     }
 }
 
+// ---------------------------------------------------------------- Powerbuilding (versión nueva)
+
+/** Semielipse del bíceps (radios 6 y 4,5), su base en el borde del brazo superior y los tramos de su contorno. */
+private const val BICEPS_RX = 6f
+private const val BICEPS_RY = 4.5f
+private const val BICEPS_BASE_Y = 36.5f
+private const val BICEPS_STEPS = 24
+
+/**
+ * Powerbuilding: primero dos brazos de frente que flexionan bíceps y después un atleta de perfil que hace peso muerto.
+ * Los brazos son formas rellenas en tinta; el bíceps, una semielipse en acento que late desde su base. Acento: energía.
+ * Es el símbolo de powerbuilding de la app (lo elige `GoalProfileArt.kt`).
+ */
+internal class PowerbuildingFlexArt(lk: Float) : GoalArt(SymbolPalette.energia, period = 4.8f, restT = 0.5f, lk = lk) {
+    private val fig = FigPose()
+    private val joints = ProfileJoints()
+
+    /** Semielipse superior del bíceps con su base en y = 0: se traslada a cada brazo y crece desde esa base. */
+    private val bicepsCap = Path()
+
+    init {
+        bicepsCap.moveTo(-BICEPS_RX, 0f)
+        for (i in 1 until BICEPS_STEPS) {
+            val a = PI.toFloat() * i / BICEPS_STEPS
+            bicepsCap.lineTo(-BICEPS_RX * cos(a), -BICEPS_RY * sin(a))
+        }
+        bicepsCap.lineTo(BICEPS_RX, 0f)
+        bicepsCap.close()
+    }
+
+    /** 0 = escena de los bíceps, 1 = escena del peso muerto: se funde de 1,8 a 2,1 s y vuelve de 4,4 a 4,8 s. */
+    internal fun deadliftWeight(t: Float): Float = riseHoldFall(t, 1.8f, 2.1f, 4.4f, 4.8f)
+
+    /** Fase del peso muerto (0 = en el suelo, 1 = de pie): sube de 2,2 a 3,4 s, aguanta y baja de 3,8 a 4,3 s. */
+    internal fun deadliftU(t: Float): Float = riseHoldFall(t, 2.2f, 3.4f, 3.8f, 4.3f)
+
+    /** Latido de los bíceps (0 a 1): dos por bucle, de 0,3 a 0,7 s y de 1,0 a 1,4 s. */
+    internal fun beat(t: Float): Float = riseHoldFall(t, 0.3f, 0.5f, 0.5f, 0.7f) + riseHoldFall(t, 1.0f, 1.2f, 1.2f, 1.4f)
+
+    override fun drawStatic(pen: SymbolPen) = Unit
+
+    override fun drawDynamic(pen: SymbolPen, t: Float) {
+        val b = deadliftWeight(t)
+        with(pen) {
+            if (b < 0.997f) fade(1f - b) { armsScene(t) }
+            if (b > 0.003f) fade(b) { deadliftScene(t) }
+        }
+    }
+
+    /**
+     * Dos brazos de frente como formas rellenas en tinta: el brazo superior casi horizontal (cápsula de 6 u), el antebrazo
+     * hacia arriba (5 u) y el puño redondo. Cabeza, cuello y trapecio completan el busto. El bíceps es la semielipse en
+     * acento sobre cada brazo superior, con su base en el borde del brazo; late creciendo desde esa base.
+     */
+    private fun SymbolPen.armsScene(t: Float) {
+        val s = 1f + 0.18f * beat(t)
+        dot(32f, 30f, 4f, ink)
+        line(Offset(32f, 34f), Offset(32f, 40f), ink, 4f)
+        line(Offset(24f, 40f), Offset(40f, 40f), ink, 4f)
+        // Brazo izquierdo: brazo superior (6 u), antebrazo (5 u) y puño.
+        line(Offset(24f, 40f), Offset(10f, 38f), ink, 6f)
+        line(Offset(10f, 38f), Offset(12f, 22f), ink, 5f)
+        dot(13f, 19f, 3.6f, ink)
+        // Brazo derecho: el espejo respecto de x = 32.
+        line(Offset(40f, 40f), Offset(54f, 38f), ink, 6f)
+        line(Offset(54f, 38f), Offset(52f, 22f), ink, 5f)
+        dot(51f, 19f, 3.6f, ink)
+        // Bíceps: semielipse en acento sobre cada brazo superior, creciendo desde su base.
+        shifted(17f, BICEPS_BASE_Y) { scaled(s, s, 0f, 0f) { fillPath(bicepsCap, accent) } }
+        shifted(47f, BICEPS_BASE_Y) { scaled(s, s, 0f, 0f) { fillPath(bicepsCap, accent) } }
+    }
+
+    /** Peso muerto de perfil con el disco de la barra en acento; el suelo solo aparece en esta escena. */
+    private fun SymbolPen.deadliftScene(t: Float) {
+        line(Offset(6f, 60.8f), Offset(58f, 60.8f), soft, fine)
+        solveLiftCanvas(LiftMark.DEADLIFT, deadliftU(t), fig, joints)
+        plateFace(joints.bar.x, joints.bar.y, LIFT_PLATE_R, accent, accent, mid)
+        profileFigure(joints, ink, ink.fainter(SymbolPalette.FAR_LIMB), bold, LIFT_HEAD_R)
+    }
+}
+
 // ---------------------------------------------------------------- Strongman
 
-/** La forma de la roca: ocho puntos a distinta distancia del centro, unidos con rectas (una roca angulosa, no una pelota). */
-private val STONE_RADII = floatArrayOf(1.02f, 0.86f, 1.07f, 0.9f, 1.04f, 0.85f, 1.08f, 0.93f)
+/** Centro de la piedra en el suelo y sobre la plataforma: la subida de la piedra se mide entre las dos alturas. */
+private const val STRONG_LOW_Y = SM_GROUND - STONE_RADIUS
+private const val STRONG_TOP_Y = 33.5f
 
-/** Radio de la roca, suelo del lienzo y medidas de la figura (piernas, tronco, brazos y cabeza) del cargador. */
-private const val STONE_R = 11f
-private const val STRONG_GROUND = 59f
-private const val STRONG_THIGH = 9.6f
-private const val STRONG_TORSO = 13.5f
-private const val STRONG_ARM = 7.2f
+/** La figura se yergue hasta 3,0 s; de 3,3 a 3,6 s se funde al cuadro inicial. */
+private const val STRONG_HOLD_AT = 3.0f
+private const val STRONG_FADE_AT = 3.3f
+
+/** Radio de la cabeza de la figura de strongman. */
 private const val STRONG_HEAD_R = 3.3f
 
 /**
- * Una piedra de atlas que se levanta del suelo hasta el pecho y se baja otra vez: la figura de perfil se agacha, la abraza,
- * se endereza echándose hacia atrás con ella y la deja caer en el polvo. La roca tapa el brazo lejano. En reposo muestra el
- * momento más reconocible, con la piedra arriba. Acento: energía (la roca).
+ * Una piedra de atlas que se levanta del suelo hasta el pecho y se empuja a una plataforma: la figura se agacha, la abraza,
+ * se yergue y la suelta arriba. De perfil, mirando a la derecha: la piedra es un círculo con el contorno en tinta y un brillo
+ * en acento; la plataforma, una caja con el canto superior en acento. Acento: energía.
  */
-internal class StrongmanArt(lk: Float) : GoalArt(SymbolPalette.energia, period = 3.2f, restT = 1.55f, lk = lk) {
-    private val stone = Path()
+internal class StrongmanArt(lk: Float) : GoalArt(SymbolPalette.energia, period = 3.6f, restT = 2.7f, lk = lk) {
+    private val params = FloatArray(11)
+    private val figure = ProfileJoints()
 
-    init {
-        // El contorno de la roca, con el centro en el origen: se traslada y se gira al dibujarla.
-        val n = STONE_RADII.size
-        for (i in 0 until n) {
-            val a = TAU * i / n + 0.35f
-            val x = cos(a) * STONE_R * STONE_RADII[i]
-            val y = sin(a) * STONE_R * STONE_RADII[i]
-            if (i == 0) stone.moveTo(x, y) else stone.lineTo(x, y)
-        }
-        stone.close()
-    }
-
-    /** 0 = la piedra en el suelo, 1 = arriba, a la altura del pecho. */
-    internal fun lift(t: Float): Float = riseHoldFall(t, 0.4f, 1.3f, 1.75f, 2.55f)
-
-    /** El centro de la piedra: del suelo (a la derecha) a lo alto del pecho (algo más cerca de la figura). */
+    /** El centro de la piedra en el instante [t], en el lienzo de 64. */
     internal fun stoneCenter(t: Float): Offset {
-        val k = lift(t)
-        val low = STRONG_GROUND - 0.3f - STONE_R
-        return Offset(38f - 4f * k, low - (low - 29f) * k)
+        strongParams(t, params)
+        return Offset(params[0], params[1])
     }
+
+    /** Cuánto ha subido la piedra en [t]: 0 en el suelo, 1 sobre la plataforma. */
+    internal fun lift(t: Float): Float =
+        ((STRONG_LOW_Y - stoneCenter(t).y) / (STRONG_LOW_Y - STRONG_TOP_Y)).coerceIn(0f, 1f)
 
     override fun drawStatic(pen: SymbolPen) {
-        with(pen) { line(1.5f, STRONG_GROUND, 62.5f, STRONG_GROUND, soft, fine) }
+        with(pen) {
+            line(Offset(1.5f, SM_GROUND), Offset(62.5f, SM_GROUND), soft, fine)
+            // La plataforma: caja en tinta media y el canto superior en acento.
+            box(42f, 42f, 60f, 60f, 1f, ink, mid)
+            line(Offset(42f, 42f), Offset(60f, 42f), accent, fine)
+        }
     }
 
     override fun drawDynamic(pen: SymbolPen, t: Float) {
+        // Tras 3,0 s la figura se queda yergue; de 3,3 a 3,6 s se funde al cuadro inicial (dos cuadros con opacidad de grupo).
+        val back = smooth(seg(t, STRONG_FADE_AT, period))
+        val hold = minOf(t, STRONG_HOLD_AT)
+        if (back < 1f) pen.fade(1f - back) { figureAt(pen, hold) }
+        if (back > 0f) pen.fade(back) { figureAt(pen, 0f) }
+    }
+
+    /** La figura y la piedra en [tt], sin fundidos: el lado lejano queda tras la piedra y el cercano delante de ella. */
+    private fun figureAt(pen: SymbolPen, tt: Float) {
+        strongPose(tt, params, figure)
+        val j = figure
+        val stone = Offset(params[0], params[1])
         with(pen) {
-            val k = lift(t)
-            val c = stoneCenter(t)
-            // La figura: de cuclillas con el tronco casi tumbado hacia la piedra a erguida y echada hacia atrás.
-            val hip = Offset(lerpF(12f, 15.5f, k), lerpF(48.5f, 41f, k))
-            val lean = lerpF(0.95f, -0.10f, k)
-            val shoulder = hip + Offset(sin(lean), -cos(lean)) * STRONG_TORSO
-            val head = shoulder + Offset(sin(lean + 0.12f), -cos(lean + 0.12f)) * 5.6f
-            val footN = Offset(hip.x + lerpF(6.5f, 3.5f, k), STRONG_GROUND - 0.4f)
-            val footF = Offset(hip.x - lerpF(2f, 4.5f, k), STRONG_GROUND - 0.4f)
-            val kneeN = ik(hip, footN, STRONG_THIGH, STRONG_THIGH, -1f)
-            val kneeF = ik(hip, footF, STRONG_THIGH, STRONG_THIGH, -1f)
-            // Las manos abrazan la piedra por abajo y por el lado de la figura.
-            val handN = Offset(c.x - STONE_R * 0.62f, c.y + STONE_R * 0.52f)
-            val handF = Offset(c.x - STONE_R * 0.30f, c.y + STONE_R * 0.86f)
-            val elbowN = ik(shoulder, handN, STRONG_ARM, STRONG_ARM, 1f)
-            val elbowF = ik(shoulder, handF, STRONG_ARM, STRONG_ARM, 1f)
-            val far = ink.fainter(SymbolPalette.FAR_LIMB)
-            // Lado lejano, tronco, lado cercano y cabeza (con el negro de la página detrás, como las demás figuras).
-            poly(shoulder, elbowF, handF, far, bold)
-            poly(hip, kneeF, footF, far, bold)
-            line(hip, shoulder, ink, bold)
-            poly(hip, kneeN, footN, ink, bold)
-            dot(head.x, head.y, STRONG_HEAD_R + 0.3f, Color.Black)
-            ring(head.x, head.y, STRONG_HEAD_R, ink, bold * 0.9f)
-            // La roca (tapa el brazo lejano): contorno en el acento, brillo y dos grietas; gira un poco al subir.
-            shifted(c.x, c.y) {
-                rotated(34f * k, 0f, 0f) {
-                    fillPath(stone, Color.Black)
-                    path(stone, accent, mid)
-                    arc(0f, 0f, STONE_R * 0.68f, 195f, 55f, ink, fine)
-                    poly3(STONE_R * 0.95f, -2.4f, 4.4f, 0.6f, 6.6f, 5.4f, ink, fine)
-                    poly3(-2.2f, STONE_R * 0.9f, -1.6f, 4.8f, -6.4f, 2.6f, ink, fine)
-                }
-            }
-            // El brazo cercano va por delante de la roca, con la mano agarrándola.
-            poly(shoulder, elbowN, handN, ink, bold)
-            dot(handN.x, handN.y, dotR(1.6f), ink)
-            // Polvo al caer.
-            val dust = seg(t, 2.45f, 3.0f)
-            if (dust > 0f && dust < 1f) {
-                fade(1f - dust) {
-                    val reach = STONE_R + 3f + 6f * dust
-                    val y = STRONG_GROUND - 1.5f - 4f * dust
-                    dot(c.x - reach, y, dotR(1.2f), soft)
-                    dot(c.x + reach, y, dotR(1.2f), soft)
-                }
-            }
+            val farInk = ink.fainter(SymbolPalette.FAR_LIMB)
+            poly(j.shoulder, j.elbowF, j.handF, farInk, bold)
+            poly(j.hip, j.kneeF, j.footF, farInk, bold)
+            line(j.hip, j.shoulder, ink, bold)
+            poly(j.hip, j.kneeN, j.footN, ink, bold)
+            dot(j.head.x, j.head.y, STRONG_HEAD_R + 0.3f, Color.Black)
+            ring(j.head.x, j.head.y, STRONG_HEAD_R, ink, bold * 0.9f)
+            // La piedra: disco negro que tapa lo de detrás, contorno en tinta y brillo en acento.
+            dot(stone.x, stone.y, STONE_RADIUS, Color.Black)
+            ring(stone.x, stone.y, STONE_RADIUS, ink, bold)
+            arc(stone.x, stone.y, STONE_RADIUS * 0.62f, 200f, 60f, accent, fine)
+            // El brazo cercano va delante de la piedra, con la mano en su borde.
+            poly(j.shoulder, j.elbowN, j.handN, ink, bold)
+            dot(j.handN.x, j.handN.y, dotR(1.8f), ink)
         }
     }
 }
 
 // ---------------------------------------------------------------- Culturismo
 
-/** Una espalda en V que se abre mientras sube una mancuerna a su lado. Acento: mente. */
-internal class BodybuildingArt(lk: Float) : GoalArt(SymbolPalette.mente, period = 3.0f, restT = 1.0f, lk = lk) {
-    private val spineX = 22.5f
+/** Hombros y cintura de la figura de culturismo, en el lienzo de 64. */
+private val CULT_SH_L = Offset(22f, 20f)
+private val CULT_SH_R = Offset(42f, 20f)
+private val CULT_WAIST_L = Offset(27f, 36f)
+private val CULT_WAIST_R = Offset(37f, 36f)
 
-    /** 0 = relajada, 1 = la espalda abierta y la mancuerna arriba. */
-    internal fun flare(t: Float): Float = riseHoldFall(t, 0.3f, 1.0f, 1.8f, 2.6f)
+/** Largo del brazo superior y del antebrazo; el ángulo del brazo superior va de la pose de bíceps a la de dorsales. */
+private const val CULT_UARM = 8.5f
+private const val CULT_FARM = 9.5f
+private val CULT_ANGLE_L = floatArrayOf(-166f, -234.5f)
+private val CULT_ANGLE_R = floatArrayOf(-14f, 54.5f)
 
-    override fun drawStatic(pen: SymbolPen) {
-        with(pen) {
-            ring(spineX, 9f, 4.7f, ink, mid)
-            line(spineX, 15.5f, spineX, 55f, soft, fine)
-        }
+/** Dónde buscan las manos en cada pose: junto a la cabeza (doble bíceps) y en la cintura (dorsales). */
+private val CULT_HAND_1_L = Offset(16f, 8f)
+private val CULT_HAND_1_R = Offset(48f, 8f)
+private val CULT_HAND_2_L = Offset(27f, 34f)
+private val CULT_HAND_2_R = Offset(37f, 34f)
+
+/**
+ * Figura posando de frente: doble bíceps y, después, dorsales abiertos con las manos en la cintura. El torso en V, los
+ * pectorales, el abdomen y las piernas no cambian; los brazos giran por ángulo y el antebrazo apunta a la mano, así su largo
+ * no cambia. Los dorsales se tiñen en acento al abrirse. Acento: mente.
+ */
+internal class BodybuildingArt(lk: Float) : GoalArt(SymbolPalette.mente, period = 3.6f, restT = 0.3f, lk = lk) {
+    /** Contorno de los dorsales abiertos, reutilizado entre cuadros. */
+    private val lats = Path()
+
+    /** Los brazos en el cuadro actual (ocho valores: codo y mano izquierdos, codo y mano derechos). */
+    private val arms = FloatArray(8)
+
+    /** 0 = pose de bíceps, 1 = dorsales abiertos: sube de 1,2 a 1,6 s y vuelve de 2,8 a 3,2 s. */
+    internal fun back(t: Float): Float = smooth(seg(t, 1.2f, 1.6f)) - smooth(seg(t, 2.8f, 3.2f))
+
+    /** Cuánto se abren los dorsales: en la pose de dorsales se abren un poco más con el tiempo. */
+    internal fun spread(t: Float): Float = back(t) * (0.85f + 0.15f * seg(t, 1.6f, 2.8f))
+
+    /** Latido de los bíceps (0 a 1): dos por bucle, con los picos en 0,3 y 0,8 s. */
+    internal fun beat(t: Float): Float = riseHoldFall(t, 0.1f, 0.3f, 0.3f, 0.5f) + riseHoldFall(t, 0.6f, 0.8f, 0.8f, 1.0f)
+
+    /** Los brazos en [t] (ocho valores en [out]): codo y mano izquierdos, codo y mano derechos. */
+    internal fun armsAt(t: Float, out: FloatArray) {
+        val k = back(t)
+        val aL = lerpF(CULT_ANGLE_L[0], CULT_ANGLE_L[1], k) * DEG
+        val aR = lerpF(CULT_ANGLE_R[0], CULT_ANGLE_R[1], k) * DEG
+        val eL = CULT_SH_L + Offset(cos(aL), sin(aL)) * CULT_UARM
+        val eR = CULT_SH_R + Offset(cos(aR), sin(aR)) * CULT_UARM
+        val hL = armHand(eL, FigGeo.lerp(CULT_HAND_1_L, CULT_HAND_2_L, k))
+        val hR = armHand(eR, FigGeo.lerp(CULT_HAND_1_R, CULT_HAND_2_R, k))
+        out[0] = eL.x
+        out[1] = eL.y
+        out[2] = hL.x
+        out[3] = hL.y
+        out[4] = eR.x
+        out[5] = eR.y
+        out[6] = hR.x
+        out[7] = hR.y
     }
+
+    /** La mano a [CULT_FARM] del codo, en la dirección de su objetivo: el antebrazo mantiene su largo. */
+    private fun armHand(elbow: Offset, target: Offset): Offset {
+        val dx = target.x - elbow.x
+        val dy = target.y - elbow.y
+        val len = sqrt(dx * dx + dy * dy)
+        return Offset(elbow.x + dx / len * CULT_FARM, elbow.y + dy / len * CULT_FARM)
+    }
+
+    override fun drawStatic(pen: SymbolPen) = Unit
 
     override fun drawDynamic(pen: SymbolPen, t: Float) {
+        val k = back(t)
+        val o = spread(t)
+        armsAt(t, arms)
+        val eL = Offset(arms[0], arms[1])
+        val hL = Offset(arms[2], arms[3])
+        val eR = Offset(arms[4], arms[5])
+        val hR = Offset(arms[6], arms[7])
         with(pen) {
-            val fl = flare(t)
-            half(-1f, fl)
-            half(1f, fl)
-            dumbbell(53.5f, 39f - 5f * fl, 12.5f, 90f - 18f * fl, accent, ink, mid)
+            // Hombros, cuello y cabeza.
+            line(CULT_SH_L, CULT_SH_R, ink, bold)
+            ring(32f, 12f, 3.6f, ink, bold * 0.9f)
+            line(Offset(32f, 15.6f), Offset(32f, 20f), ink, mid)
+            // Torso en V que se abre con los dorsales; el relleno en acento tenue sigue al contorno.
+            val fl = Offset(lerpF(24.5f, 19f, o), lerpF(28f, 26f, o))
+            val fr = Offset(64f - fl.x, fl.y)
+            line(CULT_SH_L, fl, ink, bold)
+            line(fl, CULT_WAIST_L, ink, bold)
+            line(CULT_SH_R, fr, ink, bold)
+            line(fr, CULT_WAIST_R, ink, bold)
+            if (o > 0.01f) {
+                val fill = accent.fainter(0.30f * o)
+                lats.reset()
+                lats.moveTo(CULT_SH_L.x, CULT_SH_L.y)
+                lats.lineTo(fl.x, fl.y)
+                lats.lineTo(CULT_WAIST_L.x, CULT_WAIST_L.y)
+                lats.lineTo(29.2f, 31f)
+                lats.lineTo(28f, 24f)
+                lats.close()
+                fillPath(lats, fill)
+                lats.reset()
+                lats.moveTo(CULT_SH_R.x, CULT_SH_R.y)
+                lats.lineTo(fr.x, fr.y)
+                lats.lineTo(CULT_WAIST_R.x, CULT_WAIST_R.y)
+                lats.lineTo(34.8f, 31f)
+                lats.lineTo(36f, 24f)
+                lats.close()
+                fillPath(lats, fill)
+            }
+            // Pectorales (dos arcos) y abdomen (tres trazos cortos).
+            curve(24.2f, 24.4f, 28.4f, 29.4f, 31.4f, 25.8f, ink, mid)
+            curve(39.8f, 24.4f, 35.6f, 29.4f, 32.6f, 25.8f, ink, mid)
+            line(Offset(29.2f, 30.2f), Offset(34.8f, 30.2f), ink.fainter(0.8f), fine)
+            line(Offset(29.4f, 32.8f), Offset(34.6f, 32.8f), ink.fainter(0.8f), fine)
+            line(Offset(29.8f, 35.2f), Offset(34.2f, 35.2f), ink.fainter(0.8f), fine)
+            // Piernas (fijas) y arco de cuádriceps en cada muslo.
+            poly(Offset(28f, 37f), Offset(25f, 48f), Offset(24f, 59f), ink, bold)
+            poly(Offset(36f, 37f), Offset(39f, 48f), Offset(40f, 59f), ink, bold)
+            curve(27.9f, 39.5f, 26.2f, 44.5f, 25.6f, 46.8f, ink.fainter(0.7f), fine)
+            curve(36.1f, 39.5f, 37.8f, 44.5f, 38.4f, 46.8f, ink.fainter(0.7f), fine)
+            // Brazos y manos.
+            poly(CULT_SH_L, eL, hL, ink, bold)
+            poly(CULT_SH_R, eR, hR, ink, bold)
+            dot(hL.x, hL.y, dotR(2f), ink)
+            dot(hR.x, hR.y, dotR(2f), ink)
+            // Bíceps: relleno en acento sobre el brazo superior; solo en la pose de bíceps.
+            val bl = 1f - k
+            if (bl > 0.01f) {
+                val s = 1f + 0.18f * beat(t)
+                fillOvalRot(
+                    (CULT_SH_L.x + eL.x) / 2f, (CULT_SH_L.y + eL.y) / 2f, 4.0f * s, 3.2f * s,
+                    dirDeg(eL.x - CULT_SH_L.x, eL.y - CULT_SH_L.y), accent.fainter(bl),
+                )
+                fillOvalRot(
+                    (CULT_SH_R.x + eR.x) / 2f, (CULT_SH_R.y + eR.y) / 2f, 4.0f * s, 3.2f * s,
+                    dirDeg(eR.x - CULT_SH_R.x, eR.y - CULT_SH_R.y), accent.fainter(bl),
+                )
+            }
         }
-    }
-
-    /** Una mitad de la espalda (−1 izquierda, +1 derecha): cuello, trapecio, hombro, dorsal y cintura. */
-    private fun SymbolPen.half(m: Float, fl: Float) {
-        fun x(dx: Float) = spineX + m * dx
-        val sx = 15.2f + 1.5f * fl
-        // Cuello y trapecio.
-        line(x(2.3f), 13.4f, x(2.5f), 16.6f, ink, mid)
-        curve(x(2.5f), 16.6f, x(9f), 16.9f - 0.6f * fl, x(sx - 0.6f), 21.4f - 0.9f * fl, ink, mid)
-        // Deltoides.
-        curve(x(sx - 0.6f), 21.4f - 0.9f * fl, x(sx + 3.6f), 21.8f - 0.9f * fl, x(sx + 2.4f), 28f, ink, mid)
-        // Dorsal: del hombro a la cintura, más abierto con el movimiento.
-        curve(x(sx - 0.2f), 26f, x(14.6f + 3.6f * fl), 37f, x(7.4f), 47.5f, ink, mid)
-        curve(x(7.4f), 47.5f, x(7.9f), 51.5f, x(9.2f), 55.6f, ink, mid)
-        // Los músculos de dentro, en el acento.
-        curve(x(2.2f), 21.4f, x(8.6f), 21.4f, x(9.6f), 28.6f, accent, fine)
-        curve(x(3.2f), 39f, x(8f), 36.4f, x(12.4f), 30.2f - 1.4f * fl, accent, fine)
     }
 }
 
 // ---------------------------------------------------------------- Powerlifting
 
+/** Luces de los jueces: tres en la parte alta del lienzo, a la altura [PL_LAMP_Y]. */
+private val PL_LAMP_X = floatArrayOf(22f, 32f, 42f)
+private const val PL_LAMP_Y = 6f
+
+/** Cuándo se encienden las luces (tras cada repetición) y cuándo se apagan (al cambiar de levantamiento). */
+private val PL_LAMP_ON = floatArrayOf(1.4f, 3.4f, 5.4f)
+private val PL_LAMP_OFF = floatArrayOf(2.0f, 4.0f, 6.0f)
+
 /**
- * Una barra con discos enormes (vistos en perspectiva, como elipses) que se levanta despacio, tiembla al final del
- * esfuerzo y se curva bajo el peso. Acento: músculo.
+ * Un atleta con singlet oficial que alterna los tres básicos (sentadilla, banca y peso muerto), con un fundido entre ellos.
+ * Al terminar cada repetición se encienden las tres luces de los jueces. El singlet va en acento (tronco y primer tramo de
+ * muslo, con tirante); el cuerpo, el disco y la barra, en tinta. Acento: músculo.
  */
-internal class PowerliftingArt(lk: Float) : GoalArt(SymbolPalette.musculo, period = 3.6f, restT = 1.3f, lk = lk) {
-    /** 0 = barra en el suelo, 1 = arriba: sube lento (un levantamiento pesado) y baja controlada. */
-    internal fun lift(t: Float): Float = riseHoldFall(t, 0.3f, 1.8f, 2.4f, 3.3f)
+internal class PowerliftingArt(lk: Float) : GoalArt(SymbolPalette.musculo, period = 6f, restT = 1.5f, lk = lk) {
+    private val fig = FigPose()
+    private val joints = ProfileJoints()
+    private val weight = FloatArray(3)
 
-    /** Temblor del esfuerzo: solo en la última parte de la subida y en el arriba. */
-    internal fun tremor(t: Float): Float = 0.45f * sin(t * 52f) * seg(t, 1.2f, 1.7f) * (1f - seg(t, 2.3f, 2.5f))
+    /** Fase de la sentadilla en [t] (0 = de pie, 1 = abajo): baja de 0,1 a 0,7 s, aguanta y sube hasta 1,4 s. */
+    internal fun squatU(t: Float): Float = riseHoldFall(t, 0.1f, 0.7f, 0.9f, 1.4f)
 
-    internal fun barY(t: Float): Float = lerpF(35f, 28.5f, lift(t)) + tremor(t)
+    /** Fase de la banca en [t] (0 = brazos estirados, 1 = barra en el pecho): baja de 2,1 a 2,6 s y empuja hasta 3,4 s. */
+    internal fun benchU(t: Float): Float = riseHoldFall(t, 2.1f, 2.6f, 2.8f, 3.4f)
+
+    /** Fase del peso muerto en [t] (0 = en el suelo, 1 = de pie): sube de 4,1 a 4,8 s y baja hasta 5,4 s. */
+    internal fun deadliftU(t: Float): Float = riseHoldFall(t, 4.1f, 4.8f, 4.9f, 5.4f)
+
+    /**
+     * Peso de cada levantamiento en [t] (sentadilla, banca, peso muerto), en [out]: suman 1 y se funden de 1,8 a 2,0 s,
+     * de 3,8 a 4,0 s y de 5,8 a 6,0 s.
+     */
+    internal fun weights(t: Float, out: FloatArray) {
+        val s1 = smooth(seg(t, 1.8f, 2.0f))
+        val s2 = smooth(seg(t, 3.8f, 4.0f))
+        val s3 = smooth(seg(t, 5.8f, 6.0f))
+        out[0] = 1f - s1 + s3
+        out[1] = s1 - s2
+        out[2] = s2 - s3
+    }
+
+    /** Cuánto están encendidas las luces de los jueces en [t] (0 a 1). */
+    internal fun judgeLit(t: Float): Float {
+        var lit = 0f
+        for (i in PL_LAMP_ON.indices) {
+            val on = PL_LAMP_ON[i]
+            lit = max(lit, smooth(seg(t, on, on + 0.12f)) - smooth(seg(t, PL_LAMP_OFF[i], PL_LAMP_OFF[i] + 0.18f)))
+        }
+        return lit
+    }
 
     override fun drawStatic(pen: SymbolPen) {
-        with(pen) { line(5f, 60.8f, 59f, 60.8f, soft, fine) }
+        with(pen) { line(Offset(5f, 60.8f), Offset(59f, 60.8f), soft, fine) }
     }
 
     override fun drawDynamic(pen: SymbolPen, t: Float) {
+        weights(t, weight)
         with(pen) {
-            val y = barY(t)
-            val f = 1.7f * lift(t)
-            curve(2f, y + f, 32f, y - f, 62f, y + f, ink, mid)
-            for (m in floatArrayOf(1f, -1f)) {
-                val x0 = if (m > 0f) 0f else 64f
-                stackEllipse(x0, m, 10f, 3.8f, 25f, y, f, accent)
-                stackEllipse(x0, m, 16f, 3.2f, 20.5f, y, f, ink)
-                stackEllipse(x0, m, 21.2f, 2.7f, 16f, y, f, ink)
-                // Collarín.
-                val cx = x0 + m * 24.4f
-                val cy = sagY(cx, 2f, 62f, y, f)
-                plateBox(cx, cy, 1f, -0.9f, 0.9f, 3.2f, 0.8f, accent, mid)
-            }
+            if (weight[0] > 0.003f) fade(weight[0]) { liftScene(LiftMark.SQUAT, squatU(t), bench = false) }
+            if (weight[1] > 0.003f) fade(weight[1]) { liftScene(LiftMark.BENCH, benchU(t), bench = true) }
+            if (weight[2] > 0.003f) fade(weight[2]) { liftScene(LiftMark.DEADLIFT, deadliftU(t), bench = false) }
+            judgeLights(t)
         }
     }
 
-    /** Un disco: elipse estrecha y alta centrada en la barra, con el buje del eje. */
-    private fun SymbolPen.stackEllipse(
-        x0: Float, m: Float, dx: Float, rx: Float, ry: Float, y: Float, f: Float, color: androidx.compose.ui.graphics.Color,
-    ) {
-        val cx = x0 + m * dx
-        val cy = sagY(cx, 2f, 62f, y, f)
-        oval(cx, cy, rx, ry, color, mid)
-        if (dx < 11f) dot(cx, cy, dotR(1.4f), ink)
+    /** Un levantamiento en la fase [u]: el banco si toca, el disco detrás, el singlet y, encima, el cuerpo en tinta. */
+    private fun SymbolPen.liftScene(lift: LiftMark, u: Float, bench: Boolean) {
+        solveLiftCanvas(lift, u, fig, joints)
+        val j = joints
+        if (bench) benchStage(ink.fainter(0.9f), soft, mid, fine)
+        // El disco (tinta y anillo interior) va detrás del cuerpo, al 60 % como en las marcas.
+        plateFace(j.bar.x, j.bar.y, LIFT_PLATE_R, ink.fainter(0.6f), ink.fainter(0.6f), mid)
+        // Singlet: tronco y primer 30 % de cada muslo, con un tirante sobre el hombro.
+        val band = bold * 2.2f
+        line(j.hip, j.shoulder, accent, band)
+        line(j.hip, FigGeo.lerp(j.hip, j.kneeN, 0.3f), accent, band)
+        line(j.hip, FigGeo.lerp(j.hip, j.kneeF, 0.3f), accent.fainter(SymbolPalette.FAR_LIMB), band)
+        line(Offset(j.shoulder.x - 0.8f, j.shoulder.y - 2.6f), Offset(j.shoulder.x + 1.4f, j.shoulder.y + 0.8f), ink, fine)
+        profileFigure(j, ink, ink.fainter(SymbolPalette.FAR_LIMB), bold, LIFT_HEAD_R)
+    }
+
+    /** Las tres luces de los jueces: apagadas, un aro tenue; encendidas, un disco blanco que da un pequeño salto. */
+    private fun SymbolPen.judgeLights(t: Float) {
+        val lit = judgeLit(t)
+        var jump = 0f
+        for (i in PL_LAMP_ON.indices) {
+            val on = PL_LAMP_ON[i]
+            jump = max(jump, riseHoldFall(t, on, on + 0.1f, on + 0.25f, on + 0.4f))
+        }
+        for (x in PL_LAMP_X) {
+            ring(x, PL_LAMP_Y, 2.2f, ink.fainter(0.35f), mid * 0.8f)
+            if (lit > 0.003f) dot(x, PL_LAMP_Y - 0.9f * jump, 2.2f + 0.4f * jump, ink.fainter(lit))
+        }
     }
 }
