@@ -29,7 +29,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.input.pointer.pointerInput
@@ -43,7 +42,6 @@ import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.progressBarRangeInfo
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.setProgress
-import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.drawText
@@ -73,18 +71,12 @@ private val RingsTowerHeight = 200.dp
 private val TimelineHeight = 64.dp
 private val TimelineEdge = 16.dp
 
-/** Deslizador: alto de toque de 48 dp, grosor de la pista y radio del pulgar. */
-private val SliderHeight = WizardSpacing.touchTarget
-private val SliderTrack = 2.dp
-private val SliderThumb = 9.dp
-
 /** Fundido de la línea que cambia al tocar un anillo. */
 private const val HighlightFadeMillis = 160
 
 private val TickShort = WizardColors.textMuted.copy(alpha = 0.32f)
 private val TickLong = WizardColors.textMuted.copy(alpha = 0.80f)
 private val TickLabel = WizardColors.textMuted.copy(alpha = 0.72f)
-private val TrackIdle = WizardColors.textFaint.copy(alpha = 0.45f)
 
 /**
  * Paso `RINGS_INTRO`: qué son los RINGS con la torre del logo, una demostración con la ley real del motor y el ajuste de
@@ -392,14 +384,16 @@ private fun AdjustBlock(channel: RingChannelId, shown: Int, onCommit: (Int) -> U
                 color = WizardColors.text,
             )
         }
-        ChannelSlider(
-            channel = channel,
+        RingsChannelSlider(
+            accent = KpknRingColors.of(channel.towerChannel()),
+            name = channel.spanishName(),
             value = value,
             onPreview = { preview = it },
             onCommit = { chosen ->
                 preview = null
                 onCommit(chosen)
             },
+            tag = "rings-intro-slider",
         )
         Text(
             text = "Si no coincide con cómo te sientes, ajústalo: KPKN usa tus ajustes para afinar tu ritmo de " +
@@ -408,78 +402,6 @@ private fun AdjustBlock(channel: RingChannelId, shown: Int, onCommit: (Int) -> U
             color = WizardColors.textMuted,
         )
     }
-}
-
-/** Deslizador 0–100 de un canal. Arrastrar avisa con [onPreview] (null = sin vista previa) y soltar confirma con [onCommit]. */
-@Composable
-private fun ChannelSlider(
-    channel: RingChannelId,
-    value: Int,
-    onPreview: (Int?) -> Unit,
-    onCommit: (Int) -> Unit,
-) {
-    val onPreviewNow by rememberUpdatedState(onPreview)
-    val onCommitNow by rememberUpdatedState(onCommit)
-    val thumbPx = with(LocalDensity.current) { SliderThumb.toPx() }
-    val trackPx = with(LocalDensity.current) { SliderTrack.toPx() }
-    val accent = KpknRingColors.of(channel.towerChannel())
-    val name = channel.spanishName()
-    Canvas(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(SliderHeight)
-            .testTag("rings-intro-slider")
-            .semantics {
-                contentDescription = "Ajuste de $name"
-                stateDescription = "$value %"
-                progressBarRangeInfo = ProgressBarRangeInfo(
-                    current = value.toFloat(),
-                    range = 0f..100f,
-                    steps = 99,
-                )
-                setProgress { target ->
-                    onCommitNow(target.roundToInt().coerceIn(0, 100))
-                    true
-                }
-            }
-            .pointerInput(channel) {
-                detectTapGestures { offset ->
-                    onCommitNow(percentAt(offset.x, size.width.toFloat(), thumbPx))
-                }
-            }
-            .pointerInput(channel) {
-                var latest = 0
-                detectHorizontalDragGestures(
-                    onDragStart = { offset ->
-                        latest = percentAt(offset.x, size.width.toFloat(), thumbPx)
-                        onPreviewNow(latest)
-                    },
-                    onDragEnd = { onCommitNow(latest) },
-                    onDragCancel = { onPreviewNow(null) },
-                    onHorizontalDrag = { change, _ ->
-                        latest = percentAt(change.position.x, size.width.toFloat(), thumbPx)
-                        onPreviewNow(latest)
-                    },
-                )
-            },
-    ) {
-        drawSlider(value, accent, thumbPx, trackPx)
-    }
-}
-
-private fun percentAt(x: Float, width: Float, thumbPx: Float): Int {
-    val span = (width - 2f * thumbPx).coerceAtLeast(1f)
-    return ((x - thumbPx) / span * 100f).roundToInt().coerceIn(0, 100)
-}
-
-private fun DrawScope.drawSlider(value: Int, accent: Color, thumbPx: Float, trackPx: Float) {
-    val mid = size.height / 2f
-    val left = thumbPx
-    val right = size.width - thumbPx
-    val x = left + (right - left) * value.coerceIn(0, 100) / 100f
-    drawLine(TrackIdle, Offset(left, mid), Offset(right, mid), trackPx, StrokeCap.Round)
-    drawLine(accent, Offset(left, mid), Offset(x, mid), trackPx, StrokeCap.Round)
-    drawCircle(color = WizardColors.text, radius = thumbPx, center = Offset(x, mid))
 }
 
 private fun RingChannelId.towerChannel(): RingChannel = when (this) {
