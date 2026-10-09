@@ -332,8 +332,9 @@ class EntrenoStepsSmokeTest {
 
     @Test
     fun capabilitiesOnlyOfferTheExercisesTheMaterialAllowsAndMarkTheLevel() {
+        // Fuera de la ruta de peso corporal (la de calistenia tiene sus filas de repeticiones, ver la prueba siguiente).
         val draft = SetupWizardDraft().withPlaces(setOf(TrainingPlace.PUBLIC))
-            .withGoalProfile(TrainingGoalProfile.CALISTHENICS)
+            .withGoalProfile(TrainingGoalProfile.FUNCTIONAL_HEALTH)
             .withCapability(CapabilitySkill.PULL_UP, CapabilityLevel.SOME)
         show(draft) { s, v -> EntrenoCapabilitiesStep(s, v) }
         rule.onNodeWithTag("setup-capability-PULL_UP-SOME").assertIsSelected()
@@ -345,16 +346,32 @@ class EntrenoStepsSmokeTest {
     }
 
     @Test
+    fun calisthenicsAsksHowManyInARowWithOneRowPerExercise() {
+        // Con barra, las dominadas son obligatorias («Obligatoria», sin «No lo sé»); las flexiones pueden quedar sin declarar y la
+        // sentadilla a una pierna sigue con sus niveles.
+        val draft = SetupWizardDraft().withPlaces(setOf(TrainingPlace.PUBLIC))
+            .withGoalProfile(TrainingGoalProfile.CALISTHENICS)
+        show(draft) { s, v -> EntrenoCapabilitiesStep(s, v) }
+        rule.onNodeWithText("Obligatoria").assertExists()
+        rule.onNodeWithTag("setup-reps-PULL_UP").assertExists()
+        rule.onNodeWithTag("setup-reps-PULL_UP-unknown").assertDoesNotExist()
+        rule.onNodeWithTag("setup-reps-PUSH_UP-unknown").assertIsOn()
+        rule.onNodeWithTag("setup-capability-PUSH_UP").assertDoesNotExist()
+        rule.onNodeWithTag("setup-capability-PISTOL_SQUAT").assertExists()
+        rule.onNodeWithText("Sin presión: siempre podrás cambiarlo.").assertExists()
+    }
+
+    @Test
     fun theCapabilitiesTheMaterialDoesNotAllowAreNotOffered() {
         // Sin material alguno no hay barra de dominadas ni paralelas: quedan las flexiones y la sentadilla a una pierna.
         val bare = SetupWizardDraft().withPlaces(setOf(TrainingPlace.HOME))
             .withMaterial(setOf(EquipmentSymbolId.BODYWEIGHT_ONLY))
             .withGoalProfile(TrainingGoalProfile.CALISTHENICS)
         show(bare) { s, v -> EntrenoCapabilitiesStep(s, v) }
-        rule.onNodeWithTag("setup-capability-PUSH_UP").assertExists()
+        rule.onNodeWithTag("setup-reps-PUSH_UP").assertExists()
         rule.onNodeWithTag("setup-capability-PISTOL_SQUAT").assertExists()
-        rule.onNodeWithTag("setup-capability-PULL_UP").assertDoesNotExist()
-        rule.onNodeWithTag("setup-capability-DIP").assertDoesNotExist()
+        rule.onNodeWithTag("setup-reps-PULL_UP").assertDoesNotExist()
+        rule.onNodeWithTag("setup-reps-DIP").assertDoesNotExist()
     }
 
     // ── PRIORITIES ─────────────────────────────────────────────────────────────

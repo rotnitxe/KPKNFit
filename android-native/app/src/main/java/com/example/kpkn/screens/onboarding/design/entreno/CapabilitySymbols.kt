@@ -167,7 +167,7 @@ private fun CapabilityCell(
 
 /** Tres segmentos: 1, 2 o 3 encendidos según el nivel; tocar uno fija ese nivel. Cada objetivo mide 48 × 48 dp. */
 @Composable
-private fun LevelSegments(
+internal fun LevelSegments(
     skill: CapabilitySkill,
     level: CapabilityLevel?,
     reducedMotion: Boolean,
@@ -207,18 +207,23 @@ private fun LevelSegments(
 
 // ---------------------------------------------------------------- la figura
 
+/**
+ * La figura de un ejercicio. Con [running] en falso queda en su cuadro de reposo aunque su nivel se mueva: así, en el paso de
+ * repeticiones, solo corre la fila tocada por última vez.
+ */
 @Composable
-private fun CapabilityFigure(
+internal fun CapabilityFigure(
     skill: CapabilitySkill,
     level: CapabilityLevel?,
     clock: State<Float>,
     reducedMotion: Boolean,
     modifier: Modifier = Modifier,
+    running: Boolean = true,
 ) {
     val pose = remember { FigPose() }
     val front = remember { FigFrontPose() }
     val pen = remember { FigPen() }
-    val moving = !reducedMotion && CapabilityMotion.isMoving(level)
+    val moving = !reducedMotion && running && CapabilityMotion.isMoving(level)
     Canvas(modifier) {
         val depth = if (moving) CapabilityMotion.depthAt(level, clock.value) else CapabilityMotion.restDepth(level)
         val stage = CapabilityPoses.stageOf(skill)
