@@ -304,10 +304,11 @@ internal object SetupPlanReveals {
         .flatMap { it.weeks.asSequence() }
         .firstOrNull { it.executionKind != WeekExecutionKind.REST && it.sessions.isNotEmpty() }
 
-    /** Los días de la semana tipo, en el orden de la semana (1 = lunes). */
+    /** Los días de la semana tipo, en el orden de la semana: desde el día de inicio del programa (1 = lunes). */
     fun weekOf(program: Program): List<SetupPlanRevealDay> {
         val sessions = firstTrainingWeek(program)?.sessions.orEmpty()
         val singleMain = sessions.count { it.isMainSession } == 1
+        val inicio = program.startDay?.takeIf { it in 1..7 } ?: 1
         return sessions.mapNotNull { session ->
             val day = dayOf(session) ?: return@mapNotNull null
             SetupPlanRevealDay(
@@ -318,7 +319,7 @@ internal object SetupPlanReveals {
                 isMain = singleMain && session.isMainSession,
                 place = session.placeId?.let { id -> TrainingPlace.entries.firstOrNull { it.name == id } },
             )
-        }.sortedBy { it.day }
+        }.sortedBy { Math.floorMod(it.day - inicio, 7) }
     }
 
     fun dayOf(session: Session): Int? =

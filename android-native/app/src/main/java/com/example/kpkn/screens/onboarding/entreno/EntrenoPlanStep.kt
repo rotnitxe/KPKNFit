@@ -23,6 +23,7 @@ import com.example.kpkn.screens.onboarding.SetupRetryOperation
 import com.example.kpkn.screens.onboarding.SetupTrainingPath
 import com.example.kpkn.screens.onboarding.SetupWizardState
 import com.example.kpkn.screens.onboarding.SetupWizardViewModel
+import com.example.kpkn.screens.onboarding.effectiveWeekStart
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardTypography
 import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanCarousel
@@ -164,6 +165,8 @@ internal fun EntrenoPlanStep(state: SetupWizardState, vm: SetupWizardViewModel) 
                 detailId = null
             },
             onClose = { detailId = null },
+            // «Tu semana» del detalle empieza en el día de inicio del alta (el día con más energía mientras no se mueva).
+            weekStartDay = draft.effectiveWeekStart(),
         )
     }
 }

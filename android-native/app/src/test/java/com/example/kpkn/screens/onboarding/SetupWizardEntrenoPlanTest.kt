@@ -148,7 +148,8 @@ class SetupWizardEntrenoPlanTest {
         assertEquals(generatedId, reveal.planId)
         assertTrue(reveal.generated)
         assertEquals(SetupPlanReveals.KICKER_TAILORED, reveal.kicker)
-        assertEquals("la semana del revelado son los días elegidos", listOf(1, 2, 4, 5), reveal.week.map { it.day })
+        // La semana empieza en el día con más energía (jueves): el revelado ordena sus días desde ahí.
+        assertEquals("la semana del revelado son los días elegidos, desde el día con más energía", listOf(4, 5, 1, 2), reveal.week.map { it.day })
         assertEquals("la principal cae el día con más energía", listOf(4), reveal.week.filter { it.isMain }.map { it.day })
         assertTrue("3–5 razones: ${reveal.reasons}", reveal.reasons.size in 3..5)
         assertNull("sin elegir, PLAN no deja continuar", swept.draft.selectedCatalogId)
