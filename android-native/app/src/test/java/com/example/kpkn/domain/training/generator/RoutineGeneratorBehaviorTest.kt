@@ -124,8 +124,7 @@ class RoutineGeneratorBehaviorTest {
 
     @Test
     fun a_priority_muscle_never_loses_volume_and_gains_it_when_it_has_room() {
-        // Espalda sube dorsales y trapecio (el antiguo símbolo «Trapecio» va incluido en ella): por eso es una lista de pares.
-        val cases = listOf(
+        val cases = mapOf(
             MuscleSymbol.CHEST to "Pectorales",
             MuscleSymbol.BICEPS to "Bíceps",
             MuscleSymbol.TRICEPS to "Tríceps",
@@ -134,7 +133,6 @@ class RoutineGeneratorBehaviorTest {
             MuscleSymbol.QUADS to "Cuádriceps",
             MuscleSymbol.ABS to "Abdomen",
             MuscleSymbol.BACK to "Dorsales",
-            MuscleSymbol.BACK to "Trapecio",
         )
         val base = RoutineGenerator.generate(s.request(s.gym, RoutineMode.GENERAL_STRENGTH_MUSCLE, RoutineLevel.INTERMEDIATE, 4, 60))
         cases.forEach { (symbol, muscle) ->
@@ -148,6 +146,23 @@ class RoutineGeneratorBehaviorTest {
             // Con margen hasta su objetivo semanal (MAV) la prioridad tiene que notarse.
             if (before <= target - 2) assertTrue("$muscle no subió ($before → $after) con margen hasta su objetivo $target", after > before)
         }
+    }
+
+    @Test
+    fun back_priority_gives_the_two_pull_extras_first_and_the_trapezius_as_third_hole() {
+        // Ningún escenario llega a tres huecos extra (`applyPriorities` añade como mucho dos por objetivo): se comprueban
+        // los datos del objetivo, que es donde vive la decisión.
+        val back = PriorityTargets.of(MuscleSymbol.BACK)
+        assertTrue(Muscles.TRAPS in back.muscles)
+        assertTrue(RoutinePattern.TRAPS in back.patterns)
+        assertEquals(
+            listOf(
+                RoutinePattern.VERTICAL_PULL to ItemRole.ACCESSORY,
+                RoutinePattern.HORIZONTAL_PULL to ItemRole.ACCESSORY,
+                RoutinePattern.TRAPS to ItemRole.ISOLATION,
+            ),
+            back.extra,
+        )
     }
 
     @Test

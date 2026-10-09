@@ -170,15 +170,16 @@ internal object PriorityTargets {
             listOf(RoutinePattern.CHEST_ISOLATION to ItemRole.ISOLATION, RoutinePattern.HORIZONTAL_PUSH to ItemRole.ACCESSORY),
         )
         // Espalda cubre dorsales y trapecio (el antiguo símbolo «Trapecio» salió de la cuadrícula). El trapecio entra
-        // como segundo hueco extra, tras el vertical, para que cada sesión de tracción dé sitio a los dos.
+        // como TERCER hueco extra: los dos primeros siguen siendo tracción vertical y horizontal, así nadie pierde el remo
+        // extra que ya tenía. `applyPriorities` añade como mucho dos huecos por objetivo: hoy este tercero solo refuerza
+        // los huecos de trapecio que ya tenga la sesión.
         com.example.kpkn.domain.onboarding.MuscleSymbol.BACK -> t(
             setOf(Muscles.LATS, Muscles.RHOMBOIDS, Muscles.TRAPS),
             listOf(RoutinePattern.HORIZONTAL_PULL, RoutinePattern.VERTICAL_PULL, RoutinePattern.TRAPS),
             listOf(
                 RoutinePattern.VERTICAL_PULL to ItemRole.ACCESSORY,
-                RoutinePattern.TRAPS to ItemRole.ISOLATION,
                 RoutinePattern.HORIZONTAL_PULL to ItemRole.ACCESSORY,
-                RoutinePattern.CARRY to ItemRole.CARRY,
+                RoutinePattern.TRAPS to ItemRole.ISOLATION,
             ),
         )
         com.example.kpkn.domain.onboarding.MuscleSymbol.SHOULDERS -> t(
