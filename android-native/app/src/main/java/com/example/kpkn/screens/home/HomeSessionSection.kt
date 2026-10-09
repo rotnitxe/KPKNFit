@@ -56,6 +56,8 @@ import com.example.kpkn.domain.training.CompetitionHomePhase
 import com.example.kpkn.domain.training.HomeCompetitionState
 import com.example.kpkn.screens.sessioneditor.components.SessionBackgroundLayer
 import com.example.kpkn.ui.components.SectionHeader
+import com.example.kpkn.ui.tour.TourAnchors
+import com.example.kpkn.ui.tour.tourAnchor
 
 @Composable
 fun HomeSessionSection(
@@ -375,6 +377,7 @@ private fun SessionCard(
                 Modifier
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+                    .tourAnchor(TourAnchors.HOME_SESION)
                     .clickable { musclesExpanded = !musclesExpanded }
                     .padding(horizontal = 12.dp, vertical = 10.dp)
             ) {
