@@ -460,9 +460,10 @@ data class SetupWizardDraft(
     /** Fila editorial abierta por paso (M4): mientras `editing` no se cierre, el paso no avanza. */
     val stepEditors: Map<SetupStepId, SetupStepEditorState> = emptyMap(),
     /**
-     * Paso al que volver cuando una edición arrancada desde la revisión final
-     * se confirma (o se guarda y sale). El VM lo persiste con el borrador para
-     * no perder la intención al reanudar; null = avance normal.
+     * Paso más avanzado al que volver tras editar o retroceder (el VM lo fija en
+     * `editStep` y `goBack`). Al confirmar el paso editado, el cursor salta al primero
+     * que necesite atención antes de él, o vuelve aquí. Conserva el nombre porque los
+     * borradores guardados lo leen; se persiste con el borrador y null = avance normal.
      */
     val reviewReturnStep: SetupStepId? = null,
     // ── Entreno v2 ──────────────────────────────────────────────────────────
@@ -729,6 +730,65 @@ private fun SetupWizardDraft.moveCursorTo(step: SetupStepId?): SetupWizardDraft 
             stage = question?.let(WizChatGraph::stageFor) ?: wizChat.stage,
             terminal = step == SetupStepId.REVIEW_ACTIVATE,
             revision = wizChat.revision + 1,
+        ),
+    )
+}
+
+/**
+ * Intención de regreso al salir del cursor hacia [target] (editar un paso o retroceder). Solo si [target] queda ANTES del cursor:
+ * la intención pasa a ser el paso más avanzado entre la que ya había y el cursor actual. Atrás nunca la borra.
+ */
+internal fun SetupWizardDraft.withReturnIntentBefore(target: SetupStepId?): SetupWizardDraft {
+    if (target == null) return this
+    val route = SetupStepGraph.stepIds(stepContext())
+    val cursor = stepProgress.currentStepId
+    val cursorIndex = route.indexOf(cursor)
+    val targetIndex = route.indexOf(target)
+    if (cursorIndex < 0 || targetIndex < 0 || targetIndex >= cursorIndex) return this
+    val existing = reviewReturnStep?.takeIf { it in route }
+    val keepExisting = existing != null && route.indexOf(existing) > cursorIndex
+    return copy(reviewReturnStep = if (keepExisting) existing else cursor)
+}
+
+/** Editando antes de la intención de regreso: confirmar guarda el cambio y conserva lo que sigue (aviso y «Guardar cambio»). */
+fun SetupWizardDraft.keepsLaterAnswers(): Boolean {
+    val target = reviewReturnStep ?: return false
+    val route = SetupStepGraph.stepIds(stepContext())
+    val cursorIndex = route.indexOf(stepProgress.currentStepId)
+    return cursorIndex >= 0 && route.indexOf(target) > cursorIndex
+}
+
+/**
+ * Tras confirmar [editedStep] con una intención de regreso ([reviewReturnStep]): el cursor salta al primer paso de la ruta que de
+ * verdad necesite revisión antes de volver a la intención (sin respuesta, marcado para revisar o un hito con su bloque abierto).
+ * Si no queda ninguno, el cursor vuelve al paso de la intención y la intención se consume. Sin intención, el borrador no cambia.
+ * La intención se consume sin mover el cursor si el paso de retorno o el editado ya no están en la ruta, si el editado no es
+ * anterior al de retorno o si no valida (la confirmación deja el cursor donde lo dejó).
+ */
+fun SetupWizardDraft.resumeAfterEdit(editedStep: SetupStepId): SetupWizardDraft {
+    val target = reviewReturnStep ?: return this
+    val consumed = copy(reviewReturnStep = null)
+    val context = consumed.stepContext()
+    val route = SetupStepGraph.stepIds(context)
+    val editedIndex = route.indexOf(editedStep)
+    val targetIndex = route.indexOf(target)
+    if (targetIndex < 0 || editedIndex < 0 || editedIndex >= targetIndex) return consumed
+    if (SetupWizardValidation.validateStep(consumed, editedStep).any { it.isBlocking }) return consumed
+    val attention = SetupStepGraph.nextNeedingAttention(
+        after = editedStep,
+        until = target,
+        context = context,
+        answers = consumed.stepProgress.answers,
+        pendingReview = consumed.stepProgress.pendingReview,
+    )
+    if (attention != null) return consumed.moveCursorTo(attention).copy(reviewReturnStep = target)
+    val landed = consumed.moveCursorTo(target)
+    // La revisión no pinta pregunta legacy (`legacyQuestionRenders = false`): su espejo se fija como en la confirmación normal.
+    if (target != SetupStepId.REVIEW_ACTIVATE) return landed
+    return landed.copy(
+        wizChat = landed.wizChat.copy(
+            currentQuestionId = WizChatQuestionId.REVIEW,
+            stage = WizChatGraph.stageFor(WizChatQuestionId.REVIEW),
         ),
     )
 }
