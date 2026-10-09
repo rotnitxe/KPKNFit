@@ -3,7 +3,6 @@ package com.example.kpkn.screens.onboarding.design.entreno.plan
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.lerp
 import com.example.kpkn.domain.onboarding.TrainingGoalProfile
 import com.example.kpkn.screens.onboarding.design.eOutBack
 import com.example.kpkn.screens.onboarding.design.entreno.DEG
@@ -13,7 +12,6 @@ import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPen
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolStroke
 import com.example.kpkn.screens.onboarding.design.entreno.TAU
-import com.example.kpkn.screens.onboarding.design.entreno.dumbbell
 import com.example.kpkn.screens.onboarding.design.entreno.fainter
 import com.example.kpkn.screens.onboarding.design.entreno.frontFigure
 import com.example.kpkn.screens.onboarding.design.entreno.ik
@@ -81,7 +79,7 @@ private fun buildGoalArt(profile: TrainingGoalProfile, lk: Float): GoalArt = whe
     TrainingGoalProfile.STRENGTH_MUSCLE -> StrengthMuscleArt(lk)
     TrainingGoalProfile.STRENGTH_CARDIO -> StrengthCardioArt(lk)
     TrainingGoalProfile.FUNCTIONAL_HEALTH -> FunctionalArt(lk)
-    TrainingGoalProfile.POWERBUILDING -> PowerbuildingArt(lk)
+    TrainingGoalProfile.POWERBUILDING -> PowerbuildingFlexArt(lk)
     TrainingGoalProfile.CALISTHENICS -> CalisthenicsArt(lk)
     TrainingGoalProfile.BODYBUILDING -> BodybuildingArt(lk)
     TrainingGoalProfile.WEIGHTLIFTING -> WeightliftingArt(lk)
@@ -413,50 +411,6 @@ internal class FunctionalArt(lk: Float) : GoalArt(SymbolPalette.ok, period = 1.8
                 line(46f, 4.5f, 49.5f, 2.5f, accent.fainter(burst), mid)
             }
             frontFigure(pose(t), 3.4f, ink, bold)
-        }
-    }
-}
-
-// ---------------------------------------------------------------- Powerbuilding
-
-/**
- * Una barra arriba y una mancuerna abajo que se turnan: sube la barra (fuerza) y, después, la mancuerna hace su curl
- * (estética). El acento pasa de una a otra.
- */
-internal class PowerbuildingArt(lk: Float) : GoalArt(SymbolPalette.energia, period = 3.2f, restT = 0.55f, lk = lk) {
-    /** Elevación de la barra (0 a 1) en su turno, la primera mitad del bucle. */
-    internal fun barLift(t: Float): Float = riseHoldFall(t, 0.15f, 0.7f, 0.9f, 1.45f)
-
-    /** Elevación y giro de la mancuerna (0 a 1) en su turno, la segunda mitad. */
-    internal fun curl(t: Float): Float = riseHoldFall(t, 1.75f, 2.3f, 2.55f, 3.05f)
-
-    /** 0 = el acento está en la barra, 1 = en la mancuerna. */
-    internal fun focus(t: Float): Float = smooth(seg(t, 1.5f, 1.7f)) - smooth(seg(t, 3.0f, 3.2f))
-
-    override fun drawStatic(pen: SymbolPen) = Unit
-
-    override fun drawDynamic(pen: SymbolPen, t: Float) {
-        with(pen) {
-            val fo = focus(t)
-            val barColor = lerp(accent, ink, fo)
-            val dbColor = lerp(ink, accent, fo)
-            val bl = barLift(t)
-            val by = 19f - 6f * bl
-            val f = 1.4f * bl
-            // Barra (arriba).
-            curve(2f, by + f, 32f, by - f, 62f, by + f, ink, mid)
-            for (m in floatArrayOf(1f, -1f)) {
-                val px = if (m > 0f) 16f else 48f
-                val py = sagY(px, 2f, 62f, by, f)
-                rotated(sagDeg(px, 2f, 62f, f) , px, py) {
-                    plateBox(px, py, m, 5f, 10.5f, 12f, 2.2f, barColor, mid)
-                    plateBox(px, py, m, -1.5f, 2.5f, 8.5f, 1.8f, barColor, mid)
-                    plateBox(px, py, m, -6f, -3.5f, 5f, 1.4f, ink, mid)
-                }
-            }
-            // Mancuerna (abajo): sube un poco y gira en su curl.
-            val c = curl(t)
-            dumbbell(32f, 49.5f - 4.5f * c, 17.5f, -14f * c, dbColor, ink, mid)
         }
     }
 }
