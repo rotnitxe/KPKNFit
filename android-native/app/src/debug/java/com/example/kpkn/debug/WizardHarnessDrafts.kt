@@ -7,6 +7,7 @@ import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.domain.onboarding.CapabilityLevel
 import com.example.kpkn.domain.onboarding.CapabilitySkill
 import com.example.kpkn.domain.onboarding.CardioChoice
+import com.example.kpkn.domain.onboarding.CompetitionAnswer
 import com.example.kpkn.domain.onboarding.EquipmentSymbolId
 import com.example.kpkn.domain.onboarding.LiftMark
 import com.example.kpkn.domain.onboarding.MuscleSymbol
@@ -30,6 +31,7 @@ import com.example.kpkn.screens.onboarding.selectedEquipmentSymbols
 import com.example.kpkn.screens.onboarding.stepContext
 import com.example.kpkn.screens.onboarding.touchStep
 import com.example.kpkn.screens.onboarding.withCapability
+import com.example.kpkn.screens.onboarding.withCompetition
 import com.example.kpkn.screens.onboarding.withDayPlace
 import com.example.kpkn.screens.onboarding.withFeelings
 import com.example.kpkn.screens.onboarding.withFreshestDay
@@ -256,6 +258,8 @@ internal fun SetupWizardDraft.answeredAs(step: SetupStepId, persona: HarnessPers
             ?: ((selectedEquipmentSymbols() - EquipmentSymbolId.BODYWEIGHT_ONLY + persona.addMaterial) - persona.dropMaterial),
     )
     SetupStepId.GOAL -> withGoalProfile(persona.goal)
+    // C4a: la persona de powerlifting intermedio pasa por ¿Compites? y, sin esta respuesta, se queda sin responder.
+    SetupStepId.COMPETITION -> withCompetition(CompetitionAnswer.NO)
     SetupStepId.FRESH_DAY -> withFreshestDay(persona.freshDay)
     SetupStepId.WEEKDAYS -> persona.dayPlaces.entries.fold(withWeekdays(persona.weekdays)) { draft, (day, place) ->
         draft.withDayPlace(day, place)

@@ -182,7 +182,7 @@ enum class ProgramSource(val label: String) {
 @Serializable
 enum class CompetitionAnswer(val label: String) {
     WITH_DATE("Sí, tengo fecha"),
-    NO_DATE("Compito, pero sin fecha"),
+    NO_DATE("Sí, sin fecha"),
     NO("No compito"),
 }
 
