@@ -18,6 +18,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -65,9 +66,9 @@ import com.example.kpkn.screens.programs.ProtocolDetailSheet
 import com.example.kpkn.screens.programs.TrainingMaxWizard
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.ui.theme.AppThemeMode
-import com.example.kpkn.ui.theme.RingBlue
-import com.example.kpkn.ui.theme.RingRed
-import com.example.kpkn.ui.theme.RingYellow
+import com.example.kpkn.ui.components.rings.KpknTowerRings
+import com.example.kpkn.ui.components.rings.RingChannel
+import com.example.kpkn.ui.components.rings.TowerRingValues
 import com.example.kpkn.ui.components.KpknGlass
 import com.example.kpkn.ui.components.KpknAlertDialog
 import kotlinx.coroutines.launch
@@ -874,42 +875,19 @@ private fun MiniRingsWidget(
     coverage: com.example.kpkn.domain.onboarding.RingsCoverage = com.example.kpkn.domain.onboarding.RingsCoverage.NO_DATA,
 ) {
     val free = com.example.kpkn.ui.entitlements.LocalPlan.current == com.example.kpkn.domain.entitlements.PlanLevel.FREE
-    val indices = if (free) listOf(1) else listOf(0, 1, 2)
     val channels = listOf(RecoveryChannelId.MUSCULAR, RecoveryChannelId.SYSTEM, RecoveryChannelId.STRUCTURE)
-    val colors = if (hasActiveProgram) {
-        listOf(RingRed, RingBlue, RingYellow)
-    } else {
-        listOf(Color(0xFF666666), Color(0xFF888888), Color(0xFFAAAAAA))
-    }
-    val ringColors = indices.map { colors[it] }
     val allProgress = listOf(muscularProgress, sncProgress, columnaProgress)
-    val progressValues = indices.map { if (coverage.channel(channels[it]).hasData) allProgress[it].coerceIn(0f, 1f) else 0f }
-    Canvas(modifier = modifier.fillMaxWidth().height(38.dp)) {
-        val r = size.height * 0.38f
-        val strokeW = r * 0.28f
-        val gap = r * 0.35f
-        val diameter = r * 2f
-        val spacing = diameter - gap
-        val totalWidth = diameter + spacing * (indices.size - 1)
-        val startX = (size.width - totalWidth) / 2f + r
-        val cy = size.height / 2f
-        val centers = indices.indices.map { Offset(startX + spacing * it, cy) }
-        for (i in centers.indices) {
-            val c = centers[i]
-            val color = ringColors[i]
-            val progress = progressValues[i]
-            drawCircle(color.copy(alpha = 0.15f), r, c, style = Stroke(strokeW))
-            drawArc(
-                color,
-                -90f,
-                360f * progress,
-                false,
-                Offset(c.x - r, c.y - r),
-                Size(r * 2f, r * 2f),
-                style = Stroke(strokeW),
-            )
-        }
+    // Sin datos el canal queda sin calibrar (pista discontinua), sin afirmar un valor.
+    fun percent(i: Int): Int? = if (coverage.channel(channels[i]).hasData) {
+        (allProgress[i] * 100).toInt().coerceIn(0, 100)
+    } else {
+        null
     }
+    KpknTowerRings(
+        values = TowerRingValues(columna = percent(2), musculos = percent(0), energia = percent(1)),
+        modifier = modifier.fillMaxWidth().height(40.dp).alpha(if (hasActiveProgram) 1f else 0.5f),
+        visible = if (free) setOf(RingChannel.ENERGIA) else RingChannel.entries.toSet(),
+    )
 }
 
 @Composable

@@ -3,17 +3,15 @@ package com.example.kpkn.screens.home
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
@@ -24,11 +22,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.semantics.contentDescription
@@ -36,7 +30,10 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import kotlin.math.*
 import com.example.kpkn.ui.components.KpknAlertDialog
-import com.example.kpkn.ui.theme.RingRed
+import com.example.kpkn.ui.components.rings.KpknRingColors
+import com.example.kpkn.ui.components.rings.KpknTowerRings
+import com.example.kpkn.ui.components.rings.RingChannel
+import com.example.kpkn.ui.components.rings.TowerRingValues
 import com.example.kpkn.data.models.AugeSnapshot
 import com.example.kpkn.data.models.RecoveryChannelId
 import com.example.kpkn.data.models.RecoveryDashboard
@@ -46,13 +43,13 @@ import com.example.kpkn.domain.onboarding.RingsCoverageSource
 
 // ─── Ring Constants ──────────────────────────────────────────────────────────
 
+/** Colores de los anillos en el orden de las etiquetas (Músculos, Energía, Columna): los de marca de la torre. */
 internal val RingColors = listOf(
-    Color(0xFFC96B5C), // Músculos — terracota
-    Color(0xFF4FA3A5), // Energía — turquesa grisáceo
-    Color(0xFF9A86C8), // Columna — lavanda apagado
+    KpknRingColors.musculos,
+    KpknRingColors.energia,
+    KpknRingColors.columna,
 )
 private val RingLabels = listOf("Músculos", "Energía", "Columna")
-private val AugeRingDrainFill = RingRed.copy(alpha = 0.32f)
 
 @Composable
 fun HomeRingsSection(
@@ -180,15 +177,20 @@ fun HomeRingsSection(
     val estimated = androidx.compose.ui.res.stringResource(com.example.kpkn.R.string.free_ring_estimate)
     val hasData = coverage.channel(RecoveryChannelId.SYSTEM).hasData
     val score = if (!loading && hasData) progress.coerceIn(0f, 1f) else 0f
+    // Sin datos no hay valor: el anillo sale con pista discontinua («sin calibrar»), no como un 0 % lleno de vacío.
+    val energy: Int? = when {
+        loading -> 0
+        hasData -> (score * 100).toInt()
+        else -> null
+    }
     Column(modifier.fillMaxWidth().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(label, style = MaterialTheme.typography.titleMedium)
         Box(Modifier.size(170.dp).semantics(mergeDescendants = true) { contentDescription = "$label: ${if (hasData) "${(score * 100).toInt()}%" else noData}" }, contentAlignment = Alignment.Center) {
-            Canvas(Modifier.fillMaxSize()) {
-                val stroke = 14.dp.toPx(); val color = RingColors[1]
-                drawCircle(color.copy(alpha = .18f), radius = size.minDimension / 2 - stroke, style = Stroke(stroke))
-                drawArc(color, startAngle = -90f, sweepAngle = score * 360, useCenter = false,
-                    topLeft = Offset(stroke, stroke), size = Size(size.width - stroke * 2, size.height - stroke * 2), style = Stroke(stroke, cap = StrokeCap.Round))
-            }
+            KpknTowerRings(
+                values = TowerRingValues(columna = null, musculos = null, energia = energy),
+                modifier = Modifier.fillMaxSize(),
+                visible = setOf(RingChannel.ENERGIA),
+            )
             if (loading) CircularProgressIndicator() else Text(if (hasData) "${(score * 100).toInt()}%" else noData, style = MaterialTheme.typography.headlineSmall)
         }
         Text(estimated, style = MaterialTheme.typography.bodySmall)
@@ -204,17 +206,22 @@ private fun CombinedRingsView(
     coverage: RingsCoverage? = null,
     onChannelClick: (RecoveryChannelId) -> Unit = {},
 ) {
-    val density = LocalDensity.current
-    var ringsSize by remember { mutableStateOf(IntSize.Zero) }
     val channelIds = listOf(
         RecoveryChannelId.MUSCULAR,
         RecoveryChannelId.SYSTEM,
         RecoveryChannelId.STRUCTURE,
     )
-    // Un canal sin datos no dibuja anillo lleno: solo la pista, sin afirmar un 100 %.
-    val drawValues = progressValues.mapIndexed { i, value ->
-        if (coverage?.channel(channelIds[i])?.hasData == false) 0f else value.coerceIn(0f, 1f)
+    // Un canal sin datos no tiene valor: la torre lo muestra sin calibrar (pista discontinua), sin afirmar un 100 %.
+    fun towerPercent(i: Int): Int? = when {
+        isLoading -> 0
+        coverage?.channel(channelIds[i])?.hasData == false -> null
+        else -> (progressValues[i] * 100).toInt().coerceIn(0, 100)
     }
+    val towerValues = TowerRingValues(
+        columna = towerPercent(2),
+        musculos = towerPercent(0),
+        energia = towerPercent(1),
+    )
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -228,7 +235,6 @@ private fun CombinedRingsView(
                     Modifier
                         .height(hostHeight)
                         .fillMaxWidth()
-                        .onSizeChanged { ringsSize = it }
                         .semantics(mergeDescendants = isLoading) {
                             val desc = if (isLoading) {
                                 "Calculando recuperación"
@@ -248,37 +254,24 @@ private fun CombinedRingsView(
                             stateDescription = desc
                         },
                 ) {
-                    AugeRingsCanvas(drawValues[0], drawValues[1], drawValues[2], ringColors)
+                    KpknTowerRings(
+                        values = towerValues,
+                        modifier = Modifier.fillMaxSize().alpha(if (hasActiveProgram || isLoading) 1f else 0.5f),
+                        onRingTap = if (isLoading) null else { channel ->
+                            onChannelClick(
+                                when (channel) {
+                                    RingChannel.MUSCULOS -> RecoveryChannelId.MUSCULAR
+                                    RingChannel.ENERGIA -> RecoveryChannelId.SYSTEM
+                                    RingChannel.COLUMNA -> RecoveryChannelId.STRUCTURE
+                                },
+                            )
+                        },
+                    )
                     if (isLoading) {
                         CircularProgressIndicator(
                             modifier = Modifier.align(Alignment.Center).size(28.dp),
                             strokeWidth = 2.dp,
                         )
-                    } else if (ringsSize != IntSize.Zero) {
-                        val bloomPx = with(density) { AugeRingBloomFar.toPx() }
-                        val layout = augeRingsLayout(
-                            width = ringsSize.width.toFloat(),
-                            height = ringsSize.height.toFloat(),
-                            bloomPx = bloomPx,
-                        )
-                        val hitRadius = layout.radius + with(density) { 12.dp.toPx() }
-                        channelIds.forEachIndexed { i, channel ->
-                            val c = layout.centers[i]
-                            Box(
-                                modifier = Modifier
-                                    .offset { IntOffset((c.x - hitRadius).toInt(), (c.y - hitRadius).toInt()) }
-                                    .size(with(density) { (hitRadius * 2).toInt().toDp() })
-                                    .clip(CircleShape)
-                                    .clickable(
-                                        interactionSource = remember(channel) { MutableInteractionSource() },
-                                        indication = null,
-                                    ) { onChannelClick(channel) }
-                                    .semantics {
-                                        contentDescription =
-                                            "Ring de ${RingLabels[i]}. Toca para ver el detalle."
-                                    },
-                            )
-                        }
                     }
                 }
             }
@@ -426,70 +419,6 @@ internal fun SingleRingCanvas(
     }
 }
 
-@Composable
-internal fun AugeRingsCanvas(
-    mp: Float,
-    sp: Float,
-    cp: Float,
-    ringColors: List<Color> = RingColors,
-    drainFractions: List<Float>? = null,
-    drainColor: Color = AugeRingDrainFill,
-) {
-    val values = listOf(mp, sp, cp)
-    Canvas(
-        Modifier
-            .fillMaxSize()
-            .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen },
-    ) {
-        val layout = augeRingsLayout(size.width, size.height, AugeRingBloomFar.toPx())
-        val radius = layout.radius
-        val rings = layout.centers.mapIndexed { index, center ->
-            Triple(center, ringColors[index], values[index].coerceIn(0f, 1f))
-        }
-        val drains = drainFractions ?: emptyList()
-
-        rings.forEach { (center, color, _) ->
-            drawAugeRingTrack(center, radius, color)
-        }
-        rings.forEachIndexed { index, (center, _, _) ->
-            drawAugeRingDrainFill(
-                center = center,
-                radius = radius,
-                drainFraction = drains.getOrElse(index) { 0f },
-                color = drainColor,
-            )
-        }
-        rings.forEach { (center, color, progress) ->
-            drawAugeRingBlooms(center, radius, color, progress, BlendMode.Plus)
-        }
-        rings.forEach { (center, color, progress) ->
-            drawAugeRingCore(center, radius, color, progress)
-        }
-    }
-}
-
-internal fun DrawScope.drawAugeRingDrainFill(
-    center: Offset,
-    radius: Float,
-    drainFraction: Float,
-    color: Color,
-) {
-    val clamped = drainFraction.coerceIn(0f, 1f)
-    if (clamped <= 0f) return
-    val inner = (radius - AugeRingCoreStroke.toPx() * 2f).coerceAtLeast(radius * 0.72f)
-    val topLeft = Offset(center.x - inner, center.y - inner)
-    val arcSize = Size(inner * 2f, inner * 2f)
-    drawArc(
-        color = color,
-        startAngle = -90f,
-        sweepAngle = 360f * clamped,
-        useCenter = true,
-        topLeft = topLeft,
-        size = arcSize,
-        blendMode = BlendMode.SrcOver,
-    )
-}
-
 internal fun DrawScope.drawAugeRingTrack(center: Offset, radius: Float, color: Color) {
     drawCircle(
         color = color.copy(alpha = 0.16f),
@@ -613,7 +542,7 @@ private fun RingsInfoDialog(onDismiss: () -> Unit) {
                     "1. RING Músculos:",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Black,
-                    color = com.example.kpkn.ui.theme.RingRed,
+                    color = KpknRingColors.musculos,
                 )
                 Text(
                     "Muestra el promedio del estado de todos tus músculos, puede entenderse de dos formas, qué tan recuperados están o qué tan preparados están para una sesión de entrenamiento. El anillo representa el estado general de todos tus músculos, si deseas corregir el porcentaje porque no representa tu estado real, puedes dirigirte al músculo en específico y corregir.",
@@ -625,7 +554,7 @@ private fun RingsInfoDialog(onDismiss: () -> Unit) {
                     "2. RING Energía:",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Black,
-                    color = com.example.kpkn.ui.theme.RingBlue,
+                    color = KpknRingColors.energia,
                 )
                 Text(
                     "Es tu sistema nervioso estructural: la carga neural de entrenar más cómo te sientes. No pedimos horas de sueño; si dormiste mal, eso ya llega en esta sensación.",
@@ -637,7 +566,7 @@ private fun RingsInfoDialog(onDismiss: () -> Unit) {
                     "3. RING Columna:",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Black,
-                    color = com.example.kpkn.ui.theme.RingYellow,
+                    color = KpknRingColors.columna,
                 )
                 Text(
                     "Mezcla la carga axial reciente (sentadilla, peso muerto y similares), el piso articular y el estado de dorsales, erectores/lumbar y trapecio. Si esos músculos están cansados, la columna queda más expuesta. No es una medición clínica.",
