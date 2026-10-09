@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -105,12 +106,12 @@ private const val SHAKE_MILLIS = 300
 internal object MuscleGridLogic {
     const val COLUMNS = 3
 
-    /** Orden de lectura de arriba abajo del cuerpo: tronco, brazos, piernas. */
+    /** Orden de lectura de arriba abajo del cuerpo: tronco, brazos, piernas (3 + 3 + 3 + 2). */
     val gridOrder: List<MuscleSymbol> = listOf(
         MuscleSymbol.CHEST, MuscleSymbol.BACK, MuscleSymbol.SHOULDERS,
-        MuscleSymbol.TRAPS, MuscleSymbol.BICEPS, MuscleSymbol.TRICEPS,
-        MuscleSymbol.FOREARMS, MuscleSymbol.ABS, MuscleSymbol.GLUTES,
-        MuscleSymbol.QUADS, MuscleSymbol.HAMSTRINGS, MuscleSymbol.CALVES,
+        MuscleSymbol.BICEPS, MuscleSymbol.TRICEPS, MuscleSymbol.FOREARMS,
+        MuscleSymbol.ABS, MuscleSymbol.GLUTES, MuscleSymbol.QUADS,
+        MuscleSymbol.HAMSTRINGS, MuscleSymbol.CALVES,
     )
 
     enum class Tap { TOGGLE, REJECT }
@@ -134,10 +135,10 @@ internal object MuscleGridLogic {
 }
 
 /**
- * Cuadrícula de 3 columnas con los 12 músculos populares. [selected] es lo elegido, [suggested] la preselección que
- * propone la disciplina (solo se rotula «Sugerido» hasta que la persona toca ese músculo: la elección es suya) y
- * [maxSelected] el tope. Con el tope alcanzado los no elegidos se atenúan y, al tocarlos, hacen un breve «no» sin
- * llamar a [onToggle]. [onToggle] se llama al elegir o quitar un músculo.
+ * Cuadrícula de 3 columnas con los 11 músculos populares; la última fila (de 2) va centrada. [selected] es lo elegido,
+ * [suggested] la preselección que propone la disciplina (solo se rotula «Sugerido» hasta que la persona toca ese
+ * músculo: la elección es suya) y [maxSelected] el tope. Con el tope alcanzado los no elegidos se atenúan y, al
+ * tocarlos, hacen un breve «no» sin llamar a [onToggle]. [onToggle] se llama al elegir o quitar un músculo.
  *
  * Marcas de prueba: `setup-muscle-<NAME>` (un `toggleable` con `Role.Checkbox`, objetivo ≥ 48 dp).
  * Con «reducir movimiento» no hay latido ni sacudida: la región elegida queda a una opacidad fija.
@@ -161,6 +162,8 @@ fun MuscleSymbolGrid(
 
     BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
         val labelStyle = rememberGridLabelStyle(constraints.maxWidth)
+        // Ancho de cada celda: tres por fila con un hueco entre cada par. Todas las filas usan el mismo ancho.
+        val cellWidth = (maxWidth - GRID_GAP * (MuscleGridLogic.COLUMNS - 1)) / MuscleGridLogic.COLUMNS
         Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             // Las filas se componen repartidas en cuadros (la primera de golpe y una más por cuadro): ver `rememberProgressiveCount`.
             val rows = remember { MuscleGridLogic.gridOrder.chunked(MuscleGridLogic.COLUMNS) }
@@ -168,8 +171,10 @@ fun MuscleSymbolGrid(
             rows.take(shownRows).forEach { rowItems ->
                 // Se reserva la línea «Sugerido» solo en las filas que traen algún sugerido (es fija: no cambia al tocar).
                 val reserveTag = rowItems.any { it in suggested }
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(GRID_GAP)) {
-                    rowItems.forEach { m ->
+                // Una fila incompleta (la última, de 2) queda centrada con las mismas celdas que las de arriba.
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                    rowItems.forEachIndexed { i, m ->
+                        if (i > 0) Spacer(Modifier.width(GRID_GAP))
                         MuscleCell(
                             muscle = m,
                             isSelected = m in selected,
@@ -190,7 +195,7 @@ fun MuscleSymbolGrid(
                                     MuscleGridLogic.Tap.REJECT -> shakes[m] = (shakes[m] ?: 0) + 1
                                 }
                             },
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier.width(cellWidth),
                         )
                     }
                 }
@@ -207,7 +212,7 @@ private val GRID_GAP = 8.dp
 private const val LONGEST_LABELS = 4
 
 /**
- * El tamaño de letra de los doce nombres, el mismo para todos: 16 sp y, si con letra grande o una pantalla estrecha el
+ * El tamaño de letra de los once nombres, el mismo para todos: 16 sp y, si con letra grande o una pantalla estrecha el
  * nombre más largo no cabe en la celda, baja de a un punto hasta 13 sp (el mínimo del wizard). Así ninguna etiqueta
  * choca con la vecina y las filas no se ven dispares.
  */
@@ -219,7 +224,7 @@ private fun rememberGridLabelStyle(gridWidthPx: Int): TextStyle {
     return remember(gridWidthPx, measurer, base, density) {
         val gapPx = with(density) { GRID_GAP.toPx() }
         val cellPx = (gridWidthPx - gapPx * (MuscleGridLogic.COLUMNS - 1)) / MuscleGridLogic.COLUMNS
-        // Basta medir los nombres más largos: con doce nombres y cuatro tamaños eran hasta cuarenta y ocho mediciones de texto.
+        // Basta medir los nombres más largos: con once nombres y cuatro tamaños eran hasta cuarenta y cuatro mediciones de texto.
         val longest = MuscleSymbol.entries.sortedByDescending { it.label.length }.take(LONGEST_LABELS)
         listOf(16, 15, 14, 13)
             .map { base.copy(fontSize = it.sp) }

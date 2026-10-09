@@ -169,10 +169,17 @@ internal object PriorityTargets {
             listOf(RoutinePattern.HORIZONTAL_PUSH, RoutinePattern.CHEST_ISOLATION),
             listOf(RoutinePattern.CHEST_ISOLATION to ItemRole.ISOLATION, RoutinePattern.HORIZONTAL_PUSH to ItemRole.ACCESSORY),
         )
+        // Espalda cubre dorsales y trapecio (el antiguo símbolo «Trapecio» salió de la cuadrícula). El trapecio entra
+        // como segundo hueco extra, tras el vertical, para que cada sesión de tracción dé sitio a los dos.
         com.example.kpkn.domain.onboarding.MuscleSymbol.BACK -> t(
-            setOf(Muscles.LATS, Muscles.RHOMBOIDS),
-            listOf(RoutinePattern.HORIZONTAL_PULL, RoutinePattern.VERTICAL_PULL),
-            listOf(RoutinePattern.VERTICAL_PULL to ItemRole.ACCESSORY, RoutinePattern.HORIZONTAL_PULL to ItemRole.ACCESSORY),
+            setOf(Muscles.LATS, Muscles.RHOMBOIDS, Muscles.TRAPS),
+            listOf(RoutinePattern.HORIZONTAL_PULL, RoutinePattern.VERTICAL_PULL, RoutinePattern.TRAPS),
+            listOf(
+                RoutinePattern.VERTICAL_PULL to ItemRole.ACCESSORY,
+                RoutinePattern.TRAPS to ItemRole.ISOLATION,
+                RoutinePattern.HORIZONTAL_PULL to ItemRole.ACCESSORY,
+                RoutinePattern.CARRY to ItemRole.CARRY,
+            ),
         )
         com.example.kpkn.domain.onboarding.MuscleSymbol.SHOULDERS -> t(
             setOf(Muscles.DELTS),
@@ -218,11 +225,6 @@ internal object PriorityTargets {
             setOf(Muscles.CALVES),
             listOf(RoutinePattern.CALF),
             listOf(RoutinePattern.CALF to ItemRole.ISOLATION),
-        )
-        com.example.kpkn.domain.onboarding.MuscleSymbol.TRAPS -> t(
-            setOf(Muscles.TRAPS),
-            listOf(RoutinePattern.TRAPS),
-            listOf(RoutinePattern.TRAPS to ItemRole.ISOLATION, RoutinePattern.CARRY to ItemRole.CARRY),
         )
     }
 }

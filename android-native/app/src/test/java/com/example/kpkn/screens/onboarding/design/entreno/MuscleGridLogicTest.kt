@@ -10,13 +10,14 @@ import org.junit.Test
 class MuscleGridLogicTest {
 
     @Test
-    fun `la cuadricula trae los doce musculos una sola vez y en filas de tres`() {
+    fun `la cuadricula trae los once musculos una sola vez y en filas de tres`() {
         val order = MuscleGridLogic.gridOrder
-        assertEquals(12, order.size)
+        assertEquals(11, order.size)
         assertEquals(MuscleSymbol.entries.toSet(), order.toSet())
-        assertEquals(12, order.distinct().size)
+        assertEquals(11, order.distinct().size)
         assertEquals(3, MuscleGridLogic.COLUMNS)
-        assertEquals(4, order.chunked(MuscleGridLogic.COLUMNS).size)
+        // 3 + 3 + 3 + 2: la última fila es la incompleta, que se centra al dibujarla.
+        assertEquals(listOf(3, 3, 3, 2), order.chunked(MuscleGridLogic.COLUMNS).map { it.size })
     }
 
     @Test

@@ -26,7 +26,6 @@ class MuscleSymbolsTest {
         assertEquals("Pectorales", MuscleSymbols.canonical(MuscleSymbol.CHEST))
         assertEquals("Dorsales", MuscleSymbols.canonical(MuscleSymbol.BACK))
         assertEquals("Deltoides", MuscleSymbols.canonical(MuscleSymbol.SHOULDERS))
-        assertEquals("Trapecio", MuscleSymbols.canonical(MuscleSymbol.TRAPS))
         assertEquals("Abdomen", MuscleSymbols.canonical(MuscleSymbol.ABS))
         assertEquals("Isquiosurales", MuscleSymbols.canonical(MuscleSymbol.HAMSTRINGS))
         assertEquals("Pantorrillas", MuscleSymbols.canonical(MuscleSymbol.CALVES))
@@ -83,14 +82,25 @@ class MuscleSymbolsTest {
             setOf(MuscleSymbol.BACK, MuscleSymbol.CHEST, MuscleSymbol.ABS, MuscleSymbol.SHOULDERS),
             MuscleSuggestions.forProfile(TrainingGoalProfile.CALISTHENICS),
         )
+        // El trapecio que sugerían Halterofilia y Strongman va en Espalda (sin duplicarla en Strongman).
         assertEquals(
-            setOf(MuscleSymbol.SHOULDERS, MuscleSymbol.QUADS, MuscleSymbol.GLUTES, MuscleSymbol.TRAPS, MuscleSymbol.ABS),
+            setOf(MuscleSymbol.SHOULDERS, MuscleSymbol.QUADS, MuscleSymbol.GLUTES, MuscleSymbol.BACK, MuscleSymbol.ABS),
             MuscleSuggestions.forProfile(TrainingGoalProfile.WEIGHTLIFTING),
         )
         assertEquals(
-            setOf(MuscleSymbol.BACK, MuscleSymbol.TRAPS, MuscleSymbol.ABS, MuscleSymbol.QUADS, MuscleSymbol.FOREARMS),
+            setOf(MuscleSymbol.BACK, MuscleSymbol.ABS, MuscleSymbol.QUADS, MuscleSymbol.FOREARMS),
             MuscleSuggestions.forProfile(TrainingGoalProfile.STRONGMAN),
         )
+    }
+
+    @Test
+    fun theRetiredTrapeziusIsNoLongerASymbolButStaysAnEngineMuscleForOldDrafts() {
+        assertEquals(11, MuscleSymbol.entries.size)
+        assertEquals("Trapecio", MuscleSymbols.RETIRED_TRAPS_KEY)
+        // El motor sigue conociendo el músculo (ORDER_MUSCLE_OPTIONS), pero ningún símbolo lo escribe ni lo lee.
+        assertTrue(MuscleSymbols.RETIRED_TRAPS_KEY in ORDER_MUSCLE_OPTIONS.map { it.value })
+        assertNull(MuscleSymbols.fromCanonical(MuscleSymbols.RETIRED_TRAPS_KEY))
+        assertEquals(setOf(MuscleSymbol.BACK), MuscleSymbols.symbolsOf(MuscleSymbols.orderBagOf(setOf(MuscleSymbol.BACK))))
     }
 
     @Test

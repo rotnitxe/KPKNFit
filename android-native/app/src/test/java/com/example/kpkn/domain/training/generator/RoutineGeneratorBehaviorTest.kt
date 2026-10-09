@@ -124,7 +124,8 @@ class RoutineGeneratorBehaviorTest {
 
     @Test
     fun a_priority_muscle_never_loses_volume_and_gains_it_when_it_has_room() {
-        val cases = mapOf(
+        // Espalda sube dorsales y trapecio (el antiguo símbolo «Trapecio» va incluido en ella): por eso es una lista de pares.
+        val cases = listOf(
             MuscleSymbol.CHEST to "Pectorales",
             MuscleSymbol.BICEPS to "Bíceps",
             MuscleSymbol.TRICEPS to "Tríceps",
@@ -132,8 +133,8 @@ class RoutineGeneratorBehaviorTest {
             MuscleSymbol.CALVES to "Pantorrillas",
             MuscleSymbol.QUADS to "Cuádriceps",
             MuscleSymbol.ABS to "Abdomen",
-            MuscleSymbol.TRAPS to "Trapecio",
             MuscleSymbol.BACK to "Dorsales",
+            MuscleSymbol.BACK to "Trapecio",
         )
         val base = RoutineGenerator.generate(s.request(s.gym, RoutineMode.GENERAL_STRENGTH_MUSCLE, RoutineLevel.INTERMEDIATE, 4, 60))
         cases.forEach { (symbol, muscle) ->

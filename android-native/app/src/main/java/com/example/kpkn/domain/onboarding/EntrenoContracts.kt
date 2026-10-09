@@ -77,7 +77,8 @@ enum class EquipmentSymbolId(val label: String) {
 
 /**
  * Músculos del selector «¿Qué músculos priorizas?». Solo los populares: nada de «redondo mayor» ni
- * «multífidos». La traducción a los músculos canónicos del motor vive en `MuscleSymbols` (dominio).
+ * «multífidos». El trapecio no tiene símbolo: va incluido en «Espalda». La traducción a los músculos canónicos
+ * del motor vive en `MuscleSymbols` (dominio).
  */
 @Serializable
 enum class MuscleSymbol(val label: String) {
@@ -92,7 +93,6 @@ enum class MuscleSymbol(val label: String) {
     QUADS("Cuádriceps"),
     HAMSTRINGS("Isquios"),
     CALVES("Pantorrillas"),
-    TRAPS("Trapecio"),
 }
 
 /** Ejercicios de peso corporal por los que se pregunta («¿Qué ejercicios ya te salen?») para ofrecer variantes más fáciles o más difíciles. */

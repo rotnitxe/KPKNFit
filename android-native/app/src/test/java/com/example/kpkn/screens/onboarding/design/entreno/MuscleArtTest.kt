@@ -10,9 +10,9 @@ import org.junit.Test
 
 /**
  * Los trazos de los músculos son datos: estas pruebas leen cada cadena de path con el mismo `PathParser` que la
- * app y comprueban que existen los doce, que se pueden leer, que cada región cabe en su encuadre (así el relleno
- * nunca se corta) y que cada vista es la que dice el contrato (espalda para espalda, trapecio, tríceps, glúteos,
- * isquios y pantorrillas).
+ * app y comprueban que existen los once, que se pueden leer, que cada región cabe en su encuadre (así el relleno
+ * nunca se corta) y que cada vista es la que dice el contrato (espalda para espalda, tríceps, glúteos, isquios y
+ * pantorrillas).
  */
 class MuscleArtTest {
 
@@ -63,13 +63,13 @@ class MuscleArtTest {
     }
 
     @Test
-    fun `hay dibujo para los doce musculos`() {
+    fun `hay dibujo para los once musculos`() {
         for (m in MuscleSymbol.entries) {
             val spec = MuscleArt.spec(m)
             assertTrue("${m.name} sin región", spec.region.isNotBlank())
             assertTrue("${m.name} sin silueta de contexto ni fibras", spec.detail.isNotEmpty() || spec.context.isNotEmpty())
         }
-        assertEquals(12, MuscleSymbol.entries.size)
+        assertEquals(11, MuscleSymbol.entries.size)
     }
 
     @Test
@@ -134,7 +134,7 @@ class MuscleArtTest {
     @Test
     fun `la espalda se ve de espalda y el resto de frente`() {
         val back = setOf(
-            MuscleSymbol.BACK, MuscleSymbol.TRAPS, MuscleSymbol.TRICEPS,
+            MuscleSymbol.BACK, MuscleSymbol.TRICEPS,
             MuscleSymbol.GLUTES, MuscleSymbol.HAMSTRINGS, MuscleSymbol.CALVES,
         )
         for (m in MuscleSymbol.entries) {

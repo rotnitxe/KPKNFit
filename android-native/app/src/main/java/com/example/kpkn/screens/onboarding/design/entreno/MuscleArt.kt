@@ -8,7 +8,7 @@ import com.example.kpkn.domain.onboarding.MuscleSymbol
  * Dibujo de cada músculo popular: la región del músculo sobre una silueta de línea del cuerpo, encuadrada de cerca.
  *
  * Todo vive en el ESPACIO DEL CUERPO (x hacia la derecha de quien mira, eje en x = 0, y hacia abajo; cabeza = 50,
- * cuerpo = 400). La silueta es la misma para los doce: un trazo de cuerpo completo de frente y otro de espalda; lo que
+ * cuerpo = 400). La silueta es la misma para los once: un trazo de cuerpo completo de frente y otro de espalda; lo que
  * cambia es la [MuscleWindow] (el encuadre, centrado en el músculo) y la región, escrita a mano como path SVG.
  * Los trazos de datos están en [MuscleArtPaths].
  */
@@ -73,10 +73,6 @@ internal object MuscleArt {
             MuscleSymbol.SHOULDERS to spec(
                 MuscleArtPaths.SHOULDERS_BACK, MuscleArtPaths.SHOULDERS_WINDOW,
                 MuscleArtPaths.SHOULDERS_REGION, MuscleArtPaths.SHOULDERS_DETAIL, MuscleArtPaths.SHOULDERS_CONTEXT,
-            ),
-            MuscleSymbol.TRAPS to spec(
-                MuscleArtPaths.TRAPS_BACK, MuscleArtPaths.TRAPS_WINDOW,
-                MuscleArtPaths.TRAPS_REGION, MuscleArtPaths.TRAPS_DETAIL, MuscleArtPaths.TRAPS_CONTEXT,
             ),
             MuscleSymbol.BICEPS to spec(
                 MuscleArtPaths.BICEPS_BACK, MuscleArtPaths.BICEPS_WINDOW,
