@@ -46,7 +46,7 @@ class SetupEntrenoRouteTest {
                 SetupStepId.EXPERIENCE, SetupStepId.EQUIPMENT, SetupStepId.AVAILABILITY, SetupStepId.GOAL,
                 SetupStepId.FRESH_DAY, SetupStepId.WEEKDAYS, SetupStepId.SESSION_TIME,
                 SetupStepId.VOLUME_TECHNIQUE, SetupStepId.VOLUME_CONSISTENCY, SetupStepId.VOLUME_STRENGTH,
-                SetupStepId.VOLUME_MOBILITY, SetupStepId.PRIORITIES, SetupStepId.TRAINING_MAX,
+                SetupStepId.VOLUME_MOBILITY, SetupStepId.PRIORITIES, SetupStepId.TRAINING_VARIANTS, SetupStepId.TRAINING_MAX,
                 SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT, SetupStepId.MILESTONE_TRAINING,
             ),
             route,
@@ -68,7 +68,11 @@ class SetupEntrenoRouteTest {
         val novice = trainingRoute(draft(experience = "new", profile = TrainingGoalProfile.POWERLIFTING))
         assertFalse(SetupStepId.VOLUME_TECHNIQUE in novice)
         assertFalse(SetupStepId.TRAINING_MAX in novice)
-        for (experience in listOf("returning", "intermediate", "advanced")) {
+        // Quien vuelve de una pausa ve la técnica, pero no las marcas: su fuerza ya no es la de antes.
+        val returning = trainingRoute(draft(experience = "returning", profile = TrainingGoalProfile.POWERLIFTING))
+        assertTrue("returning", SetupStepId.VOLUME_TECHNIQUE in returning)
+        assertFalse("returning", SetupStepId.TRAINING_MAX in returning)
+        for (experience in listOf("intermediate", "advanced")) {
             val route = trainingRoute(draft(experience = experience, profile = TrainingGoalProfile.POWERLIFTING))
             assertTrue(experience, SetupStepId.VOLUME_TECHNIQUE in route)
             assertTrue(experience, SetupStepId.TRAINING_MAX in route)

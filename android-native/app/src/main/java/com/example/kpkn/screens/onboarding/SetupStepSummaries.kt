@@ -6,6 +6,7 @@ import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.domain.nutrition.NutritionPlanPreparationStatus
 import com.example.kpkn.domain.nutrition.parseLocalizedNumber
 import com.example.kpkn.domain.onboarding.CapabilityLevel
+import com.example.kpkn.domain.onboarding.LiftVariants
 import com.example.kpkn.domain.onboarding.MuscleSymbols
 import com.example.kpkn.domain.onboarding.SetupEquationSexValues
 import com.example.kpkn.domain.onboarding.SetupStepDefinitions
@@ -79,6 +80,9 @@ private const val SUMMARY_ACTIVATED = "Activado"
 private const val SUMMARY_UNCALIBRATED = "Sin calibrar"
 private const val SUMMARY_NO_PRIORITY = "Sin preferencia"
 private const val SUMMARY_NO_MARKS = "Sin marcas"
+private const val SUMMARY_NO_EXCLUSIONS = "Sin exclusiones"
+/** Separador de los elementos que van al mismo nivel (marcas, variantes): «Sentadilla 100 kg · Press banca 80 kg». */
+private const val SUMMARY_SEPARATOR = " · "
 private const val SUMMARY_NO_CAPABILITY = "Aún ninguno"
 private const val SUMMARY_CHOSEN_PLAN = "Tu programa elegido"
 private const val SUMMARY_PROFESSIONAL = "Pauta indicada por un profesional"
@@ -130,6 +134,10 @@ private fun summaryLabel(page: SetupStepId): String = when (page) {
     SetupStepId.CAPABILITIES -> "Ejercicios que te salen"
     SetupStepId.PRIORITIES -> "Músculos a mejorar"
     SetupStepId.TRAINING_MAX -> "Marcas"
+    SetupStepId.TRAINING_VARIANTS -> "Variantes"
+    SetupStepId.AVOIDED_EXERCISES -> "Evitar"
+    SetupStepId.ARM_STYLE -> "Estilo de mesa"
+    SetupStepId.CARDIO_BASE -> "Base de cardio"
     SetupStepId.PLAN -> "Programa"
     SetupStepId.WEEK_LAYOUT -> "Tu semana"
     SetupStepId.INVENTORY_BARBELL -> "Barra y rack"
@@ -228,6 +236,10 @@ private fun summaryValue(page: SetupStepId, state: SetupWizardState): String {
             ?: draft.summaryMissing(page)
         SetupStepId.CAPABILITIES -> summaryCapabilities(draft)
         SetupStepId.PRIORITIES -> summaryPriorities(draft)
+        SetupStepId.AVOIDED_EXERCISES -> summaryAvoided(draft, page)
+        SetupStepId.ARM_STYLE -> draft.armStyle?.label ?: draft.summaryMissing(page)
+        SetupStepId.TRAINING_VARIANTS -> summaryVariants(draft, page)
+        SetupStepId.CARDIO_BASE -> draft.cardioBase?.label ?: draft.summaryMissing(page)
         SetupStepId.TRAINING_MAX -> summaryMarks(draft)
         SetupStepId.PLAN -> summaryPlan(state)
         SetupStepId.WEEK_LAYOUT -> summaryWeekLayout(state)
@@ -496,8 +508,15 @@ internal fun weekdaysSummaryText(selected: Set<Int>): String? {
 private fun summaryWeekdays(draft: SetupWizardDraft): String =
     weekdaysSummaryText(draft.selectedWeekdays) ?: draft.summaryMissing(SetupStepId.WEEKDAYS)
 
-/** Los ejercicios que ya salen («Dominadas, Flexiones +1»); si todos están en «Aún no», «Aún ninguno». */
+/**
+ * Los ejercicios que ya salen («Dominadas, Flexiones +1»); si todos están en «Aún no», «Aún ninguno». Con repeticiones seguidas
+ * (ruta de peso corporal), cada una con su número («Dominadas 8 · Flexiones 20»).
+ */
 private fun summaryCapabilities(draft: SetupWizardDraft): String {
+    if (draft.maxReps.isNotEmpty()) {
+        return draft.maxReps.entries.sortedBy { entry -> entry.key.ordinal }
+            .joinToString(" · ") { (skill, reps) -> "${skill.label} $reps" }
+    }
     if (draft.capabilities.isEmpty()) return draft.summaryMissing(SetupStepId.CAPABILITIES)
     val known = draft.capabilities.filterValues { level -> level != CapabilityLevel.NONE }.keys
         .sortedBy { skill -> skill.ordinal }
@@ -541,8 +560,8 @@ private fun summaryWeekLayout(state: SetupWizardState): String {
 }
 
 /**
- * Las marcas declaradas, en la unidad en que se declararon. Con una o dos, cada una con su peso («Sentadilla 100 kg, Press
- * banca 80 kg»); con más, solo los nombres («Sentadilla, Press banca +1»): la lista con pesos no cabe en dos líneas y se cortaría,
+ * Las marcas declaradas, en la unidad en que se declararon. Con una o dos, cada una con su peso y, si es una serie de trabajo, sus
+ * repeticiones («Sentadilla 100 kg × 5 · Press banca 80 kg»); con más, solo los nombres («Sentadilla, Press banca +1»): la lista con pesos no cabe en dos líneas y se cortaría,
  * y los pesos se ven al editar el paso.
  */
 private fun summaryMarks(draft: SetupWizardDraft): String {
@@ -550,9 +569,34 @@ private fun summaryMarks(draft: SetupWizardDraft): String {
     val declared = draft.liftMarks.entries.sortedBy { entry -> entry.key.ordinal }
     if (declared.size > SUMMARY_MAX_LABELS) return summaryJoin(declared.map { (lift, _) -> lift.label })
     if (declared.isNotEmpty()) {
-        return declared.joinToString(", ") { (lift, kg) -> "${lift.label} ${WizardWeightScale.formatWithUnit(kg, unit)}" }
+        return declared.joinToString(SUMMARY_SEPARATOR) { (lift, kg) ->
+            val reps = draft.liftMarkReps[lift]?.let { " × $it" }.orEmpty()
+            "${lift.label} ${WizardWeightScale.formatWithUnit(kg, unit)}$reps"
+        }
     }
     return if (SetupStepId.TRAINING_MAX in draft.stepProgress.answers) SUMMARY_NO_MARKS else SUMMARY_NOT_ANSWERED
+}
+
+/**
+ * La variante que se usa de cada levantamiento del perfil, separadas por «·» («Barra baja · Sumo»). Sin confirmar el paso, «Sin
+ * responder»: la de siempre es una sugerencia, no una respuesta.
+ */
+private fun summaryVariants(draft: SetupWizardDraft, page: SetupStepId): String {
+    if (page !in draft.stepProgress.answers) return draft.summaryMissing(page)
+    val goal = draft.goalProfile
+    val labels = LiftVariants.liftsFor(goal).mapNotNull { lift ->
+        LiftVariants.effectiveFor(goal, lift, draft.liftVariants[lift], draft.trainingOptions.availability)
+            ?.let { configId -> LiftVariants.labelOf(configId) }
+    }
+    return if (labels.isEmpty()) draft.summaryMissing(page) else labels.joinToString(SUMMARY_SEPARATOR)
+}
+
+/** Los grupos a evitar («Evitar: Peso muerto, Saltos e impacto»); confirmado sin ninguno, «Sin exclusiones». */
+private fun summaryAvoided(draft: SetupWizardDraft, page: SetupStepId): String {
+    if (draft.avoidedExercises.isEmpty()) {
+        return if (page in draft.stepProgress.answers) SUMMARY_NO_EXCLUSIONS else SUMMARY_NOT_ANSWERED
+    }
+    return "Evitar: " + summaryJoin(draft.avoidedExercises.sortedBy { it.ordinal }.map { it.label })
 }
 
 /** Material de un inventario legacy: solo dice si se declaró (los pasos INVENTORY_* ya no están en la ruta). */

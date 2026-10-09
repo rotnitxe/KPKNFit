@@ -102,6 +102,16 @@ enum class SetupControlKind {
     PLAN_REVEAL,
     /** Semana armada: sesiones colocadas en sus días y movibles. */
     WEEK_LAYOUT,
+
+    // ── Punto de partida de Entreno: símbolos y filas (los dibuja la UI; el dato lo escribe el VM) ──
+    /** Variantes de los básicos: una fila por levantamiento con sus opciones; la de siempre viene preseleccionada. */
+    LIFT_VARIANTS,
+    /** Grupos de ejercicios que se prefieren evitar (símbolos; «Ninguno» es la selección vacía). */
+    AVOIDED_PATTERNS,
+    /** Base de cardio de hoy (cuatro símbolos). */
+    CARDIO_BASE,
+    /** Estilo en la mesa de armwrestling (símbolos de mano y brazo). */
+    ARM_STYLE,
 }
 
 data class SetupNumericRange(
@@ -488,10 +498,45 @@ object SetupStepDefinitions {
             budget = MuscleSymbols.MAX_SELECTION,
             maxPerItem = 1,
         ),
+        // Punto de partida: los pasos nuevos son omitibles; las variantes ya traen su valor sugerido (el de siempre).
+        SetupStepDefinition(
+            id = SetupStepId.AVOIDED_EXERCISES, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
+            title = "¿Qué ejercicios prefieres evitar?",
+            subtitle = "Los cambiamos por otros que trabajen lo mismo.",
+            control = SetupControlKind.AVOIDED_PATTERNS,
+            // Cada grupo se traduce a definiciones del catálogo en `AvoidGroups`; «Ninguno» es la selección vacía.
+            options = AvoidGroup.entries.map { group -> SetupOptionDefinition(group.name, group.label) },
+            allowSkip = true,
+        ),
+        SetupStepDefinition(
+            id = SetupStepId.ARM_STYLE, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
+            title = "¿Cuál es tu estilo en la mesa?",
+            subtitle = "Así damos más trabajo a lo que tu estilo exige.",
+            control = SetupControlKind.ARM_STYLE,
+            options = ArmStyle.entries.map { style -> SetupOptionDefinition(style.name, style.label) },
+            allowSkip = true,
+        ),
+        SetupStepDefinition(
+            id = SetupStepId.TRAINING_VARIANTS, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
+            // Con powerlifting el título es «Tus tres básicos» (`wizardPageCopy`); aquí, el de powerbuilding.
+            title = "¿Cuáles son tus variantes principales?",
+            subtitle = "Serán los ejercicios principales de tu programa.",
+            control = SetupControlKind.LIFT_VARIANTS,
+            // Las opciones dependen del perfil y del material (`LiftVariants.optionsFor`), así que el catálogo no las lista.
+            allowSkip = true,
+        ),
+        SetupStepDefinition(
+            id = SetupStepId.CARDIO_BASE, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
+            title = "¿Cómo está tu cardio hoy?",
+            subtitle = "Así ajustamos la intensidad y la duración de tu cardio.",
+            control = SetupControlKind.CARDIO_BASE,
+            options = CardioBase.entries.map { base -> SetupOptionDefinition(base.name, base.label) },
+            allowSkip = true,
+        ),
         SetupStepDefinition(
             id = SetupStepId.TRAINING_MAX, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
             title = "¿Conoces tus marcas?",
-            subtitle = "Con una basta. Sin marcas, el programa sigue siendo válido.",
+            subtitle = "Tu 1RM o tu mejor serie, en kg y repeticiones. Puedes omitirlo.",
             control = SetupControlKind.LIFT_MARKS,
             // Qué levantamientos se preguntan lo decide `MarksContext.liftsFor`; cada marca es opcional.
             options = LiftMark.entries.map { lift -> SetupOptionDefinition(lift.name, lift.label) },

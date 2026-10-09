@@ -14,8 +14,11 @@ import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.domain.nutrition.EerSex
 import com.example.kpkn.domain.nutrition.NutritionPlanPreparationStatus
 import com.example.kpkn.domain.nutrition.NutritionWizardDraft
+import com.example.kpkn.domain.onboarding.ArmStyle
+import com.example.kpkn.domain.onboarding.AvoidGroup
 import com.example.kpkn.domain.onboarding.CapabilityLevel
 import com.example.kpkn.domain.onboarding.CapabilitySkill
+import com.example.kpkn.domain.onboarding.CardioBase
 import com.example.kpkn.domain.onboarding.EquipmentSymbolId
 import com.example.kpkn.domain.onboarding.EquipmentSymbols
 import com.example.kpkn.domain.onboarding.LiftMark
@@ -96,6 +99,7 @@ class SetupStepSummariesTest {
         SetupStepContext(),
         SetupStepContext(
             goalIncludesCardio = true,
+            asksCardioBase = true,
             asksCapabilities = true,
             asksMarks = true,
             inventoryGroups = SetupInventoryGroup.entries.toSet(),
@@ -103,6 +107,8 @@ class SetupStepSummariesTest {
             nutritionDirection = "deficit",
             recentTraining = true,
         ),
+        // Punto de partida: ejercicios a evitar, estilo de mesa y variantes de los básicos.
+        SetupStepContext(asksAvoid = true, asksArmStyle = true, asksVariants = true),
         SetupStepContext(nutritionStartChoice = "self_defined", nutritionDirection = "surplus"),
         SetupStepContext(nutritionStartChoice = "tracking_only"),
         SetupStepContext(nutritionProfessional = true),
@@ -631,10 +637,18 @@ class SetupStepSummariesTest {
             .withLiftMark(LiftMark.DEADLIFT, 120.0)
         // Con más de dos, solo los nombres: la lista con pesos no cabe en dos líneas y se cortaría.
         assertEquals(SetupStepSummary("Marcas", "Sentadilla, Press banca +1"), summary(SetupStepId.TRAINING_MAX, three))
-        // Con una o dos, cada una con su peso.
+        // Con una o dos, cada una con su peso; una serie de trabajo lleva sus repeticiones.
         assertEquals(
-            "Sentadilla 100 kg, Press banca 82,5 kg",
+            "Sentadilla 100 kg · Press banca 82,5 kg",
             value(SetupStepId.TRAINING_MAX, SetupWizardDraft().withLiftMark(LiftMark.SQUAT, 100.0).withLiftMark(LiftMark.BENCH, 82.5)),
+        )
+        assertEquals(
+            "Sentadilla 100 kg × 5 · Press banca 82,5 kg",
+            value(
+                SetupStepId.TRAINING_MAX,
+                SetupWizardDraft().withLiftMark(LiftMark.SQUAT, 100.0).withLiftMarkReps(LiftMark.SQUAT, 5)
+                    .withLiftMark(LiftMark.BENCH, 82.5),
+            ),
         )
         assertEquals("Press banca 80 kg", value(SetupStepId.TRAINING_MAX, SetupWizardDraft().withLiftMark(LiftMark.BENCH, 80.0)))
         // Con otra unidad de visualización se dice en ella (el dato siempre vive en kg).
@@ -642,6 +656,40 @@ class SetupStepSummariesTest {
         assertEquals("Sin responder", value(SetupStepId.TRAINING_MAX))
         // «No la sé» a todo, ya confirmado: sin marcas, y así se dice.
         assertEquals("Sin marcas", value(SetupStepId.TRAINING_MAX, SetupWizardDraft().answered(SetupStepId.TRAINING_MAX)))
+    }
+
+    @Test
+    fun theStartingPointStepsSummarizeWhatWasDeclaredOrSayItIsMissing() {
+        // Sin responder, o confirmado sin ningún grupo a evitar.
+        assertEquals("Sin responder", value(SetupStepId.AVOIDED_EXERCISES))
+        assertEquals("Sin exclusiones", value(SetupStepId.AVOIDED_EXERCISES, SetupWizardDraft().answered(SetupStepId.AVOIDED_EXERCISES)))
+        val avoiding = SetupWizardDraft()
+            .withAvoidedToggled(AvoidGroup.DEADLIFT)
+            .withAvoidedToggled(AvoidGroup.JUMPS)
+            .answered(SetupStepId.AVOIDED_EXERCISES)
+        assertEquals(SetupStepSummary("Evitar", "Evitar: Peso muerto, Saltos e impacto"), summary(SetupStepId.AVOIDED_EXERCISES, avoiding))
+        // Base de cardio y estilo de mesa: la etiqueta de su enum; sin respuesta, se dice.
+        assertEquals("Sin responder", value(SetupStepId.CARDIO_BASE))
+        assertEquals("Aguanto 20–30 min", value(SetupStepId.CARDIO_BASE, SetupWizardDraft().withCardioBase(CardioBase.MODERATE)))
+        assertEquals(SetupStepSummary("Estilo de mesa", "Hook"), summary(SetupStepId.ARM_STYLE, SetupWizardDraft().withArmStyle(ArmStyle.HOOK)))
+        // Variantes: las que se usan (la de siempre si no se ha cambiado). Sin confirmar el paso, no se dice nada.
+        val powerlifting = SetupWizardDraft().withPlaces(setOf(TrainingPlace.GYM))
+            .withGoalProfile(TrainingGoalProfile.POWERLIFTING)
+            .copy(experience = SetupExperience.INTERMEDIATE)
+        assertEquals("Sin responder", value(SetupStepId.TRAINING_VARIANTS, powerlifting))
+        assertEquals(
+            "Barra alta · Convencional",
+            value(SetupStepId.TRAINING_VARIANTS, powerlifting.answered(SetupStepId.TRAINING_VARIANTS)),
+        )
+        assertEquals(
+            "Barra baja · Sumo",
+            value(
+                SetupStepId.TRAINING_VARIANTS,
+                powerlifting.withLiftVariant(LiftMark.SQUAT, "low_bar_back_squat__barbell")
+                    .withLiftVariant(LiftMark.DEADLIFT, "sumo_deadlift__barbell")
+                    .answered(SetupStepId.TRAINING_VARIANTS),
+            ),
+        )
     }
 
     @Test

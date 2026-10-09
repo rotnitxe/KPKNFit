@@ -24,8 +24,11 @@ import com.example.kpkn.domain.nutrition.NutritionConfigurationMode
 import com.example.kpkn.domain.nutrition.parseLocalizedNumber
 import com.example.kpkn.domain.training.PersonalizationReport
 import com.example.kpkn.domain.training.TrainingValidation
+import com.example.kpkn.domain.onboarding.ArmStyle
+import com.example.kpkn.domain.onboarding.AvoidGroup
 import com.example.kpkn.domain.onboarding.CapabilityLevel
 import com.example.kpkn.domain.onboarding.CapabilityRules
+import com.example.kpkn.domain.onboarding.CardioBase
 import com.example.kpkn.domain.onboarding.CardioChoice
 import com.example.kpkn.domain.onboarding.CardioChoices
 import com.example.kpkn.domain.onboarding.CapabilitySkill
@@ -33,6 +36,7 @@ import com.example.kpkn.domain.onboarding.EntrenoStepValues
 import com.example.kpkn.domain.onboarding.EquipmentSymbolId
 import com.example.kpkn.domain.onboarding.EquipmentSymbols
 import com.example.kpkn.domain.onboarding.LiftMark
+import com.example.kpkn.domain.onboarding.LiftVariants
 import com.example.kpkn.domain.onboarding.MarksContext
 import com.example.kpkn.domain.onboarding.TrainingGoalProfile
 import com.example.kpkn.domain.onboarding.TrainingGoalRequirements
@@ -487,6 +491,18 @@ data class SetupWizardDraft(
     val liftMarks: Map<LiftMark, Double> = emptyMap(),
     /** Unidad en la que se muestran las marcas (`kg` o `lb`); el valor canónico de [liftMarks] siempre es kg. */
     val marksUnit: String = "kg",
+    /** Repeticiones de cada marca (un PR «kg × reps», de 2 a 10); ausente = 1RM. El E1RM sale de la fórmula híbrida. */
+    val liftMarkReps: Map<LiftMark, Int> = emptyMap(),
+    /** Variante elegida de cada levantamiento básico (id de configuración del catálogo); ausente = la de siempre. */
+    val liftVariants: Map<LiftMark, String> = emptyMap(),
+    /** Grupos de ejercicios que la persona prefiere evitar; vacío = «Ninguno». */
+    val avoidedExercises: Set<AvoidGroup> = emptySet(),
+    /** Base de cardio de hoy (paso CARDIO_BASE); null = sin responder. */
+    val cardioBase: CardioBase? = null,
+    /** Estilo en la mesa (paso ARM_STYLE); null = sin responder. */
+    val armStyle: ArmStyle? = null,
+    /** Repeticiones seguidas por habilidad de peso corporal (0–30); ausente = sin responder. Deriva el nivel de [capabilities]. */
+    val maxReps: Map<CapabilitySkill, Int> = emptyMap(),
     /** Colocación de sesiones en la semana que movió la persona: clave de sesión → día (la usa la semana armada). */
     val weekLayoutOverrides: Map<String, Int> = emptyMap(),
     /** Reparto al que la persona adaptó el programa en la semana armada; null = el del programa. */
@@ -538,6 +554,10 @@ fun SetupWizardDraft.stepContext(): SetupStepContext = SetupStepContext(
     asksCapabilities = asksCapabilities(),
     asksMarks = marksLifts().isNotEmpty(),
     hasWeekLayout = programRoute != SetupProgramRoute.LATER,
+    asksVariants = asksVariants(),
+    asksAvoid = goalProfile == TrainingGoalProfile.BODYBUILDING,
+    asksCardioBase = requiresCardio,
+    asksArmStyle = goalProfile == TrainingGoalProfile.ARMWRESTLING,
 )
 
 /**
@@ -555,16 +575,42 @@ internal fun SetupWizardDraft.selectedEquipmentSymbols(): Set<EquipmentSymbolId>
 internal val SetupWizardDraft.isNovice: Boolean get() = experience == SetupExperience.NEW
 
 /**
- * Levantamientos cuya marca se pregunta con el objetivo, la experiencia y el material actuales (vacío = sin paso). El
- * arranque y los dos tiempos de Halterofilia solo se preguntan si el programa de ESTE nivel los lee: quien vuelve no recibe
- * levantamientos olímpicos, así que sus marcas serían un control vacío ([MarksContext.readsOlympicMarks]).
+ * Levantamientos cuya marca se pregunta con el objetivo, la experiencia y el material actuales (vacío = sin paso). Quien
+ * empieza o vuelve de una pausa no recibe marcas ([MarksContext.liftsFor]). El arranque y los dos tiempos de Halterofilia
+ * solo se preguntan si el programa de ESTE nivel los lee ([MarksContext.readsOlympicMarks]). Un levantamiento cuya variante
+ * elegida no admite marca (mancuernas, búlgaras) no se pregunta: esa marca no se traduce a una carga de barra.
  */
 internal fun SetupWizardDraft.marksLifts(): List<LiftMark> = MarksContext.liftsFor(
     profile = goalProfile,
     novice = isNovice,
     hasBarbell = EquipmentSymbolId.BARBELL in selectedEquipmentSymbols(),
     hasOlympicLifts = MarksContext.readsOlympicMarks(experience.toRoutineLevel()),
-)
+    returning = experience == SetupExperience.RETURNING,
+).filter { lift ->
+    LiftVariants.takesMarkFor(goalProfile, lift, liftVariants[lift], trainingOptions.availability)
+}
+
+/**
+ * ¿Entra TRAINING_VARIANTS en la ruta? Powerlifting o Powerbuilding con experiencia intermedia o avanzada. A quien empieza
+ * o vuelve no se le pregunta: sigue con la variante de siempre.
+ */
+internal fun SetupWizardDraft.asksVariants(): Boolean =
+    (goalProfile == TrainingGoalProfile.POWERLIFTING || goalProfile == TrainingGoalProfile.POWERBUILDING) &&
+        (experience == SetupExperience.INTERMEDIATE || experience == SetupExperience.ADVANCED)
+
+/**
+ * La ruta de peso corporal de CAPABILITIES: calistenia o material solo de peso corporal. Es la que cambia el paso (repeticiones
+ * seguidas en lugar de niveles, con título propio) y la que exige las dominadas.
+ */
+internal fun SetupWizardDraft.capabilitiesBodyweightRoute(): Boolean =
+    goalProfile == TrainingGoalProfile.CALISTHENICS || EquipmentSymbols.isBodyweightOnly(trainingOptions.availability)
+
+/**
+ * Habilidades que hay que responder para continuar CAPABILITIES: en la ruta de peso corporal, las dominadas si hay barra de
+ * dominadas. El resto son opcionales.
+ */
+internal fun SetupWizardDraft.capabilitiesRequired(): Set<CapabilitySkill> =
+    if (capabilitiesBodyweightRoute() && CapabilitySkill.PULL_UP in capabilitySkills()) setOf(CapabilitySkill.PULL_UP) else emptySet()
 
 /** ¿Entra CAPABILITIES en la ruta? Objetivo general o calistenia, y novato o material ligero. */
 internal fun SetupWizardDraft.asksCapabilities(): Boolean =
@@ -669,6 +715,12 @@ fun SetupWizardDraft.inputFootprint(): SetupInputFootprint = SetupInputFootprint
         previousMaximumWeightKg?.toString().orEmpty(),
         historicalWeighIns.joinToString(";") { "${it.id}|${it.dateIso}|${it.weightKg}" },
     ).joinToString("|"),
+    liftMarkReps = liftMarkReps.entries.sortedBy { it.key.name }.associate { (lift, reps) -> lift.name to reps },
+    liftVariants = liftVariants.entries.sortedBy { it.key.name }.associate { (lift, configId) -> lift.name to configId },
+    avoidedExercises = avoidedExercises.mapTo(sortedSetOf()) { it.name },
+    cardioBase = cardioBase?.name,
+    armStyle = armStyle?.name,
+    maxReps = maxReps.entries.sortedBy { it.key.name }.associate { (skill, reps) -> skill.name to reps },
 )
 
 /** Keeps valid answers, marks incompatible selections pending and stales previews. */
@@ -1279,6 +1331,9 @@ data class SetupPreview(val program: Program?, val report: PersonalizationReport
 /** Rango (kg) que admite una marca de levantamiento. */
 internal val LIFT_MARK_RANGE_KG: ClosedFloatingPointRange<Double> = 1.0..1000.0
 
+/** Repeticiones de una marca «kg × reps»: la fórmula híbrida solo es fiable hasta 10 (el PR va de 2 a 10). */
+internal val LIFT_MARK_REPS_RANGE: IntRange = 1..10
+
 object SetupWizardValidation {
     fun validate(draft: SetupWizardDraft, chapter: SetupWizardChapter): Map<String, String> = buildMap {
         when (chapter) {
@@ -1491,12 +1546,18 @@ object SetupWizardValidation {
                     else -> ok("minutes")
                 }
             }
-            // Cada ejercicio que se ofrece con el material necesita su nivel (nada se responde solo).
-            SetupStepId.CAPABILITIES -> if (draft.capabilitySkills().any { it !in draft.capabilities }) {
-                absent("capabilities", "Elige un nivel para cada ejercicio.")
+            // Solo son obligatorias las dominadas de la ruta de peso corporal con barra; el resto de ejercicios son opcionales.
+            SetupStepId.CAPABILITIES -> if (draft.capabilitiesRequired().any { it !in draft.capabilities }) {
+                absent("capabilities", "Indica cuántas dominadas te salen seguidas.")
             } else {
                 ok("capabilities")
             }
+            // Punto de partida (pasos omitibles): sin respuesta, el motor sigue con lo que ya trae (la variante de siempre, sin
+            // ejercicios a evitar, sin base de cardio ni estilo de mesa).
+            SetupStepId.TRAINING_VARIANTS -> ok("variants")
+            SetupStepId.AVOIDED_EXERCISES -> ok("avoided")
+            SetupStepId.CARDIO_BASE -> ok("cardioBase")
+            SetupStepId.ARM_STYLE -> ok("armStyle")
             // El tipo de cardio vale si el material de ahora lo ofrece (`CardioChoices`, la misma regla que pinta el paso):
             // caminar y correr siempre; la bicicleta al aire libre solo con «Tengo bicicleta» (§15.1: no se hereda del
             // material de gimnasio ni de «Cardio»); las máquinas y «Lo que haya» si «Cardio» está en algún lugar.
@@ -1523,12 +1584,13 @@ object SetupWizardValidation {
             }
             // Un paso hecho de marcas: cada una es opcional (sin marcas el programa sigue siendo válido);
             // solo bloquea una marca fuera de rango.
-            SetupStepId.TRAINING_MAX ->
-                if (draft.liftMarks.values.any { !it.isFinite() || it !in LIFT_MARK_RANGE_KG }) {
+            SetupStepId.TRAINING_MAX -> when {
+                draft.liftMarks.values.any { !it.isFinite() || it !in LIFT_MARK_RANGE_KG } ->
                     invalid("marks", "Usa marcas entre ${LIFT_MARK_RANGE_KG.start.toInt()} y ${LIFT_MARK_RANGE_KG.endInclusive.toInt()} kg.")
-                } else {
-                    ok("marks")
-                }
+                draft.liftMarkReps.values.any { it !in LIFT_MARK_REPS_RANGE } ->
+                    invalid("marks", "Usa de ${LIFT_MARK_REPS_RANGE.first} a ${LIFT_MARK_REPS_RANGE.last} repeticiones.")
+                else -> ok("marks")
+            }
             SetupStepId.PLAN -> when {
                 draft.programRoute == SetupProgramRoute.LATER -> ok("plan")
                 draft.selectedCatalogId != null || draft.trainingPath == SetupTrainingPath.FROM_SCRATCH -> ok("plan")
