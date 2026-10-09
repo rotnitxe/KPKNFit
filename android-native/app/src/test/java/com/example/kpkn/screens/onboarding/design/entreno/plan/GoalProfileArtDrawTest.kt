@@ -116,15 +116,48 @@ class GoalProfileArtDrawTest {
     }
 
     @Test
-    fun theHeartBeatsFourTimesPerLoopAndTheTraceCrossesTheCanvas() {
+    fun theBarsGrowOneByOneAndTheDumbbellLiftsWithThem() {
+        val art = goalArt(TrainingGoalProfile.STRENGTH_MUSCLE) as StrengthMuscleArt
+        assertEquals(0f, art.barGrow(0.1f, 0), 0.0001f)
+        assertEquals(1f, art.barGrow(0.6f, 0), 0.0001f)
+        assertEquals(0f, art.barGrow(0.6f, 2), 0.0001f)
+        assertEquals(1f, art.barGrow(1.25f, 2), 0.0001f)
+        // La mancuerna sube a −25° con las barras y se queda; al final del bucle vuelve a su cuadro inicial.
+        assertEquals(-25f, art.tilt(2f), 0.01f)
+        assertEquals(0f, art.tilt(art.period), 0.01f)
+        // En reposo (2,0 s) está todo visible: la flecha y el rótulo ya terminaron.
+        assertEquals(1f, art.arrow(art.restT), 0.0001f)
+        assertEquals(1f, art.label(art.restT), 0.0001f)
+    }
+
+    @Test
+    fun theHeartBeatsTwiceAndTheDumbbellRisesOnEachBeat() {
+        val art = goalArt(TrainingGoalProfile.STRENGTH_CARDIO) as StrengthCardioArt
+        // Dos latidos por bucle: el pico de cada uno cae a 0,35 y a 0,75 del período.
+        assertTrue(art.beat(art.period * 0.35f) > 0.99f)
+        assertTrue(art.beat(art.period * 0.75f) > 0.99f)
+        // Entre latidos y en reposo, el corazón está quieto.
+        assertEquals(0f, art.beat(art.period * 0.55f), 0.0001f)
+        assertEquals(0f, art.beat(art.restT), 0.0001f)
+    }
+
+    @Test
+    fun theJumperCrouchesJumpsLandsAndTheLoopCloses() {
         val art = goalArt(TrainingGoalProfile.FUNCTIONAL_HEALTH) as FunctionalArt
-        assertEquals(4f, art.period / 0.7f, 0.0001f)
-        assertEquals(4f, art.headX(0f), 0.001f)
-        assertEquals(60f, art.headX(art.period), 0.001f)
-        // El latido sube y baja: hay instantes con y sin pulso.
-        val beats = (0..140).map { art.beat(it * 0.02f) }
-        assertTrue(beats.max() > 0.8f)
-        assertTrue(beats.min() < 0.15f)
+        assertEquals(0f, art.airOf(0f), 0.0001f)
+        assertEquals(0f, art.airOf(0.3f), 0.0001f)
+        assertEquals(1f, art.airOf(0.75f), 0.0001f)
+        assertTrue("en reposo casi arriba: ${art.airOf(art.restT)}", art.airOf(art.restT) > 0.85f)
+        // En el aire los pies están más altos que de pie.
+        assertTrue(art.pose(0.75f).ftL.y < art.pose(0f).ftL.y)
+        // El bucle cierra en la pose de pie y ninguna articulación se sale del lienzo.
+        assertEquals(art.pose(0f).ftL.y, art.pose(art.period).ftL.y, 0.001f)
+        for (i in 0..180) {
+            val p = art.pose(art.period * i / 180f)
+            for (o in listOf(p.head, p.shL, p.shR, p.elL, p.haL, p.elR, p.haR, p.hip, p.knL, p.ftL, p.knR, p.ftR)) {
+                assertTrue("fuera del lienzo: $o", o.x in 0f..64f && o.y in 0f..64f)
+            }
+        }
     }
 
     @Test

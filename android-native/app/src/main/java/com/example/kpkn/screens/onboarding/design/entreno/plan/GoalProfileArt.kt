@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.lerp
 import com.example.kpkn.domain.onboarding.TrainingGoalProfile
+import com.example.kpkn.screens.onboarding.design.eOutBack
 import com.example.kpkn.screens.onboarding.design.entreno.DEG
 import com.example.kpkn.screens.onboarding.design.entreno.FrontPose
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolArt
@@ -25,6 +26,7 @@ import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sin
+import kotlin.math.sqrt
 
 /*
  * Los símbolos del paso «¿Cuál es tu objetivo?»: uno por perfil (3 generales y 7 disciplinas), de la misma familia
@@ -112,233 +114,306 @@ internal fun sagDeg(x: Float, x0: Float, x1: Float, f: Float): Float {
     return atan2(slope, 1f) / DEG
 }
 
+/** Un frenado suave (cúbico): arranca deprisa y se detiene al llegar a 1. Fuera de [0, 1] se satura. */
+internal fun brake(x: Float): Float {
+    val u = 1f - x.coerceIn(0f, 1f)
+    return 1f - u * u * u
+}
+
+/**
+ * Mancuerna de discos para los símbolos de fuerza: mango de 16 u y un disco de 3 × 12 a cada lado, centrada en ([cx], [cy])
+ * y girada [tiltDeg] (negativo = la derecha sube). Los discos van en [plate] y el agarre en [grip].
+ */
+internal fun SymbolPen.plateDumbbell(
+    cx: Float, cy: Float, tiltDeg: Float, plate: Color, grip: Color, w: Float, fine: Float,
+) {
+    rotated(tiltDeg, cx, cy) {
+        line(cx - 8f, cy, cx + 8f, cy, plate, w)
+        box(cx - 11f, cy - 6f, cx - 8f, cy + 6f, 1.2f, plate, w)
+        box(cx + 8f, cy - 6f, cx + 11f, cy + 6f, 1.2f, plate, w)
+        line(cx - 2.5f, cy, cx + 2.5f, cy, grip, fine)
+    }
+}
+
 // ---------------------------------------------------------------- Fuerza y masa muscular
 
-/** Una barra cargada que sube y se curva bajo el peso. General: tinta con el detalle en verde (collarines y rayado). */
-internal class StrengthMuscleArt(lk: Float) : GoalArt(SymbolPalette.ok, period = 2.6f, restT = 0.8f, lk = lk) {
-    /** 0 = barra abajo, 1 = arriba. */
-    internal fun lift(t: Float): Float = riseHoldFall(t, 0.3f, 1.1f, 1.5f, 2.3f)
+/**
+ * Una mancuerna a la izquierda y, a la derecha, un gráfico de barras que crecen una tras otra, con una flecha ascendente y
+ * el rótulo «KG» trazado con líneas. La mancuerna se inclina hacia arriba mientras crecen las barras. General: barras y
+ * mancuerna en verde.
+ */
+internal class StrengthMuscleArt(lk: Float) : GoalArt(SymbolPalette.ok, period = 2.8f, restT = 2f, lk = lk) {
+    /** Crecimiento (0 a 1) de la barra [i] (0, 1 o 2): cada una en su tramo de 0,35 s, con frenado suave. */
+    internal fun barGrow(t: Float, i: Int): Float {
+        val a = 0.2f + 0.35f * i
+        return brake(seg(t, a, a + 0.35f))
+    }
 
-    internal fun barY(t: Float): Float = lerpF(44f, 24f, lift(t))
+    /** Recogida al final del bucle (de 2,5 a 2,8 s): 0 mientras todo está visible, 1 en el cuadro inicial. */
+    internal fun fall(t: Float): Float = smooth(seg(t, 2.5f, 2.8f))
+
+    /** Inclinación de la mancuerna en grados: sube hasta −25° con las barras y se queda. */
+    internal fun tilt(t: Float): Float = -25f * smooth(seg(t, 0.2f, 1.25f)) * (1f - fall(t))
+
+    /** Avance (0 a 1) del trazo de la flecha, de 1,1 a 1,5 s. */
+    internal fun arrow(t: Float): Float = smooth(seg(t, 1.1f, 1.5f)) * (1f - fall(t))
+
+    /** Aparición (0 a 1) del rótulo «KG», de 1,45 a 1,65 s. */
+    internal fun label(t: Float): Float = seg(t, 1.45f, 1.65f) * (1f - fall(t))
 
     override fun drawStatic(pen: SymbolPen) {
-        with(pen) { line(6f, 61.5f, 58f, 61.5f, soft, fine) }
+        with(pen) { line(30f, BASE_Y, 60f, BASE_Y, soft, fine) }
     }
 
     override fun drawDynamic(pen: SymbolPen, t: Float) {
         with(pen) {
-            val y = barY(t)
-            val f = 2.3f * lift(t)
-            curve(2f, y + f, 32f, y - f, 62f, y + f, ink, mid)
-            stack(16f, 1f, y, f)
-            stack(48f, -1f, y, f)
-            // El rayado de la barra, en el acento.
-            for (x in floatArrayOf(29.2f, 32f, 34.8f)) line(x, y - 2.3f, x, y + 2.3f, accent, fine)
+            val out = 1f - fall(t)
+            plateDumbbell(15f, 42f, tilt(t), ink, accent, mid, fine)
+            for (i in 0 until 3) {
+                val h = BAR_H[i] * barGrow(t, i) * out
+                if (h < 0.05f) continue
+                val l = BAR_X[i]
+                fillBox(l, BASE_Y - h, l + 5f, BASE_Y, 1f, accent.fainter(0.22f))
+                box(l, BASE_Y - h, l + 5f, BASE_Y, 1f, accent, mid)
+            }
+            riseArrow(arrow(t), ink, mid)
+            val k = label(t)
+            if (k > 0f) {
+                // «KG» salta de escala (0,6 → 1) al aparecer.
+                val s = 0.6f + 0.4f * eOutBack(seg(t, 1.45f, 1.65f))
+                fade(k) { scaled(s, s, 56f, 12f) { kgLetters(ink, mid) } }
+            }
         }
     }
 
-    /** Los tres discos y el collarín de un extremo, inclinados con la barra. */
-    private fun SymbolPen.stack(px: Float, m: Float, y: Float, f: Float) {
-        val py = sagY(px, 2f, 62f, y, f)
-        rotated(sagDeg(px, 2f, 62f, f), px, py) {
-            plateBox(px, py, m, 4f, 9.5f, 15f, 2.2f, ink, mid)
-            plateBox(px, py, m, -2f, 2.5f, 11.5f, 2f, ink, mid)
-            plateBox(px, py, m, -7f, -3.5f, 8f, 1.6f, ink, mid)
-            plateBox(px, py, m, -10.5f, -8.5f, 3.6f, 1f, accent, mid)
-        }
+    private companion object {
+        const val BASE_Y = 52f
+        val BAR_X = floatArrayOf(32f, 41f, 50f)
+        val BAR_H = floatArrayOf(10f, 17f, 26f)
     }
+}
+
+/** Longitudes de la flecha (33, 44) → (44, 36) → (56, 22). */
+private val ARROW_L1 = sqrt(185f)
+private val ARROW_L2 = sqrt(340f)
+
+/**
+ * La flecha ascendente dibujada hasta la fracción [p] de su trazo. Al final se abren sus dos alas (de 0,85 a 1 de [p]).
+ */
+private fun SymbolPen.riseArrow(p: Float, color: Color, w: Float) {
+    if (p <= 0f) return
+    val d = (ARROW_L1 + ARROW_L2) * p
+    if (d <= ARROW_L1) {
+        val k = d / ARROW_L1
+        line(33f, 44f, lerpF(33f, 44f, k), lerpF(44f, 36f, k), color, w)
+    } else {
+        line(33f, 44f, 44f, 36f, color, w)
+        val k = (d - ARROW_L1) / ARROW_L2
+        line(44f, 36f, lerpF(44f, 56f, k), lerpF(36f, 22f, k), color, w)
+    }
+    val hk = seg(p, 0.85f, 1f)
+    if (hk <= 0f) return
+    // Las alas salen de la punta hacia atrás, abiertas 28° a cada lado.
+    val c = cos(28f * DEG)
+    val s = sin(28f * DEG)
+    val bx = -12f / ARROW_L2
+    val by = 14f / ARROW_L2
+    val len = 6f * hk
+    line(56f, 22f, 56f + len * (bx * c - by * s), 22f + len * (bx * s + by * c), color, w)
+    line(56f, 22f, 56f + len * (bx * c + by * s), 22f + len * (-bx * s + by * c), color, w)
+}
+
+/**
+ * «KG» trazado con líneas: la K con el palo en x = 50 y diagonales a (54, 8) y (54, 16); la G es un arco de radio 4
+ * centrado en (59, 12), abierto a la derecha (de 45° a 315°). Su brazo sube desde el extremo de abajo, (61,8; 14,8), hasta
+ * (61,8; 12) y entra hacia dentro hasta (59,5; 12). Nada a la derecha de x = 62.
+ */
+private fun SymbolPen.kgLetters(color: Color, w: Float) {
+    line(50f, 8f, 50f, 16f, color, w)
+    line(50f, 12f, 54f, 8f, color, w)
+    line(50f, 12f, 54f, 16f, color, w)
+    arc(59f, 12f, 4f, 45f, 270f, color, w)
+    // Brazo de la G: sube del extremo de abajo del arco hasta la mitad y entra hacia dentro.
+    val ex = 59f + 4f * cos(45f * DEG)
+    line(ex, 12f + 4f * sin(45f * DEG), ex, 12f, color, w)
+    line(ex, 12f, 59.5f, 12f, color, w)
 }
 
 // ---------------------------------------------------------------- Fuerza y cardio
 
-private val KETTLEBELL_HANDLE: Path by lazy {
+/** Vértices del pulso bajo el corazón: de x = 28 a x = 62 sobre la línea y = 52, con un pico hacia abajo. */
+private val PULSE_X = floatArrayOf(28f, 38f, 41f, 44f, 47f, 50f, 62f)
+private val PULSE_Y = floatArrayOf(52f, 52f, 46f, 58f, 50f, 52f, 52f)
+
+/** El pulso entero como trazo, construido una vez. */
+private val PULSE_PATH: Path by lazy {
     Path().apply {
-        moveTo(-5.5f, 13.2f)
-        lineTo(-5.5f, 4.8f)
-        quadraticTo(-5.5f, 0f, -1.5f, 0f)
-        lineTo(1.5f, 0f)
-        quadraticTo(5.5f, 0f, 5.5f, 4.8f)
-        lineTo(5.5f, 13.2f)
+        moveTo(PULSE_X[0], PULSE_Y[0])
+        for (i in 1 until PULSE_X.size) lineTo(PULSE_X[i], PULSE_Y[i])
     }
 }
 
-/** Híbrido: una kettlebell que se balancea sobre una barra cargada en el suelo. General: la kettlebell en verde. */
-internal class StrengthCardioArt(lk: Float) : GoalArt(SymbolPalette.ok, period = 3.6f, restT = 0f, lk = lk) {
-    private val px = 32f
-    private val py = 3.5f
-    private val bodyCy = 22f
-    private val bodyR = 10.5f
-    private val baseDy = 9.6f
+/** Ordenada del pulso en la abscisa [x] (interpolación lineal entre vértices). */
+private fun pulseYAt(x: Float): Float {
+    for (i in 0 until PULSE_X.size - 1) {
+        if (x <= PULSE_X[i + 1]) {
+            val k = ((x - PULSE_X[i]) / (PULSE_X[i + 1] - PULSE_X[i])).coerceIn(0f, 1f)
+            return lerpF(PULSE_Y[i], PULSE_Y[i + 1], k)
+        }
+    }
+    return PULSE_Y[PULSE_Y.size - 1]
+}
 
-    /** Ángulo del balanceo en grados (dos balanceos por bucle). */
-    internal fun swingDeg(t: Float): Float = 29f * sin(TAU * t / (period / 2f))
+/** El corazón: contorno con relleno, centrado en (44, 34). */
+private val HEART_PATH: Path by lazy {
+    Path().apply {
+        moveTo(44f, 42f)
+        cubicTo(30f, 32f, 34f, 20f, 44f, 26f)
+        cubicTo(54f, 20f, 58f, 32f, 44f, 42f)
+    }
+}
+
+/**
+ * Una mancuerna a la izquierda y un corazón a la derecha que late dos veces por ciclo; un tramo en acento recorre el pulso
+ * bajo el corazón en cada latido. General: mancuerna y corazón en verde.
+ */
+internal class StrengthCardioArt(lk: Float) : GoalArt(SymbolPalette.ok, period = 2f, restT = 0f, lk = lk) {
+    /** Trazo reutilizado del tramo en acento del pulso. */
+    private val span = Path()
+
+    /** Latido (0 a 1) en el instante [t]: dos pulsos por bucle, con el pico a 0,35 y a 0,75 del período. */
+    internal fun beat(t: Float): Float {
+        val u = t / period
+        return riseHoldFall(u, 0.25f, 0.35f, 0.35f, 0.45f) + riseHoldFall(u, 0.65f, 0.75f, 0.75f, 0.85f)
+    }
 
     override fun drawStatic(pen: SymbolPen) {
-        with(pen) {
-            line(2f, 50f, 62f, 50f, ink, mid)
-            for (m in floatArrayOf(1f, -1f)) {
-                val x0 = if (m > 0f) 0f else 64f
-                plateBox(x0, 50f, m, 17.5f, 23f, 11f, 2.2f, ink, mid)
-                plateBox(x0, 50f, m, 12f, 15.5f, 7.5f, 1.8f, ink, mid)
-                plateBox(x0, 50f, m, 8f, 10.5f, 4.5f, 1.4f, ink, mid)
-            }
-            line(4f, 63f, 60f, 63f, soft, fine)
-        }
+        with(pen) { path(PULSE_PATH, ink, fine) }
     }
 
     override fun drawDynamic(pen: SymbolPen, t: Float) {
         with(pen) {
-            // La mano (solo seleccionado), la estela del balanceo y la kettlebell colgando.
-            dot(px, py - 1.6f, dotR(1.7f), motion)
-            arc(px, py, 31f, 90f - 36f, 72f, motion, fine)
-            shifted(px, py) {
-                rotated(-swingDeg(t), 0f, 0f) {
-                    path(KETTLEBELL_HANDLE, ink, mid)
-                    val half = kotlin.math.acos(baseDy / bodyR) / DEG
-                    arc(0f, bodyCy, bodyR, 90f + half, 360f - 2f * half, accent, mid)
-                    val chord = bodyR * sin(half * DEG)
-                    line(-chord, bodyCy + baseDy, chord, bodyCy + baseDy, accent, mid)
-                }
+            val u = t / period
+            // El tramo en acento recorre el pulso en cada latido (de 0,2 a 0,5 y de 0,6 a 0,9 del período).
+            sweep(seg(u, 0.2f, 0.5f), accent)
+            sweep(seg(u, 0.6f, 0.9f), accent)
+            // El corazón late alrededor de su centro.
+            val b = beat(t)
+            val hs = 1f + 0.12f * b
+            scaled(hs, hs, 44f, 34f) {
+                fillPath(HEART_PATH, accent.fainter(0.18f))
+                path(HEART_PATH, accent, bold)
             }
+            // La mancuerna sube 3 u con cada latido.
+            plateDumbbell(16f, 38f - 3f * b, 0f, ink, accent, mid, fine)
         }
+    }
+
+    /** Dibuja el tramo en acento cuando la ventana [p] (0 a 1) lo recorre; fuera del trazo no se ve nada. */
+    private fun SymbolPen.sweep(p: Float, color: Color) {
+        val x0 = PULSE_X[0]
+        val x1 = PULSE_X[PULSE_X.size - 1]
+        val a = lerpF(x0 - SPAN_W, x1, p)
+        val lo = max(a, x0)
+        val hi = min(a + SPAN_W, x1)
+        if (hi - lo < 0.3f) return
+        span.reset()
+        span.moveTo(lo, pulseYAt(lo))
+        for (i in PULSE_X.indices) if (PULSE_X[i] > lo && PULSE_X[i] < hi) span.lineTo(PULSE_X[i], PULSE_Y[i])
+        span.lineTo(hi, pulseYAt(hi))
+        path(span, color, mid)
+    }
+
+    private companion object {
+        const val SPAN_W = 12f
     }
 }
 
 // ---------------------------------------------------------------- Funcional y saludable
 
-/** Plantilla de un latido del electrocardiograma (14 unidades de ancho, relativa a la línea base). */
-private val ECG_BEAT = floatArrayOf(
-    0f, 0f, 2.5f, 0f, 3.3f, -0.9f, 4.1f, 0f, 5f, 0f, 5.6f, 1.2f, 6.4f, -6.5f, 7.2f, 2.6f, 8f, 0f,
-    9.5f, 0f, 10.4f, -1.5f, 11.3f, 0f, 14f, 0f,
+/** Cuadro clave de pie: la persona lista para el salto. */
+private val JUMP_STAND = FrontPose(
+    head = Offset(32f, 13f),
+    shL = Offset(27.5f, 20f), shR = Offset(36.5f, 20f),
+    elL = Offset(26f, 28f), haL = Offset(26.5f, 35f),
+    elR = Offset(38f, 28f), haR = Offset(37.5f, 35f),
+    hip = Offset(32f, 36f),
+    knL = Offset(30f, 47f), ftL = Offset(29.5f, 58f),
+    knR = Offset(34f, 47f), ftR = Offset(34.5f, 58f),
 )
 
-/** El trazo del pulso, calculado una vez: cuatro latidos de x = 4 a x = 60 sobre la línea y = 58. */
-private object Ecg {
-    const val BEAT = 14f
-    const val BEATS = 4
-    const val X0 = 4f
-    const val BASE = 58f
-    private val perBeat = ECG_BEAT.size / 2
-    val count: Int = (perBeat - 1) * BEATS + 1
-    val xs = FloatArray(count)
-    val ys = FloatArray(count)
+/** Cuadro clave en el aire: brazos en V y piernas abiertas, todo 3 u más arriba. */
+private val JUMP_AIR = FrontPose(
+    head = Offset(32f, 10f),
+    shL = Offset(27.5f, 17f), shR = Offset(36.5f, 17f),
+    elL = Offset(24f, 13f), haL = Offset(21f, 6f),
+    elR = Offset(40f, 13f), haR = Offset(43f, 6f),
+    hip = Offset(32f, 33f),
+    knL = Offset(27f, 45f), ftL = Offset(23f, 55f),
+    knR = Offset(37f, 45f), ftR = Offset(41f, 55f),
+)
 
-    init {
-        var k = 0
-        for (b in 0 until BEATS) {
-            for (i in 0 until perBeat) {
-                if (b > 0 && i == 0) continue
-                xs[k] = X0 + b * BEAT + ECG_BEAT[2 * i]
-                ys[k] = BASE + ECG_BEAT[2 * i + 1]
-                k++
-            }
-        }
+/** Cuadro clave agachada: como de pie, con la cadera 2 u más baja y las rodillas algo flexionadas. */
+private val JUMP_CROUCH = FrontPose(
+    head = Offset(32f, 15f),
+    shL = Offset(27.5f, 22f), shR = Offset(36.5f, 22f),
+    elL = Offset(26f, 30f), haL = Offset(26.5f, 37f),
+    elR = Offset(38f, 30f), haR = Offset(37.5f, 37f),
+    hip = Offset(32f, 38f),
+    knL = Offset(28.2f, 47.6f), ftL = Offset(29.5f, 58f),
+    knR = Offset(35.8f, 47.6f), ftR = Offset(34.5f, 58f),
+)
+
+/** Interpolación lineal entre dos poses de frente, articulación a articulación. */
+private fun mixPose(a: FrontPose, b: FrontPose, k: Float): FrontPose = FrontPose(
+    head = lerpOffset(a.head, b.head, k),
+    shL = lerpOffset(a.shL, b.shL, k), shR = lerpOffset(a.shR, b.shR, k),
+    elL = lerpOffset(a.elL, b.elL, k), haL = lerpOffset(a.haL, b.haL, k),
+    elR = lerpOffset(a.elR, b.elR, k), haR = lerpOffset(a.haR, b.haR, k),
+    hip = lerpOffset(a.hip, b.hip, k),
+    knL = lerpOffset(a.knL, b.knL, k), ftL = lerpOffset(a.ftL, b.ftL, k),
+    knR = lerpOffset(a.knR, b.knR, k), ftR = lerpOffset(a.ftR, b.ftR, k),
+)
+
+private fun lerpOffset(a: Offset, b: Offset, k: Float): Offset = Offset(lerpF(a.x, b.x, k), lerpF(a.y, b.y, k))
+
+/**
+ * Una persona que salta de frente: se agacha, salta con los brazos en V y las piernas abiertas, aterriza y vuelve a estar de
+ * pie. Una sombra bajo los pies se encoge al subir y dos trazos junto a las manos marcan el punto alto. General: figura en
+ * tinta y trazos de impulso en verde.
+ */
+internal class FunctionalArt(lk: Float) : GoalArt(SymbolPalette.ok, period = 1.8f, restT = 0.55f, lk = lk) {
+    /** Cuánto está en el aire en el instante [t]: 0 en el suelo, 1 en el punto alto del salto. */
+    internal fun airOf(t: Float): Float = when {
+        t < 0.3f -> 0f
+        t < 0.75f -> brake(seg(t, 0.3f, 0.75f))
+        t < 1.2f -> 1f - smooth(seg(t, 0.75f, 1.2f))
+        else -> 0f
     }
-}
 
-private val HEART: Path by lazy {
-    Path().apply {
-        moveTo(0f, 4.4f)
-        cubicTo(-6.8f, -0.6f, -3.8f, -5.6f, 0f, -2.2f)
-        cubicTo(3.8f, -5.6f, 6.8f, -0.6f, 0f, 4.4f)
-        close()
+    /** Pose en el instante [t]: de pie (0), agachada (0,3), en el aire (0,75), agachada (1,2) y de pie otra vez (1,8). */
+    internal fun pose(t: Float): FrontPose = when {
+        t < 0.3f -> mixPose(JUMP_STAND, JUMP_CROUCH, smooth(seg(t, 0f, 0.3f)))
+        t < 0.75f -> mixPose(JUMP_CROUCH, JUMP_AIR, brake(seg(t, 0.3f, 0.75f)))
+        t < 1.2f -> mixPose(JUMP_AIR, JUMP_CROUCH, smooth(seg(t, 0.75f, 1.2f)))
+        else -> mixPose(JUMP_CROUCH, JUMP_STAND, smooth(seg(t, 1.2f, 1.8f)))
     }
-}
-
-/** Una figura que se agacha y sube con los brazos arriba, con un corazón que late y su pulso. General: corazón y pulso en verde. */
-internal class FunctionalArt(lk: Float) : GoalArt(SymbolPalette.ok, period = 2.8f, restT = 1.9f, lk = lk) {
-    /** 0 = erguida, 1 = en cuclillas. */
-    internal fun squat(t: Float): Float = riseHoldFall(t, 0.2f, 0.9f, 1.25f, 1.7f)
-
-    /** 0 = brazos abajo, 1 = brazos arriba. */
-    internal fun reach(t: Float): Float = riseHoldFall(t, 1.25f, 1.8f, 2.15f, 2.65f)
-
-    /** Intensidad del latido (0 a 1) en el instante [t]: un latido cada 0,7 s, el pico justo después de que el trazo pasa el pico R. */
-    internal fun beat(t: Float): Float {
-        val u = ((t - 0.3f) % BEAT_S + BEAT_S) % BEAT_S / BEAT_S
-        return bell((u - 0.06f) / 0.07f) + 0.55f * bell((u - 0.3f) / 0.08f)
-    }
-
-    /** Campana de Gauss sin normalizar (1 en el centro). */
-    private fun bell(x: Float): Float = kotlin.math.exp(-x * x)
-
-    /** Posición de la cabeza lectora del trazo (unidades x) en el instante [t]. */
-    internal fun headX(t: Float): Float = Ecg.X0 + (Ecg.BEAT * Ecg.BEATS) * (t / period)
 
     override fun drawStatic(pen: SymbolPen) = Unit
 
     override fun drawDynamic(pen: SymbolPen, t: Float) {
         with(pen) {
-            val sq = squat(t)
-            val rc = reach(t)
-            val sy = 15.5f + 7.5f * sq
-            val hipY = 29.5f + 9f * sq
-            // Pulso: el trazo tenue y, detrás de la cabeza lectora, el tramo encendido.
-            val head = headX(t)
-            val edge = min(seg(head, 4f, 12f), 1f - seg(head, 54f, 61f))
-            for (i in 0 until Ecg.count - 1) {
-                line(Ecg.xs[i], Ecg.ys[i], Ecg.xs[i + 1], Ecg.ys[i + 1], soft, fine)
+            val air = airOf(t)
+            // Sombra bajo los pies: se encoge y se aclara al subir.
+            fade(0.5f - 0.25f * air) { oval(32f, 60.5f, 9f - 3.5f * air, 1.2f, ink, fine) }
+            // Dos trazos de impulso junto a las manos en el punto alto.
+            val burst = seg(air, 0.55f, 1f)
+            if (burst > 0f) {
+                line(18f, 4.5f, 14.5f, 2.5f, accent.fainter(burst), mid)
+                line(46f, 4.5f, 49.5f, 2.5f, accent.fainter(burst), mid)
             }
-            for (i in 0 until Ecg.count - 1) {
-                val d = head - (Ecg.xs[i] + Ecg.xs[i + 1]) / 2f
-                if (d < 0f || d > TAIL) continue
-                val a = (1f - d / TAIL) * edge
-                if (a > 0.03f) line(Ecg.xs[i], Ecg.ys[i], Ecg.xs[i + 1], Ecg.ys[i + 1], accent.fainter(a), mid)
-            }
-            if (edge > 0.05f) {
-                val hy = ecgYAt(head)
-                dot(head, hy, dotR(1.5f), accent.fainter(edge))
-            }
-            // Figura de frente: cabeza, hombros, tronco partido por el corazón, brazos y piernas.
-            val cx = 32f
-            ring(cx, sy - 7.2f, 3.4f, ink, bold * 0.9f)
-            line(cx - 4.2f, sy, cx + 4.2f, sy, ink, bold)
-            val beatK = beat(t)
-            val hs = 1f + 0.3f * beatK
-            line(cx, sy, cx, sy + 1.6f, ink, bold)
-            line(cx, sy + 11.2f, cx, hipY, ink, bold)
-            shifted(cx, sy + 6.3f) {
-                scaled(hs, hs, 0f, 0f) { path(HEART, accent, mid) }
-            }
-            // Brazos: un giro del hombro (de colgar a levantar) y un codo que se pliega.
-            val alpha = lerpF(14f, 168f, rc) * DEG
-            val beta = lerpF(8f, 4f, rc) * DEG
-            for (m in floatArrayOf(-1f, 1f)) {
-                val shx = cx + m * 4.2f
-                val ex = shx + m * sin(alpha) * ARM
-                val ey = sy + cos(alpha) * ARM
-                val gamma = alpha - beta
-                val hx = ex + m * sin(gamma) * ARM
-                val hy = ey + cos(gamma) * ARM
-                poly(Offset(shx, sy), Offset(ex, ey), Offset(hx, hy), ink, bold)
-            }
-            // Piernas: los pies se abren al agacharse y las rodillas salen hacia fuera.
-            val stance = lerpF(3.6f, 8f, sq)
-            val hip = Offset(cx, hipY)
-            for (m in floatArrayOf(-1f, 1f)) {
-                val foot = Offset(cx + m * stance, FOOT_Y)
-                val knee = ik(hip, foot, LEG, LEG, -m)
-                poly(hip, knee, foot, ink, bold)
-            }
+            frontFigure(pose(t), 3.4f, ink, bold)
         }
-    }
-
-    private fun ecgYAt(x: Float): Float {
-        for (i in 0 until Ecg.count - 1) {
-            if (x <= Ecg.xs[i + 1]) {
-                val k = ((x - Ecg.xs[i]) / (Ecg.xs[i + 1] - Ecg.xs[i])).coerceIn(0f, 1f)
-                return lerpF(Ecg.ys[i], Ecg.ys[i + 1], k)
-            }
-        }
-        return Ecg.BASE
-    }
-
-    private companion object {
-        const val BEAT_S = 0.7f
-        const val TAIL = 18f
-        const val ARM = 6.8f
-        const val LEG = 11f
-        const val FOOT_Y = 50f
     }
 }
 
@@ -438,4 +513,3 @@ internal class CalisthenicsArt(lk: Float) : GoalArt(SymbolPalette.ok, period = 2
         }
     }
 }
-
