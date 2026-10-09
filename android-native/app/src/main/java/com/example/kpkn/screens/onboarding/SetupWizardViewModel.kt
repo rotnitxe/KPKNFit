@@ -24,6 +24,7 @@ import com.example.kpkn.data.programs.programNameFor
 import com.example.kpkn.data.protocols.PROTOCOL_LIBRARY
 import com.example.kpkn.data.protocols.definitions.NativeProfileKind
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogRepositoryV2
+import com.example.kpkn.domain.exercises.catalogv2.CatalogDisplayNames
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogStateV2
 import com.example.kpkn.domain.nutrition.NutritionConfigurationMode
 import com.example.kpkn.domain.nutrition.kilogramsFromInput
@@ -445,7 +446,9 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 acceptFixedRecipeDifference = false,
                 programRoute = SetupProgramRoute.CUSTOMIZABLE,
                 trainingPath = SetupTrainingPath.PERSONALIZE,
-            ).let { chosen -> if (draft.selectedCatalogId == id) chosen else chosen.withInvalidatedWeekLayout() }
+            ).let { chosen ->
+                if (draft.selectedCatalogId == id) chosen else chosen.withInvalidatedWeekLayout().withoutExerciseSwaps()
+            }
         }
     }
 
@@ -466,7 +469,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
      * cambia de plan: si el «a medida» ya estaba elegido, sigue elegido con su versión nueva.
      */
     fun anotherPlanVersion() = updateStep(SetupStepId.PLAN) { draft ->
-        draft.copy(planVariantSeed = draft.planVariantSeed + 1).withInvalidatedWeekLayout()
+        draft.copy(planVariantSeed = draft.planVariantSeed + 1).withInvalidatedWeekLayout().withoutExerciseSwaps()
     }
 
     // ── Entreno v2: la semana armada (paso WEEK_LAYOUT) ──────────────────────
@@ -1320,7 +1323,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
         // Entreno v2: la semana armada (sesiones movidas, reparto adaptado) es del programa de las respuestas
         // anteriores; con respuestas nuevas el programa se vuelve a armar y su semana empieza de cero, y el paso
         // WEEK_LAYOUT queda pendiente de revisar (nunca se limpia en silencio).
-        val next = if (candidateInputsChanged) changed.withInvalidatedWeekLayout() else changed
+        val next = if (candidateInputsChanged) changed.withInvalidatedWeekLayout().withoutExerciseSwaps() else changed
         if (candidateInputsChanged) candidateGeneration += 1
         val beforePersist = _state.value.copy(machineState = WizChatMachineState.PersistingAnswer, errors = emptyMap())
         _state.value = if (candidateInputsChanged) {
@@ -1651,7 +1654,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
         // La semana armada (colocación de sesiones, reparto adaptado, otra versión) cambia el programa preparado pero
         // no el conjunto de candidatos: solo entra en la clave de la vista previa.
         trainingKey(draft) + listOf(
-            _state.value.planAdaptedToBodyweight, draft.weekLayoutOverrides, draft.adaptedSplitId,
+            _state.value.planAdaptedToBodyweight, draft.weekLayoutOverrides, draft.adaptedSplitId, draft.exerciseOverrides,
             draft.importedProgram, draft.importResolutions, draft.importTitle,
         )
 
@@ -1775,9 +1778,18 @@ class SetupWizardViewModel @JvmOverloads constructor(
         val base = materializeBase(draft)
         val program = base.program ?: return PreparedPreview(base, null, null)
         val placeFit = placeFitFor(draft)
-        if (!draft.hasWeekLayout && placeFit == null) return PreparedPreview(base, program, LayoutOutcome(program))
+        val swaps = draft.exerciseOverrides.isNotEmpty()
+        if (!draft.hasWeekLayout && placeFit == null && !swaps) return PreparedPreview(base, program, LayoutOutcome(program))
         val resolver = if (draft.adaptedSplitId != null) traitResolver() else null
-        val outcome = applyLayout(draft, program, resolver, placeFit)
+        // Las sustituciones necesitan el catálogo (la identidad de cada configuración). Son solo una aplicación sobre el
+        // programa ya generado: no regeneran nada (la evaluación del plan sigue en caché).
+        val catalog = if (swaps) {
+            ensureCatalogLoaded()
+            (catalogRepository.state.value as? ExerciseCatalogStateV2.Ready)?.catalog
+        } else {
+            null
+        }
+        val outcome = applyLayout(draft, program, resolver, placeFit, catalog)
         ProgramExecutionContract.requireExecutable(outcome.program)
         return PreparedPreview(SetupPreview(outcome.program, base.report), program, outcome)
     }
@@ -1790,6 +1802,43 @@ class SetupWizardViewModel @JvmOverloads constructor(
         if (draft.trainingPlaces.size < 2) return null
         val catalog = (catalogRepository.state.value as? ExerciseCatalogStateV2.Ready)?.catalog ?: return null
         return SessionPlaceFit.of(catalog, draft.trainingOptions.availability, draft.trainingPlaces)
+    }
+
+    /**
+     * El material del lugar [place] para «Cambiar»: con dos o más lugares, el que reparte el generador ([PlaceMaterial]); con
+     * uno solo (o sin lugar), el declarado.
+     */
+    private fun availabilityAt(draft: SetupWizardDraft, place: TrainingPlace?): EquipmentAvailability {
+        val declared = draft.trainingOptions.availability ?: EquipmentAvailability()
+        if (draft.trainingPlaces.size < 2 || place == null) return declared
+        return PlaceMaterial.byPlace(declared, draft.trainingPlaces)[place] ?: declared
+    }
+
+    /**
+     * Las alternativas de «Cambiar» para el ejercicio [instanceId] del programa elegido, con el material del lugar de su día.
+     * Se mira en la vista previa, que ya lleva las sustituciones: el ejercicio cambiado cuenta por su configuración actual.
+     * Vacío si no hay programa preparado o el ejercicio no tiene identidad de catálogo.
+     */
+    internal fun swapOptionsOf(instanceId: String): List<SwapOption> {
+        val state = _state.value
+        val program = state.programPreview ?: return emptyList()
+        val catalog = (catalogRepository.state.value as? ExerciseCatalogStateV2.Ready)?.catalog ?: return emptyList()
+        val session = SetupPlanReveals.firstTrainingWeek(program)?.sessions.orEmpty()
+            .firstOrNull { candidate -> candidate.allExercises().any { it.id == instanceId } } ?: return emptyList()
+        val exercise = session.allExercises().first { it.id == instanceId }
+        val place = SetupPlanReveals.dayOf(session)?.let { state.draft.placeForDay(it) }
+        return ExerciseSwapOptions.optionsFor(
+            exercise = exercise,
+            sessionPlaceAvailability = availabilityAt(state.draft, place),
+            catalog = catalog,
+            avoided = state.draft.avoidedExercises,
+        )
+    }
+
+    /** El nombre que lleva una configuración del catálogo (el de su definición), o null si el catálogo no la conoce. */
+    internal fun configNameOf(configId: String): String? {
+        val catalog = (catalogRepository.state.value as? ExerciseCatalogStateV2.Ready)?.catalog ?: return null
+        return CatalogDisplayNames.configurationDisplayName(catalog, configId)
     }
 
     /**
@@ -3874,6 +3923,24 @@ class SetupWizardViewModel @JvmOverloads constructor(
     /** Nombre opcional del evento (hasta 40 caracteres). */
     fun setMeetName(name: String) =
         mutateDraft(SetupStepId.COMPETITION) { latest -> latest.withMeetName(name) }
+
+    /**
+     * «Cambiar» el ejercicio [instanceId] del programa elegido por la configuración [configId], que tiene que ser una de las
+     * alternativas de [swapOptionsOf]. Sustituye al instante: la vista previa, la revisión y la activación ven lo mismo, y el
+     * programa generado y la huella no cambian.
+     */
+    fun swapExercise(instanceId: String, configId: String) {
+        val draft = _state.value.draft
+        if (draft.selectedCatalogId == null || draft.exerciseOverrides[instanceId] == configId) return
+        if (swapOptionsOf(instanceId).none { it.configId == configId }) return
+        mutateDraft { latest -> latest.copy(exerciseOverrides = latest.exerciseOverrides + (instanceId to configId)) }
+    }
+
+    /** «Deshacer»: el ejercicio [instanceId] vuelve a ser el del programa generado. */
+    fun undoSwap(instanceId: String) {
+        if (instanceId !in _state.value.draft.exerciseOverrides) return
+        mutateDraft { latest -> latest.copy(exerciseOverrides = latest.exerciseOverrides - instanceId) }
+    }
 
     companion object {
         private const val DRAFT_ID_KEY = "setup_wizard_draft_id"
