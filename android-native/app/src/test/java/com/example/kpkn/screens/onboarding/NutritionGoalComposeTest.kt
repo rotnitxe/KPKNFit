@@ -2,6 +2,7 @@ package com.example.kpkn.screens.onboarding
 
 import android.app.Application
 import androidx.activity.ComponentActivity
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -11,8 +12,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
-import androidx.compose.ui.test.swipeLeft
-import androidx.compose.ui.test.swipeRight
+import androidx.compose.ui.test.swipe
 import com.example.kpkn.data.models.PlanDirection
 import com.example.kpkn.domain.nutrition.EerSex
 import com.example.kpkn.domain.nutrition.PlanTuning
@@ -156,12 +156,12 @@ class NutritionGoalComposeTest {
         rule.onNodeWithTag("setup-weight-value").assertTextEquals("74 kg")
         // Arrastres largos en los dos sentidos: la regla se para en 72 y en 74 sin pasarse.
         repeat(3) {
-            ruleNode.performTouchInput { swipeRight(startX = centerX - 200f, endX = centerX + 200f, y = bottom - 30f) }
+            ruleNode.performTouchInput { swipe(Offset(centerX - 200f, bottom - 30f), Offset(centerX + 200f, bottom - 30f)) }
         }
         rule.waitForIdle()
         rule.onNodeWithTag("setup-weight-value").assertTextEquals("72 kg")
         repeat(3) {
-            ruleNode.performTouchInput { swipeLeft(startX = centerX + 200f, endX = centerX - 200f, y = bottom - 30f) }
+            ruleNode.performTouchInput { swipe(Offset(centerX + 200f, bottom - 30f), Offset(centerX - 200f, bottom - 30f)) }
         }
         rule.waitForIdle()
         rule.onNodeWithTag("setup-weight-value").assertTextEquals("74 kg")
