@@ -2,10 +2,13 @@ package com.example.kpkn.data.onboarding
 
 import android.content.Context
 import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
+import com.example.kpkn.data.models.ArticularBattery
+import com.example.kpkn.data.models.ArticularBatteryState
 import com.example.kpkn.data.models.DailyWellbeingLog
 import com.example.kpkn.data.models.GlobalBatteries
 import com.example.kpkn.data.models.InitialRecoveryEvidence
 import com.example.kpkn.data.models.ManualMuscleBatteryOverride
+import com.example.kpkn.data.models.MuscleRecoveryStatus
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.repository.AugeRepository
 import com.example.kpkn.data.repository.NutritionRepository
@@ -48,11 +51,24 @@ fun SetupRingsMapping.toEvidencePatchField(): SetupPatchField<InitialRecoveryEvi
         RingsEvidenceHandling.UNCHANGED -> SetupPatchField.Unchanged
     }
 
+/**
+ * Ajustes 0–100 de «Tus RINGS» tal como los ve la persona: energía, columna (la del blend de Inicio) y músculos por pilar.
+ * Un canal sin valor aquí cae en los 1–5 de borradores viejos o en la estimación. Las sensaciones NO son ancla: solo
+ * penalizan la evidencia.
+ */
+data class SetupRingsManualValues(
+    val energia: Int? = null,
+    val columna: Int? = null,
+    val musculos: Map<String, Int> = emptyMap(),
+)
+
 data class SetupRingsPreview(
     val batteries: GlobalBatteries,
     val stagedWellbeing: DailyWellbeingLog?,
-    /** Cobertura por canal: procedencia, carácter estimado e incertidumbre. */
+    /** Cobertura por canal: procedencia, carácter estimado e incertidumbre. La Columna es la de Inicio (blend). */
     val coverage: RingsCoverage,
+    /** Estimación automática de cada pilar (sin ajustes de la persona): referencia de los deslizadores del resultado. */
+    val muscleEstimates: Map<String, Int> = emptyMap(),
 )
 
 /**
@@ -78,6 +94,14 @@ internal fun stagePreviewWellbeing(
     date = previewWellbeingDate(nowMs),
     anchorMs = nowMs,
     muscleOverridesV2 = muscleOverrides,
+)
+
+/** Propuesta del alta: el check-in que se guardaría y los datos que el motor lee con él. */
+private class RingsProposal(
+    val incoming: DailyWellbeingLog?,
+    val normalized: DailyWellbeingLog?,
+    val muscles: Map<String, MuscleRecoveryStatus>,
+    val articular: Map<ArticularBattery, ArticularBatteryState>,
 )
 
 /** Runs the same recovery engines and uses the same persisted inputs as Home,
@@ -113,6 +137,7 @@ class SetupRingsPreviewCalculator(private val context: Context) {
         discomforts: List<String>?,
         nowMs: Long,
         checkIn: SetupRingsCheckIn = SetupRingsCheckIn(),
+        manual: SetupRingsManualValues = SetupRingsManualValues(),
     ): SetupRingsPreview {
         val auge = AugeRepository.getInstance(context)
         val history = ProgramRepository.getInstance().history.value
@@ -140,31 +165,51 @@ class SetupRingsPreviewCalculator(private val context: Context) {
                 history, automaticWellbeing, candidateSettings, catalog, sleep, nutrition, feedbacks, cache,
                 nowOverrideMs = nowMs,
             )
-            // Mapeo de respuestas compartido con el commit: escala 1-5 → batería 0-100.
-            val staged: StagedRingsCheckIn = SetupRingsResponseMapping.stageCheckIn(
-                checkIn = checkIn,
-                manualMuscleLevels = manualMuscles,
-                manualEnergyLevel = manualEnergy,
-                manualStructureLevel = manualStructure,
+            // Mismo merge por campos que el commit del alta, para que la vista previa no diverja del guardado.
+            fun proposalFor(staged: StagedRingsCheckIn): RingsProposal {
+                val overrides = staged.manualMuscleBatteries.mapValues { (muscle, battery) ->
+                    val automatic = autoMuscles[muscle]?.recoveryScore
+                        ?: error("No se pudo estimar la batería automática de $muscle")
+                    ManualMuscleBatteryOverride(battery, nowMs, null, automatic)
+                }
+                val incoming = stagePreviewWellbeing(commitId, staged, nowMs, overrides)
+                val onCommitToday = if (incoming == null) existing else today
+                val proposed = if (incoming == null) onCommitToday else mergeSetupWellbeing(onCommitToday, incoming)
+                val normalized = proposed?.copy(manualMuscleBatteries = remapMuscleIntMapToPillars(proposed.manualMuscleBatteries))
+                return RingsProposal(
+                    incoming = incoming,
+                    normalized = normalized,
+                    muscles = AugeRecoveryEngine.getPerMuscleBatteries(history, normalized, candidateSettings,
+                        catalog, sleep, nutrition, feedbacks, cache, nowOverrideMs = nowMs),
+                    articular = AugeTtcEngine.calculateArticularBatteries(history, catalog, feedbacks, normalized),
+                )
+            }
+            // Los 1–5 de borradores viejos solo entran donde no hay ajuste 0–100 del mismo canal o pilar. Las sensaciones
+            // del check-in NO anclan: el alta lleva solo lo que la persona mueve.
+            val legacy = SetupRingsResponseMapping.stageCheckIn(
+                checkIn = SetupRingsCheckIn(),
+                manualMuscleLevels = manualMuscles.filterKeys { it !in manual.musculos },
+                manualEnergyLevel = manualEnergy.takeIf { manual.energia == null },
+                manualStructureLevel = manualStructure.takeIf { manual.columna == null },
                 discomforts = discomforts,
             )
-            val manual = staged.manualMuscleBatteries.mapValues { (muscle, battery) ->
-                val automatic = autoMuscles[muscle]?.recoveryScore
-                    ?: error("No se pudo estimar la batería automática de $muscle")
-                ManualMuscleBatteryOverride(battery, nowMs, null, automatic)
+            val withoutColumna = SetupRingsResponseMapping.withRingAdjustments(legacy, manual.energia, null, manual.musculos)
+            val first = proposalFor(withoutColumna)
+            // La Columna guardada es la batería cruda que da el valor elegido en el blend de Inicio. Se invierte con el
+            // suelo articular y los guardianes de ESTA propuesta: la Columna no entra en músculos ni en articulares.
+            val columnaBattery = manual.columna?.let { desired ->
+                val (floor, guards) = AugeRecoveryEngine.structureInputs(first.muscles, first.articular)
+                AugeRecoveryEngine.invertStructureRingScore(desired, floor, guards)
             }
-            val incoming = stagePreviewWellbeing(commitId, staged, nowMs, manual)
-            val onCommitToday = if (incoming == null) existing else today
-            // Mismo merge por campos que el commit del alta (muscular/energy/structure/
-            // muscle_batteries/discomforts), para que la vista previa no diverja.
-            val proposed = if (incoming == null) onCommitToday else mergeSetupWellbeing(onCommitToday, incoming)
-            val normalized = proposed?.copy(manualMuscleBatteries = remapMuscleIntMapToPillars(proposed.manualMuscleBatteries))
-            val muscles = AugeRecoveryEngine.getPerMuscleBatteries(history, normalized, candidateSettings,
-                catalog, sleep, nutrition, feedbacks, cache, nowOverrideMs = nowMs)
-            val articular = AugeTtcEngine.calculateArticularBatteries(history, catalog, feedbacks, normalized)
-            val batteries = AugeRecoveryEngine.calculateGlobalBatteries(history, normalized, candidateSettings,
-                catalog, sleep, nutrition, feedbacks, cache, precomputedMuscles = muscles,
-                articularBatteries = articular, nowOverrideMs = nowMs)
+            val final = if (columnaBattery == null) first else proposalFor(
+                SetupRingsResponseMapping.withRingAdjustments(withoutColumna, null, columnaBattery, emptyMap()),
+            )
+            val batteries = AugeRecoveryEngine.calculateGlobalBatteries(history, final.normalized, candidateSettings,
+                catalog, sleep, nutrition, feedbacks, cache, precomputedMuscles = final.muscles,
+                articularBatteries = final.articular, nowOverrideMs = nowMs)
+            // Columna de Inicio: el mismo blend (`structureRingScore`) sobre la batería cruda, no la cruda sola.
+            val (artFloor, guardScores) = AugeRecoveryEngine.structureInputs(final.muscles, final.articular)
+            val structure = AugeRecoveryEngine.structureRingScore(batteries.spinal, artFloor, guardScores)
             // Cobertura honesta por canal reutilizando la política de evidencia
             // (mismo cálculo que consume el motor, sin estimadores paralelos).
             val contribution = InitialRecoveryEvidencePolicy.resolve(
@@ -176,18 +221,23 @@ class SetupRingsPreviewCalculator(private val context: Context) {
             )
             val coverage = RingsCoverage.evaluate(
                 historyIsEmpty = history.isEmpty(),
-                wellbeing = normalized,
+                wellbeing = final.normalized,
                 contribution = contribution,
                 subjective = checkIn,
                 score = { channel ->
                     when (channel) {
                         com.example.kpkn.data.models.RecoveryChannelId.MUSCULAR -> batteries.muscular
                         com.example.kpkn.data.models.RecoveryChannelId.SYSTEM -> batteries.cnc
-                        com.example.kpkn.data.models.RecoveryChannelId.STRUCTURE -> batteries.spinal
+                        com.example.kpkn.data.models.RecoveryChannelId.STRUCTURE -> structure
                     }
                 },
             )
-            SetupRingsPreview(batteries, incoming, coverage)
+            SetupRingsPreview(
+                batteries = batteries,
+                stagedWellbeing = final.incoming,
+                coverage = coverage,
+                muscleEstimates = autoMuscles.mapValues { (_, status) -> status.recoveryScore },
+            )
         }
     }
 }

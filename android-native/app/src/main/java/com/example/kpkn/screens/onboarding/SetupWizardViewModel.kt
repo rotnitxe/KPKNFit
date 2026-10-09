@@ -187,7 +187,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
             isCandidateLoading = false,
             planSweep = SetupPlanSweep.IDLE, planReveals = emptyList(), weekLayout = null,
             isPreviewLoading = false,
-            nutritionPlanPreview = null, nutritionPreparation = null, ringsBatteriesPreview = null, ringsCoveragePreview = null,
+            nutritionPlanPreview = null, nutritionPreparation = null, ringsBatteriesPreview = null, ringsCoveragePreview = null, ringsMuscleEstimates = emptyMap(),
             errors = emptyMap(), lastFailure = null)
         initializeJob = viewModelScope.launch {
             try {
@@ -2091,7 +2091,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
             // una cobertura calculada sobre datos que no existen.
             lastRingsPreviewKey = null
             ringsPreviewNow = null
-            _state.value = _state.value.copy(ringsBatteriesPreview = null, ringsCoveragePreview = null,
+            _state.value = _state.value.copy(ringsBatteriesPreview = null, ringsCoveragePreview = null, ringsMuscleEstimates = emptyMap(),
                 ringsPreviewLoading = false, ringsPreviewError = null,
                 errors = _state.value.errors - "rings_preview",
                 // Tampoco queda un diagnóstico de RINGS que ya no aplica.
@@ -2123,6 +2123,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
                     _state.value = _state.value.copy(
                         ringsBatteriesPreview = result.batteries,
                         ringsCoveragePreview = result.coverage,
+                        ringsMuscleEstimates = result.muscleEstimates,
                         ringsPreviewLoading = false,
                         lastFailure = stillFailed,
                     )
@@ -2172,6 +2173,11 @@ class SetupWizardViewModel @JvmOverloads constructor(
             settings, evidenceInput, draft.commitId,
             selected, draft.manualEnergyOverride, draft.manualStructureOverride, discomforts,
             nowEpochMs, checkIn = mapping.previewCheckIn(),
+            manual = SetupRingsManualValues(
+                energia = a.manualRings["energia"],
+                columna = a.manualRings["columna"],
+                musculos = a.manualMusclesV2,
+            ),
         )
     }
     private fun updateNutritionPreview(draft: SetupWizardDraft) {
@@ -3846,6 +3852,32 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 _state.value = _state.value.copy(importBusy = false, importError = error.message ?: "No pudimos leer el programa.")
             }
         }
+    }
+
+    /**
+     * RINGS: ajuste 0–100 de «Energía» (`energia`) o «Columna» (`columna`) con el valor que la persona ve; `null` lo quita.
+     * El deslizador lo llama al SOLTAR: mientras se arrastra solo cambia lo que se ve.
+     */
+    fun setRingsManual(channel: String, value: Int?) = mutateDraft { draft ->
+        val answers = draft.ringsAnswers ?: SetupRingsAnswers()
+        val next = if (value == null) answers.manualRings - channel
+        else answers.manualRings + (channel to value.coerceIn(0, 100))
+        draft.copy(ringsAnswers = answers.copy(manualRings = next))
+    }
+
+    /** RINGS: ajuste 0–100 de un pilar muscular (nombre de `INITIAL_RECOVERY_MUSCLE_PILLARS`); `null` lo quita. */
+    fun setMuscleManual(pillar: String, value: Int?) = mutateDraft { draft ->
+        val answers = draft.ringsAnswers ?: SetupRingsAnswers()
+        val next = if (value == null) answers.manualMusclesV2 - pillar
+        else answers.manualMusclesV2 + (pillar to value.coerceIn(0, 100))
+        draft.copy(ringsAnswers = answers.copy(manualMusclesV2 = next))
+    }
+
+    /** RINGS: «Restablecer» quita todos los ajustes de músculos; vuelven las estimaciones. */
+    fun resetMuscleManual() = mutateDraft { draft ->
+        val answers = draft.ringsAnswers
+        if (answers == null || answers.manualMusclesV2.isEmpty()) draft
+        else draft.copy(ringsAnswers = answers.copy(manualMusclesV2 = emptyMap()))
     }
 
     companion object {

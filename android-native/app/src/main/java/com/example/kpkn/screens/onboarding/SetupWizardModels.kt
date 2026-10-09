@@ -358,6 +358,13 @@ data class SetupRingsAnswers(
     /** Series por grupo (0–20); los grupos con «No lo sé» no figuran aquí y van en [groupSetsUnknown]. */
     val groupSets: Map<RingsMuscleGroup, Int> = emptyMap(),
     val groupSetsUnknown: Set<RingsMuscleGroup> = emptySet(),
+    /**
+     * Ajustes 0–100 de «Energía» y «Columna» (claves `energia` y `columna`), con el valor que la persona VE. Solo se guarda lo
+     * que mueve. Viven aquí y NO en la huella (`ringsSignature`): un ajuste del resultado no marca nada por revisar.
+     */
+    val manualRings: Map<String, Int> = emptyMap(),
+    /** Ajustes 0–100 por pilar muscular (pilar → valor), de «Quiero ajustar yo mismo mis músculos». Fuera de la huella. */
+    val manualMusclesV2: Map<String, Int> = emptyMap(),
 )
 
 typealias InitialRingsAnswers = SetupRingsAnswers
@@ -768,7 +775,8 @@ fun SetupWizardDraft.inputFootprint(): SetupInputFootprint = SetupInputFootprint
         }
     },
     ringsSignature = listOf(
-        ringsAnswers?.toString().orEmpty(),
+        // Sin los ajustes 0–100 de RINGS: moverlos no cambia la huella (ver `SetupRingsAnswers.manualRings`).
+        ringsAnswers?.copy(manualRings = emptyMap(), manualMusclesV2 = emptyMap())?.toString().orEmpty(),
         manualMuscleOverrides.toString(),
         manualEnergyOverride?.toString().orEmpty(),
         manualStructureOverride?.toString().orEmpty(),
@@ -1200,6 +1208,8 @@ data class SetupWizardState(
      * convive con un `PARTIAL_CHECK_IN` válido y con «Sin calibrar» explícito).
      */
     val ringsCoveragePreview: RingsCoverage? = null,
+    /** Estimación automática de cada pilar muscular (sin ajustes de la persona): el valor de referencia de sus deslizadores. */
+    val ringsMuscleEstimates: Map<String, Int> = emptyMap(),
     /** Preparación nutricional REAL del alta (días, gastos y errores), cuando existe. */
     val nutritionPreparation: SetupNutritionPreparationResult? = null,
     /**
