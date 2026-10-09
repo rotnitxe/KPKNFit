@@ -35,6 +35,12 @@ class LiftVariantsTest {
     /** Barra sin rack ni banco, en casa: el caso que quita las sentadillas de rack. */
     private val barbellWithoutRack = EquipmentSymbols.availabilityOf(setOf(EquipmentSymbolId.BARBELL), setOf(TrainingPlace.HOME))
 
+    /** Barra y rack, sin banco: lo que hace falta para la Zercher. */
+    private val barbellWithRack = EquipmentSymbols.availabilityOf(
+        setOf(EquipmentSymbolId.BARBELL, EquipmentSymbolId.RACK),
+        setOf(TrainingPlace.HOME),
+    )
+
     /** Solo mancuernas: sin barra. */
     private val dumbbellsOnly = EquipmentSymbols.availabilityOf(setOf(EquipmentSymbolId.DUMBBELLS), setOf(TrainingPlace.HOME))
 
@@ -120,15 +126,17 @@ class LiftVariantsTest {
     }
 
     @Test
-    fun theRackSquatsNeedARackAndTheZercherOnlyABarbell() {
-        // Criterio del generador (`supportRequirementsFor`): las sentadillas de barra descargadas de un soporte piden rack; la
-        // Zercher se levanta del suelo y no lo pide.
+    fun theRackSquatsAndTheZercherNeedARackAndTheBulgarianBarbellOnlyABarbell() {
+        // Criterio del generador: las sentadillas de barra descargadas de un soporte piden rack, y la Zercher también (como su entrada
+        // del generador). La búlgara con barra solo pide barra.
         val squats = LiftVariants.optionsFor(powerbuilding, LiftMark.SQUAT, barbellWithoutRack).map { it.configId }
         assertFalse("barra alta necesita rack", "high_bar_back_squat__barbell" in squats)
         assertFalse("barra baja necesita rack", "low_bar_back_squat__barbell" in squats)
         assertFalse("frontal necesita rack", "front_squat__barbell" in squats)
-        assertTrue("Zercher solo pide barra", "quads_sentadilla_zercher_barra_recta__default" in squats)
+        assertFalse("sin rack no se ofrece la Zercher", "quads_sentadilla_zercher_barra_recta__default" in squats)
         assertTrue("la búlgara con barra solo pide barra", "bulgarian_split_squat__barbell" in squats)
+        val withRack = LiftVariants.optionsFor(powerbuilding, LiftMark.SQUAT, barbellWithRack).map { it.configId }
+        assertTrue("con barra y rack, la Zercher se ofrece", "quads_sentadilla_zercher_barra_recta__default" in withRack)
     }
 
     @Test

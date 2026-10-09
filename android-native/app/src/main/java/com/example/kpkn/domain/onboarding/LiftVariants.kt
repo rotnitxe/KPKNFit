@@ -10,13 +10,15 @@ import com.example.kpkn.domain.training.supportRequirementsFor
 /**
  * Una variante de un levantamiento básico del paso TRAINING_VARIANTS. [configId] es la configuración real del catálogo
  * (`exercise_catalog_v2.json`); [equipmentId] es su implemento de catálogo, que el filtro de material necesita; y
- * [takesMark] dice si la marca del levantamiento se traduce a una carga de barra (no en mancuernas ni en búlgaras).
+ * [takesMark] dice si la marca del levantamiento se traduce a una carga de barra (no en mancuernas ni en búlgaras); y [requires] es
+ * el material que el generador pide además del filtro compartido (la Zercher pide rack, como su entrada en `DisciplinePools`).
  */
 data class LiftVariantOption(
     val configId: String,
     val label: String,
     val equipmentId: String,
     val takesMark: Boolean = true,
+    val requires: List<String> = emptyList(),
 )
 
 /**
@@ -34,7 +36,8 @@ object LiftVariants {
     private val squatHighBar = LiftVariantOption("high_bar_back_squat__barbell", "Barra alta", "barbell")
     private val squatLowBar = LiftVariantOption("low_bar_back_squat__barbell", "Barra baja", "barbell")
     private val squatFront = LiftVariantOption("front_squat__barbell", "Frontal", "barbell")
-    private val squatZercher = LiftVariantOption("quads_sentadilla_zercher_barra_recta__default", "Zercher", "barbell")
+    private val squatZercher =
+        LiftVariantOption("quads_sentadilla_zercher_barra_recta__default", "Zercher", "barbell", requires = listOf("rack"))
     private val squatBulgarianDumbbells =
         LiftVariantOption("bulgarian_split_squat__dumbbells", "Búlgara con mancuernas", "dumbbells", takesMark = false)
     private val squatBulgarianBarbell =
@@ -129,5 +132,5 @@ object LiftVariants {
             machineToken = machineConfigToken(option.configId),
             supportRequirements = supportRequirementsFor(option.configId),
             tokens = tokens,
-        )
+        ) && option.requires.all { requirement -> requirement.split('|').any { it in tokens } }
 }
