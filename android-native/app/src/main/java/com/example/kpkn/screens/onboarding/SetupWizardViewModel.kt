@@ -1238,7 +1238,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
             val bodyGoals = typed?.targetValueSi?.let { target -> listOf(BodyGoal("plan:${nutrition.id}:${typed.metric.name}", typed.metric.toBodyMetric(), target, typed.unitSi, typed.origin, nutrition.id, System.currentTimeMillis(), System.currentTimeMillis())) }.orEmpty()
             // Check-in real: evidencia completa, calibración parcial o solo
             // molestias declaradas. Nunca se fabrican sesiones sintéticas.
-            val wellbeing = if (rings.savesRealCheckIn) {
+            val wellbeing = if (rings.savesRealCheckIn || ringsHasManual(draft)) {
                 calculateRingsPreview(draft, rings, ringsNow).stagedWellbeing
             } else null
             val pendingNutritionDraft = if (SetupPendingNutrition.shouldPreserve(draft)) {
@@ -2085,7 +2085,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
         val now = System.currentTimeMillis()
         val mapping = ringsMapping(draft, now)
         val key = ringsKey(draft)
-        if (!mapping.savesRealCheckIn) {
+        if (!mapping.savesRealCheckIn && !ringsHasManual(draft)) {
             ringsPreviewJob?.cancel()
             // Sin check-in real no hay baterías NI cobertura: nunca se muestra
             // una cobertura calculada sobre datos que no existen.
@@ -3486,7 +3486,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
         if (d.includeNutrition && !isTrackingOnly(d) && (s.nutritionPlanPreview == null || s.nutritionErrors.isNotEmpty())) {
             put("nutrition", s.nutritionErrors.values.firstOrNull() ?: "Completa la nutrición")
         }
-        if (ringsMapping(d).savesRealCheckIn && (s.ringsBatteriesPreview == null || s.ringsPreviewLoading || s.ringsPreviewError != null || lastRingsPreviewKey != ringsKey(d))) {
+        if ((ringsMapping(d).savesRealCheckIn || ringsHasManual(d)) && (s.ringsBatteriesPreview == null || s.ringsPreviewLoading || s.ringsPreviewError != null || lastRingsPreviewKey != ringsKey(d))) {
             // Causa real de RINGS primero (clase+mensaje del último fallo de
             // este cálculo): nunca un genérico cuando existe diagnóstico, ni el
             // fallo de otra operación colado bajo esta clave.
@@ -3646,6 +3646,10 @@ class SetupWizardViewModel @JvmOverloads constructor(
      */
     private fun <T> setIf(value: T, present: Boolean): SetupPatchField<T> =
         if (present) SetupPatchField.Set(value) else SetupPatchField.Unchanged
+
+    /** Hay ajustes 0–100 de «Tus RINGS» que guardar aunque el mapeo no declare check-in (p. ej. sensaciones omitidas). */
+    private fun ringsHasManual(draft: SetupWizardDraft): Boolean =
+        draft.ringsAnswers?.let { it.manualRings.isNotEmpty() || it.manualMusclesV2.isNotEmpty() } == true
 
     /** Mapeo de RINGS para la vista previa y el guardado: la zona del sistema fecha los días declarados (v2). */
     private fun ringsMapping(draft: SetupWizardDraft, nowEpochMs: Long = System.currentTimeMillis()): SetupRingsMapping {
