@@ -274,7 +274,8 @@ class SetupWizardActivationGateTest {
         awaitWall("cursor en SESSION_TIME") { vm.state.value.draft.stepProgress.currentStepId == SetupStepId.SESSION_TIME }
         vm.setSessionMinutes(65)
         awaitWall("minutos escritos") { vm.state.value.draft.minutesPerSession == 65 }
-        confirm(vm, SetupStepId.SESSION_TIME, SetupStepId.REVIEW_ACTIVATE)
+        // Los minutos ponen en revisión el programa y la semana: el cursor vuelve primero a PLAN, no al check de activación.
+        confirm(vm, SetupStepId.SESSION_TIME, SetupStepId.PLAN)
         assertTrue("la edición marca el preview obsoleto", vm.state.value.selectionStale)
         // El recálculo se lanza YA (candidatos y/o preview); con la puerta
         // armada, ambos trabajos quedan suspendidos esperando la liberación.
@@ -288,9 +289,10 @@ class SetupWizardActivationGateTest {
             "la puerta explica que falta re-preparar la vista previa: ${vm.state.value.errors}",
             vm.state.value.errors["program"],
         )
-        assertFalse(
-            "el bloqueo es de huella, no del flujo de pasos",
-            vm.state.value.errors.containsKey("flow"),
+        // Además del programa caducado, el flujo pide volver a la revisión: PLAN y la semana aún no están revisados.
+        assertNotNull(
+            "el flujo también pide revisar PLAN y la semana: ${vm.state.value.errors}",
+            vm.state.value.errors["flow"],
         )
         assertEquals("el commit fallido no invoca el coordinador", 0, commits.invocations)
 
@@ -300,6 +302,22 @@ class SetupWizardActivationGateTest {
         awaitWall("preview re-preparado") {
             !vm.state.value.isPreviewLoading && vm.state.value.programPreview != null &&
                 !vm.state.value.selectionStale
+        }
+        // Volver a la revisión: PLAN y la semana se confirman otra vez con la vista previa ya vigente.
+        awaitWall("candidatos listos tras re-preparar") {
+            !vm.state.value.isCandidateLoading && vm.state.value.availablePlanCandidates.isNotEmpty()
+        }
+        val kept = vm.state.value.draft.selectedCatalogId
+        confirm(vm, SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT) {
+            if (vm.state.value.availablePlanCandidates.none { it.id == kept }) {
+                vm.selectPlan(vm.state.value.availablePlanCandidates.first().id)
+            }
+        }
+        // Los minutos dejan la entrada de marcas pendiente fuera de la ruta. El hito de entreno ya tiene respuesta, así que se
+        // salta en silencio: tras la semana, el cursor vuelve directo a la revisión (sin MILESTONE_TRAINING).
+        confirm(vm, SetupStepId.WEEK_LAYOUT, SetupStepId.REVIEW_ACTIVATE)
+        awaitWall("preview vigente en la revisión") {
+            !vm.state.value.isPreviewLoading && vm.state.value.programPreview != null && !vm.state.value.selectionStale
         }
 
         val receipt = vm.commit()

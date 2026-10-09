@@ -238,6 +238,8 @@ private fun WizardLongPage(
     val nutritionPlanBlocked = nutritionResultGate(state, step).isNotEmpty()
     val checkEnabled = state.canConfirmStep && aliasReady && measuresReady && !state.isSubmittingAnswer && !nutritionPlanBlocked
     val ctaLabel = if (step == SetupStepId.REVIEW_ACTIVATE) "Activar y entrar a KPKN" else "Continuar"
+    // Editando antes de la intención de regreso: confirmar guarda el cambio y devuelve a donde estaba. El botón lo dice y una línea lo explica.
+    val keepsLaterAnswers = state.draft.keepsLaterAnswers()
 
     // ── Geometría ────────────────────────────────────────────────────────────
     val statusTopPx = WindowInsets.statusBars.getTop(density)
@@ -446,7 +448,8 @@ private fun WizardLongPage(
         )
         WizardDock(
             enabled = checkEnabled,
-            label = ctaLabel,
+            label = if (keepsLaterAnswers) "Guardar cambio" else ctaLabel,
+            note = if (keepsLaterAnswers) "Tus respuestas siguientes se conservan." else null,
             onClick = {
                 haptics.performHapticFeedback(HapticFeedbackType.ContextClick)
                 when {

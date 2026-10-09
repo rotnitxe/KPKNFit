@@ -497,6 +497,32 @@ object SetupStepGraph {
     }
 
     /**
+     * Primer paso de la ruta, entre [after] y [until] (ambos excluidos), que necesita atención antes de volver a [until]: sin
+     * respuesta o marcado para revisar. Un hito solo necesita atención si no tiene respuesta confirmable; con ella se salta, y
+     * el regreso lo cierra en silencio al dejarlo atrás (ver resumeAfterEdit). Null si no hay ninguno, si [after] o [until] no
+     * están en la ruta o si [until] no va después de [after].
+     */
+    fun nextNeedingAttention(
+        after: SetupStepId,
+        until: SetupStepId,
+        context: SetupStepContext,
+        answers: Map<SetupStepId, SetupAnswerProvenance>,
+        pendingReview: Set<SetupStepId>,
+    ): SetupStepId? {
+        val route = stepIds(context)
+        val from = route.indexOf(after)
+        val to = route.indexOf(until)
+        if (from < 0 || to <= from) return null
+        return route.subList(from + 1, to).firstOrNull { step ->
+            if (isMilestone(step)) {
+                answers[step]?.canPersistAsDeclared() != true
+            } else {
+                step !in answers || step in pendingReview
+            }
+        }
+    }
+
+    /**
      * Blocks truly completed: a block is complete only when its milestone has
      * a USER-CONFIRMED answer (USER_DECLARED or accepted SUGGESTED) inside
      * [answered], the milestone still belongs to the current route AND the

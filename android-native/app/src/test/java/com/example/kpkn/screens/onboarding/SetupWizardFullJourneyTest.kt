@@ -263,10 +263,19 @@ class SetupWizardFullJourneyTest {
             SetupSubmitOutcome.ACCEPTED,
             vm.submitCurrentStep(SetupStepId.WEIGHT, expectedRevision = vm.state.value.draft.revision).outcome,
         )
+        // El peso cambia las entradas del programa: la semana armada queda por revisar y se visita antes de volver a la revisión.
+        awaitCondition(vm, "semana por revisar tras el peso") {
+            it.draft.stepProgress.currentStepId == SetupStepId.WEEK_LAYOUT
+        }
+        confirmStep(vm, SetupStepId.WEEK_LAYOUT, SetupStepId.REVIEW_ACTIVATE)
         awaitCondition(vm, "vuelta a la revisión") {
             it.draft.stepProgress.currentStepId == SetupStepId.REVIEW_ACTIVATE
         }
-        assertEquals("una edición = una confirmación", answersBeforeEdit, vm.state.value.draft.stepProgress.answers)
+        assertEquals(
+            "una edición = una confirmación (la semana, que depende del peso, se revisa aparte)",
+            answersBeforeEdit - SetupStepId.WEEK_LAYOUT,
+            vm.state.value.draft.stepProgress.answers - SetupStepId.WEEK_LAYOUT,
+        )
         assertEquals(SetupAnswerProvenance.USER_DECLARED, vm.state.value.draft.stepProgress.answers[SetupStepId.WEIGHT])
         assertEquals(77.0, checkNotNull(vm.state.value.draft.weightKg) { "peso tras la edición" }, 0.001)
         assertEquals("77", vm.state.value.draft.inputTexts[SetupStepId.WEIGHT.name])
@@ -456,8 +465,8 @@ class SetupWizardFullJourneyTest {
         }
         assertEquals("Ana", vm.state.value.draft.name)
         assertEquals(34, checkNotNull(vm.state.value.draft.ageYears) { "edad persistida en el borrador" })
-        confirmStep(vm, SetupStepId.NAME, SetupStepId.AGE)
-        confirmStep(vm, SetupStepId.AGE, SetupStepId.HEIGHT)
+        // Volver y regresar: la edad ya estaba respondida y no cambió, así que confirmar el alias devuelve a la altura.
+        confirmStep(vm, SetupStepId.NAME, SetupStepId.HEIGHT)
 
         confirmStep(vm, SetupStepId.HEIGHT, SetupStepId.WEIGHT) { vm.setStepNumber(SetupStepId.HEIGHT, 176.0) }
         confirmStep(vm, SetupStepId.WEIGHT, SetupStepId.EQUATION_SEX) { vm.setStepNumber(SetupStepId.WEIGHT, 78.0) }
@@ -997,11 +1006,11 @@ class SetupWizardFullJourneyTest {
 
     /**
      * Confirmaciones esperadas: la ruta sin revisión más la reconfirmación que produce Atrás.
-     * Alias y edad son una sola página: HEIGHT → Atrás aterriza en NAME → Continuar (NAME) →
-     * Continuar (AGE), así que NAME y AGE se confirman dos veces.
+     * Alias y edad son una sola página: HEIGHT → Atrás aterriza en NAME → Continuar (NAME) vuelve a HEIGHT
+     * (la edad ya estaba respondida y no cambió), así que solo NAME se confirma dos veces.
      */
     private fun expectedConfirmations(route: List<SetupStepId>): List<SetupStepId> =
-        route.dropLast(1).toMutableList().apply { addAll(2, listOf(SetupStepId.NAME, SetupStepId.AGE)) }
+        route.dropLast(1).toMutableList().apply { add(2, SetupStepId.NAME) }
 
     /** Pecho, espalda y tríceps con un punto cada uno: los músculos canónicos del motor de orden. */
     private fun priorityBag(): Map<String, Int> = linkedMapOf(

@@ -460,9 +460,10 @@ data class SetupWizardDraft(
     /** Fila editorial abierta por paso (M4): mientras `editing` no se cierre, el paso no avanza. */
     val stepEditors: Map<SetupStepId, SetupStepEditorState> = emptyMap(),
     /**
-     * Paso al que volver cuando una edición arrancada desde la revisión final
-     * se confirma (o se guarda y sale). El VM lo persiste con el borrador para
-     * no perder la intención al reanudar; null = avance normal.
+     * Paso más avanzado al que volver tras editar o retroceder (el VM lo fija en
+     * `editStep` y `goBack`). Al confirmar el paso editado, el cursor salta al primero
+     * que necesite atención antes de él, o vuelve aquí. Conserva el nombre porque los
+     * borradores guardados lo leen; se persiste con el borrador y null = avance normal.
      */
     val reviewReturnStep: SetupStepId? = null,
     // ── Entreno v2 ──────────────────────────────────────────────────────────
@@ -731,6 +732,103 @@ private fun SetupWizardDraft.moveCursorTo(step: SetupStepId?): SetupWizardDraft 
             revision = wizChat.revision + 1,
         ),
     )
+}
+
+/**
+ * Intención de regreso al salir del cursor hacia [target] (editar un paso o retroceder). Solo si [target] queda ANTES del cursor:
+ * la intención pasa a ser el paso más avanzado entre la que ya había y el cursor actual. Atrás nunca la borra.
+ */
+internal fun SetupWizardDraft.withReturnIntentBefore(target: SetupStepId?): SetupWizardDraft {
+    if (target == null) return this
+    val route = SetupStepGraph.stepIds(stepContext())
+    val cursor = stepProgress.currentStepId
+    val cursorIndex = route.indexOf(cursor)
+    val targetIndex = route.indexOf(target)
+    if (cursorIndex < 0 || targetIndex < 0 || targetIndex >= cursorIndex) return this
+    val existing = reviewReturnStep?.takeIf { it in route }
+    val keepExisting = existing != null && route.indexOf(existing) > cursorIndex
+    return copy(reviewReturnStep = if (keepExisting) existing else cursor)
+}
+
+/** Editando antes de la intención de regreso: confirmar guarda el cambio y conserva lo que sigue (aviso y «Guardar cambio»). */
+fun SetupWizardDraft.keepsLaterAnswers(): Boolean {
+    val target = reviewReturnStep ?: return false
+    val route = SetupStepGraph.stepIds(stepContext())
+    val cursorIndex = route.indexOf(stepProgress.currentStepId)
+    return cursorIndex >= 0 && route.indexOf(target) > cursorIndex
+}
+
+/**
+ * Tras confirmar [editedStep] con una intención de regreso ([reviewReturnStep]): el cursor salta al primer paso de la ruta que
+ * necesite revisión (sin respuesta o marcado para revisar) antes de volver a la intención. Si no queda ninguno, vuelve a la
+ * intención y la intención se consume. Los hitos con respuesta confirmada no se visitan: se cierran en silencio al dejarlos
+ * atrás ([closeMilestonesBehind]). Sin intención, el borrador no cambia.
+ * La intención se consume sin mover el cursor si el paso de retorno o el editado ya no están en la ruta, si el editado no es
+ * anterior al de retorno o si no valida (la confirmación deja el cursor donde lo dejó).
+ */
+fun SetupWizardDraft.resumeAfterEdit(editedStep: SetupStepId): SetupWizardDraft {
+    val target = reviewReturnStep ?: return this
+    val consumed = copy(reviewReturnStep = null)
+    val context = consumed.stepContext()
+    val route = SetupStepGraph.stepIds(context)
+    val editedIndex = route.indexOf(editedStep)
+    val targetIndex = route.indexOf(target)
+    if (targetIndex < 0 || editedIndex < 0 || editedIndex >= targetIndex) return consumed
+    if (SetupWizardValidation.validateStep(consumed, editedStep).any { it.isBlocking }) return consumed
+    val attention = SetupStepGraph.nextNeedingAttention(
+        after = editedStep,
+        until = target,
+        context = context,
+        answers = consumed.stepProgress.answers,
+        pendingReview = consumed.stepProgress.pendingReview,
+    )
+    val landing = attention ?: target
+    val moved = consumed.moveCursorTo(landing).closeMilestonesBehind(editedStep, landing)
+    // Queda algo por revisar: el cursor va allí y la intención sigue viva hasta el regreso.
+    if (attention != null) return moved.copy(reviewReturnStep = target)
+    // La revisión no pinta pregunta legacy (`legacyQuestionRenders = false`): su espejo se fija como en la confirmación normal.
+    if (target != SetupStepId.REVIEW_ACTIVATE) return moved
+    return moved.copy(
+        wizChat = moved.wizChat.copy(
+            currentQuestionId = WizChatQuestionId.REVIEW,
+            stage = WizChatGraph.stageFor(WizChatQuestionId.REVIEW),
+        ),
+    )
+}
+
+/**
+ * Cierra en silencio los hitos que el cursor deja atrás al regresar: los que ya tienen respuesta confirmada y cuyo bloque no tiene
+ * pasos de la ruta pendientes ni sin respuesta. Vuelve a registrar la misma respuesta, lo que limpia la revisión del bloque (también
+ * la de pasos fuera de la ruta) y lo deja completado, sin overlay ni cursor. Un hito cuyo bloque aún tiene un paso pendiente antes
+ * de la edición se deja como está.
+ */
+private fun SetupWizardDraft.closeMilestonesBehind(from: SetupStepId, landing: SetupStepId): SetupWizardDraft {
+    val route = SetupStepGraph.stepIds(stepContext())
+    val fromIndex = route.indexOf(from)
+    val landingIndex = route.indexOf(landing)
+    if (fromIndex < 0 || landingIndex <= fromIndex) return this
+    var progress = stepProgress
+    for (step in route.subList(fromIndex + 1, landingIndex)) {
+        if (!SetupStepGraph.isMilestone(step)) continue
+        val provenance = progress.answers[step]?.takeIf { it.canPersistAsDeclared() } ?: continue
+        if (!blockReviewed(step, route, progress.answers, progress.pendingReview)) continue
+        val valueState = if (provenance == SetupAnswerProvenance.USER_DECLARED) SetupValueState.DECLARED else SetupValueState.ESTIMATED
+        progress = progress.recordAnswer(step, provenance, valueState)
+    }
+    return copy(stepProgress = progress)
+}
+
+/** Los pasos de la ruta del bloque de [milestone] (sin el propio hito) tienen respuesta y ninguno está pendiente de revisar. */
+private fun blockReviewed(
+    milestone: SetupStepId,
+    route: List<SetupStepId>,
+    answers: Map<SetupStepId, SetupAnswerProvenance>,
+    pendingReview: Set<SetupStepId>,
+): Boolean {
+    val block = SetupStepGraph.blockOf(milestone)
+    return route.all { step ->
+        SetupStepGraph.blockOf(step) != block || SetupStepGraph.isMilestone(step) || (step in answers && step !in pendingReview)
+    }
 }
 
 /** Records where a value came from; engine results can never be declared answers. */

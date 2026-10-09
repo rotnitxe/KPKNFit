@@ -44,6 +44,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -222,6 +223,8 @@ fun WizardDock(
     label: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    /** Aviso breve justo encima del botón, sin caja. Anclado aparte: que aparezca no mueve el botón. */
+    note: String? = null,
 ) {
     val density = LocalDensity.current
     val navBottom = with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
@@ -246,6 +249,18 @@ fun WizardDock(
                 .padding(bottom = 16.dp),
         ) {
             WizardDockButton(enabled = enabled, label = label, onClick = onClick)
+        }
+        if (note != null) {
+            Text(
+                text = note,
+                style = WizardTypography.note,
+                color = WizardColors.textMuted,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .navigationBarsPadding()
+                    .padding(start = 24.dp, end = 24.dp, bottom = 16.dp + WizardSpacing.dockButton + 10.dp),
+            )
         }
     }
 }

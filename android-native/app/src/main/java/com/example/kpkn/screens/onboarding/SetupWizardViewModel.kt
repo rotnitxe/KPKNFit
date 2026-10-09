@@ -388,9 +388,9 @@ class SetupWizardViewModel @JvmOverloads constructor(
     }
 
     /**
-     * Vuelve a un paso anterior sin borrar nada. Si se edita desde la
-     * revisión final y al confirmar la ruta sigue siendo válida, el cursor
-     * regresa a la revisión: no se vuelve a contestar todo el formulario.
+     * Vuelve a un paso anterior sin borrar nada. Al confirmarlo, el cursor regresa
+     * a donde estaba (o al primer paso que de verdad necesite revisión antes de allí):
+     * no se vuelve a contestar todo el formulario ni se re-confirman pasos intactos.
      */
     fun editStep(step: SetupStepId) {
         viewModelScope.launch { commandMutex.withLock {
@@ -402,16 +402,9 @@ class SetupWizardViewModel @JvmOverloads constructor(
             val draft = state.draft
             if (step == draft.stepProgress.currentStepId) return@withLock
             if (step !in SetupStepGraph.stepIds(draft.stepContext())) return@withLock
-            // La intención de volver a la revisión vive en el BORRADOR
-            // (`reviewReturnStep`), no en un campo volatile: así sobrevive a
-            // guardar/salir y a la recreación del ViewModel. Solo una edición
-            // empezada desde la revisión final la deja puesta.
-            val fromReview = draft.stepProgress.currentStepId == SetupStepId.REVIEW_ACTIVATE
-            persistAndPublish(
-                draft.editStep(step).copy(
-                    reviewReturnStep = if (fromReview) SetupStepId.REVIEW_ACTIVATE else null,
-                ),
-            )
+            // La intención de regreso (`reviewReturnStep`) vive en el BORRADOR, no en un campo volatile: así sobrevive a
+            // guardar/salir y a la recreación del ViewModel. Se fija (o se adelanta) solo si el cursor queda después del paso.
+            persistAndPublish(draft.withReturnIntentBefore(step).editStep(step))
         } }
     }
 
@@ -840,9 +833,12 @@ class SetupWizardViewModel @JvmOverloads constructor(
         viewModelScope.launch {
             try { commandMutex.withLock {
                 if (_state.value.draft.stepProgress.currentStepId != expectedStep) return@withLock
-                // Navegación manual: se retira la intención de volver a la
-                // revisión en el BORRADOR persistido (nunca en memoria volátil).
-                var landed = _state.value.draft.copy(reviewReturnStep = null).goBack()
+                // Navegación manual: atrás NO borra la intención de regreso (`reviewReturnStep`, en el BORRADOR); se adelanta
+                // al cursor que se deja atrás si el destino queda antes, igual que al editar.
+                val from = _state.value.draft
+                var landed = from.withReturnIntentBefore(
+                    SetupStepGraph.previous(expectedStep, from.stepContext(), from.stepProgress.visited),
+                ).goBack()
                 // La edad vive en la página del alias y un hito es el overlay de «bloque completado», no una
                 // página: atrás no se detiene en ninguno (desde la primera pregunta de un bloque vuelve a la
                 // última pregunta del anterior, sin repetir la celebración).
@@ -1021,7 +1017,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
             else -> expectedStep
         }
         val confirmed = SetupDraftCompatibility.normalizeLegacyRouteAtPlan(
-            resumeReviewAfterEdit(stepping, confirmedStep),
+            stepping.resumeAfterEdit(confirmedStep),
         ).withNextDraftRevision(previous)
         val previousCandidateKey = candidateSetKey(previous)
         _state.value = _state.value.copy(machineState = WizChatMachineState.PersistingAnswer, errors = emptyMap(), isSubmittingAnswer = true)
@@ -1035,33 +1031,6 @@ class SetupWizardViewModel @JvmOverloads constructor(
         Log.d(DIAG_TAG, "submitLocked $expectedStep → ${confirmed.stepProgress.currentStepId} rev=${confirmed.revision} persisted=$persisted")
         if (previousCandidateKey != candidateSetKey(confirmed)) updateCandidates(confirmed)
         preparePreview(confirmed)
-    }
-
-    /**
-     * Editing from the final review and confirming the edited step lands back
-     * on the review when the route still contains it and the step still
-     * validates, so the user never re-answers the whole form.
-     *
-     * La intención ([SetupWizardDraft.reviewReturnStep]) vive en el borrador y
-     * se consume AQUÍ, dentro del borrador confirmado que se persiste: sobrevive
-     * a guardar/salir y a la recreación del ViewModel, y se consume exactamente
-     * una vez.
-     */
-    private fun resumeReviewAfterEdit(confirmed: SetupWizardDraft, editedStep: SetupStepId): SetupWizardDraft {
-        val target = confirmed.reviewReturnStep
-        val consumed = confirmed.copy(reviewReturnStep = null)
-        if (target != SetupStepId.REVIEW_ACTIVATE) return consumed
-        if (target !in SetupStepGraph.stepIds(consumed.stepContext())) return consumed
-        if (SetupWizardValidation.validateStep(consumed, editedStep).any { it.isBlocking }) return consumed
-        return consumed.copy(
-            stepProgress = consumed.stepProgress.at(target, consumed.stepContext()),
-            wizChat = consumed.wizChat.copy(
-                currentQuestionId = WizChatQuestionId.REVIEW,
-                stage = WizChatStage.REVIEW,
-                terminal = true,
-                revision = consumed.wizChat.revision + 1,
-            ),
-        )
     }
 
     /** Compatibility entry point for advanced editor callers; same queue, same Room draft. */
