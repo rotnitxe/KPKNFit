@@ -13,6 +13,18 @@ Worktree indicado en tu encargo, rama `v3/c4c` (sale de `feat/wizard-v3` con C4a
 - `BlockTransitionEngine` propone un test de 1RM tras el taper (`domain/training/BlockTransitionEngine.kt:163-171`): con competición caería el día
   de la competición.
 
+## API real en tu rama (integrado: C4a y C4b)
+- Lee la competición SOLO con `draft.activeCompetition()`, `draft.activeMeetDate()` (ISO) y `draft.activeMeetName()`
+  (`screens/onboarding/SetupWizardModels.kt`). Las utilidades están en `CompetitionRules` (`domain/onboarding/EntrenoContracts.kt`):
+  `parseMeetDate`, `dateLabel` y `weeksUntil`. La etiqueta de `NO_DATE` es «Sí, sin fecha».
+- C4b ya entrega el programa que termina la semana de la competición: los propios con `Horizon.ToMeet`, y los de autor pasan por
+  `MeetRecipeFitter` (`fittedToMeet(...)` en `SetupGeneratedPlans.kt`). Tú NO cambias su forma: solo le pones las fechas y la fecha clave al activar.
+- El pago de activación: `screens/onboarding/SetupActivationPayload.kt:32` (`object SetupActivationPayload`).
+- `BlockTransitionEngine` propone el test de 1RM en DOS sitios: tras el bloque de realización o pico (~145-151) y tras la descarga o el taper
+  posterior al pico (~158-168). Con una fecha de competición futura o de esta semana, no se propone en NINGUNO de los dos: el pico y el
+  taper llevan a la competición, no a un test.
+- Permiso: `MainActivity.requestWorkoutNotifications()` (~430) es el patrón de hoy; en el alta va con `rememberLauncherForActivityResult`.
+
 ## Qué hay que hacer
 1. **Activación con fecha** (donde el alta arma el programa a guardar; busca el armado del pago de activación, `SetupActivationPayload`):
    - `keyDates` + `ProgramKeyDate(type = COMPETITION, title = meetName o «Competición», startDate = eventDate = fecha)`.
@@ -24,7 +36,7 @@ Worktree indicado en tu encargo, rama `v3/c4c` (sale de `feat/wizard-v3` con C4a
    el alta sigue; la tarjeta de Inicio ya avisa si no hay permiso (compruébalo; si no, no lo añadas aquí).
 3. **Sin test tras el taper con competición**: en `BlockTransitionEngine`, si el programa tiene una `ProgramKeyDate` COMPETITION futura o de
    esta semana, no se propone el test de 1RM tras el taper. Prueba con y sin fecha.
-4. **«Compito, pero sin fecha»**: guarda que compite (busca un campo existente en `Settings` o en el perfil del atleta; si no hay, añade
+4. **«Sí, sin fecha»**: guarda que compite (busca un campo existente en `Settings` o en el perfil del atleta; si no hay, añade
    `competesWithoutDate: Boolean = false` en `Settings` con valor por defecto) y en Inicio, donde va la cuenta atrás, una acción «Añadir la fecha
    de tu competición» que abre la edición de fechas clave del programa activo (busca esa pantalla y su ruta; no crees otra).
 
@@ -37,6 +49,6 @@ acción nueva), y pruebas. Si necesitas tocar otro archivo, descríbelo en el in
 - Nueva `CompetitionActivationTest` (Robolectric con base de datos en memoria, como las pruebas de activación del alta): activar con fecha guarda la
   fecha clave COMPETITION, el registro PLANNED y el programa termina en la semana de la competición; sin fecha no crea registro y guarda que
   compite.
-- `BlockTransitionEngineTest` (amplía): con competición no hay test tras el taper; sin ella, como hoy.
+- `BlockTransitionEngineTest` (amplía): con competición no hay test ni tras el pico ni tras el taper; sin ella, como hoy.
 - Filtro: `*CompetitionActivation*`, `*BlockTransitionEngine*`, `*HomeCompetitionResolver*`, `*CompetitionKeyDateSync*`. Antes,
   `:app:compileDebugKotlin`.
