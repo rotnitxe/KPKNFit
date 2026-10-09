@@ -10,6 +10,14 @@ Worktree indicado en tu encargo, rama `v3/b3b` (sale de `feat/wizard-v3` con B3a
 - Problema que ve el usuario («mejor diseño»): cada músculo tiene un encuadre distinto (unos de muy cerca, otros de lejos), Hombros es casi solo
   contorno y faltan referencias del cuerpo, así que la cuadrícula se lee como formas sueltas.
 
+## Punto de partida (mírala antes de empezar)
+`C:\kw\shots\v3\b3a\muscle_grid_s100.png` es la cuadrícula de hoy (con Espalda y Cuádriceps elegidos). Lo que falla:
+- **Bíceps, Tríceps y Antebrazos** son óvalos sueltos entre dos líneas: no se lee que sean un brazo. Hace falta el contorno del brazo, con
+  hombro, codo y muñeca, y el músculo en su sitio.
+- **Hombros** es solo un contorno: el deltoides debe leerse como la tapa redonda del hombro.
+- **El elegido** es un relleno marrón apagado: debe ser el acento de Músculos al 85 %.
+- **Encuadres:** Pecho, Espalda y Abdomen se ven de cerca y la pierna de lejos.
+
 ## Diseño
 1. **Encuadre por familia** (mismo `MuscleWindow` para todos los de la familia, elegido para que quepa el más grande con 8 % de aire):
    - Torso de frente: Pecho, Hombros, Abdomen.
