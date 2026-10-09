@@ -12,8 +12,11 @@ Aquí NO se ofrecen todavía en PLAN (eso es D2c): solo existen, se resuelven po
 - El programa se arma en el ViewModel: `generatedRoutineFor` (~2978, barrido de candidatos) y `materializeGenerated` (~2994, vista previa
   y activación), que llaman a `RoutineGenerator.generate(draft.routineRequest(mode, catalog))` y luego a `generatedProgramOf`
   (`screens/onboarding/SetupGeneratedPlans.kt:112-145`, que asigna el lugar de cada sesión por `session.id`).
-- Periodizador (D2a, en tu rama): `domain/training/periodization/` (`RoutinePeriodizer.build(request, base, variant, horizon)`,
-  `ProgramVariant`, `Horizon.Weeks`). Lee sus firmas reales antes de usarlo; las sesiones de cada semana llevan el sufijo `-w<n>`.
+- Periodizador (D2a, en tu rama): `domain/training/periodization/` (`RoutinePeriodizer.build(request, base, variant, horizon)` →
+  `PeriodizedRoutine(program, phases, notes)`, `ProgramVariant`, `Horizon.Weeks`). Lee sus firmas reales antes de usarlo; las sesiones de
+  cada semana llevan el sufijo `-w<n>`, el id del programa el sufijo `-blocks`/`-periodized` y los bloques
+  `sourceDefinitionId = "generated:<modo>:<variante>"` (misma convención que el generador). Sin fecha, `PeriodLayout` lanza
+  `IllegalArgumentException` fuera de 4–8 semanas (bloques) o de 10/12/16 (periodizado): usa solo 6 y 12.
 
 ## 1. Ids y traducción (`GeneratedPlans.kt`)
 - Ids nuevos: `generated:<sourceId>:blocks` y `generated:<sourceId>:periodized` para los 10 `sourceId` de hoy. `generated:<sourceId>` sigue
