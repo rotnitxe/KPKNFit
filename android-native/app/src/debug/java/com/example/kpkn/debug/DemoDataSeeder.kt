@@ -9,6 +9,9 @@ import com.example.kpkn.data.repository.AugeRepository
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.entitlements.CapabilityRequiredException
+import com.example.kpkn.ui.tour.SettingsTourSeenStore
+import com.example.kpkn.ui.tour.TourScripts
+import com.example.kpkn.ui.tour.TourSeenStore
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeoutOrNull
 import java.time.LocalDate
@@ -66,6 +69,8 @@ object DemoDataSeeder {
         programs.updateSettings {
             it.copy(username = DemoDataPlan.DISPLAY_NAME, onboardingNameDone = true, onboardingCompleted = true)
         }
+        // Ningún recorrido debe tapar la grabación: todos quedan vistos en Settings.tourSeen.
+        markToursSeen(SettingsTourSeenStore)
 
         // Los entrenos se escriben en Room en segundo plano: esperamos a que estén antes de devolver «hecho».
         if (!awaitWorkoutRows(app, DemoDataPlan.workoutIds())) {
@@ -76,6 +81,11 @@ object DemoDataSeeder {
         return DemoSeedResult.Done(
             "${workouts.size} entrenos de «${program.name}», $meals, check-in de hoy y nombre ${DemoDataPlan.DISPLAY_NAME}.",
         )
+    }
+
+    /** Da por vistos todos los recorridos (ids de `TourScripts.todos()`) para que ninguno tape la grabación. */
+    fun markToursSeen(store: TourSeenStore) {
+        TourScripts.todos().keys.forEach(store::markSeen)
     }
 
     private fun Program.allWeeks(): List<ProgramWeek> =
