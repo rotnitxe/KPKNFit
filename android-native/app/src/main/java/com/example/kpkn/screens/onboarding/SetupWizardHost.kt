@@ -462,6 +462,8 @@ private fun WizardLongPage(
         WizardDock(
             enabled = checkEnabled,
             label = if (keepsLaterAnswers) "Guardar cambio" else ctaLabel,
+            // En la revisión el botón final dice lo que hace; en los demás pasos sigue siendo el círculo con el check.
+            textLabel = ctaLabel.takeIf { step == SetupStepId.REVIEW_ACTIVATE && !keepsLaterAnswers },
             note = if (keepsLaterAnswers) "Tus respuestas siguientes se conservan." else null,
             onClick = {
                 haptics.performHapticFeedback(HapticFeedbackType.ContextClick)

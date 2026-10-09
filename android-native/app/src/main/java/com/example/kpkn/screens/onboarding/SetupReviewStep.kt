@@ -1,45 +1,64 @@
 package com.example.kpkn.screens.onboarding
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.exercises.catalogConfigurationDisplayName
-import com.example.kpkn.data.models.Exercise
-import com.example.kpkn.data.models.NutritionPlan
 import com.example.kpkn.data.models.Program
-import com.example.kpkn.data.models.Session
-import com.example.kpkn.data.models.effectiveRepRange
 import com.example.kpkn.data.programs.CatalogEntry
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.domain.nutrition.EerSex
 import com.example.kpkn.domain.nutrition.NutritionDistributionStatus
 import com.example.kpkn.domain.nutrition.NutritionPlanPreparationStatus
+import com.example.kpkn.domain.nutrition.nutritionGoalActive
+import com.example.kpkn.domain.nutrition.nutritionTargetKgOf
+import com.example.kpkn.domain.onboarding.CompetitionAnswer
+import com.example.kpkn.domain.onboarding.CompetitionRules
 import com.example.kpkn.domain.onboarding.EquipmentSymbolId
+import com.example.kpkn.domain.onboarding.ProgramSource
 import com.example.kpkn.domain.onboarding.RingsCoverage
 import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
@@ -49,45 +68,51 @@ import com.example.kpkn.domain.training.CompositionMetadataHolder
 import com.example.kpkn.domain.training.HighVolumeNotice
 import com.example.kpkn.domain.training.PersonalizationReport
 import com.example.kpkn.domain.training.VolumeSoftBand
+import com.example.kpkn.screens.onboarding.design.MacroRingFractions
 import com.example.kpkn.screens.onboarding.design.WizardColors
-import com.example.kpkn.screens.onboarding.design.WizardMassUnit
-import com.example.kpkn.screens.onboarding.design.WizardRadioMark
-import com.example.kpkn.screens.onboarding.design.WizardShapes
+import com.example.kpkn.screens.onboarding.design.WizardGenderGlyph
+import com.example.kpkn.screens.onboarding.design.WizardGenderMark
+import com.example.kpkn.screens.onboarding.design.WizardMacroRings
+import com.example.kpkn.screens.onboarding.design.WizardSpacing
 import com.example.kpkn.screens.onboarding.design.WizardTypography
 import com.example.kpkn.screens.onboarding.design.WizardWeightScale
+import com.example.kpkn.screens.onboarding.design.entreno.SymbolCanvas
+import com.example.kpkn.screens.onboarding.design.entreno.programSourceArtOf
+import com.example.kpkn.screens.onboarding.design.entreno.rememberEntrenoForeground
+import com.example.kpkn.screens.onboarding.design.entreno.rememberSymbolClock
+import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanCardModel
+import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanCover
+import com.example.kpkn.screens.onboarding.design.macroRingFractions
+import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
+import com.example.kpkn.screens.onboarding.entreno.toCardModel
+import com.example.kpkn.screens.onboarding.rings.ringsTowerValues
 import com.example.kpkn.screens.programs.PlanInfoMode
 import com.example.kpkn.screens.programs.PlanInfoSheet
 import com.example.kpkn.screens.programs.ReadyWeekSnapshot
+import com.example.kpkn.ui.components.PagerDots
+import com.example.kpkn.ui.components.rings.KpknRingColors
+import com.example.kpkn.ui.components.rings.KpknTowerRings
+import com.example.kpkn.ui.components.rings.RingChannel
+import com.example.kpkn.ui.components.rings.TowerRingValues
+import com.example.kpkn.ui.theme.MacroColors
+import kotlinx.coroutines.launch
 
 /**
- * Revisión y activación: los cuatro bloques obligatorios como tarjetas
- * resumen con **datos reales**, más las confirmaciones que el alta exige.
+ * Revisión y activación: un carrusel a toda la anchura con una página por bloque de la ruta (Tú, Entreno, Nutrición y RINGS),
+ * su indicador de páginas y, debajo, los avisos y las confirmaciones que el alta exige.
  *
  * Reglas:
- * - Edición **por fila concreta** (`peso → WEIGHT`, `macros → NUTRITION_MANUAL_*`,
- *   `sensaciones → RINGS_*_FEELING`…): cada fila que tiene un paso en la ruta
- *   efectiva es su propio destino de `vm.editStep`, y la cabecera de la tarjeta
- *   lleva al primer paso del bloque. La tarjeta contenedora **no** es
- *   clicable, para que ningún click de padre absorba al hijo.
- * - Los datos se leen del borrador y de las vistas previas. Nada se rellena:
- *   lo desconocido aparece como «Sin declarar»/«Sin datos».
- * - Entreno: vista previa representativa de la **primera semana** y opción de
- *   expandir **semana a semana conservando las ocurrencias** (sin
- *   deduplicar: un `distinctBy` borraría sesiones reales), con tope de semanas
- *   y recuento real en el pie, sin fingir que es «todas las sesiones». Los
- *   ejercicios salen de `Session.allExercises()`, que lee también `parts`: un
- *   programa ejecutable nunca se resume como «Sin ejercicios».
- * - Nutrición: la cifra del plan es **base diaria (media)**, nunca el objetivo
- *   de hoy; el reparto sale de `nutritionPreparation.days`.
- * - RINGS: cobra `state.ringsCoveragePreview` (nullable). Sin cobertura →
- *   [RingsCoverage.NO_DATA] y «Sin datos» por canal; jamás se deriva un 100 %
- *   global.
- * - Confirmaciones con las APIs existentes: `requiresActivationConfirmation` →
- *   `vm.confirmActivation`, diferencia de receta fija →
- *   `vm.acceptFixedRecipeDifference`. Copy contextual: en solo registro no se
- *   promete un plan nutricional.
- * - El CTA de activación sigue siendo del Host; esta pantalla no confirma ni
- *   avanza.
+ * - Sin tarjetas: cada página es la superficie negra con aire. «Editar» de cada página lleva al primer paso de su bloque
+ *   ([reviewBlockTargets]) y la edición vuelve sola a la revisión.
+ * - Los datos se leen del borrador y de las vistas previas. Nada se rellena: lo que no se sabe sale como «Sin declarar» o
+ *   «Sin calibrar», nunca como un 100 % derivado.
+ * - Entreno: el símbolo del objetivo y la portada salen del programa previsualizado. La competición se lee SOLO con
+ *   `activeCompetition()`, `activeMeetDate()` y `activeMeetName()`.
+ * - Nutrición: las kcal son la base diaria (media), nunca el objetivo de hoy; la fecha del objetivo sale de
+ *   [nutritionGoalNoteOf], sin calcularla de nuevo.
+ * - RINGS: la torre usa la cobertura de la vista previa ([ringsTowerValues]): los mismos valores que «Tus RINGS».
+ * - Avisos (programa, lugares, nutrición, RINGS) y confirmaciones van debajo del carrusel, sin tarjeta.
+ * - El CTA de activación sigue siendo del Host; esta pantalla no confirma ni avanza.
  */
 @Composable
 fun SetupReviewStep(
@@ -95,83 +120,599 @@ fun SetupReviewStep(
     state: SetupWizardState,
     vm: SetupWizardViewModel,
 ) {
-    val route = SetupStepGraph.stepIds(state.draft.stepContext())
-
-    fun firstStepOf(block: SetupWizardBlock): SetupStepId? =
-        route.firstOrNull { SetupStepGraph.blockOf(it) == block && !SetupStepGraph.isMilestone(it) }
-
-    /** Destino de edición sólo si el paso existe en la ruta (nunca un no-op). */
-    fun editTarget(candidate: SetupStepId): (() -> Unit)? =
-        if (candidate in route && candidate != state.currentStep) ({ vm.editStep(candidate) }) else null
-
-    val edit: (SetupStepId) -> (() -> Unit)? = { candidate -> editTarget(candidate) }
-
-    firstStepOf(SetupWizardBlock.BASICS)?.let { target ->
-        ReviewBlockCard(title = "Datos básicos", onEdit = editTarget(target)) {
-            BasicsSummary(state = state, edit = edit)
-        }
-    }
-    firstStepOf(SetupWizardBlock.TRAINING)?.let { target ->
-        ReviewBlockCard(title = "Entreno", onEdit = editTarget(target)) {
-            TrainingSummary(state = state, route = route, edit = edit)
-        }
-    }
-    firstStepOf(SetupWizardBlock.NUTRITION)?.let { target ->
-        ReviewBlockCard(title = "Nutrición", onEdit = editTarget(target)) {
-            NutritionSummary(state = state, edit = edit)
-        }
-    }
-    firstStepOf(SetupWizardBlock.RINGS)?.let { target ->
-        ReviewBlockCard(title = "Rings", onEdit = editTarget(target)) {
-            RingsSummary(state = state, edit = edit)
-        }
+    val draft = state.draft
+    val route = SetupStepGraph.stepIds(draft.stepContext())
+    val targets = reviewBlockTargets(route)
+    // «Editar» solo si el paso existe en la ruta y no es el que está abierto (nunca un no-op).
+    fun editOf(block: SetupWizardBlock): (() -> Unit)? =
+        targets[block]?.takeIf { it != state.currentStep }?.let { target -> ({ vm.editStep(target) }) }
+    val planEntry = remember(draft.selectedCatalogId) {
+        draft.selectedCatalogId?.let(PersonalizedPlanCatalog::find)
     }
 
-    if (state.requiresActivationConfirmation) {
-        SetupConfirmationCard(
-            title = "Confirmo la activación",
-            body = activationBody(state),
-            confirmed = state.draft.confirmActivation,
-            onToggle = { vm.confirmActivation(!state.draft.confirmActivation) },
+    val pages = ArrayList<ReviewPage>()
+    if (SetupWizardBlock.BASICS in targets) {
+        pages += ReviewPage(title = "Tú", onEdit = editOf(SetupWizardBlock.BASICS)) { _ ->
+            ReviewYouPage(
+                alias = draft.name.ifBlank { null },
+                ageLabel = draft.ageYears?.let { "$it años" },
+                sexMark = reviewGenderMarkOf(draft),
+                sexLabel = reviewSexLabelOf(draft),
+                bodyLine = reviewBodyLine(draft),
+            )
+        }
+    }
+    if (SetupWizardBlock.TRAINING in targets) {
+        val program = state.programPreview
+        val week = program?.let { SetupPlanReveals.weekOf(it) }.orEmpty()
+        val trainingLine = program?.let {
+            reviewTrainingLine(
+                days = week.size,
+                minutes = draft.minutesPerSession ?: longestSessionMinutes(it),
+                mainDay = week.firstOrNull { day -> day.isMain }?.day,
+            )
+        }
+        pages += ReviewPage(title = "Entreno", onEdit = editOf(SetupWizardBlock.TRAINING)) { settled ->
+            ReviewTrainingPage(
+                later = draft.programRoute == SetupProgramRoute.LATER,
+                card = reviewPlanCard(state, planEntry),
+                trainingLine = trainingLine,
+                placesLine = reviewPlacesMaterialLine(draft),
+                competitionLine = reviewCompetitionLine(draft),
+                settled = settled,
+            )
+        }
+    }
+    if (SetupWizardBlock.NUTRITION in targets) {
+        val plan = state.nutritionPreparation?.plan ?: state.nutritionPlanPreview
+        val tuning = nutritionPlanTuningOf(state)
+        val goal = nutritionGoalOf(state)
+        val goalDate = nutritionGoalNoteOf(state)
+        // Con meta de peso activa (Definir o Volumen) se dice el objetivo aunque no haya fecha; la fecha solo si la calcula el motor.
+        val goalActive = draft.nutritionDraft?.let { nutritionGoalActive(it.direction, nutritionTargetKgOf(it)) } == true
+        pages += ReviewPage(title = "Nutrición", onEdit = editOf(SetupWizardBlock.NUTRITION)) { _ ->
+            ReviewNutritionPage(
+                trackingOnly = draft.stepContext().nutritionStartChoice == "tracking_only",
+                kcal = plan?.calorieTarget,
+                proteinG = plan?.proteinGoal,
+                carbsG = plan?.carbGoal,
+                fatG = plan?.fatGoal,
+                fractions = tuning?.let { macroRingFractions(it) },
+                goalLine = if (goal != null && goalActive) {
+                    "Objetivo: ${WizardWeightScale.formatWithUnit(goal.targetKg, goal.unit)}"
+                } else {
+                    null
+                },
+                goalDateLine = goalDate,
+            )
+        }
+    }
+    if (SetupWizardBlock.RINGS in targets) {
+        pages += ReviewPage(title = "RINGS", onEdit = editOf(SetupWizardBlock.RINGS)) { _ ->
+            ReviewRingsPage(values = ringsTowerValues(state.ringsCoveragePreview))
+        }
+    }
+
+    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        ReviewCarousel(pages = pages)
+        ReviewNotices(
+            state = state,
+            planEntry = planEntry,
+            nutritionPage = SetupWizardBlock.NUTRITION in targets,
+            ringsPage = SetupWizardBlock.RINGS in targets,
         )
+        if (state.requiresActivationConfirmation) {
+            ReviewConfirmation(
+                title = "Confirmo la activación",
+                body = activationBody(state),
+                confirmed = draft.confirmActivation,
+                onToggle = { vm.confirmActivation(!draft.confirmActivation) },
+            )
+        }
+        if (state.fixedRecipeDiffers()) {
+            ReviewConfirmation(
+                title = "Confirmo la rotación y la duración reales",
+                body = "La receta fija propone unos días y unos minutos distintos a los que declaraste.",
+                confirmed = draft.acceptFixedRecipeDifference,
+                onToggle = { vm.acceptFixedRecipeDifference(!draft.acceptFixedRecipeDifference) },
+            )
+        }
     }
-    if (state.fixedRecipeDiffers()) {
-        SetupConfirmationCard(
-            title = "Confirmo la rotación y la duración reales",
-            body = "La receta fija propone unos días y unos minutos distintos a los que declaraste.",
-            confirmed = state.draft.acceptFixedRecipeDifference,
-            onToggle = { vm.acceptFixedRecipeDifference(!state.draft.acceptFixedRecipeDifference) },
+}
+
+// ─── Carrusel ────────────────────────────────────────────────────────────────
+
+/**
+ * Una página del carrusel: su nombre («Entreno», también en el «Editar» de TalkBack), su «Editar» (null si no hay a dónde
+ * volver) y su contenido. El contenido recibe `settled`: si la página ya está asentada en pantalla (para animar su símbolo).
+ */
+internal class ReviewPage(
+    val title: String,
+    val onEdit: (() -> Unit)?,
+    val content: @Composable (settled: Boolean) -> Unit,
+)
+
+/**
+ * Alto del carrusel con la letra normal. La página de Nutrición (anillos, legenda, objetivo y fecha) es la más alta: con
+ * letra grande crece en proporción para que nada quede cortado.
+ */
+private val CarouselHeight = 420.dp
+
+/** Lado del símbolo de la hoja (programa aún sin armar). */
+private val SymbolSize = 72.dp
+
+/** Anillos de macros y torre de RINGS. */
+private val MacroRingsSize = 200.dp
+private val TowerHeight = 160.dp
+
+/** Alto de la banda de la portada del programa en Entreno: ancho completo, con el arte del objetivo a la derecha. */
+private val PlanBandHeight = 168.dp
+
+/**
+ * Carrusel de la revisión: una página por bloque, a toda la anchura de la pantalla, con el indicador debajo. [initialPage]
+ * solo cambia dónde empieza (las pruebas y la hoja de render lo usan para ver cada página).
+ */
+@Composable
+internal fun ReviewCarousel(
+    pages: List<ReviewPage>,
+    modifier: Modifier = Modifier,
+    initialPage: Int = 0,
+) {
+    if (pages.isEmpty()) return
+    val pagerState = rememberPagerState(
+        initialPage = initialPage.coerceIn(0, pages.lastIndex),
+        pageCount = { pages.size },
+    )
+    val scope = rememberCoroutineScope()
+    val fontScale = LocalDensity.current.fontScale.coerceAtLeast(1f)
+    Column(modifier = modifier.fillMaxWidth()) {
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier
+                .fullBleed(WizardSpacing.gutter)
+                .fillMaxWidth()
+                .height(CarouselHeight * fontScale)
+                .testTag("review-carousel"),
+            verticalAlignment = Alignment.Top,
+        ) { index ->
+            val page = pages[index]
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = WizardSpacing.gutter)
+                    .testTag("review-page-$index"),
+            ) {
+                ReviewPageHeader(title = page.title, onEdit = page.onEdit)
+                Spacer(Modifier.height(12.dp))
+                page.content(pagerState.settledPage == index)
+            }
+        }
+        PagerDots(
+            count = pages.size,
+            current = pagerState.currentPage,
+            onSelect = { index -> scope.launch { pagerState.animateScrollToPage(index) } },
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
         )
     }
 }
 
-/** Copy de la confirmación según el alcance real: solo registro no promete plan. */
-internal fun activationBody(state: SetupWizardState): String {
-    val later = state.draft.programRoute == SetupProgramRoute.LATER
-    val trackingOnly = state.draft.stepContext().nutritionStartChoice == "tracking_only"
-    return when {
-        later && !state.draft.includeNutrition ->
-            "No se activa ningún programa. Podrás armar el tuyo más adelante."
-        later && trackingOnly ->
-            "No se activa ningún programa. Podrás armar el tuyo más adelante. En solo registro no hay plan nutricional que activar."
-        later ->
-            "El programa lo armarás más adelante. El plan nutricional se activa al confirmar."
-        !state.draft.includeNutrition -> "El programa se activa al confirmar."
-        trackingOnly ->
-            "El programa se activa al confirmar. En solo registro no hay plan nutricional que activar."
-        else -> "El programa y el plan nutricional se activan juntos al confirmar."
+/** Estira el contenido a toda la anchura de la pantalla: deshace el margen lateral (el gutter) de la página larga. */
+private fun Modifier.fullBleed(gutter: Dp): Modifier = layout { measurable, constraints ->
+    val bleed = gutter.roundToPx()
+    val width = constraints.maxWidth + 2 * bleed
+    val placeable = measurable.measure(constraints.copy(minWidth = width, maxWidth = width))
+    layout(constraints.maxWidth, placeable.height) { placeable.place(-bleed, 0) }
+}
+
+/** Título de la página en mayúsculas pequeñas y, a la derecha, «Editar» con 48 dp de área de toque. */
+@Composable
+private fun ReviewPageHeader(title: String, onEdit: (() -> Unit)?) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = WizardSpacing.touchTarget),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = title.uppercase(),
+            style = WizardTypography.milestoneTitle,
+            color = WizardColors.text,
+            modifier = Modifier
+                .weight(1f)
+                .semantics { heading() },
+        )
+        if (onEdit != null) {
+            TextButton(
+                onClick = onEdit,
+                modifier = Modifier
+                    .heightIn(min = WizardSpacing.touchTarget)
+                    .semantics { contentDescription = "Editar $title" },
+            ) {
+                Text(text = "Editar", style = WizardTypography.controlLabel, color = WizardColors.text)
+            }
+        }
     }
 }
 
-// ─── Resumen: datos básicos ──────────────────────────────────────────────────
+// ─── Páginas ─────────────────────────────────────────────────────────────────
+
+/** Tú: el alias grande; debajo, el símbolo del sexo elegido con la edad y, en una línea pequeña, lo medido. */
+@Composable
+internal fun ReviewYouPage(
+    alias: String?,
+    ageLabel: String?,
+    sexMark: WizardGenderMark?,
+    sexLabel: String?,
+    bodyLine: String?,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        Text(
+            text = alias ?: "Sin declarar",
+            style = WizardTypography.heroTitle,
+            color = if (alias == null) WizardColors.textFaint else WizardColors.text,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+            if (sexMark != null) {
+                WizardGenderGlyph(mark = sexMark, color = WizardColors.text, modifier = Modifier.size(44.dp))
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                ageLabel?.let { Text(text = it, style = WizardTypography.controlLabel, color = WizardColors.text) }
+                sexLabel?.let { Text(text = it, style = WizardTypography.note, color = WizardColors.textMuted) }
+            }
+        }
+        bodyLine?.let { Text(text = it, style = WizardTypography.note, color = WizardColors.textMuted) }
+    }
+}
+
+/**
+ * Entreno: la portada del programa a todo el ancho, como banda (ella trae el arte del objetivo y el nombre); debajo, los días
+ * por minutos con la sesión principal, los lugares y la competición. Si el programa se arma más adelante, la hoja con lápiz.
+ */
+@Composable
+internal fun ReviewTrainingPage(
+    later: Boolean,
+    card: PlanCardModel?,
+    trainingLine: String?,
+    placesLine: String?,
+    competitionLine: String?,
+    settled: Boolean,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        if (later) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                ReviewSheetSymbol(settled = settled)
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(text = "Lo armarás más adelante", style = WizardTypography.controlLabel, color = WizardColors.text)
+                    Text(
+                        text = "No creamos un programa ahora. Podrás hacerlo desde cero cuando quieras.",
+                        style = WizardTypography.note,
+                        color = WizardColors.textMuted,
+                    )
+                }
+            }
+        } else {
+            // La portada a todo el ancho, como banda: ella trae el arte del objetivo y el nombre del programa.
+            if (card != null) {
+                // Con letra grande la banda crece: la línea de abajo (días, minutos y nivel) no se corta con «…».
+                PlanCover(
+                    model = card,
+                    modifier = Modifier.fillMaxWidth().height(PlanBandHeight * LocalDensity.current.fontScale.coerceAtLeast(1f)),
+                )
+            } else {
+                Text(text = "Programa pendiente", style = WizardTypography.note, color = WizardColors.textMuted)
+            }
+            trainingLine?.let { Text(text = it, style = WizardTypography.controlLabel, color = WizardColors.text) }
+        }
+        placesLine?.let { Text(text = it, style = WizardTypography.note, color = WizardColors.textMuted) }
+        competitionLine?.let { Text(text = it, style = WizardTypography.note, color = WizardColors.text) }
+    }
+}
+
+/**
+ * Nutrición: los anillos de macros con las kcal de la base diaria (media) en el centro y los gramos debajo; si hay meta con
+ * fecha, el objetivo. Sin afinado (pauta profesional) se enseñan solo las cifras; en solo registro, ni anillos ni cifras.
+ */
+@Composable
+internal fun ReviewNutritionPage(
+    trackingOnly: Boolean,
+    kcal: Int?,
+    proteinG: Int?,
+    carbsG: Int?,
+    fatG: Int?,
+    fractions: MacroRingFractions?,
+    goalLine: String?,
+    goalDateLine: String?,
+) {
+    if (trackingOnly) {
+        Text(
+            text = "Registrarás tus comidas sin objetivo de calorías.",
+            style = WizardTypography.controlLabel,
+            color = WizardColors.text,
+        )
+        return
+    }
+    if (kcal == null) {
+        Text(text = "Plan nutricional pendiente.", style = WizardTypography.note, color = WizardColors.textMuted)
+        return
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        if (fractions != null) {
+            ReviewMacroRings(kcal = kcal, fractions = fractions, proteinG = proteinG, carbsG = carbsG, fatG = fatG)
+        } else {
+            Text(text = "$kcal kcal", style = WizardTypography.controlValue, color = WizardColors.text)
+        }
+        ReviewMacroLegend(proteinG = proteinG, carbsG = carbsG, fatG = fatG)
+        goalLine?.let { Text(text = it, style = WizardTypography.controlLabel, color = WizardColors.text) }
+        goalDateLine?.let { Text(text = it, style = WizardTypography.note, color = WizardColors.textMuted) }
+    }
+}
+
+/** RINGS: la torre con los valores de «Tus RINGS» y una línea por anillo; sin valor, «sin calibrar», nunca un 100 %. */
+@Composable
+internal fun ReviewRingsPage(values: TowerRingValues) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        KpknTowerRings(values = values, modifier = Modifier.fillMaxWidth().height(TowerHeight))
+        ReviewRingLine(channel = RingChannel.ENERGIA, name = "Energía", percent = values[RingChannel.ENERGIA])
+        ReviewRingLine(channel = RingChannel.MUSCULOS, name = "Músculos", percent = values[RingChannel.MUSCULOS])
+        ReviewRingLine(channel = RingChannel.COLUMNA, name = "Columna", percent = values[RingChannel.COLUMNA])
+    }
+}
+
+/** La hoja con lápiz del programa que se arma más adelante; con movimiento reducido, su cuadro final. */
+@Composable
+private fun ReviewSheetSymbol(settled: Boolean) {
+    val reduced = wizardReducedMotion()
+    val foreground = rememberEntrenoForeground()
+    val clock = rememberSymbolClock(active = !reduced && foreground && settled)
+    SymbolCanvas(
+        art = programSourceArtOf(ProgramSource.LATER, reduced),
+        selected = true,
+        clock = clock,
+        reducedMotion = reduced,
+        modifier = Modifier.size(SymbolSize).semantics { contentDescription = "Programa pendiente" },
+    )
+}
+
+/** Los anillos de macros: arrancan en cero y barren hasta su valor al entrar; con movimiento reducido, de golpe. */
+@Composable
+private fun ReviewMacroRings(kcal: Int, fractions: MacroRingFractions, proteinG: Int?, carbsG: Int?, fatG: Int?) {
+    val reduced = wizardReducedMotion()
+    var appeared by remember { mutableStateOf(reduced) }
+    LaunchedEffect(Unit) { appeared = true }
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        WizardMacroRings(
+            kcal = kcal,
+            fractions = fractions,
+            // Dentro del hueco de los anillos solo cabe una palabra corta; la base media se dice justo debajo.
+            caption = "kcal/día",
+            description = "Base diaria media: $kcal kcal. " +
+                "Proteína ${gramsText(proteinG)}, hidratos ${gramsText(carbsG)}, grasas ${gramsText(fatG)}.",
+            appeared = appeared,
+            reducedMotion = reduced,
+            modifier = Modifier.size(MacroRingsSize),
+        )
+        Text(text = "Base diaria media", style = WizardTypography.note, color = WizardColors.textMuted)
+    }
+}
+
+/** Gramos de cada macro en la leyenda: proteína, hidratos y grasas con su tinta de marca. */
+@Composable
+private fun ReviewMacroLegend(proteinG: Int?, carbsG: Int?, fatG: Int?) {
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        ReviewMacroLegendItem(label = "Proteína", grams = proteinG, color = MacroColors.protein)
+        ReviewMacroLegendItem(label = "Hidratos", grams = carbsG, color = MacroColors.carbs)
+        ReviewMacroLegendItem(label = "Grasas", grams = fatG, color = MacroColors.fat)
+    }
+}
 
 @Composable
-private fun BasicsSummary(
+private fun ReviewMacroLegendItem(label: String, grams: Int?, color: Color) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Box(Modifier.width(28.dp).height(3.dp).clip(CircleShape).background(color))
+        Text(text = gramsText(grams), style = WizardTypography.controlLabel, color = WizardColors.text)
+        Text(text = label, style = WizardTypography.note, color = WizardColors.textMuted)
+    }
+}
+
+/** Una línea de la torre: el punto del anillo, su nombre y su valor («Músculos 64 %» o «Columna sin calibrar»). */
+@Composable
+private fun ReviewRingLine(channel: RingChannel, name: String, percent: Int?) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Canvas(Modifier.size(10.dp)) { drawCircle(KpknRingColors.of(channel)) }
+        Spacer(Modifier.width(8.dp))
+        Text(
+            text = ringLineText(name, percent),
+            style = WizardTypography.controlLabel,
+            color = if (percent == null) WizardColors.textMuted else WizardColors.text,
+        )
+    }
+}
+
+// ─── Avisos y confirmaciones ─────────────────────────────────────────────────
+
+/**
+ * Avisos bajo el carrusel, sin tarjeta: lo que el programa pide saber antes de activarlo, y el estado de la nutrición y de
+ * RINGS. Cada aviso dice lo que pasa; ninguno decide por la persona.
+ */
+@Composable
+private fun ReviewNotices(
     state: SetupWizardState,
-    edit: (SetupStepId) -> (() -> Unit)?,
+    planEntry: CatalogEntry?,
+    nutritionPage: Boolean,
+    ringsPage: Boolean,
 ) {
     val draft = state.draft
-    val equationSex = draft.selectedValues(SetupStepId.EQUATION_SEX).firstOrNull()?.let { value ->
+    val context = draft.stepContext()
+    var showPlanInfo by rememberSaveable(draft.draftId, draft.commitId) { mutableStateOf(false) }
+    if (draft.programRoute != SetupProgramRoute.LATER) {
+        val program = state.programPreview
+        if (program == null) {
+            SetupFormCaption(
+                state.previewError
+                    ?: if (state.isPreviewLoading) "Preparando el programa…" else "Todavía no hay un programa preparado.",
+            )
+        } else {
+            timeReviewNote(draft, state.programSessionMinutes)?.let { note -> SetupFormCaption(note) }
+            // Una sesión que cae en un día cuyo lugar no tiene su material: el aviso persiste, porque es esa semana la que se activa.
+            state.weekLayout?.placeConflicts?.forEach { conflict ->
+                SetupFormCaption(
+                    placeConflictLine(conflict),
+                    modifier = Modifier.testTag("review-place-conflict-${conflict.sessionId}"),
+                )
+            }
+            // B-03: solo lectura del informe ya calculado (planes propios); no cambia el programa.
+            planReviewNotes(state.previewReport).forEach { note -> SetupFormCaption(note) }
+            if (planEntry != null) {
+                // Ya está elegido: la hoja es de solo lectura (sin botón primario).
+                TextButton(onClick = { showPlanInfo = true }, modifier = Modifier.testTag("review-plan-info")) {
+                    Text(text = "Ver cómo funciona", color = WizardColors.text)
+                }
+                if (showPlanInfo) {
+                    // C.P6: los planes sin receta enseñan la semana REAL del programa que se va a activar.
+                    val readyWeek = remember(program) { reviewReadyWeek(program) }
+                    PlanInfoSheet(
+                        entry = planEntry,
+                        mode = PlanInfoMode.READ_ONLY,
+                        readyWeek = readyWeek,
+                        onDismiss = { showPlanInfo = false },
+                        onOpenConcept = LocalOpenConcept.current,
+                    )
+                }
+            }
+        }
+    }
+
+    if (nutritionPage && context.nutritionStartChoice != "tracking_only") {
+        val preparation = state.nutritionPreparation
+        val plan = preparation?.plan ?: state.nutritionPlanPreview
+        if (context.nutritionProfessional) {
+            SetupFormCaption("Modo: pauta indicada por un profesional.")
+        } else {
+            val status = preparation?.let { preparationStatusLabel(it.status) }
+                ?: if (plan != null) "Vista previa del plan" else "Pendiente"
+            SetupFormCaption("Estado: $status")
+        }
+        val reparto = preparation?.takeIf { it.days.isNotEmpty() }
+            ?.let { "Reparto: ${SpanishPlurals.days(it.days.size)} con objetivo" }
+        val distribution = preparation?.distributionStatus?.let { "Distribución: ${distributionLabel(it)}" }
+        listOfNotNull(reparto, distribution).takeIf { it.isNotEmpty() }?.let { lines ->
+            SetupFormCaption(lines.joinToString(" · "))
+        }
+        val error = preparation?.errors?.values?.firstOrNull() ?: state.nutritionErrors.values.firstOrNull()
+        if (error != null) SetupFormCaption(error)
+    }
+
+    if (ringsPage) {
+        val coverage = state.ringsCoveragePreview ?: RingsCoverage.NO_DATA
+        val sources = listOf(coverage.muscular, coverage.system, coverage.structure)
+            .filter { it.hasData }
+            .map { it.label }
+            .distinct()
+        SetupFormCaption(
+            when {
+                sources.isNotEmpty() -> "Procedencia por canal: ${sources.joinToString(" · ")}."
+                state.ringsPreviewLoading -> "Preparando la vista previa de RINGS…"
+                else -> "Sin datos de RINGS todavía: no se afirma ningún porcentaje."
+            },
+        )
+    }
+}
+
+/**
+ * Confirmación del alta: una fila con su casilla dibujada, título y cuerpo. Sin tarjeta; todo el renglón cambia el valor
+ * (`Role.Checkbox`, con el estado marcado o no).
+ */
+@Composable
+internal fun ReviewConfirmation(
+    title: String,
+    body: String,
+    confirmed: Boolean,
+    onToggle: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = WizardSpacing.touchTarget)
+            .toggleable(value = confirmed, role = Role.Checkbox, onValueChange = { onToggle() })
+            .padding(vertical = 10.dp),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            Text(text = title, style = WizardTypography.controlLabel, color = WizardColors.text)
+            Text(text = body, style = WizardTypography.cardSubtitle, color = WizardColors.textMuted)
+        }
+        ReviewCheckMark(checked = confirmed)
+    }
+}
+
+/** La casilla del wizard: un círculo con borde tenue que se llena de crema, con el check, al confirmar. */
+@Composable
+private fun ReviewCheckMark(checked: Boolean) {
+    Box(
+        modifier = Modifier
+            .size(24.dp)
+            .clip(CircleShape)
+            .then(
+                if (checked) {
+                    Modifier.background(WizardColors.cta)
+                } else {
+                    Modifier.border(1.5.dp, WizardColors.markBorder, CircleShape)
+                },
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        if (checked) {
+            Icon(
+                imageVector = Icons.Filled.Check,
+                contentDescription = null,
+                tint = WizardColors.ctaContent,
+                modifier = Modifier.size(16.dp),
+            )
+        }
+    }
+}
+
+// ─── Lecturas del estado (puras) ─────────────────────────────────────────────
+
+/**
+ * El bloque → su primer paso de edición en la ruta (sin hitos). Es el destino de «Editar» de su página. Función pura para
+ * probarla sin montar el ViewModel.
+ */
+internal fun reviewBlockTargets(route: List<SetupStepId>): Map<SetupWizardBlock, SetupStepId> {
+    val targets = LinkedHashMap<SetupWizardBlock, SetupStepId>()
+    for (step in route) {
+        if (SetupStepGraph.isMilestone(step)) continue
+        val block = SetupStepGraph.blockOf(step)
+        if (!targets.containsKey(block)) targets[block] = step
+    }
+    return targets
+}
+
+/** El símbolo del sexo elegido: el mismo que dibuja su paso. Null si la respuesta no tiene símbolo («No lo sé», hormonal). */
+internal fun reviewGenderMarkOf(draft: SetupWizardDraft): WizardGenderMark? =
+    when (draft.selectedValues(SetupStepId.EQUATION_SEX).firstOrNull()) {
+        "female" -> WizardGenderMark.FEMALE
+        "male" -> WizardGenderMark.MALE
+        "trans_male" -> WizardGenderMark.TRANS_MALE
+        "trans_female" -> WizardGenderMark.TRANS_FEMALE
+        null -> when (draft.nutritionDraft?.equationSex) {
+            EerSex.FEMALE -> WizardGenderMark.FEMALE
+            EerSex.MALE -> WizardGenderMark.MALE
+            else -> null
+        }
+        else -> null
+    }
+
+/** La respuesta del sexo en palabras para la revisión (la misma que enseñaba su fila). */
+internal fun reviewSexLabelOf(draft: SetupWizardDraft): String? =
+    draft.selectedValues(SetupStepId.EQUATION_SEX).firstOrNull()?.let { value ->
         when (value) {
             "female" -> "Mujer"
             "male" -> "Hombre"
@@ -187,17 +728,106 @@ private fun BasicsSummary(
         EerSex.AVERAGE -> "Promedio"
         null -> null
     }
-    val bodyFat = bodyFatReviewValue(draft)
-    SetupDataLine(label = "Alias", value = draft.name.ifBlank { null }, onEdit = edit(SetupStepId.NAME))
-    SetupDataLine(label = "Edad", value = draft.ageYears?.let { "$it años" }, onEdit = edit(SetupStepId.AGE))
-    SetupDataLine(label = "Altura", value = draft.heightCm?.let { "${it.toInt()} cm" }, onEdit = edit(SetupStepId.HEIGHT))
-    SetupDataLine(
-        label = "Peso",
-        value = draft.weightKg?.let { WizardWeightScale.formatWithUnit(it, WizardMassUnit.KG) },
-        onEdit = edit(SetupStepId.WEIGHT),
+
+/** El porcentaje de grasa que se enseña en la línea de medidas: solo si hay un número con origen; «No lo sé» no lo tiene. */
+internal fun reviewBodyFatPercentOf(draft: SetupWizardDraft): Double? = when (draft.bodyFatSource) {
+    SetupBodyFatSource.MEASURED, SetupBodyFatSource.VISUAL_ESTIMATE -> draft.bodyFatPercent
+    SetupBodyFatSource.UNKNOWN -> null
+    null -> if (draft.bodyFatState() == SetupBodyFatState.ON_FILE) {
+        draft.bodyFatPercent ?: draft.importedBodyFatPercent
+    } else {
+        null
+    }
+}
+
+/** «176 cm · 78 kg · 18 % de grasa»: lo que se midió, en una línea; lo que falte, fuera. Null si no hay nada. */
+internal fun reviewBodyLine(draft: SetupWizardDraft): String? = listOfNotNull(
+    draft.heightCm?.let { "${it.toInt()} cm" },
+    draft.weightKg?.let { WizardWeightScale.formatWithUnit(it, wizardMassUnitOf(draft)) },
+    reviewBodyFatPercentOf(draft)?.let { "${formatPercent(it)} % de grasa" },
+).joinToString(" · ").ifEmpty { null }
+
+/**
+ * «4 días × 60 min · tu sesión principal el jueves». Null sin sesiones. [minutes] y [mainDay] son opcionales: sin ellos la línea
+ * dice solo los días o los días y el tiempo.
+ */
+internal fun reviewTrainingLine(days: Int, minutes: Int?, mainDay: Int?): String? {
+    if (days <= 0) return null
+    val head = listOfNotNull(SpanishPlurals.days(days), minutes?.takeIf { it > 0 }?.let { "$it min" }).joinToString(" × ")
+    val main = mainDay?.let { WEEKDAY_LABELS.getOrNull(it) }?.takeIf { it.isNotEmpty() }?.lowercase()
+    return if (main == null) head else "$head · tu sesión principal el $main"
+}
+
+/**
+ * La competición que cuenta para el programa: «Compites el 14 de marzo de 2027 · Nacional Open»; sin nombre, sin la parte final.
+ * «Sí, sin fecha» dice «Compites, aún sin fecha». Null si no compite (o el paso no está en la ruta).
+ */
+internal fun reviewCompetitionLine(draft: SetupWizardDraft): String? = when (draft.activeCompetition()) {
+    CompetitionAnswer.WITH_DATE -> {
+        val date = CompetitionRules.parseMeetDate(draft.activeMeetDate())
+        if (date == null) {
+            "Compites, aún sin fecha"
+        } else {
+            val name = draft.activeMeetName().trim()
+            "Compites el ${CompetitionRules.dateLabel(date)}" + if (name.isEmpty()) "" else " · $name"
+        }
+    }
+    CompetitionAnswer.NO_DATE -> "Compites, aún sin fecha"
+    CompetitionAnswer.NO, null -> null
+}
+
+/** Lugares y material en una línea («Gimnasio y casa · Barra y discos, Rack +12»); null mientras no se hayan declarado. */
+internal fun reviewPlacesMaterialLine(draft: SetupWizardDraft): String? =
+    listOfNotNull(placesSummaryText(draft.trainingPlaces), materialReviewValue(draft)).joinToString(" · ").ifEmpty { null }
+
+/** Una línea de la torre: «Músculos 64 %», o «Columna sin calibrar» si el canal no tiene valor. Nunca un 100 % de relleno. */
+internal fun ringLineText(name: String, percent: Int?): String =
+    if (percent == null) "$name sin calibrar" else "$name $percent %"
+
+/**
+ * La portada del programa: la misma ficha que enseña PLAN (`planReveals`). Sin ella (la lista no llegó a esta sesión), una mínima
+ * con el nombre y los días de la semana tipo. Null sin programa previsualizado.
+ */
+internal fun reviewPlanCard(state: SetupWizardState, planEntry: CatalogEntry?): PlanCardModel? {
+    val draft = state.draft
+    state.planReveals.firstOrNull { it.planId == draft.selectedCatalogId }?.let { return it.toCardModel() }
+    val program = state.programPreview ?: return null
+    val days = SetupPlanReveals.weekOf(program).size
+    return PlanCardModel(
+        id = draft.selectedCatalogId ?: program.name,
+        title = planReviewValue(planEntry, program.name) ?: program.name,
+        kicker = "",
+        blurb = "",
+        profile = draft.goalProfile,
+        daysLabel = if (days > 0) SpanishPlurals.days(days) else "",
+        minutesLabel = "",
+        levelLabel = "",
     )
-    SetupDataLine(label = "Género", value = equationSex, onEdit = edit(SetupStepId.EQUATION_SEX))
-    SetupDataLine(label = "Grasa corporal", value = bodyFat, onEdit = edit(SetupStepId.BODY_FAT))
+}
+
+/** Gramos de un macro para la leyenda y la descripción: «150 g», o «sin datos» si no hay cifra. */
+private fun gramsText(grams: Int?): String = grams?.let { "$it g" } ?: "sin datos"
+
+// ─── Ayudantes puros del archivo (con pruebas) ───────────────────────────────
+
+/**
+ * Copy de la confirmación según el alcance real: solo registro no promete plan.
+ */
+internal fun activationBody(state: SetupWizardState): String {
+    val later = state.draft.programRoute == SetupProgramRoute.LATER
+    val trackingOnly = state.draft.stepContext().nutritionStartChoice == "tracking_only"
+    return when {
+        later && !state.draft.includeNutrition ->
+            "No se activa ningún programa. Podrás armar el tuyo más adelante."
+        later && trackingOnly ->
+            "No se activa ningún programa. Podrás armar el tuyo más adelante. En solo registro no hay plan nutricional que activar."
+        later ->
+            "El programa lo armarás más adelante. El plan nutricional se activa al confirmar."
+        !state.draft.includeNutrition -> "El programa se activa al confirmar."
+        trackingOnly ->
+            "El programa se activa al confirmar. En solo registro no hay plan nutricional que activar."
+        else -> "El programa y el plan nutricional se activan juntos al confirmar."
+    }
 }
 
 /**
@@ -288,167 +918,6 @@ internal fun reviewReadyWeek(program: Program): ReadyWeekSnapshot? =
         equipmentOf = { configurationId -> CompositionMetadataHolder.current?.metadata(configurationId)?.equipmentId },
     ).takeIf { snapshot -> snapshot.sessions.isNotEmpty() }
 
-// ─── Resumen: entreno ────────────────────────────────────────────────────────
-
-@Composable
-private fun TrainingSummary(
-    state: SetupWizardState,
-    route: List<SetupStepId>,
-    edit: (SetupStepId) -> (() -> Unit)?,
-) {
-    var expanded by rememberSaveable(state.draft.draftId, state.draft.commitId) { mutableStateOf(false) }
-    var showPlanInfo by rememberSaveable(state.draft.draftId, state.draft.commitId) { mutableStateOf(false) }
-    val draft = state.draft
-    // Lo que la persona eligió antes del programa: lugares, material, objetivo, días y tiempo.
-    SetupDataLine(label = "Lugares", value = placesSummaryText(draft.trainingPlaces), onEdit = edit(SetupStepId.EQUIPMENT))
-    SetupDataLine(label = "Material", value = materialReviewValue(draft), onEdit = edit(SetupStepId.AVAILABILITY))
-    SetupDataLine(label = "Objetivo", value = draft.goalProfile?.label ?: draft.goal?.label, onEdit = edit(SetupStepId.GOAL))
-    SetupDataLine(label = "Días y tiempo", value = daysAndTimeReviewValue(draft), onEdit = edit(SetupStepId.WEEKDAYS))
-    // El programa elegido (la INTENCIÓN del borrador, §15.2): de ahí salen el título y «Ver cómo funciona».
-    val planEntry = remember(state.draft.selectedCatalogId) {
-        state.draft.selectedCatalogId?.let(PersonalizedPlanCatalog::find)
-    }
-    if (state.draft.programRoute == SetupProgramRoute.LATER) {
-        SetupDataLine(
-            label = "Programa",
-            value = DEFER_PROGRAM_REVIEW_VALUE,
-            onEdit = edit(SetupStepId.PLAN),
-        )
-        SetupFormCaption("No creamos un programa ahora. Podrás hacerlo desde cero cuando quieras.")
-        return
-    }
-    val program = state.programPreview
-    if (program == null) {
-        SetupDataLine(label = "Programa", value = null, missing = "Sin vista previa")
-        SetupFormCaption(
-            state.previewError
-                ?: if (state.isPreviewLoading) "Preparando el programa…" else "Todavía no hay un programa preparado.",
-        )
-        return
-    }
-
-    SetupDataLine(
-        label = "Programa",
-        value = planReviewValue(planEntry, program.name),
-        onEdit = edit(SetupStepId.PLAN),
-    )
-    // Entreno v2: lo que se activa en una línea (días, minutos y lugar del programa previsualizado).
-    programReviewDetail(program, draft)?.let { detail -> SetupFormCaption(detail) }
-    // Si la sesión más larga pasa de lo pedido (con el margen que le toca a este programa), la revisión lo dice.
-    timeReviewNote(draft, state.programSessionMinutes)?.let { note -> SetupFormCaption(note) }
-    // Una sesión que cae en un día cuyo lugar no tiene su material: el aviso del tablero se repite aquí, persistente,
-    // porque lo que se activa es esa semana tal como la dejó la persona.
-    state.weekLayout?.placeConflicts?.forEach { conflict ->
-        SetupFormCaption(placeConflictLine(conflict), modifier = Modifier.testTag("review-place-conflict-${conflict.sessionId}"))
-    }
-    if (planEntry != null) {
-        // Ya está elegido: la hoja es de solo lectura (sin botón primario).
-        TextButton(onClick = { showPlanInfo = true }, modifier = Modifier.testTag("review-plan-info")) {
-            Text(text = "Ver cómo funciona", color = WizardColors.text)
-        }
-        if (showPlanInfo) {
-            // C.P6: los planes sin receta enseñan la semana REAL del programa que se va a activar (la vista previa de
-            // este mismo paso), y el glosario enlaza a Conceptos clave cuando la pantalla recibe la navegación.
-            val readyWeek = remember(program) { reviewReadyWeek(program) }
-            PlanInfoSheet(
-                entry = planEntry,
-                mode = PlanInfoMode.READ_ONLY,
-                readyWeek = readyWeek,
-                onDismiss = { showPlanInfo = false },
-                onOpenConcept = LocalOpenConcept.current,
-            )
-        }
-    }
-    // B-03: solo lectura del informe ya calculado (planes propios); no cambia el programa.
-    planReviewNotes(state.previewReport).forEach { note -> SetupFormCaption(note) }
-
-    val weeks = program.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }
-    val previewSessions = weeks.firstOrNull()?.sessions.orEmpty()
-    val previewExercises = previewSessions.sumOf { it.allExercises().size }
-
-    SetupDataLine(
-        label = "Sesiones · muestra 1ª semana",
-        value = previewSessionsSummary(previewSessions.size, previewExercises),
-        onEdit = edit(SetupStepId.WEEK_LAYOUT),
-    )
-    if (previewSessions.isEmpty()) {
-        SetupFormCaption("La primera semana todavía no tiene sesiones prescritas.")
-    } else {
-        previewSessions.forEach { session -> SessionBlock(session) }
-    }
-
-    if (weeks.size <= 1) {
-        SetupFormCaption("Programa de una sola semana.")
-        return
-    }
-
-    if (!expanded) {
-        TextButton(onClick = { expanded = true }) {
-            Text(text = "Ver las ${SpanishPlurals.weeks(weeks.size)}", color = WizardColors.text)
-        }
-    } else {
-        val allSessions = weeks.sumOf { it.sessions.size }
-        SetupDataLine(
-            label = "Sesiones por semana",
-            value = allSessionsSummary(allSessions, weeks.size),
-            onEdit = edit(SetupStepId.WEEK_LAYOUT),
-        )
-        // Ocurrencias reales: cada semana se lista tal cual. Sin deduplicar:
-        // un distinctBy borraría sesiones reales que comparten id, día o nombre.
-        weeks.take(SESSION_WEEK_LIMIT).forEachIndexed { index, week ->
-            SetupFormCaption("Semana ${index + 1}")
-            week.sessions.forEach { session -> SessionBlock(session) }
-        }
-        if (weeks.size > SESSION_WEEK_LIMIT) {
-            SetupFormCaption(
-                "Se muestran las primeras $SESSION_WEEK_LIMIT de ${SpanishPlurals.weeks(weeks.size)} " +
-                    "(${SpanishPlurals.sessions(allSessions)} en total).",
-            )
-        }
-        TextButton(onClick = { expanded = false }) {
-            Text(text = "Ocultar lista completa", color = WizardColors.textMuted)
-        }
-    }
-}
-
-private const val SESSION_WEEK_LIMIT = 8
-
-@Composable
-private fun SessionBlock(session: Session) {
-    Text(
-        text = "${dayLabel(session.dayOfWeek)} · ${session.name}",
-        style = WizardTypography.cardTitle,
-        color = WizardColors.text,
-    )
-    val exercises = session.allExercises()
-    if (exercises.isEmpty()) {
-        Text(
-            text = "Sin ejercicios prescritos",
-            style = WizardTypography.cardSubtitle,
-            color = WizardColors.textMuted,
-        )
-    } else {
-        exercises.forEach { exercise ->
-            val brief = briefSetsReps(exercise)?.let { " — $it" }.orEmpty()
-            Text(
-                text = "• ${exercise.name}$brief",
-                style = WizardTypography.bodySmall,
-                color = WizardColors.textMuted,
-            )
-        }
-    }
-}
-
-/** Serie × reps breves del primer set; sin datos no se inventa cifra. */
-private fun briefSetsReps(exercise: Exercise): String? {
-    val sets = exercise.sets
-    if (sets.isEmpty()) return null
-    val first = sets.first()
-    val reps = first.effectiveRepRange()?.format()
-        ?: first.targetDuration?.takeIf { it > 0 }?.let { "${it}s" }
-    return if (reps != null) "${sets.size} × $reps" else SpanishPlurals.sets(sets.size)
-}
-
 /**
  * El material en una línea para la revisión: «Solo peso corporal» o los tres primeros implementos y cuántos más
  * («Barra y discos, Rack, Banco +12»); null mientras no se haya declarado.
@@ -474,82 +943,10 @@ internal fun daysAndTimeReviewValue(draft: SetupWizardDraft): String? =
 
 private val WEEKDAY_LABELS = listOf("", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo")
 
-private fun dayLabel(day: Int?): String =
-    day?.let { WEEKDAY_LABELS.getOrElse(it) { "Día $it" } } ?: "Sin día"
+private fun formatPercent(value: Double): String =
+    if (value % 1.0 == 0.0) value.toInt().toString() else "%.1f".format(value).replace('.', ',')
 
-// ─── Resumen: nutrición ──────────────────────────────────────────────────────
-
-@Composable
-private fun NutritionSummary(
-    state: SetupWizardState,
-    edit: (SetupStepId) -> (() -> Unit)?,
-) {
-    val context = state.draft.stepContext()
-    val preparation = state.nutritionPreparation
-    val plan = preparation?.plan ?: state.nutritionPlanPreview
-    when {
-        context.nutritionStartChoice == "tracking_only" -> {
-            SetupDataLine(label = "Modo", value = "Solo registrar comidas", onEdit = edit(SetupStepId.NUTRITION_START))
-            SetupFormCaption("Sin plan de comidas ni metas: solo seguimiento.")
-        }
-
-        context.nutritionProfessional -> {
-            SetupDataLine(
-                label = "Modo",
-                value = "Pauta indicada por un profesional",
-                onEdit = edit(SetupStepId.NUTRITION_START),
-            )
-            NutritionPlanLines(preparation = preparation, plan = plan, edit = edit)
-        }
-
-        else -> {
-            SetupDataLine(
-                label = "Estado",
-                value = preparation?.let { preparationStatusLabel(it.status) }
-                    ?: if (plan != null) "Vista previa del plan" else null,
-                missing = "Pendiente",
-                onEdit = edit(SetupStepId.NUTRITION_START),
-            )
-            NutritionPlanLines(preparation = preparation, plan = plan, edit = edit)
-            val error = preparation?.errors?.values?.firstOrNull()
-                ?: state.nutritionErrors.values.firstOrNull()
-            if (error != null) SetupFormCaption(error)
-        }
-    }
-}
-
-/**
- * Cifras del plan como **base diaria (media)**: el valor no es el objetivo de
- * hoy. El reparto se resume desde `preparation.days` (días reales con objetivo
- * proyectado), nunca como «hoy».
- */
-@Composable
-private fun NutritionPlanLines(
-    preparation: com.example.kpkn.domain.onboarding.SetupNutritionPreparationResult?,
-    plan: NutritionPlan?,
-    edit: (SetupStepId) -> (() -> Unit)?,
-) {
-    if (plan != null) {
-        val caloriesEdit = edit(SetupStepId.NUTRITION_MANUAL_CALORIES) ?: edit(SetupStepId.NUTRITION_RESULT)
-        val carbsEdit = edit(SetupStepId.NUTRITION_MANUAL_CARBS_FAT) ?: edit(SetupStepId.NUTRITION_RESULT)
-        SetupDataLine(label = "Base diaria (media)", value = "${plan.calorieTarget} kcal", onEdit = caloriesEdit)
-        SetupDataLine(label = "Proteína (media)", value = "${plan.proteinGoal} g", onEdit = caloriesEdit)
-        SetupDataLine(label = "Hidratos (media)", value = "${plan.carbGoal} g", onEdit = carbsEdit)
-        SetupDataLine(label = "Grasas (media)", value = "${plan.fatGoal} g", onEdit = carbsEdit)
-    }
-    val distribution = preparation?.distributionStatus
-    if (preparation != null && preparation.days.isNotEmpty()) {
-        SetupDataLine(
-            label = "Reparto",
-            value = "${SpanishPlurals.days(preparation.days.size)} con objetivo",
-            onEdit = edit(SetupStepId.NUTRITION_DISTRIBUTION),
-        )
-    }
-    if (distribution != null) {
-        SetupDataLine(label = "Distribución", value = distributionLabel(distribution))
-    }
-}
-
+/** Estado del plan de nutrición en la revisión (el mismo texto que su fila-resumen). */
 private fun preparationStatusLabel(status: NutritionPlanPreparationStatus): String = when (status) {
     NutritionPlanPreparationStatus.READY -> "Lista para activar"
     NutritionPlanPreparationStatus.BLOCKED_EQUATION -> "Faltan datos de la ecuación"
@@ -564,193 +961,3 @@ private fun distributionLabel(status: NutritionDistributionStatus): String = whe
     NutritionDistributionStatus.PROVISIONAL_UNIFORM -> "Uniforme provisional (gasto sin estimar)"
     NutritionDistributionStatus.KEPT_PREVIOUS -> "Reparto anterior conservado"
 }
-
-// ─── Resumen: RINGS ──────────────────────────────────────────────────────────
-
-/**
- * Cobertura de RINGS desde `state.ringsCoveragePreview`: es **por canal**, así
- * que una sola sensación conocida no da tres canales «conocidos». Sin
- * cobertura → [RingsCoverage.NO_DATA] (score null) y «Sin datos»: nunca un
- * 100 % derivado de un global.
- */
-@Composable
-private fun RingsSummary(
-    state: SetupWizardState,
-    edit: (SetupStepId) -> (() -> Unit)?,
-) {
-    val coverage = state.ringsCoveragePreview ?: RingsCoverage.NO_DATA
-    SetupDataLine(
-        label = "Muscular",
-        value = coverage.muscular.score?.let { "$it%" },
-        missing = "Sin datos",
-        // Las tres sensaciones se responden en una pantalla (RINGS_FEELINGS): las tres filas vuelven a ella.
-        onEdit = edit(SetupStepId.RINGS_FEELINGS),
-    )
-    SetupDataLine(
-        label = "Sistema",
-        value = coverage.system.score?.let { "$it%" },
-        missing = "Sin datos",
-        onEdit = edit(SetupStepId.RINGS_FEELINGS),
-    )
-    SetupDataLine(
-        label = "Estructura",
-        value = coverage.structure.score?.let { "$it%" },
-        missing = "Sin datos",
-        onEdit = edit(SetupStepId.RINGS_FEELINGS),
-    )
-    val channels = listOf(coverage.muscular, coverage.system, coverage.structure)
-    val sources = channels.filter { it.hasData }.map { it.label }.distinct()
-    SetupFormCaption(
-        when {
-            sources.isNotEmpty() -> "Procedencia por canal: ${sources.joinToString(" · ")}."
-            state.ringsPreviewLoading -> "Preparando la vista previa de RINGS…"
-            else -> "Sin datos de RINGS todavía: no se afirma ningún porcentaje."
-        },
-    )
-}
-
-// ─── Tarjetas ────────────────────────────────────────────────────────────────
-
-/**
- * Tarjeta de bloque resumen. El contenedor **no** es clicable: la acción de
- * edición vive en la cabecera y en las filas concretas, para que ningún click
- * de padre absorba al hijo.
- */
-@Composable
-private fun ReviewBlockCard(
-    title: String,
-    onEdit: (() -> Unit)?,
-    content: @Composable ColumnScope.() -> Unit,
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(WizardColors.cardFill, WizardShapes.card)
-            .border(
-                width = WizardColors.unselectedBorderWidth,
-                color = WizardColors.cardBorder,
-                shape = WizardShapes.card,
-            )
-            .clip(WizardShapes.card)
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = title,
-                style = WizardTypography.cardTitle,
-                color = WizardColors.text,
-                modifier = Modifier.weight(1f),
-            )
-            if (onEdit != null) {
-                Text(
-                    text = "Editar bloque ›",
-                    style = WizardTypography.caption,
-                    color = WizardColors.textMuted,
-                    modifier = Modifier
-                        .clip(WizardShapes.pill)
-                        .clickable(onClick = onEdit)
-                        .semantics {
-                            role = Role.Button
-                            contentDescription = "Editar $title"
-                        }
-                        .padding(horizontal = 8.dp, vertical = 6.dp),
-                )
-            }
-        }
-        content()
-    }
-}
-
-/** Confirmación explícita del alta (borde blanco cuando queda confirmada). */
-@Composable
-private fun SetupConfirmationCard(
-    title: String,
-    body: String,
-    confirmed: Boolean,
-    onToggle: () -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(WizardColors.cardFill, WizardShapes.card)
-            .border(
-                width = if (confirmed) WizardColors.selectedBorderWidth else WizardColors.unselectedBorderWidth,
-                color = if (confirmed) WizardColors.selectedBorder else WizardColors.cardBorder,
-                shape = WizardShapes.card,
-            )
-            .semantics {
-                role = Role.Checkbox
-                selected = confirmed
-                contentDescription = title
-            }
-            .clip(WizardShapes.card)
-            .clickable(onClick = onToggle)
-            .padding(horizontal = 16.dp, vertical = 14.dp),
-        horizontalArrangement = Arrangement.spacedBy(14.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(3.dp),
-        ) {
-            Text(text = title, style = WizardTypography.cardTitle, color = WizardColors.text)
-            Text(text = body, style = WizardTypography.cardSubtitle, color = WizardColors.textMuted)
-        }
-        WizardRadioMark(selected = confirmed)
-    }
-}
-
-/**
- * Línea etiqueta/valor. Con [onEdit] la fila es su propio destino de edición
- * (`Role.Button` + chevrón); sin ella es texto plano y no finge ser accionable.
- */
-@Composable
-private fun SetupDataLine(
-    label: String,
-    value: String?,
-    missing: String = "Sin declarar",
-    onEdit: (() -> Unit)? = null,
-) {
-    val rowModifier = if (onEdit == null) {
-        Modifier.fillMaxWidth()
-    } else {
-        Modifier
-            .fillMaxWidth()
-            .clip(WizardShapes.pill)
-            .clickable(onClick = onEdit)
-            .semantics {
-                role = Role.Button
-                contentDescription = "Editar $label"
-            }
-    }
-    Row(
-        modifier = rowModifier.padding(horizontal = 4.dp, vertical = 6.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.Top,
-    ) {
-        Text(
-            text = label,
-            style = WizardTypography.cardSubtitle,
-            color = WizardColors.textMuted,
-            modifier = Modifier.weight(1f),
-        )
-        Text(
-            text = value ?: missing,
-            style = WizardTypography.cardSubtitle,
-            color = if (value == null) WizardColors.textFaint else WizardColors.text,
-            textAlign = TextAlign.End,
-            modifier = Modifier.weight(1f),
-        )
-        if (onEdit != null) {
-            Text(text = "›", style = WizardTypography.cardSubtitle, color = WizardColors.textMuted)
-        }
-    }
-}
-
-private fun formatPercent(value: Double): String =
-    if (value % 1.0 == 0.0) value.toInt().toString() else "%.1f".format(value).replace('.', ',')
