@@ -56,4 +56,16 @@ class TourScriptsTest {
 
         assertEquals("Hay anclas repetidas", anchors.size, anchors.toSet().size)
     }
+
+    @Test
+    fun el_recorrido_de_inicio_termina_en_la_barra_inferior() {
+        assertEquals(
+            listOf(TourAnchors.HOME_SESION, TourAnchors.HOME_RINGS, TourAnchors.HOME_PROGRAMAS, TourAnchors.HOME_BARRA),
+            TourScripts.home(conTorre = true).map { it.anchorId },
+        )
+        assertEquals(
+            listOf(TourAnchors.HOME_SESION, TourAnchors.HOME_PROGRAMAS, TourAnchors.HOME_BARRA),
+            TourScripts.home(conTorre = false).map { it.anchorId },
+        )
+    }
 }
