@@ -66,6 +66,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.kpkn.data.models.AthleteProfileScore
 import com.example.kpkn.data.programs.programCoverEntryIdOf
 import com.example.kpkn.data.models.ProgramMode
@@ -118,9 +120,10 @@ fun CompactHeroBanner(
     modifier: Modifier = Modifier,
 ) {
     val coverGradient = remember(coverValue) { resolveGradient(coverValue) }
-    // Portada propia (`kpkn-cover://`): la foto si hay archivo; si no, el degradado de siempre (también para esquemas desconocidos).
+    // Portada empaquetada (`kpkn-cover://`) cuando ya está decodificada; hasta entonces y sin archivo, el degradado.
     val coverPhoto = rememberProgramCover(programCoverEntryIdOf(coverValue), screenWidthPx())
-    val usesGradient = coverPhoto == null
+    val coverKind = remember(coverValue, coverPhoto) { heroCoverKind(coverValue, hasBundledCover = coverPhoto != null) }
+    val usesGradient = coverKind == HeroCoverKind.GRADIENT
     val darkIcons = remember(coverGradient, usesGradient) {
         usesGradient && coverGradient.colors.firstOrNull()?.luminance()?.let { it > 0.72f } == true
     }
@@ -160,6 +163,8 @@ fun CompactHeroBanner(
             .background(Color.Transparent),
     ) {
         HeroBackground(
+            coverKind = coverKind,
+            coverValue = coverValue,
             coverPhoto = coverPhoto,
             coverGradient = coverGradient,
             usesGradient = usesGradient,
@@ -409,19 +414,22 @@ private fun InlineHeroTextField(
 
 @Composable
 private fun BoxScope.HeroBackground(
+    coverKind: HeroCoverKind,
+    coverValue: String?,
     coverPhoto: ImageBitmap?,
     coverGradient: CoverGradient,
     usesGradient: Boolean,
 ) {
+    val context = LocalContext.current
+    val coverRequest = remember(coverValue, context, coverKind) {
+        if (coverKind != HeroCoverKind.REMOTE || coverValue.isNullOrBlank()) return@remember null
+        ImageRequest.Builder(context)
+            .data(coverValue)
+            .size(1280, 720)
+            .build()
+    }
     Box(modifier = Modifier.matchParentSize()) {
-        if (coverPhoto != null) {
-            Image(
-                bitmap = coverPhoto,
-                contentDescription = "Portada del programa",
-                modifier = Modifier.matchParentSize(),
-                contentScale = ContentScale.Crop,
-            )
-        } else {
+        if (usesGradient) {
             Box(
                 modifier = Modifier
                     .matchParentSize()
@@ -432,6 +440,20 @@ private fun BoxScope.HeroBackground(
                             end = Offset(960f, 640f),
                         ),
                     ),
+            )
+        } else if (coverPhoto != null) {
+            Image(
+                bitmap = coverPhoto,
+                contentDescription = "Portada del programa",
+                modifier = Modifier.matchParentSize(),
+                contentScale = ContentScale.Crop,
+            )
+        } else {
+            AsyncImage(
+                model = coverRequest,
+                contentDescription = "Portada del programa",
+                modifier = Modifier.matchParentSize(),
+                contentScale = ContentScale.Crop,
             )
         }
 
