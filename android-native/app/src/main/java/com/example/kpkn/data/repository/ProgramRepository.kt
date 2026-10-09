@@ -1700,10 +1700,10 @@ class ProgramRepository private constructor(
 
     /**
      * Registro PLANNED y recordatorios de la fecha clave COMPETITION de un programa ya guardado (alta). Mismo cálculo que
-     * [normalizeProgramWithCompetitions]; sin fecha clave no hace nada. Un fallo no revierte el alta.
+     * [normalizeProgramWithCompetitions]; sin fecha clave no hace nada. Un fallo se registra en el log y no revierte el alta.
      */
     private fun publishCompetitionRecordsOf(program: Program) {
-        runCatching {
+        try {
             val repo = CompetitionRepository.getInstance()
             val weekId = ProgramKeyDateEngine.competitionKeyDate(program)
                 ?.let { ProgramKeyDateEngine.locateCompetitionWeekDay(program, it)?.first }
@@ -1711,6 +1711,12 @@ class ProgramRepository private constructor(
                 .migrate(program = program, existingRecords = repo.records.value, competitionWeekId = weekId)
                 .recordsToUpsert
                 .forEach(repo::upsert)
+        } catch (error: Throwable) {
+            android.util.Log.w(
+                "ProgramRepository",
+                "publishSetupCommit: el registro de competición del alta no se guardó (${error.message})",
+                error,
+            )
         }
     }
 
