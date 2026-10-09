@@ -1,11 +1,16 @@
 package com.example.kpkn.screens.onboarding.rings
 
 import android.app.Application
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import com.example.kpkn.data.models.InitialRecoveryEvidenceFactory
 import com.example.kpkn.data.models.RecoveryChannelId
 import com.example.kpkn.domain.onboarding.RingsChannelCoverage
@@ -37,19 +42,22 @@ class RingsResultStepTest {
 
     private fun show(record: Record, answers: SetupRingsAnswers = SetupRingsAnswers(), expanded: Boolean = false) {
         rule.setContent {
-            RingsResultBody(
-                coverage = COVERAGE,
-                muscleEstimates = PILLARS.associateWith { 60 },
-                answers = answers,
-                error = null,
-                loading = false,
-                today = TODAY,
-                onCommitChannel = { channel, value -> record.channels += channel to value },
-                onCommitMuscle = { pillar, value -> record.muscles += pillar to value },
-                onResetMuscles = { record.resets++ },
-                onRetry = {},
-                initiallyExpanded = expanded,
-            )
+            // Como en el wizard, el paso va dentro de una página desplazable: así los toques llegan aunque queden bajo el borde.
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                RingsResultBody(
+                    coverage = COVERAGE,
+                    muscleEstimates = PILLARS.associateWith { 60 },
+                    answers = answers,
+                    error = null,
+                    loading = false,
+                    today = TODAY,
+                    onCommitChannel = { channel, value -> record.channels += channel to value },
+                    onCommitMuscle = { pillar, value -> record.muscles += pillar to value },
+                    onResetMuscles = { record.resets++ },
+                    onRetry = {},
+                    initiallyExpanded = expanded,
+                )
+            }
         }
     }
 
@@ -76,9 +84,9 @@ class RingsResultStepTest {
         val record = Record()
         show(record, answers = SetupRingsAnswers(manualMusclesV2 = mapOf("Pectorales" to 70)))
         rule.onNodeWithTag("rings-result-muscle-Pectorales").assertDoesNotExist()
-        rule.onNodeWithTag("rings-result-muscles-toggle").performClick()
+        rule.onNodeWithTag("rings-result-muscles-toggle").performScrollTo().performClick()
         rule.onNodeWithTag("rings-result-muscle-Pectorales").assertExists()
-        rule.onNodeWithTag("rings-result-reset").performClick()
+        rule.onNodeWithTag("rings-result-reset").performScrollTo().performClick()
         assertEquals(1, record.resets)
     }
 

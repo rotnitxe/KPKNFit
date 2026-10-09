@@ -111,7 +111,10 @@ class WizardHarnessDraftsTest {
         assertEquals(TrainingGoalProfile.WEIGHTLIFTING, qf.goalProfile)
         assertEquals(setOf(1, 2, 4, 5), qf.selectedWeekdays)
         assertEquals(90, qf.minutesPerSession)
-        assertEquals(setOf(LiftMark.SQUAT, LiftMark.SNATCH, LiftMark.CLEAN_AND_JERK), qf.liftMarks.keys)
+        assertEquals(
+            setOf(LiftMark.SQUAT, LiftMark.SNATCH, LiftMark.CLEAN_AND_JERK, LiftMark.OVERHEAD_PRESS),
+            qf.liftMarks.keys,
+        )
     }
 
     @Test
