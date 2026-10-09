@@ -7,6 +7,12 @@ datos escribe cada paso, qué lee el motor y qué se elimina. Los briefs de los 
 > Regla de oro del usuario: **nada de botones vacíos ni de UI de relleno**. Toda opción nueva escribe un dato real
 > del borrador y ese dato cambia lo que genera el motor (programas, sesiones, calentamientos, activación).
 
+> **Actualización Wizard v3 (oct-2026).** La ola siguiente amplió este bloque: «¿Compites?» tras el objetivo, el punto de partida por
+> perfil (variantes, ejercicios a evitar, base de cardio, estilo de mesa, repeticiones seguidas, marcas con «Mi mejor serie» y press
+> militar), la fuente del programa para avanzados (recomendado, más adelante o importado), 30 programas propios (simple, en bloques y
+> periodizado), músculos sin Trapecio, «Cambiar» un ejercicio en el detalle y el motor de repartos v2. Lo que diga
+> [`WIZARD_V3.md`](WIZARD_V3.md) manda sobre este documento donde no coincidan.
+
 ## 0. Principios de diseño (no negociables)
 
 1. **Símbolos e ilustraciones animadas, nunca tarjetas.** Las opciones visuales (lugares, material, músculos,

@@ -74,9 +74,14 @@ Un hito (`MILESTONE_*`) **ya no es una página**: es el overlay de la guía de m
 
 ## Entreno v2: ruta, datos y controles
 
-La ruta del bloque Entreno (`SetupStepGraph.nodes`) sale SOLO de datos del borrador, nunca de «respondido»:
+La ruta del bloque Entreno (`SetupStepGraph.nodes`) sale SOLO de datos del borrador, nunca de «respondido». Desde la ola Wizard v3
+(oct-2026) incluye «¿Compites?», el punto de partida por perfil y la fuente del programa; la ruta completa y cuándo sale cada paso están en
+[`WIZARD_V3.md`](WIZARD_V3.md) §1:
 
-`EXPERIENCE, EQUIPMENT, AVAILABILITY, GOAL, FRESH_DAY, WEEKDAYS, SESSION_TIME, [CARDIO_TYPE, CARDIO_TIME], [VOLUME_TECHNIQUE], VOLUME_CONSISTENCY, VOLUME_STRENGTH, VOLUME_MOBILITY, [CAPABILITIES], PRIORITIES, [TRAINING_MAX], PLAN, [WEEK_LAYOUT], MILESTONE_TRAINING`
+`EXPERIENCE, EQUIPMENT, AVAILABILITY, GOAL, [COMPETITION], FRESH_DAY, WEEKDAYS, SESSION_TIME, [CARDIO_TYPE, CARDIO_TIME, [CARDIO_BASE]], [VOLUME_TECHNIQUE], VOLUME_CONSISTENCY, VOLUME_STRENGTH, VOLUME_MOBILITY, [PROGRAM_SOURCE], …` (recomendado: `[CAPABILITIES], PRIORITIES, [AVOIDED_EXERCISES], [ARM_STYLE], [TRAINING_VARIANTS], [TRAINING_MAX], PLAN, [WEEK_LAYOUT]`; importado: `PROGRAM_IMPORT, [WEEK_LAYOUT]`; más adelante: nada) `, MILESTONE_TRAINING`
+
+Al volver a un paso desde su fila-resumen y confirmarlo, el cursor no recorre los pasos siguientes uno a uno: va al primero que de verdad
+haya que revisar (sin respuesta o marcado por dependencia) o vuelve a donde estaba (`SetupStepGraph.nextNeedingAttention`).
 
 | Rama | Entra cuando (`SetupStepContext`, derivado en `stepContext()`) |
 |---|---|
