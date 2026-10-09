@@ -583,19 +583,20 @@ private fun RingsSummary(
         label = "Muscular",
         value = coverage.muscular.score?.let { "$it%" },
         missing = "Sin datos",
-        onEdit = edit(SetupStepId.RINGS_MUSCLE_FEELING),
+        // Las tres sensaciones se responden en una pantalla (RINGS_FEELINGS): las tres filas vuelven a ella.
+        onEdit = edit(SetupStepId.RINGS_FEELINGS),
     )
     SetupDataLine(
         label = "Sistema",
         value = coverage.system.score?.let { "$it%" },
         missing = "Sin datos",
-        onEdit = edit(SetupStepId.RINGS_ENERGY_FEELING),
+        onEdit = edit(SetupStepId.RINGS_FEELINGS),
     )
     SetupDataLine(
         label = "Estructura",
         value = coverage.structure.score?.let { "$it%" },
         missing = "Sin datos",
-        onEdit = edit(SetupStepId.RINGS_STRUCTURE_FEELING),
+        onEdit = edit(SetupStepId.RINGS_FEELINGS),
     )
     val channels = listOf(coverage.muscular, coverage.system, coverage.structure)
     val sources = channels.filter { it.hasData }.map { it.label }.distinct()

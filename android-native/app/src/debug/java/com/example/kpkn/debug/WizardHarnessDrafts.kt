@@ -1,5 +1,8 @@
 package com.example.kpkn.debug
 
+import com.example.kpkn.data.models.InitialRecoveryIntensity
+import com.example.kpkn.data.models.RingsLiftPattern
+import com.example.kpkn.data.models.RingsMuscleGroup
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.domain.onboarding.CapabilityLevel
 import com.example.kpkn.domain.onboarding.CapabilitySkill
@@ -28,9 +31,12 @@ import com.example.kpkn.screens.onboarding.stepContext
 import com.example.kpkn.screens.onboarding.touchStep
 import com.example.kpkn.screens.onboarding.withCapability
 import com.example.kpkn.screens.onboarding.withDayPlace
+import com.example.kpkn.screens.onboarding.withFeelings
 import com.example.kpkn.screens.onboarding.withFreshestDay
 import com.example.kpkn.screens.onboarding.withGoalProfile
+import com.example.kpkn.screens.onboarding.withGroupSets
 import com.example.kpkn.screens.onboarding.withLiftMark
+import com.example.kpkn.screens.onboarding.withMainLiftToggled
 import com.example.kpkn.screens.onboarding.withMarksUnit
 import com.example.kpkn.screens.onboarding.withMaterial
 import com.example.kpkn.screens.onboarding.withMuscles
@@ -39,6 +45,7 @@ import com.example.kpkn.screens.onboarding.withSessionMinutes
 import com.example.kpkn.screens.onboarding.withStepChoice
 import com.example.kpkn.screens.onboarding.withStepNumber
 import com.example.kpkn.screens.onboarding.withStepText
+import com.example.kpkn.screens.onboarding.withTrainedDayToggled
 import com.example.kpkn.screens.onboarding.withWeekStart
 import com.example.kpkn.screens.onboarding.withWeekdays
 import java.util.UUID
@@ -270,6 +277,13 @@ internal fun SetupWizardDraft.answeredAs(step: SetupStepId, persona: HarnessPers
     SetupStepId.TRAINING_MAX -> marksLifts()
         .fold(this) { draft, lift -> draft.withLiftMark(lift, persona.marks[lift] ?: markFor(lift)) }
         .withMarksUnit(persona.marksUnit)
+    // RINGS v2: ayer y hace tres días (uno cae en las 72 h, así que sale la pregunta de series), dos ejercicios principales, series
+    // de dos grupos, intensidad y sensaciones. Son datos válidos para recorrer la ruta de RINGS hasta la revisión.
+    SetupStepId.RINGS_SESSION_DAYS -> withTrainedDayToggled(1).withTrainedDayToggled(3)
+    SetupStepId.RINGS_MAIN_LIFTS -> withMainLiftToggled(RingsLiftPattern.SQUAT).withMainLiftToggled(RingsLiftPattern.BENCH)
+    SetupStepId.RINGS_GROUP_SETS -> withGroupSets(RingsMuscleGroup.LEGS, 12).withGroupSets(RingsMuscleGroup.CHEST, 10)
+    SetupStepId.RINGS_INTENSITY -> withStepChoice(step, InitialRecoveryIntensity.MODERATE.name)
+    SetupStepId.RINGS_FEELINGS -> withFeelings(muscular = 2, energy = 3, structure = 2)
     else -> this
 }
 
