@@ -38,6 +38,11 @@ internal object LiftPoses {
     /** Altura del banco (y de su cara superior) en el press de banca. */
     const val BENCH_Y = GROUND - 13.5f
 
+    /** Cadera de la figura de banca (x). La tabla empieza 2 unidades antes, en la cadera, y llega hasta la cabeza. */
+    private const val BENCH_HIP_X = 30f
+    const val BENCH_TABLE_LEFT = BENCH_HIP_X - 2f
+    const val BENCH_TABLE_RIGHT = 68f
+
     private const val LEG = FigGeo.LEG
     private const val ARM = FigGeo.ARM
 
@@ -149,13 +154,21 @@ internal object LiftPoses {
     }
 
     // ---------------------------------------------------------------- press de banca (tumbada en el banco)
+    // Los pies van en el suelo delante del extremo de la tabla (cadera − 15 el cercano, − 13 el lejano). La rodilla va
+    // por ENCIMA de la línea cadera‑pie: el muslo sale casi horizontal sobre el extremo del banco y la espinilla baja al
+    // suelo, así que ningún segmento de pierna cruza la tabla.
     private fun bench(u: Float, out: FigPose) {
-        val hip = Offset(30f, BENCH_Y - 2.2f)
+        val hip = Offset(BENCH_HIP_X, BENCH_Y - 2.2f)
         val lean = (PI / 2.0).toFloat() - 0.02f
         val sh = hip + FigGeo.up(lean) * FigGeo.TORSO
         val reach = FigGeo.lerp(ARM - 0.6f, 5.0f, FigGeo.smooth(u))
         val bar = Offset(sh.x + 0.5f, sh.y - reach)
-        out.solve(hip, lean, Offset(16f, GROUND), Offset(18.5f, GROUND), bar, hand2(bar), elbowSign = -1f, headTilt = -0.5f)
+        val footN = Offset(BENCH_HIP_X - 15f, GROUND)
+        val footF = Offset(BENCH_HIP_X - 13f, GROUND)
+        out.solve(hip, lean, footN, footF, bar, hand2(bar), elbowSign = -1f, headTilt = -0.5f)
+        // `FigPose.solve` dobla las rodillas con signo −1 (hacia abajo, cruzando el banco): aquí se recalculan con +1.
+        out.kneeN = FigGeo.ik(hip, footN, FigGeo.THIGH, FigGeo.SHIN, 1f)
+        out.kneeF = FigGeo.ik(hip, footF, FigGeo.THIGH, FigGeo.SHIN, 1f)
         out.bar = bar
         out.bench = BENCH_Y
     }
