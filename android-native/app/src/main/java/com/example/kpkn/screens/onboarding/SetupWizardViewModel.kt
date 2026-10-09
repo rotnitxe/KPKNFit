@@ -45,7 +45,10 @@ import com.example.kpkn.domain.training.split.WeekAssignment
 import com.example.kpkn.screens.nutrition.NutritionWizardDraft
 import com.example.kpkn.screens.programs.ReadyWeekSnapshot
 import java.time.LocalDate
+import java.time.ZoneId
 import java.util.UUID
+import com.example.kpkn.data.models.RingsLiftPattern
+import com.example.kpkn.data.models.RingsMuscleGroup
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
@@ -3608,34 +3611,10 @@ class SetupWizardViewModel @JvmOverloads constructor(
     private fun <T> setIf(value: T, present: Boolean): SetupPatchField<T> =
         if (present) SetupPatchField.Set(value) else SetupPatchField.Unchanged
 
+    /** Mapeo de RINGS para la vista previa y el guardado: la zona del sistema fecha los días declarados (v2). */
     private fun ringsMapping(draft: SetupWizardDraft, nowEpochMs: Long = System.currentTimeMillis()): SetupRingsMapping {
         val a = draft.ringsAnswers ?: return SetupRingsMapping(RingsCompletion.UNKNOWN)
-        return SetupRingsMapper.map(SetupRingsInput(
-            startAction = a.startAction,
-            recentTraining = a.recentTraining,
-            recentTrainingUnknown = a.recentTrainingState == SetupRecentTrainingState.UNKNOWN,
-            sessions = a.sessionsLastSevenDays,
-            recencyDays = a.lastSessionRecencyDays ?: a.recencyDays,
-            activityType = a.activityType,
-            intensity = a.intensityLevel,
-            muscleFeeling = a.muscleFeeling,
-            energy = a.energy,
-            structureFeeling = a.structureFeeling,
-            axialState = a.axialExposure.state,
-            axialSessions = a.axialExposure.sessions,
-            axialIntensity = a.intensityLevel,
-            muscleScope = a.muscleScope,
-            selectedMuscles = a.recentMuscles.toList(),
-            discomfortIds = a.discomfortIds,
-            capturedAtMs = a.capturedAtMs,
-            // NONE (lista vacía explícita) es distinto de no informado/omitido.
-            discomfortResponse = when (a.discomfortState) {
-                SetupDiscomfortState.NONE -> RingsDiscomfortResponse.NONE
-                SetupDiscomfortState.DECLARED -> RingsDiscomfortResponse.DECLARED
-                SetupDiscomfortState.OMITTED -> RingsDiscomfortResponse.OMITTED
-                SetupDiscomfortState.NOT_ANSWERED -> RingsDiscomfortResponse.NOT_ANSWERED
-            },
-        ), nowEpochMs)
+        return SetupRingsMapper.map(a.toMapperInput(), nowEpochMs, ZoneId.systemDefault())
     }
     private fun buildVolumeProfile(draft: SetupWizardDraft): VolumeCalibrationProfile? {
         val a = draft.volumeAnswers; val style = a.style ?: return null; val t = a.technique ?: return null; val c = a.consistency ?: return null; val s = a.strength ?: return null; val m = a.mobility ?: return null; val output = VolumeCalibrationEngine.calculate(style, t, c, s, m)
@@ -3705,6 +3684,48 @@ class SetupWizardViewModel @JvmOverloads constructor(
      */
     fun setProgramSource(source: ProgramSource) =
         mutateDraft(SetupStepId.PROGRAM_SOURCE) { latest -> latest.withProgramSource(source) }
+
+    // ── RINGS del alta (v2): días, ejercicios principales, series por grupo y sensaciones. Sin UI: la pinta E3c. ──
+
+    /** Alterna un día de la última semana (0 = hoy … 6); tocar un día apaga «No entrené» y «No lo recuerdo». */
+    fun toggleTrainedDay(offset: Int) = mutateDraft(SetupStepId.RINGS_SESSION_DAYS) { latest ->
+        latest.withTrainedDayToggled(offset, System.currentTimeMillis())
+    }
+
+    /** «No entrené»: ningún día entrenado (exclusivo). */
+    fun setNoTraining() = mutateDraft(SetupStepId.RINGS_SESSION_DAYS) { latest ->
+        latest.withNoTraining(System.currentTimeMillis())
+    }
+
+    /** «No lo recuerdo»: el historial queda desconocido (exclusivo). */
+    fun setTrainingUnknown() = mutateDraft(SetupStepId.RINGS_SESSION_DAYS) { latest ->
+        latest.withTrainingUnknown(System.currentTimeMillis())
+    }
+
+    /** Alterna un ejercicio principal; «Ninguno de estos» y «No lo sé» son exclusivos. */
+    fun toggleMainLift(pattern: RingsLiftPattern) = mutateDraft(SetupStepId.RINGS_MAIN_LIFTS) { latest ->
+        latest.withMainLiftToggled(pattern, System.currentTimeMillis())
+    }
+
+    /** «Ninguno de estos» en ejercicios principales (exclusivo). */
+    fun setNoMainLifts() = mutateDraft(SetupStepId.RINGS_MAIN_LIFTS) { latest ->
+        latest.withNoMainLifts(System.currentTimeMillis())
+    }
+
+    /** «No lo sé» en ejercicios principales (exclusivo). */
+    fun setMainLiftsUnknown() = mutateDraft(SetupStepId.RINGS_MAIN_LIFTS) { latest ->
+        latest.withMainLiftsUnknown(System.currentTimeMillis())
+    }
+
+    /** Series de un grupo (0–20); `sets` null es «No lo sé» para ese grupo. */
+    fun setGroupSets(group: RingsMuscleGroup, sets: Int?) = mutateDraft(SetupStepId.RINGS_GROUP_SETS) { latest ->
+        latest.withGroupSets(group, sets, System.currentTimeMillis())
+    }
+
+    /** Las tres sensaciones de RINGS; cada una puede quedar sin responder (null). */
+    fun setFeelings(muscular: Int?, energy: Int?, structure: Int?) = mutateDraft(SetupStepId.RINGS_FEELINGS) { latest ->
+        latest.withFeelings(muscular, energy, structure, System.currentTimeMillis())
+    }
 
     companion object {
         private const val DRAFT_ID_KEY = "setup_wizard_draft_id"
