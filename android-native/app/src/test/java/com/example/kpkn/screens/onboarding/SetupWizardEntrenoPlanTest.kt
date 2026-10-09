@@ -54,6 +54,7 @@ import com.example.kpkn.domain.training.approach.ApproachInfoProvider
 import com.example.kpkn.domain.training.approach.ApproachLevel
 import com.example.kpkn.domain.training.approach.ApproachOptions
 import com.example.kpkn.domain.training.approach.ApproachPlanner
+import com.example.kpkn.domain.training.periodization.ProgramVariant
 import com.example.kpkn.domain.training.split.SplitRedistributor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -85,7 +86,7 @@ import kotlin.time.Duration.Companion.minutes
  * rutinas, planificador, evaluador y redistribuidor reales), persistencia y coordinador de altas reales sobre Room en
  * memoria. Solo el entorno de lectura (Ajustes) es fijo.
  *
- * Cubre: objetivo general → un solo programa «a medida» → elegir → semana armada (adaptar a un reparto y mover una
+ * Cubre: objetivo general → sus tres formas «a medida» → elegir la simple → semana armada (adaptar a un reparto y mover una
  * sesión) → activar, con el programa activado IGUAL al previsualizado y todo lo declarado persistido; disciplina con
  * autores (el «a medida» al frente); disciplina sin autores (una «versión inicial»); cambiar días o material (vuelve a
  * barrer y deja PLAN por revisar); «Otra versión»; «lo haré más adelante»; y el fallo del motor con «Reintentar».
@@ -126,7 +127,7 @@ class SetupWizardEntrenoPlanTest {
     // ─── Objetivo general: revelado, semana armada y activación ─────────────────────────────────
 
     @Test
-    fun aGeneralGoalRevealsOneTailoredProgramWhoseWeekIsArrangedAndActivatedAsPreviewed() = runTest(dispatcher.scheduler, timeout = 10.minutes) {
+    fun aGeneralGoalRevealsItsThreeTailoredFormsAndTheSimpleWeekIsArrangedAndActivatedAsPreviewed() = runTest(dispatcher.scheduler, timeout = 10.minutes) {
         val vm = newVm()
         vm.initialize(SetupWizardMode.TRAINING_ONLY)
         await(vm, "wizard cargado") { !it.isLoading && it.currentStep == SetupStepId.NAME }
@@ -141,11 +142,13 @@ class SetupWizardEntrenoPlanTest {
         )
         walkUntil(vm, SetupStepId.PLAN, answers)
 
-        // Barrido: el general recibe SOLO su programa «a medida», con su revelado.
-        val swept = await(vm, "programa a medida listo") { idle(it) && it.planSweep == SetupPlanSweep.READY }
+        // Barrido: el general recibe sus tres formas a medida (simple, en bloques y periodizada), con su revelado. Esta prueba
+        // elige la simple, que es la que siguen la semana y la activación.
+        val swept = await(vm, "programas a medida listos") { idle(it) && it.planSweep == SetupPlanSweep.READY }
         val generatedId = GeneratedPlans.entryIdFor(TrainingGoalProfile.STRENGTH_MUSCLE)
-        assertEquals(listOf(generatedId), swept.availablePlanCandidates.map { it.id })
-        val reveal = swept.planReveals.single()
+        assertEquals(threeFormsOf(TrainingGoalProfile.STRENGTH_MUSCLE), swept.availablePlanCandidates.map { it.id })
+        assertEquals(threeFormsOf(TrainingGoalProfile.STRENGTH_MUSCLE), swept.planReveals.map { it.planId })
+        val reveal = swept.planReveals.first()
         assertEquals(generatedId, reveal.planId)
         assertTrue(reveal.generated)
         assertEquals("1 SEMANA · SE REPITE", reveal.kicker)
@@ -354,11 +357,12 @@ class SetupWizardEntrenoPlanTest {
         assertTrue("el propio de fuerza sigue en la lista: $ids", "native:strength-foundation-v2" in ids)
         assertEquals(ids, swept.planReveals.map { it.planId })
         assertEquals("1 SEMANA · SE REPITE", swept.planReveals.first().kicker)
-        assertTrue("los demás no son «a medida»", swept.planReveals.drop(1).none { it.generated })
+        assertEquals("las tres formas a medida van delante", threeFormsOf(TrainingGoalProfile.POWERLIFTING), ids.take(3))
+        assertTrue("los demás no son «a medida»", swept.planReveals.drop(3).none { it.generated })
     }
 
     @Test
-    fun aDisciplineWithoutAuthorsOffersOneInitialVersion() = runTest(dispatcher.scheduler, timeout = 10.minutes) {
+    fun aDisciplineWithoutAuthorsOffersItsThreeFormsAndTheSimpleOneIsTheInitialVersion() = runTest(dispatcher.scheduler, timeout = 10.minutes) {
         val vm = newVm()
         vm.initialize(SetupWizardMode.TRAINING_ONLY)
         await(vm, "wizard cargado") { !it.isLoading }
@@ -371,10 +375,12 @@ class SetupWizardEntrenoPlanTest {
             ).withCapability(CapabilitySkill.PULL_UP, CapabilityLevel.SOME)
         }
         val swept = await(vm, "programa de calistenia") { idle(it) && it.planSweep == SetupPlanSweep.READY }
-        assertEquals(listOf(GeneratedPlans.entryIdFor(TrainingGoalProfile.CALISTHENICS)), swept.availablePlanCandidates.map { it.id })
-        val reveal = swept.planReveals.single()
+        assertEquals(threeFormsOf(TrainingGoalProfile.CALISTHENICS), swept.availablePlanCandidates.map { it.id })
+        // La simple lleva la etiqueta de versión inicial; las variantes enseñan su estructura (la nota honesta viaja a todas).
+        val reveal = swept.planReveals.first()
         assertTrue(reveal.isInitialVersion)
         assertEquals(SetupPlanReveals.KICKER_INITIAL, reveal.kicker)
+        assertTrue("la variante en bloques enseña su estructura: ${swept.planReveals[1].kicker}", "SEMANAS" in swept.planReveals[1].kicker)
         assertTrue("la nota honesta viaja al detalle: ${reveal.notes}", reveal.notes.isNotEmpty())
     }
 
@@ -494,7 +500,7 @@ class SetupWizardEntrenoPlanTest {
         failing.set(false)
         vm.retryFailedOperation(SetupRetryOperation.CANDIDATES)
         val recovered = await(vm, "barrido tras reintentar") { idle(it) && it.planSweep == SetupPlanSweep.READY }
-        assertEquals(listOf(GeneratedPlans.entryIdFor(TrainingGoalProfile.STRENGTH_MUSCLE)), recovered.availablePlanCandidates.map { it.id })
+        assertEquals(threeFormsOf(TrainingGoalProfile.STRENGTH_MUSCLE), recovered.availablePlanCandidates.map { it.id })
         assertNull(recovered.errors["candidates"])
     }
 
@@ -613,7 +619,7 @@ class SetupWizardEntrenoPlanTest {
                 idle(it) && it.planSweep == SetupPlanSweep.READY && it.droppedSelection != null
             }
             val tailoredId = GeneratedPlans.entryIdFor(TrainingGoalProfile.STRENGTH_CARDIO)
-            assertEquals(listOf(tailoredId), state.availablePlanCandidates.map { it.id })
+            assertEquals(threeFormsOf(TrainingGoalProfile.STRENGTH_CARDIO), state.availablePlanCandidates.map { it.id })
             val dropped = checkNotNull(state.droppedSelection)
             assertEquals(ATHLETE_OWN, dropped.planId)
             assertEquals(tailoredId, dropped.tailoredId)
@@ -819,6 +825,10 @@ class SetupWizardEntrenoPlanTest {
             .withWeekdays(days)
             .withSessionMinutes(minutes)
     }
+
+    /** Las tres formas a medida de un perfil en el orden del barrido (simple, en bloques y periodizada). */
+    private fun threeFormsOf(profile: TrainingGoalProfile): List<String> =
+        ProgramVariant.entries.map { GeneratedPlans.entryIdFor(profile, it) }
 
     private fun sessionsOf(program: Program): List<Session> =
         program.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }.flatMap { it.sessions }

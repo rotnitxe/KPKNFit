@@ -10,8 +10,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -25,13 +27,16 @@ import com.example.kpkn.data.models.NutritionPlan
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.onboarding.SetupDraft
 import com.example.kpkn.data.onboarding.SetupDraftCandidate
+import com.example.kpkn.domain.onboarding.GeneratedPlans
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.SetupStepProgress
 import com.example.kpkn.domain.onboarding.SetupWizardBlock
 import com.example.kpkn.domain.onboarding.TrainingGoalProfile
 import com.example.kpkn.domain.onboarding.TrainingPlace
+import com.example.kpkn.domain.training.periodization.ProgramVariant
 import com.example.kpkn.screens.onboarding.PLAN_PREPARE_FAILED_MESSAGE
 import com.example.kpkn.screens.onboarding.SetupDroppedSelection
+import com.example.kpkn.screens.onboarding.SetupExperience
 import com.example.kpkn.screens.onboarding.SetupPlanReveal
 import com.example.kpkn.screens.onboarding.SetupPlanRevealBlock
 import com.example.kpkn.screens.onboarding.SetupPlanRevealDay
@@ -50,9 +55,11 @@ import com.example.kpkn.screens.onboarding.design.entreno.plan.PLAN_DETAIL_CLOSE
 import com.example.kpkn.screens.onboarding.design.entreno.plan.PLAN_DETAIL_TAG
 import com.example.kpkn.screens.onboarding.design.entreno.plan.PLAN_PREPARING_TAG
 import com.example.kpkn.screens.onboarding.design.entreno.plan.PreparingTimeline
+import com.example.kpkn.screens.onboarding.design.entreno.plan.planCardTag
 import com.example.kpkn.screens.onboarding.withGoalProfile
 import com.example.kpkn.screens.onboarding.withPlaces
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -105,9 +112,12 @@ class EntrenoPlanStepTest {
         Column(Modifier.verticalScroll(rememberScrollState())) { EntrenoPlanStep(state, vm) }
     }
 
-    private fun draftFor(profile: TrainingGoalProfile, step: SetupStepId = SetupStepId.PLAN): SetupWizardDraft =
-        SetupWizardDraft().withPlaces(setOf(TrainingPlace.GYM)).withGoalProfile(profile)
-            .copy(stepProgress = SetupStepProgress(block = SetupWizardBlock.TRAINING, currentStepId = step))
+    private fun draftFor(
+        profile: TrainingGoalProfile,
+        step: SetupStepId = SetupStepId.PLAN,
+        experience: SetupExperience? = null,
+    ): SetupWizardDraft = SetupWizardDraft().withPlaces(setOf(TrainingPlace.GYM)).withGoalProfile(profile)
+        .copy(experience = experience, stepProgress = SetupStepProgress(block = SetupWizardBlock.TRAINING, currentStepId = step))
 
     private fun reveal(
         id: String,
@@ -406,6 +416,85 @@ class EntrenoPlanStepTest {
         rule.onNodeWithText("Este borrador trae las sesiones que montaste a mano. Las verás en la revisión final.").assertExists()
         // No tiene objetivo que elegir: el paso sigue pudiéndose confirmar con esas sesiones.
         rule.onNodeWithTag("$LEGACY_PLAN_TAG-goal").assertDoesNotExist()
+    }
+
+    // ─── Oferta de PLAN (D2c): las tres formas a medida, la recomendada, el orden y «Ver más programas» ─────
+
+    /** Un programa a medida del perfil en la forma [variant] (simple, en bloques o periodizada). */
+    private fun tailoredOf(profile: TrainingGoalProfile, variant: ProgramVariant, title: String): SetupPlanReveal =
+        reveal(GeneratedPlans.entryIdFor(profile, variant), title, profile, coverSeed = variant.ordinal)
+
+    @Test
+    fun aGeneralProfileOffersItsThreeFormsAndMarksTheOneRecommendedForItsExperience() {
+        rule.mainClock.autoAdvance = false
+        val profile = TrainingGoalProfile.STRENGTH_MUSCLE
+        val simple = tailoredOf(profile, ProgramVariant.SIMPLE, "Base sólida")
+        val blocks = tailoredOf(profile, ProgramVariant.BLOCKS, "Escalera de carga")
+        val periodized = tailoredOf(profile, ProgramVariant.PERIODIZED, "Temporada de fuerza y masa")
+        state = SetupWizardState(
+            draft = draftFor(profile, experience = SetupExperience.INTERMEDIATE),
+            planSweep = SetupPlanSweep.READY,
+            planReveals = listOf(simple, blocks, periodized),
+        )
+        rule.setContent { Page() }
+        finishOverlay()
+        rule.onNodeWithTag(REVEAL_TAG).assertExists()
+        // Las tres portadas: la centrada (la de bloques, que es la recomendada para experiencia intermedia) y sus vecinas.
+        rule.onNodeWithTag(planCardTag(blocks.planId)).assertExists()
+        rule.onNodeWithTag(planCardTag(simple.planId)).assertExists()
+        rule.onNodeWithTag(planCardTag(blocks.planId)).assert(hasContentDescription("Para ti", substring = true))
+        // Recomendar no elige: la tarjeta no lleva la marca de «elegido».
+        rule.onNodeWithTag(planCardTag(blocks.planId)).assertIsNotSelected()
+    }
+
+    @Test
+    fun aDisciplineWithMoreThanSixProgramsOffersTheRestBehindAMoreAction() {
+        rule.mainClock.autoAdvance = false
+        val profile = TrainingGoalProfile.POWERLIFTING
+        val authors = (1..5).map { reveal("native:author-$it", "Autor $it", profile, coverSeed = it) }
+        val own = ProgramVariant.entries.map { tailoredOf(profile, it, "Programa ${it.name.lowercase()}") }
+        state = SetupWizardState(
+            draft = draftFor(profile, step = SetupStepId.TRAINING_MAX),
+            planSweep = SetupPlanSweep.READY,
+            planReveals = authors + own,
+        )
+        rule.setContent { Page() }
+        // Seis a la vista y, tras ellas, «Ver más programas (2)».
+        rule.onNodeWithTag(planCardTag(own[0].planId)).assertExists()
+        rule.onNodeWithText("Ver más programas (2)").assertExists()
+        tap(MORE_PROGRAMS_TAG)
+        rule.onNodeWithTag(MORE_PROGRAMS_TAG).assertDoesNotExist()
+    }
+
+    @Test
+    fun theOfferPutsTheOwnProgramsFirstStopsAtSixAndNeverHidesTheChosenOne() {
+        val profile = TrainingGoalProfile.POWERLIFTING
+        val authors = (1..5).map { reveal("native:author-$it", "Autor $it", profile, coverSeed = it) }
+        val own = ProgramVariant.entries.map { tailoredOf(profile, it, "Programa ${it.name.lowercase()}") }
+        val reveals = authors + own
+
+        val offer = planOfferOf(reveals, expanded = false, selectedId = null)
+        assertEquals(own.map { it.planId } + authors.take(3).map { it.planId }, offer.shown.map { it.planId })
+        assertEquals(2, offer.hidden)
+        assertEquals(0, planOfferOf(reveals, expanded = true, selectedId = null).hidden)
+        // Lo elegido está tras «Ver más»: se enseña todo para que nunca quede escondido.
+        val chosenHidden = planOfferOf(reveals, expanded = false, selectedId = authors[4].planId)
+        assertEquals(reveals.size, chosenHidden.shown.size)
+        assertEquals(0, chosenHidden.hidden)
+    }
+
+    @Test
+    fun theRecommendedFormFollowsTheExperienceAndFallsBackToTheSimpleOne() {
+        val profile = TrainingGoalProfile.BODYBUILDING
+        val reveals = ProgramVariant.entries.map { tailoredOf(profile, it, "Programa ${it.name.lowercase()}") }
+        val simpleId = GeneratedPlans.entryIdFor(profile)
+        assertEquals(simpleId, recommendedIdOf(reveals, profile, SetupExperience.NEW))
+        assertEquals(simpleId, recommendedIdOf(reveals, profile, SetupExperience.RETURNING))
+        assertEquals(GeneratedPlans.entryIdFor(profile, ProgramVariant.BLOCKS), recommendedIdOf(reveals, profile, SetupExperience.INTERMEDIATE))
+        assertEquals(GeneratedPlans.entryIdFor(profile, ProgramVariant.PERIODIZED), recommendedIdOf(reveals, profile, SetupExperience.ADVANCED))
+        assertEquals(simpleId, recommendedIdOf(reveals, profile, null))
+        // Si la forma recomendada no está entre los viables, se recomienda la simple.
+        assertEquals(simpleId, recommendedIdOf(reveals.take(1), profile, SetupExperience.ADVANCED))
     }
 
     private object NoPersistence : SetupWizardPersistence {
