@@ -145,15 +145,27 @@ internal object BallArt : EquipmentArt(SymbolPalette.ok, period = 1.3f, restT = 
 
 // ---------------------------------------------------------------- Cajón o step
 
-/** Un cajón pliométrico: una figura salta desde el suelo hasta lo alto y baja. Acento: mente. */
+/**
+ * Un cajón pliométrico: una figura salta desde el suelo hasta lo alto y baja. La caja es baja y la figura, grande
+ * (de pie mide ≈ 3,4 veces el frente de la caja). Acento: mente.
+ */
 internal object BoxArt : EquipmentArt(SymbolPalette.mente, period = 3.4f, restT = 2.0f) {
-    private val dims = FigureDims(thigh = 6.5f, shin = 6.5f, torso = 8.5f, uarm = 4.5f, farm = 4.5f, head = 2.6f)
-    private val groundRoot = Offset(8f, 58f)
-    private val topRoot = Offset(37f, 28.4f)
+    /** Medidas de la figura: ≈ 37 u de pie. */
+    internal val dims = FigureDims(thigh = 9f, shin = 9f, torso = 12f, uarm = 6.5f, farm = 6f, head = 3.1f)
+
+    /** Alto del frente de la caja (de y 47 a 58). */
+    internal const val FRONT_H = 11f
+
+    /** Raíz (los pies): en el suelo, y encima de la tapa de la caja. */
+    internal val groundRoot = Offset(16f, 58f)
+    internal val topRoot = Offset(44f, 45.5f)
+
+    /** Altura del arco de vuelo, en unidades. */
+    private const val ARC = 10f
 
     private const val CROUCH_AT = 0.45f
-    private const val TAKEOFF = 0.75f
-    private const val LANDING = 1.45f
+    internal const val TAKEOFF = 0.75f
+    internal const val LANDING = 1.45f
     private const val SETTLED = 1.75f
     private const val FADE_FROM = 2.5f
     private const val FADE_TO = 2.85f
@@ -172,33 +184,45 @@ internal object BoxArt : EquipmentArt(SymbolPalette.mente, period = 3.4f, restT 
         else -> 1f
     }
 
-    /** Posición de la raíz (los pies) en el vuelo: de suelo a lo alto en arco. */
+    /** Posición de la raíz (los pies) en el vuelo: de suelo a lo alto, en arco de [ARC] u. */
     internal fun flightRoot(u: Float): Offset = Offset(
         lerpF(groundRoot.x, topRoot.x, u),
-        lerpF(groundRoot.y, topRoot.y, u) - 17f * sin(PI.toFloat() * u),
+        lerpF(groundRoot.y, topRoot.y, u) - ARC * sin(PI.toFloat() * u),
     )
 
+    // Posturas de cada fase: las usan [drawDynamic] y las pruebas de geometría.
+    internal fun groundCrouch(t: Float): Float = smooth(seg(t, CROUCH_AT, TAKEOFF))
+    internal fun flightCrouch(u: Float): Float = 1f - smooth(seg(u, 0f, 0.2f))
+    internal fun flightTuck(u: Float): Float = sin(PI.toFloat() * seg(u, 0.12f, 0.88f))
+    internal fun flightArms(u: Float): Float = smooth(seg(u, 0f, 0.3f))
+    internal fun topCrouch(t: Float): Float = 0.8f * (1f - smooth(seg(t, LANDING, SETTLED)))
+
     override fun drawStatic(pen: SymbolPen) = with(pen) {
-        box(18f, 32f, 46f, 58f, 1.5f, ink)
-        poly4(18f, 32f, 26f, 24f, 54f, 24f, 46f, 32f, accent)
-        poly4(46f, 32f, 54f, 24f, 54f, 50f, 46f, 58f, ink, close = false)
-        box(25f, 39f, 39f, 43f, 2f, soft, SymbolStroke.FINE)
+        // Frente, tapa, lateral abierto y ranura de agarre.
+        box(34f, 58f - FRONT_H, 52f, 58f, 1.5f, ink)
+        poly4(34f, 47f, 39f, 43f, 57f, 43f, 52f, 47f, accent)
+        poly4(52f, 47f, 57f, 43f, 57f, 54f, 52f, 58f, ink, close = false)
+        box(39f, 51f, 47f, 53.5f, 1f, soft, SymbolStroke.FINE)
+    }
+
+    /**
+     * Cada figura visible en el cuadro [t]: su raíz, su postura (agachada, encogida, brazos) y su opacidad. Es lo que
+     * dibuja [drawDynamic], sin reservar memoria, y lo recorren las pruebas de geometría.
+     */
+    internal inline fun eachFigureAt(t: Float, block: (root: Offset, crouch: Float, tuck: Float, arms: Float, alpha: Float) -> Unit) {
+        val ground = groundAlpha(t)
+        if (ground > 0f) block(groundRoot, groundCrouch(t), 0f, 0f, ground)
+        if (t in TAKEOFF..LANDING) {
+            val u = seg(t, TAKEOFF, LANDING)
+            block(flightRoot(u), flightCrouch(u), flightTuck(u), flightArms(u), 1f)
+        }
+        val top = topAlpha(t)
+        if (top > 0f) block(topRoot, topCrouch(t), 0f, 0f, top)
     }
 
     override fun drawDynamic(pen: SymbolPen, t: Float) = with(pen) {
-        val ground = groundAlpha(t)
-        if (ground > 0f) {
-            fade(ground) { jumper(groundRoot, crouch = smooth(seg(t, CROUCH_AT, TAKEOFF)), tuck = 0f, arms = 0f) }
-        }
-        if (t in TAKEOFF..LANDING) {
-            val u = seg(t, TAKEOFF, LANDING)
-            val crouch = 1f - smooth(seg(u, 0f, 0.2f))
-            val tuck = sin(PI.toFloat() * seg(u, 0.12f, 0.88f))
-            jumper(flightRoot(u), crouch, tuck, arms = smooth(seg(u, 0f, 0.3f)))
-        }
-        val top = topAlpha(t)
-        if (top > 0f) {
-            fade(top) { jumper(topRoot, crouch = 0.8f * (1f - smooth(seg(t, LANDING, SETTLED))), tuck = 0f, arms = 0f) }
+        eachFigureAt(t) { root, crouch, tuck, arms, alpha ->
+            fade(alpha) { jumper(root, crouch, tuck, arms) }
         }
     }
 
