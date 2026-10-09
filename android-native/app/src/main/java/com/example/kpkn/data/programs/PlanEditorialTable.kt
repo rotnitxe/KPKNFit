@@ -1240,15 +1240,15 @@ internal object PlanEditorialTable {
 
     /**
      * Variante en bloques o periodizada de un programa «a medida» (punto 12): plan propio de KPKN, sin listar. No es un
-     * ciclo que se repite como la semana simple, así que no lleva [PlanTerm.CYCLE]; su término de método es la descarga que
-     * tiene. El término BLOCKS del glosario aún no existe: le falta su entrada en `PlanGlossary`.
+     * ciclo que se repite como la semana simple, así que no lleva [PlanTerm.CYCLE]; sus términos de método son los bloques y
+     * la descarga que tiene.
      */
     private fun generatedVariant(displayName: String, summary: String, rank: Int): PlanEditorial =
         own(
             displayName = displayName,
             summary = summary,
             rank = rank,
-            terms = setOf(PlanTerm.DELOAD),
+            terms = setOf(PlanTerm.BLOCKS, PlanTerm.DELOAD),
             listed = false,
         )
 
