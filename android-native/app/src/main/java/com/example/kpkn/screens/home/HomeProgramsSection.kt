@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.home
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -13,6 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -20,7 +23,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.totalProgramWeeks
+import com.example.kpkn.data.programs.programCoverEntryIdOf
 import com.example.kpkn.ui.components.SectionHeader
+import com.example.kpkn.ui.components.rememberProgramCover
 import com.example.kpkn.ui.theme.HomeCardSurface
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -71,10 +76,14 @@ fun HomeProgramsSection(
     }
 }
 
+private val ProgramCardWidth = 176.dp
+
 @Composable
 private fun ProgramCard(program: Program, isActive: Boolean, onClick: () -> Unit) {
     val bgColors = programCardCoverColors(program.coverImage)
-    Column(modifier = Modifier.width(176.dp)) {
+    // Con portada propia, la foto va sobre el degradado: el degradado se ve mientras carga o si no hay archivo.
+    val cover = rememberProgramCover(programCoverEntryIdOf(program.coverImage), with(LocalDensity.current) { ProgramCardWidth.roundToPx() })
+    Column(modifier = Modifier.width(ProgramCardWidth)) {
         Card(
             onClick = onClick,
             modifier = Modifier
@@ -90,6 +99,14 @@ private fun ProgramCard(program: Program, isActive: Boolean, onClick: () -> Unit
                         .fillMaxSize()
                         .background(Brush.linearGradient(bgColors)),
                 )
+                cover?.let {
+                    Image(
+                        bitmap = it,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop,
+                    )
+                }
                 Box(
                     Modifier
                         .fillMaxSize()

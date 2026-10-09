@@ -1,7 +1,10 @@
 package com.example.kpkn.screens.onboarding.design.entreno.plan
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,8 +30,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.withTransform
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -47,6 +52,7 @@ import com.example.kpkn.screens.onboarding.design.entreno.onSymbolsVisible
 import com.example.kpkn.screens.onboarding.design.entreno.rememberEntrenoForeground
 import com.example.kpkn.screens.onboarding.design.entreno.rememberSymbolClock
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
+import com.example.kpkn.ui.components.rememberProgramCover
 
 /*
  * La portada de un programa: una imagen procedural tipo cartel. Un campo oscuro con un degradado muy suave hacia el
@@ -153,6 +159,21 @@ internal fun PlanCover(
         }
         val widthDp = maxWidth.value
         val pad = coverPadDp(widthDp).dp
+        // Con portada propia (`assets/program_covers/`), la foto sustituye al arte procedural y un degradado negro abajo deja leer el título.
+        val photo = rememberProgramCover(model.id, with(LocalDensity.current) { maxWidth.roundToPx() })
+        if (photo != null) {
+            Image(
+                bitmap = photo,
+                contentDescription = null,
+                modifier = Modifier.matchParentSize(),
+                contentScale = ContentScale.Crop,
+            )
+            Box(
+                Modifier
+                    .matchParentSize()
+                    .background(Brush.verticalGradient(colorStops = arrayOf(0.55f to Color.Transparent, 1f to Color.Black.copy(alpha = 0.85f)))),
+            )
+        }
         val artModifier = Modifier
         if (banner) {
             Row(
@@ -174,7 +195,11 @@ internal fun PlanCover(
                         CoverFacts(model)
                     }
                 }
-                CoverArtCanvas(art, variant, pen, run, clock, running, parallax, artModifier.weight(1f).fillMaxHeight())
+                if (photo == null) {
+                    CoverArtCanvas(art, variant, pen, run, clock, running, parallax, artModifier.weight(1f).fillMaxHeight())
+                } else {
+                    Spacer(artModifier.weight(1f).fillMaxHeight())
+                }
             }
         } else {
             Column(
@@ -184,7 +209,11 @@ internal fun PlanCover(
             ) {
                 // La esquina de arriba a la derecha queda libre para la marca de «hecho» del carrusel.
                 CoverHeader(model, accent, Modifier.padding(end = HEADER_STAMP_GAP))
-                CoverArtCanvas(art, variant, pen, run, clock, running, parallax, artModifier.weight(1f).fillMaxWidth())
+                if (photo == null) {
+                    CoverArtCanvas(art, variant, pen, run, clock, running, parallax, artModifier.weight(1f).fillMaxWidth())
+                } else {
+                    Spacer(artModifier.weight(1f).fillMaxWidth())
+                }
                 CoverTitle(model.title, maxSp = posterTitleMaxSp(widthDp), minSp = COVER_TITLE_MIN_SP)
                 Spacer(Modifier.height(8.dp))
                 CoverFacts(model)
