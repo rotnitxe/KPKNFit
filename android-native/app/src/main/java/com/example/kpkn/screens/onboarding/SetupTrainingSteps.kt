@@ -29,6 +29,7 @@ import com.example.kpkn.screens.onboarding.entreno.EntrenoSessionTimeStep
 import com.example.kpkn.screens.onboarding.entreno.EntrenoCapabilitiesStep
 import com.example.kpkn.screens.onboarding.entreno.EntrenoWeekLayoutStep
 import com.example.kpkn.screens.onboarding.entreno.EntrenoWeekdaysStep
+import com.example.kpkn.screens.onboarding.entreno.EntrenoVariantsStep
 
 /**
  * Contenido de cada paso del bloque **Entreno** del wizard de configuración.
@@ -59,6 +60,7 @@ fun SetupTrainingStepContent(
         SetupStepId.SESSION_TIME -> EntrenoSessionTimeStep(state = state, vm = vm)
         SetupStepId.CAPABILITIES -> EntrenoCapabilitiesStep(state = state, vm = vm)
         SetupStepId.PRIORITIES -> EntrenoMusclesStep(state = state, vm = vm)
+        SetupStepId.TRAINING_VARIANTS -> EntrenoVariantsStep(state = state, vm = vm)
         SetupStepId.TRAINING_MAX -> EntrenoMarksStep(state = state, vm = vm)
         SetupStepId.PLAN -> EntrenoPlanStep(state = state, vm = vm)
         SetupStepId.WEEK_LAYOUT -> EntrenoWeekLayoutStep(state = state, vm = vm)
