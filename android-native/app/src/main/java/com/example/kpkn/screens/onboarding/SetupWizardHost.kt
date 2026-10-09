@@ -72,6 +72,7 @@ import com.example.kpkn.screens.onboarding.design.WizardPageItem
 import com.example.kpkn.screens.onboarding.design.WizardPageMetrics
 import com.example.kpkn.screens.onboarding.design.WizardPageMode
 import com.example.kpkn.screens.onboarding.design.WizardPageScroll
+import com.example.kpkn.screens.onboarding.design.WizardPrologueOverlay
 import com.example.kpkn.screens.onboarding.design.WizardProgressSegment
 import com.example.kpkn.screens.onboarding.design.WizardScrollLock
 import com.example.kpkn.screens.onboarding.design.WizardShapes
@@ -183,6 +184,8 @@ fun SetupWizardScreen(
                 state = state,
                 viewModel = viewModel,
                 showIntro = showIntro,
+                // El prólogo solo en un alta nueva: al retomar un borrador (RESUME) no sale.
+                showPrologue = mode == SetupWizardMode.FULL,
                 onLeave = { leaveNow() },
                 onActivate = {
                     scope.launch {
@@ -217,6 +220,7 @@ private fun WizardLongPage(
     state: SetupWizardState,
     viewModel: SetupWizardViewModel,
     showIntro: Boolean,
+    showPrologue: Boolean,
     onLeave: () -> Unit,
     onActivate: () -> Unit,
 ) {
@@ -507,10 +511,17 @@ private fun WizardLongPage(
         // Solo en el alta completa y mientras el borrador sigue sin empezar: el cursor nunca salió de la primera
         // pregunta (los valores que traen los ajustes, como el alias o la edad, no cuentan como empezar).
         var introSeen by rememberSaveable(state.draft.draftId) { mutableStateOf(false) }
+        // El prólogo «ANTES DE EMPEZAR» explica por qué pedimos datos: va antes, con la misma condición y una sola vez.
+        var prologueSeen by rememberSaveable(state.draft.draftId) { mutableStateOf(false) }
         val untouchedDraft = state.draft.stepProgress.visited.size <= 1 && step == route.firstOrNull()
-        if (showIntro && !introSeen && milestoneModule == null && state.mode == SetupWizardMode.FULL &&
+        val introApplies = showIntro && !introSeen && milestoneModule == null && state.mode == SetupWizardMode.FULL &&
             untouchedDraft && introStages(route).size > 1
-        ) {
+        // Con el prólogo pendiente, la pantalla de arranque espera a «Vamos».
+        val prologueFirst = introApplies && showPrologue && !prologueSeen
+        if (prologueFirst) {
+            WizardPrologueOverlay(onStart = { prologueSeen = true }, onBack = onLeave)
+        }
+        if (introApplies && !prologueFirst) {
             ModuleCompleteOverlay(
                 module = KpknModule.INTRO,
                 onContinue = { introSeen = true },
