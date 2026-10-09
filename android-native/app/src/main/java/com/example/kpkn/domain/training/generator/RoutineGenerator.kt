@@ -16,6 +16,7 @@ import com.example.kpkn.domain.onboarding.TrainingPlace
 import com.example.kpkn.domain.training.ProgramExecutionContract
 import com.example.kpkn.domain.training.VolumeCalculator
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.math.ceil
 
 /**
  * Generador de rutinas «a medida» (Entreno v2): arma una SEMANA CÍCLICA ejecutable a partir de lo que la persona
@@ -96,7 +97,7 @@ object RoutineGenerator {
             )
             caps.markBuilt(index)
         }
-        val assembled = results.map { requireNotNull(it) }
+        val assembled = results.map { requireNotNull(it) }.map { styleArmSets(normalized, ctx, it) }
         val sessions = assembled.map { it.session }
 
         val week = ProgramWeek(id = "$programId-week", name = "Semana repetible", sessions = sessions)
@@ -198,6 +199,27 @@ object RoutineGenerator {
             minutesMisses = assembled.count { !it.inWindow },
         )
         return GeneratedRoutine(program = program, summary = summary, notes = notes, report = report)
+    }
+
+    /**
+     * El estilo de mesa (armwrestling) reparte series dentro de cada sesión ya armada (ver `DisciplineWeeks.moveArmSets`). Va después del
+     * ajuste de todas las sesiones: el total de series de cada una no cambia y ninguna otra sesión se ve afectada. Si el reparto sacara
+     * la sesión de su ventana de minutos, se queda como estaba.
+     */
+    private fun styleArmSets(request: RoutineRequest, ctx: GenContext, item: AssembledSession): AssembledSession {
+        val style = request.armStyle ?: return item
+        if (request.mode != RoutineMode.DISCIPLINE_ARMWRESTLING) return item
+        val moved = DisciplineWeeks.moveArmSets(item.session, style) ?: return item
+        val seconds = TimeModel.sessionSeconds(moved)
+        val minutes = ceil(seconds / 60.0).toInt().coerceAtLeast(1)
+        val inWindow = minutes in ctx.windowMinutes
+        if (item.inWindow && !inWindow) return item
+        return item.copy(
+            session = moved.copy(targetDurationMinutes = minutes),
+            seconds = seconds,
+            minutes = minutes,
+            inWindow = inWindow,
+        )
     }
 
     /** Los ejercicios de los levantamientos que pide la disciplina que el material de ALGÚN día del plan permite hacer. */
@@ -303,6 +325,19 @@ object RoutineGenerator {
             append(request.cardio?.let { "${it.type?.name ?: "any"}:${it.minutes}:${it.intensity.name}" } ?: "-").append('|')
             append(request.marks.entries.sortedBy { it.key.name }.joinToString(",") { "${it.key.name}:${it.value}" }).append('|')
             append(request.catalog.catalogRevision).append('|').append(request.variantSeed)
+            // El punto de partida solo entra en el id cuando no está en su valor por defecto: así los ids de hoy no cambian.
+            if (request.markReps.isNotEmpty()) {
+                append("|reps=").append(request.markReps.entries.sortedBy { it.key.name }.joinToString(",") { "${it.key.name}:${it.value}" })
+            }
+            if (request.liftVariants.isNotEmpty()) {
+                append("|variants=").append(request.liftVariants.entries.sortedBy { it.key.name }.joinToString(",") { "${it.key.name}:${it.value}" })
+            }
+            if (request.avoided.isNotEmpty()) append("|avoid=").append(request.avoided.map { it.name }.sorted().joinToString(","))
+            request.cardioBase?.let { append("|base=").append(it.name) }
+            request.armStyle?.let { append("|arm=").append(it.name) }
+            if (request.maxReps.isNotEmpty()) {
+                append("|maxreps=").append(request.maxReps.entries.sortedBy { it.key.name }.joinToString(",") { "${it.key.name}:${it.value}" })
+            }
         }
         return "gen-" + Integer.toHexString(fnv1a(text))
     }

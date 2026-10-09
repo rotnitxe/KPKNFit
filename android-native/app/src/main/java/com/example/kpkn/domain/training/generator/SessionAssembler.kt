@@ -114,6 +114,21 @@ internal object SessionAssembler {
 
     private val CORE_PATTERNS = setOf(RoutinePattern.CORE_STABILITY, RoutinePattern.CORE_ROTATION, RoutinePattern.BACK_EXTENSION)
 
+    /**
+     * Patrón al que cae un hueco cuyo patrón se queda sin candidatas por lo que la persona evita (el mismo cuerpo, el mismo empuje
+     * o el mismo tirón). Sin entrada, o si tampoco hay candidatas, el hueco se omite y la nota «Sin sustituto…» lo dice.
+     */
+    private val EQUIVALENT_PATTERNS: Map<RoutinePattern, List<RoutinePattern>> = mapOf(
+        RoutinePattern.SQUAT to listOf(RoutinePattern.SINGLE_LEG),
+        RoutinePattern.SINGLE_LEG to listOf(RoutinePattern.SQUAT),
+        RoutinePattern.HINGE to listOf(RoutinePattern.GLUTE),
+        RoutinePattern.GLUTE to listOf(RoutinePattern.HINGE),
+        RoutinePattern.HORIZONTAL_PUSH to listOf(RoutinePattern.VERTICAL_PUSH),
+        RoutinePattern.VERTICAL_PUSH to listOf(RoutinePattern.HORIZONTAL_PUSH),
+        RoutinePattern.HORIZONTAL_PULL to listOf(RoutinePattern.VERTICAL_PULL),
+        RoutinePattern.VERTICAL_PULL to listOf(RoutinePattern.HORIZONTAL_PULL),
+    )
+
     /** Tiempo libre por debajo del cual no se añade otro ejercicio de relleno (un accesorio de 3 series ronda los 5 min). */
     private const val FILL_SLACK_SECONDS = 4 * 60
     private const val MAX_FILLERS = 6
@@ -163,13 +178,27 @@ internal object SessionAssembler {
         val drafts = ArrayList<DraftItem>()
         val strengthWanted = plan.slots.isNotEmpty()
         plan.slots.forEachIndexed { index, spec ->
-            val candidate = ExerciseSelector.choose(spec.pattern, spec.role, ctx, equipment, use, salt = sessionIndex * 17 + index, region = plan.region, tag = spec.tag)
+            val salt = sessionIndex * 17 + index
+            var slot = spec
+            var candidate = ExerciseSelector.choose(spec.pattern, spec.role, ctx, equipment, use, salt = salt, region = plan.region, tag = spec.tag)
+            if (candidate == null && ctx.request.avoided.isNotEmpty()) {
+                // Lo que la persona evita deja el hueco sin candidatas: cae al patrón equivalente que el selector ya usa…
+                if (spec.tag == null) {
+                    for (alternative in EQUIVALENT_PATTERNS[spec.pattern].orEmpty()) {
+                        candidate = ExerciseSelector.choose(alternative, spec.role, ctx, equipment, use, salt = salt, region = plan.region) ?: continue
+                        slot = spec.copy(pattern = alternative)
+                        break
+                    }
+                }
+                // …y si tampoco hay, el hueco se omite y el informe lo dice.
+                if (candidate == null) blockedNote(ctx, spec, plan.region, equipment, use)?.let { ctx.notes += it }
+            }
             if (candidate == null) {
                 ctx.missing[spec.pattern] = (ctx.missing[spec.pattern] ?: 0) + 1
                 return@forEachIndexed
             }
             use.add(candidate)
-            drafts += draftOf(ctx, spec, candidate, drafts.size)
+            drafts += draftOf(ctx, slot, candidate, drafts.size)
         }
         if (strengthWanted && plan.kind != RoutineSessionKind.CARDIO && drafts.size < MIN_STRENGTH_ITEMS && plan.cardio != CardioMode.INTERVALS_FILL) {
             for (pattern in minimumFillerPatterns(plan)) {
@@ -637,7 +666,9 @@ internal object SessionAssembler {
             )
             blocks.forEachIndexed { index, seconds ->
                 val asIntervals = intervals && index == 0
+                // Con «evitar correr», el cardio de carrera cambia por caminar (la carrera al aire libre es el único tipo de carrera).
                 val type = CardioBuilder.typeFor(ctx, equipment, asIntervals, salt = sessionIndex + index)
+                    .let { if (ctx.avoidsRunning && it in RUNNING_CARDIO) CardioType.WALK else it }
                 val blockId = if (index == 0) "$sessionId-cardio" else "$sessionId-cardio-b$index"
                 val details = if (asIntervals) {
                     CardioBuilder.intervals(type, seconds, ctx.level, blockId)
@@ -651,7 +682,9 @@ internal object SessionAssembler {
             // El cardio suave de relleno es caminar, salvo que la persona haya declarado otro tipo que este día permite
             // (la cinta, la elíptica…): el tipo declarado gana también aquí.
             val type = ctx.preferredCardioType?.takeIf { it in equipment.cardioTypes }
-                ?: if (CardioType.WALK in equipment.cardioTypes) CardioType.WALK else equipment.cardioTypes.first()
+                ?: if (CardioType.WALK in equipment.cardioTypes) CardioType.WALK
+                else if (ctx.avoidsRunning) equipment.cardioTypes.firstOrNull { it !in RUNNING_CARDIO } ?: CardioType.WALK
+                else equipment.cardioTypes.first()
             cardioExercises += CardioBuilder.exercise(
                 "$sessionId-cardio-suave",
                 CardioBuilder.steady(type, state.fillerCardioSeconds, CardioIntensity.BAJA),
@@ -681,8 +714,10 @@ internal object SessionAssembler {
         val legacy = entry.legacy
         val rx = item.rx
         val timed = rx.seconds != null
-        val markKg = if (timed) null else item.candidate.mark?.let { ctx.request.marks[it] }?.takeIf { it > 0.0 }
-        val oneRm = markKg?.let { it * item.candidate.markFactor }
+        val mark = item.candidate.mark
+        val markKg = if (timed) null else mark?.let { ctx.request.marks[it] }?.takeIf { it > 0.0 }
+        // La marca es de la variante elegida (ver VariantPools): el 1RM equivalente del levantamiento, por el factor de este ejercicio.
+        val oneRm = if (mark != null && markKg != null) VariantPools.equivalentOneRm(ctx, mark, markKg) * item.candidate.markFactor else null
         val percent = oneRm?.let { Prescriber.percentOfOneRm(rx.repMax, rx.rir) }
         val weight = if (oneRm != null && percent != null) Prescriber.roundLoad(oneRm * percent / 100.0) else null
         val convention = NativeLoadConventions.forEquipment(entry.equipmentId)
@@ -746,6 +781,7 @@ internal object SessionAssembler {
                 else -> TrainingMode.REPS
             },
             reference1RM = oneRm,
+            prFor1RM = VariantPools.prFor(ctx, item.candidate, markKg),
             variantName = item.candidate.label,
             supersetId = groupId,
             supersetGroupRef = groupId,
@@ -756,6 +792,19 @@ internal object SessionAssembler {
             loadQuantityConvention = if (externalLoad) convention else LoadQuantityConvention.UNSPECIFIED,
             loadReference = pendingReference,
         )
+    }
+
+    /**
+     * La nota «Sin sustituto para …» si el hueco se quedó sin candidatas solo porque la persona evita esos grupos (y no por falta de
+     * material o de nivel); null en otro caso.
+     */
+    private fun blockedNote(ctx: GenContext, spec: SlotSpec, region: SessionRegion, equipment: DayEquipment, use: SessionUse): String? {
+        val free = ExerciseSelector.candidates(spec.pattern, spec.role, ctx, equipment, use, region, spec.tag, honourAvoided = false)
+        val groups = free.mapNotNull { ExerciseSelector.avoidedGroupOf(ctx.request.avoided, it.entry.definitionId, it.kind) }
+            .distinct()
+            .sortedBy { it.ordinal }
+        if (groups.isEmpty()) return null
+        return "Sin sustituto para ${groups.joinToString(" y ") { it.label }} con tu material."
     }
 
     // ─── Corrección fina con el estimador ──────────────────────────────────────────────────────────────────

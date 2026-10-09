@@ -1,5 +1,6 @@
 package com.example.kpkn.domain.onboarding
 
+import com.example.kpkn.data.models.EquipmentAvailability
 import com.example.kpkn.domain.training.CatalogCompositionTestSupport
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -35,8 +36,32 @@ class LiftVariantsTest {
     /** Barra sin rack ni banco, en casa: el caso que quita las sentadillas de rack. */
     private val barbellWithoutRack = EquipmentSymbols.availabilityOf(setOf(EquipmentSymbolId.BARBELL), setOf(TrainingPlace.HOME))
 
+    /** Barra y rack, sin banco: lo que hace falta para la Zercher. */
+    private val barbellWithRack = EquipmentSymbols.availabilityOf(
+        setOf(EquipmentSymbolId.BARBELL, EquipmentSymbolId.RACK),
+        setOf(TrainingPlace.HOME),
+    )
+
     /** Solo mancuernas: sin barra. */
     private val dumbbellsOnly = EquipmentSymbols.availabilityOf(setOf(EquipmentSymbolId.DUMBBELLS), setOf(TrainingPlace.HOME))
+
+    /** Barra y banco, sin rack: la búlgara con barra necesita solo eso. */
+    private val barbellWithBench = EquipmentSymbols.availabilityOf(
+        setOf(EquipmentSymbolId.BARBELL, EquipmentSymbolId.BENCH),
+        setOf(TrainingPlace.HOME),
+    )
+
+    /** Barra y cajón pliométrico: el otro apoyo que vale para la búlgara. */
+    private val barbellWithBox = EquipmentSymbols.availabilityOf(
+        setOf(EquipmentSymbolId.BARBELL, EquipmentSymbolId.BOX),
+        setOf(TrainingPlace.HOME),
+    )
+
+    /** Mancuernas y banco: la búlgara con mancuernas. */
+    private val dumbbellsWithBench = EquipmentSymbols.availabilityOf(
+        setOf(EquipmentSymbolId.DUMBBELLS, EquipmentSymbolId.BENCH),
+        setOf(TrainingPlace.HOME),
+    )
 
     private val powerbuilding = TrainingGoalProfile.POWERBUILDING
     private val powerlifting = TrainingGoalProfile.POWERLIFTING
@@ -120,15 +145,29 @@ class LiftVariantsTest {
     }
 
     @Test
-    fun theRackSquatsNeedARackAndTheZercherOnlyABarbell() {
-        // Criterio del generador (`supportRequirementsFor`): las sentadillas de barra descargadas de un soporte piden rack; la
-        // Zercher se levanta del suelo y no lo pide.
+    fun theRackSquatsAndTheZercherNeedARack() {
+        // Criterio del generador: las sentadillas de barra descargadas de un soporte piden rack, y la Zercher también (como su entrada
+        // del generador).
         val squats = LiftVariants.optionsFor(powerbuilding, LiftMark.SQUAT, barbellWithoutRack).map { it.configId }
         assertFalse("barra alta necesita rack", "high_bar_back_squat__barbell" in squats)
         assertFalse("barra baja necesita rack", "low_bar_back_squat__barbell" in squats)
         assertFalse("frontal necesita rack", "front_squat__barbell" in squats)
-        assertTrue("Zercher solo pide barra", "quads_sentadilla_zercher_barra_recta__default" in squats)
-        assertTrue("la búlgara con barra solo pide barra", "bulgarian_split_squat__barbell" in squats)
+        assertFalse("sin rack no se ofrece la Zercher", "quads_sentadilla_zercher_barra_recta__default" in squats)
+        val withRack = LiftVariants.optionsFor(powerbuilding, LiftMark.SQUAT, barbellWithRack).map { it.configId }
+        assertTrue("con barra y rack, la Zercher se ofrece", "quads_sentadilla_zercher_barra_recta__default" in withRack)
+    }
+
+    @Test
+    fun theBulgarianVariantsNeedABenchOrAPlyoBox() {
+        // La búlgara apoya el pie de atrás en algo elevado: sin banco ni cajón no se ofrece, ni con mancuernas ni con barra.
+        val bulgarians = setOf("bulgarian_split_squat__dumbbells", "bulgarian_split_squat__barbell")
+        fun bulgariansOffered(availability: EquipmentAvailability): Set<String> =
+            LiftVariants.optionsFor(powerbuilding, LiftMark.SQUAT, availability).map { it.configId }.intersect(bulgarians)
+        assertTrue("sin banco ni cajón no se ofrece ninguna búlgara", bulgariansOffered(barbellWithoutRack).isEmpty())
+        assertTrue("con barra y banco, la de barra sí", bulgariansOffered(barbellWithBench) == setOf("bulgarian_split_squat__barbell"))
+        assertTrue("con barra y cajón, la de barra sí", bulgariansOffered(barbellWithBox) == setOf("bulgarian_split_squat__barbell"))
+        assertTrue("con mancuernas y banco, la de mancuernas sí", bulgariansOffered(dumbbellsWithBench) == setOf("bulgarian_split_squat__dumbbells"))
+        assertTrue("sin banco, las mancuernas tampoco", bulgariansOffered(dumbbellsOnly).isEmpty())
     }
 
     @Test
