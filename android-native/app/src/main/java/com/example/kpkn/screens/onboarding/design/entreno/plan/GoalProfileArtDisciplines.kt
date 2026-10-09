@@ -19,6 +19,7 @@ import com.example.kpkn.screens.onboarding.design.entreno.riseHoldFall
 import com.example.kpkn.screens.onboarding.design.entreno.smooth
 import com.example.kpkn.screens.onboarding.design.lerpF
 import com.example.kpkn.screens.onboarding.design.seg
+import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.max
@@ -193,13 +194,33 @@ internal class ArmwrestlingArt(lk: Float) : GoalArt(SymbolPalette.musculo, perio
 
 // ---------------------------------------------------------------- Powerbuilding (versión nueva)
 
+/** Semielipse del bíceps (radios 6 y 4,5), su base en el borde del brazo superior y los tramos de su contorno. */
+private const val BICEPS_RX = 6f
+private const val BICEPS_RY = 4.5f
+private const val BICEPS_BASE_Y = 36.5f
+private const val BICEPS_STEPS = 24
+
 /**
- * Powerbuilding: primero dos brazos de frente que flexionan bíceps (los bíceps laten dos veces) y después un atleta de perfil
- * que hace peso muerto. Acento: energía. Sustituye a [PowerbuildingArt] de `GoalProfileArt.kt` al integrarse.
+ * Powerbuilding: primero dos brazos de frente que flexionan bíceps y después un atleta de perfil que hace peso muerto.
+ * Los brazos son formas rellenas en tinta; el bíceps, una semielipse en acento que late desde su base. Acento: energía.
+ * Es el símbolo de powerbuilding de la app (lo elige `GoalProfileArt.kt`).
  */
 internal class PowerbuildingFlexArt(lk: Float) : GoalArt(SymbolPalette.energia, period = 4.8f, restT = 0.5f, lk = lk) {
     private val fig = FigPose()
     private val joints = ProfileJoints()
+
+    /** Semielipse superior del bíceps con su base en y = 0: se traslada a cada brazo y crece desde esa base. */
+    private val bicepsCap = Path()
+
+    init {
+        bicepsCap.moveTo(-BICEPS_RX, 0f)
+        for (i in 1 until BICEPS_STEPS) {
+            val a = PI.toFloat() * i / BICEPS_STEPS
+            bicepsCap.lineTo(-BICEPS_RX * cos(a), -BICEPS_RY * sin(a))
+        }
+        bicepsCap.lineTo(BICEPS_RX, 0f)
+        bicepsCap.close()
+    }
 
     /** 0 = escena de los bíceps, 1 = escena del peso muerto: se funde de 1,8 a 2,1 s y vuelve de 4,4 a 4,8 s. */
     internal fun deadliftWeight(t: Float): Float = riseHoldFall(t, 1.8f, 2.1f, 4.4f, 4.8f)
@@ -220,19 +241,27 @@ internal class PowerbuildingFlexArt(lk: Float) : GoalArt(SymbolPalette.energia, 
         }
     }
 
-    /** Dos brazos de frente con los bíceps en acento, que laten: hombros, codos y puños. */
+    /**
+     * Dos brazos de frente como formas rellenas en tinta: el brazo superior casi horizontal (cápsula de 6 u), el antebrazo
+     * hacia arriba (5 u) y el puño redondo. Cabeza, cuello y trapecio completan el busto. El bíceps es la semielipse en
+     * acento sobre cada brazo superior, con su base en el borde del brazo; late creciendo desde esa base.
+     */
     private fun SymbolPen.armsScene(t: Float) {
         val s = 1f + 0.18f * beat(t)
-        line(Offset(20f, 44f), Offset(44f, 44f), ink, bold)
-        line(Offset(32f, 36.2f), Offset(32f, 44f), ink, mid)
-        ring(32f, 32f, 4.2f, ink, bold * 0.9f)
-        poly(Offset(20f, 44f), Offset(10f, 36f), Offset(13f, 22f), ink, bold)
-        poly(Offset(44f, 44f), Offset(54f, 36f), Offset(51f, 22f), ink, bold)
-        // El bíceps es un bulto sobre el brazo superior: el óvalo cubre ~70 % de su largo y sobresale del trazo.
-        fillOvalRot(14.5f, 39.6f, 4.4f * s, 3.6f * s, dirDeg(-10f, -8f), accent)
-        fillOvalRot(49.5f, 39.6f, 4.4f * s, 3.6f * s, dirDeg(10f, -8f), accent)
-        dot(13f, 22f, dotR(2.2f), ink)
-        dot(51f, 22f, dotR(2.2f), ink)
+        dot(32f, 30f, 4f, ink)
+        line(Offset(32f, 34f), Offset(32f, 40f), ink, 4f)
+        line(Offset(24f, 40f), Offset(40f, 40f), ink, 4f)
+        // Brazo izquierdo: brazo superior (6 u), antebrazo (5 u) y puño.
+        line(Offset(24f, 40f), Offset(10f, 38f), ink, 6f)
+        line(Offset(10f, 38f), Offset(12f, 22f), ink, 5f)
+        dot(13f, 19f, 3.6f, ink)
+        // Brazo derecho: el espejo respecto de x = 32.
+        line(Offset(40f, 40f), Offset(54f, 38f), ink, 6f)
+        line(Offset(54f, 38f), Offset(52f, 22f), ink, 5f)
+        dot(51f, 19f, 3.6f, ink)
+        // Bíceps: semielipse en acento sobre cada brazo superior, creciendo desde su base.
+        shifted(17f, BICEPS_BASE_Y) { scaled(s, s, 0f, 0f) { fillPath(bicepsCap, accent) } }
+        shifted(47f, BICEPS_BASE_Y) { scaled(s, s, 0f, 0f) { fillPath(bicepsCap, accent) } }
     }
 
     /** Peso muerto de perfil con el disco de la barra en acento; el suelo solo aparece en esta escena. */
