@@ -94,6 +94,8 @@ import com.example.kpkn.ui.components.KpknSheetLightChip
 import com.example.kpkn.ui.components.KpknSheetTokens
 import com.example.kpkn.ui.components.KpknSheetTranslucentButton
 import com.example.kpkn.ui.components.kpknSheetWhiteFieldColors
+import com.example.kpkn.ui.components.rings.KpknRingColors
+import com.example.kpkn.ui.components.rings.RingChannel
 import dev.chrisbanes.haze.HazeState
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
@@ -104,9 +106,9 @@ import com.example.kpkn.domain.sessionassistant.AssistantSuggestion
 import com.example.kpkn.domain.sessionassistant.AssistantSuggestionDetail
 import com.example.kpkn.domain.sessionassistant.AssistantDetailAction
 
-private val EnergyRingColor = com.example.kpkn.ui.theme.RingBlue
-private val SpineRingColor = com.example.kpkn.ui.theme.RingYellow
-private val MuscleRingColor = com.example.kpkn.ui.theme.RingRed
+private val EnergyRingColor = KpknRingColors.of(RingChannel.ENERGIA)
+private val SpineRingColor = KpknRingColors.of(RingChannel.COLUMNA)
+private val MuscleRingColor = KpknRingColors.of(RingChannel.MUSCULOS)
 private val DirectBarColor = Color(0xFF22C55E)
 private val SecondaryBarColor = Color(0xFF64748B)
 private val StabilizerBarColor = Color(0xFF38BDF8)

@@ -31,12 +31,14 @@ import com.example.kpkn.domain.exercises.catalogv2.ExerciseConfigurationV2
 import com.example.kpkn.domain.onboarding.CapabilityLevel
 import com.example.kpkn.domain.onboarding.CapabilityRules
 import com.example.kpkn.domain.onboarding.CapabilitySkill
+import com.example.kpkn.domain.onboarding.CompetitionAnswer
 import com.example.kpkn.domain.onboarding.EquipmentSymbolId
 import com.example.kpkn.domain.onboarding.EquipmentSymbols
 import com.example.kpkn.domain.onboarding.GeneratedPlans
 import com.example.kpkn.domain.onboarding.LiftMark
 import com.example.kpkn.domain.onboarding.MuscleSymbol
 import com.example.kpkn.domain.onboarding.MuscleSymbols
+import com.example.kpkn.domain.onboarding.ProgramSource
 import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.TrainingGoalProfile
@@ -793,6 +795,9 @@ class EntrenoDeclarationEffectTest {
             SetupStepId.EQUIPMENT -> vm.updateStep(SetupStepId.EQUIPMENT) { it.withPlaces(d.places) }
             SetupStepId.AVAILABILITY -> d.material?.let { material -> vm.updateStep(SetupStepId.AVAILABILITY) { it.withMaterial(material) } }
             SetupStepId.GOAL -> vm.setGoalProfile(d.profile)
+            SetupStepId.COMPETITION -> vm.setCompetition(CompetitionAnswer.NO)
+            // Ruta de siempre: que KPKN recomiende el programa (sin importar ni aplazar).
+            SetupStepId.PROGRAM_SOURCE -> vm.setProgramSource(ProgramSource.RECOMMEND)
             SetupStepId.FRESH_DAY -> vm.setFreshDay(d.freshDay)
             SetupStepId.WEEKDAYS -> vm.updateStep(SetupStepId.WEEKDAYS) { draft ->
                 val withDays = draft.withWeekdays(d.weekdays)

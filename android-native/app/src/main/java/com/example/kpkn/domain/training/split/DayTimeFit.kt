@@ -13,7 +13,7 @@ import com.example.kpkn.domain.training.SessionDurationEstimator
  * Los principales, los compuestos, las cargas pesadas y los ejercicios de superserie no se tocan. Si sobra tiempo, no se
  * añade nada. Cada cambio queda en [SetTrim] y [ExerciseMerge] para el informe.
  */
-internal object SessionTimeFit {
+internal object DayTimeFit {
 
     /** Un día puede pasar el tiempo pedido hasta este factor sin recortarse. */
     const val TOLERANCE = 1.10

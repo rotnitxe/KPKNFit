@@ -16,8 +16,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -276,8 +274,8 @@ private fun commitNutritionTarget(vm: SetupWizardViewModel, step: SetupStepId, u
 /**
  * Peso objetivo con la regla de peso de Datos básicos ([WizardWeightRule]), la diferencia con el peso actual y la
  * estimación con el ritmo elegido. Arrastrar solo propone un peso; tocar la cifra lo fija ([onCommit], en kg). Cada
- * propuesta respeta el límite de la dirección ([goalWeightWindow]). La regla no admite límites propios: al pasarse,
- * vuelve a centrarse en el límite, así lo que se ve es lo que se guarda.
+ * propuesta respeta el límite de la dirección ([goalWeightWindow]), que la regla recibe como mínimo y máximo: no se
+ * puede arrastrar más allá, así lo que se ve es lo que se guarda.
  */
 @Composable
 internal fun NutritionTargetControl(
@@ -289,9 +287,9 @@ internal fun NutritionTargetControl(
     onCommit: (Double) -> Unit,
 ) {
     val window = remember(direction, currentKg) { goalWeightWindow(direction, currentKg) }
-    // La posición de arranque es el objetivo guardado o el peso actual: no es una respuesta hasta que se fija.
-    var ruleAnchorKg by remember(unit) { mutableStateOf(committedKg ?: currentKg) }
-    var ruleGeneration by remember(unit) { mutableIntStateOf(0) }
+    // La posición de arranque es el objetivo guardado o el peso actual (en el límite si queda fuera): no es una
+    // respuesta hasta que se fija.
+    val ruleAnchorKg = remember(unit) { committedKg ?: currentKg }
     var proposalKg by remember(unit) { mutableStateOf<Double?>(null) }
     var pending by remember(unit) { mutableStateOf(false) }
     val shownKg = proposalKg ?: committedKg
@@ -309,27 +307,23 @@ internal fun NutritionTargetControl(
     }
 
     Column(modifier = Modifier.fillMaxWidth().testTag("setup-nutrition-target")) {
-        key(ruleGeneration) {
-            WizardWeightRule(
-                unit = unit,
-                valueKg = ruleAnchorKg,
-                onValueChange = { kg ->
-                    val bounded = window?.let { kg.coerceIn(it) } ?: kg
-                    proposalKg = bounded
-                    pending = true
-                    if (bounded != kg) {
-                        ruleAnchorKg = bounded
-                        ruleGeneration++
-                    }
-                },
-                onConfirm = {
-                    proposalKg?.let { kg ->
-                        onCommit(kg)
-                        pending = false
-                    }
-                },
-            )
-        }
+        WizardWeightRule(
+            unit = unit,
+            valueKg = ruleAnchorKg,
+            min = window?.start,
+            max = window?.endInclusive,
+            onValueChange = { kg ->
+                // La regla no sale del límite; el coerce solo absorbe el error de coma flotante del borde.
+                proposalKg = window?.let { kg.coerceIn(it) } ?: kg
+                pending = true
+            },
+            onConfirm = {
+                proposalKg?.let { kg ->
+                    onCommit(kg)
+                    pending = false
+                }
+            },
+        )
         if (shownKg != null) {
             Spacer(Modifier.height(8.dp))
             Text(

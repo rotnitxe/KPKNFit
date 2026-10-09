@@ -2,11 +2,17 @@ package com.example.kpkn.screens.onboarding
 
 import android.app.Application
 import androidx.activity.ComponentActivity
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipe
 import com.example.kpkn.data.models.PlanDirection
 import com.example.kpkn.domain.nutrition.EerSex
 import com.example.kpkn.domain.nutrition.PlanTuning
@@ -19,6 +25,8 @@ import com.example.kpkn.screens.onboarding.design.WizardNutritionGoal
 import com.example.kpkn.screens.onboarding.design.WizardNutritionPlanCallbacks
 import com.example.kpkn.screens.onboarding.design.WizardNutritionPlanModel
 import com.example.kpkn.screens.onboarding.design.WizardNutritionPlanPanel
+import com.example.kpkn.screens.onboarding.design.WizardWeightRule
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -128,5 +136,36 @@ class NutritionGoalComposeTest {
         }
         rule.onNodeWithText("−8,5 kg desde tus 80 kg").assertIsDisplayed()
         rule.onNodeWithText("≈ 18–24 semanas a ritmo medio").assertIsDisplayed()
+    }
+
+    @Test
+    fun `la regla de peso no pasa de sus límites al arrastrar`() {
+        var confirmed = Double.NaN
+        rule.setContent {
+            WizardWeightRule(
+                unit = WizardMassUnit.KG,
+                valueKg = 75.0,
+                onValueChange = { confirmed = it },
+                min = 72.0,
+                max = 74.0,
+            )
+        }
+        rule.waitForIdle()
+        val ruleNode = rule.onNodeWithContentDescription("Regla de peso en kilogramos")
+        // El arranque (75) queda en el límite más cercano.
+        rule.onNodeWithTag("setup-weight-value").assertTextEquals("74 kg")
+        // Arrastres largos en los dos sentidos: la regla se para en 72 y en 74 sin pasarse.
+        repeat(3) {
+            ruleNode.performTouchInput { swipe(Offset(centerX - 200f, bottom - 30f), Offset(centerX + 200f, bottom - 30f)) }
+        }
+        rule.waitForIdle()
+        rule.onNodeWithTag("setup-weight-value").assertTextEquals("72 kg")
+        repeat(3) {
+            ruleNode.performTouchInput { swipe(Offset(centerX + 200f, bottom - 30f), Offset(centerX - 200f, bottom - 30f)) }
+        }
+        rule.waitForIdle()
+        rule.onNodeWithTag("setup-weight-value").assertTextEquals("74 kg")
+        rule.onNodeWithTag("setup-weight-value").performClick()
+        assertEquals(74.0, confirmed, 1e-9)
     }
 }

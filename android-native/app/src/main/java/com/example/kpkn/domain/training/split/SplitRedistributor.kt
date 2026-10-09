@@ -36,7 +36,7 @@ data class RedistributionOptions(
     val propagateToOtherWeeks: Boolean = false,
     /**
      * Tiempo por sesión que la persona dijo tener: un día que pasa el 110 % se recorta (series de accesorios y, si hace
-     * falta, aislamientos fusionados; ver [SessionTimeFit]) y lo recortado va al informe. Un día que sobra no gana volumen.
+     * falta, aislamientos fusionados; ver [DayTimeFit]) y lo recortado va al informe. Un día que sobra no gana volumen.
      */
     val targetMinutes: Int? = null,
     /**
@@ -181,7 +181,7 @@ private class RebuiltWeek(val sessions: List<Session>, val trims: List<SetTrim>,
  * Qué conserva y qué decide:
  * - **Volumen**: los ejercicios se mueven enteros (con sus series, repeticiones, descansos, aproximaciones y movilidad),
  *   así que las series semanales por músculo quedan iguales, salvo los recortes por tiempo que declara el informe
- *   (`targetMinutes`, ver [SessionTimeFit]).
+ *   (`targetMinutes`, ver [DayTimeFit]).
  * - **Superseries** juntas; el cardio y la movilidad de una parte viajan como bloques; el calentamiento general de una
  *   sesión viaja con su primer ejercicio de fuerza.
  * - **Reparto**: cada ejercicio va al día cuyo foco encaja mejor, repartiendo los de un mismo músculo entre los días que
@@ -300,7 +300,7 @@ object SplitRedistributor {
             val merges = mutableListOf<ExerciseMerge>()
             val fitted = options.targetMinutes?.let { target ->
                 completed.map { session ->
-                    val outcome = SessionTimeFit.fit(session, target, weekIndex, resolver)
+                    val outcome = DayTimeFit.fit(session, target, weekIndex, resolver)
                     trims += outcome.trims
                     merges += outcome.merges
                     outcome.session
@@ -631,7 +631,7 @@ object SplitRedistributor {
             if (report.setTrims.any { it.weekIndex != weekIndex } || report.exerciseMerges.any { it.weekIndex != weekIndex }) {
                 add("En las demás semanas que se adaptaron también se recortaron series para que quepa en $targetMinutes min.")
             }
-            report.days.filter { it.minutes > targetMinutes * SessionTimeFit.TOLERANCE }.forEach { day ->
+            report.days.filter { it.minutes > targetMinutes * DayTimeFit.TOLERANCE }.forEach { day ->
                 add("«${day.title}» dura unos ${day.minutes} min y tu tiempo por sesión es de $targetMinutes min.")
             }
         }

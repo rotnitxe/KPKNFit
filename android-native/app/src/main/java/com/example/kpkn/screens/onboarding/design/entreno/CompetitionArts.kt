@@ -15,7 +15,7 @@ import com.example.kpkn.screens.onboarding.design.seg
 
 /*
  * Símbolos de «¿Compites?» (lienzo de 64 × 64, la familia de línea fina de Entreno). Cada disciplina tiene su escena con el
- * acento de módulo músculo: «Sí, tengo fecha» la termina con un destello, «Compito, pero sin fecha» es la misma escena sin
+ * acento de módulo músculo: «Sí, tengo fecha» la termina con un destello, «Sí, sin fecha» es la misma escena sin
  * destello, y «No compito» es la figura entrenando sola, sin escenario. Sin elegir se ve el cuadro de reposo; elegido, la
  * escena corre su bucle. Con «reducir movimiento» el cuadro de reposo es el final ([restAt]), sin bucles.
  */

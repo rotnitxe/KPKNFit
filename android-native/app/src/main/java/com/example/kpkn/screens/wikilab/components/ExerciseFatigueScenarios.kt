@@ -24,11 +24,13 @@ import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.training.VolumeCalculator
+import com.example.kpkn.ui.components.rings.KpknRingColors
+import com.example.kpkn.ui.components.rings.RingChannel
 import kotlin.math.roundToInt
 
-private val RingMuscular = com.example.kpkn.ui.theme.RingRed
-private val RingSystem = Color(0xFFFFB74D)
-private val RingSpinal = Color(0xFFB39DDB)
+private val RingMuscular = KpknRingColors.of(RingChannel.MUSCULOS)
+private val RingSystem = KpknRingColors.of(RingChannel.ENERGIA)
+private val RingSpinal = KpknRingColors.of(RingChannel.COLUMNA)
 
 private data class ScenarioFatigueSpec(
     val id: String,

@@ -47,6 +47,8 @@ import kotlinx.coroutines.launch
 import kotlin.math.abs
 
 private const val TICKS_PER_UNIT = 10
+/** Holgura de coma flotante al pasar kg a décimas: 72,3 · 10 no debe contar como la décima siguiente. */
+private const val STEP_EPSILON = 1e-6
 private val tickSlotWidth = 10.5.dp
 private val ruleItemHeight = 110.dp
 private val ruleTrackHeight = 90.dp
@@ -61,6 +63,11 @@ private val ruleTrackHeight = 90.dp
  * Deslizar ajusta de décima en décima y **no confirma**: la confirmación es un
  * toque explícito en el valor central. **La posición inicial de la regla no es
  * una respuesta**: `onValueChange` solo se emite tras una interacción real.
+ *
+ * [min] y [max] (kg, como [valueKg]) acotan la regla: son las décimas que se
+ * pueden elegir, así que el arrastre se recorta mientras se hace y nunca se
+ * emite un valor fuera del límite. Sin ellos, el rango es el de la escala.
+ * Si el valor inicial queda fuera, la regla arranca en el límite más cercano.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -69,15 +76,16 @@ fun WizardWeightRule(
     valueKg: Double?,
     onValueChange: (Double) -> Unit,
     onConfirm: (() -> Unit)? = null,
+    min: Double? = null,
+    max: Double? = null,
 ) {
     val reducedMotion = wizardReducedMotion()
     val isLb = unit == WizardMassUnit.LB
-    val range = remember(unit) { WizardWeightScale.displayRange(unit) }
-    val firstStep = remember(unit) { kotlin.math.round(range.start * TICKS_PER_UNIT).toInt() }
-    val lastStep = remember(unit) { kotlin.math.round(range.endInclusive * TICKS_PER_UNIT).toInt() }
+    // Los ítems de la regla son solo las décimas elegibles: por eso no se puede arrastrar más allá del límite.
+    val (firstStep, lastStep) = remember(unit, min, max) { selectableSteps(unit, min, max) }
     val stepCount = lastStep - firstStep + 1
 
-    val initialIndex = remember(unit) {
+    val initialIndex = remember(unit, firstStep, lastStep) {
         val anchor = WizardWeightScale.toDisplay(valueKg ?: WizardWeightScale.MIN_KG * 3.5, unit)
         (kotlin.math.round(WizardWeightScale.clampDisplay(anchor, unit) * TICKS_PER_UNIT).toInt() - firstStep)
             .coerceIn(0, stepCount - 1)
@@ -149,9 +157,9 @@ fun WizardWeightRule(
         }
     }
 
-    // Solo re-centra cuando cambia la unidad. Dejar de observar `valueKg` evita que
+    // Solo re-centra cuando cambia la unidad o los límites. Dejar de observar `valueKg` evita que
     // cada `onValueChange` del usuario devuelva la regla a la posición inicial.
-    LaunchedEffect(unit) {
+    LaunchedEffect(unit, firstStep, lastStep) {
         programmaticScrolls += 1
         try {
             state.scrollToItem(initialIndex)
@@ -169,7 +177,7 @@ fun WizardWeightRule(
 
     // Only a real user scroll emits at rest. Initial centering and jumpTo are
     // bracketed by programmaticScrolls; neither reaches the user-scroll branch.
-    LaunchedEffect(state, unit) {
+    LaunchedEffect(state, unit, firstStep, lastStep) {
         var userScrollActive = false
         snapshotFlow { Triple(state.isScrollInProgress, programmaticScrolls, centerIndex) }
             .collect { (scrolling, programmatic, candidateIndex) ->
@@ -307,4 +315,22 @@ fun WizardWeightRule(
         // incremento sigue disponible por arrastre y por las acciones
         // semánticas «Disminuir/Aumentar 0,1» del propio control.
     }
+}
+
+/**
+ * Primera y última décima elegibles en [unit]: el rango de la escala, acotado por [min] y [max] (kg). Redondea hacia
+ * dentro (la primera décima que no baja de [min] y la última que no sube de [max]) y nunca deja un rango vacío.
+ */
+private fun selectableSteps(unit: WizardMassUnit, min: Double?, max: Double?): Pair<Int, Int> {
+    val range = WizardWeightScale.displayRange(unit)
+    val scaleFirst = kotlin.math.round(range.start * TICKS_PER_UNIT).toInt()
+    val scaleLast = kotlin.math.round(range.endInclusive * TICKS_PER_UNIT).toInt()
+    val first = min
+        ?.let { kotlin.math.ceil(WizardWeightScale.toDisplay(it, unit) * TICKS_PER_UNIT - STEP_EPSILON).toInt() }
+        ?: scaleFirst
+    val last = max
+        ?.let { kotlin.math.floor(WizardWeightScale.toDisplay(it, unit) * TICKS_PER_UNIT + STEP_EPSILON).toInt() }
+        ?: scaleLast
+    val low = first.coerceIn(scaleFirst, scaleLast)
+    return low to last.coerceIn(low, scaleLast)
 }

@@ -958,15 +958,16 @@ class SetupWizardFullJourneyUiTest {
         assertCurrentStep(SetupStepId.REVIEW_ACTIVATE)
         val ringsWasLoading = vm.state.value.ringsPreviewLoading
 
-        // Los cuatro bloques con datos reales del borrador.
-        listOf("Datos básicos", "Entreno", "Nutrición", "Rings").forEach { assertInTree(it) }
+        // La revisión en carrusel pinta una página a la vez: la primera es «TÚ», con los datos básicos.
+        assertInTree("TÚ")
         assertInTree(TEST_NAME)
         assertInTree("$ageText años")
         assertInTree("$TARGET_HEIGHT_CM cm")
         assertInTree(WizardWeightScale.formatWithUnit(weightKg.toDouble(), WizardMassUnit.KG))
         assertInTree("Sexo de cálculo")
         assertInTree("Grasa corporal")
-        assertInTree("Sesiones · muestra 1ª semana")
+        // El CTA de la revisión activa el programa y entra a KPKN.
+        assertInTree(CTA_REVIEW_LABEL)
 
         // Datos del plan según el modo (nada se rellena: se lee lo que hay).
         when (flavor) {

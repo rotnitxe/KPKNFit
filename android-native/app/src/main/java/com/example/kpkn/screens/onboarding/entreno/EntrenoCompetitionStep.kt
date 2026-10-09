@@ -185,7 +185,7 @@ internal fun CompetitionStepContent(
             onChoose = { if (option != answer) onAnswer(option) },
         )
     }
-    // Tres columnas de 120 dp como mínimo: «Compito, pero sin fecha» cabe en dos líneas sin cortarse (el sangrado sale de los márgenes).
+    // Tres columnas de 120 dp como mínimo: «Sí, sin fecha» cabe en dos líneas sin cortarse (el sangrado sale de los márgenes).
     StartingPointGrid(
         choices = choices,
         columns = choices.size,

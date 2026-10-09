@@ -402,7 +402,7 @@ private fun SetupWizardDraft.projectChoice(
     SetupStepId.CARDIO_BASE -> copy(cardioBase = CardioBase.entries.firstOrNull { it.name == value })
     SetupStepId.ARM_STYLE -> copy(armStyle = ArmStyle.entries.firstOrNull { it.name == value })
 
-    // «Sí, tengo fecha», «Compito, pero sin fecha» o «No compito»; un valor que no se reconoce no deja rastro.
+    // «Sí, tengo fecha», «Sí, sin fecha» o «No compito»; un valor que no se reconoce no deja rastro.
     SetupStepId.COMPETITION -> withCompetition(CompetitionAnswer.entries.firstOrNull { it.name == value })
 
     SetupStepId.GENDER -> copy(profileGender = when (value) {
