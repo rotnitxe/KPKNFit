@@ -446,15 +446,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
      */
     fun deferProgramUntilLater() {
         if (_state.value.droppedSelection != null) _state.value = _state.value.copy(droppedSelection = null)
-        updateStep(SetupStepId.PLAN) { draft ->
-            if (draft.trainingPath == SetupTrainingPath.FROM_SCRATCH) draft
-            else draft.copy(
-                selectedCatalogId = null,
-                acceptFixedRecipeDifference = false,
-                programRoute = SetupProgramRoute.LATER,
-                trainingPath = SetupTrainingPath.PERSONALIZE,
-            ).withoutWeekLayout()
-        }
+        updateStep(SetupStepId.PLAN) { draft -> draft.withProgramDeferred() }
     }
 
     /**
@@ -996,7 +988,9 @@ class SetupWizardViewModel @JvmOverloads constructor(
             return
         }
         val previous = current.draft
-        var stepping = previous.confirmCurrentStep(expectedStep)
+        // «Lo armaré yo más adelante» en PROGRAM_SOURCE: confirmar aplica el mismo aplazamiento que PLAN, antes de avanzar.
+        val deferring = expectedStep == SetupStepId.PROGRAM_SOURCE && previous.programSource == ProgramSource.LATER
+        var stepping = (if (deferring) previous.withProgramDeferred() else previous).confirmCurrentStep(expectedStep)
         val paired = pairWeight &&
             stepping.stepProgress.currentStepId == SetupStepId.WEIGHT &&
             stepping.weightKg != null &&
@@ -3704,6 +3698,13 @@ class SetupWizardViewModel @JvmOverloads constructor(
     /** Repeticiones seguidas de una habilidad de peso corporal (0–30); null retira la respuesta y deriva el nivel. */
     fun setMaxReps(skill: CapabilitySkill, reps: Int?) =
         mutateDraft(SetupStepId.CAPABILITIES) { latest -> latest.withMaxReps(skill, reps) }
+
+    /**
+     * Cómo se tiene el programa (paso PROGRAM_SOURCE, solo con experiencia «Tengo experiencia»). Solo escribe la elección: el
+     * aplazamiento de «lo armaré yo» se aplica al confirmar el paso, igual que el de PLAN.
+     */
+    fun setProgramSource(source: ProgramSource) =
+        mutateDraft(SetupStepId.PROGRAM_SOURCE) { latest -> latest.withProgramSource(source) }
 
     companion object {
         private const val DRAFT_ID_KEY = "setup_wizard_draft_id"

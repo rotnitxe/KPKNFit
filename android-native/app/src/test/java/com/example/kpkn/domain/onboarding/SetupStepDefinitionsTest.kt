@@ -133,11 +133,12 @@ class SetupStepDefinitionsTest {
     fun questionStepsCarryNaturalQuestionTitlesExceptResultsAndMilestones() {
         for (definition in SetupStepDefinitions.definitions.values) {
             if (definition.legacyOnly) continue
-            // El programa y la semana armada son pantallas de resultado: llevan etiqueta, no pregunta.
+            // El programa, la semana armada y la importación son pantallas de herramienta: llevan etiqueta, no pregunta.
             val isLabeledScreen = definition.kind != SetupStepKind.QUESTION ||
                 definition.control == SetupControlKind.RESULT_PREVIEW ||
                 definition.control == SetupControlKind.PLAN_REVEAL ||
-                definition.control == SetupControlKind.WEEK_LAYOUT
+                definition.control == SetupControlKind.WEEK_LAYOUT ||
+                definition.control == SetupControlKind.PROGRAM_IMPORT
             if (isLabeledScreen || definition.id == SetupStepId.NAME) continue
             assertTrue(
                 "${definition.id} should be a natural question, got «${definition.title}»",
@@ -383,7 +384,7 @@ class SetupStepDefinitionsTest {
     @Test
     fun controlKindCatalogIsStableSoModelsCanBindEveryStep() {
         // 14 controles de datos genéricos (algunos solo para leer pasos retirados), 2 pantallas de estructura
-        // (MILESTONE/REVIEW) y los 11 controles de símbolos de Entreno v2.
+        // (MILESTONE/REVIEW), los controles de símbolos de Entreno v2 y del punto de partida, y los del programa.
         assertEquals(
             setOf(
                 "TEXT", "NUMBER", "PHYSIQUE", "SINGLE_CHOICE", "MULTI_CHOICE", "ROUTE_CHOICE",
@@ -392,10 +393,11 @@ class SetupStepDefinitionsTest {
                 "PLACES", "EQUIPMENT_SYMBOLS", "GOAL_PROFILES", "FRESH_DAY", "WEEK_CALENDAR", "SESSION_DIAL",
                 "CAPABILITIES", "MUSCLE_SYMBOLS", "LIFT_MARKS", "PLAN_REVEAL", "WEEK_LAYOUT",
                 "LIFT_VARIANTS", "AVOIDED_PATTERNS", "CARDIO_BASE", "ARM_STYLE",
+                "PROGRAM_SOURCE", "PROGRAM_IMPORT",
             ),
             SetupControlKind.entries.mapTo(mutableSetOf()) { it.name },
         )
-        assertEquals(31, SetupControlKind.entries.size)
+        assertEquals(33, SetupControlKind.entries.size)
         // Ningún paso usa un control desconocido: la capa de modelos no adivina.
         for (definition in SetupStepDefinitions.definitions.values) {
             assertEquals(definition.control, SetupStepDefinitions.control(definition.id))

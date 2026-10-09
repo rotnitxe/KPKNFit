@@ -112,6 +112,10 @@ enum class SetupControlKind {
     CARDIO_BASE,
     /** Estilo en la mesa de armwrestling (símbolos de mano y brazo). */
     ARM_STYLE,
+    /** Cómo se tiene el programa: tres símbolos de elección única (recomendado, armado más adelante o importado). */
+    PROGRAM_SOURCE,
+    /** Importación del programa (archivo o texto); lo pinta la pantalla de importación. */
+    PROGRAM_IMPORT,
 }
 
 data class SetupNumericRange(
@@ -479,6 +483,20 @@ object SetupStepDefinitions {
             options = opt("1" to "Limitada", "2" to "Suficiente", "3" to "Amplia"),
             legacyQuestion = WizChatQuestionId.T_VOLUME_MOBILITY,
             legacyValueMap = mapOf("Limitada" to "1", "Suficiente" to "2", "Amplia" to "3"),
+        ),
+        // Experiencia avanzada: cómo se tiene el programa, justo después de la calibración. «Lo armaré yo» cierra el bloque.
+        SetupStepDefinition(
+            id = SetupStepId.PROGRAM_SOURCE, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
+            title = "¿Cómo quieres tu programa?",
+            subtitle = "Con tu experiencia puedes elegir: te recomendamos uno, lo armas tú o traes el tuyo.",
+            control = SetupControlKind.PROGRAM_SOURCE,
+            options = ProgramSource.entries.map { source -> SetupOptionDefinition(source.name, source.label) },
+        ),
+        SetupStepDefinition(
+            id = SetupStepId.PROGRAM_IMPORT, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
+            title = "Importa tu programa",
+            subtitle = "Elige un archivo o pega el texto. Revisarás cada ejercicio antes de usarlo.",
+            control = SetupControlKind.PROGRAM_IMPORT,
         ),
         SetupStepDefinition(
             id = SetupStepId.CAPABILITIES, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
