@@ -60,6 +60,7 @@ import com.example.kpkn.screens.onboarding.design.KpknModule
 import com.example.kpkn.screens.onboarding.design.LocalWizardGlassNote
 import com.example.kpkn.screens.onboarding.design.LocalWizardPageScroll
 import com.example.kpkn.screens.onboarding.design.ModuleCompleteOverlay
+import com.example.kpkn.screens.onboarding.design.NutritionGoalOverlay
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardDarkSystemBars
 import com.example.kpkn.screens.onboarding.design.WizardDock
@@ -499,14 +500,28 @@ private fun WizardLongPage(
         // pregunta del bloque.
         if (milestoneModule != null) {
             key(step) {
-                ModuleCompleteOverlay(
-                    module = milestoneModule,
-                    onContinue = { viewModel.submitCurrentStep(step) },
-                    onDismiss = { viewModel.goBack() },
-                    stages = milestoneStages(step, route, state.completedBlocks),
-                    rootTag = "setup-step-${step.name}",
-                    ctaTag = "setup-milestone-continue",
-                )
+                // Con meta de peso (Definir o Volumen), el hito de nutrición celebra la meta; el resto, el overlay de siempre.
+                if (step == SetupStepId.MILESTONE_NUTRITION &&
+                    nutritionMilestoneVariant(state.draft) == NutritionMilestoneVariant.GOAL
+                ) {
+                    NutritionGoalOverlay(
+                        note = nutritionGoalNoteOf(state),
+                        onContinue = { viewModel.submitCurrentStep(step) },
+                        onDismiss = { viewModel.goBack() },
+                        stages = milestoneStages(step, route, state.completedBlocks),
+                        rootTag = "setup-step-${step.name}",
+                        ctaTag = "setup-milestone-continue",
+                    )
+                } else {
+                    ModuleCompleteOverlay(
+                        module = milestoneModule,
+                        onContinue = { viewModel.submitCurrentStep(step) },
+                        onDismiss = { viewModel.goBack() },
+                        stages = milestoneStages(step, route, state.completedBlocks),
+                        rootTag = "setup-step-${step.name}",
+                        ctaTag = "setup-milestone-continue",
+                    )
+                }
             }
         }
 
