@@ -1,6 +1,16 @@
 package com.example.kpkn.screens.onboarding.design.entreno.plan
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -51,6 +61,7 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -58,6 +69,12 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
@@ -67,6 +84,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -77,6 +95,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.BlockGoal
 import com.example.kpkn.domain.text.SpanishPlurals
+import com.example.kpkn.domain.training.SwapKind
+import com.example.kpkn.domain.training.SwapOption
+import com.example.kpkn.screens.onboarding.SetupPlanRevealExercise
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardFonts
 import com.example.kpkn.screens.onboarding.design.WizardTypography
@@ -137,8 +158,15 @@ fun PlanDetailOverlay(
     siblingLabel: String? = null,
     onSibling: (() -> Unit)? = null,
     phases: List<PlanPhaseModel> = emptyList(),
+    exercises: Map<Int, List<SetupPlanRevealExercise>> = emptyMap(),
+    swapOptionsOf: (String) -> List<SwapOption> = { emptyList() },
+    onSwap: (String, String) -> Unit = { _, _ -> },
+    onUndoSwap: (String) -> Unit = {},
 ) {
-    PlanDetailOverlay(model, selected, onChoose, onClose, wizardReducedMotion(), weekStartDay, siblingLabel, onSibling, phases)
+    PlanDetailOverlay(
+        model, selected, onChoose, onClose, wizardReducedMotion(), weekStartDay, siblingLabel, onSibling, phases,
+        exercises = exercises, swapOptionsOf = swapOptionsOf, onSwap = onSwap, onUndoSwap = onUndoSwap,
+    )
 }
 
 /** La hoja con el «reducir movimiento» decidido por quien llama (pruebas y vista previa de depuración). */
@@ -153,6 +181,10 @@ internal fun PlanDetailOverlay(
     siblingLabel: String? = null,
     onSibling: (() -> Unit)? = null,
     phases: List<PlanPhaseModel> = emptyList(),
+    exercises: Map<Int, List<SetupPlanRevealExercise>> = emptyMap(),
+    swapOptionsOf: (String) -> List<SwapOption> = { emptyList() },
+    onSwap: (String, String) -> Unit = { _, _ -> },
+    onUndoSwap: (String) -> Unit = {},
 ) {
     val scope = rememberCoroutineScope()
     val shown = remember { Animatable(if (reduced) 1f else 0f) }
@@ -177,6 +209,7 @@ internal fun PlanDetailOverlay(
         DetailSheet(
             model, selected, reduced, blur, { shown.value }, onChoose, leave,
             weekStartDay = weekStartDay, siblingLabel = siblingLabel, onSibling = onSibling, phases = phases,
+            exercises = exercises, swapOptionsOf = swapOptionsOf, onSwap = onSwap, onUndoSwap = onUndoSwap,
         )
     }
 }
@@ -199,9 +232,20 @@ internal fun DetailSheet(
     siblingLabel: String? = null,
     onSibling: (() -> Unit)? = null,
     phases: List<PlanPhaseModel> = emptyList(),
+    exercises: Map<Int, List<SetupPlanRevealExercise>> = emptyMap(),
+    swapOptionsOf: (String) -> List<SwapOption> = { emptyList() },
+    onSwap: (String, String) -> Unit = { _, _ -> },
+    onUndoSwap: (String) -> Unit = {},
 ) {
     val card = model.card
     val accent = goalAccent(card.profile)
+    // «Cambiar» solo en el programa elegido: sus sustituciones viven en el borrador de ese programa.
+    val swapState = remember { SwapPanelState() }
+    val swaps = remember(exercises, selected, swapOptionsOf, onSwap, onUndoSwap) {
+        ExerciseSwaps(byDay = exercises, enabled = selected, optionsOf = swapOptionsOf, onSwap = onSwap, onUndo = onUndoSwap)
+    }
+    // Atrás cierra primero el panel «Cambiar» y solo después la hoja.
+    BackHandler(enabled = swapState.panelOf != null) { swapState.closePanel() }
     val scroll = rememberScrollState()
     val density = LocalDensity.current
     val statusTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
@@ -214,6 +258,18 @@ internal fun DetailSheet(
             .fillMaxSize()
             .testTag(PLAN_DETAIL_TAG)
             .semantics { paneTitle = card.title }
+            // Tocar fuera del panel «Cambiar» lo cierra; el toque sigue su curso (no se consume aquí).
+            .pointerInput(swapState) {
+                awaitPointerEventScope {
+                    while (true) {
+                        val event = awaitPointerEvent(PointerEventPass.Initial)
+                        if (event.type == PointerEventType.Press && swapState.panelOf != null) {
+                            val at = event.changes.first().position
+                            if (swapState.panelRect?.contains(at) != true) swapState.closePanel()
+                        }
+                    }
+                }
+            }
             .graphicsLayer { alpha = shown() }
             // Sin desenfoque del sistema el velo es del todo opaco (con 0,985 el texto de la página de atrás asomaba unos niveles
             // de gris); con él, 0,84: aquí hay mucho texto.
@@ -280,7 +336,7 @@ internal fun DetailSheet(
                     // Las fases de un programa de varias semanas van encima de «Tu semana», que enseña la primera.
                     PlanPhasesStrip(phases)
                     SectionTitle(PlanCopy.SECTION_WEEK)
-                    WeekStrip(model.week, accent, weekStartDay)
+                    WeekStrip(model.week, accent, weekStartDay, swaps = swaps, state = swapState, reduced = reduced)
                 }
                 if (model.reasons.isNotEmpty()) {
                     SectionTitle(PlanCopy.SECTION_REASONS)
@@ -826,14 +882,22 @@ internal fun PlanPhasesStrip(phases: List<PlanPhaseModel>, modifier: Modifier = 
  * se enumeran debajo, una por fila, en ese mismo orden.
  */
 @Composable
-private fun WeekStrip(week: List<PlanDayModel>, accent: Color, weekStartDay: Int = 1) {
+private fun WeekStrip(
+    week: List<PlanDayModel>,
+    accent: Color,
+    weekStartDay: Int = 1,
+    swaps: ExerciseSwaps,
+    state: SwapPanelState,
+    reduced: Boolean,
+) {
     val byDay = remember(week) { week.filter { it.day in 1..7 }.associateBy { it.day } }
     val order = remember(weekStartDay) { slotOrder(weekStartDay) }
     val measurer = rememberTextMeasurer()
     val density = LocalDensity.current
     BoxWithConstraints(Modifier.fillMaxWidth()) {
         val gap = 4.dp
-        val colW = (maxWidth - gap * 6) / 7
+        // La fila sangra hasta el margen: cada día tiene así su objetivo táctil de 48 dp a 360 dp (como el calendario del wizard).
+        val colW = (maxWidth + BLEED * 2 - gap * 6) / 7
         val colPx = with(density) { colW.toPx() }
         val captions = remember(byDay, colPx, density.fontScale) {
             widestTitlePx(byDay.values.map { it.title }) { text ->
@@ -844,11 +908,30 @@ private fun WeekStrip(week: List<PlanDayModel>, accent: Color, weekStartDay: Int
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    // Sin pies de texto la fila es solo un dibujo: los datos los anuncian las filas de debajo.
-                    .then(if (captions) Modifier else Modifier.clearAndSetSemantics { }),
+                    .bleedHorizontally(BLEED),
                 horizontalArrangement = Arrangement.spacedBy(gap),
             ) {
-                for (d in order) DayColumn(d, byDay[d], accent, captions, Modifier.weight(1f))
+                for (d in order) {
+                    // Solo los días con ejercicios se pueden tocar: un día sin lista no ofrece nada que desplegar.
+                    val tappable = byDay[d] != null && swaps.byDay[d].orEmpty().isNotEmpty()
+                    DayColumn(
+                        day = d,
+                        model = byDay[d],
+                        accent = accent,
+                        captions = captions,
+                        modifier = Modifier.weight(1f),
+                        onToggle = if (tappable) ({ state.toggleDay(d) }) else null,
+                        open = state.openDay == d,
+                    )
+                }
+            }
+            // La lista del día desplegado va bajo la fila. Al plegarla se sigue viendo el último día mientras se anima.
+            AnimatedVisibility(
+                visible = state.openDay != null,
+                enter = if (reduced) EnterTransition.None else expandVertically(tween(260)) + fadeIn(tween(260)),
+                exit = if (reduced) ExitTransition.None else shrinkVertically(tween(260)) + fadeOut(tween(260)),
+            ) {
+                DayExercises(day = state.lastDay, accent = accent, swaps = swaps, state = state, reduced = reduced)
             }
             if (!captions) {
                 Spacer(Modifier.height(14.dp))
@@ -892,10 +975,35 @@ private fun DayCircle(day: Int, trained: Boolean, main: Boolean, accent: Color, 
 
 /** Un día de la fila de círculos; con [captions], los de entreno llevan debajo su título corto y sus minutos. */
 @Composable
-private fun DayColumn(day: Int, model: PlanDayModel?, accent: Color, captions: Boolean, modifier: Modifier = Modifier) {
+private fun DayColumn(
+    day: Int,
+    model: PlanDayModel?,
+    accent: Color,
+    captions: Boolean,
+    modifier: Modifier = Modifier,
+    onToggle: (() -> Unit)? = null,
+    open: Boolean = false,
+) {
     val description = weekDayDescription(day, model)
+    val name = PlanCopy.WEEKDAY_NAMES[day - 1]
     Column(
-        modifier = modifier.clearAndSetSemantics { contentDescription = description },
+        modifier = modifier
+            .then(if (onToggle == null) Modifier.clearAndSetSemantics { contentDescription = description } else Modifier)
+            .then(
+                if (onToggle == null) {
+                    Modifier
+                } else {
+                    // Un día tocable: el objetivo ocupa toda la columna y mide al menos 48 dp de alto (y la fila, 48 dp de ancho).
+                    Modifier
+                        .heightIn(min = 48.dp)
+                        .testTag("setup-plan-day-$day")
+                        .semantics(mergeDescendants = true) {
+                            contentDescription = description
+                            stateDescription = if (open) DAY_OPEN else DAY_CLOSED
+                        }
+                        .clickable(role = Role.Button, onClickLabel = "Ver los ejercicios del $name", onClick = onToggle)
+                },
+            ),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         DayCircle(day, model != null, model?.isMain == true, accent, 38.dp)
@@ -920,6 +1028,278 @@ private fun DayColumn(day: Int, model: PlanDayModel?, accent: Color, captions: B
             )
         }
     }
+}
+
+/** Margen que la fila de días sangra a cada lado (el de la hoja): con él, cada día llega a los 48 dp de objetivo táctil. */
+private val BLEED = 24.dp
+
+/** Marca de prueba del panel «Cambiar» abierto. */
+internal const val SWAP_PANEL_TAG = "setup-plan-swap-panel"
+
+/** Motivos cortos de una alternativa y el texto cuando no hay ninguna con el material de ese día. */
+internal const val SWAP_REASON_SAME_MUSCLE = "Mismo músculo"
+internal const val SWAP_REASON_SAME_PATTERN = "Mismo patrón"
+internal const val SWAP_NONE_TEXT = "No hay otra opción con el material de este día."
+
+/** Lo que TalkBack dice del estado de un día tocable. */
+private const val DAY_OPEN = "Desplegado"
+private const val DAY_CLOSED = "Plegado"
+
+private val SwapPanelShape = RoundedCornerShape(24.dp)
+
+/** El fondo del panel «Cambiar»: el de la nota de A3 (0xFF141414 al 0,94), sin desenfoque ni sombra. */
+private val SwapPanelFill = Color(0xFF141414).copy(alpha = 0.94f)
+
+/** El estado de «Cambiar» en la hoja: el día desplegado, el ejercicio con el panel abierto, sus alternativas y dónde está el panel. */
+private class SwapPanelState {
+    /** El día cuya lista está desplegada (null = plegada). */
+    var openDay by mutableStateOf<Int?>(null)
+
+    /** El último día desplegado: mientras la lista se pliega, sigue mostrando sus ejercicios. */
+    var lastDay by mutableStateOf<Int?>(null)
+
+    /** El ejercicio cuyo panel «Cambiar» está abierto, y sus alternativas. */
+    var panelOf by mutableStateOf<String?>(null)
+    var options by mutableStateOf<List<SwapOption>>(emptyList())
+
+    /** Dónde está el panel en la raíz de la hoja: tocar fuera de él lo cierra. */
+    var panelRect by mutableStateOf<Rect?>(null)
+
+    fun closePanel() {
+        panelOf = null
+        panelRect = null
+    }
+
+    /** Despliega el día [day] o, si ya lo está, lo pliega. Cambiar de día (o plegarlo) cierra el panel. */
+    fun toggleDay(day: Int) {
+        if (openDay == day) {
+            openDay = null
+        } else {
+            openDay = day
+            lastDay = day
+        }
+        closePanel()
+    }
+}
+
+/** Lo que la hoja sabe de los ejercicios de cada día y lo que «Cambiar» puede hacer con ellos. */
+private class ExerciseSwaps(
+    val byDay: Map<Int, List<SetupPlanRevealExercise>>,
+    /** Solo el programa elegido se puede cambiar: en los demás la lista se enseña sin «Cambiar». */
+    val enabled: Boolean,
+    val optionsOf: (String) -> List<SwapOption>,
+    val onSwap: (String, String) -> Unit,
+    val onUndo: (String) -> Unit,
+)
+
+/** La fila que sangra [dp] a cada lado: se mide con su ancho y se dibuja más ancha, sin mover el resto de la página. */
+private fun Modifier.bleedHorizontally(dp: Dp): Modifier = layout { measurable, constraints ->
+    val half = dp.roundToPx()
+    val width = constraints.maxWidth + 2 * half
+    val placeable = measurable.measure(constraints.copy(minWidth = width, maxWidth = width))
+    layout(constraints.maxWidth, placeable.height) { placeable.place(-half, 0) }
+}
+
+/** Los ejercicios del día [day] de la semana tipo, uno por fila, con su «Cambiar» si el programa elegido se puede cambiar. */
+@Composable
+private fun DayExercises(day: Int?, accent: Color, swaps: ExerciseSwaps, state: SwapPanelState, reduced: Boolean) {
+    val exercises = day?.let { swaps.byDay[it] }.orEmpty()
+    Column(Modifier.fillMaxWidth().padding(top = 8.dp)) {
+        for (exercise in exercises) ExerciseRow(exercise, accent, swaps, state, reduced)
+    }
+}
+
+/**
+ * Un ejercicio del día: su pictograma, su nombre, «4 × 6–8» y, si el programa elegido lo permite, «Cambiar». El panel de
+ * alternativas se abre bajo la fila; un ejercicio ya cambiado dice «Cambiado · Deshacer».
+ */
+@Composable
+private fun ExerciseRow(
+    exercise: SetupPlanRevealExercise,
+    accent: Color,
+    swaps: ExerciseSwaps,
+    state: SwapPanelState,
+    reduced: Boolean,
+) {
+    val divider = WizardColors.divider
+    val canSwap = swaps.enabled && exercise.swappable
+    val pattern = remember(exercise.name) { exercisePatternOf(exercise.name) }
+    Column(Modifier.fillMaxWidth().testTag("setup-plan-exercise-${exercise.instanceId}")) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .heightIn(min = 60.dp)
+                .drawBehind {
+                    val y = size.height - 0.5.dp.toPx()
+                    drawLine(divider, Offset(0f, y), Offset(size.width, y), strokeWidth = 1.dp.toPx())
+                },
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            PatternGlyph(pattern, accent, Modifier.size(28.dp))
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f).padding(vertical = 8.dp)) {
+                Text(exercise.name, style = WizardTypography.controlLabel, color = WizardColors.text)
+                exercise.setsLabel?.let { Text(it, style = WizardTypography.note, color = WizardColors.textMuted) }
+                if (exercise.swappedConfigId != null) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Cambiado · ", style = WizardTypography.note, color = WizardColors.textMuted)
+                        Box(
+                            Modifier
+                                .testTag("setup-plan-undo-${exercise.instanceId}")
+                                .heightIn(min = 48.dp)
+                                .clickable(role = Role.Button, onClickLabel = "Deshacer el cambio de ${exercise.name}") {
+                                    swaps.onUndo(exercise.instanceId)
+                                },
+                            contentAlignment = Alignment.CenterStart,
+                        ) {
+                            Text("Deshacer", style = WizardTypography.controlLabel, color = accent)
+                        }
+                    }
+                }
+            }
+            if (canSwap) {
+                SwapAction(name = exercise.name, instanceId = exercise.instanceId) {
+                    if (state.panelOf != exercise.instanceId) {
+                        state.options = swaps.optionsOf(exercise.instanceId)
+                        state.panelOf = exercise.instanceId
+                    }
+                }
+            }
+        }
+        if (canSwap) {
+            AnimatedVisibility(
+                visible = state.panelOf == exercise.instanceId,
+                enter = if (reduced) {
+                    EnterTransition.None
+                } else {
+                    scaleIn(animationSpec = tween(220), initialScale = 0.92f, transformOrigin = TransformOrigin(0.5f, 0f)) +
+                        fadeIn(tween(220))
+                },
+                exit = if (reduced) {
+                    ExitTransition.None
+                } else {
+                    fadeOut(tween(160)) + scaleOut(animationSpec = tween(160), targetScale = 0.92f)
+                },
+            ) {
+                SwapPanel(
+                    exerciseName = exercise.name,
+                    accent = accent,
+                    options = state.options,
+                    onPick = { configId ->
+                        swaps.onSwap(exercise.instanceId, configId)
+                        state.closePanel()
+                    },
+                    onCancel = { state.closePanel() },
+                    modifier = Modifier.onGloballyPositioned { state.panelRect = it.boundsInRoot() },
+                )
+            }
+        }
+    }
+}
+
+/** «Cambiar»: unas flechas y el texto, en un objetivo táctil de 48 dp de alto. */
+@Composable
+private fun SwapAction(name: String, instanceId: String, onClick: () -> Unit) {
+    Row(
+        Modifier
+            .testTag("setup-plan-swap-$instanceId")
+            .padding(start = 8.dp)
+            .heightIn(min = 48.dp)
+            .clickable(role = Role.Button, onClickLabel = "Cambiar $name", onClick = onClick),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        SwapArrows(WizardColors.text, Modifier.size(16.dp))
+        Spacer(Modifier.width(6.dp))
+        Text("Cambiar", style = WizardTypography.controlLabel, color = WizardColors.text)
+    }
+}
+
+/** Dos flechas enfrentadas: el icono de «Cambiar». */
+@Composable
+private fun SwapArrows(color: Color, modifier: Modifier = Modifier) {
+    Canvas(modifier) {
+        val w = 1.6.dp.toPx()
+        val top = size.height * 0.36f
+        val bottom = size.height * 0.64f
+        val head = size.height * 0.26f
+        drawLine(color, Offset(0f, top), Offset(size.width, top), w, StrokeCap.Round)
+        drawLine(color, Offset(size.width - head, top - head), Offset(size.width, top), w, StrokeCap.Round)
+        drawLine(color, Offset(size.width - head, top + head), Offset(size.width, top), w, StrokeCap.Round)
+        drawLine(color, Offset(size.width, bottom), Offset(0f, bottom), w, StrokeCap.Round)
+        drawLine(color, Offset(head, bottom - head), Offset(0f, bottom), w, StrokeCap.Round)
+        drawLine(color, Offset(head, bottom + head), Offset(0f, bottom), w, StrokeCap.Round)
+    }
+}
+
+/** El panel «Cambiar»: el aspecto de la nota de A3 sin desenfoque, con las alternativas y «Cancelar». */
+@Composable
+private fun SwapPanel(
+    exerciseName: String,
+    accent: Color,
+    options: List<SwapOption>,
+    onPick: (String) -> Unit,
+    onCancel: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier
+            .fillMaxWidth()
+            .padding(top = 6.dp, bottom = 10.dp)
+            .testTag(SWAP_PANEL_TAG)
+            .background(SwapPanelFill, SwapPanelShape)
+            .border(1.dp, WizardColors.glassBorder, SwapPanelShape)
+            .padding(20.dp),
+    ) {
+        Text(
+            text = "Cambiar $exerciseName",
+            style = WizardTypography.controlLabel,
+            color = WizardColors.text,
+            modifier = Modifier.semantics { heading() },
+        )
+        Spacer(Modifier.height(6.dp))
+        if (options.isEmpty()) {
+            Text(SWAP_NONE_TEXT, style = WizardTypography.note, color = WizardColors.textMuted)
+        } else {
+            for (option in options) SwapOptionRow(option, accent) { onPick(option.configId) }
+        }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+            Box(
+                Modifier
+                    .heightIn(min = 48.dp)
+                    .clickable(role = Role.Button, onClickLabel = "Cancelar el cambio", onClick = onCancel)
+                    .padding(horizontal = 8.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text("Cancelar", style = WizardTypography.controlLabel, color = WizardColors.text)
+            }
+        }
+    }
+}
+
+/** Una alternativa: su pictograma, su nombre, su matiz y el motivo corto; un objetivo táctil de 48 dp. */
+@Composable
+private fun SwapOptionRow(option: SwapOption, accent: Color, onClick: () -> Unit) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .heightIn(min = 48.dp)
+            .testTag("setup-plan-swap-option-${option.configId}")
+            .clickable(role = Role.Button, onClickLabel = "Cambiar por ${option.displayName}", onClick = onClick),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        PatternGlyph(exercisePatternOf(option.displayName), accent, Modifier.size(28.dp))
+        Spacer(Modifier.width(12.dp))
+        Column(Modifier.weight(1f).padding(vertical = 6.dp)) {
+            Text(option.displayName, style = WizardTypography.controlLabel, color = WizardColors.text)
+            Text(swapReasonOf(option), style = WizardTypography.note, color = WizardColors.textMuted)
+        }
+    }
+}
+
+/** El motivo corto de una alternativa: «Mismo músculo» o «Mismo patrón», con el matiz de la configuración delante si lo hay. */
+internal fun swapReasonOf(option: SwapOption): String {
+    val reason = if (option.kind == SwapKind.EQUIVALENT) SWAP_REASON_SAME_MUSCLE else SWAP_REASON_SAME_PATTERN
+    return if (option.variant.isBlank()) reason else "${option.variant} · $reason"
 }
 
 /** Una sesión de la semana, en una fila: su círculo, el título y «75 min · 6 ejercicios» (más un punto si es la principal). */
