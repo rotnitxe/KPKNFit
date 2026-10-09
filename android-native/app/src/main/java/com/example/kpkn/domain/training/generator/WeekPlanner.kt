@@ -22,6 +22,7 @@ import com.example.kpkn.domain.training.generator.RoutinePattern.TRAPS
 import com.example.kpkn.domain.training.generator.RoutinePattern.TRICEPS
 import com.example.kpkn.domain.training.generator.RoutinePattern.VERTICAL_PULL
 import com.example.kpkn.domain.training.generator.RoutinePattern.VERTICAL_PUSH
+import com.example.kpkn.domain.onboarding.CardioBase
 
 /**
  * Reparto de la semana: qué sesiones lleva según los días, el modo, el nivel y los minutos, y en qué día cae cada una.
@@ -263,14 +264,19 @@ internal object WeekPlanner {
         val upper = hybridStrength(torsoA("Fuerza · Torso"), "Fuerza · Torso", "HTA")
         val full = hybridStrength(fbA("Fuerza · Cuerpo completo"), "Fuerza · Cuerpo completo", "HFB")
         val mix = if (mixedFeasible) mixed() else full.copy(key = "HFB2")
+        // Base de cardio de hoy: con base baja no hay intervalos (la potencia pasa a zona 2); con intervalos, el día de zona 2 de
+        // la semana de 5 a 7 días pasa a potencia. Sin base, la semana es la de siempre.
+        val base = ctx.request.cardioBase
+        val power = if (base == CardioBase.LOW) cardioZone2() else cardioPower()
+        val zone2 = if (base == CardioBase.INTERVALS && n >= 5) cardioPower() else cardioZone2()
         return when (n) {
             1 -> listOf(if (mixedFeasible) mixed() else full)
-            2 -> listOf(full, cardioPower())
-            3 -> listOf(legs, cardioPower(), upper)
-            4 -> listOf(legs, upper, cardioPower(), mix)
-            5 -> listOf(legs, upper, cardioZone2(), mix, cardioPower())
-            6 -> listOf(legs, upper, cardioZone2(), full.copy(key = "HFB3", title = "Fuerza · Cuerpo completo B"), cardioPower(), mix)
-            else -> listOf(legs, upper, cardioZone2(), full.copy(key = "HFB3", title = "Fuerza · Cuerpo completo B"), cardioPower(), mix, recovery())
+            2 -> listOf(full, power)
+            3 -> listOf(legs, power, upper)
+            4 -> listOf(legs, upper, power, mix)
+            5 -> listOf(legs, upper, zone2, mix, power)
+            6 -> listOf(legs, upper, zone2, full.copy(key = "HFB3", title = "Fuerza · Cuerpo completo B"), power, mix)
+            else -> listOf(legs, upper, zone2, full.copy(key = "HFB3", title = "Fuerza · Cuerpo completo B"), power, mix, recovery())
         }
     }
 
@@ -350,7 +356,7 @@ internal object WeekPlanner {
     fun plans(ctx: GenContext): List<SessionPlan> {
         val n = ctx.days.size
         val discipline = ctx.discipline
-        val raw = (DisciplineWeeks.plans(ctx.mode, n) ?: when (ctx.mode) {
+        val raw = (DisciplineWeeks.plans(ctx.mode, n, ctx.request.armStyle) ?: when (ctx.mode) {
             RoutineMode.GENERAL_HYBRID -> hybridWeek(ctx, n)
             RoutineMode.GENERAL_FUNCTIONAL -> functionalWeek(n)
             RoutineMode.CUSTOM_BODYBUILDING -> bodybuildingWeek(n)
