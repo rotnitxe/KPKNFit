@@ -40,6 +40,7 @@ import com.example.kpkn.screens.onboarding.SetupExperience
 import com.example.kpkn.screens.onboarding.SetupPlanReveal
 import com.example.kpkn.screens.onboarding.SetupPlanRevealBlock
 import com.example.kpkn.screens.onboarding.SetupPlanRevealDay
+import com.example.kpkn.screens.onboarding.SetupPlanRevealExercise
 import com.example.kpkn.screens.onboarding.SetupPlanSweep
 import com.example.kpkn.screens.onboarding.SetupPreview
 import com.example.kpkn.screens.onboarding.SetupProgramRoute
@@ -125,6 +126,7 @@ class EntrenoPlanStepTest {
         profile: TrainingGoalProfile,
         coverSeed: Int = 0,
         exercises: List<String> = listOf("Sentadilla", "Press de banca"),
+        withDayExercises: Boolean = false,
     ) = SetupPlanReveal(
         planId = id,
         title = title,
@@ -141,7 +143,10 @@ class EntrenoPlanStepTest {
         mainExercises = exercises,
         blocks = listOf(SetupPlanRevealBlock("Semana que se repite", "Cada semana", "La misma semana, cada semana.")),
         week = listOf(
-            SetupPlanRevealDay(day = 1, title = "Torso", minutes = 60, exerciseCount = 6, isMain = true),
+            SetupPlanRevealDay(
+                day = 1, title = "Torso", minutes = 60, exerciseCount = 6, isMain = true,
+                exercises = if (withDayExercises) listOf(SetupPlanRevealExercise("torso-1", "Sentadilla", "4 × 6–8", swappable = true)) else emptyList(),
+            ),
             SetupPlanRevealDay(day = 3, title = "Pierna", minutes = 58, exerciseCount = 5, isMain = false),
         ),
         reasons = listOf("Usa solo tu material.", "Cabe en tus 60 minutos.", "Prioriza los músculos que elegiste."),
@@ -319,6 +324,23 @@ class EntrenoPlanStepTest {
         rule.onNodeWithTag(PLAN_DETAIL_TAG).assertExists()
         tapInDialog(PLAN_DETAIL_CHOOSE_TAG)
         rule.onNodeWithTag(PLAN_DETAIL_TAG).assertDoesNotExist()
+    }
+
+    @Test
+    fun theChosenPlanOffersCambiarInItsDayExercises() {
+        rule.mainClock.autoAdvance = false
+        val chosen = reveal("generated:bodybuilding", "Culturismo a medida", TrainingGoalProfile.BODYBUILDING, withDayExercises = true)
+        state = SetupWizardState(
+            draft = draftFor(TrainingGoalProfile.BODYBUILDING).copy(selectedCatalogId = chosen.planId),
+            planSweep = SetupPlanSweep.READY,
+            planReveals = listOf(chosen),
+        )
+        rule.setContent { Page() }
+        finishOverlay()
+
+        tap("setup-plan-open-generated:bodybuilding")
+        tapInDialog("setup-plan-day-1")
+        rule.onNodeWithTag("setup-plan-swap-torso-1").assertExists()
     }
 
     @Test
