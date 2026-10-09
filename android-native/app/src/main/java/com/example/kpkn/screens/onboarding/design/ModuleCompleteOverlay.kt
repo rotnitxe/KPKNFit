@@ -323,7 +323,7 @@ private fun stageDescription(stage: OverlayStage): String = when (stage.state) {
  * (la pantalla de arranque) no hay verde: solo el primer nodo respira en tinta.
  */
 @Composable
-private fun StageTracker(
+internal fun StageTracker(
     stages: List<OverlayStage>,
     startAt: Float,
     t: () -> Float,
@@ -479,7 +479,7 @@ private fun DrawScope.drawTowerGlow(ox: Float, oy: Float, discs: List<Disc>, fil
 }
 
 // ---------------------------------------------------------------- íconos (cuadrícula 24, trazo)
-private val IC_USER by lazy { listOf(parse("M8 8a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"), parse("M4 21c0-4.4 3.6-7.2 8-7.2s8 2.8 8 7.2")) }
+internal val IC_USER by lazy { listOf(parse("M8 8a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"), parse("M4 21c0-4.4 3.6-7.2 8-7.2s8 2.8 8 7.2")) }
 private val IC_CHECK by lazy { listOf(parse("M7 12.5l3.2 3.2L17 8.8")) }
 private val IC_BED by lazy { listOf(parse("M3 19V6M3 15h18v4M21 15v-2.5A3.5 3.5 0 0 0 17.5 9H11v6"), parse("M5 11.5a2 2 0 1 0 4 0a2 2 0 1 0 -4 0")) }
 private val IC_BRAIN by lazy {
@@ -500,7 +500,7 @@ private val IC_SPINE by lazy {
 private val IC_DUMBBELL by lazy { listOf(parse("M6.5 6.5v11M3.5 9v6M17.5 6.5v11M20.5 9v6M6.5 12h11")) }
 private val SPARK by lazy { parse("M0-5L1.2-1.2 5 0 1.2 1.2 0 5-1.2 1.2-5 0-1.2-1.2Z") }
 
-private fun DrawScope.drawIcon(paths: List<Path>, x: Float, y: Float, size: Float, color: Color, sw: Float, s: Float = 1f, alpha: Float = 1f) {
+internal fun DrawScope.drawIcon(paths: List<Path>, x: Float, y: Float, size: Float, color: Color, sw: Float, s: Float = 1f, alpha: Float = 1f) {
     if (alpha <= 0f || s <= 0f) return
     val k = s * size / 24f
     withTransform({ translate(x, y); scale(k, k, Offset.Zero); translate(-12f, -12f) }) {
@@ -508,7 +508,7 @@ private fun DrawScope.drawIcon(paths: List<Path>, x: Float, y: Float, size: Floa
     }
 }
 
-private fun DrawScope.drawBadge(x: Float, y: Float, r: Float, s: Float) {
+internal fun DrawScope.drawBadge(x: Float, y: Float, r: Float, s: Float) {
     if (s <= 0f) return
     drawCircle(Ok, r * s, Offset(x, y))
     drawIcon(IC_CHECK, x, y, r * 1.25f, Color(0xFF08130D), 2.8f, s)
@@ -649,10 +649,10 @@ private fun DrawScope.drawEntreno(t: Float) {
 }
 
 // ---------------------------------------------------------------- 3 · NUTRICIÓN
-private class FoodPart(val d: String, val color: Long, val stroke: Float = 0f)
-private class Food(val parts: List<Pair<Path, FoodPart>>, val orbit: Int, val phase: Float)
+internal class FoodPart(val d: String, val color: Long, val stroke: Float = 0f)
+internal class Food(val parts: List<Pair<Path, FoodPart>>, val orbit: Int, val phase: Float)
 private fun food(orbit: Int, phase: Float, vararg p: FoodPart) = Food(p.map { parse(it.d) to it }, orbit, phase)
-private val FOODS by lazy {
+internal val FOODS by lazy {
     listOf(
         food(0, 0f, // manzana
             FoodPart("M0-4c-3-2.4-8-1.6-8 3.6 0 4.6 3.6 8.4 6 8.4 1 0 1.4-.6 2-.6s1 .6 2 .6c2.4 0 6-3.8 6-8.4 0-5.2-5-6-8-3.6z", 0xFFE8574A),
@@ -681,9 +681,9 @@ private val FOODS by lazy {
             FoodPart("M-8.5-3c2 7 10.5 9 16.5 3 .6-.6 1.5 0 1 .9-5 8.2-15.5 7.2-18.5-3 0-.8.8-1.5 1-.9z", 0xFFF7CF73)),
     )
 }
-private val ORBIT_W = floatArrayOf(.85f, 1.05f, 1.3f)
+internal val ORBIT_W = floatArrayOf(.85f, 1.05f, 1.3f)
 
-private fun DrawScope.drawFood(f: Food, x: Float, y: Float, s: Float, rot: Float, alpha: Float) {
+internal fun DrawScope.drawFood(f: Food, x: Float, y: Float, s: Float, rot: Float, alpha: Float) {
     if (alpha <= 0f) return
     withTransform({ translate(x, y); scale(s, s, Offset.Zero); rotate(rot, Offset.Zero) }) {
         f.parts.forEach { (p, part) ->
