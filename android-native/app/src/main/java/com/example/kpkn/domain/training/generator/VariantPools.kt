@@ -28,6 +28,14 @@ internal object VariantPools {
         "bench_press__dumbbells", "military_press__dumbbells",
     )
 
+    /**
+     * Requisitos de las variantes que no están en ningún pool: la búlgara con barra apoya el pie de atrás en un banco o un cajón
+     * pliométrico, igual que la de mancuernas del pool (`MovementPools`). Es el mismo criterio que la oferta de `LiftVariants`.
+     */
+    private val CREATED_REQUIRES: Map<String, List<String>> = mapOf(
+        "bulgarian_split_squat__barbell" to listOf("bench|plyo_box"),
+    )
+
     /** Nivel con el que se ofrece una variante que no está en el pool: las variantes se piden desde el nivel intermedio. */
     private val CREATED_MIN_LEVEL = RoutineLevel.INTERMEDIATE
 
@@ -101,7 +109,7 @@ internal object VariantPools {
         if (ctx.level.ordinal < (pool?.minLevel ?: CREATED_MIN_LEVEL).ordinal) return null
         if (ExerciseSelector.avoidedGroupOf(avoided, entry.definitionId, kind) != null) return null
         // Lo que pide el generador además del filtro compartido: el mismo criterio que la oferta de `LiftVariants`.
-        val requires = pool?.requires.orEmpty()
+        val requires = pool?.requires ?: CREATED_REQUIRES[configId].orEmpty()
         if (!equipment.allows(entry, requires)) return null
         return Candidate(
             entry = entry,

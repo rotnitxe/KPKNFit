@@ -38,10 +38,13 @@ object LiftVariants {
     private val squatFront = LiftVariantOption("front_squat__barbell", "Frontal", "barbell")
     private val squatZercher =
         LiftVariantOption("quads_sentadilla_zercher_barra_recta__default", "Zercher", "barbell", requires = listOf("rack"))
-    private val squatBulgarianDumbbells =
-        LiftVariantOption("bulgarian_split_squat__dumbbells", "Búlgara con mancuernas", "dumbbells", takesMark = false)
-    private val squatBulgarianBarbell =
-        LiftVariantOption("bulgarian_split_squat__barbell", "Búlgara con barra", "barbell", takesMark = false)
+    // La búlgara apoya el pie de atrás en algo elevado: pide banco o cajón pliométrico (como su entrada del generador).
+    private val squatBulgarianDumbbells = LiftVariantOption(
+        "bulgarian_split_squat__dumbbells", "Búlgara con mancuernas", "dumbbells", takesMark = false, requires = listOf("bench|plyo_box"),
+    )
+    private val squatBulgarianBarbell = LiftVariantOption(
+        "bulgarian_split_squat__barbell", "Búlgara con barra", "barbell", takesMark = false, requires = listOf("bench|plyo_box"),
+    )
 
     private val benchFlat = LiftVariantOption("bench_press__barbell", "Plana con barra", "barbell")
     private val benchDumbbells = LiftVariantOption("bench_press__dumbbells", "Con mancuernas", "dumbbells", takesMark = false)
