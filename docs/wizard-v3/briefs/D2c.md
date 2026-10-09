@@ -30,7 +30,10 @@ Worktree indicado en tu encargo, rama `v3/d2c` (sale de `feat/wizard-v3` con D1,
    proporcional a sus semanas («Acumulación · 3 sem», «Intensificación · 2 sem», «Descarga · 1 sem»), colores de fase con tinta y acentos de la
    paleta (sin resplandor), y «Tu semana» muestra la primera semana. Datos de las fases: los bloques del programa materializado (`Block.goal` y sus
    semanas). Accesible como lista («Fase 1 de 3: Acumulación, 3 semanas»).
-4. La portada de cada variante lleva el kicker de D1 («6 SEMANAS · 2 BLOQUES»…). Nombres de D2b.
+4. La portada de cada variante lleva el kicker de D1 (`structureKicker(program)` y `kickerOf(entry, program)` en `SetupPlanReveals.kt`:
+   «6 SEMANAS · 2 BLOQUES»…). Nombres de D2b.
+5. Limpieza que dejó D1: quedan «Hecho a tu medida» en `src/debug/.../EntrenoPlanPreviewActivity.kt` y en el KDoc de
+   `design/entreno/plan/PlanModels.kt:15`: cámbialos por el kicker de estructura (permitido tocar esas dos líneas).
 
 ## Archivos permitidos
 `SetupWizardViewModel.kt` (solo `collectGenerated` y lo imprescindible del barrido), `screens/onboarding/{SetupPlanReveals}.kt`,
