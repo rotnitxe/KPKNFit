@@ -845,7 +845,7 @@ object SetupStepDefinitions {
         SetupStepDefinition(
             id = SetupStepId.NUTRITION_WEIGH_INS, block = SetupWizardBlock.NUTRITION, kind = SetupStepKind.QUESTION,
             title = "¿Quieres añadir tus últimos pesajes?",
-            subtitle = "Opcional. Solo datos reales con fecha; la tendencia se declara aparte, nunca se inventa de aquí.",
+            subtitle = "Con tus pesajes recientes verás tu tendencia en Cuerpo y KPKN podrá ajustar tus calorías.",
             control = SetupControlKind.EDITOR_ROWS,
             allowSkip = true,
         ),

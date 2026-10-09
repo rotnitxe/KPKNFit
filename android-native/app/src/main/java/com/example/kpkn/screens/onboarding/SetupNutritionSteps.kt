@@ -4,8 +4,10 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Surface
@@ -14,13 +16,17 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.PlanDirection
 import com.example.kpkn.domain.nutrition.EerActivity
@@ -34,6 +40,12 @@ import com.example.kpkn.domain.nutrition.PlanValues
 import com.example.kpkn.domain.nutrition.PlanWarning
 import com.example.kpkn.domain.nutrition.WizardPacePreset
 import com.example.kpkn.domain.nutrition.automaticPlanValues
+import com.example.kpkn.domain.nutrition.goalDateSpanText
+import com.example.kpkn.domain.nutrition.goalWeeklyChangeKg
+import com.example.kpkn.domain.nutrition.goalWeeksRange
+import com.example.kpkn.domain.nutrition.goalWeightWindow
+import com.example.kpkn.domain.nutrition.nutritionGoalActive
+import com.example.kpkn.domain.nutrition.nutritionTargetKgOf
 import com.example.kpkn.domain.nutrition.parseLocalizedNumber
 import com.example.kpkn.domain.nutrition.presetSeedValues
 import com.example.kpkn.domain.nutrition.recommendedPlanValues
@@ -42,7 +54,9 @@ import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.screens.nutrition.NutritionWizardDraft
 import com.example.kpkn.screens.onboarding.design.WizardChoiceCard
 import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.WizardMassUnit
 import com.example.kpkn.screens.onboarding.design.WizardNutritionDay
+import com.example.kpkn.screens.onboarding.design.WizardNutritionGoal
 import com.example.kpkn.screens.onboarding.design.WizardNutritionLiveState
 import com.example.kpkn.screens.onboarding.design.WizardNutritionPlanCallbacks
 import com.example.kpkn.screens.onboarding.design.WizardNutritionPlanModel
@@ -50,9 +64,12 @@ import com.example.kpkn.screens.onboarding.design.WizardNutritionPlanPanel
 import com.example.kpkn.screens.onboarding.design.WizardShapes
 import com.example.kpkn.screens.onboarding.design.WizardSpacing
 import com.example.kpkn.screens.onboarding.design.WizardTypography
+import com.example.kpkn.screens.onboarding.design.WizardWeightRule
+import com.example.kpkn.screens.onboarding.design.WizardWeightScale
 import kotlinx.coroutines.delay
 import java.time.LocalDate
 import java.util.UUID
+import kotlin.math.abs
 
 /**
  * Cuerpo de los pasos del bloque NUTRITION.
@@ -164,6 +181,13 @@ private fun NutritionEligibilityContent(state: SetupWizardState, vm: SetupWizard
 
 // ─── NUTRITION_DIRECTION ────────────────────────────────────────────────────
 
+/** Qué significa cada opción de la dirección (sin cifras: lo dice el motor en el resultado). */
+internal val nutritionDirectionSubtitles: Map<String, String> = mapOf(
+    "deficit" to "Comes un poco menos de lo que gastas para bajar grasa sin perder músculo.",
+    "maintenance" to "Comes lo que gastas para sostener tu peso mientras entrenas.",
+    "surplus" to "Comes un poco más de lo que gastas para ganar músculo poco a poco.",
+)
+
 @Composable
 private fun NutritionDirectionContent(state: SetupWizardState, vm: SetupWizardViewModel) {
     val step = SetupStepId.NUTRITION_DIRECTION
@@ -172,6 +196,7 @@ private fun NutritionDirectionContent(state: SetupWizardState, vm: SetupWizardVi
     SetupBodyChoiceCards(
         step = step,
         selected = selected,
+        subtitles = nutritionDirectionSubtitles,
         onSelect = { value ->
             setupEnumValueOrNull<PlanDirection>(value)?.let { resolved ->
                 vm.updateStep(step) { draft -> draft.withNutritionDraft { it.copy(direction = resolved) } }
@@ -219,22 +244,150 @@ private fun NutritionRhythmContent(state: SetupWizardState, vm: SetupWizardViewM
 @Composable
 private fun NutritionTargetContent(state: SetupWizardState, vm: SetupWizardViewModel) {
     val step = SetupStepId.NUTRITION_TARGET
-    val domainText = state.draft.nutritionDraft?.targetWeightText.orEmpty()
-    // `inputTexts` se lee siempre con `step.name`; conserva el valor crudo.
-    val initial = domainText.ifBlank { state.draft.inputTexts[step.name].orEmpty() }
-    SetupBodyTextField(
-        label = "Peso objetivo (kg)",
-        initial = initial,
-        keyboardType = KeyboardType.Decimal,
-        helper = "Opcional. Déjalo vacío si no quieres fijar una meta de peso.",
-        onValueChange = { raw ->
-            val parsed = parseLocalizedNumber(raw)?.takeIf { it.isFinite() && it in 20.0..500.0 }
-            vm.updateStep(step) { draft -> draft.withNutritionDraft { it.copy(targetWeightText = raw.trim()) } }
-            vm.setStepText(step, raw)
-            vm.setStepNumber(step, parsed)
-        },
+    val nutrition = state.draft.nutritionDraft
+    val unit = wizardMassUnitOf(state.draft)
+    val currentKg = state.draft.weightKg
+    if (currentKg != null) {
+        NutritionTargetControl(
+            unit = unit,
+            currentKg = currentKg,
+            direction = nutrition?.direction,
+            pace = nutrition?.pacePreset ?: WizardPacePreset.MEDIUM,
+            committedKg = nutritionTargetKgOf(nutrition),
+            onCommit = { kg -> commitNutritionTarget(vm, step, unit, kg) },
+        )
+    } else {
+        SetupBodyHint(text = "Primero confirma tu peso actual: desde él medimos el objetivo.")
+    }
+    // `inputTexts` se lee siempre con `step.name`: un texto crudo también cuenta como respuesta ya dada.
+    val stored = nutrition?.targetWeightText.orEmpty().ifBlank { state.draft.inputTexts[step.name].orEmpty() }
+    SetupBodySkipAction(step = step, vm = vm, label = "No fijar peso objetivo", visible = stored.isBlank())
+}
+
+/** Escribe el peso objetivo en el borrador nutricional, en [unit] (la del alta), y lo declara como respuesta del paso. */
+private fun commitNutritionTarget(vm: SetupWizardViewModel, step: SetupStepId, unit: WizardMassUnit, kg: Double) {
+    val display = WizardWeightScale.snap(WizardWeightScale.toDisplay(kg, unit))
+    val text = WizardWeightScale.format(display)
+    vm.updateStep(step) { draft -> draft.withNutritionDraft { it.copy(targetWeightText = text, weightUnit = unit.code) } }
+    vm.setStepText(step, text)
+    vm.setStepNumber(step, display)
+}
+
+/**
+ * Peso objetivo con la regla de peso de Datos básicos ([WizardWeightRule]), la diferencia con el peso actual y la
+ * estimación con el ritmo elegido. Arrastrar solo propone un peso; tocar la cifra lo fija ([onCommit], en kg). Cada
+ * propuesta respeta el límite de la dirección ([goalWeightWindow]). La regla no admite límites propios: al pasarse,
+ * vuelve a centrarse en el límite, así lo que se ve es lo que se guarda.
+ */
+@Composable
+internal fun NutritionTargetControl(
+    unit: WizardMassUnit,
+    currentKg: Double,
+    direction: PlanDirection?,
+    pace: WizardPacePreset,
+    committedKg: Double?,
+    onCommit: (Double) -> Unit,
+) {
+    val window = remember(direction, currentKg) { goalWeightWindow(direction, currentKg) }
+    // La posición de arranque es el objetivo guardado o el peso actual: no es una respuesta hasta que se fija.
+    var ruleAnchorKg by remember(unit) { mutableStateOf(committedKg ?: currentKg) }
+    var ruleGeneration by remember(unit) { mutableIntStateOf(0) }
+    var proposalKg by remember(unit) { mutableStateOf<Double?>(null) }
+    var pending by remember(unit) { mutableStateOf(false) }
+    val shownKg = proposalKg ?: committedKg
+
+    val estimate = shownKg?.let { value ->
+        goalWeeklyChangeKg(direction, pace, currentKg)?.let { weekly -> goalWeeksRange(currentKg, value, weekly) }
+    }?.let { goalWeeksText(it, pace) }
+    val hint = when {
+        pending -> "Toca la cifra para fijar este objetivo."
+        shownKg == null -> window?.let {
+            "Desliza la regla y toca la cifra para fijarlo: entre ${goalDisplayText(it.start, unit)} y " +
+                "${goalDisplayText(it.endInclusive, unit)} ${unit.code}."
+        }
+        else -> null
+    }
+
+    Column(modifier = Modifier.fillMaxWidth().testTag("setup-nutrition-target")) {
+        key(ruleGeneration) {
+            WizardWeightRule(
+                unit = unit,
+                valueKg = ruleAnchorKg,
+                onValueChange = { kg ->
+                    val bounded = window?.let { kg.coerceIn(it) } ?: kg
+                    proposalKg = bounded
+                    pending = true
+                    if (bounded != kg) {
+                        ruleAnchorKg = bounded
+                        ruleGeneration++
+                    }
+                },
+                onConfirm = {
+                    proposalKg?.let { kg ->
+                        onCommit(kg)
+                        pending = false
+                    }
+                },
+            )
+        }
+        if (shownKg != null) {
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = goalDifferenceText(shownKg, currentKg, unit),
+                style = WizardTypography.controlValue,
+                color = WizardColors.text,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+        if (estimate != null) {
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = estimate,
+                style = WizardTypography.note,
+                color = WizardColors.textMuted,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+        if (hint != null) {
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = hint,
+                style = WizardTypography.note,
+                color = WizardColors.textMuted,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+    }
+}
+
+/** Un peso en la unidad del alta, sin el código (p. ej. «79,5»). */
+private fun goalDisplayText(kg: Double, unit: WizardMassUnit): String =
+    WizardWeightScale.format(WizardWeightScale.snap(WizardWeightScale.toDisplay(kg, unit)))
+
+/** La diferencia con el peso actual: «−8,5 kg desde tus 80 kg»; «Igual que tu peso actual» si no cambia. */
+private fun goalDifferenceText(targetKg: Double, currentKg: Double, unit: WizardMassUnit): String {
+    val delta = WizardWeightScale.snap(
+        WizardWeightScale.toDisplay(targetKg, unit) - WizardWeightScale.toDisplay(currentKg, unit),
     )
-    SetupBodySkipAction(step = step, vm = vm, label = "No fijar peso objetivo", visible = initial.isBlank())
+    if (delta == 0.0) return "Igual que tu peso actual"
+    val sign = if (delta < 0) "−" else "+"
+    return "$sign${WizardWeightScale.format(abs(delta))} ${unit.code} desde tus " +
+        WizardWeightScale.formatWithUnit(currentKg, unit)
+}
+
+/** «≈ 18–24 semanas a ritmo medio», con la estimación del motor. */
+private fun goalWeeksText(range: IntRange, pace: WizardPacePreset): String {
+    val count = if (range.first == range.last) "${range.first}" else "${range.first}–${range.last}"
+    val word = if (range.last == 1) "semana" else "semanas"
+    val rhythm = when (pace) {
+        WizardPacePreset.SLOW -> "a ritmo suave"
+        WizardPacePreset.MEDIUM -> "a ritmo medio"
+        WizardPacePreset.FAST -> "a ritmo rápido"
+    }
+    return "≈ $count $word $rhythm"
 }
 
 // ─── NUTRITION_HISTORY_CONTEXT ──────────────────────────────────────────────
@@ -452,6 +605,10 @@ private fun NutritionWeighInsContent(state: SetupWizardState, vm: SetupWizardVie
     ) {
         Text("Añadir pesaje", style = WizardTypography.cardSubtitle, color = WizardColors.text)
     }
+    SetupBodyHint(
+        text = "Hacen falta unas dos semanas de pesajes y comidas para el primer ajuste.",
+        modifier = Modifier.padding(top = 4.dp),
+    )
     SetupBodySkipAction(
         step = step,
         vm = vm,
@@ -462,6 +619,7 @@ private fun NutritionWeighInsContent(state: SetupWizardState, vm: SetupWizardVie
     if (creating || target != null) {
         WeighInDialog(
             initial = target,
+            existing = rows,
             onDismiss = {
                 creating = false
                 editing = null
@@ -510,6 +668,7 @@ private fun WeighInRow(row: SetupWeighIn, onEdit: () -> Unit, onDelete: () -> Un
 @Composable
 private fun WeighInDialog(
     initial: SetupWeighIn?,
+    existing: List<SetupWeighIn>,
     onDismiss: () -> Unit,
     onSave: (SetupWeighIn) -> Unit,
 ) {
@@ -522,6 +681,7 @@ private fun WeighInDialog(
         date.isBlank() -> "Escribe la fecha"
         parsedDate == null -> "Usa el formato AAAA-MM-DD"
         parsedDate.isAfter(today) -> "La fecha no puede ser futura"
+        weighInDateTaken(existing, parsedDate.toString(), initial?.id) -> "Ya hay un pesaje ese día."
         else -> null
     }
     val weightError = when {
@@ -529,7 +689,7 @@ private fun WeighInDialog(
         parsedWeight == null -> "Peso entre 20 y 500 kg"
         else -> null
     }
-    val valid = parsedDate != null && !parsedDate.isAfter(today) && parsedWeight != null
+    val valid = parsedDate != null && !parsedDate.isAfter(today) && parsedWeight != null && dateError == null
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -773,6 +933,7 @@ private fun NutritionPlanEditor(
             } else {
                 "Restablecer a lo que traías"
             },
+            goal = nutritionGoalOf(state),
         ),
         callbacks = callbacks,
     )
@@ -892,4 +1053,43 @@ internal fun nutritionResultGate(state: SetupWizardState, step: SetupStepId): Ma
         NUTRITION_EXTREME_PACE_MESSAGE
     }
     return mapOf("nutritionPlan" to message)
+}
+
+// ─── Lógica pura del peso objetivo, los pesajes y el hito ─────────────────────────────────────
+
+/** Unidad del peso del alta (la del borrador): la regla y el texto del objetivo van en ella. */
+internal fun wizardMassUnitOf(draft: SetupWizardDraft): WizardMassUnit =
+    if (draft.weightUnit == "lb") WizardMassUnit.LB else WizardMassUnit.KG
+
+/** Ya hay otro pesaje con esa fecha: no se admiten dos el mismo día (el que se edita no cuenta). */
+internal fun weighInDateTaken(existing: List<SetupWeighIn>, dateIso: String, editingId: String?): Boolean =
+    existing.any { it.dateIso == dateIso && it.id != editingId }
+
+/** Qué celebración cierra el bloque de nutrición: la de la meta o la de siempre. */
+internal enum class NutritionMilestoneVariant { STANDARD, GOAL }
+
+/** Con meta de peso (Definir o Volumen) el hito de nutrición es «Objetivo establecido»; si no, el de siempre. */
+internal fun nutritionMilestoneVariant(draft: SetupWizardDraft): NutritionMilestoneVariant {
+    val nutrition = draft.nutritionDraft ?: return NutritionMilestoneVariant.STANDARD
+    if (nutrition.configurationMode == NutritionConfigurationMode.TRACKING_ONLY) return NutritionMilestoneVariant.STANDARD
+    return if (nutritionGoalActive(nutrition.direction, nutritionTargetKgOf(nutrition))) {
+        NutritionMilestoneVariant.GOAL
+    } else {
+        NutritionMilestoneVariant.STANDARD
+    }
+}
+
+/** La meta del plan («Hasta tu objetivo»): el peso de hoy y el objetivo guardado; null si falta uno de los dos. */
+internal fun nutritionGoalOf(state: SetupWizardState): WizardNutritionGoal? {
+    val targetKg = nutritionTargetKgOf(state.draft.nutritionDraft) ?: return null
+    val currentKg = state.draft.weightKg ?: return null
+    return WizardNutritionGoal(currentKg = currentKg, targetKg = targetKg, unit = wizardMassUnitOf(state.draft))
+}
+
+/** «Fecha estimada: entre marzo y abril de 2027» del hito con meta, con el ritmo que se activa; null si no hay fecha. */
+internal fun nutritionGoalNoteOf(state: SetupWizardState): String? {
+    val goal = nutritionGoalOf(state) ?: return null
+    val weeklyKg = nutritionPlanTuningOf(state)?.weeklyChangeKg ?: return null
+    val span = goalDateSpanText(goal.currentKg, goal.targetKg, weeklyKg) ?: return null
+    return "Fecha estimada: $span"
 }
