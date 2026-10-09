@@ -50,6 +50,7 @@ enum class PlanTerm {
     TOP_SET,
     SPEED,
     DELOAD,
+    BLOCKS,
     CYCLE,
     POWERLIFTING,
     POWERBUILDING,

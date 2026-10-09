@@ -147,6 +147,7 @@ data class CatalogEntry(
     /**
      * Programa «a medida» del generador de rutinas (Entreno v2): entrada NATIVE sin listar cuyo programa NO sale de
      * `SimpleCyclePersonalizer` sino de `RoutineGenerator` (el asistente ramifica por esto antes de la ruta nativa).
+     * Cuentan también sus variantes en bloques y periodizada (`generated:<sourceId>:blocks`, `:periodized`).
      */
     val isGenerated: Boolean
         get() = source == CatalogSource.NATIVE && id.startsWith(PersonalizedPlanCatalog.GENERATED_PREFIX)
@@ -261,6 +262,16 @@ object PersonalizedPlanCatalog {
     const val GENERATED_PREFIX = "generated:"
 
     /**
+     * Variantes de cada programa «a medida» (punto 12): en bloques (`generated:<sourceId>:blocks`, 6 semanas) y
+     * periodizado (`…:periodized`, 12). La semana simple (`generated:<sourceId>`) sigue siendo el `structureTemplateId`
+     * de los programas ya activos. Las semanas las arma el periodizador (`domain/training/periodization`).
+     */
+    const val GENERATED_BLOCKS_SUFFIX = "blocks"
+    const val GENERATED_PERIODIZED_SUFFIX = "periodized"
+    const val GENERATED_BLOCKS_WEEKS = 6
+    const val GENERATED_PERIODIZED_WEEKS = 12
+
+    /**
      * Un programa «a medida». [sourceId] es el sufijo del id y la clave con la que el asistente elige el modo del
      * generador. [references] solo sirve para el modo del programa (`programModeFor`) y para que la hoja del plan
      * hable de la disciplina correcta: la entrada no se lista, así que ningún filtro de disciplina la ve.
@@ -294,27 +305,45 @@ object PersonalizedPlanCatalog {
         GeneratedSpec("bodybuilding", setOf(TrainingReference.HYPERTROPHY), setOf(TrainingCapability.HYPERTROPHY)),
     )
 
-    /** Ids de los programas «a medida», en el orden de [generatedSpecs]. */
+    /** Ids de la semana simple de cada programa «a medida», en el orden de [generatedSpecs]. */
     val GENERATED_IDS: List<String> = generatedSpecs.map { GENERATED_PREFIX + it.sourceId }
+
+    /** Ids de las variantes «en bloques» y «periodizado» de cada programa «a medida» (dos por perfil, en el mismo orden). */
+    val GENERATED_VARIANT_IDS: List<String> = generatedSpecs.flatMap { spec ->
+        listOf(generatedIdOf(spec.sourceId, GENERATED_BLOCKS_SUFFIX), generatedIdOf(spec.sourceId, GENERATED_PERIODIZED_SUFFIX))
+    }
+
+    /** Id de un programa «a medida»: la semana simple sin sufijo, o la variante con [variantSuffix] (`…:blocks`). */
+    fun generatedIdOf(sourceId: String, variantSuffix: String? = null): String =
+        GENERATED_PREFIX + sourceId + variantSuffix?.let { ":$it" }.orEmpty()
 
     /**
      * Entrada NATIVE sin listar (`listed = false` en su ficha): una semana que se repite, para cualquier día de 1 a 7,
      * todos los niveles y cualquier material (el generador decide qué cabe; `requiredEquipment` vacío no filtra nada).
      */
-    private fun generatedEntry(spec: GeneratedSpec): CatalogEntry {
-        val id = GENERATED_PREFIX + spec.sourceId
+    private fun generatedEntry(spec: GeneratedSpec): CatalogEntry =
+        generatedProgramEntry(spec, generatedIdOf(spec.sourceId), CatalogDuration.REPEATING_WEEK, weeks = 1)
+
+    /**
+     * Variante en bloques o periodizada: la misma fila de capacidades y referencias que su semana simple, pero un ciclo
+     * finito de [weeks] semanas (no se repite) y sin listar, como la simple.
+     */
+    private fun generatedVariantEntry(spec: GeneratedSpec, suffix: String, weeks: Int): CatalogEntry =
+        generatedProgramEntry(spec, generatedIdOf(spec.sourceId, suffix), CatalogDuration.FINITE_CYCLE, weeks)
+
+    private fun generatedProgramEntry(spec: GeneratedSpec, id: String, duration: CatalogDuration, weeks: Int): CatalogEntry {
         val editorial = PlanEditorialTable.forId(id)
         return CatalogEntry(
             id = id,
             source = CatalogSource.NATIVE,
             sourceId = spec.sourceId,
             title = editorial.displayName,
-            technicalSubtitle = PlanLabels.subtitle(CatalogDuration.REPEATING_WEEK, 1, editorial.levels),
+            technicalSubtitle = PlanLabels.subtitle(duration, weeks, editorial.levels),
             description = editorial.summary,
             requiredEquipment = emptySet(),
             supportedFrequencies = 1..7,
             level = CatalogLevel.BEGINNER,
-            duration = CatalogDuration.REPEATING_WEEK,
+            duration = duration,
             supportedFocuses = TrainingFocus.entries.toSet(),
             adaptation = AdaptationPolicy.CURATED_WEEKLY,
             publication = PublicationState.PUBLISHED,
@@ -323,7 +352,7 @@ object PersonalizedPlanCatalog {
             references = editorial.references ?: spec.references,
             capabilities = spec.capabilities,
             editorial = editorial,
-            durationWeeks = 1,
+            durationWeeks = weeks,
         )
     }
 
@@ -551,10 +580,20 @@ object PersonalizedPlanCatalog {
             )
         }
         return nativeSpecs.map(::nativeEntry) + ownProfileEntries.map(::ownProfileEntry) + generatedEntriesLazy +
-            templates + protocols + authoredEntriesLazy
+            generatedVariantEntriesLazy + templates + protocols + authoredEntriesLazy
     }
 
     private val generatedEntriesLazy: List<CatalogEntry> by lazy { generatedSpecs.map(::generatedEntry) }
+
+    /** Por cada perfil: primero la variante en bloques (6 semanas) y después la periodizada (12). */
+    private val generatedVariantEntriesLazy: List<CatalogEntry> by lazy {
+        generatedSpecs.flatMap { spec ->
+            listOf(
+                generatedVariantEntry(spec, GENERATED_BLOCKS_SUFFIX, GENERATED_BLOCKS_WEEKS),
+                generatedVariantEntry(spec, GENERATED_PERIODIZED_SUFFIX, GENERATED_PERIODIZED_WEEKS),
+            )
+        }
+    }
 
     /**
      * Entradas que se ofrecen al usuario (planner y biblioteca): las de [entries] salvo las

@@ -144,6 +144,13 @@ object PlanGlossary {
         )
         add(
             GlossaryEntry(
+                term = PlanTerm.BLOCKS,
+                title = "Bloques",
+                definition = "Tramos de semanas con un objetivo, como acumular volumen o subir la intensidad.",
+            ),
+        )
+        add(
+            GlossaryEntry(
                 term = PlanTerm.CYCLE,
                 title = "Ciclo que se repite",
                 definition = "Un ciclo es el conjunto de semanas del plan. Cuando termina, empieza otro igual con " +

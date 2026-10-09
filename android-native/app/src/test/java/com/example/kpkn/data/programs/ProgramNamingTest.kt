@@ -126,6 +126,14 @@ class ProgramNamingTest {
             assertEquals(id, generated.displayName, programNameFor(generated))
             assertEquals(id, mode, programModeFor(generated))
         }
+        // Punto 12: las variantes en bloques y periodizada se llaman como su ficha y toman el modo de su semana simple.
+        PersonalizedPlanCatalog.GENERATED_VARIANT_IDS.forEach { id ->
+            val variant = entry(id)
+            val simple = id.substringBeforeLast(':')
+            assertTrue("$id es NATIVE «a medida»", variant.isGenerated)
+            assertEquals(id, variant.displayName, programNameFor(variant))
+            assertEquals(id, expected.getValue(simple), programModeFor(variant))
+        }
     }
 
     @Test
@@ -163,7 +171,10 @@ class ProgramNamingTest {
     }
 
     private companion object {
-        /** 65 entradas menos las 18 ocultas (D2 y D1): los cinco nativos, strength-cardio, PHUL/PHAT anteriores y los diez «a medida». */
+        /**
+         * 85 entradas menos las 38 ocultas (D2, D1 y punto 12): los cinco nativos, strength-cardio, PHUL/PHAT anteriores y los
+         * treinta «a medida» (diez semanas simples y veinte variantes en bloques o periodizadas).
+         */
         const val EXPECTED_LISTED = 47
         const val MAX_NAME = 48
 

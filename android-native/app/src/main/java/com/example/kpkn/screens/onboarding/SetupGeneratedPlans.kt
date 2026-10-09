@@ -12,6 +12,10 @@ import com.example.kpkn.domain.onboarding.PlanCandidateSources
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.TrainingGoalProfile
 import com.example.kpkn.domain.training.generator.GeneratedRoutine
+import com.example.kpkn.domain.training.generator.RoutineRequest
+import com.example.kpkn.domain.training.periodization.Horizon
+import com.example.kpkn.domain.training.periodization.ProgramVariant
+import com.example.kpkn.domain.training.periodization.RoutinePeriodizer
 
 /*
  * Entreno v2 · piezas puras del paso PLAN que el ViewModel usa para los programas «a medida» y los planes de autor.
@@ -109,11 +113,50 @@ internal fun timeReviewNote(draft: SetupWizardDraft, longestMinutes: Int?): Stri
  * - El lugar de cada sesión (`Session.placeId`) según el resumen del generador: cada sesión se armó solo con el
  *   material de ese lugar.
  */
-internal fun generatedProgramOf(routine: GeneratedRoutine, entry: CatalogEntry, draft: SetupWizardDraft): Program {
-    val placeBySession = routine.summary.days.mapNotNull { day -> day.place?.let { place -> day.sessionId to place.name } }.toMap()
-    val base = routine.program
-    val placed = if (placeBySession.isEmpty()) base else base.copy(
-        macrocycles = base.macrocycles.map { macro ->
+internal fun generatedProgramOf(routine: GeneratedRoutine, entry: CatalogEntry, draft: SetupWizardDraft): Program =
+    presentGenerated(routine.program, placesOf(routine), entry, draft, baseIdOf = { sessionId -> sessionId })
+
+/**
+ * El programa de la variante de [entry] ([GeneratedPlans.variantOf]) para el alta [draft]. La simple es [generatedProgramOf].
+ * «En bloques» (6 semanas) y «periodizado» (12) salen del periodizador ([RoutinePeriodizer.build]), que materializa TODAS
+ * sus semanas a partir de la semana base de [routine]; [request] es el pedido con el que el generador armó esa semana.
+ * Sobre el resultado, lo mismo que la simple: el lugar de cada sesión se busca por su id base, sin el sufijo `-w<n>`.
+ */
+internal fun generatedVariantProgram(
+    routine: GeneratedRoutine,
+    entry: CatalogEntry,
+    draft: SetupWizardDraft,
+    request: RoutineRequest,
+): Program {
+    val variant = requireNotNull(GeneratedPlans.variantOf(entry.id)) { "«${entry.id}» no es un programa a medida" }
+    if (variant == ProgramVariant.SIMPLE) return generatedProgramOf(routine, entry, draft)
+    val horizon = Horizon.Weeks(requireNotNull(entry.durationWeeks) { "«${entry.id}» no declara sus semanas" })
+    val periodized = RoutinePeriodizer.build(request, routine.program, variant, horizon).program
+    return presentGenerated(periodized, placesOf(routine), entry, draft, baseIdOf = ::baseSessionIdOf)
+}
+
+/** El lugar de cada sesión de la semana base del generador, por su id. */
+private fun placesOf(routine: GeneratedRoutine): Map<String, String> =
+    routine.summary.days.mapNotNull { day -> day.place?.let { place -> day.sessionId to place.name } }.toMap()
+
+/** Id de la sesión de la semana base de la que sale [sessionId]: el periodizador añade `-w<n>` a cada sesión. */
+private fun baseSessionIdOf(sessionId: String): String = sessionId.replace(WEEK_SUFFIX, "")
+
+private val WEEK_SUFFIX = Regex("""-w\d+$""")
+
+/**
+ * Lo que el generador no sabe del alta, sobre [program]: el lugar de cada sesión ([placeBySession], por el id base que
+ * devuelve [baseIdOf]), las opciones del alta, el nombre y el modo de la ficha, el id de la entrada y el perfil de marcas.
+ */
+private fun presentGenerated(
+    program: Program,
+    placeBySession: Map<String, String>,
+    entry: CatalogEntry,
+    draft: SetupWizardDraft,
+    baseIdOf: (String) -> String,
+): Program {
+    val placed = if (placeBySession.isEmpty()) program else program.copy(
+        macrocycles = program.macrocycles.map { macro ->
             macro.copy(
                 blocks = macro.blocks.map { block ->
                     block.copy(
@@ -122,7 +165,7 @@ internal fun generatedProgramOf(routine: GeneratedRoutine, entry: CatalogEntry, 
                                 weeks = meso.weeks.map { week ->
                                     week.copy(
                                         sessions = week.sessions.map { session ->
-                                            placeBySession[session.id]?.let { session.copy(placeId = it) } ?: session
+                                            placeBySession[baseIdOf(session.id)]?.let { session.copy(placeId = it) } ?: session
                                         },
                                     )
                                 },
@@ -135,7 +178,7 @@ internal fun generatedProgramOf(routine: GeneratedRoutine, entry: CatalogEntry, 
     )
     val appliedBag = draft.trainingOptions.orderPriorities.filterValues { points -> points > 0 }
     return draft.trainingOptions.applyTo(placed).copy(
-        id = draft.commitId.ifBlank { base.id },
+        id = draft.commitId.ifBlank { program.id },
         name = programNameFor(entry),
         mode = programModeFor(entry),
         structureTemplateId = entry.id,

@@ -59,6 +59,21 @@ class PlanNamingUniquenessTest {
         }
     }
 
+    /** Punto 12: las veinte variantes (en bloques y periodizadas) entran en la comprobación con un nombre propio. */
+    @Test
+    fun the_twenty_variants_have_their_own_names_inside_the_offer() {
+        val variants = offered.filter { it.id in PersonalizedPlanCatalog.GENERATED_VARIANT_IDS }
+        assertEquals("las veinte variantes están en la oferta", PersonalizedPlanCatalog.GENERATED_VARIANT_IDS.size, variants.size)
+        assertEquals("nombres distintos entre variantes", variants.size, variants.map { normalized(it.displayName) }.toSet().size)
+        variants.forEach { variant ->
+            val simple = requireNotNull(PersonalizedPlanCatalog.find(variant.id.substringBeforeLast(':'))) { "falta la semana simple de ${variant.id}" }
+            assertFalse(
+                "${variant.id} repite el nombre de su semana simple",
+                normalized(variant.displayName) == normalized(simple.displayName),
+            )
+        }
+    }
+
     @Test
     fun the_structure_kicker_of_a_one_week_program_says_it_repeats() {
         assertEquals("1 SEMANA · SE REPITE", SetupPlanReveals.structureKicker(programOf(listOf(null to 1))))

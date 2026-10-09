@@ -72,9 +72,12 @@ class PersonalizedPlanCatalogTest {
     fun nativeFamiliesArePublishedAndNamespaced() {
         val entries = PersonalizedPlanCatalog.entries()
         // 8 familias históricas + los cuatro planes propios de §11.1 (T-004a) que arma el personalizador nativo, y los
-        // diez programas «a medida» del generador de Entreno v2 (también NATIVE, sin listar).
+        // diez programas «a medida» del generador de Entreno v2 con sus veinte variantes (también NATIVE, sin listar).
         assertEquals(12, entries.count { it.source == CatalogSource.NATIVE && !it.isGenerated })
-        assertEquals(PersonalizedPlanCatalog.GENERATED_IDS, entries.filter { it.isGenerated }.map { it.id })
+        assertEquals(
+            PersonalizedPlanCatalog.GENERATED_IDS + PersonalizedPlanCatalog.GENERATED_VARIANT_IDS,
+            entries.filter { it.isGenerated }.map { it.id },
+        )
         listOf(
             "native:full-body",
             "native:gym-muscle",
@@ -113,12 +116,13 @@ class PersonalizedPlanCatalogTest {
         val all = PersonalizedPlanCatalog.entries()
         val listed = PersonalizedPlanCatalog.listedEntries()
 
-        // Los diez programas «a medida» del generador (Entreno v2) también son NATIVE sin listar: no cuentan aquí.
+        // Los treinta programas «a medida» del generador (Entreno v2: diez simples y veinte variantes) también son NATIVE
+        // sin listar: no cuentan aquí.
         assertEquals("nativos en entries()", 12, all.count { it.source == CatalogSource.NATIVE && !it.isGenerated })
         assertEquals("nativos en listedEntries()", 6, listed.count { it.source == CatalogSource.NATIVE })
         assertEquals(
             "ocultos exactos",
-            (hidden + PersonalizedPlanCatalog.GENERATED_IDS).sorted(),
+            (hidden + PersonalizedPlanCatalog.GENERATED_IDS + PersonalizedPlanCatalog.GENERATED_VARIANT_IDS).sorted(),
             all.filterNot { it.listed }.map { it.id }.sorted(),
         )
         assertEquals(

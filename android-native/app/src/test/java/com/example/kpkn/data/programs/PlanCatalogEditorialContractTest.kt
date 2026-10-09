@@ -179,8 +179,8 @@ class PlanCatalogEditorialContractTest {
 
     @Test
     fun every_adaptive_plan_declares_all_the_levels() {
-        // Los cuatro planes propios, las ocho familias históricas, los diez programas «a medida» del generador y las
-        // plantillas simples se adaptan al nivel.
+        // Los cuatro planes propios, las ocho familias históricas, los treinta programas «a medida» del generador (con sus
+        // variantes) y las plantillas simples se adaptan al nivel.
         val adaptive = entries.filter { it.source == CatalogSource.NATIVE || it.template?.recipe == null && it.source == CatalogSource.TEMPLATE }
         assertEquals(12 + GENERATED.size + 3, adaptive.size)
         adaptive.forEach { assertEquals("${it.id}: debe valer para todos los niveles", CatalogLevel.entries.toSet(), it.levels) }
@@ -263,9 +263,17 @@ class PlanCatalogEditorialContractTest {
             assertEquals(id, CatalogDuration.FINITE_CYCLE, entry(id).duration)
             assertEquals(id, NativeWeekBuilder.WEEKS, entry(id).durationWeeks)
         }
-        entries.filter { it.source == CatalogSource.NATIVE && it.id.endsWith("-v2").not() }.forEach { entry ->
+        // Las variantes «en bloques» y «periodizada» (punto 12) son ciclos finitos de 6 y 12 semanas, no una semana que se repite.
+        entries.filter {
+            it.source == CatalogSource.NATIVE && it.id.endsWith("-v2").not() && it.id !in PersonalizedPlanCatalog.GENERATED_VARIANT_IDS
+        }.forEach { entry ->
             assertEquals(entry.id, CatalogDuration.REPEATING_WEEK, entry.duration)
             assertEquals(entry.id, 1, entry.durationWeeks)
+        }
+        PersonalizedPlanCatalog.GENERATED_VARIANT_IDS.forEach { id ->
+            val weeks = if (id.endsWith(":blocks")) 6 else 12
+            assertEquals(id, CatalogDuration.FINITE_CYCLE, entry(id).duration)
+            assertEquals(id, weeks, entry(id).durationWeeks)
         }
     }
 
@@ -493,7 +501,8 @@ class PlanCatalogEditorialContractTest {
     @Test
     fun only_the_hidden_historicals_are_unlisted_and_only_two_cards_override_the_references() {
         // `listed = false` exactamente en los históricos ocultos (D2: cinco nativos; D1: strength-cardio y las versiones
-        // anteriores de PHUL y PHAT) y en los diez programas «a medida» del generador (Entreno v2), que solo ofrece el asistente.
+        // anteriores de PHUL y PHAT) y en los treinta programas «a medida» del generador (Entreno v2, con sus variantes), que solo
+        // ofrece el asistente.
         val unlisted = PlanEditorialTable.byId.filterValues { !it.listed }.keys
         assertEquals("fichas con listed = false", HIDDEN_HISTORICALS + GENERATED, unlisted)
 
@@ -530,8 +539,8 @@ class PlanCatalogEditorialContractTest {
 
     @Test
     fun hidden_entries_stay_in_the_catalog_but_not_in_the_listed_entries() {
-        // `entries()` conserva las 65 (programas ya activados, `lookup`, ruta histórica del personalizador y los
-        // programas «a medida» del asistente).
+        // `entries()` conserva las 85 (programas ya activados, `lookup`, ruta histórica del personalizador y los
+        // programas «a medida» del asistente, con sus variantes).
         assertEquals(EXPECTED_ENTRIES, entries.size)
         val hidden = HIDDEN_HISTORICALS + GENERATED
         assertEquals(
@@ -540,7 +549,7 @@ class PlanCatalogEditorialContractTest {
             entries.filterNot { it.listed }.map { it.id }.toSet(),
         )
 
-        // `listedEntries()` ofrece 47: las mismas sin las dieciocho ocultas, en el mismo orden.
+        // `listedEntries()` ofrece 47: las mismas sin las treinta y ocho ocultas, en el mismo orden.
         val listed = PersonalizedPlanCatalog.listedEntries()
         assertEquals(EXPECTED_ENTRIES - hidden.size, listed.size)
         assertEquals(entries.filter { it.id !in hidden }.map { it.id }, listed.map { it.id })
@@ -636,11 +645,11 @@ class PlanCatalogEditorialContractTest {
     )
 
     private companion object {
-        /** 55 del catálogo de planes + los 10 programas «a medida» del generador (Entreno v2). */
-        const val EXPECTED_ENTRIES = 65
+        /** 55 del catálogo de planes + los 10 programas «a medida» del generador y sus 20 variantes (Entreno v2, punto 12). */
+        const val EXPECTED_ENTRIES = 85
 
-        /** Entreno v2: los programas «a medida» del generador, sin listar (los ofrece solo el asistente). */
-        val GENERATED = PersonalizedPlanCatalog.GENERATED_IDS.toSet()
+        /** Entreno v2: los programas «a medida» del generador (semana simple y variantes), sin listar: los ofrece solo el asistente. */
+        val GENERATED = (PersonalizedPlanCatalog.GENERATED_IDS + PersonalizedPlanCatalog.GENERATED_VARIANT_IDS).toSet()
         const val MAX_NAME_LENGTH = 48
         const val OWN_PLAN = "Plan propio de KPKN."
         const val STRENGTH_CARDIO = "native:strength-cardio"

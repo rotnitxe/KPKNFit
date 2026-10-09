@@ -190,9 +190,10 @@ class PlanFitTest {
         // Con la letra normal, solo el título más largo del catálogo baja del mínimo.
         val below = posterFits(320f, 1f).filter { it.fit.sp < COVER_TITLE_MIN_SP }
         assertTrue("bajan del mínimo: ${below.map { it.title }}", below.size <= 1)
-        // Y con el 130 %, a lo sumo cuatro títulos. Con los nombres de D1 (punto 12) bajan «Fundamentos de fuerza»,
-        // «Fundamentos de músculo», «Fundamentos de powerbuilding» y el complemento de peso muerto: el conjunto queda fijado
-        // aquí y cualquier cambio de nombre o de tamaño de letra lo hace visible (pendiente de decisión: acortar o aceptar).
+        // Y con el 130 %, el conjunto exacto de títulos por debajo del mínimo queda fijado: los de D1 (punto 12) «Fundamentos de
+        // fuerza», «Fundamentos de músculo», «Fundamentos de powerbuilding» y el complemento de peso muerto, y los de D2b
+        // (punto 12, ronda 2) «Progresiones en bloques» y «Temporada powerbuilding». Las palabras caben enteras en todos. Cualquier
+        // cambio de nombre o de tamaño de letra lo hace visible (pendiente de decisión del usuario: acortar o aceptar).
         val belowLarge = posterFits(320f, 1.3f).filter { it.fit.sp < COVER_TITLE_MIN_SP }
         assertEquals(
             "bajan del mínimo con letra grande",
@@ -201,6 +202,8 @@ class PlanFitTest {
                 "Fundamentos de músculo",
                 "Fundamentos de powerbuilding",
                 "Complemento de peso muerto (Coan y Philippi)",
+                "Progresiones en bloques",
+                "Temporada powerbuilding",
             ),
             belowLarge.map { it.title }.toSet(),
         )
