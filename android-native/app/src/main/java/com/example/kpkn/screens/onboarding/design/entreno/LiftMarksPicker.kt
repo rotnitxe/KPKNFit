@@ -73,6 +73,7 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.onboarding.LiftMark
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardTypography
@@ -121,9 +122,13 @@ internal object LiftMarkDefaults {
  * arrastrar (2,5 kg o 5 lb): lo guardado es siempre kg. [onValueKg] recibe la marca en kg, o `null` cuando la persona
  * dice «No la sé». [onUnit] recibe la unidad a la que cambió el conmutador.
  *
+ * [repsByLift] son las repeticiones de una serie de trabajo («kg × reps», de 2 a 10) por levantamiento; ausentes = 1RM.
+ * [onReps] recibe las repeticiones elegidas, o `null` al volver a «1RM». [variantLabels] pone la variante en el nombre de la
+ * fila («Sentadilla · Frontal»). Quien no los pasa ve la regla de siempre.
+ *
  * Declarar es mover: la posición de arranque de una regla no es una respuesta; el primer contacto (arrastrar o tocar)
- * declara el valor. Marcas de prueba: `setup-mark-<NAME>` (fila), `setup-mark-<NAME>-ruler`, `setup-mark-<NAME>-unknown`
- * y `setup-mark-unit`.
+ * declara el valor. Marcas de prueba: `setup-mark-<NAME>` (fila), `setup-mark-<NAME>-ruler`, `setup-mark-<NAME>-unknown`,
+ * `setup-mark-<NAME>-mode`, `setup-mark-<NAME>-reps` y `setup-mark-unit`.
  */
 @Composable
 fun LiftMarksPicker(
@@ -133,6 +138,9 @@ fun LiftMarksPicker(
     onValueKg: (LiftMark, Double?) -> Unit,
     onUnit: (String) -> Unit,
     modifier: Modifier = Modifier,
+    repsByLift: Map<LiftMark, Int> = emptyMap(),
+    onReps: (LiftMark, Int?) -> Unit = { _, _ -> },
+    variantLabels: Map<LiftMark, String> = emptyMap(),
 ) {
     val u = MarksMath.normalizeUnit(unit)
     val reduced = wizardReducedMotion()
@@ -150,20 +158,24 @@ fun LiftMarksPicker(
             key(lift) {
                 LiftRow(
                     lift = lift,
+                    name = variantLabels[lift]?.let { "${lift.label} · $it" } ?: lift.label,
                     expanded = lift == expanded,
                     valueKg = valuesKg[lift],
+                    // Las repeticiones solo cuentan con una marca declarada: sin kg no hay serie que estimar.
+                    reps = repsByLift[lift]?.takeIf { valuesKg[lift] != null },
                     unit = u,
                     clock = clock,
                     reducedMotion = reduced,
                     onExpand = { expandedName = lift.name },
                     onValueKg = { onValueKg(lift, it) },
+                    onReps = { onReps(lift, it) },
                 )
                 // La figura plegada se apoya en este filete: es su suelo.
                 Hairline()
             }
         }
         Text(
-            text = "Tu mejor levantamiento de una repetición, o una estimación.",
+            text = "Con una serie de 2 a 10 repeticiones estimamos tu 1RM.",
             style = WizardTypography.note,
             color = WizardColors.textFaint,
             modifier = Modifier.padding(top = 12.dp),
@@ -222,18 +234,27 @@ private fun UnitWord(word: String, active: Boolean) {
 @Composable
 private fun LiftRow(
     lift: LiftMark,
+    name: String,
     expanded: Boolean,
     valueKg: Double?,
+    reps: Int?,
     unit: String,
     clock: State<Float>,
     reducedMotion: Boolean,
     onExpand: () -> Unit,
     onValueKg: (Double?) -> Unit,
+    onReps: (Int?) -> Unit,
 ) {
     val declared = valueKg != null
     val symbolHeight by animateDpAsState(if (expanded) 108.dp else 68.dp, tween(if (reducedMotion) 0 else 260), label = "mark-symbol-h")
     val symbolWidth by animateDpAsState(if (expanded) 108.dp else 64.dp, tween(if (reducedMotion) 0 else 260), label = "mark-symbol-w")
-    val valueText = if (valueKg != null) MarksMath.formatMark(MarksMath.clampKg(valueKg), unit) else "No la sé"
+    val kg = valueKg
+    // Fila plegada: «100 kg» con 1RM, «100 kg × 5» con una serie de trabajo y «No la sé» sin marca.
+    val valueText = when {
+        kg == null -> "No la sé"
+        reps != null -> "${MarksMath.formatMark(MarksMath.clampKg(kg), unit)} × $reps"
+        else -> MarksMath.formatMark(MarksMath.clampKg(kg), unit)
+    }
 
     Column(Modifier.fillMaxWidth()) {
         Row(
@@ -255,7 +276,7 @@ private fun LiftRow(
                     },
                 )
                 .semantics(mergeDescendants = true) {
-                    contentDescription = "${lift.label}, $valueText"
+                    contentDescription = "$name, $valueText"
                     stateDescription = if (expanded) "Desplegada" else "Plegada"
                 }
                 .defaultMinSize(minHeight = 70.dp)
@@ -272,7 +293,7 @@ private fun LiftRow(
             )
             Spacer(Modifier.width(14.dp))
             Text(
-                text = lift.label,
+                text = name,
                 style = WizardTypography.controlLabel,
                 color = WizardColors.text,
                 modifier = Modifier.weight(1f),
@@ -295,31 +316,49 @@ private fun LiftRow(
             ExpandedMark(
                 lift = lift,
                 valueKg = valueKg,
+                reps = reps,
                 unit = unit,
                 reducedMotion = reducedMotion,
                 onValueKg = onValueKg,
+                onReps = onReps,
             )
         }
     }
 }
 
-/** El cuerpo desplegado: el valor grande, la regla y «No la sé». */
+/**
+ * El cuerpo desplegado: el conmutador «1RM · Mi mejor serie», el valor grande y la regla de kg. Con «Mi mejor serie», debajo, la
+ * regla de repeticiones y la estimación del 1RM. Y «No la sé».
+ */
 @Composable
 private fun ExpandedMark(
     lift: LiftMark,
     valueKg: Double?,
+    reps: Int?,
     unit: String,
     reducedMotion: Boolean,
     onValueKg: (Double?) -> Unit,
+    onReps: (Int?) -> Unit,
 ) {
     val declared = valueKg != null
     // Posición viva de la regla (kg, continua): sirve para el valor grande mientras no hay marca declarada.
     val posKg = remember(lift) { mutableFloatStateOf((valueKg ?: LiftMarkDefaults.startKg(lift)).toFloat()) }
     val shownKg = valueKg?.let { MarksMath.clampKg(it) } ?: MarksMath.snapFromKg(posKg.floatValue.toDouble(), unit)
+    // «Mi mejor serie» se abre sola si ya hay repeticiones guardadas: es el modo de la persona, no un dato aparte.
+    var byReps by rememberSaveable(lift) { mutableStateOf((reps ?: 1) > 1) }
 
     Column(Modifier.fillMaxWidth().padding(bottom = 6.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        RepsModeSwitch(
+            lift = lift,
+            byReps = byReps,
+            onChange = { on ->
+                byReps = on
+                // Volver a 1RM borra las repeticiones; el kg se conserva. Pasar a «Mi mejor serie» no escribe nada hasta declararlas.
+                if (!on) onReps(null)
+            },
+        )
         Text(
-            text = MarksMath.formatMark(shownKg, unit),
+            text = MarksMath.formatMark(shownKg, unit) + (reps?.let { " × $it" }).orEmpty(),
             style = WizardTypography.controlValue,
             color = if (declared) WizardColors.text else WizardColors.textFaint,
             maxLines = 1,
@@ -353,6 +392,21 @@ private fun ExpandedMark(
             reducedMotion = reducedMotion,
             onValueKg = { onValueKg(it) },
         )
+        AnimatedVisibility(
+            visible = byReps,
+            enter = fadeIn(tween(if (reducedMotion) 0 else 220)) + expandVertically(tween(if (reducedMotion) 0 else 220)),
+            exit = fadeOut(tween(if (reducedMotion) 0 else 140)) + shrinkVertically(tween(if (reducedMotion) 0 else 160)),
+        ) {
+            RepsBlock(
+                lift = lift,
+                valueKg = valueKg,
+                shownKg = shownKg,
+                reps = reps,
+                unit = unit,
+                onValueKg = onValueKg,
+                onReps = onReps,
+            )
+        }
         // «No la sé»: interruptor de texto. Activo = sin marca (la regla queda atenuada).
         Text(
             text = "No la sé",
@@ -372,6 +426,80 @@ private fun ExpandedMark(
                 .defaultMinSize(minWidth = 96.dp, minHeight = 48.dp)
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             textAlign = TextAlign.Center,
+        )
+    }
+}
+
+// ---------------------------------------------------------------- una serie de trabajo («kg × reps»)
+
+/** Repeticiones de una serie de trabajo que se preguntan: de 2 a 10 (el 1 es el 1RM y no se guarda como serie). */
+private val MarkRepsRange: IntRange = 2..10
+
+/** «1RM  ·  Mi mejor serie»: texto sin caja, como «kg · lb». Activo = «Mi mejor serie» (una serie de trabajo, no un 1RM). */
+@Composable
+private fun RepsModeSwitch(lift: LiftMark, byReps: Boolean, onChange: (Boolean) -> Unit) {
+    Row(
+        modifier = Modifier
+            .testTag("${markTag(lift)}-mode")
+            .toggleable(
+                value = byReps,
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                role = Role.Switch,
+                onValueChange = onChange,
+            )
+            .semantics {
+                contentDescription = "Tipo de marca"
+                stateDescription = if (byReps) "Mi mejor serie" else "1RM"
+            }
+            .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
+            .padding(horizontal = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
+    ) {
+        UnitWord("1RM", active = !byReps)
+        Text("  ·  ", style = WizardTypography.controlLabel, color = WizardColors.textFaint)
+        UnitWord("Mi mejor serie", active = byReps)
+    }
+}
+
+/**
+ * La regla de repeticiones (de 2 a 10) y, debajo, lo que sale de la serie: «≈ 1RM estimado» con la fórmula híbrida, en la unidad
+ * elegida. Sin repeticiones declaradas, una pista de una línea. Declarar las repeticiones declara también el kg que se ve: una
+ * serie sin peso no existe.
+ */
+@Composable
+private fun RepsBlock(
+    lift: LiftMark,
+    valueKg: Double?,
+    shownKg: Double,
+    reps: Int?,
+    unit: String,
+    onValueKg: (Double?) -> Unit,
+    onReps: (Int?) -> Unit,
+) {
+    val estimate = if (valueKg != null && reps != null) calculateHybrid1RM(valueKg, reps) else null
+    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+        CountRuler(
+            range = MarkRepsRange,
+            value = reps,
+            onValue = { count ->
+                if (valueKg == null) onValueKg(shownKg)
+                onReps(count)
+            },
+            unitLabel = "Repeticiones",
+            tag = "${markTag(lift)}-reps",
+        )
+        Text(
+            text = if (estimate != null) {
+                "≈ 1RM estimado: ${MarksMath.formatMark(estimate, unit)}"
+            } else {
+                "Desliza la regla para elegir las repeticiones."
+            },
+            style = WizardTypography.note,
+            color = WizardColors.textMuted,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp).testTag("${markTag(lift)}-estimate"),
         )
     }
 }
@@ -618,7 +746,7 @@ private fun DrawScope.drawRuler(
  * a partir del cuadro de reposo; si no, se queda en ese cuadro. Con [declared] (ya hay marca) el disco lleva el acento.
  */
 @Composable
-private fun LiftSymbol(
+internal fun LiftSymbol(
     lift: LiftMark,
     running: Boolean,
     declared: Boolean,
