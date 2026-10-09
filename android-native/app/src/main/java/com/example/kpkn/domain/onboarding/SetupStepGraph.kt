@@ -498,7 +498,8 @@ object SetupStepGraph {
 
     /**
      * Primer paso de la ruta, entre [after] y [until] (ambos excluidos), que necesita atención antes de volver a [until]: sin
-     * respuesta, marcado para revisar o un hito cuyo bloque ya no está completo. Null si no hay ninguno, si [after] o [until] no
+     * respuesta o marcado para revisar. Un hito solo necesita atención si no tiene respuesta confirmable; con ella se salta, y
+     * el regreso lo cierra en silencio al dejarlo atrás (ver resumeAfterEdit). Null si no hay ninguno, si [after] o [until] no
      * están en la ruta o si [until] no va después de [after].
      */
     fun nextNeedingAttention(
@@ -512,11 +513,12 @@ object SetupStepGraph {
         val from = route.indexOf(after)
         val to = route.indexOf(until)
         if (from < 0 || to <= from) return null
-        val completed = confirmedBlocks(answers, context, pendingReview)
         return route.subList(from + 1, to).firstOrNull { step ->
-            step !in answers ||
-                step in pendingReview ||
-                (isMilestone(step) && blockOf(step) !in completed)
+            if (isMilestone(step)) {
+                answers[step]?.canPersistAsDeclared() != true
+            } else {
+                step !in answers || step in pendingReview
+            }
         }
     }
 
