@@ -56,12 +56,15 @@ import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.WizChatMachineState
 import com.example.kpkn.screens.onboarding.design.KpknModule
+import com.example.kpkn.screens.onboarding.design.LocalWizardGlassNote
 import com.example.kpkn.screens.onboarding.design.LocalWizardPageScroll
 import com.example.kpkn.screens.onboarding.design.ModuleCompleteOverlay
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardDarkSystemBars
 import com.example.kpkn.screens.onboarding.design.WizardDock
 import com.example.kpkn.screens.onboarding.design.WizardDockClearance
+import com.example.kpkn.screens.onboarding.design.WizardGlassNoteController
+import com.example.kpkn.screens.onboarding.design.WizardGlassNoteLayer
 import com.example.kpkn.screens.onboarding.design.WizardHeaderBlockHeight
 import com.example.kpkn.screens.onboarding.design.WizardMotion
 import com.example.kpkn.screens.onboarding.design.WizardPageHeader
@@ -69,6 +72,7 @@ import com.example.kpkn.screens.onboarding.design.WizardPageItem
 import com.example.kpkn.screens.onboarding.design.WizardPageMetrics
 import com.example.kpkn.screens.onboarding.design.WizardPageMode
 import com.example.kpkn.screens.onboarding.design.WizardPageScroll
+import com.example.kpkn.screens.onboarding.design.WizardPrologueOverlay
 import com.example.kpkn.screens.onboarding.design.WizardProgressSegment
 import com.example.kpkn.screens.onboarding.design.WizardScrollLock
 import com.example.kpkn.screens.onboarding.design.WizardShapes
@@ -118,6 +122,8 @@ fun SetupWizardScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     var navigatedAfterCommit by remember { mutableStateOf(false) }
+    // La nota de vidrio «¿Por qué lo preguntamos?»: la publica el anfitrión y la pinta la capa de la página.
+    val glassNote = remember { WizardGlassNoteController() }
 
     // La clave incluye el ViewModel: si las tests recrean el VM, la
     // inicialización se vuelve a ejecutar en lugar de quedar en un no-op.
@@ -147,7 +153,7 @@ fun SetupWizardScreen(
         SetupWizardExitDialogs(state = state, viewModel = viewModel, onLeftWizard = onCancel)
     }
 
-    CompositionLocalProvider(LocalOpenConcept provides onOpenConcept) {
+    CompositionLocalProvider(LocalOpenConcept provides onOpenConcept, LocalWizardGlassNote provides glassNote) {
         when (state.machineState) {
             WizChatMachineState.Loading -> Box(
                 Modifier
@@ -178,6 +184,8 @@ fun SetupWizardScreen(
                 state = state,
                 viewModel = viewModel,
                 showIntro = showIntro,
+                // El prólogo solo en un alta nueva: al retomar un borrador (RESUME) no sale.
+                showPrologue = mode == SetupWizardMode.FULL,
                 onLeave = { leaveNow() },
                 onActivate = {
                     scope.launch {
@@ -212,6 +220,7 @@ private fun WizardLongPage(
     state: SetupWizardState,
     viewModel: SetupWizardViewModel,
     showIntro: Boolean,
+    showPrologue: Boolean,
     onLeave: () -> Unit,
     onActivate: () -> Unit,
 ) {
@@ -461,6 +470,8 @@ private fun WizardLongPage(
             },
             modifier = Modifier.align(Alignment.BottomCenter),
         )
+        // La nota de vidrio de los enlaces «¿por qué?»: hermana de la fuente de desenfoque, igual que la cabecera.
+        WizardGlassNoteLayer(controller = LocalWizardGlassNote.current, hazeState = hazeState)
 
         // El aviso flota sobre el paso: no empuja la cabecera, la pregunta
         // ni el botón. Sigue siendo descartable y reintenta la misma operación.
@@ -500,10 +511,17 @@ private fun WizardLongPage(
         // Solo en el alta completa y mientras el borrador sigue sin empezar: el cursor nunca salió de la primera
         // pregunta (los valores que traen los ajustes, como el alias o la edad, no cuentan como empezar).
         var introSeen by rememberSaveable(state.draft.draftId) { mutableStateOf(false) }
+        // El prólogo «ANTES DE EMPEZAR» explica por qué pedimos datos: va antes, con la misma condición y una sola vez.
+        var prologueSeen by rememberSaveable(state.draft.draftId) { mutableStateOf(false) }
         val untouchedDraft = state.draft.stepProgress.visited.size <= 1 && step == route.firstOrNull()
-        if (showIntro && !introSeen && milestoneModule == null && state.mode == SetupWizardMode.FULL &&
+        val introApplies = showIntro && !introSeen && milestoneModule == null && state.mode == SetupWizardMode.FULL &&
             untouchedDraft && introStages(route).size > 1
-        ) {
+        // Con el prólogo pendiente, la pantalla de arranque espera a «Vamos».
+        val prologueFirst = introApplies && showPrologue && !prologueSeen
+        if (prologueFirst) {
+            WizardPrologueOverlay(onStart = { prologueSeen = true }, onBack = onLeave)
+        }
+        if (introApplies && !prologueFirst) {
             ModuleCompleteOverlay(
                 module = KpknModule.INTRO,
                 onContinue = { introSeen = true },

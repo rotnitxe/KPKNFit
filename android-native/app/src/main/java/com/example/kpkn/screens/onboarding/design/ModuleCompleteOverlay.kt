@@ -432,16 +432,17 @@ private const val TAU = 6.2831855f
 private fun parse(d: String): Path = PathParser().parsePathString(d).toPath()
 
 // ---------------------------------------------------------------- la Torre anidada
-private class DiscGeo(val cy: Float, val rx: Float, val ry: Float, val off: Float, val dx: Float, val dy: Float)
-private val BASE = listOf(
+// (internas: el prólogo del alta reutiliza esta geometría; sin cambios de comportamiento.)
+internal class DiscGeo(val cy: Float, val rx: Float, val ry: Float, val off: Float, val dx: Float, val dy: Float)
+internal val BASE = listOf(
     DiscGeo(61f, 38f, 12f, 2f, 5f, 3.5f),
     DiscGeo(46f, 28f, 9f, 1.5f, 4f, 2.5f),
     DiscGeo(33f, 18f, 6.5f, 1f, 3.5f, 2.2f),
 )
 
-private data class Disc(val s: Float = 1f, val q: Float = 0f, val x: Float = 0f, val y: Float = 0f, val a: Float = 1f)
+internal data class Disc(val s: Float = 1f, val q: Float = 0f, val x: Float = 0f, val y: Float = 0f, val a: Float = 1f)
 
-private fun discPath(i: Int, ox: Float, oy: Float, d: Disc): Path {
+internal fun discPath(i: Int, ox: Float, oy: Float, d: Disc): Path {
     val b = BASE[i]
     val cx = 50f + d.x + ox
     val cy = b.cy + d.y + oy
@@ -457,7 +458,7 @@ private fun discPath(i: Int, ox: Float, oy: Float, d: Disc): Path {
     }
 }
 
-private fun DrawScope.drawTower(ox: Float, oy: Float, discs: List<Disc>, fills: List<Color>) {
+internal fun DrawScope.drawTower(ox: Float, oy: Float, discs: List<Disc>, fills: List<Color>) {
     discs.forEachIndexed { i, d ->
         if (d.a > 0f) drawPath(discPath(i, ox, oy, d), fills[i], alpha = clamp01(d.a))
     }
