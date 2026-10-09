@@ -122,3 +122,39 @@ enum class LiftMark(val label: String) {
     SNATCH("Arranque"),
     CLEAN_AND_JERK("Dos tiempos"),
 }
+
+/**
+ * Grupos de ejercicios que la persona prefiere evitar («¿Qué ejercicios prefieres evitar?»). Cada grupo se traduce a
+ * definiciones del catálogo en `AvoidGroups` (dominio); el motor cambia esos ejercicios por otros que trabajen lo mismo.
+ */
+@Serializable
+enum class AvoidGroup(val label: String) {
+    BARBELL_SQUAT("Sentadilla con barra"),
+    DEADLIFT("Peso muerto"),
+    BENCH_PRESS("Press banca"),
+    OVERHEAD_PRESS("Press militar"),
+    PULL_UPS("Dominadas"),
+    DIPS("Fondos"),
+    LUNGES("Zancadas"),
+    HIP_THRUST("Hip thrust"),
+    JUMPS("Saltos e impacto"),
+    RUNNING("Correr"),
+}
+
+/** Cuánto cardio aguantas hoy («¿Cómo está tu cardio hoy?»): fija la intensidad y la duración del cardio del alta. */
+@Serializable
+enum class CardioBase(val label: String) {
+    LOW("Me cuesta 10 min"),
+    MODERATE("Aguanto 20–30 min"),
+    HIGH("Corro 45 min"),
+    INTERVALS("Hago series rápidas"),
+}
+
+/** Estilo en la mesa de armwrestling («¿Cuál es tu estilo en la mesa?»): cambia el trabajo de antebrazo. */
+@Serializable
+enum class ArmStyle(val label: String) {
+    TOP_ROLL("Top roll"),
+    HOOK("Hook"),
+    PRESS("Press"),
+    UNSURE("Aún no lo sé"),
+}

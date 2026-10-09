@@ -2,6 +2,7 @@ package com.example.kpkn.domain.onboarding
 
 import com.example.kpkn.domain.training.generator.RoutineLevel
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -9,8 +10,13 @@ class MarksContextTest {
 
     private val big3 = listOf(LiftMark.SQUAT, LiftMark.BENCH, LiftMark.DEADLIFT)
 
-    private fun lifts(profile: TrainingGoalProfile?, novice: Boolean = false, hasBarbell: Boolean = true, olympic: Boolean = false) =
-        MarksContext.liftsFor(profile, novice, hasBarbell, olympic)
+    private fun lifts(
+        profile: TrainingGoalProfile?,
+        novice: Boolean = false,
+        hasBarbell: Boolean = true,
+        olympic: Boolean = false,
+        returning: Boolean = false,
+    ) = MarksContext.liftsFor(profile, novice, hasBarbell, olympic, returning)
 
     @Test
     fun aNoviceIsNeverAskedForMarks() {
@@ -25,17 +31,37 @@ class MarksContextTest {
     }
 
     @Test
-    fun strengthAndMuscleAsksTheBigThreeOnlyWithABarbell() {
-        assertEquals(big3, lifts(TrainingGoalProfile.STRENGTH_MUSCLE))
+    fun strengthAndMuscleAsksTheBigThreeAndThePressOnlyWithABarbell() {
+        assertEquals(big3 + LiftMark.OVERHEAD_PRESS, lifts(TrainingGoalProfile.STRENGTH_MUSCLE))
         assertTrue(lifts(TrainingGoalProfile.STRENGTH_MUSCLE, hasBarbell = false).isEmpty())
     }
 
     @Test
-    fun powerliftingAndPowerbuildingAskTheBigThree() {
+    fun powerliftingAndPowerbuildingAskTheBigThreeAndPowerbuildingAlsoThePress() {
         assertEquals(big3, lifts(TrainingGoalProfile.POWERLIFTING))
-        assertEquals(big3, lifts(TrainingGoalProfile.POWERBUILDING))
+        assertEquals(big3 + LiftMark.OVERHEAD_PRESS, lifts(TrainingGoalProfile.POWERBUILDING))
         // Estas dos disciplinas piden el trío siempre: la marca describe lo que ya levantaba.
-        assertEquals(big3, lifts(TrainingGoalProfile.POWERBUILDING, hasBarbell = false))
+        assertEquals(big3 + LiftMark.OVERHEAD_PRESS, lifts(TrainingGoalProfile.POWERBUILDING, hasBarbell = false))
+    }
+
+    @Test
+    fun returningLikeTheNoviceIsNeverAskedForMarks() {
+        // Quien vuelve de una pausa: su fuerza ya no es la de antes, así que ninguna marca vale como punto de partida.
+        for (profile in TrainingGoalProfile.entries) {
+            assertTrue("$profile", lifts(profile, novice = false, returning = true).isEmpty())
+        }
+        // Sin la pausa, el mismo perfil sí las pide.
+        assertTrue(lifts(TrainingGoalProfile.POWERLIFTING, novice = false, returning = false).isNotEmpty())
+    }
+
+    @Test
+    fun theOverheadPressIsAskedWithTheBarbellProfilesAndStrongman() {
+        assertTrue(LiftMark.OVERHEAD_PRESS in lifts(TrainingGoalProfile.STRENGTH_MUSCLE))
+        assertTrue(LiftMark.OVERHEAD_PRESS in lifts(TrainingGoalProfile.POWERBUILDING))
+        assertTrue(LiftMark.OVERHEAD_PRESS in lifts(TrainingGoalProfile.WEIGHTLIFTING))
+        assertTrue(LiftMark.OVERHEAD_PRESS in lifts(TrainingGoalProfile.STRONGMAN))
+        assertFalse(LiftMark.OVERHEAD_PRESS in lifts(TrainingGoalProfile.POWERLIFTING))
+        assertFalse(LiftMark.OVERHEAD_PRESS in lifts(TrainingGoalProfile.WEIGHTLIFTING, hasBarbell = false))
     }
 
     @Test
@@ -47,17 +73,17 @@ class MarksContextTest {
     }
 
     @Test
-    fun weightliftingAsksSquatPlusTheOlympicLiftsOnlyWhenTheProgramReadsThem() {
-        assertEquals(listOf(LiftMark.SQUAT), lifts(TrainingGoalProfile.WEIGHTLIFTING))
+    fun weightliftingAsksSquatAndThePressPlusTheOlympicLiftsOnlyWhenTheProgramReadsThem() {
+        assertEquals(listOf(LiftMark.SQUAT, LiftMark.OVERHEAD_PRESS), lifts(TrainingGoalProfile.WEIGHTLIFTING))
         assertEquals(
-            listOf(LiftMark.SQUAT, LiftMark.SNATCH, LiftMark.CLEAN_AND_JERK),
+            listOf(LiftMark.SQUAT, LiftMark.SNATCH, LiftMark.CLEAN_AND_JERK, LiftMark.OVERHEAD_PRESS),
             lifts(TrainingGoalProfile.WEIGHTLIFTING, olympic = true),
         )
         // Las reservas de halterofilia de D1b leen el arranque y los dos tiempos (`OlympicMarksTest` lo mide con el generador):
         // el valor por defecto las pregunta.
         assertEquals(true, MarksContext.CATALOG_HAS_OLYMPIC_LIFTS)
         assertEquals(
-            listOf(LiftMark.SQUAT, LiftMark.SNATCH, LiftMark.CLEAN_AND_JERK),
+            listOf(LiftMark.SQUAT, LiftMark.SNATCH, LiftMark.CLEAN_AND_JERK, LiftMark.OVERHEAD_PRESS),
             MarksContext.liftsFor(TrainingGoalProfile.WEIGHTLIFTING, novice = false),
         )
     }
