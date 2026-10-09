@@ -109,8 +109,8 @@ object NutritionPlanPreparation {
                 status = NutritionPlanPreparationStatus.TRACKING_ONLY,
             )
         }
-        val direction = input.direction
-            ?: return NutritionPlanPreparationResult(null, mapOf("direction" to "Selecciona una dirección"))
+        // Sin dirección por ahora, la preparación usa Mantener, como el editor de la pauta.
+        val direction = input.direction ?: PlanDirection.MAINTENANCE
         val selfDefined = input.configurationMode == NutritionConfigurationMode.SELF_DEFINED
         val thirdParty = direction == PlanDirection.PROFESSIONAL
         // La aplicabilidad de la ecuación EER solo se exige para la
