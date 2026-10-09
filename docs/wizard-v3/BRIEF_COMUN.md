@@ -23,7 +23,10 @@ Aplica a TODOS los paquetes de la ola «Wizard v3» (24 correcciones del wizard)
   `C:\kw\logs\v3-<paquete>-<n>.log`. Espera una de las 2 ranuras globales y ≥ 3 GB de RAM libres, y ya añade
   `--no-daemon -Dorg.gradle.jvmargs=-Xmx4g -Pkotlin.compiler.execution.strategy=in-process` (no los repitas). Formato:
   `bash /c/kw/tools/gradle_slot.sh /c/kw/<tu-worktree>/android-native <tareas> > /c/kw/logs/v3-<paquete>-<n>.log 2>&1`.
-- Tareas permitidas: `:app:compileBaseDebugKotlin` y `:app:testBaseDebugUnitTest --tests "<filtro>"` con SOLO las clases nuevas o
+- **La app ya no tiene flavors** (se retiró Health Connect en `master`): las tareas son SIN «Base» — `:app:compileDebugKotlin`,
+  `:app:testDebugUnitTest`, `:app:assembleDebug`. Donde un brief diga `compileBaseDebugKotlin` o `testBaseDebugUnitTest`, usa la tarea sin
+  «Base». El build ejecuta `scripts/stability/optimize_resources.py` (ya está en tu checkout parcial; necesita `python` con Pillow, que hay).
+- Tareas permitidas: `:app:compileDebugKotlin` y `:app:testDebugUnitTest --tests "<filtro>"` con SOLO las clases nuevas o
   afectadas que diga tu brief. **Nunca** la suite entera, nunca `androidTest`, nunca `./gradlew --stop`, nunca `clean`, **un solo**
   Gradle tuyo a la vez.
 - El primer build de un worktree tarda 10–20 min (más con la cola). Agrupa tus ediciones antes de compilar; mientras esperas, sigue
@@ -35,7 +38,7 @@ Aplica a TODOS los paquetes de la ola «Wizard v3» (24 correcciones del wizard)
 - Para ver dibujos sin teléfono: pruebas Robolectric con `@GraphicsMode(NATIVE)` que escriben PNG en la carpeta de la variable
   `KPKN_RENDER_DIR` y se saltan sin ella (patrón: `src/test/java/com/example/kpkn/render/WizardRenderSheetTest.kt`; para símbolos, la
   hoja compartida `SymbolRenderSheet` que crea el paquete B1). Comando:
-  `KPKN_RENDER_DIR=C:/kw/shots/v3/<paquete> bash /c/kw/tools/gradle_slot.sh /c/kw/<wt>/android-native :app:testBaseDebugUnitTest --tests "<clase>"`.
+  `KPKN_RENDER_DIR=C:/kw/shots/v3/<paquete> bash /c/kw/tools/gradle_slot.sh /c/kw/<wt>/android-native :app:testDebugUnitTest --tests "<clase>"`.
 - Mira cada PNG con Read y critícalo contra el brief (proporciones, legibilidad a 60 dp, nada cortado). Máximo **3 rondas** de ajuste;
   si no llegas, entrega lo mejor y explica qué falta.
 - Teléfono y emulador: **no** los uses salvo que tu brief lo pida expresamente.
