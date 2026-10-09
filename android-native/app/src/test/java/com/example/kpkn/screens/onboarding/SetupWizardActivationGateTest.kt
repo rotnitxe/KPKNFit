@@ -313,10 +313,9 @@ class SetupWizardActivationGateTest {
                 vm.selectPlan(vm.state.value.availablePlanCandidates.first().id)
             }
         }
-        // Los minutos dejaron el bloque de entreno por revisar (la entrada de marcas sigue pendiente aunque esté fuera de la
-        // ruta): su hito se reconfirma antes de volver a la revisión.
-        confirm(vm, SetupStepId.WEEK_LAYOUT, SetupStepId.MILESTONE_TRAINING)
-        confirm(vm, SetupStepId.MILESTONE_TRAINING, SetupStepId.REVIEW_ACTIVATE)
+        // Los minutos dejan la entrada de marcas pendiente fuera de la ruta. El hito de entreno ya tiene respuesta, así que se
+        // salta en silencio: tras la semana, el cursor vuelve directo a la revisión (sin MILESTONE_TRAINING).
+        confirm(vm, SetupStepId.WEEK_LAYOUT, SetupStepId.REVIEW_ACTIVATE)
         awaitWall("preview vigente en la revisión") {
             !vm.state.value.isPreviewLoading && vm.state.value.programPreview != null && !vm.state.value.selectionStale
         }

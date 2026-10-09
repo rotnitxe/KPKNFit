@@ -7,6 +7,7 @@ import com.example.kpkn.domain.onboarding.SetupProgressOrigin
 import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.SetupStepProgress
+import com.example.kpkn.domain.onboarding.SetupWizardBlock
 import com.example.kpkn.domain.onboarding.TrainingGoalProfile
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -117,30 +118,73 @@ class SetupResumeAfterEditTest {
     }
 
     @Test
-    fun aMilestoneWhoseBlockWasReopenedIsNotSkipped() {
+    fun aMilestoneNeedsAttentionOnlyWhenItHasNoAnswer() {
         val draft = answeredAt(SetupStepId.REVIEW_ACTIVATE)
         val context = draft.stepContext()
         val answers = draft.stepProgress.answers
-        // Un paso de entreno anterior a PLAN vuelve a revisión: el bloque deja de estar completo y su hito no se salta.
+        // Sin respuesta, el hito se visita.
         assertEquals(
             SetupStepId.MILESTONE_TRAINING,
             SetupStepGraph.nextNeedingAttention(
-                SetupStepId.PLAN, SetupStepId.REVIEW_ACTIVATE, context, answers, setOf(SetupStepId.EQUIPMENT),
+                SetupStepId.PLAN, SetupStepId.REVIEW_ACTIVATE, context, answers - SetupStepId.MILESTONE_TRAINING, emptySet(),
             ),
         )
-        // Sin nada pendiente, el hito ya completo no se visita.
+        // Con respuesta, se salta aunque su bloque tenga un paso fuera de la ruta pendiente.
         assertNull(
-            SetupStepGraph.nextNeedingAttention(SetupStepId.PLAN, SetupStepId.REVIEW_ACTIVATE, context, answers, emptySet()),
+            SetupStepGraph.nextNeedingAttention(
+                SetupStepId.PLAN, SetupStepId.REVIEW_ACTIVATE, context, answers, setOf(SetupStepId.TRAINING_MAX),
+            ),
         )
-        // Un paso sin respuesta se visita; fuera de la ruta u orden inverso no hay nada que devolver.
+        // Un paso de la ruta pendiente se visita antes que el hito.
         assertEquals(
             SetupStepId.WEEK_LAYOUT,
             SetupStepGraph.nextNeedingAttention(
-                SetupStepId.PLAN, SetupStepId.REVIEW_ACTIVATE, context, answers - SetupStepId.WEEK_LAYOUT, emptySet(),
+                SetupStepId.PLAN, SetupStepId.REVIEW_ACTIVATE, context, answers, setOf(SetupStepId.WEEK_LAYOUT),
             ),
         )
+        // Fuera de la ruta u orden inverso no hay nada que devolver.
         assertNull(SetupStepGraph.nextNeedingAttention(SetupStepId.REVIEW_ACTIVATE, SetupStepId.PLAN, context, answers, emptySet()))
         assertNull(SetupStepGraph.nextNeedingAttention(SetupStepId.PLAN, SetupStepId.TRAINING_MARKS, context, answers, emptySet()))
+    }
+
+    @Test
+    fun aMilestoneWithAnswerIsSkippedAndClosedSilentlyWhenOnlyAnOutOfRouteStepIsPending() {
+        val editing = answeredAt(SetupStepId.REVIEW_ACTIVATE)
+            .let { draft -> draft.copy(stepProgress = draft.stepProgress.withPendingReview(setOf(SetupStepId.TRAINING_MAX))) }
+            .withReturnIntentBefore(SetupStepId.WEEKDAYS)
+            .editStep(SetupStepId.WEEKDAYS)
+        val confirmed = editing.confirmCurrentStep(SetupStepId.WEEKDAYS).resumeAfterEdit(SetupStepId.WEEKDAYS)
+        // El hito de entreno ya tenía respuesta: no hay overlay, el cursor vuelve a la revisión y el bloque queda completado.
+        assertEquals(SetupStepId.REVIEW_ACTIVATE, confirmed.stepProgress.currentStepId)
+        assertTrue(SetupWizardBlock.TRAINING in confirmed.stepProgress.completedBlocks)
+        assertTrue(confirmed.stepProgress.pendingReview.none { SetupStepGraph.blockOf(it) == SetupWizardBlock.TRAINING })
+        assertNull(confirmed.reviewReturnStep)
+    }
+
+    @Test
+    fun aMilestoneWithoutAnswerIsVisitedBeforeReturningToTheReview() {
+        val editing = answeredAt(SetupStepId.REVIEW_ACTIVATE)
+            .let { draft ->
+                draft.copy(stepProgress = draft.stepProgress.copy(answers = draft.stepProgress.answers - SetupStepId.MILESTONE_TRAINING))
+            }
+            .withReturnIntentBefore(SetupStepId.WEEKDAYS)
+            .editStep(SetupStepId.WEEKDAYS)
+        val confirmed = editing.confirmCurrentStep(SetupStepId.WEEKDAYS).resumeAfterEdit(SetupStepId.WEEKDAYS)
+        assertEquals(SetupStepId.MILESTONE_TRAINING, confirmed.stepProgress.currentStepId)
+        assertEquals(SetupStepId.REVIEW_ACTIVATE, confirmed.reviewReturnStep)
+    }
+
+    @Test
+    fun aPendingStepBeforeTheEditKeepsItsBlockUnderReviewAndItsMilestoneIsNotClosed() {
+        val editing = answeredAt(SetupStepId.REVIEW_ACTIVATE)
+            .let { draft -> draft.copy(stepProgress = draft.stepProgress.withPendingReview(setOf(SetupStepId.EQUIPMENT))) }
+            .withReturnIntentBefore(SetupStepId.WEEKDAYS)
+            .editStep(SetupStepId.WEEKDAYS)
+        val confirmed = editing.confirmCurrentStep(SetupStepId.WEEKDAYS).resumeAfterEdit(SetupStepId.WEEKDAYS)
+        // EQUIPMENT está antes de la edición y el regreso no lo visita: el hito se pasa sin cerrarse y el bloque sigue por revisar.
+        assertEquals(SetupStepId.REVIEW_ACTIVATE, confirmed.stepProgress.currentStepId)
+        assertFalse(SetupWizardBlock.TRAINING in confirmed.stepProgress.completedBlocks)
+        assertEquals(setOf(SetupStepId.EQUIPMENT), confirmed.stepProgress.pendingReview)
     }
 
     @Test
