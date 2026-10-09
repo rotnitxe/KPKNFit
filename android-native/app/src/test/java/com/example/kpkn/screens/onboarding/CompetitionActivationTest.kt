@@ -2,6 +2,8 @@ package com.example.kpkn.screens.onboarding
 
 import android.app.AlarmManager
 import android.content.Context
+import androidx.arch.core.executor.ArchTaskExecutor
+import androidx.arch.core.executor.TaskExecutor
 import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.models.Block
@@ -64,6 +66,9 @@ class CompetitionActivationTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(UnconfinedTestDispatcher())
+        // Room refresca sus tablas en el hilo de disco. Con ejecutores directos cada refresco termina dentro de la escritura:
+        // si quedara en vuelo, cerrar la base lo dejaría fallando en `arch_disk_io` y la excepción caería en la prueba siguiente.
+        ArchTaskExecutor.getInstance().setDelegate(DirectTaskExecutor)
     }
 
     @After
@@ -71,7 +76,15 @@ class CompetitionActivationTest {
         ProgramRepository.closeInstance()
         CompetitionRepository.closeInstance()
         KpknDatabase.closeInstance()
+        ArchTaskExecutor.getInstance().setDelegate(null)
         Dispatchers.resetMain()
+    }
+
+    /** Ejecuta en el hilo que llama: ningún refresco de Room queda en segundo plano al terminar la prueba. */
+    private object DirectTaskExecutor : TaskExecutor() {
+        override fun executeOnDiskIO(runnable: Runnable) = runnable.run()
+        override fun postToMainThread(runnable: Runnable) = runnable.run()
+        override fun isMainThread(): Boolean = true
     }
 
     /** Quien compite (powerlifting, experiencia avanzada) con la fecha dada. */
