@@ -60,6 +60,8 @@ enum class SetupStepId {
     PROGRAM_SOURCE,
     /** Importación del programa (archivo o texto); solo entra en la ruta con la importación disponible. */
     PROGRAM_IMPORT,
+    /** ¿Compites? (disciplina de competición, experiencia intermedia o avanzada): justo después de GOAL. */
+    COMPETITION,
     /** La semana armada: sesiones colocadas en sus días, movibles. */
     WEEK_LAYOUT,
     MILESTONE_TRAINING,
@@ -160,6 +162,8 @@ data class SetupStepContext(
     val programSource: ProgramSource? = null,
     /** La importación está disponible (`ProgramSourceOptions.IMPORT_ENABLED`; las pruebas la fuerzan aquí). */
     val programImportEnabled: Boolean = ProgramSourceOptions.IMPORT_ENABLED,
+    /** COMPETITION: disciplina de competición con experiencia intermedia o avanzada (`CompetitionRules.disciplines`). */
+    val asksCompetition: Boolean = false,
 ) {
     /** Same skip rules the WizChat graph applied to the RINGS start action. */
     val ringsSkipsCalibration: Boolean
@@ -224,6 +228,7 @@ object SetupStepGraph {
         SetupStepId.CARDIO_BASE to SetupWizardBlock.TRAINING,
         SetupStepId.PROGRAM_SOURCE to SetupWizardBlock.TRAINING,
         SetupStepId.PROGRAM_IMPORT to SetupWizardBlock.TRAINING,
+        SetupStepId.COMPETITION to SetupWizardBlock.TRAINING,
         SetupStepId.WEEK_LAYOUT to SetupWizardBlock.TRAINING,
         SetupStepId.MILESTONE_TRAINING to SetupWizardBlock.TRAINING,
         SetupStepId.NUTRITION_START to SetupWizardBlock.NUTRITION,
@@ -290,6 +295,8 @@ object SetupStepGraph {
         SetupStepId.INVENTORY_MACHINES to 1350,
         SetupStepId.AVAILABILITY to 1360,
         SetupStepId.FRESH_DAY to 1590,
+        // ¿Compites? va justo antes de FRESH_DAY: entre el objetivo (700) y los días (1590).
+        SetupStepId.COMPETITION to 1585,
         SetupStepId.PROGRAM_SOURCE to 1900,
         SetupStepId.PROGRAM_IMPORT to 1901,
         SetupStepId.CAPABILITIES to 1905,
@@ -415,6 +422,7 @@ object SetupStepGraph {
                 add(SetupStepDefinitions.stepOf(group))
             }
             add(SetupStepId.GOAL)
+            if (context.asksCompetition) add(SetupStepId.COMPETITION)
             addAll(listOf(SetupStepId.FRESH_DAY, SetupStepId.WEEKDAYS, SetupStepId.SESSION_TIME))
             if (context.goalIncludesCardio) {
                 addAll(listOf(SetupStepId.CARDIO_TYPE, SetupStepId.CARDIO_TIME))
@@ -962,6 +970,12 @@ data class SetupInputFootprint(
     val armStyle: String? = null,
     /** Repeticiones seguidas por habilidad de peso corporal, por nombre. */
     val maxReps: Map<String, Int> = emptyMap(),
+    /**
+     * ¿Compites?: respuesta y fecha que cuentan para el programa (ver `SetupWizardDraft.activeCompetition`). El nombre del
+     * evento no cambia el programa, así que no entra en la huella.
+     */
+    val competition: String? = null,
+    val meetDateIso: String? = null,
 )
 
 /** Detects which physiological changes really happened between two footprints. */
@@ -1016,6 +1030,11 @@ object SetupChangeDetector {
         if (old.selectedWeekdays != new.selectedWeekdays || old.weekStartDay != new.weekStartDay ||
             old.freshestDay != new.freshestDay || old.dayPlaces != new.dayPlaces
         ) add(SetupChangeSource.CALENDAR)
+        // ¿Compites? (respuesta y fecha): la competición cambia la duración y el pico del programa → CALENDAR. El nombre del
+        // evento no cambia el programa.
+        if (old.competition != new.competition || old.meetDateIso != new.meetDateIso) {
+            add(SetupChangeSource.CALENDAR)
+        }
         if (old.ringsSignature != new.ringsSignature) add(SetupChangeSource.SENSATIONS)
     }
 }

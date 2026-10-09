@@ -8,6 +8,8 @@ import com.example.kpkn.domain.nutrition.NutritionPlanPreparationStatus
 import com.example.kpkn.domain.nutrition.parseLocalizedNumber
 import com.example.kpkn.domain.training.importer.ImportedProgramBuilder
 import com.example.kpkn.domain.onboarding.CapabilityLevel
+import com.example.kpkn.domain.onboarding.CompetitionAnswer
+import com.example.kpkn.domain.onboarding.CompetitionRules
 import com.example.kpkn.domain.onboarding.LiftVariants
 import com.example.kpkn.domain.onboarding.MuscleSymbols
 import com.example.kpkn.domain.onboarding.ProgramSource
@@ -143,6 +145,7 @@ private fun summaryLabel(page: SetupStepId): String = when (page) {
     SetupStepId.ARM_STYLE -> "Estilo de mesa"
     SetupStepId.CARDIO_BASE -> "Base de cardio"
     SetupStepId.PROGRAM_SOURCE -> "Tu programa"
+    SetupStepId.COMPETITION -> "Competición"
     SetupStepId.PROGRAM_IMPORT -> "Programa importado"
     SetupStepId.PLAN -> "Programa"
     SetupStepId.WEEK_LAYOUT -> "Tu semana"
@@ -264,6 +267,7 @@ private fun summaryValue(page: SetupStepId, state: SetupWizardState): String {
         } else {
             draft.summaryMissing(page)
         }
+        SetupStepId.COMPETITION -> summaryCompetition(draft, page)
         SetupStepId.TRAINING_MAX -> summaryMarks(draft)
         SetupStepId.PLAN -> summaryPlan(state)
         SetupStepId.WEEK_LAYOUT -> summaryWeekLayout(state)
@@ -532,6 +536,17 @@ internal fun weekdaysSummaryText(selected: Set<Int>): String? {
     if (days.isEmpty()) return null
     if (days.size == 7) return "Todos los días"
     return SpanishPlurals.days(days.size) + " · " + days.joinToString(", ") { SUMMARY_WEEKDAYS_SHORT[it] }
+}
+
+/** «Sí · 14 de marzo de 2027 · Nacional Open», «Sí, sin fecha» o «No compito». */
+private fun summaryCompetition(draft: SetupWizardDraft, page: SetupStepId): String = when (draft.competition) {
+    CompetitionAnswer.WITH_DATE -> CompetitionRules.parseMeetDate(draft.meetDateIso)?.let { date ->
+        listOfNotNull("Sí", CompetitionRules.dateLabel(date), draft.meetName.trim().takeIf { it.isNotEmpty() })
+            .joinToString(" · ")
+    } ?: draft.summaryMissing(page)
+    CompetitionAnswer.NO_DATE -> "Sí, sin fecha"
+    CompetitionAnswer.NO -> "No compito"
+    null -> draft.summaryMissing(page)
 }
 
 private fun summaryWeekdays(draft: SetupWizardDraft): String =

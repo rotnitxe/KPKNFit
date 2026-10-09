@@ -13,6 +13,7 @@ import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.domain.onboarding.SetupAnswerProvenance
 import com.example.kpkn.domain.onboarding.SetupProgressOrigin
 import com.example.kpkn.domain.onboarding.SetupStepGraph
+import com.example.kpkn.domain.onboarding.CompetitionAnswer
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.SetupStepProgress
 import com.example.kpkn.domain.onboarding.SetupWizardBlock
@@ -126,7 +127,8 @@ class EntrenoSessionTimeDraftTest {
     private val answered = listOf(
         SetupStepId.NAME, SetupStepId.AGE, SetupStepId.HEIGHT, SetupStepId.WEIGHT, SetupStepId.EQUATION_SEX,
         SetupStepId.BODY_FAT, SetupStepId.MILESTONE_BASICS, SetupStepId.EXPERIENCE, SetupStepId.EQUIPMENT,
-        SetupStepId.GOAL, SetupStepId.DAYS, SetupStepId.WEEKDAYS, SetupStepId.AVAILABILITY, SetupStepId.FRESH_DAY,
+        SetupStepId.GOAL, SetupStepId.COMPETITION, SetupStepId.DAYS, SetupStepId.WEEKDAYS, SetupStepId.AVAILABILITY,
+        SetupStepId.FRESH_DAY,
         SetupStepId.SESSION_TIME, SetupStepId.VOLUME_TECHNIQUE, SetupStepId.VOLUME_CONSISTENCY,
     )
 
@@ -142,6 +144,7 @@ class EntrenoSessionTimeDraftTest {
         trainingEnvironment = "gym",
         equipment = setOf(SetupEquipment.GYM),
         goal = SetupGoal.STRENGTH,
+        competition = CompetitionAnswer.NO,
         daysPerWeek = 3,
         selectedWeekdays = setOf(1, 3, 5),
         minutesPerSession = minutes,

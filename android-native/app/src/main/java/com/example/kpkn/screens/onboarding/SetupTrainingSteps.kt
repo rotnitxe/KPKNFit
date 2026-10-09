@@ -18,6 +18,7 @@ import com.example.kpkn.domain.onboarding.SetupControlKind
 import com.example.kpkn.domain.onboarding.SetupStepDefinitions
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.screens.onboarding.entreno.EntrenoCardioTypeStep
+import com.example.kpkn.screens.onboarding.entreno.EntrenoCompetitionStep
 import com.example.kpkn.screens.onboarding.entreno.EntrenoFreshDayStep
 import com.example.kpkn.screens.onboarding.entreno.EntrenoGoalStep
 import com.example.kpkn.screens.onboarding.entreno.EntrenoMarksStep
@@ -60,6 +61,7 @@ fun SetupTrainingStepContent(
         SetupStepId.EQUIPMENT -> EntrenoPlacesStep(state = state, vm = vm)
         SetupStepId.AVAILABILITY -> EntrenoMaterialStep(state = state, vm = vm)
         SetupStepId.GOAL -> EntrenoGoalStep(state = state, vm = vm)
+        SetupStepId.COMPETITION -> EntrenoCompetitionStep(state = state, vm = vm)
         SetupStepId.FRESH_DAY -> EntrenoFreshDayStep(state = state, vm = vm)
         SetupStepId.WEEKDAYS -> EntrenoWeekdaysStep(state = state, vm = vm)
         SetupStepId.SESSION_TIME -> EntrenoSessionTimeStep(state = state, vm = vm)

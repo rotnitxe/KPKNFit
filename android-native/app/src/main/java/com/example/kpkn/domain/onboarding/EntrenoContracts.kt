@@ -1,5 +1,10 @@
 package com.example.kpkn.domain.onboarding
 
+import com.example.kpkn.domain.training.ProgramCalendarEngine
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
+import java.util.Locale
 import kotlinx.serialization.Serializable
 
 /*
@@ -168,6 +173,63 @@ enum class ProgramSource(val label: String) {
     RECOMMEND("Que KPKN me recomiende uno"),
     LATER("Lo armaré yo más adelante"),
     IMPORT("Importar mi programa"),
+}
+
+/**
+ * ¿Compites? («¿Compites en powerlifting?»): sí con fecha, sí sin fecha o no. Solo lo pregunta el paso COMPETITION, con
+ * disciplina de competición y experiencia intermedia o avanzada. El texto es el de su símbolo.
+ */
+@Serializable
+enum class CompetitionAnswer(val label: String) {
+    WITH_DATE("Sí, tengo fecha"),
+    NO_DATE("Compito, pero sin fecha"),
+    NO("No compito"),
+}
+
+/**
+ * Reglas puras de «¿Compites?»: qué disciplinas lo preguntan, qué fechas valen y cuántas semanas hay hasta la competición
+ * (la misma cuenta que `PeriodLayout`, que es la que fija el pico y la puesta a punto del programa).
+ */
+object CompetitionRules {
+    /** Disciplinas con competición. Powerbuilding no tiene: su programa no lleva pico. */
+    val disciplines: Set<TrainingGoalProfile> = setOf(
+        TrainingGoalProfile.POWERLIFTING, TrainingGoalProfile.WEIGHTLIFTING, TrainingGoalProfile.STRONGMAN,
+        TrainingGoalProfile.BODYBUILDING, TrainingGoalProfile.ARMWRESTLING, TrainingGoalProfile.CALISTHENICS,
+    )
+
+    /** Disciplinas pesadas: su puesta a punto dura dos semanas en el periodizado largo (como en `PeriodLayout`). */
+    val heavy: Set<TrainingGoalProfile> = setOf(
+        TrainingGoalProfile.POWERLIFTING, TrainingGoalProfile.WEIGHTLIFTING, TrainingGoalProfile.STRONGMAN,
+    )
+
+    /** Longitud máxima del nombre del evento. */
+    const val MEET_NAME_MAX = 40
+
+    /** Primera fecha válida: dentro de 14 días. */
+    const val MIN_DAYS_AHEAD = 14L
+
+    /** Última fecha válida: dentro de 18 meses. */
+    const val MAX_MONTHS_AHEAD = 18L
+
+    /** Fechas válidas desde [today], ambos extremos incluidos. */
+    fun dateRange(today: LocalDate): ClosedRange<LocalDate> =
+        today.plusDays(MIN_DAYS_AHEAD)..today.plusMonths(MAX_MONTHS_AHEAD)
+
+    /** La fecha local `yyyy-MM-dd`, o null si no es una fecha. */
+    fun parseMeetDate(iso: String?): LocalDate? = iso?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+
+    /** La fecha existe y cae dentro de [dateRange] desde [today]. */
+    fun isValidMeetDate(iso: String?, today: LocalDate): Boolean = parseMeetDate(iso)?.let { it in dateRange(today) } == true
+
+    /** Semanas del programa hasta la competición, ambas incluidas, con las semanas que empiezan en [weekStartDay]. */
+    fun weeksUntil(today: LocalDate, meetDate: LocalDate, weekStartDay: Int): Int {
+        val first = ProgramCalendarEngine.alignToWeekStart(today, weekStartDay)
+        val last = ProgramCalendarEngine.alignToWeekStart(meetDate, weekStartDay)
+        return (ChronoUnit.DAYS.between(first, last) / 7).toInt() + 1
+    }
+
+    /** La fecha para leer: «14 de marzo de 2027». */
+    fun dateLabel(date: LocalDate): String = date.format(DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", Locale("es")))
 }
 
 /** Opciones del paso de programa que están disponibles en esta versión del asistente. */

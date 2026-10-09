@@ -312,6 +312,7 @@ class EntrenoDraftRobustnessTest {
             SetupStepId.EQUIPMENT -> vm.updateStep(SetupStepId.EQUIPMENT) { it.withPlaces(person.places) }
             SetupStepId.AVAILABILITY -> person.material?.let { material -> vm.updateStep(SetupStepId.AVAILABILITY) { it.withMaterial(material) } }
             SetupStepId.GOAL -> vm.setGoalProfile(person.profile)
+            SetupStepId.COMPETITION -> vm.setStepChoice(SetupStepId.COMPETITION, "NO")
             SetupStepId.FRESH_DAY -> vm.setFreshDay(person.days.first())
             SetupStepId.WEEKDAYS -> vm.updateStep(SetupStepId.WEEKDAYS) { draft ->
                 person.dayPlaces.entries.fold(draft.withWeekdays(person.days)) { current, (day, place) -> current.withDayPlace(day, place) }

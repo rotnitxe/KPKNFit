@@ -500,9 +500,11 @@ class SetupWizardFullJourneyTest {
         confirmStep(vm, SetupStepId.AVAILABILITY, SetupStepId.GOAL)
         // Culturismo infiere el estilo de calibración: no hay selector de estilo. El día con más energía, los
         // días y el tiempo se fijan antes de la calibración y de mostrar el programa.
-        confirmStep(vm, SetupStepId.GOAL, SetupStepId.FRESH_DAY) {
+        confirmStep(vm, SetupStepId.GOAL, SetupStepId.COMPETITION) {
             vm.setGoalProfile(TrainingGoalProfile.BODYBUILDING)
         }
+        // Culturismo con experiencia intermedia pregunta «¿Compites?»: «No compito» y el recorrido sigue como antes.
+        confirmStep(vm, SetupStepId.COMPETITION, SetupStepId.FRESH_DAY) { vm.setStepChoice(SetupStepId.COMPETITION, "NO") }
         assertEquals(TrainingStyle.BODYBUILDER, vm.state.value.draft.volumeAnswers.style)
         assertEquals(SetupGoal.MUSCLE, vm.state.value.draft.goal)
         confirmStep(vm, SetupStepId.FRESH_DAY, SetupStepId.WEEKDAYS) { vm.setFreshDay(1) }
@@ -967,9 +969,10 @@ class SetupWizardFullJourneyTest {
     private fun fullSelfDefinedRoute(): List<SetupStepId> = listOf(
         SetupStepId.NAME, SetupStepId.AGE, SetupStepId.HEIGHT, SetupStepId.WEIGHT,
         SetupStepId.EQUATION_SEX, SetupStepId.BODY_FAT, SetupStepId.MILESTONE_BASICS,
-        // Entreno v2: lugares y material antes del objetivo; día con más energía, días y tiempo; calibración;
-        // prioridades, ejercicios a evitar, programa y semana. Culturismo no pregunta capacidades ni marcas.
-        SetupStepId.EXPERIENCE, SetupStepId.EQUIPMENT, SetupStepId.AVAILABILITY, SetupStepId.GOAL,
+        // Entreno v2: lugares y material antes del objetivo; ¿compites? tras el objetivo (culturismo con experiencia);
+        // día con más energía, días y tiempo; calibración; prioridades, ejercicios a evitar, programa y semana.
+        // Culturismo no pregunta capacidades ni marcas.
+        SetupStepId.EXPERIENCE, SetupStepId.EQUIPMENT, SetupStepId.AVAILABILITY, SetupStepId.GOAL, SetupStepId.COMPETITION,
         SetupStepId.FRESH_DAY, SetupStepId.WEEKDAYS, SetupStepId.SESSION_TIME,
         SetupStepId.VOLUME_TECHNIQUE, SetupStepId.VOLUME_CONSISTENCY,
         SetupStepId.VOLUME_STRENGTH, SetupStepId.VOLUME_MOBILITY,
@@ -989,7 +992,7 @@ class SetupWizardFullJourneyTest {
     private fun fullTrackingOnlyRoute(): List<SetupStepId> = listOf(
         SetupStepId.NAME, SetupStepId.AGE, SetupStepId.HEIGHT, SetupStepId.WEIGHT,
         SetupStepId.EQUATION_SEX, SetupStepId.BODY_FAT, SetupStepId.MILESTONE_BASICS,
-        SetupStepId.EXPERIENCE, SetupStepId.EQUIPMENT, SetupStepId.AVAILABILITY, SetupStepId.GOAL,
+        SetupStepId.EXPERIENCE, SetupStepId.EQUIPMENT, SetupStepId.AVAILABILITY, SetupStepId.GOAL, SetupStepId.COMPETITION,
         SetupStepId.FRESH_DAY, SetupStepId.WEEKDAYS, SetupStepId.SESSION_TIME,
         SetupStepId.VOLUME_TECHNIQUE, SetupStepId.VOLUME_CONSISTENCY,
         SetupStepId.VOLUME_STRENGTH, SetupStepId.VOLUME_MOBILITY,

@@ -117,6 +117,8 @@ enum class SetupControlKind {
     PROGRAM_SOURCE,
     /** Importación del programa (archivo o texto); lo pinta la pantalla de importación. */
     PROGRAM_IMPORT,
+    /** «¿Compites?»: tres símbolos (con fecha, sin fecha, no) y, con fecha, el calendario y la línea de bloques. */
+    COMPETITION,
 
     // ── RINGS del alta (v2): los dibuja la pantalla de RINGS (E3c); el dato lo escribe el VM ──
     /** Intro de RINGS: torre, demostración y «Empezar». No escribe ningún dato. */
@@ -436,6 +438,15 @@ object SetupStepDefinitions {
                 "Fuerza + cardio" to EntrenoStepValues.goalValue(TrainingGoalProfile.STRENGTH_CARDIO),
                 "Atleta completo" to EntrenoStepValues.goalValue(TrainingGoalProfile.STRENGTH_CARDIO),
             ),
+        ),
+        // ¿Compites? Solo con disciplina de competición y experiencia intermedia o avanzada (`SetupStepGraph.nodes`). El título
+        // nombra la disciplina en `wizardPageCopy`; aquí va el genérico.
+        SetupStepDefinition(
+            id = SetupStepId.COMPETITION, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
+            title = "¿Compites en tu disciplina?",
+            subtitle = "Si tienes fecha, armamos tu programa para llegar en tu mejor momento.",
+            control = SetupControlKind.COMPETITION,
+            options = CompetitionAnswer.entries.map { answer -> SetupOptionDefinition(answer.name, answer.label) },
         ),
         SetupStepDefinition(
             id = SetupStepId.FRESH_DAY, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,

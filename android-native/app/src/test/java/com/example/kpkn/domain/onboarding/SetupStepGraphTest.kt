@@ -840,4 +840,12 @@ class SetupStepGraphTest {
         assertEquals(setOf(SetupStepId.PLAN), confirmed.pendingReview)
         assertTrue(SetupStepId.WEEKDAYS in confirmed.answers)
     }
+
+    /** ¿Compites? va justo después de GOAL cuando la ruta lo pide, y no aparece cuando no lo pide. */
+    @Test
+    fun competitionStepFollowsGoalWhenTheRouteAsksForIt() {
+        val asked = SetupStepGraph.stepIds(SetupStepContext(asksCompetition = true))
+        assertEquals(SetupStepId.COMPETITION, asked[asked.indexOf(SetupStepId.GOAL) + 1])
+        assertFalse(SetupStepId.COMPETITION in SetupStepGraph.stepIds(fullContext))
+    }
 }

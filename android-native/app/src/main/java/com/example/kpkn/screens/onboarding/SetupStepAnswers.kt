@@ -30,6 +30,8 @@ import com.example.kpkn.domain.onboarding.AvoidGroup
 import com.example.kpkn.domain.onboarding.CapabilityLevel
 import com.example.kpkn.domain.onboarding.CapabilitySkill
 import com.example.kpkn.domain.onboarding.CardioBase
+import com.example.kpkn.domain.onboarding.CompetitionAnswer
+import com.example.kpkn.domain.onboarding.CompetitionRules
 import com.example.kpkn.domain.onboarding.ProgramSource
 import com.example.kpkn.domain.onboarding.CardioChoice
 import com.example.kpkn.domain.onboarding.CardioChoices
@@ -215,6 +217,8 @@ private val DERIVED_SELECTION_STEPS: Set<SetupStepId> = setOf(
     SetupStepId.TRAINING_VARIANTS, SetupStepId.AVOIDED_EXERCISES, SetupStepId.CARDIO_BASE, SetupStepId.ARM_STYLE,
     // Cómo se tiene el programa: sale de `programSource`.
     SetupStepId.PROGRAM_SOURCE,
+    // ¿Compites?: sale de `competition`, `meetDateIso` y `meetName`.
+    SetupStepId.COMPETITION,
     // RINGS v2: días y ejercicios principales se leen de sus campos (los reductores de días y ejercicios los escriben).
     SetupStepId.RINGS_SESSION_DAYS, SetupStepId.RINGS_MAIN_LIFTS,
 )
@@ -397,6 +401,9 @@ private fun SetupWizardDraft.projectChoice(
     // Base de cardio y estilo de mesa: un valor que no se reconoce no deja rastro (null retira la respuesta).
     SetupStepId.CARDIO_BASE -> copy(cardioBase = CardioBase.entries.firstOrNull { it.name == value })
     SetupStepId.ARM_STYLE -> copy(armStyle = ArmStyle.entries.firstOrNull { it.name == value })
+
+    // «Sí, tengo fecha», «Compito, pero sin fecha» o «No compito»; un valor que no se reconoce no deja rastro.
+    SetupStepId.COMPETITION -> withCompetition(CompetitionAnswer.entries.firstOrNull { it.name == value })
 
     SetupStepId.GENDER -> copy(profileGender = when (value) {
         "female" -> Gender.FEMALE
@@ -1050,6 +1057,30 @@ internal fun SetupWizardDraft.withExactSessionMinutes(minutes: Int): SetupWizard
     inputTexts = inputTexts - SetupStepId.SESSION_TIME.name,
 )
 
+// ─── Entreno v3: ¿Compites? (paso COMPETITION) ───────────────────────────────
+
+/**
+ * Respuesta de «¿Compites?». Con «Sí, tengo fecha» se conservan la fecha y el nombre; con cualquier otra respuesta se retiran
+ * (un evento sin fecha no lleva datos de fecha).
+ */
+fun SetupWizardDraft.withCompetition(answer: CompetitionAnswer?): SetupWizardDraft =
+    if (answer == CompetitionAnswer.WITH_DATE) {
+        copy(competition = answer)
+    } else {
+        copy(competition = answer, meetDateIso = null, meetName = "")
+    }
+
+/** Fecha de la competición (`yyyy-MM-dd`); null la retira. Solo tiene efecto con «Sí, tengo fecha». */
+fun SetupWizardDraft.withMeetDate(iso: String?): SetupWizardDraft =
+    if (competition == CompetitionAnswer.WITH_DATE) copy(meetDateIso = iso?.takeIf { it.isNotBlank() }) else this
+
+/**
+ * Nombre del evento, hasta 40 caracteres. No se recortan los espacios sobrantes aquí: al teclear, un espacio final es
+ * parte de una palabra que aún no está escrita. Solo tiene efecto con «Sí, tengo fecha».
+ */
+fun SetupWizardDraft.withMeetName(name: String): SetupWizardDraft =
+    if (competition == CompetitionAnswer.WITH_DATE) copy(meetName = name.take(CompetitionRules.MEET_NAME_MAX)) else this
+
 // ─── Entreno v2: capacidades, músculos y marcas ──────────────────────────────
 
 /** Nivel de un ejercicio de peso corporal; [level] null retira la respuesta. */
@@ -1333,6 +1364,8 @@ private fun SetupWizardDraft.typedSelections(step: SetupStepId): Set<String> = w
     SetupStepId.ARM_STYLE -> armStyle?.name.let { setOfNotNull(it) }
 
     SetupStepId.PROGRAM_SOURCE -> programSource?.name.let { setOfNotNull(it) }
+
+    SetupStepId.COMPETITION -> competition?.name.let { setOfNotNull(it) }
 
     SetupStepId.GENDER -> profileGender?.name?.lowercase().let { setOfNotNull(it) }
 

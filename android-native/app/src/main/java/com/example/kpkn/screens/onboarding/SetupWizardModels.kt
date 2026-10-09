@@ -32,6 +32,8 @@ import com.example.kpkn.domain.onboarding.AvoidGroup
 import com.example.kpkn.domain.onboarding.CapabilityLevel
 import com.example.kpkn.domain.onboarding.CapabilityRules
 import com.example.kpkn.domain.onboarding.CardioBase
+import com.example.kpkn.domain.onboarding.CompetitionAnswer
+import com.example.kpkn.domain.onboarding.CompetitionRules
 import com.example.kpkn.domain.onboarding.ProgramSource
 import com.example.kpkn.domain.onboarding.CardioChoice
 import com.example.kpkn.domain.onboarding.CardioChoices
@@ -575,6 +577,14 @@ data class SetupWizardDraft(
     val importResolutions: Map<String, String?> = emptyMap(),
     /** Título editable del programa importado; vacío = «Mi programa importado». */
     val importTitle: String = "",
+    // ── ¿Compites? (paso COMPETITION). Sin valor, el paso no está en la ruta o no tiene respuesta. La respuesta y la fecha
+    // cuentan para el programa (`activeCompetition()`, `activeMeetDate()`); el nombre no cambia el programa (`activeMeetName()`).
+    /** Respuesta de «¿Compites?»; null = sin responder. */
+    val competition: CompetitionAnswer? = null,
+    /** Fecha de la competición (`yyyy-MM-dd`); solo con [CompetitionAnswer.WITH_DATE]. */
+    val meetDateIso: String? = null,
+    /** Nombre opcional del evento (hasta 40 caracteres); solo con [CompetitionAnswer.WITH_DATE]. */
+    val meetName: String = "",
 )
 
 /** Whether a step value was declared by the user: touched here or recorded as DECLARED in the legacy mirror. */
@@ -630,6 +640,7 @@ fun SetupWizardDraft.stepContext(): SetupStepContext = SetupStepContext(
     asksArmStyle = goalProfile == TrainingGoalProfile.ARMWRESTLING,
     asksProgramSource = experience == SetupExperience.ADVANCED,
     programSource = programSource,
+    asksCompetition = asksCompetition(),
 )
 
 /**
@@ -669,6 +680,25 @@ internal fun SetupWizardDraft.marksLifts(): List<LiftMark> = MarksContext.liftsF
 internal fun SetupWizardDraft.asksVariants(): Boolean =
     (goalProfile == TrainingGoalProfile.POWERLIFTING || goalProfile == TrainingGoalProfile.POWERBUILDING) &&
         (experience == SetupExperience.INTERMEDIATE || experience == SetupExperience.ADVANCED)
+
+/**
+ * ¿Entra COMPETITION en la ruta? Disciplina de competición (`CompetitionRules.disciplines`) y experiencia intermedia o avanzada.
+ * Quien empieza o vuelve, o elige un perfil general o Powerbuilding, no se le pregunta.
+ */
+internal fun SetupWizardDraft.asksCompetition(): Boolean =
+    goalProfile != null && goalProfile in CompetitionRules.disciplines &&
+        (experience == SetupExperience.INTERMEDIATE || experience == SetupExperience.ADVANCED)
+
+/** La respuesta de «¿Compites?» que cuenta para el programa: solo mientras el paso está en la ruta; si no, null. */
+internal fun SetupWizardDraft.activeCompetition(): CompetitionAnswer? = competition.takeIf { asksCompetition() }
+
+/** La fecha que cuenta para el programa: solo con «Sí, tengo fecha» dentro de la ruta. */
+internal fun SetupWizardDraft.activeMeetDate(): String? =
+    meetDateIso.takeIf { activeCompetition() == CompetitionAnswer.WITH_DATE }
+
+/** El nombre del evento que cuenta para el programa: solo con «Sí, tengo fecha» dentro de la ruta. */
+internal fun SetupWizardDraft.activeMeetName(): String =
+    meetName.takeIf { activeCompetition() == CompetitionAnswer.WITH_DATE }.orEmpty()
 
 /**
  * La ruta de peso corporal de CAPABILITIES: calistenia o material solo de peso corporal. Es la que cambia el paso (repeticiones
@@ -793,6 +823,8 @@ fun SetupWizardDraft.inputFootprint(): SetupInputFootprint = SetupInputFootprint
     cardioBase = cardioBase?.name,
     armStyle = armStyle?.name,
     maxReps = maxReps.entries.sortedBy { it.key.name }.associate { (skill, reps) -> skill.name to reps },
+    competition = activeCompetition()?.name,
+    meetDateIso = activeMeetDate(),
 )
 
 /** Keeps valid answers, marks incompatible selections pending and stales previews. */
@@ -1694,6 +1726,18 @@ object SetupWizardValidation {
                 draft.liftMarkReps.values.any { it !in LIFT_MARK_REPS_RANGE } ->
                     invalid("marks", "Usa de ${LIFT_MARK_REPS_RANGE.first} a ${LIFT_MARK_REPS_RANGE.last} repeticiones.")
                 else -> ok("marks")
+            }
+            // ¿Compites? Sin respuesta el paso no se confirma. Con «Sí, tengo fecha», la fecha cae entre dentro de 14 días y
+            // dentro de 18 meses; el nombre, si lo hay, cabe en 40 caracteres.
+            SetupStepId.COMPETITION -> when {
+                draft.competition == null -> absent("competition", "Elige una opción.")
+                draft.competition != CompetitionAnswer.WITH_DATE -> ok("competition")
+                draft.meetDateIso.isNullOrBlank() -> absent("meetDate", "Elige la fecha de tu competición.")
+                !CompetitionRules.isValidMeetDate(draft.meetDateIso, LocalDate.now()) ->
+                    invalid("meetDate", "Elige una fecha entre 2 semanas y 18 meses desde hoy.")
+                draft.meetName.length > CompetitionRules.MEET_NAME_MAX ->
+                    invalid("meetName", "Usa hasta ${CompetitionRules.MEET_NAME_MAX} caracteres.")
+                else -> ok("competition")
             }
             SetupStepId.PLAN -> when {
                 draft.programRoute == SetupProgramRoute.LATER -> ok("plan")
