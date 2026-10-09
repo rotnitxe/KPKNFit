@@ -7,6 +7,7 @@ import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.data.programs.programModeFor
 import com.example.kpkn.data.programs.programNameFor
 import com.example.kpkn.data.programs.withCatalogCover
+import com.example.kpkn.domain.onboarding.CompetitionRules
 import com.example.kpkn.domain.onboarding.GeneratedPlans
 import com.example.kpkn.domain.onboarding.PlanCandidateEvaluator
 import com.example.kpkn.domain.onboarding.PlanCandidateSources
@@ -15,8 +16,11 @@ import com.example.kpkn.domain.onboarding.TrainingGoalProfile
 import com.example.kpkn.domain.training.generator.GeneratedRoutine
 import com.example.kpkn.domain.training.generator.RoutineRequest
 import com.example.kpkn.domain.training.periodization.Horizon
+import com.example.kpkn.domain.training.periodization.MeetFit
+import com.example.kpkn.domain.training.periodization.MeetRecipeFitter
 import com.example.kpkn.domain.training.periodization.ProgramVariant
 import com.example.kpkn.domain.training.periodization.RoutinePeriodizer
+import java.time.LocalDate
 
 /*
  * Entreno v2 · piezas puras del paso PLAN que el ViewModel usa para los programas «a medida» y los planes de autor.
@@ -123,32 +127,65 @@ internal data class GeneratedVariant(val program: Program, val notes: List<Strin
 /**
  * El programa de la variante de [entry] con sus notas: lo que arma [generatedVariantProgram], con las notas que el
  * periodizador ([RoutinePeriodizer.build]) devuelve (D2c: el revelado las enseña en el detalle de la variante).
+ *
+ * C4b: quien compite con fecha (`activeCompetition() == WITH_DATE`) tiene el horizonte hasta la competición, contado desde
+ * [today] ([Horizon.ToMeet]), en lugar de las semanas fijas. El programa termina en la semana de la competición y su nota
+ * es la línea «Termina el …» (solo si hay tramos por bloques).
  */
 internal fun generatedVariantOf(
     routine: GeneratedRoutine,
     entry: CatalogEntry,
     draft: SetupWizardDraft,
     request: RoutineRequest,
+    today: LocalDate,
 ): GeneratedVariant {
     val variant = requireNotNull(GeneratedPlans.variantOf(entry.id)) { "«${entry.id}» no es un programa a medida" }
     if (variant == ProgramVariant.SIMPLE) return GeneratedVariant(generatedProgramOf(routine, entry, draft), emptyList())
-    val horizon = Horizon.Weeks(requireNotNull(entry.durationWeeks) { "«${entry.id}» no declara sus semanas" })
+    val meet = CompetitionRules.parseMeetDate(draft.activeMeetDate())
+    val horizon = meet?.let { Horizon.ToMeet(anchor = today, meetDate = it, weekStartDay = draft.effectiveWeekStart()) }
+        ?: Horizon.Weeks(requireNotNull(entry.durationWeeks) { "«${entry.id}» no declara sus semanas" })
     val periodized = RoutinePeriodizer.build(request, routine.program, variant, horizon)
-    return GeneratedVariant(presentGenerated(periodized.program, placesOf(routine), entry, draft, baseIdOf = ::baseSessionIdOf), periodized.notes)
+    val notes = if (meet != null && periodized.phases.isNotEmpty()) {
+        periodized.notes + MeetRecipeFitter.meetLine(meet)
+    } else {
+        periodized.notes
+    }
+    return GeneratedVariant(presentGenerated(periodized.program, placesOf(routine), entry, draft, baseIdOf = ::baseSessionIdOf), notes)
 }
 
 /**
  * El programa de la variante de [entry] ([GeneratedPlans.variantOf]) para el alta [draft]. La simple es [generatedProgramOf].
- * «En bloques» (6 semanas) y «periodizado» (12) salen del periodizador ([RoutinePeriodizer.build]), que materializa TODAS
- * sus semanas a partir de la semana base de [routine]; [request] es el pedido con el que el generador armó esa semana.
- * Sobre el resultado, lo mismo que la simple: el lugar de cada sesión se busca por su id base, sin el sufijo `-w<n>`.
+ * «En bloques» y «periodizado» salen del periodizador ([RoutinePeriodizer.build]), que materializa TODAS sus semanas a partir
+ * de la semana base de [routine]; [request] es el pedido con el que el generador armó esa semana. Con fecha de competición
+ * ([today] es el ancla), el horizonte es hasta esa fecha. Sobre el resultado, lo mismo que la simple: el lugar de cada sesión
+ * se busca por su id base, sin el sufijo `-w<n>`.
  */
 internal fun generatedVariantProgram(
     routine: GeneratedRoutine,
     entry: CatalogEntry,
     draft: SetupWizardDraft,
     request: RoutineRequest,
-): Program = generatedVariantOf(routine, entry, draft, request).program
+    today: LocalDate,
+): Program = generatedVariantOf(routine, entry, draft, request, today).program
+
+/**
+ * El plan de autor [program] ajustado a la competición de [draft] si compite con fecha; sin fecha, el mismo programa. Un plan
+ * que no se ajusta sale tal cual: se ofrece igual, con su nota ([meetNotesOf]).
+ */
+internal fun fittedToMeet(program: Program, draft: SetupWizardDraft, today: LocalDate): Program {
+    val meet = CompetitionRules.parseMeetDate(draft.activeMeetDate()) ?: return program
+    val fit = MeetRecipeFitter.fit(program, meet, anchor = today, weekStartDay = draft.effectiveWeekStart())
+    return (fit as? MeetFit.Fitted)?.program ?: program
+}
+
+/** Las notas de PLAN de un programa de autor cuando la persona compite con fecha: la línea de la competición o el motivo. */
+internal fun meetNotesOf(program: Program, draft: SetupWizardDraft, today: LocalDate): List<String> {
+    val meet = CompetitionRules.parseMeetDate(draft.activeMeetDate()) ?: return emptyList()
+    return when (val fit = MeetRecipeFitter.fit(program, meet, anchor = today, weekStartDay = draft.effectiveWeekStart())) {
+        is MeetFit.Fitted -> fit.notes
+        is MeetFit.NotFittable -> listOf(fit.reason)
+    }
+}
 
 /** El lugar de cada sesión de la semana base del generador, por su id. */
 private fun placesOf(routine: GeneratedRoutine): Map<String, String> =

@@ -2674,9 +2674,11 @@ class SetupWizardViewModel @JvmOverloads constructor(
                         sweepStats.passes.incrementAndGet()
                         val entry = PersonalizedPlanCatalog.find(GeneratedPlans.entryIdFor(profile))
                             ?: return CandidateScan.EMPTY
-                        // TODO(C4b): con fecha de competición el programa simple no se ofrece (no tiene pico). El borrador
-                        // aún no tiene `competition` en esta rama: cuando C4a lo añada, filtrar aquí la variante SIMPLE.
-                        val variants = ProgramVariant.entries.mapNotNull { PersonalizedPlanCatalog.find(GeneratedPlans.entryIdFor(profile, it)) }
+                        // C4b: quien compite con fecha no ve la versión simple (no tiene pico): solo en bloques y periodizado.
+                        val competing = draft.activeCompetition() == CompetitionAnswer.WITH_DATE
+                        val variants = ProgramVariant.entries
+                            .filterNot { competing && it == ProgramVariant.SIMPLE }
+                            .mapNotNull { PersonalizedPlanCatalog.find(GeneratedPlans.entryIdFor(profile, it)) }
                         val request = candidateRequest(draft, equipmentIds, exerciseRevision)
                         val snapshot = PlanCatalogSnapshot(
                             entries = PersonalizedPlanCatalog.entries(),
@@ -2696,7 +2698,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
                                 candidateEngine(draft, request),
                             ).also { result -> candidateCache.put(cacheRevision, cacheKey, result) }
                         return when (evaluation) {
-                            is PlanCandidateEvaluation.Ready -> generatedVariantsScan(entry, variants, evaluation, draft)
+                            is PlanCandidateEvaluation.Ready -> generatedVariantsScan(entry, variants, evaluation, draft, LocalDate.now())
                             is PlanCandidateEvaluation.Rejected -> {
                                 Log.w(DIAG_TAG, "programa a medida rechazado: ${evaluation.reasonCode} ${evaluation.details.orEmpty().take(DIAG_REASON_MAX)}")
                                 CandidateScan(variants, emptyList(), listOf(setupRejectionOf(evaluation)))
@@ -2933,6 +2935,8 @@ class SetupWizardViewModel @JvmOverloads constructor(
                     profile = draft.goalProfile,
                     declaredMinutes = draft.minutesPerSession,
                     coverSeed = index,
+                    // C4b: con fecha de competición, la línea de PLAN del plan de autor (o el motivo por el que no se ajusta).
+                    periodNotes = meetNotesOf(program, draft, LocalDate.now()),
                 )
             }
         }
@@ -3010,6 +3014,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
         variants: List<CatalogEntry>,
         evaluation: PlanCandidateEvaluation.Ready,
         draft: SetupWizardDraft,
+        today: LocalDate,
     ): CandidateScan {
         val routine = generatedRoutineFor(draft, base)
         val mode = GeneratedPlans.modeOf(base.id)
@@ -3023,7 +3028,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 continue
             }
             val built = if (routine != null && request != null) {
-                runCatching { generatedVariantOf(routine, variant, draft, request) }
+                runCatching { generatedVariantOf(routine, variant, draft, request, today) }
                     .onFailure { error -> if (error is CancellationException) throw error }
                     .getOrNull()
             } else {
@@ -3051,7 +3056,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
      * mismo. Lo que el generador no sabe del alta lo completa [generatedProgramOf]; la variante en bloques o periodizada
      * de [entry] la arma [generatedVariantProgram] con el periodizador, a partir de ese mismo pedido.
      */
-    private fun materializeGenerated(draft: SetupWizardDraft, entry: CatalogEntry, mode: RoutineMode): SetupPreview {
+    private fun materializeGenerated(draft: SetupWizardDraft, entry: CatalogEntry, mode: RoutineMode, today: LocalDate): SetupPreview {
         val catalog = (catalogRepository.state.value as? ExerciseCatalogStateV2.Ready)?.catalog
             ?: throw PlanMaterializationException(
                 PlanEvaluationStage.CATALOG,
@@ -3069,7 +3074,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
             )
         }
         generatedRoutines.put(generatedRoutineKey(draft, mode), routine)
-        return SetupPreview(generatedVariantProgram(routine, entry, draft, request), null)
+        return SetupPreview(generatedVariantProgram(routine, entry, draft, request, today), null)
     }
 
     /**
@@ -3192,7 +3197,9 @@ class SetupWizardViewModel @JvmOverloads constructor(
             error("Fuente equivocada para la ruta elegida: la ruta de protocolo solo acepta recetas de autor. Cambia de ruta de forma explícita para usar un plan nativo.")
         }
         // Entreno v2: un programa «a medida» lo arma el generador de rutinas, nunca el personalizador nativo.
-        GeneratedPlans.modeOf(entry.id)?.let { mode -> return materializeGenerated(draft, entry, mode) }
+        // C4b: «hoy» lo lee el ViewModel y el dominio lo recibe como parámetro (ancla del horizonte hasta la competición).
+        val today = LocalDate.now()
+        GeneratedPlans.modeOf(entry.id)?.let { mode -> return materializeGenerated(draft, entry, mode, today) }
         if (entry.source == CatalogSource.NATIVE) {
             val frequency = draft.daysPerWeek ?: error("Selecciona los días de entrenamiento")
             val result = OnboardingPlanGenerator(SimpleCyclePersonalizer(catalogRepository)).generate(
@@ -3265,7 +3272,9 @@ class SetupWizardViewModel @JvmOverloads constructor(
         // receta de la propia entrada con la MISMA función para candidatos, preview
         // y activación (original intacto; adaptación vía PlanAdaptationResolver).
         if (entry.source == CatalogSource.PROTOCOL && entry.authoredSource != null) {
-            return materializeAuthoredPlan(entry, draft, catalog, base)
+            // C4b: con fecha de competición, el plan de autor se ajusta a ella (o se ofrece con su nota).
+            val prepared = materializeAuthoredPlan(entry, draft, catalog, base)
+            return prepared.copy(program = prepared.program?.let { fittedToMeet(it, draft, today) })
         }
         val program = when (entry.source) {
             CatalogSource.PROTOCOL -> {
@@ -3321,7 +3330,9 @@ class SetupWizardViewModel @JvmOverloads constructor(
         // confirmado). La resolución correcta ocurre EN la primera
         // materialización, dentro del materializador (elección/autor guardada >
         // `defaultOptions`), que es el que asigna los pasos por ejercicio.
-        return SetupPreview(scheduled, null)
+        // C4b: el plan de autor de la biblioteca (ruta de protocolo) también se ajusta a la fecha de competición.
+        val fitted = if (entry.source == CatalogSource.PROTOCOL) fittedToMeet(scheduled, draft, today) else scheduled
+        return SetupPreview(fitted, null)
     }
 
     /**
@@ -3852,7 +3863,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
 
     // ── ¿Compites? (paso COMPETITION): solo escriben el dato; la validación y el programa lo leen del borrador. ──
 
-    /** «Sí, tengo fecha», «Compito, pero sin fecha» o «No compito». Pasar a una opción sin fecha retira la fecha y el nombre. */
+    /** «Sí, tengo fecha», «Sí, sin fecha» o «No compito». Pasar a una opción sin fecha retira la fecha y el nombre. */
     fun setCompetition(answer: CompetitionAnswer) =
         mutateDraft(SetupStepId.COMPETITION) { latest -> latest.withCompetition(answer) }
 
