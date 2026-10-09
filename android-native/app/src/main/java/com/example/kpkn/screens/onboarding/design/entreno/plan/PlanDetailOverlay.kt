@@ -97,6 +97,7 @@ import kotlinx.coroutines.launch
 const val PLAN_DETAIL_TAG = "setup-plan-detail"
 internal const val PLAN_DETAIL_CHOOSE_TAG = "setup-plan-detail-choose"
 internal const val PLAN_DETAIL_CLOSE_TAG = "setup-plan-detail-close"
+internal const val PLAN_DETAIL_SIBLING_TAG = "setup-plan-detail-sibling"
 
 /** Alto del cuerpo de la cabecera (sin la barra de estado) y franja superior reservada al botón de cerrar. */
 private val HEADER_BODY = 232.dp
@@ -121,6 +122,8 @@ private val SECTION_STYLE = TextStyle(
  * - [onChoose]: «Elegir este programa» (quien llama elige y suele cerrar la hoja).
  * - [onClose]: la X de arriba y «atrás»; la hoja se desvanece antes de avisar.
  * - [weekStartDay]: primer día de la semana de la persona (1 = lunes); «Tu semana» empieza ahí.
+ * - [siblingLabel] y [onSibling]: la acción de texto que lleva a la otra versión de la familia (PHUL original ↔ adaptada);
+ *   sin ellas no se pinta.
  */
 @Composable
 fun PlanDetailOverlay(
@@ -129,8 +132,10 @@ fun PlanDetailOverlay(
     onChoose: () -> Unit,
     onClose: () -> Unit,
     weekStartDay: Int = 1,
+    siblingLabel: String? = null,
+    onSibling: (() -> Unit)? = null,
 ) {
-    PlanDetailOverlay(model, selected, onChoose, onClose, wizardReducedMotion(), weekStartDay)
+    PlanDetailOverlay(model, selected, onChoose, onClose, wizardReducedMotion(), weekStartDay, siblingLabel, onSibling)
 }
 
 /** La hoja con el «reducir movimiento» decidido por quien llama (pruebas y vista previa de depuración). */
@@ -142,6 +147,8 @@ internal fun PlanDetailOverlay(
     onClose: () -> Unit,
     reduced: Boolean,
     weekStartDay: Int = 1,
+    siblingLabel: String? = null,
+    onSibling: (() -> Unit)? = null,
 ) {
     val scope = rememberCoroutineScope()
     val shown = remember { Animatable(if (reduced) 1f else 0f) }
@@ -163,7 +170,10 @@ internal fun PlanDetailOverlay(
     }
     BlurOverlayDialog(onDismissRequest = leave, dismissOnBack = true, shown = { shown.value }) { blur ->
         LaunchedEffect(Unit) { if (!reduced) shown.animateTo(1f, tween(460)) }
-        DetailSheet(model, selected, reduced, blur, { shown.value }, onChoose, leave, weekStartDay = weekStartDay)
+        DetailSheet(
+            model, selected, reduced, blur, { shown.value }, onChoose, leave,
+            weekStartDay = weekStartDay, siblingLabel = siblingLabel, onSibling = onSibling,
+        )
     }
 }
 
@@ -182,6 +192,8 @@ internal fun DetailSheet(
     onClose: () -> Unit,
     weekStartDay: Int = 1,
     modifier: Modifier = Modifier,
+    siblingLabel: String? = null,
+    onSibling: (() -> Unit)? = null,
 ) {
     val card = model.card
     val accent = goalAccent(card.profile)
@@ -248,6 +260,9 @@ internal fun DetailSheet(
             ) {
                 Spacer(Modifier.height(20.dp))
                 DescriptionBlock(model.description, accent)
+                if (siblingLabel != null && onSibling != null) {
+                    SiblingVersionAction(label = siblingLabel, onClick = onSibling)
+                }
                 if (model.mainExercises.isNotEmpty()) {
                     SectionTitle(PlanCopy.SECTION_EXERCISES)
                     ExerciseList(model.mainExercises.take(MAX_MAIN_EXERCISES), accent)
@@ -311,6 +326,21 @@ internal fun DetailSheet(
 }
 
 // ---------------------------------------------------------------- piezas fijas
+
+/** La acción de texto que lleva a la otra versión del programa: sin caja, con un objetivo táctil de 48 dp de alto. */
+@Composable
+private fun SiblingVersionAction(label: String, onClick: () -> Unit) {
+    Box(
+        Modifier
+            .testTag(PLAN_DETAIL_SIBLING_TAG)
+            .heightIn(min = 48.dp)
+            .fillMaxWidth()
+            .clickable(role = Role.Button, onClick = onClick),
+        contentAlignment = Alignment.CenterStart,
+    ) {
+        Text(text = label, style = WizardTypography.cardTitle, color = WizardColors.text)
+    }
+}
 
 /** La X de arriba a la derecha: un disco de vidrio neutro (blanco muy tenue y un filete uniforme) con su objetivo táctil de 48 dp. */
 @Composable

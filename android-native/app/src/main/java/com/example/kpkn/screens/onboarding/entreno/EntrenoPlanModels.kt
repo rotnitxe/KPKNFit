@@ -1,5 +1,7 @@
 package com.example.kpkn.screens.onboarding.entreno
 
+import com.example.kpkn.data.programs.PlanEditorialTable
+import com.example.kpkn.data.programs.PlanOrigin
 import com.example.kpkn.screens.onboarding.SetupPlanReveal
 import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanBlockModel
 import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanCardModel
@@ -65,3 +67,59 @@ internal fun revealKeyOf(reveals: List<SetupPlanReveal>): String = reveals.joinT
         reveal.week.joinToString(",") { day -> "${day.day}:${day.title}:${day.minutes}:${day.exerciseCount}:${day.isMain}" },
     ).joinToString("\u001F")
 }
+
+/** Etiquetas de la acción del detalle que lleva a la otra versión de PHUL o PHAT. */
+internal const val SIBLING_TO_ORIGINAL_LABEL = "Ver la versión original"
+internal const val SIBLING_TO_ADAPTED_LABEL = "Ver la versión adaptada a tu material"
+
+/** La familia de autor de [planId] («phul», «phat»), o null si el plan no tiene dos versiones. */
+private fun familyOf(planId: String): String? = PlanEditorialTable.byId[planId]?.familyId
+
+/** Si [planId] es la versión adaptada a tu material de su familia. */
+private fun isAdaptedVersion(planId: String): Boolean = PlanEditorialTable.byId[planId]?.origin == PlanOrigin.ADAPTED
+
+/**
+ * Las fichas que muestra PLAN. Si las dos versiones de una familia de autor (PHUL, PHAT) son viables, se enseña una sola: la
+ * adaptada si cambia algún ejercicio por tu material y, si no, la original. La otra se alcanza desde el detalle
+ * ([siblingRevealOf]). Los demás programas pasan tal cual, en su orden.
+ *
+ * El revelado no trae la lista completa de ejercicios, así que el cambio se mide con los ejercicios principales y con el
+ * número de ejercicios por día. Una sustitución que solo toque accesorios pasa desapercibida, pero la original también es
+ * viable.
+ */
+internal fun planCardRevealsOf(reveals: List<SetupPlanReveal>): List<SetupPlanReveal> {
+    val shownFamilies = mutableSetOf<String>()
+    return reveals.mapNotNull { reveal ->
+        val family = familyOf(reveal.planId) ?: return@mapNotNull reveal
+        if (!shownFamilies.add(family)) return@mapNotNull null
+        val members = reveals.filter { familyOf(it.planId) == family }
+        val adapted = members.firstOrNull { isAdaptedVersion(it.planId) }
+        val original = members.firstOrNull { !isAdaptedVersion(it.planId) }
+        if (adapted != null && original != null && changesExercises(adapted, original)) adapted else original ?: adapted ?: reveal
+    }
+}
+
+/** La otra versión de la familia de [planId] que también es viable (la que se alcanza desde su detalle). */
+internal fun siblingRevealOf(reveals: List<SetupPlanReveal>, planId: String): SetupPlanReveal? {
+    val family = familyOf(planId) ?: return null
+    return reveals.firstOrNull { it.planId != planId && familyOf(it.planId) == family }
+}
+
+/** La etiqueta de la acción del detalle de [planId] que lleva a su hermana. */
+internal fun siblingActionLabelOf(planId: String): String =
+    if (isAdaptedVersion(planId)) SIBLING_TO_ORIGINAL_LABEL else SIBLING_TO_ADAPTED_LABEL
+
+/**
+ * El plan elegido en las fichas que se muestran. Si la elegida es la versión que no se enseña de su familia, queda marcada
+ * la ficha visible de esa familia.
+ */
+internal fun shownSelectedIdOf(selectedId: String?, shown: List<SetupPlanReveal>): String? {
+    if (selectedId == null || shown.any { it.planId == selectedId }) return selectedId
+    val family = familyOf(selectedId) ?: return selectedId
+    return shown.firstOrNull { familyOf(it.planId) == family }?.planId ?: selectedId
+}
+
+/** Cambia algún ejercicio por tu material: otros principales o distinto número de ejercicios por día. */
+private fun changesExercises(adapted: SetupPlanReveal, original: SetupPlanReveal): Boolean =
+    adapted.mainExercises != original.mainExercises ||
+        adapted.week.map { it.exerciseCount } != original.week.map { it.exerciseCount }
