@@ -48,6 +48,14 @@ enum class SetupStepId {
     FRESH_DAY,
     /** Ejercicios de peso corporal que ya salen (dominadas, flexiones, fondos, sentadilla a una pierna). */
     CAPABILITIES,
+    /** Grupos de ejercicios que la persona prefiere evitar (culturismo). */
+    AVOIDED_EXERCISES,
+    /** Estilo en la mesa (armwrestling): cambia el trabajo de antebrazo. */
+    ARM_STYLE,
+    /** Variante de cada levantamiento básico (barra alta o baja, sumo, Zercher…); la de siempre viene preseleccionada. */
+    TRAINING_VARIANTS,
+    /** Base de cardio de hoy: fija la intensidad y la duración del cardio del alta (sigue al tipo de cardio). */
+    CARDIO_BASE,
     /** La semana armada: sesiones colocadas en sus días, movibles. */
     WEEK_LAYOUT,
     MILESTONE_TRAINING,
@@ -124,6 +132,14 @@ data class SetupStepContext(
     val asksMarks: Boolean = false,
     /** WEEK_LAYOUT: la semana armada; no existe cuando el programa se aplaza («lo armaré más adelante»). */
     val hasWeekLayout: Boolean = true,
+    /** TRAINING_VARIANTS: Powerlifting o Powerbuilding con experiencia intermedia o avanzada. */
+    val asksVariants: Boolean = false,
+    /** AVOIDED_EXERCISES: Culturismo. */
+    val asksAvoid: Boolean = false,
+    /** CARDIO_BASE: el mismo criterio que el tipo de cardio (`goalIncludesCardio`); va justo después de CARDIO_TIME. */
+    val asksCardioBase: Boolean = false,
+    /** ARM_STYLE: Armwrestling. */
+    val asksArmStyle: Boolean = false,
 ) {
     /** Same skip rules the WizChat graph applied to the RINGS start action. */
     val ringsSkipsCalibration: Boolean
@@ -137,8 +153,11 @@ data class SetupStepContext(
 
 object SetupStepGraph {
 
-    /** Persisted with [SetupStepProgress] so older cursors are repaired once. */
-    const val REVISION: Int = 4
+    /**
+     * Persisted with [SetupStepProgress] so older cursors are repaired once. 5: el punto de partida de Entreno (variantes,
+     * ejercicios a evitar, base de cardio y estilo de mesa) y las marcas con repeticiones añaden pasos a la ruta.
+     */
+    const val REVISION: Int = 5
 
     private val blocks: Map<SetupStepId, SetupWizardBlock> = mapOf(
         SetupStepId.NAME to SetupWizardBlock.BASICS,
@@ -179,6 +198,10 @@ object SetupStepGraph {
         SetupStepId.TRAINING_REVIEW to SetupWizardBlock.TRAINING,
         SetupStepId.FRESH_DAY to SetupWizardBlock.TRAINING,
         SetupStepId.CAPABILITIES to SetupWizardBlock.TRAINING,
+        SetupStepId.AVOIDED_EXERCISES to SetupWizardBlock.TRAINING,
+        SetupStepId.ARM_STYLE to SetupWizardBlock.TRAINING,
+        SetupStepId.TRAINING_VARIANTS to SetupWizardBlock.TRAINING,
+        SetupStepId.CARDIO_BASE to SetupWizardBlock.TRAINING,
         SetupStepId.WEEK_LAYOUT to SetupWizardBlock.TRAINING,
         SetupStepId.MILESTONE_TRAINING to SetupWizardBlock.TRAINING,
         SetupStepId.NUTRITION_START to SetupWizardBlock.NUTRITION,
@@ -242,6 +265,10 @@ object SetupStepGraph {
         SetupStepId.FRESH_DAY to 1590,
         SetupStepId.CAPABILITIES to 1905,
         SetupStepId.PRIORITIES to 1910,
+        SetupStepId.AVOIDED_EXERCISES to 1912,
+        SetupStepId.ARM_STYLE to 1914,
+        SetupStepId.TRAINING_VARIANTS to 1916,
+        SetupStepId.CARDIO_BASE to 1950,
         SetupStepId.SPLIT to 1920,
         SetupStepId.AUTOREGULATION to 2150,
         SetupStepId.AUTOREGULATION_CONFIRM to 2160,
@@ -362,6 +389,7 @@ object SetupStepGraph {
             addAll(listOf(SetupStepId.FRESH_DAY, SetupStepId.WEEKDAYS, SetupStepId.SESSION_TIME))
             if (context.goalIncludesCardio) {
                 addAll(listOf(SetupStepId.CARDIO_TYPE, SetupStepId.CARDIO_TIME))
+                if (context.asksCardioBase) add(SetupStepId.CARDIO_BASE)
             }
             if (context.asksTechnique) add(SetupStepId.VOLUME_TECHNIQUE)
             addAll(listOf(
@@ -369,6 +397,10 @@ object SetupStepGraph {
             ))
             if (context.asksCapabilities) add(SetupStepId.CAPABILITIES)
             add(SetupStepId.PRIORITIES)
+            // Punto de partida: ejercicios a evitar, estilo de mesa y variantes de los básicos van antes de las marcas.
+            if (context.asksAvoid) add(SetupStepId.AVOIDED_EXERCISES)
+            if (context.asksArmStyle) add(SetupStepId.ARM_STYLE)
+            if (context.asksVariants) add(SetupStepId.TRAINING_VARIANTS)
             if (context.asksMarks) add(SetupStepId.TRAINING_MAX)
             add(SetupStepId.PLAN)
             if (context.hasWeekLayout) add(SetupStepId.WEEK_LAYOUT)
@@ -880,6 +912,16 @@ data class SetupInputFootprint(
     val nutritionTargetKg: Double? = null,
     /** NUTRITION_HISTORY_CONTEXT: tendencia + máximo anterior (no registros). */
     val nutritionHistorySignature: String? = null,
+    /** Punto de partida de Entreno: repeticiones de cada marca por levantamiento (ausente = 1RM). */
+    val liftMarkReps: Map<String, Int> = emptyMap(),
+    /** Variante elegida de cada levantamiento básico (id de configuración del catálogo), por levantamiento. */
+    val liftVariants: Map<String, String> = emptyMap(),
+    /** Grupos de ejercicios que la persona prefiere evitar, por nombre. */
+    val avoidedExercises: Set<String> = emptySet(),
+    val cardioBase: String? = null,
+    val armStyle: String? = null,
+    /** Repeticiones seguidas por habilidad de peso corporal, por nombre. */
+    val maxReps: Map<String, Int> = emptyMap(),
 )
 
 /** Detects which physiological changes really happened between two footprints. */
@@ -917,7 +959,11 @@ object SetupChangeDetector {
             old.volumeStyle != new.volumeStyle || old.volumeResponses != new.volumeResponses ||
             old.cardioType != new.cardioType || old.cardioMinutes != new.cardioMinutes ||
             old.autoregulationMode != new.autoregulationMode ||
-            old.warmupsPreference != new.warmupsPreference
+            old.warmupsPreference != new.warmupsPreference ||
+            // Punto de partida (marcas con repeticiones, variantes, evitar, base de cardio, estilo de mesa y repeticiones).
+            old.liftMarkReps != new.liftMarkReps || old.liftVariants != new.liftVariants ||
+            old.avoidedExercises != new.avoidedExercises || old.cardioBase != new.cardioBase ||
+            old.armStyle != new.armStyle || old.maxReps != new.maxReps
         ) add(SetupChangeSource.PROTOCOL)
         // El programa elegido en PLAN (plan, ruta y camino) → PLAN_CHOICE: solo invalida lo que viene detrás de PLAN.
         if (old.programRoute != new.programRoute || old.trainingPath != new.trainingPath ||

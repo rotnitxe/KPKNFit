@@ -222,7 +222,7 @@ class SetupStepSummaryFitTest {
         val three = lifts(3)
         assertEquals("Sentadilla, Press banca +1", valueOf(SetupStepId.TRAINING_MAX, three))
         assertEquals(
-            "Sentadilla 100 kg, Press banca 112,5 kg",
+            "Sentadilla 100 kg · Press banca 112,5 kg",
             valueOf(SetupStepId.TRAINING_MAX, lifts(2)),
         )
         assertEquals("Sentadilla 100 kg", valueOf(SetupStepId.TRAINING_MAX, lifts(1)))

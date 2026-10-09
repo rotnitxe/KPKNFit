@@ -7,12 +7,13 @@ import com.example.kpkn.domain.training.generator.RoutineLevel
  * Es la única regla: la ruta del wizard solo incluye el paso cuando [liftsFor] devuelve algo, y el paso solo pinta
  * esos levantamientos.
  *
- * - Quien empieza (novato) no tiene marcas que declarar: lista vacía.
- * - Fuerza y masa muscular pregunta sentadilla, banca y peso muerto **solo con barra**: sin ella esas marcas no
- *   describen lo que va a entrenar.
- * - Powerlifting y Powerbuilding: sentadilla, banca y peso muerto.
+ * - Quien empieza (novato) y quien vuelve de una pausa no tiene marcas que declarar: su fuerza ya no es la de antes.
+ * - Fuerza y masa muscular pregunta sentadilla, banca, peso muerto y press militar **solo con barra**: sin ella esas marcas
+ *   no describen lo que va a entrenar.
+ * - Powerlifting: sentadilla, banca y peso muerto. Powerbuilding: esas tres más el press militar.
  * - Strongman: peso muerto, sentadilla y press militar.
- * - Halterofilia: sentadilla y, desde el nivel intermedio ([readsOlympicMarks]), también el arranque y los dos tiempos.
+ * - Halterofilia: sentadilla, el press militar (con barra) y, desde el nivel intermedio ([readsOlympicMarks]), también el
+ *   arranque y los dos tiempos.
  * - El resto (cardio, funcional, culturismo, calistenia, armwrestling): sin marcas.
  */
 object MarksContext {
@@ -41,25 +42,29 @@ object MarksContext {
 
     /**
      * Los levantamientos que se preguntan. [hasOlympicLifts] dice si el programa de esta persona lee las marcas olímpicas
-     * ([readsOlympicMarks] de su nivel): solo entonces Halterofilia pregunta también el arranque y los dos tiempos.
+     * ([readsOlympicMarks] de su nivel): solo entonces Halterofilia pregunta también el arranque y los dos tiempos. [returning]
+     * es quien vuelve de una pausa («Estoy volviendo»): no se le piden marcas, como a quien empieza.
      */
     fun liftsFor(
         profile: TrainingGoalProfile?,
         novice: Boolean,
         hasBarbell: Boolean = true,
         hasOlympicLifts: Boolean = CATALOG_HAS_OLYMPIC_LIFTS,
+        returning: Boolean = false,
     ): List<LiftMark> {
-        if (profile == null || novice) return emptyList()
+        if (profile == null || novice || returning) return emptyList()
         return when (profile) {
             TrainingGoalProfile.STRENGTH_MUSCLE ->
-                if (hasBarbell) SQUAT_BENCH_DEADLIFT else emptyList()
-            TrainingGoalProfile.POWERLIFTING,
-            TrainingGoalProfile.POWERBUILDING -> SQUAT_BENCH_DEADLIFT
+                if (hasBarbell) SQUAT_BENCH_DEADLIFT + LiftMark.OVERHEAD_PRESS else emptyList()
+            TrainingGoalProfile.POWERLIFTING -> SQUAT_BENCH_DEADLIFT
+            TrainingGoalProfile.POWERBUILDING -> SQUAT_BENCH_DEADLIFT + LiftMark.OVERHEAD_PRESS
             TrainingGoalProfile.STRONGMAN ->
                 listOf(LiftMark.DEADLIFT, LiftMark.SQUAT, LiftMark.OVERHEAD_PRESS)
-            TrainingGoalProfile.WEIGHTLIFTING ->
-                if (hasOlympicLifts) listOf(LiftMark.SQUAT, LiftMark.SNATCH, LiftMark.CLEAN_AND_JERK)
-                else listOf(LiftMark.SQUAT)
+            TrainingGoalProfile.WEIGHTLIFTING -> buildList {
+                if (hasOlympicLifts) addAll(listOf(LiftMark.SQUAT, LiftMark.SNATCH, LiftMark.CLEAN_AND_JERK))
+                else add(LiftMark.SQUAT)
+                if (hasBarbell) add(LiftMark.OVERHEAD_PRESS)
+            }
             TrainingGoalProfile.STRENGTH_CARDIO,
             TrainingGoalProfile.FUNCTIONAL_HEALTH,
             TrainingGoalProfile.BODYBUILDING,

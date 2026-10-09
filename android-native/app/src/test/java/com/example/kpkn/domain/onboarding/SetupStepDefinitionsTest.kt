@@ -391,14 +391,39 @@ class SetupStepDefinitionsTest {
                 "EDITOR_ROWS", "RESULT_PREVIEW", "MILESTONE", "REVIEW",
                 "PLACES", "EQUIPMENT_SYMBOLS", "GOAL_PROFILES", "FRESH_DAY", "WEEK_CALENDAR", "SESSION_DIAL",
                 "CAPABILITIES", "MUSCLE_SYMBOLS", "LIFT_MARKS", "PLAN_REVEAL", "WEEK_LAYOUT",
+                "LIFT_VARIANTS", "AVOIDED_PATTERNS", "CARDIO_BASE", "ARM_STYLE",
             ),
             SetupControlKind.entries.mapTo(mutableSetOf()) { it.name },
         )
-        assertEquals(27, SetupControlKind.entries.size)
+        assertEquals(31, SetupControlKind.entries.size)
         // Ningún paso usa un control desconocido: la capa de modelos no adivina.
         for (definition in SetupStepDefinitions.definitions.values) {
             assertEquals(definition.control, SetupStepDefinitions.control(definition.id))
         }
+    }
+
+    @Test
+    fun theStartingPointStepsHaveTheirOwnControlsAndAreOmissible() {
+        // Punto de partida (Entreno): cada paso nuevo tiene su control, es omitible y vive en el bloque de Entreno.
+        val expected = mapOf(
+            SetupStepId.AVOIDED_EXERCISES to SetupControlKind.AVOIDED_PATTERNS,
+            SetupStepId.ARM_STYLE to SetupControlKind.ARM_STYLE,
+            SetupStepId.TRAINING_VARIANTS to SetupControlKind.LIFT_VARIANTS,
+            SetupStepId.CARDIO_BASE to SetupControlKind.CARDIO_BASE,
+        )
+        for ((step, control) in expected) {
+            val definition = SetupStepDefinitions.of(step)!!
+            assertEquals(step.name, control, definition.control)
+            assertEquals(step.name, SetupWizardBlock.TRAINING, definition.block)
+            assertEquals(step.name, SetupStepKind.QUESTION, definition.kind)
+            assertTrue(step.name, definition.allowSkip)
+        }
+        // Las opciones salen de su enum: una por valor, con su etiqueta.
+        assertEquals(AvoidGroup.entries.map { it.name }, SetupStepDefinitions.options(SetupStepId.AVOIDED_EXERCISES).map { it.value })
+        assertEquals(ArmStyle.entries.map { it.name }, SetupStepDefinitions.options(SetupStepId.ARM_STYLE).map { it.value })
+        assertEquals(CardioBase.entries.map { it.name }, SetupStepDefinitions.options(SetupStepId.CARDIO_BASE).map { it.value })
+        // Las variantes dependen del perfil y del material: el catálogo de definiciones no las lista.
+        assertTrue(SetupStepDefinitions.options(SetupStepId.TRAINING_VARIANTS).isEmpty())
     }
 
     @Test

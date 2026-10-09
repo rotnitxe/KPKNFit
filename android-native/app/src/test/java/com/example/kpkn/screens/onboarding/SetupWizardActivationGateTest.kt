@@ -192,7 +192,9 @@ class SetupWizardActivationGateTest {
         confirm(vm, SetupStepId.VOLUME_CONSISTENCY, SetupStepId.VOLUME_STRENGTH) { vm.setStepChoice(SetupStepId.VOLUME_CONSISTENCY, "2") }
         confirm(vm, SetupStepId.VOLUME_STRENGTH, SetupStepId.VOLUME_MOBILITY) { vm.setStepChoice(SetupStepId.VOLUME_STRENGTH, "2") }
         confirm(vm, SetupStepId.VOLUME_MOBILITY, SetupStepId.PRIORITIES) { vm.setStepChoice(SetupStepId.VOLUME_MOBILITY, "2") }
-        confirm(vm, SetupStepId.PRIORITIES, SetupStepId.PLAN)
+        confirm(vm, SetupStepId.PRIORITIES, SetupStepId.AVOIDED_EXERCISES)
+        // Culturismo pregunta qué ejercicios evitar: «Ninguno» (sin grupos) no cambia el programa.
+        confirm(vm, SetupStepId.AVOIDED_EXERCISES, SetupStepId.PLAN)
         awaitWall("candidatos reales") {
             !vm.state.value.isCandidateLoading && vm.state.value.availablePlanCandidates.isNotEmpty()
         }

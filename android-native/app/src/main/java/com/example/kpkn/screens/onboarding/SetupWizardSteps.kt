@@ -74,6 +74,8 @@ internal fun wizardPageCopy(
     page: SetupStepId,
     goalProfile: TrainingGoalProfile? = null,
     programDeferred: Boolean = false,
+    bodyweightRoute: Boolean = false,
+    pullUpsRequired: Boolean = false,
 ): WizardPageCopy {
     val definition = SetupStepDefinitions.of(page)
     return when (page) {
@@ -87,6 +89,24 @@ internal fun wizardPageCopy(
                 goalProfile?.isSpecific == true ->
                     WizardPageCopy("Elige tu programa", "Elige el que más te guste. Podrás modificarlo después.")
                 else -> WizardPageCopy(definition?.title ?: page.name, definition?.subtitle)
+            }
+        // Powerlifting pide sus tres básicos como tales; powerbuilding, el título del catálogo («¿Cuáles son tus variantes…?»).
+        SetupStepId.TRAINING_VARIANTS ->
+            if (goalProfile == TrainingGoalProfile.POWERLIFTING) {
+                WizardPageCopy("Tus tres básicos", "Elige cómo los haces: así armamos tus sesiones.")
+            } else {
+                WizardPageCopy(definition?.title ?: page.name, definition?.subtitle)
+            }
+        // Calistenia o solo peso corporal: cuántas repeticiones seguidas; las dominadas son obligatorias si hay barra.
+        SetupStepId.CAPABILITIES ->
+            if (bodyweightRoute) {
+                WizardPageCopy(
+                    "¿Cuántas te salen seguidas?",
+                    if (pullUpsRequired) "Con esto elegimos tus progresiones. Las dominadas son obligatorias."
+                    else "Con esto elegimos tus progresiones.",
+                )
+            } else {
+                WizardPageCopy(definition?.title ?: page.name, definition?.subtitle)
             }
         else -> WizardPageCopy(definition?.title ?: page.name, definition?.subtitle)
     }

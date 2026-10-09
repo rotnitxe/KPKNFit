@@ -530,10 +530,12 @@ class SetupWizardFullJourneyTest {
         assertNotNull("calibración de volumen real", vm.state.value.draft.volumeCalibrationProfile)
 
         // Prioridades: tres músculos (un punto cada uno); sin marcas ni capacidades en la ruta de Culturismo.
-        confirmStep(vm, SetupStepId.PRIORITIES, SetupStepId.PLAN) {
+        confirmStep(vm, SetupStepId.PRIORITIES, SetupStepId.AVOIDED_EXERCISES) {
             listOf(MuscleSymbol.CHEST, MuscleSymbol.BACK, MuscleSymbol.TRICEPS).forEach(vm::toggleMuscle)
         }
         assertEquals(priorityBag(), vm.state.value.draft.trainingOptions.orderPriorities)
+        // Culturismo pregunta qué ejercicios evitar: «Ninguno» (sin grupos) no cambia el programa.
+        confirmStep(vm, SetupStepId.AVOIDED_EXERCISES, SetupStepId.PLAN)
         // PROPOSE es el valor por defecto del contrato: ningún paso lo pregunta.
         assertEquals(AutoregulationMode.PROPOSE, vm.state.value.draft.trainingOptions.autoregulationMode)
 
@@ -970,12 +972,12 @@ class SetupWizardFullJourneyTest {
         SetupStepId.NAME, SetupStepId.AGE, SetupStepId.HEIGHT, SetupStepId.WEIGHT,
         SetupStepId.EQUATION_SEX, SetupStepId.BODY_FAT, SetupStepId.MILESTONE_BASICS,
         // Entreno v2: lugares y material antes del objetivo; día con más energía, días y tiempo; calibración;
-        // prioridades; programa y semana. Culturismo no pregunta capacidades ni marcas.
+        // prioridades, ejercicios a evitar, programa y semana. Culturismo no pregunta capacidades ni marcas.
         SetupStepId.EXPERIENCE, SetupStepId.EQUIPMENT, SetupStepId.AVAILABILITY, SetupStepId.GOAL,
         SetupStepId.FRESH_DAY, SetupStepId.WEEKDAYS, SetupStepId.SESSION_TIME,
         SetupStepId.VOLUME_TECHNIQUE, SetupStepId.VOLUME_CONSISTENCY,
         SetupStepId.VOLUME_STRENGTH, SetupStepId.VOLUME_MOBILITY,
-        SetupStepId.PRIORITIES, SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT,
+        SetupStepId.PRIORITIES, SetupStepId.AVOIDED_EXERCISES, SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT,
         SetupStepId.MILESTONE_TRAINING,
         SetupStepId.NUTRITION_START, SetupStepId.NUTRITION_DIRECTION, SetupStepId.NUTRITION_RHYTHM,
         SetupStepId.NUTRITION_TARGET, SetupStepId.NUTRITION_HISTORY_CONTEXT,
@@ -995,7 +997,7 @@ class SetupWizardFullJourneyTest {
         SetupStepId.FRESH_DAY, SetupStepId.WEEKDAYS, SetupStepId.SESSION_TIME,
         SetupStepId.VOLUME_TECHNIQUE, SetupStepId.VOLUME_CONSISTENCY,
         SetupStepId.VOLUME_STRENGTH, SetupStepId.VOLUME_MOBILITY,
-        SetupStepId.PRIORITIES, SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT,
+        SetupStepId.PRIORITIES, SetupStepId.AVOIDED_EXERCISES, SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT,
         SetupStepId.MILESTONE_TRAINING,
         SetupStepId.NUTRITION_START, SetupStepId.NUTRITION_RESULT, SetupStepId.MILESTONE_NUTRITION,
         SetupStepId.RINGS_RECENT, SetupStepId.RINGS_MUSCLE_FEELING, SetupStepId.RINGS_ENERGY_FEELING,

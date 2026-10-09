@@ -411,13 +411,18 @@ class SetupEntrenoReducersTest {
     // ── Capacidades, músculos y marcas ─────────────────────────────────────────
 
     @Test
-    fun capabilitiesStoreOneLevelPerSkillAndEveryOfferedSkillNeedsOne() {
+    fun capabilitiesStoreOneLevelPerSkillAndOnlyThePullUpsAreRequiredOnTheBodyweightRoute() {
         val atPark = SetupWizardDraft().withPlaces(setOf(park))
         val skills = atPark.capabilitySkills()
         assertTrue(CapabilitySkill.PULL_UP in skills && CapabilitySkill.DIP in skills)
-        var draft = atPark
-        assertTrue(SetupWizardValidation.validateStep(draft, SetupStepId.CAPABILITIES).single().isBlocking)
-        for (skill in skills) draft = draft.withCapability(skill, CapabilityLevel.SOME)
+        // Fuera de la ruta de peso corporal ninguna habilidad es obligatoria: son opcionales.
+        assertTrue(SetupWizardValidation.validateStep(atPark, SetupStepId.CAPABILITIES).none { it.isBlocking })
+        // En calistenia con barra de dominadas, las dominadas sí lo son; el resto sigue siendo opcional.
+        val calisthenics = atPark.withGoalProfile(TrainingGoalProfile.CALISTHENICS)
+        assertTrue(SetupWizardValidation.validateStep(calisthenics, SetupStepId.CAPABILITIES).single().isBlocking)
+        val onlyDips = calisthenics.withCapability(CapabilitySkill.DIP, CapabilityLevel.SOME)
+        assertTrue(SetupWizardValidation.validateStep(onlyDips, SetupStepId.CAPABILITIES).single().isBlocking)
+        var draft = calisthenics.withCapability(CapabilitySkill.PULL_UP, CapabilityLevel.SOME)
         assertTrue(SetupWizardValidation.validateStep(draft, SetupStepId.CAPABILITIES).none { it.isBlocking })
         assertEquals(CapabilityLevel.MANY, draft.withCapability(CapabilitySkill.PULL_UP, CapabilityLevel.MANY).capabilities[CapabilitySkill.PULL_UP])
         assertFalse(CapabilitySkill.PULL_UP in draft.withCapability(CapabilitySkill.PULL_UP, null).capabilities)
@@ -460,10 +465,11 @@ class SetupEntrenoReducersTest {
         assertEquals(140.0, draft.powerliftingProfile?.squat1RM)
         assertNull(draft.powerliftingProfile?.bench1RM)
         assertEquals(mapOf(LiftMark.SQUAT to 140.0, LiftMark.OVERHEAD_PRESS to 60.0), draft.liftMarks)
-        // El press militar solo viaja en `liftMarks`: sin ninguna de las tres no hay perfil de powerlifting.
+        // El press militar se guarda en el perfil (`overhead1RM`) aunque no haya ninguna de las tres: antes se perdía.
         val onlyPress = SetupWizardDraft().withLiftMark(LiftMark.OVERHEAD_PRESS, 60.0)
         assertTrue(onlyPress.knowsTrainingMarks)
-        assertNull(onlyPress.powerliftingProfile)
+        assertEquals(60.0, onlyPress.powerliftingProfile?.overhead1RM)
+        assertNull(onlyPress.powerliftingProfile?.squat1RM)
         // «No la sé» borra la marca; sin marcas el paso sigue siendo válido.
         val cleared = draft.withLiftMark(LiftMark.SQUAT, null).withLiftMark(LiftMark.OVERHEAD_PRESS, null)
         assertFalse(cleared.knowsTrainingMarks)

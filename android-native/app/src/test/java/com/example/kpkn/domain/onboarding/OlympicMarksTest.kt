@@ -189,14 +189,15 @@ class OlympicMarksTest {
 
     @Test
     fun theWeightliftingPickerAsksSquatSnatchAndCleanAndJerkFromTheIntermediateLevelOnly() {
-        val squatOnly = listOf(LiftMark.SQUAT)
-        val all = listOf(LiftMark.SQUAT, LiftMark.SNATCH, LiftMark.CLEAN_AND_JERK)
+        // El press militar (con barra) se pregunta también en halterofilia; quien vuelve no recibe marcas.
+        val squatAndPress = listOf(LiftMark.SQUAT, LiftMark.OVERHEAD_PRESS)
+        val all = listOf(LiftMark.SQUAT, LiftMark.SNATCH, LiftMark.CLEAN_AND_JERK, LiftMark.OVERHEAD_PRESS)
         assertEquals(emptyList<LiftMark>(), weightliftingDraft(SetupExperience.NEW).marksLifts())
-        assertEquals(squatOnly, weightliftingDraft(SetupExperience.RETURNING).marksLifts())
+        assertEquals(emptyList<LiftMark>(), weightliftingDraft(SetupExperience.RETURNING).marksLifts())
         assertEquals(all, weightliftingDraft(SetupExperience.INTERMEDIATE).marksLifts())
         assertEquals(all, weightliftingDraft(SetupExperience.ADVANCED).marksLifts())
         // Sin declarar la experiencia se parte del nivel de quien empieza: tampoco se piden las olímpicas.
-        assertEquals(squatOnly, weightliftingDraft(SetupExperience.INTERMEDIATE).copy(experience = null).marksLifts())
+        assertEquals(squatAndPress, weightliftingDraft(SetupExperience.INTERMEDIATE).copy(experience = null).marksLifts())
     }
 
     @Test

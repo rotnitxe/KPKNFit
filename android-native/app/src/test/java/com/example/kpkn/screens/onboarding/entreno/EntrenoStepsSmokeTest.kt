@@ -444,12 +444,13 @@ class EntrenoStepsSmokeTest {
     }
 
     @Test
-    fun someoneReturningToWeightliftingIsOnlyAskedForTheSquatBecauseTheirProgramNeverCarriesOlympicLifts() {
+    fun someoneReturningToWeightliftingIsNotAskedForMarksAtAll() {
+        // Quien vuelve de una pausa no declara marcas (su fuerza ya no es la de antes): ni la sentadilla ni las olímpicas.
         val draft = SetupWizardDraft().withPlaces(gym)
             .withGoalProfile(TrainingGoalProfile.WEIGHTLIFTING)
             .copy(experience = SetupExperience.RETURNING)
         show(draft) { s, v -> EntrenoMarksStep(s, v) }
-        rule.onNodeWithTag("setup-mark-SQUAT").assertExists()
+        rule.onNodeWithTag("setup-mark-SQUAT").assertDoesNotExist()
         rule.onNodeWithTag("setup-mark-SNATCH").assertDoesNotExist()
         rule.onNodeWithTag("setup-mark-CLEAN_AND_JERK").assertDoesNotExist()
     }

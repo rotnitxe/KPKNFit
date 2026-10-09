@@ -1453,7 +1453,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
      * marks and VITALS. Any change makes the cached preview stale so the next
      * computation runs against the real inputs.
      */
-    private fun trainingKey(draft: SetupWizardDraft): List<Any?> = listOf(
+    internal fun trainingKey(draft: SetupWizardDraft): List<Any?> = listOf(
         draft.commitId, draft.includeTraining, draft.programRoute, draft.trainingPath, draft.goal, draft.focus,
         draft.experience, draft.daysPerWeek, draft.selectedWeekdays, draft.minutesPerSession, draft.equipment,
         draft.cardioType, draft.cardioNoPreference, draft.cardioMinutes,
@@ -1472,6 +1472,8 @@ class SetupWizardViewModel @JvmOverloads constructor(
         // Entreno v2: todo dato nuevo que el motor (o el generador) pueda leer invalida candidatos y vista previa.
         draft.trainingPlaces, draft.goalProfile, draft.freshestDay, draft.weekStartDay, draft.dayPlaces,
         draft.capabilities, draft.liftMarks,
+        // Punto de partida (marcas con repeticiones, variantes, evitar, base de cardio, estilo de mesa y repeticiones seguidas).
+        draft.liftMarkReps, draft.liftVariants, draft.avoidedExercises, draft.cardioBase, draft.armStyle, draft.maxReps,
         // «Otra versión»: la semilla cambia el programa «a medida» (vuelve a barrer), nunca la lista de autores.
         draft.planVariantSeed,
         PersonalizedPlanCatalog.REVISION,
@@ -3613,6 +3615,36 @@ class SetupWizardViewModel @JvmOverloads constructor(
     private fun SetupExperience?.toCatalogLevel() = when (this) { SetupExperience.ADVANCED -> CatalogLevel.ADVANCED; SetupExperience.INTERMEDIATE -> CatalogLevel.INTERMEDIATE; else -> CatalogLevel.BEGINNER }
     private val SetupEquipment.catalogId: String get() = when (this) { SetupEquipment.NONE, SetupEquipment.BODYWEIGHT -> "bodyweight"; SetupEquipment.BANDS -> "band"; SetupEquipment.DUMBBELLS -> "dumbbells"; SetupEquipment.MACHINE -> "machine"; SetupEquipment.CABLE -> "cable"; SetupEquipment.BARBELL -> "barbell"; SetupEquipment.PULL_UP -> "pull_up_bar"; SetupEquipment.GYM -> "general_gym"; SetupEquipment.SUPPORT -> "support"; SetupEquipment.BALL -> "ball"; SetupEquipment.SMITH -> "smith_machine" }
     private fun com.example.kpkn.data.models.GoalMetric.toBodyMetric() = when (this) { GoalMetric.WEIGHT -> BodyMetric.WEIGHT; GoalMetric.BODY_FAT -> BodyMetric.BODY_FAT_PERCENT; GoalMetric.MUSCLE_MASS -> BodyMetric.MUSCLE_MASS_PERCENT }
+
+    // ── Entreno · punto de partida: marcas con repeticiones, variantes, ejercicios a evitar, cardio y estilo de mesa ──
+
+    /** Repeticiones con las que se hizo una marca («kg × reps»); null vuelve al 1RM. Se recortan a 1..10. */
+    fun setLiftMarkReps(lift: LiftMark, reps: Int?) =
+        mutateDraft(SetupStepId.TRAINING_MAX) { latest -> latest.withLiftMarkReps(lift, reps) }
+
+    /** Variante de un levantamiento básico (id de configuración del catálogo); null vuelve a la de siempre. */
+    fun setLiftVariant(lift: LiftMark, configId: String?) =
+        mutateDraft(SetupStepId.TRAINING_VARIANTS) { latest -> latest.withLiftVariant(lift, configId) }
+
+    /** Alterna un grupo de ejercicios a evitar. */
+    fun toggleAvoided(group: AvoidGroup) =
+        mutateDraft(SetupStepId.AVOIDED_EXERCISES) { latest -> latest.withAvoidedToggled(group) }
+
+    /** Fija los grupos de ejercicios a evitar; el conjunto vacío es «Ninguno». */
+    fun setAvoided(groups: Set<AvoidGroup>) =
+        mutateDraft(SetupStepId.AVOIDED_EXERCISES) { latest -> latest.withAvoided(groups) }
+
+    /** Base de cardio de hoy; null retira la respuesta. */
+    fun setCardioBase(base: CardioBase?) =
+        mutateDraft(SetupStepId.CARDIO_BASE) { latest -> latest.withCardioBase(base) }
+
+    /** Estilo en la mesa; null retira la respuesta. */
+    fun setArmStyle(style: ArmStyle?) =
+        mutateDraft(SetupStepId.ARM_STYLE) { latest -> latest.withArmStyle(style) }
+
+    /** Repeticiones seguidas de una habilidad de peso corporal (0–30); null retira la respuesta y deriva el nivel. */
+    fun setMaxReps(skill: CapabilitySkill, reps: Int?) =
+        mutateDraft(SetupStepId.CAPABILITIES) { latest -> latest.withMaxReps(skill, reps) }
 
     companion object {
         private const val DRAFT_ID_KEY = "setup_wizard_draft_id"

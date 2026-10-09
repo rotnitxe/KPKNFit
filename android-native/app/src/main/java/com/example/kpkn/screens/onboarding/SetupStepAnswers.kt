@@ -18,15 +18,20 @@ import com.example.kpkn.domain.nutrition.EerSex
 import com.example.kpkn.domain.nutrition.NutritionConfigurationMode
 import com.example.kpkn.domain.nutrition.NutritionWeeklyDistributionMode
 import com.example.kpkn.domain.nutrition.WizardPacePreset
+import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.nutrition.parseLocalizedNumber
+import com.example.kpkn.domain.onboarding.ArmStyle
+import com.example.kpkn.domain.onboarding.AvoidGroup
 import com.example.kpkn.domain.onboarding.CapabilityLevel
 import com.example.kpkn.domain.onboarding.CapabilitySkill
+import com.example.kpkn.domain.onboarding.CardioBase
 import com.example.kpkn.domain.onboarding.CardioChoice
 import com.example.kpkn.domain.onboarding.CardioChoices
 import com.example.kpkn.domain.onboarding.EntrenoStepValues
 import com.example.kpkn.domain.onboarding.EquipmentSymbolId
 import com.example.kpkn.domain.onboarding.EquipmentSymbols
 import com.example.kpkn.domain.onboarding.LiftMark
+import com.example.kpkn.domain.onboarding.LiftVariants
 import com.example.kpkn.domain.onboarding.MarksContext
 import com.example.kpkn.domain.onboarding.MuscleSuggestions
 import com.example.kpkn.domain.onboarding.MuscleSymbol
@@ -200,6 +205,8 @@ fun SetupWizardDraft.withStepNumber(
 private val DERIVED_SELECTION_STEPS: Set<SetupStepId> = setOf(
     SetupStepId.EQUIPMENT, SetupStepId.AVAILABILITY, SetupStepId.GOAL, SetupStepId.FRESH_DAY,
     SetupStepId.WEEKDAYS, SetupStepId.PRIORITIES, SetupStepId.TRAINING_MAX,
+    // Punto de partida: su selección sale de las variantes, los grupos a evitar, la base de cardio y el estilo de mesa.
+    SetupStepId.TRAINING_VARIANTS, SetupStepId.AVOIDED_EXERCISES, SetupStepId.CARDIO_BASE, SetupStepId.ARM_STYLE,
 )
 
 /** El borrador con la selección de [step] guardada, salvo en los pasos cuya selección sale de sus datos. */
@@ -245,6 +252,9 @@ private fun SetupWizardDraft.projectChoices(
 
     // Músculos canónicos del motor de orden; cada uno puntúa 1 en la bolsa.
     SetupStepId.PRIORITIES -> withMuscles(values.mapNotNullTo(linkedSetOf()) { MuscleSymbols.fromCanonical(it) })
+
+    // Grupos a evitar: «Ninguno» llega como conjunto vacío.
+    SetupStepId.AVOIDED_EXERCISES -> withAvoided(values.mapNotNullTo(linkedSetOf()) { value -> AvoidGroup.entries.firstOrNull { it.name == value } })
 
     SetupStepId.NUTRITION_ELIGIBILITY -> withNutrition {
         it.copy(
@@ -372,6 +382,10 @@ private fun SetupWizardDraft.projectChoice(
     }
 
     SetupStepId.CARDIO_TIME -> copy(cardioMinutes = value?.toIntOrNull())
+
+    // Base de cardio y estilo de mesa: un valor que no se reconoce no deja rastro (null retira la respuesta).
+    SetupStepId.CARDIO_BASE -> copy(cardioBase = CardioBase.entries.firstOrNull { it.name == value })
+    SetupStepId.ARM_STYLE -> copy(armStyle = ArmStyle.entries.firstOrNull { it.name == value })
 
     SetupStepId.GENDER -> copy(profileGender = when (value) {
         "female" -> Gender.FEMALE
@@ -908,28 +922,117 @@ private fun SetupWizardDraft.withSuggestedMusclesFor(profile: TrainingGoalProfil
     if (SetupStepId.PRIORITIES in declaredSteps) this else withMuscles(MuscleSuggestions.forProfile(profile))
 
 /**
- * Marca de un levantamiento (kg canónicos); [kg] null borra la marca («No la sé»). Un valor fuera de rango no
- * cambia nada. Deriva `knowsTrainingMarks` (hay alguna marca) y `powerliftingProfile` (sentadilla, banca y peso muerto;
- * las demás marcas solo viajan en `liftMarks`).
+ * Marca de un levantamiento (kg canónicos); [kg] null borra la marca («No la sé») y sus repeticiones. Un valor fuera de rango
+ * no cambia nada. Sin repeticiones la marca es un 1RM; con ellas, ver [withLiftMarkReps] y [withMarkDerivation].
  */
 fun SetupWizardDraft.withLiftMark(mark: LiftMark, kg: Double?): SetupWizardDraft {
     if (kg != null && (!kg.isFinite() || kg !in LIFT_MARK_RANGE_KG)) return this
     val marks = if (kg == null) liftMarks - mark else liftMarks + (mark to kg)
-    val bigThree = MarksContext.BIG_THREE.any { it in marks }
+    val reps = if (kg == null) liftMarkReps - mark else liftMarkReps
     return copy(
         liftMarks = marks,
-        knowsTrainingMarks = marks.isNotEmpty(),
-        powerliftingProfile = if (bigThree) {
-            (powerliftingProfile ?: PowerliftingProfile()).copy(
-                squat1RM = marks[LiftMark.SQUAT],
-                bench1RM = marks[LiftMark.BENCH],
-                deadlift1RM = marks[LiftMark.DEADLIFT],
-            )
-        } else {
-            null
-        },
+        liftMarkReps = reps,
         stepSelections = stepSelections - SetupStepId.TRAINING_MAX,
+    ).withMarkDerivation()
+}
+
+/**
+ * Repeticiones con las que se hizo una marca («kg × reps»), recortadas a 1..10. Un 1 (o ninguna) es un 1RM y no se guarda: la
+ * ausencia ya significa 1RM. Solo cambia la forma de una marca que ya tiene kilos.
+ */
+fun SetupWizardDraft.withLiftMarkReps(lift: LiftMark, reps: Int?): SetupWizardDraft {
+    val count = reps?.coerceIn(LIFT_MARK_REPS_RANGE)
+    val updated = if (count == null || count <= 1) liftMarkReps - lift else liftMarkReps + (lift to count)
+    return copy(
+        liftMarkReps = updated,
+        stepSelections = stepSelections - SetupStepId.TRAINING_MAX,
+    ).withMarkDerivation()
+}
+
+/**
+ * Variante de un levantamiento básico (id de configuración del catálogo); null vuelve a la de siempre. Un id que no es variante de
+ * ese levantamiento no se guarda. Una variante guardada se conserva aunque el material ya no la permita: se lee como la de siempre
+ * ([LiftVariants.effectiveFor]).
+ */
+fun SetupWizardDraft.withLiftVariant(lift: LiftMark, configId: String?): SetupWizardDraft {
+    if (configId != null && !LiftVariants.belongsTo(lift, configId)) return this
+    val variants = if (configId == null) liftVariants - lift else liftVariants + (lift to configId)
+    return copy(liftVariants = variants)
+}
+
+/** Alterna un grupo de ejercicios a evitar. */
+fun SetupWizardDraft.withAvoidedToggled(group: AvoidGroup): SetupWizardDraft =
+    withAvoided(if (group in avoidedExercises) avoidedExercises - group else avoidedExercises + group)
+
+/** Grupos a evitar, el conjunto entero: vacío = «Ninguno». */
+fun SetupWizardDraft.withAvoided(groups: Set<AvoidGroup>): SetupWizardDraft = copy(avoidedExercises = groups.toSet())
+
+/** Base de cardio de hoy; null retira la respuesta. */
+fun SetupWizardDraft.withCardioBase(base: CardioBase?): SetupWizardDraft = copy(cardioBase = base)
+
+/** Estilo en la mesa; null retira la respuesta. */
+fun SetupWizardDraft.withArmStyle(style: ArmStyle?): SetupWizardDraft = copy(armStyle = style)
+
+/**
+ * Repeticiones seguidas de una habilidad de peso corporal, recortadas a 0..[MAX_SEQUENCE_REPS]; null retira la respuesta. Deriva
+ * el nivel de [capabilities] para que el motor siga funcionando (ver [capabilityLevelOfReps]). La sentadilla a una pierna no
+ * tiene regla de repeticiones: sigue con su nivel.
+ */
+fun SetupWizardDraft.withMaxReps(skill: CapabilitySkill, reps: Int?): SetupWizardDraft {
+    if (skill == CapabilitySkill.PISTOL_SQUAT) return this
+    if (reps == null) return copy(maxReps = maxReps - skill, capabilities = capabilities - skill)
+    val count = reps.coerceIn(0, MAX_SEQUENCE_REPS)
+    return copy(
+        maxReps = maxReps + (skill to count),
+        capabilities = capabilities + (skill to capabilityLevelOfReps(skill, count)),
     )
+}
+
+/**
+ * Nivel de una habilidad según sus repeticiones seguidas: 0 = aún no; en flexiones, 1–14 = algunas y ≥ 15 = varias; en dominadas y
+ * fondos, 1–4 = algunas y ≥ 5 = varias. Son los umbrales que el motor ya usa con los niveles de siempre.
+ */
+internal fun capabilityLevelOfReps(skill: CapabilitySkill, reps: Int): CapabilityLevel {
+    val several = if (skill == CapabilitySkill.PUSH_UP) 15 else 5
+    return when {
+        reps <= 0 -> CapabilityLevel.NONE
+        reps >= several -> CapabilityLevel.MANY
+        else -> CapabilityLevel.SOME
+    }
+}
+
+/** Tope de repeticiones seguidas que se pregunta por habilidad («Cuántas te salen seguidas»). */
+private const val MAX_SEQUENCE_REPS = 30
+
+/** Repeticiones de una marca tal como las usa la derivación: sin dato, 1RM. */
+private fun SetupWizardDraft.repsOf(lift: LiftMark): Int = liftMarkReps[lift] ?: 1
+
+/**
+ * Deriva de las marcas lo que el motor lee: `knowsTrainingMarks` y `powerliftingProfile`. Sentadilla, banca, peso muerto y press
+ * militar escriben sus campos de 1RM si la marca es de un solo intento, o su E1RM (fórmula híbrida) si es una serie de trabajo:
+ * en ese caso el 1RM de ese levantamiento queda vacío, porque una serie nunca se guarda como 1RM. Arranque y dos tiempos solo
+ * viajan en `liftMarks`. Sin ninguna marca de perfil, el perfil queda vacío.
+ */
+private fun SetupWizardDraft.withMarkDerivation(): SetupWizardDraft {
+    val profileLifts = MarksContext.BIG_THREE + LiftMark.OVERHEAD_PRESS
+    fun oneRm(lift: LiftMark): Double? = liftMarks[lift]?.takeIf { repsOf(lift) <= 1 }
+    fun eRm(lift: LiftMark): Double? =
+        liftMarks[lift]?.takeIf { repsOf(lift) > 1 }?.let { kg -> calculateHybrid1RM(kg, repsOf(lift)) }
+    val profile = if (profileLifts.none { it in liftMarks }) {
+        null
+    } else {
+        (powerliftingProfile ?: PowerliftingProfile()).copy(
+            squat1RM = oneRm(LiftMark.SQUAT),
+            squatE1RM = eRm(LiftMark.SQUAT),
+            bench1RM = oneRm(LiftMark.BENCH),
+            benchE1RM = eRm(LiftMark.BENCH),
+            deadlift1RM = oneRm(LiftMark.DEADLIFT),
+            deadliftE1RM = eRm(LiftMark.DEADLIFT),
+            overhead1RM = oneRm(LiftMark.OVERHEAD_PRESS),
+            overheadE1RM = eRm(LiftMark.OVERHEAD_PRESS),
+        )
+    }
+    return copy(knowsTrainingMarks = liftMarks.isNotEmpty(), powerliftingProfile = profile)
 }
 
 /** Unidad en que se muestran las marcas (`kg` o `lb`); el valor canónico sigue en kg. */
@@ -1022,6 +1125,14 @@ private fun SetupWizardDraft.typedSelections(step: SetupStepId): Set<String> = w
     SetupStepId.CARDIO_TIME -> cardioMinutes?.toString().let { setOfNotNull(it) }
 
     SetupStepId.TRAINING_MAX -> liftMarks.keys.mapTo(linkedSetOf()) { it.name }
+
+    SetupStepId.TRAINING_VARIANTS -> liftVariants.values.toCollection(linkedSetOf())
+
+    SetupStepId.AVOIDED_EXERCISES -> avoidedExercises.mapTo(linkedSetOf()) { it.name }
+
+    SetupStepId.CARDIO_BASE -> cardioBase?.name.let { setOfNotNull(it) }
+
+    SetupStepId.ARM_STYLE -> armStyle?.name.let { setOfNotNull(it) }
 
     SetupStepId.GENDER -> profileGender?.name?.lowercase().let { setOfNotNull(it) }
 
