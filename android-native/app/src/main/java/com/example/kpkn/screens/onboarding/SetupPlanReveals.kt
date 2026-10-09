@@ -219,7 +219,8 @@ internal object SetupPlanReveals {
 
     /**
      * Plan propio o de autor del catálogo. [reasons] son las de su tarjeta (encaje con la semana, material, nivel,
-     * prioridades) y [declaredMinutes] el tiempo por sesión pedido (para la nota «~N min por sesión»).
+     * prioridades) y [declaredMinutes] el tiempo por sesión pedido (para la nota «~N min por sesión»). [periodNotes] son las
+     * notas de PLAN de una competición con fecha (la línea «Termina el …» o el motivo por el que no se ajusta).
      */
     fun forCatalog(
         entry: CatalogEntry,
@@ -228,6 +229,7 @@ internal object SetupPlanReveals {
         profile: TrainingGoalProfile?,
         declaredMinutes: Int?,
         coverSeed: Int,
+        periodNotes: List<String> = emptyList(),
     ): SetupPlanReveal {
         val week = weekOf(program)
         val adaptive = entry.source == CatalogSource.NATIVE
@@ -248,7 +250,7 @@ internal object SetupPlanReveals {
             blocks = blocksOf(program),
             week = week,
             reasons = reasons,
-            notes = (entry.notes + listOfNotNull(timeNote(week, declaredMinutes))).distinct(),
+            notes = (entry.notes + periodNotes + listOfNotNull(timeNote(week, declaredMinutes))).distinct(),
             attribution = entry.attributionLine?.takeIf { entry.origin != PlanOrigin.KPKN && it.isNotBlank() },
             phases = phasesOf(program),
         )
