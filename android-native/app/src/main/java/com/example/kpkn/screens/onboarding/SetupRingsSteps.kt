@@ -27,6 +27,7 @@ import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardShapes
 import com.example.kpkn.screens.onboarding.design.WizardSpacing
 import com.example.kpkn.screens.onboarding.design.WizardTypography
+import com.example.kpkn.screens.onboarding.rings.RingsIntroStep
 
 /**
  * Cuerpo de los pasos del bloque RINGS.
@@ -56,6 +57,7 @@ fun SetupRingsStepContent(
     vm: SetupWizardViewModel,
 ) {
     when (step) {
+        SetupStepId.RINGS_INTRO -> RingsIntroStep()
         SetupStepId.RINGS_RECENT -> RingsRecentContent(state, vm)
         SetupStepId.RINGS_SESSIONS -> RingsSessionsContent(state, vm)
         SetupStepId.RINGS_RECENCY -> RingsRecencyContent(state, vm)
