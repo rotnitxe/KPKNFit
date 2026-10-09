@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.onboarding
 
+import com.example.kpkn.data.models.BlockGoal
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
@@ -57,7 +58,8 @@ data class SetupPlanRevealBlock(val label: String, val weeksLabel: String, val d
  * Todo lo que el revelado enseña de un programa viable, sacado del programa YA materializado (el mismo que se
  * previsualiza y se activa) y, en los programas «a medida», del resumen del generador.
  *
- * - [kicker]: «Hecho a tu medida», «Versión inicial», el autor del método («Jim Wendler») o «Plan KPKN».
+ * - [kicker]: la estructura del programa («4 SEMANAS · SE REPITE», «12 SEMANAS · PERIODIZADO»…), «Versión inicial» o el
+ *   autor del método («Jim Wendler»).
  * - [blurb]: una o dos frases de hasta [SetupPlanReveals.BLURB_MAX] caracteres.
  * - [daysLabel] / [minutesLabel] / [levelLabel]: los tres datos de la portada («4 días», «~60 min», «Intermedio»).
  * - [reasons]: «Por qué este programa» (las razones del generador o las de la tarjeta del plan).
@@ -146,9 +148,7 @@ data class SetupWeekLayout(
  */
 internal object SetupPlanReveals {
 
-    const val KICKER_TAILORED = "Hecho a tu medida"
     const val KICKER_INITIAL = "Versión inicial"
-    const val KICKER_KPKN = "Plan KPKN"
     const val BADGE_ADAPTIVE = "Se adapta a ti"
     const val BLURB_MAX = 110
 
@@ -182,7 +182,7 @@ internal object SetupPlanReveals {
             title = entry.displayName,
             generated = true,
             profile = profile,
-            kicker = if (initial) KICKER_INITIAL else KICKER_TAILORED,
+            kicker = if (initial) KICKER_INITIAL else structureKicker(program),
             blurb = blurbOf(oneLiner ?: entry.summary),
             description = listOfNotNull(oneLiner, entry.summary).joinToString(" "),
             daysLabel = daysLabel(week.size),
@@ -221,7 +221,7 @@ internal object SetupPlanReveals {
             title = entry.displayName,
             generated = false,
             profile = profile,
-            kicker = kickerOf(entry),
+            kicker = kickerOf(entry, program),
             blurb = blurbOf(entry.summary),
             description = entry.summary,
             daysLabel = daysLabel(week.size),
@@ -238,12 +238,38 @@ internal object SetupPlanReveals {
         )
     }
 
-    /** El autor del método («Jim Wendler») o «Plan KPKN» en los propios. */
-    fun kickerOf(entry: CatalogEntry): String {
-        if (entry.origin == PlanOrigin.KPKN) return KICKER_KPKN
+    /** El autor del método («Jim Wendler»); en los propios de KPKN y sin autor, la estructura del programa. */
+    fun kickerOf(entry: CatalogEntry, program: Program): String {
+        if (entry.origin == PlanOrigin.KPKN) return structureKicker(program)
         val author = (entry.provenance?.sourceAuthor ?: entry.sourceAuthor)?.trim()?.takeIf { it.isNotEmpty() }
-        return author?.substringBefore(" (")?.substringBefore(" / ") ?: KICKER_KPKN
+        return author?.substringBefore(" (")?.substringBefore(" / ") ?: structureKicker(program)
     }
+
+    /**
+     * Kicker de estructura de la portada (en lugar de «Hecho a tu medida» y «Plan KPKN»): cuánto dura el programa y cómo
+     * se reparte. Función pura sobre el programa ya preparado:
+     *
+     * - una sola semana → «1 SEMANA · SE REPITE»;
+     * - algún bloque de realización o de pico → «N SEMANAS · PERIODIZADO»;
+     * - más de un bloque de carga (la descarga no cuenta como bloque) → «N SEMANAS · B BLOQUES»;
+     * - un ciclo de autor que se repite (receta con `repeats`) → «N SEMANAS · SE REPITE»;
+     * - si no → «N SEMANAS».
+     */
+    fun structureKicker(program: Program): String {
+        val blocks = program.macrocycles.flatMap { it.blocks }
+        val weeks = blocks.flatMap { it.mesocycles }.sumOf { it.weeks.size }
+        if (weeks == 1) return ONE_WEEK_KICKER
+        val weeksLabel = "$weeks SEMANAS"
+        val loadBlocks = blocks.count { it.goal != BlockGoal.DELOAD }
+        return when {
+            blocks.any { it.goal == BlockGoal.REALIZATION || it.goal == BlockGoal.PEAK } -> "$weeksLabel · PERIODIZADO"
+            loadBlocks > 1 -> "$weeksLabel · $loadBlocks BLOQUES"
+            program.sourceRecipe?.repeats == true -> "$weeksLabel · SE REPITE"
+            else -> weeksLabel
+        }
+    }
+
+    private const val ONE_WEEK_KICKER = "1 SEMANA · SE REPITE"
 
     /**
      * Una o dos frases de hasta [BLURB_MAX] caracteres: las frases enteras que caben y, si ni la primera cabe, la
