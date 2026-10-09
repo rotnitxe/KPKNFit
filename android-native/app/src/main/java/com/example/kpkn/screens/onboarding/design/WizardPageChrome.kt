@@ -225,6 +225,8 @@ fun WizardDock(
     modifier: Modifier = Modifier,
     /** Aviso breve justo encima del botón, sin caja. Anclado aparte: que aparezca no mueve el botón. */
     note: String? = null,
+    /** Con texto, el botón es una píldora que lo muestra («Activar y entrar a KPKN»); sin él, el círculo con el check. */
+    textLabel: String? = null,
 ) {
     val density = LocalDensity.current
     val navBottom = with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
@@ -248,9 +250,11 @@ fun WizardDock(
                 .navigationBarsPadding()
                 .padding(bottom = 16.dp),
         ) {
-            WizardDockButton(enabled = enabled, label = label, onClick = onClick)
+            WizardDockButton(enabled = enabled, label = label, textLabel = textLabel, onClick = onClick)
         }
         if (note != null) {
+            // El aviso va justo encima del botón, sea círculo o píldora.
+            val buttonHeight = if (textLabel == null) WizardSpacing.dockButton else WizardSpacing.ctaHeight
             Text(
                 text = note,
                 style = WizardTypography.note,
@@ -259,7 +263,7 @@ fun WizardDock(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .navigationBarsPadding()
-                    .padding(start = 24.dp, end = 24.dp, bottom = 16.dp + WizardSpacing.dockButton + 10.dp),
+                    .padding(start = 24.dp, end = 24.dp, bottom = 16.dp + buttonHeight + 10.dp),
             )
         }
     }
@@ -275,6 +279,7 @@ val WizardDockClearance: Dp = WizardSpacing.dockButton + 16.dp + 20.dp
 private fun WizardDockButton(
     enabled: Boolean,
     label: String,
+    textLabel: String?,
     onClick: () -> Unit,
 ) {
     val interaction = remember { MutableInteractionSource() }
@@ -284,9 +289,10 @@ private fun WizardDockButton(
         animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium),
         label = "wizard-dock-press",
     )
+    // Con texto, píldora de 56 dp de alto y ancho al contenido; sin él, el círculo de siempre con el check.
+    val sizeModifier = if (textLabel == null) Modifier.size(WizardSpacing.dockButton) else Modifier.height(WizardSpacing.ctaHeight)
     Box(
-        modifier = Modifier
-            .size(WizardSpacing.dockButton)
+        modifier = sizeModifier
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
@@ -314,11 +320,21 @@ private fun WizardDockButton(
             .semantics { contentDescription = label },
         contentAlignment = Alignment.Center,
     ) {
-        Icon(
-            imageVector = Icons.Filled.Check,
-            contentDescription = null,
-            tint = if (enabled) WizardColors.ctaContent else WizardColors.ctaDisabledContent,
-            modifier = Modifier.size(30.dp),
-        )
+        if (textLabel == null) {
+            Icon(
+                imageVector = Icons.Filled.Check,
+                contentDescription = null,
+                tint = if (enabled) WizardColors.ctaContent else WizardColors.ctaDisabledContent,
+                modifier = Modifier.size(30.dp),
+            )
+        } else {
+            Text(
+                text = textLabel,
+                style = WizardTypography.cta,
+                color = if (enabled) WizardColors.ctaContent else WizardColors.ctaDisabledContent,
+                maxLines = 1,
+                modifier = Modifier.padding(horizontal = 24.dp),
+            )
+        }
     }
 }
