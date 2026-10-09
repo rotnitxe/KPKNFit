@@ -3,6 +3,7 @@ package com.example.kpkn.render
 import android.view.View
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -76,11 +77,13 @@ class ProgramSourceRenderSheetTest {
 
     @Composable
     private fun FrameRows() {
-        for (source in ProgramSource.entries) {
-            val art = programSourceArtOf(source, reduced = false)
-            Row {
-                for (t in frameTimes.getValue(source)) {
-                    SymbolRenderSheet.Frame(art, t, selected = true, px = 128f)
+        Column {
+            for (source in ProgramSource.entries) {
+                val art = programSourceArtOf(source, reduced = false)
+                Row {
+                    for (t in frameTimes.getValue(source)) {
+                        SymbolRenderSheet.Frame(art, t, selected = true, px = 128f)
+                    }
                 }
             }
         }
