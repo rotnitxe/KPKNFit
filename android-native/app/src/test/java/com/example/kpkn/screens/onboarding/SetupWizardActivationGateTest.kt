@@ -213,15 +213,12 @@ class SetupWizardActivationGateTest {
             )
         }
         confirm(vm, SetupStepId.WEEK_LAYOUT, SetupStepId.MILESTONE_TRAINING)
-        confirm(vm, SetupStepId.MILESTONE_TRAINING, SetupStepId.RINGS_RECENT)
-        // Sin datos declarados de Rings no hay check-in real que exiger.
-        confirm(vm, SetupStepId.RINGS_RECENT, SetupStepId.RINGS_MUSCLE_FEELING) { vm.setStepChoice(SetupStepId.RINGS_RECENT, "unknown") }
-        vm.skipStep(SetupStepId.RINGS_MUSCLE_FEELING)
-        confirm(vm, SetupStepId.RINGS_MUSCLE_FEELING, SetupStepId.RINGS_ENERGY_FEELING)
-        vm.skipStep(SetupStepId.RINGS_ENERGY_FEELING)
-        confirm(vm, SetupStepId.RINGS_ENERGY_FEELING, SetupStepId.RINGS_STRUCTURE_FEELING)
-        vm.skipStep(SetupStepId.RINGS_STRUCTURE_FEELING)
-        confirm(vm, SetupStepId.RINGS_STRUCTURE_FEELING, SetupStepId.RINGS_DISCOMFORT)
+        confirm(vm, SetupStepId.MILESTONE_TRAINING, SetupStepId.RINGS_INTRO)
+        confirm(vm, SetupStepId.RINGS_INTRO, SetupStepId.RINGS_SESSION_DAYS)
+        // Sin datos declarados de Rings no hay check-in real que exiger: «No lo recuerdo» deja el historial desconocido.
+        confirm(vm, SetupStepId.RINGS_SESSION_DAYS, SetupStepId.RINGS_FEELINGS) { vm.setTrainingUnknown() }
+        vm.skipStep(SetupStepId.RINGS_FEELINGS)
+        confirm(vm, SetupStepId.RINGS_FEELINGS, SetupStepId.RINGS_DISCOMFORT)
         vm.skipStep(SetupStepId.RINGS_DISCOMFORT)
         confirm(vm, SetupStepId.RINGS_DISCOMFORT, SetupStepId.RINGS_RESULT)
         confirm(vm, SetupStepId.RINGS_RESULT, SetupStepId.MILESTONE_RINGS)

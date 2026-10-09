@@ -106,7 +106,9 @@ class SetupStepSummariesTest {
             inventoryGroups = SetupInventoryGroup.entries.toSet(),
             nutritionStartChoice = "automatic",
             nutritionDirection = "deficit",
-            recentTraining = true,
+            // Días entrenados en las últimas 72 h: la ruta de RINGS pregunta ejercicios, series e intensidad.
+            ringsTrainedDays = true,
+            ringsTrainedLast72h = true,
         ),
         // Punto de partida: ejercicios a evitar, estilo de mesa y variantes de los básicos.
         SetupStepContext(asksAvoid = true, asksArmStyle = true, asksVariants = true),

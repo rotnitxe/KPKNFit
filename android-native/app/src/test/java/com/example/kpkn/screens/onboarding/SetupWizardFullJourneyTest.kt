@@ -365,7 +365,7 @@ class SetupWizardFullJourneyTest {
             vm.state.value.draft.nutritionDraft?.configurationMode,
         )
         confirmStep(vm, SetupStepId.NUTRITION_RESULT, SetupStepId.MILESTONE_NUTRITION)
-        confirmStep(vm, SetupStepId.MILESTONE_NUTRITION, SetupStepId.RINGS_RECENT)
+        confirmStep(vm, SetupStepId.MILESTONE_NUTRITION, SetupStepId.RINGS_INTRO)
 
         walkRingsPartial(vm)
 
@@ -650,24 +650,19 @@ class SetupWizardFullJourneyTest {
             }
         }
         confirmStep(vm, SetupStepId.NUTRITION_RESULT, SetupStepId.MILESTONE_NUTRITION)
-        confirmStep(vm, SetupStepId.MILESTONE_NUTRITION, SetupStepId.RINGS_RECENT)
+        confirmStep(vm, SetupStepId.MILESTONE_NUTRITION, SetupStepId.RINGS_INTRO)
     }
 
     /** Rings parcial: historial «No lo sé» + sensaciones declaradas (muscular 2). */
     private fun TestScope.walkRingsPartial(vm: SetupWizardViewModel) {
-        confirmStep(vm, SetupStepId.RINGS_RECENT, SetupStepId.RINGS_MUSCLE_FEELING) {
-            vm.setStepChoice(SetupStepId.RINGS_RECENT, "unknown")
+        confirmStep(vm, SetupStepId.RINGS_INTRO, SetupStepId.RINGS_SESSION_DAYS)
+        confirmStep(vm, SetupStepId.RINGS_SESSION_DAYS, SetupStepId.RINGS_FEELINGS) {
+            vm.setTrainingUnknown()
         }
         val route = SetupStepGraph.stepIds(vm.state.value.draft.stepContext())
-        assertFalse("el desconocido del historial no añade evidencia", SetupStepId.RINGS_SESSIONS in route)
-        confirmStep(vm, SetupStepId.RINGS_MUSCLE_FEELING, SetupStepId.RINGS_ENERGY_FEELING) {
-            vm.setStepChoice(SetupStepId.RINGS_MUSCLE_FEELING, "2")
-        }
-        confirmStep(vm, SetupStepId.RINGS_ENERGY_FEELING, SetupStepId.RINGS_STRUCTURE_FEELING) {
-            vm.setStepChoice(SetupStepId.RINGS_ENERGY_FEELING, "3")
-        }
-        confirmStep(vm, SetupStepId.RINGS_STRUCTURE_FEELING, SetupStepId.RINGS_DISCOMFORT) {
-            vm.setStepChoice(SetupStepId.RINGS_STRUCTURE_FEELING, "2")
+        assertFalse("el desconocido de los días no añade evidencia", SetupStepId.RINGS_MAIN_LIFTS in route)
+        confirmStep(vm, SetupStepId.RINGS_FEELINGS, SetupStepId.RINGS_DISCOMFORT) {
+            vm.setFeelings(muscular = 2, energy = 3, structure = 2)
         }
         confirmStep(vm, SetupStepId.RINGS_DISCOMFORT, SetupStepId.RINGS_RESULT) {
             vm.setStepChoices(SetupStepId.RINGS_DISCOMFORT, setOf("none"))
@@ -985,8 +980,8 @@ class SetupWizardFullJourneyTest {
         SetupStepId.NUTRITION_MANUAL_CALORIES, SetupStepId.NUTRITION_MANUAL_CARBS_FAT,
         SetupStepId.NUTRITION_DISTRIBUTION, SetupStepId.NUTRITION_WEIGH_INS,
         SetupStepId.NUTRITION_RESULT, SetupStepId.MILESTONE_NUTRITION,
-        SetupStepId.RINGS_RECENT, SetupStepId.RINGS_MUSCLE_FEELING, SetupStepId.RINGS_ENERGY_FEELING,
-        SetupStepId.RINGS_STRUCTURE_FEELING, SetupStepId.RINGS_DISCOMFORT,
+        SetupStepId.RINGS_INTRO, SetupStepId.RINGS_SESSION_DAYS, SetupStepId.RINGS_FEELINGS,
+        SetupStepId.RINGS_DISCOMFORT,
         SetupStepId.RINGS_RESULT, SetupStepId.MILESTONE_RINGS,
         SetupStepId.REVIEW_ACTIVATE,
     )
@@ -1001,8 +996,8 @@ class SetupWizardFullJourneyTest {
         SetupStepId.PRIORITIES, SetupStepId.AVOIDED_EXERCISES, SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT,
         SetupStepId.MILESTONE_TRAINING,
         SetupStepId.NUTRITION_START, SetupStepId.NUTRITION_RESULT, SetupStepId.MILESTONE_NUTRITION,
-        SetupStepId.RINGS_RECENT, SetupStepId.RINGS_MUSCLE_FEELING, SetupStepId.RINGS_ENERGY_FEELING,
-        SetupStepId.RINGS_STRUCTURE_FEELING, SetupStepId.RINGS_DISCOMFORT,
+        SetupStepId.RINGS_INTRO, SetupStepId.RINGS_SESSION_DAYS, SetupStepId.RINGS_FEELINGS,
+        SetupStepId.RINGS_DISCOMFORT,
         SetupStepId.RINGS_RESULT, SetupStepId.MILESTONE_RINGS,
         SetupStepId.REVIEW_ACTIVATE,
     )

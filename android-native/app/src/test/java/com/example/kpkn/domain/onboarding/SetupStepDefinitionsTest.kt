@@ -138,7 +138,9 @@ class SetupStepDefinitionsTest {
                 definition.control == SetupControlKind.RESULT_PREVIEW ||
                 definition.control == SetupControlKind.PLAN_REVEAL ||
                 definition.control == SetupControlKind.WEEK_LAYOUT ||
-                definition.control == SetupControlKind.PROGRAM_IMPORT
+                definition.control == SetupControlKind.PROGRAM_IMPORT ||
+                // La intro de RINGS es una explicación con título de presentación, no una pregunta.
+                definition.control == SetupControlKind.RINGS_INTRO
             if (isLabeledScreen || definition.id == SetupStepId.NAME) continue
             assertTrue(
                 "${definition.id} should be a natural question, got «${definition.title}»",
@@ -312,7 +314,10 @@ class SetupStepDefinitionsTest {
         assertEquals(SetupStepId.WEEKDAYS, targets[WizChatQuestionId.T_WEEKDAYS])
         assertEquals(SetupStepId.GOAL, targets[WizChatQuestionId.T_GOAL])
         assertEquals(SetupStepId.PLAN, targets[WizChatQuestionId.T_PLAN])
-        assertEquals(SetupStepId.RINGS_RECENT, targets[WizChatQuestionId.R_RECENT])
+        // Los pasos de RINGS retirados (recencia, sesiones, sensaciones sueltas) no migran: su pregunta la sustituyen los días.
+        assertNull(targets[WizChatQuestionId.R_RECENT])
+        assertNull(targets[WizChatQuestionId.R_FEELINGS_MUSCLE])
+        assertEquals(SetupStepId.RINGS_INTENSITY, targets[WizChatQuestionId.R_INTENSITY])
 
         // N_SEX goes to the basics block, never to the legacy nutrition step.
         assertEquals(SetupStepId.EQUATION_SEX, targets[WizChatQuestionId.N_SEX])
@@ -394,10 +399,12 @@ class SetupStepDefinitionsTest {
                 "CAPABILITIES", "MUSCLE_SYMBOLS", "LIFT_MARKS", "PLAN_REVEAL", "WEEK_LAYOUT",
                 "LIFT_VARIANTS", "AVOIDED_PATTERNS", "CARDIO_BASE", "ARM_STYLE",
                 "PROGRAM_SOURCE", "PROGRAM_IMPORT",
+                // RINGS del alta (v2): intro, días, ejercicios principales, series por grupo y sensaciones en una pantalla.
+                "RINGS_INTRO", "RINGS_DAYS", "RINGS_LIFTS", "RINGS_GROUP_SETS", "RINGS_FEELINGS",
             ),
             SetupControlKind.entries.mapTo(mutableSetOf()) { it.name },
         )
-        assertEquals(33, SetupControlKind.entries.size)
+        assertEquals(38, SetupControlKind.entries.size)
         // Ningún paso usa un control desconocido: la capa de modelos no adivina.
         for (definition in SetupStepDefinitions.definitions.values) {
             assertEquals(definition.control, SetupStepDefinitions.control(definition.id))

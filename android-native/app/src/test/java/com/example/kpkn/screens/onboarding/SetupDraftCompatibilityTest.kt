@@ -367,11 +367,16 @@ class SetupDraftCompatibilityTest {
         val native = ringsOnlyDraft.copy(
             stepProgress = SetupStepProgress.initial(ringsContext)
                 .recordAnswer(
-                    SetupStepId.RINGS_RECENT,
+                    SetupStepId.RINGS_INTRO,
                     SetupAnswerProvenance.USER_DECLARED,
                     com.example.kpkn.domain.onboarding.SetupValueState.DECLARED,
                 )
-                .at(SetupStepId.RINGS_MUSCLE_FEELING, ringsContext),
+                .recordAnswer(
+                    SetupStepId.RINGS_SESSION_DAYS,
+                    SetupAnswerProvenance.USER_DECLARED,
+                    com.example.kpkn.domain.onboarding.SetupValueState.DECLARED,
+                )
+                .at(SetupStepId.RINGS_FEELINGS, ringsContext),
         )
         assertEquals(native, SetupDraftCompatibility.repair(native))
     }
@@ -466,7 +471,7 @@ class SetupDraftCompatibilityTest {
         )
         val repaired = SetupDraftCompatibility.repair(stranded)
 
-        assertEquals(SetupStepId.RINGS_RECENT, repaired.stepProgress.currentStepId)
+        assertEquals(SetupStepId.RINGS_INTRO, repaired.stepProgress.currentStepId)
         assertEquals(SetupWizardBlock.RINGS, repaired.stepProgress.block)
         assertEquals(SetupProgressOrigin.NATIVE, repaired.stepProgress.origin)
         assertEquals(emptySet<SetupWizardBlock>(), repaired.stepProgress.completedBlocks)
