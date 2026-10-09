@@ -31,6 +31,7 @@ class SetupEntrenoValidationTest {
         .withStepChoice(SetupStepId.EXPERIENCE, "intermediate")
         .withPlaces(setOf(TrainingPlace.GYM))
         .withGoalProfile(TrainingGoalProfile.BODYBUILDING)
+        .withStepChoice(SetupStepId.COMPETITION, "NO")
         .withFreshestDay(1)
         .withWeekdays(setOf(1, 3, 5))
         .withSessionMinutes(60)

@@ -13,6 +13,7 @@ import com.example.kpkn.domain.onboarding.SetupApparatusPanel
 import com.example.kpkn.domain.onboarding.SetupAnswerProvenance
 import com.example.kpkn.domain.onboarding.SetupProgressOrigin
 import com.example.kpkn.domain.onboarding.SetupStepGraph
+import com.example.kpkn.domain.onboarding.CompetitionAnswer
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.SetupStepProgress
 import com.example.kpkn.domain.onboarding.SetupValueState
@@ -40,7 +41,7 @@ class SetupEntrenoCompatibilityTest {
     private val earlyAnswers = listOf(
         SetupStepId.NAME, SetupStepId.AGE, SetupStepId.HEIGHT, SetupStepId.WEIGHT, SetupStepId.EQUATION_SEX,
         SetupStepId.BODY_FAT, SetupStepId.MILESTONE_BASICS, SetupStepId.EXPERIENCE, SetupStepId.EQUIPMENT,
-        SetupStepId.GOAL, SetupStepId.DAYS, SetupStepId.WEEKDAYS,
+        SetupStepId.GOAL, SetupStepId.COMPETITION, SetupStepId.DAYS, SetupStepId.WEEKDAYS,
     )
 
     private val retiredSteps = listOf(
@@ -71,6 +72,7 @@ class SetupEntrenoCompatibilityTest {
         daysPerWeek = 3,
         selectedWeekdays = setOf(1, 3, 5),
         minutesPerSession = 60,
+        competition = CompetitionAnswer.NO,
         trainingOptions = options.copy(availability = availability ?: options.availability),
         stepProgress = SetupStepProgress(
             block = SetupWizardBlock.TRAINING,

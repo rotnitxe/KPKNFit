@@ -184,7 +184,9 @@ class SetupWizardActivationGateTest {
         confirm(vm, SetupStepId.EXPERIENCE, SetupStepId.EQUIPMENT) { vm.setStepChoice(SetupStepId.EXPERIENCE, "intermediate") }
         confirm(vm, SetupStepId.EQUIPMENT, SetupStepId.AVAILABILITY) { vm.setStepChoice(SetupStepId.EQUIPMENT, "gym") }
         confirm(vm, SetupStepId.AVAILABILITY, SetupStepId.GOAL)
-        confirm(vm, SetupStepId.GOAL, SetupStepId.FRESH_DAY) { vm.setStepChoice(SetupStepId.GOAL, "muscle") }
+        confirm(vm, SetupStepId.GOAL, SetupStepId.COMPETITION) { vm.setStepChoice(SetupStepId.GOAL, "muscle") }
+        // Culturismo pregunta «¿Compites?» con experiencia intermedia: «No compito» y la ruta sigue como antes.
+        confirm(vm, SetupStepId.COMPETITION, SetupStepId.FRESH_DAY) { vm.setStepChoice(SetupStepId.COMPETITION, "NO") }
         confirm(vm, SetupStepId.FRESH_DAY, SetupStepId.WEEKDAYS) { vm.setFreshDay(1) }
         confirm(vm, SetupStepId.WEEKDAYS, SetupStepId.SESSION_TIME) { vm.setStepChoices(SetupStepId.WEEKDAYS, setOf("1", "3", "5")) }
         confirm(vm, SetupStepId.SESSION_TIME, SetupStepId.VOLUME_TECHNIQUE) { vm.setSessionMinutes(60) }

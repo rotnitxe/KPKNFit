@@ -398,13 +398,13 @@ class SetupStepDefinitionsTest {
                 "PLACES", "EQUIPMENT_SYMBOLS", "GOAL_PROFILES", "FRESH_DAY", "WEEK_CALENDAR", "SESSION_DIAL",
                 "CAPABILITIES", "MUSCLE_SYMBOLS", "LIFT_MARKS", "PLAN_REVEAL", "WEEK_LAYOUT",
                 "LIFT_VARIANTS", "AVOIDED_PATTERNS", "CARDIO_BASE", "ARM_STYLE",
-                "PROGRAM_SOURCE", "PROGRAM_IMPORT",
+                "PROGRAM_SOURCE", "PROGRAM_IMPORT", "COMPETITION",
                 // RINGS del alta (v2): intro, días, ejercicios principales, series por grupo y sensaciones en una pantalla.
                 "RINGS_INTRO", "RINGS_DAYS", "RINGS_LIFTS", "RINGS_GROUP_SETS", "RINGS_FEELINGS",
             ),
             SetupControlKind.entries.mapTo(mutableSetOf()) { it.name },
         )
-        assertEquals(38, SetupControlKind.entries.size)
+        assertEquals(39, SetupControlKind.entries.size)
         // Ningún paso usa un control desconocido: la capa de modelos no adivina.
         for (definition in SetupStepDefinitions.definitions.values) {
             assertEquals(definition.control, SetupStepDefinitions.control(definition.id))

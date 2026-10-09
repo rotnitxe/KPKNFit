@@ -112,6 +112,8 @@ class SetupStepSummariesTest {
         ),
         // Punto de partida: ejercicios a evitar, estilo de mesa y variantes de los básicos.
         SetupStepContext(asksAvoid = true, asksArmStyle = true, asksVariants = true),
+        // ¿Compites?: disciplina de competición con experiencia intermedia o avanzada (el paso sale justo tras el objetivo).
+        SetupStepContext(asksCompetition = true),
         SetupStepContext(nutritionStartChoice = "self_defined", nutritionDirection = "surplus"),
         SetupStepContext(nutritionStartChoice = "tracking_only"),
         SetupStepContext(nutritionProfessional = true),
