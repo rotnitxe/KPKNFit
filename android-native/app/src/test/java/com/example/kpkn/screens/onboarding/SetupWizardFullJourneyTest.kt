@@ -552,9 +552,10 @@ class SetupWizardFullJourneyTest {
             com.example.kpkn.domain.onboarding.GeneratedPlans.entryIdFor(TrainingGoalProfile.BODYBUILDING),
             candidates.first().id,
         )
-        // C.P3 (DEC-w2-06): el orden del catálogo sale de la ficha editorial; el primer nativo viable detrás del «a
-        // medida» es el plan propio de Músculo, que es el que este recorrido activa.
-        val native = candidates.drop(1).firstOrNull { it.source == "NATIVE" }
+        // C.P3 (DEC-w2-06): el orden del catálogo sale de la ficha editorial; el primer plan propio o de autor viable detrás
+        // de las formas «a medida» (simple, en bloques y periodizada: también son NATIVE desde D2c) es el de Músculo, que es
+        // el que este recorrido activa.
+        val native = candidates.drop(1).firstOrNull { it.source == "NATIVE" && !com.example.kpkn.domain.onboarding.GeneratedPlans.isGenerated(it.id) }
         if (native == null) {
             fail("sin candidato nativo entre ${candidates.map { it.source }}")
             return

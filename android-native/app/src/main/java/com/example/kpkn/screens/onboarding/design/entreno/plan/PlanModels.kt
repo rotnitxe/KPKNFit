@@ -12,7 +12,7 @@ import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 /**
  * Una tarjeta de programa: lo que muestra la portada y el carrusel.
  *
- * - [kicker]: qué es o de quién es («Hecho a tu medida», «Jim Wendler», «Versión inicial»).
+ * - [kicker]: qué es o de quién es («6 SEMANAS · 2 BLOQUES», «Jim Wendler», «Versión inicial»).
  * - [blurb]: una o dos frases amables, hasta 110 caracteres.
  * - [profile]: la disciplina que da el acento y la ilustración de la portada (`null` = ilustración neutra).
  * - [badge]: una insignia opcional («Recomendado», «Se adapta a ti»).

@@ -116,6 +116,26 @@ internal fun timeReviewNote(draft: SetupWizardDraft, longestMinutes: Int?): Stri
 internal fun generatedProgramOf(routine: GeneratedRoutine, entry: CatalogEntry, draft: SetupWizardDraft): Program =
     presentGenerated(routine.program, placesOf(routine), entry, draft, baseIdOf = { sessionId -> sessionId })
 
+/** Un programa «a medida» en su variante y las notas honestas del periodizador (vacías en la semana simple). */
+internal data class GeneratedVariant(val program: Program, val notes: List<String>)
+
+/**
+ * El programa de la variante de [entry] con sus notas: lo que arma [generatedVariantProgram], con las notas que el
+ * periodizador ([RoutinePeriodizer.build]) devuelve (D2c: el revelado las enseña en el detalle de la variante).
+ */
+internal fun generatedVariantOf(
+    routine: GeneratedRoutine,
+    entry: CatalogEntry,
+    draft: SetupWizardDraft,
+    request: RoutineRequest,
+): GeneratedVariant {
+    val variant = requireNotNull(GeneratedPlans.variantOf(entry.id)) { "«${entry.id}» no es un programa a medida" }
+    if (variant == ProgramVariant.SIMPLE) return GeneratedVariant(generatedProgramOf(routine, entry, draft), emptyList())
+    val horizon = Horizon.Weeks(requireNotNull(entry.durationWeeks) { "«${entry.id}» no declara sus semanas" })
+    val periodized = RoutinePeriodizer.build(request, routine.program, variant, horizon)
+    return GeneratedVariant(presentGenerated(periodized.program, placesOf(routine), entry, draft, baseIdOf = ::baseSessionIdOf), periodized.notes)
+}
+
 /**
  * El programa de la variante de [entry] ([GeneratedPlans.variantOf]) para el alta [draft]. La simple es [generatedProgramOf].
  * «En bloques» (6 semanas) y «periodizado» (12) salen del periodizador ([RoutinePeriodizer.build]), que materializa TODAS
@@ -127,13 +147,7 @@ internal fun generatedVariantProgram(
     entry: CatalogEntry,
     draft: SetupWizardDraft,
     request: RoutineRequest,
-): Program {
-    val variant = requireNotNull(GeneratedPlans.variantOf(entry.id)) { "«${entry.id}» no es un programa a medida" }
-    if (variant == ProgramVariant.SIMPLE) return generatedProgramOf(routine, entry, draft)
-    val horizon = Horizon.Weeks(requireNotNull(entry.durationWeeks) { "«${entry.id}» no declara sus semanas" })
-    val periodized = RoutinePeriodizer.build(request, routine.program, variant, horizon).program
-    return presentGenerated(periodized, placesOf(routine), entry, draft, baseIdOf = ::baseSessionIdOf)
-}
+): Program = generatedVariantOf(routine, entry, draft, request).program
 
 /** El lugar de cada sesión de la semana base del generador, por su id. */
 private fun placesOf(routine: GeneratedRoutine): Map<String, String> =

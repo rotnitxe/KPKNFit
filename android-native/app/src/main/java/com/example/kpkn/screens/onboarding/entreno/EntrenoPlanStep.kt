@@ -39,9 +39,11 @@ import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanPreparingVari
  *   `PlanPreparingOverlay` (GENERAL o DISCIPLINE): corre mientras el barrido trabaja (`ready` = `state.planSweep` en
  *   READY) y, al avisar `onAnimationDone`, se retira y la página revela el resultado. Un resultado ya revelado (misma
  *   huella, [revealKeyOf]) no repite el overlay al girar la pantalla.
- * - **General**: el programa «a medida» con su portada (carrusel de una sola tarjeta: blurb, «Ver detalles» y
- *   «Elegir»), «Tu programa está listo», sus razones, «Otra versión» (`vm.anotherPlanVersion()`) y la frase fija.
- * - **Disciplina**: `PlanCarousel` con las portadas de todos los programas viables (el «a medida» al frente).
+ * - **General**: las tres formas del programa «a medida» (simple, en bloques y periodizada) en un carrusel, con la recomendada
+ *   centrada y marcada «Para ti» (sin elegirla); «Tu programa está listo», sus razones, «Otra versión»
+ *   (`vm.anotherPlanVersion()`) y la frase fija.
+ * - **Disciplina**: `PlanCarousel` con sus tres programas primero y los de autor detrás; si hay más de
+ *   [PLAN_OFFER_LIMIT], se enseñan los primeros y «Ver más programas (N)» abre el resto.
  * - «Ver detalles» o tocar la portada central abre `PlanDetailOverlay` con el detalle REAL del programa ya preparado;
  *   «Elegir este programa» elige (`vm.selectPlan`) y lo cierra. Cerrar sin elegir deja el paso pendiente: «Ver detalles»
  *   y «Elegir» siguen bajo la portada para reabrirlo o elegir.
@@ -68,8 +70,13 @@ internal fun EntrenoPlanStep(state: SetupWizardState, vm: SetupWizardViewModel) 
     val sweep = state.planSweep
     val deferred = draft.programRoute == SetupProgramRoute.LATER
     val selectedId = draft.selectedCatalogId?.takeIf { !deferred }
-    // Una ficha por familia de autor (PHUL, PHAT); la otra versión se alcanza desde el detalle.
-    val shownReveals = remember(reveals) { planCardRevealsOf(reveals) }
+    // La recomendación («Para ti») sale de la experiencia; la oferta, de los programas viables: una ficha por familia de autor
+    // (PHUL, PHAT), los de disciplina primero y, en una disciplina con muchos, las primeras seis hasta «Ver más programas».
+    val recommendedId = remember(reveals, profile, draft.experience) { recommendedIdOf(reveals, profile, draft.experience) }
+    var showAllPrograms by rememberSaveable { mutableStateOf(false) }
+    val offer = remember(reveals, showAllPrograms, selectedId) {
+        planOfferOf(reveals, expanded = showAllPrograms, selectedId = selectedId)
+    }
 
     val revealKey = remember(reveals) { revealKeyOf(reveals) }
     // La huella del último resultado revelado y si, con el paso activo, se vio un barrido en curso: con un barrido visto
@@ -117,14 +124,25 @@ internal fun EntrenoPlanStep(state: SetupWizardState, vm: SetupWizardViewModel) 
                 preparing || sweep != SetupPlanSweep.READY || reveals.isEmpty() -> EntrenoPlanLoadingLine(
                     if (discipline) "${PlanCopy.PREPARING_DISCIPLINE}…" else "${PlanCopy.PREPARING_GENERAL}…",
                 )
-                discipline -> PlanCarousel(
-                    cards = cardModelsOf(shownReveals),
-                    selectedId = shownSelectedIdOf(selectedId, shownReveals),
-                    onSelect = { id -> vm.selectPlan(id) },
-                    onOpen = { id -> detailId = id },
-                )
+                discipline -> {
+                    PlanCarousel(
+                        cards = cardModelsOf(offer.shown, recommendedId),
+                        selectedId = shownSelectedIdOf(selectedId, offer.shown),
+                        onSelect = { id -> vm.selectPlan(id) },
+                        onOpen = { id -> detailId = id },
+                        initialId = recommendedId,
+                    )
+                    if (offer.hidden > 0) {
+                        EntrenoTextAction(
+                            label = "$SEE_MORE_PROGRAMS_LABEL (${offer.hidden})",
+                            onClick = { showAllPrograms = true },
+                            modifier = Modifier.testTag(MORE_PROGRAMS_TAG),
+                        )
+                    }
+                }
                 else -> GeneralReveal(
-                    reveal = reveals.first(),
+                    reveals = reveals,
+                    recommendedId = recommendedId,
                     selectedId = selectedId,
                     onChoose = { id -> vm.selectPlan(id) },
                     onOpen = { id -> detailId = id },
@@ -159,6 +177,7 @@ internal fun EntrenoPlanStep(state: SetupWizardState, vm: SetupWizardViewModel) 
     if (detailReveal != null && !preparing && !deferred) {
         val id = detailReveal.planId
         val model = remember(detailReveal) { detailReveal.toDetailModel() }
+        val phases = remember(detailReveal) { detailReveal.phases.map { it.toPhaseModel() } }
         // La otra versión de la familia (PHUL original ↔ adaptada) se abre desde aquí; elegirla selecciona su id.
         val sibling = siblingRevealOf(reveals, id)
         PlanDetailOverlay(
@@ -173,6 +192,7 @@ internal fun EntrenoPlanStep(state: SetupWizardState, vm: SetupWizardViewModel) 
             weekStartDay = draft.effectiveWeekStart(),
             siblingLabel = sibling?.let { siblingActionLabelOf(id) },
             onSibling = sibling?.let { other -> { detailId = other.planId } },
+            phases = phases,
         )
     }
 }
@@ -184,21 +204,27 @@ internal fun EntrenoPlanStep(state: SetupWizardState, vm: SetupWizardViewModel) 
  */
 @Composable
 private fun GeneralReveal(
-    reveal: SetupPlanReveal,
+    reveals: List<SetupPlanReveal>,
+    recommendedId: String?,
     selectedId: String?,
     onChoose: (String) -> Unit,
     onOpen: (String) -> Unit,
     onAnotherVersion: () -> Unit,
 ) {
+    // Las tres formas del programa a medida (simple, en bloques y periodizada). Las razones son las del generador, las mismas
+    // para las tres: salen de la recomendada.
+    val offered = orderedOfferOf(reveals)
+    val reasons = offered.firstOrNull { it.planId == recommendedId }?.reasons ?: offered.firstOrNull()?.reasons.orEmpty()
     Column(modifier = Modifier.fillMaxWidth().testTag("setup-plan-reveal"), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(text = READY_TITLE, style = WizardTypography.controlLabel, color = WizardColors.text)
         PlanCarousel(
-            cards = listOf(reveal.toCardModel()),
+            cards = cardModelsOf(offered, recommendedId),
             selectedId = selectedId,
             onSelect = onChoose,
             onOpen = onOpen,
+            initialId = recommendedId,
         )
-        reveal.reasons.take(MAX_REASONS).forEach { reason ->
+        reasons.take(MAX_REASONS).forEach { reason ->
             Text(text = reason, style = WizardTypography.bodySmall, color = WizardColors.textMuted)
         }
         EntrenoTextAction(label = ANOTHER_VERSION_LABEL, onClick = onAnotherVersion, modifier = Modifier.testTag("setup-plan-another-version"))
@@ -243,6 +269,7 @@ private const val MAX_REASONS = 5
 /** Textos del revelado (COPY.md, «Revelado del programa»; el aplazado conserva el del resumen de revisión). */
 private const val READY_TITLE = "Tu programa está listo"
 private const val ANOTHER_VERSION_LABEL = "Otra versión"
+private const val SEE_MORE_PROGRAMS_LABEL = "Ver más programas"
 private const val DEFER_LABEL = "Lo haré más adelante"
 private const val RESUME_LABEL = "Preparar mi programa ahora"
 private const val RETRY_LABEL = "Reintentar"
@@ -259,3 +286,6 @@ internal const val RETRY_PREVIEW_TAG = "setup-plan-retry-preview"
 
 /** Marca del aviso del borrador antiguo en PLAN (su acción: `-goal`). */
 internal const val LEGACY_PLAN_TAG = "setup-plan-legacy"
+
+/** Marca de «Ver más programas (N)» en una disciplina con más de [PLAN_OFFER_LIMIT] programas. */
+internal const val MORE_PROGRAMS_TAG = "setup-plan-more"

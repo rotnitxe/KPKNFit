@@ -75,6 +75,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.kpkn.data.models.BlockGoal
+import com.example.kpkn.domain.text.SpanishPlurals
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardFonts
 import com.example.kpkn.screens.onboarding.design.WizardTypography
@@ -134,8 +136,9 @@ fun PlanDetailOverlay(
     weekStartDay: Int = 1,
     siblingLabel: String? = null,
     onSibling: (() -> Unit)? = null,
+    phases: List<PlanPhaseModel> = emptyList(),
 ) {
-    PlanDetailOverlay(model, selected, onChoose, onClose, wizardReducedMotion(), weekStartDay, siblingLabel, onSibling)
+    PlanDetailOverlay(model, selected, onChoose, onClose, wizardReducedMotion(), weekStartDay, siblingLabel, onSibling, phases)
 }
 
 /** La hoja con el «reducir movimiento» decidido por quien llama (pruebas y vista previa de depuración). */
@@ -149,6 +152,7 @@ internal fun PlanDetailOverlay(
     weekStartDay: Int = 1,
     siblingLabel: String? = null,
     onSibling: (() -> Unit)? = null,
+    phases: List<PlanPhaseModel> = emptyList(),
 ) {
     val scope = rememberCoroutineScope()
     val shown = remember { Animatable(if (reduced) 1f else 0f) }
@@ -172,7 +176,7 @@ internal fun PlanDetailOverlay(
         LaunchedEffect(Unit) { if (!reduced) shown.animateTo(1f, tween(460)) }
         DetailSheet(
             model, selected, reduced, blur, { shown.value }, onChoose, leave,
-            weekStartDay = weekStartDay, siblingLabel = siblingLabel, onSibling = onSibling,
+            weekStartDay = weekStartDay, siblingLabel = siblingLabel, onSibling = onSibling, phases = phases,
         )
     }
 }
@@ -194,6 +198,7 @@ internal fun DetailSheet(
     modifier: Modifier = Modifier,
     siblingLabel: String? = null,
     onSibling: (() -> Unit)? = null,
+    phases: List<PlanPhaseModel> = emptyList(),
 ) {
     val card = model.card
     val accent = goalAccent(card.profile)
@@ -272,6 +277,8 @@ internal fun DetailSheet(
                     BlockTimeline(model.blocks, accent)
                 }
                 if (model.week.isNotEmpty()) {
+                    // Las fases de un programa de varias semanas van encima de «Tu semana», que enseña la primera.
+                    PlanPhasesStrip(phases)
                     SectionTitle(PlanCopy.SECTION_WEEK)
                     WeekStrip(model.week, accent, weekStartDay)
                 }
@@ -732,6 +739,79 @@ private fun NoteList(notes: List<String>) {
                     color = WizardColors.textMuted,
                     modifier = Modifier.weight(1f),
                 )
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------- las fases
+
+/** Una fase de la franja: su nombre, sus semanas y su objetivo (de él sale el tono). */
+data class PlanPhaseModel(val label: String, val weeks: Int, val goal: BlockGoal?)
+
+/** Marca de prueba de la franja de fases del detalle. */
+internal const val PLAN_PHASES_TAG = "setup-plan-phases"
+
+/**
+ * El tono de una fase: la paleta de la marca según su objetivo (acumular, intensificar, realizar, descargar). Son tintas
+ * planas: sin resplandor ni degradado.
+ */
+internal fun phaseAccentOf(goal: BlockGoal?): Color = when (goal) {
+    BlockGoal.ACCUMULATION -> SymbolPalette.columna
+    BlockGoal.INTENSIFICATION -> SymbolPalette.energia
+    BlockGoal.REALIZATION, BlockGoal.PEAK, BlockGoal.SPECIFICITY -> SymbolPalette.musculo
+    BlockGoal.DELOAD -> SymbolPalette.ok
+    BlockGoal.TAPER, BlockGoal.DENSITY -> SymbolPalette.mente
+    BlockGoal.CUSTOM, null -> WizardColors.textMuted
+}
+
+/** Lo que anuncia TalkBack de una fase: «Fase 2 de 3: Intensificación, 2 semanas». */
+internal fun phaseDescription(index: Int, count: Int, phase: PlanPhaseModel): String =
+    "Fase ${index + 1} de $count: ${phase.label}, ${SpanishPlurals.weeks(phase.weeks)}"
+
+/**
+ * La franja de fases de un programa de varias semanas: una barra con un tramo por fase, de ancho proporcional a sus semanas,
+ * y debajo la lista («Acumulación · 3 sem»), que es la que cuenta a TalkBack. Sin fases no pinta nada.
+ */
+@Composable
+internal fun PlanPhasesStrip(phases: List<PlanPhaseModel>, modifier: Modifier = Modifier) {
+    if (phases.isEmpty()) return
+    Column(
+        modifier
+            .fillMaxWidth()
+            .padding(top = 26.dp)
+            .testTag(PLAN_PHASES_TAG),
+    ) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .height(8.dp)
+                // La barra es un dibujo: la lista de debajo es la que dice las fases.
+                .clearAndSetSemantics { },
+            horizontalArrangement = Arrangement.spacedBy(3.dp),
+        ) {
+            for (phase in phases) {
+                Box(
+                    Modifier
+                        .weight(phase.weeks.toFloat())
+                        .fillMaxHeight()
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(phaseAccentOf(phase.goal)),
+                )
+            }
+        }
+        Spacer(Modifier.height(12.dp))
+        phases.forEachIndexed { index, phase ->
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 28.dp)
+                    .semantics(mergeDescendants = true) { contentDescription = phaseDescription(index, phases.size, phase) },
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Canvas(Modifier.size(8.dp)) { drawCircle(phaseAccentOf(phase.goal)) }
+                Spacer(Modifier.width(10.dp))
+                Text(text = "${phase.label} · ${phase.weeks} sem", style = WizardTypography.note, color = WizardColors.text)
             }
         }
     }

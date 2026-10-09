@@ -11,11 +11,13 @@ import com.example.kpkn.data.programs.CatalogSource
 import com.example.kpkn.data.programs.PlanLabels
 import com.example.kpkn.data.programs.PlanOrigin
 import com.example.kpkn.data.programs.label
+import com.example.kpkn.domain.onboarding.GeneratedPlans
 import com.example.kpkn.domain.onboarding.TrainingGoalProfile
 import com.example.kpkn.domain.onboarding.TrainingPlace
 import com.example.kpkn.domain.text.SpanishPlurals
 import com.example.kpkn.domain.training.SessionDurationEstimator
 import com.example.kpkn.domain.training.generator.GeneratedRoutine
+import com.example.kpkn.domain.training.periodization.ProgramVariant
 
 /*
  * Entreno v2 · lo que el paso PLAN revela de cada programa y lo que el paso WEEK_LAYOUT dibuja de la semana. Modelos
@@ -55,6 +57,12 @@ data class SetupPlanRevealDay(
 data class SetupPlanRevealBlock(val label: String, val weeksLabel: String, val detail: String)
 
 /**
+ * Una fase de la franja del detalle: su nombre (el del bloque), sus semanas y su objetivo, que le da el tono.
+ * Un programa de varias semanas trae una por bloque; uno de una sola semana no trae ninguna.
+ */
+data class SetupPlanPhase(val label: String, val weeks: Int, val goal: BlockGoal?)
+
+/**
  * Todo lo que el revelado enseña de un programa viable, sacado del programa YA materializado (el mismo que se
  * previsualiza y se activa) y, en los programas «a medida», del resumen del generador.
  *
@@ -64,6 +72,7 @@ data class SetupPlanRevealBlock(val label: String, val weeksLabel: String, val d
  * - [daysLabel] / [minutesLabel] / [levelLabel]: los tres datos de la portada («4 días», «~60 min», «Intermedio»).
  * - [reasons]: «Por qué este programa» (las razones del generador o las de la tarjeta del plan).
  * - [notes]: notas honestas (versión inicial, material que falta, tiempo por encima de lo pedido…).
+ * - [phases]: la franja de fases del detalle (programas de varias semanas); vacía en los de una sola semana.
  */
 data class SetupPlanReveal(
     val planId: String,
@@ -85,6 +94,7 @@ data class SetupPlanReveal(
     val notes: List<String>,
     val attribution: String?,
     val isInitialVersion: Boolean = false,
+    val phases: List<SetupPlanPhase> = emptyList(),
 )
 
 /** Una sesión de la semana armada tal como la dibuja el tablero. */
@@ -162,7 +172,9 @@ internal object SetupPlanReveals {
 
     /**
      * Programa «a medida». [routine] es la salida del generador que produjo [program] (mismo pedido); [level] es el
-     * nivel de la persona, para el que se armó.
+     * nivel de la persona, para el que se armó. En una variante de varias semanas ([GeneratedPlans.variantOf]) el
+     * resumen del generador describe la semana simple, así que la portada usa la ficha de la variante, su estructura
+     * real y el kicker de estructura; [periodNotes] son las notas que trajo el periodizador para esa variante.
      */
     fun forGenerated(
         entry: CatalogEntry,
@@ -172,17 +184,19 @@ internal object SetupPlanReveals {
         level: CatalogLevel,
         declaredMinutes: Int?,
         coverSeed: Int,
+        periodNotes: List<String> = emptyList(),
     ): SetupPlanReveal {
         val summary = routine?.summary
         val week = weekOf(program)
+        val structured = GeneratedPlans.variantOf(entry.id).let { it != null && it != ProgramVariant.SIMPLE }
         val initial = summary?.isInitialVersion == true
-        val oneLiner = summary?.oneLiner?.takeIf { it.isNotBlank() }
+        val oneLiner = summary?.oneLiner?.takeIf { it.isNotBlank() }?.takeUnless { structured }
         return SetupPlanReveal(
             planId = entry.id,
             title = entry.displayName,
             generated = true,
             profile = profile,
-            kicker = if (initial) KICKER_INITIAL else structureKicker(program),
+            kicker = if (initial && !structured) KICKER_INITIAL else structureKicker(program),
             blurb = blurbOf(oneLiner ?: entry.summary),
             description = listOfNotNull(oneLiner, entry.summary).joinToString(" "),
             daysLabel = daysLabel(week.size),
@@ -191,14 +205,15 @@ internal object SetupPlanReveals {
             badge = null,
             coverSeed = coverSeed,
             mainExercises = (summary?.mainExercises ?: mainExercisesOf(program)).distinct().take(MAX_MAIN_EXERCISES),
-            blocks = listOf(
+            blocks = if (structured) blocksOf(program) else listOf(
                 SetupPlanRevealBlock(REPEATING_WEEK_LABEL, REPEATING_WEEK_SPAN, oneLiner ?: entry.summary),
             ),
             week = week,
             reasons = summary?.reasons.orEmpty(),
-            notes = (routine?.notes.orEmpty() + listOfNotNull(timeNote(week, declaredMinutes))).distinct(),
+            notes = (routine?.notes.orEmpty() + periodNotes + listOfNotNull(timeNote(week, declaredMinutes))).distinct(),
             attribution = null,
             isInitialVersion = initial,
+            phases = phasesOf(program),
         )
     }
 
@@ -235,6 +250,7 @@ internal object SetupPlanReveals {
             reasons = reasons,
             notes = (entry.notes + listOfNotNull(timeNote(week, declaredMinutes))).distinct(),
             attribution = entry.attributionLine?.takeIf { entry.origin != PlanOrigin.KPKN && it.isNotBlank() },
+            phases = phasesOf(program),
         )
     }
 
@@ -389,6 +405,22 @@ internal object SetupPlanReveals {
         }
         if (week <= 1) return listOf(SetupPlanRevealBlock(REPEATING_WEEK_LABEL, REPEATING_WEEK_SPAN, ""))
         return segments.map { (label, range, detail) -> SetupPlanRevealBlock(label, weeksLabel(range), detail) }
+    }
+
+    /**
+     * Las fases de la franja del detalle: un tramo por bloque del programa, con sus semanas y su objetivo. Un programa de una
+     * sola semana no tiene fases (la franja no se enseña). El nombre es el del bloque (el del periodizador ya está en español).
+     */
+    fun phasesOf(program: Program): List<SetupPlanPhase> {
+        val blocks = program.macrocycles.flatMap { it.blocks }
+        val phases = blocks.mapIndexed { index, block ->
+            SetupPlanPhase(
+                label = block.name.ifBlank { block.goal?.label ?: "Fase ${index + 1}" },
+                weeks = block.mesocycles.sumOf { it.weeks.size },
+                goal = block.goal,
+            )
+        }.filter { it.weeks > 0 }
+        return if (phases.sumOf { it.weeks } > 1) phases else emptyList()
     }
 
     private const val DELOAD_LABEL = "Descarga"

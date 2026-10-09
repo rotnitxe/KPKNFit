@@ -151,7 +151,7 @@ private fun blockedReasonsOf(spec: String): Map<TrainingGoalProfile, String> = w
 /** Los programas de ejemplo de una disciplina: uno «a medida», tres de autor y, al final, una «versión inicial». */
 private fun sampleCards(profile: TrainingGoalProfile): List<PlanCardModel> = listOf(
     PlanCardModel(
-        id = "custom", title = "Programa a tu medida", kicker = "Hecho a tu medida",
+        id = "custom", title = "Programa a tu medida", kicker = "6 SEMANAS · 2 BLOQUES",
         blurb = "Armado con tu material, tus días y tu tiempo. Se ajusta si cambias algo.",
         profile = profile, daysLabel = "4 días", minutesLabel = "60 min", levelLabel = "Intermedio",
         badge = "Se adapta a ti", coverSeed = 3,
@@ -263,7 +263,7 @@ private fun CoverPreview(args: PreviewArgs) {
     Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
         PlanCover(card, Modifier.width(260.dp).aspectRatio(3f / 4f), animate = args.animate && !args.reduced, reduced = args.reduced)
         PlanCover(
-            model = card.copy(title = "Programa a tu medida", kicker = "Hecho a tu medida", badge = null),
+            model = card.copy(title = "Programa a tu medida", kicker = "1 SEMANA · SE REPITE", badge = null),
             modifier = Modifier.fillMaxWidth().height(236.dp),
             animate = args.animate && !args.reduced,
             reduced = args.reduced,
@@ -288,7 +288,7 @@ private fun CoverGrid(args: PreviewArgs) {
                 for (profile in pair) {
                     val card = PlanCardModel(
                         id = profile.name, title = profile.label,
-                        kicker = if (profile.isSpecific) "Versión inicial" else "Hecho a tu medida",
+                        kicker = if (profile.isSpecific) "Versión inicial" else "1 SEMANA · SE REPITE",
                         blurb = profile.tagline, profile = profile, daysLabel = "4 días", minutesLabel = "60 min",
                         levelLabel = "Intermedio", coverSeed = profile.ordinal * 7 + 1,
                     )
