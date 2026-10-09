@@ -1382,6 +1382,9 @@ private fun KPKNNavGraph(
                 defaultValue = ""
             }),
         ) { entry ->
+            com.example.kpkn.ui.entitlements.CapabilityGate(com.example.kpkn.domain.entitlements.Capability.ADVANCED_PROGRAMS,
+                onPro = { navController.navigate(KpknRoute.Account.route) },
+                onBack = { navController.popBackStack() }) {
             val mode = runCatching {
                 com.example.kpkn.screens.onboarding.SetupWizardMode.valueOf(
                     entry.arguments?.getString(KpknRoute.SetupWizard.ARG_MODE) ?: "FULL",
@@ -1412,6 +1415,7 @@ private fun KPKNNavGraph(
                 },
                 onCancel = { navController.popBackStack() },
             )
+            }
         }
         composable(KpknRoute.BodyProgress.route) {
             BodyProgressScreen(

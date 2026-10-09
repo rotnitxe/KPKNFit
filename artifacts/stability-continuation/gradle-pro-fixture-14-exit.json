@@ -1,0 +1,8 @@
+{
+  "exitCode": 0,
+  "completed": "2026-10-08T23:44:29.7150834-03:00",
+  "tests": [
+    "SetupWizardEntrenoPlanTest"
+  ],
+  "fixture": "explicit Pro; assertions unchanged"
+}

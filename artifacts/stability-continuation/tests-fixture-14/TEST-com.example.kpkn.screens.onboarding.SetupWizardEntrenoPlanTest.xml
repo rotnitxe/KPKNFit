@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.SetupWizardEntrenoPlanTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-10-09T02:43:48.390Z" hostname="VF" time="26.442">
+  <properties/>
+  <testcase name="anotherVersionRegeneratesTheTailoredProgramAndKeepsItChosen" classname="com.example.kpkn.screens.onboarding.SetupWizardEntrenoPlanTest" time="7.79"/>
+  <testcase name="aGeneralGoalRevealsOneTailoredProgramWhoseWeekIsArrangedAndActivatedAsPreviewed" classname="com.example.kpkn.screens.onboarding.SetupWizardEntrenoPlanTest" time="2.008"/>
+  <testcase name="changingDaysOrMaterialSweepsAgainAndLeavesTheChosenProgramPendingReview" classname="com.example.kpkn.screens.onboarding.SetupWizardEntrenoPlanTest" time="0.52"/>
+  <testcase name="aSessionMovedToADayOfAnotherPlaceTakesThatPlaceWhenItsMaterialFitsAndIsActivatedAsPreviewed" classname="com.example.kpkn.screens.onboarding.SetupWizardEntrenoPlanTest" time="1.074"/>
+  <testcase name="deferringTheProgramSkipsTheWeekAndClearsThePreview" classname="com.example.kpkn.screens.onboarding.SetupWizardEntrenoPlanTest" time="0.35"/>
+  <testcase name="aDisciplineWithoutAuthorsOffersOneInitialVersion" classname="com.example.kpkn.screens.onboarding.SetupWizardEntrenoPlanTest" time="0.266"/>
+  <testcase name="changingDaysMaterialMinutesPlanPrioritiesOrVersionLeavesTheWeekPendingReviewInsteadOfClearingItInSilence" classname="com.example.kpkn.screens.onboarding.SetupWizardEntrenoPlanTest" time="5.796"/>
+  <testcase name="aSessionThatDoesNotFitTheNewDaysPlaceStaysWarnedInThePreviewTheReviewAndTheActivationUntilItIsUndone" classname="com.example.kpkn.screens.onboarding.SetupWizardEntrenoPlanTest" time="1.535"/>
+  <testcase name="aDisciplineWithAuthorsPutsTheTailoredProgramFirstAndTheAuthorsBehind" classname="com.example.kpkn.screens.onboarding.SetupWizardEntrenoPlanTest" time="0.95"/>
+  <testcase name="aLibraryPlanThatAGeneralProfileNoLongerOffersIsExplainedWithoutAlarmAndTheTailoredProgramIsOneTapAway" classname="com.example.kpkn.screens.onboarding.SetupWizardEntrenoPlanTest" time="0.467"/>
+  <testcase name="aFailingEngineShowsTheCopyMessageAndRetryRecovers" classname="com.example.kpkn.screens.onboarding.SetupWizardEntrenoPlanTest" time="0.281"/>
+  <testcase name="theOwnPlansOfTheSpecificProfilesAreOfferedFromThemAndNeverFallForNothing" classname="com.example.kpkn.screens.onboarding.SetupWizardEntrenoPlanTest" time="2.931"/>
+  <testcase name="anAuthoredProgramIsActivatedAsPreviewedWithTheMandatoryApproachAndMobility" classname="com.example.kpkn.screens.onboarding.SetupWizardEntrenoPlanTest" time="2.465"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

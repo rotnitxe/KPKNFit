@@ -1933,14 +1933,19 @@ class ProgramDetailViewModel(
         }
     }
 
-    fun addSession(macroIndex: Int, mesoIndex: Int, weekId: String, session: Session) {
-        repository.upsertSessionInProgram(
-            programId = programId,
-            weekId = weekId,
-            macroIndex = macroIndex,
-            mesoIndex = mesoIndex,
-            session = session,
-        )
+    fun addSession(macroIndex: Int, mesoIndex: Int, weekId: String, session: Session): Boolean {
+        return try {
+            repository.upsertSessionInProgram(
+                programId = programId,
+                weekId = weekId,
+                macroIndex = macroIndex,
+                mesoIndex = mesoIndex,
+                session = session,
+            )
+        } catch (error: com.example.kpkn.domain.entitlements.CapabilityRequiredException) {
+            _uiState.update { it.copy(snackbarMessage = com.example.kpkn.ui.entitlements.capabilityErrorText(error.code)) }
+            false
+        }
     }
 
     fun reorderSessions(weekId: String, fromIndex: Int, toIndex: Int) {

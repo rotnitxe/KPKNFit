@@ -684,7 +684,10 @@
         "result-volume-gate-55.json",
         "device-qa-55.json",
         "review-apk-verification-55.json",
-        "native-packaging-55.json"
+        "native-packaging-55.json",
+        "../stability-continuation/tests-aud03-9.json",
+        "../stability-continuation/emulator-free-12/result.json",
+        "../stability-continuation/emulator-setup-fixed-11/04-legacy-full-link/after.xml"
       ],
       "dependencies": [
         "Inicio Free y protección de Volumen verificados en API36; todas las entradas avanzadas, multimedia, caducidad con datos reales y límite entre varias rutinas permanecen pendientes."
@@ -712,7 +715,9 @@
       "verification": "PENDIENTE",
       "evidence": [
         "tests-account-ui-portable-3/",
-        "web-deletion-local.json"
+        "web-deletion-local.json",
+        "../stability-continuation/emulator-free-12/result.json",
+        "android-native/app/src/androidTest/java/com/example/kpkn/data/repository/ExpiredProDataControlsTest.kt"
       ],
       "dependencies": []
     },
@@ -1125,7 +1130,8 @@
         "../master-integration/result-targeted-2.json",
         "../master-integration/result-targeted-3.json",
         "../master-integration/emulator-gallery-3/result.json",
-        "../master-integration/node-media-contracts-4-exit.json"
+        "../master-integration/node-media-contracts-4-exit.json",
+        "../stability-continuation/validation-final.json"
       ],
       "dependencies": [
         "Entrega fuente df7: suite54 con 6896 PASS y dos replay reales omitidos; ronda55 con 87 PASS, lint Release sin errores y R8 aprobado sin firma. Arbol combinado con AUD06: 420 PASS JVM dirigidos, 12 contratos Node locales, build debug/AndroidTest aprobado y tres pruebas de galeria en API36. El nuevo arbol no tiene lint/R8 Release propio ni release firmado; aceptacion integral pendiente."
@@ -1170,7 +1176,9 @@
         "r8-31-result.json",
         "gradle-r8-31.log",
         "result-full-jvm-54.json",
-        "result-volume-gate-55.json"
+        "result-volume-gate-55.json",
+        "../stability-continuation/tests-full-13.json",
+        "../stability-continuation/tests-fixture-14.json"
       ],
       "dependencies": [
         "Suite completa54: 6896 aprobadas, cero fallos y dos omisiones reales de voz; último ajuste UI55 con 87 regresiones aprobadas. CI remota y corpus real pendientes."
@@ -1263,7 +1271,8 @@
     "Final R8 compilation31 passed. Mapping/seeds/usage hashes recorded. Merged release manifest31 has no Health Connect, dataSync service or broad media read permissions. Signed release, native release-device QA, 16KB runtime, real replay corpus, live purchases, protected program integrations and beta remain unaccepted.",
     "Round50: 6894 tests, 55 failures, 2 real voice omissions. Round53: 540 directed regressions passed; round54 full rerun in progress. Android API36 fresh Free entry, cold persistence and eight nutrition tests passed; Free volume access remains an open finding.",
     "Round54 full JVM: 6898 tests, 6896 passed, zero failures/errors, two real voice omissions. Round55: 87 regressions, debug/AndroidTest and API36 muscle-volume gate/back/account navigation passed; release lint/R8 in progress.",
-    "Release55 lint/R8 completed BUILD SUCCESSFUL in 32m26s: zero errors, 610 warnings, 39 hints. Compilation only; no signing, release packaging/runtime or Play review. AUD01-AUD05 final selected regressions: 39 tests passed in full cohort54; real-flow and independent acceptance remain partial."
+    "Release55 lint/R8 completed BUILD SUCCESSFUL in 32m26s: zero errors, 610 warnings, 39 hints. Compilation only; no signing, release packaging/runtime or Play review. AUD01-AUD05 final selected regressions: 39 tests passed in full cohort54; real-flow and independent acceptance remain partial.",
+    "Master continuation: 124 directed JVM and 3 actual API36 Android tests passed; full tree executed 8061 JVM cases with 4 advanced-fixture failures and 6 omissions; the fixture alone declares Pro explicitly and all its 13 assertions/cases were revalidated. The original full failure report is retained; no second full run is claimed. Release lint/R8 outcomes are recorded separately in stability-continuation/validation-final.json. Real Play purchases, deployed services, voice corpus, physical/16KiB runtime and launch acceptance remain separate."
   ],
   "historicalEvidenceNotes": [
     "Android builds 10 and 12: 8 and 36 directed tests passed, respectively, with assembleDebug. API 36 UI verified only for APK 10.",
