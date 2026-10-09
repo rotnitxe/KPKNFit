@@ -32,7 +32,10 @@ Worktree indicado en tu encargo, rama `v3/d2c` (sale de `feat/wizard-v3` con D1,
    semanas). Accesible como lista («Fase 1 de 3: Acumulación, 3 semanas»).
 4. La portada de cada variante lleva el kicker de D1 (`structureKicker(program)` y `kickerOf(entry, program)` en `SetupPlanReveals.kt`:
    «6 SEMANAS · 2 BLOQUES»…). Nombres de D2b.
-5. Limpieza que dejó D1: quedan «Hecho a tu medida» en `src/debug/.../EntrenoPlanPreviewActivity.kt` y en el KDoc de
+5. Notas del periodizador: `generatedVariantProgram` (D2b, `SetupGeneratedPlans.kt`) descarta hoy `PeriodizedRoutine.notes` porque
+   `SetupPreview` no lleva notas. Haz que lleguen al detalle de la variante por el camino de notas que ya use el detalle (si exige tocar
+   `SetupPreview`, añade un campo `notes: List<String> = emptyList()`; permitido).
+6. Limpieza que dejó D1: quedan «Hecho a tu medida» en `src/debug/.../EntrenoPlanPreviewActivity.kt` y en el KDoc de
    `design/entreno/plan/PlanModels.kt:15`: cámbialos por el kicker de estructura (permitido tocar esas dos líneas).
 
 ## Archivos permitidos
