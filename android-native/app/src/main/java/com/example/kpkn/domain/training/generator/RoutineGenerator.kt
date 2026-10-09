@@ -303,6 +303,19 @@ object RoutineGenerator {
             append(request.cardio?.let { "${it.type?.name ?: "any"}:${it.minutes}:${it.intensity.name}" } ?: "-").append('|')
             append(request.marks.entries.sortedBy { it.key.name }.joinToString(",") { "${it.key.name}:${it.value}" }).append('|')
             append(request.catalog.catalogRevision).append('|').append(request.variantSeed)
+            // El punto de partida solo entra en el id cuando no está en su valor por defecto: así los ids de hoy no cambian.
+            if (request.markReps.isNotEmpty()) {
+                append("|reps=").append(request.markReps.entries.sortedBy { it.key.name }.joinToString(",") { "${it.key.name}:${it.value}" })
+            }
+            if (request.liftVariants.isNotEmpty()) {
+                append("|variants=").append(request.liftVariants.entries.sortedBy { it.key.name }.joinToString(",") { "${it.key.name}:${it.value}" })
+            }
+            if (request.avoided.isNotEmpty()) append("|avoid=").append(request.avoided.map { it.name }.sorted().joinToString(","))
+            request.cardioBase?.let { append("|base=").append(it.name) }
+            request.armStyle?.let { append("|arm=").append(it.name) }
+            if (request.maxReps.isNotEmpty()) {
+                append("|maxreps=").append(request.maxReps.entries.sortedBy { it.key.name }.joinToString(",") { "${it.key.name}:${it.value}" })
+            }
         }
         return "gen-" + Integer.toHexString(fnv1a(text))
     }

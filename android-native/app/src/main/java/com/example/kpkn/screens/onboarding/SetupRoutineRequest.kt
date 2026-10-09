@@ -1,8 +1,12 @@
 package com.example.kpkn.screens.onboarding
 
+import com.example.kpkn.data.models.CardioIntensity
 import com.example.kpkn.data.models.EquipmentAvailability
 import com.example.kpkn.data.programs.CatalogLevel
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2
+import com.example.kpkn.domain.onboarding.CardioBase
+import com.example.kpkn.domain.onboarding.LiftMark
+import com.example.kpkn.domain.onboarding.LiftVariants
 import com.example.kpkn.domain.onboarding.MuscleSymbol
 import com.example.kpkn.domain.onboarding.MuscleSymbols
 import com.example.kpkn.domain.onboarding.PlaceMaterial
@@ -55,10 +59,35 @@ internal fun SetupWizardDraft.priorityMuscleSymbols(): List<MuscleSymbol> =
 internal fun SetupWizardDraft.cardioPreference(): CardioPreference? {
     if (!requiresCardio) return null
     val minutes = cardioMinutes ?: return null
+    val intensity = cardioBase.toCardioIntensity()
     return when {
-        cardioType != null -> CardioPreference(cardioType, minutes)
-        cardioNoPreference -> CardioPreference(null, minutes)
+        cardioType != null -> CardioPreference(cardioType, minutes, intensity)
+        cardioNoPreference -> CardioPreference(null, minutes, intensity)
         else -> null
+    }
+}
+
+/**
+ * La intensidad del cardio que fija la base de hoy: «Me cuesta 10 min» → baja; «Aguanto 20–30 min» → media; «Corro 45 min» y
+ * «Hago series rápidas» → alta. Sin base, media (como antes).
+ */
+internal fun CardioBase?.toCardioIntensity(): CardioIntensity = when (this) {
+    CardioBase.LOW -> CardioIntensity.BAJA
+    CardioBase.MODERATE, null -> CardioIntensity.MEDIA
+    CardioBase.HIGH, CardioBase.INTERVALS -> CardioIntensity.ALTA
+}
+
+/**
+ * Las variantes que usa el generador: solo las que se apartan de la de siempre, que el material aún permite y que pide el nivel
+ * (intermedio o avanzado). Lo guardado no se borra: si ya no cabe, el generador lee la de siempre.
+ */
+private fun SetupWizardDraft.variantsForRequest(availability: EquipmentAvailability): Map<LiftMark, String> {
+    val level = experience.toRoutineLevel()
+    if (level != RoutineLevel.INTERMEDIATE && level != RoutineLevel.ADVANCED) return emptyMap()
+    val lifts = LiftVariants.liftsFor(goalProfile)
+    return liftVariants.filter { (lift, configId) ->
+        lift in lifts && configId != LiftVariants.defaultFor(lift) &&
+            LiftVariants.optionsFor(goalProfile, lift, availability).any { it.configId == configId }
     }
 }
 
@@ -94,6 +123,13 @@ internal fun SetupWizardDraft.routineRequest(
         capabilities = capabilities,
         cardio = cardioPreference(),
         marks = liftMarks,
+        // Punto de partida: el PR con repeticiones solo cuenta con repeticiones de 2 a 10; el 1 es un 1RM.
+        markReps = liftMarkReps.filter { (lift, reps) -> reps > 1 && lift in liftMarks },
+        liftVariants = variantsForRequest(availability),
+        avoided = avoidedExercises,
+        cardioBase = cardioBase,
+        armStyle = armStyle,
+        maxReps = maxReps,
         catalog = catalog,
         variantSeed = planVariantSeed,
         programId = programId,

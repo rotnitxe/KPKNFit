@@ -3,8 +3,11 @@ package com.example.kpkn.domain.training.generator
 import com.example.kpkn.data.models.EquipmentAvailability
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2
+import com.example.kpkn.domain.onboarding.ArmStyle
+import com.example.kpkn.domain.onboarding.AvoidGroup
 import com.example.kpkn.domain.onboarding.CapabilityLevel
 import com.example.kpkn.domain.onboarding.CapabilitySkill
+import com.example.kpkn.domain.onboarding.CardioBase
 import com.example.kpkn.domain.onboarding.LiftMark
 import com.example.kpkn.domain.onboarding.MuscleSymbol
 import com.example.kpkn.domain.onboarding.TrainingPlace
@@ -56,6 +59,9 @@ class RoutineGenerationException(message: String) : IllegalArgumentException(mes
  * - [capabilities]: qué tan bien salen flexiones, dominadas, fondos y pistol; eligen el peldaño de las escaleras de peso corporal.
  * - [marks]: marcas (kg) para prescribir porcentajes del 1RM en los básicos correspondientes. Sin marcas la carga queda
  *   pendiente (se elige en el entrenamiento).
+ * - [markReps], [liftVariants], [avoided], [cardioBase], [armStyle] y [maxReps]: el punto de partida del alta (PR con
+ *   repeticiones, variante de cada básico, grupos que se evitan, base de cardio, estilo de mesa y repeticiones seguidas).
+ *   Todo en su valor por defecto = el mismo programa y el mismo id que antes.
  * - [catalog]: catálogo de ejercicios v2 ya cargado. Cada ejercicio citado sale de aquí.
  * - [variantSeed]: cambia, de forma determinista, entre alternativas equivalentes de una reserva («otra versión»).
  * - [programId]: id del programa generado; si es null se deriva de un hash estable de la petición.
@@ -79,6 +85,18 @@ data class RoutineRequest(
     val capabilities: Map<CapabilitySkill, CapabilityLevel> = emptyMap(),
     val cardio: CardioPreference? = null,
     val marks: Map<LiftMark, Double> = emptyMap(),
+    /** Repeticiones con las que se midió cada marca (un PR «kg × reps»); ausente = 1RM. */
+    val markReps: Map<LiftMark, Int> = emptyMap(),
+    /** Variante elegida por levantamiento (id de configuración de `LiftVariants`); ausente = la de siempre. */
+    val liftVariants: Map<LiftMark, String> = emptyMap(),
+    /** Grupos de ejercicios que la persona prefiere evitar (`AvoidGroups`); el generador los cambia por otros. */
+    val avoided: Set<AvoidGroup> = emptySet(),
+    /** Base de cardio de hoy: con poca base no hay intervalos (el híbrido pone zona 2). La intensidad va en [cardio]. */
+    val cardioBase: CardioBase? = null,
+    /** Estilo en la mesa de armwrestling (énfasis del antebrazo); `null` o «aún no lo sé» = como siempre. */
+    val armStyle: ArmStyle? = null,
+    /** Repeticiones seguidas máximas por habilidad de peso corporal: el 50–70 % de ese máximo en sus peldaños. */
+    val maxReps: Map<CapabilitySkill, Int> = emptyMap(),
     val catalog: ExerciseCatalogV2,
     val variantSeed: Int = 0,
     val programId: String? = null,
