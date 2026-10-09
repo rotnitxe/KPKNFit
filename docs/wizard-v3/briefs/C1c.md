@@ -17,6 +17,12 @@ Worktree indicado en tu encargo, rama `v3/c1c` (sale de `feat/wizard-v3` con C1 
 - De C1: `AvoidGroup`, `CardioBase`, `ArmStyle`, `draft.avoidedExercises/cardioBase/armStyle/maxReps` y los setters
   (`toggleAvoided`/`setAvoided`, `setCardioBase`, `setArmStyle`, `setMaxReps`; busca los nombres exactos).
 
+**API real que dejó C1** (integrado): setters `vm.toggleAvoided(group)`, `vm.setAvoided(set)`, `vm.setCardioBase(base)`, `vm.setArmStyle(style)`,
+`vm.setMaxReps(skill, reps)`; `draft.capabilitiesBodyweightRoute()` y `draft.capabilitiesRequired()`; `wizardPageCopy(..., bodyweightRoute,
+pullUpsRequired)` (por defecto `false`). **Autorizado además:** en `SetupWizardHost.kt` (~379), pasar `bodyweightRoute` y `pullUpsRequired` a
+`wizardPageCopy` (sin eso el título de CAPABILITIES no cambia). `JUMPS` y `RUNNING` no tienen definiciones de catálogo: su símbolo existe igual (lo
+consume C2 por patrón).
+
 ## 1. `AVOIDED_EXERCISES` · `entreno/EntrenoAvoidStep.kt` (Culturismo)
 - Cuadrícula de 10 símbolos + «Ninguno» (exclusivo: elegirlo vacía el conjunto; elegir otro lo apaga). Arte por grupo: reutiliza
   `patternArt` donde encaje (sentadilla con barra → SQUAT, peso muerto → HINGE, press banca → PRESS_HORIZONTAL, press militar →

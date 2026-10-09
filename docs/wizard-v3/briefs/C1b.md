@@ -14,6 +14,10 @@ aquí solo va la interfaz). C1c hace los otros cuatro controles y reutiliza la r
   setters `vm.setLiftMarkReps(lift, reps)` y `vm.setLiftVariant(lift, configId)` (busca los nombres exactos con Grep; si difieren, usa
   los reales). `SetupStepId.TRAINING_VARIANTS` ya está en la ruta y sin control (`else -> Unit`).
 
+**API real que dejó C1** (integrado): setters `vm.setLiftMarkReps(lift, reps)` y `vm.setLiftVariant(lift, configId)`; `LiftVariants.liftsFor`,
+`optionsFor`, `defaultFor`, `labelOf`, `belongsTo`, `effectiveFor`, `takesMarkFor`; `LiftVariantOption(configId, label, equipmentId, takesMark)`;
+`draft.marksLifts()`, `draft.asksVariants()`. Lee sus firmas exactas antes de usarlas.
+
 ## 1. `TRAINING_VARIANTS` · archivo nuevo `entreno/EntrenoVariantsStep.kt` (+ rama en `SetupTrainingSteps.kt`)
 - Una fila por levantamiento de `LiftVariants.liftsFor(goal)`, separadas por el filete de 1 dp (`WizardColors.divider`), sin cajas:
   - A la izquierda, la figura del levantamiento de 72 × 72 dp (reutiliza `LiftSymbol`; si es `private`, hazla `internal` sin cambiar
