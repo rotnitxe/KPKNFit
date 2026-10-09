@@ -29,8 +29,16 @@ Worktree indicado en tu encargo, rama `v3/b3b` (sale de `feat/wizard-v3` con B3a
    - Movimiento reducido: el cuadro final (contraído) estático.
 4. Todos con el mismo tamaño en la cuadrícula; la etiqueta como hoy.
 
+## Otro consumidor de `MuscleArt` (no lo rompas)
+- E3d pinta un músculo estático de 56 dp en el paso de series por grupo de RINGS: `RingsMuscleGlyph(muscle)` en
+  `design/entreno/RingsQuestionArts.kt` (usa `MuscleArt.shape(muscle)`, `MuscleWindow` y un pintado propio `drawRingsMuscle`, con
+  `clipToBounds`). Si cambias la firma de `MuscleArt.shape` o de `MuscleWindow`, adapta esa función (autorizado solo ese bloque) para que siga
+  compilando y se beneficie del encuadre por familia. Incluye su hoja (`RingsQuestionRenderSheetTest`, la imagen `rings_group_sets.png`) en tu
+  revisión visual.
+
 ## Archivos permitidos
-`MuscleArt.kt`, `MuscleArtPaths.kt`, `MuscleSymbols.kt` (solo el pintado y el bucle), y sus pruebas.
+`MuscleArt.kt`, `MuscleArtPaths.kt`, `MuscleSymbols.kt` (solo el pintado y el bucle), `RingsQuestionArts.kt` (solo `RingsMuscleGlyph` y su
+pintado, si hace falta), y sus pruebas.
 
 ## Pruebas
 - `MuscleArtTest` (amplía): los 11 tienen encuadre de su familia; cada región cabe en su encuadre con aire; la contracción conserva el área ±12 %.
