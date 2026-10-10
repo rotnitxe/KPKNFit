@@ -129,6 +129,15 @@ class SetupWizardPageHelpersTest {
         )
     }
 
+    @Test
+    fun aGeneralPlanWithSeveralProgramsSaysToChooseOne() {
+        val many = wizardPageCopy(SetupStepId.PLAN, TrainingGoalProfile.STRENGTH_MUSCLE, programCount = 3)
+        assertEquals("Elige tu programa", many.title)
+        assertEquals("Armados con tu material, tus días y tu tiempo.", many.subtitle)
+        // Con un solo programa a medida, el título sigue siendo el de siempre.
+        assertEquals("Tu programa a medida", wizardPageCopy(SetupStepId.PLAN, TrainingGoalProfile.STRENGTH_MUSCLE, programCount = 1).title)
+    }
+
     // ─── Overlay del hito: animación por bloque y fila de etapas ──────────────────────────────────
 
     @Test

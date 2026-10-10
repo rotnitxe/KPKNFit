@@ -219,6 +219,23 @@ class EntrenoPlanStepTest {
     }
 
     @Test
+    fun aGeneralProfileWithSeveralProgramsSaysTheyAreReady() {
+        rule.mainClock.autoAdvance = false
+        val forms = listOf(
+            reveal(TAILORED, "Fuerza y masa muscular a medida", TrainingGoalProfile.STRENGTH_MUSCLE),
+            reveal("generated:strength-muscle-blocks", "Fuerza y masa en bloques", TrainingGoalProfile.STRENGTH_MUSCLE),
+            reveal("generated:strength-muscle-periodized", "Fuerza y masa periodizada", TrainingGoalProfile.STRENGTH_MUSCLE),
+        )
+        state = SetupWizardState(draft = draftFor(TrainingGoalProfile.STRENGTH_MUSCLE), planSweep = SetupPlanSweep.LOADING)
+        rule.setContent { Page() }
+        settle()
+        publish(state.copy(planSweep = SetupPlanSweep.READY, planReveals = forms))
+        finishOverlay()
+        rule.onNodeWithTag(REVEAL_TAG).assertExists()
+        rule.onNodeWithText("Tus programas están listos").assertExists()
+    }
+
+    @Test
     fun anotherVersionPlaysTheOverlayAgainEvenWhenTheResultLooksTheSame() {
         rule.mainClock.autoAdvance = false
         val first = reveal(TAILORED, "Fuerza y masa muscular a medida", TrainingGoalProfile.STRENGTH_MUSCLE)

@@ -77,6 +77,7 @@ internal fun wizardPageCopy(
     programDeferred: Boolean = false,
     bodyweightRoute: Boolean = false,
     pullUpsRequired: Boolean = false,
+    programCount: Int = 1,
 ): WizardPageCopy {
     val definition = SetupStepDefinitions.of(page)
     return when (page) {
@@ -89,6 +90,8 @@ internal fun wizardPageCopy(
                 programDeferred -> WizardPageCopy(PLAN_DEFERRED_TITLE, PLAN_DEFERRED_SUBTITLE)
                 goalProfile?.isSpecific == true ->
                     WizardPageCopy("Elige tu programa", "Elige el que más te guste. Podrás modificarlo después.")
+                // Perfil general con varios programas a medida (simple, en bloques y periodizado): el título ya no habla de uno.
+                programCount > 1 -> WizardPageCopy("Elige tu programa", "Armados con tu material, tus días y tu tiempo.")
                 else -> WizardPageCopy(definition?.title ?: page.name, definition?.subtitle)
             }
         // «¿Compites en powerlifting?»: la disciplina en minúsculas; sin disciplina de competición, el título del catálogo.
