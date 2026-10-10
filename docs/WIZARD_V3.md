@@ -104,9 +104,10 @@ Cuándo sale cada paso condicional:
 - Semanas repetidas por `MeetRecipeFitter`: copian la carga de su semana de origen (sin escalón propio).
 - La Columna del resultado está acotada por la mezcla de Inicio (`50 + (articular + guardianes)/4`), igual que en la app.
 - El detalle del anillo en Inicio es una hoja modal aparte: el recorrido no puede resaltarla.
-- `OlympicMarksTest` (Halterofilia avanzada) sigue en rojo, a decidir.
-  - Qué pasa: con marcas, la serie de trabajo lleva `%1RM` y `ApproachPlanner.heaviestPercent()` la clasifica como muy pesada. Eso añade un *single* a la rampa, y el minuto extra tira el último ejercicio de la sesión.
-  - Sin marcas no hay porcentaje y la rampa es más corta. Lo destapó el press militar que ahora entra en Halterofilia.
+- Marcas olímpicas (decisión del usuario, 2026-10-10: se acepta).
+  - Qué pasa: con marcas, la serie de trabajo lleva `%1RM` y `ApproachPlanner.heaviestPercent()` la clasifica como muy pesada. Eso añade un *single* a la rampa, y el tiempo extra puede quitar el último elemento de una sesión. Hoy, en Halterofilia avanzada, es la caminata final de la 5.ª sesión.
+  - Cómo lo vigila `OlympicMarksTest` (Z4): por sesión, como mucho falta el último elemento, y nunca un levantamiento con marca ni el primero.
+- El interruptor de Pro de depuración (F3c) también lo ve la sincronización (`RoomSyncRepository`, `PersonalRecordCodec`). En la build de depuración no importa: usa los emuladores de Firebase y la grabación se hace sin iniciar sesión.
 - Regresión amplia (2026-10-09): una clase deja vivo `ProgramRepository` con su `loadFromDb` esperando en un `StandardTestDispatcher`, y la siguiente que llama a `closeInstance()` se cuelga en `cancelAndJoin`. Ocurrió en `SetupWizardEntrenoPlanTest.setUp`.
   - No se encontró qué clase lo deja vivo: las que lo inician a mano lo cierran.
   - Si se repite, saca un `jstack` del ejecutor de pruebas, mata solo ese proceso y corre las clases restantes en una segunda pasada.
