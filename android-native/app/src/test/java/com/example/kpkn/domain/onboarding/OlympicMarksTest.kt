@@ -142,6 +142,11 @@ class OlympicMarksTest {
 
     private fun idsOf(loads: List<Pair<String?, List<Double?>>>) = loads.map { it.first }
 
+    /** Ids de catálogo de cada sesión, en el mismo orden que [exercisesOf]; un `null` es un bloque sin configuración. */
+    private fun idsBySession(program: Program): List<List<String?>> = program.macrocycles.flatMap { it.blocks }
+        .flatMap { it.mesocycles }.flatMap { it.weeks }.flatMap { it.sessions }
+        .map { session -> session.allExercises().map { it.catalogConfigurationId } }
+
     private fun changedConfigurations(
         before: List<Pair<String?, List<Double?>>>,
         after: List<Pair<String?, List<Double?>>>,
@@ -153,13 +158,33 @@ class OlympicMarksTest {
         val snatchIds = expectedConfigurations.getValue(LiftMark.SNATCH)
         val jerkIds = expectedConfigurations.getValue(LiftMark.CLEAN_AND_JERK)
         for (experience in listOf(SetupExperience.INTERMEDIATE, SetupExperience.ADVANCED)) {
-            val none = loadsOf(programOf(weightliftingDraft(experience, squat)))
-            val both = loadsOf(programOf(weightliftingDraft(experience, squat + mapOf(LiftMark.SNATCH to 80.0, LiftMark.CLEAN_AND_JERK to 100.0))))
+            val noneProgram = programOf(weightliftingDraft(experience, squat))
+            val bothProgram = programOf(weightliftingDraft(experience, squat + mapOf(LiftMark.SNATCH to 80.0, LiftMark.CLEAN_AND_JERK to 100.0)))
+            val none = loadsOf(noneProgram)
+            val both = loadsOf(bothProgram)
             val snatchUp = loadsOf(programOf(weightliftingDraft(experience, squat + mapOf(LiftMark.SNATCH to 100.0, LiftMark.CLEAN_AND_JERK to 100.0))))
             val jerkUp = loadsOf(programOf(weightliftingDraft(experience, squat + mapOf(LiftMark.SNATCH to 80.0, LiftMark.CLEAN_AND_JERK to 120.0))))
 
-            // Declarar marcas no cambia qué ejercicios salen, solo con cuánta carga.
-            assertEquals("$experience: los mismos ejercicios con y sin marcas", idsOf(none), idsOf(both))
+            // Declarar marcas no cambia qué ejercicios salen, solo con cuánta carga, salvo una excepción (decisión del usuario,
+            // 2026-10-10): conocer el máximo permite pedir trabajo muy pesado, que necesita más calentamiento, y eso puede quitar
+            // como mucho el último accesorio de una sesión. Nunca un levantamiento con marca ni el primero de la sesión.
+            val noneBySession = idsBySession(noneProgram)
+            val bothBySession = idsBySession(bothProgram)
+            assertEquals("$experience: mismo número de sesiones con y sin marcas", noneBySession.size, bothBySession.size)
+            noneBySession.zip(bothBySession).forEachIndexed { sessionIndex, (plain, marked) ->
+                if (marked != plain) {
+                    assertEquals(
+                        "$experience, sesión $sessionIndex: con marcas solo puede faltar el último ejercicio",
+                        plain.dropLast(1),
+                        marked,
+                    )
+                    assertFalse(
+                        "$experience, sesión $sessionIndex: se quitó «${plain.last()}», un levantamiento con marca",
+                        plain.last() in snatchIds + jerkIds,
+                    )
+                    assertTrue("$experience, sesión $sessionIndex: se quitó el primer ejercicio: $plain", plain.size > 1)
+                }
+            }
             assertEquals("$experience: los mismos ejercicios al subir el arranque", idsOf(both), idsOf(snatchUp))
             assertEquals("$experience: los mismos ejercicios al subir los dos tiempos", idsOf(both), idsOf(jerkUp))
 
