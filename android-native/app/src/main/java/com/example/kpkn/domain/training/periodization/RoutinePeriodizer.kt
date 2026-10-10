@@ -18,6 +18,7 @@ import com.example.kpkn.data.models.SupersetVisualPlacement
 import com.example.kpkn.data.models.effectiveRepRange
 import com.example.kpkn.data.models.isCardio
 import com.example.kpkn.data.protocols.LoadBasis
+import com.example.kpkn.domain.text.SpanishPlurals
 import com.example.kpkn.domain.training.ProgramExecutionContract
 import com.example.kpkn.domain.training.SessionDurationEstimator
 import com.example.kpkn.domain.training.generator.CatalogEntry
@@ -531,15 +532,17 @@ object RoutinePeriodizer {
 
     // ─── Notas y programa ──────────────────────────────────────────────────────────────────────────────────
 
+    /**
+     * Nota de las sesiones que no caben en la ventana de minutos: con una sola, «Hay 1 sesión… ajustarla»; con más, el plural.
+     */
+    internal fun outOfWindowNote(misses: Int, window: IntRange): String =
+        "Hay ${SpanishPlurals.sessions(misses)} fuera de ${window.first}–${window.last} min: el material y los techos de " +
+            "volumen no dejan ${SpanishPlurals.choose(misses, "ajustarla", "ajustarlas")} sin quitar básicos."
+
     private fun notesOf(weeks: List<List<Session>>, ctx: PeriodContext): List<String> {
         val misses = weeks.flatten().count { minutesOf(it) !in ctx.window }
         val notes = ArrayList<String>()
-        if (misses > 0) {
-            notes.add(
-                "Hay $misses sesiones fuera de ${ctx.window.first}–${ctx.window.last} min: el material y los techos de volumen " +
-                    "no dejan ajustarlas sin quitar básicos.",
-            )
-        }
+        if (misses > 0) notes.add(outOfWindowNote(misses, ctx.window))
         if (ctx.trimmedMuscles.isNotEmpty()) {
             notes.add("Para no pasar el techo semanal se recortaron series de accesorios de ${ctx.trimmedMuscles.joinToString(", ")}.")
         }

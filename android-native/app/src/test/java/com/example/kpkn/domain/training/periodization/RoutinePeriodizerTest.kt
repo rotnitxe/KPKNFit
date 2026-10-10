@@ -187,4 +187,16 @@ class RoutinePeriodizerTest {
         assertTrue(oneWeek.phases.isEmpty())
         assertEquals(listOf("Tu competición está demasiado cerca para un programa por bloques."), oneWeek.notes)
     }
+
+    @Test
+    fun the_out_of_window_note_is_singular_for_one_session_and_plural_for_more() {
+        assertEquals(
+            "Hay 1 sesión fuera de 51–66 min: el material y los techos de volumen no dejan ajustarla sin quitar básicos.",
+            RoutinePeriodizer.outOfWindowNote(1, 51..66),
+        )
+        assertEquals(
+            "Hay 2 sesiones fuera de 51–66 min: el material y los techos de volumen no dejan ajustarlas sin quitar básicos.",
+            RoutinePeriodizer.outOfWindowNote(2, 51..66),
+        )
+    }
 }

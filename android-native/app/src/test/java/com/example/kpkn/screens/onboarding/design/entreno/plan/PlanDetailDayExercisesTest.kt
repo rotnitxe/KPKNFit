@@ -18,6 +18,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
 
 /**
  * «Tu semana» con los ejercicios de cada día: tocar un día despliega su lista; «Cambiar» abre el panel con las alternativas
@@ -26,6 +27,8 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 // Ventana alta: con la de por defecto (320×470 dp) la barra inferior tapa el día y el toque no llega (como en la hoja de render).
 @Config(sdk = [34], qualifiers = "w360dp-h1800dp-xxhdpi", application = android.app.Application::class)
+// Gráficos nativos: los títulos se miden de verdad y «Tu semana» enumera las sesiones en filas cuando no caben bajo los círculos.
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
 class PlanDetailDayExercisesTest {
 
     @get:Rule
@@ -71,10 +74,11 @@ class PlanDetailDayExercisesTest {
         selected: Boolean = true,
         exercises: Map<Int, List<SetupPlanRevealExercise>> = jueves,
         options: List<SwapOption> = opciones,
+        detail: PlanDetailModel = model,
     ) {
         rule.setContent {
             DetailSheet(
-                model = model,
+                model = detail,
                 selected = selected,
                 reduced = true,
                 blur = false,
@@ -98,6 +102,22 @@ class PlanDetailDayExercisesTest {
         rule.onNodeWithText("Sentadilla").assertExists()
         rule.onNodeWithText("4 × 6–8").assertExists()
         rule.onNodeWithText("Peso muerto").assertExists()
+    }
+
+    /** Con títulos que no caben bajo los círculos, «Tu semana» enumera las sesiones en filas: tocar la fila despliega ese día. */
+    @Test
+    fun tappingTheSessionRowOpensItsDayLikeTheCircle() {
+        val wide = model.copy(
+            week = listOf(
+                PlanDayModel(1, "Torso B", 65, 6, true),
+                PlanDayModel(4, "Pierna A de fuerza máxima", 64, 7, false),
+            ),
+        )
+        show(detail = wide)
+        rule.onNodeWithTag("setup-plan-exercise-jue-1").assertDoesNotExist()
+        rule.onNodeWithTag("setup-plan-session-4").performScrollTo().performClick()
+        rule.onNodeWithTag("setup-plan-exercise-jue-1").assertExists()
+        rule.onNodeWithText("Sentadilla").assertExists()
     }
 
     @Test

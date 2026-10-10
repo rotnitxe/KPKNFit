@@ -41,6 +41,8 @@ import androidx.compose.ui.unit.Density
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.kpkn.data.account.AccountGraph
+import com.example.kpkn.data.account.BuildEntitlementOverride
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.data.repository.AugeRepository
@@ -85,6 +87,7 @@ import kotlinx.serialization.json.Json
  *  - `start` (nombre de `SetupStepId`, por defecto `EXPERIENCE`): el paso activo. Los pasos anteriores se dan por contestados
  *    con la persona elegida; los posteriores quedan sin tocar.
  *  - `persona` (`gym` por defecto, `home`, `park`, `multi`, `all`): con qué datos se contestaron los pasos anteriores.
+ *  - `pro` (`--ez pro true`): activa Pro solo en depuración, en memoria (`BuildEntitlementOverride`), antes de montar el asistente.
  *  - `answers` (`clave=valor/clave=valor`, sin espacios ni `;`): datos del paso activo ya elegidos, sin confirmarlo. Claves: `places=GYM,HOME`,
  *    `material=BARBELL,RACK` o `material=+RINGS,-BARBELL`, `goal=POWERLIFTING`, `fresh=4`, `days=1,3,5`, `startday=4`,
  *    `dayplaces=3:HOME,6:PUBLIC`, `minutes=75` (de 30 a 180: menos se lee como 30), `caps=PULL_UP:SOME,PUSH_UP:MANY` (separadas por coma), `muscles=CHEST,BACK`,
@@ -162,6 +165,11 @@ class WizardHarnessActivity : ComponentActivity() {
         initRepositories()
         // Al recrearse la actividad (giro de pantalla) el borrador NO se reconstruye: se sigue con el que hay en la base.
         val config = HarnessConfig.from(intent, recreated = savedInstanceState != null)
+        // Pro solo para grabar y verificar: en memoria y solo con `--ez pro true`, igual que DemoSeedActivity. Va antes de montar el asistente.
+        if (intent.getBooleanExtra("pro", false)) {
+            BuildEntitlementOverride.setForcedPro(true)
+            AccountGraph.republishEntitlement()
+        }
         setContent { HarnessRoot(config = config, onClose = { finish() }) }
     }
 

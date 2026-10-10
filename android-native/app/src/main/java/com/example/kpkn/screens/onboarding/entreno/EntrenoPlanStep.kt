@@ -222,7 +222,7 @@ private fun GeneralReveal(
     val offered = orderedOfferOf(reveals)
     val reasons = offered.firstOrNull { it.planId == recommendedId }?.reasons ?: offered.firstOrNull()?.reasons.orEmpty()
     Column(modifier = Modifier.fillMaxWidth().testTag("setup-plan-reveal"), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text(text = READY_TITLE, style = WizardTypography.controlLabel, color = WizardColors.text)
+        Text(text = if (offered.size > 1) READY_TITLE_MANY else READY_TITLE, style = WizardTypography.controlLabel, color = WizardColors.text)
         PlanCarousel(
             cards = cardModelsOf(offered, recommendedId),
             selectedId = selectedId,
@@ -274,6 +274,7 @@ private const val MAX_REASONS = 5
 
 /** Textos del revelado (COPY.md, «Revelado del programa»; el aplazado conserva el del resumen de revisión). */
 private const val READY_TITLE = "Tu programa está listo"
+private const val READY_TITLE_MANY = "Tus programas están listos"
 private const val ANOTHER_VERSION_LABEL = "Otra versión"
 private const val SEE_MORE_PROGRAMS_LABEL = "Ver más programas"
 private const val DEFER_LABEL = "Lo haré más adelante"

@@ -11,6 +11,8 @@ import com.example.kpkn.data.exercises.catalogv2.CatalogCompositionMetadataProvi
 import com.example.kpkn.data.exercises.catalogv2.toLegacyConfigurationLookup
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.models.DISCOMFORT_CATALOG_BY_ID
+import com.example.kpkn.domain.entitlements.CapabilityRequiredException
+import com.example.kpkn.ui.entitlements.capabilityErrorText
 import com.example.kpkn.data.onboarding.*
 import com.example.kpkn.data.programs.CatalogLevel
 import com.example.kpkn.data.programs.CatalogEntry
@@ -1295,7 +1297,10 @@ class SetupWizardViewModel @JvmOverloads constructor(
             throw cancel
         }
         catch (error: Throwable) {
-            _state.value = _state.value.copy(isCommitting = false, machineState = stateForCurrentStep(), errors = mapOf("commit" to (error.message ?: "No se pudo guardar la configuración")))
+            // Un límite de plan se dice con su texto; el código («advanced_program_requires_pro») solo va al registro.
+            val text = (error as? CapabilityRequiredException)?.let { capabilityErrorText(it.code) }
+                ?: (error.message ?: "No se pudo guardar la configuración")
+            _state.value = _state.value.copy(isCommitting = false, machineState = stateForCurrentStep(), errors = mapOf("commit" to text))
             null
         }
     }
