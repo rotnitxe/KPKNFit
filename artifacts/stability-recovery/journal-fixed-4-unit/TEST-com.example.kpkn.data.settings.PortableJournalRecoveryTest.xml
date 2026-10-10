@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.settings.PortableJournalRecoveryTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-09T16:07:50.771Z" hostname="VF" time="16.465">
+  <properties/>
+  <testcase name="corruptState[26]" classname="com.example.kpkn.data.settings.PortableJournalRecoveryTest" time="4.768"/>
+  <testcase name="corruptState" classname="com.example.kpkn.data.settings.PortableJournalRecoveryTest" time="5.739"/>
+  <testcase name="backupOnly[26]" classname="com.example.kpkn.data.settings.PortableJournalRecoveryTest" time="0.828"/>
+  <testcase name="backupOnly" classname="com.example.kpkn.data.settings.PortableJournalRecoveryTest" time="2.394"/>
+  <testcase name="partialCommit[26]" classname="com.example.kpkn.data.settings.PortableJournalRecoveryTest" time="0.658"/>
+  <testcase name="partialCommit" classname="com.example.kpkn.data.settings.PortableJournalRecoveryTest" time="2.071"/>
+  <system-out><![CDATA[QA_JOURNAL snapshot directory characters=201
+QA_JOURNAL snapshot directory characters=202
+QA_JOURNAL snapshot directory characters=200
+QA_JOURNAL snapshot directory characters=200
+QA_JOURNAL snapshot directory characters=203
+QA_JOURNAL snapshot directory characters=203
+]]></system-out>
+  <system-err><![CDATA[Oct 09, 2026 1:07:58 PM com.almworks.sqlite4java.Internal log
+WARNING: [sqlite] SQLite: cannot set library path, library already loaded
+]]></system-err>
+</testsuite>

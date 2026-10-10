@@ -1,0 +1,1402 @@
+{
+  "sourceThread": "01a1173a-bbe2-7232-b383-bba430219911",
+  "sourcePlanTitle": "KPKN: plan integral de estabilidad y lanzamiento",
+  "baseline": "f04578d3f9ffe3d7fc7c627d975ca4afd5df6d56",
+  "requirements": [
+    {
+      "id": "A01",
+      "package": "A",
+      "requirement": "Un `DataSessionCoordinator` que coordine repositorios, servicios y trabajadores durante restauraciÃ³n, borrado y cambio de cuenta.",
+      "code": "PARCIAL",
+      "verification": "PARCIAL",
+      "evidence": [
+        "android-native/app/src/main/java/com/example/kpkn/data/backup/AppDataSessions.kt",
+        "tests-focused-3/",
+        "tests-snapshot-final/",
+        "gradle-snapshot-release-manifest.log",
+        "gradle-portable-writers-retry-5.log",
+        "tests-gps-maintenance-10/",
+        "tests-capability-transfer-settings-12/",
+        "tests-full-jvm-29/",
+        "emulator-export-28/flow/result.json",
+        "android-native/app/src/main/java/com/example/kpkn/services/workout/VoiceProcessDataSession.kt",
+        "../stability-data-isolation/DELIVERY.json",
+        "../stability-data-isolation/fts-final-jvm/result.json",
+        "../stability-data-isolation/native-final/result.json"
+      ],
+      "dependencies": [
+        "Aislamiento y cambio de cuentas pendientes; falta QA de todos los escritores",
+        "Barrera multimedia y controles de almacenamiento verificados con 42 JVM y 17 pruebas API36; cuatro etapas en PID distintos. El cierre integral del requisito y de todos los escritores/pantallas sigue pendiente."
+      ]
+    },
+    {
+      "id": "A02",
+      "package": "A",
+      "requirement": "Copias consistentes, importaciÃ³n a un archivo temporal, validaciÃ³n de integridad y versiÃ³n, sustituciÃ³n atÃ³mica y recuperaciÃ³n ante interrupciones.",
+      "code": "PARCIAL",
+      "verification": "PARCIAL",
+      "evidence": [
+        "android-native/app/src/main/java/com/example/kpkn/data/db/DatabaseBackupHelper.kt",
+        "tests-focused-3/",
+        "tests-snapshot-final/",
+        "gradle-snapshot-release-manifest.log",
+        "tests-portable-writers-5/",
+        "android-native/app/src/main/java/com/example/kpkn/data/backup/PortableBackup.kt",
+        "tests-deletion-recovery-alias-13/",
+        "../stability-data-isolation/DELIVERY.json",
+        "../stability-data-isolation/fts-final-jvm/result.json",
+        "../stability-data-isolation/native-final/result.json"
+      ],
+      "dependencies": [
+        "Pruebas de interrupciÃ³n/disco lleno y archivos personales pendientes",
+        "Barrera multimedia y controles de almacenamiento verificados con 42 JVM y 17 pruebas API36; cuatro etapas en PID distintos. El cierre integral del requisito y de todos los escritores/pantallas sigue pendiente."
+      ]
+    },
+    {
+      "id": "A03",
+      "package": "A",
+      "requirement": "ReconstrucciÃ³n del conjunto de repositorios despuÃ©s de restaurar; la pantalla solo anunciarÃ¡ Ã©xito cuando los datos restaurados puedan leerse.",
+      "code": "PARCIAL",
+      "verification": "PARCIAL",
+      "evidence": [
+        "android-native/app/src/main/java/com/example/kpkn/data/backup/AppDataSessions.kt",
+        "tests-focused-3/",
+        "tests-snapshot-final/",
+        "gradle-snapshot-release-manifest.log",
+        "android-native/app/src/main/java/com/example/kpkn/data/backup/AppBootstrap.kt",
+        "result-navigation-36.json",
+        "emulator-navigation-36/export/result.json",
+        "../stability-data-isolation/DELIVERY.json",
+        "../stability-data-isolation/fts-final-jvm/result.json",
+        "../stability-data-isolation/native-final/result.json"
+      ],
+      "dependencies": [
+        "ExportaciÃ³n y reconstrucciÃ³n de navegaciÃ³n comprobadas API36; restauraciÃ³n completa y todos los lectores todavÃ­a requieren QA.",
+        "Barrera multimedia y controles de almacenamiento verificados con 42 JVM y 17 pruebas API36; cuatro etapas en PID distintos. El cierre integral del requisito y de todos los escritores/pantallas sigue pendiente."
+      ]
+    },
+    {
+      "id": "A04",
+      "package": "A",
+      "requirement": "Respaldo portÃ¡til versionado que incluya todos los datos personales, relaciones, avatar y multimedia mediante identificadores portÃ¡tiles.",
+      "code": "PARCIAL",
+      "verification": "PARCIAL",
+      "evidence": [
+        "android-native/app/src/main/java/com/example/kpkn/data/settings/SettingsJsonBackup.kt",
+        "tests-portable-writers-5/",
+        "android-native/app/src/main/java/com/example/kpkn/data/backup/PortableBackup.kt",
+        "tests-portable-28/",
+        "../stability-data-isolation/DELIVERY.json",
+        "../stability-data-isolation/fts-final-jvm/result.json",
+        "../stability-data-isolation/native-final/result.json"
+      ],
+      "dependencies": [
+        "Respaldo portable v2 implementado con manifest/hashes, relaciones, avatar, multimedia y recuperaciÃ³n legado; lectura v1. QA completa de dispositivo/interrupciones sigue abierta.",
+        "Barrera multimedia y controles de almacenamiento verificados con 42 JVM y 17 pruebas API36; cuatro etapas en PID distintos. El cierre integral del requisito y de todos los escritores/pantallas sigue pendiente."
+      ]
+    },
+    {
+      "id": "A05",
+      "package": "A",
+      "requirement": "Compatibilidad de lectura con respaldos anteriores y migraciones no destructivas desde las versiones soportadas.",
+      "code": "PARCIAL",
+      "verification": "PENDIENTE",
+      "evidence": [
+        "android-native/app/src/main/java/com/example/kpkn/data/db/KpknDatabase.kt",
+        "tests-real-v29-migration-9/",
+        "tests-context-contracts-16/"
+      ],
+      "dependencies": [
+        "Matriz de versiones antiguas pendiente"
+      ]
+    },
+    {
+      "id": "A06",
+      "package": "A",
+      "requirement": "Una comprobaciÃ³n automÃ¡tica que clasifique cada tabla y archivo como dato personal, catÃ¡logo regenerable o cachÃ©. Una tabla nueva sin clasificaciÃ³n bloquearÃ¡ la validaciÃ³n.",
+      "code": "PARCIAL",
+      "verification": "PARCIAL",
+      "evidence": [
+        "android-native/app/src/test/java/com/example/kpkn/data/settings/DatabaseSnapshotTest.kt",
+        "tests-focused-3/",
+        "tests-snapshot-final/",
+        "gradle-snapshot-release-manifest.log",
+        "tests-deletion-recovery-alias-13/",
+        "scripts/stability/verify_storage_inventory.py",
+        "storage-classification-17.json",
+        "storage-classification-tests-17-final.log",
+        "storage-classification-21.json"
+      ],
+      "dependencies": [
+        "ClasificaciÃ³n de tablas preparada; gate exhaustivo de archivos pendiente"
+      ]
+    },
+    {
+      "id": "A07",
+      "package": "A",
+      "requirement": "LÃ­mites de lectura antes de cargar importaciones e imÃ¡genes en memoria. Actualmente el avatar se lee completo antes de comprobar su tamaÃ±o.",
+      "code": "PARCIAL",
+      "verification": "PARCIAL",
+      "evidence": [
+        "android-native/app/src/main/java/com/example/kpkn/data/backup/BoundedInput.kt",
+        "tests-focused-3/",
+        "tests-snapshot-final/",
+        "gradle-snapshot-release-manifest.log",
+        "tests-portable-writers-5/"
+      ],
+      "dependencies": [
+        "ValidaciÃ³n Android de importaciones y todas las rutas de imÃ¡genes pendiente"
+      ]
+    },
+    {
+      "id": "B01",
+      "package": "B",
+      "requirement": "Borrado coordinado de base local, preferencias personales, multimedia, snapshots, registros, archivos temporales y trabajos pendientes.",
+      "code": "PARCIAL",
+      "verification": "PARCIAL",
+      "evidence": [
+        "android-native/app/src/main/java/com/example/kpkn/data/backup/PersonalStorageManifest.kt",
+        "android-native/app/src/main/java/com/example/kpkn/data/sync/GuestSourceLedger.kt",
+        "tests-gps-maintenance-10/",
+        "tests-deletion-recovery-alias-13/",
+        "tests-erasure-downloads-27/",
+        "android-native/app/src/main/java/com/example/kpkn/data/backup/PersonalDataErasure.kt",
+        "../stability-data-isolation/DELIVERY.json",
+        "../stability-data-isolation/fts-final-jvm/result.json",
+        "../stability-data-isolation/native-final/result.json"
+      ],
+      "dependencies": [
+        "QA de borrado y escritores tardÃ­os pendiente",
+        "Barrera multimedia y controles de almacenamiento verificados con 42 JVM y 17 pruebas API36; cuatro etapas en PID distintos. El cierre integral del requisito y de todos los escritores/pantallas sigue pendiente."
+      ]
+    },
+    {
+      "id": "B02",
+      "package": "B",
+      "requirement": "Almacenes y trabajos separados por perfil. Cerrar sesiÃ³n o cambiar de cuenta nunca mostrarÃ¡ informaciÃ³n del usuario anterior.",
+      "code": "PARCIAL",
+      "verification": "PARCIAL",
+      "evidence": [
+        "tests-portable-writers-5/",
+        "android-native/app/src/main/java/com/example/kpkn/data/account/ProfileStorage.kt",
+        "tests-context-contracts-16/",
+        "tests-deletion-recovery-alias-13/",
+        "tests-api26-callbacks-23/",
+        "tests-erasure-downloads-27/",
+        "tests-full-jvm-29/",
+        "../stability-data-isolation/DELIVERY.json",
+        "../stability-data-isolation/fts-final-jvm/result.json",
+        "../stability-data-isolation/native-final/result.json"
+      ],
+      "dependencies": [
+        "AUD01 corregido y regresiones API26/API34 aprobadas; QA real de cierre/cambio A-B e interrupciones todavÃ­a pendiente.",
+        "Barrera multimedia y controles de almacenamiento verificados con 42 JVM y 17 pruebas API36; cuatro etapas en PID distintos. El cierre integral del requisito y de todos los escritores/pantallas sigue pendiente."
+      ]
+    },
+    {
+      "id": "B03",
+      "package": "B",
+      "requirement": "Diferenciar claramente Â«borrar datos de este dispositivoÂ» y Â«eliminar cuenta KPKNÂ».",
+      "code": "PARCIAL",
+      "verification": "PENDIENTE",
+      "evidence": [
+        "android-native/app/src/main/java/com/example/kpkn/screens/account/AccountScreen.kt"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "B04",
+      "package": "B",
+      "requirement": "EliminaciÃ³n de cuenta con reautenticaciÃ³n, revocaciÃ³n de sesiones, retirada de datos de Firestore y Storage y tratamiento explÃ­cito de suscripciones.",
+      "code": "PARCIAL",
+      "verification": "PARCIAL",
+      "evidence": [
+        "firebase-atomic-conflicts-15-final.log",
+        "web-deletion-local.json",
+        "web-deletion-local.jpg",
+        "firebase-retired-operations-20.log",
+        "tests-deletion-recovery-alias-13/"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "B05",
+      "package": "B",
+      "requirement": "Bloqueo de cargas desde dispositivos antiguos despuÃ©s de eliminar la cuenta.",
+      "code": "PARCIAL",
+      "verification": "PARCIAL",
+      "evidence": [
+        "firebase-atomic-conflicts-15-final.log",
+        "firebase-retired-operations-20.log"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "B06",
+      "package": "B",
+      "requirement": "PolÃ­tica de retenciÃ³n y caducidad de copias operativas; los archivos exportados voluntariamente por el usuario se identificarÃ¡n como copias bajo su control.",
+      "code": "PARCIAL",
+      "verification": "PENDIENTE",
+      "evidence": [
+        "android-native/app/src/main/java/com/example/kpkn/data/db/DatabaseBackupHelper.kt"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "C01",
+      "package": "C",
+      "requirement": "**Room:** almacenamiento utilizado por la interfaz y las operaciones sin conexiÃ³n.",
+      "code": "PARCIAL",
+      "verification": "PENDIENTE",
+      "evidence": [
+        "android-native/app/src/main/java/com/example/kpkn/data/sync/RoomSyncRepository.kt"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "C02",
+      "package": "C",
+      "requirement": "**Firebase:** identidad y estado compartido confirmado entre dispositivos.",
+      "code": "PARCIAL",
+      "verification": "PARCIAL",
+      "evidence": [
+        "firebase-atomic-conflicts-15-final.log",
+        "firebase-retired-operations-20.log"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "C03",
+      "package": "C",
+      "requirement": "**Cola persistente de operaciones:** cada cambio local y su operaciÃ³n pendiente se guardarÃ¡n en la misma transacciÃ³n.",
+      "code": "PARCIAL",
+      "verification": "PARCIAL",
+      "evidence": [
+        "android-native/app/src/main/java/com/example/kpkn/data/db/SyncJournalSchema.kt",
+        "tests-account-ui-portable-3/"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "C04",
+      "package": "C",
+      "requirement": "**Servidor:** validaciÃ³n de propiedad, versiÃ³n e idempotencia antes de aceptar cambios.",
+      "code": "PARCIAL",
+      "verification": "PARCIAL",
+      "evidence": [
+        "cloud-sync/functions/src/protocol.mjs",
+        "server-protocol-tests.log",
+        "firebase-atomic-conflicts-15-final.log",
+        "firebase-retired-operations-20.log"
+      ],
+      "dependencies": [
+        "Servicio desplegable Auth/Firestore/Storage/Functions y 21 pruebas reales en emuladores locales implementados. Proyecto kpkn-47b03, App Check y dos dispositivos reales sin verificar."
+      ]
+    },
+    {
+      "id": "C05",
+      "package": "C",
+      "requirement": "Identificadores estables, revisiones del servidor y marcas de eliminaciÃ³n.",
+      "code": "PARCIAL",
+      "verification": "PARCIAL",
+      "evidence": [
+        "cloud-sync/functions/src/protocol.mjs",
+        "firebase-atomic-conflicts-15-final.log",
+        "tests-account-ui-portable-3/",
+        "firebase-retired-operations-20.log"
+      ],
+      "dependencies": [
+        "Cliente/almacenamiento persistente pendiente"
+      ]
+    },
+    {
+      "id": "C06",
+      "package": "C",
+      "requirement": "Reintentos sin duplicados y recuperaciÃ³n despuÃ©s de cerrar el proceso.",
+      "code": "PARCIAL",
+      "verification": "PARCIAL",
+      "evidence": [
+        "firebase-atomic-conflicts-15-final.log",
+        "tests-account-ui-portable-3/",
+        "firebase-retired-operations-20.log",
+        "tests-full-jvm-29/"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "C07",
+      "package": "C",
+      "requirement": "Registros independientes se combinan por identidad. Ediciones incompatibles conservan ambas versiones y requieren resoluciÃ³n explÃ­cita.",
+      "code": "PARCIAL",
+      "verification": "PARCIAL",
+      "evidence": [
+        "cloud-sync/functions/src/protocol.mjs",
+        "firebase-atomic-conflicts-15-final.log",
+        "firebase-retired-operations-20.log",
+        "result-conflict-portions-41.json",
+        "server-result-40.json",
+        "result-regressions-53.json",
+        "device-qa-53.json"
+      ],
+      "dependencies": [
+        "KEEP_BOTH nativo con identidad estable y JSON privado: diez casos JVM API26/API34 y servidor local aprobados; pendiente QA con cuentas/dispositivos reales y todas las relaciones."
+      ]
+    },
+    {
+      "id": "C08",
+      "package": "C",
+      "requirement": "Un entrenamiento activo pertenece a un dispositivo; no se mezclarÃ¡n silenciosamente dos sesiones en curso.",
+      "code": "PARCIAL",
+      "verification": "PARCIAL",
+      "evidence": [
+        "cloud-sync/functions/src/protocol.mjs",
+        "firebase-atomic-conflicts-15-final.log",
+        "firebase-retired-operations-20.log"
+      ],
+      "dependencies": [
+        "Lease de entrenamiento implementado en servidor y cliente con expiraciÃ³n/propietario; falta QA de dos dispositivos y pÃ©rdida de proceso."
+      ]
+    },
+    {
+      "id": "C09",
+      "package": "C",
+      "requirement": "Incorporar datos de invitado a una cuenta serÃ¡ una operaciÃ³n verificable e idempotente.",
+      "code": "PARCIAL",
+      "verification": "PARCIAL",
+      "evidence": [
+        "firebase-atomic-conflicts-15-final.log",
+        "android-native/app/src/main/java/com/example/kpkn/data/sync/GuestImportCoordinator.kt",
+        "firebase-retired-operations-20.log"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "C10",
+      "package": "C",
+      "requirement": "Multimedia privada con transferencias reanudables; mostrar archivos pendientes y Ãºltima sincronizaciÃ³n confirmada.",
+      "code": "PARCIAL",
+      "verification": "PENDIENTE",
+      "evidence": [
+        "tests-capability-transfer-settings-12/",
+        "firebase-retired-operations-20.log",
+        "firebase-authenticated-range-21.log",
+        "tests-erasure-downloads-27/",
+        "tests-full-jvm-29/",
+        "android-native/app/src/main/java/com/example/kpkn/data/sync/ResumablePrivateDownload.kt"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "C11",
+      "package": "C",
+      "requirement": "Preservar unidades, fechas, zona horaria, procedencia y relaciones para el futuro cliente iOS.",
+      "code": "PARCIAL",
+      "verification": "PARCIAL",
+      "evidence": [
+        "cloud-sync/functions/src/protocol.mjs",
+        "server-contract-tests.log",
+        "ios-native/KPKNContracts/",
+        "tests-erasure-downloads-27/",
+        "result-regressions-53.json",
+        "device-qa-53.json"
+      ],
+      "dependencies": [
+        "DTO para todos los tipos y fixtures iOS pendientes"
+      ]
+    },
+    {
+      "id": "C12",
+      "package": "C",
+      "requirement": "CatÃ¡logos regenerables, permisos del dispositivo y cachÃ©s quedan fuera de la sincronizaciÃ³n personal.",
+      "code": "PARCIAL",
+      "verification": "PENDIENTE",
+      "evidence": [
+        "android-native/app/src/main/java/com/example/kpkn/data/sync/PersonalRecordCodec.kt"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "D01",
+      "package": "D",
+      "requirement": "IntegraciÃ³n en la aplicaciÃ³n Ãºnica y actualizaciÃ³n a la versiÃ³n estable 1.1.0.",
+      "code": "SUSTITUIDO",
+      "verification": "NO_APLICA",
+      "evidence": [],
+      "dependencies": [
+        "Retirada de Health Connect autorizada posteriormente por el propietario"
+      ],
+      "applicable": false,
+      "supersededBy": "D-REMOVAL"
+    },
+    {
+      "id": "D02",
+      "package": "D",
+      "requirement": "Solicitud oficial de permisos, actualizaciÃ³n al regresar a la app y explicaciÃ³n de privacidad accesible desde Health Connect.",
+      "code": "SUSTITUIDO",
+      "verification": "NO_APLICA",
+      "evidence": [],
+      "dependencies": [
+        "Retirada de Health Connect autorizada posteriormente por el propietario"
+      ],
+      "applicable": false,
+      "supersededBy": "D-REMOVAL"
+    },
+    {
+      "id": "D03",
+      "package": "D",
+      "requirement": "Estados diferenciados: no disponible, necesita actualizaciÃ³n, permiso pendiente, sincronizando, completado y error.",
+      "code": "SUSTITUIDO",
+      "verification": "NO_APLICA",
+      "evidence": [],
+      "dependencies": [
+        "Retirada de Health Connect autorizada posteriormente por el propietario"
+      ],
+      "applicable": false,
+      "supersededBy": "D-REMOVAL"
+    },
+    {
+      "id": "D04",
+      "package": "D",
+      "requirement": "Lectura de todas las pÃ¡ginas accesibles, cambios incrementales, eliminaciones y recuperaciÃ³n de cursores caducados.",
+      "code": "SUSTITUIDO",
+      "verification": "NO_APLICA",
+      "evidence": [],
+      "dependencies": [
+        "Retirada de Health Connect autorizada posteriormente por el propietario"
+      ],
+      "applicable": false,
+      "supersededBy": "D-REMOVAL"
+    },
+    {
+      "id": "D05",
+      "package": "D",
+      "requirement": "Identificadores y versiones estables para escrituras; prevenciÃ³n de duplicados y ciclos de reimportaciÃ³n.",
+      "code": "SUSTITUIDO",
+      "verification": "NO_APLICA",
+      "evidence": [],
+      "dependencies": [
+        "Retirada de Health Connect autorizada posteriormente por el propietario"
+      ],
+      "applicable": false,
+      "supersededBy": "D-REMOVAL"
+    },
+    {
+      "id": "D06",
+      "package": "D",
+      "requirement": "ConservaciÃ³n del origen y la zona horaria de cada dato.",
+      "code": "SUSTITUIDO",
+      "verification": "NO_APLICA",
+      "evidence": [],
+      "dependencies": [
+        "Retirada de Health Connect autorizada posteriormente por el propietario"
+      ],
+      "applicable": false,
+      "supersededBy": "D-REMOVAL"
+    },
+    {
+      "id": "D07",
+      "package": "D",
+      "requirement": "Ã‰xito comunicado Ãºnicamente despuÃ©s de persistir los resultados.",
+      "code": "SUSTITUIDO",
+      "verification": "NO_APLICA",
+      "evidence": [],
+      "dependencies": [
+        "Retirada de Health Connect autorizada posteriormente por el propietario"
+      ],
+      "applicable": false,
+      "supersededBy": "D-REMOVAL"
+    },
+    {
+      "id": "D08",
+      "package": "D",
+      "requirement": "Mantener los seis tipos de lectura y dos de escritura existentes, vinculados a funciones visibles y consentimiento.",
+      "code": "SUSTITUIDO",
+      "verification": "NO_APLICA",
+      "evidence": [],
+      "dependencies": [
+        "Retirada de Health Connect autorizada posteriormente por el propietario"
+      ],
+      "applicable": false,
+      "supersededBy": "D-REMOVAL"
+    },
+    {
+      "id": "D09",
+      "package": "D",
+      "requirement": "Funcionamiento local cuando Health Connect no estÃ© disponible o se revoquen permisos.",
+      "code": "SUSTITUIDO",
+      "verification": "NO_APLICA",
+      "evidence": [],
+      "dependencies": [
+        "Retirada de Health Connect autorizada posteriormente por el propietario"
+      ],
+      "applicable": false,
+      "supersededBy": "D-REMOVAL"
+    },
+    {
+      "id": "E01",
+      "package": "E",
+      "requirement": "InicializaciÃ³n asÃ­ncrona con estados de preparaciÃ³n, recuperaciÃ³n y error; los datos personales estarÃ¡n disponibles sin esperar la preparaciÃ³n completa de catÃ¡logos.",
+      "code": "PARCIAL",
+      "verification": "PENDIENTE",
+      "evidence": [
+        "gradle-portable-writers-retry-5.log",
+        "emulator-resources-backup-5/",
+        "emulator-api26-23-retry/"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "E02",
+      "package": "E",
+      "requirement": "Sustituir operaciones bloqueantes de eliminaciÃ³n y mantenimiento por funciones suspendidas con confirmaciÃ³n durable y errores visibles.",
+      "code": "PARCIAL",
+      "verification": "PENDIENTE",
+      "evidence": [
+        "android-native/app/src/main/java/com/example/kpkn/data/backup/AppDataSessions.kt"
+      ],
+      "dependencies": [
+        "Mantenimiento implementado; durabilidad completa y QA pendientes"
+      ]
+    },
+    {
+      "id": "E03",
+      "package": "E",
+      "requirement": "Temporizador basado en tiempo monotÃ³nico persistido, notificaciÃ³n con cronÃ³metro y alarmas segÃºn permisos. Eliminar el uso de `dataSync` para mantener ese reloj.",
+      "code": "PARCIAL",
+      "verification": "PARCIAL",
+      "evidence": [
+        "android-native/app/src/main/java/com/example/kpkn/services/workout/MonotonicRestDeadline.kt",
+        "tests-focused-3/",
+        "tests-snapshot-final/",
+        "gradle-snapshot-release-manifest.log"
+      ],
+      "dependencies": [
+        "Pruebas y QA de restauraciÃ³n de temporizador pendientes"
+      ]
+    },
+    {
+      "id": "E04",
+      "package": "E",
+      "requirement": "Mantener servicios de micrÃ³fono y ubicaciÃ³n Ãºnicamente durante funciones iniciadas por el usuario, con tipos y permisos adecuados.",
+      "code": "PARCIAL",
+      "verification": "PENDIENTE",
+      "evidence": [
+        "android-native/app/src/main/AndroidManifest.xml"
+      ],
+      "dependencies": [
+        "Ciclo de vida/revocaciones en Android pendientes"
+      ]
+    },
+    {
+      "id": "E05",
+      "package": "E",
+      "requirement": "Solicitar ubicaciÃ³n, cÃ¡mara, micrÃ³fono y notificaciones cuando se utilicen.",
+      "code": "PARCIAL",
+      "verification": "PARCIAL",
+      "evidence": [
+        "android-native/app/src/main/java/com/example/kpkn/MainActivity.kt",
+        "result-regressions-53.json",
+        "device-qa-53.json",
+        "result-volume-gate-55.json",
+        "device-qa-55.json",
+        "review-apk-verification-55.json",
+        "native-packaging-55.json"
+      ],
+      "dependencies": [
+        "Rutas y permisos contextuales por funciÃ³n pendientes de QA"
+      ]
+    },
+    {
+      "id": "E06",
+      "package": "E",
+      "requirement": "Corregir la peticiÃ³n de ubicaciÃ³n precisa aislada y soportar ubicaciÃ³n aproximada.",
+      "code": "PARCIAL",
+      "verification": "PENDIENTE",
+      "evidence": [
+        "android-native/app/src/main/java/com/example/kpkn/MainActivity.kt",
+        "tests-gps-maintenance-10/"
+      ],
+      "dependencies": [
+        "QA con ubicaciÃ³n aproximada pendiente"
+      ]
+    },
+    {
+      "id": "E07",
+      "package": "E",
+      "requirement": "RecuperaciÃ³n coherente ante proceso terminado, bloqueo de pantalla, reinicio, interrupciones de audio, desconexiÃ³n Bluetooth y revocaciÃ³n de permisos.",
+      "code": "PENDIENTE",
+      "verification": "PENDIENTE",
+      "evidence": [],
+      "dependencies": []
+    },
+    {
+      "id": "F01",
+      "package": "F",
+      "requirement": "Mostrar precios, moneda, duraciÃ³n y renovaciÃ³n obtenidos de Google Play.",
+      "code": "PARCIAL",
+      "verification": "PENDIENTE",
+      "evidence": [
+        "android-native/app/src/main/java/com/example/kpkn/data/account/PlaySubscriptionRepository.kt"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "F02",
+      "package": "F",
+      "requirement": "Exigir cuenta KPKN antes de contratar.",
+      "code": "PARCIAL",
+      "verification": "PENDIENTE",
+      "evidence": [
+        "android-native/app/src/main/java/com/example/kpkn/data/account/PlaySubscriptionRepository.kt"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "F03",
+      "package": "F",
+      "requirement": "Validar y reconocer compras en el servidor.",
+      "code": "PARCIAL",
+      "verification": "PENDIENTE",
+      "evidence": [
+        "firebase-atomic-conflicts-15-final.log",
+        "firebase-retired-operations-20.log"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "F04",
+      "package": "F",
+      "requirement": "Procesar notificaciones de Google de forma idempotente, incluyendo renovaciÃ³n, cancelaciÃ³n, reembolso, compra pendiente, suspensiÃ³n y recuperaciÃ³n.",
+      "code": "PARCIAL",
+      "verification": "PENDIENTE",
+      "evidence": [
+        "firebase-atomic-conflicts-15-final.log",
+        "firebase-retired-operations-20.log"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "F05",
+      "package": "F",
+      "requirement": "Vincular cada compra a una Ãºnica cuenta KPKN.",
+      "code": "PARCIAL",
+      "verification": "PENDIENTE",
+      "evidence": [
+        "cloud-sync/functions/src/protocol.mjs",
+        "firebase-atomic-conflicts-15-final.log",
+        "firebase-retired-operations-20.log"
+      ],
+      "dependencies": [
+        "VinculaciÃ³n y validaciÃ³n Play reales pendientes"
+      ]
+    },
+    {
+      "id": "F06",
+      "package": "F",
+      "requirement": "Exponer `EntitlementRepository` y un catÃ¡logo de capacidades que recibirÃ¡ la futura matriz Free/Pro.",
+      "code": "PARCIAL",
+      "verification": "PARCIAL",
+      "evidence": [
+        "android-native/app/src/main/java/com/example/kpkn/domain/entitlements/CapabilityCatalog.kt",
+        "tests-focused-3/",
+        "tests-snapshot-final/",
+        "gradle-snapshot-release-manifest.log",
+        "tests-capability-transfer-settings-12/",
+        "android-native/app/src/main/java/com/example/kpkn/domain/sync/SyncCapabilities.kt",
+        "result-regressions-53.json",
+        "device-qa-53.json",
+        "result-volume-gate-55.json",
+        "device-qa-55.json",
+        "review-apk-verification-55.json",
+        "native-packaging-55.json",
+        "../stability-continuation/tests-aud03-9.json",
+        "../stability-continuation/emulator-free-12/result.json",
+        "../stability-continuation/emulator-setup-fixed-11/04-legacy-full-link/after.xml"
+      ],
+      "dependencies": [
+        "Inicio Free y protección de Volumen verificados en API36; todas las entradas avanzadas, multimedia, caducidad con datos reales y límite entre varias rutinas permanecen pendientes."
+      ]
+    },
+    {
+      "id": "F07",
+      "package": "F",
+      "requirement": "Permitir restaurar compras y mantener derechos confirmados sin conexiÃ³n hasta su vigencia verificada.",
+      "code": "PARCIAL",
+      "verification": "PENDIENTE",
+      "evidence": [
+        "android-native/app/src/main/java/com/example/kpkn/data/account/FirebaseEntitlementRepository.kt",
+        "android-native/app/src/main/java/com/example/kpkn/data/account/PlaySubscriptionRepository.kt"
+      ],
+      "dependencies": [
+        "Hora firmada, reloj monotónico y protección ante retroceso con pruebas JVM; reinicio/caducidad y compra real pendientes."
+      ]
+    },
+    {
+      "id": "F08",
+      "package": "F",
+      "requirement": "Una caÃ­da del servidor o una suscripciÃ³n vencida nunca borrarÃ¡ datos ni impedirÃ¡ leerlos, exportarlos o eliminar la cuenta.",
+      "code": "PARCIAL",
+      "verification": "PENDIENTE",
+      "evidence": [
+        "tests-account-ui-portable-3/",
+        "web-deletion-local.json",
+        "../stability-continuation/emulator-free-12/result.json",
+        "android-native/app/src/androidTest/java/com/example/kpkn/data/repository/ExpiredProDataControlsTest.kt"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "G01",
+      "package": "G",
+      "requirement": "Regenerar el dataset mediante su proceso documentado y convertir la comprobaciÃ³n de coherencia en requisito de publicaciÃ³n.",
+      "code": "PARCIAL",
+      "verification": "PENDIENTE",
+      "evidence": [
+        "android-native/app/src/main/assets/food_data/dataset_knowledge_report.json"
+      ],
+      "dependencies": [
+        "Dataset y gate de coherencia aprobados localmente; workflow los ejecuta. CI remota aÃºn no ejecutada."
+      ]
+    },
+    {
+      "id": "G02",
+      "package": "G",
+      "requirement": "Resolver cantidades explÃ­citas en gramos, kilogramos y litros, considerando densidades cuando corresponda.",
+      "code": "IMPLEMENTADO",
+      "verification": "PARCIAL",
+      "evidence": [
+        "tests-voice-quantities-25/",
+        "tests-erasure-downloads-27/",
+        "tests-full-jvm-29/"
+      ],
+      "dependencies": [
+        "Android: gramos/kg/volumen y consumidor de tarjeta aprobados en JVM29; Swift equivalente sin compilacion Mac ni QA nutricion en dispositivo."
+      ]
+    },
+    {
+      "id": "G03",
+      "package": "G",
+      "requirement": "Corregir negaciones, variantes preparadas, porciones, rendimientos y aceite de cocciÃ³n.",
+      "code": "PENDIENTE",
+      "verification": "PENDIENTE",
+      "evidence": [],
+      "dependencies": []
+    },
+    {
+      "id": "G04",
+      "package": "G",
+      "requirement": "Presentar cantidades ambiguas como estimaciones que requieren confirmaciÃ³n; no inventar cantidades para hacer coincidir un corpus.",
+      "code": "PARCIAL",
+      "verification": "PARCIAL",
+      "evidence": [
+        "result-conflict-portions-41.json",
+        "emulator-conflict-41/food-tests/result.json",
+        "result-regressions-53.json",
+        "device-qa-53.json"
+      ],
+      "dependencies": [
+        "Cantidades ausentes/inferidas exigen confirmaciÃ³n y retienen incertidumbre; revisar todas las formas de porciÃ³n ambigua y QA visible completa."
+      ]
+    },
+    {
+      "id": "G05",
+      "package": "G",
+      "requirement": "Revisar los casos alimentarios pendientes con fuentes y recetas trazables, preservando las diferencias regionales vÃ¡lidas.",
+      "code": "PENDIENTE",
+      "verification": "PENDIENTE",
+      "evidence": [],
+      "dependencies": []
+    },
+    {
+      "id": "G06",
+      "package": "G",
+      "requirement": "Completar el contrato de conocimiento y su disponibilidad desde el inicio; retirar cÃ¡lculos y canales sin consumidores conservando datos histÃ³ricos.",
+      "code": "PARCIAL",
+      "verification": "PENDIENTE",
+      "evidence": [
+        "android-native/app/src/main/java/com/example/kpkn/data/backup/AppBootstrap.kt"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "G07",
+      "package": "G",
+      "requirement": "Actualizar el Ã­ndice FTS existente para la recuperaciÃ³n normalizada utilizada por la bÃºsqueda real, conservando ranking, alias e identidad.",
+      "code": "PARCIAL",
+      "verification": "PENDIENTE",
+      "evidence": [
+        "android-native/app/src/main/java/com/example/kpkn/data/db/KpknDatabase.kt",
+        "gradle-normalized-food-adults-6.log",
+        "tests-real-v29-migration-9/",
+        "tests-context-contracts-16/"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "G08",
+      "package": "G",
+      "requirement": "Asociar las marcas de progresiÃ³n a cada ejecuciÃ³n del programa, manteniendo el historial y evitando bloquear progresiones nuevas.",
+      "code": "PARCIAL",
+      "verification": "PARCIAL",
+      "evidence": [
+        "result-regressions-53.json",
+        "device-qa-53.json",
+        "result-full-jvm-54.json"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "G09",
+      "package": "G",
+      "requirement": "Versionar recetas de programas; actualizar planes existentes mediante una acciÃ³n explÃ­cita que preserve sesiones entrenadas.",
+      "code": "PENDIENTE",
+      "verification": "PENDIENTE",
+      "evidence": [],
+      "dependencies": []
+    },
+    {
+      "id": "G10",
+      "package": "G",
+      "requirement": "Mantener pruebas de paridad Android/iOS/backend cuando cambien motores compartidos.",
+      "code": "PENDIENTE",
+      "verification": "PENDIENTE",
+      "evidence": [],
+      "dependencies": []
+    },
+    {
+      "id": "H01",
+      "package": "H",
+      "requirement": "Recursos localizados para pantallas, errores, notificaciones, catÃ¡logos, permisos y compras.",
+      "code": "PARCIAL",
+      "verification": "PENDIENTE",
+      "evidence": [
+        "android-native/app/src/main/res/values-en/account_strings.xml",
+        "web-deletion-local.json",
+        "emulator-current-18/settings-en/"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "H02",
+      "package": "H",
+      "requirement": "GramÃ¡ticas, reconocimiento y sÃ­ntesis de voz adecuados para espaÃ±ol e inglÃ©s.",
+      "code": "PENDIENTE",
+      "verification": "PENDIENTE",
+      "evidence": [],
+      "dependencies": []
+    },
+    {
+      "id": "H03",
+      "package": "H",
+      "requirement": "Formatos de fechas, nÃºmeros y unidades consistentes sin alterar los valores almacenados.",
+      "code": "PARCIAL",
+      "verification": "PENDIENTE",
+      "evidence": [
+        "android-native/app/src/main/java/com/example/kpkn/ui/locale/LocaleManager.kt"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "H04",
+      "package": "H",
+      "requirement": "Elegibilidad de 18 aÃ±os en onboarding y contratos de validaciÃ³n.",
+      "code": "PARCIAL",
+      "verification": "PARCIAL",
+      "evidence": [
+        "android-native/app/src/main/java/com/example/kpkn/domain/eligibility/AdultEligibility.kt",
+        "tests-focused-3/",
+        "tests-snapshot-final/",
+        "gradle-snapshot-release-manifest.log",
+        "android-native/app/src/main/java/com/example/kpkn/screens/account/AdultAccessGate.kt"
+      ],
+      "dependencies": [
+        "Edad y fecha de nacimiento internas 18+ implementadas, regresiones aprobadas; primer paso de asistente visible en API36. QA completa y localizaciÃ³n pendientes."
+      ]
+    },
+    {
+      "id": "H05",
+      "package": "H",
+      "requirement": "Tratamiento explÃ­cito de perfiles anteriores fuera del pÃºblico admitido, permitiendo exportar y borrar sus datos.",
+      "code": "PARCIAL",
+      "verification": "PENDIENTE",
+      "evidence": [
+        "android-native/app/src/main/java/com/example/kpkn/screens/account/AdultAccessGate.kt"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "H06",
+      "package": "H",
+      "requirement": "Accesibilidad con TalkBack, texto ampliado, objetivos tÃ¡ctiles adecuados, orientaciÃ³n, pantallas plegables y presentaciÃ³n correcta al subir el SDK objetivo.",
+      "code": "PENDIENTE",
+      "verification": "PENDIENTE",
+      "evidence": [
+        "emulator-api26-23-retry/main.png"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "I01",
+      "package": "I",
+      "requirement": "Cola acotada con polÃ­tica de descarte y contadores; nunca bloquear la interfaz para registrar eventos.",
+      "code": "PARCIAL",
+      "verification": "PARCIAL",
+      "evidence": [
+        "android-native/app/src/main/java/com/example/kpkn/data/diagnostics/BoundedEventQueue.kt",
+        "tests-focused-3/",
+        "tests-snapshot-final/",
+        "gradle-snapshot-release-manifest.log"
+      ],
+      "dependencies": [
+        "QA de carga concurrente/cola pendiente"
+      ]
+    },
+    {
+      "id": "I02",
+      "package": "I",
+      "requirement": "Retirada de transcripciones y datos sensibles del diagnÃ³stico de producciÃ³n.",
+      "code": "PARCIAL",
+      "verification": "PARCIAL",
+      "evidence": [
+        "android-native/app/src/main/java/com/example/kpkn/data/diagnostics/DiagnosticRedactor.kt",
+        "tests-focused-3/",
+        "tests-snapshot-final/",
+        "gradle-snapshot-release-manifest.log"
+      ],
+      "dependencies": [
+        "AuditorÃ­a de emisores y archivos existentes pendiente"
+      ]
+    },
+    {
+      "id": "I03",
+      "package": "I",
+      "requirement": "RedacciÃ³n recursiva, retenciÃ³n limitada y exportaciÃ³n de diagnÃ³stico controlada por el usuario.",
+      "code": "PARCIAL",
+      "verification": "PARCIAL",
+      "evidence": [
+        "android-native/app/src/main/java/com/example/kpkn/data/diagnostics/DiagnosticRedactor.kt",
+        "tests-focused-3/",
+        "tests-snapshot-final/",
+        "gradle-snapshot-release-manifest.log"
+      ],
+      "dependencies": [
+        "ValidaciÃ³n de retenciÃ³n y exportaciones Android pendiente"
+      ]
+    },
+    {
+      "id": "I04",
+      "package": "I",
+      "requirement": "IntegraciÃ³n real de Crashlytics con control de recopilaciÃ³n, sin contenido de salud ni texto dictado; Android Vitals como fuente adicional.",
+      "code": "PARCIAL",
+      "verification": "PENDIENTE",
+      "evidence": [
+        "android-native/app/src/main/java/com/example/kpkn/data/diagnostics/CrashReportingController.kt",
+        "gradle-portable-writers-retry-5.log"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "I05",
+      "package": "I",
+      "requirement": "Inventario de datos propios y de SDK, incluyendo ML Kit, Firebase y facturaciÃ³n.",
+      "code": "PARCIAL",
+      "verification": "PENDIENTE",
+      "evidence": [
+        "DATA-SDK-INVENTORY.md"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "I06",
+      "package": "I",
+      "requirement": "PolÃ­tica de privacidad, condiciones, consentimiento de sincronizaciÃ³n y avisos de salud coherentes con el comportamiento efectivo.",
+      "code": "PARCIAL",
+      "verification": "PENDIENTE",
+      "evidence": [
+        "cloud-sync/web/privacy.html",
+        "cloud-sync/web/terms.html"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "I07",
+      "package": "I",
+      "requirement": "Revisar licencias y procedencia de datasets, modelos e imÃ¡genes.",
+      "code": "PENDIENTE",
+      "verification": "PENDIENTE",
+      "evidence": [],
+      "dependencies": []
+    },
+    {
+      "id": "J01",
+      "package": "J",
+      "requirement": "`targetSdk 36`, `minSdk 26` y un Ãºnico conjunto funcional con variantes debug/release. Conservar aliases `BaseRelease` para los scripts que los necesiten.",
+      "code": "IMPLEMENTADO",
+      "verification": "PARCIAL",
+      "evidence": [
+        "android-native/app/build.gradle.kts",
+        "review-source-verification.json",
+        "tests-focused-3/",
+        "tests-snapshot-final/",
+        "gradle-snapshot-release-manifest.log"
+      ],
+      "dependencies": [
+        "Build/QA final pendientes"
+      ]
+    },
+    {
+      "id": "J02",
+      "package": "J",
+      "requirement": "Identidad y firma separadas para debug; release fallarÃ¡ si falta su configuraciÃ³n de firma.",
+      "code": "PARCIAL",
+      "verification": "PARCIAL",
+      "evidence": [
+        "android-native/app/build.gradle.kts",
+        "tests-focused-3/",
+        "tests-snapshot-final/",
+        "gradle-snapshot-release-manifest.log",
+        "result-release-55.json",
+        "review-apk-verification-55.json"
+      ],
+      "dependencies": [
+        "ValidaciÃ³n de fallo release sin firma y QA pendientes"
+      ]
+    },
+    {
+      "id": "J03",
+      "package": "J",
+      "requirement": "Play App Signing, protecciÃ³n de la clave de subida y registro del identificador de aplicaciÃ³n.",
+      "code": "PENDIENTE",
+      "verification": "PENDIENTE",
+      "evidence": [
+        "result-release-55.json",
+        "review-apk-verification-55.json"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "J04",
+      "package": "J",
+      "requirement": "OptimizaciÃ³n de imÃ¡genes mediante scripts reproducibles, reducciÃ³n de duplicaciones y reglas R8 ajustadas con pruebas.",
+      "code": "PARCIAL",
+      "verification": "PENDIENTE",
+      "evidence": [
+        "resource-optimization-complete.json",
+        "resource-optimization-cache.log",
+        "scripts/stability/optimize_resources.py",
+        "r8-31-result.json",
+        "gradle-r8-31.log"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "J05",
+      "package": "J",
+      "requirement": "MediciÃ³n del tamaÃ±o entregado por dispositivo mediante bundletool y Play Console.",
+      "code": "PENDIENTE",
+      "verification": "PENDIENTE",
+      "evidence": [],
+      "dependencies": []
+    },
+    {
+      "id": "J06",
+      "package": "J",
+      "requirement": "Pruebas de bibliotecas nativas, empaquetado y ejecuciÃ³n con pÃ¡ginas de 16 KB.",
+      "code": "PARCIAL",
+      "verification": "PARCIAL",
+      "evidence": [
+        "native-packaging-debug-5.json",
+        "native-packaging-relro-18.json",
+        "native-relro-tests-18.log",
+        "emulator-16kb-18-retry/page-size.txt",
+        "emulator-16kb-18-retry/logcat-failed-launch.txt",
+        "result-volume-gate-55.json",
+        "device-qa-55.json",
+        "review-apk-verification-55.json",
+        "native-packaging-55.json"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "J07",
+      "package": "J",
+      "requirement": "CI con pruebas, migraciones, coherencia de catÃ¡logos, lint completo y compilaciÃ³n release; conservar informes y hashes por commit.",
+      "code": "PARCIAL",
+      "verification": "PENDIENTE",
+      "evidence": [
+        ".github/workflows/android-stability.yml",
+        "scripts/stability/emulator_ci_smoke.py",
+        "lint-release-30.xml",
+        "lint-counts-30.json",
+        "gradle-lint-release-30.log",
+        "r8-31-result.json",
+        "gradle-r8-31.log"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "J08",
+      "package": "J",
+      "requirement": "Resolver el tiempo de ejecuciÃ³n de lint y completar la compilaciÃ³n unificada antes de aceptar el paquete.",
+      "code": "PARCIAL",
+      "verification": "PARCIAL",
+      "evidence": [
+        "gradle-full-lint-release-20.log",
+        "lint-release-20.xml",
+        "gradle-lint-retry-22.log",
+        "lint-release-22.xml",
+        "lint-release-30.xml",
+        "lint-counts-30.json",
+        "gradle-lint-release-30.log",
+        "r8-31-result.json",
+        "gradle-r8-31.log",
+        "DELIVERY.json",
+        "../master-integration/result-targeted-2.json",
+        "../master-integration/result-targeted-3.json",
+        "../master-integration/emulator-gallery-3/result.json",
+        "../master-integration/node-media-contracts-4-exit.json",
+        "../stability-continuation/validation-final.json",
+        "../stability-data-isolation/DELIVERY.json"
+      ],
+      "dependencies": [
+        "c10 tuvo lint Release con 0 errores, 611 warnings y 39 hints, y minifyReleaseWithR8 aprobado sin firma. La corrección multimedia posterior tiene build Debug/AndroidTest, 42 JVM y 17 pruebas API36 propias; lint/R8 Release de este nuevo árbol y release firmado pendientes."
+      ]
+    },
+    {
+      "id": "J09",
+      "package": "J",
+      "requirement": "Cero defectos abiertos con pÃ©rdida de datos, exposiciÃ³n entre cuentas, cobros incorrectos o cierres reproducibles en funciones principales.",
+      "code": "PENDIENTE",
+      "verification": "PENDIENTE",
+      "evidence": [],
+      "dependencies": []
+    },
+    {
+      "id": "J10",
+      "package": "J",
+      "requirement": "Todos los paquetes anteriores cerrados con evidencia.",
+      "code": "PENDIENTE",
+      "verification": "PENDIENTE",
+      "evidence": [],
+      "dependencies": []
+    },
+    {
+      "id": "J11",
+      "package": "J",
+      "requirement": "Suite completa, lint y release aprobados; las pruebas de voz disponen de corpus y se ejecutan.",
+      "code": "PARCIAL",
+      "verification": "PARCIAL",
+      "evidence": [
+        "gradle-full-jvm-debug-15.log",
+        "tests-full-jvm-15/",
+        "tests-context-contracts-16/",
+        "gradle-full-jvm-19.log",
+        "tests-full-jvm-19/",
+        "tests-full-jvm-29/",
+        "result-full-29.json",
+        "voice-replay-gate-29.json",
+        "lint-release-30.xml",
+        "lint-counts-30.json",
+        "gradle-lint-release-30.log",
+        "r8-31-result.json",
+        "gradle-r8-31.log",
+        "result-full-jvm-54.json",
+        "result-volume-gate-55.json",
+        "../stability-continuation/tests-full-13.json",
+        "../stability-continuation/tests-fixture-14.json",
+        "../stability-data-isolation/DELIVERY.json"
+      ],
+      "dependencies": [
+        "Suite completa del árbol previo a la corrección del fixture Pro: 8061 pruebas, 4 fallos y 6 omisiones. Las 13 pruebas del fixture se aprobaron tras corregirlo, sin nueva ejecución completa. La corrección multimedia posterior cuenta con 42 JVM dirigidas y 17 nativas propias; suite completa del árbol nuevo, corpus real de voz, CI remota y release pendientes."
+      ]
+    },
+    {
+      "id": "J12",
+      "package": "J",
+      "requirement": "BÃºsqueda de alimentos por debajo del presupuesto existente de 150 ms y E16 conforme a su contrato en un entorno controlado.",
+      "code": "PARCIAL",
+      "verification": "PENDIENTE",
+      "evidence": [
+        "tests-normalized-media-7/"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "J13",
+      "package": "J",
+      "requirement": "Beta cerrada de 14 dÃ­as con al menos 12 participantes como criterio propio de calidad, con seguimiento de incidencias.",
+      "code": "PENDIENTE",
+      "verification": "PENDIENTE",
+      "evidence": [],
+      "dependencies": []
+    },
+    {
+      "id": "J14",
+      "package": "J",
+      "requirement": "Declaraciones, URLs pÃºblicas, cuenta de revisiÃ³n, permisos y ficha de Play completos.",
+      "code": "PENDIENTE",
+      "verification": "PENDIENTE",
+      "evidence": [],
+      "dependencies": []
+    },
+    {
+      "id": "D-REMOVAL",
+      "package": "D",
+      "requirement": "Retirar SDK, permisos, acceso al proveedor y pantallas de Health Connect del lanzamiento; conservar GPS, entradas manuales y registros histÃ³ricos.",
+      "applicable": true,
+      "code": "IMPLEMENTADO",
+      "verification": "PARCIAL",
+      "evidence": [
+        "REVIEW-SIMPLIFICATION.md",
+        "review-apk-verification.json",
+        "review-release-verification.json",
+        "gradle-snapshot-release-manifest.log",
+        "emulator-health-removal/",
+        "review-apk-verification-current.json",
+        "emulator-resources-backup-5/",
+        "review-apk-verification-10.json",
+        "emulator-gps-maintenance-10/",
+        "tests-context-contracts-16/",
+        "review-apk-verification-18.json",
+        "emulator-current-18/settings-en/",
+        "review-apk-verification-23.json",
+        "review-apk-verification-29.json",
+        "emulator-export-28/flow/result.json",
+        "result-full-29.json",
+        "emulator-api26-final-29/export-retry/result.json",
+        "review-release-verification-31.json",
+        "result-release-55.json",
+        "review-apk-verification-55.json"
+      ],
+      "dependencies": [
+        "Ensayar Ajustes, enlaces antiguos, lectura de registros histÃ³ricos y cardio GPS real antes de cerrar la QA funcional completa"
+      ],
+      "checks": {
+        "sources": "VERIFICADO",
+        "mergedManifest": "VERIFICADO_DEBUG_RELEASE",
+        "dependencies": "VERIFICADO_RELEASE",
+        "apk": "VERIFICADO",
+        "deviceQA": "API26_FINAL29_AND_API36_APK28_STARTUP_AND_COLD_VOICE_EXPORT_VERIFIED",
+        "functionalFlows": "PENDIENTE"
+      }
+    }
+  ],
+  "workStatus": "IN_PROGRESS_NOT_A_LAUNCH_CANDIDATE",
+  "evidenceNotes": [
+    "Historical failures from full JVM19 and lint20 are retained in their reports; newer full JVM24 and lint22 supersede those code checks.",
+    "APK23 started on API26 and API36; adult gate contrast verified visually. APK25 started on API36 and opened Settings/file picker, but its emulator disappeared before export could be completed.",
+    "Native LOAD/ZIP/RELRO padding checks passed. Actual 16KB AVD reports 16384 but system_server/GMS crashed and MainActivity was not top-resumed; inconclusive runtime.",
+    "Server: 21 real local emulator tests passed. Play API fixture only; no live purchases or deployment.",
+    "Lint22: zero errors, 612 warnings and 39 hints. Build23: 20 directed tests passed plus assembleDebug; APK23 installed/top-resumed on API26 and API36, contrast verified visually.",
+    "Full JVM24: 6813 tests, 6811 passed, zero failures/errors, two real voice replay omissions. XML archived in tests-full-jvm-24; applies to APK23 source before the new voice barrier and measured search fixes.",
+    "Round25: 106 directed tests passed and debug assembly succeeded. Round26 retry was interrupted after a fixture-only Main dispatcher deadlock; the dispatcher was fixed and round27 is running. No acceptance is borrowed for new source.",
+    "CI now explicitly rejects omitted or missing real voice replay. Corpus provenance and consent remain owner inputs; no field events are fabricated.",
+    "Full JVM29 and assembleDebug succeeded: 6833 tests, 6831 passed, zero failures/errors, two real replay omissions; XML archived. APK29: 68452 classes, no Health Connect SDK or permissions. Packaging checks pass; runtime16KB remains inconclusive.",
+    "APK28 actual export passed: portable v2 ZIP integrity, database/manifest and private voice process exit verified. Visible success notice and active recording are unverified. Lint30 and R8 later passed; see final notes.",
+    "Lint30 on final source passed: zero errors, 610 warnings, 39 hints. APK29 started/top-resumed in API26 and exported a valid portable v2 ZIP with no remaining voice process. R8 compilation passed; signed release/device delivery remains separate.",
+    "Final R8 compilation31 passed. Mapping/seeds/usage hashes recorded. Merged release manifest31 has no Health Connect, dataSync service or broad media read permissions. Signed release, native release-device QA, 16KB runtime, real replay corpus, live purchases, protected program integrations and beta remain unaccepted.",
+    "Round50: 6894 tests, 55 failures, 2 real voice omissions. Round53: 540 directed regressions passed; round54 full rerun in progress. Android API36 fresh Free entry, cold persistence and eight nutrition tests passed; Free volume access remains an open finding.",
+    "Round54 full JVM: 6898 tests, 6896 passed, zero failures/errors, two real voice omissions. Round55: 87 regressions, debug/AndroidTest and API36 muscle-volume gate/back/account navigation passed; release lint/R8 in progress.",
+    "Release55 lint/R8 completed BUILD SUCCESSFUL in 32m26s: zero errors, 610 warnings, 39 hints. Compilation only; no signing, release packaging/runtime or Play review. AUD01-AUD05 final selected regressions: 39 tests passed in full cohort54; real-flow and independent acceptance remain partial.",
+    "Master continuation: 124 directed JVM and 3 actual API36 Android tests passed; full tree executed 8061 JVM cases with 4 advanced-fixture failures and 6 omissions; the fixture alone declares Pro explicitly and all its 13 assertions/cases were revalidated. The original full failure report is retained; no second full run is claimed. Release lint/R8 outcomes are recorded separately in stability-continuation/validation-final.json. Real Play purchases, deployed services, voice corpus, physical/16KiB runtime and launch acceptance remain separate."
+  ],
+  "historicalEvidenceNotes": [
+    "Android builds 10 and 12: 8 and 36 directed tests passed, respectively, with assembleDebug. API 36 UI verified only for APK 10.",
+    "Server: 21 real local-emulator scenarios passed, including authenticated byte-range reads. Play provider is synthetic; no real purchase.",
+    "Browser deletion: email/confirmation/reauth/wrong-password and purge verified locally in ES/EN.",
+    "Room v30: actual v29 schema migration passed on API 26/34; historical media migration and normalized FTS hygiene passed in build 16.",
+    "Full JVM build 15: 6806 tests, 42 failures and 2 voice omissions. Build 16: 62 directed tests, 10 failures; build 17: 101 tests with 14 onboarding failures; build 18 is in progress.",
+    "Storage source gate passed for 45 schema tables and 70 direct storage calls; 3 negative-probe tests passed. Arbitrary alias and device writer QA remain separate.",
+    "No successful full lint, release/R8, runtime 16 KB, real billing, complete two-device native flow, or beta evidence.",
+    "All original A-J packages remain required except the approved replacement of D."
+  ],
+  "auditCorrections": [
+    {
+      "id": "AUD01",
+      "state": "REGRESSION_JVM_PASS_REAL_FLOW_QA_PARTIAL",
+      "evidence": [
+        "result-audit-34.json",
+        "result-audit-35.json",
+        "result-navigation-36.json",
+        "result-full-37.json",
+        "result-ui-38.json",
+        "device-qa-38.json",
+        "result-release-39.json",
+        "audit-regressions-final.json",
+        "result-full-jvm-54.json",
+        "result-release-55.json"
+      ],
+      "independentAcceptance": false
+    },
+    {
+      "id": "AUD02",
+      "state": "REGRESSION_JVM_PASS_REAL_FLOW_QA_PARTIAL",
+      "evidence": [
+        "result-audit-34.json",
+        "result-audit-35.json",
+        "result-navigation-36.json",
+        "result-full-37.json",
+        "result-ui-38.json",
+        "device-qa-38.json",
+        "result-release-39.json",
+        "audit-regressions-final.json",
+        "result-full-jvm-54.json",
+        "result-release-55.json"
+      ],
+      "independentAcceptance": false
+    },
+    {
+      "id": "AUD03",
+      "state": "NATIVE_IMPLEMENTED_UI_AND_SERVICE_QA_PARTIAL",
+      "evidence": [
+        "result-audit-34.json",
+        "result-audit-35.json",
+        "result-navigation-36.json",
+        "result-full-37.json",
+        "result-ui-38.json",
+        "device-qa-38.json",
+        "result-release-39.json",
+        "audit-regressions-final.json",
+        "result-full-jvm-54.json",
+        "result-release-55.json",
+        "result-volume-gate-55.json",
+        "device-qa-55.json"
+      ],
+      "independentAcceptance": false
+    },
+    {
+      "id": "AUD04",
+      "state": "REGRESSION_JVM_PASS_REAL_FLOW_QA_PARTIAL",
+      "evidence": [
+        "result-audit-34.json",
+        "result-audit-35.json",
+        "result-navigation-36.json",
+        "result-full-37.json",
+        "result-ui-38.json",
+        "device-qa-38.json",
+        "result-release-39.json",
+        "audit-regressions-final.json",
+        "result-full-jvm-54.json",
+        "result-release-55.json"
+      ],
+      "independentAcceptance": false
+    },
+    {
+      "id": "AUD05",
+      "state": "REGRESSION_JVM_PASS_REAL_FLOW_QA_PARTIAL",
+      "evidence": [
+        "result-audit-34.json",
+        "result-audit-35.json",
+        "result-navigation-36.json",
+        "result-full-37.json",
+        "result-ui-38.json",
+        "device-qa-38.json",
+        "result-release-39.json",
+        "audit-regressions-final.json",
+        "result-full-jvm-54.json",
+        "result-release-55.json"
+      ],
+      "independentAcceptance": false
+    }
+  ]
+}

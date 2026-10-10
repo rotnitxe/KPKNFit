@@ -1,0 +1,213 @@
+{
+  "state": "VALIDATED_LOCAL_CHECKPOINT_NOT_LAUNCH_APPROVAL",
+  "baselineCommit": "11aff1778c2b7a268f2f77f2989ff71622a2cad9",
+  "runs": [
+    {
+      "round": 1,
+      "evidence": "journal-baseline-1-unit/result.json",
+      "tests": 4,
+      "failures": 4,
+      "classification": "FIXTURE_FAILURE_BEFORE_PRODUCT_PATH",
+      "reason": "SQLiteCantOpen at snapshot creation with long Windows Robolectric temporary paths; no journal defect proof from this run."
+    },
+    {
+      "round": 2,
+      "log": "gradle-journal-fix-2.log",
+      "classification": "STOPPED_OWN_RUN_BEFORE_TESTS",
+      "reason": "Own identified daemon stopped to repeat a valid baseline; no tests counted. No other process/lease modified."
+    },
+    {
+      "round": 3,
+      "evidence": "journal-baseline-3-unit/result.json",
+      "tests": 6,
+      "failures": 6,
+      "classification": "PRODUCT_ASSERTION_REPRODUCTION",
+      "reason": "Shorter method paths reach real recovery: backup-only/partial state keeps replacement instead of original; corrupt state deletes recovery input. API26/API34."
+    },
+    {
+      "round": 4,
+      "evidence": "journal-fixed-4-unit/result.json",
+      "tests": 17,
+      "failures": 0,
+      "skipped": 0,
+      "classification": "PASS_BOUNDED_JOURNAL_FIX",
+      "reason": "AtomicFile state recovery, unknown-state retention, existing portable/snapshot tests. No actual process-death claim."
+    },
+    {
+      "round": 5,
+      "evidence": "checkpoints-play-baseline-5-unit/result.json",
+      "tests": 22,
+      "failures": 5,
+      "classification": "MIXED_PRODUCT_AND_FIXTURE",
+      "productFailures": [
+        "graphStop: SDK not ended",
+        "latePurchase: owner supplier invoked after close"
+      ],
+      "fixtureFailures": [
+        "lateOffers: SDK JSON uses type, not productType",
+        "writeFaults API26/API34: coroutine stack recovery copies IOException while retaining original cause"
+      ]
+    },
+    {
+      "round": 6,
+      "log": "gradle-play-baseline-corrected-6.log",
+      "classification": "TWO_PRODUCT_ASSERTIONS_ONE_FIXTURE_FAILURE",
+      "reason": "Fixtures corrected only; SDK lifecycle still original pending complete baseline.",
+      "evidence": "play-baseline-corrected-6-unit/result.json",
+      "tests": 5,
+      "failures": 3,
+      "productFailures": [
+        "graphStop: SDK not ended",
+        "latePurchase: entitlement resolver called after close"
+      ],
+      "fixtureFailures": [
+        "lateOffers: offerIdToken missing from synthetic SDK JSON"
+      ],
+      "recoveryFaultPhaseResult": "All ten phase assertions passed on both API26/API34; twenty injected-fault scenarios, not twenty JUnit cases"
+    },
+    {
+      "round": 7,
+      "log": "gradle-callbacks-native-7.log",
+      "classification": "PASS_DIRECTED_TESTS_AND_BOTH_DEBUG_APKS",
+      "reason": "34 directed tests in ten suites passed with no failures/errors/skips; assembleDebug and assembleDebugAndroidTest succeeded. No live service/purchase.",
+      "evidence": "callbacks-recovery-7-unit/result.json",
+      "tests": 34,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "round": 8,
+      "evidence": "native-crash-probe-8/result.json",
+      "classification": "ONE_NATIVE_INTERRUPTION_PASS_THEN_SEED_FIXTURE_FAILURE",
+      "reason": "IMPORT_COPYING termination and cold durable verification passed (PIDs 11970/12028/12108). Second seed reopened writers before profile switch; application cleanup raced opening Room. This fixture failure occurred before the product restore path.",
+      "fixtureCorrection": "Keep writer admission closed through KpknDatabase.closeInstance and synthetic ProfileStorage.select. Production unchanged."
+    },
+    {
+      "round": 9,
+      "log": "gradle-native-fixture-9.log",
+      "classification": "PASS_ANDROID_FIXTURE_REBUILD",
+      "reason": "Only corrected Android fixture rebuild; production source/app APK unchanged from passing round7."
+    },
+    {
+      "attempt": "native-expanded-with-quota",
+      "evidence": "native-crash-phases-11/result.json",
+      "classification": "TWELVE_INTERRUPTION_PHASES_PASS_QUOTA_FIXTURE_DOES_NOT_SIGNAL_FULL",
+      "passedPhases": [
+        "SNAPSHOT_ROW_COPIED",
+        "ROLLBACK_DATABASE_COPIED",
+        "ROLLBACK_FILE_COPYING",
+        "PREPARED_SYNCED",
+        "DATABASE_ROW_COPIED",
+        "DATABASE_APPLIED",
+        "PREFERENCES_APPLIED",
+        "RECOVERY_ROOT_RESTORED",
+        "RECOVERY_DATABASE_APPLIED",
+        "RECOVERY_PREFERENCES_APPLIED",
+        "RECOVERY_SYNCED",
+        "REOPEN_STARTED"
+      ],
+      "failed": "SQLITE_FULL assertion: no observed full exception",
+      "correction": "Large seed deleted before original leaves reusable free pages; fixture vacuum and primary-write quota after coordinator quiesce. Production unchanged. No claim of full filesystem."
+    },
+    {
+      "attempt": "search-under-build-load",
+      "evidence": "native-search-14/result.json",
+      "classification": "SEARCH_BUDGET_FAILED_SHARED_HOST_WITH_BUILDS_RUNNING",
+      "metrics": {
+        "samples": 120,
+        "medianMs": 161.6138,
+        "p95Ms": 322.4865,
+        "maxMs": 563.5172,
+        "budgetMs": 150,
+        "storage": "PROFILE_ROOM_FILE"
+      },
+      "reason": "Actual 120 warm Room/FTS samples fail p95<150ms. Concurrent release compilation and another shared build; attribution unresolved until controlled repeat."
+    },
+    {
+      "attempt": "quota-17",
+      "evidence": "native-quota-17/result.json",
+      "classification": "ANDROID_PRAGMA_FIXTURE_FAILURE_BEFORE_RESTORE",
+      "reason": "VACUUM leaves zero free pages; Android rejects row-returning max_page_count via execSQL. Fixed by query inside primary Room transaction; production unchanged."
+    },
+    {
+      "attempt": "quota-19",
+      "evidence": "native-quota-19/result.json",
+      "classification": "PASS_REAL_SQLITE_FULL_AND_DURABLE_PREIMAGE",
+      "reason": "162 page maximum, zero freelist pages, actual SQLiteFullException; original DB/avatar/preferences/immutable input verified. Filesystem not physically filled."
+    },
+    {
+      "attempt": "release-12",
+      "evidence": "release-checks-12.json",
+      "classification": "PASS_LINT_AND_R8",
+      "reason": "Zero errors; 614 warnings and39 hints; no signed release runtime."
+    },
+    {
+      "attempt": "search-repeat-20",
+      "evidence": "native-search-idle-20/result.json",
+      "classification": "PASS_120_WARM_SEARCH_SAMPLES_WITH_OTHER_WORKTREE_LOAD_RECORDED",
+      "reason": "Own builds complete; another u1 Gradle started at23:36 local. Shared host is not fully idle; its lease/process preserved.",
+      "metrics": {
+        "samples": 120,
+        "medianMs": 55.5748,
+        "p95Ms": 92.5362,
+        "maxMs": 132.5463,
+        "budgetMs": 150,
+        "storage": "PROFILE_ROOM_FILE"
+      }
+    },
+    {
+      "round": 10,
+      "evidence": "native-all-phases/result.json",
+      "classification": "PASS_ACTUAL_PROCESS_TERMINATION_AND_DURABLE_READBACK",
+      "scenarios": 18,
+      "phases": [
+        "IMPORT_COPYING",
+        "PORTABLE_ROOT_REPLACED",
+        "COMMIT_JOURNAL_OPENED",
+        "COMMITTED_SYNCED",
+        "REOPEN_READBACK",
+        "SNAPSHOT_ROW_COPIED",
+        "ROLLBACK_DATABASE_COPIED",
+        "ROLLBACK_FILE_COPYING",
+        "PREPARED_SYNCED",
+        "DATABASE_ROW_COPIED",
+        "DATABASE_APPLIED",
+        "PREFERENCES_APPLIED",
+        "RECOVERY_ROOT_RESTORED",
+        "RECOVERY_DATABASE_APPLIED",
+        "RECOVERY_PREFERENCES_APPLIED",
+        "RECOVERY_SYNCED",
+        "REOPEN_STARTED",
+        "SQLITE_FULL"
+      ],
+      "expectedTerminationsCountedAsTestPass": false,
+      "api": "36"
+    },
+    {
+      "round": 11,
+      "evidence": "native-search-idle-20/result.json",
+      "classification": "PASS_ANDROID_SEARCH_BENCHMARK",
+      "metrics": {
+        "samples": 120,
+        "medianMs": 55.5748,
+        "p95Ms": 92.5362,
+        "maxMs": 132.5463,
+        "budgetMs": 150,
+        "storage": "PROFILE_ROOM_FILE"
+      }
+    }
+  ],
+  "nativeProcessDeath": "PASS_BOUNDED_PHASES_ON_API36",
+  "physicalFilesystemFull": "NOT_RUN",
+  "semanticMatrix": {
+    "candidates": 814,
+    "files": 131,
+    "reviewedFiles": 10,
+    "reviewedRows": 50,
+    "universallyVerifiedRows": 0
+  },
+  "launchPlanComplete": false,
+  "pushPerformed": false,
+  "sqlitePageQuota": "PASS_ENGINE_CAPACITY_NOT_PHYSICAL_FILESYSTEM"
+}

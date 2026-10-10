@@ -1,0 +1,71 @@
+from pathlib import Path
+import hashlib
+import json
+
+root = Path(r'C:\kw\msi')
+out = root / 'artifacts/stability-recovery'
+def write(p, data): p.write_text(json.dumps(data, indent=2, ensure_ascii=False)+'\n', encoding='utf-8')
+def sha(p): return hashlib.file_digest(p.open('rb'),'sha256').hexdigest()
+runs = json.loads((out / 'development-runs.json').read_text())
+for row in runs['runs']:
+    if row.get('attempt') == 'search-repeat-20':
+        row['classification'] = 'PASS_120_WARM_SEARCH_SAMPLES_WITH_OTHER_WORKTREE_LOAD_RECORDED'
+        row['metrics'] = json.loads((out / 'native-search-idle-20/result.json').read_text())['search']
+runs['state'] = 'VALIDATED_LOCAL_CHECKPOINT_NOT_LAUNCH_APPROVAL'
+write(out / 'development-runs.json', runs)
+requirementsPath = root / 'artifacts/stability-launch/requirements.json'
+requirements = json.loads(requirementsPath.read_text())
+for req in requirements['requirements']:
+    if req['id'] in ['A01','A02','A03','A07','B01','J08','J11','J12']:
+        current = ['../stability-recovery/DELIVERY.json']
+        if req['id'] in ['A01','A02','A03','A07','B01']:
+            current += ['../stability-recovery/callbacks-recovery-7-unit/result.json',
+                        '../stability-recovery/native-all-phases/result.json']
+        if req['id'] == 'J08': current += ['../stability-recovery/release-checks-12.json']
+        if req['id'] == 'J12': current += ['../stability-recovery/native-search-idle-20/result.json',
+                                         '../stability-recovery/native-search-14/result.json']
+        for evidence in current:
+            if evidence not in req['evidence']: req['evidence'].append(evidence)
+        req['checkpointRecoveryLimits'] = 'Bounded local checkpoint only: 34 directed JVM cases; 17 real interruption phases API36,21 process terminations; one actual SQLite page-capacity case. No universal producers, physical-full filesystem, complete device/SAF/service validation.'
+write(requirementsPath, requirements)
+
+deliveryPath = out / 'DELIVERY.json'
+delivery = json.loads(deliveryPath.read_text())
+release = json.loads((out / 'release-checks-12.json').read_text())
+benchmark = json.loads((out / 'native-search-idle-20/result.json').read_text())
+assert release['state'] == benchmark['state'] == 'PASS'
+native = json.loads((out / 'native-all-phases/result.json').read_text())
+terminations = sum(step['outcome'] == 'EXPECTED_PROCESS_TERMINATION_NOT_TEST_PASS'
+                   for case in native['cases'] for step in case['steps'])
+assert len(native['cases']) == 18 and terminations == 21
+delivery['native'].update(actualTerminationPhases=17, actualProcessTerminations=terminations, sqliteQuotaScenarios=1,
+    testFixtureHashesArePerCase=True)
+delivery['releaseChecks'] = dict(evidence='release-checks-12.json', **release)
+delivery['benchmark'] = dict(evidence='native-search-idle-20/result.json', state='PASS', **benchmark['search'],
+    limits='Shared x86_64 API36 temporary read-only AVD, warmed Room/FTS. Other u1 Gradle workload recorded; not a controlled physical-device benchmark.')
+delivery['previousBenchmarkFailure'] = dict(evidence='native-search-14/result.json', p95Ms=322.4865,
+    retained=True, attributionToLoadIsInference=True)
+delivery['sourceEvidenceLimits'] = 'Production source unchanged after round7. Native quota-method-only fixture corrections produce different test APK hashes, retained per case. Older fixture fingerprints archived; final fingerprint matches staged final source.'
+
+report = out / 'ENTREGA.md'
+report.write_text('''# Recuperación y cierre del cliente Play
+
+Este parche integra las correcciones recomendadas sobre la base `11aff1778`, conservando Health Connect retirado, GPS y las implementaciones paralelas anteriores.
+
+El diario de restauración ahora se lee mediante `AtomicFile`, limita su estado a 32 bytes y conserva la copia de recuperación ante un estado no reconocido. Al cerrar el perfil se retira el cliente Play, se termina la conexión y se impide que callbacks tardíos resuelvan derechos o publiquen ofertas para otro propietario.
+
+- **34 pruebas JVM / 10 suites aprobadas**, cero fallos y omisiones. Los ensayos de diez fallos IO por fase se ejecutaron en API26/API34.
+- **17 fases nativas aprobadas en API36**, con 21 terminaciones reales y lectura durable desde otro PID. Se comprobaron base, avatar, preferencias, reapertura y ZIP de entrada intacto. Las terminaciones intencionales no cuentan como tests aprobados.
+- **SQLITE_FULL real aprobado**: cuota de 162 páginas y cero páginas libres; original conservado después del fallo. El filesystem no se llenó físicamente.
+- **Lint: 0 errores,614 advertencias,39 avisos menores; R8 aprobado**. No se generó ni instaló una release firmada.
+- **120 búsquedas Room/FTS aprobadas**: p95 92,5362 ms, presupuesto 150 ms. El intento anterior de p95 322,4865 ms se conserva; la carga concurrente hace que atribuir la diferencia sólo al parche o sólo al host sea una inferencia. La repetición empezó tras nuestros builds, con otro build u1 registrado.
+- APK instalado y `MainActivity` visible; captura, árbol UI y logs conservados.
+
+`DELIVERY.json` enlaza las fuentes, hashes, reproducciones y resultados. Los errores de preparación del fixture permanecen identificados y no se atribuyen a producción. La prueba de cuota final modifica sólo ese método del fixture; los hashes de test APK anteriores se conservan por escenario.
+
+La integración local de este parche no cierra el plan A-J ni acredita publicación en Google. Siguen pendientes la suite JVM amplia, la matriz completa de productores/dispositivos, SAF y los servicios reales Firebase/Play. No hubo push ni despliegue.
+''', encoding='utf-8')
+for relative in list(delivery['evidenceHashes']):
+    delivery['evidenceHashes'][relative] = sha(root / relative)
+write(deliveryPath, delivery)
+print(json.dumps(dict(state=delivery['state'], scenarios=18, actualTerminations=21, p95Ms=benchmark['search']['p95Ms'])))

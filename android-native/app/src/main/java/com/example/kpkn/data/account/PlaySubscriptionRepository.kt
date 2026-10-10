@@ -16,21 +16,48 @@ data class SubscriptionOffer(val basePlanId: String, val formattedPrice: String,
     val billingPeriod: String, val trialDays: Int, internal val product: ProductDetails, internal val token: String)
 
 /** Play supplies prices and eligibility. Purchases remain pending until the server confirms them. */
-class PlaySubscriptionRepository(context: Context, private val scope: CoroutineScope, private val entitlement: () -> FirebaseEntitlementRepository?) {
+class PlaySubscriptionRepository internal constructor(context: Context, private val scope: CoroutineScope,
+    private val entitlement: () -> FirebaseEntitlementRepository?,
+    clientFactory: (Context, PurchasesUpdatedListener) -> BillingClient) {
+    constructor(context: Context, scope: CoroutineScope, entitlement: () -> FirebaseEntitlementRepository?) :
+        this(context, scope, entitlement, { supplied, listener ->
+            BillingClient.newBuilder(supplied.applicationContext)
+                .enablePendingPurchases(PendingPurchasesParams.newBuilder().enableOneTimeProducts().enablePrepaidPlans().build())
+                .enableAutoServiceReconnection().setListener(listener).build()
+        })
+    private val writer = com.example.kpkn.data.backup.DataSessionWriter("play-sdk-client")
+    private val profile = ProfileStorage.current()
+    private val clientJob = SupervisorJob(scope.coroutineContext[Job])
+    private val clientScope = CoroutineScope(scope.coroutineContext + clientJob)
+    @Volatile private var closed = false
     private val _offers = MutableStateFlow<List<SubscriptionOffer>>(emptyList())
     val offers = _offers.asStateFlow()
     private val connection = Mutex()
-    private val client = BillingClient.newBuilder(context.applicationContext)
-        .enablePendingPurchases(PendingPurchasesParams.newBuilder().enableOneTimeProducts().enablePrepaidPlans().build())
-        .enableAutoServiceReconnection()
-        .setListener { result, purchases -> if (result.responseCode == BillingClient.BillingResponseCode.OK) {
-            val owner = entitlement()
-            scope.launch(Dispatchers.IO) { runCatching { verify(purchases.orEmpty(), owner) } }
-        } }.build()
+    private val client = clientFactory(context, PurchasesUpdatedListener { result, purchases -> if (result.responseCode == BillingClient.BillingResponseCode.OK) {
+            val owner = callbackOwner()
+            if (owner != null) writer.launch(clientScope) { runCatching { verify(purchases.orEmpty(), owner) } }
+        } })
+    private fun stillCurrent() = !closed && ProfileStorage.current().let { it.key == profile.key && it.epoch == profile.epoch }
+    private fun callbackOwner(): FirebaseEntitlementRepository? = try {
+        writer.immediate { if (stillCurrent()) entitlement() else null }
+    } catch (_: com.example.kpkn.data.media.DataSessionClosedException) { null }
+
+    private fun <T> callback(continuation: CancellableContinuation<T>, action: () -> Unit) {
+        if (!continuation.isActive) return
+        try {
+            writer.immediate {
+                if (!stillCurrent()) { continuation.cancel(CancellationException("Play client profile closed")); return@immediate }
+                action()
+            }
+        } catch (closed: com.example.kpkn.data.media.DataSessionClosedException) {
+            continuation.cancel(CancellationException(closed.message).also { it.initCause(closed) })
+        }
+    }
+
     private suspend fun ready() = withTimeout(30_000) { withContext(Dispatchers.Main) { connection.withLock {
         if (!client.isReady) suspendCancellableCoroutine<Unit> { continuation ->
             client.startConnection(object : BillingClientStateListener {
-                override fun onBillingSetupFinished(result: BillingResult) { if (continuation.isActive) {
+                override fun onBillingSetupFinished(result: BillingResult) { callback(continuation) {
                     if (result.responseCode == BillingClient.BillingResponseCode.OK) continuation.resume(Unit)
                     else continuation.resumeWith(Result.failure(AccountServiceException("PLAY_UNAVAILABLE")))
                 } }
@@ -38,12 +65,13 @@ class PlaySubscriptionRepository(context: Context, private val scope: CoroutineS
             })
         }
     } } }
-    suspend fun queryOffers() {
+    suspend fun queryOffers() = writer.write {
+        check(stillCurrent())
         ready()
         val parameters = QueryProductDetailsParams.newBuilder().setProductList(listOf(QueryProductDetailsParams.Product.newBuilder()
             .setProductId(PRODUCT).setProductType(BillingClient.ProductType.SUBS).build())).build()
         withTimeout(30_000) { withContext(Dispatchers.Main) { suspendCancellableCoroutine<Unit> { continuation ->
-            client.queryProductDetailsAsync(parameters) { result, products ->
+            client.queryProductDetailsAsync(parameters) { result, products -> callback(continuation) {
                 if (result.responseCode == BillingClient.BillingResponseCode.OK) _offers.value = products.productDetailsList.flatMap { product ->
                     product.subscriptionOfferDetails.orEmpty().mapNotNull { offer ->
                         val phases = offer.pricingPhases.pricingPhaseList
@@ -59,26 +87,28 @@ class PlaySubscriptionRepository(context: Context, private val scope: CoroutineS
                     if (result.responseCode == BillingClient.BillingResponseCode.OK) continuation.resume(Unit)
                     else continuation.resumeWith(Result.failure(AccountServiceException("PLAY_UNAVAILABLE")))
                 }
-            }
+            } }
         } } }
     }
-    fun purchase(activity: Activity, uid: String, offer: SubscriptionOffer): BillingResult {
+    fun purchase(activity: Activity, uid: String, offer: SubscriptionOffer): BillingResult = writer.immediate {
+        check(stillCurrent())
         check(BuildConfig.SALES_APPROVED)
         check(ProfileStorage.current().uid == uid && entitlement() != null)
         val details = BillingFlowParams.ProductDetailsParams.newBuilder().setProductDetails(offer.product).setOfferToken(offer.token).build()
-        return client.launchBillingFlow(activity, BillingFlowParams.newBuilder().setProductDetailsParamsList(listOf(details))
+        client.launchBillingFlow(activity, BillingFlowParams.newBuilder().setProductDetailsParamsList(listOf(details))
             .setObfuscatedAccountId(PersonalRecordCodec.sha256(uid.toByteArray())).build())
     }
-    suspend fun restore() {
+    suspend fun restore() = writer.write {
+        check(stillCurrent())
         val owner = entitlement() ?: throw AccountServiceException("UNAUTHENTICATED")
         ready()
         val purchases = withTimeout(30_000) { withContext(Dispatchers.Main) { suspendCancellableCoroutine<List<Purchase>> { continuation ->
-            client.queryPurchasesAsync(QueryPurchasesParams.newBuilder().setProductType(BillingClient.ProductType.SUBS).build()) { result, purchases ->
+            client.queryPurchasesAsync(QueryPurchasesParams.newBuilder().setProductType(BillingClient.ProductType.SUBS).build()) { result, purchases -> callback(continuation) {
                 if (continuation.isActive) {
                     if (result.responseCode == BillingClient.BillingResponseCode.OK) continuation.resume(purchases)
                     else continuation.resumeWith(Result.failure(AccountServiceException("PLAY_UNAVAILABLE")))
                 }
-            }
+            } }
         } } }
         withContext(Dispatchers.IO) { verify(purchases, owner); owner.refresh() }
     }
@@ -88,6 +118,18 @@ class PlaySubscriptionRepository(context: Context, private val scope: CoroutineS
             // Capture the original account before dispatch. A delayed callback never grants another UID.
             owner.verifyPurchase(purchase.purchaseToken)
     } }
-    fun close() { client.endConnection() }
+    fun close() {
+        if (closed) return
+        closed = true
+        writer.closeAdmission()
+        clientJob.cancel()
+        try { client.endConnection() } finally { _offers.value = emptyList() }
+    }
+    internal suspend fun closeForDataSession() {
+        try { close() } finally {
+            clientJob.join()
+            withContext(Dispatchers.Main) { _offers.value = emptyList() }
+        }
+    }
     companion object { const val PRODUCT = "kpkn_pro" }
 }

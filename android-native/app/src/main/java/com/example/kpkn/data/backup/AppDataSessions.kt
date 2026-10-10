@@ -32,6 +32,7 @@ object AppDataSessions {
     private var stopStartup: suspend () -> Unit = {}
     private val attached = MutableStateFlow(0L)
     @Volatile private var currentContext: Context? = null
+    private var currentCheckpoint: MaintenanceCheckpoint = MaintenanceCheckpoint.None
 
     fun attach(activity: ComponentActivity, cancelStartup: suspend () -> Unit) {
         this.activity = WeakReference(activity)
@@ -82,7 +83,7 @@ object AppDataSessions {
                 com.example.kpkn.services.workout.WorkoutRestAlertManager.resumeForDataSession()
                 MediaPersistenceOwner.writes.resume()
                 MediaPersistenceOwner.pendingCaptureRetryState.value = com.example.kpkn.data.media.WorkoutMediaPendingCaptureState()
-                AppBootstrap.prepare(context)
+                AppBootstrap.prepare(context, currentCheckpoint)
                 com.example.kpkn.data.account.AccountGraph.attach(context)
                 withContext(Dispatchers.Main) { _generation.value += 1 }
                 com.example.kpkn.services.workout.WorkoutVoiceRuntime.resumeForDataSession(context)
@@ -115,11 +116,16 @@ object AppDataSessions {
     }
 
     fun launch(context: Context, operation: String, onSuccess: () -> Unit, onError: (String) -> Unit,
-        requiresInactiveWorkout: Boolean = true, action: suspend () -> Unit) {
+        requiresInactiveWorkout: Boolean = true, action: suspend () -> Unit) =
+        launch(context, operation, onSuccess, onError, requiresInactiveWorkout, MaintenanceCheckpoint.None, action)
+
+    internal fun launch(context: Context, operation: String, onSuccess: () -> Unit, onError: (String) -> Unit,
+        requiresInactiveWorkout: Boolean, checkpoint: MaintenanceCheckpoint, action: suspend () -> Unit) {
         owner.launch {
             try {
                 coordinator.maintenance(operation, activeWorkout = {
                     currentContext = context.applicationContext
+                    currentCheckpoint = checkpoint
                     val active = KpknDatabase.getInstance(context).stateDao().getOngoingWorkout() != null
                     (requiresInactiveWorkout && (active || hasActiveGpsRoute())) || MediaPersistenceOwner.activeCameraCaptures.isNotEmpty()
                 }) {
@@ -141,6 +147,7 @@ object AppDataSessions {
         try {
         coordinator.maintenance("account", activeWorkout = {
             currentContext = context.applicationContext
+            currentCheckpoint = MaintenanceCheckpoint.None
             (!discardOngoing && (KpknDatabase.getInstance(context).stateDao().getOngoingWorkout() != null || hasActiveGpsRoute())) || MediaPersistenceOwner.activeCameraCaptures.isNotEmpty()
         }) {
             val uid = action()

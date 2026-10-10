@@ -1,0 +1,581 @@
+{
+  "state": "FAIL_OR_INCOMPLETE",
+  "runId": "bc5b7515-3ab7-4115-83b4-482dd63510b9",
+  "cases": [
+    {
+      "phase": "SNAPSHOT_ROW_COPIED",
+      "steps": [
+        {
+          "outcome": "PASS",
+          "pid": 13774,
+          "log": "SNAPSHOT_ROW_COPIED-seed-main.txt"
+        },
+        {
+          "outcome": "EXPECTED_PROCESS_TERMINATION_NOT_TEST_PASS",
+          "pid": 13833,
+          "checkpoint": "SNAPSHOT_ROW_COPIED",
+          "marker": {
+            "pid": 13833,
+            "phase": "SNAPSHOT_ROW_COPIED",
+            "step": "restore",
+            "stateBaseExists": false,
+            "stateBackupExists": false,
+            "stateNewExists": false
+          },
+          "log": "SNAPSHOT_ROW_COPIED-interrupt-restore.txt"
+        },
+        {
+          "outcome": "PASS",
+          "pid": 13915,
+          "log": "SNAPSHOT_ROW_COPIED-verify-main.txt"
+        }
+      ],
+      "seed": {
+        "profileKey": "guest_a1c7f97fc3f8856328731ba3",
+        "archiveSha256": "85ac8e759163bd9fb1e8c3d4594e46ff741c81ea0f5650b5129ff437ae9d867b",
+        "originalPhoto": "b5cf9ce639d8cb11c4c31ff8a78cb2c0ed133cd22b552c36fc33dd59880bca77",
+        "replacementPhoto": "bdd74528c79887367d207a0db5b327f2a0de4d7ceacf1a6c60d86508d9cedf82"
+      },
+      "verification": {
+        "pid": 13915,
+        "phase": "SNAPSHOT_ROW_COPIED",
+        "durableOutcome": "original",
+        "inputUnchanged": true
+      },
+      "state": "PASS_WITH_ACTUAL_INTERRUPTION"
+    },
+    {
+      "phase": "ROLLBACK_DATABASE_COPIED",
+      "steps": [
+        {
+          "outcome": "PASS",
+          "pid": 13998,
+          "log": "ROLLBACK_DATABASE_COPIED-seed-main.txt"
+        },
+        {
+          "outcome": "EXPECTED_PROCESS_TERMINATION_NOT_TEST_PASS",
+          "pid": 14061,
+          "checkpoint": "ROLLBACK_DATABASE_COPIED",
+          "marker": {
+            "pid": 14061,
+            "phase": "ROLLBACK_DATABASE_COPIED",
+            "step": "restore",
+            "stateBaseExists": false,
+            "stateBackupExists": false,
+            "stateNewExists": false
+          },
+          "log": "ROLLBACK_DATABASE_COPIED-interrupt-restore.txt"
+        },
+        {
+          "outcome": "PASS",
+          "pid": 14156,
+          "log": "ROLLBACK_DATABASE_COPIED-verify-main.txt"
+        }
+      ],
+      "seed": {
+        "profileKey": "guest_8e57f28c177694e7de02924b",
+        "archiveSha256": "5ee11551ee6c8c2d08717534593f5c273333132c9c3af31d1806d478a6b551c9",
+        "originalPhoto": "b5cf9ce639d8cb11c4c31ff8a78cb2c0ed133cd22b552c36fc33dd59880bca77",
+        "replacementPhoto": "bdd74528c79887367d207a0db5b327f2a0de4d7ceacf1a6c60d86508d9cedf82"
+      },
+      "verification": {
+        "pid": 14156,
+        "phase": "ROLLBACK_DATABASE_COPIED",
+        "durableOutcome": "original",
+        "inputUnchanged": true
+      },
+      "state": "PASS_WITH_ACTUAL_INTERRUPTION"
+    },
+    {
+      "phase": "ROLLBACK_FILE_COPYING",
+      "steps": [
+        {
+          "outcome": "PASS",
+          "pid": 14244,
+          "log": "ROLLBACK_FILE_COPYING-seed-main.txt"
+        },
+        {
+          "outcome": "EXPECTED_PROCESS_TERMINATION_NOT_TEST_PASS",
+          "pid": 14305,
+          "checkpoint": "ROLLBACK_FILE_COPYING",
+          "marker": {
+            "pid": 14305,
+            "phase": "ROLLBACK_FILE_COPYING",
+            "step": "restore",
+            "stateBaseExists": false,
+            "stateBackupExists": false,
+            "stateNewExists": false
+          },
+          "log": "ROLLBACK_FILE_COPYING-interrupt-restore.txt"
+        },
+        {
+          "outcome": "PASS",
+          "pid": 14387,
+          "log": "ROLLBACK_FILE_COPYING-verify-main.txt"
+        }
+      ],
+      "seed": {
+        "profileKey": "guest_fd622b34354c71d974634b19",
+        "archiveSha256": "834e8be230de20f50d9eb2ee8fbed0576c66be3a385c7b358c7107de4d5f7359",
+        "originalPhoto": "b5cf9ce639d8cb11c4c31ff8a78cb2c0ed133cd22b552c36fc33dd59880bca77",
+        "replacementPhoto": "bdd74528c79887367d207a0db5b327f2a0de4d7ceacf1a6c60d86508d9cedf82"
+      },
+      "verification": {
+        "pid": 14387,
+        "phase": "ROLLBACK_FILE_COPYING",
+        "durableOutcome": "original",
+        "inputUnchanged": true
+      },
+      "state": "PASS_WITH_ACTUAL_INTERRUPTION"
+    },
+    {
+      "phase": "PREPARED_SYNCED",
+      "steps": [
+        {
+          "outcome": "PASS",
+          "pid": 14466,
+          "log": "PREPARED_SYNCED-seed-main.txt"
+        },
+        {
+          "outcome": "EXPECTED_PROCESS_TERMINATION_NOT_TEST_PASS",
+          "pid": 14525,
+          "checkpoint": "PREPARED_SYNCED",
+          "marker": {
+            "pid": 14525,
+            "phase": "PREPARED_SYNCED",
+            "step": "restore",
+            "stateBaseExists": true,
+            "stateBackupExists": false,
+            "stateNewExists": false
+          },
+          "log": "PREPARED_SYNCED-interrupt-restore.txt"
+        },
+        {
+          "outcome": "PASS",
+          "pid": 14609,
+          "log": "PREPARED_SYNCED-verify-main.txt"
+        }
+      ],
+      "seed": {
+        "profileKey": "guest_892bfbf097d94e0fa58b98d0",
+        "archiveSha256": "b80cab87686de2b9b4b909af3161ef0fdd03ac35fb23cfb625e20a75f56ef4ad",
+        "originalPhoto": "b5cf9ce639d8cb11c4c31ff8a78cb2c0ed133cd22b552c36fc33dd59880bca77",
+        "replacementPhoto": "bdd74528c79887367d207a0db5b327f2a0de4d7ceacf1a6c60d86508d9cedf82"
+      },
+      "verification": {
+        "pid": 14609,
+        "phase": "PREPARED_SYNCED",
+        "durableOutcome": "original",
+        "inputUnchanged": true
+      },
+      "state": "PASS_WITH_ACTUAL_INTERRUPTION"
+    },
+    {
+      "phase": "DATABASE_ROW_COPIED",
+      "steps": [
+        {
+          "outcome": "PASS",
+          "pid": 14689,
+          "log": "DATABASE_ROW_COPIED-seed-main.txt"
+        },
+        {
+          "outcome": "EXPECTED_PROCESS_TERMINATION_NOT_TEST_PASS",
+          "pid": 14746,
+          "checkpoint": "DATABASE_ROW_COPIED",
+          "marker": {
+            "pid": 14746,
+            "phase": "DATABASE_ROW_COPIED",
+            "step": "restore",
+            "stateBaseExists": true,
+            "stateBackupExists": false,
+            "stateNewExists": false
+          },
+          "log": "DATABASE_ROW_COPIED-interrupt-restore.txt"
+        },
+        {
+          "outcome": "PASS",
+          "pid": 14828,
+          "log": "DATABASE_ROW_COPIED-verify-main.txt"
+        }
+      ],
+      "seed": {
+        "profileKey": "guest_ae7590f138a073b679014fc0",
+        "archiveSha256": "cda8f09009e690e3879e76d9ec621f00edef14be14980b3e42fb673c22dabc24",
+        "originalPhoto": "b5cf9ce639d8cb11c4c31ff8a78cb2c0ed133cd22b552c36fc33dd59880bca77",
+        "replacementPhoto": "bdd74528c79887367d207a0db5b327f2a0de4d7ceacf1a6c60d86508d9cedf82"
+      },
+      "verification": {
+        "pid": 14828,
+        "phase": "DATABASE_ROW_COPIED",
+        "durableOutcome": "original",
+        "inputUnchanged": true
+      },
+      "state": "PASS_WITH_ACTUAL_INTERRUPTION"
+    },
+    {
+      "phase": "DATABASE_APPLIED",
+      "steps": [
+        {
+          "outcome": "PASS",
+          "pid": 14907,
+          "log": "DATABASE_APPLIED-seed-main.txt"
+        },
+        {
+          "outcome": "EXPECTED_PROCESS_TERMINATION_NOT_TEST_PASS",
+          "pid": 14965,
+          "checkpoint": "DATABASE_APPLIED",
+          "marker": {
+            "pid": 14965,
+            "phase": "DATABASE_APPLIED",
+            "step": "restore",
+            "stateBaseExists": true,
+            "stateBackupExists": false,
+            "stateNewExists": false
+          },
+          "log": "DATABASE_APPLIED-interrupt-restore.txt"
+        },
+        {
+          "outcome": "PASS",
+          "pid": 15049,
+          "log": "DATABASE_APPLIED-verify-main.txt"
+        }
+      ],
+      "seed": {
+        "profileKey": "guest_75fca0ca690eeb4bf6c41300",
+        "archiveSha256": "dfc1fc6c13a9a09a932100b8825071e9d5575621a5259288bd76d158f252dd54",
+        "originalPhoto": "b5cf9ce639d8cb11c4c31ff8a78cb2c0ed133cd22b552c36fc33dd59880bca77",
+        "replacementPhoto": "bdd74528c79887367d207a0db5b327f2a0de4d7ceacf1a6c60d86508d9cedf82"
+      },
+      "verification": {
+        "pid": 15049,
+        "phase": "DATABASE_APPLIED",
+        "durableOutcome": "original",
+        "inputUnchanged": true
+      },
+      "state": "PASS_WITH_ACTUAL_INTERRUPTION"
+    },
+    {
+      "phase": "PREFERENCES_APPLIED",
+      "steps": [
+        {
+          "outcome": "PASS",
+          "pid": 15128,
+          "log": "PREFERENCES_APPLIED-seed-main.txt"
+        },
+        {
+          "outcome": "EXPECTED_PROCESS_TERMINATION_NOT_TEST_PASS",
+          "pid": 15185,
+          "checkpoint": "PREFERENCES_APPLIED",
+          "marker": {
+            "pid": 15185,
+            "phase": "PREFERENCES_APPLIED",
+            "step": "restore",
+            "stateBaseExists": true,
+            "stateBackupExists": false,
+            "stateNewExists": false
+          },
+          "log": "PREFERENCES_APPLIED-interrupt-restore.txt"
+        },
+        {
+          "outcome": "PASS",
+          "pid": 15272,
+          "log": "PREFERENCES_APPLIED-verify-main.txt"
+        }
+      ],
+      "seed": {
+        "profileKey": "guest_5309ce51273c4a4a811e7c69",
+        "archiveSha256": "76c89e01a5cde94861f4c8f36c0b8fb5102767b2ad66e6cfed3e3026c8134180",
+        "originalPhoto": "b5cf9ce639d8cb11c4c31ff8a78cb2c0ed133cd22b552c36fc33dd59880bca77",
+        "replacementPhoto": "bdd74528c79887367d207a0db5b327f2a0de4d7ceacf1a6c60d86508d9cedf82"
+      },
+      "verification": {
+        "pid": 15272,
+        "phase": "PREFERENCES_APPLIED",
+        "durableOutcome": "original",
+        "inputUnchanged": true
+      },
+      "state": "PASS_WITH_ACTUAL_INTERRUPTION"
+    },
+    {
+      "phase": "RECOVERY_ROOT_RESTORED",
+      "steps": [
+        {
+          "outcome": "PASS",
+          "pid": 15356,
+          "log": "RECOVERY_ROOT_RESTORED-seed-main.txt"
+        },
+        {
+          "outcome": "EXPECTED_PROCESS_TERMINATION_NOT_TEST_PASS",
+          "pid": 15414,
+          "checkpoint": "DATABASE_APPLIED",
+          "marker": {
+            "pid": 15414,
+            "phase": "DATABASE_APPLIED",
+            "step": "prime",
+            "stateBaseExists": true,
+            "stateBackupExists": false,
+            "stateNewExists": false
+          },
+          "log": "RECOVERY_ROOT_RESTORED-interrupt-prime.txt"
+        },
+        {
+          "outcome": "EXPECTED_PROCESS_TERMINATION_NOT_TEST_PASS",
+          "pid": 15498,
+          "checkpoint": "RECOVERY_ROOT_RESTORED",
+          "marker": {
+            "pid": 15498,
+            "phase": "RECOVERY_ROOT_RESTORED",
+            "step": "recover",
+            "stateBaseExists": true,
+            "stateBackupExists": false,
+            "stateNewExists": false
+          },
+          "log": "RECOVERY_ROOT_RESTORED-interrupt-recover.txt"
+        },
+        {
+          "outcome": "PASS",
+          "pid": 15551,
+          "log": "RECOVERY_ROOT_RESTORED-verify-main.txt"
+        }
+      ],
+      "seed": {
+        "profileKey": "guest_f953b2420e02568851418641",
+        "archiveSha256": "e4046d3b4c8f79d680537a4c67f596c6c1bc90f58a0a95c7a549435f3c9c4a1e",
+        "originalPhoto": "b5cf9ce639d8cb11c4c31ff8a78cb2c0ed133cd22b552c36fc33dd59880bca77",
+        "replacementPhoto": "bdd74528c79887367d207a0db5b327f2a0de4d7ceacf1a6c60d86508d9cedf82"
+      },
+      "verification": {
+        "pid": 15551,
+        "phase": "RECOVERY_ROOT_RESTORED",
+        "durableOutcome": "original",
+        "inputUnchanged": true
+      },
+      "state": "PASS_WITH_ACTUAL_INTERRUPTION"
+    },
+    {
+      "phase": "RECOVERY_DATABASE_APPLIED",
+      "steps": [
+        {
+          "outcome": "PASS",
+          "pid": 15630,
+          "log": "RECOVERY_DATABASE_APPLIED-seed-main.txt"
+        },
+        {
+          "outcome": "EXPECTED_PROCESS_TERMINATION_NOT_TEST_PASS",
+          "pid": 15687,
+          "checkpoint": "DATABASE_APPLIED",
+          "marker": {
+            "pid": 15687,
+            "phase": "DATABASE_APPLIED",
+            "step": "prime",
+            "stateBaseExists": true,
+            "stateBackupExists": false,
+            "stateNewExists": false
+          },
+          "log": "RECOVERY_DATABASE_APPLIED-interrupt-prime.txt"
+        },
+        {
+          "outcome": "EXPECTED_PROCESS_TERMINATION_NOT_TEST_PASS",
+          "pid": 15787,
+          "checkpoint": "RECOVERY_DATABASE_APPLIED",
+          "marker": {
+            "pid": 15787,
+            "phase": "RECOVERY_DATABASE_APPLIED",
+            "step": "recover",
+            "stateBaseExists": true,
+            "stateBackupExists": false,
+            "stateNewExists": false
+          },
+          "log": "RECOVERY_DATABASE_APPLIED-interrupt-recover.txt"
+        },
+        {
+          "outcome": "PASS",
+          "pid": 15844,
+          "log": "RECOVERY_DATABASE_APPLIED-verify-main.txt"
+        }
+      ],
+      "seed": {
+        "profileKey": "guest_ba12c11f2cfa1fac6478f49c",
+        "archiveSha256": "9b4ded16d01a6199536f9e87dfa98c4fd34cd433e0e478fed182cff309452a8e",
+        "originalPhoto": "b5cf9ce639d8cb11c4c31ff8a78cb2c0ed133cd22b552c36fc33dd59880bca77",
+        "replacementPhoto": "bdd74528c79887367d207a0db5b327f2a0de4d7ceacf1a6c60d86508d9cedf82"
+      },
+      "verification": {
+        "pid": 15844,
+        "phase": "RECOVERY_DATABASE_APPLIED",
+        "durableOutcome": "original",
+        "inputUnchanged": true
+      },
+      "state": "PASS_WITH_ACTUAL_INTERRUPTION"
+    },
+    {
+      "phase": "RECOVERY_PREFERENCES_APPLIED",
+      "steps": [
+        {
+          "outcome": "PASS",
+          "pid": 15928,
+          "log": "RECOVERY_PREFERENCES_APPLIED-seed-main.txt"
+        },
+        {
+          "outcome": "EXPECTED_PROCESS_TERMINATION_NOT_TEST_PASS",
+          "pid": 15985,
+          "checkpoint": "DATABASE_APPLIED",
+          "marker": {
+            "pid": 15985,
+            "phase": "DATABASE_APPLIED",
+            "step": "prime",
+            "stateBaseExists": true,
+            "stateBackupExists": false,
+            "stateNewExists": false
+          },
+          "log": "RECOVERY_PREFERENCES_APPLIED-interrupt-prime.txt"
+        },
+        {
+          "outcome": "EXPECTED_PROCESS_TERMINATION_NOT_TEST_PASS",
+          "pid": 16069,
+          "checkpoint": "RECOVERY_PREFERENCES_APPLIED",
+          "marker": {
+            "pid": 16069,
+            "phase": "RECOVERY_PREFERENCES_APPLIED",
+            "step": "recover",
+            "stateBaseExists": true,
+            "stateBackupExists": false,
+            "stateNewExists": false
+          },
+          "log": "RECOVERY_PREFERENCES_APPLIED-interrupt-recover.txt"
+        },
+        {
+          "outcome": "PASS",
+          "pid": 16126,
+          "log": "RECOVERY_PREFERENCES_APPLIED-verify-main.txt"
+        }
+      ],
+      "seed": {
+        "profileKey": "guest_f6948d39e158c9dbe3bbb06b",
+        "archiveSha256": "798ea6d117c194dc035f333ff35893cc223caecb7489e320990b3f7ddf39f3b0",
+        "originalPhoto": "b5cf9ce639d8cb11c4c31ff8a78cb2c0ed133cd22b552c36fc33dd59880bca77",
+        "replacementPhoto": "bdd74528c79887367d207a0db5b327f2a0de4d7ceacf1a6c60d86508d9cedf82"
+      },
+      "verification": {
+        "pid": 16126,
+        "phase": "RECOVERY_PREFERENCES_APPLIED",
+        "durableOutcome": "original",
+        "inputUnchanged": true
+      },
+      "state": "PASS_WITH_ACTUAL_INTERRUPTION"
+    },
+    {
+      "phase": "RECOVERY_SYNCED",
+      "steps": [
+        {
+          "outcome": "PASS",
+          "pid": 16205,
+          "log": "RECOVERY_SYNCED-seed-main.txt"
+        },
+        {
+          "outcome": "EXPECTED_PROCESS_TERMINATION_NOT_TEST_PASS",
+          "pid": 16264,
+          "checkpoint": "DATABASE_APPLIED",
+          "marker": {
+            "pid": 16264,
+            "phase": "DATABASE_APPLIED",
+            "step": "prime",
+            "stateBaseExists": true,
+            "stateBackupExists": false,
+            "stateNewExists": false
+          },
+          "log": "RECOVERY_SYNCED-interrupt-prime.txt"
+        },
+        {
+          "outcome": "EXPECTED_PROCESS_TERMINATION_NOT_TEST_PASS",
+          "pid": 16346,
+          "checkpoint": "RECOVERY_SYNCED",
+          "marker": {
+            "pid": 16346,
+            "phase": "RECOVERY_SYNCED",
+            "step": "recover",
+            "stateBaseExists": true,
+            "stateBackupExists": false,
+            "stateNewExists": false
+          },
+          "log": "RECOVERY_SYNCED-interrupt-recover.txt"
+        },
+        {
+          "outcome": "PASS",
+          "pid": 16421,
+          "log": "RECOVERY_SYNCED-verify-main.txt"
+        }
+      ],
+      "seed": {
+        "profileKey": "guest_f781a1c52d1636c929759a71",
+        "archiveSha256": "7d126a8a88a47993f8e5aaa678e3e27ae51f77f9fe489c7a013e09fca2db94cf",
+        "originalPhoto": "b5cf9ce639d8cb11c4c31ff8a78cb2c0ed133cd22b552c36fc33dd59880bca77",
+        "replacementPhoto": "bdd74528c79887367d207a0db5b327f2a0de4d7ceacf1a6c60d86508d9cedf82"
+      },
+      "verification": {
+        "pid": 16421,
+        "phase": "RECOVERY_SYNCED",
+        "durableOutcome": "original",
+        "inputUnchanged": true
+      },
+      "state": "PASS_WITH_ACTUAL_INTERRUPTION"
+    },
+    {
+      "phase": "REOPEN_STARTED",
+      "steps": [
+        {
+          "outcome": "PASS",
+          "pid": 16509,
+          "log": "REOPEN_STARTED-seed-main.txt"
+        },
+        {
+          "outcome": "EXPECTED_PROCESS_TERMINATION_NOT_TEST_PASS",
+          "pid": 16569,
+          "checkpoint": "REOPEN_STARTED",
+          "marker": {
+            "pid": 16569,
+            "phase": "REOPEN_STARTED",
+            "step": "restore",
+            "stateBaseExists": false,
+            "stateBackupExists": false,
+            "stateNewExists": false
+          },
+          "log": "REOPEN_STARTED-interrupt-restore.txt"
+        },
+        {
+          "outcome": "PASS",
+          "pid": 16655,
+          "log": "REOPEN_STARTED-verify-main.txt"
+        }
+      ],
+      "seed": {
+        "profileKey": "guest_3d296b36bfb9493478d44966",
+        "archiveSha256": "897f05000b22269e8e0a73de9d00396f730ed2efb0713d468ca174d71a62bb5c",
+        "originalPhoto": "b5cf9ce639d8cb11c4c31ff8a78cb2c0ed133cd22b552c36fc33dd59880bca77",
+        "replacementPhoto": "bdd74528c79887367d207a0db5b327f2a0de4d7ceacf1a6c60d86508d9cedf82"
+      },
+      "verification": {
+        "pid": 16655,
+        "phase": "REOPEN_STARTED",
+        "durableOutcome": "replacement",
+        "inputUnchanged": true
+      },
+      "state": "PASS_WITH_ACTUAL_INTERRUPTION"
+    },
+    {
+      "phase": "SQLITE_FULL",
+      "steps": [
+        {
+          "outcome": "PASS",
+          "pid": 16736,
+          "log": "SQLITE_FULL-seed-main.txt"
+        }
+      ]
+    }
+  ],
+  "limits": "Actual isolated process termination and SQLite page quota. No physically full filesystem, live Firebase, Play purchase, SAF or complete device matrix.",
+  "api": "36",
+  "appApkSha256": "c8172b9f883d5c2ce8485a8511f4b04511558cf2b5031f2f311ac54dfea7d164",
+  "testApkSha256": "08723f05215614cae80ad6ae1ee5c5d435a6b37bd06f9fb4a00dfea370112920",
+  "error": "ilders.kt:95)\r\n\tat kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking(Builders.kt:69)\r\n\tat kotlinx.coroutines.BuildersKt.runBlocking(Unknown Source:1)\r\n\tat kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking$default(Builders.kt:47)\r\n\tat kotlinx.coroutines.BuildersKt.runBlocking$default(Unknown Source:1)\r\n\tat com.example.kpkn.data.backup.MaintenanceCrashRecoveryTest.sqliteFull(MaintenanceCrashRecoveryTest.kt:125)\r\n\r\nINSTRUMENTATION_STATUS: test=sqliteFull\r\nINSTRUMENTATION_STATUS_CODE: -2\r\nINSTRUMENTATION_RESULT: stream=\r\n\r\nTime: 22.195\r\nThere was 1 failure:\r\n1) sqliteFull(com.example.kpkn.data.backup.MaintenanceCrashRecoveryTest)\r\njava.lang.AssertionError: Actual SQLite page quota must signal SQLITE_FULL through the coordinator\r\n\tat org.junit.Assert.fail(Assert.java:89)\r\n\tat org.junit.Assert.assertTrue(Assert.java:42)\r\n\tat com.example.kpkn.data.backup.MaintenanceCrashRecoveryTest$sqliteFull$1.invokeSuspend(MaintenanceCrashRecoveryTest.kt:141)\r\n\tat kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)\r\n\tat kotlinx.coroutines.internal.ScopeCoroutine.afterResume(Scopes.kt:28)\r\n\tat kotlinx.coroutines.AbstractCoroutine.resumeWith(AbstractCoroutine.kt:100)\r\n\tat kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:47)\r\n\tat kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:101)\r\n\tat kotlinx.coroutines.EventLoopImplBase.processNextEvent(EventLoop.common.kt:263)\r\n\tat kotlinx.coroutines.BlockingCoroutine.joinBlocking(Builders.kt:95)\r\n\tat kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking(Builders.kt:69)\r\n\tat kotlinx.coroutines.BuildersKt.runBlocking(Unknown Source:1)\r\n\tat kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking$default(Builders.kt:47)\r\n\tat kotlinx.coroutines.BuildersKt.runBlocking$default(Unknown Source:1)\r\n\tat com.example.kpkn.data.backup.MaintenanceCrashRecoveryTest.sqliteFull(MaintenanceCrashRecoveryTest.kt:125)\r\n\r\nFAILURES!!!\r\nTests run: 1,  Failures: 1\r\n\r\n\r\nINSTRUMENTATION_CODE: -1\r\n"
+}

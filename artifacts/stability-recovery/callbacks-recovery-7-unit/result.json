@@ -1,0 +1,19 @@
+{
+  "tests": 34,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "suites": 10,
+  "files": {
+    "TEST-com.example.kpkn.data.account.PlayCallbackLifetimeTest.xml": "b8858ab9a2011095e05ea707ca50bcea487b6893a83a9274644d75bb67e1fcaa",
+    "TEST-com.example.kpkn.data.backup.DataSessionWritersTest.xml": "b0c4bddc3faa415f0497b33922b5886e0426263a51764df15fdf41e4abce761c",
+    "TEST-com.example.kpkn.data.backup.DataWriterFailureBoundaryTest.xml": "ef3a771e4b81445063235fb70e321ea7a23a19ff870c7ccb6a5ee51c712e28bc",
+    "TEST-com.example.kpkn.data.backup.RetiredPersonalStoreTest.xml": "cb5bca524b06b5b53397d51809a2c2996a4d27d2af336416ee30834c83e8a965",
+    "TEST-com.example.kpkn.data.backup.RoomWriterDrainTest.xml": "71101c766d69927fd15a44081fffa4fb21fb814e21a7d01c60131610d491f48f",
+    "TEST-com.example.kpkn.data.settings.DatabaseSnapshotTest.xml": "5c398481171f3eed3d7cb5d973aaa8574a945901746175042eab384481763899",
+    "TEST-com.example.kpkn.data.settings.DataSessionCoordinatorTest.xml": "523d8f020d944c3ee9c571cfd7edbecef66110de4b0bf99baabfb1dedf81cb4d",
+    "TEST-com.example.kpkn.data.settings.PortableBackupTest.xml": "96abc80819914540473c8379dedcd965c084cd244abc70a39af846868389daa1",
+    "TEST-com.example.kpkn.data.settings.PortableFaultPhaseTest.xml": "89b1697f2d7967a09f37161def5cc301a92fe1b0eee08fe81d80d7288da05f99",
+    "TEST-com.example.kpkn.data.settings.PortableJournalRecoveryTest.xml": "0d8599df63f9de24b0183d9800f10245654891d22d11533507d76ed107935952"
+  }
+}

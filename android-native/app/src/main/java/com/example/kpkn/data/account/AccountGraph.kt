@@ -41,18 +41,23 @@ object AccountGraph {
     }
     fun subscriptions(context: Context): PlaySubscriptionRepository {
         account(context)
-        return play ?: synchronized(this) { play ?: PlaySubscriptionRepository(requireNotNull(platform), scope) { currentEntitlement }.also { play = it } }
+        return subscriptions { PlaySubscriptionRepository(requireNotNull(platform), scope) { currentEntitlement } }
     }
+    internal fun subscriptions(factory: () -> PlaySubscriptionRepository): PlaySubscriptionRepository =
+        play ?: synchronized(this) { play ?: factory().also { play = it } }
     fun sync(): RoomSyncRepository? = foregroundSync
     suspend fun refreshEntitlement(uid: String) {
         check(ProfileStorage.current().uid == uid)
         currentEntitlement?.refresh()
     }
     suspend fun stop(resetEntitlement: Boolean = true) {
+        val previousPlay = synchronized(this) { play.also { play = null } }
+        val playCloseError = runCatching { previousPlay?.closeForDataSession() }.exceptionOrNull()
         if (attachedProfileKey != null) com.example.kpkn.data.diagnostics.CrashReportingController.setEnabled(false)
         attachedProfileKey = null
         profileJob?.cancelAndJoin(); profileJob = null; foregroundSync = null; currentEntitlement = null
         if (resetEntitlement) withContext(Dispatchers.Main) { publish(EntitlementState()) }
+        playCloseError?.let { throw it }
     }
     @OptIn(FlowPreview::class)
     suspend fun attach(context: Context) {

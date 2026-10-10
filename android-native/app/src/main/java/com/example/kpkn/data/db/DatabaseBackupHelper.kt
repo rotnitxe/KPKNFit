@@ -4,6 +4,8 @@ import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import com.example.kpkn.data.backup.BoundedInput
+import com.example.kpkn.data.backup.MaintenanceCheckpoint
+import com.example.kpkn.data.backup.MaintenancePhase
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
@@ -14,7 +16,8 @@ object DatabaseBackupHelper {
     private val maintenanceLock = Any()
     private const val RETENTION_MS = 30L * 24 * 60 * 60 * 1000
 
-    fun createSnapshot(context: Context): String = synchronized(maintenanceLock) {
+    fun createSnapshot(context: Context): String = createSnapshot(context, MaintenanceCheckpoint.None)
+    internal fun createSnapshot(context: Context, checkpoint: MaintenanceCheckpoint): String = synchronized(maintenanceLock) {
         val db = KpknDatabase.getInstance(context)
         val directory = File(context.filesDir, "snapshots").apply { check(isDirectory || mkdirs()) }
         val temporary = File.createTempFile("kpkn_snapshot_", ".db.partial", directory)
@@ -30,7 +33,10 @@ object DatabaseBackupHelper {
                         }
                         definitions.filter { it.first == "table" && !isFtsShadow(it.second) }.forEach { destination.execSQL(it.third) }
                         definitions.filter { it.first == "table" && !isFtsShadow(it.second) && it.second != "global_foods_fts" }.forEach { (_, table, _) ->
-                            copyTable(source, table) { sql, values -> destination.execSQL(sql, values) }
+                            copyTable(source, table) { sql, values ->
+                                destination.execSQL(sql, values)
+                                checkpoint.reached(MaintenancePhase.SNAPSHOT_ROW_COPIED)
+                            }
                         }
                         if (definitions.any { it.second == "global_foods_fts" }) {
                             destination.execSQL("INSERT INTO global_foods_fts(global_foods_fts) VALUES('rebuild')")
@@ -56,7 +62,9 @@ object DatabaseBackupHelper {
         ?.sortedByDescending { it.lastModified() } ?: emptyList()
 
     /** Invalid imports never replace the main file. A failed transaction rolls back every table. */
-    fun restoreSnapshot(context: Context, snapshotFile: File, recovering: Boolean = false): Unit = synchronized(maintenanceLock) {
+    fun restoreSnapshot(context: Context, snapshotFile: File, recovering: Boolean = false): Unit =
+        restoreSnapshot(context, snapshotFile, recovering, MaintenanceCheckpoint.None)
+    internal fun restoreSnapshot(context: Context, snapshotFile: File, recovering: Boolean, checkpoint: MaintenanceCheckpoint): Unit = synchronized(maintenanceLock) {
         require(snapshotFile.isFile && snapshotFile.length() in 1..BoundedInput.MAX_DATABASE_BYTES) { "Invalid database snapshot size" }
         val live = KpknDatabase.getInstance(context)
         check(recovering || live.openHelper.readableDatabase.query("SELECT COUNT(*) FROM ongoing_workout").use { it.moveToFirst(); it.getLong(0) == 0L }) {
@@ -88,7 +96,10 @@ object DatabaseBackupHelper {
                     destination.execSQL("DELETE FROM workout_media_session_associations")
                     tables.filterNot { it == "workout_media_session_associations" }.forEach { destination.execSQL("DELETE FROM `${safeIdentifier(it)}`") }
                     tables.sortedBy { when (it) { "sync_configuration" -> 3; "sync_mutations", "sync_shadows" -> 2; "workout_media_session_associations" -> 1; else -> 0 } }.forEach { table ->
-                        copyTable(source, table) { sql, values -> destination.execSQL(sql, values) }
+                        copyTable(source, table) { sql, values ->
+                            destination.execSQL(sql, values)
+                            checkpoint.reached(MaintenancePhase.DATABASE_ROW_COPIED)
+                        }
                     }
                     check(destination.query("PRAGMA foreign_key_check").use { !it.moveToFirst() }) { "Snapshot contains broken relationships" }
                     destination.query("SELECT COUNT(*) FROM settings").use { check(it.moveToFirst()) }

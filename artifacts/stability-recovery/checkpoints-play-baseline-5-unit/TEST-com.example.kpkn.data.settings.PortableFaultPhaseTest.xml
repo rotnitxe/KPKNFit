@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.settings.PortableFaultPhaseTest" tests="2" skipped="0" failures="2" errors="0" timestamp="2026-10-09T16:33:46.413Z" hostname="VF" time="4.162">
+  <properties/>
+  <testcase name="writeFaults[26]" classname="com.example.kpkn.data.settings.PortableFaultPhaseTest" time="2.903">
+    <failure message="java.lang.AssertionError: The ordinary write error must not be replaced expected same:&lt;java.io.IOException: injected write fault at IMPORT_COPYING&gt; was not:&lt;java.io.IOException: injected write fault at IMPORT_COPYING&gt;" type="java.lang.AssertionError">java.lang.AssertionError: The ordinary write error must not be replaced expected same:&lt;java.io.IOException: injected write fault at IMPORT_COPYING&gt; was not:&lt;java.io.IOException: injected write fault at IMPORT_COPYING&gt;
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotSame(Assert.java:829)
+	at org.junit.Assert.assertSame(Assert.java:772)
+	at com.example.kpkn.data.settings.PortableFaultPhaseTest$writeFaults$1.invokeSuspend(PortableFaultPhaseTest.kt:66)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:101)
+	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:113)
+	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:89)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:589)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:823)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:720)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:707)
+</failure>
+  </testcase>
+  <testcase name="writeFaults" classname="com.example.kpkn.data.settings.PortableFaultPhaseTest" time="1.259">
+    <failure message="java.lang.AssertionError: The ordinary write error must not be replaced expected same:&lt;java.io.IOException: injected write fault at IMPORT_COPYING&gt; was not:&lt;java.io.IOException: injected write fault at IMPORT_COPYING&gt;" type="java.lang.AssertionError">java.lang.AssertionError: The ordinary write error must not be replaced expected same:&lt;java.io.IOException: injected write fault at IMPORT_COPYING&gt; was not:&lt;java.io.IOException: injected write fault at IMPORT_COPYING&gt;
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotSame(Assert.java:829)
+	at org.junit.Assert.assertSame(Assert.java:772)
+	at com.example.kpkn.data.settings.PortableFaultPhaseTest$writeFaults$1.invokeSuspend(PortableFaultPhaseTest.kt:66)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:101)
+	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:113)
+	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:89)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:589)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:823)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:720)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:707)
+</failure>
+  </testcase>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[Oct 09, 2026 1:33:48 PM com.almworks.sqlite4java.Internal log
+WARNING: [sqlite] SQLite: cannot set library path, library already loaded
+]]></system-err>
+</testsuite>

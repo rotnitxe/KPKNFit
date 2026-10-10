@@ -6,7 +6,7 @@
     {
       "id": "A01",
       "package": "A",
-      "requirement": "Un `DataSessionCoordinator` que coordine repositorios, servicios y trabajadores durante restauraciÃ³n, borrado y cambio de cuenta.",
+      "requirement": "Un `DataSessionCoordinator` que coordine repositorios, servicios y trabajadores durante restauraciÃƒÆ’Ã‚Â³n, borrado y cambio de cuenta.",
       "code": "PARCIAL",
       "verification": "PARCIAL",
       "evidence": [
@@ -22,17 +22,21 @@
         "android-native/app/src/main/java/com/example/kpkn/services/workout/VoiceProcessDataSession.kt",
         "../stability-data-isolation/DELIVERY.json",
         "../stability-data-isolation/fts-final-jvm/result.json",
-        "../stability-data-isolation/native-final/result.json"
+        "../stability-data-isolation/native-final/result.json",
+        "../stability-recovery/DELIVERY.json",
+        "../stability-recovery/callbacks-recovery-7-unit/result.json",
+        "../stability-recovery/native-all-phases/result.json"
       ],
       "dependencies": [
         "Aislamiento y cambio de cuentas pendientes; falta QA de todos los escritores",
         "Barrera multimedia y controles de almacenamiento verificados con 42 JVM y 17 pruebas API36; cuatro etapas en PID distintos. El cierre integral del requisito y de todos los escritores/pantallas sigue pendiente."
-      ]
+      ],
+      "checkpointRecoveryLimits": "Bounded local checkpoint only: 34 directed JVM cases; 17 real interruption phases API36,21 process terminations; one actual SQLite page-capacity case. No universal producers, physical-full filesystem, complete device/SAF/service validation."
     },
     {
       "id": "A02",
       "package": "A",
-      "requirement": "Copias consistentes, importaciÃ³n a un archivo temporal, validaciÃ³n de integridad y versiÃ³n, sustituciÃ³n atÃ³mica y recuperaciÃ³n ante interrupciones.",
+      "requirement": "Copias consistentes, importaciÃƒÆ’Ã‚Â³n a un archivo temporal, validaciÃƒÆ’Ã‚Â³n de integridad y versiÃƒÆ’Ã‚Â³n, sustituciÃƒÆ’Ã‚Â³n atÃƒÆ’Ã‚Â³mica y recuperaciÃƒÆ’Ã‚Â³n ante interrupciones.",
       "code": "PARCIAL",
       "verification": "PARCIAL",
       "evidence": [
@@ -45,17 +49,21 @@
         "tests-deletion-recovery-alias-13/",
         "../stability-data-isolation/DELIVERY.json",
         "../stability-data-isolation/fts-final-jvm/result.json",
-        "../stability-data-isolation/native-final/result.json"
+        "../stability-data-isolation/native-final/result.json",
+        "../stability-recovery/DELIVERY.json",
+        "../stability-recovery/callbacks-recovery-7-unit/result.json",
+        "../stability-recovery/native-all-phases/result.json"
       ],
       "dependencies": [
-        "Pruebas de interrupciÃ³n/disco lleno y archivos personales pendientes",
+        "Pruebas de interrupciÃƒÆ’Ã‚Â³n/disco lleno y archivos personales pendientes",
         "Barrera multimedia y controles de almacenamiento verificados con 42 JVM y 17 pruebas API36; cuatro etapas en PID distintos. El cierre integral del requisito y de todos los escritores/pantallas sigue pendiente."
-      ]
+      ],
+      "checkpointRecoveryLimits": "Bounded local checkpoint only: 34 directed JVM cases; 17 real interruption phases API36,21 process terminations; one actual SQLite page-capacity case. No universal producers, physical-full filesystem, complete device/SAF/service validation."
     },
     {
       "id": "A03",
       "package": "A",
-      "requirement": "ReconstrucciÃ³n del conjunto de repositorios despuÃ©s de restaurar; la pantalla solo anunciarÃ¡ Ã©xito cuando los datos restaurados puedan leerse.",
+      "requirement": "ReconstrucciÃƒÆ’Ã‚Â³n del conjunto de repositorios despuÃƒÆ’Ã‚Â©s de restaurar; la pantalla solo anunciarÃƒÆ’Ã‚Â¡ ÃƒÆ’Ã‚Â©xito cuando los datos restaurados puedan leerse.",
       "code": "PARCIAL",
       "verification": "PARCIAL",
       "evidence": [
@@ -68,17 +76,21 @@
         "emulator-navigation-36/export/result.json",
         "../stability-data-isolation/DELIVERY.json",
         "../stability-data-isolation/fts-final-jvm/result.json",
-        "../stability-data-isolation/native-final/result.json"
+        "../stability-data-isolation/native-final/result.json",
+        "../stability-recovery/DELIVERY.json",
+        "../stability-recovery/callbacks-recovery-7-unit/result.json",
+        "../stability-recovery/native-all-phases/result.json"
       ],
       "dependencies": [
-        "ExportaciÃ³n y reconstrucciÃ³n de navegaciÃ³n comprobadas API36; restauraciÃ³n completa y todos los lectores todavÃ­a requieren QA.",
+        "ExportaciÃƒÆ’Ã‚Â³n y reconstrucciÃƒÆ’Ã‚Â³n de navegaciÃƒÆ’Ã‚Â³n comprobadas API36; restauraciÃƒÆ’Ã‚Â³n completa y todos los lectores todavÃƒÆ’Ã‚Â­a requieren QA.",
         "Barrera multimedia y controles de almacenamiento verificados con 42 JVM y 17 pruebas API36; cuatro etapas en PID distintos. El cierre integral del requisito y de todos los escritores/pantallas sigue pendiente."
-      ]
+      ],
+      "checkpointRecoveryLimits": "Bounded local checkpoint only: 34 directed JVM cases; 17 real interruption phases API36,21 process terminations; one actual SQLite page-capacity case. No universal producers, physical-full filesystem, complete device/SAF/service validation."
     },
     {
       "id": "A04",
       "package": "A",
-      "requirement": "Respaldo portÃ¡til versionado que incluya todos los datos personales, relaciones, avatar y multimedia mediante identificadores portÃ¡tiles.",
+      "requirement": "Respaldo portÃƒÆ’Ã‚Â¡til versionado que incluya todos los datos personales, relaciones, avatar y multimedia mediante identificadores portÃƒÆ’Ã‚Â¡tiles.",
       "code": "PARCIAL",
       "verification": "PARCIAL",
       "evidence": [
@@ -91,7 +103,7 @@
         "../stability-data-isolation/native-final/result.json"
       ],
       "dependencies": [
-        "Respaldo portable v2 implementado con manifest/hashes, relaciones, avatar, multimedia y recuperaciÃ³n legado; lectura v1. QA completa de dispositivo/interrupciones sigue abierta.",
+        "Respaldo portable v2 implementado con manifest/hashes, relaciones, avatar, multimedia y recuperaciÃƒÆ’Ã‚Â³n legado; lectura v1. QA completa de dispositivo/interrupciones sigue abierta.",
         "Barrera multimedia y controles de almacenamiento verificados con 42 JVM y 17 pruebas API36; cuatro etapas en PID distintos. El cierre integral del requisito y de todos los escritores/pantallas sigue pendiente."
       ]
     },
@@ -113,7 +125,7 @@
     {
       "id": "A06",
       "package": "A",
-      "requirement": "Una comprobaciÃ³n automÃ¡tica que clasifique cada tabla y archivo como dato personal, catÃ¡logo regenerable o cachÃ©. Una tabla nueva sin clasificaciÃ³n bloquearÃ¡ la validaciÃ³n.",
+      "requirement": "Una comprobaciÃƒÆ’Ã‚Â³n automÃƒÆ’Ã‚Â¡tica que clasifique cada tabla y archivo como dato personal, catÃƒÆ’Ã‚Â¡logo regenerable o cachÃƒÆ’Ã‚Â©. Una tabla nueva sin clasificaciÃƒÆ’Ã‚Â³n bloquearÃƒÆ’Ã‚Â¡ la validaciÃƒÆ’Ã‚Â³n.",
       "code": "PARCIAL",
       "verification": "PARCIAL",
       "evidence": [
@@ -128,13 +140,13 @@
         "storage-classification-21.json"
       ],
       "dependencies": [
-        "ClasificaciÃ³n de tablas preparada; gate exhaustivo de archivos pendiente"
+        "ClasificaciÃƒÆ’Ã‚Â³n de tablas preparada; gate exhaustivo de archivos pendiente"
       ]
     },
     {
       "id": "A07",
       "package": "A",
-      "requirement": "LÃ­mites de lectura antes de cargar importaciones e imÃ¡genes en memoria. Actualmente el avatar se lee completo antes de comprobar su tamaÃ±o.",
+      "requirement": "LÃƒÆ’Ã‚Â­mites de lectura antes de cargar importaciones e imÃƒÆ’Ã‚Â¡genes en memoria. Actualmente el avatar se lee completo antes de comprobar su tamaÃƒÆ’Ã‚Â±o.",
       "code": "PARCIAL",
       "verification": "PARCIAL",
       "evidence": [
@@ -142,11 +154,15 @@
         "tests-focused-3/",
         "tests-snapshot-final/",
         "gradle-snapshot-release-manifest.log",
-        "tests-portable-writers-5/"
+        "tests-portable-writers-5/",
+        "../stability-recovery/DELIVERY.json",
+        "../stability-recovery/callbacks-recovery-7-unit/result.json",
+        "../stability-recovery/native-all-phases/result.json"
       ],
       "dependencies": [
-        "ValidaciÃ³n Android de importaciones y todas las rutas de imÃ¡genes pendiente"
-      ]
+        "ValidaciÃƒÆ’Ã‚Â³n Android de importaciones y todas las rutas de imÃƒÆ’Ã‚Â¡genes pendiente"
+      ],
+      "checkpointRecoveryLimits": "Bounded local checkpoint only: 34 directed JVM cases; 17 real interruption phases API36,21 process terminations; one actual SQLite page-capacity case. No universal producers, physical-full filesystem, complete device/SAF/service validation."
     },
     {
       "id": "B01",
@@ -163,17 +179,21 @@
         "android-native/app/src/main/java/com/example/kpkn/data/backup/PersonalDataErasure.kt",
         "../stability-data-isolation/DELIVERY.json",
         "../stability-data-isolation/fts-final-jvm/result.json",
-        "../stability-data-isolation/native-final/result.json"
+        "../stability-data-isolation/native-final/result.json",
+        "../stability-recovery/DELIVERY.json",
+        "../stability-recovery/callbacks-recovery-7-unit/result.json",
+        "../stability-recovery/native-all-phases/result.json"
       ],
       "dependencies": [
-        "QA de borrado y escritores tardÃ­os pendiente",
+        "QA de borrado y escritores tardÃƒÆ’Ã‚Â­os pendiente",
         "Barrera multimedia y controles de almacenamiento verificados con 42 JVM y 17 pruebas API36; cuatro etapas en PID distintos. El cierre integral del requisito y de todos los escritores/pantallas sigue pendiente."
-      ]
+      ],
+      "checkpointRecoveryLimits": "Bounded local checkpoint only: 34 directed JVM cases; 17 real interruption phases API36,21 process terminations; one actual SQLite page-capacity case. No universal producers, physical-full filesystem, complete device/SAF/service validation."
     },
     {
       "id": "B02",
       "package": "B",
-      "requirement": "Almacenes y trabajos separados por perfil. Cerrar sesiÃ³n o cambiar de cuenta nunca mostrarÃ¡ informaciÃ³n del usuario anterior.",
+      "requirement": "Almacenes y trabajos separados por perfil. Cerrar sesiÃƒÆ’Ã‚Â³n o cambiar de cuenta nunca mostrarÃƒÆ’Ã‚Â¡ informaciÃƒÆ’Ã‚Â³n del usuario anterior.",
       "code": "PARCIAL",
       "verification": "PARCIAL",
       "evidence": [
@@ -189,14 +209,14 @@
         "../stability-data-isolation/native-final/result.json"
       ],
       "dependencies": [
-        "AUD01 corregido y regresiones API26/API34 aprobadas; QA real de cierre/cambio A-B e interrupciones todavÃ­a pendiente.",
+        "AUD01 corregido y regresiones API26/API34 aprobadas; QA real de cierre/cambio A-B e interrupciones todavÃƒÆ’Ã‚Â­a pendiente.",
         "Barrera multimedia y controles de almacenamiento verificados con 42 JVM y 17 pruebas API36; cuatro etapas en PID distintos. El cierre integral del requisito y de todos los escritores/pantallas sigue pendiente."
       ]
     },
     {
       "id": "B03",
       "package": "B",
-      "requirement": "Diferenciar claramente Â«borrar datos de este dispositivoÂ» y Â«eliminar cuenta KPKNÂ».",
+      "requirement": "Diferenciar claramente Ãƒâ€šÃ‚Â«borrar datos de este dispositivoÃƒâ€šÃ‚Â» y Ãƒâ€šÃ‚Â«eliminar cuenta KPKNÃƒâ€šÃ‚Â».",
       "code": "PARCIAL",
       "verification": "PENDIENTE",
       "evidence": [
@@ -207,7 +227,7 @@
     {
       "id": "B04",
       "package": "B",
-      "requirement": "EliminaciÃ³n de cuenta con reautenticaciÃ³n, revocaciÃ³n de sesiones, retirada de datos de Firestore y Storage y tratamiento explÃ­cito de suscripciones.",
+      "requirement": "EliminaciÃƒÆ’Ã‚Â³n de cuenta con reautenticaciÃƒÆ’Ã‚Â³n, revocaciÃƒÆ’Ã‚Â³n de sesiones, retirada de datos de Firestore y Storage y tratamiento explÃƒÆ’Ã‚Â­cito de suscripciones.",
       "code": "PARCIAL",
       "verification": "PARCIAL",
       "evidence": [
@@ -222,7 +242,7 @@
     {
       "id": "B05",
       "package": "B",
-      "requirement": "Bloqueo de cargas desde dispositivos antiguos despuÃ©s de eliminar la cuenta.",
+      "requirement": "Bloqueo de cargas desde dispositivos antiguos despuÃƒÆ’Ã‚Â©s de eliminar la cuenta.",
       "code": "PARCIAL",
       "verification": "PARCIAL",
       "evidence": [
@@ -234,7 +254,7 @@
     {
       "id": "B06",
       "package": "B",
-      "requirement": "PolÃ­tica de retenciÃ³n y caducidad de copias operativas; los archivos exportados voluntariamente por el usuario se identificarÃ¡n como copias bajo su control.",
+      "requirement": "PolÃƒÆ’Ã‚Â­tica de retenciÃƒÆ’Ã‚Â³n y caducidad de copias operativas; los archivos exportados voluntariamente por el usuario se identificarÃƒÆ’Ã‚Â¡n como copias bajo su control.",
       "code": "PARCIAL",
       "verification": "PENDIENTE",
       "evidence": [
@@ -245,7 +265,7 @@
     {
       "id": "C01",
       "package": "C",
-      "requirement": "**Room:** almacenamiento utilizado por la interfaz y las operaciones sin conexiÃ³n.",
+      "requirement": "**Room:** almacenamiento utilizado por la interfaz y las operaciones sin conexiÃƒÆ’Ã‚Â³n.",
       "code": "PARCIAL",
       "verification": "PENDIENTE",
       "evidence": [
@@ -268,7 +288,7 @@
     {
       "id": "C03",
       "package": "C",
-      "requirement": "**Cola persistente de operaciones:** cada cambio local y su operaciÃ³n pendiente se guardarÃ¡n en la misma transacciÃ³n.",
+      "requirement": "**Cola persistente de operaciones:** cada cambio local y su operaciÃƒÆ’Ã‚Â³n pendiente se guardarÃƒÆ’Ã‚Â¡n en la misma transacciÃƒÆ’Ã‚Â³n.",
       "code": "PARCIAL",
       "verification": "PARCIAL",
       "evidence": [
@@ -280,7 +300,7 @@
     {
       "id": "C04",
       "package": "C",
-      "requirement": "**Servidor:** validaciÃ³n de propiedad, versiÃ³n e idempotencia antes de aceptar cambios.",
+      "requirement": "**Servidor:** validaciÃƒÆ’Ã‚Â³n de propiedad, versiÃƒÆ’Ã‚Â³n e idempotencia antes de aceptar cambios.",
       "code": "PARCIAL",
       "verification": "PARCIAL",
       "evidence": [
@@ -296,7 +316,7 @@
     {
       "id": "C05",
       "package": "C",
-      "requirement": "Identificadores estables, revisiones del servidor y marcas de eliminaciÃ³n.",
+      "requirement": "Identificadores estables, revisiones del servidor y marcas de eliminaciÃƒÆ’Ã‚Â³n.",
       "code": "PARCIAL",
       "verification": "PARCIAL",
       "evidence": [
@@ -312,7 +332,7 @@
     {
       "id": "C06",
       "package": "C",
-      "requirement": "Reintentos sin duplicados y recuperaciÃ³n despuÃ©s de cerrar el proceso.",
+      "requirement": "Reintentos sin duplicados y recuperaciÃƒÆ’Ã‚Â³n despuÃƒÆ’Ã‚Â©s de cerrar el proceso.",
       "code": "PARCIAL",
       "verification": "PARCIAL",
       "evidence": [
@@ -326,7 +346,7 @@
     {
       "id": "C07",
       "package": "C",
-      "requirement": "Registros independientes se combinan por identidad. Ediciones incompatibles conservan ambas versiones y requieren resoluciÃ³n explÃ­cita.",
+      "requirement": "Registros independientes se combinan por identidad. Ediciones incompatibles conservan ambas versiones y requieren resoluciÃƒÆ’Ã‚Â³n explÃƒÆ’Ã‚Â­cita.",
       "code": "PARCIAL",
       "verification": "PARCIAL",
       "evidence": [
@@ -345,7 +365,7 @@
     {
       "id": "C08",
       "package": "C",
-      "requirement": "Un entrenamiento activo pertenece a un dispositivo; no se mezclarÃ¡n silenciosamente dos sesiones en curso.",
+      "requirement": "Un entrenamiento activo pertenece a un dispositivo; no se mezclarÃƒÆ’Ã‚Â¡n silenciosamente dos sesiones en curso.",
       "code": "PARCIAL",
       "verification": "PARCIAL",
       "evidence": [
@@ -354,13 +374,13 @@
         "firebase-retired-operations-20.log"
       ],
       "dependencies": [
-        "Lease de entrenamiento implementado en servidor y cliente con expiraciÃ³n/propietario; falta QA de dos dispositivos y pÃ©rdida de proceso."
+        "Lease de entrenamiento implementado en servidor y cliente con expiraciÃƒÆ’Ã‚Â³n/propietario; falta QA de dos dispositivos y pÃƒÆ’Ã‚Â©rdida de proceso."
       ]
     },
     {
       "id": "C09",
       "package": "C",
-      "requirement": "Incorporar datos de invitado a una cuenta serÃ¡ una operaciÃ³n verificable e idempotente.",
+      "requirement": "Incorporar datos de invitado a una cuenta serÃƒÆ’Ã‚Â¡ una operaciÃƒÆ’Ã‚Â³n verificable e idempotente.",
       "code": "PARCIAL",
       "verification": "PARCIAL",
       "evidence": [
@@ -373,7 +393,7 @@
     {
       "id": "C10",
       "package": "C",
-      "requirement": "Multimedia privada con transferencias reanudables; mostrar archivos pendientes y Ãºltima sincronizaciÃ³n confirmada.",
+      "requirement": "Multimedia privada con transferencias reanudables; mostrar archivos pendientes y ÃƒÆ’Ã‚Âºltima sincronizaciÃƒÆ’Ã‚Â³n confirmada.",
       "code": "PARCIAL",
       "verification": "PENDIENTE",
       "evidence": [
@@ -407,7 +427,7 @@
     {
       "id": "C12",
       "package": "C",
-      "requirement": "CatÃ¡logos regenerables, permisos del dispositivo y cachÃ©s quedan fuera de la sincronizaciÃ³n personal.",
+      "requirement": "CatÃƒÆ’Ã‚Â¡logos regenerables, permisos del dispositivo y cachÃƒÆ’Ã‚Â©s quedan fuera de la sincronizaciÃƒÆ’Ã‚Â³n personal.",
       "code": "PARCIAL",
       "verification": "PENDIENTE",
       "evidence": [
@@ -418,7 +438,7 @@
     {
       "id": "D01",
       "package": "D",
-      "requirement": "IntegraciÃ³n en la aplicaciÃ³n Ãºnica y actualizaciÃ³n a la versiÃ³n estable 1.1.0.",
+      "requirement": "IntegraciÃƒÆ’Ã‚Â³n en la aplicaciÃƒÆ’Ã‚Â³n ÃƒÆ’Ã‚Âºnica y actualizaciÃƒÆ’Ã‚Â³n a la versiÃƒÆ’Ã‚Â³n estable 1.1.0.",
       "code": "SUSTITUIDO",
       "verification": "NO_APLICA",
       "evidence": [],
@@ -431,7 +451,7 @@
     {
       "id": "D02",
       "package": "D",
-      "requirement": "Solicitud oficial de permisos, actualizaciÃ³n al regresar a la app y explicaciÃ³n de privacidad accesible desde Health Connect.",
+      "requirement": "Solicitud oficial de permisos, actualizaciÃƒÆ’Ã‚Â³n al regresar a la app y explicaciÃƒÆ’Ã‚Â³n de privacidad accesible desde Health Connect.",
       "code": "SUSTITUIDO",
       "verification": "NO_APLICA",
       "evidence": [],
@@ -444,7 +464,7 @@
     {
       "id": "D03",
       "package": "D",
-      "requirement": "Estados diferenciados: no disponible, necesita actualizaciÃ³n, permiso pendiente, sincronizando, completado y error.",
+      "requirement": "Estados diferenciados: no disponible, necesita actualizaciÃƒÆ’Ã‚Â³n, permiso pendiente, sincronizando, completado y error.",
       "code": "SUSTITUIDO",
       "verification": "NO_APLICA",
       "evidence": [],
@@ -457,7 +477,7 @@
     {
       "id": "D04",
       "package": "D",
-      "requirement": "Lectura de todas las pÃ¡ginas accesibles, cambios incrementales, eliminaciones y recuperaciÃ³n de cursores caducados.",
+      "requirement": "Lectura de todas las pÃƒÆ’Ã‚Â¡ginas accesibles, cambios incrementales, eliminaciones y recuperaciÃƒÆ’Ã‚Â³n de cursores caducados.",
       "code": "SUSTITUIDO",
       "verification": "NO_APLICA",
       "evidence": [],
@@ -470,7 +490,7 @@
     {
       "id": "D05",
       "package": "D",
-      "requirement": "Identificadores y versiones estables para escrituras; prevenciÃ³n de duplicados y ciclos de reimportaciÃ³n.",
+      "requirement": "Identificadores y versiones estables para escrituras; prevenciÃƒÆ’Ã‚Â³n de duplicados y ciclos de reimportaciÃƒÆ’Ã‚Â³n.",
       "code": "SUSTITUIDO",
       "verification": "NO_APLICA",
       "evidence": [],
@@ -483,7 +503,7 @@
     {
       "id": "D06",
       "package": "D",
-      "requirement": "ConservaciÃ³n del origen y la zona horaria de cada dato.",
+      "requirement": "ConservaciÃƒÆ’Ã‚Â³n del origen y la zona horaria de cada dato.",
       "code": "SUSTITUIDO",
       "verification": "NO_APLICA",
       "evidence": [],
@@ -496,7 +516,7 @@
     {
       "id": "D07",
       "package": "D",
-      "requirement": "Ã‰xito comunicado Ãºnicamente despuÃ©s de persistir los resultados.",
+      "requirement": "ÃƒÆ’Ã¢â‚¬Â°xito comunicado ÃƒÆ’Ã‚Âºnicamente despuÃƒÆ’Ã‚Â©s de persistir los resultados.",
       "code": "SUSTITUIDO",
       "verification": "NO_APLICA",
       "evidence": [],
@@ -522,7 +542,7 @@
     {
       "id": "D09",
       "package": "D",
-      "requirement": "Funcionamiento local cuando Health Connect no estÃ© disponible o se revoquen permisos.",
+      "requirement": "Funcionamiento local cuando Health Connect no estÃƒÆ’Ã‚Â© disponible o se revoquen permisos.",
       "code": "SUSTITUIDO",
       "verification": "NO_APLICA",
       "evidence": [],
@@ -535,7 +555,7 @@
     {
       "id": "E01",
       "package": "E",
-      "requirement": "InicializaciÃ³n asÃ­ncrona con estados de preparaciÃ³n, recuperaciÃ³n y error; los datos personales estarÃ¡n disponibles sin esperar la preparaciÃ³n completa de catÃ¡logos.",
+      "requirement": "InicializaciÃƒÆ’Ã‚Â³n asÃƒÆ’Ã‚Â­ncrona con estados de preparaciÃƒÆ’Ã‚Â³n, recuperaciÃƒÆ’Ã‚Â³n y error; los datos personales estarÃƒÆ’Ã‚Â¡n disponibles sin esperar la preparaciÃƒÆ’Ã‚Â³n completa de catÃƒÆ’Ã‚Â¡logos.",
       "code": "PARCIAL",
       "verification": "PENDIENTE",
       "evidence": [
@@ -548,7 +568,7 @@
     {
       "id": "E02",
       "package": "E",
-      "requirement": "Sustituir operaciones bloqueantes de eliminaciÃ³n y mantenimiento por funciones suspendidas con confirmaciÃ³n durable y errores visibles.",
+      "requirement": "Sustituir operaciones bloqueantes de eliminaciÃƒÆ’Ã‚Â³n y mantenimiento por funciones suspendidas con confirmaciÃƒÆ’Ã‚Â³n durable y errores visibles.",
       "code": "PARCIAL",
       "verification": "PENDIENTE",
       "evidence": [
@@ -561,7 +581,7 @@
     {
       "id": "E03",
       "package": "E",
-      "requirement": "Temporizador basado en tiempo monotÃ³nico persistido, notificaciÃ³n con cronÃ³metro y alarmas segÃºn permisos. Eliminar el uso de `dataSync` para mantener ese reloj.",
+      "requirement": "Temporizador basado en tiempo monotÃƒÆ’Ã‚Â³nico persistido, notificaciÃƒÆ’Ã‚Â³n con cronÃƒÆ’Ã‚Â³metro y alarmas segÃƒÆ’Ã‚Âºn permisos. Eliminar el uso de `dataSync` para mantener ese reloj.",
       "code": "PARCIAL",
       "verification": "PARCIAL",
       "evidence": [
@@ -571,13 +591,13 @@
         "gradle-snapshot-release-manifest.log"
       ],
       "dependencies": [
-        "Pruebas y QA de restauraciÃ³n de temporizador pendientes"
+        "Pruebas y QA de restauraciÃƒÆ’Ã‚Â³n de temporizador pendientes"
       ]
     },
     {
       "id": "E04",
       "package": "E",
-      "requirement": "Mantener servicios de micrÃ³fono y ubicaciÃ³n Ãºnicamente durante funciones iniciadas por el usuario, con tipos y permisos adecuados.",
+      "requirement": "Mantener servicios de micrÃƒÆ’Ã‚Â³fono y ubicaciÃƒÆ’Ã‚Â³n ÃƒÆ’Ã‚Âºnicamente durante funciones iniciadas por el usuario, con tipos y permisos adecuados.",
       "code": "PARCIAL",
       "verification": "PENDIENTE",
       "evidence": [
@@ -590,7 +610,7 @@
     {
       "id": "E05",
       "package": "E",
-      "requirement": "Solicitar ubicaciÃ³n, cÃ¡mara, micrÃ³fono y notificaciones cuando se utilicen.",
+      "requirement": "Solicitar ubicaciÃƒÆ’Ã‚Â³n, cÃƒÆ’Ã‚Â¡mara, micrÃƒÆ’Ã‚Â³fono y notificaciones cuando se utilicen.",
       "code": "PARCIAL",
       "verification": "PARCIAL",
       "evidence": [
@@ -603,13 +623,13 @@
         "native-packaging-55.json"
       ],
       "dependencies": [
-        "Rutas y permisos contextuales por funciÃ³n pendientes de QA"
+        "Rutas y permisos contextuales por funciÃƒÆ’Ã‚Â³n pendientes de QA"
       ]
     },
     {
       "id": "E06",
       "package": "E",
-      "requirement": "Corregir la peticiÃ³n de ubicaciÃ³n precisa aislada y soportar ubicaciÃ³n aproximada.",
+      "requirement": "Corregir la peticiÃƒÆ’Ã‚Â³n de ubicaciÃƒÆ’Ã‚Â³n precisa aislada y soportar ubicaciÃƒÆ’Ã‚Â³n aproximada.",
       "code": "PARCIAL",
       "verification": "PENDIENTE",
       "evidence": [
@@ -617,13 +637,13 @@
         "tests-gps-maintenance-10/"
       ],
       "dependencies": [
-        "QA con ubicaciÃ³n aproximada pendiente"
+        "QA con ubicaciÃƒÆ’Ã‚Â³n aproximada pendiente"
       ]
     },
     {
       "id": "E07",
       "package": "E",
-      "requirement": "RecuperaciÃ³n coherente ante proceso terminado, bloqueo de pantalla, reinicio, interrupciones de audio, desconexiÃ³n Bluetooth y revocaciÃ³n de permisos.",
+      "requirement": "RecuperaciÃƒÆ’Ã‚Â³n coherente ante proceso terminado, bloqueo de pantalla, reinicio, interrupciones de audio, desconexiÃƒÆ’Ã‚Â³n Bluetooth y revocaciÃƒÆ’Ã‚Â³n de permisos.",
       "code": "PENDIENTE",
       "verification": "PENDIENTE",
       "evidence": [],
@@ -632,7 +652,7 @@
     {
       "id": "F01",
       "package": "F",
-      "requirement": "Mostrar precios, moneda, duraciÃ³n y renovaciÃ³n obtenidos de Google Play.",
+      "requirement": "Mostrar precios, moneda, duraciÃƒÆ’Ã‚Â³n y renovaciÃƒÆ’Ã‚Â³n obtenidos de Google Play.",
       "code": "PARCIAL",
       "verification": "PENDIENTE",
       "evidence": [
@@ -666,7 +686,7 @@
     {
       "id": "F04",
       "package": "F",
-      "requirement": "Procesar notificaciones de Google de forma idempotente, incluyendo renovaciÃ³n, cancelaciÃ³n, reembolso, compra pendiente, suspensiÃ³n y recuperaciÃ³n.",
+      "requirement": "Procesar notificaciones de Google de forma idempotente, incluyendo renovaciÃƒÆ’Ã‚Â³n, cancelaciÃƒÆ’Ã‚Â³n, reembolso, compra pendiente, suspensiÃƒÆ’Ã‚Â³n y recuperaciÃƒÆ’Ã‚Â³n.",
       "code": "PARCIAL",
       "verification": "PENDIENTE",
       "evidence": [
@@ -678,7 +698,7 @@
     {
       "id": "F05",
       "package": "F",
-      "requirement": "Vincular cada compra a una Ãºnica cuenta KPKN.",
+      "requirement": "Vincular cada compra a una ÃƒÆ’Ã‚Âºnica cuenta KPKN.",
       "code": "PARCIAL",
       "verification": "PENDIENTE",
       "evidence": [
@@ -687,13 +707,13 @@
         "firebase-retired-operations-20.log"
       ],
       "dependencies": [
-        "VinculaciÃ³n y validaciÃ³n Play reales pendientes"
+        "VinculaciÃƒÆ’Ã‚Â³n y validaciÃƒÆ’Ã‚Â³n Play reales pendientes"
       ]
     },
     {
       "id": "F06",
       "package": "F",
-      "requirement": "Exponer `EntitlementRepository` y un catÃ¡logo de capacidades que recibirÃ¡ la futura matriz Free/Pro.",
+      "requirement": "Exponer `EntitlementRepository` y un catÃƒÆ’Ã‚Â¡logo de capacidades que recibirÃƒÆ’Ã‚Â¡ la futura matriz Free/Pro.",
       "code": "PARCIAL",
       "verification": "PARCIAL",
       "evidence": [
@@ -714,13 +734,13 @@
         "../stability-continuation/emulator-setup-fixed-11/04-legacy-full-link/after.xml"
       ],
       "dependencies": [
-        "Inicio Free y protección de Volumen verificados en API36; todas las entradas avanzadas, multimedia, caducidad con datos reales y límite entre varias rutinas permanecen pendientes."
+        "Inicio Free y protecciÃƒÂ³n de Volumen verificados en API36; todas las entradas avanzadas, multimedia, caducidad con datos reales y lÃƒÂ­mite entre varias rutinas permanecen pendientes."
       ]
     },
     {
       "id": "F07",
       "package": "F",
-      "requirement": "Permitir restaurar compras y mantener derechos confirmados sin conexiÃ³n hasta su vigencia verificada.",
+      "requirement": "Permitir restaurar compras y mantener derechos confirmados sin conexiÃƒÆ’Ã‚Â³n hasta su vigencia verificada.",
       "code": "PARCIAL",
       "verification": "PENDIENTE",
       "evidence": [
@@ -728,13 +748,13 @@
         "android-native/app/src/main/java/com/example/kpkn/data/account/PlaySubscriptionRepository.kt"
       ],
       "dependencies": [
-        "Hora firmada, reloj monotónico y protección ante retroceso con pruebas JVM; reinicio/caducidad y compra real pendientes."
+        "Hora firmada, reloj monotÃƒÂ³nico y protecciÃƒÂ³n ante retroceso con pruebas JVM; reinicio/caducidad y compra real pendientes."
       ]
     },
     {
       "id": "F08",
       "package": "F",
-      "requirement": "Una caÃ­da del servidor o una suscripciÃ³n vencida nunca borrarÃ¡ datos ni impedirÃ¡ leerlos, exportarlos o eliminar la cuenta.",
+      "requirement": "Una caÃƒÆ’Ã‚Â­da del servidor o una suscripciÃƒÆ’Ã‚Â³n vencida nunca borrarÃƒÆ’Ã‚Â¡ datos ni impedirÃƒÆ’Ã‚Â¡ leerlos, exportarlos o eliminar la cuenta.",
       "code": "PARCIAL",
       "verification": "PENDIENTE",
       "evidence": [
@@ -748,20 +768,20 @@
     {
       "id": "G01",
       "package": "G",
-      "requirement": "Regenerar el dataset mediante su proceso documentado y convertir la comprobaciÃ³n de coherencia en requisito de publicaciÃ³n.",
+      "requirement": "Regenerar el dataset mediante su proceso documentado y convertir la comprobaciÃƒÆ’Ã‚Â³n de coherencia en requisito de publicaciÃƒÆ’Ã‚Â³n.",
       "code": "PARCIAL",
       "verification": "PENDIENTE",
       "evidence": [
         "android-native/app/src/main/assets/food_data/dataset_knowledge_report.json"
       ],
       "dependencies": [
-        "Dataset y gate de coherencia aprobados localmente; workflow los ejecuta. CI remota aÃºn no ejecutada."
+        "Dataset y gate de coherencia aprobados localmente; workflow los ejecuta. CI remota aÃƒÆ’Ã‚Âºn no ejecutada."
       ]
     },
     {
       "id": "G02",
       "package": "G",
-      "requirement": "Resolver cantidades explÃ­citas en gramos, kilogramos y litros, considerando densidades cuando corresponda.",
+      "requirement": "Resolver cantidades explÃƒÆ’Ã‚Â­citas en gramos, kilogramos y litros, considerando densidades cuando corresponda.",
       "code": "IMPLEMENTADO",
       "verification": "PARCIAL",
       "evidence": [
@@ -776,7 +796,7 @@
     {
       "id": "G03",
       "package": "G",
-      "requirement": "Corregir negaciones, variantes preparadas, porciones, rendimientos y aceite de cocciÃ³n.",
+      "requirement": "Corregir negaciones, variantes preparadas, porciones, rendimientos y aceite de cocciÃƒÆ’Ã‚Â³n.",
       "code": "PENDIENTE",
       "verification": "PENDIENTE",
       "evidence": [],
@@ -785,7 +805,7 @@
     {
       "id": "G04",
       "package": "G",
-      "requirement": "Presentar cantidades ambiguas como estimaciones que requieren confirmaciÃ³n; no inventar cantidades para hacer coincidir un corpus.",
+      "requirement": "Presentar cantidades ambiguas como estimaciones que requieren confirmaciÃƒÆ’Ã‚Â³n; no inventar cantidades para hacer coincidir un corpus.",
       "code": "PARCIAL",
       "verification": "PARCIAL",
       "evidence": [
@@ -795,13 +815,13 @@
         "device-qa-53.json"
       ],
       "dependencies": [
-        "Cantidades ausentes/inferidas exigen confirmaciÃ³n y retienen incertidumbre; revisar todas las formas de porciÃ³n ambigua y QA visible completa."
+        "Cantidades ausentes/inferidas exigen confirmaciÃƒÆ’Ã‚Â³n y retienen incertidumbre; revisar todas las formas de porciÃƒÆ’Ã‚Â³n ambigua y QA visible completa."
       ]
     },
     {
       "id": "G05",
       "package": "G",
-      "requirement": "Revisar los casos alimentarios pendientes con fuentes y recetas trazables, preservando las diferencias regionales vÃ¡lidas.",
+      "requirement": "Revisar los casos alimentarios pendientes con fuentes y recetas trazables, preservando las diferencias regionales vÃƒÆ’Ã‚Â¡lidas.",
       "code": "PENDIENTE",
       "verification": "PENDIENTE",
       "evidence": [],
@@ -810,7 +830,7 @@
     {
       "id": "G06",
       "package": "G",
-      "requirement": "Completar el contrato de conocimiento y su disponibilidad desde el inicio; retirar cÃ¡lculos y canales sin consumidores conservando datos histÃ³ricos.",
+      "requirement": "Completar el contrato de conocimiento y su disponibilidad desde el inicio; retirar cÃƒÆ’Ã‚Â¡lculos y canales sin consumidores conservando datos histÃƒÆ’Ã‚Â³ricos.",
       "code": "PARCIAL",
       "verification": "PENDIENTE",
       "evidence": [
@@ -821,7 +841,7 @@
     {
       "id": "G07",
       "package": "G",
-      "requirement": "Actualizar el Ã­ndice FTS existente para la recuperaciÃ³n normalizada utilizada por la bÃºsqueda real, conservando ranking, alias e identidad.",
+      "requirement": "Actualizar el ÃƒÆ’Ã‚Â­ndice FTS existente para la recuperaciÃƒÆ’Ã‚Â³n normalizada utilizada por la bÃƒÆ’Ã‚Âºsqueda real, conservando ranking, alias e identidad.",
       "code": "PARCIAL",
       "verification": "PENDIENTE",
       "evidence": [
@@ -835,7 +855,7 @@
     {
       "id": "G08",
       "package": "G",
-      "requirement": "Asociar las marcas de progresiÃ³n a cada ejecuciÃ³n del programa, manteniendo el historial y evitando bloquear progresiones nuevas.",
+      "requirement": "Asociar las marcas de progresiÃƒÆ’Ã‚Â³n a cada ejecuciÃƒÆ’Ã‚Â³n del programa, manteniendo el historial y evitando bloquear progresiones nuevas.",
       "code": "PARCIAL",
       "verification": "PARCIAL",
       "evidence": [
@@ -848,7 +868,7 @@
     {
       "id": "G09",
       "package": "G",
-      "requirement": "Versionar recetas de programas; actualizar planes existentes mediante una acciÃ³n explÃ­cita que preserve sesiones entrenadas.",
+      "requirement": "Versionar recetas de programas; actualizar planes existentes mediante una acciÃƒÆ’Ã‚Â³n explÃƒÆ’Ã‚Â­cita que preserve sesiones entrenadas.",
       "code": "PENDIENTE",
       "verification": "PENDIENTE",
       "evidence": [],
@@ -866,7 +886,7 @@
     {
       "id": "H01",
       "package": "H",
-      "requirement": "Recursos localizados para pantallas, errores, notificaciones, catÃ¡logos, permisos y compras.",
+      "requirement": "Recursos localizados para pantallas, errores, notificaciones, catÃƒÆ’Ã‚Â¡logos, permisos y compras.",
       "code": "PARCIAL",
       "verification": "PENDIENTE",
       "evidence": [
@@ -879,7 +899,7 @@
     {
       "id": "H02",
       "package": "H",
-      "requirement": "GramÃ¡ticas, reconocimiento y sÃ­ntesis de voz adecuados para espaÃ±ol e inglÃ©s.",
+      "requirement": "GramÃƒÆ’Ã‚Â¡ticas, reconocimiento y sÃƒÆ’Ã‚Â­ntesis de voz adecuados para espaÃƒÆ’Ã‚Â±ol e inglÃƒÆ’Ã‚Â©s.",
       "code": "PENDIENTE",
       "verification": "PENDIENTE",
       "evidence": [],
@@ -888,7 +908,7 @@
     {
       "id": "H03",
       "package": "H",
-      "requirement": "Formatos de fechas, nÃºmeros y unidades consistentes sin alterar los valores almacenados.",
+      "requirement": "Formatos de fechas, nÃƒÆ’Ã‚Âºmeros y unidades consistentes sin alterar los valores almacenados.",
       "code": "PARCIAL",
       "verification": "PENDIENTE",
       "evidence": [
@@ -899,7 +919,7 @@
     {
       "id": "H04",
       "package": "H",
-      "requirement": "Elegibilidad de 18 aÃ±os en onboarding y contratos de validaciÃ³n.",
+      "requirement": "Elegibilidad de 18 aÃƒÆ’Ã‚Â±os en onboarding y contratos de validaciÃƒÆ’Ã‚Â³n.",
       "code": "PARCIAL",
       "verification": "PARCIAL",
       "evidence": [
@@ -910,13 +930,13 @@
         "android-native/app/src/main/java/com/example/kpkn/screens/account/AdultAccessGate.kt"
       ],
       "dependencies": [
-        "Edad y fecha de nacimiento internas 18+ implementadas, regresiones aprobadas; primer paso de asistente visible en API36. QA completa y localizaciÃ³n pendientes."
+        "Edad y fecha de nacimiento internas 18+ implementadas, regresiones aprobadas; primer paso de asistente visible en API36. QA completa y localizaciÃƒÆ’Ã‚Â³n pendientes."
       ]
     },
     {
       "id": "H05",
       "package": "H",
-      "requirement": "Tratamiento explÃ­cito de perfiles anteriores fuera del pÃºblico admitido, permitiendo exportar y borrar sus datos.",
+      "requirement": "Tratamiento explÃƒÆ’Ã‚Â­cito de perfiles anteriores fuera del pÃƒÆ’Ã‚Âºblico admitido, permitiendo exportar y borrar sus datos.",
       "code": "PARCIAL",
       "verification": "PENDIENTE",
       "evidence": [
@@ -927,7 +947,7 @@
     {
       "id": "H06",
       "package": "H",
-      "requirement": "Accesibilidad con TalkBack, texto ampliado, objetivos tÃ¡ctiles adecuados, orientaciÃ³n, pantallas plegables y presentaciÃ³n correcta al subir el SDK objetivo.",
+      "requirement": "Accesibilidad con TalkBack, texto ampliado, objetivos tÃƒÆ’Ã‚Â¡ctiles adecuados, orientaciÃƒÆ’Ã‚Â³n, pantallas plegables y presentaciÃƒÆ’Ã‚Â³n correcta al subir el SDK objetivo.",
       "code": "PENDIENTE",
       "verification": "PENDIENTE",
       "evidence": [
@@ -938,7 +958,7 @@
     {
       "id": "I01",
       "package": "I",
-      "requirement": "Cola acotada con polÃ­tica de descarte y contadores; nunca bloquear la interfaz para registrar eventos.",
+      "requirement": "Cola acotada con polÃƒÆ’Ã‚Â­tica de descarte y contadores; nunca bloquear la interfaz para registrar eventos.",
       "code": "PARCIAL",
       "verification": "PARCIAL",
       "evidence": [
@@ -954,7 +974,7 @@
     {
       "id": "I02",
       "package": "I",
-      "requirement": "Retirada de transcripciones y datos sensibles del diagnÃ³stico de producciÃ³n.",
+      "requirement": "Retirada de transcripciones y datos sensibles del diagnÃƒÆ’Ã‚Â³stico de producciÃƒÆ’Ã‚Â³n.",
       "code": "PARCIAL",
       "verification": "PARCIAL",
       "evidence": [
@@ -964,13 +984,13 @@
         "gradle-snapshot-release-manifest.log"
       ],
       "dependencies": [
-        "AuditorÃ­a de emisores y archivos existentes pendiente"
+        "AuditorÃƒÆ’Ã‚Â­a de emisores y archivos existentes pendiente"
       ]
     },
     {
       "id": "I03",
       "package": "I",
-      "requirement": "RedacciÃ³n recursiva, retenciÃ³n limitada y exportaciÃ³n de diagnÃ³stico controlada por el usuario.",
+      "requirement": "RedacciÃƒÆ’Ã‚Â³n recursiva, retenciÃƒÆ’Ã‚Â³n limitada y exportaciÃƒÆ’Ã‚Â³n de diagnÃƒÆ’Ã‚Â³stico controlada por el usuario.",
       "code": "PARCIAL",
       "verification": "PARCIAL",
       "evidence": [
@@ -980,13 +1000,13 @@
         "gradle-snapshot-release-manifest.log"
       ],
       "dependencies": [
-        "ValidaciÃ³n de retenciÃ³n y exportaciones Android pendiente"
+        "ValidaciÃƒÆ’Ã‚Â³n de retenciÃƒÆ’Ã‚Â³n y exportaciones Android pendiente"
       ]
     },
     {
       "id": "I04",
       "package": "I",
-      "requirement": "IntegraciÃ³n real de Crashlytics con control de recopilaciÃ³n, sin contenido de salud ni texto dictado; Android Vitals como fuente adicional.",
+      "requirement": "IntegraciÃƒÆ’Ã‚Â³n real de Crashlytics con control de recopilaciÃƒÆ’Ã‚Â³n, sin contenido de salud ni texto dictado; Android Vitals como fuente adicional.",
       "code": "PARCIAL",
       "verification": "PENDIENTE",
       "evidence": [
@@ -998,7 +1018,7 @@
     {
       "id": "I05",
       "package": "I",
-      "requirement": "Inventario de datos propios y de SDK, incluyendo ML Kit, Firebase y facturaciÃ³n.",
+      "requirement": "Inventario de datos propios y de SDK, incluyendo ML Kit, Firebase y facturaciÃƒÆ’Ã‚Â³n.",
       "code": "PARCIAL",
       "verification": "PENDIENTE",
       "evidence": [
@@ -1009,7 +1029,7 @@
     {
       "id": "I06",
       "package": "I",
-      "requirement": "PolÃ­tica de privacidad, condiciones, consentimiento de sincronizaciÃ³n y avisos de salud coherentes con el comportamiento efectivo.",
+      "requirement": "PolÃƒÆ’Ã‚Â­tica de privacidad, condiciones, consentimiento de sincronizaciÃƒÆ’Ã‚Â³n y avisos de salud coherentes con el comportamiento efectivo.",
       "code": "PARCIAL",
       "verification": "PENDIENTE",
       "evidence": [
@@ -1021,7 +1041,7 @@
     {
       "id": "I07",
       "package": "I",
-      "requirement": "Revisar licencias y procedencia de datasets, modelos e imÃ¡genes.",
+      "requirement": "Revisar licencias y procedencia de datasets, modelos e imÃƒÆ’Ã‚Â¡genes.",
       "code": "PENDIENTE",
       "verification": "PENDIENTE",
       "evidence": [],
@@ -1030,7 +1050,7 @@
     {
       "id": "J01",
       "package": "J",
-      "requirement": "`targetSdk 36`, `minSdk 26` y un Ãºnico conjunto funcional con variantes debug/release. Conservar aliases `BaseRelease` para los scripts que los necesiten.",
+      "requirement": "`targetSdk 36`, `minSdk 26` y un ÃƒÆ’Ã‚Âºnico conjunto funcional con variantes debug/release. Conservar aliases `BaseRelease` para los scripts que los necesiten.",
       "code": "IMPLEMENTADO",
       "verification": "PARCIAL",
       "evidence": [
@@ -1047,7 +1067,7 @@
     {
       "id": "J02",
       "package": "J",
-      "requirement": "Identidad y firma separadas para debug; release fallarÃ¡ si falta su configuraciÃ³n de firma.",
+      "requirement": "Identidad y firma separadas para debug; release fallarÃƒÆ’Ã‚Â¡ si falta su configuraciÃƒÆ’Ã‚Â³n de firma.",
       "code": "PARCIAL",
       "verification": "PARCIAL",
       "evidence": [
@@ -1059,13 +1079,13 @@
         "review-apk-verification-55.json"
       ],
       "dependencies": [
-        "ValidaciÃ³n de fallo release sin firma y QA pendientes"
+        "ValidaciÃƒÆ’Ã‚Â³n de fallo release sin firma y QA pendientes"
       ]
     },
     {
       "id": "J03",
       "package": "J",
-      "requirement": "Play App Signing, protecciÃ³n de la clave de subida y registro del identificador de aplicaciÃ³n.",
+      "requirement": "Play App Signing, protecciÃƒÆ’Ã‚Â³n de la clave de subida y registro del identificador de aplicaciÃƒÆ’Ã‚Â³n.",
       "code": "PENDIENTE",
       "verification": "PENDIENTE",
       "evidence": [
@@ -1077,7 +1097,7 @@
     {
       "id": "J04",
       "package": "J",
-      "requirement": "OptimizaciÃ³n de imÃ¡genes mediante scripts reproducibles, reducciÃ³n de duplicaciones y reglas R8 ajustadas con pruebas.",
+      "requirement": "OptimizaciÃƒÆ’Ã‚Â³n de imÃƒÆ’Ã‚Â¡genes mediante scripts reproducibles, reducciÃƒÆ’Ã‚Â³n de duplicaciones y reglas R8 ajustadas con pruebas.",
       "code": "PARCIAL",
       "verification": "PENDIENTE",
       "evidence": [
@@ -1092,7 +1112,7 @@
     {
       "id": "J05",
       "package": "J",
-      "requirement": "MediciÃ³n del tamaÃ±o entregado por dispositivo mediante bundletool y Play Console.",
+      "requirement": "MediciÃƒÆ’Ã‚Â³n del tamaÃƒÆ’Ã‚Â±o entregado por dispositivo mediante bundletool y Play Console.",
       "code": "PENDIENTE",
       "verification": "PENDIENTE",
       "evidence": [],
@@ -1101,7 +1121,7 @@
     {
       "id": "J06",
       "package": "J",
-      "requirement": "Pruebas de bibliotecas nativas, empaquetado y ejecuciÃ³n con pÃ¡ginas de 16 KB.",
+      "requirement": "Pruebas de bibliotecas nativas, empaquetado y ejecuciÃƒÆ’Ã‚Â³n con pÃƒÆ’Ã‚Â¡ginas de 16 KB.",
       "code": "PARCIAL",
       "verification": "PARCIAL",
       "evidence": [
@@ -1120,7 +1140,7 @@
     {
       "id": "J07",
       "package": "J",
-      "requirement": "CI con pruebas, migraciones, coherencia de catÃ¡logos, lint completo y compilaciÃ³n release; conservar informes y hashes por commit.",
+      "requirement": "CI con pruebas, migraciones, coherencia de catÃƒÆ’Ã‚Â¡logos, lint completo y compilaciÃƒÆ’Ã‚Â³n release; conservar informes y hashes por commit.",
       "code": "PARCIAL",
       "verification": "PENDIENTE",
       "evidence": [
@@ -1137,9 +1157,9 @@
     {
       "id": "J08",
       "package": "J",
-      "requirement": "Resolver el tiempo de ejecuciÃ³n de lint y completar la compilaciÃ³n unificada antes de aceptar el paquete.",
-      "code": "PARCIAL",
-      "verification": "PARCIAL",
+      "requirement": "Resolver el tiempo de ejecuciÃƒÆ’Ã‚Â³n de lint y completar la compilaciÃƒÆ’Ã‚Â³n unificada antes de aceptar el paquete.",
+      "code": "IMPLEMENTADO",
+      "verification": "VERIFICADO",
       "evidence": [
         "gradle-full-lint-release-20.log",
         "lint-release-20.xml",
@@ -1156,16 +1176,22 @@
         "../master-integration/emulator-gallery-3/result.json",
         "../master-integration/node-media-contracts-4-exit.json",
         "../stability-continuation/validation-final.json",
-        "../stability-data-isolation/DELIVERY.json"
+        "../stability-data-isolation/DELIVERY.json",
+        "../stability-integrated-sessions/gradle-release-checks-18.log",
+        "../stability-integrated-sessions/lint-results-release-18.xml",
+        "../stability-integrated-sessions/DELIVERY.json",
+        "../stability-recovery/DELIVERY.json",
+        "../stability-recovery/release-checks-12.json"
       ],
       "dependencies": [
-        "c10 tuvo lint Release con 0 errores, 611 warnings y 39 hints, y minifyReleaseWithR8 aprobado sin firma. La corrección multimedia posterior tiene build Debug/AndroidTest, 42 JVM y 17 pruebas API36 propias; lint/R8 Release de este nuevo árbol y release firmado pendientes."
-      ]
+        "CompilaciÃƒÂ³n Debug/AndroidTest y lint/R8 Release de 11aff verificados. Lint: 0 errores, 614 advertencias y 39 hints. Alcance limitado a compilaciÃƒÂ³n/lint/minificaciÃƒÂ³n; firma y runtime release corresponden a requisitos todavÃƒÂ­a abiertos."
+      ],
+      "checkpointRecoveryLimits": "Bounded local checkpoint only: 34 directed JVM cases; 17 real interruption phases API36,21 process terminations; one actual SQLite page-capacity case. No universal producers, physical-full filesystem, complete device/SAF/service validation."
     },
     {
       "id": "J09",
       "package": "J",
-      "requirement": "Cero defectos abiertos con pÃ©rdida de datos, exposiciÃ³n entre cuentas, cobros incorrectos o cierres reproducibles en funciones principales.",
+      "requirement": "Cero defectos abiertos con pÃƒÆ’Ã‚Â©rdida de datos, exposiciÃƒÆ’Ã‚Â³n entre cuentas, cobros incorrectos o cierres reproducibles en funciones principales.",
       "code": "PENDIENTE",
       "verification": "PENDIENTE",
       "evidence": [],
@@ -1204,27 +1230,53 @@
         "result-volume-gate-55.json",
         "../stability-continuation/tests-full-13.json",
         "../stability-continuation/tests-fixture-14.json",
-        "../stability-data-isolation/DELIVERY.json"
+        "../stability-data-isolation/DELIVERY.json",
+        "../stability-integrated-sessions/full-inconclusive-14.json",
+        "../stability-integrated-sessions/full-inconclusive-14-unit/",
+        "../stability-integrated-sessions/directed-final-17-unit/result.json",
+        "../stability-integrated-sessions/native-final-17/result.json",
+        "../stability-integrated-sessions/gradle-release-checks-18.log",
+        "../stability-recovery/DELIVERY.json"
       ],
       "dependencies": [
-        "Suite completa del árbol previo a la corrección del fixture Pro: 8061 pruebas, 4 fallos y 6 omisiones. Las 13 pruebas del fixture se aprobaron tras corregirlo, sin nueva ejecución completa. La corrección multimedia posterior cuenta con 42 JVM dirigidas y 17 nativas propias; suite completa del árbol nuevo, corpus real de voz, CI remota y release pendientes."
-      ]
+        "La suite amplia intermedia ejecutÃƒÂ³ 4045 casos: 4042 PASS, 2 FAIL y 1 SKIP (Q2 interrumpido); permanece inconclusa. Los dos fallos fueron tratados y la selecciÃƒÂ³n final de 113 casos pasÃƒÂ³; cuatro comprobaciones Android API36 y lint/R8 pasaron. Faltan suite integral final en particiones, corpus de voz ejecutado, CI y runtime/release firmado."
+      ],
+      "checkpointRecoveryLimits": "Bounded local checkpoint only: 34 directed JVM cases; 17 real interruption phases API36,21 process terminations; one actual SQLite page-capacity case. No universal producers, physical-full filesystem, complete device/SAF/service validation."
     },
     {
       "id": "J12",
       "package": "J",
-      "requirement": "BÃºsqueda de alimentos por debajo del presupuesto existente de 150 ms y E16 conforme a su contrato en un entorno controlado.",
+      "requirement": "BÃƒÆ’Ã‚Âºsqueda de alimentos por debajo del presupuesto existente de 150 ms y E16 conforme a su contrato en un entorno controlado.",
       "code": "PARCIAL",
       "verification": "PENDIENTE",
       "evidence": [
-        "tests-normalized-media-7/"
+        "tests-normalized-media-7/",
+        "../stability-recovery/DELIVERY.json",
+        "../stability-recovery/native-search-idle-20/result.json",
+        "../stability-recovery/native-search-14/result.json"
       ],
-      "dependencies": []
+      "dependencies": [
+        "El benchmark de bÃƒÂºsqueda de df7 es histÃƒÂ³rico; NutritionRepository cambiÃƒÂ³ su ruta de ejecuciÃƒÂ³n en 11aff. RepeticiÃƒÂ³n del benchmark y contrato E16 del ÃƒÂ¡rbol actual pendientes."
+      ],
+      "currentCheckpointBenchmark": {
+        "evidence": "artifacts/stability-recovery/native-search-idle-20/result.json",
+        "result": "PASS_ANDROID_API36_WARM_SEARCH",
+        "metrics": {
+          "samples": 120,
+          "medianMs": 55.5748,
+          "p95Ms": 92.5362,
+          "maxMs": 132.5463,
+          "budgetMs": 150,
+          "storage": "PROFILE_ROOM_FILE"
+        },
+        "limits": "120 warm imported Room/FTS samples on shared x86_64 emulator; physical/multiversion/startup/cold-search coverage remains pending."
+      },
+      "checkpointRecoveryLimits": "Bounded local checkpoint only: 34 directed JVM cases; 17 real interruption phases API36,21 process terminations; one actual SQLite page-capacity case. No universal producers, physical-full filesystem, complete device/SAF/service validation."
     },
     {
       "id": "J13",
       "package": "J",
-      "requirement": "Beta cerrada de 14 dÃ­as con al menos 12 participantes como criterio propio de calidad, con seguimiento de incidencias.",
+      "requirement": "Beta cerrada de 14 dÃƒÆ’Ã‚Â­as con al menos 12 participantes como criterio propio de calidad, con seguimiento de incidencias.",
       "code": "PENDIENTE",
       "verification": "PENDIENTE",
       "evidence": [],
@@ -1233,7 +1285,7 @@
     {
       "id": "J14",
       "package": "J",
-      "requirement": "Declaraciones, URLs pÃºblicas, cuenta de revisiÃ³n, permisos y ficha de Play completos.",
+      "requirement": "Declaraciones, URLs pÃƒÆ’Ã‚Âºblicas, cuenta de revisiÃƒÆ’Ã‚Â³n, permisos y ficha de Play completos.",
       "code": "PENDIENTE",
       "verification": "PENDIENTE",
       "evidence": [],
@@ -1242,7 +1294,7 @@
     {
       "id": "D-REMOVAL",
       "package": "D",
-      "requirement": "Retirar SDK, permisos, acceso al proveedor y pantallas de Health Connect del lanzamiento; conservar GPS, entradas manuales y registros histÃ³ricos.",
+      "requirement": "Retirar SDK, permisos, acceso al proveedor y pantallas de Health Connect del lanzamiento; conservar GPS, entradas manuales y registros histÃƒÆ’Ã‚Â³ricos.",
       "applicable": true,
       "code": "IMPLEMENTADO",
       "verification": "PARCIAL",
@@ -1269,7 +1321,7 @@
         "review-apk-verification-55.json"
       ],
       "dependencies": [
-        "Ensayar Ajustes, enlaces antiguos, lectura de registros histÃ³ricos y cardio GPS real antes de cerrar la QA funcional completa"
+        "Ensayar Ajustes, enlaces antiguos, lectura de registros histÃƒÆ’Ã‚Â³ricos y cardio GPS real antes de cerrar la QA funcional completa"
       ],
       "checks": {
         "sources": "VERIFICADO",

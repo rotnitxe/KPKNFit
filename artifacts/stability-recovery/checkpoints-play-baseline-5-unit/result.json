@@ -1,0 +1,14 @@
+{
+  "tests": 22,
+  "failures": 5,
+  "errors": 0,
+  "skipped": 0,
+  "suites": 5,
+  "files": {
+    "TEST-com.example.kpkn.data.account.PlayCallbackLifetimeTest.xml": "6ec2c3acd50297e89ec38c8e65b1a08b1403503a60240802452f157280ea7dbb",
+    "TEST-com.example.kpkn.data.settings.DatabaseSnapshotTest.xml": "68f3cd157528bf002ea9f3cfa674417063d17434c8c5fc334dae1071035314c6",
+    "TEST-com.example.kpkn.data.settings.PortableBackupTest.xml": "75665d09d272b34bfe66286370d9a3f9f8ed7d2ce43f0ec5c9ac7a1582ce471f",
+    "TEST-com.example.kpkn.data.settings.PortableFaultPhaseTest.xml": "e3a60c36df1822f361005d2770cfc663277c1ac528477d9dca454358ff438a41",
+    "TEST-com.example.kpkn.data.settings.PortableJournalRecoveryTest.xml": "6051cf26cb417ea2bf5a58f1075905501a491db8266e3aeb63223b937eef583f"
+  }
+}

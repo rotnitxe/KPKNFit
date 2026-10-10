@@ -1,0 +1,49 @@
+from pathlib import Path
+import hashlib
+import json
+import shutil
+import sys
+
+out = Path(r'C:\kw\msi\artifacts/stability-recovery')
+sources = [out / name for name in sys.argv[1:]]
+assert len(sources) >= 2
+target = out / 'native-all-phases'
+assert not target.exists()
+target.mkdir()
+merged = None
+names = set()
+for source in sources:
+    report = json.loads((source / 'result.json').read_text())
+    assert report['state'] in ('PASS', 'FAIL_OR_INCOMPLETE')
+    if merged is None:
+        merged = {k:v for k,v in report.items() if k != 'cases'}
+        merged['cases'] = []
+        merged['sourceReports'] = []
+    for key in ['api', 'appApkSha256']:
+        assert report[key] == merged[key], key
+    for case in report['cases']:
+        if not case.get('state', '').startswith('PASS'):
+            continue  # Retain the failed original report separately; never count its incomplete case.
+        assert case['phase'] not in names, case['phase']
+        names.add(case['phase'])
+        case['testApkSha256'] = report['testApkSha256']
+        for step in case['steps']:
+            log = source / step['log']
+            assert log.is_file()
+            destination = source.name + '-' + log.name
+            shutil.copyfile(log, target / destination)
+            step['log'] = destination
+        merged['cases'].append(case)
+    merged['sourceReports'].append(dict(path=source.name + '/result.json', state=report['state'],
+        sha256=hashlib.sha256((source / 'result.json').read_bytes()).hexdigest()))
+last = sources[-1]
+lastReport = json.loads((last / 'result.json').read_text())
+assert lastReport['state'] == 'PASS' and lastReport['mainVisible']
+for name in ['activity.txt', 'launch.txt', 'main.png', 'ui.xml', 'logcat-main.txt']:
+    shutil.copyfile(last / name, target / name)
+merged['finalMainPid'] = lastReport['finalMainPid']
+merged['testApkSha256'] = lastReport['testApkSha256']
+merged['limits'] += ' Per-case test APK hashes retained; final test fixture modifies only the quota method. Failed quota attempt is preserved separately, excluded here.'
+merged['state'] = 'PASS'
+(target / 'result.json').write_text(json.dumps(merged, indent=2)+'\n')
+print(json.dumps(dict(state='PASS', scenarios=len(names), actualTerminationPhases=len(names - {'SQLITE_FULL'}))))

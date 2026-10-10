@@ -1,0 +1,10 @@
+{
+  "tests": 4,
+  "failures": 4,
+  "errors": 0,
+  "skipped": 0,
+  "suites": 1,
+  "files": {
+    "TEST-com.example.kpkn.data.settings.PortableJournalRecoveryTest.xml": "ef08719ed5ebcb2c51a2a6382d51797a57f73381acd44a30c79204e4cf91e7f5"
+  }
+}

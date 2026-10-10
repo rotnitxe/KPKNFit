@@ -1,0 +1,128 @@
+"""Prepare a bounded, source-linked checkpoint and stage only its explicit paths."""
+from pathlib import Path
+import argparse
+import hashlib
+import json
+import subprocess
+
+ROOT = Path(r'C:\kw\msi')
+OUT = ROOT / 'artifacts/stability-recovery'
+
+def git(*args, data=None):
+    return subprocess.run(['git', '-c', 'core.fsmonitor=false', '-C', str(ROOT), *args],
+                          input=data, check=True, capture_output=True).stdout
+
+def digest(path):
+    return hashlib.file_digest(path.open('rb'), 'sha256').hexdigest()
+
+def write(path, value):
+    path.write_text(json.dumps(value, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
+
+def prepare(args):
+    fp = json.loads((OUT / args.fingerprint).read_text())
+    for row in fp['files']:
+        assert digest(ROOT / row['path']) == row['sha256'], row['path']
+    unit = json.loads((OUT / args.unit / 'result.json').read_text())
+    native = json.loads((OUT / args.native / 'result.json').read_text())
+    assert unit['tests'] > 0 and unit['failures'] == unit['errors'] == unit['skipped'] == 0
+    assert native['state'] == 'PASS' and native['mainVisible']
+    for case in native['cases']:
+        assert case['state'].startswith('PASS')
+    evidence = {}
+    includes = [args.fingerprint, args.unit, args.native, 'development-runs.json',
+                'gradle-callbacks-native-7.log', 'semantic-producers.json',
+                'DELIVERY-11aff-original.json', 'requirements-11aff-original.json']
+    includes += args.extra
+    for name in includes:
+        path = OUT / name
+        assert path.resolve().is_relative_to(OUT) and path.exists(), name
+        files = [path] if path.is_file() else sorted(p for p in path.rglob('*') if p.is_file())
+        for p in files:
+            assert p.suffix in ('.md', '.json', '.xml', '.txt', '.log', '.png'), p
+            assert p.stat().st_size < 15 * 1024 * 1024, p
+            evidence[p.relative_to(ROOT).as_posix()] = digest(p)
+    source = sorted(set(fp['changedSources'] + fp['addedSources']))
+    production = [p for p in source if '/src/main/' in p]
+    document = dict(state='VALIDATED_LOCAL_CHECKPOINT', baselineCommit=fp['baselineCommit'],
+        sourceFingerprint=args.fingerprint, sourceFiles=fp['fileCount'], changedSourcePaths=source,
+        changedProductionPaths=production, unit=dict(tests=unit['tests'], suites=unit['suites'],
+        failures=0, errors=0, skipped=0, evidence=args.unit + '/result.json'),
+        native=dict(cases=len(native['cases']), phases=[c['phase'] for c in native['cases']],
+        evidence=args.native + '/result.json', expectedTerminationsAreTestPass=False,
+        appApkSha256=native['appApkSha256'], testApkSha256=native['testApkSha256'],
+        api=native['api'], mainVisible=True), evidenceHashes=evidence,
+        launchPlanComplete=False, fullJvmSuiteApproved=False, physicalFilesystemFullTested=False,
+        liveFirebaseOrPlayTested=False, pushPerformed=False,
+        limits=['New checkpoint validates journal recovery and retired Play callbacks only.',
+                'API36 native interruption does not establish API26-to-36/ARM64/16KB coverage.',
+                'SQLite quota is scoped to the database engine; no physically full filesystem.',
+                'Broad JVM suite, semantic producer matrix and original A-J plan remain open.'])
+    write(OUT / 'DELIVERY.json', document)
+    text = f'''# Recuperación y cierre del cliente Play
+
+Base: `{fp['baselineCommit'][:9]}`. Esta entrega conserva la retirada de Health Connect, el GPS y las implementaciones paralelas integradas anteriormente.
+
+El diario de mantenimiento usa `AtomicFile.openRead()`, limita el estado a 32 bytes y conserva el rollback si el estado no se reconoce. El cliente Play se retira al cerrar el perfil; las respuestas tardías comprueban el propietario y la generación antes de acceder a derechos o publicar ofertas.
+
+Validación del árbol actual: **{unit['tests']} pruebas JVM en {unit['suites']} suites**, sin fallos ni omisiones. Android API {native['api']}: **{len(native['cases'])} escenarios**, con terminaciones reales registradas y lectura posterior desde otro PID. Las terminaciones deliberadas no se cuentan como tests aprobados. Se comprobaron base, avatar, preferencias, ZIP de entrada sin cambios y reapertura; `MainActivity` quedó visible.
+
+Las fases y hashes de los APK están en `DELIVERY.json`. Los fallos de arnés y las reproducciones anteriores se mantienen identificados en `development-runs.json`.
+
+Esto cierra este parche local, no el plan de lanzamiento A-J. Siguen pendientes la suite amplia completa, la matriz de productores, la matriz de dispositivos, SAF, pruebas reales de Firebase/Play y los requisitos externos de publicación. No hubo push ni despliegue.
+'''
+    (OUT / 'ENTREGA.md').write_text(text, encoding='utf-8')
+    evidence['artifacts/stability-recovery/ENTREGA.md'] = digest(OUT / 'ENTREGA.md')
+    document['evidenceHashes'] = evidence
+    write(OUT / 'DELIVERY.json', document)
+    print(json.dumps(dict(state=document['state'], productionFiles=len(production), sourcePaths=len(source), evidenceFiles=len(evidence))))
+
+def stage():
+    assert not git('diff', '--cached', '--name-only').strip(), 'Index already contains work'
+    delivery = json.loads((OUT / 'DELIVERY.json').read_text())
+    assert delivery['state'] == 'VALIDATED_LOCAL_CHECKPOINT'
+    fp = json.loads((OUT / delivery['sourceFingerprint']).read_text())
+    for row in fp['files']:
+        assert digest(ROOT / row['path']) == row['sha256'], row['path']
+    paths = set(delivery['changedSourcePaths'])
+    for relative, sha in delivery['evidenceHashes'].items():
+        assert digest(ROOT / relative) == sha, relative
+        paths.add(relative)
+    paths.update(['artifacts/stability-recovery/DELIVERY.json',
+                  'artifacts/stability-integrated-sessions/DELIVERY.json',
+                  'artifacts/stability-launch/requirements.json'])
+    assert all((ROOT / p).is_file() for p in paths)
+    git('add', '-f', '--pathspec-from-file=-', '--pathspec-file-nul',
+        data=b''.join((':(literal)' + p).encode() + b'\0' for p in sorted(paths)))
+    assert set(git('diff', '--cached', '--name-only').decode().splitlines()) == paths
+    git('diff', '--cached', '--check', '--', *delivery['changedSourcePaths'])
+    index = {}
+    for record in git('ls-files', '--stage', '-z').decode().split('\0'):
+        if not record: continue
+        metadata, path = record.split('\t', 1)
+        mode, oid, number = metadata.split()
+        assert number == '0'
+        index[path] = oid
+    allpaths = [r['path'] for r in fp['files']]
+    hashes = git('hash-object', '--stdin-paths', data=('\n'.join(allpaths)+'\n').encode()).decode().splitlines()
+    assert len(allpaths) == len(hashes)
+    mixed = []
+    for path, oid in zip(allpaths, hashes):
+        if index.get(path) == oid: continue
+        assert git('show', ':'+path) == git('show', 'HEAD:'+path) == (ROOT / path).read_bytes(), path
+        mixed.append(path)
+    write(OUT / 'staged-source-verification.json', dict(state='PASS', sourceFiles=len(allpaths),
+        stagedPaths=len(paths), drift=[], existingMixedLineEndingBlobsPreserved=mixed))
+    write(OUT / 'staged-paths.json', dict(paths=sorted(paths), count=len(paths)))
+    print(json.dumps(dict(state='PASS', stagedFiles=len(paths), testedSources=len(allpaths))))
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--stage', action='store_true')
+parser.add_argument('--fingerprint')
+parser.add_argument('--unit')
+parser.add_argument('--native')
+parser.add_argument('--extra', nargs='*', default=[])
+args = parser.parse_args()
+if args.stage: stage()
+else:
+    assert args.fingerprint and args.unit and args.native
+    prepare(args)

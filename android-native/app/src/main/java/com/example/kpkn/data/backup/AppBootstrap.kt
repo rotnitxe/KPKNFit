@@ -19,9 +19,11 @@ object AppBootstrap {
     private val _state = MutableStateFlow<State>(State.Preparing)
     val state = _state.asStateFlow()
     private val mutex = Mutex()
-    suspend fun prepare(context: Context) = withContext(Dispatchers.IO) { mutex.withLock {
+    suspend fun prepare(context: Context) = prepare(context, MaintenanceCheckpoint.None)
+    internal suspend fun prepare(context: Context, checkpoint: MaintenanceCheckpoint) = withContext(Dispatchers.IO) { mutex.withLock {
         _state.value = State.Preparing
         try {
+            checkpoint.reached(MaintenancePhase.REOPEN_STARTED)
             if (PersonalDataErasure.pending()) {
                 com.example.kpkn.data.sync.OwnedStorageTasks.pauseAndAwait()
                 androidx.work.WorkManager.getInstance(context).cancelAllWork().result.get(10, java.util.concurrent.TimeUnit.SECONDS)
@@ -42,7 +44,7 @@ object AppBootstrap {
                 com.example.kpkn.telemetry.nutrition.NutritionTelemetry.resumeForDataSession(context)
             }
             check(!ProfileStorage.recoveryNeeded.value) { "Profile identity requires recovery" }
-            PortableBackup.recover(context)
+            PortableBackup.recover(context, checkpoint)
             com.example.kpkn.domain.nutrition.FoodKnowledge.install(com.example.kpkn.data.food.FoodKnowledgeStore.load(context))
             val programs = ProgramRepository.init(context)
             CompetitionRepository.init(context)
@@ -59,6 +61,7 @@ object AppBootstrap {
             check(nutrition.nutritionLogs.value.size == database.nutritionDao().getAllLogs().size)
             database.settingsDao().get()?.let { com.example.kpkn.data.db.dbJson.decodeFromString(com.example.kpkn.data.models.Settings.serializer(), it.data) }
             com.example.kpkn.data.account.AccountGraph.account(context)
+            checkpoint.reached(MaintenancePhase.REOPEN_READBACK)
             withContext(Dispatchers.Main) { _state.value = State.Ready }
         } catch (error: Throwable) { withContext(Dispatchers.Main) { _state.value = State.Recovery }; throw error }
     } }

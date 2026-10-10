@@ -1,0 +1,7 @@
+{
+  "state": "FAIL_OR_INCOMPLETE",
+  "runId": "3511baa5-1e60-4446-ae2a-8acbd7b7e24f",
+  "cases": [],
+  "limits": "Actual isolated process termination and SQLite page quota. No physically full filesystem, live Firebase, Play purchase, SAF or complete device matrix.",
+  "error": ""
+}
