@@ -111,6 +111,11 @@ Cuándo sale cada paso condicional:
 - Regresión amplia (2026-10-09): una clase deja vivo `ProgramRepository` con su `loadFromDb` esperando en un `StandardTestDispatcher`, y la siguiente que llama a `closeInstance()` se cuelga en `cancelAndJoin`. Ocurrió en `SetupWizardEntrenoPlanTest.setUp`.
   - No se encontró qué clase lo deja vivo: las que lo inician a mano lo cierran.
   - Si se repite, saca un `jstack` del ejecutor de pruebas, mata solo ese proceso y corre las clases restantes en una segunda pasada.
+- Pruebas en el teléfono (2026-10-10, `.dbg` con el arnés: Powerlifting, Fuerza y masa y Calistenia, activación con Pro): todo correcto. Pulido opcional:
+  - En la revisión, «Ver cómo funciona» y «Confirmo la activación» quedan bajo la píldora en reposo; se alcanzan al desplazar.
+  - En «¿Compites?», los dos «Sí» usan el mismo dibujo.
+  - La ✕ del detalle del programa tapa el «Cambiar» de la primera fila al desplazar.
+- Inicio, el recorrido guiado y los vídeos no se pueden ver con el teléfono bloqueado: `MainActivity` no pide `showWhenLocked`.
 - Fallos que no son de la ola:
   - `ProgramSnapshotStoreTest` ×2 y `ProgramDetailViewModelTest` ×2 (copias de seguridad del programa): vienen de `master` 11aff1778.
   - `ExerciseDatabaseLoadTest` y `CanonicalJsonTest`: necesitan `catalog/` y `cloud-sync/`, que el checkout parcial no trae.
