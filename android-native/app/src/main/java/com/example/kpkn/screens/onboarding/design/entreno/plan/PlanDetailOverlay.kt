@@ -892,6 +892,8 @@ private fun WeekStrip(
 ) {
     val byDay = remember(week) { week.filter { it.day in 1..7 }.associateBy { it.day } }
     val order = remember(weekStartDay) { slotOrder(weekStartDay) }
+    // Solo los días con ejercicios se pueden tocar (su círculo o su fila de sesión): un día sin lista no ofrece nada que desplegar.
+    fun tappable(d: Int): Boolean = byDay[d] != null && swaps.byDay[d].orEmpty().isNotEmpty()
     val measurer = rememberTextMeasurer()
     val density = LocalDensity.current
     BoxWithConstraints(Modifier.fillMaxWidth()) {
@@ -912,15 +914,13 @@ private fun WeekStrip(
                 horizontalArrangement = Arrangement.spacedBy(gap),
             ) {
                 for (d in order) {
-                    // Solo los días con ejercicios se pueden tocar: un día sin lista no ofrece nada que desplegar.
-                    val tappable = byDay[d] != null && swaps.byDay[d].orEmpty().isNotEmpty()
                     DayColumn(
                         day = d,
                         model = byDay[d],
                         accent = accent,
                         captions = captions,
                         modifier = Modifier.weight(1f),
-                        onToggle = if (tappable) ({ state.toggleDay(d) }) else null,
+                        onToggle = if (tappable(d)) ({ state.toggleDay(d) }) else null,
                         open = state.openDay == d,
                     )
                 }
@@ -935,7 +935,14 @@ private fun WeekStrip(
             }
             if (!captions) {
                 Spacer(Modifier.height(14.dp))
-                for (day in byDay.values.sortedBy { order.indexOf(it.day) }) SessionRow(day, accent)
+                for (day in byDay.values.sortedBy { order.indexOf(it.day) }) {
+                    SessionRow(
+                        model = day,
+                        accent = accent,
+                        onToggle = if (tappable(day.day)) ({ state.toggleDay(day.day) }) else null,
+                        open = state.openDay == day.day,
+                    )
+                }
             }
             if (byDay.values.any { it.isMain }) {
                 Row(Modifier.padding(top = 10.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -954,14 +961,18 @@ private val DAY_CAPTION = WizardTypography.note.copy(fontWeight = FontWeight.Sem
 internal fun widestTitlePx(titles: List<String>, widthOf: (String) -> Float): Float =
     titles.maxOfOrNull { widthOf(it) } ?: 0f
 
-/** El círculo de un día: contorno del acento si se entrena, tenue si se descansa; la inicial dentro y, si es el principal, un punto. */
+/**
+ * El círculo de un día: contorno del acento si se entrena, tenue si se descansa; la inicial dentro y, si es el principal, un
+ * punto. El día desplegado ([open]) lleva además un relleno tenue del acento, que lo distingue sin caja ni resplandor.
+ */
 @Composable
-private fun DayCircle(day: Int, trained: Boolean, main: Boolean, accent: Color, diameter: Dp) {
+private fun DayCircle(day: Int, trained: Boolean, main: Boolean, accent: Color, diameter: Dp, open: Boolean = false) {
     val initial = PlanCopy.WEEKDAY_INITIALS[day - 1]
     Box(Modifier.size(diameter), contentAlignment = Alignment.Center) {
         Canvas(Modifier.size(diameter)) {
             val w = if (trained) 2.dp.toPx() else 1.dp.toPx()
             val color = if (trained) accent else WizardColors.text.copy(alpha = 0.18f)
+            if (trained && open) drawCircle(accent.copy(alpha = OPEN_DAY_FILL_ALPHA), size.minDimension / 2f)
             drawCircle(color, size.minDimension / 2f - w / 2f, style = Stroke(w))
             if (main) drawCircle(accent, 4.dp.toPx(), Offset(size.width * 0.86f, size.height * 0.14f))
         }
@@ -1006,7 +1017,7 @@ private fun DayColumn(
             ),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        DayCircle(day, model != null, model?.isMain == true, accent, 38.dp)
+        DayCircle(day, model != null, model?.isMain == true, accent, 38.dp, open = open)
         if (captions && model != null) {
             Spacer(Modifier.height(6.dp))
             Text(
@@ -1044,6 +1055,9 @@ internal const val SWAP_NONE_TEXT = "No hay otra opción con el material de este
 /** Lo que TalkBack dice del estado de un día tocable. */
 private const val DAY_OPEN = "Desplegado"
 private const val DAY_CLOSED = "Plegado"
+
+/** Relleno del acento del día desplegado: tenue, para que la inicial siga legible sobre él. */
+private const val OPEN_DAY_FILL_ALPHA = 0.18f
 
 private val SwapPanelShape = RoundedCornerShape(24.dp)
 
@@ -1302,18 +1316,34 @@ internal fun swapReasonOf(option: SwapOption): String {
     return if (option.variant.isBlank()) reason else "${option.variant} · $reason"
 }
 
-/** Una sesión de la semana, en una fila: su círculo, el título y «75 min · 6 ejercicios» (más un punto si es la principal). */
+/**
+ * Una sesión de la semana, en una fila: su círculo, el título y «75 min · 6 ejercicios» (más un punto si es la principal).
+ * Si el día es tocable ([onToggle]), la fila entera despliega sus ejercicios igual que su círculo en «Tu semana».
+ */
 @Composable
-private fun SessionRow(model: PlanDayModel, accent: Color) {
+private fun SessionRow(model: PlanDayModel, accent: Color, onToggle: (() -> Unit)? = null, open: Boolean = false) {
     val description = weekDayDescription(model.day, model)
+    val name = PlanCopy.WEEKDAY_NAMES[model.day - 1]
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 52.dp)
-            .clearAndSetSemantics { contentDescription = description },
+            .then(
+                if (onToggle == null) {
+                    Modifier.clearAndSetSemantics { contentDescription = description }
+                } else {
+                    Modifier
+                        .testTag("setup-plan-session-${model.day}")
+                        .semantics(mergeDescendants = true) {
+                            contentDescription = description
+                            stateDescription = if (open) DAY_OPEN else DAY_CLOSED
+                        }
+                        .clickable(role = Role.Button, onClickLabel = "Ver los ejercicios del $name", onClick = onToggle)
+                },
+            ),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        DayCircle(model.day, trained = true, main = false, accent = accent, diameter = 34.dp)
+        DayCircle(model.day, trained = true, main = false, accent = accent, diameter = 34.dp, open = open)
         Spacer(Modifier.width(14.dp))
         Column(Modifier.weight(1f)) {
             Text(model.title, style = WizardTypography.cardTitle, color = WizardColors.text)
