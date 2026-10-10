@@ -5,6 +5,8 @@ import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.WellbeingSource
+import com.example.kpkn.ui.tour.TourIds
+import com.example.kpkn.ui.tour.TourSeenStore
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -93,5 +95,23 @@ class DemoDataPlanTest {
         assertEquals("2026-10-09", checkIn.date)
         assertEquals(WellbeingSource.DAILY_CHECK_IN, checkIn.source)
         listOf(checkIn.sleepQuality, checkIn.stressLevel, checkIn.doms, checkIn.motivation).forEach { assertTrue(it in 1..5) }
+    }
+
+    @Test
+    fun `la siembra da por vistos los seis recorridos para que ninguno tape la grabacion`() {
+        val store = RecordingTourSeenStore()
+        DemoDataSeeder.markToursSeen(store)
+        val tours = listOf(TourIds.HOME, TourIds.TRAINING, TourIds.FIRST_WORKOUT, TourIds.NUTRITION, TourIds.BODY, TourIds.PROFILE)
+        assertEquals(tours.sorted(), store.marked.sorted())
+    }
+
+    private class RecordingTourSeenStore : TourSeenStore {
+        val marked = mutableListOf<String>()
+
+        override fun seenIds(): Set<String> = marked.toSet()
+
+        override fun markSeen(tourId: String) {
+            marked += tourId
+        }
     }
 }

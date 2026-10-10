@@ -848,9 +848,12 @@ fun SetupWizardDraft.inputFootprint(): SetupInputFootprint = SetupInputFootprint
 /** Keeps valid answers, marks incompatible selections pending and stales previews. */
 fun SetupWizardDraft.applyChangeImpact(source: SetupChangeSource): SetupWizardDraft {
     val impact = SetupDependencyRules.impactOf(source)
+    // Solo se marcan los pasos de la ruta actual: uno fuera de ella (TRAINING_MAX sin marcas) no tiene pregunta que
+    // revisar y, marcado, quitaría su bloque de los completados.
+    val route = SetupStepGraph.stepIds(stepContext()).toSet()
     return copy(
         stepProgress = stepProgress
-            .withPendingReview(impact.pendingSteps)
+            .withPendingReview(impact.pendingSteps.intersect(route))
             .withStalePreviews(impact.stalePreviews),
     )
 }

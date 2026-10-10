@@ -107,7 +107,9 @@ import com.example.kpkn.domain.auge.SessionDiscomfortSummary
 import com.example.kpkn.domain.auge.SessionIntensityResult
 import com.example.kpkn.domain.auge.getAugeMusclePillarId
 import com.example.kpkn.domain.training.VolumeCalculator
+import com.example.kpkn.ui.components.rings.KpknRingColors
 import com.example.kpkn.ui.components.rings.KpknTowerRings
+import com.example.kpkn.ui.components.rings.RingChannel
 import com.example.kpkn.ui.components.rings.TowerRingValues
 import com.example.kpkn.screens.home.RingColors
 import com.example.kpkn.screens.home.augeRingsHostHeightDp
@@ -614,7 +616,7 @@ internal fun FinishWorkoutSheet(
                                 modifier = Modifier.weight(1f),
                                 title = "Energía",
                                 value = neuralFinal,
-                                ringColor = com.example.kpkn.ui.theme.RingBlue,
+                                ringColor = KpknRingColors.of(RingChannel.ENERGIA),
                                 ringSize = 120,
                                 onValueChange = {
                                     neuralFinal = it
@@ -625,7 +627,7 @@ internal fun FinishWorkoutSheet(
                                 modifier = Modifier.weight(1f),
                                 title = "Columna",
                                 value = spinalFinal,
-                                ringColor = com.example.kpkn.ui.theme.RingYellow,
+                                ringColor = KpknRingColors.of(RingChannel.COLUMNA),
                                 ringSize = 120,
                                 onValueChange = {
                                     spinalFinal = it
