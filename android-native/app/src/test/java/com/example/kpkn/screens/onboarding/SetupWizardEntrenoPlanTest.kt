@@ -30,6 +30,7 @@ import com.example.kpkn.data.protocols.definitions.AuthoredPhulPhatRecipes
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.entitlements.PlanLevel
+import com.example.kpkn.ui.entitlements.capabilityErrorText
 import com.example.kpkn.domain.onboarding.CapabilityLevel
 import com.example.kpkn.domain.onboarding.CapabilitySkill
 import com.example.kpkn.domain.onboarding.CompetitionAnswer
@@ -306,7 +307,7 @@ class SetupWizardEntrenoPlanTest {
     }
 
     /**
-     * T1 · con el plan Free, activar un programa de autor de varias semanas se rechaza con `advanced_program_requires_pro`
+     * T1 · con el plan Free, activar un programa de autor de varias semanas se rechaza con el texto de Pro (no con su código)
      * y no escribe ni el programa ni el estado de activo: el mismo recorrido de arriba, con el nivel de cuenta Free.
      */
     @Test
@@ -338,7 +339,10 @@ class SetupWizardEntrenoPlanTest {
         val commitId = vm.state.value.draft.commitId
 
         assertNull("en Free el programa de varias semanas no se activa", vm.commit())
-        assertEquals("el error de activación es el de Pro", "advanced_program_requires_pro", vm.state.value.errors["commit"])
+        // Lo que lee la persona es el texto del límite, nunca su código.
+        val commitError = vm.state.value.errors["commit"].orEmpty()
+        assertEquals("el error de activación es el texto de Pro", capabilityErrorText("advanced_program_requires_pro"), commitError)
+        assertFalse("el código no llega a la pantalla", commitError.contains("advanced_program_requires_pro"))
         assertNotEquals(WizChatMachineState.Committed, vm.state.value.machineState)
         assertNull("no se escribe el programa", room { db.programDao().getById(commitId) })
         assertNull("no se marca ningún programa como activo", room { db.stateDao().getActiveProgram() })
