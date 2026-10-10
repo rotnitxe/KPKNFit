@@ -68,6 +68,9 @@ jobs:
       - name: Compile the release shrinker without publishing or using signing secrets
         working-directory: android-native
         run: ./gradlew --no-daemon --console=plain --max-workers=1 -Dorg.gradle.jvmargs=-Xmx5g minifyReleaseWithR8
+      - name: Release crash reporting lifecycle with simulated SDKs on API26 and API34
+        working-directory: android-native
+        run: ./gradlew --no-daemon --console=plain --max-workers=1 -Dorg.gradle.jvmargs=-Xmx5g -Pandroid.onlyEnableUnitTestForTheTestedBuildType=false --init-script ../scripts/stability/crash_release_probe.init.gradle testReleaseUnitTest --tests com.example.kpkn.data.diagnostics.CrashReportLifecycleAdversarialTest
       - name: Inspect native LOAD, RELRO and ZIP alignment
         if: always()
         run: python scripts/stability/verify_native_packaging.py --apk android-native/app/build/outputs/apk/debug/app-debug.apk --output native-packaging.json

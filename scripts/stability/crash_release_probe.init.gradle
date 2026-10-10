@@ -1,0 +1,11 @@
+// Invocation-only source isolation: shared tests depend on the Debug Wizard harness.
+// The Release probe itself lives in src/testRelease and has no shared test helpers.
+gradle.beforeProject { project ->
+    project.pluginManager.withPlugin('com.android.application') {
+        def android = project.extensions.getByName('android')
+        android.sourceSets.named('test') {
+            java.setSrcDirs([])
+            kotlin.setSrcDirs([])
+        }
+    }
+}
