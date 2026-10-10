@@ -23,7 +23,16 @@ object AccountGraph {
     private var accounts: FirebaseAccountRepository? = null
     private var attachedProfileKey: String? = null
     private val _entitlement = MutableStateFlow(EntitlementState())
+    /** Último estado sin el interruptor de depuración: se vuelve a publicar al cambiarlo. */
+    private var rawEntitlement = EntitlementState()
     val entitlement = _entitlement.asStateFlow()
+    /** Única escritura de `_entitlement`: aplica el interruptor de depuración (en release, la identidad). Hilo principal. */
+    private fun publish(value: EntitlementState) {
+        rawEntitlement = value
+        _entitlement.value = BuildEntitlementOverride.apply(value)
+    }
+    /** Vuelve a publicar el último estado sin tocar, p. ej. al encender el interruptor de depuración. Hilo principal. */
+    internal fun republishEntitlement() = publish(rawEntitlement)
     fun account(context: Context): FirebaseAccountRepository = accounts ?: synchronized(this) {
         accounts ?: run {
             platform = ProfileStorage.platformContext(); session = FirebaseRuntime.get(requireNotNull(platform))
@@ -43,7 +52,7 @@ object AccountGraph {
         if (attachedProfileKey != null) com.example.kpkn.data.diagnostics.CrashReportingController.setEnabled(false)
         attachedProfileKey = null
         profileJob?.cancelAndJoin(); profileJob = null; foregroundSync = null; currentEntitlement = null
-        if (resetEntitlement) withContext(Dispatchers.Main) { _entitlement.value = EntitlementState() }
+        if (resetEntitlement) withContext(Dispatchers.Main) { publish(EntitlementState()) }
     }
     @OptIn(FlowPreview::class)
     suspend fun attach(context: Context) {
@@ -65,7 +74,7 @@ object AccountGraph {
             launch {
                 var wasPro = false
                 entitlements.state.collect { value ->
-                    withContext(Dispatchers.Main) { _entitlement.value = value }
+                    withContext(Dispatchers.Main) { publish(value) }
                     val pro = value.effectiveLevel == com.example.kpkn.domain.entitlements.PlanLevel.PRO
                     if (pro && !wasPro) {
                         database.syncJournalDao().releaseCapabilityWait()
