@@ -177,7 +177,7 @@ import kotlin.time.Duration.Companion.minutes
  * 1 día ([independentAthleteBodyweightFloorMinutes]). Los contadores de A12, B6, C2, D2 y E1 no cambian (F es ahora
  * 1 fila: ver GRUPO F); las filas de Atleta completo con material completo
  * (`T006_Q4_completeAthlete_full_material_…`) se suman aparte. B y T027 siguen siendo la regresión del
- * generador HISTÓRICO `native:strength-cardio` (MIXED).
+ * generador HISTÓRICO `native:strength-cardio` (MIXED). Desde que el paso GOAL ya no escribe MIXED, sus filas B y T027 van con «Fuerza y cardio» (COMPLETE_ATHLETE).
  *
  * GRUPO F (consolidación 2026-10-02; testigo cambiado en la curaduría 2026-10-03, C.P2b; rediseñado en
  * Entreno v2 y de nuevo el 2026-10-08): la fila F-presupuesto-minimo (Músculo, principiante, 11 categorías
@@ -769,7 +769,10 @@ class SetupExecutableAvailabilityMatrixTest {
     @Test
     fun T019_A_musculo_new_peso_corporal_12_filas() = runGroup("A", rowsA(), 25.minutes)
 
-    /** B6: MIXED, INTERMEDIATE, 11 categorías, cardio WALK 10 min, días dentro y fuera de 2..4. */
+    /**
+     * B6: «Fuerza y cardio» (COMPLETE_ATHLETE; el legado MIXED ya no es alcanzable desde GOAL), INTERMEDIATE, 11 categorías,
+     * cardio WALK 10 min, días dentro y fuera de 2..4.
+     */
     @Test
     fun T019_B_mixto_intermediate_todo_el_material_6_filas() = runGroup("B", rowsB(), 20.minutes)
 
@@ -1839,12 +1842,13 @@ class SetupExecutableAvailabilityMatrixTest {
             MatrixRow(
                 id = "B-d$days-m$minutes",
                 group = "B",
-                goal = SetupGoal.MIXED,
+                goal = SetupGoal.COMPLETE_ATHLETE,
                 experience = SetupExperience.INTERMEDIATE,
                 categories = allCategories,
                 daysPerWeek = days,
                 minutes = minutes,
                 cardioMinutes = 10,
+                structuredCardio = true,
             )
         }
     }
@@ -2005,20 +2009,21 @@ class SetupExecutableAvailabilityMatrixTest {
     }
 
     /**
-     * T-027 — Las TRES frecuencias que el catálogo nativo ya admitía (2..4) con el objetivo MIXED
-     * completo: INTERMEDIATE, las 11 categorías, 60 min y cardio CAMINAR 10 min. Mismo perfil que
-     * el grupo B salvo por la frecuencia, para que la comparación sea honesta.
+     * T-027 — Las TRES frecuencias que el catálogo nativo ya admitía (2..4) con el objetivo «Fuerza y cardio»
+     * (COMPLETE_ATHLETE; el legado MIXED ya no es alcanzable desde GOAL): INTERMEDIATE, las 11 categorías, 60 min y
+     * cardio CAMINAR 10 min. Mismo perfil que el grupo B salvo por la frecuencia, para que la comparación sea honesta.
      */
     private fun rowsT027(): List<MatrixRow> = listOf(2, 3, 4).map { days ->
         MatrixRow(
             id = "T027-d$days-m60",
             group = "T027",
-            goal = SetupGoal.MIXED,
+            goal = SetupGoal.COMPLETE_ATHLETE,
             experience = SetupExperience.INTERMEDIATE,
             categories = allCategories,
             daysPerWeek = days,
             minutes = 60,
             cardioMinutes = 10,
+            structuredCardio = true,
         )
     }
 
@@ -2136,6 +2141,11 @@ class SetupExecutableAvailabilityMatrixTest {
         val daysPerWeek: Int,
         val minutes: Int,
         val cardioMinutes: Int? = null,
+        /**
+         * Filas de «Fuerza y cardio» (B y T027): el cardio tiene que ser CONTENIDO ESTRUCTURADO con el tipo y los minutos del
+         * borrador (bloque (i) del oráculo, igual que MIXED). El objetivo legado MIXED ya no es alcanzable desde GOAL.
+         */
+        val structuredCardio: Boolean = false,
         val expectedNegativeReason: PlanRejectionReason? = null,
         /**
          * Solo filas negativas: el plan cuyo rechazo TIME_BUDGET tipado debe informar el mínimo
@@ -2711,7 +2721,7 @@ class SetupExecutableAvailabilityMatrixTest {
         // [com.example.kpkn.data.models.Exercise.cardioDetails]) sobre las sesiones devueltas.
         // El tipo y los minutos esperados salen de las RESPUESTAS REALES del borrador, no de
         // literales: si el producto cambiara el tipo pedido, esta aserción lo delataría.
-        if (row.goal == SetupGoal.MIXED) {
+        if (row.goal == SetupGoal.MIXED || row.structuredCardio) {
             val requestedType = state.draft.cardioType
             val requestedMinutes = requireNotNull(row.cardioMinutes) {
                 "${row.id}: una fila MIXED declara minutos de cardio en su propia definición"
