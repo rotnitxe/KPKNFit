@@ -40,7 +40,10 @@ import java.io.FileOutputStream
 class RingsIntroRenderSheetTest {
 
     companion object {
-        /** Sin `KPKN_RENDER_DIR` la clase se salta antes de arrancar los gráficos nativos de Robolectric. */
+        /**
+         * Con el ejecutor de Robolectric esta suposición solo salta la primera prueba que corre y las demás siguen: por eso
+         * cada prueba empieza con [onlyWhenAsked] (igual que `WizardRenderSheetTest`).
+         */
         @JvmStatic
         @BeforeClass
         fun onlyWhenAskedFor() {
@@ -75,7 +78,11 @@ class RingsIntroRenderSheetTest {
         FileOutputStream(File(dir, "$name.png")).use { cropped.compress(Bitmap.CompressFormat.PNG, 100, it) }
     }
 
+    /** Lo primero de cada prueba: sin `KPKN_RENDER_DIR` no se dibuja nada y la prueba se salta (no falla). */
+    private fun onlyWhenAsked() = assumeTrue("sin KPKN_RENDER_DIR no se dibuja nada", System.getenv("KPKN_RENDER_DIR") != null)
+
     private fun render(name: String, demo: RingsIntroState, highlighted: RingChannelId?) {
+        onlyWhenAsked()
         rule.setContent {
             hostView = LocalView.current
             Box(
