@@ -139,17 +139,31 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-java@v6
         with: {distribution: temurin, java-version: "21"}
-      - uses: actions/setup-node@v7
+      - name: Install the Functions and CLI runtime
+        uses: actions/setup-node@v7
         with: {node-version: "22"}
+      - name: Preserve the Node 22 executable
+        run: echo "KPKN_FUNCTIONS_NODE=$(command -v node)" >> "$GITHUB_ENV"
+      - name: Install the rules test client runtime
+        uses: actions/setup-node@v7
+        with: {node-version: "24"}
+      - name: Verify the test client runtime
+        run: |
+          node -e 'const [major, minor] = process.versions.node.split(".").map(Number); if (major !== 24 || minor < 12) throw new Error("Rules tests require Node 24.12+")'
+          echo "KPKN_RULES_NODE=$(command -v node)" >> "$GITHUB_ENV"
       - working-directory: cloud-sync
         run: npm ci --ignore-scripts --no-audit
       - working-directory: cloud-sync/functions
         run: npm ci --ignore-scripts --no-audit
-      - working-directory: cloud-sync/functions
-        run: npm test
-      - working-directory: cloud-sync
+      - name: Run server contracts on Node 22
+        working-directory: cloud-sync/functions
+        run: '"$KPKN_FUNCTIONS_NODE" --test test/*.test.mjs'
+      - name: Run Functions on Node 22 and rules tests on Node 24
+        working-directory: cloud-sync
         env: {FUNCTIONS_DISCOVERY_TIMEOUT: "60"}
-        run: npm test
+        run: |
+          export PATH="$(dirname "$KPKN_FUNCTIONS_NODE"):$PATH"
+          "$KPKN_FUNCTIONS_NODE" node_modules/firebase-tools/lib/bin/firebase.js emulators:exec --project demo-kpkn-stability --only firestore,auth,storage,functions "cd functions && \"$KPKN_RULES_NODE\" --test --test-concurrency=1 integration/*.test.mjs"
   release:
     if: github.event_name == 'workflow_dispatch'
     needs: [android, emulator-startup, firebase, shared-swift-contract]
