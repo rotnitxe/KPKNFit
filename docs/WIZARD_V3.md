@@ -103,3 +103,12 @@ Cuándo sale cada paso condicional:
 - Semanas repetidas por `MeetRecipeFitter`: copian la carga de su semana de origen (sin escalón propio).
 - La Columna del resultado está acotada por la mezcla de Inicio (`50 + (articular + guardianes)/4`), igual que en la app.
 - El detalle del anillo en Inicio es una hoja modal aparte: el recorrido no puede resaltarla.
+- `OlympicMarksTest` (Halterofilia avanzada) sigue en rojo, a decidir.
+  - Qué pasa: con marcas, la serie de trabajo lleva `%1RM` y `ApproachPlanner.heaviestPercent()` la clasifica como muy pesada. Eso añade un *single* a la rampa, y el minuto extra tira el último ejercicio de la sesión.
+  - Sin marcas no hay porcentaje y la rampa es más corta. Lo destapó el press militar que ahora entra en Halterofilia.
+- Regresión amplia (2026-10-09): una clase deja vivo `ProgramRepository` con su `loadFromDb` esperando en un `StandardTestDispatcher`, y la siguiente que llama a `closeInstance()` se cuelga en `cancelAndJoin`. Ocurrió en `SetupWizardEntrenoPlanTest.setUp`.
+  - No se encontró qué clase lo deja vivo: las que lo inician a mano lo cierran.
+  - Si se repite, saca un `jstack` del ejecutor de pruebas, mata solo ese proceso y corre las clases restantes en una segunda pasada.
+- Fallos que no son de la ola:
+  - `ProgramSnapshotStoreTest` ×2 y `ProgramDetailViewModelTest` ×2 (copias de seguridad del programa): vienen de `master` 11aff1778.
+  - `ExerciseDatabaseLoadTest` y `CanonicalJsonTest`: necesitan `catalog/` y `cloud-sync/`, que el checkout parcial no trae.
