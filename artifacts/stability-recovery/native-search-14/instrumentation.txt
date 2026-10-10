@@ -1,0 +1,70 @@
+INSTRUMENTATION_STATUS: class=com.example.kpkn.data.repository.NutritionSearchBenchmarkTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+com.example.kpkn.data.repository.NutritionSearchBenchmarkTest:
+INSTRUMENTATION_STATUS: test=searchBudget
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: kpkn_search_result={"samples":120,"medianMs":161.6138,"p95Ms":322.4865,"maxMs":563.5172,"budgetMs":150,"storage":"PROFILE_ROOM_FILE"}
+INSTRUMENTATION_STATUS_CODE: 2
+INSTRUMENTATION_STATUS: class=com.example.kpkn.data.repository.NutritionSearchBenchmarkTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: Android warm search p95 must be below 150 ms; measured 322.4865
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at com.example.kpkn.data.repository.NutritionSearchBenchmarkTest$searchBudget$1.invokeSuspend(NutritionSearchBenchmarkTest.kt:51)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:101)
+	at kotlinx.coroutines.EventLoopImplBase.processNextEvent(EventLoop.common.kt:263)
+	at kotlinx.coroutines.BlockingCoroutine.joinBlocking(Builders.kt:95)
+	at kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking(Builders.kt:69)
+	at kotlinx.coroutines.BuildersKt.runBlocking(Unknown Source:1)
+	at kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking$default(Builders.kt:47)
+	at kotlinx.coroutines.BuildersKt.runBlocking$default(Unknown Source:1)
+	at com.example.kpkn.data.repository.NutritionSearchBenchmarkTest.searchBudget(NutritionSearchBenchmarkTest.kt:15)
+
+INSTRUMENTATION_STATUS: stream=
+Error in searchBudget(com.example.kpkn.data.repository.NutritionSearchBenchmarkTest):
+java.lang.AssertionError: Android warm search p95 must be below 150 ms; measured 322.4865
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at com.example.kpkn.data.repository.NutritionSearchBenchmarkTest$searchBudget$1.invokeSuspend(NutritionSearchBenchmarkTest.kt:51)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:101)
+	at kotlinx.coroutines.EventLoopImplBase.processNextEvent(EventLoop.common.kt:263)
+	at kotlinx.coroutines.BlockingCoroutine.joinBlocking(Builders.kt:95)
+	at kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking(Builders.kt:69)
+	at kotlinx.coroutines.BuildersKt.runBlocking(Unknown Source:1)
+	at kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking$default(Builders.kt:47)
+	at kotlinx.coroutines.BuildersKt.runBlocking$default(Unknown Source:1)
+	at com.example.kpkn.data.repository.NutritionSearchBenchmarkTest.searchBudget(NutritionSearchBenchmarkTest.kt:15)
+
+INSTRUMENTATION_STATUS: test=searchBudget
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_RESULT: stream=
+
+Time: 86.596
+There was 1 failure:
+1) searchBudget(com.example.kpkn.data.repository.NutritionSearchBenchmarkTest)
+java.lang.AssertionError: Android warm search p95 must be below 150 ms; measured 322.4865
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at com.example.kpkn.data.repository.NutritionSearchBenchmarkTest$searchBudget$1.invokeSuspend(NutritionSearchBenchmarkTest.kt:51)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:101)
+	at kotlinx.coroutines.EventLoopImplBase.processNextEvent(EventLoop.common.kt:263)
+	at kotlinx.coroutines.BlockingCoroutine.joinBlocking(Builders.kt:95)
+	at kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking(Builders.kt:69)
+	at kotlinx.coroutines.BuildersKt.runBlocking(Unknown Source:1)
+	at kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking$default(Builders.kt:47)
+	at kotlinx.coroutines.BuildersKt.runBlocking$default(Unknown Source:1)
+	at com.example.kpkn.data.repository.NutritionSearchBenchmarkTest.searchBudget(NutritionSearchBenchmarkTest.kt:15)
+
+FAILURES!!!
+Tests run: 1,  Failures: 1
+
+
+INSTRUMENTATION_CODE: -1

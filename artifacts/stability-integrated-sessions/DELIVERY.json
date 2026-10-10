@@ -71,13 +71,21 @@
       {
         "test": "NutritionRepositoryStartupTest.a failing catalog import keeps the published user rows and the measurement reminder",
         "assertion": "Expected one immediate scheduled measurement alarm, found zero",
-        "resolution": "Production reminder scheduling restored to immediate semantics; targeted verification pending."
+        "resolution": "Immediate alarm semantics restored in production. NutritionRepositoryStartupTest passed in the 113-case final directed round; original broad failure retained.",
+        "resolvedByEvidence": [
+          "directed-final-17-unit/TEST-com.example.kpkn.data.repository.NutritionRepositoryStartupTest.xml"
+        ]
       },
       {
         "test": "ProfileRegistryRecoveryTest.interruptedAccountSwitchRequiresMatchingAuthenticatedOwner (API34)",
         "assertion": "Expected last committed owner-a after partial replacement, found null",
         "productionFileChanged": false,
-        "resolution": "Isolated repeat pending; not assumed to be fixture-only."
+        "resolution": "Isolated repeat reproduced; diagnostic confirmed Windows renameTo could not replace AtomicFile target. Only POSIX rename fixture aligned; all assertions retained and ProfileStorage unchanged. Final JVM suite and real Android registry recovery passed.",
+        "resolvedByEvidence": [
+          "registry-platform-diagnostic-16-unit/TEST-com.example.kpkn.data.settings.ProfileRegistryRecoveryTest.xml",
+          "directed-final-17-unit/TEST-com.example.kpkn.data.settings.ProfileRegistryRecoveryTest.xml",
+          "native-final-17/registry-platform.txt"
+        ]
       }
     ],
     "diagnosticHashes": {
@@ -654,5 +662,11 @@
     "artifacts/stability-integrated-sessions/stale-writer-baseline/result.json": "7667b6f8da9de29dc9bbc0fe9ce749db6a5d608cc536fdad65a226526e0d685d",
     "artifacts/stability-integrated-sessions/stale-writer-baseline/TEST-com.example.kpkn.data.repository.RetiredCompetitionWriterTest.xml": "752d0d14622694a4e40b87d250bf273fef2318eff7cad06df0421e32ddc8202a",
     "artifacts/stability-integrated-sessions/tested-source-fingerprint-final.json": "99c5c6e49b8600da5aa1d07d9a1276e89a495cdca29396f7ea835abeb8f41277"
+  },
+  "metadataReconciliation": {
+    "previousDeliverySha256": "10f4a7ff9cf7d34865cc0797f26f884921e635d1e4b1c63219c499dc8c91e62a",
+    "originalArchivedAt": "../stability-recovery/DELIVERY-11aff-original.json",
+    "resultCountsUnchanged": true,
+    "fullSuiteStillInconclusive": true
   }
 }

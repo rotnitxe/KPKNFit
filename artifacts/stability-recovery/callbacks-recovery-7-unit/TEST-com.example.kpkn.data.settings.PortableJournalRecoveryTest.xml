@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.settings.PortableJournalRecoveryTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-09T17:09:05.592Z" hostname="VF" time="6.995">
+  <properties/>
+  <testcase name="corruptState[26]" classname="com.example.kpkn.data.settings.PortableJournalRecoveryTest" time="0.458"/>
+  <testcase name="corruptState" classname="com.example.kpkn.data.settings.PortableJournalRecoveryTest" time="1.18"/>
+  <testcase name="backupOnly[26]" classname="com.example.kpkn.data.settings.PortableJournalRecoveryTest" time="0.518"/>
+  <testcase name="backupOnly" classname="com.example.kpkn.data.settings.PortableJournalRecoveryTest" time="2.214"/>
+  <testcase name="partialCommit[26]" classname="com.example.kpkn.data.settings.PortableJournalRecoveryTest" time="0.545"/>
+  <testcase name="partialCommit" classname="com.example.kpkn.data.settings.PortableJournalRecoveryTest" time="2.08"/>
+  <system-out><![CDATA[QA_JOURNAL snapshot directory characters=201
+QA_JOURNAL snapshot directory characters=201
+QA_JOURNAL snapshot directory characters=200
+QA_JOURNAL snapshot directory characters=200
+QA_JOURNAL snapshot directory characters=203
+QA_JOURNAL snapshot directory characters=203
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

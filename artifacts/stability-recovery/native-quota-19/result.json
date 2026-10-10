@@ -1,0 +1,35 @@
+{
+  "state": "PASS",
+  "runId": "f28b9ba5-d834-411e-8ba7-c6d3120494b8",
+  "cases": [
+    {
+      "phase": "SQLITE_FULL",
+      "steps": [
+        {
+          "outcome": "PASS",
+          "pid": 3917,
+          "log": "SQLITE_FULL-seed-main.txt"
+        },
+        {
+          "outcome": "PASS",
+          "pid": null,
+          "log": "SQLITE_FULL-sqliteFull-main.txt"
+        }
+      ],
+      "verification": {
+        "pid": 3977,
+        "sqliteFull": true,
+        "limitPages": 162,
+        "freePagesAfterVacuum": 0,
+        "scope": "SQLite max_page_count on the isolated profile DB; filesystem not filled"
+      },
+      "state": "PASS_SQLITE_QUOTA_FILESYSTEM_NOT_FILLED"
+    }
+  ],
+  "limits": "Actual isolated process termination and SQLite page quota. No physically full filesystem, live Firebase, Play purchase, SAF or complete device matrix.",
+  "api": "36",
+  "appApkSha256": "c8172b9f883d5c2ce8485a8511f4b04511558cf2b5031f2f311ac54dfea7d164",
+  "testApkSha256": "81fe2f53fa10c0c2149edeebb176d72118fea1f89a02af74a6788f3dae5e8942",
+  "finalMainPid": 4073,
+  "mainVisible": true
+}

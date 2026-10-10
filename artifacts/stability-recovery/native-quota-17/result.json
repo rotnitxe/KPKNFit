@@ -1,0 +1,21 @@
+{
+  "state": "FAIL_OR_INCOMPLETE",
+  "runId": "48bd8d02-bda5-4935-a546-0e2d8ade3f7f",
+  "cases": [
+    {
+      "phase": "SQLITE_FULL",
+      "steps": [
+        {
+          "outcome": "PASS",
+          "pid": 3452,
+          "log": "SQLITE_FULL-seed-main.txt"
+        }
+      ]
+    }
+  ],
+  "limits": "Actual isolated process termination and SQLite page quota. No physically full filesystem, live Firebase, Play purchase, SAF or complete device matrix.",
+  "api": "36",
+  "appApkSha256": "c8172b9f883d5c2ce8485a8511f4b04511558cf2b5031f2f311ac54dfea7d164",
+  "testApkSha256": "343f0bc215804aa07dc37914cd11a95d5f3649d2615d12e7cac007fbe99cc6b1",
+  "error": "ines.BuildersKt.runBlocking(Unknown Source:1)\r\n\tat kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking$default(Builders.kt:47)\r\n\tat kotlinx.coroutines.BuildersKt.runBlocking$default(Unknown Source:1)\r\n\tat com.example.kpkn.data.backup.MaintenanceCrashRecoveryTest.sqliteFull(MaintenanceCrashRecoveryTest.kt:125)\r\n\r\nINSTRUMENTATION_STATUS: test=sqliteFull\r\nINSTRUMENTATION_STATUS_CODE: -2\r\nINSTRUMENTATION_RESULT: stream=\r\n\r\nTime: 4.259\r\nThere was 1 failure:\r\n1) sqliteFull(com.example.kpkn.data.backup.MaintenanceCrashRecoveryTest)\r\njava.lang.AssertionError: Actual SQLite quota must signal SQLITE_FULL; failure=unknown error (code 0 SQLITE_OK): Queries can be performed using SQLiteDatabase query or rawQuery methods only. pages=162 free=0\r\n\tat org.junit.Assert.fail(Assert.java:89)\r\n\tat org.junit.Assert.assertTrue(Assert.java:42)\r\n\tat com.example.kpkn.data.backup.MaintenanceCrashRecoveryTest$sqliteFull$1.invokeSuspend(MaintenanceCrashRecoveryTest.kt:152)\r\n\tat kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)\r\n\tat kotlinx.coroutines.internal.ScopeCoroutine.afterResume(Scopes.kt:28)\r\n\tat kotlinx.coroutines.AbstractCoroutine.resumeWith(AbstractCoroutine.kt:100)\r\n\tat kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:47)\r\n\tat kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:101)\r\n\tat kotlinx.coroutines.EventLoopImplBase.processNextEvent(EventLoop.common.kt:263)\r\n\tat kotlinx.coroutines.BlockingCoroutine.joinBlocking(Builders.kt:95)\r\n\tat kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking(Builders.kt:69)\r\n\tat kotlinx.coroutines.BuildersKt.runBlocking(Unknown Source:1)\r\n\tat kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking$default(Builders.kt:47)\r\n\tat kotlinx.coroutines.BuildersKt.runBlocking$default(Unknown Source:1)\r\n\tat com.example.kpkn.data.backup.MaintenanceCrashRecoveryTest.sqliteFull(MaintenanceCrashRecoveryTest.kt:125)\r\n\r\nFAILURES!!!\r\nTests run: 1,  Failures: 1\r\n\r\n\r\nINSTRUMENTATION_CODE: -1\r\n"
+}

@@ -1,0 +1,18 @@
+{
+  "state": "FAIL_OR_INCOMPLETE",
+  "testCount": null,
+  "classes": [
+    "com.example.kpkn.data.repository.NutritionSearchBenchmarkTest"
+  ],
+  "testApkSha256": "08723f05215614cae80ad6ae1ee5c5d435a6b37bd06f9fb4a00dfea370112920",
+  "api": "36",
+  "search": {
+    "samples": 120,
+    "medianMs": 161.6138,
+    "p95Ms": 322.4865,
+    "maxMs": 563.5172,
+    "budgetMs": 150,
+    "storage": "PROFILE_ROOM_FILE"
+  },
+  "mainVisible": true
+}

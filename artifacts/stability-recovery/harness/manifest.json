@@ -1,0 +1,10 @@
+{
+  "purpose": "Exact local validation orchestration; archived as text, not runtime code",
+  "origin": "b132/artifacts/stability-launch/aud03-tests",
+  "files": {
+    "run-maintenance-crashes.py.txt": "76ee6fbfeb7764c4fee508ab58bd510eab5ae662a551e4ee3c80350bae6a7f2c",
+    "finalize-recovery-checkpoint.py.txt": "4006e5d0fd647086ee4de59fa5c61f2128ee45e212ed084135d58855e6f8b53f",
+    "recovery-source-fingerprint.py.txt": "ca6ce50dca0a28a89ee3da24d91426930d5460309e37857ff03d9fd1d37dcd72",
+    "preserve-recovery-results.py.txt": "37cf54111a133fafd0d23ab86614db3b04415c7c456af04c609339f456203824"
+  }
+}

@@ -69,45 +69,59 @@ object PortableBackup {
         } finally { snapshot.delete(); context.deleteDatabase(name); workspace.deleteRecursively() }
     }
 
-    suspend fun restore(context: Context, input: InputStream) = withContext(Dispatchers.IO) {
+    suspend fun restore(context: Context, input: InputStream) = restore(context, input, MaintenanceCheckpoint.None)
+
+    internal suspend fun restore(context: Context, input: InputStream, checkpoint: MaintenanceCheckpoint) = withContext(Dispatchers.IO) {
         val stage = File(context.noBackupFilesDir, "portable-stage/${UUID.randomUUID()}").also { check(it.mkdirs()) }
         try {
-            val manifest = extract(input, stage)
-            transaction(context) {
+            val manifest = extract(input, stage, checkpoint)
+            transaction(context, checkpoint) {
                 portableRoots.forEach { root ->
                     val destination = portableFile(context, root)
                     if (destination.exists()) check(destination.deleteRecursively())
                     File(stage, "files/$root").takeIf { it.exists() }?.let { move(it, destination) }
+                    checkpoint.reached(MaintenancePhase.PORTABLE_ROOT_REPLACED)
                 }
                 val name = "restore_${UUID.randomUUID()}.db"
                 val imported = context.getDatabasePath(name)
                 try {
                     File(stage, "database.db").copyTo(imported, overwrite = true)
                     rewriteFiles(context, name, portable = false)
-                    DatabaseBackupHelper.restoreSnapshot(context, imported)
+                    DatabaseBackupHelper.restoreSnapshot(context, imported, recovering = false, checkpoint = checkpoint)
+                    checkpoint.reached(MaintenancePhase.DATABASE_APPLIED)
                     restorePreferences(context, manifest.preferences)
+                    checkpoint.reached(MaintenancePhase.PREFERENCES_APPLIED)
                 } finally { context.deleteDatabase(name) }
             }
         } finally { stage.deleteRecursively() }
     }
 
     /** Call only while the DataSessionCoordinator has stopped all personal writers. */
-    suspend fun <T> transaction(context: Context, action: suspend () -> T): T {
+    suspend fun <T> transaction(context: Context, action: suspend () -> T): T =
+        transaction(context, MaintenanceCheckpoint.None, action)
+
+    internal suspend fun <T> transaction(context: Context, checkpoint: MaintenanceCheckpoint, action: suspend () -> T): T {
         recover(context)
         val root = File(context.noBackupFilesDir, "maintenance")
         check(!root.exists() || root.deleteRecursively()); check(root.mkdirs())
-        val oldDatabase = File(context.filesDir, "snapshots/${DatabaseBackupHelper.createSnapshot(context)}")
+        val oldDatabase = File(context.filesDir, "snapshots/${DatabaseBackupHelper.createSnapshot(context, checkpoint)}")
         val oldPreferences = preferences(context, includeDeviceState = true)
         File(root, "rollback.db").also { oldDatabase.copyTo(it); sync(it) }; oldDatabase.delete()
+        checkpoint.reached(MaintenancePhase.ROLLBACK_DATABASE_COPIED)
         File(root, "preferences.json").also { it.writeText(oldPreferences.toString()); sync(it) }
         portableRoots.forEach { name ->
             val source = portableFile(context, name)
-            if (source.exists()) { val destination = File(root, "rollback-files/$name"); check(source.copyRecursively(destination)); destination.walkTopDown().filter { it.isFile }.forEach(::sync) }
+            if (source.exists()) {
+                val destination = File(root, "rollback-files/$name")
+                copyRollbackFiles(source, destination, checkpoint)
+            }
         }
         writeState(root, "PREPARED")
+        checkpoint.reached(MaintenancePhase.PREPARED_SYNCED)
         try {
             val result = action()
-            writeState(root, "COMMITTED")
+            writeState(root, "COMMITTED", checkpoint)
+            checkpoint.reached(MaintenancePhase.COMMITTED_SYNCED)
             // COMMITTED is the durable outcome. Cleanup can be retried at the next startup;
             // lack of space or a temporary file lock must not turn a completed restore into failure.
             runCatching { root.deleteRecursively() }
@@ -118,25 +132,39 @@ object PortableBackup {
         }
     }
 
-    fun recover(context: Context) {
+    fun recover(context: Context) = recover(context, MaintenanceCheckpoint.None)
+
+    internal fun recover(context: Context, checkpoint: MaintenanceCheckpoint) {
         val root = File(context.noBackupFilesDir, "maintenance")
         if (!root.exists()) return
-        val state = File(root, "state").takeIf { it.exists() }?.readText()
+        val atomicState = AtomicFile(File(root, "state"))
+        val hasCommittedState = atomicState.baseFile.exists() || File(atomicState.baseFile.path + ".bak").exists()
+        // AtomicFile must recover an API26 backup before any rollback input can be deleted.
+        // No base/backup means preparation never durably admitted the destructive action.
+        val state = if (hasCommittedState) atomicState.openRead().use {
+            BoundedInput.bytes(it, 32).toString(Charsets.UTF_8)
+        }.also {
+            check(it in setOf("PREPARED", "COMMITTED", "RECOVERED")) { "The maintenance journal requires recovery" }
+        } else null
         if (state == "PREPARED") {
             // Copies, rather than moves, keep the preimage intact if recovery itself is interrupted.
             portableRoots.forEach { name ->
                 val target = portableFile(context, name)
                 if (target.exists()) check(target.deleteRecursively())
                 File(root, "rollback-files/$name").takeIf { it.exists() }?.let { check(it.copyRecursively(target, overwrite = true)) }
+                checkpoint.reached(MaintenancePhase.RECOVERY_ROOT_RESTORED)
             }
-            DatabaseBackupHelper.restoreSnapshot(context, File(root, "rollback.db"), recovering = true)
+            DatabaseBackupHelper.restoreSnapshot(context, File(root, "rollback.db"), recovering = true, checkpoint = checkpoint)
+            checkpoint.reached(MaintenancePhase.RECOVERY_DATABASE_APPLIED)
             restorePreferences(context, Json.parseToJsonElement(File(root, "preferences.json").readText()).jsonObject, includeDeviceState = true)
+            checkpoint.reached(MaintenancePhase.RECOVERY_PREFERENCES_APPLIED)
             writeState(root, "RECOVERED")
+            checkpoint.reached(MaintenancePhase.RECOVERY_SYNCED)
         }
         check(root.deleteRecursively())
     }
 
-    private fun extract(input: InputStream, stage: File): PortableManifest = ZipInputStream(input).use { zip ->
+    private fun extract(input: InputStream, stage: File, checkpoint: MaintenanceCheckpoint): PortableManifest = ZipInputStream(input).use { zip ->
         require(zip.nextEntry?.name == "manifest.json") { "Invalid portable backup" }
         val manifest = json.decodeFromString(PortableManifest.serializer(), BoundedInput.bytes(zip, 8L * 1024 * 1024).toString(Charsets.UTF_8))
         require(manifest.schemaVersion in 1..2 && manifest.databaseVersion in 1..KpknDatabase.DATABASE_VERSION)
@@ -152,7 +180,10 @@ object PortableBackup {
             safeEntry(entry.name); require(!entry.isDirectory)
             val description = expected.remove(entry.name) ?: error("Unexpected or duplicate backup file")
             val file = File(stage, entry.name).also { check(it.parentFile!!.isDirectory || it.parentFile!!.mkdirs()) }
-            java.io.FileOutputStream(file).use { BoundedInput.copy(zip, it, description.bytes); it.fd.sync() }
+            java.io.FileOutputStream(file).use { output ->
+                BoundedInput.copy(zip, observedOutput(output, checkpoint, MaintenancePhase.IMPORT_COPYING), description.bytes)
+                output.fd.sync()
+            }
             require(file.length() == description.bytes && hash(file) == description.sha256) { "Backup verification failed" }
         }
         require(expected.isEmpty()) { "Backup is incomplete" }
@@ -289,6 +320,30 @@ object PortableBackup {
             }
         }
     }
+    private fun observedOutput(output: OutputStream, checkpoint: MaintenanceCheckpoint, phase: MaintenancePhase): OutputStream =
+        object : OutputStream() {
+            override fun write(value: Int) { output.write(value); checkpoint.reached(phase) }
+            override fun write(bytes: ByteArray, offset: Int, count: Int) {
+                output.write(bytes, offset, count)
+                if (count > 0) checkpoint.reached(phase)
+            }
+            override fun flush() = output.flush()
+        }
+
+    private fun copyRollbackFiles(source: File, target: File, checkpoint: MaintenanceCheckpoint) {
+        if (source.isDirectory) {
+            check(target.isDirectory || target.mkdirs())
+            source.listFiles()?.forEach { copyRollbackFiles(it, File(target, it.name), checkpoint) }
+                ?: error("Unable to enumerate rollback files")
+        } else {
+            check(target.parentFile!!.isDirectory || target.parentFile!!.mkdirs())
+            source.inputStream().use { input -> java.io.FileOutputStream(target).use { output ->
+                BoundedInput.copy(input, observedOutput(output, checkpoint, MaintenancePhase.ROLLBACK_FILE_COPYING), Long.MAX_VALUE)
+                output.fd.sync()
+            } }
+        }
+    }
+
     private fun hash(file: File): String {
         val digest = MessageDigest.getInstance("SHA-256")
         file.inputStream().use { input -> val bytes = ByteArray(64 * 1024); while (true) { val count = input.read(bytes); if (count < 0) break; digest.update(bytes, 0, count) } }
@@ -296,8 +351,11 @@ object PortableBackup {
     }
     private fun sync(file: File) { java.io.FileInputStream(file).use { it.fd.sync() } }
     private fun move(source: File, target: File) { target.parentFile!!.mkdirs(); Files.move(source.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE) }
-    private fun writeState(root: File, state: String) {
+    private fun writeState(root: File, state: String, checkpoint: MaintenanceCheckpoint = MaintenanceCheckpoint.None) {
         val atomic = AtomicFile(File(root, "state")); val output = atomic.startWrite()
-        try { output.write(state.toByteArray()); atomic.finishWrite(output) } catch (error: Throwable) { atomic.failWrite(output); throw error }
+        try {
+            if (state == "COMMITTED") checkpoint.reached(MaintenancePhase.COMMIT_JOURNAL_OPENED)
+            output.write(state.toByteArray()); atomic.finishWrite(output)
+        } catch (error: Throwable) { atomic.failWrite(output); throw error }
     }
 }

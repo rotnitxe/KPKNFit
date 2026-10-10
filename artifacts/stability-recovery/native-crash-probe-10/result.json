@@ -1,0 +1,222 @@
+{
+  "state": "PASS",
+  "runId": "16166894-5e83-4629-9c5c-644b87d96f87",
+  "cases": [
+    {
+      "phase": "IMPORT_COPYING",
+      "steps": [
+        {
+          "outcome": "PASS",
+          "pid": 12467,
+          "log": "IMPORT_COPYING-seed-main.txt"
+        },
+        {
+          "outcome": "EXPECTED_PROCESS_TERMINATION_NOT_TEST_PASS",
+          "pid": 12539,
+          "checkpoint": "IMPORT_COPYING",
+          "marker": {
+            "pid": 12539,
+            "phase": "IMPORT_COPYING",
+            "step": "restore",
+            "stateBaseExists": false,
+            "stateBackupExists": false,
+            "stateNewExists": false
+          },
+          "log": "IMPORT_COPYING-interrupt-restore.txt"
+        },
+        {
+          "outcome": "PASS",
+          "pid": 12623,
+          "log": "IMPORT_COPYING-verify-main.txt"
+        }
+      ],
+      "seed": {
+        "profileKey": "guest_4cc7267ff07dec8bb769c9d2",
+        "archiveSha256": "c6d6326021f2964f827fecd645c3468ba3362b3a7f8ca3b28e1bb882bf7e20de",
+        "originalPhoto": "b5cf9ce639d8cb11c4c31ff8a78cb2c0ed133cd22b552c36fc33dd59880bca77",
+        "replacementPhoto": "bdd74528c79887367d207a0db5b327f2a0de4d7ceacf1a6c60d86508d9cedf82"
+      },
+      "verification": {
+        "pid": 12623,
+        "phase": "IMPORT_COPYING",
+        "durableOutcome": "original",
+        "inputUnchanged": true
+      },
+      "state": "PASS_WITH_ACTUAL_INTERRUPTION"
+    },
+    {
+      "phase": "PORTABLE_ROOT_REPLACED",
+      "steps": [
+        {
+          "outcome": "PASS",
+          "pid": 12704,
+          "log": "PORTABLE_ROOT_REPLACED-seed-main.txt"
+        },
+        {
+          "outcome": "EXPECTED_PROCESS_TERMINATION_NOT_TEST_PASS",
+          "pid": 12763,
+          "checkpoint": "PORTABLE_ROOT_REPLACED",
+          "marker": {
+            "pid": 12763,
+            "phase": "PORTABLE_ROOT_REPLACED",
+            "step": "restore",
+            "stateBaseExists": true,
+            "stateBackupExists": false,
+            "stateNewExists": false
+          },
+          "log": "PORTABLE_ROOT_REPLACED-interrupt-restore.txt"
+        },
+        {
+          "outcome": "PASS",
+          "pid": 12847,
+          "log": "PORTABLE_ROOT_REPLACED-verify-main.txt"
+        }
+      ],
+      "seed": {
+        "profileKey": "guest_5d98da694fd44e1e7c0fb8f6",
+        "archiveSha256": "02d69c24bcfe882d730a42b0cfb03d607bf739f142c4945c5e19e08e6d7d7594",
+        "originalPhoto": "b5cf9ce639d8cb11c4c31ff8a78cb2c0ed133cd22b552c36fc33dd59880bca77",
+        "replacementPhoto": "bdd74528c79887367d207a0db5b327f2a0de4d7ceacf1a6c60d86508d9cedf82"
+      },
+      "verification": {
+        "pid": 12847,
+        "phase": "PORTABLE_ROOT_REPLACED",
+        "durableOutcome": "original",
+        "inputUnchanged": true
+      },
+      "state": "PASS_WITH_ACTUAL_INTERRUPTION"
+    },
+    {
+      "phase": "COMMIT_JOURNAL_OPENED",
+      "steps": [
+        {
+          "outcome": "PASS",
+          "pid": 12930,
+          "log": "COMMIT_JOURNAL_OPENED-seed-main.txt"
+        },
+        {
+          "outcome": "EXPECTED_PROCESS_TERMINATION_NOT_TEST_PASS",
+          "pid": 12990,
+          "checkpoint": "COMMIT_JOURNAL_OPENED",
+          "marker": {
+            "pid": 12990,
+            "phase": "COMMIT_JOURNAL_OPENED",
+            "step": "restore",
+            "stateBaseExists": true,
+            "stateBackupExists": false,
+            "stateNewExists": true
+          },
+          "log": "COMMIT_JOURNAL_OPENED-interrupt-restore.txt"
+        },
+        {
+          "outcome": "PASS",
+          "pid": 13072,
+          "log": "COMMIT_JOURNAL_OPENED-verify-main.txt"
+        }
+      ],
+      "seed": {
+        "profileKey": "guest_ab482002adba8da2a9b9940f",
+        "archiveSha256": "07bc87047ae8e2220c5d0622756977880d81cec6fbc804edf4b176e7b6fae2d0",
+        "originalPhoto": "b5cf9ce639d8cb11c4c31ff8a78cb2c0ed133cd22b552c36fc33dd59880bca77",
+        "replacementPhoto": "bdd74528c79887367d207a0db5b327f2a0de4d7ceacf1a6c60d86508d9cedf82"
+      },
+      "verification": {
+        "pid": 13072,
+        "phase": "COMMIT_JOURNAL_OPENED",
+        "durableOutcome": "original",
+        "inputUnchanged": true
+      },
+      "state": "PASS_WITH_ACTUAL_INTERRUPTION"
+    },
+    {
+      "phase": "COMMITTED_SYNCED",
+      "steps": [
+        {
+          "outcome": "PASS",
+          "pid": 13157,
+          "log": "COMMITTED_SYNCED-seed-main.txt"
+        },
+        {
+          "outcome": "EXPECTED_PROCESS_TERMINATION_NOT_TEST_PASS",
+          "pid": 13214,
+          "checkpoint": "COMMITTED_SYNCED",
+          "marker": {
+            "pid": 13214,
+            "phase": "COMMITTED_SYNCED",
+            "step": "restore",
+            "stateBaseExists": true,
+            "stateBackupExists": false,
+            "stateNewExists": false
+          },
+          "log": "COMMITTED_SYNCED-interrupt-restore.txt"
+        },
+        {
+          "outcome": "PASS",
+          "pid": 13298,
+          "log": "COMMITTED_SYNCED-verify-main.txt"
+        }
+      ],
+      "seed": {
+        "profileKey": "guest_5a266bd755a057d1f9f03525",
+        "archiveSha256": "aea341f0288c7bd611f27dd5c4390833bc432bd212ab96b4027a687dea290b57",
+        "originalPhoto": "b5cf9ce639d8cb11c4c31ff8a78cb2c0ed133cd22b552c36fc33dd59880bca77",
+        "replacementPhoto": "bdd74528c79887367d207a0db5b327f2a0de4d7ceacf1a6c60d86508d9cedf82"
+      },
+      "verification": {
+        "pid": 13298,
+        "phase": "COMMITTED_SYNCED",
+        "durableOutcome": "replacement",
+        "inputUnchanged": true
+      },
+      "state": "PASS_WITH_ACTUAL_INTERRUPTION"
+    },
+    {
+      "phase": "REOPEN_READBACK",
+      "steps": [
+        {
+          "outcome": "PASS",
+          "pid": 13381,
+          "log": "REOPEN_READBACK-seed-main.txt"
+        },
+        {
+          "outcome": "EXPECTED_PROCESS_TERMINATION_NOT_TEST_PASS",
+          "pid": 13438,
+          "checkpoint": "REOPEN_READBACK",
+          "marker": {
+            "pid": 13438,
+            "phase": "REOPEN_READBACK",
+            "step": "restore",
+            "stateBaseExists": false,
+            "stateBackupExists": false,
+            "stateNewExists": false
+          },
+          "log": "REOPEN_READBACK-interrupt-restore.txt"
+        },
+        {
+          "outcome": "PASS",
+          "pid": 13535,
+          "log": "REOPEN_READBACK-verify-main.txt"
+        }
+      ],
+      "seed": {
+        "profileKey": "guest_67615144c473fa5384abd7c3",
+        "archiveSha256": "8f0679184b4c1a001a6df151605c0ad04f8e01461bd4342e85f628c056212816",
+        "originalPhoto": "b5cf9ce639d8cb11c4c31ff8a78cb2c0ed133cd22b552c36fc33dd59880bca77",
+        "replacementPhoto": "bdd74528c79887367d207a0db5b327f2a0de4d7ceacf1a6c60d86508d9cedf82"
+      },
+      "verification": {
+        "pid": 13535,
+        "phase": "REOPEN_READBACK",
+        "durableOutcome": "replacement",
+        "inputUnchanged": true
+      },
+      "state": "PASS_WITH_ACTUAL_INTERRUPTION"
+    }
+  ],
+  "limits": "Actual isolated process termination and SQLite page quota. No physically full filesystem, live Firebase, Play purchase, SAF or complete device matrix.",
+  "api": "36",
+  "appApkSha256": "c8172b9f883d5c2ce8485a8511f4b04511558cf2b5031f2f311ac54dfea7d164",
+  "testApkSha256": "08723f05215614cae80ad6ae1ee5c5d435a6b37bd06f9fb4a00dfea370112920",
+  "finalMainPid": 13610,
+  "mainVisible": true
+}
