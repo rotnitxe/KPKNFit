@@ -1,0 +1,1 @@
+SELECT ts.state,ROUND(SUM(ts.dur)/1e6,2) AS duration_ms,COUNT(*) AS intervals FROM thread_state ts JOIN thread t USING(utid) JOIN process p USING(upid) WHERE p.pid=4022 AND t.tid=4022 AND ts.dur>0 GROUP BY ts.state ORDER BY duration_ms DESC;

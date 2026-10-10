@@ -1,0 +1,111 @@
+package com.example.kpkn.services.cardio
+
+import android.app.ActivityManager
+import android.content.Context
+import android.os.Bundle
+import androidx.test.core.app.ActivityScenario
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
+import com.example.kpkn.BuildConfig
+import com.example.kpkn.MainActivity
+import com.example.kpkn.data.account.ProfileStorage
+import com.example.kpkn.data.backup.AppBootstrap
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
+import org.junit.Assert.*
+import org.junit.Test
+import org.junit.runner.RunWith
+import java.util.UUID
+
+/** Actual Android GPS/FGS on a prepared profile; host supplies explicitly synthetic AVD points. */
+@RunWith(AndroidJUnit4::class)
+class StableProfileGpsLifecycleTest {
+    @Suppress("DEPRECATION")
+    private fun foreground(context: Context): Boolean =
+        (context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager)
+            .getRunningServices(Int.MAX_VALUE).any {
+                it.service.className == CardioGpsForegroundService::class.java.name && it.foreground
+            }
+
+    @Suppress("DEPRECATION")
+    private fun running(context: Context): Boolean =
+        (context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager)
+            .getRunningServices(Int.MAX_VALUE).any {
+                it.service.className == CardioGpsForegroundService::class.java.name
+            }
+
+    @Test fun preparedProfileRecordsPausesResumesAndRestoresDurableRoute(): Unit = runBlocking {
+        val base = InstrumentationRegistry.getInstrumentation().targetContext
+        check(BuildConfig.DEBUG && base.packageName == "com.example.kpkn.stability")
+        check(CardioGpsTracker.state.value.sessionKey == null) { "Preserve any existing GPS owner" }
+        val key = "qa-stable-gps-${UUID.randomUUID()}"
+        val scenario = ActivityScenario.launch(MainActivity::class.java)
+        var context: Context? = null
+        var started = false
+        try {
+            withTimeout(60_000) { AppBootstrap.state.first { it == AppBootstrap.State.Ready } }
+            val fixed = ProfileStorage.context(base)
+            context = fixed
+            assertTrue(CardioGpsTracker.hasLocationPermission(fixed))
+            assertTrue(CardioGpsTracker.isLocationEnabled(fixed))
+            withContext(Dispatchers.Main) { CardioGpsForegroundService.start(fixed, key) }
+            started = true
+            val first = withTimeout(30_000) {
+                CardioGpsTracker.state.first {
+                    it.sessionKey == key && it.status == CardioGpsStatus.RECORDING && it.pointCount >= 2 && it.distanceMeters > 0
+                }
+            }
+            withTimeout(15_000) { while (!foreground(fixed)) delay(100) }
+            withContext(Dispatchers.Main) { CardioGpsForegroundService.pause(fixed, key) }
+            val paused = withTimeout(10_000) {
+                CardioGpsTracker.state.first { it.sessionKey == key && it.status == CardioGpsStatus.PAUSED }
+            }
+            delay(6_500)
+            assertEquals("Paused route must reject the host's continuing fixes", paused.pointCount, CardioGpsTracker.state.value.pointCount)
+            assertEquals(paused.pointCount, CardioGpsTracker.restoreIfAvailable(fixed, key).pointCount)
+            withContext(Dispatchers.Main) { CardioGpsForegroundService.resume(fixed, key) }
+            val resumed = withTimeout(30_000) {
+                CardioGpsTracker.state.first {
+                    it.sessionKey == key && it.status == CardioGpsStatus.RECORDING && it.pointCount > paused.pointCount
+                }
+            }
+            assertTrue(resumed.distanceMeters >= first.distanceMeters)
+            withContext(Dispatchers.Main) { CardioGpsForegroundService.stop(fixed, key) }
+            val stopped = withTimeout(15_000) {
+                CardioGpsTracker.state.first { it.sessionKey == key && it.status == CardioGpsStatus.STOPPED }
+            }
+            withTimeout(15_000) { while (running(fixed)) delay(100) }
+            CardioGpsTracker.pausePersonalWrites()
+            try { CardioGpsTracker.releaseProfileMemory() }
+            finally { CardioGpsTracker.resumePersonalWrites() }
+            val restored = CardioGpsTracker.restoreIfAvailable(fixed, key)
+            assertEquals("Durable route point count must survive loss of process memory", stopped.pointCount, restored.pointCount)
+            assertEquals(stopped.distanceMeters, restored.distanceMeters, 0.001)
+            assertEquals(CardioGpsStatus.PAUSED, restored.status)
+            assertFalse(running(fixed))
+            InstrumentationRegistry.getInstrumentation().sendStatus(2, Bundle().apply {
+                putString("kpkn_stable_gps", org.json.JSONObject().put("state", "PASS")
+                    .put("initialPoints", first.pointCount).put("pausedPoints", paused.pointCount)
+                    .put("resumedPoints", resumed.pointCount).put("restoredPoints", restored.pointCount)
+                    .put("distanceMeters", restored.distanceMeters).put("foregroundStopped", true)
+                    .put("scope", "SYNTHETIC_ANDROID_GPS_FGS_AND_FILE_RESTORE").toString())
+            })
+        } finally {
+            if (started) {
+                context?.let { fixed ->
+                    runCatching { withContext(Dispatchers.Main) { CardioGpsForegroundService.stop(fixed, key) } }
+                }
+                CardioGpsTracker.stop(key)
+                CardioGpsTracker.clearSession(key)
+                CardioGpsTracker.pausePersonalWrites()
+                CardioGpsTracker.releaseProfileMemory()
+                CardioGpsTracker.resumePersonalWrites()
+            }
+            scenario.close()
+        }
+    }
+}

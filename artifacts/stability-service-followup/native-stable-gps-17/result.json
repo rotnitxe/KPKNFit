@@ -1,0 +1,46 @@
+{
+  "state": "PASS",
+  "scope": "SYNTHETIC_GPS_FGS_FILE_RESTORE_ON_PREPARED_PROFILE",
+  "fixSource": "ANDROID_TEST_GPS_PROVIDER_VIA_LOCATION_SERVICE",
+  "limits": "Actual Android/FusedLocation/FGS/file restore with explicitly mocked GPS provider fixes, one API36 device. No GNSS hardware, console geo delivery, UI workout/editor, permission revocation, approximate-only location, process restart or physical route.",
+  "avdConfigSha256": "c6a6bb43b6e473cf9a5cec48c21043278d560a7ccf94517c02aed8476da1015f",
+  "gmsInitiallyDisabled": false,
+  "installedApksReusedWithExactHash": true,
+  "appApkSha256": "f765a31a97dfa4214208cf859425544118c9eb79eaf3dfc7dae47cc5d73685fe",
+  "testApkSha256": "3a3465015b5caad4f8aefcfc8300f561b051926ce3c5282d01acb13fcd5009f8",
+  "permissionBefore": {
+    "android.permission.ACCESS_COARSE_LOCATION": false,
+    "android.permission.ACCESS_FINE_LOCATION": false
+  },
+  "native": {
+    "state": "PASS",
+    "initialPoints": 2,
+    "pausedPoints": 2,
+    "resumedPoints": 3,
+    "restoredPoints": 3,
+    "distanceMeters": 11.119492664034915,
+    "foregroundStopped": true,
+    "scope": "SYNTHETIC_ANDROID_GPS_FGS_AND_FILE_RESTORE"
+  },
+  "cases": 1,
+  "api": "36",
+  "mainTopResumed": true,
+  "syntheticFixes": 10,
+  "permissionRestoration": {
+    "android.permission.ACCESS_FINE_LOCATION": true,
+    "android.permission.ACCESS_COARSE_LOCATION": true
+  },
+  "mockProviderRemoved": true,
+  "mockOpRestoredDefault": true,
+  "evidenceHashes": {
+    "activity.txt": "6ae407ff2901c8aae9af0199d8290d0a7b06a36173a73754e0bdd6228ccc7c9c",
+    "app-installed-hash.txt": "5711bb81adbc252b396a2db54f82d86ad8a3e1df6599275bac72ccdcef9edaa6",
+    "instrumentation.txt": "4693e7ec0e5015dcb35b3615b0a37aced19d0e1e0eba2e8c21bb89b27b02b5dc",
+    "main.png": "de2b3c23afd4ddaa72e1be3dab8af7f98cee11dab41f851871129094bb6feb72",
+    "mock-op-before.txt": "431265b795082dd543820c345e453207cef541baaca8c6ea9bca48c61473285e",
+    "services.txt": "b09f3b4a6a904e27469aa457f075b26957c17f1f46575872d2ae2db9d8a07836",
+    "synthetic-fixes.json": "cc6d671328e7237d3b67392ef1708201de865f721a84d018ebdfed58559cc4ae",
+    "test-installed-hash.txt": "dbf6931a919f009c1a513c165d4219342f4c155a9e808bcd9f9e758b8b90737b",
+    "ui.xml": "97aa03a4a11e53e28224a12681c459b14cb1f83beb7c56fe0039d1756be06a76"
+  }
+}

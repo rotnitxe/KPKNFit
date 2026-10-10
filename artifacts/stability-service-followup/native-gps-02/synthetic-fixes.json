@@ -1,0 +1,1605 @@
+[
+  {
+    "index": 0,
+    "longitude": "-70.650000",
+    "latitude": "-33.450000",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 1,
+    "longitude": "-70.650000",
+    "latitude": "-33.449980",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 2,
+    "longitude": "-70.650000",
+    "latitude": "-33.449960",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 3,
+    "longitude": "-70.650000",
+    "latitude": "-33.449940",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 4,
+    "longitude": "-70.650000",
+    "latitude": "-33.449920",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 5,
+    "longitude": "-70.650000",
+    "latitude": "-33.449900",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 6,
+    "longitude": "-70.650000",
+    "latitude": "-33.449880",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 7,
+    "longitude": "-70.650000",
+    "latitude": "-33.449860",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 8,
+    "longitude": "-70.650000",
+    "latitude": "-33.449840",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 9,
+    "longitude": "-70.650000",
+    "latitude": "-33.449820",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 10,
+    "longitude": "-70.650000",
+    "latitude": "-33.449800",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 11,
+    "longitude": "-70.650000",
+    "latitude": "-33.449780",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 12,
+    "longitude": "-70.650000",
+    "latitude": "-33.449760",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 13,
+    "longitude": "-70.650000",
+    "latitude": "-33.449740",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 14,
+    "longitude": "-70.650000",
+    "latitude": "-33.449720",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 15,
+    "longitude": "-70.650000",
+    "latitude": "-33.449700",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 16,
+    "longitude": "-70.650000",
+    "latitude": "-33.449680",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 17,
+    "longitude": "-70.650000",
+    "latitude": "-33.449660",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 18,
+    "longitude": "-70.650000",
+    "latitude": "-33.449640",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 19,
+    "longitude": "-70.650000",
+    "latitude": "-33.449620",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 20,
+    "longitude": "-70.650000",
+    "latitude": "-33.449600",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 21,
+    "longitude": "-70.650000",
+    "latitude": "-33.449580",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 22,
+    "longitude": "-70.650000",
+    "latitude": "-33.449560",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 23,
+    "longitude": "-70.650000",
+    "latitude": "-33.449540",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 24,
+    "longitude": "-70.650000",
+    "latitude": "-33.449520",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 25,
+    "longitude": "-70.650000",
+    "latitude": "-33.449500",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 26,
+    "longitude": "-70.650000",
+    "latitude": "-33.449480",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 27,
+    "longitude": "-70.650000",
+    "latitude": "-33.449460",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 28,
+    "longitude": "-70.650000",
+    "latitude": "-33.449440",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 29,
+    "longitude": "-70.650000",
+    "latitude": "-33.449420",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 30,
+    "longitude": "-70.650000",
+    "latitude": "-33.449400",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 31,
+    "longitude": "-70.650000",
+    "latitude": "-33.449380",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 32,
+    "longitude": "-70.650000",
+    "latitude": "-33.449360",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 33,
+    "longitude": "-70.650000",
+    "latitude": "-33.449340",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 34,
+    "longitude": "-70.650000",
+    "latitude": "-33.449320",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 35,
+    "longitude": "-70.650000",
+    "latitude": "-33.449300",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 36,
+    "longitude": "-70.650000",
+    "latitude": "-33.449280",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 37,
+    "longitude": "-70.650000",
+    "latitude": "-33.449260",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 38,
+    "longitude": "-70.650000",
+    "latitude": "-33.449240",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 39,
+    "longitude": "-70.650000",
+    "latitude": "-33.449220",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 40,
+    "longitude": "-70.650000",
+    "latitude": "-33.449200",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 41,
+    "longitude": "-70.650000",
+    "latitude": "-33.449180",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 42,
+    "longitude": "-70.650000",
+    "latitude": "-33.449160",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 43,
+    "longitude": "-70.650000",
+    "latitude": "-33.449140",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 44,
+    "longitude": "-70.650000",
+    "latitude": "-33.449120",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 45,
+    "longitude": "-70.650000",
+    "latitude": "-33.449100",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 46,
+    "longitude": "-70.650000",
+    "latitude": "-33.449080",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 47,
+    "longitude": "-70.650000",
+    "latitude": "-33.449060",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 48,
+    "longitude": "-70.650000",
+    "latitude": "-33.449040",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 49,
+    "longitude": "-70.650000",
+    "latitude": "-33.449020",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 50,
+    "longitude": "-70.650000",
+    "latitude": "-33.449000",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 51,
+    "longitude": "-70.650000",
+    "latitude": "-33.448980",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 52,
+    "longitude": "-70.650000",
+    "latitude": "-33.448960",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 53,
+    "longitude": "-70.650000",
+    "latitude": "-33.448940",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 54,
+    "longitude": "-70.650000",
+    "latitude": "-33.448920",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 55,
+    "longitude": "-70.650000",
+    "latitude": "-33.448900",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 56,
+    "longitude": "-70.650000",
+    "latitude": "-33.448880",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 57,
+    "longitude": "-70.650000",
+    "latitude": "-33.448860",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 58,
+    "longitude": "-70.650000",
+    "latitude": "-33.448840",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 59,
+    "longitude": "-70.650000",
+    "latitude": "-33.448820",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 60,
+    "longitude": "-70.650000",
+    "latitude": "-33.448800",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 61,
+    "longitude": "-70.650000",
+    "latitude": "-33.448780",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 62,
+    "longitude": "-70.650000",
+    "latitude": "-33.448760",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 63,
+    "longitude": "-70.650000",
+    "latitude": "-33.448740",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 64,
+    "longitude": "-70.650000",
+    "latitude": "-33.448720",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 65,
+    "longitude": "-70.650000",
+    "latitude": "-33.448700",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 66,
+    "longitude": "-70.650000",
+    "latitude": "-33.448680",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 67,
+    "longitude": "-70.650000",
+    "latitude": "-33.448660",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 68,
+    "longitude": "-70.650000",
+    "latitude": "-33.448640",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 69,
+    "longitude": "-70.650000",
+    "latitude": "-33.448620",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 70,
+    "longitude": "-70.650000",
+    "latitude": "-33.448600",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 71,
+    "longitude": "-70.650000",
+    "latitude": "-33.448580",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 72,
+    "longitude": "-70.650000",
+    "latitude": "-33.448560",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 73,
+    "longitude": "-70.650000",
+    "latitude": "-33.448540",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 74,
+    "longitude": "-70.650000",
+    "latitude": "-33.448520",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 75,
+    "longitude": "-70.650000",
+    "latitude": "-33.448500",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 76,
+    "longitude": "-70.650000",
+    "latitude": "-33.448480",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 77,
+    "longitude": "-70.650000",
+    "latitude": "-33.448460",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 78,
+    "longitude": "-70.650000",
+    "latitude": "-33.448440",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 79,
+    "longitude": "-70.650000",
+    "latitude": "-33.448420",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 80,
+    "longitude": "-70.650000",
+    "latitude": "-33.448400",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 81,
+    "longitude": "-70.650000",
+    "latitude": "-33.448380",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 82,
+    "longitude": "-70.650000",
+    "latitude": "-33.448360",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 83,
+    "longitude": "-70.650000",
+    "latitude": "-33.448340",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 84,
+    "longitude": "-70.650000",
+    "latitude": "-33.448320",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 85,
+    "longitude": "-70.650000",
+    "latitude": "-33.448300",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 86,
+    "longitude": "-70.650000",
+    "latitude": "-33.448280",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 87,
+    "longitude": "-70.650000",
+    "latitude": "-33.448260",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 88,
+    "longitude": "-70.650000",
+    "latitude": "-33.448240",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 89,
+    "longitude": "-70.650000",
+    "latitude": "-33.448220",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 90,
+    "longitude": "-70.650000",
+    "latitude": "-33.448200",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 91,
+    "longitude": "-70.650000",
+    "latitude": "-33.448180",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 92,
+    "longitude": "-70.650000",
+    "latitude": "-33.448160",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 93,
+    "longitude": "-70.650000",
+    "latitude": "-33.448140",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 94,
+    "longitude": "-70.650000",
+    "latitude": "-33.448120",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 95,
+    "longitude": "-70.650000",
+    "latitude": "-33.448100",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 96,
+    "longitude": "-70.650000",
+    "latitude": "-33.448080",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 97,
+    "longitude": "-70.650000",
+    "latitude": "-33.448060",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 98,
+    "longitude": "-70.650000",
+    "latitude": "-33.448040",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 99,
+    "longitude": "-70.650000",
+    "latitude": "-33.448020",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 100,
+    "longitude": "-70.650000",
+    "latitude": "-33.448000",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 101,
+    "longitude": "-70.650000",
+    "latitude": "-33.447980",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 102,
+    "longitude": "-70.650000",
+    "latitude": "-33.447960",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 103,
+    "longitude": "-70.650000",
+    "latitude": "-33.447940",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 104,
+    "longitude": "-70.650000",
+    "latitude": "-33.447920",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 105,
+    "longitude": "-70.650000",
+    "latitude": "-33.447900",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 106,
+    "longitude": "-70.650000",
+    "latitude": "-33.447880",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 107,
+    "longitude": "-70.650000",
+    "latitude": "-33.447860",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 108,
+    "longitude": "-70.650000",
+    "latitude": "-33.447840",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 109,
+    "longitude": "-70.650000",
+    "latitude": "-33.447820",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 110,
+    "longitude": "-70.650000",
+    "latitude": "-33.447800",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 111,
+    "longitude": "-70.650000",
+    "latitude": "-33.447780",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 112,
+    "longitude": "-70.650000",
+    "latitude": "-33.447760",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 113,
+    "longitude": "-70.650000",
+    "latitude": "-33.447740",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 114,
+    "longitude": "-70.650000",
+    "latitude": "-33.447720",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 115,
+    "longitude": "-70.650000",
+    "latitude": "-33.447700",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 116,
+    "longitude": "-70.650000",
+    "latitude": "-33.447680",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 117,
+    "longitude": "-70.650000",
+    "latitude": "-33.447660",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 118,
+    "longitude": "-70.650000",
+    "latitude": "-33.447640",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 119,
+    "longitude": "-70.650000",
+    "latitude": "-33.447620",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 120,
+    "longitude": "-70.650000",
+    "latitude": "-33.447600",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 121,
+    "longitude": "-70.650000",
+    "latitude": "-33.447580",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 122,
+    "longitude": "-70.650000",
+    "latitude": "-33.447560",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 123,
+    "longitude": "-70.650000",
+    "latitude": "-33.447540",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 124,
+    "longitude": "-70.650000",
+    "latitude": "-33.447520",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 125,
+    "longitude": "-70.650000",
+    "latitude": "-33.447500",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 126,
+    "longitude": "-70.650000",
+    "latitude": "-33.447480",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 127,
+    "longitude": "-70.650000",
+    "latitude": "-33.447460",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 128,
+    "longitude": "-70.650000",
+    "latitude": "-33.447440",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 129,
+    "longitude": "-70.650000",
+    "latitude": "-33.447420",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 130,
+    "longitude": "-70.650000",
+    "latitude": "-33.447400",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 131,
+    "longitude": "-70.650000",
+    "latitude": "-33.447380",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 132,
+    "longitude": "-70.650000",
+    "latitude": "-33.447360",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 133,
+    "longitude": "-70.650000",
+    "latitude": "-33.447340",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 134,
+    "longitude": "-70.650000",
+    "latitude": "-33.447320",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 135,
+    "longitude": "-70.650000",
+    "latitude": "-33.447300",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 136,
+    "longitude": "-70.650000",
+    "latitude": "-33.447280",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 137,
+    "longitude": "-70.650000",
+    "latitude": "-33.447260",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 138,
+    "longitude": "-70.650000",
+    "latitude": "-33.447240",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 139,
+    "longitude": "-70.650000",
+    "latitude": "-33.447220",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 140,
+    "longitude": "-70.650000",
+    "latitude": "-33.447200",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 141,
+    "longitude": "-70.650000",
+    "latitude": "-33.447180",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 142,
+    "longitude": "-70.650000",
+    "latitude": "-33.447160",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 143,
+    "longitude": "-70.650000",
+    "latitude": "-33.447140",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 144,
+    "longitude": "-70.650000",
+    "latitude": "-33.447120",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 145,
+    "longitude": "-70.650000",
+    "latitude": "-33.447100",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 146,
+    "longitude": "-70.650000",
+    "latitude": "-33.447080",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 147,
+    "longitude": "-70.650000",
+    "latitude": "-33.447060",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 148,
+    "longitude": "-70.650000",
+    "latitude": "-33.447040",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 149,
+    "longitude": "-70.650000",
+    "latitude": "-33.447020",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 150,
+    "longitude": "-70.650000",
+    "latitude": "-33.447000",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 151,
+    "longitude": "-70.650000",
+    "latitude": "-33.446980",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 152,
+    "longitude": "-70.650000",
+    "latitude": "-33.446960",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 153,
+    "longitude": "-70.650000",
+    "latitude": "-33.446940",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 154,
+    "longitude": "-70.650000",
+    "latitude": "-33.446920",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 155,
+    "longitude": "-70.650000",
+    "latitude": "-33.446900",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 156,
+    "longitude": "-70.650000",
+    "latitude": "-33.446880",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 157,
+    "longitude": "-70.650000",
+    "latitude": "-33.446860",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 158,
+    "longitude": "-70.650000",
+    "latitude": "-33.446840",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 159,
+    "longitude": "-70.650000",
+    "latitude": "-33.446820",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 160,
+    "longitude": "-70.650000",
+    "latitude": "-33.446800",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 161,
+    "longitude": "-70.650000",
+    "latitude": "-33.446780",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 162,
+    "longitude": "-70.650000",
+    "latitude": "-33.446760",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 163,
+    "longitude": "-70.650000",
+    "latitude": "-33.446740",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 164,
+    "longitude": "-70.650000",
+    "latitude": "-33.446720",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 165,
+    "longitude": "-70.650000",
+    "latitude": "-33.446700",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 166,
+    "longitude": "-70.650000",
+    "latitude": "-33.446680",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 167,
+    "longitude": "-70.650000",
+    "latitude": "-33.446660",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 168,
+    "longitude": "-70.650000",
+    "latitude": "-33.446640",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 169,
+    "longitude": "-70.650000",
+    "latitude": "-33.446620",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 170,
+    "longitude": "-70.650000",
+    "latitude": "-33.446600",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 171,
+    "longitude": "-70.650000",
+    "latitude": "-33.446580",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 172,
+    "longitude": "-70.650000",
+    "latitude": "-33.446560",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 173,
+    "longitude": "-70.650000",
+    "latitude": "-33.446540",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 174,
+    "longitude": "-70.650000",
+    "latitude": "-33.446520",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 175,
+    "longitude": "-70.650000",
+    "latitude": "-33.446500",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 176,
+    "longitude": "-70.650000",
+    "latitude": "-33.446480",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 177,
+    "longitude": "-70.650000",
+    "latitude": "-33.446460",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 178,
+    "longitude": "-70.650000",
+    "latitude": "-33.446440",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 179,
+    "longitude": "-70.650000",
+    "latitude": "-33.446420",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 180,
+    "longitude": "-70.650000",
+    "latitude": "-33.446400",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 181,
+    "longitude": "-70.650000",
+    "latitude": "-33.446380",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 182,
+    "longitude": "-70.650000",
+    "latitude": "-33.446360",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 183,
+    "longitude": "-70.650000",
+    "latitude": "-33.446340",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 184,
+    "longitude": "-70.650000",
+    "latitude": "-33.446320",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 185,
+    "longitude": "-70.650000",
+    "latitude": "-33.446300",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 186,
+    "longitude": "-70.650000",
+    "latitude": "-33.446280",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 187,
+    "longitude": "-70.650000",
+    "latitude": "-33.446260",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 188,
+    "longitude": "-70.650000",
+    "latitude": "-33.446240",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 189,
+    "longitude": "-70.650000",
+    "latitude": "-33.446220",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 190,
+    "longitude": "-70.650000",
+    "latitude": "-33.446200",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 191,
+    "longitude": "-70.650000",
+    "latitude": "-33.446180",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 192,
+    "longitude": "-70.650000",
+    "latitude": "-33.446160",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 193,
+    "longitude": "-70.650000",
+    "latitude": "-33.446140",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 194,
+    "longitude": "-70.650000",
+    "latitude": "-33.446120",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 195,
+    "longitude": "-70.650000",
+    "latitude": "-33.446100",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 196,
+    "longitude": "-70.650000",
+    "latitude": "-33.446080",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 197,
+    "longitude": "-70.650000",
+    "latitude": "-33.446060",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 198,
+    "longitude": "-70.650000",
+    "latitude": "-33.446040",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 199,
+    "longitude": "-70.650000",
+    "latitude": "-33.446020",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 200,
+    "longitude": "-70.650000",
+    "latitude": "-33.446000",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 201,
+    "longitude": "-70.650000",
+    "latitude": "-33.445980",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 202,
+    "longitude": "-70.650000",
+    "latitude": "-33.445960",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 203,
+    "longitude": "-70.650000",
+    "latitude": "-33.445940",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 204,
+    "longitude": "-70.650000",
+    "latitude": "-33.445920",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 205,
+    "longitude": "-70.650000",
+    "latitude": "-33.445900",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 206,
+    "longitude": "-70.650000",
+    "latitude": "-33.445880",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 207,
+    "longitude": "-70.650000",
+    "latitude": "-33.445860",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 208,
+    "longitude": "-70.650000",
+    "latitude": "-33.445840",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 209,
+    "longitude": "-70.650000",
+    "latitude": "-33.445820",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 210,
+    "longitude": "-70.650000",
+    "latitude": "-33.445800",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 211,
+    "longitude": "-70.650000",
+    "latitude": "-33.445780",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 212,
+    "longitude": "-70.650000",
+    "latitude": "-33.445760",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 213,
+    "longitude": "-70.650000",
+    "latitude": "-33.445740",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 214,
+    "longitude": "-70.650000",
+    "latitude": "-33.445720",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 215,
+    "longitude": "-70.650000",
+    "latitude": "-33.445700",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 216,
+    "longitude": "-70.650000",
+    "latitude": "-33.445680",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 217,
+    "longitude": "-70.650000",
+    "latitude": "-33.445660",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 218,
+    "longitude": "-70.650000",
+    "latitude": "-33.445640",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 219,
+    "longitude": "-70.650000",
+    "latitude": "-33.445620",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 220,
+    "longitude": "-70.650000",
+    "latitude": "-33.445600",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 221,
+    "longitude": "-70.650000",
+    "latitude": "-33.445580",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 222,
+    "longitude": "-70.650000",
+    "latitude": "-33.445560",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 223,
+    "longitude": "-70.650000",
+    "latitude": "-33.445540",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 224,
+    "longitude": "-70.650000",
+    "latitude": "-33.445520",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 225,
+    "longitude": "-70.650000",
+    "latitude": "-33.445500",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 226,
+    "longitude": "-70.650000",
+    "latitude": "-33.445480",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 227,
+    "longitude": "-70.650000",
+    "latitude": "-33.445460",
+    "returnCode": 0,
+    "response": "OK"
+  },
+  {
+    "index": 228,
+    "longitude": "-70.650000",
+    "latitude": "-33.445440",
+    "returnCode": 0,
+    "response": "OK"
+  }
+]

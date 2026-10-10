@@ -1,0 +1,17 @@
+{
+  "state": "FAIL_OR_INCOMPLETE",
+  "scope": "SYNTHETIC_GPS_FGS_FILE_RESTORE_ON_PREPARED_PROFILE",
+  "limits": "Actual platform GPS/FGS/file restore with synthetic AVD fixes, one API36 device. No UI workout/editor, permission revocation, approximate-only location, process restart or physical route.",
+  "avdConfigSha256": "b25b75375e09234a2e13d4d813bda341677e9ab8ae5b67e1d8bf787975e4c776",
+  "gmsInitiallyDisabled": false,
+  "appApkSha256": "f765a31a97dfa4214208cf859425544118c9eb79eaf3dfc7dae47cc5d73685fe",
+  "testApkSha256": "3a3465015b5caad4f8aefcfc8300f561b051926ce3c5282d01acb13fcd5009f8",
+  "errorType": "AssertionError",
+  "error": "",
+  "permissionRestoration": {},
+  "evidenceHashes": {
+    "app-install.txt": "c4aa470acafcf8576c15b0f0b5ae7e852d1ec5413372d0e6a9272e788e1306d3",
+    "synthetic-fixes.json": "a5338d955b09046ec0b16f3a9625b7955c763aae07dc722e474e6078745f932f",
+    "test-install.txt": "c4aa470acafcf8576c15b0f0b5ae7e852d1ec5413372d0e6a9272e788e1306d3"
+  }
+}

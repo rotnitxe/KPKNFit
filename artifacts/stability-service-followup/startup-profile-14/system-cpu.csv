@@ -1,0 +1,16 @@
+"name","running_ms"
+"com.example.kpkn.stability",19111.740000
+"com.google.android.apps.messaging",9025.120000
+"com.google.android.as",5526.690000
+"system_server",5335.950000
+"com.android.vending:background",5158.720000
+"kworker/3:0",5157.450000
+"[NULL]",3413.410000
+"/system/bin/surfaceflinger",3238.300000
+"com.google.android.gms.persistent",2999.760000
+"/vendor/bin/hw/android.hardware.sensors-service.multihal",2985.780000
+"com.google.android.as.oss",2964.500000
+"ksoftirqd/3",2480.050000
+"/vendor/bin/hw/android.hardware.graphics.composer3-service.ranchu",2049.900000
+"jbd2/dm-55-8",1182.630000
+"/system/bin/traced_probes",757.300000

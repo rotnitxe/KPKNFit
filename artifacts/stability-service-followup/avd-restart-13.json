@@ -1,0 +1,16 @@
+{
+  "state": "OWN_AVD_RESTARTED_AND_BOOTED",
+  "avd": "Kpkn_Gps_QA",
+  "serial": "emulator-5558",
+  "previousLauncherPid": 12580,
+  "launcherPid": 37716,
+  "ramMb": 4096,
+  "cores": 4,
+  "gpu": "auto",
+  "gpsEnabled": true,
+  "otherAvdsUnchanged": true,
+  "dataLocation": "C:\\kw\\msi\\artifacts\\stability-service-followup\\qa-avd",
+  "configSha256": "c6a6bb43b6e473cf9a5cec48c21043278d560a7ccf94517c02aed8476da1015f",
+  "limits": "Environment change only, no product performance fix or GPS approval implied.",
+  "bootCompleted": true
+}

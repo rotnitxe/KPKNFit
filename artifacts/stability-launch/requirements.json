@@ -573,9 +573,12 @@
       "evidence": [
         "gradle-portable-writers-retry-5.log",
         "emulator-resources-backup-5/",
-        "emulator-api26-23-retry/"
+        "emulator-api26-23-retry/",
+        "../stability-service-followup/DELIVERY-final.json"
       ],
-      "dependencies": []
+      "dependencies": [
+        "Primer AVD GPS limpio: ANR de inicio de instrumentación antes de emitir casos. Apertura posterior de 12,491 s con diálogo SystemUI. Perfetto local analizado; no acredita cierre de rendimiento ni defecto causal único."
+      ]
     },
     {
       "id": "E02",
@@ -611,12 +614,14 @@
       "package": "E",
       "requirement": "Mantener servicios de micrÃƒÆ’Ã‚Â³fono y ubicaciÃƒÆ’Ã‚Â³n ÃƒÆ’Ã‚Âºnicamente durante funciones iniciadas por el usuario, con tipos y permisos adecuados.",
       "code": "PARCIAL",
-      "verification": "PENDIENTE",
+      "verification": "PARCIAL",
       "evidence": [
-        "android-native/app/src/main/AndroidManifest.xml"
+        "android-native/app/src/main/AndroidManifest.xml",
+        "../stability-service-followup/DELIVERY-final.json"
       ],
       "dependencies": [
-        "Ciclo de vida/revocaciones en Android pendientes"
+        "Ciclo de vida/revocaciones en Android pendientes",
+        "Tres regresiones nativas de carreras pasaron y el FGS GPS pasó inicio/pausa/reanudación/parada con Fused y proveedor de prueba Android. Un dispositivo API36, ubicaciones sintéticas; ruta física, UI de entrenamiento, micrófono, revocaciones y GNSS siguen pendientes."
       ]
     },
     {
@@ -743,10 +748,12 @@
         "native-packaging-55.json",
         "../stability-continuation/tests-aud03-9.json",
         "../stability-continuation/emulator-free-12/result.json",
-        "../stability-continuation/emulator-setup-fixed-11/04-legacy-full-link/after.xml"
+        "../stability-continuation/emulator-setup-fixed-11/04-legacy-full-link/after.xml",
+        "../stability-service-followup/DELIVERY-final.json"
       ],
       "dependencies": [
-        "Inicio Free y protecciÃƒÂ³n de Volumen verificados en API36; todas las entradas avanzadas, multimedia, caducidad con datos reales y lÃƒÂ­mite entre varias rutinas permanecen pendientes."
+        "Inicio Free y protecciÃƒÂ³n de Volumen verificados en API36; todas las entradas avanzadas, multimedia, caducidad con datos reales y lÃƒÂ­mite entre varias rutinas permanecen pendientes.",
+        "Dos casos de UI nativa guardaron quinta sesión y bloquearon sexta en un programa/semana Free. No define la regla agregada entre rutinas ni verifica todas las entradas avanzadas o compras reales."
       ]
     },
     {
@@ -768,14 +775,17 @@
       "package": "F",
       "requirement": "Una caÃƒÆ’Ã‚Â­da del servidor o una suscripciÃƒÆ’Ã‚Â³n vencida nunca borrarÃƒÆ’Ã‚Â¡ datos ni impedirÃƒÆ’Ã‚Â¡ leerlos, exportarlos o eliminar la cuenta.",
       "code": "PARCIAL",
-      "verification": "PENDIENTE",
+      "verification": "PARCIAL",
       "evidence": [
         "tests-account-ui-portable-3/",
         "web-deletion-local.json",
         "../stability-continuation/emulator-free-12/result.json",
-        "android-native/app/src/androidTest/java/com/example/kpkn/data/repository/ExpiredProDataControlsTest.kt"
+        "android-native/app/src/androidTest/java/com/example/kpkn/data/repository/ExpiredProDataControlsTest.kt",
+        "../stability-service-followup/DELIVERY-final.json"
       ],
-      "dependencies": []
+      "dependencies": [
+        "Android conserva programa, workout log, comida y foto al vencer un recibo Pro sintético; verifica lectura, exportación y borrado después de reabrir Room en la misma PID. Servidor caído, reinicio real y Play siguen pendientes."
+      ]
     },
     {
       "id": "G01",

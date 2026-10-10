@@ -1,0 +1,14 @@
+{
+  "state": "DEBUG_SNAPSHOT_INCOMPLETE",
+  "limits": "Read-only debugger thread snapshot of own stability test process; no product proof or GPS pass implied.",
+  "errorType": "OSError",
+  "error": "[Errno 22] Invalid argument",
+  "permissionsRestored": [
+    "android.permission.ACCESS_COARSE_LOCATION",
+    "android.permission.ACCESS_FINE_LOCATION"
+  ],
+  "evidenceHashes": {
+    "instrumentation.txt": "ef00bec5241fdaa9bd69de90155ce1e9a4290d35109aca3062c8d36f1a25d8f4",
+    "jdwp-pids.txt": "ed1977375c07f04eaad4863fa6a9aa4283c05f5bfecc28e1f5f180dfcc04fbef"
+  }
+}
