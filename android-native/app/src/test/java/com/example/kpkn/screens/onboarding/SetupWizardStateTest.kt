@@ -160,10 +160,10 @@ class SetupWizardStateTest {
             ),
             changed.stepProgress.stalePreviews,
         )
-        // El cambio de protocolo revalida marcas, reparto y receta, y deja la pregunta «¿conoces tus marcas?», el
-        // programa y la semana armada para revisión.
+        // El cambio de protocolo revalida marcas, reparto y receta, y deja el programa y la semana armada para revisión.
+        // La pregunta de marcas solo se marca si la ruta actual la tiene (Z2): aquí no hay levantamientos con marca.
         assertEquals(
-            setOf(SetupStepId.TRAINING_MAX, SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT),
+            setOf(SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT),
             changed.stepProgress.pendingReview,
         )
     }
@@ -181,6 +181,12 @@ class SetupWizardStateTest {
             "ruta del programa" to base.copy(programRoute = SetupProgramRoute.LATER),
             "camino del programa" to base.copy(trainingPath = SetupTrainingPath.PERSONALIZE),
         )
+        // Solo quedan por revisar los pasos de la ruta de cada caso (Z2): con «lo armaré más adelante» no hay semana armada.
+        val expectedReview = mapOf(
+            "plan elegido" to setOf(SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT),
+            "ruta del programa" to setOf(SetupStepId.PLAN),
+            "camino del programa" to setOf(SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT),
+        )
         changes.forEach { (what, changed) ->
             val impacted = changed.withChangeImpacts(base)
             assertEquals(
@@ -188,7 +194,7 @@ class SetupWizardStateTest {
                 setOf(SetupChangeSource.PLAN_CHOICE),
                 SetupChangeDetector.sourcesFor(base.inputFootprint(), changed.inputFootprint()),
             )
-            assertEquals("$what: solo el programa y la semana", setOf(SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT), impacted.stepProgress.pendingReview)
+            assertEquals("$what: solo el programa y la semana de su ruta", expectedReview.getValue(what), impacted.stepProgress.pendingReview)
             assertTrue("$what invalida los candidatos", SetupPreviewKind.PLAN_CANDIDATES in impacted.stepProgress.stalePreviews)
             assertTrue("$what invalida los ejercicios y las cargas", impacted.stepProgress.stalePreviews.containsAll(
                 setOf(SetupPreviewKind.EXERCISES, SetupPreviewKind.LOADS, SetupPreviewKind.SPLIT, SetupPreviewKind.RECIPE),
