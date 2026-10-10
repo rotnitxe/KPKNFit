@@ -25,8 +25,8 @@ android {
         applicationId = "com.example.kpkn"
         minSdk = 26
         targetSdk = 36
-        versionCode = 36
-        versionName = "KPKN Pre Release 3"
+        versionCode = 37
+        versionName = "KPKN Pre Release 4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         val publicFirebaseAppId = providers.gradleProperty("KPKN_FIREBASE_APP_ID").orNull.orEmpty()
