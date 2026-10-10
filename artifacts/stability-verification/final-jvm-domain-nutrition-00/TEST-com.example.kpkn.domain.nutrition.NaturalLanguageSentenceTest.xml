@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.NaturalLanguageSentenceTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:57:41.006Z" hostname="VF" time="0.054">
+  <properties/>
+  <testcase name="aConnectorInsideACompoundNameDoesNotCutIt" classname="com.example.kpkn.domain.nutrition.NaturalLanguageSentenceTest" time="0.007"/>
+  <testcase name="aAndNoAloneDoNotMakeASentenceEnglish" classname="com.example.kpkn.domain.nutrition.NaturalLanguageSentenceTest" time="0.003"/>
+  <testcase name="labelsAndPeriodsSeparateMentions" classname="com.example.kpkn.domain.nutrition.NaturalLanguageSentenceTest" time="0.008"/>
+  <testcase name="thePluralOfAProtectedDishIsOneMentionCountedTwice" classname="com.example.kpkn.domain.nutrition.NaturalLanguageSentenceTest" time="0.002"/>
+  <testcase name="periodsAndColonsInsideNumbersAndAmountsDoNotSplit" classname="com.example.kpkn.domain.nutrition.NaturalLanguageSentenceTest" time="0.005"/>
+  <testcase name="aMassNextToANamedDishIsTheMassOfTheDish" classname="com.example.kpkn.domain.nutrition.NaturalLanguageSentenceTest" time="0.003"/>
+  <testcase name="chickenOnTheGriddleAndPoorMansPotatoesAreTwoMentionsWithoutAnInsertedCount" classname="com.example.kpkn.domain.nutrition.NaturalLanguageSentenceTest" time="0.008"/>
+  <testcase name="theDotOfAUnitAbbreviationIsNotASentenceBoundary" classname="com.example.kpkn.domain.nutrition.NaturalLanguageSentenceTest" time="0.002"/>
+  <testcase name="aLowerBoundKeepsTheCountAndExcludesNothing" classname="com.example.kpkn.domain.nutrition.NaturalLanguageSentenceTest" time="0.005"/>
+  <testcase name="realEnglishStillTranslates" classname="com.example.kpkn.domain.nutrition.NaturalLanguageSentenceTest" time="0.002"/>
+  <testcase name="narrationOpensEachSentenceWithoutBecomingAFood" classname="com.example.kpkn.domain.nutrition.NaturalLanguageSentenceTest" time="0.003"/>
+  <testcase name="aHedgeIsAWholeWordNotAPrefixOfAnotherWord" classname="com.example.kpkn.domain.nutrition.NaturalLanguageSentenceTest" time="0.002"/>
+  <testcase name="menosAloneIsNotANegation" classname="com.example.kpkn.domain.nutrition.NaturalLanguageSentenceTest" time="0.003"/>
+  <testcase name="aHedgedGlassStillResolvesAsAGlass" classname="com.example.kpkn.domain.nutrition.NaturalLanguageSentenceTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

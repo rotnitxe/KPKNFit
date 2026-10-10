@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.sessioneditor.SessionEditorMoveEngineTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:38:12.665Z" hostname="VF" time="0.005">
+  <properties/>
+  <testcase name="blockMove_nonContiguousGroupCorrectsOnlyRemovedPrefix" classname="com.example.kpkn.screens.sessioneditor.SessionEditorMoveEngineTest" time="0.003"/>
+  <testcase name="blockMove_keepsMembersTogetherAndOrder" classname="com.example.kpkn.screens.sessioneditor.SessionEditorMoveEngineTest" time="0.001"/>
+  <testcase name="move_doesNotMixCardioAndStrengthZones" classname="com.example.kpkn.screens.sessioneditor.SessionEditorMoveEngineTest" time="0.001"/>
+  <testcase name="individualMove_intoGroup_attachesAtMostFourMembers" classname="com.example.kpkn.screens.sessioneditor.SessionEditorMoveEngineTest" time="0.0"/>
+  <testcase name="individualMove_outOfGroup_dissolvesOnlyWhenNecessary" classname="com.example.kpkn.screens.sessioneditor.SessionEditorMoveEngineTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

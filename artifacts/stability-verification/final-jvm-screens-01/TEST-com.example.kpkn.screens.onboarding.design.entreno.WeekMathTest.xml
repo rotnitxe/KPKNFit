@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.design.entreno.WeekMathTest" tests="23" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:37:26.271Z" hostname="VF" time="0.008">
+  <properties/>
+  <testcase name="everyDayHasItsInitialShortAndFullName" classname="com.example.kpkn.screens.onboarding.design.entreno.WeekMathTest" time="0.0"/>
+  <testcase name="theShortestDeltaIsSafeWithNonsense" classname="com.example.kpkn.screens.onboarding.design.entreno.WeekMathTest" time="0.0"/>
+  <testcase name="durationsReadTheWayTheCopySays" classname="com.example.kpkn.screens.onboarding.design.entreno.WeekMathTest" time="0.001"/>
+  <testcase name="atRestTheConveyorPutsEveryDayInItsOrderedSlot" classname="com.example.kpkn.screens.onboarding.design.entreno.WeekMathTest" time="0.0"/>
+  <testcase name="anInvalidStartCountsAsMondayAndNeverEmptiesTheStrip" classname="com.example.kpkn.screens.onboarding.design.entreno.WeekMathTest" time="0.0"/>
+  <testcase name="theWeekStartsWhereAskedAndWrapsAround" classname="com.example.kpkn.screens.onboarding.design.entreno.WeekMathTest" time="0.0"/>
+  <testcase name="tappingAPlaceWalksTheChosenOnesAndWrapsAround" classname="com.example.kpkn.screens.onboarding.design.entreno.WeekMathTest" time="0.001"/>
+  <testcase name="thePlacePickerNeedsTwoOrMorePlaces" classname="com.example.kpkn.screens.onboarding.design.entreno.WeekMathTest" time="0.0"/>
+  <testcase name="theSlotOfADayIsItsPositionInTheOrderedWeek" classname="com.example.kpkn.screens.onboarding.design.entreno.WeekMathTest" time="0.0"/>
+  <testcase name="aPositionAccumulatedOverSeveralTurnsStillTakesTheShortWay" classname="com.example.kpkn.screens.onboarding.design.entreno.WeekMathTest" time="0.0"/>
+  <testcase name="theShortcutsAreTheFiveOfTheCopyThatFitTheRange" classname="com.example.kpkn.screens.onboarding.design.entreno.WeekMathTest" time="0.0"/>
+  <testcase name="theConveyorAlphaFadesOnlyInTheHalfSlotBeyondEachEdge" classname="com.example.kpkn.screens.onboarding.design.entreno.WeekMathTest" time="0.0"/>
+  <testcase name="theShortestDeltaNeverTravelsMoreThanThreeSlotsAroundTheWeek" classname="com.example.kpkn.screens.onboarding.design.entreno.WeekMathTest" time="0.002"/>
+  <testcase name="placesAlwaysComeInTheFixedOrder" classname="com.example.kpkn.screens.onboarding.design.entreno.WeekMathTest" time="0.0"/>
+  <testcase name="theWeekStartSentenceNamesTheDayInLowerCase" classname="com.example.kpkn.screens.onboarding.design.entreno.WeekMathTest" time="0.0"/>
+  <testcase name="aDayWithoutAssignmentShowsTheFirstPlaceInOrder" classname="com.example.kpkn.screens.onboarding.design.entreno.WeekMathTest" time="0.0"/>
+  <testcase name="theCounterShowsADashInsteadOfAZeroThatLooksLikeALetter" classname="com.example.kpkn.screens.onboarding.design.entreno.WeekMathTest" time="0.0"/>
+  <testcase name="anInvalidDayHasNoNameInsteadOfAWrongOne" classname="com.example.kpkn.screens.onboarding.design.entreno.WeekMathTest" time="0.0"/>
+  <testcase name="durationsAreSpokenInFullWords" classname="com.example.kpkn.screens.onboarding.design.entreno.WeekMathTest" time="0.0"/>
+  <testcase name="whileSlidingADayNeverJumpsWhereItCanBeSeen" classname="com.example.kpkn.screens.onboarding.design.entreno.WeekMathTest" time="0.003"/>
+  <testcase name="anAssignmentToAPlaceThatWasDroppedFallsBackToTheFirstOne" classname="com.example.kpkn.screens.onboarding.design.entreno.WeekMathTest" time="0.001"/>
+  <testcase name="theChoiceDescriptionSaysTheFullDayAndTheState" classname="com.example.kpkn.screens.onboarding.design.entreno.WeekMathTest" time="0.0"/>
+  <testcase name="theCounterUnitIsSingularOnlyForOne" classname="com.example.kpkn.screens.onboarding.design.entreno.WeekMathTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

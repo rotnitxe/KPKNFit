@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.cardio.CardioGpsEngineTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:59:18.904Z" hostname="VF" time="0.004">
+  <properties/>
+  <testcase name="poorAccuracyAndImpossibleJumpAreDiscarded" classname="com.example.kpkn.domain.cardio.CardioGpsEngineTest" time="0.004"/>
+  <testcase name="paceRequiresMeaningfulDistance" classname="com.example.kpkn.domain.cardio.CardioGpsEngineTest" time="0.0"/>
+  <testcase name="haversineReturnsExpectedDistanceForOneLatitudeDegree" classname="com.example.kpkn.domain.cardio.CardioGpsEngineTest" time="0.0"/>
+  <testcase name="kmSplitPacesRecordsEachCompletedKilometre" classname="com.example.kpkn.domain.cardio.CardioGpsEngineTest" time="0.0"/>
+  <testcase name="validPointsAccumulateDistance" classname="com.example.kpkn.domain.cardio.CardioGpsEngineTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

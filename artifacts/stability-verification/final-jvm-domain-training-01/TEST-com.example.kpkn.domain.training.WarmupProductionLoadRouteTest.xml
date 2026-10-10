@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.WarmupProductionLoadRouteTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:30:20.796Z" hostname="VF" time="0.065">
+  <properties/>
+  <testcase name="feasibility_uses_dumbbell_kettlebell_and_cable_stocks_never_a_bar" classname="com.example.kpkn.domain.training.WarmupProductionLoadRouteTest" time="0.013"/>
+  <testcase name="rir_without_working_load_stays_pending_never_zero" classname="com.example.kpkn.domain.training.WarmupProductionLoadRouteTest" time="0.0"/>
+  <testcase name="dumbbell_pair_resolves_per_declared_pair_and_pending_without_pair_reachability" classname="com.example.kpkn.domain.training.WarmupProductionLoadRouteTest" time="0.0"/>
+  <testcase name="catalog_labels_map_to_canonical_kinds_without_inventing_equivalences" classname="com.example.kpkn.domain.training.WarmupProductionLoadRouteTest" time="0.001"/>
+  <testcase name="machine_of_another_configuration_is_never_applied" classname="com.example.kpkn.domain.training.WarmupProductionLoadRouteTest" time="0.001"/>
+  <testcase name="floor_above_the_declared_stock_is_pending_never_ready" classname="com.example.kpkn.domain.training.WarmupProductionLoadRouteTest" time="0.009"/>
+  <testcase name="voice_port_receives_null_pending_and_never_zero_kilos" classname="com.example.kpkn.domain.training.WarmupProductionLoadRouteTest" time="0.001"/>
+  <testcase name="declared_160_with_stock_40_offers_40_and_never_the_unreachable_target" classname="com.example.kpkn.domain.training.WarmupProductionLoadRouteTest" time="0.013"/>
+  <testcase name="fractional_and_whole_percentages_resolve_the_same_reachable_load" classname="com.example.kpkn.domain.training.WarmupProductionLoadRouteTest" time="0.003"/>
+  <testcase name="plate_material_uses_declared_plates_without_borrowing_a_bar" classname="com.example.kpkn.domain.training.WarmupProductionLoadRouteTest" time="0.001"/>
+  <testcase name="cable_or_smith_station_only_when_declared_and_only_for_its_kind" classname="com.example.kpkn.domain.training.WarmupProductionLoadRouteTest" time="0.0"/>
+  <testcase name="explicit_inventory_without_bar_never_offers_the_phantom_20" classname="com.example.kpkn.domain.training.WarmupProductionLoadRouteTest" time="0.023"/>
+  <testcase name="kettlebell_resolves_to_a_declared_bell_and_pending_when_all_are_heavier" classname="com.example.kpkn.domain.training.WarmupProductionLoadRouteTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,15 @@
+{
+  "state": "PASS",
+  "tasks": [
+    "lintRelease",
+    "minifyReleaseWithR8"
+  ],
+  "lint": {
+    "Warning": 614,
+    "Hint": 39
+  },
+  "logSha256": "5b0827b3f3bb38f64fd82e85227a51d0b203ced6d5110bd3342f23bb5cb740bf",
+  "lintSha256": "dd8432066759aafcfb3abbb80f9f8324f0042874e7bf4fab69e4b147a82384be",
+  "signedReleaseRuntimeTested": false,
+  "limits": "Static final release lint/minification only; signed runtime, 16KB execution and publication remain open."
+}

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.ProgramCalendarEngineTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:29:39.203Z" hostname="VF" time="0.003">
+  <properties/>
+  <testcase name="advanced calendar uses Thursday to Wednesday without outside days" classname="com.example.kpkn.domain.training.ProgramCalendarEngineTest" time="0.001"/>
+  <testcase name="manual end date is validated against projected end without rescaling weeks" classname="com.example.kpkn.domain.training.ProgramCalendarEngineTest" time="0.0"/>
+  <testcase name="simple dated mode selects week by real date and does not behave like repeat cycle" classname="com.example.kpkn.domain.training.ProgramCalendarEngineTest" time="0.001"/>
+  <testcase name="competition key date maps inside projected range and outside returns no week" classname="com.example.kpkn.domain.training.ProgramCalendarEngineTest" time="0.0"/>
+  <testcase name="competition meet day is a training day and not outside program" classname="com.example.kpkn.domain.training.ProgramCalendarEngineTest" time="0.001"/>
+  <testcase name="advanced calendar uses Wednesday as full custom week start" classname="com.example.kpkn.domain.training.ProgramCalendarEngineTest" time="0.0"/>
+  <testcase name="scheduled date uses Monday inside a Wednesday-start week" classname="com.example.kpkn.domain.training.ProgramCalendarEngineTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

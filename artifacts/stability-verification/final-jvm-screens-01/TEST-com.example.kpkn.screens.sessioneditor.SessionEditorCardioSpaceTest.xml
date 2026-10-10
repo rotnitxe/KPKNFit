@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.sessioneditor.SessionEditorCardioSpaceTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:38:06.738Z" hostname="VF" time="1.094">
+  <properties/>
+  <testcase name="testCardioQuickActionOpensCardioPickerAndReplacesCardioExercise" classname="com.example.kpkn.screens.sessioneditor.SessionEditorCardioSpaceTest" time="0.235"/>
+  <testcase name="testToggleCardioPlacementFlipsCardioFirst" classname="com.example.kpkn.screens.sessioneditor.SessionEditorCardioSpaceTest" time="0.119"/>
+  <testcase name="addCardioToPart_respectsStartAndEndPlacement" classname="com.example.kpkn.screens.sessioneditor.SessionEditorCardioSpaceTest" time="0.128"/>
+  <testcase name="testAddingCardioCreatesDedicatedCardioSpaceAfterStrength" classname="com.example.kpkn.screens.sessioneditor.SessionEditorCardioSpaceTest" time="0.121"/>
+  <testcase name="commitStrengthSpace_setsFlag" classname="com.example.kpkn.screens.sessioneditor.SessionEditorCardioSpaceTest" time="0.123"/>
+  <testcase name="testCardioDetailsIntensityAndTargetGoalFlexibility" classname="com.example.kpkn.screens.sessioneditor.SessionEditorCardioSpaceTest" time="0.121"/>
+  <testcase name="createCardioSpace_opensPickerDirectlyWhenNoCardioExists" classname="com.example.kpkn.screens.sessioneditor.SessionEditorCardioSpaceTest" time="0.126"/>
+  <testcase name="testCardioPartModelExtensions" classname="com.example.kpkn.screens.sessioneditor.SessionEditorCardioSpaceTest" time="0.12"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

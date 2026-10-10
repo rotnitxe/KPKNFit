@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2LoaderTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:24:46.733Z" hostname="VF" time="0.001">
+  <properties/>
+  <testcase name="draft_catalog_cannot_be_loaded_as_runtime_catalog" classname="com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2LoaderTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

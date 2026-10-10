@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.exercises.catalogv2.ExerciseCatalogV2LegacyPersistedDataTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:51:06.392Z" hostname="VF" time="0.061">
+  <properties/>
+  <testcase name="rich_metadata_persisted_before_f1_still_rebuilds_the_profile" classname="com.example.kpkn.data.exercises.catalogv2.ExerciseCatalogV2LegacyPersistedDataTest" time="0.044"/>
+  <testcase name="completed_snapshot_persisted_before_f1_still_decodes" classname="com.example.kpkn.data.exercises.catalogv2.ExerciseCatalogV2LegacyPersistedDataTest" time="0.017"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

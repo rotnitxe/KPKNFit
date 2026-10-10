@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.db.NutritionPlanActiveStateTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:51:02.398Z" hostname="VF" time="0.582">
+  <properties/>
+  <testcase name="decodingTakesIsActiveFromTheColumnInBothDirections" classname="com.example.kpkn.data.db.NutritionPlanActiveStateTest" time="0.069"/>
+  <testcase name="decodingKeepsEveryOtherPlanField" classname="com.example.kpkn.data.db.NutritionPlanActiveStateTest" time="0.05"/>
+  <testcase name="trackingOnlyDeactivationDecodesEveryPlanAsInactive" classname="com.example.kpkn.data.db.NutritionPlanActiveStateTest" time="0.248"/>
+  <testcase name="activatingASecondPlanLeavesOnlyThatPlanActiveAfterReload" classname="com.example.kpkn.data.db.NutritionPlanActiveStateTest" time="0.215"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

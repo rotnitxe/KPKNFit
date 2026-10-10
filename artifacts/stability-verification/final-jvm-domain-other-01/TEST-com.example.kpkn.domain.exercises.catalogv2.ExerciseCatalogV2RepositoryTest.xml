@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2RepositoryTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:24:46.736Z" hostname="VF" time="0.172">
+  <properties/>
+  <testcase name="validation_requires_an_exact_configuration" classname="com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2RepositoryTest" time="0.158"/>
+  <testcase name="compatibility_never_creates_an_unlisted_cartesian_combination" classname="com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2RepositoryTest" time="0.003"/>
+  <testcase name="changing_the_first_level_reveals_only_the_next_contextual_level" classname="com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2RepositoryTest" time="0.004"/>
+  <testcase name="resolve_rejects_profiles_without_rich_metadata_instead_of_synthesizing_defaults" classname="com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2RepositoryTest" time="0.007"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.SetupNutritionResultTest" tests="23" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:35:53.205Z" hostname="VF" time="0.058">
+  <properties/>
+  <testcase name="mover el ritmo deja en el plan las kcal y los macros de la tuning" classname="com.example.kpkn.screens.onboarding.SetupNutritionResultTest" time="0.041"/>
+  <testcase name="solo registro no tiene plan afinable ni puerta" classname="com.example.kpkn.screens.onboarding.SetupNutritionResultTest" time="0.0"/>
+  <testcase name="sin preparacion todavia no hay nada que afinar" classname="com.example.kpkn.screens.onboarding.SetupNutritionResultTest" time="0.001"/>
+  <testcase name="mover un macro deja en el plan preparado esos gramos y las kcal Atwater" classname="com.example.kpkn.screens.onboarding.SetupNutritionResultTest" time="0.003"/>
+  <testcase name="con otro ritmo la base es la del preset y la semilla escribe lo que se ve" classname="com.example.kpkn.screens.onboarding.SetupNutritionResultTest" time="0.0"/>
+  <testcase name="restablecer vacia los campos y devuelve la recomendacion con su procedencia automatica" classname="com.example.kpkn.screens.onboarding.SetupNutritionResultTest" time="0.001"/>
+  <testcase name="una perdida extrema con calorias normales tambien cierra Continuar" classname="com.example.kpkn.screens.onboarding.SetupNutritionResultTest" time="0.002"/>
+  <testcase name="sin ediciones el plan es la recomendacion automatica y no esta editado" classname="com.example.kpkn.screens.onboarding.SetupNutritionResultTest" time="0.0"/>
+  <testcase name="con ritmo medio o con ediciones no se siembra nada" classname="com.example.kpkn.screens.onboarding.SetupNutritionResultTest" time="0.001"/>
+  <testcase name="escribir un plan fija los cuatro campos y vaciar los deja en blanco" classname="com.example.kpkn.screens.onboarding.SetupNutritionResultTest" time="0.0"/>
+  <testcase name="en objetivos propios los anillos muestran los valores propios y restablecer vuelve a lo que habia" classname="com.example.kpkn.screens.onboarding.SetupNutritionResultTest" time="0.001"/>
+  <testcase name="volver a mano a los numeros de la recomendacion tambien los deja automaticos" classname="com.example.kpkn.screens.onboarding.SetupNutritionResultTest" time="0.0"/>
+  <testcase name="en objetivos propios las kcal escritas se conservan hasta que se toca un macro" classname="com.example.kpkn.screens.onboarding.SetupNutritionResultTest" time="0.001"/>
+  <testcase name="calorias por debajo del umbral duro cierran Continuar con su mensaje" classname="com.example.kpkn.screens.onboarding.SetupNutritionResultTest" time="0.0"/>
+  <testcase name="una pauta profesional no se afina aqui" classname="com.example.kpkn.screens.onboarding.SetupNutritionResultTest" time="0.0"/>
+  <testcase name="la franja de dias solo existe con reparto variable y objetivos distintos" classname="com.example.kpkn.screens.onboarding.SetupNutritionResultTest" time="0.001"/>
+  <testcase name="un plan normal o con solo avisos no cierra Continuar y la puerta solo vale en el resultado" classname="com.example.kpkn.screens.onboarding.SetupNutritionResultTest" time="0.001"/>
+  <testcase name="el motor no lee el preset y el plan automatico es el del ritmo medio" classname="com.example.kpkn.screens.onboarding.SetupNutritionResultTest" time="0.001"/>
+  <testcase name="el paso se llama Tu plan de alimentacion y no lleva subtitulo" classname="com.example.kpkn.screens.onboarding.SetupNutritionResultTest" time="0.002"/>
+  <testcase name="con la ecuacion bloqueada no hay plan afinable y los errores siguen ahi" classname="com.example.kpkn.screens.onboarding.SetupNutritionResultTest" time="0.0"/>
+  <testcase name="la franja se ordena por fecha y toma como mucho siete dias" classname="com.example.kpkn.screens.onboarding.SetupNutritionResultTest" time="0.0"/>
+  <testcase name="con la preparacion real y reparto variable la franja sale de los dias del plan" classname="com.example.kpkn.screens.onboarding.SetupNutritionResultTest" time="0.001"/>
+  <testcase name="sin EER los objetivos propios no tienen ritmo pero si macros" classname="com.example.kpkn.screens.onboarding.SetupNutritionResultTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

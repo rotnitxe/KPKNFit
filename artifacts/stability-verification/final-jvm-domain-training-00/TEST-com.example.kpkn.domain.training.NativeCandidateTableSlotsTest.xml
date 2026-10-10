@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.NativeCandidateTableSlotsTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:26:36.899Z" hostname="VF" time="3.805">
+  <properties/>
+  <testcase name="a_candidate_with_a_material_suffix_matches_the_catalog_equipment_id" classname="com.example.kpkn.domain.training.NativeCandidateTableSlotsTest" time="0.003"/>
+  <testcase name="kettlebell_only_muscle_plan_uses_kettlebell_in_squat_row_or_press_at_every_level" classname="com.example.kpkn.domain.training.NativeCandidateTableSlotsTest" time="0.617"/>
+  <testcase name="band_and_pull_up_bar_muscle_plan_gets_the_band_pulldown_or_pull_ups_as_vertical_pull" classname="com.example.kpkn.domain.training.NativeCandidateTableSlotsTest" time="0.652"/>
+  <testcase name="the_b5_additions_are_in_every_intent_after_the_existing_material_variants_and_before_the_bodyweight_reserve" classname="com.example.kpkn.domain.training.NativeCandidateTableSlotsTest" time="0.0"/>
+  <testcase name="band_only_never_gets_the_anchored_band_variants_and_keeps_its_row" classname="com.example.kpkn.domain.training.NativeCandidateTableSlotsTest" time="0.652"/>
+  <testcase name="dumbbells_without_a_bench_get_the_floor_press_instead_of_the_knee_push_up" classname="com.example.kpkn.domain.training.NativeCandidateTableSlotsTest" time="0.639"/>
+  <testcase name="smith_and_bench_muscle_plan_uses_the_smith_in_squat_bench_hinge_row_or_press_at_every_level" classname="com.example.kpkn.domain.training.NativeCandidateTableSlotsTest" time="0.629"/>
+  <testcase name="the_b5_additions_do_not_add_a_second_copy_of_any_candidate" classname="com.example.kpkn.domain.training.NativeCandidateTableSlotsTest" time="0.001"/>
+  <testcase name="every_candidate_of_every_slot_and_intent_exists_and_is_approved_in_the_compiled_catalog" classname="com.example.kpkn.domain.training.NativeCandidateTableSlotsTest" time="0.001"/>
+  <testcase name="the_smith_bench_press_needs_the_bench_and_falls_back_to_the_knee_push_up_without_it" classname="com.example.kpkn.domain.training.NativeCandidateTableSlotsTest" time="0.611"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.SessionCompositionPolicyTest" tests="32" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:29:42.284Z" hostname="VF" time="0.023">
+  <properties/>
+  <testcase name="native_mrv_is_hard_even_when_mev_is_zero_but_legacy_contract_stays_soft" classname="com.example.kpkn.domain.training.SessionCompositionPolicyTest" time="0.001"/>
+  <testcase name="h11b_converts_tm_to_1rm_with_the_recipe_training_max" classname="com.example.kpkn.domain.training.SessionCompositionPolicyTest" time="0.001"/>
+  <testcase name="h11b_rejects_five_reps_at_90_percent_1rm_and_accepts_four" classname="com.example.kpkn.domain.training.SessionCompositionPolicyTest" time="0.001"/>
+  <testcase name="antiExample_four_quads_fails_h2_h3_h4" classname="com.example.kpkn.domain.training.SessionCompositionPolicyTest" time="0.0"/>
+  <testcase name="native_soft_band_does_not_extend_to_other_muscles_nor_to_legacy_recipes" classname="com.example.kpkn.domain.training.SessionCompositionPolicyTest" time="0.001"/>
+  <testcase name="h8_rejects_high_rep_heavy_t1_in_peak" classname="com.example.kpkn.domain.training.SessionCompositionPolicyTest" time="0.0"/>
+  <testcase name="s_duplicate_slot_reports_same_config_same_technique_as_soft" classname="com.example.kpkn.domain.training.SessionCompositionPolicyTest" time="0.0"/>
+  <testcase name="h11_and_h11b_do_not_measure_sets_with_an_observed_working_set_or_bodyweight_reference" classname="com.example.kpkn.domain.training.SessionCompositionPolicyTest" time="0.002"/>
+  <testcase name="s_duplicate_slot_exempts_same_config_with_different_technique" classname="com.example.kpkn.domain.training.SessionCompositionPolicyTest" time="0.0"/>
+  <testcase name="exemption_silences_only_declared_rule" classname="com.example.kpkn.domain.training.SessionCompositionPolicyTest" time="0.0"/>
+  <testcase name="h11b_does_not_repeat_what_h11_already_flags_above_100_percent_1rm" classname="com.example.kpkn.domain.training.SessionCompositionPolicyTest" time="0.004"/>
+  <testcase name="exemption_scope_is_an_anchored_glob" classname="com.example.kpkn.domain.training.SessionCompositionPolicyTest" time="0.0"/>
+  <testcase name="w2_rejects_primary_excess_even_when_the_same_group_also_receives_indirect_sets" classname="com.example.kpkn.domain.training.SessionCompositionPolicyTest" time="0.001"/>
+  <testcase name="exampleA_pl_squat_passes" classname="com.example.kpkn.domain.training.SessionCompositionPolicyTest" time="0.001"/>
+  <testcase name="hipThrust_catalog_aislado_stays_compound_for_h1" classname="com.example.kpkn.domain.training.SessionCompositionPolicyTest" time="0.001"/>
+  <testcase name="native_compact_uses_declared_floors_while_legacy_keeps_h6" classname="com.example.kpkn.domain.training.SessionCompositionPolicyTest" time="0.0"/>
+  <testcase name="w2_keeps_total_secondary_dose_for_minimum_landmarks" classname="com.example.kpkn.domain.training.SessionCompositionPolicyTest" time="0.001"/>
+  <testcase name="h11b_is_never_exemptable" classname="com.example.kpkn.domain.training.SessionCompositionPolicyTest" time="0.0"/>
+  <testcase name="h11b_skips_amrap_rep_max_warmups_and_sets_without_a_1rm_base" classname="com.example.kpkn.domain.training.SessionCompositionPolicyTest" time="0.001"/>
+  <testcase name="h11b_uses_the_lower_bound_of_a_rep_range" classname="com.example.kpkn.domain.training.SessionCompositionPolicyTest" time="0.001"/>
+  <testcase name="mixed_cardio_dispatches_on_session_kind" classname="com.example.kpkn.domain.training.SessionCompositionPolicyTest" time="0.0"/>
+  <testcase name="native_deload_keeps_essentials_and_one_set_per_slot" classname="com.example.kpkn.domain.training.SessionCompositionPolicyTest" time="0.001"/>
+  <testcase name="h11_and_h11b_survive_any_exemption" classname="com.example.kpkn.domain.training.SessionCompositionPolicyTest" time="0.0"/>
+  <testcase name="w2_primary_ceiling_allows_indirect_excess_without_using_the_native_glute_band" classname="com.example.kpkn.domain.training.SessionCompositionPolicyTest" time="0.0"/>
+  <testcase name="exampleC_hypertrophy_legs_passes" classname="com.example.kpkn.domain.training.SessionCompositionPolicyTest" time="0.0"/>
+  <testcase name="westside_speed_first_passes_h1" classname="com.example.kpkn.domain.training.SessionCompositionPolicyTest" time="0.0"/>
+  <testcase name="native_glutes_soft_band_is_soft_up_to_the_ceiling_and_hard_above_it" classname="com.example.kpkn.domain.training.SessionCompositionPolicyTest" time="0.002"/>
+  <testcase name="mrv_upper_bound_survives_an_empty_lift_slots_map" classname="com.example.kpkn.domain.training.SessionCompositionPolicyTest" time="0.001"/>
+  <testcase name="exampleB_pl_bench_passes" classname="com.example.kpkn.domain.training.SessionCompositionPolicyTest" time="0.0"/>
+  <testcase name="h11_rejects_triple_plus_over_92_percent_1rm" classname="com.example.kpkn.domain.training.SessionCompositionPolicyTest" time="0.0"/>
+  <testcase name="w2_limits_the_second_primary_muscle_and_deduplicates_heads_of_the_same_group" classname="com.example.kpkn.domain.training.SessionCompositionPolicyTest" time="0.001"/>
+  <testcase name="h11_measures_percent_of_top_set_in_resolved_kg" classname="com.example.kpkn.domain.training.SessionCompositionPolicyTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

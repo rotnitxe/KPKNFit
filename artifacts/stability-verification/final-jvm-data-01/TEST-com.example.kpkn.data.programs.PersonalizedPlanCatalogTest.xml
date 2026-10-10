@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.programs.PersonalizedPlanCatalogTest" tests="21" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:52:55.337Z" hostname="VF" time="16.224">
+  <properties/>
+  <testcase name="recommendations_offer_the_authored_entries_and_keep_the_legacy_protocols" classname="com.example.kpkn.data.programs.PersonalizedPlanCatalogTest" time="0.248"/>
+  <testcase name="plannerNeverOffersTheHiddenHistoricalsAndStillServesTheMixedGoal" classname="com.example.kpkn.data.programs.PersonalizedPlanCatalogTest" time="0.259"/>
+  <testcase name="calibratedFocusIsFirstAndVolumeReportMatchesTheAuthority" classname="com.example.kpkn.data.programs.PersonalizedPlanCatalogTest" time="1.645"/>
+  <testcase name="externalRecipeIdentityAndAttributionArePreserved" classname="com.example.kpkn.data.programs.PersonalizedPlanCatalogTest" time="8.917"/>
+  <testcase name="legacy_volume_cap_uses_primary_and_keeps_stabilizer_totals_in_the_report" classname="com.example.kpkn.data.programs.PersonalizedPlanCatalogTest" time="1.222"/>
+  <testcase name="legacy_phul_phat_ids_still_resolve_and_report_the_previous_version" classname="com.example.kpkn.data.programs.PersonalizedPlanCatalogTest" time="0.004"/>
+  <testcase name="nativeSchedulePlanMirrorsSelectedWeekdays" classname="com.example.kpkn.data.programs.PersonalizedPlanCatalogTest" time="0.446"/>
+  <testcase name="finite_recipes_stay_finite_and_a_week_that_repeats_stays_a_week" classname="com.example.kpkn.data.programs.PersonalizedPlanCatalogTest" time="0.001"/>
+  <testcase name="machinePlanNeverLeaksFreeWeightsAndRejectsWrongEquipment" classname="com.example.kpkn.data.programs.PersonalizedPlanCatalogTest" time="0.423"/>
+  <testcase name="recipes_that_repeat_over_several_weeks_are_a_repeating_cycle" classname="com.example.kpkn.data.programs.PersonalizedPlanCatalogTest" time="0.002"/>
+  <testcase name="nativeFamiliesArePublishedAndNamespaced" classname="com.example.kpkn.data.programs.PersonalizedPlanCatalogTest" time="0.001"/>
+  <testcase name="listedEntriesOfferSevenNativesAndHideTheFiveHistoricals" classname="com.example.kpkn.data.programs.PersonalizedPlanCatalogTest" time="0.001"/>
+  <testcase name="namedSplitIdFromWizardIsAppliedAndPersistedAsARealChoice" classname="com.example.kpkn.data.programs.PersonalizedPlanCatalogTest" time="0.441"/>
+  <testcase name="authored_entries_are_published_with_identity_days_and_provenance" classname="com.example.kpkn.data.programs.PersonalizedPlanCatalogTest" time="0.001"/>
+  <testcase name="findForProgram_resolves_native_template_protocol_and_authored_programs" classname="com.example.kpkn.data.programs.PersonalizedPlanCatalogTest" time="0.0"/>
+  <testcase name="everyNativeFamilyBuildsExecutableCanonicalSessions" classname="com.example.kpkn.data.programs.PersonalizedPlanCatalogTest" time="2.251"/>
+  <testcase name="complex_templates_take_their_level_from_the_recipe_and_simple_ones_serve_every_level" classname="com.example.kpkn.data.programs.PersonalizedPlanCatalogTest" time="0.001"/>
+  <testcase name="findForProgram_resolves_every_entry_from_the_ids_the_engines_store" classname="com.example.kpkn.data.programs.PersonalizedPlanCatalogTest" time="0.004"/>
+  <testcase name="classificationAndTemporalLabelsDoNotFlattenMultiweekRecipes" classname="com.example.kpkn.data.programs.PersonalizedPlanCatalogTest" time="0.0"/>
+  <testcase name="nativePlanKeepsCustomSevenSlotSplitPrioritiesAndRecipeProvenance" classname="com.example.kpkn.data.programs.PersonalizedPlanCatalogTest" time="0.349"/>
+  <testcase name="findForProgram_prefers_the_declared_provenance_and_returns_null_without_a_match" classname="com.example.kpkn.data.programs.PersonalizedPlanCatalogTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

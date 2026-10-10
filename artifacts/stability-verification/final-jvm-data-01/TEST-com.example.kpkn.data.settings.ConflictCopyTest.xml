@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.settings.ConflictCopyTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:53:58.172Z" hostname="VF" time="4.21">
+  <properties/>
+  <testcase name="privateUnknownFields[26]" classname="com.example.kpkn.data.settings.ConflictCopyTest" time="2.17"/>
+  <testcase name="privateUnknownFields" classname="com.example.kpkn.data.settings.ConflictCopyTest" time="0.236"/>
+  <testcase name="copyLostReply[26]" classname="com.example.kpkn.data.settings.ConflictCopyTest" time="0.384"/>
+  <testcase name="copyLostReply" classname="com.example.kpkn.data.settings.ConflictCopyTest" time="0.379"/>
+  <testcase name="copyLargeJson[26]" classname="com.example.kpkn.data.settings.ConflictCopyTest" time="0.391"/>
+  <testcase name="copyLargeJson" classname="com.example.kpkn.data.settings.ConflictCopyTest" time="0.286"/>
+  <testcase name="preserveByteHash[26]" classname="com.example.kpkn.data.settings.ConflictCopyTest" time="0.154"/>
+  <testcase name="preserveByteHash" classname="com.example.kpkn.data.settings.ConflictCopyTest" time="0.083"/>
+  <testcase name="singletonAndDelete[26]" classname="com.example.kpkn.data.settings.ConflictCopyTest" time="0.064"/>
+  <testcase name="singletonAndDelete" classname="com.example.kpkn.data.settings.ConflictCopyTest" time="0.062"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[Oct 10, 2026 2:53:59 AM com.almworks.sqlite4java.Internal log
+WARNING: [sqlite] SQLite: cannot set library path, library already loaded
+]]></system-err>
+</testsuite>

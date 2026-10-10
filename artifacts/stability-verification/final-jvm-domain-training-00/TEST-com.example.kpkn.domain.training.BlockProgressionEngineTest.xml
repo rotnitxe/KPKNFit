@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.BlockProgressionEngineTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:26:24.257Z" hostname="VF" time="0.029">
+  <properties/>
+  <testcase name="percentage_rm_is_reserved_for_primary_and_accessories_keep_reps_rpe" classname="com.example.kpkn.domain.training.BlockProgressionEngineTest" time="0.011"/>
+  <testcase name="progressionIndex_is_global_across_mesocycles_and_maps_nested_variants" classname="com.example.kpkn.domain.training.BlockProgressionEngineTest" time="0.008"/>
+  <testcase name="names_alone_never_promote_ohp_or_legacy_squat_to_rm_without_anchor" classname="com.example.kpkn.domain.training.BlockProgressionEngineTest" time="0.001"/>
+  <testcase name="deepCloneProducesFreshIds" classname="com.example.kpkn.domain.training.BlockProgressionEngineTest" time="0.001"/>
+  <testcase name="previewDiffSummarizesChange" classname="com.example.kpkn.domain.training.BlockProgressionEngineTest" time="0.002"/>
+  <testcase name="percentageProgressesWeekToWeek" classname="com.example.kpkn.domain.training.BlockProgressionEngineTest" time="0.004"/>
+  <testcase name="noneSchemeLeavesBlockUntouched" classname="com.example.kpkn.domain.training.BlockProgressionEngineTest" time="0.0"/>
+  <testcase name="deload_is_non_increasing_even_when_scheme_would_wave_or_add_load" classname="com.example.kpkn.domain.training.BlockProgressionEngineTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

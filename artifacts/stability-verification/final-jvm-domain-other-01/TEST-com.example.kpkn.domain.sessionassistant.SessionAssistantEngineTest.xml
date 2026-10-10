@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.sessionassistant.SessionAssistantEngineTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:25:06.369Z" hostname="VF" time="0.026">
+  <properties/>
+  <testcase name="assistant report no longer exposes verdict score risks templates or ghost cards" classname="com.example.kpkn.domain.sessionassistant.SessionAssistantEngineTest" time="0.018"/>
+  <testcase name="assistant suggestions only appear when session drain is clearly high" classname="com.example.kpkn.domain.sessionassistant.SessionAssistantEngineTest" time="0.004"/>
+  <testcase name="overlapping_week_sessions_surface_plain_language_suggestion" classname="com.example.kpkn.domain.sessionassistant.SessionAssistantEngineTest" time="0.004"/>
+  <testcase name="assistant suggestions use human language without technical jargon" classname="com.example.kpkn.domain.sessionassistant.SessionAssistantEngineTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

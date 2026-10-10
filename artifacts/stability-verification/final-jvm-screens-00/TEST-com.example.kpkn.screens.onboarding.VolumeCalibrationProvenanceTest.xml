@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.VolumeCalibrationProvenanceTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:36:31.219Z" hostname="VF" time="0.002">
+  <properties/>
+  <testcase name="repair conserva UNKNOWN del borrador restaurado" classname="com.example.kpkn.screens.onboarding.VolumeCalibrationProvenanceTest" time="0.001"/>
+  <testcase name="UNKNOWN completo se conserva como UNKNOWN al recalcular" classname="com.example.kpkn.screens.onboarding.VolumeCalibrationProvenanceTest" time="0.0"/>
+  <testcase name="respuesta incompleta deja perfil null sin fingir calibracion" classname="com.example.kpkn.screens.onboarding.VolumeCalibrationProvenanceTest" time="0.0"/>
+  <testcase name="SUGGESTED se conserva como SUGGESTED al recalcular" classname="com.example.kpkn.screens.onboarding.VolumeCalibrationProvenanceTest" time="0.0"/>
+  <testcase name="DECLARED de la UI permanece DECLARED al recalcular" classname="com.example.kpkn.screens.onboarding.VolumeCalibrationProvenanceTest" time="0.001"/>
+  <testcase name="repair conserva SUGGESTED del borrador restaurado" classname="com.example.kpkn.screens.onboarding.VolumeCalibrationProvenanceTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

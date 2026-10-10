@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.settings.MediaFormatRoundTripTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:54:12.055Z" hostname="VF" time="5.686">
+  <properties/>
+  <testcase name="formatsRoundTrip[26]" classname="com.example.kpkn.data.settings.MediaFormatRoundTripTest" time="1.471"/>
+  <testcase name="formatsRoundTrip" classname="com.example.kpkn.data.settings.MediaFormatRoundTripTest" time="4.038"/>
+  <testcase name="wrongDeclaredTypeCannotBePublished[26]" classname="com.example.kpkn.data.settings.MediaFormatRoundTripTest" time="0.051"/>
+  <testcase name="wrongDeclaredTypeCannotBePublished" classname="com.example.kpkn.data.settings.MediaFormatRoundTripTest" time="0.043"/>
+  <testcase name="oldHashOnlyGalleryFileIsDetectedByContent[26]" classname="com.example.kpkn.data.settings.MediaFormatRoundTripTest" time="0.044"/>
+  <testcase name="oldHashOnlyGalleryFileIsDetectedByContent" classname="com.example.kpkn.data.settings.MediaFormatRoundTripTest" time="0.039"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

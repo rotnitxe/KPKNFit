@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.LoggedFoodEditingTest" tests="26" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:57:40.449Z" hostname="VF" time="0.012">
+  <properties/>
+  <testcase name="an amount changed and changed back is the same food again" classname="com.example.kpkn.domain.nutrition.LoggedFoodEditingTest" time="0.001"/>
+  <testcase name="editing the amount of a reopened food leaves it decided with no question, no dimension and no learning" classname="com.example.kpkn.domain.nutrition.LoggedFoodEditingTest" time="0.001"/>
+  <testcase name="new foods, a removed food and the order of the edit are respected" classname="com.example.kpkn.domain.nutrition.LoggedFoodEditingTest" time="0.0"/>
+  <testcase name="a food whose amount changed is saved as the logger calculated it" classname="com.example.kpkn.domain.nutrition.LoggedFoodEditingTest" time="0.0"/>
+  <testcase name="a food picked by search keeps its verified source even though it has no analysis source" classname="com.example.kpkn.domain.nutrition.LoggedFoodEditingTest" time="0.001"/>
+  <testcase name="odd saved foods reopen without throwing and one without a usable amount stays unsaved until it is fixed" classname="com.example.kpkn.domain.nutrition.LoggedFoodEditingTest" time="0.0"/>
+  <testcase name="editing a verified food does not turn it into an estimate" classname="com.example.kpkn.domain.nutrition.LoggedFoodEditingTest" time="0.0"/>
+  <testcase name="an unchanged edit gives back the saved meal" classname="com.example.kpkn.domain.nutrition.LoggedFoodEditingTest" time="0.0"/>
+  <testcase name="every edited dimension of a reopened food is ignored as a confirmation" classname="com.example.kpkn.domain.nutrition.LoggedFoodEditingTest" time="0.001"/>
+  <testcase name="a manual macro edit of a reopened food stays decided and is a manual value" classname="com.example.kpkn.domain.nutrition.LoggedFoodEditingTest" time="0.0"/>
+  <testcase name="reopened foods get distinct card ids even when their saved ids are blank" classname="com.example.kpkn.domain.nutrition.LoggedFoodEditingTest" time="0.0"/>
+  <testcase name="a reopened verified food keeps its amount and nutrients, asks nothing and is not an estimate" classname="com.example.kpkn.domain.nutrition.LoggedFoodEditingTest" time="0.0"/>
+  <testcase name="a tag that came from the text or from the search is refreshed as before" classname="com.example.kpkn.domain.nutrition.LoggedFoodEditingTest" time="0.005"/>
+  <testcase name="blank or repeated saved ids never pair a food with the wrong one" classname="com.example.kpkn.domain.nutrition.LoggedFoodEditingTest" time="0.0"/>
+  <testcase name="the saved reference note comes back once, with and without the unmatched suffix" classname="com.example.kpkn.domain.nutrition.LoggedFoodEditingTest" time="0.001"/>
+  <testcase name="a food changed by hand or by another card is saved as calculated" classname="com.example.kpkn.domain.nutrition.LoggedFoodEditingTest" time="0.0"/>
+  <testcase name="reopening a food never confirms a dimension and never teaches a habit" classname="com.example.kpkn.domain.nutrition.LoggedFoodEditingTest" time="0.0"/>
+  <testcase name="a food the user did not touch is saved exactly as it was, with its evidence and unit" classname="com.example.kpkn.domain.nutrition.LoggedFoodEditingTest" time="0.0"/>
+  <testcase name="editing the amount of a reopened estimate keeps a range instead of an exact value" classname="com.example.kpkn.domain.nutrition.LoggedFoodEditingTest" time="0.001"/>
+  <testcase name="the edited meal keeps its id, notes and status and the day it was saved on" classname="com.example.kpkn.domain.nutrition.LoggedFoodEditingTest" time="0.0"/>
+  <testcase name="a reopened food raises no question where the same food, undecided, would ask" classname="com.example.kpkn.domain.nutrition.LoggedFoodEditingTest" time="0.0"/>
+  <testcase name="the date keeps its saved format while the day stays and uses the logger format when the day changes" classname="com.example.kpkn.domain.nutrition.LoggedFoodEditingTest" time="0.0"/>
+  <testcase name="the saved evidence decides the source kind and unknown provenance is an estimate" classname="com.example.kpkn.domain.nutrition.LoggedFoodEditingTest" time="0.0"/>
+  <testcase name="an untouched estimate keeps its saved range and note when the meal is saved again" classname="com.example.kpkn.domain.nutrition.LoggedFoodEditingTest" time="0.001"/>
+  <testcase name="a reopened estimate keeps its range and its estimate indicator" classname="com.example.kpkn.domain.nutrition.LoggedFoodEditingTest" time="0.0"/>
+  <testcase name="a food without a reference note gets no estimate evidence and no invented note" classname="com.example.kpkn.domain.nutrition.LoggedFoodEditingTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

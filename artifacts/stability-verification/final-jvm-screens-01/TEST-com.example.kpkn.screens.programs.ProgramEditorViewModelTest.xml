@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.programs.ProgramEditorViewModelTest" tests="16" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:38:01.709Z" hostname="VF" time="2.856">
+  <properties/>
+  <testcase name="edit_in_place_updates_same_program_preserving_description" classname="com.example.kpkn.screens.programs.ProgramEditorViewModelTest" time="0.172"/>
+  <testcase name="save_failure_keeps_form_and_stable_id_retry_does_not_duplicate" classname="com.example.kpkn.screens.programs.ProgramEditorViewModelTest" time="0.214"/>
+  <testcase name="double_save_does_not_duplicate" classname="com.example.kpkn.screens.programs.ProgramEditorViewModelTest" time="0.185"/>
+  <testcase name="edit_save_after_program_vanished_reports_missing_without_new_row" classname="com.example.kpkn.screens.programs.ProgramEditorViewModelTest" time="0.177"/>
+  <testcase name="editSaveKeepsCalendarConfirmationAddedBetweenFormSnapshotAndCommit" classname="com.example.kpkn.screens.programs.ProgramEditorViewModelTest" time="0.185"/>
+  <testcase name="persist_throwing_is_reported_and_retry_reuses_the_same_uuid" classname="com.example.kpkn.screens.programs.ProgramEditorViewModelTest" time="0.214"/>
+  <testcase name="fields_are_locked_while_saving_and_success_matches_persisted_snapshot" classname="com.example.kpkn.screens.programs.ProgramEditorViewModelTest" time="0.17"/>
+  <testcase name="edit_save_room_failure_keeps_cached_program_and_never_reports_success" classname="com.example.kpkn.screens.programs.ProgramEditorViewModelTest" time="0.173"/>
+  <testcase name="save_new_program_persists_to_room_before_success_and_does_not_activate" classname="com.example.kpkn.screens.programs.ProgramEditorViewModelTest" time="0.172"/>
+  <testcase name="cancel_after_commit_keeps_idempotency" classname="com.example.kpkn.screens.programs.ProgramEditorViewModelTest" time="0.17"/>
+  <testcase name="missing_program_reports_error_without_writes" classname="com.example.kpkn.screens.programs.ProgramEditorViewModelTest" time="0.153"/>
+  <testcase name="initialize_does_not_report_missing_while_repository_loading" classname="com.example.kpkn.screens.programs.ProgramEditorViewModelTest" time="0.2"/>
+  <testcase name="edit_conflict_is_not_misreported_as_missing_or_success" classname="com.example.kpkn.screens.programs.ProgramEditorViewModelTest" time="0.201"/>
+  <testcase name="cancel_without_save_persists_nothing" classname="com.example.kpkn.screens.programs.ProgramEditorViewModelTest" time="0.155"/>
+  <testcase name="save_requires_name" classname="com.example.kpkn.screens.programs.ProgramEditorViewModelTest" time="0.141"/>
+  <testcase name="no_success_flag_while_persistence_in_flight" classname="com.example.kpkn.screens.programs.ProgramEditorViewModelTest" time="0.173"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

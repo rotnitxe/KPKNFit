@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.EquipmentReachTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:26:27.712Z" hostname="VF" time="0.068">
+  <properties/>
+  <testcase name="a_parks_pull_up_bar_opens_the_inverted_row_and_the_rack_chin" classname="com.example.kpkn.domain.training.EquipmentReachTest" time="0.004"/>
+  <testcase name="the_hex_bar_and_the_t_bar_need_the_barbell_at_the_gym" classname="com.example.kpkn.domain.training.EquipmentReachTest" time="0.002"/>
+  <testcase name="the_documented_exceptions_are_real_and_still_unreachable" classname="com.example.kpkn.domain.training.EquipmentReachTest" time="0.001"/>
+  <testcase name="the_rare_implements_stay_out_on_purpose_and_nothing_else_is_left_without_a_symbol" classname="com.example.kpkn.domain.training.EquipmentReachTest" time="0.002"/>
+  <testcase name="plates_come_with_the_barbell_at_home_and_at_the_gym_and_two_also_need_a_gym_bench" classname="com.example.kpkn.domain.training.EquipmentReachTest" time="0.002"/>
+  <testcase name="writes_the_reach_report" classname="com.example.kpkn.domain.training.EquipmentReachTest" time="0.048"/>
+  <testcase name="every_configuration_with_a_known_equipment_is_reachable_unless_it_is_documented" classname="com.example.kpkn.domain.training.EquipmentReachTest" time="0.002"/>
+  <testcase name="machines_open_every_machine_configuration_as_a_room_and_the_panel_answers_only_the_curated_ones" classname="com.example.kpkn.domain.training.EquipmentReachTest" time="0.002"/>
+  <testcase name="the_ghd_and_the_ab_wheel_need_the_machines_at_the_gym" classname="com.example.kpkn.domain.training.EquipmentReachTest" time="0.001"/>
+  <testcase name="suspension_trainers_come_with_the_rings_and_nothing_else" classname="com.example.kpkn.domain.training.EquipmentReachTest" time="0.002"/>
+  <system-out><![CDATA[KPKN · alcanzabilidad del material (catálogo v2-approved-2026-09-29-a, 553 configuraciones aprobadas)
+«Alcanzable» = el planificador y el generador la aprueban con el equipo que acreditan los símbolos (resolutor único + filtro compartido).
+
+## Materiales de referencia
+material | alcanzables de 553
+solo cuerpo | 34
+parque | 53
+casa con mancuernas y banco | 128
+casa con anillas y cajón | 41
+gimnasio completo | 542
+gimnasio sin rack | 524
+
+## Lugares
+lugar | solo cuerpo | con la semilla del lugar | con todo lo que ofrece
+Gimnasio | 34 | 542 | 545
+En casa | 34 | 34 | 519
+En espacios públicos | 34 | 53 | 199
+todos los lugares y todos los símbolos | 34 | - | 545
+
+## Símbolos
+solo = configuraciones que el símbolo abre por sí solo sobre solo cuerpo; imprescindible = las que se pierden al quitarlo de todo lo que ofrece el lugar.
+símbolo | lugar | solo | imprescindible
+Barra y discos | Gimnasio | 116 | 132
+Barra y discos | En casa | 96 | 112
+Rack | Gimnasio | 6 | 18
+Rack | En casa | 4 | 16
+Banco | Gimnasio | 8 | 26
+Banco | En casa | 5 | 24
+Banco | En espacios públicos | 5 | 10
+Mancuernas | Gimnasio | 85 | 88
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

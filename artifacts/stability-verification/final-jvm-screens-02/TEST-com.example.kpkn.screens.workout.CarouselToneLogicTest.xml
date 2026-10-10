@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.workout.CarouselToneLogicTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:38:57.306Z" hostname="VF" time="0.003">
+  <properties/>
+  <testcase name="intensityTone_failure_isBelowPlan" classname="com.example.kpkn.screens.workout.CarouselToneLogicTest" time="0.001"/>
+  <testcase name="repTone_belowMin_isBelowPlan" classname="com.example.kpkn.screens.workout.CarouselToneLogicTest" time="0.001"/>
+  <testcase name="intensityTone_executionError_isNeutral" classname="com.example.kpkn.screens.workout.CarouselToneLogicTest" time="0.0"/>
+  <testcase name="intensityTone_matchesPlanned_isOnPlan" classname="com.example.kpkn.screens.workout.CarouselToneLogicTest" time="0.0"/>
+  <testcase name="intensityTone_easier_isBelowPlan" classname="com.example.kpkn.screens.workout.CarouselToneLogicTest" time="0.0"/>
+  <testcase name="repTone_aboveMax_isAbovePlan" classname="com.example.kpkn.screens.workout.CarouselToneLogicTest" time="0.0"/>
+  <testcase name="repTone_inRange_isOnPlan" classname="com.example.kpkn.screens.workout.CarouselToneLogicTest" time="0.0"/>
+  <testcase name="intensityTone_harder_isAbovePlan" classname="com.example.kpkn.screens.workout.CarouselToneLogicTest" time="0.0"/>
+  <testcase name="intensityTone_equal_isOnPlan" classname="com.example.kpkn.screens.workout.CarouselToneLogicTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

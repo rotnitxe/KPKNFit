@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.PlanLoadReferenceTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:29:32.529Z" hostname="VF" time="0.012">
+  <properties/>
+  <testcase name="speed_load_requires_a_three_to_five_rep_window" classname="com.example.kpkn.domain.training.PlanLoadReferenceTest" time="0.003"/>
+  <testcase name="rounding_only_realizes_realizable_loads_inside_the_range" classname="com.example.kpkn.domain.training.PlanLoadReferenceTest" time="0.004"/>
+  <testcase name="missing_reference_is_pending_never_zero_kg" classname="com.example.kpkn.domain.training.PlanLoadReferenceTest" time="0.002"/>
+  <testcase name="speed_from_dumbbell_working_set_is_per_implementation" classname="com.example.kpkn.domain.training.PlanLoadReferenceTest" time="0.002"/>
+  <testcase name="capture_only_accepts_finite_working_sets_inside_the_window" classname="com.example.kpkn.domain.training.PlanLoadReferenceTest" time="0.0"/>
+  <testcase name="speed_range_uses_observed_working_set_not_training_max" classname="com.example.kpkn.domain.training.PlanLoadReferenceTest" time="0.0"/>
+  <testcase name="barbell_bench_1rm_never_produces_a_dumbbell_load" classname="com.example.kpkn.domain.training.PlanLoadReferenceTest" time="0.0"/>
+  <testcase name="explicit_light_load_change_captures_a_copy_and_keeps_the_original" classname="com.example.kpkn.domain.training.PlanLoadReferenceTest" time="0.001"/>
+  <testcase name="lastre_and_assistance_are_never_interchanged" classname="com.example.kpkn.domain.training.PlanLoadReferenceTest" time="0.0"/>
+  <testcase name="resolve_reference_labels_the_basis_of_the_same_configuration" classname="com.example.kpkn.domain.training.PlanLoadReferenceTest" time="0.0"/>
+  <testcase name="speed_resolution_rejects_1rm_tm_and_bodyweight_bases" classname="com.example.kpkn.domain.training.PlanLoadReferenceTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

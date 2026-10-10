@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2ResolverTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:24:46.913Z" hostname="VF" time="0.017">
+  <properties/>
+  <testcase name="localized_equipment_search_returns_parent_and_suggests_matching_configuration" classname="com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2ResolverTest" time="0.002"/>
+  <testcase name="retired_walking_setups_require_exact_saved_pair_revision_and_existing_target" classname="com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2ResolverTest" time="0.004"/>
+  <testcase name="specific_search_returns_one_parent_with_suggested_configuration" classname="com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2ResolverTest" time="0.001"/>
+  <testcase name="search_tolerates_typos_in_long_terms" classname="com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2ResolverTest" time="0.001"/>
+  <testcase name="search_synonym_squat_finds_sentadilla" classname="com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2ResolverTest" time="0.001"/>
+  <testcase name="cable_crossover_high_pulley_suggests_high_configuration" classname="com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2ResolverTest" time="0.001"/>
+  <testcase name="search_filters_are_explicit_and_do_not_synthesize_hits" classname="com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2ResolverTest" time="0.001"/>
+  <testcase name="cable_crossover_low_pulley_suggests_low_configuration" classname="com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2ResolverTest" time="0.001"/>
+  <testcase name="invalid_configuration_does_not_fall_back_to_default" classname="com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2ResolverTest" time="0.001"/>
+  <testcase name="search_muscle_alias_pecho_finds_chest_exercises" classname="com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2ResolverTest" time="0.001"/>
+  <testcase name="ordinary_forward_and_reverse_smith_and_cable_keep_their_exact_profiles" classname="com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2ResolverTest" time="0.002"/>
+  <testcase name="retired_cross_definition_mapping_requires_exact_source_pair_and_existing_target" classname="com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2ResolverTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

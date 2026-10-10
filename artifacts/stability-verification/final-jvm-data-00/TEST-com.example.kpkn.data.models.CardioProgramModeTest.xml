@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.models.CardioProgramModeTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:51:23.131Z" hostname="VF" time="0.002">
+  <properties/>
+  <testcase name="oldJsonAndNewFieldsRoundTrip" classname="com.example.kpkn.data.models.CardioProgramModeTest" time="0.002"/>
+  <testcase name="modeDerivationUsesHiitThenIntervalsThenLegacySteady" classname="com.example.kpkn.data.models.CardioProgramModeTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

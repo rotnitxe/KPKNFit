@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.exercises.ExerciseCatalogInsightsSearchTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:24:45.773Z" hostname="VF" time="0.015">
+  <properties/>
+  <testcase name="connector_words_do_not_hide_literal_name_match" classname="com.example.kpkn.domain.exercises.ExerciseCatalogInsightsSearchTest" time="0.006"/>
+  <testcase name="shorter_literal_sissy_match_wins_over_weighted_variant" classname="com.example.kpkn.domain.exercises.ExerciseCatalogInsightsSearchTest" time="0.001"/>
+  <testcase name="visual_dedup_groups_custom_duplicate_by_normalized_name" classname="com.example.kpkn.domain.exercises.ExerciseCatalogInsightsSearchTest" time="0.0"/>
+  <testcase name="partial_token_prefix_matches_while_typing" classname="com.example.kpkn.domain.exercises.ExerciseCatalogInsightsSearchTest" time="0.001"/>
+  <testcase name="multi_word_search_requires_every_term_not_or" classname="com.example.kpkn.domain.exercises.ExerciseCatalogInsightsSearchTest" time="0.001"/>
+  <testcase name="technical_chip_name_matches_and_returns_the_option_to_preselect" classname="com.example.kpkn.domain.exercises.ExerciseCatalogInsightsSearchTest" time="0.005"/>
+  <testcase name="exact_normalized_name_wins_over_broad_semantic_match" classname="com.example.kpkn.domain.exercises.ExerciseCatalogInsightsSearchTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

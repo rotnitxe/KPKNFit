@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.design.WizardBodyFatPickerTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:36:31.316Z" hostname="VF" time="0.622">
+  <properties/>
+  <testcase name="theModelButtonsAreRadioButtonsWithATouchZoneOfAtLeast48Dp" classname="com.example.kpkn.screens.onboarding.design.WizardBodyFatPickerTest" time="0.267"/>
+  <testcase name="switchingToTheFemaleFigureChangesTheDescriptorAndKeepsThePercent" classname="com.example.kpkn.screens.onboarding.design.WizardBodyFatPickerTest" time="0.075"/>
+  <testcase name="theStageMeasures380DpTallOnATypicalPhoneWithTheRulerOnTheRightAndTheButtonsInTheCorner" classname="com.example.kpkn.screens.onboarding.design.WizardBodyFatPickerTest" time="0.064"/>
+  <testcase name="theReadingStartsOnTheStartingValueWithTheMaleDescriptor" classname="com.example.kpkn.screens.onboarding.design.WizardBodyFatPickerTest" time="0.059"/>
+  <testcase name="aTapOnTheRulerCommitsOnceAndTheReadingFollows" classname="com.example.kpkn.screens.onboarding.design.WizardBodyFatPickerTest" time="0.08"/>
+  <testcase name="draggingPaintsAtOnceButOnlyCommitsWhenTheFingerLifts" classname="com.example.kpkn.screens.onboarding.design.WizardBodyFatPickerTest" time="0.076"/>
+  <system-out><![CDATA[STAGE_GEOMETRY ruler=[303.33334, 0.0, 342.0, 380.0] width=38.666656 height=380.0 female=[0.0, 0.0, 48.0x48.0] male=[48.0, 0.0, 48.0x48.0] reading=[0.0, 388.0, 11.6666565]
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

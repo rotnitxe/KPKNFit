@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.onboarding.AuthoredPlanMaterializerTest" tests="15" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:24:47.017Z" hostname="VF" time="1.209">
+  <properties/>
+  <testcase name="unknownMachinesAskToConfirmInsteadOfBeingDenied" classname="com.example.kpkn.domain.onboarding.AuthoredPlanMaterializerTest" time="0.203"/>
+  <testcase name="adaptedProgramSurvivesTheRoomJsonRoundTripWithItsProvenance" classname="com.example.kpkn.domain.onboarding.AuthoredPlanMaterializerTest" time="0.411"/>
+  <testcase name="fullGymPreparesPhulOriginalExactlyAsTheTableWithOriginalProvenance" classname="com.example.kpkn.domain.onboarding.AuthoredPlanMaterializerTest" time="0.05"/>
+  <testcase name="missingRackSubstitutesTheBarbellBenchAndSquatSlotsAndLeavesTheOriginalUntouched" classname="com.example.kpkn.domain.onboarding.AuthoredPlanMaterializerTest" time="0.047"/>
+  <testcase name="originalsNeverSubstituteMissingMaterialAndNameWhatIsMissing" classname="com.example.kpkn.domain.onboarding.AuthoredPlanMaterializerTest" time="0.007"/>
+  <testcase name="dumbbellsAndBenchReachTheSameVerdictAsTheResolverAndNeverMutateTheCatalog" classname="com.example.kpkn.domain.onboarding.AuthoredPlanMaterializerTest" time="0.073"/>
+  <testcase name="fullGymPreparesPhatOriginalWithSpeedBlocksAndDeferredHonestLoads" classname="com.example.kpkn.domain.onboarding.AuthoredPlanMaterializerTest" time="0.051"/>
+  <testcase name="speedPowerHasNoSubstituteAndTheAdaptationIsNotViable" classname="com.example.kpkn.domain.onboarding.AuthoredPlanMaterializerTest" time="0.004"/>
+  <testcase name="theSameInputsGiveTheSameProgramAndStableIdsEvenWithRandomContainerIds" classname="com.example.kpkn.domain.onboarding.AuthoredPlanMaterializerTest" time="0.131"/>
+  <testcase name="aHardCompositionFindingIsTypedAndNothingIsMaterialized" classname="com.example.kpkn.domain.onboarding.AuthoredPlanMaterializerTest" time="0.008"/>
+  <testcase name="fullGymKeepsBothAdaptedTablesAndRecordsNoSilentChange" classname="com.example.kpkn.domain.onboarding.AuthoredPlanMaterializerTest" time="0.056"/>
+  <testcase name="aFixedRecipeThatProducesAnotherFrequencyIsRejectedWithATypedReason" classname="com.example.kpkn.domain.onboarding.AuthoredPlanMaterializerTest" time="0.03"/>
+  <testcase name="anUnresolvableConfigurationIsACatalogRejectionNotAnInternalError" classname="com.example.kpkn.domain.onboarding.AuthoredPlanMaterializerTest" time="0.002"/>
+  <testcase name="substitutingTheT1SquatForATierTwoAlternativeIsNeverRejectedByTheH9RestFloor" classname="com.example.kpkn.domain.onboarding.AuthoredPlanMaterializerTest" time="0.086"/>
+  <testcase name="bodyweightOnlyRejectsEveryAuthoredPlanWithATypedReason" classname="com.example.kpkn.domain.onboarding.AuthoredPlanMaterializerTest" time="0.007"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.services.workout.WorkoutVoiceHandsFreeTest" tests="31" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:40:38.570Z" hostname="VF" time="0.026">
+  <properties/>
+  <testcase name="saltarDescansoPhrase" classname="com.example.kpkn.services.workout.WorkoutVoiceHandsFreeTest" time="0.001"/>
+  <testcase name="engineErrorBackoffIsExponential" classname="com.example.kpkn.services.workout.WorkoutVoiceHandsFreeTest" time="0.002"/>
+  <testcase name="instantPartialConfirmAndSkipRest" classname="com.example.kpkn.services.workout.WorkoutVoiceHandsFreeTest" time="0.001"/>
+  <testcase name="parseUndoDuringRest" classname="com.example.kpkn.services.workout.WorkoutVoiceHandsFreeTest" time="0.001"/>
+  <testcase name="parseEditLastSetMultiFieldNaturalPhrase" classname="com.example.kpkn.services.workout.WorkoutVoiceHandsFreeTest" time="0.0"/>
+  <testcase name="confirmationPolicyAcceptsBodyweightMetricAndFeedbackOnDraft" classname="com.example.kpkn.services.workout.WorkoutVoiceHandsFreeTest" time="0.002"/>
+  <testcase name="bareSuggestedSynonymsMapToSuggestWeight" classname="com.example.kpkn.services.workout.WorkoutVoiceHandsFreeTest" time="0.002"/>
+  <testcase name="withoutRestSaltarMeansSkipExercise" classname="com.example.kpkn.services.workout.WorkoutVoiceHandsFreeTest" time="0.0"/>
+  <testcase name="autoConfirmRequiresWeightAndReps" classname="com.example.kpkn.services.workout.WorkoutVoiceHandsFreeTest" time="0.0"/>
+  <testcase name="hypothesisScorerPrefersGymSignalWords" classname="com.example.kpkn.services.workout.WorkoutVoiceHandsFreeTest" time="0.002"/>
+  <testcase name="listoDuringRestIsSkipRestNotUnknown" classname="com.example.kpkn.services.workout.WorkoutVoiceHandsFreeTest" time="0.0"/>
+  <testcase name="restAwareSigueAndParaMapToSkipRest" classname="com.example.kpkn.services.workout.WorkoutVoiceHandsFreeTest" time="0.0"/>
+  <testcase name="sessionGateRecoveringIsActiveButDoesNotProcessCommands" classname="com.example.kpkn.services.workout.WorkoutVoiceHandsFreeTest" time="0.001"/>
+  <testcase name="speechBusHigherPriorityInterruptsLower" classname="com.example.kpkn.services.workout.WorkoutVoiceHandsFreeTest" time="0.001"/>
+  <testcase name="parseEditLastSetAbsoluteWeight" classname="com.example.kpkn.services.workout.WorkoutVoiceHandsFreeTest" time="0.001"/>
+  <testcase name="parseAdjustRestAddThirty" classname="com.example.kpkn.services.workout.WorkoutVoiceHandsFreeTest" time="0.0"/>
+  <testcase name="confirmationPolicyAutoVsAsk" classname="com.example.kpkn.services.workout.WorkoutVoiceHandsFreeTest" time="0.0"/>
+  <testcase name="confirmationPolicyAsksWhenWeightDeviatesFromContext" classname="com.example.kpkn.services.workout.WorkoutVoiceHandsFreeTest" time="0.0"/>
+  <testcase name="parseEditLastSetReps" classname="com.example.kpkn.services.workout.WorkoutVoiceHandsFreeTest" time="0.001"/>
+  <testcase name="verbosityGateSilentBlocksCompleteCues" classname="com.example.kpkn.services.workout.WorkoutVoiceHandsFreeTest" time="0.002"/>
+  <testcase name="explicitTagCommandIsParsedWithoutGuessingNormalSpeech" classname="com.example.kpkn.services.workout.WorkoutVoiceHandsFreeTest" time="0.003"/>
+  <testcase name="intentMatcherConfirmWaitRejectsSkipExercise" classname="com.example.kpkn.services.workout.WorkoutVoiceHandsFreeTest" time="0.001"/>
+  <testcase name="restAwareSaltarMeansSkipRestNotExercise" classname="com.example.kpkn.services.workout.WorkoutVoiceHandsFreeTest" time="0.0"/>
+  <testcase name="parseAdjustRestRemoveFifteenSpoken" classname="com.example.kpkn.services.workout.WorkoutVoiceHandsFreeTest" time="0.0"/>
+  <testcase name="rangeEditMapsToEditLastSetAbsoluteWeight" classname="com.example.kpkn.services.workout.WorkoutVoiceHandsFreeTest" time="0.0"/>
+  <testcase name="parseUseAdaptiveRestKeywords" classname="com.example.kpkn.services.workout.WorkoutVoiceHandsFreeTest" time="0.0"/>
+  <testcase name="stopSpeakingKeyword" classname="com.example.kpkn.services.workout.WorkoutVoiceHandsFreeTest" time="0.0"/>
+  <testcase name="parsesSessionTimeLimitAsSessionOnlyByDefault" classname="com.example.kpkn.services.workout.WorkoutVoiceHandsFreeTest" time="0.001"/>
+  <testcase name="enteringCueRespectsShowPrsFlag" classname="com.example.kpkn.services.workout.WorkoutVoiceHandsFreeTest" time="0.002"/>
+  <testcase name="intentMatcherRestMapsSaltarToSkipRest" classname="com.example.kpkn.services.workout.WorkoutVoiceHandsFreeTest" time="0.0"/>
+  <testcase name="timedSetCommandsAreContextual" classname="com.example.kpkn.services.workout.WorkoutVoiceHandsFreeTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

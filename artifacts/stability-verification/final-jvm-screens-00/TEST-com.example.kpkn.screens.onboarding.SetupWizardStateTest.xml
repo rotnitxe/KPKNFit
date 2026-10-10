@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.SetupWizardStateTest" tests="20" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:36:30.538Z" hostname="VF" time="0.028">
+  <properties/>
+  <testcase name="saveAndExitOnlyRunsAfterTheExitDialogAndWaitsForTheSave" classname="com.example.kpkn.screens.onboarding.SetupWizardStateTest" time="0.002"/>
+  <testcase name="resumingRestoresTheExactStepAnswersUnitsAndSelections" classname="com.example.kpkn.screens.onboarding.SetupWizardStateTest" time="0.006"/>
+  <testcase name="everyNewEntrenoInputLeavesTheProgramAndTheWeekPendingOfReview" classname="com.example.kpkn.screens.onboarding.SetupWizardStateTest" time="0.012"/>
+  <testcase name="adaptingTheWeekToASplitStalesThePreviewButReopensNothing" classname="com.example.kpkn.screens.onboarding.SetupWizardStateTest" time="0.0"/>
+  <testcase name="changingProtocolRevalidatesMarksProgramAndWeekLayout" classname="com.example.kpkn.screens.onboarding.SetupWizardStateTest" time="0.0"/>
+  <testcase name="keepConfiguringCancelsTheExitDialogWithoutProducingAnyPlan" classname="com.example.kpkn.screens.onboarding.SetupWizardStateTest" time="0.001"/>
+  <testcase name="changingEquipmentRevalidatesExercisesLoadsAndWarmups" classname="com.example.kpkn.screens.onboarding.SetupWizardStateTest" time="0.0"/>
+  <testcase name="backNavigationKeepsEveryAnswer" classname="com.example.kpkn.screens.onboarding.SetupWizardStateTest" time="0.0"/>
+  <testcase name="changingWeightInvalidatesOnlyNutritionDependents" classname="com.example.kpkn.screens.onboarding.SetupWizardStateTest" time="0.0"/>
+  <testcase name="changingApparatusPresenceInvalidatesMaterialDependents" classname="com.example.kpkn.screens.onboarding.SetupWizardStateTest" time="0.001"/>
+  <testcase name="discardRequiresExplicitConfirmationAndIsNeverTiedToBack" classname="com.example.kpkn.screens.onboarding.SetupWizardStateTest" time="0.002"/>
+  <testcase name="choosingTheProgramRevalidatesTheProgramAndTheWeekButNotTheMarksThatComeBeforeIt" classname="com.example.kpkn.screens.onboarding.SetupWizardStateTest" time="0.001"/>
+  <testcase name="changingFrequencyRevalidatesWeekdaysCandidateAndWeekLayout" classname="com.example.kpkn.screens.onboarding.SetupWizardStateTest" time="0.0"/>
+  <testcase name="navigationNeverLooksLikeAPhysiologicalChange" classname="com.example.kpkn.screens.onboarding.SetupWizardStateTest" time="0.0"/>
+  <testcase name="validationDistinguishesAbsentInvalidDeclaredEstimatedAndMissingEquationInputs" classname="com.example.kpkn.screens.onboarding.SetupWizardStateTest" time="0.0"/>
+  <testcase name="engineResultsAreNeverSavedAsDeclaredAnswers" classname="com.example.kpkn.screens.onboarding.SetupWizardStateTest" time="0.001"/>
+  <testcase name="changingPrioritiesOnlyReorders" classname="com.example.kpkn.screens.onboarding.SetupWizardStateTest" time="0.0"/>
+  <testcase name="changingSensationsOnlyAffectsRings" classname="com.example.kpkn.screens.onboarding.SetupWizardStateTest" time="0.0"/>
+  <testcase name="changingSplitInvalidatesCandidatesSplitAndPreview" classname="com.example.kpkn.screens.onboarding.SetupWizardStateTest" time="0.0"/>
+  <testcase name="changingCalendarRecalculatesNutritionAndTrainingDependents" classname="com.example.kpkn.screens.onboarding.SetupWizardStateTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

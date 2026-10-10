@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.design.WizardNutritionFormatTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:36:32.418Z" hostname="VF" time="0.006">
+  <properties/>
+  <testcase name="los avisos se reservan de mas a menos graves y cada uno una vez" classname="com.example.kpkn.screens.onboarding.design.WizardNutritionFormatTest" time="0.001"/>
+  <testcase name="el cambio de peso lleva signo explicito y un cero redondeado no lo lleva" classname="com.example.kpkn.screens.onboarding.design.WizardNutritionFormatTest" time="0.001"/>
+  <testcase name="las muescas se llaman Lento Medio y Rapido" classname="com.example.kpkn.screens.onboarding.design.WizardNutritionFormatTest" time="0.0"/>
+  <testcase name="las kcal llevan punto de millar desde las cuatro cifras" classname="com.example.kpkn.screens.onboarding.design.WizardNutritionFormatTest" time="0.0"/>
+  <testcase name="cada zona de ritmo tiene una etiqueta de una palabra y un color distinto" classname="com.example.kpkn.screens.onboarding.design.WizardNutritionFormatTest" time="0.002"/>
+  <testcase name="los colores de gravedad distinguen avisar de peligro" classname="com.example.kpkn.screens.onboarding.design.WizardNutritionFormatTest" time="0.0"/>
+  <testcase name="el texto del ritmo distingue perder de ganar y los demas no" classname="com.example.kpkn.screens.onboarding.design.WizardNutritionFormatTest" time="0.0"/>
+  <testcase name="los decimales llevan coma y los negativos el menos tipografico" classname="com.example.kpkn.screens.onboarding.design.WizardNutritionFormatTest" time="0.0"/>
+  <testcase name="los dias son L M X J V S D" classname="com.example.kpkn.screens.onboarding.design.WizardNutritionFormatTest" time="0.001"/>
+  <testcase name="los textos de los avisos tienen como mucho seis palabras" classname="com.example.kpkn.screens.onboarding.design.WizardNutritionFormatTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

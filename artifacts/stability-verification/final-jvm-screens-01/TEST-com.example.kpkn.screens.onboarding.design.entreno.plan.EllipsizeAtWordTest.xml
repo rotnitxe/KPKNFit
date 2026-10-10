@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.design.entreno.plan.EllipsizeAtWordTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:37:30.365Z" hostname="VF" time="0.024">
+  <properties/>
+  <testcase name="aCutRightBeforeASpaceKeepsTheWholeWord" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.EllipsizeAtWordTest" time="0.024"/>
+  <testcase name="aSingleLongWordIsTheOnlyCaseThatStillCuts" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.EllipsizeAtWordTest" time="0.0"/>
+  <testcase name="aTextThatAlreadyFitsIsReturnedAsIs" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.EllipsizeAtWordTest" time="0.0"/>
+  <testcase name="aCutAtTheStartLeavesJustTheEllipsis" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.EllipsizeAtWordTest" time="0.0"/>
+  <testcase name="loosePunctuationBeforeTheCutGoesToo" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.EllipsizeAtWordTest" time="0.0"/>
+  <testcase name="aCutInTheMiddleOfAWordDropsThatWord" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.EllipsizeAtWordTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

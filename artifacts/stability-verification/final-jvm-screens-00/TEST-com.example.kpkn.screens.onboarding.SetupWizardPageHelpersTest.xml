@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.SetupWizardPageHelpersTest" tests="18" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:36:27.184Z" hostname="VF" time="0.007">
+  <properties/>
+  <testcase name="durante un hito la pagina sigue siendo la ultima pregunta del bloque" classname="com.example.kpkn.screens.onboarding.SetupWizardPageHelpersTest" time="0.0"/>
+  <testcase name="las etapas del primer hito dejan basicos celebrado y entreno como siguiente" classname="com.example.kpkn.screens.onboarding.SetupWizardPageHelpersTest" time="0.002"/>
+  <testcase name="el progreso por bloque va de 0 a 1 y un bloque cerrado cuenta completo" classname="com.example.kpkn.screens.onboarding.SetupWizardPageHelpersTest" time="0.0"/>
+  <testcase name="la cabecera dice el bloque y cuanto llevas sin repetir la pregunta" classname="com.example.kpkn.screens.onboarding.SetupWizardPageHelpersTest" time="0.001"/>
+  <testcase name="con el programa aplazado el paso del programa dice que todavia no hay programa" classname="com.example.kpkn.screens.onboarding.SetupWizardPageHelpersTest" time="0.001"/>
+  <testcase name="cada bloque con hito tiene su animacion y la revision no" classname="com.example.kpkn.screens.onboarding.SetupWizardPageHelpersTest" time="0.001"/>
+  <testcase name="la pantalla de arranque no tiene nada completado" classname="com.example.kpkn.screens.onboarding.SetupWizardPageHelpersTest" time="0.001"/>
+  <testcase name="las paginas fusionadas tienen su propio texto" classname="com.example.kpkn.screens.onboarding.SetupWizardPageHelpersTest" time="0.0"/>
+  <testcase name="la edad y el peso se muestran en la pagina del alias y de la altura" classname="com.example.kpkn.screens.onboarding.SetupWizardPageHelpersTest" time="0.0"/>
+  <testcase name="las paginas fusionadas no repiten edad ni peso" classname="com.example.kpkn.screens.onboarding.SetupWizardPageHelpersTest" time="0.0"/>
+  <testcase name="la etiqueta de la seccion cuenta las preguntas del bloque" classname="com.example.kpkn.screens.onboarding.SetupWizardPageHelpersTest" time="0.0"/>
+  <testcase name="las etapas de un hito intermedio marcan lo anterior como completo" classname="com.example.kpkn.screens.onboarding.SetupWizardPageHelpersTest" time="0.0"/>
+  <testcase name="la revision tiene etiqueta propia" classname="com.example.kpkn.screens.onboarding.SetupWizardPageHelpersTest" time="0.0"/>
+  <testcase name="una pregunta normal usa el titulo y el subtitulo del catalogo" classname="com.example.kpkn.screens.onboarding.SetupWizardPageHelpersTest" time="0.001"/>
+  <testcase name="la ruta de solo entreno no nombra nutricion ni rings en las etapas" classname="com.example.kpkn.screens.onboarding.SetupWizardPageHelpersTest" time="0.0"/>
+  <testcase name="los hitos no son paginas" classname="com.example.kpkn.screens.onboarding.SetupWizardPageHelpersTest" time="0.0"/>
+  <testcase name="mientras el overlay del hito esta abierto la ultima pregunta cuenta como confirmada" classname="com.example.kpkn.screens.onboarding.SetupWizardPageHelpersTest" time="0.0"/>
+  <testcase name="tras el ultimo hito el siguiente es la revision" classname="com.example.kpkn.screens.onboarding.SetupWizardPageHelpersTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.sessioneditor.SessionEditorDraftPersistenceTest" tests="28" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:38:07.839Z" hostname="VF" time="0.169">
+  <properties/>
+  <testcase name="threeWayMergeFollowsRoomForEachUntouchedCoreFieldAndKeepsDraftForEachTouchedOne" classname="com.example.kpkn.screens.sessioneditor.SessionEditorDraftPersistenceTest" time="0.003"/>
+  <testcase name="resolve_d2DraftKeepsTheUserEditedCoreFieldOverRoomButStillFollowsTheRest" classname="com.example.kpkn.screens.sessioneditor.SessionEditorDraftPersistenceTest" time="0.002"/>
+  <testcase name="resolve_noDraftNoRecord_usesRoomCoreAndDefaultExtras" classname="com.example.kpkn.screens.sessioneditor.SessionEditorDraftPersistenceTest" time="0.0"/>
+  <testcase name="draftWithVersionedBaselineRoundTripsAndOlderDraftsDecodeWithoutOne" classname="com.example.kpkn.screens.sessioneditor.SessionEditorDraftPersistenceTest" time="0.031"/>
+  <testcase name="discardInvalidatesQueuedAutosaveAndRemovesExistingDraft" classname="com.example.kpkn.screens.sessioneditor.SessionEditorDraftPersistenceTest" time="0.099"/>
+  <testcase name="resolve_d2StoredExtrasBeatTheBaselineExtras" classname="com.example.kpkn.screens.sessioneditor.SessionEditorDraftPersistenceTest" time="0.002"/>
+  <testcase name="resolve_legacyDraftKeepsTheWholeDraftEvenWhenRoomMoved" classname="com.example.kpkn.screens.sessioneditor.SessionEditorDraftPersistenceTest" time="0.0"/>
+  <testcase name="discardOnlyRewritesTheRecordWhenItDiffersFromTheBaseline" classname="com.example.kpkn.screens.sessioneditor.SessionEditorDraftPersistenceTest" time="0.001"/>
+  <testcase name="resolve_storedExtrasOverlayTheCurrentRoomCoreAndNeverTheStoredOne" classname="com.example.kpkn.screens.sessioneditor.SessionEditorDraftPersistenceTest" time="0.0"/>
+  <testcase name="extrasRoundTripAndOnlyTheEightCoreFieldsReachRoom" classname="com.example.kpkn.screens.sessioneditor.SessionEditorDraftPersistenceTest" time="0.0"/>
+  <testcase name="resolve_d2DraftFollowsRoomForUntouchedCoreFields" classname="com.example.kpkn.screens.sessioneditor.SessionEditorDraftPersistenceTest" time="0.0"/>
+  <testcase name="resolve_v1RecordConfirmsDefaultExtras" classname="com.example.kpkn.screens.sessioneditor.SessionEditorDraftPersistenceTest" time="0.0"/>
+  <testcase name="extrasOnlyEditsAreNotContentChangesButAreDraftChangesUntilConfirmed" classname="com.example.kpkn.screens.sessioneditor.SessionEditorDraftPersistenceTest" time="0.008"/>
+  <testcase name="legacySessionNormalizationDoesNotCreateFalseContentDirtyState" classname="com.example.kpkn.screens.sessioneditor.SessionEditorDraftPersistenceTest" time="0.002"/>
+  <testcase name="resolve_d2WithInferredRoomCoreWhenNoBlockIsPersisted" classname="com.example.kpkn.screens.sessioneditor.SessionEditorDraftPersistenceTest" time="0.001"/>
+  <testcase name="resolve_legacyDraftWithRecordKeepsTheRecordExtrasAsConfirmed" classname="com.example.kpkn.screens.sessioneditor.SessionEditorDraftPersistenceTest" time="0.0"/>
+  <testcase name="resolve_d1DraftExtrasStayPendingAgainstAV1RecordOrNoRecord" classname="com.example.kpkn.screens.sessioneditor.SessionEditorDraftPersistenceTest" time="0.0"/>
+  <testcase name="generatedTimestampDoesNotMakeSessionDirtyButContentEditDoes" classname="com.example.kpkn.screens.sessioneditor.SessionEditorDraftPersistenceTest" time="0.0"/>
+  <testcase name="switchingSessionInvalidatesOldTimerAndKeepsNewSessionKeyIndependent" classname="com.example.kpkn.screens.sessioneditor.SessionEditorDraftPersistenceTest" time="0.002"/>
+  <testcase name="resolve_legacyDraftWithoutRecordMigratesItsOwnExtrasAsConfirmed" classname="com.example.kpkn.screens.sessioneditor.SessionEditorDraftPersistenceTest" time="0.001"/>
+  <testcase name="failedWriteCanBeRetriedWithoutLosingTheSnapshot" classname="com.example.kpkn.screens.sessioneditor.SessionEditorDraftPersistenceTest" time="0.002"/>
+  <testcase name="delayedAutosaveIsDiscardedAfterNewerRevisionForSameSession" classname="com.example.kpkn.screens.sessioneditor.SessionEditorDraftPersistenceTest" time="0.002"/>
+  <testcase name="preferenceRecordIsVersionedAndLegacyOrFutureRecordsStillDecode" classname="com.example.kpkn.screens.sessioneditor.SessionEditorDraftPersistenceTest" time="0.003"/>
+  <testcase name="committedRuleDefaultsUseTheOriginalSessionCoreAndTheConfirmedExtras" classname="com.example.kpkn.screens.sessioneditor.SessionEditorDraftPersistenceTest" time="0.0"/>
+  <testcase name="cancelledWriterOwnerCompletesAwaitWithFailureInsteadOfHanging" classname="com.example.kpkn.screens.sessioneditor.SessionEditorDraftPersistenceTest" time="0.008"/>
+  <testcase name="everyCoreFieldEditRemainsAContentChange" classname="com.example.kpkn.screens.sessioneditor.SessionEditorDraftPersistenceTest" time="0.001"/>
+  <testcase name="everyRuleDefaultsFieldIsEitherCoreOrExtra" classname="com.example.kpkn.screens.sessioneditor.SessionEditorDraftPersistenceTest" time="0.0"/>
+  <testcase name="editorOnlyPreferencesUseSavedBaselineAndResetIsClean" classname="com.example.kpkn.screens.sessioneditor.SessionEditorDraftPersistenceTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

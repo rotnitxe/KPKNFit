@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.split.ExerciseTraitResolverTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:31:02.766Z" hostname="VF" time="0.021">
+  <properties/>
+  <testcase name="every_configuration_of_the_catalog_has_traits_with_a_primary_muscle" classname="com.example.kpkn.domain.training.split.ExerciseTraitResolverTest" time="0.007"/>
+  <testcase name="an_unknown_exercise_has_no_traits" classname="com.example.kpkn.domain.training.split.ExerciseTraitResolverTest" time="0.003"/>
+  <testcase name="arms_and_pulls_are_classified_by_muscle_and_pattern" classname="com.example.kpkn.domain.training.split.ExerciseTraitResolverTest" time="0.0"/>
+  <testcase name="the_approach_info_of_every_catalog_exercise_is_the_one_the_materializer_and_the_generator_use" classname="com.example.kpkn.domain.training.split.ExerciseTraitResolverTest" time="0.007"/>
+  <testcase name="an_exercise_without_catalog_identity_is_found_by_its_catalog_name" classname="com.example.kpkn.domain.training.split.ExerciseTraitResolverTest" time="0.001"/>
+  <testcase name="the_bench_press_is_a_heavy_push_compound_for_the_chest" classname="com.example.kpkn.domain.training.split.ExerciseTraitResolverTest" time="0.0"/>
+  <testcase name="name_rules_match_whole_words_so_variants_do_not_mislead" classname="com.example.kpkn.domain.training.split.ExerciseTraitResolverTest" time="0.001"/>
+  <testcase name="a_bodyweight_exercise_with_declared_ballast_can_be_heavy_for_the_redistributor_exactly_as_in_the_materializer" classname="com.example.kpkn.domain.training.split.ExerciseTraitResolverTest" time="0.0"/>
+  <testcase name="the_deltoid_is_split_by_head_from_the_movement" classname="com.example.kpkn.domain.training.split.ExerciseTraitResolverTest" time="0.0"/>
+  <testcase name="an_exercise_without_catalog_identity_still_gets_its_approach_info_from_its_traits" classname="com.example.kpkn.domain.training.split.ExerciseTraitResolverTest" time="0.001"/>
+  <testcase name="a_bodyweight_exercise_is_never_heavy_and_a_band_neither" classname="com.example.kpkn.domain.training.split.ExerciseTraitResolverTest" time="0.0"/>
+  <testcase name="legs_hinges_and_calves_belong_to_the_leg_group_and_the_lower_region" classname="com.example.kpkn.domain.training.split.ExerciseTraitResolverTest" time="0.001"/>
+  <testcase name="a_custom_exercise_falls_back_to_its_declared_muscles_and_then_to_its_name" classname="com.example.kpkn.domain.training.split.ExerciseTraitResolverTest" time="0.0"/>
+  <testcase name="the_resolver_is_stable_across_calls" classname="com.example.kpkn.domain.training.split.ExerciseTraitResolverTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

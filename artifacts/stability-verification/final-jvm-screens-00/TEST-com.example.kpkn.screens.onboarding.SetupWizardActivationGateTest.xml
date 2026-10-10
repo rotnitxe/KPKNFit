@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.SetupWizardActivationGateTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:36:10.208Z" hostname="VF" time="1.271">
+  <properties/>
+  <testcase name="apparatusRejectionsTakeTheConfirmableKeyFromMissingRequirementsInsteadOfTheMessage" classname="com.example.kpkn.screens.onboarding.SetupWizardActivationGateTest" time="0.035"/>
+  <testcase name="apparatusRejectionReportsDefinitiveAbsenceWhenOtherRequirementsAreUnknown" classname="com.example.kpkn.screens.onboarding.SetupWizardActivationGateTest" time="0.027"/>
+  <testcase name="activationGateBlocksStalePreviewAndRetryKeepsTheSameProgramId" classname="com.example.kpkn.screens.onboarding.SetupWizardActivationGateTest" time="1.209"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

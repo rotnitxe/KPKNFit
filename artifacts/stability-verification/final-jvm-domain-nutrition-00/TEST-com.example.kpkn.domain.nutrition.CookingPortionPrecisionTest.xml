@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.CookingPortionPrecisionTest" tests="15" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:57:29.091Z" hostname="VF" time="0.007">
+  <properties/>
+  <testcase name="arroz without state needs dry vs cooked clarification" classname="com.example.kpkn.domain.nutrition.CookingPortionPrecisionTest" time="0.0"/>
+  <testcase name="scoop is absolute grams not relative blow-up" classname="com.example.kpkn.domain.nutrition.CookingPortionPrecisionTest" time="0.0"/>
+  <testcase name="pollo frito prefers prepared DB variant without oil path" classname="com.example.kpkn.domain.nutrition.CookingPortionPrecisionTest" time="0.001"/>
+  <testcase name="explicit grams keep amount and macros stable regardless of context" classname="com.example.kpkn.domain.nutrition.CookingPortionPrecisionTest" time="0.0"/>
+  <testcase name="methodSearchSuffixes for FRITO includes revuelto" classname="com.example.kpkn.domain.nutrition.CookingPortionPrecisionTest" time="0.0"/>
+  <testcase name="fried on raw base should apply oil" classname="com.example.kpkn.domain.nutrition.CookingPortionPrecisionTest" time="0.0"/>
+  <testcase name="cup of rice is resolved subjective and stable utensil grams" classname="com.example.kpkn.domain.nutrition.CookingPortionPrecisionTest" time="0.001"/>
+  <testcase name="soya dry has cookingWeightFactor and hydrates via method" classname="com.example.kpkn.domain.nutrition.CookingPortionPrecisionTest" time="0.0"/>
+  <testcase name="oil strip and reapply moves fats" classname="com.example.kpkn.domain.nutrition.CookingPortionPrecisionTest" time="0.001"/>
+  <testcase name="revuelto row counts as prepared for FRITO without oil" classname="com.example.kpkn.domain.nutrition.CookingPortionPrecisionTest" time="0.0"/>
+  <testcase name="kg converts without distorting intent" classname="com.example.kpkn.domain.nutrition.CookingPortionPrecisionTest" time="0.001"/>
+  <testcase name="pollo frito parse keeps method and does not ask clarification" classname="com.example.kpkn.domain.nutrition.CookingPortionPrecisionTest" time="0.001"/>
+  <testcase name="soya without state needs clarification" classname="com.example.kpkn.domain.nutrition.CookingPortionPrecisionTest" time="0.0"/>
+  <testcase name="casino context portionAdjustment does not change explicit grams amount" classname="com.example.kpkn.domain.nutrition.CookingPortionPrecisionTest" time="0.0"/>
+  <testcase name="explicit grams keep amountIntent and do not rely on subjective" classname="com.example.kpkn.domain.nutrition.CookingPortionPrecisionTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

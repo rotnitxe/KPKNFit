@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.TopSetProgressionTest" tests="17" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:29:44.378Z" hostname="VF" time="0.301">
+  <properties/>
+  <testcase name="the_most_recent_log_of_the_session_decides_the_top_set" classname="com.example.kpkn.domain.training.TopSetProgressionTest" time="0.007"/>
+  <testcase name="a_top_set_proposal_respects_off_propose_and_auto" classname="com.example.kpkn.domain.training.TopSetProgressionTest" time="0.002"/>
+  <testcase name="only_a_top_set_pr_recipe_reads_the_top_sets" classname="com.example.kpkn.domain.training.TopSetProgressionTest" time="0.002"/>
+  <testcase name="a_rep_max_of_a_variant_or_of_a_high_rep_set_or_a_percent_top_set_is_ignored" classname="com.example.kpkn.domain.training.TopSetProgressionTest" time="0.003"/>
+  <testcase name="finishing_a_week_through_the_progress_engine_reads_the_top_sets_from_the_logs" classname="com.example.kpkn.domain.training.TopSetProgressionTest" time="0.001"/>
+  <testcase name="a_lighter_load_never_raises_the_tm_but_can_still_lower_it" classname="com.example.kpkn.domain.training.TopSetProgressionTest" time="0.0"/>
+  <testcase name="two_extra_reps_double_the_increment" classname="com.example.kpkn.domain.training.TopSetProgressionTest" time="0.0"/>
+  <testcase name="a_top_set_two_reps_short_lowers_the_tm_by_a_percent_and_a_lighter_load_never_raises_it" classname="com.example.kpkn.domain.training.TopSetProgressionTest" time="0.001"/>
+  <testcase name="a_rep_max_proposal_respects_off_and_auto" classname="com.example.kpkn.domain.training.TopSetProgressionTest" time="0.003"/>
+  <testcase name="reaching_the_target_raises_the_tm_by_the_increment_of_the_lift" classname="com.example.kpkn.domain.training.TopSetProgressionTest" time="0.0"/>
+  <testcase name="the_top_sets_of_the_week_become_adjust_tm_proposals_in_kilos" classname="com.example.kpkn.domain.training.TopSetProgressionTest" time="0.001"/>
+  <testcase name="published_recipes_resolve_the_lift_of_every_amrap_and_top_set_slot_from_the_recipe" classname="com.example.kpkn.domain.training.TopSetProgressionTest" time="0.279"/>
+  <testcase name="a_rep_max_set_proposes_a_percent_change_of_the_tm_against_the_one_rm_the_tm_implies" classname="com.example.kpkn.domain.training.TopSetProgressionTest" time="0.001"/>
+  <testcase name="one_rep_short_changes_nothing_and_two_short_lowers_the_tm_2_5_percent" classname="com.example.kpkn.domain.training.TopSetProgressionTest" time="0.001"/>
+  <testcase name="the_increments_are_the_ones_of_the_rule" classname="com.example.kpkn.domain.training.TopSetProgressionTest" time="0.0"/>
+  <testcase name="the_reference_follows_the_tm_so_a_raise_does_not_repeat_forever" classname="com.example.kpkn.domain.training.TopSetProgressionTest" time="0.0"/>
+  <testcase name="a_rep_max_well_above_the_implied_one_rm_raises_the_tm_and_one_well_below_lowers_it" classname="com.example.kpkn.domain.training.TopSetProgressionTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

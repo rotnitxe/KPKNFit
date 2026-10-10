@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.PriorityOrderOnlyTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:29:33.455Z" hostname="VF" time="5.611">
+  <properties/>
+  <testcase name="protocolRecipesExplainThatPrioritiesAndSplitCannotBeApplied" classname="com.example.kpkn.domain.training.PriorityOrderOnlyTest" time="4.088"/>
+  <testcase name="lowerEmphasisMusclesNoLongerAffectsVolumeOrderOrPrescription" classname="com.example.kpkn.domain.training.PriorityOrderOnlyTest" time="0.397"/>
+  <testcase name="legacyPriorityMusclesAffectOnlyOrderNotVolume" classname="com.example.kpkn.domain.training.PriorityOrderOnlyTest" time="0.419"/>
+  <testcase name="orderPointBagsChangeOnlyExerciseOrderNotPrescriptionOrVolume" classname="com.example.kpkn.domain.training.PriorityOrderOnlyTest" time="0.574"/>
+  <testcase name="orderPointBudgetCapsAreRespected" classname="com.example.kpkn.domain.training.PriorityOrderOnlyTest" time="0.133"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

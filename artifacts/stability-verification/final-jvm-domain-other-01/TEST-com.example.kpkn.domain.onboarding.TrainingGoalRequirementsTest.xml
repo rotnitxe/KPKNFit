@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.onboarding.TrainingGoalRequirementsTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:25:06.231Z" hostname="VF" time="0.004">
+  <properties/>
+  <testcase name="everySpecificProfileHasAOneLineReasonAndNoGeneralOneDoes" classname="com.example.kpkn.domain.onboarding.TrainingGoalRequirementsTest" time="0.002"/>
+  <testcase name="weightliftingNeedsBarbellAndRack" classname="com.example.kpkn.domain.onboarding.TrainingGoalRequirementsTest" time="0.0"/>
+  <testcase name="generalProfilesAreCompatibleWithAnyMaterialIncludingNone" classname="com.example.kpkn.domain.onboarding.TrainingGoalRequirementsTest" time="0.0"/>
+  <testcase name="powerliftingNeedsBarbellRackAndBench" classname="com.example.kpkn.domain.onboarding.TrainingGoalRequirementsTest" time="0.0"/>
+  <testcase name="calisthenicsNeedsAPullUpBarOrRings" classname="com.example.kpkn.domain.onboarding.TrainingGoalRequirementsTest" time="0.0"/>
+  <testcase name="compatibleProfilesFollowTheContractOrder" classname="com.example.kpkn.domain.onboarding.TrainingGoalRequirementsTest" time="0.0"/>
+  <testcase name="strongmanNeedsBarbellAndEitherDumbbellsOrKettlebell" classname="com.example.kpkn.domain.onboarding.TrainingGoalRequirementsTest" time="0.0"/>
+  <testcase name="readsTheDeclaredAvailabilityThroughTheSymbols" classname="com.example.kpkn.domain.onboarding.TrainingGoalRequirementsTest" time="0.0"/>
+  <testcase name="missingTextIsNullExactlyWhenCompatible" classname="com.example.kpkn.domain.onboarding.TrainingGoalRequirementsTest" time="0.0"/>
+  <testcase name="armwrestlingNeedsAnyOfTheGripAndPullImplements" classname="com.example.kpkn.domain.onboarding.TrainingGoalRequirementsTest" time="0.0"/>
+  <testcase name="bodybuildingNeedsAtLeastOneLoadableImplement" classname="com.example.kpkn.domain.onboarding.TrainingGoalRequirementsTest" time="0.0"/>
+  <testcase name="powerbuildingAcceptsTheBarbellSetOrJustDumbbells" classname="com.example.kpkn.domain.onboarding.TrainingGoalRequirementsTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

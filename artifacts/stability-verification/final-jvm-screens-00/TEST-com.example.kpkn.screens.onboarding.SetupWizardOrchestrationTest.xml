@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.SetupWizardOrchestrationTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:36:26.933Z" hostname="VF" time="0.248">
+  <properties/>
+  <testcase name="twoRapidSubmitsAdvanceExactlyOnce" classname="com.example.kpkn.screens.onboarding.SetupWizardOrchestrationTest" time="0.029"/>
+  <testcase name="backPersistsTheRevisionBump" classname="com.example.kpkn.screens.onboarding.SetupWizardOrchestrationTest" time="0.026"/>
+  <testcase name="retryAfterSaveFailureRetainsText" classname="com.example.kpkn.screens.onboarding.SetupWizardOrchestrationTest" time="0.026"/>
+  <testcase name="untouchedPrefillIsEstimatedAndTouchedIsDeclared" classname="com.example.kpkn.screens.onboarding.SetupWizardOrchestrationTest" time="0.028"/>
+  <testcase name="resumePersistedDraftRestoresStepAndContinuarDoesNotConflict" classname="com.example.kpkn.screens.onboarding.SetupWizardOrchestrationTest" time="0.028"/>
+  <testcase name="emptyNameIsRejectedInlineWithoutAdvancing" classname="com.example.kpkn.screens.onboarding.SetupWizardOrchestrationTest" time="0.026"/>
+  <testcase name="saveAndExitFailureDoesNotCompleteExit" classname="com.example.kpkn.screens.onboarding.SetupWizardOrchestrationTest" time="0.029"/>
+  <testcase name="reviewEditSurvivesSaveExitAndResumeThenReturnsToReview" classname="com.example.kpkn.screens.onboarding.SetupWizardOrchestrationTest" time="0.028"/>
+  <testcase name="nameNextBackKeepsRevisionMonotonic" classname="com.example.kpkn.screens.onboarding.SetupWizardOrchestrationTest" time="0.027"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

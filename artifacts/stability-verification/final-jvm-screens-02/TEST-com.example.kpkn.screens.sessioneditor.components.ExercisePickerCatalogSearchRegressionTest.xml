@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.sessioneditor.components.ExercisePickerCatalogSearchRegressionTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:38:57.260Z" hostname="VF" time="0.005">
+  <properties/>
+  <testcase name="multi_term_search_excludes_an_unrelated_abduccion_exercise" classname="com.example.kpkn.screens.sessioneditor.components.ExercisePickerCatalogSearchRegressionTest" time="0.0"/>
+  <testcase name="current_query_cannot_be_replaced_by_an_older_query_result" classname="com.example.kpkn.screens.sessioneditor.components.ExercisePickerCatalogSearchRegressionTest" time="0.001"/>
+  <testcase name="variant_search_returns_the_canonical_parent" classname="com.example.kpkn.screens.sessioneditor.components.ExercisePickerCatalogSearchRegressionTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

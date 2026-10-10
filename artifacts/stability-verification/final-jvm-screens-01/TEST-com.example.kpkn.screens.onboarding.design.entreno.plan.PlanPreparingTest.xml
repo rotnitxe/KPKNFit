@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanPreparingTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:37:39.707Z" hostname="VF" time="0.571">
+  <properties/>
+  <testcase name="withReducedMotionItAnnouncesOnceAShortWhileAfterBeingReady" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanPreparingTest" time="0.072"/>
+  <testcase name="itNeverAnnouncesWhileTheEngineIsNotReady" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanPreparingTest" time="0.066"/>
+  <testcase name="theDisciplineOverlayNamesItsOwnStages" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanPreparingTest" time="0.063"/>
+  <testcase name="theGuideLightsTheFiveStagesOneAfterAnother" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanPreparingTest" time="0.033"/>
+  <testcase name="theRailSwitchesToTheVerticalLayoutOnlyWhenALabelDoesNotFit" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanPreparingTest" time="0.032"/>
+  <testcase name="theOverlayCarriesItsTagTitleAndStages" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanPreparingTest" time="0.055"/>
+  <testcase name="theInitialGuideTravelsTheRailOnceAndStops" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanPreparingTest" time="0.031"/>
+  <testcase name="itOnlyFinishesWhenTheEngineIsReadyAndTheMinimumIsDone" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanPreparingTest" time="0.037"/>
+  <testcase name="theFlashRunsFromZeroToOne" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanPreparingTest" time="0.034"/>
+  <testcase name="aFrozenOverlayNeverAnnounces" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanPreparingTest" time="0.052"/>
+  <testcase name="whileWaitingTheGuideKeepsCrossingTheRailForever" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanPreparingTest" time="0.03"/>
+  <testcase name="theMinimumAnimationIsAtLeast2point6Seconds" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanPreparingTest" time="0.031"/>
+  <testcase name="bothVariantsHaveFiveStagesAndTheirOwnTitle" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanPreparingTest" time="0.035"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

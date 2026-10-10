@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.workout.PlannedIntensityPolicyTest" tests="15" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:38:57.366Z" hostname="VF" time="0.027">
+  <properties/>
+  <testcase name="omitted_live_amrap_override_follows_the_plan" classname="com.example.kpkn.screens.workout.PlannedIntensityPolicyTest" time="0.002"/>
+  <testcase name="help_and_partials_survive_record_mapping_for_history_and_auge" classname="com.example.kpkn.screens.workout.PlannedIntensityPolicyTest" time="0.005"/>
+  <testcase name="unilateral_intensity_is_detected_without_inventing_a_mode" classname="com.example.kpkn.screens.workout.PlannedIntensityPolicyTest" time="0.011"/>
+  <testcase name="repRangeEvaluation_amrap_hasNoUpperPenalty" classname="com.example.kpkn.screens.workout.PlannedIntensityPolicyTest" time="0.002"/>
+  <testcase name="load_and_amrap_modes_do_not_require_an_rpe_input" classname="com.example.kpkn.screens.workout.PlannedIntensityPolicyTest" time="0.0"/>
+  <testcase name="rm_live_normalization_preserves_effort_intensity_and_clears_legacy_load" classname="com.example.kpkn.screens.workout.PlannedIntensityPolicyTest" time="0.002"/>
+  <testcase name="repRange_survives_live_normalization_and_usesUpperAnchor" classname="com.example.kpkn.screens.workout.PlannedIntensityPolicyTest" time="0.0"/>
+  <testcase name="amrap_normalization_keepsMinimumAndRecordsBelowMinimumDeviation" classname="com.example.kpkn.screens.workout.PlannedIntensityPolicyTest" time="0.003"/>
+  <testcase name="repRangeDeviation_usesRangeEdges_withoutThreeRepTolerance" classname="com.example.kpkn.screens.workout.PlannedIntensityPolicyTest" time="0.001"/>
+  <testcase name="explicit_live_amrap_override_can_enable_a_plain_set" classname="com.example.kpkn.screens.workout.PlannedIntensityPolicyTest" time="0.0"/>
+  <testcase name="repRangeEvaluation_usesMinimumForDeficitAndMaximumForExcess" classname="com.example.kpkn.screens.workout.PlannedIntensityPolicyTest" time="0.0"/>
+  <testcase name="amrap_deviation_uses_the_live_override_not_only_the_plan" classname="com.example.kpkn.screens.workout.PlannedIntensityPolicyTest" time="0.0"/>
+  <testcase name="repRangeEvaluation_acceptsValueInsideInclusiveRange" classname="com.example.kpkn.screens.workout.PlannedIntensityPolicyTest" time="0.0"/>
+  <testcase name="omitted_intensity_stays_omitted_after_live_normalization" classname="com.example.kpkn.screens.workout.PlannedIntensityPolicyTest" time="0.0"/>
+  <testcase name="explicit_live_amrap_override_can_disable_a_planned_amrap" classname="com.example.kpkn.screens.workout.PlannedIntensityPolicyTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

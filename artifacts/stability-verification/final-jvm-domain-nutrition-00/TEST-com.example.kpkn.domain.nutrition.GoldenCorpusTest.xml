@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.GoldenCorpusTest" tests="320" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:57:37.760Z" hostname="VF" time="0.521">
+  <properties/>
+  <testcase name="golden case[2 huevos y 100g de avena con leche]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.01"/>
+  <testcase name="golden case[un poco de aceite]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[una pizca de sal]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[un chorrito de limon]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[un puñado de almendras]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[2 huevos]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[huevos x2]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[3 huevos x2]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[1-2 huevos]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.0"/>
+  <testcase name="golden case[un par de huevos]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[media marraqueta]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[100g arroz 50g pollo]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[200g pollo; 150g arroz]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[200g pollo\n150g arroz]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[café con leche sin azúcar]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[té sin azúcar]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[sin azúcar]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[2 uebos con arros]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[&#x1f951; y 2 huevos]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.007"/>
+  <testcase name="golden case[100gr de avena]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[medio kilo de arroz]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[2 kilos de papa]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[media taza de avena]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[dos cucharadas de mantequilla]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[una porción de queso]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[plato grande de arroz]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.003"/>
+  <testcase name="golden case[3 huevos revueltos]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[200g de pechuga de pollo a la plancha]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[2 empanadas de pino]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.0"/>
+  <testcase name="golden case[dos panes con palta]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[un montón de arroz]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[una botella de agua]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[una rodaja de tomate]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[un cucharón de sopa]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[una hallulla]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[una marraqueta]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[media marraqueta #2]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[una empanada de pino]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.0"/>
+  <testcase name="golden case[2 huevos, 3 huevos]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[una manzana y una manzana]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[200g chicken with rice]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[two eggs and 100 grams of oats with milk]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[a cup of oats]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[half a banana]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[coffee without sugar]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[one apple]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[a glass of milk]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[casi medio kilo de arroz]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.0"/>
+  <testcase name="golden case[lo que sobró de la leche]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[agua]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[arroz 100g pollo 50g]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[papas fritas]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[tres leches con crema]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.003"/>
+  <testcase name="golden case[1 cucharadita de azúcar]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[té con leche]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[café negro]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[café con leche y azúcar]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[jugo de naranja natural]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[un vaso de jugo]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[yogurt con granola]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[yogurt griego con miel]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[avena con leche y canela]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.003"/>
+  <testcase name="golden case[avena con frutillas]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[2 tostadas con palta]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[pan tostado con mantequilla]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[pan integral con queso fresco]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[2 huevos revueltos]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[huevos fritos]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[claras de huevo]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[omelette de queso]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[queso fresco con tomate]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[palta con limón]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[frutas con yogurt]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.003"/>
+  <testcase name="golden case[granola con leche]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[leche con chocolate]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[té de hierbas]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.0"/>
+  <testcase name="golden case[té verde]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[jugo de manzana]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[jugo de piña]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[licuado de plátano]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[batido de proteína]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.003"/>
+  <testcase name="golden case[leche de almendras]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[leche descremada]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[capuchino]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[arroz con pollo]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[arroz con mariscos]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[arroz integral]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[arroz con lentejas]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[lentejas con arroz]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[porotos granados]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.0"/>
+  <testcase name="golden case[cazuela de ave]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[pastel de choclo]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[pastel de papa]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.0"/>
+  <testcase name="golden case[sopa de pollo]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[sopa de verduras]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[crema de zapallo]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.003"/>
+  <testcase name="golden case[ensalada mixta]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[ensalada de palta]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[ensalada chilena]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.0"/>
+  <testcase name="golden case[pollo al horno]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[pollo frito]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[pollo al curry]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.003"/>
+  <testcase name="golden case[pollo con papas]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[carne a la parrilla]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[lomo saltado]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.0"/>
+  <testcase name="golden case[bistec con papas]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[estofado de vacuno]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[guiso de pollo]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[cerdo a la plancha]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[hamburguesa con queso]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[pizza napolitana]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[tallarines con salsa]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[fideos con atún]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[espaguetis con albóndigas]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.003"/>
+  <testcase name="golden case[lasaña]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[ravioles con salsa]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[puré de papas]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[puré de zapallo]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.003"/>
+  <testcase name="golden case[papas al horno]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[papas cocidas]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[papas rústicas]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.009"/>
+  <testcase name="golden case[quinua con verduras]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.005"/>
+  <testcase name="golden case[salmón a la plancha]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[atún con palta]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[merluza frita]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[pescado al horno]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[pescado al vapor]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.003"/>
+  <testcase name="golden case[camarones al ajo]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.003"/>
+  <testcase name="golden case[mariscos al pil pil]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[once]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.0"/>
+  <testcase name="golden case[pan con palta]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[marraqueta con mantequilla]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[hallulla con queso]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[galletas de avena]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.0"/>
+  <testcase name="golden case[galletas de chocolate]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.0"/>
+  <testcase name="golden case[galletas saladas]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[queque de plátano]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[helado de vainilla]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[maní]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[almendras]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.0"/>
+  <testcase name="golden case[nueces]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[frutos secos]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[pasas]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[mantequilla de maní]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[manjar con pan]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[un trozo de queque]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[una taza de avena]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[media taza de arroz]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[2 tazas de leche]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.0"/>
+  <testcase name="golden case[tres cucharadas de azúcar]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[dos cucharaditas de sal]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[un plato de arroz]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[un plato grande de sopa]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[un bol de yogurt]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[1/4 de taza de avena]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[3/4 de taza de leche]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[100 ml de leche]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[150 g de carne molida]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[300 ml de agua]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[10 g de almendras]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[50 g de queso]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[2 litros de agua]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[un litro de leche]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.0"/>
+  <testcase name="golden case[dos rebanadas de pan]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[una tajada de queque]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[un puñado de almendras #2]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[un puñado de nueces]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[una rodaja de queso]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[un trozo de salmón]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[una lata de atún]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[un vaso de leche]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[dos vasos de agua]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[una copa de vino]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[una cucharada de aceite]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[una cucharada de mantequilla]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[dos cucharadas de queso rallado]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.003"/>
+  <testcase name="golden case[una pizca de sal #2]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[una pizca de comino]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[un chorrito de limón]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[un chorrito de vinagre]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.003"/>
+  <testcase name="golden case[un poco de azúcar]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[un montón de arroz #2]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[un plato generoso de ensalada]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[huevo duro]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[huevo pasado por agua]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.004"/>
+  <testcase name="golden case[huevo poché]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[huevos a la copa]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[pollo sancochado]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[pollo hervido]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[papas hervidas]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[verduras al vapor]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[brócoli al vapor]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[choclo hervido]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[pescado a la parrilla]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[anticucho]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[salmón ahumado]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[pescado crudo]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[pescado fresco]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[verduras salteadas]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[champiñones salteados]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[cebolla caramelizada]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[pan tostado]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[marraqueta tostada]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[empanada frita]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[empanada al horno]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[sopaipillas pasadas]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[manzana al horno]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[zapallo asado]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[choclo asado]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[carne a las brasas]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.003"/>
+  <testcase name="golden case[pollo asado]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[cerdo ahumado]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[fideos saltados]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.003"/>
+  <testcase name="golden case[huevo frito con pan]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[arroz blanco]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[arroz graneado]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[pollo al pil pil]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.003"/>
+  <testcase name="golden case[papas a la huancaína]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.004"/>
+  <testcase name="golden case[carne mechada]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[tocino frito]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[1 vaso de leche con chocolate]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[huevo duro con pan]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[pollo al horno con papas]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[ensaladita]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[arros con pollo]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[fideos con salsa de tomate]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[fideos con salsa de tomate y un poco de carne molida]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.003"/>
+  <testcase name="golden case[una hallulla con mantequilla]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[cafecito]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[juguito de naranja]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[pan con queso y tomate]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[mil hojas]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[cuatro quesos]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[dos quesos]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[arroz sin sal]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[ensalada sin tomate]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[pollo sin piel]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[queso sin lactosa]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.003"/>
+  <testcase name="golden case[leche sin lactosa]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[pan sin gluten]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.003"/>
+  <testcase name="golden case[jugo sin azúcar]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[arroz con pollo y ensalada]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[2 huevos con 3 tostadas]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.003"/>
+  <testcase name="golden case[atún con palta y limón]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[pollo, arroz y ensalada]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[carne con puré y ensalada]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[salmón con papas al horno]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[lentejas con arroz y ensalada]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[yogurt con granola y frutas]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[avena con leche, manzana y canela]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.003"/>
+  <testcase name="golden case[huevos revueltos con tomate y pan]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[pan con palta y huevo]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[sopa de pollo con arroz]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[pescado con papas y verduras]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.005"/>
+  <testcase name="golden case[tallarines con carne y salsa]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.003"/>
+  <testcase name="golden case[ensalada de lechuga, tomate y cebolla]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.003"/>
+  <testcase name="golden case[quinoa con pollo y verduras]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.004"/>
+  <testcase name="golden case[pollo al horno con papas y zanahorias]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.003"/>
+  <testcase name="golden case[hamburguesa con papas fritas]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[completo con papas fritas]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[arroz con mariscos y limón]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[un huevo]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[dos plátanos]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[tres tomates]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[cuatro zanahorias]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[cinco almendras]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[seis galletas]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[diez uvas]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[cien gramos de arroz]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[trescientos gramos de pollo]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[una porción de arroz]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[2 porciones de pasta]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[una botella de cerveza]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[una taza de té]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[una taza de café]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[un vaso de vino]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[una barra de chocolate]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[una cucharadita de miel]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[media cucharadita de sal]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[una cucharada de azúcar]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[huevos con tocino]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[pan y huevo]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[yogurt con miel y nueces]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[avena con leche y plátano]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[ensalada con pollo]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[arroz con huevo]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[salmón con brócoli]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[carne con arroz]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[pollo con champiñones]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[papas con carne]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[queso con jamón]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[manzana con canela]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[plátano con avena]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[leche con granola]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[ensalada de frutas]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.004"/>
+  <testcase name="golden case[ensalada de atún]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[ensalada de pollo]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[ensalada de pasta]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[ensalada de papa]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[huevo frito]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[huevo revuelto]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[pescado frito]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[chorizo a la parrilla]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[2 marraquetas]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[un completo]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[2 completos]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[una empanada]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.0"/>
+  <testcase name="golden case[2 empanadas]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[torta]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[batido de frutas]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[cereal]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[tequeños]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.0"/>
+  <testcase name="golden case[medialunas]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.0"/>
+  <testcase name="golden case[ceviche]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.0"/>
+  <testcase name="golden case[nuggets]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.0"/>
+  <testcase name="golden case[lomito]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.0"/>
+  <testcase name="golden case[huevos con tocino y queso]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[palta con huevo]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.001"/>
+  <testcase name="golden case[atún con arroz]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <testcase name="golden case[2 huevos y 100g de avena con leche #2]" classname="com.example.kpkn.domain.nutrition.GoldenCorpusTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

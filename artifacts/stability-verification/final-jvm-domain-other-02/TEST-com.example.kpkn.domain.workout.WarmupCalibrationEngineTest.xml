@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.workout.WarmupCalibrationEngineTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:25:46.834Z" hostname="VF" time="0.009">
+  <properties/>
+  <testcase name="high_warmup_rpe_reduces_load_by_two_point_five_percent" classname="com.example.kpkn.domain.workout.WarmupCalibrationEngineTest" time="0.002"/>
+  <testcase name="mixed_reports_average_to_no_change_and_missing_reference_is_explicit" classname="com.example.kpkn.domain.workout.WarmupCalibrationEngineTest" time="0.004"/>
+  <testcase name="light_report_increases_remaining_warmup_and_effective_load_conservatively" classname="com.example.kpkn.domain.workout.WarmupCalibrationEngineTest" time="0.001"/>
+  <testcase name="working_load_calibration_adjusts_remaining_warmup_and_first_effective_load" classname="com.example.kpkn.domain.workout.WarmupCalibrationEngineTest" time="0.0"/>
+  <testcase name="heavy_report_reduces_remaining_load_and_legacy_percentages_are_safe" classname="com.example.kpkn.domain.workout.WarmupCalibrationEngineTest" time="0.001"/>
+  <testcase name="low_warmup_rpe_increases_load_by_two_point_five_percent" classname="com.example.kpkn.domain.workout.WarmupCalibrationEngineTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

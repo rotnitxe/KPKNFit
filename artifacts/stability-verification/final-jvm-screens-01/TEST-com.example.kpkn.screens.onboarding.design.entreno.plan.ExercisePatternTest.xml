@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.design.entreno.plan.ExercisePatternTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:37:30.391Z" hostname="VF" time="0.009">
+  <properties/>
+  <testcase name="pullsAndRows" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.ExercisePatternTest" time="0.005"/>
+  <testcase name="whatIsNotRecognizedIsGeneric" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.ExercisePatternTest" time="0.001"/>
+  <testcase name="lungesCoreCarriesAndOlympicLifts" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.ExercisePatternTest" time="0.0"/>
+  <testcase name="accentsAndCaseDoNotMatter" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.ExercisePatternTest" time="0.001"/>
+  <testcase name="theBigThreeAndTheirFamilies" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.ExercisePatternTest" time="0.0"/>
+  <testcase name="overheadPressBeatsGenericPress" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.ExercisePatternTest" time="0.0"/>
+  <testcase name="everyPatternHasItsOwnGlyphAndLabel" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.ExercisePatternTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -25,11 +25,12 @@
         "../stability-data-isolation/native-final/result.json",
         "../stability-recovery/DELIVERY.json",
         "../stability-recovery/callbacks-recovery-7-unit/result.json",
-        "../stability-recovery/native-all-phases/result.json"
+        "../stability-recovery/native-all-phases/result.json",
+        "../stability-verification/native-followup-43.json",
+        "../stability-verification/consent-fix-37-unit/result.json"
       ],
       "dependencies": [
-        "Aislamiento y cambio de cuentas pendientes; falta QA de todos los escritores",
-        "Barrera multimedia y controles de almacenamiento verificados con 42 JVM y 17 pruebas API36; cuatro etapas en PID distintos. El cierre integral del requisito y de todos los escritores/pantallas sigue pendiente."
+        "Consentimiento corregido y validado en JVM/UI; cambio A/B/A real local y mantenimiento en tres procesos distintos aprobados. Revisión estática de 572/814 rutas en 82/131 archivos; la validación universal de todos los escritores y pantallas permanece pendiente."
       ],
       "checkpointRecoveryLimits": "Bounded local checkpoint only: 34 directed JVM cases; 17 real interruption phases API36,21 process terminations; one actual SQLite page-capacity case. No universal producers, physical-full filesystem, complete device/SAF/service validation."
     },
@@ -52,11 +53,12 @@
         "../stability-data-isolation/native-final/result.json",
         "../stability-recovery/DELIVERY.json",
         "../stability-recovery/callbacks-recovery-7-unit/result.json",
-        "../stability-recovery/native-all-phases/result.json"
+        "../stability-recovery/native-all-phases/result.json",
+        "../stability-verification/integrated-final-42/result.json",
+        "../stability-verification/quota-cold-3/result.json"
       ],
       "dependencies": [
-        "Pruebas de interrupciÃƒÆ’Ã‚Â³n/disco lleno y archivos personales pendientes",
-        "Barrera multimedia y controles de almacenamiento verificados con 42 JVM y 17 pruebas API36; cuatro etapas en PID distintos. El cierre integral del requisito y de todos los escritores/pantallas sigue pendiente."
+        "El arreglo actual pasó tres fases de mantenimiento en API 36 y procesos distintos. Las pruebas de cuota SQLite con lectura en frío y las 17 fases de interrupción pertenecen al APK bf007 anterior y se conservan como evidencia histórica de las rutas sin cambios. Llenar físicamente el filesystem y conservar todos los datos sigue pendiente."
       ],
       "checkpointRecoveryLimits": "Bounded local checkpoint only: 34 directed JVM cases; 17 real interruption phases API36,21 process terminations; one actual SQLite page-capacity case. No universal producers, physical-full filesystem, complete device/SAF/service validation."
     },
@@ -79,11 +81,11 @@
         "../stability-data-isolation/native-final/result.json",
         "../stability-recovery/DELIVERY.json",
         "../stability-recovery/callbacks-recovery-7-unit/result.json",
-        "../stability-recovery/native-all-phases/result.json"
+        "../stability-recovery/native-all-phases/result.json",
+        "../stability-verification/integrated-final-42/result.json"
       ],
       "dependencies": [
-        "ExportaciÃƒÆ’Ã‚Â³n y reconstrucciÃƒÆ’Ã‚Â³n de navegaciÃƒÆ’Ã‚Â³n comprobadas API36; restauraciÃƒÆ’Ã‚Â³n completa y todos los lectores todavÃƒÆ’Ã‚Â­a requieren QA.",
-        "Barrera multimedia y controles de almacenamiento verificados con 42 JVM y 17 pruebas API36; cuatro etapas en PID distintos. El cierre integral del requisito y de todos los escritores/pantallas sigue pendiente."
+        "El APK corregido pasó restauración, borrado y reapertura por el coordinador real en tres procesos distintos en API 36. Todas las pantallas, lectores y versiones Android siguen pendientes."
       ],
       "checkpointRecoveryLimits": "Bounded local checkpoint only: 34 directed JVM cases; 17 real interruption phases API36,21 process terminations; one actual SQLite page-capacity case. No universal producers, physical-full filesystem, complete device/SAF/service validation."
     },
@@ -116,10 +118,14 @@
       "evidence": [
         "android-native/app/src/main/java/com/example/kpkn/data/db/KpknDatabase.kt",
         "tests-real-v29-migration-9/",
-        "tests-context-contracts-16/"
+        "tests-context-contracts-16/",
+        "../stability-verification/native-migration-33/result.json",
+        "../stability-verification/native-migration-33/instrumentation.txt",
+        "../stability-verification/gradle-migration-matrix-32.log",
+        "../../android-native/app/src/androidTest/java/com/example/kpkn/data/db/SupportedSchemaMigrationMatrixTest.kt"
       ],
       "dependencies": [
-        "Matriz de versiones antiguas pendiente"
+        "Android API36: las once cadenas de esquemas exportados 20–30 pasaron validación Room, integrity_check, foreign_key_check y conservación de todas las columnas personales originales sembradas (26–35 tablas por versión). No sustituye fixtures de instalaciones antiguas reales, decodificación de dominio, versiones 1–19 sin esquema exportado, API26 ni hardware físico."
       ]
     },
     {
@@ -137,10 +143,11 @@
         "scripts/stability/verify_storage_inventory.py",
         "storage-classification-17.json",
         "storage-classification-tests-17-final.log",
-        "storage-classification-21.json"
+        "storage-classification-21.json",
+        "../stability-verification/storage-final-38.json"
       ],
       "dependencies": [
-        "ClasificaciÃƒÆ’Ã‚Â³n de tablas preparada; gate exhaustivo de archivos pendiente"
+        "El gate estático final pasó: Room v30, todas las tablas clasificadas y ocho raíces portátiles. Los alias de archivos, callbacks y rutas dinámicas permanecen pendientes."
       ]
     },
     {
@@ -182,11 +189,11 @@
         "../stability-data-isolation/native-final/result.json",
         "../stability-recovery/DELIVERY.json",
         "../stability-recovery/callbacks-recovery-7-unit/result.json",
-        "../stability-recovery/native-all-phases/result.json"
+        "../stability-recovery/native-all-phases/result.json",
+        "../stability-verification/integrated-final-42/result.json"
       ],
       "dependencies": [
-        "QA de borrado y escritores tardÃƒÆ’Ã‚Â­os pendiente",
-        "Barrera multimedia y controles de almacenamiento verificados con 42 JVM y 17 pruebas API36; cuatro etapas en PID distintos. El cierre integral del requisito y de todos los escritores/pantallas sigue pendiente."
+        "El APK corregido pasó borrado, restauración, reapertura y recuperación del registry en la app aislada. No cierra todas las entidades, archivos ni almacenamiento físicamente lleno."
       ],
       "checkpointRecoveryLimits": "Bounded local checkpoint only: 34 directed JVM cases; 17 real interruption phases API36,21 process terminations; one actual SQLite page-capacity case. No universal producers, physical-full filesystem, complete device/SAF/service validation."
     },
@@ -206,11 +213,11 @@
         "tests-full-jvm-29/",
         "../stability-data-isolation/DELIVERY.json",
         "../stability-data-isolation/fts-final-jvm/result.json",
-        "../stability-data-isolation/native-final/result.json"
+        "../stability-data-isolation/native-final/result.json",
+        "../stability-verification/cloud-native-account-40-native/result.json"
       ],
       "dependencies": [
-        "AUD01 corregido y regresiones API26/API34 aprobadas; QA real de cierre/cambio A-B e interrupciones todavÃƒÆ’Ã‚Â­a pendiente.",
-        "Barrera multimedia y controles de almacenamiento verificados con 42 JVM y 17 pruebas API36; cuatro etapas en PID distintos. El cierre integral del requisito y de todos los escritores/pantallas sigue pendiente."
+        "El cliente Android real con Firebase local pasó A → B → A: UIDs distintos, original A durable en Room, B oculto de A, repositorio antiguo rechazado y nuevo invitado al terminar. Un dispositivo en API 36, comandos mediante API y comprobaciones Compose. Los formularios completos, perfiles reales y sincronización entre dos dispositivos siguen pendientes."
       ]
     },
     {
@@ -267,11 +274,14 @@
       "package": "C",
       "requirement": "**Room:** almacenamiento utilizado por la interfaz y las operaciones sin conexiÃƒÆ’Ã‚Â³n.",
       "code": "PARCIAL",
-      "verification": "PENDIENTE",
+      "verification": "PARCIAL",
       "evidence": [
-        "android-native/app/src/main/java/com/example/kpkn/data/sync/RoomSyncRepository.kt"
+        "android-native/app/src/main/java/com/example/kpkn/data/sync/RoomSyncRepository.kt",
+        "../stability-verification/cloud-native-account-40-native/result.json"
       ],
-      "dependencies": []
+      "dependencies": [
+        "Auth Android real con correo y contraseña contra Firebase local pasó registro A/B y regreso a A. Recuperación de acceso, vinculación Google y proyecto real kpkn-47b03 siguen sin QA."
+      ]
     },
     {
       "id": "C02",
@@ -307,10 +317,12 @@
         "cloud-sync/functions/src/protocol.mjs",
         "server-protocol-tests.log",
         "firebase-atomic-conflicts-15-final.log",
-        "firebase-retired-operations-20.log"
+        "firebase-retired-operations-20.log",
+        "../stability-verification/cloud-local-18/result.json",
+        "../stability-verification/cloud-pure-15/result.json"
       ],
       "dependencies": [
-        "Servicio desplegable Auth/Firestore/Storage/Functions y 21 pruebas reales en emuladores locales implementados. Proyecto kpkn-47b03, App Check y dos dispositivos reales sin verificar."
+        "Pasaron 12 contratos/fixtures Node 22 y 22 escenarios Auth/Firestore/Storage/Functions locales. CLI y Functions usan Node 22.23.3; el cliente de reglas usa Node 24.19.0. Proyecto real, App Check de producción, RTDN/PubSub y compras Play reales siguen pendientes."
       ]
     },
     {
@@ -1008,12 +1020,17 @@
       "package": "I",
       "requirement": "IntegraciÃƒÆ’Ã‚Â³n real de Crashlytics con control de recopilaciÃƒÆ’Ã‚Â³n, sin contenido de salud ni texto dictado; Android Vitals como fuente adicional.",
       "code": "PARCIAL",
-      "verification": "PENDIENTE",
+      "verification": "PARCIAL",
       "evidence": [
         "android-native/app/src/main/java/com/example/kpkn/data/diagnostics/CrashReportingController.kt",
-        "gradle-portable-writers-retry-5.log"
+        "gradle-portable-writers-retry-5.log",
+        "../stability-verification/consent-probe-35-unit/result.json",
+        "../stability-verification/consent-fix-37-unit/result.json",
+        "../stability-verification/native-followup-43.json"
       ],
-      "dependencies": []
+      "dependencies": [
+        "Se conserva la reproducción original de un fallo de preferencias durante mantenimiento. El arreglo del editor pasó tres pruebas JVM, nueve casos dirigidos en total y el toggle de UI activo/desactivo durable en dos procesos nuevos. Debug no envía Crashlytics. El SDK real, su handler fatal y los reportes pendientes todavía no se verificaron."
+      ]
     },
     {
       "id": "I05",
@@ -1058,10 +1075,12 @@
         "review-source-verification.json",
         "tests-focused-3/",
         "tests-snapshot-final/",
-        "gradle-snapshot-release-manifest.log"
+        "gradle-snapshot-release-manifest.log",
+        "../stability-verification/debug-build-final-37.json",
+        "../stability-verification/distribution-apk-39.json"
       ],
       "dependencies": [
-        "Build/QA final pendientes"
+        "Debug y AndroidTest de las fuentes corregidas compilaron y se instalaron sólo como com.example.kpkn.stability. Se verificaron minSdk 26, targetSdk 36 y MainActivity. Runtime Release firmado, matriz API 26–36 y dispositivos físicos siguen pendientes."
       ]
     },
     {
@@ -1133,9 +1152,12 @@
         "result-volume-gate-55.json",
         "device-qa-55.json",
         "review-apk-verification-55.json",
-        "native-packaging-55.json"
+        "native-packaging-55.json",
+        "../stability-verification/native-packaging-39.json"
       ],
-      "dependencies": []
+      "dependencies": [
+        "El APK corregido pasó la inspección ELF/ZIP de bibliotecas de 64 bits. Runtime 16 KB sigue sin ejecutar; el empaquetado no acredita esa ejecución."
+      ]
     },
     {
       "id": "J07",
@@ -1181,10 +1203,13 @@
         "../stability-integrated-sessions/lint-results-release-18.xml",
         "../stability-integrated-sessions/DELIVERY.json",
         "../stability-recovery/DELIVERY.json",
-        "../stability-recovery/release-checks-12.json"
+        "../stability-recovery/release-checks-12.json",
+        "../stability-verification/DELIVERY.json",
+        "../stability-verification/jvm-final-coverage.json",
+        "../stability-verification/release-checks-final-41.json"
       ],
       "dependencies": [
-        "CompilaciÃƒÂ³n Debug/AndroidTest y lint/R8 Release de 11aff verificados. Lint: 0 errores, 614 advertencias y 39 hints. Alcance limitado a compilaciÃƒÂ³n/lint/minificaciÃƒÂ³n; firma y runtime release corresponden a requisitos todavÃƒÂ­a abiertos."
+        "Fuentes finales: Debug y AndroidTest compilados; lint Release con 0 errores, 614 advertencias y 39 hints; minificación R8 aprobada. Instalación y MainActivity de Debug verificadas. No confirma firma ni ejecución Release/16KB o publicación."
       ],
       "checkpointRecoveryLimits": "Bounded local checkpoint only: 34 directed JVM cases; 17 real interruption phases API36,21 process terminations; one actual SQLite page-capacity case. No universal producers, physical-full filesystem, complete device/SAF/service validation."
     },
@@ -1236,10 +1261,13 @@
         "../stability-integrated-sessions/directed-final-17-unit/result.json",
         "../stability-integrated-sessions/native-final-17/result.json",
         "../stability-integrated-sessions/gradle-release-checks-18.log",
-        "../stability-recovery/DELIVERY.json"
+        "../stability-recovery/DELIVERY.json",
+        "../stability-verification/DELIVERY.json",
+        "../stability-verification/jvm-final-coverage.json",
+        "../stability-verification/release-checks-final-41.json"
       ],
       "dependencies": [
-        "La suite amplia intermedia ejecutÃƒÂ³ 4045 casos: 4042 PASS, 2 FAIL y 1 SKIP (Q2 interrumpido); permanece inconclusa. Los dos fallos fueron tratados y la selecciÃƒÂ³n final de 113 casos pasÃƒÂ³; cuatro comprobaciones Android API36 y lint/R8 pasaron. Faltan suite integral final en particiones, corpus de voz ejecutado, CI y runtime/release firmado."
+        "Suite final auditada: 896 clases, 7747 métodos inventariados y 8092 casos emitidos; 0 fallos/errores y 2 omisiones por falta del corpus real de voz. Los siete métodos pesados y los renderizadores se ejecutaron. No es aceptación de lanzamiento: corpus, CI y runtime Release firmado siguen pendientes."
       ],
       "checkpointRecoveryLimits": "Bounded local checkpoint only: 34 directed JVM cases; 17 real interruption phases API36,21 process terminations; one actual SQLite page-capacity case. No universal producers, physical-full filesystem, complete device/SAF/service validation."
     },
@@ -1253,10 +1281,15 @@
         "tests-normalized-media-7/",
         "../stability-recovery/DELIVERY.json",
         "../stability-recovery/native-search-idle-20/result.json",
-        "../stability-recovery/native-search-14/result.json"
+        "../stability-recovery/native-search-14/result.json",
+        "../stability-verification/e16-8-unit/result.json",
+        "../stability-verification/e16-8-unit/TEST-com.example.kpkn.domain.nutrition.NutritionMetricsContractTest.xml",
+        "../stability-verification/controlled-search-13/result.json",
+        "../stability-verification/controlled-search-13/samples.json",
+        "../stability-verification/controlled-search-13/host-build-samples.json"
       ],
       "dependencies": [
-        "El benchmark de bÃƒÂºsqueda de df7 es histÃƒÂ³rico; NutritionRepository cambiÃƒÂ³ su ruta de ejecuciÃƒÂ³n en 11aff. RepeticiÃƒÂ³n del benchmark y contrato E16 del ÃƒÂ¡rbol actual pendientes."
+        "E16 del árbol bf007 pasó sin omisiones ni ajuste del presupuesto: 6 casos, mediana p95 23,2 ms frente a 50 ms, precisión 49/50 y error mediano en gramos 0% (15 casos). La búsqueda Android caliente pasó en API36 con 120 tiempos íntegros recalculados: mediana 40,342 ms, p95 62,2195 ms y máximo 73,9676 ms, frente a 150 ms; no hubo leases Gradle durante la medición. Se conservan el fallo anterior 322,4865 ms, la pasada 92,5362 ms con carga u1 y los intentos 11/12 incompletos por extracción ADB. Esta evidencia no cierra inicio, memoria, búsqueda fría, hardware físico ni rendimiento general."
       ],
       "currentCheckpointBenchmark": {
         "evidence": "artifacts/stability-recovery/native-search-idle-20/result.json",
@@ -1318,10 +1351,12 @@
         "emulator-api26-final-29/export-retry/result.json",
         "review-release-verification-31.json",
         "result-release-55.json",
-        "review-apk-verification-55.json"
+        "review-apk-verification-55.json",
+        "../stability-verification/distribution-apk-39.json",
+        "../stability-verification/distribution-release-manifest-44.json"
       ],
       "dependencies": [
-        "Ensayar Ajustes, enlaces antiguos, lectura de registros histÃƒÆ’Ã‚Â³ricos y cardio GPS real antes de cerrar la QA funcional completa"
+        "El APK corregido no contiene clases de Health Connect entre las 69.750 clases DEX revisadas. Fuentes y manifiestos Debug/Release conservan GPS y voz, sin permisos de salud ni proveedor Health Connect. GPS real, enlaces antiguos, Ajustes y matriz funcional siguen abiertos."
       ],
       "checks": {
         "sources": "VERIFICADO",

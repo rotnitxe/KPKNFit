@@ -1,0 +1,8 @@
+{
+  "status": "INCOMPLETE",
+  "tests": 2,
+  "skipped": 2,
+  "failed": 0,
+  "evidenceLevel": "JUNIT_EXECUTION_ONLY",
+  "limits": "Execution gate only; corpus consent, provenance and coverage require separate evidence."
+}

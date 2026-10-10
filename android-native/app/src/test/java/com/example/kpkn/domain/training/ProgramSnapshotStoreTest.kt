@@ -1,5 +1,6 @@
 package com.example.kpkn.domain.training
 
+import android.app.Application
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.SharedPreferences
@@ -20,11 +21,15 @@ import org.robolectric.annotation.Config
  * ocurrir en el primer `list`/`push`/`restore`, que el ViewModel ejecuta en Dispatchers.IO.
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(manifest = Config.NONE, sdk = [34])
+@Config(manifest = Config.NONE, sdk = [34], application = Application::class)
 class ProgramSnapshotStoreTest {
 
     private class CountingContext(base: Context) : ContextWrapper(base) {
         var preferencesRequests = 0
+
+        // The adapter captures applicationContext; keep this explicit counting decorator.
+        // A real KpknApplication instead routes through the captured profile context.
+        override fun getApplicationContext(): Context = this
 
         override fun getSharedPreferences(name: String?, mode: Int): SharedPreferences {
             preferencesRequests++

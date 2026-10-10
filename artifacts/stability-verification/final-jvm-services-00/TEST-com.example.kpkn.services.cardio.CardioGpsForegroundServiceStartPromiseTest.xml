@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.services.cardio.CardioGpsForegroundServiceStartPromiseTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:40:27.827Z" hostname="VF" time="0.864">
+  <properties/>
+  <testcase name="resumeOfTheSessionHeldByTheTrackerEntersTheForegroundAndKeepsServingUntilTheTrackerAnswers" classname="com.example.kpkn.services.cardio.CardioGpsForegroundServiceStartPromiseTest" time="0.272"/>
+  <testcase name="onlyStartAndResumeAreDispatchedWithStartForegroundService" classname="com.example.kpkn.services.cardio.CardioGpsForegroundServiceStartPromiseTest" time="0.051"/>
+  <testcase name="resumeForAForeignSessionOnAFreshInstanceCallsStartForegroundAndThenLeaves" classname="com.example.kpkn.services.cardio.CardioGpsForegroundServiceStartPromiseTest" time="0.039"/>
+  <testcase name="validStartEntersTheForegroundWithTheLocationTypeAndKeepsServingUntilTheTrackerAnswers" classname="com.example.kpkn.services.cardio.CardioGpsForegroundServiceStartPromiseTest" time="0.119"/>
+  <testcase name="resumeWithoutAUsableSessionKeyOnAFreshInstanceCallsStartForegroundAndThenLeaves" classname="com.example.kpkn.services.cardio.CardioGpsForegroundServiceStartPromiseTest" time="0.042"/>
+  <testcase name="pauseAndStopCommandsAreDeliveredWithStartServiceAndRaiseNoNotification" classname="com.example.kpkn.services.cardio.CardioGpsForegroundServiceStartPromiseTest" time="0.035"/>
+  <testcase name="unknownOrMissingActionOnAFreshInstanceStillCallsStartForegroundAndThenLeaves" classname="com.example.kpkn.services.cardio.CardioGpsForegroundServiceStartPromiseTest" time="0.04"/>
+  <testcase name="staleStartOnALiveInstanceKeepsServingAndLeavesTheRunningExecutionIdentityAlone" classname="com.example.kpkn.services.cardio.CardioGpsForegroundServiceStartPromiseTest" time="0.066"/>
+  <testcase name="resumeForAnotherSessionLeavesTheSessionHeldByTheTrackerUntouched" classname="com.example.kpkn.services.cardio.CardioGpsForegroundServiceStartPromiseTest" time="0.054"/>
+  <testcase name="nullIntentFromAStickyRestartKeepsLeavingWithoutAForegroundPromise" classname="com.example.kpkn.services.cardio.CardioGpsForegroundServiceStartPromiseTest" time="0.037"/>
+  <testcase name="foreignResumeOnALiveInstanceKeepsServingAndLeavesTheRunningExecutionIdentityAlone" classname="com.example.kpkn.services.cardio.CardioGpsForegroundServiceStartPromiseTest" time="0.065"/>
+  <testcase name="startWithoutAUsableSessionKeyOnAFreshInstanceCallsStartForegroundAndThenLeaves" classname="com.example.kpkn.services.cardio.CardioGpsForegroundServiceStartPromiseTest" time="0.042"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

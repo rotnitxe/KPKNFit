@@ -45,6 +45,8 @@ class NutritionSearchBenchmarkTest {
             println("KPKN_SEARCH_ANDROID samples=${timings.size} medianMs=${sorted[sorted.size / 2]} p95Ms=$p95 maxMs=${sorted.last()} budgetMs=150.0")
             val evidence = org.json.JSONObject().put("samples", timings.size).put("medianMs", sorted[sorted.size / 2])
                 .put("p95Ms", p95).put("maxMs", sorted.last()).put("budgetMs", 150.0).put("storage", "PROFILE_ROOM_FILE")
+                .put("latenciesMs", org.json.JSONArray(timings)).put("warmupPasses", 3)
+                .put("queryCount", queries.size).put("passes", 10)
             InstrumentationRegistry.getInstrumentation().sendStatus(2, android.os.Bundle().apply {
                 putString("kpkn_search_result", evidence.toString())
             })

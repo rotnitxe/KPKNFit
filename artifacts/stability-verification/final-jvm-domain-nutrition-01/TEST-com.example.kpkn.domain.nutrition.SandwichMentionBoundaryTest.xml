@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.SandwichMentionBoundaryTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:58:36.856Z" hostname="VF" time="0.61">
+  <properties/>
+  <testcase name="a juice after the sandwich keeps its tag and its own portion" classname="com.example.kpkn.domain.nutrition.SandwichMentionBoundaryTest" time="0.088"/>
+  <testcase name="an excluded ingredient still keeps the sandwich from expanding" classname="com.example.kpkn.domain.nutrition.SandwichMentionBoundaryTest" time="0.049"/>
+  <testcase name="un sandwich de ave mayo is one tag, alone or with a drink" classname="com.example.kpkn.domain.nutrition.SandwichMentionBoundaryTest" time="0.095"/>
+  <testcase name="a y before a quantified mention is not a filling separator" classname="com.example.kpkn.domain.nutrition.SandwichMentionBoundaryTest" time="0.0"/>
+  <testcase name="a generic sandwich de A y B expands inside its mention and the tags around it stay" classname="com.example.kpkn.domain.nutrition.SandwichMentionBoundaryTest" time="0.055"/>
+  <testcase name="a word that holds pan inside another tag no longer blocks the expansion" classname="com.example.kpkn.domain.nutrition.SandwichMentionBoundaryTest" time="0.052"/>
+  <testcase name="what is said before the sandwich keeps its place" classname="com.example.kpkn.domain.nutrition.SandwichMentionBoundaryTest" time="0.046"/>
+  <testcase name="un sandwich de jamon y queso y una coca cola gives the components and the cola apart" classname="com.example.kpkn.domain.nutrition.SandwichMentionBoundaryTest" time="0.119"/>
+  <testcase name="what is said after the sandwich does not change the sandwich" classname="com.example.kpkn.domain.nutrition.SandwichMentionBoundaryTest" time="0.104"/>
+  <testcase name="sandwich de A y B ends at punctuation, before a quantified mention or at the end of the text" classname="com.example.kpkn.domain.nutrition.SandwichMentionBoundaryTest" time="0.0"/>
+  <testcase name="a known sandwich ends where its dish name ends" classname="com.example.kpkn.domain.nutrition.SandwichMentionBoundaryTest" time="0.0"/>
+  <testcase name="the generic regex no longer swallows what follows the sandwich" classname="com.example.kpkn.domain.nutrition.SandwichMentionBoundaryTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.templates.SessionTemplateEngineTest" tests="27" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:25:45.767Z" hostname="VF" time="0.062">
+  <properties/>
+  <testcase name="complete executable gate rejects mixed valid and placeholder strength cards" classname="com.example.kpkn.domain.templates.SessionTemplateEngineTest" time="0.002"/>
+  <testcase name="applyAppend_keepsExistingAndAddsNew" classname="com.example.kpkn.domain.templates.SessionTemplateEngineTest" time="0.008"/>
+  <testcase name="template storage clone drops pending volume advances" classname="com.example.kpkn.domain.templates.SessionTemplateEngineTest" time="0.003"/>
+  <testcase name="cloned unilateral targets keep planned weights" classname="com.example.kpkn.domain.templates.SessionTemplateEngineTest" time="0.003"/>
+  <testcase name="templateApplyRegeneratesIds" classname="com.example.kpkn.domain.templates.SessionTemplateEngineTest" time="0.001"/>
+  <testcase name="append does not add a group when every member is omitted" classname="com.example.kpkn.domain.templates.SessionTemplateEngineTest" time="0.002"/>
+  <testcase name="applyReplace_clearsExistingExercises" classname="com.example.kpkn.domain.templates.SessionTemplateEngineTest" time="0.001"/>
+  <testcase name="applyReplace copies cardioFirst and duration and clears variants" classname="com.example.kpkn.domain.templates.SessionTemplateEngineTest" time="0.003"/>
+  <testcase name="append rebuilds superset order and drops removed anchors" classname="com.example.kpkn.domain.templates.SessionTemplateEngineTest" time="0.003"/>
+  <testcase name="training templates reject competition destinations in both modes" classname="com.example.kpkn.domain.templates.SessionTemplateEngineTest" time="0.007"/>
+  <testcase name="applyAppend_keepsMobilityPartWhenAllExercisesAreDuplicates" classname="com.example.kpkn.domain.templates.SessionTemplateEngineTest" time="0.005"/>
+  <testcase name="applyAppend_neverFiltersManualCustomExercises" classname="com.example.kpkn.domain.templates.SessionTemplateEngineTest" time="0.0"/>
+  <testcase name="cloneSessionContent_generatesNewIds" classname="com.example.kpkn.domain.templates.SessionTemplateEngineTest" time="0.001"/>
+  <testcase name="applyAppend_reportsOmittedExercisesWithPartName" classname="com.example.kpkn.domain.templates.SessionTemplateEngineTest" time="0.001"/>
+  <testcase name="mode-only sets are placeholders while explicit failure and unilateral targets execute" classname="com.example.kpkn.domain.templates.SessionTemplateEngineTest" time="0.001"/>
+  <testcase name="append dissolves a superset when dedup leaves a single member" classname="com.example.kpkn.domain.templates.SessionTemplateEngineTest" time="0.001"/>
+  <testcase name="cloneSet keeps planned drop and rest-pause flags" classname="com.example.kpkn.domain.templates.SessionTemplateEngineTest" time="0.0"/>
+  <testcase name="applyAppend_withParts_addsPartsCorrectly" classname="com.example.kpkn.domain.templates.SessionTemplateEngineTest" time="0.001"/>
+  <testcase name="applyAppend_outcomeNeverListsManualCustomExercises" classname="com.example.kpkn.domain.templates.SessionTemplateEngineTest" time="0.001"/>
+  <testcase name="week duplicate and progression seed clear meet links and volume advances recursively" classname="com.example.kpkn.domain.templates.SessionTemplateEngineTest" time="0.004"/>
+  <testcase name="supersetLinksPreservedWithinTemplate" classname="com.example.kpkn.domain.templates.SessionTemplateEngineTest" time="0.0"/>
+  <testcase name="sessionHasContent_returnsTrueForNonEmpty" classname="com.example.kpkn.domain.templates.SessionTemplateEngineTest" time="0.001"/>
+  <testcase name="applyAppend_skipsExercisesWithDuplicateCatalogConfiguration" classname="com.example.kpkn.domain.templates.SessionTemplateEngineTest" time="0.0"/>
+  <testcase name="canonical clone remaps multimodal references and clears execution state" classname="com.example.kpkn.domain.templates.SessionTemplateEngineTest" time="0.009"/>
+  <testcase name="complete executable gate rejects invalid visible modality alongside valid strength" classname="com.example.kpkn.domain.templates.SessionTemplateEngineTest" time="0.001"/>
+  <testcase name="sessionHasContent_returnsFalseForEmpty" classname="com.example.kpkn.domain.templates.SessionTemplateEngineTest" time="0.0"/>
+  <testcase name="canApplyTemplate_rejects_meet_day_kind" classname="com.example.kpkn.domain.templates.SessionTemplateEngineTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

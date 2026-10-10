@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.FoodKnowledgeParityTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:57:37.443Z" hostname="VF" time="0.069">
+  <properties/>
+  <testcase name="densities are the same grams per ml, rules and fallback" classname="com.example.kpkn.domain.nutrition.FoodKnowledgeParityTest" time="0.006"/>
+  <testcase name="dish compositions are the same dishes in the same order, with the same components and the same recipe notes" classname="com.example.kpkn.domain.nutrition.FoodKnowledgeParityTest" time="0.018"/>
+  <testcase name="containers are the same content rows, liquid containers and food classes" classname="com.example.kpkn.domain.nutrition.FoodKnowledgeParityTest" time="0.006"/>
+  <testcase name="the density categories of the default are the constants of the enum, in order" classname="com.example.kpkn.domain.nutrition.FoodKnowledgeParityTest" time="0.004"/>
+  <testcase name="the dishes keep the order of the table, which decides a tie between two names of the same length" classname="com.example.kpkn.domain.nutrition.FoodKnowledgeParityTest" time="0.004"/>
+  <testcase name="protected phrases are the same lists in the same order" classname="com.example.kpkn.domain.nutrition.FoodKnowledgeParityTest" time="0.004"/>
+  <testcase name="the asset parses to exactly the Kotlin default" classname="com.example.kpkn.domain.nutrition.FoodKnowledgeParityTest" time="0.005"/>
+  <testcase name="typos are the same pairs in the same order" classname="com.example.kpkn.domain.nutrition.FoodKnowledgeParityTest" time="0.004"/>
+  <testcase name="household units are the same weights and lists" classname="com.example.kpkn.domain.nutrition.FoodKnowledgeParityTest" time="0.003"/>
+  <testcase name="the version is the one this build reads" classname="com.example.kpkn.domain.nutrition.FoodKnowledgeParityTest" time="0.003"/>
+  <testcase name="every section of the snapshot has a parity check here" classname="com.example.kpkn.domain.nutrition.FoodKnowledgeParityTest" time="0.004"/>
+  <testcase name="synonyms are the same pairs in the same order" classname="com.example.kpkn.domain.nutrition.FoodKnowledgeParityTest" time="0.004"/>
+  <testcase name="utensils are the same default volumes" classname="com.example.kpkn.domain.nutrition.FoodKnowledgeParityTest" time="0.004"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

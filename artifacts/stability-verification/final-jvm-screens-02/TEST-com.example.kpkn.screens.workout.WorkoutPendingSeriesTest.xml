@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.workout.WorkoutPendingSeriesTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:39:02.149Z" hostname="VF" time="0.01">
+  <properties/>
+  <testcase name="cardioDoneFirst_withStrengthPending_reportsTheStrengthSeriesAndKeepsAutoNavigation" classname="com.example.kpkn.screens.workout.WorkoutPendingSeriesTest" time="0.007"/>
+  <testcase name="exercisesSkippedOnPurposeAndOmittedSeries_doNotCount" classname="com.example.kpkn.screens.workout.WorkoutPendingSeriesTest" time="0.001"/>
+  <testcase name="pendingCardioSeries_countsAsASeries" classname="com.example.kpkn.screens.workout.WorkoutPendingSeriesTest" time="0.0"/>
+  <testcase name="unilateralSeriesWithBothSidesPending_countsOnce" classname="com.example.kpkn.screens.workout.WorkoutPendingSeriesTest" time="0.0"/>
+  <testcase name="message_usesTheResolverForDisplayNames" classname="com.example.kpkn.screens.workout.WorkoutPendingSeriesTest" time="0.001"/>
+  <testcase name="pendingWarmupOrMobility_isNotASeries" classname="com.example.kpkn.screens.workout.WorkoutPendingSeriesTest" time="0.001"/>
+  <testcase name="message_namesAtMostThreeExercisesAndSummarisesTheRest" classname="com.example.kpkn.screens.workout.WorkoutPendingSeriesTest" time="0.0"/>
+  <testcase name="nothingPending_reportsNoNotice" classname="com.example.kpkn.screens.workout.WorkoutPendingSeriesTest" time="0.0"/>
+  <testcase name="finishingUpToHere_countsEarlierUnfinishedExerciseButNotTheOnesSkippedOnPurpose" classname="com.example.kpkn.screens.workout.WorkoutPendingSeriesTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.templates.SessionTemplateQualityRulesTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:25:46.052Z" hostname="VF" time="0.129">
+  <properties/>
+  <testcase name="systemTemplatesHaveNoP0QualityViolations" classname="com.example.kpkn.domain.templates.SessionTemplateQualityRulesTest" time="0.037"/>
+  <testcase name="syntheticTemplateTriggersSameMuscleStreakAndBeginnerHardBw" classname="com.example.kpkn.domain.templates.SessionTemplateQualityRulesTest" time="0.005"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.ProgramPersistNormalizerTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:29:39.307Z" hostname="VF" time="0.002">
+  <properties/>
+  <testcase name="normalize_strips_competition_meet_sessions" classname="com.example.kpkn.domain.training.ProgramPersistNormalizerTest" time="0.001"/>
+  <testcase name="normalize_syncs_loop_occurrences_for_simple_cyclic" classname="com.example.kpkn.domain.training.ProgramPersistNormalizerTest" time="0.0"/>
+  <testcase name="repairStaleRunCursor_moves_missing_week_to_existing_location" classname="com.example.kpkn.domain.training.ProgramPersistNormalizerTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

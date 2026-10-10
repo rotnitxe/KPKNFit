@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.settings.CanonicalJsonTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:53:58.085Z" hostname="VF" time="0.079">
+  <properties/>
+  <testcase name="sharedProgramRunEnvelopePreservesPriorExecutionAndFutureMetadata" classname="com.example.kpkn.data.settings.CanonicalJsonTest" time="0.073"/>
+  <testcase name="sharedSourceIdentityHasTheExpectedUtf8Hash" classname="com.example.kpkn.data.settings.CanonicalJsonTest" time="0.003"/>
+  <testcase name="scaleOrderingAndUnicodeMatchTheSharedManifest" classname="com.example.kpkn.data.settings.CanonicalJsonTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

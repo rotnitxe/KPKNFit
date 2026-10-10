@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.programs.LibraryReachabilityTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:38:00.894Z" hostname="VF" time="0.208">
+  <properties/>
+  <testcase name="what_the_planner_never_offers_is_left_out_of_the_button_by_design" classname="com.example.kpkn.screens.programs.LibraryReachabilityTest" time="0.06"/>
+  <testcase name="the_goal_prefilled_by_a_library_plan_is_one_the_planner_offers_that_plan_for" classname="com.example.kpkn.screens.programs.LibraryReachabilityTest" time="0.058"/>
+  <testcase name="every_card_that_offers_configure_this_plan_is_offered_by_the_planner_for_some_goal_and_frequency" classname="com.example.kpkn.screens.programs.LibraryReachabilityTest" time="0.006"/>
+  <testcase name="the_button_and_the_planner_agree_in_both_directions" classname="com.example.kpkn.screens.programs.LibraryReachabilityTest" time="0.003"/>
+  <testcase name="the_planner_never_offers_a_blank_structure_whatever_the_focus_level_or_days" classname="com.example.kpkn.screens.programs.LibraryReachabilityTest" time="0.043"/>
+  <testcase name="the_wizard_ignores_a_preselected_plan_that_the_planner_can_never_offer" classname="com.example.kpkn.screens.programs.LibraryReachabilityTest" time="0.037"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

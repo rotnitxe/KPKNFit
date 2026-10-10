@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.ui.adapt.ViewportAdaptTest" tests="24" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:32:06.931Z" hostname="VF" time="0.008">
+  <properties/>
+  <testcase name="width_and_height_contribute_the_same_factor" classname="com.example.kpkn.ui.adapt.ViewportAdaptTest" time="0.002"/>
+  <testcase name="live_policy_identity_on_design_canvas" classname="com.example.kpkn.ui.adapt.ViewportAdaptTest" time="0.002"/>
+  <testcase name="flip_inner_scales_from_width_and_does_not_reflow" classname="com.example.kpkn.ui.adapt.ViewportAdaptTest" time="0.0"/>
+  <testcase name="live_policy_square_cover_uses_width_not_height_boost" classname="com.example.kpkn.ui.adapt.ViewportAdaptTest" time="0.001"/>
+  <testcase name="live_peek_scale_below_one_does_not_hit_ceiling_on_flip" classname="com.example.kpkn.ui.adapt.ViewportAdaptTest" time="0.0"/>
+  <testcase name="live_peek_identity_matches_legacy_formula" classname="com.example.kpkn.ui.adapt.ViewportAdaptTest" time="0.0"/>
+  <testcase name="short_phone_scales_from_height" classname="com.example.kpkn.ui.adapt.ViewportAdaptTest" time="0.0"/>
+  <testcase name="live_policy_16_9_widens_cards_and_compacts_header" classname="com.example.kpkn.ui.adapt.ViewportAdaptTest" time="0.0"/>
+  <testcase name="live_policy_pixel8_is_soft_narrow_boost" classname="com.example.kpkn.ui.adapt.ViewportAdaptTest" time="0.0"/>
+  <testcase name="reference_phone_is_identity_scale" classname="com.example.kpkn.ui.adapt.ViewportAdaptTest" time="0.0"/>
+  <testcase name="live_policy_landscape_matches_short_cap" classname="com.example.kpkn.ui.adapt.ViewportAdaptTest" time="0.001"/>
+  <testcase name="live_peek_does_not_inflate_when_card_scale_is_below_one" classname="com.example.kpkn.ui.adapt.ViewportAdaptTest" time="0.0"/>
+  <testcase name="live_pager_scale_x_fills_page_only_when_adapt_is_below_one" classname="com.example.kpkn.ui.adapt.ViewportAdaptTest" time="0.0"/>
+  <testcase name="scale_never_exceeds_ceiling_on_huge_canvas" classname="com.example.kpkn.ui.adapt.ViewportAdaptTest" time="0.0"/>
+  <testcase name="live_peek_width_mul_keeps_page_inside_viewport" classname="com.example.kpkn.ui.adapt.ViewportAdaptTest" time="0.0"/>
+  <testcase name="flip_cover_hits_floor_and_reflows" classname="com.example.kpkn.ui.adapt.ViewportAdaptTest" time="0.0"/>
+  <testcase name="tablet_grows_but_stays_under_ceiling" classname="com.example.kpkn.ui.adapt.ViewportAdaptTest" time="0.0"/>
+  <testcase name="live_policy_god_mode_is_identity" classname="com.example.kpkn.ui.adapt.ViewportAdaptTest" time="0.0"/>
+  <testcase name="live_pager_refs_match_card_canvas" classname="com.example.kpkn.ui.adapt.ViewportAdaptTest" time="0.001"/>
+  <testcase name="live_policy_fold_strip_caps_at_flip_boost" classname="com.example.kpkn.ui.adapt.ViewportAdaptTest" time="0.0"/>
+  <testcase name="live_policy_360_19_5_9_does_not_get_flip_boost" classname="com.example.kpkn.ui.adapt.ViewportAdaptTest" time="0.0"/>
+  <testcase name="live_policy_height_mul_clamps_boost_but_never_flattens_below_identity" classname="com.example.kpkn.ui.adapt.ViewportAdaptTest" time="0.001"/>
+  <testcase name="clamp_does_not_cancel_extra_y_growth_on_design_phone" classname="com.example.kpkn.ui.adapt.ViewportAdaptTest" time="0.0"/>
+  <testcase name="live_policy_flip_inner_hits_narrow_cap" classname="com.example.kpkn.ui.adapt.ViewportAdaptTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

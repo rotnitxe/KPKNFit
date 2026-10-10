@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.ProgramProgressEngineTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:29:39.505Z" hostname="VF" time="0.009">
+  <properties/>
+  <testcase name="calendarized simple program does not advance paused cyclic cursor" classname="com.example.kpkn.domain.training.ProgramProgressEngineTest" time="0.0"/>
+  <testcase name="linear simple program completes instead of wrapping" classname="com.example.kpkn.domain.training.ProgramProgressEngineTest" time="0.0"/>
+  <testcase name="completing cycle uses cycle scoped logs only" classname="com.example.kpkn.domain.training.ProgramProgressEngineTest" time="0.0"/>
+  <testcase name="advanceAfterSessionComplete completes cycle after last week" classname="com.example.kpkn.domain.training.ProgramProgressEngineTest" time="0.001"/>
+  <testcase name="completing future week out of order does not move canonical cursor" classname="com.example.kpkn.domain.training.ProgramProgressEngineTest" time="0.0"/>
+  <testcase name="all required sessions must be logged and blank training weeks never auto-complete" classname="com.example.kpkn.domain.training.ProgramProgressEngineTest" time="0.0"/>
+  <testcase name="closing the last week through advanceAfterSessionComplete raises the author TM with the inventory step" classname="com.example.kpkn.domain.training.ProgramProgressEngineTest" time="0.006"/>
+  <testcase name="loop competition template cadence twelve projects at cycle twelve" classname="com.example.kpkn.domain.training.ProgramProgressEngineTest" time="0.0"/>
+  <testcase name="calendarized break logs do not complete restored cyclic week instances" classname="com.example.kpkn.domain.training.ProgramProgressEngineTest" time="0.001"/>
+  <testcase name="advanceAfterSessionComplete resolves template week id from workout log" classname="com.example.kpkn.domain.training.ProgramProgressEngineTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanCoverTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:37:37.572Z" hostname="VF" time="0.535">
+  <properties/>
+  <testcase name="thePosterPaintsTitleKickerBadgeAndFacts" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanCoverTest" time="0.048"/>
+  <testcase name="aLongTitleStillPaintsAllItsWords" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanCoverTest" time="0.045"/>
+  <testcase name="theBannerPaintsTheSameTexts" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanCoverTest" time="0.048"/>
+  <testcase name="everyDisciplineAndTheGeneralOnesHaveAnAccent" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanCoverTest" time="0.039"/>
+  <testcase name="theSameSeedAlwaysGivesTheSameVariant" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanCoverTest" time="0.035"/>
+  <testcase name="theThreeFactsAreJoinedAndBlanksSkipped" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanCoverTest" time="0.046"/>
+  <testcase name="theContrastRatioFollowsWcag" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanCoverTest" time="0.027"/>
+  <testcase name="differentSeedsGiveDifferentCovers" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanCoverTest" time="0.034"/>
+  <testcase name="theTextReadsOnTheLightestPartOfTheField" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanCoverTest" time="0.03"/>
+  <testcase name="theVariantStaysInItsRanges" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanCoverTest" time="0.036"/>
+  <testcase name="theTitleShrinksUntilItsLongestWordFits" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanCoverTest" time="0.062"/>
+  <testcase name="aCoverWithoutProfileStillPaints" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanCoverTest" time="0.048"/>
+  <testcase name="theFactsFlowIntoWholeLinesWithoutADanglingDot" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanCoverTest" time="0.035"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

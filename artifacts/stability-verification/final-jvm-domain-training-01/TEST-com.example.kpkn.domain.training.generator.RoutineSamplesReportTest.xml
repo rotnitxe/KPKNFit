@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.generator.RoutineSamplesReportTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:30:59.009Z" hostname="VF" time="0.101">
+  <properties/>
+  <testcase name="writes_sample_routines_for_review" classname="com.example.kpkn.domain.training.generator.RoutineSamplesReportTest" time="0.101"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

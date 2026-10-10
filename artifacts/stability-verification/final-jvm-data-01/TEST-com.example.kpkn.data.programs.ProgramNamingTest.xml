@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.programs.ProgramNamingTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:53:11.827Z" hostname="VF" time="0.014">
+  <properties/>
+  <testcase name="the_hidden_historic_entries_are_named_too_because_activated_programs_still_resolve_them" classname="com.example.kpkn.data.programs.ProgramNamingTest" time="0.002"/>
+  <testcase name="the_four_own_plans_keep_the_mode_the_generator_fixed_by_profile" classname="com.example.kpkn.data.programs.ProgramNamingTest" time="0.002"/>
+  <testcase name="a_powerbuilding_method_creates_a_powerbuilding_program" classname="com.example.kpkn.data.programs.ProgramNamingTest" time="0.001"/>
+  <testcase name="every_listed_entry_resolves_to_a_mode_that_agrees_with_its_declared_discipline" classname="com.example.kpkn.data.programs.ProgramNamingTest" time="0.002"/>
+  <testcase name="the_generated_plans_take_the_name_of_their_card_and_the_mode_of_the_generator" classname="com.example.kpkn.data.programs.ProgramNamingTest" time="0.002"/>
+  <testcase name="the_fifty_listed_entries_are_named_by_their_editorial_card_without_ids_or_english" classname="com.example.kpkn.data.programs.ProgramNamingTest" time="0.001"/>
+  <testcase name="a_powerlifting_method_creates_a_powerlifting_program" classname="com.example.kpkn.data.programs.ProgramNamingTest" time="0.001"/>
+  <testcase name="the_historic_native_plans_stay_hypertrophy" classname="com.example.kpkn.data.programs.ProgramNamingTest" time="0.0"/>
+  <testcase name="a_hypertrophy_method_no_longer_comes_out_as_powerlifting" classname="com.example.kpkn.data.programs.ProgramNamingTest" time="0.001"/>
+  <testcase name="every_template_takes_the_mode_its_discipline_label_declares" classname="com.example.kpkn.data.programs.ProgramNamingTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

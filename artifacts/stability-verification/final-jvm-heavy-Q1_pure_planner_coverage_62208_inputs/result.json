@@ -1,0 +1,31 @@
+{
+  "state": "PASS",
+  "group": "heavy-generation",
+  "chunk": 0,
+  "chunkSize": 80,
+  "singleClassRetry": null,
+  "selectedClasses": [
+    "com.example.kpkn.domain.training.PlanGenerationCoverageT006Test"
+  ],
+  "selectedPatterns": [
+    "com.example.kpkn.domain.training.PlanGenerationCoverageT006Test.Q1_pure_planner_coverage_62208_inputs"
+  ],
+  "selectedMethod": "Q1_pure_planner_coverage_62208_inputs",
+  "inventorySha256": "aa6b6aa8271d0e450d1663c0579db27ee34d1be5b4080934a1e0ed252db81a38",
+  "limits": "One partition only. Full suite needs every disjoint group/chunk including heavy-generation; runtime annotations/SDK variants may multiply testcase counts. Omissions/failures never promoted to PASS.",
+  "exitCode": 0,
+  "elapsedSeconds": 36.18199896812439,
+  "totals": {
+    "tests": 1,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "emittedClasses": [
+    "com.example.kpkn.domain.training.PlanGenerationCoverageT006Test"
+  ],
+  "missingClasses": [],
+  "xmlHashes": {
+    "TEST-com.example.kpkn.domain.training.PlanGenerationCoverageT006Test.xml": "77904e30b744fddb64c8e93cc485ec518ca47c38d4d9ddaeba6a7892112e2bd8"
+  }
+}

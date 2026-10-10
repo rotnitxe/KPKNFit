@@ -1,0 +1,10 @@
+{
+  "tests": 1,
+  "failures": 1,
+  "errors": 0,
+  "skipped": 0,
+  "suites": 1,
+  "files": {
+    "TEST-com.example.kpkn.data.diagnostics.CrashConsentAdmissionTest.xml": "f17682b0e5bac9d01d5c95cbdcc2ede358dbfae743c030d9de39b6f250592414"
+  }
+}

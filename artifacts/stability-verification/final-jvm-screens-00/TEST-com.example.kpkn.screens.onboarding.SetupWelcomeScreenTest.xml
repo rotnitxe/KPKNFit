@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.SetupWelcomeScreenTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:36:05.886Z" hostname="VF" time="4.316">
+  <properties/>
+  <testcase name="solo se lee el texto de la pagina actual" classname="com.example.kpkn.screens.onboarding.SetupWelcomeScreenTest" time="3.126"/>
+  <testcase name="solo el telefono de la pagina actual se anuncia con su descripcion" classname="com.example.kpkn.screens.onboarding.SetupWelcomeScreenTest" time="0.223"/>
+  <testcase name="tocar un segmento cambia de pagina, de texto y de telefono anunciado" classname="com.example.kpkn.screens.onboarding.SetupWelcomeScreenTest" time="0.32"/>
+  <testcase name="sin botones secundarios no se ofrece ninguno" classname="com.example.kpkn.screens.onboarding.SetupWelcomeScreenTest" time="0.137"/>
+  <testcase name="Comenzar avisa una sola vez y solo al tocarlo" classname="com.example.kpkn.screens.onboarding.SetupWelcomeScreenTest" time="0.162"/>
+  <testcase name="la escena de Recuperacion compone en todos los instantes de su bucle" classname="com.example.kpkn.screens.onboarding.SetupWelcomeScreenTest" time="0.188"/>
+  <testcase name="los botones secundarios solo aparecen si se pasan y avisan" classname="com.example.kpkn.screens.onboarding.SetupWelcomeScreenTest" time="0.158"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.sessioneditor.components.ExercisePickerV2SearchStateTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:38:57.276Z" hostname="VF" time="0.0">
+  <properties/>
+  <testcase name="create_prompt_requires_no_catalog_or_custom_coincidence" classname="com.example.kpkn.screens.sessioneditor.components.ExercisePickerV2SearchStateTest" time="0.0"/>
+  <testcase name="card_tap_only_toggles_expansion" classname="com.example.kpkn.screens.sessioneditor.components.ExercisePickerV2SearchStateTest" time="0.0"/>
+  <testcase name="stale_debounced_query_cannot_render_results_or_create_prompt" classname="com.example.kpkn.screens.sessioneditor.components.ExercisePickerV2SearchStateTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

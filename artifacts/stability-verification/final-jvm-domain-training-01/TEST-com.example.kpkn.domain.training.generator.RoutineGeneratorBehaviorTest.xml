@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.generator.RoutineGeneratorBehaviorTest" tests="24" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:30:46.542Z" hostname="VF" time="0.201">
+  <properties/>
+  <testcase name="hybrid_keeps_the_declared_cardio_minutes_and_never_trims_them" classname="com.example.kpkn.domain.training.generator.RoutineGeneratorBehaviorTest" time="0.002"/>
+  <testcase name="the_variants_reason_only_claims_to_follow_what_you_can_do_when_the_person_answered_it" classname="com.example.kpkn.domain.training.generator.RoutineGeneratorBehaviorTest" time="0.018"/>
+  <testcase name="a_bodyweight_week_never_leaves_a_strength_session_with_a_single_exercise" classname="com.example.kpkn.domain.training.generator.RoutineGeneratorBehaviorTest" time="0.019"/>
+  <testcase name="only_impossible_inputs_throw_the_generation_exception" classname="com.example.kpkn.domain.training.generator.RoutineGeneratorBehaviorTest" time="0.006"/>
+  <testcase name="push_up_capability_picks_the_ladder_rung" classname="com.example.kpkn.domain.training.generator.RoutineGeneratorBehaviorTest" time="0.005"/>
+  <testcase name="long_cardio_is_split_into_sensible_blocks" classname="com.example.kpkn.domain.training.generator.RoutineGeneratorBehaviorTest" time="0.002"/>
+  <testcase name="priorities_never_pass_the_weekly_ceiling" classname="com.example.kpkn.domain.training.generator.RoutineGeneratorBehaviorTest" time="0.003"/>
+  <testcase name="the_hardest_session_lands_on_the_freshest_day_or_the_next_training_day" classname="com.example.kpkn.domain.training.generator.RoutineGeneratorBehaviorTest" time="0.005"/>
+  <testcase name="seven_days_include_a_mobility_and_light_cardio_day" classname="com.example.kpkn.domain.training.generator.RoutineGeneratorBehaviorTest" time="0.003"/>
+  <testcase name="the_summary_has_three_to_five_reasons_and_one_line_per_day" classname="com.example.kpkn.domain.training.generator.RoutineGeneratorBehaviorTest" time="0.012"/>
+  <testcase name="a_novice_only_gets_hard_exercises_when_they_are_curated_basics" classname="com.example.kpkn.domain.training.generator.RoutineGeneratorBehaviorTest" time="0.01"/>
+  <testcase name="a_session_uses_at_most_one_exercise_of_each_bodyweight_ladder" classname="com.example.kpkn.domain.training.generator.RoutineGeneratorBehaviorTest" time="0.012"/>
+  <testcase name="the_one_liner_never_says_days_of_one_session_or_days_of_a_day" classname="com.example.kpkn.domain.training.generator.RoutineGeneratorBehaviorTest" time="0.005"/>
+  <testcase name="marks_turn_into_percentages_of_the_matching_basics_and_the_rest_is_pending" classname="com.example.kpkn.domain.training.generator.RoutineGeneratorBehaviorTest" time="0.002"/>
+  <testcase name="a_home_day_never_uses_gym_equipment" classname="com.example.kpkn.domain.training.generator.RoutineGeneratorBehaviorTest" time="0.001"/>
+  <testcase name="the_week_starts_on_the_chosen_start_day_and_keeps_the_training_days" classname="com.example.kpkn.domain.training.generator.RoutineGeneratorBehaviorTest" time="0.001"/>
+  <testcase name="a_priority_muscle_never_loses_volume_and_gains_it_when_it_has_room" classname="com.example.kpkn.domain.training.generator.RoutineGeneratorBehaviorTest" time="0.019"/>
+  <testcase name="missing_patterns_come_with_an_actionable_note" classname="com.example.kpkn.domain.training.generator.RoutineGeneratorBehaviorTest" time="0.003"/>
+  <testcase name="pull_up_capability_picks_regressions_or_harder_variants_in_the_park" classname="com.example.kpkn.domain.training.generator.RoutineGeneratorBehaviorTest" time="0.003"/>
+  <testcase name="a_priority_isolation_muscle_moves_earlier_in_its_sessions" classname="com.example.kpkn.domain.training.generator.RoutineGeneratorBehaviorTest" time="0.018"/>
+  <testcase name="functional_weeks_cover_legs_pushes_and_pulls_even_with_little_time" classname="com.example.kpkn.domain.training.generator.RoutineGeneratorBehaviorTest" time="0.01"/>
+  <testcase name="another_seed_picks_another_allowed_variant_when_the_pool_has_alternatives" classname="com.example.kpkn.domain.training.generator.RoutineGeneratorBehaviorTest" time="0.007"/>
+  <testcase name="functional_sessions_carry_mobility_and_cardio_when_time_allows" classname="com.example.kpkn.domain.training.generator.RoutineGeneratorBehaviorTest" time="0.002"/>
+  <testcase name="the_same_request_gives_the_same_routine_and_ids" classname="com.example.kpkn.domain.training.generator.RoutineGeneratorBehaviorTest" time="0.029"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

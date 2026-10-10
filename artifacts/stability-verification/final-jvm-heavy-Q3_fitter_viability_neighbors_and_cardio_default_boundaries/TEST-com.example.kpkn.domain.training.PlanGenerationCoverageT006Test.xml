@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.PlanGenerationCoverageT006Test" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:53:31.906Z" hostname="VF" time="13.753">
+  <properties/>
+  <testcase name="Q3_fitter_viability_neighbors_and_cardio_default_boundaries" classname="com.example.kpkn.domain.training.PlanGenerationCoverageT006Test" time="13.371"/>
+  <system-out><![CDATA[[T006][Q3] totalInputs=328 publishedCandidates=328 evaluatedCandidates=328 viableCandidates=310 rejectedByReason={TIME_BUDGET=18} boundaries=4 boundaryNeighbors=STRENGTH/E4/3d@24[23:TIME_BUDGET,24:READY,25:READY];MUSCLE/E2/3d@26[25:TIME_BUDGET,26:READY,27:READY];POWERBUILDING/E2/3d@24[23:TIME_BUDGET,24:READY,25:READY];COMPLETE_ATHLETE/E0/3d@23[22:TIME_BUDGET,23:READY,24:READY] cardioDefaults={30=10, 45=15, 59=15, 60=20} previewPassed=0 activationPassed=0 reopenPassed=0 postWorkoutPassed=0
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,47 @@
+{
+  "state": "PASS",
+  "appApkSha256": "f765a31a97dfa4214208cf859425544118c9eb79eaf3dfc7dae47cc5d73685fe",
+  "accountABReturn": {
+    "state": "PASS",
+    "distinctUids": true,
+    "accountARetained": true,
+    "accountBHiddenFromA": true,
+    "staleWriterRejected": true,
+    "finalGuest": true,
+    "scope": "ONE_DEVICE_LOCAL_FIREBASE_NATIVE_CLIENT_AND_ROOM"
+  },
+  "integratedColdPids": [
+    11941,
+    12142,
+    12277
+  ],
+  "registryRecovery": {
+    "returnCode": 0,
+    "passed": true,
+    "committedOwnerRecovered": true
+  },
+  "consentUiChanges": [
+    {
+      "step": "04-enable",
+      "checked": "true",
+      "sha256": "a4c47d70fc0b94c222f0414c7e4606248e6e1a7f7a07ba9573352b7b2399fb73"
+    },
+    {
+      "step": "06-disable",
+      "checked": "false",
+      "sha256": "e9ed948ed34cce17298db6debb062718c35e508f8991434feb63b5b55c3572f9"
+    }
+  ],
+  "consentColdPids": [
+    12682,
+    12843
+  ],
+  "consentFinal": false,
+  "evidenceHashes": {
+    "cloud-native-account-40-native/result.json": "22ba62f9f4e713a8029a4ef4cbeb94289ca79cd34691b3fbfd6a3022f3995e1e",
+    "integrated-final-42/result.json": "bdf66325059923b0401a152d7659abd31bb7a68d955218901d0c9b572aae363a",
+    "consent-ui-43/05-cold-readback/result.json": "af0e2e710033f163ac6e16a2c305ec8dfa3562ba8270aff8ff44b1ca23d85c9a",
+    "consent-ui-43/07-cold-disabled/result.json": "77da1c6d53d9ccc11a037550cdebe43e445c51c9c1196c2bd90161975bac9d4c"
+  },
+  "limits": "API36 one isolated emulator. Native account API/Compose checks, three maintenance phases and real consent UI/cold preference readback. Debug never uploads Crashlytics. No full form buttons, two-device sync, all personal entities, live SDK reports, production project, physical ARM64 or release runtime."
+}

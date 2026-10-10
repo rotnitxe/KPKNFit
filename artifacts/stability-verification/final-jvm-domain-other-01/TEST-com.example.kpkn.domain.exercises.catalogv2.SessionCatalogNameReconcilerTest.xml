@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.exercises.catalogv2.SessionCatalogNameReconcilerTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:24:46.964Z" hostname="VF" time="0.039">
+  <properties/>
+  <testcase name="retired_sumo_rdl_never_repairs_custom_or_wrong_definition_or_absent_target" classname="com.example.kpkn.domain.exercises.catalogv2.SessionCatalogNameReconcilerTest" time="0.002"/>
+  <testcase name="reconcile_preserves_custom_exercises_and_identity" classname="com.example.kpkn.domain.exercises.catalogv2.SessionCatalogNameReconcilerTest" time="0.0"/>
+  <testcase name="gate_blocks_divergent_name_but_passes_after_reconcile" classname="com.example.kpkn.domain.exercises.catalogv2.SessionCatalogNameReconcilerTest" time="0.002"/>
+  <testcase name="normalizeSessionStructure_removes_only_mirrored_loose_items" classname="com.example.kpkn.domain.exercises.catalogv2.SessionCatalogNameReconcilerTest" time="0.002"/>
+  <testcase name="remap_legacy_bench_pause_to_catalog_configuration" classname="com.example.kpkn.domain.exercises.catalogv2.SessionCatalogNameReconcilerTest" time="0.0"/>
+  <testcase name="reconcile_rewrites_invented_name_with_verbatim_catalog_name" classname="com.example.kpkn.domain.exercises.catalogv2.SessionCatalogNameReconcilerTest" time="0.001"/>
+  <testcase name="reconcile_strips_technique_suffix_to_verbatim_name" classname="com.example.kpkn.domain.exercises.catalogv2.SessionCatalogNameReconcilerTest" time="0.0"/>
+  <testcase name="retired_sumo_rdl_updates_complete_saved_identity_and_preserves_prescription" classname="com.example.kpkn.domain.exercises.catalogv2.SessionCatalogNameReconcilerTest" time="0.0"/>
+  <testcase name="normalizeSessionStructure_ignores_cardio_parts" classname="com.example.kpkn.domain.exercises.catalogv2.SessionCatalogNameReconcilerTest" time="0.0"/>
+  <testcase name="retired_walking_setups_migrate_saved_identity_preserve_prescription_and_are_idempotent" classname="com.example.kpkn.domain.exercises.catalogv2.SessionCatalogNameReconcilerTest" time="0.001"/>
+  <testcase name="normalizeSessionStructure_clears_redundant_loose_exercises" classname="com.example.kpkn.domain.exercises.catalogv2.SessionCatalogNameReconcilerTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

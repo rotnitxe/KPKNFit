@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.entreno.EntrenoPlanModelsTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:37:40.991Z" hostname="VF" time="0.009">
+  <properties/>
+  <testcase name="the_card_keeps_every_field_of_the_reveal" classname="com.example.kpkn.screens.onboarding.entreno.EntrenoPlanModelsTest" time="0.003"/>
+  <testcase name="the_reveal_key_is_stable_and_changes_with_what_the_person_sees" classname="com.example.kpkn.screens.onboarding.entreno.EntrenoPlanModelsTest" time="0.004"/>
+  <testcase name="the_detail_carries_the_real_week_structure_reasons_and_notes" classname="com.example.kpkn.screens.onboarding.entreno.EntrenoPlanModelsTest" time="0.002"/>
+  <testcase name="the_carousel_never_receives_two_cards_with_the_same_id" classname="com.example.kpkn.screens.onboarding.entreno.EntrenoPlanModelsTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

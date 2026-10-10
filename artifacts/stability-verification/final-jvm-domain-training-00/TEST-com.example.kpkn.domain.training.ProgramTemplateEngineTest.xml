@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.ProgramTemplateEngineTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:29:39.958Z" hostname="VF" time="0.703">
+  <properties/>
+  <testcase name="applyTemplate_without_sessions_replaces_structure_in_place" classname="com.example.kpkn.domain.training.ProgramTemplateEngineTest" time="0.492"/>
+  <testcase name="applyTemplate_without_split_prefill_keeps_weeks_empty" classname="com.example.kpkn.domain.training.ProgramTemplateEngineTest" time="0.0"/>
+  <testcase name="empty_generation_catalog_keeps_safe_system_fallback_during_hydration_race" classname="com.example.kpkn.domain.training.ProgramTemplateEngineTest" time="0.008"/>
+  <testcase name="applyTemplate_with_sessions_creates_draft_copy" classname="com.example.kpkn.domain.training.ProgramTemplateEngineTest" time="0.021"/>
+  <testcase name="advanced_power_templates_keep_competition_lifts_on_every_generated_week" classname="com.example.kpkn.domain.training.ProgramTemplateEngineTest" time="0.033"/>
+  <testcase name="applyTemplate_prefills_sessions_from_split_when_program_has_no_content" classname="com.example.kpkn.domain.training.ProgramTemplateEngineTest" time="0.007"/>
+  <testcase name="applying_template_resets_lifecycle_for_fresh_ids" classname="com.example.kpkn.domain.training.ProgramTemplateEngineTest" time="0.019"/>
+  <testcase name="discipline_template_compiles_mode_and_split_instead_of_inheriting_stale_selection" classname="com.example.kpkn.domain.training.ProgramTemplateEngineTest" time="0.024"/>
+  <testcase name="power_template_forces_sbd_split_on_existing_non_power_split_and_hydrates_recorded_goals" classname="com.example.kpkn.domain.training.ProgramTemplateEngineTest" time="0.011"/>
+  <testcase name="applyTemplate_with_sessions_and_forceReplace_overwrites_in_place" classname="com.example.kpkn.domain.training.ProgramTemplateEngineTest" time="0.019"/>
+  <testcase name="advanced_power_template_materializes_distinct_phase_prescriptions" classname="com.example.kpkn.domain.training.ProgramTemplateEngineTest" time="0.012"/>
+  <testcase name="non_power_advanced_tracks_keep_accessories_in_reps_rpe_not_rm" classname="com.example.kpkn.domain.training.ProgramTemplateEngineTest" time="0.016"/>
+  <testcase name="powerlifting_taper_is_non_increasing_and_below_peak_for_16_and_20_week_templates" classname="com.example.kpkn.domain.training.ProgramTemplateEngineTest" time="0.026"/>
+  <testcase name="powerbuilding_16_has_monotonic_semantics_and_is_executable" classname="com.example.kpkn.domain.training.ProgramTemplateEngineTest" time="0.011"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

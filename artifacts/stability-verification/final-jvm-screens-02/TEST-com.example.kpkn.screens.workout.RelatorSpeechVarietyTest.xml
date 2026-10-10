@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.workout.RelatorSpeechVarietyTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:38:57.552Z" hostname="VF" time="0.029">
+  <properties/>
+  <testcase name="prDoesNotSilenceWhenPoolExhausted" classname="com.example.kpkn.screens.workout.RelatorSpeechVarietyTest" time="0.003"/>
+  <testcase name="fourthWeightBelowResolveFallsBackToSituate" classname="com.example.kpkn.screens.workout.RelatorSpeechVarietyTest" time="0.012"/>
+  <testcase name="differentKilosStillSameWeightBelowMold" classname="com.example.kpkn.screens.workout.RelatorSpeechVarietyTest" time="0.0"/>
+  <testcase name="neverRepeatsFingerprintConsecutiveWhenAnotherUnusedExists" classname="com.example.kpkn.screens.workout.RelatorSpeechVarietyTest" time="0.0"/>
+  <testcase name="allPredictableVariantsStayWithinBudget" classname="com.example.kpkn.screens.workout.RelatorSpeechVarietyTest" time="0.013"/>
+  <testcase name="fingerprintIgnoresKilograms" classname="com.example.kpkn.screens.workout.RelatorSpeechVarietyTest" time="0.0"/>
+  <testcase name="speechSessionCommitsOnContextChange" classname="com.example.kpkn.screens.workout.RelatorSpeechVarietyTest" time="0.001"/>
+  <testcase name="weightBelowRotatesThenSuppresses" classname="com.example.kpkn.screens.workout.RelatorSpeechVarietyTest" time="0.0"/>
+  <testcase name="situateSharesFingerprintFamilyAcrossSetIndexes" classname="com.example.kpkn.screens.workout.RelatorSpeechVarietyTest" time="0.0"/>
+  <testcase name="assistDoesNotRotateOrSilence" classname="com.example.kpkn.screens.workout.RelatorSpeechVarietyTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

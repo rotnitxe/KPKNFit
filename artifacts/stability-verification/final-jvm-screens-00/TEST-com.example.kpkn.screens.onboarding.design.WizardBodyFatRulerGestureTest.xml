@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.design.WizardBodyFatRulerGestureTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:36:31.943Z" hostname="VF" time="0.442">
+  <properties/>
+  <testcase name="theFirstTouchOnTheStartingValueStillDeclaresIt" classname="com.example.kpkn.screens.onboarding.design.WizardBodyFatRulerGestureTest" time="0.053"/>
+  <testcase name="draggingDownEmitsEachIntegerOnceInOrderAndFinishesWithTheLast" classname="com.example.kpkn.screens.onboarding.design.WizardBodyFatRulerGestureTest" time="0.08"/>
+  <testcase name="tappingTheBottomEndGivesFifty" classname="com.example.kpkn.screens.onboarding.design.WizardBodyFatRulerGestureTest" time="0.048"/>
+  <testcase name="aDeclaredRulerDoesNotReEmitTheSameValueButStillFinishes" classname="com.example.kpkn.screens.onboarding.design.WizardBodyFatRulerGestureTest" time="0.048"/>
+  <testcase name="anUndeclaredRulerOffersToUseTheShownValueForTalkBack" classname="com.example.kpkn.screens.onboarding.design.WizardBodyFatRulerGestureTest" time="0.05"/>
+  <testcase name="tappingATickEmitsItAndFinishesOnce" classname="com.example.kpkn.screens.onboarding.design.WizardBodyFatRulerGestureTest" time="0.056"/>
+  <testcase name="setProgressMovesToTheRoundedValueAndFinishes" classname="com.example.kpkn.screens.onboarding.design.WizardBodyFatRulerGestureTest" time="0.051"/>
+  <testcase name="semanticsDescribeASliderForTalkBack" classname="com.example.kpkn.screens.onboarding.design.WizardBodyFatRulerGestureTest" time="0.056"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

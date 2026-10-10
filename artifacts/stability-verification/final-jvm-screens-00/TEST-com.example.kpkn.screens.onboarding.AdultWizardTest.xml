@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.AdultWizardTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:33:03.443Z" hostname="VF" time="0.032">
+  <properties/>
+  <testcase name="numericAgeRejectsMinorInWizardAndWizChat" classname="com.example.kpkn.screens.onboarding.AdultWizardTest" time="0.032"/>
+  <testcase name="birthDateRequiresEighteenthBirthday" classname="com.example.kpkn.screens.onboarding.AdultWizardTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

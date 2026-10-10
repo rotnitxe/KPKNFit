@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.db.NormalizedFoodFtsTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:50:58.200Z" hostname="VF" time="3.783">
+  <properties/>
+  <testcase name="migrateV29[26]" classname="com.example.kpkn.data.db.NormalizedFoodFtsTest" time="3.378"/>
+  <testcase name="migrateV29" classname="com.example.kpkn.data.db.NormalizedFoodFtsTest" time="0.405"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[Oct 10, 2026 2:51:00 AM com.almworks.sqlite4java.Internal log
+WARNING: [sqlite] SQLite: cannot set library path, library already loaded
+]]></system-err>
+</testsuite>

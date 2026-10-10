@@ -31,6 +31,7 @@ def main():
     parser.add_argument('--out', required=True)
     parser.add_argument('--start-readonly-emulator', action='store_true')
     parser.add_argument('--avd', default='Pixel_9_Pro_XL')
+    parser.add_argument('--gpu', choices=['swiftshader', 'auto', 'host'], default='swiftshader')
     parser.add_argument('--qa-sdk', type=Path)
     parser.add_argument('--expected-page-size', type=int)
     args = parser.parse_args()
@@ -95,7 +96,7 @@ def main():
                 image_options = ['-sysdir', str(system_image)]
             process = subprocess.Popen([str(SDK / 'emulator/emulator.exe'), '-avd', args.avd,
                 '-port', '5554', '-read-only', '-no-snapshot', '-no-window', '-no-audio', '-memory', '2048',
-                '-gpu', 'swiftshader', *image_options], stdout=emulator_output, stderr=subprocess.STDOUT,
+                '-gpu', args.gpu, *image_options], stdout=emulator_output, stderr=subprocess.STDOUT,
                 env=emulator_env, creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
             (out / 'emulator-instance.txt').write_text(f'launcherPid={process.pid}\nserial={SERIAL}\navd={args.avd}\nreadOnly=true\n')
             deadline = time.monotonic() + 240
@@ -123,6 +124,9 @@ def main():
         (out / 'page-size.txt').write_text(str(page_bytes) + '\n')
         if args.expected_page_size and page_bytes != args.expected_page_size:
             raise SystemExit(f'Unexpected page size {page_bytes}')
+        (out / 'system-events-before-app.txt').write_bytes(adb('logcat', '-d', '-b', 'events',
+            '-s', 'am_anr', 'am_crash').stdout)
+        (out / 'device-uptime-before-app.txt').write_bytes(adb('shell', 'cat', '/proc/uptime').stdout)
         start_time = adb('shell', 'date', '+%m-%d %H:%M:%S.000').stdout.decode().strip()
         install = adb('install', '-r', '--no-incremental', str(apk), timeout=120)
         (out / 'install.txt').write_bytes(install.stdout + install.stderr)
@@ -154,6 +158,12 @@ def main():
             for chunk in iter(lambda: stream.read(1024 * 1024), b''):
                 checksum.update(chunk)
         (out / 'apk-sha256.txt').write_text(checksum.hexdigest() + '\n')
+        (out / 'system-events-after-app.txt').write_bytes(adb('logcat', '-d', '-b', 'events',
+            '-s', 'am_anr', 'am_crash', '-T', start_time).stdout)
+        # Preserve every captured artifact before rejecting an obstructed foreground.
+        # Top-resumed alone does not prove that the application's controls are available.
+        if b'android:id/aerr_close' in hierarchy or b'android:id/aerr_wait' in hierarchy or b"isn't responding" in hierarchy:
+            raise SystemExit('Foreground blocked by an error/ANR dialog; original evidence retained, launch QA not approved')
         print('INSTALL_SUCCESS; MAIN_ACTIVITY_TOP_RESUMED; fresh evidence:', out, flush=True)
     finally:
         if emulator_output is not None:

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.LoopRuntimeIntegrationTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:26:36.884Z" hostname="VF" time="0.005">
+  <properties/>
+  <testcase name="completing base weeks lands on loop week then marks COMPLETED and advances cycle" classname="com.example.kpkn.domain.training.LoopRuntimeIntegrationTest" time="0.003"/>
+  <testcase name="home resolver can point at loop week instance" classname="com.example.kpkn.domain.training.LoopRuntimeIntegrationTest" time="0.001"/>
+  <testcase name="postpone while on loop week moves cursor off the event" classname="com.example.kpkn.domain.training.LoopRuntimeIntegrationTest" time="0.0"/>
+  <testcase name="loop week is appended to training sequence on cadence cycle" classname="com.example.kpkn.domain.training.LoopRuntimeIntegrationTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

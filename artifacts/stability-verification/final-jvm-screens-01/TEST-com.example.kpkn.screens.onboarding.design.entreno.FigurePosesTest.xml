@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.design.entreno.FigurePosesTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:37:22.850Z" hostname="VF" time="0.076">
+  <properties/>
+  <testcase name="no hay saltos entre cuadros consecutivos" classname="com.example.kpkn.screens.onboarding.design.entreno.FigurePosesTest" time="0.038"/>
+  <testcase name="la dominada cuelga de la barra y los hombros suben con la profundidad" classname="com.example.kpkn.screens.onboarding.design.entreno.FigurePosesTest" time="0.004"/>
+  <testcase name="en los seis levantamientos los huesos conservan su largo en toda la fase" classname="com.example.kpkn.screens.onboarding.design.entreno.FigurePosesTest" time="0.001"/>
+  <testcase name="la flexion apoya manos y pies y el cuerpo baja con la profundidad" classname="com.example.kpkn.screens.onboarding.design.entreno.FigurePosesTest" time="0.001"/>
+  <testcase name="el cuadro de reposo y el bucle empiezan en el mismo sitio" classname="com.example.kpkn.screens.onboarding.design.entreno.FigurePosesTest" time="0.0"/>
+  <testcase name="la repeticion es periodica sube y baja y no se sale de 0 a 1" classname="com.example.kpkn.screens.onboarding.design.entreno.FigurePosesTest" time="0.001"/>
+  <testcase name="los pies pisan el suelo y la figura cabe en el lienzo" classname="com.example.kpkn.screens.onboarding.design.entreno.FigurePosesTest" time="0.004"/>
+  <testcase name="el press de banca es el unico con banco y esta a la altura de la cadera" classname="com.example.kpkn.screens.onboarding.design.entreno.FigurePosesTest" time="0.0"/>
+  <testcase name="las manos agarran la barra y la barra queda a su alcance" classname="com.example.kpkn.screens.onboarding.design.entreno.FigurePosesTest" time="0.001"/>
+  <testcase name="cada ejercicio cabe en su escenario" classname="com.example.kpkn.screens.onboarding.design.entreno.FigurePosesTest" time="0.007"/>
+  <testcase name="el fondo agarra la barra y los pies cuelgan sin tocar el suelo" classname="com.example.kpkn.screens.onboarding.design.entreno.FigurePosesTest" time="0.001"/>
+  <testcase name="la sentadilla a una pierna apoya una sola y estira la otra al frente" classname="com.example.kpkn.screens.onboarding.design.entreno.FigurePosesTest" time="0.0"/>
+  <testcase name="flexion fondo y sentadilla a una pierna conservan los huesos y no dan saltos" classname="com.example.kpkn.screens.onboarding.design.entreno.FigurePosesTest" time="0.017"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

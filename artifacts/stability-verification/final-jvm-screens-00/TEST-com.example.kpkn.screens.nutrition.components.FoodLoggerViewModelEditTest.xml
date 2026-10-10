@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.nutrition.components.FoodLoggerViewModelEditTest" tests="15" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:33:02.355Z" hostname="VF" time="0.559">
+  <properties/>
+  <testcase name="a log without a usable id is left to the host seed" classname="com.example.kpkn.screens.nutrition.components.FoodLoggerViewModelEditTest" time="0.096"/>
+  <testcase name="seedFromLog keeps the seeded flag so a rotation or the host cannot overwrite the edit" classname="com.example.kpkn.screens.nutrition.components.FoodLoggerViewModelEditTest" time="0.059"/>
+  <testcase name="the saved meal travels with the draft so the save keeps its notes and untouched foods" classname="com.example.kpkn.screens.nutrition.components.FoodLoggerViewModelEditTest" time="0.026"/>
+  <testcase name="after clearDraft the next open seeds again, as a new meal or as another edit" classname="com.example.kpkn.screens.nutrition.components.FoodLoggerViewModelEditTest" time="0.03"/>
+  <testcase name="every real change makes the edit dirty and undoing it makes it unchanged again" classname="com.example.kpkn.screens.nutrition.components.FoodLoggerViewModelEditTest" time="0.032"/>
+  <testcase name="an edit is never persisted so a restored holder cannot save over the original meal" classname="com.example.kpkn.screens.nutrition.components.FoodLoggerViewModelEditTest" time="0.055"/>
+  <testcase name="text typed before the first seed is not replaced by the log" classname="com.example.kpkn.screens.nutrition.components.FoodLoggerViewModelEditTest" time="0.029"/>
+  <testcase name="seedFromLog sets the editing id, the draft id, the day, the meal and one decided card per food" classname="com.example.kpkn.screens.nutrition.components.FoodLoggerViewModelEditTest" time="0.031"/>
+  <testcase name="a restored draft is never seeded from a log" classname="com.example.kpkn.screens.nutrition.components.FoodLoggerViewModelEditTest" time="0.029"/>
+  <testcase name="a draft for a new meal is never an unchanged edit" classname="com.example.kpkn.screens.nutrition.components.FoodLoggerViewModelEditTest" time="0.025"/>
+  <testcase name="a draft that was already seeded for a new meal is not turned into an edit" classname="com.example.kpkn.screens.nutrition.components.FoodLoggerViewModelEditTest" time="0.026"/>
+  <testcase name="a new meal after an edit is persisted again with its own draft id" classname="com.example.kpkn.screens.nutrition.components.FoodLoggerViewModelEditTest" time="0.032"/>
+  <testcase name="an edit that changed nothing is unchanged and expanding a card does not change it" classname="com.example.kpkn.screens.nutrition.components.FoodLoggerViewModelEditTest" time="0.029"/>
+  <testcase name="a log without a date edits on today" classname="com.example.kpkn.screens.nutrition.components.FoodLoggerViewModelEditTest" time="0.031"/>
+  <testcase name="clearDraft ends the edit and gives the next draft a new id" classname="com.example.kpkn.screens.nutrition.components.FoodLoggerViewModelEditTest" time="0.029"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

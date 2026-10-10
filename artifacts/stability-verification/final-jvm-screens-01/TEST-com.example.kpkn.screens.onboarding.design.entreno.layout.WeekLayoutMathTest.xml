@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutMathTest" tests="37" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:37:30.356Z" hostname="VF" time="0.007">
+  <properties/>
+  <testcase name="splitPatternHasOneDayPerTitleAndNeverRepeatsADay" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutMathTest" time="0.002"/>
+  <testcase name="hitSlotFindsTheSlotUnderThePoint" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutMathTest" time="0.0"/>
+  <testcase name="theDetailJoinsWhatTheSessionHasAndNothingElse" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutMathTest" time="0.002"/>
+  <testcase name="theDescriptionReadsTitleFocusAmountsAndDay" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutMathTest" time="0.0"/>
+  <testcase name="movingOntoAnOccupiedDaySwapsBothSessions" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutMathTest" time="0.0"/>
+  <testcase name="hitSlotSingleSlopAppliesToBothAxes" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutMathTest" time="0.0"/>
+  <testcase name="splitPatternUsesTheCurrentDaysWhenTheCountMatches" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutMathTest" time="0.0"/>
+  <testcase name="theMoveAnnouncementNamesWhoMovedWhere" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutMathTest" time="0.001"/>
+  <testcase name="anUnplacedSessionOrAnInvalidDayChangesNothing" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutMathTest" time="0.0"/>
+  <testcase name="hitSlotBreaksTiesWithTheSmallerDay" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutMathTest" time="0.0"/>
+  <testcase name="theEdgesPushTowardsThemWithALinearRamp" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutMathTest" time="0.0"/>
+  <testcase name="colorIndexesIgnoreCaseAndSpacesAndWrapAroundThePalette" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutMathTest" time="0.0"/>
+  <testcase name="theDeltaIsSpeedTimesFrameTimeAndKeepsTheSign" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutMathTest" time="0.0"/>
+  <testcase name="slotOrderStartsOnTheGivenDayAndWrapsAround" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutMathTest" time="0.0"/>
+  <testcase name="aSwapDoneTwiceGoesBack" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutMathTest" time="0.0"/>
+  <testcase name="thePlaceComesFromTheSessionOrFromTheEndOfItsFocus" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutMathTest" time="0.0"/>
+  <testcase name="swappingNeverModifiesTheInput" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutMathTest" time="0.0"/>
+  <testcase name="splitPatternSpreadsTheDaysWhenTheCountDiffers" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutMathTest" time="0.0"/>
+  <testcase name="splitPatternClampsTheCount" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutMathTest" time="0.0"/>
+  <testcase name="hitSlotSlopFillsTheGapsAndTheNearestCenterWins" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutMathTest" time="0.0"/>
+  <testcase name="beyondTheEdgePushesAtMostFullSpeed" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutMathTest" time="0.0"/>
+  <testcase name="invalidInputsNeverScroll" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutMathTest" time="0.0"/>
+  <testcase name="movingToAFreeDayFreesTheOldOne" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutMathTest" time="0.0"/>
+  <testcase name="dayNamesAndShortNamesAreInSpanishAndDistinct" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutMathTest" time="0.0"/>
+  <testcase name="sanitizeKeepsOnlyKnownSessionsOnValidDaysOnce" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutMathTest" time="0.0"/>
+  <testcase name="theSameTitleKeepsTheSameColorIndex" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutMathTest" time="0.0"/>
+  <testcase name="movingToTheSameDayChangesNothing" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutMathTest" time="0.0"/>
+  <testcase name="noPushInTheMiddleOfTheViewport" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutMathTest" time="0.0"/>
+  <testcase name="theTwoEdgeZonesNeverOverlapInANarrowViewport" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutMathTest" time="0.0"/>
+  <testcase name="hitSlotIgnoresEmptyRectsInvalidPointsAndEmptyMaps" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutMathTest" time="0.0"/>
+  <testcase name="anInvalidStartCountsAsMonday" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutMathTest" time="0.0"/>
+  <testcase name="slotOrderIsAlwaysAPermutationOfTheWeek" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutMathTest" time="0.0"/>
+  <testcase name="sanitizeKeepsTheFirstDayInTheOrderOfTheStrip" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutMathTest" time="0.0"/>
+  <testcase name="swappingKeepsTheNumberOfSessions" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutMathTest" time="0.0"/>
+  <testcase name="hitSlotMissesWhatIsOutsideAndTheGapsWithoutSlop" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutMathTest" time="0.0"/>
+  <testcase name="aLongFrameDoesNotJumpTheStrip" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutMathTest" time="0.0"/>
+  <testcase name="hitSlotIncludesTheEdges" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutMathTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

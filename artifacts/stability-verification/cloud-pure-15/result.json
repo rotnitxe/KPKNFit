@@ -1,0 +1,33 @@
+{
+  "state": "PASS",
+  "exitCode": 0,
+  "functionNode": "v22.23.3",
+  "clientNode": "v24.19.0",
+  "installedPackages": {
+    "firebase-tools": {
+      "version": "15.32.1",
+      "nodeEngine": ">=20.0.0 || >=22.0.0 || >=24.0.0"
+    },
+    "@firebase/rules-unit-testing": {
+      "version": "6.0.0",
+      "nodeEngine": ">=24.12.0"
+    },
+    "firebase-admin": {
+      "version": "14.5.0",
+      "nodeEngine": ">=22"
+    },
+    "firebase-functions": {
+      "version": "7.4.0",
+      "nodeEngine": ">=18.0.0"
+    },
+    "google-auth-library": {
+      "version": "11.2.0",
+      "nodeEngine": ">=22"
+    }
+  },
+  "lockfiles": {
+    "cloud-sync\\package-lock.json": "e9c3cbd77e88ded0fb98cfb67b382dbde855948678567895e8428480d7628bba",
+    "cloud-sync\\functions\\package-lock.json": "989e13fc2f4abec718b8e3f39fb05dece05a76370c338fe549a66cfcab1f177b"
+  },
+  "limits": "Pure/server fixtures only; CLI/rules tests need Node24 >=24.12, Functions emulator runtime stays Node22. No purchase/authenticated cloud/deployment proof."
+}

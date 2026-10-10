@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.design.entreno.MuscleGridLogicTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:37:24.173Z" hostname="VF" time="0.002">
+  <properties/>
+  <testcase name="la nota del tope usa el texto del modulo" classname="com.example.kpkn.screens.onboarding.design.entreno.MuscleGridLogicTest" time="0.001"/>
+  <testcase name="un tope de cero o de uno se respeta" classname="com.example.kpkn.screens.onboarding.design.entreno.MuscleGridLogicTest" time="0.001"/>
+  <testcase name="sugerido se rotula hasta que la persona toca ese musculo" classname="com.example.kpkn.screens.onboarding.design.entreno.MuscleGridLogicTest" time="0.0"/>
+  <testcase name="la cuadricula trae los doce musculos una sola vez y en filas de tres" classname="com.example.kpkn.screens.onboarding.design.entreno.MuscleGridLogicTest" time="0.0"/>
+  <testcase name="con el tope alcanzado los nuevos se rechazan pero los elegidos se pueden quitar" classname="com.example.kpkn.screens.onboarding.design.entreno.MuscleGridLogicTest" time="0.0"/>
+  <testcase name="con sitio un toque elige y un musculo elegido siempre se puede quitar" classname="com.example.kpkn.screens.onboarding.design.entreno.MuscleGridLogicTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

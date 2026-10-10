@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.PlanGenerationCoverageT006Test" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:41:53.756Z" hostname="VF" time="79.311">
+  <properties/>
+  <testcase name="Q2_real_generation_coverage_2304_inputs" classname="com.example.kpkn.domain.training.PlanGenerationCoverageT006Test" time="78.948"/>
+  <system-out><![CDATA[[T006][Q2] totalInputs=2304 publishedCandidates=2304 evaluatedCandidates=2304 viableCandidates=1232 rejectedByReason={APPARATUS_ABSENT=360, TIME_BUDGET=496, PROFILE_MISMATCH=216} physicalOrTimeNegativePasses=1072 rowsInSoftBand=0 highVolumeNotices=0 previewPassed=0 activationPassed=0 reopenPassed=0 postWorkoutPassed=0 elapsedMs=78459
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

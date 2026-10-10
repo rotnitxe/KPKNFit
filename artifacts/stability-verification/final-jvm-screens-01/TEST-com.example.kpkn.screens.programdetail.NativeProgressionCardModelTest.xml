@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.programdetail.NativeProgressionCardModelTest" tests="15" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:37:46.137Z" hostname="VF" time="0.034">
+  <properties/>
+  <testcase name="confirmation_inAssistanceTalksAboutAssistance" classname="com.example.kpkn.screens.programdetail.NativeProgressionCardModelTest" time="0.008"/>
+  <testcase name="build_rewritesLegacyVariantProposalsWithTheCatalogNameOfTheTarget" classname="com.example.kpkn.screens.programdetail.NativeProgressionCardModelTest" time="0.018"/>
+  <testcase name="build_showsOnlyRecentUserFacingNoticesNewestFirstAndCapsThem" classname="com.example.kpkn.screens.programdetail.NativeProgressionCardModelTest" time="0.005"/>
+  <testcase name="build_rewritesProposalsSavedBeforeTheReadableTextRelease" classname="com.example.kpkn.screens.programdetail.NativeProgressionCardModelTest" time="0.0"/>
+  <testcase name="build_keepsTheExerciseNameForAMethodNoticeThatCarriesAnIdentity" classname="com.example.kpkn.screens.programdetail.NativeProgressionCardModelTest" time="0.0"/>
+  <testcase name="confirmation_whenAppliedTellsWhatChanges" classname="com.example.kpkn.screens.programdetail.NativeProgressionCardModelTest" time="0.001"/>
+  <testcase name="build_hidesANoticeJustPastItsWeek_andKeepsOneJustInsideIt" classname="com.example.kpkn.screens.programdetail.NativeProgressionCardModelTest" time="0.0"/>
+  <testcase name="exerciseName_namesTheSideOfUnilateralExercises" classname="com.example.kpkn.screens.programdetail.NativeProgressionCardModelTest" time="0.0"/>
+  <testcase name="pendingLabel_isSingularOrPlural" classname="com.example.kpkn.screens.programdetail.NativeProgressionCardModelTest" time="0.001"/>
+  <testcase name="build_titlesEachProposalWithTheExerciseNameAndNeverTheInternalId" classname="com.example.kpkn.screens.programdetail.NativeProgressionCardModelTest" time="0.0"/>
+  <testcase name="build_titlesANoticeWithoutIdentityGenerically" classname="com.example.kpkn.screens.programdetail.NativeProgressionCardModelTest" time="0.0"/>
+  <testcase name="confirmation_whenRejectedOrExpiredOrUnknown" classname="com.example.kpkn.screens.programdetail.NativeProgressionCardModelTest" time="0.0"/>
+  <testcase name="exerciseName_fallsBackToTheCatalogAndThenToAReadableId" classname="com.example.kpkn.screens.programdetail.NativeProgressionCardModelTest" time="0.0"/>
+  <testcase name="confirmation_forAVariantNamesTheNewExercise" classname="com.example.kpkn.screens.programdetail.NativeProgressionCardModelTest" time="0.001"/>
+  <testcase name="build_titlesTheMethodNoticesByTheirPrefix" classname="com.example.kpkn.screens.programdetail.NativeProgressionCardModelTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

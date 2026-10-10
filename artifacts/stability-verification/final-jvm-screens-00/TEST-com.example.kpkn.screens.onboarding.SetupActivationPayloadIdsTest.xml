@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.SetupActivationPayloadIdsTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:35:27.553Z" hostname="VF" time="0.354">
+  <properties/>
+  <testcase name="replaying_the_same_activation_does_not_duplicate_or_fail" classname="com.example.kpkn.screens.onboarding.SetupActivationPayloadIdsTest" time="0.139"/>
+  <testcase name="two_wizards_with_the_same_canonical_draft_id_write_rows_with_different_ids" classname="com.example.kpkn.screens.onboarding.SetupActivationPayloadIdsTest" time="0.025"/>
+  <testcase name="the_row_ids_keep_their_kind_and_date_so_they_stay_readable" classname="com.example.kpkn.screens.onboarding.SetupActivationPayloadIdsTest" time="0.024"/>
+  <testcase name="the_same_wizard_retrying_its_activation_writes_the_same_ids" classname="com.example.kpkn.screens.onboarding.SetupActivationPayloadIdsTest" time="0.026"/>
+  <testcase name="a_draft_without_commit_id_still_gets_a_stable_key_from_its_draft_id" classname="com.example.kpkn.screens.onboarding.SetupActivationPayloadIdsTest" time="0.027"/>
+  <testcase name="a_second_real_activation_the_same_day_with_the_same_canonical_draft_id_goes_through" classname="com.example.kpkn.screens.onboarding.SetupActivationPayloadIdsTest" time="0.113"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.design.entreno.CapabilitySymbolsUiTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:37:16.657Z" hostname="VF" time="0.948">
+  <properties/>
+  <testcase name="everyExerciseHasItsSymbolAndThreeSegments" classname="com.example.kpkn.screens.onboarding.design.entreno.CapabilitySymbolsUiTest" time="0.181"/>
+  <testcase name="everyTouchTargetIsAtLeast48dp" classname="com.example.kpkn.screens.onboarding.design.entreno.CapabilitySymbolsUiTest" time="0.118"/>
+  <testcase name="theChosenSegmentIsSelectedAndTheOthersAreNot" classname="com.example.kpkn.screens.onboarding.design.entreno.CapabilitySymbolsUiTest" time="0.094"/>
+  <testcase name="theSymbolAnnouncesTheExerciseAndItsLevel" classname="com.example.kpkn.screens.onboarding.design.entreno.CapabilitySymbolsUiTest" time="0.087"/>
+  <testcase name="tappingASegmentSetsThatLevel" classname="com.example.kpkn.screens.onboarding.design.entreno.CapabilitySymbolsUiTest" time="0.116"/>
+  <testcase name="tappingTheSymbolWithoutAnAnswerChoosesSome" classname="com.example.kpkn.screens.onboarding.design.entreno.CapabilitySymbolsUiTest" time="0.088"/>
+  <testcase name="anOddNumberOfExercisesStillShowsAllOfThem" classname="com.example.kpkn.screens.onboarding.design.entreno.CapabilitySymbolsUiTest" time="0.074"/>
+  <testcase name="tappingTheSymbolAdvancesAndComesBackToTheFirst" classname="com.example.kpkn.screens.onboarding.design.entreno.CapabilitySymbolsUiTest" time="0.109"/>
+  <testcase name="withoutAnAnswerNoSegmentIsSelected" classname="com.example.kpkn.screens.onboarding.design.entreno.CapabilitySymbolsUiTest" time="0.079"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

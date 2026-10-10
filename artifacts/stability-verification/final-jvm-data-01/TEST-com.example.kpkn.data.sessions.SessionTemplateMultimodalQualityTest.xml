@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.sessions.SessionTemplateMultimodalQualityTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:53:57.320Z" hostname="VF" time="0.009">
+  <properties/>
+  <testcase name="mixed_strength_cards_fail_per_exercise_not_only_when_the_whole_session_is_empty" classname="com.example.kpkn.data.sessions.SessionTemplateMultimodalQualityTest" time="0.001"/>
+  <testcase name="auditCountsWarmupOnlySessionDuration" classname="com.example.kpkn.data.sessions.SessionTemplateMultimodalQualityTest" time="0.002"/>
+  <testcase name="auditCountsCardioPartTargetAndAllExercises" classname="com.example.kpkn.data.sessions.SessionTemplateMultimodalQualityTest" time="0.001"/>
+  <testcase name="target_only_modal_parts_fail_even_when_strength_makes_session_executable" classname="com.example.kpkn.data.sessions.SessionTemplateMultimodalQualityTest" time="0.001"/>
+  <testcase name="strengthExerciseWithoutSets_isP0_and_modalitiesRemainExecutableWithoutStrengthSets" classname="com.example.kpkn.data.sessions.SessionTemplateMultimodalQualityTest" time="0.0"/>
+  <testcase name="auditCountsMobilityPartConfigWithoutDoubleCounting" classname="com.example.kpkn.data.sessions.SessionTemplateMultimodalQualityTest" time="0.002"/>
+  <testcase name="auditTreatsExplicitWarmupDurationAsTotal_notPerSet" classname="com.example.kpkn.data.sessions.SessionTemplateMultimodalQualityTest" time="0.0"/>
+  <testcase name="invalid_mobility_and_warmup_are_p0_even_when_strength_is_valid" classname="com.example.kpkn.data.sessions.SessionTemplateMultimodalQualityTest" time="0.001"/>
+  <testcase name="heavyCompoundRest_requires180_butDoesNotFlagHypertrophy" classname="com.example.kpkn.data.sessions.SessionTemplateMultimodalQualityTest" time="0.001"/>
+  <testcase name="visible_modality_placeholders_fail_closed_with_central_execution_gate" classname="com.example.kpkn.data.sessions.SessionTemplateMultimodalQualityTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

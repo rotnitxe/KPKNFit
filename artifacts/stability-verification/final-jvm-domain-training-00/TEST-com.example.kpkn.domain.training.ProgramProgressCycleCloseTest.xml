@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" tests="54" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:29:39.319Z" hostname="VF" time="0.175">
+  <properties/>
+  <testcase name="cycle_close_leaves_an_auge_inserted_deload_block_untouched" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.008"/>
+  <testcase name="a_recorded_one_rm_test_uses_the_training_max_percentage_of_the_recipe" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.002"/>
+  <testcase name="wendler_cycle_close_raises_the_tm_by_5_2_5_and_5_rebuilds_the_four_weeks_and_notices_once" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.006"/>
+  <testcase name="two_consecutive_cycle_closes_raise_the_tm_twice_and_never_carry_a_scaled_week_over" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.008"/>
+  <testcase name="cycle_close_keeps_the_days_the_athlete_moved_by_dragging_a_session" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.005"/>
+  <testcase name="a_one_rm_gate_without_a_block_id_finds_the_closing_wave_by_its_week_and_holds_the_short_amrap_lift" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.002"/>
+  <testcase name="block_scoped_increment_skips_an_auge_deload_and_rebuilds_only_the_recipe_weeks" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.001"/>
+  <testcase name="resolving_the_deload_without_logs_still_applies_the_method_but_cannot_read_a_short_amrap" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.002"/>
+  <testcase name="repeated_cycle_close_does_not_duplicate_occurrence_ids_or_proposals" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.001"/>
+  <testcase name="block_scoped_increment_holds_the_lift_with_a_short_amrap_in_the_closing_wave" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.001"/>
+  <testcase name="block_scoped_increment_applies_between_waves_only" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.001"/>
+  <testcase name="recipe_without_native_progression_keeps_its_native_proposals_untouched_at_cycle_close" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.0"/>
+  <testcase name="cycle_close_registers_native_progression_exactly_once" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.001"/>
+  <testcase name="a_non_repeating_recipe_finishes_without_raising_the_tm" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.002"/>
+  <testcase name="a_cycle_scoped_rule_does_not_raise_the_tm_when_the_deload_is_rejected" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.001"/>
+  <testcase name="a_short_amrap_of_the_closed_cycle_does_not_freeze_the_next_one" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.009"/>
+  <testcase name="block_scoped_increment_never_rebuilds_a_session_that_already_has_logs" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.002"/>
+  <testcase name="rejecting_the_auge_deload_still_holds_the_lift_with_a_short_amrap_in_the_closing_wave" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.002"/>
+  <testcase name="a_skipped_one_rm_test_does_not_touch_the_load_profile" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.001"/>
+  <testcase name="a_cycle_scoped_rule_does_not_raise_the_tm_between_blocks" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.001"/>
+  <testcase name="a_one_rm_test_that_repeats_the_stored_one_rms_changes_nothing_and_flags_nothing" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.001"/>
+  <testcase name="rejecting_a_second_auge_deload_still_holds_the_lift_with_a_short_amrap_before_the_first_one" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.002"/>
+  <testcase name="cycle_close_rebuilds_with_the_metadata_it_receives_even_when_the_holder_is_empty" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.005"/>
+  <testcase name="a_recorded_one_rm_test_updates_the_load_profile_and_leaves_the_recipe_blocks_pending" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.001"/>
+  <testcase name="the_block_pending_flag_of_a_one_rm_test_only_reaches_the_blocks_of_the_recipe" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.001"/>
+  <testcase name="cycle_close_leaves_the_author_rule_alone_when_the_plan_has_native_progression" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.002"/>
+  <testcase name="real_juggernaut_raises_the_tm_once_per_wave_entered_and_never_at_the_end_of_the_3s_wave" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.023"/>
+  <testcase name="a_program_without_a_source_recipe_does_nothing_at_cycle_close" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.0"/>
+  <testcase name="cycle_close_expires_pending_native_proposals_with_a_reason_and_consumes_their_logs" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.0"/>
+  <testcase name="without_a_short_amrap_the_next_wave_after_an_accepted_auge_deload_raises_every_lift" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.002"/>
+  <testcase name="repeated_cycle_close_applies_the_author_increment_only_once" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.005"/>
+  <testcase name="gzclp_cycle_close_raises_the_tm_and_rebuilds_the_t1_and_the_t2_loads_of_the_four_days" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.006"/>
+  <testcase name="repeating_the_block_entry_after_a_one_rm_test_raises_the_tm_only_once" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.002"/>
+  <testcase name="cycle_close_expires_pending_autoregulation_with_a_reason_and_keeps_the_audit" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.0"/>
+  <testcase name="an_amrap_that_reaches_its_target_does_not_hold_the_lift" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.004"/>
+  <testcase name="a_lift_with_a_short_amrap_in_the_cycle_keeps_its_tm_and_the_notice_says_so" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.004"/>
+  <testcase name="recipe_without_native_progression_registers_nothing_at_cycle_close" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.001"/>
+  <testcase name="a_recorded_one_rm_test_without_a_recipe_creates_the_profile_at_ninety_percent_and_flags_nothing" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.0"/>
+  <testcase name="a_recorded_one_rm_test_enters_the_next_wave_through_the_author_hook_on_the_merged_profile" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.002"/>
+  <testcase name="a_block_scoped_rule_does_not_raise_the_tm_when_the_cycle_closes" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.003"/>
+  <testcase name="cycle_close_rounds_the_tm_to_the_smallest_load_the_inventory_can_add" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.003"/>
+  <testcase name="cycle_close_does_nothing_without_a_load_profile" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.003"/>
+  <testcase name="cycle_close_survives_a_catalog_that_cannot_rebuild_the_weeks" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.005"/>
+  <testcase name="cycle_close_never_makes_a_tm_step_larger_than_the_method_increment" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.005"/>
+  <testcase name="the_closest_recipe_wave_is_read_when_two_auge_deloads_come_before_the_next_wave" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.005"/>
+  <testcase name="cycle_close_keeps_the_sessions_with_manual_adjustments_and_says_how_many" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.005"/>
+  <testcase name="rejecting_the_auge_deload_enters_the_next_wave_through_the_author_hook_exactly_once" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.003"/>
+  <testcase name="a_cycle_scoped_rule_does_not_raise_the_tm_when_a_one_rm_test_is_resolved" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.001"/>
+  <testcase name="madcow_cycle_close_raises_the_tm_by_5_2_5_and_5_and_rebuilds_the_four_weeks" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.006"/>
+  <testcase name="when_every_lift_is_held_the_cycle_closes_without_tm_changes_and_is_registered_once" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.004"/>
+  <testcase name="accepting_the_auge_deload_enters_a_block_that_is_not_the_recipe_and_raises_nothing" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.002"/>
+  <testcase name="cycle_close_without_catalog_metadata_flags_the_blocks_pending_and_keeps_the_loads" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.004"/>
+  <testcase name="a_skipped_one_rm_test_still_enters_the_next_wave_with_the_method_increment_on_the_stored_tm" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.003"/>
+  <testcase name="a_short_amrap_before_an_accepted_auge_deload_still_holds_the_lift_when_the_next_wave_starts" classname="com.example.kpkn.domain.training.ProgramProgressCycleCloseTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.navigation.LaunchIntentResolverTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:31:52.417Z" hostname="VF" time="0.508">
+  <properties/>
+  <testcase name="recreatedActivityIgnoresWidgetExtraAndDeepLink" classname="com.example.kpkn.navigation.LaunchIntentResolverTest" time="0.047"/>
+  <testcase name="theExtraKeyIsTheOneTheLaunchersWrite" classname="com.example.kpkn.navigation.LaunchIntentResolverTest" time="0.038"/>
+  <testcase name="sharedTextIsNullForImagesBlankTextOtherActionsAndMissingType" classname="com.example.kpkn.navigation.LaunchIntentResolverTest" time="0.036"/>
+  <testcase name="freshLaunchResolvesAShare" classname="com.example.kpkn.navigation.LaunchIntentResolverTest" time="0.035"/>
+  <testcase name="reopeningFromRecentsIgnoresTheStaleRootIntent" classname="com.example.kpkn.navigation.LaunchIntentResolverTest" time="0.032"/>
+  <testcase name="aPlainLauncherStartIsNotALaunchRequest" classname="com.example.kpkn.navigation.LaunchIntentResolverTest" time="0.031"/>
+  <testcase name="anUnknownKpknLinkFallsBackToTheNutritionActionParameter" classname="com.example.kpkn.navigation.LaunchIntentResolverTest" time="0.04"/>
+  <testcase name="anUnreadableExtrasBundleNeverCrashesTheLaunch" classname="com.example.kpkn.navigation.LaunchIntentResolverTest" time="0.039"/>
+  <testcase name="aBlankWidgetExtraIsIgnored" classname="com.example.kpkn.navigation.LaunchIntentResolverTest" time="0.04"/>
+  <testcase name="freshLaunchResolvesTheNutritionActionExtra" classname="com.example.kpkn.navigation.LaunchIntentResolverTest" time="0.037"/>
+  <testcase name="sharedTextIsTrimmedForTextMimeTypes" classname="com.example.kpkn.navigation.LaunchIntentResolverTest" time="0.034"/>
+  <testcase name="theWidgetExtraIsTrimmedAndBeatsTheDeepLink" classname="com.example.kpkn.navigation.LaunchIntentResolverTest" time="0.034"/>
+  <testcase name="freshLaunchResolvesADeepLink" classname="com.example.kpkn.navigation.LaunchIntentResolverTest" time="0.033"/>
+  <testcase name="recreatedActivityIgnoresActionSend" classname="com.example.kpkn.navigation.LaunchIntentResolverTest" time="0.03"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

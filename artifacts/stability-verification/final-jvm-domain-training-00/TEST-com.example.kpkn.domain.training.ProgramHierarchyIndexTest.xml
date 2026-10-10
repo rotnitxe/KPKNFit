@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.ProgramHierarchyIndexTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:29:39.255Z" hostname="VF" time="0.009">
+  <properties/>
+  <testcase name="duplicate week id is invalid and cannot be located ambiguously" classname="com.example.kpkn.domain.training.ProgramHierarchyIndexTest" time="0.002"/>
+  <testcase name="missing mutation target returns typed error" classname="com.example.kpkn.domain.training.ProgramHierarchyIndexTest" time="0.005"/>
+  <testcase name="index exposes local and global locations across blocks" classname="com.example.kpkn.domain.training.ProgramHierarchyIndexTest" time="0.0"/>
+  <testcase name="updating week in block two never modifies block one" classname="com.example.kpkn.domain.training.ProgramHierarchyIndexTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

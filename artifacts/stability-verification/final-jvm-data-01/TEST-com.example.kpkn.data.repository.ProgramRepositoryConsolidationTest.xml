@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.repository.ProgramRepositoryConsolidationTest" tests="16" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:53:47.876Z" hostname="VF" time="5.428">
+  <properties/>
+  <testcase name="rematerializeAfterACycleCloseWithoutCatalogMetadataRecalculatesTheLoadsWithTheRealEvidence" classname="com.example.kpkn.data.repository.ProgramRepositoryConsolidationTest" time="0.288"/>
+  <testcase name="finalizeWorkout_closingAnAuthorCyclicPlanRaisesTheTmRoundedWithTheSettingsInventory" classname="com.example.kpkn.data.repository.ProgramRepositoryConsolidationTest" time="0.213"/>
+  <testcase name="executedTrainingEvidence_nativeProgramCountsOnlyTheCurrentCycle" classname="com.example.kpkn.data.repository.ProgramRepositoryConsolidationTest" time="0.142"/>
+  <testcase name="loadFromDb_persistsTheNormalizedProgramSoRoomConvergesWithTheCache" classname="com.example.kpkn.data.repository.ProgramRepositoryConsolidationTest" time="0.152"/>
+  <testcase name="archiveProgram_withOngoingSession_clearsItWithoutThrowing" classname="com.example.kpkn.data.repository.ProgramRepositoryConsolidationTest" time="0.162"/>
+  <testcase name="executedTrainingEvidence_nonNativeProgramKeepsEveryLogOfTheRun" classname="com.example.kpkn.data.repository.ProgramRepositoryConsolidationTest" time="0.136"/>
+  <testcase name="mutateProgramNowReportingVersion_reportsExactlyTheVersionPredictedUnderTheMonitor" classname="com.example.kpkn.data.repository.ProgramRepositoryConsolidationTest" time="0.297"/>
+  <testcase name="replacingActiveAndInactivePlansStartsDistinctRunsAndRetainsPriorDecisions" classname="com.example.kpkn.data.repository.ProgramRepositoryConsolidationTest" time="0.261"/>
+  <testcase name="resolveNativeProgressionProposal_concurrentWithReplaceProgramSafely_neverDeadlocks" classname="com.example.kpkn.data.repository.ProgramRepositoryConsolidationTest" time="0.289"/>
+  <testcase name="clearOngoingWorkout_failureIsLoggedNotThrown_keepsSessionAndAllowsRetry" classname="com.example.kpkn.data.repository.ProgramRepositoryConsolidationTest" time="0.15"/>
+  <testcase name="finalizeWorkout_nativeProgramInCycleTwo_storesCycleTwoAndItsWeekInstance" classname="com.example.kpkn.data.repository.ProgramRepositoryConsolidationTest" time="0.147"/>
+  <testcase name="flushPendingWrites_concurrentWithFinalize_keepsAdvancedProgramAndCursorDurable" classname="com.example.kpkn.data.repository.ProgramRepositoryConsolidationTest" time="1.807"/>
+  <testcase name="finalizeWorkout_explicitCycleOnNativeLogIsKept_andLinearComplexStillStoresCycleOne" classname="com.example.kpkn.data.repository.ProgramRepositoryConsolidationTest" time="0.186"/>
+  <testcase name="updateProgramNow_reconcilesNativeCursorWithLogsBeforeWritingSoRoomAndCacheAgree" classname="com.example.kpkn.data.repository.ProgramRepositoryConsolidationTest" time="0.37"/>
+  <testcase name="executedTrainingEvidence_authorCyclicProgramCountsOnlyTheCurrentCycle" classname="com.example.kpkn.data.repository.ProgramRepositoryConsolidationTest" time="0.303"/>
+  <testcase name="resolveNativeProgressionProposal_whileASessionIsInProgress_retriesAndNeverBlocksTheWorkoutLane" classname="com.example.kpkn.data.repository.ProgramRepositoryConsolidationTest" time="0.525"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

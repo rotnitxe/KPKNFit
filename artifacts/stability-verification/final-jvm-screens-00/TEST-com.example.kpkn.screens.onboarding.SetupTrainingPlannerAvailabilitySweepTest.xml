@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.SetupTrainingPlannerAvailabilitySweepTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:35:53.919Z" hostname="VF" time="11.816">
+  <properties/>
+  <testcase name="shard0" classname="com.example.kpkn.screens.onboarding.SetupTrainingPlannerAvailabilitySweepTest" time="1.608"/>
+  <testcase name="shard1" classname="com.example.kpkn.screens.onboarding.SetupTrainingPlannerAvailabilitySweepTest" time="1.488"/>
+  <testcase name="shard2" classname="com.example.kpkn.screens.onboarding.SetupTrainingPlannerAvailabilitySweepTest" time="1.535"/>
+  <testcase name="shard3" classname="com.example.kpkn.screens.onboarding.SetupTrainingPlannerAvailabilitySweepTest" time="1.465"/>
+  <testcase name="shard4" classname="com.example.kpkn.screens.onboarding.SetupTrainingPlannerAvailabilitySweepTest" time="1.45"/>
+  <testcase name="shard5" classname="com.example.kpkn.screens.onboarding.SetupTrainingPlannerAvailabilitySweepTest" time="1.449"/>
+  <testcase name="shard6" classname="com.example.kpkn.screens.onboarding.SetupTrainingPlannerAvailabilitySweepTest" time="1.395"/>
+  <testcase name="shard7" classname="com.example.kpkn.screens.onboarding.SetupTrainingPlannerAvailabilitySweepTest" time="1.423"/>
+  <system-out><![CDATA[[T-004 SWEEP] shard=0 filas=55296 fallos=0 registradas=0
+
+[T-004 SWEEP] shard=1 filas=55296 fallos=0 registradas=0
+
+[T-004 SWEEP] shard=2 filas=55296 fallos=0 registradas=0
+
+[T-004 SWEEP] shard=3 filas=55296 fallos=0 registradas=0
+
+[T-004 SWEEP] shard=4 filas=55296 fallos=0 registradas=0
+
+[T-004 SWEEP] shard=5 filas=55296 fallos=0 registradas=0
+
+[T-004 SWEEP] shard=6 filas=55296 fallos=0 registradas=0
+
+[T-004 SWEEP] shard=7 filas=55296 fallos=0 registradas=0
+
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

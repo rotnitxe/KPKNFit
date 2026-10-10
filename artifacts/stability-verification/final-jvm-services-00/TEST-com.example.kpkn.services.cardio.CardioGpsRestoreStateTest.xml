@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.services.cardio.CardioGpsRestoreStateTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:40:28.784Z" hostname="VF" time="0.006">
+  <properties/>
+  <testcase name="stale_location_callback_cannot_write_into_a_new_generation_or_stopped_state" classname="com.example.kpkn.services.cardio.CardioGpsRestoreStateTest" time="0.002"/>
+  <testcase name="stale_stop_cannot_cancel_a_new_start_while_old_snapshot_is_still_present" classname="com.example.kpkn.services.cardio.CardioGpsRestoreStateTest" time="0.001"/>
+  <testcase name="pausedSnapshotRemainsPaused" classname="com.example.kpkn.services.cardio.CardioGpsRestoreStateTest" time="0.0"/>
+  <testcase name="legacy_track_requires_every_point_to_belong_to_the_restored_execution" classname="com.example.kpkn.services.cardio.CardioGpsRestoreStateTest" time="0.001"/>
+  <testcase name="service_command_uses_active_service_owner_before_stale_tracker_snapshot" classname="com.example.kpkn.services.cardio.CardioGpsRestoreStateTest" time="0.0"/>
+  <testcase name="persistedUnpausedSnapshotDoesNotPretendTheLocationRequestIsAlive" classname="com.example.kpkn.services.cardio.CardioGpsRestoreStateTest" time="0.001"/>
+  <testcase name="activeProcessStatusesRemainVisibleWhenReenteringTheSession" classname="com.example.kpkn.services.cardio.CardioGpsRestoreStateTest" time="0.0"/>
+  <testcase name="request_completion_only_applies_while_the_same_request_is_pending" classname="com.example.kpkn.services.cardio.CardioGpsRestoreStateTest" time="0.0"/>
+  <testcase name="an_older_start_intent_cannot_replace_the_current_gps_execution" classname="com.example.kpkn.services.cardio.CardioGpsRestoreStateTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

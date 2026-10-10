@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.SetupWizardBodyFatViewModelTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:36:12.525Z" hostname="VF" time="0.406">
+  <properties/>
+  <testcase name="movingTheRulerDeclaresTheValueEnablesContinuarAndSavesTheEstimate" classname="com.example.kpkn.screens.onboarding.SetupWizardBodyFatViewModelTest" time="0.036"/>
+  <testcase name="theFirstTouchOnTheStartingValueIsAlreadyAnAnswer" classname="com.example.kpkn.screens.onboarding.SetupWizardBodyFatViewModelTest" time="0.041"/>
+  <testcase name="writingAMeasurementThroughTheSettersStillSavesItAsMeasuredForOldDrafts" classname="com.example.kpkn.screens.onboarding.SetupWizardBodyFatViewModelTest" time="0.036"/>
+  <testcase name="aReturningUserCanReplaceTheSettingsValueWithTheRulerAndItStaysAsHistory" classname="com.example.kpkn.screens.onboarding.SetupWizardBodyFatViewModelTest" time="0.032"/>
+  <testcase name="anOldOmittedDraftIsBlockedUntilTheRulerDeclaresAPercentage" classname="com.example.kpkn.screens.onboarding.SetupWizardBodyFatViewModelTest" time="0.034"/>
+  <testcase name="switchingTheFigureNeverDeclaresThePercentage" classname="com.example.kpkn.screens.onboarding.SetupWizardBodyFatViewModelTest" time="0.045"/>
+  <testcase name="theSetterContractTheOldFigureUsedStillDeclaresTheSameThing" classname="com.example.kpkn.screens.onboarding.SetupWizardBodyFatViewModelTest" time="0.035"/>
+  <testcase name="skippingTheBodyFatStepIsRejectedAndNothingChanges" classname="com.example.kpkn.screens.onboarding.SetupWizardBodyFatViewModelTest" time="0.055"/>
+  <testcase name="skippingAfterMovingTheRulerIsRejectedAndKeepsTheDeclaredValue" classname="com.example.kpkn.screens.onboarding.SetupWizardBodyFatViewModelTest" time="0.032"/>
+  <testcase name="continuarStaysBlockedUntilTheUserMovesTheRuler" classname="com.example.kpkn.screens.onboarding.SetupWizardBodyFatViewModelTest" time="0.029"/>
+  <testcase name="aReturningUserWithABodyFatInSettingsIsNotBlockedAndNothingIsFabricated" classname="com.example.kpkn.screens.onboarding.SetupWizardBodyFatViewModelTest" time="0.031"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

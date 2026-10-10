@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.welcome.WelcomeShellLayoutTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:37:45.447Z" hostname="VF" time="0.009">
+  <properties/>
+  <testcase name="sin logo el telefono gana el alto del logo" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeShellLayoutTest" time="0.004"/>
+  <testcase name="el vecino es algo mas pequeno y mas tenue que el del centro" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeShellLayoutTest" time="0.0"/>
+  <testcase name="la pantalla del telefono conserva la proporcion del lienzo de las escenas" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeShellLayoutTest" time="0.005"/>
+  <testcase name="el telefono cede cuando abajo no cabe todo y no baja de su minimo" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeShellLayoutTest" time="0.0"/>
+  <testcase name="el telefono es el 60 por ciento del alto util cuando abajo cabe todo" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeShellLayoutTest" time="0.0"/>
+  <testcase name="la letra grande y los botones extra le quitan alto al telefono" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeShellLayoutTest" time="0.0"/>
+  <testcase name="un ancho menor de 380 dp reserva tres lineas de titulo y le quita alto al telefono" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeShellLayoutTest" time="0.0"/>
+  <testcase name="la inclinacion nunca pasa de 14 grados" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeShellLayoutTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

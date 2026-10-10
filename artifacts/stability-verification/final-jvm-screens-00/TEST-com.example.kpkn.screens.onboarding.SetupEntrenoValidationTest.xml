@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.SetupEntrenoValidationTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:35:29.004Z" hostname="VF" time="0.004">
+  <properties/>
+  <testcase name="aCompleteBlockHasNoBlockingCheckInAnyStepOfItsRoute" classname="com.example.kpkn.screens.onboarding.SetupEntrenoValidationTest" time="0.001"/>
+  <testcase name="theWeekNeedsADayAndTheTimeADialValue" classname="com.example.kpkn.screens.onboarding.SetupEntrenoValidationTest" time="0.0"/>
+  <testcase name="theProgramStepNeedsAChosenProgramUnlessItWasDeferred" classname="com.example.kpkn.screens.onboarding.SetupEntrenoValidationTest" time="0.0"/>
+  <testcase name="placesNeedAtLeastOneAndTheMaterialNeedsToBeDeclared" classname="com.example.kpkn.screens.onboarding.SetupEntrenoValidationTest" time="0.0"/>
+  <testcase name="capabilitiesNeedALevelForEveryExerciseThatIsOffered" classname="com.example.kpkn.screens.onboarding.SetupEntrenoValidationTest" time="0.001"/>
+  <testcase name="aSpecificGoalThatDoesNotFitTheMaterialBlocksAndSaysWhatIsMissing" classname="com.example.kpkn.screens.onboarding.SetupEntrenoValidationTest" time="0.0"/>
+  <testcase name="cardioIsOnlyRequiredWhenTheGoalIncludesIt" classname="com.example.kpkn.screens.onboarding.SetupEntrenoValidationTest" time="0.001"/>
+  <testcase name="marksAreOptionalButAnOutOfRangeMarkBlocks" classname="com.example.kpkn.screens.onboarding.SetupEntrenoValidationTest" time="0.0"/>
+  <testcase name="theMaterialSeededByAPlaceCountsAsDeclaredOnceTheStepIsConfirmed" classname="com.example.kpkn.screens.onboarding.SetupEntrenoValidationTest" time="0.0"/>
+  <testcase name="anEmptyDraftBlocksEveryNewQuestionAndNeverMentionsRetiredSteps" classname="com.example.kpkn.screens.onboarding.SetupEntrenoValidationTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.PlanMaterializerRematerializePreservationTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:29:32.571Z" hostname="VF" time="0.01">
+  <properties/>
+  <testcase name="legacy_rebuild_keeps_session_exercise_and_set_ids" classname="com.example.kpkn.domain.training.PlanMaterializerRematerializePreservationTest" time="0.004"/>
+  <testcase name="repeated_rebuild_is_byte_identical" classname="com.example.kpkn.domain.training.PlanMaterializerRematerializePreservationTest" time="0.002"/>
+  <testcase name="manual_override_session_survives_rebuild_while_the_rest_is_rematerialized" classname="com.example.kpkn.domain.training.PlanMaterializerRematerializePreservationTest" time="0.001"/>
+  <testcase name="volume_proposal_never_changes_cardio_duration_or_speed_set_counts" classname="com.example.kpkn.domain.training.PlanMaterializerRematerializePreservationTest" time="0.0"/>
+  <testcase name="plain_rebuild_preserves_cardio_speed_loads_and_every_id" classname="com.example.kpkn.domain.training.PlanMaterializerRematerializePreservationTest" time="0.001"/>
+  <testcase name="restore_from_plan_reverts_only_the_chosen_session_and_keeps_history_attached" classname="com.example.kpkn.domain.training.PlanMaterializerRematerializePreservationTest" time="0.001"/>
+  <testcase name="session_level_evidence_preserves_trained_sessions_and_rebuilds_the_pending_ones" classname="com.example.kpkn.domain.training.PlanMaterializerRematerializePreservationTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

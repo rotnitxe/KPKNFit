@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.exercises.catalogv2.ExerciseCatalogV2PersistenceTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:51:06.457Z" hostname="VF" time="0.001">
+  <properties/>
+  <testcase name="completed_exercise_keeps_an_immutable_profile_snapshot" classname="com.example.kpkn.data.exercises.catalogv2.ExerciseCatalogV2PersistenceTest" time="0.001"/>
+  <testcase name="planned_exercise_carries_exact_selection_and_occurrence" classname="com.example.kpkn.data.exercises.catalogv2.ExerciseCatalogV2PersistenceTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

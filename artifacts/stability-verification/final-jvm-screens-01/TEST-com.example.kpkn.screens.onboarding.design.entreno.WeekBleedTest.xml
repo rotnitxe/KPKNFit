@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.design.entreno.WeekBleedTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:37:25.663Z" hostname="VF" time="0.522">
+  <properties/>
+  <testcase name="touchingADayInTheBleedZoneTogglesIt" classname="com.example.kpkn.screens.onboarding.design.entreno.WeekBleedTest" time="0.056"/>
+  <testcase name="theBleedIsJustWhatSevenCellsNeed" classname="com.example.kpkn.screens.onboarding.design.entreno.WeekBleedTest" time="0.04"/>
+  <testcase name="theFreshDayCellsAreFortyEightDpWide" classname="com.example.kpkn.screens.onboarding.design.entreno.WeekBleedTest" time="0.05"/>
+  <testcase name="aTouchInTheBleedZoneChoosesTheFirstDay" classname="com.example.kpkn.screens.onboarding.design.entreno.WeekBleedTest" time="0.055"/>
+  <testcase name="theCalendarDaysAreFortyEightDpTargets" classname="com.example.kpkn.screens.onboarding.design.entreno.WeekBleedTest" time="0.055"/>
+  <testcase name="thePlaceOfEachDayIsAFortyEightDpTarget" classname="com.example.kpkn.screens.onboarding.design.entreno.WeekBleedTest" time="0.07"/>
+  <testcase name="theCalendarDaysAreStillFortyEightDpWithLargeLetters" classname="com.example.kpkn.screens.onboarding.design.entreno.WeekBleedTest" time="0.069"/>
+  <testcase name="theFreshDayCellsAreStillFortyEightDpWideWithLargeLetters" classname="com.example.kpkn.screens.onboarding.design.entreno.WeekBleedTest" time="0.059"/>
+  <testcase name="theWeekStartOptionsAreFortyEightDpWide" classname="com.example.kpkn.screens.onboarding.design.entreno.WeekBleedTest" time="0.068"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

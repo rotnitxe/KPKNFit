@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.workout.WorkoutStepNavigatorResumeTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:39:04.166Z" hostname="VF" time="0.014">
+  <properties/>
+  <testcase name="firstIncompleteStep_keeps_all_superset_preparation_before_r1" classname="com.example.kpkn.screens.workout.WorkoutStepNavigatorResumeTest" time="0.008"/>
+  <testcase name="nextIncompleteStepAfter_doesNotJumpBackToIncompleteMobilityAfterWarmup" classname="com.example.kpkn.screens.workout.WorkoutStepNavigatorResumeTest" time="0.002"/>
+  <testcase name="firstIncompleteStep_restoresMobilityChecklistBeforeWorkingSet" classname="com.example.kpkn.screens.workout.WorkoutStepNavigatorResumeTest" time="0.004"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

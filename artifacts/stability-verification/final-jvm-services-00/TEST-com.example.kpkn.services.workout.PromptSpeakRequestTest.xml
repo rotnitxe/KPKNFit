@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.services.workout.PromptSpeakRequestTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:40:35.754Z" hostname="VF" time="0.103">
+  <properties/>
+  <testcase name="completeUnblocksAwaiters" classname="com.example.kpkn.services.workout.PromptSpeakRequestTest" time="0.103"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
