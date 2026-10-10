@@ -20,6 +20,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
 import com.example.kpkn.MainActivity
+import com.example.kpkn.data.account.AccountGraph
+import com.example.kpkn.data.account.BuildEntitlementOverride
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -35,6 +37,11 @@ class DemoSeedActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Pro solo para grabar: en memoria y solo con `--ez pro true`. Va antes de sembrar, en el hilo principal.
+        if (intent.getBooleanExtra("pro", false)) {
+            BuildEntitlementOverride.setForcedPro(true)
+            AccountGraph.republishEntitlement()
+        }
         setContent { DemoSeedScreen(status) }
         lifecycleScope.launch {
             when (val result = withContext(Dispatchers.IO) { DemoDataSeeder.seed(application) }) {

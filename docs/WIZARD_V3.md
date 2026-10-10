@@ -96,6 +96,7 @@ Cuándo sale cada paso condicional:
 - **Arnés de depuración**: `WizardHarnessActivity` (`persona=qa…`, `activate=<ms>`) responde todos los pasos nuevos (`answeredAs`).
 - **Datos de demostración** (solo debug): `DemoSeedActivity` tras activar la persona QA con el arnés:
   `adb shell am start -n com.example.kpkn.dbg/com.example.kpkn.debug.DemoSeedActivity`.
+  Con Pro (solo debug y en memoria; al morir el proceso vuelve a Free): `adb shell am start -n com.example.kpkn.dbg/com.example.kpkn.debug.DemoSeedActivity --ez pro true`.
 
 ## 6. Pendientes conocidos
 
