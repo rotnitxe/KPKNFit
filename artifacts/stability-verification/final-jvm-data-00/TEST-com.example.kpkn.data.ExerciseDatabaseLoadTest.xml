@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.ExerciseDatabaseLoadTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:50:36.814Z" hostname="VF" time="0.096">
+  <properties/>
+  <testcase name="testParseExerciseDatabase" classname="com.example.kpkn.data.ExerciseDatabaseLoadTest" time="0.095"/>
+  <system-out><![CDATA[File size: 663148 chars
+Successfully parsed 257 exercises!
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

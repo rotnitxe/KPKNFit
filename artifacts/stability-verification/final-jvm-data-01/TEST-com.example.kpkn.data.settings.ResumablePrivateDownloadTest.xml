@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.settings.ResumablePrivateDownloadTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:55:55.975Z" hostname="VF" time="15.186">
+  <properties/>
+  <testcase name="aServerIgnoringRangeRestartsInsteadOfAppendingTwice" classname="com.example.kpkn.data.settings.ResumablePrivateDownloadTest" time="0.1"/>
+  <testcase name="sdkLeadingSlashNamesTheSamePrivateObjectAndCannotChangeItsOwner" classname="com.example.kpkn.data.settings.ResumablePrivateDownloadTest" time="0.004"/>
+  <testcase name="mismatchedRangeCannotOverwriteTheExistingPrefix" classname="com.example.kpkn.data.settings.ResumablePrivateDownloadTest" time="0.018"/>
+  <testcase name="aWrongHashIsNeverKeptAsACompletedDownload" classname="com.example.kpkn.data.settings.ResumablePrivateDownloadTest" time="0.013"/>
+  <testcase name="networkInterruptionKeepsDurableBytesAndTheRetryResumesThem" classname="com.example.kpkn.data.settings.ResumablePrivateDownloadTest" time="15.022"/>
+  <testcase name="maintenanceWaitsUntilABlockedStreamHasClosed" classname="com.example.kpkn.data.settings.ResumablePrivateDownloadTest" time="0.012"/>
+  <testcase name="resumesAPersistedPrefixUsingAuthenticatedEndpointRangeSemantics" classname="com.example.kpkn.data.settings.ResumablePrivateDownloadTest" time="0.017"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

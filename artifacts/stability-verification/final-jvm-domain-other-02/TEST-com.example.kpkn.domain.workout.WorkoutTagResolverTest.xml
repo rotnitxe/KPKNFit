@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.workout.WorkoutTagResolverTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:25:46.887Z" hostname="VF" time="0.013">
+  <properties/>
+  <testcase name="seedFromProfilesKeepsUuidTagId" classname="com.example.kpkn.domain.workout.WorkoutTagResolverTest" time="0.002"/>
+  <testcase name="untaggedLogsBelongToOwner" classname="com.example.kpkn.domain.workout.WorkoutTagResolverTest" time="0.006"/>
+  <testcase name="anteriorChipOmitsDefaultAndBlank" classname="com.example.kpkn.domain.workout.WorkoutTagResolverTest" time="0.001"/>
+  <testcase name="normalizeNameCollapsesCaseAndAccents" classname="com.example.kpkn.domain.workout.WorkoutTagResolverTest" time="0.0"/>
+  <testcase name="resetCutoffIgnoresOlderLogs" classname="com.example.kpkn.domain.workout.WorkoutTagResolverTest" time="0.001"/>
+  <testcase name="seedFromProfilesUsesProfileIdWhenTagIdIsNotUuid" classname="com.example.kpkn.domain.workout.WorkoutTagResolverTest" time="0.0"/>
+  <testcase name="resolvesLegacyNameOnLogAndUuidOnSet" classname="com.example.kpkn.domain.workout.WorkoutTagResolverTest" time="0.001"/>
+  <testcase name="strictFilterDoesNotFallBackToOtherTags" classname="com.example.kpkn.domain.workout.WorkoutTagResolverTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

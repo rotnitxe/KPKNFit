@@ -1,0 +1,1 @@
+./gradlew --no-daemon --console=plain --max-workers=1 -Dorg.gradle.jvmargs=-Xmx5g -Pandroid.onlyEnableUnitTestForTheTestedBuildType=false --init-script ../scripts/stability/crash_release_probe.init.gradle testReleaseUnitTest --tests com.example.kpkn.data.diagnostics.CrashReportLifecycleAdversarialTest

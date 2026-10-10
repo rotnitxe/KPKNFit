@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.ProtectedPhrasesTest" tests="37" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:58:33.736Z" hostname="VF" time="0.693">
+  <properties/>
+  <testcase name="aMassStaysWithTheFirstFoodWhenTheSecondOneIsAnAddOn" classname="com.example.kpkn.domain.nutrition.ProtectedPhrasesTest" time="0.019"/>
+  <testcase name="anExclusionBelongsToTheLastPartOfTheDish" classname="com.example.kpkn.domain.nutrition.ProtectedPhrasesTest" time="0.01"/>
+  <testcase name="aMassInFrontOfADishIsSharedByItsParts" classname="com.example.kpkn.domain.nutrition.ProtectedPhrasesTest" time="0.012"/>
+  <testcase name="aProtectedPhraseKeepsItsWordsThroughTheNormalizer" classname="com.example.kpkn.domain.nutrition.ProtectedPhrasesTest" time="0.002"/>
+  <testcase name="aMassBoundDishThatIsNotAMentionOfItsOwnIsLeftToTheOldReading" classname="com.example.kpkn.domain.nutrition.ProtectedPhrasesTest" time="0.003"/>
+  <testcase name="pluralsAreNotCutToTheSingularByTheTypoPass" classname="com.example.kpkn.domain.nutrition.ProtectedPhrasesTest" time="0.001"/>
+  <testcase name="thePartsTakeTheSharesOfTheDish" classname="com.example.kpkn.domain.nutrition.ProtectedPhrasesTest" time="0.006"/>
+  <testcase name="aTextWithNoPhraseIsReturnedAsIs" classname="com.example.kpkn.domain.nutrition.ProtectedPhrasesTest" time="0.001"/>
+  <testcase name="aPhraseThatIsNotHeadNounPlusConnectorGetsNoInventedPlural" classname="com.example.kpkn.domain.nutrition.ProtectedPhrasesTest" time="0.0"/>
+  <testcase name="aDishThatTheCatalogNamesIsNotCutIntoParts" classname="com.example.kpkn.domain.nutrition.ProtectedPhrasesTest" time="0.051"/>
+  <testcase name="aSandwichNamedAfterItsFillingIsOneMention" classname="com.example.kpkn.domain.nutrition.ProtectedPhrasesTest" time="0.015"/>
+  <testcase name="aCountOfANamedDishIsThatManyServings" classname="com.example.kpkn.domain.nutrition.ProtectedPhrasesTest" time="0.042"/>
+  <testcase name="aTypoNextToAProtectedPhraseIsStillCorrected" classname="com.example.kpkn.domain.nutrition.ProtectedPhrasesTest" time="0.001"/>
+  <testcase name="theProtectedDishesOfTheParserAreStillProtected" classname="com.example.kpkn.domain.nutrition.ProtectedPhrasesTest" time="0.0"/>
+  <testcase name="aSynonymNeverRenamesTheWordOfADish" classname="com.example.kpkn.domain.nutrition.ProtectedPhrasesTest" time="0.006"/>
+  <testcase name="twoFlavoursOfOneFoodAreOneMention" classname="com.example.kpkn.domain.nutrition.ProtectedPhrasesTest" time="0.069"/>
+  <testcase name="theMassOfADishIsResolvedPartByPart" classname="com.example.kpkn.domain.nutrition.ProtectedPhrasesTest" time="0.052"/>
+  <testcase name="aRegionalNameIsASynonymOnItsOwn" classname="com.example.kpkn.domain.nutrition.ProtectedPhrasesTest" time="0.001"/>
+  <testcase name="carbonatedAndStillWaterAreOneMentionAndNothingIsExcluded" classname="com.example.kpkn.domain.nutrition.ProtectedPhrasesTest" time="0.038"/>
+  <testcase name="thePartsKeepTheWordsOfThePersonWhenTheyNameAsManyPartsAsTheDishHas" classname="com.example.kpkn.domain.nutrition.ProtectedPhrasesTest" time="0.001"/>
+  <testcase name="friedPotatoesKeepTheSingularTagAndTheFriedRow" classname="com.example.kpkn.domain.nutrition.ProtectedPhrasesTest" time="0.06"/>
+  <testcase name="aFlavourPairIsMaskedOnlyAfterAFoodThatComesInFlavours" classname="com.example.kpkn.domain.nutrition.ProtectedPhrasesTest" time="0.002"/>
+  <testcase name="aPluralWordOnItsOwnStillResolves" classname="com.example.kpkn.domain.nutrition.ProtectedPhrasesTest" time="0.053"/>
+  <testcase name="aPhraseIsRecognisedWhateverItsCaseAndAccents" classname="com.example.kpkn.domain.nutrition.ProtectedPhrasesTest" time="0.0"/>
+  <testcase name="pluralsOfAProtectedDishAreProtectedToo" classname="com.example.kpkn.domain.nutrition.ProtectedPhrasesTest" time="0.005"/>
+  <testcase name="theSplitterHandsTheParserOneMeasuredMentionPerPart" classname="com.example.kpkn.domain.nutrition.ProtectedPhrasesTest" time="0.0"/>
+  <testcase name="compoundNamesAndFlavourPairsAreOnTheList" classname="com.example.kpkn.domain.nutrition.ProtectedPhrasesTest" time="0.001"/>
+  <testcase name="aDishFollowedByACookingWordIsLeftToTheOldReading" classname="com.example.kpkn.domain.nutrition.ProtectedPhrasesTest" time="0.002"/>
+  <testcase name="twoCoffeesWithMilkAreTheCatalogCoffeeWithMilkTwice" classname="com.example.kpkn.domain.nutrition.ProtectedPhrasesTest" time="0.029"/>
+  <testcase name="aPlateOfANamedDishIsOneServingOfIt" classname="com.example.kpkn.domain.nutrition.ProtectedPhrasesTest" time="0.007"/>
+  <testcase name="withoutAMassTheDishStillSplitsIntoItsFoods" classname="com.example.kpkn.domain.nutrition.ProtectedPhrasesTest" time="0.001"/>
+  <testcase name="aPlateOfBeansWithRiendasAndABreadWithAvocadoAndACoffeeWithMilkAreThreeTags" classname="com.example.kpkn.domain.nutrition.ProtectedPhrasesTest" time="0.055"/>
+  <testcase name="maskingHidesEverySpellingAndRestoreBringsTheOriginalBack" classname="com.example.kpkn.domain.nutrition.ProtectedPhrasesTest" time="0.0"/>
+  <testcase name="aSecondMentionAfterTheDishStaysASecondMention" classname="com.example.kpkn.domain.nutrition.ProtectedPhrasesTest" time="0.009"/>
+  <testcase name="everyProtectedPhraseHasItsPluralAndItsAccentFreeSpelling" classname="com.example.kpkn.domain.nutrition.ProtectedPhrasesTest" time="0.001"/>
+  <testcase name="theDishesOfTheProbeAreOneTagEach" classname="com.example.kpkn.domain.nutrition.ProtectedPhrasesTest" time="0.13"/>
+  <testcase name="massBoundDishDoesNotScanAHugeText" classname="com.example.kpkn.domain.nutrition.ProtectedPhrasesTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

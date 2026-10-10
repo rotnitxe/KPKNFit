@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.sessioneditor.components.ExercisePickerSelectedRowsRestoreTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:38:57.272Z" hostname="VF" time="0.001">
+  <properties/>
+  <testcase name="restore_without_previous_uses_default_not_first_row" classname="com.example.kpkn.screens.sessioneditor.components.ExercisePickerSelectedRowsRestoreTest" time="0.001"/>
+  <testcase name="resolve_never_uses_first_catalog_row_as_default" classname="com.example.kpkn.screens.sessioneditor.components.ExercisePickerSelectedRowsRestoreTest" time="0.0"/>
+  <testcase name="restore_honors_initial_configuration_for_replacement" classname="com.example.kpkn.screens.sessioneditor.components.ExercisePickerSelectedRowsRestoreTest" time="0.0"/>
+  <testcase name="draft_machine_medium_resolves_exact_config_not_wide" classname="com.example.kpkn.screens.sessioneditor.components.ExercisePickerSelectedRowsRestoreTest" time="0.0"/>
+  <testcase name="previous_choice_survives_parent_that_only_keeps_definition_ids" classname="com.example.kpkn.screens.sessioneditor.components.ExercisePickerSelectedRowsRestoreTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

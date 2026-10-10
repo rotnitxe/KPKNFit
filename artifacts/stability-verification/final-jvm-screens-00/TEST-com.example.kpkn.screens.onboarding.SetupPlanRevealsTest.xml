@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.SetupPlanRevealsTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:35:53.270Z" hostname="VF" time="0.123">
+  <properties/>
+  <testcase name="the_tailored_program_is_revealed_with_its_real_week_reasons_and_the_freshest_day_as_main" classname="com.example.kpkn.screens.onboarding.SetupPlanRevealsTest" time="0.009"/>
+  <testcase name="a_discipline_without_authors_is_labelled_initial_version_with_its_honest_note" classname="com.example.kpkn.screens.onboarding.SetupPlanRevealsTest" time="0.002"/>
+  <testcase name="a_catalog_plan_shows_its_blocks_deloads_kicker_and_a_time_note_when_it_runs_long" classname="com.example.kpkn.screens.onboarding.SetupPlanRevealsTest" time="0.002"/>
+  <testcase name="a_long_single_sentence_is_cut_on_its_last_comma_that_fits_and_closed_with_a_period" classname="com.example.kpkn.screens.onboarding.SetupPlanRevealsTest" time="0.001"/>
+  <testcase name="the_author_of_a_method_is_the_kicker" classname="com.example.kpkn.screens.onboarding.SetupPlanRevealsTest" time="0.0"/>
+  <testcase name="the_blurb_keeps_whole_sentences_or_cuts_on_a_word" classname="com.example.kpkn.screens.onboarding.SetupPlanRevealsTest" time="0.001"/>
+  <testcase name="no_generated_one_liner_reads_badly_or_is_cut_in_the_middle_of_its_description" classname="com.example.kpkn.screens.onboarding.SetupPlanRevealsTest" time="0.108"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

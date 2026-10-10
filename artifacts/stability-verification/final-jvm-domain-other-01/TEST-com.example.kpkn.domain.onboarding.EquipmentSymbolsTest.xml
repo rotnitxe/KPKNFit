@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.onboarding.EquipmentSymbolsTest" tests="30" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:24:55.290Z" hostname="VF" time="2.361">
+  <properties/>
+  <testcase name="cardioIsTheOnlySymbolOfItsCategoryAndTheJumpRopeLeftTheGrid" classname="com.example.kpkn.domain.onboarding.EquipmentSymbolsTest" time="0.001"/>
+  <testcase name="roundTripIsExactForEverySelectionOfVisibleSymbolsInEveryPlaceCombination" classname="com.example.kpkn.domain.onboarding.EquipmentSymbolsTest" time="2.301"/>
+  <testcase name="nothingDeclaredReadsAsNoSelectionNotAsBodyweight" classname="com.example.kpkn.domain.onboarding.EquipmentSymbolsTest" time="0.0"/>
+  <testcase name="removingAPlaceDropsOnlyWhatNoRemainingPlaceOffers" classname="com.example.kpkn.domain.onboarding.EquipmentSymbolsTest" time="0.0"/>
+  <testcase name="addingAPlaceReopensABodyweightOnlyChoice" classname="com.example.kpkn.domain.onboarding.EquipmentSymbolsTest" time="0.0"/>
+  <testcase name="toggleKeepsBodyweightOnlyExclusive" classname="com.example.kpkn.domain.onboarding.EquipmentSymbolsTest" time="0.0"/>
+  <testcase name="aPartialConfirmationOfSupportsReadsAsThoseSymbolsAndNothingMore" classname="com.example.kpkn.domain.onboarding.EquipmentSymbolsTest" time="0.0"/>
+  <testcase name="theGymAddsItsExtrasToTheEngineAndHomeOnlyThePlates" classname="com.example.kpkn.domain.onboarding.EquipmentSymbolsTest" time="0.0"/>
+  <testcase name="theRareImplementsAreNeverCredited" classname="com.example.kpkn.domain.onboarding.EquipmentSymbolsTest" time="0.001"/>
+  <testcase name="theBikeOfThePersonIsNotMaterialOfAnySymbolAndSurvivesRebuildingTheMaterial" classname="com.example.kpkn.domain.onboarding.EquipmentSymbolsTest" time="0.001"/>
+  <testcase name="aParkPullUpBarReachesTheEngineWithItsLowBarEvenWithoutOtherSupports" classname="com.example.kpkn.domain.onboarding.EquipmentSymbolsTest" time="0.0"/>
+  <testcase name="theGhdAndTheAbWheelComeWithTheMachinesOnlyAtTheGym" classname="com.example.kpkn.domain.onboarding.EquipmentSymbolsTest" time="0.0"/>
+  <testcase name="aLegacyAvailabilityOfOnlyCategoriesReadsTheSymbolsWhoseCategoryIsTheirOwn" classname="com.example.kpkn.domain.onboarding.EquipmentSymbolsTest" time="0.0"/>
+  <testcase name="aHomeWithOnlyDumbbellsDoesNotReachBarbellOrRackTokens" classname="com.example.kpkn.domain.onboarding.EquipmentSymbolsTest" time="0.0"/>
+  <testcase name="symbolsOfferedFollowThePlacesAndAlwaysEndWithBodyweightOnly" classname="com.example.kpkn.domain.onboarding.EquipmentSymbolsTest" time="0.001"/>
+  <testcase name="theBarbellBringsItsPlatesAnywhereAndItsHexAndTBarsOnlyAtTheGym" classname="com.example.kpkn.domain.onboarding.EquipmentSymbolsTest" time="0.0"/>
+  <testcase name="machinesAreDeclaredAsAMachineRoomWithoutTheExactConfigurationMode" classname="com.example.kpkn.domain.onboarding.EquipmentSymbolsTest" time="0.0"/>
+  <testcase name="everyKeyTheSymbolsWriteIsEitherACuratedEngineKeyOrAnOwnKey" classname="com.example.kpkn.domain.onboarding.EquipmentSymbolsTest" time="0.0"/>
+  <testcase name="addingAPlaceKeepsWhatWasChosenAndAddsTheNewPlacesSeed" classname="com.example.kpkn.domain.onboarding.EquipmentSymbolsTest" time="0.001"/>
+  <testcase name="theRoundTripStaysExactForEverySelectionOfTheSymbolsThatCarryExtrasInEveryPlaceCombination" classname="com.example.kpkn.domain.onboarding.EquipmentSymbolsTest" time="0.052"/>
+  <testcase name="theGymSeedReachesTheEngineWithTheEquipmentTokensItCurates" classname="com.example.kpkn.domain.onboarding.EquipmentSymbolsTest" time="0.0"/>
+  <testcase name="chosenSymbolsAreAcreditedAndTheVisibleOnesLeftOutAreExplicitlyAbsent" classname="com.example.kpkn.domain.onboarding.EquipmentSymbolsTest" time="0.001"/>
+  <testcase name="seedsDependOnThePlace" classname="com.example.kpkn.domain.onboarding.EquipmentSymbolsTest" time="0.0"/>
+  <testcase name="bodyweightOnlyIsTheEmptySelectionInBothDirections" classname="com.example.kpkn.domain.onboarding.EquipmentSymbolsTest" time="0.0"/>
+  <testcase name="theBenchBringsTheDeclineAndHyperextensionBenchesOnlyAtTheGym" classname="com.example.kpkn.domain.onboarding.EquipmentSymbolsTest" time="0.0"/>
+  <testcase name="gymExtrasWithoutASymbolAreOnlyPresentWithAGymAndTheirParentSymbol" classname="com.example.kpkn.domain.onboarding.EquipmentSymbolsTest" time="0.0"/>
+  <testcase name="firstSelectionOfAPlaceIsItsSeed" classname="com.example.kpkn.domain.onboarding.EquipmentSymbolsTest" time="0.0"/>
+  <testcase name="symbolsThatShareTheSupportCategoryAreDistinguishedByTheirKeys" classname="com.example.kpkn.domain.onboarding.EquipmentSymbolsTest" time="0.001"/>
+  <testcase name="ringsAndBoxReachTheEngineAsTokensOfTheSharedResolver" classname="com.example.kpkn.domain.onboarding.EquipmentSymbolsTest" time="0.0"/>
+  <testcase name="aParksPullUpBarCarriesALowBarOnlyWhenPublicSpacesAreAmongThePlaces" classname="com.example.kpkn.domain.onboarding.EquipmentSymbolsTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

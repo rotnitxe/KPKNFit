@@ -1,0 +1,26 @@
+{
+  "state": "FAIL_OR_INCOMPLETE",
+  "scope": "SYNTHETIC_GPS_ANDROID_LOCATION_AND_FOREGROUND_SERVICE_API36",
+  "limits": "Synthetic AVD points and actual Android service/ViewModel/persistence. Voice case injects a parsed command, not speech recognition. No real route, approximate-only permission, revocation/reboot/physical hardware.",
+  "appApkSha256": "f765a31a97dfa4214208cf859425544118c9eb79eaf3dfc7dae47cc5d73685fe",
+  "testApkSha256": "cbe22ba2cf7389482df07cb714ecba17eb22ea9cfbffb9e162d85e7104fa985a",
+  "permissionBefore": {
+    "android.permission.ACCESS_COARSE_LOCATION": false,
+    "android.permission.ACCESS_FINE_LOCATION": false
+  },
+  "errorType": "TimeoutExpired",
+  "error": "Command '['C:\\\\Users\\\\valen\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe', '-s', 'emulator-5554', 'shell', 'am', 'instrument', '-w', '-r', '-e', 'class', 'com.example.kpkn.services.cardio.CardioGpsAvdLifecycleInstrumentedTest', 'com.example.kpkn.stability.test/androidx.test.runner.AndroidJUnitRunner']' timed out after 480 seconds",
+  "permissionsTemporarilyGranted": [
+    "android.permission.ACCESS_COARSE_LOCATION",
+    "android.permission.ACCESS_FINE_LOCATION"
+  ],
+  "permissionRestoration": {
+    "android.permission.ACCESS_FINE_LOCATION": true,
+    "android.permission.ACCESS_COARSE_LOCATION": true
+  },
+  "evidenceHashes": {
+    "anr-list.txt": "f5ac5ad96aca1610245b08f8ff3aee45458cfa6023571fbdeede2644ad76896a",
+    "diagnostic-pid-log.txt": "136aa2504fe1628ea971cceab5ccf0c0e455478c76b792070be2568f54046fab",
+    "synthetic-fixes.json": "6ad4e86030d38e9844862efd992d2a1b6e6507cd881f4fbbf941462cf3567d2c"
+  }
+}

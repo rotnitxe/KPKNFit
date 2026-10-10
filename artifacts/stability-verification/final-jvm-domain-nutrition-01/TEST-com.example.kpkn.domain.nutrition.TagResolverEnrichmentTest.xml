@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.TagResolverEnrichmentTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:58:41.858Z" hostname="VF" time="0.159">
+  <properties/>
+  <testcase name="enriching the resolved tags a second time changes nothing" classname="com.example.kpkn.domain.nutrition.TagResolverEnrichmentTest" time="0.084"/>
+  <testcase name="every tag returned by resolveAll already carries its interpretation" classname="com.example.kpkn.domain.nutrition.TagResolverEnrichmentTest" time="0.074"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

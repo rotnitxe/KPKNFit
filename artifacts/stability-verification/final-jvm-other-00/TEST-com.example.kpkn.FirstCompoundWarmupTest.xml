@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.FirstCompoundWarmupTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:31:47.341Z" hostname="VF" time="0.06">
+  <properties/>
+  <testcase name="respects_plate_calculator_and_base_load_policy_floor" classname="com.example.kpkn.FirstCompoundWarmupTest" time="0.02"/>
+  <testcase name="explicit_steps_go_only_to_the_first_compound_of_each_movement_pattern" classname="com.example.kpkn.FirstCompoundWarmupTest" time="0.012"/>
+  <testcase name="does_not_duplicate_equivalent_recipe_warmups" classname="com.example.kpkn.FirstCompoundWarmupTest" time="0.002"/>
+  <testcase name="by_default_only_heavy_exercises_are_approached_and_the_first_one_always_gets_mobility" classname="com.example.kpkn.FirstCompoundWarmupTest" time="0.002"/>
+  <testcase name="missing_load_reference_shows_pending_percentages_not_invented_kg" classname="com.example.kpkn.FirstCompoundWarmupTest" time="0.001"/>
+  <testcase name="warmup_calibration_engine_scales_remaining_sets_conservatively" classname="com.example.kpkn.FirstCompoundWarmupTest" time="0.007"/>
+  <testcase name="warmup_rules_warnings_are_advisory_not_hard_limits" classname="com.example.kpkn.FirstCompoundWarmupTest" time="0.002"/>
+  <testcase name="avoids_repeated_loads_from_rounding" classname="com.example.kpkn.FirstCompoundWarmupTest" time="0.0"/>
+  <testcase name="insufficient_inventory_never_invents_kilograms" classname="com.example.kpkn.FirstCompoundWarmupTest" time="0.004"/>
+  <testcase name="bodyweight_and_assisted_modes_have_no_fictitious_external_loads" classname="com.example.kpkn.FirstCompoundWarmupTest" time="0.0"/>
+  <testcase name="a_heavy_second_exercise_on_new_joints_gets_its_own_short_ramp_by_default" classname="com.example.kpkn.FirstCompoundWarmupTest" time="0.001"/>
+  <testcase name="warmup_percentages_apply_to_working_load_not_one_rm" classname="com.example.kpkn.FirstCompoundWarmupTest" time="0.007"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.relator.RelatorCorpusTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:25:06.310Z" hostname="VF" time="0.011">
+  <properties/>
+  <testcase name="thirty_sets_unique_fingerprints_and_no_consecutive_topic" classname="com.example.kpkn.domain.relator.RelatorCorpusTest" time="0.011"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

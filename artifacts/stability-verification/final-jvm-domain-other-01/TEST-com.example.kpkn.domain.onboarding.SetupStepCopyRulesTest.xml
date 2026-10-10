@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.onboarding.SetupStepCopyRulesTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:25:05.979Z" hostname="VF" time="0.007">
+  <properties/>
+  <testcase name="theCatalogHasProductiveStepsToCheck" classname="com.example.kpkn.domain.onboarding.SetupStepCopyRulesTest" time="0.007"/>
+  <testcase name="subtitlesFitInOneHundredCharacters" classname="com.example.kpkn.domain.onboarding.SetupStepCopyRulesTest" time="0.0"/>
+  <testcase name="titlesFitInFortyFourCharactersExceptBlockAndPreviewNames" classname="com.example.kpkn.domain.onboarding.SetupStepCopyRulesTest" time="0.0"/>
+  <testcase name="titlesAreQuestionsExceptBlockAndPreviewNames" classname="com.example.kpkn.domain.onboarding.SetupStepCopyRulesTest" time="0.0"/>
+  <testcase name="everyLabelExceptionIsStillTheTitleOfAStep" classname="com.example.kpkn.domain.onboarding.SetupStepCopyRulesTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

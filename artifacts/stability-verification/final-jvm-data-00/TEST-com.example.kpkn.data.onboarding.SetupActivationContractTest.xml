@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.onboarding.SetupActivationContractTest" tests="22" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:51:23.738Z" hostname="VF" time="4.203">
+  <properties/>
+  <testcase name="activatingPlanWhileTrackingOnlyIsEnabledResetsTheDurableFlag" classname="com.example.kpkn.data.onboarding.SetupActivationContractTest" time="0.182"/>
+  <testcase name="replayOfReceiptDoesNotReactivateSupersededProgramOrPlan" classname="com.example.kpkn.data.onboarding.SetupActivationContractTest" time="0.266"/>
+  <testcase name="visualEstimateObservationKeepsEstimatedProvenance" classname="com.example.kpkn.data.onboarding.SetupActivationContractTest" time="0.194"/>
+  <testcase name="trackingOnlyDeactivatesActiveNutritionWithoutNewGoalsSnapshotOrPlanDeletion" classname="com.example.kpkn.data.onboarding.SetupActivationContractTest" time="0.196"/>
+  <testcase name="emptyObservationIdRejectsAndRollsBack" classname="com.example.kpkn.data.onboarding.SetupActivationContractTest" time="0.172"/>
+  <testcase name="sameObservationIdWithDifferentContentAcrossCommitsIsRejectedAndFirstRowIntact" classname="com.example.kpkn.data.onboarding.SetupActivationContractTest" time="0.179"/>
+  <testcase name="normalProgramPlusNutritionActivationCommitsInventoryGoalsObservationsAndSnapshotTogether" classname="com.example.kpkn.data.onboarding.SetupActivationContractTest" time="0.257"/>
+  <testcase name="duplicateObservationIdWithDifferentContentWithinSameCommitIsRejected" classname="com.example.kpkn.data.onboarding.SetupActivationContractTest" time="0.172"/>
+  <testcase name="sameObservationIdWithIdenticalContentAcrossCommitsIsIdempotent" classname="com.example.kpkn.data.onboarding.SetupActivationContractTest" time="0.18"/>
+  <testcase name="trackingOnlyViaSettingsPatchRejectsDerivedGoalsAndSnapshot" classname="com.example.kpkn.data.onboarding.SetupActivationContractTest" time="0.146"/>
+  <testcase name="replay_of_availability_receipt_preserves_later_settings_without_duplicate_activation_rows" classname="com.example.kpkn.data.onboarding.SetupActivationContractTest" time="0.222"/>
+  <testcase name="rollbackFailurePreservesProgramPlanObservationsReceiptAndDraft" classname="com.example.kpkn.data.onboarding.SetupActivationContractTest" time="0.218"/>
+  <testcase name="duplicateIdenticalObservationIdsWithinSameCommitCommitOnce" classname="com.example.kpkn.data.onboarding.SetupActivationContractTest" time="0.149"/>
+  <testcase name="invalidDeclaredObservationRejectsAndRollsBackProgramPlanSettingsReceiptAndDraft" classname="com.example.kpkn.data.onboarding.SetupActivationContractTest" time="0.254"/>
+  <testcase name="retryWithSameReceiptDoesNotDuplicateObservations" classname="com.example.kpkn.data.onboarding.SetupActivationContractTest" time="0.162"/>
+  <testcase name="availability_patch_updates_latest_settings_without_touching_numeric_stock" classname="com.example.kpkn.data.onboarding.SetupActivationContractTest" time="0.182"/>
+  <testcase name="replayDoesNotOverwriteNewerPendingNutritionDraftNorDeleteNewerMainDraft" classname="com.example.kpkn.data.onboarding.SetupActivationContractTest" time="0.213"/>
+  <testcase name="futureDatedObservationRejectsAndRollsBack" classname="com.example.kpkn.data.onboarding.SetupActivationContractTest" time="0.161"/>
+  <testcase name="trackingOnlyIsExclusiveWithNutritionPlanAndActivation" classname="com.example.kpkn.data.onboarding.SetupActivationContractTest" time="0.199"/>
+  <testcase name="unanswered_availability_patch_preserves_current_availability_and_stock" classname="com.example.kpkn.data.onboarding.SetupActivationContractTest" time="0.047"/>
+  <testcase name="trackingOnlyViaSettingsPatchWithoutPlanAlsoDeactivates" classname="com.example.kpkn.data.onboarding.SetupActivationContractTest" time="0.16"/>
+  <testcase name="conflictingTrackingOnlyPatchWithPlanRejectsAndRollsBack" classname="com.example.kpkn.data.onboarding.SetupActivationContractTest" time="0.291"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

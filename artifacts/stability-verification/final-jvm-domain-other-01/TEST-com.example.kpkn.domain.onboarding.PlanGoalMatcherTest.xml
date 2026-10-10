@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.onboarding.PlanGoalMatcherTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:25:01.805Z" hostname="VF" time="0.023">
+  <properties/>
+  <testcase name="strengthCardioMatchesOnlyTheLegacyMixedGoal" classname="com.example.kpkn.domain.onboarding.PlanGoalMatcherTest" time="0.003"/>
+  <testcase name="boringButBigMatchesStrengthAndStrengthMuscleButNotMuscle" classname="com.example.kpkn.domain.onboarding.PlanGoalMatcherTest" time="0.001"/>
+  <testcase name="onlyCompleteAthleteRequiresCapabilities" classname="com.example.kpkn.domain.onboarding.PlanGoalMatcherTest" time="0.0"/>
+  <testcase name="theFourOwnPlansMatchOnlyTheirOwnGoal" classname="com.example.kpkn.domain.onboarding.PlanGoalMatcherTest" time="0.002"/>
+  <testcase name="everyEntryIsAccountedForAndOnlyTheStructuresAndStrengthCardioMatchNoProductGoal" classname="com.example.kpkn.domain.onboarding.PlanGoalMatcherTest" time="0.003"/>
+  <testcase name="capabilitiesAloneNeverMakeAnEntryStrengthMuscleOrAthleteUnlessAllFourAreDeclared" classname="com.example.kpkn.domain.onboarding.PlanGoalMatcherTest" time="0.0"/>
+  <testcase name="completeAthleteMatchesExactlyTheEntriesThatDeclareTheFourCapabilities" classname="com.example.kpkn.domain.onboarding.PlanGoalMatcherTest" time="0.001"/>
+  <testcase name="theAuthoredPhulAndPhatServeStrengthMuscleAndMuscleButNotStrength" classname="com.example.kpkn.domain.onboarding.PlanGoalMatcherTest" time="0.001"/>
+  <testcase name="onlyTheNativeStrengthCardioFamilySchedulesCardio" classname="com.example.kpkn.domain.onboarding.PlanGoalMatcherTest" time="0.0"/>
+  <testcase name="powerbuildingFoundationDoesNotMatchStrengthEvenThoughItDeclaresStrengthCapability" classname="com.example.kpkn.domain.onboarding.PlanGoalMatcherTest" time="0.001"/>
+  <testcase name="firstSetLastAndTheSpecializationsStayInStrengthOnly" classname="com.example.kpkn.domain.onboarding.PlanGoalMatcherTest" time="0.001"/>
+  <testcase name="legacyHealthDoesNotFilterByDiscipline" classname="com.example.kpkn.domain.onboarding.PlanGoalMatcherTest" time="0.0"/>
+  <testcase name="theWizardPlannerAndTheLibraryMatcherOfferTheSameEntriesForEveryGoal" classname="com.example.kpkn.domain.onboarding.PlanGoalMatcherTest" time="0.009"/>
+  <testcase name="theRuleFollowsTheDeclaredReferencesAndNeverTheProvenance" classname="com.example.kpkn.domain.onboarding.PlanGoalMatcherTest" time="0.001"/>
+  <system-out><![CDATA[[C.P3] entradas del catálogo: 65
+[C.P3] objetivo STRENGTH: 30 entradas -> [generated:powerlifting, native:strength-foundation-v2, protocol:calgary-16, protocol:candito-6, protocol:coan-phillipi-dl, protocol:cube-method, protocol:gzcl-jt-2, protocol:gzcl-rippler, protocol:gzcl-uhf-9, protocol:gzclp, protocol:juggernaut-2, protocol:korte-3x3, protocol:kpkn-native-sbd-4, protocol:kpkn-rts-style, protocol:kpkn-sbs-rtf, protocol:lilliebridge, protocol:madcow-5x5, protocol:nsuns-531-lp-4d, protocol:sheiko-29-32, protocol:smolov, protocol:smolov-jr, protocol:texas-method-3d, protocol:texas-method-4d, protocol:tsa-9, protocol:wendler-531-bbb, protocol:wendler-531-fsl, protocol:westside-conjugate, template:power-12-3, template:power-16-4, template:power-20-5]
+[C.P3] objetivo MUSCLE: 18 entradas -> [adapted:phat-kpkn-r1, adapted:phul-kpkn-r1, generated:bodybuilding, native:bodyweight, native:full-body, native:gym-muscle, native:home-training, native:machine-muscle, native:muscle-foundation-v2, native:one-day, native:return-training, original:phat-biolayne-2016-r1, original:phul-ms-2021-r1, protocol:kpkn-ppl-6, protocol:kpkn-rp-style, template:body-12-3, template:body-16-4, template:body-20-5]
+[C.P3] objetivo STRENGTH_MUSCLE: 11 entradas -> [adapted:phat-kpkn-r1, adapted:phul-kpkn-r1, generated:powerbuilding, generated:strength-muscle, native:powerbuilding-foundation-v2, original:phat-biolayne-2016-r1, original:phul-ms-2021-r1, protocol:phat-verified, protocol:phul-verified, protocol:wendler-531-bbb, template:powerbuild-16-4]
+[C.P3] objetivo COMPLETE_ATHLETE: 3 entradas -> [generated:functional, generated:hybrid, native:complete-athlete-v2]
+[C.P3] entradas sin ningún objetivo de producto (caen en «Otros»): [generated:armwrestling, generated:calisthenics, generated:strongman, generated:weightlifting-base, native:strength-cardio, template:simple-1, template:simple-4, template:simple-ab]
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

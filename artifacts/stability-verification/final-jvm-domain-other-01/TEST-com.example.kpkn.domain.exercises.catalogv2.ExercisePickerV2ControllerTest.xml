@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.exercises.catalogv2.ExercisePickerV2ControllerTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:24:46.938Z" hostname="VF" time="0.016">
+  <properties/>
+  <testcase name="changing_a_broad_choice_clears_an_incompatible_downstream_choice" classname="com.example.kpkn.domain.exercises.catalogv2.ExercisePickerV2ControllerTest" time="0.008"/>
+  <testcase name="confirmation_is_blocked_until_the_selection_is_exact" classname="com.example.kpkn.domain.exercises.catalogv2.ExercisePickerV2ControllerTest" time="0.005"/>
+  <testcase name="each_parent_keeps_an_independent_draft" classname="com.example.kpkn.domain.exercises.catalogv2.ExercisePickerV2ControllerTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

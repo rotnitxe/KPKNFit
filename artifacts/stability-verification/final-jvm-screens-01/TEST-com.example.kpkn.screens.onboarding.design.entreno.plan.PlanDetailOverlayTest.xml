@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanDetailOverlayTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:37:38.151Z" hostname="VF" time="0.959">
+  <properties/>
+  <testcase name="theSheetHasItsTag" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanDetailOverlayTest" time="0.222"/>
+  <testcase name="theWeekIsAnnouncedDayByDay" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanDetailOverlayTest" time="0.034"/>
+  <testcase name="chooseReportsTheTap" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanDetailOverlayTest" time="0.066"/>
+  <testcase name="atMostSixExercisesAreShown" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanDetailOverlayTest" time="0.066"/>
+  <testcase name="closeReportsTheTapOnce" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanDetailOverlayTest" time="0.074"/>
+  <testcase name="theCoverIsTheHeaderOfTheSheet" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanDetailOverlayTest" time="0.067"/>
+  <testcase name="theMainButtonIsABigTarget" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanDetailOverlayTest" time="0.062"/>
+  <testcase name="theStructureGoesVerticalOnlyWhenAWordDoesNotFitItsColumn" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanDetailOverlayTest" time="0.028"/>
+  <testcase name="theGentleFixedSentenceAndThePrimaryButtonAreThere" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanDetailOverlayTest" time="0.062"/>
+  <testcase name="theWidestTitleDecidesIfTheyFitUnderTheirCircle" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanDetailOverlayTest" time="0.033"/>
+  <testcase name="theCloseButtonIsAnnouncedAndBigEnough" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanDetailOverlayTest" time="0.059"/>
+  <testcase name="emptySectionsAreLeftOut" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanDetailOverlayTest" time="0.058"/>
+  <testcase name="aChosenProgramShowsTheDoneButton" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanDetailOverlayTest" time="0.069"/>
+  <testcase name="theSectionsAreThereWithTheirTitles" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanDetailOverlayTest" time="0.057"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.DessertPiecePortionTest" tests="16" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:57:32.380Z" hostname="VF" time="0.217">
+  <properties/>
+  <testcase name="a completo and the other hot pieces are one whole piece" classname="com.example.kpkn.domain.nutrition.DessertPiecePortionTest" time="0.045"/>
+  <testcase name="a slice that was said keeps the grams that were said" classname="com.example.kpkn.domain.nutrition.DessertPiecePortionTest" time="0.046"/>
+  <testcase name="a dessert row that is only its 100 g denominator weighs the piece, not 100 g" classname="com.example.kpkn.domain.nutrition.DessertPiecePortionTest" time="0.001"/>
+  <testcase name="what is not a piece keeps the generic dish and a keyword is a whole word" classname="com.example.kpkn.domain.nutrition.DessertPiecePortionTest" time="0.0"/>
+  <testcase name="two helados of the catalog are two portions of its row" classname="com.example.kpkn.domain.nutrition.DessertPiecePortionTest" time="0.015"/>
+  <testcase name="a queque, a brownie and an alfajor are the small pieces they are" classname="com.example.kpkn.domain.nutrition.DessertPiecePortionTest" time="0.0"/>
+  <testcase name="a slice of a cake or a pie is 100 g" classname="com.example.kpkn.domain.nutrition.DessertPiecePortionTest" time="0.0"/>
+  <testcase name="a dessert next to a sandwich is the slice and not the 40 g of a filling" classname="com.example.kpkn.domain.nutrition.DessertPiecePortionTest" time="0.023"/>
+  <testcase name="a pie of apple lands near 300 kcal whether it is counted or not" classname="com.example.kpkn.domain.nutrition.DessertPiecePortionTest" time="0.038"/>
+  <testcase name="the count of pieces is read from two and up and only for an estimate or a denominator row" classname="com.example.kpkn.domain.nutrition.DessertPiecePortionTest" time="0.0"/>
+  <testcase name="a helado with no row is 100 g and an iced drink is no helado" classname="com.example.kpkn.domain.nutrition.DessertPiecePortionTest" time="0.0"/>
+  <testcase name="a torta and a brownie are no longer a plate" classname="com.example.kpkn.domain.nutrition.DessertPiecePortionTest" time="0.018"/>
+  <testcase name="a cup of flan, mousse or pudding is 120 g" classname="com.example.kpkn.domain.nutrition.DessertPiecePortionTest" time="0.001"/>
+  <testcase name="a dessert in a meal is the piece and not the filling of the plate" classname="com.example.kpkn.domain.nutrition.DessertPiecePortionTest" time="0.017"/>
+  <testcase name="an estimate that is counted is that many pieces and a fraction is not a slice" classname="com.example.kpkn.domain.nutrition.DessertPiecePortionTest" time="0.011"/>
+  <testcase name="a completo is 220 g and a hot dog or a choripan is 180 g" classname="com.example.kpkn.domain.nutrition.DessertPiecePortionTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

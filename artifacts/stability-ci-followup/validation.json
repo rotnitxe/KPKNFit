@@ -1,0 +1,16 @@
+{
+  "state": "PASS_YAML_BASH_AND_ARGUMENTS",
+  "workflowSha256": "9c2cd3ea721bae5b4a445e58ce4a6e3014ae52b6634d30d22494696bbb97d3a2",
+  "engineRequirements": {
+    "rules": ">=24.12.0",
+    "functions": "22"
+  },
+  "runtimeOrder": [
+    "22",
+    "24"
+  ],
+  "argumentCount": 7,
+  "quotedRulesPathPreserved": true,
+  "actualRemoteCiRun": false,
+  "limits": "Parses YAML and executes only a local argv recorder, including a rules path with spaces. Actual emulator suite has a separate receipt; no remote CI result implied."
+}

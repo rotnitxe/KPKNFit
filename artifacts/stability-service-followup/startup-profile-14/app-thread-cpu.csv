@@ -1,0 +1,16 @@
+"name","tid","running_ms","intervals"
+".kpkn.stability",4022,7492.590000,2792
+"Jit thread pool",4028,2699.920000,1339
+"RenderThread",4050,1885.990000,905
+"arch_disk_io_0",4057,1760.460000,805
+"DefaultDispatch",4046,1320.240000,573
+"DefaultDispatch",4045,841.990000,387
+"EmojiCompatInit",4075,717.030000,350
+"DefaultDispatch",4064,707.860000,303
+"LeakCanary-Heap",4042,285.930000,103
+"kpkn-jsonl-writ",4043,276.460000,330
+"WM.task-1",4041,276.250000,164
+"HeapTaskDaemon",4029,222.220000,112
+"DefaultDispatch",4044,106.570000,56
+"DefaultDispatch",4084,72.910000,44
+"DefaultDispatch",4072,48.790000,19

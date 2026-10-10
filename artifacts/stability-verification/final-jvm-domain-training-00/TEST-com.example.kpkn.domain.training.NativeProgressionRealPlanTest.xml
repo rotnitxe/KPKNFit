@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.NativeProgressionRealPlanTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:28:12.924Z" hostname="VF" time="1.242">
+  <properties/>
+  <testcase name="freshGeneratedOwnPlan_manualFirstLoad_isCapturedForFutureSessions" classname="com.example.kpkn.domain.training.NativeProgressionRealPlanTest" time="0.2"/>
+  <testcase name="mixedRealPlan_bodyweightSlotProgressesByIdentity_notByTheRecipeStrategy" classname="com.example.kpkn.domain.training.NativeProgressionRealPlanTest" time="0.263"/>
+  <testcase name="cycleTwo_exposures_applyToCycleTwoSessions_andPendingProposalsExpireAtCycleClose" classname="com.example.kpkn.domain.training.NativeProgressionRealPlanTest" time="0.203"/>
+  <testcase name="strengthPlan_resolvesTotalExternalForEveryBarbellSlot_fromTheCatalog" classname="com.example.kpkn.domain.training.NativeProgressionRealPlanTest" time="0.173"/>
+  <testcase name="dumbbellMusclePlan_derivesPerImplementFromTheCatalog_withoutHandPickedConventions" classname="com.example.kpkn.domain.training.NativeProgressionRealPlanTest" time="0.245"/>
+  <testcase name="carryForward_isIdempotent_andKeepsLastReferences" classname="com.example.kpkn.domain.training.NativeProgressionRealPlanTest" time="0.157"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

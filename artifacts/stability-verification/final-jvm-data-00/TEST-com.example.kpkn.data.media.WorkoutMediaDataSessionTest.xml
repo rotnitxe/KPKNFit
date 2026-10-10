@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.media.WorkoutMediaDataSessionTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:51:16.987Z" hostname="VF" time="0.629">
+  <properties/>
+  <testcase name="profileSwitchAndGuestReturnRejectOldFileAndDatabaseWriters" classname="com.example.kpkn.data.media.WorkoutMediaDataSessionTest" time="0.578"/>
+  <testcase name="closedRepositoryCannotRecreateErasedMediaFiles" classname="com.example.kpkn.data.media.WorkoutMediaDataSessionTest" time="0.051"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.exercises.catalogv2.CatalogDisplayNamesTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:24:46.459Z" hostname="VF" time="0.051">
+  <properties/>
+  <testcase name="unknown_configuration_returns_null_instead_of_inventing" classname="com.example.kpkn.domain.exercises.catalogv2.CatalogDisplayNamesTest" time="0.001"/>
+  <testcase name="all_configurations_resolve_to_a_verbatim_catalog_name" classname="com.example.kpkn.domain.exercises.catalogv2.CatalogDisplayNamesTest" time="0.001"/>
+  <testcase name="different_configurations_share_the_definition_name" classname="com.example.kpkn.domain.exercises.catalogv2.CatalogDisplayNamesTest" time="0.0"/>
+  <testcase name="name_is_verbatim_definition_canonical_name" classname="com.example.kpkn.domain.exercises.catalogv2.CatalogDisplayNamesTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,25 @@
+{
+  "state": "OWN_GPS_AVD_BACKGROUND_RESTORED",
+  "restored": [
+    {
+      "package": "com.google.android.apps.messaging",
+      "enabled": true
+    },
+    {
+      "package": "com.google.android.as",
+      "enabled": true
+    },
+    {
+      "package": "com.google.android.as.oss",
+      "enabled": true
+    },
+    {
+      "package": "com.android.vending",
+      "enabled": true
+    }
+  ],
+  "priorReceiptSha256": "4639e4c47c09ccd4c64cb86c9392a3444c56cf92325aef6811bf13f819aea4a1",
+  "priorReceiptUnchanged": true,
+  "mockOpDefault": true,
+  "otherTargetsUnchanged": true
+}

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.auge.NutritionRecoveryEngineTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:59:18.620Z" hostname="VF" time="0.016">
+  <properties/>
+  <testcase name="explicitZeroGoals_doNotInferDeficitNorProteinPenalty" classname="com.example.kpkn.domain.auge.NutritionRecoveryEngineTest" time="0.012"/>
+  <testcase name="logDatedInTheDrawerFormatCountsInsideTheWindow" classname="com.example.kpkn.domain.auge.NutritionRecoveryEngineTest" time="0.0"/>
+  <testcase name="calorieDeficitIsStillInferredWhenGoalsExist" classname="com.example.kpkn.domain.auge.NutritionRecoveryEngineTest" time="0.0"/>
+  <testcase name="malformedLogDateIsIgnoredWithoutThrowing" classname="com.example.kpkn.domain.auge.NutritionRecoveryEngineTest" time="0.001"/>
+  <testcase name="noGoals_doNotInferDeficitNorProteinPenalty" classname="com.example.kpkn.domain.auge.NutritionRecoveryEngineTest" time="0.002"/>
+  <testcase name="proteinPenaltyNeedsAnExplicitProteinGoal" classname="com.example.kpkn.domain.auge.NutritionRecoveryEngineTest" time="0.0"/>
+  <testcase name="emptyLogs_doNotAssumeDeficit" classname="com.example.kpkn.domain.auge.NutritionRecoveryEngineTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

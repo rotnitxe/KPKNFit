@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.onboarding.NativeRirWarmupAndIntegrationTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:30:59.119Z" hostname="VF" time="2.735">
+  <properties/>
+  <testcase name="rematerialized_native_week_keeps_the_explicit_steps_policy" classname="com.example.kpkn.domain.training.onboarding.NativeRirWarmupAndIntegrationTest" time="0.597"/>
+  <testcase name="native_route_by_default_prepares_the_first_exercise_and_only_heavy_ones_after" classname="com.example.kpkn.domain.training.onboarding.NativeRirWarmupAndIntegrationTest" time="0.247"/>
+  <testcase name="declared_warmup_steps_replace_the_preset" classname="com.example.kpkn.domain.training.onboarding.NativeRirWarmupAndIntegrationTest" time="0.213"/>
+  <testcase name="rematerialized_native_week_keeps_the_automatic_approach_by_default" classname="com.example.kpkn.domain.training.onboarding.NativeRirWarmupAndIntegrationTest" time="0.232"/>
+  <testcase name="native_route_attaches_explicit_steps_to_first_compound_each_pattern_only" classname="com.example.kpkn.domain.training.onboarding.NativeRirWarmupAndIntegrationTest" time="0.21"/>
+  <testcase name="warmup_feasibility_reports_realizable_partial_and_never_exceeds_stock" classname="com.example.kpkn.domain.training.onboarding.NativeRirWarmupAndIntegrationTest" time="0.037"/>
+  <testcase name="empty_warmup_config_disables_automatic_approaches_everywhere" classname="com.example.kpkn.domain.training.onboarding.NativeRirWarmupAndIntegrationTest" time="0.179"/>
+  <testcase name="warmup_feasibility_is_unknown_never_unlimited_without_inventory" classname="com.example.kpkn.domain.training.onboarding.NativeRirWarmupAndIntegrationTest" time="0.001"/>
+  <testcase name="plain_non_native_rir_recipe_is_approached_by_default_because_it_is_heavy" classname="com.example.kpkn.domain.training.onboarding.NativeRirWarmupAndIntegrationTest" time="0.003"/>
+  <testcase name="autoregulation_mode_comes_from_config_and_auto_needs_confirmation" classname="com.example.kpkn.domain.training.onboarding.NativeRirWarmupAndIntegrationTest" time="0.71"/>
+  <testcase name="order_bag_via_options_is_order_only_rigorous_prescription_intact" classname="com.example.kpkn.domain.training.onboarding.NativeRirWarmupAndIntegrationTest" time="0.305"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

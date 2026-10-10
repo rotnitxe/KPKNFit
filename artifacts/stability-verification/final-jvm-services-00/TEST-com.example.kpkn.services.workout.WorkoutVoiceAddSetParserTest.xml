@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.services.workout.WorkoutVoiceAddSetParserTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:40:38.383Z" hostname="VF" time="0.006">
+  <properties/>
+  <testcase name="parsesAddSetPersistenceBlockLanguageAsLongScope" classname="com.example.kpkn.services.workout.WorkoutVoiceAddSetParserTest" time="0.001"/>
+  <testcase name="parsesAddSetPersistencePermanent" classname="com.example.kpkn.services.workout.WorkoutVoiceAddSetParserTest" time="0.0"/>
+  <testcase name="parsesAddSetPersistenceSessionOnly" classname="com.example.kpkn.services.workout.WorkoutVoiceAddSetParserTest" time="0.001"/>
+  <testcase name="unknownPersistenceReasks" classname="com.example.kpkn.services.workout.WorkoutVoiceAddSetParserTest" time="0.0"/>
+  <testcase name="parsesAddSetPhrases" classname="com.example.kpkn.services.workout.WorkoutVoiceAddSetParserTest" time="0.004"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

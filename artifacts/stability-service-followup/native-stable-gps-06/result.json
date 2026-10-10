@@ -1,0 +1,19 @@
+{
+  "state": "FAIL_OR_INCOMPLETE",
+  "scope": "SYNTHETIC_GPS_FGS_FILE_RESTORE_ON_PREPARED_PROFILE",
+  "limits": "Actual platform GPS/FGS/file restore with synthetic AVD fixes, one API36 device. No UI workout/editor, permission revocation, approximate-only location, process restart or physical route.",
+  "appApkSha256": "f765a31a97dfa4214208cf859425544118c9eb79eaf3dfc7dae47cc5d73685fe",
+  "testApkSha256": "4f56fae7b1bf975a7702f916d00fb1f17c5127d90893ddf4c561b8d65b2bf44e",
+  "errorType": "TimeoutExpired",
+  "error": "Command '['C:\\\\Users\\\\valen\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe', '-s', 'emulator-5554', 'shell', 'am', 'instrument', '-w', '-r', '-e', 'class', 'com.example.kpkn.services.cardio.StableProfileGpsLifecycleTest', 'com.example.kpkn.stability.test/androidx.test.runner.AndroidJUnitRunner']' timed out after 180 seconds",
+  "permissionRestoration": {
+    "android.permission.ACCESS_FINE_LOCATION": true,
+    "android.permission.ACCESS_COARSE_LOCATION": true
+  },
+  "evidenceHashes": {
+    "instrumentation.txt": "8fc0af40aa9cbf73bbbf5cef943a0013e45a85d6f2fb6f1e55627eca5b8563b3",
+    "jdwp-forward.txt": "58601208a6d67556bdee4a25126df3d837c3c711cb34e2ef70655a6a7c33be5c",
+    "synthetic-fixes.json": "37157a4d1bb320703551905e5fea56d4679f1214e9f40e2c724e61d0bc65564a",
+    "test-install.txt": "c4aa470acafcf8576c15b0f0b5ae7e852d1ec5413372d0e6a9272e788e1306d3"
+  }
+}

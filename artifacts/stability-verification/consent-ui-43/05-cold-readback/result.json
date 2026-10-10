@@ -1,0 +1,16 @@
+{
+  "state": "PASS",
+  "scope": "UI consent persisted after fresh process, debug collection disabled",
+  "priorPid": 12386,
+  "coldPid": 12682,
+  "consentChecked": true,
+  "mainVisible": true,
+  "errorDialogPresent": false,
+  "evidenceHashes": {
+    "activity.txt": "5783b4b7adcdd10a0ad91f5bde01fccc099cb8fdd202d22ab0f1c18f1a0657c8",
+    "launch.txt": "5212d8422a64ea53c124e18977cab9dc920475b3fb776f678e22f03f2e63b59b",
+    "logcat-pid.txt": "3bf1ee2fbb9c647c15757ddabd0b054f9b74e4e77e829cb4cb46417ad880c228",
+    "screen.png": "0371d13703182aec790c04109d64068af0ae829fcf7cf6657fb95e4f4ffd24b8",
+    "ui.xml": "08aa12954e41f2cf51d72b2a0573384fbdd3bb96a69e92d4d4dbe6294fd5dfd4"
+  }
+}

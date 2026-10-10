@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.programdetail.components.ProgramHeroWidgetsCalibrationTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:38:00.679Z" hostname="VF" time="0.03">
+  <properties/>
+  <testcase name="calibration_uses_canonical_deltoids_without_summing_heads" classname="com.example.kpkn.screens.programdetail.components.ProgramHeroWidgetsCalibrationTest" time="0.03"/>
+  <testcase name="calibration_does_not_classify_six_glute_sets_as_ideal" classname="com.example.kpkn.screens.programdetail.components.ProgramHeroWidgetsCalibrationTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

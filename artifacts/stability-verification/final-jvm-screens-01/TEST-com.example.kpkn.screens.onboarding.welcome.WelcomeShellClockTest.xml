@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.welcome.WelcomeShellClockTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:37:45.432Z" hostname="VF" time="0.008">
+  <properties/>
+  <testcase name="una escena que corre usa el tiempo de escena y su fundido" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeShellClockTest" time="0.0"/>
+  <testcase name="el cuadro representativo es el 70 por ciento del periodo" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeShellClockTest" time="0.0"/>
+  <testcase name="el fundido del bucle vale cero en los extremos y uno entre los dos fundidos" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeShellClockTest" time="0.0"/>
+  <testcase name="sceneTimeAt vuelve a cero al cumplir el periodo y sigue en bucle" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeShellClockTest" time="0.0"/>
+  <testcase name="el corte entre ciclos dura medio segundo" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeShellClockTest" time="0.0"/>
+  <testcase name="sceneTimeAt arranca en cero y avanza con los segundos transcurridos" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeShellClockTest" time="0.0"/>
+  <testcase name="sceneTimeAt tolera entradas invalidas" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeShellClockTest" time="0.0"/>
+  <testcase name="el fundido sube y baja de forma monotona" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeShellClockTest" time="0.0"/>
+  <testcase name="una pagina recien llegada apaga el cuadro fijo y luego arranca desde cero" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeShellClockTest" time="0.0"/>
+  <testcase name="el reloj solo corre para la pagina que lo posee" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeShellClockTest" time="0.005"/>
+  <testcase name="una escena que no corre muestra su cuadro representativo a plena opacidad" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeShellClockTest" time="0.0"/>
+  <testcase name="una escena que cierra sola no se funde otra vez en el marco" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeShellClockTest" time="0.0"/>
+  <testcase name="sceneTimeAt siempre devuelve un tiempo valido dentro del periodo" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeShellClockTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

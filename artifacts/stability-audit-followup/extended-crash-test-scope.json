@@ -1,0 +1,13 @@
+{
+  "originalCases": 4,
+  "addedCases": 8,
+  "sdks": [
+    26,
+    34
+  ],
+  "expectedJUnitCases": 24,
+  "baselineAssertionsPreserved": true,
+  "sdkSimulation": "Robolectric shadows; no Firebase network",
+  "scope": "SDK call submission, personal marker admission/drain, late session, failed preference commit and fatal delegation",
+  "excluded": "Real Crashlytics SDK upload lifecycle, every SDK internal file/network job, signed/minified APK runtime"
+}

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.generator.GeneratorEquipmentTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:30:45.586Z" hostname="VF" time="0.015">
+  <properties/>
+  <testcase name="a_park_with_a_pull_up_bar_now_gets_a_horizontal_pull_and_one_without_it_does_not" classname="com.example.kpkn.domain.training.generator.GeneratorEquipmentTest" time="0.004"/>
+  <testcase name="a_machine_room_admits_every_machine_configuration_and_the_panel_answers_only_the_curated_ones" classname="com.example.kpkn.domain.training.generator.GeneratorEquipmentTest" time="0.005"/>
+  <testcase name="a_parks_pull_up_bar_opens_the_inverted_row_and_the_rack_chin_for_the_generator" classname="com.example.kpkn.domain.training.generator.GeneratorEquipmentTest" time="0.001"/>
+  <testcase name="each_pool_token_is_credited_by_the_symbol_that_owns_it" classname="com.example.kpkn.domain.training.generator.GeneratorEquipmentTest" time="0.0"/>
+  <testcase name="the_day_equipment_adds_nothing_to_what_the_shared_resolver_credits" classname="com.example.kpkn.domain.training.generator.GeneratorEquipmentTest" time="0.003"/>
+  <testcase name="every_token_the_pools_require_is_credited_by_some_material" classname="com.example.kpkn.domain.training.generator.GeneratorEquipmentTest" time="0.001"/>
+  <testcase name="rings_and_box_reach_the_generator_through_the_resolver_and_no_symbol_credits_the_rope" classname="com.example.kpkn.domain.training.generator.GeneratorEquipmentTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

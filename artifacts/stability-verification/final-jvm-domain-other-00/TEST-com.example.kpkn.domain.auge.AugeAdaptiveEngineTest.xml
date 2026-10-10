@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.auge.AugeAdaptiveEngineTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:59:17.883Z" hostname="VF" time="0.002">
+  <properties/>
+  <testcase name="deriveImpliedRecoveryTime_normalCase_returnsReasonableTau" classname="com.example.kpkn.domain.auge.AugeAdaptiveEngineTest" time="0.0"/>
+  <testcase name="updatePersonalizedRecoveryHours_moreRecovered_shortensTauVsStillFatigued" classname="com.example.kpkn.domain.auge.AugeAdaptiveEngineTest" time="0.0"/>
+  <testcase name="updateSystemLearningDeltas_manyObservations_usesMinAlpha" classname="com.example.kpkn.domain.auge.AugeAdaptiveEngineTest" time="0.001"/>
+  <testcase name="updateMuscleDeltas_correctDelta" classname="com.example.kpkn.domain.auge.AugeAdaptiveEngineTest" time="0.0"/>
+  <testcase name="updateSystemLearningDeltas_zeroObservations_usesMaxAlpha" classname="com.example.kpkn.domain.auge.AugeAdaptiveEngineTest" time="0.0"/>
+  <testcase name="updateSystemLearningDeltas_clampsAt50" classname="com.example.kpkn.domain.auge.AugeAdaptiveEngineTest" time="0.0"/>
+  <testcase name="updateMuscleDeltas_existingDelta_blendsCorrectly" classname="com.example.kpkn.domain.auge.AugeAdaptiveEngineTest" time="0.0"/>
+  <testcase name="updatePersonalizedRecoveryHours_newMuscle_appliesDefault" classname="com.example.kpkn.domain.auge.AugeAdaptiveEngineTest" time="0.0"/>
+  <testcase name="deriveImpliedRecoveryTime_hoursSinceZero_returnsNull" classname="com.example.kpkn.domain.auge.AugeAdaptiveEngineTest" time="0.001"/>
+  <testcase name="updatePersonalizedRecoveryHours_existingMuscle_blendsTowardImplied" classname="com.example.kpkn.domain.auge.AugeAdaptiveEngineTest" time="0.0"/>
+  <testcase name="updateMuscleDeltas_clampsAt50" classname="com.example.kpkn.domain.auge.AugeAdaptiveEngineTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.design.entreno.PlaceSymbolRowTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:37:24.916Z" hostname="VF" time="0.495">
+  <properties/>
+  <testcase name="theLabelIsNotAnnouncedTwice" classname="com.example.kpkn.screens.onboarding.design.entreno.PlaceSymbolRowTest" time="0.057"/>
+  <testcase name="announcesTheLabelAndWhetherItIsSelected" classname="com.example.kpkn.screens.onboarding.design.entreno.PlaceSymbolRowTest" time="0.056"/>
+  <testcase name="theAnnouncementFollowsTheState" classname="com.example.kpkn.screens.onboarding.design.entreno.PlaceSymbolRowTest" time="0.069"/>
+  <testcase name="everyPlaceHasItsTestTag" classname="com.example.kpkn.screens.onboarding.design.entreno.PlaceSymbolRowTest" time="0.046"/>
+  <testcase name="oneTwoOrAllThreeCanBeSelected" classname="com.example.kpkn.screens.onboarding.design.entreno.PlaceSymbolRowTest" time="0.065"/>
+  <testcase name="tappingEachSymbolReportsThatPlace" classname="com.example.kpkn.screens.onboarding.design.entreno.PlaceSymbolRowTest" time="0.056"/>
+  <testcase name="withReducedMotionTheSemanticsAreTheSame" classname="com.example.kpkn.screens.onboarding.design.entreno.PlaceSymbolRowTest" time="0.048"/>
+  <testcase name="theTouchTargetIsAtLeast48dp" classname="com.example.kpkn.screens.onboarding.design.entreno.PlaceSymbolRowTest" time="0.045"/>
+  <testcase name="eachSymbolIsACheckbox" classname="com.example.kpkn.screens.onboarding.design.entreno.PlaceSymbolRowTest" time="0.052"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,16 @@
+{
+  "state": "ADDED_NOT_REMOTE_RUN",
+  "testClass": "com.example.kpkn.data.diagnostics.CrashReportLifecycleAdversarialTest",
+  "sdks": [
+    26,
+    34
+  ],
+  "expectedCases": 24,
+  "sourceIsolation": "src/testRelease only during the Release probe invocation; shared Debug-dependent Wizard tests untouched",
+  "sourceInitializerSha256": "1cee4cf8cd3b4b7ee09a810bd873ca8fcf179049d2d33c87d8d109aa5564a6fe",
+  "previousWorkflowSha256": "53f28b7fdacc8c5f53ac06f0c129f282922127a47b067b19973f7c6755abf112",
+  "currentWorkflowSha256": "b23cd74179a18c648b66ea2e816dc7f5555a2b58722398aec82fd8660a1ae9dd",
+  "officialAgpReference": "https://developer.android.com/build/releases/agp-9-0-0-release-notes",
+  "agpFlag": "android.onlyEnableUnitTestForTheTestedBuildType=false",
+  "remoteCI": "NOT_RUN"
+}

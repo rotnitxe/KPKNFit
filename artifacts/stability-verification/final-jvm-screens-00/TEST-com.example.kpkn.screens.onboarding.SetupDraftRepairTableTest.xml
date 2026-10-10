@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.SetupDraftRepairTableTest" tests="15" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:35:28.925Z" hostname="VF" time="0.011">
+  <properties/>
+  <testcase name="legacyHealthAndMixedGoalsBecomeTheProfileOfTodayAndAreFlaggedForReviewWithoutConfirmingAnything" classname="com.example.kpkn.screens.onboarding.SetupDraftRepairTableTest" time="0.0"/>
+  <testcase name="cursorOnTheRemovedRouteNodeResolvesToTheFirstValidPendingStepAndKeepsHistory" classname="com.example.kpkn.screens.onboarding.SetupDraftRepairTableTest" time="0.001"/>
+  <testcase name="customizableWithNullPathFillsPersonalizeWhenThereAreNoManualSessions" classname="com.example.kpkn.screens.onboarding.SetupDraftRepairTableTest" time="0.0"/>
+  <testcase name="catalogRevisionReopensAtPlanWhenTheRestOfTheRouteWasAlreadyConfirmed" classname="com.example.kpkn.screens.onboarding.SetupDraftRepairTableTest" time="0.001"/>
+  <testcase name="aValidButOutOfOrderCursorRewindsToANewlyInsertedUnansweredPrerequisite" classname="com.example.kpkn.screens.onboarding.SetupDraftRepairTableTest" time="0.0"/>
+  <testcase name="customizableWithNullPathKeepsManualWorkAndMarksPlanForReviewInsteadOfConvertingIt" classname="com.example.kpkn.screens.onboarding.SetupDraftRepairTableTest" time="0.002"/>
+  <testcase name="categoriesWithoutApparatusKeepEmptyUnknownMapsAndFlagMaterialOnlyWhenThePlanNeedsPrecision" classname="com.example.kpkn.screens.onboarding.SetupDraftRepairTableTest" time="0.002"/>
+  <testcase name="supportedGoalsAreNeverFlaggedForGoalReview" classname="com.example.kpkn.screens.onboarding.SetupDraftRepairTableTest" time="0.001"/>
+  <testcase name="vanishedPlanIdClearsOnlyTheDependentSelectionAndMarksPreviewStale" classname="com.example.kpkn.screens.onboarding.SetupDraftRepairTableTest" time="0.0"/>
+  <testcase name="missingCatalogRevisionIsTreatedAsUnknownAndReopensSelectedPlanSafely" classname="com.example.kpkn.screens.onboarding.SetupDraftRepairTableTest" time="0.001"/>
+  <testcase name="confirmedApparatusPresenceOrMissingSelectionNeverFlagsMaterial" classname="com.example.kpkn.screens.onboarding.SetupDraftRepairTableTest" time="0.0"/>
+  <testcase name="olderNativeGraphProgressRewindsToTheFirstUnansweredStableStepAndUpgradesIdempotently" classname="com.example.kpkn.screens.onboarding.SetupDraftRepairTableTest" time="0.0"/>
+  <testcase name="aLegacyGoalAtReviewReopensAtGoalUntilTheUserChoosesExplicitly" classname="com.example.kpkn.screens.onboarding.SetupDraftRepairTableTest" time="0.0"/>
+  <testcase name="categoriesWithoutApparatusDoNotFlagMaterialWhenThePlanNeedsNoPrecision" classname="com.example.kpkn.screens.onboarding.SetupDraftRepairTableTest" time="0.001"/>
+  <testcase name="legacyProtocolIsNormalizedWhenUnifiedPlanSelectionIsEnteredNotBefore" classname="com.example.kpkn.screens.onboarding.SetupDraftRepairTableTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

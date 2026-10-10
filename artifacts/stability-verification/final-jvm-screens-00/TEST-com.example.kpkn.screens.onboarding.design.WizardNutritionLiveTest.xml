@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.design.WizardNutritionLiveTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:36:32.427Z" hostname="VF" time="0.021">
+  <properties/>
+  <testcase name="volver al valor original antes de soltar no escribe" classname="com.example.kpkn.screens.onboarding.design.WizardNutritionLiveTest" time="0.018"/>
+  <testcase name="si lo confirmado ya coincide con lo que se ve se adopta el confirmado" classname="com.example.kpkn.screens.onboarding.design.WizardNutritionLiveTest" time="0.002"/>
+  <testcase name="una muesca o restablecer se aplican y se escriben ya" classname="com.example.kpkn.screens.onboarding.design.WizardNutritionLiveTest" time="0.0"/>
+  <testcase name="no caduca nada mientras se arrastra" classname="com.example.kpkn.screens.onboarding.design.WizardNutritionLiveTest" time="0.0"/>
+  <testcase name="un arrastre mueve lo que se ve y soltar devuelve el plan a escribir una sola vez" classname="com.example.kpkn.screens.onboarding.design.WizardNutritionLiveTest" time="0.001"/>
+  <testcase name="con un arrastre en curso no se toca nada" classname="com.example.kpkn.screens.onboarding.design.WizardNutritionLiveTest" time="0.0"/>
+  <testcase name="sin nada en vuelo manda lo confirmado" classname="com.example.kpkn.screens.onboarding.design.WizardNutritionLiveTest" time="0.0"/>
+  <testcase name="la confirmacion de una escritura limpia lo pendiente" classname="com.example.kpkn.screens.onboarding.design.WizardNutritionLiveTest" time="0.0"/>
+  <testcase name="una escritura perdida caduca y vuelve lo confirmado" classname="com.example.kpkn.screens.onboarding.design.WizardNutritionLiveTest" time="0.0"/>
+  <testcase name="soltar sin haber movido nada no escribe" classname="com.example.kpkn.screens.onboarding.design.WizardNutritionLiveTest" time="0.0"/>
+  <testcase name="lo confirmado de antes no deshace una escritura enviada" classname="com.example.kpkn.screens.onboarding.design.WizardNutritionLiveTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

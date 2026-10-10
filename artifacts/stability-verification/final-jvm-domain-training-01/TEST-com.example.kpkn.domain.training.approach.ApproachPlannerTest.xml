@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.approach.ApproachPlannerTest" tests="34" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:30:34.388Z" hostname="VF" time="0.026">
+  <properties/>
+  <testcase name="author_mobility_is_kept_and_only_the_missing_ramp_is_completed" classname="com.example.kpkn.domain.training.approach.ApproachPlannerTest" time="0.002"/>
+  <testcase name="the_ramp_depends_on_the_level_and_gets_a_single_at_ninety_percent_or_more" classname="com.example.kpkn.domain.training.approach.ApproachPlannerTest" time="0.002"/>
+  <testcase name="a_session_without_heavy_exercises_only_gets_the_brief_mobility_of_the_first_one" classname="com.example.kpkn.domain.training.approach.ApproachPlannerTest" time="0.0"/>
+  <testcase name="cardio_and_empty_exercises_do_not_take_a_position" classname="com.example.kpkn.domain.training.approach.ApproachPlannerTest" time="0.001"/>
+  <testcase name="the_first_heavy_exercise_gets_joint_mobility_and_a_ramp_on_the_working_load" classname="com.example.kpkn.domain.training.approach.ApproachPlannerTest" time="0.0"/>
+  <testcase name="the_default_contract_with_no_info_provider_changes_nothing" classname="com.example.kpkn.domain.training.approach.ApproachPlannerTest" time="0.001"/>
+  <testcase name="a_session_with_nothing_to_prepare_comes_back_equal" classname="com.example.kpkn.domain.training.approach.ApproachPlannerTest" time="0.001"/>
+  <testcase name="author_mobility_of_a_known_movement_counts_as_covering_its_joints" classname="com.example.kpkn.domain.training.approach.ApproachPlannerTest" time="0.0"/>
+  <testcase name="a_third_heavy_exercise_with_a_new_joint_is_also_approached" classname="com.example.kpkn.domain.training.approach.ApproachPlannerTest" time="0.0"/>
+  <testcase name="a_working_percentage_at_or_above_the_threshold_is_heavy" classname="com.example.kpkn.domain.training.approach.ApproachPlannerTest" time="0.002"/>
+  <testcase name="a_compound_that_cannot_carry_heavy_load_in_first_place_is_light" classname="com.example.kpkn.domain.training.approach.ApproachPlannerTest" time="0.001"/>
+  <testcase name="the_first_light_exercise_gets_only_a_brief_mobility_of_its_main_joint" classname="com.example.kpkn.domain.training.approach.ApproachPlannerTest" time="0.0"/>
+  <testcase name="an_author_ramp_on_the_first_exercise_counts_as_covering_its_joints" classname="com.example.kpkn.domain.training.approach.ApproachPlannerTest" time="0.0"/>
+  <testcase name="the_joints_covered_by_the_first_exercise_include_those_of_its_ramp" classname="com.example.kpkn.domain.training.approach.ApproachPlannerTest" time="0.0"/>
+  <testcase name="an_exercise_with_both_declared_is_returned_untouched" classname="com.example.kpkn.domain.training.approach.ApproachPlannerTest" time="0.0"/>
+  <testcase name="an_exercise_the_engine_does_not_know_is_treated_as_not_heavy" classname="com.example.kpkn.domain.training.approach.ApproachPlannerTest" time="0.0"/>
+  <testcase name="a_main_compound_up_to_eight_reps_is_heavy_without_any_other_signal" classname="com.example.kpkn.domain.training.approach.ApproachPlannerTest" time="0.003"/>
+  <testcase name="a_second_heavy_exercise_with_a_new_joint_gets_a_shorter_ramp_and_only_its_new_mobility" classname="com.example.kpkn.domain.training.approach.ApproachPlannerTest" time="0.001"/>
+  <testcase name="later_exercises_get_a_shorter_ramp_for_every_level" classname="com.example.kpkn.domain.training.approach.ApproachPlannerTest" time="0.001"/>
+  <testcase name="applying_it_twice_is_the_same_as_applying_it_once" classname="com.example.kpkn.domain.training.approach.ApproachPlannerTest" time="0.001"/>
+  <testcase name="the_original_session_is_not_mutated_and_other_fields_survive" classname="com.example.kpkn.domain.training.approach.ApproachPlannerTest" time="0.0"/>
+  <testcase name="a_third_heavy_exercise_with_everything_covered_gets_nothing" classname="com.example.kpkn.domain.training.approach.ApproachPlannerTest" time="0.0"/>
+  <testcase name="exercises_inside_parts_are_completed_too_and_mirrored_ones_stay_consistent" classname="com.example.kpkn.domain.training.approach.ApproachPlannerTest" time="0.0"/>
+  <testcase name="less_experience_means_more_mobility" classname="com.example.kpkn.domain.training.approach.ApproachPlannerTest" time="0.001"/>
+  <testcase name="the_ramp_percentages_are_ascending_and_never_reach_the_working_load" classname="com.example.kpkn.domain.training.approach.ApproachPlannerTest" time="0.0"/>
+  <testcase name="alternative_sessions_are_planned_on_their_own" classname="com.example.kpkn.domain.training.approach.ApproachPlannerTest" time="0.001"/>
+  <testcase name="a_second_heavy_exercise_whose_joints_are_already_covered_is_left_alone" classname="com.example.kpkn.domain.training.approach.ApproachPlannerTest" time="0.0"/>
+  <testcase name="from_the_fourth_exercise_on_nothing_is_added" classname="com.example.kpkn.domain.training.approach.ApproachPlannerTest" time="0.0"/>
+  <testcase name="an_isolation_or_a_light_exercise_is_never_heavy_even_with_heavy_looking_sets" classname="com.example.kpkn.domain.training.approach.ApproachPlannerTest" time="0.002"/>
+  <testcase name="a_loaded_compound_in_first_place_with_moderate_reps_gets_a_short_ramp" classname="com.example.kpkn.domain.training.approach.ApproachPlannerTest" time="0.0"/>
+  <testcase name="author_warmups_are_kept_and_only_the_missing_mobility_is_completed" classname="com.example.kpkn.domain.training.approach.ApproachPlannerTest" time="0.0"/>
+  <testcase name="a_heavy_second_exercise_after_a_light_first_one_is_still_approached" classname="com.example.kpkn.domain.training.approach.ApproachPlannerTest" time="0.0"/>
+  <testcase name="a_heavy_first_exercise_without_known_joints_gets_the_ramp_but_no_mobility" classname="com.example.kpkn.domain.training.approach.ApproachPlannerTest" time="0.001"/>
+  <testcase name="low_reps_close_to_failure_are_heavy" classname="com.example.kpkn.domain.training.approach.ApproachPlannerTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.NutritionHeuristicEstimatorTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:57:41.351Z" hostname="VF" time="0.002">
+  <properties/>
+  <testcase name="estimate unknown food with frito keyword" classname="com.example.kpkn.domain.nutrition.NutritionHeuristicEstimatorTest" time="0.0"/>
+  <testcase name="estimate empanizado boosts carbs and fat" classname="com.example.kpkn.domain.nutrition.NutritionHeuristicEstimatorTest" time="0.0"/>
+  <testcase name="estimate salteado boosts fat" classname="com.example.kpkn.domain.nutrition.NutritionHeuristicEstimatorTest" time="0.0"/>
+  <testcase name="estimate without cooking keyword returns base profile" classname="com.example.kpkn.domain.nutrition.NutritionHeuristicEstimatorTest" time="0.0"/>
+  <testcase name="the dry methods keep their table factor, once" classname="com.example.kpkn.domain.nutrition.NutritionHeuristicEstimatorTest" time="0.0"/>
+  <testcase name="estimate pollo a la plancha reduces fat" classname="com.example.kpkn.domain.nutrition.NutritionHeuristicEstimatorTest" time="0.001"/>
+  <testcase name="estimate pollo frito has higher fat than pollo simple" classname="com.example.kpkn.domain.nutrition.NutritionHeuristicEstimatorTest" time="0.0"/>
+  <testcase name="frito adds six grams of fat and its kcal follow 4-4-9, not a multiplier" classname="com.example.kpkn.domain.nutrition.NutritionHeuristicEstimatorTest" time="0.0"/>
+  <testcase name="withCookingMethod acts once on a dish with no row and never twice" classname="com.example.kpkn.domain.nutrition.NutritionHeuristicEstimatorTest" time="0.0"/>
+  <testcase name="empanizado adds the frying fat and fifteen grams of breading carbs" classname="com.example.kpkn.domain.nutrition.NutritionHeuristicEstimatorTest" time="0.0"/>
+  <testcase name="pad thai ramen y pho son plato de fideos no MIXED seco" classname="com.example.kpkn.domain.nutrition.NutritionHeuristicEstimatorTest" time="0.0"/>
+  <testcase name="salteado de verduras carries the frying fat in grams" classname="com.example.kpkn.domain.nutrition.NutritionHeuristicEstimatorTest" time="0.001"/>
+  <testcase name="estimate pescado frito has higher fat" classname="com.example.kpkn.domain.nutrition.NutritionHeuristicEstimatorTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

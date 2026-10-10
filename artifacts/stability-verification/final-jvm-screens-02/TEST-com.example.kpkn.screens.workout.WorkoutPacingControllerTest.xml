@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.workout.WorkoutPacingControllerTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:39:02.100Z" hostname="VF" time="0.041">
+  <properties/>
+  <testcase name="clearSessionTimeLimit_thisTime_stopsCountdown_keepsProgramDuration" classname="com.example.kpkn.screens.workout.WorkoutPacingControllerTest" time="0.007"/>
+  <testcase name="localBudget_onlySpeaksInStrict" classname="com.example.kpkn.screens.workout.WorkoutPacingControllerTest" time="0.003"/>
+  <testcase name="lastMinute_isNotExhausted" classname="com.example.kpkn.screens.workout.WorkoutPacingControllerTest" time="0.006"/>
+  <testcase name="evaluatePace_marksAhead_withoutChipText" classname="com.example.kpkn.screens.workout.WorkoutPacingControllerTest" time="0.003"/>
+  <testcase name="resolveEffectiveTarget_customZeroClearsProgramLimit" classname="com.example.kpkn.screens.workout.WorkoutPacingControllerTest" time="0.001"/>
+  <testcase name="skippedTick_fires15MinCue_asEssential" classname="com.example.kpkn.screens.workout.WorkoutPacingControllerTest" time="0.003"/>
+  <testcase name="finalMode_doesNotSpeakOneMinute" classname="com.example.kpkn.screens.workout.WorkoutPacingControllerTest" time="0.003"/>
+  <testcase name="overtime_clampsRemaining_andExposesExhaustedCue" classname="com.example.kpkn.screens.workout.WorkoutPacingControllerTest" time="0.004"/>
+  <testcase name="crossedThreshold_detectsSkippedTick" classname="com.example.kpkn.screens.workout.WorkoutPacingControllerTest" time="0.0"/>
+  <testcase name="evaluatePace_marksLate_withoutSlowChipText" classname="com.example.kpkn.screens.workout.WorkoutPacingControllerTest" time="0.003"/>
+  <testcase name="voiceOff_doesNotSpeak" classname="com.example.kpkn.screens.workout.WorkoutPacingControllerTest" time="0.004"/>
+  <testcase name="essentialVerbosity_allowsSessionCues_blocksSlowPace" classname="com.example.kpkn.screens.workout.WorkoutPacingControllerTest" time="0.001"/>
+  <testcase name="adjustRest_usesTargetDurationMinutes" classname="com.example.kpkn.screens.workout.WorkoutPacingControllerTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

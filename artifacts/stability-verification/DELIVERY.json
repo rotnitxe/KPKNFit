@@ -1,0 +1,252 @@
+{
+  "state": "VALIDATED_LOCAL_INTEGRATION_CHECKPOINT",
+  "baselineCommit": "bf007cf165f86399bdefa06513cc4744a52100bd",
+  "launchAccepted": false,
+  "healthConnectRemoved": true,
+  "gpsPreserved": true,
+  "productionChange": "Prevent consent writes from retired UI owners during maintenance/profile replacement.",
+  "changedProductionPaths": [
+    "android-native/app/src/main/java/com/example/kpkn/data/account/AccountGraph.kt",
+    "android-native/app/src/main/java/com/example/kpkn/data/diagnostics/CrashReportingController.kt",
+    "android-native/app/src/main/java/com/example/kpkn/screens/account/AccountScreen.kt"
+  ],
+  "sourceFingerprint": "source-fingerprint-final-delivery.json",
+  "androidSourcesUnchangedThroughFinalValidation": true,
+  "directedUnit": "consent-fix-37-unit/result.json",
+  "fullJvmCoverage": {
+    "state": "COMPLETED_WITH_OMISSIONS",
+    "inventoryClasses": 896,
+    "annotatedMethods": 7747,
+    "ordinaryClasses": 895,
+    "heavyMethods": 7,
+    "runtimeTotals": {
+      "tests": 8092,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2
+    },
+    "skippedCases": [
+      {
+        "partition": "final-jvm-services-00",
+        "className": "com.example.kpkn.services.workout.WorkoutVoiceReplayTest",
+        "name": "replayTranscriptParserNeverThrows",
+        "message": "org.junit.AssumptionViolatedException: No hay corpus de replay de voz configurado."
+      },
+      {
+        "partition": "final-jvm-services-00",
+        "className": "com.example.kpkn.services.workout.WorkoutVoiceReplayTest",
+        "name": "fieldTranscriptsThatWorkedStillParseAsCommands",
+        "message": "org.junit.AssumptionViolatedException: No hay corpus de replay de voz configurado."
+      }
+    ],
+    "failedCases": [],
+    "partitions": [
+      {
+        "path": "final-jvm-data-00",
+        "state": "PASS",
+        "exitCode": 0
+      },
+      {
+        "path": "final-jvm-data-01",
+        "state": "PASS",
+        "exitCode": 0
+      },
+      {
+        "path": "final-jvm-domain-nutrition-00",
+        "state": "PASS",
+        "exitCode": 0
+      },
+      {
+        "path": "final-jvm-domain-nutrition-01",
+        "state": "PASS",
+        "exitCode": 0
+      },
+      {
+        "path": "final-jvm-domain-other-00",
+        "state": "PASS",
+        "exitCode": 0
+      },
+      {
+        "path": "final-jvm-domain-other-01",
+        "state": "PASS",
+        "exitCode": 0
+      },
+      {
+        "path": "final-jvm-domain-other-02",
+        "state": "PASS",
+        "exitCode": 0
+      },
+      {
+        "path": "final-jvm-domain-training-00",
+        "state": "PASS",
+        "exitCode": 0
+      },
+      {
+        "path": "final-jvm-domain-training-01",
+        "state": "PASS",
+        "exitCode": 0
+      },
+      {
+        "path": "final-jvm-other-00",
+        "state": "PASS",
+        "exitCode": 0
+      },
+      {
+        "path": "final-jvm-screens-00",
+        "state": "PASS",
+        "exitCode": 0
+      },
+      {
+        "path": "final-jvm-screens-01",
+        "state": "PASS",
+        "exitCode": 0
+      },
+      {
+        "path": "final-jvm-screens-02",
+        "state": "PASS",
+        "exitCode": 0
+      },
+      {
+        "path": "final-jvm-screens-03",
+        "state": "PASS",
+        "exitCode": 0
+      },
+      {
+        "path": "final-jvm-services-00",
+        "state": "COMPLETED_WITH_OMISSIONS",
+        "exitCode": 0
+      },
+      {
+        "path": "final-jvm-heavy-Q1_pure_planner_coverage_62208_inputs",
+        "state": "PASS",
+        "exitCode": 0
+      },
+      {
+        "path": "final-jvm-heavy-Q2_real_generation_coverage_2304_inputs",
+        "state": "PASS",
+        "exitCode": 0
+      },
+      {
+        "path": "final-jvm-heavy-Q2_calibrated_uncalibrated_changes_no_viable_row",
+        "state": "PASS",
+        "exitCode": 0
+      },
+      {
+        "path": "final-jvm-heavy-Q2_calibrated_floor_changes_no_viable_row",
+        "state": "PASS",
+        "exitCode": 0
+      },
+      {
+        "path": "final-jvm-heavy-Q2_calibrated_ceiling_changes_no_viable_row",
+        "state": "PASS",
+        "exitCode": 0
+      },
+      {
+        "path": "final-jvm-heavy-Q2_required_positives",
+        "state": "PASS",
+        "exitCode": 0
+      },
+      {
+        "path": "final-jvm-heavy-Q3_fitter_viability_neighbors_and_cardio_default_boundaries",
+        "state": "PASS",
+        "exitCode": 0
+      }
+    ],
+    "inventorySha256": "aa6b6aa8271d0e450d1663c0579db27ee34d1be5b4080934a1e0ed252db81a38",
+    "limits": "Coverage audited for exact JUnit compiled classes and emitted methods. Omissions remain omissions. No native device, release runtime or field voice corpus approval implied."
+  },
+  "debugBuild": "debug-build-final-37.json",
+  "nativeFollowup": {
+    "state": "PASS",
+    "appApkSha256": "f765a31a97dfa4214208cf859425544118c9eb79eaf3dfc7dae47cc5d73685fe",
+    "accountABReturn": {
+      "state": "PASS",
+      "distinctUids": true,
+      "accountARetained": true,
+      "accountBHiddenFromA": true,
+      "staleWriterRejected": true,
+      "finalGuest": true,
+      "scope": "ONE_DEVICE_LOCAL_FIREBASE_NATIVE_CLIENT_AND_ROOM"
+    },
+    "integratedColdPids": [
+      11941,
+      12142,
+      12277
+    ],
+    "registryRecovery": {
+      "returnCode": 0,
+      "passed": true,
+      "committedOwnerRecovered": true
+    },
+    "consentUiChanges": [
+      {
+        "step": "04-enable",
+        "checked": "true",
+        "sha256": "a4c47d70fc0b94c222f0414c7e4606248e6e1a7f7a07ba9573352b7b2399fb73"
+      },
+      {
+        "step": "06-disable",
+        "checked": "false",
+        "sha256": "e9ed948ed34cce17298db6debb062718c35e508f8991434feb63b5b55c3572f9"
+      }
+    ],
+    "consentColdPids": [
+      12682,
+      12843
+    ],
+    "consentFinal": false,
+    "evidenceHashes": {
+      "cloud-native-account-40-native/result.json": "22ba62f9f4e713a8029a4ef4cbeb94289ca79cd34691b3fbfd6a3022f3995e1e",
+      "integrated-final-42/result.json": "bdf66325059923b0401a152d7659abd31bb7a68d955218901d0c9b572aae363a",
+      "consent-ui-43/05-cold-readback/result.json": "af0e2e710033f163ac6e16a2c305ec8dfa3562ba8270aff8ff44b1ca23d85c9a",
+      "consent-ui-43/07-cold-disabled/result.json": "77da1c6d53d9ccc11a037550cdebe43e445c51c9c1196c2bd90161975bac9d4c"
+    },
+    "limits": "API36 one isolated emulator. Native account API/Compose checks, three maintenance phases and real consent UI/cold preference readback. Debug never uploads Crashlytics. No full form buttons, two-device sync, all personal entities, live SDK reports, production project, physical ARM64 or release runtime."
+  },
+  "releaseChecks": {
+    "state": "PASS",
+    "tasks": [
+      "lintRelease",
+      "minifyReleaseWithR8"
+    ],
+    "lint": {
+      "Warning": 614,
+      "Hint": 39
+    },
+    "logSha256": "5b0827b3f3bb38f64fd82e85227a51d0b203ced6d5110bd3342f23bb5cb740bf",
+    "lintSha256": "dd8432066759aafcfb3abbb80f9f8324f0042874e7bf4fab69e4b147a82384be",
+    "signedReleaseRuntimeTested": false,
+    "limits": "Static final release lint/minification only; signed runtime, 16KB execution and publication remain open."
+  },
+  "semanticReview": {
+    "reviewedRows": 572,
+    "totalRows": 814,
+    "reviewedFiles": 82,
+    "totalFiles": 131,
+    "universallyVerifiedRows": 0
+  },
+  "priorApkEvidence": {
+    "appSha256": "c8172b9f883d5c2ce8485a8511f4b04511558cf2b5031f2f311ac54dfea7d164",
+    "paths": [
+      "quota-cold-3",
+      "controlled-search-13",
+      "native-migration-33",
+      "saf-export-22",
+      "interactive-launch-5"
+    ],
+    "limits": "Pre-consent APK evidence, not rerun/claimed as final sources. Shared storage/schema/search source unchanged."
+  },
+  "externalOrOpenGates": [
+    "Real authorized field voice corpus",
+    "Google authenticated SDK session",
+    "Physical ARM64/API26..36/16KB runtime",
+    "Mac/iOS parity build",
+    "Two-device native sync and complete UI/service writer coverage",
+    "Play setup/prices/billing real purchase",
+    "Release signed runtime",
+    "Remote CI/beta/publication"
+  ],
+  "masterIntegration": "Receipt recorded separately after commit; no master success implied by this file.",
+  "pushPerformed": false,
+  "deployPerformed": false
+}

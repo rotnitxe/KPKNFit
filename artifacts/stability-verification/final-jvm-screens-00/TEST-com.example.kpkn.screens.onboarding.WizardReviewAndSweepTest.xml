@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.WizardReviewAndSweepTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:36:31.261Z" hostname="VF" time="0.015">
+  <properties/>
+  <testcase name="reviewSummariesAgreeWithOne" classname="com.example.kpkn.screens.onboarding.WizardReviewAndSweepTest" time="0.0"/>
+  <testcase name="reviewShowsThePreviousBodyFatHonestlyInsteadOfNotDeclared" classname="com.example.kpkn.screens.onboarding.WizardReviewAndSweepTest" time="0.001"/>
+  <testcase name="planNotesNoLongerUseInternalJargon" classname="com.example.kpkn.screens.onboarding.WizardReviewAndSweepTest" time="0.0"/>
+  <testcase name="highVolumeNoticeIsWrittenInPlainLanguage" classname="com.example.kpkn.screens.onboarding.WizardReviewAndSweepTest" time="0.005"/>
+  <testcase name="noWarningWhenThePlanStaysWithinTheLimitOrHasNoReport" classname="com.example.kpkn.screens.onboarding.WizardReviewAndSweepTest" time="0.004"/>
+  <testcase name="reviewNotesListTheWarningFirstAndThenThePlanNotes" classname="com.example.kpkn.screens.onboarding.WizardReviewAndSweepTest" time="0.0"/>
+  <testcase name="reviewKeepsTheOtherBodyFatCases" classname="com.example.kpkn.screens.onboarding.WizardReviewAndSweepTest" time="0.0"/>
+  <testcase name="sweepLogLineCarriesEveryMeasurementAndNoPersonalData" classname="com.example.kpkn.screens.onboarding.WizardReviewAndSweepTest" time="0.005"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

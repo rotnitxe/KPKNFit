@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.models.ProgramJsonSizeTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:51:23.329Z" hostname="VF" time="0.124">
+  <properties/>
+  <testcase name="large_program_json_size_is_measured_without_hard_failure_at_warning_threshold" classname="com.example.kpkn.data.models.ProgramJsonSizeTest" time="0.119"/>
+  <testcase name="legacy_json_without_new_program_fields_uses_safe_defaults" classname="com.example.kpkn.data.models.ProgramJsonSizeTest" time="0.005"/>
+  <system-out><![CDATA[ProgramJsonSizeTest bytes=2328556
+WARNING: Program JSON supera 300KB; considerar normalización futura.
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

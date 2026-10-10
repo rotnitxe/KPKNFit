@@ -1,0 +1,20 @@
+{
+  "state": "FAIL_OR_INCOMPLETE",
+  "scope": "SYNTHETIC_GPS_FGS_FILE_RESTORE_ON_PREPARED_PROFILE",
+  "limits": "Actual platform GPS/FGS/file restore with synthetic AVD fixes, one API36 device. No UI workout/editor, permission revocation, approximate-only location, process restart or physical route.",
+  "gmsInitiallyDisabled": true,
+  "appApkSha256": "f765a31a97dfa4214208cf859425544118c9eb79eaf3dfc7dae47cc5d73685fe",
+  "testApkSha256": "3a3465015b5caad4f8aefcfc8300f561b051926ce3c5282d01acb13fcd5009f8",
+  "errorType": "AssertionError",
+  "error": "INSTRUMENTATION_STATUS: class=com.example.kpkn.services.cardio.StableProfileGpsLifecycleTest\nINSTRUMENTATION_STATUS: current=1\nINSTRUMENTATION_STATUS: id=AndroidJUnitRunner\nINSTRUMENTATION_STATUS: numtests=1\nINSTRUMENTATION_STATUS: stream=\ncom.example.kpkn.services.cardio.StableProfileGpsLifecycleTest:\nINSTRUMENTATION_STATUS: test=preparedProfileRecordsPausesResumesAndRestoresDurableRoute\nINSTRUMENTATION_STATUS_CODE: 1\nINSTRUMENTATION_STATUS: class=com.example.kpkn.services.cardio.StableProfileGpsLifecycleTest\nINSTRUMENTATION_STATUS: current=1\nINSTRUMENTATION_STATUS: id=AndroidJUnitRunner\nINSTRUMENTATION_STATUS: numtests=1\nINSTRUMENTATION_STATUS: stack=kotlinx.coroutines.TimeoutCancellationException: Timed out waiting for 30000 ms\n\tat kotlinx.coroutines.TimeoutKt.TimeoutCancellationException(Timeout.kt:188)\n\tat kotlinx.coroutines.TimeoutCoroutine.run(Timeout.kt:156)\n\tat kotlinx.coroutines.EventLoopImplBase$DelayedRunnableTask.run(EventLoop.common.kt:505)\n\tat kotlinx.coroutines.EventLoopImplBase.processNextEvent(EventLoop.common.kt:263)\n\tat kotlinx.coroutines.DefaultExecutor.run(DefaultExecutor.kt:105)\n\tat java.lang.Thread.run(Thread.java:1119)\n\nINSTRUMENTATION_STATUS: stream=\nError in preparedProfileRecordsPausesResumesAndRestoresDurableRoute(com.example.kpkn.services.cardio.StableProfileGpsLifecycleTest):\nkotlinx.coroutines.TimeoutCancellationException: Timed out waiting for 30000 ms\n\tat kotlinx.coroutines.TimeoutKt.TimeoutCancellationException(Timeout.kt:188)\n\tat kotlinx.coroutines.TimeoutCoroutine.run(Timeout.kt:156)\n\tat kotlinx.coroutines.EventLoopImplBase$DelayedRunnableTask.run(EventLoop.common.kt:505)\n\tat kotlinx.coroutines.EventLoopImplBase.processNextEvent(EventLoop.common.kt:263)\n\tat kotlinx.coroutines.DefaultExecutor.run(DefaultExecutor.kt:105)\n\tat java.lang.Thread.run(Thread.java:1119)\n\nINSTRUMENTATION_STATUS: test=preparedProfileRecordsPausesResumesAndRestoresDurableRoute\nINSTRUMENTATION_STATUS_CODE: -2\nINSTRUMENTATION_RESULT: stream=\n\nTime: 34.972\nThere was 1 failure:\n1) preparedProfileRecordsPausesResumesAndRestoresDurableRoute(com.example.kpkn.services.cardio.StableProfileGpsLifecycleTest)\nkotlinx.coroutines.TimeoutCancellationException: Timed out waiting for 30000 ms\n\tat kotlinx.coroutines.TimeoutKt.TimeoutCancellationException(Timeout.kt:188)\n\tat kotlinx.coroutines.TimeoutCoroutine.run(Timeout.kt:156)\n\tat kotlinx.coroutines.EventLoopImplBase$DelayedRunnableTask.run(EventLoop.common.kt:505)\n\tat kotlinx.coroutines.EventLoopImplBase.processNextEvent(EventLoop.common.kt:263)\n\tat kotlinx.coroutines.DefaultExecutor.run(DefaultExecutor.kt:105)\n\tat java.lang.Thread.run(Thread.java:1119)\n\nFAILURES!!!\nTests run: 1,  Failures: 1\n\n\nINSTRUMENTATION_CODE: -1\n",
+  "permissionRestoration": {
+    "android.permission.ACCESS_FINE_LOCATION": true,
+    "android.permission.ACCESS_COARSE_LOCATION": true
+  },
+  "gmsRestoredDisabled": true,
+  "evidenceHashes": {
+    "instrumentation.txt": "1f182b9d8e7a2cea6e3ac3ae8a465b7b11c94c774c2df0d26337b994176f688a",
+    "synthetic-fixes.json": "4333231393eb155198a7a0d192ddf7f70b19b03a3636e4283df67309511e13e9",
+    "test-install.txt": "c4aa470acafcf8576c15b0f0b5ae7e852d1ec5413372d0e6a9272e788e1306d3"
+  }
+}

@@ -34,6 +34,7 @@ fun AccountScreen(onBack: () -> Unit, onDataControls: (() -> Unit)? = null,
     provided: AccountViewModel? = null, dataControlsOnly: Boolean = false) {
     val context = LocalContext.current
     val viewModel = provided ?: viewModel { AccountViewModel(context) }
+    val crashConsentEditor = remember(context) { com.example.kpkn.data.diagnostics.CrashReportingController.consentEditor(context) }
     val state by viewModel.accountState.collectAsState()
     val ui by viewModel.ui.collectAsState()
     val entitlement by viewModel.entitlement.collectAsState()
@@ -159,7 +160,7 @@ fun AccountScreen(onBack: () -> Unit, onDataControls: (() -> Unit)? = null,
         if (onDataControls != null) TextButton(onClick = onDataControls) { Text(stringResource(R.string.account_data_controls)) }
         if (!dataControlsOnly) {
             HorizontalDivider()
-            Choice(crashConsent, { value -> viewModel.action { com.example.kpkn.data.diagnostics.CrashReportingController.changeConsent(context, value); kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { crashConsent = value } } }, stringResource(R.string.account_crash_consent))
+            Choice(crashConsent, { value -> viewModel.action { crashConsentEditor.change(value); kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { crashConsent = value } } }, stringResource(R.string.account_crash_consent))
         }
     }
     if (eraseUnavailable) AlertDialog(onDismissRequest = { eraseUnavailable = false },

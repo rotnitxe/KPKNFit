@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.ContextDetectorTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:57:29.079Z" hostname="VF" time="0.002">
+  <properties/>
+  <testcase name="jamón no dispara desayuno por el am" classname="com.example.kpkn.domain.nutrition.ContextDetectorTest" time="0.001"/>
+  <testcase name="desayuno explícito se detecta" classname="com.example.kpkn.domain.nutrition.ContextDetectorTest" time="0.0"/>
+  <testcase name="sin contexto lexico infiere forma de comida" classname="com.example.kpkn.domain.nutrition.ContextDetectorTest" time="0.001"/>
+  <testcase name="casino se detecta por palabra completa" classname="com.example.kpkn.domain.nutrition.ContextDetectorTest" time="0.0"/>
+  <testcase name="snack y oficina en colacion de oficina" classname="com.example.kpkn.domain.nutrition.ContextDetectorTest" time="0.0"/>
+  <testcase name="trabajo no matchea trabajosa" classname="com.example.kpkn.domain.nutrition.ContextDetectorTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

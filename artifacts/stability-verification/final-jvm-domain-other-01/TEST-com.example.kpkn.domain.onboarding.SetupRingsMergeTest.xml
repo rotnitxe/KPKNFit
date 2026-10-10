@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.onboarding.SetupRingsMergeTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:25:04.692Z" hostname="VF" time="1.278">
+  <properties/>
+  <testcase name="ringsCommitDoesNotSynthesizeSleepStressOrExtraDates" classname="com.example.kpkn.domain.onboarding.SetupRingsMergeTest" time="0.15"/>
+  <testcase name="unknownMuscleFeelingOnlyFlowsFromMapperThroughSharedMergeForCommitAndPreview" classname="com.example.kpkn.domain.onboarding.SetupRingsMergeTest" time="0.143"/>
+  <testcase name="fieldMergePreservesGlobalMuscularNeuralSpinalMusclesAndExplicitDiscomforts" classname="com.example.kpkn.domain.onboarding.SetupRingsMergeTest" time="0.145"/>
+  <testcase name="fullEvidenceKeepsDeclaredCheckInAndEngineAppliesOneSourcePerChannel" classname="com.example.kpkn.domain.onboarding.SetupRingsMergeTest" time="0.156"/>
+  <testcase name="unreportedChannelsDoNotTouchExistingManualValues" classname="com.example.kpkn.domain.onboarding.SetupRingsMergeTest" time="0.15"/>
+  <testcase name="partialCheckInWithoutMuscleScopePreservesGlobalMuscleFeeling" classname="com.example.kpkn.domain.onboarding.SetupRingsMergeTest" time="0.141"/>
+  <testcase name="declaredAbsentWithPartialFeelingsSavesEvidenceAndOnlyDeclaredChannels" classname="com.example.kpkn.domain.onboarding.SetupRingsMergeTest" time="0.125"/>
+  <testcase name="explicitZeroBatterySurvivesFieldMerge" classname="com.example.kpkn.domain.onboarding.SetupRingsMergeTest" time="0.132"/>
+  <testcase name="knownRecentTrainingWithPartialFeelingsSavesEvidenceAndOnlyDeclaredChannels" classname="com.example.kpkn.domain.onboarding.SetupRingsMergeTest" time="0.136"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

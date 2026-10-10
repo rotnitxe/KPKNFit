@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.TextNormalizerTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:58:42.026Z" hostname="VF" time="0.003">
+  <properties/>
+  <testcase name="normalize_numberWordsToDigits" classname="com.example.kpkn.domain.nutrition.TextNormalizerTest" time="0.0"/>
+  <testcase name="normalize_handlesFillers" classname="com.example.kpkn.domain.nutrition.TextNormalizerTest" time="0.0"/>
+  <testcase name="normalize_handlesFractions" classname="com.example.kpkn.domain.nutrition.TextNormalizerTest" time="0.0"/>
+  <testcase name="normalizeFoodName_handlesDiminutives" classname="com.example.kpkn.domain.nutrition.TextNormalizerTest" time="0.0"/>
+  <testcase name="normalizeFoodName_handlesAumentativos" classname="com.example.kpkn.domain.nutrition.TextNormalizerTest" time="0.0"/>
+  <testcase name="normalize_handlesEmojis" classname="com.example.kpkn.domain.nutrition.TextNormalizerTest" time="0.001"/>
+  <testcase name="normalize_handlesRepeatedVowels" classname="com.example.kpkn.domain.nutrition.TextNormalizerTest" time="0.0"/>
+  <testcase name="normalizeFoodName_preservesUnknownAugmentatives" classname="com.example.kpkn.domain.nutrition.TextNormalizerTest" time="0.0"/>
+  <testcase name="normalize_handlesShorthand" classname="com.example.kpkn.domain.nutrition.TextNormalizerTest" time="0.0"/>
+  <testcase name="normalize_handlesTypos" classname="com.example.kpkn.domain.nutrition.TextNormalizerTest" time="0.0"/>
+  <testcase name="normalize_handlesEnglishToSpanish" classname="com.example.kpkn.domain.nutrition.TextNormalizerTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

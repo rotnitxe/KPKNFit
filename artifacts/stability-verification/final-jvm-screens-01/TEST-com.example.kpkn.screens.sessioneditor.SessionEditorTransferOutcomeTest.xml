@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.sessioneditor.SessionEditorTransferOutcomeTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:38:12.697Z" hostname="VF" time="0.014">
+  <properties/>
+  <testcase name="selectedWeekAndDayStillResolveAfterProgramIndicesShift" classname="com.example.kpkn.screens.sessioneditor.SessionEditorTransferOutcomeTest" time="0.009"/>
+  <testcase name="retryingTheSameCommittedAppendDoesNotCloneThePayloadTwice" classname="com.example.kpkn.screens.sessioneditor.SessionEditorTransferOutcomeTest" time="0.003"/>
+  <testcase name="vanishedTargetWeekIsReportedAsUnaffectedInsteadOfWritingAStaleSession" classname="com.example.kpkn.screens.sessioneditor.SessionEditorTransferOutcomeTest" time="0.0"/>
+  <testcase name="appendAndReplacePreserveExistingDestinationRecipeDayBeforeUsingTheCurrentRecipeDay" classname="com.example.kpkn.screens.sessioneditor.SessionEditorTransferOutcomeTest" time="0.001"/>
+  <testcase name="appendUsesLiveDestinationIdAndLeavesOtherDaysUntouched" classname="com.example.kpkn.screens.sessioneditor.SessionEditorTransferOutcomeTest" time="0.0"/>
+  <testcase name="eachTransferredDestinationGetsItsOwnSessionOverrideCoordinates" classname="com.example.kpkn.screens.sessioneditor.SessionEditorTransferOutcomeTest" time="0.001"/>
+  <testcase name="emptyDestinationCreatesOneSessionAndRematerializedOptionsFindItsId" classname="com.example.kpkn.screens.sessioneditor.SessionEditorTransferOutcomeTest" time="0.0"/>
+  <testcase name="replacePreservesTheExistingDestinationIdentity" classname="com.example.kpkn.screens.sessioneditor.SessionEditorTransferOutcomeTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,27 @@
+{
+  "state": "LOCAL_RUNTIME_SELECTION_VERIFIED_REMOTE_CI_PENDING",
+  "workflowSha256": "9c2cd3ea721bae5b4a445e58ce4a6e3014ae52b6634d30d22494696bbb97d3a2",
+  "contracts": {
+    "tests": 12,
+    "passCount": 12,
+    "failures": 0,
+    "skipped": 0,
+    "runtime": "v22.23.3"
+  },
+  "emulatorIntegration": {
+    "tests": 22,
+    "passCount": 22,
+    "failures": 0,
+    "skipped": 0,
+    "functionsRuntime": "v22.23.3",
+    "rulesRuntime": "v24.19.0",
+    "resultPath": "../stability-verification/ci-runtime-local-01/result.json",
+    "resultSha256": "b5a08cd72362d99ec7c96194ea8afdbc28c26334d30dfabc2ea0e66d0d2e4f19",
+    "logSha256": "8a76fbc9034d78376920277d38403c15c9327f983e491abf8af70a8f64440cdb"
+  },
+  "androidSourceChanged": false,
+  "remoteCiExecuted": false,
+  "pushPerformed": false,
+  "deployPerformed": false,
+  "limits": "Local runtime split matches the new workflow; actual Linux GitHub job not run. Emulator lifecycle test is local Firebase, billing uses fixtures and Pub/Sub absent."
+}

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.protocols.ProtocolClaimsTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:53:13.461Z" hostname="VF" time="0.005">
+  <properties/>
+  <testcase name="description_and_tags_match_recipe" classname="com.example.kpkn.data.protocols.ProtocolClaimsTest" time="0.005"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,71 @@
+Applications Memory Usage (in Kilobytes):
+Uptime: 208949 Realtime: 208949
+
+** MEMINFO in pid 4022 [com.example.kpkn.stability] **
+                   Pss  Private  Private     Swap      Rss     Heap     Heap     Heap
+                 Total    Dirty    Clean    Dirty    Total     Size    Alloc     Free
+                ------   ------   ------   ------   ------   ------   ------   ------
+  Native Heap    18207    18160        0        0    21956    31108    25817     1412
+  Dalvik Heap    28119    27996        0        0    35816    37060    18530    18530
+ Dalvik Other    10998     9048        0        0    13648                           
+        Stack     2504     2504        0        0     2512                           
+       Ashmem       11        0        0        0      608                           
+    Other dev       13        0       12        0      312                           
+     .so mmap     2324      288       96        0    41036                           
+    .jar mmap     2259        0      232        0    45124                           
+    .apk mmap      587        0       96        0     2900                           
+    .ttf mmap      267        0        0        0     1228                           
+    .dex mmap       12        0        0        0      944                           
+    .oat mmap       29        0        0        0     1768                           
+    .art mmap     9109     8748        0        0    32056                           
+   Other mmap     1142       68       24        0     3744                           
+      Unknown   132577   132572        0        0   133512                           
+        TOTAL   208158   199384      460        0   337164    68168    44347    19942
+ 
+ App Summary
+                       Pss(KB)                        Rss(KB)
+                        ------                         ------
+           Java Heap:    36744                          67872
+         Native Heap:    18160                          21956
+                Code:      796                          96972
+               Stack:     2504                           2512
+            Graphics:        0                              0
+       Private Other:   141640
+              System:     8314
+             Unknown:                                  147852
+ 
+           TOTAL PSS:   208158            TOTAL RSS:   337164      TOTAL SWAP (KB):        0
+ 
+ Objects
+               Views:       13         ViewRootImpl:        1
+         AppContexts:        6           Activities:        1
+              Assets:       23        AssetManagers:        0
+       Local Binders:       20        Proxy Binders:       49
+       Parcel memory:       13         Parcel count:       50
+    Death Recipients:        0             WebViews:        0
+ 
+ Native Allocations
+                         Count                       Total(kB)
+                        ------                         ------
+    Other (malloced):     4115                            392
+ Other (nonmalloced):       79                             58
+ 
+ SQL
+         MEMORY_USED:     3444
+  PAGECACHE_OVERFLOW:      918          MALLOC_SIZE:       46
+ 
+ DATABASES
+      pgsz     dbsz   Lookaside(b) cache hits cache misses cache size  Dbname
+PER CONNECTION STATS
+         4       96            123     7    40     8  /data/user/0/com.example.kpkn.stability/no_backup/profiles/legacy-guest/androidx.work.workdb
+         4        8                    0     0     0    (attached) temp
+         4       96             45     4    23     5  /data/user/0/com.example.kpkn.stability/no_backup/profiles/legacy-guest/androidx.work.workdb (1)
+         4     3052             37     2   130     3  /data/user/0/com.example.kpkn.stability/databases/kpkn.db
+         4        8                    0     0     0    (attached) temp
+         4     3052            123    28    55    12  /data/user/0/com.example.kpkn.stability/databases/kpkn.db (106)
+         4     3052            113    21    57     8  /data/user/0/com.example.kpkn.stability/databases/kpkn.db (107)
+         4     3052             84    24    47     5  /data/user/0/com.example.kpkn.stability/databases/kpkn.db (108)
+POOL STATS
+     cache hits  cache misses    cache size  Dbname
+             11            67            78  /data/user/0/com.example.kpkn.stability/no_backup/profiles/legacy-guest/androidx.work.workdb
+             43          1466          1509  /data/user/0/com.example.kpkn.stability/databases/kpkn.db

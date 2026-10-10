@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.design.WizardMacroRingsTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:36:32.400Z" hostname="VF" time="0.01">
+  <properties/>
+  <testcase name="el anillo exterior son las kcal frente al mantenimiento con la marca en el 100 por ciento" classname="com.example.kpkn.screens.onboarding.design.WizardMacroRingsTest" time="0.002"/>
+  <testcase name="los anillos interiores son gramos frente al maximo de su deslizador" classname="com.example.kpkn.screens.onboarding.design.WizardMacroRingsTest" time="0.001"/>
+  <testcase name="sin EER el anillo exterior queda lleno y sin marca" classname="com.example.kpkn.screens.onboarding.design.WizardMacroRingsTest" time="0.0"/>
+  <testcase name="las marcas de graduacion son entre cuatro y nueve y nunca los extremos" classname="com.example.kpkn.screens.onboarding.design.WizardMacroRingsTest" time="0.005"/>
+  <testcase name="el numero central se achica lo justo para caber y nunca baja de 45 por ciento" classname="com.example.kpkn.screens.onboarding.design.WizardMacroRingsTest" time="0.0"/>
+  <testcase name="el hueco de los anillos descuenta margen trazos y separaciones" classname="com.example.kpkn.screens.onboarding.design.WizardMacroRingsTest" time="0.0"/>
+  <testcase name="una fraccion nunca sale de 0 a 1" classname="com.example.kpkn.screens.onboarding.design.WizardMacroRingsTest" time="0.0"/>
+  <testcase name="un dia elegido dibuja los anillos con los objetivos de ese dia" classname="com.example.kpkn.screens.onboarding.design.WizardMacroRingsTest" time="0.0"/>
+  <testcase name="el resumen de los anillos lee kcal y gramos y nombra el dia elegido" classname="com.example.kpkn.screens.onboarding.design.WizardMacroRingsTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.design.entreno.plan.GoalProfileListTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:37:35.863Z" hostname="VF" time="0.82">
+  <properties/>
+  <testcase name="aBlockedProfileOnlyReportsTheTap" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.GoalProfileListTest" time="0.105"/>
+  <testcase name="theReasonIsPaintedInsteadOfTheTagline" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.GoalProfileListTest" time="0.066"/>
+  <testcase name="aBlockedProfileCannotLookSelected" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.GoalProfileListTest" time="0.069"/>
+  <testcase name="withTheSystemMotionSettingNothingChangesInTheSemantics" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.GoalProfileListTest" time="0.067"/>
+  <testcase name="theLabelIsNotAnnouncedTwice" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.GoalProfileListTest" time="0.054"/>
+  <testcase name="theSelectedProfileIsAnnouncedAsSelected" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.GoalProfileListTest" time="0.069"/>
+  <testcase name="theTwoSectionsAreNamedAndTheLegendSaysItDependsOnTheMaterial" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.GoalProfileListTest" time="0.054"/>
+  <testcase name="tappingAProfileSelectsItAndOnlyIt" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.GoalProfileListTest" time="0.054"/>
+  <testcase name="theAnnouncementFollowsTheSelection" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.GoalProfileListTest" time="0.059"/>
+  <testcase name="theRowIsARadioButton" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.GoalProfileListTest" time="0.056"/>
+  <testcase name="theReasonAndTheActionReachTalkBack" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.GoalProfileListTest" time="0.059"/>
+  <testcase name="everyProfileHasItsRowWithItsTag" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.GoalProfileListTest" time="0.054"/>
+  <testcase name="everyRowIsATouchTargetOfAtLeast48dp" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.GoalProfileListTest" time="0.054"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.approach.ApproachGeneratedRoutineTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:30:21.554Z" hostname="VF" time="0.332">
+  <properties/>
+  <testcase name="generated_sessions_already_carry_the_mandatory_approach" classname="com.example.kpkn.domain.training.approach.ApproachGeneratedRoutineTest" time="0.262"/>
+  <testcase name="a_second_pass_with_the_materializer_provider_never_duplicates_or_replaces_and_is_idempotent" classname="com.example.kpkn.domain.training.approach.ApproachGeneratedRoutineTest" time="0.07"/>
+  <system-out><![CDATA[
+[D3] segunda pasada del planificador (proveedor del materializador) sobre sesiones del generador: sesiones=36 cambian=0
+
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

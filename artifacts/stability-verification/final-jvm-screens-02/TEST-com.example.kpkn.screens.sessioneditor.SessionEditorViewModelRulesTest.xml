@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.sessioneditor.SessionEditorViewModelRulesTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:38:53.682Z" hostname="VF" time="2.402">
+  <properties/>
+  <testcase name="reloadRequestedAfterTheSessionLoaded_neverResetsVariantOrRuleDefaults" classname="com.example.kpkn.screens.sessioneditor.SessionEditorViewModelRulesTest" time="0.288"/>
+  <testcase name="picker_relationship_cardio_and_superset_commands_route_to_active_b_c_d" classname="com.example.kpkn.screens.sessioneditor.SessionEditorViewModelRulesTest" time="0.217"/>
+  <testcase name="saveCurrentSessionAsTemplate_rejects_target_only_modality_hidden_by_valid_strength" classname="com.example.kpkn.screens.sessioneditor.SessionEditorViewModelRulesTest" time="0.195"/>
+  <testcase name="saveCurrentSessionAsTemplate_fromBaseSession_publishesFlow_after_room_write" classname="com.example.kpkn.screens.sessioneditor.SessionEditorViewModelRulesTest" time="0.231"/>
+  <testcase name="saveCurrentSessionAsTemplate_rejects_mixed_valid_and_placeholder_strength_cards" classname="com.example.kpkn.screens.sessioneditor.SessionEditorViewModelRulesTest" time="0.184"/>
+  <testcase name="applyingRules_toActiveVariant_keepsOtherVariantsUntouched" classname="com.example.kpkn.screens.sessioneditor.SessionEditorViewModelRulesTest" time="0.185"/>
+  <testcase name="applyingRules_updatesVisibleSession_persistsDraft_andReopensWithSameValues" classname="com.example.kpkn.screens.sessioneditor.SessionEditorViewModelRulesTest" time="0.212"/>
+  <testcase name="saveCurrentSessionAsTemplate_rejects_nonExecutable_base_and_variant" classname="com.example.kpkn.screens.sessioneditor.SessionEditorViewModelRulesTest" time="0.178"/>
+  <testcase name="applyingRules_toGroup_onlyChangesExercisesInsideThatGroup" classname="com.example.kpkn.screens.sessioneditor.SessionEditorViewModelRulesTest" time="0.174"/>
+  <testcase name="failedReloadAfterTheSessionLoaded_doesNotPutTheEditorInItsErrorState" classname="com.example.kpkn.screens.sessioneditor.SessionEditorViewModelRulesTest" time="0.19"/>
+  <testcase name="saveTemplateDialogCommand_is_result_driven_and_publishes_after_room_write" classname="com.example.kpkn.screens.sessioneditor.SessionEditorViewModelRulesTest" time="0.187"/>
+  <testcase name="saveCurrentSessionAsTemplate_returns_success_only_after_room_readback" classname="com.example.kpkn.screens.sessioneditor.SessionEditorViewModelRulesTest" time="0.16"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

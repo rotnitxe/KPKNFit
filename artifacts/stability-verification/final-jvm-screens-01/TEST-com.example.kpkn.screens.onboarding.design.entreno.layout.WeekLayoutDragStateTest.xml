@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutDragStateTest" tests="29" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:37:30.318Z" hostname="VF" time="0.033">
+  <properties/>
+  <testcase name="liftingEndsThePressFeedback" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutDragStateTest" time="0.025"/>
+  <testcase name="dragWithoutALiftedFichaDoesNothing" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutDragStateTest" time="0.0"/>
+  <testcase name="theGeometryPlacesEachRowBelowThePreviousOne" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutDragStateTest" time="0.0"/>
+  <testcase name="theGeometryFollowsTheWeekStart" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutDragStateTest" time="0.0"/>
+  <testcase name="afterDroppingYouCanLiftAgain" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutDragStateTest" time="0.001"/>
+  <testcase name="onlyOneSessionCanBeLiftedAndOnlyAPlacedOne" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutDragStateTest" time="0.0"/>
+  <testcase name="aFichaStaysRaisedUntilItSettles" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutDragStateTest" time="0.001"/>
+  <testcase name="theFichaOnlyLeavesTheListByTheDragRange" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutDragStateTest" time="0.0"/>
+  <testcase name="aDraggedFichaIsNotMovedByTheSpring" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutDragStateTest" time="0.001"/>
+  <testcase name="snapToTargetPlacesTheFichaAtOnce" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutDragStateTest" time="0.0"/>
+  <testcase name="anEmptyGeometryHasNothing" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutDragStateTest" time="0.0"/>
+  <testcase name="theFichaFollowsTheFingerDownTheListKeepingTheGrabPoint" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutDragStateTest" time="0.0"/>
+  <testcase name="dropWithNothingLiftedIsNothing" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutDragStateTest" time="0.0"/>
+  <testcase name="theSpringIsStableWithLongFramesAndHugeJumps" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutDragStateTest" time="0.002"/>
+  <testcase name="pullingAwayFromTheListLeavesNoDestination" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutDragStateTest" time="0.001"/>
+  <testcase name="forgettingFichasDropsTheirMotion" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutDragStateTest" time="0.0"/>
+  <testcase name="scrollingUnderAStillFingerKeepsTheFichaOnTheFinger" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutDragStateTest" time="0.0"/>
+  <testcase name="dropOnTheOwnDayOrOutsideReportsNoDestination" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutDragStateTest" time="0.0"/>
+  <testcase name="aFichaAtItsTargetIsAtRestAndDoesNotMove" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutDragStateTest" time="0.0"/>
+  <testcase name="theHandleIsTheEndOfTheRow" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutDragStateTest" time="0.0"/>
+  <testcase name="cancelLetsGoOfTheFichaAndClearsTheDestination" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutDragStateTest" time="0.0"/>
+  <testcase name="everyLiftAndDropWakesTheSpringLoop" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutDragStateTest" time="0.001"/>
+  <testcase name="liftingMarksTheSessionAndItsOrigin" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutDragStateTest" time="0.0"/>
+  <testcase name="dayAtAndSessionAtDayTellWhoIsUnderTheFinger" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutDragStateTest" time="0.0"/>
+  <testcase name="dropOnAnotherDayReportsIt" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutDragStateTest" time="0.0"/>
+  <testcase name="theFirstAndLastRowsAreReachableAtTheEndsOfTheList" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutDragStateTest" time="0.0"/>
+  <testcase name="theDayUnderTheFichaIsWhereItsCenterIs" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutDragStateTest" time="0.001"/>
+  <testcase name="theFichaOnlyMovesUpAndDownNeverSideways" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutDragStateTest" time="0.0"/>
+  <testcase name="theSpringArrivesAtItsTargetWithoutWildOvershoot" classname="com.example.kpkn.screens.onboarding.design.entreno.layout.WeekLayoutDragStateTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

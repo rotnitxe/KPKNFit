@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.auge.OvertrainingDetectorTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:59:18.643Z" hostname="VF" time="0.015">
+  <properties/>
+  <testcase name="returns empty when no history or no volume recommendations" classname="com.example.kpkn.domain.auge.OvertrainingDetectorTest" time="0.01"/>
+  <testcase name="detects overtraining when enough factors align" classname="com.example.kpkn.domain.auge.OvertrainingDetectorTest" time="0.005"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

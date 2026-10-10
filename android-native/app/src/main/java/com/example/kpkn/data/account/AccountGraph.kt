@@ -53,7 +53,7 @@ object AccountGraph {
     suspend fun stop(resetEntitlement: Boolean = true) {
         val previousPlay = synchronized(this) { play.also { play = null } }
         val playCloseError = runCatching { previousPlay?.closeForDataSession() }.exceptionOrNull()
-        if (attachedProfileKey != null) com.example.kpkn.data.diagnostics.CrashReportingController.setEnabled(false)
+        com.example.kpkn.data.diagnostics.CrashReportingController.pauseForDataSession()
         attachedProfileKey = null
         profileJob?.cancelAndJoin(); profileJob = null; foregroundSync = null; currentEntitlement = null
         if (resetEntitlement) withContext(Dispatchers.Main) { publish(EntitlementState()) }

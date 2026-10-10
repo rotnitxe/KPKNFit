@@ -1,0 +1,30 @@
+{
+  "state": "PASS",
+  "limits": "One native device/local Firebase, actual AccountRepository/AppDataSessions/Auth/Room, MainActivity and Compose email checks. Identity commands call actual API; not every form button, native two-device sync, all entities, Google/Play or remote project.",
+  "appApkSha256": "f765a31a97dfa4214208cf859425544118c9eb79eaf3dfc7dae47cc5d73685fe",
+  "testApkSha256": "cbe22ba2cf7389482df07cb714ecba17eb22ea9cfbffb9e162d85e7104fa985a",
+  "receipt": {
+    "state": "PASS",
+    "distinctUids": true,
+    "accountARetained": true,
+    "accountBHiddenFromA": true,
+    "staleWriterRejected": true,
+    "finalGuest": true,
+    "scope": "ONE_DEVICE_LOCAL_FIREBASE_NATIVE_CLIENT_AND_ROOM"
+  },
+  "api": "36",
+  "mainVisible": true,
+  "appPid": 11714,
+  "errorDialogPresent": false,
+  "logScope": "Final PID available buffer and events bounded from this instrumentation start",
+  "evidenceHashes": {
+    "activity.txt": "6d6ce3a40e754a49126e3515bb6f545a34804814ffa75746550312c0ff14f696",
+    "events-bounded.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "install-app.txt": "c4aa470acafcf8576c15b0f0b5ae7e852d1ec5413372d0e6a9272e788e1306d3",
+    "install-test.txt": "c4aa470acafcf8576c15b0f0b5ae7e852d1ec5413372d0e6a9272e788e1306d3",
+    "instrumentation.txt": "cf86fc16c5abd4e8d1736db8052724bdd4b1f2ca60b520bf2b3e93854b09fa04",
+    "logcat-final-pid.txt": "76b39901f0f9dc790abf9701171f1da684e7894cb14db672af5508793c736ed2",
+    "main.png": "2aabf9a204cd0a48274f6079ef57fd121be755a21bcce453642c40f6a0df0cff",
+    "ui.xml": "3553c8d9fc1d8dd26787899a195d46dda0e1da7a1e1be63e5f00b0ebe71922f5"
+  }
+}

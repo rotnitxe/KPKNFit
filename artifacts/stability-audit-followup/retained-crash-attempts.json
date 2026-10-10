@@ -1,0 +1,84 @@
+[
+  {
+    "attempt": "01",
+    "outcome": "SETUP_FAILED_BEFORE_PRODUCT_ASSERTIONS",
+    "reason": "Final BuildConfig.DEBUG could not be changed by reflection",
+    "cases": 4
+  },
+  {
+    "attempt": "02",
+    "outcome": "INCOMPLETE_STDOUT_ONLY",
+    "reason": "Initial Release task attempt retained without full stderr; 03 is its complete successor"
+  },
+  {
+    "attempt": "03",
+    "outcome": "TASK_NOT_AVAILABLE",
+    "reason": "AGP9 enables host unit tests only for tested Debug build type by default"
+  },
+  {
+    "attempt": "04",
+    "outcome": "SHARED_TEST_FIXTURE_COMPILE_FAILED",
+    "reason": "Shared WizardHarnessDraftsTest depends on Debug-only code; 67 compilation diagnostics in that file, zero in the new probe. No product assertion executed"
+  },
+  {
+    "attempt": "05",
+    "outcome": "PRODUCT_RACES_REPRODUCED_WITH_SIMULATED_SDK",
+    "cases": 4,
+    "passed": 1,
+    "failures": 3
+  },
+  {
+    "attempt": "06",
+    "outcome": "UNCHANGED_BASELINE_ASSERTIONS_PASS",
+    "cases": 4,
+    "passed": 4,
+    "failures": 0
+  },
+  {
+    "attempt": "07",
+    "outcome": "EXPANDED_RELEASE_SIMULATED_SDK_PASS",
+    "cases": 24,
+    "passed": 24,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "attempt": "08",
+    "outcome": "BUILD_AND_FOUR_CLASSES_PASS_WITH_TWO_UNMATCHED_SELECTORS",
+    "cases": 11,
+    "passed": 11,
+    "failures": 0,
+    "reason": "Two .data.settings patterns corrected to the actual .data.backup package in 09"
+  },
+  {
+    "attempt": "09",
+    "outcome": "ALL_SIX_TARGETED_DEBUG_CLASSES_PASS",
+    "cases": 16,
+    "passed": 16,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "attempt": "10",
+    "outcome": "NEW_APK_INSTALLED_AND_MAIN_TOP_RESUMED_WITHOUT_DIALOG"
+  },
+  {
+    "attempt": "11",
+    "outcome": "PUBLIC_CONSENT_TRUE_FALSE_RETAINED_IN_TWO_NEW_PROCESSES",
+    "sdkUploads": false
+  },
+  {
+    "attempt": "12",
+    "outcome": "REGISTRY_AND_THREE_NATIVE_MAINTENANCE_PHASES_PASS",
+    "cases": 4
+  },
+  {
+    "attempt": "13",
+    "outcome": "LINT_R8_PASS",
+    "lintErrors": 0,
+    "lintWarnings": 613,
+    "lintHints": 39
+  }
+]

@@ -1,0 +1,16 @@
+{
+  "state": "PASS",
+  "project": "demo-kpkn-stability",
+  "functionsRuntime": "v22.23.3",
+  "rulesClientRuntime": "v24.19.0",
+  "limits": "Local emulators/rules/client fixtures only; no live Play purchases, remote project, RTDN/PubSub delivery, production App Check or multi-device native accounts.",
+  "testMode": "native-instrumented",
+  "exitCode": 0,
+  "elapsedSeconds": 203.57314157485962,
+  "sourceHashes": {
+    "cloud-sync\\firebase.json": "ea6845408c07d2b292826f00f125a921a00652c0bda51af072b5aee6c44b8f11",
+    "cloud-sync\\package-lock.json": "e9c3cbd77e88ded0fb98cfb67b382dbde855948678567895e8428480d7628bba",
+    "cloud-sync\\functions\\package-lock.json": "989e13fc2f4abec718b8e3f39fb05dece05a76370c338fe549a66cfcab1f177b",
+    "scripts\\stability\\native_account_instrumented_qa.py": "fdb1055c7f128b7b5d84931c423296def6f00e2f957b5c1310c77867b295ef05"
+  }
+}

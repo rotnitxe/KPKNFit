@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.diagnostics.CrashReportLifecycleAdversarialTest" tests="24" skipped="0" failures="0" errors="0" timestamp="2026-10-10T10:02:13.226Z" hostname="VF" time="10.89">
+  <properties/>
+  <testcase name="rejectedPendingRemovalDisablesNewAttachment[26]" classname="com.example.kpkn.data.diagnostics.CrashReportLifecycleAdversarialTest" time="4.439"/>
+  <testcase name="rejectedPendingRemovalDisablesNewAttachment" classname="com.example.kpkn.data.diagnostics.CrashReportLifecycleAdversarialTest" time="3.457"/>
+  <testcase name="pauseCannotReturnWhileAcceptedRecordCanStillIssueASend[26]" classname="com.example.kpkn.data.diagnostics.CrashReportLifecycleAdversarialTest" time="0.308"/>
+  <testcase name="pauseCannotReturnWhileAcceptedRecordCanStillIssueASend" classname="com.example.kpkn.data.diagnostics.CrashReportLifecycleAdversarialTest" time="0.265"/>
+  <testcase name="pausedFatalStillDelegatesSanitizedError[26]" classname="com.example.kpkn.data.diagnostics.CrashReportLifecycleAdversarialTest" time="0.11"/>
+  <testcase name="pausedFatalStillDelegatesSanitizedError" classname="com.example.kpkn.data.diagnostics.CrashReportLifecycleAdversarialTest" time="0.066"/>
+  <testcase name="acceptedAttachmentDrainsMarkerBeforeMaintenance[26]" classname="com.example.kpkn.data.diagnostics.CrashReportLifecycleAdversarialTest" time="0.268"/>
+  <testcase name="acceptedAttachmentDrainsMarkerBeforeMaintenance" classname="com.example.kpkn.data.diagnostics.CrashReportLifecycleAdversarialTest" time="0.268"/>
+  <testcase name="pendingMarkerIsPreservedWhenNewAttachmentAdmissionIsClosed[26]" classname="com.example.kpkn.data.diagnostics.CrashReportLifecycleAdversarialTest" time="0.069"/>
+  <testcase name="pendingMarkerIsPreservedWhenNewAttachmentAdmissionIsClosed" classname="com.example.kpkn.data.diagnostics.CrashReportLifecycleAdversarialTest" time="0.077"/>
+  <testcase name="throwingSdkSubmissionReleasesItsPermit[26]" classname="com.example.kpkn.data.diagnostics.CrashReportLifecycleAdversarialTest" time="0.066"/>
+  <testcase name="throwingSdkSubmissionReleasesItsPermit" classname="com.example.kpkn.data.diagnostics.CrashReportLifecycleAdversarialTest" time="0.073"/>
+  <testcase name="shadowedReleasePathRecordsOnlySanitizedError[26]" classname="com.example.kpkn.data.diagnostics.CrashReportLifecycleAdversarialTest" time="0.05"/>
+  <testcase name="shadowedReleasePathRecordsOnlySanitizedError" classname="com.example.kpkn.data.diagnostics.CrashReportLifecycleAdversarialTest" time="0.061"/>
+  <testcase name="admittedFatalMarkerDrainsBeforeStorageMaintenance[26]" classname="com.example.kpkn.data.diagnostics.CrashReportLifecycleAdversarialTest" time="0.259"/>
+  <testcase name="admittedFatalMarkerDrainsBeforeStorageMaintenance" classname="com.example.kpkn.data.diagnostics.CrashReportLifecycleAdversarialTest" time="0.24"/>
+  <testcase name="retiredSessionCannotUploadOrWritePendingUntilAttachedAgain[26]" classname="com.example.kpkn.data.diagnostics.CrashReportLifecycleAdversarialTest" time="0.068"/>
+  <testcase name="retiredSessionCannotUploadOrWritePendingUntilAttachedAgain" classname="com.example.kpkn.data.diagnostics.CrashReportLifecycleAdversarialTest" time="0.065"/>
+  <testcase name="acceptedAttachmentCannotReenableAfterPauseReturns[26]" classname="com.example.kpkn.data.diagnostics.CrashReportLifecycleAdversarialTest" time="0.209"/>
+  <testcase name="acceptedAttachmentCannotReenableAfterPauseReturns" classname="com.example.kpkn.data.diagnostics.CrashReportLifecycleAdversarialTest" time="0.237"/>
+  <testcase name="globalClosureBlocksSdkSubmissionsWithoutThrowing[26]" classname="com.example.kpkn.data.diagnostics.CrashReportLifecycleAdversarialTest" time="0.048"/>
+  <testcase name="globalClosureBlocksSdkSubmissionsWithoutThrowing" classname="com.example.kpkn.data.diagnostics.CrashReportLifecycleAdversarialTest" time="0.052"/>
+  <testcase name="fatalMarkerCannotBeRecreatedWhenGlobalAdmissionIsClosed[26]" classname="com.example.kpkn.data.diagnostics.CrashReportLifecycleAdversarialTest" time="0.069"/>
+  <testcase name="fatalMarkerCannotBeRecreatedWhenGlobalAdmissionIsClosed" classname="com.example.kpkn.data.diagnostics.CrashReportLifecycleAdversarialTest" time="0.053"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.body.BodyProgressCalculationsTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:59:18.811Z" hostname="VF" time="0.027">
+  <properties/>
+  <testcase name="goal progress is direction aware and safe at equal baseline" classname="com.example.kpkn.domain.body.BodyProgressCalculationsTest" time="0.002"/>
+  <testcase name="daily median collapses duplicate readings instead of overweighting a day" classname="com.example.kpkn.domain.body.BodyProgressCalculationsTest" time="0.019"/>
+  <testcase name="composition only combines compatible sessions" classname="com.example.kpkn.domain.body.BodyProgressCalculationsTest" time="0.003"/>
+  <testcase name="ewma uses calendar gaps and weekly rate needs coverage" classname="com.example.kpkn.domain.body.BodyProgressCalculationsTest" time="0.001"/>
+  <testcase name="validation rejects non finite values and keeps continuous bmi boundary" classname="com.example.kpkn.domain.body.BodyProgressCalculationsTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

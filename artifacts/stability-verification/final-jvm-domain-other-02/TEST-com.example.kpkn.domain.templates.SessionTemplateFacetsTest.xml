@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.templates.SessionTemplateFacetsTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:25:45.834Z" hostname="VF" time="0.211">
+  <properties/>
+  <testcase name="legsClassifyPosteriorAndAnteriorByTemplate" classname="com.example.kpkn.domain.templates.SessionTemplateFacetsTest" time="0.001"/>
+  <testcase name="pushClassifiesUpperAnteriorAndPectorales" classname="com.example.kpkn.domain.templates.SessionTemplateFacetsTest" time="0.001"/>
+  <testcase name="fullBodyDetectsFullOrMultipleRegions" classname="com.example.kpkn.domain.templates.SessionTemplateFacetsTest" time="0.001"/>
+  <testcase name="matchingHelpersRespectAllSentinel" classname="com.example.kpkn.domain.templates.SessionTemplateFacetsTest" time="0.003"/>
+  <testcase name="normalizeChainIgnoresUnknownAndNull" classname="com.example.kpkn.domain.templates.SessionTemplateFacetsTest" time="0.001"/>
+  <testcase name="allSystemTemplatesProduceValidFacets" classname="com.example.kpkn.domain.templates.SessionTemplateFacetsTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

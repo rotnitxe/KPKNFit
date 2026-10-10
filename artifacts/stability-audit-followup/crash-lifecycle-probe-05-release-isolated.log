@@ -1,0 +1,83 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.4.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :app
+WARNING: The option setting 'android.disallowKotlinSourceSets=false' is experimental.
+The current default is 'true'.
+
+> Task :app:generateFoodDataManifest UP-TO-DATE
+> Task :app:generateOptimizedResources UP-TO-DATE
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preReleaseBuild UP-TO-DATE
+> Task :app:compileReleaseAidl UP-TO-DATE
+> Task :app:generateReleaseBuildConfig UP-TO-DATE
+> Task :app:generateReleaseResources UP-TO-DATE
+> Task :app:injectCrashlyticsMappingFileIdRelease UP-TO-DATE
+> Task :app:extractReleaseVersionControlInfo UP-TO-DATE
+> Task :app:injectCrashlyticsVersionControlInfoRelease UP-TO-DATE
+> Task :app:packageReleaseResources UP-TO-DATE
+> Task :app:processReleaseNavigationResources UP-TO-DATE
+> Task :app:parseReleaseLocalResources UP-TO-DATE
+> Task :app:generateReleaseRFile UP-TO-DATE
+> Task :app:kspReleaseKotlin UP-TO-DATE
+> Task :app:compileReleaseKotlin UP-TO-DATE
+> Task :app:javaPreCompileRelease UP-TO-DATE
+> Task :app:compileReleaseJavaWithJavac UP-TO-DATE
+> Task :app:checkReleaseAarMetadata UP-TO-DATE
+> Task :app:mapReleaseSourceSetPaths UP-TO-DATE
+> Task :app:compileReleaseNavigationResources UP-TO-DATE
+> Task :app:mergeReleaseResources UP-TO-DATE
+> Task :app:createReleaseCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksRelease UP-TO-DATE
+> Task :app:processReleaseMainManifest UP-TO-DATE
+> Task :app:processReleaseManifest UP-TO-DATE
+> Task :app:processReleaseManifestForPackage UP-TO-DATE
+> Task :app:processReleaseResources UP-TO-DATE
+> Task :app:bundleReleaseClassesToRuntimeJar UP-TO-DATE
+> Task :app:bundleReleaseClassesToCompileJar UP-TO-DATE
+> Task :app:kspReleaseUnitTestKotlin
+> Task :app:preReleaseUnitTestBuild UP-TO-DATE
+> Task :app:compileReleaseUnitTestKotlin
+> Task :app:javaPreCompileReleaseUnitTest
+> Task :app:compileReleaseUnitTestJavaWithJavac NO-SOURCE
+> Task :app:generateReleaseAssets UP-TO-DATE
+> Task :app:mergeReleaseAssets
+> Task :app:convertLinkedResourcesToBinaryRelease
+> Task :app:packageReleaseUnitTestForUnitTest
+
+> Task :app:processReleaseUnitTestManifest
+C:\kw\msi\android-native\app\src\main\AndroidManifest.xml:179:9-181:35 Warning:
+	activity-alias#leakcanary.internal.activity.LeakLauncherActivity was tagged at AndroidManifest.xml:179 to remove other declarations but no other declaration present
+C:\kw\msi\android-native\app\build\intermediates\tmp\manifest\test\release\tempFile2ProcessTestManifest8875093367194800886.xml:193:9-195:35 Warning:
+	activity-alias#leakcanary.internal.activity.LeakLauncherActivity was tagged at tempFile2ProcessTestManifest8875093367194800886.xml:193 to remove other declarations but no other declaration present
+
+> Task :app:generateReleaseUnitTestConfig
+> Task :app:processReleaseJavaRes UP-TO-DATE
+> Task :app:processReleaseUnitTestJavaRes
+
+> Task :app:testReleaseUnitTest
+
+CrashReportLifecycleAdversarialTest > pauseCannotReturnWhileAcceptedRecordCanStillIssueASend FAILED
+    java.lang.AssertionError at CrashReportLifecycleAdversarialTest.kt:86
+
+CrashReportLifecycleAdversarialTest > admittedFatalMarkerDrainsBeforeStorageMaintenance FAILED
+    java.lang.AssertionError at CrashReportLifecycleAdversarialTest.kt:100
+
+CrashReportLifecycleAdversarialTest > fatalMarkerCannotBeRecreatedWhenGlobalAdmissionIsClosed FAILED
+    java.lang.AssertionError at CrashReportLifecycleAdversarialTest.kt:92
+
+4 tests completed, 3 failed
+
+> Task :app:testReleaseUnitTest FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:testReleaseUnitTest'.
+> There were failing tests. See the report at: file:///C:/kw/msi/android-native/app/build/reports/tests/testReleaseUnitTest/index.html
+
+* Try:
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+
+BUILD FAILED in 1m 13s
+39 actionable tasks: 10 executed, 29 up-to-date

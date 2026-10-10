@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.DryLegumeAndPorotosGranadosTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:57:33.080Z" hostname="VF" time="0.032">
+  <properties/>
+  <testcase name="a dry legume is not the cooked plate and cooked ones stay cooked" classname="com.example.kpkn.domain.nutrition.DryLegumeAndPorotosGranadosTest" time="0.005"/>
+  <testcase name="the plate of porotos granados is 99 kcal per 100 g, the sum of its recipe" classname="com.example.kpkn.domain.nutrition.DryLegumeAndPorotosGranadosTest" time="0.027"/>
+  <testcase name="the dry legumes are found by their spoken names and carry the USDA energy of the raw seed" classname="com.example.kpkn.domain.nutrition.DryLegumeAndPorotosGranadosTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

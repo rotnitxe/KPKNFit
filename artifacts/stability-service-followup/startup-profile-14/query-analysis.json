@@ -1,0 +1,39 @@
+{
+  "state": "LOCAL_PERFETTO_QUERIES_COMPLETED",
+  "processorVersion": "58.2",
+  "processorSha256": "adfa6bad3d72be3ba9b83fa2b17b69fa13b3ab1cad0f42e52b86188bd5f0f997",
+  "traceSha256": "94d4846bbe8b00b764d16a98e4f2c0ed3c66071c2de26530c8b717bc0f13976b",
+  "queries": [
+    {
+      "query": "trace-health",
+      "output": "trace-health.csv",
+      "sha256": "6f4d7c4ec44e1f7e1fb51cf6f8eafe2f5a60b233ee9fc0536fe63ba35e68c500"
+    },
+    {
+      "query": "app-thread-cpu",
+      "output": "app-thread-cpu.csv",
+      "sha256": "a8ff1c558fcbb63ed6a4ec1543951e3eb5c934781e3cda2baec42526dd4db1ef"
+    },
+    {
+      "query": "main-thread-states",
+      "output": "main-thread-states.csv",
+      "sha256": "c4c53ca532cd735bb27a650a2c27f9416c123daec8523a777ddda750e42ff4db"
+    },
+    {
+      "query": "main-slices",
+      "output": "main-slices.csv",
+      "sha256": "d359f7ea71bcb01a4ef15a78aa2de9fb2b182d79a0a785c2bd250d2e997105b0"
+    },
+    {
+      "query": "render-slices",
+      "output": "render-slices.csv",
+      "sha256": "608ae77d21456c74d3ada8fed6ca9eebce0d5dd281f0ed4f5826865a2c0a7193"
+    },
+    {
+      "query": "system-cpu",
+      "output": "system-cpu.csv",
+      "sha256": "73a597f730347fd903c067a1cd5e141fe55372c6806e40325004dcca9fcccd1d"
+    }
+  ],
+  "limits": "Scheduler running time differs from wall duration; slices are inclusive and may overlap. This is one debug emulator capture with a SystemUI error overlay, not production performance approval."
+}

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.NaturalLanguageReliabilityTest" tests="19" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:57:40.898Z" hostname="VF" time="0.106">
+  <properties/>
+  <testcase name="measurePositionSurvivesUntilBrandAndPackageResolution" classname="com.example.kpkn.domain.nutrition.NaturalLanguageReliabilityTest" time="0.005"/>
+  <testcase name="cookedOatsDoNotUseDryCerealMass" classname="com.example.kpkn.domain.nutrition.NaturalLanguageReliabilityTest" time="0.002"/>
+  <testcase name="narrationAndExplicitRepairsDoNotCreateFoods" classname="com.example.kpkn.domain.nutrition.NaturalLanguageReliabilityTest" time="0.009"/>
+  <testcase name="negationDoesNotDependOnMentionOrder" classname="com.example.kpkn.domain.nutrition.NaturalLanguageReliabilityTest" time="0.002"/>
+  <testcase name="differentlyCookedMentionsAreNeverCollapsed" classname="com.example.kpkn.domain.nutrition.NaturalLanguageReliabilityTest" time="0.001"/>
+  <testcase name="longNoisyInputDoesNotLoseItsFinalFoodOrHang" classname="com.example.kpkn.domain.nutrition.NaturalLanguageReliabilityTest" time="0.009"/>
+  <testcase name="ingredientExclusionOnlyModifiesItsAdjacentMention" classname="com.example.kpkn.domain.nutrition.NaturalLanguageReliabilityTest" time="0.007"/>
+  <testcase name="anUnmeasuredTailIsNotSilentlyDropped" classname="com.example.kpkn.domain.nutrition.NaturalLanguageReliabilityTest" time="0.003"/>
+  <testcase name="scoopSurvivesNoiseNormalizationAndBindsItsFoodAndFraction" classname="com.example.kpkn.domain.nutrition.NaturalLanguageReliabilityTest" time="0.003"/>
+  <testcase name="decimalCommaAndPointExpressTheSameMass" classname="com.example.kpkn.domain.nutrition.NaturalLanguageReliabilityTest" time="0.005"/>
+  <testcase name="productAttributesRemainAttachedToFoodIdentity" classname="com.example.kpkn.domain.nutrition.NaturalLanguageReliabilityTest" time="0.005"/>
+  <testcase name="portionsOfCountableFoodsStayPortions" classname="com.example.kpkn.domain.nutrition.NaturalLanguageReliabilityTest" time="0.006"/>
+  <testcase name="lexicalizedNumberWordsRemainFoodNamesAcrossNormalizationAndParsing" classname="com.example.kpkn.domain.nutrition.NaturalLanguageReliabilityTest" time="0.014"/>
+  <testcase name="omittedAndExplicitAmountsSurviveInEitherOrder" classname="com.example.kpkn.domain.nutrition.NaturalLanguageReliabilityTest" time="0.003"/>
+  <testcase name="volumeAndItsEquivalentMassHaveOneCanonicalUnit" classname="com.example.kpkn.domain.nutrition.NaturalLanguageReliabilityTest" time="0.009"/>
+  <testcase name="writtenCompoundNumbersAreOneQuantity" classname="com.example.kpkn.domain.nutrition.NaturalLanguageReliabilityTest" time="0.002"/>
+  <testcase name="aLocalSizeDoesNotResizeTheOtherFood" classname="com.example.kpkn.domain.nutrition.NaturalLanguageReliabilityTest" time="0.002"/>
+  <testcase name="householdCountsAreNotMultipliedTwice" classname="com.example.kpkn.domain.nutrition.NaturalLanguageReliabilityTest" time="0.007"/>
+  <testcase name="cupFractionsAndCountsScaleOneUnitExactlyOnce" classname="com.example.kpkn.domain.nutrition.NaturalLanguageReliabilityTest" time="0.011"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

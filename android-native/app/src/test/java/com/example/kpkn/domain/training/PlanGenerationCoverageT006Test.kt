@@ -340,7 +340,17 @@ class PlanGenerationCoverageT006Test {
      * series (fila «en banda»). Esas filas se cuentan y se detallan en la salida, no se fuerzan a cero.
      */
     @Test
-    fun Q2_calibrated_pass_changes_no_viable_row() = runBlocking {
+    fun Q2_calibrated_uncalibrated_changes_no_viable_row() = calibratedPass("sin-calibrar")
+
+    @Test
+    fun Q2_calibrated_floor_changes_no_viable_row() = calibratedPass("piso")
+
+    @Test
+    fun Q2_calibrated_ceiling_changes_no_viable_row() = calibratedPass("techo")
+
+    // The three disjoint tests together retain every original scenario and every per-row assertion.
+    // Each scenario still generates both programs for all 2,304 inputs with the original IDs.
+    private fun calibratedPass(scenarioLabel: String) = runBlocking {
         val fixtures = legacyFixtures()
         val repository = InMemoryExerciseCatalogRepositoryV2(catalog).also { runBlocking { it.load() } }
         val legacyPersonalizer = SimpleCyclePersonalizer(repository, glutesSoftBand = 0.0)
@@ -361,7 +371,8 @@ class PlanGenerationCoverageT006Test {
         val problems = mutableListOf<String>()
         var changedViableTotal = 0
 
-        for (scenario in scenarios) {
+        val scenario = scenarios.single { it.label == scenarioLabel }
+        for (scenario in listOf(scenario)) {
             var rows = 0
             var viableBefore = 0
             var viableAfter = 0

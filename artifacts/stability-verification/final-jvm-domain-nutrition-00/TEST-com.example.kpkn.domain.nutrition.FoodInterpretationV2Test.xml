@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.FoodInterpretationV2Test" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:57:36.213Z" hostname="VF" time="0.242">
+  <properties/>
+  <testcase name="the interpretation of a converted row is named after its dish" classname="com.example.kpkn.domain.nutrition.FoodInterpretationV2Test" time="0.002"/>
+  <testcase name="the questions of a mention are carried and keep its result from finalizing" classname="com.example.kpkn.domain.nutrition.FoodInterpretationV2Test" time="0.038"/>
+  <testcase name="conversion stem strips state words only as qualifiers and never the first word" classname="com.example.kpkn.domain.nutrition.FoodInterpretationV2Test" time="0.001"/>
+  <testcase name="declared or manually confirmed quantity never receives an inferred portion question" classname="com.example.kpkn.domain.nutrition.FoodInterpretationV2Test" time="0.037"/>
+  <testcase name="an explicit mass has no range and the same tag always gives the same result" classname="com.example.kpkn.domain.nutrition.FoodInterpretationV2Test" time="0.029"/>
+  <testcase name="logger review keeps identified beverages pending until their assumed amount is accepted" classname="com.example.kpkn.domain.nutrition.FoodInterpretationV2Test" time="0.051"/>
+  <testcase name="ambiguous amount requires confirmation and explicit acceptance retains uncertainty" classname="com.example.kpkn.domain.nutrition.FoodInterpretationV2Test" time="0.027"/>
+  <testcase name="explicit cooked chicken keeps its cooked row and is not converted again" classname="com.example.kpkn.domain.nutrition.FoodInterpretationV2Test" time="0.026"/>
+  <testcase name="a vague portion keeps a range around the central value and stays an estimate" classname="com.example.kpkn.domain.nutrition.FoodInterpretationV2Test" time="0.029"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

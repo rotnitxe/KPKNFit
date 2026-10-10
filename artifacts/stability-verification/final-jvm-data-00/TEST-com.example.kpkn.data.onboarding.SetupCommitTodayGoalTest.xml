@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.onboarding.SetupCommitTodayGoalTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:51:27.946Z" hostname="VF" time="0.977">
+  <properties/>
+  <testcase name="firstActivationOfTheDayFixesTodaysGoal" classname="com.example.kpkn.data.onboarding.SetupCommitTodayGoalTest" time="0.205"/>
+  <testcase name="activatingADifferentPlanTheSameDayReplacesTodaysGoalButNotPastDays" classname="com.example.kpkn.data.onboarding.SetupCommitTodayGoalTest" time="0.196"/>
+  <testcase name="reactivatingTheSamePlanKeepsTodaysFixedGoal" classname="com.example.kpkn.data.onboarding.SetupCommitTodayGoalTest" time="0.205"/>
+  <testcase name="replayOfAnOlderActivationDoesNotFlipTodaysGoalBack" classname="com.example.kpkn.data.onboarding.SetupCommitTodayGoalTest" time="0.187"/>
+  <testcase name="aSnapshotForAnotherDayNeverReplacesAnExistingRow" classname="com.example.kpkn.data.onboarding.SetupCommitTodayGoalTest" time="0.182"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

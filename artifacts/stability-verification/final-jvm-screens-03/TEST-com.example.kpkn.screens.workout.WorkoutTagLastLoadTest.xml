@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.workout.WorkoutTagLastLoadTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:39:39.667Z" hostname="VF" time="0.008">
+  <properties/>
+  <testcase name="prefersCurrentSessionOverHistory" classname="com.example.kpkn.screens.workout.WorkoutTagLastLoadTest" time="0.006"/>
+  <testcase name="emptyWhenNoMatchingSets" classname="com.example.kpkn.screens.workout.WorkoutTagLastLoadTest" time="0.001"/>
+  <testcase name="usesHistoricalSetTagThenLogExerciseTagFallback" classname="com.example.kpkn.screens.workout.WorkoutTagLastLoadTest" time="0.001"/>
+  <testcase name="skipsWarmupAndZeroLoad" classname="com.example.kpkn.screens.workout.WorkoutTagLastLoadTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

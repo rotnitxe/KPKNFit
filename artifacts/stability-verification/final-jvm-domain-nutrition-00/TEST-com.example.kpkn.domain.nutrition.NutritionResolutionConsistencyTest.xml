@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.NutritionResolutionConsistencyTest" tests="16" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:57:47.049Z" hostname="VF" time="0.131">
+  <properties/>
+  <testcase name="smart resolver keeps local exact macros over global api-like rows" classname="com.example.kpkn.domain.nutrition.NutritionResolutionConsistencyTest" time="0.041"/>
+  <testcase name="food index includes static aliases without assigning plain fideos a state" classname="com.example.kpkn.domain.nutrition.NutritionResolutionConsistencyTest" time="0.027"/>
+  <testcase name="A1 manjar resuelve a manjar dulce de leche y no a miel" classname="com.example.kpkn.domain.nutrition.NutritionResolutionConsistencyTest" time="0.0"/>
+  <testcase name="unknown macro estimate requires explicit acceptance" classname="com.example.kpkn.domain.nutrition.NutritionResolutionConsistencyTest" time="0.003"/>
+  <testcase name="automatic local resolution does not write learning" classname="com.example.kpkn.domain.nutrition.NutritionResolutionConsistencyTest" time="0.001"/>
+  <testcase name="local catalog owns salsa and pasta variants" classname="com.example.kpkn.domain.nutrition.NutritionResolutionConsistencyTest" time="0.001"/>
+  <testcase name="ambiguous fideos asume cocido y expone macros" classname="com.example.kpkn.domain.nutrition.NutritionResolutionConsistencyTest" time="0.004"/>
+  <testcase name="global candidates with the same canonical name are deduplicated" classname="com.example.kpkn.domain.nutrition.NutritionResolutionConsistencyTest" time="0.002"/>
+  <testcase name="parser protects salsa de tomate but keeps salsa y tomate separate" classname="com.example.kpkn.domain.nutrition.NutritionResolutionConsistencyTest" time="0.002"/>
+  <testcase name="parser separates fideos from salsa de tomate but protects the sauce" classname="com.example.kpkn.domain.nutrition.NutritionResolutionConsistencyTest" time="0.002"/>
+  <testcase name="local exact food ignores unrelated dataset interpretation and macro range" classname="com.example.kpkn.domain.nutrition.NutritionResolutionConsistencyTest" time="0.003"/>
+  <testcase name="A1 approximation alias cannot replace a cake with bread" classname="com.example.kpkn.domain.nutrition.NutritionResolutionConsistencyTest" time="0.002"/>
+  <testcase name="plain fideos never exposes irrelevant global products" classname="com.example.kpkn.domain.nutrition.NutritionResolutionConsistencyTest" time="0.039"/>
+  <testcase name="dry and cooked pasta use their local macros" classname="com.example.kpkn.domain.nutrition.NutritionResolutionConsistencyTest" time="0.001"/>
+  <testcase name="A1 papas fritas resuelve a papa frita con alias exacto" classname="com.example.kpkn.domain.nutrition.NutritionResolutionConsistencyTest" time="0.0"/>
+  <testcase name="meal description keeps champinones as its own component" classname="com.example.kpkn.domain.nutrition.NutritionResolutionConsistencyTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

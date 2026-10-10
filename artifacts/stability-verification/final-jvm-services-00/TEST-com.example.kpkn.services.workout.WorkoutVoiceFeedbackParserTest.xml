@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.services.workout.WorkoutVoiceFeedbackParserTest" tests="21" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:40:38.464Z" hostname="VF" time="0.012">
+  <properties/>
+  <testcase name="molestia_hombro_maps_to_shoulder_discomfort" classname="com.example.kpkn.services.workout.WorkoutVoiceFeedbackParserTest" time="0.003"/>
+  <testcase name="dolor_de_codo_returns_elbow_family_candidates" classname="com.example.kpkn.services.workout.WorkoutVoiceFeedbackParserTest" time="0.0"/>
+  <testcase name="dolor_de_hombro_returns_only_shoulder_candidates" classname="com.example.kpkn.services.workout.WorkoutVoiceFeedbackParserTest" time="0.001"/>
+  <testcase name="intent_matcher_without_prompt_leaves_bare_number_as_generic" classname="com.example.kpkn.services.workout.WorkoutVoiceFeedbackParserTest" time="0.001"/>
+  <testcase name="drilldown_anterior_posterior_resolves_shoulder" classname="com.example.kpkn.services.workout.WorkoutVoiceFeedbackParserTest" time="0.001"/>
+  <testcase name="numero_desnudo_digit_con_prompt_activo_maps_to_calidad" classname="com.example.kpkn.services.workout.WorkoutVoiceFeedbackParserTest" time="0.0"/>
+  <testcase name="intent_matcher_routes_bare_number_to_feedback_when_prompt_active" classname="com.example.kpkn.services.workout.WorkoutVoiceFeedbackParserTest" time="0.001"/>
+  <testcase name="intent_matcher_keeps_set_pattern_out_of_feedback_when_prompt_active" classname="com.example.kpkn.services.workout.WorkoutVoiceFeedbackParserTest" time="0.0"/>
+  <testcase name="dolor_de_muneca_maps_directly_to_wrist_hand" classname="com.example.kpkn.services.workout.WorkoutVoiceFeedbackParserTest" time="0.001"/>
+  <testcase name="dolor_espalda_baja_maps_directly_to_lumbar" classname="com.example.kpkn.services.workout.WorkoutVoiceFeedbackParserTest" time="0.0"/>
+  <testcase name="numero_desnudo_ocho_sin_prompt_no_maps_to_calidad" classname="com.example.kpkn.services.workout.WorkoutVoiceFeedbackParserTest" time="0.0"/>
+  <testcase name="rodilla_por_dentro_maps_directly_to_knee_medial" classname="com.example.kpkn.services.workout.WorkoutVoiceFeedbackParserTest" time="0.001"/>
+  <testcase name="drilldown_ambiguous_transcript_returns_null" classname="com.example.kpkn.services.workout.WorkoutVoiceFeedbackParserTest" time="0.0"/>
+  <testcase name="molestia_lumbar_maps_directly_to_lower_back" classname="com.example.kpkn.services.workout.WorkoutVoiceFeedbackParserTest" time="0.0"/>
+  <testcase name="dolor_de_rodilla_sin_zona_returns_knee_family_candidates" classname="com.example.kpkn.services.workout.WorkoutVoiceFeedbackParserTest" time="0.0"/>
+  <testcase name="numero_desnudo_ocho_con_prompt_activo_maps_to_calidad" classname="com.example.kpkn.services.workout.WorkoutVoiceFeedbackParserTest" time="0.001"/>
+  <testcase name="dolor_de_mano_maps_directly_to_wrist_hand" classname="com.example.kpkn.services.workout.WorkoutVoiceFeedbackParserTest" time="0.0"/>
+  <testcase name="feedback_save_action_is_detected" classname="com.example.kpkn.services.workout.WorkoutVoiceFeedbackParserTest" time="0.001"/>
+  <testcase name="calidad_tecnica_word_number_maps_to_technical_quality" classname="com.example.kpkn.services.workout.WorkoutVoiceFeedbackParserTest" time="0.001"/>
+  <testcase name="drilldown_externa_resolves_elbow_lateral" classname="com.example.kpkn.services.workout.WorkoutVoiceFeedbackParserTest" time="0.0"/>
+  <testcase name="serie_ocho_por_doce_no_se_traga_como_calidad" classname="com.example.kpkn.services.workout.WorkoutVoiceFeedbackParserTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

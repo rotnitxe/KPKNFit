@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.programs.ProgramsViewModelTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:38:04.569Z" hostname="VF" time="1.878">
+  <properties/>
+  <testcase name="createProgramFromTemplate_is_named_after_its_library_card" classname="com.example.kpkn.screens.programs.ProgramsViewModelTest" time="0.217"/>
+  <testcase name="getProgramStats_excludes_loop_weeks" classname="com.example.kpkn.screens.programs.ProgramsViewModelTest" time="0.767"/>
+  <testcase name="createProgramFromTemplate_requires_calibration_before_materializing" classname="com.example.kpkn.screens.programs.ProgramsViewModelTest" time="0.128"/>
+  <testcase name="createProgramFromProtocol_is_named_after_its_library_card_and_takes_its_discipline_mode" classname="com.example.kpkn.screens.programs.ProgramsViewModelTest" time="0.193"/>
+  <testcase name="createProgramFromProtocol_materializes_recipe_and_training_max" classname="com.example.kpkn.screens.programs.ProgramsViewModelTest" time="0.162"/>
+  <testcase name="createProgramFromTemplate_activates_program_and_materializes_executable_sessions" classname="com.example.kpkn.screens.programs.ProgramsViewModelTest" time="0.166"/>
+  <testcase name="createProgramFromProtocol_requires_calibration_before_materializing" classname="com.example.kpkn.screens.programs.ProgramsViewModelTest" time="0.12"/>
+  <testcase name="createBlankProgram_uses_unified_block_names" classname="com.example.kpkn.screens.programs.ProgramsViewModelTest" time="0.125"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

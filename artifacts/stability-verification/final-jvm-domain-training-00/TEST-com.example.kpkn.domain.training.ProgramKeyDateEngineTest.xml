@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.ProgramKeyDateEngineTest" tests="20" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:29:39.268Z" hostname="VF" time="0.015">
+  <properties/>
+  <testcase name="upsertKeyDate_sorts_and_replaces_by_id" classname="com.example.kpkn.domain.training.ProgramKeyDateEngineTest" time="0.004"/>
+  <testcase name="applyAdvancedCalendarSave_sets_timeline_and_competition_key_date" classname="com.example.kpkn.domain.training.ProgramKeyDateEngineTest" time="0.002"/>
+  <testcase name="removeWeeksFromBlock_is_noop_for_unknown_block_or_non_positive_count" classname="com.example.kpkn.domain.training.ProgramKeyDateEngineTest" time="0.0"/>
+  <testcase name="deleteKeyDate_archive_mode_removes_linked_competition_session" classname="com.example.kpkn.domain.training.ProgramKeyDateEngineTest" time="0.0"/>
+  <testcase name="applyAdvancedCalendarSave_materializes_before_locating_competition_week" classname="com.example.kpkn.domain.training.ProgramKeyDateEngineTest" time="0.002"/>
+  <testcase name="fitBlocksToKeyDate_reports_missing_data_without_dates" classname="com.example.kpkn.domain.training.ProgramKeyDateEngineTest" time="0.005"/>
+  <testcase name="fitBlocksToKeyDate_flags_event_before_program_start" classname="com.example.kpkn.domain.training.ProgramKeyDateEngineTest" time="0.0"/>
+  <testcase name="validate_rejects_competition_without_event_date" classname="com.example.kpkn.domain.training.ProgramKeyDateEngineTest" time="0.0"/>
+  <testcase name="addWeeksToBlock_is_noop_for_unknown_block_or_non_positive_count" classname="com.example.kpkn.domain.training.ProgramKeyDateEngineTest" time="0.001"/>
+  <testcase name="removeWeeksFromBlock_trims_trailing_weeks_but_keeps_at_least_one" classname="com.example.kpkn.domain.training.ProgramKeyDateEngineTest" time="0.0"/>
+  <testcase name="applyAdvancedCalendarSave_strips_existing_meet_sessions" classname="com.example.kpkn.domain.training.ProgramKeyDateEngineTest" time="0.0"/>
+  <testcase name="fitBlocksToCompetitionKeyDate_returns_null_without_competition" classname="com.example.kpkn.domain.training.ProgramKeyDateEngineTest" time="0.0"/>
+  <testcase name="fitBlocksToKeyDate_detects_deficit_when_program_is_shorter_than_required" classname="com.example.kpkn.domain.training.ProgramKeyDateEngineTest" time="0.001"/>
+  <testcase name="addWeeksToBlock_appends_weeks_to_last_mesocycle" classname="com.example.kpkn.domain.training.ProgramKeyDateEngineTest" time="0.0"/>
+  <testcase name="applyAdvancedCalendarSave_with_start_only_enables_calendarization" classname="com.example.kpkn.domain.training.ProgramKeyDateEngineTest" time="0.0"/>
+  <testcase name="addWeeksToBlock_appends_to_last_mesocycle" classname="com.example.kpkn.domain.training.ProgramKeyDateEngineTest" time="0.0"/>
+  <testcase name="fitBlocksToKeyDate_detects_surplus_when_program_is_longer_than_required" classname="com.example.kpkn.domain.training.ProgramKeyDateEngineTest" time="0.0"/>
+  <testcase name="deleteKeyDate_removes_competition_and_clears_activation_flag" classname="com.example.kpkn.domain.training.ProgramKeyDateEngineTest" time="0.0"/>
+  <testcase name="hasLinkedCompetitionEntities_detects_linked_session" classname="com.example.kpkn.domain.training.ProgramKeyDateEngineTest" time="0.0"/>
+  <testcase name="fitBlocksToKeyDate_fits_exactly_when_weeks_match" classname="com.example.kpkn.domain.training.ProgramKeyDateEngineTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

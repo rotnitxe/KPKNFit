@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.calculations.CardioCalorieEngineTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:59:18.841Z" hostname="VF" time="0.007">
+  <properties/>
+  <testcase name="met estimate scales with weight and duration" classname="com.example.kpkn.domain.calculations.CardioCalorieEngineTest" time="0.004"/>
+  <testcase name="null target duration without intervals returns zero kcal" classname="com.example.kpkn.domain.calculations.CardioCalorieEngineTest" time="0.0"/>
+  <testcase name="interval blocks sum absolute per-block kcal across rounds" classname="com.example.kpkn.domain.calculations.CardioCalorieEngineTest" time="0.001"/>
+  <testcase name="zero or negative weight returns zero kcal" classname="com.example.kpkn.domain.calculations.CardioCalorieEngineTest" time="0.001"/>
+  <testcase name="canonical MET formula returns absolute kcal with explicit metBase" classname="com.example.kpkn.domain.calculations.CardioCalorieEngineTest" time="0.0"/>
+  <testcase name="heart rate adjustment remains bounded" classname="com.example.kpkn.domain.calculations.CardioCalorieEngineTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

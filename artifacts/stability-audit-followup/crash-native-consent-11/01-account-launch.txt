@@ -1,0 +1,7 @@
+Starting: Intent { act=android.intent.action.VIEW dat=kpkn://account/... cmp=com.example.kpkn.stability/com.example.kpkn.MainActivity }
+Status: ok
+LaunchState: WARM
+Activity: com.example.kpkn.stability/com.example.kpkn.MainActivity
+TotalTime: 269
+WaitTime: 296
+Complete

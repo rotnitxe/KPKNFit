@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.LastResortSplitterTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:57:40.444Z" hostname="VF" time="0.002">
+  <properties/>
+  <testcase name="fallback keeps explicit exclusions separate from consumed food" classname="com.example.kpkn.domain.nutrition.LastResortSplitterTest" time="0.001"/>
+  <testcase name="no separators returns whole text as single fragment" classname="com.example.kpkn.domain.nutrition.LastResortSplitterTest" time="0.0"/>
+  <testcase name="never throws on any input" classname="com.example.kpkn.domain.nutrition.LastResortSplitterTest" time="0.001"/>
+  <testcase name="splits by connectors y and con" classname="com.example.kpkn.domain.nutrition.LastResortSplitterTest" time="0.0"/>
+  <testcase name="splits single foods by comma and con" classname="com.example.kpkn.domain.nutrition.LastResortSplitterTest" time="0.0"/>
+  <testcase name="blank input returns empty" classname="com.example.kpkn.domain.nutrition.LastResortSplitterTest" time="0.0"/>
+  <testcase name="fallback preserves decimal measures and repeated mentions" classname="com.example.kpkn.domain.nutrition.LastResortSplitterTest" time="0.0"/>
+  <testcase name="filters out tiny fragments" classname="com.example.kpkn.domain.nutrition.LastResortSplitterTest" time="0.0"/>
+  <testcase name="fallback does not turn food attributes into separate ingredients" classname="com.example.kpkn.domain.nutrition.LastResortSplitterTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

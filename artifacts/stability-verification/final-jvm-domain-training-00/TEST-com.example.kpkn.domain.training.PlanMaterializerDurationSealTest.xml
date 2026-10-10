@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.PlanMaterializerDurationSealTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:29:32.558Z" hostname="VF" time="0.007">
+  <properties/>
+  <testcase name="an_accepted_volume_proposal_reseals_with_the_estimate_of_the_reduced_week" classname="com.example.kpkn.domain.training.PlanMaterializerDurationSealTest" time="0.003"/>
+  <testcase name="rebuilding_a_sealed_own_week_with_its_own_recipe_keeps_the_exact_shared_estimate" classname="com.example.kpkn.domain.training.PlanMaterializerDurationSealTest" time="0.001"/>
+  <testcase name="a_frozen_session_keeps_its_own_limit_and_only_pending_ones_are_resealed" classname="com.example.kpkn.domain.training.PlanMaterializerDurationSealTest" time="0.001"/>
+  <testcase name="a_foreign_recipe_gets_no_native_seal_and_drops_the_pending_residue_of_the_previous_recipe" classname="com.example.kpkn.domain.training.PlanMaterializerDurationSealTest" time="0.002"/>
+  <testcase name="rebuilding_an_unsealed_own_week_does_not_invent_a_time_limit" classname="com.example.kpkn.domain.training.PlanMaterializerDurationSealTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

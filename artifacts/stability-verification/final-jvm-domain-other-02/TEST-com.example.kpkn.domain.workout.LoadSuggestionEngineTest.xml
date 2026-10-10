@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.workout.LoadSuggestionEngineTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:25:46.784Z" hostname="VF" time="0.003">
+  <properties/>
+  <testcase name="suggestFromLastWorkingSetProgressesWhenRepsHit" classname="com.example.kpkn.domain.workout.LoadSuggestionEngineTest" time="0.0"/>
+  <testcase name="tagMultiplierKnownTags" classname="com.example.kpkn.domain.workout.LoadSuggestionEngineTest" time="0.0"/>
+  <testcase name="fatigueFactorMatchesLegacyCurve" classname="com.example.kpkn.domain.workout.LoadSuggestionEngineTest" time="0.001"/>
+  <testcase name="structuredUserTagDoesNotApplySemanticMultiplier" classname="com.example.kpkn.domain.workout.LoadSuggestionEngineTest" time="0.0"/>
+  <testcase name="computeContextualWorkingLoadAppliesFatigueFloor" classname="com.example.kpkn.domain.workout.LoadSuggestionEngineTest" time="0.001"/>
+  <testcase name="roundLoadSnapsToHalfKg" classname="com.example.kpkn.domain.workout.LoadSuggestionEngineTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

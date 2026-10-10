@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.ProgramAutoregulationResolutionTest" tests="16" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:29:39.180Z" hostname="VF" time="0.019">
+  <properties/>
+  <testcase name="rejecting_a_stored_technique_variant_proposal_is_still_a_plain_rejection" classname="com.example.kpkn.domain.training.ProgramAutoregulationResolutionTest" time="0.002"/>
+  <testcase name="rir_only_week_returns_not_applicable_instead_of_claiming_a_no_op" classname="com.example.kpkn.domain.training.ProgramAutoregulationResolutionTest" time="0.002"/>
+  <testcase name="a_stored_technique_variant_proposal_survives_json_and_still_reads_after_the_retirement" classname="com.example.kpkn.domain.training.ProgramAutoregulationResolutionTest" time="0.004"/>
+  <testcase name="a_stored_technique_variant_proposal_expires_with_the_same_reason_even_on_a_trained_target_week" classname="com.example.kpkn.domain.training.ProgramAutoregulationResolutionTest" time="0.001"/>
+  <testcase name="a_kilo_change_rounds_to_half_a_kilo_and_derives_the_tm_from_the_one_rm_when_none_is_stored" classname="com.example.kpkn.domain.training.ProgramAutoregulationResolutionTest" time="0.001"/>
+  <testcase name="a_stored_technique_variant_proposal_changes_nothing_and_expires_with_the_retirement_reason" classname="com.example.kpkn.domain.training.ProgramAutoregulationResolutionTest" time="0.0"/>
+  <testcase name="r202_accepted_intensity_changes_the_next_week_and_keeps_the_trained_week_byte_identical" classname="com.example.kpkn.domain.training.ProgramAutoregulationResolutionTest" time="0.002"/>
+  <testcase name="accepted_proposal_on_a_trained_target_week_expires_with_reason_instead_of_faking_apply" classname="com.example.kpkn.domain.training.ProgramAutoregulationResolutionTest" time="0.0"/>
+  <testcase name="accepting_a_variant_proposal_together_with_a_tm_proposal_applies_only_the_tm_one" classname="com.example.kpkn.domain.training.ProgramAutoregulationResolutionTest" time="0.001"/>
+  <testcase name="kilo_proposals_survive_json_and_the_old_json_without_the_field_still_decodes" classname="com.example.kpkn.domain.training.ProgramAutoregulationResolutionTest" time="0.001"/>
+  <testcase name="advancing_without_resolving_expires_the_pending_action_with_a_reason" classname="com.example.kpkn.domain.training.ProgramAutoregulationResolutionTest" time="0.001"/>
+  <testcase name="outcome_entries_mark_applied_only_the_tm_that_really_changed" classname="com.example.kpkn.domain.training.ProgramAutoregulationResolutionTest" time="0.0"/>
+  <testcase name="the_kilos_win_over_the_percent_when_a_proposal_carries_both" classname="com.example.kpkn.domain.training.ProgramAutoregulationResolutionTest" time="0.001"/>
+  <testcase name="a_percent_proposal_still_scales_the_tm_as_before" classname="com.example.kpkn.domain.training.ProgramAutoregulationResolutionTest" time="0.001"/>
+  <testcase name="rejected_proposal_records_a_terminal_state_and_keeps_the_plan_unchanged" classname="com.example.kpkn.domain.training.ProgramAutoregulationResolutionTest" time="0.001"/>
+  <testcase name="an_accepted_kilo_proposal_raises_the_tm_by_the_kilos_and_the_next_week_follows" classname="com.example.kpkn.domain.training.ProgramAutoregulationResolutionTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

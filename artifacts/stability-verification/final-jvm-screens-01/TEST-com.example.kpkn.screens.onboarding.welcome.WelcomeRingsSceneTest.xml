@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.welcome.WelcomeRingsSceneTest" tests="26" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:37:45.415Z" hostname="VF" time="0.015">
+  <properties/>
+  <testcase name="la flecha va hacia abajo tras entrenar y hacia arriba al recuperar" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeRingsSceneTest" time="0.006"/>
+  <testcase name="el velo del bucle cubre el cierre y el arranque pero no el resto de la historia" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeRingsSceneTest" time="0.0"/>
+  <testcase name="los textos de la tarjeta caben en su caja" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeRingsSceneTest" time="0.001"/>
+  <testcase name="la tarjeta de lectura aparece despues de que los anillos empiezan a llenarse" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeRingsSceneTest" time="0.0"/>
+  <testcase name="las etiquetas de entrenar se apagan antes de que empiece el descanso" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeRingsSceneTest" time="0.0"/>
+  <testcase name="la lectura cambia despues de que los anillos terminan de moverse" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeRingsSceneTest" time="0.0"/>
+  <testcase name="al dormir sube la energia a 97 y el musculo a 76 con la columna cerca de 91" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeRingsSceneTest" time="0.0"/>
+  <testcase name="al dormir salen las etiquetas de recuperacion" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeRingsSceneTest" time="0.001"/>
+  <testcase name="al entrenar salen las etiquetas de cambio de los tres anillos" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeRingsSceneTest" time="0.0"/>
+  <testcase name="aparece la pesa al entrenar y la cama al dormir" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeRingsSceneTest" time="0.001"/>
+  <testcase name="el entreno solo hace bajar y el descanso solo hace subir" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeRingsSceneTest" time="0.001"/>
+  <testcase name="al despertar los anillos valen 92 88 y 95" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeRingsSceneTest" time="0.0"/>
+  <testcase name="los cuatro momentos del dia siguen el orden de la historia" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeRingsSceneTest" time="0.0"/>
+  <testcase name="el porcentaje se lee como entero redondeado" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeRingsSceneTest" time="0.0"/>
+  <testcase name="al abrir la escena los anillos parten de cero y se llenan" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeRingsSceneTest" time="0.0"/>
+  <testcase name="la primera parada pasa de Despiertas a Al otro dia cuando amanece" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeRingsSceneTest" time="0.0"/>
+  <testcase name="sin cambios no hay etiquetas" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeRingsSceneTest" time="0.0"/>
+  <testcase name="las etiquetas usan el signo menos de verdad y el espacio antes del porcentaje" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeRingsSceneTest" time="0.0"/>
+  <testcase name="la lectura cambia de hoy puedes entrenar fuerte a mejor un dia suave y a listo para otra sesion" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeRingsSceneTest" time="0.0"/>
+  <testcase name="durante el fundido el texto nuevo entra con k de 0 a 1" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeRingsSceneTest" time="0.0"/>
+  <testcase name="los valores siempre quedan entre 0 y 100 en todo el bucle" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeRingsSceneTest" time="0.003"/>
+  <testcase name="el icono nace con rebote y nunca tiene escala negativa" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeRingsSceneTest" time="0.0"/>
+  <testcase name="los movimientos terminan antes de que cambie el momento siguiente" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeRingsSceneTest" time="0.0"/>
+  <testcase name="cada etiqueta sube mientras vive y se desvanece al final" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeRingsSceneTest" time="0.001"/>
+  <testcase name="la linea de tiempo enciende el sol la pesa y la luna segun el momento" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeRingsSceneTest" time="0.0"/>
+  <testcase name="al entrenar baja el musculo 30 y la energia 21" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeRingsSceneTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.onboarding.GeneratedPlansTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:24:57.655Z" hostname="VF" time="0.009">
+  <properties/>
+  <testcase name="with_a_single_place_there_is_no_per_place_material" classname="com.example.kpkn.domain.onboarding.GeneratedPlansTest" time="0.0"/>
+  <testcase name="only_bodyweight_gives_bodyweight_everywhere" classname="com.example.kpkn.domain.onboarding.GeneratedPlansTest" time="0.0"/>
+  <testcase name="every_profile_has_its_tailored_entry_and_mode_and_both_ways_agree" classname="com.example.kpkn.domain.onboarding.GeneratedPlansTest" time="0.002"/>
+  <testcase name="home_and_park_send_the_park_structure_to_the_park_and_the_rest_home" classname="com.example.kpkn.domain.onboarding.GeneratedPlansTest" time="0.001"/>
+  <testcase name="the_profiles_split_into_tailored_only_tailored_plus_authors_and_initial_versions" classname="com.example.kpkn.domain.onboarding.GeneratedPlansTest" time="0.0"/>
+  <testcase name="gym_and_home_keep_the_gym_seed_at_the_gym_and_only_the_extras_at_home" classname="com.example.kpkn.domain.onboarding.GeneratedPlansTest" time="0.001"/>
+  <testcase name="the_tailored_entries_are_unlisted_natives_for_any_week_and_resolve_by_id" classname="com.example.kpkn.domain.onboarding.GeneratedPlansTest" time="0.005"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

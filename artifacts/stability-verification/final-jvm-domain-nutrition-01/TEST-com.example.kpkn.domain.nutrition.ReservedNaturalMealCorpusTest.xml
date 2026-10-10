@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.ReservedNaturalMealCorpusTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:58:34.652Z" hostname="VF" time="0.612">
+  <properties/>
+  <testcase name="whey scoop keeps its measured mass through the resolved snapshot" classname="com.example.kpkn.domain.nutrition.ReservedNaturalMealCorpusTest" time="0.095"/>
+  <testcase name="quantity correction keeps the food and replaces its count" classname="com.example.kpkn.domain.nutrition.ReservedNaturalMealCorpusTest" time="0.04"/>
+  <testcase name="negative meal report stops at the next positive clause" classname="com.example.kpkn.domain.nutrition.ReservedNaturalMealCorpusTest" time="0.047"/>
+  <testcase name="repeated composite dishes keep different ingredient constraints" classname="com.example.kpkn.domain.nutrition.ReservedNaturalMealCorpusTest" time="0.066"/>
+  <testcase name="narrative replacement does not add the discarded side dish" classname="com.example.kpkn.domain.nutrition.ReservedNaturalMealCorpusTest" time="0.057"/>
+  <testcase name="lexicalized dessert never becomes automatically accepted milk" classname="com.example.kpkn.domain.nutrition.ReservedNaturalMealCorpusTest" time="0.104"/>
+  <testcase name="sugar free product can still have explicitly added sugar" classname="com.example.kpkn.domain.nutrition.ReservedNaturalMealCorpusTest" time="0.05"/>
+  <testcase name="elliptical measure is resolved or questioned on its own mention" classname="com.example.kpkn.domain.nutrition.ReservedNaturalMealCorpusTest" time="0.047"/>
+  <testcase name="excluded spread attaches to bread without changing the soup" classname="com.example.kpkn.domain.nutrition.ReservedNaturalMealCorpusTest" time="0.045"/>
+  <testcase name="anaphoric second helping is retained with its uncertainty" classname="com.example.kpkn.domain.nutrition.ReservedNaturalMealCorpusTest" time="0.059"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

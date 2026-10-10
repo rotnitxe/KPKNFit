@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.SetupBodyFatStepTest" tests="21" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:35:28.881Z" hostname="VF" time="0.017">
+  <properties/>
+  <testcase name="everyDeclaredStateCountsAsAPercentageAndTheOthersDoNot" classname="com.example.kpkn.screens.onboarding.SetupBodyFatStepTest" time="0.001"/>
+  <testcase name="aBodyFatAlreadyInSettingsDoesNotBlockReturningUsersAndTheRulerStartsOnIt" classname="com.example.kpkn.screens.onboarding.SetupBodyFatStepTest" time="0.005"/>
+  <testcase name="aReturningUserCanReplaceThePreviousValueWithTheRuler" classname="com.example.kpkn.screens.onboarding.SetupBodyFatStepTest" time="0.002"/>
+  <testcase name="aLegacyMeasurementStillValidatesAndTheRulerStartsOnIt" classname="com.example.kpkn.screens.onboarding.SetupBodyFatStepTest" time="0.0"/>
+  <testcase name="aValueOutsideTheRulerButInsideTheCatalogRangeStillValidates" classname="com.example.kpkn.screens.onboarding.SetupBodyFatStepTest" time="0.0"/>
+  <testcase name="theFigureNeverTouchesTheCalculationSexNorThePercentage" classname="com.example.kpkn.screens.onboarding.SetupBodyFatStepTest" time="0.001"/>
+  <testcase name="movingTheRulerDeclaresAVisualEstimateAndUnblocksTheStep" classname="com.example.kpkn.screens.onboarding.SetupBodyFatStepTest" time="0.004"/>
+  <testcase name="aFreshDraftIsPendingAndBlocksContinuarWithAnExplicitMessage" classname="com.example.kpkn.screens.onboarding.SetupBodyFatStepTest" time="0.0"/>
+  <testcase name="aDecimalFromSettingsKeepsItsDecimalInTheRulerReading" classname="com.example.kpkn.screens.onboarding.SetupBodyFatStepTest" time="0.0"/>
+  <testcase name="theFirstTouchDeclaresEvenTheValueTheRulerStartedOn" classname="com.example.kpkn.screens.onboarding.SetupBodyFatStepTest" time="0.0"/>
+  <testcase name="anOutOfRangeOrUnreadablePercentageStillBlocks" classname="com.example.kpkn.screens.onboarding.SetupBodyFatStepTest" time="0.001"/>
+  <testcase name="anImplausiblePreviousBodyFatStillAsksToMoveTheRuler" classname="com.example.kpkn.screens.onboarding.SetupBodyFatStepTest" time="0.0"/>
+  <testcase name="theDeclaredPercentageWinsOverTheSettingsValueInTheRuler" classname="com.example.kpkn.screens.onboarding.SetupBodyFatStepTest" time="0.0"/>
+  <testcase name="theDefaultRulerStartsAtTheSoftSilhouetteOfTwentyFivePercent" classname="com.example.kpkn.screens.onboarding.SetupBodyFatStepTest" time="0.0"/>
+  <testcase name="theStartingRulerPositionAloneIsNotAnAnswer" classname="com.example.kpkn.screens.onboarding.SetupBodyFatStepTest" time="0.0"/>
+  <testcase name="movingTheRulerAgainKeepsTheSourceAndOnlyRefreshesTheDateWhenTheValueChanges" classname="com.example.kpkn.screens.onboarding.SetupBodyFatStepTest" time="0.0"/>
+  <testcase name="theStepIsMandatoryInTheCatalog" classname="com.example.kpkn.screens.onboarding.SetupBodyFatStepTest" time="0.0"/>
+  <testcase name="anOldFigureValueKeepsFullPrecisionButWritesAShortText" classname="com.example.kpkn.screens.onboarding.SetupBodyFatStepTest" time="0.0"/>
+  <testcase name="aChosenSourceWithoutPercentageStillBlocksWithItsOwnMessage" classname="com.example.kpkn.screens.onboarding.SetupBodyFatStepTest" time="0.0"/>
+  <testcase name="aLegacySkippedDraftNoLongerValidatesAndAsksToDeclareAPercentage" classname="com.example.kpkn.screens.onboarding.SetupBodyFatStepTest" time="0.0"/>
+  <testcase name="theFigurePositionIsDerivedFromThePercentageTheRulerDeclared" classname="com.example.kpkn.screens.onboarding.SetupBodyFatStepTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

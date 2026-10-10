@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.approach.ApproachInfoProviderTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:30:21.891Z" hostname="VF" time="0.005">
+  <properties/>
+  <testcase name="the_planner_driven_by_the_catalog_prepares_a_real_press_then_squat_day" classname="com.example.kpkn.domain.training.approach.ApproachInfoProviderTest" time="0.002"/>
+  <testcase name="the_level_of_a_recipe_maps_to_the_approach_level" classname="com.example.kpkn.domain.training.approach.ApproachInfoProviderTest" time="0.0"/>
+  <testcase name="isolations_and_machine_isolations_are_never_heavy" classname="com.example.kpkn.domain.training.approach.ApproachInfoProviderTest" time="0.0"/>
+  <testcase name="every_catalog_configuration_exposes_at_least_one_principal_joint_known_to_the_mobility_map" classname="com.example.kpkn.domain.training.approach.ApproachInfoProviderTest" time="0.002"/>
+  <testcase name="bodyweight_and_band_exercises_are_light_unless_a_ballast_is_declared" classname="com.example.kpkn.domain.training.approach.ApproachInfoProviderTest" time="0.0"/>
+  <testcase name="the_joints_are_the_primary_then_secondary_ones_of_the_catalog_profile" classname="com.example.kpkn.domain.training.approach.ApproachInfoProviderTest" time="0.001"/>
+  <testcase name="loaded_compounds_can_be_heavy" classname="com.example.kpkn.domain.training.approach.ApproachInfoProviderTest" time="0.0"/>
+  <testcase name="an_unknown_or_unidentified_exercise_has_no_info" classname="com.example.kpkn.domain.training.approach.ApproachInfoProviderTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

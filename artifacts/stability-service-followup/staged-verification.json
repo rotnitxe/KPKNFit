@@ -1,0 +1,712 @@
+{
+  "state": "EXPLICIT_NATIVE_FOLLOWUP_STAGE_VERIFIED",
+  "count": 92,
+  "paths": [
+    {
+      "path": "android-native/app/src/androidTest/java/com/example/kpkn/services/cardio/StableProfileGpsLifecycleTest.kt",
+      "indexBlob": "7d35425978ea34c7010b7369ffd8727f9bea9a82",
+      "sourceSha256": "9b659cde4d4836e9738aab5ef788302167ebeaab84667fb819804b3ac153b562"
+    },
+    {
+      "path": "artifacts/stability-launch/requirements.json",
+      "indexBlob": "1bce01d882c30f862717cc534e9988a5b45d0453",
+      "sourceSha256": "825a07946db9af567999b331fcdfa9f7c5f3bf02098bbf22343479e0c5375e2b"
+    },
+    {
+      "path": "artifacts/stability-service-followup/DELIVERY-final.json",
+      "indexBlob": "2959f9714c9619d70c2ffde2e540e24452a64849",
+      "sourceSha256": "160df1d42866b8e5adefc600cebd698db213b7cb0603138a1da17f9ae776d8b2"
+    },
+    {
+      "path": "artifacts/stability-service-followup/README-final.md",
+      "indexBlob": "5b7a29f4cb8d21f0cb909dafc377b0c3336159fd",
+      "sourceSha256": "0afc263fbeedc08cc8784df53ecb507560a5e227bf0815c5ec335525e2b86028"
+    },
+    {
+      "path": "artifacts/stability-service-followup/androidtest-build-05.log",
+      "indexBlob": "d12096dd7159fbe597fdbfc7790ca15ede1badcb",
+      "sourceSha256": "515d3cf099b0e2f3fd90b8ad4ec3186794ad34a4129d91475e47f47ec30cd0e1"
+    },
+    {
+      "path": "artifacts/stability-service-followup/androidtest-build-08.log",
+      "indexBlob": "bcff85402dab0b03605640b8f9a27e8fbcac31df",
+      "sourceSha256": "5bf15afc20f26d2898548239083318acc6b11337098c423fad1e6f31620199ca"
+    },
+    {
+      "path": "artifacts/stability-service-followup/avd-restart-13.json",
+      "indexBlob": "bd93aae299daaf694857b8904243ef8553007810",
+      "sourceSha256": "6b804cf9dc87ffa45bc9492bdaffef16aeee67e55b16f119e81e35cdba9e2ac7"
+    },
+    {
+      "path": "artifacts/stability-service-followup/background-isolation-15.json",
+      "indexBlob": "a5863617b4ee34323ba4fb3977f32867167ee2d7",
+      "sourceSha256": "4639e4c47c09ccd4c64cb86c9392a3444c56cf92325aef6811bf13f819aea4a1"
+    },
+    {
+      "path": "artifacts/stability-service-followup/environment-restored-18.json",
+      "indexBlob": "ad7cc51a70245987ad7b19e166423773250ff23a",
+      "sourceSha256": "248d26f4f9a6aef47074afd2b141d7c4799a6a114af05aa1e1d8713ff779d7df"
+    },
+    {
+      "path": "artifacts/stability-service-followup/fixture-preparation-change.json",
+      "indexBlob": "c45c1afb000d4eef0e4556e2a4759431b6c88e67",
+      "sourceSha256": "271effbdb433b2380c677e3ef1f429761bcd5c1a8d9401d4a0af61977da6b013"
+    },
+    {
+      "path": "artifacts/stability-service-followup/gps-avd.json",
+      "indexBlob": "6b3f9bd7cdcdfff51ecfee3dfaedee5243bb99eb",
+      "sourceSha256": "84204901fbe68b2dfd22625ac9406e8e44c900430f78b2cb02caf6a6ba7fc14a"
+    },
+    {
+      "path": "artifacts/stability-service-followup/gps-debug-03/instrumentation.txt",
+      "indexBlob": "e4d31a0dcb0d01f1897bf092accb479f9e202ba7",
+      "sourceSha256": "ef00bec5241fdaa9bd69de90155ce1e9a4290d35109aca3062c8d36f1a25d8f4"
+    },
+    {
+      "path": "artifacts/stability-service-followup/gps-debug-03/result.json",
+      "indexBlob": "632cd1b1a8c641977e0b0d733f844d87ee1ad8c7",
+      "sourceSha256": "4d0b6da0fe7b5c01bf2fdee9588eb06c6b516a326df810bd7fe750f57eb3abe1"
+    },
+    {
+      "path": "artifacts/stability-service-followup/gps-debug-04/instrumentation.txt",
+      "indexBlob": "e4d31a0dcb0d01f1897bf092accb479f9e202ba7",
+      "sourceSha256": "ef00bec5241fdaa9bd69de90155ce1e9a4290d35109aca3062c8d36f1a25d8f4"
+    },
+    {
+      "path": "artifacts/stability-service-followup/gps-debug-04/result.json",
+      "indexBlob": "5d721d1aae3ca15cdadef2bdeae8ed9a9ef9fa87",
+      "sourceSha256": "3aef98b782c4a6f94602be8ef653d99ac165252b69cdf5a392c9881738c3ea6e"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-free-19/activity.txt",
+      "indexBlob": "2d3ad0ff4ac60434503d2c77f24625f955f84319",
+      "sourceSha256": "854421418792643d7f98c080e14ce3776e86a8853d474e67adbbabadb4a317bf"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-free-19/instrumentation.txt",
+      "indexBlob": "89ed6b6e71087a25ebf9d00add7fe55390b1646c",
+      "sourceSha256": "40641c357f3fbbc26c9e39ac7a142b6ffd5a73c1e891452c06329c65f66a9e4e"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-free-19/result.json",
+      "indexBlob": "86b9c0817cd043d4a92143116ede7640226b39b9",
+      "sourceSha256": "8a1e1c4be406dd674c0ccea8ccd6ca634e5d0302dbd7d7bbed11cd81b7a401de"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-gps-02/cleanup-result.json",
+      "indexBlob": "97fdb43d96421c922ece886cc2e039adc1d21714",
+      "sourceSha256": "52b8c5aa090911226f442a2cc3443758822858d45f39e7c448fc912c13d98eb3"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-gps-02/result.json",
+      "indexBlob": "1ea09edaf8415fde8a14c73fe18dd0d68eb62b1b",
+      "sourceSha256": "08c70a902dd4b26ef3ae99e285e27b53c21799b75199369eb26dd1498edbf1cf"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-gps-02/synthetic-fixes.json",
+      "indexBlob": "14d127159e6454058e2b11feed9f54c132d84435",
+      "sourceSha256": "6ad4e86030d38e9844862efd992d2a1b6e6507cd881f4fbbf941462cf3567d2c"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-races-01/activity.txt",
+      "indexBlob": "d93837f86aa1d0232957304ba8e888fd544aef10",
+      "sourceSha256": "89e8d7165475c1b0902968510c7e2bfbb85143d6150885a60613beb1be31c089"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-races-01/main.png",
+      "indexBlob": "30026dd9412c43a5945b7c4e9fdd4efc37559ab8",
+      "sourceSha256": "e46a16671a75fb62c12f8783dc4ce15b62fb558d77e5b2baa8d361c06f16ad6a"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-races-01/result.json",
+      "indexBlob": "23c1597e857ba0585347f606039f6079859edf49",
+      "sourceSha256": "a41c02ecc712d3723f73a920c84137baff88e646b94e86764adcbb8c244083ad"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-races-01/ui.xml",
+      "indexBlob": "876fb522077fc45e1278eb1b23690d67f22e3384",
+      "sourceSha256": "04826be59d58337afad9df3795a8cdc73d7e1f0850b082d7785c041a0f31d12f"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-06/instrumentation.txt",
+      "indexBlob": "793c961b00f98d340c554ca7a74f630fd95fcfc4",
+      "sourceSha256": "8fc0af40aa9cbf73bbbf5cef943a0013e45a85d6f2fb6f1e55627eca5b8563b3"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-06/result.json",
+      "indexBlob": "715521b0e244190b464654e00c367ca31e658222",
+      "sourceSha256": "658d3d590e4067a5659be70266a6f84e2cd5c681c155705af3fc224bce827774"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-06/synthetic-fixes.json",
+      "indexBlob": "729a41ebb7cbe857b4ef05821a02e3ef237ec150",
+      "sourceSha256": "37157a4d1bb320703551905e5fea56d4679f1214e9f40e2c724e61d0bc65564a"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-07/instrumentation.txt",
+      "indexBlob": "793c961b00f98d340c554ca7a74f630fd95fcfc4",
+      "sourceSha256": "8fc0af40aa9cbf73bbbf5cef943a0013e45a85d6f2fb6f1e55627eca5b8563b3"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-07/result.json",
+      "indexBlob": "92e46af31419301a13c6150177630f907775b91e",
+      "sourceSha256": "fdc604cae96ae0fd1ac0abcc146a951ee0d2e540bcb11e731eb32ac2df240a89"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-07/synthetic-fixes.json",
+      "indexBlob": "38c306babbc3d43fadfbf04866e78cee3f9b2537",
+      "sourceSha256": "f8e758c5f8484b31c25050ba8cc5dcdf0acb044ca5099fc450d17934a3b98e01"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-09/instrumentation.txt",
+      "indexBlob": "09afde7b3bae6b2d546e1293a0aa096c969e76be",
+      "sourceSha256": "2862253799721ea735bf0154f15a9f6fc777d31e84061ed5cc56a9376b3a3bfb"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-09/own-uid-logcat.txt",
+      "indexBlob": "b80e37159532ca33c5443e9f1598da5cd99dcb07",
+      "sourceSha256": "0fd0b4c8860ab917ba9fdb1dadaf8fc9de29ecf00e535bc678b55b329dc8ab5b"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-09/result.json",
+      "indexBlob": "a70fc05fb9ee06c463356f35ff5f9339f884228e",
+      "sourceSha256": "81d4de2115f563da6959c8b6a62602d9ca1f2c6221f3e67d7db09b6a3a5aa225"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-09/synthetic-fixes.json",
+      "indexBlob": "0307a03a715b45319677edd66282ba1e6815b666",
+      "sourceSha256": "0f782dde0e231ebcaa9d06a0b2fd53986f0d82f9190895b7900a2bdba6fccadb"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-10/instrumentation.txt",
+      "indexBlob": "682d6dcf8011424128efbb0393e1987114dea2b6",
+      "sourceSha256": "1f182b9d8e7a2cea6e3ac3ae8a465b7b11c94c774c2df0d26337b994176f688a"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-10/result.json",
+      "indexBlob": "ddfb17b82b96fbddfcc06c23ea90d6eb247b503d",
+      "sourceSha256": "f7726f48255a2e950d455f419b1f53f8462f33435c2febd96cce8eabc96fe607"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-10/synthetic-fixes.json",
+      "indexBlob": "f68c86c420437f36b5d5401c578be338982e6b66",
+      "sourceSha256": "4333231393eb155198a7a0d192ddf7f70b19b03a3636e4283df67309511e13e9"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-11/result.json",
+      "indexBlob": "b7e707eb3b97ff77872946d9ecb2c7436330ac10",
+      "sourceSha256": "481224be3e6fc2a5526c0255fff283d2710eee7c17698e00c8403ec38a003adf"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-11/synthetic-fixes.json",
+      "indexBlob": "fe51488c7066f6687ef680d6bfaa4f7768ef205c",
+      "sourceSha256": "a5338d955b09046ec0b16f3a9625b7955c763aae07dc722e474e6078745f932f"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-12/instrumentation.txt",
+      "indexBlob": "562ff864a9b127a68a44738e9355abd88b9c69ee",
+      "sourceSha256": "f3ca40e0a3bf20eaf9ab861db129a85ecafc52160588fc2089c7bb0239bc1d94"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-12/own-exit-events.txt",
+      "indexBlob": "b05c8ceeab02ccba335af98b1eb67d0ab2fe20b0",
+      "sourceSha256": "b5e846330a810a4e7df77c8687c130a6086bd3c78d802208b14eafa8672e366b"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-12/own-exit-info.txt",
+      "indexBlob": "62187f217af704dfff1543753bb8ece6c85dfc19",
+      "sourceSha256": "0c9930bd42c6e6010bdfaacf6c6cff8fffc3c8214ca382be0d109db5dd4721f1"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-12/own-uid-logcat.txt",
+      "indexBlob": "2cd5c04c617cd4731f6180baa910c51e6eb74204",
+      "sourceSha256": "c79c4b44324377d67d73e322d54b8335bc4696d89e60a4b853e808c4f8b3983c"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-12/result.json",
+      "indexBlob": "524d7642de6c69fa6a1b25597f634f22a9c022fd",
+      "sourceSha256": "4d49181736c3033b6d8f2177f8d71865339f76a6351857b016d1c81657f7c93e"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-12/synthetic-fixes.json",
+      "indexBlob": "813f06aa07146715cf14bef1ea28d3c2f99c2d71",
+      "sourceSha256": "c72873e40a9889c8b452c838e477253872f687d1ec837e68000cac44ff0b92cc"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-16/instrumentation.txt",
+      "indexBlob": "b7c181e89a878cccb3124d03a4a5afb6586866c2",
+      "sourceSha256": "49b5bfa0e07abeb0a52d377b6026377ac6fa9b8c30692f124956a7e34344d86b"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-16/result.json",
+      "indexBlob": "acd5d7db226a7a51b0d4699c2c6dcbdb5562cb85",
+      "sourceSha256": "809ed936e7764de346a10f29336dc6823ac127bf20fb6af69589b2429b212df8"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-16/synthetic-fixes.json",
+      "indexBlob": "54df8e2f7c775def51a077945dc57dfe44b42a1e",
+      "sourceSha256": "3dcb5b6b67a0e655dac321fb8f3c59fcf681b52c81cce3dddc32f989a75d7b0d"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-17/activity.txt",
+      "indexBlob": "77a5cc379ea5a6500ce0e1d6bd11f0b00272bde5",
+      "sourceSha256": "6ae407ff2901c8aae9af0199d8290d0a7b06a36173a73754e0bdd6228ccc7c9c"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-17/instrumentation.txt",
+      "indexBlob": "3577f4210ff1d39559e0b8af1fc9b6ee3e96cc7b",
+      "sourceSha256": "4693e7ec0e5015dcb35b3615b0a37aced19d0e1e0eba2e8c21bb89b27b02b5dc"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-17/main.png",
+      "indexBlob": "f8accae4cbfad340debfc9946429173f827c7f42",
+      "sourceSha256": "de2b3c23afd4ddaa72e1be3dab8af7f98cee11dab41f851871129094bb6feb72"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-17/mock-op-before.txt",
+      "indexBlob": "0787cbbe9140addd722bc9089e2bfd4a5a9da3e7",
+      "sourceSha256": "431265b795082dd543820c345e453207cef541baaca8c6ea9bca48c61473285e"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-17/result.json",
+      "indexBlob": "3e418acd0b2858351a1436bca438623cc11e56dc",
+      "sourceSha256": "09903e60f2216deb009d30cff56f6028a1fa59884a77dc21585c22c726c90ca3"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-17/services.txt",
+      "indexBlob": "8d537f9ac4888f655bdee1e937231acaa6586686",
+      "sourceSha256": "b09f3b4a6a904e27469aa457f075b26957c17f1f46575872d2ae2db9d8a07836"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-17/synthetic-fixes.json",
+      "indexBlob": "0d20c3ff9de56346f2f7ce70ba60f898b8606624",
+      "sourceSha256": "cc6d671328e7237d3b67392ef1708201de865f721a84d018ebdfed58559cc4ae"
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-17/ui.xml",
+      "indexBlob": "b264ad312d0e0ad7dc82100ed90b66d92cf41a89",
+      "sourceSha256": "97aa03a4a11e53e28224a12681c459b14cb1f83beb7c56fe0039d1756be06a76"
+    },
+    {
+      "path": "artifacts/stability-service-followup/qa-avd-config.ini.txt",
+      "indexBlob": "8efb80e8e1fbe9cfe9b9a922c6740163f5a07779",
+      "sourceSha256": "9500348bca6725ae21445a1195de675997778f7c1fb3a3125f0e46e6440b1565"
+    },
+    {
+      "path": "artifacts/stability-service-followup/restored-mock-op.txt",
+      "indexBlob": "0dcd622a32224b20098157d7f28f180a31e95fea",
+      "sourceSha256": "7d73cc5e5c8e36e516fa1e25c43523336a80d1b0c4f0db60756e47d41df7abbb"
+    },
+    {
+      "path": "artifacts/stability-service-followup/runner-preservation-final.json",
+      "indexBlob": "a94edaed39e81ce1e956469bb134bbfc35f95473",
+      "sourceSha256": "a0804cbdea946b24126d4c73c9ed6f370f3cdf58a2323b1ab83eea05300b9e97"
+    },
+    {
+      "path": "artifacts/stability-service-followup/stable-gps-fixture-before-compose.kt.txt",
+      "indexBlob": "3b26f2dd3c5f2c2df8d560d5c3061cb3b356ec27",
+      "sourceSha256": "19124d641d4b0308c75149d72020086f8b07b669e6d49ce46bebe141f204773f"
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/activity.txt",
+      "indexBlob": "d8a02b26bb444d8385840c7d5fb12ac9d1403aec",
+      "sourceSha256": "e5c1f3df84d5d1edf0680e15e37c4dab6fdfab8b583ebd85983dc86f7a4deec5"
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/app-thread-cpu-parse.txt",
+      "indexBlob": "644418fa56c33af8e4df982b2f938b6d083920bf",
+      "sourceSha256": "d1cd80b570e1d5666cd54b90a79e712ed2692ac132d55d1bb01f85a7d3505b3d"
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/app-thread-cpu.csv",
+      "indexBlob": "224c1f6f3885a2c5bc858a4f9d559a425d5d23ae",
+      "sourceSha256": "a8ff1c558fcbb63ed6a4ec1543951e3eb5c934781e3cda2baec42526dd4db1ef"
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/app-thread-cpu.sql",
+      "indexBlob": "024c75a2eb581751cb06e386fc3731d8e2255826",
+      "sourceSha256": "468e60849686e8597180c7c65ac6d6d8bed8c89417b077c82e5d6d371f48b051"
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/gfxinfo.txt",
+      "indexBlob": "fb3b6951b407dd29e52fe39a4fa199d14d17f55f",
+      "sourceSha256": "87404bce05856df442c512e22703a8b0781a5f2bf66bce2f6c402a4501fda287"
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/launch.txt",
+      "indexBlob": "11ff86878d3ed506bd870d69b0096ac564da5dec",
+      "sourceSha256": "38cc2c1e15af3e62a0e303ffe57d1b753574a049891c61eafecd4b6267756d92"
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/logcat-current-pid.txt",
+      "indexBlob": "5f68b53cac8781eea28c3d477a08a98766211137",
+      "sourceSha256": "a3dd46909f26a83d98f10d477997ea7a6c879df15d20147cc822dc0a985e9c0f"
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/main-slices-parse.txt",
+      "indexBlob": "6e59c9cdcc45f81fa8968d9e07591e74e55273e0",
+      "sourceSha256": "0b08ba86d75507f0e4fe15a8ce0b0627268862e0aafaacb47c1a37a3d1a8919d"
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/main-slices.csv",
+      "indexBlob": "73042e47c44f68442453ab3164c2708652f38e85",
+      "sourceSha256": "d359f7ea71bcb01a4ef15a78aa2de9fb2b182d79a0a785c2bd250d2e997105b0"
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/main-slices.sql",
+      "indexBlob": "1186a378ee83ad4a8734f6584f97b1b95769a584",
+      "sourceSha256": "c517c34d2427e161a2b21b45ad709872f7330e9b07260c6279b9bd929b8dcabf"
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/main-thread-states-parse.txt",
+      "indexBlob": "973e81436430598fe98981cee8e919f393f6322d",
+      "sourceSha256": "b1ecd283b5d291a9672310e6476f97a59b7102c65d624bfe5564f22a7e38b0dd"
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/main-thread-states.csv",
+      "indexBlob": "1bf306c1c2a07a02803ea8f5aa0b42fd956a1924",
+      "sourceSha256": "c4c53ca532cd735bb27a650a2c27f9416c123daec8523a777ddda750e42ff4db"
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/main-thread-states.sql",
+      "indexBlob": "3a72cc69614dfe33304f2fc9cb5ec642afb8bd7a",
+      "sourceSha256": "2260def63cf82aec0b3ebca9c7788fcd7fe4a32671bf957382a304b81e0c5dac"
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/main.png",
+      "indexBlob": "f2489dab99f1c80698cd05e8501bd38beec03e5c",
+      "sourceSha256": "b058f966389e632dfb766305b8da49d40764cd39d62d56c3e5938f5427181a20"
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/meminfo.txt",
+      "indexBlob": "786b004f4674682bdd70e915524de693e112cedb",
+      "sourceSha256": "627eb5744855f383d6d26447534cf17bdc147d9d8bd64f199f5bd271f24165e3"
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/perfetto-pull.txt",
+      "indexBlob": "8a8c3666b3c39625e6cd2c309b979b4075a04fe0",
+      "sourceSha256": "504798fcf5b1b1402e2081b74011192e7d175237a32a2e9d7d85867d718fd544"
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/perfetto-start.txt",
+      "indexBlob": "2fab692d620a43089b0253c5cb4d4c762d6e7b46",
+      "sourceSha256": "1f03ccb4678db312ed16f7b70bb1b28788016027f3ccf8e2a1f5d2df2415015f"
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/query-analysis.json",
+      "indexBlob": "152edab4e71b34a9824503b6e4e91972ac678a55",
+      "sourceSha256": "69457157c7c14a26bf5b240a39b2201b256d33d319d29c94a1f93f7a302f02e1"
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/render-slices-parse.txt",
+      "indexBlob": "931d2cca5eb921a5be0ff6dc9bedf839ef41d281",
+      "sourceSha256": "ac3c1e3971cbe25bab7d8c6a5922b885a33f0b456fe3ee437adbd820cbaeb00d"
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/render-slices.csv",
+      "indexBlob": "8e572b2d75a752b989b95753aedf3080537e396d",
+      "sourceSha256": "608ae77d21456c74d3ada8fed6ca9eebce0d5dd281f0ed4f5826865a2c0a7193"
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/render-slices.sql",
+      "indexBlob": "6091c052080b7574950192873fe04003fd0c855a",
+      "sourceSha256": "a5fdb46dc7a52ff05bb296b2b768ffd928551b76ad662aeb8d49a377171397a9"
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/result.json",
+      "indexBlob": "dc3c2ddcd57b158e85f6429479c3ad4da2124923",
+      "sourceSha256": "7f42eaf5ce94b77d7fb4304e48e86d2fa92c90e6def2111f23420ed5d536338e"
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/system-cpu-parse.txt",
+      "indexBlob": "3b52be396ed10eb67021484b55dd0b5428339ad9",
+      "sourceSha256": "7fa13d1be1742f7ec30fb96f08b07083bd52bfe5fdda0037ed299fcc41d4f7a7"
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/system-cpu.csv",
+      "indexBlob": "04d9639cfa7087770ff6c5b9f312bfd9195d8ed2",
+      "sourceSha256": "73a597f730347fd903c067a1cd5e141fe55372c6806e40325004dcca9fcccd1d"
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/system-cpu.sql",
+      "indexBlob": "e768ad02ea272f91c7572b579d7ef213ba1a4691",
+      "sourceSha256": "8900beb8b8a7be0c88f06e3f4931cf7060a68936ecfcaba734a151743c31c7f3"
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/trace-health-parse.txt",
+      "indexBlob": "d3b89bdf638506d88ceee9d3a87a477b33bd6077",
+      "sourceSha256": "504e835d93fdd3b9fb59195e02a2e7cbd29b3ffec5189e82cbcb434caffda7c9"
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/trace-health.csv",
+      "indexBlob": "95f2fbcca2e8410e8a94572d6babc10bbb614c33",
+      "sourceSha256": "6f4d7c4ec44e1f7e1fb51cf6f8eafe2f5a60b233ee9fc0536fe63ba35e68c500"
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/trace-health.sql",
+      "indexBlob": "b14759193d62ed723062ee2f4e8786bf74c57da3",
+      "sourceSha256": "b31cb4adc49382f5958478997c6545d59320d9aa6c9c9d894f48e05d1b09e876"
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/trace-processes.csv",
+      "indexBlob": "6cb05b61f09e7c332404382d18b3468474c40860",
+      "sourceSha256": "b80f8d8f54d0d7d40e847deea6dce40eaa6da8cbdda6a479a3c440fab20b04a2"
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/ui.xml",
+      "indexBlob": "058360dee9c80f8244a022dae3b749e3849e8fa7",
+      "sourceSha256": "84e31ba9053bb5492afee0ff4b36c92213c135a01385182f92bfd11aee08c9c6"
+    },
+    {
+      "path": "scripts/stability/native_gps_qa.py",
+      "indexBlob": "9b790973ecc8b0e8b710298aa27907a2c361d46c",
+      "sourceSha256": "836bea9b2829b821a19480781ac912f894bb35f93612a415eaae1ecdb53e0713"
+    }
+  ],
+  "unrelatedIndexPaths": 0,
+  "rawWhitespacePreserved": [
+    {
+      "path": "artifacts/stability-service-followup/androidtest-build-05.log",
+      "line": 2,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/androidtest-build-08.log",
+      "line": 2,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-09/own-uid-logcat.txt",
+      "line": 71,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-09/own-uid-logcat.txt",
+      "line": 204,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-09/own-uid-logcat.txt",
+      "line": 206,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-09/own-uid-logcat.txt",
+      "line": 226,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-09/own-uid-logcat.txt",
+      "line": 229,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-12/own-uid-logcat.txt",
+      "line": 30,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-12/own-uid-logcat.txt",
+      "line": 33,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-12/own-uid-logcat.txt",
+      "line": 41,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-12/own-uid-logcat.txt",
+      "line": 44,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-12/own-uid-logcat.txt",
+      "line": 48,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-12/own-uid-logcat.txt",
+      "line": 49,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/native-stable-gps-12/own-uid-logcat.txt",
+      "line": 105,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/app-thread-cpu-parse.txt",
+      "line": 1,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/app-thread-cpu-parse.txt",
+      "line": 2,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/gfxinfo.txt",
+      "line": 37,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/gfxinfo.txt",
+      "line": 226,
+      "diagnostic": "new blank line at EOF."
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/main-slices-parse.txt",
+      "line": 1,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/main-slices-parse.txt",
+      "line": 2,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/main-thread-states-parse.txt",
+      "line": 1,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/main-thread-states-parse.txt",
+      "line": 2,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/meminfo.txt",
+      "line": 10,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/meminfo.txt",
+      "line": 11,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/meminfo.txt",
+      "line": 12,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/meminfo.txt",
+      "line": 13,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/meminfo.txt",
+      "line": 14,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/meminfo.txt",
+      "line": 15,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/meminfo.txt",
+      "line": 16,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/meminfo.txt",
+      "line": 17,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/meminfo.txt",
+      "line": 18,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/meminfo.txt",
+      "line": 19,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/meminfo.txt",
+      "line": 20,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/meminfo.txt",
+      "line": 21,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/meminfo.txt",
+      "line": 22,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/meminfo.txt",
+      "line": 24,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/meminfo.txt",
+      "line": 36,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/meminfo.txt",
+      "line": 38,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/meminfo.txt",
+      "line": 46,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/meminfo.txt",
+      "line": 52,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/meminfo.txt",
+      "line": 56,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/render-slices-parse.txt",
+      "line": 1,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/render-slices-parse.txt",
+      "line": 2,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/system-cpu-parse.txt",
+      "line": 1,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/system-cpu-parse.txt",
+      "line": 2,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/trace-health-parse.txt",
+      "line": 1,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "artifacts/stability-service-followup/startup-profile-14/trace-health-parse.txt",
+      "line": 2,
+      "diagnostic": "trailing whitespace."
+    }
+  ],
+  "codeAndDocumentationWhitespaceClean": true,
+  "ignoredArtifacts": [
+    "qa-avd disk images",
+    "downloaded trace processor binary",
+    "raw Perfetto trace (hash/SQL/CSV preserved)"
+  ],
+  "hashSemantics": "sourceSha256 hashes stored original bytes; indexBlob hashes Git-filtered bytes.",
+  "commitPerformed": false
+}

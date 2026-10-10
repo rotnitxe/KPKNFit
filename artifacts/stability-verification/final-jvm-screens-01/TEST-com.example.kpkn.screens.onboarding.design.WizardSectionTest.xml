@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.design.WizardSectionTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:37:09.468Z" hostname="VF" time="6.618">
+  <properties/>
+  <testcase name="theControlOfTheStepThatPeeksIsNotComposedInTheArrivalFrame" classname="com.example.kpkn.screens.onboarding.design.WizardSectionTest" time="5.726"/>
+  <testcase name="onceComposedTheControlIsNotTakenAwayWhenTheStepFoldsOrPeeksAgain" classname="com.example.kpkn.screens.onboarding.design.WizardSectionTest" time="0.203"/>
+  <testcase name="theActiveStepComposesItsControlAtOnce" classname="com.example.kpkn.screens.onboarding.design.WizardSectionTest" time="0.146"/>
+  <testcase name="theStepThatPeeksIsInertAndOnlyAnnouncesWhatComesNext" classname="com.example.kpkn.screens.onboarding.design.WizardSectionTest" time="0.155"/>
+  <testcase name="aStepConfirmedBeforeItsControlArrivedComposesItAtOnceWithoutWaiting" classname="com.example.kpkn.screens.onboarding.design.WizardSectionTest" time="0.125"/>
+  <testcase name="theControlArrivesOnceTheSlideIsOver" classname="com.example.kpkn.screens.onboarding.design.WizardSectionTest" time="0.15"/>
+  <testcase name="withReducedMotionTheControlArrivesAfterAShortBreath" classname="com.example.kpkn.screens.onboarding.design.WizardSectionTest" time="0.112"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

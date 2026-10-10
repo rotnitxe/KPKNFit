@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" tests="41" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:37:45.319Z" hostname="VF" time="0.092">
+  <properties/>
+  <testcase name="thousandsUseThePointOfSpanish" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" time="0.003"/>
+  <testcase name="theFingerTouchesTheRightControlAtTheRightMoment" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" time="0.005"/>
+  <testcase name="theTypedTextIsAlwaysAPrefixAndOnlyGrows" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" time="0.011"/>
+  <testcase name="theLegendAndTheRemainingFollowTheRings" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" time="0.001"/>
+  <testcase name="everyValueOfEveryFrameIsInRange" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" time="0.03"/>
+  <testcase name="theRingsSweepToDifferentPercentages" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" time="0.0"/>
+  <testcase name="theCenterNumberCountsUpAndNeverBackUntilTheFade" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" time="0.005"/>
+  <testcase name="theDayTotalIsTheSumOfTheRows" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" time="0.0"/>
+  <testcase name="theFirstMealTakesAboutAFifthOfTheDay" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" time="0.001"/>
+  <testcase name="theSheetRisesWithASoftSpringAndSettlesAtTheTypingHeight" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" time="0.0"/>
+  <testcase name="ringsAreIntroducedOneAtATimeDuringTheRest" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" time="0.003"/>
+  <testcase name="noChipExistsUntilTheSentenceIsComplete" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" time="0.0"/>
+  <testcase name="theLayoutLeavesRoomForEverything" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" time="0.0"/>
+  <testcase name="theDayStartsEmpty" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" time="0.0"/>
+  <testcase name="everyFoodComesFromAPhraseOfTheSentenceInOrderWithoutOverlap" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" time="0.0"/>
+  <testcase name="theLoopHasTheLengthTheContractAllows" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" time="0.001"/>
+  <testcase name="theSpringStartsAtRestEndsAtOneAndOvershootsLittle" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" time="0.0"/>
+  <testcase name="theCaptionStepsGoOneTwoThree" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" time="0.003"/>
+  <testcase name="theStillFrameIsComplete" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" time="0.0"/>
+  <testcase name="rowNumbersRollUpToTheirValueAndTheTotalIsTheirSum" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" time="0.005"/>
+  <testcase name="theSentenceFadesAsItsWordsBecomeChips" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" time="0.003"/>
+  <testcase name="theLoopIsCoveredAtItsSeam" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" time="0.003"/>
+  <testcase name="nothingIsTypedBeforeTheBeatAndEverythingAfter" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" time="0.0"/>
+  <testcase name="theTypingRhythmIsHuman" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" time="0.0"/>
+  <testcase name="theStillFrameFallsAfterTheLastThingSettlesAndBeforeTheFadeBack" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" time="0.0"/>
+  <testcase name="chipsLeaveOneByOneInOrder" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" time="0.006"/>
+  <testcase name="theKeyboardIsUpWhileTypingAndGoneWhenTheFoodsAppear" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" time="0.0"/>
+  <testcase name="theChipsFitInsideTheFieldThatHeldTheSentence" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" time="0.0"/>
+  <testcase name="timeWrapsAroundThePeriod" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" time="0.0"/>
+  <testcase name="theSheetOnlyRisesAfterTheFingerLetsGo" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" time="0.0"/>
+  <testcase name="theSheetIsFullHeightWhileTheFoodsAppearAndTheButtonIsReachable" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" time="0.001"/>
+  <testcase name="rowsAreResolvedOneAtATime" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" time="0.006"/>
+  <testcase name="theRingsOnlyGrowWhileTheDayUpdates" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" time="0.004"/>
+  <testcase name="theMacroBarsAreProportionalToTheGramsOfEachRow" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" time="0.0"/>
+  <testcase name="theSheetIsDownBeforeTheRingsSweepSoTheyAreNotHidden" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" time="0.0"/>
+  <testcase name="theStillFrameIsSettledNotMidAnimation" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" time="0.001"/>
+  <testcase name="theBeatsComeInOrder" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" time="0.0"/>
+  <testcase name="theFirstRowsStartRollingBeforeTheLastEnters" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" time="0.0"/>
+  <testcase name="theFingerIsNotThereWhenNothingIsBeingTouched" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" time="0.0"/>
+  <testcase name="everyRowAddsUpFromItsMacros" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" time="0.0"/>
+  <testcase name="theKeyThatJustWasTypedGlowsAndFades" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionSceneTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

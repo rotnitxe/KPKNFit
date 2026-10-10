@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.design.entreno.SessionDialMathTest" tests="23" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:37:25.579Z" hostname="VF" time="0.017">
+  <properties/>
+  <testcase name="clockAnglesNormalizeToOneTurn" classname="com.example.kpkn.screens.onboarding.design.entreno.SessionDialMathTest" time="0.001"/>
+  <testcase name="theGapSaturatesAtTheNearestEndInsteadOfWrappingOrOvershooting" classname="com.example.kpkn.screens.onboarding.design.entreno.SessionDialMathTest" time="0.0"/>
+  <testcase name="theFirstTouchIsAbsoluteAndGivesTheNotchUnderTheFinger" classname="com.example.kpkn.screens.onboarding.design.entreno.SessionDialMathTest" time="0.001"/>
+  <testcase name="theNotchesCountFromTheMinimumAndNeverPassTheMaximum" classname="com.example.kpkn.screens.onboarding.design.entreno.SessionDialMathTest" time="0.0"/>
+  <testcase name="aTouchPointBecomesAClockAngleFromTheTwelve" classname="com.example.kpkn.screens.onboarding.design.entreno.SessionDialMathTest" time="0.0"/>
+  <testcase name="theArcRunsFromBottomLeftThroughTheTopToBottomRight" classname="com.example.kpkn.screens.onboarding.design.entreno.SessionDialMathTest" time="0.0"/>
+  <testcase name="anAngleOutsideTheNormalTurnMeansTheSameAsItsNormalizedOne" classname="com.example.kpkn.screens.onboarding.design.entreno.SessionDialMathTest" time="0.0"/>
+  <testcase name="otherRangesAndStepsWorkTheSameWay" classname="com.example.kpkn.screens.onboarding.design.entreno.SessionDialMathTest" time="0.001"/>
+  <testcase name="theAngularDistanceTakesTheShortWayRound" classname="com.example.kpkn.screens.onboarding.design.entreno.SessionDialMathTest" time="0.0"/>
+  <testcase name="minutesSnapToTheNearestNotchAndHalfWayGoesUp" classname="com.example.kpkn.screens.onboarding.design.entreno.SessionDialMathTest" time="0.0"/>
+  <testcase name="nonsenseAnglesFallBackToTheMinimum" classname="com.example.kpkn.screens.onboarding.design.entreno.SessionDialMathTest" time="0.0"/>
+  <testcase name="aSmallStepAcrossNorthWrapsTheShortWay" classname="com.example.kpkn.screens.onboarding.design.entreno.SessionDialMathTest" time="0.0"/>
+  <testcase name="everyNotchSurvivesTheRoundTrip" classname="com.example.kpkn.screens.onboarding.design.entreno.SessionDialMathTest" time="0.0"/>
+  <testcase name="startingInTheLeftHalfOfTheGapKeepsTheMinimumUntilTheFingerReachesTheArc" classname="com.example.kpkn.screens.onboarding.design.entreno.SessionDialMathTest" time="0.0"/>
+  <testcase name="theAccessibilityStepsMoveOneNotchAndStopAtTheEnds" classname="com.example.kpkn.screens.onboarding.design.entreno.SessionDialMathTest" time="0.0"/>
+  <testcase name="theDialRangeIsTheOneOfTheStep" classname="com.example.kpkn.screens.onboarding.design.entreno.SessionDialMathTest" time="0.0"/>
+  <testcase name="draggingClockwiseAllTheWayRoundNeverJumpsAndStaysAtTheMaximum" classname="com.example.kpkn.screens.onboarding.design.entreno.SessionDialMathTest" time="0.004"/>
+  <testcase name="theFractionIsLinearAndClamped" classname="com.example.kpkn.screens.onboarding.design.entreno.SessionDialMathTest" time="0.001"/>
+  <testcase name="aFullCircleInThreeDegreeStepsFromAnyStartNeverMovesMoreThanOneNotchPerStep" classname="com.example.kpkn.screens.onboarding.design.entreno.SessionDialMathTest" time="0.006"/>
+  <testcase name="anglesAreClampedToTheEndsOfTheArc" classname="com.example.kpkn.screens.onboarding.design.entreno.SessionDialMathTest" time="0.0"/>
+  <testcase name="theKnobWaitsAtTheEndWhileTheFingerGoesAroundTheGapAndRejoinsWhenItComesBack" classname="com.example.kpkn.screens.onboarding.design.entreno.SessionDialMathTest" time="0.0"/>
+  <testcase name="aNotchOwnsTheAnglesAroundItUpToHalfAStep" classname="com.example.kpkn.screens.onboarding.design.entreno.SessionDialMathTest" time="0.001"/>
+  <testcase name="draggingCounterClockwiseAllTheWayRoundNeverJumpsAndStaysAtTheMinimum" classname="com.example.kpkn.screens.onboarding.design.entreno.SessionDialMathTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

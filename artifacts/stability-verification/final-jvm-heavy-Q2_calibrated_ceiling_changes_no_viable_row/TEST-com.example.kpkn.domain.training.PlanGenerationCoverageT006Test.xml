@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.PlanGenerationCoverageT006Test" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:49:52.290Z" hostname="VF" time="148.319">
+  <properties/>
+  <testcase name="Q2_calibrated_ceiling_changes_no_viable_row" classname="com.example.kpkn.domain.training.PlanGenerationCoverageT006Test" time="147.953"/>
+  <system-out><![CDATA[[T006][Q2-cal] escenario=techo filas=2304 viablesAntes=1232 viablesDespues=1232 filasViablesQueCambian=0 filasRescatadasPorLaBanda=0 rechazosAntes={APPARATUS_ABSENT=360, PROFILE_MISMATCH=216, TIME_BUDGET=496} rechazosDespues={APPARATUS_ABSENT=360, PROFILE_MISMATCH=216, TIME_BUDGET=496} bandaSegunPolitica=0 avisosDelAjustador=0 elapsedMs=147423
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

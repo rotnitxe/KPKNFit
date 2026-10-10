@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.services.workout.WorkoutVoiceGrammarKeyTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:40:38.553Z" hostname="VF" time="0.012">
+  <properties/>
+  <testcase name="grammar_key_changes_with_pending_clarification_flag" classname="com.example.kpkn.services.workout.WorkoutVoiceGrammarKeyTest" time="0.0"/>
+  <testcase name="grammar_key_still_differentiates_context" classname="com.example.kpkn.services.workout.WorkoutVoiceGrammarKeyTest" time="0.001"/>
+  <testcase name="flag_only_adds_yesno_in_listening_stage" classname="com.example.kpkn.services.workout.WorkoutVoiceGrammarKeyTest" time="0.011"/>
+  <testcase name="grammar_key_stable_when_flag_unchanged" classname="com.example.kpkn.services.workout.WorkoutVoiceGrammarKeyTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

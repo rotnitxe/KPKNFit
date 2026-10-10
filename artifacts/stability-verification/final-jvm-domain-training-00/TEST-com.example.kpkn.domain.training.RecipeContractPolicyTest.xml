@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.RecipeContractPolicyTest" tests="28" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:29:40.693Z" hostname="VF" time="0.02">
+  <properties/>
+  <testcase name="c8_flags_links_to_missing_slots_to_itself_and_to_another_pattern_group" classname="com.example.kpkn.domain.training.RecipeContractPolicyTest" time="0.0"/>
+  <testcase name="summarize_counts_findings_per_contract_rule" classname="com.example.kpkn.domain.training.RecipeContractPolicyTest" time="0.001"/>
+  <testcase name="c9_flags_techniques_already_in_the_configuration_and_patches_whose_own_configuration_exists" classname="com.example.kpkn.domain.training.RecipeContractPolicyTest" time="0.001"/>
+  <testcase name="c3_flags_work_sets_without_reps_or_without_intensity_and_ignores_warmups" classname="com.example.kpkn.domain.training.RecipeContractPolicyTest" time="0.001"/>
+  <testcase name="the_contract_is_wired_as_soft_findings_that_exemptions_silence_but_never_reach_hard" classname="com.example.kpkn.domain.training.RecipeContractPolicyTest" time="0.001"/>
+  <testcase name="slot_scoped_findings_are_silenced_by_slot_globs_but_not_by_a_day_glob" classname="com.example.kpkn.domain.training.RecipeContractPolicyTest" time="0.0"/>
+  <testcase name="c7_block_thresholds_use_effective_one_rm_for_peak_intensification_accumulation_and_deload" classname="com.example.kpkn.domain.training.RecipeContractPolicyTest" time="0.002"/>
+  <testcase name="severity_defaults_to_soft_and_hard_keeps_c10_as_an_advisory" classname="com.example.kpkn.domain.training.RecipeContractPolicyTest" time="0.001"/>
+  <testcase name="c1_flags_slots_outside_two_to_eight_working_sets_and_ignores_warmups" classname="com.example.kpkn.domain.training.RecipeContractPolicyTest" time="0.0"/>
+  <testcase name="a_clean_recipe_has_no_contract_findings" classname="com.example.kpkn.domain.training.RecipeContractPolicyTest" time="0.001"/>
+  <testcase name="c10_flags_three_or_more_identical_training_weeks_in_a_row" classname="com.example.kpkn.domain.training.RecipeContractPolicyTest" time="0.001"/>
+  <testcase name="c1_one_set_is_valid_for_top_sets_amrap_single_reps_and_desired_max" classname="com.example.kpkn.domain.training.RecipeContractPolicyTest" time="0.0"/>
+  <testcase name="c6_requires_marked_amrap_or_top_sets_in_slots_with_a_lift_slot" classname="com.example.kpkn.domain.training.RecipeContractPolicyTest" time="0.0"/>
+  <testcase name="c6_flags_only_the_progression_rules_without_a_consumer" classname="com.example.kpkn.domain.training.RecipeContractPolicyTest" time="0.001"/>
+  <testcase name="c7_taper_last_heavy_uses_effective_one_rm" classname="com.example.kpkn.domain.training.RecipeContractPolicyTest" time="0.001"/>
+  <testcase name="evaluate_does_not_fail_on_degenerate_recipes" classname="com.example.kpkn.domain.training.RecipeContractPolicyTest" time="0.001"/>
+  <testcase name="c4_flags_claimed_days_that_do_not_match_the_week_and_repeated_weekdays" classname="com.example.kpkn.domain.training.RecipeContractPolicyTest" time="0.0"/>
+  <testcase name="c7_h8_uses_effective_one_rm_and_retains_the_top_set_exception" classname="com.example.kpkn.domain.training.RecipeContractPolicyTest" time="0.001"/>
+  <testcase name="c1_speed_slots_allow_up_to_twelve_sets" classname="com.example.kpkn.domain.training.RecipeContractPolicyTest" time="0.0"/>
+  <testcase name="c2_accepts_pairs_linked_by_supplemental_of_and_reports_only_the_loose_slot" classname="com.example.kpkn.domain.training.RecipeContractPolicyTest" time="0.0"/>
+  <testcase name="c10_excludes_recipes_whose_progression_changes_the_load_between_weeks" classname="com.example.kpkn.domain.training.RecipeContractPolicyTest" time="0.001"/>
+  <testcase name="c2_flags_the_same_configuration_twice_in_a_day_without_an_anchor" classname="com.example.kpkn.domain.training.RecipeContractPolicyTest" time="0.0"/>
+  <testcase name="c7_h5a_h9_w3_and_w4_use_effective_one_rm_at_the_heavy_boundary" classname="com.example.kpkn.domain.training.RecipeContractPolicyTest" time="0.002"/>
+  <testcase name="c7_resolves_top_set_percent_and_ignores_observed_load_references_in_heavy_checks" classname="com.example.kpkn.domain.training.RecipeContractPolicyTest" time="0.001"/>
+  <testcase name="c1_t3_with_one_set_is_valid_only_in_peak_realization_taper_or_deload_weeks" classname="com.example.kpkn.domain.training.RecipeContractPolicyTest" time="0.0"/>
+  <testcase name="c1_authored_exact_accepts_the_declared_set_range_and_native_profiles_are_exempt" classname="com.example.kpkn.domain.training.RecipeContractPolicyTest" time="0.001"/>
+  <testcase name="c2_ignores_the_same_configuration_on_different_days" classname="com.example.kpkn.domain.training.RecipeContractPolicyTest" time="0.0"/>
+  <testcase name="c5_requires_a_deload_or_taper_week_in_long_recipes_that_do_not_repeat" classname="com.example.kpkn.domain.training.RecipeContractPolicyTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.workout.components.GodModeSessionBoardTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:39:51.815Z" hostname="VF" time="0.009">
+  <properties/>
+  <testcase name="cluster_groupsSupersetMembersFromTable" classname="com.example.kpkn.screens.workout.components.GodModeSessionBoardTest" time="0.008"/>
+  <testcase name="cluster_keepsStandaloneExercisesSeparate" classname="com.example.kpkn.screens.workout.components.GodModeSessionBoardTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

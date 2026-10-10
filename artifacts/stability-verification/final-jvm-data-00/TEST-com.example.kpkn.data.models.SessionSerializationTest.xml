@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.models.SessionSerializationTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:51:23.471Z" hostname="VF" time="0.065">
+  <properties/>
+  <testcase name="encode_and_decode_ongoing_workout_state_preserves_workout_session_contracts" classname="com.example.kpkn.data.models.SessionSerializationTest" time="0.011"/>
+  <testcase name="decode_legacy_workout_log_payload_keeps_v2_defaults" classname="com.example.kpkn.data.models.SessionSerializationTest" time="0.006"/>
+  <testcase name="mobility_series_without_rest_field_keeps_zero_default" classname="com.example.kpkn.data.models.SessionSerializationTest" time="0.003"/>
+  <testcase name="encode_and_decode_rich_session_payload_preserves_new_editor_fields" classname="com.example.kpkn.data.models.SessionSerializationTest" time="0.034"/>
+  <testcase name="legacy_mobility_payload_normalizes_to_one_explicit_unit" classname="com.example.kpkn.data.models.SessionSerializationTest" time="0.002"/>
+  <testcase name="legacy_surtido_session_is_migrated_to_focused_global_timer_without_series_rest" classname="com.example.kpkn.data.models.SessionSerializationTest" time="0.002"/>
+  <testcase name="mobility_series_round_trip_preserves_rest_between_seconds" classname="com.example.kpkn.data.models.SessionSerializationTest" time="0.001"/>
+  <testcase name="legacy_session_mobility_defaults_to_focused_mode" classname="com.example.kpkn.data.models.SessionSerializationTest" time="0.0"/>
+  <testcase name="decode_legacy_session_payload_keeps_safe_defaults" classname="com.example.kpkn.data.models.SessionSerializationTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

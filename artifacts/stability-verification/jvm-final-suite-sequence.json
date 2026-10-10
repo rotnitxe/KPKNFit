@@ -1,0 +1,338 @@
+{
+  "state": "PARTITIONS_FINISHED_REQUIRES_COVERAGE_AUDIT",
+  "inventorySha256": "aa6b6aa8271d0e450d1663c0579db27ee34d1be5b4080934a1e0ed252db81a38",
+  "partitions": [
+    {
+      "group": "data",
+      "chunk": 0,
+      "out": "final-jvm-data-00",
+      "method": null,
+      "exitCode": 0,
+      "state": "PASS",
+      "totals": {
+        "tests": 475,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "elapsedSeconds": 321.3987832069397
+    },
+    {
+      "group": "data",
+      "chunk": 1,
+      "out": "final-jvm-data-01",
+      "method": null,
+      "exitCode": 0,
+      "state": "PASS",
+      "totals": {
+        "tests": 476,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "elapsedSeconds": 292.49893712997437
+    },
+    {
+      "group": "domain-nutrition",
+      "chunk": 0,
+      "out": "final-jvm-domain-nutrition-00",
+      "method": null,
+      "exitCode": 0,
+      "state": "PASS",
+      "totals": {
+        "tests": 1302,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "elapsedSeconds": 72.07698917388916
+    },
+    {
+      "group": "domain-nutrition",
+      "chunk": 1,
+      "out": "final-jvm-domain-nutrition-01",
+      "method": null,
+      "exitCode": 0,
+      "state": "PASS",
+      "totals": {
+        "tests": 314,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "elapsedSeconds": 48.6169056892395
+    },
+    {
+      "group": "domain-other",
+      "chunk": 0,
+      "out": "final-jvm-domain-other-00",
+      "method": null,
+      "exitCode": 0,
+      "state": "PASS",
+      "totals": {
+        "tests": 263,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "elapsedSeconds": 38.40044450759888
+    },
+    {
+      "group": "domain-other",
+      "chunk": 1,
+      "out": "final-jvm-domain-other-01",
+      "method": null,
+      "exitCode": 0,
+      "state": "PASS",
+      "totals": {
+        "tests": 658,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "elapsedSeconds": 1546.051176071167
+    },
+    {
+      "group": "domain-other",
+      "chunk": 2,
+      "out": "final-jvm-domain-other-02",
+      "method": null,
+      "exitCode": 0,
+      "state": "PASS",
+      "totals": {
+        "tests": 211,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "elapsedSeconds": 39.83002805709839
+    },
+    {
+      "group": "domain-training",
+      "chunk": 0,
+      "out": "final-jvm-domain-training-00",
+      "method": null,
+      "exitCode": 0,
+      "state": "PASS",
+      "totals": {
+        "tests": 871,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "elapsedSeconds": 239.7481405735016
+    },
+    {
+      "group": "domain-training",
+      "chunk": 1,
+      "out": "final-jvm-domain-training-01",
+      "method": null,
+      "exitCode": 0,
+      "state": "PASS",
+      "totals": {
+        "tests": 416,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "elapsedSeconds": 83.55782580375671
+    },
+    {
+      "group": "other",
+      "chunk": 0,
+      "out": "final-jvm-other-00",
+      "method": null,
+      "exitCode": 0,
+      "state": "PASS",
+      "totals": {
+        "tests": 129,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "elapsedSeconds": 58.19612765312195
+    },
+    {
+      "group": "screens",
+      "chunk": 0,
+      "out": "final-jvm-screens-00",
+      "method": null,
+      "exitCode": 0,
+      "state": "PASS",
+      "totals": {
+        "tests": 831,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "elapsedSeconds": 266.79181456565857
+    },
+    {
+      "group": "screens",
+      "chunk": 1,
+      "out": "final-jvm-screens-01",
+      "method": null,
+      "exitCode": 0,
+      "state": "PASS",
+      "totals": {
+        "tests": 1076,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "elapsedSeconds": 98.9550404548645
+    },
+    {
+      "group": "screens",
+      "chunk": 2,
+      "out": "final-jvm-screens-02",
+      "method": null,
+      "exitCode": 0,
+      "state": "PASS",
+      "totals": {
+        "tests": 471,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "elapsedSeconds": 51.620904207229614
+    },
+    {
+      "group": "screens",
+      "chunk": 3,
+      "out": "final-jvm-screens-03",
+      "method": null,
+      "exitCode": 0,
+      "state": "PASS",
+      "totals": {
+        "tests": 255,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "elapsedSeconds": 45.85913825035095
+    },
+    {
+      "group": "services",
+      "chunk": 0,
+      "out": "final-jvm-services-00",
+      "method": null,
+      "exitCode": 1,
+      "state": "COMPLETED_WITH_OMISSIONS",
+      "totals": {
+        "tests": 337,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 2
+      },
+      "elapsedSeconds": 48.475613594055176
+    },
+    {
+      "group": "heavy-generation",
+      "chunk": 0,
+      "out": "final-jvm-heavy-Q1_pure_planner_coverage_62208_inputs",
+      "method": "Q1_pure_planner_coverage_62208_inputs",
+      "exitCode": 0,
+      "state": "PASS",
+      "totals": {
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "elapsedSeconds": 38.37276029586792
+    },
+    {
+      "group": "heavy-generation",
+      "chunk": 0,
+      "out": "final-jvm-heavy-Q2_real_generation_coverage_2304_inputs",
+      "method": "Q2_real_generation_coverage_2304_inputs",
+      "exitCode": 0,
+      "state": "PASS",
+      "totals": {
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "elapsedSeconds": 114.41399025917053
+    },
+    {
+      "group": "heavy-generation",
+      "chunk": 0,
+      "out": "final-jvm-heavy-Q2_calibrated_uncalibrated_changes_no_viable_row",
+      "method": "Q2_calibrated_uncalibrated_changes_no_viable_row",
+      "exitCode": 0,
+      "state": "PASS",
+      "totals": {
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "elapsedSeconds": 180.87716460227966
+    },
+    {
+      "group": "heavy-generation",
+      "chunk": 0,
+      "out": "final-jvm-heavy-Q2_calibrated_floor_changes_no_viable_row",
+      "method": "Q2_calibrated_floor_changes_no_viable_row",
+      "exitCode": 0,
+      "state": "PASS",
+      "totals": {
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "elapsedSeconds": 182.80357217788696
+    },
+    {
+      "group": "heavy-generation",
+      "chunk": 0,
+      "out": "final-jvm-heavy-Q2_calibrated_ceiling_changes_no_viable_row",
+      "method": "Q2_calibrated_ceiling_changes_no_viable_row",
+      "exitCode": 0,
+      "state": "PASS",
+      "totals": {
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "elapsedSeconds": 183.08569312095642
+    },
+    {
+      "group": "heavy-generation",
+      "chunk": 0,
+      "out": "final-jvm-heavy-Q2_required_positives",
+      "method": "Q2_required_positives",
+      "exitCode": 0,
+      "state": "PASS",
+      "totals": {
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "elapsedSeconds": 37.771509647369385
+    },
+    {
+      "group": "heavy-generation",
+      "chunk": 0,
+      "out": "final-jvm-heavy-Q3_fitter_viability_neighbors_and_cardio_default_boundaries",
+      "method": "Q3_fitter_viability_neighbors_and_cardio_default_boundaries",
+      "exitCode": 0,
+      "state": "PASS",
+      "totals": {
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "elapsedSeconds": 47.34097194671631
+    }
+  ],
+  "requiredPreexisting": [],
+  "limits": "All partition XMLs including seven heavy methods and real voice corpus required for full-suite PASS. Skips or failures remain omissions/FAIL; old interrupted full run retained."
+}

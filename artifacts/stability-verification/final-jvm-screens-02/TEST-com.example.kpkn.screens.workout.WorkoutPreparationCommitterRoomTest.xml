@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.workout.WorkoutPreparationCommitterRoomTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:39:02.195Z" hostname="VF" time="0.353">
+  <properties/>
+  <testcase name="mobilityRoomUpdateFailure_keepsPreviouslyCommittedReport_thenRetryUpdatesTheSameOccurrence" classname="com.example.kpkn.screens.workout.WorkoutPreparationCommitterRoomTest" time="0.196"/>
+  <testcase name="warmupRoomInsertFailure_keepsReportAndCompletionUnpublished_thenRetryRestoresBoth" classname="com.example.kpkn.screens.workout.WorkoutPreparationCommitterRoomTest" time="0.157"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

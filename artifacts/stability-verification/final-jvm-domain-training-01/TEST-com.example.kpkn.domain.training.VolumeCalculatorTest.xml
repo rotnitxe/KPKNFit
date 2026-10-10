@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.VolumeCalculatorTest" tests="41" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:30:20.636Z" hostname="VF" time="0.084">
+  <properties/>
+  <testcase name="normalizeCanonical_tfl_maps_to_gluteos" classname="com.example.kpkn.domain.training.VolumeCalculatorTest" time="0.023"/>
+  <testcase name="calculateVolume_ineffective_sets_excluded" classname="com.example.kpkn.domain.training.VolumeCalculatorTest" time="0.03"/>
+  <testcase name="calculateVolume_with_parts" classname="com.example.kpkn.domain.training.VolumeCalculatorTest" time="0.004"/>
+  <testcase name="normalizeMuscleGroup_spalda" classname="com.example.kpkn.domain.training.VolumeCalculatorTest" time="0.0"/>
+  <testcase name="normalizeMuscleGroup_deltoides_posterior" classname="com.example.kpkn.domain.training.VolumeCalculatorTest" time="0.0"/>
+  <testcase name="roleSeparatedVolume_resolves_v2_configuration_miss_via_definition_id" classname="com.example.kpkn.domain.training.VolumeCalculatorTest" time="0.003"/>
+  <testcase name="calculateVolume_empty_sessions" classname="com.example.kpkn.domain.training.VolumeCalculatorTest" time="0.0"/>
+  <testcase name="weeklyVolume_sums_session_volume_counters_without_dividing_by_program_weeks" classname="com.example.kpkn.domain.training.VolumeCalculatorTest" time="0.009"/>
+  <testcase name="roleSeparatedVolume_uses_chip_effective_muscles_and_collapses_tensor_into_glutes" classname="com.example.kpkn.domain.training.VolumeCalculatorTest" time="0.001"/>
+  <testcase name="roleSeparatedVolume_splits_secondary_and_stabilizer_buckets" classname="com.example.kpkn.domain.training.VolumeCalculatorTest" time="0.0"/>
+  <testcase name="normalizeCanonical_romboides_separate_from_trapecio" classname="com.example.kpkn.domain.training.VolumeCalculatorTest" time="0.0"/>
+  <testcase name="pressBanca_triceps_must_be_secondary_not_primary" classname="com.example.kpkn.domain.training.VolumeCalculatorTest" time="0.001"/>
+  <testcase name="normalizeCanonical_deltoides_always_collapses_regardless_of_emphasis" classname="com.example.kpkn.domain.training.VolumeCalculatorTest" time="0.0"/>
+  <testcase name="roleSeparatedVolume_counts_stabilizers_as_indirect_without_ssc_gate" classname="com.example.kpkn.domain.training.VolumeCalculatorTest" time="0.0"/>
+  <testcase name="deadlift_multiple_primary_muscles_get_individual_volume" classname="com.example.kpkn.domain.training.VolumeCalculatorTest" time="0.001"/>
+  <testcase name="calculateMuscleVolume_unified_matches_legacy" classname="com.example.kpkn.domain.training.VolumeCalculatorTest" time="0.001"/>
+  <testcase name="unifiedVolume_includes_loose_exercises_when_session_also_has_parts" classname="com.example.kpkn.domain.training.VolumeCalculatorTest" time="0.001"/>
+  <testcase name="normalizeMuscleGroup_abdomen" classname="com.example.kpkn.domain.training.VolumeCalculatorTest" time="0.0"/>
+  <testcase name="plank_neutralizer_gluteos_excluded" classname="com.example.kpkn.domain.training.VolumeCalculatorTest" time="0.001"/>
+  <testcase name="normalize_core_does_not_collapse_to_abdomen" classname="com.example.kpkn.domain.training.VolumeCalculatorTest" time="0.0"/>
+  <testcase name="normalizeMuscleGroup_triceps" classname="com.example.kpkn.domain.training.VolumeCalculatorTest" time="0.0"/>
+  <testcase name="normalizeCanonical_psoas_maps_to_core" classname="com.example.kpkn.domain.training.VolumeCalculatorTest" time="0.0"/>
+  <testcase name="normalizeCanonical_tibial_anterior_stays_separate_from_calf_plantar_flexors" classname="com.example.kpkn.domain.training.VolumeCalculatorTest" time="0.001"/>
+  <testcase name="normalizeMuscleGroup_core_does_not_collapse_to_abdomen" classname="com.example.kpkn.domain.training.VolumeCalculatorTest" time="0.0"/>
+  <testcase name="unifiedVolume_resolves_legacy_alias_ids" classname="com.example.kpkn.domain.training.VolumeCalculatorTest" time="0.0"/>
+  <testcase name="weeklyVolumeForWeeks_can_return_block_or_macrocycle_average_without_recounting" classname="com.example.kpkn.domain.training.VolumeCalculatorTest" time="0.001"/>
+  <testcase name="hollowBodyHold_core_and_abdomen_are_separate" classname="com.example.kpkn.domain.training.VolumeCalculatorTest" time="0.0"/>
+  <testcase name="normalizeMuscleGroup_legs" classname="com.example.kpkn.domain.training.VolumeCalculatorTest" time="0.0"/>
+  <testcase name="arnoldPress_deltoid_heads_collapse_to_single_group" classname="com.example.kpkn.domain.training.VolumeCalculatorTest" time="0.004"/>
+  <testcase name="normalizeMuscleGroup_deltoides_lateral" classname="com.example.kpkn.domain.training.VolumeCalculatorTest" time="0.0"/>
+  <testcase name="calculateVolume_no_exercise_match" classname="com.example.kpkn.domain.training.VolumeCalculatorTest" time="0.0"/>
+  <testcase name="lowSsc_stabilizer_counts_as_indirect_volume" classname="com.example.kpkn.domain.training.VolumeCalculatorTest" time="0.0"/>
+  <testcase name="bulgarianSplit_gluteus_max_not_summed" classname="com.example.kpkn.domain.training.VolumeCalculatorTest" time="0.0"/>
+  <testcase name="arnoldPress_json_emphasis_heads_collapse_to_one_deltoides" classname="com.example.kpkn.domain.training.VolumeCalculatorTest" time="0.0"/>
+  <testcase name="roleSeparatedVolume_does_not_count_when_no_id_matches" classname="com.example.kpkn.domain.training.VolumeCalculatorTest" time="0.0"/>
+  <testcase name="normalizeMuscleGroup_biceps_excludes_femoral" classname="com.example.kpkn.domain.training.VolumeCalculatorTest" time="0.0"/>
+  <testcase name="deadlift_neutralizer_dorsales_excluded" classname="com.example.kpkn.domain.training.VolumeCalculatorTest" time="0.0"/>
+  <testcase name="normalizeMuscleGroup_pectoral" classname="com.example.kpkn.domain.training.VolumeCalculatorTest" time="0.0"/>
+  <testcase name="calculateVolume_two_sessions_squat_bench" classname="com.example.kpkn.domain.training.VolumeCalculatorTest" time="0.001"/>
+  <testcase name="normalizeMuscleGroup_unknown_returns_capitalized" classname="com.example.kpkn.domain.training.VolumeCalculatorTest" time="0.0"/>
+  <testcase name="normalizeMuscleGroup_deltoides_default" classname="com.example.kpkn.domain.training.VolumeCalculatorTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

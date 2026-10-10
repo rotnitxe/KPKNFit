@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.LegacyNativeDurationConsistencyTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:26:28.588Z" hostname="VF" time="8.273">
+  <properties/>
+  <testcase name="strength_cardio_one_and_two_days_at_60_minutes_produce_a_program_that_fits" classname="com.example.kpkn.domain.training.LegacyNativeDurationConsistencyTest" time="0.395"/>
+  <testcase name="legacy_generation_stays_deterministic" classname="com.example.kpkn.domain.training.LegacyNativeDurationConsistencyTest" time="0.317"/>
+  <testcase name="strength_cardio_sweep_never_publishes_a_session_the_shared_estimator_rejects" classname="com.example.kpkn.domain.training.LegacyNativeDurationConsistencyTest" time="5.497"/>
+  <testcase name="other_legacy_families_seal_the_shared_estimate_and_fit" classname="com.example.kpkn.domain.training.LegacyNativeDurationConsistencyTest" time="2.064"/>
+  <system-out><![CDATA[[LegacyDuration] strength-cardio generated=48 refused=12
+[LegacyDuration] otras familias generated=27
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

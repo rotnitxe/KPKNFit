@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.NutritionReminderPlannerTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:57:46.997Z" hostname="VF" time="0.049">
+  <properties/>
+  <testcase name="everyInstantAroundBothSantiagoChangesYieldsTheNextWallClockOccurrence" classname="com.example.kpkn.domain.nutrition.NutritionReminderPlannerTest" time="0.033"/>
+  <testcase name="theHourIsLocalToTheZoneNotUtc" classname="com.example.kpkn.domain.nutrition.NutritionReminderPlannerTest" time="0.001"/>
+  <testcase name="aTimeInsideTheFallBackOverlapFiresOncePerLocalDay" classname="com.example.kpkn.domain.nutrition.NutritionReminderPlannerTest" time="0.0"/>
+  <testcase name="aTimeLaterTodayStaysToday" classname="com.example.kpkn.domain.nutrition.NutritionReminderPlannerTest" time="0.0"/>
+  <testcase name="consecutiveTriggersNeverDriftFromTheWallClockInAnyZone" classname="com.example.kpkn.domain.nutrition.NutritionReminderPlannerTest" time="0.014"/>
+  <testcase name="outOfRangeValuesAreClampedInsteadOfThrowing" classname="com.example.kpkn.domain.nutrition.NutritionReminderPlannerTest" time="0.001"/>
+  <testcase name="springForwardNightKeepsEightLocalAndTheGapBetweenTriggersIsTwentyThreeHours" classname="com.example.kpkn.domain.nutrition.NutritionReminderPlannerTest" time="0.0"/>
+  <testcase name="aTimeInsideTheSpringForwardGapMovesForwardByTheGapLength" classname="com.example.kpkn.domain.nutrition.NutritionReminderPlannerTest" time="0.0"/>
+  <testcase name="fallBackNightKeepsEightLocalAndTheGapBetweenTriggersIsTwentyFiveHours" classname="com.example.kpkn.domain.nutrition.NutritionReminderPlannerTest" time="0.0"/>
+  <testcase name="theExactCurrentInstantGoesToTomorrowButOneNanoBeforeStaysToday" classname="com.example.kpkn.domain.nutrition.NutritionReminderPlannerTest" time="0.0"/>
+  <testcase name="theResultIsAlwaysAWholeMinuteInTheZoneOfNow" classname="com.example.kpkn.domain.nutrition.NutritionReminderPlannerTest" time="0.0"/>
+  <testcase name="aTimeThatAlreadyPassedTodayGoesToTomorrow" classname="com.example.kpkn.domain.nutrition.NutritionReminderPlannerTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

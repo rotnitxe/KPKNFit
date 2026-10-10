@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.sessioneditor.SessionEditorAmrapTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:38:06.669Z" hostname="VF" time="0.007">
+  <properties/>
+  <testcase name="selectingAmrap_inEditorTurnsEverySetIntoAnExecutableAmrap" classname="com.example.kpkn.screens.sessioneditor.SessionEditorAmrapTest" time="0.007"/>
+  <testcase name="switchingAwayFromAmrap_clearsThePersistedAmrapMarker" classname="com.example.kpkn.screens.sessioneditor.SessionEditorAmrapTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

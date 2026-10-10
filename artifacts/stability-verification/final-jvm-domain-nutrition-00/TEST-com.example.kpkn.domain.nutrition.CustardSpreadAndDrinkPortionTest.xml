@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.CustardSpreadAndDrinkPortionTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:57:30.714Z" hostname="VF" time="0.224">
+  <properties/>
+  <testcase name="a cup of flan, mousse or budin is 174 kcal and no longer 372" classname="com.example.kpkn.domain.nutrition.CustardSpreadAndDrinkPortionTest" time="0.071"/>
+  <testcase name="hotdog in one word is the hot dog of two" classname="com.example.kpkn.domain.nutrition.CustardSpreadAndDrinkPortionTest" time="0.008"/>
+  <testcase name="manjar is a spoonful of 20 g and dulce de leche too" classname="com.example.kpkn.domain.nutrition.CustardSpreadAndDrinkPortionTest" time="0.023"/>
+  <testcase name="mayo is the mayonnaise row" classname="com.example.kpkn.domain.nutrition.CustardSpreadAndDrinkPortionTest" time="0.051"/>
+  <testcase name="a cola next to a plate keeps its can" classname="com.example.kpkn.domain.nutrition.CustardSpreadAndDrinkPortionTest" time="0.071"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

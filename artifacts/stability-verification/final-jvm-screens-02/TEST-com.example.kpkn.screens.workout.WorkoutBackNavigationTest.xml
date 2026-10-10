@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.workout.WorkoutBackNavigationTest" tests="17" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:38:57.805Z" hostname="VF" time="0.007">
+  <properties/>
+  <testcase name="exitDialogHasPriorityAndIsDismissedBeforeEverythingElse" classname="com.example.kpkn.screens.workout.WorkoutBackNavigationTest" time="0.002"/>
+  <testcase name="volumeAdvanceHasPriorityOverOtherOverlays" classname="com.example.kpkn.screens.workout.WorkoutBackNavigationTest" time="0.0"/>
+  <testcase name="finishSheetConsumesBackEvenWhileLoading" classname="com.example.kpkn.screens.workout.WorkoutBackNavigationTest" time="0.0"/>
+  <testcase name="drawerBeatsReadiness" classname="com.example.kpkn.screens.workout.WorkoutBackNavigationTest" time="0.0"/>
+  <testcase name="postExerciseFeedbackDismissesBeforeExit" classname="com.example.kpkn.screens.workout.WorkoutBackNavigationTest" time="0.0"/>
+  <testcase name="contextTabDismissesBeforeExit" classname="com.example.kpkn.screens.workout.WorkoutBackNavigationTest" time="0.0"/>
+  <testcase name="readinessSheetConsumesBackWithoutExitDialog" classname="com.example.kpkn.screens.workout.WorkoutBackNavigationTest" time="0.0"/>
+  <testcase name="dockClearanceStaysCompactWhenExpanded" classname="com.example.kpkn.screens.workout.WorkoutBackNavigationTest" time="0.003"/>
+  <testcase name="warmupReturnsToMobilityBeforeExitDialog" classname="com.example.kpkn.screens.workout.WorkoutBackNavigationTest" time="0.0"/>
+  <testcase name="nonDismissibleModalConsumesBackWithoutExitDialog" classname="com.example.kpkn.screens.workout.WorkoutBackNavigationTest" time="0.0"/>
+  <testcase name="rootShowsExitDialog" classname="com.example.kpkn.screens.workout.WorkoutBackNavigationTest" time="0.0"/>
+  <testcase name="exitDialogDismissesFirst" classname="com.example.kpkn.screens.workout.WorkoutBackNavigationTest" time="0.0"/>
+  <testcase name="godModeExpandedCollapsesBeforeExit" classname="com.example.kpkn.screens.workout.WorkoutBackNavigationTest" time="0.001"/>
+  <testcase name="compactDockClearanceIgnoresVolatileMeasurement" classname="com.example.kpkn.screens.workout.WorkoutBackNavigationTest" time="0.0"/>
+  <testcase name="finishBeatsDrawer" classname="com.example.kpkn.screens.workout.WorkoutBackNavigationTest" time="0.0"/>
+  <testcase name="restOverlayMinimizesBeforeExit" classname="com.example.kpkn.screens.workout.WorkoutBackNavigationTest" time="0.0"/>
+  <testcase name="dockClearanceIgnoresMeasuredSheetBecauseCockpitOverlays" classname="com.example.kpkn.screens.workout.WorkoutBackNavigationTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

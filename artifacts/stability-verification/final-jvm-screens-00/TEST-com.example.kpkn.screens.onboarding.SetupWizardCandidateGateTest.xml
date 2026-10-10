@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.SetupWizardCandidateGateTest" tests="21" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:36:12.990Z" hostname="VF" time="0.913">
+  <properties/>
+  <testcase name="thePreviewFailureTextNeverIsTheRawEngineMessageForCatalogAndInternalFailures" classname="com.example.kpkn.screens.onboarding.SetupWizardCandidateGateTest" time="0.032"/>
+  <testcase name="aConfirmedPlanStepKeepsTheDroppedSelectionAndMarksTheStepPendingWithoutRelaunchingItsPreview" classname="com.example.kpkn.screens.onboarding.SetupWizardCandidateGateTest" time="0.088"/>
+  <testcase name="theStepGateOnlyLetsAViableSelectionOfTheCurrentListContinue" classname="com.example.kpkn.screens.onboarding.SetupWizardCandidateGateTest" time="0.024"/>
+  <testcase name="theFloatingErrorsSkipWhatTheStepAlreadyPaintsAndKeepEverythingElse" classname="com.example.kpkn.screens.onboarding.SetupWizardCandidateGateTest" time="0.029"/>
+  <testcase name="theBodyweightPassOnlyFollowsRejectionsThatAreAllAboutMaterial" classname="com.example.kpkn.screens.onboarding.SetupWizardCandidateGateTest" time="0.027"/>
+  <testcase name="theDroppedSelectionNoticeOffersTheOwnPlanRepairWhenItsRejectionCarriesOne" classname="com.example.kpkn.screens.onboarding.SetupWizardCandidateGateTest" time="0.028"/>
+  <testcase name="continuingFromPlanWithAnEmptyListIsRejectedEvenWithASelection" classname="com.example.kpkn.screens.onboarding.SetupWizardCandidateGateTest" time="0.032"/>
+  <testcase name="theDroppedSelectionNoticeExplainsEachReasonInPlainLanguageWithTheRightAction" classname="com.example.kpkn.screens.onboarding.SetupWizardCandidateGateTest" time="0.028"/>
+  <testcase name="aNewListWithoutTheChosenPlanDropsTheSelectionWithItsRejectionAndNeverRelaunchesItsPreview" classname="com.example.kpkn.screens.onboarding.SetupWizardCandidateGateTest" time="0.064"/>
+  <testcase name="whileTheListIsLoadingTheGateSaysItIsReviewingThePlansInsteadOfAskingToChooseOne" classname="com.example.kpkn.screens.onboarding.SetupWizardCandidateGateTest" time="0.031"/>
+  <testcase name="choosingAnotherPlanDismissesTheDroppedSelectionNotice" classname="com.example.kpkn.screens.onboarding.SetupWizardCandidateGateTest" time="0.077"/>
+  <testcase name="aTimeBudgetRejectionNeverTriggersTheBodyweightPassAndItsRejectionsArePublished" classname="com.example.kpkn.screens.onboarding.SetupWizardCandidateGateTest" time="0.044"/>
+  <testcase name="theViableListKeepsThePlannerOrderSoAdaptedPlansAreNotPushedBehindLegacyOnes" classname="com.example.kpkn.screens.onboarding.SetupWizardCandidateGateTest" time="0.041"/>
+  <testcase name="thePreviewFailureTextKeepsTheStructuredCauseWithoutShowingRawTokensOrDiagnostics" classname="com.example.kpkn.screens.onboarding.SetupWizardCandidateGateTest" time="0.028"/>
+  <testcase name="onlyMaterialRejectionsTriggerTheBodyweightPassAndThePublishedRejectionsAreTheRequestedPasses" classname="com.example.kpkn.screens.onboarding.SetupWizardCandidateGateTest" time="0.047"/>
+  <testcase name="deferredProgramBypassesThePlanGateAndSaysTheProgramComesLater" classname="com.example.kpkn.screens.onboarding.SetupWizardCandidateGateTest" time="0.034"/>
+  <testcase name="aMixOfMaterialAndTimeRejectionsDoesNotTriggerTheBodyweightPassEither" classname="com.example.kpkn.screens.onboarding.SetupWizardCandidateGateTest" time="0.046"/>
+  <testcase name="theSynthesizedRejectionExplainsTheFrequencyFirstAndThenTheGoal" classname="com.example.kpkn.screens.onboarding.SetupWizardCandidateGateTest" time="0.032"/>
+  <testcase name="continuingFromPlanNeedsAViableSelectionAndChoosingAViableOneLetsItThrough" classname="com.example.kpkn.screens.onboarding.SetupWizardCandidateGateTest" time="0.078"/>
+  <testcase name="retryingAfterATransientFailureEvaluatesTheCandidatesAgainInsteadOfReplayingTheCache" classname="com.example.kpkn.screens.onboarding.SetupWizardCandidateGateTest" time="0.05"/>
+  <testcase name="aCatalogThatFailsPublishesAVisibleCatalogRejectionAndTheRetryLoadsItAgain" classname="com.example.kpkn.screens.onboarding.SetupWizardCandidateGateTest" time="0.052"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

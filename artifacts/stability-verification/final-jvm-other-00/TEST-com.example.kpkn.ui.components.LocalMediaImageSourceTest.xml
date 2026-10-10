@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.ui.components.LocalMediaImageSourceTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:32:06.942Z" hostname="VF" time="0.022">
+  <properties/>
+  <testcase name="key_changes_when_only_the_modification_time_changes" classname="com.example.kpkn.ui.components.LocalMediaImageSourceTest" time="0.008"/>
+  <testcase name="key_is_stable_while_the_file_does_not_change" classname="com.example.kpkn.ui.components.LocalMediaImageSourceTest" time="0.003"/>
+  <testcase name="key_differs_between_files_with_identical_content" classname="com.example.kpkn.ui.components.LocalMediaImageSourceTest" time="0.004"/>
+  <testcase name="key_changes_when_the_file_is_replaced_in_place" classname="com.example.kpkn.ui.components.LocalMediaImageSourceTest" time="0.003"/>
+  <testcase name="key_changes_when_only_the_length_changes" classname="com.example.kpkn.ui.components.LocalMediaImageSourceTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

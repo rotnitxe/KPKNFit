@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.nutrition.components.FoodLoggerViewModelTest" tests="17" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:33:02.949Z" hostname="VF" time="0.491">
+  <properties/>
+  <testcase name="persistSeed writes the primitive fields" classname="com.example.kpkn.screens.nutrition.components.FoodLoggerViewModelTest" time="0.027"/>
+  <testcase name="a restored draft is never seeded again by the host" classname="com.example.kpkn.screens.nutrition.components.FoodLoggerViewModelTest" time="0.028"/>
+  <testcase name="clearDraft removes persisted keys" classname="com.example.kpkn.screens.nutrition.components.FoodLoggerViewModelTest" time="0.03"/>
+  <testcase name="a ViewModel built from an empty handle is not a restore" classname="com.example.kpkn.screens.nutrition.components.FoodLoggerViewModelTest" time="0.027"/>
+  <testcase name="a corrupt seed falls back to safe values" classname="com.example.kpkn.screens.nutrition.components.FoodLoggerViewModelTest" time="0.033"/>
+  <testcase name="clearDraft stops the persistence so the blank draft is never written back" classname="com.example.kpkn.screens.nutrition.components.FoodLoggerViewModelTest" time="0.028"/>
+  <testcase name="seed restores description, meal, date and tab from SavedStateHandle and flags restoredFromProcessDeath" classname="com.example.kpkn.screens.nutrition.components.FoodLoggerViewModelTest" time="0.026"/>
+  <testcase name="seedIfEmpty is a one-time seed even while the box is still empty" classname="com.example.kpkn.screens.nutrition.components.FoodLoggerViewModelTest" time="0.027"/>
+  <testcase name="persisted text is capped so the saved state stays small" classname="com.example.kpkn.screens.nutrition.components.FoodLoggerViewModelTest" time="0.028"/>
+  <testcase name="seedIfEmpty respects text typed before the first seed" classname="com.example.kpkn.screens.nutrition.components.FoodLoggerViewModelTest" time="0.026"/>
+  <testcase name="clearDraft cancels the analysis, search and composition in flight" classname="com.example.kpkn.screens.nutrition.components.FoodLoggerViewModelTest" time="0.04"/>
+  <testcase name="seedIfEmpty seeds a fresh draft with what the host asks for" classname="com.example.kpkn.screens.nutrition.components.FoodLoggerViewModelTest" time="0.03"/>
+  <testcase name="the restore request is one-shot so a rotation after the restore never repeats the analysis" classname="com.example.kpkn.screens.nutrition.components.FoodLoggerViewModelTest" time="0.027"/>
+  <testcase name="MealTypeSaver keeps the meal by name and drops an unknown name" classname="com.example.kpkn.screens.nutrition.components.FoodLoggerViewModelTest" time="0.028"/>
+  <testcase name="after clearDraft the next open seeds again and persists a new draft id" classname="com.example.kpkn.screens.nutrition.components.FoodLoggerViewModelTest" time="0.028"/>
+  <testcase name="what the first ViewModel persisted is what a restored one reads" classname="com.example.kpkn.screens.nutrition.components.FoodLoggerViewModelTest" time="0.03"/>
+  <testcase name="seedIfEmpty does not overwrite a non-empty draft" classname="com.example.kpkn.screens.nutrition.components.FoodLoggerViewModelTest" time="0.026"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

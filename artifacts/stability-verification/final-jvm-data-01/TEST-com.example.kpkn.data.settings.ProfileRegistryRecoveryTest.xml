@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.settings.ProfileRegistryRecoveryTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:55:55.206Z" hostname="VF" time="0.279">
+  <properties/>
+  <testcase name="unfinishedFirstWriteFailsClosed[26]" classname="com.example.kpkn.data.settings.ProfileRegistryRecoveryTest" time="0.028"/>
+  <testcase name="unfinishedFirstWriteFailsClosed" classname="com.example.kpkn.data.settings.ProfileRegistryRecoveryTest" time="0.025"/>
+  <testcase name="freshInstallRetainsLegacyMigration[26]" classname="com.example.kpkn.data.settings.ProfileRegistryRecoveryTest" time="0.029"/>
+  <testcase name="freshInstallRetainsLegacyMigration" classname="com.example.kpkn.data.settings.ProfileRegistryRecoveryTest" time="0.023"/>
+  <testcase name="backupOnlyAfterInterruptedSignOutCannotExposeGuest[26]" classname="com.example.kpkn.data.settings.ProfileRegistryRecoveryTest" time="0.031"/>
+  <testcase name="backupOnlyAfterInterruptedSignOutCannotExposeGuest" classname="com.example.kpkn.data.settings.ProfileRegistryRecoveryTest" time="0.028"/>
+  <testcase name="corruptRegistryFailsClosed[26]" classname="com.example.kpkn.data.settings.ProfileRegistryRecoveryTest" time="0.029"/>
+  <testcase name="corruptRegistryFailsClosed" classname="com.example.kpkn.data.settings.ProfileRegistryRecoveryTest" time="0.025"/>
+  <testcase name="interruptedAccountSwitchRequiresMatchingAuthenticatedOwner[26]" classname="com.example.kpkn.data.settings.ProfileRegistryRecoveryTest" time="0.031"/>
+  <testcase name="interruptedAccountSwitchRequiresMatchingAuthenticatedOwner" classname="com.example.kpkn.data.settings.ProfileRegistryRecoveryTest" time="0.03"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

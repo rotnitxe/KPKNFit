@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.SetupStepControlsTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:35:53.704Z" hostname="VF" time="0.001">
+  <properties/>
+  <testcase name="an exclusive value is not combined with unknown" classname="com.example.kpkn.screens.onboarding.SetupStepControlsTest" time="0.0"/>
+  <testcase name="two toggles chained from the latest selection both land" classname="com.example.kpkn.screens.onboarding.SetupStepControlsTest" time="0.0"/>
+  <testcase name="normal values accumulate" classname="com.example.kpkn.screens.onboarding.SetupStepControlsTest" time="0.0"/>
+  <testcase name="selecting an exclusive value drops the rest" classname="com.example.kpkn.screens.onboarding.SetupStepControlsTest" time="0.0"/>
+  <testcase name="discomfort none and omit never coexist" classname="com.example.kpkn.screens.onboarding.SetupStepControlsTest" time="0.0"/>
+  <testcase name="an exclusive displaces every value selected before" classname="com.example.kpkn.screens.onboarding.SetupStepControlsTest" time="0.001"/>
+  <testcase name="a normal value drops the selected exclusive one" classname="com.example.kpkn.screens.onboarding.SetupStepControlsTest" time="0.0"/>
+  <testcase name="deselecting an exclusive value leaves the set empty" classname="com.example.kpkn.screens.onboarding.SetupStepControlsTest" time="0.0"/>
+  <testcase name="deselecting a normal value keeps the others" classname="com.example.kpkn.screens.onboarding.SetupStepControlsTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

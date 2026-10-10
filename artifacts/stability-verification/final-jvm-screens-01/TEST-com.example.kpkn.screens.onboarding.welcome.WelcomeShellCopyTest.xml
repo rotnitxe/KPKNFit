@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.welcome.WelcomeShellCopyTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:37:45.442Z" hostname="VF" time="0.003">
+  <properties/>
+  <testcase name="cada pagina usa el periodo de su escena" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeShellCopyTest" time="0.003"/>
+  <testcase name="cada pagina tiene su propio acento y es el color de su apartado" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeShellCopyTest" time="0.0"/>
+  <testcase name="hay tres paginas en el orden entreno nutricion recuperacion" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeShellCopyTest" time="0.0"/>
+  <testcase name="los titulos no pasan de 40 caracteres y los mensajes no pasan de 130" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeShellCopyTest" time="0.0"/>
+  <testcase name="el cuadro representativo cae dentro de cada escena real" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeShellCopyTest" time="0.0"/>
+  <testcase name="la descripcion para TalkBack es una frase que empieza por Demostracion animada" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeShellCopyTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

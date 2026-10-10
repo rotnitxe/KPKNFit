@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.SpanishSingularizerTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:58:40.373Z" hostname="VF" time="0.013">
+  <properties/>
+  <testcase name="theSingularAndThePluralOfOneFoodMergeWhenTheirMeasuresAreExplicit" classname="com.example.kpkn.domain.nutrition.SpanishSingularizerTest" time="0.002"/>
+  <testcase name="cesBecomesZUnlessOnlyTheCeFormIsKnown" classname="com.example.kpkn.domain.nutrition.SpanishSingularizerTest" time="0.0"/>
+  <testcase name="pluralsThatAddOnlyAnSKeepTheirFinalE" classname="com.example.kpkn.domain.nutrition.SpanishSingularizerTest" time="0.0"/>
+  <testcase name="anInjectedLexiconDecidesTheEsAmbiguityWithoutTheCatalog" classname="com.example.kpkn.domain.nutrition.SpanishSingularizerTest" time="0.0"/>
+  <testcase name="aCountedPluralIsParsedAsItsSingular" classname="com.example.kpkn.domain.nutrition.SpanishSingularizerTest" time="0.008"/>
+  <testcase name="shortWordsInvariantsAndForeignPluralsAreLeftAlone" classname="com.example.kpkn.domain.nutrition.SpanishSingularizerTest" time="0.0"/>
+  <testcase name="aCatalogPhraseKeepsItsPluralAndOtherPhrasesChangeOnlyToACatalogPhrase" classname="com.example.kpkn.domain.nutrition.SpanishSingularizerTest" time="0.001"/>
+  <testcase name="plainPluralsLoseTheirS" classname="com.example.kpkn.domain.nutrition.SpanishSingularizerTest" time="0.0"/>
+  <testcase name="aCompoundWhoseLastWordTookThePluralLosesOnlyThatS" classname="com.example.kpkn.domain.nutrition.SpanishSingularizerTest" time="0.001"/>
+  <testcase name="pluralsOfConsonantFinalWordsLoseTheWholeEs" classname="com.example.kpkn.domain.nutrition.SpanishSingularizerTest" time="0.0"/>
+  <testcase name="theLexiconIsBuiltFromTheStaticCatalog" classname="com.example.kpkn.domain.nutrition.SpanishSingularizerTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.workout.WorkoutPerformanceHomologationEngineTest" tests="15" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:25:46.853Z" hostname="VF" time="0.018">
+  <properties/>
+  <testcase name="debt_and_failure_color_red" classname="com.example.kpkn.domain.workout.WorkoutPerformanceHomologationEngineTest" time="0.015"/>
+  <testcase name="assisted_mode_reaches_zero_as_bodyweight_before_lastre" classname="com.example.kpkn.domain.workout.WorkoutPerformanceHomologationEngineTest" time="0.0"/>
+  <testcase name="canonicalLoadUsesHomologatedKilograms" classname="com.example.kpkn.domain.workout.WorkoutPerformanceHomologationEngineTest" time="0.001"/>
+  <testcase name="assisted_mode_never_reduces_assistance_for_neutral_performance" classname="com.example.kpkn.domain.workout.WorkoutPerformanceHomologationEngineTest" time="0.0"/>
+  <testcase name="assisted_mode_maintains_assistance_until_performance_is_clearly_ready" classname="com.example.kpkn.domain.workout.WorkoutPerformanceHomologationEngineTest" time="0.0"/>
+  <testcase name="time_mode_uses_trm_and_suggests_seconds" classname="com.example.kpkn.domain.workout.WorkoutPerformanceHomologationEngineTest" time="0.0"/>
+  <testcase name="debt_keeps_load_even_when_current_set_is_strong" classname="com.example.kpkn.domain.workout.WorkoutPerformanceHomologationEngineTest" time="0.0"/>
+  <testcase name="bodyweight_never_suggests_external_bodyweight_number" classname="com.example.kpkn.domain.workout.WorkoutPerformanceHomologationEngineTest" time="0.0"/>
+  <testcase name="previous_global_state_can_trigger_global_pr" classname="com.example.kpkn.domain.workout.WorkoutPerformanceHomologationEngineTest" time="0.0"/>
+  <testcase name="global_index_stays_in_range" classname="com.example.kpkn.domain.workout.WorkoutPerformanceHomologationEngineTest" time="0.001"/>
+  <testcase name="pr_marks_yellow" classname="com.example.kpkn.domain.workout.WorkoutPerformanceHomologationEngineTest" time="0.0"/>
+  <testcase name="lastre_near_zero_with_poor_performance_suggests_bodyweight" classname="com.example.kpkn.domain.workout.WorkoutPerformanceHomologationEngineTest" time="0.0"/>
+  <testcase name="bodyweight_green_run_suggests_lastre_when_ready" classname="com.example.kpkn.domain.workout.WorkoutPerformanceHomologationEngineTest" time="0.0"/>
+  <testcase name="assisted_sets_do_not_expose_pseudo_erm" classname="com.example.kpkn.domain.workout.WorkoutPerformanceHomologationEngineTest" time="0.0"/>
+  <testcase name="assisted_mode_reduces_assistance_only_after_clear_progress" classname="com.example.kpkn.domain.workout.WorkoutPerformanceHomologationEngineTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

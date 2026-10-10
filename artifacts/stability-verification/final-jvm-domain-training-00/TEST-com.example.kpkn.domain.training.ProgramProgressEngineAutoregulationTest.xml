@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.ProgramProgressEngineAutoregulationTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:29:39.498Z" hostname="VF" time="0.004">
+  <properties/>
+  <testcase name="completing_week_attaches_confirm_autoregulation_in_propose_mode" classname="com.example.kpkn.domain.training.ProgramProgressEngineAutoregulationTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

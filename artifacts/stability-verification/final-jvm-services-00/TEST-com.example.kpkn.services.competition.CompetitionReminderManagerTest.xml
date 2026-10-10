@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.services.competition.CompetitionReminderManagerTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:40:28.805Z" hostname="VF" time="1.1">
+  <properties/>
+  <testcase name="schedule_creates_week_48h_start_and_post_result_alarms" classname="com.example.kpkn.services.competition.CompetitionReminderManagerTest" time="0.242"/>
+  <testcase name="boot_reschedule_rebuilds_alarms_from_persisted_records" classname="com.example.kpkn.services.competition.CompetitionReminderManagerTest" time="0.814"/>
+  <testcase name="schedule_completed_cancels_and_does_not_create_alarms" classname="com.example.kpkn.services.competition.CompetitionReminderManagerTest" time="0.043"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

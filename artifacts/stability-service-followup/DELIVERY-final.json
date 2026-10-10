@@ -1,0 +1,112 @@
+{
+  "state": "BOUNDED_NATIVE_FOLLOWUP_VERIFIED_LAUNCH_OPEN",
+  "baselineCommit": "975e1a8c21925ecc09098a1b758f9dfee11e724c",
+  "productionAndroidChanged": false,
+  "androidInheritedFingerprintsVerified": 2602,
+  "newTestSource": {
+    "path": "android-native/app/src/androidTest/java/com/example/kpkn/services/cardio/StableProfileGpsLifecycleTest.kt",
+    "sha256": "9b659cde4d4836e9738aab5ef788302167ebeaab84667fb819804b3ac153b562"
+  },
+  "runner": {
+    "path": "scripts/stability/native_gps_qa.py",
+    "sha256": "836bea9b2829b821a19480781ac912f894bb35f93612a415eaae1ecdb53e0713"
+  },
+  "appApkSha256": "f765a31a97dfa4214208cf859425544118c9eb79eaf3dfc7dae47cc5d73685fe",
+  "currentTestApkSha256": "3a3465015b5caad4f8aefcfc8300f561b051926ce3c5282d01acb13fcd5009f8",
+  "native": {
+    "raceCases": 3,
+    "gpsMockProviderCases": 1,
+    "freeCases": 3,
+    "totalCases": 7
+  },
+  "gpsEvidence": "native-stable-gps-17/result.json",
+  "freeEvidence": "native-free-19/result.json",
+  "raceEvidence": "native-races-01/result.json",
+  "environmentRestored": "environment-restored-18.json",
+  "unsuccessfulAttempts": [
+    {
+      "path": "native-gps-02/result.json",
+      "state": "FAIL_OR_INCOMPLETE",
+      "errorType": "TimeoutExpired",
+      "sha256": "08c70a902dd4b26ef3ae99e285e27b53c21799b75199369eb26dd1498edbf1cf"
+    },
+    {
+      "path": "gps-debug-03/result.json",
+      "state": "DEBUG_SNAPSHOT_INCOMPLETE",
+      "errorType": "TimeoutExpired",
+      "sha256": "4d0b6da0fe7b5c01bf2fdee9588eb06c6b516a326df810bd7fe750f57eb3abe1"
+    },
+    {
+      "path": "gps-debug-04/result.json",
+      "state": "DEBUG_SNAPSHOT_INCOMPLETE",
+      "errorType": "OSError",
+      "sha256": "3aef98b782c4a6f94602be8ef653d99ac165252b69cdf5a392c9881738c3ea6e"
+    },
+    {
+      "path": "native-stable-gps-06/result.json",
+      "state": "FAIL_OR_INCOMPLETE",
+      "errorType": "TimeoutExpired",
+      "sha256": "658d3d590e4067a5659be70266a6f84e2cd5c681c155705af3fc224bce827774"
+    },
+    {
+      "path": "native-stable-gps-07/result.json",
+      "state": "FAIL_OR_INCOMPLETE",
+      "errorType": "TimeoutExpired",
+      "sha256": "fdc604cae96ae0fd1ac0abcc146a951ee0d2e540bcb11e731eb32ac2df240a89"
+    },
+    {
+      "path": "native-stable-gps-09/result.json",
+      "state": "FAIL_OR_INCOMPLETE",
+      "errorType": "AssertionError",
+      "sha256": "81d4de2115f563da6959c8b6a62602d9ca1f2c6221f3e67d7db09b6a3a5aa225"
+    },
+    {
+      "path": "native-stable-gps-10/result.json",
+      "state": "FAIL_OR_INCOMPLETE",
+      "errorType": "AssertionError",
+      "sha256": "f7726f48255a2e950d455f419b1f53f8462f33435c2febd96cce8eabc96fe607"
+    },
+    {
+      "path": "native-stable-gps-11/result.json",
+      "state": "FAIL_OR_INCOMPLETE",
+      "errorType": "AssertionError",
+      "sha256": "481224be3e6fc2a5526c0255fff283d2710eee7c17698e00c8403ec38a003adf"
+    },
+    {
+      "path": "native-stable-gps-12/result.json",
+      "state": "FAIL_OR_INCOMPLETE",
+      "errorType": "AssertionError",
+      "sha256": "4d49181736c3033b6d8f2177f8d71865339f76a6351857b016d1c81657f7c93e"
+    },
+    {
+      "path": "native-stable-gps-16/result.json",
+      "state": "FAIL_OR_INCOMPLETE",
+      "errorType": "AssertionError",
+      "sha256": "809ed936e7764de346a10f29336dc6823ac127bf20fb6af69589b2429b212df8"
+    }
+  ],
+  "startupProfile": {
+    "path": "startup-profile-14/result.json",
+    "launchMs": 12491,
+    "errorOverlay": true,
+    "performanceAccepted": false,
+    "analysis": "startup-profile-14/query-analysis.json",
+    "traceProcessor": "58.2",
+    "mainRunningMs": 7492.59,
+    "mainRunnableWaitMs": 5979.87,
+    "dexOpenMaxMs": 2336.81,
+    "frameMaxMs": 5546.91,
+    "limits": "One debug emulator capture. Inclusive slices overlap; not a valid smoothness sample because SystemUI overlay was present."
+  },
+  "limits": [
+    "GPS is Android test-provider/Fused/FGS/file coverage, not console GNSS/hardware/public workout UI.",
+    "Restored GPS after loss of singleton memory in the same PID, not process restart.",
+    "Free creation is a single program/week; the rule between multiple routines remains undecided.",
+    "Expiry uses a synthetic confirmed entitlement and same-process Room close/reopen; no Play purchase.",
+    "First-install startup ANR and SystemUI error overlay retained, not reclassified as passing.",
+    "Original broad GPS fixture remains incomplete and unmodified."
+  ],
+  "launchAccepted": false,
+  "pushPerformed": false,
+  "deployPerformed": false
+}

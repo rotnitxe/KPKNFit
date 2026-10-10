@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.auge.AugeRingDrainRealismTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:59:18.386Z" hostname="VF" time="0.004">
+  <properties/>
+  <testcase name="chestLight_drainsLessThanHard" classname="com.example.kpkn.domain.auge.AugeRingDrainRealismTest" time="0.001"/>
+  <testcase name="extremeWeek_doesNotCollapseToZero" classname="com.example.kpkn.domain.auge.AugeRingDrainRealismTest" time="0.001"/>
+  <testcase name="chestHard_perMuscleDrain_isCurrentlyBarelyVisible" classname="com.example.kpkn.domain.auge.AugeRingDrainRealismTest" time="0.0"/>
+  <testcase name="capacityFloor_dominatesForNormalTraining" classname="com.example.kpkn.domain.auge.AugeRingDrainRealismTest" time="0.001"/>
+  <testcase name="chestHard_perMuscleAt24h_isAlreadyRecovered" classname="com.example.kpkn.domain.auge.AugeRingDrainRealismTest" time="0.0"/>
+  <testcase name="fullbody_eachMuscleBarelyDrains" classname="com.example.kpkn.domain.auge.AugeRingDrainRealismTest" time="0.001"/>
+  <system-out><![CDATA[[PIN] hard=78 light=89
+[PIN] extreme 6-day hard Pectorales=69
+[PIN] chestHard immediate Pectorales=78 (expected 78-86 post ×10 capacity)
+[PIN] capacity floor: single=78 withHistory=78
+[PIN] chestHard 24h Pectorales=89 (expected 88-93 post-fix)
+[PIN] fullbody Pectorales=89
+[PIN] fullbody Cuádriceps=90
+[PIN] fullbody Dorsales=91
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

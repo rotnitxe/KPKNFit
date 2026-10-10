@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.telemetry.nutrition.NutritionTelemetrySanitizerTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:32:06.921Z" hostname="VF" time="0.007">
+  <properties/>
+  <testcase name="an exception thrown from app code names the app frame that threw it" classname="com.example.kpkn.telemetry.nutrition.NutritionTelemetrySanitizerTest" time="0.002"/>
+  <testcase name="the app stack of an exception without app frames is empty" classname="com.example.kpkn.telemetry.nutrition.NutritionTelemetrySanitizerTest" time="0.001"/>
+  <testcase name="a message that looks like a secret is dropped too" classname="com.example.kpkn.telemetry.nutrition.NutritionTelemetrySanitizerTest" time="0.001"/>
+  <testcase name="an empty stack yields just the class name" classname="com.example.kpkn.telemetry.nutrition.NutritionTelemetrySanitizerTest" time="0.0"/>
+  <testcase name="the cause is searched when the exception itself has no app frames" classname="com.example.kpkn.telemetry.nutrition.NutritionTelemetrySanitizerTest" time="0.0"/>
+  <testcase name="a lookalike package is not the app" classname="com.example.kpkn.telemetry.nutrition.NutritionTelemetrySanitizerTest" time="0.0"/>
+  <testcase name="the summary never contains the exception message" classname="com.example.kpkn.telemetry.nutrition.NutritionTelemetrySanitizerTest" time="0.0"/>
+  <testcase name="the app stack keeps only app frames and never the message" classname="com.example.kpkn.telemetry.nutrition.NutritionTelemetrySanitizerTest" time="0.0"/>
+  <testcase name="the first app frame wins over framework frames above it and app frames below it" classname="com.example.kpkn.telemetry.nutrition.NutritionTelemetrySanitizerTest" time="0.0"/>
+  <testcase name="an anonymous exception class still gets a readable name" classname="com.example.kpkn.telemetry.nutrition.NutritionTelemetrySanitizerTest" time="0.001"/>
+  <testcase name="a cause chain that loops terminates" classname="com.example.kpkn.telemetry.nutrition.NutritionTelemetrySanitizerTest" time="0.001"/>
+  <testcase name="a stack without app frames yields just the class name" classname="com.example.kpkn.telemetry.nutrition.NutritionTelemetrySanitizerTest" time="0.0"/>
+  <testcase name="a frame without a line number has no line suffix" classname="com.example.kpkn.telemetry.nutrition.NutritionTelemetrySanitizerTest" time="0.0"/>
+  <testcase name="the app stack respects its frame cap" classname="com.example.kpkn.telemetry.nutrition.NutritionTelemetrySanitizerTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

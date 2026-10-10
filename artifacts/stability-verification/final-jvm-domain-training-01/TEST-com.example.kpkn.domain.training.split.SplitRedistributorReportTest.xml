@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.split.SplitRedistributorReportTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:31:08.662Z" hostname="VF" time="0.323">
+  <properties/>
+  <testcase name="writes_the_before_and_after_report_for_five_cases" classname="com.example.kpkn.domain.training.split.SplitRedistributorReportTest" time="0.323"/>
+  <system-out><![CDATA[KPKN · redistribuidor de repartos · antes y después
+============================================================
+Volumen en series semanales por músculo (primario 1, secundario 0,5, como el volumen de la app).
+Minutos con el estimador común de sesiones (aproximación y movilidad incluidas).
+
+Caso 1 · PPL de 3 sesiones (sintético) ? torso y pierna de 4 días
+  reparto: Torso y pierna, 4 días (ul_x4) · días: lun mar jue vie
+  compatible: sí · desviación máxima de volumen: 0.0 series
+  Antes (3 sesiones):
+    Empuje                     lun    46 min   6 ejercicios
+    Tirón                      mié    46 min   6 ejercicios
+    Pierna                     vie    46 min   6 ejercicios
+  Después (4 días):
+    Torso A                    lun    48 min   6 ejercicios  Espalda · Hombros · Bíceps
+        Remo Convencional · Press de Banca Inclinado · Jalón al Pecho · Elevaciones Laterales de Pie · Curl de Bíceps de Pie · Extensión de Tríceps Overhead
+    Pierna A                   mar    29 min   3 ejercicios  Cuádriceps · Glúteos · Aductores
+        Sentadilla Trasera con Barra Alta · Prensa de Piernas · Curl de Isquiosurales Tumbado
+    Torso B                    jue    48 min   6 ejercicios  Hombros · Tríceps · Bíceps
+        Press de Banca Plano · Press Militar · Remo con Pecho Apoyado · Face Pull · Extensión de Tríceps · Curl Martillo
+    Pierna B                   vie    26 min   3 ejercicios  Cuádriceps · Glúteos · Isquios
+        Peso Muerto Rumano · Extensión de Cuádriceps en Máquina · Elevación de Talones
+  Minutos por día: 48 / 29 / 48 / 26 (mín 26, máx 48)
+  Minutos parejos (corto / largo): 0.5 · días con menos de 3 ejercicios: 0
+  Volumen semanal por músculo (antes ? después):
+    Aductores                 5.0 ?    5.0
+    Antebrazo                 3.0 ?    3.0
+    Bíceps                   12.5 ?   12.5
+    Cuádriceps               10.0 ?   10.0
+    Deltoides anterior        6.5 ?    6.5
+    Deltoides lateral         3.0 ?    3.0
+    Deltoides posterior       8.0 ?    8.0
+    Dorsales                 10.0 ?   10.0
+    Espalda alta             10.0 ?   10.0
+    Glúteos                  10.0 ?   10.0
+    Isquiosurales             6.0 ?    6.0
+    Pantorrillas              4.5 ?    4.5
+    Pectorales                7.0 ?    7.0
+    Tríceps                  11.0 ?   11.0
+  Notas:
+    - Los días quedan de 26 a 48 min: «Torso A» concentra más trabajo porque cada día conserva su foco.
+
+Caso 2 · PPL de 3 sesiones (sintético) ? torso y pierna de 2 días (fin de semana)
+  reparto: Fin de semana (weekend_warrior) · días: sáb dom
+  compatible: sí · desviación máxima de volumen: 0.0 series
+  Antes (3 sesiones):
+    Empuje                     lun    46 min   6 ejercicios
+    Tirón                      mié    46 min   6 ejercicios
+    Pierna                     vie    46 min   6 ejercicios
+  Después (2 días):
+    Torso/Full Body            sáb    70 min  10 ejercicios  Hombros · Espalda · Tríceps
+        Press Militar · Prensa de Piernas · Press de Banca Inclinado · Remo con Pecho Apoyado · Jalón al Pecho · Face Pull · Elevaciones Laterales de Pie · Extensión de Tríceps · Curl de Bíceps de Pie · Extensión de Tríceps Overhead
+    Pierna/Full Body           dom    72 min   8 ejercicios  Espalda · Cuádriceps · Glúteos
+        Sentadilla Trasera con Barra Alta · Press de Banca Plano · Remo Convencional · Peso Muerto Rumano · Curl Martillo · Curl de Isquiosurales Tumbado · Extensión de Cuádriceps en Máquina · Elevación de Talones
+  Minutos por día: 70 / 72 (mín 70, máx 72)
+  Minutos parejos (corto / largo): 1.0 · días con menos de 3 ejercicios: 0
+  Volumen semanal por músculo (antes ? después):
+    Aductores                 5.0 ?    5.0
+    Antebrazo                 3.0 ?    3.0
+    Bíceps                   12.5 ?   12.5
+    Cuádriceps               10.0 ?   10.0
+    Deltoides anterior        6.5 ?    6.5
+    Deltoides lateral         3.0 ?    3.0
+    Deltoides posterior       8.0 ?    8.0
+    Dorsales                 10.0 ?   10.0
+    Espalda alta             10.0 ?   10.0
+    Glúteos                  10.0 ?   10.0
+    Isquiosurales             6.0 ?    6.0
+    Pantorrillas              4.5 ?    4.5
+    Pectorales                7.0 ?    7.0
+    Tríceps                  11.0 ?   11.0
+  Notas: ninguna
+
+Caso 3 · Plan propio Músculo de 3 días (real) ? torso y pierna de 4 días
+  reparto: Torso y pierna, 4 días (ul_x4) · días: lun mar jue vie
+  compatible: sí · desviación máxima de volumen: 0.0 series
+  Antes (3 sesiones):
+    Día 1                      lun    25 min   4 ejercicios
+    Día 2                      mié    37 min   4 ejercicios
+    Día 3                      vie    37 min   4 ejercicios
+  Después (4 días):
+    Torso A                    lun    27 min   3 ejercicios  Espalda · Hombros · Tríceps
+        Press de Banca Plano · Remo Convencional · Press Militar
+    Pierna A                   mar    28 min   3 ejercicios  Glúteos · Cuádriceps · Aductores
+        Sentadilla Trasera con Barra Alta · Zancada Caminando · Peso Muerto Rumano
+    Torso B                    jue    27 min   3 ejercicios  Espalda · Hombros · Pecho
+        Press de Banca Plano · Remo Convencional · Jalón al Pecho
+    Pierna B                   vie    29 min   3 ejercicios  Glúteos · Isquios · Aductores
+        Sentadilla Trasera con Barra Alta · Peso Muerto Rumano · Peso Muerto Rumano
+  Minutos por día: 27 / 28 / 27 / 29 (mín 27, máx 29)
+  Minutos parejos (corto / largo): 0.9 · días con menos de 3 ejercicios: 0
+  Volumen semanal por músculo (antes ? después):
+    Aductores                 8.0 ?    8.0
+    Bíceps                    4.0 ?    4.0
+    Cuádriceps                8.0 ?    8.0
+    Deltoides anterior        5.5 ?    5.5
+    Deltoides posterior       4.0 ?    4.0
+    Dorsales                  8.0 ?    8.0
+    Espalda alta              6.5 ?    6.5
+    Glúteos                  16.0 ?   16.0
+    Isquiosurales             9.5 ?    9.5
+    Pantorrillas              1.5 ?    1.5
+    Pectorales                5.0 ?    5.0
+    Tríceps                   4.0 ?    4.0
+  Notas:
+    - El plan «Músculo KPKN» cambia su estructura original: sus ejercicios quedan repartidos según «Torso y pierna, 4 días».
+    - Se aplicó a las 6 semanas del plan.
+    - 3 semanas traen otros ejercicios: su reparto se calculó por separado.
+
+Caso 4 · Plan de autor PHUL de 4 días (real, con permiso) ? cadena anterior y posterior
+  reparto: Cadena anterior y posterior, 4 días (ant_post_x4) · días: lun mar jue vie
+  compatible: sí · desviación máxima de volumen: 0.0 series
+  Antes (4 sesiones):
+    Superior fuerza            lun    55 min   7 ejercicios
+    Inferior fuerza            mar    50 min   5 ejercicios
+    Superior hipertrofia       jue    58 min   7 ejercicios
+    Inferior hipertrofia       vie    51 min   6 ejercicios
+  Después (4 días):
+    Cadena Anterior A          lun    64 min   7 ejercicios  Cuádriceps · Glúteos · Pecho
+        Sentadilla Trasera con Barra Alta · Press Militar · Sentadilla Frontal · Zancada Caminando · Press de Banca Inclinado · Aperturas Planas · Curl de Bíceps de Pie
+    Cadena Posterior A         mar    55 min   7 ejercicios  Espalda · Pantorrillas · Hombros
+        Remo Convencional · Jalón al Pecho · Extensión de Tríceps Tumbada · Curl de Isquiosurales Tumbado · Elevaciones Laterales de Pie · Elevación de Talones · Elevación de Talones
+    Cadena Anterior B          jue    54 min   5 ejercicios  Cuádriceps · Pecho · Bíceps
+        Press de Banca Plano · Press de Banca Inclinado · Prensa de Piernas · Curl de Bíceps Inclinado · Extensión de Cuádriceps en Máquina
+    Cadena Posterior B         vie    55 min   6 ejercicios  Espalda · Isquios · Pantorrillas
+        Peso Muerto Convencional · Remo Convencional · Remo Convencional · Extensión de Tríceps · Curl de Isquiosurales Sentado · Elevación de Talones
+  Minutos por día: 64 / 55 / 54 / 55 (mín 54, máx 64)
+  Minutos parejos (corto / largo): 0.8 · días con menos de 3 ejercicios: 0
+  Volumen semanal por músculo (antes ? después):
+    Aductores                 7.5 ?    7.5
+    Antebrazo                 2.5 ?    2.5
+    Bíceps                   11.0 ?   11.0
+    Cuádriceps               18.0 ?   18.0
+    Deltoides anterior        8.0 ?    8.0
+    Deltoides lateral         3.0 ?    3.0
+    Deltoides posterior       6.0 ?    6.0
+    Dorsales                 12.0 ?   12.0
+    Espalda alta             12.0 ?   12.0
+    Glúteos                  15.0 ?   15.0
+    Isquiosurales            10.5 ?   10.5
+    Pantorrillas             14.5 ?   14.5
+    Pectorales               12.0 ?   12.0
+    Tríceps                  10.5 ?   10.5
+  Notas:
+    - El plan «PHUL» cambia su estructura original: sus ejercicios quedan repartidos según «Cadena anterior y posterior, 4 días».
+    - Solo se adaptó la semana 1 de 12; las demás conservan su reparto.
+
+Caso 5 · Un grupo por día de 5 sesiones (sintético) ? empuje, tirón y pierna de 6 días
+  reparto: Empuje, tirón y pierna, 6 días (ppl_x6) · días: lun mar mié jue vie sáb
+  compatible: sí · desviación máxima de volumen: 0.0 series
+  Antes (5 sesiones):
+    Pecho                      lun    33 min   4 ejercicios
+    Espalda                    mar    33 min   4 ejercicios
+    Piernas                    mié    46 min   6 ejercicios
+    Hombros                    vie    33 min   4 ejercicios
+    Brazos                     sáb    33 min   4 ejercicios
+  Después (6 días):
+    Empuje A                   lun    35 min   4 ejercicios  Pecho · Hombros · Tríceps
+        Press de Banca Plano · Fondos en Paralelas · Elevaciones Laterales de Pie · Extensión de Tríceps
+    Tirón A                    mar    34 min   3 ejercicios  Espalda · Bíceps · Hombros
+        Remo Convencional · Jalón al Pecho · Curl de Bíceps de Pie
+    Pierna A                   mié    29 min   3 ejercicios  Cuádriceps · Glúteos · Aductores
+        Sentadilla Trasera con Barra Alta · Prensa de Piernas · Curl de Isquiosurales Tumbado
+    Empuje B                   jue    35 min   4 ejercicios  Hombros · Tríceps · Pecho
+        Press Militar · Press de Banca Inclinado · Aperturas Planas · Extensión de Tríceps Overhead
+    Tirón B                    vie    39 min   5 ejercicios  Espalda · Bíceps · Hombros
+        Remo con Pecho Apoyado · Face Pull · Pull Over de Pie en Polea · Curl Martillo · Encogimientos
+    Pierna B                   sáb    26 min   3 ejercicios  Cuádriceps · Glúteos · Isquios
+        Peso Muerto Rumano · Extensión de Cuádriceps en Máquina · Elevación de Talones
+  Minutos por día: 35 / 34 / 29 / 35 / 39 / 26 (mín 26, máx 39)
+  Minutos parejos (corto / largo): 0.7 · días con menos de 3 ejercicios: 0
+  Volumen semanal por músculo (antes ? después):
+    Aductores                 5.0 ?    5.0
+    Antebrazo                 3.5 ?    3.5
+    Bíceps                   13.5 ?   13.5
+    Cuádriceps               10.0 ?   10.0
+    Deltoides anterior       10.5 ?   10.5
+    Deltoides lateral         3.0 ?    3.0
+    Deltoides posterior       9.5 ?    9.5
+    Dorsales                 13.0 ?   13.0
+    Espalda alta             13.0 ?   13.0
+    Glúteos                  10.0 ?   10.0
+    Isquiosurales             6.0 ?    6.0
+    Pantorrillas              4.5 ?    4.5
+    Pectorales               14.5 ?   14.5
+    Tríceps                  14.5 ?   14.5
+  Notas:
+    - Los días quedan de 26 a 39 min: «Tirón B» concentra más trabajo porque cada día conserva su foco.
+
+
+RESUMEN
+Caso 1: [46, 46, 46] min ? [48, 29, 48, 26] min · desviación de volumen 0.0
+Caso 2: [46, 46, 46] min ? [70, 72] min · desviación de volumen 0.0
+Caso 3: [25, 37, 37] min ? [27, 28, 27, 29] min · desviación de volumen 0.0
+Caso 4: [55, 50, 58, 51] min ? [64, 55, 54, 55] min · desviación de volumen 0.0
+Caso 5: [33, 33, 46, 33, 33] min ? [35, 34, 29, 35, 39, 26] min · desviación de volumen 0.0
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

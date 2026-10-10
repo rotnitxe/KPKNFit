@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.VolumeSoftBandTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:30:20.735Z" hostname="VF" time="0.018">
+  <properties/>
+  <testcase name="a_zero_band_reproduces_the_previous_rule_exactly" classname="com.example.kpkn.domain.training.VolumeSoftBandTest" time="0.002"/>
+  <testcase name="the_notice_is_plain_language_without_internal_jargon" classname="com.example.kpkn.domain.training.VolumeSoftBandTest" time="0.014"/>
+  <testcase name="the_band_is_one_and_a_half_sets_over_the_global_glutes_limit_without_changing_it" classname="com.example.kpkn.domain.training.VolumeSoftBandTest" time="0.0"/>
+  <testcase name="only_glutes_has_a_band_and_a_personal_limit_below_the_global_one_is_never_relaxed" classname="com.example.kpkn.domain.training.VolumeSoftBandTest" time="0.0"/>
+  <testcase name="classifies_normal_high_volume_and_over_ceiling_with_the_boundaries_inclusive" classname="com.example.kpkn.domain.training.VolumeSoftBandTest" time="0.0"/>
+  <testcase name="the_notice_exists_only_inside_the_band_and_tolerates_decimal_noise" classname="com.example.kpkn.domain.training.VolumeSoftBandTest" time="0.001"/>
+  <testcase name="sets_are_formatted_with_a_decimal_comma_and_without_trailing_zeros" classname="com.example.kpkn.domain.training.VolumeSoftBandTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

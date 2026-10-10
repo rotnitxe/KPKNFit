@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.repository.FreeProgramMutationTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:53:18.711Z" hostname="VF" time="2.262">
+  <properties/>
+  <testcase name="addingAnotherWeekFromDetailLeavesFreeWeekIntactAndReportsTheLimit" classname="com.example.kpkn.data.repository.FreeProgramMutationTest" time="0.77"/>
+  <testcase name="detailAddsFiveSessionsAndRejectsSixthWithVisibleErrorWithoutThrowing" classname="com.example.kpkn.data.repository.FreeProgramMutationTest" time="0.391"/>
+  <testcase name="repeatedAssignmentsCannotExpandOneSessionIntoSixWeeklySlots" classname="com.example.kpkn.data.repository.FreeProgramMutationTest" time="0.287"/>
+  <testcase name="editingAnExistingSessionAtTheLimitRemainsAvailable" classname="com.example.kpkn.data.repository.FreeProgramMutationTest" time="0.332"/>
+  <testcase name="eachAdvancedMutationIsRejectedBeforeCacheAndRoomChangeAndAcceptedByPro" classname="com.example.kpkn.data.repository.FreeProgramMutationTest" time="0.482"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

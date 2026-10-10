@@ -122,6 +122,26 @@ class MaintenanceCrashRecoveryTest {
             .put("durableOutcome", expected).put("inputUnchanged", true).toString().toByteArray())
         instrumentation.sendStatus(0, Bundle().apply { putString("kpkn_verify_pid", "${Process.myPid()}") })
     }
+    @Test fun verifySqliteFullCold(): Unit = runBlocking(Dispatchers.IO) {
+        val seed = JSONObject(metadata.readText())
+        val quota = JSONObject(File(control, "quota.json").readText())
+        assertTrue("Only a completed real SQLITE_FULL attempt may be verified", quota.getBoolean("sqliteFull"))
+        assertNotEquals("Durable quota recovery must be read from a new process", quota.getInt("pid"), Process.myPid())
+        assertEquals(seed.getString("profileKey"), ProfileStorage.current().key)
+        assertEquals(seed.getString("archiveSha256"), hash(archive))
+        withTimeout(150_000) { AppBootstrap.prepare(context) }
+        assertEquals(AppBootstrap.State.Ready, AppBootstrap.state.value)
+        assertEquals("original", KpknDatabase.getInstance(context).programDao().getAllHeaders().single().id)
+        assertEquals(seed.getString("originalPhoto"), hash(File(context.filesDir, "profile/avatar.png")))
+        assertEquals("original", context.getSharedPreferences("qa_recovery", 0).getString("value", null))
+        assertFalse(File(context.noBackupFilesDir, "maintenance").exists())
+        KpknDatabase.closeInstance()
+        assertEquals("original", KpknDatabase.getInstance(context).programDao().getAllHeaders().single().id)
+        write(File(control, "quota-cold.json"), JSONObject().put("pid", Process.myPid())
+            .put("operationPid", quota.getInt("pid")).put("profileKey", ProfileStorage.current().key)
+            .put("durableOutcome", "original").put("archiveUnchanged", true).toString().toByteArray())
+        instrumentation.sendStatus(0, Bundle().apply { putString("kpkn_verify_pid", "${Process.myPid()}") })
+    }
     @Test fun sqliteFull(): Unit = runBlocking {
         val before = JSONObject(metadata.readText())
         val outcome = CompletableDeferred<Boolean>()

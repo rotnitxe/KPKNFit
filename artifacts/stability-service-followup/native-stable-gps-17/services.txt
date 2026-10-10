@@ -1,0 +1,46 @@
+ACTIVITY MANAGER SERVICES (dumpsys activity services)
+  Last ANR service:
+ServiceRecord{e0e84d5 u0 com.android.systemui/.keyguard.KeyguardService c:android}
+    intent={cmp=com.android.systemui/.keyguard.KeyguardService}
+    packageName=com.android.systemui
+    processName=com.android.systemui
+    targetSdkVersion=36
+    baseDir=/system_ext/priv-app/SystemUIGoogle/SystemUIGoogle.apk
+    dataDir=/data/user_de/0/com.android.systemui
+    app=ProcessRecord{3bdb8f2 949:com.android.systemui/u0a187}
+    useNewWiuLogic_forCapabilities()=true
+    useNewWiuLogic_forStart()=true
+    useNewBfslLogic()=true
+    mAllowWiu_noBinding=DENIED
+    mAllowWiu_inBindService=PROC_STATE_PERSISTENT
+    mAllowWiu_byBindings=DENIED
+    getFgsAllowWiu_legacy=PROC_STATE_PERSISTENT
+    getFgsAllowWiu_new=DENIED
+    getFgsAllowWiu_forStart=DENIED
+    getFgsAllowWiu_forCapabilities=DENIED
+    allowUiJobScheduling=false
+    recentCallingPackage=android
+    recentCallingUid=1000
+    mAllowStart_noBinding=DENIED
+    mAllowStart_inBindService=PROC_STATE_PERSISTENT
+    mAllowStart_byBindings=DENIED
+    getFgsAllowStart_legacy=PROC_STATE_PERSISTENT
+    getFgsAllowStart_new=DENIED
+    getFgsAllowStart=DENIED
+    startForegroundCount=0
+    infoAllowStartForeground=[callingPackage: android; callingUid: 1000; uidState: PER ; uidBFSL: [BFSL]; intent: Intent { flg=0x100 xflg=0x4 cmp=com.android.systemui/.keyguard.KeyguardService }; code:PROC_STATE_PERSISTENT; tempAllowListReason:<null>; allowWiu:10; targetSdkVersion:36; callerTargetSdkVersion:36; startForegroundCount:0; bindFromPackage:null: isBindService:true]
+    createTime=-31s298ms startingBgTimeout=--
+    lastActivity=-20s36ms restartTime=-20s36ms createdFromFg=true
+    executeNesting=2 executeFg=true executingStart=-20s35ms
+    Bindings:
+    * IntentBindRecord{a3b88fa CREATE}:
+      intent={flg=0x100 xflg=0x4 cmp=com.android.systemui/.keyguard.KeyguardService}
+      binder=null
+      requested=true received=false hasBound=true doRebind=false
+      * Client AppBindRecord{a71aeab ProcessRecord{572fa4a 701:system/1000}}
+        Per-process Connections:
+          ConnectionRecord{e958c u0 CR com.android.systemui/.keyguard.KeyguardService:@fac2abf flags=0x1}
+    All Connections:
+      ConnectionRecord{e958c u0 CR com.android.systemui/.keyguard.KeyguardService:@fac2abf flags=0x1}
+
+  (nothing)

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.InventoryCompatibilityTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:31:47.404Z" hostname="VF" time="0.025">
+  <properties/>
+  <testcase name="dumbbell_load_is_per_unit_and_pair_aware" classname="com.example.kpkn.InventoryCompatibilityTest" time="0.002"/>
+  <testcase name="barbell_weight_15_vs_20_changes_the_plate_math" classname="com.example.kpkn.InventoryCompatibilityTest" time="0.003"/>
+  <testcase name="legacy_settings_json_without_quantities_defaults_to_unlimited_plates" classname="com.example.kpkn.InventoryCompatibilityTest" time="0.002"/>
+  <testcase name="kettlebell_stock_is_preserved_in_the_inventory" classname="com.example.kpkn.InventoryCompatibilityTest" time="0.001"/>
+  <testcase name="insufficient_plates_are_marked_inexact_and_never_silently_substituted" classname="com.example.kpkn.InventoryCompatibilityTest" time="0.004"/>
+  <testcase name="equipment_inventory_round_trips_with_finite_quantities" classname="com.example.kpkn.InventoryCompatibilityTest" time="0.011"/>
+  <testcase name="machine_load_respects_non_standard_increment" classname="com.example.kpkn.InventoryCompatibilityTest" time="0.0"/>
+  <testcase name="plate_quantities_are_never_exceeded" classname="com.example.kpkn.InventoryCompatibilityTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

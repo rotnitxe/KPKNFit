@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.templates.TemplateCatalogFilterLogicTest" tests="15" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:25:46.399Z" hostname="VF" time="0.279">
+  <properties/>
+  <testcase name="clonesEnfoqueQuedanOcultosDelListadoPrincipal" classname="com.example.kpkn.domain.templates.TemplateCatalogFilterLogicTest" time="0.008"/>
+  <testcase name="agrupacionPorObjetivoSinDuplicadosInternos" classname="com.example.kpkn.domain.templates.TemplateCatalogFilterLogicTest" time="0.007"/>
+  <testcase name="availableSessionTypesYGoalsSonSubconjuntoOrdenado" classname="com.example.kpkn.domain.templates.TemplateCatalogFilterLogicTest" time="0.001"/>
+  <testcase name="zonaSuperiorIncluyePush" classname="com.example.kpkn.domain.templates.TemplateCatalogFilterLogicTest" time="0.0"/>
+  <testcase name="agrupacionPorTipoDeSesionSinDuplicadosInternos" classname="com.example.kpkn.domain.templates.TemplateCatalogFilterLogicTest" time="0.004"/>
+  <testcase name="duracionDeclaradaMantieneResultadosMientrasFacetasCargan" classname="com.example.kpkn.domain.templates.TemplateCatalogFilterLogicTest" time="0.0"/>
+  <testcase name="labelsSonSobrios" classname="com.example.kpkn.domain.templates.TemplateCatalogFilterLogicTest" time="0.001"/>
+  <testcase name="agrupacionPorGrupoMuscularParticionaSinDuplicados" classname="com.example.kpkn.domain.templates.TemplateCatalogFilterLogicTest" time="0.001"/>
+  <testcase name="agrupacionPorNivelParticionaSinDuplicados" classname="com.example.kpkn.domain.templates.TemplateCatalogFilterLogicTest" time="0.002"/>
+  <testcase name="empujeHipertrofiaIntermedioEncuentraPush" classname="com.example.kpkn.domain.templates.TemplateCatalogFilterLogicTest" time="0.132"/>
+  <testcase name="tironNoIncluyePush" classname="com.example.kpkn.domain.templates.TemplateCatalogFilterLogicTest" time="0.0"/>
+  <testcase name="pushTambienMatcheaPechoPorTagsYfocus" classname="com.example.kpkn.domain.templates.TemplateCatalogFilterLogicTest" time="0.0"/>
+  <testcase name="busquedaSeCombinaConFiltrosNoLosOmite" classname="com.example.kpkn.domain.templates.TemplateCatalogFilterLogicTest" time="0.019"/>
+  <testcase name="zonaInferiorExcluyePush" classname="com.example.kpkn.domain.templates.TemplateCatalogFilterLogicTest" time="0.001"/>
+  <testcase name="hasActiveFiltersReflejaEstado" classname="com.example.kpkn.domain.templates.TemplateCatalogFilterLogicTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

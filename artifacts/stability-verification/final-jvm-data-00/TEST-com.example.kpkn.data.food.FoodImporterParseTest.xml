@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.food.FoodImporterParseTest" tests="29" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:51:08.086Z" hostname="VF" time="1.902">
+  <properties/>
+  <testcase name="a blank sodium is accepted and stored as zero" classname="com.example.kpkn.data.food.FoodImporterParseTest" time="0.01"/>
+  <testcase name="the nutrient filter skips every id that is not in the set" classname="com.example.kpkn.data.food.FoodImporterParseTest" time="0.031"/>
+  <testcase name="the milk takes its energy by priority and its sugar from the 1063 id" classname="com.example.kpkn.data.food.FoodImporterParseTest" time="0.065"/>
+  <testcase name="parseOff keeps what parseOffLine accepts, in file order, and skips the rest" classname="com.example.kpkn.data.food.FoodImporterParseTest" time="0.005"/>
+  <testcase name="a missing required table fails the parse so the previous catalog is kept" classname="com.example.kpkn.data.food.FoodImporterParseTest" time="0.003"/>
+  <testcase name="food_csv is read before food_nutrient_csv so the foundation ids can filter the nutrients" classname="com.example.kpkn.data.food.FoodImporterParseTest" time="0.015"/>
+  <testcase name="parseOff opens only the OFF asset the import declares" classname="com.example.kpkn.data.food.FoodImporterParseTest" time="0.002"/>
+  <testcase name="parseOff reads a file whose lines end in CRLF like the shipped one may" classname="com.example.kpkn.data.food.FoodImporterParseTest" time="0.002"/>
+  <testcase name="the energy tolerance is 50 percent of the macro energy" classname="com.example.kpkn.data.food.FoodImporterParseTest" time="0.001"/>
+  <testcase name="assets checked out with CRLF line endings import the same rows as with LF" classname="com.example.kpkn.data.food.FoodImporterParseTest" time="0.016"/>
+  <testcase name="the chicken breast with skin keeps its published energy and its negative carbohydrate is clamped" classname="com.example.kpkn.data.food.FoodImporterParseTest" time="0.009"/>
+  <testcase name="a Colun milk line becomes a catalog row with its brand and normalized fields filled" classname="com.example.kpkn.data.food.FoodImporterParseTest" time="0.002"/>
+  <testcase name="a Colun milk line of the committed search fixture is parsed by the same seam the corpus uses" classname="com.example.kpkn.data.food.FoodImporterParseTest" time="0.023"/>
+  <testcase name="between 35 and 50 percent the row is kept but flagged instead of rejected" classname="com.example.kpkn.data.food.FoodImporterParseTest" time="0.001"/>
+  <testcase name="only foundation_food rows of food_csv are read" classname="com.example.kpkn.data.food.FoodImporterParseTest" time="0.002"/>
+  <testcase name="a foundation food without a curated alias or a portion keeps its English description" classname="com.example.kpkn.data.food.FoodImporterParseTest" time="0.008"/>
+  <testcase name="rows carry the curated Spanish name, the category and the one unit portion" classname="com.example.kpkn.data.food.FoodImporterParseTest" time="0.009"/>
+  <testcase name="lines that cannot be a product are rejected" classname="com.example.kpkn.data.food.FoodImporterParseTest" time="0.001"/>
+  <testcase name="a line whose declared energy disagrees with its macros is rejected" classname="com.example.kpkn.data.food.FoodImporterParseTest" time="0.001"/>
+  <testcase name="parseOff stops at the next check after its coroutine is cancelled" classname="com.example.kpkn.data.food.FoodImporterParseTest" time="0.082"/>
+  <testcase name="the extract keeps the foundation foods whose energy is published or can be trusted" classname="com.example.kpkn.data.food.FoodImporterParseTest" time="0.008"/>
+  <testcase name="the shipped OFF file imports thousands of rows through parseOff and every one comes from parseOffLine" classname="com.example.kpkn.data.food.FoodImporterParseTest" time="0.706"/>
+  <testcase name="an oil or a butter without published energy gets Atwater energy and its flag" classname="com.example.kpkn.data.food.FoodImporterParseTest" time="0.007"/>
+  <testcase name="a missing auxiliary table degrades the rows without stopping the import" classname="com.example.kpkn.data.food.FoodImporterParseTest" time="0.039"/>
+  <testcase name="parseOff reports progress that never goes back and ends at one" classname="com.example.kpkn.data.food.FoodImporterParseTest" time="0.051"/>
+  <testcase name="the declared macros and sodium are the ones stored, in grams and milligrams per 100 g" classname="com.example.kpkn.data.food.FoodImporterParseTest" time="0.0"/>
+  <testcase name="parseUsda reports progress that never goes back and ends at one" classname="com.example.kpkn.data.food.FoodImporterParseTest" time="0.007"/>
+  <testcase name="parseUsda applies the Atwater fallback and the carbohydrate clamp to the files it reads" classname="com.example.kpkn.data.food.FoodImporterParseTest" time="0.003"/>
+  <testcase name="the foundation filter changes the memory the import needs, never the rows it produces" classname="com.example.kpkn.data.food.FoodImporterParseTest" time="0.793"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

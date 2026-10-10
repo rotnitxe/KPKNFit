@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.workout.WorkoutStepNavigatorNavigationTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:39:04.157Z" hostname="VF" time="0.007">
+  <properties/>
+  <testcase name="adjacentNavigation_reusesSelectionRouteAndCancelsRest" classname="com.example.kpkn.screens.workout.WorkoutStepNavigatorNavigationTest" time="0.003"/>
+  <testcase name="nextSet_afterFirstCardioCommit_selectsSecondCardioSetBeforeMobility" classname="com.example.kpkn.screens.workout.WorkoutStepNavigatorNavigationTest" time="0.004"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

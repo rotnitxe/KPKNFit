@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.workout.WorkoutVoiceCancellationRegressionTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:39:40.003Z" hostname="VF" time="3.545">
+  <properties/>
+  <testcase name="undo_and_edit_corrections_are_ignored_while_cancellation_is_in_progress" classname="com.example.kpkn.screens.workout.WorkoutVoiceCancellationRegressionTest" time="3.23"/>
+  <testcase name="active_cardio_and_set_commands_are_ignored_while_cancellation_is_in_progress" classname="com.example.kpkn.screens.workout.WorkoutVoiceCancellationRegressionTest" time="0.086"/>
+  <testcase name="cancel_session_stops_active_timed_cardio_without_recording_partial_set" classname="com.example.kpkn.screens.workout.WorkoutVoiceCancellationRegressionTest" time="0.1"/>
+  <testcase name="active_cardio_and_set_commands_are_ignored_after_cancellation" classname="com.example.kpkn.screens.workout.WorkoutVoiceCancellationRegressionTest" time="0.052"/>
+  <testcase name="edit_correction_reaches_the_typed_port_when_no_cancellation_is_in_progress" classname="com.example.kpkn.screens.workout.WorkoutVoiceCancellationRegressionTest" time="0.076"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

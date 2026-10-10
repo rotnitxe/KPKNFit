@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionDrawTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:37:44.834Z" hostname="VF" time="0.481">
+  <properties/>
+  <testcase name="everyMomentOfTheLoopDrawsWithoutFailing" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionDrawTest" time="0.458"/>
+  <testcase name="theKeywordsAndTheChipsHaveTheirGeometry" classname="com.example.kpkn.screens.onboarding.welcome.WelcomeNutricionDrawTest" time="0.023"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

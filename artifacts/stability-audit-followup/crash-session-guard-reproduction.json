@@ -1,0 +1,17 @@
+{
+  "baselineCommit": "3a8af329a8f940630ed8b19bb7d392d27068bd04",
+  "baselineExecution": "crash-lifecycle-probe-05-release-isolated.log",
+  "baselineResult": {
+    "tests": 4,
+    "passed": 1,
+    "failed": 3,
+    "errors": 0,
+    "skipped": 0
+  },
+  "sdkSimulation": "Both FirebaseApp and FirebaseCrashlytics are Robolectric shadows; no live Firebase traffic",
+  "baselineSourceSha256": "6218f645227cae16e32537627f3ae1a1e3f4a77602bee00e8b2683dd3cf17646",
+  "patchedSourceSha256": "89f2089cb947f3dabd313a77e073f44db69ed4818eff536e514f7688dd3df4fc",
+  "baselineAssertionsUnchanged": true,
+  "wizardSourcesChanged": false,
+  "remainingSdkGate": "Admission/drain covers submissions to the SDK, not network cancellation or all internal SDK file/network work."
+}

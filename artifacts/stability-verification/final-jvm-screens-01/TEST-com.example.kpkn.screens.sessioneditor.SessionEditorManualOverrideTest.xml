@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.sessioneditor.SessionEditorManualOverrideTest" tests="30" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:38:08.297Z" hostname="VF" time="4.365">
+  <properties/>
+  <testcase name="extrasAreIsolatedPerSessionAndPerProgram" classname="com.example.kpkn.screens.sessioneditor.SessionEditorManualOverrideTest" time="0.151"/>
+  <testcase name="legacyDraftWithGlobalExtrasMigratesAsCommittedAndSurvivesDiscard" classname="com.example.kpkn.screens.sessioneditor.SessionEditorManualOverrideTest" time="0.141"/>
+  <testcase name="preferenceFailureAfterRoomTransferCommitLeavesTransferClearedDraftAndRetryDoesNotAppend" classname="com.example.kpkn.screens.sessioneditor.SessionEditorManualOverrideTest" time="0.216"/>
+  <testcase name="v1RecordUpgradesToV2OnTheFirstExtrasSaveAndASplitDraftKeepsItsExtrasPending" classname="com.example.kpkn.screens.sessioneditor.SessionEditorManualOverrideTest" time="0.154"/>
+  <testcase name="editorOnlyPreferencesHaveIndependentDirtyBaselineSaveDiscardAndRecreation" classname="com.example.kpkn.screens.sessioneditor.SessionEditorManualOverrideTest" time="0.152"/>
+  <testcase name="roomFailureLeavesPreferencesUntouchedKeepsTheTransferAndRetryAppendsOnce" classname="com.example.kpkn.screens.sessioneditor.SessionEditorManualOverrideTest" time="0.151"/>
+  <testcase name="discardAfterPreferenceFailureRestoresTheConfirmedExtrasAndRoomCoreWithoutARedundantWrite" classname="com.example.kpkn.screens.sessioneditor.SessionEditorManualOverrideTest" time="0.14"/>
+  <testcase name="cancelledCallerAfterRoomCommitStillAcknowledgesDraftAndDoesNotRepeatAppend" classname="com.example.kpkn.screens.sessioneditor.SessionEditorManualOverrideTest" time="0.142"/>
+  <testcase name="variantBTransferUsesLatestVariantAtSaveAndFreezesTheDestinationRecipeDay" classname="com.example.kpkn.screens.sessioneditor.SessionEditorManualOverrideTest" time="0.14"/>
+  <testcase name="discardClaimsNoRevisionWhenTheRecordAlreadyMatchesButRestoresTheBaselineWhenItDoesNot" classname="com.example.kpkn.screens.sessioneditor.SessionEditorManualOverrideTest" time="0.157"/>
+  <testcase name="legacyDraftSettingsMigrateAsCommittedBaselineAndSurviveDiscard" classname="com.example.kpkn.screens.sessioneditor.SessionEditorManualOverrideTest" time="0.138"/>
+  <testcase name="applyToNewItemsComesFromRoomAndGatesTheRestoredExtras" classname="com.example.kpkn.screens.sessioneditor.SessionEditorManualOverrideTest" time="0.146"/>
+  <testcase name="staleExtrasWriteRevisionCannotRevertNewerExtras" classname="com.example.kpkn.screens.sessioneditor.SessionEditorManualOverrideTest" time="0.119"/>
+  <testcase name="mesocycleSaveCopiesTheCoreThroughTheCloneAndTheExtrasBestEffortKeepingTheClonesOwnPreferences" classname="com.example.kpkn.screens.sessioneditor.SessionEditorManualOverrideTest" time="0.145"/>
+  <testcase name="appendReplaceAndCreatedTransfersSurviveRealPlanRematerialization" classname="com.example.kpkn.screens.sessioneditor.SessionEditorManualOverrideTest" time="0.132"/>
+  <testcase name="unreadableRecordIsNotOverwrittenOnLoadOnlyByAnExplicitSave" classname="com.example.kpkn.screens.sessioneditor.SessionEditorManualOverrideTest" time="0.136"/>
+  <testcase name="compoundAndIsolationOverridesSurviveReopenAndDriveNewExercises" classname="com.example.kpkn.screens.sessioneditor.SessionEditorManualOverrideTest" time="0.133"/>
+  <testcase name="preferenceFailureAfterRoomCommitKeepsConsumedTransferAndExtrasAndRetryDoesNotAppend" classname="com.example.kpkn.screens.sessioneditor.SessionEditorManualOverrideTest" time="0.182"/>
+  <testcase name="stagedAppendTransferSurvivesViewModelRecreationAndIsAppliedOnce" classname="com.example.kpkn.screens.sessioneditor.SessionEditorManualOverrideTest" time="0.158"/>
+  <testcase name="externalRoomRepsChangeIsNotOverwrittenByOldPreferencesAndPrefOnlyEditsLeaveItAlone" classname="com.example.kpkn.screens.sessioneditor.SessionEditorManualOverrideTest" time="0.14"/>
+  <testcase name="editorRecoveryDoesNotRepublishAfterANewerProgramWriteReservation" classname="com.example.kpkn.screens.sessioneditor.SessionEditorManualOverrideTest" time="0.125"/>
+  <testcase name="real_room_write_failure_keeps_editor_transfer_and_retry_appends_once" classname="com.example.kpkn.screens.sessioneditor.SessionEditorManualOverrideTest" time="0.15"/>
+  <testcase name="externalRoomChangeWithPendingExtrasDraftKeepsUntouchedCoreFromRoom" classname="com.example.kpkn.screens.sessioneditor.SessionEditorManualOverrideTest" time="0.146"/>
+  <testcase name="saveSession_marks_the_manual_override_in_the_same_mutation_and_rebuild_preserves_it" classname="com.example.kpkn.screens.sessioneditor.SessionEditorManualOverrideTest" time="0.126"/>
+  <testcase name="postCommitExceptionBeforeCachePublication_recoversRoomAndRetryDoesNotAppendAgain" classname="com.example.kpkn.screens.sessioneditor.SessionEditorManualOverrideTest" time="0.127"/>
+  <testcase name="userEditedCoreFieldInDraftWinsOverAnExternalRoomChange" classname="com.example.kpkn.screens.sessioneditor.SessionEditorManualOverrideTest" time="0.135"/>
+  <testcase name="extrasOnlyEditSavesAsPreferencesWithoutOverrideOrTimestampAndSurvivesReopen" classname="com.example.kpkn.screens.sessioneditor.SessionEditorManualOverrideTest" time="0.131"/>
+  <testcase name="stalePreferenceWriteRevisionCannotReplaceANewerCommit" classname="com.example.kpkn.screens.sessioneditor.SessionEditorManualOverrideTest" time="0.13"/>
+  <testcase name="globalScopeAndExtrasSurviveSaveAndReopenWhileRoomKeepsOnlyTheEightCoreFields" classname="com.example.kpkn.screens.sessioneditor.SessionEditorManualOverrideTest" time="0.186"/>
+  <testcase name="sessionOnlySaveDoesNotTouchTheCloneRecords" classname="com.example.kpkn.screens.sessioneditor.SessionEditorManualOverrideTest" time="0.136"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

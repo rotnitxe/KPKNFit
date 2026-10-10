@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.sessioneditor.CatalogResultTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:38:06.642Z" hostname="VF" time="0.025">
+  <properties/>
+  <testcase name="replacement_rejects_structural_superset_action_atomically" classname="com.example.kpkn.screens.sessioneditor.CatalogResultTest" time="0.012"/>
+  <testcase name="format_catalog_superset_rest_label_formats_seconds_and_minutes_correctly" classname="com.example.kpkn.screens.sessioneditor.CatalogResultTest" time="0.012"/>
+  <testcase name="result_keeps_configuration_alignment_when_a_selection_has_no_configuration" classname="com.example.kpkn.screens.sessioneditor.CatalogResultTest" time="0.001"/>
+  <testcase name="result_prefers_exact_configuration_before_definition_fallback" classname="com.example.kpkn.screens.sessioneditor.CatalogResultTest" time="0.0"/>
+  <testcase name="catalog_launch_request_preserves_target_group_name" classname="com.example.kpkn.screens.sessioneditor.CatalogResultTest" time="0.0"/>
+  <testcase name="create_superset_action_requires_a_multiple_selection_request" classname="com.example.kpkn.screens.sessioneditor.CatalogResultTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

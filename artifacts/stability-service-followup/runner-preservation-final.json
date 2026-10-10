@@ -1,0 +1,8 @@
+{
+  "state": "PASSED_PROVIDER_RUNNER_PARAMETERIZED",
+  "previousSha256": "71517b149a01e10a0532c4db447919cb7f78b1725380db4081685d46551f127d",
+  "originalSha256": "042375f935cae31358e917883039fcfac3c4acafabb9f470674b31a79fd508d2",
+  "runnerSha256": "836bea9b2829b821a19480781ac912f894bb35f93612a415eaae1ecdb53e0713",
+  "differences": "Output/serial/AVD/config parameters, explicit mock-provider opt-in and repository-root discovery. Native command, assertions, timeout, fix stream and restoration unchanged.",
+  "actualExecutionReceipt": "native-stable-gps-17/result.json"
+}

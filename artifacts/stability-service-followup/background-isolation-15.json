@@ -1,0 +1,19 @@
+{
+  "state": "OWN_GPS_BACKGROUND_TEMPORARILY_ISOLATED",
+  "serial": "emulator-5558",
+  "disabled": [
+    "com.google.android.apps.messaging",
+    "com.google.android.as",
+    "com.google.android.as.oss",
+    "com.android.vending"
+  ],
+  "alreadyDisabled": [],
+  "restored": false,
+  "limits": "Only factory apps on the fresh own AVD with no user account. This changes test environment, not product code or acceptance thresholds.",
+  "systemUiWaitTap": {
+    "bounds": "[70,1028][1010,1154]",
+    "x": 540,
+    "y": 1091,
+    "source": "CURRENT_UI_TREE"
+  }
+}
