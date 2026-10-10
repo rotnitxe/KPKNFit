@@ -87,6 +87,9 @@ class EntrenoVariantsStepTest {
     private val gymAvailability = SetupWizardDraft().withPlaces(gym).trainingOptions.availability
     private val dumbbellsAvailability = SetupWizardDraft().withPlaces(setOf(TrainingPlace.HOME))
         .withMaterial(setOf(EquipmentSymbolId.DUMBBELLS)).trainingOptions.availability
+    // La búlgara con mancuernas pide banco o cajón (`LiftVariants`): con mancuernas y banco sí sale.
+    private val dumbbellsAndBenchAvailability = SetupWizardDraft().withPlaces(setOf(TrainingPlace.HOME))
+        .withMaterial(setOf(EquipmentSymbolId.DUMBBELLS, EquipmentSymbolId.BENCH)).trainingOptions.availability
 
     @Test
     fun powerliftingAsksTwoLifts() {
@@ -142,11 +145,19 @@ class EntrenoVariantsStepTest {
 
     @Test
     fun withoutABarbellTheBarbellVariantsAreNotOffered() {
-        rule.setContent { LiftVariantRows(TrainingGoalProfile.POWERBUILDING, dumbbellsAvailability, emptyMap()) { _, _ -> } }
-        // El material sí cuenta: con mancuernas aparece la búlgara con mancuernas, y no la frontal ni la de barra.
+        rule.setContent { LiftVariantRows(TrainingGoalProfile.POWERBUILDING, dumbbellsAndBenchAvailability, emptyMap()) { _, _ -> } }
+        // El material sí cuenta: con mancuernas y banco aparece la búlgara con mancuernas, y no la frontal ni las de barra.
         rule.onNodeWithTag("setup-variant-SQUAT-bulgarian_split_squat__dumbbells").assertExists()
         rule.onNodeWithTag("setup-variant-SQUAT-front_squat__barbell").assertDoesNotExist()
+        rule.onNodeWithTag("setup-variant-SQUAT-bulgarian_split_squat__barbell").assertDoesNotExist()
         rule.onNodeWithText("Frontal").assertDoesNotExist()
+    }
+
+    @Test
+    fun withDumbbellsButNoBenchTheBulgarianIsNotOffered() {
+        rule.setContent { LiftVariantRows(TrainingGoalProfile.POWERBUILDING, dumbbellsAvailability, emptyMap()) { _, _ -> } }
+        // La búlgara pide banco o cajón: con mancuernas solas no se ofrece.
+        rule.onNodeWithTag("setup-variant-SQUAT-bulgarian_split_squat__dumbbells").assertDoesNotExist()
     }
 
     @Test
