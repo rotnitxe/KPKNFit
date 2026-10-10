@@ -1286,7 +1286,7 @@
       "package": "J",
       "requirement": "BÃƒÆ’Ã‚Âºsqueda de alimentos por debajo del presupuesto existente de 150 ms y E16 conforme a su contrato en un entorno controlado.",
       "code": "PARCIAL",
-      "verification": "PENDIENTE",
+      "verification": "VERIFICADO",
       "evidence": [
         "tests-normalized-media-7/",
         "../stability-recovery/DELIVERY.json",
@@ -1299,22 +1299,67 @@
         "../stability-verification/controlled-search-13/host-build-samples.json"
       ],
       "dependencies": [
-        "E16 del árbol bf007 pasó sin omisiones ni ajuste del presupuesto: 6 casos, mediana p95 23,2 ms frente a 50 ms, precisión 49/50 y error mediano en gramos 0% (15 casos). La búsqueda Android caliente pasó en API36 con 120 tiempos íntegros recalculados: mediana 40,342 ms, p95 62,2195 ms y máximo 73,9676 ms, frente a 150 ms; no hubo leases Gradle durante la medición. Se conservan el fallo anterior 322,4865 ms, la pasada 92,5362 ms con carga u1 y los intentos 11/12 incompletos por extracción ADB. Esta evidencia no cierra inicio, memoria, búsqueda fría, hardware físico ni rendimiento general."
+        "Búsqueda caliente: p95 62,2195 ms frente a 150 ms, 120 tiempos crudos. Mediana convencional 40,0937 ms; 40,342 ms era el elemento central superior usado en el recibo original. E16 final: 6/6, p95 mediano 21,4 ms frente a 50, precisión 49/50, error mediano de gramos 0%. Se conservan los benchmarks anteriores. Inicio, búsqueda fría, memoria y hardware físico permanecen fuera de esta verificación."
       ],
       "currentCheckpointBenchmark": {
-        "evidence": "artifacts/stability-recovery/native-search-idle-20/result.json",
+        "evidence": "artifacts/stability-verification/controlled-search-13/result.json",
         "result": "PASS_ANDROID_API36_WARM_SEARCH",
         "metrics": {
           "samples": 120,
-          "medianMs": 55.5748,
-          "p95Ms": 92.5362,
-          "maxMs": 132.5463,
+          "medianMs": 40.0937,
+          "medianConvention": "AVERAGE_OF_TWO_MIDDLE_VALUES",
+          "medianUpperMiddleMs": 40.342,
+          "p95Ms": 62.2195,
+          "p95Convention": "NEAREST_RANK",
+          "maxMs": 73.9676,
           "budgetMs": 150,
           "storage": "PROFILE_ROOM_FILE"
         },
-        "limits": "120 warm imported Room/FTS samples on shared x86_64 emulator; physical/multiversion/startup/cold-search coverage remains pending."
+        "sampleEvidence": "artifacts/stability-verification/controlled-search-13/samples.json",
+        "sampleSha256": "d8e05933d8ea31c6193a859f71d241e560f72a27d7e7129f7ce769f91c024cc5",
+        "limits": "Warm imported Room/FTS API36 with Gradle coordination. Physical/multiversion/startup/cold-search not verified."
       },
-      "checkpointRecoveryLimits": "Bounded local checkpoint only: 34 directed JVM cases; 17 real interruption phases API36,21 process terminations; one actual SQLite page-capacity case. No universal producers, physical-full filesystem, complete device/SAF/service validation."
+      "checkpointRecoveryLimits": "Bounded local checkpoint only: 34 directed JVM cases; 17 real interruption phases API36,21 process terminations; one actual SQLite page-capacity case. No universal producers, physical-full filesystem, complete device/SAF/service validation.",
+      "historicalCheckpointBenchmarks": [
+        {
+          "evidence": "artifacts/stability-recovery/native-search-idle-20/result.json",
+          "result": "PASS_ANDROID_API36_WARM_SEARCH",
+          "metrics": {
+            "samples": 120,
+            "medianMs": 55.5748,
+            "p95Ms": 92.5362,
+            "maxMs": 132.5463,
+            "budgetMs": 150,
+            "storage": "PROFILE_ROOM_FILE"
+          },
+          "limits": "120 warm imported Room/FTS samples on shared x86_64 emulator; physical/multiversion/startup/cold-search coverage remains pending."
+        }
+      ],
+      "currentE16": {
+        "evidence": "artifacts/stability-verification/final-jvm-domain-nutrition-00/TEST-com.example.kpkn.domain.nutrition.NutritionMetricsContractTest.xml",
+        "sha256": "22284dead24df8ae22614646eb0efb09fa40e879b8d09c13904ebae9cf8b49ec",
+        "cases": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "p95MedianMs": 21.4,
+        "p95BatchMs": [
+          20.6,
+          21.6,
+          21.4
+        ],
+        "budgetMs": 50,
+        "precisionCorrect": 49,
+        "precisionCases": 50,
+        "medianGramsErrorPercent": 0,
+        "gramsCases": 15,
+        "samplesPerBatch": 159,
+        "calibrationMs": 2.9,
+        "budgetFactor": 1,
+        "limits": "Exact final E16 contract only; not native startup, physical hardware or general performance."
+      },
+      "verificationScope": "HOT_SEARCH_AND_FINAL_E16_CONTRACT_ONLY",
+      "independentAudit": "Octava auditoria 00ab4f820; local raw samples/XML reconciled without rerunning benchmarks."
     },
     {
       "id": "J13",

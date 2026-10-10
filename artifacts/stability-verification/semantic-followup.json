@@ -23748,7 +23748,7 @@
   "semanticReviewedFiles": 82,
   "semanticReviewedRows": 572,
   "universallyVerifiedRows": 0,
-  "currentSourceFingerprint": "tested-source-fingerprint-7.json",
+  "currentSourceFingerprint": "artifacts/stability-audit-followup/source-fingerprint-00ab4.json",
   "continuitySource": "artifacts/stability-recovery/semantic-producers.json",
   "newlyReviewedRows": [
     "P0003",
@@ -24019,5 +24019,15 @@
   "reviewWave15Rows": 2,
   "reviewWave16Rows": 3,
   "reviewWave17Rows": 7,
-  "reviewWave18Rows": 3
+  "reviewWave18Rows": 3,
+  "historicalSourceFingerprints": [
+    {
+      "reference": "tested-source-fingerprint-7.json",
+      "resolvedHistoricalPath": "artifacts/stability-recovery/tested-source-fingerprint-7.json",
+      "role": "Historical bf007 predecessor; not current sources."
+    }
+  ],
+  "currentSourceFingerprintBase": "REPOSITORY_ROOT",
+  "currentSourceFingerprintSha256": "4d4ca48c90dc29778ba04cd1e09be95991275185ad6d1248233842644cd992b1",
+  "currentSourceCommit": "00ab4f82012cffa878bea3318ed09231d41251cb"
 }
