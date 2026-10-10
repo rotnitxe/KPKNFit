@@ -414,6 +414,7 @@ private fun WizardLongPage(
                                     programDeferred = state.draft.programRoute == SetupProgramRoute.LATER,
                                     bodyweightRoute = state.draft.capabilitiesBodyweightRoute(),
                                     pullUpsRequired = CapabilitySkill.PULL_UP in state.draft.capabilitiesRequired(),
+                                    programCount = state.planReveals.size,
                                 )
                                 // El resumen se calcula UNA vez, cuando la página queda confirmada, y se guarda: recalcular
                                 // todas las filas con cada pulsación sería caro (alguna consulta el catálogo de planes).
