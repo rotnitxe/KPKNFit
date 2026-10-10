@@ -1,0 +1,15 @@
+{
+  "SourceCommit": "2b9853e840925c9bb2f95cf0f5c5e5223a8eadcc",
+  "BaseCommit": "3a8af329a8f940630ed8b19bb7d392d27068bd04",
+  "Paths": [
+    ".github/workflows/android-stability.yml",
+    "android-native/app/src/main/java/com/example/kpkn/data/diagnostics/CrashReportingController.kt",
+    "android-native/app/src/testRelease/java/com/example/kpkn/data/diagnostics/CrashReportLifecycleAdversarialTest.kt",
+    "scripts/stability/crash_release_probe.init.gradle"
+  ],
+  "JvmCases": 40,
+  "NativeCases": 4,
+  "LintErrors": 0,
+  "R8": "PASS",
+  "MasterIntegrated": false
+}

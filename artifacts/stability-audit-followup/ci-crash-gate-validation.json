@@ -1,0 +1,19 @@
+{
+  "state": "YAML_AND_ARGV_VALIDATED",
+  "argv": [
+    "./gradlew",
+    "--no-daemon",
+    "--console=plain",
+    "--max-workers=1",
+    "-Dorg.gradle.jvmargs=-Xmx5g",
+    "-Pandroid.onlyEnableUnitTestForTheTestedBuildType=false",
+    "--init-script",
+    "../scripts/stability/crash_release_probe.init.gradle",
+    "testReleaseUnitTest",
+    "--tests",
+    "com.example.kpkn.data.diagnostics.CrashReportLifecycleAdversarialTest"
+  ],
+  "testedInitializerSha256": "1cee4cf8cd3b4b7ee09a810bd873ca8fcf179049d2d33c87d8d109aa5564a6fe",
+  "firebaseRuntimeSplitPreserved": true,
+  "remoteWorkflowRun": false
+}

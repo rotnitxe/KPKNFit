@@ -1039,8 +1039,26 @@
         "../stability-verification/native-followup-43.json"
       ],
       "dependencies": [
-        "Se conserva la reproducción original de un fallo de preferencias durante mantenimiento. El arreglo del editor pasó tres pruebas JVM, nueve casos dirigidos en total y el toggle de UI activo/desactivo durable en dos procesos nuevos. Debug no envía Crashlytics. El SDK real, su handler fatal y los reportes pendientes todavía no se verificaron."
-      ]
+        "El fallo de consentimiento anterior conserva su evidencia. Esta entrega reproduce tres carreras adicionales y mantiene las cuatro aserciones originales: 4/4 PASS. Doce casos en API26/34 pasan 24/24 con SDK Firebase simulado, y seis clases Debug pasan 16/16. UI pública de Cuenta conserva true/false tras dos procesos nuevos; tres fases reales de mantenimiento y recuperación del registro pasan. Debug no envía Crashlytics. Se drenan las solicitudes al SDK y las preferencias personales aceptadas; no se acredita cancelar red ni drenar todos los trabajos internos del SDK. La carga real de Crashlytics, Android Vitals y el runtime Release firmado/minificado siguen abiertos."
+      ],
+      "historicalDependencies": [
+        [
+          "Se conserva la reproducción original de un fallo de preferencias durante mantenimiento. El arreglo del editor pasó tres pruebas JVM, nueve casos dirigidos en total y el toggle de UI activo/desactivo durable en dos procesos nuevos. Debug no envía Crashlytics. El SDK real, su handler fatal y los reportes pendientes todavía no se verificaron."
+        ]
+      ],
+      "currentCrashSessionProof": {
+        "sourceCommit": "2b9853e840925c9bb2f95cf0f5c5e5223a8eadcc",
+        "sourceFingerprint": "artifacts/stability-audit-followup/source-fingerprint-crash-session.json",
+        "releaseSimulatedSdkCases": 24,
+        "debugIntegrationCases": 16,
+        "nativeMaintenanceCases": 4,
+        "publicConsentColdPids": [
+          17593,
+          17740
+        ],
+        "realSdkUpload": "NOT_RUN",
+        "signedMinifiedRuntime": "NOT_RUN"
+      }
     },
     {
       "id": "I05",

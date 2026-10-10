@@ -1,0 +1,7 @@
+Starting: Intent { cmp=com.example.kpkn.stability/com.example.kpkn.MainActivity }
+Status: ok
+LaunchState: COLD
+Activity: com.example.kpkn.stability/com.example.kpkn.MainActivity
+TotalTime: 4610
+WaitTime: 4615
+Complete

@@ -1,0 +1,128 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.4.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :app
+WARNING: The option setting 'android.disallowKotlinSourceSets=false' is experimental.
+The current default is 'true'.
+
+> Task :app:generateFoodDataManifest UP-TO-DATE
+> Task :app:generateOptimizedResources UP-TO-DATE
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:compileDebugAidl UP-TO-DATE
+> Task :app:generateDebugBuildConfig UP-TO-DATE
+> Task :app:generateDebugResources UP-TO-DATE
+> Task :app:injectCrashlyticsMappingFileIdDebug UP-TO-DATE
+> Task :app:injectCrashlyticsVersionControlInfoDebug UP-TO-DATE
+> Task :app:packageDebugResources UP-TO-DATE
+> Task :app:processDebugNavigationResources UP-TO-DATE
+> Task :app:parseDebugLocalResources UP-TO-DATE
+> Task :app:generateDebugRFile UP-TO-DATE
+> Task :app:kspDebugKotlin UP-TO-DATE
+> Task :app:compileDebugKotlin UP-TO-DATE
+> Task :app:javaPreCompileDebug UP-TO-DATE
+> Task :app:compileDebugJavaWithJavac UP-TO-DATE
+> Task :app:checkDebugAarMetadata UP-TO-DATE
+> Task :app:mapDebugSourceSetPaths UP-TO-DATE
+> Task :app:compileDebugNavigationResources UP-TO-DATE
+> Task :app:mergeDebugResources UP-TO-DATE
+> Task :app:createDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksDebug UP-TO-DATE
+> Task :app:processDebugMainManifest UP-TO-DATE
+> Task :app:processDebugManifest UP-TO-DATE
+> Task :app:processDebugManifestForPackage UP-TO-DATE
+> Task :app:processDebugResources UP-TO-DATE
+> Task :app:bundleDebugClassesToRuntimeJar UP-TO-DATE
+> Task :app:bundleDebugClassesToCompileJar UP-TO-DATE
+> Task :app:kspDebugUnitTestKotlin
+> Task :app:preDebugUnitTestBuild UP-TO-DATE
+> Task :app:compileDebugUnitTestKotlin
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/data/db/NormalizedFoodFtsTest.kt:26:48 Java type mismatch: inferred type is 'String?', but 'String' was expected.
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/data/db/WorkoutMediaMigration27To28FullRoomTest.kt:91:17 Type argument for reified type parameter 'T' was inferred to the intersection of ['Comparable<*>' & 'Serializable']. Reification of an intersection type results in the common supertype being used. This may lead to subtle issues and an explicit type argument is encouraged. This will become an error in a future release.
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/data/db/WorkoutMediaMigration27To28FullRoomTest.kt:112:17 Type argument for reified type parameter 'T' was inferred to the intersection of ['Comparable<*>' & 'Serializable']. Reification of an intersection type results in the common supertype being used. This may lead to subtle issues and an explicit type argument is encouraged. This will become an error in a future release.
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/data/db/WorkoutMediaMigration27To28FullRoomTest.kt:242:13 Type argument for reified type parameter 'T' was inferred to the intersection of ['Comparable<*>?' & 'Serializable?']. Reification of an intersection type results in the common supertype being used. This may lead to subtle issues and an explicit type argument is encouraged. This will become an error in a future release.
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/data/exercises/catalogv2/ExerciseCatalogV2LegacyPersistedDataTest.kt:170:23 Redundant creation of Json format. Creating instances for each usage can be slow.
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/data/media/WorkoutMediaLegacyImporterTest.kt:170:9 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'File?'.
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/data/programs/PersonalizedPlanCatalogTest.kt:93:37 'val title: String' is deprecated. Usa displayName.
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/data/programs/PersonalizedPlanCatalogTest.kt:93:62 'val description: String' is deprecated. Usa summary.
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/data/protocols/RecipeContractInventoryTest.kt:127:25 Java type mismatch: inferred type is 'String?', but 'String' was expected.
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/data/settings/CanonicalJsonTest.kt:10:53 Java type mismatch: inferred type is 'String?', but 'String' was expected.
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/domain/nutrition/BlindMealCorpusProbeTest.kt:786:23 Redundant creation of Json format. Creating instances for each usage can be slow.
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/domain/nutrition/BlindMealCorpusTest.kt:997:23 Redundant creation of Json format. Creating instances for each usage can be slow.
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/domain/nutrition/IndependentNutritionCorpusTest.kt:172:85 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'File?'.
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/domain/nutrition/IndependentNutritionCorpusTest.kt:172:116 Redundant creation of Json format. Creating instances for each usage can be slow.
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/domain/training/EquipmentReachTest.kt:300:9 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'File?'.
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/domain/training/NativeProfileSpecCatalogTest.kt:67:56 'val title: String' is deprecated. Usa displayName.
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/domain/training/NativeProfileSpecCatalogTest.kt:68:61 'val description: String' is deprecated. Usa summary.
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/domain/training/PlanCoverageContractTest.kt:661:25 Java type mismatch: inferred type is 'String?', but 'String' was expected.
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/domain/training/generator/RoutineGeneratorSweepTest.kt:71:9 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'File?'.
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/domain/training/generator/RoutineMatrixReportTest.kt:203:9 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'File?'.
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/domain/training/generator/RoutineSamplesReportTest.kt:147:9 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'File?'.
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/screens/onboarding/EntrenoDeclarationEffectTest.kt:699:9 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'File?'.
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/screens/onboarding/EntrenoMaterialCoherenceSweepTest.kt:397:9 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'File?'.
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/screens/onboarding/EntrenoMaterialCoherenceSweepTest.kt:452:9 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'File?'.
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/screens/onboarding/SetupExecutableAvailabilityMatrixTest.kt:630:17 Condition is always 'true'.
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/screens/onboarding/WizardPluralCopyTest.kt:94:90 'val technicalSubtitle: String' is deprecated. Usa PlanLabels.subtitle(entry).
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/screens/onboarding/WizardPluralCopyTest.kt:95:92 'val technicalSubtitle: String' is deprecated. Usa PlanLabels.subtitle(entry).
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/screens/onboarding/WizardPluralCopyTest.kt:103:52 'val technicalSubtitle: String' is deprecated. Usa PlanLabels.subtitle(entry).
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/screens/onboarding/WizardPluralCopyTest.kt:105:52 'val technicalSubtitle: String' is deprecated. Usa PlanLabels.subtitle(entry).
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/screens/onboarding/WizardPluralCopyTest.kt:113:23 'val title: String' is deprecated. Usa displayName.
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/screens/onboarding/WizardPluralCopyTest.kt:114:23 'val technicalSubtitle: String' is deprecated. Usa PlanLabels.subtitle(entry).
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/screens/onboarding/WizardPluralCopyTest.kt:115:23 'val description: String' is deprecated. Usa summary.
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/screens/sessioneditor/SessionEditorDraftPersistenceTest.kt:37:9 This declaration needs opt-in. Its usage should be marked with '@kotlinx.coroutines.ExperimentalCoroutinesApi' or '@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)'
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/screens/sessioneditor/SessionEditorDraftPersistenceTest.kt:52:9 This declaration needs opt-in. Its usage should be marked with '@kotlinx.coroutines.ExperimentalCoroutinesApi' or '@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)'
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/screens/sessioneditor/SessionEditorDraftPersistenceTest.kt:65:9 This declaration needs opt-in. Its usage should be marked with '@kotlinx.coroutines.ExperimentalCoroutinesApi' or '@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)'
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/screens/sessioneditor/SessionEditorDraftPersistenceTest.kt:71:9 This declaration needs opt-in. Its usage should be marked with '@kotlinx.coroutines.ExperimentalCoroutinesApi' or '@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)'
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/screens/sessioneditor/SessionEditorDraftPersistenceTest.kt:100:9 This declaration needs opt-in. Its usage should be marked with '@kotlinx.coroutines.ExperimentalCoroutinesApi' or '@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)'
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/screens/sessioneditor/SessionEditorLoadGenerationTest.kt:33:30 This declaration needs opt-in. Its usage should be marked with '@kotlinx.coroutines.ExperimentalCoroutinesApi' or '@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)'
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/screens/sessioneditor/SessionEditorLoadGenerationTest.kt:38:21 This declaration needs opt-in. Its usage should be marked with '@kotlinx.coroutines.ExperimentalCoroutinesApi' or '@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)'
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/screens/sessioneditor/SessionEditorLoadGenerationTest.kt:52:21 This declaration needs opt-in. Its usage should be marked with '@kotlinx.coroutines.ExperimentalCoroutinesApi' or '@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)'
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/screens/sessioneditor/SessionEditorUnilateralToggleTest.kt:51:42 'val restBetweenSides: Int?' is deprecated. Usa Exercise.restBetweenSidesSeconds.
+w: file:///C:/kw/msi/android-native/app/src/test/java/com/example/kpkn/screens/sessioneditor/SessionEditorViewModelRulesTest.kt:455:25 'suspend fun SessionEditorViewModel.saveCurrentSessionAsTemplate(name: String, description: String, tags: List<SessionTemplateTag>): Result<SessionTemplate>' is deprecated. Use saveCurrentSessionAsTemplateDurably or saveCurrentSessionAsTemplateNow.
+
+> Task :app:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :app:compileDebugUnitTestJavaWithJavac UP-TO-DATE
+> Task :app:generateDebugAssets UP-TO-DATE
+> Task :app:mergeDebugAssets UP-TO-DATE
+> Task :app:packageDebugUnitTestForUnitTest UP-TO-DATE
+> Task :app:processDebugUnitTestManifest UP-TO-DATE
+> Task :app:generateDebugUnitTestConfig UP-TO-DATE
+> Task :app:processDebugJavaRes UP-TO-DATE
+> Task :app:processDebugUnitTestJavaRes UP-TO-DATE
+
+> Task :app:testDebugUnitTest
+
+CrashReportLifecycleAdversarialTest > pauseCannotReturnWhileAcceptedRecordCanStillIssueASend FAILED
+    java.lang.RuntimeException at CrashReportLifecycleAdversarialTest.kt:39
+        Caused by: java.lang.RuntimeException at CrashReportLifecycleAdversarialTest.kt:39
+            Caused by: java.lang.IllegalArgumentException at CrashReportLifecycleAdversarialTest.kt:39
+    java.lang.RuntimeException at CrashReportLifecycleAdversarialTest.kt:60
+        Caused by: java.lang.RuntimeException at CrashReportLifecycleAdversarialTest.kt:60
+            Caused by: java.lang.IllegalArgumentException at CrashReportLifecycleAdversarialTest.kt:60
+
+CrashReportLifecycleAdversarialTest > shadowedReleasePathRecordsOnlySanitizedError FAILED
+    java.lang.RuntimeException at CrashReportLifecycleAdversarialTest.kt:39
+        Caused by: java.lang.RuntimeException at CrashReportLifecycleAdversarialTest.kt:39
+            Caused by: java.lang.IllegalArgumentException at CrashReportLifecycleAdversarialTest.kt:39
+    java.lang.RuntimeException at CrashReportLifecycleAdversarialTest.kt:60
+        Caused by: java.lang.RuntimeException at CrashReportLifecycleAdversarialTest.kt:60
+            Caused by: java.lang.IllegalArgumentException at CrashReportLifecycleAdversarialTest.kt:60
+
+CrashReportLifecycleAdversarialTest > admittedFatalMarkerDrainsBeforeStorageMaintenance FAILED
+    java.lang.RuntimeException at CrashReportLifecycleAdversarialTest.kt:39
+        Caused by: java.lang.RuntimeException at CrashReportLifecycleAdversarialTest.kt:39
+            Caused by: java.lang.IllegalArgumentException at CrashReportLifecycleAdversarialTest.kt:39
+    java.lang.RuntimeException at CrashReportLifecycleAdversarialTest.kt:60
+        Caused by: java.lang.RuntimeException at CrashReportLifecycleAdversarialTest.kt:60
+            Caused by: java.lang.IllegalArgumentException at CrashReportLifecycleAdversarialTest.kt:60
+
+CrashReportLifecycleAdversarialTest > fatalMarkerCannotBeRecreatedWhenGlobalAdmissionIsClosed FAILED
+    java.lang.RuntimeException at CrashReportLifecycleAdversarialTest.kt:39
+        Caused by: java.lang.RuntimeException at CrashReportLifecycleAdversarialTest.kt:39
+            Caused by: java.lang.IllegalArgumentException at CrashReportLifecycleAdversarialTest.kt:39
+    java.lang.RuntimeException at CrashReportLifecycleAdversarialTest.kt:60
+        Caused by: java.lang.RuntimeException at CrashReportLifecycleAdversarialTest.kt:60
+            Caused by: java.lang.IllegalArgumentException at CrashReportLifecycleAdversarialTest.kt:60
+
+> Task :app:testDebugUnitTest FAILED
+38 actionable tasks: 3 executed, 35 up-to-date

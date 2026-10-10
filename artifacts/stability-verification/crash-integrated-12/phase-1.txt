@@ -1,0 +1,26 @@
+INSTRUMENTATION_STATUS: class=com.example.kpkn.data.backup.IntegratedDataSessionUiTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+com.example.kpkn.data.backup.IntegratedDataSessionUiTest:
+INSTRUMENTATION_STATUS: test=phase1FinishDiscardAndRestoreThroughActualCoordinator
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: kpkn_integrated_phase=1
+INSTRUMENTATION_STATUS: kpkn_integrated_pid=17936
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.example.kpkn.data.backup.IntegratedDataSessionUiTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=phase1FinishDiscardAndRestoreThroughActualCoordinator
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+
+Time: 34.33
+
+OK (1 test)
+
+
+INSTRUMENTATION_CODE: -1

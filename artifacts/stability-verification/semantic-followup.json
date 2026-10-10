@@ -7003,18 +7003,19 @@
         19
       ],
       "originalExcerpt": "if (enabled) runCatching { profileContext?.getSharedPreferences(\"diagnostic_consent\", 0)?.edit()?.putBoolean(\"approved_fatal_pending\", true)?.commit() }",
-      "sourceSha256": "6218f645227cae16e32537627f3ae1a1e3f4a77602bee00e8b2683dd3cf17646",
+      "sourceSha256": "89f2089cb947f3dabd313a77e073f44db69ed4818eff536e514f7688dd3df4fc",
       "semanticReview": "REVIEWED_WITH_BOUNDED_TESTS_OPEN_GATES",
-      "storageProfile": "Captured consent Context selects personal preference file; process-global reporter/flags serve Firebase SDK. Default release app only; debug runtime disables reporter.",
-      "ownerLifetime": "Per-screen CrashConsentEditor captures one fixed personal Context and DataSessionWriter. SDK state serialized for pause and accepted consent publication.",
-      "admissionEntry": "Consent preference commit enters writer.write on IO; public per-call entry also rejects closed admission. AccountGraph.stop unconditionally pauses diagnostic collection.",
-      "drainExit": "Three real preference JVM tests prove closed admission rejected, old editor after reopen rejected, and accepted dependency drained before maintenance completes.",
-      "lateCallbackBehavior": "Retired UI editor does not create a new writer. Accepted consent cannot re-enable a paused SDK; attach loads selected profile consent.",
+      "storageProfile": "Fixed captured personal context selects the consent/pending marker; Firebase reporter and sanitized app-level errors remain process-global.",
+      "ownerLifetime": "One reporting DataSessionWriter per accepted attach; controller monitor serializes attach/record/fatal marker and pause. UI consent editor retains its separate fixed writer.",
+      "admissionEntry": "record and fatal marker enter immediate on the attached writer. attach reads/removes pending marker on IO under a newly admitted writer. Closed/retired admission rejects personal writes and SDK submissions.",
+      "drainExit": "Global barrier drains admitted marker/attach/SDK-call blocks. Pause retires/clears the attached writer/context and serializes with accepted record/attach.",
+      "lateCallbackBehavior": "Closed and generation-retired attached sessions cannot submit until a fresh admitted attachment. Failed pending preference removal disables the new attachment. All caller/SDK internal jobs remain separate gates.",
       "testEvidence": [
-        "consent-fix-37-unit/TEST-com.example.kpkn.data.diagnostics.CrashConsentAdmissionTest.xml",
-        "native-followup-43.json"
+        "artifacts/stability-audit-followup/crash-lifecycle-expanded-07/TEST-com.example.kpkn.data.diagnostics.CrashReportLifecycleAdversarialTest.xml",
+        "artifacts/stability-audit-followup/crash-native-consent-11/result.json",
+        "artifacts/stability-verification/crash-integrated-12/result.json"
       ],
-      "limits": "Bounded JVM preference path only. Actual Firebase SDK upload/fatal handler marker, unsent report lifecycle, native account graph/Compose consent and all callbacks remain separate runtime gates.",
+      "limits": "24 JVM Release cases on API26/34 shadow both Firebase SDKs; native tests use Debug and cannot upload. Submission ordering/personal preferences only: no real SDK upload cancellation, full internal SDK drain, all callers or signed/minified runtime accepted.",
       "baselineSourceSha256": "c1e86b21ba8efb7748592d3e74569ea21709eeae09c6da2deceb45488dd2af55",
       "currentCandidateLinesAreHistorical": true
     },
@@ -7027,18 +7028,19 @@
         37
       ],
       "originalExcerpt": "check(context.getSharedPreferences(\"diagnostic_consent\", 0).edit().putBoolean(\"crash_reporting\", value).commit())",
-      "sourceSha256": "6218f645227cae16e32537627f3ae1a1e3f4a77602bee00e8b2683dd3cf17646",
+      "sourceSha256": "89f2089cb947f3dabd313a77e073f44db69ed4818eff536e514f7688dd3df4fc",
       "semanticReview": "REVIEWED_WITH_BOUNDED_TESTS_OPEN_GATES",
-      "storageProfile": "Captured consent Context selects personal preference file; process-global reporter/flags serve Firebase SDK. Default release app only; debug runtime disables reporter.",
-      "ownerLifetime": "Per-screen CrashConsentEditor captures one fixed personal Context and DataSessionWriter. SDK state serialized for pause and accepted consent publication.",
-      "admissionEntry": "Consent preference commit enters writer.write on IO; public per-call entry also rejects closed admission. AccountGraph.stop unconditionally pauses diagnostic collection.",
-      "drainExit": "Three real preference JVM tests prove closed admission rejected, old editor after reopen rejected, and accepted dependency drained before maintenance completes.",
-      "lateCallbackBehavior": "Retired UI editor does not create a new writer. Accepted consent cannot re-enable a paused SDK; attach loads selected profile consent.",
+      "storageProfile": "Fixed captured personal context selects the consent/pending marker; Firebase reporter and sanitized app-level errors remain process-global.",
+      "ownerLifetime": "One reporting DataSessionWriter per accepted attach; controller monitor serializes attach/record/fatal marker and pause. UI consent editor retains its separate fixed writer.",
+      "admissionEntry": "record and fatal marker enter immediate on the attached writer. attach reads/removes pending marker on IO under a newly admitted writer. Closed/retired admission rejects personal writes and SDK submissions.",
+      "drainExit": "Global barrier drains admitted marker/attach/SDK-call blocks. Pause retires/clears the attached writer/context and serializes with accepted record/attach.",
+      "lateCallbackBehavior": "Closed and generation-retired attached sessions cannot submit until a fresh admitted attachment. Failed pending preference removal disables the new attachment. All caller/SDK internal jobs remain separate gates.",
       "testEvidence": [
-        "consent-fix-37-unit/TEST-com.example.kpkn.data.diagnostics.CrashConsentAdmissionTest.xml",
-        "native-followup-43.json"
+        "artifacts/stability-audit-followup/crash-lifecycle-expanded-07/TEST-com.example.kpkn.data.diagnostics.CrashReportLifecycleAdversarialTest.xml",
+        "artifacts/stability-audit-followup/crash-native-consent-11/result.json",
+        "artifacts/stability-verification/crash-integrated-12/result.json"
       ],
-      "limits": "Bounded JVM preference path only. Actual Firebase SDK upload/fatal handler marker, unsent report lifecycle, native account graph/Compose consent and all callbacks remain separate runtime gates.",
+      "limits": "24 JVM Release cases on API26/34 shadow both Firebase SDKs; native tests use Debug and cannot upload. Submission ordering/personal preferences only: no real SDK upload cancellation, full internal SDK drain, all callers or signed/minified runtime accepted.",
       "baselineSourceSha256": "c1e86b21ba8efb7748592d3e74569ea21709eeae09c6da2deceb45488dd2af55",
       "currentCandidateLinesAreHistorical": true
     },
@@ -7051,18 +7053,19 @@
         46
       ],
       "originalExcerpt": "preferences.edit().remove(\"approved_fatal_pending\").commit()",
-      "sourceSha256": "6218f645227cae16e32537627f3ae1a1e3f4a77602bee00e8b2683dd3cf17646",
+      "sourceSha256": "89f2089cb947f3dabd313a77e073f44db69ed4818eff536e514f7688dd3df4fc",
       "semanticReview": "REVIEWED_WITH_BOUNDED_TESTS_OPEN_GATES",
-      "storageProfile": "Captured consent Context selects personal preference file; process-global reporter/flags serve Firebase SDK. Default release app only; debug runtime disables reporter.",
-      "ownerLifetime": "Per-screen CrashConsentEditor captures one fixed personal Context and DataSessionWriter. SDK state serialized for pause and accepted consent publication.",
-      "admissionEntry": "Consent preference commit enters writer.write on IO; public per-call entry also rejects closed admission. AccountGraph.stop unconditionally pauses diagnostic collection.",
-      "drainExit": "Three real preference JVM tests prove closed admission rejected, old editor after reopen rejected, and accepted dependency drained before maintenance completes.",
-      "lateCallbackBehavior": "Retired UI editor does not create a new writer. Accepted consent cannot re-enable a paused SDK; attach loads selected profile consent.",
+      "storageProfile": "Fixed captured personal context selects the consent/pending marker; Firebase reporter and sanitized app-level errors remain process-global.",
+      "ownerLifetime": "One reporting DataSessionWriter per accepted attach; controller monitor serializes attach/record/fatal marker and pause. UI consent editor retains its separate fixed writer.",
+      "admissionEntry": "record and fatal marker enter immediate on the attached writer. attach reads/removes pending marker on IO under a newly admitted writer. Closed/retired admission rejects personal writes and SDK submissions.",
+      "drainExit": "Global barrier drains admitted marker/attach/SDK-call blocks. Pause retires/clears the attached writer/context and serializes with accepted record/attach.",
+      "lateCallbackBehavior": "Closed and generation-retired attached sessions cannot submit until a fresh admitted attachment. Failed pending preference removal disables the new attachment. All caller/SDK internal jobs remain separate gates.",
       "testEvidence": [
-        "consent-fix-37-unit/TEST-com.example.kpkn.data.diagnostics.CrashConsentAdmissionTest.xml",
-        "native-followup-43.json"
+        "artifacts/stability-audit-followup/crash-lifecycle-expanded-07/TEST-com.example.kpkn.data.diagnostics.CrashReportLifecycleAdversarialTest.xml",
+        "artifacts/stability-audit-followup/crash-native-consent-11/result.json",
+        "artifacts/stability-verification/crash-integrated-12/result.json"
       ],
-      "limits": "Bounded JVM preference path only. Actual Firebase SDK upload/fatal handler marker, unsent report lifecycle, native account graph/Compose consent and all callbacks remain separate runtime gates.",
+      "limits": "24 JVM Release cases on API26/34 shadow both Firebase SDKs; native tests use Debug and cannot upload. Submission ordering/personal preferences only: no real SDK upload cancellation, full internal SDK drain, all callers or signed/minified runtime accepted.",
       "baselineSourceSha256": "c1e86b21ba8efb7748592d3e74569ea21709eeae09c6da2deceb45488dd2af55",
       "currentCandidateLinesAreHistorical": true
     },
@@ -15129,16 +15132,18 @@
       ],
       "originalExcerpt": "scope.launch {",
       "sourceSha256": "8afce104895135be31cbbe67865f369bd7f5c44de5d80edf4513bea01bac581e",
-      "semanticReview": "PENDING",
-      "storageProfile": null,
-      "ownerLifetime": null,
-      "admissionEntry": null,
-      "drainExit": null,
-      "lateCallbackBehavior": null,
+      "semanticReview": "REVIEWED_UI_CALLBACK_BOUNDARY_OPEN_DYNAMIC_GATES",
+      "storageProfile": "Widget owns display/ruler values only; kg is emitted through the injected onValueChange/onConfirm callbacks. No Context, database, preferences, file or network sink in this source.",
+      "ownerLifetime": "rememberCoroutineScope and LaunchedEffect belong to the composition; scroll state, touched flag and emitted value are remembered UI state.",
+      "admissionEntry": "Accessibility/tick action launches a bounded scroll then settle; caller controls persistence. onValueChange uses rememberUpdatedState.",
+      "drainExit": "Composition scope cancellation owns scroll tasks; finally decrements the programmatic-scroll counter. This candidate does not own independent personal storage work.",
+      "lateCallbackBehavior": "Callback runs after completed scrolling and may reach caller persistence; that caller needs its own data-session writer and remains a separate dynamic gate.",
       "testEvidence": [],
-      "limits": "Static location/owner hints only; no semantic or universal coverage claim.",
+      "limits": "Static review of this frozen source and its callback boundary only. No new gesture/accessibility/disposal execution and no universal writer or Wizard acceptance.",
       "baselineSourceSha256": "8afce104895135be31cbbe67865f369bd7f5c44de5d80edf4513bea01bac581e",
-      "currentCandidateLinesAreHistorical": true
+      "currentCandidateLinesAreHistorical": true,
+      "reviewWave": 19,
+      "directStorageSink": false
     },
     {
       "id": "P0570",
@@ -17979,16 +17984,18 @@
       ],
       "originalExcerpt": "scope.launch {",
       "sourceSha256": "1710c2e2a5f6375342ec091a898a1197f2266fa6264f45ff165d7dabc073ddd7",
-      "semanticReview": "PENDING",
-      "storageProfile": null,
-      "ownerLifetime": null,
-      "admissionEntry": null,
-      "drainExit": null,
-      "lateCallbackBehavior": null,
+      "semanticReview": "REVIEWED_UI_CALLBACK_BOUNDARY_OPEN_DYNAMIC_GATES",
+      "storageProfile": "Widget owns list/scroll/index/glow UI state; selection is sent to an injected callback. No Context, database, preferences, file or network sink in this source.",
+      "ownerLifetime": "rememberCoroutineScope and LaunchedEffect belong to the composition; programmatic-scroll and user-scroll flags are remembered UI state.",
+      "admissionEntry": "Enabled cell launches animateScrollToItem then onSelectedIndexChange; snapshotFlow emits at rest for user scrolling. Persistence belongs to the callback consumer.",
+      "drainExit": "Composition owns animation tasks; finally decrements the programmatic-scroll counter. No separately queued private file/database work exists in this widget.",
+      "lateCallbackBehavior": "Post-animation selection callback remains a consumer boundary; caller retirement/admission and stale captured callbacks need separate dynamic evidence.",
       "testEvidence": [],
-      "limits": "Static location/owner hints only; no semantic or universal coverage claim.",
+      "limits": "Static review of the widget/callback boundary only. No new scroll/disposal execution, no acceptance of workout persistence or all consumers.",
       "baselineSourceSha256": "1710c2e2a5f6375342ec091a898a1197f2266fa6264f45ff165d7dabc073ddd7",
-      "currentCandidateLinesAreHistorical": true
+      "currentCandidateLinesAreHistorical": true,
+      "reviewWave": 19,
+      "directStorageSink": false
     },
     {
       "id": "P0680",
@@ -21791,7 +21798,7 @@
     },
     {
       "source": "data/diagnostics/CrashReportingController.kt",
-      "sha256": "6218f645227cae16e32537627f3ae1a1e3f4a77602bee00e8b2683dd3cf17646",
+      "sha256": "89f2089cb947f3dabd313a77e073f44db69ed4818eff536e514f7688dd3df4fc",
       "candidateIds": [
         "P0207",
         "P0208",
@@ -22910,7 +22917,7 @@
         "P0569"
       ],
       "ownerCandidates": [],
-      "semanticReview": "PENDING"
+      "semanticReview": "REVIEWED_UI_CALLBACK_BOUNDARY_OPEN_DYNAMIC_GATES"
     },
     {
       "source": "screens/onboarding/design/entreno/LiftMarksPicker.kt",
@@ -23421,7 +23428,7 @@
         "P0679"
       ],
       "ownerCandidates": [],
-      "semanticReview": "PENDING"
+      "semanticReview": "REVIEWED_UI_CALLBACK_BOUNDARY_OPEN_DYNAMIC_GATES"
     },
     {
       "source": "screens/workout/components/WorkoutSessionCockpit.kt",
@@ -23745,10 +23752,10 @@
     "FirebaseAccountRepository auth listener/identity transitions are missing from static producer matches and require their own semantic rows.",
     "Retire/reset Play client on maintenance and protect late SDK callbacks before resolving current entitlement or publishing offers; reproduce locally before changing sales behavior."
   ],
-  "semanticReviewedFiles": 82,
-  "semanticReviewedRows": 572,
+  "semanticReviewedFiles": 84,
+  "semanticReviewedRows": 574,
   "universallyVerifiedRows": 0,
-  "currentSourceFingerprint": "artifacts/stability-audit-followup/source-fingerprint-00ab4.json",
+  "currentSourceFingerprint": "artifacts/stability-audit-followup/source-fingerprint-crash-session.json",
   "continuitySource": "artifacts/stability-recovery/semantic-producers.json",
   "newlyReviewedRows": [
     "P0003",
@@ -24000,10 +24007,61 @@
         "native-followup-43.json"
       ],
       "limits": "Actual consent UI toggled and both values persisted across new PIDs. Retired owner/drain covered in JVM. Real Firebase Crashlytics upload/fatal-handler marker and complete screen lifecycle still open."
+    },
+    {
+      "id": "CRASH_SDK_RECORD",
+      "source": "data/diagnostics/CrashReportingController.kt",
+      "symbol": "record",
+      "review": "BOUNDED_SIMULATED_SDK_AND_PREFERENCE_LIFECYCLE",
+      "storageProfile": "Fixed captured personal context selects the consent/pending marker; Firebase reporter and sanitized app-level errors remain process-global.",
+      "ownerLifetime": "One reporting DataSessionWriter per accepted attach; controller monitor serializes attach/record/fatal marker and pause. UI consent editor retains its separate fixed writer.",
+      "admissionEntry": "record and fatal marker enter immediate on the attached writer. attach reads/removes pending marker on IO under a newly admitted writer. Closed/retired admission rejects personal writes and SDK submissions.",
+      "drainExit": "Global barrier drains admitted marker/attach/SDK-call blocks. Pause retires/clears the attached writer/context and serializes with accepted record/attach.",
+      "lateCallbackBehavior": "Closed and generation-retired attached sessions cannot submit until a fresh admitted attachment. Failed pending preference removal disables the new attachment. All caller/SDK internal jobs remain separate gates.",
+      "testEvidence": [
+        "artifacts/stability-audit-followup/crash-lifecycle-expanded-07/TEST-com.example.kpkn.data.diagnostics.CrashReportLifecycleAdversarialTest.xml",
+        "artifacts/stability-audit-followup/crash-native-consent-11/result.json",
+        "artifacts/stability-verification/crash-integrated-12/result.json"
+      ],
+      "limits": "24 JVM Release cases on API26/34 shadow both Firebase SDKs; native tests use Debug and cannot upload. Submission ordering/personal preferences only: no real SDK upload cancellation, full internal SDK drain, all callers or signed/minified runtime accepted."
+    },
+    {
+      "id": "CRASH_FATAL_MARKER",
+      "source": "data/diagnostics/CrashReportingController.kt",
+      "symbol": "persistApprovedFatalMarker",
+      "review": "BOUNDED_SIMULATED_SDK_AND_PREFERENCE_LIFECYCLE",
+      "storageProfile": "Fixed captured personal context selects the consent/pending marker; Firebase reporter and sanitized app-level errors remain process-global.",
+      "ownerLifetime": "One reporting DataSessionWriter per accepted attach; controller monitor serializes attach/record/fatal marker and pause. UI consent editor retains its separate fixed writer.",
+      "admissionEntry": "record and fatal marker enter immediate on the attached writer. attach reads/removes pending marker on IO under a newly admitted writer. Closed/retired admission rejects personal writes and SDK submissions.",
+      "drainExit": "Global barrier drains admitted marker/attach/SDK-call blocks. Pause retires/clears the attached writer/context and serializes with accepted record/attach.",
+      "lateCallbackBehavior": "Closed and generation-retired attached sessions cannot submit until a fresh admitted attachment. Failed pending preference removal disables the new attachment. All caller/SDK internal jobs remain separate gates.",
+      "testEvidence": [
+        "artifacts/stability-audit-followup/crash-lifecycle-expanded-07/TEST-com.example.kpkn.data.diagnostics.CrashReportLifecycleAdversarialTest.xml",
+        "artifacts/stability-audit-followup/crash-native-consent-11/result.json",
+        "artifacts/stability-verification/crash-integrated-12/result.json"
+      ],
+      "limits": "24 JVM Release cases on API26/34 shadow both Firebase SDKs; native tests use Debug and cannot upload. Submission ordering/personal preferences only: no real SDK upload cancellation, full internal SDK drain, all callers or signed/minified runtime accepted."
+    },
+    {
+      "id": "CRASH_CONSENT_ATTACHMENT",
+      "source": "data/diagnostics/CrashReportingController.kt",
+      "symbol": "attachConsent",
+      "review": "BOUNDED_SIMULATED_SDK_AND_PREFERENCE_LIFECYCLE",
+      "storageProfile": "Fixed captured personal context selects the consent/pending marker; Firebase reporter and sanitized app-level errors remain process-global.",
+      "ownerLifetime": "One reporting DataSessionWriter per accepted attach; controller monitor serializes attach/record/fatal marker and pause. UI consent editor retains its separate fixed writer.",
+      "admissionEntry": "record and fatal marker enter immediate on the attached writer. attach reads/removes pending marker on IO under a newly admitted writer. Closed/retired admission rejects personal writes and SDK submissions.",
+      "drainExit": "Global barrier drains admitted marker/attach/SDK-call blocks. Pause retires/clears the attached writer/context and serializes with accepted record/attach.",
+      "lateCallbackBehavior": "Closed and generation-retired attached sessions cannot submit until a fresh admitted attachment. Failed pending preference removal disables the new attachment. All caller/SDK internal jobs remain separate gates.",
+      "testEvidence": [
+        "artifacts/stability-audit-followup/crash-lifecycle-expanded-07/TEST-com.example.kpkn.data.diagnostics.CrashReportLifecycleAdversarialTest.xml",
+        "artifacts/stability-audit-followup/crash-native-consent-11/result.json",
+        "artifacts/stability-verification/crash-integrated-12/result.json"
+      ],
+      "limits": "24 JVM Release cases on API26/34 shadow both Firebase SDKs; native tests use Debug and cannot upload. Submission ordering/personal preferences only: no real SDK upload cancellation, full internal SDK drain, all callers or signed/minified runtime accepted."
     }
   ],
-  "reviewedRows": 572,
-  "reviewedFiles": 82,
+  "reviewedRows": 574,
+  "reviewedFiles": 84,
   "reviewWave3Rows": 24,
   "reviewWave4Rows": 25,
   "reviewWave5Rows": 20,
@@ -24025,9 +24083,15 @@
       "reference": "tested-source-fingerprint-7.json",
       "resolvedHistoricalPath": "artifacts/stability-recovery/tested-source-fingerprint-7.json",
       "role": "Historical bf007 predecessor; not current sources."
+    },
+    {
+      "reference": "artifacts/stability-audit-followup/source-fingerprint-00ab4.json",
+      "sourceCommit": "00ab4f82012cffa878bea3318ed09231d41251cb",
+      "role": "Prior 00ab4 source snapshot; subsequent crash-reporting guard has its own fingerprint"
     }
   ],
   "currentSourceFingerprintBase": "REPOSITORY_ROOT",
-  "currentSourceFingerprintSha256": "4d4ca48c90dc29778ba04cd1e09be95991275185ad6d1248233842644cd992b1",
-  "currentSourceCommit": "00ab4f82012cffa878bea3318ed09231d41251cb"
+  "currentSourceFingerprintSha256": "8cfaf55f360de846dffa6fdaca02ea50d258472c69f940da0f07eed03a286dc0",
+  "currentSourceCommit": "2b9853e840925c9bb2f95cf0f5c5e5223a8eadcc",
+  "reviewWave19Rows": 2
 }

@@ -1,0 +1,15 @@
+{
+  "State": "FOUR_SELECTED_CLASSES_AND_APKS_PASS_TWO_SELECTORS_UNMATCHED",
+  "Cases": 11,
+  "Classes": 4,
+  "MissingSelectors": [
+    "com.example.kpkn.data.settings.DataSessionWritersTest",
+    "com.example.kpkn.data.settings.DataWriterFailureBoundaryTest"
+  ],
+  "CorrectPackages": [
+    "com.example.kpkn.data.backup.DataSessionWritersTest",
+    "com.example.kpkn.data.backup.DataWriterFailureBoundaryTest"
+  ],
+  "ProductFailure": false,
+  "NextRun": "crash-lifecycle-integration-09-debug.log"
+}

@@ -1,0 +1,67 @@
+{
+  "state": "PASS",
+  "package": "com.example.kpkn.stability",
+  "serial": "emulator-5554",
+  "actions": [
+    {
+      "step": "02-enable",
+      "checked": true,
+      "changed": true
+    },
+    {
+      "step": "03-cold-enabled",
+      "checked": true,
+      "priorPid": 17374,
+      "coldPid": 17593
+    },
+    {
+      "step": "04-disable",
+      "checked": false,
+      "changed": true
+    },
+    {
+      "step": "05-cold-disabled",
+      "checked": false,
+      "priorPid": 17593,
+      "coldPid": 17740
+    }
+  ],
+  "coldPids": [
+    17593,
+    17740
+  ],
+  "scope": "PUBLIC_ACCOUNT_CONSENT_UI_AND_FRESH_PROCESS_READBACK",
+  "limits": "One API36 emulator, isolated Debug package and synthetic guest data. Debug never uploads Crashlytics; no live SDK upload or minified Release runtime.",
+  "appApkSha256": "dedbfb6702a00642d437a5dc471c1d8cfdad4f0ed193c25db9d42c241b19d025",
+  "installedHashMatches": true,
+  "finalConsent": false,
+  "mainVisible": true,
+  "api": "36",
+  "evidenceHashes": {
+    "01-account-0-activity.txt": "6f9b5ae4c73b05c7c43a7991a01381b58bb91102241543d0f5eddf3634f17883",
+    "01-account-0.png": "0e7e301d17dca3225d11003397a6540f63c0cd0eefbcbf277c190e3b2aeb0366",
+    "01-account-0.xml": "9b755dd3f2dd359690e82b54906b40d292b28ffdc2d27738e7da032e451be9aa",
+    "01-account-launch.txt": "646f515c017f0c47576b8bff3be69cfa3b092d5e4fd3828778537b548b1dde09",
+    "02-enable-after-0-activity.txt": "6f9b5ae4c73b05c7c43a7991a01381b58bb91102241543d0f5eddf3634f17883",
+    "02-enable-after-0.png": "fc321b7abba1327653190a4ed4088ee21dcd655b230fd921fe19c69a121618e3",
+    "02-enable-after-0.xml": "08aa12954e41f2cf51d72b2a0573384fbdd3bb96a69e92d4d4dbe6294fd5dfd4",
+    "02-enable-before-0-activity.txt": "6f9b5ae4c73b05c7c43a7991a01381b58bb91102241543d0f5eddf3634f17883",
+    "02-enable-before-0.png": "0e7e301d17dca3225d11003397a6540f63c0cd0eefbcbf277c190e3b2aeb0366",
+    "02-enable-before-0.xml": "9b755dd3f2dd359690e82b54906b40d292b28ffdc2d27738e7da032e451be9aa",
+    "03-cold-enabled-0-activity.txt": "f9e951dfd2fb279379a032e72a2dfe5869373729c91fe82d0e3b45b265b2b2bc",
+    "03-cold-enabled-0.png": "99646a1c60cf9ffc6c7ab351b27370f31335fd4f3519660c20fd7eb823ddfe98",
+    "03-cold-enabled-0.xml": "08aa12954e41f2cf51d72b2a0573384fbdd3bb96a69e92d4d4dbe6294fd5dfd4",
+    "03-cold-enabled-launch.txt": "ec36593e771ec0eb37cfbcca0d9402f9204362fee49ad8392e898d288b2974de",
+    "04-disable-after-0-activity.txt": "f9e951dfd2fb279379a032e72a2dfe5869373729c91fe82d0e3b45b265b2b2bc",
+    "04-disable-after-0.png": "3aca98a8f76ae009ab5a53fff8a151fd81e9e04e2cbaccbef361f431558d884d",
+    "04-disable-after-0.xml": "9b755dd3f2dd359690e82b54906b40d292b28ffdc2d27738e7da032e451be9aa",
+    "04-disable-before-0-activity.txt": "f9e951dfd2fb279379a032e72a2dfe5869373729c91fe82d0e3b45b265b2b2bc",
+    "04-disable-before-0.png": "99646a1c60cf9ffc6c7ab351b27370f31335fd4f3519660c20fd7eb823ddfe98",
+    "04-disable-before-0.xml": "08aa12954e41f2cf51d72b2a0573384fbdd3bb96a69e92d4d4dbe6294fd5dfd4",
+    "05-cold-disabled-0-activity.txt": "17a79ed166177dc1dec2a22bc06bba7030a146c01890d73cf169f0c721409d65",
+    "05-cold-disabled-0.png": "3aca98a8f76ae009ab5a53fff8a151fd81e9e04e2cbaccbef361f431558d884d",
+    "05-cold-disabled-0.xml": "9b755dd3f2dd359690e82b54906b40d292b28ffdc2d27738e7da032e451be9aa",
+    "05-cold-disabled-launch.txt": "8a6f14237e216c375dab517ae112a82d469876987ca015715204d0306e90677d",
+    "logcat-final-pid.txt": "3b7e30278fdba0685c0d467789f9d2f2b7fc97b75898c1176d26648799775edd"
+  }
+}
