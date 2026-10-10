@@ -47,6 +47,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
+import com.example.kpkn.testing.drainAndCloseSingletons
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -105,6 +106,7 @@ class SetupWizardCandidateGateTest {
     @After
     fun tearDown() {
         store.clear()
+        drainAndCloseSingletons(dispatcher.scheduler)
         Dispatchers.resetMain()
     }
 

@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
+import com.example.kpkn.testing.drainAndCloseSingletons
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -54,6 +55,7 @@ class SetupWizardToggleStepChoiceTest {
 
     @After
     fun tearDown() {
+        drainAndCloseSingletons(dispatcher.scheduler)
         Dispatchers.resetMain()
     }
 

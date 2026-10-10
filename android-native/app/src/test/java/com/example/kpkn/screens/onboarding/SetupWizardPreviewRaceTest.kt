@@ -17,6 +17,7 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
+import com.example.kpkn.testing.drainAndCloseSingletons
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -77,6 +78,7 @@ class SetupWizardPreviewRaceTest {
         // retenido, incluso si una aserción anterior abortó el recorrido.
         if (this::materializer.isInitialized) materializer.releaseB()
         viewModelStore.clear()
+        drainAndCloseSingletons(dispatcher.scheduler)
         Dispatchers.resetMain()
     }
 
