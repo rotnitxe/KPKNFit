@@ -106,9 +106,9 @@ import kotlin.time.Duration.Companion.minutes
  * T-019 — MATRIZ DE FALSACIÓN «ANTES DE SPLIT» sobre el [SetupWizardViewModel] REAL.
  *
  * Qué demuestra y qué NO demuestra:
- * - Evalúa perfiles VÁLIDOS y explícitos de principio a fin (los 24 originales A12, B6, C2,
+ * - Evalúa perfiles VÁLIDOS y explícitos de principio a fin (las 18 originales A12, C2,
  *   D2, E1 y F —esta última, una sola fila positiva desde 2026-10-08, ver GRUPO F—, más
- *   los de T027 y la fila de bloqueo T-001) contra
+ *   la fila de bloqueo T-001) contra
  *   los motores de producción ([com.example.kpkn.domain.onboarding.SetupTrainingPlanner],
  *   `SimpleCyclePersonalizer` a través de `materializeProgram` del VM, y las recetas
  *   PROTOCOL/TEMPLATE).
@@ -174,10 +174,10 @@ import kotlin.time.Duration.Companion.minutes
  * más larga caiga entre el piso independiente de ESA fila (19 min) y los 30 pedidos (el motor mide 21 o 23). La
  * antigua fila de suficiencia en el piso (`A21`) desapareció con el mínimo de 20 min, y con él las 4 filas de 20 min
  * (`A20`): no se puede pedir menos de 30. El negativo de presupuesto realmente insuficiente es Atleta corporal de
- * 1 día ([independentAthleteBodyweightFloorMinutes]). Los contadores de A12, B6, C2, D2 y E1 no cambian (F es ahora
+ * 1 día ([independentAthleteBodyweightFloorMinutes]). Los contadores de A12, C2, D2 y E1 no cambian (F es ahora
  * 1 fila: ver GRUPO F); las filas de Atleta completo con material completo
- * (`T006_Q4_completeAthlete_full_material_…`) se suman aparte. B y T027 siguen siendo la regresión del
- * generador HISTÓRICO `native:strength-cardio` (MIXED).
+ * (`T006_Q4_completeAthlete_full_material_…`) se suman aparte. Los grupos B y T027 se retiraron: probaban el plan
+ * histórico `native:strength-cardio` (MIXED), que D1 oculta a propósito, y MIXED ya no sale del paso GOAL.
  *
  * GRUPO F (consolidación 2026-10-02; testigo cambiado en la curaduría 2026-10-03, C.P2b; rediseñado en
  * Entreno v2 y de nuevo el 2026-10-08): la fila F-presupuesto-minimo (Músculo, principiante, 11 categorías
@@ -207,7 +207,7 @@ import kotlin.time.Duration.Companion.minutes
  * Medido con el motor el 2026-10-07: a 20 min el plan propio informaba TIME_BUDGET con 26 min (dentro del rango)
  * y con 28 min las sesiones de la semana medían 27 y 28 min. F-m30 exige que `native:muscle-foundation-v2` llegue a un
  * programa ejecutable con 30 min y que su sesión más larga caiga entre el extremo bajo de ese rango (25) y los 30
- * pedidos. Contadores: A12, B6, C2, D2, E1 y F1.
+ * pedidos. Contadores: A12, C2, D2, E1 y F1.
  *
  * Las notas no fatales del motor (`previewReport.limitations`) NO son un fallo.
  *
@@ -769,9 +769,10 @@ class SetupExecutableAvailabilityMatrixTest {
     @Test
     fun T019_A_musculo_new_peso_corporal_12_filas() = runGroup("A", rowsA(), 25.minutes)
 
-    /** B6: MIXED, INTERMEDIATE, 11 categorías, cardio WALK 10 min, días dentro y fuera de 2..4. */
-    @Test
-    fun T019_B_mixto_intermediate_todo_el_material_6_filas() = runGroup("B", rowsB(), 20.minutes)
+    // Grupos B (6 filas) y T027 (3 filas) retirados: probaban el plan histórico `native:strength-cardio` (MIXED), que D1
+    // oculta a propósito («versión anterior», punto 12), y MIXED ya no sale del paso GOAL (`GoalProfileMapping.setupGoalOf`).
+    // La protección de ese hueco vive en SetupTrainingPlannerAvailabilitySweepTest (mixedCoverage y
+    // theGoalScreenNeverLeavesTheLegacyMixedGoal). Atleta completo tiene sus filas propias (T006_Q4).
 
     /** C2: MÚSCULO, INTERMEDIATE, 5 días / 60 min, barra sola y barra + apoyo estable. */
     @Test
@@ -794,19 +795,6 @@ class SetupExecutableAvailabilityMatrixTest {
      */
     @Test
     fun T019_F_musculo_new_todo_el_material_3_dias_30min() = runGroup("F", rowsF(), 15.minutes)
-
-    /**
-     * T-027 — REGRESIÓN REAL DEL ViewModel para las frecuencias **dentro** de 2..4 del objetivo
-     * MIXED (2, 3 y 4 días / 60 min, INTERMEDIATE, las 11 categorías, cardio CAMINAR 10 min).
-     *
-     * Son TRES filas ADITIVAS: las originales (A12, B6, C2, D2, E1 y F, esta última con una sola fila
-     * F-m30 desde el GRUPO F rediseñado) se conservan tal cual y este método NO las sustituye. Se reusan
-     * `runGroup`/`evaluateRow` y TODO el oráculo de `assertProgramContract`, incluida la sección MIXED que exige cardio estructurado real. Su
-     * propósito es que la ampliación de la familia nativa a 1..6 no rompa lo que ya funcionaba, y
-     * que las frecuencias 2, 3 y 4 con cardio se comprueban por el mismo camino real que 1, 5 y 6.
-     */
-    @Test
-    fun T027_M_mixto_intermediate_todo_el_material_2_3_4_dias_60min() = runGroup("T027", rowsT027(), 20.minutes)
 
     /**
      * T-001 / AC-T001-01 — REGRESIÓN DEL BLOQUEO con el catálogo REAL de producción:
@@ -832,9 +820,8 @@ class SetupExecutableAvailabilityMatrixTest {
     /**
      * T-006 Q4 / §17.2 #5: Atleta completo con TODO el material (11 categorías) y cardio de 10 min,
      * 1 y 2 días / 60 min (principiante e intermedio) llega a un preview real del VM con la receta
-     * nativa `native:complete-athlete-v2` (cuatro componentes, estimador común <= 60). Complementa a
-     * B/T027, que siguen siendo la regresión del generador histórico `strength-cardio`: el mixto de
-     * 1 día/60 min no es imposible, y esta fila fija que el perfil de producto tampoco lo es.
+     * nativa `native:complete-athlete-v2` (cuatro componentes, estimador común <= 60). Complementa al grupo B
+     * retirado: el mixto de 1 día/60 min no es imposible, y esta fila fija que el perfil de producto tampoco lo es.
      */
     @Test
     fun T006_Q4_completeAthlete_full_material_one_and_two_days_60min_real_vm_preview() =
@@ -1834,21 +1821,6 @@ class SetupExecutableAvailabilityMatrixTest {
      */
     private val MINIMUM_SESSION_MINUTES = EntrenoStepValues.SESSION_MINUTES_MIN
 
-    private fun rowsB(): List<MatrixRow> = listOf(1, 5, 6).flatMap { days ->
-        listOf(60, 100).map { minutes ->
-            MatrixRow(
-                id = "B-d$days-m$minutes",
-                group = "B",
-                goal = SetupGoal.MIXED,
-                experience = SetupExperience.INTERMEDIATE,
-                categories = allCategories,
-                daysPerWeek = days,
-                minutes = minutes,
-                cardioMinutes = 10,
-            )
-        }
-    }
-
     private fun rowsC(): List<MatrixRow> = listOf(
         setOf(EquipmentCategory.BARBELL),
         setOf(EquipmentCategory.BARBELL, EquipmentCategory.SUPPORT),
@@ -2001,24 +1973,6 @@ class SetupExecutableAvailabilityMatrixTest {
                 requiredWitnessPlanId = NativeProfileKind.MUSCLE.entryId,
                 expectedLongestMinutes = bounds.first..MINIMUM_SESSION_MINUTES,
             ),
-        )
-    }
-
-    /**
-     * T-027 — Las TRES frecuencias que el catálogo nativo ya admitía (2..4) con el objetivo MIXED
-     * completo: INTERMEDIATE, las 11 categorías, 60 min y cardio CAMINAR 10 min. Mismo perfil que
-     * el grupo B salvo por la frecuencia, para que la comparación sea honesta.
-     */
-    private fun rowsT027(): List<MatrixRow> = listOf(2, 3, 4).map { days ->
-        MatrixRow(
-            id = "T027-d$days-m60",
-            group = "T027",
-            goal = SetupGoal.MIXED,
-            experience = SetupExperience.INTERMEDIATE,
-            categories = allCategories,
-            daysPerWeek = days,
-            minutes = 60,
-            cardioMinutes = 10,
         )
     }
 

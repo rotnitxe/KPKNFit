@@ -1,7 +1,9 @@
 package com.example.kpkn.screens.onboarding
 
+import com.example.kpkn.data.models.CardioType
 import com.example.kpkn.domain.onboarding.SetupAnswerProvenance
 import com.example.kpkn.domain.onboarding.SetupPreviewKind
+import com.example.kpkn.domain.onboarding.TrainingGoalProfile
 import com.example.kpkn.domain.onboarding.SetupProgressOrigin
 import com.example.kpkn.domain.onboarding.SetupStepContext
 import com.example.kpkn.domain.onboarding.SetupStepGraph
@@ -758,5 +760,32 @@ class SetupDraftCompatibilityTest {
     fun aDraftWithoutTheRetiredTrapeziusIsNotTouched() {
         val clean = withPriorities(setOf("Pectorales"), mapOf("Pectorales" to 1))
         assertSame(clean, SetupDraftCompatibility.migrateRetiredTrapezius(clean))
+    }
+
+    @Test
+    fun aLegacyMixedGoalReadsAsFuerzaYCardioKeepingItsCardio() {
+        // «Fuerza + cardio» (MIXED) es el perfil «Fuerza y cardio» (COMPLETE_ATHLETE): sale como tal, con su cardio, y GOAL
+        // queda por revisar. Así no llega a PLAN con un objetivo que el planificador ya no sabe servir.
+        val legacy = draft(answers = emptyList()).copy(
+            goal = SetupGoal.MIXED,
+            cardioType = CardioType.WALK,
+            cardioMinutes = 10,
+            includeTraining = true,
+        )
+        val repaired = SetupDraftCompatibility.repair(legacy)
+        assertEquals(SetupGoal.COMPLETE_ATHLETE, repaired.goal)
+        assertEquals(TrainingGoalProfile.STRENGTH_CARDIO, repaired.goalProfile)
+        assertEquals(CardioType.WALK, repaired.cardioType)
+        assertEquals(10, repaired.cardioMinutes)
+        assertTrue(SetupStepId.GOAL in repaired.stepProgress.pendingReview)
+        // Idempotente, y la función sola también deja el objetivo sin MIXED.
+        assertEquals(SetupGoal.COMPLETE_ATHLETE, SetupDraftCompatibility.repair(repaired).goal)
+        assertEquals(SetupGoal.COMPLETE_ATHLETE, SetupDraftCompatibility.migrateLegacyMixedGoal(legacy).goal)
+        // Sin entreno, la migración de entreno no corre (vuelve antes): el objetivo legado tampoco puede quedarse en MIXED.
+        val withoutTraining = legacy.copy(includeTraining = false)
+        assertEquals(SetupGoal.COMPLETE_ATHLETE, SetupDraftCompatibility.repair(withoutTraining).goal)
+        // Sin objetivo legado no se toca nada.
+        val current = legacy.copy(goal = SetupGoal.COMPLETE_ATHLETE)
+        assertSame(current, SetupDraftCompatibility.migrateLegacyMixedGoal(current))
     }
 }

@@ -70,8 +70,16 @@ class PlanGoalMatcherTest {
     fun completeAthleteMatchesExactlyTheEntriesThatDeclareTheFourCapabilities() {
         val athletes = all.filter { PlanGoalMatcher.matches(it, PlanGoalProfile.COMPLETE_ATHLETE) }.map { it.id }
         // Entreno v2: los programas «a medida» de fuerza y cardio y de funcional también programan las cuatro (no se
-        // listan: los ofrece solo el asistente a sus perfiles).
-        assertEquals(listOf("native:complete-athlete-v2", "generated:hybrid", "generated:functional"), athletes)
+        // listan: los ofrece solo el asistente a sus perfiles). Sus variantes en bloques y periodizada (D2b) heredan las
+        // capacidades de la simple.
+        assertEquals(
+            listOf(
+                "native:complete-athlete-v2", "generated:hybrid", "generated:functional",
+                "generated:hybrid:blocks", "generated:hybrid:periodized",
+                "generated:functional:blocks", "generated:functional:periodized",
+            ),
+            athletes,
+        )
         all.forEach { entry ->
             assertEquals(
                 "${entry.id}: Atleta completo ⇔ las cuatro capacidades",
@@ -144,7 +152,7 @@ class PlanGoalMatcherTest {
         }
     }
 
-    // ─── Reparto de las 55 entradas ───────────────────────────────────────────
+    // ─── Reparto de las 85 entradas ───────────────────────────────────────────
 
     @Test
     fun everyEntryIsAccountedForAndOnlyTheStructuresAndStrengthCardioMatchNoProductGoal() {
@@ -159,8 +167,15 @@ class PlanGoalMatcherTest {
         assertEquals(
             setOf("template:simple-1", "template:simple-ab", "template:simple-4", "native:strength-cardio") +
                 // Entreno v2: las cuatro disciplinas sin planes de autor solo existen como programa «a medida» de su
-                // perfil (sin listar); no son de ninguno de los objetivos del catálogo de planes.
-                setOf("generated:calisthenics", "generated:armwrestling", "generated:strongman", "generated:weightlifting-base"),
+                // perfil (sin listar); no son de ninguno de los objetivos del catálogo de planes. Sus variantes en bloques
+                // y periodizada (D2b) tampoco lo son.
+                setOf("generated:calisthenics", "generated:armwrestling", "generated:strongman", "generated:weightlifting-base") +
+                    setOf(
+                        "generated:calisthenics:blocks", "generated:calisthenics:periodized",
+                        "generated:armwrestling:blocks", "generated:armwrestling:periodized",
+                        "generated:strongman:blocks", "generated:strongman:periodized",
+                        "generated:weightlifting-base:blocks", "generated:weightlifting-base:periodized",
+                    ),
             unmatched,
         )
     }

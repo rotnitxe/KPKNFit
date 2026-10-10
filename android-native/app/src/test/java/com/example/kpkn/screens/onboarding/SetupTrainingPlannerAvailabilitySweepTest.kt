@@ -10,8 +10,11 @@ import com.example.kpkn.data.programs.TrainingReference
 import com.example.kpkn.data.programs.toTrainingReference
 import com.example.kpkn.domain.onboarding.SetupTrainingPlanner
 import com.example.kpkn.domain.onboarding.SetupTrainingPlannerInput
+import com.example.kpkn.domain.onboarding.TrainingGoalProfile
 import com.example.kpkn.domain.training.TrainingOptions
 import com.example.kpkn.domain.training.effectiveEquipment
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -104,6 +107,24 @@ class SetupTrainingPlannerAvailabilitySweepTest {
     @Test
     fun shard7() = runShard(7)
 
+    /** Decisión D1 (punto 12): la única entrada que programa cardio es «versión anterior» y no se lista; el hueco MIXED es deliberado. */
+    @Test
+    fun theOnlyCardioEntryStaysHiddenByDesignSoTheMixedGapIsDeliberate() {
+        assertEquals(listOf("native:strength-cardio"), PersonalizedPlanCatalog.entries().filter { it.schedulesCardio }.map { it.id })
+        assertFalse(requireNotNull(PersonalizedPlanCatalog.find("native:strength-cardio")).listed)
+    }
+
+    /**
+     * El paso GOAL (`withGoalProfile`) nunca deja el objetivo legado MIXED: por la pantalla no se llega a las filas MIXED,
+     * que el arnés escribía a mano con `updateStep(GOAL)`.
+     */
+    @Test
+    fun theGoalScreenNeverLeavesTheLegacyMixedGoal() {
+        TrainingGoalProfile.entries.forEach { profile ->
+            assertFalse("$profile deja el objetivo legado MIXED", SetupWizardDraft().withGoalProfile(profile).goal == SetupGoal.MIXED)
+        }
+    }
+
     private fun runShard(shard: Int) {
         val categories = EquipmentCategory.entries
         require(categories.size == 11) { "El barrido asume 11 categorías; hay ${categories.size}" }
@@ -155,10 +176,14 @@ class SetupTrainingPlannerAvailabilitySweepTest {
         registered.keys.forEach { key ->
             val reference = key.substringAfter("ref=").trim()
             val frequency = key.substringAfter("freq=").substringBefore(" ").toInt()
-            val covered = PersonalizedPlanCatalog.listedEntries().any { entry ->
-                entry.publication.name == "PUBLISHED" &&
-                    entry.references.any { it.name == reference } &&
-                    entry.supportedFrequencies.contains(frequency)
+            val covered = if (key.contains("goal=MIXED/")) {
+                mixedCoverage(frequency)
+            } else {
+                PersonalizedPlanCatalog.listedEntries().any { entry ->
+                    entry.publication.name == "PUBLISHED" &&
+                        entry.references.any { it.name == reference } &&
+                        entry.supportedFrequencies.contains(frequency)
+                }
             }
             assertTrue("REGISTRADA sin causa real: $key sí tiene entrada publicada", !covered)
         }
@@ -199,12 +224,21 @@ class SetupTrainingPlannerAvailabilitySweepTest {
      * Un histórico oculto (C.P2b, D2) no cuenta: no puede tapar un hueco de cobertura del planner.
      */
     private fun publishedCoverage(row: GoalRow, frequency: Int): Boolean {
-        if (row.mixed) return true // MIXED no filtra por referencia: exige schedulesCardio
+        if (row.mixed) return mixedCoverage(frequency)
         return PersonalizedPlanCatalog.listedEntries().any { entry ->
             entry.publication.name == "PUBLISHED" &&
                 entry.references.contains(row.expectedReference) &&
                 entry.supportedFrequencies.contains(frequency)
         }
+    }
+
+    /**
+     * MIXED («Fuerza + cardio», legado) no filtra por referencia: su cobertura publicada es una entrada LISTADA que programa
+     * cardio (`schedulesCardio`), la misma regla del planner. Hoy la única es `native:strength-cardio`, que D1 oculta a
+     * propósito («versión anterior», punto 12), y el paso GOAL ya no escribe MIXED: el hueco se registra con causa.
+     */
+    private fun mixedCoverage(frequency: Int): Boolean = PersonalizedPlanCatalog.listedEntries().any { entry ->
+        entry.publication.name == "PUBLISHED" && entry.schedulesCardio && entry.supportedFrequencies.contains(frequency)
     }
 
     private fun derivedGapMap(): Map<TrainingReference, Set<Int>> =

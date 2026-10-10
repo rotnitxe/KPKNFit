@@ -103,9 +103,11 @@ object SetupDraftCompatibility {
             repairMissingApparatus(
                 repairTrainingPath(
                     migrateEntrenoV2(
-                        repairLegacyGoalReview(
-                            normalizeLegacyRouteAtPlan(
-                                repairGoalStyleConflict(restoreMandatoryVitals(normalizeOrigin(draft))),
+                        migrateLegacyMixedGoal(
+                            repairLegacyGoalReview(
+                                normalizeLegacyRouteAtPlan(
+                                    repairGoalStyleConflict(restoreMandatoryVitals(normalizeOrigin(draft))),
+                                ),
                             ),
                         ),
                     ),
@@ -252,6 +254,20 @@ object SetupDraftCompatibility {
         return draft.copy(
             priorityMuscles = priorities,
             trainingOptions = draft.trainingOptions.copy(orderPriorities = migratedBag),
+        )
+    }
+
+    /**
+     * «Fuerza + cardio» (MIXED, legado) y «Fuerza y cardio» (COMPLETE_ATHLETE) son el mismo perfil (`GoalProfileMapping`).
+     * Un borrador antiguo pasa a COMPLETE_ATHLETE al leerlo, con su cardio intacto; GOAL sigue para revisar, que marca
+     * [repairLegacyGoalReview] antes de este paso. Idempotente.
+     */
+    internal fun migrateLegacyMixedGoal(draft: SetupWizardDraft): SetupWizardDraft {
+        if (draft.goal != SetupGoal.MIXED) return draft
+        return draft.copy(
+            goal = SetupGoal.COMPLETE_ATHLETE,
+            goalProfile = draft.goalProfile ?: GoalProfileMapping.profileOfLegacy(SetupGoal.MIXED),
+            stepSelections = draft.stepSelections - SetupStepId.GOAL,
         )
     }
 

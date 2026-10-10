@@ -45,6 +45,7 @@ import com.example.kpkn.domain.onboarding.PlanMaterializationException
 import com.example.kpkn.domain.onboarding.PlanRejectionPresenter
 import com.example.kpkn.domain.onboarding.PlanRejectionReason
 import com.example.kpkn.domain.onboarding.PlanRepair
+import com.example.kpkn.domain.onboarding.CompetitionAnswer
 import com.example.kpkn.domain.onboarding.PlanRepairAdvisor
 import com.example.kpkn.domain.onboarding.RejectionAction
 import com.example.kpkn.domain.onboarding.EntrenoStepValues
@@ -1354,8 +1355,10 @@ class SetupWizardRepairTest {
             confirmStep(vm, SetupStepId.EXPERIENCE, SetupStepId.EQUIPMENT) { vm.setStepChoice(SetupStepId.EXPERIENCE, "intermediate") }
             confirmStep(vm, SetupStepId.EQUIPMENT, SetupStepId.AVAILABILITY) { vm.setStepChoice(SetupStepId.EQUIPMENT, "gym") }
             confirmStep(vm, SetupStepId.AVAILABILITY, SetupStepId.GOAL)
-            // El objetivo ya viene prefijado por la biblioteca: se confirma sin escribirlo.
-            confirmStep(vm, SetupStepId.GOAL, SetupStepId.FRESH_DAY)
+            // El objetivo ya viene prefijado por la biblioteca: se confirma sin escribirlo. Con experiencia «Ya entreno con
+            // constancia» o más, ¿Compites? va justo después del objetivo (C4a): esta persona no compite.
+            confirmStep(vm, SetupStepId.GOAL, SetupStepId.COMPETITION)
+            confirmStep(vm, SetupStepId.COMPETITION, SetupStepId.FRESH_DAY) { vm.setCompetition(CompetitionAnswer.NO) }
             confirmStep(vm, SetupStepId.FRESH_DAY, SetupStepId.WEEKDAYS) { vm.setFreshDay(1) }
             confirmStep(vm, SetupStepId.WEEKDAYS, SetupStepId.SESSION_TIME) {
                 vm.setStepChoices(SetupStepId.WEEKDAYS, setOf("1", "3", "5"))
