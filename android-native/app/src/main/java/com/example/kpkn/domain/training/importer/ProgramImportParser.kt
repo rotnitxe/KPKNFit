@@ -68,36 +68,71 @@ object ProgramImportParser {
 
     private fun processRows(builder: DraftBuilder, rows: List<List<String>>, where: (Int) -> String) {
         var columns: Columns? = null
+        var grid: Grid? = null
         rows.forEachIndexed { index, row ->
             val cells = row.map { it.trim() }
             val filled = cells.filter { it.isNotEmpty() }
             if (filled.isEmpty()) return@forEachIndexed
             val context = RowContext(where(index), filled.joinToString(" · "), builder)
+
+            // Una fila con tres o más días puede ser la cabecera de una cuadrícula: cada columna con día es un día.
+            // Solo abre cuadrícula si más abajo hay filas de series o de peso; si no, es una fila normal.
+            val gridDays = gridDayColumns(cells)
+            if (gridDays.size >= GRID_MIN_DAYS) {
+                grid?.let { closeGrid(builder, it) }
+                grid = null
+                if (gridConfirmed(rows, index, gridDays.first().first)) {
+                    grid = Grid(builder.openGridDays(gridDays, context))
+                    columns = null
+                    builder.endRow(null)
+                    return@forEachIndexed
+                }
+            }
+            val activeGrid = grid
+            if (activeGrid != null) {
+                if (gridRow(builder, activeGrid, cells, context)) {
+                    builder.endRow(null)
+                    return@forEachIndexed
+                }
+                closeGrid(builder, activeGrid)
+                grid = null
+            }
+
             val header = detectColumns(cells)
             val table = columns
+            // La celda de día de una tabla abre un día (o sigue el abierto); la fila sigue si trae más datos.
+            val tableDay = if (table != null && header == null) {
+                cells.getOrNull(table.indexOf(ColumnRole.DAY) ?: -1)?.takeIf { isTableDayCandidate(it) }
+            } else {
+                null
+            }
+            tableDay?.let { builder.openTableDay(cleanHeader(it), context) }
             val line: Line? = when {
                 header != null -> {
                     columns = header
+                    header.loadHeader?.let { builder.noteLoadHeader(it) }
                     null
                 }
+                tableDay != null && filled.size == 1 -> null
                 filled.size == 1 -> classify(filled.first(), context)
                 table != null -> tableRow(cells, table, context)
                 else -> classify(filled.joinToString(" "), context)
             }
-            val exercise = when (line) {
+            when (line) {
                 is Line.Week -> {
                     builder.openWeek(line.number)
-                    null
+                    builder.endRow(null)
                 }
                 is Line.Day -> {
                     builder.startDay(line.name, line.silent, context)
-                    null
+                    builder.endRow(null)
                 }
-                is Line.Exercise -> builder.addExercise(line.exercise, context)
-                null -> null
+                is Line.Exercise -> builder.endRow(builder.addExercise(line.exercise, context))
+                is Line.Groups -> line.groups.forEach { addGroup(builder, it, context) }
+                null -> builder.endRow(null)
             }
-            builder.endRow(exercise)
         }
+        grid?.let { closeGrid(builder, it) }
     }
 
     /**
@@ -108,8 +143,15 @@ object ProgramImportParser {
         val text = raw.trim()
         // Una cabecera es una lista corta de nombres de columna; una frase larga con esas palabras es prosa.
         if (text.isEmpty() || (isColumnHeaderText(text) && !isProse(text))) return null
+        // Varios grupos con porcentaje («50%x5, 60%x4»): un ejercicio por grupo. Antes que la notación normal.
+        percentGroups(text)?.let { return groupLine(text, it, row) }
         val notation = parseNotation(text)
         if (notation != null) {
+            // Prosa con notación: lo que hay antes de la notación es una frase, no un nombre.
+            if (isLongLeadingText(notation.leading)) {
+                row.count(Noise.TEXT)
+                return null
+            }
             if (notation.name.isBlank()) {
                 row.warn(ImportWarningKind.SKIPPED_ROW, "falta el nombre del ejercicio («$text»)")
                 return null
@@ -129,6 +171,7 @@ object ProgramImportParser {
 
     private fun notationLine(notation: Notation, row: RowContext): Line? {
         if (countIfNotExercise(notation.name, row)) return null
+        if (notation.load != null) row.noteLoad(notation.loadUnit)
         val notes = listOfNotNull(notation.notes, amrapNote(notation.amrapReps)).joinToString(" ").takeIf { it.isNotEmpty() }
         return validate(
             name = notation.name,
@@ -199,12 +242,20 @@ object ProgramImportParser {
         unreadable(row, restCell, rest, "descanso")
 
         val remainder = if (range != null) rangeRemainder(repsCell) else null
+        // Sin otra nota, la columna de grupo muscular va a notas.
+        val groupCell = cell(ColumnRole.GROUP)
         val notes = listOfNotNull(
             notesCell.takeIf { it.isNotEmpty() },
             remainder,
             inline?.notes,
             amrapNote(amrap),
-        ).joinToString(" ").takeIf { it.isNotEmpty() }
+        ).joinToString(" ").takeIf { it.isNotEmpty() } ?: groupCell.takeIf { it.isNotEmpty() }
+        // Carga con número: cuenta para saber si el archivo va en libras (manda la celda; si no, la notación).
+        if (load != null) {
+            row.noteLoad(unitMarkOf(loadCell))
+        } else if (inline != null && inline.load != null) {
+            row.noteLoad(inline.loadUnit)
+        }
         return validate(
             name = name,
             sets = sets,
@@ -268,7 +319,8 @@ object ProgramImportParser {
             sets = sets,
             repsMin = low,
             repsMax = top,
-            loadKg = checked(load, "la carga", name, row) { it in 0.5..MAX_LOAD_KG },
+            // «0», «0lb» o «0kg» es peso corporal: sin carga y sin aviso.
+            loadKg = checked(load?.takeIf { it != 0.0 }, "la carga", name, row) { it in 0.5..MAX_LOAD_KG },
             percent1Rm = checked(percent, "el porcentaje", name, row) { it in 1.0..MAX_PERCENT },
             rpe = checked(rpe, "el RPE", name, row) { it in 1.0..10.0 },
             rir = checked(rir, "las RIR", name, row) { it in 0..10 },
@@ -300,7 +352,8 @@ object ProgramImportParser {
     private fun nonExerciseKind(name: String): Noise? {
         val words = ExerciseMatchLexicon.normalize(name).split(' ').filter { it.isNotEmpty() }
         if (words.isNotEmpty() && isWarmupStart(words)) return Noise.WARMUP
-        if (name.count { it.isLetter() } < 3) return Noise.LABEL
+        // Una abreviatura conocida («DL», «BP», «OHP») es un ejercicio aunque tenga menos de 3 letras.
+        if (name.count { it.isLetter() } < 3 && ImportExerciseAliases.lookup(name) == null) return Noise.LABEL
         if (words.isNotEmpty() && "sxr" in words && words.size <= 3) return Noise.LABEL
         // Las letras sueltas («A» de «Meso A») no cuentan; las cifras se quitan antes de comparar.
         val content = words.filter { it.length > 1 }.map { word -> word.filter { !it.isDigit() } }.filter { it.isNotEmpty() }
@@ -339,9 +392,14 @@ object ProgramImportParser {
 
     // ---- Cabeceras de columna ----------------------------------------------------------------------------
 
-    private enum class ColumnRole { NAME, SETS, REPS, LOAD, PERCENT, RPE, RIR, REST, NOTES }
+    private enum class ColumnRole { NAME, SETS, REPS, LOAD, PERCENT, RPE, RIR, REST, NOTES, DAY, GROUP }
 
-    private class Columns(private val indexes: Map<ColumnRole, Int>, val restInMinutes: Boolean) {
+    /** Columnas de una tabla; [loadHeader] es la cabecera de carga, si la hay («Peso (kg)», «Weight (lb)»). */
+    private class Columns(
+        private val indexes: Map<ColumnRole, Int>,
+        val restInMinutes: Boolean,
+        val loadHeader: String?,
+    ) {
         fun indexOf(role: ColumnRole): Int? = indexes[role]
     }
 
@@ -354,7 +412,8 @@ object ProgramImportParser {
         }
         if (!indexes.containsKey(ColumnRole.NAME) || indexes.size < 2) return null
         val restHeader = indexes[ColumnRole.REST]?.let { cells[it] }.orEmpty()
-        return Columns(indexes, restInMinutes = isMinutesHeader(restHeader))
+        val loadHeader = indexes[ColumnRole.LOAD]?.let { cells[it] }
+        return Columns(indexes, restInMinutes = isMinutesHeader(restHeader), loadHeader = loadHeader)
     }
 
     private fun columnRole(raw: String): ColumnRole? {
@@ -374,6 +433,8 @@ object ProgramImportParser {
             words.any { it in SET_WORDS } -> ColumnRole.SETS
             words.any { it in REP_WORDS } -> ColumnRole.REPS
             words.any { it in NOTE_WORDS } -> ColumnRole.NOTES
+            words.any { it in DAY_WORDS } -> ColumnRole.DAY
+            words.any { it in GROUP_WORDS } -> ColumnRole.GROUP
             else -> null
         }
     }
@@ -390,11 +451,19 @@ object ProgramImportParser {
     private val NAME_WORDS = setOf("ejercicio", "ejercicios", "exercise", "exercises", "movimiento", "movimientos", "movement")
     private val REST_WORDS = setOf("descanso", "descansos", "rest", "pausa")
     private val PERCENT_WORDS = setOf("porcentaje", "percent", "percentage", "1rm")
-    private val LOAD_WORDS = setOf("peso", "pesos", "carga", "cargas", "kg", "kgs", "kilos", "load", "weight")
+    private val LOAD_WORDS = setOf(
+        "peso", "pesos", "carga", "cargas", "kg", "kgs", "kilos", "load", "weight", "lb", "lbs", "libra", "libras", "pounds",
+    )
     private val SET_WORDS = setOf("series", "serie", "sets", "set")
     /** «SxR» (series por repeticiones) es la columna de la notación «5x3+», como «Reps». */
     private val REP_WORDS = setOf("reps", "rep", "repeticiones", "repeticion", "sxr")
     private val NOTE_WORDS = setOf("notas", "nota", "notes", "note", "observaciones", "comentarios")
+
+    /** Columna de día: cada celda con texto abre un día; una vacía sigue el día abierto. */
+    private val DAY_WORDS = setOf("dia", "day", "sesion", "session", "jornada")
+
+    /** Columna de grupo muscular: no es nombre; va a notas solo si la fila no tiene otra nota. */
+    private val GROUP_WORDS = setOf("grupo", "muscle", "group")
 
     // ---- Notación compacta -------------------------------------------------------------------------------
 
@@ -411,6 +480,10 @@ object ProgramImportParser {
         val rest: Int?,
         /** Repeticiones de la última serie con «+» («5+», «1x5+»): AMRAP. Null si no hay «+». */
         val amrapReps: Int?,
+        /** Texto antes del primer tramo de notación, sin limpiar (para la prosa con notación). */
+        val leading: String,
+        /** Unidad que lleva la carga («135 lb», «60kg»); null si la carga no lleva unidad. */
+        val loadUnit: ImportLoadUnit?,
     )
 
     /**
@@ -429,6 +502,7 @@ object ProgramImportParser {
         var rpe: Double? = null
         var rir: Int? = null
         var rest: Int? = null
+        var loadUnit: ImportLoadUnit? = null
 
         fun scan(pattern: Regex, onMatch: (MatchResult) -> Unit) {
             for (match in pattern.findAll(text)) {
@@ -458,7 +532,12 @@ object ProgramImportParser {
         }
         scan(SETS_ONLY) { m -> if (sets == null) sets = m.groupValues[1].toIntOrNull() }
         scan(PERCENT) { m -> if (percent == null) percent = firstNumber(m.groupValues[1]) }
-        scan(LOAD_KG) { m -> if (load == null) load = firstNumber(m.groupValues[1]) }
+        scan(LOAD_KG) { m ->
+            if (load == null) {
+                load = firstNumber(m.groupValues[1])
+                loadUnit = unitOfToken(m.groupValues[2])
+            }
+        }
         scan(LOAD_AT) { m -> if (load == null) load = firstNumber(m.groupValues[1]) }
         scan(RPE) { m -> if (rpe == null) rpe = firstNumber(m.groupValues[1]) }
         scan(RIR) { m -> if (rir == null) rir = m.groupValues[1].ifEmpty { m.groupValues[2] }.toIntOrNull() }
@@ -486,6 +565,8 @@ object ProgramImportParser {
             rir = rir,
             rest = rest,
             amrapReps = amrap,
+            leading = before.toString(),
+            loadUnit = loadUnit,
         )
     }
 
@@ -552,7 +633,7 @@ object ProgramImportParser {
     private val SETS_ONLY = Regex("""(\d{1,2})\s*(?:series?|sets?)\b""", RegexOption.IGNORE_CASE)
     private val PERCENT = Regex("""@?\s*(\d{1,3}(?:[.,]\d+)?)\s*%""")
     private val LOAD_KG = Regex(
-        """(?:@|\ba\b|\bcon\b)?\s*(\d{1,4}(?:[.,]\d+)?)\s*(?:kg|kgs|kilos?)\b""",
+        """(?:@|\ba\b|\bcon\b)?\s*(\d{1,4}(?:[.,]\d+)?)\s*(kgs?|kilos?|lbs?|pounds?|libras?)\b""",
         RegexOption.IGNORE_CASE,
     )
     private val LOAD_AT = Regex("""@\s*(\d{1,4}(?:[.,]\d+)?)""")
@@ -693,6 +774,393 @@ object ProgramImportParser {
 
     private fun cleanHeader(text: String): String = text.trim().replace(HEADER_TAIL, "").trim()
 
+    // ---- Cuadrículas: días en columnas ------------------------------------------------------------------------
+
+    /** Una cuadrícula empieza con una fila de tres o más columnas con día. */
+    private const val GRID_MIN_DAYS = 3
+
+    /** Hasta cuántas filas más abajo se busca la etiqueta que confirma una cuadrícula. */
+    private const val GRID_LOOKAHEAD_ROWS = 30
+
+    private val GRID_EXERCISE_WORDS = setOf("ejercicio", "ejercicios", "exercise", "exercises")
+    private val GRID_SETS_KEYS = setOf("series", "serie", "sets", "set")
+    private val GRID_REPS_KEYS = setOf("reps", "rep", "repeticiones", "repeticion")
+    private val GRID_SCHEME_KEYS = GRID_SETS_KEYS + GRID_REPS_KEYS + "sxr"
+    private val GRID_SCHEME_WORDS = GRID_SCHEME_KEYS + "x"
+    private val GRID_LOAD_WORDS = setOf(
+        "peso", "pesos", "carga", "cargas", "weight", "load", "kg", "kgs", "kilos", "lb", "lbs", "pounds", "libras",
+    )
+    private val GRID_REST_KEYS = setOf("descanso", "descansos", "rest", "pausa")
+    private val GRID_REST_WORDS = GRID_REST_KEYS + setOf("min", "minutos", "minutes", "seg", "segundos", "s")
+    private val GRID_NOTES_WORDS = setOf("notas", "nota", "notes", "note", "observaciones", "comentarios")
+
+    /** Clase de una fila de cuadrícula, según su etiqueta (la primera celda con texto antes de la primera columna de día). */
+    private enum class GridKind { EXERCISE, SCHEME, LOAD, REST, NOTES }
+
+    /** Cuadrícula abierta: sus columnas con día y los ejercicios que van llegando (se validan al cerrarla). */
+    private class Grid(val days: List<Pair<Int, DayDraft>>) {
+        val entries = mutableListOf<GridEntry>()
+
+        val firstDayColumn: Int
+            get() = days.first().first
+
+        fun lastEntryOf(day: DayDraft): GridEntry? = entries.lastOrNull { it.day === day }
+    }
+
+    /** Ejercicio de una cuadrícula, con los valores que le llegan de sus filas. */
+    private class GridEntry(val day: DayDraft, val where: String, val name: String) {
+        /** Celdas del bloque, para el texto original. */
+        val cells = mutableListOf<String>()
+        val notes = mutableListOf<String>()
+
+        /** Valores que no se entendieron: qué son y el texto de la celda. */
+        val unreadable = mutableListOf<Pair<String, String>>()
+        var sets: Int? = null
+        var repsMin: Int? = null
+        var repsMax: Int? = null
+        var amrap: Int? = null
+        var load: Double? = null
+        var percent: Double? = null
+        var rpe: Double? = null
+        var rir: Int? = null
+        var rest: Int? = null
+    }
+
+    /** Columnas de una fila con un día (Lunes, Lun, Monday, Día 1…), con el nombre de su cabecera. */
+    private fun gridDayColumns(cells: List<String>): List<Pair<Int, String>> =
+        cells.mapIndexedNotNull { index, cell ->
+            val text = ExerciseMatchLexicon.normalize(cell)
+            if (text.isNotEmpty() && (DAY_NUMBERED.matches(text) || WEEKDAY_LABEL.matches(text))) {
+                index to cleanHeader(cell)
+            } else {
+                null
+            }
+        }
+
+    /**
+     * Una cabecera de días abre cuadrícula solo si, unas filas más abajo, hay una etiqueta de series («Series x Reps») o de
+     * peso en su columna, antes de la primera columna de día. Otra cabecera de días antes decide por sí misma.
+     */
+    private fun gridConfirmed(rows: List<List<String>>, headerIndex: Int, firstDayColumn: Int): Boolean {
+        val end = minOf(rows.size, headerIndex + GRID_LOOKAHEAD_ROWS)
+        for (j in headerIndex + 1 until end) {
+            val cells = rows[j].map { it.trim() }
+            if (gridDayColumns(cells).size >= GRID_MIN_DAYS) return false
+            val label = cells.indices.firstOrNull { it < firstDayColumn && cells[it].isNotEmpty() }?.let { cells[it] } ?: continue
+            val kind = gridLabelKind(label)
+            if (kind == GridKind.SCHEME || kind == GridKind.LOAD) return true
+        }
+        return false
+    }
+
+    /** Clase de una etiqueta de cuadrícula; la etiqueta vacía es un ejercicio. Null si la etiqueta no es ninguna conocida. */
+    private fun gridLabelKind(label: String): GridKind? {
+        val words = ExerciseMatchLexicon.normalize(label.replace(PARENTHESES, " "))
+            .split(' ')
+            .filter { word -> word.any { it.isLetter() } }
+        if (words.isEmpty()) return if (label.isBlank()) GridKind.EXERCISE else null
+        return when {
+            words.all { it in GRID_EXERCISE_WORDS } -> GridKind.EXERCISE
+            words.all { it in GRID_SCHEME_WORDS } && words.any { it in GRID_SCHEME_KEYS } -> GridKind.SCHEME
+            words.all { it in GRID_LOAD_WORDS } -> GridKind.LOAD
+            words.all { it in GRID_REST_WORDS } && words.any { it in GRID_REST_KEYS } -> GridKind.REST
+            words.all { it in GRID_NOTES_WORDS } -> GridKind.NOTES
+            else -> null
+        }
+    }
+
+    /**
+     * Una fila dentro de la cuadrícula abierta. Devuelve false si no es de la cuadrícula: entonces se cierra y la fila se
+     * lee como cualquier otra (cabecera de tabla, semana o texto).
+     */
+    private fun gridRow(builder: DraftBuilder, grid: Grid, cells: List<String>, row: RowContext): Boolean {
+        val labelIndex = cells.indices.firstOrNull { it < grid.firstDayColumn && cells[it].isNotEmpty() }
+        val label = labelIndex?.let { cells[it] }.orEmpty()
+        // Una etiqueta que no es de la cuadrícula (semana, cabecera, nombre de ejercicio sin etiqueta…) la cierra:
+        // esa fila se lee como cualquier otra, para no perder ejercicios en silencio.
+        val kind = gridLabelKind(label) ?: return false
+        if (kind == GridKind.LOAD) builder.noteLoadHeader(label)
+        for ((column, day) in grid.days) {
+            val cell = cells.getOrNull(column).orEmpty()
+            if (cell.isEmpty()) continue
+            when (kind) {
+                GridKind.EXERCISE -> addGridEntry(builder, grid, day, cell, row)
+                GridKind.SCHEME -> applyGridScheme(builder, grid, day, label, cell, row)
+                GridKind.LOAD -> applyGridLoad(builder, grid, day, cell, row)
+                GridKind.REST -> applyGridRest(builder, grid, day, label, cell, row)
+                GridKind.NOTES -> applyGridNotes(builder, grid, day, cell, row)
+            }
+        }
+        return true
+    }
+
+    /** Ejercicio nuevo de un día de la cuadrícula; la celda puede traer notación («Sentadilla 4x8»). */
+    private fun addGridEntry(builder: DraftBuilder, grid: Grid, day: DayDraft, cell: String, row: RowContext) {
+        val notation = parseNotation(cell)
+        val name = notation?.name ?: dropLinks(cell)
+        if (name.isBlank()) {
+            builder.inDay(day) { row.warn(ImportWarningKind.SKIPPED_ROW, "falta el nombre del ejercicio («$cell»)") }
+            return
+        }
+        if (countIfNotExercise(name, row)) return
+        val entry = GridEntry(day, row.where, name)
+        entry.cells += cell
+        if (notation != null) {
+            entry.sets = notation.sets
+            entry.repsMin = notation.repsMin
+            entry.repsMax = notation.repsMax
+            entry.amrap = notation.amrapReps
+            entry.load = notation.load
+            entry.percent = notation.percent
+            entry.rpe = notation.rpe
+            entry.rir = notation.rir
+            entry.rest = notation.rest
+            notation.notes?.let { entry.notes += it }
+            if (notation.load != null) row.noteLoad(notation.loadUnit)
+        }
+        grid.entries += entry
+    }
+
+    /** Fila «Series x Reps» (o «Series», «Reps»): notación o números para el último ejercicio del día. */
+    private fun applyGridScheme(
+        builder: DraftBuilder,
+        grid: Grid,
+        day: DayDraft,
+        label: String,
+        cell: String,
+        row: RowContext,
+    ) {
+        val entry = grid.lastEntryOf(day)
+        if (entry == null) {
+            missingGridName(builder, day, row)
+            return
+        }
+        entry.cells += cell
+        val words = ExerciseMatchLexicon.normalize(label).split(' ').toSet()
+        val hasSets = words.any { it in GRID_SETS_KEYS }
+        val hasReps = words.any { it in GRID_REPS_KEYS }
+        val notation = if (hasScheme(cell)) parseNotation(cell) else null
+        if (notation != null) {
+            notation.sets?.let { entry.sets = it }
+            notation.repsMin?.let { entry.repsMin = it }
+            notation.repsMax?.let { entry.repsMax = it }
+            notation.amrapReps?.let { entry.amrap = it }
+        } else if (hasSets && !hasReps) {
+            val sets = leadingInt(cell)
+            if (sets != null) entry.sets = sets else entry.unreadable += ("series" to cell)
+        } else if (hasReps && !hasSets) {
+            val reps = parseRange(cell)
+            if (reps != null) {
+                entry.repsMin = reps.first
+                entry.repsMax = reps.second
+            } else {
+                entry.unreadable += ("repeticiones" to cell)
+            }
+        } else {
+            entry.unreadable += ("series y repeticiones" to cell)
+        }
+    }
+
+    /** Fila «Peso» («Peso (kg)», «Carga», «Weight»): carga o porcentaje del último ejercicio del día. */
+    private fun applyGridLoad(builder: DraftBuilder, grid: Grid, day: DayDraft, cell: String, row: RowContext) {
+        val entry = grid.lastEntryOf(day)
+        if (entry == null) {
+            missingGridName(builder, day, row)
+            return
+        }
+        entry.cells += cell
+        if (cell.contains('%')) {
+            entry.percent = firstNumber(cell)
+            if (entry.percent == null) entry.unreadable += ("porcentaje" to cell)
+            return
+        }
+        val load = firstNumber(cell)
+        if (load == null) {
+            entry.unreadable += ("carga" to cell)
+        } else {
+            entry.load = load
+            row.noteLoad(unitMarkOf(cell))
+        }
+    }
+
+    /** Fila «Descanso»: el descanso del último ejercicio del día. */
+    private fun applyGridRest(
+        builder: DraftBuilder,
+        grid: Grid,
+        day: DayDraft,
+        label: String,
+        cell: String,
+        row: RowContext,
+    ) {
+        val entry = grid.lastEntryOf(day)
+        if (entry == null) {
+            missingGridName(builder, day, row)
+            return
+        }
+        entry.cells += cell
+        val rest = parseRest(cell, headerInMinutes = isMinutesHeader(label))
+        if (rest == null) entry.unreadable += ("descanso" to cell) else entry.rest = rest
+    }
+
+    /** Fila «Notas»: notas del último ejercicio del día. */
+    private fun applyGridNotes(builder: DraftBuilder, grid: Grid, day: DayDraft, cell: String, row: RowContext) {
+        val entry = grid.lastEntryOf(day)
+        if (entry == null) {
+            missingGridName(builder, day, row)
+            return
+        }
+        entry.cells += cell
+        entry.notes += cell
+    }
+
+    /** Valores de un día sin ejercicio al que pertenecer: se omiten con el aviso de fila sin nombre. */
+    private fun missingGridName(builder: DraftBuilder, day: DayDraft, row: RowContext) {
+        builder.inDay(day) { row.warn(ImportWarningKind.SKIPPED_ROW, "fila sin nombre de ejercicio; se omite") }
+    }
+
+    /**
+     * Cierra la cuadrícula: valida cada ejercicio con sus valores y lo añade a su día. Los valores que no se entendieron
+     * avisan con el ejercicio al que pertenecen; los ejercicios sin series ni repeticiones se omiten como siempre.
+     */
+    private fun closeGrid(builder: DraftBuilder, grid: Grid) {
+        for (entry in grid.entries) {
+            builder.inDay(entry.day) {
+                val row = RowContext(entry.where, entry.cells.joinToString(" · "), builder)
+                val notes = (entry.notes + listOfNotNull(amrapNote(entry.amrap))).joinToString(" ").takeIf { it.isNotEmpty() }
+                val exercise = validate(
+                    name = entry.name,
+                    sets = entry.sets,
+                    repsMin = entry.repsMin,
+                    repsMax = entry.repsMax,
+                    load = entry.load,
+                    percent = entry.percent,
+                    rpe = entry.rpe,
+                    rir = entry.rir,
+                    rest = entry.rest,
+                    notes = notes,
+                    row = row,
+                )
+                for ((label, cell) in entry.unreadable) {
+                    row.warn(ImportWarningKind.IGNORED_VALUE, "«$cell» no se entiende como $label; se ignora")
+                }
+                builder.endRow(exercise?.let { builder.addToDay(entry.day, it) })
+            }
+        }
+    }
+
+    // ---- Grupos con porcentaje (Sheiko, Smolov, 5/3/1) ------------------------------------------------------
+
+    /** Un grupo de series de una fila: «70%x3x2» son 2 series de 3 repeticiones al 70 %. */
+    private class PercentGroup(val name: String, val notes: String?, val percent: Double, val reps: Int, val sets: Int)
+
+    /** Un grupo encontrado en el texto: su posición y sus cifras. */
+    private class GroupSpan(val range: IntRange, val percent: Double, val reps: Int, val sets: Int)
+
+    /** «70%x3», «70% x 3 x 2», «70%×3×2»: porcentaje, repeticiones y, si hay, series. */
+    private val PERCENT_GROUP = Regex(
+        """(?<![\d.,])(\d{1,3}(?:[.,]\d+)?)\s*%\s*[x×]\s*(\d{1,2})(?!\d)(?:\s*[x×]\s*(\d{1,2})(?!\d))?""",
+        RegexOption.IGNORE_CASE,
+    )
+
+    /** «70/3» o «70/3/2» (porcentaje, repeticiones y series): solo cuenta si hay dos o más en la fila. */
+    private val SLASH_GROUP = Regex("""(?<![\d.,/])(\d{1,3})\s*/\s*(\d{1,2})(?!\d)(?:\s*/\s*(\d{1,2})(?!\d))?""")
+
+    /** Un grupo con cifras dentro de rango (porcentaje 30–110, repeticiones y series 1–12), o null. */
+    private fun groupOf(match: MatchResult): GroupSpan? {
+        val percent = match.groupValues[1].replace(',', '.').toDoubleOrNull() ?: return null
+        val reps = match.groupValues[2].toIntOrNull() ?: return null
+        val sets = match.groupValues[3].ifEmpty { "1" }.toIntOrNull() ?: return null
+        if (percent !in 30.0..110.0 || reps !in 1..12 || sets !in 1..12) return null
+        return GroupSpan(match.range, percent, reps, sets)
+    }
+
+    /**
+     * Grupos de una fila («Sentadilla 50%x5, 60%x4, 70%x3x2» o «50/5 60/4 70/3/2»), o null si no los hay. Con «%» basta
+     * un grupo; con barras, dos. Si la fila trae una notación normal («4x8» sin %), gana esa y no hay grupos.
+     */
+    private fun percentGroups(text: String): List<GroupSpan>? {
+        val withPercent = PERCENT_GROUP.findAll(text).mapNotNull { groupOf(it) }.toList()
+        val withSlash = SLASH_GROUP.findAll(text).mapNotNull { groupOf(it) }
+            .filter { span -> withPercent.none { overlaps(it.range, span.range) } }
+            .toList()
+        if (withPercent.isEmpty() && withSlash.size < 2) return null
+        val groups = (withPercent + withSlash).sortedBy { it.range.first }
+        return if (hasPlainScheme(text, groups)) null else groups
+    }
+
+    /** Una notación normal («4x8», «4 series de 6») fuera de los grupos: gana sobre ellos. */
+    private fun hasPlainScheme(text: String, groups: List<GroupSpan>): Boolean =
+        (SETS_BY_REPS.findAll(text) + SETS_OF_REPS.findAll(text))
+            .any { match -> groups.none { overlaps(it.range, match.range) } }
+
+    /** Un ejercicio por grupo: el nombre es el texto antes del primer grupo; lo de detrás, notas (como en la notación). */
+    private fun groupLine(text: String, spans: List<GroupSpan>, row: RowContext): Line? {
+        val first = spans.first().range.first
+        val before = StringBuilder()
+        val behind = StringBuilder()
+        text.forEachIndexed { index, char ->
+            if (spans.any { index in it.range }) return@forEachIndexed
+            if (index < first) before.append(char) else behind.append(char)
+        }
+        val beforeName = cleanName(before.toString())
+        val name = beforeName.ifEmpty { cleanName(behind.toString()) }
+        if (name.isBlank()) {
+            row.warn(ImportWarningKind.SKIPPED_ROW, "falta el nombre del ejercicio («$text»)")
+            return null
+        }
+        if (countIfNotExercise(name, row)) return null
+        val notes = if (beforeName.isEmpty()) null else cleanNotes(behind.toString()).takeIf { it.isNotEmpty() }
+        return Line.Groups(spans.map { PercentGroup(name, notes, it.percent, it.reps, it.sets) })
+    }
+
+    /** Un grupo de una fila con varios: un ejercicio con sus series, repeticiones y porcentaje. */
+    private fun addGroup(builder: DraftBuilder, group: PercentGroup, row: RowContext) {
+        val exercise = validate(
+            name = group.name,
+            sets = group.sets,
+            repsMin = group.reps,
+            repsMax = group.reps,
+            load = null,
+            percent = group.percent,
+            rpe = null,
+            rir = null,
+            rest = null,
+            notes = group.notes,
+            row = row,
+        )
+        builder.endRow(exercise?.let { builder.addExercise(it, row) })
+    }
+
+    // ---- Unidad de carga (kg o libras) y prosa con notación -------------------------------------------------
+
+    /** Kilos o libras: marca de unidad en un texto de carga («60kg», «135 lb», «Peso (kg)», «Weight (lb)»). */
+    private val KG_MARK = Regex("""(?<![a-z])(kgs?|kilos?|kilogramos?)(?![a-z])""")
+    private val LB_MARK = Regex("""(?<![a-z])(lbs?|libras?|pounds?)(?![a-z])""")
+
+    /** Unidad que dice un texto de carga; null si no dice ninguna. */
+    private fun unitMarkOf(text: String): ImportLoadUnit? {
+        val lower = ExerciseMatchLexicon.normalize(text)
+        return when {
+            KG_MARK.containsMatchIn(lower) -> ImportLoadUnit.KG
+            LB_MARK.containsMatchIn(lower) -> ImportLoadUnit.LB
+            else -> null
+        }
+    }
+
+    /** Unidad de un tramo de la notación de carga («kg», «kilos», «lb», «libras»…). */
+    private fun unitOfToken(token: String): ImportLoadUnit =
+        if (token.lowercase().startsWith("k")) ImportLoadUnit.KG else ImportLoadUnit.LB
+
+    /** Prosa con notación: lo que va antes de la notación tiene más de 6 palabras o más de 45 caracteres. */
+    private fun isLongLeadingText(leading: String): Boolean {
+        val text = leading.trim()
+        return text.split(WHITESPACE).count { it.isNotEmpty() } > 6 || text.length > 45
+    }
+
+    /** Celda de día de una tabla: un día o un texto corto que puede serlo; la prosa no abre día. */
+    private fun isTableDayCandidate(text: String): Boolean =
+        !isProse(text) && (isDayLabel(text) || isShortDayCandidate(text))
+
     // ---- Estado del análisis --------------------------------------------------------------------------------
 
     private sealed interface Line {
@@ -701,6 +1169,9 @@ object ProgramImportParser {
         /** Día en curso; [silent] si es solo un texto corto que puede no ser día (si sale vacío, no avisa). */
         data class Day(val name: String, val silent: Boolean) : Line
         data class Exercise(val exercise: ImportedExercise) : Line
+
+        /** Varios grupos con porcentaje de una misma fila: un ejercicio por grupo. */
+        data class Groups(val groups: List<PercentGroup>) : Line
     }
 
     /** Fila o línea en curso: dónde está y su texto original, para los avisos y el ejercicio que salga de ella. */
@@ -708,6 +1179,9 @@ object ProgramImportParser {
         fun warn(kind: ImportWarningKind, detail: String) = builder.warn(kind, where, source, "$where: $detail")
 
         fun count(noise: Noise) = builder.count(noise)
+
+        /** Carga con número de esta fila: [mark] es la unidad que lleva la celda, si la lleva. */
+        fun noteLoad(mark: ImportLoadUnit?) = builder.noteLoadValue(mark)
     }
 
     /** Día en curso. Su [id] se fija al cerrar el borrador, y solo si el día conserva ejercicios. */
@@ -751,6 +1225,69 @@ object ProgramImportParser {
         private var openDay: DayDraft? = null
         private var sheetFirstDay = 0
         var pendingDayName: String? = null
+
+        // Marcas de unidad de carga: cabeceras y valores con número, y cuántos llevan libras.
+        private var kgMarks = 0
+        private var lbHeaderMarks = 0
+        private var numericLoads = 0
+        private var lbLoads = 0
+
+        /** Cabecera de carga con su unidad («Peso (kg)», «Weight (lb)»). */
+        fun noteLoadHeader(text: String) {
+            when (unitMarkOf(text)) {
+                ImportLoadUnit.KG -> kgMarks++
+                ImportLoadUnit.LB -> lbHeaderMarks++
+                null -> Unit
+            }
+        }
+
+        /** Un valor de carga con número; [mark] es la unidad que lleva su celda, si la lleva. */
+        fun noteLoadValue(mark: ImportLoadUnit?) {
+            numericLoads++
+            when (mark) {
+                ImportLoadUnit.KG -> kgMarks++
+                ImportLoadUnit.LB -> lbLoads++
+                null -> Unit
+            }
+        }
+
+        /** Unidad del archivo: kilos si alguna marca dice kg; si no, libras con cabecera en lb o con la mitad de cargas en lb. */
+        fun decideLoadUnit(): ImportLoadUnit = when {
+            kgMarks > 0 -> ImportLoadUnit.KG
+            lbHeaderMarks > 0 -> ImportLoadUnit.LB
+            numericLoads > 0 && lbLoads * 2 >= numericLoads -> ImportLoadUnit.LB
+            else -> ImportLoadUnit.KG
+        }
+
+        /** Ejecuta [block] como si la fila estuviera en [day]: sus avisos llevan esa semana y ese día. */
+        fun <T> inDay(day: DayDraft, block: () -> T): T {
+            val savedDay = openDay
+            val savedWeek = week
+            openDay = day
+            week = day.week
+            try {
+                return block()
+            } finally {
+                openDay = savedDay
+                week = savedWeek
+            }
+        }
+
+        /** Días de una cuadrícula: uno por columna con día, con el nombre de su cabecera. */
+        fun openGridDays(columns: List<Pair<Int, String>>, row: RowContext): List<Pair<Int, DayDraft>> =
+            columns.map { (column, name) ->
+                column to DayDraft(week, name, row.where, row.source, silent = false).also { days += it }
+            }
+
+        fun addToDay(day: DayDraft, exercise: ImportedExercise): ExerciseDraft =
+            ExerciseDraft(day, exercise).also { day.exercises += it }
+
+        /** Día de la columna de día de una tabla: si ya está abierto con ese nombre, la fila sigue en él. */
+        fun openTableDay(name: String, row: RowContext) {
+            val open = openDay
+            if (open != null && ExerciseMatchLexicon.normalize(open.name) == ExerciseMatchLexicon.normalize(name)) return
+            startDay(name, silent = false, row)
+        }
 
         /** Aviso de la fila en curso: lleva la semana y el día que estaban abiertos al leerla. */
         fun warn(kind: ImportWarningKind, where: String, sourceText: String, message: String) {
@@ -882,6 +1419,7 @@ object ProgramImportParser {
             return ImportedProgramDraft(
                 title = title.trim(),
                 weeks = weeks,
+                loadUnit = decideLoadUnit(),
                 warnings = warnings.mapIndexed { index, pending ->
                     ImportWarning(
                         id = "a${index + 1}",

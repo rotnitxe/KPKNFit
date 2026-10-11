@@ -13,7 +13,7 @@ import kotlinx.serialization.json.JsonTransformingSerializer
  * Programa leído de un archivo o de texto pegado, antes de emparejar ejercicios y repartir días. [warnings] recoge
  * lo que el analizador no entendió, con su tipo, semana y día, para revisarlo en la vista previa. [reviewedWarnings]
  * guarda los ids de los avisos ya resueltos o ignorados. [nextId] es el siguiente número para los ids que crea el
- * editor (`x<n>`), único dentro del borrador.
+ * editor (`x<n>`), único dentro del borrador. [loadUnit] dice si las cargas del archivo van en kg o en libras.
  * Serializable: el borrador del alta lo guarda mientras la persona revisa el programa. Los borradores guardados antes
  * de los ids y de los avisos estructurados siguen leyéndose (ver [ImportWarningListSerializer] e `ImportDraftEditor.withIds`).
  */
@@ -25,6 +25,8 @@ data class ImportedProgramDraft(
     val warnings: List<ImportWarning> = emptyList(),
     val reviewedWarnings: Set<String> = emptySet(),
     val nextId: Int = 1,
+    /** Unidad de las cargas: [ImportedExercise.loadKg] va en esta unidad hasta el constructor. Los borradores antiguos son kg. */
+    val loadUnit: ImportLoadUnit = ImportLoadUnit.KG,
 ) {
     /** Solo los textos de los avisos, para la vista previa de hoy. */
     val warningMessages: List<String> get() = warnings.map { it.message }
@@ -49,7 +51,8 @@ data class ImportedDay(
 )
 
 /**
- * Un ejercicio con su prescripción tal como se leyó. Series y repeticiones son obligatorias; carga (kg), % de 1RM,
+ * Un ejercicio con su prescripción tal como se leyó. Series y repeticiones son obligatorias; carga (en la unidad del
+ * borrador, kg o libras), % de 1RM,
  * RPE, RIR, descanso (segundos) y notas son opcionales. [sourceText] es el texto original de la fila o línea. El [id]
  * está vacío solo en borradores guardados antes de los ids.
  */
@@ -68,6 +71,10 @@ data class ImportedExercise(
     val notes: String? = null,
     val sourceText: String? = null,
 )
+
+/** Unidad de las cargas del archivo: kilos (por defecto) o libras. */
+@Serializable
+enum class ImportLoadUnit { KG, LB }
 
 /** Tipo de aviso del análisis. */
 @Serializable
