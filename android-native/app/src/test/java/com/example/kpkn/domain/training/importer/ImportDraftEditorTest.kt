@@ -140,7 +140,7 @@ class ImportDraftEditorTest {
     @Test
     fun `un valor fuera de rango se descarta y el ejercicio queda igual`() {
         val patch = ImportExercisePatch(
-            sets = Change.Set(13),
+            sets = Change.Set(21),
             repsMin = Change.Set(0),
             loadKg = Change.Set(0.1),
             percent1Rm = Change.Set(101.0),
@@ -237,7 +237,7 @@ class ImportDraftEditorTest {
         assertEquals(10, exercises[0].repsMax)
         assertEquals(2, added.nextId)
 
-        assertSame(draft, ImportDraftEditor.add(draft, "w1-d2", 0, "Fondos", 13, 8, 10))
+        assertSame(draft, ImportDraftEditor.add(draft, "w1-d2", 0, "Fondos", 21, 8, 10))
         assertSame(draft, ImportDraftEditor.add(draft, "w1-d2", 0, "Fondos", 3, 10, 8))
         assertSame(draft, ImportDraftEditor.add(draft, "w1-d2", 0, "  ", 3, 8, 10))
     }
@@ -376,7 +376,7 @@ class ImportDraftEditorTest {
 
     @Test
     fun `addFromWarning con valores fuera de rango no hace nada`() {
-        assertSame(draft, ImportDraftEditor.addFromWarning(draft, "a1", "Remo", 13, 8, 10))
+        assertSame(draft, ImportDraftEditor.addFromWarning(draft, "a1", "Remo", 21, 8, 10))
     }
 
     // ---- Ids inexistentes ----------------------------------------------------------------------------------
@@ -400,6 +400,43 @@ class ImportDraftEditorTest {
         assertSame(draft, ImportDraftEditor.duplicateWeek(draft, 99))
         assertSame(draft, ImportDraftEditor.ignoreWarning(draft, "zz"))
         assertSame(draft, ImportDraftEditor.addFromWarning(draft, "zz", "X", 3, 8, 8))
+    }
+
+    @Test
+    fun `las series van de 1 a 20 como al leer, 15 se aceptan y 21 no`() {
+        val accepted = ImportDraftEditor.update(draft, "w1-d1-e1", ImportExercisePatch(sets = Change.Set(15)))
+        assertEquals(15, accepted.weeks[0].days[0].exercises[0].sets)
+
+        val rejected = ImportDraftEditor.update(draft, "w1-d1-e1", ImportExercisePatch(sets = Change.Set(21)))
+        assertEquals(4, rejected.weeks[0].days[0].exercises[0].sets)
+    }
+
+    @Test
+    fun `rename con allWeeks renombra el mismo ejercicio de las tres semanas y no toca otro dia`() {
+        val renamed = ImportDraftEditor.rename(draft, "w1-d1-e1", "Sentadilla trasera", allWeeks = true)
+
+        assertEquals("Sentadilla trasera", renamed.weeks[0].days[0].exercises[0].rawName)
+        assertEquals("Sentadilla trasera", renamed.weeks[1].days[0].exercises[0].rawName)
+        assertEquals("Sentadilla trasera", renamed.weeks[2].days[0].exercises[0].rawName)
+        assertEquals(draft.weeks[0].days[1], renamed.weeks[0].days[1])
+    }
+
+    @Test
+    fun `rename con allWeeks no renombra un nombre que no esta en otra semana`() {
+        // «Peso muerto» solo está en la semana 1: con allWeeks solo cambia ahí.
+        val renamed = ImportDraftEditor.rename(draft, "w1-d1-e2", "Peso muerto rumano", allWeeks = true)
+
+        assertEquals("Peso muerto rumano", renamed.weeks[0].days[0].exercises[1].rawName)
+        assertEquals(draft.weeks[1], renamed.weeks[1])
+        assertEquals(draft.weeks[2], renamed.weeks[2])
+    }
+
+    @Test
+    fun `sameExerciseInOtherWeeks cuenta las otras semanas con el mismo ejercicio en el mismo dia`() {
+        // Sentadilla está en las tres semanas, en el primer día; Press banca en dos: en la tercera hay Fondos.
+        assertEquals(2, ImportDraftEditor.sameExerciseInOtherWeeks(draft, "w1-d1-e1"))
+        assertEquals(1, ImportDraftEditor.sameExerciseInOtherWeeks(draft, "w1-d2-e1"))
+        assertEquals(0, ImportDraftEditor.sameExerciseInOtherWeeks(draft, "nope"))
     }
 
     private fun allIds(draft: ImportedProgramDraft): List<String> =
