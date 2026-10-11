@@ -75,14 +75,18 @@ object ProgramImportParser {
             if (filled.isEmpty()) return@forEachIndexed
             val context = RowContext(where(index), filled.joinToString(" · "), builder)
 
-            // Una fila con tres o más días es la cabecera de una cuadrícula: cada columna con día es un día.
+            // Una fila con tres o más días puede ser la cabecera de una cuadrícula: cada columna con día es un día.
+            // Solo abre cuadrícula si más abajo hay filas de series o de peso; si no, es una fila normal.
             val gridDays = gridDayColumns(cells)
             if (gridDays.size >= GRID_MIN_DAYS) {
                 grid?.let { closeGrid(builder, it) }
-                grid = Grid(builder.openGridDays(gridDays, context))
-                columns = null
-                builder.endRow(null)
-                return@forEachIndexed
+                grid = null
+                if (gridConfirmed(rows, index, gridDays.first().first)) {
+                    grid = Grid(builder.openGridDays(gridDays, context))
+                    columns = null
+                    builder.endRow(null)
+                    return@forEachIndexed
+                }
             }
             val activeGrid = grid
             if (activeGrid != null) {
@@ -775,6 +779,9 @@ object ProgramImportParser {
     /** Una cuadrícula empieza con una fila de tres o más columnas con día. */
     private const val GRID_MIN_DAYS = 3
 
+    /** Hasta cuántas filas más abajo se busca la etiqueta que confirma una cuadrícula. */
+    private const val GRID_LOOKAHEAD_ROWS = 30
+
     private val GRID_EXERCISE_WORDS = setOf("ejercicio", "ejercicios", "exercise", "exercises")
     private val GRID_SETS_KEYS = setOf("series", "serie", "sets", "set")
     private val GRID_REPS_KEYS = setOf("reps", "rep", "repeticiones", "repeticion")
@@ -830,6 +837,22 @@ object ProgramImportParser {
             }
         }
 
+    /**
+     * Una cabecera de días abre cuadrícula solo si, unas filas más abajo, hay una etiqueta de series («Series x Reps») o de
+     * peso en su columna, antes de la primera columna de día. Otra cabecera de días antes decide por sí misma.
+     */
+    private fun gridConfirmed(rows: List<List<String>>, headerIndex: Int, firstDayColumn: Int): Boolean {
+        val end = minOf(rows.size, headerIndex + GRID_LOOKAHEAD_ROWS)
+        for (j in headerIndex + 1 until end) {
+            val cells = rows[j].map { it.trim() }
+            if (gridDayColumns(cells).size >= GRID_MIN_DAYS) return false
+            val label = cells.indices.firstOrNull { it < firstDayColumn && cells[it].isNotEmpty() }?.let { cells[it] } ?: continue
+            val kind = gridLabelKind(label)
+            if (kind == GridKind.SCHEME || kind == GridKind.LOAD) return true
+        }
+        return false
+    }
+
     /** Clase de una etiqueta de cuadrícula; la etiqueta vacía es un ejercicio. Null si la etiqueta no es ninguna conocida. */
     private fun gridLabelKind(label: String): GridKind? {
         val words = ExerciseMatchLexicon.normalize(label.replace(PARENTHESES, " "))
@@ -853,13 +876,9 @@ object ProgramImportParser {
     private fun gridRow(builder: DraftBuilder, grid: Grid, cells: List<String>, row: RowContext): Boolean {
         val labelIndex = cells.indices.firstOrNull { it < grid.firstDayColumn && cells[it].isNotEmpty() }
         val label = labelIndex?.let { cells[it] }.orEmpty()
-        val kind = gridLabelKind(label)
-        if (kind == null) {
-            if (weekNumber(label) != null || detectColumns(cells) != null) return false
-            // Una etiqueta que no es de la cuadrícula: prosa o etiqueta de cálculo, se cuenta por hoja.
-            row.count(if (isProse(label)) Noise.TEXT else Noise.LABEL)
-            return true
-        }
+        // Una etiqueta que no es de la cuadrícula (semana, cabecera, nombre de ejercicio sin etiqueta…) la cierra:
+        // esa fila se lee como cualquier otra, para no perder ejercicios en silencio.
+        val kind = gridLabelKind(label) ?: return false
         if (kind == GridKind.LOAD) builder.noteLoadHeader(label)
         for ((column, day) in grid.days) {
             val cell = cells.getOrNull(column).orEmpty()
