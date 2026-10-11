@@ -29,6 +29,8 @@ object ProgramImportParser {
     fun parseSheets(sheets: List<ImportSheet>, title: String): ImportedProgramDraft {
         val builder = DraftBuilder()
         for (sheet in sheets) {
+            // Las notas de la hoja (p. ej. la lectura por OCR) van primero y salen también si la hoja se omite.
+            for (note in sheet.notes) builder.addNote("Hoja «${sheet.name}»", note)
             if (isInstructionOrCalcSheet(sheet.name)) {
                 builder.noteOmittedSheet(sheet.name)
                 continue
@@ -788,7 +790,8 @@ object ProgramImportParser {
             addNote("Hoja «$name»", "Se omitió la hoja «$name»: parece de instrucciones o de cálculo.")
         }
 
-        private fun addNote(location: String, message: String) {
+        /** Aviso informativo de una hoja: recuentos, hojas omitidas o notas de una lectura (p. ej. OCR). */
+        fun addNote(location: String, message: String) {
             warnings += PendingWarning(
                 kind = ImportWarningKind.SHEET_NOTE,
                 location = location,

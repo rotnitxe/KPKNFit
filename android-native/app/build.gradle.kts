@@ -236,6 +236,7 @@ dependencies {
     implementation("androidx.media3:media3-ui:1.5.1")
     // Bundled base pose model; applies to both healthConnect flavors (base + health).
     implementation("com.google.mlkit:pose-detection:18.0.0-beta5")
+    implementation("com.google.mlkit:text-recognition:16.0.1")
     implementation(libs.vosk.android)
     ksp(libs.androidx.room.compiler)
     testImplementation(libs.junit)
