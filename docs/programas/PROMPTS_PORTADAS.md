@@ -640,7 +640,7 @@ A monastery courtyard with arched cloisters of worn stone and a single stone pat
 
 Por qué: Distinta de las demás de columna por el claustro monástico y la sentadilla por encima de la cabeza.
 
-### Camino al pico · `generated:powerlifting:periodized`
+### Camino a la gloria · `generated:powerlifting:periodized`
 
 Archivo: cover_generated_powerlifting_periodized.webp
 
