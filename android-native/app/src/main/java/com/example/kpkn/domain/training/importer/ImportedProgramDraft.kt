@@ -83,6 +83,12 @@ enum class ImportWarningKind {
 
     /** No salió ningún ejercicio. */
     NOTHING_FOUND,
+
+    /**
+     * Aviso informativo de una hoja entera (omitida por su nombre) o un recuento por hoja: líneas de texto, series de
+     * calentamiento o filas de cálculo y de etiquetas. Lleva la ubicación «Hoja «X»» y no lleva día ni ejercicio.
+     */
+    SHEET_NOTE,
 }
 
 /**

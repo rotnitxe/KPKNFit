@@ -221,14 +221,16 @@ class ProgramImportParserTest {
         assertUniqueIds(draft)
 
         assertEquals(listOf("Sentadilla"), draft.weeks.single().days.single().exercises.map { it.rawName })
+        // «@@@ ###» no tiene letras: es una fila de etiquetas que se cuenta por hoja, no un ejercicio con cero series.
         assertEquals(
             listOf(
                 "Línea 3: no se entiende «Hacer 3 vueltas de cada una»",
-                "Línea 4: «@@@ ###» tiene 0 series, fuera de rango; se omite",
+                "Texto pegado: se omitió 1 fila de cálculo o de etiquetas.",
             ),
             draft.warningMessages,
         )
-        assertEquals(listOf("w1-d1", "w1-d1"), draft.warnings.map { it.dayId })
+        assertEquals(listOf(ImportWarningKind.SKIPPED_ROW, ImportWarningKind.SHEET_NOTE), draft.warnings.map { it.kind })
+        assertEquals(listOf("w1-d1", null), draft.warnings.map { it.dayId })
     }
 
     @Test
