@@ -9,6 +9,7 @@ import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.models.MovementPatternReadiness
 import com.example.kpkn.data.models.RecoveryStatus
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -178,7 +179,7 @@ class ExerciseReadinessEngineTest {
         assertTrue(coaching?.detail?.contains("press banca") == true)
         assertTrue(coaching?.detail?.contains("100% de las series") == true)
         assertTrue(coaching?.detail?.contains("Sigue el plan tal cual") == true)
-        assertTrue(coaching?.detail?.contains("y tus pectorales están al 90% de recuperación") == true)
+        assertTrue(coaching?.detail?.contains("y la recuperación de pectorales está al 90%") == true)
     }
 
     @Test
@@ -315,5 +316,29 @@ class ExerciseReadinessEngineTest {
         assertTrue(coaching?.detail?.contains("calentamiento extra") == true)
         assertTrue(coaching?.detail?.contains("60%") == true)
         assertTrue(coaching?.detail?.contains("baja ~10%") == true)
+        assertTrue(coaching?.detail?.contains("La recuperación de cuádriceps está al 60%.") == true)
+    }
+
+    @Test
+    fun `coaching con un solo musculo no concuerda en plural`() {
+        val green = ExerciseReadinessEngine.buildPatternCoaching(
+            patternReadiness = listOf(pattern("Empuje", totalSets = 6, score = 88, muscles = listOf("Pecho"))),
+            exerciseReadinessMap = mapOf("ex1" to exerciseReadiness("ex1", "Press Banca", "Empuje", 88)),
+            sessionExercises = listOf(sessionExercise("ex1", "Press Banca", 6)),
+            perMuscle = muscleRecovery("Pecho" to 90),
+        )
+        val amber = ExerciseReadinessEngine.buildPatternCoaching(
+            patternReadiness = listOf(pattern("Empuje", totalSets = 4, score = 62, muscles = listOf("Pecho"))),
+            exerciseReadinessMap = mapOf("ex1" to exerciseReadiness("ex1", "Press Banca", "Empuje", 62)),
+            sessionExercises = listOf(sessionExercise("ex1", "Press Banca", 4)),
+            perMuscle = muscleRecovery("Pecho" to 60),
+        )
+        assertTrue(green?.detail?.contains("y la recuperación de pecho está al 90%") == true)
+        assertTrue(amber?.detail?.contains("La recuperación de pecho está al 60%.") == true)
+        listOf(green, amber).forEach { coaching ->
+            val text = "${coaching?.headline} ${coaching?.detail}"
+            assertFalse(text.contains("tus pecho"))
+            assertFalse(text.contains("Tus pecho"))
+        }
     }
 }
