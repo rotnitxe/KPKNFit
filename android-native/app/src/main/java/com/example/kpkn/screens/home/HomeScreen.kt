@@ -254,6 +254,7 @@ fun HomeScreen(
             onNavigateToProfile = onNavigateToProfile,
             hazeState = rootHazeState,
             onBottomPositionChanged = { headerBottomY = it },
+            ringsCoverage = augeSnapshot.coverage ?: com.example.kpkn.domain.onboarding.RingsCoverage.NO_DATA,
         )
     }
     val latestHeaderOverlayChange by rememberUpdatedState(onHeaderOverlayChange)
@@ -746,6 +747,7 @@ private fun HomeTopBar(
     onNavigateToProfile: () -> Unit,
     hazeState: HazeState,
     onBottomPositionChanged: (Float) -> Unit,
+    ringsCoverage: com.example.kpkn.domain.onboarding.RingsCoverage = com.example.kpkn.domain.onboarding.RingsCoverage.NO_DATA,
 ) {
     Box(
         modifier = modifier
@@ -856,6 +858,7 @@ private fun HomeTopBar(
                             sncProgress = sncProgress,
                             columnaProgress = columnaProgress,
                             hasActiveProgram = hasPrograms,
+                            coverage = ringsCoverage,
                             modifier = Modifier.graphicsLayer { alpha = ringsAlpha; translationY = ringsSlide },
                         )
                         MiniNutritionCard(
@@ -881,9 +884,16 @@ private fun MiniRingsWidget(
     columnaProgress: Float,
     modifier: Modifier = Modifier,
     hasActiveProgram: Boolean = true,
+    coverage: com.example.kpkn.domain.onboarding.RingsCoverage = com.example.kpkn.domain.onboarding.RingsCoverage.NO_DATA,
 ) {
-    val progressValues = listOf(muscularProgress, sncProgress, columnaProgress)
-    fun percent(i: Int): Int? = if (hasActiveProgram) (progressValues[i] * 100).toInt().coerceIn(0, 100) else null
+    val channels = listOf(RecoveryChannelId.MUSCULAR, RecoveryChannelId.SYSTEM, RecoveryChannelId.STRUCTURE)
+    val allProgress = listOf(muscularProgress, sncProgress, columnaProgress)
+    // Sin datos el canal queda sin calibrar (pista discontinua), sin afirmar un valor.
+    fun percent(i: Int): Int? = if (coverage.channel(channels[i]).hasData) {
+        (allProgress[i] * 100).toInt().coerceIn(0, 100)
+    } else {
+        null
+    }
     KpknTowerRings(
         values = TowerRingValues(columna = percent(2), musculos = percent(0), energia = percent(1)),
         modifier = modifier.fillMaxWidth().height(40.dp).alpha(if (hasActiveProgram) 1f else 0.5f),
