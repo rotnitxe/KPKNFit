@@ -78,6 +78,10 @@ class ImportExerciseAliasesTest {
             "Pause squat" to "paused_back_squat",
             "Deficit deadlift" to "hams_peso_muerto_convencional_deficit",
             "Dips" to "tren_superior_fondos",
+            "Hyperextension" to "back_extension_lumbar",
+            "Hypers" to "back_extension_lumbar",
+            "Back Hyperextension" to "back_extension_lumbar",
+            "Goblet squat" to "quads_sentadilla_copa",
         )
         for ((phrase, definitionId) in expected) {
             assertEquals("«$phrase»", definitionId, ImportExerciseAliases.lookup(phrase)?.definitionId)
@@ -89,5 +93,13 @@ class ImportExerciseAliasesTest {
         assertNull(ImportExerciseAliases.lookup("BB"))
         assertNull(ImportExerciseAliases.lookup("DB"))
         assertNull(ImportExerciseAliases.lookup("EZ"))
+    }
+
+    @Test
+    fun `press con mancuernas no elige alias y el press militar con mancuernas si`() {
+        assertNull(ImportExerciseAliases.lookup("Dumbbell Press"))
+        assertNull(ImportExerciseAliases.lookup("DB Press"))
+        assertNull(ImportExerciseAliases.lookup("Press con mancuernas"))
+        assertEquals("military_press", ImportExerciseAliases.lookup("Press militar con mancuernas")?.definitionId)
     }
 }

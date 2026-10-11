@@ -148,6 +148,30 @@ class ExerciseNameMatcherTest {
         assertFalse(matcher.match("11 2").isConfident)
     }
 
+    @Test
+    fun `hyperextension e hypers van a la hiperextension de espalda baja y son confiables`() {
+        val match = matcher.match("Hyperextension")
+
+        assertEquals("back_extension_lumbar__default", match.best?.configurationId)
+        assertTrue(match.isConfident)
+        assertEquals("back_extension_lumbar__default", matcher.match("Hypers").best?.configurationId)
+    }
+
+    @Test
+    fun `goblet squat va a la sentadilla copa y es confiable`() {
+        val match = matcher.match("Goblet Squat")
+
+        assertEquals("quads_sentadilla_copa__default", match.best?.configurationId)
+        assertTrue(match.isConfident)
+    }
+
+    @Test
+    fun `press con mancuernas sin alias no sale confiable`() {
+        assertFalse(matcher.match("Dumbbell Press").isConfident)
+        assertFalse(matcher.match("DB Press").isConfident)
+        assertFalse(matcher.match("Press con mancuernas").isConfident)
+    }
+
     private fun loadCatalog(): ExerciseCatalogV2 {
         val file = listOf(
             File("src/main/assets/exercise_catalog_v2.json"),

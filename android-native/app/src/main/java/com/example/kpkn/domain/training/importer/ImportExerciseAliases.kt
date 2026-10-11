@@ -28,6 +28,12 @@ internal val IMPORT_STOP_WORDS: Set<String> = setOf(
  */
 internal object ImportExerciseAliases {
 
+    /**
+     * «Press» con material de mancuerna es banca o de hombros según la hoja: no elige alias y sale «Elegir».
+     * Sin esta regla, «Dumbbell Press» llegaría a Press Militar por la clave sin material («press»).
+     */
+    private val AMBIGUOUS_PRESS_MATERIALS: Set<String> = setOf("dumbbell", "dumbbells", "db", "mancuerna", "mancuernas")
+
     /** Frase tal como aparece en las hojas → alias. Sin tildes ni mayúsculas: se normaliza al usarla. */
     val entries: List<Pair<String, ImportExerciseAlias>> = listOf(
         // Sentadillas y variantes
@@ -94,6 +100,7 @@ internal object ImportExerciseAliases {
         "sentadilla bulgara somersault" to alias("quads_sentadilla_bulgara_somersault"),
         "sentadilla anderson" to alias("quads_sentadilla_anderson"),
         "sq" to alias("high_bar_back_squat"),
+        "goblet squat" to alias("quads_sentadilla_copa"),
         "bb squat" to withEquipment("high_bar_back_squat", "barbell"),
 
         // Press de banca y variantes
@@ -105,8 +112,6 @@ internal object ImportExerciseAliases {
         "flat bench press" to alias("bench_press"),
         "bb bench" to withEquipment("bench_press", "barbell"),
         "db bench" to withEquipment("bench_press", "dumbbells"),
-        "dumbbell press" to withEquipment("bench_press", "dumbbells"),
-        "db press" to withEquipment("bench_press", "dumbbells"),
         "incline bench press" to alias("incline_bench_press"),
         "press de banca inclinado" to alias("incline_bench_press"),
         "press inclinado" to alias("incline_bench_press"),
@@ -209,6 +214,12 @@ internal object ImportExerciseAliases {
         "reverse hyperextension" to alias("reverse_hyper"),
         "back extension" to alias("back_extension_lumbar"),
         "hiperextension de espalda baja" to alias("back_extension_lumbar"),
+        // «Hyperextensions» y las formas con guion caen en estas mismas claves (plural y normalización).
+        "hyperextension" to alias("back_extension_lumbar"),
+        "hypers" to alias("back_extension_lumbar"),
+        "back hyperextension" to alias("back_extension_lumbar"),
+        "hyper extension" to alias("back_extension_lumbar"),
+        "back hyper extension" to alias("back_extension_lumbar"),
         "45 degree back extension" to alias("glutes_hiperextension_45"),
         "hiperextension 45" to alias("glutes_hiperextension_45"),
         "pull through" to alias("hams_pull_through"),
@@ -581,7 +592,10 @@ internal object ImportExerciseAliases {
     fun lookup(name: String): ImportExerciseAlias? {
         byKey[fullKey(name)]?.let { return it }
         val core = coreKey(name)
-        return if (core.isEmpty()) null else byKey[core]
+        if (core.isEmpty()) return null
+        // «press» con mancuernas: banca o de hombros según la hoja; sin alias, sale «Elegir».
+        if (core == "press" && words(name).any { it in AMBIGUOUS_PRESS_MATERIALS }) return null
+        return byKey[core]
     }
 
     private val byKey: Map<String, ImportExerciseAlias> =
