@@ -178,6 +178,7 @@ class ExerciseReadinessEngineTest {
         assertTrue(coaching?.detail?.contains("press banca") == true)
         assertTrue(coaching?.detail?.contains("100% de las series") == true)
         assertTrue(coaching?.detail?.contains("Sigue el plan tal cual") == true)
+        assertTrue(coaching?.detail?.contains("y tus pectorales están al 90% de recuperación") == true)
     }
 
     @Test
@@ -280,6 +281,18 @@ class ExerciseReadinessEngineTest {
         assertEquals(CoachingTone.RED, coaching?.tone)
         assertTrue(coaching?.headline?.contains("columna") == true)
         assertTrue(coaching?.detail?.contains("baja 15-20% las cargas en peso muerto rumano") == true)
+    }
+
+    @Test
+    fun `coaching red muscle headline names the muscle without a gendered adjective`() {
+        val coaching = ExerciseReadinessEngine.buildPatternCoaching(
+            patternReadiness = listOf(pattern("Empuje", totalSets = 5, score = 40, muscles = listOf("Pectorales"))),
+            exerciseReadinessMap = mapOf("ex1" to exerciseReadiness("ex1", "Press Banca", "Empuje", 40)),
+            sessionExercises = listOf(sessionExercise("ex1", "Press Banca", 5)),
+            perMuscle = muscleRecovery("Pectorales" to 40),
+        )
+        assertEquals(CoachingTone.RED, coaching?.tone)
+        assertEquals("Tu recuperación de pectorales no está del todo completa para tus presses.", coaching?.headline)
     }
 
     @Test

@@ -507,7 +507,7 @@ object ExerciseReadinessEngine {
                     append("El grueso de tu sesión ($sharePercent% de las series) va por $exercisePhrase")
                     if (muscleScores.isNotEmpty()) {
                         val names = freshest.joinToString(" y ") { it.first.lowercase() }
-                        append(" y tus $names vienen frescos ($avgMuscleScore%)")
+                        append(" y tus $names están al $avgMuscleScore% de recuperación")
                     }
                     append(".")
                     append(secondaryLine)
@@ -542,8 +542,8 @@ object ExerciseReadinessEngine {
                         detail = loadGuidance + secondaryLine
                     }
                     muscleLow -> {
-                        headline = "Tus ${leastFresh.first.lowercase()} no están del todo " +
-                            "recuperados para tus $plural."
+                        headline = "Tu recuperación de ${leastFresh.first.lowercase()} no está del todo " +
+                            "completa para tus $plural."
                         detail = loadGuidance + secondaryLine
                     }
                     else -> {

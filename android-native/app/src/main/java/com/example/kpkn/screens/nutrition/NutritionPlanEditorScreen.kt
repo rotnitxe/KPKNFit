@@ -2,6 +2,8 @@ package com.example.kpkn.screens.nutrition
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -206,10 +208,14 @@ private fun EditorSectionCard(title: String, content: @Composable () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun DirectionSection(state: NutritionPlanEditorUiState, viewModel: NutritionPlanEditorViewModel) {
     Text("Dirección", style = MaterialTheme.typography.labelMedium)
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         listOf(
             PlanDirection.DEFICIT to "Déficit",
             PlanDirection.MAINTENANCE to "Mantenimiento",
@@ -219,12 +225,15 @@ private fun DirectionSection(state: NutritionPlanEditorUiState, viewModel: Nutri
             FilterChip(
                 selected = state.draft.direction == direction,
                 onClick = { viewModel.setDirection(direction) },
-                label = { Text(label) },
+                label = { Text(label, maxLines = 1, softWrap = false) },
             )
         }
     }
     Text("Meta", style = MaterialTheme.typography.labelMedium)
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         listOf(
             GoalMetric.WEIGHT to "Peso",
             GoalMetric.BODY_FAT to "% grasa",
@@ -233,7 +242,7 @@ private fun DirectionSection(state: NutritionPlanEditorUiState, viewModel: Nutri
             FilterChip(
                 selected = state.draft.goalMetric == metric,
                 onClick = { viewModel.setGoalMetric(metric) },
-                label = { Text(label) },
+                label = { Text(label, maxLines = 1, softWrap = false) },
             )
         }
     }
@@ -246,6 +255,7 @@ private fun DirectionSection(state: NutritionPlanEditorUiState, viewModel: Nutri
     )
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun CalculationDataSection(state: NutritionPlanEditorUiState, viewModel: NutritionPlanEditorViewModel) {
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -273,12 +283,22 @@ private fun CalculationDataSection(state: NutritionPlanEditorUiState, viewModel:
     )
     // La ecuación usa el entorno hormonal, no la identidad: femenina, masculina o el promedio de ambas.
     Text("Ecuación de cálculo", style = MaterialTheme.typography.labelMedium)
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         EerSex.entries.forEach { sex ->
             FilterChip(
                 selected = state.draft.equationSex == sex,
                 onClick = { viewModel.setEquationSex(sex) },
-                label = { Text(equationSexLabel(sex), style = MaterialTheme.typography.labelSmall) },
+                label = {
+                    Text(
+                        equationSexLabel(sex),
+                        style = MaterialTheme.typography.labelSmall,
+                        maxLines = 1,
+                        softWrap = false,
+                    )
+                },
             )
         }
     }
@@ -290,12 +310,22 @@ private fun CalculationDataSection(state: NutritionPlanEditorUiState, viewModel:
         )
     }
     Text("Actividad", style = MaterialTheme.typography.labelMedium)
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         EerActivity.entries.forEach { activity ->
             FilterChip(
                 selected = state.draft.activity == activity,
                 onClick = { viewModel.setActivity(activity) },
-                label = { Text(activityLabel(activity), style = MaterialTheme.typography.labelSmall) },
+                label = {
+                    Text(
+                        activityLabel(activity),
+                        style = MaterialTheme.typography.labelSmall,
+                        maxLines = 1,
+                        softWrap = false,
+                    )
+                },
             )
         }
     }
@@ -366,21 +396,25 @@ private fun MacroField(
     )
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun WeeklyDistributionSection(
     state: NutritionPlanEditorUiState,
     viewModel: NutritionPlanEditorViewModel,
 ) {
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         FilterChip(
             selected = state.draft.weeklyDistribution == NutritionWeeklyDistributionMode.VARIABLE,
             onClick = { viewModel.setWeeklyDistribution(NutritionWeeklyDistributionMode.VARIABLE) },
-            label = { Text("Según gasto previsto") },
+            label = { Text("Según gasto previsto", maxLines = 1, softWrap = false) },
         )
         FilterChip(
             selected = state.draft.weeklyDistribution == NutritionWeeklyDistributionMode.UNIFORM,
             onClick = { viewModel.setWeeklyDistribution(NutritionWeeklyDistributionMode.UNIFORM) },
-            label = { Text("Uniforme") },
+            label = { Text("Uniforme", maxLines = 1, softWrap = false) },
         )
     }
     if (state.weeklyTargets.isEmpty()) {
