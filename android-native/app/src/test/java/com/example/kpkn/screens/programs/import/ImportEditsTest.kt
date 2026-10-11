@@ -267,6 +267,73 @@ class ImportEditsTest {
         assertNull(ImportEdits.apply(snapshot, ImportEditOp.Batch(listOf(ImportEditOp.Update("w1-d1-e1", ImportExercisePatch(), allWeeks = false)))))
     }
 
+    @Test
+    fun `las operaciones de dias, semanas y ejercicios nuevos dicen lo que cambiaron`() {
+        assertEquals("Renombraste «Piernas».", applied(ImportEditOp.RenameDay("w1-d1", "  Piernas ")).second)
+        assertEquals("Cambiaste el orden de la semana 1.", applied(ImportEditOp.MoveDay("w1-d2", 0)).second)
+        assertEquals("Uniste «Pierna» con «Empuje».", applied(ImportEditOp.MergeWithNext("w1-d1")).second)
+        assertEquals("Añadiste «Día 3».", applied(ImportEditOp.AddDay(1, "")).second)
+        assertEquals("Añadiste «Tirones».", applied(ImportEditOp.AddDay(2, "Tirones")).second)
+        assertEquals("Duplicaste la semana 2.", applied(ImportEditOp.DuplicateWeek(2)).second)
+        assertEquals(
+            "Añadiste «Remo con barra».",
+            applied(ImportEditOp.AddExercise("w1-d2", "Remo con barra", 4, 8, 8, configId = null, decided = true)).second,
+        )
+    }
+
+    @Test
+    fun `las operaciones de dias y semanas sin cambios no dejan nada para deshacer`() {
+        assertNull(ImportEdits.apply(snapshot, ImportEditOp.RenameDay("w1-d1", "Pierna")))
+        assertNull(ImportEdits.apply(snapshot, ImportEditOp.RenameDay("w1-d1", "   ")))
+        assertNull(ImportEdits.apply(snapshot, ImportEditOp.RenameDay("nope", "Otro")))
+        assertNull(ImportEdits.apply(snapshot, ImportEditOp.MoveDay("w1-d1", 0)))
+        assertNull(ImportEdits.apply(snapshot, ImportEditOp.MoveDay("nope", 0)))
+        // «Empuje» es el último día de la semana 1: no hay con quién unirlo.
+        assertNull(ImportEdits.apply(snapshot, ImportEditOp.MergeWithNext("w1-d2")))
+        assertNull(ImportEdits.apply(snapshot, ImportEditOp.AddDay(9, "Extra")))
+        assertNull(ImportEdits.apply(snapshot, ImportEditOp.DuplicateWeek(9)))
+        assertNull(ImportEdits.apply(snapshot, ImportEditOp.AddExercise("nope", "Remo", 3, 8, 8, null, decided = true)))
+        assertNull(ImportEdits.apply(snapshot, ImportEditOp.AddExercise("w1-d1", "  ", 3, 8, 8, null, decided = true)))
+        assertNull(ImportEdits.apply(snapshot, ImportEditOp.AddExercise("w1-d1", "Remo", 21, 8, 8, null, decided = true)))
+        assertNull(ImportEdits.apply(snapshot, ImportEditOp.AddExercise("w1-d1", "Remo", 3, 9, 8, null, decided = true)))
+    }
+
+    @Test
+    fun `anadir un ejercicio fija su decision sin pisar la que el nombre ya tenia`() {
+        val catalog = applied(ImportEditOp.AddExercise("w1-d2", "Press inclinado", 4, 8, 8, "cfg-incline", decided = true)).first
+        assertEquals("cfg-incline", catalog.resolutions["Press inclinado"])
+        assertEquals("Press inclinado", catalog.imported.weeks[0].days[1].exercises.last().rawName)
+        assertEquals("x1", catalog.imported.weeks[0].days[1].exercises.last().id)
+        assertEquals(2, catalog.imported.nextId)
+
+        val own = applied(ImportEditOp.AddExercise("w1-d2", "Fondos", 3, 10, 10, null, decided = true)).first
+        assertTrue(own.resolutions.containsKey("Fondos"))
+        assertNull(own.resolutions["Fondos"])
+
+        val kept = applied(ImportEditOp.AddExercise("w1-d2", "Sentadilla", 3, 8, 8, null, decided = true)).first
+        assertEquals("cfg-squat", kept.resolutions["Sentadilla"])
+
+        val undecided = applied(ImportEditOp.AddExercise("w1-d2", "Remo", 3, 8, 8, null, decided = false)).first
+        assertFalse(undecided.resolutions.containsKey("Remo"))
+    }
+
+    @Test
+    fun `el texto de anadir usa el nombre que se muestra si el nombre ya tenia decision`() {
+        val shown = ImportEdits.apply(snapshot, ImportEditOp.AddExercise("w1-d2", "Sentadilla", 3, 8, 8, null, decided = true)) {
+            "Sentadilla trasera"
+        }
+        assertEquals("Añadiste «Sentadilla trasera».", shown?.second)
+    }
+
+    @Test
+    fun `duplicar una semana da ids unicos a su copia y renumera las siguientes`() {
+        val duplicated = applied(ImportEditOp.DuplicateWeek(1)).first.imported
+        val ids = duplicated.weeks.flatMap { week -> week.days.flatMap { day -> listOf(day.id) + day.exercises.map { it.id } } }
+        assertEquals(ids.size, ids.toSet().size)
+        assertEquals(listOf(1, 2, 3, 4), duplicated.weeks.map { it.index })
+        assertEquals("Sentadilla", duplicated.weeks[1].days[0].exercises[0].rawName)
+    }
+
     private fun week(index: Int, vararg days: ImportedDay): ImportedWeek = ImportedWeek(index = index, days = days.toList())
 
     private fun day(id: String, name: String, vararg exercises: ImportedExercise): ImportedDay =

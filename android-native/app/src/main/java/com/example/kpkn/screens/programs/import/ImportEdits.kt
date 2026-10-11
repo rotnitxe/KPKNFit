@@ -8,6 +8,7 @@ import com.example.kpkn.domain.training.importer.ImportIssueKind
 import com.example.kpkn.domain.training.importer.ImportedDay
 import com.example.kpkn.domain.training.importer.ImportedExercise
 import com.example.kpkn.domain.training.importer.ImportedProgramDraft
+import com.example.kpkn.domain.training.importer.ImportedWeek
 import com.example.kpkn.domain.training.importer.ProgramImportParser
 
 /**
@@ -46,6 +47,35 @@ sealed interface ImportEditOp {
     data class RemoveDay(val dayId: String) : ImportEditOp
 
     data class RemoveWeek(val weekIndex: Int) : ImportEditOp
+
+    /** Cambia el nombre del día; un nombre vacío no cambia nada. */
+    data class RenameDay(val dayId: String, val name: String) : ImportEditOp
+
+    /** Mueve el día dentro de su semana, a la posición [toIndex]. */
+    data class MoveDay(val dayId: String, val toIndex: Int) : ImportEditOp
+
+    /** Une el día con el siguiente de su semana: sus ejercicios pasan al final y el siguiente desaparece. */
+    data class MergeWithNext(val dayId: String) : ImportEditOp
+
+    /** Añade un día vacío al final de la semana [weekIndex]; sin [name], «Día <n>». */
+    data class AddDay(val weekIndex: Int, val name: String) : ImportEditOp
+
+    /** Copia la semana [index] justo después, con ids nuevos. */
+    data class DuplicateWeek(val index: Int) : ImportEditOp
+
+    /**
+     * Añade un ejercicio al final de [dayId]. Con [decided], fija su decisión: [configId] del catálogo, o null = propio. Un
+     * nombre que ya tenía decisión conserva la suya.
+     */
+    data class AddExercise(
+        val dayId: String,
+        val rawName: String,
+        val sets: Int,
+        val repsMin: Int,
+        val repsMax: Int,
+        val configId: String?,
+        val decided: Boolean,
+    ) : ImportEditOp
 
     /** Marca como revisados todos los avisos. */
     data object IgnoreAllWarnings : ImportEditOp
@@ -94,6 +124,14 @@ object ImportEdits {
             is ImportEditOp.RemoveWeek -> snapshot.copy(
                 imported = ImportDraftEditor.removeWeek(draft, op.weekIndex),
             ) to "Quitaste la semana ${op.weekIndex}."
+            is ImportEditOp.RenameDay -> renamedDay(snapshot, op)
+            is ImportEditOp.MoveDay -> movedDay(snapshot, op)
+            is ImportEditOp.MergeWithNext -> mergedWithNext(snapshot, op)
+            is ImportEditOp.AddDay -> addedDay(snapshot, op)
+            is ImportEditOp.DuplicateWeek -> snapshot.copy(
+                imported = ImportDraftEditor.duplicateWeek(draft, op.index),
+            ) to "Duplicaste la semana ${op.index}."
+            is ImportEditOp.AddExercise -> addedExercise(snapshot, op, nameOf)
             ImportEditOp.IgnoreAllWarnings -> ignoredAll(snapshot)
             is ImportEditOp.Batch -> return batched(snapshot, op, nameOf)
         }
@@ -128,6 +166,54 @@ object ImportEdits {
             "Moviste «${shownName(draft, op.exerciseId, nameOf)}» a «$target»"
         }
         return snapshot.copy(imported = ImportDraftEditor.move(draft, op.exerciseId, op.toDayId, op.toIndex)) to label
+    }
+
+    /** Cambia el nombre del día. El texto usa el nombre nuevo, como el de un ejercicio renombrado. */
+    private fun renamedDay(snapshot: ImportSnapshot, op: ImportEditOp.RenameDay): Pair<ImportSnapshot, String> {
+        val name = op.name.trim()
+        return snapshot.copy(imported = ImportDraftEditor.renameDay(snapshot.imported, op.dayId, name)) to "Renombraste «$name»."
+    }
+
+    /** El texto nombra la semana, no el día: «Cambiaste el orden de la semana 1.». */
+    private fun movedDay(snapshot: ImportSnapshot, op: ImportEditOp.MoveDay): Pair<ImportSnapshot, String> {
+        val week = weekOfDay(snapshot.imported, op.dayId)?.index ?: 0
+        val imported = ImportDraftEditor.moveDay(snapshot.imported, op.dayId, op.toIndex)
+        return snapshot.copy(imported = imported) to "Cambiaste el orden de la semana $week."
+    }
+
+    /** Une el día con el siguiente de su semana; el texto nombra los dos, con sus nombres de antes de unirlos. */
+    private fun mergedWithNext(snapshot: ImportSnapshot, op: ImportEditOp.MergeWithNext): Pair<ImportSnapshot, String> {
+        val draft = snapshot.imported
+        val label = "Uniste «${dayOf(draft, op.dayId)?.name.orEmpty()}» con «${nextDayOf(draft, op.dayId)?.name.orEmpty()}»."
+        return snapshot.copy(imported = ImportDraftEditor.mergeWithNext(draft, op.dayId)) to label
+    }
+
+    /** El día nuevo lleva el id del contador (`x<n>`); su nombre sale del borrador de después (el «Día <n>» por defecto). */
+    private fun addedDay(snapshot: ImportSnapshot, op: ImportEditOp.AddDay): Pair<ImportSnapshot, String> {
+        val draft = snapshot.imported
+        val imported = ImportDraftEditor.addDay(draft, op.weekIndex, op.name)
+        val name = dayOf(imported, "x${draft.nextId}")?.name.orEmpty()
+        return snapshot.copy(imported = imported) to "Añadiste «$name»."
+    }
+
+    /**
+     * Añade el ejercicio al final del día. Con [ImportEditOp.AddExercise.decided], fija su decisión, salvo que el nombre ya tuviera
+     * una. Si no se añade (día inexistente, valores fuera de rango, nombre vacío), el estado no cambia.
+     */
+    private fun addedExercise(
+        snapshot: ImportSnapshot,
+        op: ImportEditOp.AddExercise,
+        nameOf: (String) -> String,
+    ): Pair<ImportSnapshot, String> {
+        val draft = snapshot.imported
+        val name = op.rawName.trim()
+        // Antes del cambio: el nombre que ya tenía decisión, o el suyo.
+        val shown = nameOf(name)
+        val end = dayOf(draft, op.dayId)?.exercises?.size ?: 0
+        val imported = ImportDraftEditor.add(draft, op.dayId, end, name, op.sets, op.repsMin, op.repsMax)
+        val decide = op.decided && imported != draft && name !in snapshot.resolutions
+        val resolutions = if (decide) snapshot.resolutions + (name to op.configId) else snapshot.resolutions
+        return ImportSnapshot(imported, resolutions) to "Añadiste «$shown»."
     }
 
     private fun ignoredAll(snapshot: ImportSnapshot): Pair<ImportSnapshot, String> {
@@ -378,6 +464,16 @@ private fun exerciseOf(draft: ImportedProgramDraft, exerciseId: String): Importe
 
 private fun dayOf(draft: ImportedProgramDraft, dayId: String): ImportedDay? =
     draft.weeks.firstNotNullOfOrNull { week -> week.days.firstOrNull { it.id == dayId } }
+
+private fun weekOfDay(draft: ImportedProgramDraft, dayId: String): ImportedWeek? =
+    draft.weeks.firstOrNull { week -> week.days.any { it.id == dayId } }
+
+/** El día que sigue a [dayId] dentro de su semana; null si es el último o no existe. */
+private fun nextDayOf(draft: ImportedProgramDraft, dayId: String): ImportedDay? {
+    val week = weekOfDay(draft, dayId) ?: return null
+    val position = week.days.indexOfFirst { it.id == dayId }
+    return week.days.getOrNull(position + 1)
+}
 
 private fun dayIdOf(draft: ImportedProgramDraft, exerciseId: String): String? =
     draft.weeks.firstNotNullOfOrNull { week -> week.days.firstOrNull { day -> day.exercises.any { it.id == exerciseId } }?.id }
