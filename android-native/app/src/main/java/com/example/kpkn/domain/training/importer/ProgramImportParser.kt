@@ -6,10 +6,12 @@ import kotlin.math.roundToInt
 /**
  * Analizador puro de programas importados (hojas de cálculo o texto pegado). Convierte las filas en semanas, días
  * y ejercicios: reconoce semanas y días por nombre de hoja o por fila de encabezado («Semana 2», «Día 1 — Pierna»,
- * «Lunes:»), columnas por cabecera en español e inglés y notación compacta («4x8», «3×10 RPE8», «5x5 @100kg»,
- * «4 series de 6», «3x12 @75%», «2' descanso»). Lo que no entiende va a `warnings`, con su tipo, semana y día; nunca
- * lanza excepciones por contenido raro. Los ids de días y ejercicios son `w<semana>-d<n>` y `w<semana>-d<n>-e<m>`,
- * contando desde 1 sobre el borrador final.
+ * «Lunes:», «Session 3», «Mon Pull»), columnas por cabecera en español e inglés y notación compacta («4x8», «3×10 RPE8»,
+ * «5x5 @100kg», «4 series de 6», «1x5+», «3x8-12», «5x5 Squat»). Lo que no entiende va a `warnings`, con su tipo, semana
+ * y día. La prosa, las instrucciones, los calentamientos y las etiquetas no son ejercicios: se cuentan por hoja en un
+ * aviso `SHEET_NOTE`. Las hojas de instrucciones y de cálculo se omiten por su nombre. Nunca lanza excepciones por
+ * contenido raro. Los ids de días y ejercicios son `w<semana>-d<n>` y `w<semana>-d<n>-e<m>`, contando desde 1 sobre el
+ * borrador final.
  */
 object ProgramImportParser {
 
@@ -20,15 +22,24 @@ object ProgramImportParser {
     internal const val MAX_REST_SECONDS = 1800
     internal const val MAX_NOTE_CHARS = 200
 
+    /** Origen de un texto pegado en los avisos de nota de hoja (un texto no tiene hojas). */
+    private const val PASTED_TEXT = "Texto pegado"
+
     /** Convierte hojas (una por día, una por semana o una sola con encabezados) en un borrador. */
     fun parseSheets(sheets: List<ImportSheet>, title: String): ImportedProgramDraft {
         val builder = DraftBuilder()
         for (sheet in sheets) {
+            if (isInstructionOrCalcSheet(sheet.name)) {
+                builder.noteOmittedSheet(sheet.name)
+                continue
+            }
             val weekInName = weekNumber(sheet.name)
             if (weekInName != null) builder.openWeek(weekInName)
+            builder.beginSheet()
             // Una hoja sin nombre de semana es un día: su nombre sirve si no trae un encabezado propio.
             builder.pendingDayName = if (weekInName == null) usableSheetName(sheet.name) else null
             processRows(builder, sheet.rows) { index -> "Hoja «${sheet.name}», fila ${index + 1}" }
+            builder.endSheet("Hoja «${sheet.name}»")
         }
         return builder.finish(title)
     }
@@ -47,7 +58,9 @@ object ProgramImportParser {
             lines.map { line -> listOf(line) }
         }
         val builder = DraftBuilder()
+        builder.beginSheet()
         processRows(builder, rows) { index -> "Línea ${index + 1}" }
+        builder.endSheet(PASTED_TEXT)
         return builder.finish(title)
     }
 
@@ -77,7 +90,7 @@ object ProgramImportParser {
                     null
                 }
                 is Line.Day -> {
-                    builder.startDay(line.name, context)
+                    builder.startDay(line.name, line.silent, context)
                     null
                 }
                 is Line.Exercise -> builder.addExercise(line.exercise, context)
@@ -87,37 +100,54 @@ object ProgramImportParser {
         }
     }
 
-    /** Una línea o una fila sin cabecera: semana, día, ejercicio con notación o aviso (null si no aporta nada). */
+    /**
+     * Una línea o una fila sin cabecera. Orden: notación (ejercicio), semana, prosa (se cuenta), etiqueta de día y, por
+     * último, un texto corto que puede ser un día. Lo demás es un aviso «no se entiende».
+     */
     private fun classify(raw: String, row: RowContext): Line? {
         val text = raw.trim()
-        if (text.isEmpty() || isColumnHeaderText(text)) return null
+        // Una cabecera es una lista corta de nombres de columna; una frase larga con esas palabras es prosa.
+        if (text.isEmpty() || (isColumnHeaderText(text) && !isProse(text))) return null
         val notation = parseNotation(text)
         if (notation != null) {
             if (notation.name.isBlank()) {
                 row.warn(ImportWarningKind.SKIPPED_ROW, "falta el nombre del ejercicio («$text»)")
                 return null
             }
-            return validate(
-                name = notation.name,
-                sets = notation.sets,
-                repsMin = notation.repsMin,
-                repsMax = notation.repsMax,
-                load = notation.load,
-                percent = notation.percent,
-                rpe = notation.rpe,
-                rir = notation.rir,
-                rest = notation.rest,
-                notes = notation.notes,
-                row = row,
-            )?.let { Line.Exercise(it) }
+            return notationLine(notation, row)
         }
         weekNumber(text)?.let { return Line.Week(it) }
-        if (isDayLabel(text) || text.none { it.isDigit() }) {
-            val name = cleanHeader(text)
-            return if (name.isEmpty()) null else Line.Day(name)
+        if (isProse(text)) {
+            row.count(Noise.TEXT)
+            return null
         }
+        if (isDayLabel(text)) return dayLine(text, silent = false)
+        if (isShortDayCandidate(text)) return dayLine(text, silent = true)
         row.warn(ImportWarningKind.SKIPPED_ROW, "no se entiende «$text»")
         return null
+    }
+
+    private fun notationLine(notation: Notation, row: RowContext): Line? {
+        if (countIfNotExercise(notation.name, row)) return null
+        val notes = listOfNotNull(notation.notes, amrapNote(notation.amrapReps)).joinToString(" ").takeIf { it.isNotEmpty() }
+        return validate(
+            name = notation.name,
+            sets = notation.sets,
+            repsMin = notation.repsMin,
+            repsMax = notation.repsMax,
+            load = notation.load,
+            percent = notation.percent,
+            rpe = notation.rpe,
+            rir = notation.rir,
+            rest = notation.rest,
+            notes = notes,
+            row = row,
+        )?.let { Line.Exercise(it) }
+    }
+
+    private fun dayLine(text: String, silent: Boolean): Line? {
+        val name = cleanHeader(text)
+        return if (name.isEmpty()) null else Line.Day(name, silent)
     }
 
     /** Fila de tabla con cabecera: cada celda según su columna; el nombre puede traer notación («Sentadilla 4x6»). */
@@ -126,19 +156,28 @@ object ProgramImportParser {
 
         val nameCell = cell(ColumnRole.NAME)
         val inline = if (nameCell.isEmpty()) null else parseNotation(nameCell)
-        val name = inline?.name ?: nameCell
+        val name = dropLinks(inline?.name ?: nameCell)
         if (name.isBlank()) {
             row.warn(ImportWarningKind.SKIPPED_ROW, "fila sin nombre de ejercicio; se omite")
             return null
         }
+        if (countIfNotExercise(name, row)) return null
 
         val setsCell = cell(ColumnRole.SETS)
         val repsCell = cell(ColumnRole.REPS)
+        if (isAmrapWithoutNumber(repsCell)) {
+            row.warn(ImportWarningKind.SKIPPED_ROW, "«$name»: AMRAP sin número de repeticiones; se omite")
+            return null
+        }
         val setsNotation = if (setsCell.isNotEmpty() && leadingInt(setsCell) == null) parseNotation(setsCell) else null
-        val range = parseRange(repsCell)
-        val sets = leadingInt(setsCell) ?: setsNotation?.sets ?: inline?.sets
-        val repsMin = range?.first ?: setsNotation?.repsMin ?: inline?.repsMin
-        val repsMax = range?.second ?: setsNotation?.repsMax ?: inline?.repsMax
+        // «1x5+», «3x8-12», «3 x 10» en la celda de repeticiones; si no hay notación, un número o un rango.
+        val scheme = if (hasScheme(repsCell)) parseNotation(repsCell) else null
+        val range = if (scheme == null) parseRange(repsCell) else null
+        // Si la columna de series tiene un número, manda; si no, la notación de la celda de repeticiones o la de antes.
+        val sets = leadingInt(setsCell) ?: setsNotation?.sets ?: scheme?.sets ?: inline?.sets
+        val repsMin = range?.first ?: scheme?.repsMin ?: setsNotation?.repsMin ?: inline?.repsMin
+        val repsMax = range?.second ?: scheme?.repsMax ?: setsNotation?.repsMax ?: inline?.repsMax
+        val amrap = cellAmrap(repsCell) ?: scheme?.amrapReps ?: setsNotation?.amrapReps ?: inline?.amrapReps
 
         val loadCell = cell(ColumnRole.LOAD)
         val percentCell = cell(ColumnRole.PERCENT)
@@ -159,9 +198,13 @@ object ProgramImportParser {
         unreadable(row, rirCell, rir, "RIR")
         unreadable(row, restCell, rest, "descanso")
 
-        val notes = listOfNotNull(notesCell.takeIf { it.isNotEmpty() }, inline?.notes)
-            .joinToString(" ")
-            .takeIf { it.isNotEmpty() }
+        val remainder = if (range != null) rangeRemainder(repsCell) else null
+        val notes = listOfNotNull(
+            notesCell.takeIf { it.isNotEmpty() },
+            remainder,
+            inline?.notes,
+            amrapNote(amrap),
+        ).joinToString(" ").takeIf { it.isNotEmpty() }
         return validate(
             name = name,
             sets = sets,
@@ -248,6 +291,52 @@ object ProgramImportParser {
         return null
     }
 
+    // ---- Nombres que no son ejercicios ------------------------------------------------------------------
+
+    /** Ruido que se cuenta por hoja en vez de avisarlo: líneas de texto, series de calentamiento o filas de etiquetas. */
+    private enum class Noise { TEXT, WARMUP, LABEL }
+
+    /** Calentamiento o etiqueta según el nombre; null si el nombre puede ser un ejercicio. */
+    private fun nonExerciseKind(name: String): Noise? {
+        val words = ExerciseMatchLexicon.normalize(name).split(' ').filter { it.isNotEmpty() }
+        if (words.isNotEmpty() && isWarmupStart(words)) return Noise.WARMUP
+        if (name.count { it.isLetter() } < 3) return Noise.LABEL
+        if (words.isNotEmpty() && "sxr" in words && words.size <= 3) return Noise.LABEL
+        // Las letras sueltas («A» de «Meso A») no cuentan; las cifras se quitan antes de comparar.
+        val content = words.filter { it.length > 1 }.map { word -> word.filter { !it.isDigit() } }.filter { it.isNotEmpty() }
+        return if (content.isNotEmpty() && content.all { it in LABEL_WORDS }) Noise.LABEL else null
+    }
+
+    private fun isWarmupStart(words: List<String>): Boolean {
+        val first = words.first()
+        return first == "warmup" || (first == "warm" && words.getOrNull(1) == "up") || first in WARMUP_STARTS
+    }
+
+    /** Cuenta el nombre si no es un ejercicio (calentamiento o etiqueta) y dice si lo era. */
+    private fun countIfNotExercise(name: String, row: RowContext): Boolean {
+        val noise = nonExerciseKind(name) ?: return false
+        row.count(noise)
+        return true
+    }
+
+    /** «AMRAP», «MR», «max reps», «máx.» o «al fallo» sin número: la fila no dice cuántas repeticiones son. */
+    private fun isAmrapWithoutNumber(cell: String): Boolean {
+        if (cell.isEmpty() || cell.any { it.isDigit() }) return false
+        val text = ExerciseMatchLexicon.normalize(cell)
+        return text in AMRAP_WORDS || text.contains("amrap")
+    }
+
+    private val WARMUP_STARTS = setOf("calentamiento", "aproximacion", "approach", "ramp")
+    private val AMRAP_WORDS = setOf("mr", "max reps", "max", "al fallo")
+
+    /** Palabras de una etiqueta de plantilla, sin cifras («e1rm» cuenta como «erm»). */
+    private val LABEL_WORDS: Set<String> = setOf(
+        "set", "sets", "serie", "series", "rep", "reps", "sxr", "week", "semana", "day", "dia", "total", "volume",
+        "volumen", "tonnage", "tonelaje", "e1rm", "rm", "max", "tm", "training", "notes", "notas", "load", "weight",
+        "peso", "carga", "status", "estado", "amrap", "rest", "descanso", "tempo", "rpe", "rir", "date", "fecha",
+        "cycle", "ciclo", "block", "bloque", "meso", "phase", "fase", "scheme",
+    ).mapTo(HashSet()) { word -> word.filter { !it.isDigit() } }
+
     // ---- Cabeceras de columna ----------------------------------------------------------------------------
 
     private enum class ColumnRole { NAME, SETS, REPS, LOAD, PERCENT, RPE, RIR, REST, NOTES }
@@ -319,17 +408,21 @@ object ProgramImportParser {
         val rpe: Double?,
         val rir: Int?,
         val rest: Int?,
+        /** Repeticiones de la última serie con «+» («5+», «1x5+»): AMRAP. Null si no hay «+». */
+        val amrapReps: Int?,
     )
 
     /**
-     * Busca la notación en un texto. Cada patrón consume su tramo; lo que hay antes del primer tramo es el nombre y
-     * lo que queda suelto, las notas. Devuelve null si el texto no tiene ninguna notación.
+     * Busca la notación en un texto. Cada patrón consume su tramo. Si hay texto antes del primer tramo, ese es el nombre
+     * y lo que queda detrás, las notas; si no lo hay, el nombre es lo que queda detrás («5x5 Squat» → «Squat»).
+     * Devuelve null si el texto no tiene ninguna notación.
      */
     private fun parseNotation(text: String): Notation? {
         val spans = mutableListOf<IntRange>()
         var sets: Int? = null
         var repsMin: Int? = null
         var repsMax: Int? = null
+        var amrap: Int? = null
         var load: Double? = null
         var percent: Double? = null
         var rpe: Double? = null
@@ -350,14 +443,16 @@ object ProgramImportParser {
             if (sets == null) {
                 sets = m.groupValues[1].toIntOrNull()
                 repsMin = m.groupValues[2].toIntOrNull()
-                repsMax = m.groupValues[3].toIntOrNull() ?: repsMin
+                repsMax = m.groupValues[4].toIntOrNull() ?: repsMin
+                amrap = schemeAmrap(m)
             }
         }
         scan(SETS_OF_REPS) { m ->
             if (sets == null) {
                 sets = m.groupValues[1].toIntOrNull()
                 repsMin = m.groupValues[2].toIntOrNull()
-                repsMax = m.groupValues[3].toIntOrNull() ?: repsMin
+                repsMax = m.groupValues[4].toIntOrNull() ?: repsMin
+                amrap = schemeAmrap(m)
             }
         }
         scan(SETS_ONLY) { m -> if (sets == null) sets = m.groupValues[1].toIntOrNull() }
@@ -369,13 +464,15 @@ object ProgramImportParser {
         if (spans.isEmpty()) return null
 
         val first = spans.minOf { it.first }
-        val name = cleanName(text.substring(0, first))
-        val keep = BooleanArray(text.length) { true }
-        for (index in 0 until first) keep[index] = false
-        for (span in spans) {
-            for (index in span) keep[index] = false
+        val before = StringBuilder()
+        val behind = StringBuilder()
+        text.forEachIndexed { index, char ->
+            if (spans.any { index in it }) return@forEachIndexed
+            if (index < first) before.append(char) else behind.append(char)
         }
-        val notes = cleanNotes(text.filterIndexed { index, _ -> keep[index] })
+        val beforeName = cleanName(before.toString())
+        val name = beforeName.ifEmpty { cleanName(behind.toString()) }
+        val notes = if (beforeName.isEmpty()) "" else cleanNotes(behind.toString())
         return Notation(
             name = name,
             notes = notes.takeIf { it.isNotEmpty() },
@@ -387,6 +484,7 @@ object ProgramImportParser {
             rpe = rpe,
             rir = rir,
             rest = rest,
+            amrapReps = amrap,
         )
     }
 
@@ -395,12 +493,40 @@ object ProgramImportParser {
     private fun minutesToSeconds(value: String): Int? = firstNumber(value)?.let { (it * 60).roundToInt() }
 
     private fun cleanName(raw: String): String =
-        raw.trim().replace(NAME_TAIL, "").replace(NAME_HEAD, "").trim()
+        dropLinks(raw).replace(NAME_TAIL, "").replace(NAME_HEAD, "").trim()
+
+    /** Quita los enlaces de un texto: no son parte del nombre ni de la notación. */
+    private fun dropLinks(text: String): String = text.replace(LINK, " ").trim()
 
     private fun cleanNotes(raw: String): String =
         raw.replace(EMPTY_PARENTHESES, " ")
             .replace(SPACES, " ")
             .trim { it.isWhitespace() || it in "-–—|·,;:" }
+
+    /** Nota de la última serie con «+»; null si no hay AMRAP. */
+    private fun amrapNote(reps: Int?): String? = reps?.let { "AMRAP: última serie, $it o más repeticiones." }
+
+    /** Repeticiones de un tramo con «+»: «5+», «1x5+» o «10-15+» (el número que lleva el «+»). */
+    private fun schemeAmrap(m: MatchResult): Int? = when {
+        m.groupValues[5].isNotEmpty() -> m.groupValues[4].toIntOrNull()
+        m.groupValues[3].isNotEmpty() -> m.groupValues[2].toIntOrNull()
+        else -> null
+    }
+
+    /** Igual que [schemeAmrap], para una celda entera: el último número con «+» que no sigue otra cifra. */
+    private fun cellAmrap(cell: String): Int? =
+        AMRAP_NUMBER.findAll(cell).lastOrNull()?.groupValues?.get(1)?.toIntOrNull()
+
+    private fun hasScheme(cell: String): Boolean = SETS_BY_REPS.containsMatchIn(cell) || SETS_OF_REPS.containsMatchIn(cell)
+
+    /** «4-6 / 8-10»: manda el primer rango; lo que queda con cifras pasa a las notas («8-10»). */
+    private fun rangeRemainder(cell: String): String? {
+        val match = RANGE_CELL.find(cell) ?: return null
+        return cell.substring(match.range.last + 1)
+            .trimStart(' ', '/', '|', ',', ';', ':', '-', '–', '—', '·')
+            .trim()
+            .takeIf { rest -> rest.any { it.isDigit() } }
+    }
 
     private val REST_MINUTES = Regex(
         """(\d{1,2}(?:[.,]\d)?)\s*(?:'|’|´|min(?:uto)?s?\b)(?:\s*(?:de\s+)?(?:descanso|pausa)\b)?""",
@@ -410,12 +536,16 @@ object ProgramImportParser {
         """(?<![\w,.])(\d{2,3})\s*(?:s|seg|segs|segundos?)\b(?:\s*(?:de\s+)?(?:descanso|pausa)\b)?""",
         RegexOption.IGNORE_CASE,
     )
+
+    /** «4x8», «3×10», «3 x 10», «1x5+», «3x8-12», «3x8-12+»: grupos 1 series, 2 reps, 3 «+», 4 reps máx., 5 «+». */
     private val SETS_BY_REPS = Regex(
-        """(?<![\w.,])(\d{1,2})\s*(?:x|×|\*|por)\s*(\d{1,3})(?:\s*(?:-|–|—|a|hasta)\s*(\d{1,3}))?""",
+        """(?<![\w.,])(\d{1,2})\s*(?:x|×|\*|por)\s*(\d{1,3})(\+)?(?:\s*(?:-|–|—|a|hasta)\s*(\d{1,3})(\+)?)?""",
         RegexOption.IGNORE_CASE,
     )
+
+    /** «4 series de 6-8»: los mismos grupos que [SETS_BY_REPS]. */
     private val SETS_OF_REPS = Regex(
-        """(\d{1,2})\s*(?:series?|sets?)\s*(?:de|x|of)?\s*(\d{1,3})(?:\s*(?:-|–|—|a|hasta)\s*(\d{1,3}))?(?:\s*(?:reps?|repeticiones|rep)\b)?""",
+        """(\d{1,2})\s*(?:series?|sets?)\s*(?:de|x|of)?\s*(\d{1,3})(\+)?(?:\s*(?:-|–|—|a|hasta)\s*(\d{1,3})(\+)?)?(?:\s*(?:reps?|repeticiones|rep)\b)?""",
         RegexOption.IGNORE_CASE,
     )
     private val SETS_ONLY = Regex("""(\d{1,2})\s*(?:series?|sets?)\b""", RegexOption.IGNORE_CASE)
@@ -431,6 +561,8 @@ object ProgramImportParser {
     private val NAME_HEAD = Regex("""^[\s\-–—|·,;:)\]]+""")
     private val EMPTY_PARENTHESES = Regex("""\(\s*\)""")
     private val SPACES = Regex("""\s+""")
+    private val LINK = Regex("""\s*https?://\S+\s*""", RegexOption.IGNORE_CASE)
+    private val AMRAP_NUMBER = Regex("""(\d{1,3})\s*\+(?!\d)""")
 
     // ---- Celdas y cabeceras de tiempo y número -------------------------------------------------------------
 
@@ -464,14 +596,42 @@ object ProgramImportParser {
         return (value * factor).roundToInt()
     }
 
-    // ---- Semanas, días y hojas ----------------------------------------------------------------------------
+    // ---- Semanas, días, hojas y prosa ----------------------------------------------------------------------
 
     private val WEEK_NAME = Regex("""(?:semana|week|sem|s)\s?(\d{1,2})(?:\s.*)?""")
-    private val DAY_NAME = Regex(
-        """(?:dia|day|d)\s?\d{1,2}(?:\s.*)?|(?:lunes|martes|miercoles|jueves|viernes|sabado|domingo|monday|tuesday|wednesday|thursday|friday|saturday|sunday)(?:\s.*)?""",
+
+    /** «Día 1», «Dia 2 — Pierna», «Day 3», «D4» (texto normalizado), con o sin texto detrás. */
+    private val DAY_NUMBERED = Regex("""(?:dia|day|d)\s?\d{1,2}(?:\s.*)?""")
+
+    /** Un día de la semana, en inglés o en español, con o sin foco detrás («Mon Pull», «Lunes: Pierna»). */
+    private val WEEKDAY_LABEL = Regex(
+        """(?:lunes|martes|miercoles|jueves|viernes|sabado|domingo|monday|tuesday|wednesday|thursday|friday|saturday|sunday""" +
+            """|mon|tues|tue|wed|thurs|thur|thu|fri|sat|sun|lun|mar|mie|jue|vie|sab|dom)(?:\s.*)?""",
     )
+
+    /** «Session 2», «Sesión 4», «Workout B», «Entreno A/B»: el número o la letra, y un texto de foco sin cifras. */
+    private val SESSION_LABEL = Regex("""(?:session|sesion|workout|entreno)\s?(?:\d{1,2}|[a-c])(?:\s[^0-9]*)?""")
     private val GENERIC_SHEET = Regex("""(?:hoja|sheet|tabla)\s?\d*""")
     private val HEADER_TAIL = Regex("""[\s:.\-–—|]+$""")
+    private val WHITESPACE = Regex("""\s+""")
+
+    /** Focos de día, solos o combinados con «&», «/», «y», «+» o «and» (en el texto normalizado, sin signos). */
+    private val FOCUS_WORDS = setOf(
+        "upper", "lower", "push", "pull", "legs", "leg", "full", "body", "fullbody", "torso", "pierna", "piernas",
+        "empuje", "tiron", "arms", "brazos", "chest", "pecho", "back", "espalda", "shoulders", "hombros", "glutes",
+        "gluteos", "butt", "calves", "gemelos", "core", "abs", "abdomen",
+    )
+    private val FOCUS_CONNECTORS = setOf("y", "and")
+
+    /** Hojas de instrucciones o de cálculo: su nombre contiene una de estas palabras, o es exactamente una de estas. */
+    private val OMITTED_SHEET_WORDS = listOf(
+        "readme", "read me", "leeme", "instructions", "instrucciones", "instruction", "faq", "setup", "configuracion",
+        "calculator", "calculadora", "calculadoras", "calcs", "glossary", "glosario", "changelog", "tutorial",
+    )
+    private val OMITTED_SHEET_NAMES = setOf(
+        "inputs", "input", "maxes", "max", "1rm", "1rm input", "notes", "notas", "info", "log", "registro",
+        "summary", "resumen", "stats", "dashboard", "history", "historial",
+    )
 
     /** Número de semana si el texto empieza por «Semana 2», «Week 2», «Sem 2» o «S2». */
     private fun weekNumber(text: String): Int? {
@@ -479,8 +639,49 @@ object ProgramImportParser {
         return digits.toIntOrNull()?.coerceAtLeast(1)
     }
 
-    /** «Día 1», «Dia 2 — Pierna», «Day 3», «D4» o un día de la semana, con o sin texto detrás. */
-    private fun isDayLabel(text: String): Boolean = DAY_NAME.matches(ExerciseMatchLexicon.normalize(text))
+    private fun isInstructionOrCalcSheet(name: String): Boolean {
+        val text = ExerciseMatchLexicon.normalize(name)
+        return OMITTED_SHEET_WORDS.any { text.contains(it) } || text in OMITTED_SHEET_NAMES
+    }
+
+    /**
+     * Una etiqueta de día: «Día 1», «Day 3», «D4», «Session 2», «Workout B», «Entreno A/B», un día de la semana con o sin
+     * foco, o solo focos («Pull», «Push & Butt & Calves»).
+     */
+    private fun isDayLabel(text: String): Boolean {
+        val n = ExerciseMatchLexicon.normalize(text)
+        if (n.isEmpty()) return false
+        return DAY_NUMBERED.matches(n) || WEEKDAY_LABEL.matches(n) || SESSION_LABEL.matches(n) || isFocusLabel(n)
+    }
+
+    private fun isFocusLabel(normalized: String): Boolean {
+        val tokens = normalized.split(' ')
+        return tokens.first() in FOCUS_WORDS && tokens.last() in FOCUS_WORDS &&
+            tokens.all { it in FOCUS_WORDS || it in FOCUS_CONNECTORS }
+    }
+
+    /**
+     * Un texto corto que no es prosa: como mucho 5 palabras y 40 caracteres, sin cifras salvo un número final («Deadlift
+     * (Day 2)»). Puede ser un día; si sale sin ejercicios, no avisa.
+     */
+    private fun isShortDayCandidate(text: String): Boolean {
+        val words = text.split(WHITESPACE).filter { it.isNotEmpty() }
+        if (words.isEmpty() || words.size > 5 || text.length > 40) return false
+        val digits = text.count { it.isDigit() }
+        if (digits == 0) return true
+        val last = words.last().trimEnd(')', ']', '.', ':', ',')
+        return last.isNotEmpty() && last.all { it.isDigit() } && last.length == digits
+    }
+
+    /**
+     * Prosa: una fila sin notación con más de 8 palabras o más de 60 caracteres, con un enlace, o que acaba en punto
+     * tras 5 palabras o más. La prosa no es día ni aviso suelto: se cuenta por hoja.
+     */
+    private fun isProse(text: String): Boolean {
+        val words = text.split(WHITESPACE).count { it.isNotEmpty() }
+        return words > 8 || text.length > 60 || text.contains("http", ignoreCase = true) ||
+            (text.trimEnd().endsWith(".") && words >= 5)
+    }
 
     /** El nombre de una hoja sirve de día salvo que sea genérico («Hoja1», «Sheet 2»). */
     private fun usableSheetName(name: String): String? {
@@ -495,17 +696,27 @@ object ProgramImportParser {
 
     private sealed interface Line {
         data class Week(val number: Int) : Line
-        data class Day(val name: String) : Line
+
+        /** Día en curso; [silent] si es solo un texto corto que puede no ser día (si sale vacío, no avisa). */
+        data class Day(val name: String, val silent: Boolean) : Line
         data class Exercise(val exercise: ImportedExercise) : Line
     }
 
     /** Fila o línea en curso: dónde está y su texto original, para los avisos y el ejercicio que salga de ella. */
     private class RowContext(val where: String, val source: String, private val builder: DraftBuilder) {
         fun warn(kind: ImportWarningKind, detail: String) = builder.warn(kind, where, source, "$where: $detail")
+
+        fun count(noise: Noise) = builder.count(noise)
     }
 
     /** Día en curso. Su [id] se fija al cerrar el borrador, y solo si el día conserva ejercicios. */
-    private class DayDraft(val week: Int, val name: String, val location: String, val sourceText: String) {
+    private class DayDraft(
+        val week: Int,
+        val name: String,
+        val location: String,
+        val sourceText: String,
+        val silent: Boolean,
+    ) {
         val exercises = mutableListOf<ExerciseDraft>()
         var id: String? = null
     }
@@ -534,8 +745,10 @@ object ProgramImportParser {
         private val warnings = mutableListOf<PendingWarning>()
         private val rowWarnings = mutableListOf<PendingWarning>()
         private val days = mutableListOf<DayDraft>()
+        private val noise = mutableMapOf<Noise, Int>()
         private var week = 1
         private var openDay: DayDraft? = null
+        private var sheetFirstDay = 0
         var pendingDayName: String? = null
 
         /** Aviso de la fila en curso: lleva la semana y el día que estaban abiertos al leerla. */
@@ -545,18 +758,63 @@ object ProgramImportParser {
             rowWarnings += pending
         }
 
+        fun count(kind: Noise) {
+            noise[kind] = (noise[kind] ?: 0) + 1
+        }
+
         fun openWeek(number: Int) {
             week = number
             openDay = null
         }
 
-        fun startDay(name: String, row: RowContext) {
+        /** Empieza una hoja (o el texto pegado): el día abierto de la hoja anterior no recoge sus filas. */
+        fun beginSheet() {
+            openDay = null
+            sheetFirstDay = days.size
+            noise.clear()
+        }
+
+        /** Cierra una hoja: los días cortos sin ejercicios cuentan como texto y sale una nota por tipo de ruido. */
+        fun endSheet(location: String) {
+            repeat(days.drop(sheetFirstDay).count { it.silent && it.exercises.isEmpty() }) { count(Noise.TEXT) }
+            for (kind in Noise.entries) {
+                val total = noise[kind] ?: continue
+                addNote(location, noiseMessage(location, kind, total))
+            }
+        }
+
+        fun noteOmittedSheet(name: String) {
+            addNote("Hoja «$name»", "Se omitió la hoja «$name»: parece de instrucciones o de cálculo.")
+        }
+
+        private fun addNote(location: String, message: String) {
+            warnings += PendingWarning(
+                kind = ImportWarningKind.SHEET_NOTE,
+                location = location,
+                sourceText = null,
+                message = message,
+                weekIndex = null,
+                day = null,
+                exercise = null,
+            )
+        }
+
+        private fun noiseMessage(location: String, kind: Noise, total: Int): String {
+            val phrase = when (kind) {
+                Noise.TEXT -> if (total == 1) "se omitió 1 línea de texto." else "se omitieron $total líneas de texto."
+                Noise.WARMUP -> if (total == 1) "se omitió 1 serie de calentamiento." else "se omitieron $total series de calentamiento."
+                Noise.LABEL -> if (total == 1) "se omitió 1 fila de cálculo o de etiquetas." else "se omitieron $total filas de cálculo o de etiquetas."
+            }
+            return "$location: $phrase"
+        }
+
+        fun startDay(name: String, silent: Boolean, row: RowContext) {
             pendingDayName = null
-            openDay = DayDraft(week, name, row.where, row.source).also { days += it }
+            openDay = DayDraft(week, name, row.where, row.source, silent).also { days += it }
         }
 
         fun addExercise(exercise: ImportedExercise, row: RowContext): ExerciseDraft {
-            val day = openDay ?: DayDraft(week, takeDefaultDayName(), row.where, row.source).also { days += it }
+            val day = openDay ?: DayDraft(week, takeDefaultDayName(), row.where, row.source, silent = false).also { days += it }
             openDay = day
             return ExerciseDraft(day, exercise).also { day.exercises += it }
         }
@@ -578,7 +836,7 @@ object ProgramImportParser {
         fun finish(title: String): ImportedProgramDraft {
             val kept = days.filter { day ->
                 val hasExercises = day.exercises.isNotEmpty()
-                if (!hasExercises) {
+                if (!hasExercises && !day.silent) {
                     warnings += PendingWarning(
                         kind = ImportWarningKind.EMPTY_DAY,
                         location = day.location,
