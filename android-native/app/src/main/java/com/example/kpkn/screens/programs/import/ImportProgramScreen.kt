@@ -50,7 +50,8 @@ fun ImportProgramScreen(
     val context = LocalContext.current
     var pasting by rememberSaveable { mutableStateOf(false) }
     var pasted by rememberSaveable { mutableStateOf("") }
-    var warningsOpen by rememberSaveable { mutableStateOf(false) }
+    // Sube cada vez que «Ver avisos» de la revisión final: el panel de avisos se despliega y sube a la vista.
+    var warningsReveal by rememberSaveable { mutableStateOf(0) }
     val pickFile = rememberImportFilePicker { uri ->
         scope.launch {
             readPickedFile(context.contentResolver, uri).fold(
@@ -91,10 +92,12 @@ fun ImportProgramScreen(
                 testTag = "import-title",
             )
             state.undoLabel?.let { ImportUndoLine(label = it, onUndo = viewModel::undo) }
-            ImportWarningsNote(
-                warnings = imported.warningMessages,
-                expanded = warningsOpen,
-                onExpandedChange = { warningsOpen = it },
+            ImportWarningsPanel(
+                imported = imported,
+                reveal = warningsReveal,
+                search = viewModel::search,
+                onOpenExercise = viewModel::open,
+                onEdit = viewModel::edit,
             )
             ImportPreviewWeeks(
                 imported = imported,
@@ -111,7 +114,7 @@ fun ImportProgramScreen(
                 issues = issues,
                 onOpenExercise = viewModel::open,
                 onEdit = viewModel::edit,
-                onShowWarnings = { warningsOpen = true },
+                onShowWarnings = { warningsReveal += 1 },
                 onRestart = viewModel::clear,
             )
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {

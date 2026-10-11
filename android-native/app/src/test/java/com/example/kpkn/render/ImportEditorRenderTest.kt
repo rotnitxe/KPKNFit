@@ -36,7 +36,7 @@ import com.example.kpkn.domain.training.importer.ImportedWeek
 import com.example.kpkn.screens.programs.importer.ImportPreviewWeeks
 import com.example.kpkn.screens.programs.importer.ImportReview
 import com.example.kpkn.screens.programs.importer.ImportUndoLine
-import com.example.kpkn.screens.programs.importer.ImportWarningsNote
+import com.example.kpkn.screens.programs.importer.ImportWarningsPanel
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import org.junit.Assume.assumeTrue
 import org.junit.BeforeClass
@@ -215,7 +215,13 @@ class ImportEditorRenderTest {
             Sheet {
                 Column(verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(20.dp)) {
                     ImportUndoLine(label = "Quitaste «Pierna».", onUndo = {})
-                    ImportWarningsNote(warnings = draft.warningMessages, expanded = false, onExpandedChange = {})
+                    ImportWarningsPanel(
+                        imported = draft,
+                        reveal = 0,
+                        search = { emptyList() },
+                        onOpenExercise = {},
+                        onEdit = {},
+                    )
                     ImportReview(
                         imported = draft,
                         issues = issues,
