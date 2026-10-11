@@ -1,5 +1,9 @@
 package com.example.kpkn.domain.training.periodization
 
+import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.ExerciseSet
+import com.example.kpkn.data.models.IntensityMode
+import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.WeekExecutionKind
@@ -12,6 +16,7 @@ import com.example.kpkn.domain.training.ProgramProtocolEngine
 import java.time.LocalDate
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -130,5 +135,122 @@ class MeetRecipeFitterTest {
     @Test
     fun a_fitting_result_is_deterministic() {
         assertEquals(fitted(protocolProgram("tsa-9"), 12), fitted(protocolProgram("tsa-9"), 12))
+    }
+
+    /** Las semanas repetidas (su nombre lleva «(repetida…)»), en orden. */
+    private fun repeatedWeeksOf(program: Program): List<ProgramWeek> =
+        weeksOf(program).filter { it.name.contains("(repetida") }
+
+    private fun setsOf(week: ProgramWeek): List<ExerciseSet> =
+        week.sessions.flatMap { session -> session.exercises + session.parts.flatMap { it.exercises } }.flatMap { it.sets }
+
+    /** El escalón que dice el nombre de una repetición («+2,5 %»), o null si la semana no es una repetición. */
+    private fun stepOf(name: String): String? = Regex("""\(repetida, (\+[^)]*)\)""").find(name)?.groupValues?.get(1)
+
+    /** Escalón esperado de la repetición n, con tope en la cuarta: «+2,5 %», «+5 %», «+7,5 %» y después «+10 %». */
+    private fun expectedStepLabel(n: Int): String = when (n.coerceAtMost(4)) {
+        1 -> "+2,5 %"
+        2 -> "+5 %"
+        3 -> "+7,5 %"
+        else -> "+10 %"
+    }
+
+    /** Kilos esperados de la repetición n desde 61 kg: 62,5 · 64,0 · 65,5 y después 67,0 (61 × 1,10 = 67,1, al medio kilo). */
+    private fun expectedWeight(n: Int): Double = when (n.coerceAtMost(4)) {
+        1 -> 62.5
+        2 -> 64.0
+        3 -> 65.5
+        else -> 67.0
+    }
+
+    /** % de 1RM esperado de la repetición n desde 85 %: 87,0 · 89,5 · 91,5 y después 93,5 (a medio punto). */
+    private fun expectedPercent(n: Int): Double = when (n.coerceAtMost(4)) {
+        1 -> 87.0
+        2 -> 89.5
+        3 -> 91.5
+        else -> 93.5
+    }
+
+    /** Las series con kilos llevan [kg] y las que tienen % de 1RM, [pct]. */
+    private fun assertLoads(label: String, week: ProgramWeek, kg: Double, pct: Double) {
+        val sets = setsOf(week)
+        sets.filter { it.weight != null }.forEach { assertEquals("$label: kilos", kg, it.weight) }
+        sets.filter { it.targetPercentageRM != null }.forEach { assertEquals("$label: % de 1RM", pct, it.targetPercentageRM) }
+    }
+
+    /** La repetición n lleva el escalón de su número; además tiene que haber series con kilos que comprobar. */
+    private fun assertRepeat(n: Int, week: ProgramWeek) {
+        assertTrue("repetición $n con kilos", setsOf(week).any { it.weight != null })
+        assertLoads("repetición $n", week, expectedWeight(n), expectedPercent(n))
+    }
+
+    /**
+     * Plan con cargas para probar el escalón: en cada ejercicio, la primera serie solo lleva RPE; las demás, 61 kg a un 85 %
+     * de 1RM en carga externa, y la segunda además una meta de reps (plannedTargetV2 = 8).
+     */
+    private fun withLoads(program: Program): Program = program.copy(
+        macrocycles = program.macrocycles.map { macro ->
+            macro.copy(blocks = macro.blocks.map { block ->
+                block.copy(mesocycles = block.mesocycles.map { meso ->
+                    meso.copy(weeks = meso.weeks.map { week ->
+                        week.copy(sessions = week.sessions.map { session ->
+                            session.copy(
+                                exercises = session.exercises.map { withLoadsExercise(it) },
+                                parts = session.parts.map { part -> part.copy(exercises = part.exercises.map { withLoadsExercise(it) }) },
+                            )
+                        })
+                    })
+                })
+            })
+        },
+    )
+
+    private fun withLoadsExercise(exercise: Exercise): Exercise = exercise.copy(
+        sets = exercise.sets.mapIndexed { index, set ->
+            when (index) {
+                0 -> set.copy(weight = null, targetPercentageRM = null, targetRPE = 8.0, intensityMode = IntensityMode.RPE)
+                1 -> set.copy(weight = 61.0, targetPercentageRM = 85.0, loadModeV2 = LoadModeV2.LOAD, plannedTargetV2 = 8.0)
+                else -> set.copy(weight = 61.0, targetPercentageRM = 85.0, loadModeV2 = LoadModeV2.LOAD)
+            }
+        },
+    )
+
+    @Test
+    fun repeated_weeks_step_the_load_2_5_5_and_7_5_percent_and_say_so_in_their_name() {
+        // Con diez semanas de más hay al menos seis repeticiones y una descarga intercalada (ver extended()).
+        val result = fitted(withLoads(protocolProgram("tsa-9")), 19).program
+        val repeated = repeatedWeeksOf(result)
+        assertTrue("hay repeticiones", repeated.size >= 3)
+        assertTrue(repeated[0].name, repeated[0].name.endsWith("(repetida, +2,5 %)"))
+        assertTrue(repeated[1].name, repeated[1].name.endsWith("(repetida, +5 %)"))
+        assertTrue(repeated[2].name, repeated[2].name.endsWith("(repetida, +7,5 %)"))
+        repeated.take(3).forEachIndexed { index, week -> assertRepeat(index + 1, week) }
+        // La serie solo con RPE sigue igual, y la meta de reps (plannedTargetV2) no se escala.
+        repeated.take(3).forEach { week ->
+            val sets = setsOf(week)
+            sets.filter { it.weight == null }.forEach {
+                assertNull(it.targetPercentageRM)
+                assertEquals(8.0, it.targetRPE)
+            }
+            sets.filter { it.plannedTargetV2 != null }.forEach { assertEquals(8.0, it.plannedTargetV2) }
+        }
+        assertUniqueIds(result)
+        assertTrue(ProgramExecutionContract.validate(result).isEmpty())
+    }
+
+    @Test
+    fun after_six_repeats_the_step_stays_at_10_percent_and_a_deload_neither_scales_nor_resets_the_count() {
+        val result = fitted(withLoads(protocolProgram("tsa-9")), 19).program
+        val repeated = repeatedWeeksOf(result)
+        val deloads = weeksOf(result).filter { it.executionKind == WeekExecutionKind.DELOAD }
+        assertTrue("al menos seis repeticiones", repeated.size >= 6)
+        assertTrue("una descarga intercalada", deloads.isNotEmpty())
+        // La cuenta sigue tras cada descarga: 2,5 · 5 · 7,5 y después siempre +10 %.
+        assertEquals((1..repeated.size).map { expectedStepLabel(it) }, repeated.map { stepOf(it.name) })
+        repeated.forEachIndexed { index, week -> assertRepeat(index + 1, week) }
+        // Las descargas salen de la semana original: sin escalón.
+        deloads.forEach { assertLoads("descarga", it, 61.0, 85.0) }
+        assertUniqueIds(result)
+        assertTrue(ProgramExecutionContract.validate(result).isEmpty())
     }
 }

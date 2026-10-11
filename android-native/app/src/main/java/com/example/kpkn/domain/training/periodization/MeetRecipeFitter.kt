@@ -3,6 +3,8 @@ package com.example.kpkn.domain.training.periodization
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.BlockGoal
 import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.ExerciseSet
+import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.Macrocycle
 import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.MesocycleGoal
@@ -12,10 +14,13 @@ import com.example.kpkn.data.models.WeekExecutionKind
 import com.example.kpkn.data.protocols.PlanProvenance
 import com.example.kpkn.data.protocols.PlanProvenanceClass
 import com.example.kpkn.domain.onboarding.CompetitionRules
+import com.example.kpkn.domain.training.AuthoredProgressionEngine
 import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.domain.training.ProgramExecutionContract
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
+import kotlin.math.floor
+import kotlin.math.roundToInt
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -37,11 +42,20 @@ sealed interface MeetFit {
  * - Solo se ajustan los planes de [APT_RECIPES]. Su cola (desde la primera semana de realización, pico, taper o descarga
  *   final) queda fija y termina en la semana de la competición.
  * - Si falta tiempo, se quitan semanas de acumulación desde la cabeza, dejando al menos una de intensificación.
- * - Si sobra, se repite la última semana de acumulación (ids propios con sufijo `-r<n>`) y se añade una descarga cada
- *   [MAX_TRAINING_WEEKS] semanas de entrenamiento.
+ * - Si sobra, se repite la última semana de acumulación (ids propios con sufijo `-r<n>`). La n-ésima repetición sube los kilos
+ *   y el % de 1RM de sus series un escalón de +2,5 % (tope +10 %; ver [repeatOf]). Cada [MAX_TRAINING_WEEKS] semanas de
+ *   entrenamiento se añade una descarga, sin escalón.
  * - Lo que no cabe sale como [MeetFit.NotFittable] con su texto. El resultado pasa el contrato de ejecución del programa.
  */
 object MeetRecipeFitter {
+
+    /** Escalón de carga por cada repetición de acumulación (+2,5 %) y número máximo de escalones (tope +10 %). */
+    private const val REPEAT_LOAD_STEP = 0.025
+    private const val MAX_REPEAT_STEPS = 4
+
+    /** Los % de 1RM se redondean a medio punto y no pasan del 100 %. */
+    private const val PERCENT_STEP = 0.5
+    private const val MAX_PERCENT = 100.0
 
     /** Planes de autor que se ajustan (id de receta, de protocolo o de catálogo). */
     private val APT_RECIPES = setOf("kpkn-native-sbd-4", "candito-6", "cube-method", "calgary-16", "tsa-9", "gzcl-uhf-9")
@@ -189,7 +203,8 @@ object MeetRecipeFitter {
 
     /**
      * Añade [extra] semanas a la cabeza: copias de la última semana de acumulación, con una descarga cada
-     * [MAX_TRAINING_WEEKS] semanas de entrenamiento seguidas (nunca al final de lo añadido). Null sin acumulación que repetir.
+     * [MAX_TRAINING_WEEKS] semanas de entrenamiento seguidas (nunca al final de lo añadido). El escalón de carga cuenta solo
+     * las repeticiones: una descarga no lo reinicia. Null sin acumulación que repetir.
      */
     private fun extended(head: List<Slot>, extra: Int): List<Slot>? {
         val last = head.indexOfLast { it.phase == BlockGoal.ACCUMULATION }
@@ -202,13 +217,16 @@ object MeetRecipeFitter {
         }
         val added = ArrayList<Slot>()
         var left = extra
+        // Repeticiones hechas hasta ahora: su número marca el escalón de carga. Las descargas no lo cuentan.
+        var repeats = 0
         while (left > 0) {
             val suffix = "-r${added.size + 1}"
             if (since >= MAX_TRAINING_WEEKS && left > 1) {
                 added.add(Slot(deloadOf(source.week, suffix), BlockGoal.DELOAD, source.block, inserted = true))
                 since = 0
             } else {
-                added.add(Slot(repeatOf(source.week, suffix), BlockGoal.ACCUMULATION, source.block, inserted = true))
+                repeats++
+                added.add(Slot(repeatOf(source.week, suffix, repeats), BlockGoal.ACCUMULATION, source.block, inserted = true))
                 since++
             }
             left--
@@ -248,9 +266,59 @@ object MeetRecipeFitter {
         )
     }
 
-    /** Repetición de una semana de acumulación: mismos kilos y series, ids propios. */
-    private fun repeatOf(week: ProgramWeek, suffix: String): ProgramWeek =
-        renamedWeek(week, suffix).copy(name = "${week.name} (repetida)")
+    /**
+     * Repetición de una semana de acumulación, con ids propios. La [n]-ésima repetición sube los kilos y el % de 1RM de sus
+     * series un escalón de [REPEAT_LOAD_STEP] (hasta [MAX_REPEAT_STEPS] escalones), y el nombre lo dice: «repetida, +2,5 %».
+     */
+    private fun repeatOf(week: ProgramWeek, suffix: String, n: Int): ProgramWeek {
+        val steps = n.coerceAtMost(MAX_REPEAT_STEPS)
+        val factor = 1.0 + REPEAT_LOAD_STEP * steps
+        return scaledLoads(renamedWeek(week, suffix), factor)
+            .copy(name = "${week.name} (repetida, +${percentLabel(REPEAT_LOAD_STEP * steps)} %)")
+    }
+
+    /** Porcentaje para el nombre de una repetición, con coma decimal: «2,5», «5», «7,5» o «10». */
+    private fun percentLabel(fraction: Double): String {
+        val tenths = (fraction * 1000.0).roundToInt()
+        val decimal = tenths % 10
+        return if (decimal == 0) "${tenths / 10}" else "${tenths / 10},$decimal"
+    }
+
+    /** Copia de [week] con el escalón de carga en sus series, en `sessions` y en `parts` (como [deloadOf]). */
+    private fun scaledLoads(week: ProgramWeek, factor: Double): ProgramWeek = week.copy(
+        sessions = week.sessions.map { session ->
+            session.copy(
+                exercises = session.exercises.map { scaledExercise(it, factor) },
+                parts = session.parts.map { part -> part.copy(exercises = part.exercises.map { scaledExercise(it, factor) }) },
+            )
+        },
+    )
+
+    private fun scaledExercise(exercise: Exercise, factor: Double): Exercise =
+        exercise.copy(sets = exercise.sets.map { scaledSet(it, factor) })
+
+    /**
+     * Escala los kilos ([ExerciseSet.weight]) y el % de 1RM ([ExerciseSet.targetPercentageRM]) de una serie de carga externa
+     * ([LoadModeV2.LOAD], que es el valor por defecto). Nunca baja del valor de origen.
+     * - Asistido, lastre y peso corporal no se tocan: en asistido el peso es la ayuda, y subirla facilitaría la serie.
+     * - [ExerciseSet.plannedTargetV2] no se toca: es la meta de la unidad de la serie (reps, segundos, metros o unidad
+     *   propia), no kilos. Escalarla alteraría repeticiones o tiempos.
+     * - RPE, RIR, reps, series y los kilos técnicos o consolidados no cambian.
+     */
+    private fun scaledSet(set: ExerciseSet, factor: Double): ExerciseSet {
+        if ((set.loadModeV2 ?: LoadModeV2.LOAD) != LoadModeV2.LOAD) return set
+        val weight = set.weight?.takeIf { it > 0.0 }?.let { kg -> maxOf(roundLoadKg(kg * factor), kg) } ?: set.weight
+        val percent = set.targetPercentageRM?.takeIf { it > 0.0 }?.let { pct ->
+            minOf(maxOf(roundToStep(pct * factor, PERCENT_STEP), pct), MAX_PERCENT)
+        } ?: set.targetPercentageRM
+        return set.copy(weight = weight, targetPercentageRM = percent)
+    }
+
+    /** Kilos al paso de redondeo del motor de planes de autor sin inventario: medio kilo (`AuthoredProgressionEngine`). */
+    private fun roundLoadKg(kg: Double): Double = roundToStep(kg, AuthoredProgressionEngine.roundingStepKg(inventory = null))
+
+    /** Múltiplo de [step] más cercano a [value]; la mitad sube (igual que `AuthoredProgressionEngine.incrementedTm`). */
+    private fun roundToStep(value: Double, step: Double): Double = floor(value / step + 0.5) * step
 
     /** Descarga: la semana de acumulación con dos series menos por ejercicio (como mínimo, una). */
     private fun deloadOf(week: ProgramWeek, suffix: String): ProgramWeek {
