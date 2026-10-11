@@ -31,12 +31,11 @@ data class ImportExercisePatch(
  * Edición del borrador importado antes de guardarlo. Puro, sin Android: cada operación devuelve un borrador nuevo.
  * Si un id o una semana no existen, devuelve el mismo borrador y nunca lanza. Los ids que crea son `x<n>`, con el
  * contador [ImportedProgramDraft.nextId]; los de la lectura no cambian al mover, renombrar o renumerar.
- * Los límites de los valores son los del analizador, salvo las series, que al editar van de 1 a 12.
+ * Los límites de los valores son los del analizador (las series, de 1 a 20, como al leer).
  */
 object ImportDraftEditor {
 
-    private const val EDIT_MAX_SETS = 12
-    private val SETS_RANGE = 1..EDIT_MAX_SETS
+    private val SETS_RANGE = 1..ProgramImportParser.MAX_SETS
     private val REPS_RANGE = 1..ProgramImportParser.MAX_REPS
     private val LOAD_RANGE = 0.5..ProgramImportParser.MAX_LOAD_KG
     private val PERCENT_RANGE = 1.0..ProgramImportParser.MAX_PERCENT
@@ -57,45 +56,29 @@ object ImportDraftEditor {
         patch: ImportExercisePatch,
         allWeeks: Boolean = false,
     ): ImportedProgramDraft {
-        val place = placeOfExercise(draft, exerciseId) ?: return draft
-        val source = draft.weeks[place.week].days[place.day].exercises[place.exercise]
-        val key = ExerciseMatchLexicon.normalize(source.rawName)
-        val weeks = draft.weeks.mapIndexed { weekPosition, week ->
-            val sameWeek = weekPosition == place.week
-            val day = week.days.getOrNull(place.day)
-            if (day == null || (!sameWeek && !allWeeks)) return@mapIndexed week
-            val target = if (sameWeek) {
-                day.exercises.indexOfFirst { it.id == exerciseId }
-            } else {
-                day.exercises.indexOfFirst { ExerciseMatchLexicon.normalize(it.rawName) == key }
-            }
-            if (target < 0) return@mapIndexed week
-            week.withDay(place.day) { current ->
-                current.copy(
-                    exercises = current.exercises.mapIndexed { index, exercise ->
-                        if (index == target) exercise.patched(patch) else exercise
-                    },
-                )
-            }
-        }
-        return draft.copy(weeks = weeks)
+        val same = sameExercise(draft, exerciseId)
+        if (same.isEmpty()) return draft
+        return draft.withExercisesAt(same, allWeeks) { exercise -> exercise.patched(patch) }
     }
 
-    /** Cambia el nombre del ejercicio; sin espacios sobrantes, y un nombre vacío no cambia nada. */
-    fun rename(draft: ImportedProgramDraft, exerciseId: String, rawName: String): ImportedProgramDraft {
+    /**
+     * Cambia el nombre del ejercicio; sin espacios sobrantes, y un nombre vacío no cambia nada. Con [allWeeks], renombra
+     * también «el mismo ejercicio» de las demás semanas, con la misma regla que [update] y a partir del nombre ANTERIOR.
+     */
+    fun rename(draft: ImportedProgramDraft, exerciseId: String, rawName: String, allWeeks: Boolean = false): ImportedProgramDraft {
         val name = rawName.trim()
-        val place = placeOfExercise(draft, exerciseId) ?: return draft
         if (name.isEmpty()) return draft
-        return draft.withWeek(place.week) { week ->
-            week.withDay(place.day) { day ->
-                day.copy(
-                    exercises = day.exercises.mapIndexed { index, exercise ->
-                        if (index == place.exercise) exercise.copy(rawName = name) else exercise
-                    },
-                )
-            }
-        }
+        val same = sameExercise(draft, exerciseId)
+        if (same.isEmpty()) return draft
+        return draft.withExercisesAt(same, allWeeks) { exercise -> exercise.copy(rawName = name) }
     }
+
+    /**
+     * Cuántas OTRAS semanas tienen «el mismo ejercicio» según la regla de [update] con [allWeeks] (el mismo día de su semana
+     * y el mismo nombre normalizado). 0 si el id no existe.
+     */
+    fun sameExerciseInOtherWeeks(draft: ImportedProgramDraft, exerciseId: String): Int =
+        (sameExercise(draft, exerciseId).size - 1).coerceAtLeast(0)
 
     /** Quita el ejercicio de su día. */
     fun remove(draft: ImportedProgramDraft, exerciseId: String): ImportedProgramDraft {
@@ -406,6 +389,51 @@ object ImportDraftEditor {
             if (dayPosition >= 0) return Place(weekPosition, dayPosition)
         }
         return null
+    }
+
+    /**
+     * El ejercicio [exerciseId] primero y, después, «el mismo» de las demás semanas: el del día que ocupa la misma posición
+     * dentro de su semana y con el mismo nombre normalizado (uno por semana). Vacío si el id no existe.
+     */
+    private fun sameExercise(draft: ImportedProgramDraft, exerciseId: String): List<Place> {
+        val own = placeOfExercise(draft, exerciseId) ?: return emptyList()
+        val key = ExerciseMatchLexicon.normalize(draft.weeks[own.week].days[own.day].exercises[own.exercise].rawName)
+        val others = draft.weeks.mapIndexedNotNull { weekPosition, week ->
+            if (weekPosition == own.week) return@mapIndexedNotNull null
+            val day = week.days.getOrNull(own.day) ?: return@mapIndexedNotNull null
+            val index = day.exercises.indexOfFirst { ExerciseMatchLexicon.normalize(it.rawName) == key }
+            if (index < 0) null else Place(weekPosition, own.day, index)
+        }
+        return listOf(own) + others
+    }
+
+    /**
+     * Aplica [change] a los ejercicios de [same] (el propio y, con [allWeeks], los de las demás semanas). Todos ocupan el
+     * mismo día de posición: el del propio ejercicio.
+     */
+    private fun ImportedProgramDraft.withExercisesAt(
+        same: List<Place>,
+        allWeeks: Boolean,
+        change: (ImportedExercise) -> ImportedExercise,
+    ): ImportedProgramDraft {
+        val targets = if (allWeeks) same else same.take(1)
+        val day = same.first().day
+        return copy(
+            weeks = weeks.mapIndexed { weekPosition, week ->
+                val indexes = targets.filter { it.week == weekPosition }.map { it.exercise }.toSet()
+                if (indexes.isEmpty()) {
+                    week
+                } else {
+                    week.withDay(day) { current ->
+                        current.copy(
+                            exercises = current.exercises.mapIndexed { index, exercise ->
+                                if (index in indexes) change(exercise) else exercise
+                            },
+                        )
+                    }
+                }
+            },
+        )
     }
 
     private fun ImportedProgramDraft.withWeek(

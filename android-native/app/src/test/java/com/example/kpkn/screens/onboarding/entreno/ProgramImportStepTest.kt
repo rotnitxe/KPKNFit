@@ -15,15 +15,20 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import com.example.kpkn.domain.onboarding.SetupStepId
+import com.example.kpkn.domain.training.importer.ImportedDay
+import com.example.kpkn.domain.training.importer.ImportedExercise
 import com.example.kpkn.domain.training.importer.ImportedProgramDraft
+import com.example.kpkn.domain.training.importer.ImportedWeek
 import com.example.kpkn.domain.training.importer.ProgramImportParser
 import com.example.kpkn.screens.onboarding.SetupWizardDraft
 import com.example.kpkn.screens.onboarding.SetupWizardValidation
 import com.example.kpkn.screens.onboarding.importProblem
+import com.example.kpkn.screens.programs.importer.ImportEditOp
 import com.example.kpkn.screens.programs.importer.ImportPasteField
 import com.example.kpkn.screens.programs.importer.ImportPreviewWeeks
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -53,11 +58,13 @@ class ProgramImportStepTest {
         ImportPreviewWeeks(
             imported = imported,
             resolutions = resolutions,
-            openedName = opened,
+            openedExerciseId = opened,
             onOpen = { opened = it },
-            onPick = { rawName, configId ->
-                decisions += rawName to configId
-                resolutions = resolutions + (rawName to configId)
+            onEdit = { op ->
+                if (op is ImportEditOp.Decide) {
+                    decisions += op.rawName to op.configId
+                    resolutions = resolutions + (op.rawName to op.configId)
+                }
             },
             suggest = { emptyList() },
             search = { emptyList() },
@@ -112,6 +119,46 @@ class ProgramImportStepTest {
 
         assertEquals(1, read)
     }
+
+    @Test
+    fun importProblemNamesTheFirstThingToFixInOrder() {
+        fun draftOf(imported: ImportedProgramDraft, resolutions: Map<String, String?>, days: Set<Int> = setOf(1, 3)) =
+            SetupWizardDraft(importedProgram = imported, importResolutions = resolutions, selectedWeekdays = days)
+        fun decidedAll(imported: ImportedProgramDraft) = imported.exerciseNames().associateWith { null as String? }
+
+        val noExercises = ImportedProgramDraft("E", listOf(ImportedWeek(1, listOf(emptyDay("w1-d1", "Pierna")))))
+        assertEquals("No encontramos ejercicios en lo que importaste.", draftOf(noExercises, emptyMap()).importProblem())
+
+        val emptyWeek = ImportedProgramDraft(
+            "S",
+            listOf(ImportedWeek(1, listOf(dayWith("w1-d1", "Pierna", "Sentadilla"))), ImportedWeek(2, listOf(emptyDay("w2-d1", "Pierna")))),
+        )
+        assertEquals("Hay semanas sin ejercicios: quítalas o añade ejercicios.", draftOf(emptyWeek, decidedAll(emptyWeek)).importProblem())
+
+        val withEmptyDay = ImportedProgramDraft(
+            "D",
+            listOf(ImportedWeek(1, listOf(dayWith("w1-d1", "Pierna", "Sentadilla"), emptyDay("w1-d2", "Empuje")))),
+        )
+        assertEquals("Hay días sin ejercicios: quítalos o añade ejercicios.", draftOf(withEmptyDay, decidedAll(withEmptyDay)).importProblem())
+
+        val withWarning = ProgramImportParser.parseText("Día 1 — Pierna\nSentadilla 4x6 @120kg\nHacer 3 vueltas", "X")
+        assertEquals("Revisa los avisos de la importación o ignóralos.", draftOf(withWarning, decidedAll(withWarning)).importProblem())
+
+        val twoSessions = ProgramImportParser.parseText("Día 1 — Pierna\nSentadilla 4x6 @120kg\nDía 2 — Empuje\nPress banca 4x8 @80kg", "X")
+        assertEquals(
+            "Tu programa tiene 2 sesiones por semana y elegiste 1 días. Cambia los días.",
+            draftOf(twoSessions, decidedAll(twoSessions), days = setOf(1)).importProblem(),
+        )
+
+        assertNull(draftOf(parsed(), decidedAll(parsed())).importProblem())
+    }
+
+    private fun emptyDay(id: String, name: String): ImportedDay = ImportedDay(id = id, name = name, exercises = emptyList())
+
+    private fun dayWith(id: String, name: String, vararg exercises: String): ImportedDay =
+        ImportedDay(id = id, name = name, exercises = exercises.mapIndexed { index, exercise ->
+            ImportedExercise(id = "$id-e${index + 1}", rawName = exercise, sets = 3, repsMin = 8, repsMax = 8)
+        })
 
     private fun ImportedProgramDraft.exerciseNames(): List<String> =
         weeks.flatMap { week -> week.days.flatMap { day -> day.exercises } }.map { it.rawName }.distinct()

@@ -15,7 +15,7 @@ import kotlin.math.roundToInt
  */
 object ProgramImportParser {
 
-    private const val MAX_SETS = 20
+    internal const val MAX_SETS = 20
     internal const val MAX_REPS = 100
     internal const val MAX_LOAD_KG = 1000.0
     internal const val MAX_PERCENT = 100.0

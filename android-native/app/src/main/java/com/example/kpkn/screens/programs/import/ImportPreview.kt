@@ -1,7 +1,5 @@
 package com.example.kpkn.screens.programs.importer
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -10,7 +8,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -21,7 +20,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -29,6 +27,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.domain.training.importer.ExerciseNameCandidate
+import com.example.kpkn.domain.training.importer.ImportDraftEditor
 import com.example.kpkn.domain.training.importer.ImportedExercise
 import com.example.kpkn.domain.training.importer.ImportedProgramDraft
 import com.example.kpkn.screens.onboarding.SetupFormTextField
@@ -37,7 +36,6 @@ import com.example.kpkn.screens.onboarding.design.WizardTypography
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.onboarding.design.entreno.plan.PatternGlyph
 import com.example.kpkn.screens.onboarding.design.entreno.plan.exercisePatternOf
-import com.example.kpkn.screens.onboarding.entreno.EntrenoTextAction
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 
@@ -82,21 +80,33 @@ internal fun importEquipmentLabelOf(equipmentId: String?): String = when (equipm
     else -> ""
 }
 
-private fun decimalText(value: Double): String =
+/** Un número con coma decimal, sin cero final cuando es entero: «120», «2,5». */
+internal fun decimalText(value: Double): String =
     if (value == value.toLong().toDouble()) value.toLong().toString() else value.toString().replace('.', ',')
+
+/** Un día al que se puede mover un ejercicio: su id, el texto de la opción («Día 2 — Pierna») y sus ejercicios. */
+internal data class ImportMoveTarget(val dayId: String, val label: String, val exerciseCount: Int)
+
+/**
+ * El texto de una opción de «Mover a otro día»: el nombre del día, con «Día N —» delante solo si el nombre no lo trae (los
+ * días leídos de un texto ya llevan «Día 2 — Pierna»).
+ */
+internal fun importMoveLabelOf(position: Int, dayName: String): String =
+    if (dayName.startsWith("Día")) dayName else "Día ${position + 1} — $dayName"
 
 /**
  * La vista previa de un programa importado: semanas, días y ejercicios con su prescripción. Cada ejercicio muestra si
- * está reconocido (✓), es propio o tiene dudas («Elegir»). [openedName] es el ejercicio cuyo panel «Elegir» está abierto.
- * Lo usan el paso del alta y la pantalla de Programas: no escribe nada por sí misma, solo reenvía las decisiones.
+ * está reconocido (✓), es propio o tiene dudas («Elegir»). Tocarlo abre su panel de ajuste ([openedExerciseId] es el
+ * único abierto). Lo usan el paso del alta y la pantalla de Programas: no guarda nada por sí misma; reenvía cada edición
+ * como [ImportEditOp] a quien la muestra.
  */
 @Composable
 internal fun ImportPreviewWeeks(
     imported: ImportedProgramDraft,
     resolutions: Map<String, String?>,
-    openedName: String?,
+    openedExerciseId: String?,
     onOpen: (String?) -> Unit,
-    onPick: (rawName: String, configId: String?) -> Unit,
+    onEdit: (ImportEditOp) -> Unit,
     suggest: suspend (String) -> List<ExerciseNameCandidate>,
     search: suspend (String) -> List<ExerciseNameCandidate>,
     namesOf: suspend (Set<String>) -> Map<String, String>,
@@ -113,31 +123,46 @@ internal fun ImportPreviewWeeks(
             emptyMap()
         }
     }
+    // Cuántas veces aparece cada nombre en todo el borrador: una decisión vale para todas.
+    val nameCounts = remember(imported) {
+        imported.weeks.flatMap { week -> week.days.flatMap { it.exercises } }.groupingBy { it.rawName }.eachCount()
+    }
     Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(24.dp)) {
         imported.weeks.sortedBy { it.index }.forEach { week ->
             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 Text("Semana ${week.index}", style = WizardTypography.eyebrow, color = WizardColors.textMuted)
-                week.days.forEach { day ->
+                week.days.forEachIndexed { dayPosition, day ->
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text(day.name, style = WizardTypography.controlLabel, color = WizardColors.text)
-                        day.exercises.forEach { exercise ->
-                            val open = openedName == exercise.rawName
-                            val chosenId = resolutions[exercise.rawName]
+                        day.exercises.forEachIndexed { position, exercise ->
+                            val open = openedExerciseId == exercise.id
                             ImportExerciseRow(
                                 exercise = exercise,
                                 state = importExerciseStateOf(exercise.rawName, resolutions),
-                                shownName = chosenId?.let { names[it] } ?: exercise.rawName,
-                                onToggle = { onOpen(if (open) null else exercise.rawName) },
+                                shownName = resolutions[exercise.rawName]?.let { names[it] } ?: exercise.rawName,
+                                expanded = open,
+                                onToggle = { onOpen(if (open) null else exercise.id) },
                             )
                             if (open) {
-                                ImportChoicePanel(
-                                    rawName = exercise.rawName,
+                                ImportExerciseEditor(
+                                    exercise = exercise,
+                                    dayId = day.id,
+                                    position = position,
+                                    dayExerciseCount = day.exercises.size,
+                                    state = importExerciseStateOf(exercise.rawName, resolutions),
+                                    shownName = resolutions[exercise.rawName]?.let { names[it] } ?: exercise.rawName,
+                                    moveTargets = week.days.mapIndexedNotNull { target, other ->
+                                        if (target == dayPosition) {
+                                            null
+                                        } else {
+                                            ImportMoveTarget(other.id, importMoveLabelOf(target, other.name), other.exercises.size)
+                                        }
+                                    },
+                                    sameNameCount = nameCounts[exercise.rawName] ?: 1,
+                                    otherWeeks = ImportDraftEditor.sameExerciseInOtherWeeks(imported, exercise.id),
                                     suggest = suggest,
                                     search = search,
-                                    onPick = { configId ->
-                                        onPick(exercise.rawName, configId)
-                                        onOpen(null)
-                                    },
+                                    onEdit = onEdit,
                                     onClose = { onOpen(null) },
                                 )
                             }
@@ -150,21 +175,32 @@ internal fun ImportPreviewWeeks(
 }
 
 /**
- * Los avisos del analizador («N filas no se entendieron») en una línea; al desplegarla, cada fila. Sin caja.
+ * Los avisos del analizador («N filas no se entendieron») en una línea; al desplegarla, cada fila. Sin caja. Quien lo usa
+ * guarda si está desplegado, para poder abrirlo desde la revisión final.
  */
 @Composable
-internal fun ImportWarningsNote(warnings: List<String>, modifier: Modifier = Modifier) {
-    var expanded by rememberSaveable { mutableStateOf(false) }
+internal fun ImportWarningsNote(
+    warnings: List<String>,
+    expanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val requester = remember { BringIntoViewRequester() }
+    // Al desplegarse desde la revisión final, la lista sube a la vista (queda arriba, lejos del final de la página).
+    LaunchedEffect(expanded) { if (expanded) requester.bringIntoView() }
     if (warnings.isNotEmpty()) {
-        Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Column(
+            modifier = modifier.fillMaxWidth().bringIntoViewRequester(requester),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
             Text(
                 if (warnings.size == 1) "1 fila no se entendió" else "${warnings.size} filas no se entendieron",
                 style = WizardTypography.note,
                 color = WizardColors.textMuted,
             )
-            EntrenoTextAction(
+            ImportTextAction(
                 label = if (expanded) "Ocultar las filas" else "Ver las filas",
-                onClick = { expanded = !expanded },
+                onClick = { onExpandedChange(!expanded) },
             )
             if (expanded) {
                 warnings.forEach { warning ->
@@ -175,15 +211,36 @@ internal fun ImportWarningsNote(warnings: List<String>, modifier: Modifier = Mod
     }
 }
 
-/** Una fila de ejercicio: el pictograma, el nombre (reconocido o tal como vino), la prescripción y su estado a la derecha. */
+/**
+ * La línea de deshacer, bajo el título del programa: el texto del último cambio y «Deshacer». Cada toque deshace un cambio.
+ */
+@Composable
+internal fun ImportUndoLine(label: String, onUndo: () -> Unit, modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier.fillMaxWidth().testTag("import-undo-line"),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(label, style = WizardTypography.note, color = WizardColors.textMuted, modifier = Modifier.weight(1f))
+        ImportTextAction(label = "Deshacer", onClick = onUndo, modifier = Modifier.testTag("import-undo"))
+    }
+}
+
+/**
+ * Una fila de ejercicio: el pictograma, el nombre (reconocido o tal como vino), la prescripción y su estado a la derecha.
+ * Al abrirla, sube a la vista para que su panel quede debajo.
+ */
 @Composable
 private fun ImportExerciseRow(
     exercise: ImportedExercise,
     state: ImportExerciseState,
     shownName: String,
+    expanded: Boolean,
     onToggle: () -> Unit,
 ) {
     val pattern = remember(shownName) { exercisePatternOf(shownName) }
+    val requester = remember { BringIntoViewRequester() }
+    LaunchedEffect(expanded) { if (expanded) requester.bringIntoView() }
     val stateText = when (state) {
         ImportExerciseState.CHOSEN -> "Reconocido"
         ImportExerciseState.OWN -> "Propio"
@@ -192,8 +249,9 @@ private fun ImportExerciseRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .bringIntoViewRequester(requester)
             .heightIn(min = 48.dp)
-            .clickable(role = Role.Button, onClickLabel = "Elegir ejercicio", onClick = onToggle)
+            .clickable(role = Role.Button, onClickLabel = "Ajustar ejercicio", onClick = onToggle)
             .semantics { stateDescription = stateText }
             .testTag("import-exercise-${exercise.rawName}"),
         verticalAlignment = Alignment.CenterVertically,
@@ -201,7 +259,7 @@ private fun ImportExerciseRow(
     ) {
         PatternGlyph(pattern = pattern, accent = SymbolPalette.musculo, modifier = Modifier.size(36.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(shownName, style = WizardTypography.controlValue, color = WizardColors.text)
+            Text(shownName, style = WizardTypography.measure, color = WizardColors.text, maxLines = 2)
             Text(importPrescriptionOf(exercise), style = WizardTypography.note, color = WizardColors.textMuted)
         }
         when (state) {
@@ -218,16 +276,18 @@ private fun ImportExerciseRow(
 }
 
 /**
- * El panel de vidrio de «Elegir»: las tres sugerencias del emparejador, un campo para buscar en el catálogo y
- * «Dejarlo como está» (ejercicio propio). Vidrio neutro y tenue sobre la página; sin botones de relleno.
+ * El bloque de «Elegir»: las sugerencias del emparejador, un campo para buscar en el catálogo y «Dejarlo como está»
+ * (ejercicio propio). Lo usa el panel de ajuste, dentro de su vidrio: no pone caja propia. [onPick] recibe la configuración
+ * (null = propio) y el nombre que se muestra; [onCancel] null oculta «Cancelar» (con dudas no hay a qué volver).
  */
 @Composable
-private fun ImportChoicePanel(
+internal fun ImportChoicePanel(
     rawName: String,
     suggest: suspend (String) -> List<ExerciseNameCandidate>,
     search: suspend (String) -> List<ExerciseNameCandidate>,
-    onPick: (configId: String?) -> Unit,
-    onClose: () -> Unit,
+    onPick: (configId: String?, name: String) -> Unit,
+    onCancel: (() -> Unit)?,
+    modifier: Modifier = Modifier,
 ) {
     var suggestions by remember(rawName) { mutableStateOf<List<ExerciseNameCandidate>>(emptyList()) }
     var query by rememberSaveable(rawName) { mutableStateOf("") }
@@ -257,19 +317,12 @@ private fun ImportChoicePanel(
         }
     }
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(WizardColors.glassFill)
-            .border(1.dp, WizardColors.glassBorder, RoundedCornerShape(16.dp))
-            .padding(16.dp)
-            .testTag("import-choice-panel"),
+        modifier = modifier.fillMaxWidth().testTag("import-choice-panel"),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text("Elige el ejercicio", style = WizardTypography.controlLabel, color = WizardColors.text)
-        Text("Tu archivo dice «$rawName».", style = WizardTypography.note, color = WizardColors.textMuted)
         suggestions.forEach { candidate ->
-            ImportCandidateRow(candidate = candidate, onClick = { onPick(candidate.configurationId) })
+            ImportCandidateRow(candidate = candidate, onClick = { onPick(candidate.configurationId, candidate.displayName) })
         }
         SetupFormTextField(
             value = query,
@@ -278,14 +331,14 @@ private fun ImportChoicePanel(
             testTag = "import-choice-search",
         )
         results.forEach { candidate ->
-            ImportCandidateRow(candidate = candidate, onClick = { onPick(candidate.configurationId) })
+            ImportCandidateRow(candidate = candidate, onClick = { onPick(candidate.configurationId, candidate.displayName) })
         }
-        EntrenoTextAction(
+        ImportTextAction(
             label = "Dejarlo como está (ejercicio propio)",
-            onClick = { onPick(null) },
+            onClick = { onPick(null, rawName) },
             modifier = Modifier.testTag("import-choice-own"),
         )
-        EntrenoTextAction(label = "Cancelar", onClick = onClose)
+        onCancel?.let { ImportTextAction(label = "Cancelar", onClick = it) }
     }
 }
 
