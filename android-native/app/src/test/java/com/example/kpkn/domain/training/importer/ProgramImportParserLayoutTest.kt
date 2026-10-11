@@ -279,6 +279,46 @@ class ProgramImportParserLayoutTest {
         assertTrue(draft.warnings.single().exerciseId == null)
     }
 
+    @Test
+    fun `una cabecera de dias sin filas de series o peso debajo no abre cuadricula y la tabla siguiente se lee entera`() {
+        val sheet = ImportSheet(
+            name = "Rutina",
+            rows = listOf(
+                listOf("", "LUNES", "", "MIÉRCOLES", "", "VIERNES"),
+                listOf("Ejercicio", "Series", "Reps", "Peso"),
+                listOf("Sentadilla", "4", "6", "100"),
+                listOf("Press banca", "3", "8", "60"),
+            ),
+        )
+
+        val draft = ProgramImportParser.parseSheets(listOf(sheet), title = "Sin cuadrícula")
+        assertUniqueIds(draft)
+
+        val exercises = draft.weeks.single().days.flatMap { it.exercises }
+        assertEquals(listOf("Sentadilla", "Press banca"), exercises.map { it.rawName })
+        assertEquals(listOf(100.0, 60.0), exercises.map { it.loadKg })
+    }
+
+    @Test
+    fun `una etiqueta que no es de la cuadricula la cierra y el ejercicio de la fila siguiente no se pierde`() {
+        val sheet = ImportSheet(
+            name = "Plan",
+            rows = listOf(
+                listOf("", "Lunes", "Martes", "Miércoles"),
+                listOf("Ejercicio 1", "Curl", "", ""),
+                listOf("Series x Reps", "3x10", "", ""),
+                listOf("RPE", "8", "", ""),
+                listOf("Press banca 3x8"),
+            ),
+        )
+
+        val draft = ProgramImportParser.parseSheets(listOf(sheet), title = "Cierre")
+        assertUniqueIds(draft)
+
+        val names = draft.weeks.single().days.flatMap { day -> day.exercises.map { it.rawName } }
+        assertEquals(listOf("Curl", "Press banca"), names)
+    }
+
     /** Invariante: ningún día ni ejercicio se queda sin id y todos los ids del borrador son distintos entre sí. */
     private fun assertUniqueIds(draft: ImportedProgramDraft) {
         val ids = draft.weeks.flatMap { week -> week.days.flatMap { day -> listOf(day.id) + day.exercises.map { it.id } } }
