@@ -84,6 +84,94 @@ class ExerciseNameMatcherTest {
         assertTrue(match.candidates.map { it.equipmentId }.distinct().size > 1)
     }
 
+    @Test
+    fun `barbell squat va a la trasera con barra alta con barra y es confiable`() {
+        val match = matcher.match("Barbell Squat")
+
+        assertEquals("high_bar_back_squat__barbell", match.best?.configurationId)
+        assertTrue(match.isConfident)
+    }
+
+    @Test
+    fun `barbell row va al remo convencional con barra y es confiable`() {
+        val match = matcher.match("Barbell Row")
+
+        assertEquals("conventional_row__barbell", match.best?.configurationId)
+        assertTrue(match.isConfident)
+    }
+
+    @Test
+    fun `incline dumbbell bench press va a la banca inclinada con mancuernas`() {
+        assertEquals("incline_bench_press__dumbbells", matcher.match("Incline Dumbbell Bench Press").best?.configurationId)
+    }
+
+    @Test
+    fun `romanian deadlift va al rumano basico y no al de deficit`() {
+        val best = matcher.match("Romanian Deadlift").best
+
+        assertEquals("romanian_deadlift__bilateral__barbell", best?.configurationId)
+        assertEquals("Peso Muerto Rumano", best?.displayName)
+    }
+
+    @Test
+    fun `squat no da la sentadilla en V`() {
+        val best = matcher.match("Squat").best
+
+        assertTrue(best?.configurationId.orEmpty().startsWith("high_bar_back_squat"))
+        assertFalse(best?.displayName.orEmpty().contains("V-Squat"))
+    }
+
+    @Test
+    fun `barbell bench press no da la banca con pausa`() {
+        assertEquals("bench_press__barbell", matcher.match("Barbell Bench Press").best?.configurationId)
+    }
+
+    @Test
+    fun `pause squat da la sentadilla con pausa`() {
+        assertEquals("paused_back_squat__barbell", matcher.match("Pause Squat").best?.configurationId)
+    }
+
+    @Test
+    fun `seated calf raise va a la elevacion de talones sentada`() {
+        assertEquals("calf_raise__bilateral__seated_machine", matcher.match("Seated Calf Raise").best?.configurationId)
+    }
+
+    @Test
+    fun `un material que el ejercicio no tiene no sale confiable`() {
+        assertFalse(matcher.match("Dumbbell Hip Thrust").isConfident)
+    }
+
+    @Test
+    fun `nombres basura no salen confiables`() {
+        assertFalse(matcher.match("Warm-up 10 reps").isConfident)
+        assertFalse(matcher.match("Set").isConfident)
+        assertFalse(matcher.match("11 2").isConfident)
+    }
+
+    @Test
+    fun `hyperextension e hypers van a la hiperextension de espalda baja y son confiables`() {
+        val match = matcher.match("Hyperextension")
+
+        assertEquals("back_extension_lumbar__default", match.best?.configurationId)
+        assertTrue(match.isConfident)
+        assertEquals("back_extension_lumbar__default", matcher.match("Hypers").best?.configurationId)
+    }
+
+    @Test
+    fun `goblet squat va a la sentadilla copa y es confiable`() {
+        val match = matcher.match("Goblet Squat")
+
+        assertEquals("quads_sentadilla_copa__default", match.best?.configurationId)
+        assertTrue(match.isConfident)
+    }
+
+    @Test
+    fun `press con mancuernas sin alias no sale confiable`() {
+        assertFalse(matcher.match("Dumbbell Press").isConfident)
+        assertFalse(matcher.match("DB Press").isConfident)
+        assertFalse(matcher.match("Press con mancuernas").isConfident)
+    }
+
     private fun loadCatalog(): ExerciseCatalogV2 {
         val file = listOf(
             File("src/main/assets/exercise_catalog_v2.json"),

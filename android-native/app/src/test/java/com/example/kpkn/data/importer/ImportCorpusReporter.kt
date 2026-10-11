@@ -43,6 +43,7 @@ class ImportCorpusReporter(
             generated = Instant.now().toString(),
             summary = summaryOf(files, ignored = corpus.walkTopDown().count { it.isFile } - found.size),
             unknownNames = unknownNames(analyses),
+            confidentNames = confidentNames(analyses),
             files = files,
         )
         val sheetsDir = File(reportDir, "sheets").apply { mkdirs() }
@@ -225,6 +226,26 @@ class ImportCorpusReporter(
             }
     }
 
+    /** Nombres reconocidos con confianza, por número de archivos que los usan: la muestra para buscar falsos positivos. */
+    private fun confidentNames(analyses: List<Analysis>): List<ConfidentName> {
+        val files = HashMap<String, MutableSet<String>>()
+        val matches = HashMap<String, ExerciseNameMatch>()
+        for (analysis in analyses) {
+            for ((name, match) in analysis.matches) {
+                if (!match.isConfident) continue
+                files.getOrPut(name) { HashSet() }.add(analysis.report.path)
+                matches[name] = match
+            }
+        }
+        return files.map { (name, paths) -> Triple(name, paths.size, matches.getValue(name)) }
+            .sortedWith(compareByDescending<Triple<String, Int, ExerciseNameMatch>> { it.second }.thenBy { it.first })
+            .take(CONFIDENT_LIMIT)
+            .mapNotNull { (name, count, match) ->
+                val best = match.best ?: return@mapNotNull null
+                ConfidentName(name, count, best.displayName, best.configurationId, best.confidence)
+            }
+    }
+
     /** Nombre de archivo seguro para Windows, único dentro del informe: `<ruta sin extensión>.md`. */
     private fun sheetFileName(path: String, taken: MutableSet<String>): String {
         val base = path.substringBeforeLast('.').replace(UNSAFE_FILE_CHARS, "_").take(MAX_BASE_CHARS).ifEmpty { "archivo" }
@@ -297,6 +318,22 @@ class ImportCorpusReporter(
         report.unknownNames.forEachIndexed { index, name ->
             val confidence = name.confidence?.let { rounded(it, 2) } ?: "-"
             appendLine("| ${index + 1} | ${mdCell(name.name)} | ${name.files} | ${mdCell(name.bestCandidate.orEmpty())} | $confidence |")
+        }
+        appendLine()
+        appendLine("## Reconocidos con confianza (muestra)")
+        appendLine()
+        appendLine(
+            "Los $CONFIDENT_LIMIT más frecuentes con confianza, con el ejercicio y la configuración elegidos. " +
+                "Sirve para revisar falsos positivos: un ejercicio confiable pero equivocado es peor que uno sin decidir.",
+        )
+        appendLine()
+        appendLine("| # | Nombre | Archivos | Ejercicio | Configuración | Confianza |")
+        appendLine("|---:|---|---:|---|---|---:|")
+        report.confidentNames.forEachIndexed { index, name ->
+            appendLine(
+                "| ${index + 1} | ${mdCell(name.name)} | ${name.files} | ${mdCell(name.displayName)} " +
+                    "| ${mdCell(name.configurationId)} | ${rounded(name.confidence, 2)} |",
+            )
         }
     }
 
@@ -401,6 +438,7 @@ class ImportCorpusReporter(
         private const val CELL_CHARS = 24
         private const val NOTE_CHARS = 160
         private const val UNKNOWN_LIMIT = 60
+        private const val CONFIDENT_LIMIT = 80
         private const val POOR_PERCENT = 50.0
         private const val MAX_BASE_CHARS = 100
         private val UNSAFE_FILE_CHARS = Regex("[^\\p{L}\\p{N}_-]")
@@ -430,6 +468,7 @@ data class CorpusReport(
     val generated: String,
     val summary: CorpusSummary,
     val unknownNames: List<UnknownName>,
+    val confidentNames: List<ConfidentName>,
     val files: List<CorpusFileReport>,
 )
 
@@ -449,6 +488,15 @@ data class RejectionGroup(val message: String, val count: Int, val files: List<S
 
 @Serializable
 data class UnknownName(val name: String, val files: Int, val bestCandidate: String?, val confidence: Double?)
+
+@Serializable
+data class ConfidentName(
+    val name: String,
+    val files: Int,
+    val displayName: String,
+    val configurationId: String,
+    val confidence: Double,
+)
 
 @Serializable
 data class CorpusFileReport(

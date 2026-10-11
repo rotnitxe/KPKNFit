@@ -32,6 +32,7 @@ class ImportCorpusReporterTest {
         val report = ImportCorpusReporter(matcher).run(syntheticCorpus(), out)
 
         assertTrue(File(out, "report.md").isFile)
+        assertTrue(File(out, "report.md").readText().contains("## Reconocidos con confianza (muestra)"))
         assertEquals(report.files.size, File(out, "sheets").listFiles()!!.count { it.extension == "md" })
         val decoded = Json.decodeFromString(CorpusReport.serializer(), File(out, "report.json").readText())
         assertEquals(report, decoded)
