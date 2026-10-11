@@ -276,7 +276,7 @@ class ImportCorpusReporter(
         appendLine()
         appendLine(
             "| Resultado | Archivo | Hojas | Filas | Semanas | Días | Ejercicios | Nombres | Reconocidos " +
-                "| Avisos: saltadas / ignorados / día vacío / nada | Lectura ms | Análisis ms | Nota |",
+                "| Avisos: saltadas / ignorados / día vacío / nada / nota de hoja | Lectura ms | Análisis ms | Nota |",
         )
         appendLine("|---|---|---:|---:|---:|---:|---:|---:|---|---|---:|---:|---|")
         for (file in report.files) {
@@ -468,7 +468,7 @@ data class CorpusFileReport(
     val distinctNames: Int = 0,
     val confidentNames: Int = 0,
     val confidentPct: Double? = null,
-    /** Avisos por tipo (siempre los cuatro, aunque sean cero). */
+    /** Avisos por tipo (siempre los cinco, aunque sean cero). */
     val warnings: Map<String, Int> = emptyMap(),
     val exerciseSamples: List<ExerciseSample> = emptyList(),
     val warningSamples: List<WarningSample> = emptyList(),
