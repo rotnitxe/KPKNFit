@@ -249,6 +249,24 @@ class ImportEditsTest {
         assertEquals("Día 3", importMoveLabelOf(2, "Día 3"))
     }
 
+    @Test
+    fun `un lote es un solo cambio que nombra el deshacer con el nombre nuevo, y un lote sin cambios no deja nada`() {
+        val batch = ImportEditOp.Batch(
+            listOf(
+                ImportEditOp.Update("w1-d1-e1", ImportExercisePatch(sets = Change.Set(5)), allWeeks = false),
+                ImportEditOp.Rename("w1-d1-e1", "Sentadilla trasera", allWeeks = false),
+            ),
+        )
+        val (after, label) = applied(batch)
+
+        assertEquals("Cambiaste «Sentadilla trasera».", label)
+        val squat = after.imported.weeks[0].days[0].exercises[0]
+        assertEquals(5, squat.sets)
+        assertEquals("Sentadilla trasera", squat.rawName)
+        assertEquals("cfg-squat", after.resolutions["Sentadilla trasera"])
+        assertNull(ImportEdits.apply(snapshot, ImportEditOp.Batch(listOf(ImportEditOp.Update("w1-d1-e1", ImportExercisePatch(), allWeeks = false)))))
+    }
+
     private fun week(index: Int, vararg days: ImportedDay): ImportedWeek = ImportedWeek(index = index, days = days.toList())
 
     private fun day(id: String, name: String, vararg exercises: ImportedExercise): ImportedDay =

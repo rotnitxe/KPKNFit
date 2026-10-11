@@ -11,6 +11,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotSelected
+import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
@@ -153,6 +156,32 @@ class ImportExerciseEditorTest {
 
         rule.onNodeWithContentDescription("Menos repeticiones máximas").performClick()
         rule.onAllNodesWithText("10").assertCountEquals(2)
+    }
+
+    @Test
+    fun savingANameAndValuesIsOneUndoStep() {
+        rule.setContent { EditHost(oneDay(), mapOf("Sentadilla" to null, "Prensa" to null)) }
+
+        rule.onNodeWithTag("import-exercise-Prensa").performClick()
+        rule.onNodeWithContentDescription("Más series").performClick()
+        rule.onNodeWithTag("import-edit-name").performTextReplacement("Prensa libre")
+        rule.onNodeWithTag("import-edit-save").performClick()
+
+        rule.onNodeWithText("Cambiaste «Prensa libre».").assertExists()
+        rule.onNodeWithTag("import-undo").performClick()
+        rule.onNodeWithTag("import-undo-line").assertDoesNotExist()
+        rule.onNodeWithTag("import-exercise-Prensa").assertExists()
+    }
+
+    @Test
+    fun theModeSwitchesAreRadioButtonsAndKeepTheirSelection() {
+        rule.setContent { EditHost(oneDay(), mapOf("Sentadilla" to null, "Prensa" to null)) }
+
+        rule.onNodeWithTag("import-exercise-Prensa").performClick()
+        rule.onNodeWithText("Rango").performClick()
+
+        rule.onNodeWithText("Rango").assertIsSelected()
+        rule.onNodeWithText("Fijas").assertIsNotSelected()
     }
 
     @Test

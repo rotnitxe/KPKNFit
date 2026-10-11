@@ -30,7 +30,6 @@ import com.example.kpkn.screens.onboarding.SetupFormTextField
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardTypography
 import com.example.kpkn.screens.onboarding.entreno.EntrenoPlanNotice
-import com.example.kpkn.screens.onboarding.entreno.EntrenoTextAction
 import com.example.kpkn.ui.entitlements.LocalPlan
 import kotlinx.coroutines.launch
 
@@ -73,7 +72,7 @@ fun ImportProgramScreen(
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
-        EntrenoTextAction(label = "Atrás", onClick = onBack)
+        ImportTextAction(label = "Atrás", onClick = onBack)
         Text("Importar programa", style = WizardTypography.stepTitle, color = WizardColors.text)
         if (imported == null) {
             ImportSourceChoices(onChooseFile = pickFile, onPaste = { pasting = true })
@@ -116,8 +115,8 @@ fun ImportProgramScreen(
                 onRestart = viewModel::clear,
             )
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                EntrenoTextAction(label = "Cambiar archivo", onClick = pickFile)
-                EntrenoTextAction(label = "Empezar de nuevo", onClick = viewModel::clear)
+                ImportTextAction(label = "Cambiar archivo", onClick = pickFile)
+                ImportTextAction(label = "Empezar de nuevo", onClick = viewModel::clear)
             }
             Button(
                 onClick = { scope.launch { viewModel.save(level)?.let(onSaved) } },

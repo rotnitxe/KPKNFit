@@ -6,12 +6,15 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -45,8 +49,6 @@ import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardShapes
 import com.example.kpkn.screens.onboarding.design.WizardSpacing
 import com.example.kpkn.screens.onboarding.design.WizardTypography
-import com.example.kpkn.screens.onboarding.design.WizardUnitToggle
-import com.example.kpkn.screens.onboarding.entreno.EntrenoTextAction
 
 /** Paso del descanso en el selector: 15 s. */
 private const val REST_STEP_SECONDS = 15
@@ -60,9 +62,9 @@ private const val RIR_DEFAULT = 2
 
 /**
  * El panel de ajuste de un ejercicio, justo debajo de su fila: identidad (catálogo, propio o con dudas), series, repeticiones,
- * carga, esfuerzo, descanso, notas, «aplicar en las otras semanas», guardar y orden y estructura. Los valores se guardan con
- * «Guardar cambios» como un parche (solo lo que cambió); el orden, duplicar y quitar son inmediatos y dejan deshacer. Las
- * decisiones del catálogo también son inmediatas.
+ * carga, esfuerzo, descanso, notas, «aplicar en las otras semanas», guardar y orden y estructura. «Guardar cambios» aplica el
+ * nombre y los valores que cambiaron como un solo paso para deshacer; el orden, duplicar y quitar son inmediatos y dejan
+ * deshacer. Las decisiones del catálogo también son inmediatas.
  */
 @Composable
 internal fun ImportExerciseEditor(
@@ -94,8 +96,16 @@ internal fun ImportExerciseEditor(
     val canSave = (renamed || !patch.isNoOp()) && form.isValid()
 
     fun save() {
-        if (!patch.isNoOp()) onEdit(ImportEditOp.Update(exercise.id, patch, allWeeks))
-        if (renamed) onEdit(ImportEditOp.Rename(exercise.id, form.rawName.trim(), allWeeks))
+        // Valores y nombre van en una sola operación: un solo paso para deshacer.
+        val ops = buildList {
+            if (!patch.isNoOp()) add(ImportEditOp.Update(exercise.id, patch, allWeeks))
+            if (renamed) add(ImportEditOp.Rename(exercise.id, form.rawName.trim(), allWeeks))
+        }
+        when (ops.size) {
+            0 -> Unit
+            1 -> onEdit(ops.single())
+            else -> onEdit(ImportEditOp.Batch(ops))
+        }
         onClose()
     }
 
@@ -140,7 +150,7 @@ internal fun ImportExerciseEditor(
                     )
                 } else {
                     Text("Ejercicio del catálogo: $shownName", style = WizardTypography.controlLabel, color = WizardColors.text)
-                    EntrenoTextAction(
+                    ImportTextAction(
                         label = "Cambiar",
                         onClick = { choosing = true },
                         modifier = Modifier.testTag("import-edit-change"),
@@ -165,7 +175,7 @@ internal fun ImportExerciseEditor(
                         label = "Nombre",
                         testTag = "import-edit-name",
                     )
-                    EntrenoTextAction(
+                    ImportTextAction(
                         label = "Elegir del catálogo",
                         onClick = { choosing = true },
                         modifier = Modifier.testTag("import-edit-pick"),
@@ -201,7 +211,7 @@ internal fun ImportExerciseEditor(
         }
 
         ImportSection(label = "Repeticiones") {
-            WizardUnitToggle(
+            ImportSegmented(
                 options = listOf(false, true),
                 selected = rangeMode,
                 label = { range -> if (range) "Rango" else "Fijas" },
@@ -209,7 +219,7 @@ internal fun ImportExerciseEditor(
                     rangeMode = range
                     if (!range) form = form.copy(repsMax = form.repsMin)
                 },
-                measurementScale = true,
+                testTag = "import-edit-reps-mode",
             )
             if (rangeMode) {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Top) {
@@ -260,7 +270,7 @@ internal fun ImportExerciseEditor(
         }
 
         ImportSection(label = "Carga") {
-            WizardUnitToggle(
+            ImportSegmented(
                 options = ImportLoadMode.entries,
                 selected = form.loadMode,
                 label = { mode ->
@@ -271,8 +281,7 @@ internal fun ImportExerciseEditor(
                     }
                 },
                 onSelected = { mode -> form = form.copy(loadMode = mode) },
-                // Tres opciones: a escala de medida «Sin carga» no cabe en su tercio y se corta.
-                measurementScale = false,
+                testTag = "import-edit-load-mode",
             )
             when (form.loadMode) {
                 ImportLoadMode.NONE -> Unit
@@ -318,7 +327,7 @@ internal fun ImportExerciseEditor(
         }
 
         ImportSection(label = "Esfuerzo") {
-            WizardUnitToggle(
+            ImportSegmented(
                 options = ImportEffortMode.entries,
                 selected = form.effortMode,
                 label = { mode ->
@@ -335,7 +344,7 @@ internal fun ImportExerciseEditor(
                         rir = if (mode == ImportEffortMode.RIR) form.rir ?: RIR_DEFAULT else form.rir,
                     )
                 },
-                measurementScale = false,
+                testTag = "import-edit-effort-mode",
             )
             when (form.effortMode) {
                 ImportEffortMode.NONE -> Unit
@@ -367,14 +376,14 @@ internal fun ImportExerciseEditor(
         }
 
         ImportSection(label = "Descanso") {
-            WizardUnitToggle(
+            ImportSegmented(
                 options = listOf(false, true),
                 selected = form.restSeconds != null,
                 label = { on -> if (on) "Indicar" else "Sin indicar" },
                 onSelected = { on ->
                     form = form.copy(restSeconds = if (on) form.restSeconds ?: REST_DEFAULT_SECONDS else null)
                 },
-                measurementScale = true,
+                testTag = "import-edit-rest-mode",
             )
             form.restSeconds?.let { seconds ->
                 ImportStepper(
@@ -422,37 +431,34 @@ internal fun ImportExerciseEditor(
                 testTag = "import-edit-save",
                 modifier = Modifier.weight(1f),
             )
-            EntrenoTextAction(label = "Cancelar", onClick = onClose, modifier = Modifier.testTag("import-edit-cancel"))
+            ImportTextAction(label = "Cancelar", onClick = onClose, modifier = Modifier.testTag("import-edit-cancel"))
         }
 
         Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(WizardColors.divider))
 
-        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            EntrenoTextAction(
+        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            ImportTextAction(
                 label = "Subir",
                 enabled = position > 0,
-                color = if (position > 0) WizardColors.text else WizardColors.textFaint,
                 onClick = { onEdit(ImportEditOp.Move(exercise.id, dayId, position - 1)) },
                 modifier = Modifier.testTag("import-edit-up"),
             )
-            EntrenoTextAction(
+            ImportTextAction(
                 label = "Bajar",
                 enabled = position < dayExerciseCount - 1,
-                color = if (position < dayExerciseCount - 1) WizardColors.text else WizardColors.textFaint,
                 onClick = { onEdit(ImportEditOp.Move(exercise.id, dayId, position + 1)) },
                 modifier = Modifier.testTag("import-edit-down"),
             )
         }
-        EntrenoTextAction(
+        ImportTextAction(
             label = "Mover a otro día",
             enabled = moveTargets.isNotEmpty(),
-            color = if (moveTargets.isNotEmpty()) WizardColors.text else WizardColors.textFaint,
             onClick = { moving = !moving },
             modifier = Modifier.testTag("import-edit-move"),
         )
         if (moving) {
             moveTargets.forEach { target ->
-                EntrenoTextAction(
+                ImportTextAction(
                     label = target.label,
                     onClick = {
                         // Al final de ese día; el panel se cierra.
@@ -463,12 +469,12 @@ internal fun ImportExerciseEditor(
                 )
             }
         }
-        EntrenoTextAction(
+        ImportTextAction(
             label = "Duplicar",
             onClick = { onEdit(ImportEditOp.Duplicate(exercise.id)) },
             modifier = Modifier.testTag("import-edit-duplicate"),
         )
-        EntrenoTextAction(
+        ImportTextAction(
             label = "Quitar ejercicio",
             color = WizardColors.danger,
             onClick = {
@@ -490,8 +496,57 @@ private fun ImportSection(label: String, content: @Composable () -> Unit) {
 }
 
 /**
- * Selector «−  4  +»: dos botones de 48 dp con su descripción («Menos series», «Más series») y el valor en medio. Se
- * desactiva en los extremos y el valor se anuncia como estado.
+ * Conmutador de opciones de una sola escala para el panel: ancho completo, cada opción de al menos 48 dp de alto, texto
+ * «cardSubtitle» y la pastilla activa en tinta de marca. Es `Role.RadioButton` con `selected`, como `WizardUnitToggle`, pero sin
+ * su escala de medida, que cortaba «Sin carga» en tres opciones.
+ */
+@Composable
+private fun <T> ImportSegmented(
+    options: List<T>,
+    selected: T,
+    label: (T) -> String,
+    onSelected: (T) -> Unit,
+    testTag: String,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(IntrinsicSize.Min)
+            .clip(WizardShapes.pill)
+            .background(Color.Black)
+            .padding(4.dp)
+            .testTag(testTag),
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
+        options.forEach { option ->
+            val active = option == selected
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .heightIn(min = WizardSpacing.touchTarget)
+                    .clip(WizardShapes.pill)
+                    .background(if (active) WizardColors.cta else Color.Transparent)
+                    .selectable(selected = active, role = Role.RadioButton, onClick = { onSelected(option) })
+                    .padding(horizontal = 2.dp, vertical = 4.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    label(option),
+                    style = WizardTypography.cardSubtitle,
+                    color = if (active) WizardColors.ctaContent else WizardColors.textMuted,
+                    textAlign = TextAlign.Center,
+                    maxLines = 2,
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Selector «−  4  +»: dos botones de 48 dp con su descripción («Menos series», «Más series») y el valor en medio, en una sola
+ * línea y en un estilo contenido para que un descanso de «10 min 30 s» quepa a 320 dp con la letra al 130 %. Se desactiva en
+ * los extremos y el valor se anuncia como estado.
  */
 @Composable
 private fun ImportStepper(
@@ -511,9 +566,10 @@ private fun ImportStepper(
         StepperButton(symbol = "−", description = "Menos $field", enabled = canDecrease, onClick = onDecrease)
         Text(
             valueText,
-            style = WizardTypography.controlValue,
+            style = WizardTypography.cardTitle,
             color = WizardColors.text,
             textAlign = TextAlign.Center,
+            maxLines = 1,
             modifier = Modifier
                 .weight(1f)
                 .semantics {

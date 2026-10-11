@@ -24,6 +24,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.domain.training.importer.ImportDraftValidation
 import com.example.kpkn.domain.training.importer.ImportWarning
@@ -149,12 +150,12 @@ class ImportEditorRenderTest {
 
     /** Un recuadro de la hoja: fondo negro y el ancho de la pantalla de 411 dp, con su etiqueta de prueba «sheet». */
     @Composable
-    private fun Sheet(content: @Composable () -> Unit) {
+    private fun Sheet(width: Dp = 411.dp, fontScale: Float = 1f, content: @Composable () -> Unit) {
         val base = LocalDensity.current
         hostView = LocalView.current
-        CompositionLocalProvider(LocalDensity provides Density(base.density, fontScale = 1f)) {
+        CompositionLocalProvider(LocalDensity provides Density(base.density, fontScale = fontScale)) {
             Box(Modifier.testTag("sheet").wrapContentSize().background(Color.Black)) {
-                Box(Modifier.width(411.dp).padding(horizontal = 16.dp, vertical = 16.dp)) {
+                Box(Modifier.width(width).padding(horizontal = 16.dp, vertical = 16.dp)) {
                     content()
                 }
             }
@@ -247,6 +248,46 @@ class ImportEditorRenderTest {
             }
         }
         save("d_review_ready")
+    }
+
+    /** La hoja (e): el panel a 320 dp con la letra al 130 % y un descanso de 630 s («10 min 30 s»), que no debe cortarse. */
+    @Test
+    fun renderThePanelAt320WithLargeTextAndLongRest() {
+        onlyWhenAsked()
+        val draft = ImportedProgramDraft(
+            title = "Plan",
+            weeks = listOf(
+                ImportedWeek(
+                    1,
+                    listOf(
+                        ImportedDay(
+                            "w1-d1",
+                            "Pierna",
+                            listOf(
+                                ImportedExercise(
+                                    "w1-d1-e1", "Sentadilla", sets = 4, repsMin = 6, repsMax = 8, loadKg = 120.0, restSeconds = 630,
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        rule.setContent {
+            Sheet(width = 320.dp, fontScale = 1.3f) {
+                ImportPreviewWeeks(
+                    imported = draft,
+                    resolutions = mapOf("Sentadilla" to null),
+                    openedExerciseId = "w1-d1-e1",
+                    onOpen = {},
+                    onEdit = {},
+                    suggest = { emptyList() },
+                    search = { emptyList() },
+                    namesOf = { emptyMap() },
+                )
+            }
+        }
+        save("e_panel_320_letra_130_descanso_630")
     }
 
     /** Dibuja la vista de la actividad y recorta el recuadro «sheet» a `KPKN_RENDER_DIR/<name>.png`. */

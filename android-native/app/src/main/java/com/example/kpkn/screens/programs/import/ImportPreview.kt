@@ -36,7 +36,6 @@ import com.example.kpkn.screens.onboarding.design.WizardTypography
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.onboarding.design.entreno.plan.PatternGlyph
 import com.example.kpkn.screens.onboarding.design.entreno.plan.exercisePatternOf
-import com.example.kpkn.screens.onboarding.entreno.EntrenoTextAction
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 
@@ -199,7 +198,7 @@ internal fun ImportWarningsNote(
                 style = WizardTypography.note,
                 color = WizardColors.textMuted,
             )
-            EntrenoTextAction(
+            ImportTextAction(
                 label = if (expanded) "Ocultar las filas" else "Ver las filas",
                 onClick = { onExpandedChange(!expanded) },
             )
@@ -223,7 +222,7 @@ internal fun ImportUndoLine(label: String, onUndo: () -> Unit, modifier: Modifie
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(label, style = WizardTypography.note, color = WizardColors.textMuted, modifier = Modifier.weight(1f))
-        EntrenoTextAction(label = "Deshacer", onClick = onUndo, modifier = Modifier.testTag("import-undo"))
+        ImportTextAction(label = "Deshacer", onClick = onUndo, modifier = Modifier.testTag("import-undo"))
     }
 }
 
@@ -260,7 +259,7 @@ private fun ImportExerciseRow(
     ) {
         PatternGlyph(pattern = pattern, accent = SymbolPalette.musculo, modifier = Modifier.size(36.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(shownName, style = WizardTypography.controlValue, color = WizardColors.text)
+            Text(shownName, style = WizardTypography.measure, color = WizardColors.text, maxLines = 2)
             Text(importPrescriptionOf(exercise), style = WizardTypography.note, color = WizardColors.textMuted)
         }
         when (state) {
@@ -334,12 +333,12 @@ internal fun ImportChoicePanel(
         results.forEach { candidate ->
             ImportCandidateRow(candidate = candidate, onClick = { onPick(candidate.configurationId, candidate.displayName) })
         }
-        EntrenoTextAction(
+        ImportTextAction(
             label = "Dejarlo como está (ejercicio propio)",
             onClick = { onPick(null, rawName) },
             modifier = Modifier.testTag("import-choice-own"),
         )
-        onCancel?.let { EntrenoTextAction(label = "Cancelar", onClick = it) }
+        onCancel?.let { ImportTextAction(label = "Cancelar", onClick = it) }
     }
 }
 

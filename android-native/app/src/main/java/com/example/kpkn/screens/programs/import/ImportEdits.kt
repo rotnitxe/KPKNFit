@@ -49,6 +49,11 @@ sealed interface ImportEditOp {
 
     /** Marca como revisados todos los avisos. */
     data object IgnoreAllWarnings : ImportEditOp
+
+    /**
+     * Varias ediciones como una sola, en orden: «Guardar cambios» con valores y nombre deja un único paso para deshacer.
+     */
+    data class Batch(val ops: List<ImportEditOp>) : ImportEditOp
 }
 
 /**
@@ -90,6 +95,7 @@ object ImportEdits {
                 imported = ImportDraftEditor.removeWeek(draft, op.weekIndex),
             ) to "Quitaste la semana ${op.weekIndex}."
             ImportEditOp.IgnoreAllWarnings -> ignoredAll(snapshot)
+            is ImportEditOp.Batch -> return batched(snapshot, op, nameOf)
         }
         return if (result.first == snapshot) null else result
     }
@@ -130,6 +136,30 @@ object ImportEdits {
         val imported = draft.warnings.fold(draft) { current, warning -> ImportDraftEditor.ignoreWarning(current, warning.id) }
         val label = if (pending == 1) "Ignoraste 1 aviso." else "Ignoraste $pending avisos."
         return snapshot.copy(imported = imported) to label
+    }
+
+    /**
+     * Aplica las ediciones en orden como un solo cambio. El texto para deshacer nombra el ejercicio: el nombre nuevo si lo
+     * hay («Cambiaste «Sentadilla trasera».»); si no, el que se mostraba antes.
+     */
+    private fun batched(
+        snapshot: ImportSnapshot,
+        op: ImportEditOp.Batch,
+        nameOf: (String) -> String,
+    ): Pair<ImportSnapshot, String>? {
+        var state = snapshot
+        op.ops.forEach { step -> state = apply(state, step, nameOf)?.first ?: state }
+        if (state == snapshot) return null
+        val renamed = op.ops.filterIsInstance<ImportEditOp.Rename>().lastOrNull()?.rawName?.trim()?.takeIf { it.isNotEmpty() }
+        val exerciseId = op.ops.firstNotNullOfOrNull { exerciseIdOf(it) }
+        val name = renamed ?: exerciseId?.let { shownName(snapshot.imported, it, nameOf) }.orEmpty()
+        return state to "Cambiaste «$name»."
+    }
+
+    private fun exerciseIdOf(op: ImportEditOp): String? = when (op) {
+        is ImportEditOp.Update -> op.exerciseId
+        is ImportEditOp.Rename -> op.exerciseId
+        else -> null
     }
 
     private fun shownName(draft: ImportedProgramDraft, exerciseId: String, nameOf: (String) -> String): String =

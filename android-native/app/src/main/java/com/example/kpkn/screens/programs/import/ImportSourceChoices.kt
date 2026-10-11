@@ -33,7 +33,6 @@ import com.example.kpkn.screens.onboarding.design.entreno.SymbolPen
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolStroke
 import com.example.kpkn.screens.onboarding.design.entreno.programSourceArtOf
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
-import com.example.kpkn.screens.onboarding.entreno.EntrenoTextAction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -123,7 +122,7 @@ internal fun ImportPasteField(
                 .heightIn(min = 160.dp)
                 .testTag("import-paste-field"),
         )
-        EntrenoTextAction(
+        ImportTextAction(
             label = "Leer el texto",
             enabled = text.isNotBlank(),
             onClick = onRead,

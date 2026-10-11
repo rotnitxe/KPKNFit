@@ -15,7 +15,6 @@ import com.example.kpkn.domain.training.importer.ImportedProgramDraft
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardTypography
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
-import com.example.kpkn.screens.onboarding.entreno.EntrenoTextAction
 
 /**
  * La revisión final del programa importado: encima de «Guardar programa» en la app y al final del paso en el alta. Con
@@ -61,30 +60,30 @@ private fun ReviewAction(
 ) {
     when (issue.kind) {
         ImportIssueKind.UNDECIDED_EXERCISE -> issue.exerciseId?.let { id ->
-            EntrenoTextAction(label = "Elegir", onClick = { onOpenExercise(id) }, modifier = Modifier.testTag("import-review-choose"))
+            ImportTextAction(label = "Elegir", onClick = { onOpenExercise(id) }, modifier = Modifier.testTag("import-review-choose"))
         }
         ImportIssueKind.EMPTY_DAY -> issue.dayId?.let { id ->
-            EntrenoTextAction(
+            ImportTextAction(
                 label = "Quitar el día",
                 onClick = { onEdit(ImportEditOp.RemoveDay(id)) },
                 modifier = Modifier.testTag("import-review-remove-day"),
             )
         }
         ImportIssueKind.EMPTY_WEEK -> issue.weekIndex?.let { index ->
-            EntrenoTextAction(
+            ImportTextAction(
                 label = "Quitar la semana",
                 onClick = { onEdit(ImportEditOp.RemoveWeek(index)) },
                 modifier = Modifier.testTag("import-review-remove-week"),
             )
         }
-        ImportIssueKind.PENDING_WARNINGS -> Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            EntrenoTextAction(label = "Ver avisos", onClick = onShowWarnings, modifier = Modifier.testTag("import-review-warnings"))
-            EntrenoTextAction(
+        ImportIssueKind.PENDING_WARNINGS -> Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            ImportTextAction(label = "Ver avisos", onClick = onShowWarnings, modifier = Modifier.testTag("import-review-warnings"))
+            ImportTextAction(
                 label = "Ignorar todos",
                 onClick = { onEdit(ImportEditOp.IgnoreAllWarnings) },
                 modifier = Modifier.testTag("import-review-ignore"),
             )
         }
-        ImportIssueKind.NO_WEEKS -> EntrenoTextAction(label = "Empezar de nuevo", onClick = onRestart)
+        ImportIssueKind.NO_WEEKS -> ImportTextAction(label = "Empezar de nuevo", onClick = onRestart)
     }
 }
