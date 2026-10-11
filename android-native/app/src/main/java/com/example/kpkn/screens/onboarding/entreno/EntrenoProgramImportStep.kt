@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -13,12 +14,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.domain.onboarding.SetupStepId
+import com.example.kpkn.domain.training.importer.ImportDraftValidation
 import com.example.kpkn.screens.onboarding.SetupFormTextField
 import com.example.kpkn.screens.onboarding.SetupWizardState
 import com.example.kpkn.screens.onboarding.SetupWizardViewModel
 import com.example.kpkn.screens.programs.importer.ImportPasteField
 import com.example.kpkn.screens.programs.importer.ImportPreviewWeeks
+import com.example.kpkn.screens.programs.importer.ImportReview
 import com.example.kpkn.screens.programs.importer.ImportSourceChoices
+import com.example.kpkn.screens.programs.importer.ImportUndoLine
 import com.example.kpkn.screens.programs.importer.ImportWarningsNote
 import com.example.kpkn.screens.programs.importer.importSessionsPerWeek
 import com.example.kpkn.screens.programs.importer.readPickedFile
@@ -27,7 +31,8 @@ import kotlinx.coroutines.launch
 
 /**
  * PROGRAM_IMPORT · «Importa tu programa»: elegir un archivo o pegar el texto; después, la vista previa por semanas y días
- * con cada ejercicio reconocido, propio o con dudas. Escribe SOLO por el ViewModel.
+ * con cada ejercicio reconocido, propio o con dudas, y su panel de ajuste, deshacer y revisión final. Escribe SOLO por el
+ * ViewModel.
  */
 @Composable
 internal fun EntrenoProgramImportStep(state: SetupWizardState, vm: SetupWizardViewModel) {
@@ -37,7 +42,12 @@ internal fun EntrenoProgramImportStep(state: SetupWizardState, vm: SetupWizardVi
     val context = LocalContext.current
     var pasting by rememberSaveable { mutableStateOf(false) }
     var pasted by rememberSaveable { mutableStateOf("") }
-    var openedName by rememberSaveable { mutableStateOf<String?>(null) }
+    var openedExerciseId by rememberSaveable { mutableStateOf<String?>(null) }
+    var warningsOpen by rememberSaveable { mutableStateOf(false) }
+    val resolutions = draft.importResolutions
+    val issues = remember(imported, resolutions) {
+        imported?.let { program -> ImportDraftValidation.check(program) { resolutions.containsKey(it) } }.orEmpty()
+    }
     val pickFile = rememberImportFilePicker { uri ->
         scope.launch {
             readPickedFile(context.contentResolver, uri).fold(
@@ -63,13 +73,18 @@ internal fun EntrenoProgramImportStep(state: SetupWizardState, vm: SetupWizardVi
                 label = "Título del programa",
                 testTag = "setup-import-title",
             )
-            ImportWarningsNote(warnings = imported.warningMessages)
+            state.importUndoLabel?.let { ImportUndoLine(label = it, onUndo = vm::undoImportEdit) }
+            ImportWarningsNote(
+                warnings = imported.warningMessages,
+                expanded = warningsOpen,
+                onExpandedChange = { warningsOpen = it },
+            )
             ImportPreviewWeeks(
                 imported = imported,
-                resolutions = draft.importResolutions,
-                openedName = openedName,
-                onOpen = { openedName = it },
-                onPick = vm::resolveImportedExercise,
+                resolutions = resolutions,
+                openedExerciseId = openedExerciseId,
+                onOpen = { openedExerciseId = it },
+                onEdit = vm::editImport,
                 suggest = vm::importSuggestions,
                 search = vm::searchImportCatalog,
                 namesOf = vm::importNamesOf,
@@ -83,6 +98,14 @@ internal fun EntrenoProgramImportStep(state: SetupWizardState, vm: SetupWizardVi
                 )
                 EntrenoTextAction(label = "Cambiar días", onClick = { vm.editStep(SetupStepId.WEEKDAYS) })
             }
+            ImportReview(
+                imported = imported,
+                issues = issues,
+                onOpenExercise = { openedExerciseId = it },
+                onEdit = vm::editImport,
+                onShowWarnings = { warningsOpen = true },
+                onRestart = vm::clearImport,
+            )
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 EntrenoTextAction(label = "Cambiar archivo", onClick = pickFile)
                 EntrenoTextAction(label = "Empezar de nuevo", onClick = vm::clearImport)

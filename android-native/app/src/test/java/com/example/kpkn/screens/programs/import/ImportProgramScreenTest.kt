@@ -8,9 +8,13 @@ import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.domain.entitlements.PlanLevel
+import com.example.kpkn.domain.training.importer.Change
+import com.example.kpkn.domain.training.importer.ImportExercisePatch
 import com.example.kpkn.domain.training.importer.ImportSheet
 import com.example.kpkn.ui.entitlements.LocalPlan
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -81,6 +85,39 @@ class ImportProgramScreenTest {
 
         rule.onNodeWithText(IMPORT_PRO_NOTICE).assertExists()
         assertTrue("en Free no se escribe nada", saved.isEmpty())
+    }
+
+    @Test
+    fun anEditCanBeUndoneAndTheDraftComesBackAsItWas() {
+        val vm = newViewModel()
+        vm.importFromSheets(twoWeeks(), "Prueba de dos semanas")
+        settle(vm) { it.imported != null && !it.busy }
+        val before = vm.state.value.imported
+        val squat = before!!.weeks[0].days[0].exercises[0]
+
+        vm.edit(ImportEditOp.Update(squat.id, ImportExercisePatch(sets = Change.Set(5)), allWeeks = false))
+        assertEquals(5, vm.state.value.imported!!.weeks[0].days[0].exercises[0].sets)
+        assertEquals("Cambiaste «Sentadilla».", vm.state.value.undoLabel)
+
+        vm.undo()
+        assertEquals(before, vm.state.value.imported)
+        assertNull(vm.state.value.undoLabel)
+    }
+
+    @Test
+    fun saveIsBlockedWhileADayIsEmptyAndSaysWhichOne() {
+        val vm = newViewModel()
+        vm.importFromText("Día 1 — Pierna\nSentadilla 4x6 @120kg\nDía 2 — Empuje\nPress banca 4x8 @80kg")
+        settle(vm) { it.imported != null && !it.busy }
+        decideAll(vm)
+        val pressBanca = vm.state.value.imported!!.weeks[0].days[1].exercises[0]
+        vm.edit(ImportEditOp.Remove(pressBanca.id))
+
+        val result = runBlocking { vm.save(PlanLevel.PRO) }
+
+        assertNull(result)
+        assertTrue("con un día vacío no se escribe nada", saved.isEmpty())
+        assertEquals("El día «Día 2 — Empuje» de la semana 1 no tiene ejercicios.", vm.state.value.error)
     }
 
     @Test

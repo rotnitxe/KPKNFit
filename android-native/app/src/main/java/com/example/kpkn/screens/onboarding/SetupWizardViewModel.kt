@@ -41,6 +41,10 @@ import com.example.kpkn.domain.training.importer.ImportedProgramBuilder
 import com.example.kpkn.domain.training.importer.ImportedProgramDraft
 import com.example.kpkn.domain.training.importer.ProgramImportParser
 import com.example.kpkn.screens.programs.importer.ImportCatalogLookup
+import com.example.kpkn.screens.programs.importer.ImportEditOp
+import com.example.kpkn.screens.programs.importer.ImportEdits
+import com.example.kpkn.screens.programs.importer.ImportSnapshot
+import com.example.kpkn.screens.programs.importer.ImportUndoStack
 import com.example.kpkn.domain.training.generator.GeneratedRoutine
 import com.example.kpkn.domain.training.generator.RoutineGenerationException
 import com.example.kpkn.domain.training.generator.RoutineGenerator
@@ -3851,20 +3855,48 @@ class SetupWizardViewModel @JvmOverloads constructor(
     fun importFromText(text: String) =
         startImport { ProgramImportParser.parseText(text, ImportedProgramBuilder.DEFAULT_TITLE) }
 
+    /** Pila de deshacer de la vista previa: en memoria (máximo 30); se vacía al leer otro archivo o al quitar lo importado. */
+    private val importUndo = ImportUndoStack()
+
+    /** Nombre que se muestra por configuración del catálogo, para los textos de deshacer. */
+    private val importNames = mutableMapOf<String, String>()
+
     /** Decide un ejercicio importado: [configId] es su configuración del catálogo, o null = dejarlo como ejercicio propio. */
     fun resolveImportedExercise(rawName: String, configId: String?) =
-        mutateDraft(SetupStepId.PROGRAM_IMPORT) { latest ->
-            latest.copy(importResolutions = latest.importResolutions + (rawName to configId))
-        }
+        editImport(ImportEditOp.Decide(rawName, configId, name = configId?.let { importNames[it] } ?: rawName))
+
+    /**
+     * Aplica una edición de la vista previa del programa importado y la deja en la pila de deshacer. Si no cambia nada
+     * (id inexistente, parche vacío…), no hace nada.
+     */
+    fun editImport(op: ImportEditOp) = mutateDraft(SetupStepId.PROGRAM_IMPORT) { latest ->
+        val imported = latest.importedProgram ?: return@mutateDraft latest
+        val before = ImportSnapshot(imported, latest.importResolutions)
+        val (after, label) = ImportEdits.apply(before, op) { raw ->
+            latest.importResolutions[raw]?.let { importNames[it] } ?: raw
+        } ?: return@mutateDraft latest
+        if (op is ImportEditOp.Decide) op.configId?.let { importNames[it] = op.name }
+        importUndo.push(before, label)
+        _state.value = _state.value.copy(importUndoLabel = importUndo.label)
+        latest.copy(importedProgram = after.imported, importResolutions = after.resolutions)
+    }
+
+    /** Deshace el último cambio de la vista previa del programa importado. */
+    fun undoImportEdit() = mutateDraft(SetupStepId.PROGRAM_IMPORT) { latest ->
+        val previous = importUndo.pop() ?: return@mutateDraft latest
+        _state.value = _state.value.copy(importUndoLabel = importUndo.label)
+        latest.copy(importedProgram = previous.imported, importResolutions = previous.resolutions)
+    }
 
     /** Título editable del programa importado. */
     fun setImportTitle(title: String) =
         mutateDraft(SetupStepId.PROGRAM_IMPORT) { latest -> latest.copy(importTitle = title) }
 
-    /** Quita lo importado: el paso vuelve a quedar sin programa. */
+    /** Quita lo importado: el paso vuelve a quedar sin programa y la pila de deshacer se vacía. */
     fun clearImport() {
         importJob?.cancel()
-        _state.value = _state.value.copy(importBusy = false, importError = null)
+        importUndo.clear()
+        _state.value = _state.value.copy(importBusy = false, importError = null, importUndoLabel = null)
         mutateDraft(SetupStepId.PROGRAM_IMPORT) { latest ->
             latest.copy(importedProgram = null, importResolutions = emptyMap(), importTitle = "")
         }
@@ -3893,7 +3925,9 @@ class SetupWizardViewModel @JvmOverloads constructor(
     suspend fun importNamesOf(configIds: Set<String>): Map<String, String> {
         ensureCatalogLoaded()
         val catalog = (catalogRepository.state.value as? ExerciseCatalogStateV2.Ready)?.catalog ?: return emptyMap()
-        return withContext(Dispatchers.Default) { ImportCatalogLookup.namesOf(catalog, configIds) }
+        val names = withContext(Dispatchers.Default) { ImportCatalogLookup.namesOf(catalog, configIds) }
+        importNames.putAll(names)
+        return names
     }
 
     /**
@@ -3902,7 +3936,8 @@ class SetupWizardViewModel @JvmOverloads constructor(
      */
     private fun startImport(parse: () -> ImportedProgramDraft) {
         importJob?.cancel()
-        _state.value = _state.value.copy(importBusy = true, importError = null)
+        importUndo.clear()
+        _state.value = _state.value.copy(importBusy = true, importError = null, importUndoLabel = null)
         importJob = viewModelScope.launch {
             try {
                 val parsed = withContext(Dispatchers.Default) { parse() }

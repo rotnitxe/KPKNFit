@@ -25,6 +25,8 @@ import com.example.kpkn.data.programs.toTrainingReference
 import com.example.kpkn.domain.nutrition.NutritionConfigurationMode
 import com.example.kpkn.domain.nutrition.parseLocalizedNumber
 import com.example.kpkn.domain.training.PersonalizationReport
+import com.example.kpkn.domain.training.importer.ImportDraftValidation
+import com.example.kpkn.domain.training.importer.ImportIssueKind
 import com.example.kpkn.domain.training.importer.ImportedProgramDraft
 import com.example.kpkn.domain.training.TrainingValidation
 import com.example.kpkn.domain.onboarding.ArmStyle
@@ -1276,6 +1278,8 @@ data class SetupWizardState(
     val importBusy: Boolean = false,
     /** Por qué no se pudo leer o analizar lo importado; null = sin error. */
     val importError: String? = null,
+    /** Lo que deshace el siguiente toque de la vista previa del programa importado; null si no hay nada que deshacer. */
+    val importUndoLabel: String? = null,
 ) {
     val showNutritionPreview: Boolean get() = nutritionDraft != null
     val nutritionDraft: NutritionWizardDraft? get() = draft.nutritionDraft
@@ -1474,16 +1478,24 @@ internal fun SetupWizardDraft.importUndecidedNames(): List<String> {
         .filterNot { importResolutions.containsKey(it) }
 }
 
-/** Qué le falta al programa importado para seguir; null si hay al menos un ejercicio y todos están decididos. */
+/**
+ * Qué le falta al programa importado para seguir; null si está listo. Usa la revisión final ([ImportDraftValidation]) con
+ * este orden: sin ejercicios, con dudas, semanas vacías, días vacíos, avisos sin revisar y más sesiones que días.
+ */
 internal fun SetupWizardDraft.importProblem(): String? {
     val imported = importedProgram ?: return "Importa un programa para continuar."
     val hasExercises = imported.weeks.any { week -> week.days.any { it.exercises.isNotEmpty() } }
     // Una sesión por día de entreno: con más sesiones por semana que días elegidos, dos caerían el mismo día.
     val sessionsPerWeek = imported.weeks.maxOfOrNull { it.days.size } ?: 0
     val days = selectedWeekdays.size
+    val issues = ImportDraftValidation.check(imported) { importResolutions.containsKey(it) }
+    fun has(kind: ImportIssueKind) = issues.any { it.kind == kind }
     return when {
         !hasExercises -> "No encontramos ejercicios en lo que importaste."
-        importUndecidedNames().isNotEmpty() -> "Elige o deja como está los ejercicios con dudas."
+        has(ImportIssueKind.UNDECIDED_EXERCISE) -> "Elige o deja como está los ejercicios con dudas."
+        has(ImportIssueKind.EMPTY_WEEK) -> "Hay semanas sin ejercicios: quítalas o añade ejercicios."
+        has(ImportIssueKind.EMPTY_DAY) -> "Hay días sin ejercicios: quítalos o añade ejercicios."
+        has(ImportIssueKind.PENDING_WARNINGS) -> "Revisa los avisos de la importación o ignóralos."
         sessionsPerWeek > days -> "Tu programa tiene $sessionsPerWeek sesiones por semana y elegiste $days días. Cambia los días."
         else -> null
     }

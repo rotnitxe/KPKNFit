@@ -33,6 +33,9 @@ import com.example.kpkn.domain.onboarding.TrainingGoalProfile
 import com.example.kpkn.domain.onboarding.TrainingPlace
 import com.example.kpkn.domain.onboarding.WizChatMachineState
 import com.example.kpkn.domain.training.ProgramExecutionContract
+import com.example.kpkn.domain.training.importer.Change
+import com.example.kpkn.domain.training.importer.ImportExercisePatch
+import com.example.kpkn.screens.programs.importer.ImportEditOp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
@@ -45,6 +48,7 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
@@ -263,6 +267,51 @@ class ImportActivationWizardTest {
     private fun idle(state: SetupWizardState): Boolean =
         rest(state) && state.machineState != WizChatMachineState.PreparingPreview &&
             !state.isPreviewLoading && !state.isCandidateLoading
+
+    /**
+     * La vista previa del alta: cada edición deja su texto para deshacer, deshacer devuelve el borrador tal como estaba, la
+     * pila guarda 30 pasos y «Empezar de nuevo» (clearImport) la vacía.
+     */
+    @Test
+    fun editsOfTheImportedProgramCanBeUndoneAndClearingEmptiesTheStack() = runTest(dispatcher.scheduler, timeout = 10.minutes) {
+        val vm = newVm()
+        vm.initialize(SetupWizardMode.TRAINING_ONLY)
+        await(vm, "wizard cargado") { !it.isLoading && it.currentStep == SetupStepId.NAME }
+        vm.importFromText(pasted)
+        await(vm, "programa leído") { !it.importBusy && it.draft.importedProgram != null }
+        val original = vm.state.value.draft.importedProgram!!
+        val squat = original.weeks[0].days[0].exercises[0]
+
+        vm.editImport(ImportEditOp.Update(squat.id, ImportExercisePatch(sets = Change.Set(5)), allWeeks = false))
+        await(vm, "edición guardada") { it.draft.importedProgram?.weeks?.first()?.days?.first()?.exercises?.first()?.sets == 5 }
+        assertEquals("Cambiaste «Sentadilla».", vm.state.value.importUndoLabel)
+
+        vm.undoImportEdit()
+        await(vm, "deshecho") { it.draft.importedProgram == original }
+        assertNull(vm.state.value.importUndoLabel)
+
+        // 31 cambios: la pila conserva 30; deshacer 30 veces vuelve a la primera edición, y ya no hay nada más que deshacer.
+        repeat(31) { step ->
+            vm.editImport(ImportEditOp.Update(squat.id, ImportExercisePatch(sets = Change.Set(if (step % 2 == 0) 5 else 6)), allWeeks = false))
+        }
+        await(vm, "31 ediciones") { idle(it) && it.importUndoLabel != null }
+        repeat(30) { vm.undoImportEdit() }
+        await(vm, "30 deshacer") { idle(it) && it.importUndoLabel == null }
+        assertEquals(5, vm.state.value.draft.importedProgram!!.weeks.first().days.first().exercises.first().sets)
+        vm.undoImportEdit()
+        advanceUntilIdle()
+        assertEquals(5, vm.state.value.draft.importedProgram!!.weeks.first().days.first().exercises.first().sets)
+
+        // «Empezar de nuevo» vacía lo importado y la pila: deshacer ya no hace nada.
+        vm.editImport(ImportEditOp.Update(squat.id, ImportExercisePatch(sets = Change.Set(7)), allWeeks = false))
+        await(vm, "edición antes de empezar de nuevo") { it.importUndoLabel != null }
+        vm.clearImport()
+        await(vm, "importación quitada") { it.draft.importedProgram == null && it.importUndoLabel == null }
+        vm.undoImportEdit()
+        advanceUntilIdle()
+        assertNull(vm.state.value.draft.importedProgram)
+        assertNull(vm.state.value.importUndoLabel)
+    }
 
     private fun newVm(level: PlanLevel = PlanLevel.PRO): SetupWizardViewModel =
         SetupWizardViewModel(

@@ -12,6 +12,7 @@ import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogRepositoryV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogStateV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2
 import com.example.kpkn.domain.training.importer.ExerciseNameCandidate
+import com.example.kpkn.domain.training.importer.ImportDraftValidation
 import com.example.kpkn.domain.training.importer.ImportSheet
 import com.example.kpkn.domain.training.importer.ImportedProgramBuilder
 import com.example.kpkn.domain.training.importer.ImportedProgramDraft
@@ -37,16 +38,18 @@ data class ImportProgramState(
     val title: String = "",
     /** Decisión por nombre importado: configuración del catálogo, o null = ejercicio propio. Sin clave = con dudas. */
     val resolutions: Map<String, String?> = emptyMap(),
-    /** Ejercicio cuyo panel «Elegir» está abierto. */
-    val openedName: String? = null,
+    /** Ejercicio cuyo panel de ajuste está abierto (su id). */
+    val openedExerciseId: String? = null,
+    /** Lo que deshace el siguiente toque; null si no hay nada que deshacer. */
+    val undoLabel: String? = null,
     val busy: Boolean = false,
     val error: String? = null,
     val notice: String? = null,
 )
 
 /**
- * Estado y acciones de la pantalla de importación de Programas. Lee y empareja como el paso del alta, pero guarda el
- * programa con el repositorio de siempre, sujeto a los límites del nivel (`ProgramAccessPolicy`).
+ * Estado y acciones de la pantalla de importación de Programas. Lee y empareja como el paso del alta, edita el programa
+ * leído con deshacer y lo guarda con el repositorio de siempre, sujeto a los límites del nivel (`ProgramAccessPolicy`).
  */
 class ImportProgramViewModel(application: Application) : AndroidViewModel(application) {
     private val catalogRepository: ExerciseCatalogRepositoryV2 =
@@ -54,6 +57,12 @@ class ImportProgramViewModel(application: Application) : AndroidViewModel(applic
     private val catalogMutex = Mutex()
     @Volatile private var catalog: ExerciseCatalogV2? = null
     private var importJob: Job? = null
+
+    /** Pila de deshacer de las ediciones: en memoria; se vacía al leer otro archivo o al empezar de nuevo. */
+    private val undoStack = ImportUndoStack()
+
+    /** Nombre que se muestra por configuración del catálogo, para los textos de deshacer. */
+    private val displayNames = mutableMapOf<String, String>()
 
     /** Guarda el programa; las pruebas lo sustituyen. Producción: el repositorio de programas. */
     internal var saveProgram: suspend (Program) -> Result<Unit> = { ProgramRepository.getInstance().addProgramNow(it) }
@@ -79,31 +88,61 @@ class ImportProgramViewModel(application: Application) : AndroidViewModel(applic
         _state.value = _state.value.copy(title = title)
     }
 
-    fun resolve(rawName: String, configId: String?) {
-        _state.value = _state.value.copy(resolutions = _state.value.resolutions + (rawName to configId))
+    /** Decide un nombre importado: [configId] del catálogo, o null = ejercicio propio. Pasa por la pila de deshacer. */
+    fun resolve(rawName: String, configId: String?) =
+        edit(ImportEditOp.Decide(rawName, configId, name = configId?.let { displayNames[it] } ?: rawName))
+
+    /** Aplica una edición de la vista previa y la deja en la pila de deshacer. Sin cambios, no hace nada. */
+    fun edit(op: ImportEditOp) {
+        val current = _state.value
+        val imported = current.imported ?: return
+        val before = ImportSnapshot(imported, current.resolutions)
+        val (after, label) = ImportEdits.apply(before, op) { raw -> shownName(raw, current.resolutions) } ?: return
+        if (op is ImportEditOp.Decide) op.configId?.let { displayNames[it] = op.name }
+        undoStack.push(before, label)
+        _state.value = current.copy(
+            imported = after.imported,
+            resolutions = after.resolutions,
+            undoLabel = undoStack.label,
+            error = null,
+        )
     }
 
-    fun open(rawName: String?) {
-        _state.value = _state.value.copy(openedName = rawName)
+    /** Deshace el último cambio de la vista previa. */
+    fun undo() {
+        val current = _state.value
+        val previous = undoStack.pop() ?: return
+        _state.value = current.copy(
+            imported = previous.imported,
+            resolutions = previous.resolutions,
+            undoLabel = undoStack.label,
+        )
+    }
+
+    /** Abre el panel de ajuste de un ejercicio (por su id); null lo cierra. */
+    fun open(exerciseId: String?) {
+        _state.value = _state.value.copy(openedExerciseId = exerciseId)
     }
 
     fun clear() {
         importJob?.cancel()
+        undoStack.clear()
         _state.value = ImportProgramState()
     }
 
     suspend fun suggestions(rawName: String): List<ExerciseNameCandidate> =
-        withContext(Dispatchers.Default) { ImportCatalogLookup.suggestions(loadedCatalog(), rawName) }
+        withContext(Dispatchers.Default) { ImportCatalogLookup.suggestions(loadedCatalog(), rawName) }.also(::rememberNames)
 
     suspend fun search(query: String): List<ExerciseNameCandidate> =
-        withContext(Dispatchers.Default) { ImportCatalogLookup.search(loadedCatalog(), query) }
+        withContext(Dispatchers.Default) { ImportCatalogLookup.search(loadedCatalog(), query) }.also(::rememberNames)
 
     suspend fun namesOf(configIds: Set<String>): Map<String, String> =
         withContext(Dispatchers.Default) { ImportCatalogLookup.namesOf(loadedCatalog(), configIds) }
+            .also { displayNames.putAll(it) }
 
     /**
-     * Guarda el programa importado si el nivel lo permite. Devuelve el id guardado, o null con el aviso que toca
-     * ([IMPORT_PRO_NOTICE] si el límite Free lo rechaza). Un programa con dudas sin decidir tampoco se guarda.
+     * Guarda el programa importado si la revisión final está limpia y el nivel lo permite. Devuelve el id guardado, o null
+     * con el aviso que toca: el primer problema de la revisión, o [IMPORT_PRO_NOTICE] si el límite Free lo rechaza.
      */
     suspend fun save(level: PlanLevel): String? {
         val current = _state.value
@@ -112,10 +151,8 @@ class ImportProgramViewModel(application: Application) : AndroidViewModel(applic
             reportError("No encontramos ejercicios en lo que importaste.")
             return null
         }
-        if (imported.weeks.flatMap { week -> week.days.flatMap { it.exercises } }
-                .any { !current.resolutions.containsKey(it.rawName) }
-        ) {
-            reportError("Elige o deja como está los ejercicios con dudas.")
+        ImportDraftValidation.check(imported) { current.resolutions.containsKey(it) }.firstOrNull()?.let { first ->
+            reportError(importIssueLine(first, imported))
             return null
         }
         val program = ImportedProgramBuilder.build(
@@ -143,6 +180,7 @@ class ImportProgramViewModel(application: Application) : AndroidViewModel(applic
 
     private fun startImport(defaultTitle: String, parse: () -> ImportedProgramDraft) {
         importJob?.cancel()
+        undoStack.clear()
         _state.value = ImportProgramState(busy = true)
         importJob = viewModelScope.launch {
             try {
@@ -166,6 +204,14 @@ class ImportProgramViewModel(application: Application) : AndroidViewModel(applic
                 _state.value = ImportProgramState(error = error.message ?: "No pudimos leer el programa.")
             }
         }
+    }
+
+    /** Lo que se muestra de un nombre importado: el del catálogo si se eligió uno, o el del archivo. */
+    private fun shownName(rawName: String, resolutions: Map<String, String?>): String =
+        resolutions[rawName]?.let { displayNames[it] } ?: rawName
+
+    private fun rememberNames(candidates: List<ExerciseNameCandidate>) {
+        candidates.forEach { displayNames[it.configurationId] = it.displayName }
     }
 
     /** El catálogo de ejercicios, cargado una sola vez; sin él no hay emparejado ni nombres. */
