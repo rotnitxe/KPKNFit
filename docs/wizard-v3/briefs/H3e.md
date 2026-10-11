@@ -45,7 +45,10 @@ Y en las hojas de fuerza:
    - **Valores:** se guardan tal como vienen, en la unidad del archivo. Las celdas «135 lb», «60kg» o «60 kg» dan el número.
    - **Constructor:** con `LB`, `weight = round(valor × 0,45359237 × 2) / 2` (al 0,5 kg más cercano). Con `KG`, como hoy.
    - **Carga cero:** «0», «0lb» o «0kg» es «sin carga» (peso corporal): `loadKg = null` y sin aviso. Hoy da un IGNORED_VALUE por estar fuera de rango.
-5. **Fusión de grupos seguidos** (`ImportedProgramBuilder`):
+5. **Dos retoques que dejó H3c** (`ProgramImportParser`):
+   - **Abreviaturas conocidas:** un nombre corto que sea un alias conocido (`ImportExerciseAliases.lookup` no nulo: «DL», «BP», «SQ», «OHP», «RDL»…) NO cuenta como fila de etiquetas por tener menos de 3 letras.
+   - **Prosa con notación:** si el texto antes del primer tramo de notación tiene más de 6 palabras o más de 45 caracteres, la fila es prosa («Start with three reps at 5x5 and add…»). Suma a las «líneas de texto» de la hoja y no da ejercicio.
+6. **Fusión de grupos seguidos** (`ImportedProgramBuilder`):
    - Los ejercicios SEGUIDOS de un mismo día con el mismo `rawName` se convierten en UN ejercicio de la app.
    - Sus series van concatenadas en orden, y cada serie con su propio objetivo (repeticiones, %, carga, RPE y RIR).
    - El descanso es el primero que no sea nulo. Las notas no repetidas se unen en `executionCues`.
@@ -57,6 +60,7 @@ Y en las hojas de fuerza:
 - **Cuadrícula:** 3 días en columnas con 2 bloques «Ejercicio N / Series x Reps / Peso (kg)» → 3 días × 2 ejercicios con sus valores. Un bloque sin «Series x Reps» → SKIPPED_ROW.
 - **Grupos:** «Sentadilla 50%x5, 60%x4, 70%x3x2» → 3 ejercicios (1×5 al 50 %, 1×4 al 60 %, 2×3 al 70 %). «50/5 60/4 70/3/2» igual. «Press 4/8» no es un grupo.
 - **Libras:** una cabecera «Weight (lb)» → `LB`; el constructor convierte 135 → 61 kg. «kg» en la cabecera → `KG`. Borrador antiguo sin `loadUnit` → `KG`.
+- **Retoques de H3c:** «DL 3x5» da un ejercicio «DL»; «Start with three reps at 5x5 and add weight each week» es prosa.
 - **Fusión:** 3 grupos seguidos de «Sentadilla» → 1 ejercicio con 4 series y sus porcentajes. Sentadilla, Prensa, Sentadilla → 3 ejercicios.
 - **Corpus:** informes con `KPKN_IMPORT_REPORT=C:/kw/import-corpus-report-h3e` (corpus `C:/kw/import-corpus`) y `C:/kw/import-corpus-report-coleccion-h3e` (corpus `C:/Users/valen/Desktop/KPKN_Programas_Recoleccion_2026-10-11/01_originales`, solo lectura). Pon en tu informe el antes y el después de los dos.
 
