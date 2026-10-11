@@ -11,7 +11,7 @@ Aplica a TODOS los paquetes de la ola «Wizard v3» (24 correcciones del wizard)
 - La app vive en `android-native/app/src/main/java/com/example/kpkn/`; las pruebas en `android-native/app/src/test/java/com/example/kpkn/`.
   Lee primero `CLAUDE.md`, `docs/WIZARD_PAGINA_LARGA.md` (reglas del wizard) y, si tocas Entreno, `docs/WIZARD_ENTRENO_V2.md`.
   `domain/` no importa nada de `android.*`.
-- Solo flavor **Base**. Idioma de UI, comentarios y KDoc: **español**, breve; imita el estilo y la densidad de comentarios del código vecino.
+- Solo el flavor **base** (tareas `...Base...`). Idioma de UI, comentarios y KDoc: **español**, breve; imita el estilo y la densidad de comentarios del código vecino.
 - **Antes de editar un archivo, léelo entero** (o al menos la clase o función completa que vas a tocar). No inventes APIs: busca la firma
   real con Grep antes de llamarla. Si algo del brief no cuadra con el código, no improvises: elige la opción más conservadora y
   anótalo en el informe.
@@ -23,10 +23,10 @@ Aplica a TODOS los paquetes de la ola «Wizard v3» (24 correcciones del wizard)
   `C:\kw\logs\v3-<paquete>-<n>.log`. Espera una de las 2 ranuras globales y ≥ 3 GB de RAM libres, y ya añade
   `--no-daemon -Dorg.gradle.jvmargs=-Xmx4g -Pkotlin.compiler.execution.strategy=in-process` (no los repitas). Formato:
   `bash /c/kw/tools/gradle_slot.sh /c/kw/<tu-worktree>/android-native <tareas> > /c/kw/logs/v3-<paquete>-<n>.log 2>&1`.
-- **La app ya no tiene flavors** (se retiró Health Connect en `master`): las tareas son SIN «Base» — `:app:compileDebugKotlin`,
-  `:app:testDebugUnitTest`, `:app:assembleDebug`. Donde un brief diga `compileBaseDebugKotlin` o `testBaseDebugUnitTest`, usa la tarea sin
-  «Base». El build ejecuta `scripts/stability/optimize_resources.py` (ya está en tu checkout parcial; necesita `python` con Pillow, que hay).
-- Tareas permitidas: `:app:compileDebugKotlin` y `:app:testDebugUnitTest --tests "<filtro>"` con SOLO las clases nuevas o
+- **La app vuelve a tener flavors `base` y `health`** (desde el 2026-10-11 se deshizo su retirada): las tareas llevan «Base»:
+  `:app:compileBaseDebugKotlin`, `:app:testBaseDebugUnitTest`, `:app:assembleBaseDebug`. Si dudas, mira `productFlavors` en
+  `app/build.gradle.kts` de tu checkout. Donde un brief antiguo diga una tarea sin «Base», usa la de «Base».
+- Tareas permitidas: `:app:compileBaseDebugKotlin` y `:app:testBaseDebugUnitTest --tests "<filtro>"` con SOLO las clases nuevas o
   afectadas que diga tu brief. **Nunca** la suite entera, nunca `androidTest`, nunca `./gradlew --stop`, nunca `clean`, **un solo**
   Gradle tuyo a la vez.
 - El primer build de un worktree tarda 10–20 min (más con la cola). Agrupa tus ediciones antes de compilar; mientras esperas, sigue
@@ -43,7 +43,7 @@ Aplica a TODOS los paquetes de la ola «Wizard v3» (24 correcciones del wizard)
 - Para ver dibujos sin teléfono: pruebas Robolectric con `@GraphicsMode(NATIVE)` que escriben PNG en la carpeta de la variable
   `KPKN_RENDER_DIR` y se saltan sin ella (patrón: `src/test/java/com/example/kpkn/render/WizardRenderSheetTest.kt`; para símbolos, la
   hoja compartida `SymbolRenderSheet` que crea el paquete B1). Comando:
-  `KPKN_RENDER_DIR=C:/kw/shots/v3/<paquete> bash /c/kw/tools/gradle_slot.sh /c/kw/<wt>/android-native :app:testDebugUnitTest --tests "<clase>"`.
+  `KPKN_RENDER_DIR=C:/kw/shots/v3/<paquete> bash /c/kw/tools/gradle_slot.sh /c/kw/<wt>/android-native :app:testBaseDebugUnitTest --tests "<clase>"`.
 - Mira cada PNG con Read y critícalo contra el brief (proporciones, legibilidad a 60 dp, nada cortado). Máximo **3 rondas** de ajuste;
   si no llegas, entrega lo mejor y explica qué falta.
 - Teléfono y emulador: **no** los uses salvo que tu brief lo pida expresamente.
