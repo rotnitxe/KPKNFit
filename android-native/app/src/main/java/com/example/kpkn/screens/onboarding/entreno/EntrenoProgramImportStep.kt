@@ -63,7 +63,7 @@ internal fun EntrenoProgramImportStep(state: SetupWizardState, vm: SetupWizardVi
                 label = "Título del programa",
                 testTag = "setup-import-title",
             )
-            ImportWarningsNote(warnings = imported.warnings)
+            ImportWarningsNote(warnings = imported.warningMessages)
             ImportPreviewWeeks(
                 imported = imported,
                 resolutions = draft.importResolutions,

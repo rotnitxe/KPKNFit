@@ -83,7 +83,7 @@ fun ImportProgramScreen(
                 label = "Título del programa",
                 testTag = "import-title",
             )
-            ImportWarningsNote(warnings = imported.warnings)
+            ImportWarningsNote(warnings = imported.warningMessages)
             ImportPreviewWeeks(
                 imported = imported,
                 resolutions = state.resolutions,

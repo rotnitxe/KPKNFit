@@ -23,9 +23,11 @@ class ImportedProgramBuilderTest {
                 index = 1,
                 days = listOf(
                     ImportedDay(
+                        id = "w1-d1",
                         name = "Día 1",
                         exercises = listOf(
                             ImportedExercise(
+                                id = "w1-d1-e1",
                                 rawName = "Sentadilla",
                                 sets = 4,
                                 repsMin = 6,
@@ -35,12 +37,22 @@ class ImportedProgramBuilderTest {
                                 restSeconds = 180,
                                 notes = "Profundidad",
                             ),
-                            ImportedExercise(rawName = "Ejercicio libre", sets = 3, repsMin = 10, repsMax = 10, percent1Rm = 75.0),
+                            ImportedExercise(
+                                id = "w1-d1-e2",
+                                rawName = "Ejercicio libre",
+                                sets = 3,
+                                repsMin = 10,
+                                repsMax = 10,
+                                percent1Rm = 75.0,
+                            ),
                         ),
                     ),
                     ImportedDay(
+                        id = "w1-d2",
                         name = "Día 2",
-                        exercises = listOf(ImportedExercise(rawName = "Press banca", sets = 3, repsMin = 5, repsMax = 5, rir = 2)),
+                        exercises = listOf(
+                            ImportedExercise(id = "w1-d2-e1", rawName = "Press banca", sets = 3, repsMin = 5, repsMax = 5, rir = 2),
+                        ),
                     ),
                 ),
             ),
@@ -48,8 +60,11 @@ class ImportedProgramBuilderTest {
                 index = 2,
                 days = listOf(
                     ImportedDay(
+                        id = "w2-d1",
                         name = "Día 1",
-                        exercises = listOf(ImportedExercise(rawName = "Sentadilla", sets = 2, repsMin = 5, repsMax = 5)),
+                        exercises = listOf(
+                            ImportedExercise(id = "w2-d1-e1", rawName = "Sentadilla", sets = 2, repsMin = 5, repsMax = 5),
+                        ),
                     ),
                 ),
             ),
@@ -174,6 +189,63 @@ class ImportedProgramBuilderTest {
         )
 
         assertEquals(ImportedProgramBuilder.DEFAULT_TITLE, program.name)
+    }
+
+    @Test
+    fun `un borrador editado (renombrado, parcheado, movido) genera el programa esperado`() {
+        val renamed = ImportDraftEditor.rename(draft, "w1-d1-e2", "Remo con barra")
+        val patched = ImportDraftEditor.update(
+            renamed,
+            "w1-d1-e1",
+            ImportExercisePatch(sets = Change.Set(5), loadKg = Change.Set(125.0)),
+        )
+        val moved = ImportDraftEditor.move(patched, "w1-d2-e1", toDayId = "w1-d1", toIndex = 1)
+
+        val program = ImportedProgramBuilder.build(moved, resolved = emptyMap(), weekdays = listOf(1, 3, 5), programId = "imp-9")
+
+        val sessions = program.firstWeekSessions()
+        assertEquals(listOf("Día 1", "Día 2"), sessions.map { it.name })
+        assertEquals(listOf("Sentadilla", "Press banca", "Remo con barra"), sessions[0].exercises.map { it.name })
+        assertTrue(sessions[1].exercises.isEmpty())
+        val squat = sessions[0].exercises[0]
+        assertEquals(5, squat.sets.size)
+        assertEquals(125.0, squat.sets.first().weight!!, 1e-6)
+        assertEquals(180, squat.restTime)
+        assertEquals(listOf("Profundidad"), squat.executionCues)
+    }
+
+    @Test
+    fun `avisos, texto de origen e ids no cambian el programa generado`() {
+        val noisy = draft.copy(
+            weeks = draft.weeks.map { week ->
+                week.copy(
+                    days = week.days.map { day ->
+                        day.copy(
+                            id = "x${day.id}",
+                            exercises = day.exercises.map { it.copy(id = "x${it.id}", sourceText = "fila original") },
+                        )
+                    },
+                )
+            },
+            warnings = listOf(
+                ImportWarning(
+                    id = "a1",
+                    kind = ImportWarningKind.SKIPPED_ROW,
+                    location = "Línea 9",
+                    sourceText = "Hacer 3 vueltas",
+                    message = "Línea 9: no se entiende «Hacer 3 vueltas»",
+                    weekIndex = 1,
+                    dayId = "w1-d1",
+                    exerciseId = null,
+                ),
+            ),
+            reviewedWarnings = setOf("a1"),
+        )
+
+        val expected = ImportedProgramBuilder.build(draft, resolved = emptyMap(), weekdays = listOf(1, 3, 5), programId = "imp-10")
+        val actual = ImportedProgramBuilder.build(noisy, resolved = emptyMap(), weekdays = listOf(1, 3, 5), programId = "imp-10")
+
+        assertEquals(expected, actual)
     }
 
     private fun Program.firstWeekSessions(): List<Session> =

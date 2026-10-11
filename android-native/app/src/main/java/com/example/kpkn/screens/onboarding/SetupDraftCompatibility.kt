@@ -20,6 +20,7 @@ import com.example.kpkn.domain.onboarding.SetupWizardBlock
 import com.example.kpkn.domain.onboarding.WizChatAnswerSource
 import com.example.kpkn.domain.onboarding.WizChatGraph
 import com.example.kpkn.domain.onboarding.WizChatQuestionId
+import com.example.kpkn.domain.training.importer.ImportDraftEditor
 
 /**
  * Pure compatibility rules for persisted drafts: age, height and weight must be
@@ -113,7 +114,7 @@ object SetupDraftCompatibility {
                     ),
                 ),
             ),
-        )
+        ).let { repaired -> repaired.copy(importedProgram = repaired.importedProgram?.let { ImportDraftEditor.withIds(it) }) }
 
     /**
      * Entreno v2 — lleva un borrador anterior a los datos nuevos SIN confirmar nada y sin perder respuestas (todo
