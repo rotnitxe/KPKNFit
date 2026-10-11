@@ -8,15 +8,14 @@ import com.example.kpkn.domain.training.importer.ImportedExercise
 import com.example.kpkn.domain.training.importer.ImportedProgramDraft
 import com.example.kpkn.domain.training.importer.ProgramImportParser
 import java.io.File
-import java.io.FileInputStream
 import java.time.Instant
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 /**
  * Banco de pruebas del importador sobre un corpus de hojas (solo test: el corpus no es del repositorio). Lee cada
- * .xlsx y .csv con el lector de la app, lo analiza con [ProgramImportParser] y empareja sus nombres con
- * [ExerciseNameMatcher]. Escribe `report.json`, `report.md` y `sheets/<archivo>.md` en la carpeta de salida.
+ * archivo con [ImportFileReader], el mismo lector que la app, lo analiza con [ProgramImportParser] y empareja sus
+ * nombres con [ExerciseNameMatcher]. Escribe `report.json`, `report.md` y `sheets/<archivo>.md` en la carpeta de salida.
  */
 class ImportCorpusReporter(
     private val matcher: ExerciseNameMatcher,
@@ -31,7 +30,7 @@ class ImportCorpusReporter(
     /** Recorre [corpus] por ruta, escribe el informe en [reportDir] y lo devuelve. */
     fun run(corpus: File, reportDir: File): CorpusReport {
         val found = corpus.walkTopDown()
-            .filter { it.isFile && (it.extension.equals("xlsx", true) || it.extension.equals("csv", true)) }
+            .filter { it.isFile && it.extension.lowercase() in CORPUS_EXTENSIONS }
             .sortedBy { it.relativeTo(corpus).invariantSeparatorsPath }
             .toList()
         val analyses = found.map { analyze(corpus, it) }
@@ -67,9 +66,7 @@ class ImportCorpusReporter(
         val title = file.nameWithoutExtension
         val readStart = System.nanoTime()
         val sheets = try {
-            FileInputStream(file).use { input ->
-                if (file.extension.equals("csv", true)) listOf(CsvReader.read(input, title)) else XlsxReader.read(input)
-            }
+            ImportFileReader.read(file.readBytes(), file.name, mime = null)
         } catch (rejected: ImportFileException) {
             return Analysis(
                 CorpusFileReport(path, CorpusOutcome.RECHAZO, note = rejected.message, readMs = millisSince(readStart)),
@@ -432,6 +429,8 @@ class ImportCorpusReporter(
     }
 
     companion object {
+        /** Extensiones que se recorren: las que lee la app y los .doc/.xls/.pdf, que salen como rechazo con su mensaje. */
+        private val CORPUS_EXTENSIONS = setOf("xlsx", "csv", "ods", "docx", "md", "markdown", "txt", "pdf", "doc", "xls")
         private const val SAMPLE_LIMIT = 15
         private const val VIEW_ROWS = 25
         private const val VIEW_COLUMNS = 16
