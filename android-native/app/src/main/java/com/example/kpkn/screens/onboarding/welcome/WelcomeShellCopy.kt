@@ -50,7 +50,7 @@ internal val WelcomePages: List<WelcomePageCopy> = listOf(
         accent = WelcomeScenePalette.musculo,
         title = "Entrenar, sin complicarte",
         message = "Empieza la sesión de hoy y registra cada serie con kilos y repeticiones. KPKN lleva la cuenta por ti.",
-        demoDescription = "Demostración animada: empiezas la sesión de hoy, registras una serie con kilos y repeticiones y ves el descanso.",
+        demoDescription = "Vídeo de demostración: retomas la sesión de hoy, registras una serie con kilos y repeticiones y ves el descanso.",
         period = WelcomeEntrenoPeriod,
     ),
     WelcomePageCopy(
@@ -59,7 +59,7 @@ internal val WelcomePages: List<WelcomePageCopy> = listOf(
         accent = WelcomeScenePalette.ok,
         title = "Cuenta lo que comes, a tu manera",
         message = "Escribe lo que comiste con tus palabras y KPKN calcula calorías y macros por ti.",
-        demoDescription = "Demostración animada: escribes una comida con tus palabras, KPKN la entiende y los anillos del día suben.",
+        demoDescription = "Vídeo de demostración: escribes una comida con tus palabras, KPKN la entiende y los anillos del día suben.",
         period = WelcomeNutricionPeriod,
     ),
     WelcomePageCopy(
@@ -68,7 +68,7 @@ internal val WelcomePages: List<WelcomePageCopy> = listOf(
         accent = WelcomeScenePalette.columna,
         title = "Cuándo apretar y cuándo descansar",
         message = "Tus RINGS muestran cómo se recuperan tus músculos, tu energía y tu columna, y los ajustas a cómo te sientes.",
-        demoDescription = "Demostración animada: tocas uno de tus RINGS para ver su detalle y lo ajustas con el deslizador.",
+        demoDescription = "Vídeo de demostración: ajustas tu energía con el deslizador y en Inicio ves el anillo actualizado con su motivo.",
         period = WelcomeRingsPeriod,
     ),
 )
