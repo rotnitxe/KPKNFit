@@ -97,7 +97,8 @@ internal fun importMoveLabelOf(position: Int, dayName: String): String =
 /**
  * La vista previa de un programa importado: semanas, días y ejercicios con su prescripción. Cada ejercicio muestra si
  * está reconocido (✓), es propio o tiene dudas («Elegir»). Tocarlo abre su panel de ajuste ([openedExerciseId] es el
- * único abierto). Lo usan el paso del alta y la pantalla de Programas: no guarda nada por sí misma; reenvía cada edición
+ * único abierto). Cada semana y cada día tienen su «⋯», con el menú en línea (renombrar, mover, unir, quitar, añadir días
+ * y ejercicios). Lo usan el paso del alta y la pantalla de Programas: no guarda nada por sí misma; reenvía cada edición
  * como [ImportEditOp] a quien la muestra.
  */
 @Composable
@@ -127,13 +128,76 @@ internal fun ImportPreviewWeeks(
     val nameCounts = remember(imported) {
         imported.weeks.flatMap { week -> week.days.flatMap { it.exercises } }.groupingBy { it.rawName }.eachCount()
     }
+    // Un menú de semana o de día, o el panel «Añadir ejercicio», abierto (clave de ImportStructureMenus.kt). Solo uno a la vez y
+    // nunca con un ejercicio abierto: si se abre un ejercicio desde fuera (la revisión final), el menú se cierra.
+    var structurePanel by rememberSaveable { mutableStateOf<String?>(null) }
+    LaunchedEffect(openedExerciseId) { if (openedExerciseId != null) structurePanel = null }
+    val activePanel = structurePanel.takeIf { openedExerciseId == null }
+    fun togglePanel(key: String) {
+        if (activePanel == key) {
+            structurePanel = null
+        } else {
+            structurePanel = key
+            onOpen(null)
+        }
+    }
     Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(24.dp)) {
         imported.weeks.sortedBy { it.index }.forEach { week ->
+            val weekKey = importWeekMenuKey(week.index)
             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                Text("Semana ${week.index}", style = WizardTypography.eyebrow, color = WizardColors.textMuted)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        "Semana ${week.index}",
+                        style = WizardTypography.eyebrow,
+                        color = WizardColors.textMuted,
+                        modifier = Modifier.weight(1f),
+                    )
+                    ImportMenuButton(
+                        open = activePanel == weekKey,
+                        description = "Opciones de la semana ${week.index}",
+                        onClick = { togglePanel(weekKey) },
+                        testTag = "import-week-menu-${week.index}",
+                    )
+                }
+                if (activePanel == weekKey) {
+                    ImportWeekMenu(week = week, onEdit = onEdit, onClose = { structurePanel = null })
+                }
                 week.days.forEachIndexed { dayPosition, day ->
+                    val dayKey = importDayMenuKey(day.id)
+                    val addKey = importAddExerciseKey(day.id)
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text(day.name, style = WizardTypography.controlLabel, color = WizardColors.text)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                day.name,
+                                style = WizardTypography.controlLabel,
+                                color = WizardColors.text,
+                                modifier = Modifier.weight(1f),
+                            )
+                            ImportMenuButton(
+                                open = activePanel == dayKey,
+                                description = "Opciones de «${day.name}»",
+                                onClick = { togglePanel(dayKey) },
+                                testTag = "import-day-menu-${day.id}",
+                            )
+                        }
+                        if (activePanel == dayKey) {
+                            ImportDayMenu(
+                                day = day,
+                                position = dayPosition,
+                                dayCount = week.days.size,
+                                onEdit = onEdit,
+                                onAddExercise = { togglePanel(addKey) },
+                                onClose = { structurePanel = null },
+                            )
+                        }
+                        if (activePanel == addKey) {
+                            ImportAddExercisePanel(
+                                dayId = day.id,
+                                search = search,
+                                onEdit = onEdit,
+                                onClose = { structurePanel = null },
+                            )
+                        }
                         day.exercises.forEachIndexed { position, exercise ->
                             val open = openedExerciseId == exercise.id
                             ImportExerciseRow(
@@ -141,7 +205,10 @@ internal fun ImportPreviewWeeks(
                                 state = importExerciseStateOf(exercise.rawName, resolutions),
                                 shownName = resolutions[exercise.rawName]?.let { names[it] } ?: exercise.rawName,
                                 expanded = open,
-                                onToggle = { onOpen(if (open) null else exercise.id) },
+                                onToggle = {
+                                    structurePanel = null
+                                    onOpen(if (open) null else exercise.id)
+                                },
                             )
                             if (open) {
                                 ImportExerciseEditor(
@@ -169,6 +236,11 @@ internal fun ImportPreviewWeeks(
                         }
                     }
                 }
+                ImportTextAction(
+                    label = "Añadir día",
+                    onClick = { onEdit(ImportEditOp.AddDay(week.index, "")) },
+                    modifier = Modifier.testTag("import-add-day-${week.index}"),
+                )
             }
         }
     }
@@ -290,8 +362,6 @@ internal fun ImportChoicePanel(
     modifier: Modifier = Modifier,
 ) {
     var suggestions by remember(rawName) { mutableStateOf<List<ExerciseNameCandidate>>(emptyList()) }
-    var query by rememberSaveable(rawName) { mutableStateOf("") }
-    var results by remember(rawName) { mutableStateOf<List<ExerciseNameCandidate>>(emptyList()) }
     LaunchedEffect(rawName) {
         suggestions = try {
             suggest(rawName)
@@ -301,6 +371,36 @@ internal fun ImportChoicePanel(
             emptyList()
         }
     }
+    Column(
+        modifier = modifier.fillMaxWidth().testTag("import-choice-panel"),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text("Elige el ejercicio", style = WizardTypography.controlLabel, color = WizardColors.text)
+        suggestions.forEach { candidate ->
+            ImportCandidateRow(candidate = candidate, onClick = { onPick(candidate.configurationId, candidate.displayName) })
+        }
+        ImportCatalogSearch(key = rawName, search = search, onPick = { onPick(it.configurationId, it.displayName) })
+        ImportTextAction(
+            label = "Dejarlo como está (ejercicio propio)",
+            onClick = { onPick(null, rawName) },
+            modifier = Modifier.testTag("import-choice-own"),
+        )
+        onCancel?.let { ImportTextAction(label = "Cancelar", onClick = it) }
+    }
+}
+
+/**
+ * La búsqueda libre en el catálogo: el campo «Buscar en el catálogo» y sus resultados; al tocar uno, [onPick]. La usan «Elegir»
+ * y «Añadir ejercicio». [key] reinicia la búsqueda cuando cambia lo que se elige (el nombre o el día).
+ */
+@Composable
+internal fun ImportCatalogSearch(
+    key: String,
+    search: suspend (String) -> List<ExerciseNameCandidate>,
+    onPick: (ExerciseNameCandidate) -> Unit,
+) {
+    var query by rememberSaveable(key) { mutableStateOf("") }
+    var results by remember(key) { mutableStateOf<List<ExerciseNameCandidate>>(emptyList()) }
     LaunchedEffect(query) {
         val text = query.trim()
         if (text.isEmpty()) {
@@ -316,29 +416,14 @@ internal fun ImportChoicePanel(
             }
         }
     }
-    Column(
-        modifier = modifier.fillMaxWidth().testTag("import-choice-panel"),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Text("Elige el ejercicio", style = WizardTypography.controlLabel, color = WizardColors.text)
-        suggestions.forEach { candidate ->
-            ImportCandidateRow(candidate = candidate, onClick = { onPick(candidate.configurationId, candidate.displayName) })
-        }
-        SetupFormTextField(
-            value = query,
-            onValueChange = { query = it },
-            label = "Buscar en el catálogo",
-            testTag = "import-choice-search",
-        )
-        results.forEach { candidate ->
-            ImportCandidateRow(candidate = candidate, onClick = { onPick(candidate.configurationId, candidate.displayName) })
-        }
-        ImportTextAction(
-            label = "Dejarlo como está (ejercicio propio)",
-            onClick = { onPick(null, rawName) },
-            modifier = Modifier.testTag("import-choice-own"),
-        )
-        onCancel?.let { ImportTextAction(label = "Cancelar", onClick = it) }
+    SetupFormTextField(
+        value = query,
+        onValueChange = { query = it },
+        label = "Buscar en el catálogo",
+        testTag = "import-choice-search",
+    )
+    results.forEach { candidate ->
+        ImportCandidateRow(candidate = candidate, onClick = { onPick(candidate) })
     }
 }
 

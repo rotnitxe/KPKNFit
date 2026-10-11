@@ -112,10 +112,7 @@ internal fun ImportExerciseEditor(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(WizardColors.glassFill)
-            .border(1.dp, WizardColors.glassBorder, RoundedCornerShape(16.dp))
-            .padding(16.dp)
+            .importGlassPanel()
             .semantics { paneTitle = "Ajusta el ejercicio" }
             .testTag("import-edit-panel"),
         verticalArrangement = Arrangement.spacedBy(18.dp),
@@ -211,62 +208,16 @@ internal fun ImportExerciseEditor(
         }
 
         ImportSection(label = "Repeticiones") {
-            ImportSegmented(
-                options = listOf(false, true),
-                selected = rangeMode,
-                label = { range -> if (range) "Rango" else "Fijas" },
-                onSelected = { range ->
+            ImportRepsEditor(
+                rangeMode = rangeMode,
+                repsMin = form.repsMin,
+                repsMax = form.repsMax,
+                onChange = { range, low, high ->
                     rangeMode = range
-                    if (!range) form = form.copy(repsMax = form.repsMin)
+                    form = form.copy(repsMin = low, repsMax = high)
                 },
-                testTag = "import-edit-reps-mode",
+                tagPrefix = "import-edit",
             )
-            if (rangeMode) {
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Top) {
-                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text("de", style = WizardTypography.note, color = WizardColors.textMuted)
-                        ImportStepper(
-                            field = "repeticiones mínimas",
-                            valueText = "${form.repsMin}",
-                            canDecrease = form.repsMin > 1,
-                            canIncrease = form.repsMin < ProgramImportParser.MAX_REPS,
-                            onDecrease = { form = form.copy(repsMin = form.repsMin - 1) },
-                            onIncrease = {
-                                // «de» por encima de «a» empuja «a».
-                                val low = form.repsMin + 1
-                                form = form.copy(repsMin = low, repsMax = maxOf(form.repsMax, low))
-                            },
-                            testTag = "import-edit-reps-min",
-                        )
-                    }
-                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text("a", style = WizardTypography.note, color = WizardColors.textMuted)
-                        ImportStepper(
-                            field = "repeticiones máximas",
-                            valueText = "${form.repsMax}",
-                            canDecrease = form.repsMax > 1,
-                            canIncrease = form.repsMax < ProgramImportParser.MAX_REPS,
-                            onDecrease = {
-                                // «a» por debajo de «de» arrastra «de».
-                                val high = form.repsMax - 1
-                                form = form.copy(repsMax = high, repsMin = minOf(form.repsMin, high))
-                            },
-                            onIncrease = { form = form.copy(repsMax = form.repsMax + 1) },
-                            testTag = "import-edit-reps-max",
-                        )
-                    }
-                }
-            } else {
-                ImportStepper(
-                    field = "repeticiones",
-                    valueText = "${form.repsMin}",
-                    canDecrease = form.repsMin > 1,
-                    canIncrease = form.repsMin < ProgramImportParser.MAX_REPS,
-                    onDecrease = { form = form.copy(repsMin = form.repsMin - 1, repsMax = form.repsMin - 1) },
-                    onIncrease = { form = form.copy(repsMin = form.repsMin + 1, repsMax = form.repsMin + 1) },
-                    testTag = "import-edit-reps",
-                )
-            }
         }
 
         ImportSection(label = "Carga") {
@@ -486,9 +437,85 @@ internal fun ImportExerciseEditor(
     }
 }
 
+/** El vidrio tenue de los paneles del importador: el de «Elegir», el ajuste, los menús y «Añadir ejercicio». */
+internal fun Modifier.importGlassPanel(): Modifier = this
+    .clip(RoundedCornerShape(16.dp))
+    .background(WizardColors.glassFill)
+    .border(1.dp, WizardColors.glassBorder, RoundedCornerShape(16.dp))
+    .padding(16.dp)
+
+/**
+ * Repeticiones: «Fijas» (un selector de 1 a 100) o «Rango» (dos selectores, «de» y «a»). En «Rango», si «de» sube por encima de
+ * «a», «a» sube con él; si «a» baja por debajo de «de», «de» baja con él. [onChange] recibe el modo y las dos repeticiones nuevas;
+ * [tagPrefix] da las marcas de prueba (`<prefijo>-reps-min`…). Lo usan el panel de ajuste y el de «Añadir ejercicio».
+ */
+@Composable
+internal fun ImportRepsEditor(
+    rangeMode: Boolean,
+    repsMin: Int,
+    repsMax: Int,
+    onChange: (rangeMode: Boolean, repsMin: Int, repsMax: Int) -> Unit,
+    tagPrefix: String,
+) {
+    ImportSegmented(
+        options = listOf(false, true),
+        selected = rangeMode,
+        label = { range -> if (range) "Rango" else "Fijas" },
+        // Al pasar a «Fijas», las dos repeticiones quedan en la de «de».
+        onSelected = { range -> onChange(range, repsMin, if (range) repsMax else repsMin) },
+        testTag = "$tagPrefix-reps-mode",
+    )
+    if (rangeMode) {
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Top) {
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("de", style = WizardTypography.note, color = WizardColors.textMuted)
+                ImportStepper(
+                    field = "repeticiones mínimas",
+                    valueText = "$repsMin",
+                    canDecrease = repsMin > 1,
+                    canIncrease = repsMin < ProgramImportParser.MAX_REPS,
+                    onDecrease = { onChange(true, repsMin - 1, repsMax) },
+                    onIncrease = {
+                        // «de» por encima de «a» empuja «a».
+                        val low = repsMin + 1
+                        onChange(true, low, maxOf(repsMax, low))
+                    },
+                    testTag = "$tagPrefix-reps-min",
+                )
+            }
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("a", style = WizardTypography.note, color = WizardColors.textMuted)
+                ImportStepper(
+                    field = "repeticiones máximas",
+                    valueText = "$repsMax",
+                    canDecrease = repsMax > 1,
+                    canIncrease = repsMax < ProgramImportParser.MAX_REPS,
+                    onDecrease = {
+                        // «a» por debajo de «de» arrastra «de».
+                        val high = repsMax - 1
+                        onChange(true, minOf(repsMin, high), high)
+                    },
+                    onIncrease = { onChange(true, repsMin, repsMax + 1) },
+                    testTag = "$tagPrefix-reps-max",
+                )
+            }
+        }
+    } else {
+        ImportStepper(
+            field = "repeticiones",
+            valueText = "$repsMin",
+            canDecrease = repsMin > 1,
+            canIncrease = repsMin < ProgramImportParser.MAX_REPS,
+            onDecrease = { onChange(false, repsMin - 1, repsMin - 1) },
+            onIncrease = { onChange(false, repsMin + 1, repsMin + 1) },
+            testTag = "$tagPrefix-reps",
+        )
+    }
+}
+
 /** Un bloque del panel: su etiqueta y su control. */
 @Composable
-private fun ImportSection(label: String, content: @Composable () -> Unit) {
+internal fun ImportSection(label: String, content: @Composable () -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(label, style = WizardTypography.controlLabel, color = WizardColors.text)
         content()
@@ -501,7 +528,7 @@ private fun ImportSection(label: String, content: @Composable () -> Unit) {
  * su escala de medida, que cortaba «Sin carga» en tres opciones.
  */
 @Composable
-private fun <T> ImportSegmented(
+internal fun <T> ImportSegmented(
     options: List<T>,
     selected: T,
     label: (T) -> String,
@@ -549,7 +576,7 @@ private fun <T> ImportSegmented(
  * los extremos y el valor se anuncia como estado.
  */
 @Composable
-private fun ImportStepper(
+internal fun ImportStepper(
     field: String,
     valueText: String,
     canDecrease: Boolean,
@@ -629,7 +656,7 @@ private fun ImportSwitchRow(label: String, checked: Boolean, onCheckedChange: (B
 
 /** El botón principal del panel: el CTA del wizard (tinta sobre negro), apagado si no se puede guardar. */
 @Composable
-private fun ImportCta(label: String, enabled: Boolean, onClick: () -> Unit, testTag: String, modifier: Modifier = Modifier) {
+internal fun ImportCta(label: String, enabled: Boolean, onClick: () -> Unit, testTag: String, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .heightIn(min = WizardSpacing.ctaHeight)
