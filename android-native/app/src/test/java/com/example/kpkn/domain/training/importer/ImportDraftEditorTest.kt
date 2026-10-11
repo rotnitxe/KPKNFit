@@ -341,12 +341,13 @@ class ImportDraftEditorTest {
     }
 
     @Test
-    fun `addFromWarning sin dia crea Dia 1 al final de la semana del aviso`() {
+    fun `addFromWarning sin dia crea «Dia n+1» al final de la semana del aviso`() {
         val added = ImportDraftEditor.addFromWarning(draft, "a2", "Hacer 3 vueltas", 3, 10, 12)
 
         val days = added.weeks[2].days
         assertEquals(listOf("w3-d1", "w3-d2", "x1"), days.map { it.id })
-        assertEquals("Día 1", days[2].name)
+        // La semana 3 ya tiene dos días: el nuevo es el tercero.
+        assertEquals("Día 3", days[2].name)
         assertEquals(listOf("x2"), days[2].exercises.map { it.id })
         assertEquals("Hacer 3 vueltas", days[2].exercises[0].rawName)
         assertEquals(setOf("a2"), added.reviewedWarnings)
@@ -377,6 +378,35 @@ class ImportDraftEditorTest {
     @Test
     fun `addFromWarning con valores fuera de rango no hace nada`() {
         assertSame(draft, ImportDraftEditor.addFromWarning(draft, "a1", "Remo", 21, 8, 10))
+    }
+
+    @Test
+    fun `addFromWarning con toDayId lo añade a ese dia aunque el aviso sea de otro`() {
+        // El aviso a1 es de «Empuje» (w1-d2); se elige «Pierna».
+        val added = ImportDraftEditor.addFromWarning(draft, "a1", "Remo", 3, 8, 10, toDayId = "w1-d1")
+
+        assertEquals(listOf("w1-d1-e1", "w1-d1-e2", "x1"), added.weeks[0].days[0].exercises.map { it.id })
+        assertEquals(listOf("w1-d2-e1"), added.weeks[0].days[1].exercises.map { it.id })
+    }
+
+    @Test
+    fun `addFromWarning con toDayId que no existe usa el dia del aviso`() {
+        val added = ImportDraftEditor.addFromWarning(draft, "a1", "Remo", 3, 8, 10, toDayId = "w9-d9")
+
+        assertEquals(listOf("w1-d2-e1", "x1"), added.weeks[0].days[1].exercises.map { it.id })
+    }
+
+    @Test
+    fun `addFromWarning con newDay crea un dia nuevo aunque el aviso tenga dia`() {
+        val added = ImportDraftEditor.addFromWarning(draft, "a1", "Remo", 3, 8, 10, newDay = true)
+
+        // La semana 1 ya tiene dos días: el nuevo es el tercero y lleva el contador.
+        val days = added.weeks[0].days
+        assertEquals(listOf("w1-d1", "w1-d2", "x1"), days.map { it.id })
+        assertEquals("Día 3", days[2].name)
+        assertEquals(listOf("x2"), days[2].exercises.map { it.id })
+        assertEquals(setOf("a1"), added.reviewedWarnings)
+        assertEquals(3, added.nextId)
     }
 
     // ---- Ids inexistentes ----------------------------------------------------------------------------------
